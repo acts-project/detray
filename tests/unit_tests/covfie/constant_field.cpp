@@ -23,7 +23,7 @@ TEST(Covfie, ConstantField1D) {
     field_t f(field_t::backend_t::configuration_t{2.f});
     field_t::view_t v(f);
 
-    for (float x = -100.f; x <= 100.f; x += 1.) {
+    for (float x = -100.f; x <= 100.f; x += 1.f) {
         EXPECT_EQ(v.at(x)[0], 2.f);
     }
 }
@@ -36,8 +36,8 @@ TEST(Covfie, ConstantField2D) {
     field_t f(field_t::backend_t::configuration_t{2.f, 5.f});
     field_t::view_t v(f);
 
-    for (float x = -100.f; x <= 100.f; x += 1.) {
-        for (float y = -100.f; y <= 100.f; y += 1.) {
+    for (float x = -100.f; x <= 100.f; x += 1.f) {
+        for (float y = -100.f; y <= 100.f; y += 1.f) {
             EXPECT_EQ(v.at(x, y)[0], 2.f);
             EXPECT_EQ(v.at(x, y)[1], 5.f);
         }
@@ -52,9 +52,9 @@ TEST(Covfie, ConstantField3D) {
     field_t f(field_t::backend_t::configuration_t{2.f, 5.f, -4.f});
     field_t::view_t v(f);
 
-    for (float x = -10.f; x <= 10.f; x += 1.) {
-        for (float y = -10.f; y <= 10.f; y += 1.) {
-            for (float z = -10.f; z <= 10.f; z += 1.) {
+    for (float x = -10.f; x <= 10.f; x += 1.f) {
+        for (float y = -10.f; y <= 10.f; y += 1.f) {
+            for (float z = -10.f; z <= 10.f; z += 1.f) {
                 EXPECT_EQ(v.at(x, y, z)[0], 2.f);
                 EXPECT_EQ(v.at(x, y, z)[1], 5.f);
                 EXPECT_EQ(v.at(x, y, z)[2], -4.f);

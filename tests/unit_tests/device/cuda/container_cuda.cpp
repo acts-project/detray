@@ -1,6 +1,6 @@
 /** Detray library, part of the ACTS project (R&D line)
  *
- * (c) 2022 CERN for the benefit of the ACTS project
+ * (c) 2022-2023 CERN for the benefit of the ACTS project
  *
  * Mozilla Public License Version 2.0
  */
@@ -39,7 +39,7 @@ TEST(container_cuda, multi_type_store) {
     store.emplace_back<1>(empty_context{}, 3.1f);
     store.emplace_back<1>(empty_context{}, 4.5f);
     store.emplace_back<2>(empty_context{}, 5.5);
-    store.emplace_back<2>(empty_context{}, 6.);
+    store.emplace_back<2>(empty_context{}, 6.0);
 
     vecmem::vector<std::size_t> int_vec{3UL, 4UL, 5UL};
     store.insert(int_vec);
@@ -50,14 +50,14 @@ TEST(container_cuda, multi_type_store) {
     store.insert(vecmem::vector<double>{10.5, 7.6});
 
     // CPU sum check
-    double cpu_sum = 0;
+    double cpu_sum = 0.;
     cpu_sum =
         std::accumulate(store.get<0>().begin(), store.get<0>().end(), cpu_sum);
     cpu_sum =
         std::accumulate(store.get<1>().begin(), store.get<1>().end(), cpu_sum);
     cpu_sum =
         std::accumulate(store.get<2>().begin(), store.get<2>().end(), cpu_sum);
-    EXPECT_FLOAT_EQ(cpu_sum, 69.9);
+    EXPECT_NEAR(cpu_sum, 69.9, 1e-6);
 
     // CUDA sum check
     typename host_store_type::view_type store_data = get_data(store);
@@ -68,5 +68,5 @@ TEST(container_cuda, multi_type_store) {
 
     get_sum(store_data, sum_data);
 
-    EXPECT_FLOAT_EQ(cpu_sum, cuda_sum[0]);
+    EXPECT_NEAR(cpu_sum, cuda_sum[0], 1e-6);
 }

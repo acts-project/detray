@@ -1,6 +1,6 @@
 /** Detray library, part of the ACTS project (R&D line)
  *
- * (c) 2022 CERN for the benefit of the ACTS project
+ * (c) 2022-2023 CERN for the benefit of the ACTS project
  *
  * Mozilla Public License Version 2.0
  */
@@ -12,7 +12,8 @@
 
 namespace detray {
 
-// Helper struct to sum over variadic std::ratio
+/// Helper struct to sum over variadic std::ratio
+/// @{
 template <typename... ratios>
 struct ratio_sum_helper;
 
@@ -28,21 +29,21 @@ struct ratio_sum_helper<ratio1, ratio2, ratios...> {
 
     using next_helper = ratio_sum_helper<first_two_sum, ratios...>;
 
-    static constexpr bool is_done = (sizeof...(ratios) == 0);
-
     // recursive summation of first two std::ratio
-    using ratio = typename std::conditional_t<is_done, first_two_sum,
-                                              typename next_helper::ratio>;
+    using ratio =
+        typename std::conditional_t<sizeof...(ratios) == 0, first_two_sum,
+                                    typename next_helper::ratio>;
 };
+/// @}
 
-// Struct to sum over variadic std::ratio
+/// Struct to sum over variadic std::ratio
 template <typename... ratios>
 struct ratio_sum {
     using helper = ratio_sum_helper<ratios...>;
     using ratio = typename helper::ratio;
 };
 
-// Helper trait to check if the ratio is one
+/// Helper trait to check if the ratio is one
 template <typename R>
 struct is_ratio_one {
     static constexpr bool value = (R::num == R::den);

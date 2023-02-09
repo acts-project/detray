@@ -17,10 +17,10 @@ using namespace detray;
 
 // This tests the convenience quadratic equation struct
 TEST(utils, quad_equation) {
-    quadratic_equation<scalar> qe = {{2., 5., -3.}};
+    quadratic_equation<scalar> qe = {{2.f, 5.f, -3.f}};
     auto solution = qe();
 
     ASSERT_EQ(std::get<0>(solution), 2);
-    ASSERT_NEAR(std::get<1>(solution)[0], -3., 1e-5);
-    ASSERT_NEAR(std::get<1>(solution)[1], 0.5, 1e-5);
+    ASSERT_NEAR(std::get<1>(solution)[0], -3.f, 1e-7f);
+    ASSERT_NEAR(std::get<1>(solution)[1], 0.5f, 1e-7f);
 }

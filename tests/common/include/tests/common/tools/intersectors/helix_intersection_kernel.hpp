@@ -43,7 +43,7 @@ struct helix_intersection_update {
         const mask_group_t &mask_group, const mask_range_t &mask_range,
         const traj_t &traj, const surface_t &surface,
         const transform_container_t &contextual_transforms,
-        const scalar mask_tolerance = 0.) const {
+        const scalar mask_tolerance = 0.f) const {
 
         using transform3_type = typename traj_t::transform3_type;
         using helix_plane_intersector_type =

@@ -46,44 +46,45 @@ struct track_helper {
 
     DETRAY_HOST_DEVICE
     inline point3 pos(const free_vector& free_vec) const {
-        return {matrix_operator().element(free_vec, e_free_pos0, 0),
-                matrix_operator().element(free_vec, e_free_pos1, 0),
-                matrix_operator().element(free_vec, e_free_pos2, 0)};
+        return {matrix_operator().element(free_vec, e_free_pos0, 0u),
+                matrix_operator().element(free_vec, e_free_pos1, 0u),
+                matrix_operator().element(free_vec, e_free_pos2, 0u)};
     }
 
     DETRAY_HOST_DEVICE
     inline void set_pos(free_vector& free_vec, const point3& pos) {
-        matrix_operator().element(free_vec, e_free_pos0, 0) = pos[0];
-        matrix_operator().element(free_vec, e_free_pos1, 0) = pos[1];
-        matrix_operator().element(free_vec, e_free_pos2, 0) = pos[2];
+        matrix_operator().element(free_vec, e_free_pos0, 0u) = pos[0];
+        matrix_operator().element(free_vec, e_free_pos1, 0u) = pos[1];
+        matrix_operator().element(free_vec, e_free_pos2, 0u) = pos[2];
     }
 
     DETRAY_HOST_DEVICE
     inline vector3 dir(const free_vector& free_vec) const {
-        return {matrix_operator().element(free_vec, e_free_dir0, 0),
-                matrix_operator().element(free_vec, e_free_dir1, 0),
-                matrix_operator().element(free_vec, e_free_dir2, 0)};
+        return {matrix_operator().element(free_vec, e_free_dir0, 0u),
+                matrix_operator().element(free_vec, e_free_dir1, 0u),
+                matrix_operator().element(free_vec, e_free_dir2, 0u)};
     }
 
     DETRAY_HOST_DEVICE
     inline void set_dir(free_vector& free_vec, const vector3& dir) {
-        matrix_operator().element(free_vec, e_free_dir0, 0) = dir[0];
-        matrix_operator().element(free_vec, e_free_dir1, 0) = dir[1];
-        matrix_operator().element(free_vec, e_free_dir2, 0) = dir[2];
+        matrix_operator().element(free_vec, e_free_dir0, 0u) = dir[0];
+        matrix_operator().element(free_vec, e_free_dir1, 0u) = dir[1];
+        matrix_operator().element(free_vec, e_free_dir2, 0u) = dir[2];
     }
 
     DETRAY_HOST_DEVICE
     inline point2 local(const bound_vector& bound_vec) const {
-        return {matrix_operator().element(bound_vec, e_bound_loc0, 0),
-                matrix_operator().element(bound_vec, e_bound_loc1, 0)};
+        return {matrix_operator().element(bound_vec, e_bound_loc0, 0u),
+                matrix_operator().element(bound_vec, e_bound_loc1, 0u)};
     }
 
     DETRAY_HOST_DEVICE
     inline vector3 dir(const bound_vector& bound_vec) const {
-        const auto& phi = matrix_operator().element(bound_vec, e_bound_phi, 0);
-        const auto& theta =
-            matrix_operator().element(bound_vec, e_bound_theta, 0);
-        const auto sinTheta = math_ns::sin(theta);
+        const scalar_type phi{
+            matrix_operator().element(bound_vec, e_bound_phi, 0u)};
+        const scalar_type theta{
+            matrix_operator().element(bound_vec, e_bound_theta, 0u)};
+        const scalar_type sinTheta{math_ns::sin(theta)};
 
         return {math_ns::cos(phi) * sinTheta, math_ns::sin(phi) * sinTheta,
                 math_ns::cos(theta)};

@@ -55,7 +55,7 @@ TEST(ALGEBRA_PLUGIN, static_mask_store) {
     ASSERT_TRUE(store.empty<mask_ids::e_single3>());
     ASSERT_TRUE(store.empty<mask_ids::e_trapezoid2>());
 
-    store.emplace_back<mask_ids::e_cylinder3>(empty_context{}, 0UL, 1.f, 0.5f,
+    store.emplace_back<mask_ids::e_cylinder3>(empty_context{}, 0u, 1.f, 0.5f,
                                               2.0f);
 
     ASSERT_TRUE(store.empty<mask_ids::e_annulus2>());
@@ -65,15 +65,13 @@ TEST(ALGEBRA_PLUGIN, static_mask_store) {
     ASSERT_TRUE(store.empty<mask_ids::e_single3>());
     ASSERT_TRUE(store.empty<mask_ids::e_trapezoid2>());
 
-    store.emplace_back<mask_ids::e_cylinder3>(empty_context{}, 0UL, 1.f, 1.5f,
+    store.emplace_back<mask_ids::e_cylinder3>(empty_context{}, 0u, 1.f, 1.5f,
                                               2.0f);
-    store.emplace_back<mask_ids::e_trapezoid2>(empty_context{}, 0UL, 0.5f, 1.5f,
+    store.emplace_back<mask_ids::e_trapezoid2>(empty_context{}, 0u, 0.5f, 1.5f,
                                                4.0f);
-    store.emplace_back<mask_ids::e_rectangle2>(empty_context{}, 0UL, 1.0f,
-                                               2.0f);
-    store.emplace_back<mask_ids::e_rectangle2>(empty_context{}, 0UL, 2.0f,
-                                               1.0f);
-    store.emplace_back<mask_ids::e_rectangle2>(empty_context{}, 0UL, 10.0f,
+    store.emplace_back<mask_ids::e_rectangle2>(empty_context{}, 0u, 1.0f, 2.0f);
+    store.emplace_back<mask_ids::e_rectangle2>(empty_context{}, 0u, 2.0f, 1.0f);
+    store.emplace_back<mask_ids::e_rectangle2>(empty_context{}, 0u, 10.0f,
                                                100.0f);
 
     ASSERT_TRUE(store.empty<mask_ids::e_annulus2>());
@@ -83,12 +81,12 @@ TEST(ALGEBRA_PLUGIN, static_mask_store) {
     ASSERT_TRUE(store.empty<mask_ids::e_single3>());
     ASSERT_EQ(store.size<mask_ids::e_trapezoid2>(), 1);
 
-    store.emplace_back<mask_ids::e_annulus2>(empty_context{}, 0UL, 1.f, 2.f,
-                                             3.f, 4.f, 5.f, 6.f, 7.f);
-    store.emplace_back<mask_ids::e_ring2>(empty_context{}, 0UL, 10.f, 100.f);
-    store.emplace_back<mask_ids::e_ring2>(empty_context{}, 0UL, 10.f, 100.f);
-    store.emplace_back<mask_ids::e_ring2>(empty_context{}, 0UL, 10.f, 100.f);
-    store.emplace_back<mask_ids::e_ring2>(empty_context{}, 0UL, 10.f, 100.f);
+    store.emplace_back<mask_ids::e_annulus2>(empty_context{}, 0u, 1.f, 2.f, 3.f,
+                                             4.f, 5.f, 6.f, 7.f);
+    store.emplace_back<mask_ids::e_ring2>(empty_context{}, 0u, 10.f, 100.f);
+    store.emplace_back<mask_ids::e_ring2>(empty_context{}, 0u, 10.f, 100.f);
+    store.emplace_back<mask_ids::e_ring2>(empty_context{}, 0u, 10.f, 100.f);
+    store.emplace_back<mask_ids::e_ring2>(empty_context{}, 0u, 10.f, 100.f);
 
     const auto &annulus_masks = store.get<mask_ids::e_annulus2>();
     const auto &cylinder_masks = store.get<mask_ids::e_cylinder3>();

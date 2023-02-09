@@ -70,11 +70,11 @@ TEST(grid, grid_collection) {
 
     // Bin test entries
     grid_t::bin_storage_type bin_data{};
-    bin_data.resize(197UL);
+    bin_data.resize(197u);
     std::generate_n(
-        bin_data.begin(), 197UL,
+        bin_data.begin(), 197u,
         bin_content_sequence<populator<grid_t::populator_impl>, dindex>());
-    dvector<dindex> grid_offsets = {0UL, 48UL, 72UL};
+    dvector<dindex> grid_offsets = {0u, 48u, 72u};
 
     // Data-owning grid collection
     auto grid_coll =
@@ -84,10 +84,10 @@ TEST(grid, grid_collection) {
     // Tests
 
     // Basics
-    EXPECT_EQ(grid_coll.size(), 3UL);
-    EXPECT_EQ(grid_coll.bin_storage().size(), 197UL);
-    EXPECT_EQ(grid_coll.axes_storage().size(), 9UL);
-    EXPECT_EQ(grid_coll.bin_edges_storage().size(), 18UL);
+    EXPECT_EQ(grid_coll.size(), 3u);
+    EXPECT_EQ(grid_coll.bin_storage().size(), 197u);
+    EXPECT_EQ(grid_coll.axes_storage().size(), 9u);
+    EXPECT_EQ(grid_coll.bin_edges_storage().size(), 18u);
 
     // Get a grid instance
     auto single_grid = grid_coll[1];
@@ -97,20 +97,20 @@ TEST(grid, grid_collection) {
 
     EXPECT_EQ(single_grid.Dim, 3);
     auto r_axis = single_grid.get_axis<label::e_r>();
-    EXPECT_EQ(r_axis.nbins(), 1UL);
+    EXPECT_EQ(r_axis.nbins(), 1u);
     using z_axis_t = single_axis<closed<label::e_z>, regular<>>;
     auto z_axis = single_grid.get_axis<z_axis_t>();
-    EXPECT_EQ(z_axis.nbins(), 8UL);
+    EXPECT_EQ(z_axis.nbins(), 8u);
 
     // The generator starts countaing at one instead of zero
-    EXPECT_EQ(single_grid.at(0u, 0u, 0u)[0u], 49UL);
+    EXPECT_EQ(single_grid.at(0u, 0u, 0u)[0u], 49u);
     EXPECT_EQ(single_grid.at(0u, 0u, 0u)[1u], inf);
     EXPECT_EQ(single_grid.at(0u, 0u, 0u)[2u], inf);
 
     auto bin_view = grid_coll[2].at(101u);
-    grid_coll[2].populate(101UL, 42UL);
-    EXPECT_EQ(bin_view[0u], 102UL + 72UL);
-    EXPECT_EQ(bin_view[1u], 42UL);
+    grid_coll[2].populate(101u, 42u);
+    EXPECT_EQ(bin_view[0u], 102u + 72u);
+    EXPECT_EQ(bin_view[1u], 42u);
     EXPECT_EQ(bin_view[2u], inf);
 
     auto grid_coll_view = get_data(grid_coll);

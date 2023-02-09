@@ -52,21 +52,21 @@ struct helix_cylinder_intersector {
     template <typename mask_t>
     DETRAY_HOST_DEVICE inline output_type operator()(
         const helix_type &h, const mask_t &mask, const transform3_t &trf,
-        const scalar_type mask_tolerance = 0) const {
+        const scalar_type mask_tolerance = 0.f) const {
 
         output_type ret;
 
         // Guard against inifinite loops
-        constexpr std::size_t max_n_tries{100};
+        constexpr std::size_t max_n_tries{100u};
         // Tolerance for convergence
-        constexpr scalar_type tol{1e-3};
+        constexpr scalar_type tol{1e-3f};
 
         // Get the surface placement
         const auto &sm = trf.matrix();
         // Cylinder z axis
-        const vector3 sz = getter::vector<3>(sm, 0, 2);
+        const vector3 sz = getter::vector<3>(sm, 0u, 2u);
         // Cylinder centre
-        const point3 sc = getter::vector<3>(sm, 0, 3);
+        const point3 sc = getter::vector<3>(sm, 0u, 3u);
 
         // Starting point on the helix for the Newton iteration
         // The mask is a cylinder -> it provides its radius as the first value
@@ -74,20 +74,19 @@ struct helix_cylinder_intersector {
         // Helix path length parameter
         scalar_type s{r * getter::perp(h.dir(tol))};
         // Path length in the previous iteration step
-        scalar_type s_prev{s - scalar{0.1}};
+        scalar_type s_prev{s - 0.1f};
 
         // f(s) = ((h.pos(s) - sc) x sz)^2 - r^2 == 0
         // Run the iteration on s
-        std::size_t n_tries{0};
+        std::size_t n_tries{0u};
         while (std::abs(s - s_prev) > tol and n_tries < max_n_tries) {
 
             // f'(s) = 2 * ( (h.pos(s) - sc) x sz) * (h.dir(s) x sz) )
             const vector3 crp = vector::cross(h.pos(s) - sc, sz);
             const scalar_type denom{
-                scalar_type{2.} *
-                vector::dot(crp, vector::cross(h.dir(s), sz))};
+                2.f * vector::dot(crp, vector::cross(h.dir(s), sz))};
             // No intersection can be found if dividing by zero
-            if (denom == scalar_type{0.}) {
+            if (denom == 0.f) {
                 return ret;
             }
             // x_n+1 = x_n - f(s) / f'(s)
@@ -114,7 +113,7 @@ struct helix_cylinder_intersector {
         const scalar_type radial_pos{getter::perp(trf.point_to_local(is.p3))};
         const bool r_check =
             std::abs(r - radial_pos) <
-            mask_tolerance + 5 * std::numeric_limits<scalar_type>::epsilon();
+            mask_tolerance + 5.f * std::numeric_limits<scalar_type>::epsilon();
         if (not r_check) {
             is.status = intersection::status::e_outside;
         }

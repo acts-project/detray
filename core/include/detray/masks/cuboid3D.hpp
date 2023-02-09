@@ -32,13 +32,13 @@ class cuboid3D {
     inline static const std::string name = "cuboid3D";
 
     /// The measurement dimension (not allowed)
-    inline static constexpr const std::size_t meas_dim = 0;
+    inline static constexpr const unsigned int meas_dim{0u};
 
     enum boundaries : std::size_t {
-        e_half_x = 0,
-        e_half_y = 1,
-        e_half_z = 2,
-        e_size = 3,
+        e_half_x = 0u,
+        e_half_y = 1u,
+        e_half_z = 2u,
+        e_size = 3u,
     };
 
     /// Local coordinate frame for boundary checks
@@ -70,7 +70,7 @@ class cuboid3D {
         static constexpr n_axis::label axis_loc0 = n_axis::label::e_x;
         static constexpr n_axis::label axis_loc1 = n_axis::label::e_y;
         static constexpr n_axis::label axis_loc2 = n_axis::label::e_z;
-        static constexpr std::size_t dim{3UL};
+        static constexpr std::size_t dim{3u};
 
         /// How to convert into the local axis system and back
         template <typename algebra_t>

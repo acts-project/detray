@@ -1,6 +1,6 @@
 /** Algebra plugins library, part of the ACTS project
  *
- * (c) 2022 CERN for the benefit of the ACTS project
+ * (c) 2022-2023 CERN for the benefit of the ACTS project
  *
  * Mozilla Public License Version 2.0
  */
@@ -50,7 +50,7 @@ struct bound_track_parameters {
               matrix_operator().template zero<e_bound_size, e_bound_size>()) {}
 
     DETRAY_HOST_DEVICE
-    bound_track_parameters(const std::size_t sf_idx, const vector_type& vec,
+    bound_track_parameters(const dindex sf_idx, const vector_type& vec,
                            const covariance_type& cov)
         : m_surface_link(sf_idx), m_vector(vec), m_covariance(cov) {}
 
@@ -62,17 +62,17 @@ struct bound_track_parameters {
             return false;
         }
 
-        for (std::size_t i = 0; i < e_bound_size; i++) {
-            const auto lhs_val = matrix_operator().element(m_vector, i, 0);
-            const auto rhs_val = matrix_operator().element(rhs.vector(), i, 0);
+        for (unsigned int i = 0u; i < e_bound_size; i++) {
+            const auto lhs_val = matrix_operator().element(m_vector, i, 0u);
+            const auto rhs_val = matrix_operator().element(rhs.vector(), i, 0u);
 
             if (std::abs(lhs_val - rhs_val) >
                 std::numeric_limits<scalar_type>::epsilon()) {
                 return false;
             }
         }
-        for (std::size_t i = 0; i < e_bound_size; i++) {
-            for (std::size_t j = 0; j < e_bound_size; j++) {
+        for (unsigned int i = 0u; i < e_bound_size; i++) {
+            for (unsigned int j = 0u; j < e_bound_size; j++) {
                 const auto lhs_val =
                     matrix_operator().element(m_covariance, i, j);
                 const auto rhs_val =
@@ -88,10 +88,10 @@ struct bound_track_parameters {
     }
 
     DETRAY_HOST_DEVICE
-    const std::size_t& surface_link() const { return m_surface_link; }
+    const dindex& surface_link() const { return m_surface_link; }
 
     DETRAY_HOST_DEVICE
-    void set_surface_link(std::size_t link) { m_surface_link = link; }
+    void set_surface_link(dindex link) { m_surface_link = link; }
 
     DETRAY_HOST_DEVICE
     vector_type& vector() { return m_vector; }
@@ -116,12 +116,12 @@ struct bound_track_parameters {
 
     DETRAY_HOST_DEVICE
     scalar_type phi() const {
-        return matrix_operator().element(m_vector, e_bound_phi, 0);
+        return matrix_operator().element(m_vector, e_bound_phi, 0u);
     }
 
     DETRAY_HOST_DEVICE
     scalar_type theta() const {
-        return matrix_operator().element(m_vector, e_bound_theta, 0);
+        return matrix_operator().element(m_vector, e_bound_theta, 0u);
     }
 
     DETRAY_HOST_DEVICE
@@ -129,26 +129,27 @@ struct bound_track_parameters {
 
     DETRAY_HOST_DEVICE
     scalar_type time() const {
-        return matrix_operator().element(m_vector, e_bound_time, 0);
+        return matrix_operator().element(m_vector, e_bound_time, 0u);
     }
 
     DETRAY_HOST_DEVICE
     scalar_type charge() const {
-        if (matrix_operator().element(m_vector, e_bound_qoverp, 0) < 0) {
-            return -1.;
+        if (std::signbit(
+                matrix_operator().element(m_vector, e_bound_qoverp, 0u))) {
+            return -1.f;
         } else {
-            return 1.;
+            return 1.f;
         }
     }
 
     DETRAY_HOST_DEVICE
     scalar_type qop() const {
-        return matrix_operator().element(m_vector, e_bound_qoverp, 0);
+        return matrix_operator().element(m_vector, e_bound_qoverp, 0u);
     }
 
     DETRAY_HOST_DEVICE
     void set_qop(const scalar qop) {
-        matrix_operator().element(m_vector, e_bound_qoverp, 0) = qop;
+        matrix_operator().element(m_vector, e_bound_qoverp, 0u) = qop;
     }
 
     DETRAY_HOST_DEVICE

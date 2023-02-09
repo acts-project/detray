@@ -28,14 +28,14 @@ struct axis_rotation {
 
     DETRAY_HOST_DEVICE
     axis_rotation(const vector3& axis, const scalar_type theta) {
-        scalar_type cos_theta = math_ns::cos(theta);
+        scalar_type cos_theta{math_ns::cos(theta)};
 
         matrix_type<3, 3> I = matrix_operator().template identity<3, 3>();
         matrix_type<3, 3> axis_cross = mat_helper().cross_matrix(axis);
         matrix_type<3, 3> axis_outer = mat_helper().outer_product(axis, axis);
 
         R = cos_theta * I + std::sin(theta) * axis_cross +
-            (1 - cos_theta) * axis_outer;
+            (1.f - cos_theta) * axis_outer;
     }
 
     template <typename vector3_t>

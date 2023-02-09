@@ -1,6 +1,6 @@
 /** Detray library, part of the ACTS project (R&D line)
  *
- * (c) 2020-2022 CERN for the benefit of the ACTS project
+ * (c) 2020-2023 CERN for the benefit of the ACTS project
  *
  * Mozilla Public License Version 2.0
  */
@@ -13,25 +13,27 @@
 using namespace detray;
 using namespace __plugin;
 
+constexpr scalar tol{1e-7f};
+
 /// This tests the basic functionality of a trapezoid
 TEST(mask, trapezoid2D) {
     using point_t = typename mask<trapezoid2D<>>::loc_point_t;
 
-    point_t p2_in = {1., -0.5};
-    point_t p2_edge = {2.5, 1.};
-    point_t p2_out = {3., 1.5};
+    point_t p2_in = {1.f, -0.5f};
+    point_t p2_edge = {2.5f, 1.f};
+    point_t p2_out = {3.f, 1.5f};
 
-    constexpr scalar hx_miny{1. * unit<scalar>::mm};
-    constexpr scalar hx_maxy{3. * unit<scalar>::mm};
-    constexpr scalar hy{2. * unit<scalar>::mm};
-    constexpr scalar divisor{1. / (2. * hy)};
+    constexpr scalar hx_miny{1.f * unit<scalar>::mm};
+    constexpr scalar hx_maxy{3.f * unit<scalar>::mm};
+    constexpr scalar hy{2.f * unit<scalar>::mm};
+    constexpr scalar divisor{1.f / (2.f * hy)};
 
-    mask<trapezoid2D<>> t2{0UL, hx_miny, hx_maxy, hy, divisor};
+    mask<trapezoid2D<>> t2{0u, hx_miny, hx_maxy, hy, divisor};
 
-    ASSERT_EQ(t2[trapezoid2D<>::e_half_length_0], hx_miny);
-    ASSERT_EQ(t2[trapezoid2D<>::e_half_length_1], hx_maxy);
-    ASSERT_EQ(t2[trapezoid2D<>::e_half_length_2], hy);
-    ASSERT_EQ(t2[trapezoid2D<>::e_divisor], divisor);
+    ASSERT_NEAR(t2[trapezoid2D<>::e_half_length_0], hx_miny, tol);
+    ASSERT_NEAR(t2[trapezoid2D<>::e_half_length_1], hx_maxy, tol);
+    ASSERT_NEAR(t2[trapezoid2D<>::e_half_length_2], hy, tol);
+    ASSERT_NEAR(t2[trapezoid2D<>::e_divisor], divisor, tol);
 
     ASSERT_TRUE(t2.is_inside(p2_in) == intersection::status::e_inside);
     ASSERT_TRUE(t2.is_inside(p2_edge) == intersection::status::e_inside);
@@ -41,12 +43,12 @@ TEST(mask, trapezoid2D) {
 
     // Check projection matrix
     const auto proj = t2.projection_matrix<e_bound_size>();
-    for (std::size_t i = 0; i < 2; i++) {
-        for (std::size_t j = 0; j < e_bound_size; j++) {
+    for (unsigned int i = 0u; i < 2u; i++) {
+        for (unsigned int j = 0u; j < e_bound_size; j++) {
             if (i == j && i < decltype(t2)::shape::meas_dim) {
-                ASSERT_EQ(getter::element(proj, i, j), 1);
+                ASSERT_EQ(getter::element(proj, i, j), 1u);
             } else {
-                ASSERT_EQ(getter::element(proj, i, j), 0);
+                ASSERT_EQ(getter::element(proj, i, j), 0u);
             }
         }
     }

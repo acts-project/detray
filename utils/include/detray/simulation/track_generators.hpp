@@ -50,17 +50,21 @@ class uniform_track_generator
 
         DETRAY_HOST_DEVICE
         iterator(std::size_t n_theta, std::size_t n_phi,
-                 point3 trk_origin = {0., 0., 0.},
-                 scalar trk_mom = 1. * unit<scalar>::GeV,
-                 std::array<scalar, 2> theta_range = {0.01, M_PI},
-                 std::array<scalar, 2> phi_range = {-M_PI, M_PI},
-                 scalar time = 0. * unit<scalar>::us,
-                 scalar charge = -1. * unit<scalar>::e, std::size_t iph = 1,
-                 std::size_t ith = 0)
+                 point3 trk_origin = {0.f, 0.f, 0.f},
+                 scalar trk_mom = 1.f * unit<scalar>::GeV,
+                 std::array<scalar, 2> theta_range = {0.01f,
+                                                      constant<scalar>::pi},
+                 std::array<scalar, 2> phi_range = {-constant<scalar>::pi,
+                                                    constant<scalar>::pi},
+                 scalar time = 0.f * unit<scalar>::us,
+                 scalar charge = -1.f * unit<scalar>::e, std::size_t iph = 1u,
+                 std::size_t ith = 0u)
             : m_theta_steps{n_theta},
               m_phi_steps{n_phi},
-              m_theta_step_size{(theta_range[1] - theta_range[0]) / n_theta},
-              m_phi_step_size{(phi_range[1] - phi_range[0]) / n_phi},
+              m_theta_step_size{(theta_range[1] - theta_range[0]) /
+                                static_cast<scalar>(n_theta)},
+              m_phi_step_size{(phi_range[1] - phi_range[0]) /
+                              static_cast<scalar>(n_phi)},
               m_phi{phi_range[0]},
               m_theta{theta_range[0]},
               m_origin{trk_origin},
@@ -96,7 +100,8 @@ class uniform_track_generator
                 // Check phi sub-range
                 if (i_phi < m_phi_steps) {
                     // Calculate new phi in the given range
-                    m_phi = m_phi_range[0] + i_phi * m_phi_step_size;
+                    m_phi = m_phi_range[0] +
+                            static_cast<scalar>(i_phi) * m_phi_step_size;
                     ++i_phi;
                     return *this;
                 }
@@ -106,7 +111,8 @@ class uniform_track_generator
                 ;
                 // Calculate new thetain the given range
                 ++i_theta;
-                m_theta = m_theta_range[0] + i_theta * m_theta_step_size;
+                m_theta = m_theta_range[0] +
+                          static_cast<scalar>(i_theta) * m_theta_step_size;
             }
             return *this;
         }
@@ -126,31 +132,32 @@ class uniform_track_generator
         }
 
         /// Start and end values of angle space
-        std::size_t m_theta_steps{50};
-        std::size_t m_phi_steps{50};
-        scalar m_theta_step_size{0};
-        scalar m_phi_step_size{0};
+        std::size_t m_theta_steps{50u};
+        std::size_t m_phi_steps{50u};
+        scalar m_theta_step_size{0.f};
+        scalar m_phi_step_size{0.f};
 
         /// Phi and theta angles of momentum direction
-        scalar m_phi{-M_PI}, m_theta{0.01};
+        scalar m_phi{-constant<scalar>::pi}, m_theta{0.01f};
 
         /// Track origin
-        point3 m_origin{0., 0., 0.};
+        point3 m_origin{0.f, 0.f, 0.f};
 
         /// Magnitude of momentum: Default is one to keep directions normalized
         /// if no momentum information is needed (e.g. for a ray)
-        scalar m_mom_mag{1. * unit<scalar>::GeV};
+        scalar m_mom_mag{1.f * unit<scalar>::GeV};
 
         /// Range for theta and phi
-        std::array<scalar, 2> m_theta_range{0.01, M_PI};
-        std::array<scalar, 2> m_phi_range{-M_PI, M_PI};
+        std::array<scalar, 2> m_theta_range{0.01f, constant<scalar>::pi};
+        std::array<scalar, 2> m_phi_range{-constant<scalar>::pi,
+                                          constant<scalar>::pi};
 
         /// Time parameter and charge of the track
-        scalar m_time{0}, m_charge{0};
+        scalar m_time{0.f}, m_charge{0.f};
 
         /// Iteration indices
-        std::size_t i_phi{0};
-        std::size_t i_theta{0};
+        std::size_t i_phi{0u};
+        std::size_t i_theta{0u};
     };
 
     iterator m_begin{}, m_end{};
@@ -172,17 +179,19 @@ class uniform_track_generator
     /// @param time time measurement (micro seconds)
     /// @param charge charge of particle (e)
     DETRAY_HOST_DEVICE
-    uniform_track_generator(std::size_t n_theta, std::size_t n_phi,
-                            point3 trk_origin = {0., 0., 0.},
-                            scalar trk_mom = 1. * unit<scalar>::GeV,
-                            std::array<scalar, 2> theta_range = {0.01, M_PI},
-                            std::array<scalar, 2> phi_range = {-M_PI, M_PI},
-                            scalar time = 0. * unit<scalar>::us,
-                            scalar charge = -1. * unit<scalar>::e)
+    uniform_track_generator(
+        std::size_t n_theta, std::size_t n_phi,
+        point3 trk_origin = {0.f, 0.f, 0.f},
+        scalar trk_mom = 1.f * unit<scalar>::GeV,
+        std::array<scalar, 2> theta_range = {0.01f, constant<scalar>::pi},
+        std::array<scalar, 2> phi_range = {-constant<scalar>::pi,
+                                           constant<scalar>::pi},
+        scalar time = 0.f * unit<scalar>::us,
+        scalar charge = -1.f * unit<scalar>::e)
         : m_begin{n_theta,   n_phi, trk_origin, trk_mom, theta_range,
-                  phi_range, time,  charge,     1,       0},
+                  phi_range, time,  charge,     1u,      0u},
           m_end{n_theta,   n_phi, trk_origin, trk_mom, theta_range,
-                phi_range, time,  charge,     1,       n_theta} {}
+                phi_range, time,  charge,     1u,      n_theta} {}
 
     /// Copy assignment operator
     DETRAY_HOST_DEVICE
@@ -216,7 +225,7 @@ class uniform_track_generator
 template <typename scalar_t = scalar,
           typename distribution_t = std::uniform_real_distribution<scalar_t>,
           typename generator_t = std::random_device,
-          typename engine_t = std::mt19937>
+          typename engine_t = std::mt19937_64>
 struct random_numbers {
 
     random_numbers(random_numbers &&other) : engine(std::move(other.engine)) {}
@@ -231,7 +240,7 @@ struct random_numbers {
 
     template <typename T = generator_t,
               std::enable_if_t<std::is_same_v<T, std::seed_seq>, bool> = true>
-    random_numbers() : gen{42}, engine{gen} {}
+    random_numbers() : gen{42u}, engine{gen} {}
 
     template <typename T = distribution_t,
               std::enable_if_t<
@@ -284,12 +293,14 @@ class random_track_generator
 
         DETRAY_HOST_DEVICE
         iterator(generator_t &rand_gen, std::size_t n_tracks,
-                 point3 trk_origin = {0., 0., 0.},
-                 scalar trk_mom = 1. * unit<scalar>::GeV,
-                 std::array<scalar, 2> theta_range = {0.01, M_PI},
-                 std::array<scalar, 2> phi_range = {-M_PI, M_PI},
-                 scalar time = 0. * unit<scalar>::us,
-                 scalar charge = -1. * unit<scalar>::e)
+                 point3 trk_origin = {0.f, 0.f, 0.f},
+                 scalar trk_mom = 1.f * unit<scalar>::GeV,
+                 std::array<scalar, 2> theta_range = {0.01f,
+                                                      constant<scalar>::pi},
+                 std::array<scalar, 2> phi_range = {-constant<scalar>::pi,
+                                                    constant<scalar>::pi},
+                 scalar time = 0.f * unit<scalar>::us,
+                 scalar charge = -1.f * unit<scalar>::e)
             : m_rnd_numbers{rand_gen},
               m_tracks{n_tracks},
               m_origin{trk_origin},
@@ -347,24 +358,25 @@ class random_track_generator
         generator_t &m_rnd_numbers;
 
         /// How many tracks will be generated
-        std::size_t m_tracks{0};
+        std::size_t m_tracks{0u};
 
         /// Track origin
-        point3 m_origin{0., 0., 0.};
+        point3 m_origin{0.f, 0.f, 0.f};
 
         /// Magnitude of momentum: Default is one to keep directions normalized
         /// if no momentum information is needed (e.g. for a ray)
-        scalar m_mom_mag{1. * unit<scalar>::GeV};
+        scalar m_mom_mag{1.f * unit<scalar>::GeV};
 
         /// Phi and theta angles of momentum direction (random)
-        scalar m_phi{-M_PI}, m_theta{0.01};
+        scalar m_phi{-constant<scalar>::pi}, m_theta{0.01f};
 
         /// Range for theta and phi
-        std::array<scalar, 2> m_phi_range{-M_PI, M_PI};
-        std::array<scalar, 2> m_theta_range{0.01, M_PI};
+        std::array<scalar, 2> m_phi_range{-constant<scalar>::pi,
+                                          constant<scalar>::pi};
+        std::array<scalar, 2> m_theta_range{0.01f, constant<scalar>::pi};
 
         /// Time parameter and charge of the track
-        scalar m_time{0}, m_charge{0};
+        scalar m_time{0.f}, m_charge{0.f};
     };
 
     generator_t m_gen;
@@ -392,15 +404,16 @@ class random_track_generator
     /// @param time time measurement (micro seconds)
     /// @param charge charge of particle (e)
     DETRAY_HOST_DEVICE
-    random_track_generator(std::size_t n_tracks,
-                           point3 trk_origin = {0., 0., 0.},
-                           scalar trk_mom = 1. * unit<scalar>::GeV,
-                           std::array<scalar, 2> theta_range = {0.01, M_PI},
-                           std::array<scalar, 2> phi_range = {-M_PI, M_PI},
-                           scalar time = 0. * unit<scalar>::us,
-                           scalar charge = -1. * unit<scalar>::e)
+    random_track_generator(
+        std::size_t n_tracks, point3 trk_origin = {0.f, 0.f, 0.f},
+        scalar trk_mom = 1.f * unit<scalar>::GeV,
+        std::array<scalar, 2> theta_range = {0.01f, constant<scalar>::pi},
+        std::array<scalar, 2> phi_range = {-constant<scalar>::pi,
+                                           constant<scalar>::pi},
+        scalar time = 0.f * unit<scalar>::us,
+        scalar charge = -1.f * unit<scalar>::e)
         : m_gen{},
-          m_begin{m_gen,       0,         trk_origin, trk_mom,
+          m_begin{m_gen,       0u,        trk_origin, trk_mom,
                   theta_range, phi_range, time,       charge},
           m_end{m_gen,       n_tracks,  trk_origin, trk_mom,
                 theta_range, phi_range, time,       charge} {}

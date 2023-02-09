@@ -57,8 +57,8 @@ struct concentric_cylinder_intersector {
                          bool> = true>
     DETRAY_HOST_DEVICE inline output_type operator()(
         const ray_type &ray, const mask_t &mask, const transform3_t & /*trf*/,
-        const scalar_type mask_tolerance = 0.,
-        const scalar_type overstep_tolerance = 0.) const {
+        const scalar_type mask_tolerance = 0.f,
+        const scalar_type overstep_tolerance = 0.f) const {
 
         output_type ret;
 
@@ -70,21 +70,21 @@ struct concentric_cylinder_intersector {
         const point3 l1 = ro + rd;
 
         // swap coorinates x/y for numerical stability
-        const bool swap_x_y = std::abs(rd[0]) < scalar_type{1e-3};
+        const bool swap_x_y = std::abs(rd[0]) < 1e-3f;
 
-        std::size_t _x = swap_x_y ? 1 : 0;
-        std::size_t _y = swap_x_y ? 0 : 1;
+        unsigned int _x = swap_x_y ? 1u : 0u;
+        unsigned int _y = swap_x_y ? 0u : 1u;
         const scalar_type k{(l0[_y] - l1[_y]) / (l0[_x] - l1[_x])};
         const scalar_type d{l1[_y] - k * l1[_x]};
 
-        quadratic_equation<scalar_type> qe = {(1 + k * k), 2 * k * d,
+        quadratic_equation<scalar_type> qe = {(1.f + k * k), 2.f * k * d,
                                               d * d - r * r};
         auto qe_solution = qe();
 
-        if (std::get<0>(qe_solution) > overstep_tolerance) {
+        if (std::get<0>(qe_solution) > 0) {
             std::array<point3, 2> candidates;
             const auto u01 = std::get<1>(qe_solution);
-            std::array<scalar_type, 2> t01 = {0., 0.};
+            std::array<scalar_type, 2> t01 = {0.f, 0.f};
 
             candidates[0][_x] = u01[0];
             candidates[0][_y] = k * u01[0] + d;
@@ -97,13 +97,13 @@ struct concentric_cylinder_intersector {
             candidates[1][2] = ro[2] + t01[1] * rd[2];
 
             // Chose the index, take the smaller positive one
-            const std::size_t cindex =
+            const unsigned int cindex =
                 (t01[0] < t01[1] and t01[0] > overstep_tolerance)
-                    ? 0
+                    ? 0u
                     : (t01[0] < overstep_tolerance and
                                t01[1] > overstep_tolerance
-                           ? 1
-                           : 0);
+                           ? 1u
+                           : 0u);
             if (t01[0] > overstep_tolerance or t01[1] > overstep_tolerance) {
                 intersection_type &is = ret[0];
                 is.p3 = candidates[cindex];
@@ -118,7 +118,7 @@ struct concentric_cylinder_intersector {
                 } else {
                     is.status = mask.is_inside(is.p2, mask_tolerance);
                 }
-                is.direction = vector::dot(is.p3, rd) > scalar_type{0.}
+                is.direction = vector::dot(is.p3, rd) > 0.f
                                    ? intersection::direction::e_along
                                    : intersection::direction::e_opposite;
                 is.link = mask.volume_link();
@@ -126,7 +126,7 @@ struct concentric_cylinder_intersector {
                 // Get incidence angle
                 const scalar_type phi{is.p2[0] / mask[mask_t::shape::e_r]};
                 const vector3 normal = {math_ns::cos(phi), math_ns::sin(phi),
-                                        0};
+                                        0.f};
                 is.cos_incidence_angle = vector::dot(rd, normal);
             }
         }

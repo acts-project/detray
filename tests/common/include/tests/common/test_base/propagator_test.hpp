@@ -63,18 +63,18 @@ using free_track_parameters_type = free_track_parameters<transform3>;
 using free_matrix = typename free_track_parameters_type::covariance_type;
 
 // Detector configuration
-static constexpr std::size_t n_brl_layers{4};
-static constexpr std::size_t n_edc_layers{3};
+constexpr std::size_t n_brl_layers{4u};
+constexpr std::size_t n_edc_layers{3u};
 
 // Geomery navigation configurations
-static constexpr unsigned int theta_steps{10};
-static constexpr unsigned int phi_steps{10};
+constexpr unsigned int theta_steps{10u};
+constexpr unsigned int phi_steps{10u};
 
-static constexpr scalar rk_tolerance{1e-4};
-static constexpr scalar overstep_tolerance{-3 * unit<scalar>::um};
-static constexpr scalar constrainted_step_size{2. * unit<scalar>::mm};
-static constexpr scalar is_close{1e-4};
-static constexpr scalar path_limit{2 * unit<scalar>::m};
+constexpr scalar rk_tolerance{1e-4f};
+constexpr scalar overstep_tolerance{-3.f * unit<scalar>::um};
+constexpr scalar constrainted_step_size{2.f * unit<scalar>::mm};
+constexpr scalar is_close{1e-4f};
+constexpr scalar path_limit{2.f * unit<scalar>::m};
 
 template <template <typename...> class vector_t>
 struct track_inspector : actor {

@@ -1,6 +1,6 @@
 /** Detray library, part of the ACTS project (R&D line)
  *
- * (c) 2022 CERN for the benefit of the ACTS project
+ * (c) 2022-2023 CERN for the benefit of the ACTS project
  *
  * Mozilla Public License Version 2.0
  */
@@ -37,7 +37,7 @@ namespace detray {
 /// in z.
 template <bool kSquareCrossSect = false,
           template <typename> class intersector_t = line_intersector,
-          std::size_t kMeasDim = 1>
+          unsigned int kMeasDim = 1u>
 class line {
     public:
     /// The name for this shape
@@ -47,12 +47,12 @@ class line {
     static constexpr bool square_cross_sect = kSquareCrossSect;
 
     /// The measurement dimension
-    inline static constexpr const std::size_t meas_dim = kMeasDim;
+    inline static constexpr const unsigned int meas_dim{kMeasDim};
 
     enum boundaries : std::size_t {
-        e_cross_section = 0,
-        e_half_z = 1,
-        e_size = 2
+        e_cross_section = 0u,
+        e_half_z = 1u,
+        e_size = 2u
     };
 
     /// Local coordinate frame for boundary checks
@@ -87,7 +87,7 @@ class line {
     struct axes {
         static constexpr n_axis::label axis_loc0 = n_axis::label::e_r;
         static constexpr n_axis::label axis_loc1 = n_axis::label::e_z;
-        static constexpr std::size_t dim{2UL};
+        static constexpr std::size_t dim{2u};
 
         using types = std::tuple<n_axis::bounds_t<e_s, axis_loc0>,
                                  n_axis::bounds_t<e_s, axis_loc1>>;
@@ -118,7 +118,7 @@ class line {
     /// @return true if the local point lies within the given boundaries.
     template <template <typename, std::size_t> class bounds_t,
               typename scalar_t, std::size_t kDIM, typename point_t,
-              typename std::enable_if_t<kDIM == 2, bool> = true>
+              typename std::enable_if_t<kDIM == 2u, bool> = true>
     DETRAY_HOST_DEVICE inline bool check_boundaries(
         const bounds_t<scalar_t, kDIM>& bounds, const point_t& loc_p,
         const scalar_t tol = std::numeric_limits<scalar_t>::epsilon()) const {
@@ -144,12 +144,13 @@ class line {
 
     template <typename param_t>
     DETRAY_HOST_DEVICE inline typename param_t::point2 to_measurement(
-        param_t& param, const typename param_t::point2& offset = {0, 0}) const {
+        param_t& param,
+        const typename param_t::point2& offset = {0.f, 0.f}) const {
 
         auto local = param.local();
         local[0] = std::abs(local[0]) + offset[0];
-        if (local[0] < 0.) {
-            local[0] = 0.;
+        if (local[0] < 0.f) {
+            local[0] = 0.f;
         }
         local[1] = local[1] + offset[1];
         return local;

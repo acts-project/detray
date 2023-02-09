@@ -169,7 +169,7 @@ class tuple_container {
             return functor_t()(elem, std::forward<Args>(As)...);
         }
         // Check the next ID
-        if constexpr (sizeof...(remaining_idcs) >= 1) {
+        if constexpr (sizeof...(remaining_idcs) >= 1u) {
             return unroll_call<functor_t>(
                 idx, std::index_sequence<remaining_idcs...>{},
                 std::forward<Args>(As)...);

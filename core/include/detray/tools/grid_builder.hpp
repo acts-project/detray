@@ -99,7 +99,7 @@ class grid_builder final : public volume_decorator<detector_t> {
         // detector and update their links
         const auto trf_offset{det.transform_store().size(ctx)};
         // TODO: make the grid directly iterable
-        for (std::size_t gbin{0}; gbin < m_grid.nbins(); ++gbin) {
+        for (std::size_t gbin{0u}; gbin < m_grid.nbins(); ++gbin) {
             for (auto &sf : m_grid.at(gbin)) {
                 det.mask_store().template call<detail::mask_index_update>(
                     sf.mask(), sf);

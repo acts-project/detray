@@ -6,6 +6,7 @@
 
 # Set the common C++ flags.
 include( detray-compiler-options-cpp )
+include_directories( SYSTEM $<TARGET_PROPERTY:dfelibs::dfelibs,INTERFACE_INCLUDE_DIRECTORIES> )
 
 # Include all of the code-holding sub-directories.
 add_subdirectory( common )

@@ -76,11 +76,11 @@ struct cylindrical2 : public coordinate_base<cylindrical2, transform3_t> {
     DETRAY_HOST_DEVICE inline point3 local_to_global(
         const transform3_t &trf, const mask_t &mask, const point2 &p,
         const vector3 & /*d*/) const {
-        const scalar_type r = mask[0];
-        const scalar_type phi = p[0] / r;
-        const scalar_type x = r * math_ns::cos(phi);
-        const scalar_type y = r * math_ns::sin(phi);
-        const scalar_type z = p[1];
+        const scalar_type r{mask[mask_t::shape::e_r]};
+        const scalar_type phi{p[0] / r};
+        const scalar_type x{r * math_ns::cos(phi)};
+        const scalar_type y{r * math_ns::sin(phi)};
+        const scalar_type z{p[1]};
 
         return trf.point_to_global(point3{x, y, z});
     }
@@ -91,9 +91,9 @@ struct cylindrical2 : public coordinate_base<cylindrical2, transform3_t> {
                                              const point3 &pos,
                                              const vector3 &dir) const {
         const point2 local2 = this->global_to_local(trf3, pos, dir);
-        const scalar_type r = mask[0];
-        const scalar_type phi = local2[0] / r;
-        const vector3 local_normal{math_ns::cos(phi), math_ns::sin(phi), 0};
+        const scalar_type r{mask[mask_t::shape::e_r]};
+        const scalar_type phi{local2[0] / r};
+        const vector3 local_normal{math_ns::cos(phi), math_ns::sin(phi), 0.f};
 
         // normal vector in local coordinate
         return trf3.rotation() * local_normal;
@@ -108,7 +108,7 @@ struct cylindrical2 : public coordinate_base<cylindrical2, transform3_t> {
 
         // y axis of the new frame is the z axis of cylindrical coordinate
         const auto new_yaxis =
-            matrix_operator().template block<3, 1>(trf3.matrix(), 0, 2);
+            matrix_operator().template block<3, 1>(trf3.matrix(), 0u, 2u);
 
         // z axis of the new frame is the vector normal to the cylinder surface
         const vector3 new_zaxis = normal(trf3, mask, pos, dir);
@@ -116,13 +116,13 @@ struct cylindrical2 : public coordinate_base<cylindrical2, transform3_t> {
         // x axis
         const vector3 new_xaxis = vector::cross(new_yaxis, new_zaxis);
 
-        matrix_operator().element(rot, 0, 0) = new_xaxis[0];
-        matrix_operator().element(rot, 1, 0) = new_xaxis[1];
-        matrix_operator().element(rot, 2, 0) = new_xaxis[2];
-        matrix_operator().template set_block<3, 1>(rot, new_yaxis, 0, 1);
-        matrix_operator().element(rot, 0, 2) = new_zaxis[0];
-        matrix_operator().element(rot, 1, 2) = new_zaxis[1];
-        matrix_operator().element(rot, 2, 2) = new_zaxis[2];
+        matrix_operator().element(rot, 0u, 0u) = new_xaxis[0];
+        matrix_operator().element(rot, 1u, 0u) = new_xaxis[1];
+        matrix_operator().element(rot, 2u, 0u) = new_xaxis[2];
+        matrix_operator().template set_block<3, 1>(rot, new_yaxis, 0u, 1u);
+        matrix_operator().element(rot, 0u, 2u) = new_zaxis[0];
+        matrix_operator().element(rot, 1u, 2u) = new_zaxis[1];
+        matrix_operator().element(rot, 2u, 2u) = new_zaxis[2];
 
         return rot;
     }
@@ -136,7 +136,7 @@ struct cylindrical2 : public coordinate_base<cylindrical2, transform3_t> {
 
         // Get d(x,y,z)/d(loc0, loc1)
         const auto bound_pos_to_free_pos_derivative =
-            matrix_operator().template block<3, 2>(frame, 0, 0);
+            matrix_operator().template block<3, 2>(frame, 0u, 0u);
 
         matrix_operator().template set_block(bound_to_free_jacobian,
                                              bound_pos_to_free_pos_derivative,
@@ -153,7 +153,7 @@ struct cylindrical2 : public coordinate_base<cylindrical2, transform3_t> {
 
         // Get d(loc0, loc1)/d(x,y,z)
         const auto free_pos_to_bound_pos_derivative =
-            matrix_operator().template block<2, 3>(frameT, 0, 0);
+            matrix_operator().template block<2, 3>(frameT, 0u, 0u);
 
         matrix_operator().template set_block(free_to_bound_jacobian,
                                              free_pos_to_bound_pos_derivative,

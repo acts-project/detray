@@ -1,6 +1,6 @@
 /** Detray library, part of the ACTS project (R&D line)
  *
- * (c) 2022 CERN for the benefit of the ACTS project
+ * (c) 2022-2023 CERN for the benefit of the ACTS project
  *
  * Mozilla Public License Version 2.0
  */
@@ -13,7 +13,7 @@
 #include "detray/materials/material.hpp"
 
 // System include(s)
-#include <climits>
+#include <limits>
 
 namespace detray {
 
@@ -29,97 +29,111 @@ namespace detray {
 
 // Vacuum
 DETRAY_DECLARE_MATERIAL(vacuum, std::numeric_limits<scalar>::infinity(),
-                        std::numeric_limits<scalar>::infinity(), 0, 0, 0,
-                        material_state::e_gas, 0, 0, 0, 0, 0, 0, 0);
+                        std::numeric_limits<scalar>::infinity(), 0.f, 0.f, 0.f,
+                        material_state::e_gas, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f,
+                        0.f);
 
 // H₂ (1): Hydrogen Gas
-DETRAY_DECLARE_MATERIAL(hydrogen_gas, 7.526E6 * unit<scalar>::mm,
-                        6.209E6 * unit<scalar>::mm, 1.008 * 2, 1 * 2,
-                        8.376E-5 * unit<scalar>::g / (1 * unit<scalar>::cm3),
-                        material_state::e_gas, 0.1409, 5.7273, 1.8639, 3.2718,
-                        19.2, 9.5834, 0.00);
+DETRAY_DECLARE_MATERIAL(hydrogen_gas, 7.526E3f * unit<scalar>::m,
+                        6.209E3f * unit<scalar>::m, 2.016f, 2.f,
+                        static_cast<scalar>(8.376E-5 * unit<double>::g /
+                                            unit<double>::cm3),
+                        material_state::e_gas, 0.1409f, 5.7273f, 1.8639f,
+                        3.2718f, 19.2f, 9.5834f, 0.f);
 
 // H₂ (1): Hydrogen Liquid
-DETRAY_DECLARE_MATERIAL(hydrogen_liquid, 8904 * unit<scalar>::mm,
-                        7346 * unit<scalar>::mm, 1.008 * 2, 1 * 2,
-                        0.07080 * unit<scalar>::g / (1 * unit<scalar>::cm3),
-                        material_state::e_liquid, 0.1348, 5.6249, 0.4400,
-                        1.8856, 21.8, 3.0977, 0.00);
+DETRAY_DECLARE_MATERIAL(hydrogen_liquid, 8.904f * unit<scalar>::m,
+                        7.346f * unit<scalar>::m, 2.016f, 2.f,
+                        static_cast<scalar>(0.07080f * unit<double>::g /
+                                            unit<double>::cm3),
+                        material_state::e_liquid, 0.1348f, 5.6249f, 0.4400f,
+                        1.8856f, 21.8f, 3.0977f, 0.f);
 
 // He (2): Helium Gas
-DETRAY_DECLARE_MATERIAL(helium_gas, 5.671E6 * unit<scalar>::mm,
-                        4.269E6 * unit<scalar>::mm, 4.003, 2,
-                        1.663E-4 * unit<scalar>::g / (1 * unit<scalar>::cm3),
-                        material_state::e_gas, 0.1344, 5.8347, 2.2017, 3.6122,
-                        41.8, 11.1393, 0.00);
+DETRAY_DECLARE_MATERIAL(helium_gas, 5.671E3f * unit<scalar>::m,
+                        4.269E3f * unit<scalar>::m, 4.003f, 2.f,
+                        static_cast<scalar>(1.663E-4 * unit<double>::g /
+                                            unit<double>::cm3),
+                        material_state::e_gas, 0.1344f, 5.8347f, 2.2017f,
+                        3.6122f, 41.8f, 11.1393f, 0.f);
 
 // Be (4)
-DETRAY_DECLARE_MATERIAL(beryllium, 352.8 * unit<scalar>::mm,
-                        421.0 * unit<scalar>::mm, 9.012, 4.0,
-                        1.848 * unit<scalar>::g / (1 * unit<scalar>::cm3),
-                        material_state::e_solid, 0.8039, 2.4339, 0.0592, 1.6922,
-                        63.7, 2.7847, 0.14);
+DETRAY_DECLARE_MATERIAL(beryllium, 352.8f * unit<scalar>::mm,
+                        421.0f * unit<scalar>::mm, 9.012f, 4.f,
+                        static_cast<scalar>(1.848 * unit<double>::g /
+                                            unit<double>::cm3),
+                        material_state::e_solid, 0.8039f, 2.4339f, 0.0592f,
+                        1.6922f, 63.7f, 2.7847f, 0.14f);
 
 // C (6): Carbon (amorphous)
-DETRAY_DECLARE_MATERIAL(carbon_gas, 213.5 * unit<scalar>::mm,
-                        429.0 * unit<scalar>::mm, 12.01, 6,
-                        2.0 * unit<scalar>::g / (1 * unit<scalar>::cm3),
-                        material_state::e_gas, 0, 0, 0, 0, 0, 0, 0);
+DETRAY_DECLARE_MATERIAL(
+    carbon_gas, 213.5f * unit<scalar>::mm, 429.0f * unit<scalar>::mm, 12.01f,
+    6.f, static_cast<scalar>(2.0 * unit<double>::g / unit<double>::cm3),
+    material_state::e_gas, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f);
 
 // N₂ (7): Nitrogen Gas
-DETRAY_DECLARE_MATERIAL(nitrogen_gas, 3.260E+05 * unit<scalar>::mm,
-                        7.696E+05 * unit<scalar>::mm, 14.007 * 2, 7 * 2,
-                        1.165E-03 * unit<scalar>::g / (1 * unit<scalar>::cm3),
-                        material_state::e_gas, 0.1535, 3.2125, 1.7378, 4.1323,
-                        82.0, 10.5400, 0.00);
+DETRAY_DECLARE_MATERIAL(nitrogen_gas, 3.260E+02f * unit<scalar>::m,
+                        7.696E+02f * unit<scalar>::m, 28.014f, 14.f,
+                        static_cast<scalar>(1.165E-03 * unit<double>::g /
+                                            unit<double>::cm3),
+                        material_state::e_gas, 0.1535f, 3.2125f, 1.7378f,
+                        4.1323f, 82.0f, 10.5400f, 0.f);
 
 // O₂ (8): Oxygen Gas
-DETRAY_DECLARE_MATERIAL(oxygen_gas, 2.571E+05 * unit<scalar>::mm,
-                        6.772E+05 * unit<scalar>::mm, 15.999 * 2, 8 * 2,
-                        1.332E-3 * unit<scalar>::g / (1 * unit<scalar>::cm3),
-                        material_state::e_gas, 0.1178, 3.2913, 1.7541, 4.3213,
-                        95.0, 10.7004, 0.00);
+DETRAY_DECLARE_MATERIAL(oxygen_gas, 2.571E+02f * unit<scalar>::m,
+                        6.772E+02f * unit<scalar>::m, 31.998f, 16.f,
+                        static_cast<scalar>(1.332E-3 * unit<double>::g /
+                                            unit<double>::cm3),
+                        material_state::e_gas, 0.1178f, 3.2913f, 1.7541f,
+                        4.3213f, 95.0f, 10.7004f, 0.f);
 
 // O₂ (8): Oxygen liquid
-DETRAY_DECLARE_MATERIAL(oxygen_liquid, 300.1 * unit<scalar>::mm,
-                        790.3 * unit<scalar>::mm, 15.999 * 2, 8 * 2,
-                        1.141 * unit<scalar>::g / (1 * unit<scalar>::cm3),
-                        material_state::e_liquid, 0, 0, 0, 0, 0, 0, 0);
+DETRAY_DECLARE_MATERIAL(oxygen_liquid, 300.1f * unit<scalar>::mm,
+                        790.3f * unit<scalar>::mm, 31.998f, 16.f,
+                        static_cast<scalar>(1.141 * unit<double>::g /
+                                            unit<double>::cm3),
+                        material_state::e_liquid, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f,
+                        0.f);
 
 // Al (13)
-DETRAY_DECLARE_MATERIAL(aluminium, 88.97 * unit<scalar>::mm,
-                        397.0 * unit<scalar>::mm, 26.98, 13,
-                        2.699 * unit<scalar>::g / (1 * unit<scalar>::cm3),
-                        material_state::e_solid, 0.0802, 3.6345, 0.1708, 3.0127,
-                        166.0, 4.2395, 0.12);
+DETRAY_DECLARE_MATERIAL(aluminium, 88.97f * unit<scalar>::mm,
+                        397.0f * unit<scalar>::mm, 26.98f, 13.f,
+                        static_cast<scalar>(2.699 * unit<double>::g /
+                                            unit<double>::cm3),
+                        material_state::e_solid, 0.0802f, 3.6345f, 0.1708f,
+                        3.0127f, 166.f, 4.2395f, 0.12f);
 
 // Si (14)
-DETRAY_DECLARE_MATERIAL(silicon, 93.7 * unit<scalar>::mm,
-                        465.2 * unit<scalar>::mm, 28.0855, 14.,
-                        2.329 * unit<scalar>::g / (1 * unit<scalar>::cm3),
-                        material_state::e_solid, 0.1492, 3.2546, 0.2015, 2.8716,
-                        173.0, 4.4355, 0.14);
+DETRAY_DECLARE_MATERIAL(silicon, 93.7f * unit<scalar>::mm,
+                        465.2f * unit<scalar>::mm, 28.0855f, 14.f,
+                        static_cast<scalar>(2.329 * unit<double>::g /
+                                            unit<double>::cm3),
+                        material_state::e_solid, 0.1492f, 3.2546f, 0.2015f,
+                        2.8716f, 173.0f, 4.4355f, 0.14f);
 
 // Ar (18): Argon gas
-DETRAY_DECLARE_MATERIAL(argon_gas, 1.176E+05 * unit<scalar>::mm,
-                        7.204E+05 * unit<scalar>::mm, 39.948, 18.,
-                        1.662E-03 * unit<scalar>::g / (1 * unit<scalar>::cm3),
-                        material_state::e_gas, 0.1971, 2.9618, 1.7635, 4.4855,
-                        188.0, 11.9480, 0.00);
+DETRAY_DECLARE_MATERIAL(argon_gas, 1.176E+02f * unit<scalar>::m,
+                        7.204E+02f * unit<scalar>::m, 39.948f, 18.f,
+                        static_cast<scalar>(1.662E-03 * unit<double>::g /
+                                            unit<double>::cm3),
+                        material_state::e_gas, 0.1971f, 2.9618f, 1.7635f,
+                        4.4855f, 188.f, 11.9480f, 0.f);
 
 // W (74)
-DETRAY_DECLARE_MATERIAL(tungsten, 3.504 * unit<scalar>::mm,
-                        99.46 * unit<scalar>::mm, 183.84, 74,
-                        19.3 * unit<scalar>::g / (1 * unit<scalar>::cm3),
-                        material_state::e_solid, 0.1551, 2.8447, 0.2167, 3.4960,
-                        727.0, 5.4059, 0.14);
+DETRAY_DECLARE_MATERIAL(tungsten, 3.504f * unit<scalar>::mm,
+                        99.46f * unit<scalar>::mm, 183.84f, 74.f,
+                        static_cast<scalar>(19.3 * unit<double>::g /
+                                            unit<double>::cm3),
+                        material_state::e_solid, 0.1551f, 2.8447f, 0.2167f,
+                        3.4960f, 727.0f, 5.4059f, 0.14f);
 
 // Au (79)
-DETRAY_DECLARE_MATERIAL(gold, 3.344 * unit<scalar>::mm,
-                        101.6 * unit<scalar>::mm, 196.97, 79,
-                        19.32 * unit<scalar>::g / (1 * unit<scalar>::cm3),
-                        material_state::e_solid, 0.0976, 3.1101, 0.2021, 3.6979,
-                        790.0, 5.5747, 0.14);
+DETRAY_DECLARE_MATERIAL(gold, 3.344f * unit<scalar>::mm,
+                        101.6f * unit<scalar>::mm, 196.97f, 79.f,
+                        static_cast<scalar>(19.32 * unit<double>::g /
+                                            unit<double>::cm3),
+                        material_state::e_solid, 0.0976f, 3.1101f, 0.2021f,
+                        3.6979f, 790.f, 5.5747f, 0.14f);
 
 /**
  * Elements Declaration for ACTS Generic detector
@@ -127,18 +141,20 @@ DETRAY_DECLARE_MATERIAL(gold, 3.344 * unit<scalar>::mm,
  */
 
 // Be (4)
-DETRAY_DECLARE_MATERIAL(beryllium_tml, 352.8 * unit<scalar>::mm,
-                        407.0 * unit<scalar>::mm, 9.012, 4.0,
-                        1.848 * unit<scalar>::g / (1 * unit<scalar>::cm3),
-                        material_state::e_solid, 0.8039, 2.4339, 0.0592, 1.6922,
-                        63.7, 2.7847, 0.14);
+DETRAY_DECLARE_MATERIAL(beryllium_tml, 352.8f * unit<scalar>::mm,
+                        407.f * unit<scalar>::mm, 9.012f, 4.f,
+                        static_cast<scalar>(1.848 * unit<double>::g /
+                                            unit<double>::cm3),
+                        material_state::e_solid, 0.8039f, 2.4339f, 0.0592f,
+                        1.6922f, 63.7f, 2.7847f, 0.14f);
 
 // Si (14)
-DETRAY_DECLARE_MATERIAL(silicon_tml, 95.7 * unit<scalar>::mm,
-                        465.2 * unit<scalar>::mm, 28.03, 14.,
-                        2.32 * unit<scalar>::g / (1 * unit<scalar>::cm3),
-                        material_state::e_solid, 0.1492, 3.2546, 0.2015, 2.8716,
-                        173.0, 4.4355, 0.14);
+DETRAY_DECLARE_MATERIAL(silicon_tml, 95.7f * unit<scalar>::mm,
+                        465.2f * unit<scalar>::mm, 28.03f, 14.f,
+                        static_cast<scalar>(2.32 * unit<double>::g /
+                                            unit<double>::cm3),
+                        material_state::e_solid, 0.1492f, 3.2546f, 0.2015f,
+                        2.8716f, 173.f, 4.4355f, 0.14f);
 
 /**
  * Mixtures or Compounds
@@ -148,10 +164,12 @@ DETRAY_DECLARE_MATERIAL(silicon_tml, 95.7 * unit<scalar>::mm,
 // @note:
 // https://pdg.lbl.gov/2020/AtomicNuclearProperties/HTML/air_dry_1_atm.html
 // @note: Ar from Wikipedia (https://en.wikipedia.org/wiki/Molar_mass)
-DETRAY_DECLARE_MATERIAL(air, 3.039E+05 * unit<scalar>::mm,
-                        7.477E+05 * unit<scalar>::mm, 28.97, 14.46,
-                        1.205E-03 * unit<scalar>::g / (1 * unit<scalar>::cm3),
-                        material_state::e_gas, 0, 0, 0, 0, 0, 0, 0);
+DETRAY_DECLARE_MATERIAL(air, 3.039E+02f * unit<scalar>::m,
+                        7.477E+02f * unit<scalar>::m, 28.97f, 14.46f,
+                        static_cast<scalar>(1.205E-03 * unit<double>::g /
+                                            unit<double>::cm3),
+                        material_state::e_gas, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f,
+                        0.f);
 
 // (CH3)2CHCH3 Gas
 // @note: (X0, L0, mass_rho) from https://pdg.lbl.gov/2005/reviews/atomicrpp.pdf
@@ -159,18 +177,20 @@ DETRAY_DECLARE_MATERIAL(air, 3.039E+05 * unit<scalar>::mm,
 // @note: Z was caculated by simply summing the number of atoms. Surprisingly
 // it seems the right value because Z/A is 0.58496, which is the same with <Z/A>
 // in the pdg refernce
-DETRAY_DECLARE_MATERIAL(isobutane, 169300 * unit<scalar>::mm,
-                        288.3 * unit<scalar>::mm, 58.124, 34.,
-                        2.67 * unit<scalar>::g / (1 * unit<scalar>::cm3),
-                        material_state::e_gas, 0, 0, 0, 0, 0, 0, 0);
+DETRAY_DECLARE_MATERIAL(
+    isobutane, 1693E+02f * unit<scalar>::mm, 288.3f * unit<scalar>::mm, 58.124f,
+    34.f, static_cast<scalar>(2.67 * unit<double>::g / unit<double>::cm3),
+    material_state::e_gas, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f);
 
 // C3H8 Gas
 // @note: (X0, L0, mass_rho) from
 // https://pdg.lbl.gov/2020/AtomicNuclearProperties/HTML/propane.html
 // @note: Ar from Wikipedia (https://en.wikipedia.org/wiki/Propane)
-DETRAY_DECLARE_MATERIAL(propane, 2.429E+05 * unit<scalar>::mm,
-                        4.106E+05 * unit<scalar>::mm, 44.097, 26,
-                        1.868E-03 * unit<scalar>::g / (1 * unit<scalar>::cm3),
-                        material_state::e_gas, 0, 0, 0, 0, 0, 0, 0);
+DETRAY_DECLARE_MATERIAL(propane, 2.429E+02f * unit<scalar>::m,
+                        4.106E+02f * unit<scalar>::m, 44.097f, 26.f,
+                        static_cast<scalar>(1.868E-03 * unit<double>::g /
+                                            unit<double>::cm3),
+                        material_state::e_gas, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f,
+                        0.f);
 
 }  // namespace detray

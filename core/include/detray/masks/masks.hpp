@@ -1,6 +1,6 @@
 /** Detray library, part of the ACTS project (R&D line)
  *
- * (c) 2021-2022 CERN for the benefit of the ACTS project
+ * (c) 2021-2023 CERN for the benefit of the ACTS project
  *
  * Mozilla Public License Version 2.0
  */
@@ -69,7 +69,8 @@ class mask {
 
     /// Constructor from single mask boundary values
     template <typename... Args>
-    DETRAY_HOST_DEVICE explicit mask(const links_type& link, Args&&... args)
+    DETRAY_HOST_DEVICE explicit constexpr mask(const links_type& link,
+                                               Args&&... args)
         : _values({{std::forward<Args>(args)...}}), _volume_link(link) {}
 
     /// Constructor from mask boundary vector
@@ -193,8 +194,8 @@ class mask {
     DETRAY_HOST_DEVICE matrix_type<2, parameter_dim> projection_matrix() const {
 
         auto ret = matrix_operator().template zero<2, parameter_dim>();
-        for (std::size_t i = 0; i < shape::meas_dim; i++) {
-            matrix_operator().element(ret, i, i) = 1.;
+        for (unsigned int i = 0u; i < shape::meas_dim; i++) {
+            matrix_operator().element(ret, i, i) = 1.f;
         }
 
         return ret;

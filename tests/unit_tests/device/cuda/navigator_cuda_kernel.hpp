@@ -41,15 +41,15 @@ using navigator_device_t = navigator<detector_device_t>;
 using stepper_t = line_stepper<transform3>;
 
 // detector configuration
-constexpr std::size_t n_brl_layers = 4;
-constexpr std::size_t n_edc_layers = 3;
+constexpr std::size_t n_brl_layers{4u};
+constexpr std::size_t n_edc_layers{3u};
 
 // geomery navigation configurations
-constexpr unsigned int theta_steps = 100;
-constexpr unsigned int phi_steps = 100;
+constexpr unsigned int theta_steps{100u};
+constexpr unsigned int phi_steps{100u};
 
-constexpr scalar pos_diff_tolerance = 1e-3;
-constexpr scalar overstep_tolerance = -1e-4;
+constexpr scalar pos_diff_tolerance{1e-3f};
+constexpr scalar overstep_tolerance{-1e-4f};
 
 // dummy propagator state
 template <typename navigation_t>

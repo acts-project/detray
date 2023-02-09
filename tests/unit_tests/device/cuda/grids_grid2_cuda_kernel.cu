@@ -30,7 +30,7 @@ __global__ void grid_replace_test_kernel(
 
     auto gid = threadIdx.x + threadIdx.y * blockDim.x;
     auto pt = test::point3<detray::scalar>{axis0.min + gid * x_interval,
-                                           axis1.min + gid * y_interval, 0.5};
+                                           axis1.min + gid * y_interval, 0.5f};
 
     // replace the bin elements
     g2_device.populate(threadIdx.x, threadIdx.y, std::move(pt));
@@ -68,7 +68,7 @@ __global__ void grid_replace_ci_test_kernel(
 
     auto gid = threadIdx.x + threadIdx.y * blockDim.x;
     auto pt = test::point3<detray::scalar>{axis0.min + gid * x_interval,
-                                           axis1.min + gid * y_interval, 0.5};
+                                           axis1.min + gid * y_interval, 0.5f};
 
     // replace the bin elements
     g2_device.populate(threadIdx.x, threadIdx.y, std::move(pt));
@@ -100,8 +100,8 @@ __global__ void grid_complete_kernel(
     grid2_view<host_grid2_complete> grid_view) {
 
     // Let's try building the grid object
-    device_grid2_complete g2_device(grid_view,
-                                    test::point3<detray::scalar>{0, 0, 0});
+    device_grid2_complete g2_device(
+        grid_view, test::point3<detray::scalar>{0.f, 0.f, 0.f});
 
     const auto& axis0 = g2_device.axis_p0();
     const auto& axis1 = g2_device.axis_p1();
@@ -114,7 +114,7 @@ __global__ void grid_complete_kernel(
     for (int i_p = 0; i_p < n_points; i_p++) {
         auto gid = i_p + bin_id * n_points;
         auto pt = test::point3<detray::scalar>{
-            axis0.min + gid * x_interval, axis1.min + gid * y_interval, 0.5};
+            axis0.min + gid * x_interval, axis1.min + gid * y_interval, 0.5f};
         // printf("%f %f %f \n", pt[0], pt[1], pt[2]);
         g2_device.populate(threadIdx.x, threadIdx.y, std::move(pt));
     }
@@ -147,7 +147,7 @@ __global__ void grid_attach_read_test_kernel(
 
     // Let's try building the grid object
     const const_device_grid2_attach g2_device(
-        grid_view, test::point3<detray::scalar>{0, 0, 0});
+        grid_view, test::point3<detray::scalar>{0.f, 0.f, 0.f});
 
     auto data = g2_device.bin(threadIdx.x, threadIdx.y);
 
@@ -229,10 +229,10 @@ __global__ void grid_attach_assign_test_kernel(
 
     auto pts = g2_device.bin(threadIdx.x, threadIdx.y);
 
-    for (std::size_t i = 0; i < pts.size(); i++) {
+    for (std::size_t i = 0u; i < pts.size(); i++) {
         pts[i] = {static_cast<detray::scalar>(i),
-                  static_cast<detray::scalar>(i + 1),
-                  static_cast<detray::scalar>(i + 2)};
+                  static_cast<detray::scalar>(i + 1u),
+                  static_cast<detray::scalar>(i + 2u)};
     }
 }
 

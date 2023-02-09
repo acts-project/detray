@@ -34,13 +34,14 @@ TEST(navigator_cuda, navigator) {
     vecmem::vector<free_track_parameters<transform3>> tracks_device(&mng_mr);
 
     // Set origin position of tracks
-    const point3 ori{0., 0., 0.};
-    const scalar p_mag{10. * unit<scalar>::GeV};
+    const point3 ori{0.f, 0.f, 0.f};
+    const scalar p_mag{10.f * unit<scalar>::GeV};
 
     // Iterate through uniformly distributed momentum directions
     for (auto track :
          uniform_track_generator<free_track_parameters<transform3>>(
-             theta_steps, phi_steps, ori, p_mag, {0.01, M_PI}, {-M_PI, M_PI})) {
+             theta_steps, phi_steps, ori, p_mag, {0.01f, constant<scalar>::pi},
+             {-constant<scalar>::pi, constant<scalar>::pi})) {
         track.set_overstep_tolerance(overstep_tolerance);
 
         tracks_host.push_back(track);
@@ -55,7 +56,7 @@ TEST(navigator_cuda, navigator) {
     vecmem::jagged_vector<point3> position_records_host(theta_steps * phi_steps,
                                                         &mng_mr);
 
-    for (unsigned int i = 0; i < theta_steps * phi_steps; i++) {
+    for (unsigned int i = 0u; i < theta_steps * phi_steps; i++) {
 
         auto& track = tracks_host[i];
         stepper_t stepper;
@@ -93,7 +94,7 @@ TEST(navigator_cuda, navigator) {
     std::vector<size_t> sizes;
     std::vector<size_t> capacities;
 
-    for (unsigned int i = 0; i < theta_steps * phi_steps; i++) {
+    for (unsigned int i = 0u; i < theta_steps * phi_steps; i++) {
         sizes.push_back(0);
         capacities.push_back(volume_records_host[i].size());
     }
@@ -125,12 +126,12 @@ TEST(navigator_cuda, navigator) {
     copy(volume_records_buffer, volume_records_device);
     copy(position_records_buffer, position_records_device);
 
-    for (unsigned int i = 0; i < volume_records_host.size(); i++) {
+    for (unsigned int i = 0u; i < volume_records_host.size(); i++) {
 
         EXPECT_EQ(volume_records_host[i].size(),
                   volume_records_device[i].size());
 
-        for (unsigned int j = 0; j < volume_records_host[i].size(); j++) {
+        for (unsigned int j = 0u; j < volume_records_host[i].size(); j++) {
 
             EXPECT_EQ(volume_records_host[i][j], volume_records_device[i][j]);
 

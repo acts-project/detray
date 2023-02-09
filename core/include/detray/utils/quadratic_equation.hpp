@@ -21,23 +21,24 @@ template <typename scalar_t,
           template <typename, std::size_t> class array_t = darray,
           template <typename...> class tuple_t = dtuple>
 struct quadratic_equation {
-    array_t<scalar_t, 3> _params = {0., 0., 0.};
+    array_t<scalar_t, 3> _params = {0.f, 0.f, 0.f};
 
     /** Solve the quadratic equation
      **/
     DETRAY_HOST_DEVICE
     tuple_t<int, array_t<scalar_t, 2>> operator()() const {
         scalar_t discriminant =
-            _params[1] * _params[1] - 4 * _params[0] * _params[2];
-        if (discriminant < 0.) {
+            _params[1] * _params[1] - 4.f * _params[0] * _params[2];
+        if (discriminant < 0.f) {
             return {0,
                     {std::numeric_limits<scalar_t>::infinity(),
                      std::numeric_limits<scalar_t>::infinity()}};
         } else {
-            int solutions = (discriminant == 0.) ? 1 : 2;
-            double q = -0.5 * (_params[1] + (_params[1] > 0
-                                                 ? std::sqrt(discriminant)
-                                                 : -std::sqrt(discriminant)));
+            int solutions = (discriminant == 0.f) ? 1 : 2;
+            scalar_t q =
+                -0.5f *
+                (_params[1] + (_params[1] > 0.f ? std::sqrt(discriminant)
+                                                : -std::sqrt(discriminant)));
             scalar_t first = q / _params[0];
             scalar_t second = _params[2] / q;
             array_t<scalar_t, 2> poles =

@@ -49,10 +49,10 @@ struct grid_writer {
 
         const auto &grid = grid_group.at(grid_idx);
 
-        size_t nbins0 = grid.axis_p0().bins();
-        size_t nbins1 = grid.axis_p1().bins();
-        for (size_t b0 = 0; b0 < nbins0; ++b0) {
-            for (size_t b1 = 0; b1 < nbins1; ++b1) {
+        std::size_t nbins0{grid.axis_p0().bins()};
+        std::size_t nbins1{grid.axis_p1().bins()};
+        for (std::size_t b0 = 0u; b0 < nbins0; ++b0) {
+            for (std::size_t b1 = 0u; b1 < nbins1; ++b1) {
                 csv_ge.detray_bin0 = b0;
                 csv_ge.detray_bin1 = b1;
                 for (auto e : grid.bin(b0, b1)) {
@@ -116,8 +116,8 @@ detector_from_csv(const std::string &detector_name,
                   const std::string &grid_entries_file_name,
                   std::map<dindex, std::string> &name_map,
                   vecmem::memory_resource &resource,
-                  scalar /*r_sync_tolerance*/ = 0.,
-                  scalar /*z_sync_tolerance*/ = 0.) {
+                  scalar /*r_sync_tolerance*/ = 0.f,
+                  scalar /*z_sync_tolerance*/ = 0.f) {
     // using alignable_store = static_transform_store<vector_type>;
     using detector_t =
         detector<detector_registry, bfield_type, host_container_types>;
@@ -162,7 +162,7 @@ detector_from_csv(const std::string &detector_name,
     // Remember the r/z attachements
     std::map<scalar, std::vector<dindex>> r_min_attachments;
     std::map<scalar, std::vector<dindex>> z_min_attachments;
-    scalar r_max = 0;
+    scalar r_max = 0.f;
     scalar z_max = -std::numeric_limits<scalar>::max();
 
     /** Helper method to attach volumes to bins
@@ -200,11 +200,11 @@ detector_from_csv(const std::string &detector_name,
         if (io_layer_volume.layer_id % 2 == 0) {
             z_min_layer_volumes[io_layer_volume.min_v1] =
                 io_layer_volume.min_v1;
-            z_max_layer_volumes[-1. * io_layer_volume.max_v1] =
+            z_max_layer_volumes[-1.f * io_layer_volume.max_v1] =
                 io_layer_volume.max_v1;
             r_min_layer_volumes[io_layer_volume.min_v0] =
                 io_layer_volume.min_v0;
-            r_max_layer_volumes[-1. * io_layer_volume.max_v0] =
+            r_max_layer_volumes[-1.f * io_layer_volume.max_v0] =
                 io_layer_volume.max_v0;
         }
     }
@@ -224,7 +224,7 @@ detector_from_csv(const std::string &detector_name,
                 continue;
             }
 
-            if (std::abs(last_ - flip * key) < tolerance) {
+            if (std::abs(last_ - static_cast<scalar>(flip) * key) < tolerance) {
                 boundary = last_;
             }
             last_ = boundary;
@@ -232,10 +232,10 @@ detector_from_csv(const std::string &detector_name,
     };
 
     // Cluster boundary synchronization
-    cluster_boundaries(z_min_layer_volumes, 5.);
-    cluster_boundaries(z_max_layer_volumes, 5., -1);
-    cluster_boundaries(r_min_layer_volumes, 5.);
-    cluster_boundaries(r_max_layer_volumes, 5., -1);
+    cluster_boundaries(z_min_layer_volumes, 5.f);
+    cluster_boundaries(z_max_layer_volumes, 5.f, -1);
+    cluster_boundaries(r_min_layer_volumes, 5.f);
+    cluster_boundaries(r_max_layer_volumes, 5.f, -1);
 
     /** Helper functions to find and replace in case
      *
@@ -247,8 +247,9 @@ detector_from_csv(const std::string &detector_name,
                                const std::map<scalar, scalar> &value_map,
                                int flip = 1) -> void {
         // synchronize lower bound
-        if (value_map.find(flip * value) != value_map.end()) {
-            value = value_map.find(flip * value)->second;
+        if (value_map.find(static_cast<scalar>(flip) * value) !=
+            value_map.end()) {
+            value = value_map.find(static_cast<scalar>(flip) * value)->second;
         }
     };
 
@@ -272,7 +273,7 @@ detector_from_csv(const std::string &detector_name,
             find_and_replace(_z_min, z_min_layer_volumes);
             find_and_replace(_z_max, z_max_layer_volumes, -1);
         } else {
-            if (std::abs(_z_max + _z_min) < 0.1) {
+            if (std::abs(_z_max + _z_min) < 0.1f) {
                 find_and_replace(_r_min, r_max_layer_volumes, -1);
                 find_and_replace(_r_max, r_min_layer_volumes);
                 find_and_replace(_z_min, z_min_layer_volumes);
@@ -330,7 +331,7 @@ detector_from_csv(const std::string &detector_name,
 
             const auto &unsynchronized_volume_bounds = new_bounds->second;
             // Check if you need to synchronize
-            bool is_gap = (io_surface.layer_id % 2 != 0);
+            bool is_gap = (io_surface.layer_id % 2u != 0u);
             auto _volume_bounds =
                 synchronize_bounds(unsynchronized_volume_bounds, is_gap);
 
@@ -342,7 +343,7 @@ detector_from_csv(const std::string &detector_name,
 
             auto &new_volume = d.new_volume(_volume_bounds);
 
-            name_map[new_volume.index() + 1] = volume_name;
+            name_map[new_volume.index() + 1u] = volume_name;
 
             // RZ attachment storage
             attach_volume(r_min_attachments, _volume_bounds[0],
@@ -361,7 +362,7 @@ detector_from_csv(const std::string &detector_name,
         }
 
         // Do not fill navigation layers
-        if (io_surface.layer_id % 2 == 0) {
+        if (io_surface.layer_id % 2u == 0u) {
 
             // None of these surfaces are portals
             const bool is_portal = false;
@@ -374,7 +375,8 @@ detector_from_csv(const std::string &detector_name,
                         io_surface.rot_zw};
 
             // Translate the mask & add it to the mask container
-            unsigned int bounds_type = io_surface.bounds_type;
+            unsigned int bounds_type =
+                static_cast<unsigned int>(io_surface.bounds_type);
             std::vector<scalar> bounds;
             bounds.push_back(io_surface.bound_param0);
             bounds.push_back(io_surface.bound_param1);
@@ -399,14 +401,14 @@ detector_from_csv(const std::string &detector_name,
                 mask_index = {cylinder_id, cylinder_index};
 
                 // Dummy material
-                material_index = {slab_id, 0};
+                material_index = {slab_id, 0u};
 
                 // Build the cylinder transform
                 c_transforms.emplace_back(surface_default_context, t, z, x);
 
                 // Save the corresponding surface
                 c_surfaces.emplace_back(
-                    c_transforms.size(surface_default_context) - 1, mask_index,
+                    c_transforms.size(surface_default_context) - 1u, mask_index,
                     material_index, c_volume->index(), io_surface.geometry_id,
                     is_portal);
             } else if (bounds_type == 3) {
@@ -417,16 +419,16 @@ detector_from_csv(const std::string &detector_name,
                 // Add a new rectangle mask
                 dindex rectangle_index = c_masks.template size<rectangle_id>();
                 scalar half_x =
-                    0.5 * (io_surface.bound_param2 - io_surface.bound_param0);
+                    0.5f * (io_surface.bound_param2 - io_surface.bound_param0);
                 scalar half_y =
-                    0.5 * (io_surface.bound_param3 - io_surface.bound_param1);
+                    0.5f * (io_surface.bound_param3 - io_surface.bound_param1);
                 c_masks.template add_value<rectangle_id>(half_x, half_y,
                                                          mask_volume_link);
                 // The read is valid: set the index
                 mask_index = {rectangle_id, rectangle_index};
 
                 // Dummy material
-                material_index = {slab_id, 0};
+                material_index = {slab_id, 0u};
 
                 // Build the rectangle transform
                 c_transforms.emplace_back(surface_default_context, t, z, x);
@@ -449,14 +451,14 @@ detector_from_csv(const std::string &detector_name,
                 mask_index = {trapezoid_id, trapezoid_index};
 
                 // Dummy material
-                material_index = {slab_id, 0};
+                material_index = {slab_id, 0u};
 
                 // Build the trapezoid transform
                 c_transforms.emplace_back(surface_default_context, t, z, x);
 
                 // Save the corresponding surface
                 c_surfaces.emplace_back(
-                    c_transforms.size(surface_default_context) - 1, mask_index,
+                    c_transforms.size(surface_default_context) - 1u, mask_index,
                     material_index, c_volume->index(), io_surface.geometry_id,
                     is_portal);
             } else if (bounds_type == 11) {
@@ -474,14 +476,14 @@ detector_from_csv(const std::string &detector_name,
                 mask_index = {annulus_id, annulus_index};
 
                 // Dummy material
-                material_index = {slab_id, 0};
+                material_index = {slab_id, 0u};
 
                 // Build the annulus transform
                 c_transforms.emplace_back(surface_default_context, t, z, x);
 
                 // Save the corresponding surface
                 c_surfaces.emplace_back(
-                    c_transforms.size(surface_default_context) - 1, mask_index,
+                    c_transforms.size(surface_default_context) - 1u, mask_index,
                     material_index, c_volume->index(), io_surface.geometry_id,
                     is_portal);
             }
@@ -507,7 +509,7 @@ detector_from_csv(const std::string &detector_name,
     const auto &detector_surface_finders = d.sf_finder_store();
 
     // (B) Pre-read the grids & create local object finders
-    int sg_counts = 0;
+    [[maybe_unused]] int sg_counts = 0;
 
     surface_grid_entries_writer sge_writer("grid-entries.csv");
     bool write_grid_entries =
@@ -535,7 +537,7 @@ detector_from_csv(const std::string &detector_name,
             is_disk ? 1u : static_cast<dindex>(io_surface_grid.nbins_loc1);
 
         // Prepare r axis parameters
-        scalar _r_min = is_disk ? io_surface_grid.min_loc0 : 0.;
+        scalar _r_min = is_disk ? io_surface_grid.min_loc0 : 0.f;
         scalar _r_max = is_disk ? io_surface_grid.max_loc0
                                 : std::numeric_limits<scalar>::max();
         dindex _r_bins =
@@ -657,7 +659,7 @@ detector_from_csv(const std::string &detector_name,
 
     // A step into the volume (stepsilon), can be read in from the smallest
     // difference
-    scalar stepsilon = 1.;
+    scalar stepsilon{1.f};
 
     // Loop over the volumes
     // - fill the volume grid

@@ -55,15 +55,15 @@ struct cylinder_intersector {
                          bool> = true>
     DETRAY_HOST_DEVICE inline output_type operator()(
         const ray_type &ray, const mask_t &mask, const transform3_t &trf,
-        const scalar_type mask_tolerance = 0,
-        const scalar_type overstep_tolerance = 0.) const {
+        const scalar_type mask_tolerance = 0.f,
+        const scalar_type overstep_tolerance = 0.f) const {
 
         output_type ret;
 
         const scalar_type r{mask[0]};
         const auto &m = trf.matrix();
-        const vector3 sz = getter::vector<3>(m, 0, 2);
-        const vector3 sc = getter::vector<3>(m, 0, 3);
+        const vector3 sz = getter::vector<3>(m, 0u, 2u);
+        const vector3 sc = getter::vector<3>(m, 0u, 3u);
 
         const point3 &ro = ray.pos();
         const vector3 &rd = ray.dir();
@@ -71,14 +71,13 @@ struct cylinder_intersector {
         const vector3 pc_cross_sz = vector::cross(ro - sc, sz);
         const vector3 rd_cross_sz = vector::cross(rd, sz);
         const scalar_type a{vector::dot(rd_cross_sz, rd_cross_sz)};
-        const scalar_type b{scalar_type{2.} *
-                            vector::dot(rd_cross_sz, pc_cross_sz)};
+        const scalar_type b{2.f * vector::dot(rd_cross_sz, pc_cross_sz)};
         const scalar_type c{vector::dot(pc_cross_sz, pc_cross_sz) - (r * r)};
 
         quadratic_equation<scalar_type> qe = {a, b, c};
         auto qe_solution = qe();
 
-        if (std::get<0>(qe_solution) > scalar_type{0.}) {
+        if (std::get<0>(qe_solution) > 0) {
             const auto t01 = std::get<1>(qe_solution);
             const scalar_type t{(t01[0] > overstep_tolerance) ? t01[0]
                                                               : t01[1]};
@@ -97,7 +96,7 @@ struct cylinder_intersector {
                     is.p2 = mask.to_local_frame(trf, is.p3);
                     is.status = mask.is_inside(is.p2, mask_tolerance);
                 }
-                is.direction = vector::dot(is.p3, rd) > scalar_type{0.}
+                is.direction = vector::dot(is.p3, rd) > 0.f
                                    ? intersection::direction::e_along
                                    : intersection::direction::e_opposite;
                 is.link = mask.volume_link();
@@ -105,7 +104,7 @@ struct cylinder_intersector {
                 // Get incidence angle
                 const scalar_type phi{is.p2[0] / mask[mask_t::shape::e_r]};
                 const vector3 normal = {math_ns::cos(phi), math_ns::sin(phi),
-                                        0};
+                                        0.f};
                 is.cos_incidence_angle = vector::dot(rd, normal);
             }
         }

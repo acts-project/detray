@@ -34,7 +34,7 @@ class iota_view : public detray::ranges::view_interface<iota_view<incr_t>> {
     /// @brief Nested iterator to generate a range of values on demand.
     struct iterator {
 
-        using difference_type = incr_t;
+        using difference_type = std::ptrdiff_t;
         using value_type = incr_t;
         using pointer = incr_t *;
         using reference = incr_t &;

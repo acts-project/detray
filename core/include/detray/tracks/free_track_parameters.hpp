@@ -1,6 +1,6 @@
 /** Algebra plugins library, part of the ACTS project
  *
- * (c) 2022 CERN for the benefit of the ACTS project
+ * (c) 2022-2023 CERN for the benefit of the ACTS project
  *
  * Mozilla Public License Version 2.0
  */
@@ -55,34 +55,34 @@ struct free_track_parameters {
     free_track_parameters(const point3& pos, const scalar_type time,
                           const vector3& mom, const scalar_type q) {
 
-        matrix_operator().element(m_vector, e_free_pos0, 0) = pos[0];
-        matrix_operator().element(m_vector, e_free_pos1, 0) = pos[1];
-        matrix_operator().element(m_vector, e_free_pos2, 0) = pos[2];
-        matrix_operator().element(m_vector, e_free_time, 0) = time;
+        matrix_operator().element(m_vector, e_free_pos0, 0u) = pos[0];
+        matrix_operator().element(m_vector, e_free_pos1, 0u) = pos[1];
+        matrix_operator().element(m_vector, e_free_pos2, 0u) = pos[2];
+        matrix_operator().element(m_vector, e_free_time, 0u) = time;
 
         scalar_type p = getter::norm(mom);
         auto mom_norm = vector::normalize(mom);
-        matrix_operator().element(m_vector, e_free_dir0, 0) = mom_norm[0];
-        matrix_operator().element(m_vector, e_free_dir1, 0) = mom_norm[1];
-        matrix_operator().element(m_vector, e_free_dir2, 0) = mom_norm[2];
-        matrix_operator().element(m_vector, e_free_qoverp, 0) = q / p;
+        matrix_operator().element(m_vector, e_free_dir0, 0u) = mom_norm[0];
+        matrix_operator().element(m_vector, e_free_dir1, 0u) = mom_norm[1];
+        matrix_operator().element(m_vector, e_free_dir2, 0u) = mom_norm[2];
+        matrix_operator().element(m_vector, e_free_qoverp, 0u) = q / p;
     }
 
     /** @param rhs is the left hand side params for comparison
      **/
     DETRAY_HOST_DEVICE
     bool operator==(const free_track_parameters& rhs) const {
-        for (std::size_t i = 0; i < e_free_size; i++) {
-            const auto lhs_val = matrix_operator().element(m_vector, i, 0);
-            const auto rhs_val = matrix_operator().element(rhs.vector(), i, 0);
+        for (unsigned int i = 0u; i < e_free_size; i++) {
+            const auto lhs_val = matrix_operator().element(m_vector, i, 0u);
+            const auto rhs_val = matrix_operator().element(rhs.vector(), i, 0u);
 
             if (std::abs(lhs_val - rhs_val) >
                 std::numeric_limits<scalar_type>::epsilon()) {
                 return false;
             }
         }
-        for (std::size_t i = 0; i < e_free_size; i++) {
-            for (std::size_t j = 0; j < e_free_size; j++) {
+        for (unsigned int i = 0u; i < e_free_size; i++) {
+            for (unsigned int j = 0u; j < e_free_size; j++) {
                 const auto lhs_val =
                     matrix_operator().element(m_covariance, i, j);
                 const auto rhs_val =
@@ -131,23 +131,25 @@ struct free_track_parameters {
 
     DETRAY_HOST_DEVICE
     scalar_type time() const {
-        return matrix_operator().element(m_vector, e_free_time, 0);
+        return matrix_operator().element(m_vector, e_free_time, 0u);
     }
 
     DETRAY_HOST_DEVICE
     scalar_type charge() const {
-        return matrix_operator().element(m_vector, e_free_qoverp, 0) < 0 ? -1.
-                                                                         : 1.;
+        return std::signbit(
+                   matrix_operator().element(m_vector, e_free_qoverp, 0u))
+                   ? -1.f
+                   : 1.f;
     }
 
     DETRAY_HOST_DEVICE
     scalar_type qop() const {
-        return matrix_operator().element(m_vector, e_free_qoverp, 0);
+        return matrix_operator().element(m_vector, e_free_qoverp, 0u);
     }
 
     DETRAY_HOST_DEVICE
     void set_qop(const scalar qop) {
-        matrix_operator().element(m_vector, e_free_qoverp, 0) = qop;
+        matrix_operator().element(m_vector, e_free_qoverp, 0u) = qop;
     }
 
     DETRAY_HOST_DEVICE
@@ -158,23 +160,14 @@ struct free_track_parameters {
 
     DETRAY_HOST_DEVICE
     scalar_type pT() const {
-        auto dir = this->dir();
-        return std::abs(1. / this->qop() * getter::perp(dir));
-    }
-
-    DETRAY_HOST_DEVICE
-    void flip() {
-        matrix_operator().element(m_vector, e_free_dir0, 0) *= -1.;
-        matrix_operator().element(m_vector, e_free_dir1, 0) *= -1.;
-        matrix_operator().element(m_vector, e_free_dir2, 0) *= -1.;
-        matrix_operator().element(m_vector, e_free_qoverp, 0) *= -1.;
+        return std::abs(1.f / this->qop() * getter::perp(this->dir()));
     }
 
     private:
     vector_type m_vector = matrix_operator().template zero<e_free_size, 1>();
     covariance_type m_covariance =
         matrix_operator().template zero<e_free_size, e_free_size>();
-    scalar_type m_overstep_tolerance = -1e-4;
+    scalar_type m_overstep_tolerance{-1e-4f};
 };
 
 }  // namespace detray

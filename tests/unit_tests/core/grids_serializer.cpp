@@ -1,13 +1,13 @@
 /** Detray library, part of the ACTS project (R&D line)
  *
- * (c) 2020-2022 CERN for the benefit of the ACTS project
+ * (c) 2020-2023 CERN for the benefit of the ACTS project
  *
  * Mozilla Public License Version 2.0
  */
 
 #include <gtest/gtest.h>
 
-#include <climits>
+#include <limits>
 
 // detray test
 #include <vecmem/memory/host_memory_resource.hpp>
@@ -24,8 +24,8 @@ using namespace detray;
 TEST(grids, serialize_deserialize) {
     vecmem::host_memory_resource resource;
 
-    axis::regular<> r6{6, -3., 7., resource};
-    axis::circular<> c12{12, -3., 3., resource};
+    axis::regular<> r6{6u, -3.f, 7.f, resource};
+    axis::circular<> c12{12u, -3.f, 3.f, resource};
 
     serializer2 ser2;
 

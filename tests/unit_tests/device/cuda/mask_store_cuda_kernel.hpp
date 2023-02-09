@@ -50,12 +50,12 @@ using trapezoid = mask<trapezoid2D<>>;
 /** Enumerate different mask types for convenience
  **/
 enum mask_ids : unsigned int {
-    e_rectangle2 = 0,
-    e_trapezoid2 = 1,
-    e_ring2 = 2,
-    e_cylinder2 = 3,
-    e_single3 = 4,
-    e_annulus2 = 5,
+    e_rectangle2 = 0u,
+    e_trapezoid2 = 1u,
+    e_ring2 = 2u,
+    e_cylinder2 = 3u,
+    e_single3 = 4u,
+    e_annulus2 = 5u,
 };
 
 using host_store_type =

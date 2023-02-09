@@ -32,19 +32,19 @@ __global__ void detector_test_kernel(
     vecmem::device_vector<cylinder_t> cylinders_device(cylinders_data);
 
     // copy objects - volume
-    for (unsigned int i = 0; i < det_device.volumes().size(); i++) {
+    for (unsigned int i = 0u; i < det_device.volumes().size(); i++) {
         volumes_device[i] = det_device.volume_by_index(i);
     }
 
     // copy objects - surfaces
-    for (unsigned int i = 0; i < det_device.surfaces().size(); i++) {
+    for (unsigned int i = 0u; i < det_device.surfaces().size(); i++) {
         surfaces_device[i] = det_device.surfaces()[i];
     }
 
     // copy objects - transforms
     auto& trfs = det_device.transform_store();
     auto ctx = typename detector_host_t::geometry_context{};
-    for (unsigned int i = 0; i < trfs.size(ctx); i++) {
+    for (unsigned int i = 0u; i < trfs.size(ctx); i++) {
         transforms_device[i] = trfs.at(i, ctx);
     }
 
@@ -52,28 +52,28 @@ __global__ void detector_test_kernel(
     auto& masks = det_device.mask_store();
     auto& rectangles =
         masks.template get<detector_host_t::masks::id::e_rectangle2>();
-    for (unsigned int i = 0; i < rectangles.size(); i++) {
+    for (unsigned int i = 0u; i < rectangles.size(); i++) {
         rectangles_device[i] = rectangles[i];
     }
 
     auto& discs =
         masks.template get<detector_host_t::masks::id::e_portal_ring2>();
-    for (unsigned int i = 0; i < discs.size(); i++) {
+    for (unsigned int i = 0u; i < discs.size(); i++) {
         discs_device[i] = discs[i];
     }
 
     auto& cylinders =
         masks.template get<detector_host_t::masks::id::e_portal_cylinder2>();
-    for (unsigned int i = 0; i < cylinders.size(); i++) {
+    for (unsigned int i = 0u; i < cylinders.size(); i++) {
         cylinders_device[i] = cylinders[i];
     }
 
     // print output test for surface finder
     /*auto& sf_finder_device = det_device.sf_finders_store();
-    for (unsigned int i_s = 0; i_s < sf_finder_device.size(); i_s++) {
+    for (unsigned int i_s = 0u; i_s < sf_finder_device.size(); i_s++) {
         auto& grid = sf_finder_device[i_s];
-        for (unsigned int i = 0; i < grid.axis_p0().bins(); i++) {
-            for (unsigned int j = 0; j < grid.axis_p1().bins(); j++) {
+        for (unsigned int i = 0u; i < grid.axis_p0().bins(); i++) {
+            for (unsigned int j = 0u; j < grid.axis_p1().bins(); j++) {
                 const auto& bin = grid.bin(i, j);
                 for (auto& id : bin) {
                     // printf("%d \n", id);
@@ -92,8 +92,8 @@ void detector_test(typename detector_host_t::detector_view_type det_data,
                    vecmem::data::vector_view<disc_t> discs_data,
                    vecmem::data::vector_view<cylinder_t> cylinders_data) {
 
-    constexpr int block_dim = 1;
-    constexpr int thread_dim = 1;
+    constexpr int block_dim = 1u;
+    constexpr int thread_dim = 1u;
 
     // run the test kernel
     detector_test_kernel<<<block_dim, thread_dim>>>(
@@ -140,7 +140,7 @@ void enumerate_test(typename detector_host_t::detector_view_type det_data,
 
     constexpr int thread_dim = WARP_SIZE * 2;
 
-    int block_dim = surfaces_data.size() / thread_dim + 1;
+    int block_dim = static_cast<int>(surfaces_data.size()) / thread_dim + 1;
 
     // run the test kernel
     enumerate_test_kernel<<<block_dim, thread_dim>>>(det_data, surfaces_data);

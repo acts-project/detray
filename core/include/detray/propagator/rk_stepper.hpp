@@ -1,6 +1,6 @@
 /** Detray library, part of the ACTS project (R&D line)
  *
- * (c) 2022 CERN for the benefit of the ACTS project
+ * (c) 2022-2023 CERN for the benefit of the ACTS project
  *
  * Mozilla Public License Version 2.0
  */
@@ -62,13 +62,13 @@ class rk_stepper final
             const magnetic_field_t& mag_field, const detector_t& det)
             : base_type::state(bound_params, det), _magnetic_field(mag_field) {}
         /// error tolerance
-        scalar _tolerance = 1e-4;
+        scalar _tolerance{1e-4f};
 
         /// step size cutoff value
-        scalar _step_size_cutoff = 1e-4;
+        scalar _step_size_cutoff{1e-4f};
 
         /// maximum trial number of RK stepping
-        size_t _max_rk_step_trials = 10000;
+        std::size_t _max_rk_step_trials{10000u};
 
         /// stepping data required for RKN4
         struct {
@@ -101,10 +101,9 @@ class rk_stepper final
                                   const scalar h, const vector3& k_prev);
     };
 
-    /** Take a step, using an adaptive Runge-Kutta algorithm.
-     *
-     * @return returning the heartbeat, indicating if the stepping is alive
-     */
+    /// Take a step, using an adaptive Runge-Kutta algorithm.
+    ///
+    /// @return returning the heartbeat, indicating if the stepping is alive
     template <typename propagation_state_t>
     DETRAY_HOST_DEVICE bool step(propagation_state_t& propagation);
 };

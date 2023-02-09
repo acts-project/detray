@@ -18,20 +18,21 @@ template <typename hasher_t, typename digest_collection_t>
 void test_hash(std::size_t first_child, std::size_t n_prev_level,
                digest_collection_t &digests) {
     // base case
-    if (n_prev_level <= 1) {
+    if (n_prev_level <= 1u) {
         return;
     }
 
     auto last_child = first_child + n_prev_level;
 
     // Run over previous tree level to build the next level
-    for (std::size_t i = first_child; i < last_child; i += 2) {
-        auto digest = hasher_t{}(digests[i], digests[i + 1]);
+    for (std::size_t i = first_child; i < last_child; i += 2u) {
+        auto digest = hasher_t{}(digests[i], digests[i + 1u]);
         digests.push_back(digest);
     }
-    std::size_t n_level = static_cast<std::size_t>(0.5 * n_prev_level);
+    std::size_t n_level =
+        static_cast<std::size_t>(0.5f * static_cast<float>(n_prev_level));
     // Need dummy leaf node for next level?
-    if (n_level % 2 != 0 and n_level > 1) {
+    if (n_level % 2u != 0u and n_level > 1u) {
         digests.push_back(0);
         n_level++;
     }
@@ -45,7 +46,7 @@ void test_hash(std::size_t first_child, std::size_t n_prev_level,
 TEST(ALGEBRA_PLUGIN, hash_tree) {
     using namespace detray;
 
-    dvector<dindex> test_matrix = {1, 1, 1, 1, 1, 1};
+    dvector<dindex> test_matrix = {1u, 1u, 1u, 1u, 1u, 1u};
 
     auto ht = hash_tree(test_matrix);
     using hash_tree_t = decltype(ht);
@@ -64,7 +65,7 @@ TEST(ALGEBRA_PLUGIN, hash_tree) {
 
     const auto tree_data = ht.tree();
     EXPECT_EQ(digests.size(), tree_data.size());
-    for (std::size_t n_idx = 0; n_idx < tree_data.size(); ++n_idx) {
+    for (std::size_t n_idx = 0u; n_idx < tree_data.size(); ++n_idx) {
         EXPECT_EQ(digests[n_idx], tree_data[n_idx].key());
     }
 }

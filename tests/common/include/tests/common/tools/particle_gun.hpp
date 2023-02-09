@@ -58,7 +58,7 @@ struct particle_gun {
                 intersection_type sfi;
                 if constexpr (std::is_same_v<trajectory_t, helix_type>) {
                     sfi = mask_store.template call<helix_intersection_update>(
-                        sf.mask(), traj, sf, tf_store, 1e-4);
+                        sf.mask(), traj, sf, tf_store, 1e-4f);
                 } else {
                     sfi = mask_store.template call<intersection_update>(
                         sf.mask(), traj, sf, tf_store);

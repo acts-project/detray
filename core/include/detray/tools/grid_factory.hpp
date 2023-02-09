@@ -1,6 +1,6 @@
 /** Detray library, part of the ACTS project (R&D line)
  *
- * (c) 2022 CERN for the benefit of the ACTS project
+ * (c) 2022-2023 CERN for the benefit of the ACTS project
  *
  * Mozilla Public License Version 2.0
  */
@@ -8,6 +8,7 @@
 #pragma once
 
 // Project include(s).
+#include "detray/definitions/units.hpp"
 #include "detray/masks/masks.hpp"
 #include "detray/surface_finders/grid/axis.hpp"
 #include "detray/surface_finders/grid/grid.hpp"
@@ -189,8 +190,8 @@ class grid_factory {
         auto b_values = grid_bounds.values();
 
         return new_grid<cylinder2D<>>(
-            {-static_cast<scalar_type>(M_PI) * b_values[boundary::e_r],
-             static_cast<scalar_type>(M_PI) * b_values[boundary::e_r],
+            {-constant<scalar_type>::pi * b_values[boundary::e_r],
+             constant<scalar_type>::pi * b_values[boundary::e_r],
              b_values[boundary::e_n_half_z], b_values[boundary::e_p_half_z]},
             {n_bins[e_rphi_axis], n_bins[e_z_axis]},
             {bin_edges[e_rphi_axis], bin_edges[e_z_axis]},
@@ -222,8 +223,8 @@ class grid_factory {
         auto b_values = grid_bounds.values();
 
         return new_grid<cylinder3D>(
-            {0.f, b_values[boundary::e_r], -static_cast<scalar_type>(M_PI),
-             static_cast<scalar_type>(M_PI), -b_values[boundary::e_n_half_z],
+            {0.f, b_values[boundary::e_r], -constant<scalar_type>::pi,
+             constant<scalar_type>::pi, -b_values[boundary::e_n_half_z],
              b_values[boundary::e_p_half_z]},
             {n_bins[e_r_axis], n_bins[e_phi_axis], n_bins[e_z_axis]},
             {bin_edges[e_r_axis], bin_edges[e_phi_axis], bin_edges[e_z_axis]},
@@ -254,7 +255,7 @@ class grid_factory {
 
         return new_grid<ring2D<>>(
             {b_values[boundary::e_inner_r], b_values[boundary::e_outer_r],
-             -static_cast<scalar_type>(M_PI), static_cast<scalar_type>(M_PI)},
+             -constant<scalar_type>::pi, constant<scalar_type>::pi},
             {n_bins[e_r_axis], n_bins[e_phi_axis]},
             {bin_edges[e_r_axis], bin_edges[e_phi_axis]},
             std::tuple<r_bounds, phi_bounds>{},
@@ -388,8 +389,8 @@ class grid_factory {
                           std::tuple_element_t<I, binnings>,
                           n_axis::regular<host_container_types, scalar_type>>) {
             axes_data.push_back({bin_edges.size(), n_bins.at(I)});
-            bin_edges.push_back(spans.at(I * 2));
-            bin_edges.push_back(spans.at(I * 2 + 1));
+            bin_edges.push_back(spans.at(I * 2u));
+            bin_edges.push_back(spans.at(I * 2u + 1u));
         } else {
             const auto &bin_edges_loc = ax_bin_edges.at(I);
             axes_data.push_back({bin_edges.size(),
@@ -428,19 +429,19 @@ auto grid_factory<value_t, serializer_t, populator_impl_t,
     // Loop over the first dimension
     const auto &ax0 = gr.template get_axis<0>();
     std::cout << "{";
-    for (std::size_t i{0}; i < ax0.nbins(); ++i) {
+    for (std::size_t i{0u}; i < ax0.nbins(); ++i) {
 
         // Loop over the second dimension
-        if constexpr (grid_t::Dim > 1) {
+        if constexpr (grid_t::Dim > 1u) {
             const auto &ax1 = gr.template get_axis<1>();
             std::cout << "{";
-            for (std::size_t j{0}; j < ax1.nbins(); ++j) {
+            for (std::size_t j{0u}; j < ax1.nbins(); ++j) {
 
                 // Loop over the third dimension
                 if constexpr (grid_t::Dim > 2) {
                     const auto &ax2 = gr.template get_axis<2>();
                     std::cout << "{";
-                    for (std::size_t k{0}; k < ax2.nbins(); ++k) {
+                    for (std::size_t k{0u}; k < ax2.nbins(); ++k) {
 
                         // Print the bin content - three dimensions
                         std::cout << "( ";

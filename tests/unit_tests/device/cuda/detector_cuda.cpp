@@ -18,7 +18,7 @@
 #include <gtest/gtest.h>
 
 // System include(s)
-#include <climits>
+#include <limits>
 
 using namespace detray;
 
@@ -66,30 +66,30 @@ TEST(detector_cuda, detector) {
                   rectangles_data, discs_data, cylinders_data);
 
     // check if the same volume objects are copied
-    for (unsigned int i = 0; i < volumes_host.size(); i++) {
+    for (unsigned int i = 0u; i < volumes_host.size(); i++) {
         EXPECT_EQ(volumes_host[i] == volumes_device[i], true);
     }
 
     // check if the same surface objects are copied
-    for (unsigned int i = 0; i < surfaces_host.size(); i++) {
+    for (unsigned int i = 0u; i < surfaces_host.size(); i++) {
         EXPECT_EQ(surfaces_host[i] == surfaces_device[i], true);
     }
 
     // check if the same transform objects are copied
-    for (unsigned int i = 0; i < transforms_host.size(ctx0); i++) {
+    for (unsigned int i = 0u; i < transforms_host.size(ctx0); i++) {
         EXPECT_EQ(transforms_host.at(i, ctx0) == transforms_device[i], true);
     }
 
     // check if the same masks are copied
-    for (unsigned int i = 0; i < rectangles_host.size(); i++) {
+    for (unsigned int i = 0u; i < rectangles_host.size(); i++) {
         EXPECT_EQ(rectangles_host[i] == rectangles_device[i], true);
     }
 
-    for (unsigned int i = 0; i < discs_host.size(); i++) {
+    for (unsigned int i = 0u; i < discs_host.size(); i++) {
         EXPECT_EQ(discs_host[i] == discs_device[i], true);
     }
 
-    for (unsigned int i = 0; i < cylinders_host.size(); i++) {
+    for (unsigned int i = 0u; i < cylinders_host.size(); i++) {
         EXPECT_EQ(cylinders_host[i] == cylinders_device[i], true);
     }
 }
@@ -114,7 +114,7 @@ TEST(detector_cuda, enumerate) {
     // Create and fill the vector of surfaces
     vecmem::jagged_vector<surface_t> surfaces_host(volumes.size(), &mng_mr);
 
-    for (unsigned int i = 0; i < volumes.size(); i++) {
+    for (unsigned int i = 0u; i < volumes.size(); i++) {
         for (const auto [obj_idx, obj] : detray::views::enumerate(
                  detector.surfaces(), detector.volume_by_index(i))) {
             surfaces_host[i].push_back(obj);
@@ -126,7 +126,7 @@ TEST(detector_cuda, enumerate) {
     for (auto& surfs : surfaces_host) {
         capacities.push_back(surfs.size());
     }
-    std::vector<std::size_t> sizes(surfaces_host.size(), 0);
+    std::vector<std::size_t> sizes(surfaces_host.size(), 0u);
 
     vecmem::data::jagged_vector_buffer<surface_t> surfaces_buffer(
         sizes, capacities, mng_mr);
@@ -145,7 +145,7 @@ TEST(detector_cuda, enumerate) {
     copy(surfaces_buffer, surfaces_device);
 
     // Compare the surfaces_host and surfaces_device
-    for (unsigned int i = 0; i < surfaces_host.size(); i++) {
+    for (unsigned int i = 0u; i < surfaces_host.size(); i++) {
         EXPECT_EQ(surfaces_host[i], surfaces_device[i]);
     }
 }

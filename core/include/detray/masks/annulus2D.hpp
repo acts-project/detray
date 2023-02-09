@@ -47,25 +47,25 @@ namespace detray {
 /// The first two are the origin shift in x and y respectively, while
 /// bounds[6] is the average Phi angle mentioned above.
 template <template <typename> class intersector_t = plane_intersector,
-          std::size_t kMeasDim = 2>
+          unsigned int kMeasDim = 2u>
 class annulus2D {
     public:
     /// The name for this shape
     inline static const std::string name = "(stereo) annulus2D";
 
     /// The measurement dimension
-    inline static constexpr const std::size_t meas_dim = kMeasDim;
+    inline static constexpr const unsigned int meas_dim{kMeasDim};
 
     /// Names for the mask boundary values
     enum boundaries : std::size_t {
-        e_min_r = 0,
-        e_max_r = 1,
-        e_min_phi_rel = 2,
-        e_max_phi_rel = 3,
-        e_shift_x = 4,
-        e_shift_y = 5,
-        e_average_phi = 6,
-        e_size = 7,
+        e_min_r = 0u,
+        e_max_r = 1u,
+        e_min_phi_rel = 2u,
+        e_max_phi_rel = 3u,
+        e_shift_x = 4u,
+        e_shift_y = 5u,
+        e_average_phi = 6u,
+        e_size = 7u,
     };
 
     /// Local coordinate frame (both for disc and focal system ?)
@@ -95,7 +95,7 @@ class annulus2D {
     struct axes {
         static constexpr n_axis::label axis_loc0 = n_axis::label::e_r;
         static constexpr n_axis::label axis_loc1 = n_axis::label::e_phi;
-        static constexpr std::size_t dim{2UL};
+        static constexpr std::size_t dim{2u};
 
         using types = std::tuple<n_axis::bounds_t<e_s, axis_loc0>,
                                  n_axis::circular<axis_loc1>>;
@@ -159,8 +159,8 @@ class annulus2D {
         // Now go to module frame to check r boundaries. Use the origin
         // shift in polar coordinates for that
         // TODO: Put shift in r-phi into the bounds?
-        const point_t shift_xy = {scalar_t{-1} * bounds[e_shift_x],
-                                  scalar_t{-1} * bounds[e_shift_y]};
+        const point_t shift_xy = {-1.f * bounds[e_shift_x],
+                                  -1.f * bounds[e_shift_y]};
         const scalar_t shift_r{getter::perp(shift_xy)};
         const scalar_t shift_phi{getter::phi(shift_xy)};
 
@@ -178,7 +178,8 @@ class annulus2D {
 
     template <typename param_t>
     DETRAY_HOST_DEVICE inline typename param_t::point2 to_measurement(
-        param_t& param, const typename param_t::point2& offset = {0, 0}) const {
+        param_t& param,
+        const typename param_t::point2& offset = {0.f, 0.f}) const {
         return param.local() + offset;
     }
 };

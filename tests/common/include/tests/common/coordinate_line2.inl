@@ -1,6 +1,6 @@
 /** Detray library, part of the ACTS project (R&D line)
  *
- * (c) 2020-2022 CERN for the benefit of the ACTS project
+ * (c) 2020-2023 CERN for the benefit of the ACTS project
  *
  * Mozilla Public License Version 2.0
  */
@@ -13,6 +13,7 @@
 #include <gtest/gtest.h>
 
 using namespace detray;
+
 using point2 = __plugin::point2<scalar>;
 using point3 = __plugin::point3<scalar>;
 using vector3 = __plugin::vector3<scalar>;
@@ -22,23 +23,23 @@ using size_type = typename matrix_operator::size_ty;
 template <size_type ROWS, size_type COLS>
 using matrix_type = typename matrix_operator::template matrix_type<ROWS, COLS>;
 
-const scalar isclose = 1e-5;
+constexpr scalar isclose{1e-5f};
 
 TEST(coordinate, line2_case1) {
 
     // Preparation work
-    vector3 z = {1., 1., 1.};
+    vector3 z = {1.f, 1.f, 1.f};
     z = vector::normalize(z);
-    vector3 x = {1., 0., -1.};
+    vector3 x = {1.f, 0.f, -1.f};
     x = vector::normalize(x);
-    const point3 t = {0., 0., 0.};
+    const point3 t = {0.f, 0.f, 0.f};
     const transform3 trf(t, z, x);
     const line2<transform3> l2;
-    const point3 global1 = {1, 1.5, 0.5};
-    const vector3 mom = {0., 1., 1.};
+    const point3 global1 = {1.f, 1.5f, 0.5f};
+    const vector3 mom = {0.f, 1.f, 1.f};
     const vector3 d = vector::normalize(mom);
-    const scalar time = 0.1;
-    const scalar charge = -1.;
+    const scalar time{0.1f};
+    const scalar charge{-1.f};
     struct dummy_mask {
     } mask;
 
@@ -46,8 +47,8 @@ TEST(coordinate, line2_case1) {
     const point2 local = l2.global_to_local(trf, global1, d);
 
     // Check if the local position is correct
-    ASSERT_NEAR(local[0], -1. / sqrt(2), isclose);
-    ASSERT_NEAR(local[1], sqrt(3), isclose);
+    ASSERT_NEAR(local[0], -constant<scalar>::inv_sqrt2, isclose);
+    ASSERT_NEAR(local[1], std::sqrt(3.f), isclose);
 
     // Local to global transformation
     const point3 global2 = l2.local_to_global(trf, mask, local, d);
@@ -68,16 +69,18 @@ TEST(coordinate, line2_case1) {
     const matrix_operator m;
 
     // Check if the bound vector is correct
-    ASSERT_NEAR(m.element(bound_vec, 0, 0), -1. / sqrt(2), isclose);
-    ASSERT_NEAR(m.element(bound_vec, 1, 0), sqrt(3), isclose);
-    ASSERT_NEAR(m.element(bound_vec, 2, 0), M_PI_2, isclose);
-    ASSERT_NEAR(m.element(bound_vec, 3, 0), M_PI_4, isclose);
-    ASSERT_NEAR(m.element(bound_vec, 4, 0), -1. / sqrt(2), isclose);
-    ASSERT_NEAR(m.element(bound_vec, 5, 0), 0.1, isclose);
+    ASSERT_NEAR(m.element(bound_vec, 0u, 0u), -constant<scalar>::inv_sqrt2,
+                isclose);
+    ASSERT_NEAR(m.element(bound_vec, 1u, 0u), std::sqrt(3.f), isclose);
+    ASSERT_NEAR(m.element(bound_vec, 2u, 0u), constant<scalar>::pi_2, isclose);
+    ASSERT_NEAR(m.element(bound_vec, 3u, 0u), constant<scalar>::pi_4, isclose);
+    ASSERT_NEAR(m.element(bound_vec, 4u, 0u), -constant<scalar>::inv_sqrt2,
+                isclose);
+    ASSERT_NEAR(m.element(bound_vec, 5u, 0u), 0.1f, isclose);
 
     // Check if the same free vector is obtained
-    for (int i = 0; i < 8; i++) {
-        ASSERT_NEAR(m.element(free_vec1, i, 0), m.element(free_vec2, i, 0),
+    for (unsigned int i = 0u; i < 8u; i++) {
+        ASSERT_NEAR(m.element(free_vec1, i, 0u), m.element(free_vec2, i, 0u),
                     isclose);
     }
 
@@ -86,12 +89,12 @@ TEST(coordinate, line2_case1) {
         l2.free_to_bound_jacobian(trf, mask, free_vec1) *
         l2.bound_to_free_jacobian(trf, mask, bound_vec);
 
-    for (std::size_t i = 0; i < 6; i++) {
-        for (std::size_t j = 0; j < 6; j++) {
+    for (unsigned int i = 0u; i < 6u; i++) {
+        for (unsigned int j = 0u; j < 6u; j++) {
             if (i == j) {
-                EXPECT_NEAR(m.element(J, i, j), 1., isclose);
+                EXPECT_NEAR(m.element(J, i, j), 1.f, isclose);
             } else {
-                EXPECT_NEAR(m.element(J, i, j), 0., isclose);
+                EXPECT_NEAR(m.element(J, i, j), 0.f, isclose);
             }
         }
     }
@@ -100,18 +103,18 @@ TEST(coordinate, line2_case1) {
 TEST(coordinate, line2_case2) {
 
     // Preparation work
-    vector3 z = {1., 2., 3.};
+    vector3 z = {1.f, 2.f, 3.f};
     z = vector::normalize(z);
-    vector3 x = {2., -4., 2.};
+    vector3 x = {2.f, -4.f, 2.f};
     x = vector::normalize(x);
-    const point3 t = {0., 0., 0.};
+    const point3 t = {0.f, 0.f, 0.f};
     const transform3 trf(t, z, x);
     const line2<transform3> l2;
-    const point2 local1 = {1, 2};
-    const vector3 mom = {1., 6., -2.};
+    const point2 local1 = {1.f, 2.f};
+    const vector3 mom = {1.f, 6.f, -2.f};
     const vector3 d = vector::normalize(mom);
-    const scalar time = 0.1;
-    const scalar charge = -1.;
+    const scalar time{0.1f};
+    const scalar charge{-1.f};
     struct dummy_mask {
     } mask;
 
@@ -137,12 +140,12 @@ TEST(coordinate, line2_case2) {
 
     const matrix_operator m;
 
-    for (std::size_t i = 0; i < 6; i++) {
-        for (std::size_t j = 0; j < 6; j++) {
+    for (unsigned int i = 0u; i < 6u; i++) {
+        for (unsigned int j = 0u; j < 6u; j++) {
             if (i == j) {
-                EXPECT_NEAR(m.element(J, i, j), 1., isclose);
+                EXPECT_NEAR(m.element(J, i, j), 1.f, isclose);
             } else {
-                EXPECT_NEAR(m.element(J, i, j), 0., isclose);
+                EXPECT_NEAR(m.element(J, i, j), 0.f, isclose);
             }
         }
     }

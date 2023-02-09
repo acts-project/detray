@@ -25,7 +25,7 @@ int main() {
     vecmem::host_memory_resource host_mr;
 
     // Create B field
-    const vector3 B{0, 0, 2 * unit<scalar>::T};
+    const vector3 B{0.f, 0.f, 2.f * unit<scalar>::T};
 
     // Create geometry
     using b_field_t = decltype(create_toy_geometry(host_mr))::bfield_type;
@@ -34,18 +34,18 @@ int main() {
         b_field_t(b_field_t::backend_t::configuration_t{B[0], B[1], B[2]}));
 
     // Create track generator
-    constexpr unsigned int theta_steps{4};
-    constexpr unsigned int phi_steps{4};
-    const vector3 ori{0, 0, 0};
-    const scalar mom = 1 * unit<scalar>::GeV;
+    constexpr std::size_t theta_steps{4u};
+    constexpr std::size_t phi_steps{4u};
+    const vector3 ori{0.f, 0.f, 0.f};
+    const scalar mom{1.f * unit<scalar>::GeV};
     auto generator = uniform_track_generator<free_track_parameters<transform3>>(
         theta_steps, phi_steps, ori, mom);
 
     // Create smearer
-    measurement_smearer<scalar> smearer(100 * unit<scalar>::um,
-                                        100 * unit<scalar>::um);
+    measurement_smearer<scalar> smearer(100.f * unit<scalar>::um,
+                                        100.f * unit<scalar>::um);
 
-    unsigned int n_events = 2;
+    std::size_t n_events = 2u;
     auto sim = simulator(n_events, detector, std::move(generator), smearer);
 
     sim.run();
