@@ -14,6 +14,7 @@
 
 // System include(s)
 #include <cassert>
+#include <memory>
 #include <type_traits>
 
 namespace detray::ranges {
@@ -242,7 +243,7 @@ class view_interface : public base_view {
     /// @note requires contiguous range (not yet modelled)
     DETRAY_HOST_DEVICE
     constexpr auto data() const {
-        return empty() ? nullptr : &(*(_impl_ptr->begin()));
+        return empty() ? nullptr : std::addressof(*(_impl_ptr->begin()));
     }
 
     /// @note requires contiguous range (not yet modelled)
@@ -261,7 +262,7 @@ class view_interface : public base_view {
     /// @note requires forward range
     template <typename R = view_impl_t,
               std::enable_if_t<detray::ranges::forward_range_v<R>, bool> = true>
-    DETRAY_HOST_DEVICE constexpr auto front() const {
+    DETRAY_HOST_DEVICE constexpr decltype(auto) front() const {
         const auto bg = _impl_ptr->begin();
         assert(not empty());
         return *bg;
@@ -270,7 +271,7 @@ class view_interface : public base_view {
     /// @note requires forward range
     template <typename R = view_impl_t,
               std::enable_if_t<detray::ranges::forward_range_v<R>, bool> = true>
-    DETRAY_HOST_DEVICE constexpr auto front() {
+    DETRAY_HOST_DEVICE constexpr decltype(auto) front() {
         const auto bg = _impl_ptr->begin();
         assert(not empty());
         return *bg;
@@ -296,21 +297,26 @@ class view_interface : public base_view {
         return *(--sentinel);
     }
 
+    /// Subscript operator that takes detray @c dindex
+    ///
     /// @note requires random access range
     template <
         typename R = view_impl_t,
         std::enable_if_t<detray::ranges::random_access_range_v<R>, bool> = true>
     DETRAY_HOST_DEVICE constexpr decltype(auto) operator[](
         const dindex i) const {
-        return (_impl_ptr->begin())[i];
+        return (_impl_ptr->begin())
+            [static_cast<detray::ranges::range_difference_t<R>>(i)];
     }
-
+    /// Subscript operator that takes detray @c dindex
+    ///
     /// @note requires random access range
     template <
         typename R = view_impl_t,
         std::enable_if_t<detray::ranges::random_access_range_v<R>, bool> = true>
     DETRAY_HOST_DEVICE constexpr decltype(auto) operator[](const dindex i) {
-        return (_impl_ptr->begin())[i];
+        return (_impl_ptr->begin())
+            [static_cast<detray::ranges::range_difference_t<R>>(i)];
     }
 
     private:

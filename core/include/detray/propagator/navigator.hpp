@@ -453,7 +453,7 @@ class navigator {
         navigation::direction _direction = navigation::direction::e_forward;
 
         /// The on object tolerance - permille
-        scalar _on_object_tolerance = 1e-3;
+        scalar _on_object_tolerance{1e-3f};
 
         /// The navigation trust level determines how this states cache is to
         /// be updated in the current navigation call
@@ -461,7 +461,7 @@ class navigator {
             navigation::trust_level::e_no_trust;
 
         /// Index in the detector volume container of current navigation volume
-        dindex _volume_index = 0;
+        dindex _volume_index{0u};
     };
 
     /// Helper method to initialize a volume.
@@ -809,7 +809,7 @@ create_candidates_buffer(
     vecmem::memory_resource &device_resource,
     vecmem::memory_resource *host_access_resource = nullptr) {
     return vecmem::data::jagged_vector_buffer<line_plane_intersection>(
-        std::vector<std::size_t>(n_tracks, 0),
+        std::vector<std::size_t>(n_tracks, 0u),
         std::vector<std::size_t>(n_tracks, det.get_n_max_objects_per_volume()),
         device_resource, host_access_resource);
 }

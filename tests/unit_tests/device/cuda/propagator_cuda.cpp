@@ -40,13 +40,14 @@ TEST_P(CudaPropagatorWithRkStepper, propagator) {
     vecmem::vector<free_track_parameters<transform3>> tracks_device(&mng_mr);
 
     // Set origin position of tracks
-    const point3 ori{0., 0., 0.};
-    const scalar p_mag{10. * unit<scalar>::GeV};
+    const point3 ori{0.f, 0.f, 0.f};
+    const scalar p_mag{10.f * unit<scalar>::GeV};
 
     // Iterate through uniformly distributed momentum directions
     for (auto track :
          uniform_track_generator<free_track_parameters<transform3>>(
-             theta_steps, phi_steps, ori, p_mag, {0.01, M_PI}, {-M_PI, M_PI})) {
+             theta_steps, phi_steps, ori, p_mag, {0.01f, constant<scalar>::pi},
+             {-constant<scalar>::pi, constant<scalar>::pi})) {
         track.set_overstep_tolerance(overstep_tolerance);
 
         // Put it into vector of trajectories

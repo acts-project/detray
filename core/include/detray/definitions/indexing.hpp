@@ -1,6 +1,6 @@
 /** Detray library, part of the ACTS project (R&D line)
  *
- * (c) 2020-2022 CERN for the benefit of the ACTS project
+ * (c) 2020-2023 CERN for the benefit of the ACTS project
  *
  * Mozilla Public License Version 2.0
  */
@@ -17,7 +17,7 @@
 namespace detray {
 
 using dindex = unsigned long;
-inline dindex constexpr dindex_invalid = std::numeric_limits<dindex>::max();
+inline constexpr dindex dindex_invalid = std::numeric_limits<dindex>::max();
 using dindex_range = darray<dindex, 2>;
 using dindex_sequence = dvector<dindex>;
 
@@ -25,7 +25,7 @@ using dindex_sequence = dvector<dindex>;
 ///
 /// @tparam DIM number of indices that are held by this type
 /// @tparam index_t type of indices
-template <typename index_t = dindex, std::size_t DIM = 3>
+template <typename index_t = dindex, std::size_t DIM = 3u>
 struct dmulti_index {
     using index_type = index_t;
 

@@ -21,7 +21,7 @@ namespace detray {
 
 /// Test type
 struct uint_holder {
-    dindex ui = 0;
+    dindex ui = 0u;
 };
 
 /// Test @c detray::views::single

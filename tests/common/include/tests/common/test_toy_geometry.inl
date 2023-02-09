@@ -1,6 +1,6 @@
 /** Detray library, part of the ACTS project (R&D line)
  *
- * (c) 2021-2022 CERN for the benefit of the ACTS project
+ * (c) 2021-2023 CERN for the benefit of the ACTS project
  *
  * Mozilla Public License Version 2.0
  */
@@ -86,8 +86,8 @@ struct surface_grid_tester {
 TEST(ALGEBRA_PLUGIN, toy_geometry) {
 
     vecmem::host_memory_resource host_mr;
-    std::size_t n_brl_layers = 4;
-    std::size_t n_edc_layers = 3;
+    constexpr std::size_t n_brl_layers{4u};
+    constexpr std::size_t n_edc_layers{3u};
 
     const auto toy_det =
         create_toy_geometry(host_mr, n_brl_layers, n_edc_layers);
@@ -112,28 +112,28 @@ TEST(ALGEBRA_PLUGIN, toy_geometry) {
 
     // Materials
     auto portal_mat =
-        material_slab<scalar>(vacuum<scalar>(), 0. * unit<scalar>::mm);
+        material_slab<scalar>(vacuum<scalar>(), 0.f * unit<scalar>::mm);
     auto beampipe_mat =
-        material_slab<scalar>(beryllium_tml<scalar>(), 0.8 * unit<scalar>::mm);
+        material_slab<scalar>(beryllium_tml<scalar>(), 0.8f * unit<scalar>::mm);
     auto pixel_mat =
-        material_slab<scalar>(silicon_tml<scalar>(), 0.15 * unit<scalar>::mm);
+        material_slab<scalar>(silicon_tml<scalar>(), 0.15f * unit<scalar>::mm);
 
     /** Link to outer world (leaving detector) */
     const dindex leaving_world = dindex_invalid;
 
     // Check number of geomtery objects
-    EXPECT_EQ(volumes.size(), 20);
-    EXPECT_EQ(surfaces.size(), 3244);
+    EXPECT_EQ(volumes.size(), 20u);
+    EXPECT_EQ(surfaces.size(), 3244u);
     /*EXPECT_EQ(sf_finders.template size<sf_finder_ids::e_brute_force>(), 1);
     EXPECT_EQ(sf_finders.template size<sf_finder_ids::e_cylinder_grid>(),
               n_brl_layers);
     EXPECT_EQ(sf_finders.template size<sf_finder_ids::e_disc_grid>(), 14);*/
-    EXPECT_EQ(transforms.size(ctx), 3244);
-    EXPECT_EQ(masks.template size<mask_ids::e_rectangle2>(), 2492);
-    EXPECT_EQ(masks.template size<mask_ids::e_trapezoid2>(), 648);
-    EXPECT_EQ(masks.template size<mask_ids::e_portal_cylinder2>(), 52);
-    EXPECT_EQ(masks.template size<mask_ids::e_portal_ring2>(), 52);
-    EXPECT_EQ(materials.template size<material_ids::e_slab>(), 3244);
+    EXPECT_EQ(transforms.size(ctx), 3244u);
+    EXPECT_EQ(masks.template size<mask_ids::e_rectangle2>(), 2492u);
+    EXPECT_EQ(masks.template size<mask_ids::e_trapezoid2>(), 648u);
+    EXPECT_EQ(masks.template size<mask_ids::e_portal_cylinder2>(), 52u);
+    EXPECT_EQ(masks.template size<mask_ids::e_portal_ring2>(), 52u);
+    EXPECT_EQ(materials.template size<material_ids::e_slab>(), 3244u);
 
     /** Test the links of a volume.
      *
@@ -249,37 +249,41 @@ TEST(ALGEBRA_PLUGIN, toy_geometry) {
 
     // Check volume
     auto vol_itr = volumes.begin();
-    darray<scalar, 6> bounds = {0., 27., -825., 825., -M_PI, M_PI};
-    darray<dindex, 2> range = {0, 16};
-    sf_finder_link_t sf_finder_link{sf_finder_ids::e_brute_force, 0};
+    darray<scalar, 6> bounds = {
+        0.f, 27.f, -825.f, 825.f, -constant<scalar>::pi, constant<scalar>::pi};
+    darray<dindex, 2> range = {0u, 16u};
+    sf_finder_link_t sf_finder_link{sf_finder_ids::e_brute_force, 0u};
 
     // Test the links in the volumes
-    test_volume_links(vol_itr, 0, bounds, range, sf_finder_link);
+    test_volume_links(vol_itr, 0u, bounds, range, sf_finder_link);
 
     // Check links of beampipe itself
-    range = {0, 1};
+    range = {0u, 1u};
     test_module_links(vol_itr->index(), surfaces.begin(), range, range[0],
-                      {mask_ids::e_cylinder2, 0}, {material_ids::e_slab, 0},
+                      {mask_ids::e_cylinder2, 0u}, {material_ids::e_slab, 0u},
                       beampipe_mat, {vol_itr->index()});
 
     // Check links of portals
     // cylinder portals
-    range = {1, 8};
-    test_portal_links(vol_itr->index(), surfaces.begin() + range[0], range,
-                      range[0], {mask_ids::e_portal_cylinder2, 1},
-                      {material_ids::e_slab, 1}, portal_mat,
-                      {1, 2, 3, 4, 5, 6, 7});
-    range = {8, 14};
-    test_portal_links(vol_itr->index(), surfaces.begin() + range[0], range,
-                      range[0], {mask_ids::e_portal_cylinder2, 8},
-                      {material_ids::e_slab, 8}, portal_mat,
-                      {14, 15, 16, 17, 18, 19});
+    range = {1u, 8u};
+    test_portal_links(vol_itr->index(),
+                      surfaces.begin() + static_cast<std::ptrdiff_t>(range[0]),
+                      range, range[0], {mask_ids::e_portal_cylinder2, 1u},
+                      {material_ids::e_slab, 1u}, portal_mat,
+                      {1u, 2u, 3u, 4u, 5u, 6u, 7u});
+    range = {8u, 14u};
+    test_portal_links(vol_itr->index(),
+                      surfaces.begin() + static_cast<std::ptrdiff_t>(range[0]),
+                      range, range[0], {mask_ids::e_portal_cylinder2, 8u},
+                      {material_ids::e_slab, 8u}, portal_mat,
+                      {14u, 15u, 16u, 17u, 18u, 19u});
 
     // disc portals
-    range = {14, 16};
-    test_portal_links(vol_itr->index(), surfaces.begin() + range[0], range,
-                      range[0], {mask_ids::e_portal_ring2, 0},
-                      {material_ids::e_slab, 14}, portal_mat,
+    range = {14u, 16u};
+    test_portal_links(vol_itr->index(),
+                      surfaces.begin() + static_cast<std::ptrdiff_t>(range[0]),
+                      range, range[0], {mask_ids::e_portal_ring2, 0u},
+                      {material_ids::e_slab, 14u}, portal_mat,
                       {leaving_world, leaving_world});
 
     //
@@ -288,18 +292,24 @@ TEST(ALGEBRA_PLUGIN, toy_geometry) {
 
     // Check volume
     ++vol_itr;
-    bounds = {27., 180., -825., -815., -M_PI, M_PI};
-    range = {16, 128};
-    sf_finder_link = {sf_finder_ids::e_disc_grid, 0};
+    bounds = {27.f,
+              180.f,
+              -825.f,
+              -815.f,
+              -constant<scalar>::pi,
+              constant<scalar>::pi};
+    range = {16u, 128u};
+    sf_finder_link = {sf_finder_ids::e_disc_grid, 0u};
 
     // Test the links in the volumes
-    test_volume_links(vol_itr, 1, bounds, range, sf_finder_link);
+    test_volume_links(vol_itr, 1u, bounds, range, sf_finder_link);
 
     // Check the trapezoid modules
-    range = {16, 124};
-    test_module_links(vol_itr->index(), surfaces.begin() + range[0], range,
-                      range[0], {mask_ids::e_trapezoid2, 0},
-                      {material_ids::e_slab, 16}, pixel_mat,
+    range = {16u, 124u};
+    test_module_links(vol_itr->index(),
+                      surfaces.begin() + static_cast<std::ptrdiff_t>(range[0]),
+                      range, range[0], {mask_ids::e_trapezoid2, 0u},
+                      {material_ids::e_slab, 16u}, pixel_mat,
                       {vol_itr->index()});
 
     // Check link of surfaces in surface finder
@@ -307,17 +317,19 @@ TEST(ALGEBRA_PLUGIN, toy_geometry) {
 
     // Check links of portals
     // cylinder portals
-    range = {124, 126};
-    test_portal_links(vol_itr->index(), surfaces.begin() + range[0], range,
-                      range[0], {mask_ids::e_portal_cylinder2, 14},
-                      {material_ids::e_slab, 124}, portal_mat,
-                      {0, leaving_world});
+    range = {124u, 126u};
+    test_portal_links(vol_itr->index(),
+                      surfaces.begin() + static_cast<std::ptrdiff_t>(range[0]),
+                      range, range[0], {mask_ids::e_portal_cylinder2, 14u},
+                      {material_ids::e_slab, 124u}, portal_mat,
+                      {0u, leaving_world});
     // disc portals
-    range = {126, 128};
-    test_portal_links(vol_itr->index(), surfaces.begin() + range[0], range,
-                      range[0], {mask_ids::e_portal_ring2, 2},
-                      {material_ids::e_slab, 126}, portal_mat,
-                      {leaving_world, 2});
+    range = {126u, 128u};
+    test_portal_links(vol_itr->index(),
+                      surfaces.begin() + static_cast<std::ptrdiff_t>(range[0]),
+                      range, range[0], {mask_ids::e_portal_ring2, 2u},
+                      {material_ids::e_slab, 126u}, portal_mat,
+                      {leaving_world, 2u});
 
     //
     // gap
@@ -325,25 +337,32 @@ TEST(ALGEBRA_PLUGIN, toy_geometry) {
 
     // Check volume
     ++vol_itr;
-    bounds = {27., 180., -815., -705., -M_PI, M_PI};
-    range = {128, 132};
-    sf_finder_link = {sf_finder_ids::e_brute_force, 0};
+    bounds = {27.f,
+              180.f,
+              -815.f,
+              -705.f,
+              -constant<scalar>::pi,
+              constant<scalar>::pi};
+    range = {128u, 132u};
+    sf_finder_link = {sf_finder_ids::e_brute_force, 0u};
 
     // Test the links in the volumes
-    test_volume_links(vol_itr, 2, bounds, range, sf_finder_link);
+    test_volume_links(vol_itr, 2u, bounds, range, sf_finder_link);
 
     // Check links of portals
     // cylinder portals
-    range = {128, 130};
-    test_portal_links(vol_itr->index(), surfaces.begin() + range[0], range,
-                      range[0], {mask_ids::e_portal_cylinder2, 16},
-                      {material_ids::e_slab, 128}, portal_mat,
-                      {0, leaving_world});
+    range = {128u, 130u};
+    test_portal_links(vol_itr->index(),
+                      surfaces.begin() + static_cast<std::ptrdiff_t>(range[0]),
+                      range, range[0], {mask_ids::e_portal_cylinder2, 16u},
+                      {material_ids::e_slab, 128u}, portal_mat,
+                      {0u, leaving_world});
     // disc portals
-    range = {130, 132};
-    test_portal_links(vol_itr->index(), surfaces.begin() + range[0], range,
-                      range[0], {mask_ids::e_portal_ring2, 4},
-                      {material_ids::e_slab, 130}, portal_mat, {1, 3});
+    range = {130u, 132u};
+    test_portal_links(vol_itr->index(),
+                      surfaces.begin() + static_cast<std::ptrdiff_t>(range[0]),
+                      range, range[0], {mask_ids::e_portal_ring2, 4u},
+                      {material_ids::e_slab, 130u}, portal_mat, {1u, 3u});
 
     //
     // neg endcap (layer 2)
@@ -351,18 +370,24 @@ TEST(ALGEBRA_PLUGIN, toy_geometry) {
 
     // Check volume
     ++vol_itr;
-    bounds = {27., 180., -705., -695., -M_PI, M_PI};
-    range = {132, 244};
-    sf_finder_link = {sf_finder_ids::e_disc_grid, 1};
+    bounds = {27.f,
+              180.f,
+              -705.f,
+              -695.f,
+              -constant<scalar>::pi,
+              constant<scalar>::pi};
+    range = {132u, 244u};
+    sf_finder_link = {sf_finder_ids::e_disc_grid, 1u};
 
     // Test the links in the volumes
-    test_volume_links(vol_itr, 3, bounds, range, sf_finder_link);
+    test_volume_links(vol_itr, 3u, bounds, range, sf_finder_link);
 
     // Check the trapezoid modules
-    range = {132, 240};
-    test_module_links(vol_itr->index(), surfaces.begin() + range[0], range,
-                      range[0], {mask_ids::e_trapezoid2, 108},
-                      {material_ids::e_slab, 132}, pixel_mat,
+    range = {132u, 240u};
+    test_module_links(vol_itr->index(),
+                      surfaces.begin() + static_cast<std::ptrdiff_t>(range[0]),
+                      range, range[0], {mask_ids::e_trapezoid2, 108u},
+                      {material_ids::e_slab, 132u}, pixel_mat,
                       {vol_itr->index()});
 
     // Check link of surfaces in surface finder
@@ -370,16 +395,18 @@ TEST(ALGEBRA_PLUGIN, toy_geometry) {
 
     // Check links of portals
     // cylinder portals
-    range = {240, 242};
-    test_portal_links(vol_itr->index(), surfaces.begin() + range[0], range,
-                      range[0], {mask_ids::e_portal_cylinder2, 18},
-                      {material_ids::e_slab, 240}, portal_mat,
-                      {0, leaving_world});
+    range = {240u, 242u};
+    test_portal_links(vol_itr->index(),
+                      surfaces.begin() + static_cast<std::ptrdiff_t>(range[0]),
+                      range, range[0], {mask_ids::e_portal_cylinder2, 18u},
+                      {material_ids::e_slab, 240u}, portal_mat,
+                      {0u, leaving_world});
     // disc portals
-    range = {242, 244};
-    test_portal_links(vol_itr->index(), surfaces.begin() + range[0], range,
-                      range[0], {mask_ids::e_portal_ring2, 6},
-                      {material_ids::e_slab, 242}, portal_mat, {2, 4});
+    range = {242u, 244u};
+    test_portal_links(vol_itr->index(),
+                      surfaces.begin() + static_cast<std::ptrdiff_t>(range[0]),
+                      range, range[0], {mask_ids::e_portal_ring2, 6u},
+                      {material_ids::e_slab, 242u}, portal_mat, {2u, 4u});
 
     //
     // gap
@@ -387,25 +414,32 @@ TEST(ALGEBRA_PLUGIN, toy_geometry) {
 
     // Check volume
     ++vol_itr;
-    bounds = {27., 180., -695., -605., -M_PI, M_PI};
-    range = {244, 248};
-    sf_finder_link = {sf_finder_ids::e_brute_force, 0};
+    bounds = {27.f,
+              180.f,
+              -695.f,
+              -605.f,
+              -constant<scalar>::pi,
+              constant<scalar>::pi};
+    range = {244u, 248u};
+    sf_finder_link = {sf_finder_ids::e_brute_force, 0u};
 
     // Test the links in the volumes
-    test_volume_links(vol_itr, 4, bounds, range, sf_finder_link);
+    test_volume_links(vol_itr, 4u, bounds, range, sf_finder_link);
 
     // Check links of portals
     // cylinder portals
-    range = {244, 246};
-    test_portal_links(vol_itr->index(), surfaces.begin() + range[0], range,
-                      range[0], {mask_ids::e_portal_cylinder2, 20},
-                      {material_ids::e_slab, 244}, portal_mat,
-                      {0, leaving_world});
+    range = {244u, 246u};
+    test_portal_links(vol_itr->index(),
+                      surfaces.begin() + static_cast<std::ptrdiff_t>(range[0]),
+                      range, range[0], {mask_ids::e_portal_cylinder2, 20u},
+                      {material_ids::e_slab, 244u}, portal_mat,
+                      {0u, leaving_world});
     // disc portals
-    range = {246, 248};
-    test_portal_links(vol_itr->index(), surfaces.begin() + range[0], range,
-                      range[0], {mask_ids::e_portal_ring2, 8},
-                      {material_ids::e_slab, 246}, portal_mat, {3, 5});
+    range = {246u, 248u};
+    test_portal_links(vol_itr->index(),
+                      surfaces.begin() + static_cast<std::ptrdiff_t>(range[0]),
+                      range, range[0], {mask_ids::e_portal_ring2, 8u},
+                      {material_ids::e_slab, 246u}, portal_mat, {3u, 5u});
 
     //
     // neg endcap (layer 1)
@@ -413,18 +447,24 @@ TEST(ALGEBRA_PLUGIN, toy_geometry) {
 
     // Check volume
     ++vol_itr;
-    bounds = {27., 180., -605., -595., -M_PI, M_PI};
-    range = {248, 360};
-    sf_finder_link = {sf_finder_ids::e_disc_grid, 2};
+    bounds = {27.f,
+              180.f,
+              -605.f,
+              -595.f,
+              -constant<scalar>::pi,
+              constant<scalar>::pi};
+    range = {248u, 360u};
+    sf_finder_link = {sf_finder_ids::e_disc_grid, 2u};
 
     // Test the links in the volumes
-    test_volume_links(vol_itr, 5, bounds, range, sf_finder_link);
+    test_volume_links(vol_itr, 5u, bounds, range, sf_finder_link);
 
     // Check the trapezoid modules
-    range = {248, 356};
-    test_module_links(vol_itr->index(), surfaces.begin() + range[0], range,
-                      range[0], {mask_ids::e_trapezoid2, 216},
-                      {material_ids::e_slab, 248}, pixel_mat,
+    range = {248u, 356u};
+    test_module_links(vol_itr->index(),
+                      surfaces.begin() + static_cast<std::ptrdiff_t>(range[0]),
+                      range, range[0], {mask_ids::e_trapezoid2, 216u},
+                      {material_ids::e_slab, 248u}, pixel_mat,
                       {vol_itr->index()});
 
     // Check link of surfaces in surface finder
@@ -432,16 +472,18 @@ TEST(ALGEBRA_PLUGIN, toy_geometry) {
 
     // Check links of portals
     // cylinder portals
-    range = {356, 358};
-    test_portal_links(vol_itr->index(), surfaces.begin() + range[0], range,
-                      range[0], {mask_ids::e_portal_cylinder2, 22},
-                      {material_ids::e_slab, 356}, portal_mat,
-                      {0, leaving_world});
+    range = {356u, 358u};
+    test_portal_links(vol_itr->index(),
+                      surfaces.begin() + static_cast<std::ptrdiff_t>(range[0]),
+                      range, range[0], {mask_ids::e_portal_cylinder2, 22u},
+                      {material_ids::e_slab, 356u}, portal_mat,
+                      {0u, leaving_world});
     // disc portals
-    range = {358, 360};
-    test_portal_links(vol_itr->index(), surfaces.begin() + range[0], range,
-                      range[0], {mask_ids::e_portal_ring2, 10},
-                      {material_ids::e_slab, 358}, portal_mat, {4, 6});
+    range = {358u, 360u};
+    test_portal_links(vol_itr->index(),
+                      surfaces.begin() + static_cast<std::ptrdiff_t>(range[0]),
+                      range, range[0], {mask_ids::e_portal_ring2, 10u},
+                      {material_ids::e_slab, 358u}, portal_mat, {4u, 6u});
 
     //
     // gap
@@ -449,26 +491,33 @@ TEST(ALGEBRA_PLUGIN, toy_geometry) {
 
     // Check volume
     ++vol_itr;
-    bounds = {27., 180., -595., -500., -M_PI, M_PI};
-    range = {360, 370};
-    sf_finder_link = {sf_finder_ids::e_brute_force, 0};
+    bounds = {27.f,
+              180.f,
+              -595.f,
+              -500.f,
+              -constant<scalar>::pi,
+              constant<scalar>::pi};
+    range = {360u, 370u};
+    sf_finder_link = {sf_finder_ids::e_brute_force, 0u};
 
     // Test the links in the volumes
-    test_volume_links(vol_itr, 6, bounds, range, sf_finder_link);
+    test_volume_links(vol_itr, 6u, bounds, range, sf_finder_link);
 
     // Check links of portals
     // cylinder portals
-    range = {360, 362};
-    test_portal_links(vol_itr->index(), surfaces.begin() + range[0], range,
-                      range[0], {mask_ids::e_portal_cylinder2, 24},
-                      {material_ids::e_slab, 360}, portal_mat,
-                      {0, leaving_world});
+    range = {360u, 362u};
+    test_portal_links(vol_itr->index(),
+                      surfaces.begin() + static_cast<std::ptrdiff_t>(range[0]),
+                      range, range[0], {mask_ids::e_portal_cylinder2, 24u},
+                      {material_ids::e_slab, 360u}, portal_mat,
+                      {0u, leaving_world});
     // disc portals
-    range = {362, 370};
-    test_portal_links(vol_itr->index(), surfaces.begin() + range[0], range,
-                      range[0], {mask_ids::e_portal_ring2, 12},
-                      {material_ids::e_slab, 362}, portal_mat,
-                      {5, 7, 8, 9, 10, 11, 12, 13});
+    range = {362u, 370u};
+    test_portal_links(vol_itr->index(),
+                      surfaces.begin() + static_cast<std::ptrdiff_t>(range[0]),
+                      range, range[0], {mask_ids::e_portal_ring2, 12u},
+                      {material_ids::e_slab, 362u}, portal_mat,
+                      {5u, 7u, 8u, 9u, 10u, 11u, 12u, 13u});
 
     //
     // barrel
@@ -480,18 +529,20 @@ TEST(ALGEBRA_PLUGIN, toy_geometry) {
 
     // Check volume
     ++vol_itr;
-    bounds = {27., 38., -500., 500, -M_PI, M_PI};
-    range = {370, 598};
-    sf_finder_link = {sf_finder_ids::e_cylinder_grid, 0};
+    bounds = {
+        27.f, 38.f, -500.f, 500.f, -constant<scalar>::pi, constant<scalar>::pi};
+    range = {370u, 598u};
+    sf_finder_link = {sf_finder_ids::e_cylinder_grid, 0u};
 
     // Test the links in the volumes
-    test_volume_links(vol_itr, 7, bounds, range, sf_finder_link);
+    test_volume_links(vol_itr, 7u, bounds, range, sf_finder_link);
 
     // Check links of modules
-    range = {370, 594};
-    test_module_links(vol_itr->index(), surfaces.begin() + range[0], range,
-                      range[0], {mask_ids::e_rectangle2, 0},
-                      {material_ids::e_slab, 370}, pixel_mat,
+    range = {370u, 594u};
+    test_module_links(vol_itr->index(),
+                      surfaces.begin() + static_cast<std::ptrdiff_t>(range[0]),
+                      range, range[0], {mask_ids::e_rectangle2, 0u},
+                      {material_ids::e_slab, 370u}, pixel_mat,
                       {vol_itr->index()});
 
     // Check link of surfaces in surface finder
@@ -499,16 +550,18 @@ TEST(ALGEBRA_PLUGIN, toy_geometry) {
 
     // Check links of portals
     // cylinder portals
-    range = {594, 596};
-    test_portal_links(vol_itr->index(), surfaces.begin() + range[0], range,
-                      range[0], {mask_ids::e_portal_cylinder2, 26},
-                      {material_ids::e_slab, 594}, portal_mat, {0, 8});
+    range = {594u, 596u};
+    test_portal_links(vol_itr->index(),
+                      surfaces.begin() + static_cast<std::ptrdiff_t>(range[0]),
+                      range, range[0], {mask_ids::e_portal_cylinder2, 26u},
+                      {material_ids::e_slab, 594u}, portal_mat, {0u, 8u});
 
     // disc portals
-    range = {596, 598};
-    test_portal_links(vol_itr->index(), surfaces.begin() + range[0], range,
-                      range[0], {mask_ids::e_portal_ring2, 20},
-                      {material_ids::e_slab, 596}, portal_mat, {6, 14});
+    range = {596u, 598u};
+    test_portal_links(vol_itr->index(),
+                      surfaces.begin() + static_cast<std::ptrdiff_t>(range[0]),
+                      range, range[0], {mask_ids::e_portal_ring2, 20u},
+                      {material_ids::e_slab, 596u}, portal_mat, {6u, 14u});
 
     //
     // gap
@@ -516,24 +569,27 @@ TEST(ALGEBRA_PLUGIN, toy_geometry) {
 
     // Check volume
     ++vol_itr;
-    bounds = {38., 64., -500., 500, -M_PI, M_PI};
-    range = {598, 602};
-    sf_finder_link = {sf_finder_ids::e_brute_force, 0};
+    bounds = {
+        38.f, 64.f, -500.f, 500.f, -constant<scalar>::pi, constant<scalar>::pi};
+    range = {598u, 602u};
+    sf_finder_link = {sf_finder_ids::e_brute_force, 0u};
 
     // Test the links in the volumes
-    test_volume_links(vol_itr, 8, bounds, range, sf_finder_link);
+    test_volume_links(vol_itr, 8u, bounds, range, sf_finder_link);
 
     // Check links of portals
     // cylinder portals
-    range = {598, 600};
-    test_portal_links(vol_itr->index(), surfaces.begin() + range[0], range,
-                      range[0], {mask_ids::e_portal_cylinder2, 28},
-                      {material_ids::e_slab, 598}, portal_mat, {7, 9});
+    range = {598u, 600u};
+    test_portal_links(vol_itr->index(),
+                      surfaces.begin() + static_cast<std::ptrdiff_t>(range[0]),
+                      range, range[0], {mask_ids::e_portal_cylinder2, 28u},
+                      {material_ids::e_slab, 598u}, portal_mat, {7u, 9u});
     // disc portals
-    range = {600, 602};
-    test_portal_links(vol_itr->index(), surfaces.begin() + range[0], range,
-                      range[0], {mask_ids::e_portal_ring2, 22},
-                      {material_ids::e_slab, 600}, portal_mat, {6, 14});
+    range = {600u, 602u};
+    test_portal_links(vol_itr->index(),
+                      surfaces.begin() + static_cast<std::ptrdiff_t>(range[0]),
+                      range, range[0], {mask_ids::e_portal_ring2, 22u},
+                      {material_ids::e_slab, 600u}, portal_mat, {6u, 14u});
 
     //
     // second layer
@@ -541,18 +597,20 @@ TEST(ALGEBRA_PLUGIN, toy_geometry) {
 
     // Check volume
     ++vol_itr;
-    bounds = {64., 80., -500., 500, -M_PI, M_PI};
-    range = {602, 1054};
-    sf_finder_link = {sf_finder_ids::e_cylinder_grid, 1};
+    bounds = {
+        64.f, 80.f, -500.f, 500.f, -constant<scalar>::pi, constant<scalar>::pi};
+    range = {602u, 1054u};
+    sf_finder_link = {sf_finder_ids::e_cylinder_grid, 1u};
 
     // Test the links in the volumes
-    test_volume_links(vol_itr, 9, bounds, range, sf_finder_link);
+    test_volume_links(vol_itr, 9u, bounds, range, sf_finder_link);
 
     // Check links of modules
-    range = {602, 1050};
-    test_module_links(vol_itr->index(), surfaces.begin() + range[0], range,
-                      range[0], {mask_ids::e_rectangle2, 224},
-                      {material_ids::e_slab, 602}, pixel_mat,
+    range = {602u, 1050u};
+    test_module_links(vol_itr->index(),
+                      surfaces.begin() + static_cast<std::ptrdiff_t>(range[0]),
+                      range, range[0], {mask_ids::e_rectangle2, 224u},
+                      {material_ids::e_slab, 602u}, pixel_mat,
                       {vol_itr->index()});
 
     // Check link of surfaces in surface finder
@@ -560,16 +618,18 @@ TEST(ALGEBRA_PLUGIN, toy_geometry) {
 
     // Check links of portals
     // cylinder portals
-    range = {1050, 1052};
-    test_portal_links(vol_itr->index(), surfaces.begin() + range[0], range,
-                      range[0], {mask_ids::e_portal_cylinder2, 30},
-                      {material_ids::e_slab, 1050}, portal_mat, {8, 10});
+    range = {1050u, 1052u};
+    test_portal_links(vol_itr->index(),
+                      surfaces.begin() + static_cast<std::ptrdiff_t>(range[0]),
+                      range, range[0], {mask_ids::e_portal_cylinder2, 30u},
+                      {material_ids::e_slab, 1050u}, portal_mat, {8u, 10u});
 
     // disc portals
-    range = {1052, 1054};
-    test_portal_links(vol_itr->index(), surfaces.begin() + range[0], range,
-                      range[0], {mask_ids::e_portal_ring2, 24},
-                      {material_ids::e_slab, 1052}, portal_mat, {6, 14});
+    range = {1052u, 1054u};
+    test_portal_links(vol_itr->index(),
+                      surfaces.begin() + static_cast<std::ptrdiff_t>(range[0]),
+                      range, range[0], {mask_ids::e_portal_ring2, 24u},
+                      {material_ids::e_slab, 1052u}, portal_mat, {6u, 14u});
 
     //
     // gap
@@ -577,24 +637,31 @@ TEST(ALGEBRA_PLUGIN, toy_geometry) {
 
     // Check volume
     ++vol_itr;
-    bounds = {80., 108., -500., 500, -M_PI, M_PI};
-    range = {1054, 1058};
-    sf_finder_link = {sf_finder_ids::e_brute_force, 0};
+    bounds = {80.f,
+              108.f,
+              -500.f,
+              500.f,
+              -constant<scalar>::pi,
+              constant<scalar>::pi};
+    range = {1054u, 1058u};
+    sf_finder_link = {sf_finder_ids::e_brute_force, 0u};
 
     // Test the links in the volumes
-    test_volume_links(vol_itr, 10, bounds, range, sf_finder_link);
+    test_volume_links(vol_itr, 10u, bounds, range, sf_finder_link);
 
     // Check links of portals
     // cylinder portals
-    range = {1054, 1056};
-    test_portal_links(vol_itr->index(), surfaces.begin() + range[0], range,
-                      range[0], {mask_ids::e_portal_cylinder2, 32},
-                      {material_ids::e_slab, 1054}, portal_mat, {9, 11});
+    range = {1054u, 1056u};
+    test_portal_links(vol_itr->index(),
+                      surfaces.begin() + static_cast<std::ptrdiff_t>(range[0]),
+                      range, range[0], {mask_ids::e_portal_cylinder2, 32u},
+                      {material_ids::e_slab, 1054u}, portal_mat, {9u, 11u});
     // disc portals
-    range = {1056, 1058};
-    test_portal_links(vol_itr->index(), surfaces.begin() + range[0], range,
-                      range[0], {mask_ids::e_portal_ring2, 26},
-                      {material_ids::e_slab, 1056}, portal_mat, {6, 14});
+    range = {1056u, 1058u};
+    test_portal_links(vol_itr->index(),
+                      surfaces.begin() + static_cast<std::ptrdiff_t>(range[0]),
+                      range, range[0], {mask_ids::e_portal_ring2, 26u},
+                      {material_ids::e_slab, 1056u}, portal_mat, {6u, 14u});
 
     //
     // third layer
@@ -602,18 +669,24 @@ TEST(ALGEBRA_PLUGIN, toy_geometry) {
 
     // Check volume
     ++vol_itr;
-    bounds = {108., 124., -500., 500, -M_PI, M_PI};
-    range = {1058, 1790};
-    sf_finder_link = {sf_finder_ids::e_cylinder_grid, 2};
+    bounds = {108.f,
+              124.f,
+              -500.f,
+              500.f,
+              -constant<scalar>::pi,
+              constant<scalar>::pi};
+    range = {1058u, 1790u};
+    sf_finder_link = {sf_finder_ids::e_cylinder_grid, 2u};
 
     // Test the links in the volumes
-    test_volume_links(vol_itr, 11, bounds, range, sf_finder_link);
+    test_volume_links(vol_itr, 11u, bounds, range, sf_finder_link);
 
     // Check links of modules
-    range = {1058, 1786};
-    test_module_links(vol_itr->index(), surfaces.begin() + range[0], range,
-                      range[0], {mask_ids::e_rectangle2, 672},
-                      {material_ids::e_slab, 1058}, pixel_mat,
+    range = {1058u, 1786u};
+    test_module_links(vol_itr->index(),
+                      surfaces.begin() + static_cast<std::ptrdiff_t>(range[0]),
+                      range, range[0], {mask_ids::e_rectangle2, 672u},
+                      {material_ids::e_slab, 1058u}, pixel_mat,
                       {vol_itr->index()});
 
     // Check link of surfaces in surface finder
@@ -621,16 +694,18 @@ TEST(ALGEBRA_PLUGIN, toy_geometry) {
 
     // Check links of portals
     // cylinder portals
-    range = {1786, 1788};
-    test_portal_links(vol_itr->index(), surfaces.begin() + range[0], range,
-                      range[0], {mask_ids::e_portal_cylinder2, 34},
-                      {material_ids::e_slab, 1786}, portal_mat, {10, 12});
+    range = {1786u, 1788u};
+    test_portal_links(vol_itr->index(),
+                      surfaces.begin() + static_cast<std::ptrdiff_t>(range[0]),
+                      range, range[0], {mask_ids::e_portal_cylinder2, 34u},
+                      {material_ids::e_slab, 1786u}, portal_mat, {10u, 12u});
 
     // disc portals
-    range = {1788, 1790};
-    test_portal_links(vol_itr->index(), surfaces.begin() + range[0], range,
-                      range[0], {mask_ids::e_portal_ring2, 28},
-                      {material_ids::e_slab, 1788}, portal_mat, {6, 14});
+    range = {1788u, 1790u};
+    test_portal_links(vol_itr->index(),
+                      surfaces.begin() + static_cast<std::ptrdiff_t>(range[0]),
+                      range, range[0], {mask_ids::e_portal_ring2, 28u},
+                      {material_ids::e_slab, 1788u}, portal_mat, {6u, 14u});
 
     //
     // gap
@@ -638,24 +713,31 @@ TEST(ALGEBRA_PLUGIN, toy_geometry) {
 
     // Check volume
     ++vol_itr;
-    bounds = {124., 164., -500., 500, -M_PI, M_PI};
-    range = {1790, 1794};
-    sf_finder_link = {sf_finder_ids::e_brute_force, 0};
+    bounds = {124.f,
+              164.f,
+              -500.f,
+              500.f,
+              -constant<scalar>::pi,
+              constant<scalar>::pi};
+    range = {1790u, 1794u};
+    sf_finder_link = {sf_finder_ids::e_brute_force, 0u};
 
     // Test the links in the volumes
-    test_volume_links(vol_itr, 12, bounds, range, sf_finder_link);
+    test_volume_links(vol_itr, 12u, bounds, range, sf_finder_link);
 
     // Check links of portals
     // cylinder portals
-    range = {1790, 1792};
-    test_portal_links(vol_itr->index(), surfaces.begin() + range[0], range,
-                      range[0], {mask_ids::e_portal_cylinder2, 36},
-                      {material_ids::e_slab, 1790}, portal_mat, {11, 13});
+    range = {1790u, 1792u};
+    test_portal_links(vol_itr->index(),
+                      surfaces.begin() + static_cast<std::ptrdiff_t>(range[0]),
+                      range, range[0], {mask_ids::e_portal_cylinder2, 36u},
+                      {material_ids::e_slab, 1790u}, portal_mat, {11u, 13u});
     // disc portals
-    range = {1792, 1794};
-    test_portal_links(vol_itr->index(), surfaces.begin() + range[0], range,
-                      range[0], {mask_ids::e_portal_ring2, 30},
-                      {material_ids::e_slab, 1792}, portal_mat, {6, 14});
+    range = {1792u, 1794u};
+    test_portal_links(vol_itr->index(),
+                      surfaces.begin() + static_cast<std::ptrdiff_t>(range[0]),
+                      range, range[0], {mask_ids::e_portal_ring2, 30u},
+                      {material_ids::e_slab, 1792u}, portal_mat, {6u, 14u});
 
     //
     // fourth layer
@@ -663,18 +745,24 @@ TEST(ALGEBRA_PLUGIN, toy_geometry) {
 
     // Check volume
     ++vol_itr;
-    bounds = {164., 180., -500., 500, -M_PI, M_PI};
-    range = {1794, 2890};
-    sf_finder_link = {sf_finder_ids::e_cylinder_grid, 3};
+    bounds = {164.f,
+              180.f,
+              -500.f,
+              500.f,
+              -constant<scalar>::pi,
+              constant<scalar>::pi};
+    range = {1794u, 2890u};
+    sf_finder_link = {sf_finder_ids::e_cylinder_grid, 3u};
 
     // Test the links in the volumes
-    test_volume_links(vol_itr, 13, bounds, range, sf_finder_link);
+    test_volume_links(vol_itr, 13u, bounds, range, sf_finder_link);
 
     // Check links of modules
-    range = {1794, 2886};
-    test_module_links(vol_itr->index(), surfaces.begin() + range[0], range,
-                      range[0], {mask_ids::e_rectangle2, 1400},
-                      {material_ids::e_slab, 1794}, pixel_mat,
+    range = {1794u, 2886u};
+    test_module_links(vol_itr->index(),
+                      surfaces.begin() + static_cast<std::ptrdiff_t>(range[0]),
+                      range, range[0], {mask_ids::e_rectangle2, 1400u},
+                      {material_ids::e_slab, 1794u}, pixel_mat,
                       {vol_itr->index()});
 
     // Check link of surfaces in surface finder
@@ -682,17 +770,19 @@ TEST(ALGEBRA_PLUGIN, toy_geometry) {
 
     // Check links of portals
     // cylinder portals
-    range = {2886, 2888};
-    test_portal_links(vol_itr->index(), surfaces.begin() + range[0], range,
-                      range[0], {mask_ids::e_portal_cylinder2, 38},
-                      {material_ids::e_slab, 2886}, portal_mat,
-                      {12, leaving_world});
+    range = {2886u, 2888u};
+    test_portal_links(vol_itr->index(),
+                      surfaces.begin() + static_cast<std::ptrdiff_t>(range[0]),
+                      range, range[0], {mask_ids::e_portal_cylinder2, 38u},
+                      {material_ids::e_slab, 2886u}, portal_mat,
+                      {12u, leaving_world});
 
     // disc portals
-    range = {2888, 2890};
-    test_portal_links(vol_itr->index(), surfaces.begin() + range[0], range,
-                      range[0], {mask_ids::e_portal_ring2, 32},
-                      {material_ids::e_slab, 2888}, portal_mat, {6, 14});
+    range = {2888u, 2890u};
+    test_portal_links(vol_itr->index(),
+                      surfaces.begin() + static_cast<std::ptrdiff_t>(range[0]),
+                      range, range[0], {mask_ids::e_portal_ring2, 32u},
+                      {material_ids::e_slab, 2888u}, portal_mat, {6u, 14u});
 
     //
     // positive endcap
@@ -704,26 +794,29 @@ TEST(ALGEBRA_PLUGIN, toy_geometry) {
 
     // Check volume
     ++vol_itr;
-    bounds = {27., 180., 500., 595., -M_PI, M_PI};
-    range = {2890, 2900};
-    sf_finder_link = {sf_finder_ids::e_brute_force, 0};
+    bounds = {
+        27.f, 180.f, 500.f, 595.f, -constant<scalar>::pi, constant<scalar>::pi};
+    range = {2890u, 2900u};
+    sf_finder_link = {sf_finder_ids::e_brute_force, 0u};
 
     // Test the links in the volumes
-    test_volume_links(vol_itr, 14, bounds, range, sf_finder_link);
+    test_volume_links(vol_itr, 14u, bounds, range, sf_finder_link);
 
     // Check links of portals
     // cylinder portals
-    range = {2890, 2892};
-    test_portal_links(vol_itr->index(), surfaces.begin() + range[0], range,
-                      range[0], {mask_ids::e_portal_cylinder2, 40},
-                      {material_ids::e_slab, 2890}, portal_mat,
-                      {0, leaving_world});
+    range = {2890u, 2892u};
+    test_portal_links(vol_itr->index(),
+                      surfaces.begin() + static_cast<std::ptrdiff_t>(range[0]),
+                      range, range[0], {mask_ids::e_portal_cylinder2, 40u},
+                      {material_ids::e_slab, 2890u}, portal_mat,
+                      {0u, leaving_world});
     // disc portals
-    range = {2892, 2900};
-    test_portal_links(vol_itr->index(), surfaces.begin() + range[0], range,
-                      range[0], {mask_ids::e_portal_ring2, 34},
-                      {material_ids::e_slab, 2892}, portal_mat,
-                      {15, 7, 8, 9, 10, 11, 12, 13});
+    range = {2892u, 2900u};
+    test_portal_links(vol_itr->index(),
+                      surfaces.begin() + static_cast<std::ptrdiff_t>(range[0]),
+                      range, range[0], {mask_ids::e_portal_ring2, 34u},
+                      {material_ids::e_slab, 2892u}, portal_mat,
+                      {15u, 7u, 8u, 9u, 10u, 11u, 12u, 13u});
 
     //
     // pos endcap (layer 1)
@@ -731,18 +824,20 @@ TEST(ALGEBRA_PLUGIN, toy_geometry) {
 
     // Check volume
     ++vol_itr;
-    bounds = {27., 180., 595., 605., -M_PI, M_PI};
-    range = {2900, 3012};
-    sf_finder_link = {sf_finder_ids::e_disc_grid, 3};
+    bounds = {
+        27.f, 180.f, 595.f, 605.f, -constant<scalar>::pi, constant<scalar>::pi};
+    range = {2900u, 3012u};
+    sf_finder_link = {sf_finder_ids::e_disc_grid, 3u};
 
     // Test the links in the volumes
-    test_volume_links(vol_itr, 15, bounds, range, sf_finder_link);
+    test_volume_links(vol_itr, 15u, bounds, range, sf_finder_link);
 
     // Check the trapezoid modules
-    range = {2900, 3008};
-    test_module_links(vol_itr->index(), surfaces.begin() + range[0], range,
-                      range[0], {mask_ids::e_trapezoid2, 324},
-                      {material_ids::e_slab, 2900}, pixel_mat,
+    range = {2900u, 3008u};
+    test_module_links(vol_itr->index(),
+                      surfaces.begin() + static_cast<std::ptrdiff_t>(range[0]),
+                      range, range[0], {mask_ids::e_trapezoid2, 324u},
+                      {material_ids::e_slab, 2900u}, pixel_mat,
                       {vol_itr->index()});
 
     // Check link of surfaces in surface finder
@@ -750,16 +845,18 @@ TEST(ALGEBRA_PLUGIN, toy_geometry) {
 
     // Check links of portals
     // cylinder portals
-    range = {3008, 3010};
-    test_portal_links(vol_itr->index(), surfaces.begin() + range[0], range,
-                      range[0], {mask_ids::e_portal_cylinder2, 42},
-                      {material_ids::e_slab, 3008}, portal_mat,
-                      {0, leaving_world});
+    range = {3008u, 3010u};
+    test_portal_links(vol_itr->index(),
+                      surfaces.begin() + static_cast<std::ptrdiff_t>(range[0]),
+                      range, range[0], {mask_ids::e_portal_cylinder2, 42u},
+                      {material_ids::e_slab, 3008u}, portal_mat,
+                      {0u, leaving_world});
     // disc portals
-    range = {3010, 3012};
-    test_portal_links(vol_itr->index(), surfaces.begin() + range[0], range,
-                      range[0], {mask_ids::e_portal_ring2, 42},
-                      {material_ids::e_slab, 3010}, portal_mat, {14, 16});
+    range = {3010u, 3012u};
+    test_portal_links(vol_itr->index(),
+                      surfaces.begin() + static_cast<std::ptrdiff_t>(range[0]),
+                      range, range[0], {mask_ids::e_portal_ring2, 42u},
+                      {material_ids::e_slab, 3010u}, portal_mat, {14u, 16u});
 
     //
     // gap
@@ -767,25 +864,28 @@ TEST(ALGEBRA_PLUGIN, toy_geometry) {
 
     // Check volume
     ++vol_itr;
-    bounds = {27., 180., 605., 695., -M_PI, M_PI};
-    range = {3012, 3016};
-    sf_finder_link = {sf_finder_ids::e_brute_force, 0};
+    bounds = {
+        27.f, 180.f, 605.f, 695.f, -constant<scalar>::pi, constant<scalar>::pi};
+    range = {3012u, 3016u};
+    sf_finder_link = {sf_finder_ids::e_brute_force, 0u};
 
     // Test the links in the volumes
-    test_volume_links(vol_itr, 16, bounds, range, sf_finder_link);
+    test_volume_links(vol_itr, 16u, bounds, range, sf_finder_link);
 
     // Check links of portals
     // cylinder portals
-    range = {3012, 3014};
-    test_portal_links(vol_itr->index(), surfaces.begin() + range[0], range,
-                      range[0], {mask_ids::e_portal_cylinder2, 44},
-                      {material_ids::e_slab, 3012}, portal_mat,
-                      {0, leaving_world});
+    range = {3012u, 3014u};
+    test_portal_links(vol_itr->index(),
+                      surfaces.begin() + static_cast<std::ptrdiff_t>(range[0]),
+                      range, range[0], {mask_ids::e_portal_cylinder2, 44u},
+                      {material_ids::e_slab, 3012u}, portal_mat,
+                      {0u, leaving_world});
     // disc portals
-    range = {3014, 3016};
-    test_portal_links(vol_itr->index(), surfaces.begin() + range[0], range,
-                      range[0], {mask_ids::e_portal_ring2, 44},
-                      {material_ids::e_slab, 3014}, portal_mat, {15, 17});
+    range = {3014u, 3016u};
+    test_portal_links(vol_itr->index(),
+                      surfaces.begin() + static_cast<std::ptrdiff_t>(range[0]),
+                      range, range[0], {mask_ids::e_portal_ring2, 44u},
+                      {material_ids::e_slab, 3014u}, portal_mat, {15u, 17u});
 
     //
     // pos endcap (layer 2)
@@ -793,18 +893,20 @@ TEST(ALGEBRA_PLUGIN, toy_geometry) {
 
     // Check volume
     ++vol_itr;
-    bounds = {27., 180., 695., 705., -M_PI, M_PI};
-    range = {3016, 3128};
-    sf_finder_link = {sf_finder_ids::e_disc_grid, 4};
+    bounds = {
+        27.f, 180.f, 695.f, 705.f, -constant<scalar>::pi, constant<scalar>::pi};
+    range = {3016u, 3128u};
+    sf_finder_link = {sf_finder_ids::e_disc_grid, 4u};
 
     // Test the links in the volumes
-    test_volume_links(vol_itr, 17, bounds, range, sf_finder_link);
+    test_volume_links(vol_itr, 17u, bounds, range, sf_finder_link);
 
     // Check the trapezoid modules
-    range = {3016, 3124};
-    test_module_links(vol_itr->index(), surfaces.begin() + range[0], range,
-                      range[0], {mask_ids::e_trapezoid2, 432},
-                      {material_ids::e_slab, 3016}, pixel_mat,
+    range = {3016u, 3124u};
+    test_module_links(vol_itr->index(),
+                      surfaces.begin() + static_cast<std::ptrdiff_t>(range[0]),
+                      range, range[0], {mask_ids::e_trapezoid2, 432u},
+                      {material_ids::e_slab, 3016u}, pixel_mat,
                       {vol_itr->index()});
 
     // Check link of surfaces in surface finder
@@ -812,16 +914,18 @@ TEST(ALGEBRA_PLUGIN, toy_geometry) {
 
     // Check links of portals
     // cylinder portals
-    range = {3124, 3126};
-    test_portal_links(vol_itr->index(), surfaces.begin() + range[0], range,
-                      range[0], {mask_ids::e_portal_cylinder2, 46},
-                      {material_ids::e_slab, 3124}, portal_mat,
-                      {0, leaving_world});
+    range = {3124u, 3126u};
+    test_portal_links(vol_itr->index(),
+                      surfaces.begin() + static_cast<std::ptrdiff_t>(range[0]),
+                      range, range[0], {mask_ids::e_portal_cylinder2, 46u},
+                      {material_ids::e_slab, 3124u}, portal_mat,
+                      {0u, leaving_world});
     // disc portals
-    range = {3126, 3128};
-    test_portal_links(vol_itr->index(), surfaces.begin() + range[0], range,
-                      range[0], {mask_ids::e_portal_ring2, 46},
-                      {material_ids::e_slab, 3126}, portal_mat, {16, 18});
+    range = {3126u, 3128u};
+    test_portal_links(vol_itr->index(),
+                      surfaces.begin() + static_cast<std::ptrdiff_t>(range[0]),
+                      range, range[0], {mask_ids::e_portal_ring2, 46u},
+                      {material_ids::e_slab, 3126u}, portal_mat, {16u, 18u});
 
     //
     // gap
@@ -829,25 +933,28 @@ TEST(ALGEBRA_PLUGIN, toy_geometry) {
 
     // Check volume
     ++vol_itr;
-    bounds = {27., 180., 705., 815., -M_PI, M_PI};
-    range = {3128, 3132};
-    sf_finder_link = {sf_finder_ids::e_brute_force, 0};
+    bounds = {
+        27.f, 180.f, 705.f, 815.f, -constant<scalar>::pi, constant<scalar>::pi};
+    range = {3128u, 3132u};
+    sf_finder_link = {sf_finder_ids::e_brute_force, 0u};
 
     // Test the links in the volumes
-    test_volume_links(vol_itr, 18, bounds, range, sf_finder_link);
+    test_volume_links(vol_itr, 18u, bounds, range, sf_finder_link);
 
     // Check links of portals
     // cylinder portals
-    range = {3128, 3130};
-    test_portal_links(vol_itr->index(), surfaces.begin() + range[0], range,
-                      range[0], {mask_ids::e_portal_cylinder2, 48},
-                      {material_ids::e_slab, 3128}, portal_mat,
-                      {0, leaving_world});
+    range = {3128u, 3130u};
+    test_portal_links(vol_itr->index(),
+                      surfaces.begin() + static_cast<std::ptrdiff_t>(range[0]),
+                      range, range[0], {mask_ids::e_portal_cylinder2, 48u},
+                      {material_ids::e_slab, 3128u}, portal_mat,
+                      {0u, leaving_world});
     // disc portals
-    range = {3130, 3132};
-    test_portal_links(vol_itr->index(), surfaces.begin() + range[0], range,
-                      range[0], {mask_ids::e_portal_ring2, 48},
-                      {material_ids::e_slab, 3130}, portal_mat, {17, 19});
+    range = {3130u, 3132u};
+    test_portal_links(vol_itr->index(),
+                      surfaces.begin() + static_cast<std::ptrdiff_t>(range[0]),
+                      range, range[0], {mask_ids::e_portal_ring2, 48u},
+                      {material_ids::e_slab, 3130u}, portal_mat, {17u, 19u});
 
     //
     // pos endcap (layer 3)
@@ -855,18 +962,20 @@ TEST(ALGEBRA_PLUGIN, toy_geometry) {
 
     // Check volume
     ++vol_itr;
-    bounds = {27., 180., 815., 825., -M_PI, M_PI};
-    range = {3132, 3244};
-    sf_finder_link = {sf_finder_ids::e_disc_grid, 5};
+    bounds = {
+        27.f, 180.f, 815.f, 825.f, -constant<scalar>::pi, constant<scalar>::pi};
+    range = {3132u, 3244u};
+    sf_finder_link = {sf_finder_ids::e_disc_grid, 5u};
 
     // Test the links in the volumes
-    test_volume_links(vol_itr, 19, bounds, range, sf_finder_link);
+    test_volume_links(vol_itr, 19u, bounds, range, sf_finder_link);
 
     // Check the trapezoid modules
-    range = {3132, 3240};
-    test_module_links(vol_itr->index(), surfaces.begin() + range[0], range,
-                      range[0], {mask_ids::e_trapezoid2, 540},
-                      {material_ids::e_slab, 3132}, pixel_mat,
+    range = {3132u, 3240u};
+    test_module_links(vol_itr->index(),
+                      surfaces.begin() + static_cast<std::ptrdiff_t>(range[0]),
+                      range, range[0], {mask_ids::e_trapezoid2, 540u},
+                      {material_ids::e_slab, 3132u}, pixel_mat,
                       {vol_itr->index()});
 
     // Check link of surfaces in surface finder
@@ -874,15 +983,17 @@ TEST(ALGEBRA_PLUGIN, toy_geometry) {
 
     // Check links of portals
     // cylinder portals
-    range = {3240, 3242};
-    test_portal_links(vol_itr->index(), surfaces.begin() + range[0], range,
-                      range[0], {mask_ids::e_portal_cylinder2, 50},
-                      {material_ids::e_slab, 3240}, portal_mat,
-                      {0, leaving_world});
+    range = {3240u, 3242u};
+    test_portal_links(vol_itr->index(),
+                      surfaces.begin() + static_cast<std::ptrdiff_t>(range[0]),
+                      range, range[0], {mask_ids::e_portal_cylinder2, 50u},
+                      {material_ids::e_slab, 3240u}, portal_mat,
+                      {0u, leaving_world});
     // disc portals
-    range = {3242, 3244};
-    test_portal_links(vol_itr->index(), surfaces.begin() + range[0], range,
-                      range[0], {mask_ids::e_portal_ring2, 50},
-                      {material_ids::e_slab, 3242}, portal_mat,
-                      {18, leaving_world});
+    range = {3242u, 3244u};
+    test_portal_links(vol_itr->index(),
+                      surfaces.begin() + static_cast<std::ptrdiff_t>(range[0]),
+                      range, range[0], {mask_ids::e_portal_ring2, 50u},
+                      {material_ids::e_slab, 3242u}, portal_mat,
+                      {18u, leaving_world});
 }

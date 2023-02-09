@@ -24,7 +24,7 @@ inline auto mean(const range_t& r) noexcept(false) {
     using value_t = detray::ranges::range_value_t<range_t>;
 
     value_t sum = std::accumulate(r.begin(), r.end(), value_t{});
-    value_t mean = sum * (1.0f / r.size());
+    value_t mean = sum * (1.0f / static_cast<value_t>(r.size()));
 
     return mean;
 }
@@ -41,7 +41,7 @@ inline auto variance(const range_t& r) noexcept(false) {
                    [mean](value_t x) { return x - mean; });
     value_t sq_sum =
         std::inner_product(diff.begin(), diff.end(), diff.begin(), value_t{});
-    value_t variance = sq_sum * (1.0f / r.size());
+    value_t variance = sq_sum * (1.0f / static_cast<value_t>(r.size()));
 
     return variance;
 }

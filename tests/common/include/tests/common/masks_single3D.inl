@@ -1,6 +1,6 @@
 /** Detray library, part of the ACTS project (R&D line)
  *
- * (c) 2020-2022 CERN for the benefit of the ACTS project
+ * (c) 2020-2023 CERN for the benefit of the ACTS project
  *
  * Mozilla Public License Version 2.0
  */
@@ -13,55 +13,57 @@
 using namespace detray;
 using namespace __plugin;
 
+constexpr scalar tol{1e-7f};
+
 /// This tests the basic functionality of a single value mask (index 0)
 TEST(mask, single3_0) {
     using point_t = typename mask<single3D<>>::loc_point_t;
 
-    point_t p3_in = {0.5, -9., 0.};
-    point_t p3_edge = {1., 9.3, 2.};
-    point_t p3_out = {1.5, -9.8, 8.};
+    point_t p3_in = {0.5f, -9.f, 0.f};
+    point_t p3_edge = {1.f, 9.3f, 2.f};
+    point_t p3_out = {1.5f, -9.8f, 8.f};
 
-    constexpr scalar h0{1. * unit<scalar>::mm};
-    mask<single3D<>> m1_0{0UL, -h0, h0};
+    constexpr scalar h0{1.f * unit<scalar>::mm};
+    mask<single3D<>> m1_0{0u, -h0, h0};
 
-    ASSERT_FLOAT_EQ(m1_0[single3D<>::e_lower], -h0);
-    ASSERT_FLOAT_EQ(m1_0[single3D<>::e_upper], h0);
+    ASSERT_NEAR(m1_0[single3D<>::e_lower], -h0, tol);
+    ASSERT_NEAR(m1_0[single3D<>::e_upper], h0, tol);
 
     ASSERT_TRUE(m1_0.is_inside(p3_in) == intersection::status::e_inside);
     ASSERT_TRUE(m1_0.is_inside(p3_edge) == intersection::status::e_inside);
     ASSERT_TRUE(m1_0.is_inside(p3_out) == intersection::status::e_outside);
     // Move outside point inside using a tolerance - take t0 not t1
-    ASSERT_TRUE(m1_0.is_inside(p3_out, 0.6) == intersection::status::e_inside);
+    ASSERT_TRUE(m1_0.is_inside(p3_out, 0.6f) == intersection::status::e_inside);
 }
 
 /// This tests the basic functionality of a single value mask (index 1)
 TEST(mask, single3_1) {
     using point_t = typename mask<single3D<1>>::loc_point_t;
 
-    point_t p3_in = {0.5, -9., 0.};
-    point_t p3_edge = {1., 9.3, 2.};
-    point_t p3_out = {1.5, -9.8, 8.};
+    point_t p3_in = {0.5f, -9.f, 0.f};
+    point_t p3_edge = {1.f, 9.3f, 2.f};
+    point_t p3_out = {1.5f, -9.8f, 8.f};
 
-    constexpr scalar h1{9.3 * unit<scalar>::mm};
-    mask<single3D<1>> m1_1{0UL, -h1, h1};
+    constexpr scalar h1{9.3f * unit<scalar>::mm};
+    mask<single3D<1>> m1_1{0u, -h1, h1};
 
-    ASSERT_FLOAT_EQ(m1_1[single3D<>::e_lower], -h1);
-    ASSERT_FLOAT_EQ(m1_1[single3D<>::e_upper], h1);
+    ASSERT_NEAR(m1_1[single3D<>::e_lower], -h1, tol);
+    ASSERT_NEAR(m1_1[single3D<>::e_upper], h1, tol);
 
     ASSERT_TRUE(m1_1.is_inside(p3_in) == intersection::status::e_inside);
     ASSERT_TRUE(m1_1.is_inside(p3_edge) == intersection::status::e_inside);
     ASSERT_TRUE(m1_1.is_inside(p3_out) == intersection::status::e_outside);
     // Move outside point inside using a tolerance - take t1 not t1
-    ASSERT_TRUE(m1_1.is_inside(p3_out, 0.6) == intersection::status::e_inside);
+    ASSERT_TRUE(m1_1.is_inside(p3_out, 0.6f) == intersection::status::e_inside);
 
     // Check projection matrix
     const auto proj = m1_1.projection_matrix<e_bound_size>();
-    for (std::size_t i = 0; i < 2; i++) {
-        for (std::size_t j = 0; j < e_bound_size; j++) {
+    for (unsigned int i = 0u; i < 2u; i++) {
+        for (unsigned int j = 0u; j < e_bound_size; j++) {
             if (i == j && i < decltype(m1_1)::shape::meas_dim) {
-                ASSERT_EQ(getter::element(proj, i, j), 1);
+                ASSERT_EQ(getter::element(proj, i, j), 1u);
             } else {
-                ASSERT_EQ(getter::element(proj, i, j), 0);
+                ASSERT_EQ(getter::element(proj, i, j), 0u);
             }
         }
     }
@@ -71,30 +73,30 @@ TEST(mask, single3_1) {
 TEST(mask, single3_2) {
     using point_t = typename mask<single3D<2>>::loc_point_t;
 
-    point_t p3_in = {0.5, -9., 0.};
-    point_t p3_edge = {1., 9.3, 2.};
-    point_t p3_out = {1.5, -9.8, 8.};
+    point_t p3_in = {0.5f, -9.f, 0.f};
+    point_t p3_edge = {1.f, 9.3f, 2.f};
+    point_t p3_out = {1.5f, -9.8f, 8.f};
 
-    constexpr scalar h2{2. * unit<scalar>::mm};
-    mask<single3D<2>> m1_2{0UL, -h2, h2};
+    constexpr scalar h2{2.f * unit<scalar>::mm};
+    mask<single3D<2>> m1_2{0u, -h2, h2};
 
-    ASSERT_FLOAT_EQ(m1_2[single3D<>::e_lower], -h2);
-    ASSERT_FLOAT_EQ(m1_2[single3D<>::e_upper], h2);
+    ASSERT_NEAR(m1_2[single3D<>::e_lower], -h2, tol);
+    ASSERT_NEAR(m1_2[single3D<>::e_upper], h2, tol);
 
     ASSERT_TRUE(m1_2.is_inside(p3_in) == intersection::status::e_inside);
     ASSERT_TRUE(m1_2.is_inside(p3_edge) == intersection::status::e_inside);
     ASSERT_TRUE(m1_2.is_inside(p3_out) == intersection::status::e_outside);
     // Move outside point inside using a tolerance - take t1 not t1
-    ASSERT_TRUE(m1_2.is_inside(p3_out, 6.1) == intersection::status::e_inside);
+    ASSERT_TRUE(m1_2.is_inside(p3_out, 6.1f) == intersection::status::e_inside);
 
     // Check projection matrix
     const auto proj = m1_2.projection_matrix<e_bound_size>();
-    for (std::size_t i = 0; i < 2; i++) {
-        for (std::size_t j = 0; j < e_bound_size; j++) {
+    for (unsigned int i = 0u; i < 2u; i++) {
+        for (unsigned int j = 0u; j < e_bound_size; j++) {
             if (i == j && i < decltype(m1_2)::shape::meas_dim) {
-                ASSERT_EQ(getter::element(proj, i, j), 1);
+                ASSERT_EQ(getter::element(proj, i, j), 1u);
             } else {
-                ASSERT_EQ(getter::element(proj, i, j), 0);
+                ASSERT_EQ(getter::element(proj, i, j), 0u);
             }
         }
     }

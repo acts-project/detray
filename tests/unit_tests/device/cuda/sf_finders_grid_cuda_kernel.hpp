@@ -39,7 +39,8 @@ namespace detray {
 
 using namespace n_axis;
 
-static constexpr std::size_t n_points = 3;
+static constexpr scalar tol{1e-7f};
+static constexpr std::size_t n_points{3u};
 static constexpr bool is_owning = true;
 
 // Coordinate system definitions (all data-owning)

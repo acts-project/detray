@@ -50,7 +50,7 @@ struct surface_targeter : actor {
         auto &stepping = prop_state._stepping;
         navigation.set_full_trust();
 
-        scalar residual = actor_state._path - stepping.path_length();
+        scalar residual{actor_state._path - stepping.path_length()};
         stepping.set_constraint(residual);
 
         typename propagator_state_t::navigator_state_type::intersection_t is;
@@ -62,7 +62,7 @@ struct surface_targeter : actor {
         navigation.set_next(candidates.begin());
         navigation.set_unknown();
 
-        if (residual < std::abs(1e-6)) {
+        if (residual < std::abs(1e-6f)) {
             prop_state._heartbeat = false;
             candidates.push_back({});
             navigation.next()++;
@@ -94,11 +94,11 @@ using propagator_t = propagator<crk_stepper_t, navigator_t, actor_chain_t>;
 
 namespace env {
 
-constexpr scalar epsilon = 1e-2;
-constexpr scalar rk_tolerance = 1e-8;
+constexpr scalar tol{1e-2f};
+constexpr scalar rk_tolerance{1e-8f};
 
 // B field
-const vector3 B{0, 0, 1. * unit<scalar>::T};
+const vector3 B{0.f, 0.f, 1.f * unit<scalar>::T};
 mag_field_t mag_field(mag_field_t::backend_t::configuration_t{B[0], B[1],
                                                               B[2]});
 
@@ -121,7 +121,9 @@ TEST(path_correction, cartesian) {
     constexpr auto material_id = registry_type::material_ids::e_slab;
 
     // Add a volume
-    det.new_volume(volume_id::e_cylinder, {0., 0., 0., 0., -M_PI, M_PI});
+    det.new_volume(
+        volume_id::e_cylinder,
+        {0.f, 0.f, 0.f, 0.f, -constant<scalar>::pi, constant<scalar>::pi});
 
     typename detector_type::surface_container surfaces(&env::resource);
     typename detector_type::transform_container transforms(env::resource);
@@ -133,66 +135,67 @@ TEST(path_correction, cartesian) {
     mask_link_type mask_link{mask_id, masks.template size<mask_id>()};
     material_link_type material_link{material_id,
                                      materials.template size<material_id>()};
-    surfaces.emplace_back(trf_index, mask_link, material_link, 0,
+    surfaces.emplace_back(trf_index, mask_link, material_link, 0u,
                           dindex_invalid, surface_id::e_sensitive);
 
     // Add a transform
-    const vector3 t{0, 0, 0};
-    const vector3 z{1, 0, 0};
-    const vector3 x{0, 1, 0};
+    const vector3 t{0.f, 0.f, 0.f};
+    const vector3 z{1.f, 0.f, 0.f};
+    const vector3 x{0.f, 1.f, 0.f};
     transforms.emplace_back(env::ctx, t, z, x);
 
     // Add a mask
-    const scalar hx = 100. * unit<scalar>::mm;
-    const scalar hy = 100. * unit<scalar>::mm;
-    masks.template emplace_back<mask_id>(empty_context{}, 0UL, hx, hy);
+    const scalar hx{100.f * unit<scalar>::mm};
+    const scalar hy{100.f * unit<scalar>::mm};
+    masks.template emplace_back<mask_id>(empty_context{}, 0u, hx, hy);
 
     // Add a material
     const material<scalar> mat = silicon<scalar>();
-    const scalar thickness = 2 * unit<scalar>::mm;
+    const scalar thickness{2.f * unit<scalar>::mm};
     materials.template emplace_back<material_id>(empty_context{}, mat,
                                                  thickness);
 
-    typename detector_type::volume_type &vol = det.volume_by_index(0);
+    typename detector_type::volume_type &vol = det.volume_by_index(0u);
     det.add_objects_per_volume(env::ctx, vol, surfaces, masks, transforms,
                                materials);
 
     // Generate track starting point
-    vector2 local{2, 3};
-    vector3 mom{1 * unit<scalar>::MeV, 0., 0.};
+    vector2 local{2.f, 3.f};
+    vector3 mom{1.f * unit<scalar>::MeV, 0.f, 0.f};
 
-    scalar time = 0.;
-    scalar q = -1.;
+    scalar time{0.f};
+    scalar q{-1.f};
 
     // bound vector
     typename bound_track_parameters<transform3>::vector_type bound_vector;
-    getter::element(bound_vector, e_bound_loc0, 0) = local[0];
-    getter::element(bound_vector, e_bound_loc1, 0) = local[1];
-    getter::element(bound_vector, e_bound_phi, 0) = getter::phi(mom);
-    getter::element(bound_vector, e_bound_theta, 0) = getter::theta(mom);
-    getter::element(bound_vector, e_bound_qoverp, 0) = q / getter::norm(mom);
-    getter::element(bound_vector, e_bound_time, 0) = time;
+    getter::element(bound_vector, e_bound_loc0, 0u) = local[0];
+    getter::element(bound_vector, e_bound_loc1, 0u) = local[1];
+    getter::element(bound_vector, e_bound_phi, 0u) = getter::phi(mom);
+    getter::element(bound_vector, e_bound_theta, 0u) = getter::theta(mom);
+    getter::element(bound_vector, e_bound_qoverp, 0u) = q / getter::norm(mom);
+    getter::element(bound_vector, e_bound_time, 0u) = time;
 
     // bound covariance
     typename bound_track_parameters<transform3>::covariance_type bound_cov =
         matrix_operator().template zero<e_bound_size, e_bound_size>();
-    getter::element(bound_cov, e_bound_loc0, e_bound_loc0) = 1.;
-    getter::element(bound_cov, e_bound_loc1, e_bound_loc1) = 1.;
-    getter::element(bound_cov, e_bound_phi, e_bound_phi) = 1.;
+    getter::element(bound_cov, e_bound_loc0, e_bound_loc0) = 1.f;
+    getter::element(bound_cov, e_bound_loc1, e_bound_loc1) = 1.f;
+    getter::element(bound_cov, e_bound_phi, e_bound_phi) = 1.f;
     // Note: Set theta error as ZERO, to constrain the loc1 divergence
-    getter::element(bound_cov, e_bound_theta, e_bound_theta) = 0.;
-    getter::element(bound_cov, e_bound_qoverp, e_bound_qoverp) = 1.;
-    getter::element(bound_cov, e_bound_time, e_bound_time) = 1.;
+    getter::element(bound_cov, e_bound_theta, e_bound_theta) = 0.f;
+    getter::element(bound_cov, e_bound_qoverp, e_bound_qoverp) = 1.f;
+    getter::element(bound_cov, e_bound_time, e_bound_time) = 1.f;
 
     // bound track parameter
-    const bound_track_parameters<transform3> bound_param0(0, bound_vector,
+    const bound_track_parameters<transform3> bound_param0(0u, bound_vector,
                                                           bound_cov);
 
     // Path length per turn
-    scalar S = 2. * getter::perp(mom) / getter::norm(env::B) * M_PI;
+    scalar S{2.f * getter::perp(mom) / getter::norm(env::B) *
+             constant<scalar>::pi};
 
     // Actors
-    surface_targeter::state targeter{S, 0};
+    surface_targeter::state targeter{S, 0u};
     parameter_transporter<transform3>::state bound_updater{};
     parameter_resetter<transform3>::state rst{};
 
@@ -207,7 +210,7 @@ TEST(path_correction, cartesian) {
     // Run propagator
     p.propagate(propagation, std::tie(targeter, bound_updater, rst));
 
-    EXPECT_NEAR(crk_state.path_length(), targeter._path, env::epsilon);
+    EXPECT_NEAR(crk_state.path_length(), targeter._path, env::tol);
 
     // Bound state after one turn propagation
     const auto bound_param1 = crk_state._bound_params;
@@ -219,32 +222,31 @@ TEST(path_correction, cartesian) {
     // Check if the bound state stays the same after one turn propagation
 
     // vector
-    for (std::size_t i = 0; i < e_bound_size; i++) {
-        EXPECT_NEAR(matrix_operator().element(bound_vec0, i, 0),
-                    matrix_operator().element(bound_vec1, i, 0), env::epsilon);
+    for (unsigned int i = 0u; i < e_bound_size; i++) {
+        EXPECT_NEAR(matrix_operator().element(bound_vec0, i, 0u),
+                    matrix_operator().element(bound_vec1, i, 0u), env::tol);
     }
 
     // covaraince
-    for (std::size_t i = 0; i < e_bound_size; i++) {
-        for (std::size_t j = 0; j < e_bound_size; j++) {
+    for (unsigned int i = 0u; i < e_bound_size; i++) {
+        for (unsigned int j = 0u; j < e_bound_size; j++) {
             EXPECT_NEAR(matrix_operator().element(bound_cov0, i, j),
-                        matrix_operator().element(bound_cov1, i, j),
-                        env::epsilon);
+                        matrix_operator().element(bound_cov1, i, j), env::tol);
         }
     }
 
     /*
     // Print the matrix elements
-    for (std::size_t i = 0; i < e_bound_size; i++) {
-        for (std::size_t j = 0; j < e_bound_size; j++) {
+    for (unsigned int i = 0u; i < e_bound_size; i++) {
+        for (unsigned int j = 0u; j < e_bound_size; j++) {
             printf("%f ", matrix_operator().element(bound_cov0, i, j));
         }
         printf("\n");
     }
     printf("\n");
 
-    for (std::size_t i = 0; i < e_bound_size; i++) {
-        for (std::size_t j = 0; j < e_bound_size; j++) {
+    for (unsigned int i = 0u; i < e_bound_size; i++) {
+        for (unsigned int j = 0u; j < e_bound_size; j++) {
             printf("%f ", matrix_operator().element(bound_cov1, i, j));
         }
         printf("\n");
@@ -263,7 +265,9 @@ TEST(path_correction, polar) {
     constexpr auto material_id = registry_type::material_ids::e_slab;
 
     // Add a volume
-    det.new_volume(volume_id::e_cylinder, {0., 0., 0., 0., -M_PI, M_PI});
+    det.new_volume(
+        volume_id::e_cylinder,
+        {0.f, 0.f, 0.f, 0.f, -constant<scalar>::pi, constant<scalar>::pi});
 
     typename detector_type::surface_container surfaces(&env::resource);
     typename detector_type::transform_container transforms(env::resource);
@@ -279,19 +283,19 @@ TEST(path_correction, polar) {
                           dindex_invalid, surface_id::e_sensitive);
 
     // Add a transform
-    const vector3 t{0, 0, 0};
-    const vector3 z{1, 0, 0};
-    const vector3 x{0, 1, 0};
+    const vector3 t{0.f, 0.f, 0.f};
+    const vector3 z{1.f, 0.f, 0.f};
+    const vector3 x{0.f, 1.f, 0.f};
     transforms.emplace_back(env::ctx, t, z, x);
 
     // Add a mask
-    const scalar r_low = 0. * unit<scalar>::mm;
-    const scalar r_high = 100. * unit<scalar>::mm;
-    masks.template emplace_back<mask_id>(empty_context{}, 0UL, r_low, r_high);
+    const scalar r_low{0.f * unit<scalar>::mm};
+    const scalar r_high{100.f * unit<scalar>::mm};
+    masks.template emplace_back<mask_id>(empty_context{}, 0u, r_low, r_high);
 
     // Add a material
     const material<scalar> mat = silicon<scalar>();
-    const scalar thickness = 2 * unit<scalar>::mm;
+    const scalar thickness{2.f * unit<scalar>::mm};
     materials.template emplace_back<material_id>(empty_context{}, mat,
                                                  thickness);
 
@@ -300,41 +304,42 @@ TEST(path_correction, polar) {
                                materials);
 
     // Generate track starting point
-    vector2 local{2, M_PI / 6.};
-    vector3 mom{1 * unit<scalar>::MeV, 0., 0.};
+    vector2 local{2.f, constant<scalar>::pi / 6.f};
+    vector3 mom{1.f * unit<scalar>::MeV, 0.f, 0.f};
 
-    scalar time = 0.;
-    scalar q = -1.;
+    scalar time{0.f};
+    scalar q{-1.f};
 
     // bound vector
     typename bound_track_parameters<transform3>::vector_type bound_vector;
-    getter::element(bound_vector, e_bound_loc0, 0) = local[0];
-    getter::element(bound_vector, e_bound_loc1, 0) = local[1];
-    getter::element(bound_vector, e_bound_phi, 0) = getter::phi(mom);
-    getter::element(bound_vector, e_bound_theta, 0) = getter::theta(mom);
-    getter::element(bound_vector, e_bound_qoverp, 0) = q / getter::norm(mom);
-    getter::element(bound_vector, e_bound_time, 0) = time;
+    getter::element(bound_vector, e_bound_loc0, 0u) = local[0];
+    getter::element(bound_vector, e_bound_loc1, 0u) = local[1];
+    getter::element(bound_vector, e_bound_phi, 0u) = getter::phi(mom);
+    getter::element(bound_vector, e_bound_theta, 0u) = getter::theta(mom);
+    getter::element(bound_vector, e_bound_qoverp, 0u) = q / getter::norm(mom);
+    getter::element(bound_vector, e_bound_time, 0u) = time;
 
     // bound covariance
     typename bound_track_parameters<transform3>::covariance_type bound_cov =
         matrix_operator().template zero<e_bound_size, e_bound_size>();
-    getter::element(bound_cov, e_bound_loc0, e_bound_loc0) = 1.;
-    getter::element(bound_cov, e_bound_loc1, e_bound_loc1) = 1.;
-    getter::element(bound_cov, e_bound_phi, e_bound_phi) = 1.;
+    getter::element(bound_cov, e_bound_loc0, e_bound_loc0) = 1.f;
+    getter::element(bound_cov, e_bound_loc1, e_bound_loc1) = 1.f;
+    getter::element(bound_cov, e_bound_phi, e_bound_phi) = 1.f;
     // Note: Set theta error as ZERO, to constrain the loc1 divergence
-    getter::element(bound_cov, e_bound_theta, e_bound_theta) = 0.;
-    getter::element(bound_cov, e_bound_qoverp, e_bound_qoverp) = 1.;
-    getter::element(bound_cov, e_bound_time, e_bound_time) = 1.;
+    getter::element(bound_cov, e_bound_theta, e_bound_theta) = 0.f;
+    getter::element(bound_cov, e_bound_qoverp, e_bound_qoverp) = 1.f;
+    getter::element(bound_cov, e_bound_time, e_bound_time) = 1.f;
 
     // bound track parameter
-    const bound_track_parameters<transform3> bound_param0(0, bound_vector,
+    const bound_track_parameters<transform3> bound_param0(0u, bound_vector,
                                                           bound_cov);
 
     // Path length per turn
-    scalar S = 2. * getter::perp(mom) / getter::norm(env::B) * M_PI;
+    scalar S{2.f * getter::perp(mom) / getter::norm(env::B) *
+             constant<scalar>::pi};
 
     // Actors
-    surface_targeter::state targeter{S, 0};
+    surface_targeter::state targeter{S, 0u};
     parameter_transporter<transform3>::state bound_updater{};
     parameter_resetter<transform3>::state rst{};
 
@@ -344,9 +349,11 @@ TEST(path_correction, polar) {
     crk_stepper_t::state &crk_state = propagation._stepping;
 
     // RK stepper and its state
-    EXPECT_FLOAT_EQ(crk_state().pos()[0], 0);
-    EXPECT_FLOAT_EQ(crk_state().pos()[1], 2 * std::cos(M_PI / 6.));
-    EXPECT_FLOAT_EQ(crk_state().pos()[2], 2 * std::sin(M_PI / 6.));
+    EXPECT_NEAR(crk_state().pos()[0], 0.f, env::tol);
+    EXPECT_NEAR(crk_state().pos()[1],
+                2.f * std::cos(constant<scalar>::pi / 6.f), env::tol);
+    EXPECT_NEAR(crk_state().pos()[2],
+                2.f * std::sin(constant<scalar>::pi / 6.f), env::tol);
 
     // Decrease tolerance down to 1e-8
     crk_state._tolerance = env::rk_tolerance;
@@ -354,7 +361,7 @@ TEST(path_correction, polar) {
     // Run propagator
     p.propagate(propagation, std::tie(targeter, bound_updater, rst));
 
-    EXPECT_NEAR(crk_state.path_length(), targeter._path, env::epsilon);
+    EXPECT_NEAR(crk_state.path_length(), targeter._path, env::tol);
 
     // Bound state after one turn propagation
     const auto bound_param1 = crk_state._bound_params;
@@ -366,17 +373,16 @@ TEST(path_correction, polar) {
     // Check if the bound state stays the same after one turn propagation
 
     // vector
-    for (std::size_t i = 0; i < e_bound_size; i++) {
-        EXPECT_NEAR(matrix_operator().element(bound_vec0, i, 0),
-                    matrix_operator().element(bound_vec1, i, 0), env::epsilon);
+    for (unsigned int i = 0u; i < e_bound_size; i++) {
+        EXPECT_NEAR(matrix_operator().element(bound_vec0, i, 0u),
+                    matrix_operator().element(bound_vec1, i, 0u), env::tol);
     }
 
     // covaraince
-    for (std::size_t i = 0; i < e_bound_size; i++) {
-        for (std::size_t j = 0; j < e_bound_size; j++) {
+    for (unsigned int i = 0u; i < e_bound_size; i++) {
+        for (unsigned int j = 0u; j < e_bound_size; j++) {
             EXPECT_NEAR(matrix_operator().element(bound_cov0, i, j),
-                        matrix_operator().element(bound_cov1, i, j),
-                        env::epsilon);
+                        matrix_operator().element(bound_cov1, i, j), env::tol);
         }
     }
 }
@@ -391,7 +397,9 @@ TEST(path_correction, cylindrical) {
     constexpr auto material_id = registry_type::material_ids::e_slab;
 
     // Add a volume
-    det.new_volume(volume_id::e_cylinder, {0., 0., 0., 0., -M_PI, M_PI});
+    det.new_volume(
+        volume_id::e_cylinder,
+        {0.f, 0.f, 0.f, 0.f, -constant<scalar>::pi, constant<scalar>::pi});
 
     typename detector_type::surface_container surfaces(&env::resource);
     typename detector_type::transform_container transforms(env::resource);
@@ -403,25 +411,25 @@ TEST(path_correction, cylindrical) {
     mask_link_type mask_link{mask_id, masks.template size<mask_id>()};
     material_link_type material_link{material_id,
                                      materials.template size<material_id>()};
-    surfaces.emplace_back(trf_index, mask_link, material_link, 0,
+    surfaces.emplace_back(trf_index, mask_link, material_link, 0u,
                           dindex_invalid, surface_id::e_sensitive);
 
     // Add a transform
-    const vector3 t{-50 * unit<scalar>::mm, 0, 0};
-    const vector3 z{0, 0, 1};
-    const vector3 x{1, 0, 0};
+    const vector3 t{-50.f * unit<scalar>::mm, 0.f, 0.f};
+    const vector3 z{0.f, 0.f, 1.f};
+    const vector3 x{1.f, 0.f, 0.f};
     transforms.emplace_back(env::ctx, t, z, x);
 
     // Add a mask
-    const scalar r = 50 * unit<scalar>::mm;
-    const scalar half_length_1 = 1000. * unit<scalar>::mm;
-    const scalar half_length_2 = 1000. * unit<scalar>::mm;
-    masks.template emplace_back<mask_id>(empty_context{}, 0UL, r, half_length_1,
+    const scalar r{50.f * unit<scalar>::mm};
+    const scalar half_length_1{1000.f * unit<scalar>::mm};
+    const scalar half_length_2{1000.f * unit<scalar>::mm};
+    masks.template emplace_back<mask_id>(empty_context{}, 0u, r, half_length_1,
                                          half_length_2);
 
     // Add a material
     const material<scalar> mat = silicon<scalar>();
-    const scalar thickness = 2 * unit<scalar>::mm;
+    const scalar thickness{2.f * unit<scalar>::mm};
     materials.template emplace_back<material_id>(empty_context{}, mat,
                                                  thickness);
 
@@ -430,40 +438,42 @@ TEST(path_correction, cylindrical) {
                                materials);
 
     // Generate track starting point
-    vector2 local{0., 0.};
-    vector3 mom{1 * unit<scalar>::MeV, 0., 0.};
-    scalar time = 0.;
-    scalar q = -1.;
+    vector2 local{0.f, 0.f};
+    vector3 mom{1.f * unit<scalar>::MeV, 0.f, 0.f};
+
+    scalar time{0.f};
+    scalar q{-1.f};
 
     // bound vector
     typename bound_track_parameters<transform3>::vector_type bound_vector;
-    getter::element(bound_vector, e_bound_loc0, 0) = local[0];
-    getter::element(bound_vector, e_bound_loc1, 0) = local[1];
-    getter::element(bound_vector, e_bound_phi, 0) = getter::phi(mom);
-    getter::element(bound_vector, e_bound_theta, 0) = getter::theta(mom);
-    getter::element(bound_vector, e_bound_qoverp, 0) = q / getter::norm(mom);
-    getter::element(bound_vector, e_bound_time, 0) = time;
+    getter::element(bound_vector, e_bound_loc0, 0u) = local[0];
+    getter::element(bound_vector, e_bound_loc1, 0u) = local[1];
+    getter::element(bound_vector, e_bound_phi, 0u) = getter::phi(mom);
+    getter::element(bound_vector, e_bound_theta, 0u) = getter::theta(mom);
+    getter::element(bound_vector, e_bound_qoverp, 0u) = q / getter::norm(mom);
+    getter::element(bound_vector, e_bound_time, 0u) = time;
 
     // bound covariance
     typename bound_track_parameters<transform3>::covariance_type bound_cov =
         matrix_operator().template zero<e_bound_size, e_bound_size>();
-    getter::element(bound_cov, e_bound_loc0, e_bound_loc0) = 1.;
-    getter::element(bound_cov, e_bound_loc1, e_bound_loc1) = 1.;
-    getter::element(bound_cov, e_bound_phi, e_bound_phi) = 1.;
+    getter::element(bound_cov, e_bound_loc0, e_bound_loc0) = 1.f;
+    getter::element(bound_cov, e_bound_loc1, e_bound_loc1) = 1.f;
+    getter::element(bound_cov, e_bound_phi, e_bound_phi) = 1.f;
     // Note: Set theta error as ZERO, to constrain the loc1 divergence
-    getter::element(bound_cov, e_bound_theta, e_bound_theta) = 0.;
-    getter::element(bound_cov, e_bound_qoverp, e_bound_qoverp) = 1.;
-    getter::element(bound_cov, e_bound_time, e_bound_time) = 1.;
+    getter::element(bound_cov, e_bound_theta, e_bound_theta) = 0.f;
+    getter::element(bound_cov, e_bound_qoverp, e_bound_qoverp) = 1.f;
+    getter::element(bound_cov, e_bound_time, e_bound_time) = 1.f;
 
     // bound track parameter
     const bound_track_parameters<transform3> bound_param0(0, bound_vector,
                                                           bound_cov);
 
     // Path length per turn
-    scalar S = 2. * getter::perp(mom) / getter::norm(env::B) * M_PI;
+    scalar S{2.f * getter::perp(mom) / getter::norm(env::B) *
+             constant<scalar>::pi};
 
     // Actors
-    surface_targeter::state targeter{S, 0};
+    surface_targeter::state targeter{S, 0u};
     parameter_transporter<transform3>::state bound_updater{};
     parameter_resetter<transform3>::state rst{};
 
@@ -473,9 +483,9 @@ TEST(path_correction, cylindrical) {
     crk_stepper_t::state &crk_state = propagation._stepping;
 
     // RK stepper and its state
-    EXPECT_FLOAT_EQ(crk_state().pos()[0], 0);
-    EXPECT_FLOAT_EQ(crk_state().pos()[1], 0);  // y
-    EXPECT_FLOAT_EQ(crk_state().pos()[2], 0);  // z
+    EXPECT_NEAR(crk_state().pos()[0], 0.f, env::tol);  // x
+    EXPECT_NEAR(crk_state().pos()[1], 0.f, env::tol);  // y
+    EXPECT_NEAR(crk_state().pos()[2], 0.f, env::tol);  // z
 
     // Decrease tolerance down to 1e-8
     crk_state._tolerance = env::rk_tolerance;
@@ -483,7 +493,7 @@ TEST(path_correction, cylindrical) {
     // Run propagator
     p.propagate(propagation, std::tie(targeter, bound_updater, rst));
 
-    EXPECT_NEAR(crk_state.path_length(), targeter._path, env::epsilon);
+    EXPECT_NEAR(crk_state.path_length(), targeter._path, env::tol);
 
     // Bound state after one turn propagation
     const auto bound_param1 = crk_state._bound_params;
@@ -495,17 +505,16 @@ TEST(path_correction, cylindrical) {
     // Check if the bound state stays the same after one turn propagation
 
     // vector
-    for (std::size_t i = 0; i < e_bound_size; i++) {
-        EXPECT_NEAR(matrix_operator().element(bound_vec0, i, 0),
-                    matrix_operator().element(bound_vec1, i, 0), env::epsilon);
+    for (unsigned int i = 0u; i < e_bound_size; i++) {
+        EXPECT_NEAR(matrix_operator().element(bound_vec0, i, 0u),
+                    matrix_operator().element(bound_vec1, i, 0u), env::tol);
     }
 
     // covaraince
-    for (std::size_t i = 0; i < e_bound_size; i++) {
-        for (std::size_t j = 0; j < e_bound_size; j++) {
+    for (unsigned int i = 0u; i < e_bound_size; i++) {
+        for (unsigned int j = 0u; j < e_bound_size; j++) {
             EXPECT_NEAR(matrix_operator().element(bound_cov0, i, j),
-                        matrix_operator().element(bound_cov1, i, j),
-                        env::epsilon);
+                        matrix_operator().element(bound_cov1, i, j), env::tol);
         }
     }
 }

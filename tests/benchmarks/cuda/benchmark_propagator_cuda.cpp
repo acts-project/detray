@@ -25,14 +25,14 @@ vecmem::cuda::device_memory_resource dev_mr;
 vecmem::binary_page_memory_resource bp_mng_mr(mng_mr);
 
 // detector configuration
-constexpr std::size_t n_brl_layers = 4;
-constexpr std::size_t n_edc_layers = 7;
+constexpr std::size_t n_brl_layers{4u};
+constexpr std::size_t n_edc_layers{7u};
 
 void fill_tracks(vecmem::vector<free_track_parameters<transform3>> &tracks,
                  const std::size_t theta_steps, const std::size_t phi_steps) {
     // Set origin position of tracks
-    const point3 ori{0., 0., 0.};
-    const scalar mom_mag = 10. * unit<scalar>::GeV;
+    const point3 ori{0.f, 0.f, 0.f};
+    const scalar mom_mag{10.f * unit<scalar>::GeV};
 
     // Iterate through uniformly distributed momentum directions
     for (auto traj : uniform_track_generator<free_track_parameters<transform3>>(
@@ -67,7 +67,8 @@ static void BM_PROPAGATOR_CPU(benchmark::State &state) {
 
         // Get tracks
         vecmem::vector<free_track_parameters<transform3>> tracks(&host_mr);
-        fill_tracks(tracks, state.range(0), state.range(0));
+        fill_tracks(tracks, static_cast<std::size_t>(state.range(0)),
+                    static_cast<std::size_t>(state.range(0)));
 
         state.ResumeTiming();
 
@@ -112,7 +113,8 @@ static void BM_PROPAGATOR_CUDA(benchmark::State &state) {
 
         // Get tracks
         vecmem::vector<free_track_parameters<transform3>> tracks(&bp_mng_mr);
-        fill_tracks(tracks, state.range(0), state.range(0));
+        fill_tracks(tracks, static_cast<std::size_t>(state.range(0)),
+                    static_cast<std::size_t>(state.range(0)));
 
         state.ResumeTiming();
 

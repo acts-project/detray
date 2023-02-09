@@ -68,7 +68,7 @@ __global__ void grid_replace_ci_test_kernel(
     auto gid = threadIdx.x + threadIdx.y * blockDim.x;
 
     point3 tp{axis_r.min() + gid * axis_r.bin_width(threadIdx.x),
-              axis_phi.min() + gid * axis_phi.bin_width(), 0.5};
+              axis_phi.min() + gid * axis_phi.bin_width(), 0.5f};
 
     // replace the bin elements
     g2_device.populate({threadIdx.x, threadIdx.y}, std::move(tp));
@@ -104,7 +104,7 @@ __global__ void grid_complete_kernel(host_grid2_complete::view_type grid_view) {
 
     auto gid = threadIdx.x + threadIdx.y * blockDim.x;
     auto tp = point3{axis_r.min() + gid * axis_r.bin_width(),
-                     axis_phi.min() + gid * axis_phi.bin_width(), 0.5};
+                     axis_phi.min() + gid * axis_phi.bin_width(), 0.5f};
 
     g2_device.populate({threadIdx.x, threadIdx.y}, std::move(tp));
 }
@@ -143,7 +143,7 @@ __global__ void grid_attach_kernel(host_grid2_attach::view_type grid_view) {
 
     auto gid = threadIdx.x + threadIdx.y * blockDim.x;
     auto tp = point3{axis_r.min() + gid * width_r,
-                     axis_phi.min() + gid * width_phi, 0.5};
+                     axis_phi.min() + gid * width_phi, 0.5f};
 
     g2_device.populate({threadIdx.x, threadIdx.y}, std::move(tp));
 }

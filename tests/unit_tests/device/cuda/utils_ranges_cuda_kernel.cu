@@ -24,7 +24,7 @@ __global__ void single_kernel(const dindex value, dindex* result) {
 void test_single(const dindex value, dindex& check) {
     dindex* result{nullptr};
     cudaMallocManaged(&result, sizeof(dindex));
-    *result = 0;
+    *result = 0u;
 
     // run the kernel
     single_kernel<<<1, 1>>>(value, result);

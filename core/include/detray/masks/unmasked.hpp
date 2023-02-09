@@ -26,9 +26,9 @@ class unmasked {
     inline static const std::string name = "unmasked";
 
     /// The measurement dimension
-    inline static constexpr const std::size_t meas_dim = 2;
+    inline static constexpr const unsigned int meas_dim{2u};
 
-    enum boundaries : std::size_t { e_size = 1 };
+    enum boundaries : std::size_t { e_size = 1u };
 
     /// Local coordinate frame for boundary checks
     template <typename algebra_t>
@@ -56,7 +56,7 @@ class unmasked {
     struct axes {
         static constexpr n_axis::label axis_loc0 = n_axis::label::e_x;
         static constexpr n_axis::label axis_loc1 = n_axis::label::e_y;
-        static constexpr std::size_t dim{2UL};
+        static constexpr std::size_t dim{2u};
 
         /// How to convert into the local axis system and back
         template <typename algebra_t>
@@ -85,7 +85,8 @@ class unmasked {
 
     template <typename param_t>
     DETRAY_HOST_DEVICE inline typename param_t::point2 to_measurement(
-        param_t& param, const typename param_t::point2& offset = {0, 0}) const {
+        param_t& param,
+        const typename param_t::point2& offset = {0.f, 0.f}) const {
         return param.local() + offset;
     }
 };

@@ -1,6 +1,6 @@
 /** Detray library, part of the ACTS project (R&D line)
  *
- * (c) 2021-2022 CERN for the benefit of the ACTS project
+ * (c) 2021-2023 CERN for the benefit of the ACTS project
  *
  * Mozilla Public License Version 2.0
  */
@@ -11,6 +11,7 @@
 #include "detray/definitions/geometry.hpp"
 #include "detray/definitions/indexing.hpp"
 #include "detray/definitions/qualifiers.hpp"
+#include "detray/definitions/units.hpp"
 
 // System include(s)
 #include <type_traits>
@@ -239,12 +240,12 @@ class detector_volume {
     volume_id _id = volume_id::e_cylinder;
 
     /// Bounds section, default for cylinder volume
-    array_t<scalar_t, 6> _bounds = {0.,
+    array_t<scalar_t, 6> _bounds = {0.f,
                                     std::numeric_limits<scalar_t>::max(),
                                     -std::numeric_limits<scalar_t>::max(),
                                     std::numeric_limits<scalar_t>::max(),
-                                    -M_PI,
-                                    M_PI};
+                                    -constant<scalar_t>::pi,
+                                    constant<scalar_t>::pi};
 
     /// Volume index in the detector's volume container
     dindex _index = dindex_invalid;

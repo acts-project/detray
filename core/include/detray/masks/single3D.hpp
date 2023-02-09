@@ -1,6 +1,6 @@
 /** Detray library, part of the ACTS project (R&D line)
  *
- * (c) 2020-2022 CERN for the benefit of the ACTS project
+ * (c) 2020-2023 CERN for the benefit of the ACTS project
  *
  * Mozilla Public License Version 2.0
  */
@@ -29,21 +29,21 @@ namespace detray {
 /// @tparam intersector_t defines how to intersect the underlying surface
 ///         geometry
 /// @tparam kMeasDim defines the dimension of the measurement
-template <unsigned int kCheckIndex = 0,
+template <unsigned int kCheckIndex = 0u,
           template <typename> class intersector_t = plane_intersector,
-          std::size_t kMeasDim = 2>
+          unsigned int kMeasDim = 2u>
 class single3D {
     public:
     /// The name for this shape
     inline static const std::string name = "single3D";
 
     /// The measurement dimension
-    inline static constexpr const std::size_t meas_dim = kMeasDim;
+    inline static constexpr const unsigned int meas_dim{kMeasDim};
 
     enum boundaries : std::size_t {
-        e_lower = 0,
-        e_upper = 1,
-        e_size = 2,
+        e_lower = 0u,
+        e_upper = 1u,
+        e_size = 2u,
     };
 
     /// Local coordinate frame for boundary checks
@@ -71,7 +71,7 @@ class single3D {
     struct axes {
         static constexpr n_axis::label axis_loc0 =
             static_cast<n_axis::label>(kCheckIndex);
-        static constexpr std::size_t dim{1UL};
+        static constexpr std::size_t dim{1u};
 
         /// How to convert into the local axis system and back
         template <typename algebra_t>
@@ -106,7 +106,8 @@ class single3D {
 
     template <typename param_t>
     DETRAY_HOST_DEVICE inline typename param_t::point2 to_measurement(
-        param_t& param, const typename param_t::point2& offset = {0, 0}) const {
+        param_t& param,
+        const typename param_t::point2& offset = {0.f, 0.f}) const {
         return param.local() + offset;
     }
 };

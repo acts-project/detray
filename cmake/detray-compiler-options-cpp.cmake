@@ -34,6 +34,8 @@ if(("${CMAKE_CXX_COMPILER_ID}" MATCHES "GNU") OR
    # More rigorous tests for the Debug builds.
    detray_add_flag(CMAKE_CXX_FLAGS_DEBUG "-Werror")
    detray_add_flag(CMAKE_CXX_FLAGS_DEBUG "-pedantic")
+   # No implicit single to double conversions from floating point literals
+   detray_add_flag(CMAKE_CXX_FLAGS_DEBUG "-Wconversion")
 
 elseif("${CMAKE_CXX_COMPILER_ID}" MATCHES "MSVC")
    # Basic flags for all build modes.

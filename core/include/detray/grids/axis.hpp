@@ -38,7 +38,7 @@ struct regular {
     scalar min;
     scalar max;
 
-    static constexpr unsigned int axis_identifier = 0;
+    static constexpr unsigned int axis_identifier = 0u;
 
     /** Defualt constructor for dummy axis **/
     DETRAY_HOST_DEVICE
@@ -84,14 +84,15 @@ struct regular {
      **/
     DETRAY_HOST_DEVICE
     dindex bin(scalar v) const {
-        int ibin = static_cast<int>((v - min) / (max - min) * n_bins);
+        int ibin = static_cast<int>((v - min) / (max - min) *
+                                    static_cast<scalar>(n_bins));
         if (ibin >= 0 and ibin < static_cast<int>(n_bins)) {
             return static_cast<dindex>(ibin);
         } else {
             if (ibin < 0) {
                 return 0;
             } else {
-                return static_cast<dindex>(n_bins - 1);
+                return static_cast<dindex>(n_bins - 1u);
             }
         }
     }
@@ -107,13 +108,14 @@ struct regular {
     dindex_range range(scalar v,
                        const array_t<dindex, 2> &nhood = {0u, 0u}) const {
 
-        int ibin = static_cast<int>((v - min) / (max - min) * n_bins);
+        int ibin = static_cast<int>((v - min) / (max - min) *
+                                    static_cast<scalar>(n_bins));
         int ibinmin = ibin - static_cast<int>(nhood[0]);
         int ibinmax = ibin + static_cast<int>(nhood[1]);
-        dindex min_bin = (ibinmin >= 0) ? static_cast<dindex>(ibinmin) : 0;
+        dindex min_bin = (ibinmin >= 0) ? static_cast<dindex>(ibinmin) : 0u;
         dindex max_bin = (ibinmax < static_cast<int>(n_bins))
                              ? static_cast<dindex>(ibinmax)
-                             : static_cast<dindex>(n_bins - 1);
+                             : static_cast<dindex>(n_bins - 1u);
         return {min_bin, max_bin};
     }
 
@@ -126,11 +128,11 @@ struct regular {
      **/
     DETRAY_HOST_DEVICE
     dindex_range range(scalar v, const array_t<scalar, 2> &nhood) const {
-        int nbin =
-            static_cast<int>((v - nhood[0] - min) / (max - min) * n_bins);
-        int pbin =
-            static_cast<int>((v + nhood[1] - min) / (max - min) * n_bins);
-        dindex min_bin = (nbin >= 0) ? static_cast<dindex>(nbin) : 0;
+        int nbin = static_cast<int>((v - nhood[0] - min) / (max - min) *
+                                    static_cast<scalar>(n_bins));
+        int pbin = static_cast<int>((v + nhood[1] - min) / (max - min) *
+                                    static_cast<scalar>(n_bins));
+        dindex min_bin = (nbin >= 0) ? static_cast<dindex>(nbin) : 0u;
         dindex max_bin = (pbin < static_cast<int>(n_bins))
                              ? static_cast<dindex>(pbin)
                              : static_cast<dindex>(n_bins - 1);
@@ -152,9 +154,9 @@ struct regular {
     zone_t(scalar v, const array_t<neighbor_t, 2> &nhood) const {
         dindex_range nh_range = range(v, nhood);
         dindex_sequence sequence(static_cast<dindex_sequence::size_type>(
-                                     nh_range[1] - nh_range[0] + 1),
+                                     nh_range[1] - nh_range[0] + 1u),
                                  nh_range[0]);
-        dindex m = 0;
+        dindex m = 0u;
         std::for_each(sequence.begin(), sequence.end(),
                       [&](auto &n) { n += m++; });
         return sequence;
@@ -187,17 +189,18 @@ struct regular {
     /** @return the bin boundaries for a given @param ibin */
     DETRAY_HOST_DEVICE
     array_t<scalar, 2> borders(dindex ibin) const {
-        scalar step = (max - min) / n_bins;
-        return {min + ibin * step, min + (ibin + 1) * step};
+        scalar step = (max - min) / static_cast<scalar>(n_bins);
+        return {min + static_cast<scalar>(ibin) * step,
+                min + static_cast<scalar>(ibin + 1u) * step};
     }
 
     /** @return the values of the borders */
     DETRAY_HOST_DEVICE
     vector_t<scalar> all_borders() const {
         vector_t<scalar> borders;
-        borders.reserve(n_bins + 1);
-        scalar step = (max - min) / n_bins;
-        for (dindex ib = 0; ib < n_bins + 1; ++ib) {
+        borders.reserve(n_bins + 1u);
+        scalar step = (max - min) / static_cast<scalar>(n_bins);
+        for (dindex ib = 0u; ib < n_bins + 1u; ++ib) {
             borders.push_back(min + ib * step);
         }
         return borders;
@@ -220,7 +223,7 @@ struct circular {
     scalar min;
     scalar max;
 
-    static constexpr unsigned int axis_identifier = 1;
+    static constexpr unsigned int axis_identifier = 1u;
 
     /** Defualt constructor for dummy axis **/
     DETRAY_HOST_DEVICE
@@ -266,14 +269,15 @@ struct circular {
      **/
     DETRAY_HOST_DEVICE
     dindex bin(scalar v) const {
-        int ibin = static_cast<int>((v - min) / (max - min) * n_bins);
+        int ibin = static_cast<int>((v - min) / (max - min) *
+                                    static_cast<scalar>(n_bins));
         if (ibin >= 0 and ibin < static_cast<int>(n_bins)) {
             return static_cast<dindex>(ibin);
         } else {
             if (ibin < 0) {
-                return static_cast<dindex>(n_bins + ibin);
+                return n_bins + static_cast<dindex>(ibin);
             } else {
-                return static_cast<dindex>(ibin - n_bins);
+                return static_cast<dindex>(ibin) - n_bins;
             }
         }
     }
@@ -323,21 +327,22 @@ struct circular {
         dindex_range nh_range = range(v, nhood);
         if (nh_range[0] < nh_range[1]) {
             dindex_sequence sequence(static_cast<dindex_sequence::size_type>(
-                                         nh_range[1] - nh_range[0] + 1),
+                                         nh_range[1] - nh_range[0] + 1u),
                                      nh_range[0]);
             dindex m = 0;
             std::for_each(sequence.begin(), sequence.end(),
                           [&](auto &n) { n += m++; });
             return sequence;
         }
-        dindex vl = static_cast<dindex>(n_bins - nh_range[0] + nh_range[1] + 1);
+        dindex vl =
+            static_cast<dindex>(n_bins - nh_range[0] + nh_range[1] + 1u);
         dindex mi = 0;
         dindex mo = 0;
         dindex_sequence sequence(static_cast<dindex_sequence::size_type>(vl),
                                  nh_range[0]);
         std::for_each(sequence.begin(), sequence.end(), [&](auto &n) {
             n += mi++;
-            if (n > n_bins - 1) {
+            if (n > n_bins - 1u) {
                 n = mo++;
             }
         });
@@ -382,25 +387,26 @@ struct circular {
             return static_cast<dindex>(opt_bin);
         }
         if (opt_bin < 0) {
-            return static_cast<dindex>(n_bins + opt_bin);
+            return n_bins + static_cast<dindex>(opt_bin);
         }
-        return static_cast<dindex>(opt_bin - n_bins);
+        return static_cast<dindex>(opt_bin) - n_bins;
     }
 
     /** @return the bin boundaries for a given @param ibin */
     DETRAY_HOST_DEVICE
     array_t<scalar, 2> borders(dindex ibin) const {
         scalar step = (max - min) / n_bins;
-        return {min + ibin * step, min + (ibin + 1) * step};
+        return {min + static_cast<scalar>(ibin) * step,
+                min + static_cast<scalar>(ibin + 1u) * step};
     }
 
     /** @return the values of the borders */
     DETRAY_HOST_DEVICE
     vector_t<scalar> all_borders() const {
         vector_t<scalar> borders;
-        borders.reserve(n_bins + 1);
-        scalar step = (max - min) / n_bins;
-        for (dindex ib = 0; ib < n_bins + 1; ++ib) {
+        borders.reserve(n_bins + 1u);
+        scalar step = (max - min) / static_cast<scalar>(n_bins);
+        for (dindex ib = 0u; ib < n_bins + 1u; ++ib) {
             borders.push_back(min + ib * step);
         }
         return borders;
@@ -427,13 +433,13 @@ struct irregular {
 
     vector_t<scalar> boundaries;
 
-    static constexpr unsigned int axis_identifier = 2;
+    static constexpr unsigned int axis_identifier = 2u;
 
     /** Defualt constructor for dummy axis **/
     DETRAY_HOST_DEVICE
     irregular()
         : n_bins(detail::invalid_value<dindex>()),
-          min(0.),
+          min(0.f),
           max(static_cast<scalar>(n_bins)),
           boundaries({}) {}
 
@@ -441,14 +447,14 @@ struct irregular {
     DETRAY_HOST
     irregular(vecmem::memory_resource &resource)
         : n_bins(detail::invalid_value<dindex>()),
-          min(0.),
+          min(0.f),
           max(static_cast<scalar>(n_bins)),
           boundaries(&resource) {}
 
     /** Constructor with vecmem memory resource - rvalue **/
     DETRAY_HOST irregular(vector_t<scalar> &&bins,
                           vecmem::memory_resource &resource)
-        : n_bins(bins.size() - 1),
+        : n_bins(bins.size() - 1u),
           min(bins[0]),
           max(bins[n_bins]),
           boundaries(bins, &resource) {}
@@ -456,7 +462,7 @@ struct irregular {
     /** Constructor with vecmem memory resource - lvalue **/
     DETRAY_HOST irregular(const vector_t<scalar> &bins,
                           vecmem::memory_resource &resource)
-        : n_bins(bins.size() - 1),
+        : n_bins(bins.size() - 1u),
           min(bins[0]),
           max(bins[n_bins]),
           boundaries(bins, &resource) {}
@@ -481,7 +487,7 @@ struct irregular {
 
     /** Return the number of bins */
     DETRAY_HOST_DEVICE
-    dindex bins() const { return static_cast<dindex>(boundaries.size() - 1); }
+    dindex bins() const { return static_cast<dindex>(boundaries.size() - 1u); }
 
     /** Access function to a single bin from a value v
      *
@@ -500,7 +506,7 @@ struct irregular {
             if (ibin == 0) {
                 return static_cast<dindex>(ibin);
             } else {
-                return static_cast<dindex>(boundaries.size() - 2);
+                return static_cast<dindex>(boundaries.size() - 2u);
             }
         }
     }
@@ -517,13 +523,12 @@ struct irregular {
                        const array_t<dindex, 2> &nhood = {0u, 0u}) const {
 
         dindex ibin = bin(v);
-        int bins = static_cast<int>(boundaries.size() - 1);
-        int ibinmin = static_cast<int>(ibin - nhood[0]);
+        int bins = static_cast<int>(boundaries.size()) - 1;
+        int ibinmin = static_cast<int>(ibin) - static_cast<int>(nhood[0]);
         int ibinmax = static_cast<int>(ibin + nhood[1]);
-        dindex min_bin = (ibinmin >= 0) ? static_cast<dindex>(ibinmin) : 0;
-        dindex max_bin = (ibinmax < static_cast<int>(bins))
-                             ? static_cast<dindex>(ibinmax)
-                             : static_cast<dindex>(bins - 1);
+        dindex min_bin = (ibinmin >= 0) ? static_cast<dindex>(ibinmin) : 0u;
+        dindex max_bin = (ibinmax < bins) ? static_cast<dindex>(ibinmax)
+                                          : static_cast<dindex>(bins - 1);
         return {min_bin, max_bin};
     }
 
@@ -555,9 +560,9 @@ struct irregular {
     zone_t(scalar v, const array_t<neighbor_t, 2> nhood) const {
         dindex_range nh_range = range(v, nhood);
         dindex_sequence sequence(static_cast<dindex_sequence::size_type>(
-                                     nh_range[1] - nh_range[0] + 1),
+                                     nh_range[1] - nh_range[0] + 1u),
                                  nh_range[0]);
-        dindex m = 0;
+        dindex m = 0u;
         std::for_each(sequence.begin(), sequence.end(),
                       [&](auto &n) { n += m++; });
         return sequence;
@@ -572,7 +577,7 @@ struct irregular {
      **/
     DETRAY_HOST_DEVICE
     dindex_sequence zone(scalar v,
-                         const array_t<dindex, 2> &nhood = {0, 0}) const {
+                         const array_t<dindex, 2> &nhood = {0u, 0u}) const {
         return zone_t<dindex>(v, nhood);
     }
 
@@ -591,7 +596,7 @@ struct irregular {
     DETRAY_HOST_DEVICE
     /** @return the bin boundaries for a given @param ibin */
     array_t<scalar, 2> borders(dindex ibin) const {
-        return {boundaries[ibin], boundaries[ibin + 1]};
+        return {boundaries[ibin], boundaries[ibin + 1u]};
     }
 
     /** @return the values of the borders of all bins */
@@ -601,7 +606,7 @@ struct irregular {
     /** @return the range  */
     DETRAY_HOST_DEVICE
     array_t<scalar, 2> span() const {
-        return {boundaries[0], boundaries[boundaries.size() - 1]};
+        return {boundaries[0], boundaries[boundaries.size() - 1u]};
     }
 };
 
@@ -615,8 +620,8 @@ struct axis_data;
 
 template <typename axis_t, typename scalar_t>
 struct axis_data<axis_t, scalar_t,
-                 typename std::enable_if_t<(axis_t::axis_identifier == 0) ||
-                                           (axis_t::axis_identifier == 1)>> {
+                 typename std::enable_if_t<(axis_t::axis_identifier == 0u) ||
+                                           (axis_t::axis_identifier == 1u)>> {
 
     /// Declare that a default constructor can/should be generated
     axis_data() = default;
@@ -677,8 +682,8 @@ template <template <template <typename, std::size_t> class,
           class axis_t,
           template <typename, std::size_t> class array_t,
           template <typename...> class vector_t,
-          std::enable_if_t<axis_t<array_t, vector_t>::axis_identifier == 0 ||
-                               axis_t<array_t, vector_t>::axis_identifier == 1,
+          std::enable_if_t<axis_t<array_t, vector_t>::axis_identifier == 0u ||
+                               axis_t<array_t, vector_t>::axis_identifier == 1u,
                            bool> = true>
 inline axis_data<axis_t<array_t, vector_t>, scalar> get_data(
     axis_t<array_t, vector_t> &axis) {
@@ -696,7 +701,7 @@ template <template <template <typename, std::size_t> class,
           class axis_t,
           template <typename, std::size_t> class array_t,
           template <typename...> class vector_t,
-          std::enable_if_t<axis_t<array_t, vector_t>::axis_identifier == 2,
+          std::enable_if_t<axis_t<array_t, vector_t>::axis_identifier == 2u,
                            bool> = true>
 inline axis_data<axis_t<array_t, vector_t>, scalar> get_data(
     axis_t<array_t, vector_t> &axis) {
@@ -714,8 +719,8 @@ template <template <template <typename, std::size_t> class,
           class axis_t,
           template <typename, std::size_t> class array_t,
           template <typename...> class vector_t,
-          std::enable_if_t<axis_t<array_t, vector_t>::axis_identifier == 0 ||
-                               axis_t<array_t, vector_t>::axis_identifier == 1,
+          std::enable_if_t<axis_t<array_t, vector_t>::axis_identifier == 0u ||
+                               axis_t<array_t, vector_t>::axis_identifier == 1u,
                            bool> = true>
 inline axis_data<axis_t<array_t, vector_t>, const scalar> get_data(
     const axis_t<array_t, vector_t> &axis) {
@@ -733,7 +738,7 @@ template <template <template <typename, std::size_t> class,
           class axis_t,
           template <typename, std::size_t> class array_t,
           template <typename...> class vector_t,
-          std::enable_if_t<axis_t<array_t, vector_t>::axis_identifier == 2,
+          std::enable_if_t<axis_t<array_t, vector_t>::axis_identifier == 2u,
                            bool> = true>
 inline axis_data<axis_t<array_t, vector_t>, const scalar> get_data(
     const axis_t<array_t, vector_t> &axis) {

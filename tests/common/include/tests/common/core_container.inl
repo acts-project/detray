@@ -1,6 +1,6 @@
 /** Detray library, part of the ACTS project (R&D line)
  *
- * (c) 2022 CERN for the benefit of the ACTS project
+ * (c) 2022-2023 CERN for the benefit of the ACTS project
  *
  * Mozilla Public License Version 2.0
  */
@@ -23,11 +23,15 @@
 
 using namespace detray;
 
+constexpr float tol_single{1e-7f};
+constexpr double tol_double{1e-31f};
+
 struct test_func {
     using output_type = std::size_t;
 
     template <typename container_t>
-    output_type operator()(const container_t& coll, const int /*index*/) {
+    output_type operator()(const container_t& coll,
+                           const unsigned int /*index*/) {
         return coll.size();
     }
 };
@@ -69,8 +73,8 @@ TEST(container, tuple_container) {
     device_tuple_t dev_container(view);
 
     // Base container function check
-    EXPECT_EQ(container.size(), 3);
-    EXPECT_EQ(dev_container.size(), 3);
+    EXPECT_EQ(container.size(), 3u);
+    EXPECT_EQ(dev_container.size(), 3u);
 
     EXPECT_TRUE(container.get<0>().empty());
     EXPECT_TRUE(container.get<1>().empty());
@@ -88,30 +92,30 @@ TEST(container, vector_multi_type_store) {
         vector_store(resource);
 
     // Base container function check
-    EXPECT_EQ(vector_store.n_collections(), 3);
+    EXPECT_EQ(vector_store.n_collections(), 3u);
     EXPECT_EQ(vector_store.empty<0>(), true);
     EXPECT_EQ(vector_store.empty<1>(), true);
     EXPECT_EQ(vector_store.empty<2>(), true);
-    EXPECT_EQ(vector_store.size<0>(), 0UL);
-    EXPECT_EQ(vector_store.size<1>(), 0UL);
-    EXPECT_EQ(vector_store.size<2>(), 0UL);
+    EXPECT_EQ(vector_store.size<0>(), 0u);
+    EXPECT_EQ(vector_store.size<1>(), 0u);
+    EXPECT_EQ(vector_store.size<2>(), 0u);
 
     // Add elements to the container
-    vector_store.push_back<0>(1UL);
-    vector_store.emplace_back<0>(empty_context{}, 2UL);
+    vector_store.push_back<0>(1u);
+    vector_store.emplace_back<0>(empty_context{}, 2u);
     vector_store.push_back<1>(3.1f);
     vector_store.emplace_back<1>(empty_context{}, 4.5f);
     vector_store.push_back<2>(5.5);
-    vector_store.emplace_back<2>(empty_context{}, 6.);
+    vector_store.emplace_back<2>(empty_context{}, 6.f);
 
     EXPECT_EQ(vector_store.empty<0>(), false);
     EXPECT_EQ(vector_store.empty<1>(), false);
     EXPECT_EQ(vector_store.empty<2>(), false);
-    EXPECT_EQ(vector_store.size<0>(), 2UL);
-    EXPECT_EQ(vector_store.size<1>(), 2UL);
-    EXPECT_EQ(vector_store.size<2>(), 2UL);
+    EXPECT_EQ(vector_store.size<0>(), 2u);
+    EXPECT_EQ(vector_store.size<1>(), 2u);
+    EXPECT_EQ(vector_store.size<2>(), 2u);
 
-    vecmem::vector<std::size_t> int_vec{3UL, 4UL, 5UL};
+    vecmem::vector<std::size_t> int_vec{3u, 4u, 5u};
     vector_store.insert(int_vec);
 
     vecmem::vector<float> float_vec{12.1f};
@@ -120,28 +124,28 @@ TEST(container, vector_multi_type_store) {
     vector_store.insert(vecmem::vector<double>{10.5, 7.6});
 
     // int collectiont
-    EXPECT_EQ(vector_store.size<0>(), 5UL);
-    EXPECT_EQ(vector_store.get<0>()[0], 1UL);
-    EXPECT_EQ(vector_store.get<0>()[1], 2UL);
-    EXPECT_EQ(vector_store.get<0>()[2], 3UL);
-    EXPECT_EQ(vector_store.get<0>()[3], 4UL);
-    EXPECT_EQ(vector_store.get<0>()[4], 5UL);
+    EXPECT_EQ(vector_store.size<0>(), 5u);
+    EXPECT_EQ(vector_store.get<0>()[0], 1u);
+    EXPECT_EQ(vector_store.get<0>()[1], 2u);
+    EXPECT_EQ(vector_store.get<0>()[2], 3u);
+    EXPECT_EQ(vector_store.get<0>()[3], 4u);
+    EXPECT_EQ(vector_store.get<0>()[4], 5u);
 
     // float collectiont
-    EXPECT_EQ(vector_store.size<1>(), 3UL);
-    EXPECT_FLOAT_EQ(vector_store.get<1>()[0], 3.1f);
-    EXPECT_FLOAT_EQ(vector_store.get<1>()[1], 4.5f);
-    EXPECT_FLOAT_EQ(vector_store.get<1>()[2], 12.1f);
+    EXPECT_EQ(vector_store.size<1>(), 3u);
+    EXPECT_NEAR(vector_store.get<1>()[0], 3.1f, tol_single);
+    EXPECT_NEAR(vector_store.get<1>()[1], 4.5f, tol_single);
+    EXPECT_NEAR(vector_store.get<1>()[2], 12.1f, tol_single);
 
     // double collectiont
-    EXPECT_EQ(vector_store.size<2>(), 4UL);
-    EXPECT_FLOAT_EQ(vector_store.get<2>()[0], 5.5);
-    EXPECT_FLOAT_EQ(vector_store.get<2>()[1], 6.);
-    EXPECT_FLOAT_EQ(vector_store.get<2>()[2], 10.5);
-    EXPECT_FLOAT_EQ(vector_store.get<2>()[3], 7.6);
+    EXPECT_EQ(vector_store.size<2>(), 4u);
+    EXPECT_NEAR(vector_store.get<2>()[0], 5.5, tol_double);
+    EXPECT_NEAR(vector_store.get<2>()[1], 6., tol_double);
+    EXPECT_NEAR(vector_store.get<2>()[2], 10.5, tol_double);
+    EXPECT_NEAR(vector_store.get<2>()[3], 7.6, tol_double);
 
     // call functor
-    EXPECT_EQ(vector_store.call<test_func>(std::make_pair(0, 0)), 5UL);
-    EXPECT_EQ(vector_store.call<test_func>(std::make_pair(1, 0)), 3UL);
-    EXPECT_EQ(vector_store.call<test_func>(std::make_pair(2, 0)), 4UL);
+    EXPECT_EQ(vector_store.call<test_func>(std::make_pair(0u, 0u)), 5u);
+    EXPECT_EQ(vector_store.call<test_func>(std::make_pair(1u, 0u)), 3u);
+    EXPECT_EQ(vector_store.call<test_func>(std::make_pair(2u, 0u)), 4u);
 }

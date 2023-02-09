@@ -1,6 +1,6 @@
 /** Detray library, part of the ACTS project (R&D line)
  *
- * (c) 2021-2022 CERN for the benefit of the ACTS project
+ * (c) 2021-2023 CERN for the benefit of the ACTS project
  *
  * Mozilla Public License Version 2.0
  */
@@ -113,10 +113,10 @@ TEST(ALGEBRA_PLUGIN, navigator) {
     vecmem::host_memory_resource host_mr;
 
     /// Tolerance for tests
-    constexpr double tol = 0.01;
+    constexpr double tol{0.01};
 
-    std::size_t n_brl_layers = 4;
-    std::size_t n_edc_layers = 3;
+    unsigned int n_brl_layers{4u};
+    unsigned int n_edc_layers{3u};
     auto toy_det = create_toy_geometry(host_mr, n_brl_layers, n_edc_layers);
     using detector_t = decltype(toy_det);
     using inspector_t = navigation::print_inspector;
@@ -125,9 +125,9 @@ TEST(ALGEBRA_PLUGIN, navigator) {
     using stepper_t = line_stepper<transform3, constraint_t>;
 
     // test track
-    point3 pos{0., 0., 0.};
-    vector3 mom{1., 1., 0.};
-    free_track_parameters<transform3> traj(pos, 0, mom, -1);
+    point3 pos{0.f, 0.f, 0.f};
+    vector3 mom{1.f, 1.f, 0.f};
+    free_track_parameters<transform3> traj(pos, 0.f, mom, -1.f);
 
     stepper_t stepper;
     navigator_t nav;
@@ -157,13 +157,13 @@ TEST(ALGEBRA_PLUGIN, navigator) {
     // The status is towards beampipe
     // Two candidates: beampipe and portal
     // First candidate is the beampipe
-    check_towards_surface<navigator_t>(navigation, 0, 2, 0);
+    check_towards_surface<navigator_t>(navigation, 0u, 2u, 0u);
     // Distance to beampipe surface
-    ASSERT_NEAR(navigation(), 19., tol);
+    ASSERT_NEAR(navigation(), 19.f, tol);
 
     // Let's make half the step towards the beampipe
     stepping.template set_constraint<step::constraint::e_user>(navigation() *
-                                                               0.5);
+                                                               0.5f);
     stepper.step(propagation);
     // Navigation policy might reduce trust level to fair trust
     navigation.set_fair_trust();
@@ -175,19 +175,19 @@ TEST(ALGEBRA_PLUGIN, navigator) {
     // Trust level is restored
     ASSERT_EQ(navigation.trust_level(), trust_level::e_full);
     // The status remains: towards surface
-    check_towards_surface<navigator_t>(navigation, 0, 2, 0);
+    check_towards_surface<navigator_t>(navigation, 0u, 2u, 0u);
     // Distance to beampipe is now halved
-    ASSERT_NEAR(navigation(), 9.5, tol);
+    ASSERT_NEAR(navigation(), 9.5f, tol);
 
     // Let's immediately update, nothing should change, as there is full trust
     ASSERT_TRUE(nav.update(propagation));
-    check_towards_surface<navigator_t>(navigation, 0, 2, 0);
-    ASSERT_NEAR(navigation(), 9.5, tol);
+    check_towards_surface<navigator_t>(navigation, 0u, 2u, 0u);
+    ASSERT_NEAR(navigation(), 9.5f, tol);
 
     // Now step onto the beampipe (idx 0)
-    check_step(nav, stepper, propagation, 0, 2, 0, 7);
+    check_step(nav, stepper, propagation, 0u, 2u, 0u, 7u);
     // New target: Distance to the beampipe volume cylinder portal
-    ASSERT_NEAR(navigation(), 8, tol);
+    ASSERT_NEAR(navigation(), 8.f, tol);
 
     // Step onto portal 7 in volume 0
     stepper.step(propagation);
@@ -201,25 +201,25 @@ TEST(ALGEBRA_PLUGIN, navigator) {
     //
 
     // Last volume before we leave world
-    dindex last_vol_id = 13;
+    dindex last_vol_id = 13u;
 
     // maps volume id to the sequence of surfaces that the navigator encounters
     std::map<dindex, std::vector<dindex>> sf_sequences;
 
     // layer 1
-    sf_sequences[7] = {594, 491, 475, 492, 476, 595};
+    sf_sequences[7] = {594u, 491u, 475u, 492u, 476u, 595u};
     // gap 1
-    sf_sequences[8] = {598, 599};
+    sf_sequences[8] = {598u, 599u};
     // layer 2
-    sf_sequences[9] = {1050, 845, 813, 846, 814, 1051};
+    sf_sequences[9] = {1050u, 845u, 813u, 846u, 814u, 1051u};
     // gap 2
-    sf_sequences[10] = {1054, 1055};
+    sf_sequences[10] = {1054u, 1055u};
     // layer 3
-    sf_sequences[11] = {1786, 1454, 1402, 1787};
+    sf_sequences[11] = {1786u, 1454u, 1402u, 1787u};
     // gap 3
-    sf_sequences[12] = {1790, 1791};
+    sf_sequences[12] = {1790u, 1791u};
     // layer 4
-    sf_sequences[last_vol_id] = {2886, 2388, 2310, 2887};
+    sf_sequences[last_vol_id] = {2886u, 2388u, 2310u, 2887u};
 
     // Every iteration steps through one barrel layer
     for (const auto &[vol_id, sf_seq] : sf_sequences) {
@@ -234,9 +234,9 @@ TEST(ALGEBRA_PLUGIN, navigator) {
                                       sf_seq[0], sf_seq[1]);
 
         // Step through the module surfaces
-        for (std::size_t sf = 1; sf < sf_seq.size() - 1; ++sf) {
+        for (std::size_t sf = 1u; sf < sf_seq.size() - 1u; ++sf) {
             check_step(nav, stepper, propagation, vol_id, n_candidates,
-                       sf_seq[sf], sf_seq[sf + 1]);
+                       sf_seq[sf], sf_seq[sf + 1u]);
         }
 
         // Step onto the portal in volume

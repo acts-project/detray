@@ -29,18 +29,18 @@
 using namespace detray;
 
 #ifdef DETRAY_BENCHMARKS_REP
-unsigned int gbench_repetitions = DETRAY_BENCHMARKS_REP;
+int gbench_repetitions = DETRAY_BENCHMARKS_REP;
 #else
-unsigned int gbench_repetitions = 0;
+int gbench_repetitions = 0;
 #endif
 
-unsigned int theta_steps = 100;
-unsigned int phi_steps = 100;
+unsigned int theta_steps{100u};
+unsigned int phi_steps{100u};
 bool stream_file = false;
 
 // Detector configuration
-constexpr std::size_t n_brl_layers{4};
-constexpr std::size_t n_edc_layers{7};
+constexpr std::size_t n_brl_layers{4u};
+constexpr std::size_t n_edc_layers{7u};
 vecmem::host_memory_resource host_mr;
 auto d = create_toy_geometry(host_mr, n_brl_layers, n_edc_layers);
 
@@ -61,13 +61,13 @@ static void BM_INTERSECT_ALL(benchmark::State &state) {
     {
         hit_out.open("tml_hits.csv");
     }*/
-    unsigned int hits = 0;
-    unsigned int missed = 0;
+    unsigned int hits{0u};
+    unsigned int missed{0u};
 
-    // point3 ori = {0., 0., 0.};
+    // point3 ori = {0.f, 0.f, 0.f};
 
     for (auto _ : state) {
-        point3<detray::scalar> pos{0., 0., 0.};
+        point3<detray::scalar> pos{0.f, 0.f, 0.f};
 
         // Iterate through uniformly distributed momentum directions
         for (const auto track :

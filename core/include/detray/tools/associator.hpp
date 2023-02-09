@@ -1,13 +1,13 @@
 /** Detray library, part of the ACTS project (R&D line)
  *
- * (c) 2021 CERN for the benefit of the ACTS project
+ * (c) 2021-2023 CERN for the benefit of the ACTS project
  *
  * Mozilla Public License Version 2.0
  */
 
 #pragma once
 
-#include <climits>
+#include <limits>
 #include <vector>
 
 namespace detray {
@@ -28,11 +28,11 @@ struct center_of_gravity_rectangle {
     bool operator()(const std::vector<point2_t> &bin_contour,
                     const std::vector<point2_t> &surface_contour) {
         // Check if centre of gravity is inside bin
-        point2_t cgs = {0., 0.};
+        point2_t cgs = {0.f, 0.f};
         for (const auto &svtx : surface_contour) {
             cgs = cgs + svtx;
         }
-        cgs = 1. / surface_contour.size() * cgs;
+        cgs = 1.f / static_cast<scalar>(surface_contour.size()) * cgs;
         scalar min_l0 = std::numeric_limits<scalar>::max();
         scalar max_l0 = -std::numeric_limits<scalar>::max();
         scalar min_l1 = std::numeric_limits<scalar>::max();
@@ -67,17 +67,17 @@ struct center_of_gravity_generic {
     bool operator()(const std::vector<point2_t> &bin_contour,
                     const std::vector<point2_t> &surface_contour) {
         // Check if centre of gravity is inside bin
-        point2_t cgs = {0., 0.};
+        point2_t cgs = {0.f, 0.f};
         for (const auto &svtx : surface_contour) {
             cgs = cgs + svtx;
         }
-        cgs = 1. / surface_contour.size() * cgs;
+        cgs = 1.f / static_cast<scalar>(surface_contour.size()) * cgs;
 
-        size_t i, j = 0;
-        size_t num_points = bin_contour.size();
+        std::size_t i, j = 0u;
+        std::size_t num_points = bin_contour.size();
 
         bool inside = false;
-        for (i = 0, j = num_points - 1; i < num_points; j = i++) {
+        for (i = 0u, j = num_points - 1u; i < num_points; j = i++) {
             const auto &pi = bin_contour[i];
             const auto &pj = bin_contour[j];
             if ((((pi[1] <= cgs[1]) and (cgs[1] < pj[1])) or
@@ -110,14 +110,14 @@ struct edges_intersect_generic {
             scalar d = (pj[0] - pi[0]) * (pl[1] - pk[1]) -
                        (pj[1] - pi[1]) * (pl[0] - pk[0]);
 
-            if (d != 0.) {
+            if (d != 0.f) {
                 double r = ((pi[1] - pk[1]) * (pl[0] - pk[0]) -
                             (pi[0] - pk[0]) * (pl[1] - pk[1])) /
                            d;
                 double s = ((pi[1] - pk[1]) * (pj[0] - pi[0]) -
                             (pi[0] - pk[0]) * (pj[1] - pi[1])) /
                            d;
-                if (r >= 0. and r <= 1. and s >= 0. and s <= 1.) {
+                if (r >= 0.f and r <= 1.f and s >= 0.f and s <= 1.f) {
                     return true;
                 }
             }
@@ -125,15 +125,15 @@ struct edges_intersect_generic {
         };
 
         // Loop over bin_contour
-        for (size_t j = 1; j <= bin_contour.size(); ++j) {
-            size_t i = j - 1;
-            size_t jc = (j == bin_contour.size()) ? 0 : j;
+        for (std::size_t j = 1u; j <= bin_contour.size(); ++j) {
+            std::size_t i = j - 1u;
+            std::size_t jc = (j == bin_contour.size()) ? 0u : j;
             const auto &pi = bin_contour[i];
             const auto &pj = bin_contour[jc];
             // Loop over surface_contour
-            for (size_t k = 1; k <= surface_contour.size(); ++k) {
-                size_t l = k - 1;
-                size_t kc = (k == surface_contour.size()) ? 0 : k;
+            for (std::size_t k = 1u; k <= surface_contour.size(); ++k) {
+                std::size_t l = k - 1u;
+                std::size_t kc = (k == surface_contour.size()) ? 0u : k;
                 const auto &pl = surface_contour[l];
                 const auto &pk = surface_contour[kc];
                 if (intersect(pi, pj, pk, pl)) {

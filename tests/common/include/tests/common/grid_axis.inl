@@ -1,13 +1,13 @@
 /** Detray library, part of the ACTS project (R&D line)
  *
- * (c) 2022 CERN for the benefit of the ACTS project
+ * (c) 2022-2023 CERN for the benefit of the ACTS project
  *
  * Mozilla Public License Version 2.0
  */
 
 #include <gtest/gtest.h>
 
-#include <climits>
+#include <limits>
 
 // detray test
 #include <vecmem/containers/device_vector.hpp>
@@ -35,20 +35,21 @@ using cartesian_3D =
                single_axis<closed<label::e_z>, regular<containers, scalar>>>;
 
 // Floating point comparison
-constexpr scalar tol{1e-5};
+constexpr scalar tol{1e-5f};
 
 }  // anonymous namespace
 
 TEST(grid, open_regular_axis) {
 
     // Lower bin edges: min and max bin edge for the regular axis
-    vecmem::vector<scalar> bin_edges = {-10, -5, -3, 7, 7, 14, 20};
+    vecmem::vector<scalar> bin_edges = {-10.f, -5.f, -3.f, 7.f,
+                                        7.f,   14.f, 20.f};
     // Regular axis: first entry is the offset in the bin edges vector (2), the
     // second entry is the number of bins (10): Lower and upper bin edges of
     // the max and min bin are -3 and 7 => stepsize is (7 - (-3)) / 10 = 1
     // ... -3, -2, -1,  0,  1,  2,  3,  4,  5,  6,  7 ...
     //  [0]  [1] [2] [3] [4] [5] [6] [7] [8] [9] [10] [11]
-    dindex_range edge_range = {2, 10};
+    const dindex_range edge_range = {2u, 10u};
 
     // An open regular x-axis
     single_axis<open<label::e_x>, regular<>> or_axis{&edge_range, &bin_edges};
@@ -59,65 +60,65 @@ TEST(grid, open_regular_axis) {
     EXPECT_EQ(or_axis.binning(), n_axis::binning::e_regular);
 
     // N bins
-    EXPECT_EQ(or_axis.nbins(), 10UL + 2UL);
-    EXPECT_NEAR(or_axis.span()[0], scalar{-3}, tol);
-    EXPECT_NEAR(or_axis.span()[1], scalar{7}, tol);
+    EXPECT_EQ(or_axis.nbins(), 10u + 2u);
+    EXPECT_NEAR(or_axis.span()[0], -3.f, tol);
+    EXPECT_NEAR(or_axis.span()[1], 7.f, tol);
     // Axis bin access
     // Axis is open: Every value smaller than -3 is mapped into bin 0:
     // which is (inf, -3)
-    EXPECT_EQ(or_axis.bin(-4.), 0u);
-    EXPECT_EQ(or_axis.bin(2.5), 6u);
+    EXPECT_EQ(or_axis.bin(-4.f), 0u);
+    EXPECT_EQ(or_axis.bin(2.5f), 6u);
     // Axis is open: Every value greater than 7 is mapped into bin 11:
     // which is (7, inf)
-    EXPECT_EQ(or_axis.bin(8.), 11u);
+    EXPECT_EQ(or_axis.bin(8.f), 11u);
 
     // Axis range access - binned (symmetric & asymmetric)
-    darray<dindex, 2> nhood00i = {0u, 0u};
-    darray<dindex, 2> nhood01i = {0u, 1u};
-    darray<dindex, 2> nhood11i = {1u, 1u};
-    darray<dindex, 2> nhood44i = {4u, 4u};
-    darray<dindex, 2> nhood55i = {5u, 5u};
+    const darray<dindex, 2> nhood00i = {0u, 0u};
+    const darray<dindex, 2> nhood01i = {0u, 1u};
+    const darray<dindex, 2> nhood11i = {1u, 1u};
+    const darray<dindex, 2> nhood44i = {4u, 4u};
+    const darray<dindex, 2> nhood55i = {5u, 5u};
 
     dindex_range expected_range = {6u, 6u};
-    EXPECT_EQ(or_axis.range(2.5, nhood00i), expected_range);
+    EXPECT_EQ(or_axis.range(2.5f, nhood00i), expected_range);
     expected_range = {6u, 7u};
-    EXPECT_EQ(or_axis.range(2.5, nhood01i), expected_range);
+    EXPECT_EQ(or_axis.range(2.5f, nhood01i), expected_range);
     expected_range = {5u, 7u};
-    EXPECT_EQ(or_axis.range(2.5, nhood11i), expected_range);
+    EXPECT_EQ(or_axis.range(2.5f, nhood11i), expected_range);
     expected_range = {2u, 10u};
-    EXPECT_EQ(or_axis.range(2.5, nhood44i), expected_range);
+    EXPECT_EQ(or_axis.range(2.5f, nhood44i), expected_range);
     expected_range = {1u, 11u};
-    EXPECT_EQ(or_axis.range(2.5, nhood55i), expected_range);
+    EXPECT_EQ(or_axis.range(2.5f, nhood55i), expected_range);
     expected_range = {1u, 9u};
-    EXPECT_EQ(or_axis.range(1.5, nhood44i), expected_range);
+    EXPECT_EQ(or_axis.range(1.5f, nhood44i), expected_range);
     expected_range = {4u, 11u};
-    EXPECT_EQ(or_axis.range(5.5, nhood55i), expected_range);
+    EXPECT_EQ(or_axis.range(5.5f, nhood55i), expected_range);
 
     // Axis range access - scalar (symmteric & asymmetric)
-    darray<scalar, 2> nhood00s = {0., 0.};
-    darray<scalar, 2> epsilon = {0.01, 0.01};
-    darray<scalar, 2> nhood11s = {1., 1.};
-    darray<scalar, 2> nhoodAlls = {10., 10.};
+    const darray<scalar, 2> nhood00s = {0.f, 0.f};
+    const darray<scalar, 2> nhood_tol = {0.01f, 0.01f};
+    const darray<scalar, 2> nhood11s = {1.f, 1.f};
+    const darray<scalar, 2> nhoodAlls = {10.f, 10.f};
 
     expected_range = {6u, 6u};
-    EXPECT_EQ(or_axis.range(2.5, nhood00s), expected_range);
-    EXPECT_EQ(or_axis.range(2.5, epsilon), expected_range);
+    EXPECT_EQ(or_axis.range(2.5f, nhood00s), expected_range);
+    EXPECT_EQ(or_axis.range(2.5f, nhood_tol), expected_range);
     expected_range = {5u, 7u};
-    EXPECT_EQ(or_axis.range(2.5, nhood11s), expected_range);
+    EXPECT_EQ(or_axis.range(2.5f, nhood11s), expected_range);
     expected_range = {0u, 11u};
-    EXPECT_EQ(or_axis.range(2.5, nhoodAlls), expected_range);
+    EXPECT_EQ(or_axis.range(2.5f, nhoodAlls), expected_range);
 }
 
 TEST(grid, closed_regular_axis) {
 
     // Lower bin edges: min and max bin edge for the regular axis
-    vecmem::vector<scalar> bin_edges = {-10, -3, -3, 7, 7, 14};
+    vecmem::vector<scalar> bin_edges = {-10.f, -3.f, -3.f, 7.f, 7.f, 14.f};
     // Regular axis: first entry is the offset in the bin edges vector (2), the
     // second entry is the number of bins (10): Lower and upper bin edges of
     // the max and min bin are -3 and 7 => stepsize is (7 - (-3)) / 10 = 1
     // -3, -2, -1,  0,  1,  2,  3,  4,  5,  6,  7
     //   [0] [1] [2] [3] [4] [5] [6] [7] [8] [9]
-    dindex_range edge_range = {2, 10};
+    const dindex_range edge_range = {2u, 10u};
 
     // A closed regular r-axis
     single_axis<closed<label::e_r>, regular<>> cr_axis{&edge_range, &bin_edges};
@@ -129,71 +130,66 @@ TEST(grid, closed_regular_axis) {
 
     // N bins
     EXPECT_EQ(cr_axis.nbins(), 10u);
-    EXPECT_NEAR(cr_axis.span()[0], scalar{-3}, tol);
-    EXPECT_NEAR(cr_axis.span()[1], scalar{7}, tol);
+    EXPECT_NEAR(cr_axis.span()[0], -3.f, tol);
+    EXPECT_NEAR(cr_axis.span()[1], 7.f, tol);
     // Axis bin access
     // Axis is closed: Every value smaller than -3 is mapped into bin 0:
     // which is [-3, -2)
-    EXPECT_EQ(cr_axis.bin(-4.), 0u);
-    EXPECT_EQ(cr_axis.bin(2.5), 5u);
+    EXPECT_EQ(cr_axis.bin(-4.f), 0u);
+    EXPECT_EQ(cr_axis.bin(2.5f), 5u);
     // Axis is closed: Every value greater than 7 is mapped into bin 9:
     // which is (6, 7]
-    EXPECT_EQ(cr_axis.bin(8.), 9u);
+    EXPECT_EQ(cr_axis.bin(8.f), 9u);
 
     // Axis range access - binned (symmetric & asymmetric)
-    darray<dindex, 2> nhood00i = {0u, 0u};
-    darray<dindex, 2> nhood01i = {0u, 1u};
-    darray<dindex, 2> nhood11i = {1u, 1u};
-    darray<dindex, 2> nhood44i = {4u, 4u};
-    darray<dindex, 2> nhood55i = {5u, 5u};
+    const darray<dindex, 2> nhood00i = {0u, 0u};
+    const darray<dindex, 2> nhood01i = {0u, 1u};
+    const darray<dindex, 2> nhood11i = {1u, 1u};
+    const darray<dindex, 2> nhood44i = {4u, 4u};
+    const darray<dindex, 2> nhood55i = {5u, 5u};
 
     dindex_range expected_range = {5u, 5u};
-    EXPECT_EQ(cr_axis.range(2.5, nhood00i), expected_range);
+    EXPECT_EQ(cr_axis.range(2.5f, nhood00i), expected_range);
     expected_range = {5u, 6u};
-    EXPECT_EQ(cr_axis.range(2.5, nhood01i), expected_range);
+    EXPECT_EQ(cr_axis.range(2.5f, nhood01i), expected_range);
     expected_range = {4u, 6u};
-    EXPECT_EQ(cr_axis.range(2.5, nhood11i), expected_range);
+    EXPECT_EQ(cr_axis.range(2.5f, nhood11i), expected_range);
     expected_range = {1u, 9u};
-    EXPECT_EQ(cr_axis.range(2.5, nhood44i), expected_range);
+    EXPECT_EQ(cr_axis.range(2.5f, nhood44i), expected_range);
     expected_range = {0u, 9u};
-    EXPECT_EQ(cr_axis.range(2.5, nhood55i), expected_range);
+    EXPECT_EQ(cr_axis.range(2.5f, nhood55i), expected_range);
     expected_range = {0u, 8u};
-    EXPECT_EQ(cr_axis.range(1.5, nhood44i), expected_range);
+    EXPECT_EQ(cr_axis.range(1.5f, nhood44i), expected_range);
     expected_range = {3u, 9u};
-    EXPECT_EQ(cr_axis.range(5.5, nhood55i), expected_range);
+    EXPECT_EQ(cr_axis.range(5.5f, nhood55i), expected_range);
 
     // Axis range access - scalar (symmteric & asymmetric)
-    darray<scalar, 2> nhood00s = {0., 0.};
-    darray<scalar, 2> epsilon = {0.01, 0.01};
-    darray<scalar, 2> nhood11s = {1., 1.};
-    darray<scalar, 2> nhoodAlls = {10., 10.};
+    const darray<scalar, 2> nhood00s = {0.f, 0.f};
+    const darray<scalar, 2> nhood_tol = {0.01f, 0.01f};
+    const darray<scalar, 2> nhood11s = {1.f, 1.f};
+    const darray<scalar, 2> nhoodAlls = {10.f, 10.f};
 
     expected_range = {5u, 5u};
-    EXPECT_EQ(cr_axis.range(2.5, nhood00s), expected_range);
-    EXPECT_EQ(cr_axis.range(2.5, epsilon), expected_range);
+    EXPECT_EQ(cr_axis.range(2.5f, nhood00s), expected_range);
+    EXPECT_EQ(cr_axis.range(2.5f, nhood_tol), expected_range);
     expected_range = {4u, 6u};
-    EXPECT_EQ(cr_axis.range(2.5, nhood11s), expected_range);
+    EXPECT_EQ(cr_axis.range(2.5f, nhood11s), expected_range);
     expected_range = {0u, 9u};
-    EXPECT_EQ(cr_axis.range(2.5, nhoodAlls), expected_range);
+    EXPECT_EQ(cr_axis.range(2.5f, nhoodAlls), expected_range);
 }
 
 TEST(grid, circular_regular_axis) {
 
-    scalar epsilon = 10 * std::numeric_limits<scalar>::epsilon();
-
     // Let's say 36 modules, but with 4 directly at 0, pi/2, pi, -pi2
-    scalar pi{M_PI};
-    scalar pi2{M_PI_2};
-
-    scalar half_module{scalar{2} * pi2 / scalar{72}};
-    scalar phi_min{-pi + half_module};
-    scalar phi_max{pi - half_module};
+    const scalar half_module{constant<scalar>::pi / 72.f};
+    const scalar phi_min{-constant<scalar>::pi + half_module};
+    const scalar phi_max{constant<scalar>::pi - half_module};
 
     // Lower bin edges: min and max bin edge for the regular axis
-    vecmem::vector<scalar> bin_edges = {-10, phi_min, phi_max, 56};
+    vecmem::vector<scalar> bin_edges = {-10.f, phi_min, phi_max, 56.f};
     // Regular axis: first entry is the offset in the bin edges vector (1), the
     // second entry is the number of bins (36)
-    dindex_range edge_range = {1, 36};
+    const dindex_range edge_range = {1u, 36u};
 
     // A closed regular x-axis
     single_axis<circular<>, regular<>> cr_axis(&edge_range, &bin_edges);
@@ -207,9 +203,9 @@ TEST(grid, circular_regular_axis) {
     EXPECT_EQ(cr_axis.nbins(), 36u);
     // Axis bin access
     // overflow
-    EXPECT_EQ(cr_axis.bin(phi_max + epsilon), 0u);
+    EXPECT_EQ(cr_axis.bin(phi_max + tol), 0u);
     // underflow
-    EXPECT_EQ(cr_axis.bin(phi_min - epsilon), 35u);
+    EXPECT_EQ(cr_axis.bin(phi_min - tol), 35u);
     // middle of the axis
     EXPECT_EQ(cr_axis.bin(0), 18u);
 
@@ -222,41 +218,48 @@ TEST(grid, circular_regular_axis) {
     EXPECT_EQ(circ_bounds.wrap(40, 36u), 4u);
 
     // Axis range access - binned (symmetric & asymmetric)
-    darray<dindex, 2> nhood00i = {0u, 0u};
-    darray<dindex, 2> nhood01i = {0u, 1u};
-    darray<dindex, 2> nhood11i = {1u, 1u};
-    darray<dindex, 2> nhood22i = {2u, 2u};
+    const darray<dindex, 2> nhood00i = {0u, 0u};
+    const darray<dindex, 2> nhood01i = {0u, 1u};
+    const darray<dindex, 2> nhood11i = {1u, 1u};
+    const darray<dindex, 2> nhood22i = {2u, 2u};
 
     dindex_range expected_range = {0u, 0u};
-    EXPECT_EQ(cr_axis.range(pi + epsilon, nhood00i), expected_range);
+    EXPECT_EQ(cr_axis.range(constant<scalar>::pi + tol, nhood00i),
+              expected_range);
     expected_range = {0u, 1u};
-    EXPECT_EQ(cr_axis.range(pi + epsilon, nhood01i), expected_range);
+    EXPECT_EQ(cr_axis.range(constant<scalar>::pi + tol, nhood01i),
+              expected_range);
     expected_range = {35u, 1u};
-    EXPECT_EQ(cr_axis.range(pi + epsilon, nhood11i), expected_range);
+    EXPECT_EQ(cr_axis.range(constant<scalar>::pi + tol, nhood11i),
+              expected_range);
     expected_range = {34u, 2u};
-    EXPECT_EQ(cr_axis.range(pi + epsilon, nhood22i), expected_range);
+    EXPECT_EQ(cr_axis.range(constant<scalar>::pi + tol, nhood22i),
+              expected_range);
 
     // Axis range access - scalar (symmetric & asymmteric)
-    darray<scalar, 2> nhood00s = {0., 0.};
-    darray<scalar, 2> nhoodEpsilon = {scalar{0.5} * epsilon,
-                                      scalar{0.5} * epsilon};
-    scalar bin_step{cr_axis.bin_width()};
-    darray<scalar, 2> nhood22s = {2 * bin_step, 2 * bin_step};
+    const darray<scalar, 2> nhood00s = {0.f, 0.f};
+    const darray<scalar, 2> nhood_tol = {0.5f * tol, 0.5f * tol};
+    const scalar bin_step{cr_axis.bin_width()};
+    const darray<scalar, 2> nhood22s = {2.f * bin_step, 2.f * bin_step};
 
     expected_range = {0u, 0u};
-    EXPECT_EQ(cr_axis.range(pi + epsilon, nhood00s), expected_range);
-    EXPECT_EQ(cr_axis.range(pi + epsilon, nhoodEpsilon), expected_range);
+    EXPECT_EQ(cr_axis.range(constant<scalar>::pi + tol, nhood00s),
+              expected_range);
+    EXPECT_EQ(cr_axis.range(constant<scalar>::pi + tol, nhood_tol),
+              expected_range);
     expected_range = {34u, 2u};
-    EXPECT_EQ(cr_axis.range(pi + epsilon, nhood22s), expected_range);
+    EXPECT_EQ(cr_axis.range(constant<scalar>::pi + tol, nhood22s),
+              expected_range);
 }
 
 TEST(grid, closed_irregular_axis) {
 
     // Lower bin edges: all lower bin edges for irregular binning, plus the
     // final upper bin edge
-    vecmem::vector<scalar> bin_edges = {-100, -3, 1, 2, 4, 8, 12, 15, 18};
+    vecmem::vector<scalar> bin_edges = {-100.f, -3.f, 1.f,  2.f, 4.f,
+                                        8.f,    12.f, 15.f, 18.f};
     // Index range for the bin edges [-3, 15]
-    dindex_range edge_range = {1, 7};
+    dindex_range edge_range = {1u, 7u};
 
     // A closed irregular z-axis
     single_axis<closed<label::e_z>, irregular<>> cir_axis(&edge_range,
@@ -274,40 +277,40 @@ TEST(grid, closed_irregular_axis) {
     // Bin tests
     EXPECT_EQ(cir_axis.bin(-2), 0u);
     EXPECT_EQ(cir_axis.bin(10), 4u);
-    EXPECT_EQ(cir_axis.bin(5.8), 3u);
+    EXPECT_EQ(cir_axis.bin(5.8f), 3u);
     // Underflow test
     EXPECT_EQ(cir_axis.bin(-4), 0u);
     // Overflow test
     EXPECT_EQ(cir_axis.bin(17), 5u);
 
     // Axis range access - binned  (symmetric & asymmetric)
-    darray<dindex, 2> nhood00i = {0u, 0u};
-    darray<dindex, 2> nhood01i = {0u, 1u};
-    darray<dindex, 2> nhood11i = {1u, 1u};
-    darray<dindex, 2> nhood22i = {2u, 2u};
+    const darray<dindex, 2> nhood00i = {0u, 0u};
+    const darray<dindex, 2> nhood01i = {0u, 1u};
+    const darray<dindex, 2> nhood11i = {1u, 1u};
+    const darray<dindex, 2> nhood22i = {2u, 2u};
 
     dindex_range expected_range = {2u, 2u};
-    EXPECT_EQ(cir_axis.range(3., nhood00i), expected_range);
+    EXPECT_EQ(cir_axis.range(3.f, nhood00i), expected_range);
     expected_range = {1u, 3u};
-    EXPECT_EQ(cir_axis.range(3., nhood11i), expected_range);
+    EXPECT_EQ(cir_axis.range(3.f, nhood11i), expected_range);
     expected_range = {2u, 3u};
-    EXPECT_EQ(cir_axis.range(3., nhood01i), expected_range);
+    EXPECT_EQ(cir_axis.range(3.f, nhood01i), expected_range);
     expected_range = {0u, 1u};
-    EXPECT_EQ(cir_axis.range(0., nhood11i), expected_range);
+    EXPECT_EQ(cir_axis.range(0.f, nhood11i), expected_range);
     expected_range = {2u, 5u};
-    EXPECT_EQ(cir_axis.range(10., nhood22i), expected_range);
+    EXPECT_EQ(cir_axis.range(10.f, nhood22i), expected_range);
 
     // Axis range access - scalar
-    darray<scalar, 2> nhood00s = {0., 0.};
-    darray<scalar, 2> nhood10s = {1.5, 0.2};
-    darray<scalar, 2> nhood11s = {4., 5.5};
+    const darray<scalar, 2> nhood00s = {0.f, 0.f};
+    const darray<scalar, 2> nhood10s = {1.5f, 0.2f};
+    const darray<scalar, 2> nhood11s = {4.f, 5.5f};
 
     expected_range = {2u, 2u};
-    EXPECT_EQ(cir_axis.range(3., nhood00s), expected_range);
+    EXPECT_EQ(cir_axis.range(3.f, nhood00s), expected_range);
     expected_range = {1u, 2u};
-    EXPECT_EQ(cir_axis.range(3., nhood10s), expected_range);
+    EXPECT_EQ(cir_axis.range(3.f, nhood10s), expected_range);
     expected_range = {0u, 4u};
-    EXPECT_EQ(cir_axis.range(3., nhood11s), expected_range);
+    EXPECT_EQ(cir_axis.range(3.f, nhood11s), expected_range);
 }
 
 TEST(grid, multi_axis) {
@@ -317,7 +320,7 @@ TEST(grid, multi_axis) {
     bool constexpr is_not_owning = false;
 
     // Lower bin edges for all axes
-    vecmem::vector<scalar> bin_edges = {-10., 10., -20., 20., 0., 100.};
+    vecmem::vector<scalar> bin_edges = {-10.f, 10.f, -20.f, 20.f, 0.f, 100.f};
     // Offsets into edges container and #bins for all axes
     vecmem::vector<dindex_range> edge_ranges = {
         {0u, 20u}, {2u, 40u}, {4u, 50u}};
@@ -340,22 +343,22 @@ TEST(grid, multi_axis) {
     EXPECT_EQ(ax.nbins(), 40u);
 
     // Test bin search
-    point3 p3{0., 0., 0.};  // origin
+    point3 p3{0.f, 0.f, 0.f};  // origin
     dmulti_index<dindex, 3> expected_bins{10u, 20u, 0u};
     EXPECT_EQ(axes.bins(p3), expected_bins);
-    p3 = {-5.5, -3.2, 24.1};
+    p3 = {-5.5f, -3.2f, 24.1f};
     expected_bins = {4u, 16u, 12u};
     EXPECT_EQ(axes.bins(p3), expected_bins);
-    p3 = {-1., 21., 12.};
+    p3 = {-1.f, 21.f, 12.f};
     expected_bins = {9u, 39u, 6u};
     EXPECT_EQ(axes.bins(p3), expected_bins);
 
     // Test bin range search
-    p3 = {1., 1., 10.};
+    p3 = {1.f, 1.f, 10.f};
     // Axis range access - binned  (symmetric & asymmetric)
-    darray<dindex, 2> nhood00i = {0u, 0u};
-    darray<dindex, 2> nhood01i = {0u, 1u};
-    darray<dindex, 2> nhood22i = {2u, 2u};
+    const darray<dindex, 2> nhood00i = {0u, 0u};
+    const darray<dindex, 2> nhood01i = {0u, 1u};
+    const darray<dindex, 2> nhood22i = {2u, 2u};
 
     dmulti_index<dindex_range, 3> expected_ranges{};
     expected_ranges[0] = {11u, 11u};
@@ -372,9 +375,9 @@ TEST(grid, multi_axis) {
     EXPECT_EQ(axes.bin_ranges(p3, nhood22i), expected_ranges);
 
     // Axis range access - scalar
-    darray<scalar, 2> nhood00s = {0., 0.};
-    darray<scalar, 2> nhood10s = {1.5, 0.2};
-    darray<scalar, 2> nhood11s = {4., 5.5};
+    const darray<scalar, 2> nhood00s = {0.f, 0.f};
+    const darray<scalar, 2> nhood10s = {1.5f, 0.2f};
+    const darray<scalar, 2> nhood11s = {4.f, 5.5f};
 
     expected_ranges[0] = {11u, 11u};
     expected_ranges[1] = {21u, 21u};

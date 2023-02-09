@@ -83,7 +83,7 @@ struct polar2 : public coordinate_base<polar2, transform3_t> {
         const scalar_type x = p[0] * math_ns::cos(p[1]);
         const scalar_type y = p[0] * math_ns::sin(p[1]);
 
-        return trf.point_to_global(point3{x, y, 0.});
+        return trf.point_to_global(point3{x, y, 0.f});
     }
 
     template <typename mask_t>
@@ -93,10 +93,10 @@ struct polar2 : public coordinate_base<polar2, transform3_t> {
                                              const vector3 & /*dir*/) const {
         vector3 ret;
         const auto n =
-            matrix_operator().template block<3, 1>(trf3.matrix(), 0, 2);
-        ret[0] = matrix_operator().element(n, 0, 0);
-        ret[1] = matrix_operator().element(n, 1, 0);
-        ret[2] = matrix_operator().element(n, 2, 0);
+            matrix_operator().template block<3, 1>(trf3.matrix(), 0u, 2u);
+        ret[0] = matrix_operator().element(n, 0u, 0u);
+        ret[1] = matrix_operator().element(n, 1u, 0u);
+        ret[2] = matrix_operator().element(n, 2u, 0u);
         return ret;
     }
 
@@ -116,21 +116,21 @@ struct polar2 : public coordinate_base<polar2, transform3_t> {
             matrix_operator().template zero<3, 2>();
 
         const point2 local2 = this->global_to_local(trf3, pos, dir);
-        const scalar_type lrad = local2[0];
-        const scalar_type lphi = local2[1];
+        const scalar_type lrad{local2[0]};
+        const scalar_type lphi{local2[1]};
 
-        const scalar_type lcos_phi = math_ns::cos(lphi);
-        const scalar_type lsin_phi = math_ns::sin(lphi);
+        const scalar_type lcos_phi{math_ns::cos(lphi)};
+        const scalar_type lsin_phi{math_ns::sin(lphi)};
 
         // reference matrix
         const auto frame = reference_frame(trf3, mask, pos, dir);
 
         // dxdu = d(x,y,z)/du
         const matrix_type<3, 1> dxdL =
-            matrix_operator().template block<3, 1>(frame, 0, 0);
+            matrix_operator().template block<3, 1>(frame, 0u, 0u);
         // dxdv = d(x,y,z)/dv
         const matrix_type<3, 1> dydL =
-            matrix_operator().template block<3, 1>(frame, 0, 1);
+            matrix_operator().template block<3, 1>(frame, 0u, 1u);
 
         const matrix_type<3, 1> col0 = dxdL * lcos_phi + dydL * lsin_phi;
         const matrix_type<3, 1> col1 =
@@ -156,11 +156,11 @@ struct polar2 : public coordinate_base<polar2, transform3_t> {
 
         const auto local = this->global_to_local(trf3, pos, dir);
 
-        const scalar_type lrad = local[0];
-        const scalar_type lphi = local[1];
+        const scalar_type lrad{local[0]};
+        const scalar_type lphi{local[1]};
 
-        const scalar_type lcos_phi = math_ns::cos(lphi);
-        const scalar_type lsin_phi = math_ns::sin(lphi);
+        const scalar_type lcos_phi{math_ns::cos(lphi)};
+        const scalar_type lsin_phi{math_ns::sin(lphi)};
 
         // reference matrix
         const auto frame = reference_frame(trf3, mask, pos, dir);
@@ -168,10 +168,10 @@ struct polar2 : public coordinate_base<polar2, transform3_t> {
 
         // dudG = du/d(x,y,z)
         const matrix_type<1, 3> dudG =
-            matrix_operator().template block<1, 3>(frameT, 0, 0);
+            matrix_operator().template block<1, 3>(frameT, 0u, 0u);
         // dvdG = dv/d(x,y,z)
         const matrix_type<1, 3> dvdG =
-            matrix_operator().template block<1, 3>(frameT, 1, 0);
+            matrix_operator().template block<1, 3>(frameT, 1u, 0u);
 
         const matrix_type<1, 3> row0 = dudG * lcos_phi + dvdG * lsin_phi;
         const matrix_type<1, 3> row1 =

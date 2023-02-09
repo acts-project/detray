@@ -62,7 +62,7 @@ void propagator_benchmark(
     const propagate_option opt) {
 
     constexpr int thread_dim = 2 * WARP_SIZE;
-    int block_dim = tracks_data.size() / thread_dim + 1;
+    int block_dim = static_cast<int>(tracks_data.size()) / thread_dim + 1;
 
     // run the test kernel
     propagator_benchmark_kernel<<<block_dim, thread_dim>>>(

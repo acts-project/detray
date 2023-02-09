@@ -41,7 +41,7 @@ template <template <template <typename...> class, template <typename...> class,
           template <typename...> class jagged_vector_t = djagged_vector,
           template <typename, std::size_t> class array_t = darray,
           template <typename...> class tuple_t = dtuple,
-          typename value_t = dindex, bool kSORT = false, unsigned int kDIM = 1>
+          typename value_t = dindex, bool kSORT = false, unsigned int kDIM = 1u>
 class grid2 {
 
     public:
@@ -262,7 +262,7 @@ class grid2 {
         // Specialization for bare value equal to store value
         if constexpr (std::is_same_v<typename populator_type::bare_value,
                                      typename populator_type::store_value>) {
-            unsigned int iz = 0;
+            unsigned int iz = 0u;
             zone = vector_t<typename populator_type::bare_value>(
                 zone0.size() * zone1.size(), {});
             for (const auto z1 : zone1) {
@@ -275,7 +275,7 @@ class grid2 {
                 }
             }
         } else {
-            zone.reserve(10);
+            zone.reserve(10u);
             for (const auto z1 : zone1) {
                 for (const auto z0 : zone0) {
                     auto sbin =

@@ -1,6 +1,6 @@
 /** Detray library, part of the ACTS project (R&D line)
  *
- * (c) 2022 CERN for the benefit of the ACTS project
+ * (c) 2022-2023 CERN for the benefit of the ACTS project
  *
  * Mozilla Public License Version 2.0
  */
@@ -118,7 +118,7 @@ TEST(utils, ranges_empty) {
     static_assert(std::is_destructible_v<typename decltype(ev)::iterator_t>);
 
     // Test inherited member functions
-    ASSERT_EQ(ev.size(), 0UL);
+    ASSERT_EQ(ev.size(), 0u);
 
     for (const auto i : ev) {
         ASSERT_TRUE(i != i);
@@ -128,7 +128,7 @@ TEST(utils, ranges_empty) {
 // Unittest for the generation of a single element sequence
 TEST(utils, ranges_single) {
 
-    const dindex value{251UL};
+    const dindex value{251u};
 
     auto sngl = detray::views::single(value);
 
@@ -147,20 +147,20 @@ TEST(utils, ranges_single) {
 
     // Test inherited member functions
     ASSERT_EQ(sngl[0], value);
-    ASSERT_EQ(sngl.size(), 1UL);
-    ASSERT_EQ(sngl.front(), 251UL);
-    ASSERT_EQ(sngl.back(), 251UL);
+    ASSERT_EQ(sngl.size(), 1u);
+    ASSERT_EQ(sngl.front(), 251u);
+    ASSERT_EQ(sngl.back(), 251u);
 
     for (auto i : sngl) {
-        ASSERT_EQ(251, i);
+        ASSERT_EQ(251u, i);
     }
 }
 
 // Unittest for the generation of a single element sequence
 TEST(utils, ranges_iota_single) {
 
-    dindex check = 0;
-    dindex single = 7;
+    dindex check{0u};
+    dindex single{7u};
 
     auto seq = detray::views::iota(single);
 
@@ -179,7 +179,7 @@ TEST(utils, ranges_iota_single) {
     static_assert(std::is_destructible_v<typename decltype(seq)::iterator_t>);
 
     // Test inherited member functions
-    ASSERT_EQ(seq.size(), 1UL);
+    ASSERT_EQ(seq.size(), 1u);
 
     for (auto& i : seq) {
         check += i;
@@ -190,7 +190,7 @@ TEST(utils, ranges_iota_single) {
 // Unittest for the generation of a sequence in an interval
 TEST(utils, ranges_iota_interval) {
 
-    darray<dindex, 2> interval = {2, 7};
+    darray<dindex, 2> interval = {2u, 7u};
 
     auto seq = detray::views::iota(interval);
 
@@ -209,9 +209,9 @@ TEST(utils, ranges_iota_interval) {
     static_assert(std::is_destructible_v<typename decltype(seq)::iterator_t>);
 
     // Test inherited member functions
-    ASSERT_EQ(seq.size(), 5UL);
+    ASSERT_EQ(seq.size(), 5u);
 
-    std::vector<dindex> reference = {2, 3, 4, 5, 6};
+    std::vector<dindex> reference = {2u, 3u, 4u, 5u, 6u};
     std::vector<dindex> check = {};
     for (auto& i : seq) {
         check.push_back(i);
@@ -224,10 +224,10 @@ TEST(utils, ranges_iota_interval) {
 TEST(utils, ranges_enumerate) {
 
     struct uint_holder {
-        unsigned int ui = 0;
+        unsigned int ui{0u};
     };
 
-    dvector<uint_holder> seq = {{0}, {1}, {2}, {3}, {4}, {5}};
+    dvector<uint_holder> seq = {{0u}, {1u}, {2u}, {3u}, {4u}, {5u}};
 
     auto enumerator = detray::views::enumerate(seq);
 
@@ -247,9 +247,9 @@ TEST(utils, ranges_enumerate) {
 
     // Test inherited member functions
     const auto [i, v] = enumerator[2];
-    ASSERT_EQ(i, 2UL);
-    ASSERT_EQ(v.ui, 2UL);
-    ASSERT_EQ(enumerator.size(), 6UL);
+    ASSERT_EQ(i, 2u);
+    ASSERT_EQ(v.ui, 2u);
+    ASSERT_EQ(enumerator.size(), 6u);
     const auto [i_front, v_front] = enumerator.front();
     ASSERT_EQ(i_front, 0u);
     ASSERT_EQ(v_front.ui, 0u);
@@ -267,14 +267,15 @@ TEST(utils, ranges_enumerate) {
 TEST(utils, ranges_pick) {
 
     // The indices of the iota elements to be picked
-    std::vector<dindex> indices = {2, 3, 7, 8};
+    std::vector<dindex> indices = {2u, 3u, 7u, 8u};
     std::vector<dindex> check = {};
 
     struct uint_holder {
-        unsigned int ui = 0;
+        unsigned int ui{0u};
     };
 
-    dvector<uint_holder> seq = {{0}, {1}, {2}, {3}, {4}, {5}, {6}, {7}, {8}};
+    dvector<uint_holder> seq = {{0u}, {1u}, {2u}, {3u}, {4u},
+                                {5u}, {6u}, {7u}, {8u}};
 
     auto selected = detray::views::pick(seq, indices);
 
@@ -294,15 +295,15 @@ TEST(utils, ranges_pick) {
 
     // Test inherited member functions
     const auto [i, v] = selected[2];
-    ASSERT_EQ(i, 7UL);
-    ASSERT_EQ(v.ui, 7UL);
-    ASSERT_EQ(selected.size(), 4UL);
+    ASSERT_EQ(i, 7u);
+    ASSERT_EQ(v.ui, 7u);
+    ASSERT_EQ(selected.size(), 4u);
     const auto [i_front, v_front] = selected.front();
-    ASSERT_EQ(i_front, 2UL);
-    ASSERT_EQ(v_front.ui, 2UL);
+    ASSERT_EQ(i_front, 2u);
+    ASSERT_EQ(v_front.ui, 2u);
     const auto [i_back, v_back] = selected.back();
-    ASSERT_EQ(i_back, 8UL);
-    ASSERT_EQ(v_back.ui, 8UL);
+    ASSERT_EQ(i_back, 8u);
+    ASSERT_EQ(v_back.ui, 8u);
 
     for (auto [j, w] : selected) {
         ASSERT_TRUE(j == w.ui);
@@ -315,10 +316,10 @@ TEST(utils, ranges_pick) {
 // Unittest for the joining of multiple ranges
 TEST(utils, ranges_join) {
 
-    dvector<dindex> interval_1 = {2, 3, 4};
-    dvector<dindex> interval_2 = {7, 8, 9};
+    dvector<dindex> interval_1 = {2u, 3u, 4u};
+    dvector<dindex> interval_2 = {7u, 8u, 9u};
 
-    std::vector<dindex> reference = {2, 3, 4, 7, 8, 9};
+    std::vector<dindex> reference = {2u, 3u, 4u, 7u, 8u, 9u};
     std::vector<dindex> check = {};
 
     auto joined = detray::views::join(interval_1, interval_2);
@@ -338,11 +339,11 @@ TEST(utils, ranges_join) {
         std::is_destructible_v<typename decltype(joined)::iterator_t>);
 
     // Test inherited member functions
-    ASSERT_EQ(joined[1], 3UL);
-    ASSERT_EQ(joined[4], 8UL);
-    ASSERT_EQ(joined.size(), 6UL);
-    ASSERT_EQ(joined.front(), 2UL);
-    ASSERT_EQ(joined.back(), 9UL);
+    ASSERT_EQ(joined[1], 3u);
+    ASSERT_EQ(joined[4], 8u);
+    ASSERT_EQ(joined.size(), 6u);
+    ASSERT_EQ(joined.front(), 2u);
+    ASSERT_EQ(joined.back(), 9u);
 
     for (const auto j : joined) {
         check.push_back(j);
@@ -354,8 +355,8 @@ TEST(utils, ranges_join) {
 // Unittest for the subrange implementation
 TEST(utils, ranges_subrange) {
 
-    std::size_t begin = 1;
-    std::size_t end = 4;
+    std::size_t begin{1u};
+    std::size_t end{4u};
     std::array<std::size_t, 2> interval{begin, end};
 
     dvector<int> seq = {0, 1, 2, 3, 4, 5};
@@ -374,22 +375,22 @@ TEST(utils, ranges_subrange) {
     static_assert(std::is_copy_assignable_v<typename decltype(sr)::iterator_t>);
     static_assert(std::is_destructible_v<typename decltype(sr)::iterator_t>);
 
-    ASSERT_EQ(sr[1], seq[begin + 1]);
-    ASSERT_EQ(sr.size(), 3UL);
-    ASSERT_EQ(sr.front(), 1UL);
-    ASSERT_EQ(sr.back(), 3UL);
+    ASSERT_EQ(sr[1], seq[begin + 1u]);
+    ASSERT_EQ(sr.size(), 3u);
+    ASSERT_EQ(sr.front(), 1u);
+    ASSERT_EQ(sr.back(), 3u);
 
     // non-const iteration
-    std::size_t i = 1;
+    std::size_t i{1u};
     for (const auto& v : sr) {
-        ASSERT_NE(v, 0);
-        ASSERT_NE(v, 4);
+        ASSERT_NE(v, 0u);
+        ASSERT_NE(v, 4u);
         ASSERT_EQ(v, seq[i++]);
     }
 
     // const iteration
     const dvector<int> seq_c(seq);
-    i = 1;
+    i = 1u;
     for (const auto& v : detray::ranges::subrange(seq_c, interval)) {
         ASSERT_EQ(v, seq[i++]);
     }
@@ -402,8 +403,8 @@ TEST(utils, ranges_subrange) {
 // Integration test for enumeration of a subrange
 TEST(utils, ranges_subrange_iota) {
 
-    std::array<std::size_t, 2> seq{1, 10};
-    std::array<std::size_t, 2> interval{3, 7};
+    std::array<std::size_t, 2> seq{1u, 10u};
+    std::array<std::size_t, 2> interval{3u, 7u};
 
     auto iota_sr = detray::ranges::subrange(detray::views::iota(seq), interval);
 
@@ -411,7 +412,7 @@ TEST(utils, ranges_subrange_iota) {
     static_assert(detray::ranges::input_range_v<decltype(iota_sr)>);
     static_assert(not detray::ranges::forward_range_v<decltype(iota_sr)>);
 
-    std::size_t i{4};
+    std::size_t i{4u};
     for (const auto v : iota_sr) {
         ASSERT_EQ(i++, v);
     }
@@ -421,13 +422,13 @@ TEST(utils, ranges_subrange_iota) {
 TEST(utils, ranges_enumerated_subrange) {
 
     struct uint_holder {
-        unsigned int ui = 0;
+        unsigned int ui{0u};
     };
 
-    dvector<uint_holder> seq = {{0}, {1}, {2}, {3}, {4}, {5}};
+    dvector<uint_holder> seq = {{0u}, {1u}, {2u}, {3u}, {4u}, {5u}};
 
-    std::size_t begin = 1;
-    std::size_t end = 4;
+    std::size_t begin{1u};
+    std::size_t end{4u};
     std::array<std::size_t, 2> interval{begin, end};
 
     auto enum_sr =
@@ -437,25 +438,26 @@ TEST(utils, ranges_enumerated_subrange) {
     static_assert(detray::ranges::random_access_range_v<decltype(enum_sr)>);
 
     for (const auto [i, v] : enum_sr) {
-        ASSERT_EQ(i, v.ui - 1);
+        ASSERT_EQ(i, v.ui - 1u);
     }
 }
 
 // Integration test for the picking of indexed elements from another range
 TEST(utils, ranges_pick_joined_sequence) {
 
-    darray<dindex, 2> interval_1 = {2, 4};
-    darray<dindex, 2> interval_2 = {7, 9};
+    darray<dindex, 2> interval_1 = {2u, 4u};
+    darray<dindex, 2> interval_2 = {7u, 9u};
 
     // The indices of the iota elements to be picked
-    std::vector<dindex> reference = {2, 3, 7, 8};
+    std::vector<dindex> reference = {2u, 3u, 7u, 8u};
     std::vector<dindex> check = {};
 
     struct uint_holder {
-        unsigned int ui = 0;
+        unsigned int ui{0u};
     };
 
-    dvector<uint_holder> seq = {{0}, {1}, {2}, {3}, {4}, {5}, {6}, {7}, {8}};
+    dvector<uint_holder> seq = {{0u}, {1u}, {2u}, {3u}, {4u},
+                                {5u}, {6u}, {7u}, {8u}};
 
     auto indices = detray::views::join(detray::views::iota(interval_1),
                                        detray::views::iota(interval_2));
@@ -469,15 +471,15 @@ TEST(utils, ranges_pick_joined_sequence) {
 
     // Test inherited member functions
     const auto [i, v] = selected[2];
-    ASSERT_EQ(i, 7UL);
-    ASSERT_EQ(v.ui, 7UL);
-    ASSERT_EQ(selected.size(), 4UL);
+    ASSERT_EQ(i, 7u);
+    ASSERT_EQ(v.ui, 7u);
+    ASSERT_EQ(selected.size(), 4u);
     const auto [i_front, v_front] = selected.front();
-    ASSERT_EQ(i_front, 2UL);
-    ASSERT_EQ(v_front.ui, 2UL);
+    ASSERT_EQ(i_front, 2u);
+    ASSERT_EQ(v_front.ui, 2u);
     const auto [i_back, v_back] = selected.back();
-    ASSERT_EQ(i_back, 8UL);
-    ASSERT_EQ(v_back.ui, 8UL);
+    ASSERT_EQ(i_back, 8u);
+    ASSERT_EQ(v_back.ui, 8u);
 
     for (auto [j, w] : selected) {
         ASSERT_TRUE(j == w.ui);

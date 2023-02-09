@@ -1,6 +1,6 @@
 /** Detray library, part of the ACTS project (R&D line)
  *
- * (c) 2022 CERN for the benefit of the ACTS project
+ * (c) 2022-2023 CERN for the benefit of the ACTS project
  *
  * Mozilla Public License Version 2.0
  */
@@ -12,23 +12,23 @@
 #include "detray/definitions/units.hpp"
 
 // System include(s)
-#include <climits>
+#include <limits>
 
 namespace detray::detail {
 
-// Ported from Geant4 and simplified
+/// @note Ported from Geant4 and simplified
 template <typename scalar_t>
 struct density_effect_data {
 
     using scalar_type = scalar_t;
 
-    density_effect_data() = default;
+    constexpr density_effect_data() = default;
 
     DETRAY_HOST_DEVICE
-    density_effect_data(const scalar_type a, const scalar_type m,
-                        const scalar_type X0, const scalar_type X1,
-                        const scalar_type I, const scalar_type nC,
-                        const scalar_type delta0)
+    constexpr density_effect_data(const scalar_type a, const scalar_type m,
+                                  const scalar_type X0, const scalar_type X1,
+                                  const scalar_type I, const scalar_type nC,
+                                  const scalar_type delta0)
         : m_a(a),
           m_m(m),
           m_X0(X0),
@@ -40,8 +40,8 @@ struct density_effect_data {
     /// Equality operator
     ///
     /// @param rhs is the right hand side to be compared to
-    DETRAY_HOST_DEVICE bool operator==(
-        const density_effect_data<scalar_t> &rhs) const {
+    DETRAY_HOST_DEVICE constexpr bool operator==(
+        const density_effect_data &rhs) const {
         return (m_a == rhs.get_A_density() && m_m == rhs.get_M_density() &&
                 m_X0 == rhs.get_X0_density() && m_X1 == rhs.get_X1_density() &&
                 m_I == rhs.get_mean_excitation_energy() &&
@@ -70,16 +70,18 @@ struct density_effect_data {
     DETRAY_HOST_DEVICE
     constexpr scalar_type get_delta0_density() const { return m_delta0; }
 
-    // Fitting parameters of Eq. 33.7 of RPP 2018
+    /// Fitting parameters of Eq. 33.7 of RPP 2018
+    /// @{
     scalar_type m_a = std::numeric_limits<scalar_type>::epsilon();
     scalar_type m_m = std::numeric_limits<scalar_type>::epsilon();
     scalar_type m_X0 = std::numeric_limits<scalar_type>::epsilon();
     scalar_type m_X1 = std::numeric_limits<scalar_type>::epsilon();
-    // Mean excitation energy in eV
+    /// @}
+    /// Mean excitation energy in eV
     scalar_type m_I = std::numeric_limits<scalar_type>::epsilon();
-    // -C
+    /// -C
     scalar_type m_nC = std::numeric_limits<scalar_type>::epsilon();
-    // Density-effect value delta(X_0)
+    /// Density-effect value delta(X_0)
     scalar_type m_delta0 = std::numeric_limits<scalar_type>::epsilon();
 };
 

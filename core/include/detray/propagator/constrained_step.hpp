@@ -32,11 +32,11 @@ enum direction : int {
 /// from aborter  - this would be a target condition
 /// from user     - this is user given for what reason ever
 enum constraint : std::size_t {
-    e_accuracy = 0,
-    e_actor = 1,
-    e_aborter = 2,
-    e_user = 3,
-    e_all = 4
+    e_accuracy = 0u,
+    e_actor = 1u,
+    e_aborter = 2u,
+    e_user = 3u,
+    e_all = 4u
 };
 
 }  // namespace step

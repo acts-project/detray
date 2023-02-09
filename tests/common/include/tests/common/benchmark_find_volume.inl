@@ -1,6 +1,6 @@
 /** Detray library, part of the ACTS project (R&D line)
  *
- * (c) 2021 CERN for the benefit of the ACTS project
+ * (c) 2021-2023 CERN for the benefit of the ACTS project
  *
  * Mozilla Public License Version 2.0
  */
@@ -27,18 +27,18 @@ using vector3 = __plugin::vector3<detray::scalar>;
 }  // namespace
 
 #ifdef DETRAY_BENCHMARKS_REP
-unsigned int gbench_repetitions = DETRAY_BENCHMARKS_REP;
+int gbench_repetitions = DETRAY_BENCHMARKS_REP;
 #else
-unsigned int gbench_repetitions = 0;
+int gbench_repetitions = 0;
 #endif
 
 // Detector configuration
-constexpr std::size_t n_brl_layers{4};
-constexpr std::size_t n_edc_layers{7};
+constexpr unsigned int n_brl_layers{4u};
+constexpr unsigned int n_edc_layers{7u};
 vecmem::host_memory_resource host_mr;
 auto d = create_toy_geometry(host_mr, n_brl_layers, n_edc_layers);
 
-const unsigned int itest = 10000;
+const unsigned int itest = 10000u;
 
 // Benchmarks the cost of searching a volume by position
 static void BM_FIND_VOLUMES(benchmark::State &state) {
@@ -54,13 +54,14 @@ static void BM_FIND_VOLUMES(benchmark::State &state) {
     scalar step0{(range0[1] - range0[0]) / itest};
     scalar step1{(range1[1] - range1[0]) / itest};
 
-    std::size_t successful{0};
-    std::size_t unsuccessful{0};
+    std::size_t successful{0u};
+    std::size_t unsuccessful{0u};
 
     for (auto _ : state) {
-        for (unsigned int i1 = 0; i1 < itest; ++i1) {
-            for (unsigned int i0 = 0; i0 < itest; ++i0) {
-                vector3 rz{i0 * step0, 0., i1 * step1};
+        for (unsigned int i1 = 0u; i1 < itest; ++i1) {
+            for (unsigned int i0 = 0u; i0 < itest; ++i0) {
+                vector3 rz{static_cast<scalar>(i0) * step0, 0.f,
+                           static_cast<scalar>(i1) * step1};
                 const auto &v = d.volume_by_pos(rz);
 
                 benchmark::DoNotOptimize(successful);

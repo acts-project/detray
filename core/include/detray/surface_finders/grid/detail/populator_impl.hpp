@@ -1,6 +1,6 @@
 /** Detray library, part of the ACTS project (R&D line)
  *
- * (c) 2022 CERN for the benefit of the ACTS project
+ * (c) 2022-2023 CERN for the benefit of the ACTS project
  *
  * Mozilla Public License Version 2.0
  */
@@ -157,7 +157,7 @@ class ranged_bin
     }
 
     protected:
-    std::size_t n_elements{0};
+    std::size_t n_elements{0u};
 };
 
 /// A complete populator that adds elements to a bin content which contains an
@@ -169,7 +169,7 @@ class ranged_bin
 ///
 /// @note the entry type must be default constructible, since its default
 /// entry may be interpreted as the empty element in which to put the new entry.
-template <std::size_t kDIM = 1, bool kSORT = false,
+template <std::size_t kDIM = 1u, bool kSORT = false,
           template <typename, std::size_t> class array_t = darray>
 struct completer {
 
@@ -203,7 +203,7 @@ struct completer {
     template <typename bin_storage_t>
     DETRAY_HOST_DEVICE decltype(auto) view(const bin_storage_t &storage,
                                            const dindex gbin) const {
-        return storage[gbin].view(dindex_range{0, storage[gbin].n_entries()});
+        return storage[gbin].view(dindex_range{0u, storage[gbin].n_entries()});
     }
 
     template <typename bin_storage_t>
@@ -223,7 +223,8 @@ struct completer {
 
         // The first entry always exists
         stored[0] = entry;
-        std::size_t n_elem = entry == detail::invalid_value<entry_t>() ? 0 : 1;
+        std::size_t n_elem =
+            entry == detail::invalid_value<entry_t>() ? 0u : 1u;
 
         return {{stored}, n_elem};
     }
@@ -238,7 +239,7 @@ struct completer {
 /// @note the number of entries are assumed to be the same in every bin.
 /// @note the entry type must be default constructible, since its default
 /// entry may be interpreted as the empty element in which to put the new entry.
-template <std::size_t kDIM = 1, bool kSORT = false,
+template <std::size_t kDIM = 1u, bool kSORT = false,
           template <typename, std::size_t> class array_t = darray>
 struct regular_attacher {
 
@@ -269,7 +270,7 @@ struct regular_attacher {
     template <typename bin_storage_t>
     DETRAY_HOST_DEVICE auto view(const bin_storage_t &storage,
                                  const dindex gbin) const {
-        return storage[gbin].view(dindex_range{0, storage[gbin].n_entries()});
+        return storage[gbin].view(dindex_range{0u, storage[gbin].n_entries()});
     }
 
     template <typename bin_storage_t>
@@ -289,7 +290,8 @@ struct regular_attacher {
 
         // The first element always exists
         stored[0] = entry;
-        std::size_t n_elem = entry == detail::invalid_value<entry_t>() ? 0 : 1;
+        std::size_t n_elem =
+            entry == detail::invalid_value<entry_t>() ? 0u : 1u;
 
         return {{stored}, n_elem};
     }
