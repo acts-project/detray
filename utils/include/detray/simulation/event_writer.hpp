@@ -89,8 +89,7 @@ struct event_writer : actor {
         auto& stepping = propagation._stepping;
 
         // triggered only for sensitive surfaces
-        if (navigation.is_on_module() &&
-            navigation.current()->sf_id == surface_id::e_sensitive) {
+        if (navigation.is_on_sensitive()) {
 
             // Write hits
             csv_hit hit;

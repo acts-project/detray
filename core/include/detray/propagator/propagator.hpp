@@ -142,6 +142,42 @@ struct propagator {
         // Pass on the whether the propagation was successful
         return propagation._navigation.is_complete();
     }
+
+    template <typename state_t, typename actor_states_t = actor_chain<>::state>
+    DETRAY_HOST_DEVICE bool propagate_sync(state_t &propagation,
+                                           actor_states_t &&actor_states = {}) {
+
+        // Initialize the navigation
+        propagation._heartbeat = _navigator.init(propagation);
+
+        // Run all registered actors/aborters after init
+        run_actors(actor_states, propagation);
+
+        while (propagation._heartbeat) {
+
+            while (propagation._heartbeat) {
+
+                // Take the step
+                propagation._heartbeat &= _stepper.step(propagation);
+
+                // And check the status
+                propagation._heartbeat &= _navigator.update(propagation);
+
+                if (!propagation._navigation.is_on_sensitive()) {
+                    run_actors(actor_states, propagation);
+                } else {
+                    break;
+                }
+            }
+
+            if (propagation._heartbeat) {
+                run_actors(actor_states, propagation);
+            }
+        }
+
+        // Pass on the whether the propagation was successful
+        return propagation._navigation.is_complete();
+    }
 };
 
 }  // namespace detray

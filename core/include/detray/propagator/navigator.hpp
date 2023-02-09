@@ -299,6 +299,13 @@ class navigator {
             return _status == navigation::status::e_on_module;
         }
 
+        /// Helper method to check the track has reached a sensitive surface
+        DETRAY_HOST_DEVICE
+        inline auto is_on_sensitive() const -> bool {
+            return (_status == navigation::status::e_on_module) &&
+                   (this->current()->sf_id == surface_id::e_sensitive);
+        }
+
         /// Helper method to check the track has reached a portal surface
         DETRAY_HOST_DEVICE
         inline auto is_on_portal() const -> bool {
