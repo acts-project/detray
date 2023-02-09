@@ -211,7 +211,7 @@ TEST(path_correction, cartesian2D) {
     crk_stepper_t::state &crk_state = propagation._stepping;
 
     // Path length per turn
-    scalar S{2.f * getter::perp(mom) / getter::norm(env::B) *
+    scalar S{2.f * getter::perp(mom) / getter::norm(B) *
              constant<scalar>::pi};
     // Constrain the step size to force frequent re-navigation for this
     // strongly bent track

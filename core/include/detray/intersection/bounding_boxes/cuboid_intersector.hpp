@@ -40,7 +40,7 @@ struct cuboid_intersector {
     template <typename algebra_t, typename mask_t>
     DETRAY_HOST_DEVICE bool operator()(
         const detail::ray<algebra_t> &ray, const mask_t &box,
-        const typename algebra_t::scalar_type mask_tolerance = 0.f) const {
+        const typename algebra_t::scalar_type /*mask_tolerance*/ = 0.f) const {
 
         // using scalar_t = typename algebra_t::scalar_type;
         using point3 = typename algebra_t::point3;
