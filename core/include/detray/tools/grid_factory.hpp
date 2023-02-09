@@ -145,23 +145,23 @@ class grid_factory {
         typename x_binning = n_axis::regular<host_container_types, scalar_type>,
         typename y_binning = n_axis::regular<host_container_types, scalar_type>,
         typename z_binning = n_axis::regular<host_container_types, scalar_type>>
-    auto new_grid(const mask<cuboid3D> &grid_bounds,
+    auto new_grid(const mask<cuboid3D<>> &grid_bounds,
                   const std::array<std::size_t, 3UL> n_bins,
                   const std::array<std::vector<scalar_type>, 3UL> &bin_edges = {
                       {}}) const {
         // Axes boundaries and local indices
-        using boundary = cuboid3D::boundaries;
-        using axes = cuboid3D::axes<>;
+        using boundary = cuboid3D<>::boundaries;
+        using axes = cuboid3D<>::axes<>;
         constexpr auto e_x_axis = static_cast<std::size_t>(axes::axis_loc0);
         constexpr auto e_y_axis = static_cast<std::size_t>(axes::axis_loc1);
         constexpr auto e_z_axis = static_cast<std::size_t>(axes::axis_loc2);
 
         auto b_values = grid_bounds.values();
 
-        return new_grid<cuboid3D>(
-            {-b_values[boundary::e_half_x], b_values[boundary::e_half_x],
-             -b_values[boundary::e_half_y], b_values[boundary::e_half_y],
-             -b_values[boundary::e_half_z], b_values[boundary::e_half_z]},
+        return new_grid<cuboid3D<>>(
+            {b_values[boundary::e_min_x], b_values[boundary::e_max_x],
+             b_values[boundary::e_min_y], b_values[boundary::e_max_y],
+             b_values[boundary::e_min_z], b_values[boundary::e_max_z]},
             {n_bins[e_x_axis], n_bins[e_y_axis], n_bins[e_z_axis]},
             {bin_edges[e_x_axis], bin_edges[e_y_axis], bin_edges[e_z_axis]},
             std::tuple<x_bounds, y_bounds, z_bounds>{},
@@ -223,9 +223,9 @@ class grid_factory {
         auto b_values = grid_bounds.values();
 
         return new_grid<cylinder3D>(
-            {0.f, b_values[boundary::e_r], -constant<scalar_type>::pi,
-             constant<scalar_type>::pi, -b_values[boundary::e_n_half_z],
-             b_values[boundary::e_p_half_z]},
+            {b_values[boundary::e_min_r], b_values[boundary::e_max_r],
+             b_values[boundary::e_min_phi], b_values[boundary::e_max_phi],
+             -b_values[boundary::e_min_z], b_values[boundary::e_max_z]},
             {n_bins[e_r_axis], n_bins[e_phi_axis], n_bins[e_z_axis]},
             {bin_edges[e_r_axis], bin_edges[e_phi_axis], bin_edges[e_z_axis]},
             std::tuple<r_bounds, phi_bounds, z_bounds>{},

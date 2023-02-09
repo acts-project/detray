@@ -34,10 +34,13 @@ class cylinder3D {
     inline static constexpr const unsigned int meas_dim{0u};
 
     enum boundaries : std::size_t {
-        e_r = 0u,
-        e_n_half_z = 1u,
-        e_p_half_z = 2u,
-        e_size = 3u,
+        e_min_r = 0u,
+        e_max_r = 1u,
+        e_min_phi = 2u,
+        e_max_phi = 3u,
+        e_min_z = 4u,
+        e_max_z = 5u,
+        e_size = 6u,
     };
 
     /// Local coordinate frame for boundary checks
@@ -102,9 +105,12 @@ class cylinder3D {
     DETRAY_HOST_DEVICE inline bool check_boundaries(
         const bounds_t<scalar_t, kDIM> &bounds, const point_t &loc_p,
         const scalar_t tol = std::numeric_limits<scalar_t>::epsilon()) const {
-        return (loc_p[0] <= bounds[e_r] + tol and
-                bounds[e_n_half_z] - tol <= loc_p[2] and
-                loc_p[2] <= bounds[e_p_half_z] + tol);
+        return (bounds[e_min_r] - tol <= loc_p[0] and
+                loc_p[0] <= bounds[e_max_r] + tol and
+                bounds[e_min_phi] - tol <= loc_p[1] and
+                loc_p[1] <= bounds[e_max_phi] + tol and
+                bounds[e_min_z] - tol <= loc_p[2] and
+                loc_p[2] <= bounds[e_max_z] + tol);
     }
 };
 

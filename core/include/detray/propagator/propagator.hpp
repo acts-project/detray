@@ -8,6 +8,8 @@
 #pragma once
 
 // Project include(s).
+#include <iostream>
+
 #include "detray/definitions/qualifiers.hpp"
 #include "detray/intersection/intersection.hpp"
 #include "detray/tracks/tracks.hpp"
@@ -139,6 +141,8 @@ struct propagator {
 
             // Run all registered actors/aborters after update
             run_actors(actor_states, propagation);
+
+            std::cout << propagation._navigation.current_object() << std::endl;
         }
 
         // Pass on the whether the propagation was successful

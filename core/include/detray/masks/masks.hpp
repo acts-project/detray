@@ -8,6 +8,7 @@
 #pragma once
 
 // Project include(s)
+#include "detray/definitions/indexing.hpp"
 #include "detray/definitions/qualifiers.hpp"
 #include "detray/intersection/intersection.hpp"
 #include "detray/masks/annulus2D.hpp"
@@ -203,7 +204,7 @@ class mask {
     private:
     shape _shape;
     mask_values _values;
-    links_type _volume_link;
+    links_type _volume_link{std::numeric_limits<links_type>::max()};
 };
 
 }  // namespace detray

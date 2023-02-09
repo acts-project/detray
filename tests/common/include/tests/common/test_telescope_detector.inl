@@ -117,7 +117,8 @@ TEST(ALGEBRA_PLUGIN, telescope_detector) {
                                     -1.f);
 
     const auto x_tel_det = create_telescope_detector(
-        host_mr, rectangle, n_surfaces, tel_length, x_track);
+        host_mr, rectangle, n_surfaces, tel_length, silicon_tml<scalar>(),
+        80.f * unit<scalar>::um, x_track);
 
     //
     // test propagation in all telescope detector instances
@@ -215,7 +216,8 @@ TEST(ALGEBRA_PLUGIN, telescope_detector) {
     detail::helix<transform3> helix_bz(pilot_track, &B_z);
 
     const auto tel_detector = create_telescope_detector(
-        host_mr, rectangle, n_surfaces, tel_length, helix_bz);
+        host_mr, rectangle, n_surfaces, tel_length, silicon_tml<scalar>(),
+        80.f * unit<scalar>::um, helix_bz);
 
     // make at least sure it is navigatable
     navigator<decltype(tel_detector), inspector_t> tel_navigator;

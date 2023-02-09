@@ -11,6 +11,7 @@
 #include "detray/core/detector.hpp"
 #include "detray/definitions/units.hpp"
 #include "detray/detectors/detector_metadata.hpp"
+#include "detray/masks/masks.hpp"
 #include "detray/materials/predefined_materials.hpp"
 #include "detray/propagator/line_stepper.hpp"
 
@@ -72,6 +73,50 @@ inline std::vector<module_placement> module_positions(
     return placements;
 }
 
+/// Helper method for positioning the plane surfaces.
+///
+/// @param traj pilot trajectory along which the modules should be placed.
+/// @param steps lengths along the trajectory where surfaces should be placed.
+///
+/// @return a vector of the @c module_placements along the trajectory.
+/*template <typename mask_t>
+inline void create_cuboid_volume(
+   const mask_t &msk, const std::vector<scalar> &steps,
+   context_t &ctx, const trajectory_t &traj,
+   volume_type &volume, surface_container_t &surfaces,
+   mask_container_t &masks,
+   material_container_t &materials,
+   transform_container_t &transforms) {
+
+  constexpr auto cylinder_id = mask_id::e_portal_cylinder2;
+   constexpr auto slab_id = material_id::e_slab;
+
+   const scalar min_z{std::min(lower_z, upper_z)};
+   const scalar max_z{std::max(lower_z, upper_z)};
+
+   // translation
+   point3 tsl{0., 0., 0};
+
+   // add transform and masks
+   transforms.emplace_back(ctx, tsl);
+   masks.template emplace_back<cylinder_id>(empty_context{}, volume_link, r,
+                                            min_z, max_z);
+
+   // Add material slab
+   materials.template emplace_back<slab_id>(empty_context{}, mat, thickness);
+
+   // add surface
+   mask_link_type mask_link{cylinder_id,
+                            masks.template size<cylinder_id>() - 1};
+   material_link_type material_link{slab_id,
+                                    materials.template size<slab_id>() - 1};
+   const surface_id sf_id = (volume_link != volume_idx)
+                                ? surface_id::e_portal
+                                : surface_id::e_passive;
+   surfaces.emplace_back(transforms.size(ctx) - 1, mask_link, material_link,
+                         volume_idx, dindex_invalid, sf_id);
+}*/
+
 /// Helper function that creates the telescope surfaces.
 ///
 /// @param ctx geometric context
@@ -102,7 +147,7 @@ inline void create_telescope(context_t &ctx, const trajectory_t &traj,
 
     // Create the module centers
     const std::vector<module_placement> m_placements =
-        module_positions(traj, cfg.pos);
+        module_positions(traj, cfg.dists);
 
     // Create geometry data
     for (const auto &m_placement : m_placements) {
@@ -194,23 +239,13 @@ template <typename mask_t = mask<rectangle2D<>>,
           typename container_t = host_container_types>
 auto create_telescope_detector(
     vecmem::memory_resource &resource,
-<<<<<<< HEAD
-    covfie::field<detector_registry::telescope_detector::bfield_backend_t>
+    covfie::field<
+        typename telescope_types<typename mask_t::shape>::bfield_backend_t>
         &&bfield,
-    std::vector<scalar> pos,
-    trajectory_t traj = {{0.f, 0.f, 0.f}, 0.f, {0.f, 0.f, 1.f}, -1.f},
-    scalar half_x = 20.f * unit<scalar>::mm,
-    scalar half_y = 20.f * unit<scalar>::mm,
+    const mask_t &msk, std::vector<scalar> dists,
     const material<scalar> mat = silicon_tml<scalar>(),
-    const scalar thickness = 80.f * unit<scalar>::um) {
-=======
-    covfie::field<typename detector_registry::template telescope_detector<
-        typename mask_t::shape>::bfield_backend_t> &&bfield,
-    const mask_t &msk, std::vector<scalar> pos,
-    const material<scalar> mat = silicon_tml<scalar>(),
-    const scalar thickness = 80 * unit<scalar>::um,
-    trajectory_t traj = {{0, 0, 0}, 0, {0, 0, 1}, -1}) {
->>>>>>> a1f3d421 (adapt telescope detector to hold single but different mask types)
+    const scalar thickness = 80.f * unit<scalar>::um,
+    const trajectory_t traj = {{0.f, 0.f, 0.f}, 0.f, {0.f, 0.f, 1.f}, -1.f}) {
 
     // detector type
     using detector_t = detector<telescope_types<typename mask_t::shape>,
@@ -219,7 +254,7 @@ auto create_telescope_detector(
     // module parameters
     struct surface_config {
         const typename mask_t::mask_values &mask_values;
-        const std::vector<scalar> &pos;
+        const std::vector<scalar> &dists;
         material<scalar> m_mat;
         scalar m_thickness;
     };
@@ -228,7 +263,7 @@ auto create_telescope_detector(
     detector_t det(resource, std::move(bfield));
 
     typename detector_t::geometry_context ctx{};
-    const surface_config sf_config{msk.values(), pos, mat, thickness};
+    const surface_config sf_config{msk.values(), dists, mat, thickness};
 
     // volume boundaries are not needed. Same goes for portals
     det.new_volume(
@@ -263,32 +298,23 @@ auto create_telescope_detector(
     covfie::field<
         typename telescope_types<typename mask_t::shape>::bfield_backend_t>
         &&bfield,
-<<<<<<< HEAD
-    std::size_t n_surfaces = 10u, scalar tel_length = 500.f * unit<scalar>::mm,
-    trajectory_t traj = {{0.f, 0.f, 0.f}, 0.f, {0.f, 0.f, 1.f}, -1.f},
-    scalar half_x = 20.f * unit<scalar>::mm,
-    scalar half_y = 20.f * unit<scalar>::mm) {
-=======
-    const mask_t &msk, dindex n_surfaces = 10,
-    scalar tel_length = 500. * unit<scalar>::mm,
-    trajectory_t traj = {{0, 0, 0}, 0, {0, 0, 1}, -1}) {
->>>>>>> a1f3d421 (adapt telescope detector to hold single but different mask types)
+    const mask_t &msk, std::size_t n_surfaces = 10u,
+    const scalar tel_length = 500.f * unit<scalar>::mm,
+    const material<scalar> mat = silicon_tml<scalar>(),
+    const scalar thickness = 80.f * unit<scalar>::um,
+    const trajectory_t traj = {{0.f, 0.f, 0.f}, 0.f, {0.f, 0.f, 1.f}, -1.f}) {
     // Generate equidistant positions
-    std::vector<scalar> positions = {};
-    scalar pos{0.f};
-    scalar dist{tel_length / static_cast<scalar>(n_surfaces - 1u)};
-    for (std::size_t i = 0u; i < n_surfaces; ++i) {
-        positions.push_back(pos);
+    std::vector<scalar> distances = {};
+    scalar pos = 0.f;
+    scalar dist = n_surfaces > 0u ? tel_length / (n_surfaces - 1) : 0.f;
+    for (std::size_t i = 0; i < n_surfaces; ++i) {
+        distances.push_back(pos);
         pos += dist;
     }
 
-    // Set the default material
-    const material<scalar> mat{silicon_tml<scalar>()};
-    const scalar thickness{80.f * unit<scalar>::um};
-
     // Build the geometry
     return create_telescope_detector<mask_t>(resource, std::move(bfield), msk,
-                                             positions, mat, thickness, traj);
+                                             distances, mat, thickness, traj);
 }
 
 /// Wrapper for create_telescope_geometry with constant zero bfield.
@@ -297,9 +323,10 @@ template <typename mask_t = mask<rectangle2D<>>,
           typename container_t = host_container_types>
 auto create_telescope_detector(
     vecmem::memory_resource &resource, const mask_t &msk,
-    std::vector<scalar> pos, const material<scalar> mat = silicon_tml<scalar>(),
+    const std::vector<scalar> dists,
+    const material<scalar> mat = silicon_tml<scalar>(),
     const scalar thickness = 80.f * unit<scalar>::um,
-    trajectory_t traj = {{0.f, 0.f, 0.f}, 0.f, {0.f, 0.f, 1.f}, -1.f}) {
+    const trajectory_t traj = {{0.f, 0.f, 0.f}, 0.f, {0.f, 0.f, 1.f}, -1.f}) {
 
     using covfie_bkdn_t =
         typename telescope_types<typename mask_t::shape>::bfield_backend_t;
@@ -309,18 +336,19 @@ auto create_telescope_detector(
         resource,
         covfie::field<covfie_bkdn_t>{
             typename covfie_bkdn_t::configuration_t{0.f, 0.f, 0.f}},
-        msk, pos, mat, thickness, traj);
+        msk, dists, mat, thickness, traj);
 }
 
 /// Wrapper for create_telescope_geometry with constant zero bfield.
 template <typename mask_t = mask<rectangle2D<>>,
           typename trajectory_t = detail::ray<__plugin::transform3<scalar>>,
           typename container_t = host_container_types>
-auto create_telescope_detector(vecmem::memory_resource &resource,
-                               const mask_t &msk, std::size_t n_surfaces = 10u,
-                               scalar tel_length = 500.f * unit<scalar>::mm,
-                               trajectory_t traj = {
-                                   {0.f, 0.f, 0.f}, 0.f, {0.f, 0.f, 1.f}, -1.f}) {
+auto create_telescope_detector(
+    vecmem::memory_resource &resource, const mask_t &msk,
+    std::size_t n_surfaces = 10u, const scalar tel_length = 500.f * unit<scalar>::mm,
+    const material<scalar> mat = silicon_tml<scalar>(),
+    const scalar thickness = 80.f * unit<scalar>::um,
+    const trajectory_t traj = {{0.f, 0.f, 0.f}, 0.f, {0.f, 0.f, 1.f}, -1.f}) {
 
     using covfie_bkdn_t =
         typename telescope_types<typename mask_t::shape>::bfield_backend_t;
@@ -330,7 +358,7 @@ auto create_telescope_detector(vecmem::memory_resource &resource,
         resource,
         covfie::field<covfie_bkdn_t>{
             typename covfie_bkdn_t::configuration_t{0.f, 0.f, 0.f}},
-        msk, n_surfaces, tel_length, traj);
+        msk, n_surfaces, tel_length, mat, thickness, traj);
 }
 
 }  // namespace detray

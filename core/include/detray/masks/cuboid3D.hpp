@@ -1,6 +1,6 @@
 /** Detray library, part of the ACTS project (R&D line)
  *
- * (c) 2020-2022 CERN for the benefit of the ACTS project
+ * (c) 2020-2023 CERN for the benefit of the ACTS project
  *
  * Mozilla Public License Version 2.0
  */
@@ -10,7 +10,7 @@
 // Project include(s)
 #include "detray/coordinates/cartesian3.hpp"
 #include "detray/definitions/qualifiers.hpp"
-#include "detray/intersection/plane_intersector.hpp"
+#include "detray/intersection/bounding_boxes/cuboid_intersector.hpp"
 #include "detray/surface_finders/grid/detail/axis_binning.hpp"
 #include "detray/surface_finders/grid/detail/axis_bounds.hpp"
 
@@ -26,6 +26,7 @@ namespace detray {
 ///
 /// It is defined by the 3 half length and checks whether a point is somewhere
 /// inside the cuboid.
+template <typename intersector_t = cuboid_intersector>
 class cuboid3D {
     public:
     /// The name for this shape
@@ -35,10 +36,13 @@ class cuboid3D {
     inline static constexpr const unsigned int meas_dim{0u};
 
     enum boundaries : std::size_t {
-        e_half_x = 0u,
-        e_half_y = 1u,
-        e_half_z = 2u,
-        e_size = 3u,
+        e_min_x = 0u,
+        e_max_x = 1u,
+        e_min_y = 2u,
+        e_max_y = 3u,
+        e_min_z = 4u,
+        e_max_z = 5u,
+        e_size = 6u,
     };
 
     /// Local coordinate frame for boundary checks
@@ -103,9 +107,12 @@ class cuboid3D {
     DETRAY_HOST_DEVICE inline bool check_boundaries(
         const bounds_t<scalar_t, kDIM> &bounds, const point_t &loc_p,
         const scalar_t tol = std::numeric_limits<scalar_t>::epsilon()) const {
-        return (std::abs(loc_p[0]) <= bounds[e_half_x] + tol and
-                std::abs(loc_p[1]) <= bounds[e_half_y] + tol and
-                std::abs(loc_p[2]) <= bounds[e_half_z] + tol);
+        return (bounds[e_min_x] - tol <= loc_p[0] and
+                loc_p[0] <= bounds[e_max_x] + tol and
+                bounds[e_min_y] - tol <= loc_p[1] and
+                loc_p[1] <= bounds[e_max_y] + tol and
+                bounds[e_min_x] - tol <= loc_p[2] and
+                loc_p[2] <= bounds[e_max_z] + tol);
     }
 };
 

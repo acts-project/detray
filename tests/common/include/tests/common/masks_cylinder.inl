@@ -28,12 +28,16 @@ TEST(mask, cylinder3D) {
                       r * constant<scalar>::inv_sqrt2, 4.5f};
     point_t p3_off = {1.f, 1.f, -9.f};
 
-    // Test radius to be on surface, too
-    mask<cylinder3D> c{0u, r, -hz, hz};
+    mask<cylinder3D> c{
+        0u, 0.f, r, -constant<scalar>::pi, constant<scalar>::pi,
+        -hz, hz};
 
-    ASSERT_NEAR(c[cylinder3D::e_r], r, tol);
-    ASSERT_NEAR(c[cylinder3D::e_n_half_z], -hz, tol);
-    ASSERT_NEAR(c[cylinder3D::e_p_half_z], hz, tol);
+    ASSERT_NEAR(c[cylinder3D::e_min_r], 0.f, tol);
+    ASSERT_NEAR(c[cylinder3D::e_max_r], r, tol);
+    ASSERT_NEAR(c[cylinder3D::e_min_phi], -constant<scalar>::pi, tol);
+    ASSERT_NEAR(c[cylinder3D::e_max_phi], constant<scalar>::pi, tol);
+    ASSERT_NEAR(c[cylinder3D::e_min_z], -hz, tol);
+    ASSERT_NEAR(c[cylinder3D::e_max_z], hz, tol);
 
     ASSERT_TRUE(c.is_inside(p3_in) == intersection::status::e_inside);
     ASSERT_TRUE(c.is_inside(p3_edge) == intersection::status::e_inside);

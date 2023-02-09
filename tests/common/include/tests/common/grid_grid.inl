@@ -38,7 +38,7 @@ constexpr scalar tol{1e-7f};
 
 // Either a data owning or non-owning 3D cartesian multi-axis
 template <bool ownership = true, typename containers = host_container_types>
-using cartesian_3D = coordinate_axes<cuboid3D::axes<>, ownership, containers>;
+using cartesian_3D = coordinate_axes<cuboid3D<>::axes<>, ownership, containers>;
 
 // non-owning multi-axis: Takes external containers
 bool constexpr is_owning = true;
