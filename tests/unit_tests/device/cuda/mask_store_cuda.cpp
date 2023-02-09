@@ -28,13 +28,13 @@ TEST(mask_store_cuda, mask_store) {
     ASSERT_TRUE(store.template empty<e_single3>());
     ASSERT_TRUE(store.template empty<e_trapezoid2>());
 
-    store.template emplace_back<e_rectangle2>(empty_context{}, 0UL, 1.0f, 2.0f);
-    store.template emplace_back<e_trapezoid2>(empty_context{}, 0UL, 0.5f, 1.5f,
+    store.template emplace_back<e_rectangle2>(empty_context{}, 0u, 1.0f, 2.0f);
+    store.template emplace_back<e_trapezoid2>(empty_context{}, 0u, 0.5f, 1.5f,
                                               4.0f);
-    store.template emplace_back<e_ring2>(empty_context{}, 0UL, 1.0f, 10.0f);
-    store.template emplace_back<e_cylinder2>(empty_context{}, 0UL, 1.f, 0.5f,
+    store.template emplace_back<e_ring2>(empty_context{}, 0u, 1.0f, 10.0f);
+    store.template emplace_back<e_cylinder2>(empty_context{}, 0u, 1.f, 0.5f,
                                              2.0f);
-    store.template emplace_back<e_annulus2>(empty_context{}, 0UL, 1.f, 2.f, 3.f,
+    store.template emplace_back<e_annulus2>(empty_context{}, 0u, 1.f, 2.f, 3.f,
                                             4.f, 5.f, 6.f, 7.f);
 
     ASSERT_FALSE(store.empty<e_annulus2>());
@@ -47,9 +47,9 @@ TEST(mask_store_cuda, mask_store) {
     /** Generate random points for test **/
     vecmem::vector<point2> input_point2(n_points, &mng_mr);
 
-    for (int i = 0; i < n_points; i++) {
-        point2 rand_point2 = {static_cast<scalar>(rand() % 100 / 10.),
-                              static_cast<scalar>(rand() % 100 / 10.)};
+    for (unsigned int i = 0u; i < n_points; i++) {
+        point2 rand_point2 = {static_cast<scalar>(rand() % 100) / 10.f,
+                              static_cast<scalar>(rand() % 100) / 10.f};
         input_point2[i] = rand_point2;
     }
 
@@ -64,7 +64,7 @@ TEST(mask_store_cuda, mask_store) {
     const auto& annulus_mask = store.get<e_annulus2>()[0];
 
     /** get host results from is_inside function **/
-    for (int i = 0; i < n_points; i++) {
+    for (unsigned int i = 0u; i < n_points; i++) {
         output_host[0].push_back(rectangle_mask.is_inside(input_point2[i]));
         output_host[1].push_back(trapezoid_mask.is_inside(input_point2[i]));
         output_host[2].push_back(ring_mask.is_inside(input_point2[i]));
@@ -93,7 +93,7 @@ TEST(mask_store_cuda, mask_store) {
     copy(output_buffer, output_device);
 
     /** Compare the values **/
-    for (int i = 0; i < n_points; i++) {
+    for (unsigned int i = 0u; i < n_points; i++) {
         ASSERT_EQ(output_host[0][i], output_device[0][i]);
         ASSERT_EQ(output_host[0][i], output_device[0][i]);
         ASSERT_EQ(output_host[2][i], output_device[2][i]);

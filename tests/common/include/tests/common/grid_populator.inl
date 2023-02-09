@@ -58,21 +58,21 @@ TEST(grid, replace_populator) {
     std::generate_n(bin_data.begin(), 50, increment<populator_t, dindex>());
 
     // Check test setup
-    EXPECT_EQ(bin_data[2].content(), 3UL);
-    EXPECT_EQ(replace_populator.view(bin_data, 2)[0], 3UL);
-    EXPECT_EQ(bin_data[42].content(), 43UL);
-    EXPECT_EQ(replace_populator.view(bin_data, 42)[0], 43UL);
+    EXPECT_EQ(bin_data[2].content(), 3u);
+    EXPECT_EQ(replace_populator.view(bin_data, 2)[0], 3u);
+    EXPECT_EQ(bin_data[42].content(), 43u);
+    EXPECT_EQ(replace_populator.view(bin_data, 42)[0], 43u);
 
     // Replace some bin entries
     dindex entry{15};
 
     replace_populator(bin_data, 2, entry);
-    EXPECT_EQ(bin_data[2].content(), 15UL);
-    EXPECT_EQ(replace_populator.view(bin_data, 2)[0], 15UL);
+    EXPECT_EQ(bin_data[2].content(), 15u);
+    EXPECT_EQ(replace_populator.view(bin_data, 2)[0], 15u);
 
     replace_populator(bin_data, 2, entry);
-    EXPECT_EQ(bin_data[2].content(), 15UL);
-    EXPECT_EQ(replace_populator.view(bin_data, 2)[0], 15UL);
+    EXPECT_EQ(bin_data[2].content(), 15u);
+    EXPECT_EQ(replace_populator.view(bin_data, 2)[0], 15u);
 }
 
 /// Complete populator
@@ -88,23 +88,23 @@ TEST(grid, complete_populator) {
     std::generate_n(bin_data.begin(), 50, increment<populator_t, dindex>());
 
     // Check test setup
-    populator_t::template bin_type<dindex>::content_type stored = {3UL, inf,
-                                                                   inf, inf};
+    populator_t::template bin_type<dindex>::content_type stored = {3u, inf, inf,
+                                                                   inf};
     EXPECT_EQ(bin_data[2].content(), stored);
     test_content(complete_populator, bin_data, 2, stored);
-    stored = {43UL, inf, inf, inf};
+    stored = {43u, inf, inf, inf};
     EXPECT_EQ(bin_data[42].content(), stored);
     test_content(complete_populator, bin_data, 42, stored);
 
     // Fill up some bin entries
     dindex entry{15};
 
-    stored = {3UL, 15UL, 15UL, 15UL};
+    stored = {3u, 15u, 15u, 15u};
     complete_populator(bin_data, 2, entry);
     EXPECT_EQ(bin_data[2].content(), stored);
     test_content(complete_populator, bin_data, 2, stored);
 
-    stored = {43UL, 15UL, 15UL, 15UL};
+    stored = {43u, 15u, 15u, 15u};
     complete_populator(bin_data, 42, entry);
     EXPECT_EQ(bin_data[42].content(), stored);
     test_content(complete_populator, bin_data, 42, stored);
@@ -112,12 +112,12 @@ TEST(grid, complete_populator) {
     // Do sorting, 4 dims, dindex entries in backend storage, std::array
     populator<completer<4, true>> sort_complete_populator;
 
-    stored = {2UL, 15UL, 15UL, 15UL};
+    stored = {2u, 15u, 15u, 15u};
     sort_complete_populator(bin_data, 1, entry);
     EXPECT_EQ(bin_data[1].content(), stored);
     test_content(sort_complete_populator, bin_data, 1, stored);
 
-    stored = {15UL, 15UL, 15UL, 42UL};
+    stored = {15u, 15u, 15u, 42u};
     sort_complete_populator(bin_data, 41, entry);
     EXPECT_EQ(bin_data[41].content(), stored);
     test_content(sort_complete_populator, bin_data, 41, stored);
@@ -136,24 +136,24 @@ TEST(grid, regular_attach_populator) {
     std::generate_n(bin_data.begin(), 50, increment<populator_t, dindex>());
 
     // Check test setup
-    populator_t::template bin_type<dindex>::content_type stored = {3UL, inf,
-                                                                   inf, inf};
+    populator_t::template bin_type<dindex>::content_type stored = {3u, inf, inf,
+                                                                   inf};
     EXPECT_EQ(bin_data[2].content(), stored);
     test_content(reg_attach_populator, bin_data, 2, stored);
-    stored = {43UL, inf, inf, inf};
+    stored = {43u, inf, inf, inf};
     EXPECT_EQ(bin_data[42].content(), stored);
     test_content(reg_attach_populator, bin_data, 42, stored);
 
     // Attach some bin entries
     dindex entry1{15}, entry2{8};
 
-    stored = {3UL, 15UL, 8UL, inf};
+    stored = {3u, 15u, 8u, inf};
     reg_attach_populator(bin_data, 2, entry1);
     reg_attach_populator(bin_data, 2, entry2);
     EXPECT_EQ(bin_data[2].content(), stored);
     test_content(reg_attach_populator, bin_data, 2, stored);
 
-    stored = {43UL, 15UL, 8UL, 16UL};
+    stored = {43u, 15u, 8u, 16u};
     reg_attach_populator(bin_data, 42, entry1);
     reg_attach_populator(bin_data, 42, entry2);
     reg_attach_populator(bin_data, 42, entry1 + 1);
@@ -163,14 +163,14 @@ TEST(grid, regular_attach_populator) {
     // Do sorting, 4 dims, dindex entries in backend storage, std::array
     populator<regular_attacher<4, true>> sort_reg_attach_populator;
 
-    stored = {2UL, 8UL, 9UL, 15UL};
+    stored = {2u, 8u, 9u, 15u};
     sort_reg_attach_populator(bin_data, 1, entry1);
     sort_reg_attach_populator(bin_data, 1, entry2);
     sort_reg_attach_populator(bin_data, 1, entry2 + 1);
     EXPECT_EQ(bin_data[1].content(), stored);
     test_content(sort_reg_attach_populator, bin_data, 1, stored);
 
-    stored = {8UL, 15UL, 42UL, inf};
+    stored = {8u, 15u, 42u, inf};
     sort_reg_attach_populator(bin_data, 41, entry1);
     sort_reg_attach_populator(bin_data, 41, entry2);
     EXPECT_EQ(bin_data[41].content(), stored);

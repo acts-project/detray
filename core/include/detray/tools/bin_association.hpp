@@ -9,6 +9,7 @@
 #pragma once
 
 // Project include(s)
+#include "detray/definitions/units.hpp"
 #include "detray/tools/associator.hpp"
 #include "detray/tools/generators.hpp"
 #include "detray/utils/ranges.hpp"
@@ -206,12 +207,16 @@ static inline void bin_association(const context_t & /*context*/,
                             }
                             // Check for phi wrapping
                             std::vector<std::vector<point2_t>> surface_contours;
-                            if (phi_max - phi_min > M_PI and
+                            if (phi_max - phi_min > constant<scalar>::pi and
                                 phi_max * phi_min < 0.) {
-                                s_c_neg.push_back({z_max_neg, -M_PI});
-                                s_c_neg.push_back({z_min_neg, -M_PI});
-                                s_c_pos.push_back({z_max_pos, M_PI});
-                                s_c_pos.push_back({z_min_pos, M_PI});
+                                s_c_neg.push_back(
+                                    {z_max_neg, -constant<scalar>::pi});
+                                s_c_neg.push_back(
+                                    {z_min_neg, -constant<scalar>::pi});
+                                s_c_pos.push_back(
+                                    {z_max_pos, constant<scalar>::pi});
+                                s_c_pos.push_back(
+                                    {z_min_pos, constant<scalar>::pi});
                                 surface_contours = {s_c_neg, s_c_pos};
                             } else {
                                 surface_contours = {surface_contour};

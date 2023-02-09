@@ -1,6 +1,6 @@
 /** Detray library, part of the ACTS project (R&D line)
  *
- * (c) 2022 CERN for the benefit of the ACTS project
+ * (c) 2022-2023 CERN for the benefit of the ACTS project
  *
  * Mozilla Public License Version 2.0
  */
@@ -39,7 +39,7 @@ using cylinder_axes = multi_axis<
     single_axis<closed<label::e_z>, regular<host_container_types, scalar>>>;
 
 // Floating point comparison
-constexpr scalar tol{1e-5};
+constexpr scalar tol{1e-5f};
 
 }  // anonymous namespace
 

@@ -1,6 +1,6 @@
 /** Detray library, part of the ACTS project (R&D line)
  *
- * (c) 2022 CERN for the benefit of the ACTS project
+ * (c) 2022-2023 CERN for the benefit of the ACTS project
  *
  * Mozilla Public License Version 2.0
  */
@@ -15,6 +15,7 @@
 
 // System include(s).
 #include <cstddef>
+#include <iterator>
 
 namespace detray::n_axis {
 
@@ -73,7 +74,7 @@ struct regular {
     /// @returns the corresponding bin index
     DETRAY_HOST_DEVICE
     int bin(const scalar_t v) const {
-        return static_cast<int>((v - span()[0]) / bin_width() + 1) - 1;
+        return static_cast<int>((v - span()[0]) / bin_width() + 1.f) - 1;
     }
 
     /// Access function to a range with binned neighborhood
@@ -108,7 +109,8 @@ struct regular {
     DETRAY_HOST_DEVICE
     array_type<scalar_t, 2> bin_edges(const dindex ibin) const {
         const scalar_t width{bin_width()};
-        const scalar_t lower_edge{span()[0] + ibin * width};
+        const scalar_t lower_edge{span()[0] +
+                                  static_cast<scalar_t>(ibin) * width};
         return {lower_edge, lower_edge + width};
     }
 
@@ -126,7 +128,7 @@ struct regular {
         const scalar_t step{bin_width()};
 
         for (dindex ib = 0; ib <= nbins(); ++ib) {
-            edges.push_back(sp[0] + ib * step);
+            edges.push_back(sp[0] + static_cast<scalar_t>(ib) * step);
         }
 
         return edges;
@@ -176,6 +178,8 @@ struct irregular {
     using vector_type = typename dcontainers::template vector_type<T>;
     template <typename T, std::size_t N>
     using array_type = typename dcontainers::template array_type<T, N>;
+    using index_type = typename std::iterator_traits<
+        typename vector_type<scalar_t>::iterator>::difference_type;
 
     static constexpr binning type = binning::e_irregular;
 
@@ -208,8 +212,11 @@ struct irregular {
     /// @returns the corresponding bin index
     DETRAY_HOST_DEVICE
     int bin(const scalar_t v) const {
-        auto bins_begin = m_bin_edges->begin() + detail::get<0>(*m_edges_range);
-        auto bins_end = m_bin_edges->begin() + detail::get<1>(*m_edges_range);
+        auto bins_begin =
+            m_bin_edges->begin() +
+            static_cast<index_type>(detail::get<0>(*m_edges_range));
+        auto bins_end = m_bin_edges->begin() +
+                        static_cast<index_type>(detail::get<1>(*m_edges_range));
 
         return static_cast<int>(detail::lower_bound(bins_begin, bins_end, v) -
                                 bins_begin) -
@@ -253,7 +260,7 @@ struct irregular {
         const dindex offset{detail::get<0>(*m_edges_range)};
 
         return {(*m_bin_edges)[offset + ibin],
-                (*m_bin_edges)[offset + ibin + 1]};
+                (*m_bin_edges)[offset + ibin + 1u]};
     }
 
     /// @return the values of the edges of all bins - uses dynamic memory
@@ -264,9 +271,12 @@ struct irregular {
         vector_type<scalar_t> edges;
         detail::call_reserve(edges, nbins());
 
-        edges.insert(edges->end(),
-                     m_bin_edges->begin() + detail::get<0>(*m_edges_range),
-                     m_bin_edges->begin() + detail::get<1>(*m_edges_range));
+        edges.insert(
+            edges->end(),
+            m_bin_edges->begin() +
+                static_cast<index_type>(detail::get<0>(*m_edges_range)),
+            m_bin_edges->begin() +
+                static_cast<index_type>(detail::get<1>(*m_edges_range)));
 
         return edges;
     }

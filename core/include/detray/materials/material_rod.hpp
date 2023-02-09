@@ -1,6 +1,6 @@
 /** Detray library, part of the ACTS project (R&D line)
  *
- * (c) 2022 CERN for the benefit of the ACTS project
+ * (c) 2022-2023 CERN for the benefit of the ACTS project
  *
  * Mozilla Public License Version 2.0
  */
@@ -21,9 +21,9 @@ struct material_rod {
     using scalar_type = scalar_t;
     using material_type = material<scalar_t>;
 
-    material_rod() = default;
+    constexpr material_rod() = default;
 
-    material_rod(const material_type& material, scalar_type radius)
+    constexpr material_rod(const material_type& material, scalar_type radius)
         : m_material(material),
           m_radius(radius),
           m_radius_in_X0(radius / material.X0()),
@@ -33,12 +33,13 @@ struct material_rod {
     ///
     /// @param rhs is the right hand side to be compared to
     DETRAY_HOST_DEVICE
-    bool operator==(const material_rod<scalar_t>& rhs) const {
+    constexpr bool operator==(const material_rod<scalar_t>& rhs) const {
         return (m_material == rhs.get_material() && m_radius == rhs.radius());
     }
 
     /// Boolean operator
-    DETRAY_HOST_DEVICE constexpr operator bool() const {
+    DETRAY_HOST_DEVICE
+    constexpr operator bool() const {
         if (m_radius <= std::numeric_limits<scalar>::epsilon() ||
             m_material == vacuum<scalar_type>() || m_material.Z() == 0 ||
             m_material.mass_density() == 0) {
@@ -60,15 +61,14 @@ struct material_rod {
     scalar_type path_segment(const line_plane_intersection& is) const {
         // Assume that is.p2[0] is radial distance of line intersector
         if (is.p2[0] > m_radius) {
-            return 0;
+            return 0.f;
         }
 
-        auto const sin_incidence_angle = std::sqrt(
-            scalar_type(1.) - is.cos_incidence_angle * is.cos_incidence_angle);
+        const scalar_type sin_incidence_angle_2{
+            1.f - is.cos_incidence_angle * is.cos_incidence_angle};
 
-        return scalar_type(2.) *
-               std::sqrt(m_radius * m_radius - is.p2[0] * is.p2[0]) /
-               sin_incidence_angle;
+        return 2.f * std::sqrt((m_radius * m_radius - is.p2[0] * is.p2[0]) /
+                               sin_incidence_angle_2);
     }
     /// Return the path segment in X0
     scalar_type path_segment_in_X0(const line_plane_intersection& is) const {

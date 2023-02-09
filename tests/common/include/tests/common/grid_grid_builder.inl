@@ -50,8 +50,8 @@ TEST(grid, grid_factory) {
     const scalar minR{0.f};
     const scalar maxR{10.f};
     const scalar minPhi{0.f};
-    const scalar maxPhi{M_PI};
-    mask<annulus2D<>> ann2{0UL, minR, maxR, minPhi, maxPhi, 0.f, 0.f, 0.f};
+    const scalar maxPhi{constant<scalar>::pi};
+    mask<annulus2D<>> ann2{0u, minR, maxR, minPhi, maxPhi, 0.f, 0.f, 0.f};
 
     // Grid with correctly initialized axes, but empty bin content
     auto ann_gr = gr_factory.new_grid(ann2, {5, 10});
@@ -61,7 +61,7 @@ TEST(grid, grid_factory) {
     EXPECT_EQ(ann_axis_r.label(), label::e_r);
     EXPECT_EQ(ann_axis_r.bounds(), bounds::e_closed);
     EXPECT_EQ(ann_axis_r.binning(), binning::e_regular);
-    EXPECT_EQ(ann_axis_r.nbins(), 5UL);
+    EXPECT_EQ(ann_axis_r.nbins(), 5u);
     EXPECT_NEAR(ann_axis_r.span()[0], 0.f,
                 std::numeric_limits<scalar>::epsilon());
     EXPECT_NEAR(ann_axis_r.span()[1], 10.f,
@@ -71,9 +71,9 @@ TEST(grid, grid_factory) {
     point3 p = {0.5f, 2.f, 0.f};
     vector3 d{};
     auto loc_p = ann_gr.global_to_local(Identity, p, d);
-    ann_gr.populate(loc_p, 3UL);
+    ann_gr.populate(loc_p, 3u);
 
-    EXPECT_FLOAT_EQ(ann_gr.search(loc_p)[0], 3UL);
+    EXPECT_EQ(ann_gr.search(loc_p)[0], 3u);
 
     // gr_builder.to_string(ann_gr);
 
@@ -84,8 +84,8 @@ TEST(grid, grid_factory) {
 
     auto cyl_gr = gr_factory.template new_grid<cylinder2D<>>(
         {bin_edges_z.front(), bin_edges_z.back(), 0.f,
-         2.f * static_cast<scalar>(M_PI)},
-        {bin_edges_z.size() - 1, 10UL}, {bin_edges_phi, bin_edges_z},
+         2.f * constant<scalar>::pi},
+        {bin_edges_z.size() - 1, 10u}, {bin_edges_phi, bin_edges_z},
         std::tuple<circular<label::e_rphi>, closed<label::e_cyl_z>>{},
         std::tuple<regular<>, irregular<>>{});
 
@@ -94,7 +94,7 @@ TEST(grid, grid_factory) {
     EXPECT_EQ(cyl_axis_z.label(), label::e_cyl_z);
     EXPECT_EQ(cyl_axis_z.bounds(), bounds::e_closed);
     EXPECT_EQ(cyl_axis_z.binning(), binning::e_irregular);
-    EXPECT_EQ(cyl_axis_z.nbins(), 7UL);
+    EXPECT_EQ(cyl_axis_z.nbins(), 7u);
     EXPECT_NEAR(cyl_axis_z.span()[0], -10.f,
                 std::numeric_limits<scalar>::epsilon());
     EXPECT_NEAR(cyl_axis_z.span()[1], 9.f,
@@ -102,29 +102,29 @@ TEST(grid, grid_factory) {
 
     // Test fill a bin to see, if bin content was correctly initialized
     loc_p = cyl_gr.global_to_local(Identity, p, d);
-    cyl_gr.populate(loc_p, 33UL);
+    cyl_gr.populate(loc_p, 33u);
 
-    EXPECT_FLOAT_EQ(cyl_gr.search(loc_p)[0], 33UL);
+    EXPECT_EQ(cyl_gr.search(loc_p)[0], 33u);
 
     // Build the same cylinder grid from a mask
     const scalar r{5.f};
     const scalar n_half_z{-10.f};
     const scalar p_half_z{9.f};
-    mask<cylinder2D<>> cyl2{0UL, r, n_half_z, p_half_z};
+    mask<cylinder2D<>> cyl2{0u, r, n_half_z, p_half_z};
 
     auto cyl_gr2 = gr_factory.template new_grid<circular<label::e_rphi>,
                                                 closed<label::e_cyl_z>,
                                                 regular<>, irregular<>>(
-        cyl2, {bin_edges_z.size() - 1, 10UL}, {bin_edges_phi, bin_edges_z});
+        cyl2, {bin_edges_z.size() - 1, 10u}, {bin_edges_phi, bin_edges_z});
 
     // Get grid collection with the correct allocator
     auto grid_coll = gr_factory.new_collection<decltype(cyl_gr)>();
-    EXPECT_TRUE(grid_coll.size() == 0UL);
+    EXPECT_TRUE(grid_coll.size() == 0u);
     grid_coll.push_back(cyl_gr);
     grid_coll.push_back(cyl_gr2);
-    EXPECT_TRUE(grid_coll.size() == 2UL);
+    EXPECT_TRUE(grid_coll.size() == 2u);
 
-    EXPECT_FLOAT_EQ(grid_coll[0].search(loc_p)[0], 33UL);
+    EXPECT_EQ(grid_coll[0].search(loc_p)[0], 33u);
     // gr_factory.to_string(grid_coll[0]);
 }
 
@@ -141,8 +141,8 @@ TEST(grid, grid_builder) {
                                  detray::detail::bin_associator>{};
 
     // The cylinder portals are at the end of the surface range by construction
-    const auto cyl_mask = mask<cylinder2D<>>{0UL, 10.f, -500.f, 500.f};
-    std::size_t n_phi_bins{5UL}, n_z_bins{4UL};
+    const auto cyl_mask = mask<cylinder2D<>>{0u, 10.f, -500.f, 500.f};
+    std::size_t n_phi_bins{5u}, n_z_bins{4u};
 
     // Build empty grid
     gbuilder.init_grid(cyl_mask, {n_phi_bins, n_z_bins});
@@ -152,7 +152,7 @@ TEST(grid, grid_builder) {
     EXPECT_EQ(cyl_axis_z.label(), label::e_cyl_z);
     EXPECT_EQ(cyl_axis_z.bounds(), bounds::e_closed);
     EXPECT_EQ(cyl_axis_z.binning(), binning::e_regular);
-    EXPECT_EQ(cyl_axis_z.nbins(), 4UL);
+    EXPECT_EQ(cyl_axis_z.nbins(), 4u);
     EXPECT_NEAR(cyl_axis_z.span()[0], -500.f,
                 std::numeric_limits<scalar>::epsilon());
     EXPECT_NEAR(cyl_axis_z.span()[1], 500.f,
@@ -196,8 +196,8 @@ TEST(grid, decorator_grid_builder) {
     // gbuilder.set_add_passives();
 
     // The cylinder portals are at the end of the surface range by construction
-    const auto cyl_mask = mask<cylinder2D<>>{0UL, 10.f, -500.f, 500.f};
-    std::size_t n_phi_bins{5UL}, n_z_bins{4UL};
+    const auto cyl_mask = mask<cylinder2D<>>{0u, 10.f, -500.f, 500.f};
+    std::size_t n_phi_bins{5u}, n_z_bins{4u};
 
     // Build empty grid
     gbuilder.init_grid(cyl_mask, {n_phi_bins, n_z_bins});
@@ -205,12 +205,13 @@ TEST(grid, decorator_grid_builder) {
     EXPECT_TRUE(d.volumes().size() == 0);
 
     // Now init the volume
-    gbuilder.init_vol(d, volume_id::e_cylinder,
-                      {0., 10., -5., 5., -M_PI, M_PI});
+    gbuilder.init_vol(
+        d, volume_id::e_cylinder,
+        {0.f, 10.f, -5.f, 5.f, -constant<scalar>::pi, constant<scalar>::pi});
 
     const auto& vol = d.volumes().back();
-    EXPECT_TRUE(d.volumes().size() == 1);
-    EXPECT_EQ(vol.index(), 0);
+    EXPECT_TRUE(d.volumes().size() == 1u);
+    EXPECT_EQ(vol.index(), 0u);
     EXPECT_EQ(vol.id(), volume_id::e_cylinder);
 
     // Add some portals first
@@ -219,11 +220,11 @@ TEST(grid, decorator_grid_builder) {
     typename portal_cylinder_factory_t::sf_data_collection cyl_sf_data;
     cyl_sf_data.push_back(
         std::make_unique<surface_data<test_detector_t, cylinder2D<>>>(
-            transform3(point3{0.f, 0.f, 0.f}), 0UL,
+            transform3(point3{0.f, 0.f, 0.f}), 0u,
             std::vector<scalar>{10.f, -1500.f, 1500.f}));
     cyl_sf_data.push_back(
         std::make_unique<surface_data<test_detector_t, cylinder2D<>>>(
-            transform3(point3{0.f, 0.f, 0.f}), 2UL,
+            transform3(point3{0.f, 0.f, 0.f}), 2u,
             std::vector<scalar>{20.f, -1500.f, 1500.f}));
     pt_cyl_factory->add_components(std::move(cyl_sf_data));
 
@@ -271,7 +272,7 @@ TEST(grid, decorator_grid_builder) {
 
     const auto& cyl_axis_z = gbuilder().template get_axis<label::e_cyl_z>();
     EXPECT_EQ(cyl_axis_z.label(), label::e_cyl_z);
-    EXPECT_EQ(cyl_axis_z.nbins(), 4UL);
+    EXPECT_EQ(cyl_axis_z.nbins(), 4u);
 
     gbuilder.build(d);
 
@@ -281,7 +282,7 @@ TEST(grid, decorator_grid_builder) {
     EXPECT_FALSE(vol.empty());
     // only the portals are referenced through the volume
     typename detector_registry::toy_detector::object_link_type sf_range{};
-    sf_range[0] = {0UL, 3UL};
+    sf_range[0] = {0u, 3u};
     // toy detector makes no distinction between the surface types
     EXPECT_EQ(vol.full_range(), sf_range[geo_obj_id::e_sensitive]);
     EXPECT_EQ(vol.template obj_link<geo_obj_id::e_portal>(),
@@ -292,12 +293,12 @@ TEST(grid, decorator_grid_builder) {
               sf_range[geo_obj_id::e_passive]);
 
     // Only the portals should be in the detector's surface container now
-    EXPECT_EQ(d.surfaces().size(), 3UL);
-    EXPECT_EQ(d.mask_store().template size<mask_id::e_portal_cylinder2>(), 3UL);
-    EXPECT_EQ(d.mask_store().template size<mask_id::e_portal_ring2>(), 0UL);
-    EXPECT_EQ(d.mask_store().template size<mask_id::e_cylinder2>(), 3UL);
-    EXPECT_EQ(d.mask_store().template size<mask_id::e_rectangle2>(), 3UL);
-    EXPECT_EQ(d.mask_store().template size<mask_id::e_trapezoid2>(), 1UL);
+    EXPECT_EQ(d.surfaces().size(), 3u);
+    EXPECT_EQ(d.mask_store().template size<mask_id::e_portal_cylinder2>(), 3u);
+    EXPECT_EQ(d.mask_store().template size<mask_id::e_portal_ring2>(), 0u);
+    EXPECT_EQ(d.mask_store().template size<mask_id::e_cylinder2>(), 3u);
+    EXPECT_EQ(d.mask_store().template size<mask_id::e_rectangle2>(), 3u);
+    EXPECT_EQ(d.mask_store().template size<mask_id::e_trapezoid2>(), 1u);
 
     // check the portals in the detector
     for (const auto& sf : d.surfaces()) {
@@ -314,7 +315,7 @@ TEST(grid, decorator_grid_builder) {
     for (std::size_t gbin{0}; gbin < cyl_grid.nbins(); ++gbin) {
         for (auto& sf : cyl_grid.at(gbin)) {
             EXPECT_TRUE(sf.is_sensitive());
-            EXPECT_EQ(sf.volume(), 0UL);
+            EXPECT_EQ(sf.volume(), 0u);
             EXPECT_EQ(sf.transform(), trf_idx++);
         }
     }

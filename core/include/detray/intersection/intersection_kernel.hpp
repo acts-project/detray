@@ -46,9 +46,9 @@ struct intersection_initialize {
         is_container_t &is_container, const traj_t &traj,
         const surface_t &surface,
         const transform_container_t &contextual_transforms,
-        const scalar mask_tolerance = 0.) const {
+        const scalar mask_tolerance = 0.f) const {
 
-        std::size_t count = 0;
+        std::size_t count{0u};
 
         const auto &ctf = contextual_transforms[surface.transform()];
 
@@ -70,7 +70,7 @@ struct intersection_initialize {
                 }
             }
 
-            if (count > 0) {
+            if (count > 0u) {
                 return count;
             }
         }
@@ -110,7 +110,7 @@ struct intersection_update {
         const mask_group_t &mask_group, const mask_range_t &mask_range,
         const traj_t &traj, const surface_t &surface,
         const transform_container_t &contextual_transforms,
-        const scalar mask_tolerance = 0.) const {
+        const scalar mask_tolerance = 0.f) const {
 
         const auto &ctf = contextual_transforms[surface.transform()];
 

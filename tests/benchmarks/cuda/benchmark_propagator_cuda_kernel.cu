@@ -56,7 +56,7 @@ void propagator_benchmark(
     vecmem::data::jagged_vector_view<intersection_t>& candidates_data) {
 
     constexpr int thread_dim = 2 * WARP_SIZE;
-    int block_dim = tracks_data.size() / thread_dim + 1;
+    int block_dim = static_cast<int>(tracks_data.size()) / thread_dim + 1;
 
     // run the test kernel
     propagator_benchmark_kernel<<<block_dim, thread_dim>>>(

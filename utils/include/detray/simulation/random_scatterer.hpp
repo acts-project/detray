@@ -1,6 +1,6 @@
 /** Detray library, part of the ACTS project (R&D line)
  *
- * (c) 2023 CERN for the benefit of the ACTS project
+ * (c) 2022-2023 CERN for the benefit of the ACTS project
  *
  * Mozilla Public License Version 2.0
  */
@@ -28,14 +28,14 @@ struct random_scatterer : actor {
 
     struct state {
         std::random_device rd{};
-        std::mt19937 generator{rd()};
+        std::mt19937_64 generator{rd()};
 
         /// Constructor with seed
         ///
         /// @param sd the seed number
-        state(const unsigned int sd = 0) { generator.seed(sd); }
+        state(const uint_fast64_t sd = 0u) { generator.seed(sd); }
 
-        void set_seed(const unsigned int sd) { generator.seed(sd); }
+        void set_seed(const uint_fast64_t sd) { generator.seed(sd); }
     };
 
     /// Observes a material interactor state @param interactor_state
@@ -51,23 +51,25 @@ struct random_scatterer : actor {
             auto& stepping = prop_state._stepping;
             auto& generator = simulator_state.generator;
 
-            const auto r_theta = std::normal_distribution<scalar_type>(
-                0, M_SQRT2 * interactor_state.scattering_angle)(generator);
-            const auto r_phi =
-                std::uniform_real_distribution<double>(-M_PI, M_PI)(generator);
+            const scalar_type r_theta{std::normal_distribution<scalar_type>(
+                0.f, constant<scalar_type>::sqrt2 *
+                         interactor_state.scattering_angle)(generator)};
+            const scalar_type r_phi{std::uniform_real_distribution<scalar_type>(
+                -constant<scalar_type>::pi,
+                constant<scalar_type>::pi)(generator)};
 
             const auto dir = stepping._bound_params.dir();
 
             // xaxis of curvilinear plane
-            const vector3 u{-dir[1], dir[0], 0};
+            const vector3 u{-dir[1], dir[0], 0.f};
             vector3 new_dir = axis_rotation<transform3_type>(u, r_theta)(dir);
             new_dir = axis_rotation<transform3_type>(dir, r_phi)(new_dir);
 
             auto& vector = stepping._bound_params.vector();
 
-            matrix_operator().element(vector, e_bound_theta, 0) =
+            matrix_operator().element(vector, e_bound_theta, 0u) =
                 getter::theta(new_dir);
-            matrix_operator().element(vector, e_bound_phi, 0) =
+            matrix_operator().element(vector, e_bound_phi, 0u) =
                 getter::phi(new_dir);
         }
     }

@@ -176,7 +176,7 @@ struct join_iterator {
     DETRAY_HOST_DEVICE
     constexpr join_iterator(const iterator_coll_t &begins,
                             const iterator_coll_t &ends)
-        : m_begins(&begins), m_ends(&ends), m_iter{(*m_begins)[0]}, m_idx{0} {}
+        : m_begins(&begins), m_ends(&ends), m_iter{(*m_begins)[0]}, m_idx{0u} {}
 
     /// Fully parametrized construction
     DETRAY_HOST_DEVICE
@@ -202,9 +202,9 @@ struct join_iterator {
     DETRAY_HOST_DEVICE constexpr auto operator++() -> join_iterator & {
         ++m_iter;
         // Switch to next range in the collection
-        constexpr std::size_t max_idx =
-            sizeof(iterator_coll_t) / sizeof(iterator_t) - 1;
-        if (m_iter == (*m_ends)[m_idx] and m_idx < max_idx) {
+        constexpr std::size_t max_idx{
+            sizeof(iterator_coll_t) / sizeof(iterator_t) - 1u};
+        if ((m_iter == (*m_ends)[m_idx]) and (m_idx < max_idx)) {
             ++m_idx;
             m_iter = (*m_begins)[m_idx];
         }
@@ -216,15 +216,15 @@ struct join_iterator {
               std::enable_if_t<detray::ranges::bidirectional_iterator_v<I>,
                                bool> = true>
     DETRAY_HOST_DEVICE constexpr auto operator--() -> join_iterator & {
-        if (m_iter != (*m_begins)[m_idx] and m_idx > 0) {
+        if (m_iter != (*m_begins)[m_idx] and m_idx > 0u) {
             // Normal case
             --m_idx;
             --m_iter;
-        } else if (m_idx > 0) {
+        } else if (m_idx > 0u) {
             // Iterator has reached last valid position in this range during the
             // previous decrement. Now go to the end of the previous range
             --m_idx;
-            m_iter = (*m_ends)[m_idx] - difference_type{1};
+            m_iter = (*m_ends)[m_idx] - 1;
         }
         return *this;
     }
@@ -246,7 +246,7 @@ struct join_iterator {
         join_iterator<iterator_coll_t> tmp(*this);
         // walk through join to catch the switch between intermediate ranges
         difference_type i{j};
-        if (i >= difference_type{0}) {
+        if (i >= 0) {
             while (i--) {
                 ++tmp;
             };
@@ -279,7 +279,7 @@ struct join_iterator {
         if (m_idx < other.m_idx) {
             // Negative distance
             difference_type diff{m_iter - (*m_ends)[m_idx]};
-            for (std::size_t i{m_idx + 1}; i < other.m_idx; ++i) {
+            for (std::size_t i{m_idx + 1u}; i < other.m_idx; ++i) {
                 diff += (*m_begins)[i] - (*m_ends)[i];
             }
             diff += (*other.m_begins)[m_idx] - other.m_iter;
@@ -287,7 +287,7 @@ struct join_iterator {
         } else {
             // Positive distance
             difference_type diff{m_iter - (*m_begins)[m_idx]};
-            for (std::size_t i{m_idx - 1}; i > other.m_idx; --i) {
+            for (std::size_t i{m_idx - 1u}; i > other.m_idx; --i) {
                 diff += (*m_ends)[i] - (*m_begins)[i];
             }
             diff += (*other.m_ends)[other.m_idx] - other.m_iter;
@@ -329,10 +329,9 @@ struct join_iterator {
     template <typename I = iterator_t,
               std::enable_if_t<detray::ranges::random_access_iterator_v<I>,
                                bool> = true>
-    DETRAY_HOST_DEVICE constexpr auto operator[](const dindex i) const
+    DETRAY_HOST_DEVICE constexpr auto operator[](const difference_type i) const
         -> const value_type & {
-        difference_type offset{static_cast<difference_type>(i) -
-                               (m_iter - (*m_begins)[0])};
+        difference_type offset{i - (m_iter - (*m_begins)[0])};
         return *(*this + offset);
     }
 
@@ -340,10 +339,9 @@ struct join_iterator {
     template <typename I = iterator_t,
               std::enable_if_t<detray::ranges::random_access_iterator_v<I>,
                                bool> = true>
-    DETRAY_HOST_DEVICE constexpr auto operator[](const dindex i)
+    DETRAY_HOST_DEVICE constexpr auto operator[](const difference_type i)
         -> value_type & {
-        difference_type offset{static_cast<difference_type>(i) -
-                               (m_iter - (*m_begins)[0])};
+        difference_type offset{i - (m_iter - (*m_begins)[0])};
         return *(*this + offset);
     }
 

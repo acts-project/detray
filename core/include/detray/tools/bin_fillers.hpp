@@ -132,7 +132,7 @@ struct bin_associator {
         -> void {
         // Fill the surfaces into the grid by matching their contour onto the
         // grid bins
-        bin_association(ctx, surfaces, transforms, masks, grid, {0.1, 0.1},
+        bin_association(ctx, surfaces, transforms, masks, grid, {0.1f, 0.1f},
                         false);
     }
 };

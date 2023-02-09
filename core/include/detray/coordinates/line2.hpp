@@ -1,6 +1,6 @@
 /** Detray library, part of the ACTS project
  *
- * (c) 2022 CERN for the benefit of the ACTS project
+ * (c) 2022-2023 CERN for the benefit of the ACTS project
  *
  * Mozilla Public License Version 2.0
  */
@@ -77,8 +77,7 @@ struct line2 : public coordinate_base<line2, transform3_t> {
         // Assign the sign depending on the position w.r.t line
         // Right: -1
         // Left: 1
-        const scalar_type sign =
-            vector::dot(r, t - p) > 0. ? scalar_type{-1.} : scalar_type{1.};
+        const scalar_type sign = vector::dot(r, t - p) > 0.f ? -1.f : 1.f;
 
         return this->operator()(local3, sign);
     }
@@ -98,7 +97,8 @@ struct line2 : public coordinate_base<line2, transform3_t> {
         const vector3 r = vector::cross(z, d);
 
         // Local Z poisition in global cartesian coordinate
-        const point3 locZ_in_global = trf.point_to_global(point3{0., 0., p[1]});
+        const point3 locZ_in_global =
+            trf.point_to_global(point3{0.f, 0.f, p[1]});
 
         return locZ_in_global + p[0] * vector::normalize(r);
     }
@@ -112,22 +112,21 @@ struct line2 : public coordinate_base<line2, transform3_t> {
 
         // y axis of the new frame is the z axis of line coordinate
         const auto new_yaxis =
-            matrix_operator().template block<3, 1>(trf3.matrix(), 0, 2);
+            matrix_operator().template block<3, 1>(trf3.matrix(), 0u, 2u);
 
         // x axis of the new frame is (yaxis x track direction)
-        auto new_xaxis = vector::cross(new_yaxis, dir);
-        new_xaxis = vector::normalize(new_xaxis);
+        const auto new_xaxis = vector::normalize(vector::cross(new_yaxis, dir));
 
         // z axis
         const auto new_zaxis = vector::cross(new_xaxis, new_yaxis);
 
-        matrix_operator().element(rot, 0, 0) = new_xaxis[0];
-        matrix_operator().element(rot, 1, 0) = new_xaxis[1];
-        matrix_operator().element(rot, 2, 0) = new_xaxis[2];
-        matrix_operator().template set_block<3, 1>(rot, new_yaxis, 0, 1);
-        matrix_operator().element(rot, 0, 2) = new_zaxis[0];
-        matrix_operator().element(rot, 1, 2) = new_zaxis[1];
-        matrix_operator().element(rot, 2, 2) = new_zaxis[2];
+        matrix_operator().element(rot, 0u, 0u) = new_xaxis[0];
+        matrix_operator().element(rot, 1u, 0u) = new_xaxis[1];
+        matrix_operator().element(rot, 2u, 0u) = new_xaxis[2];
+        matrix_operator().template set_block<3, 1>(rot, new_yaxis, 0u, 1u);
+        matrix_operator().element(rot, 0u, 2u) = new_zaxis[0];
+        matrix_operator().element(rot, 1u, 2u) = new_zaxis[1];
+        matrix_operator().element(rot, 2u, 2u) = new_zaxis[2];
 
         return rot;
     }
@@ -141,7 +140,7 @@ struct line2 : public coordinate_base<line2, transform3_t> {
 
         // Get d(x,y,z)/d(loc0, loc1)
         const auto bound_pos_to_free_pos_derivative =
-            matrix_operator().template block<3, 2>(frame, 0, 0);
+            matrix_operator().template block<3, 2>(frame, 0u, 0u);
 
         matrix_operator().template set_block(bound_to_free_jacobian,
                                              bound_pos_to_free_pos_derivative,
@@ -158,7 +157,7 @@ struct line2 : public coordinate_base<line2, transform3_t> {
 
         // Get d(loc0, loc1)/d(x,y,z)
         const auto free_pos_to_bound_pos_derivative =
-            matrix_operator().template block<2, 3>(frameT, 0, 0);
+            matrix_operator().template block<2, 3>(frameT, 0u, 0u);
 
         matrix_operator().template set_block(free_to_bound_jacobian,
                                              free_pos_to_bound_pos_derivative,
@@ -177,16 +176,16 @@ struct line2 : public coordinate_base<line2, transform3_t> {
         const auto frame = reference_frame(trf3, mask, pos, dir);
 
         // new x_axis
-        const auto new_xaxis = getter::vector<3>(frame, 0, 0);
+        const auto new_xaxis = getter::vector<3>(frame, 0u, 0u);
 
         // new y_axis
-        const auto new_yaxis = getter::vector<3>(frame, 0, 1);
+        const auto new_yaxis = getter::vector<3>(frame, 0u, 1u);
 
         // new z_axis
-        const auto new_zaxis = getter::vector<3>(frame, 0, 2);
+        const auto new_zaxis = getter::vector<3>(frame, 0u, 2u);
 
         // the projection of direction onto ref frame normal
-        scalar_type ipdn = 1. / vector::dot(dir, new_zaxis);
+        const scalar_type ipdn{1.f / vector::dot(dir, new_zaxis)};
 
         // d(n_x,n_y,n_z)/dPhi
         const auto dNdPhi = matrix_operator().template block<3, 1>(
@@ -202,7 +201,7 @@ struct line2 : public coordinate_base<line2, transform3_t> {
         // build the cross product of d(D)/d(eBoundPhi) components with y axis
         auto y_cross_dNdTheta = vector::cross(new_yaxis, dNdTheta);
 
-        const scalar_type C = ipdn * local2[0];
+        const scalar_type C{ipdn * local2[0]};
         // and correct for the x axis components
         vector3 phi_to_free_pos_derivative =
             y_cross_dNdPhi - new_xaxis * vector::dot(new_xaxis, y_cross_dNdPhi);

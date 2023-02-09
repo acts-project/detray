@@ -23,11 +23,11 @@ namespace detray {
  */
 template <typename scalar_t>
 static inline dvector<scalar_t> phi_values(scalar_t start_phi, scalar_t end_phi,
-                                           unsigned int lseg) {
+                                           dindex lseg) {
     dvector<scalar_t> values;
-    values.reserve(lseg + 1);
-    scalar_t step_phi = (end_phi - start_phi) / lseg;
-    for (unsigned int istep = 0; istep <= lseg; ++istep) {
+    values.reserve(lseg + 1u);
+    scalar_t step_phi = (end_phi - start_phi) / static_cast<scalar_t>(lseg);
+    for (unsigned int istep = 0u; istep <= lseg; ++istep) {
         values.push_back(start_phi + istep * step_phi);
     }
     return values;
@@ -45,8 +45,7 @@ static inline dvector<scalar_t> phi_values(scalar_t start_phi, scalar_t end_phi,
 template <typename point2_t, typename point3_t, typename links_t,
           typename transform3_t>
 dvector<point3_t> vertices(
-    const mask<annulus2D<>, links_t, transform3_t> &annulus_mask,
-    unsigned int lseg) {
+    const mask<annulus2D<>, links_t, transform3_t> &annulus_mask, dindex lseg) {
     using scalar_t = typename transform3_t::scalar_type;
 
     const auto &m_values = annulus_mask.values();
@@ -75,21 +74,21 @@ dvector<point3_t> vertices(
         //
         scalar_t m = std::tan(phi);
         point2_t dir = {math_ns::cos(phi), std::sin(phi)};
-        scalar_t x1 =
-            (O_x + O_y * m -
-             std::sqrt(-std::pow(O_x, 2) * std::pow(m, 2) + 2 * O_x * O_y * m -
-                       std::pow(O_y, 2) + std::pow(m, 2) * std::pow(r, 2) +
-                       std::pow(r, 2))) /
-            (std::pow(m, 2) + 1);
-        scalar_t x2 =
-            (O_x + O_y * m +
-             std::sqrt(-std::pow(O_x, 2) * std::pow(m, 2) + 2 * O_x * O_y * m -
-                       std::pow(O_y, 2) + std::pow(m, 2) * std::pow(r, 2) +
-                       std::pow(r, 2))) /
-            (std::pow(m, 2) + 1);
+        scalar_t x1 = (O_x + O_y * m -
+                       std::sqrt(-std::pow(O_x, 2.f) * std::pow(m, 2.f) +
+                                 2.f * O_x * O_y * m - std::pow(O_y, 2.f) +
+                                 std::pow(m, 2.f) * std::pow(r, 2.f) +
+                                 std::pow(r, 2.f))) /
+                      (std::pow(m, 2.f) + 1.f);
+        scalar_t x2 = (O_x + O_y * m +
+                       std::sqrt(-std::pow(O_x, 2.f) * std::pow(m, 2.f) +
+                                 2.f * O_x * O_y * m - std::pow(O_y, 2.f) +
+                                 std::pow(m, 2.f) * std::pow(r, 2.f) +
+                                 std::pow(r, 2.f))) /
+                      (std::pow(m, 2.f) + 1.f);
 
         point2_t v1 = {x1, m * x1};
-        if (vector::dot(v1, dir) > 0)
+        if (vector::dot(v1, dir) > 0.f)
             return v1;
         return {x2, m * x2};
     };
@@ -110,13 +109,13 @@ dvector<point3_t> vertices(
     for (auto iphi : inner_phi) {
         annulus_vertices.push_back(
             point3_t{min_r * math_ns::cos(iphi) + origin_x,
-                     min_r * std::sin(iphi) + origin_y, 0.});
+                     min_r * std::sin(iphi) + origin_y, 0.f});
     }
 
     for (auto ophi : outer_phi) {
         annulus_vertices.push_back(
             point3_t{max_r * math_ns::cos(ophi) + origin_x,
-                     max_r * std::sin(ophi) + origin_y, 0.});
+                     max_r * std::sin(ophi) + origin_y, 0.f});
     }
 
     return annulus_vertices;
@@ -158,13 +157,13 @@ dvector<point3_t> vertices(
     unsigned int /*ignored*/) {
     const auto &m_values = rectangle_mask.values();
     // left hand lower corner
-    point3_t lh_lc = {-m_values[0], -m_values[1], 0.};
+    point3_t lh_lc = {-m_values[0], -m_values[1], 0.f};
     // right hand lower corner
-    point3_t rh_lc = {m_values[0], -m_values[1], 0.};
+    point3_t rh_lc = {m_values[0], -m_values[1], 0.f};
     // right hand upper corner
-    point3_t rh_uc = {m_values[0], m_values[1], 0.};
+    point3_t rh_uc = {m_values[0], m_values[1], 0.f};
     // left hand upper corner
-    point3_t lh_uc = {-m_values[0], m_values[1], 0.};
+    point3_t lh_uc = {-m_values[0], m_values[1], 0.f};
     return {lh_lc, rh_lc, rh_uc, lh_uc};
     // Return the confining vertices
 }
@@ -203,13 +202,13 @@ dvector<point3_t> vertices(
 
     const auto &m_values = trapezoid_mask.values();
     // left hand lower corner
-    point3_t lh_lc = {-m_values[0], -m_values[2], 0.};
+    point3_t lh_lc = {-m_values[0], -m_values[2], 0.f};
     // right hand lower corner
-    point3_t rh_lc = {m_values[0], -m_values[2], 0.};
+    point3_t rh_lc = {m_values[0], -m_values[2], 0.f};
     // right hand upper corner
-    point3_t rh_uc = {m_values[1], m_values[2], 0.};
+    point3_t rh_uc = {m_values[1], m_values[2], 0.f};
     // left hand upper corner
-    point3_t lh_uc = {-m_values[1], m_values[2], 0.};
+    point3_t lh_uc = {-m_values[1], m_values[2], 0.f};
     // Return the confining vertices
     return {lh_lc, rh_lc, rh_uc, lh_uc};
 }
@@ -254,10 +253,10 @@ struct vertexer {
 template <typename scalar_t, typename point2_t>
 std::vector<point2_t> r_phi_polygon(scalar_t rmin, scalar_t rmax,
                                     scalar_t phimin, scalar_t phimax,
-                                    unsigned int nsegments = 1) {
+                                    unsigned int nsegments = 1u) {
 
     std::vector<point2_t> r_phi_poly;
-    r_phi_poly.reserve(2 * nsegments + 2);
+    r_phi_poly.reserve(2u * nsegments + 2u);
 
     scalar_t cos_min_phi = math_ns::cos(phimin);
     scalar_t sin_min_phi = std::sin(phimin);

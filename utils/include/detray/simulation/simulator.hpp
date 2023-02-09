@@ -1,6 +1,6 @@
 /** Detray library, part of the ACTS project (R&D line)
  *
- * (c) 2023 CERN for the benefit of the ACTS project
+ * (c) 2022-2023 CERN for the benefit of the ACTS project
  *
  * Mozilla Public License Version 2.0
  */
@@ -30,8 +30,8 @@ struct simulator {
     using scalar_type = typename detector_t::scalar_type;
 
     struct config {
-        scalar_type overstep_tolerance = -10 * detray::unit<scalar_type>::um;
-        scalar_type step_constraint = 10. * detray::unit<scalar_type>::mm;
+        scalar_type overstep_tolerance{-10.f * detray::unit<scalar_type>::um};
+        scalar_type step_constraint{10.f * detray::unit<scalar_type>::mm};
     };
 
     using transform3 = typename detector_t::transform3;
@@ -52,7 +52,7 @@ struct simulator {
     using propagator_type =
         propagator<stepper_type, navigator_type, actor_chain_type>;
 
-    simulator(unsigned int events, const detector_t& det,
+    simulator(std::size_t events, const detector_t& det,
               track_generator_t&& track_gen, smearer_t& smearer,
               const std::string directory = "")
         : m_events(events),
@@ -66,7 +66,7 @@ struct simulator {
 
     void run() {
 
-        for (unsigned int event_id = 0; event_id < m_events; event_id++) {
+        for (std::size_t event_id = 0u; event_id < m_events; event_id++) {
             typename event_writer<transform3, smearer_t>::state writer(
                 event_id, m_smearer, m_directory);
 
@@ -100,7 +100,7 @@ struct simulator {
 
     private:
     config m_cfg;
-    unsigned int m_events = 0;
+    std::size_t m_events{0u};
     std::string m_directory = "";
     std::unique_ptr<detector_t> m_detector;
     std::unique_ptr<track_generator_t> m_track_generator;

@@ -65,6 +65,7 @@ class grid {
     /// Backend storage type for the grid
     using bin_storage_type =
         typename container_types::template vector_type<bin_type>;
+
     /// Vecmem based grid view type
     using view_type =
         dmulti_view<dvector_view<bin_type>, typename axes_type::view_type>;
@@ -96,13 +97,13 @@ class grid {
     /// Create grid from container pointers - non-owning (both grid and axes)
     DETRAY_HOST_DEVICE
     grid(bin_storage_type *bin_data_ptr, axes_type &axes,
-         const dindex offset = 0)
+         const dindex offset = 0u)
         : m_data(bin_data_ptr, offset), m_axes(axes) {}
 
     /// Create grid from container pointers - non-owning (both grid and axes)
     DETRAY_HOST_DEVICE
     grid(bin_storage_type *bin_data_ptr, axes_type &&axes,
-         const dindex offset = 0)
+         const dindex offset = 0u)
         : m_data(bin_data_ptr, offset), m_axes(axes) {}
 
     /// Device-side construction from a vecmem based view type
@@ -143,8 +144,8 @@ class grid {
     /// @returns the total number of bins in the grid
     DETRAY_HOST_DEVICE inline constexpr auto nbins() const -> std::size_t {
         const auto n_bins_per_axis = m_axes.nbins();
-        std::size_t n_bins{1};
-        for (std::size_t i{0}; i < Dim; ++i) {
+        std::size_t n_bins{1u};
+        for (std::size_t i{0u}; i < Dim; ++i) {
             n_bins *= n_bins_per_axis[i];
         }
         return n_bins;

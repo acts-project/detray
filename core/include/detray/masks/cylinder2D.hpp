@@ -1,6 +1,6 @@
 /** Detray library, part of the ACTS project (R&D line)
  *
- * (c) 2020-2022 CERN for the benefit of the ACTS project
+ * (c) 2020-2023 CERN for the benefit of the ACTS project
  *
  * Mozilla Public License Version 2.0
  */
@@ -34,7 +34,7 @@ namespace detray {
 /// It is defined by r and the two half lengths rel to the coordinate center.
 template <bool kRadialCheck = false,
           template <typename> class intersector_t = cylinder_intersector,
-          std::size_t kMeasDim = 2>
+          unsigned int kMeasDim = 2u>
 class cylinder2D {
     public:
     /// The name for this shape
@@ -44,13 +44,13 @@ class cylinder2D {
     static constexpr bool check_radius = kRadialCheck;
 
     /// The measurement dimension
-    inline static constexpr const std::size_t meas_dim = kMeasDim;
+    inline static constexpr const unsigned int meas_dim{kMeasDim};
 
     enum boundaries : std::size_t {
-        e_r = 0,
-        e_n_half_z = 1,
-        e_p_half_z = 2,
-        e_size = 3,
+        e_r = 0u,
+        e_n_half_z = 1u,
+        e_p_half_z = 2u,
+        e_size = 3u,
     };
 
     /// Local coordinate frame for boundary checks
@@ -85,7 +85,7 @@ class cylinder2D {
     struct axes {
         static constexpr n_axis::label axis_loc0 = n_axis::label::e_rphi;
         static constexpr n_axis::label axis_loc1 = n_axis::label::e_cyl_z;
-        static constexpr std::size_t dim{2UL};
+        static constexpr std::size_t dim{2u};
 
         using types = std::tuple<n_axis::circular<axis_loc0>,
                                  n_axis::bounds_t<e_s, axis_loc1>>;
@@ -131,7 +131,8 @@ class cylinder2D {
 
     template <typename param_t>
     DETRAY_HOST_DEVICE inline typename param_t::point2 to_measurement(
-        param_t& param, const typename param_t::point2& offset = {0, 0}) const {
+        param_t& param,
+        const typename param_t::point2& offset = {0.f, 0.f}) const {
         return param.local() + offset;
     }
 };

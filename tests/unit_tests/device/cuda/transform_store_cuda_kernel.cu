@@ -23,7 +23,7 @@ __global__ void transform_test_kernel(
     vecmem::device_vector<point3<detray::scalar>> output(output_data);
 
     auto range = detray::ranges::subrange(store.get(ctx0),
-                                          dindex_range{0, store.size(ctx0)});
+                                          dindex_range{0u, store.size(ctx0)});
     output[threadIdx.x] =
         range[threadIdx.x].point_to_global(input[threadIdx.x]);
 }

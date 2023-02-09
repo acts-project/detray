@@ -77,7 +77,7 @@ struct cartesian2 final : public coordinate_base<cartesian2, transform3_t> {
     DETRAY_HOST_DEVICE inline point3 local_to_global(
         const transform3_t &trf3, const mask_t & /*mask*/, const point2 &p,
         const vector3 & /*d*/) const {
-        return trf3.point_to_global(point3{p[0], p[1], 0.});
+        return trf3.point_to_global(point3{p[0], p[1], 0.f});
     }
 
     template <typename mask_t>
@@ -87,10 +87,10 @@ struct cartesian2 final : public coordinate_base<cartesian2, transform3_t> {
                                              const vector3 & /*dir*/) const {
         vector3 ret;
         const matrix_type<3, 1> n =
-            matrix_operator().template block<3, 1>(trf3.matrix(), 0, 2);
-        ret[0] = matrix_operator().element(n, 0, 0);
-        ret[1] = matrix_operator().element(n, 1, 0);
-        ret[2] = matrix_operator().element(n, 2, 0);
+            matrix_operator().template block<3, 1>(trf3.matrix(), 0u, 2u);
+        ret[0] = matrix_operator().element(n, 0u, 0u);
+        ret[1] = matrix_operator().element(n, 1u, 0u);
+        ret[2] = matrix_operator().element(n, 2u, 0u);
         return ret;
     }
 
@@ -110,7 +110,7 @@ struct cartesian2 final : public coordinate_base<cartesian2, transform3_t> {
 
         // Get d(x,y,z)/d(loc0, loc1)
         const matrix_type<3, 2> bound_pos_to_free_pos_derivative =
-            matrix_operator().template block<3, 2>(frame, 0, 0);
+            matrix_operator().template block<3, 2>(frame, 0u, 0u);
 
         matrix_operator().template set_block(bound_to_free_jacobian,
                                              bound_pos_to_free_pos_derivative,

@@ -1,6 +1,6 @@
 /** Detray library, part of the ACTS project (R&D line)
  *
- * (c) 2020-2022 CERN for the benefit of the ACTS project
+ * (c) 2020-2023 CERN for the benefit of the ACTS project
  *
  * Mozilla Public License Version 2.0
  */
@@ -33,21 +33,21 @@ namespace detray {
 /// the precomputed value of 1 / (2 * bounds[2]), which avoids
 /// excessive floating point divisions.
 template <template <typename> class intersector_t = plane_intersector,
-          std::size_t kMeasDim = 2>
+          unsigned int kMeasDim = 2u>
 class trapezoid2D {
     public:
     /// The name for this shape
     inline static const std::string name = "trapezoid2D";
 
     /// The measurement dimension
-    inline static constexpr const std::size_t meas_dim = kMeasDim;
+    inline static constexpr const unsigned int meas_dim{kMeasDim};
 
     enum boundaries : std::size_t {
-        e_half_length_0 = 0,
-        e_half_length_1 = 1,
-        e_half_length_2 = 2,
-        e_divisor = 3,  // 1 / (2 * bounds[e_half_length_2])
-        e_size = 4,
+        e_half_length_0 = 0u,
+        e_half_length_1 = 1u,
+        e_half_length_2 = 2u,
+        e_divisor = 3u,  // 1 / (2 * bounds[e_half_length_2])
+        e_size = 4u,
     };
 
     /// Local coordinate frame for boundary checks
@@ -76,7 +76,7 @@ class trapezoid2D {
     struct axes {
         static constexpr n_axis::label axis_loc0 = n_axis::label::e_x;
         static constexpr n_axis::label axis_loc1 = n_axis::label::e_y;
-        static constexpr std::size_t dim{2UL};
+        static constexpr std::size_t dim{2u};
 
         /// How to convert into the local axis system and back
         template <typename algebra_t>
@@ -117,7 +117,8 @@ class trapezoid2D {
 
     template <typename param_t>
     DETRAY_HOST_DEVICE inline typename param_t::point2 to_measurement(
-        param_t& param, const typename param_t::point2& offset = {0, 0}) const {
+        param_t& param,
+        const typename param_t::point2& offset = {0.f, 0.f}) const {
         return param.local() + offset;
     }
 };

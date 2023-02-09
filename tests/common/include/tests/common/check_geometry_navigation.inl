@@ -1,6 +1,6 @@
 /** Detray library, part of the ACTS project (R&D line)
  *
- * (c) 2021-2022 CERN for the benefit of the ACTS project
+ * (c) 2021-2023 CERN for the benefit of the ACTS project
  *
  * Mozilla Public License Version 2.0
  */
@@ -43,8 +43,8 @@ using free_track_parameters_type = free_track_parameters<transform3_type>;
 TEST(ALGEBRA_PLUGIN, straight_line_navigation) {
 
     // Detector configuration
-    constexpr std::size_t n_brl_layers{4};
-    constexpr std::size_t n_edc_layers{7};
+    constexpr std::size_t n_brl_layers{4u};
+    constexpr std::size_t n_edc_layers{7u};
     vecmem::host_memory_resource host_mr;
     auto det = create_toy_geometry(host_mr, n_brl_layers, n_edc_layers);
 
@@ -57,10 +57,10 @@ TEST(ALGEBRA_PLUGIN, straight_line_navigation) {
     // Propagator
     propagator_t prop(stepper_t{}, navigator_t{});
 
-    constexpr std::size_t theta_steps{50};
-    constexpr std::size_t phi_steps{50};
+    constexpr std::size_t theta_steps{50u};
+    constexpr std::size_t phi_steps{50u};
 
-    const point3 ori{0., 0., 0.};
+    const point3 ori{0.f, 0.f, 0.f};
     // det.volume_by_pos(ori).index();
 
     // Iterate through uniformly distributed momentum directions
@@ -73,7 +73,7 @@ TEST(ALGEBRA_PLUGIN, straight_line_navigation) {
 
         // Now follow that ray with a track and check, if we find the same
         // volumes and distances along the way
-        free_track_parameters_type track(ray.pos(), 0, ray.dir(), -1);
+        free_track_parameters_type track(ray.pos(), 0.f, ray.dir(), -1.f);
         propagator_t::state propagation(track, det);
 
         // Retrieve navigation information
@@ -87,7 +87,7 @@ TEST(ALGEBRA_PLUGIN, straight_line_navigation) {
         EXPECT_EQ(obj_tracer.object_trace.size(), intersection_trace.size());
 
         std::stringstream debug_stream;
-        for (std::size_t intr_idx = 0; intr_idx < intersection_trace.size();
+        for (std::size_t intr_idx = 0u; intr_idx < intersection_trace.size();
              ++intr_idx) {
             debug_stream << "-------Intersection trace\n"
                          << "ray gun: "
@@ -98,13 +98,13 @@ TEST(ALGEBRA_PLUGIN, straight_line_navigation) {
         }
 
         // Check every single recorded intersection
-        for (std::size_t i = 0; i < obj_tracer.object_trace.size(); ++i) {
+        for (std::size_t i = 0u; i < obj_tracer.object_trace.size(); ++i) {
             if (obj_tracer[i].index != intersection_trace[i].second.index) {
                 // Intersection record at portal bound might be flipped
                 // (the portals overlap completely)
                 if (obj_tracer[i].index ==
-                        intersection_trace[i + 1].second.index and
-                    obj_tracer[i + 1].index ==
+                        intersection_trace[i + 1u].second.index and
+                    obj_tracer[i + 1u].index ==
                         intersection_trace[i].second.index) {
                     // Have already checked the next record
                     ++i;
@@ -123,16 +123,16 @@ TEST(ALGEBRA_PLUGIN, helix_navigation) {
     using namespace navigation;
 
     // Detector configuration
-    constexpr std::size_t n_brl_layers{4};
-    constexpr std::size_t n_edc_layers{7};
+    constexpr std::size_t n_brl_layers{4u};
+    constexpr std::size_t n_edc_layers{7u};
     vecmem::host_memory_resource host_mr;
 
     using b_field_t = decltype(
         create_toy_geometry(std::declval<vecmem::host_memory_resource &>(),
                             n_brl_layers, n_edc_layers))::bfield_type;
 
-    const vector3 B{0. * unit<scalar>::T, 0. * unit<scalar>::T,
-                    2. * unit<scalar>::T};
+    const vector3 B{0.f * unit<scalar>::T, 0.f * unit<scalar>::T,
+                    2.f * unit<scalar>::T};
 
     auto det = create_toy_geometry(
         host_mr,
@@ -148,15 +148,15 @@ TEST(ALGEBRA_PLUGIN, helix_navigation) {
     // Propagator
     propagator_t prop(stepper_t{}, navigator_t{});
 
-    constexpr std::size_t theta_steps{10};
-    constexpr std::size_t phi_steps{10};
+    constexpr std::size_t theta_steps{10u};
+    constexpr std::size_t phi_steps{10u};
 
     // det.volume_by_pos(ori).index();
-    const point3 ori{0., 0., 0.};
-    const scalar p_mag{10. * unit<scalar>::GeV};
+    const point3 ori{0.f, 0.f, 0.f};
+    const scalar p_mag{10.f * unit<scalar>::GeV};
 
     // Overstepping
-    constexpr scalar overstep_tol{-7. * unit<scalar>::um};
+    constexpr scalar overstep_tol{-7.f * unit<scalar>::um};
 
     // Iterate through uniformly distributed momentum directions
     for (auto track : uniform_track_generator<free_track_parameters_type>(
@@ -183,7 +183,7 @@ TEST(ALGEBRA_PLUGIN, helix_navigation) {
         ASSERT_TRUE(prop.propagate(propagation)) << debug_printer.to_string();
 
         std::stringstream debug_stream;
-        for (std::size_t intr_idx = 0; intr_idx < intersection_trace.size();
+        for (std::size_t intr_idx = 0u; intr_idx < intersection_trace.size();
              ++intr_idx) {
             debug_stream << "-------Intersection trace\n"
                          << "helix gun: "
@@ -198,13 +198,13 @@ TEST(ALGEBRA_PLUGIN, helix_navigation) {
             << debug_printer.to_string() << debug_stream.str();
 
         // Check every single recorded intersection
-        for (std::size_t i = 0; i < obj_tracer.object_trace.size(); ++i) {
+        for (std::size_t i = 0u; i < obj_tracer.object_trace.size(); ++i) {
             if (obj_tracer[i].index != intersection_trace[i].second.index) {
                 // Intersection record at portal bound might be flipped
                 // (the portals overlap completely)
                 if (obj_tracer[i].index ==
-                        intersection_trace[i + 1].second.index and
-                    obj_tracer[i + 1].index ==
+                        intersection_trace[i + 1u].second.index and
+                    obj_tracer[i + 1u].index ==
                         intersection_trace[i].second.index) {
                     // Have already checked the next record
                     ++i;

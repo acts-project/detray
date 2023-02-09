@@ -1,6 +1,6 @@
 /** Detray library, part of the ACTS project (R&D line)
  *
- * (c) 2022 CERN for the benefit of the ACTS project
+ * (c) 2022-2023 CERN for the benefit of the ACTS project
  *
  * Mozilla Public License Version 2.0
  */
@@ -9,13 +9,14 @@
 
 #include "detray/definitions/geometry.hpp"
 #include "detray/definitions/grid_axis.hpp"
+#include "detray/definitions/units.hpp"
 #include "detray/io/json_io.hpp"
 
 TEST(io, json_algebra_payload) {
 
     detray::transform_payload p;
-    p.tr = {100., 200., 300.};
-    p.rot = {1., 0., 0., 0., 1., 0., 0., 0., 1};
+    p.tr = {100.f, 200.f, 300.f};
+    p.rot = {1.f, 0.f, 0.f, 0.f, 1.f, 0.f, 0.f, 0.f, 1.f};
 
     nlohmann::json j;
     j["transform"] = p;
@@ -32,8 +33,9 @@ TEST(io, json_axis_payload) {
     ea.binning = detray::n_axis::binning::e_regular;
     ea.bounds = detray::n_axis::bounds::e_circular;
     ea.label = detray::n_axis::label::e_phi;
-    ea.edges = {-M_PI, M_PI};
-    ea.bins = 10u;
+    ea.edges = {-detray::constant<detray::real_io>::pi,
+                detray::constant<detray::real_io>::pi};
+    ea.bins = 10UL;
 
     nlohmann::json je;
     je["axis"] = ea;
@@ -50,8 +52,8 @@ TEST(io, json_axis_payload) {
     va.binning = detray::n_axis::binning::e_irregular;
     va.bounds = detray::n_axis::bounds::e_closed;
     va.label = detray::n_axis::label::e_r;
-    va.edges = {0, 1, 4, 5, 8, 10};
-    va.bins = va.edges.size() - 1;
+    va.edges = {0.f, 1.f, 4.f, 5.f, 8.f, 10.f};
+    va.bins = va.edges.size() - 1UL;
 
     nlohmann::json jv;
     jv["axis"] = va;
@@ -67,17 +69,19 @@ TEST(io, json_axis_payload) {
 
 TEST(io, json_grid_payload) {
 
-    std::vector<std::vector<unsigned int>> entries = {{0, 1}, {0, 2}, {1, 1},
-                                                      {1, 2}, {2, 1}, {2, 2}};
+    std::vector<std::vector<unsigned int>> entries = {
+        {0u, 1u}, {0u, 2u}, {1u, 1u}, {1u, 2u}, {2u, 1u}, {2u, 2u}};
 
-    detray::axis_payload a0{detray::n_axis::binning::e_regular,
-                            detray::n_axis::bounds::e_circular,
-                            detray::n_axis::label::e_phi,
-                            std::vector<detray::real_io>{-M_PI, M_PI}, 3u};
+    detray::axis_payload a0{
+        detray::n_axis::binning::e_regular, detray::n_axis::bounds::e_circular,
+        detray::n_axis::label::e_phi,
+        std::vector<detray::real_io>{-detray::constant<detray::real_io>::pi,
+                                     detray::constant<detray::real_io>::pi},
+        3u};
 
     detray::axis_payload a1{
         detray::n_axis::binning::e_regular, detray::n_axis::bounds::e_closed,
-        detray::n_axis::label::e_r, std::vector<detray::real_io>{0, 2u}, 2u};
+        detray::n_axis::label::e_r, std::vector<detray::real_io>{0.f, 2.f}, 2u};
 
     detray::grid_payload g;
     g.axes = {a0, a1};
@@ -107,17 +111,19 @@ TEST(io, single_object_payload) {
 TEST(io, grid_objects_payload) {
     detray::grid_objects_payload go;
 
-    std::vector<std::vector<unsigned int>> entries = {{0, 1}, {0, 2}, {1, 1},
-                                                      {1, 2}, {2, 1}, {2, 2}};
+    std::vector<std::vector<unsigned int>> entries = {
+        {0u, 1u}, {0u, 2u}, {1u, 1u}, {1u, 2u}, {2u, 1u}, {2u, 2u}};
 
-    detray::axis_payload a0{detray::n_axis::binning::e_regular,
-                            detray::n_axis::bounds::e_circular,
-                            detray::n_axis::label::e_phi,
-                            std::vector<detray::real_io>{-M_PI, M_PI}, 3u};
+    detray::axis_payload a0{
+        detray::n_axis::binning::e_regular, detray::n_axis::bounds::e_circular,
+        detray::n_axis::label::e_phi,
+        std::vector<detray::real_io>{-detray::constant<detray::real_io>::pi,
+                                     detray::constant<detray::real_io>::pi},
+        3u};
 
     detray::axis_payload a1{
         detray::n_axis::binning::e_regular, detray::n_axis::bounds::e_closed,
-        detray::n_axis::label::e_r, std::vector<detray::real_io>{0, 2u}, 2u};
+        detray::n_axis::label::e_r, std::vector<detray::real_io>{0.f, 2.f}, 2u};
 
     detray::grid_payload g;
     g.axes = {a0, a1};
@@ -133,8 +139,8 @@ TEST(io, grid_objects_payload) {
     EXPECT_EQ(go.grid.entries, pgo.grid.entries);
 
     detray::transform_payload p;
-    p.tr = {100., 200., 300.};
-    p.rot = {1., 0., 0., 0., 1., 0., 0., 0., 1};
+    p.tr = {100.f, 200.f, 300.f};
+    p.rot = {1.f, 0.f, 0.f, 0.f, 1.f, 0.f, 0.f, 0.f, 1.f};
 
     detray::grid_objects_payload got;
     got.transform = p;
@@ -152,17 +158,19 @@ TEST(io, grid_objects_payload) {
 
 TEST(io, json_links_payload) {
 
-    std::vector<std::vector<unsigned int>> entries = {{0, 1}, {0, 2}, {1, 1},
-                                                      {1, 2}, {2, 1}, {2, 2}};
+    std::vector<std::vector<unsigned int>> entries = {
+        {0u, 1u}, {0u, 2u}, {1u, 1u}, {1u, 2u}, {2u, 1u}, {2u, 2u}};
 
-    detray::axis_payload a0{detray::n_axis::binning::e_regular,
-                            detray::n_axis::bounds::e_circular,
-                            detray::n_axis::label::e_phi,
-                            std::vector<detray::real_io>{-M_PI, M_PI}, 3u};
+    detray::axis_payload a0{
+        detray::n_axis::binning::e_regular, detray::n_axis::bounds::e_circular,
+        detray::n_axis::label::e_phi,
+        std::vector<detray::real_io>{-detray::constant<detray::real_io>::pi,
+                                     detray::constant<detray::real_io>::pi},
+        3u};
 
     detray::axis_payload a1{
         detray::n_axis::binning::e_regular, detray::n_axis::bounds::e_closed,
-        detray::n_axis::label::e_r, std::vector<detray::real_io>{0, 2u}, 2u};
+        detray::n_axis::label::e_r, std::vector<detray::real_io>{0.f, 2.f}, 2u};
 
     detray::grid_payload g;
     g.axes = {a0, a1};
@@ -194,7 +202,7 @@ TEST(io, json_mask_payload) {
 
     detray::mask_payload m;
     m.shape = detray::mask_payload::mask_shape::cylinder3;
-    m.boundaries = {10., 100.};
+    m.boundaries = {10.f, 100.f};
 
     nlohmann::json j;
     j["mask"] = m;
@@ -208,7 +216,7 @@ TEST(io, json_mask_payload) {
 TEST(io, json_material_slab_payload) {
 
     detray::material_slab_payload m;
-    m.slab = {1., 2., 3., 4., 5.};
+    m.slab = {1.f, 2.f, 3.f, 4.f, 5.f};
 
     nlohmann::json j;
     j["material"] = m;
@@ -223,15 +231,15 @@ TEST(io, json_surface_payload) {
     detray::surface_payload s;
 
     detray::transform_payload t;
-    t.tr = {100., 200., 300.};
-    t.rot = {1., 0., 0., 0., 1., 0., 0., 0., 1};
+    t.tr = {100.f, 200.f, 300.f};
+    t.rot = {1.f, 0.f, 0.f, 0.f, 1.f, 0.f, 0.f, 0.f, 1.f};
 
     detray::mask_payload m;
     m.shape = detray::mask_payload::mask_shape::trapezoid2;
-    m.boundaries = {10., 20., 34., 1.4};
+    m.boundaries = {10.f, 20.f, 34.f, 1.4f};
 
     detray::material_slab_payload mat;
-    mat.slab = {1., 2., 3., 4., 5.};
+    mat.slab = {1.f, 2.f, 3.f, 4.f, 5.f};
 
     s.transform = t;
     s.mask = m;
@@ -259,15 +267,15 @@ TEST(io, json_portal_payload) {
     detray::surface_payload s;
 
     detray::transform_payload t;
-    t.tr = {100., 200., 300.};
-    t.rot = {1., 0., 0., 0., 1., 0., 0., 0., 1};
+    t.tr = {100.f, 200.f, 300.f};
+    t.rot = {1.f, 0.f, 0.f, 0.f, 1.f, 0.f, 0.f, 0.f, 1.f};
 
     detray::mask_payload m;
     m.shape = detray::mask_payload::mask_shape::trapezoid2;
-    m.boundaries = {10., 20., 34., 1.4};
+    m.boundaries = {10.f, 20.f, 34.f, 1.4f};
 
     detray::material_slab_payload mat;
-    mat.slab = {1., 2., 3., 4., 5.};
+    mat.slab = {1.f, 2.f, 3.f, 4.f, 5.f};
 
     s.transform = t;
     s.mask = m;
@@ -299,7 +307,7 @@ TEST(io, json_volume_bounds_payload) {
 
     detray::volume_bounds_payload vb;
     vb.type = detray::volume_id::e_cylinder;
-    vb.values = {0., 100., 120.};
+    vb.values = {0.f, 100.f, 120.f};
 
     nlohmann::json j;
     j["volume_bounds"] = vb;
@@ -313,12 +321,12 @@ TEST(io, json_volume_bounds_payload) {
 TEST(io, json_volume_payload) {
 
     detray::transform_payload t;
-    t.tr = {100., 200., 300.};
-    t.rot = {1., 0., 0., 0., 1., 0., 0., 0., 1};
+    t.tr = {100.f, 200.f, 300.f};
+    t.rot = {1.f, 0.f, 0.f, 0.f, 1.f, 0.f, 0.f, 0.f, 1.f};
 
     detray::volume_bounds_payload vb;
     vb.type = detray::volume_id::e_cylinder;
-    vb.values = {0., 100., 120.};
+    vb.values = {0.f, 100.f, 120.f};
 
     detray::single_object_payload so;
     so.link = 0u;
@@ -330,10 +338,10 @@ TEST(io, json_volume_payload) {
 
     detray::mask_payload m;
     m.shape = detray::mask_payload::mask_shape::trapezoid2;
-    m.boundaries = {10., 20., 34., 1.4};
+    m.boundaries = {10.f, 20.f, 34.f, 1.4f};
 
     detray::material_slab_payload mat;
-    mat.slab = {1., 2., 3., 4., 5.};
+    mat.slab = {1.f, 2.f, 3.f, 4.f, 5.f};
 
     s.transform = t;
     s.mask = m;

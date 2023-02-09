@@ -21,18 +21,17 @@ struct relativistic_quantities {
     using scalar_type = scalar_t;
 
     // values from RPP2018 table 33.1
-    // electron mass
-    const scalar_type Me = 0.5109989461 * unit<scalar_type>::MeV;
     // Bethe formular prefactor. 1/mol unit is just a factor 1 here.
-    const scalar_type K =
-        0.307075 * unit<scalar_type>::MeV * unit<scalar_type>::cm2;
+    static constexpr scalar_type K{
+        0.307075f * (unit<scalar_type>::MeV * unit<scalar_type>::cm2)};
     // Energy scale for plasma energy.
-    const scalar_type PlasmaEnergyScale = 28.816 * unit<scalar_type>::eV;
+    static constexpr scalar_type PlasmaEnergyScale{28.816f *
+                                                   unit<scalar_type>::eV};
 
-    scalar_type m_q2OverBeta2 = 0.0;
-    scalar_type m_beta2 = 0.0;
-    scalar_type m_betaGamma = 0.0;
-    scalar_type m_gamma = 0.0;
+    scalar_type m_q2OverBeta2{0.f};
+    scalar_type m_beta2{0.f};
+    scalar_type m_betaGamma{0.f};
+    scalar_type m_gamma{0.f};
 
     DETRAY_HOST_DEVICE
     relativistic_quantities(const scalar_type mass, const scalar_type qOverP,
@@ -41,33 +40,33 @@ struct relativistic_quantities {
         // q²/beta² = q² + m²(q/p)²
         m_q2OverBeta2 = q * q + (mass * qOverP) * (mass * qOverP);
         // 1/p = q/(qp) = (q/p)/q
-        const scalar_type mOverP = mass * std::abs(qOverP / q);
-        const scalar_type pOverM = scalar_type(1.0) / mOverP;
+        const scalar_type mOverP{mass * std::abs(qOverP / q)};
+        const scalar_type pOverM{1.f / mOverP};
         // beta² = p²/E² = p²/(m² + p²) = 1/(1 + (m/p)²)
-        m_beta2 = scalar_type(1.0) / (scalar_type(1.0) + mOverP * mOverP);
+        m_beta2 = 1.f / (1.f + mOverP * mOverP);
         // beta*gamma = (p/sqrt(m² + p²))*(sqrt(m² + p²)/m) = p/m
         m_betaGamma = pOverM;
         // gamma = sqrt(m² + p²)/m = sqrt(1 + (p/m)²)
-        m_gamma = std::sqrt(scalar_type(1.0) + pOverM * pOverM);
+        m_gamma = std::sqrt(1.f + pOverM * pOverM);
     }
 
     /// Compute q/p derivative of beta².
     DETRAY_HOST_DEVICE inline scalar_type derive_beta2(
         const scalar_type qOverP) const {
-        return -2 / (qOverP * m_gamma * m_gamma);
+        return -2.f / (qOverP * m_gamma * m_gamma);
     }
 
     /// Compute the 2 * mass * (beta * gamma)² mass term.
     DETRAY_HOST_DEVICE inline scalar_type compute_mass_term(
         const scalar_type mass) const {
-        return 2 * mass * m_betaGamma * m_betaGamma;
+        return 2.f * mass * m_betaGamma * m_betaGamma;
     }
 
     /// Compute mass term logarithmic derivative w/ respect to q/p.
     DETRAY_HOST_DEVICE inline scalar_type log_derive_mass_term(
         const scalar_type qOverP) const {
         // only need to compute d((beta*gamma)²)/(beta*gamma)²; rest cancels.
-        return -2 / qOverP;
+        return -2.f / qOverP;
     }
 
     /// Compute the maximum energy transfer in a single collision.
@@ -75,9 +74,11 @@ struct relativistic_quantities {
     /// Uses RPP2018 eq. 33.4.
     DETRAY_HOST_DEVICE inline scalar_type compute_WMax(
         const scalar_type mass) const {
-        const auto mfrac = Me / mass;
-        const auto nominator = 2 * Me * m_betaGamma * m_betaGamma;
-        const auto denonimator = 1.0 + 2 * m_gamma * mfrac + mfrac * mfrac;
+        const scalar_type mfrac{constant<scalar_type>::m_e / mass};
+        const scalar_type nominator{2.f * constant<scalar_type>::m_e *
+                                    m_betaGamma * m_betaGamma};
+        const scalar_type denonimator{1.f + 2.f * m_gamma * mfrac +
+                                      mfrac * mfrac};
         return nominator / denonimator;
     }
 
@@ -87,10 +88,12 @@ struct relativistic_quantities {
         // this is (q/p) * (beta/q).
         // both quantities have the same sign and the product must always be
         // positive. we can thus reuse the known (unsigned) quantity (q/beta)².
-        const auto a = std::abs(qOverP / std::sqrt(m_q2OverBeta2));
+        const scalar_type a{std::abs(qOverP / std::sqrt(m_q2OverBeta2))};
         // (m² + me²) / me = me (1 + (m/me)²)
-        const auto b = Me * (1.0f + (mass / Me) * (mass / Me));
-        return -2 * (a * b - 2 + m_beta2) / (qOverP * (a * b + 2));
+        const scalar_type rel_mass{mass / constant<scalar_type>::m_e};
+        const scalar_type b =
+            constant<scalar_type>::m_e * (1.0f + rel_mass * rel_mass);
+        return -2.f * (a * b - 2.f + m_beta2) / (qOverP * (a * b + 2.f));
     }
 
     /// Compute epsilon energy pre-factor for RPP2018 eq. 33.11.
@@ -104,14 +107,14 @@ struct relativistic_quantities {
     DETRAY_HOST_DEVICE inline scalar_type compute_epsilon(
         const scalar_type molarElectronDensity,
         const scalar_type thickness) const {
-        return 0.5 * K * molarElectronDensity * thickness * m_q2OverBeta2;
+        return 0.5f * K * molarElectronDensity * thickness * m_q2OverBeta2;
     }
 
     /// Compute epsilon logarithmic derivative w/ respect to q/p.
     DETRAY_HOST_DEVICE inline scalar_type log_derive_epsilon(
         const scalar_type qOverP) const {
         // only need to compute d(q²/beta²)/(q²/beta²); everything else cancels.
-        return 2 / (qOverP * m_gamma * m_gamma);
+        return 2.f / (qOverP * m_gamma * m_gamma);
     }
 
     /// Compute the density correction factor delta/2.
@@ -129,39 +132,39 @@ struct relativistic_quantities {
                 mat.molar_electron_density();
 
             // only relevant for very high ernergies; use arbitrary cutoff
-            if (m_betaGamma < scalar_type(10.0)) {
-                return scalar_type(0.);
+            if (m_betaGamma < 10.f) {
+                return 0.f;
             }
             // pre-factor according to RPP2019 table 33.1
-            const scalar_type plasmaEnergy =
-                PlasmaEnergyScale * std::sqrt(molar_electron_density);
+            const scalar_type plasmaEnergy{PlasmaEnergyScale *
+                                           std::sqrt(molar_electron_density)};
             return math_ns::log(m_betaGamma) +
                    math_ns::log(plasmaEnergy / mean_exitation_energy) - 0.5f;
         }
         // When the denstiy effect data is provided (RPP2018 eq. 33.7)
         else {
-            const scalar_type cden = density.get_C_density();
-            const scalar_type mden = density.get_M_density();
-            const scalar_type aden = density.get_A_density();
-            const scalar_type x0den = density.get_X0_density();
-            const scalar_type x1den = density.get_X1_density();
+            const scalar_type cden{density.get_C_density()};
+            const scalar_type mden{density.get_M_density()};
+            const scalar_type aden{density.get_A_density()};
+            const scalar_type x0den{density.get_X0_density()};
+            const scalar_type x1den{density.get_X1_density()};
 
-            const scalar_type x = math_ns::log10(m_betaGamma);
+            const scalar_type x{math_ns::log10(m_betaGamma)};
 
             scalar_type delta;
 
             // From Geant4
             // processes/electromagnetic/lowenergy/src/G4hBetheBlochModel.cc
             if (x < x0den) {
-                delta = 0.0;
+                delta = 0.f;
 
             } else {
-                delta = scalar_type(2.) * math_ns::log(10.) * x - cden;
+                delta = 2.f * constant<scalar_type>::ln10 * x - cden;
                 if (x < x1den)
                     delta += aden * math_ns::pow((x1den - x), mden);
             }
 
-            return delta / scalar_type(2.);
+            return 0.5f * delta;
         }
     }
 

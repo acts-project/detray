@@ -1,6 +1,6 @@
 /** Detray library, part of the ACTS project (R&D line)
  *
- * (c) 2022 CERN for the benefit of the ACTS project
+ * (c) 2022-2023 CERN for the benefit of the ACTS project
  *
  * Mozilla Public License Version 2.0
  */
@@ -32,16 +32,16 @@ struct pointwise_material_interactor : actor {
         using vector3 = __plugin::vector3<scalar>;
 
         /// The particle mass
-        scalar_type mass = 105.7 * unit<scalar_type>::MeV;
+        scalar_type mass{105.7f * unit<scalar_type>::MeV};
         /// The particle pdg
         int pdg = 13;  // default muon
 
         /// Evaluated energy loss
-        scalar_type e_loss = 0.;
+        scalar_type e_loss{0.f};
         /// Evaluated multiple scattering angle
-        scalar_type scattering_angle = 0.;
+        scalar_type scattering_angle{0.f};
         /// Evaluated sigma of qoverp
-        scalar_type sigma_qop = 0.;
+        scalar_type sigma_qop{0.f};
 
         bool do_covariance_transport = true;
         bool do_energy_loss = true;
@@ -49,9 +49,9 @@ struct pointwise_material_interactor : actor {
 
         DETRAY_HOST_DEVICE
         void reset() {
-            e_loss = 0;
-            scattering_angle = 0;
-            sigma_qop = 0;
+            e_loss = 0.f;
+            scattering_angle = 0.f;
+            sigma_qop = 0.f;
         }
     };
 
@@ -138,20 +138,21 @@ struct pointwise_material_interactor : actor {
 
         // Update bound qop value
         if (s.do_energy_loss) {
-            const auto &m = s.mass;
-            const scalar_type p = stepping().p();
+            const scalar_type m{s.mass};
+            const scalar_type p{stepping().p()};
 
             // Get new Energy
-            const auto nextE =
-                std::sqrt(m * m + p * p) - std::copysign(s.e_loss, sign);
+            const scalar_type nextE{
+                std::sqrt(m * m + p * p) -
+                std::copysign(s.e_loss, static_cast<scalar_type>(sign))};
 
             // put particle at rest if energy loss is too large
-            const auto nextP =
-                (m < nextE) ? std::sqrt(nextE * nextE - m * m) : 0;
+            const scalar_type nextP{
+                (m < nextE) ? std::sqrt(nextE * nextE - m * m) : 0.f};
 
-            const auto new_qop = stepping().charge() != 0.
-                                     ? stepping().charge() / nextP
-                                     : 1. / nextP;
+            const scalar_type new_qop{stepping().charge() != 0.f
+                                          ? stepping().charge() / nextP
+                                          : 1.f / nextP};
 
             stepping._bound_params.set_qop(new_qop);
 
@@ -159,11 +160,11 @@ struct pointwise_material_interactor : actor {
             if (s.do_covariance_transport) {
                 auto &covariance = stepping._bound_params.covariance();
 
-                const scalar_type variance_qop = s.sigma_qop * s.sigma_qop;
+                const scalar_type variance_qop{s.sigma_qop * s.sigma_qop};
 
                 matrix_operator().element(covariance, e_bound_qoverp,
                                           e_bound_qoverp) +=
-                    std::copysign(variance_qop, sign);
+                    std::copysign(variance_qop, static_cast<scalar_type>(sign));
             }
         }
     }
@@ -177,18 +178,17 @@ struct pointwise_material_interactor : actor {
             auto &covariance = stepping._bound_params.covariance();
 
             // variance of scattering angle
-            const scalar_type var_scattering_angle =
-                s.scattering_angle * s.scattering_angle;
+            const scalar_type var_scattering_angle{
+                std::copysign(s.scattering_angle * s.scattering_angle,
+                              static_cast<scalar_type>(sign))};
 
             const auto dir = stepping._bound_params.dir();
 
             matrix_operator().element(covariance, e_bound_phi, e_bound_phi) +=
-                sign * var_scattering_angle /
-                (dir[0] * dir[0] + dir[1] * dir[1]);
+                var_scattering_angle / (dir[0] * dir[0] + dir[1] * dir[1]);
 
             matrix_operator().element(covariance, e_bound_theta,
-                                      e_bound_theta) +=
-                sign * var_scattering_angle;
+                                      e_bound_theta) += var_scattering_angle;
         }
     }
 };

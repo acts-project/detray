@@ -1,6 +1,6 @@
 /** Detray library, part of the ACTS project (R&D line)
  *
- * (c) 2022 CERN for the benefit of the ACTS project
+ * (c) 2022-2023 CERN for the benefit of the ACTS project
  *
  * Mozilla Public License Version 2.0
  */
@@ -150,16 +150,16 @@ inline void create_telescope(context_t &ctx, const trajectory_t &traj,
         vector3 m_local_z = algebra::vector::normalize(m_placement._dir);
 
         // Project onto the weakest direction component of the normal vector
-        vector3 e_i{0., 0., 0.};
+        vector3 e_i{0.f, 0.f, 0.f};
         scalar min = std::numeric_limits<scalar>::infinity();
-        dindex i = dindex_invalid;
-        for (unsigned int k = 0; k < 3; ++k) {
+        unsigned int i{std::numeric_limits<uint>::max()};
+        for (unsigned int k = 0u; k < 3u; ++k) {
             if (m_local_z[k] < min) {
                 min = m_local_z[k];
                 i = k;
             }
         }
-        e_i[i] = 1.;
+        e_i[i] = 1.f;
         vector3 proj = algebra::vector::dot(m_local_z, e_i) * m_local_z;
         // Local x axis is the normal to local y,z
         vector3 m_local_x = algebra::vector::normalize(e_i - proj);
@@ -199,11 +199,12 @@ auto create_telescope_detector(
     vecmem::memory_resource &resource,
     covfie::field<detector_registry::telescope_detector::bfield_backend_t>
         &&bfield,
-    std::vector<scalar> pos, trajectory_t traj = {{0, 0, 0}, 0, {0, 0, 1}, -1},
-    scalar half_x = 20. * unit<scalar>::mm,
-    scalar half_y = 20. * unit<scalar>::mm,
+    std::vector<scalar> pos,
+    trajectory_t traj = {{0.f, 0.f, 0.f}, 0.f, {0.f, 0.f, 1.f}, -1.f},
+    scalar half_x = 20.f * unit<scalar>::mm,
+    scalar half_y = 20.f * unit<scalar>::mm,
     const material<scalar> mat = silicon_tml<scalar>(),
-    const scalar thickness = 80 * unit<scalar>::um) {
+    const scalar thickness = 80.f * unit<scalar>::um) {
 
     // detector type
     using detector_t = detector<telescope_types, covfie::field, container_t>;
@@ -224,8 +225,10 @@ auto create_telescope_detector(
     plane_config pl_config{half_x, half_y, pos, mat, thickness};
 
     // volume boundaries are not needed. Same goes for portals
-    det.new_volume(volume_id::e_cylinder, {0., 0., 0., 0., -M_PI, M_PI});
-    typename detector_t::volume_type &vol = det.volume_by_index(0);
+    det.new_volume(
+        volume_id::e_cylinder,
+        {0.f, 0.f, 0.f, 0.f, -constant<scalar>::pi, constant<scalar>::pi});
+    typename detector_t::volume_type &vol = det.volume_by_index(0u);
 
     // Add module surfaces to volume
     typename detector_t::surface_container surfaces(&resource);
@@ -258,15 +261,15 @@ auto create_telescope_detector(
     vecmem::memory_resource &resource,
     covfie::field<detector_registry::telescope_detector::bfield_backend_t>
         &&bfield,
-    dindex n_surfaces = 10, scalar tel_length = 500. * unit<scalar>::mm,
-    trajectory_t traj = {{0, 0, 0}, 0, {0, 0, 1}, -1},
-    scalar half_x = 20. * unit<scalar>::mm,
-    scalar half_y = 20. * unit<scalar>::mm) {
+    std::size_t n_surfaces = 10u, scalar tel_length = 500.f * unit<scalar>::mm,
+    trajectory_t traj = {{0.f, 0.f, 0.f}, 0.f, {0.f, 0.f, 1.f}, -1.f},
+    scalar half_x = 20.f * unit<scalar>::mm,
+    scalar half_y = 20.f * unit<scalar>::mm) {
     // Generate equidistant positions
     std::vector<scalar> positions = {};
-    scalar pos = 0.;
-    scalar dist = tel_length / (n_surfaces - 1);
-    for (std::size_t i = 0; i < n_surfaces; ++i) {
+    scalar pos{0.f};
+    scalar dist{tel_length / static_cast<scalar>(n_surfaces - 1u)};
+    for (std::size_t i = 0u; i < n_surfaces; ++i) {
         positions.push_back(pos);
         pos += dist;
     }
@@ -283,11 +286,11 @@ template <bool unbounded_planes = true,
           typename container_t = host_container_types>
 auto create_telescope_detector(
     vecmem::memory_resource &resource, std::vector<scalar> pos,
-    trajectory_t traj = {{0, 0, 0}, 0, {0, 0, 1}, -1},
-    scalar half_x = 20. * unit<scalar>::mm,
-    scalar half_y = 20. * unit<scalar>::mm,
+    trajectory_t traj = {{0.f, 0.f, 0.f}, 0.f, {0.f, 0.f, 1.f}, -1.f},
+    scalar half_x = 20.f * unit<scalar>::mm,
+    scalar half_y = 20.f * unit<scalar>::mm,
     const material<scalar> mat = silicon_tml<scalar>(),
-    const scalar thickness = 80 * unit<scalar>::um) {
+    const scalar thickness = 80.f * unit<scalar>::um) {
 
     // Build the geometry
     return create_telescope_detector<unbounded_planes, trajectory_t,
@@ -303,11 +306,11 @@ template <bool unbounded_planes = true,
           typename trajectory_t = detail::ray<__plugin::transform3<scalar>>,
           typename container_t = host_container_types>
 auto create_telescope_detector(
-    vecmem::memory_resource &resource, dindex n_surfaces = 10,
-    scalar tel_length = 500. * unit<scalar>::mm,
-    trajectory_t traj = {{0, 0, 0}, 0, {0, 0, 1}, -1},
-    scalar half_x = 20. * unit<scalar>::mm,
-    scalar half_y = 20. * unit<scalar>::mm) {
+    vecmem::memory_resource &resource, std::size_t n_surfaces = 10u,
+    scalar tel_length = 500.f * unit<scalar>::mm,
+    trajectory_t traj = {{0.f, 0.f, 0.f}, 0.f, {0.f, 0.f, 1.f}, -1.f},
+    scalar half_x = 20.f * unit<scalar>::mm,
+    scalar half_y = 20.f * unit<scalar>::mm) {
 
     // Build the geometry
     return create_telescope_detector<unbounded_planes, trajectory_t,

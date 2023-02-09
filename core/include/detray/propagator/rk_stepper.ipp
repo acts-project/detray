@@ -15,16 +15,17 @@ void detray::rk_stepper<magnetic_field_t, transform3_t, constraint_t, policy_t,
                         array_t>::state::advance_track() {
 
     const auto& sd = this->_step_data;
-    const auto& h = this->_step_size;
+    const scalar h{this->_step_size};
+    const scalar h_6{h * static_cast<scalar>(1. / 6.)};
     auto& track = this->_track;
     auto pos = track.pos();
     auto dir = track.dir();
 
     // Update the track parameters according to the equations of motion
-    pos = pos + h * dir + h * h / 6. * (sd.k1 + sd.k2 + sd.k3);
+    pos = pos + h * (dir + h_6 * (sd.k1 + sd.k2 + sd.k3));
     track.set_pos(pos);
 
-    dir = dir + h / 6. * (sd.k1 + 2. * (sd.k2 + sd.k3) + sd.k4);
+    dir = dir + h_6 * (sd.k1 + 2.f * (sd.k2 + sd.k3) + sd.k4);
     dir = vector::normalize(dir);
     track.set_dir(dir);
 
@@ -58,15 +59,15 @@ void detray::rk_stepper<magnetic_field_t, transform3_t, constraint_t, policy_t,
     /// missing Lambda part) and only exists for dFdu' in dlambda/dlambda.
 
     const auto& sd = this->_step_data;
-    const auto& h = this->_step_size;
+    const scalar h{this->_step_size};
     // const auto& mass = this->_mass;
     auto& track = this->_track;
     const auto dir = track.dir();
     const auto qop = track.qop();
 
     // Half step length
-    scalar half_h = h * 0.5;
-
+    const scalar half_h{h * 0.5f};
+    const scalar h_6{h * static_cast<scalar>(1. / 6.)};
     /*---------------------------------------------------------------------------
      * k_{n} is always in the form of [ A(T) X B ] where A is a function of r'
      * and B is magnetic field and X symbol is for cross product. Hence dk{n}dT
@@ -97,9 +98,9 @@ void detray::rk_stepper<magnetic_field_t, transform3_t, constraint_t, policy_t,
     // dFdT and dGdT are top-left 3x3 submatrix of equation (17)
     auto dFdT = matrix_operator().template identity<3, 3>();
     auto dGdT = matrix_operator().template identity<3, 3>();
-    dFdT = dFdT + h / 6. * (dk1dT + dk2dT + dk3dT);
+    dFdT = dFdT + h_6 * (dk1dT + dk2dT + dk3dT);
     dFdT = h * dFdT;
-    dGdT = dGdT + h / 6. * (dk1dT + 2. * (dk2dT + dk3dT) + dk4dT);
+    dGdT = dGdT + h_6 * (dk1dT + 2.f * (dk2dT + dk3dT) + dk4dT);
 
     // Calculate dk{n}dL where L is qop
     vector3 dk1dL = vector::cross(dir, sd.b_first);
@@ -111,16 +112,16 @@ void detray::rk_stepper<magnetic_field_t, transform3_t, constraint_t, policy_t,
                     qop * h * vector::cross(dk3dL, sd.b_last);
 
     // dFdL and dGdL are top-right 3x1 submatrix of equation (17)
-    vector3 dFdL = (h * h) / 6. * (dk1dL + dk2dL + dk3dL);
-    vector3 dGdL = h / 6. * (dk1dL + 2. * (dk2dL + dk3dL) + dk4dL);
+    vector3 dFdL = h * h_6 * (dk1dL + dk2dL + dk3dL);
+    vector3 dGdL = h_6 * (dk1dL + 2.f * (dk2dL + dk3dL) + dk4dL);
 
     // Set transport matrix (D) and update Jacobian transport
     //( JacTransport = D * JacTransport )
     auto D = matrix_operator().template identity<e_free_size, e_free_size>();
-    matrix_operator().set_block(D, dFdT, 0, 4);
-    matrix_operator().set_block(D, dFdL, 0, 7);
-    matrix_operator().set_block(D, dGdT, 4, 4);
-    matrix_operator().set_block(D, dGdL, 4, 7);
+    matrix_operator().set_block(D, dFdT, 0u, 4u);
+    matrix_operator().set_block(D, dFdL, 0u, 7u);
+    matrix_operator().set_block(D, dGdT, 4u, 4u);
+    matrix_operator().set_block(D, dGdL, 4u, 7u);
 
     /// Calculate (4,4) element of equation (17)
     /// NOTE: Let's skip this element for the moment
@@ -169,7 +170,7 @@ bool detray::rk_stepper<magnetic_field_t, transform3_t, constraint_t, policy_t,
 
     auto& sd = stepping._step_data;
 
-    scalar error_estimate = 0;
+    scalar error_estimate{0.f};
 
     // First Runge-Kutta point
     const vector3 spos = stepping().pos();
@@ -179,17 +180,17 @@ bool detray::rk_stepper<magnetic_field_t, transform3_t, constraint_t, policy_t,
     sd.b_first[1] = bvec[1];
     sd.b_first[2] = bvec[2];
 
-    sd.k1 = stepping.evaluate_k(sd.b_first, 0, 0, vector3{0, 0, 0});
+    sd.k1 = stepping.evaluate_k(sd.b_first, 0, 0.f, vector3{0.f, 0.f, 0.f});
 
     const auto try_rk4 = [&](const scalar& h) -> bool {
         // State the square and half of the step size
-        const scalar h2 = h * h;
-        const scalar half_h = h * 0.5;
+        const scalar h2{h * h};
+        const scalar half_h{h * 0.5f};
         auto pos = stepping().pos();
         auto dir = stepping().dir();
 
         // Second Runge-Kutta point
-        const vector3 pos1 = pos + half_h * dir + h2 * 0.125 * sd.k1;
+        const vector3 pos1 = pos + half_h * dir + h2 * 0.125f * sd.k1;
         const typename magnetic_field_t::output_t bvec1 =
             magnetic_field.at(pos1[0], pos1[1], pos1[2]);
         sd.b_middle[0] = bvec1[0];
@@ -201,7 +202,7 @@ bool detray::rk_stepper<magnetic_field_t, transform3_t, constraint_t, policy_t,
         sd.k3 = stepping.evaluate_k(sd.b_middle, 2, half_h, sd.k2);
 
         // Last Runge-Kutta point
-        const vector3 pos2 = pos + h * dir + h2 * 0.5 * sd.k3;
+        const vector3 pos2 = pos + h * dir + h2 * 0.5f * sd.k3;
         const typename magnetic_field_t::output_t bvec2 =
             magnetic_field.at(pos2[0], pos2[1], pos2[2]);
         sd.b_last[0] = bvec2[0];
@@ -221,17 +222,17 @@ bool detray::rk_stepper<magnetic_field_t, transform3_t, constraint_t, policy_t,
     // Initial step size estimate
     stepping.set_step_size(navigation());
 
-    scalar step_size_scaling = 1.;
-    size_t n_step_trials = 0;
+    scalar step_size_scaling{1.f};
+    std::size_t n_step_trials{0u};
 
     // Adjust initial step size to integration error
     while (!try_rk4(stepping._step_size)) {
 
         step_size_scaling = std::min(
-            std::max(0.25 * unit<scalar>::mm,
+            std::max(0.25f * unit<scalar>::mm,
                      std::sqrt(std::sqrt((stepping._tolerance /
-                                          std::abs(2. * error_estimate))))),
-            4.);
+                                          std::abs(2.f * error_estimate))))),
+            static_cast<scalar>(4));
 
         stepping._step_size *= step_size_scaling;
 
@@ -257,7 +258,7 @@ bool detray::rk_stepper<magnetic_field_t, transform3_t, constraint_t, policy_t,
     }
 
     // Update navigation direction
-    const step::direction step_dir = stepping._step_size >= 0
+    const step::direction step_dir = stepping._step_size >= 0.f
                                          ? step::direction::e_forward
                                          : step::direction::e_backward;
     stepping.set_direction(step_dir);

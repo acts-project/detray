@@ -1,6 +1,6 @@
 /** Detray library, part of the ACTS project (R&D line)
  *
- * (c) 2020-2022 CERN for the benefit of the ACTS project
+ * (c) 2020-2023 CERN for the benefit of the ACTS project
  *
  * Mozilla Public License Version 2.0
  */
@@ -22,22 +22,22 @@ using size_type = typename matrix_operator::size_ty;
 template <size_type ROWS, size_type COLS>
 using matrix_type = typename matrix_operator::template matrix_type<ROWS, COLS>;
 
-const scalar isclose = 1e-5;
+const scalar isclose{1e-5f};
 
 // This test cartesian2 coordinate
 TEST(coordinate, cartesian2) {
 
     // Preparation work
-    const vector3 z = {0., 0., 1.};
-    const vector3 x = {1., 0., 0.};
-    const point3 t = {2., 3., 4.};
+    const vector3 z = {0.f, 0.f, 1.f};
+    const vector3 x = {1.f, 0.f, 0.f};
+    const point3 t = {2.f, 3.f, 4.f};
     const transform3 trf(t, z, x);
     const cartesian2<transform3> c2;
-    const point3 global1 = {4., 7., 4.};
-    const vector3 mom = {1., 2., 3.};
+    const point3 global1 = {4.f, 7.f, 4.f};
+    const vector3 mom = {1.f, 2.f, 3.f};
     const vector3 d = vector::normalize(mom);
-    const scalar time = 0.1;
-    const scalar charge = -1.;
+    const scalar time{0.1f};
+    const scalar charge{-1.f};
     struct dummy_mask {
     } mask;
 
@@ -45,8 +45,8 @@ TEST(coordinate, cartesian2) {
     const point2 local = c2.global_to_local(trf, global1, d);
 
     // Check if the local position is correct
-    ASSERT_NEAR(local[0], 2., isclose);
-    ASSERT_NEAR(local[1], 4., isclose);
+    ASSERT_NEAR(local[0], 2.f, isclose);
+    ASSERT_NEAR(local[1], 4.f, isclose);
 
     // Local to global transformation
     const point3 global2 = c2.local_to_global(trf, mask, local, d);
@@ -67,37 +67,37 @@ TEST(coordinate, cartesian2) {
     const matrix_operator m;
 
     // Check if the bound vector is correct
-    ASSERT_NEAR(m.element(bound_vec, 0, 0), 2., isclose);
-    ASSERT_NEAR(m.element(bound_vec, 1, 0), 4., isclose);
-    ASSERT_NEAR(m.element(bound_vec, 2, 0), 1.1071487,
+    ASSERT_NEAR(m.element(bound_vec, 0u, 0u), 2.f, isclose);
+    ASSERT_NEAR(m.element(bound_vec, 1u, 0u), 4.f, isclose);
+    ASSERT_NEAR(m.element(bound_vec, 2u, 0u), 1.1071487f,
                 isclose);  // atan(2)
-    ASSERT_NEAR(m.element(bound_vec, 3, 0), 0.64052231,
+    ASSERT_NEAR(m.element(bound_vec, 3u, 0u), 0.64052231f,
                 isclose);  // atan(sqrt(5)/3)
-    ASSERT_NEAR(m.element(bound_vec, 4, 0), -1 / 3.7416574, isclose);
-    ASSERT_NEAR(m.element(bound_vec, 5, 0), 0.1, isclose);
+    ASSERT_NEAR(m.element(bound_vec, 4u, 0u), -1. / 3.7416574f, isclose);
+    ASSERT_NEAR(m.element(bound_vec, 5u, 0u), 0.1f, isclose);
 
     // Check if the same free vector is obtained
-    for (int i = 0; i < 8; i++) {
-        ASSERT_NEAR(m.element(free_vec1, i, 0), m.element(free_vec2, i, 0),
+    for (unsigned int i = 0u; i < 8u; i++) {
+        ASSERT_NEAR(m.element(free_vec1, i, 0u), m.element(free_vec2, i, 0u),
                     isclose);
     }
 
     // Normal vector
     const vector3 n =
         c2.normal(trf, mask, free_params.pos(), free_params.dir());
-    ASSERT_EQ(n, vector3({0., 0., 1.}));
+    ASSERT_EQ(n, vector3({0.f, 0.f, 1.f}));
 
     // Test Jacobian transformation
     const matrix_type<6, 6> J =
         c2.free_to_bound_jacobian(trf, mask, free_vec1) *
         c2.bound_to_free_jacobian(trf, mask, bound_vec);
 
-    for (std::size_t i = 0; i < 6; i++) {
-        for (std::size_t j = 0; j < 6; j++) {
+    for (unsigned int i = 0u; i < 6u; i++) {
+        for (unsigned int j = 0u; j < 6u; j++) {
             if (i == j) {
-                EXPECT_NEAR(m.element(J, i, j), 1., isclose);
+                EXPECT_NEAR(m.element(J, i, j), 1.f, isclose);
             } else {
-                EXPECT_NEAR(m.element(J, i, j), 0., isclose);
+                EXPECT_NEAR(m.element(J, i, j), 0.f, isclose);
             }
         }
     }

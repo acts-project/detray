@@ -31,8 +31,8 @@ using transform3 = __plugin::transform3<detray::scalar>;
 
 namespace {
 
-constexpr scalar epsilon{1e-3};
-constexpr scalar path_limit{5 * unit<scalar>::cm};
+constexpr scalar tol{1e-3f};
+constexpr scalar path_limit{5.f * unit<scalar>::cm};
 
 /// Compare helical track positions for stepper
 struct helix_inspector : actor {
@@ -85,7 +85,7 @@ struct helix_inspector : actor {
         const auto& stepping = prop_state._stepping;
 
         // Nothing has happened yet (first call of actor chain)
-        if (stepping.path_length() < epsilon || stepping._s < epsilon) {
+        if (stepping.path_length() < tol || stepping._s < tol) {
             return;
         }
 
@@ -115,19 +115,19 @@ struct helix_inspector : actor {
 
         const auto true_pos = hlx(stepping._s);
 
-        const point3 relative_error{scalar{1.} / stepping._s *
+        const point3 relative_error{1.f / stepping._s *
                                     (stepping().pos() - true_pos)};
 
-        ASSERT_NEAR(getter::norm(relative_error), 0, epsilon);
+        ASSERT_NEAR(getter::norm(relative_error), 0.f, tol);
 
         auto true_J = hlx.jacobian(stepping._s);
 
-        for (std::size_t i = 0; i < e_free_size; i++) {
-            for (std::size_t j = 0; j < e_free_size; j++) {
+        for (unsigned int i = 0u; i < e_free_size; i++) {
+            for (unsigned int j = 0u; j < e_free_size; j++) {
                 ASSERT_NEAR(
                     matrix_operator().element(stepping._jac_transport, i, j),
                     matrix_operator().element(true_J, i, j),
-                    stepping._s * epsilon * 10);
+                    stepping._s * tol * 10.f);
             }
         }
     }
@@ -145,9 +145,9 @@ TEST(ALGEBRA_PLUGIN, propagator_line_stepper) {
     using stepper_t = line_stepper<transform3>;
     using propagator_t = propagator<stepper_t, navigator_t, actor_chain<>>;
 
-    const point3 pos{0., 0., 0.};
-    const vector3 mom{1., 1., 0.};
-    free_track_parameters<transform3> track(pos, 0, mom, -1);
+    const point3 pos{0.f, 0.f, 0.f};
+    const vector3 mom{1.f, 1.f, 0.f};
+    free_track_parameters<transform3> track(pos, 0.f, mom, -1.f);
 
     propagator_t p(stepper_t{}, navigator_t{});
 
@@ -165,16 +165,16 @@ class PropagatorWithRkStepper
 TEST_P(PropagatorWithRkStepper, propagator_rk_stepper) {
 
     // geomery navigation configurations
-    constexpr unsigned int theta_steps{50};
-    constexpr unsigned int phi_steps{50};
+    constexpr std::size_t theta_steps{50u};
+    constexpr std::size_t phi_steps{50u};
 
     // Set origin position of tracks
-    const point3 ori{0., 0., 0.};
-    constexpr scalar mom{10. * unit<scalar>::GeV};
+    const point3 ori{0.f, 0.f, 0.f};
+    constexpr scalar mom{10.f * unit<scalar>::GeV};
 
     // detector configuration
-    constexpr std::size_t n_brl_layers{4};
-    constexpr std::size_t n_edc_layers{7};
+    constexpr std::size_t n_brl_layers{4u};
+    constexpr std::size_t n_edc_layers{7u};
     vecmem::host_memory_resource host_mr;
 
     // Construct the constant magnetic field.
@@ -252,13 +252,13 @@ TEST_P(PropagatorWithRkStepper, propagator_rk_stepper) {
         //<< state._navigation.inspector().to_string() << std::endl;
 
         // Propagate with path limit
-        ASSERT_NEAR(pathlimit_aborter_state.path_limit(), path_limit, epsilon);
+        ASSERT_NEAR(pathlimit_aborter_state.path_limit(), path_limit, tol);
         ASSERT_FALSE(p.propagate(lim_state, lim_actor_states))
             << lim_print_insp_state.to_string() << std::endl;
         //<< lim_state._navigation.inspector().to_string() << std::endl;
 
         ASSERT_TRUE(lim_state._stepping.path_length() <
-                    std::abs(path_limit) + epsilon)
+                    std::abs(path_limit) + tol)
             << "path length: " << lim_state._stepping.path_length()
             << ", path limit: " << path_limit << std::endl;
         //<< state._navigation.inspector().to_string() << std::endl;
@@ -269,29 +269,29 @@ TEST_P(PropagatorWithRkStepper, propagator_rk_stepper) {
 INSTANTIATE_TEST_SUITE_P(
     PropagatorValidation1, PropagatorWithRkStepper,
     ::testing::Values(std::make_tuple(
-        __plugin::vector3<scalar>{0. * unit<scalar>::T, 0. * unit<scalar>::T,
-                                  2. * unit<scalar>::T},
-        -7. * unit<scalar>::um, std::numeric_limits<scalar>::max())));
+        __plugin::vector3<scalar>{0.f * unit<scalar>::T, 0.f * unit<scalar>::T,
+                                  2.f * unit<scalar>::T},
+        -7.f * unit<scalar>::um, std::numeric_limits<scalar>::max())));
 
 // Add some restrictions for more frequent navigation updates in the cases of
 // non-z-aligned B-fields
-INSTANTIATE_TEST_SUITE_P(PropagatorValidation2, PropagatorWithRkStepper,
-                         ::testing::Values(std::make_tuple(
-                             __plugin::vector3<scalar>{0. * unit<scalar>::T,
-                                                       1. * unit<scalar>::T,
-                                                       1. * unit<scalar>::T},
-                             -10. * unit<scalar>::um, 5. * unit<scalar>::mm)));
+INSTANTIATE_TEST_SUITE_P(
+    PropagatorValidation2, PropagatorWithRkStepper,
+    ::testing::Values(std::make_tuple(
+        __plugin::vector3<scalar>{0.f * unit<scalar>::T, 1.f * unit<scalar>::T,
+                                  1.f * unit<scalar>::T},
+        -10.f * unit<scalar>::um, 5.f * unit<scalar>::mm)));
 
-INSTANTIATE_TEST_SUITE_P(PropagatorValidation3, PropagatorWithRkStepper,
-                         ::testing::Values(std::make_tuple(
-                             __plugin::vector3<scalar>{1. * unit<scalar>::T,
-                                                       0. * unit<scalar>::T,
-                                                       1. * unit<scalar>::T},
-                             -10. * unit<scalar>::um, 5. * unit<scalar>::mm)));
+INSTANTIATE_TEST_SUITE_P(
+    PropagatorValidation3, PropagatorWithRkStepper,
+    ::testing::Values(std::make_tuple(
+        __plugin::vector3<scalar>{1.f * unit<scalar>::T, 0.f * unit<scalar>::T,
+                                  1.f * unit<scalar>::T},
+        -10.f * unit<scalar>::um, 5.f * unit<scalar>::mm)));
 
-INSTANTIATE_TEST_SUITE_P(PropagatorValidation4, PropagatorWithRkStepper,
-                         ::testing::Values(std::make_tuple(
-                             __plugin::vector3<scalar>{1. * unit<scalar>::T,
-                                                       1. * unit<scalar>::T,
-                                                       1. * unit<scalar>::T},
-                             -10. * unit<scalar>::um, 5. * unit<scalar>::mm)));
+INSTANTIATE_TEST_SUITE_P(
+    PropagatorValidation4, PropagatorWithRkStepper,
+    ::testing::Values(std::make_tuple(
+        __plugin::vector3<scalar>{1.f * unit<scalar>::T, 1.f * unit<scalar>::T,
+                                  1.f * unit<scalar>::T},
+        -10.f * unit<scalar>::um, 5.f * unit<scalar>::mm)));

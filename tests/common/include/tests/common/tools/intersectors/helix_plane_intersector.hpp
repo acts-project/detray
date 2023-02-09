@@ -50,34 +50,34 @@ struct helix_plane_intersector {
     template <typename mask_t>
     DETRAY_HOST_DEVICE inline output_type operator()(
         const helix_type &h, const mask_t &mask, const transform3_t &trf,
-        const scalar mask_tolerance = 0) const {
+        const scalar mask_tolerance = 0.f) const {
 
         output_type ret;
 
         // Guard against inifinite loops
-        constexpr std::size_t max_n_tries{100};
+        constexpr std::size_t max_n_tries{100u};
         // Tolerance for convergence
-        constexpr scalar tol{1e-3};
+        constexpr scalar tol{1e-3f};
 
         // Get the surface info
         const auto &sm = trf.matrix();
         // Surface normal
-        const vector3 sn = getter::vector<3>(sm, 0, 2);
+        const vector3 sn = getter::vector<3>(sm, 0u, 2u);
         // Surface translation
-        const point3 st = getter::vector<3>(sm, 0, 3);
+        const point3 st = getter::vector<3>(sm, 0u, 3u);
 
         // Starting point on the helix for the Newton iteration
-        scalar s{getter::norm(sn) - scalar{0.1}};
-        scalar s_prev{s - scalar{0.1}};
+        scalar s{getter::norm(sn) - 0.1f};
+        scalar s_prev{s - 0.1f};
 
         // f(s) = sn * (h.pos(s) - st) == 0
         // Run the iteration on s
-        std::size_t n_tries{0};
+        std::size_t n_tries{0u};
         while (std::abs(s - s_prev) > tol and n_tries < max_n_tries) {
             // f'(s) = sn * h.dir(s)
             const scalar denom{vector::dot(sn, h.dir(s))};
             // No intersection can be found if dividing by zero
-            if (denom == 0.) {
+            if (denom == 0.f) {
                 return ret;
             }
             // x_n+1 = x_n - f(s) / f'(s)
@@ -99,7 +99,7 @@ struct helix_plane_intersector {
         is.p2 = mask.to_local_frame(trf, is.p3, h.dir(s));
 
         is.status = mask.is_inside(is.p2, mask_tolerance);
-        is.direction = vector::dot(st, h.dir(s)) > scalar{0.}
+        is.direction = vector::dot(st, h.dir(s)) > 0.f
                            ? intersection::direction::e_along
                            : intersection::direction::e_opposite;
         is.link = mask.volume_link();

@@ -1,6 +1,6 @@
 /** Detray library, part of the ACTS project (R&D line)
  *
- * (c) 2022 CERN for the benefit of the ACTS project
+ * (c) 2022-2023 CERN for the benefit of the ACTS project
  *
  * Mozilla Public License Version 2.0
  */
@@ -23,7 +23,7 @@
 
 // System include(s)
 #include <algorithm>
-#include <climits>
+#include <limits>
 
 using namespace detray;
 using namespace detray::n_axis;
@@ -34,6 +34,7 @@ namespace {
 using point3 = __plugin::point3<scalar>;
 
 constexpr scalar inf{std::numeric_limits<scalar>::max()};
+constexpr scalar tol{1e-7f};
 
 // Either a data owning or non-owning 3D cartesian multi-axis
 template <bool ownership = true, typename containers = host_container_types>
@@ -44,7 +45,7 @@ bool constexpr is_owning = true;
 bool constexpr is_n_owning = false;
 
 // Bin edges for all axes
-dvector<scalar> bin_edges = {-10, 10., -20., 20., 0., 100.};
+dvector<scalar> bin_edges = {-10.f, 10.f, -20.f, 20.f, 0.f, 100.f};
 // Offsets into edges container and #bins for all axes
 dvector<dindex_range> edge_ranges = {{0u, 20u}, {2u, 40u}, {4u, 50u}};
 
@@ -67,9 +68,9 @@ struct bin_content_sequence {
 /// Test bin content element by element
 template <typename grid_t, typename content_t>
 void test_content(const grid_t& g, const point3& p, const content_t& expected) {
-    dindex i = 0;
+    dindex i = 0u;
     for (const auto& entry : g.search(p)) {
-        ASSERT_FLOAT_EQ(entry, expected[i++]) << " at index " << i - 1;
+        ASSERT_NEAR(entry, expected[i++], tol) << " at index " << i - 1u;
     }
 }
 
@@ -91,7 +92,7 @@ TEST(grid, single_grid) {
     // Fill the bin data for every test
     // bin test entries
     grid_owning_t::bin_storage_type bin_data{};
-    bin_data.resize(40'000);
+    bin_data.resize(40'000u);
     std::generate_n(
         bin_data.begin(), 40'000u,
         bin_content_sequence<populator<grid_owning_t::populator_impl>,
@@ -108,8 +109,8 @@ TEST(grid, single_grid) {
     grid_owning_t grid_own(std::move(bin_data_cp), std::move(axes_own));
 
     // Check a few basics
-    EXPECT_EQ(grid_own.Dim, 3);
-    EXPECT_EQ(grid_own.nbins(), 40'000UL);
+    EXPECT_EQ(grid_own.Dim, 3u);
+    EXPECT_EQ(grid_own.nbins(), 40'000u);
     auto y_axis = grid_own.get_axis<label::e_y>();
     EXPECT_EQ(y_axis.nbins(), 40u);
     auto z_axis =
@@ -170,13 +171,13 @@ TEST(grid, search) {
     grid_t grid_3D(&bin_data, ax_n_own);
 
     axis::multi_bin<3> mbin{2, 1, 0};
-    EXPECT_FLOAT_EQ(*grid_3D.at(mbin), scalar{23});
+    EXPECT_NEAR(*grid_3D.at(mbin), scalar{23}, tol);
     mbin = {14, 3, 23};
-    EXPECT_FLOAT_EQ(*grid_3D.at(mbin), scalar{42});
+    EXPECT_NEAR(*grid_3D.at(mbin), scalar{42}, tol);
     mbin = {0, 16, 7};
-    EXPECT_FLOAT_EQ(*grid_3D.at(mbin), scalar{42});
+    EXPECT_NEAR(*grid_3D.at(mbin), scalar{42}, tol);
     mbin = {6, 31, 44};
-    EXPECT_FLOAT_EQ(*grid_3D.at(mbin), scalar{42});*/
+    EXPECT_NEAR(*grid_3D.at(mbin), scalar{42}, tol);*/
 }
 
 /// Integration test: Test replace population
@@ -187,42 +188,42 @@ TEST(grid, replace_population) {
         grid<cartesian_3D<is_n_owning>, scalar, simple_serializer, replacer>;
     // init
     grid_t::bin_storage_type bin_data{};
-    bin_data.resize(40'000, populator<grid_t::populator_impl>::init<scalar>());
+    bin_data.resize(40'000u, populator<grid_t::populator_impl>::init<scalar>());
 
     // Create non-owning grid
     grid_t g3r(&bin_data, ax_n_own);
 
     // Test the initialization
-    point3 p = {-10., -20., 0.};
+    point3 p = {-10.f, -20.f, 0.f};
     for (int ib0 = 0; ib0 < 20; ++ib0) {
         for (int ib1 = 0; ib1 < 40; ++ib1) {
             for (int ib2 = 0; ib2 < 100; ib2 += 2) {
                 p = {static_cast<scalar>(-10 + ib0),
                      static_cast<scalar>(-20 + ib1),
-                     static_cast<scalar>(0. + ib2)};
-                EXPECT_FLOAT_EQ(g3r.search(p)[0],
-                                std::numeric_limits<scalar>::max());
+                     static_cast<scalar>(0 + ib2)};
+                EXPECT_NEAR(g3r.search(p)[0],
+                            std::numeric_limits<scalar>::max(), tol);
             }
         }
     }
 
-    p = {-4.5, -4.5, 4.5};
+    p = {-4.5f, -4.5f, 4.5f};
     // Fill and read
     g3r.populate(p, 3u);
-    EXPECT_FLOAT_EQ(g3r.search(p)[0], static_cast<scalar>(3u));
+    EXPECT_NEAR(g3r.search(p)[0], static_cast<scalar>(3u), tol);
 
     // Fill and read two times, fill first 0-99, then 100-199
-    for (unsigned int il = 0; il < 2; ++il) {
-        scalar counter{static_cast<scalar>(il * 100)};
+    for (unsigned int il = 0u; il < 2u; ++il) {
+        scalar counter{static_cast<scalar>(il * 100u)};
         for (int ib0 = 0; ib0 < 20; ++ib0) {
             for (int ib1 = 0; ib1 < 40; ++ib1) {
                 for (int ib2 = 0; ib2 < 100; ib2 += 2) {
                     p = {static_cast<scalar>(-10 + ib0),
                          static_cast<scalar>(-20 + ib1),
-                         static_cast<scalar>(0. + ib2)};
+                         static_cast<scalar>(0 + ib2)};
                     g3r.populate(p, counter);
-                    EXPECT_FLOAT_EQ(g3r.search(p)[0], counter);
-                    counter += scalar{1};
+                    EXPECT_NEAR(g3r.search(p)[0], counter, tol);
+                    counter += 1.f;
                 }
             }
         }
@@ -278,12 +279,12 @@ TEST(grid, complete_population) {
 
     // init
     grid_t::bin_storage_type bin_data{};
-    bin_data.resize(40'000, populator<grid_t::populator_impl>::init<scalar>());
+    bin_data.resize(40'000u, populator<grid_t::populator_impl>::init<scalar>());
     // Create non-owning grid
     grid_t g3c(&bin_data, ax_n_own);
 
     // Test the initialization
-    point3 p = {-10., -20., 0.};
+    point3 p = {-10.f, -20.f, 0.f};
     grid_t::bin_type invalid =
         populator<grid_t::populator_impl>::init<scalar>();
     for (int ib0 = 0; ib0 < 20; ++ib0) {
@@ -291,14 +292,14 @@ TEST(grid, complete_population) {
             for (int ib2 = 0; ib2 < 100; ib2 += 2) {
                 p = {static_cast<scalar>(-10 + ib0),
                      static_cast<scalar>(-20 + ib1),
-                     static_cast<scalar>(0. + ib2)};
+                     static_cast<scalar>(0 + ib2)};
                 test_content(g3c, p, invalid.content());
             }
         }
     }
 
-    p = {-4.5, -4.5, 4.5};
-    bin_content_t expected{4., 4., 4., 4.};
+    p = {-4.5f, -4.5f, 4.5f};
+    bin_content_t expected{4.f, 4.f, 4.f, 4.f};
     // Fill and read
     g3c.populate(p, 4u);
     test_content(g3c, p, expected);
@@ -354,13 +355,13 @@ TEST(grid, regular_attach_population) {
 
     // init
     grid_t::bin_storage_type bin_data{};
-    bin_data.resize(40'000, populator<grid_t::populator_impl>::init<scalar>());
+    bin_data.resize(40'000u, populator<grid_t::populator_impl>::init<scalar>());
 
     // Create non-owning grid
     grid_t g3ra(&bin_data, ax_n_own);
 
     // Test the initialization
-    point3 p = {-10., -20., 0.};
+    point3 p = {-10.f, -20.f, 0.f};
     grid_t::bin_type invalid =
         populator<grid_t::populator_impl>::init<scalar>();
     for (int ib0 = 0; ib0 < 20; ++ib0) {
@@ -368,14 +369,14 @@ TEST(grid, regular_attach_population) {
             for (int ib2 = 0; ib2 < 100; ib2 += 2) {
                 p = {static_cast<scalar>(-10 + ib0),
                      static_cast<scalar>(-20 + ib1),
-                     static_cast<scalar>(0. + ib2)};
+                     static_cast<scalar>(0 + ib2)};
                 test_content(g3ra, p, invalid.content());
             }
         }
     }
 
-    p = {-4.5, -4.5, 4.5};
-    bin_content_t expected{5., inf, inf, inf};
+    p = {-4.5f, -4.5f, 4.5f};
+    bin_content_t expected{5.f, inf, inf, inf};
     // Fill and read
     g3ra.populate(p, 5u);
     test_content(g3ra, p, expected);

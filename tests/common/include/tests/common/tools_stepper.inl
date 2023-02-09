@@ -1,6 +1,6 @@
 /** Detray library, part of the ACTS project (R&D line)
  *
- * (c) 2022 CERN for the benefit of the ACTS project
+ * (c) 2022-2023 CERN for the benefit of the ACTS project
  *
  * Mozilla Public License Version 2.0
  */
@@ -38,8 +38,8 @@ using crk_stepper_t =
 
 namespace {
 
-constexpr scalar epsilon = 1e-3;
-constexpr scalar path_limit = 100 * unit<scalar>::cm;
+constexpr scalar tol{1e-3f};
+constexpr scalar path_limit{100.f * unit<scalar>::cm};
 
 // dummy navigation struct
 struct nav_state {
@@ -52,7 +52,7 @@ struct nav_state {
     inline void set_no_trust() {}
     inline bool abort() { return false; }
 
-    scalar _step_size = 1. * unit<scalar>::mm;
+    scalar _step_size{1.f * unit<scalar>::mm};
 };
 
 // dummy propagator state
@@ -72,10 +72,10 @@ TEST(ALGEBRA_PLUGIN, line_stepper) {
     using line_stepper_t = line_stepper<transform3>;
     using cline_stepper_t = line_stepper<transform3, constrained_step<>>;
 
-    point3 pos{0., 0., 0.};
-    vector3 mom{1., 1., 0.};
-    free_track_parameters<transform3> track(pos, 0, mom, -1);
-    free_track_parameters<transform3> c_track(pos, 0, mom, -1);
+    point3 pos{0.f, 0.f, 0.f};
+    vector3 mom{1.f, 1.f, 0.f};
+    free_track_parameters<transform3> track(pos, 0.f, mom, -1.f);
+    free_track_parameters<transform3> c_track(pos, 0.f, mom, -1.f);
 
     line_stepper_t l_stepper;
     cline_stepper_t cl_stepper;
@@ -88,27 +88,28 @@ TEST(ALGEBRA_PLUGIN, line_stepper) {
     cline_stepper_t::state &cl_state = c_propagation._stepping;
 
     // Test the setting of step constraints
-    cl_state.template set_constraint<constraint::e_accuracy>(10 *
+    cl_state.template set_constraint<constraint::e_accuracy>(10.f *
                                                              unit<scalar>::mm);
-    cl_state.template set_constraint<constraint::e_actor>(2 * unit<scalar>::mm);
-    cl_state.template set_constraint<constraint::e_aborter>(5 *
+    cl_state.template set_constraint<constraint::e_actor>(2.f *
+                                                          unit<scalar>::mm);
+    cl_state.template set_constraint<constraint::e_aborter>(5.f *
                                                             unit<scalar>::mm);
-    cl_state.template set_constraint<constraint::e_user>(0.5 *
+    cl_state.template set_constraint<constraint::e_user>(0.5f *
                                                          unit<scalar>::mm);
     ASSERT_NEAR(cl_state.constraints().template size<>(),
-                0.5 * unit<scalar>::mm, epsilon);
+                0.5f * unit<scalar>::mm, tol);
 
     // Release all except 'actor', then set 'user' again
     cl_state.template release_step<constraint::e_accuracy>();
     cl_state.template release_step<constraint::e_aborter>();
     cl_state.template release_step<constraint::e_user>();
-    ASSERT_NEAR(cl_state.constraints().template size<>(), 2 * unit<scalar>::mm,
-                epsilon);
+    ASSERT_NEAR(cl_state.constraints().template size<>(),
+                2.f * unit<scalar>::mm, tol);
 
-    cl_state.template set_constraint<constraint::e_user>(0.5 *
+    cl_state.template set_constraint<constraint::e_user>(0.5f *
                                                          unit<scalar>::mm);
     ASSERT_NEAR(cl_state.constraints().template size<>(),
-                0.5 * unit<scalar>::mm, epsilon);
+                0.5f * unit<scalar>::mm, tol);
 
     // Run a few steps
     ASSERT_TRUE(l_stepper.step(propagation));
@@ -117,21 +118,21 @@ TEST(ALGEBRA_PLUGIN, line_stepper) {
     ASSERT_TRUE(cl_stepper.step(c_propagation));
 
     track = propagation._stepping();
-    ASSERT_FLOAT_EQ(track.pos()[0], 1. / std::sqrt(2));
-    ASSERT_FLOAT_EQ(track.pos()[1], 1. / std::sqrt(2));
-    ASSERT_FLOAT_EQ(track.pos()[2], 0.);
+    ASSERT_NEAR(track.pos()[0], constant<scalar>::inv_sqrt2, tol);
+    ASSERT_NEAR(track.pos()[1], constant<scalar>::inv_sqrt2, tol);
+    ASSERT_NEAR(track.pos()[2], 0.f, tol);
 
     c_track = c_propagation._stepping();
-    ASSERT_FLOAT_EQ(c_track.pos()[0], 1. / std::sqrt(2));
-    ASSERT_FLOAT_EQ(c_track.pos()[1], 1. / std::sqrt(2));
-    ASSERT_FLOAT_EQ(c_track.pos()[2], 0.);
+    ASSERT_NEAR(c_track.pos()[0], constant<scalar>::inv_sqrt2, tol);
+    ASSERT_NEAR(c_track.pos()[1], constant<scalar>::inv_sqrt2, tol);
+    ASSERT_NEAR(c_track.pos()[2], 0.f, tol);
 
     ASSERT_TRUE(l_stepper.step(propagation));
 
     track = propagation._stepping();
-    ASSERT_FLOAT_EQ(track.pos()[0], std::sqrt(2));
-    ASSERT_FLOAT_EQ(track.pos()[1], std::sqrt(2));
-    ASSERT_FLOAT_EQ(track.pos()[2], 0.);
+    ASSERT_NEAR(track.pos()[0], constant<scalar>::sqrt2, tol);
+    ASSERT_NEAR(track.pos()[1], constant<scalar>::sqrt2, tol);
+    ASSERT_NEAR(track.pos()[2], 0.f, tol);
 }
 
 // This tests the base functionality of the Runge-Kutta stepper
@@ -139,12 +140,13 @@ TEST(ALGEBRA_PLUGIN, rk_stepper) {
     using namespace step;
 
     // RK stepper configurations
-    constexpr unsigned int theta_steps = 100;
-    constexpr unsigned int phi_steps = 100;
-    constexpr unsigned int rk_steps = 100;
+    constexpr unsigned int theta_steps = 100u;
+    constexpr unsigned int phi_steps = 100u;
+    constexpr unsigned int rk_steps = 100u;
 
     // Constant magnetic field
-    vector3 B{1 * unit<scalar>::T, 1 * unit<scalar>::T, 1 * unit<scalar>::T};
+    vector3 B{1.f * unit<scalar>::T, 1.f * unit<scalar>::T,
+              1.f * unit<scalar>::T};
     mag_field_t mag_field(
         typename mag_field_t::backend_t::configuration_t{B[0], B[1], B[2]});
 
@@ -153,8 +155,8 @@ TEST(ALGEBRA_PLUGIN, rk_stepper) {
     crk_stepper_t crk_stepper;
 
     // Set origin position of tracks
-    const point3 ori{0., 0., 0.};
-    const scalar p_mag = 10;
+    const point3 ori{0.f, 0.f, 0.f};
+    const scalar p_mag{10.f * unit<scalar>::GeV};
 
     // Iterate through uniformly distributed momentum directions
     for (auto track :
@@ -179,54 +181,54 @@ TEST(ALGEBRA_PLUGIN, rk_stepper) {
         nav_state &n_state = propagation._navigation;
         nav_state &cn_state = c_propagation._navigation;
 
-        crk_state.template set_constraint<constraint::e_user>(0.5 *
+        crk_state.template set_constraint<constraint::e_user>(0.5f *
                                                               unit<scalar>::mm);
-        n_state._step_size = 1. * unit<scalar>::mm;
-        cn_state._step_size = 1. * unit<scalar>::mm;
+        n_state._step_size = 1.f * unit<scalar>::mm;
+        cn_state._step_size = 1.f * unit<scalar>::mm;
         ASSERT_NEAR(crk_state.constraints().template size<>(),
-                    0.5 * unit<scalar>::mm, epsilon);
+                    0.5f * unit<scalar>::mm, tol);
 
-        for (unsigned int i_s = 0; i_s < rk_steps; i_s++) {
+        for (unsigned int i_s = 0u; i_s < rk_steps; i_s++) {
             rk_stepper.step(propagation);
             crk_stepper.step(c_propagation);
             crk_stepper.step(c_propagation);
         }
 
         // get relative error by dividing error with path length
-        ASSERT_NEAR(rk_state.path_length(), crk_state.path_length(), epsilon);
+        ASSERT_NEAR(rk_state.path_length(), crk_state.path_length(), tol);
         ASSERT_NEAR(getter::norm(rk_state().pos() - crk_state().pos()) /
                         rk_state.path_length(),
-                    0, epsilon);
+                    0.f, tol);
 
         const auto helix_pos = helix(rk_state.path_length());
         const auto forward_pos = rk_state().pos();
-        const point3 forward_relative_error{(1. / rk_state.path_length()) *
+        const point3 forward_relative_error{(1.f / rk_state.path_length()) *
                                             (forward_pos - helix_pos)};
 
         // Make sure that relative error is smaller than epsion
-        EXPECT_NEAR(getter::norm(forward_relative_error), 0, epsilon);
+        EXPECT_NEAR(getter::norm(forward_relative_error), 0.f, tol);
 
         // Roll the same track back to the origin
         // Use the same path length, since there is no overstepping
         const scalar path_length = rk_state.path_length();
-        n_state._step_size *= -1. * unit<scalar>::mm;
-        cn_state._step_size *= -1. * unit<scalar>::mm;
-        for (unsigned int i_s = 0; i_s < rk_steps; i_s++) {
+        n_state._step_size *= -unit<scalar>::mm;
+        cn_state._step_size *= -unit<scalar>::mm;
+        for (unsigned int i_s = 0u; i_s < rk_steps; i_s++) {
             rk_stepper.step(propagation);
             crk_stepper.step(c_propagation);
             crk_stepper.step(c_propagation);
         }
 
-        ASSERT_NEAR(rk_state.path_length(), crk_state.path_length(), epsilon);
+        ASSERT_NEAR(rk_state.path_length(), crk_state.path_length(), tol);
         ASSERT_NEAR(getter::norm(rk_state().pos() - crk_state().pos()) /
-                        (2 * path_length),
-                    0, epsilon);
+                        (2.f * path_length),
+                    0.f, tol);
 
         const auto backward_pos = rk_state().pos();
-        const point3 backward_relative_error{1. / (2. * path_length) *
+        const point3 backward_relative_error{1.f / (2.f * path_length) *
                                              (backward_pos - ori)};
 
         // Make sure that relative error is smaller than epsion
-        EXPECT_NEAR(getter::norm(backward_relative_error), 0, epsilon);
+        EXPECT_NEAR(getter::norm(backward_relative_error), 0.f, tol);
     }
 }

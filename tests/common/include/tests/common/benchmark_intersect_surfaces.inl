@@ -24,9 +24,9 @@
 using namespace detray;
 
 #ifdef DETRAY_BENCHMARKS_REP
-unsigned int gbench_repetitions = DETRAY_BENCHMARKS_REP;
+int gbench_repetitions = DETRAY_BENCHMARKS_REP;
 #else
-unsigned int gbench_repetitions = 0;
+int gbench_repetitions = 0;
 #endif
 
 enum mask_ids : unsigned int {
@@ -44,21 +44,21 @@ using material_link_t = dtyped_index<material_ids, dindex>;
 
 using plane_surface = surface<mask_link_t, material_link_t, transform3>;
 
-unsigned int theta_steps = 1000;
-unsigned int phi_steps = 1000;
+unsigned int theta_steps = 1000u;
+unsigned int phi_steps = 1000u;
 
-dvector<scalar> dists = {1., 2., 3., 4., 5., 6., 7., 8., 9., 10.};
+dvector<scalar> dists = {1.f, 2.f, 3.f, 4.f, 5.f, 6.f, 7.f, 8.f, 9.f, 10.f};
 
 // This test runs intersection with all surfaces of the TrackML detector
 static void BM_INTERSECT_PLANES(benchmark::State &state) {
 
-    unsigned int sfhit = 0;
-    unsigned int sfmiss = 0;
+    unsigned int sfhit = 0u;
+    unsigned int sfmiss = 0u;
 
-    auto planes =
-        planes_along_direction(dists, vector::normalize(vector3{1., 1., 1.}));
-    mask<rectangle2D<>> rect{0UL, 10.f, 20.f};
-    point3 ori = {0., 0., 0.};
+    auto planes = planes_along_direction(
+        dists, vector::normalize(vector3{1.f, 1.f, 1.f}));
+    constexpr mask<rectangle2D<>> rect{0u, 10.f, 20.f};
+    point3 ori = {0.f, 0.f, 0.f};
 
     for (auto _ : state) {
         benchmark::DoNotOptimize(sfhit);
@@ -66,7 +66,7 @@ static void BM_INTERSECT_PLANES(benchmark::State &state) {
 
         // Iterate through uniformly distributed momentum directions
         for (const auto ray : uniform_track_generator<detail::ray<transform3>>(
-                 theta_steps, phi_steps, ori, 1.)) {
+                 theta_steps, phi_steps, ori, 1.f)) {
 
             for (const auto &plane : planes) {
                 auto pi = rect.intersector();
@@ -98,55 +98,41 @@ static void BM_INTERSECT_CYLINDERS(benchmark::State &state) {
 
     using cylinder_mask = mask<cylinder2D<>>;
 
-    unsigned int sfhit = 0;
-    unsigned int sfmiss = 0;
+    unsigned int sfhit = 0u;
+    unsigned int sfmiss = 0u;
     dvector<cylinder_mask> cylinders;
 
     for (scalar r : dists) {
-        cylinders.push_back(cylinder_mask{0UL, r, -10.f, 10.f});
+        cylinders.push_back(cylinder_mask{0u, r, -10.f, 10.f});
     }
 
     mask_link_t mask_link{mask_ids::e_cylinder2, 0};
     material_link_t material_link{material_ids::e_slab, 0};
-    plane_surface plain(transform3(), mask_link, material_link, 0, false,
+    plane_surface plain(transform3(), mask_link, material_link, 0u, false,
                         surface_id::e_sensitive);
 
-    const point3 ori = {0., 0., 0.};
+    const point3 ori = {0.f, 0.f, 0.f};
 
     for (auto _ : state) {
         benchmark::DoNotOptimize(sfhit);
         benchmark::DoNotOptimize(sfmiss);
 
-        // Loops of theta values
-        for (unsigned int itheta = 0; itheta < theta_steps; ++itheta) {
-            scalar theta = 0.85 + itheta * 0.2 / theta_steps;
-            scalar sin_theta = std::sin(theta);
-            scalar cos_theta = std::cos(theta);
+        // Iterate through uniformly distributed momentum directions
+        for (const auto ray : uniform_track_generator<detail::ray<transform3>>(
+                 theta_steps, phi_steps, ori, 1.f)) {
 
-            // Loops of phi values
-            for (unsigned int iphi = 0; iphi < phi_steps; ++iphi) {
-                scalar phi = 0.7 + iphi * 0.2 / phi_steps;
-                scalar sin_phi = std::sin(phi);
-                scalar cos_phi = std::cos(phi);
+            for (const auto &cylinder : cylinders) {
+                auto ci = cylinder.intersector();
+                auto is = ci(ray, cylinder, plain.transform())[0];
 
-                const vector3 dir{cos_phi * sin_theta, sin_phi * sin_theta,
-                                  cos_theta};
-
-                const detail::ray<transform3> ray(ori, 0., dir, 0.);
-
-                for (const auto &cylinder : cylinders) {
-                    auto ci = cylinder.intersector();
-                    auto is = ci(ray, cylinder, plain.transform())[0];
-
-                    benchmark::DoNotOptimize(sfhit);
-                    benchmark::DoNotOptimize(sfmiss);
-                    if (is.status == intersection::status::e_inside) {
-                        ++sfhit;
-                    } else {
-                        ++sfmiss;
-                    }
-                    benchmark::ClobberMemory();
+                benchmark::DoNotOptimize(sfhit);
+                benchmark::DoNotOptimize(sfmiss);
+                if (is.status == intersection::status::e_inside) {
+                    ++sfhit;
+                } else {
+                    ++sfmiss;
                 }
+                benchmark::ClobberMemory();
             }
         }
     }
@@ -162,55 +148,42 @@ BENCHMARK(BM_INTERSECT_CYLINDERS)
 
 // This test runs intersection with all surfaces of the TrackML detector
 static void BM_INTERSECT_CONCETRIC_CYLINDERS(benchmark::State &state) {
-    unsigned int sfhit = 0;
-    unsigned int sfmiss = 0;
+    unsigned int sfhit = 0u;
+    unsigned int sfmiss = 0u;
 
     using cylinder_mask =
         mask<cylinder2D<false, concentric_cylinder_intersector>>;
 
     dvector<cylinder_mask> cylinders;
     for (scalar r : dists) {
-        cylinders.push_back(cylinder_mask(0UL, r, -10.f, 10.f));
+        cylinders.push_back(cylinder_mask(0u, r, -10.f, 10.f));
     }
 
-    mask_link_t mask_link{mask_ids::e_conc_cylinder3, 0};
-    material_link_t material_link{material_ids::e_slab, 0};
-    plane_surface plain(transform3(), mask_link, material_link, 0, false,
+    mask_link_t mask_link{mask_ids::e_conc_cylinder3, 0u};
+    material_link_t material_link{material_ids::e_slab, 0u};
+    plane_surface plain(transform3(), mask_link, material_link, 0u, false,
                         surface_id::e_sensitive);
 
-    const point3 ori = {0., 0., 0.};
+    const point3 ori = {0.f, 0.f, 0.f};
 
     for (auto _ : state) {
-        // Loops of theta values
-        for (unsigned int itheta = 0; itheta < theta_steps; ++itheta) {
-            scalar theta = 0.85 + itheta * 0.2 / theta_steps;
-            scalar sin_theta = std::sin(theta);
-            scalar cos_theta = std::cos(theta);
 
-            // Loops of phi values
-            for (unsigned int iphi = 0; iphi < phi_steps; ++iphi) {
-                scalar phi = 0.7 + iphi * 0.2 / phi_steps;
-                scalar sin_phi = std::sin(phi);
-                scalar cos_phi = std::cos(phi);
+        // Iterate through uniformly distributed momentum directions
+        for (const auto ray : uniform_track_generator<detail::ray<transform3>>(
+                 theta_steps, phi_steps, ori, 1.f)) {
 
-                const vector3 dir{cos_phi * sin_theta, sin_phi * sin_theta,
-                                  cos_theta};
+            for (const auto &cylinder : cylinders) {
+                auto cci = cylinder.intersector();
+                auto is = cci(ray, cylinder, plain.transform())[0];
 
-                const detail::ray<transform3> ray(ori, 0., dir, 0.);
-
-                for (const auto &cylinder : cylinders) {
-                    auto cci = cylinder.intersector();
-                    auto is = cci(ray, cylinder, plain.transform())[0];
-
-                    benchmark::DoNotOptimize(sfhit);
-                    benchmark::DoNotOptimize(sfmiss);
-                    if (is.status == intersection::status::e_inside) {
-                        ++sfhit;
-                    } else {
-                        ++sfmiss;
-                    }
-                    benchmark::ClobberMemory();
+                benchmark::DoNotOptimize(sfhit);
+                benchmark::DoNotOptimize(sfmiss);
+                if (is.status == intersection::status::e_inside) {
+                    ++sfhit;
+                } else {
+                    ++sfmiss;
                 }
+                benchmark::ClobberMemory();
             }
         }
     }

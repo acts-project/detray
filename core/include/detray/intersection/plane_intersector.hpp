@@ -51,21 +51,22 @@ struct plane_intersector {
                          bool> = true>
     DETRAY_HOST_DEVICE inline output_type operator()(
         const ray_type &ray, const mask_t &mask, const transform3_t &trf,
-        const scalar_type mask_tolerance = 0,
-        const scalar_type overstep_tolerance = 0.) const {
+        const scalar_type mask_tolerance = 0.f,
+        const scalar_type overstep_tolerance = 0.f) const {
 
         output_type ret;
 
         // Retrieve the surface normal & translation (context resolved)
         const auto &sm = trf.matrix();
-        const vector3 sn = getter::vector<3>(sm, 0, 2);
-        const vector3 st = getter::vector<3>(sm, 0, 3);
+        const vector3 sn = getter::vector<3>(sm, 0u, 2u);
+        const vector3 st = getter::vector<3>(sm, 0u, 3u);
 
         // Intersection code
         const point3 &ro = ray.pos();
         const vector3 &rd = ray.dir();
         const scalar_type denom = vector::dot(rd, sn);
-        if (denom != scalar_type{0.}) {
+        // this is dangerous
+        if (denom != 0.f) {
             intersection_type &is = ret[0];
             is.path = vector::dot(sn, st - ro) / denom;
             is.p3 = ro + is.path * rd;

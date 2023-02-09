@@ -19,36 +19,42 @@ using vector3 = __plugin::vector3<scalar>;
 using point3 = __plugin::point3<scalar>;
 using transform3 = __plugin::transform3<detray::scalar>;
 
-constexpr const scalar epsilon = 1e-5;
-
 TEST(tools, uniform_track_generator) {
 
-    constexpr std::size_t phi_steps = 5;
-    constexpr std::size_t theta_steps = 5;
+    constexpr const scalar tol{1e-5f};
+
+    constexpr std::size_t phi_steps{50u};
+    constexpr std::size_t theta_steps{50u};
 
     std::array<vector3, phi_steps * theta_steps> momenta{};
 
     // Loops of theta values ]0,pi[
-    for (std::size_t itheta = 0; itheta < theta_steps; ++itheta) {
-        scalar theta = 0.01 + itheta * (M_PI - 0.01) / theta_steps;
+    for (std::size_t itheta{0u}; itheta < theta_steps; ++itheta) {
+        const scalar theta{0.01f + static_cast<scalar>(itheta) *
+                                       (constant<scalar>::pi - 0.01f) /
+                                       static_cast<scalar>(theta_steps)};
 
         // Loops of phi values [-pi, pi]
-        for (std::size_t iphi = 0; iphi < phi_steps; ++iphi) {
+        for (std::size_t iphi{0u}; iphi < phi_steps; ++iphi) {
             // The direction
-            scalar phi = -M_PI + iphi * (2. * M_PI) / phi_steps;
+            const scalar phi{-constant<scalar>::pi +
+                             static_cast<scalar>(iphi) *
+                                 (2.f * constant<scalar>::pi) /
+                                 static_cast<scalar>(phi_steps)};
 
             // intialize a track
             vector3 mom{std::cos(phi) * std::sin(theta),
                         std::sin(phi) * std::sin(theta), std::cos(theta)};
             vector::normalize(mom);
-            free_track_parameters<transform3> traj({0., 0., 0.}, 0, mom, -1);
+            free_track_parameters<transform3> traj({0.f, 0.f, 0.f}, 0.f, mom,
+                                                   -1.f);
 
             momenta[itheta * phi_steps + iphi] = traj.mom();
         }
     }
 
     // Now run the track generator and compare
-    std::size_t n_tracks = 0;
+    std::size_t n_tracks{0u};
     for (const auto track :
          uniform_track_generator<free_track_parameters<transform3>>(
              theta_steps, phi_steps)) {
@@ -56,7 +62,7 @@ TEST(tools, uniform_track_generator) {
         vector3 result = track.mom();
 
         // Compare with for loop
-        EXPECT_NEAR(getter::norm(expected - result), 0, epsilon)
+        EXPECT_NEAR(getter::norm(expected - result), 0.f, tol)
             << "Track: \n"
             << expected[0] << "\t" << result[0] << "\n"
             << expected[1] << "\t" << result[1] << "\n"
@@ -67,14 +73,14 @@ TEST(tools, uniform_track_generator) {
     ASSERT_EQ(momenta.size(), n_tracks);
 
     // Genrate rays
-    n_tracks = 0;
+    n_tracks = 0u;
     for (const auto r : uniform_track_generator<detail::ray<transform3>>(
              theta_steps, phi_steps)) {
         vector3 &expected = momenta[n_tracks];
         vector3 result = r.dir();
 
         // Compare with for loop
-        EXPECT_NEAR(getter::norm(expected - result), 0, epsilon)
+        EXPECT_NEAR(getter::norm(expected - result), 0.f, tol)
             << "Ray: \n"
             << expected[0] << "\t" << result[0] << "\n"
             << expected[1] << "\t" << result[1] << "\n"
@@ -85,18 +91,18 @@ TEST(tools, uniform_track_generator) {
     ASSERT_EQ(momenta.size(), n_tracks);
 
     // Generate helical trajectories
-    const vector3 B{0. * unit<scalar>::T, 0. * unit<scalar>::T,
-                    2. * unit<scalar>::T};
-    n_tracks = 0;
+    const vector3 B{0.f * unit<scalar>::T, 0.f * unit<scalar>::T,
+                    2.f * unit<scalar>::T};
+    n_tracks = 0u;
     for (const auto track :
          uniform_track_generator<free_track_parameters<transform3>>(
              theta_steps, phi_steps)) {
         detail::helix<transform3> helix_traj(track, &B);
         vector3 &expected = momenta[n_tracks];
-        vector3 result = helix_traj.dir(0.);
+        vector3 result = helix_traj.dir(0.f);
 
         // Compare with for loop
-        EXPECT_NEAR(getter::norm(expected - result), 0, epsilon)
+        EXPECT_NEAR(getter::norm(expected - result), 0.f, tol)
             << "Helix: \n"
             << expected[0] << "\t" << result[0] << "\n"
             << expected[1] << "\t" << result[1] << "\n"
@@ -109,36 +115,38 @@ TEST(tools, uniform_track_generator) {
 
 TEST(tools, uniform_track_generator_with_range) {
 
-    std::size_t theta_steps = 2;
-    std::size_t phi_steps = 4;
+    constexpr const scalar tol{1e-5f};
+
+    constexpr std::size_t theta_steps{2u};
+    constexpr std::size_t phi_steps{4u};
 
     std::vector<std::array<scalar, 2>> theta_phi;
 
     for (const auto track :
          uniform_track_generator<free_track_parameters<transform3>>(
-             theta_steps, phi_steps, {0, 0, 0}, 1 * unit<scalar>::GeV, {1, 2},
-             {-2, 2})) {
+             theta_steps, phi_steps, {0.f, 0.f, 0.f}, 1.f * unit<scalar>::GeV,
+             {1.f, 2.f}, {-2.f, 2.f})) {
         const auto dir = track.dir();
         theta_phi.push_back({getter::theta(dir), getter::phi(dir)});
     }
 
-    EXPECT_EQ(theta_phi.size(), 8);
-    EXPECT_NEAR(theta_phi[0][0], 1., epsilon);
-    EXPECT_NEAR(theta_phi[0][1], -2., epsilon);
-    EXPECT_NEAR(theta_phi[1][0], 1., epsilon);
-    EXPECT_NEAR(theta_phi[1][1], -1., epsilon);
-    EXPECT_NEAR(theta_phi[2][0], 1., epsilon);
-    EXPECT_NEAR(theta_phi[2][1], 0., epsilon);
-    EXPECT_NEAR(theta_phi[3][0], 1., epsilon);
-    EXPECT_NEAR(theta_phi[3][1], 1., epsilon);
-    EXPECT_NEAR(theta_phi[4][0], 1.5, epsilon);
-    EXPECT_NEAR(theta_phi[4][1], -2., epsilon);
-    EXPECT_NEAR(theta_phi[5][0], 1.5, epsilon);
-    EXPECT_NEAR(theta_phi[5][1], -1., epsilon);
-    EXPECT_NEAR(theta_phi[6][0], 1.5, epsilon);
-    EXPECT_NEAR(theta_phi[6][1], 0., epsilon);
-    EXPECT_NEAR(theta_phi[7][0], 1.5, epsilon);
-    EXPECT_NEAR(theta_phi[7][1], 1., epsilon);
+    EXPECT_EQ(theta_phi.size(), 8u);
+    EXPECT_NEAR(theta_phi[0][0], 1.f, tol);
+    EXPECT_NEAR(theta_phi[0][1], -2.f, tol);
+    EXPECT_NEAR(theta_phi[1][0], 1.f, tol);
+    EXPECT_NEAR(theta_phi[1][1], -1.f, tol);
+    EXPECT_NEAR(theta_phi[2][0], 1.f, tol);
+    EXPECT_NEAR(theta_phi[2][1], 0.f, tol);
+    EXPECT_NEAR(theta_phi[3][0], 1.f, tol);
+    EXPECT_NEAR(theta_phi[3][1], 1.f, tol);
+    EXPECT_NEAR(theta_phi[4][0], 1.5f, tol);
+    EXPECT_NEAR(theta_phi[4][1], -2.f, tol);
+    EXPECT_NEAR(theta_phi[5][0], 1.5f, tol);
+    EXPECT_NEAR(theta_phi[5][1], -1.f, tol);
+    EXPECT_NEAR(theta_phi[6][0], 1.5f, tol);
+    EXPECT_NEAR(theta_phi[6][1], 0.f, tol);
+    EXPECT_NEAR(theta_phi[7][0], 1.5f, tol);
+    EXPECT_NEAR(theta_phi[7][1], 1.f, tol);
 }
 
 /// Tests a random number based track state generator - uniform distribution
@@ -150,16 +158,18 @@ TEST(tools, random_track_generator_uniform) {
                        std::seed_seq>;
 
     // Tolerance depends on sample size
-    constexpr scalar tol{0.05};
+    constexpr scalar tol{0.05f};
 
     // Track counter
-    std::size_t n_tracks = 0;
-    constexpr std::size_t n_gen_tracks = 10000;
+    std::size_t n_tracks{0u};
+    constexpr std::size_t n_gen_tracks{10000u};
+
     // Other params
-    point3 ori = {0., 0., 0.};
-    scalar mom{2. * unit<scalar>::GeV};
-    std::array<scalar, 2> theta_range = {0.01, M_PI};
-    std::array<scalar, 2> phi_range = {-0.9f * M_PI, 0.8 * M_PI};
+    point3 ori = {0.f, 0.f, 0.f};
+    scalar mom{2.f * unit<scalar>::GeV};
+    std::array<scalar, 2> theta_range = {0.01f, constant<scalar>::pi};
+    std::array<scalar, 2> phi_range = {-0.9f * constant<scalar>::pi,
+                                       0.8f * constant<scalar>::pi};
 
     // Catch the results
     std::array<scalar, n_gen_tracks> phi{};
@@ -187,9 +197,9 @@ TEST(tools, random_track_generator_uniform) {
 
     // variance
     EXPECT_NEAR(statistics::variance(phi),
-                1.0f / 12.0f * std::pow(phi_range[1] - phi_range[0], 2), tol);
+                1.0f / 12.0f * std::pow(phi_range[1] - phi_range[0], 2.f), tol);
     EXPECT_NEAR(statistics::variance(theta),
-                1.0f / 12.0f * std::pow(theta_range[1] - theta_range[0], 2),
+                1.0f / 12.0f * std::pow(theta_range[1] - theta_range[0], 2.f),
                 tol);
 }
 
@@ -201,16 +211,18 @@ TEST(tools, random_track_generator_normal) {
         random_numbers<scalar, std::normal_distribution<scalar>, std::seed_seq>;
 
     // Tolerance depends on sample size
-    constexpr scalar tol{0.05};
+    constexpr scalar tol{0.05f};
 
     // Track counter
-    std::size_t n_tracks = 0;
-    constexpr std::size_t n_gen_tracks = 10000;
+    std::size_t n_tracks{0u};
+    constexpr std::size_t n_gen_tracks{10000u};
+
     // Other params
-    point3 ori = {0., 0., 0.};
-    scalar mom{2. * unit<scalar>::GeV};
-    std::array<scalar, 2> theta_range = {0.01, M_PI};
-    std::array<scalar, 2> phi_range = {-0.9f * M_PI, 0.8 * M_PI};
+    point3 ori = {0.f, 0.f, 0.f};
+    scalar mom{2.f * unit<scalar>::GeV};
+    std::array<scalar, 2> theta_range = {0.01f, constant<scalar>::pi};
+    std::array<scalar, 2> phi_range = {-0.9f * constant<scalar>::pi,
+                                       0.8f * constant<scalar>::pi};
 
     // Catch the results
     std::array<scalar, n_gen_tracks> phi{};
@@ -238,8 +250,9 @@ TEST(tools, random_track_generator_normal) {
 
     // variance
     EXPECT_NEAR(statistics::variance(phi),
-                std::pow(0.5f / 3.0f * (phi_range[1] - phi_range[0]), 2), tol);
+                std::pow(0.5f / 3.0f * (phi_range[1] - phi_range[0]), 2.f),
+                tol);
     EXPECT_NEAR(statistics::variance(theta),
-                std::pow(0.5f / 3.0f * (theta_range[1] - theta_range[0]), 2),
+                std::pow(0.5f / 3.0f * (theta_range[1] - theta_range[0]), 2.f),
                 tol);
 }

@@ -6,8 +6,8 @@
  */
 #pragma once
 
-#include <climits>
 #include <cmath>
+#include <limits>
 #include <sstream>
 
 #include "detray/definitions/indexing.hpp"
@@ -73,7 +73,7 @@ struct line_plane_intersection {
     surface_id sf_id = surface_id::e_sensitive;
 
     // cosine of incidence angle
-    scalar cos_incidence_angle = 1.;
+    scalar cos_incidence_angle{1.f};
 
     /** @param rhs is the right hand side intersection for comparison
      **/

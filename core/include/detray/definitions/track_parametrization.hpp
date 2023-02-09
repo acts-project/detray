@@ -1,6 +1,6 @@
 /** Detray library, part of the ACTS project (R&D line)
  *
- * (c) 2022 CERN for the benefit of the ACTS project
+ * (c) 2022-2023 CERN for the benefit of the ACTS project
  *
  * Mozilla Public License Version 2.0
  */
@@ -11,24 +11,24 @@ namespace detray {
 
 /// Components of a bound track parameters vector.
 ///
-enum bound_indices : std::size_t {
+enum bound_indices : unsigned int {
     // Local position on the reference surface.
     // This is intentionally named different from the position components in
     // the other data vectors, to clarify that this is defined on a surface
     // while the others are defined in free space.
-    e_bound_loc0 = 0,
-    e_bound_loc1 = 1,
+    e_bound_loc0 = 0u,
+    e_bound_loc1 = 1u,
     // Direction angles
-    e_bound_phi = 2,
-    e_bound_theta = 3,
+    e_bound_phi = 2u,
+    e_bound_theta = 3u,
     // Global inverse-momentum-like parameter, i.e. q/p or 1/p
     // The naming is inconsistent for the case of neutral track parameters where
     // the value is interpreted as 1/p not as q/p. This is intentional to avoid
     // having multiple aliases for the same element and for lack of an
     // acceptable
     // common name.
-    e_bound_qoverp = 4,
-    e_bound_time = 5,
+    e_bound_qoverp = 4u,
+    e_bound_time = 5u,
     // Last uninitialized value contains the total number of components
     e_bound_size,
 };
@@ -39,7 +39,7 @@ enum bound_indices : std::size_t {
 /// This must be a regular `enum` and not a scoped `enum class` to allow
 /// implicit conversion to an integer. The enum value are thus visible directly
 /// in `namespace Acts` and are prefixed to avoid naming collisions.
-enum free_indices : std::size_t {
+enum free_indices : unsigned int {
     // Spatial position
     // The spatial position components must be stored as one continous block.
     e_free_pos0 = 0u,

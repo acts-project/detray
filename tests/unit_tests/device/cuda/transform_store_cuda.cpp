@@ -31,30 +31,30 @@ TEST(transform_store_cuda, transform_store) {
 
     ASSERT_EQ(static_store.size(ctx0), 0u);
 
-    point3 t0{1., 2., 3.};
-    point3 z0{4., 2., 3.};
-    point3 x0{1., 0, 3.};
+    point3 t0{1.f, 2.f, 3.f};
+    point3 z0{4.f, 2.f, 3.f};
+    point3 x0{1.f, 0.f, 3.f};
     transform3 tf0{t0, z0, x0};
     static_store.push_back(tf0, ctx0);
     ASSERT_EQ(static_store.size(ctx0), 1u);
 
-    point3 t1{1., 1., 2.};
-    point3 z1{1., 0, 0};
-    point3 x1{0, 0, 2.};
+    point3 t1{1.f, 1.f, 2.f};
+    point3 z1{1.f, 0.f, 0.f};
+    point3 x1{0.f, 0.f, 2.f};
     transform3 tf1{t1, z1, x1};
     static_store.push_back(tf1, ctx1);
     ASSERT_EQ(static_store.size(ctx1), 2u);
 
-    point3 t2{2., 2., 5.};
-    point3 z2{0., 0., 0.};
-    point3 x2{1., 2., 3.};
+    point3 t2{2.f, 2.f, 5.f};
+    point3 z2{0.f, 0.f, 0.f};
+    point3 x2{1.f, 2.f, 3.f};
     transform3 tf2{t2, z2, x2};
     static_store.push_back(std::move(tf2), ctx0);
     ASSERT_EQ(static_store.size(ctx0), 3u);
 
-    point3 t3{2., 0., 5.};
-    point3 z3{1., 2., 3.};
-    point3 x3{0., 0., 0.};
+    point3 t3{2.f, 0.f, 5.f};
+    point3 z3{1.f, 2.f, 3.f};
+    point3 x3{0.f, 0.f, 0.f};
     transform3 tf3{t3, z3, x3};
     static_store.emplace_back(ctx0, std::move(t3));
     ASSERT_EQ(static_store.size(ctx0), 4u);
@@ -67,17 +67,17 @@ TEST(transform_store_cuda, transform_store) {
 
     // Fill input vector
     vecmem::vector<point3> input(&mng_mr);
-    for (unsigned int i = 0; i < n_transforms; i++) {
-        input.push_back({static_cast<scalar>(i), static_cast<scalar>(i + 1),
-                         static_cast<scalar>(i + 2)});
+    for (unsigned int i = 0u; i < n_transforms; i++) {
+        input.push_back({static_cast<scalar>(i), static_cast<scalar>(i + 1u),
+                         static_cast<scalar>(i + 2u)});
     }
 
     // Get transformed vector from host side
     std::vector<point3> output_host;
 
     auto range = detray::ranges::subrange(static_store.get(ctx0),
-                                          dindex_range{0, n_transforms});
-    int count = 0;
+                                          dindex_range{0u, n_transforms});
+    std::size_t count{0u};
     for (const auto& tf : range) {
         auto output = tf.point_to_global(input[count]);
         output_host.push_back(output);
@@ -94,7 +94,7 @@ TEST(transform_store_cuda, transform_store) {
                    static_store.size());
 
     // Compare the values
-    for (unsigned int i = 0; i < n_transforms; i++) {
+    for (unsigned int i = 0u; i < n_transforms; i++) {
         ASSERT_EQ(output_host[i], output_device[i]);
     }
 }

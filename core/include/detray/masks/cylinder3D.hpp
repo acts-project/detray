@@ -1,6 +1,6 @@
 /** Detray library, part of the ACTS project (R&D line)
  *
- * (c) 2020-2022 CERN for the benefit of the ACTS project
+ * (c) 2020-2023 CERN for the benefit of the ACTS project
  *
  * Mozilla Public License Version 2.0
  */
@@ -31,13 +31,13 @@ class cylinder3D {
     inline static const std::string name = "cylinder3D";
 
     /// The measurement dimension (not allowed)
-    inline static constexpr const std::size_t meas_dim = 0;
+    inline static constexpr const unsigned int meas_dim{0u};
 
     enum boundaries : std::size_t {
-        e_r = 0,
-        e_n_half_z = 1,
-        e_p_half_z = 2,
-        e_size = 3,
+        e_r = 0u,
+        e_n_half_z = 1u,
+        e_p_half_z = 2u,
+        e_size = 3u,
     };
 
     /// Local coordinate frame for boundary checks
@@ -69,7 +69,7 @@ class cylinder3D {
         static constexpr n_axis::label axis_loc0 = n_axis::label::e_r;
         static constexpr n_axis::label axis_loc1 = n_axis::label::e_phi;
         static constexpr n_axis::label axis_loc2 = n_axis::label::e_z;
-        static constexpr std::size_t dim{3UL};
+        static constexpr std::size_t dim{3u};
 
         using types = std::tuple<n_axis::bounds_t<e_s, axis_loc0>,
                                  n_axis::circular<axis_loc1>,

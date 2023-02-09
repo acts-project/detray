@@ -1,6 +1,6 @@
 /** Detray library, part of the ACTS project (R&D line)
  *
- * (c) 2020-2022 CERN for the benefit of the ACTS project
+ * (c) 2020-2023 CERN for the benefit of the ACTS project
  *
  * Mozilla Public License Version 2.0
  */
@@ -30,19 +30,19 @@ namespace detray {
 ///
 /// It is defined by half length in local0 coordinates bounds[0] and bounds[1]
 template <template <typename> class intersector_t = plane_intersector,
-          std::size_t kMeasDim = 2>
+          unsigned int kMeasDim = 2u>
 class rectangle2D {
     public:
     /// The name for this shape
     inline static const std::string name = "rectangle2D";
 
     /// The measurement dimension
-    inline static constexpr const std::size_t meas_dim = kMeasDim;
+    inline static constexpr const unsigned int meas_dim{kMeasDim};
 
     enum boundaries : std::size_t {
-        e_half_x = 0,
-        e_half_y = 1,
-        e_size = 2,
+        e_half_x = 0u,
+        e_half_y = 1u,
+        e_size = 2u,
     };
 
     /// Local coordinate frame for boundary checks
@@ -71,7 +71,7 @@ class rectangle2D {
     struct axes {
         static constexpr n_axis::label axis_loc0 = n_axis::label::e_x;
         static constexpr n_axis::label axis_loc1 = n_axis::label::e_y;
-        static constexpr std::size_t dim{2UL};
+        static constexpr std::size_t dim{2u};
 
         /// How to convert into the local axis system and back
         template <typename algebra_t>
@@ -107,7 +107,8 @@ class rectangle2D {
 
     template <typename param_t>
     DETRAY_HOST_DEVICE inline typename param_t::point2 to_measurement(
-        param_t& param, const typename param_t::point2& offset = {0, 0}) const {
+        param_t& param,
+        const typename param_t::point2& offset = {0.f, 0.f}) const {
         return param.local() + offset;
     }
 };
