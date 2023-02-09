@@ -48,8 +48,8 @@ using mask_container = typename detector_t::mask_container;
 using material_container = typename detector_t::material_container;
 using surface_type = typename detector_t::surface_container::value_type;
 using mask_link_type = typename surface_type::mask_link;
-using material_link_type = typename surface_type::material_link;*/
-/*using mag_field_t = detector_t::bfield_type;
+using material_link_type = typename surface_type::material_link;
+using mag_field_t = detector_t::bfield_type;
 
 using matrix_operator = standard_matrix_operator<scalar>;
 using transform3 = typename detector_t::transform3;
@@ -254,7 +254,6 @@ TEST(path_correction, cartesian2D) {
         }
     }
 
-    /*
     // Print the matrix elements
     for (unsigned int i = 0u; i < e_bound_size; i++) {
         for (unsigned int j = 0u; j < e_bound_size; j++) {
