@@ -89,7 +89,7 @@ TEST(check_simulation, toy_geometry) {
     const vector3 ori{0.f, 0.f, 0.f};
     auto generator =
         random_track_generator<free_track_parameters<transform3>, normal_gen_t>(
-            n_tracks, ori, 1.f * unit<scalar>::GeV);
+            n_tracks, ori);
 
     // Create smearer
     measurement_smearer<scalar> smearer(67.f * unit<scalar>::um,

@@ -294,7 +294,9 @@ class random_track_generator
         DETRAY_HOST_DEVICE
         iterator(generator_t &rand_gen, std::size_t n_tracks,
                  point3 trk_origin = {0.f, 0.f, 0.f},
-                 scalar trk_mom = 1.f * unit<scalar>::GeV,
+                 point3 origin_stddev = {0.f, 0.f, 0.f},
+                 std::array<scalar, 2> mom_range = {1.f * unit<scalar>::GeV,
+                                                    1.f * unit<scalar>::GeV},
                  std::array<scalar, 2> theta_range = {0.01f,
                                                       constant<scalar>::pi},
                  std::array<scalar, 2> phi_range = {-constant<scalar>::pi,
@@ -304,13 +306,23 @@ class random_track_generator
             : m_rnd_numbers{rand_gen},
               m_tracks{n_tracks},
               m_origin{trk_origin},
-              m_mom_mag{trk_mom},
+              m_origin_stddev{origin_stddev},
+              m_mom_mag{rand_gen(mom_range[0], mom_range[1])},
               m_phi{rand_gen(phi_range[0], phi_range[1])},
               m_theta{rand_gen(theta_range[0], theta_range[1])},
+              m_mom_range{mom_range},
               m_phi_range{phi_range},
               m_theta_range{theta_range},
               m_time{time},
-              m_charge{charge} {}
+              m_charge{charge} {
+            m_vertex = {
+                std::normal_distribution<scalar>(
+                    trk_origin[0], origin_stddev[0])(m_rnd_numbers.engine),
+                std::normal_distribution<scalar>(
+                    trk_origin[1], origin_stddev[1])(m_rnd_numbers.engine),
+                std::normal_distribution<scalar>(
+                    trk_origin[2], origin_stddev[2])(m_rnd_numbers.engine)};
+        }
 
         /// @returns whether we reached the end of iteration
         DETRAY_HOST_DEVICE
@@ -329,6 +341,15 @@ class random_track_generator
         /// @returns the generator at its next position.
         DETRAY_HOST_DEVICE
         auto operator++() -> iterator & {
+            m_vertex = {
+                std::normal_distribution<scalar>(
+                    m_origin[0], m_origin_stddev[0])(m_rnd_numbers.engine),
+                std::normal_distribution<scalar>(
+                    m_origin[1], m_origin_stddev[1])(m_rnd_numbers.engine),
+                std::normal_distribution<scalar>(
+                    m_origin[2], m_origin_stddev[2])(m_rnd_numbers.engine)};
+            m_mom_mag =
+                std::max(m_rnd_numbers(m_mom_range[0], m_mom_range[1]), 0.f);
             m_phi = std::clamp(m_rnd_numbers(m_phi_range[0], m_phi_range[1]),
                                m_phi_range[0], m_phi_range[1]);
             m_theta =
@@ -351,7 +372,7 @@ class random_track_generator
             vector::normalize(mom);
             mom = m_mom_mag * mom;
 
-            return track_t{m_origin, m_time, mom, m_charge};
+            return track_t{m_vertex, m_time, mom, m_charge};
         }
 
         /// Random number generator
@@ -363,6 +384,12 @@ class random_track_generator
         /// Track origin
         point3 m_origin{0.f, 0.f, 0.f};
 
+        /// Track origin standard deviatation
+        point3 m_origin_stddev{0.f, 0.f, 0.f};
+
+        /// Track vertex
+        point3 m_vertex{0.f, 0.f, 0.f};
+
         /// Magnitude of momentum: Default is one to keep directions normalized
         /// if no momentum information is needed (e.g. for a ray)
         scalar m_mom_mag{1.f * unit<scalar>::GeV};
@@ -371,6 +398,8 @@ class random_track_generator
         scalar m_phi{-constant<scalar>::pi}, m_theta{0.01f};
 
         /// Range for theta and phi
+        std::array<scalar, 2> m_mom_range{1.f * unit<scalar>::GeV,
+                                          1.f * unit<scalar>::GeV};
         std::array<scalar, 2> m_phi_range{-constant<scalar>::pi,
                                           constant<scalar>::pi};
         std::array<scalar, 2> m_theta_range{0.01f, constant<scalar>::pi};
@@ -406,16 +435,18 @@ class random_track_generator
     DETRAY_HOST_DEVICE
     random_track_generator(
         std::size_t n_tracks, point3 trk_origin = {0.f, 0.f, 0.f},
-        scalar trk_mom = 1.f * unit<scalar>::GeV,
+        point3 origin_stddev = {0.f, 0.f, 0.f},
+        std::array<scalar, 2> mom_range = {1.f * unit<scalar>::GeV,
+                                           1.f * unit<scalar>::GeV},
         std::array<scalar, 2> theta_range = {0.01f, constant<scalar>::pi},
         std::array<scalar, 2> phi_range = {-constant<scalar>::pi,
                                            constant<scalar>::pi},
         scalar time = 0.f * unit<scalar>::us,
         scalar charge = -1.f * unit<scalar>::e)
         : m_gen{},
-          m_begin{m_gen,       0u,        trk_origin, trk_mom,
+          m_begin{m_gen,       0u,        trk_origin, origin_stddev, mom_range,
                   theta_range, phi_range, time,       charge},
-          m_end{m_gen,       n_tracks,  trk_origin, trk_mom,
+          m_end{m_gen,       n_tracks,  trk_origin, origin_stddev, mom_range,
                 theta_range, phi_range, time,       charge} {}
 
     /// @returns the generator in initial state.
