@@ -166,19 +166,32 @@ TEST(tools, random_track_generator_uniform) {
 
     // Other params
     point3 ori = {0.f, 0.f, 0.f};
-    scalar mom{2.f * unit<scalar>::GeV};
+    point3 ori_stddev = {0.1f * unit<scalar>::mm, 0.f * unit<scalar>::mm,
+                         0.2f * unit<scalar>::mm};
+    std::array<scalar, 2> mom_range = {1.f * unit<scalar>::GeV,
+                                       2.f * unit<scalar>::GeV};
     std::array<scalar, 2> theta_range = {0.01f, constant<scalar>::pi};
     std::array<scalar, 2> phi_range = {-0.9f * constant<scalar>::pi,
                                        0.8f * constant<scalar>::pi};
 
     // Catch the results
+    std::array<scalar, n_gen_tracks> x{};
+    std::array<scalar, n_gen_tracks> y{};
+    std::array<scalar, n_gen_tracks> z{};
+    std::array<scalar, n_gen_tracks> mom{};
     std::array<scalar, n_gen_tracks> phi{};
     std::array<scalar, n_gen_tracks> theta{};
 
     for (const auto track :
          random_track_generator<free_track_parameters<transform3>,
-                                uniform_gen_t>(n_gen_tracks, ori, mom,
-                                               theta_range, phi_range)) {
+                                uniform_gen_t>(n_gen_tracks, ori, ori_stddev,
+                                               mom_range, theta_range,
+                                               phi_range)) {
+        const auto pos = track.pos();
+        x[n_tracks] = pos[0];
+        y[n_tracks] = pos[1];
+        z[n_tracks] = pos[2];
+        mom[n_tracks] = track.p();
         phi[n_tracks] = getter::phi(track.dir());
         theta[n_tracks] = getter::theta(track.dir());
 
@@ -190,12 +203,22 @@ TEST(tools, random_track_generator_uniform) {
     // Check uniform distrubution
 
     // Mean
+    EXPECT_NEAR(statistics::mean(x), ori[0], tol);
+    EXPECT_NEAR(statistics::mean(y), ori[1], tol);
+    EXPECT_NEAR(statistics::mean(z), ori[2], tol);
+    EXPECT_NEAR(statistics::mean(mom), 0.5f * (mom_range[0] + mom_range[1]),
+                tol);
     EXPECT_NEAR(statistics::mean(phi), 0.5f * (phi_range[0] + phi_range[1]),
                 tol);
     EXPECT_NEAR(statistics::mean(theta),
                 0.5f * (theta_range[0] + theta_range[1]), tol);
 
     // variance
+    EXPECT_NEAR(statistics::variance(x), ori_stddev[0] * ori_stddev[0], tol);
+    EXPECT_NEAR(statistics::variance(y), ori_stddev[1] * ori_stddev[1], tol);
+    EXPECT_NEAR(statistics::variance(z), ori_stddev[2] * ori_stddev[2], tol);
+    EXPECT_NEAR(statistics::variance(mom),
+                1.0f / 12.0f * std::pow(mom_range[1] - mom_range[0], 2.f), tol);
     EXPECT_NEAR(statistics::variance(phi),
                 1.0f / 12.0f * std::pow(phi_range[1] - phi_range[0], 2.f), tol);
     EXPECT_NEAR(statistics::variance(theta),
@@ -219,19 +242,32 @@ TEST(tools, random_track_generator_normal) {
 
     // Other params
     point3 ori = {0.f, 0.f, 0.f};
-    scalar mom{2.f * unit<scalar>::GeV};
+    point3 ori_stddev = {0.1f * unit<scalar>::mm, 0.5f * unit<scalar>::mm,
+                         0.3f * unit<scalar>::mm};
+    std::array<scalar, 2> mom_range = {1.f * unit<scalar>::GeV,
+                                       2.f * unit<scalar>::GeV};
     std::array<scalar, 2> theta_range = {0.01f, constant<scalar>::pi};
     std::array<scalar, 2> phi_range = {-0.9f * constant<scalar>::pi,
                                        0.8f * constant<scalar>::pi};
 
     // Catch the results
+    std::array<scalar, n_gen_tracks> x{};
+    std::array<scalar, n_gen_tracks> y{};
+    std::array<scalar, n_gen_tracks> z{};
+    std::array<scalar, n_gen_tracks> mom{};
     std::array<scalar, n_gen_tracks> phi{};
     std::array<scalar, n_gen_tracks> theta{};
 
     for (const auto track :
          random_track_generator<free_track_parameters<transform3>,
-                                normal_gen_t>(n_gen_tracks, ori, mom,
-                                              theta_range, phi_range)) {
+                                normal_gen_t>(n_gen_tracks, ori, ori_stddev,
+                                              mom_range, theta_range,
+                                              phi_range)) {
+        const auto pos = track.pos();
+        x[n_tracks] = pos[0];
+        y[n_tracks] = pos[1];
+        z[n_tracks] = pos[2];
+        mom[n_tracks] = track.p();
         phi[n_tracks] = getter::phi(track.dir());
         theta[n_tracks] = getter::theta(track.dir());
 
@@ -243,12 +279,23 @@ TEST(tools, random_track_generator_normal) {
     // check gaussian distribution - values are clamped to phi/theta range
 
     // Mean
+    EXPECT_NEAR(statistics::mean(x), ori[0], tol);
+    EXPECT_NEAR(statistics::mean(y), ori[1], tol);
+    EXPECT_NEAR(statistics::mean(z), ori[2], tol);
+    EXPECT_NEAR(statistics::mean(mom),
+                mom_range[0] + 0.5f * (mom_range[1] - mom_range[0]), tol);
     EXPECT_NEAR(statistics::mean(phi),
                 phi_range[0] + 0.5f * (phi_range[1] - phi_range[0]), tol);
     EXPECT_NEAR(statistics::mean(theta),
                 theta_range[0] + 0.5f * (theta_range[1] - theta_range[0]), tol);
 
     // variance
+    EXPECT_NEAR(statistics::variance(x), ori_stddev[0] * ori_stddev[0], tol);
+    EXPECT_NEAR(statistics::variance(y), ori_stddev[1] * ori_stddev[1], tol);
+    EXPECT_NEAR(statistics::variance(z), ori_stddev[2] * ori_stddev[2], tol);
+    EXPECT_NEAR(statistics::variance(mom),
+                std::pow(0.5f / 3.0f * (mom_range[1] - mom_range[0]), 2.f),
+                tol);
     EXPECT_NEAR(statistics::variance(phi),
                 std::pow(0.5f / 3.0f * (phi_range[1] - phi_range[0]), 2.f),
                 tol);
