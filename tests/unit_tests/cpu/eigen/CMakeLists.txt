@@ -18,6 +18,7 @@ detray_add_test( eigen
    "eigen_coordinate_line2.cpp"
    "eigen_coordinate_polar2.cpp"
    "eigen_core.cpp"
+   "eigen_cuboid_intersector.cpp"
    "eigen_cylinder_intersection.cpp" 
    "eigen_cylinder.cpp"
    "eigen_detector.cpp"

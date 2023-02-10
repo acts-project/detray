@@ -10,11 +10,6 @@
 // Project include(s)
 #include "detray/definitions/qualifiers.hpp"
 #include "detray/intersection/detail/trajectories.hpp"
-#include "detray/masks/masks.hpp"
-
-// System include(s)
-#include <cmath>
-#include <limits>
 
 namespace detray {
 
@@ -42,7 +37,7 @@ struct cuboid_intersector {
         const detail::ray<algebra_t> &ray, const mask_t &box,
         const typename algebra_t::scalar_type /*mask_tolerance*/ = 0.f) const {
 
-        // using scalar_t = typename algebra_t::scalar_type;
+        using scalar_t = typename algebra_t::scalar_type;
         using point3 = typename algebra_t::point3;
         using vector3 = typename algebra_t::vector3;
         using boundaries = typename mask_t::boundaries;
@@ -53,31 +48,38 @@ struct cuboid_intersector {
         const vector3 inv_dir{1.f / rd[0], 1.f / rd[1], 1.f / rd[2]};
 
         // This is prob. slow -> @todo refactor masks to hold custom mask values
-        const point3 min{box[boundaries::e_min_x], box[boundaries::e_min_y],
-                         box[boundaries::e_min_z]};
-        const point3 max{box[boundaries::e_max_x], box[boundaries::e_max_y],
-                         box[boundaries::e_max_z]};
+        const vector3 min{box[boundaries::e_min_x], box[boundaries::e_min_y],
+                          box[boundaries::e_min_z]};
+        const vector3 max{box[boundaries::e_max_x], box[boundaries::e_max_y],
+                          box[boundaries::e_max_z]};
         // const auto* min = new (box.values().data()) point3();
         // const auto* max = new (box.values().data() + 3) point3();
 
-        scalar_t tmin{0.f}, tmax{std::numeric_limits<scalar_t>::infinity()};
-
-        const point3 t1 = (min - ro) * inv_dir;
-        const point3 t2 = (max - ro) * inv_dir;
-
-        // Find tmin and tmax, which define the sement of the ray that 
+        // Find tmin and tmax, which define the segment of the ray that
         // intersects the box
+        vector3 t1 = (min - ro) /* * inv_dir*/;
+        vector3 t2 = (max - ro) /* * inv_dir*/;
+
+        // @todo add operator* for two vectors in algebra-plugins
         for (unsigned int i{0u}; i < 3u; ++i) {
+            t1[i] *= inv_dir[i];
+            t2[i] *= inv_dir[i];
+        }
+
+        const bool t_comp = t1[0] > t2[0];
+        scalar_t tmin{t_comp ? t2[0] : t1[0]}, tmax{t_comp ? t1[0] : t2[0]};
+
+        for (unsigned int i{0u}; i < 2u; ++i) {
             if (t1[i] > t2[i]) {
                 tmin = t2[i] < tmin ? tmin : t2[i];
                 tmax = t1[i] > tmax ? tmax : t1[i];
-            }
-            else {
+            } else {
                 tmin = t1[i] < tmin ? tmin : t1[i];
                 tmax = t2[i] > tmax ? tmax : t2[i];
             }
         }
 
+        // Was a valid intersection found ?
         return tmin < tmax;
     }
 };

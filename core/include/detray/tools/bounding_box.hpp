@@ -26,6 +26,7 @@ class axis_aligned_bounding_box {
     /// Define geometric properties
     /// @{
     using shape = shape_t;
+    using boundaries = typename shape_t::boundaries;
     using axes = typename shape_t::template axes<>;
     template <typename algebra_t>
     using local_frame = typename shape_t::template local_frame_type<algebra_t>;
@@ -70,6 +71,12 @@ class axis_aligned_bounding_box {
     constexpr axis_aligned_bounding_box(
         const std::vector<axis_aligned_bounding_box>& aabbs) {}
 
+    /// Subscript operator @returns a single box boundary.
+    DETRAY_HOST_DEVICE
+    constexpr auto operator[](const std::size_t i) const -> scalar_t {
+        return m_mask[i];
+    }
+
     /// @returns the bounds of the box, depending on its shape
     DETRAY_HOST_DEVICE
     constexpr auto id() const -> unsigned int { return m_mask.volume_link(); }
@@ -92,16 +99,15 @@ class axis_aligned_bounding_box {
     }
 
     /// Intersect the box with a ray
-    /*DETRAY_HOST_DEVICE
-    template<typename algebra_t>
-    constexpr auto intersect(
-        const detail::ray<algebra_t> &ray,
-        const scalar_t t = std::numeric_limits<scalar_t>::epsilon()) const
-        -> intersection::status {
+    DETRAY_HOST_DEVICE
+    template <typename algebra_t>
+    constexpr bool intersect(
+        const detail::ray<algebra_t>& ray,
+        const scalar_t t = std::numeric_limits<scalar_t>::epsilon()) const {
         static_assert(std::is_same_v<shape, cuboid3D<>>,
-            "aabbs are only implemented in cuboid shape for now");
+                      "aabbs are only implemented in cuboid shape for now");
         return m_mask.intersector()(ray, m_mask, t);
-    }*/
+    }
 
     /*DETRAY_HOST_DEVICE
     template<typename algebra_t>

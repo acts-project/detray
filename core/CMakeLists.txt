@@ -46,7 +46,7 @@ detray_add_library( detray_core core
    "include/detray/grids/populator.hpp"
    "include/detray/grids/serializer2.hpp"
    # intersection include(s)
-   "include/detray/intersection/bounding_boxes/cuboid_intersector.hpp"
+   "include/detray/intersection/bounding_box/cuboid_intersector.hpp"
    "include/detray/intersection/concentric_cylinder_intersector.hpp"
    "include/detray/intersection/cylinder_intersector.hpp"
    "include/detray/intersection/detail/trajectories.hpp"

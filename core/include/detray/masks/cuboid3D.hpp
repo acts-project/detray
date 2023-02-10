@@ -10,7 +10,7 @@
 // Project include(s)
 #include "detray/coordinates/cartesian3.hpp"
 #include "detray/definitions/qualifiers.hpp"
-#include "detray/intersection/bounding_boxes/cuboid_intersector.hpp"
+#include "detray/intersection/bounding_box/cuboid_intersector.hpp"
 #include "detray/surface_finders/grid/detail/axis_binning.hpp"
 #include "detray/surface_finders/grid/detail/axis_bounds.hpp"
 
@@ -24,9 +24,9 @@ namespace detray {
 
 /// @brief Geometrical shape of a full 3D cuboid.
 ///
-/// It is defined by the 3 half length and checks whether a point is somewhere
-/// inside the cuboid.
-template <typename intersector_t = cuboid_intersector>
+/// It is defined by 3 min-max length pairs and checks whether a point is
+/// somewhere inside the cuboid. This type is mainly used for aabb description.
+template <typename intersector_t = detray::cuboid_intersector>
 class cuboid3D {
     public:
     /// The name for this shape
@@ -60,8 +60,8 @@ class cuboid3D {
     using measurement_point_type = loc_point_type<algebra_t>;
 
     /// Underlying surface geometry: not a surface
-    template <typename algebra_t>
-    using intersector_type = void;
+    template <typename = void>
+    using intersector_type = intersector_t;
 
     /// Behaviour of the three local axes (linear in x, linear in y,
     /// linear in z)

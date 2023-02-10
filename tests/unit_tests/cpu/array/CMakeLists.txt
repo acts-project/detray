@@ -19,6 +19,7 @@ detray_add_test( array
    "array_coordinate_line2.cpp"
    "array_coordinate_polar2.cpp"
    "array_core.cpp"
+   "array_cuboid_intersector.cpp"
    "array_cylinder_intersection.cpp"
    "array_cylinder.cpp"
    "array_detector.cpp"
