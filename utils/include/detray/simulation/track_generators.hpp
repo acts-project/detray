@@ -427,7 +427,8 @@ class random_track_generator
     ///
     /// @param n_tracks the number of steps in the theta space
     /// @param trk_origin the starting point of the track
-    /// @param trk_mom magnitude of the track momentum (in GeV)
+    /// @param origin_stddev the standard deviation of origin
+    /// @param mom_range the range of the track momentum (in GeV)
     /// @param theta_range the range for theta values
     /// @param phi_range the range for phi values
     /// @param time time measurement (micro seconds)
