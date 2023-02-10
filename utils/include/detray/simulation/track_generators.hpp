@@ -348,8 +348,8 @@ class random_track_generator
                     m_origin[1], m_origin_stddev[1])(m_rnd_numbers.engine),
                 std::normal_distribution<scalar>(
                     m_origin[2], m_origin_stddev[2])(m_rnd_numbers.engine)};
-            m_mom_mag =
-                std::max(m_rnd_numbers(m_mom_range[0], m_mom_range[1]), 0.f);
+            m_mom_mag = std::max(m_rnd_numbers(m_mom_range[0], m_mom_range[1]),
+                                 scalar(0.f));
             m_phi = std::clamp(m_rnd_numbers(m_phi_range[0], m_phi_range[1]),
                                m_phi_range[0], m_phi_range[1]);
             m_theta =
