@@ -52,4 +52,14 @@ TEST(mask, trapezoid2D) {
             }
         }
     }
+
+    // Check bounding box
+    constexpr scalar envelope{0.01f};
+    const auto loc_bounds = t2.local_min_bounds(envelope);
+    ASSERT_NEAR(loc_bounds[cuboid3D<>::e_min_x], -(hx_maxy + envelope), tol);
+    ASSERT_NEAR(loc_bounds[cuboid3D<>::e_min_y], -(hy + envelope), tol);
+    ASSERT_NEAR(loc_bounds[cuboid3D<>::e_min_z], -envelope, tol);
+    ASSERT_NEAR(loc_bounds[cuboid3D<>::e_max_x], (hx_maxy + envelope), tol);
+    ASSERT_NEAR(loc_bounds[cuboid3D<>::e_max_y], (hy + envelope), tol);
+    ASSERT_NEAR(loc_bounds[cuboid3D<>::e_max_z], envelope, tol);
 }

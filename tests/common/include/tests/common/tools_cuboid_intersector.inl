@@ -46,7 +46,7 @@ TEST(ALGEBRA_PLUGIN, cuboid_aabb_intersector) {
     const detail::ray<transform3> r(pos, 0.f, mom, 0.f);
 
     // The bounding box
-    mask<cuboid3D<>> c3{0u, x_min, x_max, y_min, y_max, z_min, z_max};
+    mask<cuboid3D<>> c3{0u, x_min, y_min, z_min, x_max, y_max, z_max};
     axis_aligned_bounding_box<> aabb{c3, 0u};
 
     cuboid_intersector aabb_inters;

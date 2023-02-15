@@ -29,8 +29,7 @@ TEST(mask, cylinder3D) {
     point_t p3_off = {1.f, 1.f, -9.f};
 
     mask<cylinder3D> c{
-        0u, 0.f, r, -constant<scalar>::pi, constant<scalar>::pi,
-        -hz, hz};
+        0u, 0.f, -constant<scalar>::pi, -hz, r, constant<scalar>::pi, hz};
 
     ASSERT_NEAR(c[cylinder3D::e_min_r], 0.f, tol);
     ASSERT_NEAR(c[cylinder3D::e_max_r], r, tol);
@@ -57,6 +56,16 @@ TEST(mask, cylinder3D) {
             }
         }
     }
+
+    // Check bounding box
+    constexpr scalar envelope{0.01f};
+    const auto loc_bounds = c.local_min_bounds(envelope);
+    ASSERT_NEAR(loc_bounds[cuboid3D<>::e_min_x], -(r + envelope), tol);
+    ASSERT_NEAR(loc_bounds[cuboid3D<>::e_min_y], -(r + envelope), tol);
+    ASSERT_NEAR(loc_bounds[cuboid3D<>::e_min_z], -(hz + envelope), tol);
+    ASSERT_NEAR(loc_bounds[cuboid3D<>::e_max_x], (r + envelope), tol);
+    ASSERT_NEAR(loc_bounds[cuboid3D<>::e_max_y], (r + envelope), tol);
+    ASSERT_NEAR(loc_bounds[cuboid3D<>::e_max_z], (hz + envelope), tol);
 }
 
 /// This tests the basic functionality of a 2D cylinder
@@ -91,4 +100,14 @@ TEST(mask, cylinder2D) {
             }
         }
     }
+
+    // Check bounding box
+    constexpr scalar envelope{0.01f};
+    const auto loc_bounds = c.local_min_bounds(envelope);
+    ASSERT_NEAR(loc_bounds[cuboid3D<>::e_min_x], -(r + envelope), tol);
+    ASSERT_NEAR(loc_bounds[cuboid3D<>::e_min_y], -(r + envelope), tol);
+    ASSERT_NEAR(loc_bounds[cuboid3D<>::e_min_z], -(hz + envelope), tol);
+    ASSERT_NEAR(loc_bounds[cuboid3D<>::e_max_x], (r + envelope), tol);
+    ASSERT_NEAR(loc_bounds[cuboid3D<>::e_max_y], (r + envelope), tol);
+    ASSERT_NEAR(loc_bounds[cuboid3D<>::e_max_z], (hz + envelope), tol);
 }

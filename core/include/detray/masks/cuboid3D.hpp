@@ -37,10 +37,10 @@ class cuboid3D {
 
     enum boundaries : unsigned int {
         e_min_x = 0u,
-        e_max_x = 1u,
-        e_min_y = 2u,
-        e_max_y = 3u,
-        e_min_z = 4u,
+        e_min_y = 1u,
+        e_min_z = 2u,
+        e_max_x = 3u,
+        e_max_y = 4u,
         e_max_z = 5u,
         e_size = 6u,
     };
@@ -108,11 +108,36 @@ class cuboid3D {
         const bounds_t<scalar_t, kDIM> &bounds, const point_t &loc_p,
         const scalar_t tol = std::numeric_limits<scalar_t>::epsilon()) const {
         return (bounds[e_min_x] - tol <= loc_p[0] and
-                loc_p[0] <= bounds[e_max_x] + tol and
                 bounds[e_min_y] - tol <= loc_p[1] and
-                loc_p[1] <= bounds[e_max_y] + tol and
                 bounds[e_min_x] - tol <= loc_p[2] and
+                loc_p[0] <= bounds[e_max_x] + tol and
+                loc_p[1] <= bounds[e_max_y] + tol and
                 loc_p[2] <= bounds[e_max_z] + tol);
+    }
+
+    /// @brief Lower and upper point for minimal axis aligned bounding box.
+    ///
+    /// Computes the min and max vertices in a local cartesian frame.
+    ///
+    /// @param bounds the boundary values for this shape
+    /// @param env dynamic envelope around the shape
+    ///
+    /// @returns and array of coordinates that contains the lower point (first
+    /// three values) and the upper point (latter three values) .
+    template <typename algebra_t,
+              template <typename, std::size_t> class bounds_t,
+              typename scalar_t, std::size_t kDIM,
+              typename std::enable_if_t<kDIM == e_size, bool> = true>
+    DETRAY_HOST_DEVICE inline std::array<scalar_t, 6> local_min_bounds(
+        const bounds_t<scalar_t, kDIM> &bounds,
+        const scalar_t env = std::numeric_limits<scalar_t>::epsilon()) const {
+        assert(env > 0.f);
+        bounds_t<scalar_t, kDIM> o_bounds{bounds};
+        for (unsigned int i{0}; i < 3u; ++i) {
+            o_bounds[i] -= env;
+            o_bounds[i + 3u] += env;
+        }
+        return o_bounds;
     }
 };
 

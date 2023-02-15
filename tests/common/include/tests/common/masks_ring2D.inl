@@ -48,4 +48,14 @@ TEST(mask, ring2D) {
             }
         }
     }
+
+    // Check bounding box
+    constexpr scalar envelope{0.01f};
+    const auto loc_bounds = r2.local_min_bounds(envelope);
+    ASSERT_NEAR(loc_bounds[cuboid3D<>::e_min_x], -(outer_r + envelope), tol);
+    ASSERT_NEAR(loc_bounds[cuboid3D<>::e_min_y], -(outer_r + envelope), tol);
+    ASSERT_NEAR(loc_bounds[cuboid3D<>::e_min_z], -envelope, tol);
+    ASSERT_NEAR(loc_bounds[cuboid3D<>::e_max_x], (outer_r + envelope), tol);
+    ASSERT_NEAR(loc_bounds[cuboid3D<>::e_max_y], (outer_r + envelope), tol);
+    ASSERT_NEAR(loc_bounds[cuboid3D<>::e_max_z], envelope, tol);
 }
