@@ -195,13 +195,13 @@ class mask {
         return ret;
     }
 
-    /// @brief Lower and upper point for minimal axis aligned bounding box.
+    /// @brief Lower and upper point for minimum axis aligned bounding box.
     ///
     /// Computes the min and max vertices in a local 3 dim cartesian frame.
     ///
     /// @param env dynamic envelope around the shape
     ///
-    /// @returns a cuboid3D mask that is equivalent to the local aabb.
+    /// @returns a cuboid3D mask that is equivalent to the minimum local aabb.
     DETRAY_HOST_DEVICE
     auto local_min_bounds(const scalar_type env =
                               std::numeric_limits<scalar_type>::epsilon()) const

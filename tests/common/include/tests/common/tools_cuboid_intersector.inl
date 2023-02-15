@@ -9,7 +9,7 @@
 #include "detray/intersection/bounding_box/cuboid_intersector.hpp"
 #include "detray/intersection/detail/trajectories.hpp"
 #include "detray/intersection/intersection.hpp"
-#include "detray/tools/bounding_box.hpp"
+#include "detray/tools/bounding_volume.hpp"
 
 // GTest include
 #include <gtest/gtest.h>
@@ -47,7 +47,7 @@ TEST(ALGEBRA_PLUGIN, cuboid_aabb_intersector) {
 
     // The bounding box
     mask<cuboid3D<>> c3{0u, x_min, y_min, z_min, x_max, y_max, z_max};
-    axis_aligned_bounding_box<> aabb{c3, 0u};
+    axis_aligned_bounding_volume<cuboid3D<>> aabb{c3, 0u, envelope};
 
     cuboid_intersector aabb_inters;
 

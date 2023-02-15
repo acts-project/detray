@@ -18,6 +18,49 @@ constexpr scalar tol{1e-7f};
 constexpr scalar r{3.f * unit<scalar>::mm};
 constexpr scalar hz{4.f * unit<scalar>::mm};
 
+/// This tests the basic functionality of a 2D cylinder
+TEST(mask, cylinder2D) {
+    using point_t = typename mask<cylinder2D<>>::loc_point_t;
+
+    point_t p2_in = {r, -1.f};
+    point_t p2_edge = {r, hz};
+    point_t p2_out = {3.5f, 4.5f};
+
+    mask<cylinder2D<>> c{0u, r, -hz, hz};
+
+    ASSERT_NEAR(c[cylinder2D<>::e_r], r, tol);
+    ASSERT_NEAR(c[cylinder2D<>::e_n_half_z], -hz, tol);
+    ASSERT_NEAR(c[cylinder2D<>::e_p_half_z], hz, tol);
+
+    ASSERT_TRUE(c.is_inside(p2_in) == intersection::status::e_inside);
+    ASSERT_TRUE(c.is_inside(p2_edge) == intersection::status::e_inside);
+    ASSERT_TRUE(c.is_inside(p2_out) == intersection::status::e_outside);
+    // Move outside point inside using a tolerance
+    ASSERT_TRUE(c.is_inside(p2_out, 0.6f) == intersection::status::e_inside);
+
+    // Check projection matrix
+    const auto proj = c.projection_matrix<e_bound_size>();
+    for (unsigned int i = 0u; i < 2u; i++) {
+        for (unsigned int j = 0u; j < e_bound_size; j++) {
+            if (i == j && i < decltype(c)::shape::meas_dim) {
+                ASSERT_EQ(getter::element(proj, i, j), 1u);
+            } else {
+                ASSERT_EQ(getter::element(proj, i, j), 0u);
+            }
+        }
+    }
+
+    // Check bounding box
+    constexpr scalar envelope{0.01f};
+    const auto loc_bounds = c.local_min_bounds(envelope);
+    ASSERT_NEAR(loc_bounds[cuboid3D<>::e_min_x], -(r + envelope), tol);
+    ASSERT_NEAR(loc_bounds[cuboid3D<>::e_min_y], -(r + envelope), tol);
+    ASSERT_NEAR(loc_bounds[cuboid3D<>::e_min_z], -(hz + envelope), tol);
+    ASSERT_NEAR(loc_bounds[cuboid3D<>::e_max_x], (r + envelope), tol);
+    ASSERT_NEAR(loc_bounds[cuboid3D<>::e_max_y], (r + envelope), tol);
+    ASSERT_NEAR(loc_bounds[cuboid3D<>::e_max_z], (hz + envelope), tol);
+}
+
 /// This tests the basic functionality of a 3D cylinder
 TEST(mask, cylinder3D) {
     using point_t = typename mask<cylinder3D>::loc_point_t;
@@ -44,50 +87,6 @@ TEST(mask, cylinder3D) {
     ASSERT_TRUE(c.is_inside(p3_off) == intersection::status::e_outside);
     // Move outside point inside using a tolerance
     ASSERT_TRUE(c.is_inside(p3_out, 0.6f) == intersection::status::e_inside);
-
-    // Check projection matrix
-    const auto proj = c.projection_matrix<e_bound_size>();
-    for (unsigned int i = 0u; i < 2u; i++) {
-        for (unsigned int j = 0u; j < e_bound_size; j++) {
-            if (i == j && i < decltype(c)::shape::meas_dim) {
-                ASSERT_EQ(getter::element(proj, i, j), 1u);
-            } else {
-                ASSERT_EQ(getter::element(proj, i, j), 0u);
-            }
-        }
-    }
-
-    // Check bounding box
-    constexpr scalar envelope{0.01f};
-    const auto loc_bounds = c.local_min_bounds(envelope);
-    ASSERT_NEAR(loc_bounds[cuboid3D<>::e_min_x], -(r + envelope), tol);
-    ASSERT_NEAR(loc_bounds[cuboid3D<>::e_min_y], -(r + envelope), tol);
-    ASSERT_NEAR(loc_bounds[cuboid3D<>::e_min_z], -(hz + envelope), tol);
-    ASSERT_NEAR(loc_bounds[cuboid3D<>::e_max_x], (r + envelope), tol);
-    ASSERT_NEAR(loc_bounds[cuboid3D<>::e_max_y], (r + envelope), tol);
-    ASSERT_NEAR(loc_bounds[cuboid3D<>::e_max_z], (hz + envelope), tol);
-}
-
-/// This tests the basic functionality of a 2D cylinder
-TEST(mask, cylinder2D) {
-    using point_t = typename mask<cylinder2D<>>::loc_point_t;
-
-    point_t p2_in = {r, -1.f};
-    point_t p2_edge = {r, hz};
-    point_t p2_out = {3.5f, 4.5f};
-
-    // Test radius to be on surface, too
-    mask<cylinder2D<>> c{0u, r, -hz, hz};
-
-    ASSERT_NEAR(c[cylinder2D<>::e_r], r, tol);
-    ASSERT_NEAR(c[cylinder2D<>::e_n_half_z], -hz, tol);
-    ASSERT_NEAR(c[cylinder2D<>::e_p_half_z], hz, tol);
-
-    ASSERT_TRUE(c.is_inside(p2_in) == intersection::status::e_inside);
-    ASSERT_TRUE(c.is_inside(p2_edge) == intersection::status::e_inside);
-    ASSERT_TRUE(c.is_inside(p2_out) == intersection::status::e_outside);
-    // Move outside point inside using a tolerance
-    ASSERT_TRUE(c.is_inside(p2_out, 0.6f) == intersection::status::e_inside);
 
     // Check projection matrix
     const auto proj = c.projection_matrix<e_bound_size>();

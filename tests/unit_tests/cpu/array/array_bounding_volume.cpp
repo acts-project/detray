@@ -6,4 +6,4 @@
  */
 
 #include "detray/plugins/algebra/array_definitions.hpp"
-#include "tests/common/tools_bounding_box.inl"
+#include "tests/common/tools_bounding_volume.inl"

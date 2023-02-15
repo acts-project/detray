@@ -106,7 +106,7 @@ detray_add_library( detray_core core
    "include/detray/tools/associator.hpp"
    "include/detray/tools/bin_association.hpp"
    "include/detray/tools/bin_fillers.hpp"
-   "include/detray/tools/bounding_box.hpp"
+   "include/detray/tools/bounding_volume.hpp"
    "include/detray/tools/generators.hpp"
    "include/detray/tools/grid_builder.hpp"
    "include/detray/tools/grid_factory.hpp"
