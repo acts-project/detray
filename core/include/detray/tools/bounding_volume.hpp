@@ -66,7 +66,12 @@ class axis_aligned_bounding_volume {
     /// Construct a bounding box around a set of boxes
     /// @note the given bounding volumes need to be defnined in the same
     /// local coordinate system!
-    template <typename other_shape_t, typename other_scalar_t>
+    template <typename other_shape_t, typename other_scalar_t,
+              typename std::enable_if_t<
+                  std::is_same_v<
+                      typename shape::template local_frame_type<void>,
+                      typename other_shape_t::template local_frame_type<void>>,
+                  bool> = true>
     DETRAY_HOST constexpr axis_aligned_bounding_volume(
         const std::vector<const axis_aligned_bounding_volume<
             other_shape_t, other_scalar_t>*>& aabbs,
