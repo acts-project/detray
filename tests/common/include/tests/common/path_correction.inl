@@ -1,6 +1,6 @@
 /** Detray library, part of the ACTS project (R&D line)
  *
- * (c) 2022 CERN for the benefit of the ACTS project
+ * (c) 2022-2023 CERN for the benefit of the ACTS project
  *
  * Mozilla Public License Version 2.0
  */
@@ -10,9 +10,9 @@
 #include "detray/detectors/detector_metadata.hpp"
 #include "detray/materials/predefined_materials.hpp"
 #include "detray/propagator/actor_chain.hpp"
+#include "detray/propagator/actors/aborters.hpp"
 #include "detray/propagator/actors/parameter_resetter.hpp"
 #include "detray/propagator/actors/parameter_transporter.hpp"
-#include "detray/propagator/line_stepper.hpp"
 #include "detray/propagator/navigator.hpp"
 #include "detray/propagator/propagator.hpp"
 #include "detray/propagator/rk_stepper.hpp"
@@ -30,65 +30,28 @@
 
 using namespace detray;
 
-struct surface_targeter : actor {
-
-    struct state {
-        scalar _path;
-        dindex _target_surface_index = dindex_invalid;
-    };
-
-    /// Enforces thepath limit on a stepper state
-    ///
-    /// @param abrt_state contains the path limit
-    /// @param prop_state state of the propagation
-    template <typename propagator_state_t>
-    DETRAY_HOST_DEVICE void operator()(state &actor_state,
-                                       propagator_state_t &prop_state) const {
-
-        prop_state._heartbeat = true;
-        auto &navigation = prop_state._navigation;
-        auto &stepping = prop_state._stepping;
-        navigation.set_full_trust();
-
-        scalar residual{actor_state._path - stepping.path_length()};
-        stepping.set_constraint(residual);
-
-        typename propagator_state_t::navigator_state_type::intersection_t is;
-        is.index = actor_state._target_surface_index;
-        is.path = residual;
-        auto &candidates = navigation.candidates();
-        candidates.clear();
-        candidates.push_back(is);
-        navigation.set_next(candidates.begin());
-        navigation.set_unknown();
-
-        if (residual < std::abs(1e-6f)) {
-            prop_state._heartbeat = false;
-            candidates.push_back({});
-            navigation.next()++;
-            navigation.set_on_module();
-        }
-    }
-};
-
 // Type Definitions
-using vector2 = __plugin::vector2<scalar>;
-using vector3 = __plugin::vector3<scalar>;
-using matrix_operator = standard_matrix_operator<scalar>;
 using registry_type = detector_registry::default_detector;
 using detector_type = detector<registry_type, covfie::field>;
 using mask_container = typename detector_type::mask_container;
 using material_container = typename detector_type::material_container;
-using transform3 = typename detector_type::transform3;
 using surface_type = typename detector_type::surface_container::value_type;
 using mask_link_type = typename surface_type::mask_link;
 using material_link_type = typename surface_type::material_link;
 using mag_field_t = detector_type::bfield_type;
+
+using matrix_operator = standard_matrix_operator<scalar>;
+using transform3 = typename detector_type::transform3;
+using vector2 = __plugin::vector2<scalar>;
+using vector3 = __plugin::vector3<scalar>;
+
 using navigator_t = navigator<detector_type>;
-using crk_stepper_t =
-    rk_stepper<mag_field_t::view_t, transform3, constrained_step<>>;
+// Re-init the volume at every step, so that surface will be put into the
+// navigation cache
+using crk_stepper_t = rk_stepper<mag_field_t::view_t, transform3,
+                                 constrained_step<>, always_init>;
 using actor_chain_t =
-    actor_chain<dtuple, surface_targeter, parameter_transporter<transform3>,
+    actor_chain<dtuple, target_aborter, parameter_transporter<transform3>,
                 parameter_resetter<transform3>>;
 using propagator_t = propagator<crk_stepper_t, navigator_t, actor_chain_t>;
 
@@ -111,7 +74,7 @@ const typename detector_type::geometry_context ctx{};
 }  // namespace env
 
 // This tests the path correction of cartesian coordinate
-TEST(path_correction, cartesian) {
+TEST(path_correction, cartesian2D) {
 
     // Create a detector
     detector_type det(env::resource, std::move(env::mag_field));
@@ -131,12 +94,10 @@ TEST(path_correction, cartesian) {
     typename detector_type::material_container materials(env::resource);
 
     // Add a surface
-    const auto trf_index = transforms.size(env::ctx);
-    mask_link_type mask_link{mask_id, masks.template size<mask_id>()};
-    material_link_type material_link{material_id,
-                                     materials.template size<material_id>()};
-    surfaces.emplace_back(trf_index, mask_link, material_link, 0u,
-                          dindex_invalid, surface_id::e_sensitive);
+    mask_link_type mask_link{mask_id, 0u};
+    material_link_type material_link{material_id, 0u};
+    surfaces.emplace_back(0u, mask_link, material_link, 0u, dindex_invalid,
+                          surface_id::e_sensitive);
 
     // Add a transform
     const vector3 t{0.f, 0.f, 0.f};
@@ -190,12 +151,8 @@ TEST(path_correction, cartesian) {
     const bound_track_parameters<transform3> bound_param0(0u, bound_vector,
                                                           bound_cov);
 
-    // Path length per turn
-    scalar S{2.f * getter::perp(mom) / getter::norm(env::B) *
-             constant<scalar>::pi};
-
     // Actors
-    surface_targeter::state targeter{S, 0u};
+    target_aborter::state targeter{0u};
     parameter_transporter<transform3>::state bound_updater{};
     parameter_resetter<transform3>::state rst{};
 
@@ -204,13 +161,18 @@ TEST(path_correction, cartesian) {
 
     crk_stepper_t::state &crk_state = propagation._stepping;
 
+    // Path length per turn
+    scalar S{2.f * getter::perp(mom) / getter::norm(env::B) *
+             constant<scalar>::pi};
+    // Constrain the step size to force frequent re-navigation for this
+    // strongly bent track
+    crk_state.template set_constraint<step::constraint::e_accuracy>(0.1f * S);
+
     // Decrease tolerance down to 1e-8
     crk_state._tolerance = env::rk_tolerance;
 
     // Run propagator
     p.propagate(propagation, std::tie(targeter, bound_updater, rst));
-
-    EXPECT_NEAR(crk_state.path_length(), targeter._path, env::tol);
 
     // Bound state after one turn propagation
     const auto bound_param1 = crk_state._bound_params;
@@ -275,12 +237,10 @@ TEST(path_correction, polar) {
     typename detector_type::material_container materials(env::resource);
 
     // Add a surface
-    const auto trf_index = transforms.size(env::ctx);
-    mask_link_type mask_link{mask_id, masks.template size<mask_id>()};
-    material_link_type material_link{material_id,
-                                     materials.template size<material_id>()};
-    surfaces.emplace_back(trf_index, mask_link, material_link, 0,
-                          dindex_invalid, surface_id::e_sensitive);
+    mask_link_type mask_link{mask_id, 0u};
+    material_link_type material_link{material_id, 0u};
+    surfaces.emplace_back(0u, mask_link, material_link, 0, dindex_invalid,
+                          surface_id::e_sensitive);
 
     // Add a transform
     const vector3 t{0.f, 0.f, 0.f};
@@ -334,12 +294,8 @@ TEST(path_correction, polar) {
     const bound_track_parameters<transform3> bound_param0(0u, bound_vector,
                                                           bound_cov);
 
-    // Path length per turn
-    scalar S{2.f * getter::perp(mom) / getter::norm(env::B) *
-             constant<scalar>::pi};
-
     // Actors
-    surface_targeter::state targeter{S, 0u};
+    target_aborter::state targeter{0u};
     parameter_transporter<transform3>::state bound_updater{};
     parameter_resetter<transform3>::state rst{};
 
@@ -358,10 +314,15 @@ TEST(path_correction, polar) {
     // Decrease tolerance down to 1e-8
     crk_state._tolerance = env::rk_tolerance;
 
+    // Path length per turn
+    scalar S{2.f * getter::perp(mom) / getter::norm(env::B) *
+             constant<scalar>::pi};
+    // Constrain the step size to force frequent re-navigation for this
+    // strongly bent track
+    crk_state.template set_constraint<step::constraint::e_accuracy>(0.1f * S);
+
     // Run propagator
     p.propagate(propagation, std::tie(targeter, bound_updater, rst));
-
-    EXPECT_NEAR(crk_state.path_length(), targeter._path, env::tol);
 
     // Bound state after one turn propagation
     const auto bound_param1 = crk_state._bound_params;
@@ -407,12 +368,10 @@ TEST(path_correction, cylindrical) {
     typename detector_type::material_container materials(env::resource);
 
     // Add a surface
-    const auto trf_index = transforms.size(env::ctx);
-    mask_link_type mask_link{mask_id, masks.template size<mask_id>()};
-    material_link_type material_link{material_id,
-                                     materials.template size<material_id>()};
-    surfaces.emplace_back(trf_index, mask_link, material_link, 0u,
-                          dindex_invalid, surface_id::e_sensitive);
+    mask_link_type mask_link{mask_id, 0u};
+    material_link_type material_link{material_id, 0u};
+    surfaces.emplace_back(0u, mask_link, material_link, 0u, dindex_invalid,
+                          surface_id::e_sensitive);
 
     // Add a transform
     const vector3 t{-50.f * unit<scalar>::mm, 0.f, 0.f};
@@ -468,12 +427,8 @@ TEST(path_correction, cylindrical) {
     const bound_track_parameters<transform3> bound_param0(0, bound_vector,
                                                           bound_cov);
 
-    // Path length per turn
-    scalar S{2.f * getter::perp(mom) / getter::norm(env::B) *
-             constant<scalar>::pi};
-
     // Actors
-    surface_targeter::state targeter{S, 0u};
+    target_aborter::state targeter{0u};
     parameter_transporter<transform3>::state bound_updater{};
     parameter_resetter<transform3>::state rst{};
 
@@ -490,10 +445,15 @@ TEST(path_correction, cylindrical) {
     // Decrease tolerance down to 1e-8
     crk_state._tolerance = env::rk_tolerance;
 
+    // Path length per turn
+    scalar S{2.f * getter::perp(mom) / getter::norm(env::B) *
+             constant<scalar>::pi};
+    // Constrain the step size to force frequent re-navigation for this
+    // strongly bent track
+    crk_state.template set_constraint<step::constraint::e_accuracy>(0.1f * S);
+
     // Run propagator
     p.propagate(propagation, std::tie(targeter, bound_updater, rst));
-
-    EXPECT_NEAR(crk_state.path_length(), targeter._path, env::tol);
 
     // Bound state after one turn propagation
     const auto bound_param1 = crk_state._bound_params;

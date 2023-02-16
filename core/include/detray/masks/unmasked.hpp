@@ -1,6 +1,6 @@
 /** Detray library, part of the ACTS project (R&D line)
  *
- * (c) 2020-2022 CERN for the benefit of the ACTS project
+ * (c) 2020-2023 CERN for the benefit of the ACTS project
  *
  * Mozilla Public License Version 2.0
  */
@@ -9,6 +9,7 @@
 
 // Project include(s)
 #include "detray/coordinates/cartesian2.hpp"
+#include "detray/definitions/qualifiers.hpp"
 #include "detray/intersection/plane_intersector.hpp"
 #include "detray/surface_finders/grid/detail/axis_binning.hpp"
 #include "detray/surface_finders/grid/detail/axis_bounds.hpp"
@@ -19,7 +20,7 @@
 
 namespace detray {
 
-/// @brief Flat shape without boundaries.
+/// @brief Generic, flat shape without boundaries.
 class unmasked {
     public:
     /// The name for this shape

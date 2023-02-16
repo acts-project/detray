@@ -148,40 +148,10 @@ class navigator {
         DETRAY_HOST_DEVICE
         scalar operator()() const { return _next->path; }
 
-        DETRAY_HOST_DEVICE
-        inline void set_unknown() { _status = navigation::status::e_unknown; }
-
-        DETRAY_HOST_DEVICE
-        inline void set_on_module() {
-            _status = navigation::status::e_on_module;
-        }
-
-        /// Updates the iterator position of the last valid candidate
-        DETRAY_HOST_DEVICE
-        inline void set_next(candidate_itr_t &&new_next) {
-            _next = std::move(new_next);
-        }
-
-        /// @returns next object that we want to reach (current target)
-        DETRAY_HOST_DEVICE
-        inline auto next() -> candidate_itr_t & { return _next; }
-
-        /// @returns next object that we want to reach (current target) - const
-        DETRAY_HOST_DEVICE
-        inline auto next() const -> const const_candidate_itr_t & {
-            return _next;
-        }
-
         /// @returns currently cached candidates - const
         DETRAY_HOST_DEVICE
         inline auto candidates() const
             -> const vector_type<intersection_type> & {
-            return _candidates;
-        }
-
-        /// @returns currently cached candidates
-        DETRAY_HOST_DEVICE
-        inline auto candidates() -> vector_type<intersection_type> & {
             return _candidates;
         }
 
@@ -198,13 +168,11 @@ class navigator {
             return _next - 1;
         }
 
-        /*
         /// @returns next object that we want to reach (current target) - const
         DETRAY_HOST_DEVICE
         inline auto next() const -> const const_candidate_itr_t & {
             return _next;
         }
-        */
 
         /// @returns last valid candidate (by position in the cache) - const
         DETRAY_HOST_DEVICE
@@ -379,23 +347,26 @@ class navigator {
                    candidate.path >= track.overstep_tolerance();
         }
 
-        /*
         /// @returns next object that we want to reach (current target)
         DETRAY_HOST_DEVICE
         inline auto next() -> candidate_itr_t & { return _next; }
-        */
-        /*
+
         /// Updates the iterator position of the last valid candidate
         DETRAY_HOST_DEVICE
         inline void set_next(candidate_itr_t &&new_next) {
             _next = std::move(new_next);
         }
-        */
 
         /// Updates the iterator position of the last valid candidate
         DETRAY_HOST_DEVICE
         inline void set_last(candidate_itr_t &&new_last) {
             _last = std::move(new_last);
+        }
+
+        /// @returns currently cached candidates
+        DETRAY_HOST_DEVICE
+        inline auto candidates() -> vector_type<intersection_type> & {
+            return _candidates;
         }
 
         /// Clear the kernel
