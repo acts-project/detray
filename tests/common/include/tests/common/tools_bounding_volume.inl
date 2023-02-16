@@ -306,3 +306,30 @@ TEST(tools, trapezoid2D_aabb) {
                 tol);
     ASSERT_NEAR(glob_aabb[cuboid3D<>::e_max_z], envelope + t[2], tol);
 }
+
+/// This tests wrapping a collection of cuboid bounding volumes
+TEST(tools, wrap_bounding_cuboid3D) {
+    using point_t = typename mask<cylinder3D>::loc_point_t;
+    using box_t = axis_aligned_bounding_volume<cuboid3D<>>;
+
+    box_t b1{0u, -1.f, 0.f, -10.f, -0.5f, 1.f, 0.f};
+    box_t b2{0u, -2.f, 3.f, 2.f, 2.f, 4.5f, 3.5f};
+    box_t b3{0u, -1.5f, -0.1f, -2.f, 0.f, 0.1f, 2.f};
+    box_t b4{0u, 0.f, 0.f, 0.f, 2.f, 2.f, 10.f};
+
+    std::vector<const box_t*> boxes = {&b1, &b2, &b3, &b4};
+
+    box_t aabb{boxes, 0u, envelope};
+
+    // Id of this instance
+    ASSERT_EQ(aabb.id(), 0u);
+
+    // Test the bounds
+    const auto bounds = aabb.bounds();
+    ASSERT_NEAR(bounds[cuboid3D<>::e_min_x], -2.f - envelope, tol);
+    ASSERT_NEAR(bounds[cuboid3D<>::e_min_y], -0.1f - envelope, tol);
+    ASSERT_NEAR(bounds[cuboid3D<>::e_min_z], -10.f - envelope, tol);
+    ASSERT_NEAR(bounds[cuboid3D<>::e_max_x], 2.f + envelope, tol);
+    ASSERT_NEAR(bounds[cuboid3D<>::e_max_y], 4.5f + envelope, tol);
+    ASSERT_NEAR(bounds[cuboid3D<>::e_max_z], 10.f + envelope, tol);
+}

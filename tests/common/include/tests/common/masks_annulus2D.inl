@@ -7,8 +7,6 @@
 
 #include <gtest/gtest.h>
 
-#include <iostream>
-
 #include "detray/definitions/units.hpp"
 #include "detray/masks/masks.hpp"
 

@@ -9,6 +9,7 @@
 
 // Project include(s).
 #include "detray/definitions/qualifiers.hpp"
+#include "detray/definitions/units.hpp"
 #include "detray/masks/masks.hpp"
 
 // System include(s)
@@ -63,8 +64,41 @@ class axis_aligned_bounding_volume {
     }
 
     /// Construct a bounding box around a set of boxes
-    constexpr axis_aligned_bounding_volume(
-        const std::vector<axis_aligned_bounding_volume>& aabbs) {}
+    /// @note the given bounding volumes need to be defnined in the same
+    /// local coordinate system!
+    template <typename other_shape_t, typename other_scalar_t>
+    DETRAY_HOST constexpr axis_aligned_bounding_volume(
+        const std::vector<const axis_aligned_bounding_volume<
+            other_shape_t, other_scalar_t>*>& aabbs,
+        unsigned int box_id, const scalar_t env) {
+
+        using loc_point_t =
+            std::array<scalar_t, other_shape_t::template axes<>::dim>;
+
+        // Find min/max extent of the local aabb in local coordinates
+        constexpr scalar_t inf{std::numeric_limits<scalar_t>::infinity()};
+        scalar_t min_x{inf}, min_y{inf}, min_z{inf}, max_x{-inf}, max_y{-inf},
+            max_z{-inf};
+        for (const auto* vol_ptr : aabbs) {
+            const auto min_point = vol_ptr->template loc_min<loc_point_t>();
+            const auto max_point = vol_ptr->template loc_max<loc_point_t>();
+
+            // Check every coordinate of the points
+            min_x = min_point[0] < min_x ? min_point[0] : min_x;
+            min_y = min_point[1] < min_y ? min_point[1] : min_y;
+
+            max_x = max_point[0] > max_x ? max_point[0] : max_x;
+            max_y = max_point[1] > max_y ? max_point[1] : max_y;
+
+            if (min_point.size() > 1) {
+                min_z = min_point[2] < min_z ? min_point[2] : min_z;
+                max_z = max_point[2] > max_z ? max_point[2] : max_z;
+            }
+        }
+        m_mask = mask<shape, unsigned int>{
+            box_id,      min_x - env, min_y - env, min_z - env,
+            max_x + env, max_y + env, max_z + env};
+    }
 
     /// Subscript operator @returns a single box boundary.
     DETRAY_HOST_DEVICE
@@ -80,6 +114,89 @@ class axis_aligned_bounding_volume {
     DETRAY_HOST_DEVICE
     constexpr auto bounds() const -> const mask<shape, unsigned int>& {
         return m_mask;
+    }
+
+    /// @returns the minimum bounds of the volume in local coordinates
+    template <typename point_t>
+    DETRAY_HOST_DEVICE constexpr auto loc_min() const -> point_t {
+
+        if constexpr (std::is_same_v<shape, cuboid3D<>>) {
+            return {m_mask[cuboid3D<>::e_min_x], m_mask[cuboid3D<>::e_min_y],
+                    m_mask[cuboid3D<>::e_min_z]};
+        } else if constexpr (std::is_same_v<shape, cylinder3D>) {
+            return {-m_mask[cylinder3D::e_max_r], m_mask[cylinder3D::e_min_phi],
+                    m_mask[cylinder3D::e_min_z]};
+        }
+
+        // If the volume shape is not supported, return universal minimum
+        assert(false);
+        constexpr scalar_t inf{std::numeric_limits<scalar_t>::infinity()};
+        return point_t{-inf, -inf, -inf};
+    }
+
+    /// @returns the maximum bounds of the volume in local coordinates
+    template <typename point_t>
+    DETRAY_HOST_DEVICE constexpr auto loc_max() const -> point_t {
+
+        if constexpr (std::is_same_v<shape, cuboid3D<>>) {
+            return {m_mask[cuboid3D<>::e_max_x], m_mask[cuboid3D<>::e_max_y],
+                    m_mask[cuboid3D<>::e_max_z]};
+        } else if constexpr (std::is_same_v<shape, cylinder3D>) {
+            return {m_mask[cylinder3D::e_max_r], m_mask[cylinder3D::e_max_phi],
+                    m_mask[cylinder3D::e_max_z]};
+        }
+
+        // If the volume shape is not supported, return universal minimum
+        // (or compilation error for 2D point)
+        assert(false);
+        constexpr scalar_t inf{std::numeric_limits<scalar_t>::infinity()};
+        return point_t{inf, inf, inf};
+    }
+    /// @returns the minimum bounds of the volume in global cartesian
+    /// coordinates
+    template <typename transform3_t>
+    DETRAY_HOST_DEVICE constexpr auto glob_min(const transform3_t& trf) const ->
+        typename transform3_t::point3 {
+
+        using point3_t = typename transform3_t::point3;
+        using loc_point_t =
+            typename shape::template loc_point_type<transform3_t>;
+
+        if constexpr (std::is_same_v<shape, cuboid3D<>>) {
+            return trf.point_to_global(loc_min<loc_point_t>());
+        } else if constexpr (std::is_same_v<shape, cylinder3D>) {
+            return cylindrical3<transform3_t>{}.local_to_global(
+                trf, m_mask, loc_min<loc_point_t>());
+        }
+
+        // If the volume shape is not supported, return universal minimum
+        // (or compilation error for 2D point)
+        assert(false);
+        constexpr scalar_t inf{std::numeric_limits<scalar_t>::infinity()};
+        return point3_t{-inf, -inf, -inf};
+    }
+
+    /// @returns the maximum bounds of the volume in global cartesian
+    /// coordinates
+    template <typename transform3_t>
+    DETRAY_HOST_DEVICE constexpr auto glob_max(const transform3_t& trf) const ->
+        typename transform3_t::point3 {
+
+        using point3_t = typename transform3_t::point3;
+        using loc_point_t =
+            typename shape::template loc_point_type<transform3_t>;
+
+        if constexpr (std::is_same_v<shape, cuboid3D<>>) {
+            return trf.point_to_global(loc_max<loc_point_t>());
+        } else if constexpr (std::is_same_v<shape, cylinder3D>) {
+            return cylindrical3<transform3_t>{}.local_to_global(
+                trf, m_mask, loc_max<loc_point_t>());
+        }
+
+        // If the volume shape is not supported, return universal minimum
+        assert(false);
+        constexpr scalar_t inf{std::numeric_limits<scalar_t>::infinity()};
+        return point3_t{inf, inf, inf};
     }
 
     /// @brief Lower and upper point for minimum axis aligned bounding box of
@@ -111,19 +228,11 @@ class axis_aligned_bounding_volume {
             (m_mask[cuboid3D<>::e_max_z] - m_mask[cuboid3D<>::e_min_z]) *
             trf.z();
 
-        // Transform the old min and max points to the global frame ...
-        point3_t loc_min{m_mask[cuboid3D<>::e_min_x],
-                         m_mask[cuboid3D<>::e_min_y],
-                         m_mask[cuboid3D<>::e_min_z]};
-        point3_t loc_max{m_mask[cuboid3D<>::e_max_x],
-                         m_mask[cuboid3D<>::e_max_y],
-                         m_mask[cuboid3D<>::e_max_z]};
-
-        // ... and construct all corner points of the local aabb in global
-        // coordinates
+        // Transform the old min and max points to the global frame and
+        // construct all corner points of the local aabb in global coordinates
         std::array<point3_t, 8> glob_c_points;
-        glob_c_points[0] = trf.point_to_global(loc_min);
-        glob_c_points[1] = trf.point_to_global(loc_max);
+        glob_c_points[0] = glob_min(trf);
+        glob_c_points[1] = glob_max(trf);
         glob_c_points[2] = glob_c_points[0] + new_box_x;
         glob_c_points[3] = glob_c_points[0] + new_box_y;
         glob_c_points[4] = glob_c_points[0] + new_box_z;

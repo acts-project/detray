@@ -64,7 +64,7 @@ class annulus2D {
         e_max_phi_rel = 3u,
         e_shift_x = 4u,
         e_shift_y = 5u,
-        e_average_phi = 6u,  // stereo angle phi_s
+        e_average_phi = 6u,
         e_size = 7u,
     };
 
@@ -219,7 +219,8 @@ class annulus2D {
         const point_t c{c_pos[6] * math_ns::cos(c_pos[7]) - o_x,
                         c_pos[6] * math_ns::sin(c_pos[7]) - o_y};
 
-        // scale to the length of the full circle to get the outermost point
+        // bisector = 0.5 * (c + b). Scale to the length of the full circle to
+        // get the outermost point
         const point_t t = bounds[e_max_r] * vector::normalize(c + b);
 
         // Find the min/max positions in x and y
