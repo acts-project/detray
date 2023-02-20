@@ -136,7 +136,6 @@ TEST(ALGEBRA_PLUGIN, helix_navigation) {
 
     auto det = create_toy_geometry(
         host_mr,
-        b_field_t(b_field_t::backend_t::configuration_t{B[0], B[1], B[2]}),
         n_brl_layers, n_edc_layers);
 
     // Runge-Kutta based navigation

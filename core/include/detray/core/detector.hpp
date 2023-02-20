@@ -21,13 +21,22 @@
 
 // Covfie include(s)
 #include <covfie/core/field.hpp>
+#include <covfie/core/backend/transformer/affine.hpp>
+#include <covfie/core/backend/transformer/strided.hpp>
+#include <covfie/core/backend/transformer/nearest_neighbour.hpp>
 
 // System include(s)
 #include <map>
 #include <sstream>
 #include <string>
+#include <iostream>
 
 namespace detray {
+    using _toy_bfield = covfie::backend::affine<
+    covfie::backend::nearest_neighbour<covfie::backend::strided<
+        covfie::vector::ulong3,
+        covfie::backend::array<covfie::vector::float3>>>>;
+
 
 /// @brief Forward declaration of a detector view type
 template <typename metadata, template <typename> class bfield_t,
@@ -145,8 +154,36 @@ class detector {
           _resource(&resource),
           _bfield(field) {}
 
+    static covfie::field<_toy_bfield> load_toy_field() {
+        std::ifstream stream(std::getenv("DETRAY_BFIELD_FILE"), std::ifstream::binary);
+
+        if (!stream.good()) {
+            std::cout << "Lol the file failed to load!!" << std::endl;
+        }
+
+        covfie::field<_toy_bfield> field(stream);
+
+        stream.close();
+
+        return field;
+    }
+
     /// Constructor with simplified constant-zero B-field
     /// @param resource memory resource for the allocation of members
+    template<typename toy_bfield = _toy_bfield, std::enable_if_t<std::is_same_v<typename metadata::bfield_backend_t, toy_bfield>, bool> = true>
+    DETRAY_HOST
+    detector(vecmem::memory_resource &resource)
+        : _volumes(&resource),
+          _surfaces(&resource),
+          _transforms(resource),
+          _masks(resource),
+          _materials(resource),
+          _sf_finders(resource),
+          _volume_finder(resource),
+          _resource(&resource),
+          _bfield(load_toy_field()) {}
+
+    template<typename toy_bfield = _toy_bfield, std::enable_if_t<!std::is_same_v<typename metadata::bfield_backend_t, toy_bfield>, bool> = true>
     DETRAY_HOST
     detector(vecmem::memory_resource &resource)
         : _volumes(&resource),

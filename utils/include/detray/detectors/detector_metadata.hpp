@@ -23,6 +23,9 @@
 
 // Covfie include(s)
 #include <covfie/core/backend/primitive/constant.hpp>
+#include <covfie/core/backend/transformer/affine.hpp>
+#include <covfie/core/backend/transformer/strided.hpp>
+#include <covfie/core/backend/transformer/nearest_neighbour.hpp>
 #include <covfie/core/vector.hpp>
 
 namespace detray {
@@ -164,8 +167,10 @@ struct full_metadata {
 
 /// Defines the data types needed for the toy detector
 template <typename _bfield_backend_t =
-              covfie::backend::constant<covfie::vector::vector_d<scalar, 3>,
-                                        covfie::vector::vector_d<scalar, 3>>>
+              covfie::backend::affine<
+    covfie::backend::nearest_neighbour<covfie::backend::strided<
+        covfie::vector::ulong3,
+        covfie::backend::array<covfie::vector::float3>>>>>
 struct toy_metadata {
     using bfield_backend_t = _bfield_backend_t;
 

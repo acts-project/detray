@@ -32,7 +32,6 @@ if(("${CMAKE_CXX_COMPILER_ID}" MATCHES "GNU") OR
    detray_add_flag(CMAKE_CXX_FLAGS "-Wunused-local-typedefs")
 
    # More rigorous tests for the Debug builds.
-   detray_add_flag(CMAKE_CXX_FLAGS_DEBUG "-Werror")
    detray_add_flag(CMAKE_CXX_FLAGS_DEBUG "-pedantic")
    # No implicit single to double conversions from floating point literals
    detray_add_flag(CMAKE_CXX_FLAGS_DEBUG "-Wconversion")

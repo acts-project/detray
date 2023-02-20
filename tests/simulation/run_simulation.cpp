@@ -30,8 +30,7 @@ int main() {
     // Create geometry
     using b_field_t = decltype(create_toy_geometry(host_mr))::bfield_type;
     const auto detector = create_toy_geometry(
-        host_mr,
-        b_field_t(b_field_t::backend_t::configuration_t{B[0], B[1], B[2]}));
+        host_mr);
 
     // Create track generator
     constexpr std::size_t theta_steps{4u};

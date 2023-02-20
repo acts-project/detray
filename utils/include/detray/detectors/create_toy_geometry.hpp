@@ -25,6 +25,7 @@
 #include <limits>
 #include <stdexcept>
 #include <type_traits>
+#include <iostream>
 
 namespace detray {
 
@@ -1125,11 +1126,15 @@ template <typename container_t = host_container_types>
 auto create_toy_geometry(vecmem::memory_resource &resource,
                          unsigned int n_brl_layers = 4u,
                          unsigned int n_edc_layers = 3u) {
+    std::ifstream stream(std::getenv("DETRAY_BFIELD_FILE"), std::ifstream::binary);
+   
+    if (!stream.good()) {
+        std::cout << "File loading error" << std::endl;
+    }
+
     return create_toy_geometry<container_t>(
         resource,
-        covfie::field<detector_registry::toy_detector::bfield_backend_t>{
-            detector_registry::toy_detector::bfield_backend_t::configuration_t{
-                0.f, 0.f, 0.f}},
+        covfie::field<detector_registry::toy_detector::bfield_backend_t>{stream},
         n_brl_layers, n_edc_layers);
 }
 
