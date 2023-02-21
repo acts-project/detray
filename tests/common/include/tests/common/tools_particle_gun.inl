@@ -30,9 +30,21 @@ constexpr const scalar tol{1e-3f};
 /// without B-field
 TEST(tools, particle_gun) {
 
+    // Constant bfield
+    using bfield_bknd_t =
+        covfie::backend::constant<covfie::vector::vector_d<scalar, 3>,
+                                  covfie::vector::vector_d<scalar, 3>>;
+    // Simulate straight line track
+    const vector3 B{0.f * unit<scalar>::T, 0.f * unit<scalar>::T,
+                    tol * unit<scalar>::T};
+
+    auto bfield = covfie::field<bfield_bknd_t>{
+        typename bfield_bknd_t::configuration_t{B[0], B[1], B[2]}};
+
     // Build the geometry
     vecmem::host_memory_resource host_mr;
-    auto toy_det = create_toy_geometry(host_mr);
+    auto toy_det =
+        create_toy_geometry<bfield_bknd_t>(host_mr, std::move(bfield));
 
     unsigned int theta_steps{50u};
     unsigned int phi_steps{50u};
@@ -53,9 +65,6 @@ TEST(tools, particle_gun) {
         expected.push_back(intersection_record);
     }
 
-    // Simulate straight line track
-    const vector3 B{0.f * unit<scalar>::T, 0.f * unit<scalar>::T,
-                    tol * unit<scalar>::T};
     // Iterate through uniformly distributed momentum directions with helix
     std::size_t n_tracks{0u};
     for (const auto track :

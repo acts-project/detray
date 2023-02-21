@@ -20,23 +20,31 @@
 #include <vecmem/memory/memory_resource.hpp>
 
 // Covfie include(s)
+#include <covfie/core/backend/primitive/constant.hpp>
 #include <covfie/core/field.hpp>
-#include <covfie/core/backend/transformer/affine.hpp>
-#include <covfie/core/backend/transformer/strided.hpp>
-#include <covfie/core/backend/transformer/nearest_neighbour.hpp>
+#include <covfie/core/vector.hpp>
+// #include <covfie/core/backend/transformer/affine.hpp>
+// #include <covfie/core/backend/transformer/strided.hpp>
+// #include <covfie/core/backend/transformer/nearest_neighbour.hpp>
 
 // System include(s)
+#include <iostream>
 #include <map>
 #include <sstream>
 #include <string>
-#include <iostream>
 
 namespace detray {
-    using _toy_bfield = covfie::backend::affine<
-    covfie::backend::nearest_neighbour<covfie::backend::strided<
-        covfie::vector::ulong3,
-        covfie::backend::array<covfie::vector::float3>>>>;
 
+/*using _toy_bfield = covfie::backend::affine<
+covfie::backend::nearest_neighbour<covfie::backend::strided<
+    covfie::vector::ulong3,
+    covfie::backend::array<covfie::vector::float3>>>>;*/
+
+/// Default b field type
+template <typename scalar_t>
+using const_b_field_bknd =
+    covfie::backend::constant<covfie::vector::vector_d<scalar_t, 3>,
+                              covfie::vector::vector_d<scalar_t, 3>>;
 
 /// @brief Forward declaration of a detector view type
 template <typename metadata, template <typename> class bfield_t,
@@ -70,7 +78,7 @@ class detector {
     using vector3 = __plugin::vector3<scalar_type>;
     using point2 = __plugin::point2<scalar_type>;
 
-    using bfield_backend_type = typename metadata::bfield_backend_t;
+    using bfield_backend_type = typename metadata::bfield_backend_type;
 
     using bfield_type = bfield_t<bfield_backend_type>;
 
@@ -154,25 +162,11 @@ class detector {
           _resource(&resource),
           _bfield(field) {}
 
-    static covfie::field<_toy_bfield> load_toy_field() {
-        std::ifstream stream(std::getenv("DETRAY_BFIELD_FILE"), std::ifstream::binary);
-
-        if (!stream.good()) {
-            std::cout << "Lol the file failed to load!!" << std::endl;
-        }
-
-        covfie::field<_toy_bfield> field(stream);
-
-        stream.close();
-
-        return field;
-    }
-
-    /// Constructor with simplified constant-zero B-field
+    /// Constructor that reads the magnetic field from a predefined file
     /// @param resource memory resource for the allocation of members
-    template<typename toy_bfield = _toy_bfield, std::enable_if_t<std::is_same_v<typename metadata::bfield_backend_t, toy_bfield>, bool> = true>
-    DETRAY_HOST
-    detector(vecmem::memory_resource &resource)
+    template <typename B = bfield_t<const_b_field_bknd<scalar_type>>,
+              std::enable_if_t<!std::is_same_v<bfield_type, B>, bool> = true>
+    DETRAY_HOST detector(vecmem::memory_resource &resource)
         : _volumes(&resource),
           _surfaces(&resource),
           _transforms(resource),
@@ -180,12 +174,26 @@ class detector {
           _materials(resource),
           _sf_finders(resource),
           _volume_finder(resource),
-          _resource(&resource),
-          _bfield(load_toy_field()) {}
+          _resource(&resource) {
 
-    template<typename toy_bfield = _toy_bfield, std::enable_if_t<!std::is_same_v<typename metadata::bfield_backend_t, toy_bfield>, bool> = true>
-    DETRAY_HOST
-    detector(vecmem::memory_resource &resource)
+        // This has to be defined!
+        std::ifstream stream(std::getenv("DETRAY_BFIELD_FILE"),
+                             std::ifstream::binary);
+
+        if (!stream.good()) {
+            std::cout << "File loading error" << std::endl;
+        }
+
+        _bfield = bfield_type(stream);
+
+        stream.close();
+    }
+
+    /// Constructor with simplified constant-zero B-field
+    /// @param resource memory resource for the allocation of members
+    template <typename B = bfield_t<const_b_field_bknd<scalar_type>>,
+              std::enable_if_t<std::is_same_v<bfield_type, B>, bool> = true>
+    DETRAY_HOST detector(vecmem::memory_resource &resource)
         : _volumes(&resource),
           _surfaces(&resource),
           _transforms(resource),

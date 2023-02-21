@@ -22,10 +22,10 @@
 #include <covfie/core/field.hpp>
 
 // System include(s)
+#include <iostream>
 #include <limits>
 #include <stdexcept>
 #include <type_traits>
-#include <iostream>
 
 namespace detray {
 
@@ -919,25 +919,29 @@ void add_barrel_detector(
 
 }  // namespace
 
-/** Builds a detray geometry that contains the innermost tml layers. The number
- *  of barrel and endcap layers can be chosen, but all barrel layers should be
- *  present when an endcap detector is built to have the barrel region radius
- *  match the endcap diameter.
- *
- * @param n_brl_layers number of pixel barrel layer to build (max 4)
- * @param n_edc_layers number of pixel endcap discs to build (max 7)
- *
- * @returns a complete detector object
- */
-template <typename container_t = host_container_types>
-auto create_toy_geometry(
-    vecmem::memory_resource &resource,
-    covfie::field<detector_registry::toy_detector::bfield_backend_t> &&bfield,
-    unsigned int n_brl_layers = 4u, unsigned int n_edc_layers = 3u) {
+/// Builds a detray geometry that contains the innermost tml layers. The number
+/// of barrel and endcap layers can be chosen, but all barrel layers should be
+/// present when an endcap detector is built to have the barrel region radius
+/// match the endcap diameter.
+///
+/// @param bfield the magnetic field instance
+/// @param n_brl_layers number of pixel barrel layer to build (max 4)
+/// @param n_edc_layers number of pixel endcap discs to build (max 7)
+///
+/// @returns a complete detector object
+template <typename bfield_bknd_t =
+              covfie::backend::constant<covfie::vector::vector_d<scalar, 3>,
+                                        covfie::vector::vector_d<scalar, 3>>,
+          typename container_t = host_container_types>
+auto create_toy_geometry(vecmem::memory_resource &resource,
+                         covfie::field<bfield_bknd_t> &&bfield,
+                         unsigned int n_brl_layers = 4u,
+                         unsigned int n_edc_layers = 3u) {
 
     // detector type
     using detector_t =
-        detector<detector_registry::toy_detector, covfie::field, container_t>;
+        detector<detector_registry::template toy_detector<bfield_bknd_t>,
+                 covfie::field, container_t>;
 
     /// Leaving world
     constexpr dindex leaving_world{dindex_invalid};
@@ -1120,22 +1124,50 @@ auto create_toy_geometry(
     return det;
 }
 
-/** Wrapper for create_toy_geometry with constant zero bfield.
- */
-template <typename container_t = host_container_types>
+/// Wrapper for @c create_toy_geometry with default b-field configuration for
+/// toy detector:
+///
+/// - constant field: 2T field in z-direction
+///
+/// - otherwise read form file
+///
+/// @note to get a non-default b-field configuration, the b-field of the correct
+/// type (as given in the metadata as  @c covfie::field<bfield_backend_t> )
+/// needs to be passed directly to the @c create_toy_geometry overload.
+template <typename bfield_bknd_t =
+              covfie::backend::constant<covfie::vector::vector_d<scalar, 3>,
+                                        covfie::vector::vector_d<scalar, 3>>,
+          typename container_t = host_container_types>
 auto create_toy_geometry(vecmem::memory_resource &resource,
                          unsigned int n_brl_layers = 4u,
                          unsigned int n_edc_layers = 3u) {
-    std::ifstream stream(std::getenv("DETRAY_BFIELD_FILE"), std::ifstream::binary);
-   
-    if (!stream.good()) {
-        std::cout << "File loading error" << std::endl;
-    }
 
-    return create_toy_geometry<container_t>(
-        resource,
-        covfie::field<detector_registry::toy_detector::bfield_backend_t>{stream},
-        n_brl_layers, n_edc_layers);
+    using const_bfield_bknd_t =
+        covfie::backend::constant<covfie::vector::vector_d<scalar, 3>,
+                                  covfie::vector::vector_d<scalar, 3>>;
+
+    // Constant b-field: 2T in z-direction as default
+    if constexpr (std::is_same_v<bfield_bknd_t, const_bfield_bknd_t>) {
+        return create_toy_geometry<bfield_bknd_t, container_t>(
+            resource,
+            covfie::field<bfield_bknd_t>{
+                typename bfield_bknd_t::configuration_t{0.f, 0.f,
+                                                        2.f * unit<scalar>::T}},
+            n_brl_layers, n_edc_layers);
+    }
+    // Read b-field map from file
+    else {
+        std::ifstream stream(std::getenv("DETRAY_BFIELD_FILE"),
+                             std::ifstream::binary);
+
+        if (!stream.good()) {
+            std::cout << "File loading error" << std::endl;
+        }
+
+        return create_toy_geometry<bfield_bknd_t, container_t>(
+            resource, covfie::field<bfield_bknd_t>{stream}, n_brl_layers,
+            n_edc_layers);
+    }
 }
 
 }  // namespace detray

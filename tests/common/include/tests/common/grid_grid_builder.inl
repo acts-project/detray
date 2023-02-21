@@ -34,7 +34,7 @@ using vector3 = __plugin::vector3<scalar>;
 
 __plugin::transform3<scalar> Identity{};
 
-using test_detector_t = detector<detector_registry::toy_detector>;
+using test_detector_t = detector<detector_registry::template toy_detector<>>;
 
 }  // anonymous namespace
 
@@ -281,7 +281,8 @@ TEST(grid, decorator_grid_builder) {
     //
     EXPECT_FALSE(vol.empty());
     // only the portals are referenced through the volume
-    typename detector_registry::toy_detector::object_link_type sf_range{};
+    typename detector_registry::template toy_detector<>::object_link_type
+        sf_range{};
     sf_range[0] = {0u, 3u};
     // toy detector makes no distinction between the surface types
     EXPECT_EQ(vol.full_range(), sf_range[geo_obj_id::e_sensitive]);

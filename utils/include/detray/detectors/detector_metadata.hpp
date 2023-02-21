@@ -24,8 +24,8 @@
 // Covfie include(s)
 #include <covfie/core/backend/primitive/constant.hpp>
 #include <covfie/core/backend/transformer/affine.hpp>
-#include <covfie/core/backend/transformer/strided.hpp>
 #include <covfie/core/backend/transformer/nearest_neighbour.hpp>
+#include <covfie/core/backend/transformer/strided.hpp>
 #include <covfie/core/vector.hpp>
 
 namespace detray {
@@ -33,6 +33,10 @@ namespace detray {
 struct volume_stats {
     std::size_t n_max_objects_per_volume = 0;
 };
+
+using const_bfield_t =
+    covfie::backend::constant<covfie::vector::vector_d<scalar, 3>,
+                              covfie::vector::vector_d<scalar, 3>>;
 
 /// mask to (next) volume link: next volume(s)
 using volume_link_type = dindex;
@@ -72,11 +76,10 @@ using disc_sf_grid = surface_grid_t<ring2D<>::axes<>, bin_entry_t, container_t>;
 /// Defines all available types
 template <typename dynamic_data, std::size_t kBrlGrids = 1,
           std::size_t kEdcGrids = 1, std::size_t kDefault = 1,
-          typename _bfield_backend_t =
-              covfie::backend::constant<covfie::vector::vector_d<scalar, 3>,
-                                        covfie::vector::vector_d<scalar, 3>>>
+          typename bfield_backend_t = const_bfield_t>
 struct full_metadata {
-    using bfield_backend_t = _bfield_backend_t;
+
+    using bfield_backend_type = bfield_backend_t;
 
     /// How to index the constituent objects in a volume
     /// If they share the same index value here, they will be added into the
@@ -166,13 +169,10 @@ struct full_metadata {
 };
 
 /// Defines the data types needed for the toy detector
-template <typename _bfield_backend_t =
-              covfie::backend::affine<
-    covfie::backend::nearest_neighbour<covfie::backend::strided<
-        covfie::vector::ulong3,
-        covfie::backend::array<covfie::vector::float3>>>>>
+template <typename bfield_backend_t = const_bfield_t>
 struct toy_metadata {
-    using bfield_backend_t = _bfield_backend_t;
+
+    using bfield_backend_type = bfield_backend_t;
 
     /// How to index the constituent objects in a volume
     /// If they share the same index value here, they will be added into the
@@ -260,11 +260,10 @@ struct toy_metadata {
 
 /// Defines a detector with only rectangle/unbounded surfaces
 template <typename mask_shape_t = rectangle2D<>,
-          typename _bfield_backend_t =
-              covfie::backend::constant<covfie::vector::vector_d<scalar, 3>,
-                                        covfie::vector::vector_d<scalar, 3>>>
+          typename _bfield_backend_t = const_bfield_t>
 struct telescope_metadata {
-    using bfield_backend_t = _bfield_backend_t;
+
+    using bfield_backend_type = bfield_backend_t;
 
     /// How to index the constituent objects in a volume
     /// If they share the same index value here, they will be added into the
@@ -344,7 +343,8 @@ struct telescope_metadata {
 struct detector_registry {
     using default_detector = full_metadata<volume_stats, 1>;
     using tml_detector = full_metadata<volume_stats, 192>;
-    using toy_detector = toy_metadata<>;
+    template <typename bfield_backend_t = const_bfield_t>
+    using toy_detector = toy_metadata<bfield_backend_t>;
     template <typename mask_shape_t>
     using telescope_detector = telescope_metadata<mask_shape_t>;
 };
