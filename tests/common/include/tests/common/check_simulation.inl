@@ -76,14 +76,7 @@ TEST(check_simulation, toy_geometry) {
 
     // Create geometry
     vecmem::host_memory_resource host_mr;
-
-    // Create B field
-    const vector3 B{0.f, 0.f, 2.f * unit<scalar>::T};
-
-    // Create geometry
-    using b_field_t = decltype(create_toy_geometry(host_mr))::bfield_type;
-    const auto detector = create_toy_geometry(
-        host_mr);
+    const auto detector = create_toy_geometry(host_mr);
 
     // Create track generator
     constexpr unsigned int n_tracks{2500u};
