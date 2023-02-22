@@ -45,7 +45,7 @@ template <propagate_option opt>
 static void BM_PROPAGATOR_CPU(benchmark::State &state) {
 
     // Create the toy geometry
-    detector_host_type det = create_toy_geometry<host_container_types>(
+    detector_host_type det = create_toy_geometry<field_type::backend_t, host_container_types>(
         host_mr,
         field_type(field_type::backend_t::configuration_t{
             0.f, 0.f, 2.f * unit<scalar>::T}),
@@ -98,7 +98,7 @@ template <propagate_option opt>
 static void BM_PROPAGATOR_CUDA(benchmark::State &state) {
 
     // Create the toy geometry
-    detector_host_type det = create_toy_geometry<host_container_types>(
+    detector_host_type det = create_toy_geometry<field_type::backend_t, host_container_types>(
         bp_mng_mr, n_brl_layers, n_edc_layers);
 
     // Get detector data

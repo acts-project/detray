@@ -32,35 +32,54 @@
 #include "detray/simulation/track_generators.hpp"
 #include "detray/tracks/tracks.hpp"
 
-// Covfie include(s).
+// Covfie include(s)
+#include <covfie/core/backend/primitive/constant.hpp>
+#include <covfie/core/backend/transformer/affine.hpp>
+#include <covfie/core/backend/transformer/nearest_neighbour.hpp>
+#include <covfie/core/backend/transformer/strided.hpp>
 #include <covfie/core/field.hpp>
 #include <covfie/core/field_view.hpp>
+#include <covfie/core/vector.hpp>
 
 // GTest include(s).
 #include <gtest/gtest.h>
 
 namespace detray {
 
-// Type declarations
-using transform3 = __plugin::transform3<scalar>;
-using intersection_t = line_plane_intersection;
-using detector_host_type = detector<detector_registry::toy_detector,
-                                    covfie::field, host_container_types>;
-using detector_device_type =
-    detector<detector_registry::toy_detector, covfie::field_view,
-             device_container_types>;
+// Constant magnetic field
+using const_bfield_bknd_t = covfie::backend::constant<covfie::vector::vector_d<scalar, 3>,
+                                covfie::vector::vector_d<scalar, 3>>;
 
-using navigator_host_type = navigator<detector_host_type>;
-using navigator_device_type = navigator<detector_device_type>;
+// Inhomogeneous magnetic field
+using inhom_bfield_bcknd_t = covfie::backend::affine<
+        covfie::backend::nearest_neighbour<covfie::backend::strided<
+            covfie::vector::ulong3,
+            covfie::backend::array<covfie::vector::vector_d<scalar, 3>>>>>;
 
-using constraints_t = constrained_step<>;
-using field_type = detector_host_type::bfield_type;
-using rk_stepper_type =
-    rk_stepper<field_type::view_t, transform3, constraints_t>;
+// Host detector type
+template<typename bfield_bknd_t>
+using detector_host_t = detector<detector_registry::template toy_detector<bfield_bknd_t>, covfie::field, host_container_types>;
 
+// Device detector type using views
+template<typename bfield_bknd_t>
+using detector_device_t = detector<detector_registry::template toy_detector<bfield_bknd_t>, covfie::field_view, device_container_types>;
+
+// These types are identical in host and device code for all bfield types
+using transform3 = typename detector_host_t<const_bfield_bknd_t>::transform3;
 using matrix_operator = standard_matrix_operator<scalar>;
 using free_track_parameters_type = free_track_parameters<transform3>;
 using free_matrix = typename free_track_parameters_type::covariance_type;
+
+// Navigator
+using intersection_t = line_plane_intersection;
+template<typename detector_t>
+using navigator_t = navigator<detector_t>;
+
+// Stepper
+using constraints_t = constrained_step<>;
+template<typename detector_t>
+using rk_stepper_t =
+    rk_stepper<typename detector_t::bfield_type::view_t, transform3, constraints_t>;
 
 // Detector configuration
 constexpr std::size_t n_brl_layers{4u};
@@ -129,9 +148,8 @@ using actor_chain_device_t =
                 parameter_transporter<transform3>,
                 pointwise_material_interactor<transform3>,
                 parameter_resetter<transform3>>;
-using propagator_host_type =
-    propagator<rk_stepper_type, navigator_host_type, actor_chain_host_t>;
-using propagator_device_type =
-    propagator<rk_stepper_type, navigator_device_type, actor_chain_device_t>;
+
+template<typename detector_t, typename actor_chain_t>
+using propagator_t = propagator<rk_stepper_t<detector_t>, navigator_t<detector_t>, actor_chain_t>;
 
 }  // namespace detray

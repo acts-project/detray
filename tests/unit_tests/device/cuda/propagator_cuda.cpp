@@ -1,6 +1,6 @@
 /** Detray library, part of the ACTS project (R&D line)
  *
- * (c) 2022 CERN for the benefit of the ACTS project
+ * (c) 2022-2023 CERN for the benefit of the ACTS project
  *
  * Mozilla Public License Version 2.0
  */
@@ -11,6 +11,9 @@
 #include <vecmem/memory/cuda/managed_memory_resource.hpp>
 
 #include "propagator_cuda_kernel.hpp"
+
+
+// Vecmem include(s)
 #include "vecmem/utils/cuda/copy.hpp"
 
 using namespace detray;
@@ -20,9 +23,6 @@ class CudaPropagatorWithRkStepper
 
 TEST_P(CudaPropagatorWithRkStepper, propagator) {
 
-    // Helper object for performing memory copies.
-    vecmem::copy copy;
-
     // VecMem memory resource(s)
     vecmem::cuda::managed_memory_resource mng_mr;
 
@@ -30,9 +30,9 @@ TEST_P(CudaPropagatorWithRkStepper, propagator) {
     const vector3 B = GetParam();
 
     // Create the toy geometry
-    detector_host_type det = create_toy_geometry<host_container_types>(
+    auto det = create_toy_geometry<const_bfield_bknd_t, host_container_types>(
         mng_mr,
-        field_type(field_type::backend_t::configuration_t{B[0], B[1], B[2]}),
+        covfie::field<const_bfield_bknd_t>(const_bfield_bknd_t::configuration_t{B[0], B[1], B[2]}),
         n_brl_layers, n_edc_layers);
 
     // Create the vector of initial track parameters
@@ -58,50 +58,20 @@ TEST_P(CudaPropagatorWithRkStepper, propagator) {
     /**
      * Host propagation
      */
+    auto stepr = rk_stepper_t<detector_host_t<const_bfield_bknd_t>>{};
+    auto nav = navigator_t<detector_host_t<const_bfield_bknd_t>>{};
 
-    // Create RK stepper
-    rk_stepper_type s;
-    // Create navigator
-    navigator_host_type n;
-    // Create propagator
-    propagator_host_type p(std::move(s), std::move(n));
+    using propagator_host_t = 
+        propagator_t<detector_host_t<const_bfield_bknd_t>, actor_chain_host_t>;
+    propagator_host_t p(std::move(stepr), std::move(nav));
 
-    // Create vector for track recording
-    vecmem::jagged_vector<scalar> host_path_lengths(&mng_mr);
-    vecmem::jagged_vector<vector3> host_positions(&mng_mr);
-    vecmem::jagged_vector<free_matrix> host_jac_transports(&mng_mr);
-
-    for (const auto& trk : tracks_host) {
-
-        // Create the propagator state
-        inspector_host_t::state insp_state{mng_mr};
-        pathlimit_aborter::state pathlimit_state{path_limit};
-        parameter_transporter<transform3>::state transporter_state{};
-        pointwise_material_interactor<transform3>::state interactor_state{};
-        parameter_resetter<transform3>::state resetter_state{};
-        auto actor_states =
-            thrust::tie(insp_state, pathlimit_state, transporter_state,
-                        interactor_state, resetter_state);
-
-        propagator_host_type::state state(trk, det.get_bfield(), det);
-
-        state._stepping.template set_constraint<step::constraint::e_accuracy>(
-            constrainted_step_size);
-
-        state._stepping.set_tolerance(rk_tolerance);
-
-        // Run propagation
-        p.propagate(state, actor_states);
-
-        // Record the step information
-        host_path_lengths.push_back(insp_state._path_lengths);
-        host_positions.push_back(insp_state._positions);
-        host_jac_transports.push_back(insp_state._jac_transports);
-    }
+    auto&& [host_path_lengths, host_positions, host_jac_transports]  = run_propagation_host(&mng_mr, det, std::move(p), tracks_host);
 
     /**
      * Device propagation
      */
+    // Helper object for performing memory copies.
+    vecmem::copy copy;
 
     // Get detector data
     auto det_data = get_data(det);
@@ -133,7 +103,7 @@ TEST_P(CudaPropagatorWithRkStepper, propagator) {
     copy.setup(jac_transports_buffer);
 
     // Run the propagator test for GPU device
-    propagator_test(det_data, tracks_data, candidates_buffer,
+    propagator_test<const_bfield_bknd_t>(det_data, tracks_data, candidates_buffer,
                     path_lengths_buffer, positions_buffer,
                     jac_transports_buffer);
 
@@ -144,6 +114,9 @@ TEST_P(CudaPropagatorWithRkStepper, propagator) {
     copy(path_lengths_buffer, device_path_lengths);
     copy(positions_buffer, device_positions);
     copy(jac_transports_buffer, device_jac_transports);
+
+    //return std::make_tuple(std::move(device_path_lengths), std::move(device_positions), std::move(device_jac_transports));
+
 
     // Compare the positions
     for (unsigned int i = 0; i < host_positions.size(); i++) {

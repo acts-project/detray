@@ -11,7 +11,7 @@
 namespace detray {
 
 __global__ void propagator_test_kernel(
-    typename detector_host_type::detector_view_type det_data,
+    typename detector_host_t<const_bfield_bknd_t>::detector_view_type det_data,
     vecmem::data::vector_view<free_track_parameters<transform3>> tracks_data,
     vecmem::data::jagged_vector_view<intersection_t> candidates_data,
     vecmem::data::jagged_vector_view<scalar> path_lengths_data,
@@ -20,7 +20,7 @@ __global__ void propagator_test_kernel(
 
     int gid = threadIdx.x + blockIdx.x * blockDim.x;
 
-    detector_device_type det(det_data);
+    detector_device_t<const_bfield_bknd_t> det(det_data);
     vecmem::device_vector<free_track_parameters<transform3>> tracks(
         tracks_data);
     vecmem::jagged_device_vector<intersection_t> candidates(candidates_data);
@@ -33,10 +33,14 @@ __global__ void propagator_test_kernel(
         return;
     }
 
-    detector_device_type::bfield_type B_field = det.get_bfield();
+    detector_device_t<const_bfield_bknd_t>::bfield_type B_field = det.get_bfield();
+
+
+    /*using propagator_device_t = 
+        propagator_t<detector_device_t<const_bfield_bknd_t>, actor_chain_device_t>;*/
 
     // Create RK stepper
-    rk_stepper_type s;
+    /*rk_stepper_type s;
 
     // Create navigator
     navigator_device_type n;
@@ -66,11 +70,12 @@ __global__ void propagator_test_kernel(
         constrainted_step_size);
 
     // Run propagation
-    p.propagate(state, actor_states);
+    p.propagate(state, actor_states);*/
 }
 
+template<typename bfield_bknd_t>
 void propagator_test(
-    typename detector_host_type::detector_view_type det_data,
+    typename detector_host_t<bfield_bknd_t>::detector_view_type det_data,
     vecmem::data::vector_view<free_track_parameters<transform3>>& tracks_data,
     vecmem::data::jagged_vector_view<intersection_t>& candidates_data,
     vecmem::data::jagged_vector_view<scalar>& path_lengths_data,
@@ -89,5 +94,15 @@ void propagator_test(
     DETRAY_CUDA_ERROR_CHECK(cudaGetLastError());
     DETRAY_CUDA_ERROR_CHECK(cudaDeviceSynchronize());
 }
+using queue = decltype(propagator_test<const_bfield_bknd_t>)::bla;
+
+/// Explicit instantiation for constant bfield
+template void propagator_test<const_bfield_bknd_t>(
+    typename detector_host_t<const_bfield_bknd_t>::detector_view_type,
+    vecmem::data::vector_view<free_track_parameters<transform3>>&,
+    vecmem::data::jagged_vector_view<intersection_t>&,
+    vecmem::data::jagged_vector_view<scalar>&,
+    vecmem::data::jagged_vector_view<vector3>&,
+    vecmem::data::jagged_vector_view<free_matrix>&);
 
 }  // namespace detray
