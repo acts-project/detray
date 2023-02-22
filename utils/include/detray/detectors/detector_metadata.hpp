@@ -23,9 +23,6 @@
 
 // Covfie include(s)
 #include <covfie/core/backend/primitive/constant.hpp>
-#include <covfie/core/backend/transformer/affine.hpp>
-#include <covfie/core/backend/transformer/nearest_neighbour.hpp>
-#include <covfie/core/backend/transformer/strided.hpp>
 #include <covfie/core/vector.hpp>
 
 namespace detray {

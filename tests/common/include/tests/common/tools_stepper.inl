@@ -162,18 +162,18 @@ TEST(ALGEBRA_PLUGIN, rk_stepper_const_bfield) {
     using namespace step;
 
     // Constant magnetic field
-    using const_bfield_t = covfie::field<
+    using bfield_t = covfie::field<
         covfie::backend::constant<covfie::vector::vector_d<scalar, 3>,
                                   covfie::vector::vector_d<scalar, 3>>>;
 
     vector3 B{1.f * unit<scalar>::T, 1.f * unit<scalar>::T,
               1.f * unit<scalar>::T};
-    const_bfield_t bfield(
-        typename const_bfield_t::backend_t::configuration_t{B[0], B[1], B[2]});
+    bfield_t hom_bfield(
+        typename bfield_t::backend_t::configuration_t{B[0], B[1], B[2]});
 
     // RK stepper
-    rk_stepper_t<const_bfield_t> rk_stepper;
-    crk_stepper_t<const_bfield_t> crk_stepper;
+    rk_stepper_t<bfield_t> rk_stepper;
+    crk_stepper_t<bfield_t> crk_stepper;
 
     // RK stepper configurations
     constexpr unsigned int rk_steps = 100u;
@@ -196,14 +196,14 @@ TEST(ALGEBRA_PLUGIN, rk_stepper_const_bfield) {
         detail::helix helix(track, &B);
 
         // RK Stepping into forward direction
-        prop_state<rk_stepper_t<const_bfield_t>::state, nav_state> propagation{
-            rk_stepper_t<const_bfield_t>::state{track, bfield}, nav_state{}};
-        prop_state<crk_stepper_t<const_bfield_t>::state, nav_state>
-            c_propagation{crk_stepper_t<const_bfield_t>::state{c_track, bfield},
+        prop_state<rk_stepper_t<bfield_t>::state, nav_state> propagation{
+            rk_stepper_t<bfield_t>::state{track, hom_bfield}, nav_state{}};
+        prop_state<crk_stepper_t<bfield_t>::state, nav_state>
+            c_propagation{crk_stepper_t<bfield_t>::state{c_track, hom_bfield},
                           nav_state{}};
 
-        rk_stepper_t<const_bfield_t>::state &rk_state = propagation._stepping;
-        crk_stepper_t<const_bfield_t>::state &crk_state =
+        rk_stepper_t<bfield_t>::state &rk_state = propagation._stepping;
+        crk_stepper_t<bfield_t>::state &crk_state =
             c_propagation._stepping;
 
         // Retrieve the navigation states
@@ -279,7 +279,7 @@ TEST(ALGEBRA_PLUGIN, rk_stepper_inhomogeneous_bfield) {
             covfie::backend::array<covfie::vector::vector_d<scalar, 3>>>>>>;
 
     // Read the magnetic field map
-    bfield_t inhom_b_field(load_field<bfield_t>());
+    bfield_t inhom_bfield(load_field<bfield_t>());
 
     // RK stepper
     rk_stepper_t<bfield_t> rk_stepper;
@@ -304,9 +304,9 @@ TEST(ALGEBRA_PLUGIN, rk_stepper_inhomogeneous_bfield) {
 
         // RK Stepping into forward direction
         prop_state<rk_stepper_t<bfield_t>::state, nav_state> propagation{
-            rk_stepper_t<bfield_t>::state{track, inhom_b_field}, nav_state{}};
+            rk_stepper_t<bfield_t>::state{track, inhom_bfield}, nav_state{}};
         prop_state<crk_stepper_t<bfield_t>::state, nav_state> c_propagation{
-            crk_stepper_t<bfield_t>::state{c_track, inhom_b_field},
+            crk_stepper_t<bfield_t>::state{c_track, inhom_bfield},
             nav_state{}};
 
         rk_stepper_t<bfield_t>::state &rk_state = propagation._stepping;

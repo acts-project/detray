@@ -127,19 +127,16 @@ TEST(ALGEBRA_PLUGIN, helix_navigation) {
     constexpr std::size_t n_edc_layers{7u};
     vecmem::host_memory_resource host_mr;
 
-    using b_field_t = decltype(create_toy_geometry(
-        std::declval<vecmem::host_memory_resource &>(), n_brl_layers,
-        n_edc_layers))::bfield_type;
-
     const vector3 B{0.f * unit<scalar>::T, 0.f * unit<scalar>::T,
                     2.f * unit<scalar>::T};
 
     auto det = create_toy_geometry(host_mr, n_brl_layers, n_edc_layers);
 
+    using bfield_t = decltype(det)::bfield_type;
     // Runge-Kutta based navigation
     using navigator_t = navigator<decltype(det), inspector_t>;
     using stepper_t =
-        rk_stepper<b_field_t::view_t, transform3_type, unconstrained_step>;
+        rk_stepper<bfield_t::view_t, transform3_type, unconstrained_step>;
     using propagator_t = propagator<stepper_t, navigator_t, actor_chain<>>;
 
     // Propagator
@@ -162,11 +159,11 @@ TEST(ALGEBRA_PLUGIN, helix_navigation) {
         track.set_overstep_tolerance(overstep_tol);
 
         // Get ground truth helix from track
-        // detail::helix helix(track, &B);
+        detail::helix helix(track, &B);
 
         // Shoot ray through the detector and record all surfaces it encounters
-        // const auto intersection_trace =
-        //    particle_gun::shoot_particle(det, helix);
+        const auto intersection_trace =
+            particle_gun::shoot_particle(det, helix);
 
         // Now follow that helix with the same track and check, if we find
         // the same volumes and distances along the way
@@ -179,7 +176,7 @@ TEST(ALGEBRA_PLUGIN, helix_navigation) {
 
         ASSERT_TRUE(prop.propagate(propagation)) << debug_printer.to_string();
 
-        /*std::stringstream debug_stream;
+        std::stringstream debug_stream;
         for (std::size_t intr_idx = 0u; intr_idx < intersection_trace.size();
              ++intr_idx) {
             debug_stream << "-------Intersection trace\n"
@@ -209,6 +206,6 @@ TEST(ALGEBRA_PLUGIN, helix_navigation) {
                 }
             }
             EXPECT_EQ(obj_tracer[i].index, intersection_trace[i].second.index);
-        }*/
+        }
     }
 }

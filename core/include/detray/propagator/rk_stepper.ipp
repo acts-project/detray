@@ -173,9 +173,10 @@ bool detray::rk_stepper<magnetic_field_t, transform3_t, constraint_t, policy_t,
     scalar error_estimate{0.f};
 
     // First Runge-Kutta point
-    const vector3 spos = stepping().pos();
+    const vector3 pos = stepping().pos();
+    const vector3 dir = stepping().dir();
     const typename magnetic_field_t::output_t bvec =
-        magnetic_field.at(spos[0], spos[1], spos[2]);
+        magnetic_field.at(pos[0], pos[1], pos[2]);
     sd.b_first[0] = bvec[0];
     sd.b_first[1] = bvec[1];
     sd.b_first[2] = bvec[2];
@@ -186,8 +187,6 @@ bool detray::rk_stepper<magnetic_field_t, transform3_t, constraint_t, policy_t,
         // State the square and half of the step size
         const scalar h2{h * h};
         const scalar half_h{h * 0.5f};
-        auto pos = stepping().pos();
-        auto dir = stepping().dir();
 
         // Second Runge-Kutta point
         const vector3 pos1 = pos + half_h * dir + h2 * 0.125f * sd.k1;

@@ -26,6 +26,15 @@
 #include "detray/tracks/tracks.hpp"
 #include "tests/common/tools/inspectors.hpp"
 
+// covfie include(s)
+#include <covfie/core/backend/primitive/constant.hpp>
+#include <covfie/core/backend/transformer/affine.hpp>
+#include <covfie/core/backend/transformer/nearest_neighbour.hpp>
+#include <covfie/core/backend/transformer/strided.hpp>
+#include <covfie/core/field.hpp>
+#include <covfie/core/field_view.hpp>
+#include <covfie/core/vector.hpp>
+
 using namespace detray;
 using transform3 = __plugin::transform3<detray::scalar>;
 
@@ -114,7 +123,7 @@ struct helix_inspector : actor {
         const auto bvec =
             stepping._magnetic_field.at(last_pos[0], last_pos[1], last_pos[2]);
         const vector3 b{bvec[0], bvec[1], bvec[2]};
-        // const auto b = stepping._magnetic_field->get_field(last_pos, {});
+
         detail::helix<transform3> hlx(free_params, &b);
 
         const auto true_pos = hlx(stepping._s);
@@ -122,18 +131,18 @@ struct helix_inspector : actor {
         const point3 relative_error{1.f / stepping._s *
                                     (stepping().pos() - true_pos)};
 
-        // ASSERT_NEAR(getter::norm(relative_error), 0.f, tol);
+        ASSERT_NEAR(getter::norm(relative_error), 0.f, tol);
 
         auto true_J = hlx.jacobian(stepping._s);
 
-        /*for (unsigned int i = 0u; i < e_free_size; i++) {
+        for (unsigned int i = 0u; i < e_free_size; i++) {
             for (unsigned int j = 0u; j < e_free_size; j++) {
                 ASSERT_NEAR(
                     matrix_operator().element(stepping._jac_transport, i, j),
                     matrix_operator().element(true_J, i, j),
                     stepping._s * tol * 10.f);
             }
-        }*/
+        }
     }
 };
 
@@ -228,7 +237,7 @@ TEST_P(PropagatorWithRkStepper, rk4_propagator_const_bfield) {
         bfield_t{typename bfield_bknd_t::configuration_t{B[0], B[1], B[2]}},
         n_brl_layers, n_edc_layers);
     // Propagator is built from the stepper and navigator
-    propagator_t p = propagator_t(stepper_t{}, navigator_t{});
+    auto p = propagator_t(stepper_t{}, navigator_t{});
 
     // Iterate through uniformly distributed momentum directions
     for (auto track :
@@ -302,7 +311,7 @@ TEST_P(PropagatorWithRkStepper, rk4_propagator_const_bfield) {
 /// stepper
 TEST_P(PropagatorWithRkStepper, rk4_propagator_inhom_bfield) {
 
-    // Constant magnetic field type
+    // Magnetic field map using nearest neightbor interpolation
     using bfield_bknd_t = covfie::backend::affine<
         covfie::backend::nearest_neighbour<covfie::backend::strided<
             covfie::vector::ulong3,
@@ -392,7 +401,7 @@ TEST_P(PropagatorWithRkStepper, rk4_propagator_inhom_bfield) {
 
 // No step size constraint
 INSTANTIATE_TEST_SUITE_P(
-    PropagatorConstBField1, PropagatorWithRkStepper,
+    PropagationValidation1, PropagatorWithRkStepper,
     ::testing::Values(std::make_tuple(
         -0.05f * unit<scalar>::mm, std::numeric_limits<scalar>::max(),
         __plugin::vector3<scalar>{0.f * unit<scalar>::T, 0.f * unit<scalar>::T,
@@ -400,21 +409,21 @@ INSTANTIATE_TEST_SUITE_P(
 
 // Add some restrictions for more frequent navigation updates in the cases of
 // non-z-aligned B-fields
-INSTANTIATE_TEST_SUITE_P(PropagatorConstBField2, PropagatorWithRkStepper,
+INSTANTIATE_TEST_SUITE_P(PropagationValidation2, PropagatorWithRkStepper,
                          ::testing::Values(std::make_tuple(
                              -10.f * unit<scalar>::um, 5.f * unit<scalar>::mm,
                              __plugin::vector3<scalar>{
                                  0.f * unit<scalar>::T, 1.f * unit<scalar>::T,
                                  1.f * unit<scalar>::T})));
 
-INSTANTIATE_TEST_SUITE_P(PropagatorConstBField3, PropagatorWithRkStepper,
+INSTANTIATE_TEST_SUITE_P(PropagationValidation3, PropagatorWithRkStepper,
                          ::testing::Values(std::make_tuple(
                              -10.f * unit<scalar>::um, 5.f * unit<scalar>::mm,
                              __plugin::vector3<scalar>{
                                  1.f * unit<scalar>::T, 0.f * unit<scalar>::T,
                                  1.f * unit<scalar>::T})));
 
-INSTANTIATE_TEST_SUITE_P(PropagatorConstBField4, PropagatorWithRkStepper,
+INSTANTIATE_TEST_SUITE_P(PropagationValidation4, PropagatorWithRkStepper,
                          ::testing::Values(std::make_tuple(
                              -10.f * unit<scalar>::um, 5.f * unit<scalar>::mm,
                              __plugin::vector3<scalar>{

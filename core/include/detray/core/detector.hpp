@@ -23,9 +23,6 @@
 #include <covfie/core/backend/primitive/constant.hpp>
 #include <covfie/core/field.hpp>
 #include <covfie/core/vector.hpp>
-// #include <covfie/core/backend/transformer/affine.hpp>
-// #include <covfie/core/backend/transformer/strided.hpp>
-// #include <covfie/core/backend/transformer/nearest_neighbour.hpp>
 
 // System include(s)
 #include <iostream>
@@ -34,11 +31,6 @@
 #include <string>
 
 namespace detray {
-
-/*using _toy_bfield = covfie::backend::affine<
-covfie::backend::nearest_neighbour<covfie::backend::strided<
-    covfie::vector::ulong3,
-    covfie::backend::array<covfie::vector::float3>>>>;*/
 
 /// Default b field type
 template <typename scalar_t>
