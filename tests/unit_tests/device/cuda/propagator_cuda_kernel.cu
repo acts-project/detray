@@ -34,15 +34,12 @@ __global__ void propagator_test_kernel(
         return;
     }
 
-    typename detector_device_t<bfield_bknd_t>::bfield_type B_field = det.get_bfield();
-
-
     auto stepr = rk_stepper_t<typename detector_device_t<bfield_bknd_t>::bfield_type>{};
     auto nav = navigator_t<detector_device_t<bfield_bknd_t>>{};
 
     // Create propagator
     using propagator_device_t = 
-        propagator<decltype(stepr), decltype(nav), actor_chain_device_t>;;
+        propagator<decltype(stepr), decltype(nav), actor_chain_device_t>;
     propagator_device_t p(std::move(stepr), std::move(nav));
 
     // Create actor states
