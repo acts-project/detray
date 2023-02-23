@@ -115,9 +115,12 @@ TEST(SyclPropagatorValidation5, inhomogeneous_bfield) {
         run_propagation_host(&shared_mr, det, tracks_host);
 
     // Device propagation
+
+    detray::sycl::queue_wrapper queue(&q);
+
     auto&& [device_path_lengths, device_positions, device_jac_transports] =
         run_propagation_device<inhom_bfield_bknd_t>(
-            &shared_mr, det, tracks_device, host_positions);
+            &shared_mr, det, queue, tracks_device, host_positions);
 
     // Check the results
     compare_propagation_results(host_positions, device_positions,
