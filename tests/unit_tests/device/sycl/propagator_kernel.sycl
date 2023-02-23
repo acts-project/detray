@@ -40,12 +40,10 @@ void propagator_test(
 
     reinterpret_cast<::sycl::queue *>(queue.queue())
         ->submit([&](::sycl::handler &h) {
-            h.parallel_for<sycl_kernel>(ndrange, [det_data, tracks_data,
-                                                  candidates_data,
-                                                  path_lengths_data,
-                                                  positions_data,
-                                                  jac_transports_data](
-                                                     ::sycl::nd_item<1> item) {
+            h.parallel_for(ndrange, [det_data, tracks_data, candidates_data,
+                                     path_lengths_data, positions_data,
+                                     jac_transports_data](
+                                        ::sycl::nd_item<1> item) {
                 detector_device_t<bfield_bknd_t> dev_det(det_data);
 
                 vecmem::device_vector<track_t> tracks(tracks_data);
