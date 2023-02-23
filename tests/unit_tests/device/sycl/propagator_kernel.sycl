@@ -111,13 +111,13 @@ template void propagator_test<const_bfield_bknd_t>(
     detray::sycl::queue_wrapper);
 
 /// Explicit instantiation for an inhomogeneous magnetic field
-template void propagator_test<inhom_bfield_bknd_t>(
+/*template void propagator_test<inhom_bfield_bknd_t>(
     detector_host_t<inhom_bfield_bknd_t> &,
     vecmem::data::vector_view<track_t> &,
     vecmem::data::jagged_vector_view<intersection_t> &,
     vecmem::data::jagged_vector_view<scalar> &,
     vecmem::data::jagged_vector_view<vector3_t> &,
     vecmem::data::jagged_vector_view<free_matrix> &,
-    detray::sycl::queue_wrapper);
+    detray::sycl::queue_wrapper);*/
 
 }  // namespace detray

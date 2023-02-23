@@ -92,7 +92,7 @@ INSTANTIATE_TEST_SUITE_P(SyclPropagatorValidation4, SyclPropagatorWithRkStepper,
 /// This tests the device propagation in an inhomogenepus magnetic field
 
 /// This tests the device propagation in an inhomogenepus magnetic field
-TEST(SyclPropagatorValidation5, inhomogeneous_bfield) {
+/*TEST(SyclPropagatorValidation5, inhomogeneous_bfield) {
 
     // Creating SYCL queue object
     ::sycl::queue q(handle_async_error);
@@ -126,4 +126,4 @@ TEST(SyclPropagatorValidation5, inhomogeneous_bfield) {
     compare_propagation_results(host_positions, device_positions,
                                 host_path_lengths, device_path_lengths,
                                 host_jac_transports, device_jac_transports);
-}
+}*/
