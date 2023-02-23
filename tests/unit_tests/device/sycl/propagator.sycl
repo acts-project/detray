@@ -33,11 +33,8 @@ TEST_P(SyclPropagatorWithRkStepper, propagator) {
 
     // Creating SYCL queue object
     ::sycl::queue q(handle_async_error);
-    std::cout << "Running Seeding on device: "
+    std::cout << "Running constant bfield propagation on device: "
               << q.get_device().get_info<::sycl::info::device::name>() << "\n";
-
-    // Helper object for performing memory copies.
-    vecmem::copy copy;
 
     // VecMem memory resource(s)
     vecmem::sycl::shared_memory_resource shared_mr;
@@ -91,3 +88,39 @@ INSTANTIATE_TEST_SUITE_P(SyclPropagatorValidation4, SyclPropagatorWithRkStepper,
                          ::testing::Values(vector3_t{1. * unit<scalar>::T,
                                                      1. * unit<scalar>::T,
                                                      1. * unit<scalar>::T}));
+
+/// This tests the device propagation in an inhomogenepus magnetic field
+
+/// This tests the device propagation in an inhomogenepus magnetic field
+TEST(SyclPropagatorValidation5, inhomogeneous_bfield) {
+
+    // Creating SYCL queue object
+    ::sycl::queue q(handle_async_error);
+    std::cout << "Running constant bfield propagation on device: "
+              << q.get_device().get_info<::sycl::info::device::name>() << "\n";
+
+    // VecMem memory resource(s)
+    vecmem::sycl::shared_memory_resource shared_mr;
+
+    // Create the toy geometry with inhomogeneous bfield from file
+    auto det = create_toy_geometry<inhom_bfield_bknd_t, host_container_types>(
+        shared_mr, n_brl_layers, n_edc_layers);
+
+    // Create the vector of initial track parameterizations
+    auto tracks_host = generate_tracks(&shared_mr);
+    vecmem::vector<track_t> tracks_device(tracks_host, &shared_mr);
+
+    // Host propagation
+    auto&& [host_path_lengths, host_positions, host_jac_transports] =
+        run_propagation_host(&shared_mr, det, tracks_host);
+
+    // Device propagation
+    auto&& [device_path_lengths, device_positions, device_jac_transports] =
+        run_propagation_device<inhom_bfield_bknd_t>(
+            &shared_mr, det, tracks_device, host_positions);
+
+    // Check the results
+    compare_propagation_results(host_positions, device_positions,
+                                host_path_lengths, device_path_lengths,
+                                host_jac_transports, device_jac_transports);
+}

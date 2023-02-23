@@ -77,7 +77,7 @@ TEST(CudaPropagatorValidation5, inhomogeneous_bfield) {
     // VecMem memory resource(s)
     vecmem::cuda::managed_memory_resource mng_mr;
 
-    // Create the toy geometry
+    // Create the toy geometry with inhomogeneous bfield from file
     auto det = create_toy_geometry<inhom_bfield_bknd_t, host_container_types>(
         mng_mr, n_brl_layers, n_edc_layers);
 
