@@ -9,14 +9,13 @@
 
 #include "propagator_cuda_kernel.hpp"
 
-//Vecmem include(s)
+// Vecmem include(s)
 #include <vecmem/memory/cuda/device_memory_resource.hpp>
 #include <vecmem/memory/cuda/managed_memory_resource.hpp>
 
 using namespace detray;
 
-class CudaPropagatorConstBField
-    : public ::testing::TestWithParam<vector3_t> {};
+class CudaPropagatorConstBField : public ::testing::TestWithParam<vector3_t> {};
 
 TEST_P(CudaPropagatorConstBField, propagator) {
 
@@ -29,7 +28,8 @@ TEST_P(CudaPropagatorConstBField, propagator) {
     // Create the toy geometry
     auto det = create_toy_geometry<const_bfield_bknd_t, host_container_types>(
         mng_mr,
-        covfie::field<const_bfield_bknd_t>(const_bfield_bknd_t::configuration_t{B[0], B[1], B[2]}),
+        covfie::field<const_bfield_bknd_t>(
+            const_bfield_bknd_t::configuration_t{B[0], B[1], B[2]}),
         n_brl_layers, n_edc_layers);
 
     // Create the vector of initial track parameterizations
@@ -37,35 +37,39 @@ TEST_P(CudaPropagatorConstBField, propagator) {
     vecmem::vector<track_t> tracks_device(tracks_host, &mng_mr);
 
     // Host propagation
-    auto&& [host_path_lengths, host_positions, host_jac_transports]  = run_propagation_host(&mng_mr, det, tracks_host);
+    auto&& [host_path_lengths, host_positions, host_jac_transports] =
+        run_propagation_host(&mng_mr, det, tracks_host);
 
     // Device propagation
-    auto&& [device_path_lengths, device_positions, device_jac_transports]  = run_propagation_device<const_bfield_bknd_t>(&mng_mr, det, tracks_device, host_positions);
+    auto&& [device_path_lengths, device_positions, device_jac_transports] =
+        run_propagation_device<const_bfield_bknd_t>(&mng_mr, det, tracks_device,
+                                                    host_positions);
 
     // Check the results
-    compare_propagation_results(host_positions, device_positions, host_path_lengths, device_path_lengths, host_jac_transports, device_jac_transports);
+    compare_propagation_results(host_positions, device_positions,
+                                host_path_lengths, device_path_lengths,
+                                host_jac_transports, device_jac_transports);
 }
 
 INSTANTIATE_TEST_SUITE_P(CudaPropagatorValidation1, CudaPropagatorConstBField,
-                         ::testing::Values(vector3_t{
-                             0. * unit<scalar>::T, 0. * unit<scalar>::T,
-                             2. * unit<scalar>::T}));
+                         ::testing::Values(vector3_t{0. * unit<scalar>::T,
+                                                     0. * unit<scalar>::T,
+                                                     2. * unit<scalar>::T}));
 
 INSTANTIATE_TEST_SUITE_P(CudaPropagatorValidation2, CudaPropagatorConstBField,
-                         ::testing::Values(vector3_t{
-                             0. * unit<scalar>::T, 1. * unit<scalar>::T,
-                             1. * unit<scalar>::T}));
+                         ::testing::Values(vector3_t{0. * unit<scalar>::T,
+                                                     1. * unit<scalar>::T,
+                                                     1. * unit<scalar>::T}));
 
 INSTANTIATE_TEST_SUITE_P(CudaPropagatorValidation3, CudaPropagatorConstBField,
-                         ::testing::Values(vector3_t{
-                             1. * unit<scalar>::T, 0. * unit<scalar>::T,
-                             1. * unit<scalar>::T}));
+                         ::testing::Values(vector3_t{1. * unit<scalar>::T,
+                                                     0. * unit<scalar>::T,
+                                                     1. * unit<scalar>::T}));
 
 INSTANTIATE_TEST_SUITE_P(CudaPropagatorValidation4, CudaPropagatorConstBField,
-                         ::testing::Values(vector3_t{
-                             1. * unit<scalar>::T, 1. * unit<scalar>::T,
-                             1. * unit<scalar>::T}));
-
+                         ::testing::Values(vector3_t{1. * unit<scalar>::T,
+                                                     1. * unit<scalar>::T,
+                                                     1. * unit<scalar>::T}));
 
 /// This tests the device propagation in an inhomogenepus magnetic field
 TEST(CudaPropagatorValidation5, inhomogeneous_bfield) {
@@ -82,11 +86,16 @@ TEST(CudaPropagatorValidation5, inhomogeneous_bfield) {
     vecmem::vector<track_t> tracks_device(tracks_host, &mng_mr);
 
     // Host propagation
-    auto&& [host_path_lengths, host_positions, host_jac_transports]  = run_propagation_host(&mng_mr, det, tracks_host);
+    auto&& [host_path_lengths, host_positions, host_jac_transports] =
+        run_propagation_host(&mng_mr, det, tracks_host);
 
     // Device propagation
-    auto&& [device_path_lengths, device_positions, device_jac_transports]  = run_propagation_device<inhom_bfield_bknd_t>(&mng_mr, det, tracks_device, host_positions);
+    auto&& [device_path_lengths, device_positions, device_jac_transports] =
+        run_propagation_device<inhom_bfield_bknd_t>(&mng_mr, det, tracks_device,
+                                                    host_positions);
 
     // Check the results
-    compare_propagation_results(host_positions, device_positions, host_path_lengths, device_path_lengths, host_jac_transports, device_jac_transports);
+    compare_propagation_results(host_positions, device_positions,
+                                host_path_lengths, device_path_lengths,
+                                host_jac_transports, device_jac_transports);
 }

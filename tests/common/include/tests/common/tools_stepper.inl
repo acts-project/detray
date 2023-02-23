@@ -198,13 +198,11 @@ TEST(ALGEBRA_PLUGIN, rk_stepper_const_bfield) {
         // RK Stepping into forward direction
         prop_state<rk_stepper_t<bfield_t>::state, nav_state> propagation{
             rk_stepper_t<bfield_t>::state{track, hom_bfield}, nav_state{}};
-        prop_state<crk_stepper_t<bfield_t>::state, nav_state>
-            c_propagation{crk_stepper_t<bfield_t>::state{c_track, hom_bfield},
-                          nav_state{}};
+        prop_state<crk_stepper_t<bfield_t>::state, nav_state> c_propagation{
+            crk_stepper_t<bfield_t>::state{c_track, hom_bfield}, nav_state{}};
 
         rk_stepper_t<bfield_t>::state &rk_state = propagation._stepping;
-        crk_stepper_t<bfield_t>::state &crk_state =
-            c_propagation._stepping;
+        crk_stepper_t<bfield_t>::state &crk_state = c_propagation._stepping;
 
         // Retrieve the navigation states
         nav_state &n_state = propagation._navigation;
@@ -306,8 +304,7 @@ TEST(ALGEBRA_PLUGIN, rk_stepper_inhomogeneous_bfield) {
         prop_state<rk_stepper_t<bfield_t>::state, nav_state> propagation{
             rk_stepper_t<bfield_t>::state{track, inhom_bfield}, nav_state{}};
         prop_state<crk_stepper_t<bfield_t>::state, nav_state> c_propagation{
-            crk_stepper_t<bfield_t>::state{c_track, inhom_bfield},
-            nav_state{}};
+            crk_stepper_t<bfield_t>::state{c_track, inhom_bfield}, nav_state{}};
 
         rk_stepper_t<bfield_t>::state &rk_state = propagation._stepping;
         crk_stepper_t<bfield_t>::state &crk_state = c_propagation._stepping;

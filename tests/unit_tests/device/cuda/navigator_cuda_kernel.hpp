@@ -32,7 +32,8 @@ using transform3 = __plugin::transform3<scalar>;
 using intersection_t = line_plane_intersection;
 
 // some useful type declarations
-using detector_host_t = detector<detector_registry::template toy_detector<>, covfie::field, host_container_types>;
+using detector_host_t = detector<detector_registry::template toy_detector<>,
+                                 covfie::field, host_container_types>;
 using detector_device_t = detector<detector_registry::template toy_detector<>,
                                    covfie::field_view, device_container_types>;
 using navigator_host_t = navigator<detector_host_t>;

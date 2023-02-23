@@ -10,7 +10,7 @@
 
 namespace detray {
 
-template<typename bfield_bknd_t>
+template <typename bfield_bknd_t>
 __global__ void propagator_test_kernel(
     typename detector_host_t<bfield_bknd_t>::detector_view_type det_data,
     vecmem::data::vector_view<track_t> tracks_data,
@@ -22,8 +22,7 @@ __global__ void propagator_test_kernel(
     int gid = threadIdx.x + blockIdx.x * blockDim.x;
 
     detector_device_t<bfield_bknd_t> det(det_data);
-    vecmem::device_vector<track_t> tracks(
-        tracks_data);
+    vecmem::device_vector<track_t> tracks(tracks_data);
     vecmem::jagged_device_vector<intersection_t> candidates(candidates_data);
     vecmem::jagged_device_vector<scalar> path_lengths(path_lengths_data);
     vecmem::jagged_device_vector<vector3_t> positions(positions_data);
@@ -34,11 +33,12 @@ __global__ void propagator_test_kernel(
         return;
     }
 
-    auto stepr = rk_stepper_t<typename detector_device_t<bfield_bknd_t>::bfield_type>{};
+    auto stepr =
+        rk_stepper_t<typename detector_device_t<bfield_bknd_t>::bfield_type>{};
     auto nav = navigator_t<detector_device_t<bfield_bknd_t>>{};
 
     // Create propagator
-    using propagator_device_t = 
+    using propagator_device_t =
         propagator<decltype(stepr), decltype(nav), actor_chain_device_t>;
     propagator_device_t p(std::move(stepr), std::move(nav));
 
@@ -55,7 +55,8 @@ __global__ void propagator_test_kernel(
         thrust::tie(insp_state, aborter_state, transporter_state,
                     interactor_state, resetter_state);
     // Create the propagator state
-    typename propagator_device_t::state state(tracks[gid], det.get_bfield(), det, candidates.at(gid));
+    typename propagator_device_t::state state(tracks[gid], det.get_bfield(),
+                                              det, candidates.at(gid));
 
     state._stepping.set_tolerance(rk_tolerance);
 
@@ -67,8 +68,9 @@ __global__ void propagator_test_kernel(
 }
 
 /// Launch the device kernel
-template<typename bfield_bknd_t>
-void propagator_test(detector_host_t<bfield_bknd_t>& det, 
+template <typename bfield_bknd_t>
+void propagator_test(
+    detector_host_t<bfield_bknd_t>& det,
     vecmem::data::vector_view<track_t>& tracks_data,
     vecmem::data::jagged_vector_view<intersection_t>& candidates_data,
     vecmem::data::jagged_vector_view<scalar>& path_lengths_data,
@@ -89,16 +91,16 @@ void propagator_test(detector_host_t<bfield_bknd_t>& det,
 }
 
 /// Explicit instantiation for a constant magnetic field
-template void propagator_test<const_bfield_bknd_t>(detector_host_t<const_bfield_bknd_t>&,
-    vecmem::data::vector_view<track_t>&,
+template void propagator_test<const_bfield_bknd_t>(
+    detector_host_t<const_bfield_bknd_t>&, vecmem::data::vector_view<track_t>&,
     vecmem::data::jagged_vector_view<intersection_t>&,
     vecmem::data::jagged_vector_view<scalar>&,
     vecmem::data::jagged_vector_view<vector3_t>&,
     vecmem::data::jagged_vector_view<free_matrix>&);
 
 /// Explicit instantiation for an inhomogeneous magnetic field
-template void propagator_test<inhom_bfield_bknd_t>(detector_host_t<inhom_bfield_bknd_t>&,
-    vecmem::data::vector_view<track_t>&,
+template void propagator_test<inhom_bfield_bknd_t>(
+    detector_host_t<inhom_bfield_bknd_t>&, vecmem::data::vector_view<track_t>&,
     vecmem::data::jagged_vector_view<intersection_t>&,
     vecmem::data::jagged_vector_view<scalar>&,
     vecmem::data::jagged_vector_view<vector3_t>&,

@@ -26,8 +26,8 @@ auto handle_async_error = [](::sycl::exception_list elist) {
     }
 };
 
-class SyclPropagatorWithRkStepper
-    : public ::testing::TestWithParam<vector3_t> {};
+class SyclPropagatorWithRkStepper : public ::testing::TestWithParam<vector3_t> {
+};
 
 TEST_P(SyclPropagatorWithRkStepper, propagator) {
 
@@ -56,32 +56,37 @@ TEST_P(SyclPropagatorWithRkStepper, propagator) {
     vecmem::vector<track_t> tracks_device(tracks_host, &mng_mr);
 
     // Host propagation
-    auto&& [host_path_lengths, host_positions, host_jac_transports]  = run_propagation_host(&mng_mr, det, tracks_host);
+    auto&& [host_path_lengths, host_positions, host_jac_transports] =
+        run_propagation_host(&mng_mr, det, tracks_host);
 
     // Device propagation
     detray::sycl::queue_wrapper queue(&q);
-    auto&& [device_path_lengths, device_positions, device_jac_transports]  = run_propagation_device<const_bfield_bknd_t>(&mng_mr, det, queue, tracks_device, host_positions);
+    auto&& [device_path_lengths, device_positions, device_jac_transports] =
+        run_propagation_device<const_bfield_bknd_t>(
+            &mng_mr, det, queue, tracks_device, host_positions);
 
     // Check the results
-    compare_propagation_results(host_positions, device_positions, host_path_lengths, device_path_lengths, host_jac_transports, device_jac_transports);
+    compare_propagation_results(host_positions, device_positions,
+                                host_path_lengths, device_path_lengths,
+                                host_jac_transports, device_jac_transports);
 }
 
 INSTANTIATE_TEST_SUITE_P(SyclPropagatorValidation1, SyclPropagatorWithRkStepper,
-                         ::testing::Values(vector3_t{
-                             0. * unit<scalar>::T, 0. * unit<scalar>::T,
-                             2. * unit<scalar>::T}));
+                         ::testing::Values(vector3_t{0. * unit<scalar>::T,
+                                                     0. * unit<scalar>::T,
+                                                     2. * unit<scalar>::T}));
 
 INSTANTIATE_TEST_SUITE_P(SyclPropagatorValidation2, SyclPropagatorWithRkStepper,
-                         ::testing::Values(vector3_t{
-                             0. * unit<scalar>::T, 1. * unit<scalar>::T,
-                             1. * unit<scalar>::T}));
+                         ::testing::Values(vector3_t{0. * unit<scalar>::T,
+                                                     1. * unit<scalar>::T,
+                                                     1. * unit<scalar>::T}));
 
 INSTANTIATE_TEST_SUITE_P(SyclPropagatorValidation3, SyclPropagatorWithRkStepper,
-                         ::testing::Values(vector3_t{
-                             1. * unit<scalar>::T, 0. * unit<scalar>::T,
-                             1. * unit<scalar>::T}));
+                         ::testing::Values(vector3_t{1. * unit<scalar>::T,
+                                                     0. * unit<scalar>::T,
+                                                     1. * unit<scalar>::T}));
 
 INSTANTIATE_TEST_SUITE_P(SyclPropagatorValidation4, SyclPropagatorWithRkStepper,
-                         ::testing::Values(vector3_t{
-                             1. * unit<scalar>::T, 1. * unit<scalar>::T,
-                             1. * unit<scalar>::T}));
+                         ::testing::Values(vector3_t{1. * unit<scalar>::T,
+                                                     1. * unit<scalar>::T,
+                                                     1. * unit<scalar>::T}));

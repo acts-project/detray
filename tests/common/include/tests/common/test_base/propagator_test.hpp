@@ -47,22 +47,27 @@
 namespace detray {
 
 // Constant magnetic field
-using const_bfield_bknd_t = covfie::backend::constant<covfie::vector::vector_d<scalar, 3>,
-                                covfie::vector::vector_d<scalar, 3>>;
+using const_bfield_bknd_t =
+    covfie::backend::constant<covfie::vector::vector_d<scalar, 3>,
+                              covfie::vector::vector_d<scalar, 3>>;
 
 // Inhomogeneous magnetic field
 using inhom_bfield_bknd_t = covfie::backend::affine<
-        covfie::backend::nearest_neighbour<covfie::backend::strided<
-            covfie::vector::ulong3,
-            covfie::backend::array<covfie::vector::vector_d<scalar, 3>>>>>;
+    covfie::backend::nearest_neighbour<covfie::backend::strided<
+        covfie::vector::ulong3,
+        covfie::backend::array<covfie::vector::vector_d<scalar, 3>>>>>;
 
 // Host detector type
-template<typename bfield_bknd_t>
-using detector_host_t = detector<detector_registry::template toy_detector<bfield_bknd_t>, covfie::field, host_container_types>;
+template <typename bfield_bknd_t>
+using detector_host_t =
+    detector<detector_registry::template toy_detector<bfield_bknd_t>,
+             covfie::field, host_container_types>;
 
 // Device detector type using views
-template<typename bfield_bknd_t>
-using detector_device_t = detector<detector_registry::template toy_detector<bfield_bknd_t>, covfie::field_view, device_container_types>;
+template <typename bfield_bknd_t>
+using detector_device_t =
+    detector<detector_registry::template toy_detector<bfield_bknd_t>,
+             covfie::field_view, device_container_types>;
 
 // These types are identical in host and device code for all bfield types
 using transform3 = typename detector_host_t<const_bfield_bknd_t>::transform3;
@@ -73,12 +78,12 @@ using free_matrix = typename track_t::covariance_type;
 
 // Navigator
 using intersection_t = line_plane_intersection;
-template<typename detector_t>
+template <typename detector_t>
 using navigator_t = navigator<detector_t>;
 
 // Stepper
 using constraints_t = constrained_step<>;
-template<typename bfield_view_t>
+template <typename bfield_view_t>
 using rk_stepper_t = rk_stepper<bfield_view_t, transform3, constraints_t>;
 
 // Detector configuration
@@ -100,7 +105,7 @@ struct track_inspector : actor {
 
     struct state {
 
-        state(vecmem::memory_resource &resource)
+        state(vecmem::memory_resource& resource)
             : _path_lengths(&resource),
               _positions(&resource),
               _jac_transports(&resource) {}
@@ -119,9 +124,9 @@ struct track_inspector : actor {
 
     template <typename propagator_state_t>
     DETRAY_HOST_DEVICE void operator()(
-        state &inspector_state, const propagator_state_t &prop_state) const {
+        state& inspector_state, const propagator_state_t& prop_state) const {
 
-        const auto &stepping = prop_state._stepping;
+        const auto& stepping = prop_state._stepping;
 
         // Nothing happened yet: First call of actor chain
         if (stepping.path_length() < is_close) {
@@ -151,8 +156,7 @@ using actor_chain_device_t =
 
 /// Precompute the tracks
 inline vecmem::vector<track_t> generate_tracks(
-    vecmem::memory_resource *mr,
-    const unsigned int ts = theta_steps, 
+    vecmem::memory_resource* mr, const unsigned int ts = theta_steps,
     const unsigned int ps = phi_steps) {
 
     // Putput collection
@@ -163,8 +167,7 @@ inline vecmem::vector<track_t> generate_tracks(
     const scalar p_mag{10.f * unit<scalar>::GeV};
 
     // Iterate through uniformly distributed momentum directions
-    for (auto track :
-         uniform_track_generator<track_t>(
+    for (auto track : uniform_track_generator<track_t>(
              ts, ps, ori, p_mag, {0.01f, constant<scalar>::pi},
              {-constant<scalar>::pi, constant<scalar>::pi})) {
         track.set_overstep_tolerance(overstep_tolerance);
@@ -177,17 +180,20 @@ inline vecmem::vector<track_t> generate_tracks(
 }
 
 /// test function for propagator on the host
-template<typename bfield_bknd_t>
-inline auto run_propagation_host(
-    vecmem::memory_resource *mr,
-    const detector_host_t<bfield_bknd_t> &det,
-    const vecmem::vector<track_t> &tracks) -> std::tuple<vecmem::jagged_vector<scalar>, vecmem::jagged_vector<vector3_t>, vecmem::jagged_vector<free_matrix>> {
+template <typename bfield_bknd_t>
+inline auto run_propagation_host(vecmem::memory_resource* mr,
+                                 const detector_host_t<bfield_bknd_t>& det,
+                                 const vecmem::vector<track_t>& tracks)
+    -> std::tuple<vecmem::jagged_vector<scalar>,
+                  vecmem::jagged_vector<vector3_t>,
+                  vecmem::jagged_vector<free_matrix>> {
 
     // Construct propagator from stepper and navigator
-    auto stepr = rk_stepper_t<typename detector_host_t<bfield_bknd_t>::bfield_type::view_t>{};
+    auto stepr = rk_stepper_t<
+        typename detector_host_t<bfield_bknd_t>::bfield_type::view_t>{};
     auto nav = navigator_t<detector_host_t<bfield_bknd_t>>{};
 
-    using propagator_host_t = 
+    using propagator_host_t =
         propagator<decltype(stepr), decltype(nav), actor_chain_host_t>;
     propagator_host_t p(std::move(stepr), std::move(nav));
 
@@ -224,7 +230,9 @@ inline auto run_propagation_host(
         host_jac_transports.push_back(insp_state._jac_transports);
     }
 
-    return std::make_tuple(std::move(host_path_lengths), std::move(host_positions), std::move(host_jac_transports));
+    return std::make_tuple(std::move(host_path_lengths),
+                           std::move(host_positions),
+                           std::move(host_jac_transports));
 }
 
 /// test function for propagator on the host
