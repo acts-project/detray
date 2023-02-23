@@ -9,12 +9,12 @@
 
 namespace detray {
 
-namespace kernels {
+/*namespace kernels {
 
 template <typename bfield_bknd_t>
 class propagate;
 
-}  // namespace kernels
+}  // namespace kernels*/
 
 /// test function for propagator
 template <typename bfield_bknd_t>
@@ -26,8 +26,6 @@ void propagator_test(
     vecmem::data::jagged_vector_view<vector3> &positions_data,
     vecmem::data::jagged_vector_view<free_matrix> &jac_transports_data,
     detray::sycl::queue_wrapper queue) {
-
-    using sycl_kernel = kernels::propagate<bfield_bknd_t>;
 
     auto det_data = get_data(host_det);
 
