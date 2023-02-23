@@ -42,7 +42,7 @@ void propagator_test(
                                                          jac_transports_data](
                                                             ::sycl::nd_item<1>
                                                                 item) {
-                detector_device_type det(det_data);
+                detector_device_t<bfield_bknd_t> det(det_data);
 
                 vecmem::device_vector<track_t> tracks(tracks_data);
                 vecmem::jagged_device_vector<intersection_t> candidates(
@@ -84,8 +84,8 @@ void propagator_test(
                     thrust::tie(insp_state, aborter_state, transporter_state,
                                 interactor_state, resetter_state);
                 // Create the propagator state
-                propagator_device_t::state state(tracks[gid], det.get_bfield(),
-                                                 det, candidates.at(gid));
+                typename propagator_device_t::state state(
+                    tracks[gid], det.get_bfield(), det, candidates.at(gid));
 
                 state._stepping.set_tolerance(rk_tolerance);
 
@@ -106,7 +106,8 @@ template void propagator_test<const_bfield_bknd_t>(
     vecmem::data::jagged_vector_view<intersection_t> &,
     vecmem::data::jagged_vector_view<scalar> &,
     vecmem::data::jagged_vector_view<vector3_t> &,
-    vecmem::data::jagged_vector_view<free_matrix> &, );
+    vecmem::data::jagged_vector_view<free_matrix> &,
+    detray::sycl::queue_wrapper);
 
 /// Explicit instantiation for an inhomogeneous magnetic field
 template void propagator_test<inhom_bfield_bknd_t>(
@@ -115,6 +116,7 @@ template void propagator_test<inhom_bfield_bknd_t>(
     vecmem::data::jagged_vector_view<intersection_t> &,
     vecmem::data::jagged_vector_view<scalar> &,
     vecmem::data::jagged_vector_view<vector3_t> &,
-    vecmem::data::jagged_vector_view<free_matrix> &, );
+    vecmem::data::jagged_vector_view<free_matrix> &,
+    detray::sycl::queue_wrapper);
 
 }  // namespace detray

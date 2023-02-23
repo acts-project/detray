@@ -39,11 +39,11 @@ inline auto run_propagation_device(
     vecmem::copy copy;
 
     // Get tracks data
-    auto tracks_data = vecmem::get_data(tracks_device);
+    auto tracks_data = vecmem::get_data(tracks);
 
     // Create navigator candidates buffer
     auto candidates_buffer =
-        create_candidates_buffer(det, theta_steps * phi_steps, shared_mr);
+        create_candidates_buffer(det, theta_steps * phi_steps, *mr);
     copy.setup(candidates_buffer);
 
     // Create vector buffer for track recording
@@ -54,11 +54,11 @@ inline auto run_propagation_device(
     }
 
     vecmem::data::jagged_vector_buffer<scalar> path_lengths_buffer(
-        sizes, capacities, shared_mr);
+        sizes, capacities, *mr);
     vecmem::data::jagged_vector_buffer<vector3> positions_buffer(
-        sizes, capacities, shared_mr);
+        sizes, capacities, *mr);
     vecmem::data::jagged_vector_buffer<free_matrix> jac_transports_buffer(
-        sizes, capacities, shared_mr);
+        sizes, capacities, *mr);
 
     copy.setup(path_lengths_buffer);
     copy.setup(positions_buffer);
@@ -69,9 +69,9 @@ inline auto run_propagation_device(
                                    path_lengths_buffer, positions_buffer,
                                    jac_transports_buffer, queue);
 
-    vecmem::jagged_vector<scalar> device_path_lengths(&shared_mr);
-    vecmem::jagged_vector<vector3> device_positions(&shared_mr);
-    vecmem::jagged_vector<free_matrix> device_jac_transports(&shared_mr);
+    vecmem::jagged_vector<scalar> device_path_lengths(mr);
+    vecmem::jagged_vector<vector3> device_positions(mr);
+    vecmem::jagged_vector<free_matrix> device_jac_transports(mr);
 
     copy(path_lengths_buffer, device_path_lengths);
     copy(positions_buffer, device_positions);
