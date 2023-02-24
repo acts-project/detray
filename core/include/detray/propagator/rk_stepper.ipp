@@ -1,6 +1,6 @@
 /** Detray library, part of the ACTS project (R&D line)
  *
- * (c) 2022 CERN for the benefit of the ACTS project
+ * (c) 2022-2023 CERN for the benefit of the ACTS project
  *
  * Mozilla Public License Version 2.0
  */
@@ -241,8 +241,6 @@ bool detray::rk_stepper<magnetic_field_t, transform3_t, constraint_t, policy_t,
         if (std::abs(stepping._step_size) <
             std::abs(stepping._step_size_cutoff)) {
             // Not moving due to too low momentum needs an aborter
-            printf("Stepper: step size is too small. will break. \n");
-            // State is broken
             return navigation.abort();
         }
 
@@ -250,8 +248,6 @@ bool detray::rk_stepper<magnetic_field_t, transform3_t, constraint_t, policy_t,
         // appropriate
         if (n_step_trials > stepping._max_rk_step_trials) {
             // Too many trials, have to abort
-            printf("Stepper: too many rk4 trials. will break. \n");
-            // State is broken
             return navigation.abort();
         }
         n_step_trials++;
