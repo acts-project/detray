@@ -71,6 +71,9 @@ struct random_scatterer : actor {
                 getter::theta(new_dir);
             matrix_operator().element(vector, e_bound_phi, 0u) =
                 getter::phi(new_dir);
+
+            // Flag renavigation of the current candidate
+            prop_state._navigation.set_high_trust();
         }
     }
 };

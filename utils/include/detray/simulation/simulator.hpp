@@ -20,6 +20,7 @@
 #include "detray/simulation/random_scatterer.hpp"
 
 // System include(s).
+#include <limits>
 #include <memory>
 
 namespace detray {
@@ -31,7 +32,7 @@ struct simulator {
 
     struct config {
         scalar_type overstep_tolerance{-10.f * detray::unit<scalar_type>::um};
-        scalar_type step_constraint{10.f * detray::unit<scalar_type>::mm};
+        scalar_type step_constraint{std::numeric_limits<scalar_type>::max()};
     };
 
     using transform3 = typename detector_t::transform3;

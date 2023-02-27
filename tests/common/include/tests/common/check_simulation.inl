@@ -98,6 +98,9 @@ TEST(check_simulation, toy_geometry) {
     std::size_t n_events{10u};
     auto sim = simulator(n_events, detector, std::move(generator), smearer);
 
+    // Lift step size constraints
+    sim.get_config().step_constraint = std::numeric_limits<scalar>::max();
+
     // Do the simulation
     sim.run();
 
@@ -236,6 +239,9 @@ TEST_P(TelescopeDetectorSimulation, telescope_detector_simulation) {
     std::size_t n_events{1000u};
 
     auto sim = simulator(n_events, detector, std::move(generator), smearer);
+
+    // Lift step size constraints
+    sim.get_config().step_constraint = std::numeric_limits<scalar>::max();
 
     // Run simulation
     sim.run();
