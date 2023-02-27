@@ -23,13 +23,25 @@ enum class id {
     e_rk = 1,
 };
 
+/// A void inpector that does nothing.
+///
+/// Inspectors can be plugged in to understand the current navigation state.
+struct void_inspector {
+    template <typename state_t>
+    DETRAY_HOST_DEVICE void operator()(const state_t & /*ignored*/,
+                                       const char * /*ignored*/) {}
+};
+
 }  // namespace stepping
 
 /// Base stepper implementation
-template <typename transform3_t, typename constraint_t, typename policy_t>
+template <typename transform3_t, typename constraint_t, typename policy_t,
+          typename inspector_t = stepping::void_inspector>
 class base_stepper {
 
     public:
+    using inspector_type = inspector_t;
+
     using transform3_type = transform3_t;
     using free_track_parameters_type = free_track_parameters<transform3_t>;
     using bound_track_parameters_type = bound_track_parameters<transform3_t>;
@@ -116,6 +128,9 @@ class base_stepper {
         // Navigation policy state
         typename policy_t::state _policy_state = {};
 
+        /// The inspector type of the stepping
+        inspector_type _inspector;
+
         /// Track path length
         scalar _path_length{0.};
 
@@ -172,6 +187,16 @@ class base_stepper {
         /// @returns this states remaining path length.
         DETRAY_HOST_DEVICE
         inline scalar path_length() const { return _path_length; }
+
+        /// @returns the stepping inspector
+        DETRAY_HOST
+        inline auto &inspector() { return _inspector; }
+
+        /// Call the stepping inspector
+        DETRAY_HOST_DEVICE
+        inline void run_inspector(const char *message) {
+            _inspector(*this, message);
+        }
     };
 };
 

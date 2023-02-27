@@ -10,6 +10,7 @@
 // Project include(s)
 #include "detray/intersection/detail/trajectories.hpp"
 #include "detray/propagator/base_actor.hpp"
+#include "detray/propagator/navigator.hpp"
 #include "detray/utils/tuple_helpers.hpp"
 
 // System include(s)
@@ -233,6 +234,76 @@ struct print_inspector : actor {
 
 }  // namespace propagation
 
-namespace step {}  // namespace step
+namespace step {
+
+/// A navigation inspector that prints information about the current navigation
+/// state. Meant for debugging.
+struct print_inspector {
+
+    /// Gathers navigation information accross navigator update calls
+    std::stringstream debug_stream{};
+
+    /// Inspector interface. Gathers detailed information during navigation
+    template <typename state_type>
+    void operator()(const state_type &state, const char *message) {
+        std::string msg(message);
+        std::string tabs = "\t\t\t\t";
+
+        debug_stream << msg << std::endl;
+
+        debug_stream << "Step size" << tabs << state.step_size() << std::endl;
+        debug_stream << "Path length" << tabs << state.path_length()
+                     << std::endl;
+
+        switch (state.direction()) {
+            case direction::e_forward:
+                debug_stream << "direction" << tabs << "forward" << std::endl;
+                break;
+            case direction::e_unknown:
+                debug_stream << "direction" << tabs << "unknown" << std::endl;
+                break;
+            case direction::e_backward:
+                debug_stream << "direction" << tabs << "backward" << std::endl;
+                break;
+        };
+
+        debug_stream << "Tangent:\t"
+                     << detail::ray<__plugin::transform3<scalar>>(state())
+                     << std::endl;
+        debug_stream << std::endl;
+    }
+
+    /// Inspector interface. Gathers detailed information during navigation
+    template <typename state_type>
+    void operator()(const state_type &state, const char *message,
+                    const std::size_t n_trials, const scalar step_scalor) {
+        std::string tabs = "\t\t\t\t";
+
+        // Normal printout
+        this->operator()(state, message);
+
+        debug_stream << "# RK adjustments" << tabs << n_trials << std::endl;
+        debug_stream << "Step size scale factor" << tabs << step_scalor
+                     << std::endl;
+
+        debug_stream << "Bfield points:" << std::endl;
+        const auto &f = state._step_data.b_first;
+        debug_stream << "\tfirst:" << tabs << f[0] << ", " << f[1] << ", "
+                     << f[2] << std::endl;
+        const auto &m = state._step_data.b_middle;
+        debug_stream << "\tmiddle:" << tabs << m[0] << ", " << m[1] << ", "
+                     << m[2] << std::endl;
+        const auto &l = state._step_data.b_last;
+        debug_stream << "\tlast:" << tabs << l[0] << ", " << l[1] << ", "
+                     << l[2] << std::endl;
+
+        debug_stream << std::endl << std::endl;
+    }
+
+    /// @returns a string representation of the gathered information
+    std::string to_string() { return debug_stream.str(); }
+};
+
+}  // namespace step
 
 }  // namespace detray

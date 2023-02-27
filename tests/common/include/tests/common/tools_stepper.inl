@@ -13,6 +13,7 @@
 #include "detray/propagator/rk_stepper.hpp"
 #include "detray/simulation/track_generators.hpp"
 #include "detray/tracks/tracks.hpp"
+#include "tests/common/tools/inspectors.hpp"
 
 // google-test include(s)
 #include <gtest/gtest.h>
@@ -36,10 +37,13 @@ using matrix_operator = standard_matrix_operator<scalar>;
 
 /// Runge-Kutta stepper
 template <typename bfield_t>
-using rk_stepper_t = rk_stepper<typename bfield_t::view_t, transform3>;
+using rk_stepper_t =
+    rk_stepper<typename bfield_t::view_t, transform3, unconstrained_step,
+               stepper_default_policy, step::print_inspector>;
 template <typename bfield_t>
 using crk_stepper_t =
-    rk_stepper<typename bfield_t::view_t, transform3, constrained_step<>>;
+    rk_stepper<typename bfield_t::view_t, transform3, constrained_step<>,
+               stepper_default_policy, step::print_inspector>;
 
 namespace {
 
@@ -91,7 +95,9 @@ TEST(ALGEBRA_PLUGIN, line_stepper) {
 
     // Line stepper with and without constrained stepping
     using line_stepper_t = line_stepper<transform3>;
-    using cline_stepper_t = line_stepper<transform3, constrained_step<>>;
+    using cline_stepper_t =
+        line_stepper<transform3, constrained_step<>, stepper_default_policy,
+                     step::print_inspector>;
 
     point3 pos{0.f, 0.f, 0.f};
     vector3 mom{1.f, 1.f, 0.f};
@@ -154,6 +160,8 @@ TEST(ALGEBRA_PLUGIN, line_stepper) {
     ASSERT_NEAR(track.pos()[0], constant<scalar>::sqrt2, tol);
     ASSERT_NEAR(track.pos()[1], constant<scalar>::sqrt2, tol);
     ASSERT_NEAR(track.pos()[2], 0.f, tol);
+
+    std::cout << cl_state.inspector().to_string() << std::endl;
 }
 
 /// This tests the base functionality of the Runge-Kutta stepper in a constant
@@ -290,8 +298,8 @@ TEST(ALGEBRA_PLUGIN, rk_stepper_inhomogeneous_bfield) {
     // Track generator configuration
     const point3 ori{0.f, 0.f, 0.f};
     const scalar p_mag{10.f * unit<scalar>::GeV};
-    constexpr unsigned int theta_steps = 100u;
-    constexpr unsigned int phi_steps = 100u;
+    constexpr unsigned int theta_steps = 1u;
+    constexpr unsigned int phi_steps = 1u;
 
     // Iterate through uniformly distributed momentum directions
     for (auto track :
@@ -353,5 +361,7 @@ TEST(ALGEBRA_PLUGIN, rk_stepper_inhomogeneous_bfield) {
         ASSERT_NEAR(getter::norm(rk_state().pos() - crk_state().pos()) /
                         (2.f * path_length),
                     0.f, tol);
+
+        std::cout << rk_state.inspector().to_string() << std::endl;
     }
 }

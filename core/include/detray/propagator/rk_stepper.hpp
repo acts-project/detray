@@ -25,12 +25,14 @@ namespace detray {
 template <typename magnetic_field_t, typename transform3_t,
           typename constraint_t = unconstrained_step,
           typename policy_t = stepper_default_policy,
+          typename inspector_t = stepping::void_inspector,
           template <typename, std::size_t> class array_t = darray>
 class rk_stepper final
-    : public base_stepper<transform3_t, constraint_t, policy_t> {
+    : public base_stepper<transform3_t, constraint_t, policy_t, inspector_t> {
 
     public:
-    using base_type = base_stepper<transform3_t, constraint_t, policy_t>;
+    using base_type =
+        base_stepper<transform3_t, constraint_t, policy_t, inspector_t>;
     using transform3_type = transform3_t;
     using policy_type = policy_t;
     using point3 = typename transform3_type::point3;
