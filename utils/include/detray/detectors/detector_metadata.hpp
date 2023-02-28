@@ -15,6 +15,7 @@
 #include "detray/intersection/cylinder_intersector.hpp"
 #include "detray/intersection/plane_intersector.hpp"
 #include "detray/masks/masks.hpp"
+#include "detray/masks/unmasked.hpp"
 #include "detray/materials/material_rod.hpp"
 #include "detray/materials/material_slab.hpp"
 #include "detray/surface_finders/accelerator_grid.hpp"

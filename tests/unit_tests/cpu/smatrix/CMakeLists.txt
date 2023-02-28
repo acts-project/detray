@@ -55,6 +55,7 @@ detray_add_test( smatrix
    "smatrix_track_generators.cpp"
    "smatrix_transform_store.cpp"
    "smatrix_trapezoid2D.cpp"
+   "smatrix_unbounded.cpp"
    "smatrix_unmasked.cpp"
    "smatrix_volume.cpp"
    LINK_LIBRARIES GTest::gtest_main detray_tests_common detray::smatrix )

@@ -8,6 +8,7 @@
 #include <gtest/gtest.h>
 
 #include "detray/masks/masks.hpp"
+#include "detray/masks/unmasked.hpp"
 
 using namespace detray;
 

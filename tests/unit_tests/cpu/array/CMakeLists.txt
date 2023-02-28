@@ -55,6 +55,7 @@ detray_add_test( array
    "array_transform_store.cpp"
    "array_trapezoid2D.cpp"
    "array_track_generators.cpp"
+   "array_unbounded.cpp"
    "array_unmasked.cpp"
    "array_volume.cpp"
    LINK_LIBRARIES GTest::gtest_main detray_tests_common detray::array )
