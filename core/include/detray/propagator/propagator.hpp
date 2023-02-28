@@ -134,11 +134,14 @@ struct propagator {
             // Take the step
             propagation._heartbeat &= _stepper.step(propagation);
 
-            // And check the status
+            // Find next candidate
             propagation._heartbeat &= _navigator.update(propagation);
 
             // Run all registered actors/aborters after update
             run_actors(actor_states, propagation);
+
+            // And check the status
+            propagation._heartbeat &= _navigator.update(propagation);
         }
 
         // Pass on the whether the propagation was successful
@@ -174,7 +177,7 @@ struct propagator {
                 // Take the step
                 propagation._heartbeat &= _stepper.step(propagation);
 
-                // And check the status
+                // Find next candidate
                 propagation._heartbeat &= _navigator.update(propagation);
 
                 // If the track is on a sensitive surface, break the loop to
@@ -183,12 +186,18 @@ struct propagator {
                     break;
                 } else {
                     run_actors(actor_states, propagation);
+
+                    // And check the status
+                    propagation._heartbeat &= _navigator.update(propagation);
                 }
             }
 
             // Synchornized actor
             if (propagation._heartbeat) {
                 run_actors(actor_states, propagation);
+
+                // And check the status
+                propagation._heartbeat &= _navigator.update(propagation);
             }
         }
 
