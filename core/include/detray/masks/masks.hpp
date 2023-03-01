@@ -72,6 +72,11 @@ class mask {
                                                Args&&... args)
         : _values({{std::forward<Args>(args)...}}), _volume_link(link) {}
 
+    /// Constructor from mask boundary array
+    DETRAY_HOST_DEVICE
+    constexpr mask(const mask_values& values, const links_type& link)
+        : _values{values}, _volume_link{link} {}
+
     /// Constructor from mask boundary vector
     DETRAY_HOST mask(const std::vector<scalar_type>& values,
                      const links_type& link)
