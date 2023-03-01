@@ -11,6 +11,8 @@
 
 #include "detray/definitions/units.hpp"
 #include "detray/detectors/create_telescope_detector.hpp"
+#include "detray/masks/masks.hpp"
+#include "detray/masks/unbounded.hpp"
 #include "detray/propagator/actor_chain.hpp"
 #include "detray/propagator/actors/aborters.hpp"
 #include "detray/propagator/navigation_policies.hpp"
@@ -28,17 +30,20 @@ TEST(ALGEBRA_PLUGIN, guided_navigator) {
 
     vecmem::host_memory_resource host_mr;
 
-    // Use unbounded surfaces
-    constexpr bool unbounded = true;
+    // Use unbounded rectangle surfaces
+    mask<unbounded<rectangle2D<>>> rectangle{0u, 20.f * unit<scalar>::mm,
+                                             20.f * unit<scalar>::mm};
 
+    // Builds the telescope alon z-axis
     detail::ray<transform3_type> default_trk({0, 0, 0}, 0, {0, 0, 1}, -1);
 
     // Module positions along z-axis
     const std::vector<scalar> positions = {0.,  10., 20., 30., 40., 50.,
                                            60., 70,  80,  90., 100.};
     // Build telescope detector with unbounded planes
-    const auto telescope_det =
-        create_telescope_detector<unbounded>(host_mr, positions, default_trk);
+    const auto telescope_det = create_telescope_detector(
+        host_mr, rectangle, positions, silicon_tml<scalar>(),
+        80.f * unit<scalar>::um, default_trk);
 
     // Inspectors are optional, of course
     using object_tracer_t =
