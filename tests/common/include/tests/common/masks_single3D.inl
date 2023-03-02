@@ -34,6 +34,16 @@ TEST(mask, single3_0) {
     ASSERT_TRUE(m1_0.is_inside(p3_out) == intersection::status::e_outside);
     // Move outside point inside using a tolerance - take t0 not t1
     ASSERT_TRUE(m1_0.is_inside(p3_out, 0.6f) == intersection::status::e_inside);
+
+    // Check bounding box
+    constexpr scalar envelope{0.01f};
+    const auto loc_bounds = m1_0.local_min_bounds(envelope);
+    ASSERT_NEAR(loc_bounds[cuboid3D<>::e_min_x], -(h0 + envelope), tol);
+    ASSERT_NEAR(loc_bounds[cuboid3D<>::e_min_y], -envelope, tol);
+    ASSERT_NEAR(loc_bounds[cuboid3D<>::e_min_z], -envelope, tol);
+    ASSERT_NEAR(loc_bounds[cuboid3D<>::e_max_x], (h0 + envelope), tol);
+    ASSERT_NEAR(loc_bounds[cuboid3D<>::e_max_y], envelope, tol);
+    ASSERT_NEAR(loc_bounds[cuboid3D<>::e_max_z], envelope, tol);
 }
 
 /// This tests the basic functionality of a single value mask (index 1)
@@ -67,6 +77,16 @@ TEST(mask, single3_1) {
             }
         }
     }
+
+    // Check bounding box
+    constexpr scalar envelope{0.01f};
+    const auto loc_bounds = m1_1.local_min_bounds(envelope);
+    ASSERT_NEAR(loc_bounds[cuboid3D<>::e_min_x], -envelope, tol);
+    ASSERT_NEAR(loc_bounds[cuboid3D<>::e_min_y], -(h1 + envelope), tol);
+    ASSERT_NEAR(loc_bounds[cuboid3D<>::e_min_z], -envelope, tol);
+    ASSERT_NEAR(loc_bounds[cuboid3D<>::e_max_x], envelope, tol);
+    ASSERT_NEAR(loc_bounds[cuboid3D<>::e_max_y], (h1 + envelope), tol);
+    ASSERT_NEAR(loc_bounds[cuboid3D<>::e_max_z], envelope, tol);
 }
 
 /// This tests the basic functionality of a single value mask (index 2)
@@ -100,4 +120,14 @@ TEST(mask, single3_2) {
             }
         }
     }
+
+    // Check bounding box
+    constexpr scalar envelope{0.01f};
+    const auto loc_bounds = m1_2.local_min_bounds(envelope);
+    ASSERT_NEAR(loc_bounds[cuboid3D<>::e_min_x], -envelope, tol);
+    ASSERT_NEAR(loc_bounds[cuboid3D<>::e_min_y], -envelope, tol);
+    ASSERT_NEAR(loc_bounds[cuboid3D<>::e_min_z], -(h2 + envelope), tol);
+    ASSERT_NEAR(loc_bounds[cuboid3D<>::e_max_x], envelope, tol);
+    ASSERT_NEAR(loc_bounds[cuboid3D<>::e_max_y], envelope, tol);
+    ASSERT_NEAR(loc_bounds[cuboid3D<>::e_max_z], (h2 + envelope), tol);
 }

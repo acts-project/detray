@@ -40,7 +40,7 @@ class ring2D {
     /// The measurement dimension
     inline static constexpr const unsigned int meas_dim{kMeasDim};
 
-    enum boundaries : std::size_t {
+    enum boundaries : unsigned int {
         e_inner_r = 0u,
         e_outer_r = 1u,
         e_size = 2u,
@@ -105,6 +105,27 @@ class ring2D {
 
         return (loc_p[0] + tol >= bounds[e_inner_r] and
                 loc_p[0] <= bounds[e_outer_r] + tol);
+    }
+
+    /// @brief Lower and upper point for minimal axis aligned bounding box.
+    ///
+    /// Computes the min and max vertices in a local cartesian frame.
+    ///
+    /// @param bounds the boundary values for this shape
+    /// @param env dynamic envelope around the shape
+    ///
+    /// @returns and array of coordinates that contains the lower point (first
+    /// three values) and the upper point (latter three values) .
+    template <typename algebra_t,
+              template <typename, std::size_t> class bounds_t,
+              typename scalar_t, std::size_t kDIM,
+              typename std::enable_if_t<kDIM == e_size, bool> = true>
+    DETRAY_HOST_DEVICE inline std::array<scalar_t, 6> local_min_bounds(
+        const bounds_t<scalar_t, kDIM>& bounds,
+        const scalar_t env = std::numeric_limits<scalar_t>::epsilon()) const {
+        assert(env > 0.f);
+        const scalar_t r_bound{env + bounds[e_outer_r]};
+        return {-r_bound, -r_bound, -env, r_bound, r_bound, env};
     }
 
     template <typename param_t>

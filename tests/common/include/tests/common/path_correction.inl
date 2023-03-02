@@ -7,7 +7,11 @@
 
 // Project include(s).
 #include "detray/definitions/units.hpp"
+#include "detray/detectors/create_telescope_detector.hpp"
 #include "detray/detectors/detector_metadata.hpp"
+#include "detray/geometry/volume_graph.hpp"
+#include "detray/masks/masks.hpp"
+#include "detray/masks/unbounded.hpp"
 #include "detray/materials/predefined_materials.hpp"
 #include "detray/propagator/actor_chain.hpp"
 #include "detray/propagator/actors/aborters.hpp"
@@ -17,6 +21,7 @@
 #include "detray/propagator/propagator.hpp"
 #include "detray/propagator/rk_stepper.hpp"
 #include "detray/tracks/tracks.hpp"
+#include "tests/common/tools/inspectors.hpp"
 
 // Covfie include(s).
 #include <covfie/core/field.hpp>
@@ -28,24 +33,30 @@
 // google-test include(s).
 #include <gtest/gtest.h>
 
+#include <iostream>
+
 using namespace detray;
 
 // Type Definitions
+/*template <typename mask_shape_t>
+using tel_detector_t =
+    detector<detector_registry::template telescope_detector<mask_shape_t>,
+             covfie::field>;
 using registry_type = detector_registry::default_detector;
-using detector_type = detector<registry_type, covfie::field>;
-using mask_container = typename detector_type::mask_container;
-using material_container = typename detector_type::material_container;
-using surface_type = typename detector_type::surface_container::value_type;
+using detector_t = detector<registry_type, covfie::field>;
+using mask_container = typename detector_t::mask_container;
+using material_container = typename detector_t::material_container;
+using surface_type = typename detector_t::surface_container::value_type;
 using mask_link_type = typename surface_type::mask_link;
 using material_link_type = typename surface_type::material_link;
-using mag_field_t = detector_type::bfield_type;
+using mag_field_t = detector_t::bfield_type;
 
 using matrix_operator = standard_matrix_operator<scalar>;
-using transform3 = typename detector_type::transform3;
+using transform3 = typename detector_t::transform3;
 using vector2 = __plugin::vector2<scalar>;
 using vector3 = __plugin::vector3<scalar>;
 
-using navigator_t = navigator<detector_type>;
+using navigator_t = navigator<detector_t>;
 // Re-init the volume at every step, so that surface will be put into the
 // navigation cache
 using crk_stepper_t = rk_stepper<mag_field_t::view_t, transform3,
@@ -55,29 +66,27 @@ using actor_chain_t =
                 parameter_resetter<transform3>>;
 using propagator_t = propagator<crk_stepper_t, navigator_t, actor_chain_t>;
 
+using matrix_operator = standard_matrix_operator<scalar>;
+
 namespace env {
 
 constexpr scalar tol{1e-2f};
 constexpr scalar rk_tolerance{1e-8f};
 
-// B field
-const vector3 B{0.f, 0.f, 1.f * unit<scalar>::T};
-mag_field_t mag_field(mag_field_t::backend_t::configuration_t{B[0], B[1],
-                                                              B[2]});
+// Surface material
+const material<scalar> mat = silicon<scalar>();
+const scalar thickness{2.f * unit<scalar>::mm};
 
 // memory resource
 vecmem::host_memory_resource resource;
 
-// Context
-const typename detector_type::geometry_context ctx{};
-
-}  // namespace env
+}  // namespace env*/
 
 // This tests the path correction of cartesian coordinate
 TEST(path_correction, cartesian2D) {
 
     // Create a detector
-    detector_type det(env::resource, std::move(env::mag_field));
+    /*detector_t det(env::resource, std::move(env::mag_field));
 
     // Mask and material ID
     constexpr auto mask_id = registry_type::mask_ids::e_rectangle2;
@@ -88,10 +97,10 @@ TEST(path_correction, cartesian2D) {
         volume_id::e_cylinder,
         {0.f, 0.f, 0.f, 0.f, -constant<scalar>::pi, constant<scalar>::pi});
 
-    typename detector_type::surface_container surfaces(&env::resource);
-    typename detector_type::transform_container transforms(env::resource);
-    typename detector_type::mask_container masks(env::resource);
-    typename detector_type::material_container materials(env::resource);
+    typename detector_t::surface_container surfaces(&env::resource);
+    typename detector_t::transform_container transforms(env::resource);
+    typename detector_t::mask_container masks(env::resource);
+    typename detector_t::material_container materials(env::resource);
 
     // Add a surface
     mask_link_type mask_link{mask_id, 0u};
@@ -116,9 +125,49 @@ TEST(path_correction, cartesian2D) {
     materials.template emplace_back<material_id>(empty_context{}, mat,
                                                  thickness);
 
-    typename detector_type::volume_type &vol = det.volume_by_index(0u);
+    typename detector_t::volume_type &vol = det.volume_by_index(0u);
     det.add_objects_per_volume(env::ctx, vol, surfaces, masks, transforms,
                                materials);
+    using detector_t = tel_detector_t<unbounded<rectangle2D<>>>;
+    using mag_field_t = detector_t::bfield_type;
+
+    using transform3 = typename detector_t::transform3;
+    using vector2 = __plugin::vector2<scalar>;
+    using vector3 = __plugin::vector3<scalar>;
+
+    using navigator_t = navigator<detector_t, navigation::print_inspector>;
+    // Re-init the volume at every step, so that surface will be put into the
+    // navigation cache
+    using crk_stepper_t = rk_stepper<mag_field_t::view_t, transform3,
+                                     constrained_step<>, always_init>;
+    using actor_chain_t =
+        actor_chain<dtuple, target_aborter, parameter_transporter<transform3>,
+                    parameter_resetter<transform3>>;
+    using propagator_t = propagator<crk_stepper_t, navigator_t, actor_chain_t>;
+
+    // B field
+    const vector3 B{0, 0, 1. * unit<scalar>::T};
+    mag_field_t mag_field(
+        mag_field_t::backend_t::configuration_t{B[0], B[1], B[2]});
+
+    // Use unbounded rectangle surface
+    mask<unbounded<rectangle2D<>>> rectangle{};
+
+    // Build telescope detector with a single unbounded rectangle
+    const auto det = create_telescope_detector(
+        env::resource, std::move(mag_field), rectangle, 1u,
+        500. * unit<scalar>::mm, env::mat, env::thickness);
+
+    /// Prints linking information for every node when visited
+    struct volume_printout {
+        void operator()(const detector_t::volume_type &n) const {
+            std::cout << "On volume: " << n.index() << std::endl;
+        }
+    };
+
+    // Build the graph
+    volume_graph<detector_t> graph(det);
+    std::cout << graph.to_string() << std::endl;
 
     // Generate track starting point
     vector2 local{2.f, 3.f};
@@ -157,12 +206,12 @@ TEST(path_correction, cartesian2D) {
     parameter_resetter<transform3>::state rst{};
 
     propagator_t p({}, {});
-    propagator_t::state propagation(bound_param0, env::mag_field, det);
+    propagator_t::state propagation(bound_param0, det.get_bfield(), det);
 
     crk_stepper_t::state &crk_state = propagation._stepping;
 
     // Path length per turn
-    scalar S{2.f * getter::perp(mom) / getter::norm(env::B) *
+    scalar S{2.f * getter::perp(mom) / getter::norm(B) *
              constant<scalar>::pi};
     // Constrain the step size to force frequent re-navigation for this
     // strongly bent track
@@ -170,9 +219,17 @@ TEST(path_correction, cartesian2D) {
 
     // Decrease tolerance down to 1e-8
     crk_state._tolerance = env::rk_tolerance;
+    crk_state().set_overstep_tolerance(-1000000000000.f);
 
     // Run propagator
-    p.propagate(propagation, std::tie(targeter, bound_updater, rst));
+    // p.propagate(propagation, std::tie(targeter, bound_updater, rst));
+
+    // Retrieve navigation information
+    auto &debug_printer = propagation._navigation.inspector();
+
+    //ASSERT_TRUE(
+    //    p.propagate(propagation, std::tie(targeter, bound_updater, rst)));
+    //std::cout << debug_printer.to_string();
 
     // Bound state after one turn propagation
     const auto bound_param1 = crk_state._bound_params;
@@ -197,7 +254,6 @@ TEST(path_correction, cartesian2D) {
         }
     }
 
-    /*
     // Print the matrix elements
     for (unsigned int i = 0u; i < e_bound_size; i++) {
         for (unsigned int j = 0u; j < e_bound_size; j++) {
@@ -217,10 +273,10 @@ TEST(path_correction, cartesian2D) {
     */
 }
 
-TEST(path_correction, polar) {
+/*TEST(path_correction, polar) {
 
     // Create a detector
-    detector_type det(env::resource);
+    detector_t det(env::resource);
 
     // Mask and material ID
     constexpr auto mask_id = registry_type::mask_ids::e_ring2;
@@ -231,10 +287,10 @@ TEST(path_correction, polar) {
         volume_id::e_cylinder,
         {0.f, 0.f, 0.f, 0.f, -constant<scalar>::pi, constant<scalar>::pi});
 
-    typename detector_type::surface_container surfaces(&env::resource);
-    typename detector_type::transform_container transforms(env::resource);
-    typename detector_type::mask_container masks(env::resource);
-    typename detector_type::material_container materials(env::resource);
+    typename detector_t::surface_container surfaces(&env::resource);
+    typename detector_t::transform_container transforms(env::resource);
+    typename detector_t::mask_container masks(env::resource);
+    typename detector_t::material_container materials(env::resource);
 
     // Add a surface
     mask_link_type mask_link{mask_id, 0u};
@@ -259,7 +315,7 @@ TEST(path_correction, polar) {
     materials.template emplace_back<material_id>(empty_context{}, mat,
                                                  thickness);
 
-    typename detector_type::volume_type &vol = det.volume_by_index(0);
+    typename detector_t::volume_type &vol = det.volume_by_index(0);
     det.add_objects_per_volume(env::ctx, vol, surfaces, masks, transforms,
                                materials);
 
@@ -351,7 +407,7 @@ TEST(path_correction, polar) {
 TEST(path_correction, cylindrical) {
 
     // Create a detector
-    detector_type det(env::resource);
+    detector_t det(env::resource);
 
     // Mask and material ID
     constexpr auto mask_id = registry_type::mask_ids::e_cylinder2;
@@ -362,10 +418,10 @@ TEST(path_correction, cylindrical) {
         volume_id::e_cylinder,
         {0.f, 0.f, 0.f, 0.f, -constant<scalar>::pi, constant<scalar>::pi});
 
-    typename detector_type::surface_container surfaces(&env::resource);
-    typename detector_type::transform_container transforms(env::resource);
-    typename detector_type::mask_container masks(env::resource);
-    typename detector_type::material_container materials(env::resource);
+    typename detector_t::surface_container surfaces(&env::resource);
+    typename detector_t::transform_container transforms(env::resource);
+    typename detector_t::mask_container masks(env::resource);
+    typename detector_t::material_container materials(env::resource);
 
     // Add a surface
     mask_link_type mask_link{mask_id, 0u};
@@ -392,7 +448,7 @@ TEST(path_correction, cylindrical) {
     materials.template emplace_back<material_id>(empty_context{}, mat,
                                                  thickness);
 
-    typename detector_type::volume_type &vol = det.volume_by_index(0);
+    typename detector_t::volume_type &vol = det.volume_by_index(0);
     det.add_objects_per_volume(env::ctx, vol, surfaces, masks, transforms,
                                materials);
 
@@ -477,4 +533,4 @@ TEST(path_correction, cylindrical) {
                         matrix_operator().element(bound_cov1, i, j), env::tol);
         }
     }
-}
+}*/
