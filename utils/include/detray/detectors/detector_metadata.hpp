@@ -257,7 +257,7 @@ struct toy_metadata {
 
 /// Defines a detector with only rectangle/unbounded surfaces
 template <typename mask_shape_t = rectangle2D<>,
-          typename _bfield_backend_t = const_bfield_t>
+          typename bfield_backend_t = const_bfield_t>
 struct telescope_metadata {
 
     using bfield_backend_type = bfield_backend_t;

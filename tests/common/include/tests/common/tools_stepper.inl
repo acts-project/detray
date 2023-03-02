@@ -39,11 +39,11 @@ using matrix_operator = standard_matrix_operator<scalar>;
 template <typename bfield_t>
 using rk_stepper_t =
     rk_stepper<typename bfield_t::view_t, transform3, unconstrained_step,
-               stepper_default_policy, step::print_inspector>;
+               stepper_default_policy /*, step::print_inspector*/>;
 template <typename bfield_t>
 using crk_stepper_t =
     rk_stepper<typename bfield_t::view_t, transform3, constrained_step<>,
-               stepper_default_policy, step::print_inspector>;
+               stepper_default_policy /*, step::print_inspector*/>;
 
 namespace {
 
@@ -161,7 +161,7 @@ TEST(ALGEBRA_PLUGIN, line_stepper) {
     ASSERT_NEAR(track.pos()[1], constant<scalar>::sqrt2, tol);
     ASSERT_NEAR(track.pos()[2], 0.f, tol);
 
-    std::cout << cl_state.inspector().to_string() << std::endl;
+    // std::cout << cl_state.inspector().to_string() << std::endl;
 }
 
 /// This tests the base functionality of the Runge-Kutta stepper in a constant
@@ -362,6 +362,6 @@ TEST(ALGEBRA_PLUGIN, rk_stepper_inhomogeneous_bfield) {
                         (2.f * path_length),
                     0.f, tol);
 
-        std::cout << rk_state.inspector().to_string() << std::endl;
+        // std::cout << rk_state.inspector().to_string() << std::endl;
     }
 }
