@@ -42,7 +42,7 @@ class trapezoid2D {
     /// The measurement dimension
     inline static constexpr const unsigned int meas_dim{kMeasDim};
 
-    enum boundaries : std::size_t {
+    enum boundaries : unsigned int {
         e_half_length_0 = 0u,
         e_half_length_1 = 1u,
         e_half_length_2 = 2u,
@@ -106,13 +106,39 @@ class trapezoid2D {
     DETRAY_HOST_DEVICE inline bool check_boundaries(
         const bounds_t<scalar_t, kDIM>& bounds, const point_t& loc_p,
         const scalar_t tol = std::numeric_limits<scalar_t>::epsilon()) const {
-        scalar_t rel_y =
-            (bounds[e_half_length_2] + loc_p[1]) * bounds[e_divisor];
+        const scalar_t rel_y{(bounds[e_half_length_2] + loc_p[1]) *
+                             bounds[e_divisor]};
         return (std::abs(loc_p[0]) <= bounds[e_half_length_0] +
                                           rel_y * (bounds[e_half_length_1] -
                                                    bounds[e_half_length_0]) +
                                           tol and
                 std::abs(loc_p[1]) <= bounds[e_half_length_2] + tol);
+    }
+
+    /// @brief Lower and upper point for minimal axis aligned bounding box.
+    ///
+    /// Computes the min and max vertices in a local cartesian frame.
+    ///
+    /// @param bounds the boundary values for this shape
+    /// @param env dynamic envelope around the shape
+    ///
+    /// @returns and array of coordinates that contains the lower point (first
+    /// three values) and the upper point (latter three values) .
+    template <typename algebra_t,
+              template <typename, std::size_t> class bounds_t,
+              typename scalar_t, std::size_t kDIM,
+              typename std::enable_if_t<kDIM == e_size, bool> = true>
+    DETRAY_HOST_DEVICE inline std::array<scalar_t, 6> local_min_bounds(
+        const bounds_t<scalar_t, kDIM>& bounds,
+        const scalar_t env = std::numeric_limits<scalar_t>::epsilon()) const {
+        assert(env > 0.f);
+        const scalar_t x_bound{
+            (bounds[e_half_length_0] > bounds[e_half_length_1]
+                 ? bounds[e_half_length_0]
+                 : bounds[e_half_length_1]) +
+            env};
+        const scalar_t y_bound{bounds[e_half_length_2] + env};
+        return {-x_bound, -y_bound, -env, x_bound, y_bound, env};
     }
 
     template <typename param_t>

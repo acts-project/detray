@@ -46,6 +46,7 @@ detray_add_library( detray_core core
    "include/detray/grids/populator.hpp"
    "include/detray/grids/serializer2.hpp"
    # intersection include(s)
+   "include/detray/intersection/bounding_box/cuboid_intersector.hpp"
    "include/detray/intersection/concentric_cylinder_intersector.hpp"
    "include/detray/intersection/cylinder_intersector.hpp"
    "include/detray/intersection/detail/trajectories.hpp"
@@ -69,9 +70,9 @@ detray_add_library( detray_core core
    "include/detray/materials/detail/relativistic_quantities.hpp"
    "include/detray/materials/interaction.hpp"
    "include/detray/materials/material.hpp"
-   "include/detray/materials/material_rod.hpp"   
-   "include/detray/materials/material_slab.hpp"   
-   "include/detray/materials/mixture.hpp" 
+   "include/detray/materials/material_rod.hpp"
+   "include/detray/materials/material_slab.hpp"
+   "include/detray/materials/mixture.hpp"
    "include/detray/materials/predefined_materials.hpp"
    # propagator include(s)
    "include/detray/propagator/actors/aborters.hpp"
@@ -105,6 +106,7 @@ detray_add_library( detray_core core
    "include/detray/tools/associator.hpp"
    "include/detray/tools/bin_association.hpp"
    "include/detray/tools/bin_fillers.hpp"
+   "include/detray/tools/bounding_volume.hpp"
    "include/detray/tools/generators.hpp"
    "include/detray/tools/grid_builder.hpp"
    "include/detray/tools/grid_factory.hpp"

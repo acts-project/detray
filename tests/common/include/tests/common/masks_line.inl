@@ -53,6 +53,16 @@ TEST(mask, line_radial_cross_sect) {
             }
         }
     }
+
+    // Check bounding box
+    constexpr scalar envelope{0.01f};
+    const auto loc_bounds = ln.local_min_bounds(envelope);
+    ASSERT_NEAR(loc_bounds[cuboid3D<>::e_min_x], -(cell_size + envelope), tol);
+    ASSERT_NEAR(loc_bounds[cuboid3D<>::e_min_y], -(cell_size + envelope), tol);
+    ASSERT_NEAR(loc_bounds[cuboid3D<>::e_min_z], -(hz + envelope), tol);
+    ASSERT_NEAR(loc_bounds[cuboid3D<>::e_max_x], (cell_size + envelope), tol);
+    ASSERT_NEAR(loc_bounds[cuboid3D<>::e_max_y], (cell_size + envelope), tol);
+    ASSERT_NEAR(loc_bounds[cuboid3D<>::e_max_z], (hz + envelope), tol);
 }
 
 /// This tests the basic functionality of a line with a square cross section
@@ -86,4 +96,14 @@ TEST(mask, line_square_cross_sect) {
             }
         }
     }
+
+    // Check bounding box
+    constexpr scalar envelope{0.01f};
+    const auto loc_bounds = ln.local_min_bounds(envelope);
+    ASSERT_NEAR(loc_bounds[cuboid3D<>::e_min_x], -(cell_size + envelope), tol);
+    ASSERT_NEAR(loc_bounds[cuboid3D<>::e_min_y], -(cell_size + envelope), tol);
+    ASSERT_NEAR(loc_bounds[cuboid3D<>::e_min_z], -(hz + envelope), tol);
+    ASSERT_NEAR(loc_bounds[cuboid3D<>::e_max_x], (cell_size + envelope), tol);
+    ASSERT_NEAR(loc_bounds[cuboid3D<>::e_max_y], (cell_size + envelope), tol);
+    ASSERT_NEAR(loc_bounds[cuboid3D<>::e_max_z], (hz + envelope), tol);
 }

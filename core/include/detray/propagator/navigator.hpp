@@ -486,6 +486,10 @@ class navigator {
         navigation.set_last(navigation.candidates().end());
         // Determine overall state of the navigation after updating the cache
         update_navigation_state(track, propagation);
+        // If init was not successful, the propagation setup is broken
+        if (navigation.trust_level() != navigation::trust_level::e_full) {
+            navigation._heartbeat = false;
+        }
 
         // Run inspection when needed
         if constexpr (not std::is_same_v<inspector_t,

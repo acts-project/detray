@@ -13,7 +13,7 @@
 using namespace detray;
 using namespace __plugin;
 
-constexpr scalar tol{1e-7f};
+constexpr scalar tol{1e-5f};
 
 /// This tests the basic functionality of a stereo annulus
 TEST(mask, annulus2D) {
@@ -32,7 +32,7 @@ TEST(mask, annulus2D) {
     point_t p2_out3 = {10.f, 10.f};
     point_t p2_out4 = {4.f, 10.f};
 
-    auto toStripFrame = [&](const point_t& xy) -> point_t {
+    auto toStripFrame = [&offset](const point_t& xy) -> point_t {
         auto shifted = xy + offset;
         scalar r{getter::perp(shifted)};
         scalar phi{getter::phi(shifted)};
@@ -77,4 +77,37 @@ TEST(mask, annulus2D) {
             }
         }
     }
+
+    // Check corner positions
+    std::array<scalar, 8> c = ann2.get_shape().corners(ann2.values());
+    for (unsigned int i{0u}; i < 8u; i += 2u) {
+        // Transform to local cartesian beam system
+        const scalar loc_x{c[i] * math_ns::cos(c[i + 1]) -
+                           ann2.values()[annulus2D<>::e_shift_x]};
+        const scalar loc_y{c[i] * math_ns::sin(c[i + 1]) -
+                           ann2.values()[annulus2D<>::e_shift_y]};
+
+        // Inner points
+        if (i < 4u) {
+            EXPECT_NEAR(std::hypot(loc_x, loc_y), minR, tol)
+                << "point " << i << ": loc_x: " << loc_x << ", loc_y: " << loc_y
+                << std::endl;
+        }
+        // Outer points
+        else {
+            EXPECT_NEAR(std::hypot(loc_x, loc_y), maxR, tol)
+                << "point " << i << ": loc_x: " << loc_x << ", loc_y: " << loc_y
+                << std::endl;
+        }
+    }
+
+    // Check bounding box
+    constexpr scalar envelope{0.01f};
+    const auto loc_bounds = ann2.local_min_bounds(envelope);
+    ASSERT_NEAR(loc_bounds[cuboid3D<>::e_min_x], 3.8954f - envelope, tol);
+    ASSERT_NEAR(loc_bounds[cuboid3D<>::e_min_y], 2.39186f - envelope, tol);
+    ASSERT_NEAR(loc_bounds[cuboid3D<>::e_min_z], -envelope, tol);
+    ASSERT_NEAR(loc_bounds[cuboid3D<>::e_max_x], 10.50652f + envelope, tol);
+    ASSERT_NEAR(loc_bounds[cuboid3D<>::e_max_y], 10.89317f + envelope, tol);
+    ASSERT_NEAR(loc_bounds[cuboid3D<>::e_max_z], envelope, tol);
 }

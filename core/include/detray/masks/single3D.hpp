@@ -40,7 +40,7 @@ class single3D {
     /// The measurement dimension
     inline static constexpr const unsigned int meas_dim{kMeasDim};
 
-    enum boundaries : std::size_t {
+    enum boundaries : unsigned int {
         e_lower = 0u,
         e_upper = 1u,
         e_size = 2u,
@@ -102,6 +102,29 @@ class single3D {
         const scalar_t tol = std::numeric_limits<scalar_t>::epsilon()) const {
         return (bounds[e_lower] - tol <= loc_p[kCheckIndex] and
                 loc_p[kCheckIndex] <= bounds[e_upper] + tol);
+    }
+
+    /// @brief Lower and upper point for minimal axis aligned bounding box.
+    ///
+    /// Computes the min and max vertices in a local cartesian frame.
+    ///
+    /// @param bounds the boundary values for this shape
+    /// @param env dynamic envelope around the shape
+    ///
+    /// @returns and array of coordinates that contains the lower point (first
+    /// three values) and the upper point (latter three values) .
+    template <typename algebra_t,
+              template <typename, std::size_t> class bounds_t,
+              typename scalar_t, std::size_t kDIM,
+              typename std::enable_if_t<kDIM == e_size, bool> = true>
+    DETRAY_HOST_DEVICE inline std::array<scalar_t, 6> local_min_bounds(
+        const bounds_t<scalar_t, kDIM>& bounds,
+        const scalar_t env = std::numeric_limits<scalar_t>::epsilon()) const {
+        assert(env > 0.f);
+        std::array<scalar_t, 6> o_bounds{-env, -env, -env, env, env, env};
+        o_bounds[kCheckIndex] += bounds[e_lower];
+        o_bounds[3u + kCheckIndex] += bounds[e_upper];
+        return o_bounds;
     }
 
     template <typename param_t>
