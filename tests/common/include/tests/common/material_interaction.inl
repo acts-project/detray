@@ -211,10 +211,11 @@ TEST(material_interaction, telescope_geometry_energy_loss) {
 
     vecmem::host_memory_resource host_mr;
 
-    // Use unbounded rectangle surfaces
-    mask<unbounded<rectangle2D<>>> rectangle{0u, 20.f * unit<scalar>::mm,
-                                             20.f * unit<scalar>::mm};
-    // Build from given module positions
+    // Use rectangle surfaces in telescope
+    mask<rectangle2D<>> rectangle{0u, 20.f * unit<scalar>::mm,
+                                  20.f * unit<scalar>::mm};
+
+    // Build in x-direction from given module positions
     detail::ray<transform3> traj{{0.f, 0.f, 0.f}, 0.f, {1.f, 0.f, 0.f}, -1.f};
     std::vector<scalar> positions = {0.f,   50.f,  100.f, 150.f, 200.f, 250.f,
                                      300.f, 350.f, 400.f, 450.f, 500.f};
@@ -308,10 +309,11 @@ TEST(material_interaction, telescope_geometry_energy_loss) {
     // propagation. However, since the energy loss << the track momentum,
     // the assumption is not very bad
 
-    // -2 is required because the first and last surface is a portal
+    // The navigation starts on the first surface, which is therefore not
+    // accounted
     const scalar dE{
         I.compute_energy_loss_bethe(is, slab, pdg, mass, q / iniP, q) *
-        static_cast<scalar>(positions.size() - 2u)};
+        static_cast<scalar>(positions.size() - 1u)};
 
     // Check if the new energy after propagation is enough close to the
     // expected value
@@ -332,11 +334,11 @@ TEST(material_interaction, telescope_geometry_energy_loss) {
 TEST(material_interaction, telescope_geometry_scattering_angle) {
     vecmem::host_memory_resource host_mr;
 
-    // Use unbounded rectangle surfaces
-    mask<unbounded<rectangle2D<>>> rectangle{0u, 20.f * unit<scalar>::mm,
-                                             20.f * unit<scalar>::mm};
+    // Use rectangle surfaces in the telescope
+    mask<rectangle2D<>> rectangle{0u, 2000.f * unit<scalar>::mm,
+                                  2000.f * unit<scalar>::mm};
 
-    // Build from given module positions
+    // Build in x-direction from given module positions
     detail::ray<transform3> traj{{0.f, 0.f, 0.f}, 0.f, {1.f, 0.f, 0.f}, -1.f};
     std::vector<scalar> positions = {0.f, 1000.f * unit<scalar>::cm,
                                      2000.f * unit<scalar>::cm};

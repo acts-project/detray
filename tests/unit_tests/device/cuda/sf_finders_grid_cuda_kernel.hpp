@@ -5,6 +5,8 @@
  * Mozilla Public License Version 2.0
  */
 
+#pragma once
+
 #if defined(array)
 #include "detray/plugins/algebra/array_definitions.hpp"
 #elif defined(eigen)
@@ -23,8 +25,6 @@
 #include "detray/surface_finders/grid/populator.hpp"
 #include "detray/surface_finders/grid/serializer.hpp"
 #include "detray/tools/grid_builder.hpp"
-
-#pragma once
 
 namespace {
 

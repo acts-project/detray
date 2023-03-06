@@ -5,6 +5,8 @@
  * Mozilla Public License Version 2.0
  */
 
+#pragma once
+
 #include <map>
 #include <string>
 #include <vecmem/memory/host_memory_resource.hpp>

@@ -42,7 +42,7 @@ class axis_aligned_bounding_volume {
     /// Constructor from mask boundary values
     template <typename... Args>
     DETRAY_HOST_DEVICE explicit constexpr axis_aligned_bounding_volume(
-        unsigned int box_id, Args&&... args)
+        std::size_t box_id, Args&&... args)
         : m_mask(box_id, std::forward<Args>(args)...) {}
 
     /// Construct around an arbitrary surface @param mask
@@ -50,7 +50,7 @@ class axis_aligned_bounding_volume {
         typename mask_t, typename S = shape_t,
         typename std::enable_if_t<std::is_same_v<S, cuboid3D<>>, bool> = true>
     DETRAY_HOST_DEVICE constexpr axis_aligned_bounding_volume(
-        const mask_t& mask, unsigned int box_id, const scalar_t envelope)
+        const mask_t& mask, std::size_t box_id, const scalar_t envelope)
         : m_mask{mask.local_min_bounds(envelope).values(), box_id} {
         // Make sure the box is actually 'bounding'
         assert(envelope >= std::numeric_limits<scalar_t>::epsilon());
@@ -58,7 +58,7 @@ class axis_aligned_bounding_volume {
 
     /// Construct from mask boundary vector
     DETRAY_HOST axis_aligned_bounding_volume(
-        const std::vector<scalar_t>& values, unsigned int box_id)
+        const std::vector<scalar_t>& values, std::size_t box_id)
         : m_mask(values, box_id) {
         assert(values.size() == shape::boundaries::e_size &&
                " Given number of boundaries does not match mask shape.");
@@ -74,9 +74,9 @@ class axis_aligned_bounding_volume {
                       typename other_shape_t::template local_frame_type<void>>,
                   bool> = true>
     DETRAY_HOST constexpr axis_aligned_bounding_volume(
-        const std::vector<const axis_aligned_bounding_volume<
-            other_shape_t, other_scalar_t>*>& aabbs,
-        unsigned int box_id, const scalar_t env) {
+        const std::vector<
+            axis_aligned_bounding_volume<other_shape_t, other_scalar_t>>& aabbs,
+        std::size_t box_id, const scalar_t env) {
 
         using loc_point_t =
             std::array<scalar_t, other_shape_t::template axes<>::dim>;
@@ -85,9 +85,9 @@ class axis_aligned_bounding_volume {
         constexpr scalar_t inf{std::numeric_limits<scalar_t>::infinity()};
         scalar_t min_x{inf}, min_y{inf}, min_z{inf}, max_x{-inf}, max_y{-inf},
             max_z{-inf};
-        for (const auto* vol_ptr : aabbs) {
-            const auto min_point = vol_ptr->template loc_min<loc_point_t>();
-            const auto max_point = vol_ptr->template loc_max<loc_point_t>();
+        for (const auto& vol : aabbs) {
+            const auto min_point = vol.template loc_min<loc_point_t>();
+            const auto max_point = vol.template loc_max<loc_point_t>();
 
             // Check every coordinate of the points
             min_x = min_point[0] < min_x ? min_point[0] : min_x;
@@ -101,9 +101,8 @@ class axis_aligned_bounding_volume {
                 max_z = max_point[2] > max_z ? max_point[2] : max_z;
             }
         }
-        m_mask = mask<shape, unsigned int>{
-            box_id,      min_x - env, min_y - env, min_z - env,
-            max_x + env, max_y + env, max_z + env};
+        m_mask = mask<shape>{box_id,      min_x - env, min_y - env, min_z - env,
+                             max_x + env, max_y + env, max_z + env};
     }
 
     /// Subscript operator @returns a single box boundary.
@@ -114,13 +113,11 @@ class axis_aligned_bounding_volume {
 
     /// @returns the bounds of the box, depending on its shape
     DETRAY_HOST_DEVICE
-    constexpr auto id() const -> unsigned int { return m_mask.volume_link(); }
+    constexpr auto id() const -> std::size_t { return m_mask.volume_link(); }
 
     /// @returns the bounds of the box, depending on its shape
     DETRAY_HOST_DEVICE
-    constexpr auto bounds() const -> const mask<shape, unsigned int>& {
-        return m_mask;
-    }
+    constexpr auto bounds() const -> const mask<shape>& { return m_mask; }
 
     /// @returns the minimum bounds of the volume in local coordinates
     template <typename point_t>
@@ -205,6 +202,22 @@ class axis_aligned_bounding_volume {
         return point3_t{inf, inf, inf};
     }
 
+    /// @returns the geometric center position in global cartesian system
+    template <typename point3_t>
+    DETRAY_HOST_DEVICE constexpr auto center() const -> point3_t {
+
+        const scalar_t center_x{
+            0.5f * (m_mask[cuboid3D<>::e_max_x] + m_mask[cuboid3D<>::e_min_x])};
+        const scalar_t center_y{
+            0.5f * (m_mask[cuboid3D<>::e_max_y] + m_mask[cuboid3D<>::e_min_y])};
+        const scalar_t center_z{
+            0.5f * (m_mask[cuboid3D<>::e_max_z] + m_mask[cuboid3D<>::e_min_z])};
+
+        return {std::isinf(center_x) ? 0.f : center_x,
+                std::isinf(center_y) ? 0.f : center_y,
+                std::isinf(center_z) ? 0.f : center_z};
+    }
+
     /// @brief Lower and upper point for minimum axis aligned bounding box of
     /// cuboid shape.
     ///
@@ -222,17 +235,28 @@ class axis_aligned_bounding_volume {
 
         using point3_t = typename transform3_t::point3;
 
+        const scalar_t scalor_x{
+            (m_mask[cuboid3D<>::e_max_x] - m_mask[cuboid3D<>::e_min_x])};
+        const scalar_t scalor_y{
+            (m_mask[cuboid3D<>::e_max_y] - m_mask[cuboid3D<>::e_min_y])};
+        const scalar_t scalor_z{
+            (m_mask[cuboid3D<>::e_max_z] - m_mask[cuboid3D<>::e_min_z])};
+
+        // Cannot handle 'inf' propagation through the calculation for now
+        if (std::isinf(scalor_x) or std::isinf(scalor_y) or
+            std::isinf(scalor_z)) {
+            // If the box was infinite to begin with, it stays that way
+            assert(std::isinf(scalor_x) and std::isinf(scalor_y) and
+                   std::isinf(scalor_z));
+
+            return *this;
+        }
+
         // The new axis vectors, scaled to the aabb dimensions
         // (e.g. max_x - min_x)
-        const point3_t new_box_x =
-            (m_mask[cuboid3D<>::e_max_x] - m_mask[cuboid3D<>::e_min_x]) *
-            trf.x();
-        const point3_t new_box_y =
-            (m_mask[cuboid3D<>::e_max_y] - m_mask[cuboid3D<>::e_min_y]) *
-            trf.y();
-        const point3_t new_box_z =
-            (m_mask[cuboid3D<>::e_max_z] - m_mask[cuboid3D<>::e_min_z]) *
-            trf.z();
+        const point3_t new_box_x = scalor_x * trf.x();
+        const point3_t new_box_y = scalor_y * trf.y();
+        const point3_t new_box_z = scalor_z * trf.z();
 
         // Transform the old min and max points to the global frame and
         // construct all corner points of the local aabb in global coordinates
@@ -309,7 +333,14 @@ class axis_aligned_bounding_volume {
 
     private:
     /// Keeps the box boundary values and id
-    mask<shape, unsigned int> m_mask;
+    mask<shape> m_mask;
 };
+
+template <typename shape_t, typename scalar_t = scalar>
+DETRAY_HOST std::ostream& operator<<(
+    std::ostream& os,
+    const axis_aligned_bounding_volume<shape_t, scalar_t>& aabb) {
+    return os << aabb.bounds().to_string();
+}
 
 }  // namespace detray

@@ -38,10 +38,10 @@ TEST(line_stepper, covariance_transport) {
     vecmem::host_memory_resource host_mr;
 
     // Use unbounded rectangle surfaces
-    mask<unbounded<rectangle2D<>>> rectangle{0u, 20.f * unit<scalar>::mm,
-                                             20.f * unit<scalar>::mm};
+    mask<rectangle2D<>> rectangle{0u, 200.f * unit<scalar>::mm,
+                                  200.f * unit<scalar>::mm};
 
-    // Create telescope detector with a single plane
+    // Build in x-direction from given module positions
     detail::ray<transform3> traj{{0.f, 0.f, 0.f}, 0.f, {1.f, 0.f, 0.f}, -1.f};
     std::vector<scalar> positions = {0.f, 10.f, 20.f, 30.f, 40.f, 50.f, 60.f};
 
@@ -51,7 +51,7 @@ TEST(line_stepper, covariance_transport) {
                                                80.f * unit<scalar>::um, traj);
 
     using navigator_t = navigator<decltype(det)>;
-    using cline_stepper_t = line_stepper<transform3, constrained_step<>>;
+    using cline_stepper_t = line_stepper<transform3>;
     using actor_chain_t = actor_chain<dtuple, parameter_transporter<transform3>,
                                       parameter_resetter<transform3>>;
     using propagator_t =
@@ -63,7 +63,7 @@ TEST(line_stepper, covariance_transport) {
     getter::element(bound_vector, e_bound_loc1, 0u) = 0.f;
     getter::element(bound_vector, e_bound_phi, 0u) = 0.f;
     getter::element(bound_vector, e_bound_theta, 0u) = constant<scalar>::pi_4;
-    getter::element(bound_vector, e_bound_qoverp, 0u) = -1.f / 10.f;
+    getter::element(bound_vector, e_bound_qoverp, 0u) = -0.1f;
     getter::element(bound_vector, e_bound_time, 0u) = 0.f;
 
     // Bound covariance
@@ -94,9 +94,9 @@ TEST(line_stepper, covariance_transport) {
     // const auto bound_vec0 = bound_param0.vector();
     // const auto bound_vec1 = bound_param1.vector();
 
-    // Check if the track reaches the final surface
+    // Check if the track starts at the first and reaches the final surface
     EXPECT_EQ(bound_param0.surface_link(), 0u);
-    EXPECT_EQ(bound_param1.surface_link(), 5u);
+    EXPECT_EQ(bound_param1.surface_link(), 6u);
 
     const auto bound_cov0 = bound_param0.covariance();
     const auto bound_cov1 = bound_param1.covariance();

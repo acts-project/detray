@@ -5,6 +5,8 @@
  * Mozilla Public License Version 2.0
  */
 
+#pragma once
+
 // Algebra-Plugins include
 #include "algebra/vc_cmath.hpp"
 

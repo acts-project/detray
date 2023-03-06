@@ -5,6 +5,8 @@
  * Mozilla Public License Version 2.0
  */
 
+#pragma once
+
 #if defined(array)
 #include "detray/plugins/algebra/array_definitions.hpp"
 #elif defined(eigen)
@@ -20,8 +22,6 @@
 #include "detray/core/detector.hpp"
 #include "detray/detectors/detector_metadata.hpp"
 #include "detray/utils/ranges.hpp"
-
-#pragma once
 
 using namespace detray;
 using namespace __plugin;

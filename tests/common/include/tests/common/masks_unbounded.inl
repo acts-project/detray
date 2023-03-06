@@ -6,6 +6,7 @@
  */
 
 // Project include(s)
+#include "detray/definitions/units.hpp"
 #include "detray/masks/masks.hpp"
 #include "detray/masks/unbounded.hpp"
 
@@ -18,6 +19,8 @@
 
 using namespace detray;
 
+constexpr scalar tol{1e-7f};
+
 /// This tests the basic functionality of an unbounded rectangle shape
 TEST(mask, unbounded) {
     using transform3_t = __plugin::transform3<scalar>;
@@ -25,7 +28,9 @@ TEST(mask, unbounded) {
     using shape_t = rectangle2D<>;
     using unbounded_t = unbounded<shape_t>;
 
-    mask<unbounded_t> u{};
+    constexpr scalar h{20.f * unit<scalar>::mm};
+
+    mask<unbounded_t> u{0u, h, h};
 
     // Test local typedefs
     static_assert(std::is_same_v<unbounded_t::shape, shape_t>,
@@ -78,10 +83,10 @@ TEST(mask, unbounded) {
     // Check bounding box
     constexpr scalar envelope{0.01f};
     const auto loc_bounds = u.local_min_bounds(envelope);
-    ASSERT_TRUE(std::isinf(loc_bounds[cuboid3D<>::e_min_x]));
-    ASSERT_TRUE(std::isinf(loc_bounds[cuboid3D<>::e_min_y]));
-    ASSERT_TRUE(std::isinf(loc_bounds[cuboid3D<>::e_min_z]));
-    ASSERT_TRUE(std::isinf(loc_bounds[cuboid3D<>::e_max_x]));
-    ASSERT_TRUE(std::isinf(loc_bounds[cuboid3D<>::e_max_y]));
-    ASSERT_TRUE(std::isinf(loc_bounds[cuboid3D<>::e_max_z]));
+    ASSERT_NEAR(loc_bounds[cuboid3D<>::e_min_x], -(h + envelope), tol);
+    ASSERT_NEAR(loc_bounds[cuboid3D<>::e_min_y], -(h + envelope), tol);
+    ASSERT_NEAR(loc_bounds[cuboid3D<>::e_min_z], -envelope, tol);
+    ASSERT_NEAR(loc_bounds[cuboid3D<>::e_max_x], (h + envelope), tol);
+    ASSERT_NEAR(loc_bounds[cuboid3D<>::e_max_y], (h + envelope), tol);
+    ASSERT_NEAR(loc_bounds[cuboid3D<>::e_max_z], envelope, tol);
 }

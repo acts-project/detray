@@ -5,10 +5,10 @@
  * Mozilla Public License Version 2.0
  */
 
+#pragma once
+
 // System include(s)
 #include <tuple>
-
-#pragma once
 
 namespace detray {
 

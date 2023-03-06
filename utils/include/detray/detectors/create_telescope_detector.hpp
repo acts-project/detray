@@ -1,4 +1,3 @@
-
 /** Detray library, part of the ACTS project (R&D line)
  *
  * (c) 2022-2023 CERN for the benefit of the ACTS project
@@ -15,6 +14,7 @@
 #include "detray/masks/masks.hpp"
 #include "detray/materials/predefined_materials.hpp"
 #include "detray/propagator/line_stepper.hpp"
+#include "detray/tools/bounding_volume.hpp"
 
 // Vecmem include(s)
 #include <vecmem/memory/host_memory_resource.hpp>
@@ -74,6 +74,156 @@ inline std::vector<module_placement> module_positions(
     return placements;
 }
 
+/// Helper function to create minimum aabbs around all module surfaces in the
+/// telescope and then construct world portals from the global bounding box.
+/// This assumes that the module surfaces are already built inside the
+/// argument containers.
+///
+/// @param ctx geometry context.
+/// @param pt_envelope envelope around the module surfaces for the portals.
+/// @param volume the single cuboid volume that the portals will be added to.
+/// @param surfaces the module surface descriptors.
+/// @param masks the module masks.
+/// @param materials the materials (only needed to add the portal materials).
+/// @param transforms the module surface transforms.
+template <auto mask_id, typename context_t, typename volume_t,
+          typename surface_container_t, typename mask_container_t,
+          typename material_container_t, typename transform_container_t>
+inline void create_cuboid_portals(context_t &ctx, const scalar pt_envelope,
+                                  volume_t &volume,
+                                  surface_container_t &surfaces,
+                                  mask_container_t &masks,
+                                  material_container_t &materials,
+                                  transform_container_t &transforms) {
+
+    using surface_t = typename surface_container_t::value_type;
+    using volume_link_t = typename surface_t::volume_link_type;
+    using mask_link_t = typename surface_t::mask_link;
+    using material_link_t = typename surface_t::material_link;
+
+    using aabb_t = axis_aligned_bounding_volume<cuboid3D<>>;
+
+    constexpr auto rectangle_id{mask_container_t::ids::e_portal_rectangle2};
+    constexpr auto slab_id{material_container_t::ids::e_slab};
+
+    // Envelope for the module surface minimum aabb
+    constexpr scalar envelope{10.f * std::numeric_limits<scalar>::epsilon()};
+    // Max distance in case of infinite bounds
+    constexpr scalar max_shift{0.01f * std::numeric_limits<scalar>::max()};
+
+    // The bounding boxes around the module surfaces
+    std::vector<aabb_t> boxes;
+    boxes.reserve(surfaces.size());
+
+    const auto &mask_collection = masks.template get<mask_id>();
+
+    for (const auto &sf : surfaces) {
+        // Local minimum bounding box
+        aabb_t box{mask_collection[sf.mask().index()], boxes.size(), envelope};
+        // Minimum bounding box in global coordinates
+        boxes.push_back(box.transform(transforms[sf.transform()]));
+    }
+    // Build an aabb in the global space around the surface aabbs
+    aabb_t world_box{boxes, boxes.size(), pt_envelope};
+
+    // translation
+    const point3 center = world_box.template center<point3>();
+
+    // The world box local frame is the global coordinate frame
+    const point3 box_min = world_box.template loc_min<point3>();
+    const point3 box_max = world_box.template loc_max<point3>();
+
+    // Get the half lengths for the rectangle sides and translation
+    const point3 h_lengths = 0.5f * (box_max - box_min);
+    const scalar h_x{math_ns::abs(h_lengths[0])};
+    const scalar h_y{math_ns::abs(h_lengths[1])};
+    const scalar h_z{math_ns::abs(h_lengths[2])};
+
+    // Volume links for the portal descriptors and the masks
+    const dindex volume_idx{volume.index()};
+    const volume_link_t volume_link{dindex_invalid};
+
+    // Construct portals in the...
+
+    //
+    // ... x-y plane
+    //
+    // Only one rectangle needed for both surfaces
+    mask_link_t mask_link{rectangle_id, masks.template size<rectangle_id>()};
+    masks.template emplace_back<rectangle_id>(empty_context{}, volume_link, h_x,
+                                              h_y);
+
+    // No rotation, but shift in z for both faces
+    vector3 shift{0.f, 0.f, std::isinf(h_z) ? max_shift : h_z};
+    transforms.emplace_back(ctx, static_cast<vector3>(center + shift));
+    transforms.emplace_back(ctx, static_cast<vector3>(center - shift));
+
+    // Add material slab (no material on the portals)
+    material_link_t material_link{slab_id, materials.template size<slab_id>()};
+    materials.template emplace_back<slab_id>(empty_context{}, vacuum<scalar>{},
+                                             0.f);
+
+    // Build the portal surfaces
+    dindex trf_idx{transforms.size(ctx) - 2};
+    surfaces.emplace_back(trf_idx, mask_link, material_link, volume_idx,
+                          dindex_invalid, surface_id::e_portal);
+
+    surfaces.emplace_back(++trf_idx, mask_link, material_link, volume_idx,
+                          dindex_invalid, surface_id::e_portal);
+
+    //
+    // ... x-z plane
+    //
+    mask_link.index()++;
+    masks.template emplace_back<rectangle_id>(empty_context{}, volume_link, h_x,
+                                              h_z);
+
+    // Rotate by 90deg around x-axis, plus shift in y
+    shift = {0.f, std::isinf(h_y) ? max_shift : h_y, 0.f};
+    vector3 new_x{1.f, 0.f, 0.f};
+    vector3 new_z{0.f, -1.f, 0.f};
+    transforms.emplace_back(ctx, static_cast<vector3>(center + shift), new_z,
+                            new_x);
+    transforms.emplace_back(ctx, static_cast<vector3>(center - shift), new_z,
+                            new_x);
+
+    material_link.index()++;
+    materials.template emplace_back<slab_id>(empty_context{}, vacuum<scalar>{},
+                                             0.f);
+
+    surfaces.emplace_back(++trf_idx, mask_link, material_link, volume_idx,
+                          dindex_invalid, surface_id::e_portal);
+
+    surfaces.emplace_back(++trf_idx, mask_link, material_link, volume_idx,
+                          dindex_invalid, surface_id::e_portal);
+
+    //
+    // ... y-z plane
+    //
+    mask_link.index()++;
+    masks.template emplace_back<rectangle_id>(empty_context{}, volume_link, h_z,
+                                              h_y);
+
+    // Rotate by 90deg around y-axis, plus shift in x
+    shift = {std::isinf(h_x) ? max_shift : h_x, 0.f, 0.f};
+    new_x = {0.f, 0.f, -1.f};
+    new_z = {1.f, 0.f, 0.f};
+    transforms.emplace_back(ctx, static_cast<vector3>(center + shift), new_z,
+                            new_x);
+    transforms.emplace_back(ctx, static_cast<vector3>(center - shift), new_z,
+                            new_x);
+
+    material_link.index()++;
+    materials.template emplace_back<slab_id>(empty_context{}, vacuum<scalar>{},
+                                             0.f);
+
+    surfaces.emplace_back(++trf_idx, mask_link, material_link, volume_idx,
+                          dindex_invalid, surface_id::e_portal);
+
+    surfaces.emplace_back(++trf_idx, mask_link, material_link, volume_idx,
+                          dindex_invalid, surface_id::e_portal);
+}
+
 /// Helper function that creates the telescope surfaces.
 ///
 /// @param ctx geometric context
@@ -83,24 +233,23 @@ inline std::vector<module_placement> module_positions(
 /// @param masks container to add new cylinder mask to
 /// @param transforms container to add new transform to
 /// @param cfg config struct for module creation
-template <typename mask_t, typename context_t, typename trajectory_t,
-          typename volume_type, typename surface_container_t,
+template <auto mask_id, typename context_t, typename trajectory_t,
+          typename volume_t, typename surface_container_t,
           typename mask_container_t, typename material_container_t,
           typename transform_container_t, typename config_t>
 inline void create_telescope(context_t &ctx, const trajectory_t &traj,
-                             volume_type &volume, surface_container_t &surfaces,
+                             volume_t &volume, surface_container_t &surfaces,
                              mask_container_t &masks,
                              material_container_t &materials,
                              transform_container_t &transforms,
                              const config_t &cfg) {
     using surface_type = typename surface_container_t::value_type;
     using volume_link_t = typename surface_type::volume_link_type;
-    using mask_link_type = typename surface_type::mask_link;
-    using material_link_type = typename surface_type::material_link;
+    using mask_link_t = typename surface_type::mask_link;
+    using material_link_t = typename surface_type::material_link;
 
     auto volume_idx = volume.index();
-    constexpr auto slab_id = material_link_type::id_type::e_slab;
-    constexpr typename mask_container_t::ids mask_id{0u};
+    constexpr auto slab_id = material_link_t::id_type::e_slab;
 
     // Create the module centers
     const std::vector<module_placement> m_placements =
@@ -112,29 +261,19 @@ inline void create_telescope(context_t &ctx, const trajectory_t &traj,
         volume_link_t mask_volume_link{volume_idx};
 
         // Surfaces with the linking into the local containers
-        mask_link_type mask_link{mask_id, masks.template size<mask_id>()};
-        material_link_type material_link{slab_id,
-                                         materials.template size<slab_id>()};
+        mask_link_t mask_link{mask_id, masks.template size<mask_id>()};
+        material_link_t material_link{slab_id,
+                                      materials.template size<slab_id>()};
         const auto trf_index = transforms.size(ctx);
         surfaces.emplace_back(trf_index, mask_link, material_link, volume_idx,
                               dindex_invalid, surface_id::e_sensitive);
-
-        // The first and last surface acts as portal that leaves the telescope
-        if (m_placement == m_placements.front()) {
-            mask_volume_link = dindex_invalid;
-            surfaces.front().set_id(surface_id::e_portal);
-        }
-
-        if (m_placement == m_placements.back()) {
-            mask_volume_link = dindex_invalid;
-            surfaces.back().set_id(surface_id::e_portal);
-        }
 
         // The rectangle bounds for this module
         masks.template emplace_back<mask_id>(empty_context{}, cfg.mask_values,
                                              mask_volume_link);
 
         // Lines need different material
+        using mask_t = typename mask_container_t::template get_type<mask_id>;
         if (mask_t::shape::name == "line") {
             materials.template emplace_back<material_container_t::ids::e_rod>(
                 empty_context{}, cfg.m_mat, cfg.m_thickness);
@@ -201,7 +340,8 @@ auto create_telescope_detector(
     const mask_t &msk, std::vector<scalar> dists,
     const material<scalar> mat = silicon_tml<scalar>(),
     const scalar thickness = 80.f * unit<scalar>::um,
-    const trajectory_t traj = {{0.f, 0.f, 0.f}, 0.f, {0.f, 0.f, 1.f}, -1.f}) {
+    const trajectory_t traj = {{0.f, 0.f, 0.f}, 0.f, {0.f, 0.f, 1.f}, -1.f},
+    const scalar envelope = 0.1f * unit<scalar>::mm) {
 
     // detector type
     using detector_t = detector<telescope_types<typename mask_t::shape>,
@@ -221,10 +361,8 @@ auto create_telescope_detector(
     typename detector_t::geometry_context ctx{};
     const surface_config sf_config{msk.values(), dists, mat, thickness};
 
-    // volume boundaries are not needed. Same goes for portals
-    det.new_volume(
-        volume_id::e_cylinder,
-        {0.f, 0.f, 0.f, 0.f, -constant<scalar>::pi, constant<scalar>::pi});
+    // Dummy volume bounds for now, will be set correctly when portals are built
+    det.new_volume(volume_id::e_cuboid, {0.f, 0.f, 0.f, 0.f, 0.f, 0.f});
     typename detector_t::volume_type &vol = det.volume_by_index(0u);
 
     // Add module surfaces to volume
@@ -233,9 +371,15 @@ auto create_telescope_detector(
     typename detector_t::material_container materials(resource);
     typename detector_t::transform_container transforms(resource);
 
-    create_telescope<mask_t>(ctx, traj, vol, surfaces, masks, materials,
-                             transforms, sf_config);
+    constexpr auto mask_id{
+        detector_t::mask_container::template get_id<mask_t>::value};
 
+    create_telescope<mask_id>(ctx, traj, vol, surfaces, masks, materials,
+                              transforms, sf_config);
+    // Add portals to volume
+    create_cuboid_portals<mask_id>(ctx, envelope, vol, surfaces, masks,
+                                   materials, transforms);
+    // Add volme to the detector
     det.add_objects_per_volume(ctx, vol, surfaces, masks, transforms,
                                materials);
 
@@ -258,7 +402,8 @@ auto create_telescope_detector(
     const scalar tel_length = 500.f * unit<scalar>::mm,
     const material<scalar> mat = silicon_tml<scalar>(),
     const scalar thickness = 80.f * unit<scalar>::um,
-    const trajectory_t traj = {{0.f, 0.f, 0.f}, 0.f, {0.f, 0.f, 1.f}, -1.f}) {
+    const trajectory_t traj = {{0.f, 0.f, 0.f}, 0.f, {0.f, 0.f, 1.f}, -1.f},
+    const scalar envelope = 0.01f * unit<scalar>::mm) {
     // Generate equidistant positions
     std::vector<scalar> distances = {};
     scalar pos = 0.f;
@@ -272,7 +417,8 @@ auto create_telescope_detector(
 
     // Build the geometry
     return create_telescope_detector<mask_t>(resource, std::move(bfield), msk,
-                                             distances, mat, thickness, traj);
+                                             distances, mat, thickness, traj,
+                                             envelope);
 }
 
 /// Wrapper for create_telescope_geometry with constant zero bfield.
@@ -284,7 +430,8 @@ auto create_telescope_detector(
     const std::vector<scalar> dists,
     const material<scalar> mat = silicon_tml<scalar>(),
     const scalar thickness = 80.f * unit<scalar>::um,
-    const trajectory_t traj = {{0.f, 0.f, 0.f}, 0.f, {0.f, 0.f, 1.f}, -1.f}) {
+    const trajectory_t traj = {{0.f, 0.f, 0.f}, 0.f, {0.f, 0.f, 1.f}, -1.f},
+    const scalar envelope = 0.1f * unit<scalar>::mm) {
 
     using covfie_bkdn_t =
         typename telescope_types<typename mask_t::shape>::bfield_backend_t;
@@ -294,7 +441,7 @@ auto create_telescope_detector(
         resource,
         covfie::field<covfie_bkdn_t>{
             typename covfie_bkdn_t::configuration_t{0.f, 0.f, 0.f}},
-        msk, dists, mat, thickness, traj);
+        msk, dists, mat, thickness, traj, envelope);
 }
 
 /// Wrapper for create_telescope_geometry with constant zero bfield.
@@ -307,7 +454,8 @@ auto create_telescope_detector(
     const scalar tel_length = 500.f * unit<scalar>::mm,
     const material<scalar> mat = silicon_tml<scalar>(),
     const scalar thickness = 80.f * unit<scalar>::um,
-    const trajectory_t traj = {{0.f, 0.f, 0.f}, 0.f, {0.f, 0.f, 1.f}, -1.f}) {
+    const trajectory_t traj = {{0.f, 0.f, 0.f}, 0.f, {0.f, 0.f, 1.f}, -1.f},
+    const scalar envelope = 0.1f * unit<scalar>::mm) {
 
     using covfie_bkdn_t =
         typename telescope_types<typename mask_t::shape>::bfield_backend_t;
@@ -317,7 +465,7 @@ auto create_telescope_detector(
         resource,
         covfie::field<covfie_bkdn_t>{
             typename covfie_bkdn_t::configuration_t{0.f, 0.f, 0.f}},
-        msk, n_surfaces, tel_length, mat, thickness, traj);
+        msk, n_surfaces, tel_length, mat, thickness, traj, envelope);
 }
 
 }  // namespace detray

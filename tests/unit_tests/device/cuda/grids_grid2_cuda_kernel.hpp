@@ -5,6 +5,8 @@
  * Mozilla Public License Version 2.0
  */
 
+#pragma once
+
 // detray test
 #include "tests/common/test_defs.hpp"
 
@@ -14,8 +16,6 @@
 #include "detray/grids/grid2.hpp"
 #include "detray/grids/populator.hpp"
 #include "detray/grids/serializer2.hpp"
-
-#pragma once
 
 namespace detray {
 
