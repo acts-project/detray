@@ -7,6 +7,7 @@
 # Set the common C++ flags.
 include( detray-compiler-options-cpp )
 include_directories( SYSTEM $<TARGET_PROPERTY:dfelibs::dfelibs,INTERFACE_INCLUDE_DIRECTORIES> )
+include_directories( SYSTEM $<TARGET_PROPERTY:covfie::core,INTERFACE_INCLUDE_DIRECTORIES> )
 
 # Set up a test library, which the "new style" benchmarks and tests could use.
 file( GLOB _detray_test_headers

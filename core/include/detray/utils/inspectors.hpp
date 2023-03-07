@@ -140,6 +140,7 @@ struct print_inspector {
                 debug_stream << "status" << tabs << "on_portal" << std::endl;
                 break;
         };
+
         debug_stream << "current object\t\t\t" << state.current_object()
                      << std::endl;
         debug_stream << "distance to next\t\t";
@@ -148,6 +149,7 @@ struct print_inspector {
         } else {
             debug_stream << state() << std::endl;
         }
+
         switch (state.trust_level()) {
             case trust_level::e_no_trust:
                 debug_stream << "trust" << tabs << "no_trust" << std::endl;

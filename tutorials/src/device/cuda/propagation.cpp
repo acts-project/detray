@@ -21,7 +21,7 @@
 /// Prepare the data and move it to device
 int main() {
     // VecMem memory resource(s)
-    vecmem::cuda::managed_memory_resource mng_mr;
+    /*vecmem::cuda::managed_memory_resource mng_mr;
 
     // Set the magnetic field vector
     const auto B =
@@ -71,5 +71,5 @@ int main() {
     copy.setup(candidates_buffer);
 
     // Run the propagator test for GPU device
-    detray::tutorial::propagation(det_data, tracks_data, candidates_buffer);
+    detray::tutorial::propagation(det_data, tracks_data, candidates_buffer);*/
 }

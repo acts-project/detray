@@ -24,15 +24,24 @@
 #include <vecmem/memory/memory_resource.hpp>
 
 // Covfie include(s)
+#include <covfie/core/backend/primitive/constant.hpp>
 #include <covfie/core/field.hpp>
+#include <covfie/core/vector.hpp>
 
 // System include(s)
 #include <algorithm>
+#include <iostream>
 #include <map>
 #include <sstream>
 #include <string>
 
 namespace detray {
+
+/// Default b field type
+template <typename scalar_t>
+using const_b_field_bknd =
+    covfie::backend::constant<covfie::vector::vector_d<scalar_t, 3>,
+                              covfie::vector::vector_d<scalar_t, 3>>;
 
 /// @brief Forward declaration of a detector view type
 template <typename metadata, template <typename> class bfield_t,
@@ -66,7 +75,7 @@ class detector {
     using vector3 = __plugin::vector3<scalar_type>;
     using point2 = __plugin::point2<scalar_type>;
 
-    using bfield_backend_type = typename metadata::bfield_backend_t;
+    using bfield_backend_type = typename metadata::bfield_backend_type;
 
     using bfield_type = bfield_t<bfield_backend_type>;
 
@@ -177,10 +186,37 @@ class detector {
           _resource(&resource),
           _bfield(field) {}
 
+    /// Constructor that reads the magnetic field from a predefined file
+    /// @param resource memory resource for the allocation of members
+    template <typename B = bfield_t<const_b_field_bknd<scalar_type>>,
+              std::enable_if_t<!std::is_same_v<bfield_type, B>, bool> = true>
+    DETRAY_HOST detector(vecmem::memory_resource &resource)
+        : _volumes(&resource),
+          _transforms(resource),
+          _masks(resource),
+          _materials(resource),
+          _surfaces(resource),
+          _volume_finder(resource),
+          _resource(&resource) {
+
+        // This has to be defined!
+        std::ifstream stream(std::getenv("DETRAY_BFIELD_FILE"),
+                             std::ifstream::binary);
+
+        if (!stream.good()) {
+            std::cout << "File loading error" << std::endl;
+        }
+
+        _bfield = bfield_type(stream);
+
+        stream.close();
+    }
+
     /// Constructor with simplified constant-zero B-field
     /// @param resource memory resource for the allocation of members
-    DETRAY_HOST
-    explicit detector(vecmem::memory_resource &resource)
+    template <typename B = bfield_t<const_b_field_bknd<scalar_type>>,
+              std::enable_if_t<std::is_same_v<bfield_type, B>, bool> = true>
+    DETRAY_HOST explicit detector(vecmem::memory_resource &resource)
         : _volumes(&resource),
           _transforms(resource),
           _masks(resource),

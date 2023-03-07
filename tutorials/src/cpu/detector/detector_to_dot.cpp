@@ -36,7 +36,7 @@ int main(int argc, char** argv) {
 
     // Read a toy detector
     using detector_t =
-        detray::detector<detray::detector_registry::toy_detector>;
+        detray::detector<detray::detector_registry::template toy_detector<>>;
 
     // Empty volume name map (won't be filled by the reader, yet)
     typename detector_t::name_map volume_name_map = {{0u, "toy_detector"}};

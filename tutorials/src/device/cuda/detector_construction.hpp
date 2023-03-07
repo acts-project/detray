@@ -19,9 +19,9 @@
 namespace detray::tutorial {
 
 // Detector
-using detector_host_t = detector<detector_registry::toy_detector, covfie::field,
-                                 host_container_types>;
-using detector_device_t = detector<detector_registry::toy_detector,
+using detector_host_t = detector<detector_registry::template toy_detector<>,
+                                 covfie::field, host_container_types>;
+using detector_device_t = detector<detector_registry::template toy_detector<>,
                                    covfie::field_view, device_container_types>;
 
 using mask_id = typename detector_host_t::masks::id;

@@ -23,8 +23,8 @@ TEST(navigator_cuda, navigator) {
     vecmem::cuda::device_memory_resource dev_mr;
 
     // Create detector
-    detector_host_t det = create_toy_geometry<host_container_types>(
-        mng_mr, n_brl_layers, n_edc_layers);
+    detector_host_t det =
+        create_toy_geometry<>(mng_mr, n_brl_layers, n_edc_layers);
 
     // Create navigator
     navigator_host_t nav;

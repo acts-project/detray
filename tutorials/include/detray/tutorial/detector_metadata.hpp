@@ -71,7 +71,7 @@ using slab = material_slab<detray::scalar>;
 struct my_metadata {
 
     /// Constant B-field
-    using bfield_backend_t =
+    using bfield_backend_type =
         covfie::backend::constant<covfie::vector::vector_d<scalar, 3>,
                                   covfie::vector::vector_d<scalar, 3>>;
 

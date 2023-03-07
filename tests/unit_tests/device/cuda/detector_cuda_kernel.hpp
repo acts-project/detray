@@ -20,10 +20,11 @@ using namespace __plugin;
 namespace detray {
 
 // some useful type declarations
-using detector_host_t = detector<detector_registry::toy_detector, covfie::field,
-                                 host_container_types>;
-using detector_device_t = detector<detector_registry::toy_detector,
+using detector_host_t = detector<detector_registry::template toy_detector<>,
+                                 covfie::field, host_container_types>;
+using detector_device_t = detector<detector_registry::template toy_detector<>,
                                    covfie::field_view, device_container_types>;
+
 using volume_t = typename detector_host_t::volume_type;
 using surface_t = typename detector_host_t::surface_type;
 using transform_t = typename detector_host_t::transform3;

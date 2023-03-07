@@ -26,7 +26,7 @@ using namespace detray;
 /// Test the reading and writing of a toy detector geometry
 TEST(io, json_toy_geometry) {
 
-    using detector_t = detector<detector_registry::toy_detector>;
+    using detector_t = detector<detector_registry::template toy_detector<>>;
 
     // @todo : Create volume name map in 'create_toy_detector'
     typename detector_t::name_map volume_name_map = {{0u, "toy_detector"}};

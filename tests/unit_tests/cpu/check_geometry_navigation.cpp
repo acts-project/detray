@@ -39,7 +39,7 @@ GTEST_TEST(detray_propagator, straight_line_navigation) {
     constexpr std::size_t n_brl_layers{4u};
     constexpr std::size_t n_edc_layers{7u};
     vecmem::host_memory_resource host_mr;
-    auto det = create_toy_geometry(host_mr, n_brl_layers, n_edc_layers);
+    auto det = create_toy_geometry<>(host_mr, n_brl_layers, n_edc_layers);
 
     // Straight line navigation
     using detector_t = decltype(det);
@@ -128,18 +128,14 @@ GTEST_TEST(detray_propagator, helix_navigation) {
     constexpr std::size_t n_edc_layers{7u};
     vecmem::host_memory_resource host_mr;
 
-    using b_field_t = detector<detector_registry::toy_detector>::bfield_type;
-
     const vector3 B{0.f * unit<scalar>::T, 0.f * unit<scalar>::T,
                     2.f * unit<scalar>::T};
 
-    auto det = create_toy_geometry(
-        host_mr,
-        b_field_t(b_field_t::backend_t::configuration_t{B[0], B[1], B[2]}),
-        n_brl_layers, n_edc_layers);
+    auto det = create_toy_geometry(host_mr, n_brl_layers, n_edc_layers);
 
     // Runge-Kutta based navigation
     using detector_t = decltype(det);
+    using bfield_t = typename detector_t::bfield_type;
     using intersection_t =
         intersection2D<typename detector_t::surface_type, transform3_t>;
     using object_tracer_t =
@@ -148,8 +144,7 @@ GTEST_TEST(detray_propagator, helix_navigation) {
     using inspector_t = aggregate_inspector<object_tracer_t, print_inspector>;
     using navigator_t = navigator<detector_t, inspector_t, intersection_t>;
     using constraints_t = unconstrained_step;
-    using stepper_t =
-        rk_stepper<b_field_t::view_t, transform3_t, constraints_t>;
+    using stepper_t = rk_stepper<bfield_t::view_t, transform3_t, constraints_t>;
     using propagator_t = propagator<stepper_t, navigator_t, actor_chain<>>;
 
     // Propagator

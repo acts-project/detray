@@ -72,7 +72,7 @@ TEST(io, json_telescope_material_writer) {
 /// Test the writing of the entire toy detector to json
 TEST(io, json_toy_detector_writer) {
 
-    using detector_t = detector<detector_registry::toy_detector>;
+    using detector_t = detector<detector_registry::template toy_detector<>>;
 
     // Toy detector
     vecmem::host_memory_resource host_mr;
