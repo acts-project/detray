@@ -18,18 +18,11 @@
 #include "detray/materials/material_slab.hpp"
 #include "detray/surface_finders/brute_force_finder.hpp"
 
-// Covfie include(s)
-#include <covfie/core/backend/primitive/constant.hpp>
-#include <covfie/core/vector.hpp>
-
 namespace detray {
 
 /// Defines a telescope detector type with only rectangle portals and one
 /// additional kind of contained module surfaces (@tparam mask_shape_t)
-template <typename mask_shape_t = rectangle2D<>,
-          typename _bfield_backend_t =
-              covfie::backend::constant<covfie::vector::vector_d<scalar, 3>,
-                                        covfie::vector::vector_d<scalar, 3>>>
+template <typename mask_shape_t = rectangle2D<>>
 struct telescope_metadata {
 
     /// Mask to (next) volume link: next volume(s)
@@ -44,8 +37,6 @@ struct telescope_metadata {
     /// Material types
     using rod = material_rod<detray::scalar>;
     using slab = material_slab<detray::scalar>;
-
-    using bfield_backend_t = _bfield_backend_t;
 
     /// How to store coordinate transform matrices
     template <template <typename...> class vector_t = dvector>

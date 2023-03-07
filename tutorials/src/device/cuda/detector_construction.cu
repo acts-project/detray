@@ -12,7 +12,9 @@ namespace detray::tutorial {
 
 /// Kernel that runs the entire propagation loop
 __global__ void print_kernel(
-    typename detray::tutorial::detector_host_t::detector_view_type det_data) {
+    typename detray::tutorial::detector_host_t::detector_view_type<
+        bfield::const_bknd_t>
+        det_data) {
 
     int gid = threadIdx.x + blockIdx.x * blockDim.x;
 
@@ -41,8 +43,9 @@ __global__ void print_kernel(
            det.surface_store().get<acc_id::e_cylinder2_grid>().size());
 }
 
-void print(
-    typename detray::tutorial::detector_host_t::detector_view_type det_data) {
+void print(typename detray::tutorial::detector_host_t::detector_view_type<
+           bfield::const_bknd_t>
+               det_data) {
 
     // run the tutorial kernel
     print_kernel<<<1, 1>>>(det_data);

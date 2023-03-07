@@ -232,7 +232,7 @@ GTEST_TEST(detray_tools, detector_builder_with_material) {
     using material_id = typename detector_t::materials::id;
 
     // detector builder
-    detector_builder<default_metadata, volume_builder> det_builder{};
+    detector_builder<default_metadata> det_builder{};
 
     // Vanilla volume builder
     auto vbuilder = det_builder.new_volume(volume_id::e_cuboid);

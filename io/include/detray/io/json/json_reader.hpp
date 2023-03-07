@@ -66,13 +66,16 @@ class json_reader final : public common_reader_t<detector_t> {
     json_reader() : base_reader(".json") {}
 
     /// Writes the geometry to file with a given name
-    virtual void read(detector_builder<typename detector_t::metadata,
-                                       volume_builder>& det_builder,
-                      typename detector_t::name_map& name_map,
-                      const std::string& file_name) override {
+    virtual void read(
+        detector_builder<typename detector_t::metadata,
+                         typename detector_t::bfield_type::backend_t,
+                         volume_builder>& det_builder,
+        typename detector_t::name_map& name_map,
+        const std::string& file_name) override {
 
         // Read json from file
-        io::detail::file_handle file{file_name};
+        io::detail::file_handle file{file_name,
+                                     std::ios_base::in | std::ios_base::binary};
         nlohmann::json in_json;
         *file >> in_json;
 

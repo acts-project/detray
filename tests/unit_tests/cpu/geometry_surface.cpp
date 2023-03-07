@@ -85,7 +85,7 @@ GTEST_TEST(detray_geometry, surface) {
 
     using namespace detray;
 
-    using detector_t = detector<toy_metadata<>>;
+    using detector_t = detector<toy_metadata>;
 
     using point2_t = surface<detector_t>::point2;
     using point3_t = surface<detector_t>::point3;

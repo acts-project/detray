@@ -37,7 +37,9 @@ class reader_interface {
     /// does not keep the volume names, the name map is also passed and
     /// filled.
     virtual void read(
-        detector_builder<typename detector_t::metadata, volume_builder>&,
+        detector_builder<typename detector_t::metadata,
+                         typename detector_t::bfield_type::backend_t,
+                         volume_builder>&,
         typename detector_t::name_map&, const std::string&) = 0;
 
     protected:
