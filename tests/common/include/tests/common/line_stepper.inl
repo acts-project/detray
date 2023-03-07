@@ -8,6 +8,8 @@
 // Project include(s).
 #include "detray/definitions/units.hpp"
 #include "detray/detectors/create_telescope_detector.hpp"
+#include "detray/masks/masks.hpp"
+#include "detray/masks/unbounded.hpp"
 #include "detray/propagator/actor_chain.hpp"
 #include "detray/propagator/actors/parameter_resetter.hpp"
 #include "detray/propagator/actors/parameter_transporter.hpp"
@@ -35,15 +37,18 @@ TEST(line_stepper, covariance_transport) {
 
     vecmem::host_memory_resource host_mr;
 
-    // Use rectangular surfaces
-    constexpr bool unbounded = true;
+    // Use unbounded rectangle surfaces
+    mask<unbounded<rectangle2D<>>> rectangle{0u, 20.f * unit<scalar>::mm,
+                                             20.f * unit<scalar>::mm};
 
     // Create telescope detector with a single plane
     detail::ray<transform3> traj{{0.f, 0.f, 0.f}, 0.f, {1.f, 0.f, 0.f}, -1.f};
     std::vector<scalar> positions = {0.f, 10.f, 20.f, 30.f, 40.f, 50.f, 60.f};
 
-    const auto det =
-        create_telescope_detector<unbounded>(host_mr, positions, traj);
+    // Build telescope detector with unbounded planes
+    const auto det = create_telescope_detector(host_mr, rectangle, positions,
+                                               silicon_tml<scalar>(),
+                                               80.f * unit<scalar>::um, traj);
 
     using navigator_t = navigator<decltype(det)>;
     using cline_stepper_t = line_stepper<transform3, constrained_step<>>;

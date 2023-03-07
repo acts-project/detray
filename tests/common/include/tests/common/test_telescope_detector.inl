@@ -5,19 +5,26 @@
  * Mozilla Public License Version 2.0
  */
 
-#include <gtest/gtest.h>
-
-#include <utility>
-#include <vecmem/memory/host_memory_resource.hpp>
-
+// Project include(s)
 #include "detray/definitions/qualifiers.hpp"
 #include "detray/definitions/units.hpp"
 #include "detray/detectors/create_telescope_detector.hpp"
+#include "detray/masks/masks.hpp"
+#include "detray/masks/unbounded.hpp"
 #include "detray/propagator/line_stepper.hpp"
 #include "detray/propagator/navigator.hpp"
 #include "detray/propagator/rk_stepper.hpp"
 #include "detray/tracks/tracks.hpp"
 #include "tests/common/tools/inspectors.hpp"
+
+// Vecmem include(s)
+#include <vecmem/memory/host_memory_resource.hpp>
+
+// GTest include
+#include <gtest/gtest.h>
+
+// System include(s)
+#include <utility>
 
 /// @note __plugin has to be defined with a preprocessor command
 namespace detray {
@@ -49,11 +56,13 @@ TEST(ALGEBRA_PLUGIN, telescope_detector) {
 
     using namespace detray;
 
-    // Use rectangular surfaces
-    constexpr bool rectangular = false;
+    // Use unbounded rectangle surfaces
+    mask<rectangle2D<>> rectangle{0u, 20.f * unit<scalar>::mm,
+                                  20.f * unit<scalar>::mm};
 
-    using b_field_t = decltype(create_telescope_detector<rectangular>(
+    using b_field_t = decltype(create_telescope_detector(
         std::declval<vecmem::host_memory_resource &>(),
+        std::declval<mask<rectangle2D<>> &>(),
         std::declval<std::vector<scalar> &>()))::bfield_type;
     using rk_stepper_t = rk_stepper<b_field_t::view_t, transform3>;
     using inspector_t = navigation::print_inspector;
@@ -84,14 +93,14 @@ TEST(ALGEBRA_PLUGIN, telescope_detector) {
                                      300.f, 350.f, 400.f, 450.f, 500.f};
     // Build telescope detector with unbounded planes
     const auto z_tel_det1 =
-        create_telescope_detector<rectangular>(host_mr, positions);
+        create_telescope_detector(host_mr, rectangle, positions);
 
     // Build the same telescope detector with rectangular planes and given
     // length/number of surfaces
     const std::size_t n_surfaces{11u};
     const scalar tel_length{500.f * unit<scalar>::mm};
     const auto z_tel_det2 =
-        create_telescope_detector<rectangular>(host_mr, n_surfaces, tel_length);
+        create_telescope_detector(host_mr, rectangle, n_surfaces, tel_length);
 
     // Compare
     for (std::size_t i = 0u; i < z_tel_det1.surfaces().size(); ++i) {
@@ -107,8 +116,9 @@ TEST(ALGEBRA_PLUGIN, telescope_detector) {
     detail::ray<transform3> x_track({0.f, 0.f, 0.f}, 0.f, {1.f, 0.f, 0.f},
                                     -1.f);
 
-    const auto x_tel_det = create_telescope_detector<rectangular>(
-        host_mr, n_surfaces, tel_length, x_track);
+    const auto x_tel_det = create_telescope_detector(
+        host_mr, rectangle, n_surfaces, tel_length, silicon_tml<scalar>(),
+        80.f * unit<scalar>::um, x_track);
 
     //
     // test propagation in all telescope detector instances
@@ -205,8 +215,9 @@ TEST(ALGEBRA_PLUGIN, telescope_detector) {
 
     detail::helix<transform3> helix_bz(pilot_track, &B_z);
 
-    const auto tel_detector = create_telescope_detector<rectangular>(
-        host_mr, n_surfaces, tel_length, helix_bz);
+    const auto tel_detector = create_telescope_detector(
+        host_mr, rectangle, n_surfaces, tel_length, silicon_tml<scalar>(),
+        80.f * unit<scalar>::um, helix_bz);
 
     // make at least sure it is navigatable
     navigator<decltype(tel_detector), inspector_t> tel_navigator;

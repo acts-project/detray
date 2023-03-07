@@ -8,6 +8,7 @@
 #pragma once
 
 // Project include(s)
+#include "detray/definitions/indexing.hpp"
 #include "detray/definitions/qualifiers.hpp"
 #include "detray/intersection/intersection.hpp"
 #include "detray/masks/annulus2D.hpp"
@@ -19,7 +20,6 @@
 #include "detray/masks/ring2D.hpp"
 #include "detray/masks/single3D.hpp"
 #include "detray/masks/trapezoid2D.hpp"
-#include "detray/masks/unmasked.hpp"
 
 // System include(s)
 #include <algorithm>
@@ -72,6 +72,11 @@ class mask {
     DETRAY_HOST_DEVICE explicit constexpr mask(const links_type& link,
                                                Args&&... args)
         : _values({{std::forward<Args>(args)...}}), _volume_link(link) {}
+
+    /// Constructor from mask boundary array
+    DETRAY_HOST_DEVICE
+    constexpr mask(const mask_values& values, const links_type& link)
+        : _values{values}, _volume_link{link} {}
 
     /// Constructor from mask boundary vector
     DETRAY_HOST mask(const std::vector<scalar_type>& values,
@@ -179,17 +184,6 @@ class mask {
     DETRAY_HOST_DEVICE
     auto volume_link() -> links_type& { return _volume_link; }
 
-    /// @returns a string representation of the mask
-    DETRAY_HOST
-    auto to_string() const -> std::string {
-        std::stringstream ss;
-        ss << shape::name;
-        for (const auto& v : _values) {
-            ss << ", " << v;
-        }
-        return ss.str();
-    }
-
     template <size_type parameter_dim>
     DETRAY_HOST_DEVICE matrix_type<2, parameter_dim> projection_matrix() const {
 
@@ -201,10 +195,39 @@ class mask {
         return ret;
     }
 
+    /// @brief Lower and upper point for minimum axis aligned bounding box.
+    ///
+    /// Computes the min and max vertices in a local 3 dim cartesian frame.
+    ///
+    /// @param env dynamic envelope around the shape
+    ///
+    /// @returns a cuboid3D mask that is equivalent to the minimum local aabb.
+    DETRAY_HOST_DEVICE
+    auto local_min_bounds(const scalar_type env =
+                              std::numeric_limits<scalar_type>::epsilon()) const
+        -> mask<cuboid3D<>, unsigned int> {
+        const auto bounds =
+            _shape.template local_min_bounds<algebra_t>(_values, env);
+        static_assert(bounds.size() == cuboid3D<>::e_size,
+                      "Shape returns incompatible bounds for bound box");
+        return {bounds, std::numeric_limits<unsigned int>::max()};
+    }
+
+    /// @returns a string representation of the mask
+    DETRAY_HOST
+    auto to_string() const -> std::string {
+        std::stringstream ss;
+        ss << shape::name;
+        for (const auto& v : _values) {
+            ss << ", " << v;
+        }
+        return ss.str();
+    }
+
     private:
     shape _shape;
     mask_values _values;
-    links_type _volume_link;
+    links_type _volume_link{std::numeric_limits<links_type>::max()};
 };
 
 }  // namespace detray

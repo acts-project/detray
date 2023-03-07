@@ -9,6 +9,8 @@
 #include "detray/detectors/create_telescope_detector.hpp"
 #include "detray/detectors/create_toy_geometry.hpp"
 #include "detray/io/utils.hpp"
+#include "detray/masks/masks.hpp"
+#include "detray/masks/unbounded.hpp"
 #include "detray/simulation/simulator.hpp"
 #include "detray/simulation/track_generators.hpp"
 #include "detray/utils/statistics.hpp"
@@ -97,6 +99,9 @@ TEST(check_simulation, toy_geometry) {
 
     std::size_t n_events{10u};
     auto sim = simulator(n_events, detector, std::move(generator), smearer);
+
+    // Lift step size constraints
+    sim.get_config().step_constraint = std::numeric_limits<scalar>::max();
 
     // Do the simulation
     sim.run();
@@ -195,8 +200,11 @@ TEST_P(TelescopeDetectorSimulation, telescope_detector_simulation) {
     // Create geometry
     vecmem::host_memory_resource host_mr;
 
+    // Use rectangle surfaces
+    mask<unbounded<rectangle2D<>>> rectangle{0u, 20.f * unit<scalar>::mm,
+                                             20.f * unit<scalar>::mm};
+
     // Build from given module positions
-    detail::ray<transform3> traj{{0.f, 0.f, 0.f}, 0.f, {0.f, 0.f, 1.f}, -1.f};
     std::vector<scalar> positions = {0.f,   50.f,  100.f, 150.f, 200.f, 250.f,
                                      300.f, 350.f, 400.f, 450.f, 500.f};
 
@@ -205,7 +213,8 @@ TEST_P(TelescopeDetectorSimulation, telescope_detector_simulation) {
 
     // Detector type
     using detector_type =
-        detray::detector<detray::detector_registry::telescope_detector,
+        detray::detector<detray::detector_registry::template telescope_detector<
+                             unbounded<rectangle2D<>>>,
                          covfie::field>;
 
     // Create B field
@@ -215,8 +224,7 @@ TEST_P(TelescopeDetectorSimulation, telescope_detector_simulation) {
     const auto detector = create_telescope_detector(
         host_mr,
         b_field_t(b_field_t::backend_t::configuration_t{B[0], B[1], B[2]}),
-        positions, traj, std::numeric_limits<scalar>::infinity(),
-        std::numeric_limits<scalar>::infinity(), mat, thickness);
+        rectangle, positions, mat, thickness);
 
     // Momentum
     const scalar mom = std::get<0>(GetParam());
@@ -236,6 +244,9 @@ TEST_P(TelescopeDetectorSimulation, telescope_detector_simulation) {
     std::size_t n_events{1000u};
 
     auto sim = simulator(n_events, detector, std::move(generator), smearer);
+
+    // Lift step size constraints
+    sim.get_config().step_constraint = std::numeric_limits<scalar>::max();
 
     // Run simulation
     sim.run();

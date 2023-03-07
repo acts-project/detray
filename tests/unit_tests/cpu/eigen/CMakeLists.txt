@@ -9,6 +9,7 @@ detray_add_test( eigen
    "eigen_actor_chain.cpp"
    "eigen_annulus2D.cpp"
    "eigen_axis_rotation.cpp"
+   "eigen_bounding_volume.cpp"
    "eigen_check_simulation.cpp"
    "eigen_container.cpp"
    "eigen_coordinate_cartesian2.cpp"
@@ -18,6 +19,7 @@ detray_add_test( eigen
    "eigen_coordinate_line2.cpp"
    "eigen_coordinate_polar2.cpp"
    "eigen_core.cpp"
+   "eigen_cuboid_intersector.cpp"
    "eigen_cylinder_intersection.cpp" 
    "eigen_cylinder.cpp"
    "eigen_detector.cpp"
@@ -55,6 +57,7 @@ detray_add_test( eigen
    "eigen_track_generators.cpp"
    "eigen_transform_store.cpp"
    "eigen_trapezoid2D.cpp"
+   "eigen_unbounded.cpp"
    "eigen_unmasked.cpp"
    "eigen_volume.cpp"
    LINK_LIBRARIES GTest::gtest_main detray_tests_common detray::eigen )

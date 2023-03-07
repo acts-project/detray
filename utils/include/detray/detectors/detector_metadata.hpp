@@ -15,6 +15,7 @@
 #include "detray/intersection/cylinder_intersector.hpp"
 #include "detray/intersection/plane_intersector.hpp"
 #include "detray/masks/masks.hpp"
+#include "detray/masks/unmasked.hpp"
 #include "detray/materials/material_rod.hpp"
 #include "detray/materials/material_slab.hpp"
 #include "detray/surface_finders/accelerator_grid.hpp"
@@ -253,7 +254,8 @@ struct toy_metadata {
 };
 
 /// Defines a detector with only rectangle/unbounded surfaces
-template <typename _bfield_backend_t =
+template <typename mask_shape_t = rectangle2D<>,
+          typename _bfield_backend_t =
               covfie::backend::constant<covfie::vector::vector_d<scalar, 3>,
                                         covfie::vector::vector_d<scalar, 3>>>
 struct telescope_metadata {
@@ -281,21 +283,20 @@ struct telescope_metadata {
     /// Give your mask types a name (needs to be consecutive to be matched
     /// to a type!)
     enum class mask_ids {
-        e_rectangle2 = 0,
-        e_unbounded_plane2 = 1,
+        e_mask = 0,
     };
 
     /// How to store and link masks
     template <template <typename...> class tuple_t = dtuple,
               template <typename...> class vector_t = dvector>
-    using mask_store =
-        regular_multi_store<mask_ids, empty_context, tuple_t, vector_t,
-                            rectangle, unbounded_plane>;
+    using mask_store = regular_multi_store<mask_ids, empty_context, tuple_t,
+                                           vector_t, mask<mask_shape_t>>;
 
     /// Give your material types a name (needs to be consecutive to be matched
     /// to a type!)
     enum class material_ids {
         e_slab = 0,
+        e_rod = 0,
         e_none = 1,
     };
 
@@ -303,7 +304,7 @@ struct telescope_metadata {
     template <template <typename...> class tuple_t = dtuple,
               template <typename...> class vector_t = dvector>
     using material_store = regular_multi_store<material_ids, empty_context,
-                                               tuple_t, vector_t, slab>;
+                                               tuple_t, vector_t, slab, rod>;
 
     /// Surface type used for sensitives, passives and portals
     using transform_link = typename transform_store<>::link_type;
@@ -339,7 +340,8 @@ struct detector_registry {
     using default_detector = full_metadata<volume_stats, 1>;
     using tml_detector = full_metadata<volume_stats, 192>;
     using toy_detector = toy_metadata<>;
-    using telescope_detector = telescope_metadata<>;
+    template <typename mask_shape_t>
+    using telescope_detector = telescope_metadata<mask_shape_t>;
 };
 
 }  // namespace detray

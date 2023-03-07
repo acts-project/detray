@@ -10,6 +10,7 @@
 #include "detray/intersection/intersection.hpp"
 #include "detray/intersection/plane_intersector.hpp"
 #include "detray/masks/masks.hpp"
+#include "detray/masks/unmasked.hpp"
 #include "tests/common/tools/intersectors/helix_plane_intersector.hpp"
 
 // GTest include

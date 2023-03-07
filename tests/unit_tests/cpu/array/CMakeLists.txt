@@ -9,6 +9,7 @@ detray_add_test( array
    "array_actor_chain.cpp"
    "array_annulus2D.cpp"
    "array_axis_rotation.cpp"
+   "array_bounding_volume.cpp"
    "array_check_simulation.cpp"
    "array_container.cpp"
    "array_coordinate_cartesian2.cpp"
@@ -18,6 +19,7 @@ detray_add_test( array
    "array_coordinate_line2.cpp"
    "array_coordinate_polar2.cpp"
    "array_core.cpp"
+   "array_cuboid_intersector.cpp"
    "array_cylinder_intersection.cpp"
    "array_cylinder.cpp"
    "array_detector.cpp"
@@ -55,6 +57,7 @@ detray_add_test( array
    "array_transform_store.cpp"
    "array_trapezoid2D.cpp"
    "array_track_generators.cpp"
+   "array_unbounded.cpp"
    "array_unmasked.cpp"
    "array_volume.cpp"
    LINK_LIBRARIES GTest::gtest_main detray_tests_common detray::array )
