@@ -85,6 +85,9 @@ struct simulator {
                 typename propagator_type::state propagation(
                     track, m_detector->get_bfield(), *m_detector);
 
+                // Increase the particle id
+                writer.particle_id++;
+
                 propagator_type p({}, {});
 
                 // Set overstep tolerance and stepper constraint

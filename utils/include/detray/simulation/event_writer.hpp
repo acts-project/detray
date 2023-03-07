@@ -46,7 +46,6 @@ struct event_writer : actor {
         void set_seed(const uint_fast64_t sd) { m_meas_smearer.set_seed(sd); }
 
         void write_particle(const free_track_parameters<transform3_t>& track) {
-
             csv_particle particle;
             const auto pos = track.pos();
             const auto mom = track.mom();
@@ -62,8 +61,6 @@ struct event_writer : actor {
             particle.q = track.charge();
 
             m_particle_writer.append(particle);
-
-            particle_id++;
         }
     };
 
