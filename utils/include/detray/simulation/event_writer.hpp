@@ -35,7 +35,7 @@ struct event_writer : actor {
                   get_event_filename(event_id, "-measurement-simhit-map.csv")),
               m_meas_smearer(smearer) {}
 
-        uint64_t particle_id = -1u;
+        uint64_t particle_id = 0u;
         particle_writer m_particle_writer;
         hit_writer m_hit_writer;
         measurement_writer m_meas_writer;
@@ -46,8 +46,6 @@ struct event_writer : actor {
         void set_seed(const uint_fast64_t sd) { m_meas_smearer.set_seed(sd); }
 
         void write_particle(const free_track_parameters<transform3_t>& track) {
-            particle_id++;
-
             csv_particle particle;
             const auto pos = track.pos();
             const auto mom = track.mom();
