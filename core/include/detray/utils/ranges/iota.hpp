@@ -1,6 +1,6 @@
 /** Detray library, part of the ACTS project (R&D line)
  *
- * (c) 2022 CERN for the benefit of the ACTS project
+ * (c) 2022-2023 CERN for the benefit of the ACTS project
  *
  * Mozilla Public License Version 2.0
  */
@@ -112,6 +112,14 @@ class iota_view : public detray::ranges::view_interface<iota_view<incr_t>> {
     DETRAY_HOST_DEVICE constexpr iota_view(deduced_incr_t &&start,
                                            deduced_incr_t &&end)
         : m_start{start}, m_end{end - 1} {}
+
+    /// Copy constructor
+    DETRAY_HOST_DEVICE
+    constexpr iota_view(const iota_view &other)
+        : m_start{other.m_start}, m_end{other.m_end} {}
+
+    /// Default destructor
+    DETRAY_HOST_DEVICE ~iota_view() {}
 
     /// Copy assignment operator
     DETRAY_HOST_DEVICE

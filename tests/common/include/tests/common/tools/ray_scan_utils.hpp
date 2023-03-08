@@ -164,10 +164,10 @@ inline auto trace_intersections(const record_container &intersection_records,
         const typename record_container::value_type &entry;
 
         // getter
-        inline auto &object_id() const { return entry.second.index; }
+        inline auto &object_id() const { return entry.second.barcode; }
         inline auto &inters() const { return entry.second; }
         inline auto &volume_id() const { return entry.first; }
-        inline auto &volume_link() const { return entry.second.link; }
+        inline auto &volume_link() const { return entry.second.volume_link; }
         inline auto &dist() const { return entry.second.path; }
         inline auto r() const {
             return std::sqrt(entry.second.p3[0] * entry.second.p3[0] +
@@ -177,7 +177,7 @@ inline auto trace_intersections(const record_container &intersection_records,
 
         // A portal links to another volume than it belongs to
         inline bool is_portal() const {
-            return entry.first != entry.second.link;
+            return entry.first != entry.second.volume_link;
         }
 
         inline bool is_portal(const std::pair<dindex, line_plane_intersection>

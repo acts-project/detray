@@ -101,7 +101,7 @@ class grid_builder final : public volume_decorator<detector_t> {
         // TODO: make the grid directly iterable
         for (std::size_t gbin{0u}; gbin < m_grid.nbins(); ++gbin) {
             for (auto &sf : m_grid.at(gbin)) {
-                det.mask_store().template call<detail::mask_index_update>(
+                det.mask_store().template visit<detail::mask_index_update>(
                     sf.mask(), sf);
                 sf.update_transform(trf_offset);
             }
@@ -112,8 +112,8 @@ class grid_builder final : public volume_decorator<detector_t> {
 
         // Add the grid to the detector and link it to its volume
         constexpr auto gid{detector_t::sf_finders::template get_id<grid_t>()};
-        vol_ptr->set_sf_finder(gid, det.sf_finder_store().template size<gid>());
-        det.sf_finder_store().template push_back<gid>(m_grid);
+        det.surface_store().template push_back<gid>(m_grid);
+        vol_ptr->set_link(gid, det.surface_store().template size<gid>() - 1);
 
         return vol_ptr;
     }
@@ -157,7 +157,7 @@ class grid_builder final : public volume_decorator<detector_t> {
     bool m_add_passives{false};
 
     // surfaces that are filled into the grid, but not the volume
-    typename detector_t::surface_container m_surfaces{};
+    typename detector_t::surface_container_t m_surfaces{};
     typename detector_t::transform_container m_transforms{};
     typename detector_t::mask_container m_masks{};
 };

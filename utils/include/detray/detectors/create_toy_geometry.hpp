@@ -170,7 +170,7 @@ template <
     std::enable_if_t<
         std::is_invocable_v<factory_t, typename detector_t::geometry_context &,
                             typename detector_t::volume_type &,
-                            typename detector_t::surface_container &,
+                            typename detector_t::surface_container_t &,
                             typename detector_t::mask_container &,
                             typename detector_t::material_container &,
                             typename detector_t::transform_container &>,
@@ -191,10 +191,10 @@ void create_cyl_volume(
     auto &cyl_volume = det.new_volume(
         volume_id::e_cylinder, {inner_r, outer_r, lower_z, upper_z,
                                 -constant<scalar>::pi, constant<scalar>::pi});
-    cyl_volume.set_sf_finder(detector_t::sf_finders::id::e_default, 0u);
+    cyl_volume.set_link(detector_t::sf_finders::id::e_default, 0u);
 
     // Add module surfaces to volume
-    typename detector_t::surface_container surfaces(&resource);
+    typename detector_t::surface_container_t surfaces(&resource);
     typename detector_t::mask_container masks(resource);
     typename detector_t::material_container materials(resource);
     typename detector_t::transform_container transforms(resource);
@@ -327,40 +327,37 @@ inline void create_barrel_modules(context_t &ctx, volume_type &vol,
  * @param resource vecmem memory resource
  * @param cfg config struct for module creation
  */
-template <typename detector_t, typename config_t>
+/*template <typename detector_t, typename config_t>
 inline void add_cylinder_grid(const typename detector_t::geometry_context &ctx,
                               typename detector_t::volume_type &vol,
                               detector_t &det, const config_t &cfg) {
     // Get relevant ids
-    using geo_obj_ids = typename detector_t::geo_obj_ids;
+    // using geo_obj_ids = typename detector_t::geo_obj_ids;
 
     constexpr auto cyl_id = detector_t::masks::id::e_portal_cylinder2;
     constexpr auto grid_id = detector_t::sf_finders::id::e_cylinder_grid;
 
     using cyl_grid_t =
-        typename detector_t::sf_finder_container::template get_type<grid_id>;
+        typename detector_t::surface_container::template get_type<grid_id>;
     auto gbuilder = grid_builder<detector_t, cyl_grid_t, detail::fill_by_pos>{};
 
     // The cylinder portals are at the end of the surface range by construction
-    const auto portal_link = vol.template obj_link<geo_obj_ids::e_portal>();
-    const auto portal_mask_idx =
-        det.surfaces()[portal_link[1] - 3u].mask().index();
+    auto portal_mask_idx = (det.surfaces(vol).end() - 3)->mask().index();
     const auto &cyl_mask =
         det.mask_store().template get<cyl_id>().at(portal_mask_idx);
 
     // approximate binning for the barrel sensors
-    std::size_t n_phi_bins{vol.template n_objects<geo_obj_ids::e_sensitive>() /
-                           cfg.m_binning.second};
+    std::size_t n_phi_bins{cfg.m_binning.first};
     std::size_t n_z_bins{cfg.m_binning.second};
 
     // Add new grid to the detector
     gbuilder.init_grid(cyl_mask, {n_phi_bins, n_z_bins});
     gbuilder.fill_grid(det, vol, ctx);
 
-    det.sf_finder_store().template push_back<grid_id>(gbuilder());
-    vol.set_sf_finder(grid_id,
-                      det.sf_finder_store().template size<grid_id>() - 1u);
-}
+    det.surface_store().template push_back<grid_id>(gbuilder());
+    // vol.set_link(grid_id,
+    //                   det.surface_store().template size<grid_id>() - 1);
+}*/
 
 /** Helper function that creates a surface grid of trapezoidal endcap modules.
  *
@@ -369,24 +366,23 @@ inline void add_cylinder_grid(const typename detector_t::geometry_context &ctx,
  * @param resource vecmem memory resource
  * @param cfg config struct for module creation
  */
-template <typename detector_t, typename config_t>
+/*template <typename detector_t, typename config_t>
 inline void add_disc_grid(const typename detector_t::geometry_context &ctx,
                           typename detector_t::volume_type &vol,
                           detector_t &det, const config_t &cfg) {
     // Get relevant ids
-    using geo_obj_ids = typename detector_t::geo_obj_ids;
+    // using geo_obj_ids = typename detector_t::geo_obj_ids;
 
     constexpr auto disc_id = detector_t::masks::id::e_portal_ring2;
     constexpr auto grid_id = detector_t::sf_finders::id::e_disc_grid;
 
     using disc_grid_t =
-        typename detector_t::sf_finder_container::template get_type<grid_id>;
+        typename detector_t::surface_container::template get_type<grid_id>;
     auto gbuilder =
         grid_builder<detector_t, disc_grid_t, detray::detail::fill_by_pos>{};
 
     // The cylinder portals are at the end of the surface range by construction
-    auto portal_link = vol.template obj_link<geo_obj_ids::e_portal>();
-    auto portal_mask_idx = det.surfaces()[portal_link[1] - 1u].mask().index();
+    auto portal_mask_idx = det.surfaces(vol).back().mask().index();
     const auto &disc_mask =
         det.mask_store().template get<disc_id>().at(portal_mask_idx);
 
@@ -395,10 +391,10 @@ inline void add_disc_grid(const typename detector_t::geometry_context &ctx,
                        {cfg.disc_binning.size(), cfg.disc_binning.front()});
     gbuilder.fill_grid(det, vol, ctx);
 
-    det.sf_finder_store().template push_back<grid_id>(gbuilder());
-    vol.set_sf_finder(grid_id,
-                      det.sf_finder_store().template size<grid_id>() - 1u);
-}
+    det.surface_store().template push_back<grid_id>(gbuilder());
+    // vol.set_link(grid_id,
+    //                   det.surface_store().template size<grid_id>() - 1u);
+}*/
 
 /** Helper method for positioning of modules in an endcap ring
  *
@@ -596,7 +592,7 @@ inline void add_beampipe(
                                     : edc_lay_sizes[n_edc_layers - 1u].second};
     scalar min_z{-max_z};
 
-    typename detector_t::surface_container surfaces(&resource);
+    typename detector_t::surface_container_t surfaces(&resource);
     typename detector_t::mask_container masks(resource);
     typename detector_t::material_container materials(resource);
     typename detector_t::transform_container transforms(resource);
@@ -606,7 +602,7 @@ inline void add_beampipe(
         {beampipe_vol_size.first, beampipe_vol_size.second, min_z, max_z,
          -constant<scalar>::pi, constant<scalar>::pi});
     const auto beampipe_idx = beampipe.index();
-    beampipe.set_sf_finder(detector_t::sf_finders::id::e_default, 0u);
+    beampipe.set_link(detector_t::sf_finders::id::e_default, 0u);
 
     // This is the beampipe surface
     typename detector_t::surface_type::volume_link_type volume_link{
@@ -695,7 +691,7 @@ inline void add_endcap_barrel_connection(
     const scalar edc_disc_z{side < 0 ? min_z : max_z};
     const scalar brl_disc_z{side < 0 ? max_z : min_z};
 
-    typename detector_t::surface_container surfaces(&resource);
+    typename detector_t::surface_container_t surfaces(&resource);
     typename detector_t::mask_container masks(resource);
     typename detector_t::material_container materials(resource);
     typename detector_t::transform_container transforms(resource);
@@ -703,7 +699,7 @@ inline void add_endcap_barrel_connection(
     auto &connector_gap = det.new_volume(
         volume_id::e_cylinder, {edc_inner_r, edc_outer_r, min_z, max_z,
                                 -constant<scalar>::pi, constant<scalar>::pi});
-    connector_gap.set_sf_finder(detector_t::sf_finders::id::e_default, 0u);
+    connector_gap.set_link(detector_t::sf_finders::id::e_default, 0u);
     dindex connector_gap_idx{det.volumes().back().index()};
     dindex leaving_world = dindex_invalid;
 
@@ -833,7 +829,7 @@ void add_endcap_detector(
                               sign * (vol_size_itr + cfg.side * i)->second,
                               volume_links_vec[static_cast<std::size_t>(i)],
                               m_factory);
-            add_disc_grid(ctx, det.volumes().back(), det, cfg);
+            // add_disc_grid(ctx, det.volumes().back(), det, cfg);
         }
     }
 }
@@ -911,7 +907,7 @@ void add_barrel_detector(
             create_cyl_volume(det, resource, ctx, vol_sizes[i].first,
                               vol_sizes[i].second, -brl_half_z, brl_half_z,
                               volume_links_vec[i], m_factory);
-            add_cylinder_grid(ctx, det.volumes().back(), det, cfg);
+            // add_cylinder_grid(ctx, det.volumes().back(), det, cfg);
         }
     }
 }
@@ -1001,7 +997,7 @@ auto create_toy_geometry(
         void operator()(
             typename detector_t::geometry_context & /*ctx*/,
             typename detector_t::volume_type & /*volume*/,
-            typename detector_t::surface_container & /*surfaces*/,
+            typename detector_t::surface_container_t & /*surfaces*/,
             typename detector_t::mask_container & /*masks*/,
             typename detector_t::material_container & /*materials*/,
             typename detector_t::transform_container & /*transforms*/) {}
@@ -1013,7 +1009,7 @@ auto create_toy_geometry(
 
         void operator()(typename detector_t::geometry_context &ctx,
                         typename detector_t::volume_type &volume,
-                        typename detector_t::surface_container &surfaces,
+                        typename detector_t::surface_container_t &surfaces,
                         typename detector_t::mask_container &masks,
                         typename detector_t::material_container &materials,
                         typename detector_t::transform_container &transforms) {
@@ -1028,7 +1024,7 @@ auto create_toy_geometry(
 
         void operator()(typename detector_t::geometry_context &ctx,
                         typename detector_t::volume_type &volume,
-                        typename detector_t::surface_container &surfaces,
+                        typename detector_t::surface_container_t &surfaces,
                         typename detector_t::mask_container &masks,
                         typename detector_t::material_container &materials,
                         typename detector_t::transform_container &transforms) {

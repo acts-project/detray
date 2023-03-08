@@ -153,7 +153,7 @@ class surface_factory final
     /// @param ctx the geometry context.
     DETRAY_HOST
     auto operator()(const typename detector_t::volume_type &volume,
-                    typename detector_t::surface_container &surfaces,
+                    typename detector_t::surface_container_t &surfaces,
                     typename detector_t::transform_container &transforms,
                     typename detector_t::mask_container &masks,
                     typename detector_t::geometry_context ctx = {}) const

@@ -66,16 +66,6 @@ class subrange : public detray::ranges::view_interface<subrange<range_t>> {
                                        static_cast<difference_t>(pos))},
           m_end{detray::ranges::next(m_begin)} {}
 
-    /// Construct from a @param range and an index range provided by a volume
-    /// @param vol.
-    template <
-        typename deduced_range_t, typename volume_t,
-        typename value_t = detray::ranges::range_value_t<deduced_range_t>,
-        std::enable_if_t<detray::ranges::range_v<deduced_range_t>, bool> = true,
-        typename = typename std::remove_reference_t<volume_t>::volume_def>
-    DETRAY_HOST_DEVICE subrange(deduced_range_t &&range, const volume_t &vol)
-        : subrange(std::forward<deduced_range_t>(range), vol.full_range()) {}
-
     /// Construct from a @param range and an index range @param pos.
     template <
         typename deduced_range_t, typename index_range_t,
@@ -90,6 +80,14 @@ class subrange : public detray::ranges::view_interface<subrange<range_t>> {
           m_end{detray::ranges::next(
               detray::ranges::begin(range),
               static_cast<difference_t>(detray::detail::get<1>(pos)))} {}
+
+    /// Copy constructor
+    DETRAY_HOST_DEVICE
+    constexpr subrange(const subrange &other)
+        : m_begin{other.m_begin}, m_end{other.m_end} {}
+
+    /// Default destructor
+    DETRAY_HOST_DEVICE ~subrange() {}
 
     /// Copy assignment operator
     DETRAY_HOST_DEVICE
@@ -143,13 +141,6 @@ template <
     std::enable_if_t<detray::ranges::range_v<deduced_range_t>, bool> = true,
     std::enable_if_t<detray::detail::is_interval_v<index_range_t>, bool> = true>
 DETRAY_HOST_DEVICE subrange(deduced_range_t &&range, index_range_t &&pos)
-    ->subrange<deduced_range_t>;
-
-template <
-    typename deduced_range_t, typename volume_t,
-    std::enable_if_t<detray::ranges::range_v<deduced_range_t>, bool> = true,
-    typename = typename std::remove_reference_t<volume_t>::volume_def>
-DETRAY_HOST_DEVICE subrange(deduced_range_t &&range, const volume_t &vol)
     ->subrange<deduced_range_t>;
 
 /// @see https://en.cppreference.com/w/cpp/ranges/borrowed_iterator_t

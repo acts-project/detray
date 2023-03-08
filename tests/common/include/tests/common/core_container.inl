@@ -27,11 +27,8 @@ constexpr float tol_single{1e-7f};
 constexpr double tol_double{1e-31f};
 
 struct test_func {
-    using output_type = std::size_t;
-
     template <typename container_t>
-    output_type operator()(const container_t& coll,
-                           const unsigned int /*index*/) {
+    auto operator()(const container_t& coll, const unsigned int /*index*/) {
         return coll.size();
     }
 };
@@ -145,7 +142,7 @@ TEST(container, vector_multi_type_store) {
     EXPECT_NEAR(vector_store.get<2>()[3], 7.6, tol_double);
 
     // call functor
-    EXPECT_EQ(vector_store.call<test_func>(std::make_pair(0u, 0u)), 5u);
-    EXPECT_EQ(vector_store.call<test_func>(std::make_pair(1u, 0u)), 3u);
-    EXPECT_EQ(vector_store.call<test_func>(std::make_pair(2u, 0u)), 4u);
+    EXPECT_EQ(vector_store.visit<test_func>(std::make_pair(0u, 0u)), 5u);
+    EXPECT_EQ(vector_store.visit<test_func>(std::make_pair(1u, 0u)), 3u);
+    EXPECT_EQ(vector_store.visit<test_func>(std::make_pair(2u, 0u)), 4u);
 }

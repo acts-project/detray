@@ -99,19 +99,20 @@ TEST(ALGEBRA_PLUGIN, straight_line_navigation) {
 
         // Check every single recorded intersection
         for (std::size_t i = 0u; i < obj_tracer.object_trace.size(); ++i) {
-            if (obj_tracer[i].index != intersection_trace[i].second.index) {
+            if (obj_tracer[i].barcode != intersection_trace[i].second.barcode) {
                 // Intersection record at portal bound might be flipped
                 // (the portals overlap completely)
-                if (obj_tracer[i].index ==
-                        intersection_trace[i + 1u].second.index and
-                    obj_tracer[i + 1u].index ==
-                        intersection_trace[i].second.index) {
+                if (obj_tracer[i].barcode ==
+                        intersection_trace[i + 1u].second.barcode and
+                    obj_tracer[i + 1u].barcode ==
+                        intersection_trace[i].second.barcode) {
                     // Have already checked the next record
                     ++i;
                     continue;
                 }
             }
-            EXPECT_EQ(obj_tracer[i].index, intersection_trace[i].second.index)
+            EXPECT_EQ(obj_tracer[i].barcode,
+                      intersection_trace[i].second.barcode)
                 << debug_printer.to_string() << debug_stream.str();
         }
     }
@@ -199,19 +200,20 @@ TEST(ALGEBRA_PLUGIN, helix_navigation) {
 
         // Check every single recorded intersection
         for (std::size_t i = 0u; i < obj_tracer.object_trace.size(); ++i) {
-            if (obj_tracer[i].index != intersection_trace[i].second.index) {
+            if (obj_tracer[i].barcode != intersection_trace[i].second.barcode) {
                 // Intersection record at portal bound might be flipped
                 // (the portals overlap completely)
-                if (obj_tracer[i].index ==
-                        intersection_trace[i + 1u].second.index and
-                    obj_tracer[i + 1u].index ==
-                        intersection_trace[i].second.index) {
+                if (obj_tracer[i].barcode ==
+                        intersection_trace[i + 1u].second.barcode and
+                    obj_tracer[i + 1u].barcode ==
+                        intersection_trace[i].second.barcode) {
                     // Have already checked the next record
                     ++i;
                     continue;
                 }
             }
-            EXPECT_EQ(obj_tracer[i].index, intersection_trace[i].second.index);
+            EXPECT_EQ(obj_tracer[i].barcode,
+                      intersection_trace[i].second.barcode);
         }
     }
 }

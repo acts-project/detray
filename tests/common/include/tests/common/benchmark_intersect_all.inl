@@ -49,7 +49,8 @@ using detector_t = decltype(d);
 using detray_context = detector_t::geometry_context;
 detray_context geo_context;
 
-const auto data_core = d.data(geo_context);
+const auto &masks = d.mask_store();
+const auto &transforms = d.transform_store(geo_context);
 
 namespace __plugin {
 
@@ -77,13 +78,10 @@ static void BM_INTERSECT_ALL(benchmark::State &state) {
             // Loop over volumes
             for (const auto &v : d.volumes()) {
                 // Loop over all surfaces in volume
-                for (const auto &sf :
-                     detray::ranges::subrange(data_core.surfaces, v)) {
+                for (const auto &sf : d.surfaces(v)) {
 
-                    auto sfi =
-                        data_core.masks.template call<intersection_update>(
-                            sf.mask(), detail::ray(track), sf,
-                            data_core.transforms);
+                    auto sfi = masks.template visit<intersection_update>(
+                        sf.mask(), detail::ray(track), sf, transforms);
 
                     benchmark::DoNotOptimize(hits);
                     benchmark::DoNotOptimize(missed);

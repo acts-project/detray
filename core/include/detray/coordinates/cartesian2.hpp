@@ -47,6 +47,9 @@ struct cartesian2 final : public coordinate_base<cartesian2, transform3_t> {
     using free_to_bound_matrix = typename base_type::free_to_bound_matrix;
     using bound_to_free_matrix = typename base_type::bound_to_free_matrix;
 
+    // Local point type in 2D cartesian coordinates
+    using loc_point = point2;
+
     /// @}
 
     /** This method transform from a point from 2D cartesian frame to a 2D

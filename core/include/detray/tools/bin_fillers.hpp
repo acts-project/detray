@@ -72,8 +72,8 @@ struct fill_by_pos {
                                 const volume_type &vol,
                                 const typename detector_t::geometry_context ctx,
                                 Args &&...) const -> void {
-        this->operator()(grid, detray::ranges::subrange(det.surfaces(), vol),
-                         det.transform_store(), det.mask_store(), ctx);
+        this->operator()(grid, det.surfaces(vol), det.transform_store(),
+                         det.mask_store(), ctx);
     }
 
     template <typename grid_t, typename surface_container,
@@ -86,7 +86,7 @@ struct fill_by_pos {
         -> void {
 
         // Fill the volumes surfaces into the grid
-        for (const auto &[idx, sf] : detray::views::enumerate(surfaces)) {
+        for (const auto &sf : surfaces) {
             // TODO: Remove this check after toy geo is switched to new builders
             if (sf.is_portal()) {
                 continue;
@@ -118,8 +118,8 @@ struct bin_associator {
                                 const volume_type &vol,
                                 const typename detector_t::geometry_context ctx,
                                 Args &&...) const -> void {
-        this->operator()(grid, detray::ranges::subrange(det.surfaces(), vol),
-                         det.mask_store(), det.transform_store(), ctx);
+        this->operator()(grid, det.surfaces(vol), det.mask_store(),
+                         det.transform_store(), ctx);
     }
 
     template <typename grid_t, typename surface_container,

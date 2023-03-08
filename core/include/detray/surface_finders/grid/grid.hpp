@@ -96,8 +96,20 @@ class grid {
 
     /// Create grid from container pointers - non-owning (both grid and axes)
     DETRAY_HOST_DEVICE
+    grid(const bin_storage_type *bin_data_ptr, const axes_type &axes,
+         const dindex offset = 0)
+        : m_data(bin_data_ptr, offset), m_axes(axes) {}
+
+    /// Create grid from container pointers - non-owning (both grid and axes)
+    DETRAY_HOST_DEVICE
     grid(bin_storage_type *bin_data_ptr, axes_type &axes,
          const dindex offset = 0u)
+        : m_data(bin_data_ptr, offset), m_axes(axes) {}
+
+    /// Create grid from container pointers - non-owning (both grid and axes)
+    DETRAY_HOST_DEVICE
+    grid(const bin_storage_type *bin_data_ptr, axes_type &&axes,
+         const dindex offset = 0)
         : m_data(bin_data_ptr, offset), m_axes(axes) {}
 
     /// Create grid from container pointers - non-owning (both grid and axes)
@@ -192,14 +204,26 @@ class grid {
     }
     /// @}
 
+    /// Interface for the navigator
+    template <typename detector_t, typename track_t>
+    DETRAY_HOST_DEVICE auto search(
+        const detector_t & /*det*/,
+        const typename detector_t::volume_type & /*volume*/,
+        const track_t &track) const {
+        // TODO: Use identity until volume placement is available
+        const typename detector_t::transform3 identity{};
+        const auto loc_pos =
+            global_to_local(identity, track.pos(), track.dir());
+        return search(loc_pos);
+    }
+
     /// Find the value of a single bin
     ///
     /// @param p is point in the local frame
     ///
     /// @return the iterable view of the bin content
-    template <typename point_t,
-              std::enable_if_t<std::is_class_v<point_t>, bool> = true>
-    DETRAY_HOST_DEVICE auto search(const point_t &p) const {
+    DETRAY_HOST_DEVICE auto search(
+        const typename local_frame::loc_point &p) const {
         return at(m_axes.bins(p));
     }
 

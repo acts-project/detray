@@ -217,8 +217,6 @@ dvector<point3_t> vertices(
 template <typename point2_t, typename point3_t>
 struct vertexer {
 
-    using output_type = dvector<dvector<point3_t>>;
-
     /// Specialized method to generate vertices per maks group
     ///
     /// @tparam mask_group_t is the type of the mask collection in a mask cont.
@@ -229,9 +227,10 @@ struct vertexer {
     ///
     /// @return a jagged vector of points of the mask vertices (one per maks)
     template <typename mask_group_t, typename mask_range_t>
-    output_type operator()(const mask_group_t &masks, const mask_range_t &range,
-                           unsigned int n_segments = 1) {
-        output_type mask_vertices = {};
+    dvector<dvector<point3_t>> operator()(const mask_group_t &masks,
+                                          const mask_range_t &range,
+                                          unsigned int n_segments = 1) {
+        dvector<dvector<point3_t>> mask_vertices = {};
         for (auto i : detray::views::iota(range)) {
             const auto &mask = masks[i];
             mask_vertices.push_back(
