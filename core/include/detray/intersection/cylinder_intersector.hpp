@@ -96,7 +96,7 @@ struct cylinder_intersector {
                     is.p2 = mask.to_local_frame(trf, is.p3);
                     is.status = mask.is_inside(is.p2, mask_tolerance);
                 }
-                is.direction = vector::dot(is.p3, rd) > 0.f
+                is.direction = is.path >= 0.f
                                    ? intersection::direction::e_along
                                    : intersection::direction::e_opposite;
                 is.link = mask.volume_link();

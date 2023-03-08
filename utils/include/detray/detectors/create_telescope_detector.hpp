@@ -29,17 +29,17 @@ namespace detray {
 
 namespace {
 
-// @Note: These type definitions should be removed at some point
-using point3 = __plugin::point3<detray::scalar>;
-using vector3 = __plugin::vector3<detray::scalar>;
-using point2 = __plugin::point2<detray::scalar>;
-
 template <typename mask_shape_t>
 using telescope_types =
     typename detector_registry::template telescope_detector<mask_shape_t>;
 
 /// Where and how to place the telescope modules.
 struct module_placement {
+
+    // @Note: These type definitions should be removed at some point
+    using point3 = __plugin::point3<detray::scalar>;
+    using vector3 = __plugin::vector3<detray::scalar>;
+
     /// Module position
     point3 _pos;
     /// Module normal
@@ -95,6 +95,9 @@ inline void create_cuboid_portals(context_t &ctx, const scalar pt_envelope,
                                   mask_container_t &masks,
                                   material_container_t &materials,
                                   transform_container_t &transforms) {
+    // @Note: These type definitions should be removed at some point
+    using point3 = __plugin::point3<detray::scalar>;
+    using vector3 = __plugin::vector3<detray::scalar>;
 
     using surface_t = typename surface_container_t::value_type;
     using volume_link_t = typename surface_t::volume_link_type;
@@ -243,6 +246,9 @@ inline void create_telescope(context_t &ctx, const trajectory_t &traj,
                              material_container_t &materials,
                              transform_container_t &transforms,
                              const config_t &cfg) {
+    // @Note: These type definitions should be removed at some point
+    using vector3 = __plugin::vector3<detray::scalar>;
+
     using surface_type = typename surface_container_t::value_type;
     using volume_link_t = typename surface_type::volume_link_type;
     using mask_link_t = typename surface_type::mask_link;
