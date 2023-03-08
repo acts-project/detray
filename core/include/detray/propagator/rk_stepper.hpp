@@ -77,9 +77,10 @@ class rk_stepper final
             array_t<scalar, 4> k_qop;
         } _step_data;
 
+        /// Magnetic field view
         const magnetic_field_t _magnetic_field;
 
-        // Set the local error tolerenace
+        /// Set the local error tolerenace
         DETRAY_HOST_DEVICE
         inline void set_tolerance(scalar tol) { _tolerance = tol; };
 
@@ -91,11 +92,11 @@ class rk_stepper final
         DETRAY_HOST_DEVICE
         inline void advance_track();
 
-        // Update the jacobian transport from free propagation
+        /// Update the jacobian transport from free propagation
         DETRAY_HOST_DEVICE
         inline void advance_jacobian();
 
-        // evaulate k_n for runge kutta stepping
+        /// evaulate k_n for runge kutta stepping
         DETRAY_HOST_DEVICE
         inline vector3 evaluate_k(const vector3& b_field, const int i,
                                   const scalar h, const vector3& k_prev);

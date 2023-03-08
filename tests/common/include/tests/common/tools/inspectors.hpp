@@ -1,6 +1,6 @@
 /** Detray library, part of the ACTS project (R&D line)
  *
- * (c) 2022 CERN for the benefit of the ACTS project
+ * (c) 2022-2023 CERN for the benefit of the ACTS project
  *
  * Mozilla Public License Version 2.0
  */
@@ -8,6 +8,7 @@
 #pragma once
 
 // Project include(s)
+#include "detray/intersection/detail/trajectories.hpp"
 #include "detray/propagator/base_actor.hpp"
 #include "detray/utils/tuple_helpers.hpp"
 
@@ -218,6 +219,13 @@ struct print_inspector : actor {
 
         printer.stream << "step_size: " << std::setw(10) << stepping._step_size
                        << std::endl;
+
+        printer.stream
+            << std::setw(10)
+            << detail::ray<
+                   typename propagation_state_t::detector_type::transform3>(
+                   stepping())
+            << std::endl;
     }
 };
 

@@ -27,6 +27,8 @@ TEST(ALGEBRA_PLUGIN, guided_navigator) {
     using namespace detray;
     using namespace navigation;
     using transform3_type = __plugin::transform3<scalar>;
+    using point3 = typename transform3_type::point3;
+    using vector3 = typename transform3_type::vector3;
 
     vecmem::host_memory_resource host_mr;
 

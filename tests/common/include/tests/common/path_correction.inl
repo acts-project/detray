@@ -9,9 +9,7 @@
 #include "detray/definitions/units.hpp"
 #include "detray/detectors/create_telescope_detector.hpp"
 #include "detray/detectors/detector_metadata.hpp"
-#include "detray/geometry/volume_graph.hpp"
 #include "detray/masks/masks.hpp"
-#include "detray/masks/unbounded.hpp"
 #include "detray/materials/predefined_materials.hpp"
 #include "detray/propagator/actor_chain.hpp"
 #include "detray/propagator/actors/aborters.hpp"
@@ -37,41 +35,15 @@
 
 using namespace detray;
 
+namespace env {
+
 // Type Definitions
-/*template <typename mask_shape_t>
+template <typename mask_shape_t>
 using tel_detector_t =
     detector<detector_registry::template telescope_detector<mask_shape_t>,
              covfie::field>;
-using registry_type = detector_registry::default_detector;
-using detector_t = detector<registry_type, covfie::field>;
-using mask_container = typename detector_t::mask_container;
-using material_container = typename detector_t::material_container;
-using surface_type = typename detector_t::surface_container::value_type;
-using mask_link_type = typename surface_type::mask_link;
-using material_link_type = typename surface_type::material_link;
-using mag_field_t = detector_t::bfield_type;
-
-using matrix_operator = standard_matrix_operator<scalar>;
-using transform3 = typename detector_t::transform3;
-using vector2 = __plugin::vector2<scalar>;
-using vector3 = __plugin::vector3<scalar>;
-
-using navigator_t = navigator<detector_t>;
-// Re-init the volume at every step, so that surface will be put into the
-// navigation cache
-using crk_stepper_t = rk_stepper<mag_field_t::view_t, transform3,
-                                 constrained_step<>, always_init>;
-using actor_chain_t =
-    actor_chain<dtuple, target_aborter, parameter_transporter<transform3>,
-                parameter_resetter<transform3>>;
-using propagator_t = propagator<crk_stepper_t, navigator_t, actor_chain_t>;
-
-using matrix_operator = standard_matrix_operator<scalar>;
-
-namespace env {
 
 constexpr scalar tol{1e-2f};
-constexpr scalar rk_tolerance{1e-8f};
 
 // Surface material
 const material<scalar> mat = silicon<scalar>();
@@ -80,101 +52,57 @@ const scalar thickness{2.f * unit<scalar>::mm};
 // memory resource
 vecmem::host_memory_resource resource;
 
-}  // namespace env*/
+}  // namespace env
 
-// This tests the path correction of cartesian coordinate
+/// Test the path correction on a rectangular surface (cartesian coordinates)
 TEST(path_correction, cartesian2D) {
-
-    // Create a detector
-    /*detector_t det(env::resource, std::move(env::mag_field));
-
-    // Mask and material ID
-    constexpr auto mask_id = registry_type::mask_ids::e_rectangle2;
-    constexpr auto material_id = registry_type::material_ids::e_slab;
-
-    // Add a volume
-    det.new_volume(
-        volume_id::e_cylinder,
-        {0.f, 0.f, 0.f, 0.f, -constant<scalar>::pi, constant<scalar>::pi});
-
-    typename detector_t::surface_container surfaces(&env::resource);
-    typename detector_t::transform_container transforms(env::resource);
-    typename detector_t::mask_container masks(env::resource);
-    typename detector_t::material_container materials(env::resource);
-
-    // Add a surface
-    mask_link_type mask_link{mask_id, 0u};
-    material_link_type material_link{material_id, 0u};
-    surfaces.emplace_back(0u, mask_link, material_link, 0u, dindex_invalid,
-                          surface_id::e_sensitive);
-
-    // Add a transform
-    const vector3 t{0.f, 0.f, 0.f};
-    const vector3 z{1.f, 0.f, 0.f};
-    const vector3 x{0.f, 1.f, 0.f};
-    transforms.emplace_back(env::ctx, t, z, x);
-
-    // Add a mask
-    const scalar hx{100.f * unit<scalar>::mm};
-    const scalar hy{100.f * unit<scalar>::mm};
-    masks.template emplace_back<mask_id>(empty_context{}, 0u, hx, hy);
-
-    // Add a material
-    const material<scalar> mat = silicon<scalar>();
-    const scalar thickness{2.f * unit<scalar>::mm};
-    materials.template emplace_back<material_id>(empty_context{}, mat,
-                                                 thickness);
-
-    typename detector_t::volume_type &vol = det.volume_by_index(0u);
-    det.add_objects_per_volume(env::ctx, vol, surfaces, masks, transforms,
-                               materials);
-    using detector_t = tel_detector_t<unbounded<rectangle2D<>>>;
+    using detector_t = env::tel_detector_t<rectangle2D<>>;
     using mag_field_t = detector_t::bfield_type;
 
+    using matrix_operator = standard_matrix_operator<scalar>;
     using transform3 = typename detector_t::transform3;
     using vector2 = __plugin::vector2<scalar>;
-    using vector3 = __plugin::vector3<scalar>;
+    using vector3 = typename transform3::vector3;
 
     using navigator_t = navigator<detector_t, navigation::print_inspector>;
     // Re-init the volume at every step, so that surface will be put into the
     // navigation cache
     using crk_stepper_t = rk_stepper<mag_field_t::view_t, transform3,
                                      constrained_step<>, always_init>;
-    using actor_chain_t =
-        actor_chain<dtuple, target_aborter, parameter_transporter<transform3>,
-                    parameter_resetter<transform3>>;
+    using actor_chain_t = actor_chain<
+        dtuple, target_aborter, pathlimit_aborter, propagation::print_inspector,
+        parameter_transporter<transform3>, parameter_resetter<transform3>>;
     using propagator_t = propagator<crk_stepper_t, navigator_t, actor_chain_t>;
 
     // B field
-    const vector3 B{0, 0, 1. * unit<scalar>::T};
+    const vector3 B{0.f, 0.f, 1.f * unit<scalar>::T};
     mag_field_t mag_field(
         mag_field_t::backend_t::configuration_t{B[0], B[1], B[2]});
-
-    // Use unbounded rectangle surface
-    mask<unbounded<rectangle2D<>>> rectangle{};
-
-    // Build telescope detector with a single unbounded rectangle
-    const auto det = create_telescope_detector(
-        env::resource, std::move(mag_field), rectangle, 1u,
-        500. * unit<scalar>::mm, env::mat, env::thickness);
-
-    /// Prints linking information for every node when visited
-    struct volume_printout {
-        void operator()(const detector_t::volume_type &n) const {
-            std::cout << "On volume: " << n.index() << std::endl;
-        }
-    };
-
-    // Build the graph
-    volume_graph<detector_t> graph(det);
-    std::cout << graph.to_string() << std::endl;
 
     // Generate track starting point
     vector2 local{2.f, 3.f};
     vector3 mom{1.f * unit<scalar>::MeV, 0.f, 0.f};
-
     scalar time{0.f};
     scalar q{-1.f};
+
+    // Path radius and path length per turn
+    const scalar r{getter::perp(mom) / getter::norm(B)};
+    const scalar S{2.f * constant<scalar>::pi * r};
+    // Maximum distance to propagate
+    const scalar path_limit{1.01f * S};
+
+    // Use rectangle surface
+    mask<rectangle2D<>> rectangle{0u, 0.9f * r * unit<scalar>::mm,
+                                  0.9f * r * unit<scalar>::mm};
+
+    // Used to build the telescope detector along x-axis
+    detail::ray<transform3> pilot_traj{{0.f, 0.f, 0.f}, time, mom, q};
+
+    // Build telescope detector with a single rectangle surfaces and an envelope
+    // between the surface and the portals that allows to propagate a full turn
+    const auto det = create_telescope_detector(
+        env::resource, std::move(mag_field), rectangle, 1u, S, env::mat,
+        env::thickness, pilot_traj, 1.75f * r);
 
     // bound vector
     typename bound_track_parameters<transform3>::vector_type bound_vector;
@@ -202,34 +130,32 @@ TEST(path_correction, cartesian2D) {
 
     // Actors
     target_aborter::state targeter{0u};
+    pathlimit_aborter::state pathlimit_state{path_limit};
+    propagation::print_inspector::state print_insp_state{};
     parameter_transporter<transform3>::state bound_updater{};
     parameter_resetter<transform3>::state rst{};
 
     propagator_t p({}, {});
     propagator_t::state propagation(bound_param0, det.get_bfield(), det);
-
     crk_stepper_t::state &crk_state = propagation._stepping;
 
-    // Path length per turn
-    scalar S{2.f * getter::perp(mom) / getter::norm(B) *
-             constant<scalar>::pi};
-    // Constrain the step size to force frequent re-navigation for this
-    // strongly bent track
-    crk_state.template set_constraint<step::constraint::e_accuracy>(0.1f * S);
-
-    // Decrease tolerance down to 1e-8
-    crk_state._tolerance = env::rk_tolerance;
-    crk_state().set_overstep_tolerance(-1000000000000.f);
-
-    // Run propagator
-    // p.propagate(propagation, std::tie(targeter, bound_updater, rst));
+    // The track is strongly bent, allow for overstepping
+    crk_state().set_overstep_tolerance(-1.f * unit<scalar>::um);
 
     // Retrieve navigation information
     auto &debug_printer = propagation._navigation.inspector();
 
-    //ASSERT_TRUE(
-    //    p.propagate(propagation, std::tie(targeter, bound_updater, rst)));
-    //std::cout << debug_printer.to_string();
+    // Run propagator
+    ASSERT_TRUE(p.propagate(
+        propagation, std::tie(targeter, pathlimit_state, print_insp_state,
+                              bound_updater, rst)));
+
+    // Make sure, the track was propagated to the end
+    ASSERT_NEAR(crk_state.path_length(), S, env::tol)
+        << print_insp_state.to_string() << debug_printer.to_string();
+    EXPECT_NEAR(crk_state().pos()[0], 0.f, env::tol);
+    EXPECT_NEAR(crk_state().pos()[1], 2.f, env::tol);
+    EXPECT_NEAR(crk_state().pos()[2], 3.f, env::tol);
 
     // Bound state after one turn propagation
     const auto bound_param1 = crk_state._bound_params;
@@ -246,7 +172,7 @@ TEST(path_correction, cartesian2D) {
                     matrix_operator().element(bound_vec1, i, 0u), env::tol);
     }
 
-    // covaraince
+    // covariance
     for (unsigned int i = 0u; i < e_bound_size; i++) {
         for (unsigned int j = 0u; j < e_bound_size; j++) {
             EXPECT_NEAR(matrix_operator().element(bound_cov0, i, j),
@@ -255,7 +181,7 @@ TEST(path_correction, cartesian2D) {
     }
 
     // Print the matrix elements
-    for (unsigned int i = 0u; i < e_bound_size; i++) {
+    /*for (unsigned int i = 0u; i < e_bound_size; i++) {
         for (unsigned int j = 0u; j < e_bound_size; j++) {
             printf("%f ", matrix_operator().element(bound_cov0, i, j));
         }
@@ -269,62 +195,60 @@ TEST(path_correction, cartesian2D) {
         }
         printf("\n");
     }
-    printf("\n");
-    */
+    printf("\n");*/
 }
 
-/*TEST(path_correction, polar) {
+/// Test the path correction on a ring surface (polar coordinates)
+TEST(path_correction, polar) {
 
-    // Create a detector
-    detector_t det(env::resource);
+    using detector_t = env::tel_detector_t<ring2D<>>;
+    using mag_field_t = detector_t::bfield_type;
 
-    // Mask and material ID
-    constexpr auto mask_id = registry_type::mask_ids::e_ring2;
-    constexpr auto material_id = registry_type::material_ids::e_slab;
+    using matrix_operator = standard_matrix_operator<scalar>;
+    using transform3 = typename detector_t::transform3;
+    using vector2 = __plugin::vector2<scalar>;
+    using vector3 = typename transform3::vector3;
 
-    // Add a volume
-    det.new_volume(
-        volume_id::e_cylinder,
-        {0.f, 0.f, 0.f, 0.f, -constant<scalar>::pi, constant<scalar>::pi});
+    using navigator_t = navigator<detector_t, navigation::print_inspector>;
+    // Re-init the volume at every step, so that surface will be put into the
+    // navigation cache
+    using crk_stepper_t = rk_stepper<mag_field_t::view_t, transform3,
+                                     constrained_step<>, always_init>;
+    using actor_chain_t = actor_chain<
+        dtuple, target_aborter, pathlimit_aborter, propagation::print_inspector,
+        parameter_transporter<transform3>, parameter_resetter<transform3>>;
+    using propagator_t = propagator<crk_stepper_t, navigator_t, actor_chain_t>;
 
-    typename detector_t::surface_container surfaces(&env::resource);
-    typename detector_t::transform_container transforms(env::resource);
-    typename detector_t::mask_container masks(env::resource);
-    typename detector_t::material_container materials(env::resource);
-
-    // Add a surface
-    mask_link_type mask_link{mask_id, 0u};
-    material_link_type material_link{material_id, 0u};
-    surfaces.emplace_back(0u, mask_link, material_link, 0, dindex_invalid,
-                          surface_id::e_sensitive);
-
-    // Add a transform
-    const vector3 t{0.f, 0.f, 0.f};
-    const vector3 z{1.f, 0.f, 0.f};
-    const vector3 x{0.f, 1.f, 0.f};
-    transforms.emplace_back(env::ctx, t, z, x);
-
-    // Add a mask
-    const scalar r_low{0.f * unit<scalar>::mm};
-    const scalar r_high{100.f * unit<scalar>::mm};
-    masks.template emplace_back<mask_id>(empty_context{}, 0u, r_low, r_high);
-
-    // Add a material
-    const material<scalar> mat = silicon<scalar>();
-    const scalar thickness{2.f * unit<scalar>::mm};
-    materials.template emplace_back<material_id>(empty_context{}, mat,
-                                                 thickness);
-
-    typename detector_t::volume_type &vol = det.volume_by_index(0);
-    det.add_objects_per_volume(env::ctx, vol, surfaces, masks, transforms,
-                               materials);
+    // B field
+    const vector3 B{0.f, 0.f, 1.f * unit<scalar>::T};
+    mag_field_t mag_field(
+        mag_field_t::backend_t::configuration_t{B[0], B[1], B[2]});
 
     // Generate track starting point
     vector2 local{2.f, constant<scalar>::pi / 6.f};
     vector3 mom{1.f * unit<scalar>::MeV, 0.f, 0.f};
-
     scalar time{0.f};
     scalar q{-1.f};
+
+    // Path radius and path length per turn
+    const scalar r{getter::perp(mom) / getter::norm(B)};
+    const scalar S{2.f * constant<scalar>::pi * r};
+    // Maximum distance to propagate
+    const scalar path_limit{1.01f * S};
+
+    // Use ring surface
+    const scalar r_low{0.f * unit<scalar>::mm};
+    const scalar r_high{0.9f * r * unit<scalar>::mm};
+    mask<ring2D<>> ring{0u, r_low, r_high};
+
+    // Used to build the telescope detector along x-axis
+    detail::ray<transform3> pilot_traj{{0.f, 0.f, 0.f}, time, mom, q};
+
+    // Build telescope detector with a single ring surfaces and an envelope
+    // between the surface and the portals that allows to propagate a full turn
+    const auto det = create_telescope_detector(
+        env::resource, std::move(mag_field), ring, 1u, S, env::mat,
+        env::thickness, pilot_traj, 1.75f * r);
 
     // bound vector
     typename bound_track_parameters<transform3>::vector_type bound_vector;
@@ -352,33 +276,34 @@ TEST(path_correction, cartesian2D) {
 
     // Actors
     target_aborter::state targeter{0u};
+    pathlimit_aborter::state pathlimit_state{path_limit};
+    propagation::print_inspector::state print_insp_state{};
     parameter_transporter<transform3>::state bound_updater{};
     parameter_resetter<transform3>::state rst{};
 
     propagator_t p({}, {});
-    propagator_t::state propagation(bound_param0, env::mag_field, det);
-
+    propagator_t::state propagation(bound_param0, det.get_bfield(), det);
     crk_stepper_t::state &crk_state = propagation._stepping;
 
-    // RK stepper and its state
+    // The track is strongly bent, allow for overstepping
+    crk_state().set_overstep_tolerance(-1.f * unit<scalar>::um);
+
+    // Retrieve navigation information
+    auto &debug_printer = propagation._navigation.inspector();
+
+    // Run propagator
+    ASSERT_TRUE(p.propagate(
+        propagation, std::tie(targeter, pathlimit_state, print_insp_state,
+                              bound_updater, rst)));
+
+    // Make sure, the track was propagated to the end
+    ASSERT_NEAR(crk_state.path_length(), S, env::tol)
+        << print_insp_state.to_string() << debug_printer.to_string();
     EXPECT_NEAR(crk_state().pos()[0], 0.f, env::tol);
     EXPECT_NEAR(crk_state().pos()[1],
                 2.f * std::cos(constant<scalar>::pi / 6.f), env::tol);
     EXPECT_NEAR(crk_state().pos()[2],
                 2.f * std::sin(constant<scalar>::pi / 6.f), env::tol);
-
-    // Decrease tolerance down to 1e-8
-    crk_state._tolerance = env::rk_tolerance;
-
-    // Path length per turn
-    scalar S{2.f * getter::perp(mom) / getter::norm(env::B) *
-             constant<scalar>::pi};
-    // Constrain the step size to force frequent re-navigation for this
-    // strongly bent track
-    crk_state.template set_constraint<step::constraint::e_accuracy>(0.1f * S);
-
-    // Run propagator
-    p.propagate(propagation, std::tie(targeter, bound_updater, rst));
 
     // Bound state after one turn propagation
     const auto bound_param1 = crk_state._bound_params;
@@ -395,7 +320,7 @@ TEST(path_correction, cartesian2D) {
                     matrix_operator().element(bound_vec1, i, 0u), env::tol);
     }
 
-    // covaraince
+    // covariance
     for (unsigned int i = 0u; i < e_bound_size; i++) {
         for (unsigned int j = 0u; j < e_bound_size; j++) {
             EXPECT_NEAR(matrix_operator().element(bound_cov0, i, j),
@@ -404,60 +329,61 @@ TEST(path_correction, cartesian2D) {
     }
 }
 
+/// Test the path correction on a cylindrical surface (cylinder coordinates)
 TEST(path_correction, cylindrical) {
 
-    // Create a detector
-    detector_t det(env::resource);
+    using detector_t = env::tel_detector_t<cylinder2D<>>;
+    using mag_field_t = detector_t::bfield_type;
 
-    // Mask and material ID
-    constexpr auto mask_id = registry_type::mask_ids::e_cylinder2;
-    constexpr auto material_id = registry_type::material_ids::e_slab;
+    using matrix_operator = standard_matrix_operator<scalar>;
+    using transform3 = typename detector_t::transform3;
+    using vector2 = __plugin::vector2<scalar>;
+    using vector3 = typename transform3::vector3;
 
-    // Add a volume
-    det.new_volume(
-        volume_id::e_cylinder,
-        {0.f, 0.f, 0.f, 0.f, -constant<scalar>::pi, constant<scalar>::pi});
+    using navigator_t = navigator<detector_t, navigation::print_inspector>;
+    // Re-init the volume at every step, so that surface will be put into the
+    // navigation cache
+    using crk_stepper_t = rk_stepper<mag_field_t::view_t, transform3,
+                                     constrained_step<>, always_init>;
+    using actor_chain_t = actor_chain<
+        dtuple, target_aborter, pathlimit_aborter, propagation::print_inspector,
+        parameter_transporter<transform3>, parameter_resetter<transform3>>;
+    using propagator_t = propagator<crk_stepper_t, navigator_t, actor_chain_t>;
 
-    typename detector_t::surface_container surfaces(&env::resource);
-    typename detector_t::transform_container transforms(env::resource);
-    typename detector_t::mask_container masks(env::resource);
-    typename detector_t::material_container materials(env::resource);
+    // B field
+    const vector3 B{0.f, 0.f, 1.f * unit<scalar>::T};
+    mag_field_t mag_field(
+        mag_field_t::backend_t::configuration_t{B[0], B[1], B[2]});
 
-    // Add a surface
-    mask_link_type mask_link{mask_id, 0u};
-    material_link_type material_link{material_id, 0u};
-    surfaces.emplace_back(0u, mask_link, material_link, 0u, dindex_invalid,
-                          surface_id::e_sensitive);
-
-    // Add a transform
-    const vector3 t{-50.f * unit<scalar>::mm, 0.f, 0.f};
-    const vector3 z{0.f, 0.f, 1.f};
-    const vector3 x{1.f, 0.f, 0.f};
-    transforms.emplace_back(env::ctx, t, z, x);
-
-    // Add a mask
-    const scalar r{50.f * unit<scalar>::mm};
-    const scalar half_length_1{1000.f * unit<scalar>::mm};
-    const scalar half_length_2{1000.f * unit<scalar>::mm};
-    masks.template emplace_back<mask_id>(empty_context{}, 0u, r, half_length_1,
-                                         half_length_2);
-
-    // Add a material
-    const material<scalar> mat = silicon<scalar>();
-    const scalar thickness{2.f * unit<scalar>::mm};
-    materials.template emplace_back<material_id>(empty_context{}, mat,
-                                                 thickness);
-
-    typename detector_t::volume_type &vol = det.volume_by_index(0);
-    det.add_objects_per_volume(env::ctx, vol, surfaces, masks, transforms,
-                               materials);
-
-    // Generate track starting point
+    // Generate track starting point: loc phi=0 with direction pointing upwards
+    // along global y-axis and x- and y-axis get switched
     vector2 local{0.f, 0.f};
-    vector3 mom{1.f * unit<scalar>::MeV, 0.f, 0.f};
-
+    vector3 mom{0.f, 1.f * unit<scalar>::MeV, 0.f};
     scalar time{0.f};
     scalar q{-1.f};
+
+    // Path radius and path length per turn
+    const scalar r{getter::perp(mom) / getter::norm(B)};
+    const scalar S{2.f * constant<scalar>::pi * r};
+    // Maximum distance to propagate
+    const scalar path_limit{1.01f * S};
+
+    // Use 2-dimensional cylinder surface
+    const scalar max_r{0.5f * r};
+    const scalar n_half_z{-0.9f * r};
+    const scalar p_half_z{0.9f * r};
+    mask<cylinder2D<>> cyl{0u, max_r, n_half_z, p_half_z};
+
+    // Used to build the telescope detector along x-axis, this rotates the
+    // cylinder so that its axis lies along x
+    detail::ray<transform3> pilot_traj{
+        {0.f, 0.f, 0.f}, time, {1.f, 0.f, 0.f}, q};
+
+    // Build telescope detector with a single cylinder surfaces and an envelope
+    // between the surface and the portals that allows to propagate a full turn
+    const auto det = create_telescope_detector(
+        env::resource, std::move(mag_field), cyl, 1u, S, env::mat,
+        env::thickness, pilot_traj, 1.75f * r + max_r);
 
     // bound vector
     typename bound_track_parameters<transform3>::vector_type bound_vector;
@@ -485,31 +411,38 @@ TEST(path_correction, cylindrical) {
 
     // Actors
     target_aborter::state targeter{0u};
+    pathlimit_aborter::state pathlimit_state{path_limit};
+    propagation::print_inspector::state print_insp_state{};
     parameter_transporter<transform3>::state bound_updater{};
     parameter_resetter<transform3>::state rst{};
 
     propagator_t p({}, {});
-    propagator_t::state propagation(bound_param0, env::mag_field, det);
-
+    propagator_t::state propagation(bound_param0, det.get_bfield(), det);
     crk_stepper_t::state &crk_state = propagation._stepping;
 
+    // The track is strongly bent, allow for overstepping
+    crk_state().set_overstep_tolerance(-1.f * unit<scalar>::um);
+
     // RK stepper and its state
-    EXPECT_NEAR(crk_state().pos()[0], 0.f, env::tol);  // x
-    EXPECT_NEAR(crk_state().pos()[1], 0.f, env::tol);  // y
-    EXPECT_NEAR(crk_state().pos()[2], 0.f, env::tol);  // z
+    EXPECT_NEAR(crk_state().pos()[0], 0.f, env::tol);    // x
+    EXPECT_NEAR(crk_state().pos()[1], max_r, env::tol);  // y
+    EXPECT_NEAR(crk_state().pos()[2], 0.f, env::tol);    // z
 
-    // Decrease tolerance down to 1e-8
-    crk_state._tolerance = env::rk_tolerance;
-
-    // Path length per turn
-    scalar S{2.f * getter::perp(mom) / getter::norm(env::B) *
-             constant<scalar>::pi};
-    // Constrain the step size to force frequent re-navigation for this
-    // strongly bent track
-    crk_state.template set_constraint<step::constraint::e_accuracy>(0.1f * S);
+    // Retrieve navigation information
+    auto &debug_printer = propagation._navigation.inspector();
 
     // Run propagator
-    p.propagate(propagation, std::tie(targeter, bound_updater, rst));
+    ASSERT_TRUE(p.propagate(
+        propagation, std::tie(targeter, pathlimit_state, print_insp_state,
+                              bound_updater, rst)))
+        << print_insp_state.to_string() << debug_printer.to_string();
+
+    // Make sure, the track was propagated to the end
+    ASSERT_NEAR(crk_state.path_length(), S, env::tol)
+        << print_insp_state.to_string() << debug_printer.to_string();
+    EXPECT_NEAR(crk_state().pos()[0], 0.f, env::tol);    // x
+    EXPECT_NEAR(crk_state().pos()[1], max_r, env::tol);  // y
+    EXPECT_NEAR(crk_state().pos()[2], 0.f, env::tol);    // z
 
     // Bound state after one turn propagation
     const auto bound_param1 = crk_state._bound_params;
@@ -526,11 +459,11 @@ TEST(path_correction, cylindrical) {
                     matrix_operator().element(bound_vec1, i, 0u), env::tol);
     }
 
-    // covaraince
+    // covariance
     for (unsigned int i = 0u; i < e_bound_size; i++) {
         for (unsigned int j = 0u; j < e_bound_size; j++) {
             EXPECT_NEAR(matrix_operator().element(bound_cov0, i, j),
                         matrix_operator().element(bound_cov1, i, j), env::tol);
         }
     }
-}*/
+}
