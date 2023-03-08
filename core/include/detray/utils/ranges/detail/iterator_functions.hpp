@@ -4,6 +4,7 @@
  *
  * Mozilla Public License Version 2.0
  */
+
 #pragma once
 
 // Thrust include(s)

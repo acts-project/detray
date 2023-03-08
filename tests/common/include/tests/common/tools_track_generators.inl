@@ -72,7 +72,7 @@ TEST(tools, uniform_track_generator) {
     }
     ASSERT_EQ(momenta.size(), n_tracks);
 
-    // Genrate rays
+    // Generate rays
     n_tracks = 0u;
     for (const auto r : uniform_track_generator<detail::ray<transform3>>(
              theta_steps, phi_steps)) {

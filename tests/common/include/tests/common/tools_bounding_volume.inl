@@ -316,7 +316,7 @@ TEST(tools, wrap_bounding_cuboid3D) {
     box_t b3{0u, -1.5f, -0.1f, -2.f, 0.f, 0.1f, 2.f};
     box_t b4{0u, 0.f, 0.f, 0.f, 2.f, 2.f, 10.f};
 
-    std::vector<const box_t*> boxes = {&b1, &b2, &b3, &b4};
+    std::vector<box_t> boxes = {b1, b2, b3, b4};
 
     box_t aabb{boxes, 0u, envelope};
 

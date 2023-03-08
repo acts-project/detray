@@ -201,8 +201,8 @@ TEST_P(TelescopeDetectorSimulation, telescope_detector_simulation) {
     vecmem::host_memory_resource host_mr;
 
     // Use rectangle surfaces
-    mask<unbounded<rectangle2D<>>> rectangle{0u, 20.f * unit<scalar>::mm,
-                                             20.f * unit<scalar>::mm};
+    mask<rectangle2D<>> rectangle{0u, 1000.f * unit<scalar>::mm,
+                                  1000.f * unit<scalar>::mm};
 
     // Build from given module positions
     std::vector<scalar> positions = {0.f,   50.f,  100.f, 150.f, 200.f, 250.f,
@@ -212,10 +212,9 @@ TEST_P(TelescopeDetectorSimulation, telescope_detector_simulation) {
     const scalar thickness = 0.17f * unit<scalar>::cm;
 
     // Detector type
-    using detector_type =
-        detray::detector<detray::detector_registry::template telescope_detector<
-                             unbounded<rectangle2D<>>>,
-                         covfie::field>;
+    using detector_type = detray::detector<
+        detray::detector_registry::template telescope_detector<rectangle2D<>>,
+        covfie::field>;
 
     // Create B field
     const vector3 B{0.f, 0.f, 2.f * unit<scalar>::T};
@@ -270,7 +269,7 @@ TEST_P(TelescopeDetectorSimulation, telescope_detector_simulation) {
 
         // Make sure that number of measurements is equal to the number of
         // physical planes
-        ASSERT_EQ(measurements.size(), positions.size() - 2u);
+        ASSERT_EQ(measurements.size(), positions.size());
     }
 }
 

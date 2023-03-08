@@ -5,6 +5,8 @@
  * Mozilla Public License Version 2.0
  */
 
+#pragma once
+
 #if defined(array)
 #include "detray/plugins/algebra/array_definitions.hpp"
 #elif defined(eigen)
@@ -28,8 +30,6 @@
 
 // Thrust include(s)
 #include <thrust/tuple.h>
-
-#pragma once
 
 using namespace detray;
 

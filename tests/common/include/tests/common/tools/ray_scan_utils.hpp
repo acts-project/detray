@@ -5,8 +5,11 @@
  * Mozilla Public License Version 2.0
  */
 
+#pragma once
+
 #include <algorithm>
 #include <cmath>
+#include <functional>
 #include <iostream>
 #include <iterator>
 #include <set>

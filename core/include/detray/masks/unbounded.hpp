@@ -66,23 +66,27 @@ class unbounded {
 
     /// @brief Lower and upper point for minimal axis aligned bounding box.
     ///
-    /// Computes the min and max vertices in a local cartesian frame.
+    /// Computes the min and max vertices in a local cartesian frame of the
+    /// shape it wraps.
+    ///
+    /// @note The @c check_boundaries method will return 'inside' for points
+    /// that are outside the local min bounds! This results in the bounding box
+    /// to behave reasonably in a BVH, but still be always intersected
+    /// successfully when queried directly.
     ///
     /// @param bounds the boundary values for this shape
     /// @param env dynamic envelope around the shape
     ///
     /// @returns and array of coordinates that contains the lower point (first
-    /// three values) and the upper point (latter three values) .
+    /// three values) and the upper point (latter three values).
     template <
         typename algebra_t, template <typename, std::size_t> class bounds_t,
         typename scalar_t, std::size_t kDIM,
         typename std::enable_if_t<kDIM == boundaries::e_size, bool> = true>
     DETRAY_HOST_DEVICE constexpr std::array<scalar_t, 6> local_min_bounds(
-        const bounds_t<scalar_t, kDIM>& /*bounds*/,
-        const scalar_t /*env*/ =
-            std::numeric_limits<scalar_t>::epsilon()) const {
-        constexpr scalar_t inf{std::numeric_limits<scalar_t>::infinity()};
-        return {-inf, -inf, -inf, inf, inf, inf};
+        const bounds_t<scalar_t, kDIM>& bounds,
+        const scalar_t env = std::numeric_limits<scalar_t>::epsilon()) const {
+        return shape{}.template local_min_bounds<algebra_t>(bounds, env);
     }
 
     template <typename param_t>

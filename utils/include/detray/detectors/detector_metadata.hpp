@@ -280,17 +280,27 @@ struct telescope_metadata {
     using transform_store = single_store<__plugin::transform3<detray::scalar>,
                                          vector_t, geometry_context>;
 
-    /// Give your mask types a name (needs to be consecutive to be matched
-    /// to a type!)
+    /// Rectangles are always needed as portals. Only one mask shape is allowed
+    /// in addition
     enum class mask_ids {
-        e_mask = 0,
+        e_portal_rectangle2 = 0,
+        e_rectangle2 = 0,
+        e_annulus2 = 1,
+        e_cylinder2 = 1,
+        e_ring2 = 1,
+        e_trapezoid2 = 1,
+        e_unbounded = 1
     };
 
     /// How to store and link masks
     template <template <typename...> class tuple_t = dtuple,
               template <typename...> class vector_t = dvector>
-    using mask_store = regular_multi_store<mask_ids, empty_context, tuple_t,
-                                           vector_t, mask<mask_shape_t>>;
+    using mask_store = std::conditional_t<
+        std::is_same_v<mask<mask_shape_t>, rectangle>,
+        regular_multi_store<mask_ids, empty_context, tuple_t, vector_t,
+                            rectangle>,
+        regular_multi_store<mask_ids, empty_context, tuple_t, vector_t,
+                            rectangle, mask<mask_shape_t>>>;
 
     /// Give your material types a name (needs to be consecutive to be matched
     /// to a type!)

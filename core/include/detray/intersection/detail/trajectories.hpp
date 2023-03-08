@@ -16,6 +16,7 @@
 // System include(s).
 #include <cmath>
 #include <limits>
+#include <ostream>
 
 namespace detray {
 
@@ -70,6 +71,19 @@ class ray {
     /// @returns overstep tolerance to comply with track interface
     DETRAY_HOST_DEVICE
     scalar_type overstep_tolerance() const { return _overstep_tolerance; }
+
+    /// Print
+    DETRAY_HOST
+    friend std::ostream &operator<<(std::ostream &os, const ray &r) {
+        os << "ray: ";
+        os << "ori = [" << r._pos[0] << ", " << r._pos[1] << ", " << r._pos[2]
+           << "], ";
+        os << "dir = [" << r._dir[0] << ", " << r._dir[1] << ", " << r._dir[2]
+           << "], ";
+        os << "tol = " << r._overstep_tolerance << std::endl;
+
+        return os;
+    }
 
     private:
     /// origin of ray
