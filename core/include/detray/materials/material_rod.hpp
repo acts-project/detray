@@ -71,10 +71,12 @@ struct material_rod {
                                sin_incidence_angle_2);
     }
     /// Return the path segment in X0
+    DETRAY_HOST_DEVICE
     scalar_type path_segment_in_X0(const line_plane_intersection& is) const {
         return this->path_segment(is) / m_material.X0();
     }
     /// Return the path segment in L0
+    DETRAY_HOST_DEVICE
     scalar_type path_segment_in_L0(const line_plane_intersection& is) const {
         return this->path_segment(is) / m_material.L0();
     }
