@@ -22,6 +22,11 @@ namespace detray {
 template <typename stepper_t, typename navigator_t, typename actor_chain_t>
 struct propagator {
 
+    using stepper_type = stepper_t;
+    using navigator_type = navigator_t;
+    using intersection_type = typename navigator_type::intersection_type;
+    using detector_type = typename navigator_type::detector_type;
+    using actor_chain_type = actor_chain_t;
     using transform3_type = typename stepper_t::transform3_type;
     using free_track_parameters_type =
         typename stepper_t::free_track_parameters_type;
@@ -62,7 +67,7 @@ struct propagator {
         /// @param candidates buffer for intersections in the navigator
         DETRAY_HOST_DEVICE state(
             const free_track_parameters_type &t_in, const detector_type &det,
-            vector_type<line_plane_intersection> &&candidates = {})
+            vector_type<intersection_type> &&candidates = {})
             : _stepping(t_in),
               _navigation(det, std::move(candidates)),
               m_param_type(parameter_type::e_free) {}
@@ -71,7 +76,7 @@ struct propagator {
         DETRAY_HOST_DEVICE state(
             const free_track_parameters_type &t_in,
             const field_t &magnetic_field, const detector_type &det,
-            vector_type<line_plane_intersection> &&candidates = {})
+            vector_type<intersection_type> &&candidates = {})
             : _stepping(t_in, magnetic_field),
               _navigation(det, std::move(candidates)),
               m_param_type(parameter_type::e_free) {}
@@ -79,7 +84,7 @@ struct propagator {
         /// Construct the propagation state with bound parameter
         DETRAY_HOST_DEVICE state(
             const bound_track_parameters_type &param, const detector_type &det,
-            vector_type<line_plane_intersection> &&candidates = {})
+            vector_type<intersection_type> &&candidates = {})
             : _stepping(param, det),
               _navigation(det, std::move(candidates)),
               m_param_type(parameter_type::e_bound) {}
@@ -89,7 +94,7 @@ struct propagator {
         DETRAY_HOST_DEVICE state(
             const bound_track_parameters_type &param,
             const field_t &magnetic_field, const detector_type &det,
-            vector_type<line_plane_intersection> &&candidates = {})
+            vector_type<intersection_type> &&candidates = {})
             : _stepping(param, magnetic_field, det),
               _navigation(det, std::move(candidates)),
               m_param_type(parameter_type::e_bound) {}
