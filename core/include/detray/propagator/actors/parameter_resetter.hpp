@@ -77,10 +77,6 @@ struct parameter_resetter : actor {
             // Surface
             const auto& surface = det->surfaces(navigation.current_object());
 
-            // Set surface link
-            stepping._bound_params.set_surface_link(
-                navigation.current_object());
-
             mask_store.template visit<kernel>(
                 surface.mask(), trf_store[surface.transform()], stepping);
         }
