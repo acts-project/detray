@@ -34,6 +34,9 @@ struct cylindrical3 final : public coordinate_base<cylindrical3, transform3_t> {
     /// Vector in 3D space
     using vector3 = typename base_type::vector3;
 
+    // Local point type in 3D cylindrical coordinates
+    using loc_point = point3;
+
     /// @}
 
     /** This method transform from a point from 3D cartesian frame to a 3D

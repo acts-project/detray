@@ -50,17 +50,16 @@ struct particle_gun {
         const auto &tf_store = detector.transform_store();
 
         for (const auto &volume : detector.volumes()) {
-            for (const auto [sf_idx, sf] :
-                 detray::views::enumerate(detector.surfaces(), volume)) {
+            for (const auto &sf : detector.surfaces(volume)) {
 
                 // Retrieve candidate from the surface
                 // NOTE: Change to interection_initialize
                 intersection_type sfi;
                 if constexpr (std::is_same_v<trajectory_t, helix_type>) {
-                    sfi = mask_store.template call<helix_intersection_update>(
+                    sfi = mask_store.template visit<helix_intersection_update>(
                         sf.mask(), traj, sf, tf_store, 1e-4f);
                 } else {
-                    sfi = mask_store.template call<intersection_update>(
+                    sfi = mask_store.template visit<intersection_update>(
                         sf.mask(), traj, sf, tf_store);
                 }
                 // Candidate is invalid if it oversteps too far (this is neg!)
@@ -71,7 +70,7 @@ struct particle_gun {
                 if (sfi.status == intersection::status::e_inside &&
                     sfi.direction == intersection::direction::e_along) {
                     // Volume the candidate belongs to
-                    sfi.index = sf_idx;
+                    sfi.barcode = sf.barcode();
                     intersection_record.emplace_back(volume.index(), sfi);
                 }
             }

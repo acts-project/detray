@@ -18,8 +18,6 @@ namespace detray {
  */
 struct intersection_initialize {
 
-    using output_type = std::size_t;
-
     /** Operator function to initalize intersections
      *
      * @tparam mask_group_t is the input mask group type found by variadic
@@ -41,7 +39,7 @@ struct intersection_initialize {
     template <typename mask_group_t, typename mask_range_t,
               typename is_container_t, typename traj_t, typename surface_t,
               typename transform_container_t>
-    DETRAY_HOST_DEVICE inline output_type operator()(
+    DETRAY_HOST_DEVICE inline std::size_t operator()(
         const mask_group_t &mask_group, const mask_range_t &mask_range,
         is_container_t &is_container, const traj_t &traj,
         const surface_t &surface,
@@ -62,8 +60,7 @@ struct intersection_initialize {
             for (auto &is : sfi) {
                 if (is.status == intersection::status::e_inside &&
                     is.path >= traj.overstep_tolerance()) {
-                    // is.mask_index = mask_index;
-                    is.index = surface.volume();
+                    is.barcode = surface.barcode();
                     is.sf_id = surface.id();
                     is_container.push_back(is);
                     count++;
@@ -83,8 +80,6 @@ struct intersection_initialize {
  * surface
  */
 struct intersection_update {
-
-    using output_type = line_plane_intersection;
 
     /** Operator function to update the intersection
      *
@@ -106,7 +101,7 @@ struct intersection_update {
      */
     template <typename mask_group_t, typename mask_range_t, typename traj_t,
               typename surface_t, typename transform_container_t>
-    DETRAY_HOST_DEVICE inline output_type operator()(
+    DETRAY_HOST_DEVICE inline line_plane_intersection operator()(
         const mask_group_t &mask_group, const mask_range_t &mask_range,
         const traj_t &traj, const surface_t &surface,
         const transform_container_t &contextual_transforms,
@@ -123,14 +118,14 @@ struct intersection_update {
 
             if (sfi[0].status == intersection::status::e_inside &&
                 sfi[0].path >= traj.overstep_tolerance()) {
-                sfi[0].index = surface.volume();
+                sfi[0].barcode = surface.barcode();
                 sfi[0].sf_id = surface.id();
                 return sfi[0];
             }
         }
 
         // return null object if the intersection is not valid anymore
-        return output_type{};
+        return {};
     }
 };
 

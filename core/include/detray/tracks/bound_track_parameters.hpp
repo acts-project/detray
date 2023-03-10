@@ -11,6 +11,7 @@
 #include "detray/definitions/indexing.hpp"
 #include "detray/definitions/qualifiers.hpp"
 #include "detray/definitions/track_parametrization.hpp"
+#include "detray/geometry/barcode.hpp"
 #include "detray/tracks/detail/track_helper.hpp"
 
 namespace detray {
@@ -44,21 +45,21 @@ struct bound_track_parameters {
 
     DETRAY_HOST_DEVICE
     bound_track_parameters()
-        : m_surface_link(dindex_invalid),
+        : m_barcode(dindex_invalid),
           m_vector(matrix_operator().template zero<e_bound_size, 1>()),
           m_covariance(
               matrix_operator().template zero<e_bound_size, e_bound_size>()) {}
 
     DETRAY_HOST_DEVICE
-    bound_track_parameters(const dindex sf_idx, const vector_type& vec,
-                           const covariance_type& cov)
-        : m_surface_link(sf_idx), m_vector(vec), m_covariance(cov) {}
+    bound_track_parameters(const geometry::barcode sf_idx,
+                           const vector_type& vec, const covariance_type& cov)
+        : m_barcode(sf_idx), m_vector(vec), m_covariance(cov) {}
 
     /** @param rhs is the left hand side params for comparison
      **/
     DETRAY_HOST_DEVICE
     bool operator==(const bound_track_parameters& rhs) const {
-        if (m_surface_link != rhs.surface_link()) {
+        if (m_barcode != rhs.surface_link()) {
             return false;
         }
 
@@ -88,10 +89,10 @@ struct bound_track_parameters {
     }
 
     DETRAY_HOST_DEVICE
-    const dindex& surface_link() const { return m_surface_link; }
+    const geometry::barcode& surface_link() const { return m_barcode; }
 
     DETRAY_HOST_DEVICE
-    void set_surface_link(dindex link) { m_surface_link = link; }
+    void set_surface_link(geometry::barcode link) { m_barcode = link; }
 
     DETRAY_HOST_DEVICE
     vector_type& vector() { return m_vector; }
@@ -159,7 +160,7 @@ struct bound_track_parameters {
     vector3 mom() const { return this->p() * this->dir(); }
 
     private:
-    std::size_t m_surface_link;
+    geometry::barcode m_barcode;
     vector_type m_vector;
     covariance_type m_covariance;
 };

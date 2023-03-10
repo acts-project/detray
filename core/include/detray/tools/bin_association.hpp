@@ -91,7 +91,7 @@ static inline void bin_association(const context_t & /*context*/,
 
                     auto vertices_per_masks =
                         surface_masks
-                            .template call<vertexer<point2_t, point3_t>>(
+                            .template visit<vertexer<point2_t, point3_t>>(
                                 sf.mask());
 
                     // Usually one mask per surface, but design allows - a
@@ -164,7 +164,7 @@ static inline void bin_association(const context_t & /*context*/,
 
                     auto vertices_per_masks =
                         surface_masks
-                            .template call<vertexer<point2_t, point3_t>>(
+                            .template visit<vertexer<point2_t, point3_t>>(
                                 sf.mask());
 
                     for (auto &vertices : vertices_per_masks) {

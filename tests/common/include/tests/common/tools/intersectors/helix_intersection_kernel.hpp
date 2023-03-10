@@ -19,8 +19,6 @@ namespace detray {
 /// surface
 struct helix_intersection_update {
 
-    using output_type = line_plane_intersection;
-
     /// Operator function to update the intersection
     ///
     /// @tparam mask_group_t is the input mask group type found by variadic
@@ -39,7 +37,7 @@ struct helix_intersection_update {
     ///
     template <typename mask_group_t, typename mask_range_t, typename traj_t,
               typename surface_t, typename transform_container_t>
-    DETRAY_HOST_DEVICE inline output_type operator()(
+    DETRAY_HOST_DEVICE inline line_plane_intersection operator()(
         const mask_group_t &mask_group, const mask_range_t &mask_range,
         const traj_t &traj, const surface_t &surface,
         const transform_container_t &contextual_transforms,
@@ -72,7 +70,7 @@ struct helix_intersection_update {
 
                 if (sfi[0].status == intersection::status::e_inside and
                     sfi[0].path >= traj.overstep_tolerance()) {
-                    sfi[0].index = surface.volume();
+                    sfi[0].barcode = surface.barcode();
                     return sfi[0];
                 }
 
@@ -86,14 +84,14 @@ struct helix_intersection_update {
 
                 if (sfi[0].status == intersection::status::e_inside and
                     sfi[0].path >= traj.overstep_tolerance()) {
-                    sfi[0].index = surface.volume();
+                    sfi[0].barcode = surface.barcode();
                     return sfi[0];
                 }
             }
         }
 
         // return null object if the intersection is not valid anymore
-        return output_type{};
+        return {};
     }
 };
 

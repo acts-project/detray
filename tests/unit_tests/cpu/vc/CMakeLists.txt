@@ -10,6 +10,7 @@ detray_add_test( vc_array
    "vc_array_annulus2D.cpp"
    "vc_array_axis_rotation.cpp"
    "vc_array_bounding_volume.cpp"
+   "vc_array_brute_force_finder.cpp"
    "vc_array_check_simulation.cpp"
    "vc_array_container.cpp"
    "vc_array_coordinate_cartesian2.cpp"

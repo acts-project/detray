@@ -103,9 +103,8 @@ TEST(ALGEBRA_PLUGIN, telescope_detector) {
         create_telescope_detector(host_mr, rectangle, n_surfaces, tel_length);
 
     // Compare
-    for (std::size_t i = 0u; i < z_tel_det1.surfaces().size(); ++i) {
-        EXPECT_TRUE(z_tel_det1.surface_by_index(i) ==
-                    z_tel_det2.surface_by_index(i));
+    for (std::size_t i{0u}; i < z_tel_det1.surfaces().size(); ++i) {
+        EXPECT_TRUE(z_tel_det1.surfaces(i) == z_tel_det2.surfaces(i));
     }
 
     //

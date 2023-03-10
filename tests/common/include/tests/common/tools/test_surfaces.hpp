@@ -7,9 +7,7 @@
 
 #pragma once
 
-#include <functional>
-#include <vecmem/memory/host_memory_resource.hpp>
-
+// Project include(s)
 #include "detray/definitions/indexing.hpp"
 #include "detray/geometry/surface.hpp"
 #include "detray/grids/axis.hpp"
@@ -20,11 +18,17 @@
 #include "detray/tools/local_object_finder.hpp"
 #include "detray/utils/ranges.hpp"
 
+// Vecmem include(s)
+#include <vecmem/memory/host_memory_resource.hpp>
+
+// System include(s)
+#include <functional>
+
 namespace detray {
 
-vecmem::host_memory_resource host_mr;
+namespace {
 
-using namespace vector;
+vecmem::host_memory_resource host_mr;
 
 // TODO: Remove Cyclic dependendy with benchmark_intersec_surfaces.inl types
 enum plane_mask_ids : unsigned int {
@@ -45,26 +49,28 @@ using plane_material_link_t = dtyped_index<plane_material_ids, dindex>;
 using binned_neighborhood = darray<darray<dindex, 2>, 2>;
 
 /// This method creates a number (distances.size()) planes along a direction
-dvector<surface<plane_mask_link_t, plane_material_link_t, transform3>>
-planes_along_direction(dvector<scalar> distances, vector3 direction) {
+[[maybe_unused]] dvector<
+    surface<plane_mask_link_t, plane_material_link_t, transform3>>
+planes_along_direction(const dvector<scalar> &distances, vector3 direction) {
     // Rotation matrix
     vector3 z = direction;
-    vector3 x = normalize(vector3{0.f, -z[2], z[1]});
+    vector3 x = vector::normalize(vector3{0.f, -z[2], z[1]});
 
     dvector<surface<plane_mask_link_t, plane_material_link_t, transform3>>
-        return_surfaces;
-    return_surfaces.reserve(distances.size());
+        surfaces;
+    surfaces.reserve(distances.size());
     for (const auto [idx, d] : detray::views::enumerate(distances)) {
         vector3 t = d * direction;
         transform3 trf(t, z, x);
         plane_mask_link_t mask_link{plane_mask_ids::e_plane_rectangle2, idx};
         plane_material_link_t material_link{plane_material_ids::e_plane_slab,
                                             0u};
-        return_surfaces.emplace_back(std::move(trf), std::move(mask_link),
-                                     std::move(material_link), 0u, false,
-                                     surface_id::e_sensitive);
+        surfaces.emplace_back(std::move(trf), std::move(mask_link),
+                              std::move(material_link), 0u, false,
+                              surface_id::e_sensitive);
+        surfaces.back().set_barcode(idx);
     }
-    return return_surfaces;
+    return surfaces;
 }
 
 using cylinder_point2 = __plugin::point2<detray::scalar>;
@@ -87,7 +93,8 @@ using endcap_surface_finder = std::function<dvector<dindex>(
 /// @param transform_offset The offset for the transform grid
 ///
 /// @returns a tuple for rectangle descriptions and transforms
-dtuple<darray<scalar, 3>, dvector<transform3>, dvector<endcap_surface_finder>>
+[[maybe_unused]] dtuple<darray<scalar, 3>, dvector<transform3>,
+                        dvector<endcap_surface_finder>>
 create_endcap_components(scalar inner_r, scalar outer_r, scalar pos_z,
                          scalar stagger_z, unsigned int n_phi,
                          scalar overlap_phi, scalar volume_inner_r,
@@ -197,7 +204,8 @@ using barrel_surface_finder = std::function<dvector<dindex>(
 /// @param transform_offset The offset for the transform grid
 ///
 /// @returns a tuple for rectangle descriptions, transforms, object finders
-dtuple<darray<scalar, 2>, dvector<transform3>, dvector<barrel_surface_finder>>
+[[maybe_unused]] dtuple<darray<scalar, 2>, dvector<transform3>,
+                        dvector<barrel_surface_finder>>
 create_barrel_components(scalar r, scalar stagger_r, unsigned int n_phi,
                          scalar tilt_phi, scalar overlap_rphi, scalar length_z,
                          scalar overlap_z, unsigned int n_z,
@@ -296,5 +304,7 @@ create_barrel_components(scalar r, scalar stagger_r, unsigned int n_phi,
             transforms,
             {inner_finder, outer_finder, ecn_finder, ecp_finder}};
 }
+
+}  // anonymous namespace
 
 }  // namespace detray

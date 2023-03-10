@@ -82,14 +82,14 @@ TEST(ALGEBRA_PLUGIN, guided_navigator) {
     // Check that navigator exited
     ASSERT_TRUE(nav_state.is_complete()) << debug_printer.to_string();
 
-    // sequence of surface ids we expect to see
-    const std::vector<dindex> sf_sequence = {0u, 1u, 2u, 3u, 4u,  5u,
-                                             6u, 7u, 8u, 9u, 10u, 11u};
+    // Sequence of surface ids we expect to see
+    const std::vector<geometry::barcode> sf_sequence = {
+        0u, 1u, 2u, 3u, 4u, 5u, 6u, 7u, 8u, 9u, 10u, 11u};
     // Check the surfaces that have been visited by the navigation
     EXPECT_EQ(obj_tracer.object_trace.size(), sf_sequence.size())
         << debug_printer.to_string();
     for (std::size_t i = 0u; i < sf_sequence.size(); ++i) {
         const auto &candidate = obj_tracer.object_trace[i];
-        EXPECT_TRUE(candidate.index == sf_sequence[i]);
+        EXPECT_TRUE(candidate.barcode == sf_sequence[i]);
     }
 }

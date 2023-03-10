@@ -173,6 +173,17 @@ class pick_view : public detray::ranges::view_interface<
           m_seq_begin{detray::ranges::cbegin(std::forward<sequence_t>(seq))},
           m_seq_end{detray::ranges::cend(std::forward<sequence_t>(seq))} {}
 
+    /// Copy constructor
+    DETRAY_HOST_DEVICE
+    constexpr pick_view(const pick_view &other)
+        : m_range_begin{other.m_range_begin},
+          m_range_end{other.m_range_end},
+          m_seq_begin{other.m_seq_begin},
+          m_seq_end{other.m_seq_end} {}
+
+    /// Default destructor
+    DETRAY_HOST_DEVICE ~pick_view() {}
+
     /// Copy assignment operator
     DETRAY_HOST_DEVICE
     pick_view &operator=(const pick_view &other) {

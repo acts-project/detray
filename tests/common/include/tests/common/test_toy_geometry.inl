@@ -17,30 +17,25 @@ namespace {
 /// Functor that returns the volume/sf_finder links of a particluar mask
 /// instance in the mask container of a detector
 struct volume_link_getter {
-    using output_type = dindex;
 
     template <typename mask_group_t, typename mask_range_t>
-    inline output_type operator()(mask_group_t& mask_group,
-                                  mask_range_t& mask_range) {
+    inline auto operator()(mask_group_t& mask_group, mask_range_t& mask_range) {
         return mask_group[mask_range].volume_link();
     }
 };
 
 /// Functor that tests the volume indices of surfaces in the grid
 struct surface_grid_tester {
-    using output_type = bool;
 
     /// Call for grid types
-    template <
-        typename grid_group_t, typename surface_container_t,
-        std::enable_if_t<not std::is_same_v<typename grid_group_t::value_type,
-                                            brute_force_finder>,
-                         bool> = true>
-    inline output_type operator()(const grid_group_t& grid_group,
-                                  const dindex grid_index,
-                                  const dindex volume_index,
-                                  const surface_container_t& surfaces,
-                                  const darray<dindex, 2>& /*range*/) {
+    template <typename grid_group_t, typename surface_container_t,
+              std::enable_if_t<
+                  not std::is_same_v<typename grid_group_t::grid_type, void>,
+                  bool> = true>
+    inline void operator()(const grid_group_t& grid_group,
+                           const dindex grid_index, const dindex volume_index,
+                           const surface_container_t& surfaces,
+                           const darray<dindex, 2>& /*range*/) {
 
         const auto& sf_grid = grid_group.at(grid_index);
 
@@ -64,18 +59,16 @@ struct surface_grid_tester {
             EXPECT_TRUE(std::find(indices.begin(), indices.end(), pti) !=
                         indices.end());
         }*/
-
-        return true;
     }
 
     /// Call for the brute force type (do nothing)
-    template <typename grid_group_t, typename surface_container_t,
-              std::enable_if_t<std::is_same_v<typename grid_group_t::value_type,
-                                              brute_force_finder>,
-                               bool> = true>
-    inline output_type operator()(const grid_group_t&, const dindex,
-                                  const dindex, const surface_container_t&,
-                                  const darray<dindex, 2>&) {
+    template <
+        typename grid_group_t, typename surface_container_t,
+        std::enable_if_t<std::is_same_v<typename grid_group_t::grid_type, void>,
+                         bool> = true>
+    inline bool operator()(const grid_group_t&, const dindex, const dindex,
+                           const surface_container_t&,
+                           const darray<dindex, 2>&) {
         return true;
     }
 };
@@ -93,14 +86,15 @@ TEST(ALGEBRA_PLUGIN, toy_geometry) {
         create_toy_geometry(host_mr, n_brl_layers, n_edc_layers);
 
     using detector_t = decltype(toy_det);
+    using geo_obj_ids = typename detector_t::geo_obj_ids;
     using volume_t = typename detector_t::volume_type;
     using geo_context_t = typename decltype(toy_det)::geometry_context;
     using mask_ids = typename detector_t::masks::id;
     using mask_link_t = typename detector_t::surface_type::mask_link;
-    using material_link_t = typename detector_t::surface_type::material_link;
     using material_ids = typename detector_t::materials::id;
+    using material_link_t = typename detector_t::surface_type::material_link;
     using sf_finder_ids = typename detector_t::sf_finders::id;
-    using sf_finder_link_t = typename volume_t::sf_finder_link_type;
+    using sf_finder_link_t = typename volume_t::link_type::index_type;
 
     geo_context_t ctx{};
     auto& volumes = toy_det.volumes();
@@ -146,12 +140,14 @@ TEST(ALGEBRA_PLUGIN, toy_geometry) {
      */
     auto test_volume_links =
         [&](decltype(volumes.begin())& vol_itr, const dindex vol_index,
-            const darray<scalar, 6>& bounds, const darray<dindex, 2>& range,
+            const darray<scalar, 6>& bounds, const darray<dindex, 1>& range,
             const sf_finder_link_t& /*sf_finder_link*/) {
             EXPECT_EQ(vol_itr->index(), vol_index);
             EXPECT_EQ(vol_itr->bounds(), bounds);
-            EXPECT_EQ(vol_itr->obj_link(), range);
-            // EXPECT_EQ(vol_itr->sf_finder_link(), sf_finder_link);
+            EXPECT_EQ(vol_itr->template link<geo_obj_ids::e_portal>().id(),
+                      sf_finder_ids::e_brute_force);
+            EXPECT_EQ(vol_itr->template link<geo_obj_ids::e_portal>().index(),
+                      range[0]);
         };
 
     /** Test the links of portals (into the next volume or invalid if we leave
@@ -173,10 +169,11 @@ TEST(ALGEBRA_PLUGIN, toy_geometry) {
                                  const dvector<dindex>&& volume_links) {
         for (dindex pti = range[0]; pti < range[1]; ++pti) {
             EXPECT_EQ(sf_itr->volume(), vol_index);
+            EXPECT_EQ(sf_itr->barcode(), pti);
             EXPECT_EQ(sf_itr->transform(), trf_index);
             EXPECT_EQ(sf_itr->mask(), mask_link);
             const auto volume_link =
-                masks.template call<volume_link_getter>(sf_itr->mask());
+                masks.template visit<volume_link_getter>(sf_itr->mask());
             EXPECT_EQ(volume_link, volume_links[pti - range[0]]);
             EXPECT_EQ(
                 materials
@@ -208,11 +205,12 @@ TEST(ALGEBRA_PLUGIN, toy_geometry) {
                                  const dvector<dindex>&& volume_links) {
         for (dindex pti = range[0]; pti < range[1]; ++pti) {
             EXPECT_EQ(sf_itr->volume(), vol_index);
+            EXPECT_EQ(sf_itr->barcode(), pti);
             EXPECT_EQ(sf_itr->transform(), trf_index);
             EXPECT_EQ(sf_itr->mask(), mask_index);
             EXPECT_EQ(sf_itr->material(), material_index);
             const auto volume_link =
-                masks.template call<volume_link_getter>(sf_itr->mask());
+                masks.template visit<volume_link_getter>(sf_itr->mask());
             EXPECT_EQ(volume_link, volume_links[0]);
             EXPECT_EQ(
                 materials
@@ -238,7 +236,7 @@ TEST(ALGEBRA_PLUGIN, toy_geometry) {
            const typename detector_t::surface_container& surface_cont,
            darray<dindex, 2>& range) {
             // Call test functor
-            sf_finder_cont.template call<surface_grid_tester>(
+            sf_finder_cont.template visit<surface_grid_tester>(
                 vol_itr->sf_finder_link(), vol_itr->index(), surface_cont,
                 range);
         };*/
@@ -251,14 +249,14 @@ TEST(ALGEBRA_PLUGIN, toy_geometry) {
     auto vol_itr = volumes.begin();
     darray<scalar, 6> bounds = {
         0.f, 27.f, -825.f, 825.f, -constant<scalar>::pi, constant<scalar>::pi};
-    darray<dindex, 2> range = {0u, 16u};
+    darray<dindex, 1> index = {0u};
     sf_finder_link_t sf_finder_link{sf_finder_ids::e_brute_force, 0u};
 
     // Test the links in the volumes
-    test_volume_links(vol_itr, 0u, bounds, range, sf_finder_link);
+    test_volume_links(vol_itr, 0u, bounds, index, sf_finder_link);
 
     // Check links of beampipe itself
-    range = {0u, 1u};
+    darray<dindex, 2> range = {0u, 1u};
     test_module_links(vol_itr->index(), surfaces.begin(), range, range[0],
                       {mask_ids::e_cylinder2, 0u}, {material_ids::e_slab, 0u},
                       beampipe_mat, {vol_itr->index()});
@@ -299,10 +297,11 @@ TEST(ALGEBRA_PLUGIN, toy_geometry) {
               -constant<scalar>::pi,
               constant<scalar>::pi};
     range = {16u, 128u};
+    index = {1u};
     sf_finder_link = {sf_finder_ids::e_disc_grid, 0u};
 
     // Test the links in the volumes
-    test_volume_links(vol_itr, 1u, bounds, range, sf_finder_link);
+    test_volume_links(vol_itr, 1u, bounds, index, sf_finder_link);
 
     // Check the trapezoid modules
     range = {16u, 124u};
@@ -344,10 +343,11 @@ TEST(ALGEBRA_PLUGIN, toy_geometry) {
               -constant<scalar>::pi,
               constant<scalar>::pi};
     range = {128u, 132u};
+    index = {2u};
     sf_finder_link = {sf_finder_ids::e_brute_force, 0u};
 
     // Test the links in the volumes
-    test_volume_links(vol_itr, 2u, bounds, range, sf_finder_link);
+    test_volume_links(vol_itr, 2u, bounds, index, sf_finder_link);
 
     // Check links of portals
     // cylinder portals
@@ -377,10 +377,11 @@ TEST(ALGEBRA_PLUGIN, toy_geometry) {
               -constant<scalar>::pi,
               constant<scalar>::pi};
     range = {132u, 244u};
+    index = {3u};
     sf_finder_link = {sf_finder_ids::e_disc_grid, 1u};
 
     // Test the links in the volumes
-    test_volume_links(vol_itr, 3u, bounds, range, sf_finder_link);
+    test_volume_links(vol_itr, 3u, bounds, index, sf_finder_link);
 
     // Check the trapezoid modules
     range = {132u, 240u};
@@ -421,10 +422,11 @@ TEST(ALGEBRA_PLUGIN, toy_geometry) {
               -constant<scalar>::pi,
               constant<scalar>::pi};
     range = {244u, 248u};
+    index = {4u};
     sf_finder_link = {sf_finder_ids::e_brute_force, 0u};
 
     // Test the links in the volumes
-    test_volume_links(vol_itr, 4u, bounds, range, sf_finder_link);
+    test_volume_links(vol_itr, 4u, bounds, index, sf_finder_link);
 
     // Check links of portals
     // cylinder portals
@@ -454,10 +456,11 @@ TEST(ALGEBRA_PLUGIN, toy_geometry) {
               -constant<scalar>::pi,
               constant<scalar>::pi};
     range = {248u, 360u};
+    index = {5u};
     sf_finder_link = {sf_finder_ids::e_disc_grid, 2u};
 
     // Test the links in the volumes
-    test_volume_links(vol_itr, 5u, bounds, range, sf_finder_link);
+    test_volume_links(vol_itr, 5u, bounds, index, sf_finder_link);
 
     // Check the trapezoid modules
     range = {248u, 356u};
@@ -498,10 +501,11 @@ TEST(ALGEBRA_PLUGIN, toy_geometry) {
               -constant<scalar>::pi,
               constant<scalar>::pi};
     range = {360u, 370u};
+    index = {6u};
     sf_finder_link = {sf_finder_ids::e_brute_force, 0u};
 
     // Test the links in the volumes
-    test_volume_links(vol_itr, 6u, bounds, range, sf_finder_link);
+    test_volume_links(vol_itr, 6u, bounds, index, sf_finder_link);
 
     // Check links of portals
     // cylinder portals
@@ -532,10 +536,11 @@ TEST(ALGEBRA_PLUGIN, toy_geometry) {
     bounds = {
         27.f, 38.f, -500.f, 500.f, -constant<scalar>::pi, constant<scalar>::pi};
     range = {370u, 598u};
+    index = {7u};
     sf_finder_link = {sf_finder_ids::e_cylinder_grid, 0u};
 
     // Test the links in the volumes
-    test_volume_links(vol_itr, 7u, bounds, range, sf_finder_link);
+    test_volume_links(vol_itr, 7u, bounds, index, sf_finder_link);
 
     // Check links of modules
     range = {370u, 594u};
@@ -572,10 +577,11 @@ TEST(ALGEBRA_PLUGIN, toy_geometry) {
     bounds = {
         38.f, 64.f, -500.f, 500.f, -constant<scalar>::pi, constant<scalar>::pi};
     range = {598u, 602u};
+    index = {8u};
     sf_finder_link = {sf_finder_ids::e_brute_force, 0u};
 
     // Test the links in the volumes
-    test_volume_links(vol_itr, 8u, bounds, range, sf_finder_link);
+    test_volume_links(vol_itr, 8u, bounds, index, sf_finder_link);
 
     // Check links of portals
     // cylinder portals
@@ -600,10 +606,11 @@ TEST(ALGEBRA_PLUGIN, toy_geometry) {
     bounds = {
         64.f, 80.f, -500.f, 500.f, -constant<scalar>::pi, constant<scalar>::pi};
     range = {602u, 1054u};
+    index = {9u};
     sf_finder_link = {sf_finder_ids::e_cylinder_grid, 1u};
 
     // Test the links in the volumes
-    test_volume_links(vol_itr, 9u, bounds, range, sf_finder_link);
+    test_volume_links(vol_itr, 9u, bounds, index, sf_finder_link);
 
     // Check links of modules
     range = {602u, 1050u};
@@ -644,10 +651,11 @@ TEST(ALGEBRA_PLUGIN, toy_geometry) {
               -constant<scalar>::pi,
               constant<scalar>::pi};
     range = {1054u, 1058u};
+    index = {10u};
     sf_finder_link = {sf_finder_ids::e_brute_force, 0u};
 
     // Test the links in the volumes
-    test_volume_links(vol_itr, 10u, bounds, range, sf_finder_link);
+    test_volume_links(vol_itr, 10u, bounds, index, sf_finder_link);
 
     // Check links of portals
     // cylinder portals
@@ -676,10 +684,11 @@ TEST(ALGEBRA_PLUGIN, toy_geometry) {
               -constant<scalar>::pi,
               constant<scalar>::pi};
     range = {1058u, 1790u};
+    index = {11u};
     sf_finder_link = {sf_finder_ids::e_cylinder_grid, 2u};
 
     // Test the links in the volumes
-    test_volume_links(vol_itr, 11u, bounds, range, sf_finder_link);
+    test_volume_links(vol_itr, 11u, bounds, index, sf_finder_link);
 
     // Check links of modules
     range = {1058u, 1786u};
@@ -720,10 +729,11 @@ TEST(ALGEBRA_PLUGIN, toy_geometry) {
               -constant<scalar>::pi,
               constant<scalar>::pi};
     range = {1790u, 1794u};
+    index = {12u};
     sf_finder_link = {sf_finder_ids::e_brute_force, 0u};
 
     // Test the links in the volumes
-    test_volume_links(vol_itr, 12u, bounds, range, sf_finder_link);
+    test_volume_links(vol_itr, 12u, bounds, index, sf_finder_link);
 
     // Check links of portals
     // cylinder portals
@@ -752,10 +762,11 @@ TEST(ALGEBRA_PLUGIN, toy_geometry) {
               -constant<scalar>::pi,
               constant<scalar>::pi};
     range = {1794u, 2890u};
+    index = {13u};
     sf_finder_link = {sf_finder_ids::e_cylinder_grid, 3u};
 
     // Test the links in the volumes
-    test_volume_links(vol_itr, 13u, bounds, range, sf_finder_link);
+    test_volume_links(vol_itr, 13u, bounds, index, sf_finder_link);
 
     // Check links of modules
     range = {1794u, 2886u};
@@ -797,10 +808,11 @@ TEST(ALGEBRA_PLUGIN, toy_geometry) {
     bounds = {
         27.f, 180.f, 500.f, 595.f, -constant<scalar>::pi, constant<scalar>::pi};
     range = {2890u, 2900u};
+    index = {14u};
     sf_finder_link = {sf_finder_ids::e_brute_force, 0u};
 
     // Test the links in the volumes
-    test_volume_links(vol_itr, 14u, bounds, range, sf_finder_link);
+    test_volume_links(vol_itr, 14u, bounds, index, sf_finder_link);
 
     // Check links of portals
     // cylinder portals
@@ -827,10 +839,11 @@ TEST(ALGEBRA_PLUGIN, toy_geometry) {
     bounds = {
         27.f, 180.f, 595.f, 605.f, -constant<scalar>::pi, constant<scalar>::pi};
     range = {2900u, 3012u};
+    index = {15u};
     sf_finder_link = {sf_finder_ids::e_disc_grid, 3u};
 
     // Test the links in the volumes
-    test_volume_links(vol_itr, 15u, bounds, range, sf_finder_link);
+    test_volume_links(vol_itr, 15u, bounds, index, sf_finder_link);
 
     // Check the trapezoid modules
     range = {2900u, 3008u};
@@ -867,10 +880,11 @@ TEST(ALGEBRA_PLUGIN, toy_geometry) {
     bounds = {
         27.f, 180.f, 605.f, 695.f, -constant<scalar>::pi, constant<scalar>::pi};
     range = {3012u, 3016u};
+    index = {16u};
     sf_finder_link = {sf_finder_ids::e_brute_force, 0u};
 
     // Test the links in the volumes
-    test_volume_links(vol_itr, 16u, bounds, range, sf_finder_link);
+    test_volume_links(vol_itr, 16u, bounds, index, sf_finder_link);
 
     // Check links of portals
     // cylinder portals
@@ -896,10 +910,11 @@ TEST(ALGEBRA_PLUGIN, toy_geometry) {
     bounds = {
         27.f, 180.f, 695.f, 705.f, -constant<scalar>::pi, constant<scalar>::pi};
     range = {3016u, 3128u};
+    index = {17u};
     sf_finder_link = {sf_finder_ids::e_disc_grid, 4u};
 
     // Test the links in the volumes
-    test_volume_links(vol_itr, 17u, bounds, range, sf_finder_link);
+    test_volume_links(vol_itr, 17u, bounds, index, sf_finder_link);
 
     // Check the trapezoid modules
     range = {3016u, 3124u};
@@ -936,10 +951,11 @@ TEST(ALGEBRA_PLUGIN, toy_geometry) {
     bounds = {
         27.f, 180.f, 705.f, 815.f, -constant<scalar>::pi, constant<scalar>::pi};
     range = {3128u, 3132u};
+    index = {18u};
     sf_finder_link = {sf_finder_ids::e_brute_force, 0u};
 
     // Test the links in the volumes
-    test_volume_links(vol_itr, 18u, bounds, range, sf_finder_link);
+    test_volume_links(vol_itr, 18u, bounds, index, sf_finder_link);
 
     // Check links of portals
     // cylinder portals
@@ -965,10 +981,11 @@ TEST(ALGEBRA_PLUGIN, toy_geometry) {
     bounds = {
         27.f, 180.f, 815.f, 825.f, -constant<scalar>::pi, constant<scalar>::pi};
     range = {3132u, 3244u};
+    index = {19u};
     sf_finder_link = {sf_finder_ids::e_disc_grid, 5u};
 
     // Test the links in the volumes
-    test_volume_links(vol_itr, 19u, bounds, range, sf_finder_link);
+    test_volume_links(vol_itr, 19u, bounds, index, sf_finder_link);
 
     // Check the trapezoid modules
     range = {3132u, 3240u};

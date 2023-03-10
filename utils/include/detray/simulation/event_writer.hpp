@@ -65,10 +65,9 @@ struct event_writer : actor {
     };
 
     struct measurement_kernel {
-        using output_type = std::array<scalar_type, 2>;
 
         template <typename mask_group_t, typename index_t>
-        inline output_type operator()(
+        inline std::array<scalar_type, 2> operator()(
             const mask_group_t& /*mask_group*/, const index_t& /*index*/,
             const bound_track_parameters<transform3_t>& bound_params,
             smearer_t& smearer) const {
@@ -114,9 +113,9 @@ struct event_writer : actor {
             const auto bound_params = stepping._bound_params;
             auto det = navigation.detector();
             const auto& mask_store = det->mask_store();
-            const auto& surface = det->surface_by_index(hit.geometry_id);
+            const auto& surface = det->surfaces(hit.geometry_id);
 
-            const auto local = mask_store.template call<measurement_kernel>(
+            const auto local = mask_store.template visit<measurement_kernel>(
                 surface.mask(), bound_params, writer_state.m_meas_smearer);
 
             meas.measurement_id = writer_state.m_hit_count;

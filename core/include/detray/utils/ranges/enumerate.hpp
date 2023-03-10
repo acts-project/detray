@@ -1,6 +1,6 @@
 /** Detray library, part of the ACTS project (R&D line)
  *
- * (c) 2022 CERN for the benefit of the ACTS project
+ * (c) 2022-2023 CERN for the benefit of the ACTS project
  *
  * Mozilla Public License Version 2.0
  */
@@ -190,6 +190,14 @@ class enumerate_view : public detray::ranges::view_interface<
         : m_begin{detray::ranges::begin(std::forward<range_t>(rng)), start},
           m_end{detray::ranges::end(std::forward<range_t>(rng)),
                 start + static_cast<dindex>(rng.size())} {}
+
+    /// Copy constructor
+    DETRAY_HOST_DEVICE
+    constexpr enumerate_view(const enumerate_view &other)
+        : m_begin{other.m_begin}, m_end{other.m_end} {}
+
+    /// Default destructor
+    DETRAY_HOST_DEVICE ~enumerate_view() {}
 
     /// Copy assignment operator
     DETRAY_HOST_DEVICE
