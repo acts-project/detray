@@ -254,7 +254,7 @@ TEST(material_interaction, telescope_geometry_energy_loss) {
         matrix_operator().template zero<e_bound_size, e_bound_size>();
 
     // bound track parameter at first physical plane
-    const bound_track_parameters<transform3> bound_param(1u, bound_vector,
+    const bound_track_parameters<transform3> bound_param(0u, bound_vector,
                                                          bound_cov);
 
     propagation::print_inspector::state print_insp_state{};
@@ -308,12 +308,9 @@ TEST(material_interaction, telescope_geometry_energy_loss) {
     // It is not perfectly precise as the track loses its energy during
     // propagation. However, since the energy loss << the track momentum,
     // the assumption is not very bad
-
-    // The navigation starts on the first surface, which is therefore not
-    // accounted
     const scalar dE{
         I.compute_energy_loss_bethe(is, slab, pdg, mass, q / iniP, q) *
-        static_cast<scalar>(positions.size() - 1u)};
+        static_cast<scalar>(positions.size())};
 
     // Check if the new energy after propagation is enough close to the
     // expected value
@@ -379,7 +376,7 @@ TEST(material_interaction, telescope_geometry_scattering_angle) {
         matrix_operator().template zero<e_bound_size, e_bound_size>();
 
     // bound track parameter
-    const bound_track_parameters<transform3> bound_param(1, bound_vector,
+    const bound_track_parameters<transform3> bound_param(0u, bound_vector,
                                                          bound_cov);
 
     std::size_t n_samples{100000u};
