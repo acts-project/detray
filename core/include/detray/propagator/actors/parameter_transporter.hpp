@@ -132,6 +132,7 @@ struct parameter_transporter : actor {
 
         // Do covariance transport when the track is on surface
         if (navigation.is_on_module()) {
+            auto& stepping = propagation._stepping;
 
             const auto* det = navigation.detector();
             const auto& trf_store = det->transform_store();
@@ -142,6 +143,10 @@ struct parameter_transporter : actor {
 
             mask_store.template visit<kernel>(
                 surface.mask(), trf_store[surface.transform()], propagation);
+
+            // Set surface link
+            stepping._bound_params.set_surface_link(
+                navigation.current_object());
         }
     }
 };  // namespace detray
