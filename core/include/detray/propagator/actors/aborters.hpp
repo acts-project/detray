@@ -93,4 +93,28 @@ struct target_aborter : actor {
     }
 };
 
+/// Aborter triggered when the next surface is reached
+struct next_surface_aborter : actor {
+    struct state {
+        // minimal step length to prevent from staying on the same surface
+        scalar min_step_length = 0.f;
+        bool success = false;
+    };
+
+    template <typename propagator_state_t>
+    DETRAY_HOST_DEVICE void operator()(state &abrt_state,
+                                       propagator_state_t &prop_state) const {
+
+        auto &navigation = prop_state._navigation;
+        auto &stepping = prop_state._stepping;
+
+        // Abort at the next sensitive surface
+        if (navigation.is_on_sensitive() &&
+            stepping._s > abrt_state.min_step_length) {
+            prop_state._heartbeat &= navigation.exit();
+            abrt_state.success = true;
+        }
+    }
+};
+
 }  // namespace detray
