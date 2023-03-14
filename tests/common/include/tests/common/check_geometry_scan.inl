@@ -10,7 +10,7 @@
 #include "detray/detectors/create_toy_geometry.hpp"
 #include "detray/geometry/volume_graph.hpp"
 #include "detray/intersection/detail/trajectories.hpp"
-#include "detray/simulation/track_generators.hpp"
+#include "detray/simulation/event_generator/track_generators.hpp"
 #include "tests/common/tools/hash_tree.hpp"
 #include "tests/common/tools/particle_gun.hpp"
 #include "tests/common/tools/ray_scan_utils.hpp"

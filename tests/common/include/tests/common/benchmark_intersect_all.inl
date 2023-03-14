@@ -10,7 +10,7 @@
 #include "detray/detectors/create_toy_geometry.hpp"
 #include "detray/detectors/detector_metadata.hpp"
 #include "detray/intersection/intersection_kernel.hpp"
-#include "detray/simulation/track_generators.hpp"
+#include "detray/simulation/event_generator/track_generators.hpp"
 #include "detray/tracks/tracks.hpp"
 #include "detray/utils/ranges.hpp"
 
