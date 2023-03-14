@@ -9,7 +9,7 @@
 
 #include "detray/definitions/units.hpp"
 #include "detray/intersection/detail/trajectories.hpp"
-#include "detray/simulation/track_generators.hpp"
+#include "detray/simulation/event_generator/track_generators.hpp"
 #include "detray/tracks/tracks.hpp"
 #include "detray/utils/statistics.hpp"
 

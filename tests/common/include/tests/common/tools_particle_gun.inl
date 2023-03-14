@@ -9,7 +9,7 @@
 #include "detray/definitions/units.hpp"
 #include "detray/detectors/create_toy_geometry.hpp"
 #include "detray/intersection/detail/trajectories.hpp"
-#include "detray/simulation/track_generators.hpp"
+#include "detray/simulation/event_generator/track_generators.hpp"
 #include "detray/tracks/tracks.hpp"
 #include "tests/common/tools/particle_gun.hpp"
 

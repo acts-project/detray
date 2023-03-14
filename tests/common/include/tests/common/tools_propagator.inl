@@ -22,7 +22,7 @@
 #include "detray/propagator/navigator.hpp"
 #include "detray/propagator/propagator.hpp"
 #include "detray/propagator/rk_stepper.hpp"
-#include "detray/simulation/track_generators.hpp"
+#include "detray/simulation/event_generator/track_generators.hpp"
 #include "detray/tracks/tracks.hpp"
 #include "tests/common/tools/inspectors.hpp"
 
@@ -214,7 +214,7 @@ TEST_P(PropagatorWithRkStepper, propagator_rk_stepper) {
     // Iterate through uniformly distributed momentum directions
     for (auto track :
          uniform_track_generator<track_t>(theta_steps, phi_steps, ori, mom)) {
-        // Genrate second track state used for propagation with pathlimit
+        // Generate second track state used for propagation with pathlimit
         track_t lim_track(track);
 
         track.set_overstep_tolerance(overstep_tol);

@@ -11,8 +11,8 @@
 #include "detray/io/utils.hpp"
 #include "detray/masks/masks.hpp"
 #include "detray/masks/unbounded.hpp"
+#include "detray/simulation/event_generator/track_generators.hpp"
 #include "detray/simulation/simulator.hpp"
-#include "detray/simulation/track_generators.hpp"
 #include "detray/utils/statistics.hpp"
 
 // VecMem include(s).

@@ -10,8 +10,8 @@
 
 // Project include(s).
 #include "detray/detectors/create_toy_geometry.hpp"
+#include "detray/simulation/event_generator/track_generators.hpp"
 #include "detray/simulation/simulator.hpp"
-#include "detray/simulation/track_generators.hpp"
 
 // VecMem include(s).
 #include <vecmem/memory/host_memory_resource.hpp>
