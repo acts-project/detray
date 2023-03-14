@@ -12,7 +12,7 @@
 #include "detray/intersection/detail/trajectories.hpp"
 #include "detray/masks/masks.hpp"
 #include "detray/materials/material_slab.hpp"
-#include "detray/simulation/track_generators.hpp"
+#include "detray/simulation/event_generator/track_generators.hpp"
 #include "tests/common/tools/test_surfaces.hpp"
 
 // Google Benchmark include(s)

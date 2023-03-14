@@ -13,7 +13,7 @@
 #include <vecmem/memory/cuda/managed_memory_resource.hpp>
 
 #include "benchmark_propagator_cuda_kernel.hpp"
-#include "detray/simulation/track_generators.hpp"
+#include "detray/simulation/event_generator/track_generators.hpp"
 #include "vecmem/utils/cuda/copy.hpp"
 
 using namespace detray;

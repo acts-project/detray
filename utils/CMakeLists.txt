@@ -14,11 +14,13 @@ detray_add_library( detray_utils utils
     "include/detray/detectors/create_toy_geometry.hpp"
     "include/detray/detectors/detector_metadata.hpp"
     # simulation include(s)
+    "include/detray/simulation/event_generator/random_track_generator.hpp"
+    "include/detray/simulation/event_generator/track_generators.hpp"
+    "include/detray/simulation/event_generator/uniform_track_generator.hpp"
     "include/detray/simulation/event_writer.hpp"
     "include/detray/simulation/measurement_smearer.hpp"
     "include/detray/simulation/random_scatterer.hpp"
     "include/detray/simulation/simulator.hpp"
-    "include/detray/simulation/track_generator.hpp"
 )
 
 target_link_libraries( detray_utils INTERFACE detray_core)
