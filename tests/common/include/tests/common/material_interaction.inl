@@ -324,6 +324,59 @@ TEST(material_interaction, telescope_geometry_energy_loss) {
 
     EXPECT_NEAR(new_var_qop, dvar_qop, 1e-10f);
 
+    /********************************
+     * Test with next_surface_aborter
+     *********************************/
+
+    using alt_actor_chain_t =
+        actor_chain<dtuple, propagation::print_inspector, pathlimit_aborter,
+                    parameter_transporter<transform3>, next_surface_aborter,
+                    interactor_t, parameter_resetter<transform3>>;
+    using alt_propagator_t =
+        propagator<stepper_t, navigator_t, alt_actor_chain_t>;
+
+    bound_track_parameters<transform3> alt_bound_param(0u, bound_vector,
+                                                       bound_cov);
+
+    scalar altE(0);
+
+    unsigned int surface_count = 0;
+    while (surface_count < 1e4) {
+        surface_count++;
+
+        // Create actor states tuples
+        propagation::print_inspector::state alt_print_insp_state{};
+        pathlimit_aborter::state alt_aborter_state{};
+        next_surface_aborter::state next_surface_aborter_state{
+            0.1f * unit<scalar>::mm};
+
+        auto alt_actor_states =
+            std::tie(alt_print_insp_state, alt_aborter_state, bound_updater,
+                     next_surface_aborter_state, interactor_state,
+                     parameter_resetter_state);
+
+        // Propagator and its state
+        alt_propagator_t alt_p({}, {});
+        alt_propagator_t::state alt_state(alt_bound_param, det);
+
+        // Propagate
+        alt_p.propagate(alt_state, alt_actor_states);
+
+        alt_bound_param = alt_state._stepping._bound_params;
+
+        // Terminate the propagation if the next sensitive surface was not found
+        if (!next_surface_aborter_state.success) {
+            // if (alt_state._navigation.is_complete()){
+            const scalar altP = alt_state._stepping._bound_params.charge() /
+                                alt_state._stepping._bound_params.qop();
+            altE = std::hypot(altP, mass);
+            break;
+        }
+    }
+
+    EXPECT_EQ(surface_count, positions.size());
+    EXPECT_EQ(altE, newE);
+
     // @todo: Validate the backward direction case as well?
 }
 
