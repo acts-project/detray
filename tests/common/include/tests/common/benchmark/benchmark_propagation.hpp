@@ -15,6 +15,7 @@
 #include "detray/propagator/rk_stepper.hpp"
 #include "detray/simulation/event_generator/track_generators.hpp"
 #include "detray/tracks/tracks.hpp"
+#include "tests/common/benchmark/benchmark_base.hpp"
 
 // Vecmem include(s)
 #include <vecmem/memory/host_memory_resource.hpp>
@@ -31,7 +32,6 @@
 #include <string>
 #include <thread>
 
-
 namespace detray {
 
 /// @note __plugin has to be defined with a preprocessor command
@@ -39,16 +39,10 @@ using vector3 = __plugin::vector3<scalar>;
 using point3 = __plugin::point3<scalar>;
 using transform3 = __plugin::transform3<detray::scalar>;
 
-#ifdef DETRAY_BENCHMARKS_REP
-int gbench_repetitions = DETRAY_BENCHMARKS_REP;
-#else
-int gbench_repetitions = 50;
-#endif
-
 /// Precalculate tracks
-template<typename track_generator_t>
+template <typename track_generator_t>
 inline void fill_tracks(std::vector<free_track_parameters<transform3>> &tracks,
-                 const typename track_generator_t::configuration &cfg) {
+                        const typename track_generator_t::configuration &cfg) {
 
     // Iterate through uniformly distributed momentum directions
     track_generator_t trk_gen{cfg};
@@ -58,82 +52,44 @@ inline void fill_tracks(std::vector<free_track_parameters<transform3>> &tracks,
     }
 
     // random ordering
-    auto rng = std::default_random_engine {};
+    auto rng = std::default_random_engine{};
     std::shuffle(std::begin(tracks), std::end(tracks), rng);
 }
 
-namespace benchmark {
-
-/// Configure the propagation benchmark
-struct config {
-
-    /// Run a number of tracks before the benchmark
-    bool m_warmup = true;
-    // Slepp after building data
-    bool m_sleep = true;
-    // How many tracks should be run in warm-up round
-    unsigned int m_n_warmup{m_warmup ? 100u : 0u};
-
-    /// Setters
-    /// @{
-    config& do_warmup(bool b) {
-        m_warmup = b;
-        return *this;
-    }
-    config& n_warmup(unsigned int n) {
-        m_n_warmup = n;
-        return *this;
-    }
-    config& do_sleep(bool b) {
-        m_sleep = b;
-        return *this;
-    }
-    /// @}
-
-    /// Getters
-    /// @{
-    constexpr bool do_warmup() const { return m_warmup;}
-    constexpr unsigned int n_warmup() const { return m_n_warmup; }
-    constexpr bool do_sleep() const { return m_sleep; }
-    /// @}
-};
-
-} // namespace benchmark
-
 /*template <typename bfield_bknd_t>*/
 template <typename stepper_policy_t = stepper_default_policy,
-          template<typename> class navigator_t = navigator>
-struct rkn_toy_bm
-{
+          template <typename> class navigator_t = navigator>
+struct rkn_toy_bm : public benchmark_base {
     /// Detector dependent types
     using detector_t = detector<detector_registry::toy_detector>;
     using transform3_t = typename detector_t::transform3;
     using bfield_t = typename detector_t::bfield_type;
-    using stepper_t =
-        rk_stepper<typename bfield_t::view_t, transform3_t, unconstrained_step, stepper_policy_t>;
+    using stepper_t = rk_stepper<typename bfield_t::view_t, transform3_t,
+                                 unconstrained_step, stepper_policy_t>;
 
     /// Prefix for the benchmark name
-    inline static const std::string name{"RKN_toygeo"};
+    inline static const std::string s_name{"RKN_toygeo"};
 
     /// Local configuration type
-    struct configuration : public detray::benchmark::config {
+    struct configuration : public detray::benchmark_base::configuration {
         /// Number of pixel barrel layers
-        unsigned int m_n_brl_layers;
+        unsigned int m_n_brl_layers{4u};
         /// Number of pixel endcap layers on either side
-        unsigned int m_n_edc_layers;
+        unsigned int m_n_edc_layers{3u};
 
         /// Default construciton
         configuration() = default;
 
         /// Construct from a base configuration
-        configuration(const detray::benchmark::config &cfg) : detray::benchmark::config(cfg) {}
+        configuration(const detray::benchmark_base::configuration &cfg)
+            : detray::benchmark_base::configuration(cfg) {}
 
-        configuration& n_barrel_layers(unsigned int n) {
+        configuration &n_barrel_layers(unsigned int n) {
             m_n_brl_layers = n;
             return *this;
         }
 
-        configuration& n_endcap_layers(unsigned int n) {
+        configuration &n_endcap_layers(unsigned int n) {
             m_n_edc_layers = n;
             return *this;
         }
@@ -149,26 +105,33 @@ struct rkn_toy_bm
     rkn_toy_bm() = default;
 
     /// Construct from an externally provided configuration @param cfg
-    rkn_toy_bm(detray::benchmark::config cfg) : m_cfg{cfg} {}
+    rkn_toy_bm(detray::benchmark_base::configuration cfg) : m_cfg{cfg} {}
 
     /// Construct from an externally provided configuration @param cfg
     rkn_toy_bm(configuration cfg) : m_cfg{cfg} {}
 
     /// @return the benchmark configuration
-    configuration& config() { return m_cfg; }
+    configuration &config() { return m_cfg; }
+
+    std::string name() const override { return rkn_toy_bm<>::s_name; }
 
     /// Prepare data and run benchmark loop
-    void operator()(::benchmark::State &state, 
-                const std::vector<free_track_parameters<transform3_t>> &tracks, 
-                const unsigned int n_tracks) const {
+    void operator()(
+        ::benchmark::State &state,
+        const std::vector<free_track_parameters<transform3_t>> &tracks) const {
 
-        using propagator_t = propagator<stepper_t, navigator_t<detector_t>, actor_chain<>>;
+        using propagator_t =
+            propagator<stepper_t, navigator_t<detector_t>, actor_chain<>>;
 
-        assert(n_tracks + m_cfg.n_warmup() <= tracks.size());
+        const std::size_t n_samples{this->m_cfg.n_samples()};
+        const std::size_t n_warmup{this->m_cfg.n_warmup()};
+
+        assert(n_samples + n_warmup <= tracks.size());
 
         // Create detector
         vecmem::host_memory_resource host_mr;
-        detector_t det = create_toy_geometry(host_mr, m_cfg.n_barrel_layers(), m_cfg.n_endcap_layers());
+        detector_t det = create_toy_geometry(host_mr, m_cfg.n_barrel_layers(),
+                                             m_cfg.n_endcap_layers());
 
         // Create propagator - should be cheap
         propagator_t p({}, {});
@@ -178,23 +141,27 @@ struct rkn_toy_bm
             std::this_thread::sleep_for(std::chrono::seconds(10));
         }
 
-        // Warm-up
-        if (m_cfg.do_warmup() and not (m_cfg.n_warmup() == 0u)) {
-            for (unsigned int i{0u}; i < m_cfg.n_warmup(); ++i) {
-                typename propagator_t::state p_state(tracks[i], det.get_bfield(), det);
-                p.propagate(p_state);
-            }
-        }
-
         // Run the benchmark
         for (auto _ : state) {
-            #pragma omp parallel for
-            for (unsigned int i = m_cfg.n_warmup(); i < n_tracks + m_cfg.n_warmup(); ++i) {
-                typename propagator_t::state p_state(tracks[i], det.get_bfield(), det);
+            // Warm-up
+            state.PauseTiming();
+            if (m_cfg.do_warmup()) {
+#pragma omp parallel for
+                for (unsigned int i = 0u; i < n_warmup; ++i) {
+                    typename propagator_t::state p_state(tracks[i],
+                                                         det.get_bfield(), det);
+                    p.propagate(p_state);
+                }
+            }
+            state.ResumeTiming();
+#pragma omp parallel for
+            for (unsigned int i = n_warmup; i < n_samples + n_warmup; ++i) {
+                typename propagator_t::state p_state(tracks[i],
+                                                     det.get_bfield(), det);
                 ::benchmark::DoNotOptimize(p.propagate(p_state));
             }
         }
     }
 };
 
-} // namespace detray
+}  // namespace detray
