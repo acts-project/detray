@@ -12,6 +12,7 @@
 
 // System include(s).
 #include <algorithm>
+#include <functional>
 
 namespace detray {
 
@@ -31,6 +32,32 @@ DETRAY_HOST_DEVICE inline void insertion_sort(RandomIt first, RandomIt last) {
 template <template <typename...> class vector_t, typename TYPE>
 DETRAY_HOST_DEVICE inline void insertion_sort(vector_t<TYPE> &vec) {
     insertion_sort(vec.begin(), vec.end());
+}
+
+template <class RandomIt, class Comp = std::less<void>>
+DETRAY_HOST_DEVICE inline void selection_sort(RandomIt first, RandomIt last,
+                                              Comp &&comp = Comp()) {
+    for (RandomIt i = first; i < (last - 1); ++i) {
+        RandomIt k = i;
+
+        for (RandomIt j = i + 1; j < last; ++j) {
+            if (comp(*j, *k)) {
+                k = j;
+            }
+        }
+
+        if (k != i) {
+            auto t = *i;
+            *i = *k;
+            *k = t;
+        }
+    }
+}
+
+// Function to sort the array
+template <template <typename...> class vector_t, typename TYPE>
+DETRAY_HOST_DEVICE inline void selection_sort(vector_t<TYPE> &vec) {
+    selection_sort(vec.begin(), vec.end());
 }
 
 }  // namespace detray
