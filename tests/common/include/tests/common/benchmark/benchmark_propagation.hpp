@@ -5,17 +5,17 @@
  * Mozilla Public License Version 2.0
  */
 
-// Project include(s)#include "detray/definitions/units.hpp"
-#include "detray/detectors/create_toy_geometry.hpp"
-#include "detray/intersection/detail/trajectories.hpp"
+// Project include(s)
+#include "detray/definitions/units.hpp"
+#include "detray/detectors/detector_metadata.hpp"
 #include "detray/propagator/actor_chain.hpp"
-#include "detray/propagator/line_stepper.hpp"
 #include "detray/propagator/navigator.hpp"
 #include "detray/propagator/propagator.hpp"
 #include "detray/propagator/rk_stepper.hpp"
 #include "detray/simulation/event_generator/track_generators.hpp"
 #include "detray/tracks/tracks.hpp"
 #include "tests/common/benchmark/benchmark_base.hpp"
+#include "tests/common/test_base/toy_detector_fixture.hpp"
 
 // Vecmem include(s)
 #include <vecmem/memory/host_memory_resource.hpp>
@@ -34,15 +34,11 @@
 
 namespace detray {
 
-/// @note __plugin has to be defined with a preprocessor command
-using vector3 = __plugin::vector3<scalar>;
-using point3 = __plugin::point3<scalar>;
-using transform3 = __plugin::transform3<detray::scalar>;
-
 /// Precalculate tracks
-template <typename track_generator_t>
-inline void fill_tracks(std::vector<free_track_parameters<transform3>> &tracks,
-                        const typename track_generator_t::configuration &cfg) {
+template <typename track_generator_t, typename transform3_t>
+inline void fill_tracks(
+    std::vector<free_track_parameters<transform3_t>> &tracks,
+    const typename track_generator_t::configuration &cfg) {
 
     // Iterate through uniformly distributed momentum directions
     track_generator_t trk_gen{cfg};
@@ -58,8 +54,9 @@ inline void fill_tracks(std::vector<free_track_parameters<transform3>> &tracks,
 
 /*template <typename bfield_bknd_t>*/
 template <typename stepper_policy_t = stepper_default_policy,
-          template <typename> class navigator_t = navigator>
-struct rkn_toy_bm : public benchmark_base {
+          template <typename> class navigator_t = navigator,
+          typename det_fixture_t = toy_detector_fixture>
+struct rkn_propagation_bm : public benchmark_base {
     /// Detector dependent types
     using detector_t = detector<detector_registry::toy_detector>;
     using transform3_t = typename detector_t::transform3;
@@ -68,14 +65,12 @@ struct rkn_toy_bm : public benchmark_base {
                                  unconstrained_step, stepper_policy_t>;
 
     /// Prefix for the benchmark name
-    inline static const std::string s_name{"RKN_toygeo"};
+    inline static const std::string s_name{"RKN_propagation"};
 
     /// Local configuration type
     struct configuration : public detray::benchmark_base::configuration {
-        /// Number of pixel barrel layers
-        unsigned int m_n_brl_layers{4u};
-        /// Number of pixel endcap layers on either side
-        unsigned int m_n_edc_layers{3u};
+        /// Fixture that holds the detector data
+        det_fixture_t m_detector_fixture;
 
         /// Default construciton
         configuration() = default;
@@ -84,36 +79,27 @@ struct rkn_toy_bm : public benchmark_base {
         configuration(const detray::benchmark_base::configuration &cfg)
             : detray::benchmark_base::configuration(cfg) {}
 
-        configuration &n_barrel_layers(unsigned int n) {
-            m_n_brl_layers = n;
-            return *this;
-        }
-
-        configuration &n_endcap_layers(unsigned int n) {
-            m_n_edc_layers = n;
-            return *this;
-        }
-
-        unsigned int n_barrel_layers() const { return m_n_brl_layers; }
-        unsigned int n_endcap_layers() const { return m_n_edc_layers; }
+        /// Getters
+        det_fixture_t detector_fixture() const { return m_detector_fixture; }
     };
 
     /// The benchmark configuration
     configuration m_cfg{};
 
     /// Default construction
-    rkn_toy_bm() = default;
+    rkn_propagation_bm() = default;
 
     /// Construct from an externally provided configuration @param cfg
-    rkn_toy_bm(detray::benchmark_base::configuration cfg) : m_cfg{cfg} {}
+    rkn_propagation_bm(detray::benchmark_base::configuration cfg)
+        : m_cfg{cfg} {}
 
     /// Construct from an externally provided configuration @param cfg
-    rkn_toy_bm(configuration cfg) : m_cfg{cfg} {}
+    rkn_propagation_bm(configuration cfg) : m_cfg{cfg} {}
 
     /// @return the benchmark configuration
     configuration &config() { return m_cfg; }
 
-    std::string name() const override { return rkn_toy_bm<>::s_name; }
+    std::string name() const override { return rkn_propagation_bm<>::s_name; }
 
     /// Prepare data and run benchmark loop
     void operator()(
@@ -130,8 +116,8 @@ struct rkn_toy_bm : public benchmark_base {
 
         // Create detector
         vecmem::host_memory_resource host_mr;
-        detector_t det = create_toy_geometry(host_mr, m_cfg.n_barrel_layers(),
-                                             m_cfg.n_endcap_layers());
+        detector_t det =
+            this->m_cfg.detector_fixture().build_detector(&host_mr);
 
         // Create propagator - should be cheap
         propagator_t p({}, {});
