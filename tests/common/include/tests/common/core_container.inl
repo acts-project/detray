@@ -43,7 +43,7 @@ TEST(container, tuple_container) {
                                 vecmem::vector<int*>>;
 
     using device_tuple_t =
-        detail::tuple_container<thrust::tuple, vecmem::device_vector<float>,
+        detail::tuple_container<tuple, vecmem::device_vector<float>,
                                 vecmem::device_vector<std::size_t>,
                                 vecmem::device_vector<int*>>;
 

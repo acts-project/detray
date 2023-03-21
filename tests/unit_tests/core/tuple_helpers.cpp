@@ -48,25 +48,25 @@ TEST(utils, tuple_helpers) {
     EXPECT_EQ(detail::get<std::string>(s_tuple), std::string("std::tuple"));
     EXPECT_EQ(detail::get<unsigned long>(s_tuple), 4UL);
 
-    // thrust::tuple test
-    auto t_tuple = detail::make_tuple<thrust::tuple>(
-        1.0f, 2UL, std::string("thrust::tuple"));
+    // detray::tuple test
+    auto d_tuple = detail::make_tuple<detray::tuple>(
+        1.0f, 2UL, std::string("detray::tuple"));
     static_assert(
-        std::is_same_v<thrust::tuple<float, unsigned long, std::string>,
-                       decltype(t_tuple)>,
-        "detail::make_tuple failed for thrust::tuple");
+        std::is_same_v<detray::tuple<float, unsigned long, std::string>,
+                       decltype(d_tuple)>,
+        "detail::make_tuple failed for detray::tuple");
 
-    static_assert(std::is_same_v<detail::tuple_element_t<1, decltype(t_tuple)>,
+    static_assert(std::is_same_v<detail::tuple_element_t<1, decltype(d_tuple)>,
                                  unsigned long>,
-                  "detail::tuple_element retrieval failed for thrust::tuple");
+                  "detail::tuple_element retrieval failed for detray::tuple");
 
-    const auto t_tuple_size = detail::tuple_size_v<decltype(t_tuple)>;
-    EXPECT_EQ(t_tuple_size, 3UL);
+    const auto d_tuple_size = detail::tuple_size_v<decltype(d_tuple)>;
+    EXPECT_EQ(d_tuple_size, 3UL);
 
-    EXPECT_FLOAT_EQ(detail::get<0>(t_tuple), 1.0f);
-    EXPECT_EQ(detail::get<1>(t_tuple), 2UL);
-    EXPECT_EQ(detail::get<2>(t_tuple), std::string("thrust::tuple"));
-    EXPECT_FLOAT_EQ(detail::get<float>(t_tuple), 1.0f);
-    EXPECT_EQ(detail::get<unsigned long>(t_tuple), 2UL);
-    EXPECT_EQ(detail::get<std::string>(t_tuple), std::string("thrust::tuple"));
+    EXPECT_FLOAT_EQ(detail::get<0>(d_tuple), 1.0f);
+    EXPECT_EQ(detail::get<1>(d_tuple), 2UL);
+    EXPECT_EQ(detail::get<2>(d_tuple), std::string("detray::tuple"));
+    EXPECT_FLOAT_EQ(detail::get<float>(d_tuple), 1.0f);
+    EXPECT_EQ(detail::get<unsigned long>(d_tuple), 2UL);
+    EXPECT_EQ(detail::get<std::string>(d_tuple), std::string("detray::tuple"));
 }

@@ -54,8 +54,8 @@ __global__ void propagator_test_kernel(
 
     // Create the actor states
     auto actor_states =
-        thrust::tie(insp_state, aborter_state, transporter_state,
-                    interactor_state, resetter_state);
+        ::detray::tie(insp_state, aborter_state, transporter_state,
+                      interactor_state, resetter_state);
     // Create the propagator state
     propagator_device_type::state state(tracks[gid], B_field, det,
                                         candidates.at(gid));
