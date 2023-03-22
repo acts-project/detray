@@ -142,3 +142,7 @@ detray_add_library( detray_core core
    "include/detray/utils/type_registry.hpp"
    "include/detray/utils/type_traits.hpp" )
 target_link_libraries( detray_core INTERFACE detray_io vecmem::core detray::Thrust)
+
+# Allow infinite math for LLVM.
+target_compile_options( detray_core
+  INTERFACE $<$<CXX_COMPILER_ID:IntelLLVM>:-fno-finite-math-only> )
