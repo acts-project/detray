@@ -27,7 +27,8 @@ struct benchmark_base {
         // Sleep after building data sample
         bool m_sleep = false;
         // Size of data in warm-up round
-        std::size_t m_n_warmup{static_cast<std::size_t>(0.1f * m_samples)};
+        std::size_t m_n_warmup{
+            static_cast<std::size_t>(0.1 * static_cast<double>(m_samples))};
         // Size of data in warm-up round
         std::size_t m_n_sleep{1u};
 

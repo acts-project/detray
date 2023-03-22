@@ -54,7 +54,7 @@ inline void fill_tracks(
 
 /*template <typename bfield_bknd_t>*/
 template <typename stepper_policy_t = stepper_default_policy,
-          template <typename> class navigator_t = navigator,
+          template <typename, typename> class navigator_t = navigator,
           typename det_fixture_t = toy_detector_fixture>
 struct rkn_propagation_bm : public benchmark_base {
     /// Detector dependent types
@@ -80,7 +80,10 @@ struct rkn_propagation_bm : public benchmark_base {
             : detray::benchmark_base::configuration(cfg) {}
 
         /// Getters
-        det_fixture_t detector_fixture() const { return m_detector_fixture; }
+        det_fixture_t &detector_fixture() { return m_detector_fixture; }
+        const det_fixture_t &detector_fixture() const {
+            return m_detector_fixture;
+        }
     };
 
     /// The benchmark configuration
@@ -107,7 +110,9 @@ struct rkn_propagation_bm : public benchmark_base {
         const std::vector<free_track_parameters<transform3_t>> &tracks) const {
 
         using propagator_t =
-            propagator<stepper_t, navigator_t<detector_t>, actor_chain<>>;
+            propagator<stepper_t,
+                       navigator_t<detector_t, navigation::void_inspector>,
+                       actor_chain<>>;
 
         const std::size_t n_samples{this->m_cfg.n_samples()};
         const std::size_t n_warmup{this->m_cfg.n_warmup()};
@@ -136,7 +141,7 @@ struct rkn_propagation_bm : public benchmark_base {
                 for (unsigned int i = 0u; i < n_warmup; ++i) {
                     typename propagator_t::state p_state(tracks[i],
                                                          det.get_bfield(), det);
-                    p.propagate(p_state);
+                    ::benchmark::DoNotOptimize(p.propagate(p_state));
                 }
             }
             state.ResumeTiming();

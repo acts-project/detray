@@ -27,8 +27,8 @@ int main(int argc, char** argv) {
     cfg.do_sleep(false);
 
     // Prepare tracks
-    const unsigned int phi_steps{5u};
-    const unsigned int theta_steps{5u};
+    const unsigned int phi_steps{10u};
+    const unsigned int theta_steps{10u};
     const unsigned int n_trks{phi_steps * theta_steps};
 
     // Add additional tracks for warmup
@@ -46,10 +46,12 @@ int main(int argc, char** argv) {
     // Generate tracks
     using track_generator_t = uniform_track_generator<
         free_track_parameters<toy_detector_fixture::transform3_type>>;
+
     track_generator_t::configuration trk_cfg{};
     trk_cfg.theta_steps(phi_steps + add_trks)
         .phi_steps(theta_steps + add_trks)
         .p_mag(10.f * unit<scalar_t>::GeV);
+
     std::vector<free_track_parameters<toy_detector_fixture::transform3_type>>
         tracks;
 
@@ -61,6 +63,9 @@ int main(int argc, char** argv) {
     //
     // Register all benchmarks
     //
+    std::cout << "Propagation Benchmark vs geometric Complexity\n"
+              << "---------------------------------------------\n\n"
+              << cfg;
 
     // Default navigation policy
     rkn_propagation_bm<always_init> default_rkn_toygeo{cfg};
