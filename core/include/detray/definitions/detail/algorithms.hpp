@@ -29,10 +29,9 @@ namespace detray::detail {
 /// @brief sequential (single thread) sort function
 template <class RandomIt>
 DETRAY_HOST_DEVICE inline void sequential_sort(RandomIt first, RandomIt last) {
-#if defined(__CUDACC__)
-    thrust::sort(thrust::seq, first, last);
-#elif defined(CL_SYCL_LANGUAGE_VERSION) || defined(SYCL_LANGUAGE_VERSION)
-    insertion_sort(first, last);
+#if defined(__CUDACC__) || defined(CL_SYCL_LANGUAGE_VERSION) || \
+    defined(SYCL_LANGUAGE_VERSION)
+    selection_sort(first, last);
 #else
     std::sort(first, last);
 #endif
@@ -41,23 +40,25 @@ DETRAY_HOST_DEVICE inline void sequential_sort(RandomIt first, RandomIt last) {
 /// @brief sequential sort for host/devcie (single thread) - custom comparison
 template <class RandomIt, class Compare>
 DETRAY_HOST_DEVICE inline void sequential_sort(RandomIt first, RandomIt last,
-                                               Compare comp) {
+                                               Compare&& comp) {
 #if defined(__CUDACC__)
     thrust::sort(thrust::seq, first, last, comp);
 #elif !defined(__CUDACC__)
-    std::sort(first, last, comp);
+    std::sort(first, last, std::forward<Compare>(comp));
 #endif
 }
 
 /// @brief find_if implementation for host/devcie (single thread)
 template <class RandomIt, class Predicate>
 DETRAY_HOST_DEVICE inline auto find_if(RandomIt first, RandomIt last,
-                                       Predicate comp) {
-#if defined(__CUDACC__)
-    return thrust::find_if(thrust::seq, first, last, comp);
-#elif !defined(__CUDACC__)
-    return std::find_if(first, last, comp);
-#endif
+                                       Predicate&& comp) {
+    for (RandomIt i = first; i != last; ++i) {
+        if (comp(*i)) {
+            return i;
+        }
+    }
+
+    return last;
 }
 
 /// @brief lower_bound implementation for device

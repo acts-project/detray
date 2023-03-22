@@ -21,3 +21,13 @@ TEST(utils, insertion_sort) {
 
     ASSERT_EQ(vec, vec_sorted);
 }
+
+TEST(utils, selection_sort) {
+
+    std::vector<double> vec = {4.1, 5., 1.2, 1.4, 9.};
+    std::vector<double> vec_sorted = {1.2, 1.4, 4.1, 5., 9.};
+
+    detray::selection_sort(vec.begin(), vec.end());
+
+    ASSERT_EQ(vec, vec_sorted);
+}
