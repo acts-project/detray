@@ -72,6 +72,7 @@ static void BM_PROPAGATOR_CPU(benchmark::State &state) {
 
         state.ResumeTiming();
 
+#pragma omp parallel for
         for (auto &track : tracks) {
 
             parameter_transporter<transform3>::state transporter_state{};
