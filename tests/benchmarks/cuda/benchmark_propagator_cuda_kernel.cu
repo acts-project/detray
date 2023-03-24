@@ -10,7 +10,7 @@
 
 namespace detray {
 
-__global__ void propagator_benchmark_kernel(
+__global__ void __launch_bounds__(256, 4) propagator_benchmark_kernel(
     typename detector_host_type::detector_view_type det_data,
     vecmem::data::vector_view<free_track_parameters<transform3>> tracks_data,
     vecmem::data::jagged_vector_view<intersection_t> candidates_data,
@@ -61,8 +61,9 @@ void propagator_benchmark(
     vecmem::data::jagged_vector_view<intersection_t>& candidates_data,
     const propagate_option opt) {
 
-    constexpr int thread_dim = 2 * WARP_SIZE;
-    int block_dim = static_cast<int>(tracks_data.size()) / thread_dim + 1;
+    constexpr int thread_dim = 256;
+    int block_dim =
+        static_cast<int>(tracks_data.size() + thread_dim - 1) / thread_dim;
 
     // run the test kernel
     propagator_benchmark_kernel<<<block_dim, thread_dim>>>(
