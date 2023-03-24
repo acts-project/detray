@@ -13,7 +13,7 @@ detray_add_library( detray_io_json io_json
 "include/detray/io/json_io.hpp"
 "include/detray/io/json_algebra_io.hpp"
 "include/detray/io/json_geometry_io.hpp")
-target_link_libraries( detray_io_json INTERFACE nlohmann_json vecmem::core )
+target_link_libraries( detray_io_json INTERFACE nlohmann_json::nlohmann_json vecmem::core )
 
 # Make the "main I/O library" link against it.
 target_link_libraries( detray_io INTERFACE detray::io_json )
