@@ -60,6 +60,8 @@ static void BM_PROPAGATOR_CPU(benchmark::State &state) {
     // Create propagator
     propagator_host_type p(std::move(s), std::move(n));
 
+    std::size_t total_tracks = 0;
+
     for (auto _ : state) {
 
         // TODO: use fixture to build tracks
@@ -69,6 +71,8 @@ static void BM_PROPAGATOR_CPU(benchmark::State &state) {
         vecmem::vector<free_track_parameters<transform3>> tracks(&host_mr);
         fill_tracks(tracks, static_cast<std::size_t>(state.range(0)),
                     static_cast<std::size_t>(state.range(0)));
+
+        total_tracks += tracks.size();
 
         state.ResumeTiming();
 
@@ -93,6 +97,9 @@ static void BM_PROPAGATOR_CPU(benchmark::State &state) {
             }
         }
     }
+
+    state.counters["TracksPropagated"] = benchmark::Counter(
+        static_cast<double>(total_tracks), benchmark::Counter::kIsRate);
 }
 
 template <propagate_option opt>
@@ -108,6 +115,8 @@ static void BM_PROPAGATOR_CUDA(benchmark::State &state) {
     // vecmem copy helper object
     vecmem::cuda::copy copy;
 
+    std::size_t total_tracks = 0;
+
     for (auto _ : state) {
 
         state.PauseTiming();
@@ -116,6 +125,8 @@ static void BM_PROPAGATOR_CUDA(benchmark::State &state) {
         vecmem::vector<free_track_parameters<transform3>> tracks(&bp_mng_mr);
         fill_tracks(tracks, static_cast<std::size_t>(state.range(0)),
                     static_cast<std::size_t>(state.range(0)));
+
+        total_tracks += tracks.size();
 
         state.ResumeTiming();
 
@@ -130,6 +141,9 @@ static void BM_PROPAGATOR_CUDA(benchmark::State &state) {
         // Run the propagator test for GPU device
         propagator_benchmark(det_data, tracks_data, candidates_buffer, opt);
     }
+
+    state.counters["TracksPropagated"] = benchmark::Counter(
+        static_cast<double>(total_tracks), benchmark::Counter::kIsRate);
 }
 
 BENCHMARK_TEMPLATE(BM_PROPAGATOR_CPU, propagate_option::e_unsync)
