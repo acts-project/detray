@@ -28,7 +28,7 @@ foreach(algebra ${algebras})
 detray_add_executable( ${algebra}_propagator_cuda
    "benchmark_propagator_cuda.cpp" "benchmark_propagator_cuda_kernel.hpp"
    "benchmark_propagator_cuda_kernel.cu" 
-   LINK_LIBRARIES benchmark::benchmark detray_tests_common detray::${algebra} vecmem::cuda )
+   LINK_LIBRARIES benchmark::benchmark detray_tests_common detray::${algebra} vecmem::cuda OpenMP::OpenMP_CXX)
 
    target_compile_definitions( detray_${algebra}_propagator_cuda
       PRIVATE ${algebra}=${algebra} )

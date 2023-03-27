@@ -15,3 +15,9 @@ detray_add_executable( array_intersect_surfaces "array_intersect_surfaces.cpp"
 
 detray_add_executable( array_masks "array_masks.cpp"
    LINK_LIBRARIES benchmark::benchmark detray_tests_common detray::array )
+
+detray_add_executable( array_propagation "array_propagation.cpp"
+   LINK_LIBRARIES benchmark::benchmark detray_tests_common detray::array)
+if( OpenMP_CXX_FOUND )
+  target_link_libraries( detray_array_propagation PRIVATE OpenMP::OpenMP_CXX )
+endif()
