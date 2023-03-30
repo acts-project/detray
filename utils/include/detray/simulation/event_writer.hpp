@@ -96,7 +96,7 @@ struct event_writer : actor {
             const auto mom = track.mom();
 
             hit.particle_id = writer_state.particle_id;
-            hit.geometry_id = navigation.current_object();
+            hit.geometry_id = navigation.current_object().index();
             hit.tx = pos[0];
             hit.ty = pos[1];
             hit.tz = pos[2];
@@ -113,7 +113,8 @@ struct event_writer : actor {
             const auto bound_params = stepping._bound_params;
             auto det = navigation.detector();
             const auto& mask_store = det->mask_store();
-            const auto& surface = det->surfaces(hit.geometry_id);
+            const auto& surface =
+                det->surfaces(geometry::barcode().set_index(hit.geometry_id));
 
             const auto local = mask_store.template visit<measurement_kernel>(
                 surface.mask(), bound_params, writer_state.m_meas_smearer);

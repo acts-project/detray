@@ -55,12 +55,13 @@ class surface {
     constexpr surface(transform_link &&trf, mask_link &&mask,
                       material_link &&material, dindex volume,
                       source_link &&src, surface_id sf_id)
-        : _trf(std::move(trf)),
-          _mask(std::move(mask)),
+        : _mask(std::move(mask)),
           _material(std::move(material)),
-          _volume(volume),
-          _src(std::move(src)),
-          _sf_id(sf_id) {}
+          _trf(std::move(trf)),
+          _src(std::move(src)) {
+
+        m_barcode = geometry::barcode{}.set_volume(volume).set_id(sf_id);
+    }
 
     /// Constructor with full arguments - copy semantics
     ///
@@ -73,12 +74,9 @@ class surface {
     constexpr surface(const transform_link trf, const mask_link &mask,
                       const material_link &material, const dindex volume,
                       const source_link &src, surface_id sf_id)
-        : _trf(trf),
-          _mask(mask),
-          _material(material),
-          _volume(volume),
-          _src(src),
-          _sf_id(sf_id) {}
+        : _mask(mask), _material(material), _trf(trf), _src(src) {
+        m_barcode = geometry::barcode{}.set_volume(volume).set_id(sf_id);
+    }
 
     /// Portal vs module decision must be made explicitly
     constexpr surface() = default;
@@ -90,38 +88,46 @@ class surface {
     /// @param rhs is the right hand side to be compared to
     DETRAY_HOST_DEVICE
     constexpr auto operator==(const surface &rhs) const -> bool {
-        return (_trf == rhs._trf and _mask == rhs._mask and
-                _volume == rhs._volume and _src == rhs._src and
-                _sf_id == rhs._sf_id);
+        return (_mask == rhs._mask and _material == rhs._material and
+                _trf == rhs._trf and _src == rhs._src and
+                m_barcode == rhs.m_barcode);
     }
 
     /// Sets a new surface barcode
     DETRAY_HOST_DEVICE
-    auto set_barcode(const geometry::barcode bcd) -> void { _barcode = bcd; }
+    auto set_barcode(const geometry::barcode bcd) -> void { m_barcode = bcd; }
 
     /// @returns the surface barcode
     DETRAY_HOST_DEVICE
-    constexpr auto barcode() const -> const geometry::barcode & {
-        return _barcode;
-    }
+    constexpr auto barcode() const -> geometry::barcode { return m_barcode; }
 
     /// Sets a new surface id (portal/passive/sensitive)
     DETRAY_HOST_DEVICE
-    auto set_id(const surface_id new_id) -> void { _sf_id = new_id; }
+    auto set_id(const surface_id new_id) -> void { m_barcode.set_id(new_id); }
 
     /// @returns the surface id (sensitive, passive or portal)
     DETRAY_HOST_DEVICE
-    constexpr auto id() const -> surface_id { return _sf_id; }
+    constexpr auto id() const -> surface_id { return m_barcode.id(); }
+
+    /// @returns the surface id (sensitive, passive or portal)
+    DETRAY_HOST_DEVICE
+    constexpr auto volume() const -> dindex { return m_barcode.volume(); }
+
+    /// Sets a new surface index (index in surface collection of surface store)
+    DETRAY_HOST_DEVICE
+    auto set_index(const dindex new_idx) -> void {
+        m_barcode.set_index(new_idx);
+    }
+
+    /// @returns the surface id (sensitive, passive or portal)
+    DETRAY_HOST_DEVICE
+    constexpr auto index() const -> dindex { return m_barcode.index(); }
 
     /// Update the transform index
     ///
     /// @param offset update the position when move into new collection
     DETRAY_HOST
     auto update_transform(dindex offset) -> void { _trf += offset; }
-
-    /// Access to the transform index
-    DETRAY_HOST_DEVICE
-    constexpr auto transform() -> const transform_link & { return _trf; }
 
     /// @return the transform index
     DETRAY_HOST_DEVICE
@@ -132,10 +138,6 @@ class surface {
     /// @param offset update the position when move into new collection
     DETRAY_HOST
     auto update_mask(dindex offset) -> void { _mask += offset; }
-
-    /// Access to the mask
-    DETRAY_HOST_DEVICE
-    constexpr auto mask() -> const mask_link & { return _mask; }
 
     /// @return the mask link
     DETRAY_HOST_DEVICE
@@ -157,10 +159,6 @@ class surface {
         return _material;
     }
 
-    /// @return the volume index
-    DETRAY_HOST_DEVICE
-    constexpr auto volume() const -> dindex { return _volume; }
-
     /// @return the source link
     DETRAY_HOST_DEVICE
     constexpr auto source() const -> const source_link & { return _src; }
@@ -168,29 +166,27 @@ class surface {
     /// @returns true if the surface is a senstive detector module.
     DETRAY_HOST_DEVICE
     constexpr auto is_sensitive() const -> bool {
-        return _sf_id == surface_id::e_sensitive;
+        return m_barcode.id() == surface_id::e_sensitive;
     }
 
     /// @returns true if the surface is a portal.
     DETRAY_HOST_DEVICE
     constexpr auto is_portal() const -> bool {
-        return _sf_id == surface_id::e_portal;
+        return m_barcode.id() == surface_id::e_portal;
     }
 
     /// @returns true if the surface is a passive detector element.
     DETRAY_HOST_DEVICE
     constexpr auto is_passive() const -> bool {
-        return _sf_id == surface_id::e_passive;
+        return m_barcode.id() == surface_id::e_passive;
     }
 
     private:
-    geometry::barcode _barcode{dindex_invalid};
-    transform_link_t _trf{};
+    geometry::barcode m_barcode{};
     mask_link _mask{};
     material_link _material{};
-    dindex _volume{dindex_invalid};
+    transform_link_t _trf{};
     source_link_t _src{};
-    surface_id _sf_id = surface_id::e_sensitive;
 };
 
 }  // namespace detray

@@ -117,7 +117,7 @@ class volume_builder : public volume_builder_interface<detector_t> {
             det.mask_store().template visit<detail::mask_index_update>(
                 sf.mask(), sf);
             sf.update_transform(trf_offset);
-            sf.set_barcode(sf_offset++);
+            sf.set_index(sf_offset++);
         }
 
         // Append surfaces

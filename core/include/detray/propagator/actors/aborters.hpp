@@ -68,7 +68,7 @@ struct target_aborter : actor {
     /// Keeps the index for the target surface
     struct state {
         /// Unique surface id of the target
-        dindex _target_surface_index{dindex_invalid};
+        geometry::barcode _target_surface;
     };
 
     /// Exits the navigation as soon as the target surface has been found.
@@ -85,8 +85,7 @@ struct target_aborter : actor {
         // In case the propagation starts on a module, make sure to not abort
         // directly
         if (navigation.is_on_module() and
-            (navigation.current_object() ==
-             abrt_state._target_surface_index) and
+            (navigation.current_object() == abrt_state._target_surface) and
             (stepping.path_length() > 0.f)) {
             prop_state._heartbeat &= navigation.exit();
         }

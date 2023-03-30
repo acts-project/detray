@@ -629,7 +629,9 @@ TEST(detector, detector_volume_construction) {
     volume_links.insert(volume_links.end(), 16u, 1u);
     volume_links.reserve(d.surfaces().size());
     for (const auto [idx, sf_id] : detray::views::enumerate(sf_ids)) {
-        const auto& sf = d.surfaces(idx);
+        geometry::barcode bcd{};
+        bcd.set_index(idx);
+        const auto& sf = d.surfaces(bcd);
         EXPECT_EQ(sf.id(), sf_id) << "error at index: " << idx;
         EXPECT_EQ(sf.volume(), volume_links.at(idx))
             << "error at index: " << idx;
@@ -638,7 +640,9 @@ TEST(detector, detector_volume_construction) {
     // check that the transform indices are continuous
     for (std::size_t idx :
          detray::views::iota(d.transform_store().size() - 1)) {
-        EXPECT_EQ(d.surfaces(idx).transform(), idx)
+        geometry::barcode bcd{};
+        bcd.set_index(idx);
+        EXPECT_EQ(d.surfaces(bcd).transform(), idx)
             << "error at index: " << idx;
     }
 
@@ -664,7 +668,9 @@ TEST(detector, detector_volume_construction) {
         {mask_id::e_rectangle2, 5u},
         {mask_id::e_rectangle2, 6u}};
     for (const auto [idx, m_link] : detray::views::enumerate(mask_links)) {
-        EXPECT_EQ(d.surfaces(idx).mask(), m_link) << "error at index: " << idx;
+        geometry::barcode bcd{};
+        bcd.set_index(idx);
+        EXPECT_EQ(d.surfaces(bcd).mask(), m_link) << "error at index: " << idx;
     }
 
     // check mask volume links

@@ -254,7 +254,7 @@ TEST_P(PropagatorWithRkStepper, propagator_rk_stepper) {
         // Propagate the entire detector
         ASSERT_TRUE(p.propagate(state, actor_states))
             << print_insp_state.to_string() << std::endl;
-        //<< state._navigation.inspector().to_string() << std::endl;
+        // << state._navigation.inspector().to_string() << std::endl;
 
         // Propagate with path limit
         ASSERT_NEAR(pathlimit_aborter_state.path_limit(), path_limit, tol);

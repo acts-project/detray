@@ -39,9 +39,11 @@ inline void check_towards_surface(state_t &state, dindex vol_id,
     ASSERT_EQ(state.n_candidates(), n_candidates);
     // If we are towards some object, we have no current one (even if we are
     // geometrically still there)
-    ASSERT_EQ(state.current_object(), dindex_invalid);
+    ASSERT_EQ(state.current_object().volume(), 4095u);
+    ASSERT_EQ(state.current_object().id(), static_cast<surface_id>(15u));
+    ASSERT_EQ(state.current_object().extra(), 255u);
     // the portal is still the next object, since we did not step
-    ASSERT_EQ(state.next_object(), next_id);
+    ASSERT_EQ(state.next_object().index(), next_id);
     ASSERT_TRUE((state.trust_level() == navigation::trust_level::e_full) or
                 (state.trust_level() == navigation::trust_level::e_high));
 }
@@ -59,9 +61,10 @@ inline void check_on_surface(state_t &state, dindex vol_id,
     ASSERT_TRUE(std::abs(state()) > state.tolerance());
     ASSERT_EQ(state.volume(), vol_id);
     ASSERT_EQ(state.n_candidates(), n_candidates);
-    ASSERT_EQ(state.current_object(), current_id);
+    ASSERT_EQ(state.current_object().volume(), vol_id);
+    ASSERT_EQ(state.current_object().index(), current_id);
     // points to the next surface now
-    ASSERT_EQ(state.next_object(), next_id);
+    ASSERT_EQ(state.next_object().index(), next_id);
     ASSERT_EQ(state.trust_level(), navigation::trust_level::e_full);
 }
 
@@ -185,7 +188,7 @@ TEST(ALGEBRA_PLUGIN, navigator) {
     ASSERT_NEAR(navigation(), 9.5f, tol);
 
     // Now step onto the beampipe (idx 0)
-    check_step(nav, stepper, propagation, 0u, 2u, 0u, 7u);
+    check_step(nav, stepper, propagation, 0u, 1u, 0u, 7u);
     // New target: Distance to the beampipe volume cylinder portal
     ASSERT_NEAR(navigation(), 8.f, tol);
 
@@ -223,8 +226,8 @@ TEST(ALGEBRA_PLUGIN, navigator) {
 
     // Every iteration steps through one barrel layer
     for (const auto &[vol_id, sf_seq] : sf_sequences) {
-        // Includes the portal we are automatically on
-        std::size_t n_candidates = sf_seq.size();
+        // Exclude the portal we are already on
+        std::size_t n_candidates = sf_seq.size() - 1u;
 
         // We switched to next barrel volume
         check_volume_switch<navigator_t>(navigation, vol_id);
@@ -235,7 +238,8 @@ TEST(ALGEBRA_PLUGIN, navigator) {
 
         // Step through the module surfaces
         for (std::size_t sf = 1u; sf < sf_seq.size() - 1u; ++sf) {
-            check_step(nav, stepper, propagation, vol_id, n_candidates,
+            // Count only the currently reachable candidates
+            check_step(nav, stepper, propagation, vol_id, n_candidates - sf,
                        sf_seq[sf], sf_seq[sf + 1u]);
         }
 
