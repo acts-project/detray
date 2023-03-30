@@ -10,6 +10,7 @@
 // Project include(s).
 #include "detray/definitions/qualifiers.hpp"
 #include "detray/intersection/intersection.hpp"
+#include "detray/propagator/navigator.hpp"
 #include "detray/tracks/tracks.hpp"
 
 namespace detray {

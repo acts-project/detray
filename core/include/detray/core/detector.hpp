@@ -247,11 +247,11 @@ class detector {
     }
 
     /// @returns a surface by index - const
-    // TODO: Implement surface barcode
     DETRAY_HOST_DEVICE
-    constexpr auto surfaces(dindex sf_index) const -> const surface_type & {
+    constexpr auto surfaces(geometry::barcode bcd) const
+        -> const surface_type & {
         return _surfaces.template get<sf_finders::id::e_brute_force>()
-            .all()[sf_index];
+            .all()[bcd.index()];
     }
 
     /// @returns surfaces of a given type (@tparam sf_id) by volume - const
@@ -356,7 +356,7 @@ class detector {
         for (auto &sf : surfaces_per_vol) {
             _masks.template visit<detail::mask_index_update>(sf.mask(), sf);
             sf.update_transform(trf_offset);
-            sf.set_barcode(sf_offset++);
+            sf.set_index(sf_offset++);
         }
 
         // Append surfaces to base surface collection

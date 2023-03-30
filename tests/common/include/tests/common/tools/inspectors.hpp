@@ -96,7 +96,7 @@ struct print_inspector {
         debug_stream << msg << std::endl;
 
         debug_stream << "Volume" << tabs << state.volume() << std::endl;
-        debug_stream << "surface kernel size\t\t" << state.n_candidates()
+        debug_stream << "No. reachable\t\t" << state.n_candidates()
                      << std::endl;
 
         debug_stream << "Surface candidates: " << std::endl;
@@ -210,7 +210,7 @@ struct print_inspector : actor {
                            << navigation.volume();
         }
 
-        if (navigation.current_object() == dindex_invalid) {
+        if (navigation.current_object().is_invalid()) {
             printer.stream << "surface: " << std::setw(14) << "invalid";
         } else {
             printer.stream << "surface: " << std::setw(14)
@@ -230,7 +230,5 @@ struct print_inspector : actor {
 };
 
 }  // namespace propagation
-
-namespace step {}  // namespace step
 
 }  // namespace detray

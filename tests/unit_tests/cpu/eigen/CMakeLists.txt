@@ -24,6 +24,7 @@ detray_add_test( eigen
    "eigen_cylinder_intersection.cpp" 
    "eigen_cylinder.cpp"
    "eigen_detector.cpp"
+   "eigen_geometry_barcode.cpp"
    "eigen_geometry_volume_graph.cpp"
    "eigen_geometry_linking.cpp"
    "eigen_geometry_navigation.cpp"

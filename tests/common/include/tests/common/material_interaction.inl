@@ -254,8 +254,8 @@ TEST(material_interaction, telescope_geometry_energy_loss) {
         matrix_operator().template zero<e_bound_size, e_bound_size>();
 
     // bound track parameter at first physical plane
-    const bound_track_parameters<transform3> bound_param(0u, bound_vector,
-                                                         bound_cov);
+    const bound_track_parameters<transform3> bound_param(
+        geometry::barcode{}.set_index(0u), bound_vector, bound_cov);
 
     propagation::print_inspector::state print_insp_state{};
     pathlimit_aborter::state aborter_state{};
@@ -335,8 +335,8 @@ TEST(material_interaction, telescope_geometry_energy_loss) {
     using alt_propagator_t =
         propagator<stepper_t, navigator_t, alt_actor_chain_t>;
 
-    bound_track_parameters<transform3> alt_bound_param(0u, bound_vector,
-                                                       bound_cov);
+    bound_track_parameters<transform3> alt_bound_param(
+        geometry::barcode{}.set_index(0u), bound_vector, bound_cov);
 
     scalar altE(0);
 
@@ -429,8 +429,8 @@ TEST(material_interaction, telescope_geometry_scattering_angle) {
         matrix_operator().template zero<e_bound_size, e_bound_size>();
 
     // bound track parameter
-    const bound_track_parameters<transform3> bound_param(0u, bound_vector,
-                                                         bound_cov);
+    const bound_track_parameters<transform3> bound_param(
+        geometry::barcode{}.set_index(0u), bound_vector, bound_cov);
 
     std::size_t n_samples{100000u};
     std::vector<scalar> phi_vec;

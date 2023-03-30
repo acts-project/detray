@@ -125,11 +125,13 @@ TEST(path_correction, cartesian2D) {
     getter::element(bound_cov, e_bound_time, e_bound_time) = 1.f;
 
     // bound track parameter
-    const bound_track_parameters<transform3> bound_param0(0u, bound_vector,
+    geometry::barcode bcd{};
+    bcd.set_volume(0u).set_id(surface_id::e_sensitive).set_index(0u);
+    const bound_track_parameters<transform3> bound_param0(bcd, bound_vector,
                                                           bound_cov);
 
     // Actors
-    target_aborter::state targeter{0u};
+    target_aborter::state targeter{bcd};
     pathlimit_aborter::state pathlimit_state{path_limit};
     propagation::print_inspector::state print_insp_state{};
     parameter_transporter<transform3>::state bound_updater{};
@@ -271,11 +273,13 @@ TEST(path_correction, polar) {
     getter::element(bound_cov, e_bound_time, e_bound_time) = 1.f;
 
     // bound track parameter
-    const bound_track_parameters<transform3> bound_param0(0u, bound_vector,
+    geometry::barcode bcd{};
+    bcd.set_volume(0u).set_id(surface_id::e_sensitive).set_index(0u);
+    const bound_track_parameters<transform3> bound_param0(bcd, bound_vector,
                                                           bound_cov);
 
     // Actors
-    target_aborter::state targeter{0u};
+    target_aborter::state targeter{bcd};
     pathlimit_aborter::state pathlimit_state{path_limit};
     propagation::print_inspector::state print_insp_state{};
     parameter_transporter<transform3>::state bound_updater{};
@@ -406,11 +410,13 @@ TEST(path_correction, cylindrical) {
     getter::element(bound_cov, e_bound_time, e_bound_time) = 1.f;
 
     // bound track parameter
-    const bound_track_parameters<transform3> bound_param0(0, bound_vector,
+    geometry::barcode bcd{};
+    bcd.set_volume(0u).set_id(surface_id::e_sensitive).set_index(0u);
+    const bound_track_parameters<transform3> bound_param0(bcd, bound_vector,
                                                           bound_cov);
 
     // Actors
-    target_aborter::state targeter{0u};
+    target_aborter::state targeter{bcd};
     pathlimit_aborter::state pathlimit_state{path_limit};
     propagation::print_inspector::state print_insp_state{};
     parameter_transporter<transform3>::state bound_updater{};

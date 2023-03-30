@@ -74,9 +74,6 @@ struct line_plane_intersection {
     /// Navigation information
     dindex volume_link{dindex_invalid};
 
-    /// Surface id for this intersection (sensitive, portal, passive)
-    surface_id sf_id{surface_id::e_sensitive};
-
     // cosine of incidence angle
     scalar cos_incidence_angle{1.f};
 
@@ -105,8 +102,8 @@ struct line_plane_intersection {
         std::stringstream out_stream;
         scalar r{getter::perp(p3)};
         out_stream << "dist:" << path << " [r:" << r << ", z:" << p3[2]
-                   << "], (sf index:" << barcode
-                   << ", links to vol:" << volume_link << ")";
+                   << "], (suface: " << barcode << ", links: vol "
+                   << volume_link << ")";
         switch (status) {
             case intersection::status::e_outside:
                 out_stream << ", status: outside";

@@ -88,7 +88,7 @@ TEST(ALGEBRA_PLUGIN, toy_geometry) {
     using detector_t = decltype(toy_det);
     using geo_obj_ids = typename detector_t::geo_obj_ids;
     using volume_t = typename detector_t::volume_type;
-    using geo_context_t = typename decltype(toy_det)::geometry_context;
+    using geo_context_t = typename detector_t::geometry_context;
     using mask_ids = typename detector_t::masks::id;
     using mask_link_t = typename detector_t::surface_type::mask_link;
     using material_ids = typename detector_t::materials::id;
@@ -112,7 +112,7 @@ TEST(ALGEBRA_PLUGIN, toy_geometry) {
     auto pixel_mat =
         material_slab<scalar>(silicon_tml<scalar>(), 0.15f * unit<scalar>::mm);
 
-    /** Link to outer world (leaving detector) */
+    // Link to outer world (leaving detector)
     const dindex leaving_world = dindex_invalid;
 
     // Check number of geomtery objects
@@ -169,7 +169,8 @@ TEST(ALGEBRA_PLUGIN, toy_geometry) {
                                  const dvector<dindex>&& volume_links) {
         for (dindex pti = range[0]; pti < range[1]; ++pti) {
             EXPECT_EQ(sf_itr->volume(), vol_index);
-            EXPECT_EQ(sf_itr->barcode(), pti);
+            EXPECT_EQ(sf_itr->id(), surface_id::e_portal);
+            EXPECT_EQ(sf_itr->index(), pti);
             EXPECT_EQ(sf_itr->transform(), trf_index);
             EXPECT_EQ(sf_itr->mask(), mask_link);
             const auto volume_link =
@@ -205,7 +206,8 @@ TEST(ALGEBRA_PLUGIN, toy_geometry) {
                                  const dvector<dindex>&& volume_links) {
         for (dindex pti = range[0]; pti < range[1]; ++pti) {
             EXPECT_EQ(sf_itr->volume(), vol_index);
-            EXPECT_EQ(sf_itr->barcode(), pti);
+            EXPECT_FALSE(sf_itr->id() == surface_id::e_portal);
+            EXPECT_EQ(sf_itr->index(), pti);
             EXPECT_EQ(sf_itr->transform(), trf_index);
             EXPECT_EQ(sf_itr->mask(), mask_index);
             EXPECT_EQ(sf_itr->material(), material_index);

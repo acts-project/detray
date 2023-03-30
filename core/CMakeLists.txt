@@ -28,6 +28,7 @@ detray_add_library( detray_core core
    "include/detray/core/detector.hpp"
    # definitions include(s)
    "include/detray/definitions/detail/algorithms.hpp"
+   "include/detray/definitions/detail/bit_encoder.hpp"
    "include/detray/definitions/containers.hpp"
    "include/detray/definitions/cuda_definitions.hpp"
    "include/detray/definitions/indexing.hpp"
