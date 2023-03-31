@@ -11,6 +11,7 @@
 #include "detray/definitions/qualifiers.hpp"
 #include "detray/intersection/detail/trajectories.hpp"
 #include "detray/intersection/intersection.hpp"
+#include "detray/masks/cylinder2D.hpp"
 
 // System include(s)
 #include <cmath>
@@ -103,7 +104,7 @@ struct helix_cylinder_intersector {
         intersection_type &is = ret[0];
         const point3 helix_pos = h.pos(s);
 
-        is.path = getter::norm(helix_pos);
+        is.path = s;
         is.p3 = helix_pos;
         is.p2 = mask.to_local_frame(trf, is.p3, h.dir(s));
         is.status = mask.is_inside(is.p2, mask_tolerance);

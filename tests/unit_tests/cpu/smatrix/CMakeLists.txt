@@ -36,6 +36,7 @@ detray_add_test( smatrix
    "smatrix_grid_populator.cpp"
    "smatrix_grid_serializer.cpp"
    "smatrix_guided_navigator.cpp"
+   "smatrix_helix_intersectors.cpp"
    "smatrix_helix_trajectory.cpp"
    "smatrix_intersection_kernel.cpp"
    "smatrix_line_intersection.cpp"

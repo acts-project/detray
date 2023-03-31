@@ -36,6 +36,7 @@ detray_add_test( array
    "array_grid_populator.cpp"
    "array_grid_serializer.cpp"
    "array_guided_navigator.cpp"
+   "array_helix_intersectors.cpp"
    "array_helix_trajectory.cpp"
    "array_intersection_kernel.cpp"
    "array_line_intersection.cpp"
