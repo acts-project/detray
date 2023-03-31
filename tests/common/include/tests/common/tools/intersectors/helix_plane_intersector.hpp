@@ -93,7 +93,7 @@ struct helix_plane_intersector {
         intersection_type &is = ret[0];
         const point3 helix_pos = h.pos(s);
 
-        is.path = getter::norm(helix_pos);
+        is.path = s;
         is.p3 = helix_pos;
         is.p2 = mask.to_local_frame(trf, is.p3, h.dir(s));
 

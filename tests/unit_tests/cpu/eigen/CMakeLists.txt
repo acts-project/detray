@@ -36,6 +36,7 @@ detray_add_test( eigen
    "eigen_grid_populator.cpp"
    "eigen_grid_serializer.cpp"
    "eigen_guided_navigator.cpp"
+   "eigen_helix_intersectors.cpp"
    "eigen_helix_trajectory.cpp"
    "eigen_intersection_kernel.cpp"
    "eigen_line_intersection.cpp"
