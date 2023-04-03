@@ -1,6 +1,6 @@
 # Detray library, part of the ACTS project (R&D line)
 #
-# (c) 2021-2022 CERN for the benefit of the ACTS project
+# (c) 2021-2023 CERN for the benefit of the ACTS project
 #
 # Mozilla Public License Version 2.0
 
@@ -45,6 +45,7 @@ detray_add_test( vc_array
    "vc_array_mask_store.cpp"
    "vc_array_material_interaction.cpp"
    "vc_array_materials.cpp"
+   "vc_array_matrix_helper.cpp"
    "vc_array_navigator.cpp"
    "vc_array_particle_gun.cpp"
    "vc_array_path_correction.cpp"
