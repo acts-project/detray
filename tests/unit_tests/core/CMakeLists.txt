@@ -17,4 +17,4 @@ detray_add_test( core
    "utils_ranges.cpp"
    "utils_quadratic_equation.cpp"
    "utils_sort.cpp"
-   LINK_LIBRARIES GTest::gtest_main detray_tests_common detray::core )
+   LINK_LIBRARIES GTest::gtest_main detray_tests_common detray::core_array )

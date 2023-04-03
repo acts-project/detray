@@ -19,7 +19,8 @@ detray_add_test(core_cuda
    "grids_grid2_cuda.cpp" "grids_grid2_cuda_kernel.hpp"
    "grids_grid2_cuda_kernel.cu" "utils_ranges_cuda.cpp"
    "utils_ranges_cuda_kernel.hpp" "utils_ranges_cuda_kernel.cu"
-   LINK_LIBRARIES GTest::gtest_main detray_tests_common vecmem::cuda )
+   LINK_LIBRARIES GTest::gtest_main detray_tests_common vecmem::cuda
+                  detray::core_array )
 
 # make unit tests for multiple algebras
 # Currently vc and smatrix is not supported

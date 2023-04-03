@@ -65,8 +65,8 @@ auto construct_irregular_grid() {
     dvector<scalar> yboundaries = {};
     yboundaries.reserve(60u);
 
-    for (unsigned int i = 0u; i < 61u; ++i) {
-        if (i < 26u) {
+    for (scalar i = 0.f; i < 61.f; i += 1.f) {
+        if (i < 26.f) {
             xboundaries.push_back(i);
         }
         yboundaries.push_back(i);
