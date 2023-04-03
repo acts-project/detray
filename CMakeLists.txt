@@ -18,6 +18,7 @@ set( CMAKE_SYCL_STANDARD 17 CACHE STRING "The (SYCL) C++ standard to use" )
 # CMake include(s).
 include( CMakeDependentOption )
 include( GNUInstallDirs )
+include( CTest )
 
 # Flags controlling the meta-build system.
 option( DETRAY_USE_SYSTEM_LIBS "Use system libraries be default" FALSE )
@@ -210,7 +211,6 @@ add_subdirectory( io )
 add_subdirectory( utils )
 
 # Set up the test(s).
-include( CTest )
 if( BUILD_TESTING AND DETRAY_BUILD_TESTING )
    add_subdirectory( tests )
 endif()
