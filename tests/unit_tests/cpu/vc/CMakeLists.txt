@@ -62,6 +62,7 @@ detray_add_test( vc_array
    "vc_array_transform_store.cpp"
    "vc_array_trapezoid2D.cpp"
    "vc_array_unbounded.cpp"
+   "vc_array_unit_vectors.cpp"
    "vc_array_unmasked.cpp"
    "vc_array_volume.cpp"
    LINK_LIBRARIES GTest::gtest_main detray_tests_common detray::vc_array )

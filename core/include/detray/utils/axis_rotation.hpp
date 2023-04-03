@@ -35,11 +35,14 @@ struct axis_rotation {
     /// @param theta rotation angle
     DETRAY_HOST_DEVICE
     axis_rotation(const vector3& axis, const scalar_type theta) {
+        // normalize the axis
+        const auto U = vector::normalize(axis);
+
         scalar_type cos_theta{math_ns::cos(theta)};
 
         matrix_type<3, 3> I = matrix_operator().template identity<3, 3>();
-        matrix_type<3, 3> axis_cross = mat_helper().cross_matrix(axis);
-        matrix_type<3, 3> axis_outer = mat_helper().outer_product(axis, axis);
+        matrix_type<3, 3> axis_cross = mat_helper().cross_matrix(U);
+        matrix_type<3, 3> axis_outer = mat_helper().outer_product(U, U);
 
         R = cos_theta * I + std::sin(theta) * axis_cross +
             (1.f - cos_theta) * axis_outer;
@@ -48,7 +51,7 @@ struct axis_rotation {
     /// @param v vector to be rotated
     /// @returns Get the rotated vector
     template <typename vector3_t>
-    DETRAY_HOST_DEVICE vector3_t operator()(const vector3_t& v) {
+    DETRAY_HOST_DEVICE vector3_t operator()(const vector3_t& v) const {
         return R * v;
     }
 

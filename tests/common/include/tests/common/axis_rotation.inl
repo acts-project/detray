@@ -24,7 +24,7 @@ constexpr scalar isclose{1e-5f};
 
 TEST(utils, axis_rotation) {
 
-    const vector3 axis{0.f, 0.f, 1.f};
+    const vector3 axis{0.f, 0.f, 3.f};
 
     const vector3 v1{1.f, 0.f, 0.f};
 
