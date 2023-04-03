@@ -1,11 +1,8 @@
 # Detray library, part of the ACTS project (R&D line)
 #
-# (c) 2021 CERN for the benefit of the ACTS project
+# (c) 2021-2023 CERN for the benefit of the ACTS project
 #
 # Mozilla Public License Version 2.0
-
-# Let the user know what's happening.
-message(STATUS "Building 'detray::vc_array' plugin")
 
 # A sanity check.
 if( NOT ALGEBRA_PLUGINS_INCLUDE_VC )
@@ -14,9 +11,14 @@ if( NOT ALGEBRA_PLUGINS_INCLUDE_VC )
 endif()
 
 # Set up the library.
-detray_add_library( detray_vc_array vc_array
+detray_add_library( detray_algebra_vc algebra_vc
    "include/detray/plugins/algebra/vc_array_definitions.hpp" )
-target_link_libraries( detray_vc_array
+target_link_libraries( detray_algebra_vc
    INTERFACE algebra::vc_cmath vecmem::core )
-target_compile_definitions( detray_vc_array
-   INTERFACE DETRAY_CUSTOM_SCALARTYPE=${DETRAY_CUSTOM_SCALARTYPE} )
+target_compile_definitions( detray_algebra_vc
+   INTERFACE DETRAY_CUSTOM_SCALARTYPE=${DETRAY_CUSTOM_SCALARTYPE}
+             DETRAY_ALGEBRA_VC )
+
+# Set up tests for the public header(s) of detray::algebra_vc.
+detray_test_public_headers( detray_algebra_vc
+   "detray/plugins/algebra/vc_array_definitions.hpp" )

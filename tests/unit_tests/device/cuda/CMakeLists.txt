@@ -1,6 +1,6 @@
 # Detray library, part of the ACTS project (R&D line)
 #
-# (c) 2021-2022 CERN for the benefit of the ACTS project
+# (c) 2021-2023 CERN for the benefit of the ACTS project
 #
 # Mozilla Public License Version 2.0
 
@@ -45,7 +45,7 @@ foreach(algebra ${algebras})
       "propagator_cuda.cpp" "propagator_cuda_kernel.hpp"
       "propagator_cuda_kernel.cu"
       LINK_LIBRARIES GTest::gtest_main vecmem::cuda detray_tests_common
-      detray::${algebra})
+      detray::algebra_${algebra})
    target_compile_definitions(detray_test_${algebra}_cuda
       PRIVATE ${algebra}=${algebra})
 endforeach()

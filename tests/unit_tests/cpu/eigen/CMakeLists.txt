@@ -21,7 +21,7 @@ detray_add_test( eigen
    "eigen_coordinate_polar2.cpp"
    "eigen_core.cpp"
    "eigen_cuboid_intersector.cpp"
-   "eigen_cylinder_intersection.cpp" 
+   "eigen_cylinder_intersection.cpp"
    "eigen_cylinder.cpp"
    "eigen_detector.cpp"
    "eigen_geometry_barcode.cpp"
@@ -65,16 +65,16 @@ detray_add_test( eigen
    "eigen_unit_vectors.cpp"
    "eigen_unmasked.cpp"
    "eigen_volume.cpp"
-   LINK_LIBRARIES GTest::gtest_main detray_tests_common detray::eigen )
+   LINK_LIBRARIES GTest::gtest_main detray_tests_common detray::algebra_eigen )
 
 # Set up the "conditional" tests.
 if( DETRAY_IO_CSV )
    detray_add_test( eigen_read_detector "eigen_read_detector.cpp"
       LINK_LIBRARIES GTest::gtest_main detray_tests_common detray::io
-                     detray::eigen )
+                     detray::algebra_eigen )
 endif()
 if( DETRAY_DISPLAY )
    detray_add_test( eigen_display_masks "eigen_display_masks.cpp"
       LINK_LIBRARIES GTest::gtest_main detray_tests_common detray::display
-                     detray::eigen )
+                     detray::algebra_eigen )
 endif()

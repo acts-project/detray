@@ -27,7 +27,7 @@ detray_add_test( array
    "array_geometry_barcode.cpp"
    "array_geometry_volume_graph.cpp"
    "array_geometry_linking.cpp"
-   "array_geometry_navigation.cpp" 
+   "array_geometry_navigation.cpp"
    "array_geometry_scan.cpp"
    "array_grid.cpp"
    "array_grid_axis.cpp"
@@ -49,7 +49,7 @@ detray_add_test( array
    "array_navigator.cpp"
    "array_particle_gun.cpp"
    "array_path_correction.cpp"
-   "array_planar_intersection.cpp" 
+   "array_planar_intersection.cpp"
    "array_propagator.cpp"
    "array_rectangle2D.cpp"
    "array_ring2D.cpp"
@@ -65,16 +65,16 @@ detray_add_test( array
    "array_unit_vectors.cpp"
    "array_unmasked.cpp"
    "array_volume.cpp"
-   LINK_LIBRARIES GTest::gtest_main detray_tests_common detray::array )
+   LINK_LIBRARIES GTest::gtest_main detray_tests_common detray::algebra_array )
 
 # Set up the "conditional" tests.
 if( DETRAY_IO_CSV )
    detray_add_test( array_read_detector "array_read_detector.cpp"
       LINK_LIBRARIES GTest::gtest_main detray_tests_common detray::io
-                     detray::array )
+                     detray::algebra_array )
 endif()
 if( DETRAY_DISPLAY )
    detray_add_test( array_display_masks "array_display_masks.cpp"
       LINK_LIBRARIES GTest::gtest_main detray_tests_common detray::display
-                     detray::array )
+                     detray::algebra_array )
 endif()

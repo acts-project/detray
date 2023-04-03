@@ -65,16 +65,16 @@ detray_add_test( vc_array
    "vc_array_unit_vectors.cpp"
    "vc_array_unmasked.cpp"
    "vc_array_volume.cpp"
-   LINK_LIBRARIES GTest::gtest_main detray_tests_common detray::vc_array )
+   LINK_LIBRARIES GTest::gtest_main detray_tests_common detray::algebra_vc )
 
 # Set up the "conditional" tests.
 if( DETRAY_IO_CSV )
    detray_add_test( vc_array_read_detector "vc_array_read_detector.cpp"
       LINK_LIBRARIES GTest::gtest_main detray_tests_common detray::io
-                     detray::vc_array )
+                     detray::algebra_vc )
 endif()
 if( DETRAY_DISPLAY )
    detray_add_test( vc_array_display_masks "vc_array_display_masks.cpp"
       LINK_LIBRARIES GTest::gtest_main detray_tests_common detray::display
-                     detray::vc_array )
+                     detray::algebra_vc )
 endif()
