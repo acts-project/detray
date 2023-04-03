@@ -7,8 +7,6 @@
 
 #pragma once
 
-namespace detray {
-
 // SYCL include(s).
 #if defined(CL_SYCL_LANGUAGE_VERSION) || defined(SYCL_LANGUAGE_VERSION)
 #include <CL/sycl.hpp>
@@ -16,6 +14,8 @@ namespace detray {
 
 // System include(s).
 #include <cmath>
+
+namespace detray {
 
 /// Namespace to pick up math functions from
 #if defined(CL_SYCL_LANGUAGE_VERSION) || defined(SYCL_LANGUAGE_VERSION)

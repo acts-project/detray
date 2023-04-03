@@ -1,6 +1,6 @@
 /** Detray library, part of the ACTS project (R&D line)
  *
- * (c) 2022 CERN for the benefit of the ACTS project
+ * (c) 2022-2023 CERN for the benefit of the ACTS project
  *
  * Mozilla Public License Version 2.0
  */
@@ -8,14 +8,16 @@
 #pragma once
 
 // Project include(s)
+#include "detray/core/detail/data_context.hpp"
 #include "detray/definitions/indexing.hpp"
+#include "detray/definitions/qualifiers.hpp"
 #include "detray/masks/masks.hpp"
+#include "detray/masks/unmasked.hpp"
 #include "detray/tools/surface_factory_interface.hpp"
 #include "detray/utils/ranges.hpp"
 
 // System include(s)
 #include <cassert>
-#include <iterator>
 #include <limits>
 #include <memory>
 #include <tuple>

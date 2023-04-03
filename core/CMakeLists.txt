@@ -7,140 +7,77 @@
 # Let the user know what's happening.
 message(STATUS "Building 'detray::core' component")
 
-# Set up the library.
+# Set up the "core library".
+file( GLOB _detray_core_public_headers
+   RELATIVE "${CMAKE_CURRENT_SOURCE_DIR}"
+   "include/detray/coordinates/*.hpp"
+   "include/detray/core/*.hpp"
+   "include/detray/definitions/*.hpp"
+   "include/detray/geometry/*.hpp"
+   "include/detray/grids/*.hpp"
+   "include/detray/intersection/bounding_box/*.hpp"
+   "include/detray/intersection/*.hpp"
+   "include/detray/masks/*.hpp"
+   "include/detray/materials/*.hpp"
+   "include/detray/propagator/actors/*.hpp"
+   "include/detray/propagator/*.hpp"
+   "include/detray/surface_finders/grid/*.hpp"
+   "include/detray/surface_finders/*.hpp"
+   "include/detray/tools/*.hpp"
+   "include/detray/tracks/*.hpp"
+   "include/detray/utils/ranges/*.hpp"
+   "include/detray/utils/*.hpp" )
+file( GLOB _detray_core_private_headers
+   "include/detray/*/detail/*.hpp"
+   "include/detray/*/*/detail/*.hpp" )
 detray_add_library( detray_core core
-   # coordinate include(s)
-   "include/detray/coordinates/cartesian2.hpp"
-   "include/detray/coordinates/cartesian3.hpp"
-   "include/detray/coordinates/coordinate_base.hpp"
-   "include/detray/coordinates/coordinates.hpp"
-   "include/detray/coordinates/cylindrical2.hpp"
-   "include/detray/coordinates/cylindrical3.hpp"
-   "include/detray/coordinates/line2.hpp"
-   "include/detray/coordinates/polar2.hpp"
-   # core include(s)
-   "include/detray/core/detail/container_view.hpp"
-   "include/detray/core/detail/data_context.hpp"
-   "include/detray/core/detail/detector_kernel.hpp"
-   "include/detray/core/detail/multi_store.hpp"
-   "include/detray/core/detail/single_store.hpp"
-   "include/detray/core/detail/tuple_container.hpp"
-   "include/detray/core/detector.hpp"
-   # definitions include(s)
-   "include/detray/definitions/detail/algorithms.hpp"
-   "include/detray/definitions/detail/bit_encoder.hpp"
-   "include/detray/definitions/containers.hpp"
-   "include/detray/definitions/cuda_definitions.hpp"
-   "include/detray/definitions/indexing.hpp"
-   "include/detray/definitions/pdg_particle.hpp"
-   "include/detray/definitions/qualifiers.hpp"
-   "include/detray/definitions/units.hpp"
-   "include/detray/definitions/track_parametrization.hpp"
-   # geometry include(s)
-   "include/detray/geometry/barcode.hpp"
-   "include/detray/geometry/detector_volume.hpp"
-   "include/detray/geometry/surface.hpp"
-   "include/detray/geometry/volume_connector.hpp"
-   "include/detray/geometry/volume_graph.hpp"
-   # grids include(s)
-   "include/detray/grids/axis.hpp"
-   "include/detray/grids/grid2.hpp"
-   "include/detray/grids/populator.hpp"
-   "include/detray/grids/serializer2.hpp"
-   # intersection include(s)
-   "include/detray/intersection/bounding_box/cuboid_intersector.hpp"
-   "include/detray/intersection/concentric_cylinder_intersector.hpp"
-   "include/detray/intersection/cylinder_intersector.hpp"
-   "include/detray/intersection/detail/trajectories.hpp"
-   "include/detray/intersection/intersection_kernel.hpp"
-   "include/detray/intersection/intersection.hpp"
-   "include/detray/intersection/line_intersector.hpp"
-   "include/detray/intersection/plane_intersector.hpp"
-   # masks include(s)
-   "include/detray/masks/annulus2D.hpp"
-   "include/detray/masks/cuboid3D.hpp"
-   "include/detray/masks/cylinder3D.hpp"
-   "include/detray/masks/line.hpp"
-   "include/detray/masks/masks.hpp"
-   "include/detray/masks/rectangle2D.hpp"
-   "include/detray/masks/ring2D.hpp"
-   "include/detray/masks/single3D.hpp"
-   "include/detray/masks/trapezoid2D.hpp"
-   "include/detray/masks/unmasked.hpp"
-   # materials include(s)
-   "include/detray/materials/detail/density_effect_data.hpp"
-   "include/detray/materials/detail/relativistic_quantities.hpp"
-   "include/detray/materials/interaction.hpp"
-   "include/detray/materials/material.hpp"
-   "include/detray/materials/material_rod.hpp"
-   "include/detray/materials/material_slab.hpp"
-   "include/detray/materials/mixture.hpp"
-   "include/detray/materials/predefined_materials.hpp"
-   # propagator include(s)
-   "include/detray/propagator/actors/aborters.hpp"
-   "include/detray/propagator/actors/parameter_resetter.hpp"
-   "include/detray/propagator/actors/parameter_transporter.hpp"
-   "include/detray/propagator/actors/pointwise_material_interactor.hpp"
-   "include/detray/propagator/actor_chain.hpp"
-   "include/detray/propagator/base_actor.hpp"
-   "include/detray/propagator/base_stepper.hpp"
-   "include/detray/propagator/constrained_step.hpp"
-   "include/detray/propagator/line_stepper.hpp"
-   "include/detray/propagator/navigation_policies.hpp"
-   "include/detray/propagator/navigator.hpp"
-   "include/detray/propagator/propagator.hpp"
-   "include/detray/propagator/rk_stepper.hpp"
-   # surface finder include(s)
-   "include/detray/surface_finders/brute_force_finder.hpp"
-   "include/detray/surface_finders/grid/detail/axis_binning.hpp"
-   "include/detray/surface_finders/grid/detail/axis_bounds.hpp"
-   "include/detray/surface_finders/grid/detail/axis_helpers.hpp"
-   "include/detray/surface_finders/grid/detail/grid_helpers.hpp"
-   "include/detray/surface_finders/grid/detail/populator_impl.hpp"
-   "include/detray/surface_finders/grid/detail/serializer_impl.hpp"
-   "include/detray/surface_finders/grid/axis.hpp"
-   "include/detray/surface_finders/grid/grid_collection.hpp"
-   "include/detray/surface_finders/grid/grid.hpp"
-   "include/detray/surface_finders/grid/populator.hpp"
-   "include/detray/surface_finders/grid/serializer.hpp"
-   "include/detray/surface_finders/neighborhood_kernel.hpp"
-   # tools include(s)
-   "include/detray/tools/associator.hpp"
-   "include/detray/tools/bin_association.hpp"
-   "include/detray/tools/bin_fillers.hpp"
-   "include/detray/tools/bounding_volume.hpp"
-   "include/detray/tools/generators.hpp"
-   "include/detray/tools/grid_builder.hpp"
-   "include/detray/tools/grid_factory.hpp"
-   "include/detray/tools/local_object_finder.hpp"
-   "include/detray/tools/surface_factory.hpp"
-   "include/detray/tools/surface_factory_interface.hpp"
-   "include/detray/tools/volume_builder.hpp"
-   "include/detray/tools/volume_builder_interface.hpp"
-   # tracks include(s)
-   "include/detray/tracks/detail/track_helper.hpp"
-   "include/detray/tracks/bound_track_parameters.hpp"
-   "include/detray/tracks/free_track_parameters.hpp"
-   "include/detray/tracks/tracks.hpp"
-   # utils include(s)
-   "include/detray/utils/axis_rotation.hpp"
-   "include/detray/utils/column_wise_operator.hpp"
-   "include/detray/utils/ranges/detail/iterator_functions.hpp"
-   "include/detray/utils/ranges/empty.hpp"
-   "include/detray/utils/ranges/enumerate.hpp"
-   "include/detray/utils/ranges/iota.hpp"
-   "include/detray/utils/ranges/join.hpp"
-   "include/detray/utils/ranges/pick.hpp"
-   "include/detray/utils/ranges/ranges.hpp"
-   "include/detray/utils/ranges/single.hpp"
-   "include/detray/utils/ranges/subrange.hpp"
-   "include/detray/utils/invalid_values.hpp"
-   "include/detray/utils/matrix_helper.hpp"
-   "include/detray/utils/quadratic_equation.hpp"
-   "include/detray/utils/ratio.hpp"
-   "include/detray/utils/statistics.hpp"
-   "include/detray/utils/tuple_helpers.hpp"
-   "include/detray/utils/type_registry.hpp"
-   "include/detray/utils/type_traits.hpp"
-   "include/detray/utils/unit_vectors.hpp" )
-target_link_libraries( detray_core INTERFACE detray_io vecmem::core detray::Thrust)
+   ${_detray_core_public_headers} ${_detray_core_private_headers} )
+target_link_libraries( detray_core
+   INTERFACE covfie::core vecmem::core detray::Thrust )
+
+# Set up the libraries that use specific algebra plugins.
+detray_add_library( detray_core_array core_array )
+target_link_libraries( detray_core_array
+   INTERFACE detray::core detray::algebra_array )
+
+if( DETRAY_EIGEN_PLUGIN )
+   detray_add_library( detray_core_eigen core_eigen )
+   target_link_libraries( detray_core_eigen
+      INTERFACE detray::core detray::algebra_eigen )
+endif()
+
+if( DETRAY_SMATRIX_PLUGIN )
+   detray_add_library( detray_core_smatrix core_smatrix )
+   target_link_libraries( detray_core_smatrix
+      INTERFACE detray::core detray::algebra_smatrix )
+endif()
+
+if( DETRAY_VC_PLUGIN )
+   detray_add_library( detray_core_vc core_vc )
+   target_link_libraries( detray_core_vc
+      INTERFACE detray::core detray::algebra_vc )
+endif()
+
+# Test the public headers of the detray core libraries.
+if( BUILD_TESTING AND DETRAY_BUILD_TESTING )
+   string( REPLACE "include/" "" _detray_core_public_headers
+      "${_detray_core_public_headers}" )
+   detray_test_public_headers( detray_core_array
+      ${_detray_core_public_headers} )
+   if( DETRAY_EIGEN_PLUGIN )
+      detray_test_public_headers( detray_core_eigen
+         ${_detray_core_public_headers} )
+   endif()
+   if( DETRAY_SMATRIX_PLUGIN )
+      detray_test_public_headers( detray_core_smatrix
+         ${_detray_core_public_headers} )
+   endif()
+   if( DETRAY_VC_PLUGIN )
+      detray_test_public_headers( detray_core_vc
+         ${_detray_core_public_headers} )
+   endif()
+endif()
+
+# Clean up.
+unset( _detray_core_public_headers )
+unset( _detray_core_private_headers )

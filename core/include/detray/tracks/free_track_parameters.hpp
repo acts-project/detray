@@ -8,6 +8,7 @@
 #pragma once
 
 // Project include(s).
+#include "detray/definitions/algebra.hpp"
 #include "detray/definitions/qualifiers.hpp"
 #include "detray/definitions/track_parametrization.hpp"
 #include "detray/tracks/detail/track_helper.hpp"
@@ -148,7 +149,7 @@ struct free_track_parameters {
     }
 
     DETRAY_HOST_DEVICE
-    void set_qop(const scalar qop) {
+    void set_qop(const scalar_type qop) {
         matrix_operator().element(m_vector, e_free_qoverp, 0u) = qop;
     }
 
