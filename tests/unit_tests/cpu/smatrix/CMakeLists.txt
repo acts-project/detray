@@ -1,6 +1,6 @@
 # Detray library, part of the ACTS project (R&D line)
 #
-# (c) 2021-2022 CERN for the benefit of the ACTS project
+# (c) 2021-2023 CERN for the benefit of the ACTS project
 #
 # Mozilla Public License Version 2.0
 
@@ -45,6 +45,7 @@ detray_add_test( smatrix
    "smatrix_mask_store.cpp"
    "smatrix_material_interaction.cpp"
    "smatrix_materials.cpp"
+   "smatrix_matrix_helper.cpp"
    "smatrix_navigator.cpp"
    "smatrix_particle_gun.cpp"
    "smatrix_path_correction.cpp"
