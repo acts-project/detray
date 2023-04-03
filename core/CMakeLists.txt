@@ -141,5 +141,6 @@ detray_add_library( detray_core core
    "include/detray/utils/statistics.hpp"
    "include/detray/utils/tuple_helpers.hpp"
    "include/detray/utils/type_registry.hpp"
-   "include/detray/utils/type_traits.hpp" )
+   "include/detray/utils/type_traits.hpp"
+   "include/detray/utils/unit_vectors.hpp" )
 target_link_libraries( detray_core INTERFACE detray_io vecmem::core detray::Thrust)

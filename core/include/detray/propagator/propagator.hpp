@@ -134,6 +134,9 @@ struct propagator {
         // Run all registered actors/aborters after init
         run_actors(actor_states, propagation);
 
+        // Find next candidate
+        propagation._heartbeat &= _navigator.update(propagation);
+
         // Run while there is a heartbeat
         while (propagation._heartbeat) {
 
@@ -175,6 +178,9 @@ struct propagator {
 
         // Run all registered actors/aborters after init
         run_actors(actor_states, propagation);
+
+        // Find next candidate
+        propagation._heartbeat &= _navigator.update(propagation);
 
         while (propagation._heartbeat) {
 

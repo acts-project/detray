@@ -62,6 +62,7 @@ detray_add_test( eigen
    "eigen_transform_store.cpp"
    "eigen_trapezoid2D.cpp"
    "eigen_unbounded.cpp"
+   "eigen_unit_vectors.cpp"
    "eigen_unmasked.cpp"
    "eigen_volume.cpp"
    LINK_LIBRARIES GTest::gtest_main detray_tests_common detray::eigen )

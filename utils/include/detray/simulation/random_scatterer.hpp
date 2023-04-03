@@ -11,6 +11,7 @@
 #include "detray/definitions/qualifiers.hpp"
 #include "detray/propagator/base_actor.hpp"
 #include "detray/utils/axis_rotation.hpp"
+#include "detray/utils/unit_vectors.hpp"
 
 // System include(s).
 #include <random>
@@ -61,7 +62,9 @@ struct random_scatterer : actor {
             const auto dir = stepping._bound_params.dir();
 
             // xaxis of curvilinear plane
-            const vector3 u{-dir[1], dir[0], 0.f};
+            const vector3 u =
+                unit_vectors<vector3>().make_curvilinear_unit_u(dir);
+
             vector3 new_dir = axis_rotation<transform3_type>(u, r_theta)(dir);
             new_dir = axis_rotation<transform3_type>(dir, r_phi)(new_dir);
 
