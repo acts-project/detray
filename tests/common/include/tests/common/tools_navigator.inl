@@ -13,6 +13,9 @@
 #include "detray/tracks/tracks.hpp"
 #include "tests/common/tools/inspectors.hpp"
 
+// VecMem include(s).
+#include <vecmem/memory/host_memory_resource.hpp>
+
 // GoogleTest include(s)
 #include <gtest/gtest.h>
 
