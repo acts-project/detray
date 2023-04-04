@@ -60,10 +60,6 @@ option( DETRAY_BUILD_TESTING "Build the (unit) tests of Detray"
    TRUE )
 cmake_dependent_option( DETRAY_BENCHMARKS "Enable benchmark tests" TRUE
    "DETRAY_BUILD_TESTING" OFF )
-cmake_dependent_option( DETRAY_BENCHMARKS_MULTITHREAD
-   "Enable multithreaded benchmarks" OFF "DETRAY_BENCHMARKS" OFF )
-set( DETRAY_BENCHMARKS_REP 1 CACHE STRING
-   "Number of repetitions for the benchmarks" )
 
 # Clean up.
 unset( DETRAY_BUILD_CUDA_DEFAULT )

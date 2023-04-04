@@ -4,6 +4,8 @@
 #
 # Mozilla Public License Version 2.0
 
+add_subdirectory( cpu )
+
 # Include all of the benchmarks that can be built.
 add_subdirectory( core )
 add_subdirectory( array )
