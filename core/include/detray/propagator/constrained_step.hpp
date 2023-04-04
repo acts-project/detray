@@ -8,11 +8,13 @@
 #pragma once
 
 // detray definitions
-#include <climits>
-#include <type_traits>
-
+#include "detray/definitions/algebra.hpp"
 #include "detray/definitions/containers.hpp"
 #include "detray/definitions/qualifiers.hpp"
+
+// System include(s).
+#include <climits>
+#include <type_traits>
 
 namespace detray {
 

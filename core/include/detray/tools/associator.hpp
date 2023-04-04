@@ -7,6 +7,11 @@
 
 #pragma once
 
+// Project include(s).
+#include "detray/definitions/algebra.hpp"
+#include "detray/definitions/qualifiers.hpp"
+
+// System include(s).
 #include <limits>
 #include <vector>
 

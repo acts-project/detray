@@ -7,11 +7,13 @@
 
 #pragma once
 
-#include <algorithm>
-#include <climits>
-#include <cmath>
-
+// Project include(s).
+#include "detray/definitions/containers.hpp"
 #include "detray/definitions/qualifiers.hpp"
+
+// System include(s).
+#include <cmath>
+#include <limits>
 
 namespace detray {
 

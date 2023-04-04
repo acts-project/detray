@@ -9,6 +9,7 @@
 
 // Project include(s)
 #include "detray/coordinates/cartesian2.hpp"
+#include "detray/coordinates/cartesian3.hpp"
 #include "detray/definitions/qualifiers.hpp"
 #include "detray/intersection/plane_intersector.hpp"
 #include "detray/surface_finders/grid/detail/axis_binning.hpp"

@@ -11,6 +11,8 @@
 #include "detray/definitions/qualifiers.hpp"
 
 // System include(s)
+#include <array>
+#include <limits>
 #include <string>
 
 namespace detray {

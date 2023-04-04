@@ -9,6 +9,7 @@
 
 // Project include(s).
 #include "detray/definitions/qualifiers.hpp"
+#include "detray/definitions/track_parametrization.hpp"
 #include "detray/materials/interaction.hpp"
 #include "detray/propagator/base_actor.hpp"
 #include "detray/utils/axis_rotation.hpp"

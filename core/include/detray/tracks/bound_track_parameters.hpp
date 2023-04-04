@@ -149,7 +149,7 @@ struct bound_track_parameters {
     }
 
     DETRAY_HOST_DEVICE
-    void set_qop(const scalar qop) {
+    void set_qop(const scalar_type qop) {
         matrix_operator().element(m_vector, e_bound_qoverp, 0u) = qop;
     }
 

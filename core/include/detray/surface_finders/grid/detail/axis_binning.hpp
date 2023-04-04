@@ -8,6 +8,7 @@
 #pragma once
 
 // Project include(s).
+#include "detray/definitions/algebra.hpp"
 #include "detray/definitions/detail/algorithms.hpp"
 #include "detray/definitions/grid_axis.hpp"
 #include "detray/definitions/indexing.hpp"
@@ -59,7 +60,7 @@ struct regular {
     /// @returns the total number of bins, which for the regular axis is simply
     /// the second entry in the range
     DETRAY_HOST_DEVICE
-    std::size_t nbins() const { return detail::get<1>(*m_edges_range); }
+    std::size_t nbins() const { return detray::detail::get<1>(*m_edges_range); }
 
     /// Access function to a single bin from a value v
     ///
@@ -121,7 +122,7 @@ struct regular {
         // Output vector has to be constructed, because the edges are
         // calculated on the fly
         vector_type<scalar_t> edges;
-        detail::call_reserve(edges, nbins());
+        detray::detail::call_reserve(edges, nbins());
 
         // Calculate bin edges from number of bins and axis span
         const array_type<scalar_t, 2> sp = span();
@@ -138,7 +139,7 @@ struct regular {
     DETRAY_HOST_DEVICE
     scalar_t bin_width() const {
         // Get the binning information
-        const dindex ibin{detail::get<0>(*m_edges_range)};
+        const dindex ibin{detray::detail::get<0>(*m_edges_range)};
         const scalar_t min{(*m_bin_edges)[ibin]};
         const scalar_t max{(*m_bin_edges)[ibin + 1]};
 
@@ -152,7 +153,7 @@ struct regular {
     DETRAY_HOST_DEVICE
     array_type<scalar_t, 2> span() const {
         // Get the binning information
-        const dindex ibin{detail::get<0>(*m_edges_range)};
+        const dindex ibin{detray::detail::get<0>(*m_edges_range)};
         const scalar_t min{(*m_bin_edges)[ibin]};
         const scalar_t max{(*m_bin_edges)[ibin + 1]};
 
@@ -202,7 +203,8 @@ struct irregular {
     /// @returns the total number of bins
     DETRAY_HOST_DEVICE
     std::size_t nbins() const {
-        return detail::get<1>(*m_edges_range) - detail::get<0>(*m_edges_range);
+        return detray::detail::get<1>(*m_edges_range) -
+               detray::detail::get<0>(*m_edges_range);
     }
 
     /// Access function to a single bin from a value v
@@ -214,12 +216,14 @@ struct irregular {
     int bin(const scalar_t v) const {
         auto bins_begin =
             m_bin_edges->begin() +
-            static_cast<index_type>(detail::get<0>(*m_edges_range));
-        auto bins_end = m_bin_edges->begin() +
-                        static_cast<index_type>(detail::get<1>(*m_edges_range));
+            static_cast<index_type>(detray::detail::get<0>(*m_edges_range));
+        auto bins_end =
+            m_bin_edges->begin() +
+            static_cast<index_type>(detray::detail::get<1>(*m_edges_range));
 
-        return static_cast<int>(detail::lower_bound(bins_begin, bins_end, v) -
-                                bins_begin) -
+        return static_cast<int>(
+                   detray::detail::lower_bound(bins_begin, bins_end, v) -
+                   bins_begin) -
                1;
     }
 
@@ -257,7 +261,7 @@ struct irregular {
     DETRAY_HOST_DEVICE
     array_type<scalar_t, 2> bin_edges(const dindex ibin) const {
         // Offset into global container for this binning
-        const dindex offset{detail::get<0>(*m_edges_range)};
+        const dindex offset{detray::detail::get<0>(*m_edges_range)};
 
         return {(*m_bin_edges)[offset + ibin],
                 (*m_bin_edges)[offset + ibin + 1u]};
@@ -269,14 +273,14 @@ struct irregular {
     vector_type<scalar_t> bin_edges() const {
         // Transcribe the subvector for this binning from the global storage
         vector_type<scalar_t> edges;
-        detail::call_reserve(edges, nbins());
+        detray::detail::call_reserve(edges, nbins());
 
         edges.insert(
             edges->end(),
             m_bin_edges->begin() +
-                static_cast<index_type>(detail::get<0>(*m_edges_range)),
-            m_bin_edges->begin() +
-                static_cast<index_type>(detail::get<1>(*m_edges_range)));
+                static_cast<index_type>(detray::detail::get<0>(*m_edges_range)),
+            m_bin_edges->begin() + static_cast<index_type>(
+                                       detray::detail::get<1>(*m_edges_range)));
 
         return edges;
     }
@@ -296,8 +300,10 @@ struct irregular {
     DETRAY_HOST_DEVICE
     array_type<scalar_t, 2> span() const {
         // Get the binning information
-        const scalar_t min{(*m_bin_edges)[detail::get<0>(*m_edges_range)]};
-        const scalar_t max{(*m_bin_edges)[detail::get<1>(*m_edges_range)]};
+        const scalar_t min{
+            (*m_bin_edges)[detray::detail::get<0>(*m_edges_range)]};
+        const scalar_t max{
+            (*m_bin_edges)[detray::detail::get<1>(*m_edges_range)]};
 
         return {min, max};
     }
