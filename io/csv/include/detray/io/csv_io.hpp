@@ -1,6 +1,6 @@
 /** Detray library, part of the ACTS project (R&D line)
  *
- * (c) 2021 CERN for the benefit of the ACTS project
+ * (c) 2021-2023 CERN for the benefit of the ACTS project
  *
  * Mozilla Public License Version 2.0
  */
@@ -17,10 +17,7 @@
 #include "detray/utils/ranges.hpp"
 
 // Vecmem include(s)
-#include <vecmem/memory/host_memory_resource.hpp>
-
-// Covfie include(s)
-#include <covfie/core/field_view.hpp>
+#include <vecmem/memory/memory_resource.hpp>
 
 // System include(s)
 #include <climits>
