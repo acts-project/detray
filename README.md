@@ -34,8 +34,6 @@ project would be built:
   * Note that [Algebra Plugins](https://github.com/acts-project/algebra-plugins)
     must have all of the appropriate options enabled for whichever option
     is turned on from these.
-- `DETRAY_IO_CSV`: Boolean option turning on the build of `detray::io_csv`, the
-  library allowing the reading of geometries from CSV files (`ON` by default);
 - `DETRAY_DISPLAY`: Boolean option turning on the build of `detray::display`,
   and additional helpers for displaying a geometry (`OFF` by default);
 - `DETRAY_BUILD_CUDA`: Boolean option turning on the build of all CUDA code

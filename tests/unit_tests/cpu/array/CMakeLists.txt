@@ -67,12 +67,11 @@ detray_add_test( array
    "array_volume.cpp"
    LINK_LIBRARIES GTest::gtest_main detray_tests_common detray::algebra_array )
 
-# Set up the "conditional" tests.
-if( DETRAY_IO_CSV )
-   detray_add_test( array_read_detector "array_read_detector.cpp"
-      LINK_LIBRARIES GTest::gtest_main detray_tests_common detray::io
-                     detray::algebra_array )
-endif()
+detray_add_test( array_read_detector "array_read_detector.cpp"
+   LINK_LIBRARIES GTest::gtest_main detray_tests_common detray::io
+                  detray::algebra_array )
+
+# Set up the "conditional" test(s).
 if( DETRAY_DISPLAY )
    detray_add_test( array_display_masks "array_display_masks.cpp"
       LINK_LIBRARIES GTest::gtest_main detray_tests_common detray::display

@@ -1,19 +1,22 @@
 /** Detray library, part of the ACTS project (R&D line)
  *
- * (c) 2022 CERN for the benefit of the ACTS project
+ * (c) 2022-2023 CERN for the benefit of the ACTS project
  *
  * Mozilla Public License Version 2.0
  */
 
 #pragma once
 
+// Project include(s).
+#include "detray/definitions/grid_axis.hpp"
+#include "detray/io/io_payload.hpp"
+#include "detray/io/json_algebra_io.hpp"
+#include "detray/io/json_defs.hpp"
+
+// System include(s).
 #include <array>
 #include <optional>
 #include <vector>
-
-#include "detray/definitions/grid_axis.hpp"
-#include "detray/io/io_payload.hpp"
-#include "detray/io/json_defs.hpp"
 
 namespace detray {
 
