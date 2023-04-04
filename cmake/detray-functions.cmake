@@ -65,9 +65,11 @@ function( detray_test_public_headers library )
       # header can be used as-is.
       set( _testFileName
          "${CMAKE_CURRENT_BINARY_DIR}${CMAKE_FILES_DIRECTORY}/test_${library}_${_headerNormName}.cpp" )
-      file( WRITE "${_testFileName}"
-         "#include \"${_headerName}\"\n"
-         "int main() { return 0; }" )
+      if( NOT EXISTS "${_testFileName}" )
+         file( WRITE "${_testFileName}"
+            "#include \"${_headerName}\"\n"
+            "int main() { return 0; }" )
+      endif()
 
       # Set up an executable that would build it. But hide it, don't put it
       # into ${CMAKE_BINARY_DIR}/bin.
