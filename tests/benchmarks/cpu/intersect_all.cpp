@@ -41,16 +41,21 @@ void BM_INTERSECT_ALL(benchmark::State &state) {
     vecmem::host_memory_resource host_mr;
     auto d = create_toy_geometry(host_mr, n_brl_layers, n_edc_layers);
 
-    decltype(d)::geometry_context geo_context;
+    using detector_t = decltype(d);
+    detector_t::geometry_context geo_context;
 
     const auto &masks = d.mask_store();
     const auto &transforms = d.transform_store(geo_context);
 
-    unsigned int hits{0u};
-    unsigned int missed{0u};
+    std::size_t hits{0u};
+    std::size_t missed{0u};
 
     for (auto _ : state) {
         test::point3 pos{0.f, 0.f, 0.f};
+        std::vector<intersection2D<typename detector_t::surface_type,
+                                   typename detector_t::transform3>>
+            intersections{};
+        std::size_t n_surfaces{0u};
 
         // Iterate through uniformly distributed momentum directions
         for (const auto track :
@@ -62,17 +67,20 @@ void BM_INTERSECT_ALL(benchmark::State &state) {
                 // Loop over all surfaces in volume
                 for (const auto &sf : d.surfaces(v)) {
 
-                    auto sfi = masks.template visit<intersection_update>(
-                        sf.mask(), detail::ray(track), sf, transforms);
+                    masks.template visit<intersection_initialize>(
+                        sf.mask(), intersections, detail::ray(track), sf,
+                        transforms);
 
-                    benchmark::DoNotOptimize(hits);
-                    benchmark::DoNotOptimize(missed);
-                    if (sfi.status == intersection::status::e_inside) {
-                        ++hits;
-                    } else {
-                        ++missed;
-                    }
+                    ++n_surfaces;
                 }
+                benchmark::DoNotOptimize(hits);
+                benchmark::DoNotOptimize(missed);
+
+                hits += intersections.size();
+                missed += n_surfaces - intersections.size();
+
+                n_surfaces = 0u;
+                intersections.clear();
             }
         }
     }

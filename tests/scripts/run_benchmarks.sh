@@ -31,20 +31,12 @@ echo "===> Benchmark pipeline for commit ${LASTCOMMIT}"
 # Run the benchmarks
 for group in eigen array ; do
     echo "===> Running ${group}.benchmarks ..."
-    ${WORKSPACE}/build/bin/detray_${group}_masks --benchmark_out=${group}_masks.csv --benchmark_out_format=csv
-    ${WORKSPACE}/build/bin/detray_${group}_intersect_surfaces --benchmark_out=${group}_intersect_surfaces.csv --benchmark_out_format=csv
-    ${WORKSPACE}/build/bin/detray_${group}_intersect_all --benchmark_out=${group}_intersect_all.csv --benchmark_out_format=csv
+    ${WORKSPACE}/build/bin/detray_benchmark_cpu_${group} --benchmark_format=csv > ${group}_benchmarks.csv
 
-    echo "===> Extracting benchmark results ..."
-    cat ${group}_masks.csv | tail -n5  > ${group}_masks_cropped.csv
-    cat ${group}_intersect_surfaces.csv | tail -f -n3 > ${group}_intersect_surfaces_cropped.csv
-    cat ${group}_intersect_all.csv | tail -f -n1 > ${group}_intersect_all_cropped.csv
-    sed -i -e 's/"BM_/'$LASTCOMMIT',"'$group'","BM_/g' ${group}_masks_cropped.csv
-    sed -i -e 's/"BM_/'$LASTCOMMIT',"'$group'","BM_/g' ${group}_intersect_surfaces_cropped.csv
-    sed -i -e 's/"BM_/'$LASTCOMMIT',"'$group'","BM_/g' ${group}_intersect_all_cropped.csv
-    cat ${group}_masks_cropped.csv >> benchmark_${LASTCOMMIT}.csv
-    cat ${group}_intersect_surfaces_cropped.csv >> benchmark_${LASTCOMMIT}.csv
-    cat ${group}_intersect_all_cropped.csv >> benchmark_${LASTCOMMIT}.csv
+    echo "===> Formatting benchmark results ..."
+    sed -i -e "1d" ${group}_benchmarks.csv
+    sed -i -e 's/"BM_/'$LASTCOMMIT',"'$group'","BM_/g' ${group}_benchmarks.csv
+    cat ${group}_benchmarks.csv >> benchmark_${LASTCOMMIT}.csv
 done
 
 cat benchmark_${LASTCOMMIT}.csv
