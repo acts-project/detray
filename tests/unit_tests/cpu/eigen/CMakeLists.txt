@@ -67,12 +67,11 @@ detray_add_test( eigen
    "eigen_volume.cpp"
    LINK_LIBRARIES GTest::gtest_main detray_tests_common detray::algebra_eigen )
 
-# Set up the "conditional" tests.
-if( DETRAY_IO_CSV )
-   detray_add_test( eigen_read_detector "eigen_read_detector.cpp"
-      LINK_LIBRARIES GTest::gtest_main detray_tests_common detray::io
-                     detray::algebra_eigen )
-endif()
+detray_add_test( eigen_read_detector "eigen_read_detector.cpp"
+   LINK_LIBRARIES GTest::gtest_main detray_tests_common detray::io
+                  detray::algebra_eigen )
+
+# Set up the "conditional" test(s).
 if( DETRAY_DISPLAY )
    detray_add_test( eigen_display_masks "eigen_display_masks.cpp"
       LINK_LIBRARIES GTest::gtest_main detray_tests_common detray::display
