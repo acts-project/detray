@@ -17,7 +17,7 @@
 #include "detray/tools/bounding_volume.hpp"
 
 // Vecmem include(s)
-#include <vecmem/memory/host_memory_resource.hpp>
+#include <vecmem/memory/memory_resource.hpp>
 
 // Covfie include(s)
 #include <covfie/core/field.hpp>

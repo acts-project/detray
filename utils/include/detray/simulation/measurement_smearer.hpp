@@ -8,7 +8,9 @@
 #pragma once
 
 // System include(s).
+#include <array>
 #include <random>
+#include <string>
 
 namespace detray {
 

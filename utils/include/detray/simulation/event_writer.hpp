@@ -7,11 +7,18 @@
 
 #pragma once
 
-// Project include(s).
+// Detray core include(s).
 #include "detray/definitions/qualifiers.hpp"
+#include "detray/geometry/barcode.hpp"
+#include "detray/propagator/base_actor.hpp"
+#include "detray/tracks/bound_track_parameters.hpp"
+#include "detray/tracks/free_track_parameters.hpp"
+
+// Detray I/O include(s).
 #include "detray/io/csv_io_types.hpp"
 #include "detray/io/utils.hpp"
-#include "detray/propagator/base_actor.hpp"
+
+// Detray utility include(s).
 #include "detray/simulation/measurement_smearer.hpp"
 
 namespace detray {

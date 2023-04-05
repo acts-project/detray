@@ -15,7 +15,7 @@
 #include "detray/materials/predefined_materials.hpp"
 
 // Vecmem include(s)
-#include <vecmem/memory/host_memory_resource.hpp>
+#include <vecmem/memory/memory_resource.hpp>
 
 // Covfie include(s)
 #include <covfie/core/backend/primitive/constant.hpp>

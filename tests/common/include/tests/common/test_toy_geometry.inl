@@ -10,6 +10,9 @@
 
 #include "detray/detectors/create_toy_geometry.hpp"
 
+// VecMem include(s).
+#include <vecmem/memory/host_memory_resource.hpp>
+
 using namespace detray;
 
 namespace {
