@@ -4,8 +4,7 @@
 #
 # Mozilla Public License Version 2.0
 
-# Include all of the benchmarks that can be built.
-add_subdirectory( core )
+# Set up the host/cpu benchmarks.
 add_subdirectory( cpu )
 
 # Set up all of the "device" benchmarks.

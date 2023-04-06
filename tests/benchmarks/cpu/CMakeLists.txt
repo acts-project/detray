@@ -14,6 +14,7 @@ macro( detray_add_cpu_benchmark algebra )
    # Build the benchmark executable.
    detray_add_executable( benchmark_cpu_${algebra}
       "find_volume.cpp"
+      "grids.cpp"
       "intersect_all.cpp"
       "intersect_surfaces.cpp"
       "masks.cpp"
