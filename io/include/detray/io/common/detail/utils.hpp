@@ -11,8 +11,9 @@
 #include <iomanip>
 #include <sstream>
 
-namespace detray {
+namespace detray::detail {
 
+/// Generate the filename for every distinct event
 inline std::string get_event_filename(std::size_t event,
                                       const std::string& suffix) {
     std::stringstream stream;
@@ -22,4 +23,4 @@ inline std::string get_event_filename(std::size_t event,
     return stream.str();
 }
 
-}  // namespace detray
+}  // namespace detray::detail

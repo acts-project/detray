@@ -11,7 +11,7 @@
 #include "detray/core/detector.hpp"
 #include "detray/geometry/volume_connector.hpp"
 #include "detray/grids/axis.hpp"
-#include "detray/io/csv_io_types.hpp"
+#include "detray/io/csv/csv_io_types.hpp"
 #include "detray/surface_finders/brute_force_finder.hpp"
 #include "detray/tools/bin_association.hpp"
 #include "detray/utils/ranges.hpp"
