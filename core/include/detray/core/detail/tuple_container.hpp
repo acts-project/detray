@@ -216,4 +216,14 @@ DETRAY_HOST_DEVICE constexpr decltype(auto) get(
 }
 /// @}
 
+/// Get @c tuple_container element type
+template <std::size_t N, template <typename...> class tuple_t, typename... Ts>
+struct tuple_element<N, detail::tuple_container<tuple_t, Ts...>>
+    : public detail::tuple_element<N, tuple_t<Ts...>> {};
+
+/// Get @c tuple_container size
+template <template <typename...> class tuple_t, typename... Ts>
+struct tuple_size<detail::tuple_container<tuple_t, Ts...>>
+    : public detail::tuple_size<tuple_t<Ts...>> {};
+
 }  // namespace detray::detail

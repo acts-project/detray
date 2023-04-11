@@ -77,6 +77,12 @@ struct single_link_payload {
 /// Geometry payloads
 /// @{
 
+/// @brief a payload for the geometry file header
+struct geo_header_payload {
+    std::string version, detector, tag, date;
+    std::size_t n_volumes, n_surfaces;
+};
+
 /// @brief A payload for an affine transformation in homogeneous coordinates
 struct transform_payload {
     std::array<real_io, 3u> tr;
@@ -93,7 +99,7 @@ struct mask_payload {
 };
 
 /// @brief A payload object to link a surface to its material
-struct material_payload {
+struct material_link_payload {
     using material_type = io::detail::material_type;
     material_type type = material_type::unknown;
     std::size_t index;
@@ -103,7 +109,7 @@ struct material_payload {
 struct surface_payload {
     transform_payload transform;
     mask_payload mask;
-    std::optional<material_payload> material;
+    std::optional<material_link_payload> material;
     single_link_payload source;
     // Write the surface barcode as an additional information
     std::uint64_t barcode;
@@ -140,12 +146,30 @@ struct volume_payload {
 /// Material payloads
 /// @{
 
-/// @brief A payload object for material
+/// @brief a payload for the simple material file header
+struct homogeneous_material_header_payload {
+    std::string version, detector, tag, date;
+    std::size_t n_slabs, n_rods;
+};
+
+/// @brief A payload object for a material parametrization
+struct material_payload {
+    std::array<real_io, 7u> params;
+};
+
+/// @brief A payload object for a material slab
 struct material_slab_payload {
     using material_type = io::detail::material_type;
-    material_type type = material_type::slab;
-    std::array<real_io, 8u> slab;
+    material_type type = material_type::unknown;
     std::size_t index;
+    real_io thickness;
+    material_payload mat;
+};
+
+/// @brief A payload for a simple detector material description
+struct detector_homogeneous_material_payload {
+    std::vector<material_slab_payload> mat_slabs = {};
+    std::optional<std::vector<material_slab_payload>> mat_rods;
 };
 
 /// @}
@@ -186,7 +210,6 @@ struct links_payload {
 
 /// @brief A payload for a detector
 struct detector_payload {
-    std::string name = "";
     std::vector<volume_payload> volumes = {};
     grid_objects_payload volume_grid;
 };

@@ -91,7 +91,6 @@ void from_json(const nlohmann::ordered_json& j, links_payload& l) {
 }
 
 void to_json(nlohmann::ordered_json& j, const detector_payload& d) {
-    j["name"] = d.name;
     if (not d.volumes.empty()) {
         nlohmann::ordered_json jvolumes;
         for (const auto& v : d.volumes) {
@@ -103,7 +102,6 @@ void to_json(nlohmann::ordered_json& j, const detector_payload& d) {
 }
 
 void from_json(const nlohmann::ordered_json& j, detector_payload& d) {
-    d.name = j["name"];
     if (j.find("volumes") != j.end()) {
         for (auto jvolume : j["volumes"]) {
             d.volumes.push_back(jvolume);

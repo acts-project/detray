@@ -22,6 +22,24 @@
 /// JSON I/O extension
 namespace detray {
 
+void to_json(nlohmann::ordered_json& j, const geo_header_payload& h) {
+    j["version"] = h.version;
+    j["detector"] = h.detector;
+    j["date"] = h.date;
+    j["tag"] = h.tag;
+    j["no. volumes"] = h.n_volumes;
+    j["no. surfaces"] = h.n_surfaces;
+}
+
+void from_json(const nlohmann::ordered_json& j, geo_header_payload& h) {
+    h.version = j["version"];
+    h.detector = j["detector"];
+    h.date = j["date"];
+    h.tag = j["tag"];
+    h.n_volumes = j["no. volumes"];
+    h.n_surfaces = j["no. surfaces"];
+}
+
 void to_json(nlohmann::ordered_json& j, const single_link_payload& so) {
     j = so.link;
 }
@@ -42,13 +60,13 @@ void from_json(const nlohmann::ordered_json& j, mask_payload& m) {
     m.boundaries = j["boundaries"].get<std::vector<real_io>>();
 }
 
-void to_json(nlohmann::ordered_json& j, const material_payload& m) {
+void to_json(nlohmann::ordered_json& j, const material_link_payload& m) {
     j["type"] = static_cast<unsigned int>(m.type);
     j["index"] = m.index;
 }
 
-void from_json(const nlohmann::ordered_json& j, material_payload& m) {
-    m.type = static_cast<material_payload::material_type>(j["type"]);
+void from_json(const nlohmann::ordered_json& j, material_link_payload& m) {
+    m.type = static_cast<material_link_payload::material_type>(j["type"]);
     m.index = j["index"];
 }
 

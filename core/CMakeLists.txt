@@ -35,6 +35,17 @@ detray_add_library( detray_core core
 target_link_libraries( detray_core
    INTERFACE covfie::core vecmem::core detray::Thrust )
 
+# Generate a version header for the project.
+configure_file( "cmake/version.hpp.in"
+   "${CMAKE_CURRENT_BINARY_DIR}${CMAKE_FILES_DIRECTORY}/detray/version.hpp"
+   @ONLY )
+install(
+   FILES "${CMAKE_CURRENT_BINARY_DIR}${CMAKE_FILES_DIRECTORY}/detray/version.hpp"
+   DESTINATION "${CMAKE_INSTALL_INCLUDEDIR}/detray" )
+list( APPEND detray_core_public_headers "detray/version.hpp" )
+target_include_directories( detray_core INTERFACE
+   $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}${CMAKE_FILES_DIRECTORY}> )
+
 # Set up the libraries that use specific algebra plugins.
 detray_add_library( detray_core_array core_array )
 target_link_libraries( detray_core_array

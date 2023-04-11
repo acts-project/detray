@@ -228,16 +228,16 @@ TEST(io, json_mask_payload) {
 }
 
 /// This tests the json io for a surface material link
-TEST(io, json_material_payload) {
+TEST(io, json_material_link_payload) {
 
-    detray::material_payload m;
-    m.type = detray::material_payload::material_type::slab;
+    detray::material_link_payload m;
+    m.type = detray::material_link_payload::material_type::slab;
     m.index = 2u;
 
     nlohmann::ordered_json j;
     j["material"] = m;
 
-    detray::material_payload pm = j["material"];
+    detray::material_link_payload pm = j["material"];
 
     EXPECT_EQ(m.type, pm.type);
     EXPECT_EQ(m.index, pm.index);
@@ -259,8 +259,8 @@ TEST(io, json_surface_payload) {
     m.volume_link = sl;
     m.boundaries = {10.f, 20.f, 34.f, 1.4f};
 
-    detray::material_payload mat;
-    mat.type = detray::material_payload::material_type::slab;
+    detray::material_link_payload mat;
+    mat.type = detray::material_link_payload::material_type::slab;
     mat.index = 2u;
 
     s.transform = t;
@@ -344,8 +344,8 @@ TEST(io, json_volume_payload) {
     m.volume_link = sl;
     m.boundaries = {10.f, 20.f, 34.f, 1.4f};
 
-    detray::material_payload mat;
-    mat.type = detray::material_payload::material_type::slab;
+    detray::material_link_payload mat;
+    mat.type = detray::material_link_payload::material_type::slab;
     mat.index = 2u;
 
     s.transform = t;
@@ -377,25 +377,30 @@ TEST(io, json_volume_payload) {
     EXPECT_EQ(v.acc_links->size(), pv.acc_links->size());
 }
 
-/// This tests the json io for a material slab
+/// This tests the json io for a material slab/rod
 TEST(io, json_material_slab_payload) {
 
     detray::material_slab_payload m;
-    m.slab = {1.f, 2.f, 3.f, 4.f, 5.f, 6.f, 7.f, 8.f};
+    m.type = detray::material_slab_payload::material_type::slab;
+    m.index = 21u;
+    m.thickness = 1.2f;
+    m.mat.params = {1.f, 2.f, 3.f, 4.f, 5.f, 6.f, 7.f};
 
     nlohmann::ordered_json j;
     j["material"] = m;
 
     detray::material_slab_payload pm = j["material"];
 
-    EXPECT_EQ(m.slab, pm.slab);
+    EXPECT_EQ(m.type, pm.type);
+    EXPECT_EQ(m.index, pm.index);
+    EXPECT_EQ(m.thickness, pm.thickness);
+    EXPECT_EQ(m.mat.params, pm.mat.params);
 }
 
 /// This tests the json io for a material slab
 TEST(io, json_detector_payload) {
 
     detray::detector_payload d;
-    d.name = "detector";
     d.volumes = {detray::volume_payload{}, detray::volume_payload{}};
 
     nlohmann::ordered_json j;
@@ -403,6 +408,5 @@ TEST(io, json_detector_payload) {
 
     detray::detector_payload pd = j["detector"];
 
-    EXPECT_EQ(d.name, pd.name);
     EXPECT_EQ(d.volumes.size(), pd.volumes.size());
 }
