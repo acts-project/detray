@@ -8,7 +8,7 @@
 // Project include(s).
 #include "detray/detectors/create_telescope_detector.hpp"
 #include "detray/detectors/create_toy_geometry.hpp"
-#include "detray/io/utils.hpp"
+#include "detray/io/common/detail/utils.hpp"
 #include "detray/masks/masks.hpp"
 #include "detray/masks/unbounded.hpp"
 #include "detray/simulation/event_generator/track_generators.hpp"
@@ -115,7 +115,7 @@ TEST(check_simulation, toy_geometry) {
 
         // Check particle data
         const auto io_particles_file =
-            get_event_filename(i_event, "-particles.csv");
+            detail::get_event_filename(i_event, "-particles.csv");
         particle_reader preader(io_particles_file);
 
         csv_particle io_particle;
@@ -126,7 +126,8 @@ TEST(check_simulation, toy_geometry) {
         ASSERT_EQ(particles.size(), n_tracks);
 
         // Check hit & measurement data
-        const auto io_hits_file = get_event_filename(i_event, "-hits.csv");
+        const auto io_hits_file =
+            detail::get_event_filename(i_event, "-hits.csv");
         hit_reader hreader(
             io_hits_file,
             {"particle_id", "geometry_id", "tx", "ty", "tz", "tt", "tpx", "tpy",
@@ -138,7 +139,7 @@ TEST(check_simulation, toy_geometry) {
         }
 
         const auto io_measurements_file =
-            get_event_filename(i_event, "-measurements.csv");
+            detail::get_event_filename(i_event, "-measurements.csv");
         measurement_reader mreader(
             io_measurements_file,
             {"geometry_id", "local_key", "local0", "local1", "phi", "theta",
@@ -151,7 +152,7 @@ TEST(check_simulation, toy_geometry) {
         }
 
         const auto io_meas_hit_id_file =
-            get_event_filename(i_event, "-measurement-simhit-map.csv");
+            detail::get_event_filename(i_event, "-measurement-simhit-map.csv");
         meas_hit_id_reader meas_hit_id_reader(io_meas_hit_id_file,
                                               {"measurement_id", "hit_id"});
         csv_meas_hit_id io_meas_hit_id;
@@ -255,7 +256,7 @@ TEST_P(TelescopeDetectorSimulation, telescope_detector_simulation) {
         std::vector<csv_measurement> measurements;
 
         const auto io_measurements_file =
-            get_event_filename(i_event, "-measurements.csv");
+            detail::get_event_filename(i_event, "-measurements.csv");
         measurement_reader mreader(
             io_measurements_file,
             {"geometry_id", "local_key", "local0", "local1", "phi", "theta",

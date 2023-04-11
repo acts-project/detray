@@ -56,7 +56,7 @@ TEST(ALGEBRA_PLUGIN, telescope_detector) {
 
     using namespace detray;
 
-    // Use unbounded rectangle surfaces
+    // Use rectangle surfaces
     mask<rectangle2D<>> rectangle{0u, 20.f * unit<scalar>::mm,
                                   20.f * unit<scalar>::mm};
 

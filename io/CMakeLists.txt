@@ -10,7 +10,9 @@ message(STATUS "Building 'detray::io' component")
 # Set up the core I/O library.
 file( GLOB _detray_io_public_headers
    RELATIVE "${CMAKE_CURRENT_SOURCE_DIR}"
-   "include/detray/io/*.hpp" )
+   "include/detray/io/common/*.hpp"
+   "include/detray/io/csv/*.hpp"
+   "include/detray/io/json/*.hpp" )
 detray_add_library( detray_io io
    ${_detray_io_public_headers} )
 target_link_libraries( detray_io INTERFACE

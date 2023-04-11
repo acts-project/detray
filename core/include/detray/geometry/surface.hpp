@@ -29,7 +29,7 @@ namespace detray {
 /// @tparam source_link_t the type of the source link representation
 template <typename mask_link_t = dtyped_index<dindex, dindex>,
           typename material_link_t = dtyped_index<dindex, dindex>,
-          typename transform_link_t = dindex, typename source_link_t = bool>
+          typename transform_link_t = dindex, typename source_link_t = dindex>
 class surface {
 
     public:

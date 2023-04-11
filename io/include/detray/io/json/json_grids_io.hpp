@@ -9,9 +9,10 @@
 
 // Project include(s).
 #include "detray/definitions/grid_axis.hpp"
-#include "detray/io/io_payload.hpp"
-#include "detray/io/json_algebra_io.hpp"
-#include "detray/io/json_defs.hpp"
+#include "detray/io/common/payloads.hpp"
+#include "detray/io/json/json.hpp"
+#include "detray/io/json/json_algebra_io.hpp"
+#include "detray/io/json/json_geometry_io.hpp"
 
 // System include(s).
 #include <array>
@@ -20,7 +21,7 @@
 
 namespace detray {
 
-void to_json(nlohmann::json& j, const axis_payload& a) {
+void to_json(nlohmann::ordered_json& j, const axis_payload& a) {
     j["label"] = static_cast<unsigned int>(a.label);
     j["bounds"] = static_cast<unsigned int>(a.bounds);
     j["binning"] = static_cast<unsigned int>(a.binning);
@@ -28,7 +29,7 @@ void to_json(nlohmann::json& j, const axis_payload& a) {
     j["bins"] = a.bins;
 }
 
-void from_json(const nlohmann::json& j, axis_payload& a) {
+void from_json(const nlohmann::ordered_json& j, axis_payload& a) {
     a.binning = static_cast<n_axis::binning>(j["binning"]);
     a.bounds = static_cast<n_axis::bounds>(j["bounds"]);
     a.label = static_cast<n_axis::label>(j["label"]);
@@ -36,8 +37,8 @@ void from_json(const nlohmann::json& j, axis_payload& a) {
     a.bins = j["bins"];
 }
 
-void to_json(nlohmann::json& j, const grid_payload& g) {
-    nlohmann::json jaxes;
+void to_json(nlohmann::ordered_json& j, const grid_payload& g) {
+    nlohmann::ordered_json jaxes;
     for (const auto& a : g.axes) {
         jaxes.push_back(a);
     }
@@ -45,39 +46,30 @@ void to_json(nlohmann::json& j, const grid_payload& g) {
     j["entries"] = g.entries;
 }
 
-void from_json(const nlohmann::json& j, grid_payload& g) {
-    nlohmann::json jaxes = j["axes"];
+void from_json(const nlohmann::ordered_json& j, grid_payload& g) {
+    nlohmann::ordered_json jaxes = j["axes"];
     for (auto jax : jaxes) {
         axis_payload a = jax;
         g.axes.push_back(a);
     }
     g.entries = j["entries"];
 }
-
-void to_json(nlohmann::json& j, const single_object_payload& so) {
-    j = so.link;
-}
-
-void from_json(const nlohmann::json& j, single_object_payload& so) {
-    so.link = j;
-}
-
-void to_json(nlohmann::json& j, const grid_objects_payload& g) {
+void to_json(nlohmann::ordered_json& j, const grid_objects_payload& g) {
     j["grid"] = g.grid;
     if (g.transform.has_value()) {
         j["transform"] = g.transform.value();
     }
 }
 
-void from_json(const nlohmann::json& j, grid_objects_payload& g) {
+void from_json(const nlohmann::ordered_json& j, grid_objects_payload& g) {
     g.grid = j["grid"];
     if (j.find("transform") != j.end()) {
         g.transform = j["transform"];
     }
 }
 
-void to_json(nlohmann::json& j, const links_payload& l) {
-    nlohmann::json js;
+void to_json(nlohmann::ordered_json& j, const links_payload& l) {
+    nlohmann::ordered_json js;
     for (const auto& so : l.single_links) {
         js.push_back(so);
     }
@@ -87,14 +79,36 @@ void to_json(nlohmann::json& j, const links_payload& l) {
     }
 }
 
-void from_json(const nlohmann::json& j, links_payload& l) {
-    nlohmann::json jsl = j["single_links"];
+void from_json(const nlohmann::ordered_json& j, links_payload& l) {
+    nlohmann::ordered_json jsl = j["single_links"];
     for (auto jl : jsl) {
-        single_object_payload sl = jl;
+        single_link_payload sl = jl;
         l.single_links.push_back(sl);
     }
     if (j.find("grid_links") != j.end()) {
         l.grid_links = j["grid_links"];
+    }
+}
+
+void to_json(nlohmann::ordered_json& j, const detector_payload& d) {
+    j["name"] = d.name;
+    if (not d.volumes.empty()) {
+        nlohmann::ordered_json jvolumes;
+        for (const auto& v : d.volumes) {
+            jvolumes.push_back(v);
+        }
+        j["volumes"] = jvolumes;
+        j["volume_grid"] = d.volume_grid;
+    }
+}
+
+void from_json(const nlohmann::ordered_json& j, detector_payload& d) {
+    d.name = j["name"];
+    if (j.find("volumes") != j.end()) {
+        for (auto jvolume : j["volumes"]) {
+            d.volumes.push_back(jvolume);
+        }
+        d.volume_grid = j["volume_grid"];
     }
 }
 

@@ -42,6 +42,7 @@ using annulus = mask<annulus2D<>, volume_link_type>;
 using cylinder = mask<cylinder2D<>, volume_link_type>;
 using disc = mask<ring2D<>, volume_link_type>;
 using unbounded_plane = mask<unmasked, volume_link_type>;
+using lines = mask<line<>, volume_link_type>;
 
 /// material types
 using slab = material_slab<detray::scalar>;
@@ -322,8 +323,12 @@ struct telescope_metadata {
     /// How to store and link materials
     template <template <typename...> class tuple_t = dtuple,
               template <typename...> class vector_t = dvector>
-    using material_store = regular_multi_store<material_ids, empty_context,
-                                               tuple_t, vector_t, slab, rod>;
+    using material_store =
+        std::conditional_t<std::is_same_v<mask<mask_shape_t>, lines>,
+                           regular_multi_store<material_ids, empty_context,
+                                               tuple_t, vector_t, slab, rod>,
+                           regular_multi_store<material_ids, empty_context,
+                                               tuple_t, vector_t, slab>>;
 
     /// Surface type used for sensitives, passives and portals
     using transform_link = typename transform_store<>::link_type;
