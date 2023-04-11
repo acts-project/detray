@@ -53,6 +53,7 @@ detray_add_test( smatrix
    "smatrix_propagator.cpp"
    "smatrix_rectangle2D.cpp"
    "smatrix_ring2D.cpp"
+   "smatrix_scattering.cpp"
    "smatrix_single3D.cpp"
    "smatrix_stepper.cpp"
    "smatrix_telescope_detector.cpp"

@@ -53,6 +53,7 @@ detray_add_test( eigen
    "eigen_propagator.cpp"
    "eigen_rectangle2D.cpp"
    "eigen_ring2D.cpp"
+   "eigen_scattering.cpp"
    "eigen_single3D.cpp"
    "eigen_stepper.cpp"
    "eigen_telescope_detector.cpp"
