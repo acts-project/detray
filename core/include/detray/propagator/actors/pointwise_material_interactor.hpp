@@ -28,6 +28,8 @@ struct pointwise_material_interactor : actor {
         typename matrix_operator::template matrix_type<ROWS, COLS>;
     using interaction_type = interaction<scalar_type>;
     using vector3 = typename transform3_t::vector3;
+    using bound_vector = matrix_type<e_bound_size, 1u>;
+    using bound_matrix = matrix_type<e_bound_size, e_bound_size>;
 
     struct state {
         using vector3 = __plugin::vector3<scalar>;
@@ -39,8 +41,8 @@ struct pointwise_material_interactor : actor {
 
         /// Evaluated energy loss
         scalar_type e_loss{0.f};
-        /// Evaluated multiple scattering angle
-        scalar_type scattering_angle{0.f};
+        /// Evaluated projected scattering angle
+        scalar_type projected_scattering_angle{0.f};
         /// Evaluated sigma of qoverp
         scalar_type sigma_qop{0.f};
 
@@ -51,7 +53,7 @@ struct pointwise_material_interactor : actor {
         DETRAY_HOST_DEVICE
         void reset() {
             e_loss = 0.f;
-            scattering_angle = 0.f;
+            projected_scattering_angle = 0.f;
             sigma_qop = 0.f;
         }
     };
@@ -92,7 +94,7 @@ struct pointwise_material_interactor : actor {
                 if (s.do_multiple_scattering) {
                     // @todo: use momentum before or after energy loss in
                     // backward mode?
-                    s.scattering_angle =
+                    s.projected_scattering_angle =
                         interaction_type().compute_multiple_scattering_theta0(
                             is, mat, s.pdg, s.mass, qop, charge);
                 }
@@ -125,73 +127,95 @@ struct pointwise_material_interactor : actor {
 
             if (succeed) {
 
-                update_qop(stepping, interactor_state,
-                           static_cast<int>(navigation.direction()));
-
-                update_angle(stepping, interactor_state,
-                             static_cast<int>(navigation.direction()));
-            }
-        }
-    }
-
-    template <typename stepper_state_t>
-    DETRAY_HOST_DEVICE inline void update_qop(stepper_state_t &stepping,
-                                              const state &s, int sign) const {
-
-        // Update bound qop value
-        if (s.do_energy_loss) {
-            const scalar_type m{s.mass};
-            const scalar_type p{stepping().p()};
-
-            // Get new Energy
-            const scalar_type nextE{
-                std::sqrt(m * m + p * p) -
-                std::copysign(s.e_loss, static_cast<scalar_type>(sign))};
-
-            // put particle at rest if energy loss is too large
-            const scalar_type nextP{
-                (m < nextE) ? std::sqrt(nextE * nextE - m * m) : 0.f};
-
-            const scalar_type new_qop{stepping().charge() != 0.f
-                                          ? stepping().charge() / nextP
-                                          : 1.f / nextP};
-
-            stepping._bound_params.set_qop(new_qop);
-
-            // Update bound qop varaince
-            if (s.do_covariance_transport) {
                 auto &covariance = stepping._bound_params.covariance();
+                auto &vector = stepping._bound_params.vector();
 
-                const scalar_type variance_qop{s.sigma_qop * s.sigma_qop};
+                if (interactor_state.do_energy_loss) {
 
-                matrix_operator().element(covariance, e_bound_qoverp,
-                                          e_bound_qoverp) +=
-                    std::copysign(variance_qop, static_cast<scalar_type>(sign));
+                    update_qop(vector, stepping().p(), stepping().charge(),
+                               interactor_state.mass, interactor_state.e_loss,
+                               static_cast<int>(navigation.direction()));
+
+                    if (interactor_state.do_covariance_transport) {
+
+                        update_qop_variance(
+                            covariance, interactor_state.sigma_qop,
+                            static_cast<int>(navigation.direction()));
+                    }
+                }
+
+                if (interactor_state.do_covariance_transport) {
+
+                    update_angle_variance(
+                        covariance, stepping._bound_params.dir(),
+                        interactor_state.projected_scattering_angle,
+                        static_cast<int>(navigation.direction()));
+                }
             }
         }
     }
 
-    template <typename stepper_state_t>
-    DETRAY_HOST_DEVICE inline void update_angle(stepper_state_t &stepping,
-                                                const state &s,
-                                                int sign) const {
-        if (s.do_covariance_transport) {
+    /// @brief Update the q over p of bound track parameter
+    ///
+    /// @param[out] vector vector of bound track parameter
+    /// @param[in]  p momentum of the track
+    /// @param[in]  q charge of the track
+    /// @param[in]  m mass of the track
+    /// @param[in]  e_loss energy loss
+    /// @param[in]  sign navigation direction
+    DETRAY_HOST_DEVICE inline void update_qop(
+        bound_vector &vector, const scalar_type p, const scalar_type q,
+        const scalar_type m, const scalar_type e_loss, const int sign) const {
 
-            auto &covariance = stepping._bound_params.covariance();
+        // Get new Energy
+        const scalar_type nextE{
+            std::sqrt(m * m + p * p) -
+            std::copysign(e_loss, static_cast<scalar_type>(sign))};
 
-            // variance of scattering angle
-            const scalar_type var_scattering_angle{
-                std::copysign(s.scattering_angle * s.scattering_angle,
-                              static_cast<scalar_type>(sign))};
+        // Put particle at rest if energy loss is too large
+        const scalar_type nextP{(m < nextE) ? std::sqrt(nextE * nextE - m * m)
+                                            : 0.f};
 
-            const auto dir = stepping._bound_params.dir();
+        // For neutral particles, qoverp = 1/p
+        getter::element(vector, e_bound_qoverp, 0) =
+            (q != 0.f) ? q / nextP : 1.f / nextP;
+    }
 
-            matrix_operator().element(covariance, e_bound_phi, e_bound_phi) +=
-                var_scattering_angle / (dir[0] * dir[0] + dir[1] * dir[1]);
+    /// @brief Update the variance of q over p of bound track parameter
+    ///
+    /// @param[out] covariance covariance matrix of bound track parameter
+    /// @param[in]  sigma_qop variance of q over p
+    /// @param[in]  sign navigation direction
+    DETRAY_HOST_DEVICE inline void update_qop_variance(
+        bound_matrix &covariance, const scalar_type sigma_qop,
+        const int sign) const {
 
-            matrix_operator().element(covariance, e_bound_theta,
-                                      e_bound_theta) += var_scattering_angle;
-        }
+        const scalar_type variance_qop{sigma_qop * sigma_qop};
+
+        matrix_operator().element(covariance, e_bound_qoverp, e_bound_qoverp) +=
+            std::copysign(variance_qop, static_cast<scalar_type>(sign));
+    }
+
+    /// @brief Update the variance of phi and theta of bound track parameter
+    ///
+    /// @param[out] covariance covariance matrix of bound track parameter
+    /// @param[in]  dir direction of track
+    /// @param[in]  projected_scattering_angle projected scattering angle
+    /// @param[in]  sign navigation direction
+    DETRAY_HOST_DEVICE inline void update_angle_variance(
+        bound_matrix &covariance, const vector3 &dir,
+        const scalar_type projected_scattering_angle, const int sign) const {
+
+        // variance of projected scattering angle
+        const scalar_type var_scattering_angle{std::copysign(
+            projected_scattering_angle * projected_scattering_angle,
+            static_cast<scalar_type>(sign))};
+
+        matrix_operator().element(covariance, e_bound_phi, e_bound_phi) +=
+            var_scattering_angle / (1 - dir[2] * dir[2]);
+
+        matrix_operator().element(covariance, e_bound_theta, e_bound_theta) +=
+            var_scattering_angle;
     }
 };
 
