@@ -16,6 +16,7 @@
 #include <gtest/gtest.h>
 
 // System include(s).
+#include <algorithm>
 #include <random>
 #include <vector>
 
@@ -61,8 +62,7 @@ TEST(scattering, scattering_helper) {
                            (getter::norm(dir) * getter::norm(new_dir));
 
         // To prevent rounding error where cos_theta is out of [-1, 1]
-        cos_theta = std::min(cos_theta, scalar{1.f});
-        cos_theta = std::max(cos_theta, scalar{-1.f});
+        cos_theta = std::clamp(cos_theta, scalar{-1.f}, scalar{1.f});
 
         // Geht the angle between original direction and new one
         const scalar angle = sign * std::acos(cos_theta);
