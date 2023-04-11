@@ -105,6 +105,11 @@ class detector_volume {
     DETRAY_HOST
     constexpr auto set_index(const dindex index) -> void { _index = index; }
 
+    /// @return link to all objects - const access
+    DETRAY_HOST_DEVICE constexpr auto full_link() const -> const link_type & {
+        return _sf_finder_links;
+    }
+
     /// @return link of a type of object - const access.
     template <ID obj_id = ID::e_sensitive>
     DETRAY_HOST_DEVICE constexpr auto link() const -> const link_t & {

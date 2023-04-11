@@ -15,8 +15,8 @@
 #include "detray/tracks/free_track_parameters.hpp"
 
 // Detray I/O include(s).
-#include "detray/io/csv_io_types.hpp"
-#include "detray/io/utils.hpp"
+#include "detray/io/common/detail/utils.hpp"
+#include "detray/io/csv/csv_io_types.hpp"
 
 // Detray utility include(s).
 #include "detray/simulation/measurement_smearer.hpp"
@@ -31,15 +31,15 @@ struct event_writer : actor {
     struct state {
         state(std::size_t event_id, smearer_t& smearer,
               const std::string directory)
-            : m_particle_writer(directory +
-                                get_event_filename(event_id, "-particles.csv")),
+            : m_particle_writer(directory + detail::get_event_filename(
+                                                event_id, "-particles.csv")),
               m_hit_writer(directory +
-                           get_event_filename(event_id, "-hits.csv")),
-              m_meas_writer(directory +
-                            get_event_filename(event_id, "-measurements.csv")),
+                           detail::get_event_filename(event_id, "-hits.csv")),
+              m_meas_writer(directory + detail::get_event_filename(
+                                            event_id, "-measurements.csv")),
               m_meas_hit_id_writer(
-                  directory +
-                  get_event_filename(event_id, "-measurement-simhit-map.csv")),
+                  directory + detail::get_event_filename(
+                                  event_id, "-measurement-simhit-map.csv")),
               m_meas_smearer(smearer) {}
 
         uint64_t particle_id = 0u;

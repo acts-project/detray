@@ -75,6 +75,9 @@ struct material {
     /// @returns the molar density.
     DETRAY_HOST_DEVICE
     constexpr scalar_type molar_density() const { return m_molar_rho; }
+    /// @returns the material state.
+    DETRAY_HOST_DEVICE
+    constexpr material_state state() const { return m_state; }
     /// @returns the molar electron density.
     DETRAY_HOST_DEVICE
     constexpr scalar_type molar_electron_density() const {
