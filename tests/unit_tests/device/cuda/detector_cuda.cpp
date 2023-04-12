@@ -125,10 +125,9 @@ TEST(detector_cuda, enumerate) {
     for (auto& surfs : surfaces_host) {
         capacities.push_back(surfs.size());
     }
-    std::vector<std::size_t> sizes(surfaces_host.size(), 0u);
 
     vecmem::data::jagged_vector_buffer<surface_t> surfaces_buffer(
-        sizes, capacities, mng_mr);
+        capacities, mng_mr, nullptr, vecmem::data::buffer_type::resizable);
 
     // copy setup for surfaces buffer
     copy.setup(surfaces_buffer);
