@@ -802,9 +802,9 @@ create_candidates_buffer(
     vecmem::memory_resource &device_resource,
     vecmem::memory_resource *host_access_resource = nullptr) {
     return vecmem::data::jagged_vector_buffer<line_plane_intersection>(
-        std::vector<std::size_t>(n_tracks, 0u),
         std::vector<std::size_t>(n_tracks, det.get_n_max_objects_per_volume()),
-        device_resource, host_access_resource);
+        device_resource, host_access_resource,
+        vecmem::data::buffer_type::resizable);
 }
 
 }  // namespace detray
