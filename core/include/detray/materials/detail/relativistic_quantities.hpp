@@ -136,8 +136,8 @@ struct relativistic_quantities {
                 return 0.f;
             }
             // pre-factor according to RPP2019 table 33.1
-            const scalar_type plasmaEnergy{PlasmaEnergyScale *
-                                           std::sqrt(molar_electron_density)};
+            const scalar_type plasmaEnergy{
+                PlasmaEnergyScale * std::sqrt(1000.f * molar_electron_density)};
             return math_ns::log(m_betaGamma) +
                    math_ns::log(plasmaEnergy / mean_exitation_energy) - 0.5f;
         }
