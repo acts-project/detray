@@ -53,6 +53,7 @@ detray_add_test( array
    "array_propagator.cpp"
    "array_rectangle2D.cpp"
    "array_ring2D.cpp"
+   "array_scattering.cpp"
    "array_single3D.cpp"
    "array_stepper.cpp"
    "array_telescope_detector.cpp"

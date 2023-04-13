@@ -225,8 +225,9 @@ TEST(grids_cuda, grid2_buffer_attach_populator) {
     axis::circular<> xaxis{2u, -1.f, 3.f, mng_mr};
     axis::regular<> yaxis{2u, 0.f, 6.f, mng_mr};
 
-    grid2_buffer<host_grid2_attach> g2_buffer(xaxis, yaxis, {2, 5, 8, 10},
-                                              {100, 200, 300, 400}, mng_mr);
+    grid2_buffer<host_grid2_attach> g2_buffer(
+        xaxis, yaxis, {100, 200, 300, 400}, mng_mr, nullptr,
+        vecmem::data::buffer_type::resizable);
     copy.setup(g2_buffer._buffer);
 
     // Check if the initialization work well

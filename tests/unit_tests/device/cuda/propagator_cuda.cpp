@@ -115,18 +115,18 @@ TEST_P(CudaPropagatorWithRkStepper, propagator) {
     copy.setup(candidates_buffer);
 
     // Create vector buffer for track recording
-    std::vector<std::size_t> sizes(theta_steps * phi_steps, 0);
     std::vector<std::size_t> capacities;
+    capacities.reserve(theta_steps * phi_steps);
     for (auto& r : host_positions) {
         capacities.push_back(r.size());
     }
 
     vecmem::data::jagged_vector_buffer<scalar> path_lengths_buffer(
-        sizes, capacities, mng_mr);
+        capacities, mng_mr, nullptr, vecmem::data::buffer_type::resizable);
     vecmem::data::jagged_vector_buffer<vector3> positions_buffer(
-        sizes, capacities, mng_mr);
+        capacities, mng_mr, nullptr, vecmem::data::buffer_type::resizable);
     vecmem::data::jagged_vector_buffer<free_matrix> jac_transports_buffer(
-        sizes, capacities, mng_mr);
+        capacities, mng_mr, nullptr, vecmem::data::buffer_type::resizable);
 
     copy.setup(path_lengths_buffer);
     copy.setup(positions_buffer);

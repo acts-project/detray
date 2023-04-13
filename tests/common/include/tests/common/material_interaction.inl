@@ -227,9 +227,7 @@ TEST(material_interaction, telescope_geometry_energy_loss) {
                                                mat, thickness, traj);
 
     using navigator_t = navigator<decltype(det)>;
-    using constraints_t = constrained_step<>;
-    using policy_t = stepper_default_policy;
-    using stepper_t = line_stepper<transform3, constraints_t, policy_t>;
+    using stepper_t = line_stepper<transform3>;
     using interactor_t = pointwise_material_interactor<transform3>;
     using actor_chain_t =
         actor_chain<dtuple, propagation::print_inspector, pathlimit_aborter,
@@ -384,25 +382,27 @@ TEST(material_interaction, telescope_geometry_energy_loss) {
 TEST(material_interaction, telescope_geometry_scattering_angle) {
     vecmem::host_memory_resource host_mr;
 
+    // Build in x-direction from given module positions
+    detail::ray<transform3> traj{{0.f, 0.f, 0.f}, 0.f, {1.f, 0.f, 0.f}, -1.f};
+    std::vector<scalar> positions = {0.f};
+
+    // To make sure that someone won't put more planes than one by accident
+    EXPECT_EQ(positions.size(), 1u);
+
+    // Material
+    const auto mat = silicon_tml<scalar>();
+    const scalar thickness = 100.f * unit<scalar>::cm;
+
     // Use rectangle surfaces in the telescope
     mask<rectangle2D<>> rectangle{0u, 2000.f * unit<scalar>::mm,
                                   2000.f * unit<scalar>::mm};
 
-    // Build in x-direction from given module positions
-    detail::ray<transform3> traj{{0.f, 0.f, 0.f}, 0.f, {1.f, 0.f, 0.f}, -1.f};
-    std::vector<scalar> positions = {0.f, 1000.f * unit<scalar>::cm,
-                                     2000.f * unit<scalar>::cm};
-
-    const auto mat = silicon_tml<scalar>();
-    const scalar thickness = 500.f * unit<scalar>::cm;
-
+    // Create telescope geometry
     const auto det = create_telescope_detector(host_mr, rectangle, positions,
                                                mat, thickness, traj);
 
     using navigator_t = navigator<decltype(det)>;
-    using constraints_t = constrained_step<>;
-    using policy_t = stepper_default_policy;
-    using stepper_t = line_stepper<transform3, constraints_t, policy_t>;
+    using stepper_t = line_stepper<transform3>;
     using interactor_t = pointwise_material_interactor<transform3>;
     using simulator_t = random_scatterer<interactor_t>;
     using material_actor_t = composite_actor<dtuple, interactor_t, simulator_t>;
@@ -418,13 +418,12 @@ TEST(material_interaction, telescope_geometry_scattering_angle) {
     constexpr scalar q{-1.f};
     constexpr scalar iniP{10.f * unit<scalar>::GeV};
 
-    typename bound_track_parameters<transform3>::vector_type bound_vector;
-    getter::element(bound_vector, e_bound_loc0, 0) = 0.f;
-    getter::element(bound_vector, e_bound_loc1, 0) = 0.f;
-    getter::element(bound_vector, e_bound_phi, 0) = 0.f;
+    // Initial track parameters directing x-axis
+    typename bound_track_parameters<transform3>::vector_type bound_vector =
+        matrix_operator().template zero<e_bound_size, 1>();
     getter::element(bound_vector, e_bound_theta, 0) = constant<scalar>::pi_2;
     getter::element(bound_vector, e_bound_qoverp, 0) = q / iniP;
-    getter::element(bound_vector, e_bound_time, 0) = 0.f;
+
     typename bound_track_parameters<transform3>::covariance_type bound_cov =
         matrix_operator().template zero<e_bound_size, e_bound_size>();
 
@@ -433,11 +432,11 @@ TEST(material_interaction, telescope_geometry_scattering_angle) {
         geometry::barcode{}.set_index(0u), bound_vector, bound_cov);
 
     std::size_t n_samples{100000u};
-    std::vector<scalar> phi_vec;
-    std::vector<scalar> theta_vec;
+    std::vector<scalar> phis;
+    std::vector<scalar> thetas;
 
-    scalar ref_phi_var{0.f};
-    scalar ref_theta_var{0.f};
+    scalar ref_phi_variance{0.f};
+    scalar ref_theta_variance{0.f};
 
     for (std::size_t i = 0u; i < n_samples; i++) {
 
@@ -445,6 +444,7 @@ TEST(material_interaction, telescope_geometry_scattering_angle) {
         pathlimit_aborter::state aborter_state{};
         parameter_transporter<transform3>::state bound_updater{};
         interactor_t::state interactor_state{};
+        // No energy loss
         interactor_state.do_energy_loss = false;
         // Seed = sample id
         simulator_t::state simulator_state{i};
@@ -457,32 +457,35 @@ TEST(material_interaction, telescope_geometry_scattering_angle) {
 
         propagator_t::state state(bound_param, det);
 
-        state._stepping().set_overstep_tolerance(-1000.f * unit<scalar>::um);
-
         // Propagate the entire detector
         ASSERT_TRUE(p.propagate(state, actor_states))
             << print_insp_state.to_string() << std::endl;
 
-        const auto& final_params = state._stepping._bound_params;
+        const auto& final_param = state._stepping._bound_params;
 
+        // Get the updated phi and theta after scattering (Every sample should
+        // have equal values)
         if (i == 0u) {
-            const auto& covariance = final_params.covariance();
-            ref_phi_var =
+            const auto& covariance = final_param.covariance();
+            ref_phi_variance =
                 matrix_operator().element(covariance, e_bound_phi, e_bound_phi);
-            ref_theta_var = matrix_operator().element(covariance, e_bound_theta,
-                                                      e_bound_theta);
+            ref_theta_variance = matrix_operator().element(
+                covariance, e_bound_theta, e_bound_theta);
         }
 
-        phi_vec.push_back(final_params.phi());
-        theta_vec.push_back(final_params.theta());
+        phis.push_back(final_param.phi());
+        thetas.push_back(final_param.theta());
     }
 
-    scalar phi_var{statistics::variance(phi_vec)};
-    scalar theta_var{statistics::variance(theta_vec)};
+    scalar phi_variance{statistics::rms(phis, bound_param.phi())};
+    scalar theta_variance{statistics::rms(thetas, bound_param.theta())};
 
-    EXPECT_NEAR((phi_var - ref_phi_var) / ref_phi_var, 0.f, 0.05f);
-    EXPECT_NEAR((theta_var - ref_theta_var) / ref_theta_var, 0.f, 0.05f);
+    // Tolerate upto 1% difference
+    EXPECT_NEAR((phi_variance - ref_phi_variance) / ref_phi_variance, 0.f,
+                1e-2f);
+    EXPECT_NEAR((theta_variance - ref_theta_variance) / ref_theta_variance, 0.f,
+                1e-2f);
 
-    // To make sure that the varainces are not zero
-    EXPECT_TRUE(ref_phi_var > 1e-4f && ref_theta_var > 1e-4f);
+    // To make sure that the variances are not zero
+    EXPECT_TRUE(ref_phi_variance > 1e-9f && ref_theta_variance > 1e-9f);
 }

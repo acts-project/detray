@@ -77,8 +77,8 @@ TEST(mask_store_cuda, mask_store) {
 
     /** device output for intersection status **/
     vecmem::data::jagged_vector_buffer<intersection::status> output_buffer(
-        {0, 0, 0, 0, 0}, {n_points, n_points, n_points, n_points, n_points},
-        mng_mr);
+        {n_points, n_points, n_points, n_points, n_points}, mng_mr, nullptr,
+        vecmem::data::buffer_type::resizable);
 
     copy.setup(output_buffer);
 

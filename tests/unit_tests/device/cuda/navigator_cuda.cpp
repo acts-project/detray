@@ -91,20 +91,18 @@ TEST(navigator_cuda, navigator) {
     vecmem::jagged_vector<point3> position_records_device(&mng_mr);
 
     // Create size and capacity vectors for volume record buffer
-    std::vector<size_t> sizes;
     std::vector<size_t> capacities;
 
     for (unsigned int i = 0u; i < theta_steps * phi_steps; i++) {
-        sizes.push_back(0);
         capacities.push_back(volume_records_host[i].size());
     }
 
     vecmem::data::jagged_vector_buffer<dindex> volume_records_buffer(
-        sizes, capacities, dev_mr, &mng_mr);
+        capacities, dev_mr, &mng_mr, vecmem::data::buffer_type::resizable);
     copy.setup(volume_records_buffer);
 
     vecmem::data::jagged_vector_buffer<point3> position_records_buffer(
-        sizes, capacities, dev_mr, &mng_mr);
+        capacities, dev_mr, &mng_mr, vecmem::data::buffer_type::resizable);
     copy.setup(position_records_buffer);
 
     // Get detector data

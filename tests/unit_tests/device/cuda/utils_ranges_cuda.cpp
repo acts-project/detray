@@ -46,7 +46,7 @@ TEST(utils_ranges_cuda, iota) {
     vecmem::data::vector_buffer<dindex> check_buffer(
         static_cast<vecmem::data::vector_buffer<dindex>::size_type>(range[1] -
                                                                     range[0]),
-        0u, managed_resource);
+        managed_resource, vecmem::data::buffer_type::resizable);
     copy.setup(check_buffer);
 
     // Run test function
@@ -79,12 +79,12 @@ TEST(utils_ranges_cuda, enumerate) {
     // Output vector buffer for enumeration test
     vecmem::data::vector_buffer<dindex> idx_buffer(
         static_cast<vecmem::data::vector_buffer<dindex>::size_type>(seq.size()),
-        0u, managed_resource);
+        managed_resource, vecmem::data::buffer_type::resizable);
     copy.setup(idx_buffer);
 
     vecmem::data::vector_buffer<dindex> value_buffer(
         static_cast<vecmem::data::vector_buffer<dindex>::size_type>(seq.size()),
-        0u, managed_resource);
+        managed_resource, vecmem::data::buffer_type::resizable);
     copy.setup(value_buffer);
 
     // Run test function
@@ -125,12 +125,12 @@ TEST(utils_ranges_cuda, pick) {
     // Output vector buffer for enumeration test
     vecmem::data::vector_buffer<dindex> idx_buffer(
         static_cast<vecmem::data::vector_buffer<dindex>::size_type>(seq.size()),
-        0u, managed_resource);
+        managed_resource, vecmem::data::buffer_type::resizable);
     copy.setup(idx_buffer);
 
     vecmem::data::vector_buffer<dindex> value_buffer(
         static_cast<vecmem::data::vector_buffer<dindex>::size_type>(seq.size()),
-        0u, managed_resource);
+        managed_resource, vecmem::data::buffer_type::resizable);
     copy.setup(value_buffer);
 
     // Run test function
@@ -172,7 +172,7 @@ TEST(utils_ranges_cuda, join) {
     vecmem::data::vector_buffer<dindex> value_buffer(
         static_cast<vecmem::data::vector_buffer<dindex>::size_type>(
             seq_1.size() + seq_2.size()),
-        0u, managed_resource);
+        managed_resource, vecmem::data::buffer_type::resizable);
     copy.setup(value_buffer);
 
     // Run test function
@@ -213,7 +213,7 @@ TEST(utils_ranges_cuda, subrange) {
     // Output vector buffer for iteration test
     vecmem::data::vector_buffer<int> check_buffer(
         static_cast<vecmem::data::vector_buffer<int>::size_type>(end - begin),
-        0u, managed_resource);
+        managed_resource, vecmem::data::buffer_type::resizable);
     copy.setup(check_buffer);
 
     // Run test function
