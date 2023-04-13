@@ -11,9 +11,6 @@
 #include "detray/definitions/qualifiers.hpp"
 #include "detray/definitions/units.hpp"
 
-// System include(s)
-#include <limits>
-
 namespace detray::detail {
 
 /// @note Ported from Geant4 and simplified
