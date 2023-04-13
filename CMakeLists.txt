@@ -106,7 +106,7 @@ option( DETRAY_USE_SYSTEM_ACTSVG
    ${DETRAY_USE_SYSTEM_LIBS} )
 if( DETRAY_SETUP_ACTSVG )
    if( DETRAY_USE_SYSTEM_ACTSVG )
-      find_package( actsvg::core actsvg::meta REQUIRED )
+      find_package( actsvg REQUIRED COMPONENTS core meta )
    else()
       add_subdirectory( extern/actsvg )
    endif()
