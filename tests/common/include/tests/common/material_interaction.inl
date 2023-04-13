@@ -38,12 +38,6 @@ using namespace detray;
 using transform3 = __plugin::transform3<scalar>;
 using matrix_operator = typename transform3::matrix_actor;
 
-// Declare Silicon without density effect data
-material<scalar> Si_approx(
-    93.7f * unit<scalar>::mm, 465.2f * unit<scalar>::mm, 28.0855f, 14.f,
-    static_cast<scalar>(2.329 * unit<double>::g / unit<double>::cm3),
-    material_state::e_solid, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f);
-
 // Test class for MUON energy loss with Bethe function
 // Input tuple: < material / energy / expected output from
 // https://pdg.lbl.gov/2022/AtomicNuclearProperties for Muon dEdX and range >
@@ -161,6 +155,12 @@ INSTANTIATE_TEST_SUITE_P(
     Bethe_100GeV_Si, EnergyLossBetheValidation,
     ::testing::Values(std::make_tuple(silicon<scalar>(),
                                       100.1f * unit<scalar>::GeV, 2.451f)));
+
+// Declare Silicon without density effect data
+constexpr const material<scalar> Si_approx(
+    93.7f * unit<scalar>::mm, 465.2f * unit<scalar>::mm, 28.0855f, 14.f,
+    static_cast<scalar>(2.329 * unit<double>::g / unit<double>::cm3),
+    material_state::e_solid, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f);
 
 INSTANTIATE_TEST_SUITE_P(Bethe_0p1GeV_Si_approx, EnergyLossBetheValidation,
                          ::testing::Values(std::make_tuple(
