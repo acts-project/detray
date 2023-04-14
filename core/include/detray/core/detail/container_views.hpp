@@ -10,23 +10,21 @@
 // Project include(s)
 #include "detray/definitions/containers.hpp"
 #include "detray/definitions/qualifiers.hpp"
+#include "detray/utils/tuple.hpp"
+#include "detray/utils/tuple_helpers.hpp"
 
 // Vecmem include(s)
 #include <vecmem/containers/device_vector.hpp>
 #include <vecmem/containers/jagged_device_vector.hpp>
 
-// Thrust include(s)
-#include <thrust/tuple.h>
-
 // System include(s)
-#include <tuple>
 #include <type_traits>
 
 namespace detray {
 
 /// Container types used in device code
 using device_container_types =
-    container_types<vecmem::device_vector, thrust::tuple, darray,
+    container_types<vecmem::device_vector, detray::tuple, darray,
                     vecmem::jagged_device_vector>;
 
 /// How to obtain views for vecmem types
@@ -56,13 +54,13 @@ class dmulti_view_helper<false, view_ts...> {};
 /// member constructors.
 template <typename... view_ts>
 struct dmulti_view_helper<true, view_ts...> : public dbase_view {
-    thrust::tuple<std::remove_reference_t<std::remove_cv_t<view_ts>>...> m_view;
+    detray::tuple<std::remove_reference_t<std::remove_cv_t<view_ts>>...> m_view;
 
     dmulti_view_helper() = default;
 
     /// Tie multiple views together
     DETRAY_HOST
-    dmulti_view_helper(view_ts&&... views) { m_view = thrust::tie(views...); }
+    dmulti_view_helper(view_ts&&... views) { m_view = ::detray::tie(views...); }
 };
 
 /// Helper trait to determine if a type can be interpreted as a (composite)
