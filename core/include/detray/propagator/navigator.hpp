@@ -801,8 +801,9 @@ create_candidates_buffer(
     const detector_t &det, const std::size_t n_tracks,
     vecmem::memory_resource &device_resource,
     vecmem::memory_resource *host_access_resource = nullptr) {
+    // Build the buffer from capacities, device and host accessible resources
     return vecmem::data::jagged_vector_buffer<line_plane_intersection>(
-        std::vector<std::size_t>(n_tracks, det.get_n_max_objects_per_volume()),
+        std::vector<std::size_t>(n_tracks, det.n_max_candidates()),
         device_resource, host_access_resource,
         vecmem::data::buffer_type::resizable);
 }

@@ -147,6 +147,34 @@ class detector_volume {
                     rhs._sf_finder_links[ID::e_sensitive]);
     }
 
+    /// @return the maximum number of surface candidates during a neighborhood
+    /// lookup
+    template <int I = static_cast<int>(ID::e_size) - 1,
+              typename surface_store_t>
+    DETRAY_HOST_DEVICE constexpr auto n_max_candidates(
+        const surface_store_t &sf_collections, unsigned int n = 0u) const
+        -> unsigned int {
+        // Get the index of the surface collection with type index 'I'
+        constexpr auto sf_col_id{static_cast<typename surface_store_t::ids>(I)};
+        const dindex coll_idx{detail::get<1>(link<static_cast<ID>(I)>())};
+
+        // Check if this volume holds such a collection and, if so, add max
+        // number of candidates that we can expect from it
+        if (coll_idx != dindex_invalid) {
+            const unsigned int n_max{
+                sf_collections.template get<sf_col_id>()[coll_idx]
+                    .n_max_candidates()};
+            // @todo: Remove when local navigation becomes available !!!!
+            n += n_max > 20u ? 20u : n_max;
+        }
+        // Check the next surface collection type
+        if constexpr (I > 0) {
+            return n_max_candidates<I - 1>(sf_collections, n);
+        } else {
+            return n;
+        }
+    }
+
     private:
     /// How to interpret the boundary values
     volume_id _id = volume_id::e_cylinder;

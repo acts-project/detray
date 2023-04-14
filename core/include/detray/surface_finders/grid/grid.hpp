@@ -293,6 +293,13 @@ class grid {
     }
     /// @}
 
+    /// @return the maximum number of surface candidates during a
+    /// neighborhood lookup
+    DETRAY_HOST_DEVICE constexpr auto n_max_candidates() const -> unsigned int {
+        // @todo: Hotfix for the toy geometry
+        return 20u;
+    }
+
     static constexpr auto serializer() -> serializer_t<Dim> { return {}; }
 
     /// @returns view of a grid, including the grids mulit_axis. Also valid if

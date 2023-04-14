@@ -63,6 +63,13 @@ class brute_force_collection {
 
         /// @returns an iterator over all surfaces in the data structure
         DETRAY_HOST_DEVICE constexpr auto all() const { return *this; }
+
+        /// @return the maximum number of surface candidates during a
+        /// neighborhood lookup
+        DETRAY_HOST_DEVICE constexpr auto n_max_candidates() const
+            -> unsigned int {
+            return static_cast<unsigned int>(this->size());
+        }
     };
 
     using value_type = brute_forcer;

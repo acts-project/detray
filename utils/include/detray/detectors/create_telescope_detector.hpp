@@ -353,6 +353,10 @@ auto create_telescope_detector(
     using detector_t = detector<telescope_types<typename mask_t::shape>,
                                 covfie::field, container_t>;
 
+    // @todo: Temporal restriction due to missing local navigation
+    assert((dists.size() < 20u) &&
+           "Due to WIP, please choose less than 20 surfaces for now");
+
     // module parameters
     struct surface_config {
         const typename mask_t::mask_values &mask_values;
