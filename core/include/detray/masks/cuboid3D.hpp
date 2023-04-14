@@ -18,7 +18,6 @@
 #include <cmath>
 #include <limits>
 #include <string>
-#include <tuple>
 
 namespace detray {
 
@@ -80,13 +79,13 @@ class cuboid3D {
         template <typename algebra_t>
         using coordinate_type = local_frame_type<algebra_t>;
 
-        using types = std::tuple<n_axis::bounds_t<e_s, axis_loc0>,
-                                 n_axis::bounds_t<e_s, axis_loc1>,
-                                 n_axis::bounds_t<e_s, axis_loc2>>;
+        using types = dtuple<n_axis::bounds_t<e_s, axis_loc0>,
+                             n_axis::bounds_t<e_s, axis_loc1>,
+                             n_axis::bounds_t<e_s, axis_loc2>>;
 
         template <typename C, typename S>
-        using binning = std::tuple<binning_loc0<C, S>, binning_loc1<C, S>,
-                                   binning_loc2<C, S>>;
+        using binning =
+            dtuple<binning_loc0<C, S>, binning_loc1<C, S>, binning_loc2<C, S>>;
     };
 
     /// @brief Check boundary values for a local point.

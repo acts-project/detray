@@ -80,9 +80,9 @@ struct concentric_cylinder_intersector {
                                               d * d - r * r};
         auto qe_solution = qe();
 
-        if (std::get<0>(qe_solution) > 0) {
+        if (detail::get<0>(qe_solution) > 0) {
             std::array<point3, 2> candidates;
-            const auto u01 = std::get<1>(qe_solution);
+            const auto u01 = detail::get<1>(qe_solution);
             std::array<scalar_type, 2> t01 = {0.f, 0.f};
 
             candidates[0][_x] = u01[0];

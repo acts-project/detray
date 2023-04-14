@@ -42,7 +42,7 @@ __global__ void __launch_bounds__(256, 4) propagator_benchmark_kernel(
 
     // Create the actor states
     auto actor_states =
-        thrust::tie(transporter_state, interactor_state, resetter_state);
+        tie(transporter_state, interactor_state, resetter_state);
     // Create the propagator state
     propagator_device_type::state p_state(tracks.at(gid), det.get_bfield(), det,
                                           candidates.at(gid));

@@ -33,9 +33,9 @@ struct quadratic_equation {
         scalar_t discriminant =
             _params[1] * _params[1] - 4.f * _params[0] * _params[2];
         if (discriminant < 0.f) {
-            return {0,
-                    {std::numeric_limits<scalar_t>::infinity(),
-                     std::numeric_limits<scalar_t>::infinity()}};
+            return {0, array_t<scalar_t, 2>{
+                           std::numeric_limits<scalar_t>::infinity(),
+                           std::numeric_limits<scalar_t>::infinity()}};
         } else {
             int solutions = (discriminant == 0.f) ? 1 : 2;
             scalar_t q =

@@ -181,9 +181,9 @@ create_endcap_components(scalar inner_r, scalar outer_r, scalar pos_z,
     local_zone_finder<disc_grid> ecn_finder(std::move(ec_grid_n));
     local_zone_finder<disc_grid> ecp_finder(std::move(ec_grid_p));
 
-    return {trapezoid_values,
-            transforms,
-            {inner_finder, outer_finder, ecn_finder, ecp_finder}};
+    return {trapezoid_values, transforms,
+            dvector<endcap_surface_finder>{inner_finder, outer_finder,
+                                           ecn_finder, ecp_finder}};
 }
 
 using barrel_surface_finder = std::function<dvector<dindex>(
@@ -300,9 +300,9 @@ create_barrel_components(scalar r, scalar stagger_r, unsigned int n_phi,
     local_zone_finder<disc_grid> ecn_finder(std::move(barrel_grid_n));
     local_zone_finder<disc_grid> ecp_finder(std::move(barrel_grid_p));
 
-    return {rectangle_bounds,
-            transforms,
-            {inner_finder, outer_finder, ecn_finder, ecp_finder}};
+    return {rectangle_bounds, transforms,
+            dvector<barrel_surface_finder>{inner_finder, outer_finder,
+                                           ecn_finder, ecp_finder}};
 }
 
 }  // anonymous namespace

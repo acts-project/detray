@@ -9,6 +9,7 @@
 
 // Project include(s)
 #include "detray/definitions/qualifiers.hpp"
+#include "detray/utils/tuple.hpp"
 
 // Vecmem include(s)
 #include <vecmem/containers/jagged_vector.hpp>
@@ -17,7 +18,6 @@
 // System include(s)
 #include <array>
 #include <map>
-#include <tuple>
 #include <type_traits>
 #include <vector>
 
@@ -36,7 +36,7 @@ template <typename key_t, typename value_t>
 using dmap = std::map<key_t, value_t>;
 
 template <class... types>
-using dtuple = std::tuple<types...>;
+using dtuple = detray::tuple<types...>;
 
 /// @brief Bundle container type definitions
 template <template <typename...> class vector_t = dvector,

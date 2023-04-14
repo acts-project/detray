@@ -76,8 +76,8 @@ struct cylinder_intersector {
         quadratic_equation<scalar_type> qe = {a, b, c};
         auto qe_solution = qe();
 
-        if (std::get<0>(qe_solution) > 0) {
-            const auto t01 = std::get<1>(qe_solution);
+        if (detail::get<0>(qe_solution) > 0) {
+            const auto t01 = detail::get<1>(qe_solution);
             const scalar_type t{(t01[0] > overstep_tolerance) ? t01[0]
                                                               : t01[1]};
 

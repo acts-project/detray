@@ -13,6 +13,7 @@
 // detray core
 #include "detray/definitions/algebra.hpp"
 #include "detray/utils/quadratic_equation.hpp"
+#include "detray/utils/tuple_helpers.hpp"
 
 using namespace detray;
 
@@ -21,7 +22,7 @@ TEST(utils, quad_equation) {
     quadratic_equation<scalar> qe = {{2.f, 5.f, -3.f}};
     auto solution = qe();
 
-    ASSERT_EQ(std::get<0>(solution), 2);
-    ASSERT_NEAR(std::get<1>(solution)[0], -3.f, 1e-7f);
-    ASSERT_NEAR(std::get<1>(solution)[1], 0.5f, 1e-7f);
+    ASSERT_EQ(detail::get<0>(solution), 2);
+    ASSERT_NEAR(detail::get<1>(solution)[0], -3.f, 1e-7f);
+    ASSERT_NEAR(detail::get<1>(solution)[1], 0.5f, 1e-7f);
 }

@@ -18,7 +18,6 @@
 // System include(s)
 #include <cmath>
 #include <limits>
-#include <tuple>
 #include <type_traits>
 
 namespace detray {
@@ -89,15 +88,15 @@ class line {
         static constexpr n_axis::label axis_loc1 = n_axis::label::e_z;
         static constexpr std::size_t dim{2u};
 
-        using types = std::tuple<n_axis::bounds_t<e_s, axis_loc0>,
-                                 n_axis::bounds_t<e_s, axis_loc1>>;
+        using types = dtuple<n_axis::bounds_t<e_s, axis_loc0>,
+                             n_axis::bounds_t<e_s, axis_loc1>>;
 
         /// How to convert into the local axis system and back
         template <typename algebra_t>
         using coordinate_type = line2<algebra_t>;
 
         template <typename C, typename S>
-        using binning = std::tuple<binning_loc0<C, S>, binning_loc1<C, S>>;
+        using binning = dtuple<binning_loc0<C, S>, binning_loc1<C, S>>;
     };
 
     /// @brief Check boundary values for a local point.
