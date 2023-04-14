@@ -23,6 +23,7 @@
 #include <covfie/core/field.hpp>
 
 // System include(s)
+#include <algorithm>
 #include <map>
 #include <sstream>
 #include <string>
@@ -370,10 +371,6 @@ class detector {
 
         // Append mask and material container
         _masks.append(std::move(masks_per_vol));
-
-        // Update max objects per volume
-        _n_max_objects_per_volume =
-            std::max(_n_max_objects_per_volume, surfaces_per_vol.size());
     }
 
     /// Add a new full set of detector components (e.g. transforms or volumes)
@@ -426,20 +423,16 @@ class detector {
         return _volume_finder;
     }
 
-    /// @brief Updates the maximum number of surfaces (sensitive + passive +
-    /// portal) over all volumes.
-    DETRAY_HOST_DEVICE
-    inline auto update_n_max_objects_per_volume(std::size_t n_surfaces)
-        -> void {
-        _n_max_objects_per_volume =
-            std::max(_n_max_objects_per_volume, n_surfaces);
-    }
-
-    /// @returns the maximum number of surfaces (sensitive + passive + portal)
-    /// over all volumes.
-    DETRAY_HOST_DEVICE
-    inline auto get_n_max_objects_per_volume() const -> dindex {
-        return _n_max_objects_per_volume;
+    /// @returns the maximum number of surface candidates that any volume may
+    /// return.
+    DETRAY_HOST
+    inline auto n_max_candidates() const -> std::size_t {
+        std::vector<std::size_t> n_candidates;
+        n_candidates.reserve(_volumes.size());
+        for (const auto &vol : _volumes) {
+            n_candidates.push_back(vol.n_max_candidates(surface_store()));
+        }
+        return *std::max_element(n_candidates.begin(), n_candidates.end());
     }
 
     DETRAY_HOST_DEVICE
@@ -526,11 +519,6 @@ class detector {
     /// The memory resource represents how and where (host, device, managed)
     /// the memory for the detector containers is allocated
     vecmem::memory_resource *_resource = nullptr;
-
-    /// Maximum number of surfaces per volume. Used to estimate size of
-    /// candidates vector in the navigator. Is determined during detector
-    /// building.
-    dindex _n_max_objects_per_volume = 0;
 
     /// Storage for magnetic field data
     bfield_type _bfield;

@@ -135,9 +135,6 @@ class volume_builder : public volume_builder_interface<detector_t> {
 
         // Append masks
         det.append_masks(std::move(m_masks));
-
-        // Update max objects per volume
-        det.update_n_max_objects_per_volume(m_surfaces.size());
     }
 
     typename detector_t::volume_type* m_volume{};
