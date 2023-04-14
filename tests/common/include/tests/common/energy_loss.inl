@@ -140,6 +140,13 @@ constexpr const material<scalar> Si_approx(
     static_cast<scalar>(2.329 * unit<double>::g / unit<double>::cm3),
     material_state::e_solid, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f);
 
+TEST(Si_approx, density_effect_data_check) {
+
+    // Make sure that density effect data is empty
+    EXPECT_EQ(Si_approx.density_effect_data(),
+              detail::density_effect_data<scalar>{});
+}
+
 INSTANTIATE_TEST_SUITE_P(Bethe_0p1GeV_Si_approx, EnergyLossBetheValidation,
                          ::testing::Values(std::make_tuple(
                              Si_approx, 0.1003f * unit<scalar>::GeV, 2.608f)));

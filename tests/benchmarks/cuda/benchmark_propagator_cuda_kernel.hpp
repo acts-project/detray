@@ -48,10 +48,9 @@ using navigator_host_type = navigator<detector_host_type>;
 using navigator_device_type = navigator<detector_device_type>;
 using field_type = detector_host_type::bfield_type;
 using rk_stepper_type = rk_stepper<field_type::view_t, transform3>;
-using actor_chain_t =
-    actor_chain<thrust::tuple, parameter_transporter<transform3>,
-                pointwise_material_interactor<transform3>,
-                parameter_resetter<transform3>>;
+using actor_chain_t = actor_chain<tuple, parameter_transporter<transform3>,
+                                  pointwise_material_interactor<transform3>,
+                                  parameter_resetter<transform3>>;
 using propagator_host_type =
     propagator<rk_stepper_type, navigator_host_type, actor_chain_t>;
 using propagator_device_type =

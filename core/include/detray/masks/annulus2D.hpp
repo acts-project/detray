@@ -20,7 +20,6 @@
 #include <cmath>
 #include <limits>
 #include <string>
-#include <tuple>
 
 namespace detray {
 
@@ -97,15 +96,15 @@ class annulus2D {
         static constexpr n_axis::label axis_loc1 = n_axis::label::e_phi;
         static constexpr std::size_t dim{2u};
 
-        using types = std::tuple<n_axis::bounds_t<e_s, axis_loc0>,
-                                 n_axis::circular<axis_loc1>>;
+        using types = dtuple<n_axis::bounds_t<e_s, axis_loc0>,
+                             n_axis::circular<axis_loc1>>;
 
         /// Local coordinate frame (both for disc and focal system ?)
         template <typename algebra_t>
         using coordinate_type = local_frame_type<algebra_t>;
 
         template <typename C, typename S>
-        using binning = std::tuple<binning_loc0<C, S>, binning_loc1<C, S>>;
+        using binning = dtuple<binning_loc0<C, S>, binning_loc1<C, S>>;
     };
 
     /// Given a local polar point given in the disc frame, @returns the

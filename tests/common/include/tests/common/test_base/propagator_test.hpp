@@ -120,12 +120,12 @@ struct track_inspector : actor {
 using inspector_host_t = track_inspector<vecmem::vector>;
 using inspector_device_t = track_inspector<vecmem::device_vector>;
 using actor_chain_host_t =
-    actor_chain<thrust::tuple, inspector_host_t, pathlimit_aborter,
+    actor_chain<tuple, inspector_host_t, pathlimit_aborter,
                 parameter_transporter<transform3>,
                 pointwise_material_interactor<transform3>,
                 parameter_resetter<transform3>>;
 using actor_chain_device_t =
-    actor_chain<thrust::tuple, inspector_device_t, pathlimit_aborter,
+    actor_chain<tuple, inspector_device_t, pathlimit_aborter,
                 parameter_transporter<transform3>,
                 pointwise_material_interactor<transform3>,
                 parameter_resetter<transform3>>;

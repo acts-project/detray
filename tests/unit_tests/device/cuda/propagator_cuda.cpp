@@ -80,8 +80,8 @@ TEST_P(CudaPropagatorWithRkStepper, propagator) {
         pointwise_material_interactor<transform3>::state interactor_state{};
         parameter_resetter<transform3>::state resetter_state{};
         auto actor_states =
-            thrust::tie(insp_state, pathlimit_state, transporter_state,
-                        interactor_state, resetter_state);
+            ::detray::tie(insp_state, pathlimit_state, transporter_state,
+                          interactor_state, resetter_state);
 
         propagator_host_type::state state(trk, det.get_bfield(), det);
 
