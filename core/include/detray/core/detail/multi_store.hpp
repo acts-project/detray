@@ -8,6 +8,7 @@
 #pragma once
 
 // Detray include(s)
+#include "detray/concepts/context.hpp"
 #include "detray/core/detail/container_views.hpp"
 #include "detray/core/detail/data_context.hpp"
 #include "detray/core/detail/tuple_container.hpp"
@@ -33,7 +34,8 @@ namespace detray {
 /// @tparam container_t The type of container to use for the respective
 ///                     data collections.
 /// @tparam Ts the data types (value types of the collections)
-template <typename ID = std::size_t, typename context_t = empty_context,
+template <CONSTRAINT(concepts::index) ID = std::size_t,
+          CONSTRAINT(concepts::context) context_t = empty_context,
           template <typename...> class tuple_t = dtuple, typename... Ts>
 class multi_store {
 
@@ -44,7 +46,7 @@ class multi_store {
     /// How to find and index a data collection in the store
     /// @{
     using ids = ID;
-    template <typename index_t>
+    template <CONSTRAINT(concepts::index) index_t>
     using link_type = dtyped_index<ID, index_t>;
     using single_link = link_type<dindex>;
     using range_link = link_type<dindex_range>;

@@ -8,6 +8,7 @@
 #pragma once
 
 // Project include(s)
+#include "detray/concepts/mask.hpp"
 #include "detray/definitions/qualifiers.hpp"
 #include "detray/intersection/detail/trajectories.hpp"
 #include "detray/intersection/intersection.hpp"
@@ -20,7 +21,7 @@ namespace detray {
 
 /** A functor to find intersections between trajectory and planar mask
  */
-template <typename transform3_t>
+template <CONSTRAINT(concepts::transform<3>) transform3_t>
 struct plane_intersector {
 
     /// Transformation matching this struct
@@ -45,7 +46,7 @@ struct plane_intersector {
      * @return the intersection
      */
     template <
-        typename mask_t,
+        CONSTRAINT(concepts::mask) mask_t,
         std::enable_if_t<std::is_same_v<typename mask_t::loc_point_t, point2>,
                          bool> = true>
     DETRAY_HOST_DEVICE inline std::array<intersection_type, 1> operator()(

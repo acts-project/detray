@@ -8,6 +8,8 @@
 #pragma once
 
 // Project include(s)
+#include "detray/concepts/detector_metadata.hpp"
+#include "detray/concepts/type_container.hpp"
 #include "detray/core/detail/detector_kernel.hpp"
 #include "detray/definitions/containers.hpp"
 #include "detray/definitions/qualifiers.hpp"
@@ -30,8 +32,9 @@
 namespace detray {
 
 /// @brief Forward declaration of a detector view type
-template <typename metadata, template <typename> class bfield_t,
-          typename container_t>
+template <CONSTRAINT(concepts::detector_metadata) metadata,
+          template <typename> class bfield_t,
+          CONSTRAINT(concepts::type_container) container_t>
 struct detector_view;
 
 /// @brief The detector definition.
@@ -44,8 +47,10 @@ struct detector_view;
 /// @tparam bfield_t the type of the b-field frontend
 /// @tparam container_t type collection of the underlying containers
 /// @tparam source_link the surface source link
-template <typename metadata, template <typename> class bfield_t = covfie::field,
-          typename container_t = host_container_types>
+template <CONSTRAINT(concepts::detector_metadata) metadata,
+          template <typename> class bfield_t = covfie::field,
+          CONSTRAINT(concepts::type_container) container_t =
+              host_container_types>
 class detector {
 
     // Allow the building of the detector containers
@@ -537,8 +542,9 @@ class detector {
 };
 
 /// @brief A static inplementation of detector data for device
-template <typename metadata, template <typename> class bfield_t,
-          typename container_t>
+template <CONSTRAINT(concepts::detector_metadata) metadata,
+          template <typename> class bfield_t,
+          CONSTRAINT(concepts::type_container) container_t>
 struct detector_view {
 
     using detector_type = detector<metadata, bfield_t, container_t>;

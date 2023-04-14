@@ -24,7 +24,7 @@ namespace detray {
 ///
 /// The algorithm uses the Newton-Raphson method to find an intersection on
 /// the unbounded surface and then applies the mask.
-template <typename transform3_t>
+template <CONSTRAINT(concepts::transform<3>) transform3_t>
 struct helix_plane_intersector {
 
     using scalar_type = typename transform3_t::scalar_type;
@@ -46,7 +46,7 @@ struct helix_plane_intersector {
     /// @param overstep_tolerance is the tolerance for track overstepping
     ///
     /// @return the intersection
-    template <typename mask_t>
+    template <CONSTRAINT(concepts::mask) mask_t>
     DETRAY_HOST_DEVICE inline std::array<intersection_type, 2> operator()(
         const helix_type &h, const mask_t &mask, const transform3_t &trf,
         const scalar mask_tolerance = 0.f) const {

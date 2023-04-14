@@ -8,6 +8,8 @@
 #pragma once
 
 // Project include(s).
+#include "detray/concepts/mask.hpp"
+#include "detray/concepts/transform.hpp"
 #include "detray/coordinates/coordinate_base.hpp"
 #include "detray/definitions/math.hpp"
 #include "detray/definitions/qualifiers.hpp"
@@ -19,7 +21,7 @@ namespace detray {
 
 /** Local frame projection into a 2D cylindrical coordinate frame
  */
-template <typename transform3_t>
+template <CONSTRAINT(concepts::transform<3>) transform3_t>
 struct cylindrical2 : public coordinate_base<cylindrical2, transform3_t> {
 
     /// @name Type definitions for the struct
@@ -75,7 +77,7 @@ struct cylindrical2 : public coordinate_base<cylindrical2, transform3_t> {
 
     /** This method transform from a local 2D cylindrical point to a point
      * global cartesian 3D frame*/
-    template <typename mask_t>
+    template <CONSTRAINT(concepts::mask) mask_t>
     DETRAY_HOST_DEVICE inline point3 local_to_global(
         const transform3_t &trf, const mask_t &mask, const point2 &p,
         const vector3 & /*d*/) const {
@@ -88,7 +90,7 @@ struct cylindrical2 : public coordinate_base<cylindrical2, transform3_t> {
         return trf.point_to_global(point3{x, y, z});
     }
 
-    template <typename mask_t>
+    template <CONSTRAINT(concepts::mask) mask_t>
     DETRAY_HOST_DEVICE inline vector3 normal(const transform3_t &trf3,
                                              const mask_t &mask,
                                              const point3 &pos,
@@ -102,7 +104,7 @@ struct cylindrical2 : public coordinate_base<cylindrical2, transform3_t> {
         return trf3.rotation() * local_normal;
     }
 
-    template <typename mask_t>
+    template <CONSTRAINT(concepts::mask) mask_t>
     DETRAY_HOST_DEVICE inline rotation_matrix reference_frame(
         const transform3_t &trf3, const mask_t &mask, const point3 &pos,
         const vector3 &dir) const {
@@ -130,7 +132,7 @@ struct cylindrical2 : public coordinate_base<cylindrical2, transform3_t> {
         return rot;
     }
 
-    template <typename mask_t>
+    template <CONSTRAINT(concepts::mask) mask_t>
     DETRAY_HOST_DEVICE inline void set_bound_pos_to_free_pos_derivative(
         bound_to_free_matrix &bound_to_free_jacobian, const transform3_t &trf3,
         const mask_t &mask, const point3 &pos, const vector3 &dir) const {
@@ -146,7 +148,7 @@ struct cylindrical2 : public coordinate_base<cylindrical2, transform3_t> {
                                              e_free_pos0, e_bound_loc0);
     }
 
-    template <typename mask_t>
+    template <CONSTRAINT(concepts::mask) mask_t>
     DETRAY_HOST_DEVICE inline void set_free_pos_to_bound_pos_derivative(
         free_to_bound_matrix &free_to_bound_jacobian, const transform3_t &trf3,
         const mask_t &mask, const point3 &pos, const vector3 &dir) const {
@@ -163,7 +165,7 @@ struct cylindrical2 : public coordinate_base<cylindrical2, transform3_t> {
                                              e_bound_loc0, e_free_pos0);
     }
 
-    template <typename mask_t>
+    template <CONSTRAINT(concepts::mask) mask_t>
     DETRAY_HOST_DEVICE inline void set_bound_angle_to_free_pos_derivative(
         bound_to_free_matrix & /*bound_to_free_jacobian*/,
         const transform3_t & /*trf3*/, const mask_t & /*mask*/,

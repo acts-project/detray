@@ -8,6 +8,7 @@
 #pragma once
 
 // Project include(s)
+#include "detray/concepts/scalar.hpp"
 #include "detray/definitions/algebra.hpp"
 #include "detray/definitions/math.hpp"
 #include "detray/definitions/qualifiers.hpp"
@@ -22,7 +23,7 @@
 namespace detray {
 
 /// Wrapper for random number generatrion for the @c random_track_generator
-template <typename scalar_t = scalar,
+template <CONSTRAINT(concepts::scalar) scalar_t = scalar,
           typename distribution_t = std::uniform_real_distribution<scalar_t>,
           typename generator_t = std::random_device,
           typename engine_t = std::mt19937_64>

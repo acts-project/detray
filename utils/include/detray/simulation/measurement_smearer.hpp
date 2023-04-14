@@ -12,9 +12,11 @@
 #include <random>
 #include <string>
 
+#include "detray/concepts/scalar.hpp"
+
 namespace detray {
 
-template <typename scalar_t>
+template <CONSTRAINT(concepts::scalar) scalar_t>
 struct measurement_smearer {
 
     measurement_smearer(scalar_t stddev_local0, scalar_t stddev_local1)

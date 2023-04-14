@@ -8,6 +8,7 @@
 #pragma once
 
 // Project include(s)
+#include "detray/concepts/detector.hpp"
 #include "detray/definitions/containers.hpp"
 #include "detray/definitions/indexing.hpp"
 #include "detray/materials/predefined_materials.hpp"
@@ -23,10 +24,10 @@ namespace detray {
 /// @param d [in,out] the detector to which the portal surfaces are added
 /// @param volume_grid [in] the indexed volume grid
 ///
-template <typename detector_t,
-          template <typename, std::size_t> class array_type = darray,
-          template <typename...> class tuple_type = dtuple,
-          template <typename...> class vector_type = dvector>
+template <CONSTRAINT(concepts::detector) detector_t,
+          template <typename, std::size_t> typename array_type = darray,
+          template <typename...> typename tuple_type = dtuple,
+          template <typename...> typename vector_type = dvector>
 void connect_cylindrical_volumes(
     detector_t &d, const typename detector_t::volume_finder &volume_grid) {
 

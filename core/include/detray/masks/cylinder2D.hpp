@@ -8,6 +8,7 @@
 #pragma once
 
 // Project include(s)
+#include "detray/concepts/algebra.hpp"
 #include "detray/coordinates/cylindrical2.hpp"
 #include "detray/coordinates/cylindrical3.hpp"
 #include "detray/definitions/qualifiers.hpp"
@@ -53,27 +54,27 @@ class cylinder2D {
     };
 
     /// Local coordinate frame for boundary checks
-    template <typename algebra_t>
+    template <CONSTRAINT(concepts::algebra) algebra_t>
     using local_frame_type =
         std::conditional_t<kRadialCheck, cylindrical3<algebra_t>,
                            cylindrical2<algebra_t>>;
     /// Local point type for boundary checks (2D or 3D)
-    template <typename algebra_t>
+    template <CONSTRAINT(concepts::algebra) algebra_t>
     using loc_point_type =
         std::conditional_t<kRadialCheck,
                            typename local_frame_type<algebra_t>::point3,
                            typename local_frame_type<algebra_t>::point2>;
 
     /// Measurement frame
-    template <typename algebra_t>
+    template <CONSTRAINT(concepts::algebra) algebra_t>
     using measurement_frame_type = cylindrical2<algebra_t>;
     /// Local measurement point (2D)
-    template <typename algebra_t>
+    template <CONSTRAINT(concepts::algebra) algebra_t>
     using measurement_point_type =
         typename measurement_frame_type<algebra_t>::point2;
 
     /// Underlying surface geometry: cylindrical
-    template <typename algebra_t>
+    template <CONSTRAINT(concepts::algebra) algebra_t>
     using intersector_type = intersector_t<algebra_t>;
 
     /// Behaviour of the two local axes (circular in r_phi, linear in z)
@@ -90,7 +91,7 @@ class cylinder2D {
                              n_axis::bounds_t<e_s, axis_loc1>>;
 
         /// How to convert into the local axis system and back
-        template <typename algebra_t>
+        template <CONSTRAINT(concepts::algebra) algebra_t>
         using coordinate_type = cylindrical2<algebra_t>;
 
         template <typename C, typename S>
@@ -113,7 +114,8 @@ class cylinder2D {
     ///
     /// @return true if the local point lies within the given boundaries.
     template <template <typename, std::size_t> class bounds_t,
-              typename scalar_t, std::size_t kDIM, typename point_t,
+              CONSTRAINT(concepts::scalar) scalar_t, std::size_t kDIM,
+              typename point_t,
               typename std::enable_if_t<kDIM == e_size, bool> = true>
     DETRAY_HOST_DEVICE inline bool check_boundaries(
         const bounds_t<scalar_t, kDIM>& bounds, const point_t& loc_p,

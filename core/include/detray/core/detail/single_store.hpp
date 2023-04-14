@@ -8,6 +8,7 @@
 #pragma once
 
 // Project include(s)
+#include "detray/concepts/context.hpp"
 #include "detray/core/detail/container_views.hpp"
 #include "detray/core/detail/data_context.hpp"
 #include "detray/definitions/indexing.hpp"
@@ -27,7 +28,7 @@ namespace detray {
 /// @tparam container_t The type of container to use for the data collection.
 /// @tparam context_t the context with which to retrieve the correct data.
 template <typename T, template <typename...> class container_t = dvector,
-          typename context_t = empty_context>
+          CONSTRAINT(concepts::context) context_t = empty_context>
 class single_store {
 
     public:

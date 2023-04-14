@@ -9,6 +9,7 @@
 
 #include <algorithm>
 
+#include "detray/concepts/axis.hpp"
 #include "detray/definitions/indexing.hpp"
 #include "detray/definitions/qualifiers.hpp"
 
@@ -33,7 +34,8 @@ struct serializer2 {
      *
      * @return a dindex for the memory storage
      */
-    template <typename faxis_t, typename saxis_t>
+    template <CONSTRAINT(concepts::axis) faxis_t,
+              CONSTRAINT(concepts::axis) saxis_t>
     DETRAY_HOST_DEVICE dindex serialize(const faxis_t &faxis,
                                         const saxis_t & /*saxis*/, dindex fbin,
                                         dindex sbin) const {
@@ -53,8 +55,9 @@ struct serializer2 {
      *
      * @return a 2-dim array of dindex
      */
-    template <typename faxis_t, typename saxis_t,
-              template <typename, std::size_t> class array_t = darray>
+    template <CONSTRAINT(concepts::axis) faxis_t,
+              CONSTRAINT(concepts::axis) saxis_t,
+              template <typename, std::size_t> typename array_t = darray>
     DETRAY_HOST_DEVICE array_t<dindex, 2> deserialize(const faxis_t &faxis,
                                                       const saxis_t & /*saxis*/,
                                                       dindex serialbin) const {
