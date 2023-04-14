@@ -33,13 +33,13 @@ TEST(density_effect_data, density_effect_data) {
     // Check the default constructor of density effect data
     constexpr detail::density_effect_data<scalar> D{};
 
-    EXPECT_EQ(D.get_A_density(), epsilon);
-    EXPECT_EQ(D.get_M_density(), epsilon);
-    EXPECT_EQ(D.get_X0_density(), epsilon);
-    EXPECT_EQ(D.get_X1_density(), epsilon);
-    EXPECT_EQ(D.get_mean_excitation_energy(), epsilon);
-    EXPECT_EQ(D.get_C_density(), epsilon);
-    EXPECT_EQ(D.get_delta0_density(), epsilon);
+    EXPECT_EQ(D.get_A_density(), 0.f);
+    EXPECT_EQ(D.get_M_density(), 0.f);
+    EXPECT_EQ(D.get_X0_density(), 0.f);
+    EXPECT_EQ(D.get_X1_density(), 0.f);
+    EXPECT_EQ(D.get_mean_excitation_energy(), 0.f);
+    EXPECT_EQ(D.get_C_density(), 0.f);
+    EXPECT_EQ(D.get_delta0_density(), 0.f);
 }
 
 // This tests the material functionalities
