@@ -439,10 +439,10 @@ class detector {
     inline const bfield_type &get_bfield() const { return _bfield; }
 
     DETRAY_HOST_DEVICE
-    inline point2 global_to_local(const dindex sf_idx, const point3 &pos,
+    inline point2 global_to_local(const geometry::barcode bc, const point3 &pos,
                                   const vector3 &dir) const {
         const auto &sf =
-            *(surfaces().begin() + static_cast<std::ptrdiff_t>(sf_idx));
+            *(surfaces().begin() + static_cast<std::ptrdiff_t>(bc.index()));
         const auto ret =
             _masks.template visit<detail::global_to_local<transform3>>(
                 sf.mask(), _transforms[sf.transform()], pos, dir);
