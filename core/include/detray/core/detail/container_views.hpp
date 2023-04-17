@@ -8,6 +8,7 @@
 #pragma once
 
 // Project include(s)
+#include "detray/concepts/container_view.hpp"
 #include "detray/definitions/containers.hpp"
 #include "detray/definitions/qualifiers.hpp"
 #include "detray/utils/tuple.hpp"
@@ -39,11 +40,11 @@ struct dbase_view {};
 
 /// Container view helper that aggregates multiple vecmem views and performs
 /// compile-time checks.
-template <bool /*check value*/, typename... view_ts>
+template <bool /*check value*/, CONSTRAINT(concepts::container_view)... view_ts>
 class dmulti_view_helper {};
 
 /// In case the checks fail
-template <typename... view_ts>
+template <CONSTRAINT(concepts::container_view)... view_ts>
 class dmulti_view_helper<false, view_ts...> {};
 
 /// @brief General view type that aggregates vecmem based view implementations.
@@ -105,7 +106,7 @@ using get_view_t = typename get_view<T>::type;
 
 /// The detray container view exists, if all contained view types also derive
 /// from @c dbase_view.
-template <typename... view_ts>
+template <CONSTRAINT(concepts::container_view)... view_ts>
 using dmulti_view = detray::detail::dmulti_view_helper<
     std::conjunction_v<detail::is_device_view<view_ts>...>, view_ts...>;
 

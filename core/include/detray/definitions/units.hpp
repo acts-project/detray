@@ -9,10 +9,12 @@
 
 #include <cmath>
 
+#include "detray/concepts/scalar.hpp"
+
 namespace detray {
 
 /// Unit conversion factors
-template <typename scalar_t>
+template <CONSTRAINT(concepts::scalar) scalar_t>
 struct unit {
 
     /// Length, native unit mm
@@ -86,7 +88,7 @@ struct unit {
 };
 
 /// Physical and mathematical constants
-template <typename scalar_t>
+template <CONSTRAINT(concepts::scalar) scalar_t>
 struct constant {
 
     /// Euler's number

@@ -9,6 +9,7 @@
 #pragma once
 
 // Project include(s)
+#include "detray/concepts/bit_field.hpp"
 #include "detray/definitions/qualifiers.hpp"
 
 // System include(s)
@@ -24,7 +25,7 @@ namespace detray::detail {
 ///
 /// @see
 /// https://github.com/acts-project/acts/blob/main/Core/include/Acts/Geometry/GeometryIdentifier.hpp
-template <typename value_t = uint64_t>
+template <CONSTRAINT(concepts::bit_field) value_t = uint64_t>
 class bit_encoder {
 
     public:

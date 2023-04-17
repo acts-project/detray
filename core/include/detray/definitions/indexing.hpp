@@ -8,6 +8,7 @@
 #pragma once
 
 // Project include(s)
+#include "detray/concepts/index.hpp"
 #include "detray/definitions/containers.hpp"
 #include "detray/definitions/qualifiers.hpp"
 
@@ -25,7 +26,7 @@ using dindex_sequence = dvector<dindex>;
 ///
 /// @tparam DIM number of indices that are held by this type
 /// @tparam index_t type of indices
-template <typename index_t = dindex, std::size_t DIM = 3u>
+template <CONSTRAINT(concepts::index) index_t = dindex, std::size_t DIM = 3u>
 struct dmulti_index {
     using index_type = index_t;
 
@@ -55,7 +56,8 @@ struct dmulti_index {
 /// @tparam id_type Represents the type of object that is being indexed
 /// @tparam index_type The type of indexing needed for the indexed type's
 ///         container (e.g. single index, range, multiindex)
-template <typename id_t = unsigned int, typename index_t = dindex>
+template <typename id_t = unsigned int,
+          CONSTRAINT(concepts::index) index_t = dindex>
 struct dtyped_index {
 
     using id_type = id_t;

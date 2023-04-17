@@ -8,6 +8,8 @@
 #pragma once
 
 // Project include(s).
+#include "detray/concepts/mask.hpp"
+#include "detray/concepts/transform.hpp"
 #include "detray/coordinates/coordinate_base.hpp"
 #include "detray/definitions/qualifiers.hpp"
 
@@ -15,7 +17,7 @@ namespace detray {
 
 /** Frame projection into a cartesian coordinate frame
  */
-template <typename transform3_t>
+template <CONSTRAINT(concepts::transform<3>) transform3_t>
 struct cartesian3 final : public coordinate_base<cartesian3, transform3_t> {
 
     /// @name Type definitions for the struct
@@ -52,7 +54,7 @@ struct cartesian3 final : public coordinate_base<cartesian3, transform3_t> {
 
     /** This method transform from a local 3D cartesian point to a point global
      * cartesian 3D frame*/
-    template <typename mask_t>
+    template <CONSTRAINT(concepts::mask) mask_t>
     DETRAY_HOST_DEVICE inline point3 local_to_global(
         const transform3_t &trf, const mask_t & /*mask*/, const point3 &p,
         const vector3 & /*d*/) const {

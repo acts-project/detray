@@ -8,6 +8,7 @@
 #pragma once
 
 // Project include(s).
+#include "detray/concepts/transform.hpp"
 #include "detray/definitions/math.hpp"
 #include "detray/definitions/units.hpp"
 #include "detray/tracks/tracks.hpp"
@@ -23,7 +24,7 @@ namespace detray {
 namespace detail {
 
 /// @brief describes a straight-line trajectory
-template <typename transform3_t>
+template <CONSTRAINT(concepts::transform<3>) transform3_t>
 class ray {
     public:
     using transform3_type = transform3_t;
@@ -100,7 +101,7 @@ class ray {
 /// Helix class for the analytical solution of track propagation in
 /// homogeneous B field. This Follows the notation of Eq (4.7) in
 /// DOI:10.1007/978-3-030-65771-0
-template <typename transform3_t>
+template <CONSTRAINT(concepts::transform<3>) transform3_t>
 class helix : public free_track_parameters<transform3_t> {
     public:
     using transform3_type = transform3_t;

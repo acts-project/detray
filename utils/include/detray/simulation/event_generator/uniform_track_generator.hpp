@@ -8,6 +8,7 @@
 #pragma once
 
 // Project include(s)
+#include "detray/concepts/track.hpp"
 #include "detray/definitions/algebra.hpp"
 #include "detray/definitions/math.hpp"
 #include "detray/definitions/qualifiers.hpp"
@@ -30,7 +31,7 @@ namespace detray {
 /// the number of generated tracks) are configurable.
 ///
 /// @tparam track_t the type of track parametrization that should be used.
-template <typename track_t>
+template <CONSTRAINT(concepts::track) track_t>
 class uniform_track_generator
     : public detray::ranges::view_interface<uniform_track_generator<track_t>> {
     public:

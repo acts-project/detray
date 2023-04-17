@@ -8,6 +8,9 @@
 #pragma once
 
 // Project include(s)
+#include "detray/concepts/algebra.hpp"
+#include "detray/concepts/index.hpp"
+#include "detray/concepts/mask_group.hpp"
 #include "detray/definitions/indexing.hpp"
 #include "detray/definitions/qualifiers.hpp"
 
@@ -15,7 +18,7 @@ namespace detray::detail {
 
 /// A functor to retrieve a single surface from an accelerator
 struct get_surface {
-    template <typename collection_t, typename index_t>
+    template <typename collection_t, CONSTRAINT(concepts::index) index_t>
     DETRAY_HOST_DEVICE inline auto operator()(const collection_t& sf_finder,
                                               const index_t& index,
                                               const dindex sf_idx) const {
@@ -25,13 +28,14 @@ struct get_surface {
 };
 
 /// A functor to perform global to local transformation
-template <typename algebra_t>
+template <CONSTRAINT(concepts::algebra) algebra_t>
 struct global_to_local {
 
     using point3 = typename algebra_t::point3;
     using vector3 = typename algebra_t::vector3;
 
-    template <typename mask_group_t, typename index_t>
+    template <CONSTRAINT(concepts::mask_group) mask_group_t,
+              CONSTRAINT(concepts::index) index_t>
     DETRAY_HOST_DEVICE inline auto operator()(const mask_group_t& mask_group,
                                               const index_t& index,
                                               const algebra_t& trf3,

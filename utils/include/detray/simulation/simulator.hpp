@@ -8,6 +8,7 @@
 #pragma once
 
 // Project include(s).
+#include "detray/concepts/detector.hpp"
 #include "detray/propagator/actor_chain.hpp"
 #include "detray/propagator/actors/aborters.hpp"
 #include "detray/propagator/actors/parameter_resetter.hpp"
@@ -25,7 +26,8 @@
 
 namespace detray {
 
-template <typename detector_t, typename track_generator_t, typename smearer_t>
+template <CONSTRAINT(concepts::detector) detector_t, typename track_generator_t,
+          typename smearer_t>
 struct simulator {
 
     using scalar_type = typename detector_t::scalar_type;

@@ -8,6 +8,9 @@
 #pragma once
 
 // Project include(s).
+#include "detray/concepts/mask.hpp"
+#include "detray/concepts/stepper_state.hpp"
+#include "detray/concepts/transform.hpp"
 #include "detray/definitions/math.hpp"
 #include "detray/definitions/qualifiers.hpp"
 #include "detray/intersection/detail/trajectories.hpp"
@@ -21,7 +24,8 @@ namespace detray {
 
 /** Coordinate base struct
  */
-template <template <class> class Derived, typename transform3_t>
+template <template <class> class Derived,
+          CONSTRAINT(concepts::transform<3>) transform3_t>
 struct coordinate_base {
 
     /// @name Type definitions for the struct
@@ -85,7 +89,7 @@ struct coordinate_base {
         return bound_vec;
     }
 
-    template <typename mask_t>
+    template <CONSTRAINT(concepts::mask) mask_t>
     DETRAY_HOST_DEVICE inline free_vector bound_to_free_vector(
         const transform3_t& trf3, const mask_t& mask,
         const bound_vector& bound_vec) const {
@@ -111,7 +115,7 @@ struct coordinate_base {
         return free_vec;
     }
 
-    template <typename mask_t>
+    template <CONSTRAINT(concepts::mask) mask_t>
     DETRAY_HOST_DEVICE inline bound_to_free_matrix bound_to_free_jacobian(
         const transform3_t& trf3, const mask_t& mask,
         const bound_vector& bound_vec) const {
@@ -166,7 +170,7 @@ struct coordinate_base {
         return jac_to_global;
     }
 
-    template <typename mask_t>
+    template <CONSTRAINT(concepts::mask) mask_t>
     DETRAY_HOST_DEVICE inline free_to_bound_matrix free_to_bound_jacobian(
         const transform3_t& trf3, const mask_t& mask,
         const free_vector& free_vec) const {
@@ -215,7 +219,8 @@ struct coordinate_base {
         return jac_to_local;
     }
 
-    template <typename mask_t, typename stepper_state_t>
+    template <CONSTRAINT(concepts::mask) mask_t,
+              CONSTRAINT(concepts::stepper_state) stepper_state_t>
     DETRAY_HOST_DEVICE inline free_matrix path_correction(
         const stepper_state_t& stepping, const transform3_t& trf3,
         const mask_t& mask) {

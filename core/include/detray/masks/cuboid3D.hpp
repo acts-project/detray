@@ -45,17 +45,17 @@ class cuboid3D {
     };
 
     /// Local coordinate frame for boundary checks
-    template <typename algebra_t>
+    template <CONSTRAINT(concepts::algebra) algebra_t>
     using local_frame_type = cartesian3<algebra_t>;
     /// Local point type (3D)
-    template <typename algebra_t>
+    template <CONSTRAINT(concepts::algebra) algebra_t>
     using loc_point_type = typename local_frame_type<algebra_t>::point3;
 
     /// Measurement frame
-    template <typename algebra_t>
+    template <CONSTRAINT(concepts::algebra) algebra_t>
     using measurement_frame_type = local_frame_type<algebra_t>;
     /// Local measurement point (2D)
-    template <typename algebra_t>
+    template <CONSTRAINT(concepts::algebra) algebra_t>
     using measurement_point_type = loc_point_type<algebra_t>;
 
     /// Underlying surface geometry: not a surface
@@ -76,7 +76,7 @@ class cuboid3D {
         static constexpr std::size_t dim{3u};
 
         /// How to convert into the local axis system and back
-        template <typename algebra_t>
+        template <CONSTRAINT(concepts::algebra) algebra_t>
         using coordinate_type = local_frame_type<algebra_t>;
 
         using types = dtuple<n_axis::bounds_t<e_s, axis_loc0>,
@@ -123,9 +123,9 @@ class cuboid3D {
     ///
     /// @returns and array of coordinates that contains the lower point (first
     /// three values) and the upper point (latter three values) .
-    template <typename algebra_t,
+    template <CONSTRAINT(concepts::algebra) algebra_t,
               template <typename, std::size_t> class bounds_t,
-              typename scalar_t, std::size_t kDIM,
+              CONSTRAINT(concepts::scalar) scalar_t, std::size_t kDIM,
               typename std::enable_if_t<kDIM == e_size, bool> = true>
     DETRAY_HOST_DEVICE inline std::array<scalar_t, 6> local_min_bounds(
         const bounds_t<scalar_t, kDIM> &bounds,

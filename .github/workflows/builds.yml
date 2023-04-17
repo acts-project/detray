@@ -50,15 +50,24 @@ jobs:
       matrix:
         BUILD_TYPE: ["Release", "Debug"]
         SCALAR_TYPE: ["float", "double"]
+        CXX_STANDARD: ["17"]
         PLATFORM:
           - NAME: "HOST"
             CONTAINER: "ghcr.io/acts-project/ubuntu2004:v30"
             OPTIONS: -DDETRAY_EIGEN_PLUGIN=ON -DDETRAY_SMATRIX_PLUGIN=ON -DDETRAY_VC_PLUGIN=ON
+        include:
+          - BUILD_TYPE: "Debug"
+            SCALAR_TYPE: "float"
+            CXX_STANDARD: "20"
+            PLATFORM:
+              - NAME: "HOST"
+                CONTAINER: "ghcr.io/acts-project/ubuntu2004:v30"
+                OPTIONS: -DDETRAY_EIGEN_PLUGIN=ON -DDETRAY_SMATRIX_PLUGIN=ON -DDETRAY_VC_PLUGIN=ON
 
     # The system to run on.
     runs-on: ubuntu-latest
     container: ${{ matrix.PLATFORM.CONTAINER }}
-    name: "host-container (${{ matrix.PLATFORM.NAME }})"
+    name: "host-container (${{ matrix.PLATFORM.NAME }}, C++${{ matrix.CXX_STANDARD }})"
 
     # Use BASH as the shell from the image.
     defaults:
@@ -73,7 +82,7 @@ jobs:
     - name: Configure
       run: |
         source ${GITHUB_WORKSPACE}/.github/ci_setup.sh ${{ matrix.PLATFORM.NAME }}
-        cmake -DCMAKE_BUILD_TYPE=${{ matrix.BUILD_TYPE }} -DDETRAY_CUSTOM_SCALARTYPE=${{ matrix.SCALAR_TYPE }} ${{ matrix.PLATFORM.OPTIONS }} -S ${GITHUB_WORKSPACE} -B build
+        cmake -DCMAKE_CXX_STANDARD=${{ matrix.CXX_STANDARD }} -DCMAKE_BUILD_TYPE=${{ matrix.BUILD_TYPE }} -DDETRAY_CUSTOM_SCALARTYPE=${{ matrix.SCALAR_TYPE }} ${{ matrix.PLATFORM.OPTIONS }} -S ${GITHUB_WORKSPACE} -B build
     # Perform the build.
     - name: Build
       run: |
@@ -132,4 +141,3 @@ jobs:
       run: |
         source ${GITHUB_WORKSPACE}/.github/ci_setup.sh ${{ matrix.PLATFORM.NAME }}
         cmake --build build
-

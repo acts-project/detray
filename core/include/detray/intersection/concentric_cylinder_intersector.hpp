@@ -24,7 +24,7 @@ namespace detray {
 /** A functor to find intersections between trajectory and concentric cylinder
  * mask
  */
-template <typename transform3_t>
+template <CONSTRAINT(concepts::transform<3>) transform3_t>
 struct concentric_cylinder_intersector {
 
     /// Transformation matching this struct
@@ -50,7 +50,7 @@ struct concentric_cylinder_intersector {
      * @return the intersection
      */
     template <
-        typename mask_t,
+        CONSTRAINT(concepts::mask) mask_t,
         std::enable_if_t<std::is_same_v<typename mask_t::measurement_frame_type,
                                         cylindrical2<transform3_t>>,
                          bool> = true>

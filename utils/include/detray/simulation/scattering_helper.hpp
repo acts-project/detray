@@ -8,6 +8,7 @@
 #pragma once
 
 // Project include(s).
+#include "detray/concepts/algebra.hpp"
 #include "detray/definitions/qualifiers.hpp"
 #include "detray/definitions/units.hpp"
 #include "detray/utils/axis_rotation.hpp"
@@ -18,7 +19,7 @@
 
 namespace detray {
 
-template <typename algebra_t>
+template <CONSTRAINT(concepts::algebra) algebra_t>
 struct scattering_helper {
     public:
     using matrix_operator = typename algebra_t::matrix_actor;
