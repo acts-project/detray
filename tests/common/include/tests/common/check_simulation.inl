@@ -172,8 +172,9 @@ TEST(check_simulation, toy_geometry) {
         for (std::size_t i = 0u; i < nhits; i++) {
             const point3 pos{hits[i].tx, hits[i].ty, hits[i].tz};
             const vector3 mom{hits[i].tpx, hits[i].tpy, hits[i].tpz};
-            const auto truth_local = detector.global_to_local(
-                hits[i].geometry_id, pos, vector::normalize(mom));
+            const auto truth_local =
+                detector.global_to_local(geometry::barcode(hits[i].geometry_id),
+                                         pos, vector::normalize(mom));
 
             local0_diff.push_back(truth_local[0] - measurements[i].local0);
             local1_diff.push_back(truth_local[1] - measurements[i].local1);
