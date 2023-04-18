@@ -21,12 +21,10 @@ namespace detray {
 
 void to_json(nlohmann::ordered_json& j, const material_slab_payload& m) {
     j["params"] = m.slab;
-    j["density_eff"] = m.density_eff;
 }
 
 void from_json(const nlohmann::ordered_json& j, material_slab_payload& m) {
     m.slab = j["params"];
-    m.density_eff = j["density_eff"];
 }
 
 }  // namespace detray

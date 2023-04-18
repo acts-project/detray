@@ -11,7 +11,6 @@
 #include "detray/definitions/math.hpp"
 #include "detray/definitions/qualifiers.hpp"
 #include "detray/definitions/units.hpp"
-#include "detray/materials/detail/density_effect_data.hpp"
 
 // System include(s)
 #include <limits>
@@ -32,18 +31,13 @@ struct material {
     DETRAY_HOST_DEVICE
     constexpr material(const scalar_type x0, const scalar_type l0,
                        const scalar_type ar, const scalar_type z,
-                       const scalar_type mass_rho, const material_state state,
-                       const scalar_type d_a, const scalar_type d_m,
-                       const scalar_type d_X0, const scalar_type d_X1,
-                       const scalar_type d_I, const scalar_type d_nC,
-                       const scalar_type d_delta0)
+                       const scalar_type mass_rho, const material_state state)
         : m_x0(x0),
           m_l0(l0),
           m_ar(ar),
           m_z(z),
           m_mass_rho(mass_rho),
-          m_state(state),
-          m_density(d_a, d_m, d_X0, d_X1, d_I, d_nC, d_delta0) {
+          m_state(state) {
 
         m_molar_rho = mass_to_molar_density(ar, mass_rho);
     }
@@ -83,23 +77,13 @@ struct material {
     constexpr scalar_type molar_electron_density() const {
         return m_z * m_molar_rho;
     }
-    /// @returns the density effect data
-    DETRAY_HOST_DEVICE
-    constexpr detail::density_effect_data<scalar_type> density_effect_data()
-        const {
-        return m_density;
-    }
 
     /// @returns the (Approximated) mean excitation energy
     DETRAY_HOST_DEVICE
     scalar_type mean_excitation_energy() const {
         // use approximative computation as defined in ATL-SOFT-PUB-2008-003
-        if (m_density == detail::density_effect_data<scalar_type>{}) {
-            return 16.f * unit<scalar_type>::eV *
-                   math_ns::pow(m_z, static_cast<scalar_type>(0.9));
-        } else {
-            return m_density.get_mean_excitation_energy();
-        }
+        return 16.f * unit<scalar_type>::eV *
+               math_ns::pow(m_z, static_cast<scalar_type>(0.9));
     }
 
     DETRAY_HOST_DEVICE
@@ -135,21 +119,16 @@ struct material {
     scalar_type m_mass_rho = 0.f;
     scalar_type m_molar_rho = 0.f;
     material_state m_state = material_state::e_solid;
-    detail::density_effect_data<scalar_type> m_density = {};
 };
 
 // Macro for declaring the predefined materials (with Density effect data)
-#define DETRAY_DECLARE_MATERIAL(MATERIAL_NAME, X0, L0, Ar, Z, Rho, State,    \
-                                Density0, Density1, Density2, Density3,      \
-                                Density4, Density5, Density6)                \
-    template <typename scalar_t, typename R = std::ratio<1, 1>>              \
-    struct MATERIAL_NAME final : public material<scalar_t, R> {              \
-        using base_type = material<scalar_t, R>;                             \
-        using base_type::base_type;                                          \
-        DETRAY_HOST_DEVICE                                                   \
-        constexpr MATERIAL_NAME()                                            \
-            : base_type(X0, L0, Ar, Z, Rho, State, Density0, Density1,       \
-                        Density2, Density3, Density4, Density5, Density6) {} \
+#define DETRAY_DECLARE_MATERIAL(MATERIAL_NAME, X0, L0, Ar, Z, Rho, State)   \
+    template <typename scalar_t, typename R = std::ratio<1, 1>>             \
+    struct MATERIAL_NAME final : public material<scalar_t, R> {             \
+        using base_type = material<scalar_t, R>;                            \
+        using base_type::base_type;                                         \
+        DETRAY_HOST_DEVICE                                                  \
+        constexpr MATERIAL_NAME() : base_type(X0, L0, Ar, Z, Rho, State) {} \
     }
 
 }  // namespace detray

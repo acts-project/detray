@@ -382,7 +382,6 @@ TEST(io, json_material_slab_payload) {
 
     detray::material_slab_payload m;
     m.slab = {1.f, 2.f, 3.f, 4.f, 5.f, 6.f, 7.f, 8.f};
-    m.density_eff = {1.f, 2.f, 3.f, 4.f, 5.f, 6.f, 7.f};
 
     nlohmann::ordered_json j;
     j["material"] = m;
@@ -390,7 +389,6 @@ TEST(io, json_material_slab_payload) {
     detray::material_slab_payload pm = j["material"];
 
     EXPECT_EQ(m.slab, pm.slab);
-    EXPECT_EQ(m.density_eff, pm.density_eff);
 }
 
 /// This tests the json io for a material slab

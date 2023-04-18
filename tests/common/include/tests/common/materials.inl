@@ -28,20 +28,6 @@ using vector3 = __plugin::vector3<scalar>;
 constexpr scalar tol{1e-7f};
 constexpr scalar epsilon{std::numeric_limits<scalar>::epsilon()};
 
-// This tests the density effect data correction
-TEST(density_effect_data, density_effect_data) {
-    // Check the default constructor of density effect data
-    constexpr detail::density_effect_data<scalar> D{};
-
-    EXPECT_EQ(D.get_A_density(), 0.f);
-    EXPECT_EQ(D.get_M_density(), 0.f);
-    EXPECT_EQ(D.get_X0_density(), 0.f);
-    EXPECT_EQ(D.get_X1_density(), 0.f);
-    EXPECT_EQ(D.get_mean_excitation_energy(), 0.f);
-    EXPECT_EQ(D.get_C_density(), 0.f);
-    EXPECT_EQ(D.get_delta0_density(), 0.f);
-}
-
 // This tests the material functionalities
 TEST(materials, material) {
     // vacuum
