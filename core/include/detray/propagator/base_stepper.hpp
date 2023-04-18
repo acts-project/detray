@@ -19,7 +19,9 @@ namespace detray {
 namespace stepping {
 
 enum class id {
+    // False for non-charged tracks
     e_linear = 0,
+    // True for charged tracks
     e_rk = 1,
 };
 

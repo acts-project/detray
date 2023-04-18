@@ -215,25 +215,54 @@ struct coordinate_base {
         return jac_to_local;
     }
 
-    template <typename mask_t, typename stepper_state_t>
+    template <typename stepper_state_t, typename mask_t>
     DETRAY_HOST_DEVICE inline free_matrix path_correction(
         const stepper_state_t& stepping, const transform3_t& trf3,
-        const mask_t& mask) {
+        const mask_t& mask) const {
+
+        if constexpr (stepper_state_t::id != stepping::id::e_linear) {
+            return path_correction(stepping(), trf3, mask,
+                                   stepping._step_data.b_last);
+        } else {
+            return path_correction(stepping(), trf3, mask);
+        }
+    }
+
+    template <typename mask_t>
+    DETRAY_HOST_DEVICE inline free_matrix path_correction(
+        const free_track_parameters<transform3_t>& free_trk,
+        const transform3_t& trf3, const mask_t& mask,
+        const vector3& B = {0.f, 0.f, 0.f}) const {
 
         free_matrix path_correction =
             matrix_operator().template zero<e_free_size, e_free_size>();
 
-        // Position and direction
-        const auto pos = stepping().pos();
-        const auto dir = stepping().dir();
+        const matrix_type<3, 3> M0 =
+            compute_position_variation(free_trk, trf3, mask);
 
-        // dir
-        matrix_type<1, 3> t;
-        matrix_operator().element(t, 0u, 0u) = dir[0];
-        matrix_operator().element(t, 0u, 1u) = dir[1];
-        matrix_operator().element(t, 0u, 2u) = dir[2];
+        matrix_operator().template set_block<3, 3>(path_correction, M0,
+                                                   e_free_pos0, e_free_pos0);
+
+        const matrix_type<3, 3> M1 =
+            compute_direction_variation(free_trk, trf3, mask, B);
+
+        matrix_operator().template set_block<3, 3>(path_correction, M1,
+                                                   e_free_dir0, e_free_pos0);
+
+        return path_correction;
+    }
+
+    template <typename mask_t>
+    DETRAY_HOST_DEVICE inline matrix_type<3, 3> compute_position_variation(
+        const free_track_parameters<transform3_t>& free_trk,
+        const transform3_t& trf3, const mask_t& mask) const {
+
+        // Position and direction
+        const auto pos = free_trk.pos();
+        const auto dir = free_trk.dir();
 
         // Surface normal vector (w)
+        // @FIXME: Need to unify the vector<N> and matrix<1, N> data type
         matrix_type<1, 3> w;
         const auto normal =
             Derived<transform3_t>().normal(trf3, mask, pos, dir);
@@ -241,22 +270,57 @@ struct coordinate_base {
         matrix_operator().element(w, 0u, 1u) = normal[1];
         matrix_operator().element(w, 0u, 2u) = normal[2];
 
-        // w dot t
-        const scalar_type wt{vector::dot(normal, dir)};
+        // Common term
+        const matrix_type<1, 3> c_term = -(1.f / vector::dot(normal, dir)) * w;
 
-        // transpose of t
+        // dir
+        // @FIXME: Need to unify the vector<N> and matrix<1, N> data type
+        matrix_type<1, 3> t;
+        matrix_operator().element(t, 0u, 0u) = dir[0];
+        matrix_operator().element(t, 0u, 1u) = dir[1];
+        matrix_operator().element(t, 0u, 2u) = dir[2];
+
+        // Transpose of t
         const matrix_type<3, 1> t_T = matrix_operator().transpose(t);
 
-        // r correction term
-        const matrix_type<1, 3> r_term = -(1.f / wt) * w;
-
         // dr/dr0
-        const matrix_type<3, 3> drdr0 = t_T * r_term;
+        return t_T * c_term;
+    }
 
-        matrix_operator().template set_block<3, 3>(path_correction, drdr0,
-                                                   e_free_pos0, e_free_pos0);
+    template <typename mask_t>
+    DETRAY_HOST_DEVICE inline matrix_type<3, 3> compute_direction_variation(
+        const free_track_parameters<transform3_t>& free_trk,
+        const transform3_t& trf3, const mask_t& mask, const vector3& B) const {
 
-        return path_correction;
+        // Position and direction
+        const auto pos = free_trk.pos();
+        const auto dir = free_trk.dir();
+
+        // Surface normal vector (w)
+        // @FIXME: Need to unify the vector<N> and matrix<1, N> data type
+        matrix_type<1, 3> w;
+        const auto normal =
+            Derived<transform3_t>().normal(trf3, mask, pos, dir);
+        matrix_operator().element(w, 0u, 0u) = normal[0];
+        matrix_operator().element(w, 0u, 1u) = normal[1];
+        matrix_operator().element(w, 0u, 2u) = normal[2];
+
+        // Common term
+        const matrix_type<1, 3> c_term = -(1.f / vector::dot(normal, dir)) * w;
+
+        // B X t
+        const auto _bXt = vector::cross(B, dir);
+        // @FIXME: Need to unify the vector<N> and matrix<1, N> data type
+        matrix_type<1, 3> bXt;
+        matrix_operator().element(bXt, 0, 0) = _bXt[0];
+        matrix_operator().element(bXt, 0, 1) = _bXt[1];
+        matrix_operator().element(bXt, 0, 2) = _bXt[2];
+
+        // Transpose of bXt
+        const matrix_type<3, 1> bXt_T = matrix_operator().transpose(bXt);
+
+        // dt/dr0
+        return -1.f * free_trk.qop() * bXt_T * c_term;
     }
 };
 

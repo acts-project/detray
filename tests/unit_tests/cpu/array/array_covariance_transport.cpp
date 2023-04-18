@@ -5,5 +5,5 @@
  * Mozilla Public License Version 2.0
  */
 
-#include "detray/plugins/algebra/smatrix_definitions.hpp"
-#include "tests/common/path_correction.inl"
+#include "detray/plugins/algebra/array_definitions.hpp"
+#include "tests/common/covariance_transport.inl"
