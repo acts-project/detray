@@ -145,7 +145,6 @@ struct material_slab_payload {
     using material_type = io::detail::material_type;
     material_type type = material_type::slab;
     std::array<real_io, 8u> slab;
-    std::array<real_io, 7u> density_eff;
     std::size_t index;
 };
 
