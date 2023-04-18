@@ -51,6 +51,8 @@ struct parameter_transporter : actor {
         using free_to_path_matrix = matrix_type<1, e_free_size>;
         // Track helper
         using track_helper = detail::track_helper<matrix_operator>;
+        // Vector in 3D space
+        using vector3 = typename transform3_t::vector3;
 
         /// @}
 
@@ -85,8 +87,6 @@ struct parameter_transporter : actor {
             free_matrix path_correction =
                 local_coordinate.path_correction(stepping, trf3, mask);
 
-            // @note: (Beomki) I really don't understand why the identity matrix
-            // should be added here but it makes result better :/
             const free_matrix correction_term =
                 matrix_operator()
                     .template identity<e_free_size, e_free_size>() +
