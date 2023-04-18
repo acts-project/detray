@@ -22,7 +22,8 @@ namespace {
 struct volume_link_getter {
 
     template <typename mask_group_t, typename mask_range_t>
-    inline auto operator()(mask_group_t& mask_group, mask_range_t& mask_range) {
+    inline auto operator()(const mask_group_t& mask_group,
+                           const mask_range_t& mask_range) {
         return mask_group[mask_range].volume_link();
     }
 };

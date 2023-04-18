@@ -286,7 +286,7 @@ class multi_store {
     template <typename functor_t, typename... Args>
     DETRAY_HOST_DEVICE decltype(auto) visit(const ID id, Args &&... args) {
         return m_tuple_container.template visit<functor_t>(
-            static_cast<size_type>(id), std::forward<Args>(args)...);
+            static_cast<std::size_t>(id), std::forward<Args>(args)...);
     }
 
     /// Calls a functor with a specific element of a data collection
@@ -303,8 +303,8 @@ class multi_store {
     DETRAY_HOST_DEVICE decltype(auto) visit(const link_t link,
                                             Args &&... args) const {
         return m_tuple_container.template visit<functor_t>(
-            static_cast<dindex>(detail::get<0>(link)), detail::get<1>(link),
-            std::forward<Args>(args)...);
+            static_cast<std::size_t>(detail::get<0>(link)),
+            detail::get<1>(link), std::forward<Args>(args)...);
     }
 
     /// @return the view on this tuple container - non-const

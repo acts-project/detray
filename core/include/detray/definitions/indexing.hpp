@@ -9,11 +9,13 @@
 
 // Project include(s)
 #include "detray/definitions/containers.hpp"
+#include "detray/definitions/detail/bit_encoder.hpp"
 #include "detray/definitions/qualifiers.hpp"
 #include "detray/utils/invalid_values.hpp"
 
 // System include(s)
-#include <limits>
+#include <cstdint>
+#include <ostream>
 
 namespace detray {
 
@@ -56,87 +58,164 @@ struct dmulti_index {
 /// @tparam id_type Represents the type of object that is being indexed
 /// @tparam index_type The type of indexing needed for the indexed type's
 ///         container (e.g. single index, range, multiindex)
-template <typename id_t = unsigned int, typename index_t = dindex>
+template <typename id_t = dindex, typename index_t = dindex,
+          typename value_t = std::uint_least32_t, value_t id_mask = 0xf0000000,
+          value_t index_mask = ~id_mask>
 struct dtyped_index {
 
     using id_type = id_t;
     using index_type = index_t;
+    using encoder = detail::bit_encoder<value_t>;
 
-    id_type _object_id;
-    index_type _index;
+    dtyped_index() = default;
+    dtyped_index(const id_t id, const index_t idx) {
+        encoder::template set_bits<id_mask>(m_value, static_cast<value_t>(id));
+        encoder::template set_bits<index_mask>(m_value,
+                                               static_cast<value_t>(idx));
+    };
 
-    /// @return the type id
-    auto id() const -> id_type { return _object_id; }
-
-    /// @return a reference to the index - const
+    /// @return the type id - const
     DETRAY_HOST_DEVICE
-    auto index() const -> const index_type& { return _index; }
-
-    /// @return a reference to the index - non-const
-    DETRAY_HOST_DEVICE
-    auto index() -> index_type& { return _index; }
-
-    /// Equality operator
-    DETRAY_HOST_DEVICE
-    bool operator==(const dtyped_index<id_type, index_type>& rhs) const {
-        return (_object_id == rhs._object_id && _index == rhs._index);
+    constexpr auto id() const -> id_type {
+        return static_cast<id_type>(
+            encoder::template get_bits<id_mask>(m_value));
     }
+
+    /// @return the index - const
+    DETRAY_HOST_DEVICE
+    constexpr auto index() const -> index_type {
+        return static_cast<index_type>(
+            encoder::template get_bits<index_mask>(m_value));
+    }
+
+    /// Set the link id.
+    DETRAY_HOST_DEVICE
+    constexpr dtyped_index& set_id(id_type id) {
+        encoder::template set_bits<id_mask>(m_value, static_cast<value_t>(id));
+        return *this;
+    }
+
+    /// Set the link index.
+    DETRAY_HOST_DEVICE
+    constexpr dtyped_index& set_index(index_type index) {
+        encoder::template set_bits<index_mask>(m_value,
+                                               static_cast<value_t>(index));
+        return *this;
+    }
+
+    /// Comparison operators
+    /// @{
+    DETRAY_HOST_DEVICE
+    friend constexpr bool operator==(dtyped_index lhs,
+                                     dtyped_index rhs) noexcept {
+        return lhs.m_value == rhs.m_value;
+    }
+
+    DETRAY_HOST_DEVICE
+    friend constexpr bool operator!=(dtyped_index lhs,
+                                     dtyped_index rhs) noexcept {
+        return lhs.m_value != rhs.m_value;
+    }
+
+    DETRAY_HOST_DEVICE
+    friend constexpr bool operator<(dtyped_index lhs,
+                                    dtyped_index rhs) noexcept {
+        return lhs.index() < rhs.index();
+    }
+    /// @}
 
     /// Arithmetic operators
+    /// @{
     DETRAY_HOST_DEVICE
-    dtyped_index<id_type, index_type> operator+(
-        const dtyped_index<id_type, index_type>& rhs) const {
-        return {_object_id, _index + rhs._index};
+    dtyped_index operator+(const dtyped_index& rhs) const {
+        return dtyped_index{}
+            .set_id(this->id())
+            .set_index(this->index() + rhs.index());
     }
 
     DETRAY_HOST_DEVICE
-    dtyped_index<id_type, index_type> operator+(const index_type& index) const {
-        return {_object_id, _index + index};
+    dtyped_index operator+(const index_type& index) const {
+        return dtyped_index{}
+            .set_id(this->id())
+            .set_index(this->index() + index);
     }
 
     DETRAY_HOST_DEVICE
-    dtyped_index<id_type, index_type> operator-(
-        const dtyped_index<id_type, index_type>& rhs) const {
-        return {_object_id, _index - rhs._index};
+    dtyped_index operator-(const dtyped_index& rhs) const {
+        return dtyped_index{}
+            .set_id(this->id())
+            .set_index(this->index() - rhs.index());
     }
 
     DETRAY_HOST_DEVICE
-    dtyped_index<id_type, index_type> operator-(const index_type& index) const {
-        return {_object_id, _index - index};
+    dtyped_index operator-(const index_type& index) const {
+        return dtyped_index{}
+            .set_id(this->id())
+            .set_index(this->index() - index);
     }
 
     DETRAY_HOST_DEVICE
-    dtyped_index<id_type, index_type>& operator+=(
-        const dtyped_index<id_type, index_type>& rhs) {
-        _index += rhs._index;
+    dtyped_index& operator+=(const dtyped_index& rhs) {
+        set_index(this->index() + rhs.index());
         return *this;
     }
 
     DETRAY_HOST_DEVICE
-    dtyped_index<id_type, index_type>& operator+=(const index_type& index) {
-        _index += index;
+    dtyped_index& operator+=(const index_type& index) {
+        set_index(this->index() + index);
         return *this;
     }
 
     DETRAY_HOST_DEVICE
-    dtyped_index<id_type, index_type>& operator-=(
-        const dtyped_index<id_type, index_type>& rhs) {
-        _index -= rhs._index;
+    dtyped_index& operator-=(const dtyped_index& rhs) {
+        set_index(this->index() - rhs.index());
         return *this;
     }
 
     DETRAY_HOST_DEVICE
-    dtyped_index<id_type, index_type>& operator-=(const index_type& index) {
-        _index -= index;
+    dtyped_index& operator-=(const index_type& index) {
+        set_index(this->index() + index);
         return *this;
     }
+    /// @}
 
     /// Only make the prefix operator available
     DETRAY_HOST_DEVICE
-    dtyped_index<id_type, index_type>& operator++() {
-        ++_index;
+    dtyped_index& operator++() {
+        set_index(this->index() + static_cast<index_type>(1));
         return *this;
     }
+
+    /// Check wether the link is valid to use.
+    DETRAY_HOST_DEVICE
+    constexpr bool is_invalid() const noexcept {
+        return encoder::template is_invalid<id_mask, index_mask>(m_value);
+    }
+
+    DETRAY_HOST
+    friend std::ostream& operator<<(std::ostream& os, const dtyped_index ti) {
+        if (ti.is_invalid()) {
+            return (os << "undefined");
+        }
+
+        static const char* const names[] = {"id = ", "index = "};
+        const value_t levels[] = {static_cast<value_t>(ti.id()),
+                                  static_cast<value_t>(ti.index())};
+
+        bool writeSeparator = false;
+        for (auto i = 0u; i < 4u; ++i) {
+            if (writeSeparator) {
+                os << " | ";
+            }
+            os << names[i] << levels[i];
+            writeSeparator = true;
+        }
+        return os;
+    }
+
+    private:
+    /// The encoded value. Default: All bits set to 1 (invalid)
+    value_t m_value = ~static_cast<value_t>(0);
 };
 
 namespace detail {
@@ -164,17 +243,17 @@ DETRAY_HOST_DEVICE constexpr decltype(auto) get(
 /// Custom get function for the dtyped_index struct. Get the type.
 template <std::size_t ID, typename id_type, typename index_type,
           std::enable_if_t<ID == 0, bool> = true>
-DETRAY_HOST_DEVICE constexpr auto& get(
+DETRAY_HOST_DEVICE constexpr decltype(auto) get(
     const dtyped_index<id_type, index_type>& index) noexcept {
-    return index._object_id;
+    return index.id();
 }
 
 /// Custom get function for the dtyped_index struct. Get the index.
 template <std::size_t ID, typename id_type, typename index_type,
           std::enable_if_t<ID == 1, bool> = true>
-DETRAY_HOST_DEVICE constexpr auto& get(
+DETRAY_HOST_DEVICE constexpr decltype(auto) get(
     const dtyped_index<id_type, index_type>& index) noexcept {
-    return index._index;
+    return index.index();
 }
 
 }  // namespace detail

@@ -34,7 +34,7 @@ namespace detray::geometry {
 class barcode {
 
     public:
-    using value_t = uint64_t;
+    using value_t = std::uint_least64_t;
     using encoder = detail::bit_encoder<value_t>;
 
     /// Construct from an already encoded value.
