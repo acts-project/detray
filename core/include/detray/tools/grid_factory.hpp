@@ -10,6 +10,7 @@
 // Project include(s).
 #include "detray/definitions/containers.hpp"
 #include "detray/definitions/units.hpp"
+#include "detray/intersection/cylinder_portal_intersector.hpp"
 #include "detray/masks/masks.hpp"
 #include "detray/surface_finders/grid/axis.hpp"
 #include "detray/surface_finders/grid/grid.hpp"
@@ -120,8 +121,8 @@ class grid_factory {
         // Axes boundaries and local indices
         using boundary = annulus2D<>::boundaries;
         using axes = annulus2D<>::axes<>;
-        constexpr auto e_r_axis = static_cast<std::size_t>(axes::axis_loc0);
-        constexpr auto e_phi_axis = static_cast<std::size_t>(axes::axis_loc1);
+        constexpr auto e_r_axis = static_cast<dindex>(axes::axis_loc0);
+        constexpr auto e_phi_axis = static_cast<dindex>(axes::axis_loc1);
         auto b_values = grid_bounds.values();
 
         return new_grid<annulus2D<>>(
@@ -153,9 +154,9 @@ class grid_factory {
         // Axes boundaries and local indices
         using boundary = cuboid3D<>::boundaries;
         using axes = cuboid3D<>::axes<>;
-        constexpr auto e_x_axis = static_cast<std::size_t>(axes::axis_loc0);
-        constexpr auto e_y_axis = static_cast<std::size_t>(axes::axis_loc1);
-        constexpr auto e_z_axis = static_cast<std::size_t>(axes::axis_loc2);
+        constexpr auto e_x_axis = static_cast<dindex>(axes::axis_loc0);
+        constexpr auto e_y_axis = static_cast<dindex>(axes::axis_loc1);
+        constexpr auto e_z_axis = static_cast<dindex>(axes::axis_loc2);
 
         auto b_values = grid_bounds.values();
 
@@ -185,8 +186,40 @@ class grid_factory {
         // Axes boundaries and local indices
         using boundary = cylinder2D<>::boundaries;
         using axes = cylinder2D<>::axes<>;
-        constexpr auto e_rphi_axis = static_cast<std::size_t>(axes::axis_loc0);
-        constexpr auto e_z_axis = static_cast<std::size_t>(axes::axis_loc1);
+        constexpr auto e_rphi_axis = static_cast<dindex>(axes::axis_loc0);
+        constexpr auto e_z_axis = static_cast<dindex>(axes::axis_loc1);
+
+        auto b_values = grid_bounds.values();
+
+        return new_grid<cylinder2D<>>(
+            {-constant<scalar_type>::pi * b_values[boundary::e_r],
+             constant<scalar_type>::pi * b_values[boundary::e_r],
+             b_values[boundary::e_n_half_z], b_values[boundary::e_p_half_z]},
+            {n_bins[e_rphi_axis], n_bins[e_z_axis]},
+            {bin_edges[e_rphi_axis], bin_edges[e_z_axis]},
+            std::tuple<rphi_bounds, z_bounds>{},
+            std::tuple<rphi_binning, z_binning>{});
+    }
+
+    //
+    // cylinder 2D
+    //
+    template <
+        typename rphi_bounds = n_axis::circular<n_axis::label::e_rphi>,
+        typename z_bounds = n_axis::closed<n_axis::label::e_cyl_z>,
+        typename rphi_binning =
+            n_axis::regular<host_container_types, scalar_type>,
+        typename z_binning = n_axis::regular<host_container_types, scalar_type>>
+    auto new_grid(
+        const mask<cylinder2D<false, cylinder_portal_intersector>> &grid_bounds,
+        const std::array<std::size_t, 2UL> n_bins,
+        const std::array<std::vector<scalar_type>, 2UL> &bin_edges = {
+            {}}) const {
+        // Axes boundaries and local indices
+        using boundary = cylinder2D<>::boundaries;
+        using axes = cylinder2D<>::axes<>;
+        constexpr auto e_rphi_axis = static_cast<dindex>(axes::axis_loc0);
+        constexpr auto e_z_axis = static_cast<dindex>(axes::axis_loc1);
 
         auto b_values = grid_bounds.values();
 
@@ -218,9 +251,9 @@ class grid_factory {
         // Axes boundaries and local indices
         using boundary = cylinder3D::boundaries;
         using axes = cylinder3D::axes<>;
-        constexpr auto e_r_axis = static_cast<std::size_t>(axes::axis_loc0);
-        constexpr auto e_phi_axis = static_cast<std::size_t>(axes::axis_loc1);
-        constexpr auto e_z_axis = static_cast<std::size_t>(axes::axis_loc2);
+        constexpr auto e_r_axis = static_cast<dindex>(axes::axis_loc0);
+        constexpr auto e_phi_axis = static_cast<dindex>(axes::axis_loc1);
+        constexpr auto e_z_axis = static_cast<dindex>(axes::axis_loc2);
         auto b_values = grid_bounds.values();
 
         return new_grid<cylinder3D>(
@@ -249,8 +282,8 @@ class grid_factory {
         // Axes boundaries and local indices
         using boundary = ring2D<>::boundaries;
         using axes = ring2D<>::axes<>;
-        constexpr auto e_r_axis = static_cast<std::size_t>(axes::axis_loc0);
-        constexpr auto e_phi_axis = static_cast<std::size_t>(axes::axis_loc1);
+        constexpr auto e_r_axis = static_cast<dindex>(axes::axis_loc0);
+        constexpr auto e_phi_axis = static_cast<dindex>(axes::axis_loc1);
 
         auto b_values = grid_bounds.values();
 
@@ -278,8 +311,8 @@ class grid_factory {
         // Axes boundaries and local indices
         using boundary = rectangle2D<>::boundaries;
         using axes = rectangle2D<>::axes<>;
-        constexpr auto e_x_axis = static_cast<std::size_t>(axes::axis_loc0);
-        constexpr auto e_y_axis = static_cast<std::size_t>(axes::axis_loc1);
+        constexpr auto e_x_axis = static_cast<dindex>(axes::axis_loc0);
+        constexpr auto e_y_axis = static_cast<dindex>(axes::axis_loc1);
 
         auto b_values = grid_bounds.values();
 
@@ -307,8 +340,8 @@ class grid_factory {
         // Axes boundaries and local indices
         using boundary = trapezoid2D<>::boundaries;
         using axes = trapezoid2D<>::axes<>;
-        constexpr auto e_x_axis = static_cast<std::size_t>(axes::axis_loc0);
-        constexpr auto e_y_axis = static_cast<std::size_t>(axes::axis_loc1);
+        constexpr auto e_x_axis = static_cast<dindex>(axes::axis_loc0);
+        constexpr auto e_y_axis = static_cast<dindex>(axes::axis_loc1);
 
         auto b_values = grid_bounds.values();
 
@@ -389,13 +422,16 @@ class grid_factory {
         if constexpr (std::is_same_v<
                           std::tuple_element_t<I, binnings>,
                           n_axis::regular<host_container_types, scalar_type>>) {
-            axes_data.push_back({bin_edges.size(), n_bins.at(I)});
+            axes_data.push_back({static_cast<dindex>(bin_edges.size()),
+                                 static_cast<dindex>(n_bins.at(I))});
             bin_edges.push_back(spans.at(I * 2u));
             bin_edges.push_back(spans.at(I * 2u + 1u));
         } else {
             const auto &bin_edges_loc = ax_bin_edges.at(I);
-            axes_data.push_back({bin_edges.size(),
-                                 bin_edges.size() + bin_edges_loc.size() - 1});
+            axes_data.push_back(
+                {static_cast<dindex>(bin_edges.size()),
+                 static_cast<dindex>(bin_edges.size() + bin_edges_loc.size() -
+                                     1u)});
             bin_edges.insert(bin_edges.end(), bin_edges_loc.begin(),
                              bin_edges_loc.end());
         }
@@ -430,23 +466,23 @@ auto grid_factory<value_t, serializer_t, populator_impl_t,
     // Loop over the first dimension
     const auto &ax0 = gr.template get_axis<0>();
     std::cout << "{";
-    for (std::size_t i{0u}; i < ax0.nbins(); ++i) {
+    for (unsigned int i{0u}; i < ax0.nbins(); ++i) {
 
         // Loop over the second dimension
         if constexpr (grid_t::Dim > 1u) {
             const auto &ax1 = gr.template get_axis<1>();
             std::cout << "{";
-            for (std::size_t j{0u}; j < ax1.nbins(); ++j) {
+            for (unsigned int j{0u}; j < ax1.nbins(); ++j) {
 
                 // Loop over the third dimension
                 if constexpr (grid_t::Dim > 2) {
                     const auto &ax2 = gr.template get_axis<2>();
                     std::cout << "{";
-                    for (std::size_t k{0u}; k < ax2.nbins(); ++k) {
+                    for (unsigned int k{0u}; k < ax2.nbins(); ++k) {
 
                         // Print the bin content - three dimensions
                         std::cout << "( ";
-                        for (const auto &entry : gr.at(i, j, k)) {
+                        for (const auto &entry : gr.bin(i, j, k)) {
                             if (entry == detail::invalid_value<entry_t>()) {
                                 std::cout << "none ";
                             } else {
@@ -459,7 +495,7 @@ auto grid_factory<value_t, serializer_t, populator_impl_t,
                 } else {
                     // Print the bin content - two dimensions
                     std::cout << "( ";
-                    for (const auto &entry : gr.at(i, j)) {
+                    for (const auto &entry : gr.bin(i, j)) {
                         if (entry == detail::invalid_value<entry_t>()) {
                             std::cout << "none ";
                         } else {
@@ -473,7 +509,7 @@ auto grid_factory<value_t, serializer_t, populator_impl_t,
         } else {
             // Print the bin content - one dimension
             std::cout << "( ";
-            for (const auto &entry : gr.at(i)) {
+            for (const auto &entry : gr.bin(i)) {
                 if (entry == detail::invalid_value<entry_t>()) {
                     std::cout << "none ";
                 } else {

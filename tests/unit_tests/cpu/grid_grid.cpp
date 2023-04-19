@@ -139,6 +139,14 @@ GTEST_TEST(detray_grid, single_grid) {
     auto z_axis_dev = device_grid.get_axis<label::e_z>();
     EXPECT_EQ(z_axis_dev.nbins(), grid_n_own.get_axis<label::e_z>().nbins());
 
+    // Test the global bin iteration
+    auto seq = detray::views::iota(1, 40'001);
+    auto flat_bin_view = grid_own.all();
+    EXPECT_EQ(seq.size(), 40'000u);
+    EXPECT_EQ(flat_bin_view.size(), 40'000u);
+    EXPECT_TRUE(std::equal(flat_bin_view.begin(), flat_bin_view.end(),
+                           seq.begin(), seq.end()));
+
     // Test const grid view
     /*auto const_grid_view = get_data(const_cast<const
     grid_owning_t&>(grid_own));
@@ -172,13 +180,13 @@ GTEST_TEST(detray_grid, search) {
     grid_t grid_3D(&bin_data, ax_n_own);
 
     axis::multi_bin<3> mbin{2, 1, 0};
-    EXPECT_NEAR(*grid_3D.at(mbin), scalar{23}, tol);
+    EXPECT_NEAR(*grid_3D.bin(mbin), scalar{23}, tol);
     mbin = {14, 3, 23};
-    EXPECT_NEAR(*grid_3D.at(mbin), scalar{42}, tol);
+    EXPECT_NEAR(*grid_3D.bin(mbin), scalar{42}, tol);
     mbin = {0, 16, 7};
-    EXPECT_NEAR(*grid_3D.at(mbin), scalar{42}, tol);
+    EXPECT_NEAR(*grid_3D.bin(mbin), scalar{42}, tol);
     mbin = {6, 31, 44};
-    EXPECT_NEAR(*grid_3D.at(mbin), scalar{42}, tol);*/
+    EXPECT_NEAR(*grid_3D.bin(mbin), scalar{42}, tol);*/
 }
 
 /// Integration test: Test replace population

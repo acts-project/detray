@@ -35,23 +35,14 @@ struct fill_by_bin {
         typename grid_t::value_type single_element;
     };
 
-    template <typename detector_t, typename volume_type, typename grid_t>
-    DETRAY_HOST auto operator()(grid_t &grid, const detector_t &det,
-                                const volume_type &vol,
-                                const typename detector_t::geometry_context ctx,
+    template <typename grid_t, typename surface_container,
+              typename mask_container, typename transform_container,
+              typename context_t>
+    DETRAY_HOST auto operator()(grid_t &grid, const surface_container &,
+                                const transform_container &,
+                                const mask_container &, const context_t,
                                 std::vector<bin_data<grid_t>> &bins) const
         -> void {
-        this->operator()(grid, detray::ranges::subrange(det.surfaces(), vol),
-                         det.transform_store(), det.mask_store(), ctx, bins);
-    }
-
-    template <typename grid_t, typename surface_container,
-              typename mask_container, typename transform_container>
-    DETRAY_HOST auto operator()(
-        grid_t &grid, const surface_container &, const transform_container &,
-        const mask_container &,
-        const typename transform_container::context_type,
-        std::vector<bin_data<grid_t>> &bins) const -> void {
         for (const bin_data<grid_t> &bd : bins) {
             grid.populate(bd.local_bin_idx, bd.single_element);
         }
@@ -66,31 +57,16 @@ struct fill_by_bin {
 /// @param ctx the geometry context
 struct fill_by_pos {
 
-    template <typename detector_t, typename volume_type, typename grid_t,
-              typename... Args>
-    DETRAY_HOST auto operator()(grid_t &grid, const detector_t &det,
-                                const volume_type &vol,
-                                const typename detector_t::geometry_context ctx,
-                                Args &&...) const -> void {
-        this->operator()(grid, det.surfaces(vol), det.transform_store(),
-                         det.mask_store(), ctx);
-    }
-
     template <typename grid_t, typename surface_container,
               typename mask_container, typename transform_container,
-              typename... Args>
-    DETRAY_HOST auto operator()(
-        grid_t &grid, const surface_container &surfaces,
-        const transform_container &transforms, const mask_container & /*masks*/,
-        const typename transform_container::context_type ctx, Args &&...) const
-        -> void {
+              typename context_t, typename... Args>
+    DETRAY_HOST auto operator()(grid_t &grid, const surface_container &surfaces,
+                                const transform_container &transforms,
+                                const mask_container & /*masks*/,
+                                const context_t ctx, Args &&...) const -> void {
 
         // Fill the volumes surfaces into the grid
         for (const auto &sf : surfaces) {
-            // TODO: Remove this check after toy geo is switched to new builders
-            if (sf.is_portal()) {
-                continue;
-            }
             // no portals in grids allowed
             assert(not sf.is_portal());
 
@@ -99,6 +75,8 @@ struct fill_by_pos {
             // transform to axis coordinate system
             const auto loc_pos = grid.global_to_local(
                 typename transform_container::value_type{}, t, t);
+
+            // Populate
             grid.populate(loc_pos, sf);
         }
     }
@@ -124,12 +102,11 @@ struct bin_associator {
 
     template <typename grid_t, typename surface_container,
               typename mask_container, typename transform_container,
-              typename... Args>
-    DETRAY_HOST auto operator()(
-        grid_t &grid, const surface_container &surfaces,
-        const transform_container &transforms, const mask_container &masks,
-        const typename transform_container::context_type ctx, Args &&...) const
-        -> void {
+              typename context_t, typename... Args>
+    DETRAY_HOST auto operator()(grid_t &grid, const surface_container &surfaces,
+                                const transform_container &transforms,
+                                const mask_container &masks,
+                                const context_t ctx, Args &&...) const -> void {
         // Fill the surfaces into the grid by matching their contour onto the
         // grid bins
         bin_association(ctx, surfaces, transforms, masks, grid, {0.1f, 0.1f},

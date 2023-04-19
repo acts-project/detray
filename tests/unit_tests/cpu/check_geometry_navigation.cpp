@@ -90,10 +90,10 @@ GTEST_TEST(detray_propagator, straight_line_navigation) {
         for (std::size_t intr_idx = 0u; intr_idx < intersection_trace.size();
              ++intr_idx) {
             debug_stream << "-------Intersection trace\n"
-                         << "ray gun: "
-                         << "\tvol id: " << intersection_trace[intr_idx].first
-                         << ", " << intersection_trace[intr_idx].second;
-            debug_stream << "navig.: " << obj_tracer[intr_idx];
+                         << "ray gun: " << intersection_trace[intr_idx].second
+                         << ", vol id: " << intersection_trace[intr_idx].first
+                         << std::endl;
+            debug_stream << "navig.:  " << obj_tracer[intr_idx] << std::endl;
         }
 
         // Check every single recorded intersection
@@ -198,11 +198,10 @@ GTEST_TEST(detray_propagator, helix_navigation) {
             std::max(n_inters_nav, intersection_trace.size())};
         for (std::size_t intr_idx = 0u; intr_idx < max_entries; ++intr_idx) {
             debug_stream << "-------Intersection trace\n"
-                         << "helix gun: "
-                         << "\tvol id: " << intersection_trace[intr_idx].first
-                         << ", " << intersection_trace[intr_idx].second
+                         << "helix gun: " << intersection_trace[intr_idx].second
+                         << ", vol id: " << intersection_trace[intr_idx].first
                          << std::endl;
-            debug_stream << "navig.: " << obj_tracer[intr_idx] << std::endl;
+            debug_stream << "navig.:  " << obj_tracer[intr_idx] << std::endl;
         }
 
         // Compare intersection records

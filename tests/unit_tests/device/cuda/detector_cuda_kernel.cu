@@ -37,8 +37,8 @@ __global__ void detector_test_kernel(
     }
 
     // copy objects - surfaces
-    for (unsigned int i = 0u; i < det_device.surfaces().size(); i++) {
-        surfaces_device[i] = det_device.surfaces()[i];
+    for (unsigned int i = 0u; i < det_device.surface_lookup().size(); i++) {
+        surfaces_device[i] = det_device.surface_lookup()[i];
     }
 
     // copy objects - transforms
@@ -99,50 +99,6 @@ void detector_test(typename detector_host_t::detector_view_type det_data,
     detector_test_kernel<<<block_dim, thread_dim>>>(
         det_data, volumes_data, surfaces_data, transforms_data, rectangles_data,
         discs_data, cylinders_data);
-
-    // cuda error check
-    DETRAY_CUDA_ERROR_CHECK(cudaGetLastError());
-    DETRAY_CUDA_ERROR_CHECK(cudaDeviceSynchronize());
-}
-
-// cuda kernel to test enumeration
-__global__ void enumerate_test_kernel(
-    typename detector_host_t::detector_view_type det_data,
-    vecmem::data::jagged_vector_view<surface_t> surfaces_data) {
-
-    int gid = threadIdx.x + blockIdx.x * blockDim.x;
-
-    // Get detector in device
-    detector_device_t detector(det_data);
-
-    // Get surface vector per volume
-    vecmem::jagged_device_vector<surface_t> all_surfaces(surfaces_data);
-
-    if (gid >= all_surfaces.size()) {
-        return;
-    }
-
-    vecmem::device_vector<surface_t> surfaces = all_surfaces.at(gid);
-
-    // Get volume
-    auto vol = detector.volume_by_index(gid);
-
-    // Push_back surfaces to the surface vector
-    for (const auto& obj : detector.surfaces(vol)) {
-        surfaces.push_back(obj);
-    }
-}
-
-// implementation of a test function for surface enumeration
-void enumerate_test(typename detector_host_t::detector_view_type det_data,
-                    vecmem::data::jagged_vector_view<surface_t> surfaces_data) {
-
-    constexpr int thread_dim = WARP_SIZE * 2;
-
-    int block_dim = static_cast<int>(surfaces_data.size()) / thread_dim + 1;
-
-    // run the test kernel
-    enumerate_test_kernel<<<block_dim, thread_dim>>>(det_data, surfaces_data);
 
     // cuda error check
     DETRAY_CUDA_ERROR_CHECK(cudaGetLastError());

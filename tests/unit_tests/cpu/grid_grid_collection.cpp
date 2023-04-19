@@ -96,22 +96,34 @@ GTEST_TEST(detray_grid, grid_collection) {
                   "Grid from collection has wrong type");
 
     EXPECT_EQ(single_grid.Dim, 3);
+    EXPECT_EQ(single_grid.nbins(), 24u);
     auto r_axis = single_grid.get_axis<label::e_r>();
     EXPECT_EQ(r_axis.nbins(), 1u);
+    auto phi_axis = single_grid.get_axis<label::e_phi>();
+    EXPECT_EQ(phi_axis.nbins(), 3u);
     using z_axis_t = single_axis<closed<label::e_z>, regular<>>;
     auto z_axis = single_grid.get_axis<z_axis_t>();
     EXPECT_EQ(z_axis.nbins(), 8u);
 
-    // The generator starts countaing at one instead of zero
-    EXPECT_EQ(single_grid.at(0u, 0u, 0u)[0u], 49u);
-    EXPECT_EQ(single_grid.at(0u, 0u, 0u)[1u], inf);
-    EXPECT_EQ(single_grid.at(0u, 0u, 0u)[2u], inf);
+    // The generator starts counting at one instead of zero
+    EXPECT_EQ(single_grid.bin(0u, 0u, 0u)[0u], 49u);
+    EXPECT_EQ(single_grid.bin(0u, 0u, 0u)[1u], inf);
+    EXPECT_EQ(single_grid.bin(0u, 0u, 0u)[2u], inf);
 
-    auto bin_view = grid_coll[2].at(101u);
+    // Test the bin view
+    auto bin_view = grid_coll[2].bin(101u);
     grid_coll[2].populate(101u, 42u);
     EXPECT_EQ(bin_view[0u], 102u + 72u);
     EXPECT_EQ(bin_view[1u], 42u);
     EXPECT_EQ(bin_view[2u], inf);
+
+    // Test the global bin iteration. Take the middle grid!
+    auto seq = detray::views::iota(49, 73);
+    auto flat_bin_view = single_grid.all();
+    EXPECT_EQ(seq.size(), 24u);
+    EXPECT_EQ(flat_bin_view.size(), 24u);
+    EXPECT_TRUE(std::equal(flat_bin_view.begin(), flat_bin_view.end(),
+                           seq.begin(), seq.end()));
 
     auto grid_coll_view = get_data(grid_coll);
     static_assert(std::is_same_v<decltype(grid_coll_view),

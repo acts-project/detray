@@ -41,7 +41,7 @@ using output_iterator_tag = std::output_iterator_tag;
 using forward_iterator_tag = std::forward_iterator_tag;
 using bidirectional_iterator_tag = std::bidirectional_iterator_tag;
 using random_access_iterator_tag = std::random_access_iterator_tag;
-//#endif
+// #endif
 
 namespace detail {
 /// Simply import the std versions of basic iterator functionality where

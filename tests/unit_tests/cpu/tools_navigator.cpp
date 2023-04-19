@@ -212,19 +212,19 @@ GTEST_TEST(detray_propagator, navigator) {
     std::map<dindex, std::vector<dindex>> sf_sequences;
 
     // layer 1
-    sf_sequences[7] = {594u, 491u, 475u, 492u, 476u, 595u};
+    sf_sequences[7] = {370u, 495u, 479u, 496u, 480u, 371u};
     // gap 1
     sf_sequences[8] = {598u, 599u};
     // layer 2
-    sf_sequences[9] = {1050u, 845u, 813u, 846u, 814u, 1051u};
+    sf_sequences[9] = {602u, 849u, 817u, 850u, 818u, 603u};
     // gap 2
     sf_sequences[10] = {1054u, 1055u};
     // layer 3
-    sf_sequences[11] = {1786u, 1454u, 1402u, 1787u};
+    sf_sequences[11] = {1058u, 1458u, 1406u, 1059u};
     // gap 3
     sf_sequences[12] = {1790u, 1791u};
     // layer 4
-    sf_sequences[last_vol_id] = {2886u, 2388u, 2310u, 2887u};
+    sf_sequences[last_vol_id] = {1794u, 2392u, 2314u, 1795u};
 
     // Every iteration steps through one barrel layer
     for (const auto &[vol_id, sf_seq] : sf_sequences) {

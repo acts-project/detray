@@ -99,21 +99,21 @@ struct intersection2D {
     DETRAY_HOST
     friend std::ostream &operator<<(std::ostream &out_stream,
                                     const intersection2D &is) {
-        out_stream << "dist:" << is.path
-                   << ", (sf index:" << is.surface.barcode()
-                   << ", links to vol:" << is.volume_link << ")";
+        out_stream << "dist: " << is.path
+                   << "\tsurface: " << is.surface.barcode()
+                   << ", links to vol: " << is.volume_link << "\n\t\t";
         switch (is.status) {
             case intersection::status::e_outside:
-                out_stream << ", status: outside";
+                out_stream << "status: outside";
                 break;
             case intersection::status::e_missed:
-                out_stream << ", status: missed";
+                out_stream << "status: missed";
                 break;
             case intersection::status::e_undefined:
-                out_stream << ", status: undefined";
+                out_stream << "status: undefined";
                 break;
             case intersection::status::e_inside:
-                out_stream << ", status: inside";
+                out_stream << "status: inside";
                 break;
         };
         switch (is.direction) {
@@ -127,7 +127,9 @@ struct intersection2D {
                 out_stream << ", direction: along";
                 break;
         };
-        out_stream << std::endl;
+        out_stream << ", loc: [" << is.local[0] << ", " << is.local[1] << ", "
+                   << is.local[2] << "]";
+
         return out_stream;
     }
 };

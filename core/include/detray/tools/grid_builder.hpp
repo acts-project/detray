@@ -53,7 +53,6 @@ class grid_builder final : public volume_decorator<detector_t> {
     }
 
     /// Fill grid from existing volume using a bin filling strategy
-    /// @tparam bin_filler_t .
     /// This can also be called without a volume builder
     template <typename volume_type, typename... Args>
     DETRAY_HOST void fill_grid(
@@ -61,6 +60,18 @@ class grid_builder final : public volume_decorator<detector_t> {
         const typename detector_t::geometry_context ctx = {},
         const bin_filler_t bin_filler = {}, Args &&... args) {
         bin_filler(m_grid, det, vol, ctx, args...);
+    }
+
+    /// Fill grid from externally provided surfaces - temporary solution until
+    /// the volume builders can be deployed in the toy detector
+    template <typename surface_container_t, typename transform_container_t,
+              typename mask_container_t, typename... Args>
+    DETRAY_HOST void fill_grid(
+        const surface_container_t &surfaces,
+        const transform_container_t &transforms, const mask_container_t &masks,
+        const typename detector_t::geometry_context ctx = {},
+        const bin_filler_t bin_filler = {}, Args &&... args) {
+        bin_filler(m_grid, surfaces, transforms, masks, ctx, args...);
     }
 
     /// Overwrite, to add the sensitives to the grid, instead of the surface vec
@@ -95,17 +106,15 @@ class grid_builder final : public volume_decorator<detector_t> {
             volume_decorator<detector_t>::build(det, ctx);
         m_bin_filler(m_grid, m_surfaces, m_transforms, m_masks, ctx);
 
-        // Add the surafes that were filled into the grid directly to the
+        // Add the surfaces that were filled into the grid directly to the
         // detector and update their links
         const auto trf_offset{det.transform_store().size(ctx)};
-        // TODO: make the grid directly iterable
-        for (std::size_t gbin{0u}; gbin < m_grid.nbins(); ++gbin) {
-            for (auto &sf : m_grid.at(gbin)) {
-                det.mask_store().template visit<detail::mask_index_update>(
-                    sf.mask(), sf);
-                sf.update_transform(trf_offset);
-            }
+        for (auto &sf : m_grid.all()) {
+            det.mask_store().template visit<detail::mask_index_update>(
+                sf.mask(), sf);
+            sf.update_transform(trf_offset);
         }
+
         // Add transforms and masks to detector
         det.append_masks(std::move(m_masks));
         det.append_transforms(std::move(m_transforms));
@@ -113,14 +122,16 @@ class grid_builder final : public volume_decorator<detector_t> {
         // Add the grid to the detector and link it to its volume
         constexpr auto gid{detector_t::sf_finders::template get_id<grid_t>()};
         det.surface_store().template push_back<gid>(m_grid);
-        vol_ptr->set_link(gid, det.surface_store().template size<gid>() - 1);
+        vol_ptr->template set_link<
+            detector_t::volume_type::object_id::e_sensitive>(
+            gid, det.surface_store().template size<gid>() - 1);
 
         return vol_ptr;
     }
 
     /// @returns access to the new grid
     DETRAY_HOST
-    const auto &operator()() const { return m_grid; }
+    auto &get() { return m_grid; }
 
     protected:
     /// Build the empty grid from a mask instance

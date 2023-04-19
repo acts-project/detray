@@ -24,6 +24,20 @@ inline constexpr dindex dindex_invalid = detail::invalid_value<dindex>();
 using dindex_range = darray<dindex, 2>;
 using dindex_sequence = dvector<dindex>;
 
+DETRAY_HOST
+inline std::ostream& operator<<(std::ostream& os, const dindex_range& r) {
+
+    bool writeSeparator = false;
+    for (auto i = 0u; i < r.size(); ++i) {
+        if (writeSeparator) {
+            os << ", ";
+        }
+        os << "[" << i << "]: " << r[i];
+        writeSeparator = true;
+    }
+    return os;
+}
+
 /// @brief Simple multi-index structure
 ///
 /// @tparam DIM number of indices that are held by this type
@@ -50,6 +64,20 @@ struct dmulti_index {
     DETRAY_HOST_DEVICE
     auto operator==(const dmulti_index<index_t, DIM>& rhs) const -> bool {
         return (indices == rhs.indices);
+    }
+
+    DETRAY_HOST
+    friend std::ostream& operator<<(std::ostream& os, const dmulti_index mi) {
+
+        bool writeSeparator = false;
+        for (auto i = 0u; i < DIM; ++i) {
+            if (writeSeparator) {
+                os << ", ";
+            }
+            os << "[" << i << "]: " << mi[i];
+            writeSeparator = true;
+        }
+        return os;
     }
 };
 
@@ -257,5 +285,14 @@ DETRAY_HOST_DEVICE constexpr decltype(auto) get(
 }
 
 }  // namespace detail
+
+/// Overload to check for an invalid typed index link @param ti
+template <typename id_t, typename index_t, typename value_t, value_t id_mask,
+          value_t index_mask>
+DETRAY_HOST_DEVICE inline constexpr bool is_invalid_value(
+    const dtyped_index<id_t, index_t, value_t, id_mask, index_mask>&
+        ti) noexcept {
+    return ti.is_invalid();
+}
 
 }  // namespace detray

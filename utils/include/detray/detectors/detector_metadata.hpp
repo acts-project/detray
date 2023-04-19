@@ -91,10 +91,6 @@ struct full_metadata {
         e_all = e_size,
     };
 
-    /// How a volume finds its constituent objects in the detector containers
-    /// In this case: One range for sensitive/passive surfaces, one for portals
-    using object_link_type = dmulti_index<dindex_range, geo_objects::e_size>;
-
     /// How to store and link transforms
     template <template <typename...> class vector_t = dvector>
     using transform_store = single_store<__plugin::transform3<detray::scalar>,
@@ -144,23 +140,25 @@ struct full_metadata {
 
     /// Surface finders
     enum class sf_finder_ids {
-        e_brute_force = 0,  // test all surfaces in a volume (brute force)
-        // e_disc_grid = 1,      // barrel
-        // e_cylinder_grid = 2,  // endcap
+        e_brute_force = 0,    // test all surfaces in a volume (brute force)
+        e_disc_grid = 1,      // endcaps
+        e_cylinder_grid = 2,  // barrel
         e_default = e_brute_force,
     };
+
+    /// How a volume finds its constituent objects in the detector containers
+    /// In this case: One range for sensitive/passive surfaces, one for portals
+    using object_link_type =
+        dmulti_index<dtyped_index<sf_finder_ids, dindex>, geo_objects::e_size>;
 
     /// How to store and link surface grids
     template <template <typename...> class tuple_t = dtuple,
               typename container_t = host_container_types>
-    using surface_finder_store =
-        multi_store<sf_finder_ids, empty_context, tuple_t,
-                    brute_force_collection<
-                        surface_type, container_t> /*,
-  grid_collection<disc_sf_grid<surface_type,
-  container_t>>,
-  grid_collection<cylinder_sf_grid<surface_type,
-  container_t>>*/>;
+    using surface_finder_store = multi_store<
+        sf_finder_ids, empty_context, tuple_t,
+        brute_force_collection<surface_type, container_t>,
+        grid_collection<disc_sf_grid<surface_type, container_t>>,
+        grid_collection<cylinder_sf_grid<surface_type, container_t>>>;
 
     /// Volume grid
     template <typename container_t = host_container_types>
@@ -183,16 +181,12 @@ struct toy_metadata {
     /// If they share the same index value here, they will be added into the
     /// same container range without any sorting guarantees
     enum geo_objects : std::size_t {
-        e_sensitive = 0,
+        e_sensitive = 1,
         e_portal = 0,
         e_passive = 0,
-        e_size = 1,
+        e_size = 2,
         e_all = e_size,
     };
-
-    /// How a volume finds its constituent objects in the detector containers
-    /// In this case: One range for sensitive/passive surfaces, one for portals
-    using object_link_type = dmulti_index<dindex_range, geo_objects::e_size>;
 
     /// How to store and link transforms
     template <template <typename...> class vector_t = dvector>
@@ -240,22 +234,24 @@ struct toy_metadata {
     /// Surface finders
     enum class sf_finder_ids {
         e_brute_force = 0,    // test all surfaces in a volume (brute force)
-        e_disc_grid = 1,      // barrel
-        e_cylinder_grid = 2,  // endcap
+        e_disc_grid = 1,      // endcaps
+        e_cylinder_grid = 2,  // barrel
         e_default = e_brute_force,
     };
+
+    /// How a volume finds its constituent objects in the detector containers
+    /// In this case: One range for sensitive/passive surfaces, one for portals
+    using object_link_type =
+        dmulti_index<dtyped_index<sf_finder_ids, dindex>, geo_objects::e_size>;
 
     /// How to store and link surface grids
     template <template <typename...> class tuple_t = dtuple,
               typename container_t = host_container_types>
-    using surface_finder_store =
-        multi_store<sf_finder_ids, empty_context, tuple_t,
-                    brute_force_collection<
-                        surface_type, container_t> /*,
-  grid_collection<disc_sf_grid<surface_type,
-  container_t>>,
-  grid_collection<cylinder_sf_grid<surface_type,
-  container_t>>*/>;
+    using surface_finder_store = multi_store<
+        sf_finder_ids, empty_context, tuple_t,
+        brute_force_collection<surface_type, container_t>,
+        grid_collection<disc_sf_grid<surface_type, container_t>>,
+        grid_collection<cylinder_sf_grid<surface_type, container_t>>>;
 
     /// Volume grid
     template <typename container_t = host_container_types>
@@ -284,10 +280,6 @@ struct telescope_metadata {
         e_size = 1,
         e_all = e_size,
     };
-
-    /// How a volume finds its constituent objects in the detector containers
-    /// In this case: One range for sensitive/passive surfaces, one for portals
-    using object_link_type = dmulti_index<dindex_range, geo_objects::e_size>;
 
     /// How to store and link transforms
     template <template <typename...> class vector_t = dvector>
@@ -347,6 +339,11 @@ struct telescope_metadata {
         e_brute_force = 0,  // test all surfaces in a volume (brute force)
         e_default = e_brute_force,
     };
+
+    /// How a volume finds its constituent objects in the detector containers
+    /// In this case: One range for sensitive/passive surfaces, one for portals
+    using object_link_type =
+        dmulti_index<dtyped_index<sf_finder_ids, dindex>, geo_objects::e_size>;
 
     /// How to store and link surface grids
     template <template <typename...> class tuple_t = dtuple,

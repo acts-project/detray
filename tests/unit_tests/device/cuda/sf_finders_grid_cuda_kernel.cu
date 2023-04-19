@@ -173,7 +173,7 @@ __global__ void grid_attach_read_kernel(
     // Let's try building the grid object
     const_device_grid2_attach g2_device(grid_view);
 
-    const auto& bin_content = g2_device.at({threadIdx.x, threadIdx.y});
+    const auto& bin_content = g2_device.bin({threadIdx.x, threadIdx.y});
 
     for (auto& pt : bin_content) {
         printf("%f %f %f \n", pt[0], pt[1], pt[2]);
@@ -227,7 +227,7 @@ __global__ void grid_collection_test_kernel(
               threadIdx.x;
     if (gid < device_coll[blockIdx.x].nbins()) {
         for (const auto [i, bin_entry] :
-             detray::views::enumerate(device_coll[blockIdx.x].at(gid))) {
+             detray::views::enumerate(device_coll[blockIdx.x].bin(gid))) {
             result_bins[gid + device_coll.offsets()[blockIdx.x]][i] = bin_entry;
         }
     }

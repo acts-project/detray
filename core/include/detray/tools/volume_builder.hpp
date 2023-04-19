@@ -57,7 +57,12 @@ class volume_builder : public volume_builder_interface<detector_t> {
     auto get_vol_index() -> dindex override { return m_volume->index(); }
 
     DETRAY_HOST
-    auto operator()() -> const typename detector_t::volume_type& override {
+    auto operator()() const -> const
+        typename detector_t::volume_type& override {
+        return *m_volume;
+    }
+    DETRAY_HOST
+    auto operator()() -> typename detector_t::volume_type& override {
         return *m_volume;
     }
 
@@ -113,16 +118,17 @@ class volume_builder : public volume_builder_interface<detector_t> {
 
         // Update mask and transform index of surfaces and set a
         // unique barcode (index of surface in container)
-        auto sf_offset{static_cast<dindex>(det.surfaces().size())};
+        auto sf_offset{static_cast<dindex>(det.portals().size())};
         for (auto& sf : m_surfaces) {
             det.mask_store().template visit<detail::mask_index_update>(
                 sf.mask(), sf);
             sf.update_transform(trf_offset);
             sf.set_index(sf_offset++);
+            det.add_surface_to_lookup(sf);
         }
 
         // Append surfaces
-        det.append_surfaces(std::move(m_surfaces));
+        det.append_portals(std::move(m_surfaces));
 
         // Update the surface link in the volume. In the volume builder, all
         // surfaces are filled into the default brute_force accelerator.

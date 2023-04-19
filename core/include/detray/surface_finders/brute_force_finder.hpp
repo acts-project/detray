@@ -62,6 +62,15 @@ class brute_force_collection {
             return *this;
         }
 
+        /// @returns the surface at a given index @param i - const
+        DETRAY_HOST_DEVICE constexpr surface_t at(const dindex i) const {
+            return (*this)[i];
+        }
+        /// @returns the surface at a given index @param i - non-const
+        DETRAY_HOST_DEVICE constexpr surface_t& at(const dindex i) {
+            return (*this)[i];
+        }
+
         /// @returns an iterator over all surfaces in the data structure
         DETRAY_HOST_DEVICE constexpr auto all() const { return *this; }
 

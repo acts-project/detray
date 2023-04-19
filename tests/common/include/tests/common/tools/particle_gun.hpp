@@ -59,22 +59,19 @@ struct particle_gun {
 
         std::vector<intersection_t> intersections{};
 
-        for (const auto &volume : detector.volumes()) {
-            for (const auto &sf : detector.surfaces(volume)) {
-                // Retrieve candidate(s) from the surface
-                mask_store.template visit<intersection_kernel_t>(
-                    sf.mask(), intersections, traj, sf, tf_store,
-                    mask_tolerance);
-                // Candidate is invalid if it lies in the opposite direction
-                for (auto &sfi : intersections) {
-                    if (sfi.direction == intersection::direction::e_along) {
-                        sfi.surface = sf;
-                        // Volume the candidate belongs to
-                        intersection_record.emplace_back(volume.index(), sfi);
-                    }
+        for (const auto &sf : detector.surface_lookup()) {
+            // Retrieve candidate(s) from the surface
+            mask_store.template visit<intersection_kernel_t>(
+                sf.mask(), intersections, traj, sf, tf_store, mask_tolerance);
+            // Candidate is invalid if it lies in the opposite direction
+            for (auto &sfi : intersections) {
+                if (sfi.direction == intersection::direction::e_along) {
+                    sfi.surface = sf;
+                    // Volume the candidate belongs to
+                    intersection_record.emplace_back(sf.volume(), sfi);
                 }
-                intersections.clear();
             }
+            intersections.clear();
         }
 
         // Sort intersections by distance to origin of the trajectory

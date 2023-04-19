@@ -14,6 +14,7 @@
 #include "detray/surface_finders/grid/detail/grid_helpers.hpp"
 #include "detray/surface_finders/grid/populator.hpp"
 #include "detray/surface_finders/grid/serializer.hpp"
+#include "detray/utils/ranges.hpp"
 
 // VecMem include(s).
 #include <vecmem/memory/memory_resource.hpp>
@@ -54,7 +55,7 @@ class grid {
     using scalar_type = typename axes_type::scalar_type;
 
     /// Grid dimension
-    static constexpr std::size_t Dim = axes_type::Dim;
+    static constexpr unsigned int Dim = axes_type::Dim;
     static constexpr bool is_owning = axes_type::is_owning;
 
     /// How to define a neighborhood for this grid
@@ -114,7 +115,8 @@ class grid {
     DETRAY_HOST_DEVICE
     grid(const bin_storage_type *bin_data_ptr, axes_type &&axes,
          const dindex offset = 0)
-        : m_data(bin_data_ptr, offset), m_axes(axes) {}
+        : m_data(const_cast<bin_storage_type *>(bin_data_ptr), offset),
+          m_axes(axes) {}
 
     /// Create grid from container pointers - non-owning (both grid and axes)
     DETRAY_HOST_DEVICE
@@ -158,13 +160,19 @@ class grid {
     }
 
     /// @returns the total number of bins in the grid
-    DETRAY_HOST_DEVICE inline constexpr auto nbins() const -> std::size_t {
+    DETRAY_HOST_DEVICE inline constexpr auto nbins() const -> dindex {
         const auto n_bins_per_axis = m_axes.nbins();
-        std::size_t n_bins{1u};
-        for (std::size_t i{0u}; i < Dim; ++i) {
+        dindex n_bins{1u};
+        for (dindex i = 0u; i < Dim; ++i) {
             n_bins *= n_bins_per_axis[i];
         }
         return n_bins;
+    }
+
+    /// @returns the total number of values in the grid
+    /// @note this has to query every bin for the number of elements
+    DETRAY_HOST_DEVICE inline constexpr auto size() const -> dindex {
+        return static_cast<dindex>(all().size());
     }
 
     /// Transform a point in global cartesian coordinates to local coordinates
@@ -176,8 +184,9 @@ class grid {
     /// @returns a point in the coordinate system that is spanned by the grid's
     /// axes.
     template <typename transform_t, typename point3_t, typename vector3_t>
-    auto global_to_local(const transform_t &trf, const point3_t &p,
-                         const vector3_t &d) const {
+    DETRAY_HOST_DEVICE auto global_to_local(const transform_t &trf,
+                                            const point3_t &p,
+                                            const vector3_t &d) const {
         return local_frame().global_to_local(trf, p, d);
     }
 
@@ -185,40 +194,82 @@ class grid {
     /// @{
     /// @param indices the single indices corresponding to a multi_bin
     template <typename... I, std::enable_if_t<sizeof...(I) == Dim, bool> = true>
-    DETRAY_HOST_DEVICE auto at(I... indices) const {
-        return at(n_axis::multi_bin<Dim>{{indices...}});
+    DETRAY_HOST_DEVICE auto bin(I... indices) const {
+        return bin(n_axis::multi_bin<Dim>{{indices...}});
     }
 
     /// @param mbin the multi-index of bins over all axes
     DETRAY_HOST_DEVICE
-    auto at(const n_axis::multi_bin<Dim> &mbin) const {
-        return at(m_serializer(m_axes, mbin));
+    auto bin(const n_axis::multi_bin<Dim> &mbin) const {
+        return bin(m_serializer(m_axes, mbin));
     }
 
-    /// @param gbin the multi-index of bins over all axes - const
+    /// @param gbin the global bin index - const
     DETRAY_HOST_DEVICE
-    auto at(const dindex gbin) const {
+    auto bin(const dindex gbin) const {
         return m_populator.view(*(data().bin_data()), gbin + data().offset());
     }
 
-    /// @param gbin the multi-index of bins over all axes
+    /// @param gbin the global bin index
     DETRAY_HOST_DEVICE
-    auto at(const dindex gbin) {
+    auto bin(const dindex gbin) {
         return m_populator.view(*(m_data.bin_data()), gbin + data().offset());
     }
     /// @}
+
+    /// Access a single entry in a bin from the global bin index, as well as
+    /// the index of the intry in the bin.
+    ///
+    /// @param idx the index of a specific grid entry
+    ///
+    /// @returns a single bin entry.
+    /// @{
+    DETRAY_HOST_DEVICE
+    auto at(const dindex gbin, const dindex pos) { return bin(gbin)[pos]; }
+    DETRAY_HOST_DEVICE
+    auto at(const dindex gbin, const dindex pos) const {
+        return bin(gbin)[pos];
+    }
+    DETRAY_HOST_DEVICE
+    auto at(const n_axis::multi_bin<Dim> &mbin, const dindex pos) {
+        return bin(mbin)[pos];
+    }
+    DETRAY_HOST_DEVICE
+    auto at(const n_axis::multi_bin<Dim> &mbin, const dindex pos) const {
+        return bin(mbin)[pos];
+    }
+    /// @}
+
+    /// @returns a view over the flatened bin content by joining the bin ranges
+    DETRAY_HOST_DEVICE auto all() {
+        dindex first_bin{data().offset()};
+        return detray::views::join(detray::ranges::subrange(
+            *(m_data.bin_data()),
+            dindex_range{first_bin, first_bin + nbins()}));
+    }
+
+    /// @returns a view over the flatened bin content by joining the bin ranges
+    DETRAY_HOST_DEVICE auto all() const {
+        dindex first_bin{data().offset()};
+        // Save in explicit const subrange, so that 'join' can pick up constness
+        const auto bin_range = detray::ranges::subrange(
+            *(data().bin_data()), dindex_range{first_bin, first_bin + nbins()});
+        return detray::views::join(std::move(bin_range));
+    }
 
     /// Interface for the navigator
     template <typename detector_t, typename track_t>
     DETRAY_HOST_DEVICE auto search(
         const detector_t & /*det*/,
         const typename detector_t::volume_type & /*volume*/,
-        const track_t &track) const {
-        // TODO: Use identity until volume placement is available
-        const typename detector_t::transform3 identity{};
-        const auto loc_pos =
-            global_to_local(identity, track.pos(), track.dir());
-        return search(loc_pos);
+        const track_t & /*track*/) const {
+        // Track position in grid coordinates
+        /*const auto &trf = det.transform_store()[volume.transform()];
+        const auto loc_pos = global_to_local(trf, track.pos(), track.dir());
+        // Grid lookup
+        return search(loc_pos);*/
+        // @todo: Implement local neighborhood lookup
+        return all();
     }
 
     /// Find the value of a single bin
@@ -227,8 +278,8 @@ class grid {
     ///
     /// @return the iterable view of the bin content
     DETRAY_HOST_DEVICE auto search(
-        const typename local_frame::loc_point &p) const {
-        return at(m_axes.bins(p));
+        const typename local_frame::point3 &p) const {
+        return bin(m_axes.bins(p));
     }
 
     /// @brief Return a neighborhood of values from the grid
@@ -257,34 +308,42 @@ class grid {
     /// @{
     /// @param mbin the multi bin index to be populated
     DETRAY_HOST_DEVICE auto populate(const n_axis::multi_bin<Dim> mbin,
-                                     const value_type &v) -> void {
+                                     const value_type &v)
+        -> n_axis::multi_bin<Dim> {
         populate(m_serializer(m_axes, mbin), v);
+        return mbin;
     }
 
     /// @param mbin the multi bin index to be populated
     DETRAY_HOST_DEVICE auto populate(const n_axis::multi_bin<Dim> mbin,
-                                     value_type &&v) -> void {
+                                     value_type &&v) -> n_axis::multi_bin<Dim> {
         populate(m_serializer(m_axes, mbin), std::move(v));
+        return mbin;
     }
 
     /// @param gbin the global bin index to be populated
     DETRAY_HOST_DEVICE auto populate(const dindex gbin, const value_type &v)
-        -> void {
+        -> n_axis::multi_bin<Dim> {
         m_populator(*(m_data.bin_data()), gbin + m_data.offset(), v);
+        return m_serializer(m_axes, gbin);
     }
 
     /// @param gbin the global bin index to be populated
     DETRAY_HOST_DEVICE auto populate(const dindex gbin, value_type &&v)
-        -> void {
+        -> n_axis::multi_bin<Dim> {
         m_populator(*(m_data.bin_data()), gbin + m_data.offset(), std::move(v));
+        return m_serializer(m_axes, gbin);
     }
 
     /// @param p the point in local coordinates that defines the bin to be
     ///          populated
     template <typename point_t,
               std::enable_if_t<std::is_class_v<point_t>, bool> = true>
-    DETRAY_HOST_DEVICE auto populate(const point_t &p, value_type &&v) -> void {
-        populate(m_serializer(m_axes, m_axes.bins(p)), std::move(v));
+    DETRAY_HOST_DEVICE auto populate(const point_t &p, value_type &&v)
+        -> n_axis::multi_bin<Dim> {
+        auto mbin = m_axes.bins(p);
+        populate(m_serializer(m_axes, mbin), std::move(v));
+        return mbin;
     }
 
     /// @param p the point in local coordinates that defines the bin to be
@@ -292,8 +351,10 @@ class grid {
     template <typename point_t,
               std::enable_if_t<std::is_class_v<point_t>, bool> = true>
     DETRAY_HOST_DEVICE auto populate(const point_t &p, const value_type &v)
-        -> void {
-        populate(m_serializer(m_axes, m_axes.bins(p)), v);
+        -> n_axis::multi_bin<Dim> {
+        auto mbin = m_axes.bins(p);
+        populate(m_serializer(m_axes, mbin), v);
+        return mbin;
     }
     /// @}
 

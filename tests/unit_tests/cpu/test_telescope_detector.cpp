@@ -103,13 +103,13 @@ GTEST_TEST(detray_detectors, telescope_detector) {
         create_telescope_detector(host_mr, rectangle, n_surfaces, tel_length);
 
     // Compare
-    for (std::size_t i{0u}; i < z_tel_det1.surfaces().size(); ++i) {
+    for (std::size_t i{0u}; i < z_tel_det1.surface_lookup().size(); ++i) {
         geometry::barcode bcd{};
         bcd.set_volume(0u).set_index(i);
-        bcd.set_id((i == z_tel_det1.surfaces().size() - 1u)
+        bcd.set_id((i == z_tel_det1.surface_lookup().size() - 1u)
                        ? surface_id::e_portal
                        : surface_id::e_sensitive);
-        EXPECT_TRUE(z_tel_det1.surfaces(bcd) == z_tel_det2.surfaces(bcd));
+        EXPECT_TRUE(z_tel_det1.surface(bcd) == z_tel_det2.surface(bcd));
     }
 
     //

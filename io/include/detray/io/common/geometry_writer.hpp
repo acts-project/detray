@@ -48,7 +48,7 @@ class geometry_writer : public writer_interface<detector_t> {
         header_data.date = detail::get_current_date();
 
         header_data.n_volumes = det.volumes().size();
-        header_data.n_surfaces = det.surfaces().size();
+        header_data.n_surfaces = det.n_surfaces();
 
         return header_data;
     }
@@ -183,30 +183,33 @@ class geometry_writer : public writer_interface<detector_t> {
     }
 
     /// Serialize a detector portal @param sf into its io payload
-    static volume_payload serialize(const typename detector_t::volume_type& vol,
-                                    const detector_t& det) {
+    static volume_payload serialize(
+        const typename detector_t::volume_type& vol_desc,
+        const detector_t& det) {
         volume_payload vol_data;
 
-        vol_data.index = serialize(vol.index());
+        vol_data.index = serialize(vol_desc.index());
         // @todo volumes don't have transforms, yet
         vol_data.transform = serialize(typename detector_t::transform3());
-        vol_data.type = vol.id();
+        vol_data.type = vol_desc.id();
 
-        for (const auto& sf : det.surfaces(vol)) {
-            vol_data.surfaces.push_back(serialize(sf, det));
+        for (const auto& sf : det.surface_lookup()) {
+            if (sf.volume() == vol_desc.index()) {
+                vol_data.surfaces.push_back(serialize(sf, det));
+            }
         }
 
         // Only run the query, if object type is contained in volume
-        const auto& link = vol.full_link();
+        const auto& link = vol_desc.full_link();
         // Initialize the std::optional
         if (link.size() > 1u) {
-            vol_data.acc_links = {};
+            vol_data.acc_links.emplace();
         }
         // Skip the first acceleration structure which exists in every volume
         // and is handled automatically during detector building
         for (unsigned int i = 1u; i < link.size(); ++i) {
             const auto& l = link[i];
-            if (l.index() != dindex_invalid) {
+            if (not l.is_invalid()) {
                 vol_data.acc_links->push_back(serialize(l.id(), l.index()));
             }
         }
