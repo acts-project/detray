@@ -1,6 +1,6 @@
 /** Detray library, part of the ACTS project (R&D line)
  *
- * (c) 2020-2022 CERN for the benefit of the ACTS project
+ * (c) 2020-2023 CERN for the benefit of the ACTS project
  *
  * Mozilla Public License Version 2.0
  */
@@ -9,6 +9,7 @@
 #include "detray/definitions/indexing.hpp"
 #include "detray/intersection/concentric_cylinder_intersector.hpp"
 #include "detray/intersection/cylinder_intersector.hpp"
+#include "detray/intersection/cylinder_portal_intersector.hpp"
 #include "detray/intersection/detail/trajectories.hpp"
 #include "detray/masks/masks.hpp"
 #include "detray/materials/material_slab.hpp"
@@ -49,7 +50,7 @@ unsigned int phi_steps = 1000u;
 
 dvector<scalar> dists = {1.f, 2.f, 3.f, 4.f, 5.f, 6.f, 7.f, 8.f, 9.f, 10.f};
 
-// This test runs intersection with all surfaces of the TrackML detector
+/// This benchmark runs intersection with the planar intersector
 static void BM_INTERSECT_PLANES(benchmark::State &state) {
 
     unsigned int sfhit = 0u;
@@ -70,7 +71,7 @@ static void BM_INTERSECT_PLANES(benchmark::State &state) {
 
             for (const auto &plane : planes) {
                 auto pi = rect.intersector();
-                auto is = pi(ray, rect, plane.transform())[0];
+                auto is = pi(ray, plane, rect, plane.transform());
 
                 benchmark::DoNotOptimize(sfhit);
                 benchmark::DoNotOptimize(sfmiss);
@@ -93,10 +94,10 @@ BENCHMARK(BM_INTERSECT_PLANES)
     ->Repetitions(gbench_repetitions)
     ->DisplayAggregatesOnly(true);
 
-// This test runs intersection with all surfaces of the TrackML detector
+/// This benchmark runs intersection with the cylinder intersector
 static void BM_INTERSECT_CYLINDERS(benchmark::State &state) {
 
-    using cylinder_mask = mask<cylinder2D<>>;
+    using cylinder_mask = mask<cylinder2D<true, cylinder_intersector>>;
 
     unsigned int sfhit = 0u;
     unsigned int sfmiss = 0u;
@@ -108,7 +109,7 @@ static void BM_INTERSECT_CYLINDERS(benchmark::State &state) {
 
     mask_link_t mask_link{mask_ids::e_cylinder2, 0};
     material_link_t material_link{material_ids::e_slab, 0};
-    plane_surface plain(transform3(), mask_link, material_link, 0u, false,
+    plane_surface plane(transform3(), mask_link, material_link, 0u, false,
                         surface_id::e_sensitive);
 
     const point3 ori = {0.f, 0.f, 0.f};
@@ -123,14 +124,16 @@ static void BM_INTERSECT_CYLINDERS(benchmark::State &state) {
 
             for (const auto &cylinder : cylinders) {
                 auto ci = cylinder.intersector();
-                auto is = ci(ray, cylinder, plain.transform())[0];
+                auto inters = ci(ray, plane, cylinder, plane.transform());
 
                 benchmark::DoNotOptimize(sfhit);
                 benchmark::DoNotOptimize(sfmiss);
-                if (is.status == intersection::status::e_inside) {
-                    ++sfhit;
-                } else {
-                    ++sfmiss;
+                for (const auto &sfi : inters) {
+                    if (sfi.status == intersection::status::e_inside) {
+                        ++sfhit;
+                    } else {
+                        ++sfmiss;
+                    }
                 }
                 benchmark::ClobberMemory();
             }
@@ -146,7 +149,61 @@ BENCHMARK(BM_INTERSECT_CYLINDERS)
     ->Repetitions(gbench_repetitions)
     ->DisplayAggregatesOnly(true);
 
-// This test runs intersection with all surfaces of the TrackML detector
+/// This benchmark runs intersection with a specialized portal cylinder
+/// intersector
+static void BM_INTERSECT_PORTAL_CYLINDERS(benchmark::State &state) {
+
+    using cylinder_mask = mask<cylinder2D<false, cylinder_portal_intersector>>;
+
+    unsigned int sfhit = 0;
+    unsigned int sfmiss = 0;
+    dvector<cylinder_mask> cylinders;
+
+    for (scalar r : dists) {
+        cylinders.push_back(cylinder_mask{0UL, r, -10.f, 10.f});
+    }
+
+    mask_link_t mask_link{mask_ids::e_cylinder2, 0};
+    material_link_t material_link{material_ids::e_slab, 0};
+    plane_surface plane(transform3(), mask_link, material_link, 0, false,
+                        surface_id::e_sensitive);
+
+    const point3 ori = {0., 0., 0.};
+
+    for (auto _ : state) {
+        benchmark::DoNotOptimize(sfhit);
+        benchmark::DoNotOptimize(sfmiss);
+
+        // Iterate through uniformly distributed momentum directions
+        for (const auto ray : uniform_track_generator<detail::ray<transform3>>(
+                 theta_steps, phi_steps, ori, 1.f)) {
+
+            for (const auto &cylinder : cylinders) {
+                auto cpi = cylinder.intersector();
+                auto is = cpi(ray, plane, cylinder, plane.transform());
+
+                benchmark::DoNotOptimize(sfhit);
+                benchmark::DoNotOptimize(sfmiss);
+                if (is.status == intersection::status::e_inside) {
+                    ++sfhit;
+                } else {
+                    ++sfmiss;
+                }
+                benchmark::ClobberMemory();
+            }
+        }
+    }
+}
+
+BENCHMARK(BM_INTERSECT_PORTAL_CYLINDERS)
+#ifdef DETRAY_BENCHMARKS_MULTITHREAD
+    ->ThreadPerCpu()
+#endif
+    ->Unit(benchmark::kMillisecond)
+    ->Repetitions(gbench_repetitions)
+    ->DisplayAggregatesOnly(true);
+
+/// This benchmark runs intersection with the concentric cylinder intersector
 static void BM_INTERSECT_CONCETRIC_CYLINDERS(benchmark::State &state) {
     unsigned int sfhit = 0u;
     unsigned int sfmiss = 0u;
@@ -161,7 +218,7 @@ static void BM_INTERSECT_CONCETRIC_CYLINDERS(benchmark::State &state) {
 
     mask_link_t mask_link{mask_ids::e_conc_cylinder3, 0u};
     material_link_t material_link{material_ids::e_slab, 0u};
-    plane_surface plain(transform3(), mask_link, material_link, 0u, false,
+    plane_surface plane(transform3(), mask_link, material_link, 0u, false,
                         surface_id::e_sensitive);
 
     const point3 ori = {0.f, 0.f, 0.f};
@@ -174,7 +231,7 @@ static void BM_INTERSECT_CONCETRIC_CYLINDERS(benchmark::State &state) {
 
             for (const auto &cylinder : cylinders) {
                 auto cci = cylinder.intersector();
-                auto is = cci(ray, cylinder, plain.transform())[0];
+                auto is = cci(ray, plane, cylinder, plane.transform());
 
                 benchmark::DoNotOptimize(sfhit);
                 benchmark::DoNotOptimize(sfmiss);

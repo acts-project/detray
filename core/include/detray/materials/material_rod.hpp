@@ -57,8 +57,9 @@ struct material_rod {
     constexpr scalar_type radius() const { return m_radius; }
 
     /// Return the path segment
-    DETRAY_HOST_DEVICE
-    scalar_type path_segment(const line_plane_intersection& is) const {
+    template <typename surface_t, typename algebra_t>
+    DETRAY_HOST_DEVICE scalar_type
+    path_segment(const intersection2D<surface_t, algebra_t>& is) const {
         // Assume that is.p2[0] is radial distance of line intersector
         if (is.p2[0] > m_radius) {
             return 0.f;
@@ -71,13 +72,15 @@ struct material_rod {
                                sin_incidence_angle_2);
     }
     /// Return the path segment in X0
-    DETRAY_HOST_DEVICE
-    scalar_type path_segment_in_X0(const line_plane_intersection& is) const {
+    template <typename surface_t, typename algebra_t>
+    DETRAY_HOST_DEVICE scalar_type
+    path_segment_in_X0(const intersection2D<surface_t, algebra_t>& is) const {
         return this->path_segment(is) / m_material.X0();
     }
     /// Return the path segment in L0
-    DETRAY_HOST_DEVICE
-    scalar_type path_segment_in_L0(const line_plane_intersection& is) const {
+    template <typename surface_t, typename algebra_t>
+    DETRAY_HOST_DEVICE scalar_type
+    path_segment_in_L0(const intersection2D<surface_t, algebra_t>& is) const {
         return this->path_segment(is) / m_material.L0();
     }
 

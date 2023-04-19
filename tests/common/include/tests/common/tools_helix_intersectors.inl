@@ -23,8 +23,12 @@ using namespace detray;
 
 using transform3 = __plugin::transform3<detray::scalar>;
 using vector3 = typename transform3::vector3;
+using surface_handle_t = dindex;
 
-constexpr const scalar tolerance = scalar(1e-4);
+constexpr const scalar tol = scalar(1e-4);
+
+// dummy surface
+constexpr surface_handle_t sf_handle{};
 
 TEST(tools, helix_plane_intersector) {
 
@@ -58,18 +62,18 @@ TEST(tools, helix_plane_intersector) {
     const detray::mask<detray::rectangle2D<>> rectangle{
         0u, 10.f * unit<scalar>::cm, 10.f * unit<scalar>::cm};
 
-    const helix_plane_intersector<transform3> hpi;
+    const detail::helix_plane_intersector<transform3> hpi;
 
     // Get the intersection on the next surface
-    const auto is = hpi(hlx, rectangle, trf)[0];
+    const auto is = hpi(hlx, sf_handle, rectangle, trf);
 
     // Check the values
-    EXPECT_NEAR(is.path, path, tolerance);
-    EXPECT_NEAR(is.p2[0], 0.f, tolerance);
-    EXPECT_NEAR(is.p2[1], 0.f, tolerance);
-    EXPECT_NEAR(is.p3[0], trl[0], tolerance);
-    EXPECT_NEAR(is.p3[1], trl[1], tolerance);
-    EXPECT_NEAR(is.p3[2], trl[2], tolerance);
+    EXPECT_NEAR(is.path, path, tol);
+    EXPECT_NEAR(is.p2[0], 0.f, tol);
+    EXPECT_NEAR(is.p2[1], 0.f, tol);
+    EXPECT_NEAR(is.p3[0], trl[0], tol);
+    EXPECT_NEAR(is.p3[1], trl[1], tol);
+    EXPECT_NEAR(is.p3[2], trl[2], tol);
 }
 
 TEST(tools, helix_cylinder_intersector) {
@@ -103,18 +107,18 @@ TEST(tools, helix_cylinder_intersector) {
     const detray::mask<detray::cylinder2D<>> cylinder{
         0u, c_rad, 10.f * unit<scalar>::cm, 10.f * unit<scalar>::cm};
 
-    const helix_cylinder_intersector<transform3> hci;
+    const detail::helix_cylinder_intersector<transform3> hci;
 
     // Get the intersection on the next surface
-    const auto is = hci(hlx, cylinder, trf)[0];
+    const auto is = hci(hlx, sf_handle, cylinder, trf)[0];
     const auto pos = hlx.pos(is.path);
     const auto loc = pos - trl;
     const auto phi =
         std::acos(vector::dot(v, loc) / (getter::norm(v) * getter::norm(loc)));
 
-    EXPECT_NEAR(is.p2[0], c_rad * phi, tolerance);
-    EXPECT_NEAR(is.p2[1], 0.f, tolerance);
-    EXPECT_NEAR(is.p3[0], pos[0], tolerance);
-    EXPECT_NEAR(is.p3[1], pos[1], tolerance);
-    EXPECT_NEAR(is.p3[2], pos[2], tolerance);
+    EXPECT_NEAR(is.p2[0], c_rad * phi, tol);
+    EXPECT_NEAR(is.p2[1], 0.f, tol);
+    EXPECT_NEAR(is.p3[0], pos[0], tol);
+    EXPECT_NEAR(is.p3[1], pos[1], tol);
+    EXPECT_NEAR(is.p3[2], pos[2], tol);
 }

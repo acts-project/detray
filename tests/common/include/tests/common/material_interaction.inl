@@ -128,7 +128,8 @@ TEST(material_interaction, telescope_geometry_energy_loss) {
     interaction<scalar> I;
 
     // intersection with a zero incidence angle
-    line_plane_intersection is;
+    intersection2D<typename decltype(det)::surface_type, transform3> is;
+    is.cos_incidence_angle = 1.f;
 
     // Same material used for default telescope detector
     material_slab<scalar> slab(mat, thickness);

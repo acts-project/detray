@@ -24,9 +24,9 @@ struct interaction {
     using relativistic_quantities =
         detail::relativistic_quantities<scalar_type>;
 
-    template <typename material_t>
+    template <typename material_t, typename surface_t, typename algebra_t>
     DETRAY_HOST_DEVICE scalar_type compute_energy_loss_bethe(
-        const line_plane_intersection& is, const material_t& mat,
+        const intersection2D<surface_t, algebra_t>& is, const material_t& mat,
         const int /*pdg*/, const scalar_type m, const scalar_type qOverP,
         const scalar_type q) const {
 
@@ -53,9 +53,9 @@ struct interaction {
         return eps * running;
     }
 
-    template <typename material_t>
+    template <typename material_t, typename surface_t, typename algebra_t>
     DETRAY_HOST_DEVICE scalar_type compute_energy_loss_landau(
-        const line_plane_intersection& is, const material_t& mat,
+        const intersection2D<surface_t, algebra_t>& is, const material_t& mat,
         const int /*pdg*/, const scalar_type m, const scalar_type qOverP,
         const scalar_type q) const {
 
@@ -77,9 +77,9 @@ struct interaction {
         return eps * running;
     }
 
-    template <typename material_t>
+    template <typename material_t, typename surface_t, typename algebra_t>
     DETRAY_HOST_DEVICE scalar_type compute_energy_loss_landau_fwhm(
-        const line_plane_intersection& is, const material_t& mat,
+        const intersection2D<surface_t, algebra_t>& is, const material_t& mat,
         const int /*pdg*/, const scalar_type m, const scalar_type qOverP,
         const scalar_type q) const {
         const auto Ne = mat.get_material().molar_electron_density();
@@ -90,10 +90,10 @@ struct interaction {
         return 4.f * rq.compute_epsilon(Ne, path_segment);
     }
 
-    template <typename material_t>
+    template <typename material_t, typename surface_t, typename algebra_t>
     DETRAY_HOST_DEVICE scalar_type compute_energy_loss_landau_sigma_QOverP(
-        const line_plane_intersection& is, const material_t& mat, const int pdg,
-        const scalar_type m, const scalar_type qOverP,
+        const intersection2D<surface_t, algebra_t>& is, const material_t& mat,
+        const int pdg, const scalar_type m, const scalar_type qOverP,
         const scalar_type q) const {
 
         // return early in case of vacuum or zero thickness
@@ -124,10 +124,10 @@ struct interaction {
         return std::sqrt(rq.m_q2OverBeta2) * pInv * pInv * sigmaE;
     }
 
-    template <typename material_t>
+    template <typename material_t, typename surface_t, typename algebra_t>
     DETRAY_HOST_DEVICE scalar_type compute_multiple_scattering_theta0(
-        const line_plane_intersection& is, const material_t& mat, const int pdg,
-        const scalar_type m, const scalar_type qOverP,
+        const intersection2D<surface_t, algebra_t>& is, const material_t& mat,
+        const int pdg, const scalar_type m, const scalar_type qOverP,
         const scalar_type q) const {
         // return early in case of vacuum or zero thickness
         if (not mat) {

@@ -1,6 +1,6 @@
 /** Detray library, part of the ACTS project (R&D line)
  *
- * (c) 2022-2023 CERN for the benefit of the ACTS project
+ * (c) 2023 CERN for the benefit of the ACTS project
  *
  * Mozilla Public License Version 2.0
  */
@@ -8,9 +8,12 @@
 #pragma once
 
 // Project include(s)
+#include "detray/coordinates/cylindrical2.hpp"
 #include "detray/definitions/qualifiers.hpp"
+#include "detray/intersection/cylinder_intersector.hpp"
 #include "detray/intersection/detail/trajectories.hpp"
 #include "detray/intersection/intersection.hpp"
+#include "detray/utils/quadratic_equation.hpp"
 
 // System include(s)
 #include <cmath>
@@ -18,9 +21,13 @@
 
 namespace detray {
 
-/// A functor to find intersections between straight line and planar surface
+/// @brief A functor to find intersections between a straight line and a
+/// cylindrical portal surface.
+///
+/// With the way the navigation works, only the closest one of the two possible
+/// intersection points is needed in the case of a cylinderical portal surface.
 template <typename transform3_t>
-struct plane_intersector {
+struct cylinder_portal_intersector : public cylinder_intersector<transform3_t> {
 
     /// linear algebra types
     /// @{
@@ -31,7 +38,7 @@ struct plane_intersector {
     /// @}
     using ray_type = detail::ray<transform3_t>;
 
-    /// Operator function to find intersections between ray and planar mask
+    /// Operator function to find intersections between ray and cylinder mask
     ///
     /// @tparam mask_t is the input mask type
     /// @tparam surface_t is the type of surface handle
@@ -42,10 +49,11 @@ struct plane_intersector {
     /// @param trf is the surface placement transform
     /// @param mask_tolerance is the tolerance for mask edges
     ///
-    /// @return the intersection
+    /// @return the closest intersection
     template <
         typename mask_t, typename surface_t,
-        std::enable_if_t<std::is_same_v<typename mask_t::loc_point_t, point2>,
+        std::enable_if_t<std::is_same_v<typename mask_t::measurement_frame_type,
+                                        cylindrical2<transform3_t>>,
                          bool> = true>
     DETRAY_HOST_DEVICE inline intersection2D<surface_t, transform3_t>
     operator()(const ray_type &ray, const surface_t sf, const mask_t &mask,
@@ -55,40 +63,20 @@ struct plane_intersector {
         using intersection_t = intersection2D<surface_t, transform3_t>;
         intersection_t is;
 
-        // Retrieve the surface normal & translation (context resolved)
-        const auto &sm = trf.matrix();
-        const vector3 sn = getter::vector<3>(sm, 0u, 2u);
-        const vector3 st = getter::vector<3>(sm, 0u, 3u);
+        // Intersecting the cylinder from the inside yield one intersection
+        // along the direction of the track and one behind it
+        const auto qe = this->solve_intersection(ray, mask, trf);
 
-        // Intersection code
-        const point3 &ro = ray.pos();
-        const vector3 &rd = ray.dir();
-        const scalar_type denom = vector::dot(rd, sn);
-        // this is dangerous
-        if (denom != 0.f) {
-            is.path = vector::dot(sn, st - ro) / denom;
-
-            // Intersection is not valid for navigation - return early
-            if (is.path < ray.overstep_tolerance()) {
-                return is;
-            }
-
+        // Find the closest valid intersection
+        if (qe.solutions() > 0 and qe.larger() > ray.overstep_tolerance()) {
+            // Only the closest intersection that is outside the overstepping
+            // tolerance is needed
+            const scalar_type t{(qe.smaller() > ray.overstep_tolerance())
+                                    ? qe.smaller()
+                                    : qe.larger()};
+            is = this->template build_candidate<intersection_t>(
+                ray, mask, trf, t, mask_tolerance);
             is.surface = sf;
-            is.p3 = ro + is.path * rd;
-            is.p2 = mask.to_local_frame(trf, is.p3, ray.dir());
-            is.status = mask.is_inside(is.p2, mask_tolerance);
-
-            // prepare some additional information in case the intersection
-            // is valid
-            if (is.status == intersection::status::e_inside) {
-                is.direction = std::signbit(is.path)
-                                   ? intersection::direction::e_opposite
-                                   : intersection::direction::e_along;
-                is.volume_link = mask.volume_link();
-
-                // Get incidene angle
-                is.cos_incidence_angle = std::abs(denom);
-            }
         } else {
             is.status = intersection::status::e_missed;
         }
@@ -96,8 +84,7 @@ struct plane_intersector {
         return is;
     }
 
-    /// Operator function to updtae an intersections between a ray and a planar
-    /// surface.
+    /// Operator function to find intersections between a ray and a 2D cylinder
     ///
     /// @tparam mask_t is the input mask type
     /// @tparam surface_t is the type of surface handle
@@ -109,7 +96,8 @@ struct plane_intersector {
     /// @param mask_tolerance is the tolerance for mask edges
     template <
         typename mask_t, typename surface_t,
-        std::enable_if_t<std::is_same_v<typename mask_t::loc_point_t, point2>,
+        std::enable_if_t<std::is_same_v<typename mask_t::measurement_frame_type,
+                                        cylindrical2<transform3_t>>,
                          bool> = true>
     DETRAY_HOST_DEVICE inline void update(
         const ray_type &ray, intersection2D<surface_t, transform3_t> &sfi,

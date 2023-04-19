@@ -59,6 +59,7 @@ class mask {
     // Linear algebra types
     using loc_point_t = typename shape::template loc_point_type<algebra_t>;
     using point3_t = typename algebra_t::point3;
+    using point2_t = typename algebra_t::point2;
     using matrix_operator = typename algebra_t::matrix_actor;
     using size_type = typename algebra_t::size_type;
     template <size_type ROWS, size_type COLS>
@@ -139,6 +140,15 @@ class mask {
         return local_frame_type{}.global_to_local(trf, glob_p, glob_dir);
     }
 
+    /// @returns the functor that projects a global cartesian point onto
+    /// the local measurement coordinate system.
+    template <typename transform3_t>
+    DETRAY_HOST_DEVICE inline auto to_measurement_frame(
+        const transform3_t& trf, const point3_t& glob_p,
+        const point3_t& glob_dir = {}) const -> point2_t {
+        return measurement_frame_type{}.global_to_local(trf, glob_p, glob_dir);
+    }
+
     /// @returns the intersection functor for the underlying surface geometry.
     DETRAY_HOST_DEVICE
     inline constexpr auto intersector() const ->
@@ -167,9 +177,15 @@ class mask {
                    : intersection::status::e_outside;
     }
 
-    /// @returns return local frame object
+    /// @returns return local frame object (used in geometrical checks)
     DETRAY_HOST_DEVICE inline constexpr local_frame_type local_frame() const {
         return local_frame_type{};
+    }
+
+    /// @returns return local measurement frame object (used for track states)
+    DETRAY_HOST_DEVICE inline constexpr measurement_frame_type
+    measurement_frame() const {
+        return measurement_frame_type{};
     }
 
     /// @returns the boundary values

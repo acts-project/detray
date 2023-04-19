@@ -30,7 +30,7 @@ const vector3 B{0.f, 0.f, 1.f * unit<scalar>::T};
 
 // Algebra objects
 constexpr const cartesian2<transform3> c2;
-constexpr const helix_plane_intersector<transform3> hpi;
+constexpr const detail::helix_plane_intersector<transform3> hpi;
 
 /// Test the path correction on a rectangular surface (cartesian coordinates)
 TEST(helix_covariance_transport, cartesian2D) {
@@ -115,7 +115,8 @@ TEST(helix_covariance_transport, cartesian2D) {
                 c2.bound_to_free_jacobian(trfs[i_p], rectangle, bound_vec);
 
         // Get the intersection on the next surface
-        const auto is = hpi(hlx, rectangle, trfs[next_index])[0];
+        const auto is = hpi(hlx, dindex_invalid, rectangle, trfs[next_index]);
+        ASSERT_TRUE(is.status == intersection::status::e_inside);
 
         // Helical path length between two surfaces
         const auto path_length = is.path;

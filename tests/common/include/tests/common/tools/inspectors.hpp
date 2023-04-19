@@ -54,12 +54,12 @@ namespace navigation {
 
 /// A navigation inspector that relays information about the encountered
 /// objects whenever the navigator reaches one or more status flags
-template <template <typename...> class vector_t = dvector,
+template <typename candidate_t, template <typename...> class vector_t = dvector,
           status... navigation_status>
 struct object_tracer {
 
     // record all object id the navigator encounters
-    vector_t<line_plane_intersection> object_trace = {};
+    vector_t<candidate_t> object_trace = {};
 
     /// Inspector interface
     template <typename state_type>
@@ -101,7 +101,7 @@ struct print_inspector {
 
         debug_stream << "Surface candidates: " << std::endl;
         for (const auto &sf_cand : state.candidates()) {
-            debug_stream << sf_cand.to_string();
+            debug_stream << sf_cand;
         }
         if (not state.candidates().empty()) {
             debug_stream << "=> next: ";

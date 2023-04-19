@@ -69,21 +69,21 @@ struct material_slab {
     DETRAY_HOST_DEVICE
     constexpr scalar_type thickness_in_L0() const { return m_thickness_in_L0; }
     /// Return the path segment
-    DETRAY_HOST_DEVICE
-    constexpr scalar_type path_segment(
-        const line_plane_intersection& is) const {
+    template <typename surface_t, typename algebra_t>
+    DETRAY_HOST_DEVICE constexpr scalar_type path_segment(
+        const intersection2D<surface_t, algebra_t>& is) const {
         return m_thickness / is.cos_incidence_angle;
     }
     /// Return the path segment in X0
-    DETRAY_HOST_DEVICE
-    constexpr scalar_type path_segment_in_X0(
-        const line_plane_intersection& is) const {
+    template <typename surface_t, typename algebra_t>
+    DETRAY_HOST_DEVICE constexpr scalar_type path_segment_in_X0(
+        const intersection2D<surface_t, algebra_t>& is) const {
         return m_thickness_in_X0 / is.cos_incidence_angle;
     }
     /// Return the path segment in L0
-    DETRAY_HOST_DEVICE
-    constexpr scalar_type path_segment_in_L0(
-        const line_plane_intersection& is) const {
+    template <typename surface_t, typename algebra_t>
+    DETRAY_HOST_DEVICE constexpr scalar_type path_segment_in_L0(
+        const intersection2D<surface_t, algebra_t>& is) const {
         return m_thickness_in_L0 / is.cos_incidence_angle;
     }
 

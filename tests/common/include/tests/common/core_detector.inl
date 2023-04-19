@@ -154,23 +154,23 @@ TEST(detector, detector) {
     prefill_detector(d, geo_ctx);
     // TODO: add B-field check
 
-    EXPECT_EQ(d.volumes().size(), 1U);
-    EXPECT_EQ(d.surfaces().size(), 3U);
-    EXPECT_EQ(d.transform_store().size(), 3U);
-    EXPECT_EQ(d.mask_store().template size<mask_id::e_rectangle2>(), 1U);
-    EXPECT_EQ(d.mask_store().template size<mask_id::e_trapezoid2>(), 1U);
-    EXPECT_EQ(d.mask_store().template size<mask_id::e_annulus2>(), 1U);
-    EXPECT_EQ(d.mask_store().template size<mask_id::e_cylinder2>(), 0U);
-    EXPECT_EQ(d.mask_store().template size<mask_id::e_portal_cylinder2>(), 0U);
-    EXPECT_EQ(d.mask_store().template size<mask_id::e_ring2>(), 0U);
-    EXPECT_EQ(d.mask_store().template size<mask_id::e_portal_ring2>(), 0U);
-    EXPECT_EQ(d.material_store().template size<material_id::e_slab>(), 2U);
-    EXPECT_EQ(d.material_store().template size<material_id::e_rod>(), 1U);
-    EXPECT_EQ(d.surface_store().template size<finder_id::e_brute_force>(), 1U);
-    /*EXPECT_EQ(d.surface_store().template size<finder_id::e_disc_grid>(), 0U);
+    EXPECT_EQ(d.volumes().size(), 1u);
+    EXPECT_EQ(d.surfaces().size(), 3u);
+    EXPECT_EQ(d.transform_store().size(), 3u);
+    EXPECT_EQ(d.mask_store().template size<mask_id::e_rectangle2>(), 1u);
+    EXPECT_EQ(d.mask_store().template size<mask_id::e_trapezoid2>(), 1u);
+    EXPECT_EQ(d.mask_store().template size<mask_id::e_annulus2>(), 1u);
+    EXPECT_EQ(d.mask_store().template size<mask_id::e_cylinder2>(), 0u);
+    EXPECT_EQ(d.mask_store().template size<mask_id::e_portal_cylinder2>(), 0u);
+    EXPECT_EQ(d.mask_store().template size<mask_id::e_ring2>(), 0u);
+    EXPECT_EQ(d.mask_store().template size<mask_id::e_portal_ring2>(), 0u);
+    EXPECT_EQ(d.material_store().template size<material_id::e_slab>(), 2u);
+    EXPECT_EQ(d.material_store().template size<material_id::e_rod>(), 1u);
+    EXPECT_EQ(d.surface_store().template size<finder_id::e_brute_force>(), 1u);
+    /*EXPECT_EQ(d.surface_store().template size<finder_id::e_disc_grid>(), 0u);
     EXPECT_EQ(d.surface_store().template size<finder_id::e_cylinder_grid>(),
-              0U);
-    EXPECT_EQ(d.surface_store().template size<finder_id::e_default>(), 0U);*/
+              0u);
+    EXPECT_EQ(d.surface_store().template size<finder_id::e_default>(), 0u);*/
 }
 
 /// This tests the functionality of a surface factory
@@ -608,10 +608,10 @@ TEST(detector, detector_volume_construction) {
               sf_finder_links[geo_obj_id::e_passive]);
 
     EXPECT_EQ(d.surfaces().size(), 19u);
-    EXPECT_EQ(d.mask_store().template size<mask_id::e_portal_cylinder2>(), 3u);
+    EXPECT_EQ(d.mask_store().template size<mask_id::e_portal_cylinder2>(), 2u);
     EXPECT_EQ(d.mask_store().template size<mask_id::e_portal_ring2>(), 4u);
     EXPECT_EQ(d.mask_store().template size<mask_id::e_annulus2>(), 3u);
-    EXPECT_EQ(d.mask_store().template size<mask_id::e_cylinder2>(), 3u);
+    EXPECT_EQ(d.mask_store().template size<mask_id::e_cylinder2>(), 1u);
     EXPECT_EQ(d.mask_store().template size<mask_id::e_rectangle2>(), 7u);
     EXPECT_EQ(d.mask_store().template size<mask_id::e_ring2>(), 4u);
     EXPECT_EQ(d.mask_store().template size<mask_id::e_trapezoid2>(), 2u);
@@ -661,7 +661,7 @@ TEST(detector, detector_volume_construction) {
         {mask_id::e_rectangle2, 2u},
         {mask_id::e_rectangle2, 3u},
         {mask_id::e_trapezoid2, 1u},
-        {mask_id::e_cylinder2, 2u},
+        {mask_id::e_cylinder2, 0u},
         {mask_id::e_ring2, 2u},
         {mask_id::e_ring2, 3u},
         {mask_id::e_rectangle2, 4u},
@@ -675,8 +675,11 @@ TEST(detector, detector_volume_construction) {
 
     // check mask volume links
     volume_links.clear();
-    volume_links = {0u, 2u, 1u};
+    volume_links = {0u, 2u};
     check_mask<detector_t, mask_id::e_portal_cylinder2>(d, volume_links);
+
+    volume_links.clear();
+    volume_links = {1u};
     check_mask<detector_t, mask_id::e_cylinder2>(d, volume_links);
 
     volume_links.clear();

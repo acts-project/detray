@@ -1,6 +1,6 @@
 /** Detray library, part of the ACTS project (R&D line)
  *
- * (c) 2022 CERN for the benefit of the ACTS project
+ * (c) 2022-2023 CERN for the benefit of the ACTS project
  *
  * Mozilla Public License Version 2.0
  */
@@ -17,7 +17,7 @@ namespace detray {
 
 /// A functor to update the closest intersection between helix and
 /// surface
-struct helix_intersection_update {
+struct helix_intersection_initialize {
 
     /// Operator function to update the intersection
     ///
@@ -34,64 +34,59 @@ struct helix_intersection_update {
     /// @param mask_tolerance is the tolerance for mask size
     ///
     /// @return the intersection
-    ///
-    template <typename mask_group_t, typename mask_range_t, typename traj_t,
-              typename surface_t, typename transform_container_t>
-    DETRAY_HOST_DEVICE inline line_plane_intersection operator()(
+    template <typename mask_group_t, typename mask_range_t,
+              typename is_container_t, typename traj_t, typename surface_t,
+              typename transform_container_t>
+    DETRAY_HOST_DEVICE inline void operator()(
         const mask_group_t &mask_group, const mask_range_t &mask_range,
-        const traj_t &traj, const surface_t &surface,
+        is_container_t &is_container, const traj_t &traj,
+        const surface_t &surface,
         const transform_container_t &contextual_transforms,
         const scalar mask_tolerance = 0.f) const {
 
-        using transform3_type = typename traj_t::transform3_type;
-        using helix_plane_intersector_type =
-            helix_plane_intersector<transform3_type>;
-
-        using helix_cylinder_intersector_type =
-            helix_cylinder_intersector<transform3_type>;
-
-        using plane_intersector_type = plane_intersector<transform3_type>;
-        using cylinder_intersector_type = cylinder_intersector<transform3_type>;
+        using mask_t = typename mask_group_t::value_type;
+        using transform3_t = typename transform_container_t::value_type;
 
         const auto &ctf = contextual_transforms[surface.transform()];
 
-        // Run over the masks belonged to the surface
+        // Run over the masks that belong to the surface
         for (const auto &mask :
              detray::ranges::subrange(mask_group, mask_range)) {
 
-            using mask_t = typename mask_group_t::value_type;
-            if constexpr (std::is_same_v<
-                              typename mask_t::shape::template intersector_type<
-                                  transform3_type>,
-                              plane_intersector_type>) {
+            if (place_in_collection(
+                    helix_intersector<transform3_t, mask_t>()(
+                        traj, surface, mask, ctf, mask_tolerance),
+                    is_container)) {
+                return;
+            };
+        }
+    }
 
-                auto sfi = std::move(helix_plane_intersector_type()(
-                    traj, mask, ctf, mask_tolerance));
+    private:
+    template <typename is_container_t>
+    DETRAY_HOST_DEVICE bool place_in_collection(
+        typename is_container_t::value_type &&sfi,
+        is_container_t &intersections) const {
+        if (sfi.status == intersection::status::e_inside) {
+            intersections.push_back(sfi);
+            return true;
+        } else {
+            return false;
+        }
+    }
 
-                if (sfi[0].status == intersection::status::e_inside and
-                    sfi[0].path >= traj.overstep_tolerance()) {
-                    sfi[0].barcode = surface.barcode();
-                    return sfi[0];
-                }
-
-            } else if constexpr (std::is_same_v<typename mask_t::shape::
-                                                    template intersector_type<
-                                                        transform3_type>,
-                                                cylinder_intersector_type>) {
-
-                auto sfi = std::move(helix_cylinder_intersector_type()(
-                    traj, mask, ctf, mask_tolerance));
-
-                if (sfi[0].status == intersection::status::e_inside and
-                    sfi[0].path >= traj.overstep_tolerance()) {
-                    sfi[0].barcode = surface.barcode();
-                    return sfi[0];
-                }
+    template <typename is_container_t>
+    DETRAY_HOST_DEVICE bool place_in_collection(
+        std::array<typename is_container_t::value_type, 2> &&solutions,
+        is_container_t &intersections) const {
+        bool is_valid = false;
+        for (auto &sfi : solutions) {
+            if (sfi.status == intersection::status::e_inside) {
+                intersections.push_back(sfi);
+                is_valid = true;
             }
         }
-
-        // return null object if the intersection is not valid anymore
-        return {};
+        return is_valid;
     }
 };
 

@@ -1,6 +1,6 @@
 /** Detray library, part of the ACTS project (R&D line)
  *
- * (c) 2021 CERN for the benefit of the ACTS project
+ * (c) 2021-2023 CERN for the benefit of the ACTS project
  *
  * Mozilla Public License Version 2.0
  */
@@ -146,8 +146,7 @@ inline bool check_connectivity(
 ///
 /// @return a set of volume connections that were found by portal intersection
 ///         of a ray.
-template <typename record_container =
-              dvector<std::pair<dindex, line_plane_intersection>>>
+template <typename record_container>
 inline auto trace_intersections(const record_container &intersection_records,
                                 dindex start_volume = 0) {
     // obj id and obj mother volume
@@ -164,7 +163,9 @@ inline auto trace_intersections(const record_container &intersection_records,
         const typename record_container::value_type &entry;
 
         // getter
-        inline auto object_id() const { return entry.second.barcode.index(); }
+        inline auto object_id() const {
+            return entry.second.surface.barcode().index();
+        }
         inline auto &inters() const { return entry.second; }
         inline auto &volume_id() const { return entry.first; }
         inline auto &volume_link() const { return entry.second.volume_link; }
@@ -180,8 +181,8 @@ inline auto trace_intersections(const record_container &intersection_records,
             return entry.first != entry.second.volume_link;
         }
 
-        inline bool is_portal(const std::pair<dindex, line_plane_intersection>
-                                  &inters_pair) const {
+        inline bool is_portal(
+            const typename record_container::value_type &inters_pair) const {
             const record rec{inters_pair};
             return rec.volume_id() != rec.volume_link();
         }
@@ -203,9 +204,8 @@ inline auto trace_intersections(const record_container &intersection_records,
         }
 
         record_stream << current_rec.volume_id() << "\t"
-                      << current_rec.inters().to_string();
-        record_stream << next_rec.volume_id() << "\t"
-                      << next_rec.inters().to_string();
+                      << current_rec.inters();
+        record_stream << next_rec.volume_id() << "\t" << next_rec.inters();
 
         // Is this doublet connected via a valid portal intersection?
         const bool is_valid =
@@ -256,8 +256,7 @@ inline auto trace_intersections(const record_container &intersection_records,
 
             std::cerr << "-----\nINFO: Ray terminated at portal x-ing "
                       << (rec + 1) / 2 << ":\n"
-                      << current_rec.inters().to_string() << " <-> "
-                      << next_rec.inters().to_string();
+                      << current_rec.inters() << " <-> " << next_rec.inters();
 
             record rec_front{intersection_records.front()};
             record rec_back{intersection_records.back()};

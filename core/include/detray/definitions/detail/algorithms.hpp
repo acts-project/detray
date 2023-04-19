@@ -21,10 +21,26 @@
 
 // System include(s)
 #include <algorithm>
+#include <cmath>
 #include <type_traits>
 #include <utility>
 
 namespace detray::detail {
+
+/// Composes a floating point value with the magnitude of @param mag and the
+/// sign of @param sgn
+template <typename scalar_t>
+DETRAY_HOST_DEVICE inline scalar_t copysign(scalar_t mag, scalar_t sgn) {
+#if defined(__CUDACC__)
+    if constexpr (std::is_same_v<scalar_t, float>) {
+        return copysignf(mag, sgn);
+    } else {
+        return copysign(mag, sgn);
+    }
+#elif !defined(__CUDACC__)
+    return std::copysign(mag, sgn);
+#endif
+}
 
 /// @brief sequential (single thread) sort function
 template <class RandomIt>

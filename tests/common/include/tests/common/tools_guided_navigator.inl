@@ -26,9 +26,9 @@
 TEST(ALGEBRA_PLUGIN, guided_navigator) {
     using namespace detray;
     using namespace navigation;
-    using transform3_type = __plugin::transform3<scalar>;
-    using point3 = typename transform3_type::point3;
-    using vector3 = typename transform3_type::vector3;
+    using transform3_t = __plugin::transform3<scalar>;
+    using point3 = typename transform3_t::point3;
+    using vector3 = typename transform3_t::vector3;
 
     vecmem::host_memory_resource host_mr;
 
@@ -45,22 +45,26 @@ TEST(ALGEBRA_PLUGIN, guided_navigator) {
         create_telescope_detector(host_mr, urectangle, positions);
 
     // Inspectors are optional, of course
+    using detector_t = decltype(telescope_det);
+    using intersection_t =
+        intersection2D<typename detector_t::surface_type, transform3_t>;
     using object_tracer_t =
-        object_tracer<dvector, status::e_on_portal, status::e_on_module>;
+        object_tracer<intersection_t, dvector, status::e_on_portal,
+                      status::e_on_module>;
     using inspector_t = aggregate_inspector<object_tracer_t, print_inspector>;
-    using b_field_t = decltype(telescope_det)::bfield_type;
+    using b_field_t = detector_t::bfield_type;
     using runge_kutta_stepper =
-        rk_stepper<b_field_t::view_t, transform3_type, unconstrained_step,
+        rk_stepper<b_field_t::view_t, transform3_t, unconstrained_step,
                    guided_navigation>;
-    using guided_navigator = navigator<decltype(telescope_det), inspector_t>;
+    using guided_navigator = navigator<detector_t, inspector_t>;
     using actor_chain_t = actor_chain<dtuple, pathlimit_aborter>;
     using propagator_t =
         propagator<runge_kutta_stepper, guided_navigator, actor_chain_t>;
 
     // track must point into the direction of the telescope
-    const point3 origin{0.f, 0.f, -0.01f};
+    const point3 pos{0.f, 0.f, 0.f};
     const vector3 mom{0.f, 0.f, 1.f};
-    free_track_parameters<transform3_type> track(origin, 0.f, mom, -1.f);
+    free_track_parameters<transform3_t> track(pos, 0.f, mom, -1.f);
     const vector3 B{0.f, 0.f, 1.f * unit<scalar>::T};
     const b_field_t b_field(
         b_field_t::backend_t::configuration_t{B[0], B[1], B[2]});
@@ -93,8 +97,9 @@ TEST(ALGEBRA_PLUGIN, guided_navigator) {
         auto bcd = geometry::barcode{};
         bcd.set_volume(0u).set_index(sf_sequence[i]);
         bcd.set_id((i == 11u) ? surface_id::e_portal : surface_id::e_sensitive);
-        EXPECT_TRUE(candidate.barcode == bcd)
+        EXPECT_TRUE(candidate.surface.barcode() == bcd)
             << "error at intersection on surface:\n"
-            << "Expected: " << bcd << "\nFound: " << candidate.barcode;
+            << "Expected: " << bcd
+            << "\nFound: " << candidate.surface.barcode();
     }
 }
