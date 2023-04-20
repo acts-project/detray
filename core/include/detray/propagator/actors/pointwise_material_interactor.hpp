@@ -12,6 +12,7 @@
 #include "detray/definitions/track_parametrization.hpp"
 #include "detray/materials/interaction.hpp"
 #include "detray/propagator/base_actor.hpp"
+#include "detray/tracks/bound_track_parameters.hpp"
 #include "detray/utils/axis_rotation.hpp"
 #include "detray/utils/ranges.hpp"
 
@@ -65,15 +66,15 @@ struct pointwise_material_interactor : actor {
         using state = typename pointwise_material_interactor::state;
 
         template <typename material_group_t, typename index_t,
-                  typename surface_t, typename stepper_state_t>
+                  typename surface_t>
         DETRAY_HOST_DEVICE inline bool operator()(
             const material_group_t &material_group,
             const index_t &material_range,
             const intersection2D<surface_t, transform3_type> &is, state &s,
-            const stepper_state_t &stepping) const {
+            const bound_track_parameters<transform3_type> &bound_params) const {
 
-            const scalar qop = stepping().qop();
-            const scalar charge = stepping().charge();
+            const scalar qop = bound_params.qop();
+            const scalar charge = bound_params.charge();
 
             for (const auto &mat :
                  detray::ranges::subrange(material_group, material_range)) {
@@ -112,45 +113,59 @@ struct pointwise_material_interactor : actor {
 
         interactor_state.reset();
 
-        auto &stepping = prop_state._stepping;
         auto &navigation = prop_state._navigation;
 
         // Do material interaction when the track is on surface
         if (navigation.is_on_module()) {
 
-            const auto &is = *navigation.current();
+            auto &stepping = prop_state._stepping;
             const auto *det = navigation.detector();
-            const auto &mat_store = det->material_store();
 
-            auto succeed = mat_store.template visit<kernel>(
-                is.surface.material(), is, interactor_state, stepping);
+            this->update(stepping._bound_params, interactor_state,
+                         static_cast<int>(navigation.direction()),
+                         *navigation.current(), det->material_store());
+        }
+    }
 
-            if (succeed) {
+    /// @brief Update the bound track parameter
+    ///
+    /// @param[out] bound_params bound track parameter
+    /// @param[out] interactor_state actor state
+    /// @param[in]  nav_dir navigation direction
+    /// @param[in]  is intersection
+    /// @param[in]  mat_store material store
+    template <typename intersection_t, typename material_store_t>
+    DETRAY_HOST_DEVICE inline void update(
+        bound_track_parameters<transform3_type> &bound_params,
+        state &interactor_state, const int nav_dir, const intersection_t &is,
+        const material_store_t &mat_store) const {
 
-                auto &covariance = stepping._bound_params.covariance();
-                auto &vector = stepping._bound_params.vector();
+        auto succeed = mat_store.template visit<kernel>(
+            is.surface.material(), is, interactor_state, bound_params);
 
-                if (interactor_state.do_energy_loss) {
+        if (succeed) {
 
-                    update_qop(vector, stepping().p(), stepping().charge(),
-                               interactor_state.mass, interactor_state.e_loss,
-                               static_cast<int>(navigation.direction()));
+            auto &covariance = bound_params.covariance();
+            auto &vector = bound_params.vector();
 
-                    if (interactor_state.do_covariance_transport) {
+            if (interactor_state.do_energy_loss) {
 
-                        update_qop_variance(
-                            covariance, interactor_state.sigma_qop,
-                            static_cast<int>(navigation.direction()));
-                    }
-                }
+                update_qop(vector, bound_params.p(), bound_params.charge(),
+                           interactor_state.mass, interactor_state.e_loss,
+                           nav_dir);
 
                 if (interactor_state.do_covariance_transport) {
 
-                    update_angle_variance(
-                        covariance, stepping._bound_params.dir(),
-                        interactor_state.projected_scattering_angle,
-                        static_cast<int>(navigation.direction()));
+                    update_qop_variance(covariance, interactor_state.sigma_qop,
+                                        nav_dir);
                 }
+            }
+
+            if (interactor_state.do_covariance_transport) {
+
+                update_angle_variance(
+                    covariance, bound_params.dir(),
+                    interactor_state.projected_scattering_angle, nav_dir);
             }
         }
     }
@@ -163,9 +178,10 @@ struct pointwise_material_interactor : actor {
     /// @param[in]  m mass of the track
     /// @param[in]  e_loss energy loss
     /// @param[in]  sign navigation direction
-    DETRAY_HOST_DEVICE inline void update_qop(
-        bound_vector &vector, const scalar_type p, const scalar_type q,
-        const scalar_type m, const scalar_type e_loss, const int sign) const {
+    DETRAY_HOST_DEVICE
+    inline void update_qop(bound_vector &vector, const scalar_type p,
+                           const scalar_type q, const scalar_type m,
+                           const scalar_type e_loss, const int sign) const {
 
         // Get new Energy
         const scalar_type nextE{
