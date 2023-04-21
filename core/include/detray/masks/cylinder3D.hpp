@@ -57,7 +57,7 @@ class cylinder3D {
     using measurement_point_type = loc_point_type<algebra_t>;
 
     /// Underlying surface geometry: not a surface.
-    template <typename algebra_t>
+    template <typename intersection_t>
     using intersector_type = void;
 
     /// Behaviour of the three local axes (linear in r, circular in phi,

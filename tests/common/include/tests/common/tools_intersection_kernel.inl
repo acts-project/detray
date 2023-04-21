@@ -27,6 +27,11 @@
 
 using namespace detray;
 
+namespace {
+
+constexpr const scalar tol{1e-3f};
+constexpr const scalar is_close{1e-5f};
+
 enum mask_ids : unsigned int {
     e_rectangle2 = 0u,
     e_trapezoid2 = 1u,
@@ -39,8 +44,10 @@ enum material_ids : unsigned int {
     e_slab = 0u,
 };
 
+}  // anonymous namespace
+
 /// Surface components:
-using volume_link_t = dindex;
+using volume_link_t = std::uint_least16_t;
 
 /// - masks, with mask identifiers 0,1,2
 using rectangle_t = mask<rectangle2D<>, volume_link_t>;
@@ -65,9 +72,6 @@ using transform_link_t = dindex;
 /// The Surface definition:
 using surface_t = surface<mask_link_t, material_link_t, transform_link_t>;
 using surface_container_t = dvector<surface_t>;
-
-constexpr const scalar tol{1e-3f};
-constexpr const scalar is_close{1e-5f};
 
 // TODO: How about merging ray and helix tests into one to remove the code
 // repetition?
@@ -123,7 +127,7 @@ TEST(tools, intersection_kernel_ray) {
     const vector3 mom{0.01f, 0.01f, 10.f};
     const free_track_parameters<transform3_t> track(pos, 0.f, mom, -1.f);
 
-    // Validation data (no valid intersection on the cylinders)
+    // Validation data
     const point3 expected_rectangle{0.01f, 0.01f, 10.f};
     const point3 expected_trapezoid{0.02f, 0.02f, 20.f};
     const point3 expected_annulus{0.03f, 0.03f, 30.f};
@@ -136,7 +140,7 @@ TEST(tools, intersection_kernel_ray) {
         expected_cylinder1, expected_cylinder2, expected_cylinder_pt};
 
     // Initialize kernel
-    std::vector<intersection2D<surface_t, transform3_t>> sfi_init;
+    std::vector<intersection2D_point<surface_t, transform3_t>> sfi_init;
 
     for (const auto &surface : surfaces) {
         mask_store.visit<intersection_initialize>(surface.mask(), sfi_init,
@@ -156,29 +160,33 @@ TEST(tools, intersection_kernel_ray) {
     }
 
     // Update kernel
-    /*std::vector<intersection2D<surface_t, transform3_t>> sfi_update;
+    // @fixme: The intersection update kernel does not work for non-portal
+    // cylinders, since it assigns the closest intersection to both solutions
+    /*std::vector<intersection2D_point<surface_t, transform3_t>> sfi_update;
     sfi_update.resize(5);
 
     for (const auto [idx, surface] : detray::views::enumerate(surfaces)) {
         sfi_update[idx].surface = surface;
         mask_store.visit<intersection_update>(
             surface.mask(), detail::ray(track), sfi_update[idx],
-    transform_store);
+            transform_store);
 
-        if(sfi_init[idx].status != intersection::status::e_inside) { continue; }
-        ASSERT_EQ(sfi_update[idx].direction, intersection::direction::e_along);
+        if(sfi_update[idx].status != intersection::status::e_inside) { continue;
+    } ASSERT_EQ(sfi_update[idx].direction, intersection::direction::e_along) <<
+    " at surface " << sfi_update[idx] << ", " << sfi_init[idx];
         ASSERT_EQ(sfi_update[idx].volume_link, 0u);
-        ASSERT_NEAR(sfi_update[idx].p3[0], expected_points[idx][0], is_close) <<
-    " at surface " << idx;; ASSERT_NEAR(sfi_update[idx].p3[1],
-    expected_points[idx][1], is_close) << " at surface " << idx;;
-        ASSERT_NEAR(sfi_update[idx].p3[2], expected_points[idx][2], is_close) <<
-    " at surface " << idx;;
+        ASSERT_NEAR(sfi_update[idx].p3[0], expected_points[idx][0], is_close)
+        << " at surface " << sfi_update[idx] << ", " << sfi_init[idx];
+        ASSERT_NEAR(sfi_update[idx].p3[1], expected_points[idx][1], is_close) <<
+    " at surface " << sfi_update[idx] << ", " << sfi_init[idx];
+        ASSERT_NEAR(sfi_update[idx].p3[2], expected_points[idx][2], is_close)
+        << " at surface " << sfi_update[idx] << ", " << sfi_init[idx];
     }
 
     // Compare
-    ASSERT_EQ(sfi_init.size(), 5);
-    ASSERT_EQ(sfi_update.size(), 5);
-    for (int i = 0; i < 5; i++) {
+    ASSERT_EQ(sfi_init.size(), 5u);
+    ASSERT_EQ(sfi_update.size(), 5u);
+    for (unsigned int i = 0u; i < 5u; i++) {
         ASSERT_EQ(sfi_init[i].p3, sfi_update[i].p3);
         ASSERT_EQ(sfi_init[i].p2, sfi_update[i].p2);
         ASSERT_EQ(sfi_init[i].path, sfi_update[i].path);
@@ -227,7 +235,7 @@ TEST(tools, intersection_kernel_helix) {
     const point3 expected_annulus{0.03f, 0.03f, 30.f};
     const std::vector<point3> expected_points = {
         expected_rectangle, expected_trapezoid, expected_annulus};
-    std::vector<intersection2D<surface_t, transform3_t>> sfi_helix{};
+    std::vector<intersection2D_point<surface_t, transform3_t>> sfi_helix{};
 
     // Try the intersections - with automated dispatching via the kernel
     for (const auto [sf_idx, surface] : detray::views::enumerate(surfaces)) {

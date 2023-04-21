@@ -45,8 +45,8 @@ class unmasked {
     using measurement_point_type = loc_point_type<algebra_t>;
 
     /// Underlying surface geometry: planar
-    template <typename algebra_t>
-    using intersector_type = plane_intersector<algebra_t>;
+    template <typename intersection_t>
+    using intersector_type = plane_intersector<intersection_t>;
 
     /// Behaviour of the two local axes (linear in x, y)
     template <

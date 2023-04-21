@@ -42,8 +42,8 @@ enum material_ids : unsigned int {
 
 using mask_link_t = dtyped_index<mask_ids, dindex>;
 using material_link_t = dtyped_index<material_ids, dindex>;
-
 using plane_surface = surface<mask_link_t, material_link_t, transform3>;
+using intersection_t = intersection2D<plane_surface, transform3>;
 
 unsigned int theta_steps = 1000u;
 unsigned int phi_steps = 1000u;
@@ -69,8 +69,11 @@ static void BM_INTERSECT_PLANES(benchmark::State &state) {
         for (const auto ray : uniform_track_generator<detail::ray<transform3>>(
                  theta_steps, phi_steps, ori, 1.f)) {
 
+            using plane_t = typename decltype(planes)::value_type;
+
             for (const auto &plane : planes) {
-                auto pi = rect.intersector();
+                auto pi = rect.template intersector<
+                    intersection2D<plane_t, transform3>>();
                 auto is = pi(ray, plane, rect, plane.transform());
 
                 benchmark::DoNotOptimize(sfhit);
@@ -123,7 +126,7 @@ static void BM_INTERSECT_CYLINDERS(benchmark::State &state) {
                  theta_steps, phi_steps, ori, 1.f)) {
 
             for (const auto &cylinder : cylinders) {
-                auto ci = cylinder.intersector();
+                auto ci = cylinder.template intersector<intersection_t>();
                 auto inters = ci(ray, plane, cylinder, plane.transform());
 
                 benchmark::DoNotOptimize(sfhit);
@@ -155,20 +158,20 @@ static void BM_INTERSECT_PORTAL_CYLINDERS(benchmark::State &state) {
 
     using cylinder_mask = mask<cylinder2D<false, cylinder_portal_intersector>>;
 
-    unsigned int sfhit = 0;
-    unsigned int sfmiss = 0;
+    unsigned int sfhit = 0u;
+    unsigned int sfmiss = 0u;
     dvector<cylinder_mask> cylinders;
 
     for (scalar r : dists) {
-        cylinders.push_back(cylinder_mask{0UL, r, -10.f, 10.f});
+        cylinders.push_back(cylinder_mask{0u, r, -10.f, 10.f});
     }
 
-    mask_link_t mask_link{mask_ids::e_cylinder2, 0};
-    material_link_t material_link{material_ids::e_slab, 0};
-    plane_surface plane(transform3(), mask_link, material_link, 0, false,
+    mask_link_t mask_link{mask_ids::e_cylinder2, 0u};
+    material_link_t material_link{material_ids::e_slab, 0u};
+    plane_surface plane(transform3(), mask_link, material_link, 0u, false,
                         surface_id::e_sensitive);
 
-    const point3 ori = {0., 0., 0.};
+    const point3 ori = {0.f, 0.f, 0.f};
 
     for (auto _ : state) {
         benchmark::DoNotOptimize(sfhit);
@@ -179,7 +182,7 @@ static void BM_INTERSECT_PORTAL_CYLINDERS(benchmark::State &state) {
                  theta_steps, phi_steps, ori, 1.f)) {
 
             for (const auto &cylinder : cylinders) {
-                auto cpi = cylinder.intersector();
+                auto cpi = cylinder.template intersector<intersection_t>();
                 auto is = cpi(ray, plane, cylinder, plane.transform());
 
                 benchmark::DoNotOptimize(sfhit);
@@ -230,7 +233,7 @@ static void BM_INTERSECT_CONCETRIC_CYLINDERS(benchmark::State &state) {
                  theta_steps, phi_steps, ori, 1.f)) {
 
             for (const auto &cylinder : cylinders) {
-                auto cci = cylinder.intersector();
+                auto cci = cylinder.template intersector<intersection_t>();
                 auto is = cci(ray, plane, cylinder, plane.transform());
 
                 benchmark::DoNotOptimize(sfhit);

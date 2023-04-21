@@ -48,7 +48,7 @@ class volume_builder : public volume_builder_interface<detector_t> {
                   const array_type<scalar_type, 6>& bounds) override {
         det.volumes().emplace_back(id, bounds);
         m_volume = &(det.volumes().back());
-        m_volume->set_index(det.volumes().size() - 1);
+        m_volume->set_index(static_cast<dindex>(det.volumes().size()) - 1);
         m_volume->set_link(detector_t::sf_finders::id::e_default, 0);
     };
 
@@ -112,7 +112,7 @@ class volume_builder : public volume_builder_interface<detector_t> {
 
         // Update mask and transform index of surfaces and set a
         // unique barcode (index of surface in container)
-        auto sf_offset = det.surfaces().size();
+        auto sf_offset{static_cast<dindex>(det.surfaces().size())};
         for (auto& sf : m_surfaces) {
             det.mask_store().template visit<detail::mask_index_update>(
                 sf.mask(), sf);
@@ -131,7 +131,7 @@ class volume_builder : public volume_builder_interface<detector_t> {
             detector_t::sf_finders::id::e_brute_force};
         m_volume->template set_link<surface_id>(
             default_acc_id,
-            det.surface_store().template size<default_acc_id>() - 1);
+            det.surface_store().template size<default_acc_id>() - 1u);
 
         // Append masks
         det.append_masks(std::move(m_masks));
@@ -153,7 +153,7 @@ struct mask_index_update {
     DETRAY_HOST inline void operator()(const group_t& group,
                                        const index_t& /*index*/,
                                        surface_t& sf) const {
-        sf.update_mask(group.size());
+        sf.update_mask(static_cast<dindex>(group.size()));
     }
 };
 

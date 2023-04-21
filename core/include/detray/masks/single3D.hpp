@@ -61,8 +61,8 @@ class single3D {
     using measurement_point_type = loc_point_type<algebra_t>;
 
     /// Underlying surface geometry: planar
-    template <typename algebra_t>
-    using intersector_type = intersector_t<algebra_t>;
+    template <typename intersection_t>
+    using intersector_type = intersector_t<intersection_t>;
 
     /// Behaviour of the two local axes (linear in single coordinate x, y or z)
     template <n_axis::bounds e_s = n_axis::bounds::e_closed,

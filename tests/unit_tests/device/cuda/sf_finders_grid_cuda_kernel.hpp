@@ -129,7 +129,7 @@ void grid_attach_test(host_grid2_attach::view_type grid_view, std::size_t dim_x,
 // test function for a collection of grids
 void grid_collection_test(
     grid_collection<n_own_host_grid2_attach>::view_type grid_collection_view,
-    vecmem::data::vector_view<std::size_t> n_bins_view,
+    vecmem::data::vector_view<dindex> n_bins_view,
     vecmem::data::vector_view<std::array<dindex, 3>> result_bins_view,
     std::size_t n_grids, std::size_t dim_x, std::size_t dim_y,
     std::size_t dim_z);

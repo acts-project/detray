@@ -44,15 +44,18 @@ struct intersection_initialize {
         const transform_container_t &contextual_transforms,
         const scalar mask_tolerance = 0.f) const {
 
+        using intersection_t = typename is_container_t::value_type;
+
         const auto &ctf = contextual_transforms[surface.transform()];
 
         // Run over the masks that belong to the surface (only one can be hit)
         for (const auto &mask :
              detray::ranges::subrange(mask_group, mask_range)) {
 
-            if (place_in_collection(mask.intersector()(traj, surface, mask, ctf,
-                                                       mask_tolerance),
-                                    is_container)) {
+            if (place_in_collection(
+                    mask.template intersector<intersection_t>()(
+                        traj, surface, mask, ctf, mask_tolerance),
+                    is_container)) {
                 return;
             };
         }
@@ -63,12 +66,11 @@ struct intersection_initialize {
     DETRAY_HOST_DEVICE bool place_in_collection(
         typename is_container_t::value_type &&sfi,
         is_container_t &intersections) const {
-        if (sfi.status == intersection::status::e_inside) {
+        bool is_inside = (sfi.status == intersection::status::e_inside);
+        if (is_inside) {
             intersections.push_back(sfi);
-            return true;
-        } else {
-            return false;
         }
+        return is_inside;
     }
 
     template <typename is_container_t>
@@ -77,10 +79,11 @@ struct intersection_initialize {
         is_container_t &intersections) const {
         bool is_valid = false;
         for (auto &sfi : solutions) {
-            if (sfi.status == intersection::status::e_inside) {
+            bool is_inside = (sfi.status == intersection::status::e_inside);
+            if (is_inside) {
                 intersections.push_back(sfi);
-                is_valid = true;
             }
+            is_valid |= is_inside;
         }
         return is_valid;
     }
@@ -121,7 +124,8 @@ struct intersection_update {
         for (const auto &mask :
              detray::ranges::subrange(mask_group, mask_range)) {
 
-            mask.intersector().update(traj, sfi, mask, ctf, mask_tolerance);
+            mask.template intersector<intersection_t>().update(
+                traj, sfi, mask, ctf, mask_tolerance);
 
             if (sfi.status == intersection::status::e_inside) {
                 return true;

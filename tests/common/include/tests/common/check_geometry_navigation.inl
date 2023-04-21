@@ -26,13 +26,9 @@
 using namespace detray;
 using namespace navigation;
 
-namespace {
-
 using transform3_t = __plugin::transform3<scalar>;
 using ray_type = detail::ray<transform3_t>;
 using free_track_parameters_type = free_track_parameters<transform3_t>;
-
-}  // anonymous namespace
 
 /// This test runs intersection with all portals of the toy detector with a ray
 /// and then compares the intersection trace with a straight line navigation.
@@ -47,12 +43,12 @@ TEST(ALGEBRA_PLUGIN, straight_line_navigation) {
     // Straight line navigation
     using detector_t = decltype(det);
     using intersection_t =
-        intersection2D<typename detector_t::surface_type, transform3_t>;
+        intersection2D_point<typename detector_t::surface_type, transform3_t>;
     using object_tracer_t =
         object_tracer<intersection_t, dvector, status::e_on_module,
                       status::e_on_portal>;
     using inspector_t = aggregate_inspector<object_tracer_t, print_inspector>;
-    using navigator_t = navigator<detector_t, inspector_t>;
+    using navigator_t = navigator<detector_t, inspector_t, intersection_t>;
     using stepper_t =
         line_stepper<transform3_t, unconstrained_step, always_init>;
     using propagator_t = propagator<stepper_t, navigator_t, actor_chain<>>;
@@ -71,8 +67,8 @@ TEST(ALGEBRA_PLUGIN, straight_line_navigation) {
          uniform_track_generator<ray_type>(theta_steps, phi_steps, ori)) {
 
         // Shoot ray through the detector and record all surfaces it encounters
-        const auto intersection_trace =
-            particle_gun::shoot_particle(det, ray);  // :)
+        const auto intersection_trace = particle_gun::shoot_particle(
+            det, ray, 15.f * unit<typename detector_t::scalar_type>::um);
 
         // Now follow that ray with a track and check, if we find the same
         // volumes and distances along the way
@@ -131,9 +127,7 @@ TEST(ALGEBRA_PLUGIN, helix_navigation) {
     constexpr std::size_t n_edc_layers{7u};
     vecmem::host_memory_resource host_mr;
 
-    using b_field_t = decltype(
-        create_toy_geometry(std::declval<vecmem::host_memory_resource &>(),
-                            n_brl_layers, n_edc_layers))::bfield_type;
+    using b_field_t = detector<detector_registry::toy_detector>::bfield_type;
 
     const vector3 B{0.f * unit<scalar>::T, 0.f * unit<scalar>::T,
                     2.f * unit<scalar>::T};
@@ -146,12 +140,12 @@ TEST(ALGEBRA_PLUGIN, helix_navigation) {
     // Runge-Kutta based navigation
     using detector_t = decltype(det);
     using intersection_t =
-        intersection2D<typename detector_t::surface_type, transform3_t>;
+        intersection2D_point<typename detector_t::surface_type, transform3_t>;
     using object_tracer_t =
         object_tracer<intersection_t, dvector, status::e_on_module,
                       status::e_on_portal>;
     using inspector_t = aggregate_inspector<object_tracer_t, print_inspector>;
-    using navigator_t = navigator<detector_t, inspector_t>;
+    using navigator_t = navigator<detector_t, inspector_t, intersection_t>;
     using constraints_t = unconstrained_step;
     using stepper_t =
         rk_stepper<b_field_t::view_t, transform3_t, constraints_t>;
@@ -183,8 +177,8 @@ TEST(ALGEBRA_PLUGIN, helix_navigation) {
         detail::helix helix(track, &B);
 
         // Shoot ray through the detector and record all surfaces it encounters
-        const auto intersection_trace =
-            particle_gun::shoot_particle(det, helix);
+        const auto intersection_trace = particle_gun::shoot_particle(
+            det, helix, 14.9f * unit<typename detector_t::scalar_type>::um);
 
         // Now follow that helix with the same track and check, if we find
         // the same volumes and distances along the way
@@ -198,8 +192,10 @@ TEST(ALGEBRA_PLUGIN, helix_navigation) {
         ASSERT_TRUE(prop.propagate(propagation)) << debug_printer.to_string();
 
         std::stringstream debug_stream;
-        for (std::size_t intr_idx = 0u; intr_idx < intersection_trace.size();
-             ++intr_idx) {
+        std::size_t n_inters_nav{obj_tracer.object_trace.size()};
+        std::size_t max_entries{
+            std::max(n_inters_nav, intersection_trace.size())};
+        for (std::size_t intr_idx = 0u; intr_idx < max_entries; ++intr_idx) {
             debug_stream << "-------Intersection trace\n"
                          << "helix gun: "
                          << "\tvol id: " << intersection_trace[intr_idx].first
@@ -209,12 +205,11 @@ TEST(ALGEBRA_PLUGIN, helix_navigation) {
         }
 
         // Compare intersection records
-        std::size_t n_inters_nav{obj_tracer.object_trace.size()};
         EXPECT_EQ(n_inters_nav, intersection_trace.size())
             << debug_printer.to_string() << debug_stream.str();
 
         // Check every single recorded intersection
-        for (std::size_t i = 0u; i < n_inters_nav; ++i) {
+        for (std::size_t i = 0u; i < max_entries; ++i) {
             if (obj_tracer[i].surface.barcode() !=
                 intersection_trace[i].second.surface.barcode()) {
                 // Intersection record at portal bound might be flipped

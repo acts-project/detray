@@ -147,8 +147,8 @@ class ranged_bin
     ranged_bin(const content_t &bin_content, const dindex size)
         : base_type{bin_content}, n_elements{size} {}
 
-    constexpr std::size_t n_entries() { return n_elements; }
-    constexpr std::size_t n_entries() const { return n_elements; }
+    constexpr dindex n_entries() { return n_elements; }
+    constexpr dindex n_entries() const { return n_elements; }
 
     constexpr void push_back(
         const typename content_t::value_type &entry) noexcept {
@@ -157,7 +157,7 @@ class ranged_bin
     }
 
     protected:
-    std::size_t n_elements{0u};
+    dindex n_elements{0u};
 };
 
 /// A complete populator that adds elements to a bin content which contains an
@@ -188,7 +188,7 @@ struct completer {
     DETRAY_HOST_DEVICE void operator()(bin_storage_t &storage,
                                        const dindex gbin,
                                        const entry_t &entry) const noexcept {
-        for (std::size_t i{storage[gbin].n_entries()};
+        for (dindex i{storage[gbin].n_entries()};
              i < storage[gbin].content().size(); ++i) {
             storage[gbin].push_back(entry);
         }
@@ -223,8 +223,7 @@ struct completer {
 
         // The first entry always exists
         stored[0] = entry;
-        std::size_t n_elem =
-            entry == detail::invalid_value<entry_t>() ? 0u : 1u;
+        dindex n_elem = entry == detail::invalid_value<entry_t>() ? 0u : 1u;
 
         return {{stored}, n_elem};
     }
@@ -290,8 +289,7 @@ struct regular_attacher {
 
         // The first element always exists
         stored[0] = entry;
-        std::size_t n_elem =
-            entry == detail::invalid_value<entry_t>() ? 0u : 1u;
+        dindex n_elem = entry == detail::invalid_value<entry_t>() ? 0u : 1u;
 
         return {{stored}, n_elem};
     }
