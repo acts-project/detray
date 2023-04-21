@@ -46,6 +46,7 @@ struct cartesian2 final : public coordinate_base<cartesian2, transform3_t> {
     // Matrix types
     using free_to_bound_matrix = typename base_type::free_to_bound_matrix;
     using bound_to_free_matrix = typename base_type::bound_to_free_matrix;
+    using free_to_path_matrix = typename base_type::free_to_path_matrix;
 
     // Local point type in 2D cartesian coordinates
     using loc_point = point2;
@@ -105,6 +106,25 @@ struct cartesian2 final : public coordinate_base<cartesian2, transform3_t> {
     }
 
     template <typename mask_t>
+    DETRAY_HOST_DEVICE inline free_to_path_matrix path_derivative(
+        const transform3_t &trf3, const mask_t &mask, const point3 &pos,
+        const vector3 &dir) const {
+
+        free_to_path_matrix derivative =
+            matrix_operator().template zero<1u, e_free_size>();
+
+        const vector3 normal = this->normal(trf3, mask, pos, dir);
+
+        const vector3 pos_term = -1.f / vector::dot(normal, dir) * normal;
+
+        matrix_operator().element(derivative, 0u, e_free_pos0) = pos_term[0];
+        matrix_operator().element(derivative, 0u, e_free_pos1) = pos_term[1];
+        matrix_operator().element(derivative, 0u, e_free_pos2) = pos_term[2];
+
+        return derivative;
+    }
+
+    template <typename mask_t>
     DETRAY_HOST_DEVICE inline void set_bound_pos_to_free_pos_derivative(
         bound_to_free_matrix &bound_to_free_jacobian, const transform3_t &trf3,
         const mask_t &mask, const point3 &pos, const vector3 &dir) const {
@@ -144,6 +164,7 @@ struct cartesian2 final : public coordinate_base<cartesian2, transform3_t> {
         const point3 & /*pos*/, const vector3 & /*dir*/) const {
         // Do nothing
     }
+
 };  // struct cartesian2
 
 }  // namespace detray

@@ -135,9 +135,13 @@ TEST(helix_covariance_transport, cartesian2D) {
         free_trk.set_pos(is.p3);
         free_trk.set_dir(hlx.dir(path_length));
 
+        // dtds
+        const vector3 dtds = free_trk.qop() * vector::cross(free_trk.dir(), B);
+
         // Path correction
         const cartesian2<transform3>::free_matrix path_correction =
-            c2.path_correction(free_trk, trfs[next_index], rectangle, B);
+            c2.path_correction(free_trk.pos(), free_trk.dir(), dtds,
+                               trfs[next_index], rectangle);
 
         // Correction term for the path variation
         const cartesian2<transform3>::free_matrix correction_term =

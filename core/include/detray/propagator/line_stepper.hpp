@@ -33,6 +33,7 @@ class line_stepper final
         typename base_type::bound_track_parameters_type;
     using matrix_operator = typename base_type::matrix_operator;
     using size_type = typename matrix_operator::size_ty;
+    using vector3 = typename transform3_type::vector3;
     template <size_type ROWS, size_type COLS>
     using matrix_type =
         typename matrix_operator::template matrix_type<ROWS, COLS>;
@@ -77,6 +78,9 @@ class line_stepper final
 
             this->_jac_transport = D * this->_jac_transport;
         }
+
+        DETRAY_HOST_DEVICE
+        inline vector3 dtds() const { return vector3{0.f, 0.f, 0.f}; }
     };
 
     /// Take a step, regulared by a constrained step
