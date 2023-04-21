@@ -44,8 +44,8 @@ struct helix_intersection_initialize {
         const transform_container_t &contextual_transforms,
         const scalar mask_tolerance = 0.f) const {
 
+        using intersection_t = typename is_container_t::value_type;
         using mask_t = typename mask_group_t::value_type;
-        using transform3_t = typename transform_container_t::value_type;
 
         const auto &ctf = contextual_transforms[surface.transform()];
 
@@ -54,7 +54,7 @@ struct helix_intersection_initialize {
              detray::ranges::subrange(mask_group, mask_range)) {
 
             if (place_in_collection(
-                    helix_intersector<transform3_t, mask_t>()(
+                    helix_intersector<intersection_t, mask_t>()(
                         traj, surface, mask, ctf, mask_tolerance),
                     is_container)) {
                 return;

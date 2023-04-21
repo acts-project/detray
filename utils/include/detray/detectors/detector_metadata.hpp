@@ -34,18 +34,18 @@ struct volume_stats {
 };
 
 /// mask to (next) volume link: next volume(s)
-using volume_link_type = dindex;
+using nav_link = std::uint_least16_t;
 
 /// mask types
-using rectangle = mask<rectangle2D<>, volume_link_type>;
-using trapezoid = mask<trapezoid2D<>, volume_link_type>;
-using annulus = mask<annulus2D<>, volume_link_type>;
-using cylinder = mask<cylinder2D<true>, volume_link_type>;
+using rectangle = mask<rectangle2D<>, nav_link>;
+using trapezoid = mask<trapezoid2D<>, nav_link>;
+using annulus = mask<annulus2D<>, nav_link>;
+using cylinder = mask<cylinder2D<true>, nav_link>;
 using cylinder_portal =
-    mask<cylinder2D<false, cylinder_portal_intersector>, volume_link_type>;
-using disc = mask<ring2D<>, volume_link_type>;
-using unbounded_plane = mask<unmasked, volume_link_type>;
-using lines = mask<line<>, volume_link_type>;
+    mask<cylinder2D<false, cylinder_portal_intersector>, nav_link>;
+using disc = mask<ring2D<>, nav_link>;
+using unbounded_plane = mask<unmasked, nav_link>;
+using lines = mask<line<>, nav_link>;
 
 /// material types
 using slab = material_slab<detray::scalar>;
@@ -139,8 +139,8 @@ struct full_metadata {
     using mask_link = typename mask_store<>::single_link;
     using material_link = typename material_store<>::single_link;
     using source_link = dindex;
-    using surface_type =
-        surface<mask_link, material_link, transform_link, source_link>;
+    using surface_type = surface<mask_link, material_link, transform_link,
+                                 nav_link, source_link>;
 
     /// Surface finders
     enum class sf_finder_ids {
@@ -234,8 +234,8 @@ struct toy_metadata {
     using mask_link = typename mask_store<>::single_link;
     using material_link = typename material_store<>::single_link;
     using source_link = dindex;
-    using surface_type =
-        surface<mask_link, material_link, transform_link, source_link>;
+    using surface_type = surface<mask_link, material_link, transform_link,
+                                 nav_link, source_link>;
 
     /// Surface finders
     enum class sf_finder_ids {
@@ -339,8 +339,8 @@ struct telescope_metadata {
     using mask_link = typename mask_store<>::single_link;
     using material_link = typename material_store<>::single_link;
     using source_link = dindex;
-    using surface_type =
-        surface<mask_link, material_link, transform_link, source_link>;
+    using surface_type = surface<mask_link, material_link, transform_link,
+                                 nav_link, source_link>;
 
     /// Surface finders
     enum class sf_finder_ids {

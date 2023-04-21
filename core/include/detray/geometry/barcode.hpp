@@ -11,6 +11,7 @@
 // Project include(s)
 #include "detray/definitions/detail/bit_encoder.hpp"
 #include "detray/definitions/geometry.hpp"
+#include "detray/definitions/indexing.hpp"
 #include "detray/definitions/qualifiers.hpp"
 
 // System include(s)
@@ -49,8 +50,9 @@ class barcode {
 
     /// @returns the volume index.
     DETRAY_HOST_DEVICE
-    constexpr value_t volume() const {
-        return encoder::template get_bits<k_volume_mask>(m_value);
+    constexpr dindex volume() const {
+        return static_cast<dindex>(
+            encoder::template get_bits<k_volume_mask>(m_value));
     }
 
     /// @returns the surface id.
@@ -62,14 +64,16 @@ class barcode {
 
     /// @returns the surface index.
     DETRAY_HOST_DEVICE
-    constexpr value_t index() const {
-        return encoder::template get_bits<k_index_mask>(m_value);
+    constexpr dindex index() const {
+        return static_cast<dindex>(
+            encoder::template get_bits<k_index_mask>(m_value));
     }
 
     /// @returns the extra identifier
     DETRAY_HOST_DEVICE
-    constexpr value_t extra() const {
-        return encoder::template get_bits<k_extra_mask>(m_value);
+    constexpr dindex extra() const {
+        return static_cast<dindex>(
+            encoder::template get_bits<k_extra_mask>(m_value));
     }
 
     /// Set the volume index.
@@ -143,8 +147,8 @@ class barcode {
 
         static const char* const names[] = {
             "vol = ", "id = ", "index = ", "extra = "};
-        const value_t levels[] = {c.volume(), static_cast<value_t>(c.id()),
-                                  c.index(), c.extra()};
+        const dindex levels[] = {c.volume(), static_cast<dindex>(c.id()),
+                                 c.index(), c.extra()};
 
         bool writeSeparator = false;
         for (auto i = 0u; i < 4u; ++i) {

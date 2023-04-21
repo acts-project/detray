@@ -201,11 +201,11 @@ void grid_attach_read_test(const_host_grid2_attach::view_type grid_view,
 /// cuda kernel for grid_collection_test
 __global__ void grid_collection_test_kernel(
     grid_collection<n_own_host_grid2_attach>::view_type grid_coll_view,
-    vecmem::data::vector_view<std::size_t> n_bins_view,
+    vecmem::data::vector_view<dindex> n_bins_view,
     vecmem::data::vector_view<std::array<dindex, 3>> result_bins_view) {
     // Let's try building the grid object
     grid_collection<n_own_device_grid2_attach> device_coll(grid_coll_view);
-    vecmem::device_vector<std::size_t> n_bins(n_bins_view);
+    vecmem::device_vector<dindex> n_bins(n_bins_view);
     vecmem::device_vector<std::array<dindex, 3>> result_bins(result_bins_view);
 
     // test the grid axes of the second grid in the collection

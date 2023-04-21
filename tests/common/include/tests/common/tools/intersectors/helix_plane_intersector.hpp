@@ -26,14 +26,15 @@ namespace detail {
 ///
 /// The algorithm uses the Newton-Raphson method to find an intersection on
 /// the unbounded surface and then applies the mask.
-template <typename transform3_t>
+template <typename intersection_t>
 struct helix_plane_intersector {
 
-    using scalar_type = typename transform3_t::scalar_type;
-    using matrix_operator = typename transform3_t::matrix_actor;
-    using point3 = typename transform3_t::point3;
-    using vector3 = typename transform3_t::vector3;
-    using helix_type = detail::helix<transform3_t>;
+    using transform3_type = typename intersection_t::transform3_type;
+    using scalar_type = typename transform3_type::scalar_type;
+    using matrix_operator = typename transform3_type::matrix_actor;
+    using point3 = typename transform3_type::point3;
+    using vector3 = typename transform3_type::vector3;
+    using helix_type = detail::helix<transform3_type>;
 
     /// Operator function to find intersections between helix and planar mask
     ///
@@ -48,12 +49,11 @@ struct helix_plane_intersector {
     ///
     /// @return the intersection
     template <typename mask_t, typename surface_t>
-    DETRAY_HOST_DEVICE inline intersection2D<surface_t, transform3_t>
-    operator()(const helix_type &h, surface_t sf, const mask_t &mask,
-               const transform3_t &trf,
-               const scalar_type mask_tolerance = 0.f) const {
+    DETRAY_HOST_DEVICE inline intersection_t operator()(
+        const helix_type &h, const surface_t &sf, const mask_t &mask,
+        const transform3_type &trf,
+        const scalar_type mask_tolerance = 0.f) const {
 
-        using intersection_t = intersection2D<surface_t, transform3_t>;
         intersection_t sfi;
 
         // Guard against inifinite loops
@@ -92,6 +92,7 @@ struct helix_plane_intersector {
             return sfi;
         }
 
+        // Build intersection struct from helix parameters
         sfi.path = s;
         sfi.p3 = h.pos(s);
         sfi.p2 = mask.to_measurement_frame(trf, sfi.p3, h.dir(s));
@@ -113,16 +114,16 @@ struct helix_plane_intersector {
 }  // namespace detail
 
 /// Specialization of the @c helix_intersector for planar surfaces
-template <typename transform3_t, typename mask_t>
+template <typename intersection_t, typename mask_t>
 struct helix_intersector<
-    transform3_t, mask_t,
-    std::enable_if_t<std::is_same_v<typename mask_t::shape::
-                                        template intersector_type<transform3_t>,
-                                    plane_intersector<transform3_t>>,
-                     void>>
-    : public detail::helix_plane_intersector<transform3_t> {
+    intersection_t, mask_t,
+    std::enable_if_t<
+        std::is_same_v<
+            typename mask_t::shape::template intersector_type<intersection_t>,
+            plane_intersector<intersection_t>>,
+        void>> : public detail::helix_plane_intersector<intersection_t> {
 
-    using intersector_impl = detail::helix_plane_intersector<transform3_t>;
+    using intersector_impl = detail::helix_plane_intersector<intersection_t>;
 
     using scalar_type = typename intersector_impl::scalar_type;
     using matrix_operator = typename intersector_impl::matrix_operator;

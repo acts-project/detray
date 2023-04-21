@@ -146,8 +146,9 @@ class multi_store {
     /// @returns the size of a data collection by @tparam ID
     template <ID id>
     DETRAY_HOST_DEVICE constexpr auto size(
-        const context_type & /*ctx*/ = {}) const noexcept -> std::size_t {
-        return detail::get<value_types::to_index(id)>(m_tuple_container).size();
+        const context_type & /*ctx*/ = {}) const noexcept -> dindex {
+        return static_cast<dindex>(
+            detail::get<value_types::to_index(id)>(m_tuple_container).size());
     }
 
     /// @returns true if the collection given by @tparam ID is empty
@@ -302,7 +303,7 @@ class multi_store {
     DETRAY_HOST_DEVICE decltype(auto) visit(const link_t link,
                                             Args &&... args) const {
         return m_tuple_container.template visit<functor_t>(
-            value_types::to_index(detail::get<0>(link)), detail::get<1>(link),
+            static_cast<dindex>(detail::get<0>(link)), detail::get<1>(link),
             std::forward<Args>(args)...);
     }
 

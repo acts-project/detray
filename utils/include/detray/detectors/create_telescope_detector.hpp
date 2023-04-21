@@ -100,7 +100,7 @@ inline void create_cuboid_portals(context_t &ctx, const scalar pt_envelope,
     using vector3 = __plugin::vector3<detray::scalar>;
 
     using surface_t = typename surface_container_t::value_type;
-    using volume_link_t = typename surface_t::volume_link_type;
+    using nav_link_t = typename surface_t::navigation_link;
     using mask_link_t = typename surface_t::mask_link;
     using material_link_t = typename surface_t::material_link;
 
@@ -144,7 +144,7 @@ inline void create_cuboid_portals(context_t &ctx, const scalar pt_envelope,
 
     // Volume links for the portal descriptors and the masks
     const dindex volume_idx{volume.index()};
-    const volume_link_t volume_link{dindex_invalid};
+    const nav_link_t volume_link{detail::invalid_value<nav_link_t>()};
 
     // Construct portals in the...
 
@@ -250,7 +250,7 @@ inline void create_telescope(context_t &ctx, const trajectory_t &traj,
     using vector3 = __plugin::vector3<detray::scalar>;
 
     using surface_type = typename surface_container_t::value_type;
-    using volume_link_t = typename surface_type::volume_link_type;
+    using nav_link_t = typename surface_type::navigation_link;
     using mask_link_t = typename surface_type::mask_link;
     using material_link_t = typename surface_type::material_link;
 
@@ -264,7 +264,7 @@ inline void create_telescope(context_t &ctx, const trajectory_t &traj,
     // Create geometry data
     for (const auto &m_placement : m_placements) {
 
-        volume_link_t mask_volume_link{volume_idx};
+        auto mask_volume_link{static_cast<nav_link_t>(volume_idx)};
 
         // Surfaces with the linking into the local containers
         mask_link_t mask_link{mask_id, masks.template size<mask_id>()};

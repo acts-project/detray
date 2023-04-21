@@ -29,12 +29,13 @@ namespace detray {
 /// @tparam source_link_t the type of the source link representation
 template <typename mask_link_t = dtyped_index<dindex, dindex>,
           typename material_link_t = dtyped_index<dindex, dindex>,
-          typename transform_link_t = dindex, typename source_link_t = dindex>
+          typename transform_link_t = dindex,
+          typename navigation_link_t = dindex, typename source_link_t = dindex>
 class surface {
 
     public:
     /// Link type of the mask to a volume.
-    using volume_link_type = dindex;
+    using navigation_link = navigation_link_t;
     // Broadcast the type of links
     using transform_link = transform_link_t;
     /// might be a single mask, a range of masks or a multiindex in the future

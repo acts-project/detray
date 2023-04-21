@@ -183,7 +183,7 @@ class detector {
         const volume_id id, const array_type<scalar, 6> &bounds,
         typename volume_type::link_type::index_type srf_finder_link = {}) {
         volume_type &cvolume = _volumes.emplace_back(id, bounds);
-        cvolume.set_index(_volumes.size() - 1);
+        cvolume.set_index(static_cast<dindex>(_volumes.size()) - 1u);
         cvolume.set_link(srf_finder_link);
 
         return cvolume;
@@ -258,7 +258,7 @@ class detector {
     /// @returns surfaces of a given type (@tparam sf_id) by volume - const
     template <geo_obj_ids sf_id = geo_obj_ids::e_portal>
     DETRAY_HOST_DEVICE constexpr auto surfaces(const volume_type &v) const {
-        std::size_t coll_idx{v.template link<sf_id>().index()};
+        dindex coll_idx{v.template link<sf_id>().index()};
         const auto sf_coll =
             _surfaces.template get<sf_finders::id::e_brute_force>()[coll_idx];
         return sf_coll.all();
@@ -351,9 +351,10 @@ class detector {
 
         // Update mask, material and transform index of surfaces and set a
         // unique barcode (index of surface in container)
-        dindex sf_offset{_surfaces.template get<sf_finders::id::e_brute_force>()
-                             .all()
-                             .size()};
+        dindex sf_offset{static_cast<dindex>(
+            _surfaces.template get<sf_finders::id::e_brute_force>()
+                .all()
+                .size())};
         for (auto &sf : surfaces_per_vol) {
             _masks.template visit<detail::mask_index_update>(sf.mask(), sf);
             sf.update_transform(trf_offset);

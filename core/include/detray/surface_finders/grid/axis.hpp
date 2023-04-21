@@ -85,11 +85,11 @@ struct single_axis {
 
     /// @returns the total number of bins
     DETRAY_HOST_DEVICE
-    inline constexpr std::size_t nbins() const {
+    inline constexpr dindex nbins() const {
         // The open axis boundary has extra over- and underflow bins that are
         // automatically added beyond the axis span
         if constexpr (bounds_type::type == n_axis::bounds::e_open) {
-            return m_binning.nbins() + 2;
+            return m_binning.nbins() + 2u;
         } else {
             return m_binning.nbins();
         }

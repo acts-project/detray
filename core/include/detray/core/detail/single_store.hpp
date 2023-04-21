@@ -94,8 +94,8 @@ class single_store {
     /// @returns the size of the underlying container
     DETRAY_HOST_DEVICE
     constexpr auto size(const context_type & /*ctx*/ = {}) const noexcept
-        -> std::size_t {
-        return m_container.size();
+        -> dindex {
+        return static_cast<dindex>(m_container.size());
     }
 
     /// @returns true if the underlying container is empty

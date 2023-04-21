@@ -67,6 +67,9 @@ TEST(ALGEBRA_PLUGIN, toy_geometry_scan) {
     // Build the geometry (modeled as a unified index geometry)
     vecmem::host_memory_resource host_mr;
     auto toy_det = create_toy_geometry(host_mr);
+    using nav_link_t =
+        typename decltype(toy_det)::surface_type::navigation_link;
+    constexpr auto leaving_world{detail::invalid_value<nav_link_t>()};
 
     // Build the graph
     volume_graph graph(toy_det);
@@ -93,14 +96,15 @@ TEST(ALGEBRA_PLUGIN, toy_geometry_scan) {
             particle_gun::shoot_particle(toy_det, test_ray);
 
         // Create a trace of the volume indices that were encountered
-        auto [portal_trace, surface_trace] =
-            trace_intersections(intersection_record, start_index);
+        auto [portal_trace, surface_trace] = trace_intersections<leaving_world>(
+            intersection_record, start_index);
 
         // Is this a sensible trace to be further examined?
-        ASSERT_TRUE(check_connectivity(portal_trace));
+        ASSERT_TRUE(check_connectivity<leaving_world>(portal_trace));
 
         // Discover new linking information from this trace
-        build_adjacency(portal_trace, surface_trace, adj_mat_scan, obj_hashes);
+        build_adjacency<leaving_world>(portal_trace, surface_trace,
+                                       adj_mat_scan, obj_hashes);
     }
 
     // print_adj(adj_scan);
@@ -126,6 +130,9 @@ TEST(ALGEBRA_PLUGIN, telescope_geometry_scan) {
     const scalar length{500.f * unit<scalar>::mm};
     const auto tel_det =
         create_telescope_detector(host_mr, rectangle, n_surfaces, length);
+    using nav_link_t =
+        typename decltype(tel_det)::surface_type::navigation_link;
+    constexpr auto leaving_world{detail::invalid_value<nav_link_t>()};
 
     // Build the graph
     volume_graph graph(tel_det);
@@ -153,14 +160,15 @@ TEST(ALGEBRA_PLUGIN, telescope_geometry_scan) {
             particle_gun::shoot_particle(tel_det, test_ray);
 
         // Create a trace of the volume indices that were encountered
-        auto [portal_trace, surface_trace] =
-            trace_intersections(intersection_record, start_index);
+        auto [portal_trace, surface_trace] = trace_intersections<leaving_world>(
+            intersection_record, start_index);
 
         // Is this a sensible trace to be further examined?
-        ASSERT_TRUE(check_connectivity(portal_trace));
+        ASSERT_TRUE(check_connectivity<leaving_world>(portal_trace));
 
         // Discover new linking information from this trace
-        build_adjacency(portal_trace, surface_trace, adj_mat_scan, obj_hashes);
+        build_adjacency<leaving_world>(portal_trace, surface_trace,
+                                       adj_mat_scan, obj_hashes);
     }
 }
 

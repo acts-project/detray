@@ -9,10 +9,11 @@
 
 // Project include(s)
 #include "detray/definitions/containers.hpp"
+#include "detray/definitions/math.hpp"
 #include "detray/definitions/qualifiers.hpp"
+#include "detray/utils/invalid_values.hpp"
 
 // System include(s)
-#include <cmath>
 #include <limits>
 
 namespace detray::detail {
@@ -37,7 +38,7 @@ class quadratic_equation {
         const scalar_t a, const scalar_t b, const scalar_t c,
         const scalar_t tolerance = std::numeric_limits<scalar_t>::epsilon()) {
         // linear case
-        if (std::abs(a) <= tolerance) {
+        if (math_ns::abs(a) <= tolerance) {
             m_solutions = 1;
             m_values[0] = -c / b;
         } else {
@@ -46,7 +47,8 @@ class quadratic_equation {
             if (discriminant > tolerance) {
                 m_solutions = 2;
                 const scalar_t q{
-                    -0.5f * (b + std::copysign(std::sqrt(discriminant), b))};
+                    -0.5f *
+                    (b + detail::copysign(math_ns::sqrt(discriminant), b))};
                 m_values = {q / a, c / q};
                 // Sort the two solutions
                 if (m_values[0] > m_values[1]) {
@@ -74,8 +76,8 @@ class quadratic_equation {
     /// Number of solutions of the equation
     int m_solutions{0};
     /// The solutions
-    std::array<scalar_t, 2> m_values{std::numeric_limits<scalar_t>::infinity(),
-                                     std::numeric_limits<scalar_t>::infinity()};
+    std::array<scalar_t, 2> m_values{detail::invalid_value<scalar_t>(),
+                                     detail::invalid_value<scalar_t>()};
 };
 
 }  // namespace detray::detail

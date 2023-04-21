@@ -38,7 +38,7 @@ class file_handle final {
         // Count the new file
         ++n_files;
         ++n_open_files;
-        assert(n_files < std::numeric_limits<std::uint16_t>::max());
+        assert(n_files < std::numeric_limits<std::uint_least16_t>::max());
         assert(n_open_files < 1000u);
 
         // Open file

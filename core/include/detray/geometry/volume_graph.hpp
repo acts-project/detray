@@ -74,7 +74,7 @@ class volume_graph {
             node(const typename detector_t::volume_type &volume,
                  const surface_container_t &surfaces)
                 : _idx(volume.index()) {
-                std::size_t coll_idx{
+                dindex coll_idx{
                     volume.template link<geo_obj_ids::e_portal>().index()};
 
                 const auto sf_finder = surfaces.template get<
@@ -196,7 +196,7 @@ class volume_graph {
         iterator end() const { return iterator(_volumes.end(), _surfaces); }
 
         /// @returns the number of nodes
-        std::size_t size() const { return _volumes.size(); }
+        dindex size() const { return static_cast<dindex>(_volumes.size()); }
 
         const volume_container_t &_volumes;
         const surface_container_t &_surfaces;
@@ -210,7 +210,7 @@ class volume_graph {
     struct edge_generator
         : public detray::ranges::view_interface<edge_generator> {
         /// The link to the next volume
-        using mask_edge_t = typename detector_t::surface_type::volume_link_type;
+        using mask_edge_t = typename detector_t::surface_type::navigation_link;
         /// The link to the surfaces mask
         using mask_link_t = typename detector_t::surface_type::mask_link;
 
@@ -320,16 +320,16 @@ class volume_graph {
     ~volume_graph() = default;
 
     /// @return number of nodes
-    size_t n_nodes() const { return _nodes.size(); }
+    dindex n_nodes() const { return static_cast<dindex>(_nodes.size()); }
 
     /// @return node collection - const access. */
     const auto &nodes() const { return _nodes; }
 
     /// @return number of surfaces/portals in the geometry */
-    size_t n_edges(dindex volume_id) const {
+    dindex n_edges(dindex volume_id) const {
         const node_type n = _nodes[volume_id];
         // Number of half_edges is equal to number of edges for volume
-        return n.half_edges().size();
+        return static_cast<dindex>(n.half_edges().size());
     }
 
     /// @return edges collection - const access.
@@ -386,12 +386,12 @@ class volume_graph {
     /// @returns the linking description as a string.
     inline const std::string to_string() const {
         std::stringstream stream;
-        std::size_t dim = n_nodes() + 1;
+        dindex dim = n_nodes() + 1u;
         for (const auto &n : _nodes) {
             stream << "[>>] Node with index " << n.index() << std::endl;
             stream << " -> edges: " << std::endl;
-            for (std::size_t i = 0; i < dim; ++i) {
-                const auto degr = _adj_matrix[dim * n.index() + i];
+            for (unsigned int i = 0u; i < dim; ++i) {
+                const dindex degr = _adj_matrix[dim * n.index() + i];
                 if (degr == 0) {
                     continue;
                 }
@@ -399,7 +399,7 @@ class volume_graph {
                     degr > 1 ? "\t\t\t\t(" + std::to_string(degr) + "x)" : "";
 
                 // Edge that leads out of the detector world
-                if (i == dim - 1 and degr != 0) {
+                if (i == dim - 1u and degr != 0u) {
                     stream << "    -> leaving world " + n_occur << std::endl;
                 } else {
                     stream << "    -> " << std::to_string(i) + "\t" + n_occur
@@ -416,7 +416,7 @@ class volume_graph {
     /// Root node is always at zero.
     void build() {
         // Leave space for the world volume (links to dindex_invalid)
-        const std::size_t dim{n_nodes() + 1};
+        const dindex dim{n_nodes() + 1u};
         _adj_matrix.resize(dim * dim);
 
         for (const auto &n : _nodes) {
@@ -424,9 +424,11 @@ class volume_graph {
             for (const auto &edg_link : n.half_edges()) {
                 // Build an edge
                 for (const auto edg : _edges(n.index(), edg_link)) {
-                    const dindex elem = edg.to() < dindex_invalid
-                                            ? dim * n.index() + edg.to()
-                                            : dim * n.index() + dim - 1;
+                    const dindex elem =
+                        edg.to() < detail::invalid_value<
+                                       typename edge_generator::mask_edge_t>()
+                            ? dim * n.index() + edg.to()
+                            : dim * n.index() + dim - 1u;
                     _adj_matrix[elem]++;
                 }
             }
