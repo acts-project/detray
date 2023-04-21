@@ -7,6 +7,7 @@
 
 // Project include(s).
 #include "detray/definitions/units.hpp"
+#include "detray/geometry/surface.hpp"
 #include "detray/masks/masks.hpp"
 #include "detray/masks/unbounded.hpp"
 #include "detray/tracks/tracks.hpp"
@@ -21,6 +22,7 @@ using namespace detray;
 using matrix_operator = standard_matrix_operator<scalar>;
 using transform3 = __plugin::transform3<scalar>;
 using vector3 = typename transform3::vector3;
+using intersection_t = intersection2D_point<surface<>, transform3>;
 
 // Setups
 constexpr const scalar tolerance = scalar(2e-2);
@@ -30,7 +32,7 @@ const vector3 B{0.f, 0.f, 1.f * unit<scalar>::T};
 
 // Algebra objects
 constexpr const cartesian2<transform3> c2;
-constexpr const detail::helix_plane_intersector<transform3> hpi;
+constexpr const detail::helix_plane_intersector<intersection_t> hpi;
 
 /// Test the path correction on a rectangular surface (cartesian coordinates)
 TEST(helix_covariance_transport, cartesian2D) {
@@ -115,7 +117,7 @@ TEST(helix_covariance_transport, cartesian2D) {
                 c2.bound_to_free_jacobian(trfs[i_p], rectangle, bound_vec);
 
         // Get the intersection on the next surface
-        const auto is = hpi(hlx, dindex_invalid, rectangle, trfs[next_index]);
+        const auto is = hpi(hlx, surface<>{}, rectangle, trfs[next_index]);
         ASSERT_TRUE(is.status == intersection::status::e_inside);
 
         // Helical path length between two surfaces
@@ -133,9 +135,13 @@ TEST(helix_covariance_transport, cartesian2D) {
         free_trk.set_pos(is.p3);
         free_trk.set_dir(hlx.dir(path_length));
 
+        // dtds
+        const vector3 dtds = free_trk.qop() * vector::cross(free_trk.dir(), B);
+
         // Path correction
         const cartesian2<transform3>::free_matrix path_correction =
-            c2.path_correction(free_trk, trfs[next_index], rectangle, B);
+            c2.path_correction(free_trk.pos(), free_trk.dir(), dtds,
+                               trfs[next_index], rectangle);
 
         // Correction term for the path variation
         const cartesian2<transform3>::free_matrix correction_term =

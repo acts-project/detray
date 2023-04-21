@@ -38,7 +38,6 @@ class rk_stepper final
     using vector3 = typename transform3_type::vector3;
     using matrix_operator = typename base_type::matrix_operator;
     using mat_helper = matrix_helper<matrix_operator>;
-
     using free_track_parameters_type =
         typename base_type::free_track_parameters_type;
     using bound_track_parameters_type =
@@ -100,6 +99,9 @@ class rk_stepper final
         DETRAY_HOST_DEVICE
         inline vector3 evaluate_k(const vector3& b_field, const int i,
                                   const scalar h, const vector3& k_prev);
+
+        DETRAY_HOST_DEVICE
+        inline vector3 dtds() const { return this->_step_data.k4; }
     };
 
     /// Take a step, using an adaptive Runge-Kutta algorithm.

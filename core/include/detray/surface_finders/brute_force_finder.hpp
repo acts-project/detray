@@ -82,7 +82,7 @@ class brute_force_collection {
     /// Default constructor
     constexpr brute_force_collection() {
         // Start of first subrange
-        m_offsets.push_back(0);
+        m_offsets.push_back(0u);
     };
 
     /// Constructor from memory resource
@@ -90,7 +90,7 @@ class brute_force_collection {
     explicit constexpr brute_force_collection(vecmem::memory_resource* resource)
         : m_offsets(resource), m_surfaces(resource) {
         // Start of first subrange
-        m_offsets.push_back(0);
+        m_offsets.push_back(0u);
     }
 
     /// Device-side construction from a vecmem based view type
@@ -105,7 +105,7 @@ class brute_force_collection {
     DETRAY_HOST_DEVICE
     constexpr auto size() const noexcept -> size_type {
         // The start index of the first range is always present
-        return m_offsets.size() - 1;
+        return static_cast<dindex>(m_offsets.size()) - 1u;
     }
 
     /// @note outside of navigation, the number of elements is unknown
@@ -125,7 +125,7 @@ class brute_force_collection {
     /// Create brute force surface finder from surface container - const
     DETRAY_HOST_DEVICE
     auto operator[](const size_type i) const -> value_type {
-        return {m_surfaces, dindex_range{m_offsets[i], m_offsets[i + 1]}};
+        return {m_surfaces, dindex_range{m_offsets[i], m_offsets[i + 1u]}};
     }
 
     /// Add a new surface collection
@@ -141,7 +141,7 @@ class brute_force_collection {
         m_surfaces.reserve(m_surfaces.size() + surfaces.size());
         m_surfaces.insert(m_surfaces.end(), surfaces.begin(), surfaces.end());
         // End of this range is the start of the next range
-        m_offsets.push_back(m_surfaces.size());
+        m_offsets.push_back(static_cast<dindex>(m_surfaces.size()));
     }
 
     /// @return the view on the brute force finders - non-const

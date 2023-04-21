@@ -60,7 +60,7 @@ struct regular {
     /// @returns the total number of bins, which for the regular axis is simply
     /// the second entry in the range
     DETRAY_HOST_DEVICE
-    std::size_t nbins() const { return detray::detail::get<1>(*m_edges_range); }
+    dindex nbins() const { return detray::detail::get<1>(*m_edges_range); }
 
     /// Access function to a single bin from a value v
     ///
@@ -202,7 +202,7 @@ struct irregular {
 
     /// @returns the total number of bins
     DETRAY_HOST_DEVICE
-    std::size_t nbins() const {
+    dindex nbins() const {
         return detray::detail::get<1>(*m_edges_range) -
                detray::detail::get<0>(*m_edges_range);
     }

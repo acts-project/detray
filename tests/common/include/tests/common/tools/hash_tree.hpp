@@ -122,10 +122,10 @@ class hash_tree {
         // Size of the tree is already known (all iterators stay valid in
         // recursion)
         // we might need to add one dummy node per level
-        auto n_levels = static_cast<std::size_t>(std::log(input_data.size()));
+        auto n_levels = static_cast<dindex>(std::log(input_data.size()));
         _tree.reserve(2u * _tree.size() + n_levels);
         // Build next level
-        build(_tree.begin(), _tree.size());
+        build(_tree.begin(), static_cast<dindex>(_tree.size()));
     }
 
     /// Build the hash tree recursively.
@@ -133,7 +133,7 @@ class hash_tree {
     /// @param first_child the beginning of the nodes for which to construct
     ///                    the parents in this iteration.
     template <typename iterator_t>
-    void build(iterator_t &&first_child, std::size_t n_prev_level) {
+    void build(iterator_t &&first_child, dindex n_prev_level) {
         // base case
         if (n_prev_level <= 1u) {
             return;
@@ -150,15 +150,16 @@ class hash_tree {
             hashed_node parent = _tree.emplace_back(parent_digest);
 
             // Parent node index is at the back of the tree
-            current_child->set_parent(_tree.size() - 1u);
-            (current_child + 1)->set_parent(_tree.size() - 1u);
+            current_child->set_parent(static_cast<dindex>(_tree.size()) - 1u);
+            (current_child + 1)
+                ->set_parent(static_cast<dindex>(_tree.size()) - 1u);
 
             // Set the indices as distances in the contiguous container
             auto left_child_idx = std::distance(current_child, _tree.begin());
             parent.set_children(static_cast<dindex>(left_child_idx),
                                 static_cast<dindex>(left_child_idx) + 1u);
         }
-        std::size_t n_level = n_prev_level / 2u;
+        dindex n_level = n_prev_level / 2u;
         // Need dummy leaf node for next level?
         if (n_level % 2u != 0u and n_level > 1u) {
             _tree.emplace_back(0);

@@ -151,7 +151,7 @@ struct material_index_update {
     DETRAY_HOST inline void operator()(const group_t &group,
                                        const index_t & /*index*/,
                                        surface_t &sf) const {
-        sf.update_material(group.size());
+        sf.update_material(static_cast<dindex>(group.size()));
     }
 };
 

@@ -175,13 +175,12 @@ template <
                             typename detector_t::material_container &,
                             typename detector_t::transform_container &>,
         bool> = true>
-void create_cyl_volume(
-    detector_t &det, vecmem::memory_resource &resource,
-    typename detector_t::geometry_context &ctx, const scalar lay_inner_r,
-    const scalar lay_outer_r, const scalar lay_neg_z, const scalar lay_pos_z,
-    const std::vector<typename detector_t::surface_type::volume_link_type>
-        &volume_links,
-    factory_t &module_factory) {
+void create_cyl_volume(detector_t &det, vecmem::memory_resource &resource,
+                       typename detector_t::geometry_context &ctx,
+                       const scalar lay_inner_r, const scalar lay_outer_r,
+                       const scalar lay_neg_z, const scalar lay_pos_z,
+                       const std::vector<dindex> &volume_links,
+                       factory_t &module_factory) {
     // volume bounds
     const scalar inner_r{std::min(lay_inner_r, lay_outer_r)};
     const scalar outer_r{std::max(lay_inner_r, lay_outer_r)};
@@ -242,7 +241,7 @@ inline void create_barrel_modules(context_t &ctx, volume_type &vol,
                                   transform_container_t &transforms,
                                   config_t cfg) {
     using surface_type = typename surface_container_t::value_type;
-    using volume_link_t = typename surface_type::volume_link_type;
+    using nav_link_t = typename surface_type::navigation_link;
     using mask_id = typename surface_type::mask_id;
     using mask_link_type = typename surface_type::mask_link;
     using material_id = typename surface_type::material_id;
@@ -252,13 +251,13 @@ inline void create_barrel_modules(context_t &ctx, volume_type &vol,
     constexpr auto slab_id = material_id::e_slab;
 
     auto volume_idx = vol.index();
-    volume_link_t mask_volume_link{volume_idx};
+    auto mask_volume_link{static_cast<nav_link_t>(volume_idx)};
 
     // Create the module centers
 
     // surface grid bins
-    std::size_t n_phi_bins = cfg.m_binning.first;
-    std::size_t n_z_bins = cfg.m_binning.second;
+    unsigned int n_phi_bins = cfg.m_binning.first;
+    unsigned int n_z_bins = cfg.m_binning.second;
     // module positions
     detray::dvector<point3> m_centers;
     m_centers.reserve(n_phi_bins * n_z_bins);
@@ -274,13 +273,13 @@ inline void create_barrel_modules(context_t &ctx, volume_type &vol,
                   static_cast<scalar>(n_z_bins - 1)};
 
     // loop over the z bins
-    for (std::size_t z_bin = 0u; z_bin < n_z_bins; ++z_bin) {
+    for (unsigned int z_bin = 0u; z_bin < n_z_bins; ++z_bin) {
         // prepare z and r
         scalar m_z{z_start + static_cast<scalar>(z_bin) * z_step};
         scalar m_r{(z_bin % 2u) != 0u
                        ? cfg.layer_r - 0.5f * cfg.m_radial_stagger
                        : cfg.layer_r + 0.5f * cfg.m_radial_stagger};
-        for (std::size_t phiBin = 0u; phiBin < n_phi_bins; ++phiBin) {
+        for (unsigned int phiBin = 0u; phiBin < n_phi_bins; ++phiBin) {
             // calculate the current phi value
             scalar m_phi{min_phi + static_cast<scalar>(phiBin) * phi_step};
             m_centers.push_back(
@@ -347,8 +346,8 @@ inline void add_cylinder_grid(const typename detector_t::geometry_context &ctx,
         det.mask_store().template get<cyl_id>().at(portal_mask_idx);
 
     // approximate binning for the barrel sensors
-    std::size_t n_phi_bins{cfg.m_binning.first};
-    std::size_t n_z_bins{cfg.m_binning.second};
+    unsigned int n_phi_bins{cfg.m_binning.first};
+    unsigned int n_z_bins{cfg.m_binning.second};
 
     // Add new grid to the detector
     gbuilder.init_grid(cyl_mask, {n_phi_bins, n_z_bins});
@@ -418,7 +417,7 @@ inline auto module_positions_ring(scalar z, scalar radius, scalar phi_stagger,
                     static_cast<scalar>(n_phi_bins)};
     scalar min_phi{-constant<scalar>::pi + 0.5f * phi_step};
 
-    for (std::size_t iphi = 0; iphi < std::size_t(n_phi_bins); ++iphi) {
+    for (unsigned int iphi = 0u; iphi < n_phi_bins; ++iphi) {
         // if we have a phi sub stagger presents
         scalar rzs{0.f};
         // phi stagger affects 0 vs 1, 2 vs 3 ... etc
@@ -463,7 +462,7 @@ void create_endcap_modules(context_t &ctx, volume_type &vol,
                            material_container_t &materials,
                            transform_container_t &transforms, config_t cfg) {
     using surface_type = typename surface_container_t::value_type;
-    using volume_link_t = typename surface_type::volume_link_type;
+    using nav_link_t = typename surface_type::navigation_link;
     using mask_id = typename surface_type::mask_id;
     using mask_link_type = typename surface_type::mask_link;
     using material_id = typename surface_type::material_id;
@@ -473,7 +472,7 @@ void create_endcap_modules(context_t &ctx, volume_type &vol,
     constexpr auto slab_id = material_id::e_slab;
 
     auto volume_idx = vol.index();
-    volume_link_t mask_volume_link{volume_idx};
+    auto mask_volume_link{static_cast<nav_link_t>(volume_idx)};
 
     // calculate the radii of the rings
     std::vector<scalar> radii;
@@ -514,7 +513,7 @@ void create_endcap_modules(context_t &ctx, volume_type &vol,
     }
 
     // now build the modules in every ring
-    for (std::size_t ir = 0u; ir < radii.size(); ++ir) {
+    for (unsigned int ir = 0u; ir < radii.size(); ++ir) {
         // generate the z value
         // convention inner ring is closer to origin : makes sense
         scalar rz{radii.size() == 1u
@@ -580,13 +579,14 @@ void create_endcap_modules(context_t &ctx, volume_type &vol,
 template <typename detector_t>
 inline void add_beampipe(
     detector_t &det, vecmem::memory_resource &resource,
-    typename detector_t::geometry_context &ctx, const std::size_t n_edc_layers,
-    const std::size_t n_brl_layers,
+    typename detector_t::geometry_context &ctx, const unsigned int n_edc_layers,
+    const unsigned int n_brl_layers,
     const std::vector<std::pair<scalar, scalar>> &edc_lay_sizes,
     const std::pair<scalar, scalar> &beampipe_vol_size, const scalar beampipe_r,
     const scalar brl_half_z, const scalar edc_inner_r) {
 
-    const dindex leaving_world = dindex_invalid;
+    using nav_link_t = typename detector_t::surface_type::navigation_link;
+    constexpr auto leaving_world{detail::invalid_value<nav_link_t>()};
 
     scalar max_z{n_edc_layers == 0u ? brl_half_z
                                     : edc_lay_sizes[n_edc_layers - 1u].second};
@@ -605,8 +605,7 @@ inline void add_beampipe(
     beampipe.set_link(detector_t::sf_finders::id::e_default, 0u);
 
     // This is the beampipe surface
-    typename detector_t::surface_type::volume_link_type volume_link{
-        beampipe_idx};
+    dindex volume_link{beampipe_idx};
     add_cylinder_surface(beampipe_idx, ctx, surfaces, masks, materials,
                          transforms, beampipe_r, min_z, max_z, volume_link,
                          beryllium_tml<scalar>(), 0.8f * unit<scalar>::mm);
@@ -614,7 +613,7 @@ inline void add_beampipe(
     // Get vol sizes in z, including for gap volumes
     std::vector<std::pair<scalar, scalar>> vol_sizes{
         {brl_half_z, edc_lay_sizes[0].first}};
-    for (std::size_t i = 0u; i < n_edc_layers; ++i) {
+    for (unsigned int i = 0u; i < n_edc_layers; ++i) {
         vol_sizes.emplace_back(edc_lay_sizes[i].first, edc_lay_sizes[i].second);
         vol_sizes.emplace_back(edc_lay_sizes[i].second,
                                edc_lay_sizes[i + 1].first);
@@ -627,8 +626,8 @@ inline void add_beampipe(
         volume_link = ++link;
         add_cylinder_surface(
             beampipe_idx, ctx, surfaces, masks, materials, transforms,
-            edc_inner_r, -vol_sizes[static_cast<std::size_t>(i)].second,
-            -vol_sizes[static_cast<std::size_t>(i)].first, volume_link,
+            edc_inner_r, -vol_sizes[static_cast<unsigned int>(i)].second,
+            -vol_sizes[static_cast<unsigned int>(i)].first, volume_link,
             vacuum<scalar>(), 0.f * unit<scalar>::mm);
     }
 
@@ -640,7 +639,7 @@ inline void add_beampipe(
 
     // positive endcap portals
     link += 7u;
-    for (std::size_t i = 0u; i < vol_sizes.size(); ++i) {
+    for (unsigned int i = 0u; i < vol_sizes.size(); ++i) {
         volume_link = ++link;
         add_cylinder_surface(beampipe_idx, ctx, surfaces, masks, materials,
                              transforms, edc_inner_r, vol_sizes[i].second,
@@ -680,11 +679,15 @@ template <typename detector_t>
 inline void add_endcap_barrel_connection(
     detector_t &det, vecmem::memory_resource &resource,
     typename detector_t::geometry_context &ctx, const int side,
-    const std::size_t n_brl_layers, const dindex beampipe_idx,
+    const unsigned int n_brl_layers, const dindex beampipe_idx,
     const std::vector<std::pair<scalar, scalar>> &brl_lay_sizes,
     const scalar edc_inner_r, const scalar edc_outer_r,
     const scalar gap_lower_z, const scalar gap_upper_z, dindex brl_vol_idx,
     const dindex edc_vol_idx) {
+
+    using nav_link_t = typename detector_t::surface_type::navigation_link;
+    constexpr auto leaving_world{detail::invalid_value<nav_link_t>()};
+
     const scalar sign{static_cast<scalar>(side)};
     const scalar min_z{std::min(sign * gap_lower_z, sign * gap_upper_z)};
     const scalar max_z{std::max(sign * gap_lower_z, sign * gap_upper_z)};
@@ -701,10 +704,8 @@ inline void add_endcap_barrel_connection(
                                 -constant<scalar>::pi, constant<scalar>::pi});
     connector_gap.set_link(detector_t::sf_finders::id::e_default, 0u);
     dindex connector_gap_idx{det.volumes().back().index()};
-    dindex leaving_world = dindex_invalid;
 
-    typename detector_t::surface_type::volume_link_type volume_link = {
-        beampipe_idx};
+    dindex volume_link{beampipe_idx};
     add_cylinder_surface(connector_gap_idx, ctx, surfaces, masks, materials,
                          transforms, edc_inner_r, min_z, max_z, volume_link,
                          vacuum<scalar>(), 0.f * unit<scalar>::mm);
@@ -719,14 +720,14 @@ inline void add_endcap_barrel_connection(
 
     // Get vol sizes in z also for gap volumes
     std::vector<std::pair<scalar, scalar>> vol_sizes;
-    for (std::size_t i = 1u; i <= n_brl_layers; ++i) {
+    for (unsigned int i = 1u; i <= n_brl_layers; ++i) {
         vol_sizes.emplace_back(brl_lay_sizes[i].first, brl_lay_sizes[i].second);
         vol_sizes.emplace_back(brl_lay_sizes[i].second,
                                brl_lay_sizes[i + 1u].first);
     }
 
     volume_link = brl_vol_idx;
-    for (std::size_t i = 0u; i < 2u * n_brl_layers - 1u; ++i) {
+    for (unsigned int i = 0u; i < 2u * n_brl_layers - 1u; ++i) {
         volume_link = brl_vol_idx++;
         add_disc_surface(connector_gap_idx, ctx, surfaces, masks, materials,
                          transforms, vol_sizes[i].first, vol_sizes[i].second,
@@ -753,16 +754,17 @@ template <typename empty_vol_factory, typename edc_module_factory,
           typename detector_t, typename config_t>
 void add_endcap_detector(
     detector_t &det, vecmem::memory_resource &resource,
-    typename detector_t::geometry_context &ctx, std::size_t n_layers,
+    typename detector_t::geometry_context &ctx, dindex n_layers,
     dindex beampipe_idx,
     const std::vector<std::pair<scalar, scalar>> &lay_sizes,
     const std::vector<scalar> &lay_positions, config_t cfg) {
 
+    using nav_link_t = typename detector_t::surface_type::navigation_link;
+    constexpr auto leaving_world{detail::invalid_value<nav_link_t>()};
+
     // Generate consecutive linking between volumes (all volume_links for every
     // vol.)
-    using volume_link_t = typename detector_t::surface_type::volume_link_type;
-    std::vector<std::vector<volume_link_t>> volume_links_vec;
-    dindex leaving_world = dindex_invalid;
+    std::vector<std::vector<dindex>> volume_links_vec;
     dindex first_vol_idx = det.volumes().back().index() + 1u;
     dindex last_vol_idx = first_vol_idx + 2u * n_layers - 2u;
     dindex prev_vol_idx = first_vol_idx - 1u;
@@ -795,7 +797,7 @@ void add_endcap_detector(
     // Get vol sizes in z, including gap volumes
     std::vector<std::pair<scalar, scalar>> vol_sizes{
         {lay_sizes[0].first, lay_sizes[0].second}};
-    for (std::size_t i = 1u; i < n_layers; ++i) {
+    for (unsigned int i = 1u; i < n_layers; ++i) {
         vol_sizes.emplace_back(lay_sizes[i].first, lay_sizes[i - 1u].second);
         vol_sizes.emplace_back(lay_sizes[i].first, lay_sizes[i].second);
     }
@@ -819,7 +821,7 @@ void add_endcap_detector(
             create_cyl_volume(det, resource, ctx, cfg.inner_r, cfg.outer_r,
                               sign * (vol_size_itr + cfg.side * i)->first,
                               sign * (vol_size_itr + cfg.side * i)->second,
-                              volume_links_vec[static_cast<std::size_t>(i)],
+                              volume_links_vec[static_cast<unsigned int>(i)],
                               empty_factory);
 
         } else {
@@ -827,7 +829,7 @@ void add_endcap_detector(
             create_cyl_volume(det, resource, ctx, cfg.inner_r, cfg.outer_r,
                               sign * (vol_size_itr + cfg.side * i)->first,
                               sign * (vol_size_itr + cfg.side * i)->second,
-                              volume_links_vec[static_cast<std::size_t>(i)],
+                              volume_links_vec[static_cast<unsigned int>(i)],
                               m_factory);
             // add_disc_grid(ctx, det.volumes().back(), det, cfg);
         }
@@ -850,14 +852,16 @@ template <typename empty_vol_factory, typename brl_module_factory,
           typename detector_t, typename config_t>
 void add_barrel_detector(
     detector_t &det, vecmem::memory_resource &resource,
-    typename detector_t::geometry_context &ctx, const std::size_t n_layers,
+    typename detector_t::geometry_context &ctx, const unsigned int n_layers,
     dindex beampipe_idx, const scalar brl_half_z,
     const std::vector<std::pair<scalar, scalar>> &lay_sizes,
     const std::vector<scalar> &lay_positions,
     const std::vector<std::pair<int, int>> &m_binning, config_t cfg) {
 
+    using nav_link_t = typename detector_t::surface_type::navigation_link;
+    constexpr auto leaving_world{detail::invalid_value<nav_link_t>()};
+
     // Generate consecutive linking between volumes
-    dindex leaving_world = dindex_invalid;
     dindex first_vol_idx = det.volumes().back().index();
     dindex last_vol_idx = first_vol_idx + 2u * n_layers;
     dindex prev_vol_idx = first_vol_idx;
@@ -870,11 +874,10 @@ void add_barrel_detector(
     }
 
     // First barrel layer is connected to the beampipe
-    using volume_link_t = typename detector_t::surface_type::volume_link_type;
-    std::vector<std::vector<volume_link_t>> volume_links_vec{
+    std::vector<std::vector<dindex>> volume_links_vec{
         {beampipe_idx, next_vol_idx, first_vol_idx, last_vol_idx}};
 
-    for (std::size_t i = 1u; i < 2u * n_layers - 2u; ++i) {
+    for (unsigned int i = 1u; i < 2u * n_layers - 2u; ++i) {
         volume_links_vec.push_back(
             {++prev_vol_idx, ++next_vol_idx, first_vol_idx, last_vol_idx});
     }
@@ -885,7 +888,7 @@ void add_barrel_detector(
     // Get vol sizes in z, including gap volumes
     std::vector<std::pair<scalar, scalar>> vol_sizes{
         {lay_sizes[1].first, lay_sizes[1].second}};
-    for (std::size_t i = 2u; i < n_layers + 1u; ++i) {
+    for (unsigned int i = 2u; i < n_layers + 1u; ++i) {
         vol_sizes.emplace_back(lay_sizes[i].first, lay_sizes[i - 1u].second);
         vol_sizes.emplace_back(lay_sizes[i].first, lay_sizes[i].second);
     }
@@ -935,7 +938,8 @@ auto create_toy_geometry(
         detector<detector_registry::toy_detector, covfie::field, container_t>;
 
     /// Leaving world
-    constexpr dindex leaving_world{dindex_invalid};
+    using nav_link_t = typename detector_t::surface_type::navigation_link;
+    constexpr auto leaving_world{detail::invalid_value<nav_link_t>()};
 
     //
     // barrel

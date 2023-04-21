@@ -10,14 +10,15 @@
 // Project include(s)
 #include "detray/definitions/containers.hpp"
 #include "detray/definitions/qualifiers.hpp"
+#include "detray/utils/invalid_values.hpp"
 
 // System include(s)
 #include <limits>
 
 namespace detray {
 
-using dindex = unsigned long;
-inline constexpr dindex dindex_invalid = std::numeric_limits<dindex>::max();
+using dindex = unsigned int;
+inline constexpr dindex dindex_invalid = detail::invalid_value<dindex>();
 using dindex_range = darray<dindex, 2>;
 using dindex_sequence = dvector<dindex>;
 

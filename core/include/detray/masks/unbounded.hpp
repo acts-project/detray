@@ -48,9 +48,9 @@ class unbounded {
         typename shape::template measurement_point_type<algebra_t>;
 
     /// Underlying surface geometry
-    template <typename algebra_t>
+    template <typename intersection_t>
     using intersector_type =
-        typename shape::template intersector_type<algebra_t>;
+        typename shape::template intersector_type<intersection_t>;
 
     /// @brief Check boundary values for a local point.
     ///

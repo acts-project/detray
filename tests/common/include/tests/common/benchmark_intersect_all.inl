@@ -105,7 +105,7 @@ static void BM_INTERSECT_ALL(benchmark::State &state) {
                 hits += intersections.size();
                 missed += n_surfaces - intersections.size();
 
-                n_surfaces = 0;
+                n_surfaces = 0u;
                 intersections.clear();
             }
         }
