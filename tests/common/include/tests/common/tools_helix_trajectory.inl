@@ -49,20 +49,56 @@ TEST(tools, helix_trajectory) {
     scalar R{helix_traj.radius()};
     EXPECT_NEAR(R, pt / B_mag, tol);
 
-    // After half turn
-    point3 half_turn = helix_traj(p_mag / B_mag * constant<scalar>::pi);
+    // Path length for one loop
+    scalar S = 2.f * p_mag / B_mag * constant<scalar>::pi;
 
-    EXPECT_NEAR(half_turn[0], 0.f, R * tol);
-    EXPECT_NEAR(half_turn[1], 2.f * R, R * tol);
-    EXPECT_NEAR(half_turn[2], pz_along / B_mag * constant<scalar>::pi, R * tol);
+    // After half turn
+    point3 half_loop_pos = helix_traj(S / 2.f);
+    EXPECT_NEAR(half_loop_pos[0], 0.f, R * tol);
+    EXPECT_NEAR(half_loop_pos[1], 2.f * R, R * tol);
+    EXPECT_NEAR(half_loop_pos[2], pz_along / B_mag * constant<scalar>::pi,
+                R * tol);
+
+    point3 half_loop_dir = helix_traj.dir(S / 2.f);
+    EXPECT_NEAR(half_loop_dir[0], -vertex.dir()[0], R * tol);
+    EXPECT_NEAR(half_loop_dir[1], -vertex.dir()[1], R * tol);
+    EXPECT_NEAR(half_loop_dir[2], vertex.dir()[2], R * tol);
+
+    // After half turn in the opposite direction
+    half_loop_pos = helix_traj(-S / 2.f);
+    EXPECT_NEAR(half_loop_pos[0], 0.f, R * tol);
+    EXPECT_NEAR(half_loop_pos[1], 2.f * R, R * tol);
+    EXPECT_NEAR(half_loop_pos[2], -pz_along / B_mag * constant<scalar>::pi,
+                R * tol);
+
+    half_loop_dir = helix_traj.dir(-S / 2.f);
+    EXPECT_NEAR(half_loop_dir[0], -vertex.dir()[0], R * tol);
+    EXPECT_NEAR(half_loop_dir[1], -vertex.dir()[1], R * tol);
+    EXPECT_NEAR(half_loop_dir[2], vertex.dir()[2], R * tol);
 
     // After one full turn
-    point3 full_turn = helix_traj(2.f * p_mag / B_mag * constant<scalar>::pi);
-
-    EXPECT_NEAR(full_turn[0], 0.f, R * tol);
-    EXPECT_NEAR(full_turn[1], 0.f, R * tol);
-    EXPECT_NEAR(full_turn[2], 2.f * pz_along / B_mag * constant<scalar>::pi,
+    point3 one_loop_pos = helix_traj(S);
+    EXPECT_NEAR(one_loop_pos[0], 0.f, R * tol);
+    EXPECT_NEAR(one_loop_pos[1], 0.f, R * tol);
+    EXPECT_NEAR(one_loop_pos[2], 2.f * pz_along / B_mag * constant<scalar>::pi,
                 R * tol);
+
+    point3 one_loop_dir = helix_traj.dir(S);
+    EXPECT_NEAR(one_loop_dir[0], vertex.dir()[0], R * tol);
+    EXPECT_NEAR(one_loop_dir[1], vertex.dir()[1], R * tol);
+    EXPECT_NEAR(one_loop_dir[2], vertex.dir()[2], R * tol);
+
+    // After one full turn in the opposite direction
+    one_loop_pos = helix_traj(-S);
+    EXPECT_NEAR(one_loop_pos[0], 0.f, R * tol);
+    EXPECT_NEAR(one_loop_pos[1], 0.f, R * tol);
+    EXPECT_NEAR(one_loop_pos[2], -2.f * pz_along / B_mag * constant<scalar>::pi,
+                R * tol);
+
+    one_loop_dir = helix_traj.dir(-S);
+    EXPECT_NEAR(one_loop_dir[0], vertex.dir()[0], R * tol);
+    EXPECT_NEAR(one_loop_dir[1], vertex.dir()[1], R * tol);
+    EXPECT_NEAR(one_loop_dir[2], vertex.dir()[2], R * tol);
 }
 
 TEST(tools, helix_trajectory_small_pT) {
