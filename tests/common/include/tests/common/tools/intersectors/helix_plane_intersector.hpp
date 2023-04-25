@@ -69,8 +69,8 @@ struct helix_plane_intersector {
         const point3 st = getter::vector<3>(sm, 0u, 3u);
 
         // Starting point on the helix for the Newton iteration
-        scalar_type s{0.99f * getter::norm(st - h.pos(tol))};
-        scalar_type s_prev{0.95f * s};
+        scalar_type s{getter::norm(st - h.pos(0.f))};
+        scalar_type s_prev{0.f};
 
         // f(s) = sn * (h.pos(s) - st) == 0
         // Run the iteration on s

@@ -100,7 +100,7 @@ struct helix_line_intersector {
         // @NOTE Ray intersection algorithm is used for the initial guess on the
         // path length
         scalar_type s{1.f / denom * (Q - P * lt0)};
-        scalar_type s_prev{0.95f * s};
+        scalar_type s_prev{0.f};
 
         // Run the iteration on s
         std::size_t n_tries{0u};

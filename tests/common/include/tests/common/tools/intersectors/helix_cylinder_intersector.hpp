@@ -81,7 +81,7 @@ struct helix_cylinder_intersector
         // Try to guess the best starting positions for the iteration
 
         // Direction of the track at the helix origin
-        const auto h_dir = h.dir(tol);
+        const auto h_dir = h.dir(0.f);
         // Default starting path length for the Newton iteration (assumes
         // concentric cylinder)
         const scalar_type default_s{r * getter::perp(h_dir)};
@@ -98,13 +98,13 @@ struct helix_cylinder_intersector
         // Note: the default path length might be smaller than either solution
         switch (qe.solutions()) {
             case 2:
-                paths[1] = 0.95f * qe.larger();
+                paths[1] = qe.larger();
                 // If there are two solutions, reuse the case for a single
                 // solution to setup the intersection with the smaller path
                 // in ret[0]
                 [[fallthrough]];
             case 1:
-                paths[0] = 0.95f * qe.smaller();
+                paths[0] = qe.smaller();
         };
 
         // Obtain both possible solutions by looping over the (different)
@@ -116,7 +116,7 @@ struct helix_cylinder_intersector
             intersection_t &is = ret[i];
 
             // Path length in the previous iteration step
-            scalar_type s_prev{0.99f * s};
+            scalar_type s_prev{0.f};
 
             // f(s) = ((h.pos(s) - sc) x sz)^2 - r^2 == 0
             // Run the iteration on s
