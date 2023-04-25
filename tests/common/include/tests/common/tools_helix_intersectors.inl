@@ -13,6 +13,7 @@
 #include "detray/masks/unmasked.hpp"
 #include "detray/tracks/tracks.hpp"
 #include "tests/common/tools/intersectors/helix_cylinder_intersector.hpp"
+#include "tests/common/tools/intersectors/helix_line_intersector.hpp"
 #include "tests/common/tools/intersectors/helix_plane_intersector.hpp"
 
 // Google Test include(s).
@@ -237,4 +238,96 @@ TEST(tools, helix_cylinder_intersector) {
     EXPECT_NEAR(is[1].p3[0], pos_far[0], tol);
     EXPECT_NEAR(is[1].p3[1], pos_far[1], tol);
     EXPECT_NEAR(is[1].p3[2], pos_far[2], tol);
+}
+
+/// Test the intersection between a helical trajectory and a line
+TEST(tools, helix_line_intersector) {
+
+    // Intersector object
+    const detail::helix_line_intersector<intersection_t> hli;
+
+    // Get radius of track
+    const scalar R{hlx.radius()};
+
+    // Path length for pi/4
+    const scalar s0 = constant<scalar>::pi_2 * R;
+
+    // Wire properties
+    const scalar scope = 2.f * unit<scalar>::cm;
+    const scalar half_z = std::numeric_limits<scalar>::max();
+
+    // Straw wire
+    const mask<line<false>> straw_wire{0u, scope, half_z};
+
+    // Cell wire
+    const mask<line<true>> cell_wire{0u, scope, half_z};
+
+    // Offset to shift the translation of transform matrix
+    const scalar offset = 1.f * unit<scalar>::cm;
+
+    //---------------------
+    // Forward direction
+    //---------------------
+
+    // Reference point for transform matrix
+    const point3 r0_fw = hlx.pos(s0);
+
+    // Translation is shifted from reference point
+    const point3 trl_fw = r0_fw + vector3{offset, 0.f, 0.f};
+
+    // Transform matrix
+    const transform3_t trf_fw(trl_fw, z_axis, hlx.dir(s0));
+
+    // Get the intersection on the next surface
+    auto is = hli(hlx, surface<>{}, straw_wire, trf_fw, tol);
+
+    EXPECT_NEAR(is.path, s0, tol);
+    // track (helix) is at the left side w.r.t wire
+    EXPECT_NEAR(is.p2[0], offset, tol);
+    EXPECT_NEAR(is.p2[1], 0.f, tol);
+    EXPECT_EQ(is.status, intersection::status::e_inside);
+    EXPECT_EQ(is.direction, intersection::direction::e_along);
+
+    // Get the intersection on the next surface
+    is = hli(hlx, surface<>{}, cell_wire, trf_fw, tol);
+
+    EXPECT_NEAR(is.path, s0, tol);
+    // track (helix) is at the left side w.r.t wire
+    EXPECT_NEAR(is.p2[0], offset, tol);
+    EXPECT_NEAR(is.p2[1], 0.f, tol);
+    EXPECT_EQ(is.status, intersection::status::e_inside);
+    EXPECT_EQ(is.direction, intersection::direction::e_along);
+
+    //---------------------
+    // Backward direction
+    //---------------------
+
+    // Reference point for transform matrix
+    const point3 r0_bw = hlx.pos(-s0);
+
+    // Translation is shifted from reference point
+    const point3 trl_bw = r0_bw + vector3{offset, 0.f, 0.f};
+
+    // Transform matrix
+    const transform3_t trf_bw(trl_bw, z_axis, hlx.dir(-s0));
+
+    // Get the intersection on the next surface
+    is = hli(hlx, surface<>{}, straw_wire, trf_bw, tol);
+
+    EXPECT_NEAR(is.path, -s0, tol);
+    // track (helix) is at the right side w.r.t wire
+    EXPECT_NEAR(is.p2[0], -offset, tol);
+    EXPECT_NEAR(is.p2[1], 0.f, tol);
+    EXPECT_EQ(is.status, intersection::status::e_inside);
+    EXPECT_EQ(is.direction, intersection::direction::e_opposite);
+
+    // Get the intersection on the next surface
+    is = hli(hlx, surface<>{}, cell_wire, trf_bw, tol);
+
+    EXPECT_NEAR(is.path, -s0, tol);
+    // track (helix) is at the right side w.r.t wire
+    EXPECT_NEAR(is.p2[0], -offset, tol);
+    EXPECT_NEAR(is.p2[1], 0.f, tol);
+    EXPECT_EQ(is.status, intersection::status::e_inside);
+    EXPECT_EQ(is.direction, intersection::direction::e_opposite);
 }
