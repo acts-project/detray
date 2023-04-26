@@ -5,75 +5,55 @@
  * Mozilla Public License Version 2.0
  */
 
-// Project include(s)
+// Detray core include(s).
+#include "detray/definitions/containers.hpp"
 #include "detray/definitions/indexing.hpp"
 #include "detray/intersection/concentric_cylinder_intersector.hpp"
-#include "detray/intersection/cylinder_intersector.hpp"
 #include "detray/intersection/cylinder_portal_intersector.hpp"
 #include "detray/intersection/detail/trajectories.hpp"
 #include "detray/masks/masks.hpp"
-#include "detray/materials/material_slab.hpp"
+
+// Detray utility include(s).
 #include "detray/simulation/event_generator/track_generators.hpp"
-#include "tests/common/tools/test_surfaces.hpp"
+
+// Detray test include(s).
+#include "detray/test/planes_along_direction.hpp"
 
 // Google Benchmark include(s)
 #include <benchmark/benchmark.h>
 
-// System include(s)
-#include <fstream>
-
+// Use the detray:: namespace implicitly.
 using namespace detray;
 
-#ifdef DETRAY_BENCHMARKS_REP
-int gbench_repetitions = DETRAY_BENCHMARKS_REP;
-#else
-int gbench_repetitions = 0;
-#endif
+static const unsigned int theta_steps = 1000u;
+static const unsigned int phi_steps = 1000u;
 
-enum mask_ids : unsigned int {
-    e_rectangle2 = 0,
-    e_cylinder2 = 1,
-    e_conc_cylinder3 = 2,
-};
-
-enum material_ids : unsigned int {
-    e_slab = 0,
-};
-
-using mask_link_t = dtyped_index<mask_ids, dindex>;
-using material_link_t = dtyped_index<material_ids, dindex>;
-using plane_surface = surface<mask_link_t, material_link_t, transform3>;
-using intersection_t = intersection2D<plane_surface, transform3>;
-
-unsigned int theta_steps = 1000u;
-unsigned int phi_steps = 1000u;
-
-dvector<scalar> dists = {1.f, 2.f, 3.f, 4.f, 5.f, 6.f, 7.f, 8.f, 9.f, 10.f};
+static const dvector<scalar> dists = {1.f, 2.f, 3.f, 4.f, 5.f,
+                                      6.f, 7.f, 8.f, 9.f, 10.f};
 
 /// This benchmark runs intersection with the planar intersector
-static void BM_INTERSECT_PLANES(benchmark::State &state) {
+void BM_INTERSECT_PLANES(benchmark::State &state) {
 
     unsigned int sfhit = 0u;
     unsigned int sfmiss = 0u;
 
-    auto planes = planes_along_direction(
-        dists, vector::normalize(vector3{1.f, 1.f, 1.f}));
+    auto planes = test::planes_along_direction(
+        dists, vector::normalize(test::vector3{1.f, 1.f, 1.f}));
     constexpr mask<rectangle2D<>> rect{0u, 10.f, 20.f};
-    point3 ori = {0.f, 0.f, 0.f};
+    test::point3 ori = {0.f, 0.f, 0.f};
 
     for (auto _ : state) {
         benchmark::DoNotOptimize(sfhit);
         benchmark::DoNotOptimize(sfmiss);
 
         // Iterate through uniformly distributed momentum directions
-        for (const auto ray : uniform_track_generator<detail::ray<transform3>>(
+        for (const auto ray :
+             uniform_track_generator<detail::ray<test::transform3>>(
                  theta_steps, phi_steps, ori, 1.f)) {
 
-            using plane_t = typename decltype(planes)::value_type;
-
             for (const auto &plane : planes) {
-                auto pi = rect.template intersector<
-                    intersection2D<plane_t, transform3>>();
+                auto pi = rect.intersector<intersection2D<
+                    decltype(planes)::value_type, test::transform3>>();
                 auto is = pi(ray, plane, rect, plane.transform());
 
                 benchmark::DoNotOptimize(sfhit);
@@ -90,15 +70,33 @@ static void BM_INTERSECT_PLANES(benchmark::State &state) {
 }
 
 BENCHMARK(BM_INTERSECT_PLANES)
-#ifdef DETRAY_BENCHMARKS_MULTITHREAD
-    ->ThreadPerCpu()
+#ifdef DETRAY_BENCHMARK_MULTITHREAD
+    ->ThreadRange(1, benchmark::CPUInfo::Get().num_cpus)
 #endif
-    ->Unit(benchmark::kMillisecond)
-    ->Repetitions(gbench_repetitions)
-    ->DisplayAggregatesOnly(true);
+    ->Unit(benchmark::kMillisecond);
+
+namespace {
+
+enum mask_ids : unsigned int {
+    e_rectangle2 = 0,
+    e_cylinder2 = 1,
+    e_conc_cylinder3 = 2,
+};
+
+enum material_ids : unsigned int {
+    e_slab = 0,
+};
+
+}  // namespace
+
+using mask_link_t = dtyped_index<mask_ids, dindex>;
+using material_link_t = dtyped_index<material_ids, dindex>;
+
+using plane_surface = surface<mask_link_t, material_link_t, test::transform3>;
+using intersection_t = intersection2D<plane_surface, test::transform3>;
 
 /// This benchmark runs intersection with the cylinder intersector
-static void BM_INTERSECT_CYLINDERS(benchmark::State &state) {
+void BM_INTERSECT_CYLINDERS(benchmark::State &state) {
 
     using cylinder_mask = mask<cylinder2D<true, cylinder_intersector>>;
 
@@ -112,21 +110,22 @@ static void BM_INTERSECT_CYLINDERS(benchmark::State &state) {
 
     mask_link_t mask_link{mask_ids::e_cylinder2, 0};
     material_link_t material_link{material_ids::e_slab, 0};
-    plane_surface plane(transform3(), mask_link, material_link, 0u, false,
+    plane_surface plane(test::transform3(), mask_link, material_link, 0u, false,
                         surface_id::e_sensitive);
 
-    const point3 ori = {0.f, 0.f, 0.f};
+    const test::point3 ori = {0.f, 0.f, 0.f};
 
     for (auto _ : state) {
         benchmark::DoNotOptimize(sfhit);
         benchmark::DoNotOptimize(sfmiss);
 
         // Iterate through uniformly distributed momentum directions
-        for (const auto ray : uniform_track_generator<detail::ray<transform3>>(
+        for (const auto ray :
+             uniform_track_generator<detail::ray<test::transform3>>(
                  theta_steps, phi_steps, ori, 1.f)) {
 
             for (const auto &cylinder : cylinders) {
-                auto ci = cylinder.template intersector<intersection_t>();
+                auto ci = cylinder.intersector<intersection_t>();
                 auto inters = ci(ray, plane, cylinder, plane.transform());
 
                 benchmark::DoNotOptimize(sfhit);
@@ -146,15 +145,13 @@ static void BM_INTERSECT_CYLINDERS(benchmark::State &state) {
 
 BENCHMARK(BM_INTERSECT_CYLINDERS)
 #ifdef DETRAY_BENCHMARKS_MULTITHREAD
-    ->ThreadPerCpu()
+    ->ThreadRange(1, benchmark::CPUInfo::Get().num_cpus)
 #endif
-    ->Unit(benchmark::kMillisecond)
-    ->Repetitions(gbench_repetitions)
-    ->DisplayAggregatesOnly(true);
+    ->Unit(benchmark::kMillisecond);
 
 /// This benchmark runs intersection with a specialized portal cylinder
 /// intersector
-static void BM_INTERSECT_PORTAL_CYLINDERS(benchmark::State &state) {
+void BM_INTERSECT_PORTAL_CYLINDERS(benchmark::State &state) {
 
     using cylinder_mask = mask<cylinder2D<false, cylinder_portal_intersector>>;
 
@@ -168,21 +165,22 @@ static void BM_INTERSECT_PORTAL_CYLINDERS(benchmark::State &state) {
 
     mask_link_t mask_link{mask_ids::e_cylinder2, 0u};
     material_link_t material_link{material_ids::e_slab, 0u};
-    plane_surface plane(transform3(), mask_link, material_link, 0u, false,
+    plane_surface plane(test::transform3(), mask_link, material_link, 0u, false,
                         surface_id::e_sensitive);
 
-    const point3 ori = {0.f, 0.f, 0.f};
+    const test::point3 ori = {0.f, 0.f, 0.f};
 
     for (auto _ : state) {
         benchmark::DoNotOptimize(sfhit);
         benchmark::DoNotOptimize(sfmiss);
 
         // Iterate through uniformly distributed momentum directions
-        for (const auto ray : uniform_track_generator<detail::ray<transform3>>(
+        for (const auto ray :
+             uniform_track_generator<detail::ray<test::transform3>>(
                  theta_steps, phi_steps, ori, 1.f)) {
 
             for (const auto &cylinder : cylinders) {
-                auto cpi = cylinder.template intersector<intersection_t>();
+                auto cpi = cylinder.intersector<intersection_t>();
                 auto is = cpi(ray, plane, cylinder, plane.transform());
 
                 benchmark::DoNotOptimize(sfhit);
@@ -199,15 +197,13 @@ static void BM_INTERSECT_PORTAL_CYLINDERS(benchmark::State &state) {
 }
 
 BENCHMARK(BM_INTERSECT_PORTAL_CYLINDERS)
-#ifdef DETRAY_BENCHMARKS_MULTITHREAD
-    ->ThreadPerCpu()
+#ifdef DETRAY_BENCHMARK_MULTITHREAD
+    ->ThreadRange(1, benchmark::CPUInfo::Get().num_cpus)
 #endif
-    ->Unit(benchmark::kMillisecond)
-    ->Repetitions(gbench_repetitions)
-    ->DisplayAggregatesOnly(true);
+    ->Unit(benchmark::kMillisecond);
 
 /// This benchmark runs intersection with the concentric cylinder intersector
-static void BM_INTERSECT_CONCETRIC_CYLINDERS(benchmark::State &state) {
+void BM_INTERSECT_CONCETRIC_CYLINDERS(benchmark::State &state) {
     unsigned int sfhit = 0u;
     unsigned int sfmiss = 0u;
 
@@ -221,19 +217,20 @@ static void BM_INTERSECT_CONCETRIC_CYLINDERS(benchmark::State &state) {
 
     mask_link_t mask_link{mask_ids::e_conc_cylinder3, 0u};
     material_link_t material_link{material_ids::e_slab, 0u};
-    plane_surface plane(transform3(), mask_link, material_link, 0u, false,
+    plane_surface plane(test::transform3(), mask_link, material_link, 0u, false,
                         surface_id::e_sensitive);
 
-    const point3 ori = {0.f, 0.f, 0.f};
+    const test::point3 ori = {0.f, 0.f, 0.f};
 
     for (auto _ : state) {
 
         // Iterate through uniformly distributed momentum directions
-        for (const auto ray : uniform_track_generator<detail::ray<transform3>>(
+        for (const auto ray :
+             uniform_track_generator<detail::ray<test::transform3>>(
                  theta_steps, phi_steps, ori, 1.f)) {
 
             for (const auto &cylinder : cylinders) {
-                auto cci = cylinder.template intersector<intersection_t>();
+                auto cci = cylinder.intersector<intersection_t>();
                 auto is = cci(ray, plane, cylinder, plane.transform());
 
                 benchmark::DoNotOptimize(sfhit);
@@ -250,11 +247,7 @@ static void BM_INTERSECT_CONCETRIC_CYLINDERS(benchmark::State &state) {
 }
 
 BENCHMARK(BM_INTERSECT_CONCETRIC_CYLINDERS)
-#ifdef DETRAY_BENCHMARKS_MULTITHREAD
-    ->ThreadPerCpu()
+#ifdef DETRAY_BENCHMARK_MULTITHREAD
+    ->ThreadRange(1, benchmark::CPUInfo::Get().num_cpus)
 #endif
-    ->Unit(benchmark::kMillisecond)
-    ->Repetitions(gbench_repetitions)
-    ->DisplayAggregatesOnly(true);
-
-BENCHMARK_MAIN();
+    ->Unit(benchmark::kMillisecond);
