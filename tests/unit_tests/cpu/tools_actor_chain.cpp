@@ -1,23 +1,24 @@
 /** Detray library, part of the ACTS project (R&D line)
  *
- * (c) 2022 CERN for the benefit of the ACTS project
+ * (c) 2022-2023 CERN for the benefit of the ACTS project
  *
  * Mozilla Public License Version 2.0
  */
 
+// Project include(s).
+#include "detray/propagator/actor_chain.hpp"
+
+#include "detray/definitions/units.hpp"
+#include "detray/propagator/base_actor.hpp"
+
+// GTest include(s).
 #include <gtest/gtest.h>
 
+// System include(s).
 #include <sstream>
 #include <string>
 
-#include "detray/definitions/units.hpp"
-#include "detray/propagator/actor_chain.hpp"
-#include "detray/propagator/base_actor.hpp"
-
-namespace {
-
 using namespace detray;
-using namespace __plugin;
 
 /// Actor that prints its call chain and subject data
 struct print_actor : detray::actor {
@@ -112,10 +113,8 @@ using observer_lvl2 = composite_actor<dtuple, example_actor_t, observer_lvl3,
 using observer_lvl1 = composite_actor<dtuple, print_actor, observer_lvl2>;
 using chain = composite_actor<dtuple, example_actor_t, observer_lvl1>;
 
-}  // anonymous namespace
-
 // Test the actor chain on some dummy actor types
-TEST(ALGEBRA_PLUGIN, actor_chain) {
+GTEST_TEST(detray_tools, actor_chain) {
 
     // The actor states (can be reused between actors)
     example_actor_t::state example_state{};

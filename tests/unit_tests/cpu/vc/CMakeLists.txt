@@ -6,7 +6,6 @@
 
 # Set up all of the "standard" tests.
 detray_add_test( vc_array
-   "vc_array_actor_chain.cpp"
    "vc_array_annulus2D.cpp"
    "vc_array_axis_rotation.cpp"
    "vc_array_bounding_volume.cpp"

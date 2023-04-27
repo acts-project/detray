@@ -6,7 +6,6 @@
 
 # Set up all of the "standard" tests.
 detray_add_test( eigen
-   "eigen_actor_chain.cpp"
    "eigen_annulus2D.cpp"
    "eigen_axis_rotation.cpp"
    "eigen_bounding_volume.cpp"
