@@ -15,6 +15,7 @@ detray_add_test( cpu
 macro( detray_add_cpu_test algebra )
    # Build the test executable.
    detray_add_test( cpu_${algebra}
+      "axis_rotation.cpp"
       "tools_bounding_volume.cpp"
       LINK_LIBRARIES GTest::gtest GTest::gtest_main detray::core_${algebra}
                      detray::test )

@@ -7,7 +7,6 @@
 # Set up all of the "standard" tests.
 detray_add_test( eigen
    "eigen_annulus2D.cpp"
-   "eigen_axis_rotation.cpp"
    "eigen_brute_force_finder.cpp"
    "eigen_check_simulation.cpp"
    "eigen_coordinate_cartesian2.cpp"
