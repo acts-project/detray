@@ -11,7 +11,6 @@ detray_add_test( array
    "array_bounding_volume.cpp"
    "array_brute_force_finder.cpp"
    "array_check_simulation.cpp"
-   "array_container.cpp"
    "array_coordinate_cartesian2.cpp"
    "array_coordinate_cartesian3.cpp"
    "array_coordinate_cylindrical2.cpp"

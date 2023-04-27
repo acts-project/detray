@@ -11,7 +11,6 @@ detray_add_test( vc_array
    "vc_array_bounding_volume.cpp"
    "vc_array_brute_force_finder.cpp"
    "vc_array_check_simulation.cpp"
-   "vc_array_container.cpp"
    "vc_array_coordinate_cartesian2.cpp"
    "vc_array_coordinate_cartesian3.cpp"
    "vc_array_coordinate_cylindrical2.cpp"
