@@ -6,9 +6,8 @@
  */
 
 // Project include(s).
-#include "detray/propagator/actor_chain.hpp"
-
 #include "detray/definitions/units.hpp"
+#include "detray/propagator/actor_chain.hpp"
 #include "detray/propagator/base_actor.hpp"
 
 // GTest include(s).

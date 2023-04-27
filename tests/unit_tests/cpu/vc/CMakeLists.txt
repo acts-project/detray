@@ -24,7 +24,6 @@ detray_add_test( vc_array
    "vc_array_cylinder.cpp"
    "vc_array_detector.cpp"
    "vc_array_energy_loss.cpp"
-   "vc_array_geometry_barcode.cpp"
    "vc_array_geometry_volume_graph.cpp"
    "vc_array_geometry_linking.cpp"
    "vc_array_geometry_navigation.cpp"

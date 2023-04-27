@@ -6,6 +6,7 @@
 
 # Set up the test(s) that are algebra agnostic.
 detray_add_test( cpu
+   "core_barcode.cpp"
    "core_container.cpp"
    "tools_actor_chain.cpp"
    LINK_LIBRARIES GTest::gtest GTest::gtest_main detray::core )
