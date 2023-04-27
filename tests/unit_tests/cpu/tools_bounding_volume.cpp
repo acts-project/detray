@@ -5,13 +5,15 @@
  * Mozilla Public License Version 2.0
  */
 
-#include <gtest/gtest.h>
-
+// Project include(s).
 #include "detray/definitions/units.hpp"
+#include "detray/test/types.hpp"
 #include "detray/tools/bounding_volume.hpp"
 
+// Google test include(s).
+#include <gtest/gtest.h>
+
 using namespace detray;
-using namespace __plugin;
 
 namespace {
 
@@ -24,7 +26,7 @@ constexpr scalar tol{1e-5f};
 }  // anonymous namespace
 
 /// This tests the basic functionality cuboid axis aligned bounding box
-TEST(tools, bounding_cuboid3D) {
+GTEST_TEST(detray_tools, bounding_cuboid3D) {
     using point_t = typename mask<cylinder3D>::loc_point_t;
 
     // cuboid
@@ -60,7 +62,7 @@ TEST(tools, bounding_cuboid3D) {
 }
 
 /// This tests the basic functionality cylindrical axis aligned bounding box
-TEST(tools, bounding_cylinder3D) {
+GTEST_TEST(detray_tools, bounding_cylinder3D) {
     using point_t = typename mask<cylinder3D>::loc_point_t;
 
     // cylinder
@@ -97,9 +99,9 @@ TEST(tools, bounding_cylinder3D) {
 }
 
 /// This tests the basic functionality of an aabb around a stereo annulus
-TEST(tools, annulus2D_aabb) {
+GTEST_TEST(detray_tools, annulus2D_aabb) {
 
-    using transform3_t = __plugin::transform3<scalar>;
+    using transform3_t = test::transform3;
     using vector3_t = typename transform3_t::vector3;
 
     constexpr scalar minR{7.2f * unit<scalar>::mm};
@@ -134,9 +136,9 @@ TEST(tools, annulus2D_aabb) {
 }
 
 /// This tests the basic functionality of an aabb around a cylinder
-TEST(tools, cylinder2D_aabb) {
+GTEST_TEST(detray_tools, cylinder2D_aabb) {
 
-    using transform3_t = __plugin::transform3<scalar>;
+    using transform3_t = test::transform3;
     using vector3_t = typename transform3_t::vector3;
 
     constexpr scalar r{3.f * unit<scalar>::mm};
@@ -163,9 +165,9 @@ TEST(tools, cylinder2D_aabb) {
 }
 
 /// This tests the basic functionality of an aabb around a line
-TEST(tools, line2D_aabb) {
+GTEST_TEST(detray_tools, line2D_aabb) {
 
-    using transform3_t = __plugin::transform3<scalar>;
+    using transform3_t = test::transform3;
     using vector3_t = typename transform3_t::vector3;
 
     constexpr scalar cell_size{1.f * unit<scalar>::mm};
@@ -213,9 +215,9 @@ TEST(tools, line2D_aabb) {
 }
 
 /// This tests the basic functionality of an aabb around a rectangle
-TEST(tools, rectangle2D_aabb) {
+GTEST_TEST(detray_tools, rectangle2D_aabb) {
 
-    using transform3_t = __plugin::transform3<scalar>;
+    using transform3_t = test::transform3;
     using vector3_t = typename transform3_t::vector3;
 
     constexpr scalar hx{1.f * unit<scalar>::mm};
@@ -242,9 +244,9 @@ TEST(tools, rectangle2D_aabb) {
 }
 
 /// This tests the basic functionality of an aabb around a rectangle
-TEST(tools, ring2D_aabb) {
+GTEST_TEST(detray_tools, ring2D_aabb) {
 
-    using transform3_t = __plugin::transform3<scalar>;
+    using transform3_t = test::transform3;
     using vector3_t = typename transform3_t::vector3;
 
     constexpr scalar inner_r{0.f * unit<scalar>::mm};
@@ -275,9 +277,9 @@ TEST(tools, ring2D_aabb) {
 }
 
 /// This tests the basic functionality of an aabb around a rectangle
-TEST(tools, trapezoid2D_aabb) {
+GTEST_TEST(detray_tools, trapezoid2D_aabb) {
 
-    using transform3_t = __plugin::transform3<scalar>;
+    using transform3_t = test::transform3;
     using vector3_t = typename transform3_t::vector3;
 
     constexpr scalar hx_miny{1.f * unit<scalar>::mm};
@@ -308,7 +310,7 @@ TEST(tools, trapezoid2D_aabb) {
 }
 
 /// This tests wrapping a collection of cuboid bounding volumes
-TEST(tools, wrap_bounding_cuboid3D) {
+GTEST_TEST(detray_tools, wrap_bounding_cuboid3D) {
     using box_t = axis_aligned_bounding_volume<cuboid3D<>>;
 
     box_t b1{0u, -1.f, 0.f, -10.f, -0.5f, 1.f, 0.f};
