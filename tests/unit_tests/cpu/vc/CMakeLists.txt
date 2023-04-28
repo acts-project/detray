@@ -6,13 +6,9 @@
 
 # Set up all of the "standard" tests.
 detray_add_test( vc_array
-   "vc_array_actor_chain.cpp"
    "vc_array_annulus2D.cpp"
-   "vc_array_axis_rotation.cpp"
-   "vc_array_bounding_volume.cpp"
    "vc_array_brute_force_finder.cpp"
    "vc_array_check_simulation.cpp"
-   "vc_array_container.cpp"
    "vc_array_coordinate_cartesian2.cpp"
    "vc_array_coordinate_cartesian3.cpp"
    "vc_array_coordinate_cylindrical2.cpp"
@@ -26,7 +22,6 @@ detray_add_test( vc_array
    "vc_array_cylinder.cpp"
    "vc_array_detector.cpp"
    "vc_array_energy_loss.cpp"
-   "vc_array_geometry_barcode.cpp"
    "vc_array_geometry_volume_graph.cpp"
    "vc_array_geometry_linking.cpp"
    "vc_array_geometry_navigation.cpp"

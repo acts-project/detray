@@ -33,7 +33,7 @@ struct test_func {
     }
 };
 
-TEST(container, tuple_container) {
+GTEST_TEST(detray_core, tuple_container) {
 
     // Vecmem memory resource
     vecmem::host_memory_resource resource;
@@ -78,7 +78,7 @@ TEST(container, tuple_container) {
     EXPECT_TRUE(detail::get<2>(container).empty());
 }
 
-TEST(container, vector_multi_type_store) {
+GTEST_TEST(detray_core, vector_multi_type_store) {
 
     // Vecmem memory resource
     vecmem::host_memory_resource resource;

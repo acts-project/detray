@@ -6,13 +6,9 @@
 
 # Set up all of the "standard" tests.
 detray_add_test( eigen
-   "eigen_actor_chain.cpp"
    "eigen_annulus2D.cpp"
-   "eigen_axis_rotation.cpp"
-   "eigen_bounding_volume.cpp"
    "eigen_brute_force_finder.cpp"
    "eigen_check_simulation.cpp"
-   "eigen_container.cpp"
    "eigen_coordinate_cartesian2.cpp"
    "eigen_coordinate_cartesian3.cpp"
    "eigen_coordinate_cylindrical2.cpp"
@@ -26,7 +22,6 @@ detray_add_test( eigen
    "eigen_cylinder.cpp"
    "eigen_detector.cpp"
    "eigen_energy_loss.cpp"
-   "eigen_geometry_barcode.cpp"
    "eigen_geometry_volume_graph.cpp"
    "eigen_geometry_linking.cpp"
    "eigen_geometry_navigation.cpp"

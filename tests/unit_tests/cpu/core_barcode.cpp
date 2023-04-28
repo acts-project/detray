@@ -5,16 +5,16 @@
  * Mozilla Public License Version 2.0
  */
 
-#include <gtest/gtest.h>
-
-// Detray include(s)
-#include "detray/definitions/detail/bit_encoder.hpp"
+// Detray include(s).
 #include "detray/geometry/barcode.hpp"
+
+// Google test include(s).
+#include <gtest/gtest.h>
 
 using namespace detray;
 
 /// Test retrieval of surface from collection using brute force searching
-TEST(geometry, barcode) {
+GTEST_TEST(detray_core, barcode) {
 
     auto bcd = geometry::barcode{};
 
