@@ -12,7 +12,6 @@
 #include "detray/propagator/actors/aborters.hpp"
 #include "detray/propagator/actors/parameter_resetter.hpp"
 #include "detray/propagator/actors/parameter_transporter.hpp"
-#include "detray/propagator/actors/pointwise_material_interactor.hpp"
 #include "detray/propagator/navigator.hpp"
 #include "detray/propagator/propagator.hpp"
 #include "detray/propagator/rk_stepper.hpp"
@@ -36,16 +35,11 @@ struct simulator {
     };
 
     using transform3 = typename detector_t::transform3;
-    using interactor_t = pointwise_material_interactor<transform3>;
     using bfield_type = typename detector_t::bfield_type;
 
-    using material_actor_t =
-        composite_actor<dtuple, interactor_t, random_scatterer<interactor_t>>;
-
-    using actor_chain_type =
-        actor_chain<dtuple, parameter_transporter<transform3>, material_actor_t,
-                    parameter_resetter<transform3>,
-                    event_writer<transform3, smearer_t>>;
+    using actor_chain_type = actor_chain<
+        dtuple, parameter_transporter<transform3>, random_scatterer<transform3>,
+        parameter_resetter<transform3>, event_writer<transform3, smearer_t>>;
 
     using navigator_type = navigator<detector_t>;
     using stepper_type = rk_stepper<typename bfield_type::view_t, transform3,
@@ -75,8 +69,8 @@ struct simulator {
             m_scatterer.set_seed(event_id);
             writer.set_seed(event_id);
 
-            auto actor_states = std::tie(m_transporter, m_interactor,
-                                         m_scatterer, m_resetter, writer);
+            auto actor_states =
+                std::tie(m_transporter, m_scatterer, m_resetter, writer);
 
             for (auto track : *m_track_generator.get()) {
 
@@ -112,8 +106,7 @@ struct simulator {
 
     /// Actor states
     typename parameter_transporter<transform3>::state m_transporter{};
-    typename interactor_t::state m_interactor{};
-    typename random_scatterer<interactor_t>::state m_scatterer{};
+    typename random_scatterer<transform3>::state m_scatterer{};
     typename parameter_resetter<transform3>::state m_resetter{};
 };
 

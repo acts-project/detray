@@ -211,7 +211,9 @@ TEST_P(TelescopeDetectorSimulation, telescope_detector_simulation) {
                                      300.f, 350.f, 400.f, 450.f, 500.f};
 
     const auto mat = silicon_tml<scalar>();
-    const scalar thickness = 0.17f * unit<scalar>::cm;
+    // A thickness larger than 0.1 cm will flip the track direction of low
+    // energy (or non-relativistic) particle due to the large scattering
+    const scalar thickness = 0.005f * unit<scalar>::cm;
 
     // Detector type
     using detector_type = detray::detector<
