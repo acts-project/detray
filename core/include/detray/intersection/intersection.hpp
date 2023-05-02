@@ -57,8 +57,9 @@ struct intersection2D {
     surface_descr_t surface;
 
     /// Local position of the intersection on the surface
-    point2 p2{detail::invalid_value<scalar_type>(),
-              detail::invalid_value<scalar_type>()};
+    point3 local{detail::invalid_value<scalar_type>(),
+                 detail::invalid_value<scalar_type>(),
+                 detail::invalid_value<scalar_type>()};
 
     /// Distance between track and candidate
     scalar_type path{detail::invalid_value<scalar_type>()};
@@ -100,62 +101,6 @@ struct intersection2D {
                                     const intersection2D &is) {
         out_stream << "dist:" << is.path
                    << ", (sf index:" << is.surface.barcode()
-                   << ", links to vol:" << is.volume_link << ")";
-        switch (is.status) {
-            case intersection::status::e_outside:
-                out_stream << ", status: outside";
-                break;
-            case intersection::status::e_missed:
-                out_stream << ", status: missed";
-                break;
-            case intersection::status::e_undefined:
-                out_stream << ", status: undefined";
-                break;
-            case intersection::status::e_inside:
-                out_stream << ", status: inside";
-                break;
-        };
-        switch (is.direction) {
-            case intersection::direction::e_undefined:
-                out_stream << ", direction: undefined";
-                break;
-            case intersection::direction::e_opposite:
-                out_stream << ", direction: opposite";
-                break;
-            case intersection::direction::e_along:
-                out_stream << ", direction: along";
-                break;
-        };
-        out_stream << std::endl;
-        return out_stream;
-    }
-};
-
-/// @brief This class holds the intersection information, including the global
-/// point of intersection.
-///
-/// @tparam surface_descr_t is the type of surface descriptor
-template <typename surface_descr_t,
-          typename algebra_t = __plugin::transform3<detray::scalar>>
-struct intersection2D_point
-    : public intersection2D<surface_descr_t, algebra_t> {
-    using scalar_type = typename algebra_t::scalar_type;
-    using point3 = typename algebra_t::point3;
-    using point2 = typename algebra_t::point2;
-
-    /// Intersection point in global 3D cartesian coordinate frame
-    point3 p3{detail::invalid_value<scalar_type>(),
-              detail::invalid_value<scalar_type>(),
-              detail::invalid_value<scalar_type>()};
-
-    /// Transform to a string for output debugging
-    DETRAY_HOST
-    friend std::ostream &operator<<(std::ostream &out_stream,
-                                    const intersection2D_point &is) {
-        scalar_type r{getter::perp(is.p3)};
-        out_stream << "dist:" << is.path << " [glob: r:" << r
-                   << ", z:" << is.p3[2] << " | loc: " << is.p2[0] << ", "
-                   << is.p2[1] << "], (sf index:" << is.surface.barcode()
                    << ", links to vol:" << is.volume_link << ")";
         switch (is.status) {
             case intersection::status::e_outside:

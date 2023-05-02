@@ -31,7 +31,7 @@ using transform3_t = __plugin::transform3<detray::scalar>;
 using vector3 = __plugin::vector3<detray::scalar>;
 using point3 = __plugin::point3<detray::scalar>;
 using ray_t = detray::detail::ray<transform3_t>;
-using intersection_t = intersection2D_point<surface<>, transform3_t>;
+using intersection_t = intersection2D<surface<>, transform3_t>;
 
 constexpr scalar not_defined = std::numeric_limits<scalar>::infinity();
 constexpr scalar tol{1e-5f};
@@ -62,26 +62,32 @@ TEST(ALGEBRA_PLUGIN, translated_cylinder) {
     // first intersection lies behind the track
     EXPECT_TRUE(hits_bound[0].status == intersection::status::e_inside);
     EXPECT_TRUE(hits_bound[0].direction == intersection::direction::e_opposite);
-    EXPECT_NEAR(hits_bound[0].p3[0], -1.f, tol);
-    EXPECT_NEAR(hits_bound[0].p3[1], 2.f, tol);
-    EXPECT_NEAR(hits_bound[0].p3[2], 5.f, tol);
-    ASSERT_TRUE(hits_bound[0].p2[0] != not_defined &&
-                hits_bound[0].p2[1] != not_defined);
+
+    const auto global0 = cylinder.to_global_frame(shifted, hits_bound[0].local);
+    EXPECT_NEAR(global0[0], -1.f, tol);
+    EXPECT_NEAR(global0[1], 2.f, tol);
+    EXPECT_NEAR(global0[2], 5.f, tol);
+
+    ASSERT_TRUE(hits_bound[0].local[0] != not_defined &&
+                hits_bound[0].local[1] != not_defined);
     // p2[0] = r * phi : 180deg in the opposite direction with r = 4
-    EXPECT_NEAR(hits_bound[0].p2[0], 4.f * constant<scalar>::pi, tol);
-    EXPECT_NEAR(hits_bound[0].p2[1], -5., tol);
+    EXPECT_NEAR(hits_bound[0].local[0], 4.f * constant<scalar>::pi, tol);
+    EXPECT_NEAR(hits_bound[0].local[1], -5., tol);
     EXPECT_NEAR(hits_bound[0].cos_incidence_angle, -1.f, tol);
 
     // second intersection lies in front of the track
     EXPECT_TRUE(hits_bound[1].status == intersection::status::e_inside);
     EXPECT_TRUE(hits_bound[1].direction == intersection::direction::e_along);
-    EXPECT_NEAR(hits_bound[1].p3[0], 7.f, tol);
-    EXPECT_NEAR(hits_bound[1].p3[1], 2.f, tol);
-    EXPECT_NEAR(hits_bound[1].p3[2], 5.f, tol);
-    ASSERT_TRUE(hits_bound[1].p2[0] != not_defined &&
-                hits_bound[1].p2[1] != not_defined);
-    EXPECT_NEAR(hits_bound[1].p2[0], 0.f, tol);
-    EXPECT_NEAR(hits_bound[1].p2[1], -5.f, tol);
+
+    const auto global1 = cylinder.to_global_frame(shifted, hits_bound[1].local);
+    EXPECT_NEAR(global1[0], 7.f, tol);
+    EXPECT_NEAR(global1[1], 2.f, tol);
+    EXPECT_NEAR(global1[2], 5.f, tol);
+
+    ASSERT_TRUE(hits_bound[1].local[0] != not_defined &&
+                hits_bound[1].local[1] != not_defined);
+    EXPECT_NEAR(hits_bound[1].local[0], 0.f, tol);
+    EXPECT_NEAR(hits_bound[1].local[1], -5.f, tol);
     EXPECT_NEAR(hits_bound[1].cos_incidence_angle, 1.f, tol);
 }
 
@@ -135,18 +141,22 @@ TEST(ALGEBRA_PLUGIN, cylinder_portal) {
     ASSERT_TRUE(hit_cocylindrical.direction ==
                 intersection::direction::e_along);
 
-    EXPECT_NEAR(getter::perp(hits_cylinrical[1].p3), r, tol);
-    EXPECT_NEAR(getter::perp(hit_cocylindrical.p3), r, tol);
+    const auto global0 =
+        cylinder.to_global_frame(identity, hits_cylinrical[1].local);
+    const auto global1 =
+        cylinder.to_global_frame(identity, hit_cocylindrical.local);
+    EXPECT_NEAR(getter::perp(global0), r, tol);
+    EXPECT_NEAR(getter::perp(global1), r, tol);
 
-    EXPECT_NEAR(hits_cylinrical[1].p3[0], hit_cocylindrical.p3[0], tol);
-    EXPECT_NEAR(hits_cylinrical[1].p3[1], hit_cocylindrical.p3[1], tol);
-    EXPECT_NEAR(hits_cylinrical[1].p3[2], hit_cocylindrical.p3[2], tol);
-    ASSERT_TRUE(hits_cylinrical[1].p2[0] != not_defined &&
-                hits_cylinrical[1].p2[1] != not_defined);
-    ASSERT_TRUE(hit_cocylindrical.p2[0] != not_defined &&
-                hit_cocylindrical.p2[1] != not_defined);
-    EXPECT_NEAR(hits_cylinrical[1].p2[0], hit_cocylindrical.p2[0], tol);
-    EXPECT_NEAR(hits_cylinrical[1].p2[1], hit_cocylindrical.p2[1], tol);
+    EXPECT_NEAR(global0[0], global1[0], tol);
+    EXPECT_NEAR(global0[1], global1[1], tol);
+    EXPECT_NEAR(global0[2], global1[2], tol);
+    ASSERT_TRUE(hits_cylinrical[1].local[0] != not_defined &&
+                hits_cylinrical[1].local[1] != not_defined);
+    ASSERT_TRUE(hit_cocylindrical.local[0] != not_defined &&
+                hit_cocylindrical.local[1] != not_defined);
+    EXPECT_NEAR(hits_cylinrical[1].local[0], hit_cocylindrical.local[0], tol);
+    EXPECT_NEAR(hits_cylinrical[1].local[1], hit_cocylindrical.local[1], tol);
 }
 
 // This checks the solution of a ray-concentric cylinder intersection against
@@ -177,16 +187,20 @@ TEST(ALGEBRA_PLUGIN, concentric_cylinders) {
     ASSERT_TRUE(hit_cocylindrical.direction ==
                 intersection::direction::e_along);
 
-    EXPECT_NEAR(getter::perp(hits_cylinrical[1].p3), r, tol);
-    EXPECT_NEAR(getter::perp(hit_cocylindrical.p3), r, tol);
+    const auto global0 =
+        cylinder.to_global_frame(identity, hits_cylinrical[1].local);
+    const auto global1 =
+        cylinder.to_global_frame(identity, hit_cocylindrical.local);
+    EXPECT_NEAR(getter::perp(global0), r, tol);
+    EXPECT_NEAR(getter::perp(global1), r, tol);
 
-    EXPECT_NEAR(hits_cylinrical[1].p3[0], hit_cocylindrical.p3[0], tol);
-    EXPECT_NEAR(hits_cylinrical[1].p3[1], hit_cocylindrical.p3[1], tol);
-    EXPECT_NEAR(hits_cylinrical[1].p3[2], hit_cocylindrical.p3[2], tol);
-    ASSERT_TRUE(hits_cylinrical[1].p2[0] != not_defined &&
-                hits_cylinrical[1].p2[1] != not_defined);
-    ASSERT_TRUE(hit_cocylindrical.p2[0] != not_defined &&
-                hit_cocylindrical.p2[1] != not_defined);
-    EXPECT_NEAR(hits_cylinrical[1].p2[0], hit_cocylindrical.p2[0], tol);
-    EXPECT_NEAR(hits_cylinrical[1].p2[1], hit_cocylindrical.p2[1], tol);
+    EXPECT_NEAR(global0[0], global1[0], tol);
+    EXPECT_NEAR(global0[1], global1[1], tol);
+    EXPECT_NEAR(global0[2], global1[2], tol);
+    ASSERT_TRUE(hits_cylinrical[1].local[0] != not_defined &&
+                hits_cylinrical[1].local[1] != not_defined);
+    ASSERT_TRUE(hit_cocylindrical.local[0] != not_defined &&
+                hit_cocylindrical.local[1] != not_defined);
+    EXPECT_NEAR(hits_cylinrical[1].local[0], hit_cocylindrical.local[0], tol);
+    EXPECT_NEAR(hits_cylinrical[1].local[1], hit_cocylindrical.local[1], tol);
 }

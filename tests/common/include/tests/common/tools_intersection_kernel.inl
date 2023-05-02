@@ -97,16 +97,19 @@ TEST(tools, intersection_kernel_ray) {
 
     // The masks & their store
     mask_container_t mask_store(host_mr);
-    mask_store.template emplace_back<e_rectangle2>(empty_context{}, 0u, 10.f,
-                                                   10.f);
-    mask_store.template emplace_back<e_trapezoid2>(empty_context{}, 0u, 10.f,
-                                                   20.f, 30.f);
-    mask_store.template emplace_back<e_annulus2>(
-        empty_context{}, 0u, 15.f, 55.f, 0.75f, 1.95f, 2.f, -2.f, 0.f);
-    mask_store.template emplace_back<e_cylinder2>(empty_context{}, 0u, 5.f,
-                                                  -10.f, 10.f);
-    mask_store.template emplace_back<e_cylinder2_portal>(empty_context{}, 0u,
-                                                         4.f, -10.f, 10.f);
+
+    const rectangle_t rect{0u, 10.f, 10.f};
+    const trapezoid_t trap{0u, 10.f, 20.f, 30.f};
+    const annulus_t annl{0u, 15.f, 55.f, 0.75f, 1.95f, 2.f, -2.f, 0.f};
+    const cylinder_t cyl{0u, 5.f, -10.f, 10.f};
+    const cylinder_portal_t cyl_portal{0u, 4.f, -10.f, 10.f};
+
+    mask_store.template push_back<e_rectangle2>(rect, empty_context{});
+    mask_store.template push_back<e_trapezoid2>(trap, empty_context{});
+    mask_store.template push_back<e_annulus2>(annl, empty_context{});
+    mask_store.template push_back<e_cylinder2>(cyl, empty_context{});
+    mask_store.template push_back<e_cylinder2_portal>(cyl_portal,
+                                                      empty_context{});
 
     // The surfaces and their store
     surface_t rectangle_surface(0u, {e_rectangle2, 0u}, {e_slab, 0u}, 0u, 0u,
@@ -140,7 +143,7 @@ TEST(tools, intersection_kernel_ray) {
         expected_cylinder1, expected_cylinder2, expected_cylinder_pt};
 
     // Initialize kernel
-    std::vector<intersection2D_point<surface_t, transform3_t>> sfi_init;
+    std::vector<intersection2D<surface_t, transform3_t>> sfi_init;
 
     for (const auto &surface : surfaces) {
         mask_store.visit<intersection_initialize>(surface.mask(), sfi_init,
@@ -149,19 +152,40 @@ TEST(tools, intersection_kernel_ray) {
     }
     // Also check intersections
     for (std::size_t i = 0u; i < expected_points.size(); ++i) {
-        ASSERT_EQ(sfi_init[i].direction, intersection::direction::e_along);
-        ASSERT_EQ(sfi_init[i].volume_link, 0u);
-        ASSERT_NEAR(sfi_init[i].p3[0], expected_points[i][0], 1e-3f)
+
+        EXPECT_EQ(sfi_init[i].direction, intersection::direction::e_along);
+        EXPECT_EQ(sfi_init[i].volume_link, 0u);
+
+        vector3 global;
+
+        if (sfi_init[i].surface.mask().id() == e_rectangle2) {
+            global =
+                rect.to_global_frame(transform_store[0], sfi_init[i].local);
+        } else if (sfi_init[i].surface.mask().id() == e_trapezoid2) {
+            global =
+                trap.to_global_frame(transform_store[1], sfi_init[i].local);
+        } else if (sfi_init[i].surface.mask().id() == e_annulus2) {
+            global =
+                annl.to_global_frame(transform_store[2], sfi_init[i].local);
+        } else if (sfi_init[i].surface.mask().id() == e_cylinder2) {
+            global = cyl.to_global_frame(transform_store[3], sfi_init[i].local);
+        } else if (sfi_init[i].surface.mask().id() == e_cylinder2_portal) {
+            global = cyl_portal.to_global_frame(transform_store[4],
+                                                sfi_init[i].local);
+        }
+
+        EXPECT_NEAR(global[0], expected_points[i][0], 1e-3f)
             << " at surface " << sfi_init[i].surface.barcode();
-        ASSERT_NEAR(sfi_init[i].p3[1], expected_points[i][1], 1e-3f)
+        EXPECT_NEAR(global[1], expected_points[i][1], 1e-3f)
             << " at surface " << sfi_init[i].surface.barcode();
-        ASSERT_NEAR(sfi_init[i].p3[2], expected_points[i][2], 1e-3f)
+        EXPECT_NEAR(global[2], expected_points[i][2], 1e-3f)
             << " at surface " << sfi_init[i].surface.barcode();
     }
 
     // Update kernel
     // @fixme: The intersection update kernel does not work for non-portal
-    // cylinders, since it assigns the closest intersection to both solutions
+    // cylinders, since it assigns the closest intersection to both
+    // solutions
     /*std::vector<intersection2D_point<surface_t, transform3_t>> sfi_update;
     sfi_update.resize(5);
 
@@ -171,15 +195,17 @@ TEST(tools, intersection_kernel_ray) {
             surface.mask(), detail::ray(track), sfi_update[idx],
             transform_store);
 
-        if(sfi_update[idx].status != intersection::status::e_inside) { continue;
-    } ASSERT_EQ(sfi_update[idx].direction, intersection::direction::e_along) <<
-    " at surface " << sfi_update[idx] << ", " << sfi_init[idx];
-        ASSERT_EQ(sfi_update[idx].volume_link, 0u);
-        ASSERT_NEAR(sfi_update[idx].p3[0], expected_points[idx][0], is_close)
+        if(sfi_update[idx].status != intersection::status::e_inside) {
+    continue; } ASSERT_EQ(sfi_update[idx].direction,
+    intersection::direction::e_along) << " at surface " << sfi_update[idx]
+    << ", " << sfi_init[idx]; ASSERT_EQ(sfi_update[idx].volume_link, 0u);
+        ASSERT_NEAR(sfi_update[idx].p3[0], expected_points[idx][0],
+    is_close)
         << " at surface " << sfi_update[idx] << ", " << sfi_init[idx];
-        ASSERT_NEAR(sfi_update[idx].p3[1], expected_points[idx][1], is_close) <<
-    " at surface " << sfi_update[idx] << ", " << sfi_init[idx];
-        ASSERT_NEAR(sfi_update[idx].p3[2], expected_points[idx][2], is_close)
+        ASSERT_NEAR(sfi_update[idx].p3[1], expected_points[idx][1],
+    is_close) << " at surface " << sfi_update[idx] << ", " << sfi_init[idx];
+        ASSERT_NEAR(sfi_update[idx].p3[2], expected_points[idx][2],
+    is_close)
         << " at surface " << sfi_update[idx] << ", " << sfi_init[idx];
     }
 
@@ -188,7 +214,7 @@ TEST(tools, intersection_kernel_ray) {
     ASSERT_EQ(sfi_update.size(), 5u);
     for (unsigned int i = 0u; i < 5u; i++) {
         ASSERT_EQ(sfi_init[i].p3, sfi_update[i].p3);
-        ASSERT_EQ(sfi_init[i].p2, sfi_update[i].p2);
+        ASSERT_EQ(sfi_init[i].local, sfi_update[i].local);
         ASSERT_EQ(sfi_init[i].path, sfi_update[i].path);
     }*/
 }
@@ -207,12 +233,13 @@ TEST(tools, intersection_kernel_helix) {
     transform_store.emplace_back(static_context, vector3{0.f, -20.f, 30.f});
     // The masks & their store
     mask_container_t mask_store(host_mr);
-    mask_store.template emplace_back<e_rectangle2>(empty_context{}, 0u, 10.f,
-                                                   10.f);
-    mask_store.template emplace_back<e_trapezoid2>(empty_context{}, 0u, 10.f,
-                                                   20.f, 30.f);
-    mask_store.template emplace_back<e_annulus2>(
-        empty_context{}, 0u, 15.f, 55.f, 0.75f, 1.95f, 2.f, -2.f, 0.f);
+
+    const rectangle_t rect{0u, 10.f, 10.f};
+    const trapezoid_t trap{0u, 10.f, 20.f, 30.f};
+    const annulus_t annl{0u, 15.f, 55.f, 0.75f, 1.95f, 2.f, -2.f, 0.f};
+    mask_store.template push_back<e_rectangle2>(rect, empty_context{});
+    mask_store.template push_back<e_trapezoid2>(trap, empty_context{});
+    mask_store.template push_back<e_annulus2>(annl, empty_context{});
 
     // The surfaces and their store
     const surface_t rectangle_surface(0u, {e_rectangle2, 0u}, {e_slab, 0u}, 0u,
@@ -235,16 +262,29 @@ TEST(tools, intersection_kernel_helix) {
     const point3 expected_annulus{0.03f, 0.03f, 30.f};
     const std::vector<point3> expected_points = {
         expected_rectangle, expected_trapezoid, expected_annulus};
-    std::vector<intersection2D_point<surface_t, transform3_t>> sfi_helix{};
+    std::vector<intersection2D<surface_t, transform3_t>> sfi_helix{};
 
     // Try the intersections - with automated dispatching via the kernel
     for (const auto [sf_idx, surface] : detray::views::enumerate(surfaces)) {
         mask_store.visit<helix_intersection_initialize>(
             surface.mask(), sfi_helix, h, surface, transform_store);
 
-        ASSERT_NEAR(sfi_helix[0].p3[0], expected_points[sf_idx][0], is_close);
-        ASSERT_NEAR(sfi_helix[0].p3[1], expected_points[sf_idx][1], is_close);
-        ASSERT_NEAR(sfi_helix[0].p3[2], expected_points[sf_idx][2], is_close);
+        vector3 global;
+
+        if (surface.mask().id() == e_rectangle2) {
+            global =
+                rect.to_global_frame(transform_store[0], sfi_helix[0].local);
+        } else if (surface.mask().id() == e_trapezoid2) {
+            global =
+                trap.to_global_frame(transform_store[1], sfi_helix[0].local);
+        } else if (surface.mask().id() == e_annulus2) {
+            global =
+                annl.to_global_frame(transform_store[2], sfi_helix[0].local);
+        }
+
+        ASSERT_NEAR(global[0], expected_points[sf_idx][0], is_close);
+        ASSERT_NEAR(global[1], expected_points[sf_idx][1], is_close);
+        ASSERT_NEAR(global[2], expected_points[sf_idx][2], is_close);
 
         sfi_helix.clear();
     }

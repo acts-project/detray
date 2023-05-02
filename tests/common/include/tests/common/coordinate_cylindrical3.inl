@@ -34,8 +34,6 @@ TEST(coordinate, cylindrical3) {
     const point3 global1 = {3.4142136f, 4.4142136f, 9.f};
     const vector3 mom = {1.f, 2.f, 3.f};
     const vector3 d = vector::normalize(mom);
-    struct dummy_mask {
-    } mask;
 
     // Global to local transformation
     const point3 local = c3.global_to_local(trf, global1, d);
@@ -46,7 +44,7 @@ TEST(coordinate, cylindrical3) {
     ASSERT_NEAR(local[2], 5.f, isclose);
 
     // Local to global transformation
-    const point3 global2 = c3.local_to_global(trf, mask, local, d);
+    const point3 global2 = c3.local_to_global(trf, local);
 
     // Check if the same global position is obtained
     ASSERT_NEAR(global1[0], global2[0], isclose);

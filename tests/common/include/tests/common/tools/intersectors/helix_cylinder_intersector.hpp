@@ -14,6 +14,7 @@
 #include "detray/intersection/detail/trajectories.hpp"
 #include "detray/intersection/intersection.hpp"
 #include "detray/masks/cylinder2D.hpp"
+#include "detray/utils/invalid_values.hpp"
 #include "tests/common/tools/intersectors/helix_intersector.hpp"
 
 // System include(s)
@@ -144,23 +145,24 @@ struct helix_cylinder_intersector
 
             // Build intersection struct from helix parameters
             is.path = s;
-            is.p3 = h.pos(s);
+            const auto p3 = h.pos(s);
 
             // In case the local geometry frame is 3D
             if constexpr (mask_t::shape::check_radius) {
-                const auto loc3D = mask.to_local_frame(trf, is.p3);
+                const auto loc3D = mask.to_local_frame(trf, p3);
                 is.status = mask.is_inside(loc3D, mask_tolerance);
                 // Go from local to measurement frame
-                is.p2 = point2{loc3D[0] * loc3D[1], loc3D[2]};
+                is.local = point3{loc3D[0] * loc3D[1], loc3D[2],
+                                  detail::invalid_value<scalar_type>()};
             } else {
                 // local frame and measurement frame are identical
-                is.p2 = mask.to_measurement_frame(trf, is.p3);
-                is.status = mask.is_inside(is.p2, mask_tolerance);
+                is.local = mask.to_local_frame(trf, p3);
+                is.status = mask.is_inside(is.local, mask_tolerance);
 
                 // Perform the r-check for Newton solution even if it is not
                 // required by the mask's shape
                 const scalar_type radial_pos{
-                    getter::perp(trf.point_to_local(is.p3))};
+                    getter::perp(trf.point_to_local(p3))};
                 const bool r_check =
                     std::abs(r - radial_pos) <
                     mask_tolerance +
@@ -173,7 +175,7 @@ struct helix_cylinder_intersector
             // Compute some additional information if the intersection is valid
             if (is.status == intersection::status::e_inside) {
                 is.surface = sf;
-                is.direction = std::signbit(vector::dot(is.p3, h.dir(s)))
+                is.direction = std::signbit(vector::dot(p3, h.dir(s)))
                                    ? intersection::direction::e_opposite
                                    : intersection::direction::e_along;
                 is.volume_link = mask.volume_link();
@@ -191,7 +193,7 @@ template <typename intersection_t, typename mask_t>
 struct helix_intersector<
     intersection_t, mask_t,
     std::enable_if_t<
-        std::is_same_v<typename mask_t::measurement_frame_type,
+        std::is_same_v<typename mask_t::local_frame_type,
                        cylindrical2<typename intersection_t::transform3_type>>,
         void>> : public detail::helix_cylinder_intersector<intersection_t> {
     using intersector_impl = detail::helix_cylinder_intersector<intersection_t>;

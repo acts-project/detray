@@ -12,31 +12,32 @@
 
 using namespace detray;
 using namespace __plugin;
+using point3_t = __plugin::point3<detray::scalar>;
 
 constexpr scalar tol{1e-5f};
 
 /// This tests the basic functionality of a stereo annulus
 TEST(mask, annulus2D) {
-    using point_t = typename mask<annulus2D<>>::loc_point_t;
+    using point_t = point3_t;
 
     constexpr scalar minR{7.2f * unit<scalar>::mm};
     constexpr scalar maxR{12.0f * unit<scalar>::mm};
     constexpr scalar minPhi{0.74195f};
     constexpr scalar maxPhi{1.33970f};
-    point_t offset = {-2.f, 2.f};
+    point_t offset = {-2.f, 2.f, 0.f};
 
     // points in cartesian module frame
-    point_t p2_in = {7.f, 7.f};
-    point_t p2_out1 = {5.f, 5.f};
-    point_t p2_out2 = {10.f, 3.f};
-    point_t p2_out3 = {10.f, 10.f};
-    point_t p2_out4 = {4.f, 10.f};
+    point_t p2_in = {7.f, 7.f, 0.f};
+    point_t p2_out1 = {5.f, 5.f, 0.f};
+    point_t p2_out2 = {10.f, 3.f, 0.f};
+    point_t p2_out3 = {10.f, 10.f, 0.f};
+    point_t p2_out4 = {4.f, 10.f, 0.f};
 
     auto toStripFrame = [&offset](const point_t& xy) -> point_t {
         auto shifted = xy + offset;
         scalar r{getter::perp(shifted)};
         scalar phi{getter::phi(shifted)};
-        return point_t{r, phi};
+        return point_t{r, phi, 0.f};
     };
 
     mask<annulus2D<>> ann2{0u,     minR,      maxR,      minPhi,

@@ -70,17 +70,6 @@ class annulus2D {
     /// Local coordinate frame ( focal system )
     template <typename algebra_t>
     using local_frame_type = polar2<algebra_t>;
-    /// Local point type (2D)
-    template <typename algebra_t>
-    using loc_point_type = typename local_frame_type<algebra_t>::point2;
-
-    /// Measurement frame. @todo focal system?
-    template <typename algebra_t>
-    using measurement_frame_type = polar2<algebra_t>;
-    /// Local measurement point (2D)
-    template <typename algebra_t>
-    using measurement_point_type =
-        typename measurement_frame_type<algebra_t>::point2;
 
     /// Underlying surface geometry: planar
     template <typename intersection_t>
@@ -167,7 +156,7 @@ class annulus2D {
         // Now go to beam frame to check r boundaries. Use the origin
         // shift in polar coordinates for that
         // TODO: Put shift in r-phi into the bounds?
-        const point_t shift_xy = {-bounds[e_shift_x], -bounds[e_shift_y]};
+        const point_t shift_xy = {-bounds[e_shift_x], -bounds[e_shift_y], 0.f};
         const scalar_t shift_r{getter::perp(shift_xy)};
         const scalar_t shift_phi{getter::phi(shift_xy)};
 

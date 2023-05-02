@@ -42,14 +42,14 @@ TEST(coordinate, polar2) {
     } mask;
 
     // Global to local transformation
-    const point2 local = p2.global_to_local(trf, global1, d);
+    const point3 local = p2.global_to_local(trf, global1, d);
 
     // Check if the local position is correct
     ASSERT_NEAR(local[0], std::sqrt(20.f), isclose);
     ASSERT_NEAR(local[1], std::atan2(4.f, 2.f), isclose);
 
     // Local to global transformation
-    const point3 global2 = p2.local_to_global(trf, mask, local, d);
+    const point3 global2 = p2.local_to_global(trf, local);
 
     // Check if the same global position is obtained
     ASSERT_NEAR(global1[0], global2[0], isclose);
@@ -83,14 +83,12 @@ TEST(coordinate, polar2) {
     }
 
     // Normal vector
-    const vector3 n =
-        p2.normal(trf, mask, free_params.pos(), free_params.dir());
+    const vector3 n = p2.normal(trf, free_params.pos(), free_params.dir());
     ASSERT_EQ(n, vector3({0.f, 0.f, 1.f}));
 
     // Test Jacobian transformation
-    const matrix_type<6, 6> J =
-        p2.free_to_bound_jacobian(trf, mask, free_vec1) *
-        p2.bound_to_free_jacobian(trf, mask, bound_vec);
+    const matrix_type<6, 6> J = p2.free_to_bound_jacobian(trf, free_vec1) *
+                                p2.bound_to_free_jacobian(trf, mask, bound_vec);
 
     for (unsigned int i = 0u; i < 6u; i++) {
         for (unsigned int j = 0u; j < 6u; j++) {

@@ -11,12 +11,13 @@
 #include "detray/masks/unmasked.hpp"
 
 using namespace detray;
+using point3_t = __plugin::point3<detray::scalar>;
 
 constexpr scalar tol{1e-7f};
 
 /// This tests the basic functionality of an unmasked plane
 TEST(mask, unmasked) {
-    typename mask<unmasked>::loc_point_t p2 = {0.5f, -9.f};
+    point3_t p2 = {0.5f, -9.f, 0.f};
 
     mask<unmasked> u{};
 

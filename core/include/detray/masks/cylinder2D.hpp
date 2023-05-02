@@ -54,23 +54,7 @@ class cylinder2D {
 
     /// Local coordinate frame for boundary checks
     template <typename algebra_t>
-    using local_frame_type =
-        std::conditional_t<kRadialCheck, cylindrical3<algebra_t>,
-                           cylindrical2<algebra_t>>;
-    /// Local point type for boundary checks (2D or 3D)
-    template <typename algebra_t>
-    using loc_point_type =
-        std::conditional_t<kRadialCheck,
-                           typename local_frame_type<algebra_t>::point3,
-                           typename local_frame_type<algebra_t>::point2>;
-
-    /// Measurement frame
-    template <typename algebra_t>
-    using measurement_frame_type = cylindrical2<algebra_t>;
-    /// Local measurement point (2D)
-    template <typename algebra_t>
-    using measurement_point_type =
-        typename measurement_frame_type<algebra_t>::point2;
+    using local_frame_type = cylindrical2<algebra_t>;
 
     /// Underlying surface geometry: cylindrical
     template <typename intersection_t>
@@ -118,14 +102,14 @@ class cylinder2D {
     DETRAY_HOST_DEVICE inline bool check_boundaries(
         const bounds_t<scalar_t, kDIM>& bounds, const point_t& loc_p,
         const scalar_t tol = std::numeric_limits<scalar_t>::epsilon()) const {
+
         if constexpr (kRadialCheck) {
-            return (std::abs(loc_p[0] - bounds[e_r]) <= tol and
-                    bounds[e_n_half_z] - tol <= loc_p[2] and
-                    loc_p[2] <= bounds[e_p_half_z] + tol);
-        } else {
-            return (bounds[e_n_half_z] - tol <= loc_p[1] and
-                    loc_p[1] <= bounds[e_p_half_z] + tol);
+            if (std::abs(loc_p[2] - bounds[e_r]) > tol) {
+                return false;
+            }
         }
+        return (bounds[e_n_half_z] - tol <= loc_p[1] and
+                loc_p[1] <= bounds[e_p_half_z] + tol);
     }
 
     /// @brief Lower and upper point for minimal axis aligned bounding box.

@@ -67,7 +67,7 @@ struct parameter_transporter : actor {
 
             // Mask
             const auto& mask = mask_group[index];
-            auto local_coordinate = mask.measurement_frame();
+            auto local_coordinate = mask.local_frame();
 
             // Free vector
             const auto& free_vec = stepping().vector();
@@ -78,15 +78,14 @@ struct parameter_transporter : actor {
 
             // Free to bound jacobian at the destination surface
             const free_to_bound_matrix free_to_bound_jacobian =
-                local_coordinate.free_to_bound_jacobian(trf3, mask, free_vec);
+                local_coordinate.free_to_bound_jacobian(trf3, free_vec);
 
             // Transport jacobian in free coordinate
             free_matrix& free_transport_jacobian = stepping._jac_transport;
 
             // Path correction factor
             free_matrix path_correction = local_coordinate.path_correction(
-                stepping().pos(), stepping().dir(), stepping.dtds(), trf3,
-                mask);
+                stepping().pos(), stepping().dir(), stepping.dtds(), trf3);
 
             const free_matrix correction_term =
                 matrix_operator()

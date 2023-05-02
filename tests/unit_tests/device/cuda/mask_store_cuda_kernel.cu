@@ -14,14 +14,14 @@ namespace detray {
 /// return values
 __global__ void mask_test_kernel(
     typename host_store_type::view_type store_data,
-    vecmem::data::vector_view<point2> input_point2_data,
+    vecmem::data::vector_view<point3> input_point3_data,
     vecmem::data::jagged_vector_view<intersection::status> output_data) {
 
     /** get mask store **/
     device_store_type store(store_data);
 
     /** get mask objects **/
-    vecmem::device_vector<point2> input_point2(input_point2_data);
+    vecmem::device_vector<point3> input_point3(input_point3_data);
     vecmem::jagged_device_vector<intersection::status> output_device(
         output_data);
 
@@ -33,24 +33,24 @@ __global__ void mask_test_kernel(
 
     /** get device results from is_inside function **/
     for (int i = 0; i < n_points; i++) {
-        output_device[0].push_back(rectangle_mask.is_inside(input_point2[i]));
-        output_device[1].push_back(trapezoid_mask.is_inside(input_point2[i]));
-        output_device[2].push_back(ring_mask.is_inside(input_point2[i]));
-        output_device[3].push_back(cylinder_mask.is_inside(input_point2[i]));
-        output_device[4].push_back(annulus_mask.is_inside(input_point2[i]));
+        output_device[0].push_back(rectangle_mask.is_inside(input_point3[i]));
+        output_device[1].push_back(trapezoid_mask.is_inside(input_point3[i]));
+        output_device[2].push_back(ring_mask.is_inside(input_point3[i]));
+        output_device[3].push_back(cylinder_mask.is_inside(input_point3[i]));
+        output_device[4].push_back(annulus_mask.is_inside(input_point3[i]));
     }
 }
 
 void mask_test(
     typename host_store_type::view_type store_data,
-    vecmem::data::vector_view<point2> input_point2_data,
+    vecmem::data::vector_view<point3> input_point3_data,
     vecmem::data::jagged_vector_view<intersection::status> output_data) {
 
     int block_dim = 1;
     int thread_dim = 1;
 
     // run the test kernel
-    mask_test_kernel<<<block_dim, thread_dim>>>(store_data, input_point2_data,
+    mask_test_kernel<<<block_dim, thread_dim>>>(store_data, input_point3_data,
                                                 output_data);
 
     // cuda error check
