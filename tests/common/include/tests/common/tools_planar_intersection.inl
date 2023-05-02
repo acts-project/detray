@@ -27,7 +27,7 @@ using namespace detray;
 using vector3 = __plugin::vector3<scalar>;
 using point3 = __plugin::point3<scalar>;
 using transform3 = __plugin::transform3<detray::scalar>;
-using intersection_t = intersection2D_point<surface<>, transform3>;
+using intersection_t = intersection2D<surface<>, transform3>;
 
 constexpr scalar tol{std::numeric_limits<scalar>::epsilon()};
 constexpr auto not_defined{detail::invalid_value<scalar>()};
@@ -50,12 +50,14 @@ TEST(ALGEBRA_PLUGIN, translated_plane_ray) {
 
     ASSERT_TRUE(hit_bound.status == intersection::status::e_inside);
     // Global intersection information - unchanged
-    ASSERT_NEAR(hit_bound.p3[0], 2.f, tol);
-    ASSERT_NEAR(hit_bound.p3[1], 1.f, tol);
-    ASSERT_NEAR(hit_bound.p3[2], 10.f, tol);
+    const auto global0 =
+        unmasked_bound.to_global_frame(shifted, hit_bound.local);
+    ASSERT_NEAR(global0[0], 2.f, tol);
+    ASSERT_NEAR(global0[1], 1.f, tol);
+    ASSERT_NEAR(global0[2], 10.f, tol);
     // Local intersection information
-    ASSERT_NEAR(hit_bound.p2[0], -1.f, tol);
-    ASSERT_NEAR(hit_bound.p2[1], -1.f, tol);
+    ASSERT_NEAR(hit_bound.local[0], -1.f, tol);
+    ASSERT_NEAR(hit_bound.local[1], -1.f, tol);
     // Incidence angle
     ASSERT_NEAR(hit_bound.cos_incidence_angle, 1.f, tol);
 
@@ -64,12 +66,14 @@ TEST(ALGEBRA_PLUGIN, translated_plane_ray) {
     const auto hit_bound_inside = pi(r, surface<>{}, rect_for_inside, shifted);
     ASSERT_TRUE(hit_bound_inside.status == intersection::status::e_inside);
     // Global intersection information - unchanged
-    ASSERT_NEAR(hit_bound_inside.p3[0], 2.f, tol);
-    ASSERT_NEAR(hit_bound_inside.p3[1], 1.f, tol);
-    ASSERT_NEAR(hit_bound_inside.p3[2], 10.f, tol);
+    const auto global1 =
+        rect_for_inside.to_global_frame(shifted, hit_bound_inside.local);
+    ASSERT_NEAR(global1[0], 2.f, tol);
+    ASSERT_NEAR(global1[1], 1.f, tol);
+    ASSERT_NEAR(global1[2], 10.f, tol);
     // Local intersection infoimation - unchanged
-    ASSERT_NEAR(hit_bound_inside.p2[0], -1.f, tol);
-    ASSERT_NEAR(hit_bound_inside.p2[1], -1.f, tol);
+    ASSERT_NEAR(hit_bound_inside.local[0], -1.f, tol);
+    ASSERT_NEAR(hit_bound_inside.local[1], -1.f, tol);
 
     // The same test but bound to local frame & masked - outside
     mask<rectangle2D<>> rect_for_outside{0u, 0.5f, 3.5f};
@@ -77,12 +81,14 @@ TEST(ALGEBRA_PLUGIN, translated_plane_ray) {
         pi(r, surface<>{}, rect_for_outside, shifted);
     ASSERT_TRUE(hit_bound_outside.status == intersection::status::e_outside);
     // Global intersection information - not written out anymore
-    ASSERT_NEAR(hit_bound_outside.p3[0], not_defined, tol);
-    ASSERT_NEAR(hit_bound_outside.p3[1], not_defined, tol);
-    ASSERT_NEAR(hit_bound_outside.p3[2], not_defined, tol);
+    const auto global2 =
+        rect_for_outside.to_global_frame(shifted, hit_bound_outside.local);
+    ASSERT_NEAR(global2[0], 2.f, tol);
+    ASSERT_NEAR(global2[1], 1.f, tol);
+    ASSERT_NEAR(global2[2], 10.f, tol);
     // Local intersection infoimation - unchanged
-    ASSERT_NEAR(hit_bound_outside.p2[0], -1.f, tol);
-    ASSERT_NEAR(hit_bound_outside.p2[1], -1.f, tol);
+    ASSERT_NEAR(hit_bound_outside.local[0], -1.f, tol);
+    ASSERT_NEAR(hit_bound_outside.local[1], -1.f, tol);
 }
 
 // This defines the local frame test suite

@@ -53,18 +53,10 @@ struct line2 : public coordinate_base<line2, transform3_t> {
 
     /// @}
 
-    /** This method transform from a point from 3D cartesian frame to a 2D
-     * line point */
-    DETRAY_HOST_DEVICE
-    inline point2 operator()(const point3 &local3, scalar_type sign) const {
-
-        return {sign * getter::perp(local3), local3[2]};
-    }
-
     /** This method transform from a point from global cartesian 3D frame to a
      * local 2D line point */
     DETRAY_HOST_DEVICE
-    inline point2 global_to_local(const transform3_t &trf, const point3 &p,
+    inline point3 global_to_local(const transform3_t &trf, const point3 &p,
                                   const vector3 &d) const {
 
         const auto local3 = trf.point_to_local(p);
@@ -83,16 +75,26 @@ struct line2 : public coordinate_base<line2, transform3_t> {
         // Left: 1
         const scalar_type sign = vector::dot(r, t - p) > 0.f ? -1.f : 1.f;
 
-        return this->operator()(local3, sign);
+        return {sign * getter::perp(local3), local3[2], getter::phi(local3)};
+    }
+
+    /** This method transform from a local 2D line point to a point global
+     * cartesian 3D frame*/
+    DETRAY_HOST_DEVICE inline point3 local_to_global(const transform3_t &trf,
+                                                     const point3 &p) const {
+        const scalar_type R = std::abs(p[0]);
+        const point3 local = {R * math_ns::cos(p[2]), R * math_ns::sin(p[2]),
+                              p[1]};
+
+        return trf.point_to_global(local);
     }
 
     /** This method transform from a local 2D line point to a point global
      * cartesian 3D frame*/
     template <typename mask_t>
-    DETRAY_HOST_DEVICE inline point3 local_to_global(const transform3_t &trf,
-                                                     const mask_t & /*mask*/,
-                                                     const point2 &p,
-                                                     const vector3 &d) const {
+    DETRAY_HOST_DEVICE inline point3 bound_local_to_global(
+        const transform3_t &trf, const mask_t & /*mask*/, const point2 &p,
+        const vector3 &d) const {
 
         // Line direction
         const vector3 z = trf.z();
@@ -107,10 +109,9 @@ struct line2 : public coordinate_base<line2, transform3_t> {
         return locZ_in_global + p[0] * vector::normalize(r);
     }
 
-    template <typename mask_t>
     DETRAY_HOST_DEVICE inline rotation_matrix reference_frame(
-        const transform3_t &trf3, const mask_t & /*mask*/,
-        const point3 & /*pos*/, const vector3 &dir) const {
+        const transform3_t &trf3, const point3 & /*pos*/,
+        const vector3 &dir) const {
 
         rotation_matrix rot = matrix_operator().template zero<3, 3>();
 
@@ -135,10 +136,8 @@ struct line2 : public coordinate_base<line2, transform3_t> {
         return rot;
     }
 
-    template <typename mask_t>
     DETRAY_HOST_DEVICE inline free_to_path_matrix path_derivative(
-        const transform3_t &trf3, const mask_t & /*mask*/, const point3 &pos,
-        const vector3 &dir) const {
+        const transform3_t &trf3, const point3 &pos, const vector3 &dir) const {
 
         free_to_path_matrix derivative =
             matrix_operator().template zero<1u, e_free_size>();
@@ -171,12 +170,11 @@ struct line2 : public coordinate_base<line2, transform3_t> {
         return derivative;
     }
 
-    template <typename mask_t>
     DETRAY_HOST_DEVICE inline void set_bound_pos_to_free_pos_derivative(
         bound_to_free_matrix &bound_to_free_jacobian, const transform3_t &trf3,
-        const mask_t &mask, const point3 &pos, const vector3 &dir) const {
+        const point3 &pos, const vector3 &dir) const {
 
-        const auto frame = reference_frame(trf3, mask, pos, dir);
+        const auto frame = reference_frame(trf3, pos, dir);
 
         // Get d(x,y,z)/d(loc0, loc1)
         const auto bound_pos_to_free_pos_derivative =
@@ -187,12 +185,11 @@ struct line2 : public coordinate_base<line2, transform3_t> {
                                              e_free_pos0, e_bound_loc0);
     }
 
-    template <typename mask_t>
     DETRAY_HOST_DEVICE inline void set_free_pos_to_bound_pos_derivative(
         free_to_bound_matrix &free_to_bound_jacobian, const transform3_t &trf3,
-        const mask_t &mask, const point3 &pos, const vector3 &dir) const {
+        const point3 &pos, const vector3 &dir) const {
 
-        const auto frame = reference_frame(trf3, mask, pos, dir);
+        const auto frame = reference_frame(trf3, pos, dir);
         const auto frameT = matrix_operator().transpose(frame);
 
         // Get d(loc0, loc1)/d(x,y,z)
@@ -204,16 +201,15 @@ struct line2 : public coordinate_base<line2, transform3_t> {
                                              e_bound_loc0, e_free_pos0);
     }
 
-    template <typename mask_t>
     DETRAY_HOST_DEVICE inline void set_bound_angle_to_free_pos_derivative(
         bound_to_free_matrix &bound_to_free_jacobian, const transform3_t &trf3,
-        const mask_t &mask, const point3 &pos, const vector3 &dir) const {
+        const point3 &pos, const vector3 &dir) const {
 
         // local2
         const auto local2 = this->global_to_local(trf3, pos, dir);
 
         // Reference frame
-        const auto frame = reference_frame(trf3, mask, pos, dir);
+        const auto frame = reference_frame(trf3, pos, dir);
 
         // new x_axis
         const auto new_xaxis = getter::vector<3>(frame, 0u, 0u);

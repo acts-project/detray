@@ -45,12 +45,13 @@ TEST(mask_store_cuda, mask_store) {
     ASSERT_FALSE(store.empty<e_trapezoid2>());
 
     /** Generate random points for test **/
-    vecmem::vector<point2> input_point2(n_points, &mng_mr);
+    vecmem::vector<point3> input_point3(n_points, &mng_mr);
 
     for (unsigned int i = 0u; i < n_points; i++) {
-        point2 rand_point2 = {static_cast<scalar>(rand() % 100) / 10.f,
+        point3 rand_point3 = {static_cast<scalar>(rand() % 100) / 10.f,
+                              static_cast<scalar>(rand() % 100) / 10.f,
                               static_cast<scalar>(rand() % 100) / 10.f};
-        input_point2[i] = rand_point2;
+        input_point3[i] = rand_point3;
     }
 
     /** host output for intersection status **/
@@ -65,11 +66,11 @@ TEST(mask_store_cuda, mask_store) {
 
     /** get host results from is_inside function **/
     for (unsigned int i = 0u; i < n_points; i++) {
-        output_host[0].push_back(rectangle_mask.is_inside(input_point2[i]));
-        output_host[1].push_back(trapezoid_mask.is_inside(input_point2[i]));
-        output_host[2].push_back(ring_mask.is_inside(input_point2[i]));
-        output_host[3].push_back(cylinder_mask.is_inside(input_point2[i]));
-        output_host[4].push_back(annulus_mask.is_inside(input_point2[i]));
+        output_host[0].push_back(rectangle_mask.is_inside(input_point3[i]));
+        output_host[1].push_back(trapezoid_mask.is_inside(input_point3[i]));
+        output_host[2].push_back(ring_mask.is_inside(input_point3[i]));
+        output_host[3].push_back(cylinder_mask.is_inside(input_point3[i]));
+        output_host[4].push_back(annulus_mask.is_inside(input_point3[i]));
     }
 
     /** Helper object for performing memory copies. **/
@@ -82,12 +83,12 @@ TEST(mask_store_cuda, mask_store) {
 
     copy.setup(output_buffer);
 
-    auto input_point2_data = vecmem::get_data(input_point2);
+    auto input_point3_data = vecmem::get_data(input_point3);
     // auto input_point3_data = vecmem::get_data(input_point3);
     auto store_data = get_data(store);
 
     /** run the kernel **/
-    mask_test(store_data, input_point2_data, output_buffer);
+    mask_test(store_data, input_point3_data, output_buffer);
 
     vecmem::jagged_vector<intersection::status> output_device(&mng_mr);
     copy(output_buffer, output_device);

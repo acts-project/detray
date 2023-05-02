@@ -13,6 +13,7 @@
 #include "detray/definitions/qualifiers.hpp"
 #include "detray/intersection/detail/trajectories.hpp"
 #include "detray/intersection/intersection.hpp"
+#include "detray/utils/invalid_values.hpp"
 #include "detray/utils/quadratic_equation.hpp"
 
 // System include(s)
@@ -48,11 +49,7 @@ struct cylinder_intersector {
     /// @param mask_tolerance is the tolerance for mask edges
     ///
     /// @return the intersections.
-    template <
-        typename mask_t, typename surface_t,
-        std::enable_if_t<std::is_same_v<typename mask_t::measurement_frame_type,
-                                        cylindrical2<transform3_type>>,
-                         bool> = true>
+    template <typename mask_t, typename surface_t>
     DETRAY_HOST_DEVICE inline std::array<intersection_t, 2> operator()(
         const ray_type &ray, const surface_t &sf, const mask_t &mask,
         const transform3_type &trf,
@@ -96,11 +93,10 @@ struct cylinder_intersector {
     /// @param mask is the input mask that defines the surface extent
     /// @param trf is the surface placement transform
     /// @param mask_tolerance is the tolerance for mask edges
-    template <
-        typename mask_t,
-        std::enable_if_t<std::is_same_v<typename mask_t::measurement_frame_type,
-                                        cylindrical2<transform3_type>>,
-                         bool> = true>
+    template <typename mask_t,
+              std::enable_if_t<std::is_same_v<typename mask_t::local_frame_type,
+                                              cylindrical2<transform3_type>>,
+                               bool> = true>
     DETRAY_HOST_DEVICE inline void update(
         const ray_type &ray, intersection_t &sfi, const mask_t &mask,
         const transform3_type &trf,
@@ -167,24 +163,8 @@ struct cylinder_intersector {
             is.path = path;
             const point3 p3 = ro + is.path * rd;
 
-            // The point has to be in cylinder3 coordinates for the r-check
-            if constexpr (mask_t::shape::check_radius) {
-                const auto loc3D = mask.to_local_frame(trf, p3);
-                is.status = mask.is_inside(loc3D, mask_tolerance);
-                // Go from local to measurement frame
-                is.p2 = point2{loc3D[0] * loc3D[1], loc3D[2]};
-            } else {
-                // local frame and measurement frame are identical
-                is.p2 = mask.to_measurement_frame(trf, p3);
-                is.status = mask.is_inside(is.p2, mask_tolerance);
-            }
-
-            if constexpr (std::is_same_v<
-                              intersection_t,
-                              intersection2D_point<decltype(is.surface),
-                                                   transform3_type>>) {
-                is.p3 = p3;
-            }
+            is.local = mask.to_local_frame(trf, p3);
+            is.status = mask.is_inside(is.local, mask_tolerance);
 
             // prepare some additional information in case the intersection
             // is valid
@@ -195,7 +175,7 @@ struct cylinder_intersector {
                 is.volume_link = mask.volume_link();
 
                 // Get incidence angle
-                const scalar_type phi{is.p2[0] / mask[mask_t::shape::e_r]};
+                const scalar_type phi{is.local[0] / is.local[2]};
                 const vector3 normal = {math_ns::cos(phi), math_ns::sin(phi),
                                         0.f};
                 is.cos_incidence_angle = vector::dot(rd, normal);

@@ -18,6 +18,7 @@
 #include <type_traits>
 
 using namespace detray;
+using point3_t = __plugin::point3<detray::scalar>;
 
 constexpr scalar tol{1e-7f};
 
@@ -42,20 +43,6 @@ TEST(mask, unbounded) {
                        shape_t::template local_frame_type<transform3_t>>,
         "incorrect local frame");
     static_assert(
-        std::is_same_v<unbounded_t::template loc_point_type<transform3_t>,
-                       shape_t::template loc_point_type<transform3_t>>,
-        "incorrect local point");
-    static_assert(
-        std::is_same_v<
-            unbounded_t::template measurement_frame_type<transform3_t>,
-            shape_t::template measurement_frame_type<transform3_t>>,
-        "incorrect measurement frame");
-    static_assert(
-        std::is_same_v<
-            unbounded_t::template measurement_point_type<transform3_t>,
-            shape_t::template measurement_point_type<transform3_t>>,
-        "incorrect measurement point");
-    static_assert(
         std::is_same_v<unbounded_t::template intersector_type<transform3_t>,
                        shape_t::template intersector_type<transform3_t>>,
         "incorrect intersector");
@@ -65,7 +52,7 @@ TEST(mask, unbounded) {
     EXPECT_TRUE(unbounded_t::meas_dim == 2u);
 
     // Test boundary check
-    typename mask<unbounded_t>::loc_point_t p2 = {0.5f, -9.f};
+    typename mask<unbounded_t>::point3_t p2 = {0.5f, -9.f, 0.f};
     ASSERT_TRUE(u.is_inside(p2, 0.f) == intersection::status::e_inside);
 
     // Check projection matrix

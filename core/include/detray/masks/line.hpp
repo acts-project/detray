@@ -56,23 +56,7 @@ class line {
 
     /// Local coordinate frame for boundary checks
     template <typename algebra_t>
-    using local_frame_type =
-        std::conditional_t<kSquareCrossSect, cartesian3<algebra_t>,
-                           line2<algebra_t>>;
-    /// Local point type for boundary checks (2D or 3D)
-    template <typename algebra_t>
-    using loc_point_type =
-        std::conditional_t<kSquareCrossSect,
-                           typename local_frame_type<algebra_t>::point3,
-                           typename local_frame_type<algebra_t>::point2>;
-
-    /// Measurement frame
-    template <typename algebra_t>
-    using measurement_frame_type = line2<algebra_t>;
-    /// Measurement point type (2D)
-    template <typename algebra_t>
-    using measurement_point_type =
-        typename measurement_frame_type<algebra_t>::point2;
+    using local_frame_type = line2<algebra_t>;
 
     /// Underlying surface geometry: line
     template <typename intersection_t>
@@ -122,20 +106,23 @@ class line {
         const bounds_t<scalar_t, kDIM>& bounds, const point_t& loc_p,
         const scalar_t tol = std::numeric_limits<scalar_t>::epsilon()) const {
 
-        // For square cross section, we check if (1) x and y of the local cart.
-        // point is less than the half cell size and (2) the distance to the
-        // point of closest approach on thw line from the line center is less
-        // than the half line length
+        // For a square cross section (e.g. a cell of drift chamber), we check
+        // if (1) x and y of the local cart. point is less than the half cell
+        // size and (2) the distance to the point of closest approach on thw
+        // line from the line center is less than the half line length
         if constexpr (square_cross_sect) {
-            return (std::abs(loc_p[0]) <= bounds[e_cross_section] + tol &&
-                    std::abs(loc_p[1]) <= bounds[e_cross_section] + tol &&
-                    std::abs(loc_p[2]) <= bounds[e_half_z] + tol);
+            return (std::abs(loc_p[0] * std::cos(loc_p[2])) <=
+                        bounds[e_cross_section] + tol &&
+                    std::abs(loc_p[0] * std::sin(loc_p[2])) <=
+                        bounds[e_cross_section] + tol &&
+                    std::abs(loc_p[1]) <= bounds[e_half_z] + tol);
 
-            // For a circular cross section, we check if (1) the radial distance
-            // is within the scope and (2) the distance to the point of closest
-            // approach on the line from the line center is less than the line
-            // half length
-        } else {
+        }
+        // For a circular cross section (e.g. straw tube), we check if (1) the
+        // radial distance is within the scope and (2) the distance to the point
+        // of closest approach on the line from the line center is less than the
+        // line half length
+        else {
             return (loc_p[0] <= bounds[e_cross_section] + tol &&
                     std::abs(loc_p[1]) <= bounds[e_half_z] + tol);
         }

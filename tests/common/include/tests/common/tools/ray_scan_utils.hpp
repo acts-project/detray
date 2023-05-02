@@ -170,11 +170,6 @@ inline auto trace_intersections(const record_container &intersection_records,
         inline auto &volume_id() const { return entry.first; }
         inline auto &volume_link() const { return entry.second.volume_link; }
         inline auto &dist() const { return entry.second.path; }
-        inline auto r() const {
-            return std::sqrt(entry.second.p3[0] * entry.second.p3[0] +
-                             entry.second.p3[1] * entry.second.p3[1]);
-        }
-        inline auto z() const { return entry.second.p3[2]; }
 
         // A portal links to another volume than it belongs to
         inline bool is_portal() const {

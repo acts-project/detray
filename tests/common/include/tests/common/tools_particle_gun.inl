@@ -40,9 +40,8 @@ TEST(tools, particle_gun) {
 
     // Record ray tracing
     using detector_t = decltype(toy_det);
-    using intersection_t =
-        intersection2D_point<typename detector_t::surface_type,
-                             typename detector_t::transform3>;
+    using intersection_t = intersection2D<typename detector_t::surface_type,
+                                          typename detector_t::transform3>;
     std::vector<std::vector<std::pair<dindex, intersection_t>>> expected;
     //  Iterate through uniformly distributed momentum directions with ray
     for (const auto test_ray :

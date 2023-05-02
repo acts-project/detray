@@ -42,7 +42,7 @@ struct measurement_smearer {
 
         std::array<scalar_t, 2> ret;
 
-        const auto local = param.local();
+        const auto local = param.bound_local();
 
         // The radial element of line measurement (ret[0]) always have a
         // positive value

@@ -44,14 +44,14 @@ TEST(coordinate, line2_case1) {
     } mask;
 
     // Global to local transformation
-    const point2 local = l2.global_to_local(trf, global1, d);
+    const point3 local = l2.global_to_local(trf, global1, d);
 
     // Check if the local position is correct
     ASSERT_NEAR(local[0], -constant<scalar>::inv_sqrt2, isclose);
     ASSERT_NEAR(local[1], std::sqrt(3.f), isclose);
 
     // Local to global transformation
-    const point3 global2 = l2.local_to_global(trf, mask, local, d);
+    const point3 global2 = l2.local_to_global(trf, local);
 
     // Check if the same global position is obtained
     ASSERT_NEAR(global1[0], global2[0], isclose);
@@ -85,9 +85,8 @@ TEST(coordinate, line2_case1) {
     }
 
     // Test Jacobian transformation
-    const matrix_type<6, 6> J =
-        l2.free_to_bound_jacobian(trf, mask, free_vec1) *
-        l2.bound_to_free_jacobian(trf, mask, bound_vec);
+    const matrix_type<6, 6> J = l2.free_to_bound_jacobian(trf, free_vec1) *
+                                l2.bound_to_free_jacobian(trf, mask, bound_vec);
 
     for (unsigned int i = 0u; i < 6u; i++) {
         for (unsigned int j = 0u; j < 6u; j++) {
@@ -119,10 +118,10 @@ TEST(coordinate, line2_case2) {
     } mask;
 
     // local to global transformation
-    const point3 global = l2.local_to_global(trf, mask, local1, d);
+    const point3 global = l2.bound_local_to_global(trf, mask, local1, d);
 
     // global to local transform
-    const point2 local2 = l2.global_to_local(trf, global, d);
+    const point3 local2 = l2.global_to_local(trf, global, d);
 
     // Check if the same local position is obtained
     ASSERT_NEAR(local1[0], local2[0], isclose);
@@ -135,7 +134,7 @@ TEST(coordinate, line2_case2) {
     const auto bound_vec = l2.free_to_bound_vector(trf, free_vec);
 
     // Test Jacobian transformation
-    const matrix_type<6, 6> J = l2.free_to_bound_jacobian(trf, mask, free_vec) *
+    const matrix_type<6, 6> J = l2.free_to_bound_jacobian(trf, free_vec) *
                                 l2.bound_to_free_jacobian(trf, mask, bound_vec);
 
     const matrix_operator m;

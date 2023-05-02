@@ -12,16 +12,17 @@
 
 using namespace detray;
 using namespace __plugin;
+using point3_t = __plugin::point3<detray::scalar>;
 
 constexpr scalar tol{1e-7f};
 
 /// This tests the basic functionality of a trapezoid
 TEST(mask, trapezoid2D) {
-    using point_t = typename mask<trapezoid2D<>>::loc_point_t;
+    using point_t = point3_t;
 
-    point_t p2_in = {1.f, -0.5f};
-    point_t p2_edge = {2.5f, 1.f};
-    point_t p2_out = {3.f, 1.5f};
+    point_t p2_in = {1.f, -0.5f, 0.f};
+    point_t p2_edge = {2.5f, 1.f, 0.f};
+    point_t p2_out = {3.f, 1.5f, 0.f};
 
     constexpr scalar hx_miny{1.f * unit<scalar>::mm};
     constexpr scalar hx_maxy{3.f * unit<scalar>::mm};

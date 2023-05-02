@@ -46,10 +46,7 @@ struct plane_intersector {
     /// @param mask_tolerance is the tolerance for mask edges
     ///
     /// @return the intersection
-    template <
-        typename mask_t, typename surface_t,
-        std::enable_if_t<std::is_same_v<typename mask_t::loc_point_t, point2>,
-                         bool> = true>
+    template <typename mask_t, typename surface_t>
     DETRAY_HOST_DEVICE inline intersection_t operator()(
         const ray_type &ray, const surface_t &sf, const mask_t &mask,
         const transform3_type &trf,
@@ -74,20 +71,13 @@ struct plane_intersector {
             if (is.path >= ray.overstep_tolerance()) {
 
                 const point3 p3 = ro + is.path * rd;
-                is.p2 = mask.to_local_frame(trf, p3, ray.dir());
-                is.status = mask.is_inside(is.p2, mask_tolerance);
+                is.local = mask.to_local_frame(trf, p3, ray.dir());
+                is.status = mask.is_inside(is.local, mask_tolerance);
 
                 // prepare some additional information in case the intersection
                 // is valid
                 if (is.status == intersection::status::e_inside) {
                     is.surface = sf;
-
-                    if constexpr (std::is_same_v<
-                                      intersection_t,
-                                      intersection2D_point<surface_t,
-                                                           transform3_type>>) {
-                        is.p3 = p3;
-                    }
 
                     is.direction = detail::signbit(is.path)
                                        ? intersection::direction::e_opposite
@@ -115,10 +105,7 @@ struct plane_intersector {
     /// @param mask is the input mask that defines the surface extent
     /// @param trf is the surface placement transform
     /// @param mask_tolerance is the tolerance for mask edges
-    template <
-        typename mask_t,
-        std::enable_if_t<std::is_same_v<typename mask_t::loc_point_t, point2>,
-                         bool> = true>
+    template <typename mask_t>
     DETRAY_HOST_DEVICE inline void update(
         const ray_type &ray, intersection_t &sfi, const mask_t &mask,
         const transform3_type &trf,

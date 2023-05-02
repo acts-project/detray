@@ -32,13 +32,30 @@ struct global_to_local {
     using vector3 = typename algebra_t::vector3;
 
     template <typename mask_group_t, typename index_t>
-    DETRAY_HOST_DEVICE inline auto operator()(const mask_group_t& mask_group,
-                                              const index_t& index,
-                                              const algebra_t& trf3,
-                                              const point3& pos,
-                                              const vector3& dir) const {
+    DETRAY_HOST_DEVICE inline point3 operator()(const mask_group_t& mask_group,
+                                                const index_t& index,
+                                                const algebra_t& trf3,
+                                                const point3& pos,
+                                                const vector3& dir) const {
 
         return mask_group[index].to_local_frame(trf3, pos, dir);
+    }
+};
+
+/// A functor to perform local to global transformation
+template <typename algebra_t>
+struct local_to_global {
+
+    using point3 = typename algebra_t::point3;
+    using vector3 = typename algebra_t::vector3;
+
+    template <typename mask_group_t, typename index_t>
+    DETRAY_HOST_DEVICE inline point3 operator()(const mask_group_t& mask_group,
+                                                const index_t& index,
+                                                const algebra_t& trf3,
+                                                const point3& local) const {
+
+        return mask_group[index].to_global_frame(trf3, local);
     }
 };
 

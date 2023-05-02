@@ -166,14 +166,12 @@ class axis_aligned_bounding_volume {
         typename transform3_t::point3 {
 
         using point3_t = typename transform3_t::point3;
-        using loc_point_t =
-            typename shape::template loc_point_type<transform3_t>;
 
         if constexpr (std::is_same_v<shape, cuboid3D<>>) {
-            return trf.point_to_global(loc_min<loc_point_t>());
+            return trf.point_to_global(loc_min<point3_t>());
         } else if constexpr (std::is_same_v<shape, cylinder3D>) {
             return cylindrical3<transform3_t>{}.local_to_global(
-                trf, m_mask, loc_min<loc_point_t>());
+                trf, m_mask, loc_min<point3_t>());
         }
 
         // If the volume shape is not supported, return universal minimum
@@ -190,14 +188,12 @@ class axis_aligned_bounding_volume {
         typename transform3_t::point3 {
 
         using point3_t = typename transform3_t::point3;
-        using loc_point_t =
-            typename shape::template loc_point_type<transform3_t>;
 
         if constexpr (std::is_same_v<shape, cuboid3D<>>) {
-            return trf.point_to_global(loc_max<loc_point_t>());
+            return trf.point_to_global(loc_max<point3_t>());
         } else if constexpr (std::is_same_v<shape, cylinder3D>) {
             return cylindrical3<transform3_t>{}.local_to_global(
-                trf, m_mask, loc_max<loc_point_t>());
+                trf, m_mask, loc_max<point3_t>());
         }
 
         // If the volume shape is not supported, return universal minimum

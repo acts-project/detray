@@ -38,7 +38,7 @@ struct test_param {
     }
 
     point2 loc;
-    point2 local() const { return loc; }
+    point2 bound_local() const { return loc; }
 };
 
 // Test measurement smearer

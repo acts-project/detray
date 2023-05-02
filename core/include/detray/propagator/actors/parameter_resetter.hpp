@@ -42,7 +42,7 @@ struct parameter_resetter : actor {
             // Note: How is it possible with "range"???
             const auto& mask = mask_group[index];
 
-            auto local_coordinate = mask.measurement_frame();
+            auto local_coordinate = mask.local_frame();
 
             // Reset the free vector
             stepping().set_vector(local_coordinate.bound_to_free_vector(

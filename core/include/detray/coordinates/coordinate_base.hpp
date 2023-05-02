@@ -13,6 +13,7 @@
 #include "detray/intersection/detail/trajectories.hpp"
 #include "detray/propagator/base_stepper.hpp"
 #include "detray/tracks/detail/track_helper.hpp"
+#include "detray/utils/invalid_values.hpp"
 
 // System include(s).
 #include <limits>
@@ -68,7 +69,7 @@ struct coordinate_base {
         const point3 pos = track_helper().pos(free_vec);
         const vector3 dir = track_helper().dir(free_vec);
 
-        const point2 local =
+        const point3 local =
             Derived<transform3_t>().global_to_local(trf3, pos, dir);
 
         bound_vector bound_vec;
@@ -91,11 +92,12 @@ struct coordinate_base {
         const transform3_t& trf3, const mask_t& mask,
         const bound_vector& bound_vec) const {
 
-        const point2 local = track_helper().local(bound_vec);
+        const point2 bound_local = track_helper().bound_local(bound_vec);
+
         const vector3 dir = track_helper().dir(bound_vec);
 
-        const auto pos =
-            Derived<transform3_t>().local_to_global(trf3, mask, local, dir);
+        const auto pos = Derived<transform3_t>().bound_local_to_global(
+            trf3, mask, bound_local, dir);
 
         free_vector free_vec;
         matrix_operator().element(free_vec, e_free_pos0, 0u) = pos[0];
@@ -140,7 +142,7 @@ struct coordinate_base {
 
         // Set d(x,y,z)/d(loc0, loc1)
         Derived<transform3_t>().set_bound_pos_to_free_pos_derivative(
-            jac_to_global, trf3, mask, pos, dir);
+            jac_to_global, trf3, pos, dir);
 
         // Set d(bound time)/d(free time)
         matrix_operator().element(jac_to_global, e_free_time, e_bound_time) =
@@ -162,15 +164,13 @@ struct coordinate_base {
 
         // Set d(x,y,z)/d(phi, theta)
         Derived<transform3_t>().set_bound_angle_to_free_pos_derivative(
-            jac_to_global, trf3, mask, pos, dir);
+            jac_to_global, trf3, pos, dir);
 
         return jac_to_global;
     }
 
-    template <typename mask_t>
     DETRAY_HOST_DEVICE inline free_to_bound_matrix free_to_bound_jacobian(
-        const transform3_t& trf3, const mask_t& mask,
-        const free_vector& free_vec) const {
+        const transform3_t& trf3, const free_vector& free_vec) const {
 
         // Declare jacobian for bound to free coordinate transform
         free_to_bound_matrix jac_to_local =
@@ -190,7 +190,7 @@ struct coordinate_base {
 
         // Set d(loc0, loc1)/d(x,y,z)
         Derived<transform3_t>().set_free_pos_to_bound_pos_derivative(
-            jac_to_local, trf3, mask, pos, dir);
+            jac_to_local, trf3, pos, dir);
 
         // Set d(free time)/d(bound time)
         matrix_operator().element(jac_to_local, e_bound_time, e_free_time) =
@@ -216,13 +216,12 @@ struct coordinate_base {
         return jac_to_local;
     }
 
-    template <typename mask_t>
     DETRAY_HOST_DEVICE inline free_matrix path_correction(
         const vector3& pos, const vector3& dir, const vector3& dtds,
-        const transform3_t& trf3, const mask_t& mask) const {
+        const transform3_t& trf3) const {
 
         free_to_path_matrix path_derivative =
-            Derived<transform3_t>().path_derivative(trf3, mask, pos, dir);
+            Derived<transform3_t>().path_derivative(trf3, pos, dir);
 
         path_to_free_matrix derivative =
             matrix_operator().template zero<e_free_size, 1u>();
