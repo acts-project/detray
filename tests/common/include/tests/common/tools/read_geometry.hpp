@@ -5,12 +5,14 @@
  * Mozilla Public License Version 2.0
  */
 
+#pragma once
+
 #include <map>
 #include <string>
 #include <vecmem/memory/host_memory_resource.hpp>
 
 #include "detray/core/detector.hpp"
-#include "detray/io/csv_io.hpp"
+#include "detray/io/csv/csv_io.hpp"
 
 /// @note __plugin has to be defined with a preprocessor command
 using namespace detray;

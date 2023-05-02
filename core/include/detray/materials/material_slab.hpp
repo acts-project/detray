@@ -1,6 +1,6 @@
 /** Detray library, part of the ACTS project (R&D line)
  *
- * (c) 2022 CERN for the benefit of the ACTS project
+ * (c) 2022-2023 CERN for the benefit of the ACTS project
  *
  * Mozilla Public License Version 2.0
  */
@@ -9,22 +9,28 @@
 
 // Project include(s)
 #include "detray/definitions/qualifiers.hpp"
+#include "detray/intersection/intersection.hpp"
 #include "detray/materials/material.hpp"
+#include "detray/materials/predefined_materials.hpp"
 
 // System include(s)
-#include <climits>
+#include <limits>
 
 namespace detray {
 
-// Slab structure to be mapped on the mask
+// Slab structure to be mapped on the mask (plane, cylinder)
 template <typename scalar_t>
 struct material_slab {
     using scalar_type = scalar_t;
     using material_type = material<scalar_t>;
 
-    material_slab() = default;
+    constexpr material_slab() = default;
 
-    material_slab(const material_type& material, scalar_type thickness)
+    /// Constructor
+    /// @param material is the elemental or mixture material
+    /// @param thickness is the thickness of the slab
+    constexpr material_slab(const material_type& material,
+                            scalar_type thickness)
         : m_material(material),
           m_thickness(thickness),
           m_thickness_in_X0(thickness / material.X0()),
@@ -34,9 +40,20 @@ struct material_slab {
     ///
     /// @param rhs is the right hand side to be compared to
     DETRAY_HOST_DEVICE
-    bool operator==(const material_slab<scalar_t>& rhs) const {
+    constexpr bool operator==(const material_slab& rhs) const {
         return (m_material == rhs.get_material() &&
                 m_thickness == rhs.thickness());
+    }
+
+    /// Boolean operator
+    DETRAY_HOST_DEVICE
+    constexpr explicit operator bool() const {
+        if (m_thickness <= std::numeric_limits<scalar_type>::epsilon() ||
+            m_material == vacuum<scalar_type>() || m_material.Z() == 0.f ||
+            m_material.mass_density() == 0.f) {
+            return false;
+        }
+        return true;
     }
 
     /// Access the (average) material parameters.
@@ -51,6 +68,24 @@ struct material_slab {
     /// Return the nuclear interaction length fraction.
     DETRAY_HOST_DEVICE
     constexpr scalar_type thickness_in_L0() const { return m_thickness_in_L0; }
+    /// Return the path segment
+    template <typename intersection_t>
+    DETRAY_HOST_DEVICE constexpr scalar_type path_segment(
+        const intersection_t& is) const {
+        return m_thickness / is.cos_incidence_angle;
+    }
+    /// Return the path segment in X0
+    template <typename intersection_t>
+    DETRAY_HOST_DEVICE constexpr scalar_type path_segment_in_X0(
+        const intersection_t& is) const {
+        return m_thickness_in_X0 / is.cos_incidence_angle;
+    }
+    /// Return the path segment in L0
+    template <typename intersection_t>
+    DETRAY_HOST_DEVICE constexpr scalar_type path_segment_in_L0(
+        const intersection_t& is) const {
+        return m_thickness_in_L0 / is.cos_incidence_angle;
+    }
 
     private:
     material_type m_material = {};

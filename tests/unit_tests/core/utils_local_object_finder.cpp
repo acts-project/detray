@@ -1,6 +1,6 @@
 /** Detray library, part of the ACTS project (R&D line)
  *
- * (c) 2020-2022 CERN for the benefit of the ACTS project
+ * (c) 2020-2023 CERN for the benefit of the ACTS project
  *
  * Mozilla Public License Version 2.0
  */
@@ -20,7 +20,6 @@
 #include "detray/grids/populator.hpp"
 #include "detray/grids/serializer2.hpp"
 #include "detray/tools/local_object_finder.hpp"
-#include "detray/utils/enumerate.hpp"
 
 using namespace detray;
 
@@ -30,13 +29,13 @@ TEST(utils, local_object_finder) {
 
     serializer2 serializer;
 
-    test::point2<detray::scalar> p2 = {-4.5, -4.5};
+    test::point2<detray::scalar> p2 = {-4.5f, -4.5f};
 
     using grid2r = grid2<replace_populator, axis::regular, axis::regular,
                          decltype(serializer)>;
 
-    typename grid2r::axis_p0_type xaxis{10, -5., 5., host_mr};
-    typename grid2r::axis_p1_type yaxis{10, -5., 5., host_mr};
+    typename grid2r::axis_p0_type xaxis{10u, -5.f, 5.f, host_mr};
+    typename grid2r::axis_p1_type yaxis{10u, -5.f, 5.f, host_mr};
 
     grid2r g2(std::move(xaxis), std::move(yaxis), host_mr);
 

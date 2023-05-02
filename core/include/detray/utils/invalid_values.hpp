@@ -1,39 +1,53 @@
 /** Detray library, part of the ACTS project (R&D line)
  *
- * (c) 2020 CERN for the benefit of the ACTS project
+ * (c) 2020-2023 CERN for the benefit of the ACTS project
  *
  * Mozilla Public License Version 2.0
  */
 
 #pragma once
 
-#include <limits>
-
+// Project include(s).
 #include "detray/definitions/qualifiers.hpp"
+
+// System include(s)
+#include <limits>
+#include <type_traits>
 
 namespace detray {
 
-template <typename T>
-DETRAY_HOST_DEVICE inline T invalid_value() {
-    return T::invalid_value();
+namespace detail {
+
+/// Invalid value for fundamental types - constexpr
+template <typename T,
+          typename std::enable_if_t<std::is_fundamental_v<T>, bool> = true>
+DETRAY_HOST_DEVICE inline constexpr T invalid_value() noexcept {
+    return std::numeric_limits<T>::max();
 }
 
-// specialization for int
-template <>
-DETRAY_HOST_DEVICE inline int invalid_value() {
-    return std::numeric_limits<int>::max();
+/// Invalid value for types that cannot be constructed constexpr, e.g. Eigen
+template <typename T,
+          typename std::enable_if_t<not std::is_fundamental_v<T> and
+                                        std::is_default_constructible_v<T>,
+                                    bool> = true>
+DETRAY_HOST_DEVICE inline T invalid_value() noexcept {
+    return T{};
 }
 
-// specialization for unsigned int
-template <>
-DETRAY_HOST_DEVICE inline unsigned int invalid_value() {
-    return std::numeric_limits<unsigned int>::max();
+}  // namespace detail
+
+template <typename T,
+          typename std::enable_if_t<std::is_fundamental_v<T>, bool> = true>
+DETRAY_HOST_DEVICE inline constexpr bool is_invalid_value(
+    const T value) noexcept {
+    return (value == detail::invalid_value<T>());
 }
 
-// specialization for long unsigned int
-template <>
-DETRAY_HOST_DEVICE inline long unsigned int invalid_value() {
-    return std::numeric_limits<long unsigned int>::max();
+template <typename T,
+          typename std::enable_if_t<!std::is_fundamental_v<T>, bool> = true>
+DETRAY_HOST_DEVICE inline constexpr bool is_invalid_value(
+    const T& value) noexcept {
+    return (value == detail::invalid_value<T>());
 }
 
 }  // namespace detray

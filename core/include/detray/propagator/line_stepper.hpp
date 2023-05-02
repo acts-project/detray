@@ -7,43 +7,80 @@
 
 #pragma once
 
-// detray definitions
+// Project include(s).
 #include "detray/definitions/qualifiers.hpp"
-
-// detray tools
 #include "detray/propagator/base_stepper.hpp"
 #include "detray/propagator/navigation_policies.hpp"
 
-// system includes
+// System includes(s).
 #include <cmath>
 
 namespace detray {
 
 /// Straight line stepper implementation
-///
-/// @tparam track_t the type of track that is being advanced by the stepper
-/// @tparam constraint_ the type of constraints on the stepper
-template <typename track_t, typename constraint_t = unconstrained_step,
+template <typename transform3_t, typename constraint_t = unconstrained_step,
           typename policy_t = stepper_default_policy>
 class line_stepper final
-    : public base_stepper<track_t, constraint_t, policy_t> {
+    : public base_stepper<transform3_t, constraint_t, policy_t> {
 
     public:
-    using base_type = base_stepper<track_t, constraint_t, policy_t>;
+    using base_type = base_stepper<transform3_t, constraint_t, policy_t>;
+    using transform3_type = transform3_t;
     using policy_type = policy_t;
+    using free_track_parameters_type =
+        typename base_type::free_track_parameters_type;
+    using bound_track_parameters_type =
+        typename base_type::bound_track_parameters_type;
+    using matrix_operator = typename base_type::matrix_operator;
+    using size_type = typename matrix_operator::size_ty;
+    using vector3 = typename transform3_type::vector3;
+    template <size_type ROWS, size_type COLS>
+    using matrix_type =
+        typename matrix_operator::template matrix_type<ROWS, COLS>;
 
     struct state : public base_type::state {
+        static constexpr const stepping::id id = stepping::id::e_linear;
+
         DETRAY_HOST_DEVICE
-        state(const track_t &t) : base_type::state(t) {}
+        state(const free_track_parameters_type& t) : base_type::state(t) {}
+
+        template <typename detector_t>
+        DETRAY_HOST_DEVICE state(
+            const bound_track_parameters_type& bound_params,
+            const detector_t& det)
+            : base_type::state(bound_params, det) {}
 
         /// Update the track state in a straight line.
         DETRAY_HOST_DEVICE
         inline void advance_track() {
-            auto &track = this->_track;
+            auto& track = this->_track;
             track.set_pos(track.pos() + track.dir() * this->_step_size);
 
             this->_path_length += this->_step_size;
+            this->_s += this->_step_size;
         }
+
+        DETRAY_HOST_DEVICE
+        inline void advance_jacobian() {
+
+            // The step transport matrix in global coordinates
+            matrix_type<e_free_size, e_free_size> D =
+                matrix_operator().template identity<e_free_size, e_free_size>();
+
+            // d(x,y,z)/d(n_x,n_y,n_z)
+            matrix_type<3, 3> dxdn =
+                this->_step_size * matrix_operator().template identity<3, 3>();
+            matrix_operator().template set_block<3, 3>(D, dxdn, e_free_pos0,
+                                                       e_free_dir0);
+
+            /// NOTE: Let's skip the element for d(time)/d(qoverp) for the
+            /// moment..
+
+            this->_jac_transport = D * this->_jac_transport;
+        }
+
+        DETRAY_HOST_DEVICE
+        inline vector3 dtds() const { return vector3{0.f, 0.f, 0.f}; }
     };
 
     /// Take a step, regulared by a constrained step
@@ -54,9 +91,9 @@ class line_stepper final
     ///
     /// @return returning the heartbeat, indicating if the stepping is alive
     template <typename propagation_state_t>
-    DETRAY_HOST_DEVICE bool step(propagation_state_t &propagation) {
+    DETRAY_HOST_DEVICE bool step(propagation_state_t& propagation) {
         // Get stepper state
-        state &stepping = propagation._stepping;
+        state& stepping = propagation._stepping;
         // Distance to next surface as fixed step size
         scalar step_size = propagation._navigation();
 
@@ -77,6 +114,9 @@ class line_stepper final
 
         // Update track state
         stepping.advance_track();
+
+        // Advance jacobian transport
+        stepping.advance_jacobian();
 
         // Call navigation update policy
         policy_t{}(stepping.policy_state(), propagation);

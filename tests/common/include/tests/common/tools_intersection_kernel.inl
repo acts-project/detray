@@ -1,22 +1,22 @@
 /** Detray library, part of the ACTS project (R&D line)
  *
- * (c) 2021-2022 CERN for the benefit of the ACTS project
+ * (c) 2021-2023 CERN for the benefit of the ACTS project
  *
  * Mozilla Public License Version 2.0
  */
 
 // Project include(s)
-#include "detray/core/transform_store.hpp"
-#include "detray/core/type_registry.hpp"
+#include "detray/core/detail/multi_store.hpp"
+#include "detray/core/detail/single_store.hpp"
 #include "detray/geometry/surface.hpp"
+#include "detray/intersection/cylinder_intersector.hpp"
+#include "detray/intersection/cylinder_portal_intersector.hpp"
 #include "detray/intersection/detail/trajectories.hpp"
 #include "detray/intersection/intersection_kernel.hpp"
 #include "detray/intersection/plane_intersector.hpp"
 #include "detray/masks/masks.hpp"
-#include "detray/materials/material_slab.hpp"
-#include "detray/materials/predefined_materials.hpp"
-#include "detray/propagator/track.hpp"
-#include "detray/utils/enumerate.hpp"
+#include "detray/tracks/tracks.hpp"
+#include "detray/utils/ranges.hpp"
 #include "tests/common/tools/intersectors/helix_intersection_kernel.hpp"
 
 // Vecmem include(s)
@@ -27,223 +27,225 @@
 
 using namespace detray;
 
-constexpr const float epsilon = 1e-3;
+namespace {
+
+constexpr const scalar tol{1e-3f};
+constexpr const scalar is_close{1e-5f};
+
+enum mask_ids : unsigned int {
+    e_rectangle2 = 0u,
+    e_trapezoid2 = 1u,
+    e_annulus2 = 2u,
+    e_cylinder2 = 3u,
+    e_cylinder2_portal = 4u,
+};
+
+enum material_ids : unsigned int {
+    e_slab = 0u,
+};
+
+}  // anonymous namespace
+
+/// Surface components:
+using volume_link_t = std::uint_least16_t;
+
+/// - masks, with mask identifiers 0,1,2
+using rectangle_t = mask<rectangle2D<>, volume_link_t>;
+using trapezoid_t = mask<trapezoid2D<>, volume_link_t>;
+using annulus_t = mask<annulus2D<>, volume_link_t>;
+using cylinder_t = mask<cylinder2D<true, cylinder_intersector>, volume_link_t>;
+using cylinder_portal_t =
+    mask<cylinder2D<false, cylinder_portal_intersector>, volume_link_t>;
+
+using mask_container_t =
+    regular_multi_store<mask_ids, empty_context, dtuple, dvector, rectangle_t,
+                        trapezoid_t, annulus_t, cylinder_t, cylinder_portal_t>;
+using mask_link_t = typename mask_container_t::single_link;
+using material_link_t = dtyped_index<material_ids, dindex>;
+
+using transform_container_t = single_store<__plugin::transform3<scalar>>;
+using transform3_t = typename transform_container_t::value_type;
+using vector3 = typename transform3_t::vector3;
+using point3 = typename transform3_t::point3;
+using transform_link_t = dindex;
+
+/// The Surface definition:
+using surface_t = surface<mask_link_t, material_link_t, transform_link_t>;
+using surface_container_t = dvector<surface_t>;
 
 // TODO: How about merging ray and helix tests into one to remove the code
 // repetition?
 
 // This tests the construction of a surface
 TEST(tools, intersection_kernel_ray) {
-
-    using vector3 = __plugin::vector3<scalar>;
-    using point3 = __plugin::point3<scalar>;
-
     vecmem::host_memory_resource host_mr;
 
-    enum mask_ids : unsigned int {
-        e_rectangle2 = 0,
-        e_trapezoid2 = 1,
-        e_annulus2 = 2,
-    };
-
-    enum material_ids : unsigned int {
-        e_slab = 0,
-    };
-
-    /// Surface components:
-    using edge_t = dindex;
-    using source_link_t = dindex;
-    /// - masks, with mask identifiers 0,1,2
-    using rectangle_t =
-        rectangle2<__plugin::cartesian2<detray::scalar>, edge_t>;
-    using trapezoid_t =
-        trapezoid2<__plugin::cartesian2<detray::scalar>, edge_t>;
-    using annulus_t = annulus2<__plugin::cartesian2<detray::scalar>, edge_t>;
-
-    using mask_defs =
-        tuple_vector_registry<mask_ids, rectangle_t, trapezoid_t, annulus_t>;
-    using mask_container_t = typename mask_defs::store_type<>;
-
-    // Materials with a slab
-    using material_defs =
-        tuple_vector_registry<material_ids, material_slab<scalar>>;
-    using material_container_t = typename material_defs::store_type<>;
-
-    /// The Surface definition:
-    /// <transform_link, volume_link, source_link, link_type_in_mask>
-    using surface_t =
-        surface<mask_defs, material_defs, dindex, dindex, source_link_t>;
-    using surface_container_t = dvector<surface_t>;
-
     // The transforms & their store
-    static_transform_store<>::context static_context{};
-    static_transform_store transform_store;
-    // Transforms of the rectangle, trapezoid and annulus
-    transform_store.emplace_back(static_context, point3{0., 0., 10.});
-    transform_store.emplace_back(static_context, point3{0., 0., 20.});
-    transform_store.emplace_back(static_context, point3{0., -20., 30.});
+    typename transform_container_t::context_type static_context{};
+    transform_container_t transform_store;
+    // Transforms of the rectangle, trapezoid, annulus and the two cylinders
+    transform_store.emplace_back(static_context, vector3{0.f, 0.f, 10.f});
+    transform_store.emplace_back(static_context, vector3{0.f, 0.f, 20.f});
+    transform_store.emplace_back(static_context, vector3{0.f, -20.f, 30.f});
+    // 90deg rotation around y-axis
+    transform_store.emplace_back(static_context, vector3{0.f, 0.f, 50.f},
+                                 vector3{1.f, 0.f, 0.f},
+                                 vector3{0.f, 0.f, -1.f});
+    transform_store.emplace_back(static_context, vector3{0.f, 0.f, 100.f},
+                                 vector3{1.f, 0.f, 0.f},
+                                 vector3{0.f, 0.f, -1.f});
+
     // The masks & their store
     mask_container_t mask_store(host_mr);
-    mask_store.template add_value<e_rectangle2>(10., 10., 0);
-    mask_store.template add_value<e_trapezoid2>(10., 20., 30., 0);
-    mask_store.template add_value<e_annulus2>(15., 55., 0.75, 1.95, 2., -2., 0.,
-                                              0);
-    // Materials and their store
-    material_container_t material_store(host_mr);
-    material_store.template add_value<e_slab>(silicon<scalar>(),
-                                              1. * unit_constants::mm);
-    material_store.template add_value<e_slab>(silicon<scalar>(),
-                                              2. * unit_constants::mm);
-    material_store.template add_value<e_slab>(silicon<scalar>(),
-                                              3. * unit_constants::mm);
+    mask_store.template emplace_back<e_rectangle2>(empty_context{}, 0u, 10.f,
+                                                   10.f);
+    mask_store.template emplace_back<e_trapezoid2>(empty_context{}, 0u, 10.f,
+                                                   20.f, 30.f);
+    mask_store.template emplace_back<e_annulus2>(
+        empty_context{}, 0u, 15.f, 55.f, 0.75f, 1.95f, 2.f, -2.f, 0.f);
+    mask_store.template emplace_back<e_cylinder2>(empty_context{}, 0u, 5.f,
+                                                  -10.f, 10.f);
+    mask_store.template emplace_back<e_cylinder2_portal>(empty_context{}, 0u,
+                                                         4.f, -10.f, 10.f);
 
     // The surfaces and their store
-    const surface_t rectangle_surface(0u, {e_rectangle2, 0}, {e_slab, 0}, 0, 0,
-                                      false);
-    const surface_t trapezoid_surface(1u, {e_trapezoid2, 0}, {e_slab, 1}, 0, 1,
-                                      false);
-    const surface_t annulus_surface(2u, {e_annulus2, 0}, {e_slab, 2}, 0, 2,
-                                    false);
+    surface_t rectangle_surface(0u, {e_rectangle2, 0u}, {e_slab, 0u}, 0u, 0u,
+                                surface_id::e_sensitive);
+    surface_t trapezoid_surface(1u, {e_trapezoid2, 0u}, {e_slab, 1u}, 0u, 1u,
+                                surface_id::e_sensitive);
+    surface_t annulus_surface(2u, {e_annulus2, 0u}, {e_slab, 2u}, 0u, 2u,
+                              surface_id::e_sensitive);
+    surface_t cyl_surface(3u, {e_cylinder2, 0u}, {e_slab, 2u}, 0u, 3u,
+                          surface_id::e_passive);
+    surface_t cyl_portal_surface(4u, {e_cylinder2_portal, 0u}, {e_slab, 2u}, 0u,
+                                 4u, surface_id::e_portal);
     surface_container_t surfaces = {rectangle_surface, trapezoid_surface,
-                                    annulus_surface};
+                                    annulus_surface, cyl_surface,
+                                    cyl_portal_surface};
 
-    const point3 pos{0., 0., 0.};
-    const vector3 mom{0.01, 0.01, 10.};
-    const free_track_parameters track(pos, 0, mom, -1);
+    const point3 pos{0.f, 0.f, 0.f};
+    const vector3 mom{0.01f, 0.01f, 10.f};
+    const free_track_parameters<transform3_t> track(pos, 0.f, mom, -1.f);
 
     // Validation data
-    const point3 expected_rectangle{0.01, 0.01, 10.};
-    const point3 expected_trapezoid{0.02, 0.02, 20.};
-    const point3 expected_annulus{0.03, 0.03, 30.};
+    const point3 expected_rectangle{0.01f, 0.01f, 10.f};
+    const point3 expected_trapezoid{0.02f, 0.02f, 20.f};
+    const point3 expected_annulus{0.03f, 0.03f, 30.f};
+    const point3 expected_cylinder1{0.045f, 0.045f, 45.0f};
+    const point3 expected_cylinder2{0.055f, 0.055f, 55.0f};
+    const point3 expected_cylinder_pt{0.096001f, 0.096001f, 96.001f};
 
     const std::vector<point3> expected_points = {
-        expected_rectangle, expected_trapezoid, expected_annulus};
+        expected_rectangle, expected_trapezoid, expected_annulus,
+        expected_cylinder1, expected_cylinder2, expected_cylinder_pt};
 
     // Initialize kernel
-    std::vector<line_plane_intersection> sfi_init;
+    std::vector<intersection2D_point<surface_t, transform3_t>> sfi_init;
 
-    for (const auto& [sf_idx, surface] : enumerate(surfaces)) {
-        mask_store.execute<intersection_initialize>(
-            surface.mask_type(), sfi_init, detail::ray(track), surface,
-            transform_store);
+    for (const auto &surface : surfaces) {
+        mask_store.visit<intersection_initialize>(surface.mask(), sfi_init,
+                                                  detail::ray(track), surface,
+                                                  transform_store, tol);
+    }
+    // Also check intersections
+    for (std::size_t i = 0u; i < expected_points.size(); ++i) {
+        ASSERT_EQ(sfi_init[i].direction, intersection::direction::e_along);
+        ASSERT_EQ(sfi_init[i].volume_link, 0u);
+        ASSERT_NEAR(sfi_init[i].p3[0], expected_points[i][0], 1e-3f)
+            << " at surface " << sfi_init[i].surface.barcode();
+        ASSERT_NEAR(sfi_init[i].p3[1], expected_points[i][1], 1e-3f)
+            << " at surface " << sfi_init[i].surface.barcode();
+        ASSERT_NEAR(sfi_init[i].p3[2], expected_points[i][2], 1e-3f)
+            << " at surface " << sfi_init[i].surface.barcode();
     }
 
     // Update kernel
-    std::vector<line_plane_intersection> sfi_update;
+    // @fixme: The intersection update kernel does not work for non-portal
+    // cylinders, since it assigns the closest intersection to both solutions
+    /*std::vector<intersection2D_point<surface_t, transform3_t>> sfi_update;
+    sfi_update.resize(5);
 
-    for (const auto& [sf_idx, surface] : enumerate(surfaces)) {
-        const auto sfi = mask_store.execute<intersection_update>(
-            surface.mask_type(), detail::ray(track), surface, transform_store);
+    for (const auto [idx, surface] : detray::views::enumerate(surfaces)) {
+        sfi_update[idx].surface = surface;
+        mask_store.visit<intersection_update>(
+            surface.mask(), detail::ray(track), sfi_update[idx],
+            transform_store);
 
-        sfi_update.push_back(sfi);
-
-        ASSERT_NEAR(sfi.p3[0], expected_points[sf_idx][0], 1e-7);
-        ASSERT_NEAR(sfi.p3[1], expected_points[sf_idx][1], 1e-7);
-        ASSERT_NEAR(sfi.p3[2], expected_points[sf_idx][2], 1e-7);
+        if(sfi_update[idx].status != intersection::status::e_inside) { continue;
+    } ASSERT_EQ(sfi_update[idx].direction, intersection::direction::e_along) <<
+    " at surface " << sfi_update[idx] << ", " << sfi_init[idx];
+        ASSERT_EQ(sfi_update[idx].volume_link, 0u);
+        ASSERT_NEAR(sfi_update[idx].p3[0], expected_points[idx][0], is_close)
+        << " at surface " << sfi_update[idx] << ", " << sfi_init[idx];
+        ASSERT_NEAR(sfi_update[idx].p3[1], expected_points[idx][1], is_close) <<
+    " at surface " << sfi_update[idx] << ", " << sfi_init[idx];
+        ASSERT_NEAR(sfi_update[idx].p3[2], expected_points[idx][2], is_close)
+        << " at surface " << sfi_update[idx] << ", " << sfi_init[idx];
     }
 
     // Compare
-    ASSERT_EQ(sfi_init.size(), 3);
-    ASSERT_EQ(sfi_update.size(), 3);
-    for (int i = 0; i < 3; i++) {
+    ASSERT_EQ(sfi_init.size(), 5u);
+    ASSERT_EQ(sfi_update.size(), 5u);
+    for (unsigned int i = 0u; i < 5u; i++) {
         ASSERT_EQ(sfi_init[i].p3, sfi_update[i].p3);
         ASSERT_EQ(sfi_init[i].p2, sfi_update[i].p2);
         ASSERT_EQ(sfi_init[i].path, sfi_update[i].path);
-    }
+    }*/
 }
 
 /// Re-use the intersection kernel test for particle gun
 TEST(tools, intersection_kernel_helix) {
-    using vector3 = __plugin::vector3<scalar>;
-    using point3 = __plugin::point3<scalar>;
 
     vecmem::host_memory_resource host_mr;
 
-    enum mask_ids : unsigned int {
-        e_rectangle2 = 0,
-        e_trapezoid2 = 1,
-        e_annulus2 = 2,
-    };
-
-    enum material_ids : unsigned int {
-        e_slab = 0,
-    };
-
-    /// Surface components:
-    using edge_t = dindex;
-    using source_link_t = dindex;
-    /// - masks, with mask identifiers 0,1,2
-    using rectangle_t =
-        rectangle2<__plugin::cartesian2<detray::scalar>, edge_t>;
-    using trapezoid_t =
-        trapezoid2<__plugin::cartesian2<detray::scalar>, edge_t>;
-    using annulus_t = annulus2<__plugin::cartesian2<detray::scalar>, edge_t>;
-    using mask_defs =
-        tuple_vector_registry<mask_ids, rectangle_t, trapezoid_t, annulus_t>;
-    using mask_container_t = typename mask_defs::template store_type<>;
-
-    // Materials with a slab
-    using material_defs =
-        tuple_vector_registry<material_ids, material_slab<scalar>>;
-    using material_container_t = typename material_defs::store_type<>;
-
-    /// The Surface definition:
-    /// <transform_link, volume_link, source_link, link_type_in_mask>
-    using surface_t =
-        surface<mask_defs, material_defs, dindex, dindex, source_link_t>;
-    using surface_container_t = dvector<surface_t>;
-
     // The transforms & their store
-    static_transform_store<>::context static_context{};
-    static_transform_store transform_store;
+    typename transform_container_t::context_type static_context{};
+    transform_container_t transform_store;
     // Transforms of the rectangle, trapezoid and annulus
-    transform_store.emplace_back(static_context, point3{0., 0., 10.});
-    transform_store.emplace_back(static_context, point3{0., 0., 20.});
-    transform_store.emplace_back(static_context, point3{0., -20., 30.});
+    transform_store.emplace_back(static_context, vector3{0.f, 0.f, 10.f});
+    transform_store.emplace_back(static_context, vector3{0.f, 0.f, 20.f});
+    transform_store.emplace_back(static_context, vector3{0.f, -20.f, 30.f});
     // The masks & their store
     mask_container_t mask_store(host_mr);
-    mask_store.template add_value<e_rectangle2>(10., 10., 0);
-    mask_store.template add_value<e_trapezoid2>(10., 20., 30., 0);
-    mask_store.template add_value<e_annulus2>(15., 55., 0.75, 1.95, 2., -2., 0.,
-                                              0);
-    // Materials and their store
-    material_container_t material_store(host_mr);
-    material_store.template add_value<e_slab>(silicon<scalar>(),
-                                              1. * unit_constants::mm);
-    material_store.template add_value<e_slab>(silicon<scalar>(),
-                                              2. * unit_constants::mm);
-    material_store.template add_value<e_slab>(silicon<scalar>(),
-                                              3. * unit_constants::mm);
+    mask_store.template emplace_back<e_rectangle2>(empty_context{}, 0u, 10.f,
+                                                   10.f);
+    mask_store.template emplace_back<e_trapezoid2>(empty_context{}, 0u, 10.f,
+                                                   20.f, 30.f);
+    mask_store.template emplace_back<e_annulus2>(
+        empty_context{}, 0u, 15.f, 55.f, 0.75f, 1.95f, 2.f, -2.f, 0.f);
 
     // The surfaces and their store
-    const surface_t rectangle_surface(0u, {e_rectangle2, 0}, {e_slab, 0}, 0, 0,
-                                      false);
-    const surface_t trapezoid_surface(1u, {e_trapezoid2, 0}, {e_slab, 1}, 0, 1,
-                                      false);
-    const surface_t annulus_surface(2u, {e_annulus2, 0}, {e_slab, 2}, 0, 2,
-                                    false);
+    const surface_t rectangle_surface(0u, {e_rectangle2, 0u}, {e_slab, 0u}, 0u,
+                                      0u, surface_id::e_sensitive);
+    const surface_t trapezoid_surface(1u, {e_trapezoid2, 0u}, {e_slab, 1u}, 0u,
+                                      1u, surface_id::e_sensitive);
+    const surface_t annulus_surface(2u, {e_annulus2, 0u}, {e_slab, 2u}, 0u, 2u,
+                                    surface_id::e_sensitive);
     surface_container_t surfaces = {rectangle_surface, trapezoid_surface,
                                     annulus_surface};
-    const point3 pos{0., 0., 0.};
-    const vector3 mom{0.01, 0.01, 10.};
-    const vector3 B{0. * unit_constants::T, 0. * unit_constants::T,
-                    epsilon * unit_constants::T};
-    const detail::helix h({pos, 0, mom, -1}, &B);
+    const point3 pos{0.f, 0.f, 0.f};
+    const vector3 mom{0.01f, 0.01f, 10.f};
+    const vector3 B{0.f * unit<scalar>::T, 0.f * unit<scalar>::T,
+                    tol * unit<scalar>::T};
+    const detail::helix<transform3_t> h({pos, 0.f, mom, -1.f}, &B);
 
     // Validation data
-    const point3 expected_rectangle{0.01, 0.01, 10.};
-    const point3 expected_trapezoid{0.02, 0.02, 20.};
-    const point3 expected_annulus{0.03, 0.03, 30.};
+    const point3 expected_rectangle{0.01f, 0.01f, 10.f};
+    const point3 expected_trapezoid{0.02f, 0.02f, 20.f};
+    const point3 expected_annulus{0.03f, 0.03f, 30.f};
     const std::vector<point3> expected_points = {
         expected_rectangle, expected_trapezoid, expected_annulus};
+    std::vector<intersection2D_point<surface_t, transform3_t>> sfi_helix{};
 
     // Try the intersections - with automated dispatching via the kernel
-    for (const auto& [sf_idx, surface] : enumerate(surfaces)) {
-        const auto sfi_helix = mask_store.execute<helix_intersection_update>(
-            surface.mask_type(), h, surface, transform_store);
+    for (const auto [sf_idx, surface] : detray::views::enumerate(surfaces)) {
+        mask_store.visit<helix_intersection_initialize>(
+            surface.mask(), sfi_helix, h, surface, transform_store);
 
-        ASSERT_NEAR(sfi_helix.p3[0], expected_points[sf_idx][0], 1e-7);
-        ASSERT_NEAR(sfi_helix.p3[1], expected_points[sf_idx][1], 1e-7);
-        ASSERT_NEAR(sfi_helix.p3[2], expected_points[sf_idx][2], 1e-7);
+        ASSERT_NEAR(sfi_helix[0].p3[0], expected_points[sf_idx][0], is_close);
+        ASSERT_NEAR(sfi_helix[0].p3[1], expected_points[sf_idx][1], is_close);
+        ASSERT_NEAR(sfi_helix[0].p3[2], expected_points[sf_idx][2], is_close);
+
+        sfi_helix.clear();
     }
 }

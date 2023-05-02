@@ -1,6 +1,6 @@
 /** Detray library, part of the ACTS project (R&D line)
  *
- * (c) 2022 CERN for the benefit of the ACTS project
+ * (c) 2022-2023 CERN for the benefit of the ACTS project
  *
  * Mozilla Public License Version 2.0
  */
@@ -9,6 +9,7 @@
 
 // Project include(s)
 #include "detray/intersection/detail/trajectories.hpp"
+#include "detray/utils/ranges.hpp"
 #include "tests/common/tools/intersectors/helix_cylinder_intersector.hpp"
 #include "tests/common/tools/intersectors/helix_plane_intersector.hpp"
 
@@ -16,9 +17,7 @@ namespace detray {
 
 /// A functor to update the closest intersection between helix and
 /// surface
-struct helix_intersection_update {
-
-    using output_type = line_plane_intersection;
+struct helix_intersection_initialize {
 
     /// Operator function to update the intersection
     ///
@@ -35,52 +34,59 @@ struct helix_intersection_update {
     /// @param mask_tolerance is the tolerance for mask size
     ///
     /// @return the intersection
-    ///
-    template <typename mask_group_t, typename traj_t, typename surface_t,
+    template <typename mask_group_t, typename mask_range_t,
+              typename is_container_t, typename traj_t, typename surface_t,
               typename transform_container_t>
-    DETRAY_HOST_DEVICE inline output_type operator()(
-        const mask_group_t &mask_group, const traj_t &traj,
+    DETRAY_HOST_DEVICE inline void operator()(
+        const mask_group_t &mask_group, const mask_range_t &mask_range,
+        is_container_t &is_container, const traj_t &traj,
         const surface_t &surface,
         const transform_container_t &contextual_transforms,
-        const scalar mask_tolerance = 0.) const {
+        const scalar mask_tolerance = 0.f) const {
 
-        const auto &mask_range = surface.mask_range();
+        using intersection_t = typename is_container_t::value_type;
+        using mask_t = typename mask_group_t::value_type;
+
         const auto &ctf = contextual_transforms[surface.transform()];
 
-        // Run over the masks belonged to the surface
-        for (const auto &mask : range(mask_group, mask_range)) {
+        // Run over the masks that belong to the surface
+        for (const auto &mask :
+             detray::ranges::subrange(mask_group, mask_range)) {
 
-            if constexpr (std::is_same_v<typename mask_group_t::value_type::
-                                             intersector_type,
-                                         plane_intersector>) {
+            if (place_in_collection(
+                    helix_intersector<intersection_t, mask_t>()(
+                        traj, surface, mask, ctf, mask_tolerance),
+                    is_container)) {
+                return;
+            };
+        }
+    }
 
-                auto sfi = std::move(
-                    helix_plane_intersector()(traj, mask, ctf, mask_tolerance));
+    private:
+    template <typename is_container_t>
+    DETRAY_HOST_DEVICE bool place_in_collection(
+        typename is_container_t::value_type &&sfi,
+        is_container_t &intersections) const {
+        if (sfi.status == intersection::status::e_inside) {
+            intersections.push_back(sfi);
+            return true;
+        } else {
+            return false;
+        }
+    }
 
-                if (sfi[0].status == intersection::status::e_inside and
-                    sfi[0].path >= traj.overstep_tolerance()) {
-                    sfi[0].index = surface.volume();
-                    return sfi[0];
-                }
-
-            } else if constexpr (std::is_same_v<
-                                     typename mask_group_t::value_type::
-                                         intersector_type,
-                                     cylinder_intersector>) {
-
-                auto sfi = std::move(helix_cylinder_intersector()(
-                    traj, mask, ctf, mask_tolerance));
-
-                if (sfi[0].status == intersection::status::e_inside and
-                    sfi[0].path >= traj.overstep_tolerance()) {
-                    sfi[0].index = surface.volume();
-                    return sfi[0];
-                }
+    template <typename is_container_t>
+    DETRAY_HOST_DEVICE bool place_in_collection(
+        std::array<typename is_container_t::value_type, 2> &&solutions,
+        is_container_t &intersections) const {
+        bool is_valid = false;
+        for (auto &sfi : solutions) {
+            if (sfi.status == intersection::status::e_inside) {
+                intersections.push_back(sfi);
+                is_valid = true;
             }
         }
-
-        // return null object if the intersection is not valid anymore
-        return output_type{};
+        return is_valid;
     }
 };
 

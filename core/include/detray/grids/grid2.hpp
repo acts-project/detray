@@ -13,6 +13,7 @@
 #include "detray/utils/invalid_values.hpp"
 
 // VecMem include(s).
+#include <vecmem/containers/data/buffer_type.hpp>
 #include <vecmem/memory/memory_resource.hpp>
 
 namespace detray {
@@ -20,7 +21,7 @@ namespace detray {
 /** A two-dimensional grid for object storage
  *
  * @tparam populator_t  is a prescription what to do when a bin gets
- *pupulated, it broadcasts also the value type
+ * populated, it broadcasts also the value type
  * @tparam tparam axis_p0_t the type of the first axis
  * @tparam tparam axis_p1_t the type of the second axis
  * @tparam serialzier_t  type of the serializer to the storage represenations
@@ -41,7 +42,7 @@ template <template <template <typename...> class, template <typename...> class,
           template <typename...> class jagged_vector_t = djagged_vector,
           template <typename, std::size_t> class array_t = darray,
           template <typename...> class tuple_t = dtuple,
-          typename value_t = dindex, bool kSORT = false, unsigned int kDIM = 1>
+          typename value_t = dindex, bool kSORT = false, unsigned int kDIM = 1u>
 class grid2 {
 
     public:
@@ -60,11 +61,11 @@ class grid2 {
     static constexpr array_t<dindex, 2> hermit1 = {0u, 0u};
     static constexpr neighborhood<dindex> hermit2 = {hermit1, hermit1};
 
-    grid2() = delete;
+    grid2() = default;
 
     DETRAY_HOST
     grid2(vecmem::memory_resource &mr,
-          const bare_value m_invalid = invalid_value<bare_value>())
+          const bare_value m_invalid = detail::invalid_value<bare_value>())
         : _axis_p0(mr),
           _axis_p1(mr),
           _data_serialized(&mr),
@@ -79,7 +80,7 @@ class grid2 {
     DETRAY_HOST
     grid2(const axis_p0_type &axis_p0, const axis_p1_type &axis_p1,
           vecmem::memory_resource &mr,
-          const bare_value m_invalid = invalid_value<bare_value>())
+          const bare_value m_invalid = detail::invalid_value<bare_value>())
         : _axis_p0(axis_p0, mr),
           _axis_p1(axis_p1, mr),
           _data_serialized(&mr),
@@ -97,7 +98,7 @@ class grid2 {
     DETRAY_HOST
     grid2(axis_p0_type &&axis_p0, axis_p1_type &&axis_p1,
           vecmem::memory_resource &mr,
-          const bare_value m_invalid = invalid_value<bare_value>())
+          const bare_value m_invalid = detail::invalid_value<bare_value>())
         : _axis_p0(std::move(axis_p0), mr),
           _axis_p1(std::move(axis_p1), mr),
           _data_serialized(&mr),
@@ -115,7 +116,7 @@ class grid2 {
                   bool> = true>
     DETRAY_HOST_DEVICE grid2(
         const grid_view_t &grid_data,
-        const bare_value m_invalid = invalid_value<bare_value>())
+        const bare_value m_invalid = detail::invalid_value<bare_value>())
         : _axis_p0(grid_data._axis_p0_view),
           _axis_p1(grid_data._axis_p1_view),
           _data_serialized(grid_data._data_view),
@@ -229,6 +230,15 @@ class grid2 {
             _axis_p0, _axis_p1, _axis_p0.bin(p2[0]), _axis_p1.bin(p2[1]))];
     }
 
+    /// Stub function until the zone call is working correctly
+    template <typename detector_t, typename track_t>
+    DETRAY_HOST_DEVICE dindex_range
+    search(const detector_t & /*det*/,
+           const typename detector_t::volume_type &volume,
+           const track_t & /*track*/) const {
+        return volume.range();
+    }
+
     /** Return a zone around a single bin, either with binned or scalar
      *neighborhood
      *
@@ -253,7 +263,7 @@ class grid2 {
         // Specialization for bare value equal to store value
         if constexpr (std::is_same_v<typename populator_type::bare_value,
                                      typename populator_type::store_value>) {
-            unsigned int iz = 0;
+            unsigned int iz = 0u;
             zone = vector_t<typename populator_type::bare_value>(
                 zone0.size() * zone1.size(), {});
             for (const auto z1 : zone1) {
@@ -266,7 +276,7 @@ class grid2 {
                 }
             }
         } else {
-            zone.reserve(10);
+            zone.reserve(10u);
             for (const auto z1 : zone1) {
                 for (const auto z0 : zone0) {
                     auto sbin =
@@ -507,45 +517,25 @@ struct grid2_buffer : public grid2_view<grid2_t> {
     using axis_p0_type = typename grid2_t::axis_p0_type;
     using axis_p1_type = typename grid2_t::axis_p1_type;
 
-    /** Constructor with size vector
+    /** Constructor
      *
      * @param axis_p0 is the first axis
      * @param axis_p1 is the second axis
-     * @param sizes is the intial size of vector
-     * @param resource is the vecmem memory resource
-     * @param host_resurce is the host accessible memory resource
-     *
-     **/
-    grid2_buffer(const axis_p0_type &axis_p0, const axis_p1_type &axis_p1,
-                 typename populator_type::buffer_size_type sizes,
-                 vecmem::memory_resource &resource,
-                 vecmem::memory_resource *host_resource = nullptr)
-        : _axis_p0(axis_p0),
-          _axis_p1(axis_p1),
-          _buffer(sizes, resource, host_resource) {
-        grid2_view<grid2_t>::_axis_p0_view = detray::get_data(_axis_p0);
-        grid2_view<grid2_t>::_axis_p1_view = detray::get_data(_axis_p1);
-        grid2_view<grid2_t>::_data_view = _buffer;
-    }
-
-    /** Constructor with size and capacity vector
-     *
-     * @param axis_p0 is the first axis
-     * @param axis_p1 is the second axis
-     * @param sizes is the intial size of vector
      * @param capacities is the capacity of vector
      * @param resource is the vecmem memory resource
      * @param host_resurce is the host accessible memory resource
+     * @param buffer_type is whether the buffer is resizable or of fixed size
      *
      **/
     grid2_buffer(const axis_p0_type &axis_p0, const axis_p1_type &axis_p1,
-                 typename populator_type::buffer_size_type sizes,
                  typename populator_type::buffer_size_type capacities,
                  vecmem::memory_resource &resource,
-                 vecmem::memory_resource *host_resource = nullptr)
+                 vecmem::memory_resource *host_resource = nullptr,
+                 vecmem::data::buffer_type buffer_type =
+                     vecmem::data::buffer_type::fixed_size)
         : _axis_p0(axis_p0),
           _axis_p1(axis_p1),
-          _buffer(sizes, capacities, resource, host_resource) {
+          _buffer(capacities, resource, host_resource, buffer_type) {
         grid2_view<grid2_t>::_axis_p0_view = detray::get_data(_axis_p0);
         grid2_view<grid2_t>::_axis_p1_view = detray::get_data(_axis_p1);
         grid2_view<grid2_t>::_data_view = _buffer;

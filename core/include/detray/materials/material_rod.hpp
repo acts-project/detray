@@ -1,6 +1,6 @@
 /** Detray library, part of the ACTS project (R&D line)
  *
- * (c) 2022 CERN for the benefit of the ACTS project
+ * (c) 2022-2023 CERN for the benefit of the ACTS project
  *
  * Mozilla Public License Version 2.0
  */
@@ -9,45 +9,86 @@
 
 // Project include(s)
 #include "detray/definitions/qualifiers.hpp"
+#include "detray/intersection/intersection.hpp"
 #include "detray/materials/material.hpp"
+#include "detray/materials/predefined_materials.hpp"
 
 namespace detray {
 
-// Rod structure to be mapped on the mask
+// Rod structure to be mapped on the line mask
 template <typename scalar_t>
 struct material_rod {
     using scalar_type = scalar_t;
     using material_type = material<scalar_t>;
 
-    material_rod() = default;
+    constexpr material_rod() = default;
 
-    material_rod(const material_type& material, scalar_type outer_r,
-                 scalar_type inner_r = 0)
-        : m_material(material), m_outer_r(outer_r), m_inner_r(inner_r) {}
+    constexpr material_rod(const material_type& material, scalar_type radius)
+        : m_material(material),
+          m_radius(radius),
+          m_radius_in_X0(radius / material.X0()),
+          m_radius_in_L0(radius / material.L0()) {}
 
     /// Equality operator
     ///
     /// @param rhs is the right hand side to be compared to
     DETRAY_HOST_DEVICE
-    bool operator==(const material_rod<scalar_t>& rhs) const {
-        return (m_material == rhs.get_material() &&
-                m_outer_r == rhs.outer_r() && m_inner_r == rhs.inner_r());
+    constexpr bool operator==(const material_rod<scalar_t>& rhs) const {
+        return (m_material == rhs.get_material() && m_radius == rhs.radius());
+    }
+
+    /// Boolean operator
+    DETRAY_HOST_DEVICE
+    constexpr operator bool() const {
+        if (m_radius <= std::numeric_limits<scalar>::epsilon() ||
+            m_material == vacuum<scalar_type>() || m_material.Z() == 0 ||
+            m_material.mass_density() == 0) {
+            return false;
+        }
+        return true;
     }
 
     /// Access the (average) material parameters.
     DETRAY_HOST_DEVICE
     constexpr const material_type& get_material() const { return m_material; }
-    /// Return the outer radius
+
+    /// Return the radius
     DETRAY_HOST_DEVICE
-    constexpr scalar_type outer_r() const { return m_outer_r; }
-    /// Return the inner radius
-    DETRAY_HOST_DEVICE
-    constexpr scalar_type inner_r() const { return m_inner_r; }
+    constexpr scalar_type radius() const { return m_radius; }
+
+    /// Return the path segment
+    template <typename intersection_t>
+    DETRAY_HOST_DEVICE scalar_type
+    path_segment(const intersection_t& is) const {
+        // Assume that is.p2[0] is radial distance of line intersector
+        if (is.p2[0] > m_radius) {
+            return 0.f;
+        }
+
+        const scalar_type sin_incidence_angle_2{
+            1.f - is.cos_incidence_angle * is.cos_incidence_angle};
+
+        return 2.f * std::sqrt((m_radius * m_radius - is.p2[0] * is.p2[0]) /
+                               sin_incidence_angle_2);
+    }
+    /// Return the path segment in X0
+    template <typename intersection_t>
+    DETRAY_HOST_DEVICE scalar_type
+    path_segment_in_X0(const intersection_t& is) const {
+        return this->path_segment(is) / m_material.X0();
+    }
+    /// Return the path segment in L0
+    template <typename intersection_t>
+    DETRAY_HOST_DEVICE scalar_type
+    path_segment_in_L0(const intersection_t& is) const {
+        return this->path_segment(is) / m_material.L0();
+    }
 
     private:
     material_type m_material = {};
-    scalar_type m_outer_r = std::numeric_limits<scalar>::epsilon();
-    scalar_type m_inner_r = std::numeric_limits<scalar>::epsilon();
+    scalar_type m_radius = std::numeric_limits<scalar>::epsilon();
+    scalar_type m_radius_in_X0 = std::numeric_limits<scalar>::epsilon();
+    scalar_type m_radius_in_L0 = std::numeric_limits<scalar>::epsilon();
 };
 
 }  // namespace detray

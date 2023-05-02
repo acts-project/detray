@@ -7,30 +7,54 @@
 
 #pragma once
 
-// detray include(s)
+// Project include(s).
 #include "detray/definitions/qualifiers.hpp"
 #include "detray/definitions/units.hpp"
+#include "detray/propagator/actors/parameter_resetter.hpp"
 #include "detray/propagator/constrained_step.hpp"
-#include "detray/propagator/detail/covariance_engine.hpp"
-#include "detray/propagator/track.hpp"
+#include "detray/tracks/tracks.hpp"
 
 namespace detray {
 
+namespace stepping {
+
+enum class id {
+    // False for non-charged tracks
+    e_linear = 0,
+    // True for charged tracks
+    e_rk = 1,
+};
+
+}  // namespace stepping
+
 /// Base stepper implementation
-///
-/// @tparam track_t the type of track that is being advanced by the stepper
-/// @tparam constraint_ the type of constraints on the stepper
-template <typename track_t, typename constraint_t, typename policy_t>
+template <typename transform3_t, typename constraint_t, typename policy_t>
 class base_stepper {
 
     public:
-    // covariance types for bound state
-    using covariance_type = typename bound_track_parameters::covariance_type;
-    using jacobian_type = typename bound_track_parameters::jacobian_type;
-    using matrix_operator = standard_matrix_operator<scalar>;
-    using covariance_engine = detail::covariance_engine<scalar>;
-    using vector_engine = covariance_engine::vector_engine;
-    using transform3 = typename covariance_engine::transform3;
+    using transform3_type = transform3_t;
+    using free_track_parameters_type = free_track_parameters<transform3_t>;
+    using bound_track_parameters_type = bound_track_parameters<transform3_t>;
+    using matrix_operator = typename transform3_t::matrix_actor;
+    using track_helper = detail::track_helper<matrix_operator>;
+
+    using size_type = typename transform3_type::size_type;
+    using scalar_type = typename transform3_type::scalar_type;
+    template <size_type ROWS, size_type COLS>
+    using matrix_type =
+        typename transform3_type::matrix_actor::template matrix_type<ROWS,
+                                                                     COLS>;
+    /// Shorthand vector/matrix types related to bound track parameters.
+    using bound_vector = matrix_type<e_bound_size, 1>;
+    using bound_matrix = matrix_type<e_bound_size, e_bound_size>;
+    /// Mapping from bound track parameters.
+    using bound_to_free_matrix = matrix_type<e_free_size, e_bound_size>;
+    // Shorthand vector/matrix types related to free track parameters.
+    using free_vector = matrix_type<e_free_size, 1>;
+    using free_matrix = matrix_type<e_free_size, e_free_size>;
+    // Mapping from free track parameters.
+    using free_to_bound_matrix = matrix_type<e_bound_size, e_free_size>;
+    using free_to_path_matrix = matrix_type<1, e_free_size>;
 
     /** State struct holding the track
      *
@@ -41,51 +65,49 @@ class base_stepper {
 
         /// Sets track parameters.
         DETRAY_HOST_DEVICE
-        state(const track_t &t) : _track(t) {}
+        state(const free_track_parameters_type &t) : _track(t) {}
 
         /// Sets track parameters from bound track parameter.
-        DETRAY_HOST_DEVICE
-        state(const bound_track_parameters &bound_params,
-              const transform3 &trf3) {
-            // Set the free vector
-            _track.set_vector(vector_engine().bound_to_free_vector(
-                trf3, bound_params.vector()));
+        template <typename detector_t>
+        DETRAY_HOST_DEVICE state(
+            const bound_track_parameters_type &bound_params,
+            const detector_t &det)
+            : _bound_params(bound_params) {
 
-            // Set the bound covariance
-            _bound_covariance = bound_params.covariance();
+            const auto &trf_store = det.transform_store();
+            const auto &mask_store = det.mask_store();
+            const auto &surface = det.surfaces(bound_params.surface_link());
 
-            // Reset the jacobians
-            covariance_engine().reinitialize_jacobians(
-                trf3, bound_params.vector(), _jac_to_global, _jac_transport,
-                _derivative);
+            mask_store.template visit<
+                typename parameter_resetter<transform3_t>::kernel>(
+                surface.mask(), trf_store[surface.transform()], *this);
         }
 
         /// free track parameter
-        track_t _track;
+        free_track_parameters_type _track;
+
+        /// Full jacobian
+        bound_matrix _full_jacobian =
+            matrix_operator().template identity<e_bound_size, e_bound_size>();
 
         /// jacobian transport matrix
         free_matrix _jac_transport =
             matrix_operator().template identity<e_free_size, e_free_size>();
-
-        /// The free parameter derivative defined at destination surface
-        free_vector _derivative =
-            matrix_operator().template zero<e_free_size, 1>();
 
         /// bound-to-free jacobian from departure surface
         bound_to_free_matrix _jac_to_global =
             matrix_operator().template zero<e_free_size, e_bound_size>();
 
         /// bound covariance
-        bound_matrix _bound_covariance =
-            matrix_operator().template zero<e_bound_size, e_bound_size>();
+        bound_track_parameters_type _bound_params;
 
         /// @returns track parameters - const access
         DETRAY_HOST_DEVICE
-        track_t &operator()() { return _track; }
+        free_track_parameters_type &operator()() { return _track; }
 
         /// @returns track parameters.
         DETRAY_HOST_DEVICE
-        const track_t &operator()() const { return _track; }
+        const free_track_parameters_type &operator()() const { return _track; }
 
         step::direction _direction{step::direction::e_forward};
 
@@ -98,12 +120,16 @@ class base_stepper {
         /// Track path length
         scalar _path_length{0.};
 
+        /// Track path length from the last surface. It will be reset to 0 when
+        /// the track reaches a new surface
+        scalar _s{0.};
+
         /// Current step size
         scalar _step_size{0.};
 
         /// TODO: Use options?
         /// hypothetical mass of particle (assume pion by default)
-        /// scalar _mass = 139.57018 * unit_constants::MeV;
+        /// scalar _mass = 139.57018 * unit<scalar_type>::MeV;
 
         /// Set new step constraint
         template <step::constraint type = step::constraint::e_actor>

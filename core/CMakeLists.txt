@@ -1,94 +1,83 @@
 # Detray library, part of the ACTS project (R&D line)
 #
-# (c) 2021-2022 CERN for the benefit of the ACTS project
+# (c) 2021-2023 CERN for the benefit of the ACTS project
 #
 # Mozilla Public License Version 2.0
 
 # Let the user know what's happening.
 message(STATUS "Building 'detray::core' component")
 
-# Set up the library.
+# Set up the "core library".
+file( GLOB _detray_core_public_headers
+   RELATIVE "${CMAKE_CURRENT_SOURCE_DIR}"
+   "include/detray/coordinates/*.hpp"
+   "include/detray/core/*.hpp"
+   "include/detray/definitions/*.hpp"
+   "include/detray/geometry/*.hpp"
+   "include/detray/grids/*.hpp"
+   "include/detray/intersection/bounding_box/*.hpp"
+   "include/detray/intersection/*.hpp"
+   "include/detray/masks/*.hpp"
+   "include/detray/materials/*.hpp"
+   "include/detray/propagator/actors/*.hpp"
+   "include/detray/propagator/*.hpp"
+   "include/detray/surface_finders/grid/*.hpp"
+   "include/detray/surface_finders/*.hpp"
+   "include/detray/tools/*.hpp"
+   "include/detray/tracks/*.hpp"
+   "include/detray/utils/ranges/*.hpp"
+   "include/detray/utils/*.hpp" )
+file( GLOB _detray_core_private_headers
+   "include/detray/*/detail/*.hpp"
+   "include/detray/*/*/detail/*.hpp" )
 detray_add_library( detray_core core
-   # core include(s)
-   "include/detray/core/detail/tuple_array_container.hpp"
-   "include/detray/core/detail/tuple_container.hpp"
-   "include/detray/core/detail/tuple_vector_container.hpp"
-   "include/detray/core/detector.hpp"
-   "include/detray/core/detector_kernel.hpp"
-   "include/detray/core/surfaces_finder.hpp"
-   "include/detray/core/transform_store.hpp"
-   "include/detray/core/type_registry.hpp"
-   # definitions include(s)
-   "include/detray/definitions/containers.hpp"
-   "include/detray/definitions/cuda_definitions.hpp"
-   "include/detray/definitions/indexing.hpp"
-   "include/detray/definitions/qualifiers.hpp"
-   "include/detray/definitions/track_parameterization.hpp"
-   "include/detray/definitions/units.hpp"
-   "include/detray/definitions/detail/accessor.hpp"
-   # field include(s)
-   "include/detray/field/constant_magnetic_field.hpp"
-   # geometry include(s)
-   "include/detray/geometry/surface.hpp"
-   "include/detray/geometry/volume_connector.hpp"
-   "include/detray/geometry/volume_graph.hpp"
-   "include/detray/geometry/volume.hpp"
-   # grids include(s)
-   "include/detray/grids/axis.hpp"
-   "include/detray/grids/grid2.hpp"
-   "include/detray/grids/populator.hpp"
-   "include/detray/grids/serializer2.hpp"
-   # intersection include(s)
-   "include/detray/intersection/concentric_cylinder_intersector.hpp"
-   "include/detray/intersection/cylinder_intersector.hpp"
-   "include/detray/intersection/detail/trajectories.hpp"
-   "include/detray/intersection/intersection_kernel.hpp"
-   "include/detray/intersection/intersection.hpp"
-   "include/detray/intersection/line_intersector.hpp"
-   "include/detray/intersection/plane_intersector.hpp"
-   # masks include(s)
-   "include/detray/masks/annulus2.hpp"
-   "include/detray/masks/cylinder3.hpp"
-   "include/detray/masks/line.hpp"
-   "include/detray/masks/masks.hpp"
-   "include/detray/masks/masks_base.hpp"
-   "include/detray/masks/rectangle2.hpp"
-   "include/detray/masks/ring2.hpp"
-   "include/detray/masks/single3.hpp"
-   "include/detray/masks/trapezoid2.hpp"
-   "include/detray/masks/unmasked.hpp"
-   # materials include(s)
-   "include/detray/materials/mixture.hpp" 
-   "include/detray/materials/material.hpp"
-   "include/detray/materials/material_rod.hpp"   
-   "include/detray/materials/material_slab.hpp"   
-   "include/detray/materials/predefined_materials.hpp"
-   # propagator include(s)
-   "include/detray/propagator/aborters.hpp"
-   "include/detray/propagator/actor_chain.hpp"
-   "include/detray/propagator/base_actor.hpp"
-   "include/detray/propagator/base_stepper.hpp"
-   "include/detray/propagator/constrained_step.hpp"
-   "include/detray/propagator/detail/covariance_engine.hpp"
-   "include/detray/propagator/detail/jacobian_engine.hpp"
-   "include/detray/propagator/detail/vector_engine.hpp"
-   "include/detray/propagator/line_stepper.hpp"
-   "include/detray/propagator/navigation_policies.hpp"
-   "include/detray/propagator/navigator.hpp"
-   "include/detray/propagator/propagator.hpp"
-   "include/detray/propagator/rk_stepper.hpp"
-   "include/detray/propagator/track.hpp"
-   # tools include(s)
-   "include/detray/tools/associator.hpp"
-   "include/detray/tools/bin_association.hpp"
-   "include/detray/tools/generators.hpp"
-   "include/detray/tools/grid_array_helper.hpp"
-   "include/detray/tools/local_object_finder.hpp"
-   # utils include(s)
-   "include/detray/utils/algebra_helpers.hpp"
-   "include/detray/utils/enumerate.hpp"
-   "include/detray/utils/invalid_values.hpp"
-   "include/detray/utils/quadratic_equation.hpp"
-   "include/detray/utils/ratio.hpp"
-   "include/detray/utils/type_traits.hpp" )
-target_link_libraries( detray_core INTERFACE vecmem::core detray::Thrust)
+   ${_detray_core_public_headers} ${_detray_core_private_headers} )
+target_link_libraries( detray_core
+   INTERFACE covfie::core vecmem::core detray::Thrust )
+
+# Set up the libraries that use specific algebra plugins.
+detray_add_library( detray_core_array core_array )
+target_link_libraries( detray_core_array
+   INTERFACE detray::core detray::algebra_array )
+
+if( DETRAY_EIGEN_PLUGIN )
+   detray_add_library( detray_core_eigen core_eigen )
+   target_link_libraries( detray_core_eigen
+      INTERFACE detray::core detray::algebra_eigen )
+endif()
+
+if( DETRAY_SMATRIX_PLUGIN )
+   detray_add_library( detray_core_smatrix core_smatrix )
+   target_link_libraries( detray_core_smatrix
+      INTERFACE detray::core detray::algebra_smatrix )
+endif()
+
+if( DETRAY_VC_PLUGIN )
+   detray_add_library( detray_core_vc core_vc )
+   target_link_libraries( detray_core_vc
+      INTERFACE detray::core detray::algebra_vc )
+endif()
+
+# Test the public headers of the detray core libraries.
+if( BUILD_TESTING AND DETRAY_BUILD_TESTING )
+   string( REPLACE "include/" "" _detray_core_public_headers
+      "${_detray_core_public_headers}" )
+   detray_test_public_headers( detray_core_array
+      ${_detray_core_public_headers} )
+   if( DETRAY_EIGEN_PLUGIN )
+      detray_test_public_headers( detray_core_eigen
+         ${_detray_core_public_headers} )
+   endif()
+   if( DETRAY_SMATRIX_PLUGIN )
+      detray_test_public_headers( detray_core_smatrix
+         ${_detray_core_public_headers} )
+   endif()
+   if( DETRAY_VC_PLUGIN )
+      detray_test_public_headers( detray_core_vc
+         ${_detray_core_public_headers} )
+   endif()
+endif()
+
+# Clean up.
+unset( _detray_core_public_headers )
+unset( _detray_core_private_headers )

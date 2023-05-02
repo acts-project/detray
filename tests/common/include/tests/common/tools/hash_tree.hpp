@@ -1,9 +1,10 @@
 /** Detray library, part of the ACTS project (R&D line)
  *
- * (c) 2021-2022 CERN for the benefit of the ACTS project
+ * (c) 2021-2023 CERN for the benefit of the ACTS project
  *
  * Mozilla Public License Version 2.0
  */
+
 #pragma once
 
 #include <cmath>
@@ -12,7 +13,6 @@
 #include <type_traits>
 
 #include "detray/definitions/indexing.hpp"
-#include "detray/utils/enumerate.hpp"
 
 namespace detray {
 
@@ -57,7 +57,10 @@ class hash_tree {
     struct hashed_node {
 
         hashed_node(hash_t hash)
-            : _key(hash), _parent(-1), _left_child(-1), _right_child(-1) {}
+            : _key(hash),
+              _parent(std::numeric_limits<dindex>::infinity()),
+              _left_child(std::numeric_limits<dindex>::infinity()),
+              _right_child(std::numeric_limits<dindex>::infinity()) {}
 
         hash_t _key;
         dindex _parent, _left_child, _right_child;
@@ -113,16 +116,16 @@ class hash_tree {
             _tree.emplace_back(_hash(data));
         }
         // Need an even number of leaves to build the tree correctly
-        if (input_data.size() % 2 != 0) {
+        if (input_data.size() % 2u != 0u) {
             _tree.emplace_back(_hash(0));
         }
         // Size of the tree is already known (all iterators stay valid in
         // recursion)
         // we might need to add one dummy node per level
-        auto n_levels = static_cast<std::size_t>(std::log(input_data.size()));
-        _tree.reserve(2 * _tree.size() + n_levels);
+        auto n_levels = static_cast<dindex>(std::log(input_data.size()));
+        _tree.reserve(2u * _tree.size() + n_levels);
         // Build next level
-        build(_tree.begin(), _tree.size());
+        build(_tree.begin(), static_cast<dindex>(_tree.size()));
     }
 
     /// Build the hash tree recursively.
@@ -130,32 +133,35 @@ class hash_tree {
     /// @param first_child the beginning of the nodes for which to construct
     ///                    the parents in this iteration.
     template <typename iterator_t>
-    void build(iterator_t &&first_child, std::size_t n_prev_level) {
+    void build(iterator_t &&first_child, dindex n_prev_level) {
         // base case
-        if (n_prev_level <= 1) {
+        if (n_prev_level <= 1u) {
             return;
         }
 
-        auto last_child = first_child + n_prev_level;
+        auto last_child =
+            first_child + static_cast<std::ptrdiff_t>(n_prev_level);
 
         // Run over previous tree level to build the next level
         for (auto current_child = first_child; current_child != last_child;
-             current_child += 2) {
+             current_child += 2u) {
             auto parent_digest =
-                _hash(current_child->key(), (current_child + 1)->key());
+                _hash(current_child->key(), (current_child + 1u)->key());
             hashed_node parent = _tree.emplace_back(parent_digest);
 
             // Parent node index is at the back of the tree
-            current_child->set_parent(_tree.size() - 1);
-            (current_child + 1)->set_parent(_tree.size() - 1);
+            current_child->set_parent(static_cast<dindex>(_tree.size()) - 1u);
+            (current_child + 1)
+                ->set_parent(static_cast<dindex>(_tree.size()) - 1u);
 
             // Set the indices as distances in the contiguous container
-            dindex left_child_idx = std::distance(current_child, _tree.begin());
-            parent.set_children(left_child_idx, left_child_idx + 1);
+            auto left_child_idx = std::distance(current_child, _tree.begin());
+            parent.set_children(static_cast<dindex>(left_child_idx),
+                                static_cast<dindex>(left_child_idx) + 1u);
         }
-        auto n_level = static_cast<std::size_t>(0.5 * n_prev_level);
+        dindex n_level = n_prev_level / 2u;
         // Need dummy leaf node for next level?
-        if (n_level % 2 != 0 and n_level > 1) {
+        if (n_level % 2u != 0u and n_level > 1u) {
             _tree.emplace_back(0);
             n_level++;
         }

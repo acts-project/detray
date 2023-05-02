@@ -1,18 +1,19 @@
 /** Detray library, part of the ACTS project (R&D line)
  *
- * (c) 2022 CERN for the benefit of the ACTS project
+ * (c) 2022-2023 CERN for the benefit of the ACTS project
  *
  * Mozilla Public License Version 2.0
  */
 
 #include <benchmark/benchmark.h>
 
+#include <covfie/core/field.hpp>
 #include <vecmem/memory/binary_page_memory_resource.hpp>
 #include <vecmem/memory/cuda/device_memory_resource.hpp>
 #include <vecmem/memory/cuda/managed_memory_resource.hpp>
 
 #include "benchmark_propagator_cuda_kernel.hpp"
-#include "tests/common/tools/track_generators.hpp"
+#include "detray/simulation/event_generator/track_generators.hpp"
 #include "vecmem/utils/cuda/copy.hpp"
 
 using namespace detray;
@@ -24,42 +25,42 @@ vecmem::cuda::device_memory_resource dev_mr;
 vecmem::binary_page_memory_resource bp_mng_mr(mng_mr);
 
 // detector configuration
-constexpr std::size_t n_brl_layers = 4;
-constexpr std::size_t n_edc_layers = 7;
+constexpr std::size_t n_brl_layers{4u};
+constexpr std::size_t n_edc_layers{7u};
 
-void fill_tracks(vecmem::vector<free_track_parameters> &tracks,
-                 const unsigned int theta_steps, const unsigned int phi_steps) {
+void fill_tracks(vecmem::vector<free_track_parameters<transform3>> &tracks,
+                 const std::size_t theta_steps, const std::size_t phi_steps) {
     // Set origin position of tracks
-    const point3 ori{0., 0., 0.};
-    const scalar mom_mag = 10. * unit_constants::GeV;
+    const point3 ori{0.f, 0.f, 0.f};
+    const scalar mom_mag{10.f * unit<scalar>::GeV};
 
     // Iterate through uniformly distributed momentum directions
-    for (auto traj : uniform_track_generator<free_track_parameters>(
+    for (auto traj : uniform_track_generator<free_track_parameters<transform3>>(
              theta_steps, phi_steps, ori, mom_mag)) {
         tracks.push_back(traj);
     }
 }
 
+template <propagate_option opt>
 static void BM_PROPAGATOR_CPU(benchmark::State &state) {
 
     // Create the toy geometry
-    detector_host_type det =
-        create_toy_geometry<darray, thrust::tuple, vecmem::vector,
-                            vecmem::jagged_vector>(host_mr, n_brl_layers,
-                                                   n_edc_layers);
-
-    // Set the magnetic field
-    const vector3 B{0, 0, 2 * unit_constants::T};
-    field_type B_field(B);
+    detector_host_type det = create_toy_geometry<host_container_types>(
+        host_mr,
+        field_type(field_type::backend_t::configuration_t{
+            0.f, 0.f, 2.f * unit<scalar>::T}),
+        n_brl_layers, n_edc_layers);
 
     // Create RK stepper
-    rk_stepper_type s(B_field);
+    rk_stepper_type s;
 
     // Create navigator
-    navigator_host_type n(det);
+    navigator_host_type n;
 
     // Create propagator
     propagator_host_type p(std::move(s), std::move(n));
+
+    std::size_t total_tracks = 0;
 
     for (auto _ : state) {
 
@@ -67,29 +68,46 @@ static void BM_PROPAGATOR_CPU(benchmark::State &state) {
         state.PauseTiming();
 
         // Get tracks
-        vecmem::vector<free_track_parameters> tracks(&host_mr);
-        fill_tracks(tracks, state.range(0), state.range(0));
+        vecmem::vector<free_track_parameters<transform3>> tracks(&host_mr);
+        fill_tracks(tracks, static_cast<std::size_t>(state.range(0)),
+                    static_cast<std::size_t>(state.range(0)));
+
+        total_tracks += tracks.size();
 
         state.ResumeTiming();
 
+#pragma omp parallel for
         for (auto &track : tracks) {
 
+            parameter_transporter<transform3>::state transporter_state{};
+            pointwise_material_interactor<transform3>::state interactor_state{};
+            parameter_resetter<transform3>::state resetter_state{};
+
+            auto actor_states =
+                tie(transporter_state, interactor_state, resetter_state);
+
             // Create the propagator state
-            propagator_host_type::state p_state(track);
+            propagator_host_type::state p_state(track, det.get_bfield(), det);
 
             // Run propagation
-            p.propagate(p_state);
+            if constexpr (opt == propagate_option::e_unsync) {
+                p.propagate(p_state, actor_states);
+            } else if constexpr (opt == propagate_option::e_sync) {
+                p.propagate_sync(p_state, actor_states);
+            }
         }
     }
+
+    state.counters["TracksPropagated"] = benchmark::Counter(
+        static_cast<double>(total_tracks), benchmark::Counter::kIsRate);
 }
 
+template <propagate_option opt>
 static void BM_PROPAGATOR_CUDA(benchmark::State &state) {
 
     // Create the toy geometry
-    detector_host_type det =
-        create_toy_geometry<darray, thrust::tuple, vecmem::vector,
-                            vecmem::jagged_vector>(bp_mng_mr, n_brl_layers,
-                                                   n_edc_layers);
+    detector_host_type det = create_toy_geometry<host_container_types>(
+        bp_mng_mr, n_brl_layers, n_edc_layers);
 
     // Get detector data
     auto det_data = get_data(det);
@@ -97,13 +115,18 @@ static void BM_PROPAGATOR_CUDA(benchmark::State &state) {
     // vecmem copy helper object
     vecmem::cuda::copy copy;
 
+    std::size_t total_tracks = 0;
+
     for (auto _ : state) {
 
         state.PauseTiming();
 
         // Get tracks
-        vecmem::vector<free_track_parameters> tracks(&bp_mng_mr);
-        fill_tracks(tracks, state.range(0), state.range(0));
+        vecmem::vector<free_track_parameters<transform3>> tracks(&bp_mng_mr);
+        fill_tracks(tracks, static_cast<std::size_t>(state.range(0)),
+                    static_cast<std::size_t>(state.range(0)));
+
+        total_tracks += tracks.size();
 
         state.ResumeTiming();
 
@@ -112,15 +135,32 @@ static void BM_PROPAGATOR_CUDA(benchmark::State &state) {
 
         // Create navigator candidates buffer
         auto candidates_buffer =
-            create_candidates_buffer(det, tracks.size(), dev_mr);
+            create_candidates_buffer(det, tracks.size(), dev_mr, &mng_mr);
         copy.setup(candidates_buffer);
 
         // Run the propagator test for GPU device
-        propagator_benchmark(det_data, tracks_data, candidates_buffer);
+        propagator_benchmark(det_data, tracks_data, candidates_buffer, opt);
     }
+
+    state.counters["TracksPropagated"] = benchmark::Counter(
+        static_cast<double>(total_tracks), benchmark::Counter::kIsRate);
 }
 
-BENCHMARK(BM_PROPAGATOR_CPU)->RangeMultiplier(2)->Range(8, 256);
-BENCHMARK(BM_PROPAGATOR_CUDA)->RangeMultiplier(2)->Range(8, 256);
+BENCHMARK_TEMPLATE(BM_PROPAGATOR_CPU, propagate_option::e_unsync)
+    ->Name("CPU unsync propagation")
+    ->RangeMultiplier(2)
+    ->Range(8, 256);
+BENCHMARK_TEMPLATE(BM_PROPAGATOR_CPU, propagate_option::e_sync)
+    ->Name("CPU sync propagation")
+    ->RangeMultiplier(2)
+    ->Range(8, 256);
+BENCHMARK_TEMPLATE(BM_PROPAGATOR_CUDA, propagate_option::e_unsync)
+    ->Name("CUDA unsync propagation")
+    ->RangeMultiplier(2)
+    ->Range(8, 256);
+BENCHMARK_TEMPLATE(BM_PROPAGATOR_CUDA, propagate_option::e_sync)
+    ->Name("CUDA sync propagation")
+    ->RangeMultiplier(2)
+    ->Range(8, 256);
 
 BENCHMARK_MAIN();

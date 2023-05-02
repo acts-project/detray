@@ -1,6 +1,6 @@
 /** Detray library, part of the ACTS project (R&D line)
  *
- * (c) 2022 CERN for the benefit of the ACTS project
+ * (c) 2022-2023 CERN for the benefit of the ACTS project
  *
  * Mozilla Public License Version 2.0
  */
@@ -11,7 +11,7 @@
 #include "detray/definitions/qualifiers.hpp"
 #include "detray/intersection/detail/trajectories.hpp"
 #include "detray/intersection/intersection.hpp"
-#include "detray/utils/quadratic_equation.hpp"
+#include "tests/common/tools/intersectors/helix_intersector.hpp"
 
 // System include(s)
 #include <cmath>
@@ -19,17 +19,22 @@
 
 namespace detray {
 
+namespace detail {
+
 /// @brief Intersection implementation for helical trajectories with planar
 /// surfaces.
 ///
 /// The algorithm uses the Newton-Raphson method to find an intersection on
 /// the unbounded surface and then applies the mask.
+template <typename intersection_t>
 struct helix_plane_intersector {
 
-    using intersection_type = line_plane_intersection;
-    using output_type = std::array<intersection_type, 2>;
-    using point3 = __plugin::point3<detray::scalar>;
-    using vector3 = __plugin::vector3<detray::scalar>;
+    using transform3_type = typename intersection_t::transform3_type;
+    using scalar_type = typename transform3_type::scalar_type;
+    using matrix_operator = typename transform3_type::matrix_actor;
+    using point3 = typename transform3_type::point3;
+    using vector3 = typename transform3_type::vector3;
+    using helix_type = detail::helix<transform3_type>;
 
     /// Operator function to find intersections between helix and planar mask
     ///
@@ -43,40 +48,39 @@ struct helix_plane_intersector {
     /// @param overstep_tolerance is the tolerance for track overstepping
     ///
     /// @return the intersection
-    template <typename mask_t, typename transform_t>
-    DETRAY_HOST_DEVICE inline output_type operator()(
-        const detail::helix &h, const mask_t &mask, const transform_t &trf,
-        const scalar mask_tolerance = 0) const {
+    template <typename mask_t, typename surface_t>
+    DETRAY_HOST_DEVICE inline intersection_t operator()(
+        const helix_type &h, const surface_t &sf, const mask_t &mask,
+        const transform3_type &trf,
+        const scalar_type mask_tolerance = 0.f) const {
 
-        using local_frame = typename mask_t::local_type;
-
-        output_type ret;
+        intersection_t sfi;
 
         // Guard against inifinite loops
-        constexpr std::size_t max_n_tries{100};
+        constexpr std::size_t max_n_tries{1000u};
         // Tolerance for convergence
-        constexpr scalar tol{1e-3};
+        constexpr scalar_type tol{1e-3f};
 
         // Get the surface info
         const auto &sm = trf.matrix();
         // Surface normal
-        const vector3 sn = getter::vector<3>(sm, 0, 2);
+        const vector3 sn = getter::vector<3>(sm, 0u, 2u);
         // Surface translation
-        const point3 st = getter::vector<3>(sm, 0, 3);
+        const point3 st = getter::vector<3>(sm, 0u, 3u);
 
         // Starting point on the helix for the Newton iteration
-        scalar s{getter::norm(sn) - scalar{0.1}};
-        scalar s_prev{s - scalar{0.1}};
+        scalar_type s{getter::norm(st - h.pos(0.f))};
+        scalar_type s_prev{0.f};
 
         // f(s) = sn * (h.pos(s) - st) == 0
         // Run the iteration on s
-        std::size_t n_tries{0};
+        std::size_t n_tries{0u};
         while (std::abs(s - s_prev) > tol and n_tries < max_n_tries) {
             // f'(s) = sn * h.dir(s)
-            const scalar denom{vector::dot(sn, h.dir(s))};
+            const scalar_type denom{vector::dot(sn, h.dir(s))};
             // No intersection can be found if dividing by zero
-            if (denom == 0.) {
-                return ret;
+            if (denom == 0.f) {
+                return sfi;
             }
             // x_n+1 = x_n - f(s) / f'(s)
             s_prev = s;
@@ -85,26 +89,47 @@ struct helix_plane_intersector {
         }
         // No intersection found within max number of trials
         if (n_tries == max_n_tries) {
-            return ret;
+            return sfi;
         }
 
-        // Build intersection struct from helix parameter s
-        intersection_type &is = ret[0];
-        const point3 helix_pos = h.pos(s);
+        // Build intersection struct from helix parameters
+        sfi.path = s;
+        sfi.p3 = h.pos(s);
+        sfi.p2 = mask.to_measurement_frame(trf, sfi.p3, h.dir(s));
+        sfi.status = mask.is_inside(sfi.p2, mask_tolerance);
 
-        is.path = getter::norm(helix_pos);
-        is.p3 = helix_pos;
-        constexpr local_frame local_converter{};
-        is.p2 = local_converter(trf, is.p3);
+        // Compute some additional information if the intersection is valid
+        if (sfi.status == intersection::status::e_inside) {
+            sfi.surface = sf;
+            sfi.direction = std::signbit(vector::dot(st, h.dir(s)))
+                                ? intersection::direction::e_opposite
+                                : intersection::direction::e_along;
+            sfi.volume_link = mask.volume_link();
+        }
 
-        is.status = mask.template is_inside<local_frame>(is.p2, mask_tolerance);
-        is.direction = vector::dot(st, h.dir(s)) > scalar{0.}
-                           ? intersection::direction::e_along
-                           : intersection::direction::e_opposite;
-        is.link = mask.volume_link();
-
-        return ret;
+        return sfi;
     }
+};
+
+}  // namespace detail
+
+/// Specialization of the @c helix_intersector for planar surfaces
+template <typename intersection_t, typename mask_t>
+struct helix_intersector<
+    intersection_t, mask_t,
+    std::enable_if_t<
+        std::is_same_v<
+            typename mask_t::shape::template intersector_type<intersection_t>,
+            plane_intersector<intersection_t>>,
+        void>> : public detail::helix_plane_intersector<intersection_t> {
+
+    using intersector_impl = detail::helix_plane_intersector<intersection_t>;
+
+    using scalar_type = typename intersector_impl::scalar_type;
+    using matrix_operator = typename intersector_impl::matrix_operator;
+    using point3 = typename intersector_impl::point3;
+    using vector3 = typename intersector_impl::vector3;
+    using helix_type = typename intersector_impl::helix_type;
 };
 
 }  // namespace detray

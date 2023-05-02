@@ -36,10 +36,10 @@ namespace detray {
 template <template <typename...> class vector_t = dvector,
           template <typename...> class jagged_vector_t = djagged_vector,
           template <typename, std::size_t> class array_t = darray,
-          typename value_t = dindex, bool kSORT = false, unsigned int kDIM = 1>
+          typename value_t = dindex, bool kSORT = false, unsigned int kDIM = 1u>
 struct replace_populator {
     DETRAY_HOST_DEVICE
-    replace_populator(const value_t invalid = invalid_value<value_t>())
+    replace_populator(const value_t invalid = detail::invalid_value<value_t>())
         : m_invalid(invalid) {}
 
     value_t m_invalid;
@@ -110,10 +110,10 @@ struct replace_populator {
 template <template <typename...> class vector_t = dvector,
           template <typename...> class jagged_vector_t = djagged_vector,
           template <typename, std::size_t> class array_t = darray,
-          typename value_t = dindex, bool kSORT = false, unsigned int kDIM = 1>
+          typename value_t = dindex, bool kSORT = false, unsigned int kDIM = 1u>
 struct complete_populator {
     DETRAY_HOST_DEVICE
-    complete_populator(const value_t invalid = invalid_value<value_t>())
+    complete_populator(const value_t invalid = detail::invalid_value<value_t>())
         : m_invalid(invalid) {}
 
     value_t m_invalid;
@@ -204,10 +204,10 @@ struct complete_populator {
 template <template <typename...> class vector_t = dvector,
           template <typename...> class jagged_vector_t = djagged_vector,
           template <typename, std::size_t> class array_t = darray,
-          typename value_t = dindex, bool kSORT = false, unsigned int kDIM = 1>
+          typename value_t = dindex, bool kSORT = false, unsigned int kDIM = 1u>
 struct attach_populator {
     DETRAY_HOST_DEVICE
-    attach_populator(const value_t invalid = invalid_value<value_t>())
+    attach_populator(const value_t invalid = detail::invalid_value<value_t>())
         : m_invalid(invalid) {}
 
     value_t m_invalid;

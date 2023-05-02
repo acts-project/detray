@@ -24,6 +24,7 @@ jobs:
 
     # The system to run on.
     runs-on: ${{ matrix.PLATFORM.OS }}
+    name: "native (${{ matrix.PLATFORM.OS }})"
 
     # The build/test steps to execute.
     steps:
@@ -51,12 +52,13 @@ jobs:
         SCALAR_TYPE: ["float", "double"]
         PLATFORM:
           - NAME: "HOST"
-            CONTAINER: "ghcr.io/acts-project/ubuntu2004:v20"
+            CONTAINER: "ghcr.io/acts-project/ubuntu2004:v30"
             OPTIONS: -DDETRAY_EIGEN_PLUGIN=ON -DDETRAY_SMATRIX_PLUGIN=ON -DDETRAY_VC_PLUGIN=ON
 
     # The system to run on.
     runs-on: ubuntu-latest
     container: ${{ matrix.PLATFORM.CONTAINER }}
+    name: "host-container (${{ matrix.PLATFORM.NAME }})"
 
     # Use BASH as the shell from the image.
     defaults:
@@ -100,15 +102,16 @@ jobs:
         SCALAR_TYPE: ["float", "double"]
         PLATFORM:
           - NAME: "CUDA"
-            CONTAINER: "ghcr.io/acts-project/ubuntu2004_cuda:v20"
+            CONTAINER: "ghcr.io/acts-project/ubuntu2004_cuda:v30"
             OPTIONS: -DDETRAY_EIGEN_PLUGIN=ON -DDETRAY_SMATRIX_PLUGIN=ON -DDETRAY_VC_PLUGIN=ON
           - NAME: "SYCL"
-            CONTAINER: "ghcr.io/acts-project/ubuntu2004_oneapi:v20"
-            OPTIONS: -DDETRAY_EIGEN_PLUGIN=ON -DDETRAY_SMATRIX_PLUGIN=ON -DDETRAY_VC_PLUGIN=ON
+            CONTAINER: "ghcr.io/acts-project/ubuntu2004_oneapi:v30"
+            OPTIONS: -DDETRAY_BUILD_CUDA=OFF -DDETRAY_BUILD_SYCL=ON -DDETRAY_EIGEN_PLUGIN=ON -DDETRAY_SMATRIX_PLUGIN=ON -DDETRAY_VC_PLUGIN=ON
 
     # The system to run on.
     runs-on: ubuntu-latest
     container: ${{ matrix.PLATFORM.CONTAINER }}
+    name: "device-container (${{ matrix.PLATFORM.NAME }})"
 
     # Use BASH as the shell from the image.
     defaults:

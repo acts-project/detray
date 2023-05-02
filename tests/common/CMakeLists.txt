@@ -9,7 +9,7 @@ add_library( detray_tests_common INTERFACE )
 target_include_directories( detray_tests_common
    INTERFACE "${CMAKE_CURRENT_SOURCE_DIR}/include" )
 target_link_libraries( detray_tests_common
-   INTERFACE vecmem::core detray::core detray::io )
+   INTERFACE vecmem::core detray::core detray::io detray::utils covfie::core )
 
 if( DETRAY_BENCHMARKS AND DETRAY_BENCHMARKS_REP )
    message( STATUS "Repetitions for benchmarks: ${DETRAY_BENCHMARKS_REP}" )

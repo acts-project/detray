@@ -1,6 +1,6 @@
 # Detray library, part of the ACTS project (R&D line)
 #
-# (c) 2021-2022 CERN for the benefit of the ACTS project
+# (c) 2021-2023 CERN for the benefit of the ACTS project
 #
 # Mozilla Public License Version 2.0
 
@@ -8,12 +8,17 @@
 cmake_minimum_required( VERSION 3.14 )
 include( FetchContent )
 
+# Silence FetchContent warnings with CMake >=3.24.
+if( POLICY CMP0135 )
+   cmake_policy( SET CMP0135 NEW )
+endif()
+
 # Tell the user what's happening.
 message( STATUS "Building VecMem as part of the Detray project" )
 
 # Declare where to get VecMem from.
 set( DETRAY_VECMEM_SOURCE
-   "URL;https://github.com/acts-project/vecmem/archive/refs/tags/v0.10.0.tar.gz;URL_MD5;712888e704d2e4c915ac1f25f28da467"
+   "URL;https://github.com/acts-project/vecmem/archive/refs/tags/v0.24.0.tar.gz;URL_MD5;f6936ea57921d7e5110606c7a9e9a371"
    CACHE STRING "Source for VecMem, when built as part of this project" )
 mark_as_advanced( DETRAY_VECMEM_SOURCE )
 FetchContent_Declare( VecMem ${DETRAY_VECMEM_SOURCE} )

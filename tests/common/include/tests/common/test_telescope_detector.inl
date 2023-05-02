@@ -1,23 +1,30 @@
 /** Detray library, part of the ACTS project (R&D line)
  *
- * (c) 2022 CERN for the benefit of the ACTS project
+ * (c) 2022-2023 CERN for the benefit of the ACTS project
  *
  * Mozilla Public License Version 2.0
  */
 
-#include <gtest/gtest.h>
-
-#include <vecmem/memory/host_memory_resource.hpp>
-
+// Project include(s)
 #include "detray/definitions/qualifiers.hpp"
 #include "detray/definitions/units.hpp"
-#include "detray/field/constant_magnetic_field.hpp"
+#include "detray/detectors/create_telescope_detector.hpp"
+#include "detray/masks/masks.hpp"
+#include "detray/masks/unbounded.hpp"
 #include "detray/propagator/line_stepper.hpp"
 #include "detray/propagator/navigator.hpp"
 #include "detray/propagator/rk_stepper.hpp"
-#include "detray/propagator/track.hpp"
-#include "tests/common/tools/create_telescope_detector.hpp"
+#include "detray/tracks/tracks.hpp"
 #include "tests/common/tools/inspectors.hpp"
+
+// Vecmem include(s)
+#include <vecmem/memory/host_memory_resource.hpp>
+
+// GTest include
+#include <gtest/gtest.h>
+
+// System include(s)
+#include <utility>
 
 /// @note __plugin has to be defined with a preprocessor command
 namespace detray {
@@ -25,15 +32,19 @@ namespace detray {
 namespace {
 
 using vector3 = __plugin::vector3<detray::scalar>;
+using transform3 = __plugin::transform3<detray::scalar>;
 
 // dummy propagator state
 template <typename stepping_t, typename navigation_t>
 struct prop_state {
+
     stepping_t _stepping;
     navigation_t _navigation;
 
-    template <typename track_t>
-    prop_state(const track_t &t_in) : _stepping(t_in) {}
+    template <typename track_t, typename field_type>
+    prop_state(const track_t &t_in, const field_type &field,
+               const typename navigation_t::detector_type &det)
+        : _stepping(t_in, field), _navigation(det) {}
 };
 
 }  // anonymous namespace
@@ -45,52 +56,60 @@ TEST(ALGEBRA_PLUGIN, telescope_detector) {
 
     using namespace detray;
 
-    using b_field_t = constant_magnetic_field<>;
-    using ln_stepper_t = line_stepper<free_track_parameters>;
-    using rk_stepper_t = rk_stepper<b_field_t, free_track_parameters>;
+    // Use rectangle surfaces
+    mask<rectangle2D<>> rectangle{0u, 20.f * unit<scalar>::mm,
+                                  20.f * unit<scalar>::mm};
+
+    using b_field_t = decltype(create_telescope_detector(
+        std::declval<vecmem::host_memory_resource &>(),
+        std::declval<mask<rectangle2D<>> &>(),
+        std::declval<std::vector<scalar> &>()))::bfield_type;
+    using rk_stepper_t = rk_stepper<b_field_t::view_t, transform3>;
     using inspector_t = navigation::print_inspector;
 
-    // Use rectangular surfaces
-    constexpr bool rectangular = false;
-
     // Test tolerance
-    constexpr scalar tol = 1e-4;
+    constexpr scalar tol{1e-4f};
 
     vecmem::host_memory_resource host_mr;
 
     // B-fields
-    vector3 B_z{0., 0., 1. * unit_constants::T};
-    vector3 B_x{1. * unit_constants::T, 0., 0.};
-    b_field_t b_field_z{B_z};
-    b_field_t b_field_x{B_x};
+    vector3 B_z{0.f, 0.f, 1.f * unit<scalar>::T};
+    vector3 B_x{1.f * unit<scalar>::T, 0.f, 0.f};
+    b_field_t b_field_z{
+        b_field_t::backend_t::configuration_t{B_z[0], B_z[1], B_z[2]}};
+    b_field_t b_field_x{
+        b_field_t::backend_t::configuration_t{B_x[0], B_x[1], B_x[2]}};
 
     // steppers
-    rk_stepper_t rk_stepper_z{b_field_z};
-    rk_stepper_t rk_stepper_x{b_field_x};
-    ln_stepper_t ln_stepper{};
+    rk_stepper_t rk_stepper_z;
+    rk_stepper_t rk_stepper_x;
 
     //
     // telescope along z
     //
 
     // Build from given module positions
-    std::vector<scalar> positions = {0.,   50., 100., 150., 200., 250.,
-                                     300., 350, 400,  450., 500.};
+    std::vector<scalar> positions = {0.f,   50.f,  100.f, 150.f, 200.f, 250.f,
+                                     300.f, 350.f, 400.f, 450.f, 500.f};
     // Build telescope detector with unbounded planes
     const auto z_tel_det1 =
-        create_telescope_detector<rectangular>(host_mr, positions);
+        create_telescope_detector(host_mr, rectangle, positions);
 
     // Build the same telescope detector with rectangular planes and given
     // length/number of surfaces
-    dindex n_surfaces = 11;
-    scalar tel_length = 500. * unit_constants::mm;
+    const std::size_t n_surfaces{11u};
+    const scalar tel_length{500.f * unit<scalar>::mm};
     const auto z_tel_det2 =
-        create_telescope_detector<rectangular>(host_mr, n_surfaces, tel_length);
+        create_telescope_detector(host_mr, rectangle, n_surfaces, tel_length);
 
     // Compare
-    for (std::size_t i = 0; i < z_tel_det1.surfaces().size(); ++i) {
-        EXPECT_TRUE(z_tel_det1.surface_by_index(i) ==
-                    z_tel_det2.surface_by_index(i));
+    for (std::size_t i{0u}; i < z_tel_det1.surfaces().size(); ++i) {
+        geometry::barcode bcd{};
+        bcd.set_volume(0u).set_index(i);
+        bcd.set_id((i == z_tel_det1.surfaces().size() - 1u)
+                       ? surface_id::e_portal
+                       : surface_id::e_sensitive);
+        EXPECT_TRUE(z_tel_det1.surfaces(bcd) == z_tel_det2.surfaces(bcd));
     }
 
     //
@@ -98,38 +117,39 @@ TEST(ALGEBRA_PLUGIN, telescope_detector) {
     //
 
     // Same telescope, but in x direction and created from custom stepper
-    point3 pos{0., 0., 0.};
-    vector3 mom{1., 0., 0.};
-    free_track_parameters pilot_track(pos, 0, mom, -1);
+    detail::ray<transform3> x_track({0.f, 0.f, 0.f}, 0.f, {1.f, 0.f, 0.f},
+                                    -1.f);
 
-    const auto x_tel_det = create_telescope_detector<rectangular>(
-        host_mr, n_surfaces, tel_length, pilot_track, ln_stepper);
+    const auto x_tel_det = create_telescope_detector(
+        host_mr, rectangle, n_surfaces, tel_length, silicon_tml<scalar>(),
+        80.f * unit<scalar>::um, x_track);
 
     //
     // test propagation in all telescope detector instances
     //
 
     // Telescope navigation should be symmetric in x and z
-    pos = {0., 0., 0.};
-    mom = {0., 0., 1.};
-    free_track_parameters test_track_z1(pos, 0, mom, -1);
-    free_track_parameters test_track_z2(pos, 0, mom, -1);
-    mom = {1., 0., 0.};
-    free_track_parameters test_track_x(pos, 0, mom, -1);
+    vector3 pos = {0.f, 0.f, 0.f};
+    vector3 mom = {0.f, 0.f, 1.f};
+    free_track_parameters<transform3> test_track_z1(pos, 0.f, mom, -1.f);
+    free_track_parameters<transform3> test_track_z2(pos, 0.f, mom, -1.f);
+    mom = {1.f, 0.f, 0.f};
+    free_track_parameters<transform3> test_track_x(pos, 0.f, mom, -1.f);
 
     // navigators
-    navigator<decltype(z_tel_det1), inspector_t> navigator_z1(z_tel_det1);
-    navigator<decltype(z_tel_det2), inspector_t> navigator_z2(z_tel_det2);
-    navigator<decltype(x_tel_det), inspector_t> navigator_x(x_tel_det);
+    navigator<decltype(z_tel_det1), inspector_t> navigator_z1;
+    navigator<decltype(z_tel_det2), inspector_t> navigator_z2;
+    navigator<decltype(x_tel_det), inspector_t> navigator_x;
     using navigation_state_t = decltype(navigator_z1)::state;
     using stepping_state_t = rk_stepper_t::state;
 
     // propagation states
     prop_state<stepping_state_t, navigation_state_t> propgation_z1(
-        test_track_z1);
+        test_track_z1, b_field_z, z_tel_det1);
     prop_state<stepping_state_t, navigation_state_t> propgation_z2(
-        test_track_z2);
-    prop_state<stepping_state_t, navigation_state_t> propgation_x(test_track_x);
+        test_track_z2, b_field_z, z_tel_det2);
+    prop_state<stepping_state_t, navigation_state_t> propgation_x(
+        test_track_x, b_field_x, x_tel_det);
 
     stepping_state_t &stepping_z1 = propgation_z1._stepping;
     stepping_state_t &stepping_z2 = propgation_z2._stepping;
@@ -166,18 +186,18 @@ TEST(ALGEBRA_PLUGIN, telescope_detector) {
         EXPECT_NEAR(
             std::fabs(stepping_z1._path_length - stepping_z2._path_length) /
                 stepping_z1._path_length,
-            0., tol);
+            0.f, tol);
         EXPECT_NEAR(
             std::fabs(stepping_z1._path_length - stepping_x._path_length) /
                 stepping_x._path_length,
-            0., tol);
+            0.f, tol);
         // The track positions in z should match exactly
         EXPECT_NEAR(getter::norm(stepping_z1().pos() - stepping_z2().pos()) /
                         getter::norm(stepping_z1().pos()),
-                    0., tol);
+                    0.f, tol);
         EXPECT_NEAR(getter::norm(stepping_z1().dir() - stepping_z2().dir()) /
                         getter::norm(stepping_z1().dir()),
-                    0., tol);
+                    0.f, tol);
     }
 
     // check that all propagation flows exited successfully
@@ -191,19 +211,23 @@ TEST(ALGEBRA_PLUGIN, telescope_detector) {
     //
     // Build a telescope along a bent track
     //
-    pos = {0., 0., 0.};
-    mom = {0., 1., 0.};
-    pilot_track = free_track_parameters(pos, 0, mom, -1);
-    pilot_track.set_overstep_tolerance(-10 * unit_constants::um);
+    pos = {0.f, 0.f, 0.f};
+    mom = {0.f, 1.f, 0.f};
 
-    const auto tel_detector = create_telescope_detector<rectangular>(
-        host_mr, n_surfaces, tel_length, pilot_track, rk_stepper_z);
+    auto pilot_track = free_track_parameters<transform3>(pos, 0.f, mom, -1.f);
+    pilot_track.set_overstep_tolerance(-10.f * unit<scalar>::um);
+
+    detail::helix<transform3> helix_bz(pilot_track, &B_z);
+
+    const auto tel_detector = create_telescope_detector(
+        host_mr, rectangle, n_surfaces, tel_length, silicon_tml<scalar>(),
+        80.f * unit<scalar>::um, helix_bz);
 
     // make at least sure it is navigatable
-    navigator<decltype(tel_detector), inspector_t> tel_navigator(tel_detector);
+    navigator<decltype(tel_detector), inspector_t> tel_navigator;
 
     prop_state<stepping_state_t, navigation_state_t> tel_propagation(
-        pilot_track);
+        pilot_track, b_field_z, tel_detector);
     navigation_state_t &tel_navigation = tel_propagation._navigation;
 
     // run propagation

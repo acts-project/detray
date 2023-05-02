@@ -1,12 +1,16 @@
 /** Detray library, part of the ACTS project (R&D line)
  *
- * (c) 2021 CERN for the benefit of the ACTS project
+ * (c) 2021-2023 CERN for the benefit of the ACTS project
  *
  * Mozilla Public License Version 2.0
  */
 
+#pragma once
+
 #include <algorithm>
 #include <cmath>
+#include <functional>
+#include <iostream>
 #include <iterator>
 #include <set>
 #include <sstream>
@@ -29,7 +33,7 @@ namespace detray {
 /// @param start_volume where the ray started
 ///
 /// @return true if the volumes indices form a connected chain.
-template <bool check_sorted_trace = true,
+template <dindex invalid_value = dindex_invalid, bool check_sorted_trace = true,
           typename entry_type = std::pair<dindex, dindex>>
 inline bool check_connectivity(
     std::vector<std::pair<entry_type, entry_type>> trace,
@@ -52,10 +56,11 @@ inline bool check_connectivity(
     // If the intersection trace comes from the ray gun/trace intersections
     // function it should be sorted, which is the stronger constraint
     using records_iterator_t = decltype(trace.begin());
-    std::function<records_iterator_t(dindex)> get_connected_record;
+    using index_t = typename records_iterator_t::difference_type;
+    std::function<records_iterator_t(index_t)> get_connected_record;
     if constexpr (check_sorted_trace) {
         // Get the next record
-        get_connected_record = [&](dindex next) -> records_iterator_t {
+        get_connected_record = [&](index_t next) -> records_iterator_t {
             auto rec = trace.begin() + next;
             if ((std::get<1>(rec->first) == on_volume) or
                 (std::get<1>(rec->second) == on_volume)) {
@@ -65,7 +70,7 @@ inline bool check_connectivity(
         };
     } else {
         // Search for the existence of a fitting record
-        get_connected_record = [&](dindex /*next*/) -> records_iterator_t {
+        get_connected_record = [&](index_t /*next*/) -> records_iterator_t {
             return find_if(
                 trace.begin(), trace.end(),
                 [&](const std::pair<entry_type, entry_type> &rec) -> bool {
@@ -76,7 +81,7 @@ inline bool check_connectivity(
     }
 
     // Init chain search
-    dindex i = 0;
+    index_t i{0};
     auto record = get_connected_record(i);
 
     // Check first volume index, which has no partner otherwise
@@ -113,7 +118,7 @@ inline bool check_connectivity(
 
     // There are unconnected elements left (we didn't leave world before
     // termination)
-    if (on_volume != dindex_invalid) {
+    if (on_volume != invalid_value) {
         std::cerr << "\n<<<<<<<<<<<<<<< ERROR while checking volume trace"
                   << std::endl;
         std::cerr << "Didn't leave world or unconnected elements left in trace:"
@@ -141,8 +146,7 @@ inline bool check_connectivity(
 ///
 /// @return a set of volume connections that were found by portal intersection
 ///         of a ray.
-template <typename record_container =
-              dvector<std::pair<dindex, line_plane_intersection>>>
+template <dindex invalid_value = dindex_invalid, typename record_container>
 inline auto trace_intersections(const record_container &intersection_records,
                                 dindex start_volume = 0) {
     // obj id and obj mother volume
@@ -159,10 +163,12 @@ inline auto trace_intersections(const record_container &intersection_records,
         const typename record_container::value_type &entry;
 
         // getter
-        inline auto &object_id() const { return entry.second.index; }
+        inline auto object_id() const {
+            return entry.second.surface.barcode().index();
+        }
         inline auto &inters() const { return entry.second; }
         inline auto &volume_id() const { return entry.first; }
-        inline auto &volume_link() const { return entry.second.link; }
+        inline auto &volume_link() const { return entry.second.volume_link; }
         inline auto &dist() const { return entry.second.path; }
         inline auto r() const {
             return std::sqrt(entry.second.p3[0] * entry.second.p3[0] +
@@ -172,11 +178,11 @@ inline auto trace_intersections(const record_container &intersection_records,
 
         // A portal links to another volume than it belongs to
         inline bool is_portal() const {
-            return entry.first != entry.second.link;
+            return entry.first != entry.second.volume_link;
         }
 
-        inline bool is_portal(const std::pair<dindex, line_plane_intersection>
-                                  &inters_pair) const {
+        inline bool is_portal(
+            const typename record_container::value_type &inters_pair) const {
             const record rec{inters_pair};
             return rec.volume_id() != rec.volume_link();
         }
@@ -198,9 +204,8 @@ inline auto trace_intersections(const record_container &intersection_records,
         }
 
         record_stream << current_rec.volume_id() << "\t"
-                      << current_rec.inters().to_string();
-        record_stream << next_rec.volume_id() << "\t"
-                      << next_rec.inters().to_string();
+                      << current_rec.inters();
+        record_stream << next_rec.volume_id() << "\t" << next_rec.inters();
 
         // Is this doublet connected via a valid portal intersection?
         const bool is_valid =
@@ -251,8 +256,7 @@ inline auto trace_intersections(const record_container &intersection_records,
 
             std::cerr << "-----\nINFO: Ray terminated at portal x-ing "
                       << (rec + 1) / 2 << ":\n"
-                      << current_rec.inters().to_string() << " <-> "
-                      << next_rec.inters().to_string();
+                      << current_rec.inters() << " <-> " << next_rec.inters();
 
             record rec_front{intersection_records.front()};
             record rec_back{intersection_records.back()};
@@ -297,8 +301,8 @@ inline auto trace_intersections(const record_container &intersection_records,
 ///
 /// @return an adjacency list from the traced ray scan of a given geometry.
 template <
-    typename portal_trace_type, typename module_trace_type,
-    typename entry_type = std::pair<dindex, dindex>,
+    dindex invalid_value = dindex_invalid, typename portal_trace_type,
+    typename module_trace_type, typename entry_type = std::pair<dindex, dindex>,
     std::enable_if_t<std::is_same_v<typename portal_trace_type::value_type,
                                     std::pair<entry_type, entry_type>>,
                      bool> = true,
@@ -334,7 +338,7 @@ inline auto build_adjacency(
             obj_hashes.insert(pt_index_1);
         }
         // Assume the return link for now (filter out portal that leaves world)
-        if (vol_index_2 != dindex_invalid) {
+        if (vol_index_2 != invalid_value) {
             if (obj_hashes.find(pt_index_2) == obj_hashes.end()) {
                 adj_list[vol_index_2][vol_index_1]++;
                 obj_hashes.insert(pt_index_2);
@@ -357,8 +361,8 @@ inline auto build_adjacency(
 ///
 /// @return an adjacency list from the traced ray scan of a given geometry.
 template <
-    typename portal_trace_type, typename module_trace_type,
-    typename entry_type = std::pair<dindex, dindex>,
+    dindex invalid_value = dindex_invalid, typename portal_trace_type,
+    typename module_trace_type, typename entry_type = std::pair<dindex, dindex>,
     std::enable_if_t<std::is_same_v<typename portal_trace_type::value_type,
                                     std::pair<entry_type, entry_type>>,
                      bool> = true,
@@ -394,7 +398,7 @@ inline auto build_adjacency(const portal_trace_type &portal_trace,
             dindex mat_elem_vol1;
             // Assume the return link for now (filtering out portals that leave
             // world)
-            if (vol_index_2 != dindex_invalid) {
+            if (vol_index_2 != invalid_value) {
                 mat_elem_vol1 = dim * vol_index_1 + vol_index_2;
 
                 if (obj_hashes.find(pt_index_2) == obj_hashes.end()) {

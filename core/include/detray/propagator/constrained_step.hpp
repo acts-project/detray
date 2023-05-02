@@ -8,11 +8,13 @@
 #pragma once
 
 // detray definitions
-#include <climits>
-#include <type_traits>
-
+#include "detray/definitions/algebra.hpp"
 #include "detray/definitions/containers.hpp"
 #include "detray/definitions/qualifiers.hpp"
+
+// System include(s).
+#include <climits>
+#include <type_traits>
 
 namespace detray {
 
@@ -32,11 +34,11 @@ enum direction : int {
 /// from aborter  - this would be a target condition
 /// from user     - this is user given for what reason ever
 enum constraint : std::size_t {
-    e_accuracy = 0,
-    e_actor = 1,
-    e_aborter = 2,
-    e_user = 3,
-    e_all = 4
+    e_accuracy = 0u,
+    e_actor = 1u,
+    e_aborter = 2u,
+    e_user = 3u,
+    e_all = 4u
 };
 
 }  // namespace step
@@ -78,9 +80,9 @@ struct constrained_step {
     DETRAY_HOST_DEVICE scalar
     size(const step::direction dir = step::direction::e_forward) const {
         if constexpr (type == step::constraint::e_all) {
-            return dir * min();
+            return static_cast<scalar>(dir) * min();
         } else {
-            return dir * _constraints[type];
+            return static_cast<scalar>(dir) * _constraints[type];
         }
     }
 

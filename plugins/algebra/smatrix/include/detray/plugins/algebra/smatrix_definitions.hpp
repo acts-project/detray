@@ -5,6 +5,8 @@
  * Mozilla Public License Version 2.0
  */
 
+#pragma once
+
 // Algebra-Plugins include
 #include "algebra/smatrix_smatrix.hpp"
 
@@ -21,7 +23,7 @@ namespace getter = algebra::getter;
 namespace vector = algebra::vector;
 namespace matrix = algebra::matrix;
 
-// Define matrix operator
+// Define matrix/vector operator
 template <typename scalar_t>
 using standard_matrix_operator = matrix::actor<scalar_t>;
 

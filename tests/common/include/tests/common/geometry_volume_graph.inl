@@ -1,6 +1,6 @@
 /** Detray library, part of the ACTS project (R&D line)
  *
- * (c) 2021-2022 CERN for the benefit of the ACTS project
+ * (c) 2021-2023 CERN for the benefit of the ACTS project
  *
  * Mozilla Public License Version 2.0
  */
@@ -11,19 +11,21 @@
 #include <map>
 #include <vecmem/memory/host_memory_resource.hpp>
 
+#include "detray/detectors/create_toy_geometry.hpp"
 #include "detray/geometry/volume_graph.hpp"
-#include "tests/common/tools/create_toy_geometry.hpp"
 
 /// @note __plugin has to be defined with a preprocessor command
 
 // This tests the linking of a geometry by loading it into a graph structure
-TEST(ALGEBRA_PLUGIN, geometry_linking) {
+TEST(ALGEBRA_PLUGIN, volume_graph) {
     using namespace detray;
     using namespace __plugin;
 
     vecmem::host_memory_resource host_mr;
-    dindex n_brl_layers = 4;
-    dindex n_edc_layers = 1;
+
+    unsigned int n_brl_layers{4u};
+    unsigned int n_edc_layers{1u};
+
     auto det = create_toy_geometry(host_mr, n_brl_layers, n_edc_layers);
     using detector_t = decltype(det);
 
@@ -40,9 +42,9 @@ TEST(ALGEBRA_PLUGIN, geometry_linking) {
     // Is everything accessible from the graph?
     EXPECT_EQ(graph.n_nodes(), det.volumes().size());
 
-    std::cout << graph.to_string() << std::endl;
-    std::cout << "Walking through geometry: " << std::endl;
-    // graph.bfs();
+    // std::cout << graph.to_string() << std::endl;
+    // std::cout << "Walking through geometry: " << std::endl;
+    //  graph.bfs();
 
     const auto &adj_mat = graph.adjacency_matrix();
 

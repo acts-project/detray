@@ -1,6 +1,6 @@
 # Detray library, part of the ACTS project (R&D line)
 #
-# (c) 2022 CERN for the benefit of the ACTS project
+# (c) 2022-2023 CERN for the benefit of the ACTS project
 #
 # Mozilla Public License Version 2.0
 
@@ -13,6 +13,9 @@ enable_language( CUDA )
 # Set the CUDA build flags.
 include( detray-compiler-options-cuda )
 
+# Look for openMP, which is used for the CPU benchmark
+find_package(OpenMP)
+
 # make unit tests for multiple algebras
 # Currently vc and smatrix is not supported
 set( algebras "array" )
@@ -24,10 +27,14 @@ foreach(algebra ${algebras})
 
 detray_add_executable( ${algebra}_propagator_cuda
    "benchmark_propagator_cuda.cpp" "benchmark_propagator_cuda_kernel.hpp"
-   "benchmark_propagator_cuda_kernel.cu" 
-   LINK_LIBRARIES benchmark::benchmark detray_tests_common detray::${algebra} vecmem::cuda )
+   "benchmark_propagator_cuda_kernel.cu"
+   LINK_LIBRARIES benchmark::benchmark detray_tests_common detray::algebra_${algebra} vecmem::cuda )
 
    target_compile_definitions( detray_${algebra}_propagator_cuda
       PRIVATE ${algebra}=${algebra} )
+
+if( OpenMP_CXX_FOUND )
+  target_link_libraries( detray_${algebra}_propagator_cuda PRIVATE OpenMP::OpenMP_CXX )
+endif()
 
 endforeach()

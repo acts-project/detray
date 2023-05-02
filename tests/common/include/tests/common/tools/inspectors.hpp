@@ -1,6 +1,6 @@
 /** Detray library, part of the ACTS project (R&D line)
  *
- * (c) 2022 CERN for the benefit of the ACTS project
+ * (c) 2022-2023 CERN for the benefit of the ACTS project
  *
  * Mozilla Public License Version 2.0
  */
@@ -8,8 +8,9 @@
 #pragma once
 
 // Project include(s)
-#include "detray/definitions/detail/accessor.hpp"
+#include "detray/intersection/detail/trajectories.hpp"
 #include "detray/propagator/base_actor.hpp"
+#include "detray/utils/tuple_helpers.hpp"
 
 // System include(s)
 #include <iomanip>
@@ -53,12 +54,12 @@ namespace navigation {
 
 /// A navigation inspector that relays information about the encountered
 /// objects whenever the navigator reaches one or more status flags
-template <template <typename...> class vector_t = dvector,
+template <typename candidate_t, template <typename...> class vector_t = dvector,
           status... navigation_status>
 struct object_tracer {
 
     // record all object id the navigator encounters
-    vector_t<line_plane_intersection> object_trace = {};
+    vector_t<candidate_t> object_trace = {};
 
     /// Inspector interface
     template <typename state_type>
@@ -95,12 +96,12 @@ struct print_inspector {
         debug_stream << msg << std::endl;
 
         debug_stream << "Volume" << tabs << state.volume() << std::endl;
-        debug_stream << "surface kernel size\t\t" << state.n_candidates()
+        debug_stream << "No. reachable\t\t" << state.n_candidates()
                      << std::endl;
 
         debug_stream << "Surface candidates: " << std::endl;
         for (const auto &sf_cand : state.candidates()) {
-            debug_stream << sf_cand.to_string();
+            debug_stream << sf_cand;
         }
         if (not state.candidates().empty()) {
             debug_stream << "=> next: ";
@@ -209,19 +210,25 @@ struct print_inspector : actor {
                            << navigation.volume();
         }
 
-        if (navigation.current_object() == dindex_invalid) {
+        if (navigation.current_object().is_invalid()) {
             printer.stream << "surface: " << std::setw(14) << "invalid";
         } else {
             printer.stream << "surface: " << std::setw(14)
                            << navigation.current_object();
         }
 
-        printer.stream << "step_size: " << std::setw(10) << stepping._step_size;
+        printer.stream << "step_size: " << std::setw(10) << stepping._step_size
+                       << std::endl;
+
+        printer.stream
+            << std::setw(10)
+            << detail::ray<
+                   typename propagation_state_t::detector_type::transform3>(
+                   stepping())
+            << std::endl;
     }
 };
 
 }  // namespace propagation
-
-namespace step {}  // namespace step
 
 }  // namespace detray

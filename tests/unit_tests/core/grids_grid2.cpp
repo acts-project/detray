@@ -1,6 +1,6 @@
 /** Detray library, part of the ACTS project (R&D line)
  *
- * (c) 2020-2022 CERN for the benefit of the ACTS project
+ * (c) 2020-2023 CERN for the benefit of the ACTS project
  *
  * Mozilla Public License Version 2.0
  */
@@ -30,47 +30,47 @@ TEST(grids, grid2_replace_populator) {
 
     using grid2r = grid2<replace_populator, axis::regular, axis::regular,
                          decltype(serializer)>;
-    typename grid2r::axis_p0_type xaxis{10, -5., 5., host_mr};
-    typename grid2r::axis_p1_type yaxis{10, -5., 5., host_mr};
+    typename grid2r::axis_p0_type xaxis{10u, -5.f, 5.f, host_mr};
+    typename grid2r::axis_p1_type yaxis{10u, -5.f, 5.f, host_mr};
 
     grid2r g2(std::move(xaxis), std::move(yaxis), host_mr);
 
     // Test the initialization
-    test::point2<detray::scalar> p = {-4.5, -4.5};
-    for (unsigned int ib0 = 0; ib0 < 10; ++ib0) {
-        for (unsigned int ib1 = 0; ib1 < 10; ++ib1) {
-            p = {static_cast<scalar>(-4.5 + ib0),
-                 static_cast<scalar>(-4.5 + ib1)};
+    test::point2<detray::scalar> p = {-4.5f, -4.5f};
+    for (unsigned int ib0 = 0u; ib0 < 10u; ++ib0) {
+        for (unsigned int ib1 = 0u; ib1 < 10u; ++ib1) {
+            p = {-4.5f + static_cast<scalar>(ib0),
+                 -4.5f + static_cast<scalar>(ib1)};
             EXPECT_EQ(g2.bin(p), std::numeric_limits<dindex>::max());
         }
     }
 
-    p = {-4.5, -4.5};
+    p = {-4.5f, -4.5f};
     // Fill and read
     g2.populate(p, 3u);
     EXPECT_EQ(g2.bin(p), 3u);
 
     // Fill and read two times, fill first 0-99, then 100-199
-    for (unsigned int il = 0; il < 2; ++il) {
-        unsigned int counter = il * 100;
-        for (unsigned int ib0 = 0; ib0 < 10; ++ib0) {
-            for (unsigned int ib1 = 0; ib1 < 10; ++ib1) {
-                p = {static_cast<scalar>(-4.5 + ib0),
-                     static_cast<scalar>(-4.5 + ib1)};
-                g2.populate(p, counter);
+    for (unsigned int il = 0u; il < 2u; ++il) {
+        unsigned int counter = il * 100u;
+        for (unsigned int ib0 = 0u; ib0 < 10u; ++ib0) {
+            for (unsigned int ib1 = 0; ib1 < 10u; ++ib1) {
+                p = {-4.5f + static_cast<scalar>(ib0),
+                     -4.5f + static_cast<scalar>(ib1)};
+                g2.populate(p, counter + 0u);
                 EXPECT_EQ(g2.bin(p), counter++);
             }
         }
     }
 
     // A zone test w/o neighbour hood
-    p = {-4.5, -4.5};
+    p = {-4.5f, -4.5f};
     auto test = g2.zone(p);
     dvector<dindex> expect = {100u};
     EXPECT_EQ(test, expect);
 
     // A zone test with neighbour hood
-    p = {0.5, 0.5};
+    p = {0.5f, 0.5f};
 
     darray<dindex, 2> zone11 = {1u, 1u};
     darray<dindex, 2> zone22 = {2u, 2u};
@@ -83,21 +83,21 @@ TEST(grids, grid2_replace_populator) {
     using grid2cc = grid2<replace_populator, axis::circular, axis::regular,
                           decltype(serializer)>;
 
-    typename grid2cc::axis_p0_type circular{4, -2., 2., host_mr};
-    typename grid2cc::axis_p1_type closed{5, 0., 5., host_mr};
+    typename grid2cc::axis_p0_type circular{4u, -2.f, 2.f, host_mr};
+    typename grid2cc::axis_p1_type closed{5u, 0.f, 5.f, host_mr};
 
     grid2cc g2cc(std::move(circular), std::move(closed), host_mr);
-    unsigned int counter = 0;
-    for (unsigned icl = 0; icl < 5; ++icl) {
-        for (unsigned ici = 0; ici < 4; ++ici) {
-            p = {static_cast<scalar>(-1.5 + ici),
-                 static_cast<scalar>(0.5 + icl)};
+    unsigned int counter = 0u;
+    for (unsigned icl = 0u; icl < 5u; ++icl) {
+        for (unsigned ici = 0u; ici < 4u; ++ici) {
+            p = {-1.5f + static_cast<scalar>(ici),
+                 0.5f + static_cast<scalar>(icl)};
             g2cc.populate(p, counter++);
         }
     }
 
     // A zone test for circular testing
-    p = {1.5, 2.5};
+    p = {1.5f, 2.5f};
     test = g2cc.zone(p, {zone11, zone11}, true);
     expect = {4u, 6u, 7u, 8u, 10u, 11u, 12u, 14u, 15u};
     EXPECT_EQ(test, expect);
@@ -112,25 +112,25 @@ TEST(grids, grid2_complete_populator) {
                          decltype(serializer), dvector, djagged_vector, darray,
                          dtuple, dindex, false, 3>;
 
-    typename grid2r::axis_p0_type xaxis{2, -1., 1., host_mr};
-    typename grid2r::axis_p1_type yaxis{2, -1., 1., host_mr};
+    typename grid2r::axis_p0_type xaxis{2u, -1.f, 1.f, host_mr};
+    typename grid2r::axis_p1_type yaxis{2u, -1.f, 1.f, host_mr};
 
     grid2r g2(std::move(xaxis), std::move(yaxis), host_mr);
 
     // Test the initialization
-    test::point2<detray::scalar> p = {-0.5, -0.5};
+    test::point2<detray::scalar> p = {-0.5f, -0.5f};
     grid2r::populator_type::store_value invalid = {
         dindex_invalid, dindex_invalid, dindex_invalid};
-    for (unsigned int ib0 = 0; ib0 < 2; ++ib0) {
-        for (unsigned int ib1 = 0; ib1 < 2; ++ib1) {
-            p = {static_cast<scalar>(-0.5 + ib0),
-                 static_cast<scalar>(-0.5 + ib1)};
+    for (unsigned int ib0 = 0u; ib0 < 2u; ++ib0) {
+        for (unsigned int ib1 = 0u; ib1 < 2u; ++ib1) {
+            p = {-0.5f + static_cast<scalar>(ib0),
+                 -0.5f + static_cast<scalar>(ib1)};
             EXPECT_EQ(g2.bin(p), invalid);
         }
     }
 
     // Fill and read
-    p = {-0.5, -0.5};
+    p = {-0.5f, -0.5f};
     g2.populate(p, 4u);
 
     grid2r::populator_type::store_value expected = {4u, dindex_invalid,
@@ -166,10 +166,10 @@ TEST(grids, grid2_complete_populator) {
     EXPECT_EQ(zone_test, zone_expected);
 
     // Fill some other bins
-    p = {0.5, -0.5};
+    p = {0.5f, -0.5f};
     g2.populate(p, 16u);
 
-    p = {0.5, 0.5};
+    p = {0.5f, 0.5f};
     g2.populate(p, 17u);
     g2.populate(p, 18u);
 
@@ -185,23 +185,23 @@ TEST(grids, grid2_attach_populator) {
 
     using grid2r = grid2<attach_populator, axis::regular, axis::regular,
                          decltype(serializer)>;
-    typename grid2r::axis_p0_type xaxis{2, -1., 1., host_mr};
-    typename grid2r::axis_p1_type yaxis{2, -1., 1., host_mr};
+    typename grid2r::axis_p0_type xaxis{2u, -1.f, 1.f, host_mr};
+    typename grid2r::axis_p1_type yaxis{2u, -1.f, 1.f, host_mr};
 
     grid2r g2(std::move(xaxis), std::move(yaxis), host_mr);
 
     // Test the initialization
-    test::point2<detray::scalar> p = {-0.5, -0.5};
+    test::point2<detray::scalar> p = {-0.5f, -0.5f};
     grid2r::populator_type::store_value invalid = {};
-    for (unsigned int ib0 = 0; ib0 < 2; ++ib0) {
-        for (unsigned int ib1 = 0; ib1 < 2; ++ib1) {
-            p = {static_cast<scalar>(-0.5 + ib0),
-                 static_cast<scalar>(-0.5 + ib1)};
+    for (unsigned int ib0 = 0u; ib0 < 2u; ++ib0) {
+        for (unsigned int ib1 = 0u; ib1 < 2u; ++ib1) {
+            p = {-0.5f + static_cast<scalar>(ib0),
+                 -0.5f + static_cast<scalar>(ib1)};
             EXPECT_EQ(g2.bin(p), invalid);
         }
     }
 
-    p = {-0.5, -0.5};
+    p = {-0.5f, -0.5f};
     g2.populate(p, 4u);
 
     grid2r::populator_type::store_value expected = {4u};
@@ -212,13 +212,13 @@ TEST(grids, grid2_attach_populator) {
     dvector<dindex> zone_expected = {4u};
     EXPECT_EQ(zone_test, zone_expected);
 
-    p = {-0.5, 0.5};
+    p = {-0.5f, 0.5f};
     g2.populate(p, 9u);
 
-    p = {0.5, -0.5};
+    p = {0.5f, -0.5f};
     g2.populate(p, 1u);
 
-    p = {0.5, 0.5};
+    p = {0.5f, 0.5f};
     g2.populate(p, 7u);
 
     expected = {7u};
@@ -240,13 +240,13 @@ TEST(grids, grid2_shift) {
     using grid2r = grid2<replace_populator, axis::regular, axis::regular,
                          decltype(serializer)>;
 
-    typename grid2r::axis_p0_type xaxis{10, -5., 5., host_mr};
-    typename grid2r::axis_p1_type yaxis{10, -5., 5., host_mr};
+    typename grid2r::axis_p0_type xaxis{10u, -5.f, 5.f, host_mr};
+    typename grid2r::axis_p1_type yaxis{10u, -5.f, 5.f, host_mr};
 
     grid2r g2(std::move(xaxis), std::move(yaxis), host_mr, 0);
 
     // Test the initialization
-    test::point2<detray::scalar> p = {-4.5, -4.5};
+    test::point2<detray::scalar> p = {-4.5f, -4.5f};
     EXPECT_EQ(g2.bin(p), 0u);
 
     g2.shift(8u);
@@ -263,13 +263,13 @@ TEST(grids, grid2_irregular_replace) {
                           decltype(serializer)>;
 
     typename grid2ir::axis_p0_type xaxis{
-        {-3, -2., 1, 0.5, 0.7, 0.71, 4., 1000.}, host_mr};
-    typename grid2ir::axis_p1_type yaxis{{0.1, 0.8, 0.9, 10., 12., 15.},
+        {-3.f, -2.f, 1.f, 0.5f, 0.7f, 0.71f, 4.f, 1000.f}, host_mr};
+    typename grid2ir::axis_p1_type yaxis{{0.1f, 0.8f, 0.9f, 10.f, 12.f, 15.f},
                                          host_mr};
 
     grid2ir g2(std::move(xaxis), std::move(yaxis), host_mr);
 
-    test::point2<detray::scalar> p = {-0.5, 0.5};
+    test::point2<detray::scalar> p = {-0.5f, 0.5f};
     g2.populate(p, 4u);
     EXPECT_EQ(g2.bin(p), 4u);
 }

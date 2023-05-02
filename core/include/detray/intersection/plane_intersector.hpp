@@ -1,6 +1,6 @@
 /** Detray library, part of the ACTS project (R&D line)
  *
- * (c) 2022 CERN for the benefit of the ACTS project
+ * (c) 2022-2023 CERN for the benefit of the ACTS project
  *
  * Mozilla Public License Version 2.0
  */
@@ -8,71 +8,122 @@
 #pragma once
 
 // Project include(s)
+#include "detray/definitions/math.hpp"
 #include "detray/definitions/qualifiers.hpp"
 #include "detray/intersection/detail/trajectories.hpp"
 #include "detray/intersection/intersection.hpp"
 
 // System include(s)
-#include <cmath>
 #include <type_traits>
 
 namespace detray {
 
-/** A functor to find intersections between trajectory and planar mask
- */
+/// A functor to find intersections between straight line and planar surface
+template <typename intersection_t>
 struct plane_intersector {
 
-    using intersection_type = line_plane_intersection;
-    using output_type = std::array<intersection_type, 1>;
-    using point3 = __plugin::point3<detray::scalar>;
-    using vector3 = __plugin::vector3<detray::scalar>;
+    /// linear algebra types
+    /// @{
+    using transform3_type = typename intersection_t::transform3_type;
+    using scalar_type = typename transform3_type::scalar_type;
+    using point3 = typename transform3_type::point3;
+    using point2 = typename transform3_type::point2;
+    using vector3 = typename transform3_type::vector3;
+    /// @}
 
-    /** Operator function to find intersections between ray and planar mask
-     *
-     * @tparam mask_t is the input mask type
-     * @tparam transform_t is the input transform type
-     *
-     * @param ray is the input ray trajectory
-     * @param mask is the input mask
-     * @param trf is the transform
-     * @param mask_tolerance is the tolerance for mask edges
-     * @param overstep_tolerance is the tolerance for track overstepping
-     *
-     * @return the intersection
-     */
-    template <typename mask_t, typename transform_t>
-    DETRAY_HOST_DEVICE inline output_type operator()(
-        const detail::ray &ray, const mask_t &mask, const transform_t &trf,
-        const scalar mask_tolerance = 0,
-        const scalar overstep_tolerance = 0.) const {
+    using intersection_type = intersection_t;
+    using ray_type = detail::ray<transform3_type>;
 
-        output_type ret;
+    /// Operator function to find intersections between ray and planar mask
+    ///
+    /// @tparam mask_t is the input mask type
+    /// @tparam surface_t is the type of surface handle
+    ///
+    /// @param ray is the input ray trajectory
+    /// @param sf the surface handle the mask is associated with
+    /// @param mask is the input mask that defines the surface extent
+    /// @param trf is the surface placement transform
+    /// @param mask_tolerance is the tolerance for mask edges
+    ///
+    /// @return the intersection
+    template <
+        typename mask_t, typename surface_t,
+        std::enable_if_t<std::is_same_v<typename mask_t::loc_point_t, point2>,
+                         bool> = true>
+    DETRAY_HOST_DEVICE inline intersection_t operator()(
+        const ray_type &ray, const surface_t &sf, const mask_t &mask,
+        const transform3_type &trf,
+        const scalar_type mask_tolerance = 0.f) const {
 
-        using local_frame = typename mask_t::local_type;
+        intersection_t is;
 
         // Retrieve the surface normal & translation (context resolved)
         const auto &sm = trf.matrix();
-        const vector3 sn = getter::vector<3>(sm, 0, 2);
-        const vector3 st = getter::vector<3>(sm, 0, 3);
+        const vector3 sn = getter::vector<3>(sm, 0u, 2u);
+        const vector3 st = getter::vector<3>(sm, 0u, 3u);
 
         // Intersection code
         const point3 &ro = ray.pos();
         const vector3 &rd = ray.dir();
-        const scalar denom = vector::dot(rd, sn);
-        if (denom != scalar{0.}) {
-            intersection_type &is = ret[0];
+        const scalar_type denom = vector::dot(rd, sn);
+        // this is dangerous
+        if (denom != 0.f) {
             is.path = vector::dot(sn, st - ro) / denom;
-            is.p3 = ro + is.path * rd;
-            constexpr local_frame local_converter{};
-            is.p2 = local_converter(trf, is.p3);
-            is.status =
-                mask.template is_inside<local_frame>(is.p2, mask_tolerance);
-            is.direction = is.path > overstep_tolerance
-                               ? intersection::direction::e_along
-                               : intersection::direction::e_opposite;
-            is.link = mask.volume_link();
+
+            // Intersection is valid for navigation - continue
+            if (is.path >= ray.overstep_tolerance()) {
+
+                const point3 p3 = ro + is.path * rd;
+                is.p2 = mask.to_local_frame(trf, p3, ray.dir());
+                is.status = mask.is_inside(is.p2, mask_tolerance);
+
+                // prepare some additional information in case the intersection
+                // is valid
+                if (is.status == intersection::status::e_inside) {
+                    is.surface = sf;
+
+                    if constexpr (std::is_same_v<
+                                      intersection_t,
+                                      intersection2D_point<surface_t,
+                                                           transform3_type>>) {
+                        is.p3 = p3;
+                    }
+
+                    is.direction = detail::signbit(is.path)
+                                       ? intersection::direction::e_opposite
+                                       : intersection::direction::e_along;
+                    is.volume_link = mask.volume_link();
+
+                    // Get incidene angle
+                    is.cos_incidence_angle = std::abs(denom);
+                }
+            }
+        } else {
+            is.status = intersection::status::e_missed;
         }
-        return ret;
+
+        return is;
+    }
+
+    /// Operator function to updtae an intersections between a ray and a planar
+    /// surface.
+    ///
+    /// @tparam mask_t is the input mask type
+    ///
+    /// @param ray is the input ray trajectory
+    /// @param sfi the intersection to be updated
+    /// @param mask is the input mask that defines the surface extent
+    /// @param trf is the surface placement transform
+    /// @param mask_tolerance is the tolerance for mask edges
+    template <
+        typename mask_t,
+        std::enable_if_t<std::is_same_v<typename mask_t::loc_point_t, point2>,
+                         bool> = true>
+    DETRAY_HOST_DEVICE inline void update(
+        const ray_type &ray, intersection_t &sfi, const mask_t &mask,
+        const transform3_type &trf,
+        const scalar_type mask_tolerance = 0.f) const {
+        sfi = this->operator()(ray, sfi.surface, mask, trf, mask_tolerance);
     }
 };
 

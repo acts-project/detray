@@ -1,0 +1,53 @@
+# Detray library, part of the ACTS project (R&D line)
+#
+# (c) 2023 CERN for the benefit of the ACTS project
+#
+# Mozilla Public License Version 2.0
+
+# Set up the benchmarking options.
+option( DETRAY_BENCHMARK_MULTITHREAD "Enable multithreaded benchmarks" OFF )
+option( DETRAY_BENCHMARK_PRINTOUTS "Enable printouts in the benchmarks" OFF )
+
+# Macro setting up the CPU benchmarks for a specific algebra plugin.
+macro( detray_add_cpu_benchmark algebra )
+
+   # Build the benchmark executable.
+   detray_add_executable( benchmark_cpu_${algebra}
+      "find_volume.cpp"
+      "grids.cpp"
+      "intersect_all.cpp"
+      "intersect_surfaces.cpp"
+      "masks.cpp"
+      LINK_LIBRARIES benchmark::benchmark benchmark::benchmark_main vecmem::core
+                     detray::core_${algebra} detray::test
+                     detray::utils_${algebra} )
+
+   # Set the benchmark specific compilation options.
+   if( DETRAY_BENCHMARKS_MULTITHREAD )
+      target_compile_definitions( detray_benchmark_cpu_${algebra} PRIVATE
+         DETRAY_BENCHMARKS_MULTITHREAD )
+   endif()
+   if( DETRAY_BENCHMARK_PRINTOUTS )
+      target_compile_definitions( detray_benchmark_cpu_${algebra} PRIVATE
+         DETRAY_BENCHMARK_PRINTOUTS )
+   endif()
+
+endmacro()
+
+# Build the array benchmark.
+detray_add_cpu_benchmark( array )
+
+# Build the Eigen benchmark executable.
+if( DETRAY_EIGEN_PLUGIN )
+   detray_add_cpu_benchmark( eigen )
+endif()
+
+# Build the SMatrix benchmark executable.
+if( DETRAY_SMATRIX_PLUGIN )
+   detray_add_cpu_benchmark( smatrix )
+endif()
+
+# Build the Vc benchmark executable.
+if( DETRAY_VC_PLUGIN )
+   detray_add_cpu_benchmark( vc )
+endif()
