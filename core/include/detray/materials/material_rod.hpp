@@ -60,16 +60,17 @@ struct material_rod {
     template <typename intersection_t>
     DETRAY_HOST_DEVICE scalar_type
     path_segment(const intersection_t& is) const {
-        // Assume that is.p2[0] is radial distance of line intersector
-        if (is.p2[0] > m_radius) {
+        // Assume that is.local[0] is radial distance of line intersector
+        if (is.local[0] > m_radius) {
             return 0.f;
         }
 
         const scalar_type sin_incidence_angle_2{
             1.f - is.cos_incidence_angle * is.cos_incidence_angle};
 
-        return 2.f * std::sqrt((m_radius * m_radius - is.p2[0] * is.p2[0]) /
-                               sin_incidence_angle_2);
+        return 2.f *
+               std::sqrt((m_radius * m_radius - is.local[0] * is.local[0]) /
+                         sin_incidence_angle_2);
     }
     /// Return the path segment in X0
     template <typename intersection_t>

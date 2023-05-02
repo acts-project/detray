@@ -32,7 +32,7 @@ using transform3_t = __plugin::transform3<detray::scalar>;
 using vector3 = __plugin::vector3<detray::scalar>;
 using point3 = __plugin::point3<detray::scalar>;
 using helix_t = detray::detail::helix<transform3_t>;
-using intersection_t = intersection2D_point<surface<>, transform3_t>;
+using intersection_t = intersection2D<surface<>, transform3_t>;
 
 constexpr auto not_defined{detail::invalid_value<scalar>()};
 constexpr scalar tol{1e-4f};
@@ -80,12 +80,14 @@ TEST(tools, helix_plane_intersector_no_bfield) {
 
     ASSERT_TRUE(hit_bound.status == intersection::status::e_inside);
     // Global intersection information - unchanged
-    ASSERT_NEAR(hit_bound.p3[0], 2.f, tol);
-    ASSERT_NEAR(hit_bound.p3[1], 1.f, tol);
-    ASSERT_NEAR(hit_bound.p3[2], 10.f, tol);
+    const auto global0 =
+        unmasked_bound.to_global_frame(shifted, hit_bound.local);
+    ASSERT_NEAR(global0[0], 2.f, tol);
+    ASSERT_NEAR(global0[1], 1.f, tol);
+    ASSERT_NEAR(global0[2], 10.f, tol);
     // Local intersection information
-    ASSERT_NEAR(hit_bound.p2[0], -1.f, tol);
-    ASSERT_NEAR(hit_bound.p2[1], -1.f, tol);
+    ASSERT_NEAR(hit_bound.local[0], -1.f, tol);
+    ASSERT_NEAR(hit_bound.local[1], -1.f, tol);
     // Incidence angle
     ASSERT_TRUE(is_invalid_value(hit_bound.cos_incidence_angle));
 
@@ -94,25 +96,29 @@ TEST(tools, helix_plane_intersector_no_bfield) {
     const auto hit_bound_inside = pi(h, surface<>{}, rect_for_inside, shifted);
     ASSERT_TRUE(hit_bound_inside.status == intersection::status::e_inside);
     // Global intersection information - unchanged
-    ASSERT_NEAR(hit_bound_inside.p3[0], 2.f, tol);
-    ASSERT_NEAR(hit_bound_inside.p3[1], 1.f, tol);
-    ASSERT_NEAR(hit_bound_inside.p3[2], 10.f, tol);
+    const auto global1 =
+        rect_for_inside.to_global_frame(shifted, hit_bound_inside.local);
+    ASSERT_NEAR(global1[0], 2.f, tol);
+    ASSERT_NEAR(global1[1], 1.f, tol);
+    ASSERT_NEAR(global1[2], 10.f, tol);
     // Local intersection infoimation - unchanged
-    ASSERT_NEAR(hit_bound_inside.p2[0], -1.f, tol);
-    ASSERT_NEAR(hit_bound_inside.p2[1], -1.f, tol);
+    ASSERT_NEAR(hit_bound_inside.local[0], -1.f, tol);
+    ASSERT_NEAR(hit_bound_inside.local[1], -1.f, tol);
 
     // The same test but bound to local frame & masked - outside
     mask<rectangle2D<>> rect_for_outside{0u, 0.5f, 3.5f};
     const auto hit_bound_outside =
         pi(h, surface<>{}, rect_for_outside, shifted);
     ASSERT_TRUE(hit_bound_outside.status == intersection::status::e_outside);
+    const auto global2 =
+        rect_for_outside.to_global_frame(shifted, hit_bound_outside.local);
     // Global intersection information - unchanged
-    ASSERT_NEAR(hit_bound_outside.p3[0], 2.f, tol);
-    ASSERT_NEAR(hit_bound_outside.p3[1], 1.f, tol);
-    ASSERT_NEAR(hit_bound_outside.p3[2], 10.f, tol);
+    ASSERT_NEAR(global2[0], 2.f, tol);
+    ASSERT_NEAR(global2[1], 1.f, tol);
+    ASSERT_NEAR(global2[2], 10.f, tol);
     // Local intersection infoimation - unchanged
-    ASSERT_NEAR(hit_bound_outside.p2[0], -1.f, tol);
-    ASSERT_NEAR(hit_bound_outside.p2[1], -1.f, tol);
+    ASSERT_NEAR(hit_bound_outside.local[0], -1.f, tol);
+    ASSERT_NEAR(hit_bound_outside.local[1], -1.f, tol);
 }
 
 /// Test the intersection between a helical trajectory and a plane
@@ -136,11 +142,13 @@ TEST(tools, helix_plane_intersector) {
     // Check the values
     EXPECT_TRUE(is.status == intersection::status::e_inside);
     EXPECT_NEAR(is.path, path, tol);
-    EXPECT_NEAR(is.p2[0], 0.f, tol);
-    EXPECT_NEAR(is.p2[1], 0.f, tol);
-    EXPECT_NEAR(is.p3[0], trl[0], tol);
-    EXPECT_NEAR(is.p3[1], trl[1], tol);
-    EXPECT_NEAR(is.p3[2], trl[2], tol);
+    EXPECT_NEAR(is.local[0], 0.f, tol);
+    EXPECT_NEAR(is.local[1], 0.f, tol);
+
+    const auto global = rectangle.to_global_frame(trf, is.local);
+    EXPECT_NEAR(global[0], trl[0], tol);
+    EXPECT_NEAR(global[1], trl[1], tol);
+    EXPECT_NEAR(global[2], trl[2], tol);
 }
 
 /// This checks the closest solution of a helix-cylinder intersection
@@ -170,26 +178,30 @@ TEST(tools, helix_cylinder_intersector_no_bfield) {
     // second intersection lies in front of the track
     EXPECT_TRUE(hits_bound[0].status == intersection::status::e_inside);
     EXPECT_TRUE(hits_bound[0].direction == intersection::direction::e_opposite);
-    EXPECT_NEAR(hits_bound[0].p3[0], -1.f, tol);
-    EXPECT_NEAR(hits_bound[0].p3[1], 2.f, tol);
-    EXPECT_NEAR(hits_bound[0].p3[2], 5.f, tol);
-    ASSERT_TRUE(hits_bound[0].p2[0] != not_defined &&
-                hits_bound[0].p2[1] != not_defined);
+
+    const auto global0 = cylinder.to_global_frame(shifted, hits_bound[0].local);
+
+    EXPECT_NEAR(global0[0], -1.f, tol);
+    EXPECT_NEAR(global0[1], 2.f, tol);
+    EXPECT_NEAR(global0[2], 5.f, tol);
+    ASSERT_TRUE(hits_bound[0].local[0] != not_defined &&
+                hits_bound[0].local[1] != not_defined);
     // p2[0] = r * phi : 180deg in the opposite direction with r = 4
-    EXPECT_NEAR(hits_bound[0].p2[0], 4.f * M_PI, tol);
-    EXPECT_NEAR(hits_bound[0].p2[1], -5.f, tol);
+    EXPECT_NEAR(hits_bound[0].local[0], 4.f * M_PI, tol);
+    EXPECT_NEAR(hits_bound[0].local[1], -5.f, tol);
     EXPECT_TRUE(is_invalid_value(hits_bound[0].cos_incidence_angle));
 
     // first intersection lies behind the track
+    const auto global1 = cylinder.to_global_frame(shifted, hits_bound[1].local);
     EXPECT_TRUE(hits_bound[1].status == intersection::status::e_inside);
     EXPECT_TRUE(hits_bound[1].direction == intersection::direction::e_along);
-    EXPECT_NEAR(hits_bound[1].p3[0], 7.f, tol);
-    EXPECT_NEAR(hits_bound[1].p3[1], 2.f, tol);
-    EXPECT_NEAR(hits_bound[1].p3[2], 5.f, tol);
-    ASSERT_TRUE(hits_bound[1].p2[0] != not_defined &&
-                hits_bound[1].p2[1] != not_defined);
-    EXPECT_NEAR(hits_bound[1].p2[0], 0.f, tol);
-    EXPECT_NEAR(hits_bound[1].p2[1], -5., tol);
+    EXPECT_NEAR(global1[0], 7.f, tol);
+    EXPECT_NEAR(global1[1], 2.f, tol);
+    EXPECT_NEAR(global1[2], 5.f, tol);
+    ASSERT_TRUE(hits_bound[1].local[0] != not_defined &&
+                hits_bound[1].local[1] != not_defined);
+    EXPECT_NEAR(hits_bound[1].local[0], 0.f, tol);
+    EXPECT_NEAR(hits_bound[1].local[1], -5., tol);
     EXPECT_TRUE(is_invalid_value(hits_bound[1].cos_incidence_angle));
 }
 
@@ -218,11 +230,12 @@ TEST(tools, helix_cylinder_intersector) {
     EXPECT_TRUE(is[0].status == intersection::status::e_inside);
     // Not precise due to helix curvature
     EXPECT_NEAR(is[0].path, path - r, 5000.f * tol);
-    EXPECT_NEAR(is[0].p2[0], r * phi_near, tol);
-    EXPECT_NEAR(is[0].p2[1], 0.f, tol);
-    EXPECT_NEAR(is[0].p3[0], pos_near[0], tol);
-    EXPECT_NEAR(is[0].p3[1], pos_near[1], tol);
-    EXPECT_NEAR(is[0].p3[2], pos_near[2], tol);
+    EXPECT_NEAR(is[0].local[0], r * phi_near, tol);
+    EXPECT_NEAR(is[0].local[1], 0.f, tol);
+    const auto global0 = cylinder.to_global_frame(trf, is[0].local);
+    EXPECT_NEAR(global0[0], pos_near[0], tol);
+    EXPECT_NEAR(global0[1], pos_near[1], tol);
+    EXPECT_NEAR(global0[2], pos_near[2], tol);
 
     // Second solution
     const vector3 pos_far = hlx.pos(is[1].path);
@@ -233,11 +246,12 @@ TEST(tools, helix_cylinder_intersector) {
     EXPECT_TRUE(is[1].status == intersection::status::e_inside);
     // Not precise due to helix curvature
     EXPECT_NEAR(is[1].path, path + r, 5000.f * tol);
-    EXPECT_NEAR(is[1].p2[0], r * phi_far, tol);
-    EXPECT_NEAR(is[1].p2[1], 0.f, tol);
-    EXPECT_NEAR(is[1].p3[0], pos_far[0], tol);
-    EXPECT_NEAR(is[1].p3[1], pos_far[1], tol);
-    EXPECT_NEAR(is[1].p3[2], pos_far[2], tol);
+    EXPECT_NEAR(is[1].local[0], r * phi_far, tol);
+    EXPECT_NEAR(is[1].local[1], 0.f, tol);
+    const auto global1 = cylinder.to_global_frame(trf, is[1].local);
+    EXPECT_NEAR(global1[0], pos_far[0], tol);
+    EXPECT_NEAR(global1[1], pos_far[1], tol);
+    EXPECT_NEAR(global1[2], pos_far[2], tol);
 }
 
 /// Test the intersection between a helical trajectory and a line
@@ -283,8 +297,8 @@ TEST(tools, helix_line_intersector) {
 
     EXPECT_NEAR(is.path, s0, tol);
     // track (helix) is at the left side w.r.t wire
-    EXPECT_NEAR(is.p2[0], offset, tol);
-    EXPECT_NEAR(is.p2[1], 0.f, tol);
+    EXPECT_NEAR(is.local[0], offset, tol);
+    EXPECT_NEAR(is.local[1], 0.f, tol);
     EXPECT_EQ(is.status, intersection::status::e_inside);
     EXPECT_EQ(is.direction, intersection::direction::e_along);
 
@@ -293,8 +307,8 @@ TEST(tools, helix_line_intersector) {
 
     EXPECT_NEAR(is.path, s0, tol);
     // track (helix) is at the left side w.r.t wire
-    EXPECT_NEAR(is.p2[0], offset, tol);
-    EXPECT_NEAR(is.p2[1], 0.f, tol);
+    EXPECT_NEAR(is.local[0], offset, tol);
+    EXPECT_NEAR(is.local[1], 0.f, tol);
     EXPECT_EQ(is.status, intersection::status::e_inside);
     EXPECT_EQ(is.direction, intersection::direction::e_along);
 
@@ -316,8 +330,8 @@ TEST(tools, helix_line_intersector) {
 
     EXPECT_NEAR(is.path, -s0, tol);
     // track (helix) is at the right side w.r.t wire
-    EXPECT_NEAR(is.p2[0], -offset, tol);
-    EXPECT_NEAR(is.p2[1], 0.f, tol);
+    EXPECT_NEAR(is.local[0], -offset, tol);
+    EXPECT_NEAR(is.local[1], 0.f, tol);
     EXPECT_EQ(is.status, intersection::status::e_inside);
     EXPECT_EQ(is.direction, intersection::direction::e_opposite);
 
@@ -326,8 +340,8 @@ TEST(tools, helix_line_intersector) {
 
     EXPECT_NEAR(is.path, -s0, tol);
     // track (helix) is at the right side w.r.t wire
-    EXPECT_NEAR(is.p2[0], -offset, tol);
-    EXPECT_NEAR(is.p2[1], 0.f, tol);
+    EXPECT_NEAR(is.local[0], -offset, tol);
+    EXPECT_NEAR(is.local[1], 0.f, tol);
     EXPECT_EQ(is.status, intersection::status::e_inside);
     EXPECT_EQ(is.direction, intersection::direction::e_opposite);
 }

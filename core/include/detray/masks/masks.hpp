@@ -54,10 +54,7 @@ class mask {
     using mask_values = array_t<scalar_type, boundaries::e_size>;
     using local_frame_type =
         typename shape::template local_frame_type<algebra_t>;
-    using measurement_frame_type =
-        typename shape::template measurement_frame_type<algebra_t>;
     // Linear algebra types
-    using loc_point_t = typename shape::template loc_point_type<algebra_t>;
     using point3_t = typename algebra_t::point3;
     using point2_t = typename algebra_t::point2;
     using matrix_operator = typename algebra_t::matrix_actor;
@@ -136,17 +133,17 @@ class mask {
     template <typename transform3_t>
     DETRAY_HOST_DEVICE inline auto to_local_frame(
         const transform3_t& trf, const point3_t& glob_p,
-        const point3_t& glob_dir = {}) const -> loc_point_t {
+        const point3_t& glob_dir = {}) const -> point3_t {
         return local_frame_type{}.global_to_local(trf, glob_p, glob_dir);
     }
 
-    /// @returns the functor that projects a global cartesian point onto
-    /// the local measurement coordinate system.
+    /// @returns the functor that projects a local point to the global
+    /// coordinate system
     template <typename transform3_t>
-    DETRAY_HOST_DEVICE inline auto to_measurement_frame(
-        const transform3_t& trf, const point3_t& glob_p,
-        const point3_t& glob_dir = {}) const -> point2_t {
-        return measurement_frame_type{}.global_to_local(trf, glob_p, glob_dir);
+    DETRAY_HOST_DEVICE inline auto to_global_frame(const transform3_t& trf,
+                                                   const point3_t& loc) const
+        -> point3_t {
+        return local_frame_type{}.local_to_global(trf, loc);
     }
 
     /// @returns the intersection functor for the underlying surface geometry.
@@ -168,7 +165,7 @@ class mask {
     /// @return an intersection status e_inside / e_outside
     DETRAY_HOST_DEVICE
     inline auto is_inside(
-        const loc_point_t& loc_p,
+        const point3_t& loc_p,
         const scalar_type t = std::numeric_limits<scalar_type>::epsilon()) const
         -> intersection::status {
 
@@ -180,12 +177,6 @@ class mask {
     /// @returns return local frame object (used in geometrical checks)
     DETRAY_HOST_DEVICE inline constexpr local_frame_type local_frame() const {
         return local_frame_type{};
-    }
-
-    /// @returns return local measurement frame object (used for track states)
-    DETRAY_HOST_DEVICE inline constexpr measurement_frame_type
-    measurement_frame() const {
-        return measurement_frame_type{};
     }
 
     /// @returns the boundary values

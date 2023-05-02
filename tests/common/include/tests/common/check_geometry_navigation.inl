@@ -43,7 +43,7 @@ TEST(ALGEBRA_PLUGIN, straight_line_navigation) {
     // Straight line navigation
     using detector_t = decltype(det);
     using intersection_t =
-        intersection2D_point<typename detector_t::surface_type, transform3_t>;
+        intersection2D<typename detector_t::surface_type, transform3_t>;
     using object_tracer_t =
         object_tracer<intersection_t, dvector, status::e_on_module,
                       status::e_on_portal>;
@@ -140,7 +140,7 @@ TEST(ALGEBRA_PLUGIN, helix_navigation) {
     // Runge-Kutta based navigation
     using detector_t = decltype(det);
     using intersection_t =
-        intersection2D_point<typename detector_t::surface_type, transform3_t>;
+        intersection2D<typename detector_t::surface_type, transform3_t>;
     using object_tracer_t =
         object_tracer<intersection_t, dvector, status::e_on_module,
                       status::e_on_portal>;

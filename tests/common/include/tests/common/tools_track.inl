@@ -85,9 +85,9 @@ TEST(tools, bound_track_parameters) {
     /// Check the elements
 
     // first track
-    EXPECT_NEAR(bound_param1.local()[0],
+    EXPECT_NEAR(bound_param1.bound_local()[0],
                 getter::element(bound_vec1, e_bound_loc0, 0u), tol);
-    EXPECT_NEAR(bound_param1.local()[1],
+    EXPECT_NEAR(bound_param1.bound_local()[1],
                 getter::element(bound_vec1, e_bound_loc1, 0u), tol);
     EXPECT_NEAR(bound_param1.phi(),
                 getter::element(bound_vec1, e_bound_phi, 0u), tol);
@@ -110,9 +110,9 @@ TEST(tools, bound_track_parameters) {
                 bound_param1.p() * std::cos(bound_param1.theta()), tol);
 
     // second track
-    EXPECT_NEAR(bound_param2.local()[0],
+    EXPECT_NEAR(bound_param2.bound_local()[0],
                 getter::element(bound_vec2, e_bound_loc0, 0u), tol);
-    EXPECT_NEAR(bound_param2.local()[1],
+    EXPECT_NEAR(bound_param2.bound_local()[1],
                 getter::element(bound_vec2, e_bound_loc1, 0u), tol);
     EXPECT_NEAR(bound_param2.phi(),
                 getter::element(bound_vec2, e_bound_phi, 0u), tol);

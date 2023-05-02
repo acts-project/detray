@@ -66,7 +66,7 @@ struct helix_inspector : actor {
 
             const auto& mask = mask_group[index];
 
-            auto local_coordinate = mask.measurement_frame();
+            auto local_coordinate = mask.local_frame();
 
             return local_coordinate.bound_to_free_vector(
                 trf3, mask, stepping._bound_params.vector());

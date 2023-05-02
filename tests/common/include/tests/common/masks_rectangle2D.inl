@@ -12,6 +12,7 @@
 
 using namespace detray;
 using namespace __plugin;
+using point3_t = __plugin::point3<detray::scalar>;
 
 constexpr scalar tol{1e-7f};
 
@@ -21,11 +22,11 @@ constexpr scalar hz{0.5f * unit<scalar>::mm};
 
 /// This tests the basic functionality of a rectangle
 TEST(mask, rectangle2D) {
-    using point_t = typename mask<rectangle2D<>>::loc_point_t;
+    using point_t = point3_t;
 
-    point_t p2_in = {0.5f, -9.f};
-    point_t p2_edge = {1.f, 9.3f};
-    point_t p2_out = {1.5f, -9.f};
+    point_t p2_in = {0.5f, -9.f, 0.f};
+    point_t p2_edge = {1.f, 9.3f, 0.f};
+    point_t p2_out = {1.5f, -9.f, 0.f};
 
     mask<rectangle2D<>> r2{0u, hx, hy};
 
@@ -63,7 +64,7 @@ TEST(mask, rectangle2D) {
 
 /// This tests the basic functionality of a cuboid3D
 TEST(mask, cuboid3D) {
-    using point_t = typename mask<cuboid3D<>>::loc_point_t;
+    using point_t = point3_t;
 
     point_t p2_in = {0.5f, 8.0f, -0.4f};
     point_t p2_edge = {1.f, 9.3f, 0.5f};

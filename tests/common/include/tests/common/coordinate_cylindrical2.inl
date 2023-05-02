@@ -50,14 +50,14 @@ TEST(coordinate, cylindrical2) {
     mask<cylinder2D<>> mask{0u, r, -hz, hz};
 
     // Global to local transformation
-    const point2 local = c2.global_to_local(trf, global1, d);
+    const point3 local = c2.global_to_local(trf, global1, d);
 
     // Check if the local position is correct
     ASSERT_NEAR(local[0], r * constant<scalar>::pi_4, isclose);
     ASSERT_NEAR(local[1], 5.f, isclose);
 
     // Local to global transformation
-    const point3 global2 = c2.local_to_global(trf, mask, local, d);
+    const point3 global2 = c2.local_to_global(trf, local);
 
     // Check if the same global position is obtained
     ASSERT_NEAR(global1[0], global2[0], isclose);
@@ -92,16 +92,14 @@ TEST(coordinate, cylindrical2) {
     }
 
     // Normal vector
-    const vector3 n =
-        c2.normal(trf, mask, free_params.pos(), free_params.dir());
+    const vector3 n = c2.normal(trf, free_params.pos(), free_params.dir());
     ASSERT_NEAR(n[0], constant<scalar>::inv_sqrt2, isclose);
     ASSERT_NEAR(n[1], constant<scalar>::inv_sqrt2, isclose);
     ASSERT_NEAR(n[2], 0.f, isclose);
 
     // Test Jacobian transformation
-    const matrix_type<6, 6> J =
-        c2.free_to_bound_jacobian(trf, mask, free_vec1) *
-        c2.bound_to_free_jacobian(trf, mask, bound_vec);
+    const matrix_type<6, 6> J = c2.free_to_bound_jacobian(trf, free_vec1) *
+                                c2.bound_to_free_jacobian(trf, mask, bound_vec);
 
     for (unsigned int i = 0u; i < 6u; i++) {
         for (unsigned int j = 0u; j < 6u; j++) {

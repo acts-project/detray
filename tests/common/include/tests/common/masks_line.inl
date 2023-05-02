@@ -12,6 +12,7 @@
 
 using namespace detray;
 using namespace __plugin;
+using point3_t = __plugin::point3<detray::scalar>;
 
 namespace {
 
@@ -25,12 +26,12 @@ constexpr scalar hz{50.f * unit<scalar>::mm};
 
 /// This tests the basic functionality of a line with a radial cross section
 TEST(mask, line_radial_cross_sect) {
-    using point_t = typename mask<line<>>::loc_point_t;
+    using point_t = point3_t;
 
-    const point_t ln_in{0.09f, 0.5f};
-    const point_t ln_edge{1.f, 50.f};
-    const point_t ln_out1{1.2f, 0.f};
-    const point_t ln_out2{0.09f, -51.f};
+    const point_t ln_in{0.09f, 0.5f, 0.f};
+    const point_t ln_edge{1.f, 50.f, 0.f};
+    const point_t ln_out1{1.2f, 0.f, 0.f};
+    const point_t ln_out2{0.09f, -51.f, 0.f};
 
     const mask<line<>> ln{0u, cell_size, hz};
 
@@ -67,11 +68,12 @@ TEST(mask, line_radial_cross_sect) {
 
 /// This tests the basic functionality of a line with a square cross section
 TEST(mask, line_square_cross_sect) {
-    using point_t = typename mask<line<true>>::loc_point_t;
+    using point_t = point3_t;
 
-    const point_t ln_in{0.9f, 0.9f, 0.f};
+    const point_t ln_in{1.1f, 0.9f, constant<scalar>::pi_4};
     const point_t ln_edge{1.f, 1.f, 0.f};
-    const point_t ln_out{1.1f, 0.f, 0.f};
+    const point_t ln_out1{1.1f, 0.f, 0.f};
+    const point_t ln_out2{0.09f, -51.f, 0.f};
 
     // 50 mm wire with 1 mm square cell sizes
     const mask<line<true>> ln{0u, cell_size, hz};
@@ -83,7 +85,8 @@ TEST(mask, line_square_cross_sect) {
     ASSERT_TRUE(ln.is_inside(ln_edge, 1e-5f) == intersection::status::e_inside);
     ASSERT_TRUE(ln.is_inside(ln_edge, -1e-5f) ==
                 intersection::status::e_outside);
-    ASSERT_TRUE(ln.is_inside(ln_out) == intersection::status::e_outside);
+    ASSERT_TRUE(ln.is_inside(ln_out1) == intersection::status::e_outside);
+    ASSERT_TRUE(ln.is_inside(ln_out2) == intersection::status::e_outside);
 
     // Check projection matrix
     const auto proj = ln.projection_matrix<e_bound_size>();

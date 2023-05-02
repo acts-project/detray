@@ -12,12 +12,13 @@
 
 using namespace detray;
 using namespace __plugin;
+using point3_t = __plugin::point3<detray::scalar>;
 
 constexpr scalar tol{1e-7f};
 
 /// This tests the basic functionality of a single value mask (index 0)
 TEST(mask, single3_0) {
-    using point_t = typename mask<single3D<>>::loc_point_t;
+    using point_t = point3_t;
 
     point_t p3_in = {0.5f, -9.f, 0.f};
     point_t p3_edge = {1.f, 9.3f, 2.f};
@@ -48,7 +49,7 @@ TEST(mask, single3_0) {
 
 /// This tests the basic functionality of a single value mask (index 1)
 TEST(mask, single3_1) {
-    using point_t = typename mask<single3D<1>>::loc_point_t;
+    using point_t = point3_t;
 
     point_t p3_in = {0.5f, -9.f, 0.f};
     point_t p3_edge = {1.f, 9.3f, 2.f};
@@ -91,7 +92,7 @@ TEST(mask, single3_1) {
 
 /// This tests the basic functionality of a single value mask (index 2)
 TEST(mask, single3_2) {
-    using point_t = typename mask<single3D<2>>::loc_point_t;
+    using point_t = point3_t;
 
     point_t p3_in = {0.5f, -9.f, 0.f};
     point_t p3_edge = {1.f, 9.3f, 2.f};

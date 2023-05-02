@@ -22,7 +22,7 @@ using namespace detray;
 using matrix_operator = standard_matrix_operator<scalar>;
 using transform3 = __plugin::transform3<scalar>;
 using vector3 = typename transform3::vector3;
-using intersection_t = intersection2D_point<surface<>, transform3>;
+using intersection_t = intersection2D<surface<>, transform3>;
 
 // Setups
 constexpr const scalar tolerance = scalar(2e-2);
@@ -132,7 +132,7 @@ TEST(helix_covariance_transport, cartesian2D) {
 
         // Reset the free track parameters with the position and direction on
         // the next surface
-        free_trk.set_pos(is.p3);
+        free_trk.set_pos(hlx.pos(path_length));
         free_trk.set_dir(hlx.dir(path_length));
 
         // dtds
@@ -141,7 +141,7 @@ TEST(helix_covariance_transport, cartesian2D) {
         // Path correction
         const cartesian2<transform3>::free_matrix path_correction =
             c2.path_correction(free_trk.pos(), free_trk.dir(), dtds,
-                               trfs[next_index], rectangle);
+                               trfs[next_index]);
 
         // Correction term for the path variation
         const cartesian2<transform3>::free_matrix correction_term =
@@ -150,8 +150,8 @@ TEST(helix_covariance_transport, cartesian2D) {
 
         // Free to bound jacobian
         const typename cartesian2<transform3>::free_to_bound_matrix
-            free_to_bound_jacobi = c2.free_to_bound_jacobian(
-                trfs[next_index], rectangle, free_trk.vector());
+            free_to_bound_jacobi =
+                c2.free_to_bound_jacobian(trfs[next_index], free_trk.vector());
 
         // Full jacobian
         const typename cartesian2<transform3>::bound_matrix full_jacobi =

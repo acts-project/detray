@@ -54,11 +54,10 @@ struct cylinder_portal_intersector
     /// @param mask_tolerance is the tolerance for mask edges
     ///
     /// @return the closest intersection
-    template <
-        typename mask_t, typename surface_t,
-        std::enable_if_t<std::is_same_v<typename mask_t::measurement_frame_type,
-                                        cylindrical2<transform3_type>>,
-                         bool> = true>
+    template <typename mask_t, typename surface_t,
+              std::enable_if_t<std::is_same_v<typename mask_t::local_frame_type,
+                                              cylindrical2<transform3_type>>,
+                               bool> = true>
     DETRAY_HOST_DEVICE inline intersection_t operator()(
         const ray_type &ray, const surface_t &sf, const mask_t &mask,
         const transform3_type &trf,
@@ -96,11 +95,10 @@ struct cylinder_portal_intersector
     /// @param mask is the input mask that defines the surface extent
     /// @param trf is the surface placement transform
     /// @param mask_tolerance is the tolerance for mask edges
-    template <
-        typename mask_t,
-        std::enable_if_t<std::is_same_v<typename mask_t::measurement_frame_type,
-                                        cylindrical2<transform3_type>>,
-                         bool> = true>
+    template <typename mask_t,
+              std::enable_if_t<std::is_same_v<typename mask_t::local_frame_type,
+                                              cylindrical2<transform3_type>>,
+                               bool> = true>
     DETRAY_HOST_DEVICE inline void update(
         const ray_type &ray, intersection_t &sfi, const mask_t &mask,
         const transform3_type &trf,

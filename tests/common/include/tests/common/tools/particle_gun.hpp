@@ -40,9 +40,8 @@ struct particle_gun {
         typename detector_t::scalar_type mask_tolerance =
             1.f * unit<typename detector_t::scalar_type>::um) {
 
-        using intersection_t =
-            intersection2D_point<typename detector_t::surface_type,
-                                 typename detector_t::transform3>;
+        using intersection_t = intersection2D<typename detector_t::surface_type,
+                                              typename detector_t::transform3>;
 
         std::vector<std::pair<dindex, intersection_t>> intersection_record;
 
