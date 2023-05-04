@@ -177,7 +177,7 @@ inline void create_cuboid_portals(context_t &ctx, const scalar pt_envelope,
     //
     // ... x-z plane
     //
-    mask_link.index()++;
+    ++mask_link;
     masks.template emplace_back<rectangle_id>(empty_context{}, volume_link, h_x,
                                               h_z);
 
@@ -190,7 +190,7 @@ inline void create_cuboid_portals(context_t &ctx, const scalar pt_envelope,
     transforms.emplace_back(ctx, static_cast<vector3>(center - shift), new_z,
                             new_x);
 
-    material_link.index()++;
+    ++material_link;
     materials.template emplace_back<slab_id>(empty_context{}, vacuum<scalar>{},
                                              0.f);
 
@@ -203,7 +203,7 @@ inline void create_cuboid_portals(context_t &ctx, const scalar pt_envelope,
     //
     // ... y-z plane
     //
-    mask_link.index()++;
+    ++mask_link;
     masks.template emplace_back<rectangle_id>(empty_context{}, volume_link, h_z,
                                               h_y);
 
@@ -216,7 +216,7 @@ inline void create_cuboid_portals(context_t &ctx, const scalar pt_envelope,
     transforms.emplace_back(ctx, static_cast<vector3>(center - shift), new_z,
                             new_x);
 
-    material_link.index()++;
+    ++material_link;
     materials.template emplace_back<slab_id>(empty_context{}, vacuum<scalar>{},
                                              0.f);
 
