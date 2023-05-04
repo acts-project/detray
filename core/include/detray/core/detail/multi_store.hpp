@@ -112,7 +112,7 @@ class multi_store {
 
     /// @returns the size of the underlying tuple
     DETRAY_HOST_DEVICE
-    constexpr auto n_collections() const -> std::size_t {
+    static constexpr auto n_collections() -> std::size_t {
         return sizeof...(Ts);
     }
 

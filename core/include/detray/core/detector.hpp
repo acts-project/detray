@@ -147,7 +147,7 @@ class detector {
     /// Constructor with simplified constant-zero B-field
     /// @param resource memory resource for the allocation of members
     DETRAY_HOST
-    detector(vecmem::memory_resource &resource)
+    explicit detector(vecmem::memory_resource &resource)
         : _volumes(&resource),
           _transforms(resource),
           _masks(resource),
@@ -163,7 +163,7 @@ class detector {
               std::enable_if_t<!std::is_base_of_v<vecmem::memory_resource,
                                                   detector_data_type>,
                                bool> = true>
-    DETRAY_HOST_DEVICE detector(detector_data_type &det_data)
+    DETRAY_HOST_DEVICE explicit detector(detector_data_type &det_data)
         : _volumes(det_data._volumes_data),
           _transforms(det_data._transforms_data),
           _masks(det_data._masks_data),

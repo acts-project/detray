@@ -18,6 +18,13 @@
 
 namespace detray {
 
+namespace detail {
+
+/// Tag a class as 'homogeneous material', i.e. a material slab or rod.
+struct homogeneous_material_tag {};
+
+}  // namespace detail
+
 /// Material State
 enum class material_state { e_solid = 0, e_liquid = 1, e_gas = 2 };
 

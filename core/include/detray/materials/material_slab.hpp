@@ -20,7 +20,7 @@ namespace detray {
 
 // Slab structure to be mapped on the mask (plane, cylinder)
 template <typename scalar_t>
-struct material_slab {
+struct material_slab : public detail::homogeneous_material_tag {
     using scalar_type = scalar_t;
     using material_type = material<scalar_t>;
 

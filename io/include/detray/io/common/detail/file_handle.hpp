@@ -10,9 +10,9 @@
 // System include(s)
 #include <cassert>
 #include <cstdint>
+#include <filesystem>
 #include <fstream>
 #include <ios>
-#include <iostream>
 #include <limits>
 #include <stdexcept>
 #include <string>
@@ -32,8 +32,23 @@ class file_handle final {
                 std::ios_base::openmode mode = std::ios_base::in |
                                                std::ios_base::out) {
         // Default name
-        std::string file_name{name.empty() ? "detray_" + std::to_string(n_files)
+        std::string file_stem{name.empty() ? "detray_" + std::to_string(n_files)
                                            : name};
+
+        // Check if name is taken and modify it if necessary
+        if (mode == std::ios_base::out) {
+            std::filesystem::path file_path{file_stem + "." + extension};
+            std::size_t n_trials{1u};
+            while (std::filesystem::exists(file_path)) {
+                file_stem = get_alternate_file_stem(file_stem, n_trials);
+                file_path = std::filesystem::path{file_stem + "." + extension};
+                ++n_trials;
+                // The maximum here is arbitrary
+                if (n_trials >= 10000u) {
+                    throw std::runtime_error("Too many versions of file exist");
+                }
+            }
+        }
 
         // Count the new file
         ++n_files;
@@ -42,7 +57,7 @@ class file_handle final {
         assert(n_open_files < 1000u);
 
         // Open file
-        m_stream.open(file_name + "." + extension, mode);
+        m_stream.open(file_stem + "." + extension, mode);
 
         if (!m_stream.is_open()) {
             throw std::runtime_error("Could not open file");
@@ -59,6 +74,17 @@ class file_handle final {
     std::fstream& operator*() { return m_stream; }
 
     private:
+    /// @returns alternate file stem upon collision
+    std::string get_alternate_file_stem(std::string& stem,
+                                        const std::size_t n) {
+        // File stem already come with a number, simply update it
+        if (n > 1u) {
+            stem.replace(stem.size() - 1u, 1, std::to_string(n));
+            return stem;
+        }
+        return stem + "_" + std::to_string(n);
+    }
+
     /// Output file handle
     std::fstream m_stream;
 
