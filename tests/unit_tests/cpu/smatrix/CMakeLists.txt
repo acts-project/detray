@@ -46,6 +46,7 @@ detray_add_test( smatrix
    "smatrix_navigator.cpp"
    "smatrix_particle_gun.cpp"
    "smatrix_planar_intersection.cpp"
+   "smatrix_projection_matrix.cpp"
    "smatrix_propagator.cpp"
    "smatrix_rectangle2D.cpp"
    "smatrix_ring2D.cpp"

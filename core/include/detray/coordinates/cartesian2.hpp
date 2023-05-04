@@ -10,6 +10,8 @@
 // Project include(s).
 #include "detray/coordinates/coordinate_base.hpp"
 #include "detray/definitions/qualifiers.hpp"
+#include "detray/definitions/track_parametrization.hpp"
+#include "detray/tracks/bound_track_parameters.hpp"
 
 namespace detray {
 
@@ -149,6 +151,14 @@ struct cartesian2 final : public coordinate_base<cartesian2, transform3_t> {
         const transform3_t & /*trf3*/, const point3 & /*pos*/,
         const vector3 & /*dir*/) const {
         // Do nothing
+    }
+
+    template <size_type meas_dim, bool normal_order>
+    DETRAY_HOST_DEVICE inline void unsigned_local(
+        matrix_type<meas_dim, e_bound_size> & /*projection_matrix*/,
+        const bound_track_parameters<transform3_t> & /*bound_params*/) {
+        // Do nothing
+        return;
     }
 
 };  // struct cartesian2

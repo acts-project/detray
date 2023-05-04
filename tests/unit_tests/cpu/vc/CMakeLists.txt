@@ -46,6 +46,7 @@ detray_add_test( vc_array
    "vc_array_navigator.cpp"
    "vc_array_particle_gun.cpp"
    "vc_array_planar_intersection.cpp"
+   "vc_array_projection_matrix.cpp"
    "vc_array_propagator.cpp"
    "vc_array_rectangle2D.cpp"
    "vc_array_ring2D.cpp"

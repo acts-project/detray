@@ -9,6 +9,7 @@
 #include "detray/definitions/units.hpp"
 #include "detray/masks/masks.hpp"
 #include "detray/masks/unbounded.hpp"
+#include "detray/tracks/bound_track_parameters.hpp"
 
 // GTest include(s)
 #include <gtest/gtest.h>
@@ -19,12 +20,12 @@
 
 using namespace detray;
 using point3_t = __plugin::point3<detray::scalar>;
+using transform3_t = __plugin::transform3<scalar>;
 
 constexpr scalar tol{1e-7f};
 
 /// This tests the basic functionality of an unbounded rectangle shape
 TEST(mask, unbounded) {
-    using transform3_t = __plugin::transform3<scalar>;
 
     using shape_t = rectangle2D<>;
     using unbounded_t = unbounded<shape_t>;
@@ -55,9 +56,12 @@ TEST(mask, unbounded) {
     typename mask<unbounded_t>::point3_t p2 = {0.5f, -9.f, 0.f};
     ASSERT_TRUE(u.is_inside(p2, 0.f) == intersection::status::e_inside);
 
+    // Dummy bound track parameter
+    bound_track_parameters<transform3_t> bound_params;
+
     // Check projection matrix
-    const auto proj = u.projection_matrix<e_bound_size>();
-    for (unsigned int i = 0u; i < 2u; i++) {
+    const auto proj = u.projection_matrix(bound_params);
+    for (unsigned int i = 0u; i < decltype(u)::shape::meas_dim; i++) {
         for (unsigned int j = 0u; j < e_bound_size; j++) {
             if (i == j) {
                 ASSERT_EQ(getter::element(proj, i, j), 1u);

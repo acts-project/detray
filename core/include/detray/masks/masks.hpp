@@ -10,6 +10,7 @@
 // Project include(s)
 #include "detray/definitions/indexing.hpp"
 #include "detray/definitions/qualifiers.hpp"
+#include "detray/definitions/track_parametrization.hpp"
 #include "detray/intersection/intersection.hpp"
 #include "detray/masks/annulus2D.hpp"
 #include "detray/masks/cuboid3D.hpp"
@@ -61,6 +62,7 @@ class mask {
     using size_type = typename algebra_t::size_type;
     template <size_type ROWS, size_type COLS>
     using matrix_type = typename algebra_t::template matrix_type<ROWS, COLS>;
+    using projection_matrix_type = matrix_type<shape::meas_dim, e_bound_size>;
 
     /// Default constructor
     constexpr mask() = default;
@@ -191,15 +193,12 @@ class mask {
     DETRAY_HOST_DEVICE
     auto volume_link() -> links_type& { return _volume_link; }
 
-    template <size_type parameter_dim>
-    DETRAY_HOST_DEVICE matrix_type<2, parameter_dim> projection_matrix() const {
-
-        auto ret = matrix_operator().template zero<2, parameter_dim>();
-        for (unsigned int i = 0u; i < shape::meas_dim; i++) {
-            matrix_operator().element(ret, i, i) = 1.f;
-        }
-
-        return ret;
+    /// @returns the projection matrix for measurement
+    DETRAY_HOST_DEVICE projection_matrix_type projection_matrix(
+        const bound_track_parameters<algebra_t>& bound_params) const {
+        return this->local_frame()
+            .template projection_matrix<shape::meas_dim, shape::normal_order>(
+                bound_params);
     }
 
     /// @brief Lower and upper point for minimum axis aligned bounding box.
