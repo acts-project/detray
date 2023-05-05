@@ -8,15 +8,16 @@
 // Project include(s).
 #include "detray/masks/masks.hpp"
 #include "detray/tracks/bound_track_parameters.hpp"
+#include "detray/test/types.hpp"
 
 // Google test include(s).
 #include <gtest/gtest.h>
 
 using namespace detray;
-using transform3_t = __plugin::transform3<detray::scalar>;
+using transform3_t = test::transform3;
 
 /// This tests the basic functionality of projection matrix
-TEST(projection_matrix, rectangle) {
+GTEST_TEST(detray_masks, projection_matrix_rectangle) {
 
     bound_track_parameters<transform3_t> bound_params;
 
