@@ -10,16 +10,16 @@
 #include "detray/definitions/units.hpp"
 #include "detray/masks/masks.hpp"
 #include "detray/tracks/bound_track_parameters.hpp"
+#include "detray/test/types.hpp"
 
 using namespace detray;
-using namespace __plugin;
-using point3_t = __plugin::point3<detray::scalar>;
-using transform3_t = __plugin::transform3<detray::scalar>;
+using point3_t = test::point3;
+using transform3_t = test::transform3;
 
 constexpr scalar tol{1e-5f};
 
 /// This tests the basic functionality of a stereo annulus
-TEST(mask, annulus2D) {
+GTEST_TEST(detray_core, annulus2D) {
     using point_t = point3_t;
 
     constexpr scalar minR{7.2f * unit<scalar>::mm};

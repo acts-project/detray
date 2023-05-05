@@ -13,6 +13,7 @@
 #include "detray/tracks/tracks.hpp"
 #include "detray/utils/axis_rotation.hpp"
 #include "tests/common/tools/intersectors/helix_plane_intersector.hpp"
+#include "detray/test/types.hpp"
 
 // google-test include(s).
 #include <gtest/gtest.h>
@@ -20,7 +21,7 @@
 using namespace detray;
 
 using matrix_operator = standard_matrix_operator<scalar>;
-using transform3 = __plugin::transform3<scalar>;
+using transform3 = test::transform3;
 using vector3 = typename transform3::vector3;
 using intersection_t = intersection2D<surface<>, transform3>;
 
@@ -35,7 +36,7 @@ constexpr const cartesian2<transform3> c2;
 constexpr const detail::helix_plane_intersector<intersection_t> hpi;
 
 /// Test the path correction on a rectangular surface (cartesian coordinates)
-TEST(helix_covariance_transport, cartesian2D) {
+GTEST_TEST(detray_core, cartesian2D) {
 
     // Rectangle surface with enough size
     const detray::mask<detray::unbounded<detray::rectangle2D<>>> rectangle{

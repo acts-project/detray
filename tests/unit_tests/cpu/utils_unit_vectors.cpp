@@ -7,15 +7,16 @@
 
 // Project include(s)
 #include "detray/utils/unit_vectors.hpp"
+#include "detray/test/types.hpp"
 
 // Google Test include(s)
 #include <gtest/gtest.h>
 
 using namespace detray;
-using transform3 = __plugin::transform3<scalar>;
+using transform3 = test::transform3;
 using vector3 = typename transform3::vector3;
 
-TEST(utils, curvilinear_unit_vectors) {
+GTEST_TEST(detray_core, curvilinear_unit_vectors) {
 
     constexpr const scalar tolerance = 1e-5f;
 

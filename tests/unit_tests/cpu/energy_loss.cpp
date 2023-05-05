@@ -5,8 +5,6 @@
  * Mozilla Public License Version 2.0
  */
 
-using namespace detray;
-
 // Project include(s).
 #include "detray/geometry/surface.hpp"
 #include "detray/materials/interaction.hpp"
@@ -16,6 +14,7 @@ using namespace detray;
 #include "detray/simulation/landau_distribution.hpp"
 #include "detray/simulation/random_scatterer.hpp"
 #include "detray/utils/statistics.hpp"
+#include "detray/test/types.hpp"
 
 // GTest include(s).
 #include <gtest/gtest.h>
@@ -24,7 +23,7 @@ using namespace detray;
 #include <random>
 
 using namespace detray;
-using transform3 = __plugin::transform3<detray::scalar>;
+using transform3 = test::transform3;
 
 using sf_handle_t = surface<>;
 

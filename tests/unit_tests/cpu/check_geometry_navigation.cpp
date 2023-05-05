@@ -22,17 +22,18 @@
 #include "detray/tracks/tracks.hpp"
 #include "tests/common/tools/inspectors.hpp"
 #include "tests/common/tools/particle_gun.hpp"
+#include "detray/test/types.hpp"
 
 using namespace detray;
 using namespace navigation;
 
-using transform3_t = __plugin::transform3<scalar>;
+using transform3_t = test::transform3;
 using ray_type = detail::ray<transform3_t>;
 using free_track_parameters_type = free_track_parameters<transform3_t>;
 
 /// This test runs intersection with all portals of the toy detector with a ray
 /// and then compares the intersection trace with a straight line navigation.
-TEST(ALGEBRA_PLUGIN, straight_line_navigation) {
+GTEST_TEST(detray_core, straight_line_navigation) {
 
     // Detector configuration
     constexpr std::size_t n_brl_layers{4u};
@@ -119,7 +120,7 @@ TEST(ALGEBRA_PLUGIN, straight_line_navigation) {
 
 /// Check the Runge-Kutta based navigation against a helix trajectory as ground
 /// truth
-TEST(ALGEBRA_PLUGIN, helix_navigation) {
+GTEST_TEST(detray_core, helix_navigation) {
     using namespace navigation;
 
     // Detector configuration

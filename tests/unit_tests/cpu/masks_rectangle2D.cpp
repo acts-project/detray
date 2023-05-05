@@ -10,11 +10,11 @@
 #include "detray/definitions/units.hpp"
 #include "detray/masks/masks.hpp"
 #include "detray/tracks/bound_track_parameters.hpp"
+#include "detray/test/types.hpp"
 
 using namespace detray;
-using namespace __plugin;
-using point3_t = __plugin::point3<detray::scalar>;
-using transform3_t = __plugin::transform3<detray::scalar>;
+using point3_t = test::point3;
+using transform3_t = test::transform3;
 
 constexpr scalar tol{1e-7f};
 
@@ -23,7 +23,7 @@ constexpr scalar hy{9.3f * unit<scalar>::mm};
 constexpr scalar hz{0.5f * unit<scalar>::mm};
 
 /// This tests the basic functionality of a rectangle
-TEST(mask, rectangle2D) {
+GTEST_TEST(detray_core, rectangle2D) {
     using point_t = point3_t;
 
     point_t p2_in = {0.5f, -9.f, 0.f};
@@ -68,7 +68,7 @@ TEST(mask, rectangle2D) {
 }
 
 /// This tests the basic functionality of a cuboid3D
-TEST(mask, cuboid3D) {
+GTEST_TEST(detray_core, cuboid3D) {
     using point_t = point3_t;
 
     point_t p2_in = {0.5f, 8.0f, -0.4f};

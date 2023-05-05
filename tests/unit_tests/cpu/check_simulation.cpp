@@ -15,6 +15,7 @@
 #include "detray/simulation/simulator.hpp"
 #include "detray/tracks/bound_track_parameters.hpp"
 #include "detray/utils/statistics.hpp"
+#include "detray/test/types.hpp"
 
 // VecMem include(s).
 #include <vecmem/memory/host_memory_resource.hpp>
@@ -26,12 +27,12 @@
 #include <limits>
 
 using namespace detray;
-using transform3 = __plugin::transform3<detray::scalar>;
+using transform3 = test::transform3;
 
 constexpr scalar tol{1e-7f};
 
 // Test measurement smearer
-TEST(check_simulation, measurement_smearer) {
+GTEST_TEST(detray_core, measurement_smearer) {
 
     const mask<line<false, line_intersector, 1u, true>> ln_1D{
         0u, 10.f * unit<scalar>::mm, 50.f * unit<scalar>::mm};
@@ -71,7 +72,7 @@ TEST(check_simulation, measurement_smearer) {
     ASSERT_NEAR(local_rectangle_2[1], -3.f, tol);
 }
 
-TEST(check_simulation, toy_geometry) {
+GTEST_TEST(detray_core, toy_geometry_simulation) {
 
     // Use deterministic random number generator for testing
     using normal_gen_t =

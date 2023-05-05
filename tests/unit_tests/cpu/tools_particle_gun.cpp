@@ -12,6 +12,7 @@
 #include "detray/simulation/event_generator/track_generators.hpp"
 #include "detray/tracks/tracks.hpp"
 #include "tests/common/tools/particle_gun.hpp"
+#include "detray/test/types.hpp"
 
 // VecMem include(s).
 #include <vecmem/memory/host_memory_resource.hpp>
@@ -19,16 +20,16 @@
 // GTest include(s).
 #include <gtest/gtest.h>
 
-/// @note __plugin has to be defined with a preprocessor command
+/// @note test has to be defined with a preprocessor command
 using namespace detray;
 
-using transform3_type = __plugin::transform3<scalar>;
+using transform3_type = test::transform3;
 
 constexpr const scalar tol{1e-3f};
 
 /// Brute force test: Intersect toy geometry and compare between ray and helix
 /// without B-field
-TEST(tools, particle_gun) {
+GTEST_TEST(detray_core, particle_gun) {
 
     // Build the geometry
     vecmem::host_memory_resource host_mr;

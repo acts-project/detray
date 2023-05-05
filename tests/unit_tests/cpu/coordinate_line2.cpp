@@ -8,16 +8,17 @@
 // Project include(s).
 #include "detray/coordinates/line2.hpp"
 #include "detray/tracks/tracks.hpp"
+#include "detray/test/types.hpp"
 
 // GTest include(s).
 #include <gtest/gtest.h>
 
 using namespace detray;
 
-using point2 = __plugin::point2<scalar>;
-using point3 = __plugin::point3<scalar>;
-using vector3 = __plugin::vector3<scalar>;
-using transform3 = __plugin::transform3<detray::scalar>;
+using point2 = test::point2;
+using point3 = test::point3;
+using vector3 = test::vector3;
+using transform3 = test::transform3;
 using matrix_operator = typename transform3::matrix_actor;
 using size_type = typename matrix_operator::size_ty;
 template <size_type ROWS, size_type COLS>
@@ -25,7 +26,7 @@ using matrix_type = typename matrix_operator::template matrix_type<ROWS, COLS>;
 
 constexpr scalar isclose{1e-5f};
 
-TEST(coordinate, line2_case1) {
+GTEST_TEST(detray_core, line2_case1) {
 
     // Preparation work
     vector3 z = {1.f, 1.f, 1.f};
@@ -99,7 +100,7 @@ TEST(coordinate, line2_case1) {
     }
 }
 
-TEST(coordinate, line2_case2) {
+GTEST_TEST(detray_core, line2_case2) {
 
     // Preparation work
     vector3 z = {1.f, 2.f, 3.f};

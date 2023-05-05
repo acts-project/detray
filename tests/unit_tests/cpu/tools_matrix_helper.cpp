@@ -7,18 +7,19 @@
 
 // Project include(s).
 #include "detray/utils/matrix_helper.hpp"
+#include "detray/test/types.hpp"
 
 // GTest include(s)
 #include <gtest/gtest.h>
 
 using namespace detray;
-using transform3 = __plugin::transform3<scalar>;
+using transform3 = test::transform3;
 using matrix_operator = standard_matrix_operator<scalar>;
 using vector3 = typename transform3::vector3;
 
 constexpr scalar tolerance = 1e-6f;
 
-TEST(matrix_helper, column_wise_cross) {
+GTEST_TEST(detray_core, column_wise_cross) {
     auto P = matrix_operator().template zero<3, 3>();
 
     getter::element(P, 0u, 0u) = 0.f;
@@ -46,7 +47,7 @@ TEST(matrix_helper, column_wise_cross) {
     EXPECT_NEAR(getter::element(Q, 2u, 2u), -1.f, tolerance);
 }
 
-TEST(matrix_helper, column_wise_multiply) {
+GTEST_TEST(detray_core, column_wise_multiply) {
 
     auto P = matrix_operator().template zero<3, 3>();
 
@@ -75,7 +76,7 @@ TEST(matrix_helper, column_wise_multiply) {
     EXPECT_NEAR(getter::element(Q, 2u, 2u), 24.f, tolerance);
 }
 
-TEST(matrix_helper, cross_matrix) {
+GTEST_TEST(detray_core, cross_matrix) {
 
     const vector3 u{1.f, 2.f, 3.f};
     const vector3 v{3.f, 4.f, 5.f};
@@ -105,7 +106,7 @@ TEST(matrix_helper, cross_matrix) {
     EXPECT_NEAR(u_cross_v[2], v_cross_u[2], tolerance);
 }
 
-TEST(matrix_helper, outer_product) {
+GTEST_TEST(detray_core, outer_product) {
 
     const vector3 u{1.f, 2.f, 3.f};
     const vector3 v{3.f, 4.f, 5.f};

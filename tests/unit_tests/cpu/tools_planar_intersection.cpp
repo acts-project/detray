@@ -12,6 +12,7 @@
 #include "detray/intersection/plane_intersector.hpp"
 #include "detray/masks/masks.hpp"
 #include "detray/masks/unmasked.hpp"
+#include "detray/test/types.hpp"
 
 // GTest include(s)
 #include <gtest/gtest.h>
@@ -20,13 +21,13 @@
 #include <cmath>
 #include <limits>
 
-/// @note __plugin has to be defined with a preprocessor command
+/// @note test has to be defined with a preprocessor command
 using namespace detray;
 
 // Three-dimensional definitions
-using vector3 = __plugin::vector3<scalar>;
-using point3 = __plugin::point3<scalar>;
-using transform3 = __plugin::transform3<detray::scalar>;
+using vector3 = test::vector3;
+using point3 = test::point3;
+using transform3 = test::transform3;
 using intersection_t = intersection2D<surface<>, transform3>;
 
 constexpr scalar tol{std::numeric_limits<scalar>::epsilon()};
@@ -34,7 +35,7 @@ constexpr auto not_defined{detail::invalid_value<scalar>()};
 constexpr scalar isclose{1e-5f};
 
 // This defines the local frame test suite
-TEST(ALGEBRA_PLUGIN, translated_plane_ray) {
+GTEST_TEST(detray_core, translated_plane_ray) {
     // Create a shifted plane
     const transform3 shifted(vector3{3.f, 2.f, 10.f});
 
@@ -92,7 +93,7 @@ TEST(ALGEBRA_PLUGIN, translated_plane_ray) {
 }
 
 // This defines the local frame test suite
-TEST(ALGEBRA_PLUGIN, plane_incidence_angle) {
+GTEST_TEST(detray_core, plane_incidence_angle) {
     // tf3 with rotated axis
     const vector3 x{1.f, 0.f, -1.f};
     const vector3 z{1.f, 0.f, 1.f};

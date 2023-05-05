@@ -8,15 +8,16 @@
 // Project include(s)
 #include "detray/geometry/surface.hpp"
 #include "detray/tracks/tracks.hpp"
+#include "detray/test/types.hpp"
 
 // Google Test include(s)
 #include <gtest/gtest.h>
 
 using namespace detray;
-using vector2 = __plugin::vector2<scalar>;
-using vector3 = __plugin::vector3<scalar>;
-using point3 = __plugin::point3<scalar>;
-using transform3 = __plugin::transform3<detray::scalar>;
+using vector2 = test::vector2;
+using vector3 = test::vector3;
+using point3 = test::point3;
+using transform3 = test::transform3;
 using matrix_operator = standard_matrix_operator<scalar>;
 using track_helper = detail::track_helper<matrix_operator>;
 
@@ -33,7 +34,7 @@ using material_link_t = dtyped_index<material_ids, dindex>;
 
 constexpr scalar tol{1e-5f};
 
-TEST(tools, bound_track_parameters) {
+GTEST_TEST(detray_core, bound_track_parameters) {
 
     // surface container
     std::vector<surface<mask_link_t, material_link_t>> surfaces;
@@ -138,7 +139,7 @@ TEST(tools, bound_track_parameters) {
     EXPECT_TRUE(bound_param2 == bound_param3);
 }
 
-TEST(tools, free_track_parameters) {
+GTEST_TEST(detray_core, free_track_parameters) {
 
     point3 pos = {4.f, 10.f, 2.f};
     scalar time = 0.1f;

@@ -18,6 +18,7 @@
 #include "detray/masks/masks.hpp"
 #include "detray/surface_finders/grid/axis.hpp"
 #include "detray/surface_finders/grid/serializer.hpp"
+#include "detray/test/types.hpp"
 
 using namespace detray;
 using namespace detray::n_axis;
@@ -28,12 +29,12 @@ namespace {
 
 // polar coordinate system with regular binning on both axes
 using polar_axes = multi_axis<
-    true, polar2<__plugin::transform3<scalar>>,
+    true, polar2<test::transform3>,
     single_axis<closed<label::e_r>, regular<host_container_types, scalar>>,
     single_axis<circular<label::e_phi>, regular<host_container_types, scalar>>>;
 // 3-dim cylindrical coordinate system with regular binning
 using cylinder_axes = multi_axis<
-    true, cylindrical3<__plugin::transform3<scalar>>,
+    true, cylindrical3<test::transform3>,
     single_axis<closed<label::e_r>, regular<host_container_types, scalar>>,
     single_axis<circular<label::e_phi>, regular<host_container_types, scalar>>,
     single_axis<closed<label::e_z>, regular<host_container_types, scalar>>>;
@@ -43,7 +44,7 @@ constexpr scalar tol{1e-5f};
 
 }  // anonymous namespace
 
-TEST(grid, serializer2D) {
+GTEST_TEST(detray_core, serializer2D) {
 
     // Offsets into edges container and #bins for all axes
     vecmem::vector<dindex_range> edge_ranges = {{0u, 6u}, {2u, 12u}};
@@ -75,7 +76,7 @@ TEST(grid, serializer2D) {
     EXPECT_EQ(serializer(axes, 17u), expected_mbin);
 }
 
-TEST(grid, serializer3D) {
+GTEST_TEST(detray_core, serializer3D) {
 
     // Offsets into edges container and #bins for all axes
     vecmem::vector<dindex_range> edge_ranges = {{0u, 4u}, {2u, 2u}, {4u, 2u}};

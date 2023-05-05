@@ -8,14 +8,15 @@
 #include <gtest/gtest.h>
 
 #include "detray/core/detail/single_store.hpp"
+#include "detray/test/types.hpp"
 
-/// @note __plugin has to be defined with a preprocessor command
+/// @note test has to be defined with a preprocessor command
 
 // This tests the construction of a static transform store
-TEST(ALGEBRA_PLUGIN, static_transform_store) {
+GTEST_TEST(detray_core, static_transform_store) {
     using namespace detray;
-    using transform3 = __plugin::transform3<detray::scalar>;
-    using point3 = __plugin::point3<detray::scalar>;
+    using transform3 = test::transform3;
+    using point3 = test::point3;
 
     using transform_store_t = single_store<transform3>;
     transform_store_t static_store;

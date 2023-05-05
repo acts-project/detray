@@ -21,12 +21,13 @@
 #include "detray/propagator/rk_stepper.hpp"
 #include "detray/tracks/tracks.hpp"
 #include "tests/common/tools/inspectors.hpp"
+#include "detray/test/types.hpp"
 
 // This tests the construction and general methods of the navigator
-TEST(ALGEBRA_PLUGIN, guided_navigator) {
+GTEST_TEST(detray_core, guided_navigator) {
     using namespace detray;
     using namespace navigation;
-    using transform3_t = __plugin::transform3<scalar>;
+    using transform3_t = test::transform3;
     using point3 = typename transform3_t::point3;
     using vector3 = typename transform3_t::vector3;
 

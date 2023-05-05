@@ -25,9 +25,10 @@
 #include "detray/simulation/event_generator/track_generators.hpp"
 #include "detray/tracks/tracks.hpp"
 #include "tests/common/tools/inspectors.hpp"
+#include "detray/test/types.hpp"
 
 using namespace detray;
-using transform3 = __plugin::transform3<detray::scalar>;
+using transform3 = test::transform3;
 
 namespace {
 
@@ -138,7 +139,7 @@ struct helix_inspector : actor {
 }  // anonymous namespace
 
 /// Test basic functionality of the propagator using a straight line stepper
-TEST(ALGEBRA_PLUGIN, propagator_line_stepper) {
+GTEST_TEST(detray_core, propagator_line_stepper) {
 
     vecmem::host_memory_resource host_mr;
     const auto d = create_toy_geometry(host_mr);
@@ -161,7 +162,7 @@ TEST(ALGEBRA_PLUGIN, propagator_line_stepper) {
 
 class PropagatorWithRkStepper
     : public ::testing::TestWithParam<
-          std::tuple<__plugin::vector3<scalar>, scalar, scalar>> {};
+          std::tuple<test::vector3, scalar, scalar>> {};
 
 /// Test propagation in a magnetic field using a Runge-Kutta stepper
 TEST_P(PropagatorWithRkStepper, propagator_rk_stepper) {
@@ -283,7 +284,7 @@ TEST_P(PropagatorWithRkStepper, propagator_rk_stepper) {
 INSTANTIATE_TEST_SUITE_P(
     PropagatorValidation1, PropagatorWithRkStepper,
     ::testing::Values(std::make_tuple(
-        __plugin::vector3<scalar>{0.f * unit<scalar>::T, 0.f * unit<scalar>::T,
+        test::vector3{0.f * unit<scalar>::T, 0.f * unit<scalar>::T,
                                   2.f * unit<scalar>::T},
         -7.f * unit<scalar>::um, std::numeric_limits<scalar>::max())));
 
@@ -292,20 +293,20 @@ INSTANTIATE_TEST_SUITE_P(
 INSTANTIATE_TEST_SUITE_P(
     PropagatorValidation2, PropagatorWithRkStepper,
     ::testing::Values(std::make_tuple(
-        __plugin::vector3<scalar>{0.f * unit<scalar>::T, 1.f * unit<scalar>::T,
+        test::vector3{0.f * unit<scalar>::T, 1.f * unit<scalar>::T,
                                   1.f * unit<scalar>::T},
         -10.f * unit<scalar>::um, 5.f * unit<scalar>::mm)));
 
 INSTANTIATE_TEST_SUITE_P(
     PropagatorValidation3, PropagatorWithRkStepper,
     ::testing::Values(std::make_tuple(
-        __plugin::vector3<scalar>{1.f * unit<scalar>::T, 0.f * unit<scalar>::T,
+        test::vector3{1.f * unit<scalar>::T, 0.f * unit<scalar>::T,
                                   1.f * unit<scalar>::T},
         -10.f * unit<scalar>::um, 5.f * unit<scalar>::mm)));
 
 INSTANTIATE_TEST_SUITE_P(
     PropagatorValidation4, PropagatorWithRkStepper,
     ::testing::Values(std::make_tuple(
-        __plugin::vector3<scalar>{1.f * unit<scalar>::T, 1.f * unit<scalar>::T,
+        test::vector3{1.f * unit<scalar>::T, 1.f * unit<scalar>::T,
                                   1.f * unit<scalar>::T},
         -10.f * unit<scalar>::um, 5.f * unit<scalar>::mm)));

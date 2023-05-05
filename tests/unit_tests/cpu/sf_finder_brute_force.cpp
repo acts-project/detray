@@ -13,6 +13,7 @@
 #include "detray/surface_finders/brute_force_finder.hpp"
 #include "detray/surface_finders/neighborhood_kernel.hpp"
 #include "tests/common/tools/test_surfaces.hpp"
+#include "detray/test/types.hpp"
 
 // Vecmem include(s)
 #include <vecmem/memory/host_memory_resource.hpp>
@@ -22,12 +23,12 @@ using namespace detray;
 namespace {
 
 // Algebra definitions
-using vector3 = __plugin::vector3<scalar>;
+using vector3 = test::vector3;
 
 }  // anonymous namespace
 
 /// Test retrieval of surface from collection using brute force searching
-TEST(accelerator, brute_force_collection) {
+GTEST_TEST(detray_core, brute_force_collection) {
 
     // Where to place the surfaces
     dvector<scalar> distances1{0.f, 10.0f, 20.0f, 40.0f, 80.0f, 100.0f};
@@ -77,7 +78,7 @@ TEST(accelerator, brute_force_collection) {
 
 /// Integration test for the retrieval of surfaces in a volume during local
 /// navigation
-TEST(accelerator, brute_force_search) {
+GTEST_TEST(detray_core, brute_force_search) {
 
     const auto det = create_toy_geometry(host_mr);
 

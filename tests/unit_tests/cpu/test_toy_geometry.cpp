@@ -9,6 +9,7 @@
 #include <type_traits>
 
 #include "detray/detectors/create_toy_geometry.hpp"
+#include "detray/test/types.hpp"
 
 // VecMem include(s).
 #include <vecmem/memory/host_memory_resource.hpp>
@@ -80,7 +81,7 @@ struct surface_grid_tester {
 }  // anonymous namespace
 
 // This test check the building of the tml based toy geometry
-TEST(ALGEBRA_PLUGIN, toy_geometry) {
+GTEST_TEST(detray_core, toy_geometry) {
 
     vecmem::host_memory_resource host_mr;
     constexpr std::size_t n_brl_layers{4u};

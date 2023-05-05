@@ -12,6 +12,7 @@
 #include "detray/propagator/navigator.hpp"
 #include "detray/tracks/tracks.hpp"
 #include "tests/common/tools/inspectors.hpp"
+#include "detray/test/types.hpp"
 
 // VecMem include(s).
 #include <vecmem/memory/host_memory_resource.hpp>
@@ -108,13 +109,13 @@ inline void check_step(navigator_t &nav, stepper_t &stepper,
 
 }  // namespace detray
 
-/// @note __plugin has to be defined with a preprocessor command
+/// @note test has to be defined with a preprocessor command
 
 /// This tests the construction and general methods of the navigator
-TEST(ALGEBRA_PLUGIN, navigator) {
+GTEST_TEST(detray_core, navigator) {
     using namespace detray;
     using namespace detray::navigation;
-    using transform3 = __plugin::transform3<scalar>;
+    using transform3 = test::transform3;
 
     vecmem::host_memory_resource host_mr;
 

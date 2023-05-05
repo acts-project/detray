@@ -13,18 +13,17 @@
 #include "tests/common/tools/hash_tree.hpp"
 //#include "tests/common/tools/read_geometry.hpp"
 #include "detray/detectors/create_toy_geometry.hpp"
+#include "detray/test/types.hpp"
 
 using namespace detray;
 
 // vecmem::host_memory_resource host_mr;
 // auto [d, name_map] = read_from_csv(tml_files, host_mr);
 
-namespace __plugin {
-
 constexpr std::size_t root_hash = 3244;
 
 // This test runs intersection with all portals of the TrackML detector
-TEST(ALGEBRA_PLUGIN, check_geometry_linking) {
+GTEST_TEST(detray_core, check_geometry_linking) {
 
     // Detector configuration
     constexpr std::size_t n_brl_layers{4};
@@ -42,5 +41,3 @@ TEST(ALGEBRA_PLUGIN, check_geometry_linking) {
 
     EXPECT_EQ(geo_checker.root(), root_hash);
 }
-
-}  // namespace __plugin

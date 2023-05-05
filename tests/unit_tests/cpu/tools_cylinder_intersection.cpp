@@ -16,20 +16,21 @@
 #include "detray/intersection/intersection.hpp"
 #include "detray/intersection/intersection_kernel.hpp"
 #include "detray/masks/masks.hpp"
+#include "detray/test/types.hpp"
 
 // System include(s)
 #include <cmath>
 #include <limits>
 
-/// @note __plugin has to be defined with a preprocessor command
+/// @note test has to be defined with a preprocessor command
 using namespace detray;
 
 namespace {
 
 // Three-dimensional definitions
-using transform3_t = __plugin::transform3<detray::scalar>;
-using vector3 = __plugin::vector3<detray::scalar>;
-using point3 = __plugin::point3<detray::scalar>;
+using transform3_t = test::transform3;
+using vector3 = test::vector3;
+using point3 = test::point3;
 using ray_t = detray::detail::ray<transform3_t>;
 using intersection_t = intersection2D<surface<>, transform3_t>;
 
@@ -42,7 +43,7 @@ const scalar hz{10.f};
 }  // anonymous namespace
 
 // This checks both solutions of a ray-cylinder intersection
-TEST(ALGEBRA_PLUGIN, translated_cylinder) {
+GTEST_TEST(detray_core, translated_cylinder) {
     // Create a translated cylinder and test untersection
     const transform3_t shifted(vector3{3.f, 2.f, 10.f});
     cylinder_intersector<intersection_t> ci;
@@ -92,7 +93,7 @@ TEST(ALGEBRA_PLUGIN, translated_cylinder) {
 }
 
 // This checks the inclindence angle calculation for a ray-cylinder intersection
-TEST(ALGEBRA_PLUGIN, cylinder_incidence_angle) {
+GTEST_TEST(detray_core, cylinder_incidence_angle) {
     const transform3_t identity{};
     cylinder_intersector<intersection_t> ci;
 
@@ -115,7 +116,7 @@ TEST(ALGEBRA_PLUGIN, cylinder_incidence_angle) {
 
 // This checks the solution of a ray-cylinder portal intersection against
 // those obtained from the general cylinder intersector.
-TEST(ALGEBRA_PLUGIN, cylinder_portal) {
+GTEST_TEST(detray_core, cylinder_portal) {
     // Test ray
     const point3 ori = {1.f, 0.5f, 1.f};
     const point3 dir = vector::normalize(vector3{1.f, 1.f, 1.f});
@@ -161,7 +162,7 @@ TEST(ALGEBRA_PLUGIN, cylinder_portal) {
 
 // This checks the solution of a ray-concentric cylinder intersection against
 // those obtained from the general cylinder intersector.
-TEST(ALGEBRA_PLUGIN, concentric_cylinders) {
+GTEST_TEST(detray_core, concentric_cylinders) {
     // Test ray
     const point3 ori = {1.f, 0.5f, 1.f};
     const point3 dir = vector::normalize(vector3{1.f, 1.f, 1.f});

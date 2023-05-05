@@ -14,6 +14,7 @@
 #include "tests/common/tools/hash_tree.hpp"
 #include "tests/common/tools/particle_gun.hpp"
 #include "tests/common/tools/ray_scan_utils.hpp"
+#include "detray/test/types.hpp"
 
 // Vecmem include(s)
 #include <vecmem/memory/host_memory_resource.hpp>
@@ -24,13 +25,13 @@
 // System include(s)
 #include <iostream>
 
-/// @note __plugin has to be defined with a preprocessor command
+/// @note test has to be defined with a preprocessor command
 using namespace detray;
 
 constexpr std::size_t root_hash =
     687u;  // TODO: Find hash function wihtout coll.!
 
-using transform3_type = __plugin::transform3<scalar>;
+using transform3_type = test::transform3;
 using ray_type = detail::ray<transform3_type>;
 
 /// Print and adjacency list
@@ -62,7 +63,7 @@ void print_adj(const dvector<dindex> &adjacency_matrix) {
 
 // Tests the consistency of the toy geometry implementation. In principle,
 // every geometry can be checked this way.
-TEST(ALGEBRA_PLUGIN, toy_geometry_scan) {
+GTEST_TEST(detray_core, toy_geometry_scan) {
 
     // Build the geometry (modeled as a unified index geometry)
     vecmem::host_memory_resource host_mr;
@@ -117,7 +118,7 @@ TEST(ALGEBRA_PLUGIN, toy_geometry_scan) {
 
 // @TODO: Create common check function for all detectors
 /// Tests the consistency of the telescope geometry implementation.
-TEST(ALGEBRA_PLUGIN, telescope_geometry_scan) {
+GTEST_TEST(detray_core, telescope_geometry_scan) {
 
     vecmem::host_memory_resource host_mr;
 

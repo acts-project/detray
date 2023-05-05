@@ -8,6 +8,7 @@
 // Project include(s)
 #include "detray/core/detail/multi_store.hpp"
 #include "detray/masks/masks.hpp"
+#include "detray/test/types.hpp"
 
 // Vecmem include(s)
 #include <vecmem/memory/host_memory_resource.hpp>
@@ -15,15 +16,14 @@
 // Google Test include(s)
 #include <gtest/gtest.h>
 
-/// @note __plugin has to be defined with a preprocessor command
+/// @note test has to be defined with a preprocessor command
 
 // This tests the construction of a static transform store
-TEST(ALGEBRA_PLUGIN, static_mask_store) {
+GTEST_TEST(detray_core, static_mask_store) {
 
     vecmem::host_memory_resource host_mr;
 
     using namespace detray;
-    using namespace __plugin;
 
     enum mask_ids : unsigned int {
         e_rectangle2 = 0,

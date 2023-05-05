@@ -18,6 +18,7 @@
 #include "detray/tracks/tracks.hpp"
 #include "detray/utils/ranges.hpp"
 #include "tests/common/tools/intersectors/helix_intersection_kernel.hpp"
+#include "detray/test/types.hpp"
 
 // Vecmem include(s)
 #include <vecmem/memory/host_memory_resource.hpp>
@@ -63,7 +64,7 @@ using mask_container_t =
 using mask_link_t = typename mask_container_t::single_link;
 using material_link_t = dtyped_index<material_ids, dindex>;
 
-using transform_container_t = single_store<__plugin::transform3<scalar>>;
+using transform_container_t = single_store<test::transform3>;
 using transform3_t = typename transform_container_t::value_type;
 using vector3 = typename transform3_t::vector3;
 using point3 = typename transform3_t::point3;
@@ -77,7 +78,7 @@ using surface_container_t = dvector<surface_t>;
 // repetition?
 
 // This tests the construction of a surface
-TEST(tools, intersection_kernel_ray) {
+GTEST_TEST(detray_core, intersection_kernel_ray) {
     vecmem::host_memory_resource host_mr;
 
     // The transforms & their store
@@ -220,7 +221,7 @@ TEST(tools, intersection_kernel_ray) {
 }
 
 /// Re-use the intersection kernel test for particle gun
-TEST(tools, intersection_kernel_helix) {
+GTEST_TEST(detray_core, intersection_kernel_helix) {
 
     vecmem::host_memory_resource host_mr;
 

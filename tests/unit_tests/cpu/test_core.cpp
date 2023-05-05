@@ -10,6 +10,7 @@
 #include "detray/geometry/surface.hpp"
 #include "detray/intersection/intersection.hpp"
 #include "detray/utils/invalid_values.hpp"
+#include "detray/test/types.hpp"
 
 // Google test include(s)
 #include <gtest/gtest.h>
@@ -18,7 +19,7 @@
 #include <cmath>
 #include <limits>
 
-/// @note __plugin has to be defined with a preprocessor command
+/// @note test has to be defined with a preprocessor command
 
 using namespace detray;
 
@@ -38,10 +39,10 @@ constexpr scalar tol{std::numeric_limits<scalar>::epsilon()};
 
 }  // namespace
 
-using transform3 = __plugin::transform3<detray::scalar>;
-using point2 = __plugin::point2<scalar>;
-using vector3 = __plugin::vector3<scalar>;
-using point3 = __plugin::point3<scalar>;
+using transform3 = test::transform3;
+using point2 = test::point2;
+using vector3 = test::vector3;
+using point3 = test::point3;
 
 using mask_link_t = dtyped_index<mask_ids, dindex>;
 using material_link_t = dtyped_index<material_ids, dindex>;
@@ -85,7 +86,7 @@ TEST(core, surface) {
 }
 
 // This tests the construction of a intresection
-TEST(ALGEBRA_PLUGIN, intersection) {
+GTEST_TEST(detray_core, intersection) {
 
     using intersection_t = intersection2D<surface_t, transform3>;
 

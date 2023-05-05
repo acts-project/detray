@@ -26,6 +26,7 @@
 #include "detray/simulation/random_scatterer.hpp"
 #include "detray/utils/statistics.hpp"
 #include "tests/common/tools/inspectors.hpp"
+#include "detray/test/types.hpp"
 
 // VecMem include(s).
 #include <vecmem/memory/host_memory_resource.hpp>
@@ -35,11 +36,11 @@
 
 using namespace detray;
 
-using transform3 = __plugin::transform3<scalar>;
+using transform3 = test::transform3;
 using matrix_operator = typename transform3::matrix_actor;
 
 // Material interaction test with telescope Geometry
-TEST(material_interaction, telescope_geometry_energy_loss) {
+GTEST_TEST(detray_core, telescope_geometry_energy_loss) {
 
     vecmem::host_memory_resource host_mr;
 
@@ -212,8 +213,7 @@ TEST(material_interaction, telescope_geometry_energy_loss) {
 }
 
 // Material interaction test with telescope Geometry
-TEST(material_interaction, telescope_geometry_scattering_angle) {
-
+GTEST_TEST(detray_core, telescope_geometry_scattering_angle) {
     vecmem::host_memory_resource host_mr;
 
     // Build in x-direction from given module positions

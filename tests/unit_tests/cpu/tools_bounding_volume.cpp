@@ -9,13 +9,13 @@
 #include "detray/definitions/units.hpp"
 #include "detray/test/types.hpp"
 #include "detray/tools/bounding_volume.hpp"
+#include "detray/test/types.hpp"
 
 // Google test include(s).
 #include <gtest/gtest.h>
 
 using namespace detray;
-using namespace __plugin;
-using point_t = __plugin::point3<detray::scalar>;
+using point_t = test::point3;
 
 namespace {
 

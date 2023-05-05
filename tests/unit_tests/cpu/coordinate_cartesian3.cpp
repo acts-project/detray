@@ -8,21 +8,22 @@
 // Project include(s).
 #include "detray/coordinates/cartesian3.hpp"
 #include "detray/tracks/tracks.hpp"
+#include "detray/test/types.hpp"
 
 // GTest include(s).
 #include <gtest/gtest.h>
 
 using namespace detray;
-using point2 = __plugin::point2<scalar>;
-using point3 = __plugin::point3<scalar>;
-using vector3 = __plugin::vector3<scalar>;
-using transform3 = __plugin::transform3<detray::scalar>;
+using point2 = test::point2;
+using point3 = test::point3;
+using vector3 = test::vector3;
+using transform3 = test::transform3;
 using matrix_operator = typename transform3::matrix_actor;
 
 const scalar isclose{1e-5f};
 
 // This test cartesian3 coordinate
-TEST(coordinate, cartesian3) {
+GTEST_TEST(detray_core, cartesian3) {
 
     // Preparation work
     const vector3 z = {0.f, 0.f, 1.f};

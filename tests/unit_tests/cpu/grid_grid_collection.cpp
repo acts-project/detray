@@ -16,6 +16,7 @@
 #include "detray/surface_finders/grid/populator.hpp"
 #include "detray/surface_finders/grid/serializer.hpp"
 #include "detray/tools/grid_builder.hpp"
+#include "detray/test/types.hpp"
 
 // System include(s)
 #include <algorithm>
@@ -47,7 +48,7 @@ struct bin_content_sequence {
 }  // anonymous namespace
 
 /// Unittest: Test the construction of a collection of grids
-TEST(grid, grid_collection) {
+GTEST_TEST(detray_core, grid_collection) {
 
     // grid type
 

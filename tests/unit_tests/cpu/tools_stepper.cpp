@@ -13,6 +13,7 @@
 #include "detray/propagator/rk_stepper.hpp"
 #include "detray/simulation/event_generator/track_generators.hpp"
 #include "detray/tracks/tracks.hpp"
+#include "detray/test/types.hpp"
 
 // google-test include(s)
 #include <gtest/gtest.h>
@@ -23,12 +24,12 @@
 #include <covfie/core/field_view.hpp>
 #include <covfie/core/vector.hpp>
 
-/// @note __plugin has to be defined with a preprocessor command
+/// @note test has to be defined with a preprocessor command
 using namespace detray;
-using vector2 = __plugin::vector2<scalar>;
-using vector3 = __plugin::vector3<scalar>;
-using point3 = __plugin::point3<scalar>;
-using transform3 = __plugin::transform3<scalar>;
+using vector2 = test::vector2;
+using vector3 = test::vector3;
+using point3 = test::point3;
+using transform3 = test::transform3;
 using matrix_operator = standard_matrix_operator<scalar>;
 using mag_field_t = covfie::field<covfie::backend::constant<
     covfie::vector::vector_d<scalar, 3>, covfie::vector::vector_d<scalar, 3>>>;
@@ -65,7 +66,7 @@ struct prop_state {
 }  // namespace
 
 // This tests the base functionality of the line stepper
-TEST(ALGEBRA_PLUGIN, line_stepper) {
+GTEST_TEST(detray_core, line_stepper) {
     using namespace step;
 
     // Line stepper with and without constrained stepping
@@ -136,7 +137,7 @@ TEST(ALGEBRA_PLUGIN, line_stepper) {
 }
 
 // This tests the base functionality of the Runge-Kutta stepper
-TEST(ALGEBRA_PLUGIN, rk_stepper) {
+GTEST_TEST(detray_core, rk_stepper) {
     using namespace step;
 
     // RK stepper configurations

@@ -18,18 +18,19 @@
 #include "detray/definitions/indexing.hpp"
 #include "detray/masks/masks.hpp"
 #include "detray/surface_finders/grid/axis.hpp"
+#include "detray/test/types.hpp"
 
 using namespace detray;
 using namespace detray::n_axis;
 
 namespace {
 
-using point3 = __plugin::point3<scalar>;
+using point3 = test::point3;
 
 // Alias for testing
 template <bool ownership, typename containers>
 using cartesian_3D =
-    multi_axis<ownership, cartesian3<__plugin::transform3<scalar>>,
+    multi_axis<ownership, cartesian3<test::transform3>,
                single_axis<closed<label::e_x>, regular<containers, scalar>>,
                single_axis<closed<label::e_y>, regular<containers, scalar>>,
                single_axis<closed<label::e_z>, regular<containers, scalar>>>;
@@ -39,7 +40,7 @@ constexpr scalar tol{1e-5f};
 
 }  // anonymous namespace
 
-TEST(grid, open_regular_axis) {
+GTEST_TEST(detray_core, open_regular_axis) {
 
     // Lower bin edges: min and max bin edge for the regular axis
     vecmem::vector<scalar> bin_edges = {-10.f, -5.f, -3.f, 7.f,
@@ -109,7 +110,7 @@ TEST(grid, open_regular_axis) {
     EXPECT_EQ(or_axis.range(2.5f, nhoodAlls), expected_range);
 }
 
-TEST(grid, closed_regular_axis) {
+GTEST_TEST(detray_core, closed_regular_axis) {
 
     // Lower bin edges: min and max bin edge for the regular axis
     vecmem::vector<scalar> bin_edges = {-10.f, -3.f, -3.f, 7.f, 7.f, 14.f};
@@ -178,7 +179,7 @@ TEST(grid, closed_regular_axis) {
     EXPECT_EQ(cr_axis.range(2.5f, nhoodAlls), expected_range);
 }
 
-TEST(grid, circular_regular_axis) {
+GTEST_TEST(detray_core, circular_regular_axis) {
 
     // Let's say 36 modules, but with 4 directly at 0, pi/2, pi, -pi2
     const scalar half_module{constant<scalar>::pi / 72.f};
@@ -252,7 +253,7 @@ TEST(grid, circular_regular_axis) {
               expected_range);
 }
 
-TEST(grid, closed_irregular_axis) {
+GTEST_TEST(detray_core, closed_irregular_axis) {
 
     // Lower bin edges: all lower bin edges for irregular binning, plus the
     // final upper bin edge
@@ -313,7 +314,7 @@ TEST(grid, closed_irregular_axis) {
     EXPECT_EQ(cir_axis.range(3.f, nhood11s), expected_range);
 }
 
-TEST(grid, multi_axis) {
+GTEST_TEST(detray_core, multi_axis) {
 
     // readable axis ownership definition
     bool constexpr is_owning = true;

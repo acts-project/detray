@@ -13,6 +13,7 @@
 #include "detray/definitions/track_parametrization.hpp"
 #include "detray/geometry/barcode.hpp"
 #include "detray/tracks/detail/track_helper.hpp"
+#include "detray/definitions/algebra.hpp"
 
 namespace detray {
 

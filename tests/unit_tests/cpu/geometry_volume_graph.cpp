@@ -13,13 +13,13 @@
 
 #include "detray/detectors/create_toy_geometry.hpp"
 #include "detray/geometry/volume_graph.hpp"
+#include "detray/test/types.hpp"
 
-/// @note __plugin has to be defined with a preprocessor command
+/// @note test has to be defined with a preprocessor command
 
 // This tests the linking of a geometry by loading it into a graph structure
-TEST(ALGEBRA_PLUGIN, volume_graph) {
+GTEST_TEST(detray_core, volume_graph) {
     using namespace detray;
-    using namespace __plugin;
 
     vecmem::host_memory_resource host_mr;
 

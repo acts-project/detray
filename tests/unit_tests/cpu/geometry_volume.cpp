@@ -9,8 +9,9 @@
 
 #include "detray/definitions/units.hpp"
 #include "detray/geometry/detector_volume.hpp"
+#include "detray/test/types.hpp"
 
-/// @note __plugin has to be defined with a preprocessor command
+/// @note test has to be defined with a preprocessor command
 
 // TODO: Move these into the test defs
 namespace {
@@ -32,9 +33,8 @@ enum sf_finder_ids : unsigned int {
 }  // namespace
 
 // This tests the detector volume class and its many links
-TEST(ALGEBRA_PLUGIN, detector_volume) {
+GTEST_TEST(detray_core, detector_volume) {
     using namespace detray;
-    using namespace __plugin;
 
     using sf_finder_link_t = dtyped_index<sf_finder_ids, dindex>;
     using volume_t = detector_volume<geo_objects, sf_finder_link_t>;

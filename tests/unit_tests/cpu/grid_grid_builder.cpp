@@ -17,6 +17,7 @@
 #include "detray/tools/grid_builder.hpp"
 #include "detray/tools/surface_factory.hpp"
 #include "detray/tools/volume_builder.hpp"
+#include "detray/test/types.hpp"
 
 // Vecmem include(s)
 #include <vecmem/memory/host_memory_resource.hpp>
@@ -29,17 +30,17 @@ using namespace detray::n_axis;
 
 namespace {
 
-using point3 = __plugin::point3<scalar>;
-using vector3 = __plugin::vector3<scalar>;
+using point3 = test::point3;
+using vector3 = test::vector3;
 
-__plugin::transform3<scalar> Identity{};
+test::transform3 Identity{};
 
 using test_detector_t = detector<detector_registry::toy_detector>;
 
 }  // anonymous namespace
 
 /// Unittest: Test the construction of a collection of grids
-TEST(grid, grid_factory) {
+GTEST_TEST(detray_core, grid_factory) {
 
     // Data-owning grid collection
     /*vecmem::host_memory_resource host_mr;
@@ -129,7 +130,7 @@ TEST(grid, grid_factory) {
 }
 
 /// Unittest: Test the grid builder
-TEST(grid, grid_builder) {
+GTEST_TEST(detray_core, grid_builder) {
 
     // cylinder grid type of the toy detector
     /*using cyl_grid_t =
@@ -160,7 +161,7 @@ TEST(grid, grid_builder) {
 }
 
 /// Integration test: grid builder as volume builder decorator
-TEST(grid, decorator_grid_builder) {
+GTEST_TEST(detray_core, decorator_grid_builder) {
 
     /*using transform3 = typename test_detector_t::transform3;
     using geo_obj_id = typename test_detector_t::geo_obj_ids;

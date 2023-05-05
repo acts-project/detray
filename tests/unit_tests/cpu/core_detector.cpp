@@ -11,6 +11,7 @@
 #include "detray/materials/predefined_materials.hpp"
 #include "detray/tools/surface_factory.hpp"
 #include "detray/tools/volume_builder.hpp"
+#include "detray/test/types.hpp"
 
 // Vecmem include(s)
 #include <vecmem/memory/host_memory_resource.hpp>
@@ -23,10 +24,10 @@
 
 namespace {
 
-/// @note __plugin has to be defined with a preprocessor command
-using point3 = __plugin::point3<detray::scalar>;
-using vector3 = __plugin::vector3<detray::scalar>;
-using point2 = __plugin::point2<detray::scalar>;
+/// @note test has to be defined with a preprocessor command
+using point3 = detray::test::point3;
+using vector3 = detray::test::vector3;
+using point2 = detray::test::point2;
 
 constexpr detray::scalar tol{1e-7f};
 
@@ -119,7 +120,7 @@ inline void check_mask(const detector_t& d,
 }  // anonymous namespace
 
 /// This tests the functionality of a detector as a data store manager
-TEST(detector, detector) {
+GTEST_TEST(detray_core, detector) {
 
     using namespace detray;
 
@@ -174,7 +175,7 @@ TEST(detector, detector) {
 }
 
 /// This tests the functionality of a surface factory
-TEST(detector, surface_factory) {
+GTEST_TEST(detray_core, surface_factory) {
 
     using namespace detray;
 
@@ -385,7 +386,7 @@ TEST(detector, surface_factory) {
 }
 
 /// This tests the initialization of a detector volume using a volume builder
-TEST(detector, volume_builder) {
+GTEST_TEST(detray_core, volume_builder) {
 
     using namespace detray;
 
@@ -414,7 +415,7 @@ TEST(detector, volume_builder) {
 }
 
 /// Integration test to build a cylinder volume with contained surfaces
-TEST(detector, detector_volume_construction) {
+GTEST_TEST(detray_core, detector_volume_construction) {
 
     using namespace detray;
 

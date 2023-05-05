@@ -10,21 +10,22 @@
 #include "detray/definitions/units.hpp"
 #include "detray/intersection/detail/trajectories.hpp"
 #include "detray/tracks/tracks.hpp"
+#include "detray/test/types.hpp"
 
 // System include(s)
 #include <cmath>
 
-/// @note __plugin has to be defined with a preprocessor command
+/// @note test has to be defined with a preprocessor command
 using namespace detray;
 
 constexpr const scalar tol{1e-5f};
 
 // This tests the base functionality of the Helix Gun
-TEST(tools, helix_trajectory) {
+GTEST_TEST(detray_core, helix_trajectory) {
 
-    using vector3 = __plugin::vector3<scalar>;
-    using point3 = __plugin::point3<scalar>;
-    using transform3_type = __plugin::transform3<scalar>;
+    using vector3 = test::vector3;
+    using point3 = test::point3;
+    using transform3_type = test::transform3;
 
     const point3 pos{0.f, 0.f, 0.f};
     const scalar time{0.f};
@@ -101,11 +102,11 @@ TEST(tools, helix_trajectory) {
     EXPECT_NEAR(one_loop_dir[2], vertex.dir()[2], R * tol);
 }
 
-TEST(tools, helix_trajectory_small_pT) {
+GTEST_TEST(detray_core, helix_trajectory_small_pT) {
 
-    using vector3 = __plugin::vector3<scalar>;
-    using point3 = __plugin::point3<scalar>;
-    using transform3_type = __plugin::transform3<scalar>;
+    using vector3 = test::vector3;
+    using point3 = test::point3;
+    using transform3_type = test::transform3;
 
     const point3 pos{0.f, 0.f, 0.f};
     const scalar time{0.f};

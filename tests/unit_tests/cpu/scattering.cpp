@@ -11,6 +11,7 @@
 #include "detray/simulation/scattering_helper.hpp"
 #include "detray/tracks/tracks.hpp"
 #include "detray/utils/statistics.hpp"
+#include "detray/test/types.hpp"
 
 // google-test include(s).
 #include <gtest/gtest.h>
@@ -21,7 +22,7 @@
 #include <vector>
 
 using namespace detray;
-using transform3 = __plugin::transform3<detray::scalar>;
+using transform3 = test::transform3;
 using matrix_operator = typename transform3::matrix_actor;
 using vector3 = typename transform3::vector3;
 
@@ -31,7 +32,7 @@ std::mt19937_64 generator{rd()};
 }  // namespace
 
 // Test scattering helper
-TEST(scattering, scattering_helper) {
+GTEST_TEST(detray_core, scattering_helper) {
 
     generator.seed(0u);
 
@@ -78,7 +79,7 @@ TEST(scattering, scattering_helper) {
 }
 
 // Test angle update
-TEST(scattering, angle_update) {
+GTEST_TEST(detray_core, angle_update) {
 
     generator.seed(0u);
 

@@ -16,6 +16,7 @@
 #include "detray/propagator/line_stepper.hpp"
 #include "detray/propagator/navigator.hpp"
 #include "detray/propagator/propagator.hpp"
+#include "detray/test/types.hpp"
 
 // Covfie include(s).
 #include <covfie/core/field.hpp>
@@ -29,11 +30,11 @@
 
 using namespace detray;
 using matrix_operator = standard_matrix_operator<scalar>;
-using transform3 = __plugin::transform3<detray::scalar>;
+using transform3 = test::transform3;
 
 constexpr scalar tol{1e-6f};
 
-TEST(line_stepper, covariance_transport) {
+GTEST_TEST(detray_core, covariance_transport) {
 
     vecmem::host_memory_resource host_mr;
 

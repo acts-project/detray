@@ -12,6 +12,7 @@
 #include "detray/intersection/line_intersector.hpp"
 #include "detray/masks/masks.hpp"
 #include "detray/tracks/tracks.hpp"
+#include "detray/test/types.hpp"
 
 // GTest include(s)
 #include <gtest/gtest.h>
@@ -20,22 +21,22 @@
 #include <cmath>
 #include <limits>
 
-/// @note __plugin has to be defined with a preprocessor command
+/// @note test has to be defined with a preprocessor command
 using namespace detray;
 
 // Three-dimensional definitions
-using transform3 = __plugin::transform3<detray::scalar>;
+using transform3 = test::transform3;
 using cartesian = cartesian2<transform3>;
-using vector3 = __plugin::vector3<scalar>;
-using point3 = __plugin::point3<scalar>;
-using point2 = __plugin::point2<scalar>;
+using vector3 = test::vector3;
+using point3 = test::point3;
+using point2 = test::point2;
 using intersection_t = intersection2D<surface<>, transform3>;
 using line_intersector_type = line_intersector<intersection_t>;
 
 constexpr scalar tol{1e-5f};
 
 // Test simplest case
-TEST(tools, line_intersector_case1) {
+GTEST_TEST(detray_core, line_intersector_case1) {
     // tf3 with Identity rotation and no translation
     const transform3 tf{};
 
@@ -88,7 +89,7 @@ TEST(tools, line_intersector_case1) {
 }
 
 // Test inclined wire
-TEST(tools, line_intersector_case2) {
+GTEST_TEST(detray_core, line_intersector_case2) {
     // tf3 with skewed axis
     const vector3 x{1.f, 0.f, -1.f};
     const vector3 z{1.f, 0.f, 1.f};
@@ -118,7 +119,7 @@ TEST(tools, line_intersector_case2) {
     EXPECT_NEAR(is.local[1], -constant<scalar>::inv_sqrt2, tol);
 }
 
-TEST(tools, line_intersector_square_scope) {
+GTEST_TEST(detray_core, line_intersector_square_scope) {
 
     // tf3 with Identity rotation and no translation
     const transform3 tf{};

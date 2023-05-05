@@ -12,14 +12,15 @@
 #include "detray/simulation/event_generator/track_generators.hpp"
 #include "detray/tracks/tracks.hpp"
 #include "detray/utils/statistics.hpp"
+#include "detray/test/types.hpp"
 
-/// @note __plugin has to be defined with a preprocessor command
+/// @note test has to be defined with a preprocessor command
 using namespace detray;
-using vector3 = __plugin::vector3<scalar>;
-using point3 = __plugin::point3<scalar>;
-using transform3 = __plugin::transform3<detray::scalar>;
+using vector3 = test::vector3;
+using point3 = test::point3;
+using transform3 = test::transform3;
 
-TEST(tools, uniform_track_generator) {
+GTEST_TEST(detray_core, uniform_track_generator) {
 
     constexpr const scalar tol{1e-5f};
 
@@ -113,7 +114,7 @@ TEST(tools, uniform_track_generator) {
     ASSERT_EQ(momenta.size(), n_tracks);
 }
 
-TEST(tools, uniform_track_generator_with_range) {
+GTEST_TEST(detray_core, uniform_track_generator_with_range) {
 
     constexpr const scalar tol{1e-5f};
 
@@ -150,7 +151,7 @@ TEST(tools, uniform_track_generator_with_range) {
 }
 
 /// Tests a random number based track state generator - uniform distribution
-TEST(tools, random_track_generator_uniform) {
+GTEST_TEST(detray_core, random_track_generator_uniform) {
 
     // Use deterministic random number generator for testing
     using uniform_gen_t =
@@ -227,7 +228,7 @@ TEST(tools, random_track_generator_uniform) {
 }
 
 /// Tests a random number based track state generator - normal distribution
-TEST(tools, random_track_generator_normal) {
+GTEST_TEST(detray_core, random_track_generator_normal) {
 
     // Use deterministic random number generator for testing
     using normal_gen_t =

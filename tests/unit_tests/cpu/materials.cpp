@@ -15,6 +15,7 @@
 #include "detray/materials/material_slab.hpp"
 #include "detray/materials/mixture.hpp"
 #include "detray/materials/predefined_materials.hpp"
+#include "detray/test/types.hpp"
 
 // GTest include(s)
 #include <gtest/gtest.h>
@@ -24,17 +25,17 @@
 
 using namespace detray;
 
-using point2 = __plugin::point2<scalar>;
-using point3 = __plugin::point3<scalar>;
-using transform3 = __plugin::transform3<detray::scalar>;
-using vector3 = __plugin::vector3<scalar>;
+using point2 = test::point2;
+using point3 = test::point3;
+using transform3 = test::transform3;
+using vector3 = test::vector3;
 using intersection_t = intersection2D<surface<>, transform3>;
 
 constexpr scalar tol{1e-7f};
 constexpr scalar epsilon{std::numeric_limits<scalar>::epsilon()};
 
 // This tests the material functionalities
-TEST(materials, material) {
+GTEST_TEST(detray_core, material) {
     // vacuum
     constexpr vacuum<scalar> vac;
     EXPECT_TRUE(std::isinf(vac.X0()));
@@ -74,7 +75,7 @@ TEST(materials, material) {
                 tol);
 }
 
-TEST(materials, mixture) {
+GTEST_TEST(detray_core, mixture) {
 
     // Check if material property doesn't change after mixing with other
     // material of 0 ratio
@@ -126,7 +127,7 @@ TEST(materials, mixture) {
 }
 
 // This tests the material slab functionalities
-TEST(materials, material_slab) {
+GTEST_TEST(detray_core, material_slab) {
 
     constexpr material_slab<scalar> slab(oxygen_gas<scalar>(),
                                          2.f * unit<scalar>::mm);
@@ -142,7 +143,7 @@ TEST(materials, material_slab) {
 }
 
 // This tests the material rod functionalities
-TEST(materials, material_rod) {
+GTEST_TEST(detray_core, material_rod) {
 
     // Rod with 1 mm radius
     constexpr material_rod<scalar> rod(oxygen_gas<scalar>(),

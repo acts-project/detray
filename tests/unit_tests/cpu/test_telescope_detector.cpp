@@ -16,6 +16,7 @@
 #include "detray/propagator/rk_stepper.hpp"
 #include "detray/tracks/tracks.hpp"
 #include "tests/common/tools/inspectors.hpp"
+#include "detray/test/types.hpp"
 
 // Vecmem include(s)
 #include <vecmem/memory/host_memory_resource.hpp>
@@ -26,13 +27,13 @@
 // System include(s)
 #include <utility>
 
-/// @note __plugin has to be defined with a preprocessor command
+/// @note test has to be defined with a preprocessor command
 namespace detray {
 
 namespace {
 
-using vector3 = __plugin::vector3<detray::scalar>;
-using transform3 = __plugin::transform3<detray::scalar>;
+using vector3 = test::vector3;
+using transform3 = test::transform3;
 
 // dummy propagator state
 template <typename stepping_t, typename navigation_t>
@@ -52,7 +53,7 @@ struct prop_state {
 }  // namespace detray
 
 // This tests the construction and general methods of the navigator
-TEST(ALGEBRA_PLUGIN, telescope_detector) {
+GTEST_TEST(detray_core, telescope_detector) {
 
     using namespace detray;
 

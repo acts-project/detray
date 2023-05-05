@@ -13,6 +13,7 @@
 // detray core
 #include "detray/definitions/indexing.hpp"
 #include "detray/surface_finders/grid/populator.hpp"
+#include "detray/test/types.hpp"
 
 using namespace detray;
 
@@ -47,7 +48,7 @@ void test_content(populator_t& p, storage_t& storage, dindex bin_idx,
 }  // anonymous namespace
 
 /// Replace populator
-TEST(grid, replace_populator) {
+GTEST_TEST(detray_core, replace_populator) {
     // No sorting, dindex entries in backend storage, vecmem::vector
     using populator_t = populator<replacer>;
     populator_t replace_populator;
@@ -76,7 +77,7 @@ TEST(grid, replace_populator) {
 }
 
 /// Complete populator
-TEST(grid, complete_populator) {
+GTEST_TEST(detray_core, complete_populator) {
 
     // No sorting, 4 dims, dindex entries in backend storage, std::array
     using populator_t = populator<completer<4>>;
@@ -124,7 +125,7 @@ TEST(grid, complete_populator) {
 }
 
 /// Regular attach populator
-TEST(grid, regular_attach_populator) {
+GTEST_TEST(detray_core, regular_attach_populator) {
 
     // No sorting, 4 dims, dindex entries in backend storage, std::array
     using populator_t = populator<regular_attacher<4>>;
