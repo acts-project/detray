@@ -13,8 +13,8 @@
 #include "detray/masks/unbounded.hpp"
 #include "detray/simulation/event_generator/track_generators.hpp"
 #include "detray/simulation/simulator.hpp"
-#include "detray/tracks/bound_track_parameters.hpp"
 #include "detray/test/types.hpp"
+#include "detray/tracks/bound_track_parameters.hpp"
 #include "detray/utils/statistics.hpp"
 
 // VecMem include(s).

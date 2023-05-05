@@ -9,8 +9,8 @@
 
 #include "detray/definitions/units.hpp"
 #include "detray/masks/masks.hpp"
-#include "detray/tracks/bound_track_parameters.hpp"
 #include "detray/test/types.hpp"
+#include "detray/tracks/bound_track_parameters.hpp"
 
 using namespace detray;
 using point3_t = test::point3;

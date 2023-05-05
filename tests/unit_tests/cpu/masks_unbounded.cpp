@@ -9,8 +9,8 @@
 #include "detray/definitions/units.hpp"
 #include "detray/masks/masks.hpp"
 #include "detray/masks/unbounded.hpp"
-#include "detray/tracks/bound_track_parameters.hpp"
 #include "detray/test/types.hpp"
+#include "detray/tracks/bound_track_parameters.hpp"
 
 // GTest include(s)
 #include <gtest/gtest.h>

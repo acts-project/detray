@@ -7,8 +7,8 @@
 
 // Project include(s).
 #include "detray/masks/masks.hpp"
-#include "detray/tracks/bound_track_parameters.hpp"
 #include "detray/test/types.hpp"
+#include "detray/tracks/bound_track_parameters.hpp"
 
 // Google test include(s).
 #include <gtest/gtest.h>
