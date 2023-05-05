@@ -30,6 +30,8 @@ struct coordinate_base {
     /// @name Type definitions for the struct
     /// @{
 
+    // Transform type
+    using transform3_type = transform3_t;
     // Scalar type
     using scalar_type = typename transform3_t::scalar_type;
     // Point in 2D space

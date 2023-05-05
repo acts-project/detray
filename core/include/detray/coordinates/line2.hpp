@@ -20,6 +20,8 @@ struct line2 : public coordinate_base<line2, transform3_t> {
     /// @name Type definitions for the struct
     /// @{
 
+    // Transform type
+    using transform3_type = transform3_t;
     // Base type
     using base_type = coordinate_base<line2, transform3_t>;
     // Sclar type
@@ -148,7 +150,7 @@ struct line2 : public coordinate_base<line2, transform3_t> {
         const vector3 pc = pos - center;
 
         // The local frame z axis
-        const vector3 local_zaxis = getter::vector<3>(trf3, 0u, 2u);
+        const vector3 local_zaxis = getter::vector<3>(trf3.matrix(), 0u, 2u);
 
         // The local z coordinate
         const scalar_type pz = vector::dot(pc, local_zaxis);
