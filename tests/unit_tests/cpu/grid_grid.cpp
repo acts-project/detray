@@ -78,7 +78,7 @@ void test_content(const grid_t& g, const point3& p, const content_t& expected) {
 }  // anonymous namespace
 
 /// Unittest: Test single grid construction
-GTEST_TEST(detray_core, single_grid) {
+GTEST_TEST(detray_grid, single_grid) {
 
     // Owning and non-owning, cartesian, 3-dimensional, replacing grids
     using grid_owning_t =
@@ -160,7 +160,7 @@ GTEST_TEST(detray_core, single_grid) {
 }
 
 /// Test bin entry retrieval
-GTEST_TEST(detray_core, search) {
+GTEST_TEST(detray_grid, search) {
 
     // Non-owning, 3D cartesian, replacing grid
     /*using grid_t = grid<scalar, simple_serializer, replacer<>,
@@ -182,7 +182,7 @@ GTEST_TEST(detray_core, search) {
 }
 
 /// Integration test: Test replace population
-GTEST_TEST(detray_core, replace_population) {
+GTEST_TEST(detray_grid, replace_population) {
 
     // Non-owning, 3D cartesian, replacing grid
     using grid_t =
@@ -271,7 +271,7 @@ GTEST_TEST(detray_core, replace_population) {
 }
 
 /// Test bin entry retrieval
-GTEST_TEST(detray_core, complete_population) {
+GTEST_TEST(detray_grid, complete_population) {
 
     // Non-owning, 3D cartesian, completing grid (4 dims and sort)
     using grid_t = grid<cartesian_3D<is_n_owning>, scalar, simple_serializer,
@@ -347,7 +347,7 @@ GTEST_TEST(detray_core, complete_population) {
 }
 
 /// Test bin entry retrieval
-GTEST_TEST(detray_core, regular_attach_population) {
+GTEST_TEST(detray_grid, regular_attach_population) {
 
     // Non-owning, 3D cartesian, completing grid (4 dims and sort)
     using grid_t = grid<cartesian_3D<is_n_owning>, scalar, simple_serializer,
@@ -406,7 +406,7 @@ GTEST_TEST(detray_core, regular_attach_population) {
      EXPECT_EQ(zone_test, zone_expected);*/
 }
 
-/*TEST(grids, irregular_replace_population) {
+/*GTEST_TEST(detray_grid, irregular_replace_population) {
 
     // Non-owning, 3D cartesian, replacing grid
     using grid_t =

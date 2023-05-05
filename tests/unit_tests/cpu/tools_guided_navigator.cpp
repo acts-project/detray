@@ -24,7 +24,7 @@
 #include "tests/common/tools/inspectors.hpp"
 
 // This tests the construction and general methods of the navigator
-GTEST_TEST(detray_core, guided_navigator) {
+GTEST_TEST(detray_propagator, guided_navigator) {
     using namespace detray;
     using namespace navigation;
     using transform3_t = test::transform3;

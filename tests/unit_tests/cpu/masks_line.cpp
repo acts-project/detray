@@ -27,7 +27,7 @@ constexpr scalar hz{50.f * unit<scalar>::mm};
 }  // anonymous namespace
 
 /// This tests the basic functionality of a line with a radial cross section
-GTEST_TEST(detray_core, line_radial_cross_sect) {
+GTEST_TEST(detray_masks, line_radial_cross_sect) {
     using point_t = point3_t;
 
     const point_t ln_in{0.09f, 0.5f, 0.f};
@@ -74,7 +74,7 @@ GTEST_TEST(detray_core, line_radial_cross_sect) {
 }
 
 /// This tests the basic functionality of a line with a square cross section
-GTEST_TEST(detray_core, line_square_cross_sect) {
+GTEST_TEST(detray_masks, line_square_cross_sect) {
     using point_t = point3_t;
 
     const point_t ln_in{1.1f, 0.9f, constant<scalar>::pi_4};

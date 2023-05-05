@@ -19,7 +19,7 @@ using vector3 = typename transform3::vector3;
 
 constexpr scalar tolerance = 1e-6f;
 
-GTEST_TEST(detray_core, column_wise_cross) {
+GTEST_TEST(detray_utils, column_wise_cross) {
     auto P = matrix_operator().template zero<3, 3>();
 
     getter::element(P, 0u, 0u) = 0.f;
@@ -47,7 +47,7 @@ GTEST_TEST(detray_core, column_wise_cross) {
     EXPECT_NEAR(getter::element(Q, 2u, 2u), -1.f, tolerance);
 }
 
-GTEST_TEST(detray_core, column_wise_multiply) {
+GTEST_TEST(detray_utils, column_wise_multiply) {
 
     auto P = matrix_operator().template zero<3, 3>();
 
@@ -76,7 +76,7 @@ GTEST_TEST(detray_core, column_wise_multiply) {
     EXPECT_NEAR(getter::element(Q, 2u, 2u), 24.f, tolerance);
 }
 
-GTEST_TEST(detray_core, cross_matrix) {
+GTEST_TEST(detray_utils, cross_matrix) {
 
     const vector3 u{1.f, 2.f, 3.f};
     const vector3 v{3.f, 4.f, 5.f};
@@ -106,7 +106,7 @@ GTEST_TEST(detray_core, cross_matrix) {
     EXPECT_NEAR(u_cross_v[2], v_cross_u[2], tolerance);
 }
 
-GTEST_TEST(detray_core, outer_product) {
+GTEST_TEST(detray_utils, outer_product) {
 
     const vector3 u{1.f, 2.f, 3.f};
     const vector3 v{3.f, 4.f, 5.f};

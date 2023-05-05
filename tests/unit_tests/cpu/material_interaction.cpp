@@ -40,7 +40,7 @@ using transform3 = test::transform3;
 using matrix_operator = typename transform3::matrix_actor;
 
 // Material interaction test with telescope Geometry
-GTEST_TEST(detray_core, telescope_geometry_energy_loss) {
+GTEST_TEST(detray_materials, telescope_geometry_energy_loss) {
 
     vecmem::host_memory_resource host_mr;
 
@@ -213,7 +213,7 @@ GTEST_TEST(detray_core, telescope_geometry_energy_loss) {
 }
 
 // Material interaction test with telescope Geometry
-GTEST_TEST(detray_core, telescope_geometry_scattering_angle) {
+GTEST_TEST(detray_materials, telescope_geometry_scattering_angle) {
     vecmem::host_memory_resource host_mr;
 
     // Build in x-direction from given module positions

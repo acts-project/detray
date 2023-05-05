@@ -32,7 +32,7 @@ using intersection_t = intersection2D<surface<>, transform3>;
 constexpr scalar tol{std::numeric_limits<scalar>::epsilon()};
 
 // This defines the local frame test suite
-GTEST_TEST(detray_core, translated_plane_ray) {
+GTEST_TEST(detray_intersection, translated_plane_ray) {
     // Create a shifted plane
     const transform3 shifted(vector3{3.f, 2.f, 10.f});
 
@@ -90,7 +90,7 @@ GTEST_TEST(detray_core, translated_plane_ray) {
 }
 
 // This defines the local frame test suite
-GTEST_TEST(detray_core, plane_incidence_angle) {
+GTEST_TEST(detray_intersection, plane_incidence_angle) {
     // tf3 with rotated axis
     const vector3 x{1.f, 0.f, -1.f};
     const vector3 z{1.f, 0.f, 1.f};

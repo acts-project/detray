@@ -23,7 +23,7 @@ using namespace detray;
 constexpr std::size_t root_hash = 3244;
 
 // This test runs intersection with all portals of the TrackML detector
-GTEST_TEST(detray_core, check_geometry_linking) {
+GTEST_TEST(detray_geometry, check_geometry_linking) {
 
     // Detector configuration
     constexpr std::size_t n_brl_layers{4};

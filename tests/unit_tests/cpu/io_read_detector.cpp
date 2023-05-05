@@ -18,7 +18,7 @@
 #include "tests/common/tools/read_geometry.hpp"
 
 // This tests the construction of a detector class
-GTEST_TEST(detray_core, read_detector) {
+GTEST_TEST(detray_tools, read_detector) {
     vecmem::host_memory_resource host_mr;
     using namespace detray;
 

@@ -47,7 +47,7 @@ struct bin_content_sequence {
 }  // anonymous namespace
 
 /// Unittest: Test the construction of a collection of grids
-GTEST_TEST(detray_core, grid_collection) {
+GTEST_TEST(detray_grid, grid_collection) {
 
     // grid type
 

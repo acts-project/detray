@@ -34,7 +34,7 @@ using material_link_t = dtyped_index<material_ids, dindex>;
 
 constexpr scalar tol{1e-5f};
 
-GTEST_TEST(detray_core, bound_track_parameters) {
+GTEST_TEST(detray_tracks, bound_track_parameters) {
 
     // surface container
     std::vector<surface<mask_link_t, material_link_t>> surfaces;
@@ -139,7 +139,7 @@ GTEST_TEST(detray_core, bound_track_parameters) {
     EXPECT_TRUE(bound_param2 == bound_param3);
 }
 
-GTEST_TEST(detray_core, free_track_parameters) {
+GTEST_TEST(detray_tracks, free_track_parameters) {
 
     point3 pos = {4.f, 10.f, 2.f};
     scalar time = 0.1f;

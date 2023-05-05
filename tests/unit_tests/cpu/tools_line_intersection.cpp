@@ -35,7 +35,7 @@ using line_intersector_type = line_intersector<intersection_t>;
 constexpr scalar tol{1e-5f};
 
 // Test simplest case
-GTEST_TEST(detray_core, line_intersector_case1) {
+GTEST_TEST(detray_intersection, line_intersector_case1) {
     // tf3 with Identity rotation and no translation
     const transform3 tf{};
 
@@ -88,7 +88,7 @@ GTEST_TEST(detray_core, line_intersector_case1) {
 }
 
 // Test inclined wire
-GTEST_TEST(detray_core, line_intersector_case2) {
+GTEST_TEST(detray_intersection, line_intersector_case2) {
     // tf3 with skewed axis
     const vector3 x{1.f, 0.f, -1.f};
     const vector3 z{1.f, 0.f, 1.f};
@@ -118,7 +118,7 @@ GTEST_TEST(detray_core, line_intersector_case2) {
     EXPECT_NEAR(is.local[1], -constant<scalar>::inv_sqrt2, tol);
 }
 
-GTEST_TEST(detray_core, line_intersector_square_scope) {
+GTEST_TEST(detray_intersection, line_intersector_square_scope) {
 
     // tf3 with Identity rotation and no translation
     const transform3 tf{};

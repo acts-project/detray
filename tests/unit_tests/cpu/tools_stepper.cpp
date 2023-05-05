@@ -64,7 +64,7 @@ struct prop_state {
 }  // namespace
 
 // This tests the base functionality of the line stepper
-GTEST_TEST(detray_core, line_stepper) {
+GTEST_TEST(detray_propagator, line_stepper) {
     using namespace step;
 
     // Line stepper with and without constrained stepping
@@ -135,7 +135,7 @@ GTEST_TEST(detray_core, line_stepper) {
 }
 
 // This tests the base functionality of the Runge-Kutta stepper
-GTEST_TEST(detray_core, rk_stepper) {
+GTEST_TEST(detray_propagator, rk_stepper) {
     using namespace step;
 
     // RK stepper configurations

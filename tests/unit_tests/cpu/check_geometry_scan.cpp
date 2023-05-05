@@ -62,7 +62,7 @@ void print_adj(const dvector<dindex> &adjacency_matrix) {
 
 // Tests the consistency of the toy geometry implementation. In principle,
 // every geometry can be checked this way.
-GTEST_TEST(detray_core, toy_geometry_scan) {
+GTEST_TEST(detray_geometry, toy_geometry_scan) {
 
     // Build the geometry (modeled as a unified index geometry)
     vecmem::host_memory_resource host_mr;
@@ -117,7 +117,7 @@ GTEST_TEST(detray_core, toy_geometry_scan) {
 
 // @TODO: Create common check function for all detectors
 /// Tests the consistency of the telescope geometry implementation.
-GTEST_TEST(detray_core, telescope_geometry_scan) {
+GTEST_TEST(detray_geometry, telescope_geometry_scan) {
 
     vecmem::host_memory_resource host_mr;
 

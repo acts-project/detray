@@ -33,7 +33,7 @@ using free_track_parameters_type = free_track_parameters<transform3_t>;
 
 /// This test runs intersection with all portals of the toy detector with a ray
 /// and then compares the intersection trace with a straight line navigation.
-GTEST_TEST(detray_core, straight_line_navigation) {
+GTEST_TEST(detray_propagator, straight_line_navigation) {
 
     // Detector configuration
     constexpr std::size_t n_brl_layers{4u};
@@ -120,7 +120,7 @@ GTEST_TEST(detray_core, straight_line_navigation) {
 
 /// Check the Runge-Kutta based navigation against a helix trajectory as ground
 /// truth
-GTEST_TEST(detray_core, helix_navigation) {
+GTEST_TEST(detray_propagator, helix_navigation) {
     using namespace navigation;
 
     // Detector configuration

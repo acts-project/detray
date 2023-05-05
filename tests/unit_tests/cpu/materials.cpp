@@ -34,7 +34,7 @@ using intersection_t = intersection2D<surface<>, transform3>;
 constexpr scalar tol{1e-7f};
 
 // This tests the material functionalities
-GTEST_TEST(detray_core, material) {
+GTEST_TEST(detray_materials, material) {
     // vacuum
     constexpr vacuum<scalar> vac;
     EXPECT_TRUE(std::isinf(vac.X0()));
@@ -74,7 +74,7 @@ GTEST_TEST(detray_core, material) {
                 tol);
 }
 
-GTEST_TEST(detray_core, mixture) {
+GTEST_TEST(detray_materials, mixture) {
 
     // Check if material property doesn't change after mixing with other
     // material of 0 ratio
@@ -126,7 +126,7 @@ GTEST_TEST(detray_core, mixture) {
 }
 
 // This tests the material slab functionalities
-GTEST_TEST(detray_core, material_slab) {
+GTEST_TEST(detray_materials, material_slab) {
 
     constexpr material_slab<scalar> slab(oxygen_gas<scalar>(),
                                          2.f * unit<scalar>::mm);
@@ -142,7 +142,7 @@ GTEST_TEST(detray_core, material_slab) {
 }
 
 // This tests the material rod functionalities
-GTEST_TEST(detray_core, material_rod) {
+GTEST_TEST(detray_materials, material_rod) {
 
     // Rod with 1 mm radius
     constexpr material_rod<scalar> rod(oxygen_gas<scalar>(),

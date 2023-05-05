@@ -32,7 +32,7 @@ using transform3 = test::transform3;
 constexpr scalar tol{1e-7f};
 
 // Test measurement smearer
-GTEST_TEST(detray_core, measurement_smearer) {
+GTEST_TEST(detray_simulation, measurement_smearer) {
 
     const mask<line<false, line_intersector, 1u, true>> ln_1D{
         0u, 10.f * unit<scalar>::mm, 50.f * unit<scalar>::mm};
@@ -72,7 +72,7 @@ GTEST_TEST(detray_core, measurement_smearer) {
     ASSERT_NEAR(local_rectangle_2[1], -3.f, tol);
 }
 
-GTEST_TEST(detray_core, toy_geometry_simulation) {
+GTEST_TEST(detray_simulation, toy_geometry_simulation) {
 
     // Use deterministic random number generator for testing
     using normal_gen_t =

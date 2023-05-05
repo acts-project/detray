@@ -22,7 +22,7 @@ constexpr scalar r{3.f * unit<scalar>::mm};
 constexpr scalar hz{4.f * unit<scalar>::mm};
 
 /// This tests the basic functionality of a 2D cylinder
-GTEST_TEST(detray_core, cylinder2D) {
+GTEST_TEST(detray_masks, cylinder2D) {
     using point_t = point3_t;
 
     point_t p2_in = {r, -1.f, r};
@@ -68,7 +68,7 @@ GTEST_TEST(detray_core, cylinder2D) {
 }
 
 /// This tests the basic functionality of a 3D cylinder
-GTEST_TEST(detray_core, cylinder3D) {
+GTEST_TEST(detray_masks, cylinder3D) {
     using point_t = point3_t;
 
     point_t p3_in = {r, 0.f, -1.f};

@@ -139,7 +139,7 @@ struct helix_inspector : actor {
 }  // anonymous namespace
 
 /// Test basic functionality of the propagator using a straight line stepper
-GTEST_TEST(detray_core, propagator_line_stepper) {
+GTEST_TEST(detray_propagator, propagator_line_stepper) {
 
     vecmem::host_memory_resource host_mr;
     const auto d = create_toy_geometry(host_mr);

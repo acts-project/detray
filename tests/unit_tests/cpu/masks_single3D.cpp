@@ -19,7 +19,7 @@ using transform3_t = test::transform3;
 constexpr scalar tol{1e-7f};
 
 /// This tests the basic functionality of a single value mask (index 0)
-GTEST_TEST(detray_core, single3_0) {
+GTEST_TEST(detray_masks, single3_0) {
     using point_t = point3_t;
 
     point_t p3_in = {0.5f, -9.f, 0.f};
@@ -50,7 +50,7 @@ GTEST_TEST(detray_core, single3_0) {
 }
 
 /// This tests the basic functionality of a single value mask (index 1)
-GTEST_TEST(detray_core, single3_1) {
+GTEST_TEST(detray_masks, single3_1) {
     using point_t = point3_t;
 
     point_t p3_in = {0.5f, -9.f, 0.f};
@@ -96,7 +96,7 @@ GTEST_TEST(detray_core, single3_1) {
 }
 
 /// This tests the basic functionality of a single value mask (index 2)
-GTEST_TEST(detray_core, single3_2) {
+GTEST_TEST(detray_masks, single3_2) {
     using point_t = point3_t;
 
     point_t p3_in = {0.5f, -9.f, 0.f};

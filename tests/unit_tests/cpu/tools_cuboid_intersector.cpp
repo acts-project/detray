@@ -37,7 +37,7 @@ constexpr scalar envelope{1.01f};
 }  // anonymous namespace
 
 // This test the intersection between ray and cuboid aabb
-GTEST_TEST(detray_core, cuboid_aabb_intersector) {
+GTEST_TEST(detray_intersection, cuboid_aabb_intersector) {
     // Test ray
     const point3 pos{2.f, 1.f, 0.f};
     const vector3 mom{0.f, 0.f, 1.f};

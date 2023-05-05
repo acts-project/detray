@@ -19,7 +19,7 @@ using vector3 = test::vector3;
 using point3 = test::point3;
 using transform3 = test::transform3;
 
-GTEST_TEST(detray_core, uniform_track_generator) {
+GTEST_TEST(detray_simulation, uniform_track_generator) {
 
     constexpr const scalar tol{1e-5f};
 
@@ -113,7 +113,7 @@ GTEST_TEST(detray_core, uniform_track_generator) {
     ASSERT_EQ(momenta.size(), n_tracks);
 }
 
-GTEST_TEST(detray_core, uniform_track_generator_with_range) {
+GTEST_TEST(detray_simulation, uniform_track_generator_with_range) {
 
     constexpr const scalar tol{1e-5f};
 
@@ -150,7 +150,7 @@ GTEST_TEST(detray_core, uniform_track_generator_with_range) {
 }
 
 /// Tests a random number based track state generator - uniform distribution
-GTEST_TEST(detray_core, random_track_generator_uniform) {
+GTEST_TEST(detray_simulation, random_track_generator_uniform) {
 
     // Use deterministic random number generator for testing
     using uniform_gen_t =
@@ -227,7 +227,7 @@ GTEST_TEST(detray_core, random_track_generator_uniform) {
 }
 
 /// Tests a random number based track state generator - normal distribution
-GTEST_TEST(detray_core, random_track_generator_normal) {
+GTEST_TEST(detray_simulation, random_track_generator_normal) {
 
     // Use deterministic random number generator for testing
     using normal_gen_t =

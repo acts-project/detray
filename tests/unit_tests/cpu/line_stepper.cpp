@@ -35,7 +35,7 @@ using transform3 = test::transform3;
 
 constexpr scalar tol{1e-6f};
 
-GTEST_TEST(detray_core, covariance_transport) {
+GTEST_TEST(detray_propagator, covariance_transport) {
 
     vecmem::host_memory_resource host_mr;
 

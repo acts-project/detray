@@ -41,7 +41,7 @@ using cylinder_axes = multi_axis<
 
 }  // anonymous namespace
 
-GTEST_TEST(detray_core, serializer2D) {
+GTEST_TEST(detray_grid, serializer2D) {
 
     // Offsets into edges container and #bins for all axes
     vecmem::vector<dindex_range> edge_ranges = {{0u, 6u}, {2u, 12u}};
@@ -73,7 +73,7 @@ GTEST_TEST(detray_core, serializer2D) {
     EXPECT_EQ(serializer(axes, 17u), expected_mbin);
 }
 
-GTEST_TEST(detray_core, serializer3D) {
+GTEST_TEST(detray_grid, serializer3D) {
 
     // Offsets into edges container and #bins for all axes
     vecmem::vector<dindex_range> edge_ranges = {{0u, 4u}, {2u, 2u}, {4u, 2u}};

@@ -24,7 +24,7 @@ using matrix_operator = typename transform3::matrix_actor;
 constexpr scalar isclose{1e-5f};
 
 // This test cylindrical3 coordinate
-GTEST_TEST(detray_core, cylindrical3) {
+GTEST_TEST(detray_coordinates, cylindrical3) {
 
     // Preparation work
     const vector3 z = {0.f, 0.f, 1.f};

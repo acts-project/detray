@@ -48,7 +48,7 @@ void test_content(populator_t& p, storage_t& storage, dindex bin_idx,
 }  // anonymous namespace
 
 /// Replace populator
-GTEST_TEST(detray_core, replace_populator) {
+GTEST_TEST(detray_grid, replace_populator) {
     // No sorting, dindex entries in backend storage, vecmem::vector
     using populator_t = populator<replacer>;
     populator_t replace_populator;
@@ -77,7 +77,7 @@ GTEST_TEST(detray_core, replace_populator) {
 }
 
 /// Complete populator
-GTEST_TEST(detray_core, complete_populator) {
+GTEST_TEST(detray_grid, complete_populator) {
 
     // No sorting, 4 dims, dindex entries in backend storage, std::array
     using populator_t = populator<completer<4>>;
@@ -125,7 +125,7 @@ GTEST_TEST(detray_core, complete_populator) {
 }
 
 /// Regular attach populator
-GTEST_TEST(detray_core, regular_attach_populator) {
+GTEST_TEST(detray_grid, regular_attach_populator) {
 
     // No sorting, 4 dims, dindex entries in backend storage, std::array
     using populator_t = populator<regular_attacher<4>>;

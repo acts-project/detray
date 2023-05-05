@@ -17,7 +17,7 @@
 #include <gtest/gtest.h>
 
 // This tests the construction of a static transform store
-GTEST_TEST(detray_core, static_mask_store) {
+GTEST_TEST(detray_masks, static_mask_store) {
 
     vecmem::host_memory_resource host_mr;
 

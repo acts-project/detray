@@ -28,7 +28,7 @@ using vector3 = test::vector3;
 }  // anonymous namespace
 
 /// Test retrieval of surface from collection using brute force searching
-GTEST_TEST(detray_core, brute_force_collection) {
+GTEST_TEST(detray_surface_finders, brute_force_collection) {
 
     // Where to place the surfaces
     dvector<scalar> distances1{0.f, 10.0f, 20.0f, 40.0f, 80.0f, 100.0f};
@@ -78,7 +78,7 @@ GTEST_TEST(detray_core, brute_force_collection) {
 
 /// Integration test for the retrieval of surfaces in a volume during local
 /// navigation
-GTEST_TEST(detray_core, brute_force_search) {
+GTEST_TEST(detray_surface_finders, brute_force_search) {
 
     const auto det = create_toy_geometry(host_mr);
 

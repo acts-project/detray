@@ -26,7 +26,7 @@ using matrix_type = typename matrix_operator::template matrix_type<ROWS, COLS>;
 const scalar isclose{1e-5f};
 
 // This test cartesian2 coordinate
-GTEST_TEST(detray_core, cartesian2) {
+GTEST_TEST(detray_coordinates, cartesian2) {
 
     // Preparation work
     const vector3 z = {0.f, 0.f, 1.f};

@@ -23,7 +23,7 @@ constexpr scalar hy{9.3f * unit<scalar>::mm};
 constexpr scalar hz{0.5f * unit<scalar>::mm};
 
 /// This tests the basic functionality of a rectangle
-GTEST_TEST(detray_core, rectangle2D) {
+GTEST_TEST(detray_masks, rectangle2D) {
     using point_t = point3_t;
 
     point_t p2_in = {0.5f, -9.f, 0.f};

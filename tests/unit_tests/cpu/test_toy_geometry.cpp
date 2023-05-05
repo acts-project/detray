@@ -81,7 +81,7 @@ struct surface_grid_tester {
 }  // anonymous namespace
 
 // This test check the building of the tml based toy geometry
-GTEST_TEST(detray_core, toy_geometry) {
+GTEST_TEST(detray_detectors, toy_geometry) {
 
     vecmem::host_memory_resource host_mr;
     constexpr std::size_t n_brl_layers{4u};

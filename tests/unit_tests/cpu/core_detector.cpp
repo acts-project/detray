@@ -174,7 +174,7 @@ GTEST_TEST(detray_core, detector) {
 }
 
 /// This tests the functionality of a surface factory
-GTEST_TEST(detray_core, surface_factory) {
+GTEST_TEST(detray_tools, surface_factory) {
 
     using namespace detray;
 
@@ -385,7 +385,7 @@ GTEST_TEST(detray_core, surface_factory) {
 }
 
 /// This tests the initialization of a detector volume using a volume builder
-GTEST_TEST(detray_core, volume_builder) {
+GTEST_TEST(detray_tools, volume_builder) {
 
     using namespace detray;
 
@@ -414,7 +414,7 @@ GTEST_TEST(detray_core, volume_builder) {
 }
 
 /// Integration test to build a cylinder volume with contained surfaces
-GTEST_TEST(detray_core, detector_volume_construction) {
+GTEST_TEST(detray_tools, detector_volume_construction) {
 
     using namespace detray;
 

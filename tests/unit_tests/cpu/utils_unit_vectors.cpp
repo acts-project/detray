@@ -16,7 +16,7 @@ using namespace detray;
 using transform3 = test::transform3;
 using vector3 = typename transform3::vector3;
 
-GTEST_TEST(detray_core, curvilinear_unit_vectors) {
+GTEST_TEST(detray_utils, curvilinear_unit_vectors) {
 
     constexpr const scalar tolerance = 1e-5f;
 

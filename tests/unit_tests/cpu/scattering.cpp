@@ -32,7 +32,7 @@ std::mt19937_64 generator{rd()};
 }  // namespace
 
 // Test scattering helper
-GTEST_TEST(detray_core, scattering_helper) {
+GTEST_TEST(detray_simulation, scattering_helper) {
 
     generator.seed(0u);
 
@@ -79,7 +79,7 @@ GTEST_TEST(detray_core, scattering_helper) {
 }
 
 // Test angle update
-GTEST_TEST(detray_core, angle_update) {
+GTEST_TEST(detray_simulation, angle_update) {
 
     generator.seed(0u);
 

@@ -20,7 +20,7 @@ using namespace detray;
 constexpr const scalar tol{1e-5f};
 
 // This tests the base functionality of the Helix Gun
-GTEST_TEST(detray_core, helix_trajectory) {
+GTEST_TEST(detray_intersection, helix_trajectory) {
 
     using vector3 = test::vector3;
     using point3 = test::point3;
@@ -101,7 +101,7 @@ GTEST_TEST(detray_core, helix_trajectory) {
     EXPECT_NEAR(one_loop_dir[2], vertex.dir()[2], R * tol);
 }
 
-GTEST_TEST(detray_core, helix_trajectory_small_pT) {
+GTEST_TEST(detray_intersection, helix_trajectory_small_pT) {
 
     using vector3 = test::vector3;
     using point3 = test::point3;

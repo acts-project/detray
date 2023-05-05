@@ -19,7 +19,7 @@ using transform3_t = test::transform3;
 constexpr scalar tol{1e-7f};
 
 /// This tests the basic functionality of a ring
-GTEST_TEST(detray_core, ring2D) {
+GTEST_TEST(detray_masks, ring2D) {
     using point_t = point3_t;
 
     point_t p2_pl_in = {0.5f, -2.f, 0.f};

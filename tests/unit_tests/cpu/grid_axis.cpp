@@ -40,7 +40,7 @@ constexpr scalar tol{1e-5f};
 
 }  // anonymous namespace
 
-GTEST_TEST(detray_core, open_regular_axis) {
+GTEST_TEST(detray_grid, open_regular_axis) {
 
     // Lower bin edges: min and max bin edge for the regular axis
     vecmem::vector<scalar> bin_edges = {-10.f, -5.f, -3.f, 7.f,
@@ -110,7 +110,7 @@ GTEST_TEST(detray_core, open_regular_axis) {
     EXPECT_EQ(or_axis.range(2.5f, nhoodAlls), expected_range);
 }
 
-GTEST_TEST(detray_core, closed_regular_axis) {
+GTEST_TEST(detray_grid, closed_regular_axis) {
 
     // Lower bin edges: min and max bin edge for the regular axis
     vecmem::vector<scalar> bin_edges = {-10.f, -3.f, -3.f, 7.f, 7.f, 14.f};
@@ -179,7 +179,7 @@ GTEST_TEST(detray_core, closed_regular_axis) {
     EXPECT_EQ(cr_axis.range(2.5f, nhoodAlls), expected_range);
 }
 
-GTEST_TEST(detray_core, circular_regular_axis) {
+GTEST_TEST(detray_grid, circular_regular_axis) {
 
     // Let's say 36 modules, but with 4 directly at 0, pi/2, pi, -pi2
     const scalar half_module{constant<scalar>::pi / 72.f};
@@ -253,7 +253,7 @@ GTEST_TEST(detray_core, circular_regular_axis) {
               expected_range);
 }
 
-GTEST_TEST(detray_core, closed_irregular_axis) {
+GTEST_TEST(detray_grid, closed_irregular_axis) {
 
     // Lower bin edges: all lower bin edges for irregular binning, plus the
     // final upper bin edge
@@ -314,7 +314,7 @@ GTEST_TEST(detray_core, closed_irregular_axis) {
     EXPECT_EQ(cir_axis.range(3.f, nhood11s), expected_range);
 }
 
-GTEST_TEST(detray_core, multi_axis) {
+GTEST_TEST(detray_grid, multi_axis) {
 
     // readable axis ownership definition
     bool constexpr is_owning = true;

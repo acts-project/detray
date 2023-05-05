@@ -47,7 +47,7 @@ using material_link_t = dtyped_index<material_ids, dindex>;
 using surface_t = surface<mask_link_t, material_link_t, transform3>;
 
 /// Test the typed index
-TEST(core, typed_index) {
+GTEST_TEST(detray_core, typed_index) {
 
     using index_t = dtyped_index<mask_ids, unsigned int>;
     auto ti = index_t{};
@@ -73,7 +73,7 @@ TEST(core, typed_index) {
 }
 
 // This tests the construction of a surface descriptor object
-TEST(core, surface) {
+GTEST_TEST(detray_core, surface) {
 
     mask_link_t mask_id{mask_ids::e_unmasked, 0u};
     material_link_t material_id{material_ids::e_slab, 0u};

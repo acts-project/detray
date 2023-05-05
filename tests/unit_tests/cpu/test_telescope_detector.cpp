@@ -52,7 +52,7 @@ struct prop_state {
 }  // namespace detray
 
 // This tests the construction and general methods of the navigator
-GTEST_TEST(detray_core, telescope_detector) {
+GTEST_TEST(detray_detectors, telescope_detector) {
 
     using namespace detray;
 

@@ -65,7 +65,7 @@ const vector3 w = hlx.dir(path);
 }  // anonymous namespace
 
 /// This defines the local frame test suite
-GTEST_TEST(detray_core, helix_plane_intersector_no_bfield) {
+GTEST_TEST(detray_tools, helix_plane_intersector_no_bfield) {
     // Create a shifted plane
     const transform3_t shifted(vector3{3.f, 2.f, 10.f});
 
@@ -123,7 +123,7 @@ GTEST_TEST(detray_core, helix_plane_intersector_no_bfield) {
 }
 
 /// Test the intersection between a helical trajectory and a plane
-GTEST_TEST(detray_core, helix_plane_intersector) {
+GTEST_TEST(detray_tools, helix_plane_intersector) {
 
     // Vector on the surface
     const vector3 v = vector::cross(z_axis, w);
@@ -153,7 +153,7 @@ GTEST_TEST(detray_core, helix_plane_intersector) {
 }
 
 /// This checks the closest solution of a helix-cylinder intersection
-GTEST_TEST(detray_core, helix_cylinder_intersector_no_bfield) {
+GTEST_TEST(detray_tools, helix_cylinder_intersector_no_bfield) {
 
     const scalar r{4.f * unit<scalar>::mm};
     const scalar hz{10.f * unit<scalar>::mm};
@@ -207,7 +207,7 @@ GTEST_TEST(detray_core, helix_cylinder_intersector_no_bfield) {
 }
 
 /// Test the intersection between a helical trajectory and a cylinder
-GTEST_TEST(detray_core, helix_cylinder_intersector) {
+GTEST_TEST(detray_tools, helix_cylinder_intersector) {
 
     // Transform matrix
     const transform3_t trf(trl, z_axis, w);
@@ -256,7 +256,7 @@ GTEST_TEST(detray_core, helix_cylinder_intersector) {
 }
 
 /// Test the intersection between a helical trajectory and a line
-GTEST_TEST(detray_core, helix_line_intersector) {
+GTEST_TEST(detray_tools, helix_line_intersector) {
 
     // Intersector object
     const detail::helix_line_intersector<intersection_t> hli;

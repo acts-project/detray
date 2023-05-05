@@ -42,7 +42,7 @@ const scalar hz{10.f};
 }  // anonymous namespace
 
 // This checks both solutions of a ray-cylinder intersection
-GTEST_TEST(detray_core, translated_cylinder) {
+GTEST_TEST(detray_intersection, translated_cylinder) {
     // Create a translated cylinder and test untersection
     const transform3_t shifted(vector3{3.f, 2.f, 10.f});
     cylinder_intersector<intersection_t> ci;
@@ -92,7 +92,7 @@ GTEST_TEST(detray_core, translated_cylinder) {
 }
 
 // This checks the inclindence angle calculation for a ray-cylinder intersection
-GTEST_TEST(detray_core, cylinder_incidence_angle) {
+GTEST_TEST(detray_intersection, cylinder_incidence_angle) {
     const transform3_t identity{};
     cylinder_intersector<intersection_t> ci;
 
@@ -115,7 +115,7 @@ GTEST_TEST(detray_core, cylinder_incidence_angle) {
 
 // This checks the solution of a ray-cylinder portal intersection against
 // those obtained from the general cylinder intersector.
-GTEST_TEST(detray_core, cylinder_portal) {
+GTEST_TEST(detray_intersection, cylinder_portal) {
     // Test ray
     const point3 ori = {1.f, 0.5f, 1.f};
     const point3 dir = vector::normalize(vector3{1.f, 1.f, 1.f});
@@ -161,7 +161,7 @@ GTEST_TEST(detray_core, cylinder_portal) {
 
 // This checks the solution of a ray-concentric cylinder intersection against
 // those obtained from the general cylinder intersector.
-GTEST_TEST(detray_core, concentric_cylinders) {
+GTEST_TEST(detray_intersection, concentric_cylinders) {
     // Test ray
     const point3 ori = {1.f, 0.5f, 1.f};
     const point3 dir = vector::normalize(vector3{1.f, 1.f, 1.f});

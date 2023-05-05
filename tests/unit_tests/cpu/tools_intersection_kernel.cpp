@@ -78,7 +78,7 @@ using surface_container_t = dvector<surface_t>;
 // repetition?
 
 // This tests the construction of a surface
-GTEST_TEST(detray_core, intersection_kernel_ray) {
+GTEST_TEST(detray_intersection, intersection_kernel_ray) {
     vecmem::host_memory_resource host_mr;
 
     // The transforms & their store
@@ -221,7 +221,7 @@ GTEST_TEST(detray_core, intersection_kernel_ray) {
 }
 
 /// Re-use the intersection kernel test for particle gun
-GTEST_TEST(detray_core, intersection_kernel_helix) {
+GTEST_TEST(detray_intersection, intersection_kernel_helix) {
 
     vecmem::host_memory_resource host_mr;
 

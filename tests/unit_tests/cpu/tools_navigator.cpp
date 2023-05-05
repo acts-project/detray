@@ -110,7 +110,7 @@ inline void check_step(navigator_t &nav, stepper_t &stepper,
 }  // namespace detray
 
 /// This tests the construction and general methods of the navigator
-GTEST_TEST(detray_core, navigator) {
+GTEST_TEST(detray_propagator, navigator) {
     using namespace detray;
     using namespace detray::navigation;
     using transform3 = test::transform3;

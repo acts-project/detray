@@ -19,7 +19,7 @@ using transform3_t = test::transform3;
 constexpr scalar tol{1e-5f};
 
 /// This tests the basic functionality of a stereo annulus
-GTEST_TEST(detray_core, annulus2D) {
+GTEST_TEST(detray_masks, annulus2D) {
     using point_t = point3_t;
 
     constexpr scalar minR{7.2f * unit<scalar>::mm};

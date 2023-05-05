@@ -14,7 +14,7 @@
 using namespace detray;
 
 /// Test retrieval of surface from collection using brute force searching
-GTEST_TEST(detray_core, barcode) {
+GTEST_TEST(detray_geometry, barcode) {
 
     auto bcd = geometry::barcode{};
 

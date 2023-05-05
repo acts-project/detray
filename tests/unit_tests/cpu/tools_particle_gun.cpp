@@ -28,7 +28,7 @@ constexpr const scalar tol{1e-3f};
 
 /// Brute force test: Intersect toy geometry and compare between ray and helix
 /// without B-field
-GTEST_TEST(detray_core, particle_gun) {
+GTEST_TEST(detray_tools, particle_gun) {
 
     // Build the geometry
     vecmem::host_memory_resource host_mr;

@@ -31,7 +31,7 @@ enum sf_finder_ids : unsigned int {
 }  // namespace
 
 // This tests the detector volume class and its many links
-GTEST_TEST(detray_core, detector_volume) {
+GTEST_TEST(detray_geometry, detector_volume) {
     using namespace detray;
 
     using sf_finder_link_t = dtyped_index<sf_finder_ids, dindex>;
