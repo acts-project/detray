@@ -28,6 +28,9 @@ class unmasked {
     /// The measurement dimension
     inline static constexpr const unsigned int meas_dim{2u};
 
+    /// normal ordering
+    inline static constexpr const bool normal_order = true;
+
     enum boundaries : unsigned int { e_size = 1u };
 
     /// Local coordinate frame for boundary checks

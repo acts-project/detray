@@ -13,6 +13,7 @@
 #include "detray/masks/unbounded.hpp"
 #include "detray/simulation/event_generator/track_generators.hpp"
 #include "detray/simulation/simulator.hpp"
+#include "detray/tracks/bound_track_parameters.hpp"
 #include "detray/utils/statistics.hpp"
 
 // VecMem include(s).
@@ -29,41 +30,43 @@ using transform3 = __plugin::transform3<detray::scalar>;
 
 constexpr scalar tol{1e-7f};
 
-struct test_param {
-    using point2 = __plugin::point2<scalar>;
-
-    test_param(scalar loc_0, scalar loc_1) {
-        loc[0] = loc_0;
-        loc[1] = loc_1;
-    }
-
-    point2 loc;
-    point2 bound_local() const { return loc; }
-};
-
 // Test measurement smearer
 TEST(check_simulation, measurement_smearer) {
 
-    test_param param(1.f, 2.f);
-    measurement_smearer<scalar> smearer(0.f, 0.f);
+    const mask<line<false, line_intersector, 1u, true>> ln_1D{
+        0u, 10.f * unit<scalar>::mm, 50.f * unit<scalar>::mm};
 
-    const auto local_line_1 = smearer("line", 1u, {-3.f, 2.f}, param);
+    const mask<line<false, line_intersector, 2u, true>> ln_2D{
+        0u, 10.f * unit<scalar>::mm, 50.f * unit<scalar>::mm};
+
+    const mask<rectangle2D<plane_intersector, 1u, true>> re_1D{
+        0u, 10.f * unit<scalar>::mm, 10.f * unit<scalar>::mm};
+
+    const mask<rectangle2D<plane_intersector, 2u, true>> re_2D{
+        0u, 10.f * unit<scalar>::mm, 10.f * unit<scalar>::mm};
+
+    bound_track_parameters<transform3> bound_params;
+    auto& bound_vec = bound_params.vector();
+    getter::element(bound_vec, e_bound_loc0, 0u) = 1.f;
+    getter::element(bound_vec, e_bound_loc1, 0u) = 2.f;
+
+    measurement_smearer<transform3> smearer(0.f, 0.f);
+
+    const auto local_line_1 = smearer(ln_1D, {-3.f, 2.f}, bound_params);
     ASSERT_NEAR(local_line_1[0], 0.f, tol);
     // Null for one dimensional measurement
     ASSERT_NEAR(local_line_1[1], 0.f, tol);
 
-    const auto local_line_2 = smearer("line", 2u, {2.f, -5.f}, param);
+    const auto local_line_2 = smearer(ln_2D, {2.f, -5.f}, bound_params);
     ASSERT_NEAR(local_line_2[0], 3.f, tol);
     ASSERT_NEAR(local_line_2[1], -3.f, tol);
 
-    const auto local_rectangle_1 =
-        smearer("rectangle2D", 1u, {-3.f, 2.f}, param);
+    const auto local_rectangle_1 = smearer(re_1D, {-3.f, 2.f}, bound_params);
     ASSERT_NEAR(local_rectangle_1[0], -2.f, tol);
     // Null for one dimensional measurement
     ASSERT_NEAR(local_rectangle_1[1], 0.f, tol);
 
-    const auto local_rectangle_2 =
-        smearer("rectangle2D", 2u, {2.f, -5.f}, param);
+    const auto local_rectangle_2 = smearer(re_2D, {2.f, -5.f}, bound_params);
     ASSERT_NEAR(local_rectangle_2[0], 3.f, tol);
     ASSERT_NEAR(local_rectangle_2[1], -3.f, tol);
 }
@@ -94,8 +97,8 @@ TEST(check_simulation, toy_geometry) {
             n_tracks, ori);
 
     // Create smearer
-    measurement_smearer<scalar> smearer(67.f * unit<scalar>::um,
-                                        170.f * unit<scalar>::um);
+    measurement_smearer<transform3> smearer(67.f * unit<scalar>::um,
+                                            170.f * unit<scalar>::um);
 
     std::size_t n_events{10u};
     auto sim = simulator(n_events, detector, std::move(generator), smearer);
@@ -239,8 +242,8 @@ TEST_P(TelescopeDetectorSimulation, telescope_detector_simulation) {
         theta_steps, phi_steps, ori, mom, {theta, theta}, {0.f, 0.f});
 
     // Create smearer
-    measurement_smearer<scalar> smearer(50.f * unit<scalar>::um,
-                                        50.f * unit<scalar>::um);
+    measurement_smearer<transform3> smearer(50.f * unit<scalar>::um,
+                                            50.f * unit<scalar>::um);
 
     std::size_t n_events{1000u};
 

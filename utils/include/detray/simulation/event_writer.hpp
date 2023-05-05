@@ -75,13 +75,13 @@ struct event_writer : actor {
 
         template <typename mask_group_t, typename index_t>
         inline std::array<scalar_type, 2> operator()(
-            const mask_group_t& /*mask_group*/, const index_t& /*index*/,
+            const mask_group_t& mask_group, const index_t& index,
             const bound_track_parameters<transform3_t>& bound_params,
             smearer_t& smearer) const {
 
-            return smearer(mask_group_t::value_type::shape::name,
-                           mask_group_t::value_type::shape::meas_dim,
-                           smearer.get_offset(), bound_params);
+            const auto& mask = mask_group[index];
+
+            return smearer(mask, smearer.get_offset(), bound_params);
         }
     };
 
