@@ -19,10 +19,10 @@
 #include "detray/propagator/propagator.hpp"
 #include "detray/propagator/rk_stepper.hpp"
 #include "detray/simulation/event_generator/track_generators.hpp"
+#include "detray/test/types.hpp"
 #include "detray/tracks/tracks.hpp"
 #include "tests/common/tools/inspectors.hpp"
 #include "tests/common/tools/particle_gun.hpp"
-#include "detray/test/types.hpp"
 
 using namespace detray;
 using namespace navigation;

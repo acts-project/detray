@@ -7,8 +7,8 @@
 
 // Project include(s).
 #include "detray/coordinates/cartesian2.hpp"
-#include "detray/tracks/tracks.hpp"
 #include "detray/test/types.hpp"
+#include "detray/tracks/tracks.hpp"
 
 // GTest include(s).
 #include <gtest/gtest.h>

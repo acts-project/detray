@@ -8,8 +8,8 @@
 // Project include(s).
 #include "detray/coordinates/cylindrical2.hpp"
 #include "detray/masks/masks.hpp"
-#include "detray/tracks/tracks.hpp"
 #include "detray/test/types.hpp"
+#include "detray/tracks/tracks.hpp"
 
 // GTest include(s).
 #include <gtest/gtest.h>

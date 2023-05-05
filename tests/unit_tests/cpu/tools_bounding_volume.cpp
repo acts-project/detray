@@ -9,7 +9,6 @@
 #include "detray/definitions/units.hpp"
 #include "detray/test/types.hpp"
 #include "detray/tools/bounding_volume.hpp"
-#include "detray/test/types.hpp"
 
 // Google test include(s).
 #include <gtest/gtest.h>

@@ -11,10 +11,10 @@
 #include "detray/geometry/volume_graph.hpp"
 #include "detray/intersection/detail/trajectories.hpp"
 #include "detray/simulation/event_generator/track_generators.hpp"
+#include "detray/test/types.hpp"
 #include "tests/common/tools/hash_tree.hpp"
 #include "tests/common/tools/particle_gun.hpp"
 #include "tests/common/tools/ray_scan_utils.hpp"
-#include "detray/test/types.hpp"
 
 // Vecmem include(s)
 #include <vecmem/memory/host_memory_resource.hpp>

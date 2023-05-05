@@ -10,10 +10,10 @@
 #include "detray/geometry/surface.hpp"
 #include "detray/masks/masks.hpp"
 #include "detray/masks/unbounded.hpp"
+#include "detray/test/types.hpp"
 #include "detray/tracks/tracks.hpp"
 #include "detray/utils/axis_rotation.hpp"
 #include "tests/common/tools/intersectors/helix_plane_intersector.hpp"
-#include "detray/test/types.hpp"
 
 // google-test include(s).
 #include <gtest/gtest.h>

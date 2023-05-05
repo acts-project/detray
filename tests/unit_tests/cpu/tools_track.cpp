@@ -7,8 +7,8 @@
 
 // Project include(s)
 #include "detray/geometry/surface.hpp"
-#include "detray/tracks/tracks.hpp"
 #include "detray/test/types.hpp"
+#include "detray/tracks/tracks.hpp"
 
 // Google Test include(s)
 #include <gtest/gtest.h>

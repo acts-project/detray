@@ -9,8 +9,8 @@
 #include "detray/intersection/bounding_box/cuboid_intersector.hpp"
 #include "detray/intersection/detail/trajectories.hpp"
 #include "detray/intersection/intersection.hpp"
-#include "detray/tools/bounding_volume.hpp"
 #include "detray/test/types.hpp"
+#include "detray/tools/bounding_volume.hpp"
 
 // GTest include
 #include <gtest/gtest.h>

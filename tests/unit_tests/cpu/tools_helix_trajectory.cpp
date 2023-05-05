@@ -9,8 +9,8 @@
 
 #include "detray/definitions/units.hpp"
 #include "detray/intersection/detail/trajectories.hpp"
-#include "detray/tracks/tracks.hpp"
 #include "detray/test/types.hpp"
+#include "detray/tracks/tracks.hpp"
 
 // System include(s)
 #include <cmath>

@@ -6,8 +6,8 @@
  */
 
 // Project include(s).
-#include "detray/utils/matrix_helper.hpp"
 #include "detray/test/types.hpp"
+#include "detray/utils/matrix_helper.hpp"
 
 // GTest include(s)
 #include <gtest/gtest.h>

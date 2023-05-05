@@ -9,9 +9,9 @@
 #include "detray/propagator/actors/pointwise_material_interactor.hpp"
 #include "detray/simulation/random_scatterer.hpp"
 #include "detray/simulation/scattering_helper.hpp"
+#include "detray/test/types.hpp"
 #include "detray/tracks/tracks.hpp"
 #include "detray/utils/statistics.hpp"
-#include "detray/test/types.hpp"
 
 // google-test include(s).
 #include <gtest/gtest.h>

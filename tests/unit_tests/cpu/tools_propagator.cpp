@@ -23,9 +23,9 @@
 #include "detray/propagator/propagator.hpp"
 #include "detray/propagator/rk_stepper.hpp"
 #include "detray/simulation/event_generator/track_generators.hpp"
+#include "detray/test/types.hpp"
 #include "detray/tracks/tracks.hpp"
 #include "tests/common/tools/inspectors.hpp"
-#include "detray/test/types.hpp"
 
 using namespace detray;
 using transform3 = test::transform3;
@@ -160,9 +160,9 @@ GTEST_TEST(detray_core, propagator_line_stepper) {
         << state._navigation.inspector().to_string() << std::endl;
 }
 
-class PropagatorWithRkStepper
-    : public ::testing::TestWithParam<
-          std::tuple<test::vector3, scalar, scalar>> {};
+class PropagatorWithRkStepper : public ::testing::TestWithParam<
+                                    std::tuple<test::vector3, scalar, scalar>> {
+};
 
 /// Test propagation in a magnetic field using a Runge-Kutta stepper
 TEST_P(PropagatorWithRkStepper, propagator_rk_stepper) {
@@ -283,30 +283,34 @@ TEST_P(PropagatorWithRkStepper, propagator_rk_stepper) {
 // Realistic case
 INSTANTIATE_TEST_SUITE_P(
     PropagatorValidation1, PropagatorWithRkStepper,
-    ::testing::Values(std::make_tuple(
-        test::vector3{0.f * unit<scalar>::T, 0.f * unit<scalar>::T,
-                                  2.f * unit<scalar>::T},
-        -7.f * unit<scalar>::um, std::numeric_limits<scalar>::max())));
+    ::testing::Values(std::make_tuple(test::vector3{0.f * unit<scalar>::T,
+                                                    0.f * unit<scalar>::T,
+                                                    2.f * unit<scalar>::T},
+                                      -7.f * unit<scalar>::um,
+                                      std::numeric_limits<scalar>::max())));
 
 // Add some restrictions for more frequent navigation updates in the cases of
 // non-z-aligned B-fields
 INSTANTIATE_TEST_SUITE_P(
     PropagatorValidation2, PropagatorWithRkStepper,
-    ::testing::Values(std::make_tuple(
-        test::vector3{0.f * unit<scalar>::T, 1.f * unit<scalar>::T,
-                                  1.f * unit<scalar>::T},
-        -10.f * unit<scalar>::um, 5.f * unit<scalar>::mm)));
+    ::testing::Values(std::make_tuple(test::vector3{0.f * unit<scalar>::T,
+                                                    1.f * unit<scalar>::T,
+                                                    1.f * unit<scalar>::T},
+                                      -10.f * unit<scalar>::um,
+                                      5.f * unit<scalar>::mm)));
 
 INSTANTIATE_TEST_SUITE_P(
     PropagatorValidation3, PropagatorWithRkStepper,
-    ::testing::Values(std::make_tuple(
-        test::vector3{1.f * unit<scalar>::T, 0.f * unit<scalar>::T,
-                                  1.f * unit<scalar>::T},
-        -10.f * unit<scalar>::um, 5.f * unit<scalar>::mm)));
+    ::testing::Values(std::make_tuple(test::vector3{1.f * unit<scalar>::T,
+                                                    0.f * unit<scalar>::T,
+                                                    1.f * unit<scalar>::T},
+                                      -10.f * unit<scalar>::um,
+                                      5.f * unit<scalar>::mm)));
 
 INSTANTIATE_TEST_SUITE_P(
     PropagatorValidation4, PropagatorWithRkStepper,
-    ::testing::Values(std::make_tuple(
-        test::vector3{1.f * unit<scalar>::T, 1.f * unit<scalar>::T,
-                                  1.f * unit<scalar>::T},
-        -10.f * unit<scalar>::um, 5.f * unit<scalar>::mm)));
+    ::testing::Values(std::make_tuple(test::vector3{1.f * unit<scalar>::T,
+                                                    1.f * unit<scalar>::T,
+                                                    1.f * unit<scalar>::T},
+                                      -10.f * unit<scalar>::um,
+                                      5.f * unit<scalar>::mm)));

@@ -24,9 +24,9 @@
 #include "detray/propagator/propagator.hpp"
 #include "detray/propagator/rk_stepper.hpp"
 #include "detray/simulation/random_scatterer.hpp"
+#include "detray/test/types.hpp"
 #include "detray/utils/statistics.hpp"
 #include "tests/common/tools/inspectors.hpp"
-#include "detray/test/types.hpp"
 
 // VecMem include(s).
 #include <vecmem/memory/host_memory_resource.hpp>

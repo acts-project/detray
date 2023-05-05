@@ -14,8 +14,8 @@
 
 #include "detray/core/detector.hpp"
 #include "detray/detectors/detector_metadata.hpp"
-#include "tests/common/tools/read_geometry.hpp"
 #include "detray/test/types.hpp"
+#include "tests/common/tools/read_geometry.hpp"
 
 /// @note test has to be defined with a preprocessor command
 

@@ -11,8 +11,8 @@
 #include "detray/intersection/intersection.hpp"
 #include "detray/intersection/line_intersector.hpp"
 #include "detray/masks/masks.hpp"
-#include "detray/tracks/tracks.hpp"
 #include "detray/test/types.hpp"
+#include "detray/tracks/tracks.hpp"
 
 // GTest include(s)
 #include <gtest/gtest.h>

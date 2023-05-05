@@ -11,11 +11,11 @@
 #include "detray/intersection/detail/trajectories.hpp"
 #include "detray/masks/masks.hpp"
 #include "detray/masks/unmasked.hpp"
+#include "detray/test/types.hpp"
 #include "detray/tracks/tracks.hpp"
 #include "tests/common/tools/intersectors/helix_cylinder_intersector.hpp"
 #include "tests/common/tools/intersectors/helix_line_intersector.hpp"
 #include "tests/common/tools/intersectors/helix_plane_intersector.hpp"
-#include "detray/test/types.hpp"
 
 // Google Test include(s).
 #include <gtest/gtest.h>

@@ -12,8 +12,8 @@
 #include "detray/intersection/detail/trajectories.hpp"
 #include "detray/surface_finders/brute_force_finder.hpp"
 #include "detray/surface_finders/neighborhood_kernel.hpp"
-#include "tests/common/tools/test_surfaces.hpp"
 #include "detray/test/types.hpp"
+#include "tests/common/tools/test_surfaces.hpp"
 
 // Vecmem include(s)
 #include <vecmem/memory/host_memory_resource.hpp>

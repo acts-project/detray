@@ -6,6 +6,8 @@
  */
 
 // Project include(s).
+#include "detray/propagator/line_stepper.hpp"
+
 #include "detray/definitions/units.hpp"
 #include "detray/detectors/create_telescope_detector.hpp"
 #include "detray/masks/masks.hpp"
@@ -13,7 +15,6 @@
 #include "detray/propagator/actor_chain.hpp"
 #include "detray/propagator/actors/parameter_resetter.hpp"
 #include "detray/propagator/actors/parameter_transporter.hpp"
-#include "detray/propagator/line_stepper.hpp"
 #include "detray/propagator/navigator.hpp"
 #include "detray/propagator/propagator.hpp"
 #include "detray/test/types.hpp"
