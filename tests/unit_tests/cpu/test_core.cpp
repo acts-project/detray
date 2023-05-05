@@ -19,8 +19,6 @@
 #include <cmath>
 #include <limits>
 
-/// @note test has to be defined with a preprocessor command
-
 using namespace detray;
 
 namespace {

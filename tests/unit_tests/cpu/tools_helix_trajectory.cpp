@@ -15,7 +15,6 @@
 // System include(s)
 #include <cmath>
 
-/// @note test has to be defined with a preprocessor command
 using namespace detray;
 
 constexpr const scalar tol{1e-5f};

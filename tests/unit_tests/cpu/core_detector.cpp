@@ -24,7 +24,6 @@
 
 namespace {
 
-/// @note test has to be defined with a preprocessor command
 using point3 = detray::test::point3;
 using vector3 = detray::test::vector3;
 using point2 = detray::test::point2;

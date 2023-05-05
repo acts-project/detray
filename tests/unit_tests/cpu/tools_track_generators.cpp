@@ -14,7 +14,6 @@
 #include "detray/tracks/tracks.hpp"
 #include "detray/utils/statistics.hpp"
 
-/// @note test has to be defined with a preprocessor command
 using namespace detray;
 using vector3 = test::vector3;
 using point3 = test::point3;

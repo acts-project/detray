@@ -15,8 +15,6 @@
 #include "detray/geometry/volume_graph.hpp"
 #include "detray/test/types.hpp"
 
-/// @note test has to be defined with a preprocessor command
-
 // This tests the linking of a geometry by loading it into a graph structure
 GTEST_TEST(detray_core, volume_graph) {
     using namespace detray;

@@ -11,8 +11,6 @@
 #include "detray/geometry/detector_volume.hpp"
 #include "detray/test/types.hpp"
 
-/// @note test has to be defined with a preprocessor command
-
 // TODO: Move these into the test defs
 namespace {
 

@@ -20,7 +20,6 @@
 // GTest include(s).
 #include <gtest/gtest.h>
 
-/// @note test has to be defined with a preprocessor command
 using namespace detray;
 
 using transform3_type = test::transform3;

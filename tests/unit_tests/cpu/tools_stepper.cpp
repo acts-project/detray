@@ -24,7 +24,6 @@
 #include <covfie/core/field_view.hpp>
 #include <covfie/core/vector.hpp>
 
-/// @note test has to be defined with a preprocessor command
 using namespace detray;
 using vector2 = test::vector2;
 using vector3 = test::vector3;

@@ -10,8 +10,6 @@
 #include "detray/core/detail/single_store.hpp"
 #include "detray/test/types.hpp"
 
-/// @note test has to be defined with a preprocessor command
-
 // This tests the construction of a static transform store
 GTEST_TEST(detray_core, static_transform_store) {
     using namespace detray;

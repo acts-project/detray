@@ -19,7 +19,6 @@ using namespace detray;
 
 namespace {
 
-/// @note test has to be defined with a preprocessor command
 using transform3 = test::transform3;
 using vector3 = typename transform3::vector3;
 using point3 = typename transform3::point3;

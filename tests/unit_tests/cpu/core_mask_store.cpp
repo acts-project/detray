@@ -16,8 +16,6 @@
 // Google Test include(s)
 #include <gtest/gtest.h>
 
-/// @note test has to be defined with a preprocessor command
-
 // This tests the construction of a static transform store
 GTEST_TEST(detray_core, static_mask_store) {
 

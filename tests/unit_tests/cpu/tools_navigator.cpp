@@ -109,8 +109,6 @@ inline void check_step(navigator_t &nav, stepper_t &stepper,
 
 }  // namespace detray
 
-/// @note test has to be defined with a preprocessor command
-
 /// This tests the construction and general methods of the navigator
 GTEST_TEST(detray_core, navigator) {
     using namespace detray;

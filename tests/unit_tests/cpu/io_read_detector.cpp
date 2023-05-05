@@ -17,8 +17,6 @@
 #include "detray/test/types.hpp"
 #include "tests/common/tools/read_geometry.hpp"
 
-/// @note test has to be defined with a preprocessor command
-
 // This tests the construction of a detector class
 GTEST_TEST(detray_core, read_detector) {
     vecmem::host_memory_resource host_mr;

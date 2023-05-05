@@ -27,7 +27,6 @@
 // System include(s)
 #include <utility>
 
-/// @note test has to be defined with a preprocessor command
 namespace detray {
 
 namespace {

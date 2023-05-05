@@ -25,7 +25,6 @@
 // System include(s)
 #include <iostream>
 
-/// @note test has to be defined with a preprocessor command
 using namespace detray;
 
 constexpr std::size_t root_hash =
