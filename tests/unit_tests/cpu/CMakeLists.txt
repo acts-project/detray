@@ -30,7 +30,6 @@ macro( detray_add_cpu_test algebra )
       "core_mask_store.cpp"
       "core_transform_store.cpp"
       "covariance_transport.cpp"
-      "display_masks.cpp"
       "energy_loss.cpp"
       "geometry_volume.cpp"
       "geometry_volume_graph.cpp"
