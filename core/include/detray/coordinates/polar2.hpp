@@ -11,6 +11,7 @@
 #include "detray/coordinates/coordinate_base.hpp"
 #include "detray/definitions/math.hpp"
 #include "detray/definitions/qualifiers.hpp"
+#include "detray/tracks/bound_track_parameters.hpp"
 #include "detray/utils/invalid_values.hpp"
 
 // System include(s).
@@ -203,6 +204,14 @@ struct polar2 : public coordinate_base<polar2, transform3_t> {
         const transform3_t & /*trf3*/, const point3 & /*pos*/,
         const vector3 & /*dir*/) const {
         // Do nothing
+    }
+
+    template <size_type meas_dim, bool normal_order>
+    DETRAY_HOST_DEVICE inline void unsigned_local(
+        matrix_type<meas_dim, e_bound_size> & /*projection_matrix*/,
+        const bound_track_parameters<transform3_t> & /*bound_params*/) {
+        // Do nothing
+        return;
     }
 };
 

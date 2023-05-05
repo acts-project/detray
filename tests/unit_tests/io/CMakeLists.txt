@@ -9,5 +9,5 @@ detray_add_test( io
    "io_json_payload.cpp"
    LINK_LIBRARIES GTest::gtest_main detray::core_array detray::io_array )
 detray_add_test( io_writer
-   "io_json_geometry_writer.cpp"
+   "io_json_detector_writer.cpp"
    LINK_LIBRARIES GTest::gtest_main vecmem::core detray::core_array detray::io_array detray::utils_array )

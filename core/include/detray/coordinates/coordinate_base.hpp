@@ -10,8 +10,10 @@
 // Project include(s).
 #include "detray/definitions/math.hpp"
 #include "detray/definitions/qualifiers.hpp"
+#include "detray/definitions/track_parametrization.hpp"
 #include "detray/intersection/detail/trajectories.hpp"
 #include "detray/propagator/base_stepper.hpp"
+#include "detray/tracks/bound_track_parameters.hpp"
 #include "detray/tracks/detail/track_helper.hpp"
 #include "detray/utils/invalid_values.hpp"
 
@@ -233,6 +235,51 @@ struct coordinate_base {
         matrix_operator().element(derivative, e_free_dir2, 0u) = dtds[2];
 
         return derivative * path_derivative;
+    }
+
+    /// @returns the projection matrix for measurement
+    template <size_type meas_dim, bool normal_order>
+    DETRAY_HOST_DEVICE inline matrix_type<meas_dim, e_bound_size>
+    projection_matrix(
+        const bound_track_parameters<transform3_t>& bound_params) {
+
+        matrix_type<meas_dim, e_bound_size> proj =
+            matrix_operator().template zero<meas_dim, e_bound_size>();
+        // For normal ordering
+        if constexpr (normal_order == true) {
+            // For meas_dim == 1, Return:
+            // [ 1 0 0 0 0 0 ]
+            if constexpr (meas_dim == 1u) {
+                matrix_operator().element(proj, 0u, 0u) = 1.f;
+            }
+            // For meas_dim == 2, Return:
+            // [ 1 0 0 0 0 0 ]
+            // [ 0 1 0 0 0 0 ]
+            else if (meas_dim == 2u) {
+                matrix_operator().element(proj, 0u, 0u) = 1.f;
+                matrix_operator().element(proj, 1u, 1u) = 1.f;
+            }
+        }
+        // For reverse ordering
+        else {
+            // For meas_dim == 1, Return:
+            // [ 0 1 0 0 0 0 ]
+            if constexpr (meas_dim == 1u) {
+                matrix_operator().element(proj, 0u, 1u) = 1.f;
+            }
+            // For meas_dim == 2, Return:
+            // [ 0 1 0 0 0 0 ]
+            // [ 1 0 0 0 0 0 ]
+            else if (meas_dim == 2u) {
+                matrix_operator().element(proj, 0u, 1u) = 1.f;
+                matrix_operator().element(proj, 1u, 0u) = 1.f;
+            }
+        }
+
+        Derived<transform3_t>().template unsigned_local<meas_dim, normal_order>(
+            proj, bound_params);
+
+        return proj;
     }
 };
 

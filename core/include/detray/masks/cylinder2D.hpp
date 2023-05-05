@@ -29,11 +29,13 @@ namespace detray {
 /// @tparam intersector_t defines how to intersect the underlying surface
 ///         geometry
 /// @tparam kMeasDim defines the dimension of the measurement
+/// @tparam kNormalOrder true if the index for measurement parameter follows
+/// the local coordinate system
 ///
 /// It is defined by r and the two half lengths rel to the coordinate center.
 template <bool kRadialCheck = false,
           template <typename> class intersector_t = cylinder_intersector,
-          unsigned int kMeasDim = 2u>
+          unsigned int kMeasDim = 2u, bool kNormalOrder = true>
 class cylinder2D {
     public:
     /// The name for this shape
@@ -44,6 +46,13 @@ class cylinder2D {
 
     /// The measurement dimension
     inline static constexpr const unsigned int meas_dim{kMeasDim};
+
+    /// Normal ordering
+    inline static constexpr const bool normal_order{kNormalOrder};
+
+    // Measurement dimension check
+    static_assert(meas_dim == 1u || meas_dim == 2u,
+                  "Only 1D or 2D measurement is allowed");
 
     enum boundaries : unsigned int {
         e_r = 0u,

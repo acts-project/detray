@@ -17,7 +17,7 @@ namespace detray {
 
 // Rod structure to be mapped on the line mask
 template <typename scalar_t>
-struct material_rod {
+struct material_rod : public detail::homogeneous_material_tag {
     using scalar_type = scalar_t;
     using material_type = material<scalar_t>;
 

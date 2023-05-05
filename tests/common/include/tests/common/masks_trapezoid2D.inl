@@ -9,10 +9,12 @@
 
 #include "detray/definitions/units.hpp"
 #include "detray/masks/masks.hpp"
+#include "detray/tracks/bound_track_parameters.hpp"
 
 using namespace detray;
 using namespace __plugin;
 using point3_t = __plugin::point3<detray::scalar>;
+using transform3_t = __plugin::transform3<detray::scalar>;
 
 constexpr scalar tol{1e-7f};
 
@@ -42,11 +44,14 @@ TEST(mask, trapezoid2D) {
     // Move outside point inside using a tolerance
     ASSERT_TRUE(t2.is_inside(p2_out, 1.) == intersection::status::e_inside);
 
+    // Dummy bound track parameter
+    bound_track_parameters<transform3_t> bound_params;
+
     // Check projection matrix
-    const auto proj = t2.projection_matrix<e_bound_size>();
-    for (unsigned int i = 0u; i < 2u; i++) {
+    const auto proj = t2.projection_matrix(bound_params);
+    for (unsigned int i = 0u; i < decltype(t2)::shape::meas_dim; i++) {
         for (unsigned int j = 0u; j < e_bound_size; j++) {
-            if (i == j && i < decltype(t2)::shape::meas_dim) {
+            if (i == j) {
                 ASSERT_EQ(getter::element(proj, i, j), 1u);
             } else {
                 ASSERT_EQ(getter::element(proj, i, j), 0u);

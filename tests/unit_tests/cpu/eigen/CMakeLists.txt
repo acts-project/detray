@@ -46,6 +46,7 @@ detray_add_test( eigen
    "eigen_navigator.cpp"
    "eigen_particle_gun.cpp"
    "eigen_planar_intersection.cpp"
+   "eigen_projection_matrix.cpp"
    "eigen_propagator.cpp"
    "eigen_rectangle2D.cpp"
    "eigen_ring2D.cpp"

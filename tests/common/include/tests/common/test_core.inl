@@ -6,6 +6,7 @@
  */
 
 // Project include(s)
+#include "detray/definitions/indexing.hpp"
 #include "detray/geometry/surface.hpp"
 #include "detray/intersection/intersection.hpp"
 #include "detray/utils/invalid_values.hpp"
@@ -21,10 +22,7 @@
 
 using namespace detray;
 
-using transform3 = __plugin::transform3<detray::scalar>;
-using point2 = __plugin::point2<scalar>;
-using vector3 = __plugin::vector3<scalar>;
-using point3 = __plugin::point3<scalar>;
+namespace {
 
 /// Define mask types
 enum mask_ids : unsigned int {
@@ -36,24 +34,54 @@ enum material_ids : unsigned int {
     e_slab = 0u,
 };
 
+constexpr scalar tol{std::numeric_limits<scalar>::epsilon()};
+
+}  // namespace
+
+using transform3 = __plugin::transform3<detray::scalar>;
+using point2 = __plugin::point2<scalar>;
+using vector3 = __plugin::vector3<scalar>;
+using point3 = __plugin::point3<scalar>;
+
 using mask_link_t = dtyped_index<mask_ids, dindex>;
 using material_link_t = dtyped_index<material_ids, dindex>;
 using surface_t = surface<mask_link_t, material_link_t, transform3>;
 
-constexpr scalar tol{std::numeric_limits<scalar>::epsilon()};
+/// Test the typed index
+TEST(core, typed_index) {
 
-// This tests the construction of a surface_base object
-TEST(ALGEBRA_PLUGIN, surface) {
-    // Preparatioon work, create a transform
-    vector3 z = vector::normalize(vector3{3.f, 2.f, 1.f});
-    vector3 x = vector::normalize(vector3{2.f, -3.f, 0.f});
-    point3 t{2.f, 3.f, 4.f};
-    transform3 trf(t, z, x);
+    using index_t = dtyped_index<mask_ids, unsigned int>;
+    auto ti = index_t{};
+
+    // Check a empty barcode
+    EXPECT_EQ(ti.id(), static_cast<unsigned int>((1u << 4) - 1u));
+    EXPECT_EQ(ti.index(), static_cast<unsigned int>((1u << 28) - 1u));
+
+    ti.set_id(mask_ids::e_unmasked).set_index(42u);
+
+    // Check the values after setting them
+    EXPECT_EQ(ti.id(), mask_ids::e_unmasked);
+    EXPECT_EQ(ti.index(), 42u);
+
+    // Check invalid link
+    EXPECT_FALSE(ti.is_invalid());
+    ti.set_id(static_cast<index_t::id_type>((1u << 4) - 1u));
+    EXPECT_TRUE(ti.is_invalid());
+    ti.set_id(mask_ids::e_unmasked);
+    EXPECT_FALSE(ti.is_invalid());
+    ti.set_index((1u << 30) - 1u);
+    EXPECT_TRUE(ti.is_invalid());
+}
+
+// This tests the construction of a surface descriptor object
+TEST(core, surface) {
 
     mask_link_t mask_id{mask_ids::e_unmasked, 0u};
     material_link_t material_id{material_ids::e_slab, 0u};
-    surface_t s(std::move(trf), mask_id, material_id, dindex_invalid,
-                dindex_invalid, surface_id::e_sensitive);
+
+    surface<mask_link_t, material_link_t> s(
+        dindex_invalid, mask_id, material_id, dindex_invalid, dindex_invalid,
+        surface_id::e_sensitive);
 }
 
 // This tests the construction of a intresection

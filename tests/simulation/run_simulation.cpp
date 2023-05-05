@@ -42,8 +42,8 @@ int main() {
         theta_steps, phi_steps, ori, mom);
 
     // Create smearer
-    measurement_smearer<scalar> smearer(100.f * unit<scalar>::um,
-                                        100.f * unit<scalar>::um);
+    measurement_smearer<transform3> smearer(100.f * unit<scalar>::um,
+                                            100.f * unit<scalar>::um);
 
     std::size_t n_events = 2u;
     auto sim = simulator(n_events, detector, std::move(generator), smearer);

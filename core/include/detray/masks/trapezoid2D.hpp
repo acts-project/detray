@@ -26,13 +26,15 @@ namespace detray {
 /// @tparam intersector_t defines how to intersect the underlying surface
 ///         geometry
 /// @tparam kMeasDim defines the dimension of the measurement
+/// @tparam kNormalOrder true if the index for measurement parameter follows
+/// the local coordinate system
 ///
 /// It is defined by half lengths in local0 coordinate bounds[0] and bounds[1]
 /// at -/+ half length in the local1 coordinate bounds[2]. bounds[3] contains
 /// the precomputed value of 1 / (2 * bounds[2]), which avoids
 /// excessive floating point divisions.
 template <template <typename> class intersector_t = plane_intersector,
-          unsigned int kMeasDim = 2u>
+          unsigned int kMeasDim = 2u, bool kNormalOrder = true>
 class trapezoid2D {
     public:
     /// The name for this shape
@@ -40,6 +42,13 @@ class trapezoid2D {
 
     /// The measurement dimension
     inline static constexpr const unsigned int meas_dim{kMeasDim};
+
+    /// Normal ordering
+    inline static constexpr const bool normal_order{kNormalOrder};
+
+    // Measurement dimension check
+    static_assert(meas_dim == 1u || meas_dim == 2u,
+                  "Only 1D or 2D measurement is allowed");
 
     enum boundaries : unsigned int {
         e_half_length_0 = 0u,
