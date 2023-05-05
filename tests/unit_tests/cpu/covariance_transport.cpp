@@ -27,7 +27,6 @@ using intersection_t = intersection2D<surface<>, transform3>;
 
 // Setups
 constexpr const scalar tolerance = scalar(2e-2);
-const vector3 y_axis{0.f, 1.f, 0.f};
 const vector3 z_axis{0.f, 0.f, 1.f};
 const vector3 B{0.f, 0.f, 1.f * unit<scalar>::T};
 

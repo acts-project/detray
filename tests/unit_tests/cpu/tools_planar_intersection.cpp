@@ -30,8 +30,6 @@ using transform3 = test::transform3;
 using intersection_t = intersection2D<surface<>, transform3>;
 
 constexpr scalar tol{std::numeric_limits<scalar>::epsilon()};
-constexpr auto not_defined{detail::invalid_value<scalar>()};
-constexpr scalar isclose{1e-5f};
 
 // This defines the local frame test suite
 GTEST_TEST(detray_core, translated_plane_ray) {

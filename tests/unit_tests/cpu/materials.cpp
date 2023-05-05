@@ -32,7 +32,6 @@ using vector3 = test::vector3;
 using intersection_t = intersection2D<surface<>, transform3>;
 
 constexpr scalar tol{1e-7f};
-constexpr scalar epsilon{std::numeric_limits<scalar>::epsilon()};
 
 // This tests the material functionalities
 GTEST_TEST(detray_core, material) {

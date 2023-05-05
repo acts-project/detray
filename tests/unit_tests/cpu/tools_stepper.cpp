@@ -39,7 +39,6 @@ using crk_stepper_t =
 namespace {
 
 constexpr scalar tol{1e-3f};
-constexpr scalar path_limit{100.f * unit<scalar>::cm};
 
 // dummy navigation struct
 struct nav_state {

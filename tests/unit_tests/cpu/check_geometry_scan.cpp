@@ -27,8 +27,8 @@
 
 using namespace detray;
 
-constexpr std::size_t root_hash =
-    687u;  // TODO: Find hash function wihtout coll.!
+// constexpr std::size_t root_hash =
+//     687u;  // TODO: Find hash function wihtout coll.!
 
 using transform3_type = test::transform3;
 using ray_type = detail::ray<transform3_type>;

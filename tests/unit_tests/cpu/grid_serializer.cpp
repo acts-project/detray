@@ -39,9 +39,6 @@ using cylinder_axes = multi_axis<
     single_axis<circular<label::e_phi>, regular<host_container_types, scalar>>,
     single_axis<closed<label::e_z>, regular<host_container_types, scalar>>>;
 
-// Floating point comparison
-constexpr scalar tol{1e-5f};
-
 }  // anonymous namespace
 
 GTEST_TEST(detray_core, serializer2D) {

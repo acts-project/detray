@@ -33,8 +33,6 @@ constexpr scalar z_max{3.f * unit<scalar>::mm};
 
 // envelope around wrapped object (scalor in percent)
 constexpr scalar envelope{1.01f};
-// test tolerance
-constexpr scalar tol{1e-7f};
 
 }  // anonymous namespace
 

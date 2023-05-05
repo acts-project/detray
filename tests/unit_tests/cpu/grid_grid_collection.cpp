@@ -28,7 +28,6 @@ using namespace detray::n_axis;
 namespace {
 
 // non-owning multi-axis: Takes external containers
-bool constexpr is_owning = true;
 bool constexpr is_n_owning = false;
 
 constexpr dindex inf{std::numeric_limits<dindex>::max()};
