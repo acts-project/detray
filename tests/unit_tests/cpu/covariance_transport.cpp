@@ -35,7 +35,7 @@ constexpr const cartesian2<transform3> c2;
 constexpr const detail::helix_plane_intersector<intersection_t> hpi;
 
 /// Test the path correction on a rectangular surface (cartesian coordinates)
-GTEST_TEST(detray_core, cartesian2D) {
+GTEST_TEST(detray_propagation, helix_covariance_transport_cartesian2D) {
 
     // Rectangle surface with enough size
     const detray::mask<detray::unbounded<detray::rectangle2D<>>> rectangle{

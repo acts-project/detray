@@ -73,7 +73,7 @@ GTEST_TEST(detray_core, typed_index) {
 }
 
 // This tests the construction of a surface descriptor object
-GTEST_TEST(detray_core, surface) {
+GTEST_TEST(detray_geometry, surface) {
 
     mask_link_t mask_id{mask_ids::e_unmasked, 0u};
     material_link_t material_id{material_ids::e_slab, 0u};
@@ -84,7 +84,7 @@ GTEST_TEST(detray_core, surface) {
 }
 
 // This tests the construction of a intresection
-GTEST_TEST(detray_core, intersection) {
+GTEST_TEST(detray_intersection, intersection) {
 
     using intersection_t = intersection2D<surface_t, transform3>;
 

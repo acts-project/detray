@@ -161,7 +161,7 @@ GTEST_TEST(detray_tools, grid_builder) {
 }
 
 /// Integration test: grid builder as volume builder decorator
-GTEST_TEST(detray_grid, decorator_grid_builder) {
+GTEST_TEST(detray_tools, decorator_grid_builder) {
 
     /*using transform3 = typename test_detector_t::transform3;
     using geo_obj_id = typename test_detector_t::geo_obj_ids;

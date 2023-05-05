@@ -68,7 +68,7 @@ GTEST_TEST(detray_masks, rectangle2D) {
 }
 
 /// This tests the basic functionality of a cuboid3D
-GTEST_TEST(detray_core, cuboid3D) {
+GTEST_TEST(detray_masks, cuboid3D) {
     using point_t = point3_t;
 
     point_t p2_in = {0.5f, 8.0f, -0.4f};
