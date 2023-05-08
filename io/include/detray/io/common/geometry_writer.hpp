@@ -10,8 +10,8 @@
 // Project include(s)
 #include "detray/definitions/indexing.hpp"
 #include "detray/io/common/detail/utils.hpp"
+#include "detray/io/common/io_interface.hpp"
 #include "detray/io/common/payloads.hpp"
-#include "detray/io/common/writer_interface.hpp"
 #include "detray/materials/material_rod.hpp"
 #include "detray/materials/material_slab.hpp"
 

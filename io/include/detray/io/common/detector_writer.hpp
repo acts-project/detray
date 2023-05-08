@@ -8,7 +8,7 @@
 #pragma once
 
 // Project include(s)
-#include "detray/io/common/detail/detector_component_writers.hpp"
+#include "detray/io/common/detail/detector_components_io.hpp"
 #include "detray/io/common/detail/type_traits.hpp"
 #include "detray/io/json/json_writer.hpp"
 
@@ -18,8 +18,6 @@
 namespace detray {
 
 namespace io {
-
-enum class format { json = 0u };
 
 /// @brief config struct for detector writing.
 struct detector_writer_config {

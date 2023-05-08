@@ -51,7 +51,7 @@ class type_registry {
     /// Checks whether a given types is known in the registry.
     template <typename object_t>
     DETRAY_HOST_DEVICE static constexpr bool is_defined() {
-        return not(get_id<object_t>() == e_unknown);
+        return not(get_id<object_t>() == static_cast<ID>(e_unknown));
     }
 
     /// Checks whether a given index can be mapped to a type.

@@ -162,7 +162,7 @@ GTEST_TEST(detray_propagator, navigator) {
     // The status is towards beampipe
     // Two candidates: beampipe and portal
     // First candidate is the beampipe
-    check_towards_surface<navigator_t>(navigation, 0u, 2u, 0u);
+    check_towards_surface<navigator_t>(navigation, 0u, 2u, 15u);
     // Distance to beampipe surface
     ASSERT_NEAR(navigation(), 19.f, tol);
 
@@ -180,17 +180,17 @@ GTEST_TEST(detray_propagator, navigator) {
     // Trust level is restored
     ASSERT_EQ(navigation.trust_level(), trust_level::e_full);
     // The status remains: towards surface
-    check_towards_surface<navigator_t>(navigation, 0u, 2u, 0u);
+    check_towards_surface<navigator_t>(navigation, 0u, 2u, 15u);
     // Distance to beampipe is now halved
     ASSERT_NEAR(navigation(), 9.5f, tol);
 
     // Let's immediately update, nothing should change, as there is full trust
     ASSERT_TRUE(nav.update(propagation));
-    check_towards_surface<navigator_t>(navigation, 0u, 2u, 0u);
+    check_towards_surface<navigator_t>(navigation, 0u, 2u, 15u);
     ASSERT_NEAR(navigation(), 9.5f, tol);
 
     // Now step onto the beampipe (idx 0)
-    check_step(nav, stepper, propagation, 0u, 1u, 0u, 7u);
+    check_step(nav, stepper, propagation, 0u, 1u, 15u, 6u);
     // New target: Distance to the beampipe volume cylinder portal
     ASSERT_NEAR(navigation(), 8.f, tol);
 

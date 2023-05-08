@@ -37,20 +37,20 @@ class json_writer final : public common_writer_t<detector_t> {
 
     public:
     /// File gets created with the json file extension
-    json_writer() : base_writer("json") {}
+    json_writer() : base_writer(".json") {}
 
     /// Writes the geometry to file with a given name
-    virtual void write(const detector_t &det,
-                       const typename detector_t::name_map &names,
-                       const std::ios_base::openmode mode) override {
+    virtual std::string write(const detector_t &det,
+                              const typename detector_t::name_map &names,
+                              const std::ios_base::openmode mode) override {
         // Assert output stream
         assert(((mode == std::ios_base::out) or
                 (mode == (std::ios_base::out | std::ios_base::trunc))) &&
                "Illegal file mode for json writer");
 
         // Create a new file
-        io::detail::file_handle file{names.at(0) + "_" + base_writer::tag,
-                                     this->m_file_extension, mode};
+        std::string file_stem{names.at(0) + "_" + base_writer::tag};
+        io::detail::file_handle file{file_stem, this->m_file_extension, mode};
 
         // Write some general information
         nlohmann::ordered_json out_json;
@@ -62,6 +62,8 @@ class json_writer final : public common_writer_t<detector_t> {
 
         // Write to file
         *file << std::setw(4) << out_json << std::endl;
+
+        return file_stem + this->m_file_extension;
     }
 };
 
