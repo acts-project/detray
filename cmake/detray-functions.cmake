@@ -133,6 +133,25 @@ function( detray_add_test name )
 
 endfunction( detray_add_test )
 
+# Helper function for setting up the detray examples.
+#
+# Usage: detray_add_example( core source1.cpp source2.cpp
+#                            LINK_LIBRARIES detray::core )
+#
+function( detray_add_example name )
+
+   # Parse the function's options.
+   cmake_parse_arguments( ARG "" "" "LINK_LIBRARIES" ${ARGN} )
+
+   # Create the example executable.
+   set( example_exe_name "detray_example_${name}" )
+   add_executable( ${example_exe_name} ${ARG_UNPARSED_ARGUMENTS} )
+   if( ARG_LINK_LIBRARIES )
+      target_link_libraries( ${example_exe_name} PRIVATE ${ARG_LINK_LIBRARIES} )
+   endif()
+
+endfunction( detray_add_example )
+
 # Helper function for adding individual flags to "flag variables".
 #
 # Usage: detray_add_flag( CMAKE_CXX_FLAGS "-Wall" )
