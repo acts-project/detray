@@ -27,6 +27,8 @@ struct cylindrical2 : public coordinate_base<cylindrical2, transform3_t> {
     /// @name Type definitions for the struct
     /// @{
 
+    // Transform type
+    using transform3_type = transform3_t;
     // Base type
     using base_type = coordinate_base<cylindrical2, transform3_t>;
     // Sclar type
