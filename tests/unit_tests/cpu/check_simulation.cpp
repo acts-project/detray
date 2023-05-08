@@ -102,7 +102,8 @@ GTEST_TEST(detray_simulation, toy_geometry_simulation) {
                                             170.f * unit<scalar>::um);
 
     std::size_t n_events{10u};
-    auto sim = simulator(n_events, detector, std::move(generator), smearer);
+    auto sim = simulator(n_events, detector, std::move(generator), smearer,
+                         test::filenames);
 
     // Lift step size constraints
     sim.get_config().step_constraint = std::numeric_limits<scalar>::max();
@@ -119,6 +120,7 @@ GTEST_TEST(detray_simulation, toy_geometry_simulation) {
 
         // Check particle data
         const auto io_particles_file =
+            test::filenames +
             detail::get_event_filename(i_event, "-particles.csv");
         particle_reader preader(io_particles_file);
 
@@ -131,7 +133,7 @@ GTEST_TEST(detray_simulation, toy_geometry_simulation) {
 
         // Check hit & measurement data
         const auto io_hits_file =
-            detail::get_event_filename(i_event, "-hits.csv");
+            test::filenames + detail::get_event_filename(i_event, "-hits.csv");
         hit_reader hreader(
             io_hits_file,
             {"particle_id", "geometry_id", "tx", "ty", "tz", "tt", "tpx", "tpy",
@@ -143,6 +145,7 @@ GTEST_TEST(detray_simulation, toy_geometry_simulation) {
         }
 
         const auto io_measurements_file =
+            test::filenames +
             detail::get_event_filename(i_event, "-measurements.csv");
         measurement_reader mreader(
             io_measurements_file,
@@ -156,6 +159,7 @@ GTEST_TEST(detray_simulation, toy_geometry_simulation) {
         }
 
         const auto io_meas_hit_id_file =
+            test::filenames +
             detail::get_event_filename(i_event, "-measurement-simhit-map.csv");
         meas_hit_id_reader meas_hit_id_reader(io_meas_hit_id_file,
                                               {"measurement_id", "hit_id"});
@@ -250,7 +254,8 @@ TEST_P(TelescopeDetectorSimulation, telescope_detector_simulation) {
 
     std::size_t n_events{1000u};
 
-    auto sim = simulator(n_events, detector, std::move(generator), smearer);
+    auto sim = simulator(n_events, detector, std::move(generator), smearer,
+                         test::filenames);
 
     // Lift step size constraints
     sim.get_config().step_constraint = std::numeric_limits<scalar>::max();
@@ -263,6 +268,7 @@ TEST_P(TelescopeDetectorSimulation, telescope_detector_simulation) {
         std::vector<csv_measurement> measurements;
 
         const auto io_measurements_file =
+            test::filenames +
             detail::get_event_filename(i_event, "-measurements.csv");
         measurement_reader mreader(
             io_measurements_file,

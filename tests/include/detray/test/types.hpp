@@ -18,4 +18,14 @@ using point3 = __plugin::point3<detray::scalar>;
 using vector2 = __plugin::vector2<detray::scalar>;
 using vector3 = __plugin::vector3<detray::scalar>;
 
+#if DETRAY_ALGEBRA_ARRAY
+static constexpr char filenames[] = "array-";
+#elif DETRAY_ALGEBRA_EIGEN
+static constexpr char filenames[] = "eigen-";
+#elif DETRAY_ALGEBRA_SMATRIX
+static constexpr char filenames[] = "smatrix-";
+#elif DETRAY_ALGEBRA_VC
+static constexpr char filenames[] = "vc-";
+#endif
+
 }  // namespace detray::test
