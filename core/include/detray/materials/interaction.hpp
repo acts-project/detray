@@ -91,6 +91,23 @@ struct interaction {
     }
 
     template <typename material_t, typename surface_t, typename algebra_t>
+    DETRAY_HOST_DEVICE scalar_type compute_energy_loss_landau_sigma(
+        const intersection2D<surface_t, algebra_t>& is, const material_t& mat,
+        const int pdg, const scalar_type m, const scalar_type qOverP,
+        const scalar_type q) const {
+
+        // return early in case of vacuum or zero thickness
+        if (not mat) {
+            return 0.f;
+        }
+
+        const scalar_t fwhm{
+            compute_energy_loss_landau_fwhm(is, mat, pdg, m, qOverP, q)};
+
+        return convert_landau_fwhm_to_gaussian_sigma(fwhm);
+    }
+
+    template <typename material_t, typename surface_t, typename algebra_t>
     DETRAY_HOST_DEVICE scalar_type compute_energy_loss_landau_sigma_QOverP(
         const intersection2D<surface_t, algebra_t>& is, const material_t& mat,
         const int pdg, const scalar_type m, const scalar_type qOverP,
@@ -100,17 +117,10 @@ struct interaction {
         if (not mat) {
             return 0.f;
         }
-        /*
-        const auto Ne = mat.get_material().molar_electron_density();
-        const auto path_segment = mat.path_segment(is);
-        const relativistic_quantities rq(m, qOverP, q);
-        // the Landau-Vavilov fwhm is 4*eps (see RPP2018 fig. 33.7)
-        const auto fwhm = 4.f * rq.compute_epsilon(Ne, path_segment);
-        */
-        const relativistic_quantities rq(m, qOverP, q);
-        const scalar_t fwhm{
-            compute_energy_loss_landau_fwhm(is, mat, pdg, m, qOverP, q)};
-        const scalar_t sigmaE{convert_landau_fwhm_to_gaussian_sigma(fwhm)};
+
+        const scalar_t sigmaE{
+            compute_energy_loss_landau_sigma(is, mat, pdg, m, qOverP, q)};
+
         //  var(q/p) = (d(q/p)/dE)² * var(E)
         // d(q/p)/dE = d/dE (q/sqrt(E²-m²))
         //           = q * -(1/2) * 1/p³ * 2E
@@ -120,6 +130,8 @@ struct interaction {
         //           = (1/p)^4 * (q/beta)² * var(E)
         // do not need to care about the sign since it is only used squared
         const scalar_t pInv{qOverP / q};
+
+        const relativistic_quantities rq(m, qOverP, q);
 
         return std::sqrt(rq.m_q2OverBeta2) * pInv * pInv * sigmaE;
     }

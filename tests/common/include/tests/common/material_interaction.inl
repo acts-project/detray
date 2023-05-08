@@ -213,6 +213,7 @@ TEST(material_interaction, telescope_geometry_energy_loss) {
 
 // Material interaction test with telescope Geometry
 TEST(material_interaction, telescope_geometry_scattering_angle) {
+
     vecmem::host_memory_resource host_mr;
 
     // Build in x-direction from given module positions
@@ -236,12 +237,10 @@ TEST(material_interaction, telescope_geometry_scattering_angle) {
 
     using navigator_t = navigator<decltype(det)>;
     using stepper_t = line_stepper<transform3>;
-    using interactor_t = pointwise_material_interactor<transform3>;
-    using simulator_t = random_scatterer<interactor_t>;
-    using material_actor_t = composite_actor<dtuple, interactor_t, simulator_t>;
+    using simulator_t = random_scatterer<transform3>;
     using actor_chain_t =
         actor_chain<dtuple, propagation::print_inspector, pathlimit_aborter,
-                    parameter_transporter<transform3>, material_actor_t,
+                    parameter_transporter<transform3>, simulator_t,
                     parameter_resetter<transform3>>;
     using propagator_t = propagator<stepper_t, navigator_t, actor_chain_t>;
 
@@ -268,25 +267,20 @@ TEST(material_interaction, telescope_geometry_scattering_angle) {
     std::vector<scalar> phis;
     std::vector<scalar> thetas;
 
-    scalar ref_phi_variance{0.f};
-    scalar ref_theta_variance{0.f};
-
     for (std::size_t i = 0u; i < n_samples; i++) {
 
         propagation::print_inspector::state print_insp_state{};
         pathlimit_aborter::state aborter_state{};
         parameter_transporter<transform3>::state bound_updater{};
-        interactor_t::state interactor_state{};
-        // No energy loss
-        interactor_state.do_energy_loss = false;
         // Seed = sample id
         simulator_t::state simulator_state{i};
+        simulator_state.do_energy_loss = false;
         parameter_resetter<transform3>::state parameter_resetter_state{};
 
         // Create actor states tuples
-        auto actor_states = std::tie(print_insp_state, aborter_state,
-                                     bound_updater, interactor_state,
-                                     simulator_state, parameter_resetter_state);
+        auto actor_states =
+            std::tie(print_insp_state, aborter_state, bound_updater,
+                     simulator_state, parameter_resetter_state);
 
         propagator_t::state state(bound_param, det);
 
@@ -296,14 +290,11 @@ TEST(material_interaction, telescope_geometry_scattering_angle) {
 
         const auto& final_param = state._stepping._bound_params;
 
-        // Get the updated phi and theta after scattering (Every sample should
-        // have equal values)
+        // Updated phi and theta variance
         if (i == 0u) {
-            const auto& covariance = final_param.covariance();
-            ref_phi_variance =
-                matrix_operator().element(covariance, e_bound_phi, e_bound_phi);
-            ref_theta_variance = matrix_operator().element(
-                covariance, e_bound_theta, e_bound_theta);
+            pointwise_material_interactor<transform3>{}.update_angle_variance(
+                bound_cov, traj.dir(),
+                simulator_state.projected_scattering_angle, 1);
         }
 
         phis.push_back(final_param.phi());
@@ -312,6 +303,12 @@ TEST(material_interaction, telescope_geometry_scattering_angle) {
 
     scalar phi_variance{statistics::rms(phis, bound_param.phi())};
     scalar theta_variance{statistics::rms(thetas, bound_param.theta())};
+
+    // Get the phi and theta variance
+    scalar ref_phi_variance =
+        getter::element(bound_cov, e_bound_phi, e_bound_phi);
+    scalar ref_theta_variance =
+        getter::element(bound_cov, e_bound_theta, e_bound_theta);
 
     // Tolerate upto 1% difference
     EXPECT_NEAR((phi_variance - ref_phi_variance) / ref_phi_variance, 0.f,

@@ -111,9 +111,8 @@ TEST(scattering, angle_update) {
     std::vector<scalar> thetas;
     std::size_t n_samples{100000u};
     for (std::size_t i = 0u; i < n_samples; i++) {
-        const auto new_dir =
-            random_scatterer<pointwise_material_interactor<transform3>>()
-                .scatter(dir, projected_scattering_angle, generator);
+        const auto new_dir = random_scatterer<transform3>().scatter(
+            dir, projected_scattering_angle, generator);
         phis.push_back(getter::phi(new_dir));
         thetas.push_back(getter::theta(new_dir));
     }

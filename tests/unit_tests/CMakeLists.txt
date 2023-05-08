@@ -7,7 +7,8 @@
 # Set up all of the "host" tests.
 add_subdirectory( core )
 add_subdirectory( io )
-add_subdirectory ( cpu )
+add_subdirectory( utils )
+add_subdirectory( cpu )
 add_subdirectory( covfie )
 
 # Set up all of the "device" tests.
