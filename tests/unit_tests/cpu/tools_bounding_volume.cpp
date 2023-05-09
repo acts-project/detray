@@ -14,8 +14,7 @@
 #include <gtest/gtest.h>
 
 using namespace detray;
-using namespace __plugin;
-using point_t = __plugin::point3<detray::scalar>;
+using point_t = test::point3;
 
 namespace {
 

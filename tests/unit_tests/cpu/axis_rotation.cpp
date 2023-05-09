@@ -23,7 +23,7 @@ using matrix_type = typename matrix_operator::template matrix_type<ROWS, COLS>;
 
 static constexpr scalar isclose{1e-5f};
 
-GTEST_TEST(detray_core, axis_rotation) {
+GTEST_TEST(detray_utils, axis_rotation) {
 
     const test::vector3 axis{0.f, 0.f, 3.f};
 
