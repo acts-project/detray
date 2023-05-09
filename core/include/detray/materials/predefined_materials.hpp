@@ -22,6 +22,9 @@ namespace detray {
  * @note: Values from
  * https://pdg.lbl.gov/2020/AtomicNuclearProperties/index.html (Last revised 04
  * June 2020)
+ *
+ * @NOTE: For diatomic molecules (e.g. H₂ and N₂), the atomic mass (A) and
+ * charge number (Z) are doubled
  */
 // Vacuum
 DETRAY_DECLARE_MATERIAL(vacuum, std::numeric_limits<scalar>::infinity(),
@@ -30,14 +33,14 @@ DETRAY_DECLARE_MATERIAL(vacuum, std::numeric_limits<scalar>::infinity(),
 
 // H₂ (1): Hydrogen Gas
 DETRAY_DECLARE_MATERIAL(hydrogen_gas, 7.526E3f * unit<scalar>::m,
-                        6.209E3f * unit<scalar>::m, 2.016f, 2.f,
+                        6.209E3f * unit<scalar>::m, 2.f * 1.008f, 2.f * 1.f,
                         static_cast<scalar>(8.376E-5 * unit<double>::g /
                                             unit<double>::cm3),
                         material_state::e_gas);
 
 // H₂ (1): Hydrogen Liquid
 DETRAY_DECLARE_MATERIAL(hydrogen_liquid, 8.904f * unit<scalar>::m,
-                        7.346f * unit<scalar>::m, 2.016f, 2.f,
+                        7.346f * unit<scalar>::m, 2.f * 1.008f, 2.f * 1.f,
                         static_cast<scalar>(0.07080f * unit<double>::g /
                                             unit<double>::cm3),
                         material_state::e_liquid);
@@ -65,21 +68,21 @@ DETRAY_DECLARE_MATERIAL(carbon_gas, 213.5f * unit<scalar>::mm,
 
 // N₂ (7): Nitrogen Gas
 DETRAY_DECLARE_MATERIAL(nitrogen_gas, 3.260E+02f * unit<scalar>::m,
-                        7.696E+02f * unit<scalar>::m, 28.014f, 14.f,
+                        7.696E+02f * unit<scalar>::m, 2.f * 14.007f, 2.f * 7.f,
                         static_cast<scalar>(1.165E-03 * unit<double>::g /
                                             unit<double>::cm3),
                         material_state::e_gas);
 
 // O₂ (8): Oxygen Gas
 DETRAY_DECLARE_MATERIAL(oxygen_gas, 2.571E+02f * unit<scalar>::m,
-                        6.772E+02f * unit<scalar>::m, 31.998f, 16.f,
+                        6.772E+02f * unit<scalar>::m, 2.f * 15.999f, 2.f * 8.f,
                         static_cast<scalar>(1.332E-3 * unit<double>::g /
                                             unit<double>::cm3),
                         material_state::e_gas);
 
 // O₂ (8): Oxygen liquid
 DETRAY_DECLARE_MATERIAL(oxygen_liquid, 300.1f * unit<scalar>::mm,
-                        790.3f * unit<scalar>::mm, 31.998f, 16.f,
+                        790.3f * unit<scalar>::mm, 2.f * 15.999f, 2.f * 8.f,
                         static_cast<scalar>(1.141 * unit<double>::g /
                                             unit<double>::cm3),
                         material_state::e_liquid);
