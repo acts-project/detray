@@ -7,17 +7,8 @@
 
 #pragma once
 
-#if defined(array)
-#include "detray/plugins/algebra/array_definitions.hpp"
-#elif defined(eigen)
-#include "detray/plugins/algebra/eigen_definitions.hpp"
-#elif defined(smatrix)
-#include "detray/plugins/algebra/smatrix_definitions.hpp"
-#elif defined(vc_array)
-#include "detray/plugins/algebra/vc_array_definitions.hpp"
-#endif
-
 // Project include(s).
+#include "detray/definitions/algebra.hpp"
 #include "detray/definitions/units.hpp"
 #include "detray/detectors/create_toy_geometry.hpp"
 #include "detray/propagator/actor_chain.hpp"
