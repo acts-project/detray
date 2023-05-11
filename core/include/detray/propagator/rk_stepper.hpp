@@ -83,10 +83,6 @@ class rk_stepper final
         DETRAY_HOST_DEVICE
         inline void set_tolerance(scalar tol) { _tolerance = tol; };
 
-        /// Update the derivative of position and direction w.r.t path length
-        DETRAY_HOST_DEVICE
-        inline void advance_derivative();
-
         /// Update the track state by Runge-Kutta-Nystrom integration.
         DETRAY_HOST_DEVICE
         inline void advance_track();
