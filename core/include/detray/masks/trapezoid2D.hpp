@@ -138,13 +138,6 @@ class trapezoid2D {
         const scalar_t y_bound{bounds[e_half_length_2] + env};
         return {-x_bound, -y_bound, -env, x_bound, y_bound, env};
     }
-
-    template <typename param_t>
-    DETRAY_HOST_DEVICE inline typename param_t::point2 to_measurement(
-        param_t& param,
-        const typename param_t::point2& offset = {0.f, 0.f}) const {
-        return param.local() + offset;
-    }
 };
 
 }  // namespace detray

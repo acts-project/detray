@@ -125,13 +125,6 @@ class ring2D {
         const scalar_t r_bound{env + bounds[e_outer_r]};
         return {-r_bound, -r_bound, -env, r_bound, r_bound, env};
     }
-
-    template <typename param_t>
-    DETRAY_HOST_DEVICE inline typename param_t::point2 to_measurement(
-        param_t& param,
-        const typename param_t::point2& offset = {0.f, 0.f}) const {
-        return param.local() + offset;
-    }
 };
 
 }  // namespace detray

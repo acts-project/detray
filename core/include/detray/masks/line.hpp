@@ -158,20 +158,6 @@ class line {
         const scalar_t z_bound{bounds[e_half_z] + env};
         return {-xy_bound, -xy_bound, -z_bound, xy_bound, xy_bound, z_bound};
     }
-
-    template <typename param_t>
-    DETRAY_HOST_DEVICE inline typename param_t::point2 to_measurement(
-        param_t& param,
-        const typename param_t::point2& offset = {0.f, 0.f}) const {
-
-        auto local = param.local();
-        local[0] = std::abs(local[0]) + offset[0];
-        if (local[0] < 0.f) {
-            local[0] = 0.f;
-        }
-        local[1] = local[1] + offset[1];
-        return local;
-    }
 };
 
 }  // namespace detray
