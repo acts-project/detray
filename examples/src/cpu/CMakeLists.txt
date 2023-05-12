@@ -19,7 +19,11 @@ detray_add_example( predefined_detectors_cpu
    "predefined_detectors.cpp"
    LINK_LIBRARIES detray::core_array covfie::core vecmem::core detray::io 
                   detray::example detray::test detray_tests_common detray::utils)
-detray_add_example( detector_io_cpu
-   "detector_io.cpp"
-   LINK_LIBRARIES detray::core_array covfie::core vecmem::core detray::io 
+detray_add_example( detector_writer_cpu
+   "detector_writer.cpp"
+   LINK_LIBRARIES detray::core_array covfie::core vecmem::core detray::io_array 
+                  detray::example detray::test detray_tests_common detray::utils)
+detray_add_example( detector_reader_cpu
+   "detector_reader.cpp"
+   LINK_LIBRARIES detray::core_array covfie::core vecmem::core detray::io_array 
                   detray::example detray::test detray_tests_common detray::utils)

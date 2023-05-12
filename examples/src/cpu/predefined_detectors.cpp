@@ -22,7 +22,7 @@
 /// Toy Detector: Pixel section of the ACTS Generic detector (TrackML).
 /// Telescope Detector: Array of surfaces of a given type in a bounding portal
 ///                     box.
-main() {
+int main() {
 
     //
     // Toy detector configuration

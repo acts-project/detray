@@ -20,13 +20,11 @@
 constexpr std::size_t root_hash = 3244;
 
 ///
-main() {
+int main() {
 
     // Toy detector configuration
-    constexpr std::size_t n_brl_layers{4};
-    constexpr std::size_t n_edc_layers{3};
     vecmem::host_memory_resource host_mr;
-    auto det = detray::create_toy_geometry(host_mr, n_brl_layers, n_edc_layers);
+    auto det = detray::create_toy_geometry(host_mr);
 
     // Build the graph
     detray::volume_graph graph(det);
