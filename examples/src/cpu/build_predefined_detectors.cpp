@@ -52,7 +52,9 @@ int main() {
         detray::create_toy_geometry(host_mr, n_brl_layers, n_edc_layers);
 
     // Print the volume graph of the toy detector
-    std::cout << detray::volume_graph{toy_det}.to_string() << std::endl;
+    std::cout << "\nToy detector:\n"
+              << "-------------\n"
+              << detray::volume_graph{toy_det}.to_string() << std::endl;
 
     //
     // Telescope detector
@@ -102,15 +104,19 @@ int main() {
     //         no B-field, silicon material (80mm)
     const rectgl_telescope_t tel_det1 =
         detray::create_telescope_detector(host_mr, rectangle);
-    // std::cout << detray::volume_graph{tel_det1}.to_string() << std::endl;
+    std::cout << "\nTelescope detector - case 1:\n"
+              << "----------------------------\n"
+              << detray::volume_graph{tel_det1}.to_string() << std::endl;
 
     //
-    // Case 2: Straight telescope in z-direction, 100 trapezoid surfaces, 2000mm
+    // Case 2: Straight telescope in z-direction, 15 trapezoid surfaces, 2000mm
     //         in length, modules evenly spaced, no B-field,
     //         silicon material (80mm)
     const trapzd_telescope_t tel_det2 = detray::create_telescope_detector(
-        host_mr, trapezoid, 100, 2000.f * detray::unit<detray::scalar>::mm);
-    // std::cout << detray::volume_graph{tel_det2}.to_string() << std::endl;
+        host_mr, trapezoid, 15, 2000.f * detray::unit<detray::scalar>::mm);
+    std::cout << "\nTelescope detector - case 2:\n"
+              << "----------------------------\n"
+              << detray::volume_graph{tel_det2}.to_string() << std::endl;
 
     //
     // Case 3: Straight telescope in x-direction, 11 rectangle surfaces, 2000mm
@@ -124,7 +130,9 @@ int main() {
     const rectgl_telescope_t tel_det3 = create_telescope_detector(
         host_mr, rectangle, positions, detray::silicon_tml<detray::scalar>(),
         80.f * detray::unit<detray::scalar>::um, x_track);
-    // std::cout << detray::volume_graph{tel_det3}.to_string() << std::endl;
+    std::cout << "\nTelescope detector - case 3:\n"
+              << "----------------------------\n"
+              << detray::volume_graph{tel_det3}.to_string() << std::endl;
 
     //
     // Case 4: Bent telescope along helical track, 11 trapezoid surfaces,
@@ -148,5 +156,7 @@ int main() {
         host_mr, std::move(b_field_z), trapezoid, positions,
         detray::silicon_tml<detray::scalar>(),
         80.f * detray::unit<detray::scalar>::um, helix);
-    // std::cout << detray::volume_graph{tel_det4}.to_string() << std::endl;
+    std::cout << "\nTelescope detector - case 4:\n"
+              << "----------------------------\n"
+              << detray::volume_graph{tel_det4}.to_string() << std::endl;
 }
