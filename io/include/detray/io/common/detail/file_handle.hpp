@@ -17,7 +17,11 @@
 #include <stdexcept>
 #include <string>
 
-namespace detray::io::detail {
+namespace detray::io {
+
+enum class format { json = 0u };
+
+namespace detail {
 
 /// Wrapper around a file stream
 class file_handle final {
@@ -27,8 +31,15 @@ class file_handle final {
     file_handle() = delete;
 
     /// File gets created with a @param name and @param extension
-    file_handle(const std::string& name = "",
-                const std::string& extension = "txt",
+    file_handle(const std::string& file_name,
+                std::ios_base::openmode mode = std::ios_base::in |
+                                               std::ios_base::out)
+        : file_handle(std::filesystem::path{file_name}.parent_path() /
+                          std::filesystem::path{file_name}.stem(),
+                      std::filesystem::path{file_name}.extension(), mode) {}
+
+    /// File gets created with a @param name and @param extension
+    file_handle(const std::string& name, const std::string& extension,
                 std::ios_base::openmode mode = std::ios_base::in |
                                                std::ios_base::out) {
         // Default name
@@ -37,11 +48,11 @@ class file_handle final {
 
         // Check if name is taken and modify it if necessary
         if (mode == std::ios_base::out) {
-            std::filesystem::path file_path{file_stem + "." + extension};
+            std::filesystem::path file_path{file_stem + extension};
             std::size_t n_trials{1u};
             while (std::filesystem::exists(file_path)) {
                 file_stem = get_alternate_file_stem(file_stem, n_trials);
-                file_path = std::filesystem::path{file_stem + "." + extension};
+                file_path = std::filesystem::path{file_stem + extension};
                 ++n_trials;
                 // The maximum here is arbitrary
                 if (n_trials >= 10000u) {
@@ -57,7 +68,7 @@ class file_handle final {
         assert(n_open_files < 1000u);
 
         // Open file
-        m_stream.open(file_stem + "." + extension, mode);
+        m_stream.open(file_stem + extension, mode);
 
         if (!m_stream.is_open()) {
             throw std::runtime_error("Could not open file");
@@ -96,4 +107,6 @@ class file_handle final {
 std::size_t file_handle::n_files{0u};
 std::size_t file_handle::n_open_files{0u};
 
-}  // namespace detray::io::detail
+}  // namespace detail
+
+}  // namespace detray::io

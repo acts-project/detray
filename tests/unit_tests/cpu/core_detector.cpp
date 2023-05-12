@@ -193,21 +193,17 @@ GTEST_TEST(detray_tools, surface_factory) {
     auto pt_cyl_factory = std::make_shared<portal_cylinder_factory>();
 
     typename portal_cylinder_factory::sf_data_collection cyl_sf_data;
-    cyl_sf_data.push_back(
-        std::make_unique<surface_data<detector_t, cylinder2D<>>>(
-            transform3(point3{0.f, 0.f, -1000.f}), 0u,
-            std::vector<scalar>{10.f, -1000.f, 1500.f}));
-    cyl_sf_data.push_back(
-        std::make_unique<surface_data<detector_t, cylinder2D<>>>(
-            transform3(point3{0.f, 0.f, 1000.f}), 2u,
-            std::vector<scalar>{20.f, -1500.f, 1000.f}));
+    cyl_sf_data.emplace_back(transform3(point3{0.f, 0.f, -1000.f}), 0u,
+                             std::vector<scalar>{10.f, -1000.f, 1500.f});
+    cyl_sf_data.emplace_back(transform3(point3{0.f, 0.f, 1000.f}), 2u,
+                             std::vector<scalar>{20.f, -1500.f, 1000.f});
 
     EXPECT_EQ(pt_cyl_factory->size(), 0u);
     EXPECT_TRUE(pt_cyl_factory->components().empty());
     EXPECT_TRUE(pt_cyl_factory->transforms().empty());
     EXPECT_TRUE(pt_cyl_factory->volume_links().empty());
 
-    pt_cyl_factory->add_components(std::move(cyl_sf_data));
+    pt_cyl_factory->push_back(std::move(cyl_sf_data));
     // data should be safely added to the factory by now
     cyl_sf_data.clear();
 
@@ -232,14 +228,10 @@ GTEST_TEST(detray_tools, surface_factory) {
 
     auto sens_cyl_factory = std::make_shared<sensitive_cylinder_factory>();
 
-    cyl_sf_data.push_back(
-        std::make_unique<surface_data<detector_t, cylinder2D<>>>(
-            transform3(point3{0.f, 0.f, -50.f}), 1u,
-            std::vector<scalar>{5.f, -900.f, 900.f}));
-    cyl_sf_data.push_back(
-        std::make_unique<surface_data<detector_t, cylinder2D<>>>(
-            transform3(point3{0.f, 0.f, 50.f}), 1u,
-            std::vector<scalar>{5.f, -900.f, 900.f}));
+    cyl_sf_data.emplace_back(transform3(point3{0.f, 0.f, -50.f}), 1u,
+                             std::vector<scalar>{5.f, -900.f, 900.f});
+    cyl_sf_data.emplace_back(transform3(point3{0.f, 0.f, 50.f}), 1u,
+                             std::vector<scalar>{5.f, -900.f, 900.f});
 
     EXPECT_EQ(sens_cyl_factory->size(), 0u);
     EXPECT_TRUE(sens_cyl_factory->components().empty());
@@ -247,7 +239,7 @@ GTEST_TEST(detray_tools, surface_factory) {
     // The single view is never empty, only uninitialized
     EXPECT_FALSE(sens_cyl_factory->volume_links().empty());
 
-    sens_cyl_factory->add_components(std::move(cyl_sf_data));
+    sens_cyl_factory->push_back(std::move(cyl_sf_data));
     cyl_sf_data.clear();
 
     EXPECT_EQ(sens_cyl_factory->size(), 2u);
@@ -270,14 +262,10 @@ GTEST_TEST(detray_tools, surface_factory) {
 
     auto psv_cyl_factory = std::make_shared<passive_cylinder_factory>();
 
-    cyl_sf_data.push_back(
-        std::make_unique<surface_data<detector_t, cylinder2D<>>>(
-            transform3(point3{0.f, 0.f, -20.f}), 1u,
-            std::vector<scalar>{4.9f, -900.f, 900.f}));
-    cyl_sf_data.push_back(
-        std::make_unique<surface_data<detector_t, cylinder2D<>>>(
-            transform3(point3{0.f, 0.f, 20.f}), 1u,
-            std::vector<scalar>{4.9f, -900.f, 900.f}));
+    cyl_sf_data.emplace_back(transform3(point3{0.f, 0.f, -20.f}), 1u,
+                             std::vector<scalar>{4.9f, -900.f, 900.f});
+    cyl_sf_data.emplace_back(transform3(point3{0.f, 0.f, 20.f}), 1u,
+                             std::vector<scalar>{4.9f, -900.f, 900.f});
 
     EXPECT_EQ(psv_cyl_factory->size(), 0u);
     EXPECT_TRUE(psv_cyl_factory->components().empty());
@@ -285,7 +273,7 @@ GTEST_TEST(detray_tools, surface_factory) {
     // The single view is never empty, only uninitialized
     EXPECT_FALSE(psv_cyl_factory->volume_links().empty());
 
-    psv_cyl_factory->add_components(std::move(cyl_sf_data));
+    psv_cyl_factory->push_back(std::move(cyl_sf_data));
     cyl_sf_data.clear();
 
     EXPECT_EQ(psv_cyl_factory->size(), 2u);
@@ -311,11 +299,10 @@ GTEST_TEST(detray_tools, surface_factory) {
     auto ann_factory = std::make_shared<annulus_factory>();
 
     typename annulus_factory::sf_data_collection ann_sf_data;
-    ann_sf_data.push_back(
-        std::make_unique<surface_data<detector_t, annulus2D<>>>(
-            transform3(point3{0.f, 0.f, 0.f}), 1u,
-            std::vector<scalar>{300.f, 350.f, -0.1f, 0.1f, 0.5f, 0.6f, 1.4f}));
-    ann_factory->add_components(std::move(ann_sf_data));
+    ann_sf_data.emplace_back(
+        transform3(point3{0.f, 0.f, 0.f}), 1u,
+        std::vector<scalar>{300.f, 350.f, -0.1f, 0.1f, 0.5f, 0.6f, 1.4f});
+    ann_factory->push_back(std::move(ann_sf_data));
     ann_sf_data.clear();
 
     const auto& ann_comps = ann_factory->components().front();
@@ -335,11 +322,9 @@ GTEST_TEST(detray_tools, surface_factory) {
     auto rect_factory = std::make_shared<rectangle_factory>();
 
     typename rectangle_factory::sf_data_collection rect_sf_data;
-    rect_sf_data.push_back(
-        std::make_unique<surface_data<detector_t, rectangle2D<>>>(
-            transform3(point3{0.f, 0.f, 0.f}), 1u,
-            std::vector<scalar>{10.f, 8.f}));
-    rect_factory->add_components(std::move(rect_sf_data));
+    rect_sf_data.emplace_back(transform3(point3{0.f, 0.f, 0.f}), 1u,
+                              std::vector<scalar>{10.f, 8.f});
+    rect_factory->push_back(std::move(rect_sf_data));
     rect_sf_data.clear();
 
     const auto& rectgl_comps = rect_factory->components().front();
@@ -353,9 +338,9 @@ GTEST_TEST(detray_tools, surface_factory) {
     auto rng_factory = std::make_shared<ring_factory>();
 
     typename ring_factory::sf_data_collection ring_sf_data;
-    ring_sf_data.push_back(std::make_unique<surface_data<detector_t, ring2D<>>>(
-        transform3(point3{0.f, 0.f, 0.f}), 1u, std::vector<scalar>{0.f, 5.f}));
-    rng_factory->add_components(std::move(ring_sf_data));
+    ring_sf_data.emplace_back(transform3(point3{0.f, 0.f, 0.f}), 1u,
+                              std::vector<scalar>{0.f, 5.f});
+    rng_factory->push_back(std::move(ring_sf_data));
     ring_sf_data.clear();
 
     const auto& ring_comps = rng_factory->components().front();
@@ -370,11 +355,9 @@ GTEST_TEST(detray_tools, surface_factory) {
     auto trpz_factory = std::make_shared<trapezoid_factory>();
 
     typename trapezoid_factory::sf_data_collection trpz_sf_data;
-    trpz_sf_data.push_back(
-        std::make_unique<surface_data<detector_t, trapezoid2D<>>>(
-            transform3(point3{0.f, 0.f, 0.f}), 1u,
-            std::vector<scalar>{1.f, 3.f, 2.f, 0.25f}));
-    trpz_factory->add_components(std::move(trpz_sf_data));
+    trpz_sf_data.emplace_back(transform3(point3{0.f, 0.f, 0.f}), 1u,
+                              std::vector<scalar>{1.f, 3.f, 2.f, 0.25f});
+    trpz_factory->push_back(std::move(trpz_sf_data));
     trpz_sf_data.clear();
 
     const auto& trpz_comps = trpz_factory->components().front();
@@ -478,82 +461,62 @@ GTEST_TEST(detray_tools, detector_volume_construction) {
     typename portal_cylinder_factory::sf_data_collection cyl_sf_data;
     // Creates two cylinders at radius 0mm and 10mm with an extent in z
     // of -5mm to 5mm and linking to volumes 0 and 2, respectively.
-    cyl_sf_data.push_back(
-        std::make_unique<surface_data<detector_t, cylinder2D<>>>(
-            transform3(point3{0.f, 0.f, 0.f}), 0u,
-            std::vector<scalar>{10.f, -1500.f, 1500.f}));
-    cyl_sf_data.push_back(
-        std::make_unique<surface_data<detector_t, cylinder2D<>>>(
-            transform3(point3{0.f, 0.f, 0.f}), 2u,
-            std::vector<scalar>{20.f, -1500.f, 1500.f}));
-    pt_cyl_factory->add_components(std::move(cyl_sf_data));
+    cyl_sf_data.emplace_back(transform3(point3{0.f, 0.f, 0.f}), 0u,
+                             std::vector<scalar>{10.f, -1500.f, 1500.f});
+    cyl_sf_data.emplace_back(transform3(point3{0.f, 0.f, 0.f}), 2u,
+                             std::vector<scalar>{20.f, -1500.f, 1500.f});
+    pt_cyl_factory->push_back(std::move(cyl_sf_data));
 
     auto pt_disc_factory = std::make_shared<portal_disc_factory>();
     typename portal_disc_factory::sf_data_collection ring_sf_data;
     // Creates two discs with a radius of 10mm, linking to volumes 3 and 4
-    ring_sf_data.push_back(std::make_unique<surface_data<detector_t, ring2D<>>>(
-        transform3(point3{0.f, 0.f, -1500.f}), 3u,
-        std::vector<scalar>{0.f, 10.f}));
-    ring_sf_data.push_back(std::make_unique<surface_data<detector_t, ring2D<>>>(
-        transform3(point3{0.f, 0.f, 1500.f}), 4u,
-        std::vector<scalar>{0.f, 10.f}));
-    pt_disc_factory->add_components(std::move(ring_sf_data));
+    ring_sf_data.emplace_back(transform3(point3{0.f, 0.f, -1500.f}), 3u,
+                              std::vector<scalar>{0.f, 10.f});
+    ring_sf_data.emplace_back(transform3(point3{0.f, 0.f, 1500.f}), 4u,
+                              std::vector<scalar>{0.f, 10.f});
+    pt_disc_factory->push_back(std::move(ring_sf_data));
 
     // sensitive surfaces
     auto ann_factory = std::make_shared<annulus_factory>();
     typename annulus_factory::sf_data_collection ann_sf_data;
-    ann_sf_data.push_back(
-        std::make_unique<surface_data<detector_t, annulus2D<>>>(
-            transform3(point3{0.f, 0.f, 1000.f}), vol.index(),
-            std::vector<scalar>{300.f, 350.f, -0.1f, 0.1f, 0.5f, 0.6f, 1.4f}));
-    ann_sf_data.push_back(
-        std::make_unique<surface_data<detector_t, annulus2D<>>>(
-            transform3(point3{0.f, 0.f, 1000.f}), vol.index(),
-            std::vector<scalar>{350.f, 400.f, -0.1f, 0.1f, 0.5f, 0.6f, 1.4f}));
-    ann_factory->add_components(std::move(ann_sf_data));
+    ann_sf_data.emplace_back(
+        transform3(point3{0.f, 0.f, 1000.f}), vol.index(),
+        std::vector<scalar>{300.f, 350.f, -0.1f, 0.1f, 0.5f, 0.6f, 1.4f});
+    ann_sf_data.emplace_back(
+        transform3(point3{0.f, 0.f, 1000.f}), vol.index(),
+        std::vector<scalar>{350.f, 400.f, -0.1f, 0.1f, 0.5f, 0.6f, 1.4f});
+    ann_factory->push_back(std::move(ann_sf_data));
 
     auto rect_factory = std::make_shared<rectangle_factory>();
     typename rectangle_factory::sf_data_collection rect_sf_data;
-    rect_sf_data.push_back(
-        std::make_unique<surface_data<detector_t, rectangle2D<>>>(
-            transform3(point3{0.f, 0.f, -10.f}), vol.index(),
-            std::vector<scalar>{10.f, 8.f}));
-    rect_sf_data.push_back(
-        std::make_unique<surface_data<detector_t, rectangle2D<>>>(
-            transform3(point3{0.f, 0.f, -20.f}), vol.index(),
-            std::vector<scalar>{10.f, 8.f}));
-    rect_sf_data.push_back(
-        std::make_unique<surface_data<detector_t, rectangle2D<>>>(
-            transform3(point3{0.f, 0.f, -30.f}), vol.index(),
-            std::vector<scalar>{10.f, 8.f}));
-    rect_factory->add_components(std::move(rect_sf_data));
+    rect_sf_data.emplace_back(transform3(point3{0.f, 0.f, -10.f}), vol.index(),
+                              std::vector<scalar>{10.f, 8.f});
+    rect_sf_data.emplace_back(transform3(point3{0.f, 0.f, -20.f}), vol.index(),
+                              std::vector<scalar>{10.f, 8.f});
+    rect_sf_data.emplace_back(transform3(point3{0.f, 0.f, -30.f}), vol.index(),
+                              std::vector<scalar>{10.f, 8.f});
+    rect_factory->push_back(std::move(rect_sf_data));
 
     auto trpz_factory = std::make_shared<trapezoid_factory>();
     typename trapezoid_factory::sf_data_collection trpz_sf_data;
-    trpz_sf_data.push_back(
-        std::make_unique<surface_data<detector_t, trapezoid2D<>>>(
-            transform3(point3{0.f, 0.f, 1000.f}), vol.index(),
-            std::vector<scalar>{1.f, 3.f, 2.f, 0.25f}));
-    trpz_factory->add_components(std::move(trpz_sf_data));
+    trpz_sf_data.emplace_back(transform3(point3{0.f, 0.f, 1000.f}), vol.index(),
+                              std::vector<scalar>{1.f, 3.f, 2.f, 0.25f});
+    trpz_factory->push_back(std::move(trpz_sf_data));
 
     // passive surfaces
     auto cyl_factory = std::make_shared<cylinder_factory>();
     cyl_sf_data.clear();
-    cyl_sf_data.push_back(
-        std::make_unique<surface_data<detector_t, cylinder2D<>>>(
-            transform3(point3{0.f, 0.f, 0.f}), vol.index(),
-            std::vector<scalar>{5.f, -1300.f, 1300.f}));
-    cyl_factory->add_components(std::move(cyl_sf_data));
+    cyl_sf_data.emplace_back(transform3(point3{0.f, 0.f, 0.f}), vol.index(),
+                             std::vector<scalar>{5.f, -1300.f, 1300.f});
+    cyl_factory->push_back(std::move(cyl_sf_data));
 
     auto rng_factory = std::make_shared<ring_factory>();
     ring_sf_data.clear();
-    ring_sf_data.push_back(std::make_unique<surface_data<detector_t, ring2D<>>>(
-        transform3(point3{0.f, 0.f, -1300.f}), vol.index(),
-        std::vector<scalar>{0.f, 5.f}));
-    ring_sf_data.push_back(std::make_unique<surface_data<detector_t, ring2D<>>>(
-        transform3(point3{0.f, 0.f, 1300.f}), vol.index(),
-        std::vector<scalar>{0.f, 5.f}));
-    rng_factory->add_components(std::move(ring_sf_data));
+    ring_sf_data.emplace_back(transform3(point3{0.f, 0.f, -1300.f}),
+                              vol.index(), std::vector<scalar>{0.f, 5.f});
+    ring_sf_data.emplace_back(transform3(point3{0.f, 0.f, 1300.f}), vol.index(),
+                              std::vector<scalar>{0.f, 5.f});
+    rng_factory->push_back(std::move(ring_sf_data));
 
     //
     // Fill everything into volume
@@ -571,21 +534,15 @@ GTEST_TEST(detray_tools, detector_volume_construction) {
     // try adding something extra later...
     rect_factory->clear();
     rect_sf_data.clear();
-    rect_sf_data.push_back(
-        std::make_unique<surface_data<detector_t, rectangle2D<>>>(
-            transform3(point3{0.f, 0.f, 10.f}), vol.index(),
-            std::vector<scalar>{10.f, 8.f}));
-    rect_sf_data.push_back(
-        std::make_unique<surface_data<detector_t, rectangle2D<>>>(
-            transform3(point3{0.f, 0.f, 20.f}), vol.index(),
-            std::vector<scalar>{10.f, 8.f}));
-    rect_factory->add_components(std::move(rect_sf_data));
+    rect_sf_data.emplace_back(transform3(point3{0.f, 0.f, 10.f}), vol.index(),
+                              std::vector<scalar>{10.f, 8.f});
+    rect_sf_data.emplace_back(transform3(point3{0.f, 0.f, 20.f}), vol.index(),
+                              std::vector<scalar>{10.f, 8.f});
+    rect_factory->push_back(std::move(rect_sf_data));
     rect_sf_data.clear();
-    rect_sf_data.push_back(
-        std::make_unique<surface_data<detector_t, rectangle2D<>>>(
-            transform3(point3{0.f, 0.f, 30.f}), vol.index(),
-            std::vector<scalar>{10.f, 8.f}));
-    rect_factory->add_components(std::move(rect_sf_data));
+    rect_sf_data.emplace_back(transform3(point3{0.f, 0.f, 30.f}), vol.index(),
+                              std::vector<scalar>{10.f, 8.f});
+    rect_factory->push_back(std::move(rect_sf_data));
 
     vbuilder.add_sensitives(rect_factory, geo_ctx);
 

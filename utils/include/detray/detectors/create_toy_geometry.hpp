@@ -603,12 +603,7 @@ inline void add_beampipe(
          -constant<scalar>::pi, constant<scalar>::pi});
     const auto beampipe_idx = beampipe.index();
     beampipe.set_link(detector_t::sf_finders::id::e_default, 0u);
-
-    // This is the beampipe surface
     dindex volume_link{beampipe_idx};
-    add_cylinder_surface(beampipe_idx, ctx, surfaces, masks, materials,
-                         transforms, beampipe_r, min_z, max_z, volume_link,
-                         beryllium_tml<scalar>(), 0.8f * unit<scalar>::mm);
 
     // Get vol sizes in z, including for gap volumes
     std::vector<std::pair<scalar, scalar>> vol_sizes{
@@ -655,6 +650,11 @@ inline void add_beampipe(
     add_disc_surface(beampipe_idx, ctx, surfaces, masks, materials, transforms,
                      beampipe_vol_size.first, beampipe_vol_size.second, max_z,
                      volume_link, vacuum<scalar>(), 0.f * unit<scalar>::mm);
+
+    // This is the beampipe surface
+    add_cylinder_surface(beampipe_idx, ctx, surfaces, masks, materials,
+                         transforms, beampipe_r, min_z, max_z, beampipe_idx,
+                         beryllium_tml<scalar>(), 0.8f * unit<scalar>::mm);
 
     det.add_objects_per_volume(ctx, beampipe, surfaces, masks, transforms,
                                materials);
@@ -1065,7 +1065,7 @@ auto create_toy_geometry(
     }
 
     // beampipe
-    dindex beampipe_idx = 0u;
+    const dindex beampipe_idx{0u};
     add_beampipe(det, resource, ctx0, n_edc_layers, n_brl_layers, edc_lay_sizes,
                  brl_lay_sizes[0], brl_positions[0], brl_half_z,
                  edc_config.inner_r);

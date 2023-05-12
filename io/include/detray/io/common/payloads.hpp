@@ -39,7 +39,8 @@ enum class mask_shape : unsigned int {
     ring2 = 6u,
     single3 = 7u,
     trapezoid2 = 8u,
-    unknown = 9u
+    unknown = 9u,
+    n_shapes = 9u
 };
 
 /// Enumerate the different material types

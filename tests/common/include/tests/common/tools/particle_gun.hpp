@@ -82,8 +82,8 @@ struct particle_gun {
                              std::pair<dindex, intersection_t> b) -> bool {
             return (a.second < b.second);
         };
-        std::sort(intersection_record.begin(), intersection_record.end(),
-                  sort_path);
+        std::stable_sort(intersection_record.begin(), intersection_record.end(),
+                         sort_path);
 
         return intersection_record;
     }

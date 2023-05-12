@@ -55,18 +55,23 @@ class surface_factory final
 
     /// shorthad for a colleciton of surface data that can be read by a surface
     /// factory
-    using surface_data_t = std::unique_ptr<
-        surface_data_interface<detector_t, mask_shape_t, volume_link_t>>;
+    // using surface_data_t = std::unique_ptr<
+    //     surface_data_interface<detector_t, mask_shape_t, volume_link_t>>;
+    using surface_data_t = surface_data<detector_t>;
     using sf_data_collection = std::vector<surface_data_t>;
 
     /// Empty factory.
     DETRAY_HOST
     surface_factory() = default;
 
+    /// @returns the id for the surface type the factory handles (e.g. portals)
+    DETRAY_HOST
+    auto surface_type() const -> surface_id override { return sf_id; }
+
     /// @returns the current number of surfaces that will be built by this
     /// factory
     DETRAY_HOST
-    auto size() const -> dindex {
+    auto size() const -> dindex override {
         check();
         return static_cast<dindex>(m_components.size());
     }
@@ -90,9 +95,9 @@ class surface_factory final
 
     /// Add all necessary compontents to the factory for a single surface
     DETRAY_HOST
-    inline void add_component(surface_data_t &&sf_data) {
+    void push_back(surface_data_t &&sf_data) override {
 
-        auto [trf, vlink, bounds] = sf_data->get_data();
+        auto [trf, vlink, bounds] = sf_data.get_data();
 
         assert(bounds.size() == mask_shape_t::boundaries::e_size);
 
@@ -113,9 +118,10 @@ class surface_factory final
     /// Add all necessary compontents to the factory from bundled surface
     /// data in @param surface_data .
     DETRAY_HOST
-    auto add_components(sf_data_collection &&surface_data)
-        -> std::shared_ptr<surface_factory<detector_t, mask_shape_t, mask_id,
-                                           sf_id, volume_link_t>> {
+    auto push_back(sf_data_collection &&surface_data)
+        -> void /*std::shared_ptr<surface_factory<detector_t, mask_shape_t,
+                   mask_id, sf_id, volume_link_t>>*/
+        override {
         const auto n_surfaces{
             static_cast<dindex>(size() + surface_data.size())};
 
@@ -128,10 +134,10 @@ class surface_factory final
 
         // Get per-surface data into detector level container layout
         for (auto &sf_data : surface_data) {
-            add_component(std::move(sf_data));
+            push_back(std::move(sf_data));
         }
 
-        return smart_ptr_handler::shared_from_this();
+        // return smart_ptr_handler::shared_from_this();
     }
 
     /// Clear old data
@@ -216,37 +222,6 @@ class surface_factory final
     std::vector<std::vector<scalar_t>> m_components{};
     std::vector<typename detector_t::transform3> m_transforms{};
     volume_link_collection m_volume_link{};
-};
-
-/// @brief Bind surfaces, transforms and masks together.
-template <typename detector_t, typename mask_shape_t,
-          typename volume_link_t = dindex>
-class surface_data
-    : public surface_data_interface<detector_t, mask_shape_t, volume_link_t> {
-    public:
-    DETRAY_HOST
-    surface_data(
-        const typename detector_t::transform3 &trf, volume_link_t volume_link,
-        const std::vector<typename detector_t::scalar_type> &mask_boundaries)
-        : m_transform{trf},
-          m_volume_link{volume_link},
-          m_boundaries{mask_boundaries} {}
-
-    DETRAY_HOST
-    auto get_data() -> std::tuple<
-        typename detector_t::transform3 &, volume_link_t &,
-        std::vector<typename detector_t::scalar_type> &> override {
-        return std::tie(m_transform, m_volume_link, m_boundaries);
-    }
-
-    private:
-    /// The surface placement
-    typename detector_t::transform3 m_transform;
-    /// The index of the volume that this surface links to
-    volume_link_t m_volume_link;
-    // simple tuple of all mask types in the detector. Only one entry is filled
-    // with the mask that corresponds to this specific surface.
-    std::vector<typename detector_t::scalar_type> m_boundaries;
 };
 
 }  // namespace detray
