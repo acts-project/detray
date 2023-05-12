@@ -21,6 +21,7 @@
 #include <vecmem/memory/host_memory_resource.hpp>
 
 // System include(s)
+#include <cstdlib>
 #include <iostream>
 
 /// Show how to build the test detectors.
@@ -29,7 +30,7 @@
 ///
 /// Telescope detector: Array of surfaces of a given type in a bounding portal
 ///                     box.
-int main() {
+int main(int argc, char** argv) {
 
     // Memory resource to allocate the detector data stores
     vecmem::host_memory_resource host_mr;
@@ -42,11 +43,18 @@ int main() {
     using toy_detector_t = detray::detector<detray::toy_metadata<>>;
 
     // Number of barrel layers (0 - 4)
-    constexpr std::size_t n_brl_layers{4};
+    std::size_t n_brl_layers{4u};
     // Number of endcap layers on either side (0 - 7)
-    // Note: The detector must be configured with 4 barrel layer to be able to
-    // add encap layers
-    constexpr std::size_t n_edc_layers{3};
+    // Note: The detector must be configured with 4 barrel layers to be able to
+    // add any encap layers
+    std::size_t n_edc_layers{1u};
+
+    // Read toy detector config from commandline, if it was given
+    if (argc == 3) {
+        n_brl_layers = std::atoi(argv[1]);
+        n_edc_layers = std::atoi(argv[2]);
+    }
+
     // Fill the detector
     const toy_detector_t toy_det =
         detray::create_toy_geometry(host_mr, n_brl_layers, n_edc_layers);
@@ -104,6 +112,7 @@ int main() {
     //         no B-field, silicon material (80mm)
     const rectgl_telescope_t tel_det1 =
         detray::create_telescope_detector(host_mr, rectangle);
+
     std::cout << "\nTelescope detector - case 1:\n"
               << "----------------------------\n"
               << detray::volume_graph{tel_det1}.to_string() << std::endl;
@@ -114,6 +123,7 @@ int main() {
     //         silicon material (80mm)
     const trapzd_telescope_t tel_det2 = detray::create_telescope_detector(
         host_mr, trapezoid, 15, 2000.f * detray::unit<detray::scalar>::mm);
+
     std::cout << "\nTelescope detector - case 2:\n"
               << "----------------------------\n"
               << detray::volume_graph{tel_det2}.to_string() << std::endl;
@@ -130,6 +140,7 @@ int main() {
     const rectgl_telescope_t tel_det3 = create_telescope_detector(
         host_mr, rectangle, positions, detray::silicon_tml<detray::scalar>(),
         80.f * detray::unit<detray::scalar>::um, x_track);
+
     std::cout << "\nTelescope detector - case 3:\n"
               << "----------------------------\n"
               << detray::volume_graph{tel_det3}.to_string() << std::endl;
@@ -139,7 +150,7 @@ int main() {
     //         modules spaced according to given positions,
     //         constant B-field, silicon material (80mm)
 
-    // Pilot trajectory in x-direction
+    // Pilot track in x-direction
     detray::free_track_parameters<detray::example::transform3> y_track{
         {0.f, 0.f, 0.f}, 0.f, {1.f, 0.f, 0.f}, -1.f};
     // Helix in a constant B-field in z-direction
@@ -156,6 +167,7 @@ int main() {
         host_mr, std::move(b_field_z), trapezoid, positions,
         detray::silicon_tml<detray::scalar>(),
         80.f * detray::unit<detray::scalar>::um, helix);
+
     std::cout << "\nTelescope detector - case 4:\n"
               << "----------------------------\n"
               << detray::volume_graph{tel_det4}.to_string() << std::endl;
