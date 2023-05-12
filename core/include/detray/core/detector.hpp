@@ -14,6 +14,7 @@
 #include "detray/geometry/detector_volume.hpp"
 #include "detray/geometry/surface.hpp"
 #include "detray/tools/volume_builder.hpp"
+#include "detray/tracks/tracks.hpp"
 #include "detray/utils/ranges.hpp"
 
 // Vecmem include(s)
@@ -128,6 +129,11 @@ class detector {
 
     using detector_view_type =
         detector_view<metadata, covfie::field, host_container_types>;
+
+    using free_vector_type =
+        typename free_track_parameters<transform3>::vector_type;
+    using bound_vector_type =
+        typename bound_track_parameters<transform3>::vector_type;
 
     detector() = delete;
 
@@ -458,6 +464,28 @@ class detector {
         const auto ret =
             _masks.template visit<detail::local_to_global<transform3>>(
                 sf.mask(), _transforms[sf.transform()], local);
+        return ret;
+    }
+
+    DETRAY_HOST_DEVICE
+    inline bound_vector_type free_to_bound_vec(
+        const geometry::barcode bc, const free_vector_type &free_vec) {
+        const auto &sf =
+            *(surfaces().begin() + static_cast<std::ptrdiff_t>(bc.index()));
+        const auto ret =
+            _masks.template visit<detail::free_to_bound_vector<transform3>>(
+                sf.mask(), _transforms[sf.transform()], free_vec);
+        return ret;
+    }
+
+    DETRAY_HOST_DEVICE
+    inline free_vector_type bound_to_free_vec(
+        const geometry::barcode bc, const bound_vector_type &bound_vec) {
+        const auto &sf =
+            *(surfaces().begin() + static_cast<std::ptrdiff_t>(bc.index()));
+        const auto ret =
+            _masks.template visit<detail::bound_to_free_vector<transform3>>(
+                sf.mask(), _transforms[sf.transform()], bound_vec);
         return ret;
     }
 
