@@ -27,3 +27,7 @@ detray_add_example( read_detector_from_file
    "read_detector_from_file.cpp"
    LINK_LIBRARIES detray::core_array covfie::core vecmem::core detray::io_array 
                   detray::example detray::test detray_tests_common detray::utils)
+detray_add_example( detector_ray_scan
+   "detector_ray_scan.cpp"
+   LINK_LIBRARIES detray::core_array covfie::core vecmem::core detray::io_array 
+                  detray::example detray::test detray_tests_common detray::utils)
