@@ -41,6 +41,7 @@ int main(int argc, char** argv) {
     // Create an empty detector to be filled
     vecmem::host_memory_resource host_mr;
     detector_t det{host_mr};
+
     // Read the json geometry file
     detray::json_geometry_reader<detector_t> geo_reader;
     geo_reader.read(det, volume_name_map, file_name);

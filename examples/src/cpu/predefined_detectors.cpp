@@ -31,8 +31,10 @@ int main() {
     // Number of barrel layers (0 - 4)
     constexpr std::size_t n_brl_layers{4};
     // Number of endcap layers on either side (0 - 7)
+    // Note: The detector must be configured with 4 barrel layer to be able to
+    // add encap layers
     constexpr std::size_t n_edc_layers{3};
-    // memory resource to allocate the detector data stores
+    // Memory resource to allocate the detector data stores
     vecmem::host_memory_resource host_mr;
     // Fill the detector
     auto toy_det =
@@ -45,4 +47,6 @@ int main() {
     //
     // Telescope detector configuration
     //
+
+    // Case 1:
 }

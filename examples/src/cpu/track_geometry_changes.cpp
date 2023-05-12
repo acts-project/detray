@@ -19,22 +19,27 @@
 
 constexpr std::size_t root_hash = 3244;
 
-///
+/// Get a graph that represents the detector volumes (nodes) and their link via
+/// portals (adjacent boundary surfaces) (edges) and hash it to detect changes.
+/// This could be useful in a CI job, but is poorly tested at this point (!).
 int main() {
 
-    // Toy detector configuration
+    // Get an example detector
     vecmem::host_memory_resource host_mr;
     auto det = detray::create_toy_geometry(host_mr);
 
-    // Build the graph
+    // Build the graph and get its adjacency matrix
     detray::volume_graph graph(det);
     const auto &adj_mat = graph.adjacency_matrix();
 
-    std::cout << graph.to_string() << std::endl;
-
+    // Construct a hash tree on the graph and compare against existing hash to
+    // detect changes
     auto geo_checker = detray::hash_tree(adj_mat);
 
     if (geo_checker.root() == root_hash) {
-        std::cout << "Geometry links consistent" << std::endl;
+        std::cout << "Geometry are links consistent" << std::endl;
+    } else {
+        std::cerr << "\nGeometry are linking has changed! Please check:\n"
+                  << graph.to_string() << std::endl;
     }
 }

@@ -11,8 +11,8 @@
 
 
 # Build the example executable using the array plugin.
-detray_add_example( geometry_linking_cpu
-   "check_geometry_linking.cpp"
+detray_add_example( track_geometry_changes_cpu
+   "track_geometry_changes.cpp"
    LINK_LIBRARIES detray::core_array covfie::core vecmem::core detray::io 
                   detray::example detray::test detray_tests_common detray::utils)
 detray_add_example( predefined_detectors_cpu
