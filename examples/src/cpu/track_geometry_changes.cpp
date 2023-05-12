@@ -22,6 +22,9 @@
 // Hash of the "correct" geometry
 constexpr std::size_t root_hash = 3244;
 
+///
+/// Work in progress (!)
+///
 /// Get a graph that represents the detector volumes (nodes) and their links via
 /// their adjacent boundary surfaces (edges) and hash it to detect linking
 /// changes that might affect the navigation.
