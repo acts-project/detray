@@ -7,9 +7,11 @@
 
 // Project include(s)
 #include "detray/detectors/create_toy_geometry.hpp"
-#include "detray/examples/types.hpp"
 #include "detray/geometry/volume_graph.hpp"
 #include "tests/common/tools/hash_tree.hpp"
+
+// Example linear algebra plugin: std::array
+#include "detray/examples/types.hpp"
 
 // Vecmem include(s)
 #include <vecmem/memory/host_memory_resource.hpp>
@@ -17,10 +19,12 @@
 // System include(s)
 #include <iostream>
 
+// Hash of the "correct" geometry
 constexpr std::size_t root_hash = 3244;
 
-/// Get a graph that represents the detector volumes (nodes) and their link via
-/// portals (adjacent boundary surfaces) (edges) and hash it to detect changes.
+/// Get a graph that represents the detector volumes (nodes) and their links via
+/// their adjacent boundary surfaces (edges) and hash it to detect linking
+/// changes that might affect the navigation.
 /// This could be useful in a CI job, but is poorly tested at this point (!).
 int main() {
 

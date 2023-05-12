@@ -26,16 +26,16 @@
 
 /// This example defines a detray-detector type for a cylindrical
 /// silicon tracker geometry with rectangle modules for the barrel,
-/// trapezoids for the endcaps and a passive cylinder for a beampipe.
-/// In detray, he detector module layers are wrapped in navigation volumes,
-/// which in this case are cylindrical bounding volumes ('portals').
+/// trapezoids for the endcaps and a passive cylinder for the beampipe.
+/// In detray, the detector module layers are wrapped in navigation volumes,
+/// which in this case are cylindrical bounding volumes. The navigation volumes
+/// are attached to each other by links in their boundary surfaces (called
+/// portals).
 /// The different types of surfaces (e.g. sensitive modules, passive material
 /// surfaces, as well as portals) can be stored in geometrical acceleration
 /// data structures for a fast surface neighborhood lookup during geometry
 /// navigation. The volume portals are, however, always stored in a 'brute
-/// force' data structure which intersects all surfaces it contains.
-/// In this example, a homogeneous material description is mapped onto the
-/// detectors surfaces.
+/// force' data structure which tests all surfaces it contains.
 /// In this example detector design, volumes do not contain other volumes, so
 /// the volume lookup is done using a uniform grid.
 namespace detray::example {
@@ -44,7 +44,7 @@ namespace detray::example {
 // Surface Primitives, as described above
 //
 
-/// mask to (next) volume link: next volume(s)
+/// Portal link type between volumes
 using nav_link = std::uint_least16_t;
 
 /// The mask types for the detector sensitive/passive surfaces
@@ -114,17 +114,16 @@ struct example_metadata {
     using transform_store =
         single_store<transform3, vector_t, geometry_context>;
 
-    /// Assign the mask types to the mask tuple container entries. Usually it
-    /// pays off to have the most common types in the first tuple entries in
+    /// Assign the mask types to the mask tuple container entries. It may be a
+    /// good idea to have the most common types in the first tuple entries, in
     /// order to minimize the depth of the 'unrolling' before a mask is found
     /// in the tuple
     enum class mask_ids {
         e_rectangle2 = 0,
         e_trapezoid2 = 1,
-        e_annulus2 = 2,
-        e_cylinder2 = 3,
-        e_portal_cylinder2 = 4,
-        e_portal_ring2 = 5
+        e_portal_ring2 = 2,
+        e_portal_cylinder2 = 3,
+        e_cylinder2 = 4,
     };
 
     /// This is the mask collections tuple (in the detector called 'mask store')

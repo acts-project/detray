@@ -6,10 +6,13 @@
  */
 
 // Project include(s)
-#include "detray/detectors/create_toy_geometry.hpp"
-#include "detray/examples/types.hpp"
+#include "detray/core/detector.hpp"
+#include "detray/detectors/detector_metadata.hpp"
 #include "detray/geometry/volume_graph.hpp"
 #include "detray/io/json/json_reader.hpp"
+
+// Example linear algebra plugin: std::array
+#include "detray/examples/types.hpp"
 
 // Vecmem include(s)
 #include <vecmem/memory/host_memory_resource.hpp>
