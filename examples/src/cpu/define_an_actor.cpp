@@ -107,7 +107,7 @@ int main() {
     actor_chain_t run_actors{};
     run_actors(actor_states, prop_state);
 
-    std::cout << "actor list: " << printer_state.to_string() << std::endl;
+    std::cout << "\nactor list: " << printer_state.to_string() << std::endl;
 
     // Test chaining of multiple actors
 
