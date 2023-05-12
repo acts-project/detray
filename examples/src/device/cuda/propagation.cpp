@@ -7,13 +7,14 @@
 
 // Project include(s)
 #include "detray/simulation/event_generator/track_generators.hpp"
-#include "propagator_cuda_kernel.hpp"
+#include "propagation.hpp"
 
 // Vecmem include(s)
 #include <vecmem/memory/cuda/device_memory_resource.hpp>
 #include <vecmem/memory/cuda/managed_memory_resource.hpp>
-
 #include "vecmem/utils/cuda/copy.hpp"
+
+// System
 
 /// Prepare the data and move it to device
 int main() {
@@ -40,19 +41,16 @@ int main() {
     constexpr unsigned int theta_steps{10u};
     constexpr unsigned int phi_steps{10u};
     // Set origin and direction of tracks
-    const detray::example::point3 ori{0.f, 0.f, 0.f};
+    const detray::example::point3 origin{0.f, 0.f, 0.f};
     const detray::scalar p_mag{10.f * detray::unit<detray::scalar>::GeV};
-    // How much can the navigator overshoot ?
+    // How much can the navigator overshoot on a given surface?
     constexpr detray::scalar overstep_tolerance{
         -3.f * detray::unit<detray::scalar>::um};
 
     // Genrate the tracks
     for (auto track : detray::uniform_track_generator<
              detray::free_track_parameters<detray::example::transform3>>(
-             theta_steps, phi_steps, ori, p_mag,
-             {0.01f, detray::constant<detray::scalar>::pi},
-             {-detray::constant<detray::scalar>::pi,
-              detray::constant<detray::scalar>::pi})) {
+             theta_steps, phi_steps, origin, p_mag)) {
         // Set the oversetpping tolerance for every track
         track.set_overstep_tolerance(overstep_tolerance);
         // Put it into vector of tracks

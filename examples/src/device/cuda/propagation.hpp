@@ -40,9 +40,8 @@ using navigator_t = navigator<detector_device_t>;
 
 // Stepper
 using field_t = detector_host_t::bfield_type;
-using constraints_t = constrained_step<>;
 using stepper_t =
-    rk_stepper<field_t::view_t, detray::example::transform3, constraints_t>;
+    rk_stepper<field_t::view_t, detray::example::transform3>;
 
 // Actors
 using actor_chain_t =

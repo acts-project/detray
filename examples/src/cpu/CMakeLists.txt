@@ -11,19 +11,19 @@
 
 
 # Build the example executable using the array plugin.
-detray_add_example( track_geometry_changes_cpu
+detray_add_example( track_geometry_changes
    "track_geometry_changes.cpp"
    LINK_LIBRARIES detray::core_array covfie::core vecmem::core detray::io 
                   detray::example detray::test detray_tests_common detray::utils)
-detray_add_example( predefined_detectors_cpu
-   "predefined_detectors.cpp"
+detray_add_example( build_predefined_detectors
+   "build_predefined_detectors.cpp"
    LINK_LIBRARIES detray::core_array covfie::core vecmem::core detray::io 
                   detray::example detray::test detray_tests_common detray::utils)
-detray_add_example( detector_writer_cpu
-   "detector_writer.cpp"
+detray_add_example( write_detector_to_file
+   "write_detector_to_file.cpp"
    LINK_LIBRARIES detray::core_array covfie::core vecmem::core detray::io_array 
                   detray::example detray::test detray_tests_common detray::utils)
-detray_add_example( detector_reader_cpu
-   "detector_reader.cpp"
+detray_add_example( read_detector_from_file
+   "read_detector_from_file.cpp"
    LINK_LIBRARIES detray::core_array covfie::core vecmem::core detray::io_array 
                   detray::example detray::test detray_tests_common detray::utils)

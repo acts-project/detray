@@ -15,9 +15,9 @@ include(detray-compiler-options-cuda)
 
 # Examples using the array algebra plugin.
 detray_add_example(propagation_cuda
-   "propagator_cuda.cpp"
-   "propagator_cuda_kernel.hpp"
-   "propagator_cuda_kernel.cu"
+   "propagation.cpp"
+   "propagation.hpp"
+   "propagation_kernel.cu"
    LINK_LIBRARIES vecmem::cuda detray::core_array covfie::core
                   detray::example detray::utils)
 target_compile_definitions(detray_example_propagation_cuda PRIVATE array=array)

@@ -6,13 +6,12 @@
  */
 
 #include "detray/definitions/cuda_definitions.hpp"
-#include "propagator_cuda_kernel.hpp"
+#include "propagation.hpp"
 
 namespace detray {
 
 // Propagation configurations
-constexpr detray::scalar constrainted_step_size{2.f * unit<scalar>::mm};
-constexpr detray::scalar path_limit{2.f * unit<scalar>::m};
+inline constexpr detray::scalar path_limit{2.f * unit<scalar>::m};
 
 /// Kernel that runs the entire propagation loop
 __global__ void propagation_example_kernel(
@@ -57,11 +56,6 @@ __global__ void propagation_example_kernel(
     // Create the propagator state for the track
     detray::propagator_t::state state(tracks[gid], B_field, det,
                                       candidates.at(gid));
-
-    // Set configuration
-    state._stepping
-        .template set_constraint<detray::step::constraint::e_accuracy>(
-            constrainted_step_size);
 
     // Run propagation
     p.propagate(state, actor_states);
