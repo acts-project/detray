@@ -96,13 +96,6 @@ class unmasked {
         constexpr scalar_t inf{std::numeric_limits<scalar_t>::infinity()};
         return {-inf, -inf, -inf, inf, inf, inf};
     }
-
-    template <typename param_t>
-    DETRAY_HOST_DEVICE inline typename param_t::point2 to_measurement(
-        param_t& param,
-        const typename param_t::point2& offset = {0.f, 0.f}) const {
-        return param.local() + offset;
-    }
 };
 
 }  // namespace detray
