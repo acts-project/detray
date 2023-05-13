@@ -91,6 +91,12 @@ class detector_volume {
     constexpr auto id() const -> volume_id { return _id; }
 
     /// @return the bounds - const access
+    DETRAY_HOST
+    constexpr void set_bounds(const array_t<scalar_t, 6> &bounds) {
+        _bounds = bounds;
+    }
+
+    /// @return the bounds - const access
     DETRAY_HOST_DEVICE
     constexpr auto bounds() const -> const array_t<scalar_t, 6> & {
         return _bounds;

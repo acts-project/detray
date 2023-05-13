@@ -11,6 +11,7 @@
 #include "detray/definitions/units.hpp"
 #include "detray/detectors/create_toy_geometry.hpp"
 #include "detray/io/common/detector_writer.hpp"
+#include "detray/tools/cuboid_portal_generator.hpp"
 #include "detray/tools/surface_factory.hpp"
 #include "detray/tools/volume_builder.hpp"
 
@@ -23,6 +24,7 @@
 #include <vecmem/memory/host_memory_resource.hpp>
 
 // System include(s)
+#include <limits>
 #include <memory>
 
 /// Write a dector using the json IO
@@ -65,9 +67,15 @@ int main() {
         std::make_shared<detray::example::square_surface_generator>(
             10, 10.f * detray::unit<detray::scalar>::mm);
 
+    // Add a portal box around the cuboid volume with a min distance of 'env'
+    constexpr auto env{0.1f * detray::unit<detray::scalar>::mm};
+    auto portal_generator =
+        std::make_shared<detray::cuboid_portal_generator<detector_t>>(env);
+
     // Add surfaces to volume and add the volume to the detector
     vbuilder.add_sensitives(square_factory);
     vbuilder.add_sensitives(sq_generator);
+    vbuilder.add_portals(portal_generator);
 
     vbuilder.build(det);
 

@@ -1,6 +1,6 @@
 /** Detray library, part of the ACTS project (R&D line)
  *
- * (c) 2022-2023 CERN for the benefit of the ACTS project
+ * (c) 2023 CERN for the benefit of the ACTS project
  *
  * Mozilla Public License Version 2.0
  */
@@ -8,18 +8,14 @@
 #pragma once
 
 // Project include(s)
-#include "detray/core/detail/data_context.hpp"
 #include "detray/definitions/indexing.hpp"
 #include "detray/definitions/qualifiers.hpp"
 #include "detray/definitions/units.hpp"
-#include "detray/masks/masks.hpp"
 #include "detray/tools/surface_factory_interface.hpp"
-#include "detray/utils/ranges.hpp"
 
 // Example include(s)
 #include "detray/examples/detector_metadata.hpp"
 #include "detray/examples/my_square2D.hpp"
-#include "detray/examples/types.hpp"  // linear algebra types
 
 // System include(s)
 #include <vector>
@@ -70,7 +66,7 @@ class square_surface_generator final
     /// @param masks the masks of the surfaces (all of the same shape).
     /// @param ctx the geometry context.
     DETRAY_HOST
-    auto operator()(const typename detector_t::volume_type &volume,
+    auto operator()(typename detector_t::volume_type &volume,
                     typename detector_t::surface_container_t &surfaces,
                     typename detector_t::transform_container &transforms,
                     typename detector_t::mask_container &masks,

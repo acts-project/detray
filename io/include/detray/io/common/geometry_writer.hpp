@@ -117,6 +117,8 @@ class geometry_writer : public writer_interface<detector_t> {
             mask_data.shape = shape_id::cuboid3;
         } else if (name == "cylinder3D") {
             mask_data.shape = shape_id::cylinder3;
+        } else if (name == "square2D") {
+            mask_data.shape = shape_id::square2;
         } else {
             mask_data.shape = shape_id::unknown;
         }

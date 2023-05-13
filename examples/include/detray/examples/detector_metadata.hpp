@@ -18,6 +18,9 @@
 #include "detray/materials/material_slab.hpp"
 #include "detray/surface_finders/brute_force_finder.hpp"
 
+// Linear algebra types
+#include "detray/examples/types.hpp"
+
 // New geometric shape type
 #include "my_square2D.hpp"
 
@@ -183,9 +186,16 @@ namespace detail {
 /// enum class mask_shape : unsigned int {
 ///    annulus2 = 0u,
 ///    ...
-///    square = 9u,  //< new shape
+///    square2 = 9u,  //< new shape
 ///    n_shapes = 10u //< The total number of known shapes needs to be raised
 ///  };
+///
+/// 'detray/io/common/geometery_writer.hpp'
+/// ...
+/// } else if (name == "square2D") {
+///     mask_data.shape = shape_id::square2;
+/// } else {
+///
 
 /// During the IO, check for a 2D square shape
 template <typename detector_t>
