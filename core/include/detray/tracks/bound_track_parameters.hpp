@@ -8,7 +8,6 @@
 #pragma once
 
 // Project include(s).
-#include "detray/definitions/algebra.hpp"
 #include "detray/definitions/indexing.hpp"
 #include "detray/definitions/qualifiers.hpp"
 #include "detray/definitions/track_parametrization.hpp"
@@ -130,24 +129,13 @@ struct bound_track_parameters {
     vector3 dir() const { return track_helper().dir(m_vector); }
 
     DETRAY_HOST_DEVICE
-    scalar_type time() const {
-        return matrix_operator().element(m_vector, e_bound_time, 0u);
-    }
+    scalar_type time() const { return track_helper().time(m_vector); }
 
     DETRAY_HOST_DEVICE
-    scalar_type charge() const {
-        if (std::signbit(
-                matrix_operator().element(m_vector, e_bound_qoverp, 0u))) {
-            return -1.f;
-        } else {
-            return 1.f;
-        }
-    }
+    scalar_type charge() const { return track_helper().charge(m_vector); }
 
     DETRAY_HOST_DEVICE
-    scalar_type qop() const {
-        return matrix_operator().element(m_vector, e_bound_qoverp, 0u);
-    }
+    scalar_type qop() const { return track_helper().qop(m_vector); }
 
     DETRAY_HOST_DEVICE
     void set_qop(const scalar_type qop) {
@@ -155,10 +143,10 @@ struct bound_track_parameters {
     }
 
     DETRAY_HOST_DEVICE
-    scalar_type p() const { return charge() / qop(); }
+    scalar_type p() const { return track_helper().p(m_vector); }
 
     DETRAY_HOST_DEVICE
-    vector3 mom() const { return this->p() * this->dir(); }
+    vector3 mom() const { return track_helper().mom(m_vector); }
 
     private:
     geometry::barcode m_barcode;

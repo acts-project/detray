@@ -44,6 +44,8 @@ GTEST_TEST(detray_intersection, helix_trajectory) {
 
     // helix trajectory
     detail::helix helix_traj(vertex, &B);
+    EXPECT_NEAR(helix_traj.time(), 0.f, tol);
+    EXPECT_NEAR(helix_traj.qop(), -constant<scalar>::inv_sqrt2, tol);
 
     // radius of helix
     scalar R{helix_traj.radius()};
@@ -120,6 +122,8 @@ GTEST_TEST(detray_intersection, helix_trajectory_small_pT) {
 
     // helix trajectory
     detail::helix helix_traj(vertex, &B);
+    EXPECT_NEAR(helix_traj.time(), 0.f, tol);
+    EXPECT_NEAR(helix_traj.qop(), -1.f, tol);
 
     // After 10 mm
     const scalar path_length{10.f * unit<scalar>::mm};
