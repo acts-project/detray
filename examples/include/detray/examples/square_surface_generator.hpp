@@ -1,0 +1,128 @@
+/** Detray library, part of the ACTS project (R&D line)
+ *
+ * (c) 2022-2023 CERN for the benefit of the ACTS project
+ *
+ * Mozilla Public License Version 2.0
+ */
+
+#pragma once
+
+// Project include(s)
+#include "detray/core/detail/data_context.hpp"
+#include "detray/definitions/indexing.hpp"
+#include "detray/definitions/qualifiers.hpp"
+#include "detray/definitions/units.hpp"
+#include "detray/masks/masks.hpp"
+#include "detray/tools/surface_factory_interface.hpp"
+#include "detray/utils/ranges.hpp"
+
+// Example include(s)
+#include "detray/examples/detector_metadata.hpp"
+#include "detray/examples/my_square2D.hpp"
+#include "detray/examples/types.hpp"  // linear algebra types
+
+// System include(s)
+#include <vector>
+
+namespace detray::example {
+
+/// @brief Generates sequence of square surfaces for the example detector
+///
+/// @tparam detector_t the type of detector the volume belongs to.
+/// @tparam mask_shape_t the shape of the surface.
+/// @tparam mask_id the concrete mask id that must be defined in the detector_t.
+/// @tparam sf_id eihter portal, passive or sensitive.
+class square_surface_generator final
+    : public surface_factory_interface<detector<example::my_metadata>> {
+
+    public:
+    using detector_t = detector<example::my_metadata>;
+    using scalar_t = typename detector_t::scalar_type;
+
+    /// Construct @param n square surfaces
+    DETRAY_HOST
+    square_surface_generator(std::size_t n, scalar_t hl)
+        : m_n_squares{static_cast<dindex>(n)}, m_half_length{hl} {}
+
+    /// @returns the id for the surface type (sensitive surfaces)
+    DETRAY_HOST
+    auto surface_type() const -> surface_id override {
+        return surface_id::e_sensitive;
+    }
+
+    /// @returns the number of surfaces this factory will produce
+    DETRAY_HOST
+    auto size() const -> dindex override { return m_n_squares; }
+
+    DETRAY_HOST
+    void push_back(surface_data<detector_t> &&) override { /*Do nothing*/
+    }
+    DETRAY_HOST
+    auto push_back(std::vector<surface_data<detector_t>> &&)
+        -> void override { /*Do nothing*/
+    }
+
+    /// Generate the surfaces and add them to given data collections.
+    ///
+    /// @param volume the volume they will be added to in the detector.
+    /// @param surfaces the resulting surface objects.
+    /// @param transforms the transforms of the surfaces.
+    /// @param masks the masks of the surfaces (all of the same shape).
+    /// @param ctx the geometry context.
+    DETRAY_HOST
+    auto operator()(const typename detector_t::volume_type &volume,
+                    typename detector_t::surface_container_t &surfaces,
+                    typename detector_t::transform_container &transforms,
+                    typename detector_t::mask_container &masks,
+                    typename detector_t::geometry_context ctx = {}) const
+        -> dindex_range override {
+        using surface_t = typename detector_t::surface_type;
+        using mask_link_t = typename surface_t::mask_link;
+        using material_link_t = typename surface_t::material_link;
+
+        // Position in the tuple for square surface masks
+        constexpr auto mask_id{detector_t::masks::id::e_square2};
+        // The material will be added in a later step
+        constexpr auto no_material = surface_t::material_id::e_none;
+        // In case the surfaces container is prefilled with other surfaces
+        dindex surfaces_offset = static_cast<dindex>(surfaces.size());
+
+        // Nothing to construct
+        if (size() == 0u) {
+            return {surfaces_offset, surfaces_offset};
+        }
+
+        // Produce a series of square surfaces,
+        scalar_t z_translation{0.f};
+        for (unsigned int i = 0u; i < m_n_squares; ++i) {
+
+            // Surface placement: no rotation, just translation
+
+            typename detector_t::point3 translation{0.f, 0.f, z_translation};
+            z_translation += 10.f * unit<scalar_t>::mm;
+            typename detector_t::transform3 trf{translation};
+            transforms.push_back(trf, ctx);
+
+            // Construct the mask
+            masks.template emplace_back<mask_id>(empty_context{},
+                                                 volume.index(), m_half_length);
+
+            // Add surface with all links set (relative to the given containers)
+            mask_link_t mask_link{mask_id, masks.template size<mask_id>() - 1u};
+            material_link_t material_link{no_material, dindex_invalid};
+            surfaces.emplace_back(transforms.size(ctx) - 1u, mask_link,
+                                  material_link, volume.index(), dindex_invalid,
+                                  surface_type());
+        }
+
+        return {surfaces_offset, static_cast<dindex>(surfaces.size())};
+    }
+
+    private:
+    /// How many surfaces should be produced
+    dindex m_n_squares;
+    /// Half length of square
+    scalar_t m_half_length;
+};
+
+}  // namespace detray::example

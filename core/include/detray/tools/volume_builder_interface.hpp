@@ -31,6 +31,11 @@ class volume_builder_interface {
 
     /// @brief Adds an array of @param bounds to a volume.
     DETRAY_HOST
+    virtual void init_vol(detector_t &det, const volume_id id) = 0;
+
+    /// @brief Adds an array of @param bounds to a volume.
+    /// TODO: Remove this ?
+    DETRAY_HOST
     virtual void init_vol(detector_t &det, const volume_id id,
                           const array_type<scalar_type, 6> &bounds) = 0;
 

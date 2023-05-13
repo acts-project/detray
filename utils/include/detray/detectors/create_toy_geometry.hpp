@@ -187,10 +187,11 @@ void create_cyl_volume(detector_t &det, vecmem::memory_resource &resource,
     const scalar lower_z{std::min(lay_neg_z, lay_pos_z)};
     const scalar upper_z{std::max(lay_neg_z, lay_pos_z)};
 
-    auto &cyl_volume = det.new_volume(
-        volume_id::e_cylinder, {inner_r, outer_r, lower_z, upper_z,
-                                -constant<scalar>::pi, constant<scalar>::pi});
-    cyl_volume.set_link(detector_t::sf_finders::id::e_default, 0u);
+    auto &cyl_volume =
+        det.new_volume(volume_id::e_cylinder,
+                       {inner_r, outer_r, lower_z, upper_z,
+                        -constant<scalar>::pi, constant<scalar>::pi},
+                       {detector_t::sf_finders::id::e_default, 0u});
 
     // Add module surfaces to volume
     typename detector_t::surface_container_t surfaces(&resource);
@@ -600,9 +601,9 @@ inline void add_beampipe(
     auto &beampipe = det.new_volume(
         volume_id::e_cylinder,
         {beampipe_vol_size.first, beampipe_vol_size.second, min_z, max_z,
-         -constant<scalar>::pi, constant<scalar>::pi});
+         -constant<scalar>::pi, constant<scalar>::pi},
+        {detector_t::sf_finders::id::e_default, 0u});
     const auto beampipe_idx = beampipe.index();
-    beampipe.set_link(detector_t::sf_finders::id::e_default, 0u);
     dindex volume_link{beampipe_idx};
 
     // Get vol sizes in z, including for gap volumes
@@ -699,10 +700,11 @@ inline void add_endcap_barrel_connection(
     typename detector_t::material_container materials(resource);
     typename detector_t::transform_container transforms(resource);
 
-    auto &connector_gap = det.new_volume(
-        volume_id::e_cylinder, {edc_inner_r, edc_outer_r, min_z, max_z,
-                                -constant<scalar>::pi, constant<scalar>::pi});
-    connector_gap.set_link(detector_t::sf_finders::id::e_default, 0u);
+    auto &connector_gap =
+        det.new_volume(volume_id::e_cylinder,
+                       {edc_inner_r, edc_outer_r, min_z, max_z,
+                        -constant<scalar>::pi, constant<scalar>::pi},
+                       {detector_t::sf_finders::id::e_default, 0u});
     dindex connector_gap_idx{det.volumes().back().index()};
 
     dindex volume_link{beampipe_idx};

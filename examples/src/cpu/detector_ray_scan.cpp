@@ -37,7 +37,7 @@ int main() {
     // Can also be performed with helices
     using ray_t = detray::detail::ray<detray::example::transform3>;
 
-    // Build the geometry (modeled as a unified index geometry)
+    // Build the geometry
     vecmem::host_memory_resource host_mr;
     auto det = detray::create_toy_geometry(host_mr);
 

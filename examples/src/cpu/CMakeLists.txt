@@ -39,3 +39,7 @@ detray_add_example( navigation_inspection
    "navigation_inspection.cpp"
    LINK_LIBRARIES detray::core_array covfie::core vecmem::core detray::io_array 
                   detray::example detray::test detray_tests_common detray::utils)
+detray_add_example( do_it_yourself_detector
+   "do_it_yourself_detector.cpp"
+   LINK_LIBRARIES detray::core_array covfie::core vecmem::core detray::io_array 
+                  detray::example detray::test detray_tests_common detray::utils)

@@ -13,19 +13,20 @@
 #include "detray/definitions/containers.hpp"
 #include "detray/definitions/indexing.hpp"
 #include "detray/geometry/surface.hpp"
-#include "detray/intersection/cylinder_portal_intersector.hpp"
-#include "detray/intersection/plane_intersector.hpp"
+#include "detray/io/common/detail/type_traits.hpp"  // mask_info
 #include "detray/masks/masks.hpp"
 #include "detray/materials/material_slab.hpp"
-#include "detray/surface_finders/accelerator_grid.hpp"
 #include "detray/surface_finders/brute_force_finder.hpp"
+
+// New geometric shape type
+#include "my_square2D.hpp"
 
 // Covfie include(s)
 #include <covfie/core/backend/primitive/constant.hpp>
 #include <covfie/core/vector.hpp>
 
 /// This example defines a detray-detector type for a cylindrical
-/// silicon tracker geometry with rectangle modules for the barrel,
+/// silicon tracker geometry with square modules for the barrel,
 /// trapezoids for the endcaps and a passive cylinder for the beampipe.
 /// In detray, the detector module layers are wrapped in navigation volumes,
 /// which in this case are cylindrical bounding volumes. The navigation volumes
@@ -38,23 +39,22 @@
 /// force' data structure which tests all surfaces it contains.
 /// In this example detector design, volumes do not contain other volumes, so
 /// the volume lookup is done using a uniform grid.
-namespace detray::example {
+namespace detray {
+
+namespace example {
 
 //
-// Surface Primitives, as described above
+// Surface Primitives
 //
 
 /// Portal link type between volumes
 using nav_link = std::uint_least16_t;
 
 /// The mask types for the detector sensitive/passive surfaces
-using rectangle = mask<rectangle2D<>, nav_link>;
+using square = mask<square2D<>, nav_link>;
 using trapezoid = mask<trapezoid2D<>, nav_link>;
-using cylinder = mask<cylinder2D<true>, nav_link>;
 // Types for portals
-using cylinder_portal =
-    mask<cylinder2D<false, cylinder_portal_intersector>, nav_link>;
-using disc_portal = mask<ring2D<>, nav_link>;
+using rectangle = mask<rectangle2D<>, nav_link>;
 
 //
 // Material Description
@@ -64,44 +64,25 @@ using disc_portal = mask<ring2D<>, nav_link>;
 using slab = material_slab<detray::scalar>;
 
 //
-// Acceleration Data Structures (fast surface access during navigation)
-//
-
-// Uniform surface grid definition: bin-content: std::array<dindex, 9>
-template <typename grid_shape_t, typename bin_entry_t, typename container_t>
-using surface_grid_t =
-    grid<coordinate_axes<grid_shape_t, false, container_t>, bin_entry_t,
-         simple_serializer, regular_attacher<9>>;
-// Cylindrical grid for the barrel layers
-template <typename bin_entry_t, typename container_t>
-using cylinder_sf_grid =
-    surface_grid_t<cylinder2D<>::axes<>, bin_entry_t, container_t>;
-// Disc grid for the endcap layers
-template <typename bin_entry_t, typename container_t>
-using disc_sf_grid = surface_grid_t<ring2D<>::axes<>, bin_entry_t, container_t>;
-
-//
 // Detector
 //
 
-/// Defines a detector that contains rectangles, trapezoids, stereo annuli,
-/// passive
-template <typename _bfield_backend_t =
-              covfie::backend::constant<covfie::vector::vector_d<scalar, 3>,
-                                        covfie::vector::vector_d<scalar, 3>>>
-struct example_metadata {
-    using bfield_backend_t = _bfield_backend_t;
+/// Defines a detector that contains squares, trapezoids and a bounding portal
+/// box.
+struct my_metadata {
+
+    /// Constant B-field
+    using bfield_backend_t =
+        covfie::backend::constant<covfie::vector::vector_d<scalar, 3>,
+                                  covfie::vector::vector_d<scalar, 3>>;
 
     /// How to index the constituent objects in a volume
     /// If they share the same index value here, they will be added into the
     /// same acceleration data structure in every respective volume
     enum geo_objects : std::size_t {
-        e_sensitive = 0,  //< sensitive module surfaces in acc data structure 0
-        e_passive = 0,    //< passive material surfaces in acc data structure 0
-        e_portal = 0,     //< volume portals in acc data structure 0
-        e_size = 1,       //< Currently no grids, so all types of surfaces are
-                          //  added to the brute force search
-        e_all = e_size,
+        e_surface = 0u,  //< This detector keeps all surfaces in the same
+                         //  acceleration data structure (id 0)
+        e_size = 1u
     };
 
     /// How a volume finds its constituent objects in the detector containers
@@ -119,11 +100,9 @@ struct example_metadata {
     /// order to minimize the depth of the 'unrolling' before a mask is found
     /// in the tuple
     enum class mask_ids {
-        e_rectangle2 = 0,
+        e_square2 = 0,
         e_trapezoid2 = 1,
-        e_portal_ring2 = 2,
-        e_portal_cylinder2 = 3,
-        e_cylinder2 = 4,
+        e_portal_rectangle2 = 2
     };
 
     /// This is the mask collections tuple (in the detector called 'mask store')
@@ -132,8 +111,8 @@ struct example_metadata {
     template <template <typename...> class tuple_t = dtuple,
               template <typename...> class vector_t = dvector>
     using mask_store =
-        regular_multi_store<mask_ids, empty_context, tuple_t, vector_t,
-                            rectangle, trapezoid, cylinder_portal, disc>;
+        regular_multi_store<mask_ids, empty_context, tuple_t, vector_t, square,
+                            trapezoid, rectangle>;
 
     /// Similar to the mask store, there is a material store, which
     enum class material_ids {
@@ -161,9 +140,7 @@ struct example_metadata {
     /// The acceleration data structures live in another tuple that needs to
     /// indexed correctly
     enum class sf_finder_ids {
-        e_brute_force = 0,    //< test all surfaces in a volume (brute force)
-        e_disc_grid = 1,      //< surface grids in the endcaps
-        e_cylinder_grid = 2,  //< surface grids in the barrel
+        e_brute_force = 0,  //< test all surfaces in a volume (brute force)
         e_default = e_brute_force,
     };
 
@@ -175,10 +152,7 @@ struct example_metadata {
               typename container_t = host_container_types>
     using surface_finder_store =
         multi_store<sf_finder_ids, empty_context, tuple_t,
-                    brute_force_collection< surface_type, container_t> 
-/*, grid_collection<disc_sf_grid<surface_type, container_t>>,
-    grid_collection<cylinder_sf_grid<surface_type, container_t>>
-*/>;
+                    brute_force_collection<surface_type, container_t>>;
 
     /// Data structure that allows to find the current detector volume from a
     /// given position. Here: Uniform grid with a 3D cylindrical shape
@@ -191,4 +165,41 @@ struct example_metadata {
              dindex, simple_serializer, replacer>;
 };
 
-}  // namespace detray::example
+}  // namespace example
+
+namespace detail {
+
+/// If the new square shape should participate in the file IO, then detray
+/// needs a specialization of the @c mask_info trait, in order to be
+/// able to match the gloabl IO id for the new square shape to the static
+/// detector mask store that will be defined in this metadata.
+/// Of course, the IO id for the square has to be added to the global
+/// @c mask_shape enum, too. These mask_shape IDs are global to all detectors
+/// and shared with ACTS.
+///
+/// Please change the following lines in
+/// 'detray/io/common/detail/definitions.hpp':
+///
+/// enum class mask_shape : unsigned int {
+///    annulus2 = 0u,
+///    ...
+///    square = 9u,  //< new shape
+///    n_shapes = 10u //< The total number of known shapes needs to be raised
+///  };
+
+/// During the IO, check for a 2D square shape
+template <typename detector_t>
+struct mask_info<io::detail::mask_shape::square2, detector_t,
+                 std::enable_if_t<detector_t::masks::template is_defined<
+                                      detray::example::square>(),
+                                  void>> {
+    using type = detray::example::square::shape;
+    // This mask id is defined in the metadat down below and determines the
+    // position of the collection of square in the detector mask tuple (store)
+    static constexpr
+        typename detector_t::masks::id value{detector_t::masks::id::e_square2};
+};
+
+}  // namespace detail
+
+}  // namespace detray

@@ -71,6 +71,11 @@ class detector_volume {
     /// Default constructor builds an infinitely long cylinder
     constexpr detector_volume() = default;
 
+    /// Constructor from shape id.
+    ///
+    /// @param id id values that determines how to interpret the bounds.
+    explicit constexpr detector_volume(const volume_id id) : _id{id} {}
+
     /// Constructor from boundary values.
     ///
     /// @param id id values that determines how to interpret the bounds.
@@ -79,7 +84,7 @@ class detector_volume {
     ///               the detector builder.
     constexpr detector_volume(const volume_id id,
                               const array_t<scalar_t, 6> &bounds)
-        : _id{id}, _bounds(bounds) {}
+        : _id(id), _bounds(bounds) {}
 
     /// @return the volume shape id, e.g. 'cylinder'
     DETRAY_HOST_DEVICE
@@ -111,25 +116,25 @@ class detector_volume {
     }
 
     /// @return link of a type of object - const access.
-    template <ID obj_id = ID::e_sensitive>
+    template <ID obj_id>
     DETRAY_HOST_DEVICE constexpr auto link() const -> const link_t & {
         return detail::get<obj_id>(_sf_finder_links);
     }
 
     /// @return link of a type of object - const access.
-    template <ID obj_id = ID::e_sensitive>
+    template <ID obj_id>
     DETRAY_HOST_DEVICE constexpr auto link() -> link_t & {
         return detail::get<obj_id>(_sf_finder_links);
     }
 
     /// set surface finder during detector building
-    template <ID obj_id = ID::e_sensitive>
+    template <ID obj_id>
     DETRAY_HOST constexpr auto set_link(const link_t &link) -> void {
         _sf_finder_links[obj_id] = link;
     }
 
     /// set surface finder during detector building
-    template <ID obj_id = ID::e_sensitive>
+    template <ID obj_id>
     DETRAY_HOST constexpr auto set_link(const typename link_t::id_type id,
                                         const typename link_t::index_type index)
         -> void {
