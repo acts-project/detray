@@ -19,7 +19,7 @@
 #include "detray/surface_finders/brute_force_finder.hpp"
 
 // Linear algebra types
-#include "detray/examples/types.hpp"
+#include "detray/tutorial/types.hpp"
 
 // New geometric shape type
 #include "my_square2D.hpp"
@@ -44,7 +44,7 @@
 /// the volume lookup is done using a uniform grid.
 namespace detray {
 
-namespace example {
+namespace tutorial {
 
 //
 // Surface Primitives
@@ -168,7 +168,7 @@ struct my_metadata {
              dindex, simple_serializer, replacer>;
 };
 
-}  // namespace example
+}  // namespace tutorial
 
 namespace detail {
 
@@ -201,9 +201,9 @@ namespace detail {
 template <typename detector_t>
 struct mask_info<io::detail::mask_shape::square2, detector_t,
                  std::enable_if_t<detector_t::masks::template is_defined<
-                                      detray::example::square>(),
+                                      detray::tutorial::square>(),
                                   void>> {
-    using type = detray::example::square::shape;
+    using type = detray::tutorial::square::shape;
     // This mask id is defined in the metadat down below and determines the
     // position of the collection of square in the detector mask tuple (store)
     static constexpr

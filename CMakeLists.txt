@@ -60,7 +60,7 @@ option( DETRAY_BUILD_TESTING "Build the (unit) tests of Detray"
    TRUE )
 cmake_dependent_option( DETRAY_BENCHMARKS "Enable benchmark tests" TRUE
    "DETRAY_BUILD_TESTING" OFF )
-option( DETRAY_BUILD_EXAMPLES "Build the example executables of Detray"
+option( DETRAY_BUILD_TUTORIALS "Build the tutorial executables of Detray"
    ON )
 
 # Clean up.
@@ -211,9 +211,9 @@ if( BUILD_TESTING AND DETRAY_BUILD_TESTING )
    add_subdirectory( tests )
 endif()
 
-# Set up the example(s).
+# Set up the tutorial(s).
 if( DETRAY_BUILD_EXAMPLES )
-   add_subdirectory( examples )
+   add_subdirectory( tutorials )
 endif()
 
 # Set up the packaging of the project.

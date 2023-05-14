@@ -8,17 +8,17 @@
 include( detray-compiler-options-cpp )
 include_directories( SYSTEM $<TARGET_PROPERTY:dfelibs::dfelibs,INTERFACE_INCLUDE_DIRECTORIES> )
 
-# Set up a example library, which showcases how to use detray components.
-file( GLOB _detray_example_headers
+# Set up a tutorial library, which showcases how to use detray components.
+file( GLOB _detray_tutorial_headers
    RELATIVE "${CMAKE_CURRENT_SOURCE_DIR}"
-   "include/detray/examples/*.hpp" )
-add_library( detray_example INTERFACE "${_detray_example_headers}" )
-add_library( detray::example ALIAS detray_example )
-target_include_directories( detray_example
+   "include/detray/tutorials/*.hpp" )
+add_library( detray_tutorial INTERFACE "${_detray_tutorial_headers}" )
+add_library( detray::tutorial ALIAS detray_tutorial )
+target_include_directories( detray_tutorial
    INTERFACE "${CMAKE_CURRENT_SOURCE_DIR}/include" )
-target_link_libraries( detray_example INTERFACE
+target_link_libraries( detray_tutorial INTERFACE
    vecmem::core detray::core )
-unset( _detray_example_headers )
+unset( _detray_tutorial_headers )
 
 # Include all of the code-holding sub-directories.
 add_subdirectory( src )

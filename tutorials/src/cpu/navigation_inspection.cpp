@@ -19,7 +19,7 @@
 #include "tests/common/tools/particle_gun.hpp"
 
 // Example linear algebra plugin: std::array
-#include "detray/examples/types.hpp"
+#include "detray/tutorial/types.hpp"
 
 // Vecmem include(s)
 #include <vecmem/memory/host_memory_resource.hpp>
@@ -37,7 +37,7 @@ int main() {
     /// Type that holds the intersection information
     using intersection_t =
         detray::intersection2D<typename toy_detector_t::surface_type,
-                               detray::example::transform3>;
+                               detray::tutorial::transform3>;
 
     /// Inspector that records all encountered surfaces
     using object_tracer_t = detray::navigation::object_tracer<
@@ -58,15 +58,15 @@ int main() {
         detray::navigator<toy_detector_t, inspector_t, intersection_t>;
     // Runge-Kutta stepper
     using stepper_t =
-        detray::rk_stepper<b_field_t::view_t, detray::example::transform3>;
+        detray::rk_stepper<b_field_t::view_t, detray::tutorial::transform3>;
     // Propagator with empty actor chain
     using propagator_t =
         detray::propagator<stepper_t, navigator_t, detray::actor_chain<>>;
 
     // Build toy detector with constant B-field in z-direction
-    const detray::example::vector3 B{0. * detray::unit<detray::scalar>::T,
-                                     0. * detray::unit<detray::scalar>::T,
-                                     2. * detray::unit<detray::scalar>::T};
+    const detray::tutorial::vector3 B{0. * detray::unit<detray::scalar>::T,
+                                      0. * detray::unit<detray::scalar>::T,
+                                      2. * detray::unit<detray::scalar>::T};
 
     vecmem::host_memory_resource host_mr;
 
@@ -81,12 +81,12 @@ int main() {
     // Trivial example: Single track escapes through beampipe
     constexpr std::size_t theta_steps{1};
     constexpr std::size_t phi_steps{1};
-    const detray::example::point3 origin{0., 0., 0.};
+    const detray::tutorial::point3 origin{0., 0., 0.};
     constexpr detray::scalar p_mag{10. * detray::unit<detray::scalar>::GeV};
 
     // Iterate through uniformly distributed momentum directions
     for (auto track : detray::uniform_track_generator<
-             detray::free_track_parameters<detray::example::transform3>>(
+             detray::free_track_parameters<detray::tutorial::transform3>>(
              theta_steps, phi_steps, origin, p_mag)) {
         track.set_overstep_tolerance(-7. * detray::unit<detray::scalar>::um);
 

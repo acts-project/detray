@@ -4,10 +4,10 @@
 #
 # Mozilla Public License Version 2.0
 
-# Set up all of the "host" examples.
+# Set up all of the "host" tutorials.
 add_subdirectory( cpu )
 
-# Set up all of the "device" examples.
+# Set up all of the "device" tutorials.
 if( DETRAY_BUILD_CUDA OR DETRAY_BUILD_SYCL )
    add_subdirectory( device )
 endif()

@@ -14,13 +14,13 @@
 #include "detray/tools/surface_factory_interface.hpp"
 
 // Example include(s)
-#include "detray/examples/detector_metadata.hpp"
-#include "detray/examples/my_square2D.hpp"
+#include "detray/tutorial/detector_metadata.hpp"
+#include "detray/tutorial/my_square2D.hpp"
 
 // System include(s)
 #include <vector>
 
-namespace detray::example {
+namespace detray::tutorial {
 
 /// @brief Generates sequence of square surfaces for the example detector
 ///
@@ -29,10 +29,10 @@ namespace detray::example {
 /// @tparam mask_id the concrete mask id that must be defined in the detector_t.
 /// @tparam sf_id eihter portal, passive or sensitive.
 class square_surface_generator final
-    : public surface_factory_interface<detector<example::my_metadata>> {
+    : public surface_factory_interface<detector<tutorial::my_metadata>> {
 
     public:
-    using detector_t = detector<example::my_metadata>;
+    using detector_t = detector<tutorial::my_metadata>;
     using scalar_t = typename detector_t::scalar_type;
 
     /// Construct @param n square surfaces
@@ -121,4 +121,4 @@ class square_surface_generator final
     scalar_t m_half_length;
 };
 
-}  // namespace detray::example
+}  // namespace detray::tutorial

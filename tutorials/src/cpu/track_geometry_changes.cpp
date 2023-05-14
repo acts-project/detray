@@ -11,7 +11,7 @@
 #include "tests/common/tools/hash_tree.hpp"
 
 // Example linear algebra plugin: std::array
-#include "detray/examples/types.hpp"
+#include "detray/tutorial/types.hpp"
 
 // Vecmem include(s)
 #include <vecmem/memory/host_memory_resource.hpp>

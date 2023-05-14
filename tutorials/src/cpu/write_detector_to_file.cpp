@@ -10,7 +10,7 @@
 #include "detray/io/common/detector_writer.hpp"
 
 // Example linear algebra plugin: std::array
-#include "detray/examples/types.hpp"
+#include "detray/tutorial/types.hpp"
 
 // Vecmem include(s)
 #include <vecmem/memory/host_memory_resource.hpp>

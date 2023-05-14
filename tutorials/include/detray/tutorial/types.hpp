@@ -8,14 +8,14 @@
 #pragma once
 
 /// This file contains the definitions of the linear algebra types to be used in
-/// the examples, which in this case will be the std::array based plugin.
+/// the tutorials, which in this case will be the std::array based plugin.
 /// The includes for the different algebra plugins can be found in
 /// @c detray/plugins/algebra/
 
 // Detray core include(s).
 #include "detray/plugins/algebra/array_definitions.hpp"
 
-namespace detray::example {
+namespace detray::tutorial {
 
 using transform3 = algebra::array::transform3<detray::scalar>;
 using point2 = algebra::array::point2<detray::scalar>;
@@ -23,4 +23,4 @@ using point3 = algebra::array::point3<detray::scalar>;
 using vector2 = algebra::array::vector2<detray::scalar>;
 using vector3 = algebra::array::vector3<detray::scalar>;
 
-}  // namespace detray::example
+}  // namespace detray::tutorial

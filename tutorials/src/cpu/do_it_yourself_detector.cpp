@@ -16,9 +16,9 @@
 #include "detray/tools/volume_builder.hpp"
 
 // Example include(s)
-#include "detray/examples/detector_metadata.hpp"
-#include "detray/examples/square_surface_generator.hpp"
-#include "detray/examples/types.hpp"  // linear algebra types
+#include "detray/tutorial/detector_metadata.hpp"
+#include "detray/tutorial/square_surface_generator.hpp"
+#include "detray/tutorial/types.hpp"  // linear algebra types
 
 // Vecmem include(s)
 #include <vecmem/memory/host_memory_resource.hpp>
@@ -31,7 +31,7 @@
 int main() {
 
     // The new detector type
-    using detector_t = detray::detector<detray::example::my_metadata>;
+    using detector_t = detray::detector<detray::tutorial::my_metadata>;
 
     // First, create an empty detector in in host memory to be filled
     vecmem::host_memory_resource host_mr;
@@ -47,24 +47,24 @@ int main() {
 
     // Fill some squares into the volume
     using square_factory_t =
-        detray::surface_factory<detector_t, detray::square2D<>,
+        detray::surface_factory<detector_t, detray::tutorial::square2D<>,
                                 detector_t::masks::id::e_square2,
                                 detray::surface_id::e_sensitive>;
     auto square_factory = std::make_shared<square_factory_t>();
 
     // Add a square that is 20x20mm large, likns back to its mother volume (0)
     // and is placed with a translation of (x = 1., y = 2., z = 3.)
-    detray::example::vector3 translation{
+    detray::tutorial::vector3 translation{
         1.f * detray::unit<detray::scalar>::mm,
         2.f * detray::unit<detray::scalar>::mm,
         3.f * detray::unit<detray::scalar>::mm};
-    square_factory->push_back({detray::example::transform3{translation},
+    square_factory->push_back({detray::tutorial::transform3{translation},
                                0u,
                                {20.f * detray::unit<detray::scalar>::mm}});
 
     // Add some programmatically generated surfaces
     auto sq_generator =
-        std::make_shared<detray::example::square_surface_generator>(
+        std::make_shared<detray::tutorial::square_surface_generator>(
             10, 10.f * detray::unit<detray::scalar>::mm);
 
     // Add a portal box around the cuboid volume with a min distance of 'env'

@@ -10,9 +10,6 @@
 #include "detray/propagator/actor_chain.hpp"
 #include "detray/propagator/base_actor.hpp"
 
-// Example linear algebra plugin: std::array
-#include "detray/examples/types.hpp"
-
 // System include(s)
 #include <iostream>
 #include <sstream>

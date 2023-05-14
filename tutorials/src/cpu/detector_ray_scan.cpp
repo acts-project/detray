@@ -15,7 +15,7 @@
 #include "tests/common/tools/ray_scan_utils.hpp"
 
 // Example linear algebra plugin: std::array
-#include "detray/examples/types.hpp"
+#include "detray/tutorial/types.hpp"
 
 // Vecmem include(s)
 #include <vecmem/memory/host_memory_resource.hpp>
@@ -35,7 +35,7 @@ constexpr std::size_t root_hash = 3244;
 int main() {
 
     // Can also be performed with helices
-    using ray_t = detray::detail::ray<detray::example::transform3>;
+    using ray_t = detray::detail::ray<detray::tutorial::transform3>;
 
     // Build the geometry
     vecmem::host_memory_resource host_mr;
@@ -60,7 +60,7 @@ int main() {
     unsigned int theta_steps{100u};
     unsigned int phi_steps{100u};
     // Origin of the rays
-    const detray::example::point3 origin{0.f, 0.f, 0.f};
+    const detray::tutorial::point3 origin{0.f, 0.f, 0.f};
     auto ray_generator =
         detray::uniform_track_generator<ray_t>(theta_steps, phi_steps, origin);
 

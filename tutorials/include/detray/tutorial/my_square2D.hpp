@@ -16,7 +16,7 @@
 #include <limits>
 #include <string>
 
-namespace detray {
+namespace detray::tutorial {
 
 /// @brief Geometrical shape of a square.
 ///
@@ -123,4 +123,4 @@ class square2D {
     }
 };
 
-}  // namespace detray
+}  // namespace detray::tutorial

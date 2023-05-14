@@ -16,7 +16,7 @@
 #include "detray/tracks/tracks.hpp"
 
 // Example linear algebra plugin: std::array
-#include "detray/examples/types.hpp"
+#include "detray/tutorial/types.hpp"
 
 // Vecmem include(s)
 #include <vecmem/memory/host_memory_resource.hpp>
@@ -135,7 +135,7 @@ int main(int argc, char** argv) {
     //         silicon material (80mm)
 
     // Pilot trajectory in x-direction
-    detray::detail::ray<detray::example::transform3> x_track{
+    detray::detail::ray<detray::tutorial::transform3> x_track{
         {0.f, 0.f, 0.f}, 0.f, {1.f, 0.f, 0.f}, -1.f};
 
     const rectgl_telescope_t tel_det3 = create_telescope_detector(
@@ -152,12 +152,12 @@ int main(int argc, char** argv) {
     //         constant B-field, silicon material (80mm)
 
     // Pilot track in x-direction
-    detray::free_track_parameters<detray::example::transform3> y_track{
+    detray::free_track_parameters<detray::tutorial::transform3> y_track{
         {0.f, 0.f, 0.f}, 0.f, {1.f, 0.f, 0.f}, -1.f};
     // Helix in a constant B-field in z-direction
-    detray::example::vector3 B_z{0.f, 0.f,
-                                 1.f * detray::unit<detray::scalar>::T};
-    detray::detail::helix<detray::example::transform3> helix(y_track, &B_z);
+    detray::tutorial::vector3 B_z{0.f, 0.f,
+                                  1.f * detray::unit<detray::scalar>::T};
+    detray::detail::helix<detray::tutorial::transform3> helix(y_track, &B_z);
 
     // Prepare constant B-field
     using b_field_t = typename trapzd_telescope_t::bfield_type;
