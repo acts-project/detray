@@ -22,6 +22,7 @@
 #include <vecmem/memory/host_memory_resource.hpp>
 
 // System include(s)
+#include <cmath>
 #include <cstdlib>
 #include <iostream>
 
@@ -44,16 +45,16 @@ int main(int argc, char** argv) {
     using toy_detector_t = detray::detector<detray::toy_metadata<>>;
 
     // Number of barrel layers (0 - 4)
-    std::size_t n_brl_layers{4u};
+    unsigned int n_brl_layers{4u};
     // Number of endcap layers on either side (0 - 7)
     // Note: The detector must be configured with 4 barrel layers to be able to
     // add any encap layers
-    std::size_t n_edc_layers{1u};
+    unsigned int n_edc_layers{1u};
 
     // Read toy detector config from commandline, if it was given
     if (argc == 3) {
-        n_brl_layers = std::atoi(argv[1]);
-        n_edc_layers = std::atoi(argv[2]);
+        n_brl_layers = static_cast<unsigned int>(std::abs(std::atoi(argv[1])));
+        n_edc_layers = static_cast<unsigned int>(std::abs(std::atoi(argv[2])));
     }
 
     // Fill the detector
