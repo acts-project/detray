@@ -178,17 +178,28 @@ class detector {
           _volume_finder(det_data._volume_finder_data),
           _bfield(det_data._bfield_view) {}
 
+    /// Add a new volume and retrieve a reference to it.
+    ///
+    /// @param id the shape id for the volume
+    /// @param sf_finder_link of the volume, where to entry the surface finder
+    ///
     /// @return non-const reference to the new volume
     DETRAY_HOST
-    volume_type &new_volume(const volume_id id) {
+    volume_type &new_volume(
+        const volume_id id,
+        typename volume_type::link_type::index_type srf_finder_link = {}) {
         volume_type &cvolume = _volumes.emplace_back(id);
         cvolume.set_index(static_cast<dindex>(_volumes.size()) - 1u);
+        cvolume
+            .template set_link<static_cast<typename volume_type::object_id>(0)>(
+                srf_finder_link);
 
         return cvolume;
     }
 
-    /// Add a new volume and retrieve a reference to it
+    /// Add a new volume and retrieve a reference to it.
     ///
+    /// @param id the shape id for the volume
     /// @param bounds of the volume, they are expected to be already attaching
     /// @param sf_finder_link of the volume, where to entry the surface finder
     ///
@@ -197,11 +208,8 @@ class detector {
     volume_type &new_volume(
         const volume_id id, const array_type<scalar, 6> &bounds,
         typename volume_type::link_type::index_type srf_finder_link = {}) {
-        volume_type &cvolume = _volumes.emplace_back(id, bounds);
-        cvolume.set_index(static_cast<dindex>(_volumes.size()) - 1u);
-        cvolume
-            .template set_link<static_cast<typename volume_type::object_id>(0)>(
-                srf_finder_link);
+        volume_type &cvolume = new_volume(id, srf_finder_link);
+        cvolume.set_bounds(bounds);
 
         return cvolume;
     }

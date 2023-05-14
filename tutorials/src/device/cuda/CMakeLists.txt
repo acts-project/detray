@@ -14,7 +14,7 @@ enable_language(CUDA)
 include(detray-compiler-options-cuda)
 
 # Examples using the array algebra plugin.
-detray_add_tutorial(propagation_cuda
+detray_add_tutorial( propagation_cuda
    "propagation.cpp"
    "propagation.hpp"
    "propagation_kernel.cu"

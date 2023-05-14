@@ -29,7 +29,7 @@ int main() {
                           .format(detray::io::format::json)
                           .replace_files(true);
 
-    // Takes the detector 'det' a volume ame map (only entry here the detector
-    // name) and the writer config
+    // Takes the detector 'det', a volume name map (only entry here the
+    // detector name) and the writer config
     detray::io::write_detector(det, {{0u, "toy_detector"}}, writer_cfg);
 }

@@ -29,11 +29,12 @@ class volume_builder_interface {
 
     virtual ~volume_builder_interface() = default;
 
-    /// @brief Adds an array of @param bounds to a volume.
+    /// @brief Initializes a new volume with shape id @param id in @param det
     DETRAY_HOST
     virtual void init_vol(detector_t &det, const volume_id id) = 0;
 
-    /// @brief Adds an array of @param bounds to a volume.
+    /// @brief Initializes a new volume with shape id @param id and bounds
+    /// @param bounds in @param det
     /// TODO: Remove this ?
     DETRAY_HOST
     virtual void init_vol(detector_t &det, const volume_id id,

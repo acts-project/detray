@@ -8,6 +8,7 @@
 #pragma once
 
 // Project include(s)
+#include "detray/definitions/geometry.hpp"
 #include "detray/definitions/indexing.hpp"
 #include "detray/definitions/qualifiers.hpp"
 #include "detray/definitions/units.hpp"
@@ -22,12 +23,7 @@
 
 namespace detray::tutorial {
 
-/// @brief Generates sequence of square surfaces for the example detector
-///
-/// @tparam detector_t the type of detector the volume belongs to.
-/// @tparam mask_shape_t the shape of the surface.
-/// @tparam mask_id the concrete mask id that must be defined in the detector_t.
-/// @tparam sf_id eihter portal, passive or sensitive.
+/// @brief Generates a sequence of square surfaces for the example detector
 class square_surface_generator final
     : public surface_factory_interface<detector<tutorial::my_metadata>> {
 
@@ -35,7 +31,7 @@ class square_surface_generator final
     using detector_t = detector<tutorial::my_metadata>;
     using scalar_t = typename detector_t::scalar_type;
 
-    /// Construct @param n square surfaces
+    /// Generate @param n square surfaces with half length @param hl .
     DETRAY_HOST
     square_surface_generator(std::size_t n, scalar_t hl)
         : m_n_squares{static_cast<dindex>(n)}, m_half_length{hl} {}
@@ -83,17 +79,11 @@ class square_surface_generator final
         // In case the surfaces container is prefilled with other surfaces
         dindex surfaces_offset = static_cast<dindex>(surfaces.size());
 
-        // Nothing to construct
-        if (size() == 0u) {
-            return {surfaces_offset, surfaces_offset};
-        }
-
         // Produce a series of square surfaces,
         scalar_t z_translation{0.f};
         for (unsigned int i = 0u; i < m_n_squares; ++i) {
 
             // Surface placement: no rotation, just translation
-
             typename detector_t::point3 translation{0.f, 0.f, z_translation};
             z_translation += 10.f * unit<scalar_t>::mm;
             typename detector_t::transform3 trf{translation};
@@ -105,7 +95,9 @@ class square_surface_generator final
 
             // Add surface with all links set (relative to the given containers)
             mask_link_t mask_link{mask_id, masks.template size<mask_id>() - 1u};
-            material_link_t material_link{no_material, dindex_invalid};
+            material_link_t material_link{
+                no_material,
+                detail::invalid_value<typename material_link_t::index_type>()};
             surfaces.emplace_back(transforms.size(ctx) - 1u, mask_link,
                                   material_link, volume.index(), dindex_invalid,
                                   surface_type());

@@ -21,7 +21,6 @@ set(source_files
 
 foreach(file ${source_files})
    # Extract name of the tutorial
-   #string(REGEX REPLACE "\\.[^.]*$" "" file_stem ${file})
    get_filename_component( file_name ${file} NAME_WE )
 
    detray_add_tutorial( ${file_name}

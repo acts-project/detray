@@ -44,7 +44,7 @@ class cuboid_portal_generator final
             std::vector<aabb_t> &boxes) const {
             // Local minimum bounding box
             aabb_t box{mask_group[index], boxes.size(), envelope};
-            // Minimum bounding box in global coordinates
+            // Bounding box in global coordinates (might no longer be minimum)
             boxes.push_back(box.transform(trf));
         }
     };
@@ -72,10 +72,8 @@ class cuboid_portal_generator final
         -> void override { /*Do nothing*/
     }
 
-    /// Create minimum aabbs around all module surfaces in the volume and then
+    /// Create minimum aabbs around all surfaces that are passed and then
     /// construct world portals from the global bounding box.
-    /// This assumes that the module surfaces are already built inside the
-    /// argument containers.
     ///
     /// @param volume the volume the portals need to be added to.
     /// @param surfaces the surface collection to wrap and to add the portals to
@@ -102,28 +100,31 @@ class cuboid_portal_generator final
 
         // Only build box portals for cuboid volumes
         assert(volume.id() == volume_id::e_cuboid);
+        // Need surfaces to wrap
+        std::size_t n_surfaces{surfaces.size()};
+        assert(n_surfaces != 0u);
+        // Make sure data is consistent
+        assert(n_surfaces == transforms.size() and
+               n_surfaces == masks.total_size());
 
-        // In case the surfaces container is prefilled with other surfaces
-        dindex surfaces_offset = static_cast<dindex>(surfaces.size());
-
-        // Nothing to construct
-        if (size() == 0u) {
-            return {surfaces_offset, surfaces_offset};
-        }
+        // The surfaces container is prefilled with other surfaces
+        dindex surfaces_offset = static_cast<dindex>(n_surfaces);
 
         // Fetch the position in the mask tuple for the rectangle portals
         constexpr auto rectangle_id{detector_t::masks::id::e_portal_rectangle2};
 
         // The material will be added in a later step
         constexpr auto no_material = surface_t::material_id::e_none;
-        material_link_t material_link{no_material, dindex_invalid};
+        material_link_t material_link{
+            no_material,
+            detail::invalid_value<typename material_link_t::index_type>()};
 
         // Max distance in case of infinite bounds
         constexpr scalar max_shift{0.01f * std::numeric_limits<scalar>::max()};
 
         // The bounding boxes around the module surfaces
         std::vector<aabb_t> boxes;
-        boxes.reserve(surfaces.size());
+        boxes.reserve(n_surfaces);
 
         for (const auto &sf : surfaces) {
             masks.template visit<bounding_box_creator>(

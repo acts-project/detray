@@ -212,7 +212,7 @@ if( BUILD_TESTING AND DETRAY_BUILD_TESTING )
 endif()
 
 # Set up the tutorial(s).
-if( DETRAY_BUILD_EXAMPLES )
+if( DETRAY_BUILD_TUTORIALS )
    add_subdirectory( tutorials )
 endif()
 

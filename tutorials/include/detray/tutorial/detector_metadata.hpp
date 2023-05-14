@@ -28,20 +28,16 @@
 #include <covfie/core/backend/primitive/constant.hpp>
 #include <covfie/core/vector.hpp>
 
-/// This example defines a detray-detector type for a cylindrical
-/// silicon tracker geometry with square modules for the barrel,
-/// trapezoids for the endcaps and a passive cylinder for the beampipe.
-/// In detray, the detector module layers are wrapped in navigation volumes,
-/// which in this case are cylindrical bounding volumes. The navigation volumes
-/// are attached to each other by links in their boundary surfaces (called
-/// portals).
-/// The different types of surfaces (e.g. sensitive modules, passive material
-/// surfaces, as well as portals) can be stored in geometrical acceleration
-/// data structures for a fast surface neighborhood lookup during geometry
-/// navigation. The volume portals are, however, always stored in a 'brute
-/// force' data structure which tests all surfaces it contains.
+/// This example defines a detray geometry type for a detector with cuboid
+/// volumes that constain a new surface shape (squares), trapezoids and
+/// rectangles for the volume boundary surfaces (portals).
+/// For now, all surfaces in the volume(s) are stored in a 'brute force'
+/// acceleration data structure which tests all surfaces it contains during
+/// navigation.
 /// In this example detector design, volumes do not contain other volumes, so
 /// the volume lookup is done using a uniform grid.
+/// Furthermore, the detector will contain homogeneous material on its surfaces
+/// and a constant B-field.
 namespace detray {
 
 namespace tutorial {
@@ -175,7 +171,7 @@ namespace detail {
 /// If the new square shape should participate in the file IO, then detray
 /// needs a specialization of the @c mask_info trait, in order to be
 /// able to match the gloabl IO id for the new square shape to the static
-/// detector mask store that will be defined in this metadata.
+/// detector mask store that is defined in the metadata above.
 /// Of course, the IO id for the square has to be added to the global
 /// @c mask_shape enum, too. These mask_shape IDs are global to all detectors
 /// and shared with ACTS.
@@ -190,6 +186,7 @@ namespace detail {
 ///    n_shapes = 10u //< The total number of known shapes needs to be raised
 ///  };
 ///
+/// In order to write the square shape to file:
 /// 'detray/io/common/geometery_writer.hpp'
 /// ...
 /// } else if (name == "square2D") {
@@ -198,7 +195,7 @@ namespace detail {
 ///
 
 /// During the IO, check for a 2D square shape
-template <typename detector_t>
+/*template <typename detector_t>
 struct mask_info<io::detail::mask_shape::square2, detector_t,
                  std::enable_if_t<detector_t::masks::template is_defined<
                                       detray::tutorial::square>(),
@@ -208,7 +205,7 @@ struct mask_info<io::detail::mask_shape::square2, detector_t,
     // position of the collection of square in the detector mask tuple (store)
     static constexpr
         typename detector_t::masks::id value{detector_t::masks::id::e_square2};
-};
+};*/
 
 }  // namespace detail
 

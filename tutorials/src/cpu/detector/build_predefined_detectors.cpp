@@ -71,10 +71,10 @@ int main(int argc, char** argv) {
 
     // The telescope detector is built according to a 'pilot trajectory'
     // (either a helix or a ray) along which the modules are placed in given
-    // distances. the world portals are constructed from a bounding box around
-    // the test surfaces (the envelope is configurable)
+    // distances. The world portals are constructed from a bounding box around
+    // the test surfaces (the envelope is configurable).
 
-    // Telescope detector tyoes containing the given module shape (can be any)
+    // Telescope detector types containing the given module shape (can be any)
     using rectgl_telescope_t =
         detray::detector<detray::telescope_metadata<detray::rectangle2D<>>>;
     using trapzd_telescope_t =
@@ -131,7 +131,7 @@ int main(int argc, char** argv) {
 
     //
     // Case 3: Straight telescope in x-direction, 11 rectangle surfaces, 2000mm
-    //         in length, modules evenly spaced, no B-field,
+    //         in length, modules places according to 'positions', no B-field,
     //         silicon material (80mm)
 
     // Pilot trajectory in x-direction
@@ -154,7 +154,7 @@ int main(int argc, char** argv) {
     // Pilot track in x-direction
     detray::free_track_parameters<detray::tutorial::transform3> y_track{
         {0.f, 0.f, 0.f}, 0.f, {1.f, 0.f, 0.f}, -1.f};
-    // Helix in a constant B-field in z-direction
+    // Helix in a constant B-field 1T in z-direction
     detray::tutorial::vector3 B_z{0.f, 0.f,
                                   1.f * detray::unit<detray::scalar>::T};
     detray::detail::helix<detray::tutorial::transform3> helix(y_track, &B_z);

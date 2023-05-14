@@ -76,7 +76,7 @@ class detector_volume {
     /// @param id id values that determines how to interpret the bounds.
     explicit constexpr detector_volume(const volume_id id) : _id{id} {}
 
-    /// Constructor from boundary values.
+    /// Constructor from shape id and boundary values.
     ///
     /// @param id id values that determines how to interpret the bounds.
     /// @param bounds values of volume boundaries. They depend on the volume
@@ -90,7 +90,7 @@ class detector_volume {
     DETRAY_HOST_DEVICE
     constexpr auto id() const -> volume_id { return _id; }
 
-    /// @return the bounds - const access
+    /// Set the volume bounds to @param bounds
     DETRAY_HOST
     constexpr void set_bounds(const array_t<scalar_t, 6> &bounds) {
         _bounds = bounds;

@@ -50,19 +50,19 @@ int main() {
         detray::surface_factory<detector_t, detray::tutorial::square2D<>,
                                 detector_t::masks::id::e_square2,
                                 detray::surface_id::e_sensitive>;
-    auto square_factory = std::make_shared<square_factory_t>();
+    auto sq_factory = std::make_shared<square_factory_t>();
 
-    // Add a square that is 20x20mm large, likns back to its mother volume (0)
-    // and is placed with a translation of (x = 1., y = 2., z = 3.)
+    // Add a square that is 20x20mm large, links back to its mother volume (0)
+    // and is placed with a translation of (x = 1mm, y = 2mm, z = 3mm)
     detray::tutorial::vector3 translation{
         1.f * detray::unit<detray::scalar>::mm,
         2.f * detray::unit<detray::scalar>::mm,
         3.f * detray::unit<detray::scalar>::mm};
-    square_factory->push_back({detray::tutorial::transform3{translation},
-                               0u,
-                               {20.f * detray::unit<detray::scalar>::mm}});
+    sq_factory->push_back({detray::tutorial::transform3{translation},
+                           0u,
+                           {20.f * detray::unit<detray::scalar>::mm}});
 
-    // Add some programmatically generated surfaces
+    // Add some programmatically generated square surfaces
     auto sq_generator =
         std::make_shared<detray::tutorial::square_surface_generator>(
             10, 10.f * detray::unit<detray::scalar>::mm);
@@ -73,7 +73,7 @@ int main() {
         std::make_shared<detray::cuboid_portal_generator<detector_t>>(env);
 
     // Add surfaces to volume and add the volume to the detector
-    vbuilder.add_sensitives(square_factory);
+    vbuilder.add_sensitives(sq_factory);
     vbuilder.add_sensitives(sq_generator);
     vbuilder.add_portals(portal_generator);
 
