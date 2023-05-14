@@ -69,7 +69,8 @@ struct example_actor : detray::actor {
     template <typename propagator_state_t>
     void operator()(state &example_state, const state &subject_state,
                     const propagator_state_t & /*p_state*/) const {
-        example_state.buffer.push_back(subject_state.buffer.size() / 10.);
+        example_state.buffer.push_back(
+            static_cast<float>(subject_state.buffer.size()) / 10.f);
     }
 
     /// Observing actor implementation to printer: do nothing
