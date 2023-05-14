@@ -88,8 +88,8 @@ class cuboid_portal_generator final
                     typename detector_t::geometry_context ctx = {}) const
         -> dindex_range override {
 
-        using point3 = typename detector_t::point3;
-        using vector3 = typename detector_t::vector3;
+        using point3_t = typename detector_t::point3;
+        using vector3_t = typename detector_t::vector3;
 
         using surface_t = typename detector_t::surface_type;
         using nav_link_t = typename surface_t::navigation_link;
@@ -134,14 +134,14 @@ class cuboid_portal_generator final
         aabb_t world_box{boxes, boxes.size(), m_envelope};
 
         // translation
-        const point3 center = world_box.template center<point3>();
+        const point3_t center = world_box.template center<point3_t>();
 
         // The world box local frame is the global coordinate frame
-        const point3 box_min = world_box.template loc_min<point3>();
-        const point3 box_max = world_box.template loc_max<point3>();
+        const point3_t box_min = world_box.template loc_min<point3_t>();
+        const point3_t box_max = world_box.template loc_max<point3_t>();
 
         // Get the half lengths for the rectangle sides and translation
-        const point3 h_lengths = 0.5f * (box_max - box_min);
+        const point3_t h_lengths = 0.5f * (box_max - box_min);
         const scalar h_x{math_ns::abs(h_lengths[0])};
         const scalar h_y{math_ns::abs(h_lengths[1])};
         const scalar h_z{math_ns::abs(h_lengths[2])};
@@ -162,9 +162,9 @@ class cuboid_portal_generator final
                                                   h_x, h_y);
 
         // No rotation, but shift in z for both faces
-        vector3 shift{0.f, 0.f, std::isinf(h_z) ? max_shift : h_z};
-        transforms.emplace_back(ctx, static_cast<vector3>(center + shift));
-        transforms.emplace_back(ctx, static_cast<vector3>(center - shift));
+        vector3_t shift{0.f, 0.f, std::isinf(h_z) ? max_shift : h_z};
+        transforms.emplace_back(ctx, static_cast<vector3_t>(center + shift));
+        transforms.emplace_back(ctx, static_cast<vector3_t>(center - shift));
 
         // Build the portal surfaces
         dindex trf_idx{transforms.size(ctx) - 2};
@@ -183,11 +183,11 @@ class cuboid_portal_generator final
 
         // Rotate by 90deg around x-axis, plus shift in y
         shift = {0.f, std::isinf(h_y) ? max_shift : h_y, 0.f};
-        vector3 new_x{1.f, 0.f, 0.f};
-        vector3 new_z{0.f, -1.f, 0.f};
-        transforms.emplace_back(ctx, static_cast<vector3>(center + shift),
+        vector3_t new_x{1.f, 0.f, 0.f};
+        vector3_t new_z{0.f, -1.f, 0.f};
+        transforms.emplace_back(ctx, static_cast<vector3_t>(center + shift),
                                 new_z, new_x);
-        transforms.emplace_back(ctx, static_cast<vector3>(center - shift),
+        transforms.emplace_back(ctx, static_cast<vector3_t>(center - shift),
                                 new_z, new_x);
 
         surfaces.emplace_back(++trf_idx, mask_link, material_link, volume_idx,
@@ -207,9 +207,9 @@ class cuboid_portal_generator final
         shift = {std::isinf(h_x) ? max_shift : h_x, 0.f, 0.f};
         new_x = {0.f, 0.f, -1.f};
         new_z = {1.f, 0.f, 0.f};
-        transforms.emplace_back(ctx, static_cast<vector3>(center + shift),
+        transforms.emplace_back(ctx, static_cast<vector3_t>(center + shift),
                                 new_z, new_x);
-        transforms.emplace_back(ctx, static_cast<vector3>(center - shift),
+        transforms.emplace_back(ctx, static_cast<vector3_t>(center - shift),
                                 new_z, new_x);
 
         surfaces.emplace_back(++trf_idx, mask_link, material_link, volume_idx,

@@ -62,7 +62,8 @@ struct example_actor : detray::actor {
     template <typename propagator_state_t>
     void operator()(state &example_state,
                     const propagator_state_t & /*p_state*/) const {
-        example_state.buffer.push_back(example_state.buffer.size());
+        example_state.buffer.push_back(
+            static_cast<float>(example_state.buffer.size()));
     }
 
     /// Observing actor implementation: Counts vector elements (division)
