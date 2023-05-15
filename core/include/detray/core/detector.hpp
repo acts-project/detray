@@ -487,7 +487,7 @@ class detector {
     }
 
     DETRAY_HOST_DEVICE
-    inline bound_vector_type free_to_bound_vec(
+    inline bound_vector_type free_to_bound_vector(
         const geometry::barcode bc, const free_vector_type &free_vec) {
         const auto &sf =
             *(surfaces().begin() + static_cast<std::ptrdiff_t>(bc.index()));
@@ -498,7 +498,7 @@ class detector {
     }
 
     DETRAY_HOST_DEVICE
-    inline free_vector_type bound_to_free_vec(
+    inline free_vector_type bound_to_free_vector(
         const geometry::barcode bc, const bound_vector_type &bound_vec) {
         const auto &sf =
             *(surfaces().begin() + static_cast<std::ptrdiff_t>(bc.index()));
