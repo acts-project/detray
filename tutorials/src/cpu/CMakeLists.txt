@@ -13,6 +13,7 @@ detray_add_tutorial( define_an_actor
 set(source_files 
     "detector/build_predefined_detectors.cpp"
     "detector/detector_ray_scan.cpp"
+    "detector/detector_to_dot.cpp"
     "detector/do_it_yourself_detector.cpp"
     "detector/read_detector_from_file.cpp"
     "detector/track_geometry_changes.cpp"
