@@ -13,6 +13,7 @@
 #include "detray/utils/type_traits.hpp"
 
 // System include(s)
+#include <cmath>
 #include <cstddef>
 #include <iterator>
 #include <queue>
@@ -407,6 +408,51 @@ class volume_graph {
                 }
             }
         }
+        return stream.str();
+    }
+
+    /// @returns the linking description as a string in DOT syntax.
+    inline const std::string to_dot_string() const {
+        std::stringstream stream;
+        dindex dim = n_nodes() + 1u;
+
+        stream << "strict graph {" << std::endl;
+        stream << "    layout=neato;" << std::endl;
+        stream << "    node [margin=0,shape=circle,style=filled];" << std::endl;
+        stream << "    overlap=scale;" << std::endl;
+        stream << "    splines=true;" << std::endl;
+        stream << "    mode=KK;" << std::endl;
+        stream << std::endl;
+        stream << "    exit [label=\"OOB\",fillcolor=\"firebrick1\"];"
+               << std::endl;
+
+        for (const auto &n : _nodes) {
+            stream << "    v" << n.index() << ";" << std::endl;
+        }
+
+        stream << std::endl;
+
+        for (const auto &n : _nodes) {
+            for (unsigned int i = 0u; i < dim; ++i) {
+                const dindex degr = _adj_matrix[dim * n.index() + i];
+                if (degr == 0) {
+                    continue;
+                }
+
+                bool to_oob = i == dim - 1u;
+                bool to_self = n.index() == i;
+
+                std::string label = degr > 1 ? std::to_string(degr) : "";
+                std::string dest = to_oob ? "exit" : ("v" + std::to_string(i));
+                std::string dir = (to_oob || to_self) ? "forward" : "both";
+
+                stream << "    v" << n.index() << " -- " << dest << " [label=\""
+                       << label << "\", dir=" << dir << "];" << std::endl;
+            }
+        }
+
+        stream << "}" << std::endl;
+
         return stream.str();
     }
 
