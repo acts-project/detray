@@ -86,7 +86,7 @@ class surface_factory_interface {
 
     DETRAY_HOST
     virtual auto operator()(
-        const typename detector_t::volume_type &volume,
+        typename detector_t::volume_type &volume,
         typename detector_t::surface_container_t &surfaces,
         typename detector_t::transform_container &transforms,
         typename detector_t::mask_container &masks,
