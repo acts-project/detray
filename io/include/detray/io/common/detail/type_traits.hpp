@@ -9,6 +9,7 @@
 
 // Project include(s)
 #include "detray/intersection/cylinder_portal_intersector.hpp"
+#include "detray/io/common/detail/definitions.hpp"
 #include "detray/io/common/payloads.hpp"
 #include "detray/masks/masks.hpp"
 #include "detray/materials/material_rod.hpp"

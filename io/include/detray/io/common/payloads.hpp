@@ -10,6 +10,7 @@
 // Project include(s)
 #include "detray/definitions/geometry.hpp"
 #include "detray/definitions/grid_axis.hpp"
+#include "detray/io/common/detail/definitions.hpp"
 
 // System include(s)
 #include <array>
@@ -22,53 +23,6 @@
 /// files, while links used in detray detector objects are modelled as e.g.
 /// @c single_link_payload
 namespace detray {
-
-using real_io = double;
-
-/// The following enums are defined per detector in the detector metadata
-namespace io::detail {
-
-/// Enumerate the shape primitives globally
-enum class mask_shape : unsigned int {
-    annulus2 = 0u,
-    cuboid3 = 1u,
-    cylinder2 = 2u,
-    cylinder3 = 3u,
-    line = 4u,
-    rectangle2 = 5u,
-    ring2 = 6u,
-    single3 = 7u,
-    trapezoid2 = 8u,
-    unknown = 9u,
-    n_shapes = 9u
-};
-
-/// Enumerate the different material types
-enum class material_type : unsigned int {
-    // Material texture (grid) shapes
-    annulus2 = 0u,
-    cuboid3 = 1u,
-    cylinder2 = 2u,
-    cylinder3 = 3u,
-    line = 4u,
-    rectangle2 = 5u,
-    ring2 = 6u,
-    single3 = 7u,
-    trapezoid2 = 8u,
-    unknown = 9u,
-    // Simple materials
-    slab = 11u,
-    rod = 12u
-};
-
-/// Enumerate the different acceleration data structures
-enum class acc_type : unsigned int {
-    cyl_grid = 0u,
-    disc_grid = 1u,
-    unknown = 2u,
-};
-
-}  // namespace io::detail
 
 /// @brief A payload for a single object link
 struct single_link_payload {

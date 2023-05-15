@@ -151,6 +151,18 @@ class multi_store {
             detail::get<value_types::to_index(id)>(m_tuple_container).size());
     }
 
+    /// Removes and destructs all elements in the container.
+    template <std::size_t current_idx = 0>
+    DETRAY_HOST_DEVICE auto total_size(const context_type &ctx = {},
+                                       dindex n = 0u) const noexcept -> dindex {
+        n += size<value_types::to_id(current_idx)>(ctx);
+
+        if constexpr (current_idx < sizeof...(Ts) - 1) {
+            return total_size<current_idx + 1>(ctx, n);
+        }
+        return n;
+    }
+
     /// @returns true if the collection given by @tparam ID is empty
     template <ID id>
     DETRAY_HOST_DEVICE constexpr auto empty(

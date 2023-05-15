@@ -12,6 +12,7 @@
 
 // System include(s)
 #include <algorithm>
+#include <cassert>
 #include <ios>
 #include <memory>
 #include <string>

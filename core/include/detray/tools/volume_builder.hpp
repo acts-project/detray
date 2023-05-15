@@ -32,6 +32,7 @@ class volume_builder : public volume_builder_interface<detector_t> {
     using scalar_type = typename detector_t::scalar_type;
     template <typename T, std::size_t N>
     using array_type = typename detector_t::template array_type<T, N>;
+    using volume_type = typename detector_t::volume_type;
     using geo_obj_ids = typename detector_t::geo_obj_ids;
 
     volume_builder() = default;
@@ -42,14 +43,21 @@ class volume_builder : public volume_builder_interface<detector_t> {
         names.at(get_vol_index()) = std::move(name);
     }
 
-    /// @brief Adds an array of @param bounds to a volume.
+    DETRAY_HOST
+    void init_vol(detector_t& det, const volume_id id) override {
+        det.volumes().emplace_back(id);
+        m_volume = &(det.volumes().back());
+        m_volume->set_index(static_cast<dindex>(det.volumes().size()) - 1);
+        m_volume->template set_link<
+            static_cast<typename volume_type::object_id>(0)>(
+            detector_t::sf_finders::id::e_default, 0);
+    };
+
     DETRAY_HOST
     void init_vol(detector_t& det, const volume_id id,
                   const array_type<scalar_type, 6>& bounds) override {
-        det.volumes().emplace_back(id, bounds);
-        m_volume = &(det.volumes().back());
-        m_volume->set_index(static_cast<dindex>(det.volumes().size()) - 1);
-        m_volume->set_link(detector_t::sf_finders::id::e_default, 0);
+        init_vol(det, id);
+        m_volume->set_bounds(bounds);
     };
 
     DETRAY_HOST
@@ -101,7 +109,7 @@ class volume_builder : public volume_builder_interface<detector_t> {
     /// @param det is the detector instance that the volume should be added to
     ///
     /// @note can throw an exception if input data is inconsistent
-    template <geo_obj_ids surface_id = geo_obj_ids::e_portal>
+    template <geo_obj_ids surface_id = static_cast<geo_obj_ids>(0)>
     DETRAY_HOST auto add_objects_per_volume(
         const typename detector_t::geometry_context ctx,
         detector_t& det) noexcept(false) -> void {

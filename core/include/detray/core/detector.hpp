@@ -178,8 +178,28 @@ class detector {
           _volume_finder(det_data._volume_finder_data),
           _bfield(det_data._bfield_view) {}
 
-    /// Add a new volume and retrieve a reference to it
+    /// Add a new volume and retrieve a reference to it.
     ///
+    /// @param id the shape id for the volume
+    /// @param sf_finder_link of the volume, where to entry the surface finder
+    ///
+    /// @return non-const reference to the new volume
+    DETRAY_HOST
+    volume_type &new_volume(
+        const volume_id id,
+        typename volume_type::link_type::index_type srf_finder_link = {}) {
+        volume_type &cvolume = _volumes.emplace_back(id);
+        cvolume.set_index(static_cast<dindex>(_volumes.size()) - 1u);
+        cvolume
+            .template set_link<static_cast<typename volume_type::object_id>(0)>(
+                srf_finder_link);
+
+        return cvolume;
+    }
+
+    /// Add a new volume and retrieve a reference to it.
+    ///
+    /// @param id the shape id for the volume
     /// @param bounds of the volume, they are expected to be already attaching
     /// @param sf_finder_link of the volume, where to entry the surface finder
     ///
@@ -188,9 +208,8 @@ class detector {
     volume_type &new_volume(
         const volume_id id, const array_type<scalar, 6> &bounds,
         typename volume_type::link_type::index_type srf_finder_link = {}) {
-        volume_type &cvolume = _volumes.emplace_back(id, bounds);
-        cvolume.set_index(static_cast<dindex>(_volumes.size()) - 1u);
-        cvolume.set_link(srf_finder_link);
+        volume_type &cvolume = new_volume(id, srf_finder_link);
+        cvolume.set_bounds(bounds);
 
         return cvolume;
     }
@@ -262,7 +281,7 @@ class detector {
     }
 
     /// @returns surfaces of a given type (@tparam sf_id) by volume - const
-    template <geo_obj_ids sf_id = geo_obj_ids::e_portal>
+    template <geo_obj_ids sf_id = static_cast<geo_obj_ids>(0)>
     DETRAY_HOST_DEVICE constexpr auto surfaces(const volume_type &v) const {
         dindex coll_idx{v.template link<sf_id>().index()};
         const auto sf_coll =
@@ -345,7 +364,7 @@ class detector {
     ///
     /// @note can throw an exception if input data is inconsistent
     // TODO: Provide volume builder structure separate from the detector
-    template <geo_obj_ids surface_id = geo_obj_ids::e_portal>
+    template <geo_obj_ids surface_id = static_cast<geo_obj_ids>(0)>
     DETRAY_HOST auto add_objects_per_volume(
         const geometry_context ctx, volume_type &vol,
         surface_container_t &surfaces_per_vol, mask_container &masks_per_vol,
