@@ -10,6 +10,7 @@
 // Project include(s)
 #include "detray/definitions/geometry.hpp"
 #include "detray/definitions/grid_axis.hpp"
+#include "detray/io/common/detail/definitions.hpp"
 
 // System include(s)
 #include <array>
@@ -23,52 +24,6 @@
 /// @c single_link_payload
 namespace detray {
 
-using real_io = double;
-
-/// The following enums are defined per detector in the detector metadata
-namespace io::detail {
-
-/// Enumerate the shape primitives globally
-enum class mask_shape : unsigned int {
-    annulus2 = 0u,
-    cuboid3 = 1u,
-    cylinder2 = 2u,
-    cylinder3 = 3u,
-    line = 4u,
-    rectangle2 = 5u,
-    ring2 = 6u,
-    single3 = 7u,
-    trapezoid2 = 8u,
-    unknown = 9u
-};
-
-/// Enumerate the different material types
-enum class material_type : unsigned int {
-    // Material texture (grid) shapes
-    annulus2 = 0u,
-    cuboid3 = 1u,
-    cylinder2 = 2u,
-    cylinder3 = 3u,
-    line = 4u,
-    rectangle2 = 5u,
-    ring2 = 6u,
-    single3 = 7u,
-    trapezoid2 = 8u,
-    unknown = 9u,
-    // Simple materials
-    slab = 11u,
-    rod = 12u
-};
-
-/// Enumerate the different acceleration data structures
-enum class acc_type : unsigned int {
-    cyl_grid = 0u,
-    disc_grid = 1u,
-    unknown = 2u,
-};
-
-}  // namespace io::detail
-
 /// @brief A payload for a single object link
 struct single_link_payload {
     std::size_t link;
@@ -76,6 +31,12 @@ struct single_link_payload {
 
 /// Geometry payloads
 /// @{
+
+/// @brief a payload for the geometry file header
+struct geo_header_payload {
+    std::string version, detector, tag, date;
+    std::size_t n_volumes, n_surfaces;
+};
 
 /// @brief A payload for an affine transformation in homogeneous coordinates
 struct transform_payload {
@@ -93,7 +54,7 @@ struct mask_payload {
 };
 
 /// @brief A payload object to link a surface to its material
-struct material_payload {
+struct material_link_payload {
     using material_type = io::detail::material_type;
     material_type type = material_type::unknown;
     std::size_t index;
@@ -103,7 +64,7 @@ struct material_payload {
 struct surface_payload {
     transform_payload transform;
     mask_payload mask;
-    std::optional<material_payload> material;
+    std::optional<material_link_payload> material;
     single_link_payload source;
     // Write the surface barcode as an additional information
     std::uint64_t barcode;
@@ -140,12 +101,30 @@ struct volume_payload {
 /// Material payloads
 /// @{
 
-/// @brief A payload object for material
+/// @brief a payload for the simple material file header
+struct homogeneous_material_header_payload {
+    std::string version, detector, tag, date;
+    std::size_t n_slabs, n_rods;
+};
+
+/// @brief A payload object for a material parametrization
+struct material_payload {
+    std::array<real_io, 7u> params;
+};
+
+/// @brief A payload object for a material slab
 struct material_slab_payload {
     using material_type = io::detail::material_type;
-    material_type type = material_type::slab;
-    std::array<real_io, 8u> slab;
+    material_type type = material_type::unknown;
     std::size_t index;
+    real_io thickness;
+    material_payload mat;
+};
+
+/// @brief A payload for a simple detector material description
+struct detector_homogeneous_material_payload {
+    std::vector<material_slab_payload> mat_slabs = {};
+    std::optional<std::vector<material_slab_payload>> mat_rods;
 };
 
 /// @}
@@ -186,7 +165,6 @@ struct links_payload {
 
 /// @brief A payload for a detector
 struct detector_payload {
-    std::string name = "";
     std::vector<volume_payload> volumes = {};
     grid_objects_payload volume_grid;
 };

@@ -113,7 +113,7 @@ using observer_lvl1 = composite_actor<dtuple, print_actor, observer_lvl2>;
 using chain = composite_actor<dtuple, example_actor_t, observer_lvl1>;
 
 // Test the actor chain on some dummy actor types
-GTEST_TEST(detray_tools, actor_chain) {
+GTEST_TEST(detray_propagator, actor_chain) {
 
     // The actor states (can be reused between actors)
     example_actor_t::state example_state{};

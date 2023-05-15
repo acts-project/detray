@@ -7,18 +7,9 @@
 
 #pragma once
 
-#if defined(array)
-#include "detray/plugins/algebra/array_definitions.hpp"
-#elif defined(eigen)
-#include "detray/plugins/algebra/eigen_definitions.hpp"
-#elif defined(smatrix)
-#include "detray/plugins/algebra/smatrix_definitions.hpp"
-#elif defined(vc_array)
-#include "detray/plugins/algebra/vc_array_definitions.hpp"
-#endif
-
 // Project includes(s)
 #include "detray/core/detail/single_store.hpp"
+#include "detray/definitions/algebra.hpp"
 
 // Vecmem include(s)
 #include <vecmem/containers/device_vector.hpp>

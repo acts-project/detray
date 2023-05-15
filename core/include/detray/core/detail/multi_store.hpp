@@ -112,7 +112,7 @@ class multi_store {
 
     /// @returns the size of the underlying tuple
     DETRAY_HOST_DEVICE
-    constexpr auto n_collections() const -> std::size_t {
+    static constexpr auto n_collections() -> std::size_t {
         return sizeof...(Ts);
     }
 
@@ -149,6 +149,18 @@ class multi_store {
         const context_type & /*ctx*/ = {}) const noexcept -> dindex {
         return static_cast<dindex>(
             detail::get<value_types::to_index(id)>(m_tuple_container).size());
+    }
+
+    /// Removes and destructs all elements in the container.
+    template <std::size_t current_idx = 0>
+    DETRAY_HOST_DEVICE auto total_size(const context_type &ctx = {},
+                                       dindex n = 0u) const noexcept -> dindex {
+        n += size<value_types::to_id(current_idx)>(ctx);
+
+        if constexpr (current_idx < sizeof...(Ts) - 1) {
+            return total_size<current_idx + 1>(ctx, n);
+        }
+        return n;
     }
 
     /// @returns true if the collection given by @tparam ID is empty
@@ -286,7 +298,7 @@ class multi_store {
     template <typename functor_t, typename... Args>
     DETRAY_HOST_DEVICE decltype(auto) visit(const ID id, Args &&... args) {
         return m_tuple_container.template visit<functor_t>(
-            static_cast<size_type>(id), std::forward<Args>(args)...);
+            static_cast<std::size_t>(id), std::forward<Args>(args)...);
     }
 
     /// Calls a functor with a specific element of a data collection
@@ -303,8 +315,8 @@ class multi_store {
     DETRAY_HOST_DEVICE decltype(auto) visit(const link_t link,
                                             Args &&... args) const {
         return m_tuple_container.template visit<functor_t>(
-            static_cast<dindex>(detail::get<0>(link)), detail::get<1>(link),
-            std::forward<Args>(args)...);
+            static_cast<std::size_t>(detail::get<0>(link)),
+            detail::get<1>(link), std::forward<Args>(args)...);
     }
 
     /// @return the view on this tuple container - non-const

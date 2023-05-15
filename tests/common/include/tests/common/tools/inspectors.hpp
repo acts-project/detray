@@ -101,7 +101,13 @@ struct print_inspector {
 
         debug_stream << "Surface candidates: " << std::endl;
         for (const auto &sf_cand : state.candidates()) {
+            const auto &local = sf_cand.local;
+            const auto pos = state.detector()->local_to_global(
+                sf_cand.surface.barcode(), local);
+
             debug_stream << sf_cand;
+            debug_stream << "[glob: r:" << getter::perp(pos) << ", z:" << pos[2]
+                         << " | loc: " << local[0] << ", " << local[1] << "] ";
         }
         if (not state.candidates().empty()) {
             debug_stream << "=> next: ";

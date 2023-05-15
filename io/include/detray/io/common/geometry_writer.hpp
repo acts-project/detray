@@ -9,34 +9,50 @@
 
 // Project include(s)
 #include "detray/definitions/indexing.hpp"
+#include "detray/io/common/detail/utils.hpp"
+#include "detray/io/common/io_interface.hpp"
 #include "detray/io/common/payloads.hpp"
 #include "detray/materials/material_rod.hpp"
 #include "detray/materials/material_slab.hpp"
 
 // System include(s)
 #include <string>
+#include <string_view>
 #include <vector>
 
 namespace detray {
 
 /// @brief Abstract base class for tracking geometry writers
 template <class detector_t>
-class geometry_writer {
+class geometry_writer : public writer_interface<detector_t> {
 
-    public:
-    /// All writers must define a file name
-    geometry_writer() = delete;
-
-    /// File gets created with a fixed @param extension
-    geometry_writer(const std::string& ext) : m_file_extension{ext} {}
-
-    /// Default destructor
-    virtual ~geometry_writer() {}
-
-    /// Writes the tracking geometry of the detector to a file with a given name
-    virtual void write(const detector_t&, const std::string&) = 0;
+    using base_type = writer_interface<detector_t>;
 
     protected:
+    /// Tag the writer as "geometry"
+    inline static const std::string tag = "geometry";
+
+    public:
+    /// Same constructors for this class as for base_type
+    using base_type::base_type;
+
+    protected:
+    /// Serialize the header information into its payload
+    static geo_header_payload write_header(const detector_t& det,
+                                           const std::string_view det_name) {
+        geo_header_payload header_data;
+
+        header_data.version = detail::get_detray_version();
+        header_data.detector = det_name;
+        header_data.tag = tag;
+        header_data.date = detail::get_current_date();
+
+        header_data.n_volumes = det.volumes().size();
+        header_data.n_surfaces = det.surfaces().size();
+
+        return header_data;
+    }
+
     /// Serialize a detector @param det into its io payload
     static detector_payload serialize(const detector_t& det) {
         detector_payload det_data;
@@ -114,41 +130,13 @@ class geometry_writer {
         return mask_data;
     }
 
-    /// Serialize a surface material slab @param mat_slab into its io payload
-    // @todo Move to dedicated material writer
-    /*static material_slab_payload serialize(
-        const material_slab<typename detector_t::scalar_type>& mat_slab) {
-        material_slab_payload mat_data;
-
-        const auto& mat = mat_slab.get_material();
-        mat_data.slab = {mat_slab.thickness(),
-                         mat.X0(),
-                         mat.L0(),
-                         mat.Ar(),
-                         mat.Z(),
-                         mat.mass_density(),
-                         mat.molar_density(),
-                         static_cast<real_io>(mat.state())};
-
-        const auto& de = mat.density_effect_data();
-        mat_data.density_eff = {de.get_A_density(),
-                                de.get_M_density(),
-                                de.get_X0_density(),
-                                de.get_X1_density(),
-                                de.get_mean_excitation_energy(),
-                                de.get_C_density(),
-                                de.get_delta0_density()};
-
-        return mat_data;
-    }*/
-
     /// Serialize a surface material link @param m into its io payload
     template <class material_t>
-    static material_payload serialize(const std::size_t idx) {
+    static material_link_payload serialize(const std::size_t idx) {
         using scalar_t = typename material_t::scalar_type;
-        using type_id = material_payload::material_type;
+        using type_id = material_link_payload::material_type;
 
-        material_payload mat_data;
+        material_link_payload mat_data;
 
         // Find the correct material type index (use name for simplicity)
         if constexpr (std::is_same_v<material_t, material_slab<scalar_t>>) {
@@ -230,8 +218,6 @@ class geometry_writer {
 
         return vol_data;
     }
-
-    std::string m_file_extension;
 
     private:
     /// Retrieve @c mask_payload from mask_store element

@@ -145,10 +145,9 @@ struct helix_line_intersector {
 
         // Build intersection struct from helix parameters
         sfi.path = s;
-        sfi.p2 = mask.to_measurement_frame(trf, h.pos(s), h.dir(s));
+        sfi.local = mask.to_local_frame(trf, h.pos(s), h.dir(s));
 
-        const typename mask_t::loc_point_t local =
-            mask.to_local_frame(trf, h.pos(s), h.dir(s));
+        const point3 local = mask.to_local_frame(trf, h.pos(s), h.dir(s));
         sfi.status = mask.is_inside(local, mask_tolerance);
 
         // Compute some additional information if the intersection is valid

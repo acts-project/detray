@@ -6,7 +6,7 @@
 
 # Set up the project.
 cmake_minimum_required( VERSION 3.11 )
-project( detray VERSION 0.30 LANGUAGES CXX )
+project( detray VERSION 0.32.0 LANGUAGES CXX )
 
 # Set up the used C++ standard(s).
 set( CMAKE_CXX_STANDARD 17 CACHE STRING "The (host) C++ standard to use" )
@@ -60,6 +60,8 @@ option( DETRAY_BUILD_TESTING "Build the (unit) tests of Detray"
    TRUE )
 cmake_dependent_option( DETRAY_BENCHMARKS "Enable benchmark tests" TRUE
    "DETRAY_BUILD_TESTING" OFF )
+option( DETRAY_BUILD_TUTORIALS "Build the tutorial executables of Detray"
+   ON )
 
 # Clean up.
 unset( DETRAY_BUILD_CUDA_DEFAULT )
@@ -207,6 +209,11 @@ add_subdirectory( utils )
 # Set up the test(s).
 if( BUILD_TESTING AND DETRAY_BUILD_TESTING )
    add_subdirectory( tests )
+endif()
+
+# Set up the tutorial(s).
+if( DETRAY_BUILD_TUTORIALS )
+   add_subdirectory( tutorials )
 endif()
 
 # Set up the packaging of the project.

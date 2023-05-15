@@ -29,9 +29,11 @@ namespace detray {
 /// @tparam intersector_t defines how to intersect the underlying surface
 ///         geometry
 /// @tparam kMeasDim defines the dimension of the measurement
+/// @tparam kNormalOrder true if the index for measurement parameter follows
+/// the local coordinate system
 template <unsigned int kCheckIndex = 0u,
           template <typename> class intersector_t = plane_intersector,
-          unsigned int kMeasDim = 2u>
+          unsigned int kMeasDim = 2u, bool kNormalOrder = true>
 class single3D {
     public:
     /// The name for this shape
@@ -39,6 +41,9 @@ class single3D {
 
     /// The measurement dimension
     inline static constexpr const unsigned int meas_dim{kMeasDim};
+
+    /// Normal ordering
+    inline static constexpr const bool normal_order{kNormalOrder};
 
     enum boundaries : unsigned int {
         e_lower = 0u,
@@ -48,17 +53,7 @@ class single3D {
 
     /// Local coordinate frame for boundary checks
     template <typename algebra_t>
-    using local_frame_type = cartesian3<algebra_t>;
-    /// Local point type (3D)
-    template <typename algebra_t>
-    using loc_point_type = typename local_frame_type<algebra_t>::point3;
-
-    /// Measurement frame
-    template <typename algebra_t>
-    using measurement_frame_type = local_frame_type<algebra_t>;
-    /// Local measurement point (2D)
-    template <typename algebra_t>
-    using measurement_point_type = loc_point_type<algebra_t>;
+    using local_frame_type = cartesian2<algebra_t>;
 
     /// Underlying surface geometry: planar
     template <typename intersection_t>
@@ -125,13 +120,6 @@ class single3D {
         o_bounds[kCheckIndex] += bounds[e_lower];
         o_bounds[3u + kCheckIndex] += bounds[e_upper];
         return o_bounds;
-    }
-
-    template <typename param_t>
-    DETRAY_HOST_DEVICE inline typename param_t::point2 to_measurement(
-        param_t& param,
-        const typename param_t::point2& offset = {0.f, 0.f}) const {
-        return param.local() + offset;
     }
 };
 

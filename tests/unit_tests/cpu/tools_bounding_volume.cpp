@@ -14,6 +14,7 @@
 #include <gtest/gtest.h>
 
 using namespace detray;
+using point_t = test::point3;
 
 namespace {
 
@@ -27,7 +28,6 @@ constexpr scalar tol{1e-5f};
 
 /// This tests the basic functionality cuboid axis aligned bounding box
 GTEST_TEST(detray_tools, bounding_cuboid3D) {
-    using point_t = typename mask<cylinder3D>::loc_point_t;
 
     // cuboid
     constexpr scalar hx{1.f * unit<scalar>::mm};
@@ -63,7 +63,6 @@ GTEST_TEST(detray_tools, bounding_cuboid3D) {
 
 /// This tests the basic functionality cylindrical axis aligned bounding box
 GTEST_TEST(detray_tools, bounding_cylinder3D) {
-    using point_t = typename mask<cylinder3D>::loc_point_t;
 
     // cylinder
     constexpr scalar r{3.f * unit<scalar>::mm};

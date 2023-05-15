@@ -26,13 +26,15 @@ namespace detray {
 /// @tparam intersector_t defines how to intersect the underlying surface
 ///         geometry
 /// @tparam kMeasDim defines the dimension of the measurement
+/// @tparam kNormalOrder true if the index for measurement parameter follows
+/// the local coordinate system
 ///
 /// It is defined by half lengths in local0 coordinate bounds[0] and bounds[1]
 /// at -/+ half length in the local1 coordinate bounds[2]. bounds[3] contains
 /// the precomputed value of 1 / (2 * bounds[2]), which avoids
 /// excessive floating point divisions.
 template <template <typename> class intersector_t = plane_intersector,
-          unsigned int kMeasDim = 2u>
+          unsigned int kMeasDim = 2u, bool kNormalOrder = true>
 class trapezoid2D {
     public:
     /// The name for this shape
@@ -40,6 +42,13 @@ class trapezoid2D {
 
     /// The measurement dimension
     inline static constexpr const unsigned int meas_dim{kMeasDim};
+
+    /// Normal ordering
+    inline static constexpr const bool normal_order{kNormalOrder};
+
+    // Measurement dimension check
+    static_assert(meas_dim == 1u || meas_dim == 2u,
+                  "Only 1D or 2D measurement is allowed");
 
     enum boundaries : unsigned int {
         e_half_length_0 = 0u,
@@ -52,16 +61,6 @@ class trapezoid2D {
     /// Local coordinate frame for boundary checks
     template <typename algebra_t>
     using local_frame_type = cartesian2<algebra_t>;
-    /// Local point type (2D)
-    template <typename algebra_t>
-    using loc_point_type = typename local_frame_type<algebra_t>::point2;
-
-    /// Measurement frame
-    template <typename algebra_t>
-    using measurement_frame_type = local_frame_type<algebra_t>;
-    /// Local measurement point (2D)
-    template <typename algebra_t>
-    using measurement_point_type = loc_point_type<algebra_t>;
 
     /// Underlying surface geometry: planar
     template <typename intersection_t>
@@ -138,13 +137,6 @@ class trapezoid2D {
             env};
         const scalar_t y_bound{bounds[e_half_length_2] + env};
         return {-x_bound, -y_bound, -env, x_bound, y_bound, env};
-    }
-
-    template <typename param_t>
-    DETRAY_HOST_DEVICE inline typename param_t::point2 to_measurement(
-        param_t& param,
-        const typename param_t::point2& offset = {0.f, 0.f}) const {
-        return param.local() + offset;
     }
 };
 

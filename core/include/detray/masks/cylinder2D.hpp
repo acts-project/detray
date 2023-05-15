@@ -29,11 +29,13 @@ namespace detray {
 /// @tparam intersector_t defines how to intersect the underlying surface
 ///         geometry
 /// @tparam kMeasDim defines the dimension of the measurement
+/// @tparam kNormalOrder true if the index for measurement parameter follows
+/// the local coordinate system
 ///
 /// It is defined by r and the two half lengths rel to the coordinate center.
 template <bool kRadialCheck = false,
           template <typename> class intersector_t = cylinder_intersector,
-          unsigned int kMeasDim = 2u>
+          unsigned int kMeasDim = 2u, bool kNormalOrder = true>
 class cylinder2D {
     public:
     /// The name for this shape
@@ -45,6 +47,13 @@ class cylinder2D {
     /// The measurement dimension
     inline static constexpr const unsigned int meas_dim{kMeasDim};
 
+    /// Normal ordering
+    inline static constexpr const bool normal_order{kNormalOrder};
+
+    // Measurement dimension check
+    static_assert(meas_dim == 1u || meas_dim == 2u,
+                  "Only 1D or 2D measurement is allowed");
+
     enum boundaries : unsigned int {
         e_r = 0u,
         e_n_half_z = 1u,
@@ -54,23 +63,7 @@ class cylinder2D {
 
     /// Local coordinate frame for boundary checks
     template <typename algebra_t>
-    using local_frame_type =
-        std::conditional_t<kRadialCheck, cylindrical3<algebra_t>,
-                           cylindrical2<algebra_t>>;
-    /// Local point type for boundary checks (2D or 3D)
-    template <typename algebra_t>
-    using loc_point_type =
-        std::conditional_t<kRadialCheck,
-                           typename local_frame_type<algebra_t>::point3,
-                           typename local_frame_type<algebra_t>::point2>;
-
-    /// Measurement frame
-    template <typename algebra_t>
-    using measurement_frame_type = cylindrical2<algebra_t>;
-    /// Local measurement point (2D)
-    template <typename algebra_t>
-    using measurement_point_type =
-        typename measurement_frame_type<algebra_t>::point2;
+    using local_frame_type = cylindrical2<algebra_t>;
 
     /// Underlying surface geometry: cylindrical
     template <typename intersection_t>
@@ -118,14 +111,14 @@ class cylinder2D {
     DETRAY_HOST_DEVICE inline bool check_boundaries(
         const bounds_t<scalar_t, kDIM>& bounds, const point_t& loc_p,
         const scalar_t tol = std::numeric_limits<scalar_t>::epsilon()) const {
+
         if constexpr (kRadialCheck) {
-            return (std::abs(loc_p[0] - bounds[e_r]) <= tol and
-                    bounds[e_n_half_z] - tol <= loc_p[2] and
-                    loc_p[2] <= bounds[e_p_half_z] + tol);
-        } else {
-            return (bounds[e_n_half_z] - tol <= loc_p[1] and
-                    loc_p[1] <= bounds[e_p_half_z] + tol);
+            if (std::abs(loc_p[2] - bounds[e_r]) > tol) {
+                return false;
+            }
         }
+        return (bounds[e_n_half_z] - tol <= loc_p[1] and
+                loc_p[1] <= bounds[e_p_half_z] + tol);
     }
 
     /// @brief Lower and upper point for minimal axis aligned bounding box.
@@ -148,13 +141,6 @@ class cylinder2D {
         const scalar_t xy_bound{bounds[e_r] + env};
         return {-xy_bound, -xy_bound, bounds[e_n_half_z] - env,
                 xy_bound,  xy_bound,  bounds[e_p_half_z] + env};
-    }
-
-    template <typename param_t>
-    DETRAY_HOST_DEVICE inline typename param_t::point2 to_measurement(
-        param_t& param,
-        const typename param_t::point2& offset = {0.f, 0.f}) const {
-        return param.local() + offset;
     }
 };
 

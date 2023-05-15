@@ -28,21 +28,14 @@ class unmasked {
     /// The measurement dimension
     inline static constexpr const unsigned int meas_dim{2u};
 
+    /// normal ordering
+    inline static constexpr const bool normal_order = true;
+
     enum boundaries : unsigned int { e_size = 1u };
 
     /// Local coordinate frame for boundary checks
     template <typename algebra_t>
     using local_frame_type = cartesian2<algebra_t>;
-    /// Local point type (2D)
-    template <typename algebra_t>
-    using loc_point_type = typename local_frame_type<algebra_t>::point2;
-
-    /// Measurement frame
-    template <typename algebra_t>
-    using measurement_frame_type = local_frame_type<algebra_t>;
-    /// Local measurement point (2D)
-    template <typename algebra_t>
-    using measurement_point_type = loc_point_type<algebra_t>;
 
     /// Underlying surface geometry: planar
     template <typename intersection_t>
@@ -102,13 +95,6 @@ class unmasked {
             std::numeric_limits<scalar_t>::epsilon()) const {
         constexpr scalar_t inf{std::numeric_limits<scalar_t>::infinity()};
         return {-inf, -inf, -inf, inf, inf, inf};
-    }
-
-    template <typename param_t>
-    DETRAY_HOST_DEVICE inline typename param_t::point2 to_measurement(
-        param_t& param,
-        const typename param_t::point2& offset = {0.f, 0.f}) const {
-        return param.local() + offset;
     }
 };
 

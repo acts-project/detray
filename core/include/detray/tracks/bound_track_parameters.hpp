@@ -8,6 +8,7 @@
 #pragma once
 
 // Project include(s).
+#include "detray/definitions/algebra.hpp"
 #include "detray/definitions/indexing.hpp"
 #include "detray/definitions/qualifiers.hpp"
 #include "detray/definitions/track_parametrization.hpp"
@@ -113,7 +114,7 @@ struct bound_track_parameters {
     void set_covariance(const covariance_type& c) { m_covariance = c; }
 
     DETRAY_HOST_DEVICE
-    point2 local() const { return track_helper().local(m_vector); }
+    point2 bound_local() const { return track_helper().bound_local(m_vector); }
 
     DETRAY_HOST_DEVICE
     scalar_type phi() const {

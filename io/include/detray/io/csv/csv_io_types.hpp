@@ -109,15 +109,15 @@ struct csv_particle {
     uint64_t particle_id = 0;
     int particle_type = 0;
     int process = 0;
-    scalar vx;
-    scalar vy;
-    scalar vz;
-    scalar vt;
-    scalar px;
-    scalar py;
-    scalar pz;
-    scalar m;
-    scalar q;
+    scalar vx = 0.f;
+    scalar vy = 0.f;
+    scalar vz = 0.f;
+    scalar vt = 0.f;
+    scalar px = 0.f;
+    scalar py = 0.f;
+    scalar pz = 0.f;
+    scalar m = 0.f;
+    scalar q = 0.f;
 
     DFE_NAMEDTUPLE(csv_particle, particle_id, particle_type, process, vx, vy,
                    vz, vt, px, py, pz, m, q);
@@ -129,18 +129,18 @@ using particle_writer = dfe::NamedTupleCsvWriter<csv_particle>;
 struct csv_hit {
     uint64_t particle_id = 0;
     uint64_t geometry_id = 0;
-    scalar tx = 0;
-    scalar ty = 0;
-    scalar tz = 0;
-    scalar tt = 0;
-    scalar tpx = 0;
-    scalar tpy = 0;
-    scalar tpz = 0;
-    scalar te = 0;
-    scalar deltapx = 0;
-    scalar deltapy = 0;
-    scalar deltapz = 0;
-    scalar deltae = 0;
+    scalar tx = 0.f;
+    scalar ty = 0.f;
+    scalar tz = 0.f;
+    scalar tt = 0.f;
+    scalar tpx = 0.f;
+    scalar tpy = 0.f;
+    scalar tpz = 0.f;
+    scalar te = 0.f;
+    scalar deltapx = 0.f;
+    scalar deltapy = 0.f;
+    scalar deltapz = 0.f;
+    scalar deltae = 0.f;
     uint64_t index = 0;
 
     DFE_NAMEDTUPLE(csv_hit, particle_id, geometry_id, tx, ty, tz, tt, tpx, tpy,
@@ -155,16 +155,16 @@ struct csv_measurement {
     uint64_t measurement_id = 0;
     uint64_t geometry_id = 0;
     std::string local_key = "";
-    scalar local0 = 0.;
-    scalar local1 = 0.;
-    scalar phi = 0.;
-    scalar theta = 0.;
-    scalar time = 0.;
-    scalar var_local0 = 0.;
-    scalar var_local1 = 0.;
-    scalar var_phi = 0.;
-    scalar var_theta = 0.;
-    scalar var_time = 0.;
+    scalar local0 = 0.f;
+    scalar local1 = 0.f;
+    scalar phi = 0.f;
+    scalar theta = 0.f;
+    scalar time = 0.f;
+    scalar var_local0 = 0.f;
+    scalar var_local1 = 0.f;
+    scalar var_phi = 0.f;
+    scalar var_theta = 0.f;
+    scalar var_time = 0.f;
 
     DFE_NAMEDTUPLE(csv_measurement, measurement_id, geometry_id, local_key,
                    local0, local1, phi, theta, time, var_local0, var_local1,

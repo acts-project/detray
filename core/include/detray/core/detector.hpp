@@ -14,6 +14,7 @@
 #include "detray/geometry/detector_volume.hpp"
 #include "detray/geometry/surface.hpp"
 #include "detray/tools/volume_builder.hpp"
+#include "detray/tracks/tracks.hpp"
 #include "detray/utils/ranges.hpp"
 
 // Vecmem include(s)
@@ -129,6 +130,11 @@ class detector {
     using detector_view_type =
         detector_view<metadata, covfie::field, host_container_types>;
 
+    using free_vector_type =
+        typename free_track_parameters<transform3>::vector_type;
+    using bound_vector_type =
+        typename bound_track_parameters<transform3>::vector_type;
+
     detector() = delete;
 
     /// Allowed costructor
@@ -147,7 +153,7 @@ class detector {
     /// Constructor with simplified constant-zero B-field
     /// @param resource memory resource for the allocation of members
     DETRAY_HOST
-    detector(vecmem::memory_resource &resource)
+    explicit detector(vecmem::memory_resource &resource)
         : _volumes(&resource),
           _transforms(resource),
           _masks(resource),
@@ -163,7 +169,7 @@ class detector {
               std::enable_if_t<!std::is_base_of_v<vecmem::memory_resource,
                                                   detector_data_type>,
                                bool> = true>
-    DETRAY_HOST_DEVICE detector(detector_data_type &det_data)
+    DETRAY_HOST_DEVICE explicit detector(detector_data_type &det_data)
         : _volumes(det_data._volumes_data),
           _transforms(det_data._transforms_data),
           _masks(det_data._masks_data),
@@ -172,8 +178,28 @@ class detector {
           _volume_finder(det_data._volume_finder_data),
           _bfield(det_data._bfield_view) {}
 
-    /// Add a new volume and retrieve a reference to it
+    /// Add a new volume and retrieve a reference to it.
     ///
+    /// @param id the shape id for the volume
+    /// @param sf_finder_link of the volume, where to entry the surface finder
+    ///
+    /// @return non-const reference to the new volume
+    DETRAY_HOST
+    volume_type &new_volume(
+        const volume_id id,
+        typename volume_type::link_type::index_type srf_finder_link = {}) {
+        volume_type &cvolume = _volumes.emplace_back(id);
+        cvolume.set_index(static_cast<dindex>(_volumes.size()) - 1u);
+        cvolume
+            .template set_link<static_cast<typename volume_type::object_id>(0)>(
+                srf_finder_link);
+
+        return cvolume;
+    }
+
+    /// Add a new volume and retrieve a reference to it.
+    ///
+    /// @param id the shape id for the volume
     /// @param bounds of the volume, they are expected to be already attaching
     /// @param sf_finder_link of the volume, where to entry the surface finder
     ///
@@ -182,9 +208,8 @@ class detector {
     volume_type &new_volume(
         const volume_id id, const array_type<scalar, 6> &bounds,
         typename volume_type::link_type::index_type srf_finder_link = {}) {
-        volume_type &cvolume = _volumes.emplace_back(id, bounds);
-        cvolume.set_index(static_cast<dindex>(_volumes.size()) - 1u);
-        cvolume.set_link(srf_finder_link);
+        volume_type &cvolume = new_volume(id, srf_finder_link);
+        cvolume.set_bounds(bounds);
 
         return cvolume;
     }
@@ -256,7 +281,7 @@ class detector {
     }
 
     /// @returns surfaces of a given type (@tparam sf_id) by volume - const
-    template <geo_obj_ids sf_id = geo_obj_ids::e_portal>
+    template <geo_obj_ids sf_id = static_cast<geo_obj_ids>(0)>
     DETRAY_HOST_DEVICE constexpr auto surfaces(const volume_type &v) const {
         dindex coll_idx{v.template link<sf_id>().index()};
         const auto sf_coll =
@@ -339,7 +364,7 @@ class detector {
     ///
     /// @note can throw an exception if input data is inconsistent
     // TODO: Provide volume builder structure separate from the detector
-    template <geo_obj_ids surface_id = geo_obj_ids::e_portal>
+    template <geo_obj_ids surface_id = static_cast<geo_obj_ids>(0)>
     DETRAY_HOST auto add_objects_per_volume(
         const geometry_context ctx, volume_type &vol,
         surface_container_t &surfaces_per_vol, mask_container &masks_per_vol,
@@ -440,13 +465,46 @@ class detector {
     inline const bfield_type &get_bfield() const { return _bfield; }
 
     DETRAY_HOST_DEVICE
-    inline point2 global_to_local(const geometry::barcode bc, const point3 &pos,
+    inline point3 global_to_local(const geometry::barcode bc, const point3 &pos,
                                   const vector3 &dir) const {
         const auto &sf =
             *(surfaces().begin() + static_cast<std::ptrdiff_t>(bc.index()));
         const auto ret =
             _masks.template visit<detail::global_to_local<transform3>>(
                 sf.mask(), _transforms[sf.transform()], pos, dir);
+        return ret;
+    }
+
+    DETRAY_HOST_DEVICE
+    inline point3 local_to_global(const geometry::barcode bc,
+                                  const point3 &local) const {
+        const auto &sf =
+            *(surfaces().begin() + static_cast<std::ptrdiff_t>(bc.index()));
+        const auto ret =
+            _masks.template visit<detail::local_to_global<transform3>>(
+                sf.mask(), _transforms[sf.transform()], local);
+        return ret;
+    }
+
+    DETRAY_HOST_DEVICE
+    inline bound_vector_type free_to_bound_vec(
+        const geometry::barcode bc, const free_vector_type &free_vec) {
+        const auto &sf =
+            *(surfaces().begin() + static_cast<std::ptrdiff_t>(bc.index()));
+        const auto ret =
+            _masks.template visit<detail::free_to_bound_vector<transform3>>(
+                sf.mask(), _transforms[sf.transform()], free_vec);
+        return ret;
+    }
+
+    DETRAY_HOST_DEVICE
+    inline free_vector_type bound_to_free_vec(
+        const geometry::barcode bc, const bound_vector_type &bound_vec) {
+        const auto &sf =
+            *(surfaces().begin() + static_cast<std::ptrdiff_t>(bc.index()));
+        const auto ret =
+            _masks.template visit<detail::bound_to_free_vector<transform3>>(
+                sf.mask(), _transforms[sf.transform()], bound_vec);
         return ret;
     }
 

@@ -10,6 +10,7 @@
 // Project include(s)
 #include "detray/definitions/indexing.hpp"
 #include "detray/definitions/qualifiers.hpp"
+#include "detray/definitions/track_parametrization.hpp"
 #include "detray/intersection/intersection.hpp"
 #include "detray/masks/annulus2D.hpp"
 #include "detray/masks/cuboid3D.hpp"
@@ -54,16 +55,14 @@ class mask {
     using mask_values = array_t<scalar_type, boundaries::e_size>;
     using local_frame_type =
         typename shape::template local_frame_type<algebra_t>;
-    using measurement_frame_type =
-        typename shape::template measurement_frame_type<algebra_t>;
     // Linear algebra types
-    using loc_point_t = typename shape::template loc_point_type<algebra_t>;
     using point3_t = typename algebra_t::point3;
     using point2_t = typename algebra_t::point2;
     using matrix_operator = typename algebra_t::matrix_actor;
     using size_type = typename algebra_t::size_type;
     template <size_type ROWS, size_type COLS>
     using matrix_type = typename algebra_t::template matrix_type<ROWS, COLS>;
+    using projection_matrix_type = matrix_type<shape::meas_dim, e_bound_size>;
 
     /// Default constructor
     constexpr mask() = default;
@@ -136,17 +135,17 @@ class mask {
     template <typename transform3_t>
     DETRAY_HOST_DEVICE inline auto to_local_frame(
         const transform3_t& trf, const point3_t& glob_p,
-        const point3_t& glob_dir = {}) const -> loc_point_t {
+        const point3_t& glob_dir = {}) const -> point3_t {
         return local_frame_type{}.global_to_local(trf, glob_p, glob_dir);
     }
 
-    /// @returns the functor that projects a global cartesian point onto
-    /// the local measurement coordinate system.
+    /// @returns the functor that projects a local point to the global
+    /// coordinate system
     template <typename transform3_t>
-    DETRAY_HOST_DEVICE inline auto to_measurement_frame(
-        const transform3_t& trf, const point3_t& glob_p,
-        const point3_t& glob_dir = {}) const -> point2_t {
-        return measurement_frame_type{}.global_to_local(trf, glob_p, glob_dir);
+    DETRAY_HOST_DEVICE inline auto to_global_frame(const transform3_t& trf,
+                                                   const point3_t& loc) const
+        -> point3_t {
+        return local_frame_type{}.local_to_global(trf, loc);
     }
 
     /// @returns the intersection functor for the underlying surface geometry.
@@ -168,7 +167,7 @@ class mask {
     /// @return an intersection status e_inside / e_outside
     DETRAY_HOST_DEVICE
     inline auto is_inside(
-        const loc_point_t& loc_p,
+        const point3_t& loc_p,
         const scalar_type t = std::numeric_limits<scalar_type>::epsilon()) const
         -> intersection::status {
 
@@ -180,12 +179,6 @@ class mask {
     /// @returns return local frame object (used in geometrical checks)
     DETRAY_HOST_DEVICE inline constexpr local_frame_type local_frame() const {
         return local_frame_type{};
-    }
-
-    /// @returns return local measurement frame object (used for track states)
-    DETRAY_HOST_DEVICE inline constexpr measurement_frame_type
-    measurement_frame() const {
-        return measurement_frame_type{};
     }
 
     /// @returns the boundary values
@@ -200,15 +193,12 @@ class mask {
     DETRAY_HOST_DEVICE
     auto volume_link() -> links_type& { return _volume_link; }
 
-    template <size_type parameter_dim>
-    DETRAY_HOST_DEVICE matrix_type<2, parameter_dim> projection_matrix() const {
-
-        auto ret = matrix_operator().template zero<2, parameter_dim>();
-        for (unsigned int i = 0u; i < shape::meas_dim; i++) {
-            matrix_operator().element(ret, i, i) = 1.f;
-        }
-
-        return ret;
+    /// @returns the projection matrix for measurement
+    DETRAY_HOST_DEVICE projection_matrix_type projection_matrix(
+        const bound_track_parameters<algebra_t>& bound_params) const {
+        return this->local_frame()
+            .template projection_matrix<shape::meas_dim, shape::normal_order>(
+                bound_params);
     }
 
     /// @brief Lower and upper point for minimum axis aligned bounding box.

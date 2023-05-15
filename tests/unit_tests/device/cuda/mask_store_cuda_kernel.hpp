@@ -7,18 +7,9 @@
 
 #pragma once
 
-#if defined(array)
-#include "detray/plugins/algebra/array_definitions.hpp"
-#elif defined(eigen)
-#include "detray/plugins/algebra/eigen_definitions.hpp"
-#elif defined(smatrix)
-#include "detray/plugins/algebra/smatrix_definitions.hpp"
-#elif defined(vc_array)
-#include "detray/plugins/algebra/vc_array_definitions.hpp"
-#endif
-
 // Project include(s)
 #include "detray/core/detail/multi_store.hpp"
+#include "detray/definitions/algebra.hpp"
 #include "detray/masks/masks.hpp"
 #include "vecmem/utils/cuda/copy.hpp"
 
@@ -69,7 +60,7 @@ using device_store_type =
 /// test function for mask store
 void mask_test(
     typename host_store_type::view_type store_data,
-    vecmem::data::vector_view<point2> input_point2_data,
+    vecmem::data::vector_view<point3> input_point3_data,
     vecmem::data::jagged_vector_view<intersection::status> output_data);
 
 }  // namespace detray

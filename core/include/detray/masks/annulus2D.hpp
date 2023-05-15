@@ -29,6 +29,8 @@ namespace detray {
 /// @tparam intersector_t defines how to intersect the underlying surface
 ///         geometry
 /// @tparam kMeasDim defines the dimension of the measurement
+/// @tparam kNormalOrder true if the index for measurement parameter follows
+/// the local coordinate system
 ///
 /// The stereo annulus is defined in two different(!) polar coordinate systems
 /// that differ by an origin shift. The boundaries are the inner and outer
@@ -46,7 +48,7 @@ namespace detray {
 /// included (bounds[4], bounds[5]). These are the origin shift in x and y
 /// respectively.
 template <template <typename> class intersector_t = plane_intersector,
-          unsigned int kMeasDim = 2u>
+          unsigned int kMeasDim = 1u, bool kNormalOrder = false>
 class annulus2D {
     public:
     /// The name for this shape
@@ -54,6 +56,13 @@ class annulus2D {
 
     /// The measurement dimension
     inline static constexpr const unsigned int meas_dim{kMeasDim};
+
+    /// Normal ordering
+    inline static constexpr const bool normal_order{kNormalOrder};
+
+    // Measurement dimension check
+    static_assert(meas_dim == 1u || meas_dim == 2u,
+                  "Only 1D or 2D measurement is allowed");
 
     /// Names for the mask boundary values
     enum boundaries : unsigned int {
@@ -70,17 +79,6 @@ class annulus2D {
     /// Local coordinate frame ( focal system )
     template <typename algebra_t>
     using local_frame_type = polar2<algebra_t>;
-    /// Local point type (2D)
-    template <typename algebra_t>
-    using loc_point_type = typename local_frame_type<algebra_t>::point2;
-
-    /// Measurement frame. @todo focal system?
-    template <typename algebra_t>
-    using measurement_frame_type = polar2<algebra_t>;
-    /// Local measurement point (2D)
-    template <typename algebra_t>
-    using measurement_point_type =
-        typename measurement_frame_type<algebra_t>::point2;
 
     /// Underlying surface geometry: planar
     template <typename intersection_t>
@@ -167,7 +165,7 @@ class annulus2D {
         // Now go to beam frame to check r boundaries. Use the origin
         // shift in polar coordinates for that
         // TODO: Put shift in r-phi into the bounds?
-        const point_t shift_xy = {-bounds[e_shift_x], -bounds[e_shift_y]};
+        const point_t shift_xy = {-bounds[e_shift_x], -bounds[e_shift_y], 0.f};
         const scalar_t shift_r{getter::perp(shift_xy)};
         const scalar_t shift_phi{getter::phi(shift_xy)};
 
@@ -294,13 +292,6 @@ class annulus2D {
         corner_pos[7] = min_phi;
 
         return corner_pos;
-    }
-
-    template <typename param_t>
-    DETRAY_HOST_DEVICE inline typename param_t::point2 to_measurement(
-        param_t& param,
-        const typename param_t::point2& offset = {0.f, 0.f}) const {
-        return param.local() + offset;
     }
 };
 
