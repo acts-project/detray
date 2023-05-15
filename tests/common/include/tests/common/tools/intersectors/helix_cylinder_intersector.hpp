@@ -93,7 +93,7 @@ struct helix_cylinder_intersector
         // try to guess good starting path by calculating the intersection path
         // of the helix tangential with the cylinder. This only has a chance
         // of working for tracks with reasonably high p_T !
-        detail::ray<transform3_type> t{h.pos(), h.time(), h_dir, h.charge()};
+        detail::ray<transform3_type> t{h.pos(), h.time(), h_dir, h.qop()};
         const auto qe = this->solve_intersection(t, mask, trf);
 
         // Note: the default path length might be smaller than either solution

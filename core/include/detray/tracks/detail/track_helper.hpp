@@ -8,6 +8,7 @@
 #pragma once
 
 // Project include(s).
+#include "detray/definitions/algebra.hpp"
 #include "detray/definitions/math.hpp"
 #include "detray/definitions/qualifiers.hpp"
 #include "detray/definitions/track_parametrization.hpp"
@@ -88,6 +89,62 @@ struct track_helper {
 
         return {math_ns::cos(phi) * sinTheta, math_ns::sin(phi) * sinTheta,
                 math_ns::cos(theta)};
+    }
+
+    DETRAY_HOST_DEVICE
+    inline scalar_type p(const free_vector& free_vec) const {
+        return charge(free_vec) / qop(free_vec);
+    }
+
+    DETRAY_HOST_DEVICE
+    inline scalar_type p(const bound_vector& bound_vec) const {
+        return charge(bound_vec) / qop(bound_vec);
+    }
+
+    DETRAY_HOST_DEVICE
+    inline vector3 mom(const free_vector& free_vec) const {
+        return p(free_vec) * dir(free_vec);
+    }
+
+    DETRAY_HOST_DEVICE
+    inline vector3 mom(const bound_vector& bound_vec) const {
+        return p(bound_vec) * dir(bound_vec);
+    }
+
+    DETRAY_HOST_DEVICE
+    inline scalar_type qop(const free_vector& free_vec) const {
+        return matrix_operator().element(free_vec, e_free_qoverp, 0u);
+    }
+
+    DETRAY_HOST_DEVICE
+    inline scalar_type qop(const bound_vector& bound_vec) const {
+        return matrix_operator().element(bound_vec, e_bound_qoverp, 0u);
+    }
+
+    DETRAY_HOST_DEVICE
+    inline scalar_type time(const free_vector& free_vec) const {
+        return matrix_operator().element(free_vec, e_free_time, 0u);
+    }
+
+    DETRAY_HOST_DEVICE
+    inline scalar_type time(const bound_vector& bound_vec) const {
+        return matrix_operator().element(bound_vec, e_bound_time, 0u);
+    }
+
+    DETRAY_HOST_DEVICE
+    inline scalar_type charge(const free_vector& free_vec) const {
+        return std::signbit(
+                   matrix_operator().element(free_vec, e_free_qoverp, 0u))
+                   ? -1.f
+                   : 1.f;
+    }
+
+    DETRAY_HOST_DEVICE
+    inline scalar_type charge(const bound_vector& bound_vec) const {
+        return std::signbit(
+                   matrix_operator().element(bound_vec, e_bound_qoverp, 0u))
+                   ? -1.f
+                   : 1.f;
     }
 };
 

@@ -10,6 +10,7 @@
 // Project include(s).
 #include "detray/definitions/math.hpp"
 #include "detray/definitions/units.hpp"
+#include "detray/tracks/detail/track_helper.hpp"
 #include "detray/tracks/tracks.hpp"
 #include "detray/utils/matrix_helper.hpp"
 
@@ -29,22 +30,35 @@ class ray {
     using vector3 = typename transform3_type::vector3;
     using point3 = typename transform3_type::point3;
 
-    /// Parametrized constructor that complies with track interface
-    ///
-    /// @param track the track state that should be approximated
-    DETRAY_HOST_DEVICE ray(const free_track_parameters<transform3_type> &track)
-        : _pos{track.pos()},
-          _dir{track.dir()},
-          _overstep_tolerance{track.overstep_tolerance()} {}
+    using free_track_parameters_type = free_track_parameters<transform3_type>;
+    using free_vector_type = typename free_track_parameters_type::vector_type;
+
+    // Track helper
+    using matrix_operator = typename transform3_t::matrix_actor;
+    using track_helper = detail::track_helper<matrix_operator>;
 
     /// Parametrized constructor that complies with track interface
     ///
     /// @param pos the track position
     /// @param dir the track momentum direction
-    DETRAY_HOST_DEVICE
-    ray(const point3 pos, const scalar_type /*time*/, const vector3 dir,
-        const scalar_type /*q*/)
-        : _pos{pos}, _dir{vector::normalize(dir)} {}
+    DETRAY_HOST_DEVICE ray(const point3 &pos, const scalar_type /*time*/,
+                           const vector3 &dir, const scalar_type /*qop*/)
+        : _pos{pos}, _dir{dir} {}
+
+    /// Parametrized constructor that complies with track interface
+    ///
+    /// @param track the track state that should be approximated
+    DETRAY_HOST_DEVICE ray(const free_vector_type &free_vec)
+        : ray(track_helper().pos(free_vec), track_helper().time(free_vec),
+              track_helper().dir(free_vec), track_helper().qop(free_vec)) {}
+
+    /// Parametrized constructor that complies with track interface
+    ///
+    /// @param track the track state that should be approximated
+    DETRAY_HOST_DEVICE ray(const free_track_parameters_type &track)
+        : ray(track.vector()) {
+        _overstep_tolerance = track.overstep_tolerance();
+    }
 
     /// @returns position on the ray (compatible with tracks/intersectors)
     DETRAY_HOST_DEVICE point3 pos() const { return _pos; }
@@ -105,7 +119,7 @@ class ray {
 /// homogeneous B field. This Follows the notation of Eq (4.7) in
 /// DOI:10.1007/978-3-030-65771-0
 template <typename transform3_t>
-class helix : public free_track_parameters<transform3_t> {
+class helix {
     public:
     using transform3_type = transform3_t;
     using scalar_type = typename transform3_type::scalar_type;
@@ -115,6 +129,8 @@ class helix : public free_track_parameters<transform3_t> {
 
     /// Free track parameters
     using free_track_parameters_type = free_track_parameters<transform3_t>;
+    using free_vector_type = typename free_track_parameters_type::vector_type;
+
     /// Size type
     using size_type = typename transform3_type::size_type;
     /// 2D Matrix type
@@ -122,8 +138,10 @@ class helix : public free_track_parameters<transform3_t> {
     using matrix_type =
         typename matrix_operator::template matrix_type<ROWS, COLS>;
     using free_matrix = matrix_type<e_free_size, e_free_size>;
-    using free_track_parameters_type::pos;
     using mat_helper = matrix_helper<matrix_operator>;
+
+    // Track helper
+    using track_helper = detail::track_helper<matrix_operator>;
 
     DETRAY_HOST_DEVICE
     helix() = delete;
@@ -132,29 +150,22 @@ class helix : public free_track_parameters<transform3_t> {
     ///
     /// @param pos the the origin of the helix
     /// @param time the time parameter
-    /// @param dir the initial direction of momentum for the helix
+    /// @param dir the initial direction for the helix
     /// @param q the charge of the particle
     /// @param mag_field the magnetic field vector
     DETRAY_HOST_DEVICE
-    helix(point3 pos, scalar_type time, vector3 dir, scalar_type q,
-          vector3 const *const mag_field)
-        : free_track_parameters_type(pos, time, dir, q),
-          _mag_field(mag_field) {}
-
-    /// Parametrized constructor
-    ///
-    /// @param vertex the underlying track parametrization
-    /// @param mag_fied the magnetic field vector
-    DETRAY_HOST_DEVICE
-    helix(const free_track_parameters_type track,
-          vector3 const *const mag_field)
-        : free_track_parameters_type(track), _mag_field(mag_field) {
+    helix(const point3 &pos, const scalar_type time, const vector3 &dir,
+          const scalar_type qop, vector3 const *const mag_field)
+        : _pos(pos), _time(time), _qop(qop), _mag_field(mag_field) {
 
         // Normalized B field
         _h0 = vector::normalize(*_mag_field);
 
         // Normalized tangent vector
-        _t0 = vector::normalize(free_track_parameters_type::mom());
+        _t0 = dir;
+
+        // Momentum
+        const vector3 mom = 1.f / static_cast<scalar_type>(std::abs(qop)) * dir;
 
         // Normalized _h0 X _t0
         _n0 = vector::normalize(vector::cross(_h0, _t0));
@@ -166,13 +177,13 @@ class helix : public free_track_parameters<transform3_t> {
         _delta = vector::dot(_h0, _t0);
 
         // Path length scaler
-        _K = -free_track_parameters_type::qop() * getter::norm(*_mag_field);
+        _K = -_qop * getter::norm(*_mag_field);
 
         // Get longitudinal momentum parallel to B field
-        scalar_type pz = vector::dot(free_track_parameters_type::mom(), _h0);
+        scalar_type pz = vector::dot(mom, _h0);
 
         // Get transverse momentum perpendicular to B field
-        vector3 pT = free_track_parameters_type::mom() - pz * _h0;
+        vector3 pT = mom - pz * _h0;
 
         // R [mm] =  pT [GeV] / B [T] in natrual unit
         _R = getter::norm(pT) / getter::norm(*_mag_field);
@@ -185,6 +196,17 @@ class helix : public free_track_parameters<transform3_t> {
             _vz_over_vt = pz / getter::norm(pT);
         }
     }
+
+    DETRAY_HOST_DEVICE
+    helix(const free_vector_type &free_vec, vector3 const *const mag_field)
+        : helix(track_helper().pos(free_vec), track_helper().time(free_vec),
+                track_helper().dir(free_vec), track_helper().qop(free_vec),
+                mag_field) {}
+
+    DETRAY_HOST_DEVICE
+    helix(const free_track_parameters_type &track,
+          vector3 const *const mag_field)
+        : helix(track.vector(), mag_field) {}
 
     /// @returns the radius of helix
     DETRAY_HOST_DEVICE
@@ -200,10 +222,10 @@ class helix : public free_track_parameters<transform3_t> {
 
         // Handle the case of pT ~ 0
         if (_vz_over_vt == std::numeric_limits<scalar_type>::infinity()) {
-            return free_track_parameters_type::pos() + s * _h0;
+            return _pos + s * _h0;
         }
 
-        point3 ret = free_track_parameters_type::pos();
+        point3 ret = _pos;
         ret = ret + _delta / _K * (_K * s - math_ns::sin(_K * s)) * _h0;
         ret = ret + math_ns::sin(_K * s) / _K * _t0;
         ret = ret + _alpha / _K * (1.f - math_ns::cos(_K * s)) * _n0;
@@ -211,13 +233,16 @@ class helix : public free_track_parameters<transform3_t> {
         return ret;
     }
 
+    DETRAY_HOST_DEVICE
+    point3 pos() const { return _pos; }
+
     /// @returns the tangential vector after propagating the path length of s
     DETRAY_HOST_DEVICE
     vector3 dir(const scalar_type s) const {
 
         // Handle the case of pT ~ 0
         if (_vz_over_vt == std::numeric_limits<scalar_type>::infinity()) {
-            return free_track_parameters_type::dir();
+            return _t0;
         }
 
         vector3 ret{0.f, 0.f, 0.f};
@@ -228,6 +253,15 @@ class helix : public free_track_parameters<transform3_t> {
 
         return ret;
     }
+
+    DETRAY_HOST_DEVICE
+    point3 dir() const { return _t0; }
+
+    DETRAY_HOST_DEVICE
+    scalar_type time() const { return _time; }
+
+    DETRAY_HOST_DEVICE
+    scalar_type qop() const { return _qop; }
 
     /// @returns the transport jacobian after propagating the path length of s
     DETRAY_HOST_DEVICE
@@ -280,15 +314,12 @@ class helix : public free_track_parameters<transform3_t> {
         matrix_operator().set_block(ret, dtdt, e_free_dir0, e_free_dir0);
 
         // Get drdl
-        vector3 drdl = 1.f / free_track_parameters_type::qop() *
-                       (s * this->dir(s) + free_track_parameters_type::pos() -
-                        this->pos(s));
+        vector3 drdl = 1.f / _qop * (s * this->dir(s) + _pos - this->pos(s));
 
         matrix_operator().set_block(ret, drdl, e_free_pos0, e_free_qoverp);
 
         // Get dtdl
-        vector3 dtdl =
-            _alpha * _K * s / free_track_parameters_type::qop() * _n0;
+        vector3 dtdl = _alpha * _K * s / _qop * _n0;
 
         matrix_operator().set_block(ret, dtdl, e_free_dir0, e_free_qoverp);
 
@@ -298,6 +329,15 @@ class helix : public free_track_parameters<transform3_t> {
 
         return ret;
     }
+
+    /// origin
+    point3 _pos;
+
+    /// time
+    scalar_type _time;
+
+    /// qop
+    scalar_type _qop;
 
     /// B field
     vector3 const *_mag_field;

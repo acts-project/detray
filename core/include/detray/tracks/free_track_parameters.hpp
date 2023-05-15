@@ -8,7 +8,6 @@
 #pragma once
 
 // Project include(s).
-#include "detray/definitions/algebra.hpp"
 #include "detray/definitions/qualifiers.hpp"
 #include "detray/definitions/track_parametrization.hpp"
 #include "detray/tracks/detail/track_helper.hpp"
@@ -131,22 +130,13 @@ struct free_track_parameters {
     void set_dir(const vector3& dir) { track_helper().set_dir(m_vector, dir); }
 
     DETRAY_HOST_DEVICE
-    scalar_type time() const {
-        return matrix_operator().element(m_vector, e_free_time, 0u);
-    }
+    scalar_type time() const { return track_helper().time(m_vector); }
 
     DETRAY_HOST_DEVICE
-    scalar_type charge() const {
-        return std::signbit(
-                   matrix_operator().element(m_vector, e_free_qoverp, 0u))
-                   ? -1.f
-                   : 1.f;
-    }
+    scalar_type charge() const { return track_helper().charge(m_vector); }
 
     DETRAY_HOST_DEVICE
-    scalar_type qop() const {
-        return matrix_operator().element(m_vector, e_free_qoverp, 0u);
-    }
+    scalar_type qop() const { return track_helper().qop(m_vector); }
 
     DETRAY_HOST_DEVICE
     void set_qop(const scalar_type qop) {
@@ -154,10 +144,10 @@ struct free_track_parameters {
     }
 
     DETRAY_HOST_DEVICE
-    scalar_type p() const { return charge() / qop(); }
+    scalar_type p() const { return track_helper().p(m_vector); }
 
     DETRAY_HOST_DEVICE
-    vector3 mom() const { return this->p() * this->dir(); }
+    vector3 mom() const { return track_helper().mom(m_vector); }
 
     DETRAY_HOST_DEVICE
     scalar_type pT() const {
