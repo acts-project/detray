@@ -99,9 +99,12 @@ struct intersection2D {
     DETRAY_HOST
     friend std::ostream &operator<<(std::ostream &out_stream,
                                     const intersection2D &is) {
-        out_stream << "dist: " << is.path
-                   << "\tsurface: " << is.surface.barcode()
-                   << ", links to vol: " << is.volume_link << "\n\t\t";
+        out_stream << "dist:" << is.path
+                   << "\tsurface: " << is.surface.barcode() << ", loc ["
+                   << is.local[0] << ", " << is.local[1] << ", " << is.local[2]
+                   << "]"
+                   << ", links to vol:" << is.volume_link << ")";
+
         switch (is.status) {
             case intersection::status::e_outside:
                 out_stream << "status: outside";

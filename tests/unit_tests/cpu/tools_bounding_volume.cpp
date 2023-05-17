@@ -109,8 +109,8 @@ GTEST_TEST(detray_tools, annulus2D_aabb) {
     constexpr scalar maxPhi{1.33970f};
     typename transform3_t::point2 offset = {-2.f, 2.f};
 
-    mask<annulus2D<>> ann2{0u,     minR,      maxR,      minPhi,
-                           maxPhi, offset[0], offset[1], 0.f};
+    mask<annulus2D<>> ann2{0u,     minR, maxR,      minPhi,
+                           maxPhi, 0.f,  offset[0], offset[1]};
 
     // Construct local aabb around mask
     axis_aligned_bounding_volume<cuboid3D<>> aabb{ann2, 0u, envelope};
