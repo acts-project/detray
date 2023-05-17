@@ -100,7 +100,7 @@ struct helix_plane_intersector {
         // Compute some additional information if the intersection is valid
         if (sfi.status == intersection::status::e_inside) {
             sfi.surface = sf;
-            sfi.direction = std::signbit(vector::dot(st, h.dir(s)))
+            sfi.direction = std::signbit(s)
                                 ? intersection::direction::e_opposite
                                 : intersection::direction::e_along;
             sfi.volume_link = mask.volume_link();

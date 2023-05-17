@@ -146,36 +146,23 @@ struct helix_cylinder_intersector
             // Build intersection struct from helix parameters
             is.path = s;
             const auto p3 = h.pos(s);
+            is.local = mask.to_local_frame(trf, p3);
+            is.status = mask.is_inside(is.local, mask_tolerance);
 
-            // In case the local geometry frame is 3D
-            if constexpr (mask_t::shape::check_radius) {
-                const auto loc3D = mask.to_local_frame(trf, p3);
-                is.status = mask.is_inside(loc3D, mask_tolerance);
-                // Go from local to measurement frame
-                is.local = point3{loc3D[0] * loc3D[1], loc3D[2],
-                                  detail::invalid_value<scalar_type>()};
-            } else {
-                // local frame and measurement frame are identical
-                is.local = mask.to_local_frame(trf, p3);
-                is.status = mask.is_inside(is.local, mask_tolerance);
-
-                // Perform the r-check for Newton solution even if it is not
-                // required by the mask's shape
-                const scalar_type radial_pos{
-                    getter::perp(trf.point_to_local(p3))};
-                const bool r_check =
-                    std::abs(r - radial_pos) <
-                    mask_tolerance +
-                        5.f * std::numeric_limits<scalar_type>::epsilon();
-                if (not r_check) {
-                    is.status = intersection::status::e_outside;
-                }
+            // Perform the r-check for Newton solution even if it is not
+            // required by the mask's shape
+            const bool r_check =
+                std::abs(r - is.local[2]) <
+                mask_tolerance +
+                    5.f * std::numeric_limits<scalar_type>::epsilon();
+            if (not r_check) {
+                is.status = intersection::status::e_outside;
             }
 
             // Compute some additional information if the intersection is valid
             if (is.status == intersection::status::e_inside) {
                 is.surface = sf;
-                is.direction = std::signbit(vector::dot(p3, h.dir(s)))
+                is.direction = std::signbit(s)
                                    ? intersection::direction::e_opposite
                                    : intersection::direction::e_along;
                 is.volume_link = mask.volume_link();
