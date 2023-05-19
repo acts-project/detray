@@ -5,11 +5,13 @@
  * Mozilla Public License Version 2.0
  */
 
-#include <gtest/gtest.h>
-
+// Project include(s)
 #include "detray/definitions/units.hpp"
-#include "detray/geometry/detector_volume.hpp"
+#include "detray/geometry/detail/volume_descriptor.hpp"
 #include "detray/test/types.hpp"
+
+// GTest include(s)
+#include <gtest/gtest.h>
 
 // TODO: Move these into the test defs
 namespace {
@@ -35,7 +37,7 @@ GTEST_TEST(detray_geometry, detector_volume) {
     using namespace detray;
 
     using sf_finder_link_t = dtyped_index<sf_finder_ids, dindex>;
-    using volume_t = detector_volume<geo_objects, sf_finder_link_t>;
+    using volume_t = volume_descriptor<geo_objects, sf_finder_link_t>;
 
     // Check construction, setters and getters
     darray<scalar, 6> bounds = {
