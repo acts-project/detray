@@ -17,7 +17,7 @@ namespace detray {
 ///
 /// @note specialized into @c helix_plane_intersector and
 /// @c helix_cylinder_intersector
-template <typename intersection_t, typename mask_t, typename = void>
+template <typename transform3_t, typename mask_t, typename = void>
 struct helix_intersector {};
 
 }  // namespace detray

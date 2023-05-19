@@ -68,8 +68,8 @@ class line {
     using local_frame_type = line2<algebra_t>;
 
     /// Underlying surface geometry: line
-    template <typename intersection_t>
-    using intersector_type = intersector_t<intersection_t>;
+    template <typename algebra_t>
+    using intersector_type = intersector_t<algebra_t>;
 
     /// Behaviour of the two local axes (linear in r/x, linear in z)
     template <

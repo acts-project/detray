@@ -12,6 +12,7 @@
 #include "detray/definitions/indexing.hpp"
 #include "detray/definitions/math.hpp"
 #include "detray/definitions/qualifiers.hpp"
+#include "detray/geometry/barcode.hpp"
 #include "detray/utils/invalid_values.hpp"
 
 // System include(s)
@@ -41,20 +42,21 @@ enum class status : std::uint_least8_t {
 }  // namespace intersection
 
 /// @brief This class holds the intersection information.
-///
-/// @tparam surface_descr_t is the type of surface descriptor
-template <typename surface_descr_t,
-          typename algebra_t = __plugin::transform3<detray::scalar>>
+template <typename algebra_t>
 struct intersection2D {
 
     using transform3_type = algebra_t;
     using scalar_type = typename algebra_t::scalar_type;
     using point3 = typename algebra_t::point3;
     using point2 = typename algebra_t::point2;
-    using nav_link_type = typename surface_descr_t::navigation_link;
+
+    DETRAY_HOST_DEVICE
+    intersection2D(const detray::geometry::barcode &surface_link)
+        : m_surface_link(surface_link) {}
+    intersection2D() = delete;
 
     /// Descriptor of the surface this intersection belongs to
-    surface_descr_t surface;
+    detray::geometry::barcode m_surface_link;
 
     /// Local position of the intersection on the surface
     point3 local{detail::invalid_value<scalar_type>(),
@@ -68,7 +70,7 @@ struct intersection2D {
     scalar_type cos_incidence_angle{detail::invalid_value<scalar_type>()};
 
     /// Navigation information (next volume to go to)
-    nav_link_type volume_link{detail::invalid_value<nav_link_type>()};
+    dindex volume_link{detail::invalid_value<dindex>()};
 
     /// Result of the intersection
     intersection::status status{intersection::status::e_undefined};
@@ -99,8 +101,7 @@ struct intersection2D {
     DETRAY_HOST
     friend std::ostream &operator<<(std::ostream &out_stream,
                                     const intersection2D &is) {
-        out_stream << "dist:" << is.path
-                   << ", (sf index:" << is.surface.barcode()
+        out_stream << "dist:" << is.path << ", (sf index:" << is.m_surface_link
                    << ", links to vol:" << is.volume_link << ")";
         switch (is.status) {
             case intersection::status::e_outside:

@@ -22,19 +22,19 @@
 namespace detray {
 
 /// A functor to find intersections between a ray and a 2D cylinder mask
-template <typename intersection_t>
+template <typename transform3_t>
 struct cylinder_intersector {
 
     /// linear algebra types
     /// @{
-    using transform3_type = typename intersection_t::transform3_type;
+    using transform3_type = transform3_t;
     using scalar_type = typename transform3_type::scalar_type;
     using point3 = typename transform3_type::point3;
     using point2 = typename transform3_type::point2;
     using vector3 = typename transform3_type::vector3;
     /// @}
 
-    using intersection_type = intersection_t;
+    using intersection_type = intersection2D<transform3_type>;
     using ray_type = detail::ray<transform3_type>;
 
     /// Operator function to find intersections between a ray and a 2D cylinder
@@ -50,7 +50,7 @@ struct cylinder_intersector {
     ///
     /// @return the intersections.
     template <typename mask_t, typename surface_t>
-    DETRAY_HOST_DEVICE inline std::array<intersection_t, 2> operator()(
+    DETRAY_HOST_DEVICE inline std::array<intersection_type, 2> operator()(
         const ray_type &ray, const surface_t &sf, const mask_t &mask,
         const transform3_type &trf,
         const scalar_type mask_tolerance = 0.f) const {
@@ -58,7 +58,7 @@ struct cylinder_intersector {
         // One or both of these solutions might be invalid
         const auto qe = solve_intersection(ray, mask, trf);
 
-        std::array<intersection_t, 2> ret;
+        std::array<intersection_type, 2> ret;
         switch (qe.solutions()) {
             case 2:
                 ret[1] = build_candidate(ray, mask, trf, qe.larger(),
@@ -98,7 +98,7 @@ struct cylinder_intersector {
                                               cylindrical2<transform3_type>>,
                                bool> = true>
     DETRAY_HOST_DEVICE inline void update(
-        const ray_type &ray, intersection_t &sfi, const mask_t &mask,
+        const ray_type &ray, intersection_type &sfi, const mask_t &mask,
         const transform3_type &trf,
         const scalar_type mask_tolerance = 0.f) const {
 
@@ -148,11 +148,11 @@ struct cylinder_intersector {
     /// if the overstepping tolerance is not met or the intersection lies
     /// outside of the mask.
     template <typename mask_t>
-    DETRAY_HOST_DEVICE inline intersection_t build_candidate(
+    DETRAY_HOST_DEVICE inline intersection_type build_candidate(
         const ray_type &ray, const mask_t &mask, const transform3_type &trf,
         const scalar_type path, const scalar_type mask_tolerance = 0.f) const {
 
-        intersection_t is;
+        intersection_type is;
 
         // Construct the candidate only when needed
         if (path >= ray.overstep_tolerance()) {

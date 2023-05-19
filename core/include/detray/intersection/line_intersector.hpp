@@ -20,19 +20,19 @@
 namespace detray {
 
 /// A functor to find intersections between trajectory and line mask
-template <typename intersection_t>
+template <typename transform3_t>
 struct line_intersector {
 
     /// linear algebra types
     /// @{
-    using transform3_type = typename intersection_t::transform3_type;
+    using transform3_type = transform3_t;
     using scalar_type = typename transform3_type::scalar_type;
     using point3 = typename transform3_type::point3;
     using point2 = typename transform3_type::point2;
     using vector3 = typename transform3_type::vector3;
     /// @}
 
-    using intersection_type = intersection_t;
+    using intersection_type = intersection2D<transform3_type>;
     using ray_type = detail::ray<transform3_type>;
 
     /// Operator function to find intersections between ray and line mask
@@ -130,10 +130,7 @@ struct line_intersector {
     /// @param mask is the input mask that defines the surface extent
     /// @param trf is the surface placement transform
     /// @param mask_tolerance is the tolerance for mask edges
-    template <typename mask_t,
-              std::enable_if_t<std::is_same_v<typename mask_t::local_frame_type,
-                                              line2<transform3_type>>,
-                               bool> = true>
+    template <typename mask_t>
     DETRAY_HOST_DEVICE inline void update(
         const ray_type &ray, intersection_t &sfi, const mask_t &mask,
         const transform3_type &trf,

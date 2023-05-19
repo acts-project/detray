@@ -19,19 +19,19 @@
 namespace detray {
 
 /// A functor to find intersections between straight line and planar surface
-template <typename intersection_t>
+template <typename transform3_t>
 struct plane_intersector {
 
     /// linear algebra types
     /// @{
-    using transform3_type = typename intersection_t::transform3_type;
+    using transform3_type = transform3_t;
     using scalar_type = typename transform3_type::scalar_type;
     using point3 = typename transform3_type::point3;
     using point2 = typename transform3_type::point2;
     using vector3 = typename transform3_type::vector3;
     /// @}
 
-    using intersection_type = intersection_t;
+    using intersection_type = intersection2D<transform3_type>;
     using ray_type = detail::ray<transform3_type>;
 
     /// Operator function to find intersections between ray and planar mask
@@ -46,13 +46,13 @@ struct plane_intersector {
     /// @param mask_tolerance is the tolerance for mask edges
     ///
     /// @return the intersection
-    template <typename mask_t, typename surface_t>
-    DETRAY_HOST_DEVICE inline intersection_t operator()(
-        const ray_type &ray, const surface_t &sf, const mask_t &mask,
+    template <typename mask_t>
+    DETRAY_HOST_DEVICE inline intersection_type operator()(
+        const ray_type &ray, const intersection_type &is, const mask_t &mask,
         const transform3_type &trf,
         const scalar_type mask_tolerance = 0.f) const {
 
-        intersection_t is;
+        intersection_type is(sf);
 
         // Retrieve the surface normal & translation (context resolved)
         const auto &sm = trf.matrix();
@@ -93,24 +93,6 @@ struct plane_intersector {
         }
 
         return is;
-    }
-
-    /// Operator function to updtae an intersections between a ray and a planar
-    /// surface.
-    ///
-    /// @tparam mask_t is the input mask type
-    ///
-    /// @param ray is the input ray trajectory
-    /// @param sfi the intersection to be updated
-    /// @param mask is the input mask that defines the surface extent
-    /// @param trf is the surface placement transform
-    /// @param mask_tolerance is the tolerance for mask edges
-    template <typename mask_t>
-    DETRAY_HOST_DEVICE inline void update(
-        const ray_type &ray, intersection_t &sfi, const mask_t &mask,
-        const transform3_type &trf,
-        const scalar_type mask_tolerance = 0.f) const {
-        sfi = this->operator()(ray, sfi.surface, mask, trf, mask_tolerance);
     }
 };
 

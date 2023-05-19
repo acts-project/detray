@@ -94,10 +94,8 @@ struct void_inspector {
 /// @tparam detector_t the detector to navigate
 /// @tparam inspector_t is a validation inspector that can record information
 ///         about the navaigation state at different points of the nav. flow.
-template <
-    typename detector_t, typename inspector_t = navigation::void_inspector,
-    typename intersection_t = intersection2D<typename detector_t::surface_type,
-                                             typename detector_t::transform3>>
+template <typename detector_t,
+          typename inspector_t = navigation::void_inspector>
 class navigator {
 
     public:
@@ -107,7 +105,8 @@ class navigator {
     using volume_type = typename detector_t::volume_type;
     template <typename T>
     using vector_type = typename detector_t::template vector_type<T>;
-    using intersection_type = intersection_t;
+    using intersection_type = intersection2D<typename detector_t::surface_type,
+                                             typename detector_t::transform3>;
     using nav_link_type = typename detector_t::surface_type::navigation_link;
 
     /// A navigation state object used to cache the information of the

@@ -134,7 +134,7 @@ struct pointwise_material_interactor : actor {
     /// @param[in]  nav_dir navigation direction
     /// @param[in]  is intersection
     /// @param[in]  mat_store material store
-    template <typename intersection_t, typename material_store_t>
+    template <typename material_store_t>
     DETRAY_HOST_DEVICE inline void update(
         bound_track_parameters<transform3_type> &bound_params,
         state &interactor_state, const int nav_dir, const intersection_t &is,

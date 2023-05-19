@@ -47,7 +47,7 @@ class cylinder3D {
     using local_frame_type = cylindrical3<algebra_t>;
 
     /// Underlying surface geometry: not a surface.
-    template <typename intersection_t>
+    template <typename algebra_t>
     using intersector_type = void;
 
     /// Behaviour of the three local axes (linear in r, circular in phi,

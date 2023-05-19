@@ -38,8 +38,8 @@ class unmasked {
     using local_frame_type = cartesian2<algebra_t>;
 
     /// Underlying surface geometry: planar
-    template <typename intersection_t>
-    using intersector_type = plane_intersector<intersection_t>;
+    template <typename algebra_t>
+    using intersector_type = plane_intersector<algebra_t>;
 
     /// Behaviour of the two local axes (linear in x, y)
     template <

@@ -23,19 +23,19 @@ namespace detray {
 
 /// A functor to find intersections between trajectory and concentric cylinder
 /// mask
-template <typename intersection_t>
+template <typename transform3_t>
 struct concentric_cylinder_intersector {
 
     /// linear algebra types
     /// @{
-    using transform3_type = typename intersection_t::transform3_type;
+    using transform3_type = transform3_t;
     using scalar_type = typename transform3_type::scalar_type;
     using point3 = typename transform3_type::point3;
     using point2 = typename transform3_type::point2;
     using vector3 = typename transform3_type::vector3;
     /// @}
 
-    using intersection_type = intersection_t;
+    using intersection_type = intersection2D<transform3_t>;
     using ray_type = detail::ray<transform3_type>;
 
     /// Operator function to find intersections between ray and concentric

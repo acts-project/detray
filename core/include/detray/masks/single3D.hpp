@@ -56,8 +56,8 @@ class single3D {
     using local_frame_type = cartesian2<algebra_t>;
 
     /// Underlying surface geometry: planar
-    template <typename intersection_t>
-    using intersector_type = intersector_t<intersection_t>;
+    template <typename algebra_t>
+    using intersector_type = intersector_t<algebra_t>;
 
     /// Behaviour of the two local axes (linear in single coordinate x, y or z)
     template <n_axis::bounds e_s = n_axis::bounds::e_closed,

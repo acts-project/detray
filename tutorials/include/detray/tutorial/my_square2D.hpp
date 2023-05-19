@@ -55,8 +55,8 @@ class square2D {
     using local_frame_type = cartesian3<algebra_t>;
 
     /// Underlying surface geometry: planar
-    template <typename intersection_t>
-    using intersector_type = intersector_t<intersection_t>;
+    template <typename algebra_t>
+    using intersector_type = intersector_t<algebra_t>;
 
     /// Behaviour of the two local axes (linear in x, linear in y)
     /// Needed to map a grid onto the square (material maps)

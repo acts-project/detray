@@ -111,20 +111,22 @@ struct intersection_update {
     ///
     /// @return the intersection
     template <typename mask_group_t, typename mask_range_t, typename traj_t,
-              typename intersection_t, typename transform_container_t>
+              typename surface_t, typename transform3_t,
+              typename transform_container_t>
     DETRAY_HOST_DEVICE inline bool operator()(
         const mask_group_t &mask_group, const mask_range_t &mask_range,
-        const traj_t &traj, intersection_t &sfi,
+        const traj_t &traj, intersection2D<transform3_t> &sfi,
+        const surface_t &surface,
         const transform_container_t &contextual_transforms,
         const scalar mask_tolerance = 0.f) const {
 
-        const auto &ctf = contextual_transforms[sfi.surface.transform()];
+        const auto &ctf = contextual_transforms[surface.transform()];
 
         // Run over the masks that belong to the surface
         for (const auto &mask :
              detray::ranges::subrange(mask_group, mask_range)) {
 
-            mask.template intersector<intersection_t>().update(
+            mask.template intersector<transform3_t>().update(
                 traj, sfi, mask, ctf, mask_tolerance);
 
             if (sfi.status == intersection::status::e_inside) {

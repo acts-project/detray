@@ -149,9 +149,9 @@ class mask {
     }
 
     /// @returns the intersection functor for the underlying surface geometry.
-    template <typename intersection_t>
+    template <typename transform3_t>
     DETRAY_HOST_DEVICE inline constexpr auto intersector() const ->
-        typename shape::template intersector_type<intersection_t> {
+        typename shape::template intersector_type<transform3_t> {
         return {};
     }
 

@@ -39,9 +39,9 @@ class unbounded {
         typename shape::template local_frame_type<algebra_t>;
 
     /// Underlying surface geometry
-    template <typename intersection_t>
+    template <typename algebra_t>
     using intersector_type =
-        typename shape::template intersector_type<intersection_t>;
+        typename shape::template intersector_type<algebra_t>;
 
     /// @brief Check boundary values for a local point.
     ///
