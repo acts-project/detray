@@ -27,11 +27,10 @@
 using namespace detray;
 
 using transform3 = __plugin::transform3<scalar>;
-using detector_host_type = detector<detector_registry::toy_detector,
-                                    covfie::field, host_container_types>;
+using detector_host_type =
+    detector<toy_metadata<>, covfie::field, host_container_types>;
 using detector_device_type =
-    detector<detector_registry::toy_detector, covfie::field_view,
-             device_container_types>;
+    detector<toy_metadata<>, covfie::field_view, device_container_types>;
 
 using intersection_t =
     intersection2D<typename detector_device_type::surface_type, transform3>;

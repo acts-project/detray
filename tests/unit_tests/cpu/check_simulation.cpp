@@ -224,9 +224,8 @@ TEST_P(TelescopeDetectorSimulation, telescope_detector_simulation) {
     const scalar thickness = 0.005f * unit<scalar>::cm;
 
     // Detector type
-    using detector_type = detray::detector<
-        detray::detector_registry::template telescope_detector<rectangle2D<>>,
-        covfie::field>;
+    using detector_type =
+        detray::detector<telescope_metadata<rectangle2D<>>, covfie::field>;
 
     // Create B field
     const vector3 B{0.f, 0.f, 2.f * unit<scalar>::T};

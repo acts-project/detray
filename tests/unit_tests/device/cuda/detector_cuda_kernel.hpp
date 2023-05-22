@@ -11,7 +11,7 @@
 
 #include "detray/core/detector.hpp"
 #include "detray/definitions/algebra.hpp"
-#include "detray/detectors/detector_metadata.hpp"
+#include "detray/detectors/toy_metadata.hpp"
 #include "detray/utils/ranges.hpp"
 
 using namespace detray;
@@ -20,10 +20,10 @@ using namespace __plugin;
 namespace detray {
 
 // some useful type declarations
-using detector_host_t = detector<detector_registry::toy_detector, covfie::field,
-                                 host_container_types>;
-using detector_device_t = detector<detector_registry::toy_detector,
-                                   covfie::field_view, device_container_types>;
+using detector_host_t =
+    detector<toy_metadata<>, covfie::field, host_container_types>;
+using detector_device_t =
+    detector<toy_metadata<>, covfie::field_view, device_container_types>;
 using volume_t = typename detector_host_t::volume_type;
 using surface_t = typename detector_host_t::surface_type;
 using transform_t = typename detector_host_t::transform3;

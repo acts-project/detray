@@ -11,7 +11,7 @@
 #include "detray/core/detector.hpp"
 #include "detray/definitions/math.hpp"
 #include "detray/definitions/units.hpp"
-#include "detray/detectors/detector_metadata.hpp"
+#include "detray/detectors/toy_metadata.hpp"
 #include "detray/geometry/detector_volume.hpp"
 #include "detray/materials/predefined_materials.hpp"
 #include "detray/tools/volume_builder.hpp"
@@ -50,7 +50,7 @@ using point2 = __plugin::point2<detray::scalar>;
  * @param upper_z upper extend in z
  * @param volume_link link to next volume for the masks
  */
-template <typename context_t, typename surface_container_t,
+template <auto cyl_id, typename context_t, typename surface_container_t,
           typename mask_container_t, typename material_container_t,
           typename transform_container_t, typename volume_links>
 inline void add_cylinder_surface(
@@ -60,12 +60,10 @@ inline void add_cylinder_surface(
     const scalar upper_z, const volume_links volume_link,
     const material<scalar> &mat, const scalar thickness) {
     using surface_type = typename surface_container_t::value_type;
-    using mask_id = typename surface_type::mask_id;
     using mask_link_type = typename surface_type::mask_link;
     using material_id = typename surface_type::material_id;
     using material_link_type = typename surface_type::material_link;
 
-    constexpr auto cylinder_id = mask_id::e_portal_cylinder2;
     constexpr auto slab_id = material_id::e_slab;
 
     const scalar min_z{std::min(lower_z, upper_z)};
@@ -76,15 +74,14 @@ inline void add_cylinder_surface(
 
     // add transform and masks
     transforms.emplace_back(ctx, tsl);
-    masks.template emplace_back<cylinder_id>(empty_context{}, volume_link, r,
-                                             min_z, max_z);
+    masks.template emplace_back<cyl_id>(empty_context{}, volume_link, r, min_z,
+                                        max_z);
 
     // Add material slab
     materials.template emplace_back<slab_id>(empty_context{}, mat, thickness);
 
     // add surface
-    mask_link_type mask_link{cylinder_id,
-                             masks.template size<cylinder_id>() - 1u};
+    mask_link_type mask_link{cyl_id, masks.template size<cyl_id>() - 1u};
     material_link_type material_link{slab_id,
                                      materials.template size<slab_id>() - 1u};
     const surface_id sf_id = (volume_link != volume_idx)
@@ -204,12 +201,15 @@ void create_cyl_volume(detector_t &det, vecmem::memory_resource &resource,
     det.transform_store().emplace_back(ctx, t);
 
     // negative and positive, inner and outer portal surface
-    add_cylinder_surface(cyl_volume.index(), ctx, surfaces, masks, materials,
-                         transforms, inner_r, lower_z, upper_z, volume_links[0],
-                         vacuum<scalar>(), 0.f * unit<scalar>::mm);
-    add_cylinder_surface(cyl_volume.index(), ctx, surfaces, masks, materials,
-                         transforms, outer_r, lower_z, upper_z, volume_links[1],
-                         vacuum<scalar>(), 0.f * unit<scalar>::mm);
+    constexpr auto cyl_id = detector_t::masks::id::e_portal_cylinder2;
+    add_cylinder_surface<cyl_id>(cyl_volume.index(), ctx, surfaces, masks,
+                                 materials, transforms, inner_r, lower_z,
+                                 upper_z, volume_links[0], vacuum<scalar>(),
+                                 0.f * unit<scalar>::mm);
+    add_cylinder_surface<cyl_id>(cyl_volume.index(), ctx, surfaces, masks,
+                                 materials, transforms, outer_r, lower_z,
+                                 upper_z, volume_links[1], vacuum<scalar>(),
+                                 0.f * unit<scalar>::mm);
     add_disc_surface(cyl_volume.index(), ctx, surfaces, masks, materials,
                      transforms, inner_r, outer_r, lower_z, volume_links[2],
                      vacuum<scalar>(), 0.f * unit<scalar>::mm);
@@ -668,6 +668,7 @@ inline void add_beampipe(
     using object_id = typename detector_t::volume_type::object_id;
     using nav_link_t = typename detector_t::surface_type::navigation_link;
     constexpr auto leaving_world{detail::invalid_value<nav_link_t>()};
+    constexpr auto cyl_id = detector_t::masks::id::e_portal_cylinder2;
 
     scalar max_z{n_edc_layers == 0u ? brl_half_z
                                     : edc_lay_sizes[n_edc_layers - 1u].second};
@@ -707,7 +708,7 @@ inline void add_beampipe(
     dindex link = beampipe_idx;
     for (int i = static_cast<int>(vol_sizes.size()) - 1; i >= 0; --i) {
         volume_link = ++link;
-        add_cylinder_surface(
+        add_cylinder_surface<cyl_id>(
             beampipe_idx, ctx, surfaces, masks, materials, transforms,
             edc_inner_r, -vol_sizes[static_cast<unsigned int>(i)].second,
             -vol_sizes[static_cast<unsigned int>(i)].first, volume_link,
@@ -716,18 +717,19 @@ inline void add_beampipe(
 
     // barrel portals
     volume_link = n_brl_layers <= 0u ? leaving_world : link + 1u;
-    add_cylinder_surface(beampipe_idx, ctx, surfaces, masks, materials,
-                         transforms, edc_inner_r, -brl_half_z, brl_half_z,
-                         volume_link, vacuum<scalar>(), 0.f * unit<scalar>::mm);
+    add_cylinder_surface<cyl_id>(beampipe_idx, ctx, surfaces, masks, materials,
+                                 transforms, edc_inner_r, -brl_half_z,
+                                 brl_half_z, volume_link, vacuum<scalar>(),
+                                 0.f * unit<scalar>::mm);
 
     // positive endcap portals
     link += 7u;
     for (unsigned int i = 0u; i < vol_sizes.size(); ++i) {
         volume_link = ++link;
-        add_cylinder_surface(beampipe_idx, ctx, surfaces, masks, materials,
-                             transforms, edc_inner_r, vol_sizes[i].second,
-                             vol_sizes[i].first, volume_link, vacuum<scalar>(),
-                             0.f * unit<scalar>::mm);
+        add_cylinder_surface<cyl_id>(
+            beampipe_idx, ctx, surfaces, masks, materials, transforms,
+            edc_inner_r, vol_sizes[i].second, vol_sizes[i].first, volume_link,
+            vacuum<scalar>(), 0.f * unit<scalar>::mm);
     }
 
     // disc portals
@@ -740,9 +742,10 @@ inline void add_beampipe(
                      volume_link, vacuum<scalar>(), 0.f * unit<scalar>::mm);
 
     // This is the beampipe surface
-    add_cylinder_surface(beampipe_idx, ctx, surfaces, masks, materials,
-                         transforms, beampipe_r, min_z, max_z, beampipe_idx,
-                         beryllium_tml<scalar>(), 0.8f * unit<scalar>::mm);
+    add_cylinder_surface<detector_t::masks::id::e_cylinder2>(
+        beampipe_idx, ctx, surfaces, masks, materials, transforms, beampipe_r,
+        min_z, max_z, beampipe_idx, beryllium_tml<scalar>(),
+        0.8f * unit<scalar>::mm);
 
     det.add_objects_per_volume(ctx, beampipe, surfaces, masks, transforms,
                                materials);
@@ -776,6 +779,7 @@ inline void add_endcap_barrel_connection(
 
     using nav_link_t = typename detector_t::surface_type::navigation_link;
     constexpr auto leaving_world{detail::invalid_value<nav_link_t>()};
+    constexpr auto cyl_id = detector_t::masks::id::e_portal_cylinder2;
 
     const scalar sign{static_cast<scalar>(side)};
     const scalar min_z{std::min(sign * gap_lower_z, sign * gap_upper_z)};
@@ -798,13 +802,15 @@ inline void add_endcap_barrel_connection(
     det.transform_store().emplace_back(ctx, t);
 
     dindex volume_link{beampipe_idx};
-    add_cylinder_surface(connector_gap_idx, ctx, surfaces, masks, materials,
-                         transforms, edc_inner_r, min_z, max_z, volume_link,
-                         vacuum<scalar>(), 0.f * unit<scalar>::mm);
+    add_cylinder_surface<cyl_id>(connector_gap_idx, ctx, surfaces, masks,
+                                 materials, transforms, edc_inner_r, min_z,
+                                 max_z, volume_link, vacuum<scalar>(),
+                                 0.f * unit<scalar>::mm);
     volume_link = leaving_world;
-    add_cylinder_surface(connector_gap_idx, ctx, surfaces, masks, materials,
-                         transforms, edc_outer_r, min_z, max_z, volume_link,
-                         vacuum<scalar>(), 0.f * unit<scalar>::mm);
+    add_cylinder_surface<cyl_id>(connector_gap_idx, ctx, surfaces, masks,
+                                 materials, transforms, edc_outer_r, min_z,
+                                 max_z, volume_link, vacuum<scalar>(),
+                                 0.f * unit<scalar>::mm);
     volume_link = edc_vol_idx;
     add_disc_surface(connector_gap_idx, ctx, surfaces, masks, materials,
                      transforms, edc_inner_r, edc_outer_r, edc_disc_z,
@@ -1017,12 +1023,11 @@ void add_barrel_detector(
 template <typename container_t = host_container_types>
 auto create_toy_geometry(
     vecmem::memory_resource &resource,
-    covfie::field<detector_registry::toy_detector::bfield_backend_t> &&bfield,
+    covfie::field<toy_metadata<>::bfield_backend_t> &&bfield,
     unsigned int n_brl_layers = 4u, unsigned int n_edc_layers = 3u) {
 
     // detector type
-    using detector_t =
-        detector<detector_registry::toy_detector, covfie::field, container_t>;
+    using detector_t = detector<toy_metadata<>, covfie::field, container_t>;
 
     /// Leaving world
     using nav_link_t = typename detector_t::surface_type::navigation_link;
@@ -1203,9 +1208,8 @@ auto create_toy_geometry(vecmem::memory_resource &resource,
                          unsigned int n_edc_layers = 3u) {
     return create_toy_geometry<container_t>(
         resource,
-        covfie::field<detector_registry::toy_detector::bfield_backend_t>{
-            detector_registry::toy_detector::bfield_backend_t::configuration_t{
-                0.f, 0.f, 0.f}},
+        covfie::field<toy_metadata<>::bfield_backend_t>{
+            toy_metadata<>::bfield_backend_t::configuration_t{0.f, 0.f, 0.f}},
         n_brl_layers, n_edc_layers);
 }
 

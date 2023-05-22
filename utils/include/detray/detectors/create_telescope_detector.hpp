@@ -10,7 +10,7 @@
 // Project include(s)
 #include "detray/core/detector.hpp"
 #include "detray/definitions/units.hpp"
-#include "detray/detectors/detector_metadata.hpp"
+#include "detray/detectors/telescope_metadata.hpp"
 #include "detray/masks/masks.hpp"
 #include "detray/materials/predefined_materials.hpp"
 #include "detray/propagator/line_stepper.hpp"
@@ -30,8 +30,7 @@ namespace detray {
 namespace {
 
 template <typename mask_shape_t>
-using telescope_types =
-    typename detector_registry::template telescope_detector<mask_shape_t>;
+using telescope_types = telescope_metadata<mask_shape_t>;
 
 /// Where and how to place the telescope modules.
 struct module_placement {

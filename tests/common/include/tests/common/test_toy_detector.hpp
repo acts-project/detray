@@ -50,10 +50,9 @@ inline void test_finder(const acc_t& finder, const dindex volume_index,
     }
 }
 
-inline bool test_toy_detector(
-    const detector<detector_registry::toy_detector>& toy_det) {
+inline bool test_toy_detector(const detector<toy_metadata<>>& toy_det) {
 
-    using detector_t = detector<detector_registry::toy_detector>;
+    using detector_t = detector<toy_metadata<>>;
     using geo_obj_ids = typename detector_t::geo_obj_ids;
     using volume_t = typename detector_t::volume_type;
     using nav_link_t = typename detector_t::surface_type::navigation_link;

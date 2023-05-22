@@ -8,7 +8,6 @@
 // Project include(s)
 #include "detray/core/detector.hpp"
 #include "detray/detectors/create_toy_geometry.hpp"
-#include "detray/detectors/detector_metadata.hpp"
 #include "detray/intersection/intersection_kernel.hpp"
 #include "detray/simulation/event_generator/track_generators.hpp"
 #include "detray/test/types.hpp"

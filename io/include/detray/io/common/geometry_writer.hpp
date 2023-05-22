@@ -9,9 +9,11 @@
 
 // Project include(s)
 #include "detray/definitions/indexing.hpp"
+#include "detray/intersection/cylinder_portal_intersector.hpp"
 #include "detray/io/common/detail/utils.hpp"
 #include "detray/io/common/io_interface.hpp"
 #include "detray/io/common/payloads.hpp"
+#include "detray/masks/masks.hpp"
 #include "detray/materials/material_rod.hpp"
 #include "detray/materials/material_slab.hpp"
 
@@ -98,24 +100,31 @@ class geometry_writer : public writer_interface<detector_t> {
         mask_payload mask_data;
 
         // Find the correct shape index (use name for simplicity)
-        std::string name = mask_t::shape::name;
-        if (name == "rectangle2D") {
+        using shape_t = typename mask_t::shape;
+        if constexpr (std::is_same_v<shape_t, rectangle2D<>>) {
             mask_data.shape = shape_id::rectangle2;
-        } else if (name == "trapezoid2D") {
+        } else if constexpr (std::is_same_v<shape_t, trapezoid2D<>>) {
             mask_data.shape = shape_id::trapezoid2;
-        } else if (name == "cylinder2D") {
+        } else if constexpr (std::is_same_v<shape_t, cylinder2D<>>) {
             mask_data.shape = shape_id::cylinder2;
-        } else if (name == "ring2D") {
+        } else if constexpr (std::is_same_v<
+                                 shape_t,
+                                 cylinder2D<false,
+                                            cylinder_portal_intersector>>) {
+            mask_data.shape = shape_id::portal_cylinder2;
+        } else if constexpr (std::is_same_v<shape_t, ring2D<>>) {
             mask_data.shape = shape_id::ring2;
-        } else if (name == "(stereo) annulus2D") {
+        } else if constexpr (std::is_same_v<shape_t, annulus2D<>>) {
             mask_data.shape = shape_id::annulus2;
-        } else if (name == "line") {
-            mask_data.shape = shape_id::line;
-        } else if (name == "single3D") {
+        } else if constexpr (std::is_same_v<shape_t, line<true>>) {
+            mask_data.shape = shape_id::cell_wire;
+        } else if constexpr (std::is_same_v<shape_t, line<false>>) {
+            mask_data.shape = shape_id::straw_wire;
+        } else if constexpr (std::is_same_v<shape_t, single3D<1>>) {
             mask_data.shape = shape_id::single3;
-        } else if (name == "cuboid3D") {
+        } else if constexpr (std::is_same_v<shape_t, cuboid3D<>>) {
             mask_data.shape = shape_id::cuboid3;
-        } else if (name == "cylinder3D") {
+        } else if constexpr (std::is_same_v<shape_t, cylinder3D>) {
             mask_data.shape = shape_id::cylinder3;
         } else {
             mask_data.shape = shape_id::unknown;

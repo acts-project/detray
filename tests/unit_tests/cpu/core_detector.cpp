@@ -134,8 +134,7 @@ GTEST_TEST(detray_core, detector) {
 
     using namespace detray;
 
-    using detector_t =
-        detector<detector_registry::default_detector, covfie::field>;
+    using detector_t = detector<>;
     using mask_id = typename detector_t::masks::id;
     using material_id = typename detector_t::materials::id;
     using finder_id = typename detector_t::sf_finders::id;
@@ -148,12 +147,18 @@ GTEST_TEST(detray_core, detector) {
     EXPECT_TRUE(d.portals().empty());
     EXPECT_TRUE(d.transform_store().empty());
     EXPECT_TRUE(d.mask_store().template empty<mask_id::e_rectangle2>());
+    EXPECT_TRUE(d.mask_store().template empty<mask_id::e_portal_rectangle2>());
     EXPECT_TRUE(d.mask_store().template empty<mask_id::e_trapezoid2>());
     EXPECT_TRUE(d.mask_store().template empty<mask_id::e_annulus2>());
     EXPECT_TRUE(d.mask_store().template empty<mask_id::e_cylinder2>());
     EXPECT_TRUE(d.mask_store().template empty<mask_id::e_portal_cylinder2>());
     EXPECT_TRUE(d.mask_store().template empty<mask_id::e_ring2>());
     EXPECT_TRUE(d.mask_store().template empty<mask_id::e_portal_ring2>());
+    EXPECT_TRUE(d.mask_store().template empty<mask_id::e_straw_wire>());
+    EXPECT_TRUE(d.mask_store().template empty<mask_id::e_cell_wire>());
+    EXPECT_TRUE(d.mask_store().template empty<mask_id::e_single1>());
+    EXPECT_TRUE(d.mask_store().template empty<mask_id::e_single2>());
+    EXPECT_TRUE(d.mask_store().template empty<mask_id::e_single3>());
     EXPECT_TRUE(d.material_store().template empty<material_id::e_slab>());
     EXPECT_TRUE(d.material_store().template empty<material_id::e_rod>());
     EXPECT_TRUE(d.surface_store().template empty<finder_id::e_brute_force>());
@@ -169,12 +174,18 @@ GTEST_TEST(detray_core, detector) {
     EXPECT_EQ(d.portals().size(), 3u);
     EXPECT_EQ(d.transform_store().size(), 3u);
     EXPECT_EQ(d.mask_store().template size<mask_id::e_rectangle2>(), 1u);
+    EXPECT_EQ(d.mask_store().template size<mask_id::e_portal_rectangle2>(), 1u);
     EXPECT_EQ(d.mask_store().template size<mask_id::e_trapezoid2>(), 1u);
     EXPECT_EQ(d.mask_store().template size<mask_id::e_annulus2>(), 1u);
     EXPECT_EQ(d.mask_store().template size<mask_id::e_cylinder2>(), 0u);
     EXPECT_EQ(d.mask_store().template size<mask_id::e_portal_cylinder2>(), 0u);
     EXPECT_EQ(d.mask_store().template size<mask_id::e_ring2>(), 0u);
     EXPECT_EQ(d.mask_store().template size<mask_id::e_portal_ring2>(), 0u);
+    EXPECT_EQ(d.mask_store().template size<mask_id::e_straw_wire>(), 0u);
+    EXPECT_EQ(d.mask_store().template size<mask_id::e_cell_wire>(), 0u);
+    EXPECT_EQ(d.mask_store().template size<mask_id::e_single1>(), 0u);
+    EXPECT_EQ(d.mask_store().template size<mask_id::e_single2>(), 0u);
+    EXPECT_EQ(d.mask_store().template size<mask_id::e_single3>(), 0u);
     EXPECT_EQ(d.material_store().template size<material_id::e_slab>(), 2u);
     EXPECT_EQ(d.material_store().template size<material_id::e_rod>(), 1u);
     EXPECT_EQ(d.surface_store().template size<finder_id::e_brute_force>(), 1u);
@@ -189,8 +200,7 @@ GTEST_TEST(detray_tools, surface_factory) {
 
     using namespace detray;
 
-    using detector_t =
-        detector<detector_registry::default_detector, covfie::field>;
+    using detector_t = detector<>;
     using transform3 = typename detector_t::transform3;
     using mask_id = typename detector_t::masks::id;
 
@@ -198,8 +208,8 @@ GTEST_TEST(detray_tools, surface_factory) {
     // check portal cylinder
     //
     using portal_cylinder_factory =
-        surface_factory<detector_t, cylinder2D<>, mask_id::e_portal_cylinder2,
-                        surface_id::e_portal>;
+        surface_factory<detector_t, typename full_metadata::cylinder_portal,
+                        mask_id::e_portal_cylinder2, surface_id::e_portal>;
 
     auto pt_cyl_factory = std::make_shared<portal_cylinder_factory>();
 
@@ -385,8 +395,7 @@ GTEST_TEST(detray_tools, volume_builder) {
 
     vecmem::host_memory_resource host_mr;
 
-    using detector_t =
-        detector<detector_registry::default_detector, covfie::field>;
+    using detector_t = detector<>;
 
     detector_t d(host_mr);
 
@@ -407,8 +416,7 @@ GTEST_TEST(detray_tools, detector_volume_construction) {
 
     using namespace detray;
 
-    using detector_t =
-        detray::detector<detector_registry::default_detector, covfie::field>;
+    using detector_t = detector<>;
     using transform3 = typename detector_t::transform3;
     using geo_obj_id = typename detector_t::geo_obj_ids;
     using mask_id = typename detector_t::masks::id;
@@ -416,8 +424,8 @@ GTEST_TEST(detray_tools, detector_volume_construction) {
 
     // portal factories
     using portal_cylinder_factory =
-        surface_factory<detector_t, cylinder2D<>, mask_id::e_portal_cylinder2,
-                        surface_id::e_portal>;
+        surface_factory<detector_t, typename full_metadata::cylinder_portal,
+                        mask_id::e_portal_cylinder2, surface_id::e_portal>;
     using portal_disc_factory =
         surface_factory<detector_t, ring2D<>, mask_id::e_portal_ring2,
                         surface_id::e_portal>;
@@ -569,7 +577,7 @@ GTEST_TEST(detray_tools, detector_volume_construction) {
 
     // default detector makes no distinction between the surface types
     std::vector<dtyped_index<sf_finder_id, dindex>> sf_finder_links{
-        {sf_finder_id::e_brute_force, 1u}};
+        {sf_finder_id::e_brute_force, 1u}, {sf_finder_id::e_brute_force, 1u}};
     EXPECT_EQ(vol.template link<geo_obj_id::e_portal>(),
               sf_finder_links[geo_obj_id::e_portal]);
     EXPECT_EQ(vol.template link<geo_obj_id::e_sensitive>(),

@@ -10,7 +10,7 @@
 // Detray include(s)
 #include "detray/core/detector.hpp"
 #include "detray/definitions/indexing.hpp"
-#include "detray/detectors/detector_metadata.hpp"
+#include "detray/detectors/toy_metadata.hpp"
 #include "detray/masks/masks.hpp"
 #include "detray/surface_finders/grid/populator.hpp"
 #include "detray/surface_finders/grid/serializer.hpp"
@@ -35,7 +35,7 @@ using vector3 = test::vector3;
 
 test::transform3 Identity{};
 
-using test_detector_t = detector<detector_registry::toy_detector>;
+using test_detector_t = detector<toy_metadata<>>;
 
 }  // anonymous namespace
 
@@ -266,7 +266,7 @@ GTEST_TEST(detray_tools, decorator_grid_builder) {
     // check results
     //
     // only the portals are referenced through the volume
-    typename detector_registry::toy_detector::object_link_type sf_range{};
+    typename toy_metadata<>::object_link_type sf_range{};
     sf_range[0] = {acc_ids::e_default, 0u};
     sf_range[1] = {acc_ids::e_cylinder_grid, 0u};
     // toy detector makes no distinction between the surface types
