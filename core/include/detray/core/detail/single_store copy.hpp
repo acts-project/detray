@@ -56,28 +56,32 @@ template <typename T, typename context_t>
 DETRAY_HOST
 class single_store_host : single_store_base<T, context_t> {
 
-    public:
-    using _ = single_store_base<T, context_t>;
+    using typename single_store_base<T, context_t>::host_type;
+    using typename single_store_base<T, context_t>::view_type;
+    using typename single_store_base<T, context_t>::size_type;
+    using typename single_store_base<T, context_t>::link_type;
     
-    single_store_host(const typename _::size_type size) : _data(size) {};
+    public:
+    
+    single_store_host(const size_type size) : _data(size) {};
 
     // TO DISCUSS: Do we gain much, if anything from having a resource constructor here?
 
-    single_store_host(const typename _::size_type size, const T &arg) : _data(size, arg) {};
+    single_store_host(const size_type size, const T &arg) : _data(size, arg) {};
 
-    T& at(const typename _::link_type l) {
+    T& at(const link_type l) {
         return _data.at(l);
     }
 
-    typename _::size_type size() {
-        return static_cast<typename _::size_type>(_data.size());
+    size_type size() {
+        return static_cast<size_type>(_data.size());
     }
 
-    typename _::view_type get_data() {
+    view_type get_data() {
         return vecmem::get_data(_data);
     }
 
-    void reserve(const typename _::size_type size) {
+    void reserve(const size_type size) {
         _data.reserve(size);
     }
 
@@ -86,59 +90,64 @@ class single_store_host : single_store_base<T, context_t> {
     }
 
     private:
-    typename _::host_type _data;
+    host_type _data;
 };
 
 template <typename T, typename context_t>
 DETRAY_HOST
 class single_store_buffer : single_store_base<T, context_t> {
 
+    using typename single_store_base<T, context_t>::buffer_type;
+    using typename single_store_base<T, context_t>::view_type;
+    using typename single_store_base<T, context_t>::size_type;
+
     public:
-    using _ = single_store_base<T, context_t>;
-    
-    single_store_buffer(typename _::size_type size, vecmem::memory_resource& resource) 
+    single_store_buffer(size_type size, vecmem::memory_resource& resource) 
         : _data(size, resource) {}
 
     single_store_buffer(vecmem::memory_resource& resource)
         : _data(resource) {}
 
-    single_store_buffer(typename _::view_type data, vecmem::memory_resource& resource, vecmem::copy& cpy)
+    single_store_buffer(view_type data, vecmem::memory_resource& resource, vecmem::copy& cpy)
         : _data(data.size(), resource) {
             cpy(data, _data)->wait();
         }
 
-    typename _::view_type get_data() {
+    view_type get_data() {
         return vecmem::get_data(_data);
     }
 
     private:
-    typename _::buffer_type _data;
+    buffer_type _data;
 };
 
 template <typename T, typename context_t>
 DETRAY_HOST_DEVICE
 class single_store_view : single_store_base<T, context_t> {
 
+    using typename single_store_base<T, context_t>::view_type;
+    using typename single_store_base<T, context_t>::device_type;
+    using typename single_store_base<T, context_t>::size_type;
+    using typename single_store_base<T, context_t>::link_type;
+
     public:
-    using _ = single_store_base<T, context_t>;
-    
     DETRAY_HOST_DEVICE
-    single_store_view(typename _::view_type data)
+    single_store_view(view_type data)
         : _data(data) {}
 
     DETRAY_HOST_DEVICE
-    T& at(typename _::link_type l) {
-        typename _::device_type dev(_data);
+    T& at(link_type l) {
+        device_type dev(_data);
         return dev.at(l);
     }
 
     DETRAY_HOST_DEVICE
-    typename _::size_type size() const {
+    size_type size() const {
         return _data.size();
     }
 
     private:
-    typename _::view_type _data;
+    view_type _data;
 };
 
 template<typename T, typename context_t = empty_context>
