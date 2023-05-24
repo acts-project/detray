@@ -12,6 +12,7 @@
 #include <vecmem/utils/cuda/copy.hpp>
 
 #include "detray/core/detail/single_store.hpp"
+#include "detray/core/detail/tuple_container.hpp"
 
 // GTest include(s).
 #include <gtest/gtest.h>
@@ -57,4 +58,50 @@ GTEST_TEST(detray_detail, single_store) {
     managed_store.push_back(6);
 
     basic_kernel<<<8, 1>>>(detray::get_data(managed_store));
+}
+
+using multi_store_t =
+    detail::tuple_container<dtuple, vecmem::vector<int>, vecmem::vector<float>>;
+using multi_store_dev_t =
+    detail::tuple_container<dtuple, vecmem::device_vector<int>,
+                            vecmem::device_vector<float>>;
+
+template <typename view_t>
+__global__ void multi_kernel(view_t view) {
+    std::size_t globalIdx = threadIdx.x + blockIdx.x * blockDim.x;
+
+    multi_store_dev_t store(view);
+
+    if (globalIdx >= detail::get<0>(store).size()) {
+        return;
+    }
+
+    printf("%d\n", detail::get<0>(store).at(globalIdx));
+    printf("%f\n", detail::get<1>(store).at(globalIdx));
+}
+
+GTEST_TEST(detray_detail, multi_store) {
+
+    // Run the kernel by copying the data to device
+
+    vecmem::host_memory_resource host_mr;
+    multi_store_t store(host_mr);
+    detail::get<0>(store).push_back(3);
+    detail::get<1>(store).push_back(4.f);
+
+    vecmem::cuda::device_memory_resource dev_mr;
+    vecmem::cuda::copy cpy;
+
+    auto store_buffer = detray::get_buffer(store, dev_mr, cpy);
+
+    multi_kernel<<<8, 1>>>(detray::get_data(store_buffer));
+
+    // Run the same kernel with managed memory
+
+    vecmem::cuda::managed_memory_resource mng_mr;
+    multi_store_t managed_store(mng_mr);
+    detail::get<0>(managed_store).push_back(5);
+    detail::get<1>(managed_store).push_back(6.f);
+
+    multi_kernel<<<8, 1>>>(detray::get_data(managed_store));
 }

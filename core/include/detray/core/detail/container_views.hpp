@@ -18,7 +18,9 @@
 #include <vecmem/containers/jagged_device_vector.hpp>
 
 // System include(s)
+#include <tuple>
 #include <type_traits>
+// #include <thrust/tuple>
 
 namespace detray {
 
@@ -54,13 +56,13 @@ class dmulti_view_helper<false, view_ts...> {};
 /// member constructors.
 template <typename... view_ts>
 struct dmulti_view_helper<true, view_ts...> : public dbase_view {
-    detray::tuple<std::remove_reference_t<std::remove_cv_t<view_ts>>...> m_view;
+    std::tuple<std::remove_reference_t<std::remove_cv_t<view_ts>>...> m_view;
 
     dmulti_view_helper() = default;
 
     /// Tie multiple views together
     DETRAY_HOST
-    dmulti_view_helper(view_ts&&... views) { m_view = ::detray::tie(views...); }
+    dmulti_view_helper(view_ts&&... views) { m_view = std::tie(views...); }
 };
 
 /// Helper trait to determine if a type can be interpreted as a (composite)
@@ -151,6 +153,18 @@ struct detail::is_device_view<vecmem::data::vector_view<T>, void>
 /// containers
 template <typename T>
 struct detail::is_device_view<const vecmem::data::vector_view<T>, void>
+    : public std::true_type {};
+
+/// Specialization of 'is view' for constant @c vecmem::data::vector_view
+/// containers
+template <typename T>
+struct detail::is_device_view<const vecmem::data::vector_view<T>&, void>
+    : public std::true_type {};
+
+/// Specialization of 'is view' for constant @c vecmem::data::vector_view
+/// containers
+template <typename T>
+struct detail::is_device_view<vecmem::data::vector_view<T>&, void>
     : public std::true_type {};
 
 /// Specialization of the view getter for @c vecmem::vector

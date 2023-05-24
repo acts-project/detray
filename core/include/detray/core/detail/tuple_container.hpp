@@ -8,6 +8,7 @@
 #pragma once
 
 // Detray include(s)
+#include "detray/core/detail/container_buffers.hpp"
 #include "detray/core/detail/container_views.hpp"
 #include "detray/definitions/containers.hpp"
 #include "detray/definitions/qualifiers.hpp"
@@ -38,6 +39,8 @@ class tuple_container {
     using tuple_type = tuple_t<detray::detail::unwrap_decay_t<Ts>...>;
     using view_type = dmulti_view<get_view_t<Ts>...>;
     using const_view_type = dmulti_view<get_view_t<const Ts>...>;
+    using buffer_type = dmulti_buffer<get_buffer_t<Ts>...>;
+    using const_buffer_type = dmulti_buffer<get_buffer_t<const Ts>...>;
 
     /// Empty container - default alloc
     constexpr tuple_container() = default;

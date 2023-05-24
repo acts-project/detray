@@ -124,9 +124,9 @@ template <template <typename...> class tuple_t, class... value_types,
           std::enable_if_t<std::is_same_v<tuple_t<value_types...>,
                                           std::tuple<value_types...>>,
                            bool> = true>
-DETRAY_HOST_DEVICE inline constexpr std::tuple<unwrap_decay_t<value_types>...>
+DETRAY_HOST inline constexpr std::tuple<unwrap_decay_t<value_types>...>
 make_tuple(value_types&&... args) {
-    return std::make_tuple(args...);
+    return std::make_tuple(std::forward<value_types>(args)...);
 }
 
 // make_tuple for detray::tuple
@@ -137,7 +137,7 @@ template <template <typename...> class tuple_t, class... value_types,
 DETRAY_HOST_DEVICE inline constexpr detray::tuple<
     unwrap_decay_t<value_types>...>
 make_tuple(value_types&&... args) {
-    return detray::tuple<unwrap_decay_t<value_types>...>{args...};
+    return detray::tuple<unwrap_decay_t<value_types>...>{std::forward<value_types>(args)...};
 }
 /// @}
 }  // namespace detray::detail
