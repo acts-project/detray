@@ -28,7 +28,7 @@ namespace detray {
 
 namespace detail {
 
-// Views for types that aggregate containers/other bufferable types
+// Buffer wrappers for types that aggregate containers/other bufferable types
 
 /// Empty buffer type for inheritance template resolution
 struct dbase_buffer {};

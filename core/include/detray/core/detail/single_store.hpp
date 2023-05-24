@@ -8,6 +8,7 @@
 #pragma once
 
 // Project include(s)
+#include "detray/core/detail/container_buffers.hpp"
 #include "detray/core/detail/container_views.hpp"
 #include "detray/core/detail/data_context.hpp"
 #include "detray/definitions/indexing.hpp"
@@ -49,6 +50,8 @@ class single_store {
     /// Vecmem view types
     using view_type = detail::get_view_t<container_t<T>>;
     using const_view_type = detail::get_view_t<const container_t<T>>;
+    using buffer_type = detail::get_buffer_t<container_t<T>>;
+    using const_buffer_type = detail::get_buffer_t<const container_t<T>>;
 
     /// Empty container
     constexpr single_store() = default;
@@ -203,7 +206,7 @@ class single_store {
     /// @note in general can throw an exception
     template <typename... Args>
     DETRAY_HOST constexpr decltype(auto) emplace_back(
-        const context_type & /*ctx*/ = {}, Args &&... args) noexcept(false) {
+        const context_type & /*ctx*/ = {}, Args &&...args) noexcept(false) {
         return m_container.emplace_back(std::forward<Args>(args)...);
     }
 
