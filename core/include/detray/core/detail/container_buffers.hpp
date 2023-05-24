@@ -28,53 +28,11 @@ namespace detray {
 
 namespace detail {
 
-// Buffer wrappers for types that aggregate containers/other bufferable types
-
-/// Empty buffer type for inheritance template resolution
-struct dbase_buffer {};
-
-/// Container buffer helper that aggregates multiple vecmem buffers and performs
-/// compile-time checks.
-template <bool /*check value*/, typename... buffer_ts>
-class dmulti_buffer_helper {};
-
-/// In case the checks fail
-template <typename... buffer_ts>
-class dmulti_buffer_helper<false, buffer_ts...> {};
-
-/// @brief General buffer type that aggregates vecmem based buffer
-/// implementations.
-///
-/// This is for detray types that hold multiple members that all define custom
-/// buffer types of their own. The 'sub'-buffers are begin aggregated in this
-/// helper and are extracted in the types contructor and then handed down to the
-/// member constructors.
-template <typename... buffer_ts>
-struct dmulti_buffer_helper<true, buffer_ts...> : public dbase_buffer {
-    detray::tuple<std::remove_reference_t<std::remove_cv_t<buffer_ts>>...>
-        m_buffer;
-
-    dmulti_buffer_helper() = default;
-
-    /// Tie multiple buffers together
-    DETRAY_HOST
-    dmulti_buffer_helper(buffer_ts&&... buffers) {
-        m_buffer = ::detray::tie(buffers...);
-    }
-};
-
 /// Helper trait to determine if a type can be interpreted as a (composite)
 /// vecemem buffer
 /// @{
 template <typename T, typename = void>
 struct is_device_buffer : public std::false_type {};
-
-template <typename T>
-struct is_device_buffer<
-    T, std::enable_if_t<
-           std::is_base_of_v<detray::detail::dbase_buffer,
-                             std::remove_reference_t<std::remove_cv_t<T>>>,
-           void>> : public std::true_type {};
 
 template <typename T>
 inline constexpr bool is_device_buffer_v = is_device_buffer<T>::value;
@@ -103,12 +61,6 @@ using get_buffer_t = typename get_buffer<T>::type;
 /// @}
 
 }  // namespace detail
-
-/// The detray container buffer exists, if all contained buffer types also
-/// derive from @c dbase_buffer.
-template <typename... buffer_ts>
-using dmulti_buffer = detray::detail::dmulti_buffer_helper<
-    std::conjunction_v<detail::is_device_buffer<buffer_ts>...>, buffer_ts...>;
 
 /// Type trait specializations for vecmem containers
 /// @{
@@ -141,12 +93,9 @@ struct detail::get_buffer<const vecmem::vector<T>, void>
     using type = dvector_buffer<const T>;
 };
 
-/// @brief Detray version of 'get_data' - non-const
-///
-/// It is available to the generic containers before the value types are known,
-/// thus enabling 'duck typing'.
-///
-/// @note This does not pick up the vecmem types.
+/// @}
+
+/// @brief Get the buffer representation of a vecmem vector - non-const
 template <class T>
 dvector_buffer<T> get_buffer(const dvector_view<T>& vec_view,
                              ::vecmem::memory_resource& mr,
@@ -156,12 +105,7 @@ dvector_buffer<T> get_buffer(const dvector_view<T>& vec_view,
     return buff;
 }
 
-/// @brief Detray version of 'get_data' - const
-///
-/// It is available to the generic containers before the value types are known,
-/// thus enabling 'duck typing'.
-///
-/// @note This does not pick up the vecmem types.
+/// @brief Get the buffer representation of a vecmem vector - const
 template <class T>
 dvector_buffer<const T> get_buffer(const dvector_view<const T>& vec_view,
                                    ::vecmem::memory_resource& mr,
@@ -171,12 +115,7 @@ dvector_buffer<const T> get_buffer(const dvector_view<const T>& vec_view,
     return buff;
 }
 
-/// @brief Detray version of 'get_data' - non-const
-///
-/// It is available to the generic containers before the value types are known,
-/// thus enabling 'duck typing'.
-///
-/// @note This does not pick up the vecmem types.
+/// @brief Get the view of a vecmem vector buffer - non-const
 template <class T,
           std::enable_if_t<detail::is_device_view_v<typename T::view_type>,
                            bool> = true>
@@ -184,12 +123,7 @@ dvector_view<T> get_data(dvector_buffer<T>& buff) {
     return vecmem::get_data(buff);
 }
 
-/// @brief Detray version of 'get_data' - const
-///
-/// It is available to the generic containers before the value types are known,
-/// thus enabling 'duck typing'.
-///
-/// @note This does not pick up the vecmem types.
+/// @brief Get the view of a vecmem vector buffer - const
 template <class T,
           std::enable_if_t<detail::is_device_view_v<typename T::view_type>,
                            bool> = true>
@@ -197,10 +131,7 @@ dvector_view<const T> get_data(dvector_buffer<const T>& buff) {
     return vecmem::get_data(buff);
 }
 
-/// @brief Detray version of 'get_data' - non-const
-///
-/// It is available to the generic containers before the value types are known,
-/// thus enabling 'duck typing'.
+/// @brief Get the buffer representation of a composite object - non-const
 ///
 /// @note This does not pick up the vecmem types.
 template <class T,
