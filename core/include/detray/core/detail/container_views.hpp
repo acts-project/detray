@@ -20,7 +20,6 @@
 // System include(s)
 #include <tuple>
 #include <type_traits>
-// #include <thrust/tuple>
 
 namespace detray {
 

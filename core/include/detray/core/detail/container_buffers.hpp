@@ -205,13 +205,6 @@ typename T::buffer_type get_buffer(T& bufferable, vecmem::memory_resource& mr,
 }
 /// @}
 
-/*template <class... Ts, std::size_t... I>
-dmulti_view<std::remove_cv_t<std::remove_reference_t<decltype(detray::get_data(std::declval<Ts>()))>>...>
-get_data(dmulti_buffer<Ts...>& multi_buff, std::index_sequence<I...>) {
-    //using blub = typename
-dmulti_view<std::remove_cv_t<std::remove_reference_t<decltype(detray::get_data(std::declval<Ts>()))>>...>::bla;
-    return {detray::get_data(detail::get<I>(multi_buff.m_buffer))...};
-}*/
 template <class... Ts>
 auto get_data(dmulti_buffer<Ts...>& multi_buff);
 
