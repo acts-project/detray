@@ -11,6 +11,7 @@
 #include <vecmem/utils/cuda/copy.hpp>
 
 #include "detray/core/detail/single_store copy.hpp"
+#include "detray/core/detail/tuple_container copy.hpp"
 
 // GTest include(s).
 #include <gtest/gtest.h>
@@ -65,3 +66,40 @@ GTEST_TEST(detray_detail, single_store) {
     EXPECT_EQ(host_view_2.at(2), 4);
     EXPECT_EQ(host_view_2.at(3), 2);
 }
+
+GTEST_TEST(detray_detail, tuple_types) {
+    vecmem::host_memory_resource host_mr;
+    detray::detail::tuple_buffer<int, vecmem::data::vector_buffer<int>, float, 
+        vecmem::data::vector_buffer<float>> buff(host_mr, 2, 3);
+
+    
+    detray::detail::tuple_buffer<vecmem::data::vector_buffer<unsigned>, int, vecmem::data::vector_buffer<int>, float, 
+        vecmem::data::vector_buffer<float>, unsigned> buff2(host_mr, 1, 2, 3);
+}
+
+// using tuple_ts = 
+//     tuple_types<int, vecmem::vector<int>, float, vecmem::vector<float>>;
+
+// GTEST_TEST(detray_detail, tuple_types) {
+//     vecmem::host_memory_resource host_mr;
+//     vecmem::cuda::device_memory_resource dev_mr;
+//     vecmem::cuda::copy cpy;
+
+//     tuple_ts::host host(3, {2,2}, 2.1, {1.1, 1});
+
+//     EXPECT_EQ(host.size(), 4);
+//     EXPECT_EQ(get<0>(host), 3);
+//     EXPECT_EQ(get<1>(host).size(), 2);
+//     EXPECT_EQ(get<1>(host)[0], 2);
+//     EXPECT_EQ(get<1>(host)[1], 2);
+//     EXPECT_EQ(get<2>(host), 2.1);
+//     EXPECT_EQ(get<3>(host).size(), 1);
+//     EXPECT_EQ(get<1>(host)[0], 1.1);
+
+//     tuple_ts::buffer buffer(dev_mr, 2, 1);
+    
+//     EXPECT_EQ(buffer.size(), 4);
+//     EXPECT_EQ(get<1>(buffer).size(), 2);
+//     EXPECT_EQ(get<3>(buffer).size(), 1);
+
+// }
