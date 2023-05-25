@@ -115,12 +115,14 @@ struct test {
     using buffer_type =
         dmulti_buffer<dvector_buffer<int>, dvector_buffer<float>>;
 
-    test() = default;
-    template <typename view_t>
-    test(view_t v)
+    DETRAY_HOST test(vecmem::memory_resource* mr) : first(mr), second(mr) {}
+
+    template <typename view_t,
+              std::enable_if_t<detail::is_device_view_v<view_t>, bool> = true>
+    DETRAY_HOST_DEVICE test(view_t v)
         : first(detail::get<0>(v.m_view)), second(detail::get<1>(v.m_view)) {}
 
-    view_type get_data() {
+    DETRAY_HOST view_type get_data() {
         return {vecmem::get_data(first), vecmem::get_data(second)};
     }
 
@@ -144,8 +146,9 @@ __global__ void multi_kernel(view_t view) {
         return;
     }
 
-    printf("%d\n", store.get<0>().at(globalIdx));
-    // printf("%f\n", store.get<1>().at(globalIdx));
+    printf("%f\n", store.get<0>().at(globalIdx));
+    printf("%d\n", store.get<1>().first.at(globalIdx));
+    printf("%f\n", store.get<1>().second.at(globalIdx));
 }
 
 GTEST_TEST(detray_detail, multi_store) {
@@ -155,21 +158,13 @@ GTEST_TEST(detray_detail, multi_store) {
     vecmem::host_memory_resource host_mr;
     multi_store_t store(host_mr);
     store.get<0>().push_back(3);
-    // store.get<1>().push_back(4.f);
+    store.get<1>().first.push_back(4);
+    store.get<1>().second.push_back(5.f);
 
     vecmem::cuda::device_memory_resource dev_mr;
     vecmem::cuda::copy cpy;
 
-    test<> t{};
-    t.first.push_back(42);
-    t.second.push_back(43.f);
-    test<>::view_type test_view = t.get_data();
-    test<>::buffer_type test_buff = detray::get_buffer(t, dev_mr, cpy);
-    test<vecmem::device_vector> t_dev(test_view);
-
     auto store_buffer = detray::get_buffer(store, dev_mr, cpy);
-
-    // using bla = typename decltype(store_buffer)::blub;
 
     multi_kernel<<<8, 1>>>(detray::get_data(store_buffer));
 
@@ -177,8 +172,9 @@ GTEST_TEST(detray_detail, multi_store) {
 
     vecmem::cuda::managed_memory_resource mng_mr;
     multi_store_t managed_store(mng_mr);
-    managed_store.get<0>().push_back(5);
-    // managed_store.get<1>().push_back(6.f);
+    managed_store.get<0>().push_back(6);
+    managed_store.get<1>().first.push_back(7);
+    managed_store.get<1>().second.push_back(8.f);
 
     multi_kernel<<<8, 1>>>(detray::get_data(managed_store));
 }
