@@ -8,6 +8,8 @@
 #pragma once
 
 // Project include(s)
+#include "detray/core/detail/container_buffers.hpp"
+#include "detray/core/detail/container_views.hpp"
 #include "detray/core/detail/detector_kernel.hpp"
 #include "detray/definitions/containers.hpp"
 #include "detray/definitions/qualifiers.hpp"
@@ -134,6 +136,20 @@ class detector {
         typename free_track_parameters<transform3>::vector_type;
     using bound_vector_type =
         typename bound_track_parameters<transform3>::vector_type;
+
+    /// Vecmem view types
+    using view_type = dmulti_view<dvector_view<volume_type>,
+                                  typename transform_container::view_type,
+                                  typename mask_container::view_type,
+                                  typename material_container::view_type,
+                                  typename surface_container::view_type>;
+
+    /// Vecmem buffer types
+    using buffer_type = dmulti_buffer<dvector_buffer<volume_type>,
+                                      typename transform_container::buffer_type,
+                                      typename mask_container::buffer_type,
+                                      typename material_container::buffer_type,
+                                      typename surface_container::buffer_type>;
 
     detector() = delete;
 

@@ -183,6 +183,7 @@ template <class view_t,
           std::enable_if_t<detail::is_device_view_v<view_t>, bool> = true>
 auto get_buffer(const view_t& data_view, vecmem::memory_resource& mr,
                 vecmem::copy& cpy) {
+    // using blub = typename view_t::bla;
     return detray::get_buffer(
         data_view, mr, cpy,
         std::make_index_sequence<

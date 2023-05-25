@@ -11,6 +11,8 @@
 #include <vecmem/memory/host_memory_resource.hpp>
 #include <vecmem/utils/cuda/copy.hpp>
 
+#include "detray/core/detail/container_buffers.hpp"
+#include "detray/core/detail/container_views.hpp"
 #include "detray/core/detail/multi_store.hpp"
 #include "detray/core/detail/single_store.hpp"
 #include "detray/core/detail/tuple_container.hpp"
@@ -106,11 +108,31 @@ GTEST_TEST(detray_detail, tuple_container) {
     tuple_kernel<<<8, 1>>>(detray::get_data(managed_store));
 }
 
+template <template <typename...> class vector_t = dvector>
+struct test {
+
+    using view_type = dmulti_view<dvector_view<int>, dvector_view<float>>;
+    using buffer_type =
+        dmulti_buffer<dvector_buffer<int>, dvector_buffer<float>>;
+
+    test() = default;
+    template <typename view_t>
+    test(view_t v)
+        : first(detail::get<0>(v.m_view)), second(detail::get<1>(v.m_view)) {}
+
+    view_type get_data() {
+        return {vecmem::get_data(first), vecmem::get_data(second)};
+    }
+
+    vector_t<int> first;
+    vector_t<float> second;
+};
+
 using multi_store_t = multi_store<std::size_t, empty_context, dtuple,
-                                  vecmem::vector<int>, vecmem::vector<float>>;
+                                  vecmem::vector<float>, test<vecmem::vector>>;
 using multi_store_dev_t =
-    multi_store<std::size_t, empty_context, dtuple, vecmem::device_vector<int>,
-                vecmem::device_vector<float>>;
+    multi_store<std::size_t, empty_context, dtuple,
+                vecmem::device_vector<float>, test<vecmem::device_vector>>;
 
 template <typename view_t>
 __global__ void multi_kernel(view_t view) {
@@ -123,7 +145,7 @@ __global__ void multi_kernel(view_t view) {
     }
 
     printf("%d\n", store.get<0>().at(globalIdx));
-    printf("%f\n", store.get<1>().at(globalIdx));
+    // printf("%f\n", store.get<1>().at(globalIdx));
 }
 
 GTEST_TEST(detray_detail, multi_store) {
@@ -133,12 +155,21 @@ GTEST_TEST(detray_detail, multi_store) {
     vecmem::host_memory_resource host_mr;
     multi_store_t store(host_mr);
     store.get<0>().push_back(3);
-    store.get<1>().push_back(4.f);
+    // store.get<1>().push_back(4.f);
 
     vecmem::cuda::device_memory_resource dev_mr;
     vecmem::cuda::copy cpy;
 
+    test<> t{};
+    t.first.push_back(42);
+    t.second.push_back(43.f);
+    test<>::view_type test_view = t.get_data();
+    test<>::buffer_type test_buff = detray::get_buffer(t, dev_mr, cpy);
+    test<vecmem::device_vector> t_dev(test_view);
+
     auto store_buffer = detray::get_buffer(store, dev_mr, cpy);
+
+    // using bla = typename decltype(store_buffer)::blub;
 
     multi_kernel<<<8, 1>>>(detray::get_data(store_buffer));
 
@@ -147,7 +178,7 @@ GTEST_TEST(detray_detail, multi_store) {
     vecmem::cuda::managed_memory_resource mng_mr;
     multi_store_t managed_store(mng_mr);
     managed_store.get<0>().push_back(5);
-    managed_store.get<1>().push_back(6.f);
+    // managed_store.get<1>().push_back(6.f);
 
     multi_kernel<<<8, 1>>>(detray::get_data(managed_store));
 }
