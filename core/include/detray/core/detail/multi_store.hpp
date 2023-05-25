@@ -8,6 +8,7 @@
 #pragma once
 
 // Detray include(s)
+#include "detray/core/detail/container_buffers.hpp"
 #include "detray/core/detail/container_views.hpp"
 #include "detray/core/detail/data_context.hpp"
 #include "detray/core/detail/tuple_container.hpp"
