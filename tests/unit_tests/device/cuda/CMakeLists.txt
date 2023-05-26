@@ -15,7 +15,6 @@ include(detray-compiler-options-cuda)
 
 # "Core" tests.
 detray_add_test(core_cuda
-   "single_store.cu"
    "container_cuda.cpp" "container_cuda_kernel.hpp" "container_cuda_kernel.cu"
    "grids_grid2_cuda.cpp" "grids_grid2_cuda_kernel.hpp"
    "grids_grid2_cuda_kernel.cu" "utils_ranges_cuda.cpp"

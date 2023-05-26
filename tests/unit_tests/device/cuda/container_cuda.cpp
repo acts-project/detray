@@ -18,7 +18,8 @@
 #include <gtest/gtest.h>
 
 // System include(s)
-#include <iostream>
+#include <algorithm>
+#include <iterator>
 #include <numeric>
 
 using namespace detray;
@@ -163,6 +164,7 @@ TEST(container_cuda, tuple_container) {
     EXPECT_NEAR(cpu_sum, cuda_sum[0], tol);
 }
 
+/// Test the regular multi store functionality
 TEST(container_cuda, regular_multi_store) {
 
     // Vecmem memory resources
@@ -184,11 +186,11 @@ TEST(container_cuda, regular_multi_store) {
     // Add elements to the store
     empty_context ctx{};
     mng_store.emplace_back<0>(ctx, 1u);
-    mng_store.emplace_back<0>(ctx, 2u);
+    mng_store.push_back<0>(2u, ctx);
     mng_store.emplace_back<1>(ctx, 3.1f);
-    mng_store.emplace_back<1>(ctx, 4.5f);
+    mng_store.push_back<1>(4.5f, ctx);
     mng_store.emplace_back<2>(ctx, 5.5);
-    mng_store.emplace_back<2>(ctx, 6.0);
+    mng_store.push_back<2>(6.0, ctx);
 
     vecmem::vector<std::size_t> int_vec{3u, 4u, 5u};
     mng_store.insert(int_vec);
@@ -236,6 +238,74 @@ TEST(container_cuda, regular_multi_store) {
     reg_multi_store_t::view_type buffer_view = detray::get_data(store_buffer);
 
     test_reg_multi_store(buffer_view, sum_data);
+
+    EXPECT_NEAR(cpu_sum, cuda_sum[0], tol);
+}
+
+/// Tets the multi store with a hierarchical memory type ( @c test<> )
+TEST(container_cuda, multi_store) {
+
+    // Vecmem memory resources
+    vecmem::host_memory_resource host_mr;
+    vecmem::cuda::managed_memory_resource mng_mr;
+    vecmem::cuda::device_memory_resource dev_mr;
+    vecmem::cuda::copy cpy;
+
+    // Create tuple vector store
+    multi_store_t mng_store(mng_mr);
+    multi_store_t store(host_mr);
+
+    // Base store function check
+    EXPECT_EQ(mng_store.n_collections(), 2u);
+    EXPECT_EQ(mng_store.empty<0>(), true);
+
+    // Add elements to the store
+    vecmem::vector<float> float_vec{12.1f, 5.6f};
+    mng_store.insert(float_vec);
+
+    mng_store.get<1>().first = vecmem::vector<int>{2, 3};
+    mng_store.get<1>().second = vecmem::vector<double>{18., 42.6};
+
+    std::copy(mng_store.get<0>().begin(), mng_store.get<0>().end(),
+              std::back_inserter(store.get<0>()));
+    store.get<1>() = mng_store.get<1>();
+
+    EXPECT_EQ(mng_store.size<0>(), 2u);
+    EXPECT_EQ(mng_store.get<1>().first.size(), 2u);
+    EXPECT_EQ(mng_store.get<1>().second.size(), 2u);
+    EXPECT_EQ(store.size<0>(), 2u);
+    EXPECT_EQ(store.get<1>().first.size(), 2u);
+    EXPECT_EQ(store.get<1>().second.size(), 2u);
+
+    // CPU sum check
+    double cpu_sum{std::accumulate(mng_store.get<0>().begin(),
+                                   mng_store.get<0>().end(), 0.)};
+    cpu_sum = std::accumulate(mng_store.get<1>().first.begin(),
+                              mng_store.get<1>().first.end(), cpu_sum);
+    cpu_sum = std::accumulate(mng_store.get<1>().second.begin(),
+                              mng_store.get<1>().second.end(), cpu_sum);
+    EXPECT_NEAR(cpu_sum, 83.3, tol);
+
+    // CUDA sum check
+    typename multi_store_t::view_type store_view = get_data(mng_store);
+
+    vecmem::vector<double> cuda_sum(&mng_mr);
+    cuda_sum.push_back(0.);
+    auto sum_data = vecmem::get_data(cuda_sum);
+
+    test_multi_store(store_view, sum_data);
+
+    EXPECT_NEAR(cpu_sum, cuda_sum[0], tol);
+
+    // Reset for next test
+    cuda_sum[0] = 0.;
+
+    // Copy the host store to device, get the view to it and run the test again
+    multi_store_t::buffer_type store_buffer =
+        detray::get_buffer(store, dev_mr, cpy);
+    multi_store_t::view_type buffer_view = detray::get_data(store_buffer);
+
+    test_multi_store(buffer_view, sum_data);
 
     EXPECT_NEAR(cpu_sum, cuda_sum[0], tol);
 }

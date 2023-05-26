@@ -50,9 +50,9 @@ using reg_multi_store_dev_t =
 template <template <typename...> class vector_t = dvector>
 struct test {
 
-    using view_type = dmulti_view<dvector_view<int>, dvector_view<float>>;
+    using view_type = dmulti_view<dvector_view<int>, dvector_view<double>>;
     using buffer_type =
-        dmulti_buffer<dvector_buffer<int>, dvector_buffer<float>>;
+        dmulti_buffer<dvector_buffer<int>, dvector_buffer<double>>;
 
     DETRAY_HOST test(vecmem::memory_resource* mr) : first(mr), second(mr) {}
 
