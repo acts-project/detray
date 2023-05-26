@@ -98,7 +98,7 @@ struct single_axis {
     /// @returns the width of a bin
     template <typename... Args>
     DETRAY_HOST_DEVICE inline constexpr scalar_type bin_width(
-        Args &&... args) const {
+        Args &&...args) const {
         return m_binning.bin_width(std::forward<Args &&>(args)...);
     }
 
@@ -333,16 +333,16 @@ class multi_axis {
     /// @returns a vecmem view on the axes data. Only allowed if it owning data.
     template <bool owner = is_owning, std::enable_if_t<owner, bool> = true>
     DETRAY_HOST auto get_data() -> view_type {
-        return {detray::get_data(m_data.m_axes_data),
-                detray::get_data(m_data.m_edges)};
+        return view_type{detray::get_data(m_data.m_axes_data),
+                         detray::get_data(m_data.m_edges)};
     }
 
     /// @returns a vecmem const view on the axes data. Only allowed if it
     /// owning data.
     template <bool owner = is_owning, std::enable_if_t<owner, bool> = true>
     DETRAY_HOST auto get_data() const -> const_view_type {
-        return {detray::get_data(m_data.m_axes_data),
-                detray::get_data(m_data.m_edges)};
+        return const_view_type{detray::get_data(m_data.m_axes_data),
+                               detray::get_data(m_data.m_edges)};
     }
 
     private:

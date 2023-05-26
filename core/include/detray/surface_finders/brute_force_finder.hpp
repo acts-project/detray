@@ -147,13 +147,15 @@ class brute_force_collection {
     /// @return the view on the brute force finders - non-const
     DETRAY_HOST
     constexpr auto get_data() noexcept -> view_type {
-        return {detray::get_data(m_offsets), detray::get_data(m_surfaces)};
+        return view_type{detray::get_data(m_offsets),
+                         detray::get_data(m_surfaces)};
     }
 
     /// @return the view on the brute force finders - const
     DETRAY_HOST
     constexpr auto get_data() const noexcept -> const_view_type {
-        return {detray::get_data(m_offsets), detray::get_data(m_surfaces)};
+        return const_view_type{detray::get_data(m_offsets),
+                               detray::get_data(m_surfaces)};
     }
 
     private:

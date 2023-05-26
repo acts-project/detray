@@ -56,17 +56,14 @@ class dmulti_buffer_helper<false, buffer_ts...> {};
 /// class -> view -> buffer -> view (passed to kernel) -> device-side class
 template <typename... buffer_ts>
 struct dmulti_buffer_helper<true, buffer_ts...> : public dbase_buffer {
-    dtuple<std::remove_reference_t<std::remove_cv_t<buffer_ts>>...> m_buffer;
+    dtuple<buffer_ts...> m_buffer;
 
     dmulti_buffer_helper() = default;
 
     /// Tie multiple buffers together
     DETRAY_HOST
-    explicit dmulti_buffer_helper(buffer_ts&&... buffers) {
-        m_buffer = ::detray::detail::make_tuple<
-            dtuple, std::remove_reference_t<std::remove_cv_t<buffer_ts>>...>(
-            std::move(buffers)...);
-    }
+    explicit dmulti_buffer_helper(buffer_ts&&... buffers)
+        : m_buffer(std::forward<buffer_ts>(buffers)...) {}
 };
 
 /// Helper trait to determine if a type can be interpreted as a (composite)
@@ -230,8 +227,6 @@ auto get_data(dmulti_buffer<Ts...>& multi_buff);  // Forward declaration
 /// @note This does not pick up the vecmem types.
 template <class... Ts, std::size_t... I>
 auto get_data(dmulti_buffer<Ts...>& multi_buff, std::index_sequence<I...>) {
-    // using bla = typename
-    // std::tuple<decltype(detray::get_data(std::declval<Ts&>()))...>::blub;
     return dmulti_view<decltype(detray::get_data(std::declval<Ts&>()))...>(
         detray::get_data(detail::get<I>(multi_buff.m_buffer))...);
 }

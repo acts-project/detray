@@ -123,7 +123,7 @@ struct test {
         : first(detail::get<0>(v.m_view)), second(detail::get<1>(v.m_view)) {}
 
     DETRAY_HOST view_type get_data() {
-        return {vecmem::get_data(first), vecmem::get_data(second)};
+        return view_type{vecmem::get_data(first), vecmem::get_data(second)};
     }
 
     vector_t<int> first;

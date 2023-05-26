@@ -159,15 +159,17 @@ class grid_collection<
 
     /// @returns a vecmem view on the grid collection data - non-const
     DETRAY_HOST auto get_data() -> view_type {
-        return {detray::get_data(m_offsets), detray::get_data(m_bins),
-                detray::get_data(m_axes_data), detray::get_data(m_bin_edges)};
+        return view_type{detray::get_data(m_offsets), detray::get_data(m_bins),
+                         detray::get_data(m_axes_data),
+                         detray::get_data(m_bin_edges)};
     }
 
     /// @returns a vecmem view on the grid collection data - const
     DETRAY_HOST
     auto get_data() const -> const_view_type {
-        return {detray::get_data(m_offsets), detray::get_data(m_bins),
-                detray::get_data(m_axes_data), detray::get_data(m_bin_edges)};
+        return const_view_type{
+            detray::get_data(m_offsets), detray::get_data(m_bins),
+            detray::get_data(m_axes_data), detray::get_data(m_bin_edges)};
     }
 
     /// Add a new grid @param gr to the collection.

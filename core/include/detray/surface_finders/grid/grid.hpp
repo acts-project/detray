@@ -307,8 +307,8 @@ class grid {
     /// quialifiers) - non-const
     template <bool owner = is_owning, std::enable_if_t<owner, bool> = true>
     DETRAY_HOST auto get_data() -> view_type {
-        return {detray::get_data(*(m_data.bin_data())),
-                detray::get_data(m_axes)};
+        return view_type{detray::get_data(*(m_data.bin_data())),
+                         detray::get_data(m_axes)};
     }
 
     /// @returns view of a grid, including the grids mulit_axis. Also valid if
@@ -316,8 +316,8 @@ class grid {
     /// quialifiers) - const
     template <bool owner = is_owning, std::enable_if_t<owner, bool> = true>
     DETRAY_HOST auto get_data() const -> const_view_type {
-        return {detray::get_data(*(data().bin_data())),
-                detray::get_data(axes())};
+        return const_view_type{detray::get_data(*(data().bin_data())),
+                               detray::get_data(axes())};
     }
 
     private:

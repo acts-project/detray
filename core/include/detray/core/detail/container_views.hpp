@@ -18,7 +18,6 @@
 #include <vecmem/containers/jagged_device_vector.hpp>
 
 // System include(s)
-#include <tuple>
 #include <type_traits>
 
 namespace detray {
@@ -58,7 +57,7 @@ struct dmulti_view_helper<true, view_ts...> : public dbase_view {
 
     /// Tie multiple views together
     DETRAY_HOST
-    dmulti_view_helper(view_ts&&... views)
+    explicit dmulti_view_helper(view_ts&&... views)
         : m_view(std::forward<view_ts>(views)...) {}
 };
 
@@ -162,18 +161,6 @@ struct detail::is_device_view<vecmem::data::vector_view<T>, void>
 /// containers
 template <typename T>
 struct detail::is_device_view<const vecmem::data::vector_view<T>, void>
-    : public std::true_type {};
-
-/// Specialization of 'is view' for constant @c vecmem::data::vector_view
-/// containers
-template <typename T>
-struct detail::is_device_view<const vecmem::data::vector_view<T>&, void>
-    : public std::true_type {};
-
-/// Specialization of 'is view' for constant @c vecmem::data::vector_view
-/// containers
-template <typename T>
-struct detail::is_device_view<vecmem::data::vector_view<T>&, void>
     : public std::true_type {};
 
 /// Specialization of the view getter for @c vecmem::vector
