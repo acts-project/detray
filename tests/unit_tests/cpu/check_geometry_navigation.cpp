@@ -21,7 +21,7 @@
 #include "detray/simulation/event_generator/track_generators.hpp"
 #include "detray/test/types.hpp"
 #include "detray/tracks/tracks.hpp"
-#include "tests/common/tools/inspectors.hpp"
+#include "detray/utils/inspectors.hpp"
 #include "tests/common/tools/particle_gun.hpp"
 
 using namespace detray;

@@ -16,7 +16,7 @@
 #include "detray/propagator/rk_stepper.hpp"
 #include "detray/test/types.hpp"
 #include "detray/tracks/tracks.hpp"
-#include "tests/common/tools/inspectors.hpp"
+#include "detray/utils/inspectors.hpp"
 
 // Vecmem include(s)
 #include <vecmem/memory/host_memory_resource.hpp>

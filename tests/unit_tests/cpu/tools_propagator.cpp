@@ -25,7 +25,7 @@
 #include "detray/simulation/event_generator/track_generators.hpp"
 #include "detray/test/types.hpp"
 #include "detray/tracks/tracks.hpp"
-#include "tests/common/tools/inspectors.hpp"
+#include "detray/utils/inspectors.hpp"
 
 using namespace detray;
 using transform3 = test::transform3;
