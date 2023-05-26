@@ -206,7 +206,7 @@ class single_store {
     /// @note in general can throw an exception
     template <typename... Args>
     DETRAY_HOST constexpr decltype(auto) emplace_back(
-        const context_type & /*ctx*/ = {}, Args &&... args) noexcept(false) {
+        const context_type & /*ctx*/ = {}, Args &&...args) noexcept(false) {
         return m_container.emplace_back(std::forward<Args>(args)...);
     }
 
@@ -243,6 +243,16 @@ class single_store {
     }
 
     /// Append another store to the current one
+    ///
+    /// @param other The other container
+    ///
+    /// @note in general can throw an exception
+    DETRAY_HOST void append(single_store &other,
+                            const context_type &ctx = {}) noexcept(false) {
+        insert(other.m_container, ctx);
+    }
+
+    /// Append another store to the current one - move
     ///
     /// @param other The other container
     ///

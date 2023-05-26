@@ -11,10 +11,22 @@
 
 namespace detray {
 
-__global__ void get_sum_kernel(typename host_store_type::view_type store_view,
-                               vecmem::data::vector_view<double> sum_data) {
+__global__ void test_single_store_kernel(
+    single_store_t::view_type store_view,
+    vecmem::data::vector_view<double> sum_data) {
 
-    device_store_type store(store_view);
+    single_store_dev_t store(store_view);
+    vecmem::device_vector<double> sum(sum_data);
+
+    for (const double elem : store) {
+        sum[0] += elem;
+    }
+}
+
+/*__global__ void get_sum_kernel(typename reg_multi_store_t::view_type
+store_view, vecmem::data::vector_view<double> sum_data) {
+
+    reg_multi_store_dev_t store(store_view);
     vecmem::device_vector<double> sum(sum_data);
 
     const auto& g0 = store.get<0>();
@@ -30,9 +42,20 @@ __global__ void get_sum_kernel(typename host_store_type::view_type store_view,
     for (auto e : g2) {
         sum[0] += e;
     }
+}*/
+
+void test_single_store(single_store_t::view_type store_view,
+                       vecmem::data::vector_view<double> sum_data) {
+
+    // run the test kernel
+    test_single_store_kernel<<<1, 1>>>(store_view, sum_data);
+
+    // cuda error check
+    DETRAY_CUDA_ERROR_CHECK(cudaGetLastError());
+    DETRAY_CUDA_ERROR_CHECK(cudaDeviceSynchronize());
 }
 
-void get_sum(typename host_store_type::view_type store_view,
+/*void test_tuple_container(typename tuple_t::view_type store_view,
              vecmem::data::vector_view<double> sum_data) {
 
     // run the test kernel
@@ -42,5 +65,27 @@ void get_sum(typename host_store_type::view_type store_view,
     DETRAY_CUDA_ERROR_CHECK(cudaGetLastError());
     DETRAY_CUDA_ERROR_CHECK(cudaDeviceSynchronize());
 }
+
+void test_multi_store(typename multi_store_t::view_type store_view,
+             vecmem::data::vector_view<double> sum_data) {
+
+    // run the test kernel
+    get_sum_kernel<<<1, 1>>>(store_view, sum_data);
+
+    // cuda error check
+    DETRAY_CUDA_ERROR_CHECK(cudaGetLastError());
+    DETRAY_CUDA_ERROR_CHECK(cudaDeviceSynchronize());
+}
+
+void test_reg_multi_store(typename reg_multi_store_t::view_type store_view,
+             vecmem::data::vector_view<double> sum_data) {
+
+    // run the test kernel
+    get_sum_kernel<<<1, 1>>>(store_view, sum_data);
+
+    // cuda error check
+    DETRAY_CUDA_ERROR_CHECK(cudaGetLastError());
+    DETRAY_CUDA_ERROR_CHECK(cudaDeviceSynchronize());
+}*/
 
 }  // namespace detray
