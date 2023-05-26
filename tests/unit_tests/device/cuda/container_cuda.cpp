@@ -135,7 +135,7 @@ TEST(container_cuda, tuple_container) {
     EXPECT_EQ(tcont.get<1>().size(), 5u);
 
     // CPU sum check
-    double cpu_sum{mng_tcont.get<0>().at(0)};
+    double cpu_sum{static_cast<double>(mng_tcont.get<0>().at(0))};
     cpu_sum = std::accumulate(data_coll.begin(), data_coll.end(), cpu_sum);
     EXPECT_NEAR(cpu_sum, 45.4, tol);
 
@@ -163,54 +163,79 @@ TEST(container_cuda, tuple_container) {
     EXPECT_NEAR(cpu_sum, cuda_sum[0], tol);
 }
 
-/*TEST(container_cuda, regular_multi_store) {
+TEST(container_cuda, regular_multi_store) {
 
-    // Vecmem memory resource
-    vecmem::cuda::managed_memory_resource resource;
+    // Vecmem memory resources
+    vecmem::host_memory_resource host_mr;
+    vecmem::cuda::managed_memory_resource mng_mr;
+    vecmem::cuda::device_memory_resource dev_mr;
+    vecmem::cuda::copy cpy;
 
     // Create tuple vector store
-    reg_multi_store_t store(resource);
+    reg_multi_store_t mng_store(mng_mr);
+    reg_multi_store_t store(host_mr);
 
     // Base store function check
-    EXPECT_EQ(store.n_collections(), 3u);
-    EXPECT_EQ(store.empty<0>(), true);
-    EXPECT_EQ(store.empty<1>(), true);
-    EXPECT_EQ(store.empty<2>(), true);
+    EXPECT_EQ(mng_store.n_collections(), 3u);
+    EXPECT_EQ(mng_store.empty<0>(), true);
+    EXPECT_EQ(mng_store.empty<1>(), true);
+    EXPECT_EQ(mng_store.empty<2>(), true);
 
     // Add elements to the store
-    store.emplace_back<0>(empty_context{}, 1u);
-    store.emplace_back<0>(empty_context{}, 2u);
-    store.emplace_back<1>(empty_context{}, 3.1f);
-    store.emplace_back<1>(empty_context{}, 4.5f);
-    store.emplace_back<2>(empty_context{}, 5.5);
-    store.emplace_back<2>(empty_context{}, 6.0);
+    empty_context ctx{};
+    mng_store.emplace_back<0>(ctx, 1u);
+    mng_store.emplace_back<0>(ctx, 2u);
+    mng_store.emplace_back<1>(ctx, 3.1f);
+    mng_store.emplace_back<1>(ctx, 4.5f);
+    mng_store.emplace_back<2>(ctx, 5.5);
+    mng_store.emplace_back<2>(ctx, 6.0);
 
     vecmem::vector<std::size_t> int_vec{3u, 4u, 5u};
-    store.insert(int_vec);
+    mng_store.insert(int_vec);
 
     vecmem::vector<float> float_vec{12.1f, 5.6f};
-    store.insert(float_vec);
+    mng_store.insert(float_vec);
 
-    store.insert(vecmem::vector<double>{10.5, 7.6});
+    mng_store.insert(vecmem::vector<double>{10.5, 7.6});
+
+    store.append(mng_store, ctx);
+
+    EXPECT_EQ(mng_store.size<0>(), 5u);
+    EXPECT_EQ(mng_store.size<1>(), 4u);
+    EXPECT_EQ(mng_store.size<2>(), 4u);
+    EXPECT_EQ(store.size<0>(), 5u);
+    EXPECT_EQ(store.size<1>(), 4u);
+    EXPECT_EQ(store.size<2>(), 4u);
 
     // CPU sum check
-    double cpu_sum = 0.;
-    cpu_sum =
-        std::accumulate(store.get<0>().begin(), store.get<0>().end(), cpu_sum);
-    cpu_sum =
-        std::accumulate(store.get<1>().begin(), store.get<1>().end(), cpu_sum);
-    cpu_sum =
-        std::accumulate(store.get<2>().begin(), store.get<2>().end(), cpu_sum);
-    EXPECT_NEAR(cpu_sum, 69.9, 1e-6);
+    double cpu_sum{std::accumulate(mng_store.get<0>().begin(),
+                                   mng_store.get<0>().end(), 0.)};
+    cpu_sum = std::accumulate(mng_store.get<1>().begin(),
+                              mng_store.get<1>().end(), cpu_sum);
+    cpu_sum = std::accumulate(mng_store.get<2>().begin(),
+                              mng_store.get<2>().end(), cpu_sum);
+    EXPECT_NEAR(cpu_sum, 69.9, tol);
 
     // CUDA sum check
-    typename reg_multi_store_t::view_type store_data = get_data(store);
+    typename reg_multi_store_t::view_type store_view = get_data(mng_store);
 
-    vecmem::vector<double> cuda_sum(&resource);
-    cuda_sum.push_back(0);
+    vecmem::vector<double> cuda_sum(&mng_mr);
+    cuda_sum.push_back(0.);
     auto sum_data = vecmem::get_data(cuda_sum);
 
-    test_reg_multi_store(store_data, sum_data);
+    test_reg_multi_store(store_view, sum_data);
 
-    EXPECT_NEAR(cpu_sum, cuda_sum[0], 1e-6);
-}*/
+    EXPECT_NEAR(cpu_sum, cuda_sum[0], tol);
+
+    // Reset for next test
+    cuda_sum[0] = 0.;
+
+    // Copy the host store to device, get the view to it and run the test again
+    reg_multi_store_t::buffer_type store_buffer =
+        detray::get_buffer(store, dev_mr, cpy);
+    reg_multi_store_t::view_type buffer_view = detray::get_data(store_buffer);
+
+    test_reg_multi_store(buffer_view, sum_data);
+
+    EXPECT_NEAR(cpu_sum, cuda_sum[0], tol);
+}
