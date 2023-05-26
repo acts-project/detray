@@ -179,8 +179,8 @@ template <class view_t, std::size_t... I,
           std::enable_if_t<detail::is_device_view_v<view_t>, bool> = true>
 auto get_buffer(const view_t& data_view, vecmem::memory_resource& mr,
                 vecmem::copy& cpy, std::index_sequence<I...> /*seq*/) {
-    return dmulti_buffer<decltype(detray::get_buffer(
-        detail::get<I>(data_view.m_view), mr, cpy))...>(
+    return dmulti_buffer<decltype(
+        detray::get_buffer(detail::get<I>(data_view.m_view), mr, cpy))...>(
         std::move(
             detray::get_buffer(detail::get<I>(data_view.m_view), mr, cpy))...);
 }

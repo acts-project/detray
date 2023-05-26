@@ -137,7 +137,8 @@ template <template <typename...> class tuple_t, class... value_types,
 DETRAY_HOST_DEVICE inline constexpr detray::tuple<
     unwrap_decay_t<value_types>...>
 make_tuple(value_types&&... args) {
-    return detray::tuple<unwrap_decay_t<value_types>...>{std::forward<value_types>(args)...};
+    return detray::tuple<unwrap_decay_t<value_types>...>{
+        std::forward<value_types>(args)...};
 }
 /// @}
 }  // namespace detray::detail
