@@ -68,8 +68,7 @@ using tuple_t =
 using tuple_dev_t = detail::tuple_container<dtuple, vecmem::device_vector<int>,
                                             vecmem::device_vector<float>>;
 
-template <typename view_t>
-__global__ void tuple_kernel(view_t view) {
+__global__ void tuple_kernel(typename tuple_t::view_type view) {
     std::size_t globalIdx = threadIdx.x + blockIdx.x * blockDim.x;
 
     tuple_dev_t store(view);
@@ -95,8 +94,9 @@ GTEST_TEST(detray_detail, tuple_container) {
     vecmem::cuda::copy cpy;
 
     auto store_buffer = detray::get_buffer(store, dev_mr, cpy);
+    auto buffer_view = detray::get_data(store_buffer);
 
-    tuple_kernel<<<8, 1>>>(detray::get_data(store_buffer));
+    tuple_kernel<<<8, 1>>>(buffer_view);
 
     // Run the same kernel with managed memory
 
@@ -138,6 +138,7 @@ using multi_store_dev_t =
 
 template <typename view_t>
 __global__ void multi_kernel(view_t view) {
+
     std::size_t globalIdx = threadIdx.x + blockIdx.x * blockDim.x;
 
     multi_store_dev_t store(view);

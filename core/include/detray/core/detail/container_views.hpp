@@ -28,9 +28,6 @@ using device_container_types =
     container_types<vecmem::device_vector, detray::tuple, darray,
                     vecmem::jagged_device_vector>;
 
-/// How to obtain views for vecmem types
-using vecmem::get_data;
-
 namespace detail {
 
 // Views for types that aggregate containers/other viewable types
@@ -50,18 +47,19 @@ class dmulti_view_helper<false, view_ts...> {};
 /// @brief General view type that aggregates vecmem based view implementations.
 ///
 /// This is for detray types that hold multiple members that all define custom
-/// view types of their own. The 'sub'-views are begin aggregated in this helper
+/// view types of their own. The 'sub'-views are being aggregated in this helper
 /// and are extracted in the types contructor and then handed down to the
 /// member constructors.
 template <typename... view_ts>
 struct dmulti_view_helper<true, view_ts...> : public dbase_view {
-    std::tuple<std::remove_reference_t<std::remove_cv_t<view_ts>>...> m_view;
+    dtuple<view_ts...> m_view;
 
     dmulti_view_helper() = default;
 
     /// Tie multiple views together
     DETRAY_HOST
-    dmulti_view_helper(view_ts&&... views) { m_view = std::tie(views...); }
+    dmulti_view_helper(view_ts&&... views)
+        : m_view(std::forward<view_ts>(views)...) {}
 };
 
 /// Helper trait to determine if a type can be interpreted as a (composite)
@@ -142,6 +140,18 @@ typename T::const_view_type get_data(const T& viewable) {
 /// Specialized view for @c vecmem::vector containers
 template <typename T>
 using dvector_view = vecmem::data::vector_view<T>;
+
+/// Get the vecmem view type of a vector
+template <typename T, typename A>
+dvector_view<T> get_data(std::vector<T, A>& vec) {
+    return vecmem::get_data(vec);
+}
+
+/// Get the vecmem view type of a vector - const
+template <typename T, typename A>
+dvector_view<const T> get_data(const std::vector<T, A>& vec) {
+    return vecmem::get_data(vec);
+}
 
 /// Specialization of 'is view' for @c vecmem::data::vector_view containers
 template <typename T>

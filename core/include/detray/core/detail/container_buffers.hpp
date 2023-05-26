@@ -42,27 +42,30 @@ class dmulti_buffer_helper {};
 template <typename... buffer_ts>
 class dmulti_buffer_helper<false, buffer_ts...> {};
 
-/// @brief General buffer type that aggregates vecmem based buffer
-/// implementations.
+/// @brief General buffer type that hierarchically aggregates vecmem based
+/// buffer implementations.
 ///
-/// This is for detray types that hold multiple members that all define custom
-/// buffer types of their own. The 'sub'-buffers are begin aggregated in this
-/// helper and are extracted in the types constructor and then handed down to
-/// the member constructors.
+/// This is for detray classes that hold multiple members that all define custom
+/// buffer types of their own. The 'sub'-buffers are being aggregated in this
+/// helper and are extracted again in the @c get_data call when building the
+/// buffer views. Since they are packaged into the @c dmulti_buffer_helper
+/// according to the class member hierarchy, transcribing them into a view type
+/// results back in a view type that is compatible with what needs to be passed
+/// to the constructors of the original class.
+///
+/// class -> view -> buffer -> view (passed to kernel) -> device-side class
 template <typename... buffer_ts>
 struct dmulti_buffer_helper<true, buffer_ts...> : public dbase_buffer {
-    std::tuple<std::remove_reference_t<std::remove_cv_t<buffer_ts>>...>
-        m_buffer;
+    dtuple<std::remove_reference_t<std::remove_cv_t<buffer_ts>>...> m_buffer;
 
     dmulti_buffer_helper() = default;
 
     /// Tie multiple buffers together
     DETRAY_HOST
-    dmulti_buffer_helper(buffer_ts&&... buffers) {
+    explicit dmulti_buffer_helper(buffer_ts&&... buffers) {
         m_buffer = ::detray::detail::make_tuple<
-            std::tuple,
-            std::remove_reference_t<std::remove_cv_t<buffer_ts>>...>(
-            std::forward<buffer_ts>(buffers)...);
+            dtuple, std::remove_reference_t<std::remove_cv_t<buffer_ts>>...>(
+            std::move(buffers)...);
     }
 };
 
@@ -116,7 +119,7 @@ struct has_buffer<vecmem::vector<T>, void> : public std::true_type {
     using type = vecmem::data::vector_buffer<T>;
 };
 
-/// Specialization of the buffer getter for @c vecmem::vector
+/// Specialization of the buffer getter for @c vecmem::vector - const
 template <typename T>
 struct has_buffer<const vecmem::vector<T>, void> : public std::true_type {
     using type = vecmem::data::vector_buffer<const T>;
@@ -161,13 +164,16 @@ dvector_buffer<const T> get_buffer(const dvector_view<const T>& vec_view,
     return buff;
 }
 
+/// @brief Recursively get the buffer representation of a composite view
+///
+/// @note This does not pick up the vecmem types.
 template <class view_t>
 auto get_buffer(const view_t& data_view, vecmem::memory_resource& mr,
-                vecmem::copy& cpy);
+                vecmem::copy& cpy);  // Forward declaration
 
 /// @brief Unroll the composite view type
 ///
-/// Unwraps the view tpye at compile time and calls @c get_buffer on every view.
+/// Unwraps the view type at compile time and calls @c get_buffer on every view.
 /// Then returns the resulting buffer objects and packages them into a
 /// @c mutli_buffer to be passed on to the next level.
 ///
@@ -182,13 +188,9 @@ auto get_buffer(const view_t& data_view, vecmem::memory_resource& mr,
             detray::get_buffer(detail::get<I>(data_view.m_view), mr, cpy))...);
 }
 
-/// @brief Recursively get the buffer representation of a composite view
-///
-/// @note This does not pick up the vecmem types.
 template <class view_t>
 auto get_buffer(const view_t& data_view, vecmem::memory_resource& mr,
                 vecmem::copy& cpy) {
-    // using blub = typename view_t::bla;
     return detray::get_buffer(
         data_view, mr, cpy,
         std::make_index_sequence<
@@ -205,16 +207,35 @@ typename T::buffer_type get_buffer(T& bufferable, vecmem::memory_resource& mr,
 }
 /// @}
 
-template <class... Ts>
-auto get_data(dmulti_buffer<Ts...>& multi_buff);
+/// Get the vecmem view type of a vector buffer
+///
+/// @note this is needed, because the corresponding vecmem::get_data() function
+///       would return a reference to a view.
+template <class T>
+dvector_view<T> get_data(dvector_buffer<T>& buff) {
+    return vecmem::get_data(buff);
+}
 
+/// @brief Get the view ( @c dmulti_view ) of a @c dmulti_buffer
+template <class... Ts>
+auto get_data(dmulti_buffer<Ts...>& multi_buff);  // Forward declaration
+
+/// @brief Unroll the composite buffer type
+///
+/// Unwraps the buffer type at compile time and calls @c get_data on every
+/// buffer.
+/// Then returns the resulting view objects and packages them into a
+/// @c mutli_view to be ultimately passed on to the class constructor.
+///
+/// @note This does not pick up the vecmem types.
 template <class... Ts, std::size_t... I>
 auto get_data(dmulti_buffer<Ts...>& multi_buff, std::index_sequence<I...>) {
+    // using bla = typename
+    // std::tuple<decltype(detray::get_data(std::declval<Ts&>()))...>::blub;
     return dmulti_view<decltype(detray::get_data(std::declval<Ts&>()))...>(
         detray::get_data(detail::get<I>(multi_buff.m_buffer))...);
 }
 
-/// @brief Get the view of a @c multi_buffer - const
 template <class... Ts>
 auto get_data(dmulti_buffer<Ts...>& multi_buff) {
     return detray::get_data(multi_buff,
