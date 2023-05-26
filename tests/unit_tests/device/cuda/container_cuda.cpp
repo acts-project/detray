@@ -98,6 +98,71 @@ TEST(container_cuda, single_store) {
     EXPECT_NEAR(cpu_sum, cuda_sum[0], tol);
 }
 
+/// Test the access to the tuple container by summing the contained values
+TEST(container_cuda, tuple_container) {
+
+    // Vecmem memory resources
+    vecmem::host_memory_resource host_mr;
+    vecmem::cuda::managed_memory_resource mng_mr;
+    vecmem::cuda::device_memory_resource dev_mr;
+    vecmem::cuda::copy cpy;
+
+    // Create single store(s)
+    tuple_cont_t tcont(host_mr);
+    tuple_cont_t mng_tcont(mng_mr);
+
+    // Base store function check
+    EXPECT_EQ(tcont.size(), 2u);
+    EXPECT_EQ(mng_tcont.size(), 2u);
+
+    // Test the managed memory allocation
+    mng_tcont.get<0>().push_back(3);
+    mng_tcont.get<1>().push_back(4.);
+    mng_tcont.get<1>().push_back(5.8);
+
+    vecmem::vector<double> new_data{10.5, 7.6, 14.5};
+    auto& data_coll = detail::get<1>(mng_tcont);
+    std::copy(new_data.begin(), new_data.end(), std::back_inserter(data_coll));
+
+    std::copy(mng_tcont.get<0>().begin(), mng_tcont.get<0>().end(),
+              std::back_inserter(tcont.get<0>()));
+    std::copy(mng_tcont.get<1>().begin(), mng_tcont.get<1>().end(),
+              std::back_inserter(tcont.get<1>()));
+
+    EXPECT_EQ(mng_tcont.get<0>().size(), 1u);
+    EXPECT_EQ(mng_tcont.get<1>().size(), 5u);
+    EXPECT_EQ(tcont.get<0>().size(), 1u);
+    EXPECT_EQ(tcont.get<1>().size(), 5u);
+
+    // CPU sum check
+    double cpu_sum{mng_tcont.get<0>().at(0)};
+    cpu_sum = std::accumulate(data_coll.begin(), data_coll.end(), cpu_sum);
+    EXPECT_NEAR(cpu_sum, 45.4, tol);
+
+    // Get the view to the managed memory and run the test
+    tuple_cont_t::view_type mng_store_view = detray::get_data(mng_tcont);
+
+    vecmem::vector<double> cuda_sum(&mng_mr);
+    cuda_sum.push_back(0.);
+    vecmem::data::vector_view<double> sum_data = vecmem::get_data(cuda_sum);
+
+    test_tuple_container(mng_store_view, sum_data);
+
+    EXPECT_NEAR(cpu_sum, cuda_sum[0], tol);
+
+    // Reset for next test
+    cuda_sum[0] = 0.;
+
+    // Copy the host store to device, get the view to it and run the test again
+    tuple_cont_t::buffer_type store_buffer =
+        detray::get_buffer(tcont, dev_mr, cpy);
+    tuple_cont_t::view_type buffer_view = detray::get_data(store_buffer);
+
+    test_tuple_container(buffer_view, sum_data);
+
+    EXPECT_NEAR(cpu_sum, cuda_sum[0], tol);
+}
+
 /*TEST(container_cuda, regular_multi_store) {
 
     // Vecmem memory resource

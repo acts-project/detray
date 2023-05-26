@@ -25,10 +25,11 @@ using single_store_dev_t = single_store<double, vecmem::device_vector>;
 
 // Tuple container test
 /// @{
-using tuple_t = detail::tuple_container<dtuple, vecmem::vector<int>,
-                                        vecmem::vector<double>>;
-using tuple_dev_t = detail::tuple_container<dtuple, vecmem::device_vector<int>,
-                                            vecmem::device_vector<double>>;
+using tuple_cont_t = detail::tuple_container<dtuple, vecmem::vector<int>,
+                                             vecmem::vector<double>>;
+using tuple_cont_dev_t =
+    detail::tuple_container<dtuple, vecmem::device_vector<int>,
+                            vecmem::device_vector<double>>;
 /// @}
 
 // Regular multi store test (uses vectors as containers in every tuple element)
@@ -78,7 +79,7 @@ using multi_store_dev_t =
 void test_single_store(typename single_store_t::view_type store_view,
                        vecmem::data::vector_view<double> sum_data);
 
-void test_tuple_container(typename tuple_t::view_type store_view,
+void test_tuple_container(typename tuple_cont_t::view_type store_view,
                           vecmem::data::vector_view<double> sum_data);
 
 void test_reg_multi_store(typename reg_multi_store_t::view_type store_view,
