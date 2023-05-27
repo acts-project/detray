@@ -13,12 +13,11 @@
 #include "detray/tracer/texture/pixel.hpp"
 
 // System include(s).
-#include <iostream>
 #include <vector>
 
 namespace detray::io {
 
-template <typename depth = uint8_t>
+template <typename depth = std::uint8_t>
 class raw_image {
 
     using color_t = texture::color<depth>;
@@ -55,14 +54,14 @@ class raw_image {
 
     /// Set a particular pixel in the image
     DETRAY_HOST_DEVICE
-    constexpr void set_pixel(uint x, uint y, color_t c) {
+    constexpr void set_pixel(std::uint64_t x, std::uint64_t y, color_t c) {
         std::size_t px_idx{x + m_width * y};
         m_data.at(px_idx) = c;
     }
 
     /// Set a particular pixel in the image to @param px
     DETRAY_HOST_DEVICE
-    constexpr void set_pixel(texture::pixel<unsigned int, depth>& px) {
+    constexpr void set_pixel(texture::pixel<std::uint64_t, depth>& px) {
         set_pixel(px[0], px[1], px.color());
     }
 

@@ -60,7 +60,7 @@ struct gradient_background : public image_background {
 
 /// Calculates the color of a pixel. Starting point of the shader pipeline
 template <template <typename> class image_background_t = plain_background,
-          typename color_depth = uint8_t, typename pixel_coord_t = uint>
+          typename color_depth = std::uint8_t, typename pixel_coord_t = std::uint64_t>
 struct colorizer : public detray::actor {
 
     using color_t = texture::color<color_depth>;

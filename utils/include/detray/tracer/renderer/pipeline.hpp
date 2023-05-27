@@ -16,8 +16,8 @@
 namespace detray {
 
 /// Executes the rendering steps sequentially
-template <template <typename...> class tuple_t = dtuple, typename... shaders_t>
-using rendering_pipeline = actor_chain<tuple_t, shaders_t...>;
+template <typename... shaders_t>
+using rendering_pipeline = actor_chain<dtuple, shaders_t...>;
 
 /// State that is passed through the pipeline per ray
 ///

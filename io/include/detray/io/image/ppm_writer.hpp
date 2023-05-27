@@ -13,18 +13,18 @@
 namespace detray::io {
 
 /// @brief This class is a file writer for the ppm format
-template <typename color_depth = uint8_t>
+template <typename color_depth = std::uint8_t>
 class ppm_writer final : public image_writer<color_depth> {
 
     public:
     /// File gets created with a @param name and @param extension
-    ppm_writer() : image_writer<color_depth>("ppm") {}
+    ppm_writer() : image_writer<color_depth>(".ppm") {}
 
     /// Writes the image to disk as a ppm file
     void write(const raw_image<color_depth> &im,
-               const std::string &name) override {
+               const std::string &file_stem) override {
         // Create a new file
-        detail::file_handle file{name, this->m_file_extension};
+        io::detail::file_handle file{file_stem, this->m_file_extension, (std::ios_base::out | std::ios_base::trunc)};
 
         // ppm file header
         *file << "P3\n" << im.width() << " " << im.height() << "\n255\n";

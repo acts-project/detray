@@ -50,7 +50,7 @@ inline void write_test_image(io::raw_image<color_depth> &im) {
 
 /// Render a shape
 template <typename color_depth, typename shape_t, typename material_t,
-          template <typename> class im_background_t = plain_background>
+          template <typename> class im_background_t = gradient_background>
 inline void render_single_shape(io::raw_image<color_depth> &im,
                                 const detray::mask<shape_t> &mask,
                                 const transform3D &trf, const material_t &mat) {
@@ -60,7 +60,7 @@ inline void render_single_shape(io::raw_image<color_depth> &im,
     // The full pipeline
     using renderer_t = composite_actor<dtuple, intersector_t, colorizer_t>;
     // @todo: add shaders that observe the renderer ...
-    using pipeline_t = rendering_pipeline<dtuple, renderer_t>;
+    using pipeline_t = rendering_pipeline<renderer_t>;
 
     const point3D lower_left_corner{-10.0f, -5.0f, -5.0f};
     const point3D horizontal{20.0f, 0.0f, 0.0f};
@@ -89,7 +89,7 @@ inline void render_single_shape(io::raw_image<color_depth> &im,
             // Finds the intersections between the ray and the geometry
             typename intersector_t::state intrs{};
             // Computes an initial color for the ray's pixel
-            typename colorizer_t::state colr{i_x, i_y};
+            typename colorizer_t::state colr{static_cast<std::uint64_t>(i_x), static_cast<std::uint64_t>(i_y)};
             // Feed their thread-local state to the pipeline
             auto pipeline_state = std::tie(intrs, colr);
 
@@ -126,25 +126,27 @@ int main() {
     vector3D t{5.0f, 5.0f, 30.0f};
     const transform3D trf{t, z, x};
 
+    const silicon_tml<scalar> sf_mat{};
+
     // render a rectangle mask
     const mask<rectangle2D<>> rect{0u, 12.f, 20.f};
-    render_single_shape(image, rect, trf, beryllium<scalar>{});
+    render_single_shape(image, rect, trf, sf_mat);
     ppm.write(image, "rectangle");
 
     // render a trapezoid mask
     const mask<trapezoid2D<>> trpz{0u, 10.f, 30.f, 20.f, 1.f / 40.f};
-    render_single_shape<>(image, trpz, trf, aluminium<scalar>{});
+    render_single_shape<>(image, trpz, trf, sf_mat);
     ppm.write(image, "trapezoid");
 
     // render a ring mask
     const mask<ring2D<>> ring{0u, 12.f, 20.f};
-    render_single_shape<>(image, ring, trf, gold<scalar>{});
+    render_single_shape<>(image, ring, trf, sf_mat);
     ppm.write(image, "ring");
 
     // render an annulus mask
     const mask<annulus2D<>> ann2{0u,       5.f,  13.0f, 0.74195f,
                                  1.33970f, -2.f, 2.f,   0.f};
-    render_single_shape<>(image, ann2, trf, silicon<scalar>{});
+    render_single_shape<>(image, ann2, trf, sf_mat);
     ppm.write(image, "annulus");
 
     return EXIT_SUCCESS;
