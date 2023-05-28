@@ -8,7 +8,7 @@
 #pragma once
 
 // Project include(s).
-#include "detray/io/image/raw_image.hpp"
+#include "detray/tracer/renderer/raw_image.hpp"
 #include "detray/io/common/detail/file_handle.hpp"
 
 // System include(s)

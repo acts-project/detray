@@ -16,7 +16,10 @@
 #include "detray/masks/sphere2D.hpp"
 #include "detray/materials/predefined_materials.hpp"
 #include "detray/tracer/renderer/pipeline.hpp"
+#include "detray/tracer/renderer/raw_image.hpp"
 #include "detray/tracer/renderer/detail/mask.hpp"
+#include "detray/tracer/shaders/background.hpp"
+#include "detray/tracer/shaders/material.hpp"
 #include "detray/tracer/texture/color.hpp"
 #include "detray/tracer/texture/pixel.hpp"
 
@@ -32,7 +35,7 @@ namespace {
 
 /// Simple color gradient
 template <typename color_depth>
-inline void write_test_image(io::raw_image<color_depth> &im) {
+inline void write_test_image(raw_image<color_depth> &im) {
     // Iterate through pixel matrix
     for (float i_y{static_cast<float>(im.height() - 1u)}; i_y >= 0.f;
          i_y -= 1.f) {
@@ -54,16 +57,15 @@ inline void write_test_image(io::raw_image<color_depth> &im) {
 /// Render a shape
 template <typename color_depth, typename mask_t, typename material_t,
           template <typename> class im_background_t = gradient_background>
-inline void render_single_shape(io::raw_image<color_depth> &im,
+inline void render_single_shape(raw_image<color_depth> &im,
                                 const mask_t &mask,
                                 const transform3D &trf, const material_t &mat) {
     // Rendering steps
     using intersector_t = single_shape<mask_t, material_t>;
-    using colorizer_t = colorizer<im_background_t>;
-    // The full pipeline
-    using renderer_t = composite_actor<dtuple, intersector_t, colorizer_t>;
-    // @todo: add shaders that observe the renderer ...
-    using pipeline_t = rendering_pipeline<renderer_t>;
+    using backgr_shader_t = background_shader<im_background_t>;
+    using mat_shader_t = material_shader;
+    // The rendering pipeline: The intersector finds the shape intersections
+    using pipeline_t = rendering_pipeline<intersector_t, backgr_shader_t, mat_shader_t>;
 
     const point3D lower_left_corner{-10.0f, -5.0f, -5.0f};
     const point3D horizontal{20.0f, 0.0f, 0.0f};
@@ -88,19 +90,17 @@ inline void render_single_shape(io::raw_image<color_depth> &im,
             ray.set_overstep_tolerance(-std::numeric_limits<scalar>::max());
 
             // Strap the global geometry state and the thread-local ray together
-            const scene_handle::state scene{geo, ray};
+            scene_handle::state scene{geo, im, ray, static_cast<std::uint64_t>(i_x), static_cast<std::uint64_t>(i_y)};
 
             // Finds the intersections between the ray and the geometry
             typename intersector_t::state intrs{};
-            // Computes an initial color for the ray's pixel
-            typename colorizer_t::state colr{static_cast<std::uint64_t>(i_x), static_cast<std::uint64_t>(i_y)};
-            // Feed their thread-local state to the pipeline
-            auto pipeline_state = std::tie(intrs, colr);
+            actor::state empty{}; // Dummy for actors that don't define a state
+            auto pipeline_state = std::tie(empty, intrs);
 
             // Run
             pipeline_t{}(pipeline_state, scene);
 
-            im.set_pixel(colr.m_pixel);
+            im.set_pixel(scene.m_pixel);
         }
     }
 }
@@ -116,7 +116,7 @@ int main() {
     //
 
     // write a test image
-    io::raw_image<> image{1000u, 500u};
+    raw_image<> image{1000u, 500u};
     write_test_image(image);
     ppm.write(image, "test");
 
@@ -127,7 +127,7 @@ int main() {
     // Affine transform matrix to place the shapes
     vector3D x{1.0f, 0.0f, 0.0f};
     vector3D z{0.0f, 0.0f, 1.f};
-    vector3D t{5.0f, 5.0f, 30.0f};
+    vector3D t{0.0f, 0.0f, -30.0f};
     transform3D trf{t, z, x};
 
     const silicon_tml<scalar> sf_mat{};

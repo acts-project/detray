@@ -85,6 +85,16 @@ class sphere2D {
         return (std::abs(loc_p[0] - bounds[e_r]) > tol);
     }
 
+    /// @returns the normal vector given a local position @param loc_p .
+    DETRAY_HOST_DEVICE
+    template<typename algebra_t, 
+             template <typename, std::size_t> class bounds_t,
+             typename scalar_t, std::size_t kDIM, typename point_t>
+    constexpr auto normal(const bounds_t<scalar_t, kDIM>&,
+                             const point_t & loc_p) const {
+        return local_frame_type<algebra_t>{}.normal(loc_p);
+    }
+
     /// @brief Lower and upper point for minimal axis aligned bounding box.
     ///
     /// Computes the min and max vertices in a local cartesian frame.

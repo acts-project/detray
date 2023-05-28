@@ -15,6 +15,7 @@ file( GLOB _detray_utils_public_headers
    "include/detray/simulation/*.hpp"
    "include/detray/tracer/definitions/*.hpp"
    "include/detray/tracer/renderer/*.hpp"
+   "include/detray/tracer/shaders/*.hpp"
    "include/detray/tracer/texture/*.hpp" )
 detray_add_library( detray_utils utils
     ${_detray_utils_public_headers} )

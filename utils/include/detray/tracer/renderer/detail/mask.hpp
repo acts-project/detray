@@ -46,6 +46,7 @@ class tracer_mask {
     using local_frame_type =
         typename shape::template local_frame_type<algebra_t>;
     // Linear algebra types
+    using vector3_t = typename algebra_t::vector3;
     using point3_t = typename algebra_t::point3;
     using point2_t = typename algebra_t::point2;
 
@@ -164,6 +165,12 @@ class tracer_mask {
     /// @returns return local frame object (used in geometrical checks)
     DETRAY_HOST_DEVICE inline constexpr local_frame_type local_frame() const {
         return local_frame_type{};
+    }
+
+    /// @returns return local frame object (used in geometrical checks)
+    DETRAY_HOST_DEVICE
+    constexpr vector3_t normal(const point3_t& loc_p) const {
+        return vector::normalize(_shape.template normal<algebra_t>(_values, loc_p));
     }
 
     /// @returns the boundary values

@@ -15,7 +15,7 @@
 // System include(s).
 #include <vector>
 
-namespace detray::io {
+namespace detray {
 
 template <typename depth = std::uint8_t>
 class raw_image {
@@ -74,4 +74,4 @@ class raw_image {
     std::vector<color_t> m_data{m_height * m_width, color_t{}};
 };
 
-}  // namespace detray::io
+}  // namespace detray

@@ -14,12 +14,9 @@
 #include "detray/propagator/base_actor.hpp"
 #include "detray/tracer/definitions/colors.hpp"
 #include "detray/tracer/texture/color.hpp"
-#include "detray/tracer/texture/detail/material_color_helper.hpp"
 #include "detray/tracer/texture/pixel.hpp"
 
 namespace detray {
-
-// namespace texture {
 
 /// @brief Image background class tag
 struct image_background {};
@@ -56,37 +53,19 @@ struct gradient_background : public image_background {
     }
 };
 
-//} // namespace texture
-
 /// Calculates the color of a pixel. Starting point of the shader pipeline
-template <template <typename> class image_background_t = plain_background,
-          typename color_depth = std::uint8_t, typename pixel_coord_t = std::uint64_t>
-struct colorizer : public detray::actor {
-
-    using color_t = texture::color<color_depth>;
-
-    struct state {
-        /// Construct the pixel for the current ray
-        state(const pixel_coord_t x, const pixel_coord_t y) : m_pixel{{x, y}} {}
-        /// The resulting pixel
-        texture::pixel<pixel_coord_t, color_depth> m_pixel;
-    };
+template <template <typename> class image_background_t = plain_background>
+struct background_shader : public detray::actor {
 
     /// Equality operator: Only considers exact match
     template <typename scene_handle_t, typename intersector_state_t>
-    DETRAY_HOST_DEVICE void operator()(state &st,
+    DETRAY_HOST_DEVICE void operator()(state &,
                                        intersector_state_t &intr_state,
-                                       const scene_handle_t &sc) const {
-        if (intr_state.m_is_inside) {
-            st.m_pixel.set_color(
-                texture::detail::material_color_helper<color_depth>(
-                    intr_state.material()));
-            // ready surface specific shaders
-            // ...
-        } else {
-            st.m_pixel.set_color(image_background_t<color_depth>{}(sc.ray()));
-            // break early
-            // ...
+                                       scene_handle_t &sc) const {
+        using color_depth = typename decltype(sc.m_pixel)::color_depth;
+
+        if (not intr_state.m_is_inside) {
+            sc.m_pixel.set_color(image_background_t<color_depth>{}(sc.ray()));
         }
     }
 };

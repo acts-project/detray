@@ -26,6 +26,7 @@ template <uint D, typename data_t = uint, typename depth = uint8_t>
 struct pixelD {
 
     using color_t = texture::color<depth>;
+    using color_depth = depth;
 
     static constexpr uint Dim{D};
 

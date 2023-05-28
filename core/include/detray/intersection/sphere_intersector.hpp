@@ -58,31 +58,29 @@ struct sphere_intersector {
 
         const scalar_type r{mask[mask_t::shape::e_r]};
         const auto &m = trf.matrix();
-        const vector3 translation = getter::vector<3>(m, 0u, 3u);
+        const vector3 center = getter::vector<3>(m, 0u, 3u);
 
         const point3 &ro = ray.pos();
         const vector3 &rd = ray.dir();
 
-        const auto ot = ro - translation;
+        const point3 oc = ro - center;
         const scalar_type a{vector::dot(rd, rd)};
-        const scalar_type b{2.f * vector::dot(rd, ot)};
-        const scalar_type c{vector::dot(ot, ot) - (r * r)};
+        const scalar_type b{2.f * vector::dot(oc, rd)};
+        const scalar_type c{vector::dot(oc, oc) - (r * r)};
 
-        const auto qe = detail::quadratic_equation<scalar_type>{a, b, c};
+        const auto qe = detail::quadratic_equation<scalar_type>{a, b, c, mask_tolerance};
 
         std::array<intersection_t, 2> ret;
         switch (qe.solutions()) {
             case 2:
-                ret[1] = build_candidate(ray, mask, trf, qe.larger(),
-                                         mask_tolerance);
+                ret[1] = build_candidate(ray, mask, trf, qe.larger());
                 ret[1].surface = sf;
                 // If there are two solutions, reuse the case for a single
                 // solution to setup the intersection with the smaller path
                 // in ret[0]
                 [[fallthrough]];
             case 1:
-                ret[0] = build_candidate(ray, mask, trf, qe.smaller(),
-                                         mask_tolerance);
+                ret[0] = build_candidate(ray, mask, trf, qe.smaller());
                 ret[0].surface = sf;
                 break;
             case 0:
@@ -105,7 +103,7 @@ struct sphere_intersector {
     template <typename mask_t>
     DETRAY_HOST_DEVICE inline intersection_t build_candidate(
         const ray_type &ray, const mask_t &mask, const transform3_type &trf,
-        const scalar_type path, const scalar_type mask_tolerance = 0.f) const {
+        const scalar_type path) const {
 
         intersection_t is;
 
@@ -129,9 +127,8 @@ struct sphere_intersector {
             is.volume_link = mask.volume_link();
 
             // Get incidence angle
-            const vector3 normal = mask.local_frame().normal(trf, is.local);
+            const vector3 normal = mask.normal(is.local);
             is.cos_incidence_angle = vector::dot(rd, normal);
-
         } else {
             is.status = intersection::status::e_missed;
         }
