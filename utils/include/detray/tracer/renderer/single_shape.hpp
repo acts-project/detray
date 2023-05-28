@@ -18,6 +18,7 @@
 #include "detray/propagator/base_actor.hpp"
 
 // System include(s)
+#include <iostream>
 #include <limits>
 #include <memory>
 
@@ -111,9 +112,10 @@ struct single_shape : detray::actor {
         std::array<typename is_container_t::value_type, 2> &&solutions,
         is_container_t &intersections) const {
         bool is_valid = false;
-        for (auto &sfi : solutions) {
-            if (sfi.status == intersection::status::e_inside) {
-                intersections.push_back(sfi);
+        std::size_t n_sol{0u};
+        for (std::size_t i = 0u; i < 2u; ++i) {
+            if (solutions[i].status == intersection::status::e_inside) {
+                intersections[n_sol++] = solutions[i];
                 is_valid = true;
             }
         }

@@ -13,14 +13,17 @@
 #include "detray/intersection/intersection.hpp"
 #include "detray/io/image/ppm_writer.hpp"
 #include "detray/masks/masks.hpp"
+#include "detray/masks/sphere2D.hpp"
 #include "detray/materials/predefined_materials.hpp"
 #include "detray/tracer/renderer/pipeline.hpp"
+#include "detray/tracer/renderer/detail/mask.hpp"
 #include "detray/tracer/texture/color.hpp"
 #include "detray/tracer/texture/pixel.hpp"
 
 // System include(s)
 #include <cstdlib>
 #include <iostream>
+#include <limits>
 #include <tuple>
 
 using namespace detray;
@@ -49,13 +52,13 @@ inline void write_test_image(io::raw_image<color_depth> &im) {
 }
 
 /// Render a shape
-template <typename color_depth, typename shape_t, typename material_t,
+template <typename color_depth, typename mask_t, typename material_t,
           template <typename> class im_background_t = gradient_background>
 inline void render_single_shape(io::raw_image<color_depth> &im,
-                                const detray::mask<shape_t> &mask,
+                                const mask_t &mask,
                                 const transform3D &trf, const material_t &mat) {
     // Rendering steps
-    using intersector_t = single_shape<detray::mask<shape_t>, material_t>;
+    using intersector_t = single_shape<mask_t, material_t>;
     using colorizer_t = colorizer<im_background_t>;
     // The full pipeline
     using renderer_t = composite_actor<dtuple, intersector_t, colorizer_t>;
@@ -75,13 +78,14 @@ inline void render_single_shape(io::raw_image<color_depth> &im,
     for (float i_y{static_cast<float>(im.height() - 1u)}; i_y >= 0.f;
          i_y -= 1.f) {
         for (float i_x{0}; i_x < static_cast<float>(im.width()); i_x += 1.f) {
-            const float u{i_x / im.width()};
-            const float v{i_y / im.height()};
+            const float u{i_x / (im.width() - 1.f)};
+            const float v{i_y / (im.height() - 1.f)};
 
             // Ray to render the pixel at (i_x, i_y)
             detail::ray<transform3D> ray{
                 origin, 0.f, lower_left_corner + u * horizontal + v * vertical,
                 0.f};
+            ray.set_overstep_tolerance(-std::numeric_limits<scalar>::max());
 
             // Strap the global geometry state and the thread-local ray together
             const scene_handle::state scene{geo, ray};
@@ -124,30 +128,35 @@ int main() {
     vector3D x{1.0f, 0.0f, 0.0f};
     vector3D z{0.0f, 0.0f, 1.f};
     vector3D t{5.0f, 5.0f, 30.0f};
-    const transform3D trf{t, z, x};
+    transform3D trf{t, z, x};
 
     const silicon_tml<scalar> sf_mat{};
 
     // render a rectangle mask
-    const mask<rectangle2D<>> rect{0u, 12.f, 20.f};
-    render_single_shape(image, rect, trf, sf_mat);
+    /*const mask<rectangle2D<>> rect{0u, 12.f, 20.f};
+    render_single_shape(image, rect, trf, beryllium<scalar>{});
     ppm.write(image, "rectangle");
 
     // render a trapezoid mask
     const mask<trapezoid2D<>> trpz{0u, 10.f, 30.f, 20.f, 1.f / 40.f};
-    render_single_shape<>(image, trpz, trf, sf_mat);
+    render_single_shape<>(image, trpz, trf, aluminium<scalar>{});
     ppm.write(image, "trapezoid");
 
     // render a ring mask
     const mask<ring2D<>> ring{0u, 12.f, 20.f};
-    render_single_shape<>(image, ring, trf, sf_mat);
+    render_single_shape<>(image, ring, trf, gold<scalar>{});
     ppm.write(image, "ring");
 
     // render an annulus mask
     const mask<annulus2D<>> ann2{0u,       5.f,  13.0f, 0.74195f,
                                  1.33970f, -2.f, 2.f,   0.f};
-    render_single_shape<>(image, ann2, trf, sf_mat);
-    ppm.write(image, "annulus");
+    render_single_shape<>(image, ann2, trf, silicon<scalar>{});
+    ppm.write(image, "annulus");*/
+
+    // render a spherical mask
+    const tracer_mask<sphere2D<>> sph2{0u, 10.f};
+    render_single_shape<>(image, sph2, trf, silicon<scalar>{});
+    ppm.write(image, "sphere");
 
     return EXIT_SUCCESS;
 }
