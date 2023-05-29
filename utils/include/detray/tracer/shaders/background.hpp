@@ -27,7 +27,7 @@ struct plain_background : public image_background {
 
     template <typename color_depth = uint8_t>
     constexpr texture::color<color_depth> get(
-        const detray::detail::ray<transform3D> &) {
+        const detray::ray<transform3D> &) {
         return m_color<color_depth>;
     }
 
@@ -40,7 +40,7 @@ struct gradient_background : public image_background {
 
     template <typename color_depth = uint8_t>
     constexpr texture::color<color_depth> get(
-        const detray::detail::ray<transform3D> &ray) {
+        const detray::ray<transform3D> &ray) {
         vector3D dir = vector::normalize(ray.dir());
         point3D p1{1.0f, 1.0f, 1.0f};
         point3D p2{0.85f, 0.85f, 1.0f};
@@ -59,7 +59,7 @@ struct inf_plane : public image_background {
 
     template <typename color_depth = uint8_t>
     constexpr texture::color<color_depth> get(
-        const detray::detail::ray<transform3D> &ray) {
+        const detray::ray<transform3D> &ray) {
 
         if (not std::signbit(ray.dir()[1])) {
             return texture::green<color_depth>;

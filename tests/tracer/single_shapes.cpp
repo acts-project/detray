@@ -85,7 +85,7 @@ inline void render_single_shape(raw_image<color_depth, aspect_ratio> &im,
         for (std::size_t i_x = 0u; i_x < im.width(); ++i_x) {
 
             // Ray to render the pixel at (i_x, i_y)
-            detail::ray<transform3D> ray = cam.get_ray(i_x, i_y, im);
+            ray<transform3D> ray = cam.get_ray(i_x, i_y, im);
             ray.set_overstep_tolerance(-std::numeric_limits<scalar>::max());
 
             // Strap the global geometry state and the thread-local ray together

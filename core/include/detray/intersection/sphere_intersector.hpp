@@ -34,7 +34,7 @@ struct sphere_intersector {
     /// @}
 
     using intersection_type = intersection_t;
-    using ray_type = detail::ray<transform3_type>;
+    using ray_type = detray::ray<transform3_type>;
 
     /// Operator function to find intersections between ray and planar mask
     ///
@@ -68,7 +68,8 @@ struct sphere_intersector {
         const scalar_type b{2.f * vector::dot(oc, rd)};
         const scalar_type c{vector::dot(oc, oc) - (r * r)};
 
-        const auto qe = detail::quadratic_equation<scalar_type>{a, b, c, mask_tolerance};
+        const auto qe =
+            detail::quadratic_equation<scalar_type>{a, b, c, mask_tolerance};
 
         std::array<intersection_t, 2> ret;
         switch (qe.solutions()) {
@@ -116,14 +117,14 @@ struct sphere_intersector {
             is.path = path;
             const point3 p3 = ro + is.path * rd;
 
-            // No further mask check needed, if the quadratic equation found a 
+            // No further mask check needed, if the quadratic equation found a
             // solution, an intersection is guaranteed
             is.local = mask.to_local_frame(trf, p3);
             is.status = intersection::status::e_inside;
 
             is.direction = detail::signbit(is.path)
-                                ? intersection::direction::e_opposite
-                                : intersection::direction::e_along;
+                               ? intersection::direction::e_opposite
+                               : intersection::direction::e_along;
             is.volume_link = mask.volume_link();
 
             // Get incidence angle

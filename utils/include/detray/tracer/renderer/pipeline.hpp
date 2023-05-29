@@ -36,13 +36,13 @@ struct scene_handle {
 
         DETRAY_HOST_DEVICE
         state(const geometry_t &geo, const raw_image<color_depth> &im,
-              const detail::ray<transform3D> &ray, const pixel_coord x,
+              const detray::ray<transform3D> &ray, const pixel_coord x,
               const pixel_coord y)
             : m_geo{&geo}, m_image{&im}, m_ray{&ray}, m_pixel{{x, y}} {}
 
         /// Threadsafe interface
         /// @{
-        const detail::ray<transform3D> &ray() const { return *m_ray; }
+        const detray::ray<transform3D> &ray() const { return *m_ray; }
         const geometry_t &geometry() const { return *m_geo; }
         /// @}
 
@@ -51,16 +51,18 @@ struct scene_handle {
         /// The image handle
         const raw_image<color_depth> *m_image;
         /// The ray handle
-        const detail::ray<transform3D> *m_ray;
+        const detray::ray<transform3D> *m_ray;
         /// The pixel for this ray
         texture::pixel<pixel_coord, color_depth> m_pixel;
     };
 
 #if __clang__
-    template <typename geometry_t>
+    template <typename geometry_t, typename color_depth, typename pixel_coord>
     DETRAY_HOST_DEVICE state(const geometry_t &geo,
-                             const detail::ray<transform3D> &ray)
-        ->state<geometry_t>;
+                             const raw_image<color_depth> &im,
+                             const detray::ray<transform3D> &ray,
+                             const pixel_coord x, const pixel_coord y)
+        ->state<geometry_t, color_depth, pixel_coord>;
 #endif
 };
 
