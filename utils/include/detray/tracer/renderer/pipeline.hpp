@@ -17,8 +17,11 @@
 namespace detray {
 
 /// Executes the rendering steps sequentially
-template <typename intersector_t, typename background_shader_t, typename... shaders_t>
-using rendering_pipeline = actor_chain<dtuple, composite_actor<dtuple, intersector_t, background_shader_t, shaders_t...>>;
+template <typename intersector_t, typename background_shader_t,
+          typename... shaders_t>
+using rendering_pipeline =
+    actor_chain<dtuple, composite_actor<dtuple, intersector_t,
+                                        background_shader_t, shaders_t...>>;
 
 /// State that is passed through the pipeline per ray
 ///
@@ -32,10 +35,9 @@ struct scene_handle {
     struct state {
 
         DETRAY_HOST_DEVICE
-        state(const geometry_t &geo, 
-              const raw_image<color_depth> &im, 
-              const detail::ray<transform3D> &ray, 
-              const pixel_coord x, const pixel_coord y)
+        state(const geometry_t &geo, const raw_image<color_depth> &im,
+              const detail::ray<transform3D> &ray, const pixel_coord x,
+              const pixel_coord y)
             : m_geo{&geo}, m_image{&im}, m_ray{&ray}, m_pixel{{x, y}} {}
 
         /// Threadsafe interface

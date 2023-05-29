@@ -24,17 +24,19 @@ struct material_shader : public detray::actor {
 
     /// Equality operator: Only considers exact match
     template <typename scene_handle_t, typename intersector_state_t>
-    DETRAY_HOST_DEVICE void operator()(state &,
-                                       intersector_state_t &intr_state,
+    DETRAY_HOST_DEVICE void operator()(state &, intersector_state_t &intr_state,
                                        scene_handle_t &sc) const {
         using color_depth = typename decltype(sc.m_pixel)::color_depth;
 
         if (intr_state.m_is_inside) {
-            //auto c = texture::detail::material_color_helper<color_depth>(
-            //        intr_state.material());
-            auto normal = sc.geometry().mask().normal(intr_state.m_intersections[0].local);
-            normal = 100.f * (normal + vector3D{1.f, 1.f, 1.f});
-            sc.m_pixel.set_color({static_cast<color_depth>(normal[0]), static_cast<color_depth>(normal[1]), static_cast<color_depth>(normal[2])});
+            // auto c = texture::detail::material_color_helper<color_depth>(
+            //         intr_state.material());
+            auto normal = sc.geometry().mask().normal(
+                intr_state.m_intersections[0].local);
+            normal = 255.99f * 0.5f * (normal + vector3D{1.f, 1.f, 1.f});
+            sc.m_pixel.set_color({static_cast<color_depth>(normal[0]),
+                                  static_cast<color_depth>(normal[1]),
+                                  static_cast<color_depth>(normal[2])});
         }
     }
 };

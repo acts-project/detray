@@ -13,24 +13,29 @@
 #include "detray/tracer/texture/pixel.hpp"
 
 // System include(s).
+#include <ratio>
 #include <vector>
 
 namespace detray {
 
-template <typename depth = std::uint8_t>
+template <typename depth = std::uint8_t, typename ratio_t = std::ratio<16, 9>>
 class raw_image {
 
-    using color_t = texture::color<depth>;
-
     public:
+    using color_t = texture::color<depth>;
+    using aspect_ratio = ratio_t;
+
     /// Default constructor
     constexpr raw_image() = default;
 
     /// Construct from image @param height and @param width in pixels
     DETRAY_HOST_DEVICE
-    raw_image(const unsigned int width, const unsigned int height,
-              const color_t c = {})
-        : m_width{width}, m_height{height}, m_data{height * width, c} {}
+    raw_image(const unsigned int height, const color_t c = {})
+        : m_width{static_cast<std::size_t>(
+              height * static_cast<double>(aspect_ratio::num) /
+              static_cast<double>(aspect_ratio::den))},
+          m_height{height},
+          m_data{m_height * m_width, c} {}
 
     /// @returns image width in pixels
     DETRAY_HOST_DEVICE
@@ -67,8 +72,8 @@ class raw_image {
 
     private:
     /// Image size in pixels
-    unsigned long m_width{100u};
-    unsigned long m_height{100u};
+    std::size_t m_width{160u};
+    std::size_t m_height{90u};
 
     /// Pixel data
     std::vector<color_t> m_data{m_height * m_width, color_t{}};

@@ -79,7 +79,8 @@ struct single_shape : detray::actor {
 
         // Perform the intersection
         loc_st.m_is_inside = place_in_collection(
-            geo.mask().template intersector<intersection_t>()(sc.ray(), surface<>{}, geo.mask(), geo.transform()),
+            geo.mask().template intersector<intersection_t>()(
+                sc.ray(), surface<>{}, geo.mask(), geo.transform()),
             loc_st.m_intersections);
         if (loc_st.m_is_inside) {
             loc_st.m_material = std::addressof(geo.material());

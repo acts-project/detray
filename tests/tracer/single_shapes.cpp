@@ -15,9 +15,10 @@
 #include "detray/masks/masks.hpp"
 #include "detray/masks/sphere2D.hpp"
 #include "detray/materials/predefined_materials.hpp"
+#include "detray/tracer/renderer/camera.hpp"
+#include "detray/tracer/renderer/detail/mask.hpp"
 #include "detray/tracer/renderer/pipeline.hpp"
 #include "detray/tracer/renderer/raw_image.hpp"
-#include "detray/tracer/renderer/detail/mask.hpp"
 #include "detray/tracer/shaders/background.hpp"
 #include "detray/tracer/shaders/material.hpp"
 #include "detray/tracer/texture/color.hpp"
@@ -55,46 +56,44 @@ inline void write_test_image(raw_image<color_depth> &im) {
 }
 
 /// Render a shape
-template <typename color_depth, typename mask_t, typename material_t,
-          template <typename> class im_background_t = gradient_background>
-inline void render_single_shape(raw_image<color_depth> &im,
-                                const mask_t &mask,
-                                const transform3D &trf, const material_t &mat) {
+template <typename color_depth, typename aspect_ratio, typename mask_t,
+          typename material_t, class im_background_t = gradient_background>
+inline void render_single_shape(raw_image<color_depth, aspect_ratio> &im,
+                                const mask_t &mask, const transform3D &trf,
+                                const material_t &mat) {
+    using scalar_t = transform3D::scalar_type;
+
     // Rendering steps
     using intersector_t = single_shape<mask_t, material_t>;
-    using backgr_shader_t = background_shader<im_background_t>;
+    using backgr_shader_t = background_shader<inf_plane<im_background_t>>;
     using mat_shader_t = material_shader;
     // The rendering pipeline: The intersector finds the shape intersections
-    using pipeline_t = rendering_pipeline<intersector_t, backgr_shader_t, mat_shader_t>;
+    using pipeline_t =
+        rendering_pipeline<intersector_t, backgr_shader_t, mat_shader_t>;
 
-    const point3D lower_left_corner{-10.0f, -5.0f, -5.0f};
-    const point3D horizontal{20.0f, 0.0f, 0.0f};
-    const point3D vertical{0.0f, 10.0f, 0.0f};
+    const scalar_t viewport_height{2.0f};
     const point3D origin{0.0f, 0.0f, 0.0f};
+
+    camera<scalar_t, aspect_ratio> cam(viewport_height, origin);
 
     // For the single shape render, the scene is actually encoded directly in
     // the single shape intersector
     typename intersector_t::global_state geo{trf, mask, mat};
 
     // Iterate through pixel matrix
-    for (float i_y{static_cast<float>(im.height() - 1u)}; i_y >= 0.f;
-         i_y -= 1.f) {
-        for (float i_x{0}; i_x < static_cast<float>(im.width()); i_x += 1.f) {
-            const float u{i_x / (im.width() - 1.f)};
-            const float v{i_y / (im.height() - 1.f)};
+    for (std::size_t i_y = 0u; i_y < im.height(); ++i_y) {
+        for (std::size_t i_x = 0u; i_x < im.width(); ++i_x) {
 
             // Ray to render the pixel at (i_x, i_y)
-            detail::ray<transform3D> ray{
-                origin, 0.f, lower_left_corner + u * horizontal + v * vertical,
-                0.f};
+            detail::ray<transform3D> ray = cam.get_ray(i_x, i_y, im);
             ray.set_overstep_tolerance(-std::numeric_limits<scalar>::max());
 
             // Strap the global geometry state and the thread-local ray together
-            scene_handle::state scene{geo, im, ray, static_cast<std::uint64_t>(i_x), static_cast<std::uint64_t>(i_y)};
+            scene_handle::state scene{geo, im, ray, i_x, i_y};
 
             // Finds the intersections between the ray and the geometry
             typename intersector_t::state intrs{};
-            actor::state empty{}; // Dummy for actors that don't define a state
+            actor::state empty{};  // Dummy for actors that don't define a state
             auto pipeline_state = std::tie(empty, intrs);
 
             // Run
@@ -116,7 +115,7 @@ int main() {
     //
 
     // write a test image
-    raw_image<> image{1000u, 500u};
+    raw_image<> image{500u};
     write_test_image(image);
     ppm.write(image, "test");
 
@@ -127,7 +126,7 @@ int main() {
     // Affine transform matrix to place the shapes
     vector3D x{1.0f, 0.0f, 0.0f};
     vector3D z{0.0f, 0.0f, 1.f};
-    vector3D t{0.0f, 0.0f, -30.0f};
+    vector3D t{0.0f, 0.0f, 30.0f};
     transform3D trf{t, z, x};
 
     const silicon_tml<scalar> sf_mat{};
