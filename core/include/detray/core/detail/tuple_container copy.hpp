@@ -13,6 +13,7 @@
 #include "detray/definitions/qualifiers.hpp"
 #include "detray/utils/tuple_helpers.hpp"
 #include "detray/utils/type_traits.hpp"
+#include "detray/core/detail/vecmem_types.hpp"
 
 // Vecmem include(s)
 #include <vecmem/memory/memory_resource.hpp>
@@ -29,24 +30,6 @@ struct is_specialization : std::false_type {};
 
 template<template<typename...> class Ref, typename... Args>
 struct is_specialization<Ref<Args...>, Ref>: std::true_type {};
-
-/// @tparam T The type of the collection data
-template <typename T>
-struct vector_types {
-    using value_type = T;
-
-    using host = vecmem::vector<T>;
-    using buffer = vecmem::data::vector_buffer<T>;
-    using view = vecmem::data::vector_view<T>;
-    using const_view = vecmem::data::vector_view<const T>;
-    using device = vecmem::device_vector<T>;
-    using const_device = vecmem::vector<const T>;
-
-    using size_type = typename device::size_type;
-    using link_type = size_type;
-    using single_link = link_type;
-    using range_link = std::array<link_type, 2>;
-};
 
 /// @tparam Ts types of tuple elements.
 template <typename... Ts>
@@ -108,10 +91,14 @@ template <typename T>
 struct tuple_buffer<T> {
     template <typename size>
     DETRAY_HOST constexpr tuple_buffer(vecmem::memory_resource& resource, size sz)
-        : v(sz, resource) {}
+        : v(sz, resource) {
+            static_assert(is_specialization<T, vecmem::data::vector_buffer>::value, "Number of given sizes larger than number of vectors.");
+        }
 
     DETRAY_HOST constexpr tuple_buffer(vecmem::memory_resource& resource) 
-        : v(resource) {}
+        : v(resource) {
+            static_assert(!is_specialization<T, vecmem::data::vector_buffer>::value, "Number of given sizes smaller than number of vectors.");
+        }
     T v;
 };
 
