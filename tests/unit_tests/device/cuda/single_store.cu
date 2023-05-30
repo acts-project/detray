@@ -8,6 +8,7 @@
 // Project include(s).
 #include <vecmem/memory/cuda/device_memory_resource.hpp>
 #include <vecmem/memory/host_memory_resource.hpp>
+#include <vecmem/memory/unique_ptr.hpp>
 #include <vecmem/utils/cuda/copy.hpp>
 
 #include "detray/core/detail/single_store copy.hpp"
@@ -69,12 +70,17 @@ GTEST_TEST(detray_detail, single_store) {
 
 GTEST_TEST(detray_detail, tuple_types) {
     vecmem::host_memory_resource host_mr;
-    detray::detail::tuple_buffer<int, vecmem::data::vector_buffer<int>, float, 
-        vecmem::data::vector_buffer<float>> buff(host_mr, 2, 3);
+    // detray::detail::tuple_buffer<int, vecmem::data::vector_buffer<int>, float, 
+    //     vecmem::data::vector_buffer<float>> buff(host_mr, 2, 3);
 
-    
-    detray::detail::tuple_buffer<vecmem::data::vector_buffer<unsigned>, int, vecmem::data::vector_buffer<int>, float, 
-        vecmem::data::vector_buffer<float>, unsigned> buff2(host_mr, 1, 2, 3);
+    // detray::detail::tuple_buffer<vecmem::data::vector_buffer<unsigned>, int, vecmem::data::vector_buffer<int>, float, 
+    //     vecmem::data::vector_buffer<float>, unsigned> buff2(host_mr, 1, 2, 3);
+
+    detray::detail::tuple_buffer<vecmem::data::vector_buffer<unsigned>, 
+        vecmem::unique_alloc_ptr<int>, vecmem::data::vector_buffer<int>, 
+        vecmem::unique_alloc_ptr<float>, vecmem::data::vector_buffer<float>> 
+        buff3(host_mr, 1, 2, 3);
+
 }
 
 // using tuple_ts = 

@@ -16,6 +16,7 @@
 
 // Vecmem include(s)
 #include <vecmem/memory/memory_resource.hpp>
+#include <vecmem/memory/unique_ptr.hpp>
 
 // System include(s)
 #include <memory>
@@ -78,19 +79,19 @@ template <typename T, typename... Ts>
 struct tuple_buffer {
     template <typename size, typename... sizes>
     DETRAY_HOST constexpr tuple_buffer(vecmem::memory_resource& resource, size sz, sizes... szs)
-        // : v(is_specialization<T, vecmem::data::vector_buffer>::value == true ? T(sz, resource) : T()),
-        //   r(is_specialization<T, vecmem::data::vector_buffer>::value == true ? tuple_buffer<Ts...>(resource, szs...) : tuple_buffer<Ts...>(resource, sz, szs...)) 
-        //   {}
         : v([&]{
-            if constexpr(is_specialization<T, vecmem::data::vector_buffer>::value == true) {
+            // This fails for the unique_alloc_ptr
+            // static_assert(is_specialization<T, vecmem::data::vector_buffer>::value 
+            //     || is_specialization<T, vecmem::unique_alloc_ptr>::value);
+            if constexpr(is_specialization<T, vecmem::data::vector_buffer>::value) {
                 return T(sz, resource);
             }
             else {
-                return T();
+                return T(vecmem::make_unique_alloc<typename T::element_type>(resource));
             }
         }()),
         r([&]{
-            if constexpr(is_specialization<T, vecmem::data::vector_buffer>::value == true) {
+            if constexpr(is_specialization<T, vecmem::data::vector_buffer>::value) {
                 return tuple_buffer<Ts...>(resource, szs...);
             }
             else {
@@ -106,12 +107,11 @@ struct tuple_buffer {
 template <typename T>
 struct tuple_buffer<T> {
     template <typename size>
-    DETRAY_HOST constexpr tuple_buffer(vecmem::memory_resource& resource, size sz) : v(sz, resource) {}
+    DETRAY_HOST constexpr tuple_buffer(vecmem::memory_resource& resource, size sz)
+        : v(sz, resource) {}
 
-    DETRAY_HOST constexpr tuple_buffer(vecmem::memory_resource& resource) : v() {
-        // Avoid compiler warning
-        (void)resource;
-    }
+    DETRAY_HOST constexpr tuple_buffer(vecmem::memory_resource& resource) 
+        : v(resource) {}
     T v;
 };
 
