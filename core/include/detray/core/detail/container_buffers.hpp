@@ -8,7 +8,6 @@
 #pragma once
 
 // Project include(s)
-#include "detray/core/detail/container_buffers.hpp"
 #include "detray/core/detail/container_views.hpp"
 #include "detray/definitions/containers.hpp"
 #include "detray/definitions/qualifiers.hpp"
@@ -17,7 +16,6 @@
 
 // Vecmem include(s)
 #include <vecmem/containers/data/vector_buffer.hpp>
-#include <vecmem/containers/vector.hpp>
 #include <vecmem/memory/memory_resource.hpp>
 #include <vecmem/utils/copy.hpp>
 
@@ -151,16 +149,6 @@ dvector_buffer<T> get_buffer(const dvector_view<T>& vec_view,
     return buff;
 }
 
-/// @brief Get the buffer representation of a vecmem vector - const
-template <class T>
-dvector_buffer<const T> get_buffer(const dvector_view<const T>& vec_view,
-                                   ::vecmem::memory_resource& mr,
-                                   ::vecmem::copy& cpy) {
-    dvector_buffer<const T> buff{vec_view.size(), mr};
-    cpy(vec_view, buff);
-    return buff;
-}
-
 /// @brief Recursively get the buffer representation of a composite view
 ///
 /// Unwraps the view type at compile time and calls @c get_buffer on every view.
@@ -174,8 +162,8 @@ template <
 auto get_buffer(const dmulti_view<Ts...>& data_view,
                 vecmem::memory_resource& mr, vecmem::copy& cpy) {
     // Evaluate recursive buffer type
-    // (e.g. dmulti_view<..., dmulti_view<...>, ...>
-    //       => dmulti_buffer<..., dmulti_buffer<...>, ...>)
+    // (e.g. dmulti_view<..., dmulti_view<dvector_view<T>, ...>, ...>
+    //       => dmulti_buffer<..., dmulti_buffer<dvector_buffer<T>, ...>, ...>)
     using result_buffer_t = dmulti_buffer<decltype(detray::get_buffer(
         detail::get<Ts>(data_view.m_view), mr, cpy))...>;
 
@@ -209,7 +197,7 @@ dvector_view<T> get_data(dvector_buffer<T>& buff) {
 /// @note This does not pick up the vecmem types.
 template <class... Ts>
 auto get_data(dmulti_buffer<Ts...>& multi_buff) {
-    // Evaluate recursive view type
+    // Evaluate recursive view type (reverse of 'get_buffer(dmulti_view)')
     using result_view_t =
         dmulti_view<decltype(detray::get_data(std::declval<Ts&>()))...>;
 
