@@ -143,6 +143,11 @@ class detector {
                                   typename mask_container::view_type,
                                   typename material_container::view_type,
                                   typename surface_container::view_type>;
+    using const_view_type = dmulti_view<dvector_view<const volume_type>,
+                                  typename transform_container::const_view_type,
+                                  typename mask_container::const_view_type,
+                                  typename material_container::const_view_type,
+                                  typename surface_container::const_view_type>;
 
     /// Vecmem buffer types
     using buffer_type = dmulti_buffer<dvector_buffer<volume_type>,

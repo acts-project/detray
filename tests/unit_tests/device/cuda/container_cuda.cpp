@@ -94,9 +94,11 @@ TEST(container_cuda, single_store) {
         detray::get_buffer(store, dev_mr, cpy);
     single_store_t::view_type buffer_view = detray::get_data(store_buffer);
 
+    EXPECT_NEAR(cuda_sum[0], 0.f, tol);
+
     test_single_store(buffer_view, sum_data);
 
-    EXPECT_NEAR(cpu_sum, cuda_sum[0], tol);
+    EXPECT_NEAR(cuda_sum[0], cpu_sum, tol);
 }
 
 /// Test the access to the tuple container by summing the contained values
@@ -159,9 +161,11 @@ TEST(container_cuda, tuple_container) {
         detray::get_buffer(tcont, dev_mr, cpy);
     tuple_cont_t::view_type buffer_view = detray::get_data(store_buffer);
 
+    EXPECT_NEAR(cuda_sum[0], 0.f, tol);
+
     test_tuple_container(buffer_view, sum_data);
 
-    EXPECT_NEAR(cpu_sum, cuda_sum[0], tol);
+    EXPECT_NEAR(cuda_sum[0], cpu_sum, tol);
 }
 
 /// Test the regular multi store functionality
@@ -237,9 +241,11 @@ TEST(container_cuda, regular_multi_store) {
         detray::get_buffer(store, dev_mr, cpy);
     reg_multi_store_t::view_type buffer_view = detray::get_data(store_buffer);
 
+    EXPECT_NEAR(cuda_sum[0], 0.f, tol);
+
     test_reg_multi_store(buffer_view, sum_data);
 
-    EXPECT_NEAR(cpu_sum, cuda_sum[0], tol);
+    EXPECT_NEAR(cuda_sum[0], cpu_sum, tol);
 }
 
 /// Tets the multi store with a hierarchical memory type ( @c test<> )
@@ -305,7 +311,9 @@ TEST(container_cuda, multi_store) {
         detray::get_buffer(store, dev_mr, cpy);
     multi_store_t::view_type buffer_view = detray::get_data(store_buffer);
 
+    EXPECT_NEAR(cuda_sum[0], 0.f, tol);
+
     test_multi_store(buffer_view, sum_data);
 
-    EXPECT_NEAR(cpu_sum, cuda_sum[0], tol);
+    EXPECT_NEAR(cuda_sum[0], cpu_sum, tol);
 }

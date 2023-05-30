@@ -127,14 +127,14 @@ class tuple_container {
 
     private:
     /// @returns the view for all contained types.
-    template <bool all_viewable = std::conjunction_v<detail::get_view<Ts>...>,
+    template <bool all_viewable = std::conjunction_v<detail::has_view<Ts>...>,
               std::size_t... I, std::enable_if_t<all_viewable, bool> = true>
     DETRAY_HOST view_type get_data(std::index_sequence<I...> /*seq*/) noexcept {
         return view_type{detray::get_data(detail::get<I>(_tuple))...};
     }
 
     /// @returns the const view for all contained types.
-    template <bool all_viewable = std::conjunction_v<detail::get_view<Ts>...>,
+    template <bool all_viewable = std::conjunction_v<detail::has_view<Ts>...>,
               std::size_t... I, std::enable_if_t<all_viewable, bool> = true>
     DETRAY_HOST const_view_type
     get_data(std::index_sequence<I...> /*seq*/) const noexcept {

@@ -51,7 +51,6 @@ class single_store {
     using view_type = detail::get_view_t<container_t<T>>;
     using const_view_type = detail::get_view_t<const container_t<T>>;
     using buffer_type = detail::get_buffer_t<container_t<T>>;
-    using const_buffer_type = detail::get_buffer_t<const container_t<T>>;
 
     /// Empty container
     constexpr single_store() = default;

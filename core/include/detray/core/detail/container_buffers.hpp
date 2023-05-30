@@ -121,7 +121,7 @@ struct has_buffer<const vecmem::vector<T>, void> : public std::true_type {
 };
 
 template <class T>
-inline constexpr bool is_bufferable_v = has_buffer<T>::value;
+inline constexpr bool has_buffer_v = has_buffer<T>::value;
 
 template <class T>
 using get_buffer_t = typename has_buffer<T>::type;
@@ -145,7 +145,7 @@ dvector_buffer<T> get_buffer(const dvector_view<T>& vec_view,
                              ::vecmem::memory_resource& mr,
                              ::vecmem::copy& cpy) {
     dvector_buffer<T> buff{vec_view.size(), mr};
-    cpy(vec_view, buff);
+    cpy(vec_view, buff)->wait();;
     return buff;
 }
 
@@ -153,7 +153,7 @@ dvector_buffer<T> get_buffer(const dvector_view<T>& vec_view,
 ///
 /// Unwraps the view type at compile time and calls @c get_buffer on every view.
 /// Then returns the resulting buffer objects and packages them recursively
-/// into a @c mutli_buffer .
+/// into a @c multi_buffer .
 ///
 /// @note This does not pick up the vecmem types.
 template <
@@ -172,7 +172,7 @@ auto get_buffer(const dmulti_view<Ts...>& data_view,
 }
 
 /// @brief Get the buffer representation of a composite object - non-const
-template <class T, std::enable_if_t<detail::is_bufferable_v<T>, bool> = true>
+template <class T, std::enable_if_t<detail::has_buffer_v<T>, bool> = true>
 typename T::buffer_type get_buffer(T& bufferable, vecmem::memory_resource& mr,
                                    vecmem::copy& cpy) {
     return detray::get_buffer(bufferable.get_data(), mr, cpy);

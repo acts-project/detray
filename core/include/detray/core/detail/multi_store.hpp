@@ -66,7 +66,6 @@ class multi_store {
     using view_type = typename tuple_type::view_type;
     using const_view_type = typename tuple_type::const_view_type;
     using buffer_type = typename tuple_type::buffer_type;
-    using const_buffer_type = typename tuple_type::const_buffer_type;
 
     /// Empty container
     constexpr multi_store() = default;
