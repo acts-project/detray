@@ -163,46 +163,32 @@ dvector_buffer<const T> get_buffer(const dvector_view<const T>& vec_view,
 
 /// @brief Recursively get the buffer representation of a composite view
 ///
-/// @note This does not pick up the vecmem types.
-template <class view_t>
-auto get_buffer(const view_t& data_view, vecmem::memory_resource& mr,
-                vecmem::copy& cpy);  // Forward declaration
-
-/// @brief Unroll the composite view type
-///
 /// Unwraps the view type at compile time and calls @c get_buffer on every view.
-/// Then returns the resulting buffer objects and packages them into a
-/// @c mutli_buffer to be passed on to the next level.
+/// Then returns the resulting buffer objects and packages them recursively
+/// into a @c mutli_buffer .
 ///
 /// @note This does not pick up the vecmem types.
-template <class view_t, std::size_t... I,
-          std::enable_if_t<detail::is_device_view_v<view_t>, bool> = true>
-auto get_buffer(const view_t& data_view, vecmem::memory_resource& mr,
-                vecmem::copy& cpy, std::index_sequence<I...> /*seq*/) {
-    return dmulti_buffer<decltype(
-        detray::get_buffer(detail::get<I>(data_view.m_view), mr, cpy))...>(
-        std::move(
-            detray::get_buffer(detail::get<I>(data_view.m_view), mr, cpy))...);
-}
+template <
+    typename... Ts,
+    std::enable_if_t<detail::is_device_view_v<dmulti_view<Ts...>>, bool> = true>
+auto get_buffer(const dmulti_view<Ts...>& data_view,
+                vecmem::memory_resource& mr, vecmem::copy& cpy) {
+    // Evaluate recursive buffer type
+    // (e.g. dmulti_view<..., dmulti_view<...>, ...>
+    //       => dmulti_buffer<..., dmulti_buffer<...>, ...>)
+    using result_buffer_t = dmulti_buffer<decltype(detray::get_buffer(
+        detail::get<Ts>(data_view.m_view), mr, cpy))...>;
 
-template <class view_t>
-auto get_buffer(const view_t& data_view, vecmem::memory_resource& mr,
-                vecmem::copy& cpy) {
-    return detray::get_buffer(
-        data_view, mr, cpy,
-        std::make_index_sequence<
-            detail::tuple_size_v<decltype(data_view.m_view)>>{});
+    return result_buffer_t{std::move(
+        detray::get_buffer(detail::get<Ts>(data_view.m_view), mr, cpy))...};
 }
 
 /// @brief Get the buffer representation of a composite object - non-const
-///
-/// @note This does not pick up the vecmem types.
 template <class T, std::enable_if_t<detail::is_bufferable_v<T>, bool> = true>
 typename T::buffer_type get_buffer(T& bufferable, vecmem::memory_resource& mr,
                                    vecmem::copy& cpy) {
     return detray::get_buffer(bufferable.get_data(), mr, cpy);
 }
-/// @}
 
 /// Get the vecmem view type of a vector buffer
 ///
@@ -213,10 +199,6 @@ dvector_view<T> get_data(dvector_buffer<T>& buff) {
     return vecmem::get_data(buff);
 }
 
-/// @brief Get the view ( @c dmulti_view ) of a @c dmulti_buffer
-template <class... Ts>
-auto get_data(dmulti_buffer<Ts...>& multi_buff);  // Forward declaration
-
 /// @brief Unroll the composite buffer type
 ///
 /// Unwraps the buffer type at compile time and calls @c get_data on every
@@ -225,16 +207,14 @@ auto get_data(dmulti_buffer<Ts...>& multi_buff);  // Forward declaration
 /// @c mutli_view to be ultimately passed on to the class constructor.
 ///
 /// @note This does not pick up the vecmem types.
-template <class... Ts, std::size_t... I>
-auto get_data(dmulti_buffer<Ts...>& multi_buff, std::index_sequence<I...>) {
-    return dmulti_view<decltype(detray::get_data(std::declval<Ts&>()))...>(
-        detray::get_data(detail::get<I>(multi_buff.m_buffer))...);
-}
-
 template <class... Ts>
 auto get_data(dmulti_buffer<Ts...>& multi_buff) {
-    return detray::get_data(multi_buff,
-                            std::make_index_sequence<sizeof...(Ts)>{});
+    // Evaluate recursive view type
+    using result_view_t =
+        dmulti_view<decltype(detray::get_data(std::declval<Ts&>()))...>;
+
+    return result_view_t{
+        detray::get_data(detail::get<Ts>(multi_buff.m_buffer))...};
 }
 
 }  // namespace detray
