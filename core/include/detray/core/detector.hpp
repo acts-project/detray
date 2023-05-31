@@ -123,6 +123,7 @@ class detector {
     using geo_obj_ids = typename metadata::geo_objects;
     using volume_type =
         detector_volume<geo_obj_ids, sf_finder_link, scalar_type>;
+    using volume_container = vector_type<volume_type>;
 
     /// Volume finder definition: Make volume index available from track
     /// position
@@ -585,7 +586,7 @@ class detector {
 
     private:
     /// Contains the detector sub-volumes.
-    vector_type<volume_type> _volumes;
+    volume_container _volumes;
 
     /// Keeps all of the transform data in contiguous memory
     transform_container _transforms;
@@ -617,31 +618,65 @@ struct detector_buffer {
 
     using detector_type = detector<metadata, bfield_t, container_t>;
 
+    /// Automatic buffer creation with the given parameters
     detector_buffer(detector_type &det, vecmem::memory_resource &mr,
-                    vecmem::copy &cpy)
-        : _detector_buffer(
-              detray::get_buffer(detray::get_data(det.volumes()), mr, cpy),
-              detray::get_buffer(det.transform_store(), mr, cpy),
-              detray::get_buffer(det.mask_store(), mr, cpy),
-              detray::get_buffer(det.material_store(), mr, cpy),
-              detray::get_buffer(det.surface_store(), mr, cpy),
-              detray::get_buffer(det.volume_search_grid(), mr, cpy)),
+                    vecmem::copy &cpy,
+                    detray::copy cpy_type = detray::copy::sync,
+                    vecmem::data::buffer_type buff_type =
+                        vecmem::data::buffer_type::fixed_size)
+        : _detector_buffer(detray::get_buffer(detray::get_data(det.volumes()),
+                                              mr, cpy, cpy_type, buff_type),
+                           detray::get_buffer(det.transform_store(), mr, cpy,
+                                              cpy_type, buff_type),
+                           detray::get_buffer(det.mask_store(), mr, cpy,
+                                              cpy_type, buff_type),
+                           detray::get_buffer(det.material_store(), mr, cpy,
+                                              cpy_type, buff_type),
+                           detray::get_buffer(det.surface_store(), mr, cpy,
+                                              cpy_type, buff_type),
+                           detray::get_buffer(det.volume_search_grid(), mr, cpy,
+                                              cpy_type, buff_type)),
           _bfield_view(det.get_bfield()) {}
 
-    /*detector_buffer(detector_type &det, vecmem::memory_resource& mr,
-       vecmem::copy& cpy) : _detector_buffer(
-          detray::get_buffer(detray::get_data(det.volumes()), mr, cpy),
-          detray::get_buffer(det.transform_store(), mr, cpy),
-          detray::get_buffer(det.mask_store(), mr, cpy),
-          detray::get_buffer(det.material_store(), mr, cpy),
-          detray::get_buffer(det.surface_store(), mr, cpy),
-          detray::get_buffer(det.volume_search_grid(), mr, cpy)),
-          _bfield_view(det.get_bfield()) {}*/
+    /// Buffers were created manually
+    detector_buffer(
+        detector<metadata, bfield_t, container_t> &det,
+        detail::get_buffer_t<typename detector_type::volume_container>
+            &&vol_buffer,
+        typename detector_type::transform_container::buffer_type &&trf_buffer,
+        typename detector_type::mask_container::buffer_type &&msk_buffer,
+        typename detector_type::material_container::buffer_type &&mat_buffer,
+        typename detector_type::surface_container::buffer_type &&sf_buffer,
+        typename detector_type::volume_finder::buffer_type &&vgrd_buffer)
+        : _detector_buffer(std::move(vol_buffer), std::move(trf_buffer),
+                           std::move(msk_buffer), std::move(mat_buffer),
+                           std::move(sf_buffer), std::move(vgrd_buffer)),
+          _bfield_view(det.get_bfield()) {}
 
-    // members
+    /// Buffers for the vecemem types
     typename detector_type::buffer_type _detector_buffer;
+    /// Covfie field
     typename detector_type::bfield_type::view_t _bfield_view;
 };
+
+// Deduction guide to construct a detector buffer type more conveniently
+template <typename metadata, template <typename> class bfield_t,
+          typename container_t>
+detector_buffer(
+    detector<metadata, bfield_t, container_t> &,
+    detail::get_buffer_t<typename detector<metadata, bfield_t,
+                                           container_t>::volume_container> &&,
+    typename detector<metadata, bfield_t,
+                      container_t>::transform_container::buffer_type &&,
+    typename detector<metadata, bfield_t,
+                      container_t>::mask_container::buffer_type &&,
+    typename detector<metadata, bfield_t,
+                      container_t>::material_container::buffer_type &&,
+    typename detector<metadata, bfield_t,
+                      container_t>::surface_container::buffer_type &&,
+    typename detector<metadata, bfield_t,
+                      container_t>::volume_finder::buffer_type &&)
+    -> detector_buffer<metadata, bfield_t, container_t>;
 
 /// @brief A static inplementation of detector data for device
 template <typename metadata, template <typename> class bfield_t,
@@ -663,8 +698,9 @@ struct detector_view {
         : _detector_data(detray::get_data(det_buff._detector_buffer)),
           _bfield_view(det_buff._bfield_view) {}
 
-    // members
+    /// Views for the vecmem types
     typename detector_type::view_type _detector_data;
+    /// Covfie field view
     typename detector_type::bfield_type::view_t _bfield_view;
 };
 
@@ -687,8 +723,10 @@ template <typename metadata, template <typename> class bfield_t,
           typename container_t>
 inline detector_buffer<metadata, bfield_t, container_t> get_buffer(
     detector<metadata, bfield_t, container_t> &det, vecmem::memory_resource &mr,
-    vecmem::copy &cpy) {
-    return {det, mr, cpy};
+    vecmem::copy &cpy, detray::copy cpy_type = detray::copy::sync,
+    vecmem::data::buffer_type buff_type =
+        vecmem::data::buffer_type::fixed_size) {
+    return {det, mr, cpy, cpy_type, buff_type};
 }
 
 /// Stand-alone function that @returns the detector data for transfer to
