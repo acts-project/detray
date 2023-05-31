@@ -8,7 +8,6 @@
 #pragma once
 
 // Project include(s)
-#include "detray/core/detail/bfield_views.hpp"
 #include "detray/core/detail/container_buffers.hpp"
 #include "detray/core/detail/container_views.hpp"
 #include "detray/core/detail/detector_kernel.hpp"

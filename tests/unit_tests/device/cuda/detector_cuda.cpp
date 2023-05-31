@@ -14,7 +14,6 @@
 #include <vecmem/memory/cuda/managed_memory_resource.hpp>
 #include <vecmem/utils/cuda/async_copy.hpp>
 #include <vecmem/utils/cuda/copy.hpp>
-#include <vecmem/utils/cuda/stream_wrapper.hpp>
 
 // Google Test include(s)
 #include <gtest/gtest.h>
@@ -140,7 +139,8 @@ TEST(detector_cuda, enumerate) {
     auto det_buff = get_buffer(detector, dev_mr, cpy);
     auto det_data = get_data(det_buff);
 
-    vecmem::cuda::copy acpy;
+    // Get the transform store as resizable buffer with async copy
+    vecmem::cuda::copy acpy; //< TODO: wrap CUDA streams to use async_copy
     auto trf_buff =
         get_buffer(detector.transform_store(), dev_mr, acpy, detray::copy::sync,
                    vecmem::data::buffer_type::resizable);
