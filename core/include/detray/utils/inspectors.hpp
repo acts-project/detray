@@ -10,6 +10,7 @@
 // Project include(s)
 #include "detray/intersection/detail/trajectories.hpp"
 #include "detray/propagator/base_actor.hpp"
+#include "detray/propagator/navigator.hpp"
 #include "detray/utils/tuple_helpers.hpp"
 
 // System include(s)

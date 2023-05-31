@@ -21,7 +21,7 @@
 #include "detray/propagator/rk_stepper.hpp"
 #include "detray/test/types.hpp"
 #include "detray/tracks/tracks.hpp"
-#include "tests/common/tools/inspectors.hpp"
+#include "detray/utils/inspectors.hpp"
 
 // This tests the construction and general methods of the navigator
 GTEST_TEST(detray_propagator, guided_navigator) {
