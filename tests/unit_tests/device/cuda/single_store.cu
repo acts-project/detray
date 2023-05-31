@@ -8,7 +8,6 @@
 // Project include(s).
 #include <vecmem/memory/cuda/device_memory_resource.hpp>
 #include <vecmem/memory/host_memory_resource.hpp>
-#include <vecmem/memory/unique_ptr.hpp>
 #include <vecmem/utils/cuda/copy.hpp>
 
 #include "detray/core/detail/single_store copy.hpp"
@@ -68,18 +67,45 @@ GTEST_TEST(detray_detail, single_store) {
     EXPECT_EQ(host_view_2.at(3), 2);
 }
 
+
+using t1 = vecmem_types<unsigned, true>; // vector of unsigned
+using t2 = vecmem_types<int, false>; // 1 int
+using t3 = vecmem_types<float, true>; // vector of float
+using t4 = vecmem_types<double, false>; // 1 double
+
+using test_tuple_ts = detray::detail::tuple_types<t1,t2,t3,t4>;
+
 GTEST_TEST(detray_detail, tuple_types) {
     vecmem::host_memory_resource host_mr;
-    // detray::detail::tuple_buffer<int, vecmem::data::vector_buffer<int>, float, 
-    //     vecmem::data::vector_buffer<float>> buff(host_mr, 2, 3);
+    vecmem::cuda::device_memory_resource dev_mr;
+    vecmem::cuda::copy copy;
 
-    // detray::detail::tuple_buffer<vecmem::data::vector_buffer<unsigned>, int, vecmem::data::vector_buffer<int>, float, 
-    //     vecmem::data::vector_buffer<float>, unsigned> buff2(host_mr, 1, 2, 3);
+    test_tuple_ts::buffer buff(host_mr, 1,2);
 
-    detray::detail::tuple_buffer<vecmem::data::vector_buffer<unsigned>, 
-        vecmem::unique_alloc_ptr<int>, vecmem::data::vector_buffer<int>, 
-        vecmem::unique_alloc_ptr<float>, vecmem::data::vector_buffer<float>> 
-        buff3(host_mr, 1, 2, 3);
+    test_tuple_ts::view view(buff);
+
+    test_tuple_ts::device device(view);
+
+    std::cout << detail::get<0>(device).size() << std::endl;
+    std::cout << detail::get<1>(device) << std::endl;
+    std::cout << detail::get<2>(device).size() << std::endl;
+    std::cout << detail::get<3>(device) << std::endl;
+    
+
+    test_tuple_ts::host host(vecmem::vector<unsigned>(1, 0), 1, vecmem::vector<float>(2, 2.1), 3.3);
+
+    std::cout << detail::get<0>(host).size() << std::endl;
+    std::cout << detail::get<0>(host)[0] << std::endl;
+    std::cout << detail::get<1>(host) << std::endl;
+    std::cout << detail::get<2>(host).size() << std::endl;
+    std::cout << detail::get<2>(host)[0] << std::endl;
+    std::cout << detail::get<2>(host)[1] << std::endl;
+    std::cout << detail::get<3>(host) << std::endl;
+
+    // using test_types = tuple_types<vecmem::vector<unsigned>, int, vecmem::vector<int>, float, vecmem::vector<float>>;
+    // using test_types = tuple_types<{unsigned, true}, {int, false}, {int, true}, {float, false}, {float, true}>;
+
+    
 
 }
 
