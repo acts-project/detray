@@ -72,6 +72,10 @@ class grid {
     /// Vecmem based grid view type - const
     using const_view_type = dmulti_view<dvector_view<const bin_type>,
                                         typename axes_type::const_view_type>;
+
+    using buffer_type = dmulti_buffer<dvector_buffer<bin_type>,
+                                      typename axes_type::buffer_type>;
+
     /// Grid backend can be owning (single grid) or non-owning (grid collection)
     using storage_type =
         std::conditional_t<is_owning, detail::grid_data<bin_storage_type>,

@@ -8,11 +8,13 @@
 // Project include(s)
 #include "detector_cuda_kernel.hpp"
 #include "detray/detectors/create_toy_geometry.hpp"
-#include "vecmem/utils/cuda/copy.hpp"
 
 // Vecmem include(s)
 #include <vecmem/memory/cuda/device_memory_resource.hpp>
 #include <vecmem/memory/cuda/managed_memory_resource.hpp>
+#include <vecmem/utils/cuda/async_copy.hpp>
+#include <vecmem/utils/cuda/copy.hpp>
+#include <vecmem/utils/cuda/stream_wrapper.hpp>
 
 // Google Test include(s)
 #include <gtest/gtest.h>
@@ -133,7 +135,15 @@ TEST(detector_cuda, enumerate) {
     copy.setup(surfaces_buffer);
 
     // get data object for toy detector
-    auto det_data = get_data(detector);
+    // auto det_data = get_data(detector);
+    vecmem::cuda::copy cpy;
+    auto det_buff = get_buffer(detector, dev_mr, cpy);
+    auto det_data = get_data(det_buff);
+
+    vecmem::cuda::copy acpy;
+    auto trf_buff =
+        get_buffer(detector.transform_store(), dev_mr, acpy, detray::copy::sync,
+                   vecmem::data::buffer_type::resizable);
 
     // run the test code to test enumerate
     enumerate_test(det_data, surfaces_buffer);

@@ -8,6 +8,7 @@
 #pragma once
 
 // Detray include(s).
+#include "detray/core/detail/container_buffers.hpp"
 #include "detray/core/detail/container_views.hpp"
 #include "detray/definitions/containers.hpp"
 #include "detray/definitions/indexing.hpp"
@@ -78,6 +79,8 @@ class brute_force_collection {
         dmulti_view<dvector_view<size_type>, dvector_view<surface_t>>;
     using const_view_type = dmulti_view<dvector_view<const size_type>,
                                         dvector_view<const surface_t>>;
+    using buffer_type =
+        dmulti_buffer<dvector_buffer<size_type>, dvector_buffer<surface_t>>;
 
     /// Default constructor
     constexpr brute_force_collection() {

@@ -74,6 +74,11 @@ class grid_collection<
                     detail::get_view_t<const axes_storage_type>,
                     detail::get_view_t<const edges_storage_type>>;
 
+    using buffer_type = dmulti_buffer<dvector_buffer<size_type>,
+                                      detail::get_buffer_t<bin_storage_type>,
+                                      detail::get_buffer_t<axes_storage_type>,
+                                      detail::get_buffer_t<edges_storage_type>>;
+
     /// Make grid default constructible: Empty grid with empty axis
     grid_collection() = default;
 

@@ -98,7 +98,7 @@ struct single_axis {
     /// @returns the width of a bin
     template <typename... Args>
     DETRAY_HOST_DEVICE inline constexpr scalar_type bin_width(
-        Args &&... args) const {
+        Args &&...args) const {
         return m_binning.bin_width(std::forward<Args &&>(args)...);
     }
 
@@ -202,6 +202,8 @@ class multi_axis {
         dmulti_view<dvector_view<dindex_range>, dvector_view<scalar_type>>;
     using const_view_type = dmulti_view<dvector_view<const dindex_range>,
                                         dvector_view<const scalar_type>>;
+    using buffer_type = dmulti_buffer<dvector_buffer<dindex_range>,
+                                      dvector_buffer<scalar_type>>;
 
     /// Match an axis to its label at compile time
     using axis_reg = type_registry<n_axis::label, axis_ts...>;

@@ -24,6 +24,12 @@
 
 namespace detray {
 
+/// Flag how a copy should be done, only needed until copy util is ready
+enum class copy {
+    sync = 0,
+    async = 1,
+};
+
 namespace detail {
 
 // Buffer wrappers for types that aggregate containers/other bufferable types
@@ -141,11 +147,22 @@ using dmulti_buffer = detray::detail::dmulti_buffer_helper<
 
 /// @brief Get the buffer representation of a vecmem vector - non-const
 template <class T>
-dvector_buffer<T> get_buffer(const dvector_view<T>& vec_view,
-                             ::vecmem::memory_resource& mr,
-                             ::vecmem::copy& cpy) {
-    dvector_buffer<T> buff{vec_view.size(), mr};
-    cpy(vec_view, buff)->wait();;
+dvector_buffer<T> get_buffer(
+    const dvector_view<T>& vec_view, vecmem::memory_resource& mr,
+    vecmem::copy& cpy, detray::copy cpy_type = detray::copy::sync,
+    vecmem::data::buffer_type buff_type = vecmem::data::buffer_type::fixed_size
+    /*, stream*/) {
+    dvector_buffer<T> buff{vec_view.size(), mr, buff_type};
+    // TODO: Move this to detray copy util, which bundles vecmem copy object and
+    // stream handle and gets this switch case right automatically
+    switch (cpy_type) {
+        case detray::copy::async:
+            cpy(vec_view, buff /*, stream*/);
+            break;
+        default:
+            cpy(vec_view, buff)->wait();
+    };
+
     return buff;
 }
 
@@ -160,22 +177,31 @@ template <
     typename... Ts,
     std::enable_if_t<detail::is_device_view_v<dmulti_view<Ts...>>, bool> = true>
 auto get_buffer(const dmulti_view<Ts...>& data_view,
-                vecmem::memory_resource& mr, vecmem::copy& cpy) {
+                vecmem::memory_resource& mr, vecmem::copy& cpy,
+                detray::copy cpy_type = detray::copy::sync,
+                vecmem::data::buffer_type buff_type =
+                    vecmem::data::buffer_type::fixed_size) {
     // Evaluate recursive buffer type
     // (e.g. dmulti_view<..., dmulti_view<dvector_view<T>, ...>, ...>
     //       => dmulti_buffer<..., dmulti_buffer<dvector_buffer<T>, ...>, ...>)
     using result_buffer_t = dmulti_buffer<decltype(detray::get_buffer(
-        detail::get<Ts>(data_view.m_view), mr, cpy))...>;
+        detail::get<Ts>(data_view.m_view), mr, cpy, cpy_type, buff_type))...>;
 
-    return result_buffer_t{std::move(
-        detray::get_buffer(detail::get<Ts>(data_view.m_view), mr, cpy))...};
+    return result_buffer_t{std::move(detray::get_buffer(
+        detail::get<Ts>(data_view.m_view), mr, cpy, cpy_type, buff_type))...};
 }
 
 /// @brief Get the buffer representation of a composite object - non-const
-template <class T, std::enable_if_t<detail::has_buffer_v<T>, bool> = true>
+template <
+    class T,
+    std::enable_if_t<detail::is_buffer_v<typename T::buffer_type>, bool> = true>
 typename T::buffer_type get_buffer(T& bufferable, vecmem::memory_resource& mr,
-                                   vecmem::copy& cpy) {
-    return detray::get_buffer(bufferable.get_data(), mr, cpy);
+                                   vecmem::copy& cpy,
+                                   detray::copy cpy_type = detray::copy::sync,
+                                   vecmem::data::buffer_type buff_type =
+                                       vecmem::data::buffer_type::fixed_size) {
+    return detray::get_buffer(bufferable.get_data(), mr, cpy, cpy_type,
+                              buff_type);
 }
 
 /// Get the vecmem view type of a vector buffer
