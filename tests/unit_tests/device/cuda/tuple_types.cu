@@ -30,6 +30,18 @@ using t3 = vecmem_types<double, false>; // 1 double
 using test_tuple_ts = detray::detail::tuple_types<t0,t1,t2,t3>;
 
 
+template<typename vec1_t, typename vec2_t>
+__host__ __device__ float dosomethingcomplicated(vec1_t vec1, vec2_t vec2) {
+    float result = 0.;
+    for(std::size_t i = 0; i < vec1.size(); ++i) {
+        result += static_cast<float>(vec1[i]);
+    }
+    for(std::size_t j = 0; j < vec2.size(); ++j) {
+        result += static_cast<float>(vec2[j]);
+    }
+    return result;
+}
+
 __global__ void basic_kernel(test_tuple_ts::view tuple_view) {
     std::size_t globalIdx = threadIdx.x + blockIdx.x * blockDim.x;
 
@@ -50,6 +62,7 @@ __global__ void basic_kernel(test_tuple_ts::view tuple_view) {
     float_vec.at(0) += 1.1;
     float_vec.at(1) += 1.1;
     _double += 2.2;
+    _double += dosomethingcomplicated(uns_vec, float_vec);
 }
 
 GTEST_TEST(detray_detail, tuple_types) {
@@ -65,7 +78,7 @@ GTEST_TEST(detray_detail, tuple_types) {
     EXPECT_EQ(detail::get<2>(host).size(), 2);
     EXPECT_NEAR(detail::get<2>(host)[0], 2.1, tol);
     EXPECT_NEAR(detail::get<2>(host)[1], 2.1, tol);
-    EXPECT_EQ(detail::get<3>(host), 3.3);
+    EXPECT_NEAR(detail::get<3>(host), 3.3, tol);
 
     // Edit data on host type
     detail::get<0>(host).push_back(1);
@@ -121,5 +134,9 @@ GTEST_TEST(detray_detail, tuple_types) {
     EXPECT_EQ(detail::get<2>(host).size(), 2);
     EXPECT_NEAR(detail::get<2>(host)[0], 3.2, tol);
     EXPECT_NEAR(detail::get<2>(host)[1], 3.3, tol);
-    EXPECT_EQ(detail::get<3>(host), 5.5);
+    EXPECT_NEAR(detail::get<3>(host), 17., tol);
+
+    detail::get<3>(host) -= dosomethingcomplicated(detail::get<0>(host), detail::get<2>(host));
+    EXPECT_NEAR(detail::get<3>(host), 5.5, tol);
+
 }
