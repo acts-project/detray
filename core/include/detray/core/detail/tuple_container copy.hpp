@@ -18,6 +18,8 @@
 // Vecmem include(s)
 #include <vecmem/memory/memory_resource.hpp>
 #include <vecmem/memory/unique_ptr.hpp>
+#include <vecmem/utils/copy.hpp>
+
 
 // System include(s)
 #include <memory>
@@ -41,10 +43,18 @@ template <typename T, typename... Ts>
 struct tuple_host<T, Ts...> {
     using h_t = typename T::host;
 
-    DETRAY_HOST constexpr tuple_host() {}
+    DETRAY_HOST constexpr tuple_host() : 
+        // This is only necessary because vecmem::vector doesn't allow default constructor
+        v([&]{
+            if constexpr(is_specialization<h_t, vecmem::data::vector_buffer>::value) {
+                return h_t(0);
+            }
+            else {
+                return h_t();
+            }}()) {}
 
     template <typename U, typename... Us>
-    DETRAY_HOST constexpr tuple_host(const tuple<U, Us...> &o)
+    DETRAY_HOST constexpr tuple_host(const tuple_host<U, Us...> &o)
         : v(o.v), r(o.r) {}
 
     template <
@@ -110,8 +120,14 @@ template <typename T, typename... Ts>
 struct tuple_view {
     using v_t = typename T::view;
 
-    DETRAY_HOST constexpr tuple_view(tuple_buffer<T, Ts...> &buff) :
+    // Constructor from buffer or host tuple
+    template <template<typename...> class tuple_t>
+    DETRAY_HOST constexpr tuple_view(tuple_t<T, Ts...> &buff) :
         v(test::get_data(buff.v)), r(buff.r) {}
+        
+    // Copy constructor
+    DETRAY_HOST constexpr tuple_view(tuple_view<T, Ts...> &view) :
+        v(view.v), r(view.r) {}
 
     v_t v;
     tuple_view<Ts...> r;
@@ -121,8 +137,14 @@ template <typename T>
 struct tuple_view<T> {
     using v_t = typename T::view;
 
-    DETRAY_HOST constexpr tuple_view(tuple_buffer<T> &buff) :
+    // Constructor from buffer or host tuple
+    template <template<typename...> class tuple_t>
+    DETRAY_HOST constexpr tuple_view(tuple_t<T> &buff) :
         v(test::get_data(buff.v)) {}
+
+    // Copy constructor
+    DETRAY_HOST constexpr tuple_view(tuple_view<T> &view) :
+        v(view.v) {}
 
     v_t v;
 };
@@ -131,7 +153,7 @@ template <typename T, typename... Ts>
 struct tuple_device {
     using d_t = typename T::device;
 
-    DETRAY_HOST constexpr tuple_device(tuple_view<T, Ts...> &view) :
+    DETRAY_HOST_DEVICE constexpr tuple_device(tuple_view<T, Ts...> &view) :
         v(view.v), r(view.r) {}
 
     d_t v;
@@ -142,7 +164,7 @@ template <typename T>
 struct tuple_device<T> {
     using d_t = typename T::device;
 
-    DETRAY_HOST constexpr tuple_device(tuple_view<T> &view) :
+    DETRAY_HOST_DEVICE constexpr tuple_device(tuple_view<T> &view) :
         v(view.v) {}
 
     d_t v;

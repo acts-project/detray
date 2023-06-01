@@ -7,13 +7,6 @@
 
 namespace detray {
 
-
-template<typename Test, template<typename...> class Ref>
-struct is_specialization : std::false_type {};
-
-template<template<typename...> class Ref, typename... Args>
-struct is_specialization<Ref<Args...>, Ref>: std::true_type {};
-
 template <typename T, bool vector_like>
 struct vecmem_types {};
 
@@ -29,30 +22,45 @@ struct vecmem_types<T, true> {
 
 template <typename T>
 struct vecmem_types<T, false> {
+    using value_type = T;
+
     using host = T;
     using buffer = vecmem::unique_alloc_ptr<T>;
     // should it be pointer instead of reference?
-    using view = T&;
-    using const_view = const T&;
-    using device = T&;
-    using const_device = const T&;
+    using view = T*;
+    using const_view = const T*;
+    using device = T*;
+    using const_device = const T*;
 };
 
 namespace test {
 
-template <typename T, std::enable_if_t<std::disjunction_v<is_specialization<T, vecmem::data::vector_buffer>, is_specialization<T, vecmem::vector>>>>
-auto get_data(const T& t) {
+// This didn't work...
+// template <typename T, std::enable_if_t<std::disjunction_v<is_specialization<T, vecmem::data::vector_buffer>, 
+//                                                           is_specialization<T, vecmem::vector>, 
+//                                                           is_specialization<T, std::vector>>>>
+// auto get_data(const T& t) {
+//     return vecmem::get_data(t);
+// }
+
+template <typename T>
+auto get_data(vecmem::data::vector_buffer<T>& t) {
     return vecmem::get_data(t);
 }
 
 template <typename T>
-T& get_data(vecmem::unique_alloc_ptr<T>& buff) {
-    return buff.get()[0];
+auto get_data(vecmem::vector<T>& t) {
+    return vecmem::get_data(t);
 }
 
 template <typename T>
-T& get_data(T& host) {
-    return host;
+T* get_data(vecmem::unique_alloc_ptr<T>& buff) {
+    return buff.get();
+}
+
+template <typename T>
+T* get_data(T& host) {
+    return &host;
 }
 
 } // namespace test
