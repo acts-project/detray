@@ -7,6 +7,7 @@
 
 // Detray include(s)
 #include "detray/core/detail/multi_store.hpp"
+#include "detray/core/detail/single_store.hpp"
 #include "detray/core/detail/tuple_container.hpp"
 
 // Vecmem include(s)
@@ -33,10 +34,40 @@ struct test_func {
     }
 };
 
+GTEST_TEST(detray_core, single_store) {
+
+    // Vecmem memory resource
+    vecmem::host_memory_resource resource;
+
+    // Create store for double values
+    single_store<double, vecmem::vector, geometry_context> store(resource);
+
+    // Base store function check
+    EXPECT_TRUE(store.empty());
+    EXPECT_EQ(store.size(), 0u);
+
+    // Add elements to the container
+    geometry_context ctx{};
+    store.reserve(4, ctx);
+    store.emplace_back(ctx, 1.);
+    store.push_back(2., ctx);
+    store.insert(vecmem::vector<double>{10.5, 7.6}, ctx);
+
+    EXPECT_FALSE(store.empty());
+    EXPECT_EQ(store.size(), 4u);
+
+    // Check  access to the data
+    EXPECT_NEAR(store[0], 1., tol_double);
+    EXPECT_NEAR(store[2], 10.5, tol_double);
+    EXPECT_NEAR(store.at(1, ctx), 2., tol_double);
+    EXPECT_NEAR(store.at(3, ctx), 7.6, tol_double);
+}
+
 GTEST_TEST(detray_core, tuple_container) {
 
     // Vecmem memory resource
     vecmem::host_memory_resource resource;
+
     using host_tuple_t =
         detail::tuple_container<std::tuple, vecmem::vector<float>,
                                 vecmem::vector<std::size_t>,

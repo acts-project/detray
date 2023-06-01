@@ -8,6 +8,7 @@
 #pragma once
 
 // Detray include(s)
+#include "detray/core/detail/container_buffers.hpp"
 #include "detray/core/detail/container_views.hpp"
 #include "detray/core/detail/data_context.hpp"
 #include "detray/core/detail/tuple_container.hpp"
@@ -64,6 +65,7 @@ class multi_store {
     /// Vecmem view types
     using view_type = typename tuple_type::view_type;
     using const_view_type = typename tuple_type::const_view_type;
+    using buffer_type = typename tuple_type::buffer_type;
 
     /// Empty container
     constexpr multi_store() = default;
@@ -272,7 +274,25 @@ class multi_store {
     ///
     /// @tparam current_idx is the index to start unrolling
     ///
-    /// @param other The other container
+    /// @param other The other store
+    ///
+    /// @note in general can throw an exception
+    template <std::size_t current_idx = 0>
+    DETRAY_HOST void append(multi_store &other,
+                            const context_type &ctx = {}) noexcept(false) {
+        auto &coll = other.template get<value_types::to_id(current_idx)>();
+        insert(coll, ctx);
+
+        if constexpr (current_idx < sizeof...(Ts) - 1) {
+            append<current_idx + 1>(std::move(other));
+        }
+    }
+
+    /// Append another store to the current one - move
+    ///
+    /// @tparam current_idx is the index to start unrolling
+    ///
+    /// @param other The other store
     ///
     /// @note in general can throw an exception
     template <std::size_t current_idx = 0>

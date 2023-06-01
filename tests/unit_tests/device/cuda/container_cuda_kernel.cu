@@ -11,32 +11,118 @@
 
 namespace detray {
 
-__global__ void get_sum_kernel(typename host_store_type::view_type store_view,
-                               vecmem::data::vector_view<double> sum_data) {
+__global__ void test_single_store_kernel(
+    single_store_t::view_type store_view,
+    vecmem::data::vector_view<double> sum_data) {
 
-    device_store_type store(store_view);
+    single_store_dev_t store(store_view);
     vecmem::device_vector<double> sum(sum_data);
 
-    const auto& g0 = store.get<0>();
-    const auto& g1 = store.get<1>();
-    const auto& g2 = store.get<2>();
-
-    for (auto e : g0) {
-        sum[0] += e;
-    }
-    for (auto e : g1) {
-        sum[0] += e;
-    }
-    for (auto e : g2) {
+    for (const double e : store) {
         sum[0] += e;
     }
 }
 
-void get_sum(typename host_store_type::view_type store_view,
-             vecmem::data::vector_view<double> sum_data) {
+__global__ void test_tuple_cont_kernel(
+    typename tuple_cont_t::view_type store_view,
+    vecmem::data::vector_view<double> sum_data) {
+
+    tuple_cont_dev_t store(store_view);
+    vecmem::device_vector<double> sum(sum_data);
+
+    const auto& vec0 = store.get<0>();
+    const auto& vec1 = store.get<1>();
+
+    for (const auto e : vec0) {
+        sum[0] += e;
+    }
+    for (const auto e : vec1) {
+        sum[0] += e;
+    }
+}
+
+__global__ void test_reg_multi_store_kernel(
+    reg_multi_store_t::view_type store_view,
+    vecmem::data::vector_view<double> sum_data) {
+
+    reg_multi_store_dev_t store(store_view);
+    vecmem::device_vector<double> sum(sum_data);
+
+    const auto& vec0 = store.get<0>();
+    const auto& vec1 = store.get<1>();
+    const auto& vec2 = store.get<2>();
+
+    for (const auto e : vec0) {
+        sum[0] += e;
+    }
+    for (const auto e : vec1) {
+        sum[0] += e;
+    }
+    for (const auto e : vec2) {
+        sum[0] += e;
+    }
+}
+
+__global__ void test_multi_store_kernel(
+    multi_store_t::view_type store_view,
+    vecmem::data::vector_view<double> sum_data) {
+
+    multi_store_dev_t store(store_view);
+    vecmem::device_vector<double> sum(sum_data);
+
+    const auto& vec0 = store.get<0>();
+    const auto& vec1 = store.get<1>().first;
+    const auto& vec2 = store.get<1>().second;
+
+    for (const auto e : vec0) {
+        sum[0] += e;
+    }
+    for (const auto e : vec1) {
+        sum[0] += e;
+    }
+    for (const auto e : vec2) {
+        sum[0] += e;
+    }
+}
+
+void test_single_store(single_store_t::view_type store_view,
+                       vecmem::data::vector_view<double> sum_data) {
 
     // run the test kernel
-    get_sum_kernel<<<1, 1>>>(store_view, sum_data);
+    test_single_store_kernel<<<1, 1>>>(store_view, sum_data);
+
+    // cuda error check
+    DETRAY_CUDA_ERROR_CHECK(cudaGetLastError());
+    DETRAY_CUDA_ERROR_CHECK(cudaDeviceSynchronize());
+}
+
+void test_tuple_container(tuple_cont_t::view_type store_view,
+                          vecmem::data::vector_view<double> sum_data) {
+
+    // run the test kernel
+    test_tuple_cont_kernel<<<1, 1>>>(store_view, sum_data);
+
+    // cuda error check
+    DETRAY_CUDA_ERROR_CHECK(cudaGetLastError());
+    DETRAY_CUDA_ERROR_CHECK(cudaDeviceSynchronize());
+}
+
+void test_reg_multi_store(reg_multi_store_t::view_type store_view,
+                          vecmem::data::vector_view<double> sum_data) {
+
+    // run the test kernel
+    test_reg_multi_store_kernel<<<1, 1>>>(store_view, sum_data);
+
+    // cuda error check
+    DETRAY_CUDA_ERROR_CHECK(cudaGetLastError());
+    DETRAY_CUDA_ERROR_CHECK(cudaDeviceSynchronize());
+}
+
+void test_multi_store(typename multi_store_t::view_type store_view,
+                      vecmem::data::vector_view<double> sum_data) {
+
+    // run the test kernel
+    test_multi_store_kernel<<<1, 1>>>(store_view, sum_data);
 
     // cuda error check
     DETRAY_CUDA_ERROR_CHECK(cudaGetLastError());

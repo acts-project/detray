@@ -8,6 +8,7 @@
 #pragma once
 
 // Project include(s)
+#include "detray/core/detail/container_buffers.hpp"
 #include "detray/core/detail/container_views.hpp"
 #include "detray/core/detail/data_context.hpp"
 #include "detray/definitions/indexing.hpp"
@@ -49,6 +50,7 @@ class single_store {
     /// Vecmem view types
     using view_type = detail::get_view_t<container_t<T>>;
     using const_view_type = detail::get_view_t<const container_t<T>>;
+    using buffer_type = detail::get_buffer_t<container_t<T>>;
 
     /// Empty container
     constexpr single_store() = default;
@@ -240,6 +242,16 @@ class single_store {
     }
 
     /// Append another store to the current one
+    ///
+    /// @param other The other container
+    ///
+    /// @note in general can throw an exception
+    DETRAY_HOST void append(single_store &other,
+                            const context_type &ctx = {}) noexcept(false) {
+        insert(other.m_container, ctx);
+    }
+
+    /// Append another store to the current one - move
     ///
     /// @param other The other container
     ///

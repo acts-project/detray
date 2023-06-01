@@ -8,6 +8,7 @@
 #pragma once
 
 // Detray include(s)
+#include "detray/core/detail/container_buffers.hpp"
 #include "detray/core/detail/container_views.hpp"
 #include "detray/definitions/containers.hpp"
 #include "detray/definitions/qualifiers.hpp"
@@ -38,6 +39,7 @@ class tuple_container {
     using tuple_type = tuple_t<detray::detail::unwrap_decay_t<Ts>...>;
     using view_type = dmulti_view<get_view_t<Ts>...>;
     using const_view_type = dmulti_view<get_view_t<const Ts>...>;
+    using buffer_type = dmulti_buffer<get_buffer_t<Ts>...>;
 
     /// Empty container - default alloc
     constexpr tuple_container() = default;
@@ -124,18 +126,18 @@ class tuple_container {
 
     private:
     /// @returns the view for all contained types.
-    template <bool all_viewable = std::conjunction_v<detail::get_view<Ts>...>,
+    template <bool all_viewable = std::conjunction_v<detail::has_view<Ts>...>,
               std::size_t... I, std::enable_if_t<all_viewable, bool> = true>
     DETRAY_HOST view_type get_data(std::index_sequence<I...> /*seq*/) noexcept {
-        return {detray::get_data(detail::get<I>(_tuple))...};
+        return view_type{detray::get_data(detail::get<I>(_tuple))...};
     }
 
     /// @returns the const view for all contained types.
-    template <bool all_viewable = std::conjunction_v<detail::get_view<Ts>...>,
+    template <bool all_viewable = std::conjunction_v<detail::has_view<Ts>...>,
               std::size_t... I, std::enable_if_t<all_viewable, bool> = true>
     DETRAY_HOST const_view_type
     get_data(std::index_sequence<I...> /*seq*/) const noexcept {
-        return {detray::get_data(detail::get<I>(_tuple))...};
+        return const_view_type{detray::get_data(detail::get<I>(_tuple))...};
     }
 
     /// @returns a tuple constructed from the elements @param view s.

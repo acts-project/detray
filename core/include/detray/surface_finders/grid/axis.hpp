@@ -202,6 +202,8 @@ class multi_axis {
         dmulti_view<dvector_view<dindex_range>, dvector_view<scalar_type>>;
     using const_view_type = dmulti_view<dvector_view<const dindex_range>,
                                         dvector_view<const scalar_type>>;
+    using buffer_type = dmulti_buffer<dvector_buffer<dindex_range>,
+                                      dvector_buffer<scalar_type>>;
 
     /// Match an axis to its label at compile time
     using axis_reg = type_registry<n_axis::label, axis_ts...>;
@@ -333,16 +335,16 @@ class multi_axis {
     /// @returns a vecmem view on the axes data. Only allowed if it owning data.
     template <bool owner = is_owning, std::enable_if_t<owner, bool> = true>
     DETRAY_HOST auto get_data() -> view_type {
-        return {detray::get_data(m_data.m_axes_data),
-                detray::get_data(m_data.m_edges)};
+        return view_type{detray::get_data(m_data.m_axes_data),
+                         detray::get_data(m_data.m_edges)};
     }
 
     /// @returns a vecmem const view on the axes data. Only allowed if it
     /// owning data.
     template <bool owner = is_owning, std::enable_if_t<owner, bool> = true>
     DETRAY_HOST auto get_data() const -> const_view_type {
-        return {detray::get_data(m_data.m_axes_data),
-                detray::get_data(m_data.m_edges)};
+        return const_view_type{detray::get_data(m_data.m_axes_data),
+                               detray::get_data(m_data.m_edges)};
     }
 
     private:

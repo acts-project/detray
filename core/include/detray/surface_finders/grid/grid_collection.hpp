@@ -74,6 +74,11 @@ class grid_collection<
                     detail::get_view_t<const axes_storage_type>,
                     detail::get_view_t<const edges_storage_type>>;
 
+    using buffer_type = dmulti_buffer<dvector_buffer<size_type>,
+                                      detail::get_buffer_t<bin_storage_type>,
+                                      detail::get_buffer_t<axes_storage_type>,
+                                      detail::get_buffer_t<edges_storage_type>>;
+
     /// Make grid default constructible: Empty grid with empty axis
     grid_collection() = default;
 
@@ -159,15 +164,17 @@ class grid_collection<
 
     /// @returns a vecmem view on the grid collection data - non-const
     DETRAY_HOST auto get_data() -> view_type {
-        return {detray::get_data(m_offsets), detray::get_data(m_bins),
-                detray::get_data(m_axes_data), detray::get_data(m_bin_edges)};
+        return view_type{detray::get_data(m_offsets), detray::get_data(m_bins),
+                         detray::get_data(m_axes_data),
+                         detray::get_data(m_bin_edges)};
     }
 
     /// @returns a vecmem view on the grid collection data - const
     DETRAY_HOST
     auto get_data() const -> const_view_type {
-        return {detray::get_data(m_offsets), detray::get_data(m_bins),
-                detray::get_data(m_axes_data), detray::get_data(m_bin_edges)};
+        return const_view_type{
+            detray::get_data(m_offsets), detray::get_data(m_bins),
+            detray::get_data(m_axes_data), detray::get_data(m_bin_edges)};
     }
 
     /// Add a new grid @param gr to the collection.
