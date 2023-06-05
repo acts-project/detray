@@ -603,9 +603,23 @@ class navigator {
 
             // Update next candidate: If not reachable, 'high trust' is broken
             if (not update_candidate(*navigation.next(), track, det)) {
-                navigation.set_state(navigation::status::e_unknown,
-                                     geometry::barcode{},
-                                     navigation::trust_level::e_no_trust);
+                auto &stepping = propagation._stepping;
+                const scalar_type new_step_size = stepping.step_size() / 2.f;
+
+                // Set unknown if the new step size is smaller than the
+                // threshold
+                if (new_step_size < _safety_step_size) {
+
+                    navigation.set_state(navigation::status::e_unknown,
+                                         geometry::barcode{},
+                                         navigation::trust_level::e_no_trust);
+                    return;
+                }
+
+                // Try with the halved step size once again
+                stepping.set_step_size(new_step_size);
+                stepping.reset_parameter();
+
                 return;
             }
 
