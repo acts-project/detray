@@ -18,7 +18,7 @@ namespace detray::texture {
 // Macro for declaring rgb colors
 #define DETRAY_DECLARE_COLOR(COLOR_NAME, R, G, B) \
     template <typename color_depth = uint8_t>     \
-    inline constexpr auto COLOR_NAME = texture::color<color_depth>{R, G, B};
+    inline auto COLOR_NAME = texture::color<color_depth>{R, G, B};
 
 // https://www.w3schools.com/colors/color_tryit.asp?hex=F0F8FF
 // basic

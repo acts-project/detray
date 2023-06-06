@@ -31,8 +31,8 @@ class ppm_writer final : public image_writer<color_depth> {
 
         // Image data
         for (const auto &px : im.pixel_data()) {
-            *file << static_cast<uint>(px[0]) << " " << static_cast<uint>(px[1])
-                  << " " << static_cast<uint>(px[2]) << std::endl;
+            *file << static_cast<color_depth>(px[0]) << " " << static_cast<color_depth>(px[1])
+                  << " " << static_cast<color_depth>(px[2]) << std::endl;
         }
     };
 };

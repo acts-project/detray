@@ -14,6 +14,16 @@
 
 namespace detray {
 
+namespace math {
+#if(IS_SOA)
+using Vc::sin;
+using Vc::cos;
+#else
+using std::sin;
+using std::cos;
+#endif
+}
+
 template <typename transform3_t>
 struct spherical3D {
 
@@ -47,11 +57,11 @@ struct spherical3D {
     DETRAY_HOST_DEVICE 
     point3 local_to_global(const transform3_t &trf, 
                            const point3 &loc_p) const {
-        const scalar_type sin_theta{math_ns::sin(loc_p[2])};
+        const auto sin_theta{math::sin(loc_p[2])};
 
-        const point3 glob_p{sin_theta * math_ns::cos(loc_p[1]),
-                            sin_theta * math_ns::sin(loc_p[1]),
-                            math_ns::cos(loc_p[2])};
+        const point3 glob_p{sin_theta * math::cos(loc_p[1]),
+                            sin_theta * math::sin(loc_p[1]),
+                            math::cos(loc_p[2])};
 
         return trf.point_to_global(loc_p[0] * glob_p);
     }
@@ -60,11 +70,11 @@ struct spherical3D {
     /// radius of the sphere @param radius.
     DETRAY_HOST_DEVICE 
     constexpr vector3 normal(const point3 & loc_p) const {
-        const scalar_type sin_theta{math_ns::sin(loc_p[2])};
+        const auto sin_theta{math::sin(loc_p[2])};
 
-        return {sin_theta * math_ns::cos(loc_p[1]),
-                sin_theta * math_ns::sin(loc_p[1]),
-                math_ns::cos(loc_p[2])};
+        return {sin_theta * math::cos(loc_p[1]),
+                sin_theta * math::sin(loc_p[1]),
+                math::cos(loc_p[2])};
     }
 };
 

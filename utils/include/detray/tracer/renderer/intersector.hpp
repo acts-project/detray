@@ -10,7 +10,7 @@
 // Project include(s)
 #include "detray/definitions/qualifiers.hpp"
 #include "detray/intersection/detail/trajectories.hpp"
-#include "detray/intersection/intersection.hpp"
+//#include "detray/intersection/intersection.hpp"
 #include "detray/propagator/base_actor.hpp"
 
 // System include(s)

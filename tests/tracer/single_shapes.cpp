@@ -6,13 +6,14 @@
  */
 
 // Algebra include(s).
-#include "detray/plugins/algebra/vc_array_definitions.hpp"
+//#include "detray/plugins/algebra/vc_array_definitions.hpp"
+#include "detray/plugins/algebra/vc_soa_definitions.hpp"
 
 // Project include(s).
 #include "detray/intersection/detail/trajectories.hpp"
 #include "detray/intersection/intersection.hpp"
 #include "detray/io/image/ppm_writer.hpp"
-#include "detray/masks/masks.hpp"
+//#include "detray/masks/masks.hpp"
 #include "detray/masks/sphere2D.hpp"
 #include "detray/materials/predefined_materials.hpp"
 #include "detray/tracer/renderer/camera.hpp"
@@ -45,9 +46,9 @@ inline void write_test_image(raw_image<color_depth> &im) {
             const float g{i_y / im.height()};
             const float b{0.2f};
 
-            const texture::color<> c_grad{static_cast<uint8_t>(255.99f * r),
-                                          static_cast<uint8_t>(255.99f * g),
-                                          static_cast<uint8_t>(255.99f * b),
+            const texture::color<color_depth> c_grad{static_cast<color_depth>(255.99f * r),
+                                          static_cast<color_depth>(255.99f * g),
+                                          static_cast<color_depth>(255.99f * b),
                                           0u};
 
             im.set_pixel(i_x, i_y, c_grad);
@@ -107,15 +108,20 @@ inline void render_single_shape(raw_image<color_depth, aspect_ratio> &im,
 }  // namespace
 
 int main() {
+#if(IS_SOA)
+    using color_depth = Vc::int_v;
+#else
+    using color_depth = std::uint8_t;
+#endif
 
-    io::ppm_writer<> ppm{};
+    io::ppm_writer<color_depth> ppm{};
 
     //
     // Test image
     //
 
     // write a test image
-    raw_image<> image{500u};
+    raw_image<color_depth> image{500u};
     write_test_image(image);
     ppm.write(image, "test");
 
@@ -126,7 +132,11 @@ int main() {
     // Affine transform matrix to place the shapes
     vector3D x{1.0f, 0.0f, 0.0f};
     vector3D z{0.0f, 0.0f, 1.f};
-    vector3D t{0.0f, 0.0f, 30.0f};
+    vector3D t;
+    t[0] = t[0].IndexesFromZero();
+    t[0] *= 10.f;
+    t[1] = 0.f;
+    t[2] = 30.f;
     transform3D trf{t, z, x};
 
     const silicon_tml<scalar> sf_mat{};
@@ -153,9 +163,9 @@ int main() {
     ppm.write(image, "annulus");*/
 
     // render a spherical mask
-    const tracer_mask<sphere2D<>> sph2{0u, 10.f};
-    render_single_shape<>(image, sph2, trf, silicon<scalar>{});
-    ppm.write(image, "sphere");
+    const tracer_mask<sphere2D<>> sph2{0u, 10.f * vector3D::value_type{}.IndexesFromZero()};
+    render_single_shape<color_depth>(image, sph2, trf, silicon<scalar>{});
+    //ppm.write(image, "sphere");
 
     return EXIT_SUCCESS;
 }

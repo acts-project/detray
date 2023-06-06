@@ -42,7 +42,11 @@ class tracer_mask {
     using scalar_type = typename algebra_t::scalar_type;
     using shape = shape_t;
     using boundaries = typename shape::boundaries;
+    #if(IS_SOA)
+    using mask_values = array_t<typename algebra_t::value_type, boundaries::e_size>;
+    #else
     using mask_values = array_t<scalar_type, boundaries::e_size>;
+    #endif
     using local_frame_type =
         typename shape::template local_frame_type<algebra_t>;
     // Linear algebra types
@@ -78,7 +82,7 @@ class tracer_mask {
     /// @param rhs is the right hand side object
     DETRAY_HOST
     auto operator=(const mask_values& rhs)
-        -> mask<shape_t, links_t, algebra_t, array_t>& {
+        -> tracer_mask<shape_t, links_t, algebra_t, array_t>& {
         _values = rhs;
         return (*this);
     }
@@ -91,7 +95,7 @@ class tracer_mask {
     /// links are equal.
     DETRAY_HOST_DEVICE
     bool operator==(
-        const mask<shape_t, links_t, algebra_t, array_t>& rhs) const {
+        const tracer_mask<shape_t, links_t, algebra_t, array_t>& rhs) const {
         return (_values == rhs._values && _volume_link == rhs._volume_link);
     }
 
@@ -99,7 +103,7 @@ class tracer_mask {
     ///
     /// @returns the reference to the member variable
     DETRAY_HOST_DEVICE
-    constexpr auto operator[](const std::size_t value_index) -> scalar_type& {
+    constexpr auto& operator[](const std::size_t value_index) {
         return _values[value_index];
     }
 
@@ -107,8 +111,7 @@ class tracer_mask {
     ///
     /// @returns a copy of the member variable
     DETRAY_HOST_DEVICE
-    constexpr auto operator[](const std::size_t value_index) const
-        -> scalar_type {
+    constexpr const auto& operator[](const std::size_t value_index) const {
         return _values[value_index];
     }
 
@@ -192,7 +195,7 @@ class tracer_mask {
     /// @param env dynamic envelope around the shape
     ///
     /// @returns a cuboid3D mask that is equivalent to the minimum local aabb.
-    DETRAY_HOST_DEVICE
+    /*DETRAY_HOST_DEVICE
     auto local_min_bounds(const scalar_type env =
                               std::numeric_limits<scalar_type>::epsilon()) const
         -> tracer_mask<cuboid3D<>, unsigned int> {
@@ -201,7 +204,7 @@ class tracer_mask {
         static_assert(bounds.size() == cuboid3D<>::e_size,
                       "Shape returns incompatible bounds for bound box");
         return {bounds, std::numeric_limits<unsigned int>::max()};
-    }
+    }*/
 
     /// @returns a string representation of the mask
     DETRAY_HOST

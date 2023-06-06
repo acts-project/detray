@@ -10,6 +10,7 @@
 // Project include(s).
 #include "detray/definitions/qualifiers.hpp"
 #include "detray/intersection/detail/trajectories.hpp"
+#include "detray/tracer/renderer/raw_image.hpp"
 
 // System include(s)
 #include <ratio>
@@ -28,9 +29,10 @@ class camera {
                              static_cast<scalar_t>(aspect_ratio::den)};
         const scalar_t viewport_width{a * viewport_height};
 
-        m_horizontal = {viewport_width, 0.f, 0.f};
-        m_vertical = {0.f, viewport_height, 0.f};
-        m_lower_left_corner = m_origin - 0.5f * (m_horizontal + m_vertical) -
+        m_horizontal = point3D{viewport_width, 0.f, 0.f};
+        m_vertical = point3D{0.f, viewport_height, 0.f};
+        point3D av = (m_horizontal + m_vertical);
+        m_lower_left_corner = m_origin - 0.5f * av -
                               vector3D{0.f, 0.f, focal_length};
     }
 

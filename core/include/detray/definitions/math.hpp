@@ -10,6 +10,8 @@
 // SYCL include(s).
 #if defined(CL_SYCL_LANGUAGE_VERSION) || defined(SYCL_LANGUAGE_VERSION)
 #include <CL/sycl.hpp>
+#elif(IS_SOA)
+#include <Vc/Vc>
 #endif
 
 // System include(s).

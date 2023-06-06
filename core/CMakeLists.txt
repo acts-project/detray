@@ -69,6 +69,12 @@ if( DETRAY_VC_PLUGIN )
       INTERFACE detray::core detray::algebra_vc )
 endif()
 
+if( DETRAY_VC_SOA_PLUGIN )
+   detray_add_library( detray_core_vc_soa core_vc_soa )
+   target_link_libraries( detray_core_vc_soa
+      INTERFACE detray::core detray::algebra_vc_soa )
+endif()
+
 # Test the public headers of the detray core libraries.
 if( BUILD_TESTING AND DETRAY_BUILD_TESTING )
    string( REPLACE "include/" "" _detray_core_public_headers

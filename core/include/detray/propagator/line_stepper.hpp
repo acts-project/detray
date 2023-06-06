@@ -8,9 +8,11 @@
 #pragma once
 
 // Project include(s).
+#include "detray/definitions/algebra.hpp"
 #include "detray/definitions/qualifiers.hpp"
 #include "detray/propagator/base_stepper.hpp"
 #include "detray/propagator/navigation_policies.hpp"
+#include "detray/tracks/tracks.hpp"
 
 // System includes(s).
 #include <cmath>

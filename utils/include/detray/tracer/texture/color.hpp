@@ -75,9 +75,9 @@ struct color {
 
 template <typename data_t>
 std::ostream& operator<<(std::ostream& os, const color<data_t>& c) {
-    return os << "rgba: (" << static_cast<uint>(c[0]) << ", "
-              << static_cast<uint>(c[1]) << ", " << static_cast<uint>(c[2])
-              << ", " << static_cast<uint>(c[3]) << ")";
+    return os << "rgba: (" << static_cast<data_t>(c[0]) << ", "
+              << static_cast<data_t>(c[1]) << ", " << static_cast<data_t>(c[2])
+              << ", " << static_cast<data_t>(c[3]) << ")";
 }
 
 template <typename data_t>

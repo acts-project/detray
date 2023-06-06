@@ -8,11 +8,10 @@
 #pragma once
 
 // Project include(s)
-#include "detray/definitions/algebra.hpp"
 #include "detray/definitions/qualifiers.hpp"
 #include "detray/geometry/surface.hpp"
 #include "detray/intersection/detail/trajectories.hpp"
-#include "detray/intersection/intersection.hpp"
+#include "detray/tracer/renderer/detail/intersection.hpp"
 #include "detray/materials/material_rod.hpp"
 #include "detray/materials/material_slab.hpp"
 #include "detray/propagator/base_actor.hpp"
@@ -27,8 +26,15 @@ namespace detray {
 /// Calculates the color of a pixel. Starting point of the shader pipeline
 template <typename mask_t, typename material_t = material_slab<scalar>>
 struct single_shape : detray::actor {
-
-    using intersection_t = intersection2D<surface<>>;
+#if(IS_SOA)
+    using surface_t = surface<dtyped_index<Vc::int_v, Vc::int_v>, 
+                              dtyped_index<Vc::int_v, Vc::int_v>,
+                              Vc::int_v, Vc::int_v, Vc::int_v>;
+    using intersection_t = soa::intersection2D<surface_t>;
+#else
+    using surface_t = surface<>;
+    using intersection_t = intersection2D<surface_t>;
+#endif
 
     struct global_state {
 
@@ -80,7 +86,7 @@ struct single_shape : detray::actor {
         // Perform the intersection
         loc_st.m_is_inside = place_in_collection(
             geo.mask().template intersector<intersection_t>()(
-                sc.ray(), surface<>{}, geo.mask(), geo.transform()),
+                sc.ray(), surface_t{}, geo.mask(), geo.transform()),
             loc_st.m_intersections);
         if (loc_st.m_is_inside) {
             loc_st.m_material = std::addressof(geo.material());
@@ -96,7 +102,7 @@ struct single_shape : detray::actor {
     DETRAY_HOST_DEVICE bool place_in_collection(
         typename is_container_t::value_type &&sfi,
         is_container_t &intersections) const {
-        if (sfi.status == intersection::status::e_inside) {
+        if (sfi.is_inside()) {
             intersections[0] = sfi;
             return true;
         } else {
@@ -115,7 +121,7 @@ struct single_shape : detray::actor {
         bool is_valid = false;
         std::size_t n_sol{0u};
         for (std::size_t i = 0u; i < 2u; ++i) {
-            if (solutions[i].status == intersection::status::e_inside) {
+            if (solutions[i].is_inside()) {
                 intersections[n_sol++] = solutions[i];
                 is_valid = true;
             }

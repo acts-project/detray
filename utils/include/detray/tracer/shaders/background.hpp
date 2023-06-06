@@ -8,7 +8,6 @@
 #pragma once
 
 // Project include(s)
-#include "detray/definitions/algebra.hpp"
 #include "detray/definitions/math.hpp"
 #include "detray/definitions/qualifiers.hpp"
 #include "detray/intersection/detail/trajectories.hpp"
@@ -44,8 +43,9 @@ struct gradient_background : public image_background {
         vector3D dir = vector::normalize(ray.dir());
         point3D p1{1.0f, 1.0f, 1.0f};
         point3D p2{0.85f, 0.85f, 1.0f};
-        const scalar t{0.5f * dir[1] + 1.0f};
-        point3D p3 = 255.99f * ((1.0f - t) * p1 + t * p2);
+        const auto t{0.5f * dir[1] + 1.0f};
+        point3D p4 = ((1.0f - t) * p1 + t * p2);
+        point3D p3 = 255.99f * p4;
 
         return {
             static_cast<color_depth>(p3[0]), static_cast<color_depth>(p3[1]),
@@ -61,7 +61,11 @@ struct inf_plane : public image_background {
     constexpr texture::color<color_depth> get(
         const detray::ray<transform3D> &ray) {
 
+#if(IS_SOA)
+        if ((ray.dir()[1] < 0.f).isFull()) {
+#else
         if (not std::signbit(ray.dir()[1])) {
+#endif
             return texture::green<color_depth>;
         } else {
             return image_background_t{}.template get<color_depth>(ray);

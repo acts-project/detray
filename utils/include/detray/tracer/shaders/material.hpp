@@ -8,7 +8,6 @@
 #pragma once
 
 // Project include(s)
-#include "detray/definitions/algebra.hpp"
 #include "detray/definitions/qualifiers.hpp"
 #include "detray/intersection/detail/trajectories.hpp"
 #include "detray/propagator/base_actor.hpp"
@@ -18,6 +17,13 @@
 #include "detray/tracer/texture/pixel.hpp"
 
 namespace detray {
+
+#if(IS_SOA)
+using algebra::storage::operator*;
+using algebra::storage::operator/;
+using algebra::storage::operator-;
+using algebra::storage::operator+;
+#endif
 
 /// Calculates the color of a pixel. Starting point of the shader pipeline
 struct material_shader : public detray::actor {
@@ -33,10 +39,11 @@ struct material_shader : public detray::actor {
             //         intr_state.material());
             auto normal = sc.geometry().mask().normal(
                 intr_state.m_intersections[0].local);
-            normal = 255.99f * 0.5f * (normal + vector3D{1.f, 1.f, 1.f});
-            sc.m_pixel.set_color({static_cast<color_depth>(normal[0]),
-                                  static_cast<color_depth>(normal[1]),
-                                  static_cast<color_depth>(normal[2])});
+            normal = normal + vector3D{1.f, 1.f, 1.f};
+            normal = 255.99f * 0.5f * normal;
+            sc.m_pixel.set_color({static_cast<color_depth>(normal[0][0]),
+                                  static_cast<color_depth>(normal[1][0]),
+                                  static_cast<color_depth>(normal[2][0])});
         }
     }
 };
