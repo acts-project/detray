@@ -218,10 +218,6 @@ class cuboid_portal_generator final
         surfaces.emplace_back(++trf_idx, mask_link, material_link, volume_idx,
                               dindex_invalid, surface_id::e_portal);
 
-        // Update the volume bounds according to the portals
-        const auto &cuboid_bounds = world_box.bounds().values();
-        volume.set_bounds(cuboid_bounds);
-
         return {surfaces_offset, static_cast<dindex>(surfaces.size())};
     }
 

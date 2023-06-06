@@ -79,13 +79,7 @@ class geometry_reader : public reader_interface<detector_t> {
             // Get a generic volume builder first and decorate it later
             volume_builder<detector_t> vbuilder{};
 
-            // Initialize a new volume in detector with given shape and bounds
-            std::array<detray::scalar, 6> vol_bounds;
-            std::copy_n(std::make_move_iterator(vol_data.bounds.values.begin()),
-                        6, vol_bounds.begin());
-
-            vbuilder.init_vol(det, static_cast<volume_id>(vol_data.bounds.type),
-                              std::move(vol_bounds));
+            vbuilder.init_vol(det, static_cast<volume_id>(vol_data.type));
 
             // @todo add the volume placement, once it can be checked for the
             // test detectors

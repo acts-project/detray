@@ -5,18 +5,17 @@
  * Mozilla Public License Version 2.0
  */
 
-#include <gtest/gtest.h>
-
 // Detray include(s)
 #include "detray/detectors/create_toy_geometry.hpp"
-#include "detray/intersection/detail/trajectories.hpp"
 #include "detray/surface_finders/brute_force_finder.hpp"
-#include "detray/surface_finders/neighborhood_kernel.hpp"
 #include "detray/test/types.hpp"
 #include "tests/common/tools/test_surfaces.hpp"
 
 // Vecmem include(s)
 #include <vecmem/memory/host_memory_resource.hpp>
+
+// GTest include(s)
+#include <gtest/gtest.h>
 
 using namespace detray;
 
@@ -24,6 +23,18 @@ namespace {
 
 // Algebra definitions
 using vector3 = test::vector3;
+
+/// A functor that performs some tests on a neighborhood of surfaces in a volume
+struct neighbor_visit_test {
+
+    /// Test the volume links
+    template <typename surfaces_descriptor_t>
+    DETRAY_HOST_DEVICE void operator()(const surfaces_descriptor_t& sf,
+                                       const dindex test_vol_idx) const {
+        EXPECT_EQ(sf.volume(), test_vol_idx)
+            << " surface barcode: " << sf.barcode();
+    }
+};
 
 }  // anonymous namespace
 
@@ -84,19 +95,13 @@ GTEST_TEST(detray_surface_finders, brute_force_search) {
 
     using detector_t = decltype(det);
 
-    // Now run a brute force surface search in the first barrel layer
-    dindex test_vol_idx{7UL};
-    const auto& vol = det.volume_by_index(test_vol_idx);
-    const auto& link{vol.template link<detector_t::geo_obj_ids::e_portal>()};
-
     // dummy track
     detail::ray<typename detector_t::transform3> trk({0.f, 0.f, 0.f}, 0.f,
                                                      {0.f, 0.f, 1.f}, -1.f);
 
-    for (const auto& sf :
-         det.surface_store().template visit<neighborhood_getter>(link, det, vol,
-                                                                 trk)) {
-        EXPECT_EQ(sf.volume(), test_vol_idx)
-            << " surface barcode: " << sf.barcode();
-    }
+    // Now run a brute force surface search in the first barrel layer
+    dindex test_vol_idx{7UL};
+    const auto& vol = det.volume_by_index(test_vol_idx);
+
+    vol.template visit_neighborhood<neighbor_visit_test>(trk, test_vol_idx);
 }

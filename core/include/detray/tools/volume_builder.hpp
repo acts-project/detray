@@ -54,13 +54,6 @@ class volume_builder : public volume_builder_interface<detector_t> {
     };
 
     DETRAY_HOST
-    void init_vol(detector_t& det, const volume_id id,
-                  const array_type<scalar_type, 6>& bounds) override {
-        init_vol(det, id);
-        m_volume->set_bounds(bounds);
-    };
-
-    DETRAY_HOST
     auto get_vol_index() -> dindex override { return m_volume->index(); }
 
     DETRAY_HOST

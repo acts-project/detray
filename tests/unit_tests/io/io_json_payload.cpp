@@ -302,22 +302,6 @@ TEST(io, acc_links_payload) {
     EXPECT_EQ(l.index, pl.index);
 }
 
-/// This tests the json payload for volume bounds
-TEST(io, json_volume_bounds_payload) {
-
-    detray::volume_bounds_payload vb;
-    vb.type = detray::volume_id::e_cylinder;
-    vb.values = {0.f, 100.f, 120.f};
-
-    nlohmann::ordered_json j;
-    j["volume_bounds"] = vb;
-
-    detray::volume_bounds_payload pvb = j["volume_bounds"];
-
-    EXPECT_EQ(vb.type, pvb.type);
-    EXPECT_EQ(vb.values, pvb.values);
-}
-
 /// This tests the json payload for a volume (descriptor + data (transform,
 /// surfaces)
 TEST(io, json_volume_payload) {
@@ -325,10 +309,6 @@ TEST(io, json_volume_payload) {
     detray::transform_payload t;
     t.tr = {100.f, 200.f, 300.f};
     t.rot = {1.f, 0.f, 0.f, 0.f, 1.f, 0.f, 0.f, 0.f, 1.f};
-
-    detray::volume_bounds_payload vb;
-    vb.type = detray::volume_id::e_cylinder;
-    vb.values = {0.f, 100.f, 120.f};
 
     detray::single_link_payload sl;
     sl.link = 1u;
@@ -355,10 +335,10 @@ TEST(io, json_volume_payload) {
 
     detray::volume_payload v;
     v.name = "volume";
+    v.type = detray::volume_id::e_cylinder;
     sl.link = 2u;
     v.index = sl;
     v.transform = t;
-    v.bounds = vb;
     v.surfaces = {s};
     v.acc_links = {al};
 
@@ -371,8 +351,7 @@ TEST(io, json_volume_payload) {
     EXPECT_EQ(v.index.link, pv.index.link);
     EXPECT_EQ(v.transform.tr, v.transform.tr);
     EXPECT_EQ(v.transform.rot, v.transform.rot);
-    EXPECT_EQ(v.bounds.type, pv.bounds.type);
-    EXPECT_EQ(v.bounds.values, pv.bounds.values);
+    EXPECT_EQ(v.type, pv.type);
     EXPECT_EQ(v.surfaces.size(), pv.surfaces.size());
     EXPECT_EQ(v.acc_links->size(), pv.acc_links->size());
 }

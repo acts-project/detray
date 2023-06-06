@@ -190,12 +190,7 @@ class geometry_writer : public writer_interface<detector_t> {
         vol_data.index = serialize(vol.index());
         // @todo volumes don't have transforms, yet
         vol_data.transform = serialize(typename detector_t::transform3());
-        vol_data.bounds.type = vol.id();
-
-        const auto& v_bounds = vol.bounds();
-        vol_data.bounds.values.resize(v_bounds.size());
-        std::copy(std::cbegin(v_bounds), std::cend(v_bounds),
-                  std::begin(vol_data.bounds.values));
+        vol_data.type = vol.id();
 
         for (const auto& sf : det.surfaces(vol)) {
             vol_data.surfaces.push_back(serialize(sf, det));
