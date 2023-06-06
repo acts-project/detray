@@ -70,7 +70,7 @@ struct parameter_transporter : actor {
             auto local_coordinate = mask.local_frame();
 
             // Free vector
-            const auto& free_vec = stepping().vector();
+            const auto& free_vec = stepping();
 
             // Convert free to bound vector
             stepping._bound_params.set_vector(
@@ -85,7 +85,8 @@ struct parameter_transporter : actor {
 
             // Path correction factor
             free_matrix path_correction = local_coordinate.path_correction(
-                stepping().pos(), stepping().dir(), stepping.dtds(), trf3);
+                track_helper().pos(free_vec), track_helper().dir(free_vec),
+                stepping.dtds(), trf3);
 
             const free_matrix correction_term =
                 matrix_operator()
@@ -101,7 +102,7 @@ struct parameter_transporter : actor {
                     free_to_bound_jacobian * correction_term *
                     free_transport_jacobian;
 
-                new_cov = full_jacobian * stepping().covariance() *
+                new_cov = full_jacobian * stepping._cov *
                           matrix_operator().transpose(full_jacobian);
 
                 propagation.set_param_type(parameter_type::e_bound);

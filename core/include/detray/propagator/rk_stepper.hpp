@@ -37,6 +37,7 @@ class rk_stepper final
     using vector2 = typename transform3_type::point2;
     using vector3 = typename transform3_type::vector3;
     using matrix_operator = typename base_type::matrix_operator;
+    using track_helper = typename base_type::track_helper;
     using mat_helper = matrix_helper<matrix_operator>;
     using free_track_parameters_type =
         typename base_type::free_track_parameters_type;

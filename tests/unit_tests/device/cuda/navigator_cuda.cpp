@@ -79,7 +79,7 @@ TEST(navigator_cuda, navigator) {
 
             // Record volume
             volume_records_host[i].push_back(navigation.volume());
-            position_records_host[i].push_back(stepping().pos());
+            position_records_host[i].push_back(track_helper().pos(stepping()));
         }
     }
 

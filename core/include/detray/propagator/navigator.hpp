@@ -109,6 +109,7 @@ class navigator {
     using vector_type = typename detector_t::template vector_type<T>;
     using intersection_type = intersection_t;
     using nav_link_type = typename detector_t::surface_type::navigation_link;
+    using transform3_type = typename detector_type::transform3;
 
     /// A navigation state object used to cache the information of the
     /// current navigation stream.
@@ -357,12 +358,11 @@ class navigator {
 
         private:
         /// Helper method to check if a candidate lies on a surface - const
-        template <typename track_t>
         DETRAY_HOST_DEVICE inline auto is_on_object(
-            const intersection_type &candidate, const track_t &track) const
-            -> bool {
+            const intersection_type &candidate,
+            const scalar_type overstep_tolerance) const -> bool {
             if ((candidate.path < _on_object_tolerance) and
-                (candidate.path > track.overstep_tolerance())) {
+                (candidate.path > overstep_tolerance)) {
                 return true;
             }
             return false;
@@ -504,7 +504,7 @@ class navigator {
         // No unreachable candidates in cache after local navigation
         navigation.set_last(navigation.candidates().end());
         // Determine overall state of the navigation after updating the cache
-        update_navigation_state(track, propagation);
+        update_navigation_state(propagation);
         // If init was not successful, the propagation setup is broken
         if (navigation.trust_level() != navigation::trust_level::e_full) {
             navigation._heartbeat = false;
@@ -608,7 +608,7 @@ class navigator {
 
                 // Set unknown if the new step size is smaller than the
                 // threshold
-                if (new_step_size < _safety_step_size) {
+                if (new_step_size < stepping._safety_step_size) {
 
                     navigation.set_state(navigation::status::e_unknown,
                                          geometry::barcode{},
@@ -616,15 +616,15 @@ class navigator {
                     return;
                 }
 
-                // Try with the halved step size once again
+                // Try with the half step size
                 stepping.set_step_size(new_step_size);
-                stepping.reset_parameter();
+                stepping.cur_cache = std::move(stepping.pre_cache);
 
                 return;
             }
 
             // Update navigation flow on the new candidate information
-            update_navigation_state(track, propagation);
+            update_navigation_state(propagation);
 
             // Run high trust inspection
             if constexpr (not std::is_same_v<inspector_t,
@@ -670,7 +670,7 @@ class navigator {
             // Ignore unreachable elements (needed to determine exhaustion)
             navigation.set_last(find_invalid(navigation.candidates()));
             // Update navigation flow on the new candidate information
-            update_navigation_state(track, propagation);
+            update_navigation_state(propagation);
 
             // Run fair trust inspection
             if constexpr (not std::is_same_v<inspector_t,
@@ -701,16 +701,18 @@ class navigator {
     ///
     /// @param track the track that belongs to the current propagation state
     /// @param propagation contains the stepper and navigator states
-    template <typename track_t, typename propagator_state_t>
+    template <typename propagator_state_t>
     DETRAY_HOST_DEVICE inline void update_navigation_state(
-        track_t &track, propagator_state_t &propagation) const {
+        propagator_state_t &propagation) const {
 
         state &navigation = propagation._navigation;
+        auto &stepping = propagation._stepping;
 
         // Check wether the track reached the current candidate. Might be a
         // portal, in which case the navigation becomes exhausted (the
         // exit-portal is the last reachable surface in every volume)
-        if (navigation.is_on_object(*navigation.next(), track)) {
+        if (navigation.is_on_object(*navigation.next(),
+                                    stepping._overstep_tolerance)) {
             // Set the next object that we want to reach (this function is only
             // called once the cache has been updated to a full trust state).
             // Might lead to exhausted cache.
@@ -756,8 +758,8 @@ class navigator {
 
         // Check whether this candidate is reachable by the track
         return mask_store.template visit<intersection_update>(
-            candidate.surface.mask(), detail::ray(track), candidate,
-            det->transform_store(), 15.f * unit<scalar_type>::um);
+            candidate.surface.mask(), detail::ray<transform3_type>(track),
+            candidate, det->transform_store(), 15.f * unit<scalar_type>::um);
     }
 
     /// @brief Fill the candidates cache from scratch.
@@ -792,8 +794,8 @@ class navigator {
                      link, *det, volume, track)) {
 
                 det->mask_store().template visit<intersection_initialize>(
-                    sf.mask(), candidates, detail::ray(track), sf,
-                    det->transform_store(), 15.f * unit<scalar_type>::um);
+                    sf.mask(), candidates, detail::ray<transform3_type>(track),
+                    sf, det->transform_store(), 15.f * unit<scalar_type>::um);
             }
         }
         // Check the next surface type

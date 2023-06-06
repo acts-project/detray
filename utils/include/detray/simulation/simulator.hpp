@@ -82,7 +82,7 @@ struct simulator {
                 propagator_type p({}, {});
 
                 // Set overstep tolerance and stepper constraint
-                propagation._stepping().set_overstep_tolerance(
+                propagation._stepping.set_overstep_tolerance(
                     m_cfg.overstep_tolerance);
                 propagation._stepping.template set_constraint<
                     detray::step::constraint::e_accuracy>(

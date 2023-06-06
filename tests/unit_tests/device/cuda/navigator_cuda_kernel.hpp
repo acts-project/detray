@@ -20,6 +20,7 @@
 using namespace detray;
 
 using transform3 = __plugin::transform3<scalar>;
+using track_helper = detail::track_helper<typename transform3::matrix_actor>;
 
 // some useful type declarations
 using detector_host_t = detector<detector_registry::toy_detector, covfie::field,

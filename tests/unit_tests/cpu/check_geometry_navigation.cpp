@@ -7,6 +7,7 @@
 
 #include <gtest/gtest.h>
 
+#include <iostream>
 #include <sstream>
 #include <vecmem/memory/host_memory_resource.hpp>
 
@@ -157,6 +158,8 @@ GTEST_TEST(detray_propagator, helix_navigation) {
 
     constexpr std::size_t theta_steps{10u};
     constexpr std::size_t phi_steps{10u};
+    // constexpr std::size_t theta_steps{1u};
+    // constexpr std::size_t phi_steps{1u};
 
     // det.volume_by_pos(ori).index();
     const point3 ori{0.f, 0.f, 0.f};
@@ -170,9 +173,10 @@ GTEST_TEST(detray_propagator, helix_navigation) {
     auto trk_state_generator =
         uniform_track_generator<free_track_parameters_type>(
             theta_steps, phi_steps, ori, p_mag);
+
     for (auto track : trk_state_generator) {
         // Prepare for overstepping in the presence of b fields
-        track.set_overstep_tolerance(overstep_tol);
+        // track.set_overstep_tolerance(overstep_tol);
 
         // Get ground truth helix from track
         detail::helix helix(track, &B);
@@ -184,6 +188,7 @@ GTEST_TEST(detray_propagator, helix_navigation) {
         // Now follow that helix with the same track and check, if we find
         // the same volumes and distances along the way
         propagator_t::state propagation(track, det.get_bfield(), det);
+        propagation._stepping.set_overstep_tolerance(overstep_tol);
 
         // Retrieve navigation information
         auto &inspector = propagation._navigation.inspector();

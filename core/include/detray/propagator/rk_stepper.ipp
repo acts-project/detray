@@ -17,21 +17,21 @@ void detray::rk_stepper<magnetic_field_t, transform3_t, constraint_t, policy_t,
     const auto& sd = this->_step_data;
     const scalar h{this->_step_size};
     const scalar h_6{h * static_cast<scalar>(1. / 6.)};
-    auto& track = this->_track;
-    auto pos = track.pos();
-    auto dir = track.dir();
+    auto& track = this->cur_cache.track;
+    auto pos = track_helper().pos(track);
+    auto dir = track_helper().dir(track);
 
     // Update the track parameters according to the equations of motion
     pos = pos + h * (dir + h_6 * (sd.k1 + sd.k2 + sd.k3));
-    track.set_pos(pos);
+    track_helper().set_pos(track, pos);
 
     dir = dir + h_6 * (sd.k1 + 2.f * (sd.k2 + sd.k3) + sd.k4);
     dir = vector::normalize(dir);
-    track.set_dir(dir);
+    track_helper().set_dir(track, dir);
 
     // Update path length
-    this->_path_length += h;
-    this->_s += h;
+    this->cur_cache.path += h;
+    this->cur_cache.path_from_surface += h;
 }
 
 template <typename magnetic_field_t, typename transform3_t,
@@ -61,9 +61,9 @@ void detray::rk_stepper<magnetic_field_t, transform3_t, constraint_t, policy_t,
     const auto& sd = this->_step_data;
     const scalar h{this->_step_size};
     // const auto& mass = this->_mass;
-    auto& track = this->_track;
-    const auto dir = track.dir();
-    const auto qop = track.qop();
+    auto& track = this->cur_cache.track;
+    const auto dir = track_helper().dir(track);
+    const auto qop = track_helper().qop(track);
 
     // Half step length
     const scalar half_h{h * 0.5f};
@@ -140,10 +140,10 @@ auto detray::rk_stepper<magnetic_field_t, transform3_t, constraint_t, policy_t,
                                                     const int i, const scalar h,
                                                     const vector3& k_prev)
     -> vector3 {
-    auto& track = this->_track;
+    auto& track = this->cur_cache.track;
 
-    const auto qop = track.qop();
-    const auto dir = track.dir();
+    const auto qop = track_helper().qop(track);
+    const auto dir = track_helper().dir(track);
 
     vector3 k_new;
 
@@ -165,6 +165,8 @@ bool detray::rk_stepper<magnetic_field_t, transform3_t, constraint_t, policy_t,
 
     // Get stepper and navigator states
     state& stepping = propagation._stepping;
+    stepping.pre_cache = stepping.cur_cache;
+
     auto& magnetic_field = stepping._magnetic_field;
     auto& navigation = propagation._navigation;
 
@@ -173,7 +175,7 @@ bool detray::rk_stepper<magnetic_field_t, transform3_t, constraint_t, policy_t,
     scalar error_estimate{0.f};
 
     // First Runge-Kutta point
-    const vector3 spos = stepping().pos();
+    const vector3 spos = track_helper().pos(stepping());
     const typename magnetic_field_t::output_t bvec =
         magnetic_field.at(spos[0], spos[1], spos[2]);
     sd.b_first[0] = bvec[0];
@@ -186,8 +188,8 @@ bool detray::rk_stepper<magnetic_field_t, transform3_t, constraint_t, policy_t,
         // State the square and half of the step size
         const scalar h2{h * h};
         const scalar half_h{h * 0.5f};
-        auto pos = stepping().pos();
-        auto dir = stepping().dir();
+        auto pos = track_helper().pos(stepping());
+        auto dir = track_helper().dir(stepping());
 
         // Second Runge-Kutta point
         const vector3 pos1 = pos + half_h * dir + h2 * 0.125f * sd.k1;

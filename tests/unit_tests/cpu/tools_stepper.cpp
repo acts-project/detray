@@ -116,19 +116,19 @@ GTEST_TEST(detray_propagator, line_stepper) {
     ASSERT_TRUE(cl_stepper.step(c_propagation));
     ASSERT_TRUE(cl_stepper.step(c_propagation));
 
-    track = propagation._stepping();
+    track.set_vector(propagation._stepping());
     ASSERT_NEAR(track.pos()[0], constant<scalar>::inv_sqrt2, tol);
     ASSERT_NEAR(track.pos()[1], constant<scalar>::inv_sqrt2, tol);
     ASSERT_NEAR(track.pos()[2], 0.f, tol);
 
-    c_track = c_propagation._stepping();
+    c_track.set_vector(c_propagation._stepping());
     ASSERT_NEAR(c_track.pos()[0], constant<scalar>::inv_sqrt2, tol);
     ASSERT_NEAR(c_track.pos()[1], constant<scalar>::inv_sqrt2, tol);
     ASSERT_NEAR(c_track.pos()[2], 0.f, tol);
 
     ASSERT_TRUE(l_stepper.step(propagation));
 
-    track = propagation._stepping();
+    track.set_vector(propagation._stepping());
     ASSERT_NEAR(track.pos()[0], constant<scalar>::sqrt2, tol);
     ASSERT_NEAR(track.pos()[1], constant<scalar>::sqrt2, tol);
     ASSERT_NEAR(track.pos()[2], 0.f, tol);
@@ -195,12 +195,12 @@ GTEST_TEST(detray_propagator, rk_stepper) {
 
         // get relative error by dividing error with path length
         ASSERT_NEAR(rk_state.path_length(), crk_state.path_length(), tol);
-        ASSERT_NEAR(getter::norm(rk_state().pos() - crk_state().pos()) /
+        ASSERT_NEAR(getter::norm(rk_state.pos() - crk_state.pos()) /
                         rk_state.path_length(),
                     0.f, tol);
 
         const auto helix_pos = helix(rk_state.path_length());
-        const auto forward_pos = rk_state().pos();
+        const auto forward_pos = rk_state.pos();
         const point3 forward_relative_error{(1.f / rk_state.path_length()) *
                                             (forward_pos - helix_pos)};
 
@@ -219,11 +219,11 @@ GTEST_TEST(detray_propagator, rk_stepper) {
         }
 
         ASSERT_NEAR(rk_state.path_length(), crk_state.path_length(), tol);
-        ASSERT_NEAR(getter::norm(rk_state().pos() - crk_state().pos()) /
+        ASSERT_NEAR(getter::norm(rk_state.pos() - crk_state.pos()) /
                         (2.f * path_length),
                     0.f, tol);
 
-        const auto backward_pos = rk_state().pos();
+        const auto backward_pos = rk_state.pos();
         const point3 backward_relative_error{1.f / (2.f * path_length) *
                                              (backward_pos - ori)};
 

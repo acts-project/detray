@@ -27,6 +27,8 @@ template <typename transform3_t, typename smearer_t>
 struct event_writer : actor {
 
     using scalar_type = typename transform3_t::scalar_type;
+    using matrix_operator = typename transform3_t::matrix_actor;
+    using track_helper = detail::track_helper<matrix_operator>;
 
     struct state {
         state(std::size_t event_id, smearer_t& smearer,
@@ -99,15 +101,15 @@ struct event_writer : actor {
             csv_hit hit;
 
             const auto track = stepping();
-            const auto pos = track.pos();
-            const auto mom = track.mom();
+            const auto pos = track_helper().pos(track);
+            const auto mom = track_helper().mom(track);
 
             hit.particle_id = writer_state.particle_id;
             hit.geometry_id = navigation.current_object().value();
             hit.tx = pos[0];
             hit.ty = pos[1];
             hit.tz = pos[2];
-            hit.tt = track.time();
+            hit.tt = track_helper().time(track);
             hit.tpx = mom[0];
             hit.tpy = mom[1];
             hit.tpz = mom[2];

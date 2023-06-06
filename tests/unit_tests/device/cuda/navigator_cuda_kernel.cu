@@ -58,7 +58,7 @@ __global__ void navigator_test_kernel(
 
         // Record volume
         volume_records[gid].push_back(navigation.volume());
-        position_records[gid].push_back(stepping().pos());
+        position_records[gid].push_back(stepping.pos());
     }
 }
 

@@ -45,18 +45,18 @@ struct parameter_resetter : actor {
             auto local_coordinate = mask.local_frame();
 
             // Reset the free vector
-            stepping().set_vector(local_coordinate.bound_to_free_vector(
-                trf3, mask, stepping._bound_params.vector()));
+            stepping() = local_coordinate.bound_to_free_vector(
+                trf3, mask, stepping._bound_params.vector());
 
             // Reset the path length
-            stepping._s = 0;
+            stepping.cur_cache.path_from_surface = 0;
 
             // Reset jacobian coordinate transformation at the current surface
             stepping._jac_to_global = local_coordinate.bound_to_free_jacobian(
                 trf3, mask, stepping._bound_params.vector());
 
             // Reset jacobian transport to identity matrix
-            matrix_operator().set_identity(stepping._jac_transport);
+            matrix_operator().set_identity(stepping.cur_cache.jac_transport);
         }
     };
 

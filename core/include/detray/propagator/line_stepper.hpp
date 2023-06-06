@@ -32,6 +32,7 @@ class line_stepper final
     using bound_track_parameters_type =
         typename base_type::bound_track_parameters_type;
     using matrix_operator = typename base_type::matrix_operator;
+    using track_helper = typename base_type::track_helper;
     using size_type = typename matrix_operator::size_ty;
     using vector3 = typename transform3_type::vector3;
     template <size_type ROWS, size_type COLS>
@@ -53,11 +54,13 @@ class line_stepper final
         /// Update the track state in a straight line.
         DETRAY_HOST_DEVICE
         inline void advance_track() {
-            auto& track = this->_track;
-            track.set_pos(track.pos() + track.dir() * this->_step_size);
+            auto& track = this->cur_cache.track;
+            const auto new_pos = track_helper().pos(track) +
+                                 track_helper().dir(track) * this->_step_size;
+            track_helper().set_pos(track, new_pos);
 
-            this->_path_length += this->_step_size;
-            this->_s += this->_step_size;
+            this->cur_cache.path += this->_step_size;
+            this->cur_cache.path_from_surface += this->_step_size;
         }
 
         DETRAY_HOST_DEVICE
@@ -94,6 +97,8 @@ class line_stepper final
     DETRAY_HOST_DEVICE bool step(propagation_state_t& propagation) {
         // Get stepper state
         state& stepping = propagation._stepping;
+        stepping.pre_cache = stepping.cur_cache;
+
         // Distance to next surface as fixed step size
         scalar step_size = propagation._navigation();
 

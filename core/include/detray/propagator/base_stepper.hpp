@@ -65,7 +65,9 @@ class base_stepper {
 
         /// Sets track parameters.
         DETRAY_HOST_DEVICE
-        state(const free_track_parameters_type &t) : _track(t) {}
+        state(const free_track_parameters_type &t) : _cov(t.covariance()) {
+            cur_cache.track = t.vector();
+        }
 
         /// Sets track parameters from bound track parameter.
         template <typename detector_t>
@@ -83,8 +85,27 @@ class base_stepper {
                 surface.mask(), trf_store[surface.transform()], *this);
         }
 
-        /// free track parameter
-        free_track_parameters_type _track;
+        struct step_cache {
+            typename free_track_parameters_type::vector_type track =
+                matrix_operator().template zero<e_free_size, 1>();
+            free_matrix jac_transport =
+                matrix_operator().template identity<e_free_size, e_free_size>();
+            scalar_type path{0.f};
+            scalar_type path_from_surface{0.f};
+        };
+
+        step_cache cur_cache;
+        step_cache pre_cache;
+
+        scalar_type _step_size{0.f};
+        scalar_type _safety_step_size{1.f * unit<scalar_type>::mm};
+        scalar_type _overstep_tolerance{-10.f * unit<scalar_type>::mm};
+
+        /// free parameter covariance
+        /// @NOTE: This is only used for propagator state input with free
+        /// track parameter - should be removed in the future
+        typename free_track_parameters_type::covariance_type _cov =
+            matrix_operator().template zero<e_free_size, e_free_size>();
 
         /// Full jacobian
         bound_matrix _full_jacobian =
@@ -103,11 +124,16 @@ class base_stepper {
 
         /// @returns track parameters - const access
         DETRAY_HOST_DEVICE
-        free_track_parameters_type &operator()() { return _track; }
+        typename free_track_parameters_type::vector_type &operator()() {
+            return cur_cache.track;
+        }
 
         /// @returns track parameters.
         DETRAY_HOST_DEVICE
-        const free_track_parameters_type &operator()() const { return _track; }
+        const typename free_track_parameters_type::vector_type &operator()()
+            const {
+            return cur_cache.track;
+        }
 
         step::direction _direction{step::direction::e_forward};
 
@@ -117,16 +143,14 @@ class base_stepper {
         // Navigation policy state
         typename policy_t::state _policy_state = {};
 
+        /*
         /// Track path length
         scalar _path_length{0.};
 
         /// Track path length from the last surface. It will be reset to 0 when
         /// the track reaches a new surface
         scalar _s{0.};
-
-        /// Current step size
-        scalar _step_size{0.};
-
+        */
         /// TODO: Use options?
         /// hypothetical mass of particle (assume pion by default)
         /// scalar _mass = 139.57018 * unit<scalar_type>::MeV;
@@ -172,7 +196,23 @@ class base_stepper {
 
         /// @returns this states remaining path length.
         DETRAY_HOST_DEVICE
-        inline scalar path_length() const { return _path_length; }
+        inline scalar path_length() const { return cur_cache.path; }
+
+        DETRAY_HOST_DEVICE
+        inline scalar path_from_surface() const {
+            return cur_cache.path_from_surface;
+        }
+
+        DETRAY_HOST_DEVICE
+        inline void set_overstep_tolerance(const scalar_type tol) {
+            _overstep_tolerance = tol;
+        }
+
+        DETRAY_HOST_DEVICE
+        inline auto pos() const { return track_helper().pos(cur_cache.track); }
+
+        DETRAY_HOST_DEVICE
+        inline auto dir() const { return track_helper().dir(cur_cache.track); }
     };
 };
 

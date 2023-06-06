@@ -104,7 +104,7 @@ struct track_inspector : actor {
 
         // Record only on the object
         inspector_state._path_lengths.push_back(stepping.path_length());
-        inspector_state._positions.push_back(stepping().pos());
+        inspector_state._positions.push_back(stepping.pos());
         inspector_state._jac_transports.push_back(stepping._jac_transport);
     }
 };
