@@ -122,8 +122,7 @@ class detector {
     using surface_container_t = vector_type<surface_type>;
     /// Volume type
     using geo_obj_ids = typename metadata::geo_objects;
-    using volume_type =
-        volume_descriptor<geo_obj_ids, sf_finder_link, scalar_type>;
+    using volume_type = volume_descriptor<geo_obj_ids, sf_finder_link>;
     using volume_container = vector_type<volume_type>;
 
     /// Volume finder definition: Make volume index available from track

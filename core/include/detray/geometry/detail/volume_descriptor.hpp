@@ -30,11 +30,7 @@ namespace detray {
 ///         and device. The surface finders reside in an 'unrollable tuple
 ///         container' and are called per volume in the navigator during local
 ///         navigation.
-/// @tparam scalar_t type of scalar used in the volume.
-/// @tparam array_t the type of the internal array, must have STL semantics.
-template <typename ID, typename link_t = dtyped_index<dindex, dindex>,
-          typename scalar_t = scalar,
-          template <typename, std::size_t> class array_t = darray>
+template <typename ID, typename link_t = dtyped_index<dindex, dindex>>
 class volume_descriptor {
 
     public:
