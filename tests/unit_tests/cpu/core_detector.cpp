@@ -96,9 +96,7 @@ void prefill_detector(detector_t& d,
                           detray::surface_id::e_sensitive);
 
     // Add the new data
-    d.new_volume(detray::volume_id::e_cylinder,
-                 {0.f, 10.f, -5.f, 5.f, -detray::constant<scalar_t>::pi,
-                  detray::constant<scalar_t>::pi});
+    d.new_volume(detray::volume_id::e_cylinder);
     d.append_surfaces(std::move(surfaces));
     d.append_transforms(std::move(trfs));
     d.append_masks(std::move(masks));
@@ -382,18 +380,13 @@ GTEST_TEST(detray_tools, volume_builder) {
     EXPECT_TRUE(d.volumes().size() == 0u);
 
     volume_builder<detector_t> vbuilder{};
-    const std::array<scalar, 6> bounds{
-        0.f, 10.f, -5.f, 5.f, -constant<scalar>::pi, constant<scalar>::pi};
-    vbuilder.init_vol(d, volume_id::e_cylinder, bounds);
+    vbuilder.init_vol(d, volume_id::e_cylinder);
     const auto& vol = d.volumes().back();
 
     EXPECT_TRUE(d.volumes().size() == 1u);
     EXPECT_EQ(vol.index(), 0u);
     EXPECT_EQ(vol.index(), vbuilder.get_vol_index());
     EXPECT_EQ(vol.id(), volume_id::e_cylinder);
-    for (const auto [idx, b] : detray::views::enumerate(vol.bounds())) {
-        EXPECT_NEAR(b, bounds[idx], tol) << "error at index: " << idx;
-    }
 }
 
 /// Integration test to build a cylinder volume with contained surfaces
@@ -441,9 +434,7 @@ GTEST_TEST(detray_tools, detector_volume_construction) {
 
     // volume builder
     volume_builder<detector_t> vbuilder{};
-    vbuilder.init_vol(d, volume_id::e_cylinder,
-                      {0.f, 500.f, -1500.f, 1500.f, -constant<scalar>::pi,
-                       constant<scalar>::pi});
+    vbuilder.init_vol(d, volume_id::e_cylinder);
     const auto& vol = d.volumes().back();
 
     // initial checks

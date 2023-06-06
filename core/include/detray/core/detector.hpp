@@ -226,23 +226,6 @@ class detector {
         return cvolume;
     }
 
-    /// Add a new volume and retrieve a reference to it.
-    ///
-    /// @param id the shape id for the volume
-    /// @param bounds of the volume, they are expected to be already attaching
-    /// @param sf_finder_link of the volume, where to entry the surface finder
-    ///
-    /// @return non-const reference to the new volume
-    DETRAY_HOST
-    volume_type &new_volume(
-        const volume_id id, const array_type<scalar, 6> &bounds,
-        typename volume_type::link_type::index_type srf_finder_link = {}) {
-        volume_type &cvolume = new_volume(id, srf_finder_link);
-        cvolume.set_bounds(bounds);
-
-        return cvolume;
-    }
-
     /// @return the sub-volumes of the detector - const access
     DETRAY_HOST_DEVICE
     inline auto volumes() const -> const vector_type<volume_type> & {
@@ -576,12 +559,6 @@ class detector {
                 ss << "  sf finder id " << v.sf_finder_type()
                    << "  sf finders idx " << v.sf_finder_index() << std::endl;
             }
-
-            const auto &bounds = v.bounds();
-            ss << "     bounds r = (" << bounds[0] << ", " << bounds[1] << ")"
-               << std::endl;
-            ss << "            z = (" << bounds[2] << ", " << bounds[3] << ")"
-               << std::endl;
         }
 
         return ss.str();

@@ -60,31 +60,9 @@ class volume_descriptor {
     /// @param id id values that determines how to interpret the bounds.
     explicit constexpr volume_descriptor(const volume_id id) : _id{id} {}
 
-    /// Constructor from shape id and boundary values.
-    ///
-    /// @param id id values that determines how to interpret the bounds.
-    /// @param bounds values of volume boundaries. They depend on the volume
-    ///               shape, which is defined by its portals and are chosen in
-    ///               the detector builder.
-    constexpr volume_descriptor(const volume_id id,
-                                const array_t<scalar_t, 6> &bounds)
-        : _id(id), _bounds(bounds) {}
-
     /// @returns the volume shape id, e.g. 'cylinder'
     DETRAY_HOST_DEVICE
     constexpr auto id() const -> volume_id { return _id; }
-
-    /// Set the volume bounds to @param bounds
-    DETRAY_HOST
-    constexpr void set_bounds(const array_t<scalar_t, 6> &bounds) {
-        _bounds = bounds;
-    }
-
-    /// @returns the volume bounds - const access
-    DETRAY_HOST_DEVICE
-    constexpr auto bounds() const -> const array_t<scalar_t, 6> & {
-        return _bounds;
-    }
 
     /// @return the index of the volume in the detector volume container.
     DETRAY_HOST_DEVICE
@@ -130,7 +108,7 @@ class volume_descriptor {
     /// @param rhs is the right-hand side to compare against.
     DETRAY_HOST_DEVICE
     constexpr auto operator==(const volume_descriptor &rhs) const -> bool {
-        return (_bounds == rhs._bounds && _index == rhs._index &&
+        return (_index == rhs._index &&
                 _sf_finder_links == rhs._sf_finder_links &&
                 _sf_finder_links[ID::e_sensitive] ==
                     rhs._sf_finder_links[ID::e_sensitive]);
@@ -139,14 +117,6 @@ class volume_descriptor {
     private:
     /// How to interpret the boundary values
     volume_id _id = volume_id::e_cylinder;
-
-    /// Boundary values, default for cylinder volume
-    array_t<scalar_t, 6> _bounds = {0.f,
-                                    detail::invalid_value<scalar_t>(),
-                                    -detail::invalid_value<scalar_t>(),
-                                    detail::invalid_value<scalar_t>(),
-                                    -constant<scalar_t>::pi,
-                                    constant<scalar_t>::pi};
 
     /// Volume index in the detector's volume container
     dindex _index = dindex_invalid;
