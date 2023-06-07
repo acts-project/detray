@@ -571,9 +571,23 @@ class navigator {
         // re-initialize volume
         navigation._heartbeat &= init(propagation);
 
+        /*
         // Sanity check: Should never be the case after complete update call
         if (navigation.trust_level() != navigation::trust_level::e_full or
             navigation.is_exhausted()) {
+            navigation.abort();
+        }
+        */
+
+        // Sanity check: Should never be the case after complete update call
+        if (navigation.trust_level() != navigation::trust_level::e_full) {
+            printf("not a full trust \n");
+            navigation.abort();
+        }
+
+        // Sanity check: Should never be the case after complete update call
+        if (navigation.is_exhausted()) {
+            printf("exhasuted \n");
             navigation.abort();
         }
 
@@ -611,7 +625,10 @@ class navigator {
 
             // Update next candidate: If not reachable, 'high trust' is broken
             if (not update_candidate(*navigation.next(), track, det)) {
+
                 const scalar_type new_step_size = stepping.step_size() / 2.f;
+
+                // printf("Case 1 %f \n", new_step_size);
 
                 // Set unknown if the new step size is smaller than the
                 // threshold
@@ -624,15 +641,77 @@ class navigator {
                     return;
                 }
 
-                // Try with the half step size
-                // printf("%f \n", new_step_size);
-
                 stepping.cur_cache = std::move(stepping.pre_cache);
                 stepping.template set_constraint<step::constraint::e_accuracy>(
                     new_step_size);
-                *navigation.next() = std::move(candidate_cache);
+
+                if (navigation.next()->status ==
+                        intersection::status::e_inside &&
+                    navigation.next()->direction ==
+                        intersection::direction::e_opposite) {
+
+                    *navigation.next() = std::move(candidate_cache);
+                }
 
                 return;
+
+                /*
+                // Case 1: When the track overstepped over the overstep
+                // tolerance
+                if (navigation.next()->status ==
+                        intersection::status::e_inside &&
+                    navigation.next()->direction ==
+                        intersection::direction::e_opposite) {
+
+                    const scalar_type new_step_size =
+                        stepping.step_size() / 2.f;
+
+                    printf("Case 1 %f \n", new_step_size);
+
+                    // Set unknown if the new step size is smaller than the
+                    // threshold
+                    if (new_step_size < stepping._safety_step_size) {
+
+                        navigation.set_state(
+                            navigation::status::e_unknown, geometry::barcode{},
+                            navigation::trust_level::e_no_trust);
+                        stepping.release_step();
+                        return;
+                    }
+
+                    stepping.cur_cache = stepping.pre_cache;
+                    stepping
+                        .template set_constraint<step::constraint::e_accuracy>(
+                            new_step_size);
+                    *navigation.next() = std::move(candidate_cache);
+
+                    return;
+
+                }
+
+                // Case 2: The track won't reach the surface
+                else {
+                    const scalar_type new_step_size =
+                        stepping.step_size() / 2.f;
+
+                    printf("Case 2 %f %d %d \n", new_step_size,
+                           int(navigation.next()->status),
+                           int(navigation.next()->direction));
+
+                    printf("%f %f %f \n", stepping.pos()[0], stepping.pos()[1],
+                           stepping.pos()[2]);
+
+
+                    stepping
+                        .template set_constraint<step::constraint::e_accuracy>(
+                            new_step_size);
+                    stepping.cur_cache = stepping.pre_cache;
+                    navigation.set_state(navigation::status::e_unknown,
+                                         geometry::barcode{},
+                                         navigation::trust_level::e_no_trust);
+                    return;
+                }
+                */
             }
 
             // Update navigation flow on the new candidate information

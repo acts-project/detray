@@ -140,7 +140,6 @@ struct propagator {
 
         // Run while there is a heartbeat
         while (propagation._heartbeat) {
-
             /*
             auto &stepping = propagation._stepping;
             printf("before %f %f %f \n", stepping.pos()[0], stepping.pos()[1],

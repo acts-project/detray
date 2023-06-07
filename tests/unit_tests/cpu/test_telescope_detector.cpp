@@ -64,7 +64,9 @@ GTEST_TEST(detray_detectors, telescope_detector) {
         std::declval<vecmem::host_memory_resource &>(),
         std::declval<mask<rectangle2D<>> &>(),
         std::declval<std::vector<scalar> &>()))::bfield_type;
-    using rk_stepper_t = rk_stepper<b_field_t::view_t, transform3>;
+    using constraints_t = constrained_step<>;
+    using rk_stepper_t =
+        rk_stepper<b_field_t::view_t, transform3, constraints_t>;
     using inspector_t = navigation::print_inspector;
 
     // Test tolerance
@@ -235,7 +237,6 @@ GTEST_TEST(detray_detectors, telescope_detector) {
 
     while (heartbeat_tel) {
         heartbeat_tel &= rk_stepper_z.step(tel_propagation);
-        tel_navigation.set_high_trust();
         heartbeat_tel &= tel_navigator.update(tel_propagation);
     }
     // check that propagation was successful

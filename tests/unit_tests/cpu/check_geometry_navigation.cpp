@@ -85,7 +85,7 @@ GTEST_TEST(detray_propagator, straight_line_navigation) {
         ASSERT_TRUE(prop.propagate(propagation)) << debug_printer.to_string();
 
         // Compare intersection records
-        EXPECT_EQ(obj_tracer.object_trace.size(), intersection_trace.size());
+        ASSERT_EQ(obj_tracer.object_trace.size(), intersection_trace.size());
 
         std::stringstream debug_stream;
         for (std::size_t intr_idx = 0u; intr_idx < intersection_trace.size();
@@ -112,7 +112,7 @@ GTEST_TEST(detray_propagator, straight_line_navigation) {
                     continue;
                 }
             }
-            EXPECT_EQ(obj_tracer[i].surface.barcode(),
+            ASSERT_EQ(obj_tracer[i].surface.barcode(),
                       intersection_trace[i].second.surface.barcode())
                 << debug_printer.to_string() << debug_stream.str();
         }
@@ -229,7 +229,7 @@ GTEST_TEST(detray_propagator, helix_navigation) {
                     continue;
                 }
             }
-            EXPECT_EQ(obj_tracer[i].surface.barcode(),
+            ASSERT_EQ(obj_tracer[i].surface.barcode(),
                       intersection_trace[i].second.surface.barcode())
                 << " intersection: " << i << "/" << n_inters_nav
                 << " on track: " << n_tracks << "/"

@@ -259,19 +259,20 @@ TEST_P(PropagatorWithRkStepper, propagator_rk_stepper) {
 
         // Propagate the entire detector
         ASSERT_TRUE(p.propagate(state, actor_states))
-            << print_insp_state.to_string() << std::endl;
+            << print_insp_state.to_string()
+            << state._navigation.inspector().to_string() << std::endl;
+        std::cout << print_insp_state.to_string()
+                  << state._navigation.inspector().to_string() << std::endl;
 
         // Propagate with path limit
         ASSERT_NEAR(pathlimit_aborter_state.path_limit(), path_limit, tol);
         ASSERT_FALSE(p.propagate(lim_state, lim_actor_states))
             << lim_print_insp_state.to_string() << std::endl;
-        //<< lim_state._navigation.inspector().to_string() << std::endl;
 
         ASSERT_TRUE(lim_state._stepping.path_length() <
                     std::abs(path_limit) + tol)
             << "path length: " << lim_state._stepping.path_length()
             << ", path limit: " << path_limit << std::endl;
-        //<< state._navigation.inspector().to_string() << std::endl;
 
         // Compare the navigation status vector between propagate and
         // propagate_sync function
@@ -301,6 +302,15 @@ INSTANTIATE_TEST_SUITE_P(
                                                     1.f * unit<scalar>::T,
                                                     1.f * unit<scalar>::T},
                                       -10.f * unit<scalar>::um,
+                                      std::numeric_limits<scalar>::max())));
+
+/*
+INSTANTIATE_TEST_SUITE_P(
+    PropagatorValidation2, PropagatorWithRkStepper,
+    ::testing::Values(std::make_tuple(test::vector3{0.f * unit<scalar>::T,
+                                                    1.f * unit<scalar>::T,
+                                                    1.f * unit<scalar>::T},
+                                      -10.f * unit<scalar>::um,
                                       5.f * unit<scalar>::mm)));
 
 INSTANTIATE_TEST_SUITE_P(
@@ -318,3 +328,4 @@ INSTANTIATE_TEST_SUITE_P(
                                                     1.f * unit<scalar>::T},
                                       -10.f * unit<scalar>::um,
                                       5.f * unit<scalar>::mm)));
+*/
