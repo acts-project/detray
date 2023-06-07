@@ -18,6 +18,7 @@
 #include "detray/intersection/detail/trajectories.hpp"
 #include "detray/intersection/intersection.hpp"
 #include "detray/intersection/intersection_kernel.hpp"
+#include "detray/propagator/constrained_step.hpp"
 #include "detray/surface_finders/neighborhood_kernel.hpp"
 #include "detray/utils/ranges.hpp"
 
@@ -545,6 +546,10 @@ class navigator {
         if (navigation.trust_level() == navigation::trust_level::e_full) {
             return navigation._heartbeat;
         }
+        if (navigation.trust_level() == navigation::trust_level::e_high) {
+            return navigation._heartbeat;
+        }
+
         // Otherwise: did we run into a portal?
         if (navigation.status() == navigation::status::e_on_portal) {
             // Set volume index to the next volume provided by the portal
@@ -601,9 +606,11 @@ class navigator {
         if (navigation.trust_level() == navigation::trust_level::e_high or
             navigation.n_candidates() == 1) {
 
+            auto &stepping = propagation._stepping;
+            auto candidate_cache = *navigation.next();
+
             // Update next candidate: If not reachable, 'high trust' is broken
             if (not update_candidate(*navigation.next(), track, det)) {
-                auto &stepping = propagation._stepping;
                 const scalar_type new_step_size = stepping.step_size() / 2.f;
 
                 // Set unknown if the new step size is smaller than the
@@ -613,12 +620,17 @@ class navigator {
                     navigation.set_state(navigation::status::e_unknown,
                                          geometry::barcode{},
                                          navigation::trust_level::e_no_trust);
+                    stepping.release_step();
                     return;
                 }
 
                 // Try with the half step size
-                stepping.set_step_size(new_step_size);
+                // printf("%f \n", new_step_size);
+
                 stepping.cur_cache = std::move(stepping.pre_cache);
+                stepping.template set_constraint<step::constraint::e_accuracy>(
+                    new_step_size);
+                *navigation.next() = std::move(candidate_cache);
 
                 return;
             }

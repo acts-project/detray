@@ -111,10 +111,6 @@ class base_stepper {
         bound_matrix _full_jacobian =
             matrix_operator().template identity<e_bound_size, e_bound_size>();
 
-        /// jacobian transport matrix
-        free_matrix _jac_transport =
-            matrix_operator().template identity<e_free_size, e_free_size>();
-
         /// bound-to-free jacobian from departure surface
         bound_to_free_matrix _jac_to_global =
             matrix_operator().template zero<e_free_size, e_bound_size>();
@@ -213,6 +209,14 @@ class base_stepper {
 
         DETRAY_HOST_DEVICE
         inline auto dir() const { return track_helper().dir(cur_cache.track); }
+
+        DETRAY_HOST_DEVICE
+        inline const auto transport_jacobian() const {
+            return cur_cache.jac_transport;
+        }
+
+        DETRAY_HOST_DEVICE
+        inline auto &transport_jacobian() { return cur_cache.jac_transport; }
     };
 };
 

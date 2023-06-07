@@ -129,7 +129,7 @@ void detray::rk_stepper<magnetic_field_t, transform3_t, constraint_t, policy_t,
     /// matrix_operator().element(D, 3, 7) =
     /// h * mass * mass * qop * getter::perp(vector2{1, mass / p});
 
-    this->_jac_transport = D * this->_jac_transport;
+    this->transport_jacobian() = D * this->transport_jacobian();
 }
 
 template <typename magnetic_field_t, typename transform3_t,
@@ -224,6 +224,10 @@ bool detray::rk_stepper<magnetic_field_t, transform3_t, constraint_t, policy_t,
     // Initial step size estimate
     stepping.set_step_size(navigation());
 
+    /*
+    printf("distance: %f \n", navigation());
+    */
+
     scalar step_size_scaling{1.f};
     std::size_t n_step_trials{0u};
 
@@ -260,6 +264,11 @@ bool detray::rk_stepper<magnetic_field_t, transform3_t, constraint_t, policy_t,
                                          ? step::direction::e_forward
                                          : step::direction::e_backward;
     stepping.set_direction(step_dir);
+
+    /*
+    printf("%f %f \n", stepping.step_size(),
+           stepping.constraints().template size<>(stepping.direction()));
+    */
 
     // Check constraints
     if (std::abs(stepping.step_size()) >

@@ -128,10 +128,10 @@ struct helix_inspector : actor {
 
         for (unsigned int i = 0u; i < e_free_size; i++) {
             for (unsigned int j = 0u; j < e_free_size; j++) {
-                ASSERT_NEAR(
-                    matrix_operator().element(stepping._jac_transport, i, j),
-                    matrix_operator().element(true_J, i, j),
-                    stepping.path_from_surface() * tol * 10.f);
+                ASSERT_NEAR(matrix_operator().element(
+                                stepping.transport_jacobian(), i, j),
+                            matrix_operator().element(true_J, i, j),
+                            stepping.path_from_surface() * tol * 10.f);
             }
         }
     }
@@ -192,8 +192,8 @@ TEST_P(PropagatorWithRkStepper, propagator_rk_stepper) {
         n_brl_layers, n_edc_layers);
 
     // Create the navigator
-    // using navigator_t = navigator<decltype(d), navigation::print_inspector>;
-    using navigator_t = navigator<decltype(d)>;
+    using navigator_t = navigator<decltype(d), navigation::print_inspector>;
+    // using navigator_t = navigator<decltype(d)>;
     using track_t = free_track_parameters<transform3>;
     using constraints_t = constrained_step<>;
     using policy_t = stepper_default_policy;
@@ -214,8 +214,12 @@ TEST_P(PropagatorWithRkStepper, propagator_rk_stepper) {
     propagator_t p(stepper_t{}, navigator_t{});
 
     // Iterate through uniformly distributed momentum directions
+    int count = 0;
+
     for (auto track :
          uniform_track_generator<track_t>(theta_steps, phi_steps, ori, mom)) {
+
+        std::cout << count++ << std::endl;
         // Generate second track state used for propagation with pathlimit
         track_t lim_track(track);
 
@@ -256,7 +260,6 @@ TEST_P(PropagatorWithRkStepper, propagator_rk_stepper) {
         // Propagate the entire detector
         ASSERT_TRUE(p.propagate(state, actor_states))
             << print_insp_state.to_string() << std::endl;
-        // << state._navigation.inspector().to_string() << std::endl;
 
         // Propagate with path limit
         ASSERT_NEAR(pathlimit_aborter_state.path_limit(), path_limit, tol);

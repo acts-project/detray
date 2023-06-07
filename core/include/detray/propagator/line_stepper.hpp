@@ -79,7 +79,7 @@ class line_stepper final
             /// NOTE: Let's skip the element for d(time)/d(qoverp) for the
             /// moment..
 
-            this->_jac_transport = D * this->_jac_transport;
+            this->transport_jacobian() = D * this->transport_jacobian();
         }
 
         DETRAY_HOST_DEVICE

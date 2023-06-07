@@ -81,7 +81,8 @@ struct parameter_transporter : actor {
                 local_coordinate.free_to_bound_jacobian(trf3, free_vec);
 
             // Transport jacobian in free coordinate
-            free_matrix& free_transport_jacobian = stepping._jac_transport;
+            free_matrix& free_transport_jacobian =
+                stepping.transport_jacobian();
 
             // Path correction factor
             free_matrix path_correction = local_coordinate.path_correction(

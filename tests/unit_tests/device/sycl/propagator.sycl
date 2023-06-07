@@ -112,7 +112,7 @@ TEST_P(SyclPropagatorWithRkStepper, propagator) {
         // Record the step information
         host_path_lengths.push_back(insp_state._path_lengths);
         host_positions.push_back(insp_state._positions);
-        host_jac_transports.push_back(insp_state._jac_transports);
+        host_jac_transports.push_back(insp_state.transport_jacobian() s);
     }
 
     /**

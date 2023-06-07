@@ -148,7 +148,7 @@ GTEST_TEST(detray_propagator, helix_navigation) {
                       status::e_on_portal>;
     using inspector_t = aggregate_inspector<object_tracer_t, print_inspector>;
     using navigator_t = navigator<detector_t, inspector_t, intersection_t>;
-    using constraints_t = unconstrained_step;
+    using constraints_t = constrained_step<>;
     using stepper_t =
         rk_stepper<b_field_t::view_t, transform3_t, constraints_t>;
     using propagator_t = propagator<stepper_t, navigator_t, actor_chain<>>;
