@@ -481,6 +481,8 @@ class navigator {
     template <typename propagator_state_t>
     DETRAY_HOST_DEVICE inline bool init(propagator_state_t &propagation) const {
 
+        // printf("Init Start \n");
+
         state &navigation = propagation._navigation;
         const auto det = navigation.detector();
         const auto &track = propagation._stepping();
@@ -625,7 +627,7 @@ class navigator {
 
             // Update next candidate: If not reachable, 'high trust' is broken
             if (not update_candidate(*navigation.next(), track, det)) {
-
+                /*
                 const scalar_type new_step_size = stepping.step_size() / 2.f;
 
                 // printf("Case 1 %f \n", new_step_size);
@@ -654,8 +656,7 @@ class navigator {
                 }
 
                 return;
-
-                /*
+                */
                 // Case 1: When the track overstepped over the overstep
                 // tolerance
                 if (navigation.next()->status ==
@@ -675,7 +676,8 @@ class navigator {
                         navigation.set_state(
                             navigation::status::e_unknown, geometry::barcode{},
                             navigation::trust_level::e_no_trust);
-                        stepping.release_step();
+                        stepping.template release_step<
+                            step::constraint::e_accuracy>();
                         return;
                     }
 
@@ -691,27 +693,53 @@ class navigator {
 
                 // Case 2: The track won't reach the surface
                 else {
+
+                    // navigation._heartbeat &= init(propagation);
+                    printf("Case 2 %f %f \n", stepping.step_size(),
+                           navigation());
+
+                    if (stepping.step_size() < navigation() / 2.f) {
+                        printf("hi \n");
+
+                        navigation.set_state(
+                            navigation::status::e_unknown, geometry::barcode{},
+                            navigation::trust_level::e_no_trust);
+                        stepping.template release_step<
+                            step::constraint::e_accuracy>();
+                        return;
+                    }
+
                     const scalar_type new_step_size =
                         stepping.step_size() / 2.f;
-
-                    printf("Case 2 %f %d %d \n", new_step_size,
-                           int(navigation.next()->status),
-                           int(navigation.next()->direction));
-
-                    printf("%f %f %f \n", stepping.pos()[0], stepping.pos()[1],
-                           stepping.pos()[2]);
-
 
                     stepping
                         .template set_constraint<step::constraint::e_accuracy>(
                             new_step_size);
                     stepping.cur_cache = stepping.pre_cache;
+
                     navigation.set_state(navigation::status::e_unknown,
                                          geometry::barcode{},
-                                         navigation::trust_level::e_no_trust);
+                                         navigation::trust_level::e_high);
+                    *navigation.next() = std::move(candidate_cache);
+                    // navigation.set_high_trust();
+
+                    /*
+                    printf(
+                        "Case 2 %f %d %d %d barcpde value %d barcode volume %d "
+                        "barcode id %d \n",
+                        new_step_size, int(navigation.next()->status),
+                        int(navigation.next()->direction),
+                        int(navigation.n_candidates()),
+                        int(navigation.current()->surface.barcode().value()),
+                        int(navigation.current()->surface.barcode().volume()),
+                        int(navigation.current()->surface.barcode().id()));
+
+                    printf("%f %f %f \n", stepping.pos()[0], stepping.pos()[1],
+                           stepping.pos()[2]);
+                    */
+
                     return;
                 }
-                */
             }
 
             // Update navigation flow on the new candidate information

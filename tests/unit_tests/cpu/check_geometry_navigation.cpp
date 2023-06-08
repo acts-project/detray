@@ -166,7 +166,7 @@ GTEST_TEST(detray_propagator, helix_navigation) {
     const scalar p_mag{10.f * unit<scalar>::GeV};
 
     // Overstepping
-    constexpr scalar overstep_tol{-100.f * unit<scalar>::um};
+    constexpr scalar overstep_tol{-10.f * unit<scalar>::um};
 
     // Iterate through uniformly distributed momentum directions
     std::size_t n_tracks{0u};
@@ -174,9 +174,11 @@ GTEST_TEST(detray_propagator, helix_navigation) {
         uniform_track_generator<free_track_parameters_type>(
             theta_steps, phi_steps, ori, p_mag);
 
+    int count = 0;
     for (auto track : trk_state_generator) {
+        std::cout << count++ << std::endl;
         // Prepare for overstepping in the presence of b fields
-        // track.set_overstep_tolerance(overstep_tol);
+        track.set_overstep_tolerance(overstep_tol);
 
         // Get ground truth helix from track
         detail::helix helix(track, &B);
@@ -210,31 +212,47 @@ GTEST_TEST(detray_propagator, helix_navigation) {
             debug_stream << "navig.: " << obj_tracer[intr_idx] << std::endl;
         }
 
-        // Compare intersection records
-        EXPECT_EQ(n_inters_nav, intersection_trace.size())
-            << debug_printer.to_string() << debug_stream.str();
-
-        // Check every single recorded intersection
-        for (std::size_t i = 0u; i < max_entries; ++i) {
-            if (obj_tracer[i].surface.barcode() !=
-                intersection_trace[i].second.surface.barcode()) {
-                // Intersection record at portal bound might be flipped
-                // (the portals overlap completely)
-                if (obj_tracer[i].surface.barcode() ==
-                        intersection_trace[i + 1u].second.surface.barcode() and
-                    obj_tracer[i + 1u].surface.barcode() ==
-                        intersection_trace[i].second.surface.barcode()) {
-                    // Have already checked the next record
-                    ++i;
-                    continue;
-                }
-            }
-            ASSERT_EQ(obj_tracer[i].surface.barcode(),
-                      intersection_trace[i].second.surface.barcode())
-                << " intersection: " << i << "/" << n_inters_nav
-                << " on track: " << n_tracks << "/"
-                << trk_state_generator.size();
+        for (std::size_t intr_idx = 0u; intr_idx < n_inters_nav; ++intr_idx) {
+            std::cout << "-------Intersection trace\n"
+                      << "helix gun: "
+                      << "\tvol id: " << intersection_trace[intr_idx].first
+                      << ", " << intersection_trace[intr_idx].second
+                      << std::endl;
         }
-        ++n_tracks;
+
+        for (std::size_t intr_idx = 0u; intr_idx < max_entries; ++intr_idx) {
+            std::cout << "navig.: " << obj_tracer[intr_idx] << std::endl;
+        }
+
+        // Compare intersection records
+        EXPECT_EQ(n_inters_nav, intersection_trace.size());
+        //<< debug_printer.to_string() << debug_stream.str();
+
+        for (std::size_t intr_idx = 0u; intr_idx < max_entries; ++intr_idx) {
+
+            // Check every single recorded intersection
+            for (std::size_t i = 0u; i < max_entries; ++i) {
+                if (obj_tracer[i].surface.barcode() !=
+                    intersection_trace[i].second.surface.barcode()) {
+                    // Intersection record at portal bound might be flipped
+                    // (the portals overlap completely)
+                    if (obj_tracer[i].surface.barcode() ==
+                            intersection_trace[i + 1u]
+                                .second.surface.barcode() and
+                        obj_tracer[i + 1u].surface.barcode() ==
+                            intersection_trace[i].second.surface.barcode()) {
+                        // Have already checked the next record
+                        ++i;
+                        continue;
+                    }
+                }
+                ASSERT_EQ(obj_tracer[i].surface.barcode(),
+                          intersection_trace[i].second.surface.barcode())
+                    << " intersection: " << i << "/" << n_inters_nav
+                    << " on track: " << n_tracks << "/"
+                    << trk_state_generator.size();
+            }
+            ++n_tracks;
+        }
     }
 }
