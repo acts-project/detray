@@ -139,14 +139,6 @@ class base_stepper {
         // Navigation policy state
         typename policy_t::state _policy_state = {};
 
-        /*
-        /// Track path length
-        scalar _path_length{0.};
-
-        /// Track path length from the last surface. It will be reset to 0 when
-        /// the track reaches a new surface
-        scalar _s{0.};
-        */
         /// TODO: Use options?
         /// hypothetical mass of particle (assume pion by default)
         /// scalar _mass = 139.57018 * unit<scalar_type>::MeV;

@@ -8,11 +8,10 @@
 #pragma once
 
 // Project include(s)
-#include <iostream>
-
 #include "detray/definitions/qualifiers.hpp"
 #include "detray/intersection/intersection.hpp"
 #include "detray/utils/ranges.hpp"
+
 namespace detray {
 
 /// A functor to add all valid intersections between the trajectory and surface
@@ -67,7 +66,6 @@ struct intersection_initialize {
     DETRAY_HOST_DEVICE bool place_in_collection(
         typename is_container_t::value_type &&sfi,
         is_container_t &intersections) const {
-        // std::cout << sfi;
         bool is_inside = (sfi.status == intersection::status::e_inside);
         if (is_inside) {
             intersections.push_back(sfi);

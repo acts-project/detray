@@ -339,7 +339,7 @@ class navigator {
             _heartbeat = false;
             // Don't do anything if aborted
             _trust_level = navigation::trust_level::e_full;
-            // run_inspector("Aborted: ");
+            run_inspector("Aborted: ");
             return _heartbeat;
         }
 
@@ -352,7 +352,7 @@ class navigator {
             _status = navigation::status::e_on_target;
             _heartbeat = false;
             _trust_level = navigation::trust_level::e_full;
-            // run_inspector("Exited: ");
+            run_inspector("Exited: ");
             this->clear();
             return _heartbeat;
         }
@@ -481,8 +481,6 @@ class navigator {
     template <typename propagator_state_t>
     DETRAY_HOST_DEVICE inline bool init(propagator_state_t &propagation) const {
 
-        // printf("Init Start \n");
-
         state &navigation = propagation._navigation;
         const auto det = navigation.detector();
         const auto &track = propagation._stepping();
@@ -563,10 +561,12 @@ class navigator {
                 return navigation._heartbeat;
             }
             // Run inspection when needed (keep for debugging)
+            /*
             if constexpr (not std::is_same_v<inspector_t,
                                              navigation::void_inspector>) {
                 navigation.run_inspector("Volume switch: ");
             }
+            */
         }
         // If no trust could be restored for the current state, (local)
         // navigation might be exhausted or we switched volumes:
