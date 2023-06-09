@@ -339,7 +339,7 @@ class navigator {
             _heartbeat = false;
             // Don't do anything if aborted
             _trust_level = navigation::trust_level::e_full;
-            //run_inspector("Aborted: ");
+            // run_inspector("Aborted: ");
             return _heartbeat;
         }
 
@@ -352,7 +352,7 @@ class navigator {
             _status = navigation::status::e_on_target;
             _heartbeat = false;
             _trust_level = navigation::trust_level::e_full;
-            //run_inspector("Exited: ");
+            // run_inspector("Exited: ");
             this->clear();
             return _heartbeat;
         }
@@ -563,33 +563,19 @@ class navigator {
                 return navigation._heartbeat;
             }
             // Run inspection when needed (keep for debugging)
-            /*if constexpr (not std::is_same_v<inspector_t,
-                                         navigation::void_inspector>) {
+            if constexpr (not std::is_same_v<inspector_t,
+                                             navigation::void_inspector>) {
                 navigation.run_inspector("Volume switch: ");
-            }*/
+            }
         }
         // If no trust could be restored for the current state, (local)
         // navigation might be exhausted or we switched volumes:
         // re-initialize volume
         navigation._heartbeat &= init(propagation);
 
-        /*
         // Sanity check: Should never be the case after complete update call
         if (navigation.trust_level() != navigation::trust_level::e_full or
             navigation.is_exhausted()) {
-            navigation.abort();
-        }
-        */
-
-        // Sanity check: Should never be the case after complete update call
-        if (navigation.trust_level() != navigation::trust_level::e_full) {
-            printf("not a full trust \n");
-            navigation.abort();
-        }
-
-        // Sanity check: Should never be the case after complete update call
-        if (navigation.is_exhausted()) {
-            printf("exhasuted \n");
             navigation.abort();
         }
 
@@ -627,36 +613,7 @@ class navigator {
 
             // Update next candidate: If not reachable, 'high trust' is broken
             if (not update_candidate(*navigation.next(), track, det)) {
-                /*
-                const scalar_type new_step_size = stepping.step_size() / 2.f;
 
-                // printf("Case 1 %f \n", new_step_size);
-
-                // Set unknown if the new step size is smaller than the
-                // threshold
-                if (new_step_size < stepping._safety_step_size) {
-
-                    navigation.set_state(navigation::status::e_unknown,
-                                         geometry::barcode{},
-                                         navigation::trust_level::e_no_trust);
-                    stepping.release_step();
-                    return;
-                }
-
-                stepping.cur_cache = std::move(stepping.pre_cache);
-                stepping.template set_constraint<step::constraint::e_accuracy>(
-                    new_step_size);
-
-                if (navigation.next()->status ==
-                        intersection::status::e_inside &&
-                    navigation.next()->direction ==
-                        intersection::direction::e_opposite) {
-
-                    *navigation.next() = std::move(candidate_cache);
-                }
-
-                return;
-                */
                 // Case 1: When the track overstepped over the overstep
                 // tolerance
                 if (navigation.next()->status ==
@@ -796,6 +753,7 @@ class navigator {
                                              navigation::void_inspector>) {
                 navigation.run_inspector("Update complete: fair trust: ");
             }
+
             return;
         }
 

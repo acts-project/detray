@@ -261,7 +261,7 @@ TEST_P(PropagatorWithRkStepper, propagator_rk_stepper) {
         ASSERT_TRUE(p.propagate(state, actor_states))
             << print_insp_state.to_string()
             << state._navigation.inspector().to_string() << std::endl;
-        //std::cout << print_insp_state.to_string()
+        // std::cout << print_insp_state.to_string()
         //          << state._navigation.inspector().to_string() << std::endl;
 
         // Propagate with path limit

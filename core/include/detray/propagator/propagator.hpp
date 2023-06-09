@@ -158,7 +158,7 @@ struct propagator {
             printf("after %f %f %f \n", stepping.pos()[0], stepping.pos()[1],
                    stepping.pos()[2]);
             */
-           
+
             // Find next candidate
             propagation._heartbeat &= _navigator.update(propagation);
 
