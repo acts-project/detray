@@ -518,6 +518,9 @@ class detector {
         return *std::max_element(n_candidates.begin(), n_candidates.end());
     }
 
+    DETRAY_HOST
+    inline void set_bfield(bfield_type &&field) { _bfield = std::move(field); }
+
     DETRAY_HOST_DEVICE
     inline const bfield_type &get_bfield() const { return _bfield; }
 

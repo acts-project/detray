@@ -38,7 +38,7 @@ class json_reader final : public common_reader_t<detector_t> {
     /// Set json file extension
     json_reader() : base_reader(".json") {}
 
-    /// Writes the geometry to file with a given name
+    /// Reads the geometry from file with the given name
     virtual void read(detector_t& det, typename detector_t::name_map& name_map,
                       const std::string& file_name) override {
 
