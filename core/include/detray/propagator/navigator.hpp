@@ -486,7 +486,7 @@ class navigator {
         const auto &track = propagation._stepping();
         const auto &volume = det->volume_by_index(navigation.volume());
 
-        printf("Init start Volume: %d \n", int(navigation.volume()));
+        // printf("Init start Volume: %d \n", int(navigation.volume()));
 
         // Clean up state
         navigation.clear();
@@ -510,7 +510,7 @@ class navigator {
         update_navigation_state(propagation);
         // If init was not successful, the propagation setup is broken
         if (navigation.trust_level() != navigation::trust_level::e_full) {
-            printf("Init failed \n");
+            // printf("Init failed \n");
             navigation._heartbeat = false;
         }
 
@@ -625,7 +625,7 @@ class navigator {
                     const scalar_type new_step_size =
                         stepping.step_size() / 2.f;
 
-                    printf("Case 1 %f \n", new_step_size);
+                    // printf("Case 1 %f \n", new_step_size);
 
                     // Set unknown if the new step size is smaller than the
                     // threshold
@@ -652,7 +652,7 @@ class navigator {
                 // Case 2: The track won't reach the surface
                 else {
 
-                    printf("Case 2 %d \n", int(navigation.volume()));
+                    // printf("Case 2 %d \n", int(navigation.volume()));
 
                     /*
                     // navigation._heartbeat &= init(propagation);
@@ -680,7 +680,7 @@ class navigator {
                     // if (stepping.step_size() < navigation() / 2.f) {
                     if (stepping.step_size() < navigation() / 2.f &&
                         in_volume == true) {
-                        printf("hi \n");
+                        // printf("hi \n");
 
                         navigation.set_state(
                             navigation::status::e_unknown, geometry::barcode{},
@@ -813,7 +813,7 @@ class navigator {
         // exit-portal is the last reachable surface in every volume)
         if (navigation.is_on_object(*navigation.next(),
                                     stepping._overstep_tolerance)) {
-            printf("hi0 %d \n", int(navigation.n_candidates()));
+            // printf("hi0 %d \n", int(navigation.n_candidates()));
 
             // Set the next object that we want to reach (this function is only
             // called once the cache has been updated to a full trust state).
@@ -828,7 +828,7 @@ class navigator {
                 navigation::trust_level::e_full);
         } else {
 
-            printf("hi1 \n");
+            // printf("hi1 \n");
             // Otherwise the track is moving towards a surface
             navigation.set_state(navigation::status::e_towards_object,
                                  geometry::barcode{},
@@ -838,7 +838,7 @@ class navigator {
         // cache is reachable anymore -> triggers init of [new] volume
         if (navigation.is_exhausted()) {
 
-            printf("hi2 \n");
+            // printf("hi2 \n");
             navigation.set_no_trust();
         }
     }
