@@ -751,7 +751,6 @@ class navigator {
                                              navigation::void_inspector>) {
                 navigation.run_inspector("Update complete: fair trust: ");
             }
-
             return;
         }
 
