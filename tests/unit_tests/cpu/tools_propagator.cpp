@@ -214,12 +214,9 @@ TEST_P(PropagatorWithRkStepper, propagator_rk_stepper) {
     propagator_t p(stepper_t{}, navigator_t{});
 
     // Iterate through uniformly distributed momentum directions
-    int count = 0;
-
     for (auto track :
          uniform_track_generator<track_t>(theta_steps, phi_steps, ori, mom)) {
 
-        std::cout << count++ << std::endl;
         // Generate second track state used for propagation with pathlimit
         track_t lim_track(track);
 
@@ -290,7 +287,6 @@ TEST_P(PropagatorWithRkStepper, propagator_rk_stepper) {
 }
 
 // Realistic case
-/*
 INSTANTIATE_TEST_SUITE_P(
     PropagatorValidation1, PropagatorWithRkStepper,
     ::testing::Values(std::make_tuple(test::vector3{0.f * unit<scalar>::T,
@@ -298,7 +294,7 @@ INSTANTIATE_TEST_SUITE_P(
                                                     2.f * unit<scalar>::T},
                                       -7.f * unit<scalar>::um,
                                       std::numeric_limits<scalar>::max())));
-*/
+
 // Add some restrictions for more frequent navigation updates in the cases of
 // non-z-aligned B-fields
 INSTANTIATE_TEST_SUITE_P(
@@ -307,16 +303,7 @@ INSTANTIATE_TEST_SUITE_P(
                                                     1.f * unit<scalar>::T,
                                                     1.f * unit<scalar>::T},
                                       -10.f * unit<scalar>::um,
-                                      5.f * unit<scalar>::mm)));
-
-/*
-INSTANTIATE_TEST_SUITE_P(
-    PropagatorValidation2, PropagatorWithRkStepper,
-    ::testing::Values(std::make_tuple(test::vector3{0.f * unit<scalar>::T,
-                                                    1.f * unit<scalar>::T,
-                                                    1.f * unit<scalar>::T},
-                                      -10.f * unit<scalar>::um,
-                                      5.f * unit<scalar>::mm)));
+                                      std::numeric_limits<scalar>::max())));
 
 INSTANTIATE_TEST_SUITE_P(
     PropagatorValidation3, PropagatorWithRkStepper,
@@ -324,7 +311,7 @@ INSTANTIATE_TEST_SUITE_P(
                                                     0.f * unit<scalar>::T,
                                                     1.f * unit<scalar>::T},
                                       -10.f * unit<scalar>::um,
-                                      5.f * unit<scalar>::mm)));
+                                      std::numeric_limits<scalar>::max())));
 
 INSTANTIATE_TEST_SUITE_P(
     PropagatorValidation4, PropagatorWithRkStepper,
@@ -332,5 +319,4 @@ INSTANTIATE_TEST_SUITE_P(
                                                     1.f * unit<scalar>::T,
                                                     1.f * unit<scalar>::T},
                                       -10.f * unit<scalar>::um,
-                                      5.f * unit<scalar>::mm)));
-*/
+                                      std::numeric_limits<scalar>::max())));

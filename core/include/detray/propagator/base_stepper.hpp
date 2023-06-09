@@ -99,7 +99,7 @@ class base_stepper {
 
         scalar_type _step_size{0.f};
         scalar_type _safety_step_size{1.f * unit<scalar_type>::mm};
-        scalar_type _overstep_tolerance{-10.f * unit<scalar_type>::mm};
+        scalar_type _overstep_tolerance{-10.f * unit<scalar_type>::um};
 
         /// free parameter covariance
         /// @NOTE: This is only used for propagator state input with free

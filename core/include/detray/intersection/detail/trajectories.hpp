@@ -110,7 +110,7 @@ class ray {
     vector3 _dir{0.f, 0.f, 1.f};
 
     /// Overstep tolerance on a geometry surface
-    scalar_type _overstep_tolerance{-1e-4f};
+    scalar_type _overstep_tolerance{-1e-2f};
 };
 
 /// @brief describes a helical trajectory in a given B-field.

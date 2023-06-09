@@ -158,7 +158,7 @@ struct free_track_parameters {
     vector_type m_vector = matrix_operator().template zero<e_free_size, 1>();
     covariance_type m_covariance =
         matrix_operator().template zero<e_free_size, e_free_size>();
-    scalar_type m_overstep_tolerance{-1e-4f};
+    scalar_type m_overstep_tolerance{-1e-2f};
 };
 
 }  // namespace detray
