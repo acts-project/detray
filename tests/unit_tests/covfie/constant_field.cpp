@@ -20,7 +20,7 @@ TEST(Covfie, ConstantField1D) {
         covfie::field<covfie::backend::constant<covfie::vector::float1,
                                                 covfie::vector::float1>>;
 
-    field_t f(field_t::backend_t::configuration_t{2.f});
+    field_t f(covfie::make_parameter_pack(field_t::backend_t::configuration_t{2.f}));
     field_t::view_t v(f);
 
     for (float x = -100.f; x <= 100.f; x += 1.f) {
@@ -33,7 +33,7 @@ TEST(Covfie, ConstantField2D) {
         covfie::field<covfie::backend::constant<covfie::vector::float2,
                                                 covfie::vector::float2>>;
 
-    field_t f(field_t::backend_t::configuration_t{2.f, 5.f});
+    field_t f(covfie::make_parameter_pack(field_t::backend_t::configuration_t{2.f, 5.f}));
     field_t::view_t v(f);
 
     for (float x = -100.f; x <= 100.f; x += 1.f) {
@@ -49,7 +49,7 @@ TEST(Covfie, ConstantField3D) {
         covfie::field<covfie::backend::constant<covfie::vector::float3,
                                                 covfie::vector::float3>>;
 
-    field_t f(field_t::backend_t::configuration_t{2.f, 5.f, -4.f});
+    field_t f(covfie::make_parameter_pack(field_t::backend_t::configuration_t{2.f, 5.f, -4.f}));
     field_t::view_t v(f);
 
     for (float x = -10.f; x <= 10.f; x += 1.f) {

@@ -9,6 +9,7 @@
 #include "detray/definitions/units.hpp"
 #include "detray/geometry/surface.hpp"
 #include "detray/intersection/detail/trajectories.hpp"
+#include "detray/io/common/detail/file_handle.hpp"
 #include "detray/propagator/line_stepper.hpp"
 #include "detray/propagator/rk_stepper.hpp"
 #include "detray/simulation/event_generator/track_generators.hpp"
@@ -47,16 +48,9 @@ constexpr scalar tol{1e-3f};
 
 template <typename bfield_t>
 inline bfield_t load_field() {
-    std::ifstream stream(std::getenv("DETRAY_BFIELD_FILE"),
-                         std::ifstream::binary);
+    detray::io::detail::file_handle file(std::getenv("DETRAY_BFIELD_FILE"), std::ios_base::binary | std::ios_base::in);
 
-    if (!stream.good()) {
-        std::cout << "File loading error" << std::endl;
-    }
-
-    bfield_t field(stream);
-
-    stream.close();
+    bfield_t field(*file);
 
     return field;
 }
@@ -167,7 +161,7 @@ GTEST_TEST(detray_propagator, rk_stepper) {
     vector3 B{1.f * unit<scalar>::T, 1.f * unit<scalar>::T,
               1.f * unit<scalar>::T};
     bfield_t hom_bfield(
-        typename bfield_t::backend_t::configuration_t{B[0], B[1], B[2]});
+        covfie::make_parameter_pack(typename bfield_t::backend_t::configuration_t{B[0], B[1], B[2]}));
 
     // RK stepper
     rk_stepper_t<bfield_t> rk_stepper;

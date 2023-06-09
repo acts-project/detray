@@ -81,8 +81,7 @@ template <typename bfield_view_t>
 using rk_stepper_t = rk_stepper<bfield_view_t, transform3, constraints_t>;
 
 // Detector configuration
-constexpr std::size_t n_brl_layers{4u};
-constexpr std::size_t n_edc_layers{3u};
+toy_det_config toy_cfg{};
 
 // Geomery navigation configurations
 constexpr unsigned int theta_steps{10u};

@@ -21,10 +21,10 @@ GTEST_TEST(detray_geometry, volume_graph) {
 
     vecmem::host_memory_resource host_mr;
 
-    unsigned int n_brl_layers{4u};
-    unsigned int n_edc_layers{1u};
+    toy_det_config toy_cfg{};
+    toy_cfg.n_edc_layers(1u);
 
-    auto det = create_toy_geometry(host_mr, n_brl_layers, n_edc_layers);
+    auto det = create_toy_geometry(host_mr, toy_cfg);
     using detector_t = decltype(det);
 
     /// Prints linking information for every node when visited

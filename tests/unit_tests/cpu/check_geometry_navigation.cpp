@@ -36,10 +36,11 @@ using free_track_parameters_type = free_track_parameters<transform3_t>;
 GTEST_TEST(detray_propagator, straight_line_navigation) {
 
     // Detector configuration
-    constexpr std::size_t n_brl_layers{4u};
-    constexpr std::size_t n_edc_layers{7u};
     vecmem::host_memory_resource host_mr;
-    auto det = create_toy_geometry<>(host_mr, n_brl_layers, n_edc_layers);
+    toy_det_config toy_cfg{};
+    toy_cfg.n_edc_layers(7u);
+
+    auto det = create_toy_geometry<>(host_mr, toy_cfg);
 
     // Straight line navigation
     using detector_t = decltype(det);
@@ -123,15 +124,15 @@ GTEST_TEST(detray_propagator, straight_line_navigation) {
 GTEST_TEST(detray_propagator, helix_navigation) {
     using namespace navigation;
 
-    // Detector configuration
-    constexpr std::size_t n_brl_layers{4u};
-    constexpr std::size_t n_edc_layers{7u};
-    vecmem::host_memory_resource host_mr;
-
     const vector3 B{0.f * unit<scalar>::T, 0.f * unit<scalar>::T,
                     2.f * unit<scalar>::T};
 
-    auto det = create_toy_geometry(host_mr, n_brl_layers, n_edc_layers);
+    // Detector configuration
+    vecmem::host_memory_resource host_mr;
+    toy_det_config toy_cfg{};
+    toy_cfg.n_edc_layers(7u).bfield_vec(B);
+
+    auto det = create_toy_geometry<>(host_mr, toy_cfg);
 
     // Runge-Kutta based navigation
     using detector_t = decltype(det);

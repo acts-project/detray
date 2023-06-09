@@ -26,10 +26,8 @@ constexpr std::size_t root_hash = 3244;
 GTEST_TEST(detray_geometry, check_geometry_linking) {
 
     // Detector configuration
-    constexpr std::size_t n_brl_layers{4};
-    constexpr std::size_t n_edc_layers{3};
     vecmem::host_memory_resource host_mr;
-    auto det = create_toy_geometry(host_mr, n_brl_layers, n_edc_layers);
+    auto det = create_toy_geometry(host_mr);
 
     // Build the graph
     volume_graph graph(det);

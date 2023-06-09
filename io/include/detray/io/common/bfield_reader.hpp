@@ -13,6 +13,7 @@
 
 // System include(s)
 #include <ios>
+#include <iostream>
 #include <string>
 
 namespace detray {
@@ -33,15 +34,8 @@ class covfie_file_reader : public reader_interface<detector_t> {
 
     /// Covfie constructs the field directly from the input stream in
     /// @param file
-    auto deserialize(io::detail::file_handle&) const {
-        // This has to be defined!
-        std::ifstream stream(std::getenv("DETRAY_BFIELD_FILE"),
-                             std::ifstream::binary);
-
-        if (!stream.good()) {
-            // std::cout << "File loading error" << std::endl;
-        }
-        return typename detector_t::bfield_type(stream);
+    auto deserialize(io::detail::file_handle& file) const {
+        return typename detector_t::bfield_type(*file);
     }
 };
 
@@ -62,11 +56,9 @@ class bfield_reader final : public reader_t<detector_t> {
     virtual void read(detector_t& det, typename detector_t::name_map&,
                       const std::string& file_name) override {
 
-        // Read json from file
         io::detail::file_handle file{file_name,
                                      std::ios_base::binary | std::ios_base::in};
 
-        // Reads the data from file and returns the corresponding io payloads
         det.set_bfield(base_reader::deserialize(file));
     }
 };

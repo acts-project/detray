@@ -30,10 +30,11 @@ int main() {
                                   2. * detray::unit<detray::scalar>::T};
 
     // Create the toy geometry
+    detray::toy_det_config toy_cfg{};
+    toy_cfg.bfield_vec(B);
+
     detray::tutorial::detector_host_t det = detray::create_toy_geometry<>(
-        mng_mr, detray::tutorial::field_t(
-                    detray::tutorial::field_t::backend_t::configuration_t{
-                        B[0], B[1], B[2]}));
+        mng_mr, toy_cfg);
 
     // Create the vector of initial track parameters
     vecmem::vector<detray::free_track_parameters<detray::tutorial::transform3>>

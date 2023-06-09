@@ -26,11 +26,9 @@ TEST_P(CudaPropagatorConstBField, propagator) {
     const vector3_t B = GetParam();
 
     // Create the toy geometry
+    toy_cfg.bfield_vec(B);
     auto det = create_toy_geometry<const_bfield_bknd_t, host_container_types>(
-        mng_mr,
-        covfie::field<const_bfield_bknd_t>(
-            const_bfield_bknd_t::configuration_t{B[0], B[1], B[2]}),
-        n_brl_layers, n_edc_layers);
+        mng_mr, toy_cfg);
 
     // Create the vector of initial track parameterizations
     auto tracks_host = generate_tracks(&mng_mr);
@@ -79,7 +77,7 @@ TEST(CudaPropagatorValidation5, inhomogeneous_bfield) {
 
     // Create the toy geometry with inhomogeneous bfield from file
     auto det = create_toy_geometry<inhom_bfield_bknd_t, host_container_types>(
-        mng_mr, n_brl_layers, n_edc_layers);
+        mng_mr, toy_cfg);
 
     // Create the vector of initial track parameterizations
     auto tracks_host = generate_tracks(&mng_mr);

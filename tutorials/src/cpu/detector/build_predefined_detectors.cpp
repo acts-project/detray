@@ -44,22 +44,23 @@ int main(int argc, char** argv) {
     // Toy detector type
     using toy_detector_t = detray::detector<detray::toy_metadata<>>;
 
+    detray::toy_det_config toy_cfg{};
     // Number of barrel layers (0 - 4)
-    unsigned int n_brl_layers{4u};
+    toy_cfg.n_brl_layers(4u);
     // Number of endcap layers on either side (0 - 7)
     // Note: The detector must be configured with 4 barrel layers to be able to
     // add any encap layers
-    unsigned int n_edc_layers{1u};
+    toy_cfg.n_edc_layers(1u);
 
     // Read toy detector config from commandline, if it was given
     if (argc == 3) {
-        n_brl_layers = static_cast<unsigned int>(std::abs(std::atoi(argv[1])));
-        n_edc_layers = static_cast<unsigned int>(std::abs(std::atoi(argv[2])));
+        toy_cfg.n_brl_layers(static_cast<unsigned int>(std::abs(std::atoi(argv[1]))));
+        toy_cfg.n_edc_layers(static_cast<unsigned int>(std::abs(std::atoi(argv[2]))));
     }
 
     // Fill the detector
     const toy_detector_t toy_det =
-        detray::create_toy_geometry(host_mr, n_brl_layers, n_edc_layers);
+        detray::create_toy_geometry(host_mr, toy_cfg);
 
     // Print the volume graph of the toy detector
     std::cout << "\nToy detector:\n"
@@ -163,7 +164,7 @@ int main(int argc, char** argv) {
     // Prepare constant B-field
     using b_field_t = typename trapzd_telescope_t::bfield_type;
     b_field_t b_field_z{
-        b_field_t::backend_t::configuration_t{B_z[0], B_z[1], B_z[2]}};
+        covfie::make_parameter_pack(b_field_t::backend_t::configuration_t{B_z[0], B_z[1], B_z[2]})};
 
     const trapzd_telescope_t tel_det4 = detray::create_telescope_detector(
         host_mr, std::move(b_field_z), trapezoid, positions,

@@ -104,8 +104,8 @@ class file_handle final {
     static std::size_t n_open_files;
 };
 
-std::size_t file_handle::n_files{0u};
-std::size_t file_handle::n_open_files{0u};
+inline std::size_t file_handle::n_files{0u};
+inline std::size_t file_handle::n_open_files{0u};
 
 }  // namespace detail
 

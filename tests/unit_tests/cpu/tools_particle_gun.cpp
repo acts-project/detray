@@ -38,13 +38,13 @@ GTEST_TEST(detray_tools, particle_gun) {
     const vector3 B{0.f * unit<scalar>::T, 0.f * unit<scalar>::T,
                     tol * unit<scalar>::T};
 
-    auto bfield = covfie::field<bfield_bknd_t>{
-        typename bfield_bknd_t::configuration_t{B[0], B[1], B[2]}};
-
     // Build the geometry
     vecmem::host_memory_resource host_mr;
+    toy_det_config toy_cfg{};
+    toy_cfg.bfield_vec(B);
+
     auto toy_det =
-        create_toy_geometry<bfield_bknd_t>(host_mr, std::move(bfield));
+        create_toy_geometry<bfield_bknd_t>(host_mr, toy_cfg);
 
     unsigned int theta_steps{50u};
     unsigned int phi_steps{50u};

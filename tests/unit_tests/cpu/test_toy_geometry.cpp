@@ -22,11 +22,8 @@ using namespace detray;
 GTEST_TEST(detray_detectors, toy_geometry) {
 
     vecmem::host_memory_resource host_mr;
-    constexpr std::size_t n_brl_layers{4u};
-    constexpr std::size_t n_edc_layers{3u};
 
-    const auto toy_det =
-        create_toy_geometry(host_mr, n_brl_layers, n_edc_layers);
+    const auto toy_det = create_toy_geometry(host_mr);
 
     EXPECT_TRUE(test_toy_detector(toy_det));
 }

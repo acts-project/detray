@@ -68,7 +68,7 @@ GTEST_TEST(detray_propagator, guided_navigator) {
     free_track_parameters<transform3_t> track(pos, 0.f, mom, -1.f);
     const vector3 B{0.f, 0.f, 1.f * unit<scalar>::T};
     const b_field_t b_field(
-        b_field_t::backend_t::configuration_t{B[0], B[1], B[2]});
+        covfie::make_parameter_pack(b_field_t::backend_t::configuration_t{B[0], B[1], B[2]}));
 
     // Actors
     pathlimit_aborter::state pathlimit{200.f * unit<scalar>::cm};

@@ -186,9 +186,8 @@ class PropagatorWithRkStepper
 
     protected:
     /// Detector configuration
-    unsigned int n_brl_layers{4u};
-    unsigned int n_edc_layers{7u};
     vecmem::host_memory_resource host_mr;
+    toy_det_config toy_cfg{4u, 7u};
 
     /// Track generator configuration
     unsigned int theta_steps{50u};
@@ -231,10 +230,9 @@ TEST_P(PropagatorWithRkStepper, rk4_propagator_const_bfield) {
 
     // Build detector and magnetic field
     const vector3 B = std::get<2>(GetParam());
+    toy_cfg.bfield_vec(B);
     detector_t det = create_toy_geometry<bfield_bknd_t>(
-        host_mr,
-        bfield_t{typename bfield_bknd_t::configuration_t{B[0], B[1], B[2]}},
-        n_brl_layers, n_edc_layers);
+        host_mr, toy_cfg);
     // Propagator is built from the stepper and navigator
     auto p = propagator_t(stepper_t{}, navigator_t{});
 
@@ -339,7 +337,7 @@ TEST_P(PropagatorWithRkStepper, rk4_propagator_inhom_bfield) {
 
     // Build detector and magnetic field
     detector_t det =
-        create_toy_geometry<bfield_bknd_t>(host_mr, n_brl_layers, n_edc_layers);
+        create_toy_geometry<bfield_bknd_t>(host_mr, toy_cfg);
     // Propagator is built from the stepper and navigator
     propagator_t p = propagator_t(stepper_t{}, navigator_t{});
 
