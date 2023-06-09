@@ -561,12 +561,10 @@ class navigator {
                 return navigation._heartbeat;
             }
             // Run inspection when needed (keep for debugging)
-            /*
-            if constexpr (not std::is_same_v<inspector_t,
+            /*if constexpr (not std::is_same_v<inspector_t,
                                              navigation::void_inspector>) {
                 navigation.run_inspector("Volume switch: ");
-            }
-            */
+            }*/
         }
         // If no trust could be restored for the current state, (local)
         // navigation might be exhausted or we switched volumes:
