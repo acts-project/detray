@@ -486,7 +486,7 @@ class navigator {
         const auto &track = propagation._stepping();
         const auto &volume = det->volume_by_index(navigation.volume());
 
-        printf("Init start \n");
+        printf("Init start Volume: %d \n", int(navigation.volume()));
 
         // Clean up state
         navigation.clear();

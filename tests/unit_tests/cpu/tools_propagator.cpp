@@ -257,6 +257,10 @@ TEST_P(PropagatorWithRkStepper, propagator_rk_stepper) {
         lim_state._stepping
             .template set_constraint<step::constraint::e_accuracy>(step_constr);
 
+        // Set overstep tol
+        state._stepping.set_overstep_tolerance(overstep_tol);
+        lim_state._stepping.set_overstep_tolerance(overstep_tol);
+
         // Propagate the entire detector
         ASSERT_TRUE(p.propagate(state, actor_states))
             << print_insp_state.to_string() << std::endl;
@@ -303,7 +307,7 @@ INSTANTIATE_TEST_SUITE_P(
                                                     1.f * unit<scalar>::T,
                                                     1.f * unit<scalar>::T},
                                       -10.f * unit<scalar>::um,
-                                      std::numeric_limits<scalar>::max())));
+                                      5.f * unit<scalar>::mm)));
 
 /*
 INSTANTIATE_TEST_SUITE_P(
