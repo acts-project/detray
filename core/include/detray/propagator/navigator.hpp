@@ -562,7 +562,7 @@ class navigator {
             }
             // Run inspection when needed (keep for debugging)
             /*if constexpr (not std::is_same_v<inspector_t,
-                                             navigation::void_inspector>) {
+                                         navigation::void_inspector>) {
                 navigation.run_inspector("Volume switch: ");
             }*/
         }
