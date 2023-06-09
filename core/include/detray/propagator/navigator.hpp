@@ -663,21 +663,8 @@ class navigator {
                     return;
 
                 }
-
-                // Case 2: The track won't reach the surface
+                // Case 2: Track won't find surface
                 else {
-
-                    /*
-                    const auto &volume =
-                        det->volume_by_index(navigation.volume());
-                    const auto &bound = volume.bounds();
-
-                    const auto r = getter::perp(stepping.pos());
-                    const auto z = stepping.pos()[2];
-
-                    bool in_volume = (r > bound[0] && r < bound[1] &&
-                                      z > bound[2] && z < bound[3]);
-                    */
                     const auto &vol_by_pos = det->volume_by_pos(stepping.pos());
                     const auto &vol_by_idx =
                         det->volume_by_index(navigation.volume());

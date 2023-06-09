@@ -255,11 +255,15 @@ class detector {
         -> const detector_volume<detector> {
         // The 3D cylindrical volume search grid is concentric
         const transform3 identity{};
+
         const auto loc_pos =
             _volume_finder.global_to_local(identity, p, identity.translation());
 
+        printf("%f %f %f \n", loc_pos[0], loc_pos[1], loc_pos[2]);
+
         // Only one entry per bin
         dindex volume_index{*_volume_finder.search(loc_pos)};
+
         return detector_volume{*this, _volumes[volume_index]};
     }
 
