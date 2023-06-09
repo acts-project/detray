@@ -286,6 +286,7 @@ TEST_P(PropagatorWithRkStepper, propagator_rk_stepper) {
 }
 
 // Realistic case
+/*
 INSTANTIATE_TEST_SUITE_P(
     PropagatorValidation1, PropagatorWithRkStepper,
     ::testing::Values(std::make_tuple(test::vector3{0.f * unit<scalar>::T,
@@ -293,10 +294,9 @@ INSTANTIATE_TEST_SUITE_P(
                                                     2.f * unit<scalar>::T},
                                       -7.f * unit<scalar>::um,
                                       std::numeric_limits<scalar>::max())));
-
+*/
 // Add some restrictions for more frequent navigation updates in the cases of
 // non-z-aligned B-fields
-/*
 INSTANTIATE_TEST_SUITE_P(
     PropagatorValidation2, PropagatorWithRkStepper,
     ::testing::Values(std::make_tuple(test::vector3{0.f * unit<scalar>::T,
@@ -304,7 +304,7 @@ INSTANTIATE_TEST_SUITE_P(
                                                     1.f * unit<scalar>::T},
                                       -10.f * unit<scalar>::um,
                                       std::numeric_limits<scalar>::max())));
-*/
+
 /*
 INSTANTIATE_TEST_SUITE_P(
     PropagatorValidation2, PropagatorWithRkStepper,
