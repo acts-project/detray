@@ -192,8 +192,8 @@ TEST_P(PropagatorWithRkStepper, propagator_rk_stepper) {
         n_brl_layers, n_edc_layers);
 
     // Create the navigator
-    using navigator_t = navigator<decltype(d), navigation::print_inspector>;
-    // using navigator_t = navigator<decltype(d)>;
+    // using navigator_t = navigator<decltype(d), navigation::print_inspector>;
+    using navigator_t = navigator<decltype(d)>;
     using track_t = free_track_parameters<transform3>;
     using constraints_t = constrained_step<>;
     using policy_t = stepper_default_policy;
@@ -259,20 +259,20 @@ TEST_P(PropagatorWithRkStepper, propagator_rk_stepper) {
 
         // Propagate the entire detector
         ASSERT_TRUE(p.propagate(state, actor_states))
-            << print_insp_state.to_string()
-            << state._navigation.inspector().to_string() << std::endl;
-        // std::cout << print_insp_state.to_string()
-        //          << state._navigation.inspector().to_string() << std::endl;
+            << print_insp_state.to_string() << std::endl;
+        // << state._navigation.inspector().to_string() << std::endl;
 
         // Propagate with path limit
         ASSERT_NEAR(pathlimit_aborter_state.path_limit(), path_limit, tol);
         ASSERT_FALSE(p.propagate(lim_state, lim_actor_states))
             << lim_print_insp_state.to_string() << std::endl;
+        //<< lim_state._navigation.inspector().to_string() << std::endl;
 
         ASSERT_TRUE(lim_state._stepping.path_length() <
                     std::abs(path_limit) + tol)
             << "path length: " << lim_state._stepping.path_length()
             << ", path limit: " << path_limit << std::endl;
+        //<< state._navigation.inspector().to_string() << std::endl;
 
         // Compare the navigation status vector between propagate and
         // propagate_sync function
