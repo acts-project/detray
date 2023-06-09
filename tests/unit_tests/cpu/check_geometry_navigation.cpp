@@ -171,9 +171,7 @@ GTEST_TEST(detray_propagator, helix_navigation) {
         uniform_track_generator<free_track_parameters_type>(
             theta_steps, phi_steps, ori, p_mag);
 
-    int count = 0;
     for (auto track : trk_state_generator) {
-        std::cout << count++ << std::endl;
         // Prepare for overstepping in the presence of b fields
         track.set_overstep_tolerance(overstep_tol);
 
