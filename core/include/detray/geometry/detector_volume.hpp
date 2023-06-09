@@ -1,6 +1,6 @@
 /** Detray library, part of the ACTS project (R&D line)
  *
- * (c) 2021-2023 CERN for the benefit of the ACTS project
+ * (c) 2023 CERN for the benefit of the ACTS project
  *
  * Mozilla Public License Version 2.0
  */
@@ -8,202 +8,153 @@
 #pragma once
 
 // Project include(s)
-#include "detray/definitions/algebra.hpp"
 #include "detray/definitions/containers.hpp"
 #include "detray/definitions/geometry.hpp"
 #include "detray/definitions/indexing.hpp"
 #include "detray/definitions/qualifiers.hpp"
-#include "detray/definitions/units.hpp"
-
-// System include(s)
-#include <type_traits>
 
 namespace detray {
 
-/// @brief The detray detector volume.
+/// @brief Facade for a detray detector volume.
 ///
 /// Volume class that acts as a logical container in the detector for geometry
 /// objects, i.e. surfaces. The volume boundary surfaces, the so-called portals,
 /// carry index links that join adjacent volumes. The volume class itself does
-/// not contain any data itself, but keeps index-based links into the data
-/// containers that are managed by the detector.
+/// not contain any data itself, but keeps a descriptor with index-based links
+/// into the data containers that are managed by the detector.
 /// Every type of surface that is known by the volume (determined by the type
-/// and size of the ID enum) lives in it's own geometry accelerator data
-/// structure, e.g. portals reside in a brute force accelerator (a simple
-/// vector), while sensitive surfaces are usually sorted into a spacial grid.
+/// and size of the ID enum in the descriptor) lives in it's own geometry
+/// accelerator data structure, e.g. portals reside in a brute force
+/// accelerator (a simple vector), while sensitive surfaces are usually sorted
+/// into a spacial grid.
 ///
-/// @tparam ID enum of object types contained in the volume
-///         (@see @c detector_metadata ).
-/// @tparam link_t the type of link to the volumes surfaces finder(s)
-///         (accelerator structure, e.g. a grid). The surface finder types
-///         cannot be given directly, since the containers differ between host
-///         and device. The surface finders reside in an 'unrollable
-///         container' and are called per volume in the navigator during local
-///         navigation.
-/// @tparam scalar_t type of scalar used in the volume.
-/// @tparam array_t the type of the internal array, must have STL semantics.
-template <typename ID, typename link_t = dtyped_index<dindex, dindex>,
-          typename scalar_t = scalar,
-          template <typename, std::size_t> class array_t = darray>
+/// @TODO: Add access to the volume placement transform and volume center
+template <typename detector_t>  // @TODO: This needs a concept
 class detector_volume {
 
+    /// Volume descriptor type
+    using descr_t = typename detector_t::volume_type;
+
+    /// A functor to find surfaces in the neighborhood of a track position
+    struct neighborhood_getter {
+
+        /// Call operator that forwards the neighborhood search call in a volume
+        /// to a surface finder data structure
+        template <typename sf_finder_group_t, typename sf_finder_index_t,
+                  typename track_t>
+        DETRAY_HOST_DEVICE inline auto operator()(
+            const sf_finder_group_t &group, const sf_finder_index_t index,
+            const detector_t &detector, const descr_t &volume,
+            const track_t &track) const {
+
+            // Get surface finder for volume and perform the surface
+            // neighborhood lookup
+            return group[index].search(detector, volume, track);
+        }
+    };
+
     public:
-    /// Ids of objects that can be distinguished by the volume
-    using object_id = ID;
-
-    /// How to access objects (e.g. sensitives/passives/portals) in this
-    /// volume. Keeps one accelerator structure link per object type (by ID):
-    ///
-    /// link_t : id and index of the accelerator structure in the detector's
-    ///          surface store.
-    ///
-    /// E.g. a 'portal' can be found under @c ID::e_portal in this link,
-    /// and will then receive link to the @c brute_force_finder that holds the
-    /// portals (the accelerator structure's id and index).
-    using link_type = dmulti_index<link_t, ID::e_size>;
-
     /// In case the geometry needs to be printed
     using name_map = std::map<dindex, std::string>;
 
-    /// Voume tag, used for sfinae
-    using volume_def = detector_volume<ID, link_t, scalar_t, array_t>;
+    /// Allow detector to access descriptor. @TODO: Remove once possible
+    friend detector_t;
 
-    /// Default constructor builds an infinitely long cylinder
-    constexpr detector_volume() = default;
+    /// Not allowed: always needs a detector and a descriptor.
+    detector_volume() = delete;
 
-    /// Constructor from shape id.
-    ///
-    /// @param id id values that determines how to interpret the bounds.
-    explicit constexpr detector_volume(const volume_id id) : _id{id} {}
+    /// Constructor from detector @param det and volume descriptor
+    /// @param vol_idx from that detector.
+    constexpr detector_volume(const detector_t &det, const descr_t &desc)
+        : m_detector{det}, m_desc{desc} {}
 
-    /// Constructor from shape id and boundary values.
-    ///
-    /// @param id id values that determines how to interpret the bounds.
-    /// @param bounds values of volume boundaries. They depend on the volume
-    ///               shape, which is defined by its portals and are chosen in
-    ///               the detector builder.
-    constexpr detector_volume(const volume_id id,
-                              const array_t<scalar_t, 6> &bounds)
-        : _id(id), _bounds(bounds) {}
+    /// Constructor from detector @param det and volume index @param vol_idx in
+    /// that detector.
+    constexpr detector_volume(const detector_t &det, const dindex vol_idx)
+        : detector_volume(det, det.volume_by_index(vol_idx)) {}
 
-    /// @return the volume shape id, e.g. 'cylinder'
+    /// @returns the volume shape id, e.g. 'cylinder'.
     DETRAY_HOST_DEVICE
-    constexpr auto id() const -> volume_id { return _id; }
+    constexpr auto id() const -> volume_id { return m_desc.id(); }
 
-    /// Set the volume bounds to @param bounds
-    DETRAY_HOST
-    constexpr void set_bounds(const array_t<scalar_t, 6> &bounds) {
-        _bounds = bounds;
-    }
-
-    /// @return the bounds - const access
+    /// @returns the index of the volume in the detector volume container.
     DETRAY_HOST_DEVICE
-    constexpr auto bounds() const -> const array_t<scalar_t, 6> & {
-        return _bounds;
-    }
+    constexpr auto index() const -> dindex { return m_desc.index(); }
 
-    /// @return the volume name (add an offset for the detector name)
+    /// @returns the volume name (add an offset for the detector name).
     DETRAY_HOST_DEVICE
     constexpr auto name(const name_map &names) const -> const std::string & {
-        return names.at(_index + 1);
+        return names.at(m_desc.index() + 1u);
     }
 
-    /// @return the index of the volume in the detector container
-    DETRAY_HOST_DEVICE
-    constexpr auto index() const -> dindex { return _index; }
-
-    /// @param index the index of the volume in the detector container
-    DETRAY_HOST
-    constexpr auto set_index(const dindex index) -> void { _index = index; }
-
-    /// @return link to all objects - const access
-    DETRAY_HOST_DEVICE constexpr auto full_link() const -> const link_type & {
-        return _sf_finder_links;
-    }
-
-    /// @return link of a type of object - const access.
-    template <ID obj_id>
-    DETRAY_HOST_DEVICE constexpr auto link() const -> const link_t & {
-        return detail::get<obj_id>(_sf_finder_links);
-    }
-
-    /// @return link of a type of object - const access.
-    template <ID obj_id>
-    DETRAY_HOST_DEVICE constexpr auto link() -> link_t & {
-        return detail::get<obj_id>(_sf_finder_links);
-    }
-
-    /// set surface finder during detector building
-    template <ID obj_id>
-    DETRAY_HOST constexpr auto set_link(const link_t &link) -> void {
-        _sf_finder_links[obj_id] = link;
-    }
-
-    /// set surface finder during detector building
-    template <ID obj_id>
-    DETRAY_HOST constexpr auto set_link(const typename link_t::id_type id,
-                                        const typename link_t::index_type index)
-        -> void {
-        _sf_finder_links[obj_id] = link_t{id, index};
-    }
-
-    /// Equality operator
+    /// Apply a functor to a neighborhood of surfaces around a track position
+    /// in the volume.
     ///
-    /// @param rhs is the right hand side to be compared to
-    DETRAY_HOST_DEVICE
-    constexpr auto operator==(const detector_volume &rhs) const -> bool {
-        return (_bounds == rhs._bounds && _index == rhs._index &&
-                _sf_finder_links == rhs._sf_finder_links &&
-                _sf_finder_links[ID::e_sensitive] ==
-                    rhs._sf_finder_links[ID::e_sensitive]);
+    /// @tparam functor_t the prescription to be applied to the surfaces (
+    ///                   customization point for the navigation)
+    /// @tparam track_t   the track around which to build up the neighborhood
+    /// @tparam Args      types of additional arguments to the functor
+    template <typename functor_t,
+              int I = static_cast<int>(descr_t::object_id::e_size) - 1,
+              typename track_t, typename... Args>
+    DETRAY_HOST_DEVICE constexpr auto visit_neighborhood(
+        const track_t &track, Args &&... args) const {
+        // Get the acceleration data structures for this volume
+        const auto &surfaces = m_detector.surface_store();
+        const auto &link{
+            m_desc
+                .template link<static_cast<typename descr_t::object_id>(I)>()};
+
+        // Only visit, if object type is contained in volume
+        if (not is_invalid_value(detail::get<1>(link))) {
+            // Run over the surfaces in a single acceleration data structure
+            for (const auto &sf : surfaces.template visit<neighborhood_getter>(
+                     link, m_detector, m_desc, track)) {
+
+                functor_t{}(sf, std::forward<Args>(args)...);
+            }
+        }
+        // Check the next surface type
+        if constexpr (I > 0) {
+            return visit_neighborhood<functor_t, I - 1, track_t, Args...>(
+                track, std::forward<Args>(args)...);
+        }
     }
 
-    /// @return the maximum number of surface candidates during a neighborhood
+    /// @returns the maximum number of surface candidates during a neighborhood
     /// lookup
-    template <int I = static_cast<int>(ID::e_size) - 1,
-              typename surface_store_t>
+    template <int I = static_cast<int>(descr_t::object_id::e_size) - 1>
     DETRAY_HOST_DEVICE constexpr auto n_max_candidates(
-        const surface_store_t &sf_collections, unsigned int n = 0u) const
-        -> unsigned int {
+        unsigned int n = 0u) const -> unsigned int {
         // Get the index of the surface collection with type index 'I'
-        constexpr auto sf_col_id{static_cast<typename surface_store_t::ids>(I)};
-        const dindex coll_idx{detail::get<1>(link<static_cast<ID>(I)>())};
+        constexpr auto sf_col_id{
+            static_cast<typename detector_t::sf_finders::id>(I)};
+        const dindex coll_idx{detail::get<1>(
+            m_desc
+                .template link<static_cast<typename descr_t::object_id>(I)>())};
 
         // Check if this volume holds such a collection and, if so, add max
         // number of candidates that we can expect from it
-        if (coll_idx != dindex_invalid) {
-            const unsigned int n_max{
-                sf_collections.template get<sf_col_id>()[coll_idx]
-                    .n_max_candidates()};
+        if (not is_invalid_value(coll_idx)) {
+            const unsigned int n_max{m_detector.surface_store()
+                                         .template get<sf_col_id>()[coll_idx]
+                                         .n_max_candidates()};
             // @todo: Remove when local navigation becomes available !!!!
             n += n_max > 20u ? 20u : n_max;
         }
         // Check the next surface collection type
         if constexpr (I > 0) {
-            return n_max_candidates<I - 1>(sf_collections, n);
+            return n_max_candidates<I - 1>(n);
         } else {
             return n;
         }
     }
 
     private:
-    /// How to interpret the boundary values
-    volume_id _id = volume_id::e_cylinder;
-
-    /// Bounds section, default for cylinder volume
-    array_t<scalar_t, 6> _bounds = {0.f,
-                                    std::numeric_limits<scalar_t>::max(),
-                                    -std::numeric_limits<scalar_t>::max(),
-                                    std::numeric_limits<scalar_t>::max(),
-                                    -constant<scalar_t>::pi,
-                                    constant<scalar_t>::pi};
-
-    /// Volume index in the detector's volume container
-    dindex _index = dindex_invalid;
-
-    /// Indices in geometry containers for different objects types are
-    /// contained in this volume
-    link_type _sf_finder_links = {};
+    /// Access to the detector stores
+    const detector_t &m_detector;
+    /// Access to the descriptor
+    const descr_t &m_desc;
 };
 
 }  // namespace detray

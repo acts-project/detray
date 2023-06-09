@@ -33,13 +33,6 @@ class volume_builder_interface {
     DETRAY_HOST
     virtual void init_vol(detector_t &det, const volume_id id) = 0;
 
-    /// @brief Initializes a new volume with shape id @param id and bounds
-    /// @param bounds in @param det
-    /// TODO: Remove this ?
-    DETRAY_HOST
-    virtual void init_vol(detector_t &det, const volume_id id,
-                          const array_type<scalar_type, 6> &bounds) = 0;
-
     /// @returns the global index for the volume
     /// @note the correct index is only available after calling @c init_vol
     DETRAY_HOST

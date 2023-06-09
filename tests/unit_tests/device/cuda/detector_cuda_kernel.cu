@@ -33,7 +33,7 @@ __global__ void detector_test_kernel(
 
     // copy objects - volume
     for (unsigned int i = 0u; i < det_device.volumes().size(); i++) {
-        volumes_device[i] = det_device.volume_by_index(i);
+        volumes_device[i] = det_device.volumes()[i];
     }
 
     // copy objects - surfaces
@@ -125,7 +125,7 @@ __global__ void enumerate_test_kernel(
     vecmem::device_vector<surface_t> surfaces = all_surfaces.at(gid);
 
     // Get volume
-    auto& vol = detector.volume_by_index(gid);
+    auto vol = detector.volume_by_index(gid);
 
     // Push_back surfaces to the surface vector
     for (const auto& obj : detector.surfaces(vol)) {

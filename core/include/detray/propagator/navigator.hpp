@@ -19,7 +19,6 @@
 #include "detray/intersection/intersection.hpp"
 #include "detray/intersection/intersection_kernel.hpp"
 #include "detray/propagator/constrained_step.hpp"
-#include "detray/surface_finders/neighborhood_kernel.hpp"
 #include "detray/utils/ranges.hpp"
 
 // vecmem include(s)
@@ -112,6 +111,25 @@ class navigator {
     using nav_link_type = typename detector_t::surface_type::navigation_link;
     using transform3_type = typename detector_type::transform3;
 
+    private:
+    /// A functor that fills the navigation candidates vector by intersecting
+    /// the surfaces in the volume neighborhood
+    struct candidate_search {
+
+        /// Test the volume links
+        template <typename track_t>
+        DETRAY_HOST_DEVICE void operator()(
+            const typename detector_type::surface_type &sf,
+            const detector_type &det, const track_t &track,
+            vector_type<intersection_type> &candidates,
+            const scalar_type tol) const {
+            det.mask_store().template visit<intersection_initialize>(
+                sf.mask(), candidates, detail::ray<transform3_type>(track), sf,
+                det.transform_store(), tol);
+        }
+    };
+
+    public:
     /// A navigation state object used to cache the information of the
     /// current navigation stream.
     ///
@@ -495,7 +513,9 @@ class navigator {
         detail::call_reserve(navigation.candidates(), 20u);
 
         // Search for neighboring surfaces and fill candidates into cache
-        fill_candidates(det, volume, track, navigation.candidates());
+        volume.template visit_neighborhood<candidate_search>(
+            track, *det, track, navigation.candidates(),
+            15.f * unit<scalar_type>::um);
 
         // Sort all candidates and pick the closest one
         detail::sequential_sort(navigation.candidates().begin(),
@@ -647,6 +667,7 @@ class navigator {
                 // Case 2: The track won't reach the surface
                 else {
 
+                    /*
                     const auto &volume =
                         det->volume_by_index(navigation.volume());
                     const auto &bound = volume.bounds();
@@ -656,9 +677,13 @@ class navigator {
 
                     bool in_volume = (r > bound[0] && r < bound[1] &&
                                       z > bound[2] && z < bound[3]);
+                    */
+                    const auto &vol_by_pos = det->volume_by_pos(stepping.pos());
+                    const auto &vol_by_idx =
+                        det->volume_by_index(navigation.volume());
 
                     if (stepping.step_size() < navigation() / 2.f &&
-                        in_volume == true) {
+                        vol_by_idx.index() == vol_by_pos.index()) {
 
                         navigation.set_state(
                             navigation::status::e_unknown, geometry::barcode{},
@@ -822,48 +847,6 @@ class navigator {
         return mask_store.template visit<intersection_update>(
             candidate.surface.mask(), detail::ray<transform3_type>(track),
             candidate, det->transform_store(), 15.f * unit<scalar_type>::um);
-    }
-
-    /// @brief Fill the candidates cache from scratch.
-    ///
-    /// Helper method that performs the neighborhood lookup of surfaces close to
-    /// the current track state position and performs the intersection between
-    /// the track tangential and every neighboring surface.
-    ///
-    /// @tparam I the surface type id (portal, sensetive etc.)
-    /// @tparam track_t type of the track parametrization
-    ///
-    /// @param det the tracking geometry
-    /// @param volume the search volume (current nvaigation volume)
-    /// @param track the track information
-    /// @param candidates the navigation cache to be filled with the
-    ///                   track-surface intersections
-    template <int I = static_cast<int>(volume_type::object_id::e_size) - 1,
-              typename track_t>
-    DETRAY_HOST_DEVICE inline void fill_candidates(
-        const detector_type *det, const volume_type &volume,
-        const track_t &track,
-        vector_type<intersection_type> &candidates) const {
-
-        const auto &surfaces = det->surface_store();
-        const auto &link{volume.template link<
-            static_cast<typename volume_type::object_id>(I)>()};
-
-        // Only run the query, if object type is contained in volume
-        if (not is_invalid_value(detail::get<1>(link))) {
-
-            for (const auto &sf : surfaces.template visit<neighborhood_getter>(
-                     link, *det, volume, track)) {
-
-                det->mask_store().template visit<intersection_initialize>(
-                    sf.mask(), candidates, detail::ray<transform3_type>(track),
-                    sf, det->transform_store(), 15.f * unit<scalar_type>::um);
-            }
-        }
-        // Check the next surface type
-        if constexpr (I > 0) {
-            return fill_candidates<I - 1>(det, volume, track, candidates);
-        }
     }
 
     /// Helper to evict all unreachable/invalid candidates from the cache:

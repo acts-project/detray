@@ -71,12 +71,6 @@ struct surface_payload {
     detray::surface_id type = detray::surface_id::e_sensitive;
 };
 
-/// @brief A payload for volume bounds
-struct volume_bounds_payload {
-    detray::volume_id type = detray::volume_id::e_cylinder;
-    std::vector<real_io> values = {};
-};
-
 /// @brief A payload object to link a volume to its acceleration data structures
 struct acc_links_payload {
     using acc_type = io::detail::acc_type;
@@ -87,7 +81,7 @@ struct acc_links_payload {
 /// @brief A payload for volumes
 struct volume_payload {
     std::string name = "";
-    volume_bounds_payload bounds;
+    detray::volume_id type = detray::volume_id::e_cylinder;
     transform_payload transform;
     std::vector<surface_payload> surfaces;
     // Index of the volume in the detector volume container

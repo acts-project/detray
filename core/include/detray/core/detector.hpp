@@ -13,6 +13,7 @@
 #include "detray/core/detail/detector_kernel.hpp"
 #include "detray/definitions/containers.hpp"
 #include "detray/definitions/qualifiers.hpp"
+#include "detray/geometry/detail/volume_descriptor.hpp"
 #include "detray/geometry/detector_volume.hpp"
 #include "detray/geometry/surface.hpp"
 #include "detray/tools/volume_builder.hpp"
@@ -121,8 +122,7 @@ class detector {
     using surface_container_t = vector_type<surface_type>;
     /// Volume type
     using geo_obj_ids = typename metadata::geo_objects;
-    using volume_type =
-        detector_volume<geo_obj_ids, sf_finder_link, scalar_type>;
+    using volume_type = volume_descriptor<geo_obj_ids, sf_finder_link>;
     using volume_container = vector_type<volume_type>;
 
     /// Volume finder definition: Make volume index available from track
@@ -225,23 +225,6 @@ class detector {
         return cvolume;
     }
 
-    /// Add a new volume and retrieve a reference to it.
-    ///
-    /// @param id the shape id for the volume
-    /// @param bounds of the volume, they are expected to be already attaching
-    /// @param sf_finder_link of the volume, where to entry the surface finder
-    ///
-    /// @return non-const reference to the new volume
-    DETRAY_HOST
-    volume_type &new_volume(
-        const volume_id id, const array_type<scalar, 6> &bounds,
-        typename volume_type::link_type::index_type srf_finder_link = {}) {
-        volume_type &cvolume = new_volume(id, srf_finder_link);
-        cvolume.set_bounds(bounds);
-
-        return cvolume;
-    }
-
     /// @return the sub-volumes of the detector - const access
     DETRAY_HOST_DEVICE
     inline auto volumes() const -> const vector_type<volume_type> & {
@@ -255,19 +238,21 @@ class detector {
     /// @return the volume by @param volume_index - const access
     DETRAY_HOST_DEVICE
     inline auto volume_by_index(dindex volume_index) const
-        -> const volume_type & {
-        return _volumes[volume_index];
+        -> const detector_volume<detector> {
+        return detector_volume{*this, _volumes[volume_index]};
     }
 
     /// @return the volume by @param volume_index - non-const access
     DETRAY_HOST_DEVICE
-    inline auto volume_by_index(dindex volume_index) -> volume_type & {
-        return _volumes[volume_index];
+    inline auto volume_by_index(dindex volume_index)
+        -> detector_volume<detector> {
+        return detector_volume{*this, _volumes[volume_index]};
     }
 
     /// @return the volume by global cartesian @param position - const access
     DETRAY_HOST_DEVICE
-    inline auto volume_by_pos(const point3 &p) const -> const volume_type & {
+    inline auto volume_by_pos(const point3 &p) const
+        -> const detector_volume<detector> {
         // The 3D cylindrical volume search grid is concentric
         const transform3 identity{};
         const auto loc_pos =
@@ -275,7 +260,7 @@ class detector {
 
         // Only one entry per bin
         dindex volume_index{*_volume_finder.search(loc_pos)};
-        return _volumes[volume_index];
+        return detector_volume{*this, _volumes[volume_index]};
     }
 
     /// @returns access to the surface finder container
@@ -306,6 +291,13 @@ class detector {
         -> const surface_type & {
         return _surfaces.template get<sf_finders::id::e_brute_force>()
             .all()[bcd.index()];
+    }
+
+    /// @returns surfaces of a given type (@tparam sf_id) by volume - const
+    template <geo_obj_ids sf_id = static_cast<geo_obj_ids>(0)>
+    DETRAY_HOST_DEVICE constexpr auto surfaces(
+        const detector_volume<detector> &v) const {
+        return surfaces<sf_id>(v.m_desc);
     }
 
     /// @returns surfaces of a given type (@tparam sf_id) by volume - const
@@ -484,7 +476,8 @@ class detector {
         std::vector<std::size_t> n_candidates;
         n_candidates.reserve(_volumes.size());
         for (const auto &vol : _volumes) {
-            n_candidates.push_back(vol.n_max_candidates(surface_store()));
+            n_candidates.push_back(
+                detector_volume{*this, vol}.n_max_candidates());
         }
         return *std::max_element(n_candidates.begin(), n_candidates.end());
     }
@@ -565,12 +558,6 @@ class detector {
                 ss << "  sf finder id " << v.sf_finder_type()
                    << "  sf finders idx " << v.sf_finder_index() << std::endl;
             }
-
-            const auto &bounds = v.bounds();
-            ss << "     bounds r = (" << bounds[0] << ", " << bounds[1] << ")"
-               << std::endl;
-            ss << "            z = (" << bounds[2] << ", " << bounds[3] << ")"
-               << std::endl;
         }
 
         return ss.str();

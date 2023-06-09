@@ -92,16 +92,6 @@ void from_json(const nlohmann::ordered_json& j, surface_payload& s) {
     }
 }
 
-void to_json(nlohmann::ordered_json& j, const volume_bounds_payload& vb) {
-    j["type"] = static_cast<unsigned int>(vb.type);
-    j["values"] = vb.values;
-}
-
-void from_json(const nlohmann::ordered_json& j, volume_bounds_payload& vb) {
-    vb.type = static_cast<detray::volume_id>(j["type"]);
-    vb.values = j["values"].get<std::vector<real_io>>();
-}
-
 void to_json(nlohmann::ordered_json& j, const acc_links_payload& al) {
     j["type"] = static_cast<unsigned int>(al.type);
     j["index"] = al.index;
@@ -115,7 +105,7 @@ void from_json(const nlohmann::ordered_json& j, acc_links_payload& al) {
 void to_json(nlohmann::ordered_json& j, const volume_payload& v) {
     j["name"] = v.name;
     j["index"] = v.index;
-    j["bounds"] = v.bounds;
+    j["type"] = v.type;
     j["transform"] = v.transform;
     nlohmann::ordered_json sjson;
     for (const auto& s : v.surfaces) {
@@ -134,7 +124,7 @@ void to_json(nlohmann::ordered_json& j, const volume_payload& v) {
 void from_json(const nlohmann::ordered_json& j, volume_payload& v) {
     v.name = j["name"];
     v.index = j["index"];
-    v.bounds = j["bounds"];
+    v.type = j["type"];
     v.transform = j["transform"];
     for (auto js : j["surfaces"]) {
         surface_payload s = js;

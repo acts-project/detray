@@ -5,11 +5,13 @@
  * Mozilla Public License Version 2.0
  */
 
-#include <gtest/gtest.h>
-
+// Project include(s)
 #include "detray/definitions/units.hpp"
-#include "detray/geometry/detector_volume.hpp"
+#include "detray/geometry/detail/volume_descriptor.hpp"
 #include "detray/test/types.hpp"
+
+// GTest include(s)
+#include <gtest/gtest.h>
 
 // TODO: Move these into the test defs
 namespace {
@@ -35,12 +37,10 @@ GTEST_TEST(detray_geometry, detector_volume) {
     using namespace detray;
 
     using sf_finder_link_t = dtyped_index<sf_finder_ids, dindex>;
-    using volume_t = detector_volume<geo_objects, sf_finder_link_t>;
+    using volume_t = volume_descriptor<geo_objects, sf_finder_link_t>;
 
     // Check construction, setters and getters
-    darray<scalar, 6> bounds = {
-        0.f, 10.f, -5.f, 5.f, -constant<scalar>::pi, constant<scalar>::pi};
-    volume_t v1(volume_id::e_cylinder, bounds);
+    volume_t v1(volume_id::e_cylinder);
     v1.set_index(12345u);
     v1.template set_link<geo_objects::e_portal>({sf_finder_ids::e_default, 1u});
     v1.template set_link<geo_objects::e_sensitive>(
@@ -48,7 +48,6 @@ GTEST_TEST(detray_geometry, detector_volume) {
 
     ASSERT_TRUE(v1.id() == volume_id::e_cylinder);
     ASSERT_TRUE(v1.index() == 12345u);
-    ASSERT_TRUE(v1.bounds() == bounds);
     ASSERT_TRUE(v1.template link<geo_objects::e_portal>().id() ==
                 sf_finder_ids::e_default);
     ASSERT_TRUE(v1.template link<geo_objects::e_portal>().index() == 1u);
@@ -60,7 +59,6 @@ GTEST_TEST(detray_geometry, detector_volume) {
     const auto v2 = volume_t(v1);
     ASSERT_EQ(v2.id(), volume_id::e_cylinder);
     ASSERT_EQ(v2.index(), 12345u);
-    ASSERT_EQ(v2.bounds(), bounds);
     ASSERT_TRUE(v2.template link<geo_objects::e_portal>().id() ==
                 sf_finder_ids::e_default);
     ASSERT_TRUE(v2.template link<geo_objects::e_portal>().index() == 1u);
