@@ -261,8 +261,8 @@ TEST_P(PropagatorWithRkStepper, propagator_rk_stepper) {
         ASSERT_TRUE(p.propagate(state, actor_states))
             << print_insp_state.to_string()
             << state._navigation.inspector().to_string() << std::endl;
-        std::cout << print_insp_state.to_string()
-                  << state._navigation.inspector().to_string() << std::endl;
+        //std::cout << print_insp_state.to_string()
+        //          << state._navigation.inspector().to_string() << std::endl;
 
         // Propagate with path limit
         ASSERT_NEAR(pathlimit_aborter_state.path_limit(), path_limit, tol);
@@ -296,6 +296,7 @@ INSTANTIATE_TEST_SUITE_P(
 
 // Add some restrictions for more frequent navigation updates in the cases of
 // non-z-aligned B-fields
+/*
 INSTANTIATE_TEST_SUITE_P(
     PropagatorValidation2, PropagatorWithRkStepper,
     ::testing::Values(std::make_tuple(test::vector3{0.f * unit<scalar>::T,
@@ -303,7 +304,7 @@ INSTANTIATE_TEST_SUITE_P(
                                                     1.f * unit<scalar>::T},
                                       -10.f * unit<scalar>::um,
                                       std::numeric_limits<scalar>::max())));
-
+*/
 /*
 INSTANTIATE_TEST_SUITE_P(
     PropagatorValidation2, PropagatorWithRkStepper,

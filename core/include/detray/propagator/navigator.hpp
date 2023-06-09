@@ -339,7 +339,7 @@ class navigator {
             _heartbeat = false;
             // Don't do anything if aborted
             _trust_level = navigation::trust_level::e_full;
-            run_inspector("Aborted: ");
+            //run_inspector("Aborted: ");
             return _heartbeat;
         }
 
@@ -352,7 +352,7 @@ class navigator {
             _status = navigation::status::e_on_target;
             _heartbeat = false;
             _trust_level = navigation::trust_level::e_full;
-            run_inspector("Exited: ");
+            //run_inspector("Exited: ");
             this->clear();
             return _heartbeat;
         }
