@@ -21,7 +21,7 @@
 /// Prepare the data and move it to device
 int main() {
     // VecMem memory resource(s)
-    /*vecmem::cuda::managed_memory_resource mng_mr;
+    vecmem::cuda::managed_memory_resource mng_mr;
 
     // Set the magnetic field vector
     const auto B =
@@ -30,11 +30,10 @@ int main() {
                                   2. * detray::unit<detray::scalar>::T};
 
     // Create the toy geometry
-    detray::tutorial::detector_host_t det =
-        detray::create_toy_geometry<detray::host_container_types>(
-            mng_mr, detray::tutorial::field_t(
-                        detray::tutorial::field_t::backend_t::configuration_t{
-                            B[0], B[1], B[2]}));
+    detray::tutorial::detector_host_t det = detray::create_toy_geometry<>(
+        mng_mr, detray::tutorial::field_t(
+                    detray::tutorial::field_t::backend_t::configuration_t{
+                        B[0], B[1], B[2]}));
 
     // Create the vector of initial track parameters
     vecmem::vector<detray::free_track_parameters<detray::tutorial::transform3>>
@@ -71,5 +70,5 @@ int main() {
     copy.setup(candidates_buffer);
 
     // Run the propagator test for GPU device
-    detray::tutorial::propagation(det_data, tracks_data, candidates_buffer);*/
+    detray::tutorial::propagation(det_data, tracks_data, candidates_buffer);
 }

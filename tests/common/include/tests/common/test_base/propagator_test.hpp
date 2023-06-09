@@ -68,6 +68,10 @@ using track_t = free_track_parameters<transform3>;
 using free_matrix = typename track_t::covariance_type;
 
 // Navigator
+template <typename bfield_bknd_t>
+using intersection_t =
+    intersection2D<typename detector_host_t<bfield_bknd_t>::surface_type,
+                   transform3>;
 template <typename detector_t>
 using navigator_t = navigator<detector_t>;
 

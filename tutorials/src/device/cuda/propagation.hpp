@@ -28,15 +28,14 @@
 namespace detray::tutorial {
 
 // Detector
-/*using detector_host_t = detector<detector_registry::template toy_detector<>,
-                                    covfie::field, host_container_types>;
-using detector_device_t =
-    detector<detector_registry::template toy_detector<>, covfie::field_view,
-             device_container_types>;
+using detector_host_t = detector<detector_registry::template toy_detector<>,
+                                 covfie::field, host_container_types>;
+using detector_device_t = detector<detector_registry::template toy_detector<>,
+                                   covfie::field_view, device_container_types>;
 
 // Navigator
-using intersection_t = intersection2D<typename detector_device_t::surface_type,
-                                      detray::tutorial::transform3>;
+using intersection_t =
+    intersection2D<typename detector_host_t::surface_type, transform3>;
 using navigator_t = navigator<detector_device_t>;
 
 // Stepper
@@ -59,6 +58,6 @@ void propagation(
     const vecmem::data::vector_view<
         free_track_parameters<detray::tutorial::transform3>>
         tracks_data,
-    vecmem::data::jagged_vector_view<intersection_t> candidates_data);*/
+    vecmem::data::jagged_vector_view<intersection_t> candidates_data);
 
 }  // namespace detray::tutorial

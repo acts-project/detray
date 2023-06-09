@@ -14,8 +14,7 @@ template <typename bfield_bknd_t>
 __global__ void propagator_test_kernel(
     typename detector_host_t<bfield_bknd_t>::detector_view_type det_data,
     vecmem::data::vector_view<track_t> tracks_data,
-    vecmem::data::jagged_vector_view<intersection2D<
-        typename detector_host_t<bfield_bknd_t>::surface_type, transform3>>
+    vecmem::data::jagged_vector_view<intersection_t<bfield_bknd_t>>
         candidates_data,
     vecmem::data::jagged_vector_view<scalar> path_lengths_data,
     vecmem::data::jagged_vector_view<vector3_t> positions_data,
@@ -25,9 +24,8 @@ __global__ void propagator_test_kernel(
 
     detector_device_t<bfield_bknd_t> det(det_data);
     vecmem::device_vector<track_t> tracks(tracks_data);
-    vecmem::jagged_device_vector<intersection2D<
-        typename detector_device_t<bfield_bknd_t>::surface_type, transform3>>
-        candidates(candidates_data);
+    vecmem::jagged_device_vector<intersection_t<bfield_bknd_t>> candidates(
+        candidates_data);
     vecmem::jagged_device_vector<scalar> path_lengths(path_lengths_data);
     vecmem::jagged_device_vector<vector3_t> positions(positions_data);
     vecmem::jagged_device_vector<free_matrix> jac_transports(
@@ -76,8 +74,7 @@ template <typename bfield_bknd_t>
 void propagator_test(
     detector_host_t<bfield_bknd_t>& det,
     vecmem::data::vector_view<track_t>& tracks_data,
-    vecmem::data::jagged_vector_view<intersection2D<
-        typename detector_host_t<bfield_bknd_t>::surface_type, transform3>>&
+    vecmem::data::jagged_vector_view<intersection_t<bfield_bknd_t>>&
         candidates_data,
     vecmem::data::jagged_vector_view<scalar>& path_lengths_data,
     vecmem::data::jagged_vector_view<vector3_t>& positions_data,
@@ -99,9 +96,7 @@ void propagator_test(
 /// Explicit instantiation for a constant magnetic field
 template void propagator_test<const_bfield_bknd_t>(
     detector_host_t<const_bfield_bknd_t>&, vecmem::data::vector_view<track_t>&,
-    vecmem::data::jagged_vector_view<intersection2D<
-        typename detector_host_t<const_bfield_bknd_t>::surface_type,
-        transform3>>&,
+    vecmem::data::jagged_vector_view<intersection_t<const_bfield_bknd_t>>&,
     vecmem::data::jagged_vector_view<scalar>&,
     vecmem::data::jagged_vector_view<vector3_t>&,
     vecmem::data::jagged_vector_view<free_matrix>&);
@@ -109,9 +104,7 @@ template void propagator_test<const_bfield_bknd_t>(
 /// Explicit instantiation for an inhomogeneous magnetic field
 template void propagator_test<inhom_bfield_bknd_t>(
     detector_host_t<inhom_bfield_bknd_t>&, vecmem::data::vector_view<track_t>&,
-    vecmem::data::jagged_vector_view<intersection2D<
-        typename detector_host_t<inhom_bfield_bknd_t>::surface_type,
-        transform3>>&,
+    vecmem::data::jagged_vector_view<intersection_t<inhom_bfield_bknd_t>>&,
     vecmem::data::jagged_vector_view<scalar>&,
     vecmem::data::jagged_vector_view<vector3_t>&,
     vecmem::data::jagged_vector_view<free_matrix>&);

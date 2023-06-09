@@ -11,7 +11,7 @@
 namespace detray::tutorial {
 
 // Propagation configurations
-/*inline constexpr detray::scalar path_limit{2.f *
+inline constexpr detray::scalar path_limit{2.f *
                                            detray::unit<detray::scalar>::m};
 
 /// Kernel that runs the entire propagation loop
@@ -84,6 +84,6 @@ void propagation(
     // cuda error check
     DETRAY_CUDA_ERROR_CHECK(cudaGetLastError());
     DETRAY_CUDA_ERROR_CHECK(cudaDeviceSynchronize());
-}*/
+}
 
 }  // namespace detray::tutorial

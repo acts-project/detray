@@ -18,8 +18,7 @@ namespace detray {
 template <typename bfield_bknd_t>
 void propagator_test(
     detector_host_t<bfield_bknd_t> &, vecmem::data::vector_view<track_t> &,
-    vecmem::data::jagged_vector_view<intersection2D<
-        typename detector_host_t<bfield_bknd_t>::surface_type, transform3>> &,
+    vecmem::data::jagged_vector_view<intersection_t<bfield_bknd_t>> &,
     vecmem::data::jagged_vector_view<scalar> &,
     vecmem::data::jagged_vector_view<vector3_t> &,
     vecmem::data::jagged_vector_view<free_matrix> &);
