@@ -37,7 +37,7 @@ TEST(io, bfield_reader) {
         covfie::backend::nearest_neighbour<covfie::backend::strided<
             covfie::vector::ulong3,
             covfie::backend::array<covfie::vector::vector_d<scalar, 3>>>>>;
-    //using bfield_t = covfie::field<bfield_bknd_t>;
+    using bfield_t = covfie::field<bfield_bknd_t>;
 
     // Toy detector
     using detector_t =
@@ -57,10 +57,10 @@ TEST(io, bfield_reader) {
     bf_reader.read(toy_det, volume_name_map, std::getenv("DETRAY_BFIELD_FILE"));
 
     // Test the field
-    //const bfield_t& bf = toy_det.get_bfield();
-    //bfield_t::view_t bv(bf);
+    const bfield_t& bf = toy_det.get_bfield();
+    bfield_t::view_t bv(bf);
 
-    /*for (float x = -10.f; x <= 10.f; x += 1.f) {
+    for (float x = -10.f; x <= 10.f; x += 1.f) {
         for (float y = -10.f; y <= 10.f; y += 1.f) {
             for (float z = -10.f; z <= 10.f; z += 1.f) {
                 std::cout << bv.at(x, y, z)[0] << ", ";
@@ -68,5 +68,5 @@ TEST(io, bfield_reader) {
                 std::cout << bv.at(x, y, z)[2] << std::endl;
             }
         }
-    }*/
+    }
 }

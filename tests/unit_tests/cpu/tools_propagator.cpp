@@ -229,12 +229,10 @@ TEST_P(PropagatorWithRkStepper, rk4_propagator_const_bfield) {
     using propagator_t = propagator<stepper_t, navigator_t, actor_chain_t>;
 
     // Build detector and magnetic field
-    const vector3 B = std::get<2>(GetParam());
-    toy_cfg.bfield_vec(B);
-    detector_t det = create_toy_geometry<bfield_bknd_t>(
-        host_mr, toy_cfg);
+    toy_cfg.bfield_vec(std::get<2>(GetParam()));
+    detector_t det = create_toy_geometry<bfield_bknd_t>(host_mr, toy_cfg);
     // Propagator is built from the stepper and navigator
-    auto p = propagator_t(stepper_t{}, navigator_t{});
+    propagator_t p(stepper_t{}, navigator_t{});
 
     // Iterate through uniformly distributed momentum directions
     for (auto track :
@@ -336,10 +334,9 @@ TEST_P(PropagatorWithRkStepper, rk4_propagator_inhom_bfield) {
     using propagator_t = propagator<stepper_t, navigator_t, actor_chain_t>;
 
     // Build detector and magnetic field
-    detector_t det =
-        create_toy_geometry<bfield_bknd_t>(host_mr, toy_cfg);
+    detector_t det = create_toy_geometry<bfield_bknd_t>(host_mr, toy_cfg);
     // Propagator is built from the stepper and navigator
-    propagator_t p = propagator_t(stepper_t{}, navigator_t{});
+    propagator_t p(stepper_t{}, navigator_t{});
 
     // Iterate through uniformly distributed momentum directions
     for (auto track :

@@ -28,16 +28,7 @@
 #include <covfie/core/field.hpp>
 #include <covfie/core/vector.hpp>
 
-#include <covfie/core/backend/primitive/constant.hpp>
-#include <covfie/core/backend/transformer/affine.hpp>
-#include <covfie/core/backend/transformer/nearest_neighbour.hpp>
-#include <covfie/core/backend/transformer/strided.hpp>
-#include <covfie/core/field.hpp>
-#include <covfie/core/field_view.hpp>
-#include <covfie/core/vector.hpp>
-
 // System include(s)
-#include <cassert>
 #include <algorithm>
 #include <fstream>
 #include <iostream>
@@ -182,10 +173,10 @@ class detector {
                                       typename volume_finder::buffer_type>;
 
     detector() = delete;
-    // The detector hold a lot of data and should never be copied
-    detector(const detector&) = default;
-    detector& operator=(const detector&) = delete;
-    detector(detector&&) = default;
+    // The detector holds a lot of data and should never be copied
+    detector(const detector &) = default;
+    detector &operator=(const detector &) = delete;
+    detector(detector &&) = default;
 
     /// Allowed costructor
     /// @param resource memory resource for the allocation of members
@@ -200,12 +191,6 @@ class detector {
           _resource(&resource),
           _bfield(field) {}
 
-    using blub = covfie::backend::affine<
-        covfie::backend::nearest_neighbour<covfie::backend::strided<
-            covfie::vector::ulong3,
-            covfie::backend::array<covfie::vector::vector_d<scalar, 3>>>>>;
-    using bla = covfie::field<blub>;
-
     /// Constructor that reads the magnetic field from a predefined file
     /// @param resource memory resource for the allocation of members
     template <typename B = bfield_t<const_b_field_bknd<scalar_type>>,
@@ -218,8 +203,6 @@ class detector {
           _surfaces(resource),
           _volume_finder(resource),
           _resource(&resource) {
-
-        static_assert(std::is_same_v<bfield_type, bla>, "Oh no");
 
         // This has to be defined!
         std::ifstream stream(std::getenv("DETRAY_BFIELD_FILE"),
@@ -246,10 +229,9 @@ class detector {
           _surfaces(resource),
           _volume_finder(resource),
           _resource(&resource),
-          _bfield(covfie::make_parameter_pack(typename bfield_type::backend_t::configuration_t{0.f, 0.f, 0.f})) {
-
-        static_assert(std::is_same_v<bfield_type, bfield_t<const_b_field_bknd<scalar_type>>>, "Oh no");
-          }
+          _bfield(covfie::make_parameter_pack(
+              typename bfield_type::backend_t::configuration_t{0.f, 0.f,
+                                                               0.f})) {}
 
     /// Constructor with detector_data
     template <typename detector_data_type,
@@ -542,12 +524,10 @@ class detector {
         return *std::max_element(n_candidates.begin(), n_candidates.end());
     }
 
+    /// @brief Add a bfield to the detector
     DETRAY_HOST
     void set_bfield(bfield_type &&field) {
-        std::cout << "Still alive" << std::endl;
         _bfield = std::forward<bfield_type>(field);
-        std::cout << "Still alive2" << std::endl;
-
     }
 
     DETRAY_HOST_DEVICE

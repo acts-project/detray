@@ -13,7 +13,6 @@
 
 // System include(s)
 #include <ios>
-#include <iostream>
 #include <string>
 
 namespace detray {

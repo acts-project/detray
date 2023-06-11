@@ -98,7 +98,7 @@ struct track_inspector : actor {
 
     struct state {
 
-        state(vecmem::memory_resource& resource)
+        state(vecmem::memory_resource &resource)
             : _path_lengths(&resource),
               _positions(&resource),
               _jac_transports(&resource) {}
@@ -117,9 +117,9 @@ struct track_inspector : actor {
 
     template <typename propagator_state_t>
     DETRAY_HOST_DEVICE void operator()(
-        state& inspector_state, const propagator_state_t& prop_state) const {
+        state &inspector_state, const propagator_state_t &prop_state) const {
 
-        const auto& stepping = prop_state._stepping;
+        const auto &stepping = prop_state._stepping;
 
         // Nothing happened yet: First call of actor chain
         if (stepping.path_length() < is_close) {
@@ -149,7 +149,7 @@ using actor_chain_device_t =
 
 /// Precompute the tracks
 inline vecmem::vector<track_t> generate_tracks(
-    vecmem::memory_resource* mr, const unsigned int ts = theta_steps,
+    vecmem::memory_resource *mr, const unsigned int ts = theta_steps,
     const unsigned int ps = phi_steps) {
 
     // Putput collection
@@ -174,9 +174,9 @@ inline vecmem::vector<track_t> generate_tracks(
 
 /// test function for propagator on the host
 template <typename bfield_bknd_t>
-inline auto run_propagation_host(vecmem::memory_resource* mr,
-                                 const detector_host_t<bfield_bknd_t>& det,
-                                 const vecmem::vector<track_t>& tracks)
+inline auto run_propagation_host(vecmem::memory_resource *mr,
+                                 const detector_host_t<bfield_bknd_t> &det,
+                                 const vecmem::vector<track_t> &tracks)
     -> std::tuple<vecmem::jagged_vector<scalar>,
                   vecmem::jagged_vector<vector3_t>,
                   vecmem::jagged_vector<free_matrix>> {
@@ -195,7 +195,7 @@ inline auto run_propagation_host(vecmem::memory_resource* mr,
     vecmem::jagged_vector<vector3_t> host_positions(mr);
     vecmem::jagged_vector<free_matrix> host_jac_transports(mr);
 
-    for (const auto& trk : tracks) {
+    for (const auto &trk : tracks) {
 
         // Create the propagator state
         inspector_host_t::state insp_state{*mr};
@@ -230,12 +230,12 @@ inline auto run_propagation_host(vecmem::memory_resource* mr,
 
 /// test function for propagator on the host
 inline void compare_propagation_results(
-    const vecmem::jagged_vector<vector3_t>& host_positions,
-    const vecmem::jagged_vector<vector3_t>& device_positions,
-    const vecmem::jagged_vector<scalar>& host_path_lengths,
-    const vecmem::jagged_vector<scalar>& device_path_lengths,
-    const vecmem::jagged_vector<free_matrix>& host_jac_transports,
-    const vecmem::jagged_vector<free_matrix>& device_jac_transports) {
+    const vecmem::jagged_vector<vector3_t> &host_positions,
+    const vecmem::jagged_vector<vector3_t> &device_positions,
+    const vecmem::jagged_vector<scalar> &host_path_lengths,
+    const vecmem::jagged_vector<scalar> &device_path_lengths,
+    const vecmem::jagged_vector<free_matrix> &host_jac_transports,
+    const vecmem::jagged_vector<free_matrix> &device_jac_transports) {
 
     // Compare the positions
     for (unsigned int i = 0; i < host_positions.size(); i++) {
@@ -251,8 +251,8 @@ inline void compare_propagation_results(
             ASSERT_EQ(host_positions[i].size(), device_positions[i].size());
             ASSERT_NEAR(host_pl, device_pl, host_pl * is_close);
 
-            auto& host_pos = host_positions[i][j];
-            auto& device_pos = device_positions[i][j];
+            auto &host_pos = host_positions[i][j];
+            auto &device_pos = device_positions[i][j];
 
             auto relative_error =
                 static_cast<point3>(1. / host_pl * (host_pos - device_pos));
@@ -265,8 +265,8 @@ inline void compare_propagation_results(
     for (unsigned int i = 0; i < host_jac_transports.size(); i++) {
         for (unsigned int j = 0; j < host_jac_transports[i].size(); j++) {
 
-            auto& host_J = host_jac_transports[i][j];
-            auto& device_J = device_jac_transports[i][j];
+            auto &host_J = host_jac_transports[i][j];
+            auto &device_J = device_jac_transports[i][j];
 
             auto pl = host_path_lengths[i][j];
 

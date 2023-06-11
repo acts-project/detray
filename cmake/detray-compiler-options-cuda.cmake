@@ -37,5 +37,5 @@ detray_add_flag( CMAKE_CUDA_FLAGS_DEBUG "-G" )
 
 # More rigorous tests for the Debug builds.
 if( "${CUDAToolkit_VERSION}" VERSION_GREATER_EQUAL "10.2" )
-   #detray_add_flag( CMAKE_CUDA_FLAGS_DEBUG "-Werror all-warnings" )
+   detray_add_flag( CMAKE_CUDA_FLAGS_DEBUG "-Werror all-warnings" )
 endif()

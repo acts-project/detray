@@ -53,7 +53,7 @@ inline auto run_propagation_device(
 
     vecmem::data::jagged_vector_buffer<scalar> path_lengths_buffer(
         capacities, *mr, nullptr, vecmem::data::buffer_type::resizable);
-    vecmem::data::jagged_vector_buffer<vector3> positions_buffer(
+    vecmem::data::jagged_vector_buffer<vector3_t> positions_buffer(
         capacities, *mr, nullptr, vecmem::data::buffer_type::resizable);
     vecmem::data::jagged_vector_buffer<free_matrix> jac_transports_buffer(
         capacities, *mr, nullptr, vecmem::data::buffer_type::resizable);
