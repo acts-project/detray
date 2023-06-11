@@ -72,7 +72,7 @@ __global__ void propagator_test_kernel(
 /// Launch the device kernel
 template <typename bfield_bknd_t>
 void propagator_test(
-    detector_host_t<bfield_bknd_t>& det,
+    typename detector_host_t<bfield_bknd_t>::detector_view_type det_view,
     vecmem::data::vector_view<track_t>& tracks_data,
     vecmem::data::jagged_vector_view<intersection_t<bfield_bknd_t>>&
         candidates_data,
@@ -85,7 +85,7 @@ void propagator_test(
 
     // run the test kernel
     propagator_test_kernel<bfield_bknd_t><<<block_dim, thread_dim>>>(
-        get_data(det), tracks_data, candidates_data, path_lengths_data,
+        det_view, tracks_data, candidates_data, path_lengths_data,
         positions_data, jac_transports_data);
 
     // cuda error check
@@ -95,7 +95,8 @@ void propagator_test(
 
 /// Explicit instantiation for a constant magnetic field
 template void propagator_test<const_bfield_bknd_t>(
-    detector_host_t<const_bfield_bknd_t>&, vecmem::data::vector_view<track_t>&,
+    typename detector_host_t<const_bfield_bknd_t>::detector_view_type,
+    vecmem::data::vector_view<track_t>&,
     vecmem::data::jagged_vector_view<intersection_t<const_bfield_bknd_t>>&,
     vecmem::data::jagged_vector_view<scalar>&,
     vecmem::data::jagged_vector_view<vector3_t>&,
@@ -103,7 +104,8 @@ template void propagator_test<const_bfield_bknd_t>(
 
 /// Explicit instantiation for an inhomogeneous magnetic field
 template void propagator_test<inhom_bfield_bknd_t>(
-    detector_host_t<inhom_bfield_bknd_t>&, vecmem::data::vector_view<track_t>&,
+    typename detector_host_t<inhom_bfield_bknd_t>::detector_view_type,
+    vecmem::data::vector_view<track_t>&,
     vecmem::data::jagged_vector_view<intersection_t<inhom_bfield_bknd_t>>&,
     vecmem::data::jagged_vector_view<scalar>&,
     vecmem::data::jagged_vector_view<vector3_t>&,

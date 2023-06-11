@@ -7,6 +7,7 @@
 
 #pragma once
 
+// Project include(s)
 #include "queue_wrapper.hpp"
 #include "tests/common/test_base/propagator_test.hpp"
 
@@ -79,6 +80,34 @@ inline auto run_propagation_device(
     return std::make_tuple(std::move(device_path_lengths),
                            std::move(device_positions),
                            std::move(device_jac_transports));
+}
+
+/// Test chain for the propagator
+template <typename bfield_bknd_t>
+inline auto run_propagation_test(
+    vecmem::memory_resource *mr, ::sycl::queue *q,
+    detector_host_t<bfield_bknd_t> &det,
+    typename detector_host_t<bfield_bknd_t>::detector_view_type det_view) {
+
+    // Create the vector of initial track parameterizations
+    auto tracks_host = generate_tracks(mr);
+    vecmem::vector<track_t> tracks_device(tracks_host, mr);
+
+    // Host propagation
+    auto &&[host_path_lengths, host_positions, host_jac_transports] =
+        run_propagation_host(mr, det, tracks_host);
+
+    // Device propagation
+    detray::sycl::queue_wrapper queue(q);
+
+    auto &&[device_path_lengths, device_positions, device_jac_transports] =
+        run_propagation_device<bfield_bknd_t>(&shared_mr, det, det_view, queue,
+                                              tracks_device, host_positions);
+
+    // Check the results
+    compare_propagation_results(host_positions, device_positions,
+                                host_path_lengths, device_path_lengths,
+                                host_jac_transports, device_jac_transports);
 }
 
 }  // namespace detray

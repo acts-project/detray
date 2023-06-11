@@ -5,12 +5,17 @@
  * Mozilla Public License Version 2.0
  */
 
-#include <gtest/gtest.h>
+// Project include(s)
+#include "propagator_sycl_kernel.hpp"
 
+// Vecmem include(s)
+#include <vecmem/memory/host_memory_resource.hpp>
 #include <vecmem/memory/sycl/device_memory_resource.hpp>
 #include <vecmem/memory/sycl/shared_memory_resource.hpp>
+#include <vecmem/utils/sycl/copy.hpp>
 
-#include "propagator_kernel.hpp"
+// GTest include
+#include <gtest/gtest.h>
 
 using namespace detray;
 
@@ -25,15 +30,13 @@ auto handle_async_error = [](::sycl::exception_list elist) {
         }
     }
 };
+class SyclPropConstBFieldMng : public ::testing::TestWithParam<vector3_t> {};
 
-class SyclPropagatorWithRkStepper : public ::testing::TestWithParam<vector3_t> {
-};
-
-TEST_P(SyclPropagatorWithRkStepper, propagator) {
+TEST_P(SyclPropConstBFieldMng, propagator) {
 
     // Creating SYCL queue object
     ::sycl::queue q(handle_async_error);
-    std::cout << "Running constant bfield propagation on device: "
+    std::cout << "Running constant bfield propagation on device (mng mem): "
               << q.get_device().get_info<::sycl::info::device::name>() << "\n";
 
     // VecMem memory resource(s)
@@ -45,59 +48,88 @@ TEST_P(SyclPropagatorWithRkStepper, propagator) {
     // Create the toy geometry
     toy_cfg.bfield_vec(B);
     auto det = create_toy_geometry<const_bfield_bknd_t, host_container_types>(
-        shared_mr,
-        covfie::field<const_bfield_bknd_t>(
-            const_bfield_bknd_t::configuration_t{B[0], B[1], B[2]}),
-        toy_cfg);
+        shared_mr, toy_cfg);
 
-    // Create the vector of initial track parameterizations
-    auto tracks_host = generate_tracks(&shared_mr);
-    vecmem::vector<track_t> tracks_device(tracks_host, &shared_mr);
-
-    // Host propagation
-    auto&& [host_path_lengths, host_positions, host_jac_transports] =
-        run_propagation_host(&shared_mr, det, tracks_host);
-
-    // Device propagation
-    detray::sycl::queue_wrapper queue(&q);
-    auto&& [device_path_lengths, device_positions, device_jac_transports] =
-        run_propagation_device<const_bfield_bknd_t>(
-            &shared_mr, det, queue, tracks_device, host_positions);
-
-    // Check the results
-    compare_propagation_results(host_positions, device_positions,
-                                host_path_lengths, device_path_lengths,
-                                host_jac_transports, device_jac_transports);
+    run_propagation_test<const_bfield_bknd_t>(&shared_mr, &q, det,
+                                              detray::get_data(det));
 }
 
-INSTANTIATE_TEST_SUITE_P(SyclPropagatorValidation1, SyclPropagatorWithRkStepper,
+class SyclPropConstBFieldCpy : public ::testing::TestWithParam<vector3_t> {};
+
+TEST_P(SyclPropConstBFieldCpy, propagator) {
+
+    // Creating SYCL queue object
+    ::sycl::queue q(handle_async_error);
+    std::cout << "Running constant bfield propagation on device (cpy): "
+              << q.get_device().get_info<::sycl::info::device::name>() << "\n";
+
+    // VecMem memory resource(s)
+    vecmem::host_memory_resource host_mr;
+    vecmem::sycl::shared_memory_resource shared_mr;
+    vecmem::sycl::device_memory_resource dev_mr;
+
+    vecmem::sycl::copy sycl_cpy;
+
+    // Set the magnetic field
+    const vector3 B = GetParam();
+
+    // Create the toy geometry
+    toy_cfg.bfield_vec(B);
+    auto det = create_toy_geometry<const_bfield_bknd_t, host_container_types>(
+        host_mr, toy_cfg);
+
+    auto det_buff = detray::get_buffer(det, dev_mr, sycl_cpy);
+
+    run_propagation_test<const_bfield_bknd_t>(&mng_mr, &q, det,
+                                              detray::get_data(det_buff));
+}
+
+INSTANTIATE_TEST_SUITE_P(SyclPropagatorValidation1, SyclPropConstBFieldMng,
                          ::testing::Values(vector3_t{0. * unit<scalar>::T,
                                                      0. * unit<scalar>::T,
                                                      2. * unit<scalar>::T}));
 
-INSTANTIATE_TEST_SUITE_P(SyclPropagatorValidation2, SyclPropagatorWithRkStepper,
+INSTANTIATE_TEST_SUITE_P(SyclPropagatorValidation2, SyclPropConstBFieldMng,
                          ::testing::Values(vector3_t{0. * unit<scalar>::T,
                                                      1. * unit<scalar>::T,
                                                      1. * unit<scalar>::T}));
 
-INSTANTIATE_TEST_SUITE_P(SyclPropagatorValidation3, SyclPropagatorWithRkStepper,
+INSTANTIATE_TEST_SUITE_P(SyclPropagatorValidation3, SyclPropConstBFieldMng,
                          ::testing::Values(vector3_t{1. * unit<scalar>::T,
                                                      0. * unit<scalar>::T,
                                                      1. * unit<scalar>::T}));
 
-INSTANTIATE_TEST_SUITE_P(SyclPropagatorValidation4, SyclPropagatorWithRkStepper,
+INSTANTIATE_TEST_SUITE_P(SyclPropagatorValidation4, SyclPropConstBFieldMng,
+                         ::testing::Values(vector3_t{1. * unit<scalar>::T,
+                                                     1. * unit<scalar>::T,
+                                                     1. * unit<scalar>::T}));
+
+INSTANTIATE_TEST_SUITE_P(SyclPropagatorValidation5, SyclPropConstBFieldCpy,
+                         ::testing::Values(vector3_t{0. * unit<scalar>::T,
+                                                     0. * unit<scalar>::T,
+                                                     2. * unit<scalar>::T}));
+
+INSTANTIATE_TEST_SUITE_P(SyclPropagatorValidation6, SyclPropConstBFieldCpy,
+                         ::testing::Values(vector3_t{0. * unit<scalar>::T,
+                                                     1. * unit<scalar>::T,
+                                                     1. * unit<scalar>::T}));
+
+INSTANTIATE_TEST_SUITE_P(SyclPropagatorValidation7, SyclPropConstBFieldCpy,
+                         ::testing::Values(vector3_t{1. * unit<scalar>::T,
+                                                     0. * unit<scalar>::T,
+                                                     1. * unit<scalar>::T}));
+
+INSTANTIATE_TEST_SUITE_P(SyclPropagatorValidation8, SyclPropConstBFieldCpy,
                          ::testing::Values(vector3_t{1. * unit<scalar>::T,
                                                      1. * unit<scalar>::T,
                                                      1. * unit<scalar>::T}));
 
 /// This tests the device propagation in an inhomogenepus magnetic field
-
-/// This tests the device propagation in an inhomogenepus magnetic field
-/*TEST(SyclPropagatorValidation5, inhomogeneous_bfield) {
+/*TEST(SyclPropagatorValidation9, inhomogeneous_bfield_mng) {
 
     // Creating SYCL queue object
     ::sycl::queue q(handle_async_error);
-    std::cout << "Running constant bfield propagation on device: "
+    std::cout << "Running inhom bfield propagation on device (mng mem): "
               << q.get_device().get_info<::sycl::info::device::name>() << "\n";
 
     // VecMem memory resource(s)
@@ -105,26 +137,32 @@ INSTANTIATE_TEST_SUITE_P(SyclPropagatorValidation4, SyclPropagatorWithRkStepper,
 
     // Create the toy geometry with inhomogeneous bfield from file
     auto det = create_toy_geometry<inhom_bfield_bknd_t, host_container_types>(
-        shared_mr, n_brl_layers, n_edc_layers);
+        shared_mr, toy_cfg);
 
-    // Create the vector of initial track parameterizations
-    auto tracks_host = generate_tracks(&shared_mr);
-    vecmem::vector<track_t> tracks_device(tracks_host, &shared_mr);
+    run_propagation_test<const_bfield_bknd_t>(&shared_mr, &q, det,
+detray::get_data(det));
+}
 
-    // Host propagation
-    auto&& [host_path_lengths, host_positions, host_jac_transports] =
-        run_propagation_host(&shared_mr, det, tracks_host);
+TEST(SyclPropagatorValidation10, inhomogeneous_bfield_cpy) {
 
-    // Device propagation
+    // Creating SYCL queue object
+    ::sycl::queue q(handle_async_error);
+    std::cout << "Running inhom bfield propagation on device (cpy): "
+              << q.get_device().get_info<::sycl::info::device::name>() << "\n";
 
-    detray::sycl::queue_wrapper queue(&q);
+    // VecMem memory resource(s)
+    vecmem::host_memory_resource host_mr;
+    vecmem::sycl::shared_memory_resource shared_mr;
+    vecmem::sycl::device_memory_resource dev_mr;
 
-    auto&& [device_path_lengths, device_positions, device_jac_transports] =
-        run_propagation_device<inhom_bfield_bknd_t>(
-            &shared_mr, det, queue, tracks_device, host_positions);
+    vecmem::sycl::copy sycl_cpy;
 
-    // Check the results
-    compare_propagation_results(host_positions, device_positions,
-                                host_path_lengths, device_path_lengths,
-                                host_jac_transports, device_jac_transports);
+    // Create the toy geometry with inhomogeneous bfield from file
+    auto det = create_toy_geometry<inhom_bfield_bknd_t, host_container_types>(
+        shared_mr, toy_cfg);
+
+    auto det_buff = detray::get_buffer(det, dev_mr, sycl_cpy);
+
+    run_propagation_test<const_bfield_bknd_t>(&mng_mr, &q, det,
+detray::get_data(det_buff));
 }*/

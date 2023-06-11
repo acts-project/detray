@@ -23,6 +23,9 @@
 #include "detray/simulation/event_generator/track_generators.hpp"
 #include "detray/tracks/tracks.hpp"
 
+// Vecmem include(s)
+#include <vecmem/memory/memory_resource.hpp>
+
 // Covfie include(s)
 #include <covfie/core/backend/primitive/constant.hpp>
 #include <covfie/core/backend/transformer/affine.hpp>

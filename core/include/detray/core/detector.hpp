@@ -24,25 +24,15 @@
 #include <vecmem/memory/memory_resource.hpp>
 
 // Covfie include(s)
-#include <covfie/core/backend/primitive/constant.hpp>
 #include <covfie/core/field.hpp>
-#include <covfie/core/vector.hpp>
 
 // System include(s)
 #include <algorithm>
-#include <fstream>
-#include <iostream>
 #include <map>
 #include <sstream>
 #include <string>
 
 namespace detray {
-
-/// Default b field type
-template <typename scalar_t>
-using const_b_field_bknd =
-    covfie::backend::constant<covfie::vector::vector_d<scalar_t, 3>,
-                              covfie::vector::vector_d<scalar_t, 3>>;
 
 /// @brief Forward declaration of a detector view type
 template <typename metadata, template <typename> class bfield_t,
@@ -179,7 +169,21 @@ class detector {
     detector(detector &&) = default;
 
     /// Allowed costructor
+    /// @{
+    /// Default construction
     /// @param resource memory resource for the allocation of members
+    DETRAY_HOST detector(vecmem::memory_resource &resource)
+        : _volumes(&resource),
+          _transforms(resource),
+          _masks(resource),
+          _materials(resource),
+          _surfaces(resource),
+          _volume_finder(resource),
+          _resource(&resource),
+          _bfield() {}
+
+    /// @param resource memory resource for the allocation of members and
+    /// externally provided magnetic field @param field
     DETRAY_HOST
     detector(vecmem::memory_resource &resource, bfield_type &&field)
         : _volumes(&resource),
@@ -189,49 +193,7 @@ class detector {
           _surfaces(resource),
           _volume_finder(resource),
           _resource(&resource),
-          _bfield(field) {}
-
-    /// Constructor that reads the magnetic field from a predefined file
-    /// @param resource memory resource for the allocation of members
-    template <typename B = bfield_t<const_b_field_bknd<scalar_type>>,
-              std::enable_if_t<!std::is_same_v<bfield_type, B>, bool> = true>
-    DETRAY_HOST detector(vecmem::memory_resource &resource)
-        : _volumes(&resource),
-          _transforms(resource),
-          _masks(resource),
-          _materials(resource),
-          _surfaces(resource),
-          _volume_finder(resource),
-          _resource(&resource) {
-
-        // This has to be defined!
-        std::ifstream stream(std::getenv("DETRAY_BFIELD_FILE"),
-                             std::ifstream::binary);
-
-        if (!stream.good()) {
-            std::cout << "File loading error" << std::endl;
-        }
-
-        _bfield = bfield_type(stream);
-
-        stream.close();
-    }
-
-    /// Constructor with simplified constant-zero B-field
-    /// @param resource memory resource for the allocation of members
-    template <typename B = bfield_t<const_b_field_bknd<scalar_type>>,
-              std::enable_if_t<std::is_same_v<bfield_type, B>, bool> = true>
-    DETRAY_HOST explicit detector(vecmem::memory_resource &resource)
-        : _volumes(&resource),
-          _transforms(resource),
-          _masks(resource),
-          _materials(resource),
-          _surfaces(resource),
-          _volume_finder(resource),
-          _resource(&resource),
-          _bfield(covfie::make_parameter_pack(
-              typename bfield_type::backend_t::configuration_t{0.f, 0.f,
-                                                               0.f})) {}
+          _bfield(std::move(field)) {}
 
     /// Constructor with detector_data
     template <typename detector_data_type,
@@ -247,6 +209,7 @@ class detector {
           _volume_finder(
               detray::detail::get<5>(det_data._detector_data.m_view)),
           _bfield(det_data._bfield_view) {}
+    /// @}
 
     /// Add a new volume and retrieve a reference to it.
     ///

@@ -5,19 +5,23 @@
  * Mozilla Public License Version 2.0
  */
 
-#include <gtest/gtest.h>
-
+// Project include(s)
 #include "propagator_cuda_kernel.hpp"
 
 // Vecmem include(s)
 #include <vecmem/memory/cuda/device_memory_resource.hpp>
 #include <vecmem/memory/cuda/managed_memory_resource.hpp>
+#include <vecmem/memory/host_memory_resource.hpp>
+#include <vecmem/utils/cuda/copy.hpp>
+
+// GTest include
+#include <gtest/gtest.h>
 
 using namespace detray;
 
-class CudaPropagatorConstBField : public ::testing::TestWithParam<vector3_t> {};
+class CudaPropConstBFieldMng : public ::testing::TestWithParam<vector3_t> {};
 
-TEST_P(CudaPropagatorConstBField, propagator) {
+TEST_P(CudaPropConstBFieldMng, propagator) {
 
     // VecMem memory resource(s)
     vecmem::cuda::managed_memory_resource mng_mr;
@@ -30,47 +34,77 @@ TEST_P(CudaPropagatorConstBField, propagator) {
     auto det = create_toy_geometry<const_bfield_bknd_t, host_container_types>(
         mng_mr, toy_cfg);
 
-    // Create the vector of initial track parameterizations
-    auto tracks_host = generate_tracks(&mng_mr);
-    vecmem::vector<track_t> tracks_device(tracks_host, &mng_mr);
-
-    // Host propagation
-    auto&& [host_path_lengths, host_positions, host_jac_transports] =
-        run_propagation_host(&mng_mr, det, tracks_host);
-
-    // Device propagation
-    auto&& [device_path_lengths, device_positions, device_jac_transports] =
-        run_propagation_device<const_bfield_bknd_t>(&mng_mr, det, tracks_device,
-                                                    host_positions);
-
-    // Check the results
-    compare_propagation_results(host_positions, device_positions,
-                                host_path_lengths, device_path_lengths,
-                                host_jac_transports, device_jac_transports);
+    run_propagation_test<const_bfield_bknd_t>(&mng_mr, det,
+                                              detray::get_data(det));
 }
 
-INSTANTIATE_TEST_SUITE_P(CudaPropagatorValidation1, CudaPropagatorConstBField,
+class CudaPropConstBFieldCpy : public ::testing::TestWithParam<vector3_t> {};
+
+TEST_P(CudaPropConstBFieldCpy, propagator) {
+
+    // VecMem memory resource(s)
+    vecmem::host_memory_resource host_mr;
+    vecmem::cuda::managed_memory_resource mng_mr;
+    vecmem::cuda::device_memory_resource dev_mr;
+
+    vecmem::cuda::copy cuda_cpy;
+
+    // Set the magnetic field
+    const vector3_t B = GetParam();
+
+    // Create the toy geometry
+    toy_cfg.bfield_vec(B);
+    auto det = create_toy_geometry<const_bfield_bknd_t, host_container_types>(
+        host_mr, toy_cfg);
+
+    auto det_buff = detray::get_buffer(det, dev_mr, cuda_cpy);
+
+    run_propagation_test<const_bfield_bknd_t>(&mng_mr, det,
+                                              detray::get_data(det_buff));
+}
+
+INSTANTIATE_TEST_SUITE_P(CudaPropagatorValidation1, CudaPropConstBFieldMng,
                          ::testing::Values(vector3_t{0. * unit<scalar>::T,
                                                      0. * unit<scalar>::T,
                                                      2. * unit<scalar>::T}));
 
-INSTANTIATE_TEST_SUITE_P(CudaPropagatorValidation2, CudaPropagatorConstBField,
+INSTANTIATE_TEST_SUITE_P(CudaPropagatorValidation2, CudaPropConstBFieldMng,
                          ::testing::Values(vector3_t{0. * unit<scalar>::T,
                                                      1. * unit<scalar>::T,
                                                      1. * unit<scalar>::T}));
 
-INSTANTIATE_TEST_SUITE_P(CudaPropagatorValidation3, CudaPropagatorConstBField,
+INSTANTIATE_TEST_SUITE_P(CudaPropagatorValidation3, CudaPropConstBFieldMng,
                          ::testing::Values(vector3_t{1. * unit<scalar>::T,
                                                      0. * unit<scalar>::T,
                                                      1. * unit<scalar>::T}));
 
-INSTANTIATE_TEST_SUITE_P(CudaPropagatorValidation4, CudaPropagatorConstBField,
+INSTANTIATE_TEST_SUITE_P(CudaPropagatorValidation4, CudaPropConstBFieldMng,
+                         ::testing::Values(vector3_t{1. * unit<scalar>::T,
+                                                     1. * unit<scalar>::T,
+                                                     1. * unit<scalar>::T}));
+
+INSTANTIATE_TEST_SUITE_P(CudaPropagatorValidation5, CudaPropConstBFieldCpy,
+                         ::testing::Values(vector3_t{0. * unit<scalar>::T,
+                                                     0. * unit<scalar>::T,
+                                                     2. * unit<scalar>::T}));
+
+INSTANTIATE_TEST_SUITE_P(CudaPropagatorValidation6, CudaPropConstBFieldCpy,
+                         ::testing::Values(vector3_t{0. * unit<scalar>::T,
+                                                     1. * unit<scalar>::T,
+                                                     1. * unit<scalar>::T}));
+
+INSTANTIATE_TEST_SUITE_P(CudaPropagatorValidation7, CudaPropConstBFieldCpy,
+                         ::testing::Values(vector3_t{1. * unit<scalar>::T,
+                                                     0. * unit<scalar>::T,
+                                                     1. * unit<scalar>::T}));
+
+INSTANTIATE_TEST_SUITE_P(CudaPropagatorValidation8, CudaPropConstBFieldCpy,
                          ::testing::Values(vector3_t{1. * unit<scalar>::T,
                                                      1. * unit<scalar>::T,
                                                      1. * unit<scalar>::T}));
 
 /// This tests the device propagation in an inhomogenepus magnetic field
-TEST(CudaPropagatorValidation5, inhomogeneous_bfield) {
+TEST(CudaPropagatorValidation9, inhomogeneous_bfield_mng) {
 
     // VecMem memory resource(s)
     vecmem::cuda::managed_memory_resource mng_mr;
@@ -79,21 +113,26 @@ TEST(CudaPropagatorValidation5, inhomogeneous_bfield) {
     auto det = create_toy_geometry<inhom_bfield_bknd_t, host_container_types>(
         mng_mr, toy_cfg);
 
-    // Create the vector of initial track parameterizations
-    auto tracks_host = generate_tracks(&mng_mr);
-    vecmem::vector<track_t> tracks_device(tracks_host, &mng_mr);
+    run_propagation_test<inhom_bfield_bknd_t>(&mng_mr, det,
+                                              detray::get_data(det));
+}
 
-    // Host propagation
-    auto&& [host_path_lengths, host_positions, host_jac_transports] =
-        run_propagation_host(&mng_mr, det, tracks_host);
+/// This tests the device propagation in an inhomogenepus magnetic field
+TEST(CudaPropagatorValidation10, inhomogeneous_bfield_cpy) {
 
-    // Device propagation
-    auto&& [device_path_lengths, device_positions, device_jac_transports] =
-        run_propagation_device<inhom_bfield_bknd_t>(&mng_mr, det, tracks_device,
-                                                    host_positions);
+    // VecMem memory resource(s)
+    vecmem::host_memory_resource host_mr;
+    vecmem::cuda::managed_memory_resource mng_mr;
+    vecmem::cuda::device_memory_resource dev_mr;
 
-    // Check the results
-    compare_propagation_results(host_positions, device_positions,
-                                host_path_lengths, device_path_lengths,
-                                host_jac_transports, device_jac_transports);
+    vecmem::cuda::copy cuda_cpy;
+
+    // Create the toy geometry with inhomogeneous bfield from file
+    auto det = create_toy_geometry<inhom_bfield_bknd_t, host_container_types>(
+        host_mr, toy_cfg);
+
+    auto det_buff = detray::get_buffer(det, dev_mr, cuda_cpy);
+
+    run_propagation_test<inhom_bfield_bknd_t>(&mng_mr, det,
+                                              detray::get_data(det_buff));
 }

@@ -9,13 +9,6 @@
 
 namespace detray {
 
-/*namespace kernels {
-
-template <typename bfield_bknd_t>
-class propagate;
-
-}  // namespace kernels*/
-
 /// test function for propagator
 template <typename bfield_bknd_t>
 void propagator_test(
