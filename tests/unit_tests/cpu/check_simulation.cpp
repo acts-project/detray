@@ -226,7 +226,8 @@ TEST_P(TelescopeDetectorSimulation, telescope_detector_simulation) {
 
     const auto detector = create_telescope_detector(
         host_mr,
-        b_field_t(covfie::make_parameter_pack(b_field_t::backend_t::configuration_t{B[0], B[1], B[2]})),
+        b_field_t(covfie::make_parameter_pack(
+            b_field_t::backend_t::configuration_t{B[0], B[1], B[2]})),
         rectangle, positions, mat, thickness);
 
     // Momentum

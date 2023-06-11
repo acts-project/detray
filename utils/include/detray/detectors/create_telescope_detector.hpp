@@ -448,8 +448,8 @@ auto create_telescope_detector(
     // Build the geometry
     return create_telescope_detector<mask_t, trajectory_t, container_t>(
         resource,
-        covfie::field<covfie_bkdn_t>{
-            covfie::make_parameter_pack(typename covfie_bkdn_t::configuration_t{0.f, 0.f, 0.f})},
+        covfie::field<covfie_bkdn_t>{covfie::make_parameter_pack(
+            typename covfie_bkdn_t::configuration_t{0.f, 0.f, 0.f})},
         msk, dists, mat, thickness, traj, envelope);
 }
 
@@ -472,8 +472,8 @@ auto create_telescope_detector(
     // Build the geometry
     return create_telescope_detector<mask_t, trajectory_t, container_t>(
         resource,
-        covfie::field<covfie_bkdn_t>{
-            covfie::make_parameter_pack(typename covfie_bkdn_t::configuration_t{0.f, 0.f, 0.f})},
+        covfie::field<covfie_bkdn_t>{covfie::make_parameter_pack(
+            typename covfie_bkdn_t::configuration_t{0.f, 0.f, 0.f})},
         msk, n_surfaces, tel_length, mat, thickness, traj, envelope);
 }
 

@@ -43,8 +43,7 @@ GTEST_TEST(detray_tools, particle_gun) {
     toy_det_config toy_cfg{};
     toy_cfg.bfield_vec(B);
 
-    auto toy_det =
-        create_toy_geometry<bfield_bknd_t>(host_mr, toy_cfg);
+    auto toy_det = create_toy_geometry<bfield_bknd_t>(host_mr, toy_cfg);
 
     unsigned int theta_steps{50u};
     unsigned int phi_steps{50u};

@@ -5,16 +5,21 @@
  * Mozilla Public License Version 2.0
  */
 
-#include <benchmark/benchmark.h>
+// Project include(s)
+#include "benchmark_propagator_cuda_kernel.hpp"
+#include "detray/simulation/event_generator/track_generators.hpp"
 
-#include <covfie/core/field.hpp>
+// Vecmem include(s)
 #include <vecmem/memory/binary_page_memory_resource.hpp>
 #include <vecmem/memory/cuda/device_memory_resource.hpp>
 #include <vecmem/memory/cuda/managed_memory_resource.hpp>
+#include <vecmem/utils/cuda/copy.hpp>
 
-#include "benchmark_propagator_cuda_kernel.hpp"
-#include "detray/simulation/event_generator/track_generators.hpp"
-#include "vecmem/utils/cuda/copy.hpp"
+// Covfie include(s)
+#include <covfie/core/field.hpp>
+
+// Google include(s).
+#include <benchmark/benchmark.h>
 
 using namespace detray;
 
@@ -26,7 +31,6 @@ vecmem::binary_page_memory_resource bp_mng_mr(mng_mr);
 
 // detector configuration
 toy_det_config toy_cfg{4u, 7u};
-
 
 void fill_tracks(vecmem::vector<free_track_parameters<transform3>> &tracks,
                  const std::size_t theta_steps, const std::size_t phi_steps) {

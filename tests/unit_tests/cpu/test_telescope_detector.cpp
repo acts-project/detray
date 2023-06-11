@@ -75,10 +75,10 @@ GTEST_TEST(detray_detectors, telescope_detector) {
     // B-fields
     vector3 B_z{0.f, 0.f, 1.f * unit<scalar>::T};
     vector3 B_x{1.f * unit<scalar>::T, 0.f, 0.f};
-    b_field_t b_field_z{
-        covfie::make_parameter_pack(b_field_t::backend_t::configuration_t{B_z[0], B_z[1], B_z[2]})};
-    b_field_t b_field_x{
-        covfie::make_parameter_pack(b_field_t::backend_t::configuration_t{B_x[0], B_x[1], B_x[2]})};
+    b_field_t b_field_z{covfie::make_parameter_pack(
+        b_field_t::backend_t::configuration_t{B_z[0], B_z[1], B_z[2]})};
+    b_field_t b_field_x{covfie::make_parameter_pack(
+        b_field_t::backend_t::configuration_t{B_x[0], B_x[1], B_x[2]})};
 
     // steppers
     rk_stepper_t rk_stepper_z;
