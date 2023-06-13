@@ -13,6 +13,7 @@
 #include "detray/utils/ranges/iota.hpp"
 #include "detray/utils/ranges/join.hpp"
 #include "detray/utils/ranges/pick.hpp"
+#include "detray/utils/ranges/pointer.hpp"
 #include "detray/utils/ranges/single.hpp"
 #include "detray/utils/ranges/subrange.hpp"
 

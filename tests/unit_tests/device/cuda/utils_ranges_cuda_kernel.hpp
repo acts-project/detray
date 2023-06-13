@@ -27,6 +27,9 @@ struct uint_holder {
 /// Test @c detray::views::single
 void test_single(const dindex value, dindex& check);
 
+/// Test @c detray::views::pointer
+void test_pointer(const dindex value, dindex& check);
+
 /// Test @c detray::views::iota
 void test_iota(const darray<dindex, 2> range,
                vecmem::data::vector_view<dindex> check_data);

@@ -156,6 +156,37 @@ TEST(utils, ranges_single) {
     }
 }
 
+// Unittest for the generation of a pointer to an element
+TEST(utils, ranges_pointer) {
+
+    const dindex value{251u};
+
+    auto ptr = detray::views::pointer(value);
+
+    // general tests
+    static_assert(std::is_copy_assignable_v<decltype(ptr)>);
+    static_assert(detray::ranges::range_v<decltype(ptr)>);
+    static_assert(detray::ranges::view<decltype(ptr)>);
+    static_assert(detray::ranges::random_access_range_v<decltype(ptr)>);
+
+    // Test prerequisits for LagacyIterator
+    static_assert(
+        std::is_copy_constructible_v<typename decltype(ptr)::iterator_t>);
+    static_assert(
+        std::is_copy_assignable_v<typename decltype(ptr)::iterator_t>);
+    static_assert(std::is_destructible_v<typename decltype(ptr)::iterator_t>);
+
+    // Test inherited member functions
+    ASSERT_EQ(ptr[0], value);
+    ASSERT_EQ(ptr.size(), 1u);
+    ASSERT_EQ(ptr.front(), 251u);
+    ASSERT_EQ(ptr.back(), 251u);
+
+    for (auto i : ptr) {
+        ASSERT_EQ(251u, i);
+    }
+}
+
 // Unittest for the generation of a single element sequence
 TEST(utils, ranges_iota_single) {
 
