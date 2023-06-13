@@ -347,13 +347,59 @@ TEST(utils, ranges_pick) {
 // Unittest for the joining of multiple ranges
 TEST(utils, ranges_join) {
 
+    dvector<dindex> interval_0 = {};
+    dvector<dindex> interval_1 = {2u, 3u, 4u};
+    dvector<dindex> interval_2 = {7u, 8u, 9u};
+    dvector<dindex> interval_3 = {10u, 11u, 12u, 13u};
+    dvector<dvector<dindex>> intervals{interval_0, interval_0, interval_1,
+                                       interval_2, interval_0, interval_3,
+                                       interval_0};
+
+    std::vector<dindex> reference = {2u, 3u,  4u,  7u,  8u,
+                                     9u, 10u, 11u, 12u, 13u};
+    std::vector<dindex> check = {};
+
+    auto joined = detray::views::join(intervals);
+
+    // general tests
+    static_assert(detray::ranges::range_v<decltype(joined)>);
+    static_assert(detray::ranges::view<decltype(joined)>);
+    static_assert(std::is_copy_assignable_v<decltype(joined)>);
+    static_assert(detray::ranges::random_access_range_v<decltype(joined)>);
+
+    // Test prerequisits for LagacyIterator
+    static_assert(
+        std::is_copy_constructible_v<typename decltype(joined)::iterator_t>);
+    static_assert(
+        std::is_copy_assignable_v<typename decltype(joined)::iterator_t>);
+    static_assert(
+        std::is_destructible_v<typename decltype(joined)::iterator_t>);
+
+    // Test inherited member functions
+    ASSERT_EQ(joined[1], 3u);
+    ASSERT_EQ(joined[4], 8u);
+    ASSERT_EQ(joined.size(), 10u);
+    ASSERT_EQ(joined.front(), 2u);
+    ASSERT_EQ(joined.back(), 13u);
+
+    for (auto j : joined) {
+        static_assert(!std::is_const_v<decltype(j)>, "Oh no");
+        check.push_back(j);
+    }
+    ASSERT_EQ(check.size(), reference.size());
+    ASSERT_EQ(check, reference);
+}
+
+// Unittest for the joining of multiple ranges
+TEST(utils, ranges_static_join) {
+
     dvector<dindex> interval_1 = {2u, 3u, 4u};
     dvector<dindex> interval_2 = {7u, 8u, 9u};
 
     std::vector<dindex> reference = {2u, 3u, 4u, 7u, 8u, 9u};
     std::vector<dindex> check = {};
 
-    auto joined = detray::views::join(interval_1, interval_2);
+    auto joined = detray::views::static_join(interval_1, interval_2);
 
     // general tests
     static_assert(detray::ranges::range_v<decltype(joined)>);
@@ -490,8 +536,8 @@ TEST(utils, ranges_pick_joined_sequence) {
     dvector<uint_holder> seq = {{0u}, {1u}, {2u}, {3u}, {4u},
                                 {5u}, {6u}, {7u}, {8u}};
 
-    auto indices = detray::views::join(detray::views::iota(interval_1),
-                                       detray::views::iota(interval_2));
+    auto indices = detray::views::static_join(detray::views::iota(interval_1),
+                                              detray::views::iota(interval_2));
     auto selected = detray::views::pick(seq, indices);
 
     // Check iterator category

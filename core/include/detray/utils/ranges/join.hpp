@@ -1,6 +1,6 @@
 /** Detray library, part of the ACTS project (R&D line)
  *
- * (c) 2022-2023 CERN for the benefit of the ACTS project
+ * (c) 2023 CERN for the benefit of the ACTS project
  *
  * Mozilla Public License Version 2.0
  */
@@ -29,43 +29,44 @@ struct join_iterator;
 ///
 /// @see https://en.cppreference.com/w/cpp/ranges/join_view
 ///
-/// @tparam I the number of ranges in the join.
-/// @tparam range_itr_t the iterator type of the ranges.
+/// @tparam range_t a range of the ranges that should be joined.
 ///
 /// @note Static implementation: The number of ranges needs to be know at
 /// compile time
 /// @note Does not take ownership of the ranges it operates on. Their lifetime
 /// needs to be guranteed throughout iteration or between iterations with the
 /// same join instance.
-/// @note Is not fit for lazy evaluation.
-/// @todo improve performance of e.g. @c operator+ and @c operator+=
-template <std::size_t I, typename range_itr_t>
-struct join_view
-    : public detray::ranges::view_interface<join_view<I, range_itr_t>> {
+template <typename range_t>
+struct join_view : public detray::ranges::view_interface<join_view<range_t>> {
 
-    using iterator_coll_t = std::array<range_itr_t, I>;
-    using iterator_t = detray::ranges::detail::join_iterator<iterator_coll_t>;
+    /// Iterator over the range of ranges
+    using outer_iterator_t = detray::ranges::iterator_t<range_t>;
+    // Type of a single range
+    using outer_value_t = detray::ranges::range_value_t<range_t>;
+    // Iterator over a single range
+    using inner_iterator_t = detray::ranges::iterator_t<std::conditional_t<
+        std::is_const_v<range_t>, const outer_value_t, outer_value_t>>;
+
+    using iterator_t = detray::ranges::detail::join_iterator<range_t>;
     using value_t = typename std::iterator_traits<iterator_t>::value_type;
 
     /// Default constructor
     constexpr join_view() = default;
 
-    /// Construct from a pack of @param ranges.
-    template <typename... ranges_t>
-    DETRAY_HOST_DEVICE constexpr explicit join_view(ranges_t &&... ranges)
-        : m_begins{detray::ranges::begin(ranges)...},
-          m_ends{detray::ranges::end(ranges)...} {}
+    /// Construct from a range of @param ranges.
+    DETRAY_HOST_DEVICE constexpr explicit join_view(range_t &&ranges)
+        : m_begin{detray::ranges::begin(ranges)},
+          m_end{detray::ranges::end(ranges)} {}
 
-    /// Construct from a pack of @param ranges - const
-    template <typename... ranges_t>
-    DETRAY_HOST_DEVICE constexpr explicit join_view(const ranges_t &... ranges)
-        : m_begins{detray::ranges::cbegin(ranges)...},
-          m_ends{detray::ranges::cend(ranges)...} {}
+    /// Construct from a range of @param ranges - const
+    DETRAY_HOST_DEVICE constexpr explicit join_view(range_t &ranges)
+        : m_begin{detray::ranges::begin(ranges)},
+          m_end{detray::ranges::end(ranges)} {}
 
     /// Copy constructor
     DETRAY_HOST_DEVICE
     constexpr join_view(const join_view &other)
-        : m_begins{other.m_begins}, m_ends{other.m_ends} {}
+        : m_begin{other.m_begin}, m_end{other.m_end} {}
 
     /// Default destructor
     DETRAY_HOST_DEVICE ~join_view() {}
@@ -73,43 +74,57 @@ struct join_view
     /// Copy assignment operator
     DETRAY_HOST_DEVICE
     join_view &operator=(const join_view &other) {
-        m_begins = other.m_begins;
-        m_ends = other.m_ends;
+        m_begin = other.m_begin;
+        m_end = other.m_end;
         return *this;
     }
 
     /// @return start position of range - const
     DETRAY_HOST_DEVICE
-    constexpr auto begin() const -> iterator_t { return {m_begins, m_ends}; }
+    constexpr auto begin() const -> iterator_t { return {m_begin, m_end}; }
 
     /// @return sentinel of the range.
     DETRAY_HOST_DEVICE
     constexpr auto end() const -> iterator_t {
+        auto &last_inner_range = *detray::ranges::prev(m_end);
+        inner_iterator_t begin = detray::ranges::end(last_inner_range);
+        inner_iterator_t end = detray::ranges::end(last_inner_range);
         // Build a joined itr from the last value in the iterator collection
-        return {m_begins, m_ends, detray::detail::get<I - 1>(m_ends), I - 1};
+        return {m_begin, m_end, m_end, begin, end};
+    }
+
+    /// @return start position of range - const
+    DETRAY_HOST_DEVICE
+    constexpr auto begin() -> iterator_t { return {m_begin, m_end}; }
+
+    /// @return sentinel of the range.
+    DETRAY_HOST_DEVICE
+    constexpr auto end() -> iterator_t {
+        auto &last_inner_range = *detray::ranges::prev(m_end);
+        inner_iterator_t begin = detray::ranges::end(last_inner_range);
+        inner_iterator_t end = detray::ranges::end(last_inner_range);
+        // Build a joined itr from the last value in the iterator collection
+        return {m_begin, m_end, m_end, begin, end};
     }
 
     /// @returns a pointer to the beginning of the data of the first underlying
     /// range - const
     DETRAY_HOST_DEVICE
-    constexpr auto data() const -> const value_t * {
-        return &(*(detray::detail::get<0>(m_begins())));
-    }
+    constexpr auto data() const -> const value_t * { return &(*(*m_begin)); }
 
     /// @returns a pointer to the beginning of the data of the first underlying
     /// range - non-const
     DETRAY_HOST_DEVICE
-    constexpr auto data() -> value_t * {
-        return &(*(detray::detail::get<0>(m_begins())));
-    }
+    constexpr auto data() -> value_t * { return &(*(*m_begin)); }
 
     /// @returns sum of the number elements of all ranges in the join
     DETRAY_HOST_DEVICE
     constexpr auto size() const noexcept -> std::size_t {
-        std::size_t size{0};
-        for (std::size_t i{0}; i < I; ++i) {
-            const range_itr_t &begin = m_begins[i];
-            const range_itr_t &end = m_ends[i];
+        std::size_t size{0u};
+        for (outer_iterator_t itr = m_begin; itr != m_end; ++itr) {
+            // subrange
+            const inner_iterator_t begin = detray::ranges::begin(*itr);
+            const inner_iterator_t end = detray::ranges::end(*itr);
             size +=
                 static_cast<std::size_t>(detray::ranges::distance(begin, end));
         }
@@ -117,39 +132,49 @@ struct join_view
     }
 
     /// Start and end position of the subranges
-    iterator_coll_t m_begins{}, m_ends{};
+    outer_iterator_t m_begin{}, m_end{};
 };
 
 namespace views {
 
 /// @brief interface type to construct a @c join_view with CTAD
-template <std::size_t I, typename range_itr_t>
-struct join : public ranges::join_view<I, range_itr_t> {
+template <typename range_t>
+struct join : public ranges::join_view<range_t> {
 
-    using base_type = ranges::join_view<I, range_itr_t>;
+    using base_type = ranges::join_view<range_t>;
 
     constexpr join() = default;
 
-    template <typename... ranges_t>
-    DETRAY_HOST_DEVICE constexpr explicit join(const ranges_t &... ranges)
-        : base_type(ranges...) {}
+    template <typename deduced_range_t>
+    DETRAY_HOST_DEVICE constexpr explicit join(const deduced_range_t &ranges)
+        : base_type(ranges) {}
 
-    template <typename... ranges_t>
-    DETRAY_HOST_DEVICE constexpr explicit join(ranges_t &&... ranges)
-        : base_type(std::forward<ranges_t>(ranges)...) {}
+    template <typename deduced_range_t>
+    DETRAY_HOST_DEVICE constexpr explicit join(deduced_range_t &ranges)
+        : base_type(ranges) {}
+
+    template <typename deduced_range_t>
+    DETRAY_HOST_DEVICE constexpr explicit join(deduced_range_t &&ranges)
+        : base_type(std::forward<deduced_range_t>(ranges)) {}
+
+    /// Copy assignment operator
+    DETRAY_HOST_DEVICE
+    join &operator=(const join &other) {
+        base_type::operator=(other);
+        return *this;
+    }
 };
 
 // deduction guides
 
-template <typename... ranges_t>
-DETRAY_HOST_DEVICE join(const ranges_t &... ranges)
-    ->join<sizeof...(ranges_t), typename detray::ranges::const_iterator_t<
-                                    detray::detail::first_t<ranges_t...>>>;
+template <typename range_t>
+DETRAY_HOST_DEVICE join(const range_t &ranges)->join<const range_t>;
 
-template <typename... ranges_t>
-DETRAY_HOST_DEVICE join(ranges_t &&... ranges)
-    ->join<sizeof...(ranges_t), typename detray::ranges::iterator_t<
-                                    detray::detail::first_t<ranges_t...>>>;
+template <typename range_t>
+DETRAY_HOST_DEVICE join(range_t &ranges)->join<range_t>;
+
+template <typename range_t>
+DETRAY_HOST_DEVICE join(range_t &&ranges)->join<range_t>;
 
 }  // namespace views
 
@@ -160,16 +185,16 @@ namespace detail {
 /// Once the sentinel of one range is reached, set the current iterator to the
 /// next ranges 'begin' (or 'end' if decrementing)
 ///
-/// @tparam iterator_coll_t type of iterator collection of ranges to be joined.
-///         Can contain const iterators.
-///
-/// @note The iterator must not be typed on the current range index, so that
-/// begin and sentinel type are the same.
-template <typename iterator_coll_t>
+/// @tparam range_t a range that contains the ranges to be joined.
+template <typename range_t>
 struct join_iterator {
 
-    using iterator_t = detray::detail::get_value_t<iterator_coll_t>;
+    using outer_iterator_t = detray::ranges::iterator_t<range_t>;
+    using outer_value_t = detray::ranges::range_value_t<range_t>;
+    using inner_iterator_t = detray::ranges::iterator_t<std::conditional_t<
+        std::is_const_v<range_t>, const outer_value_t, outer_value_t>>;
 
+    using iterator_t = inner_iterator_t;
     using difference_type =
         typename std::iterator_traits<iterator_t>::difference_type;
     using value_type = typename std::iterator_traits<iterator_t>::value_type;
@@ -181,41 +206,64 @@ struct join_iterator {
     /// Default constructor required by LegacyIterator trait
     constexpr join_iterator() = default;
 
-    /// Construct from a collection of @param begin and @param  end positions
+    /// Construct from range of ranges ( @param begin and @param  end )
     DETRAY_HOST_DEVICE
-    constexpr join_iterator(const iterator_coll_t &begins,
-                            const iterator_coll_t &ends)
-        : m_begins(&begins), m_ends(&ends), m_iter{(*m_begins)[0]}, m_idx{0u} {}
+    constexpr join_iterator(outer_iterator_t begin, outer_iterator_t end)
+        : m_outer_begin(begin),
+          m_outer_end(end),
+          m_outer_itr(begin),
+          m_inner_itr{detray::ranges::begin(*begin)},
+          m_inner_end{detray::ranges::end(*begin)} {
+        // Find the first inner range that is not empty
+        while (m_inner_itr == m_inner_end) {
+            ++m_outer_itr;
+            if (m_outer_itr != m_outer_end) {
+                m_inner_itr = detray::ranges::begin(*m_outer_itr);
+                m_inner_end = detray::ranges::end(*m_outer_itr);
+            } else {
+                break;
+            }
+        }
+    }
 
     /// Fully parametrized construction
     DETRAY_HOST_DEVICE
-    constexpr join_iterator(const iterator_coll_t &begins,
-                            const iterator_coll_t &ends, iterator_t current,
-                            const std::size_t i)
-        : m_begins(&begins), m_ends(&ends), m_iter{current}, m_idx{i} {}
+    constexpr join_iterator(const outer_iterator_t begin,
+                            const outer_iterator_t end,
+                            const outer_iterator_t current,
+                            const inner_iterator_t inner_current,
+                            const inner_iterator_t inner_end)
+        : m_outer_begin(begin),
+          m_outer_end(end),
+          m_outer_itr(current),
+          m_inner_itr{inner_current},
+          m_inner_end{inner_end} {}
 
     /// @returns true if it points to the same value.
     DETRAY_HOST_DEVICE constexpr bool operator==(
         const join_iterator &rhs) const {
-        return (m_iter == rhs.m_iter);
+        return (m_inner_itr == rhs.m_inner_itr);
     }
 
     /// @returns false if it points to the same value (usually the global
     /// sentinel of the join).
     DETRAY_HOST_DEVICE constexpr bool operator!=(
         const join_iterator &rhs) const {
-        return (m_iter != rhs.m_iter);
+        return (m_inner_itr != rhs.m_inner_end);
     }
 
     /// Increment current iterator and check for switch between ranges.
-    DETRAY_HOST_DEVICE constexpr auto operator++() -> join_iterator & {
-        ++m_iter;
+    DETRAY_HOST_DEVICE auto operator++() -> join_iterator & {
+        ++m_inner_itr;
         // Switch to next range in the collection
-        constexpr std::size_t max_idx{
-            sizeof(iterator_coll_t) / sizeof(iterator_t) - 1u};
-        if ((m_iter == (*m_ends)[m_idx]) and (m_idx < max_idx)) {
-            ++m_idx;
-            m_iter = (*m_begins)[m_idx];
+        while (m_inner_itr == m_inner_end) {
+            ++m_outer_itr;
+            if (m_outer_itr != m_outer_end) {
+                m_inner_itr = detray::ranges::begin(*m_outer_itr);
+                m_inner_end = detray::ranges::end(*m_outer_itr);
+            } else {
+                break;
+            }
         }
         return *this;
     }
@@ -225,26 +273,42 @@ struct join_iterator {
               std::enable_if_t<detray::ranges::bidirectional_iterator_v<I>,
                                bool> = true>
     DETRAY_HOST_DEVICE constexpr auto operator--() -> join_iterator & {
-        if (m_iter != (*m_begins)[m_idx] and m_idx > 0u) {
-            // Normal case
-            --m_idx;
-            --m_iter;
-        } else if (m_idx > 0u) {
-            // Iterator has reached last valid position in this range during the
-            // previous decrement. Now go to the end of the previous range
-            --m_idx;
-            m_iter = (*m_ends)[m_idx] - 1;
+        // If we are calling this at the end of the join iteration, go back into
+        // the valid range
+        if (m_outer_itr == m_outer_end) {
+            --m_outer_itr;
         }
+
+        // Get the star of the current inner range
+        inner_iterator_t inner_begin = detray::ranges::begin(*m_outer_itr);
+
+        // Iterator has reached last valid position in this range
+        // during the previous decrement. Now go to the end of the
+        // previous range
+        while (m_inner_itr == inner_begin) {
+            // No more inner ranges to try
+            if (m_outer_itr == m_outer_begin) {
+                return *this;
+            }
+
+            --m_outer_itr;
+
+            inner_begin = detray::ranges::begin(*m_outer_itr);
+            m_inner_itr = detray::ranges::end(*m_outer_itr);
+        }
+
+        // Normal case
+        --m_inner_itr;
         return *this;
     }
 
     /// @returns the single value that the iterator points to.
     DETRAY_HOST_DEVICE
-    constexpr auto operator*() -> value_type & { return *m_iter; }
+    constexpr decltype(auto) operator*() { return *m_inner_itr; }
 
     /// @returns the single value that the iterator points to - const
     DETRAY_HOST_DEVICE
-    constexpr auto operator*() const -> const value_type & { return *m_iter; }
+    constexpr decltype(auto) operator*() const { return *m_inner_itr; }
 
     /// @returns an iterator advanced by @param j through the join.
     template <typename I = iterator_t,
@@ -252,10 +316,10 @@ struct join_iterator {
                                bool> = true>
     DETRAY_HOST_DEVICE constexpr auto operator+(const difference_type j) const
         -> join_iterator {
-        join_iterator<iterator_coll_t> tmp(*this);
+        join_iterator<range_t> tmp(*this);
         // walk through join to catch the switch between intermediate ranges
         difference_type i{j};
-        if (i >= 0) {
+        if (i >= difference_type{0}) {
             while (i--) {
                 ++tmp;
             };
@@ -282,24 +346,31 @@ struct join_iterator {
                                bool> = true>
     DETRAY_HOST_DEVICE constexpr auto operator-(
         const join_iterator &other) const -> difference_type {
-        if (m_idx == other.m_idx) {
-            return m_iter - other.m_iter;
+        outer_iterator_t tmp_outer_itr;
+        if (tmp_outer_itr == other.m_outer_itr) {
+            return m_inner_itr - other.m_inner_itr;
         }
-        if (m_idx < other.m_idx) {
+        if ((tmp_outer_itr - other.m_outer_itr) < 0) {
             // Negative distance
-            difference_type diff{m_iter - (*m_ends)[m_idx]};
-            for (std::size_t i{m_idx + 1u}; i < other.m_idx; ++i) {
-                diff += (*m_begins)[i] - (*m_ends)[i];
+            difference_type diff{m_inner_itr - m_inner_end};
+            for (tmp_outer_itr + 1; tmp_outer_itr != other.m_outer_itr;
+                 ++tmp_outer_itr) {
+                diff += detray::ranges::end(*tmp_outer_itr) -
+                        detray::ranges::begin(*tmp_outer_itr);
             }
-            diff += (*other.m_begins)[m_idx] - other.m_iter;
+            diff += other.m_inner_itr - other.m_inner_end;
             return diff;
         } else {
             // Positive distance
-            difference_type diff{m_iter - (*m_begins)[m_idx]};
-            for (std::size_t i{m_idx - 1u}; i > other.m_idx; --i) {
-                diff += (*m_ends)[i] - (*m_begins)[i];
+            difference_type diff{m_inner_itr -
+                                 detray::ranges::begin(*tmp_outer_itr)};
+            for (tmp_outer_itr - 1; tmp_outer_itr != other.m_outer_itr;
+                 --tmp_outer_itr) {
+                diff += detray::ranges::end(*tmp_outer_itr) -
+                        detray::ranges::begin(*tmp_outer_itr);
             }
-            diff += (*other.m_ends)[other.m_idx] - other.m_iter;
+            diff +=
+                other.m_inner_itr - detray::ranges::begin(*other.m_outer_itr);
             return diff;
         }
     }
@@ -330,7 +401,7 @@ struct join_iterator {
                                bool> = true>
     DETRAY_HOST_DEVICE constexpr auto operator-=(const difference_type j)
         -> join_iterator & {
-        m_iter += (-j);
+        m_inner_itr += (-j);
         return *this;
     }
 
@@ -340,7 +411,8 @@ struct join_iterator {
                                bool> = true>
     DETRAY_HOST_DEVICE constexpr auto operator[](const difference_type i) const
         -> const value_type & {
-        difference_type offset{i - (m_iter - (*m_begins)[0])};
+        difference_type offset{
+            i - (m_inner_itr - detray::ranges::begin(*m_outer_itr))};
         return *(*this + offset);
     }
 
@@ -348,18 +420,18 @@ struct join_iterator {
     template <typename I = iterator_t,
               std::enable_if_t<detray::ranges::random_access_iterator_v<I>,
                                bool> = true>
-    DETRAY_HOST_DEVICE constexpr auto operator[](const difference_type i)
-        -> value_type & {
-        difference_type offset{i - (m_iter - (*m_begins)[0])};
+    DETRAY_HOST_DEVICE constexpr auto operator[](const difference_type i) {
+        difference_type offset{
+            i - (m_inner_itr - detray::ranges::begin(*m_outer_itr))};
         return *(*this + offset);
     }
 
-    /// Global range collection of begin and end iterators
-    const iterator_coll_t *m_begins{nullptr}, *m_ends{nullptr};
-    /// This is the actual iterator state that will be advanced during iteration
-    iterator_t m_iter{};
-    /// Index of the current range in the join
-    std::size_t m_idx{0};
+    /// Global range collection begin and end (outer iterators)
+    outer_iterator_t m_outer_begin{}, m_outer_end{};
+    /// Current range
+    outer_iterator_t m_outer_itr{};
+    /// Current iterators over the inner ranges
+    inner_iterator_t m_inner_itr{}, m_inner_end;
 };
 
 }  // namespace detail

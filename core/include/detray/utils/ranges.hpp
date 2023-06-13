@@ -15,6 +15,7 @@
 #include "detray/utils/ranges/pick.hpp"
 #include "detray/utils/ranges/pointer.hpp"
 #include "detray/utils/ranges/single.hpp"
+#include "detray/utils/ranges/static_join.hpp"
 #include "detray/utils/ranges/subrange.hpp"
 
 namespace detray::views {

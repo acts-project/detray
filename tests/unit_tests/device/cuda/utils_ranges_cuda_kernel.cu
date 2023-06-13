@@ -162,8 +162,9 @@ __global__ void join_kernel(
     vecmem::device_vector<uint_holder> seq_1(seq_data_1);
     vecmem::device_vector<uint_holder> seq_2(seq_data_2);
     vecmem::device_vector<dindex> check_value(check_value_data);
+    std::array<vecmem::device_vector<uint_holder>, 2> vectors{seq_1, seq_2};
 
-    for (auto v : detray::views::join(seq_1, seq_2)) {
+    for (auto v : detray::views::join(vectors)) {
         check_value.push_back(v.ui);
     }
 }
@@ -174,6 +175,35 @@ void test_join(vecmem::data::vector_view<uint_holder> seq_data_1,
 
     // run the kernel
     join_kernel<<<1, 1>>>(seq_data_1, seq_data_2, check_value_data);
+
+    // cuda error check
+    DETRAY_CUDA_ERROR_CHECK(cudaGetLastError());
+    DETRAY_CUDA_ERROR_CHECK(cudaDeviceSynchronize());
+}
+
+//
+// static_join
+//
+__global__ void static_join_kernel(
+    vecmem::data::vector_view<uint_holder> seq_data_1,
+    vecmem::data::vector_view<uint_holder> seq_data_2,
+    vecmem::data::vector_view<dindex> check_value_data) {
+
+    vecmem::device_vector<uint_holder> seq_1(seq_data_1);
+    vecmem::device_vector<uint_holder> seq_2(seq_data_2);
+    vecmem::device_vector<dindex> check_value(check_value_data);
+
+    for (auto v : detray::views::static_join(seq_1, seq_2)) {
+        check_value.push_back(v.ui);
+    }
+}
+
+void test_static_join(vecmem::data::vector_view<uint_holder> seq_data_1,
+                      vecmem::data::vector_view<uint_holder> seq_data_2,
+                      vecmem::data::vector_view<dindex> check_value_data) {
+
+    // run the kernel
+    static_join_kernel<<<1, 1>>>(seq_data_1, seq_data_2, check_value_data);
 
     // cuda error check
     DETRAY_CUDA_ERROR_CHECK(cudaGetLastError());

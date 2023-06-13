@@ -50,6 +50,11 @@ void test_join(vecmem::data::vector_view<uint_holder> seq_data_1,
                vecmem::data::vector_view<uint_holder> seq_data_2,
                vecmem::data::vector_view<dindex> check_value_data);
 
+/// Test @c detray::views::static_join
+void test_static_join(vecmem::data::vector_view<uint_holder> seq_data_1,
+                      vecmem::data::vector_view<uint_holder> seq_data_2,
+                      vecmem::data::vector_view<dindex> check_value_data);
+
 /// Test @c detray::views::subrange
 void test_subrange(vecmem::data::vector_view<int> seq_data,
                    vecmem::data::vector_view<int> check_value_data,
