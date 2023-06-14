@@ -18,7 +18,7 @@ message( STATUS "Fetching covfie as part of the Detray project" )
 
 # Declare where to get covfie from.
 set( DETRAY_COVFIE_SOURCE
-   "URL;https://github.com/acts-project/covfie/archive/refs/tags/v0.7.0.tar.gz;URL_MD5;d7eae88ab5d5a8fda21018a8d48f46e0"
+   "URL;https://github.com/acts-project/covfie/archive/refs/tags/v0.7.1.tar.gz;URL_MD5;42698e2c996e3e20b04092ba8263d16f"
    CACHE STRING "Source for covfie, when built as part of this project" )
 mark_as_advanced( DETRAY_COVFIE_SOURCE )
 FetchContent_Declare( covfie ${DETRAY_COVFIE_SOURCE} )
@@ -29,7 +29,7 @@ set( COVFIE_BUILD_TESTS OFF CACHE BOOL "Build covfie tests")
 set( COVFIE_BUILD_BENCHMARKS OFF CACHE BOOL "Build covfie benchmarks")
 
 set( COVFIE_PLATFORM_CPU ON CACHE BOOL "Enable covfie CPU platform")
-set( COVFIE_PLATFORM_CUDA ON CACHE BOOL "Enable covfie CUDA platform")
+set( COVFIE_PLATFORM_CUDA ${DETRAY_BUILD_CUDA} CACHE BOOL "Enable covfie CUDA platform")
 
 set( COVFIE_REQUIRE_CXX20 OFF CACHE BOOL "Enable covfie C++20 requirement")
 set( COVFIE_QUIET ON CACHE BOOL "Quiet covfie feature warnings")
