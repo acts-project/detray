@@ -38,6 +38,33 @@ void test_single(const dindex value, dindex& check) {
 }
 
 //
+// pointer
+//
+__global__ void pointer_kernel(const dindex value, dindex* result) {
+
+    // pointer view should ony add the value 'i' once
+    for (auto i : detray::views::pointer(value)) {
+        *result += i;
+    }
+}
+
+void test_pointer(const dindex value, dindex& check) {
+    dindex* result{nullptr};
+    cudaMallocManaged(&result, sizeof(dindex));
+    *result = 0u;
+
+    // run the kernel
+    pointer_kernel<<<1, 1>>>(value, result);
+
+    // cuda error check
+    DETRAY_CUDA_ERROR_CHECK(cudaGetLastError());
+    DETRAY_CUDA_ERROR_CHECK(cudaDeviceSynchronize());
+
+    check = *result;
+    cudaFree(result);
+}
+
+//
 // iota
 //
 __global__ void iota_kernel(const darray<dindex, 2> range,

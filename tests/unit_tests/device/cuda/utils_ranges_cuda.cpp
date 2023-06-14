@@ -27,6 +27,19 @@ TEST(utils_ranges_cuda, single) {
     ASSERT_EQ(value, check);
 }
 
+// This tests the non-owning single value view
+TEST(utils_ranges_cuda, pointer) {
+
+    dindex value{251u};
+    dindex check{std::numeric_limits<dindex>::max()};
+
+    // Run the test code
+    test_pointer(value, check);
+
+    // Check result value
+    ASSERT_EQ(value, check);
+}
+
 // This tests the iota range generator
 TEST(utils_ranges_cuda, iota) {
 
