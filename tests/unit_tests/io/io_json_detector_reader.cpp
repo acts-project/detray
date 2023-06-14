@@ -68,7 +68,4 @@ TEST(io, json_toy_geometry) {
     EXPECT_EQ(masks.template size<mask_id::e_portal_ring2>(), 52u);
     EXPECT_EQ(masks.template size<mask_id::e_straw_wire>(), 0u);
     EXPECT_EQ(masks.template size<mask_id::e_cell_wire>(), 0u);
-    EXPECT_EQ(masks.template size<mask_id::e_single1>(), 0u);
-    EXPECT_EQ(masks.template size<mask_id::e_single2>(), 0u);
-    EXPECT_EQ(masks.template size<mask_id::e_single3>(), 0u);
 }

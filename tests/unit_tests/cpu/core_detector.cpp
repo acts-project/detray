@@ -156,9 +156,6 @@ GTEST_TEST(detray_core, detector) {
     EXPECT_TRUE(d.mask_store().template empty<mask_id::e_portal_ring2>());
     EXPECT_TRUE(d.mask_store().template empty<mask_id::e_straw_wire>());
     EXPECT_TRUE(d.mask_store().template empty<mask_id::e_cell_wire>());
-    EXPECT_TRUE(d.mask_store().template empty<mask_id::e_single1>());
-    EXPECT_TRUE(d.mask_store().template empty<mask_id::e_single2>());
-    EXPECT_TRUE(d.mask_store().template empty<mask_id::e_single3>());
     EXPECT_TRUE(d.material_store().template empty<material_id::e_slab>());
     EXPECT_TRUE(d.material_store().template empty<material_id::e_rod>());
     EXPECT_TRUE(d.surface_store().template empty<finder_id::e_brute_force>());
@@ -183,9 +180,6 @@ GTEST_TEST(detray_core, detector) {
     EXPECT_EQ(d.mask_store().template size<mask_id::e_portal_ring2>(), 0u);
     EXPECT_EQ(d.mask_store().template size<mask_id::e_straw_wire>(), 0u);
     EXPECT_EQ(d.mask_store().template size<mask_id::e_cell_wire>(), 0u);
-    EXPECT_EQ(d.mask_store().template size<mask_id::e_single1>(), 0u);
-    EXPECT_EQ(d.mask_store().template size<mask_id::e_single2>(), 0u);
-    EXPECT_EQ(d.mask_store().template size<mask_id::e_single3>(), 0u);
     EXPECT_EQ(d.material_store().template size<material_id::e_slab>(), 2u);
     EXPECT_EQ(d.material_store().template size<material_id::e_rod>(), 1u);
     EXPECT_EQ(d.surface_store().template size<finder_id::e_brute_force>(), 1u);

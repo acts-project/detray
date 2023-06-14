@@ -159,7 +159,7 @@ struct full_metadata {
         e_portal_ring2 = 5,
         e_straw_wire = 6,
         e_cell_wire = 7,
-        e_single1 = 8,
+        /*e_single1 = 8,
         e_single2 = 9,
         e_single3 = 10,
         e_unbounded_rectangle2 = 11,
@@ -169,18 +169,20 @@ struct full_metadata {
         e_unbounded_disc2 = 15,
         e_unbounded_straw2 = 16,
         e_unbounded_cell2 = 17,
-        e_unmasked2 = 18,
+        e_unmasked2 = 18,*/
     };
 
     /// How to store and link masks
     template <template <typename...> class tuple_t = dtuple,
               template <typename...> class vector_t = dvector>
-    using mask_store = regular_multi_store<
-        mask_ids, empty_context, tuple_t, vector_t, rectangle, trapezoid,
-        annulus, cylinder, cylinder_portal, disc, straw_wire, cell_wire,
-        single_1, single_2, single_3/*, unbounded_rectangle, unbounded_trapezoid,
-        unbounded_annulus, unbounded_cylinder, unbounded_disc, unbounded_straw,
-        unbounded_cell, unmasked_plane*/>;
+    using mask_store = regular_multi_store<mask_ids, empty_context, tuple_t,
+                                           vector_t, rectangle, trapezoid,
+                                           annulus, cylinder, cylinder_portal,
+                                           disc, straw_wire,
+                                           cell_wire /*,
+single_1, single_2, single_3, unbounded_rectangle, unbounded_trapezoid,
+unbounded_annulus, unbounded_cylinder, unbounded_disc, unbounded_straw,
+unbounded_cell, unmasked_plane*/>;
 
     /// Give your material types a name (needs to be consecutive to be matched
     /// to a type!)
