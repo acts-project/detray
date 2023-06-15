@@ -205,6 +205,48 @@ TEST(utils_ranges_cuda, join) {
     }
 }
 
+// This tests the convenience enumeration function
+TEST(utils_ranges_cuda, static_join) {
+
+    // Helper object for performing memory copies.
+    vecmem::cuda::copy copy;
+
+    // memory resource
+    vecmem::cuda::managed_memory_resource managed_resource;
+
+    // Input vector sequence for test
+    vecmem::vector<uint_holder> seq_1({{0u}, {1u}, {2u}, {3u}, {4u}, {5u}},
+                                      &managed_resource);
+    vecmem::vector<uint_holder> seq_2({{2u}, {0u}, {9u}, {4u}, {15u}},
+                                      &managed_resource);
+    // Get vector_data object
+    auto seq_data_1 = vecmem::get_data(seq_1);
+    auto seq_data_2 = vecmem::get_data(seq_2);
+
+    // Output vector buffer for static_join test
+    vecmem::data::vector_buffer<dindex> value_buffer(
+        static_cast<vecmem::data::vector_buffer<dindex>::size_type>(
+            seq_1.size() + seq_2.size()),
+        managed_resource, vecmem::data::buffer_type::resizable);
+    copy.setup(value_buffer);
+
+    // Run test function
+    test_static_join(seq_data_1, seq_data_2, value_buffer);
+
+    // Copy vector buffer to output vector
+    vecmem::vector<dindex> value_vec{&managed_resource};
+    copy(value_buffer, value_vec);
+
+    // First sequence
+    for (std::size_t i = 0u; i < seq_1.size(); i++) {
+        ASSERT_EQ(seq_1[i].ui, value_vec[i]);
+    }
+    // Second sequence
+    for (std::size_t i = 0u; i < seq_1.size(); i++) {
+        ASSERT_EQ(seq_2[i].ui, value_vec[i + seq_1.size()]);
+    }
+}
+
 // This tests the subrange view
 TEST(utils_ranges_cuda, subrange) {
 
