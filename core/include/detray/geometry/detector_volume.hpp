@@ -15,6 +15,49 @@
 
 namespace detray {
 
+namespace detail {
+
+/// A functor to access the surfaces of a volume
+template <typename functor_t>
+struct surface_getter {
+
+    /// Call operator that forwards the neighborhood search call in a volume
+    /// to a surface finder data structure
+    template <typename sf_finder_group_t, typename sf_finder_index_t,
+              typename... Args>
+    DETRAY_HOST_DEVICE inline void operator()(const sf_finder_group_t &group,
+                                              const sf_finder_index_t index,
+                                              Args &&... args) const {
+
+        // Run over the surfaces in a single acceleration data structure
+        for (const auto &sf : group[index].all()) {
+            functor_t{}(sf, std::forward<Args>(args)...);
+        }
+    }
+};
+
+/// A functor to find surfaces in the neighborhood of a track position
+template <typename functor_t>
+struct neighborhood_getter {
+
+    /// Call operator that forwards the neighborhood search call in a volume
+    /// to a surface finder data structure
+    template <typename sf_finder_group_t, typename sf_finder_index_t,
+              typename detector_t, typename track_t, typename... Args>
+    DETRAY_HOST_DEVICE inline void operator()(
+        const sf_finder_group_t &group, const sf_finder_index_t index,
+        const detector_t &det, const typename detector_t::volume_type &volume,
+        const track_t &track, Args &&... args) const {
+
+        // Run over the surfaces in a single acceleration data structure
+        for (const auto &sf : group[index].search(det, volume, track)) {
+            functor_t{}(sf, std::forward<Args>(args)...);
+        }
+    }
+};
+
+}  // namespace detail
+
 /// @brief Facade for a detray detector volume.
 ///
 /// Volume class that acts as a logical container in the detector for geometry
@@ -35,27 +78,9 @@ class detector_volume {
     /// Volume descriptor type
     using descr_t = typename detector_t::volume_type;
 
-    /// A functor to find surfaces in the neighborhood of a track position
-    struct neighborhood_getter {
-
-        /// Call operator that forwards the neighborhood search call in a volume
-        /// to a surface finder data structure
-        template <typename sf_finder_group_t, typename sf_finder_index_t,
-                  typename track_t>
-        DETRAY_HOST_DEVICE inline auto operator()(
-            const sf_finder_group_t &group, const sf_finder_index_t index,
-            const detector_t &detector, const descr_t &volume,
-            const track_t &track) const {
-
-            // Get surface finder for volume and perform the surface
-            // neighborhood lookup
-            return group[index].search(detector, volume, track);
-        }
-    };
-
     public:
     /// In case the geometry needs to be printed
-    using name_map = std::map<dindex, std::string>;
+    using name_map = dmap<dindex, std::string>;
 
     /// Allow detector to access descriptor. @TODO: Remove once possible
     friend detector_t;
@@ -87,6 +112,18 @@ class detector_volume {
         return names.at(m_desc.index() + 1u);
     }
 
+    /// Apply a functor to all surfaces in the volume.
+    ///
+    /// @tparam functor_t the prescription to be applied to the surfaces
+    /// @tparam Args      types of additional arguments to the functor
+    template <typename functor_t,
+              int I = static_cast<int>(descr_t::object_id::e_size) - 1,
+              typename... Args>
+    DETRAY_HOST_DEVICE constexpr void visit_surfaces(Args &&... args) const {
+        visit_surfaces_impl<detail::surface_getter<functor_t>>(
+            std::forward<Args>(args)...);
+    }
+
     /// Apply a functor to a neighborhood of surfaces around a track position
     /// in the volume.
     ///
@@ -97,48 +134,32 @@ class detector_volume {
     template <typename functor_t,
               int I = static_cast<int>(descr_t::object_id::e_size) - 1,
               typename track_t, typename... Args>
-    DETRAY_HOST_DEVICE constexpr auto visit_neighborhood(
+    DETRAY_HOST_DEVICE constexpr void visit_neighborhood(
         const track_t &track, Args &&... args) const {
-        // Get the acceleration data structures for this volume
-        const auto &surfaces = m_detector.surface_store();
-        const auto &link{
-            m_desc
-                .template link<static_cast<typename descr_t::object_id>(I)>()};
-
-        // Only visit, if object type is contained in volume
-        if (not is_invalid_value(detail::get<1>(link))) {
-            // Run over the surfaces in a single acceleration data structure
-            for (const auto &sf : surfaces.template visit<neighborhood_getter>(
-                     link, m_detector, m_desc, track)) {
-
-                functor_t{}(sf, std::forward<Args>(args)...);
-            }
-        }
-        // Check the next surface type
-        if constexpr (I > 0) {
-            return visit_neighborhood<functor_t, I - 1, track_t, Args...>(
-                track, std::forward<Args>(args)...);
-        }
+        visit_surfaces_impl<detail::neighborhood_getter<functor_t>>(
+            m_detector, m_desc, track, std::forward<Args>(args)...);
     }
 
     /// @returns the maximum number of surface candidates during a neighborhood
     /// lookup
+    // TODO: Remove
     template <int I = static_cast<int>(descr_t::object_id::e_size) - 1>
     DETRAY_HOST_DEVICE constexpr auto n_max_candidates(
         unsigned int n = 0u) const -> unsigned int {
         // Get the index of the surface collection with type index 'I'
         constexpr auto sf_col_id{
             static_cast<typename detector_t::sf_finders::id>(I)};
-        const dindex coll_idx{detail::get<1>(
+        const auto &link{
             m_desc
-                .template link<static_cast<typename descr_t::object_id>(I)>())};
+                .template link<static_cast<typename descr_t::object_id>(I)>()};
 
         // Check if this volume holds such a collection and, if so, add max
         // number of candidates that we can expect from it
-        if (not is_invalid_value(coll_idx)) {
-            const unsigned int n_max{m_detector.surface_store()
-                                         .template get<sf_col_id>()[coll_idx]
-                                         .n_max_candidates()};
+        if (not link.is_invalid()) {
+            const unsigned int n_max{
+                m_detector.surface_store()
+                    .template get<sf_col_id>()[detail::get<1>(link)]
+                    .n_max_candidates()};
             // @todo: Remove when local navigation becomes available !!!!
             n += n_max > 20u ? 20u : n_max;
         }
@@ -151,6 +172,34 @@ class detector_volume {
     }
 
     private:
+    /// Apply a functor to all acceleration structures of this volume.
+    ///
+    /// @tparam functor_t the prescription to be applied to the acc structure
+    /// @tparam Args      types of additional arguments to the functor
+    template <typename functor_t,
+              int I = static_cast<int>(descr_t::object_id::e_size) - 1,
+              typename... Args>
+    DETRAY_HOST_DEVICE constexpr void visit_surfaces_impl(
+        Args &&... args) const {
+        // Get the acceleration data structures for this volume
+        const auto &link{
+            m_desc
+                .template link<static_cast<typename descr_t::object_id>(I)>()};
+
+        // Only visit, if object type is contained in volume
+        if (not link.is_invalid()) {
+            // Run over the surfaces in a single acceleration data structure
+            // and apply the functor to the resulting neighborhood
+            m_detector.surface_store().template visit<functor_t>(
+                link, std::forward<Args>(args)...);
+        }
+        // Check the next surface type
+        if constexpr (I > 0) {
+            visit_surfaces_impl<functor_t, I - 1, Args...>(
+                std::forward<Args>(args)...);
+        }
+    }
+
     /// Access to the detector stores
     const detector_t &m_detector;
     /// Access to the descriptor
