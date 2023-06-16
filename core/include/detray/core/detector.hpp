@@ -10,7 +10,6 @@
 // Project include(s)
 #include "detray/core/detail/container_buffers.hpp"
 #include "detray/core/detail/container_views.hpp"
-#include "detray/core/detail/detector_kernel.hpp"
 #include "detray/core/detector_metadata.hpp"
 #include "detray/definitions/containers.hpp"
 #include "detray/definitions/qualifiers.hpp"
@@ -341,7 +340,8 @@ class detector {
 
     /// @returns a surface using its barcode - const
     DETRAY_HOST_DEVICE
-    constexpr auto surface(geometry::barcode bcd) const -> surface_type {
+    constexpr auto surface(geometry::barcode bcd) const
+        -> const surface_type & {
         return _surface_lookup[bcd.index()];
     }
 
@@ -535,46 +535,6 @@ class detector {
 
     DETRAY_HOST_DEVICE
     inline const bfield_type &get_bfield() const { return _bfield; }
-
-    DETRAY_HOST_DEVICE
-    inline point3 global_to_local(const geometry::barcode bc, const point3 &pos,
-                                  const vector3 &dir) const {
-        const surface_type &sf = surface(bc);
-        const auto ret =
-            _masks.template visit<detail::global_to_local<transform3>>(
-                sf.mask(), _transforms[sf.transform()], pos, dir);
-        return ret;
-    }
-
-    DETRAY_HOST_DEVICE
-    inline point3 local_to_global(const geometry::barcode bc,
-                                  const point3 &local) const {
-        const surface_type &sf = surface(bc);
-        const auto ret =
-            _masks.template visit<detail::local_to_global<transform3>>(
-                sf.mask(), _transforms[sf.transform()], local);
-        return ret;
-    }
-
-    DETRAY_HOST_DEVICE
-    inline bound_vector_type free_to_bound_vector(
-        const geometry::barcode bc, const free_vector_type &free_vec) const {
-        const surface_type &sf = surface(bc);
-        const auto ret =
-            _masks.template visit<detail::free_to_bound_vector<transform3>>(
-                sf.mask(), _transforms[sf.transform()], free_vec);
-        return ret;
-    }
-
-    DETRAY_HOST_DEVICE
-    inline free_vector_type bound_to_free_vector(
-        const geometry::barcode bc, const bound_vector_type &bound_vec) const {
-        const surface_type &sf = surface(bc);
-        const auto ret =
-            _masks.template visit<detail::bound_to_free_vector<transform3>>(
-                sf.mask(), _transforms[sf.transform()], bound_vec);
-        return ret;
-    }
 
     /// @param names maps a volume to its string representation.
     /// @returns a string representation of the detector.

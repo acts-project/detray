@@ -11,6 +11,7 @@
 #include "detray/definitions/qualifiers.hpp"
 #include "detray/definitions/track_parametrization.hpp"
 #include "detray/definitions/units.hpp"
+#include "detray/geometry/surface.hpp"
 #include "detray/materials/interaction.hpp"
 #include "detray/propagator/base_actor.hpp"
 #include "detray/simulation/landau_distribution.hpp"
@@ -115,40 +116,39 @@ struct random_scatterer : actor {
 
         auto& navigation = prop_state._navigation;
 
-        if (navigation.is_on_module()) {
-
-            auto& stepping = prop_state._stepping;
-            auto& bound_params = stepping._bound_params;
-            const auto* det = navigation.detector();
-            const auto& is = *navigation.current();
-
-            det->material_store().template visit<kernel>(
-                is.surface.material(), is, simulator_state, bound_params);
-
-            // Get the new momentum
-            const auto new_mom =
-                attenuate(simulator_state.e_loss_mpv,
-                          simulator_state.e_loss_sigma, simulator_state.mass,
-                          bound_params.p(), simulator_state.generator);
-
-            // Update Qop
-            bound_params.set_qop(bound_params.charge() / new_mom);
-
-            // Get the new direction from random scattering
-            const auto new_dir = scatter(
-                bound_params.dir(), simulator_state.projected_scattering_angle,
-                simulator_state.generator);
-
-            // Update Phi and Theta
-            auto& vector = stepping._bound_params.vector();
-            matrix_operator().element(vector, e_bound_phi, 0u) =
-                getter::phi(new_dir);
-            matrix_operator().element(vector, e_bound_theta, 0u) =
-                getter::theta(new_dir);
-
-            // Flag renavigation of the current candidate
-            prop_state._navigation.set_high_trust();
+        if (not navigation.is_on_module()) {
+            return;
         }
+
+        auto& stepping = prop_state._stepping;
+        auto& bound_params = stepping._bound_params;
+        const auto& is = *navigation.current();
+        const auto sf = surface{*navigation.detector(), is.surface};
+
+        sf.template visit_material<kernel>(is, simulator_state, bound_params);
+
+        // Get the new momentum
+        const auto new_mom = attenuate(
+            simulator_state.e_loss_mpv, simulator_state.e_loss_sigma,
+            simulator_state.mass, bound_params.p(), simulator_state.generator);
+
+        // Update Qop
+        bound_params.set_qop(bound_params.charge() / new_mom);
+
+        // Get the new direction from random scattering
+        const auto new_dir = scatter(bound_params.dir(),
+                                     simulator_state.projected_scattering_angle,
+                                     simulator_state.generator);
+
+        // Update Phi and Theta
+        auto& vector = stepping._bound_params.vector();
+        matrix_operator().element(vector, e_bound_phi, 0u) =
+            getter::phi(new_dir);
+        matrix_operator().element(vector, e_bound_theta, 0u) =
+            getter::theta(new_dir);
+
+        // Flag renavigation of the current candidate
+        prop_state._navigation.set_high_trust();
     }
 
     /// @brief Get the new momentum from the landau distribution

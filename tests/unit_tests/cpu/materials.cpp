@@ -7,7 +7,7 @@
 
 /// Project include(s)
 #include "detray/definitions/units.hpp"
-#include "detray/geometry/surface.hpp"
+#include "detray/geometry/detail/surface_descriptor.hpp"
 #include "detray/intersection/line_intersector.hpp"
 #include "detray/masks/masks.hpp"
 #include "detray/materials/material.hpp"
@@ -29,7 +29,7 @@ using point2 = test::point2;
 using point3 = test::point3;
 using transform3 = test::transform3;
 using vector3 = test::vector3;
-using intersection_t = intersection2D<surface<>, transform3>;
+using intersection_t = intersection2D<surface_descriptor<>, transform3>;
 
 constexpr scalar tol{1e-7f};
 
@@ -164,7 +164,7 @@ GTEST_TEST(detray_materials, material_rod) {
                           std::numeric_limits<scalar>::infinity()};
 
     intersection_t is = line_intersector<intersection_t>()(
-        detail::ray<transform3>(trk), surface<>{}, ln, tf);
+        detail::ray<transform3>(trk), surface_descriptor<>{}, ln, tf);
 
     EXPECT_NEAR(rod.path_segment(is), 2.f * std::sqrt(10.f - 10.f / 36.f),
                 1e-5f);

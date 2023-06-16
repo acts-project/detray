@@ -56,6 +56,14 @@ class detector_volume {
     constexpr detector_volume(const detector_t &det, const dindex vol_idx)
         : detector_volume(det, det.volume_by_index(vol_idx)) {}
 
+    /// Equality operator
+    ///
+    /// @param rhs is the right hand side to be compared to
+    DETRAY_HOST_DEVICE
+    constexpr auto operator==(const detector_volume &rhs) const -> bool {
+        return (&m_detector == &(rhs.m_detector) and m_desc == rhs.m_desc);
+    }
+
     /// @returns the volume shape id, e.g. 'cylinder'.
     DETRAY_HOST_DEVICE
     constexpr auto id() const -> volume_id { return m_desc.id(); }

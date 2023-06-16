@@ -12,7 +12,7 @@
 #include "detray/core/detail/single_store.hpp"
 #include "detray/definitions/containers.hpp"
 #include "detray/definitions/indexing.hpp"
-#include "detray/geometry/surface.hpp"
+#include "detray/geometry/detail/surface_descriptor.hpp"
 #include "detray/intersection/cylinder_intersector.hpp"
 #include "detray/intersection/cylinder_portal_intersector.hpp"
 #include "detray/intersection/plane_intersector.hpp"
@@ -109,8 +109,9 @@ struct toy_metadata {
     using material_link = typename material_store<>::single_link;
     using source_link = dindex;
     /// Surface type used for sensitives, passives and portals
-    using surface_type = surface<mask_link, material_link, transform_link,
-                                 nav_link, source_link>;
+    using surface_type =
+        surface_descriptor<mask_link, material_link, transform_link, nav_link,
+                           source_link>;
 
     /// Portals and passives in the brute froce search, sensitives in the grids
     enum geo_objects : std::size_t {

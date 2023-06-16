@@ -9,6 +9,7 @@
 
 // Project include(s)
 #include "detray/definitions/indexing.hpp"
+#include "detray/geometry/surface.hpp"
 #include "detray/intersection/cylinder_portal_intersector.hpp"
 #include "detray/io/common/detail/utils.hpp"
 #include "detray/io/common/io_interface.hpp"
@@ -167,18 +168,14 @@ class geometry_writer : public writer_interface<detector_t> {
     }
 
     /// Serialize a detector surface @param sf into its io payload
-    static surface_payload serialize(
-        const typename detector_t::surface_type& sf, const detector_t& det) {
+    static surface_payload serialize(const surface<detector_t>& sf) {
         surface_payload sf_data;
 
         sf_data.type = sf.id();
         sf_data.barcode = sf.barcode().value();
-        sf_data.transform = serialize(det.transform_store()[sf.transform()]);
-        sf_data.mask =
-            det.mask_store().template visit<get_mask_payload>(sf.mask());
-        sf_data.material =
-            det.material_store().template visit<get_material_payload>(
-                sf.material());
+        sf_data.transform = serialize(sf.transform({}));
+        sf_data.mask = sf.template visit_mask<get_mask_payload>();
+        sf_data.material = sf.template visit_material<get_material_payload>();
         sf_data.source = serialize(sf.source());
 
         return sf_data;
@@ -206,9 +203,9 @@ class geometry_writer : public writer_interface<detector_t> {
             serialize(det.transform_store()[vol_desc.transform()]);
         vol_data.type = vol_desc.id();
 
-        for (const auto& sf : det.surface_lookup()) {
-            if (sf.volume() == vol_desc.index()) {
-                vol_data.surfaces.push_back(serialize(sf, det));
+        for (const auto& sf_desc : det.surface_lookup()) {
+            if (sf_desc.volume() == vol_desc.index()) {
+                vol_data.surfaces.push_back(serialize(surface{det, sf_desc}));
             }
         }
 

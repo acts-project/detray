@@ -371,7 +371,8 @@ auto create_telescope_detector(
     const surface_config sf_config{msk.values(), dists, mat, thickness};
 
     // The telescope detector has only one volume with default placement
-    auto &vol = det.new_volume(volume_id::e_cuboid);
+    auto &vol = det.new_volume(volume_id::e_cuboid,
+                               {detector_t::sf_finders::id::e_default, 0u});
     vol.set_transform(det.transform_store().size());
     det.transform_store().emplace_back();
 

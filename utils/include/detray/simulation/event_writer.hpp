@@ -10,6 +10,7 @@
 // Detray core include(s).
 #include "detray/definitions/qualifiers.hpp"
 #include "detray/geometry/barcode.hpp"
+#include "detray/geometry/surface.hpp"
 #include "detray/propagator/base_actor.hpp"
 #include "detray/tracks/bound_track_parameters.hpp"
 #include "detray/tracks/free_track_parameters.hpp"
@@ -118,13 +119,11 @@ struct event_writer : actor {
             csv_measurement meas;
 
             const auto bound_params = stepping._bound_params;
-            auto det = navigation.detector();
-            const auto& mask_store = det->mask_store();
-            const auto& surface =
-                det->surface(geometry::barcode(hit.geometry_id));
+            const auto sf = surface{*navigation.detector(),
+                                    geometry::barcode(hit.geometry_id)};
 
-            const auto local = mask_store.template visit<measurement_kernel>(
-                surface.mask(), bound_params, writer_state.m_meas_smearer);
+            const auto local = sf.template visit_mask<measurement_kernel>(
+                bound_params, writer_state.m_meas_smearer);
 
             meas.measurement_id = writer_state.m_hit_count;
             meas.geometry_id = hit.geometry_id;

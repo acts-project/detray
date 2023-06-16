@@ -8,6 +8,7 @@
 #pragma once
 
 // Project include(s)
+#include "detray/geometry/surface.hpp"
 #include "detray/intersection/detail/trajectories.hpp"
 #include "detray/propagator/base_actor.hpp"
 #include "detray/propagator/navigator.hpp"
@@ -101,10 +102,13 @@ struct print_inspector {
                      << std::endl;
 
         debug_stream << "Surface candidates: " << std::endl;
+
+        using geo_ctx_t = typename state_type::detector_type::geometry_context;
         for (const auto &sf_cand : state.candidates()) {
             const auto &local = sf_cand.local;
-            const auto pos = state.detector()->local_to_global(
-                sf_cand.surface.barcode(), local);
+            const auto pos =
+                surface{*state.detector(), sf_cand.surface}.local_to_global(
+                    geo_ctx_t{}, local);
 
             debug_stream << sf_cand;
             debug_stream << ", glob: [r:" << getter::perp(pos)

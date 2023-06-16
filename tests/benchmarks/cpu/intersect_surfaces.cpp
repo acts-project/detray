@@ -8,6 +8,7 @@
 // Detray core include(s).
 #include "detray/definitions/containers.hpp"
 #include "detray/definitions/indexing.hpp"
+#include "detray/geometry/detail/surface_descriptor.hpp"
 #include "detray/intersection/concentric_cylinder_intersector.hpp"
 #include "detray/intersection/cylinder_portal_intersector.hpp"
 #include "detray/intersection/detail/trajectories.hpp"
@@ -92,7 +93,8 @@ enum material_ids : unsigned int {
 using mask_link_t = dtyped_index<mask_ids, dindex>;
 using material_link_t = dtyped_index<material_ids, dindex>;
 
-using plane_surface = surface<mask_link_t, material_link_t, test::transform3>;
+using plane_surface =
+    surface_descriptor<mask_link_t, material_link_t, test::transform3>;
 using intersection_t = intersection2D<plane_surface, test::transform3>;
 
 /// This benchmark runs intersection with the cylinder intersector

@@ -8,6 +8,7 @@
 #pragma once
 
 // Project include(s)
+#include "detray/geometry/surface.hpp"
 #include "detray/intersection/detail/trajectories.hpp"
 #include "detray/intersection/intersection.hpp"
 #include "detray/intersection/intersection_kernel.hpp"
@@ -54,19 +55,20 @@ struct particle_gun {
                                intersection_initialize>;
 
         // Loop over all surfaces in the detector
-        const auto &mask_store = detector.mask_store();
         const auto &tf_store = detector.transform_store();
 
         std::vector<intersection_t> intersections{};
 
-        for (const auto &sf : detector.surface_lookup()) {
+        for (const auto &sf_desc : detector.surface_lookup()) {
             // Retrieve candidate(s) from the surface
-            mask_store.template visit<intersection_kernel_t>(
-                sf.mask(), intersections, traj, sf, tf_store, mask_tolerance);
+            const auto sf = surface{detector, sf_desc};
+            sf.template visit_mask<intersection_kernel_t>(
+                intersections, traj, sf_desc, tf_store, mask_tolerance);
+
             // Candidate is invalid if it lies in the opposite direction
             for (auto &sfi : intersections) {
                 if (sfi.direction == intersection::direction::e_along) {
-                    sfi.surface = sf;
+                    sfi.surface = sf_desc;
                     // Volume the candidate belongs to
                     intersection_record.emplace_back(sf.volume(), sfi);
                 }

@@ -10,6 +10,7 @@
 // Project include(s).
 #include "detray/definitions/qualifiers.hpp"
 #include "detray/definitions/track_parametrization.hpp"
+#include "detray/geometry/surface.hpp"
 #include "detray/propagator/base_actor.hpp"
 #include "detray/tracks/detail/track_helper.hpp"
 
@@ -128,26 +129,25 @@ struct parameter_transporter : actor {
     template <typename propagator_state_t>
     DETRAY_HOST_DEVICE void operator()(state& /*actor_state*/,
                                        propagator_state_t& propagation) const {
-        auto& navigation = propagation._navigation;
+        const auto& navigation = propagation._navigation;
 
         // Do covariance transport when the track is on surface
-        if (navigation.is_on_module()) {
-            auto& stepping = propagation._stepping;
-
-            const auto* det = navigation.detector();
-            const auto& trf_store = det->transform_store();
-            const auto& mask_store = det->mask_store();
-
-            // Surface
-            const auto& surface = navigation.current()->surface;
-
-            mask_store.template visit<kernel>(
-                surface.mask(), trf_store[surface.transform()], propagation);
-
-            // Set surface link
-            stepping._bound_params.set_surface_link(
-                navigation.current_object());
+        if (not navigation.is_on_module()) {
+            return;
         }
+
+        using geo_cxt_t =
+            typename propagator_state_t::detector_type::geometry_context;
+        const geo_cxt_t ctx{};
+
+        // Surface
+        const auto sf =
+            surface{*navigation.detector(), navigation.current()->surface};
+
+        sf.template visit_mask<kernel>(sf.transform(ctx), propagation);
+
+        // Set surface link
+        propagation._stepping._bound_params.set_surface_link(sf.barcode());
     }
 };  // namespace detray
 

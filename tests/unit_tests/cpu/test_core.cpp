@@ -7,7 +7,7 @@
 
 // Project include(s)
 #include "detray/definitions/indexing.hpp"
-#include "detray/geometry/surface.hpp"
+#include "detray/geometry/detail/surface_descriptor.hpp"
 #include "detray/intersection/intersection.hpp"
 #include "detray/test/types.hpp"
 #include "detray/utils/invalid_values.hpp"
@@ -44,7 +44,7 @@ using point3 = test::point3;
 
 using mask_link_t = dtyped_index<mask_ids, dindex>;
 using material_link_t = dtyped_index<material_ids, dindex>;
-using surface_t = surface<mask_link_t, material_link_t, transform3>;
+using surface_t = surface_descriptor<mask_link_t, material_link_t, transform3>;
 
 /// Test the typed index
 GTEST_TEST(detray_core, typed_index) {
@@ -73,12 +73,12 @@ GTEST_TEST(detray_core, typed_index) {
 }
 
 // This tests the construction of a surface descriptor object
-GTEST_TEST(detray_geometry, surface) {
+GTEST_TEST(detray_geometry, surface_descriptor) {
 
     mask_link_t mask_id{mask_ids::e_unmasked, 0u};
     material_link_t material_id{material_ids::e_slab, 0u};
 
-    surface<mask_link_t, material_link_t> s(
+    surface_descriptor<mask_link_t, material_link_t> s(
         dindex_invalid, mask_id, material_id, dindex_invalid, dindex_invalid,
         surface_id::e_sensitive);
 }

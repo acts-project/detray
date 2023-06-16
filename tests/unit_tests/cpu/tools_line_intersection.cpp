@@ -6,7 +6,7 @@
  */
 
 // Project include(s)
-#include "detray/geometry/surface.hpp"
+#include "detray/geometry/detail/surface_descriptor.hpp"
 #include "detray/intersection/detail/trajectories.hpp"
 #include "detray/intersection/intersection.hpp"
 #include "detray/intersection/line_intersector.hpp"
@@ -29,7 +29,7 @@ using cartesian = cartesian2<transform3>;
 using vector3 = test::vector3;
 using point3 = test::point3;
 using point2 = test::point2;
-using intersection_t = intersection2D<surface<>, transform3>;
+using intersection_t = intersection2D<surface_descriptor<>, transform3>;
 using line_intersector_type = line_intersector<intersection_t>;
 
 constexpr scalar tol{1e-5f};
@@ -53,9 +53,12 @@ GTEST_TEST(detray_intersection, line_intersector_case1) {
 
     // Test intersect
     std::vector<intersection_t> is(3u);
-    is[0] = line_intersector_type()(detail::ray(trks[0]), surface<>{}, ln, tf);
-    is[1] = line_intersector_type()(detail::ray(trks[1]), surface<>{}, ln, tf);
-    is[2] = line_intersector_type()(detail::ray(trks[2]), surface<>{}, ln, tf);
+    is[0] = line_intersector_type()(detail::ray(trks[0]),
+                                    surface_descriptor<>{}, ln, tf);
+    is[1] = line_intersector_type()(detail::ray(trks[1]),
+                                    surface_descriptor<>{}, ln, tf);
+    is[2] = line_intersector_type()(detail::ray(trks[2]),
+                                    surface_descriptor<>{}, ln, tf);
 
     EXPECT_EQ(is[0].status, intersection::status::e_inside);
     EXPECT_EQ(is[0].path, 1.f);
@@ -106,7 +109,7 @@ GTEST_TEST(detray_intersection, line_intersector_case2) {
 
     // Test intersect
     const intersection_t is = line_intersector_type()(
-        detail::ray<transform3>(trk), surface<>{}, ln, tf);
+        detail::ray<transform3>(trk), surface_descriptor<>{}, ln, tf);
 
     EXPECT_EQ(is.status, intersection::status::e_inside);
     EXPECT_NEAR(is.path, 2.f, tol);
@@ -161,7 +164,8 @@ GTEST_TEST(detray_intersection, line_intersector_square_scope) {
     std::vector<intersection_t> is;
     for (const auto& trk : trks) {
         is.push_back(line_intersector_type()(detail::ray<transform3>(trk),
-                                             surface<>{}, ln, tf, 1e-5f));
+                                             surface_descriptor<>{}, ln, tf,
+                                             1e-5f));
     }
 
     EXPECT_EQ(is[0].status, intersection::status::e_inside);
