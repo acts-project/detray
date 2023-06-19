@@ -25,6 +25,8 @@
 
 // Covfie include(s)
 #include <covfie/core/field.hpp>
+#include <covfie/core/backend/primitive/constant.hpp>
+#include <covfie/core/vector.hpp>
 
 // System include(s)
 #include <algorithm>
@@ -35,8 +37,7 @@
 namespace detray {
 
 /// @brief Forward declaration of a detector view type
-template <typename metadata, template <typename> class bfield_t,
-          typename container_t>
+template <typename bfield_t, typename detector_t>
 struct detector_view;
 
 /// @brief The detector definition.
@@ -49,7 +50,9 @@ struct detector_view;
 /// @tparam bfield_t the type of the b-field frontend
 /// @tparam container_t type collection of the underlying containers
 /// @tparam source_link the surface source link
-template <typename metadata, template <typename> class bfield_t = covfie::field,
+template <typename metadata, typename bfield_t = covfie::field<
+                                  covfie::backend::constant<covfie::vector::vector_d<scalar, 3>,
+                                  covfie::vector::vector_d<scalar, 3>>>,
           typename container_t = host_container_types>
 class detector {
 
@@ -66,9 +69,9 @@ class detector {
     using vector3 = __plugin::vector3<scalar_type>;
     using point2 = __plugin::point2<scalar_type>;
 
-    using bfield_backend_type = typename metadata::bfield_backend_type;
+    using bfield_backend_type = typename bfield_t::backend_t;
 
-    using bfield_type = bfield_t<bfield_backend_type>;
+    using bfield_type = bfield_t;
 
     /// Raw container types
     template <typename T, std::size_t N>
@@ -130,8 +133,9 @@ class detector {
     using volume_finder =
         typename metadata::template volume_finder<container_t>;
 
+    // This probably doesn't work
     using detector_view_type =
-        detector_view<metadata, covfie::field, host_container_types>;
+        detector_view<bfield_t, detector>;
 
     using free_vector_type =
         typename free_track_parameters<transform3>::vector_type;
@@ -606,18 +610,15 @@ class detector {
     vecmem::memory_resource *_resource = nullptr;
 
     /// Storage for magnetic field data
-    bfield_type _bfield;
+    bfield_t _bfield;
 };
 
 /// @brief A static inplementation of detector data for device
-template <typename metadata, template <typename> class bfield_t,
-          typename container_t>
+template <typename bfield_t, typename detector_t>
 struct detector_buffer {
 
-    using detector_type = detector<metadata, bfield_t, container_t>;
-
     /// Automatic buffer creation with the given parameters
-    detector_buffer(detector_type &det, vecmem::memory_resource &mr,
+    detector_buffer(detector_t &det, vecmem::memory_resource &mr,
                     vecmem::copy &cpy,
                     detray::copy cpy_type = detray::copy::sync,
                     vecmem::data::buffer_type buff_type =
@@ -634,56 +635,34 @@ struct detector_buffer {
                                               cpy_type, buff_type),
                            detray::get_buffer(det.volume_search_grid(), mr, cpy,
                                               cpy_type, buff_type)),
-          _bfield_view(det.get_bfield()) {}
+          _bfield(det.get_bfield()) {}
 
     /// Buffers were created manually
     detector_buffer(
-        detector<metadata, bfield_t, container_t> &det,
-        detail::get_buffer_t<typename detector_type::volume_container>
+        const detector_t &det,
+        detail::get_buffer_t<typename detector_t::volume_container>
             &&vol_buffer,
-        typename detector_type::transform_container::buffer_type &&trf_buffer,
-        typename detector_type::mask_container::buffer_type &&msk_buffer,
-        typename detector_type::material_container::buffer_type &&mat_buffer,
-        typename detector_type::surface_container::buffer_type &&sf_buffer,
-        typename detector_type::volume_finder::buffer_type &&vgrd_buffer)
+        typename detector_t::transform_container::buffer_type &&trf_buffer,
+        typename detector_t::mask_container::buffer_type &&msk_buffer,
+        typename detector_t::material_container::buffer_type &&mat_buffer,
+        typename detector_t::surface_container::buffer_type &&sf_buffer,
+        typename detector_t::volume_finder::buffer_type &&vgrd_buffer)
         : _detector_buffer(std::move(vol_buffer), std::move(trf_buffer),
                            std::move(msk_buffer), std::move(mat_buffer),
                            std::move(sf_buffer), std::move(vgrd_buffer)),
-          _bfield_view(det.get_bfield()) {}
+          _bfield(det.get_bfield()) {}
 
     /// Buffers for the vecemem types
-    typename detector_type::buffer_type _detector_buffer;
+    typename detector_t::buffer_type _detector_buffer;
     /// Covfie field
-    typename detector_type::bfield_type::view_t _bfield_view;
+    bfield_t _bfield;
 };
 
-// Deduction guide to construct a detector buffer type more conveniently
-template <typename metadata, template <typename> class bfield_t,
-          typename container_t>
-detector_buffer(
-    detector<metadata, bfield_t, container_t> &,
-    detail::get_buffer_t<typename detector<metadata, bfield_t,
-                                           container_t>::volume_container> &&,
-    typename detector<metadata, bfield_t,
-                      container_t>::transform_container::buffer_type &&,
-    typename detector<metadata, bfield_t,
-                      container_t>::mask_container::buffer_type &&,
-    typename detector<metadata, bfield_t,
-                      container_t>::material_container::buffer_type &&,
-    typename detector<metadata, bfield_t,
-                      container_t>::surface_container::buffer_type &&,
-    typename detector<metadata, bfield_t,
-                      container_t>::volume_finder::buffer_type &&)
-    -> detector_buffer<metadata, bfield_t, container_t>;
-
 /// @brief A static inplementation of detector data for device
-template <typename metadata, template <typename> class bfield_t,
-          typename container_t>
+template <typename bfield_t, typename detector_t>
 struct detector_view {
 
-    using detector_type = detector<metadata, bfield_t, container_t>;
-
-    detector_view(detector_type &det)
+    detector_view(detector_t &det)
         : _detector_data(detray::get_data(det.volumes()),
                          detray::get_data(det.transform_store()),
                          detray::get_data(det.mask_store()),
@@ -692,24 +671,23 @@ struct detector_view {
                          detray::get_data(det.volume_search_grid())),
           _bfield_view(det.get_bfield()) {}
 
-    detector_view(detector_buffer<metadata, bfield_t, container_t> &det_buff)
+    detector_view(detector_buffer<bfield_t, detector_t> &det_buff)
         : _detector_data(detray::get_data(det_buff._detector_buffer)),
           _bfield_view(det_buff._bfield_view) {}
 
     /// Views for the vecmem types
-    typename detector_type::view_type _detector_data;
+    typename detector_t::view_type _detector_data;
     /// Covfie field view
-    typename detector_type::bfield_type::view_t _bfield_view;
+    typename bfield_t::view_t _bfield_view;
 };
 
 /// Stand-alone function that @returns the detector data for transfer to
 /// device.
 ///
 /// @param detector the detector to be tranferred
-template <typename metadata, template <typename> class bfield_t,
-          typename container_t>
-inline detector_view<metadata, bfield_t, container_t> get_data(
-    detector<metadata, bfield_t, container_t> &det) {
+template <typename detector_t>
+inline detector_view<typename detector_t::bfield_type, detector_t> get_data(
+    detector_t &det) {
     return {det};
 }
 
@@ -717,10 +695,9 @@ inline detector_view<metadata, bfield_t, container_t> get_data(
 /// device.
 ///
 /// @param detector the detector to be tranferred
-template <typename metadata, template <typename> class bfield_t,
-          typename container_t>
-inline detector_buffer<metadata, bfield_t, container_t> get_buffer(
-    detector<metadata, bfield_t, container_t> &det, vecmem::memory_resource &mr,
+template <typename bfield_t, typename detector_t>
+inline detector_buffer<bfield_t, detector_t> get_buffer(
+    detector_t &det, vecmem::memory_resource &mr,
     vecmem::copy &cpy, detray::copy cpy_type = detray::copy::sync,
     vecmem::data::buffer_type buff_type =
         vecmem::data::buffer_type::fixed_size) {
@@ -731,10 +708,9 @@ inline detector_buffer<metadata, bfield_t, container_t> get_buffer(
 /// device.
 ///
 /// @param detector the detector to be tranferred
-template <typename metadata, template <typename> class bfield_t,
-          typename container_t>
-inline detector_view<metadata, bfield_t, container_t> get_data(
-    detector_buffer<metadata, bfield_t, container_t> &det_buff) {
+template <typename bfield_t, typename detector_t>
+inline detector_view<bfield_t, detector_t> get_data(
+    detector_buffer<bfield_t, detector_t> &det_buff) {
     return {det_buff};
 }
 
