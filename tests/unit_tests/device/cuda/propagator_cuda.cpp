@@ -31,7 +31,7 @@ TEST_P(CudaPropConstBFieldMng, propagator) {
 
     // Create the toy geometry
     toy_cfg.bfield_vec(B);
-    auto det = create_toy_geometry<const_bfield_bknd_t, host_container_types>(
+    auto det = create_toy_geometry<const_bfield_bknd_t>(
         mng_mr, toy_cfg);
 
     run_propagation_test<const_bfield_bknd_t>(&mng_mr, det,
@@ -54,7 +54,7 @@ TEST_P(CudaPropConstBFieldCpy, propagator) {
 
     // Create the toy geometry
     toy_cfg.bfield_vec(B);
-    auto det = create_toy_geometry<const_bfield_bknd_t, host_container_types>(
+    auto det = create_toy_geometry<const_bfield_bknd_t>(
         host_mr, toy_cfg);
 
     auto det_buff = detray::get_buffer(det, dev_mr, cuda_cpy);
@@ -110,7 +110,7 @@ TEST(CudaPropagatorValidation9, inhomogeneous_bfield_mng) {
     vecmem::cuda::managed_memory_resource mng_mr;
 
     // Create the toy geometry with inhomogeneous bfield from file
-    auto det = create_toy_geometry<inhom_bfield_bknd_t, host_container_types>(
+    auto det = create_toy_geometry<inhom_bfield_bknd_t>(
         mng_mr, toy_cfg);
 
     run_propagation_test<inhom_bfield_bknd_t>(&mng_mr, det,
@@ -128,7 +128,7 @@ TEST(CudaPropagatorValidation10, inhomogeneous_bfield_cpy) {
     vecmem::cuda::copy cuda_cpy;
 
     // Create the toy geometry with inhomogeneous bfield from file
-    auto det = create_toy_geometry<inhom_bfield_bknd_t, host_container_types>(
+    auto det = create_toy_geometry<inhom_bfield_bknd_t>(
         host_mr, toy_cfg);
 
     auto det_buff = detray::get_buffer(det, dev_mr, cuda_cpy);

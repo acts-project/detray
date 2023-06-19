@@ -971,15 +971,14 @@ inline void add_barrel_detector(
 /// @returns a complete detector object
 template <typename bfield_bknd_t =
               covfie::backend::constant<covfie::vector::vector_d<scalar, 3>,
-                                        covfie::vector::vector_d<scalar, 3>>,
-          typename container_t = host_container_types>
-inline constexpr auto create_toy_geometry(vecmem::memory_resource &resource,
+                                        covfie::vector::vector_d<scalar, 3>>>
+inline auto create_toy_geometry(vecmem::memory_resource &resource,
                                           const toy_det_config &cfg = {}) {
 
     // detector type
     using detector_t =
         detector<detector_registry::template toy_detector<bfield_bknd_t>,
-                 covfie::field, container_t>;
+                 covfie::field, host_container_types>;
 
     using const_bfield_bknd_t =
         covfie::backend::constant<covfie::vector::vector_d<scalar, 3>,
