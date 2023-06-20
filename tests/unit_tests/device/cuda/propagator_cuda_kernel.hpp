@@ -13,7 +13,15 @@
 #include <vecmem/memory/memory_resource.hpp>
 #include <vecmem/utils/cuda/copy.hpp>
 
+// Covfie include(s)
+#include <covfie/cuda/backend/primitive/cuda_device_array.hpp>
+
 namespace detray {
+
+using inhom_bfield_bknd_cuda_t = covfie::backend::affine<
+    covfie::backend::nearest_neighbour<covfie::backend::strided<
+        covfie::vector::ulong3,
+        covfie::backend::cuda_device_array<covfie::vector::vector_d<scalar, 3>>>>>;
 
 /// Launch the propagation test kernel
 template <typename detector_t, typename backend_t>
@@ -70,9 +78,9 @@ inline auto run_propagation_device(
                                    path_lengths_buffer, positions_buffer,
                                    jac_transports_buffer);
 
-    vecmem::jagged_vector<scalar> device_path_lengths;
-    vecmem::jagged_vector<vector3_t> device_positions;
-    vecmem::jagged_vector<free_matrix> device_jac_transports;
+    vecmem::jagged_vector<scalar> device_path_lengths(mr);
+    vecmem::jagged_vector<vector3_t> device_positions(mr);
+    vecmem::jagged_vector<free_matrix> device_jac_transports(mr);
 
     copy(path_lengths_buffer, device_path_lengths);
     copy(positions_buffer, device_positions);

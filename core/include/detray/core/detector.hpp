@@ -683,8 +683,7 @@ struct detector_view {
     typename bfield_t::view_t _bfield_view;
 };
 
-/// Stand-alone function that @returns the detector data for transfer to
-/// device.
+/// Stand-alone function that @returns a view to a host object
 ///
 /// @param detector the detector to be tranferred
 template <typename detector_t>

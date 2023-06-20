@@ -34,7 +34,6 @@
 #include <covfie/core/field.hpp>
 #include <covfie/core/field_view.hpp>
 #include <covfie/core/vector.hpp>
-#include <covfie/cuda/backend/primitive/cuda_device_array.hpp>
 
 // GTest include(s).
 #include <gtest/gtest.h>
@@ -46,11 +45,6 @@ using inhom_bfield_bknd_t = covfie::backend::affine<
     covfie::backend::nearest_neighbour<covfie::backend::strided<
         covfie::vector::ulong3,
         covfie::backend::array<covfie::vector::vector_d<scalar, 3>>>>>;
-
-using inhom_bfield_bknd_cuda_t = covfie::backend::affine<
-    covfie::backend::nearest_neighbour<covfie::backend::strided<
-        covfie::vector::ulong3,
-        covfie::backend::cuda_device_array<covfie::vector::vector_d<scalar, 3>>>>>;
 
 // Host detector type
 template <typename bfield_bknd_t>
