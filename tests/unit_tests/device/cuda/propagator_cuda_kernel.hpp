@@ -24,9 +24,9 @@ using inhom_bfield_bknd_cuda_t = covfie::backend::affine<
                                     covfie::vector::vector_d<scalar, 3>>>>>;
 
 /// Launch the propagation test kernel
-template <typename detector_t, typename backend_t>
+template <typename detector_t, typename bfield_bknd_t>
 void propagator_test(
-    detector_view<covfie::field<backend_t>, detector_t>,
+    detector_view<covfie::field<bfield_bknd_t>, detector_t>,
     vecmem::data::vector_view<track_t> &,
     vecmem::data::jagged_vector_view<intersection_t<detector_t>> &,
     vecmem::data::jagged_vector_view<scalar> &,
@@ -34,10 +34,10 @@ void propagator_test(
     vecmem::data::jagged_vector_view<free_matrix> &);
 
 /// test function for propagator on the device
-template <typename detector_t, typename bfield_bknd_dev_t>
+template <typename detector_t, typename bfield_bknd_t>
 inline auto run_propagation_device(
     vecmem::memory_resource *mr, detector_t &det,
-    detector_view<covfie::field<bfield_bknd_dev_t>, detector_t> det_view,
+    detector_view<covfie::field<bfield_bknd_t>, detector_t> det_view,
     dvector<track_t> &tracks,
     const vecmem::jagged_vector<vector3_t> &host_positions)
     -> std::tuple<vecmem::jagged_vector<scalar>,

@@ -47,11 +47,9 @@ TEST_P(SyclPropConstBFieldMng, propagator) {
 
     // Create the toy geometry
     toy_cfg.bfield_vec(B);
-    auto det = create_toy_geometry<const_backend_t, host_container_types>(
-        shared_mr, toy_cfg);
+    auto det = create_toy_geometry<const_backend_t>(shared_mr, toy_cfg);
 
-    run_propagation_test<const_backend_t>(&shared_mr, &q, det,
-                                          detray::get_data(det));
+    run_propagation_test(&shared_mr, &q, det, detray::get_data(det));
 }
 
 class SyclPropConstBFieldCpy : public ::testing::TestWithParam<vector3_t> {};
@@ -68,20 +66,20 @@ TEST_P(SyclPropConstBFieldCpy, propagator) {
     vecmem::sycl::shared_memory_resource shared_mr;
     vecmem::sycl::device_memory_resource dev_mr;
 
-    vecmem::sycl::copy sycl_cpy;
+    vecmem::sycl::queue_wrapper q_wrapper(&q);
+    vecmem::sycl::copy sycl_cpy(q_wrapper);
 
     // Set the magnetic field
     const vector3 B = GetParam();
 
     // Create the toy geometry
     toy_cfg.bfield_vec(B);
-    auto det = create_toy_geometry<const_backend_t, host_container_types>(
-        host_mr, toy_cfg);
+    auto det = create_toy_geometry<const_backend_t>(host_mr, toy_cfg);
 
-    auto det_buff = detray::get_buffer(det, dev_mr, sycl_cpy);
+    auto det_buff = detray::get_buffer<covfie::field<const_backend_t>>(
+        det, dev_mr, sycl_cpy);
 
-    run_propagation_test<const_backend_t>(&mng_mr, &q, det,
-                                          detray::get_data(det_buff));
+    run_propagation_test(&shared_mr, &q, det, detray::get_data(det_buff));
 }
 
 INSTANTIATE_TEST_SUITE_P(SyclPropagatorValidation1, SyclPropConstBFieldMng,
@@ -136,10 +134,10 @@ INSTANTIATE_TEST_SUITE_P(SyclPropagatorValidation8, SyclPropConstBFieldCpy,
     vecmem::sycl::shared_memory_resource shared_mr;
 
     // Create the toy geometry with inhomogeneous bfield from file
-    auto det = create_toy_geometry<inhom_bfield_bknd_t, host_container_types>(
+    auto det = create_toy_geometry<inhom_bfield_bknd_t>(
         shared_mr, toy_cfg);
 
-    run_propagation_test<const_backend_t>(&shared_mr, &q, det,
+    run_propagation_test(&shared_mr, &q, det,
 detray::get_data(det));
 }
 
@@ -158,11 +156,11 @@ TEST(SyclPropagatorValidation10, inhomogeneous_bfield_cpy) {
     vecmem::sycl::copy sycl_cpy;
 
     // Create the toy geometry with inhomogeneous bfield from file
-    auto det = create_toy_geometry<inhom_bfield_bknd_t, host_container_types>(
+    auto det = create_toy_geometry<inhom_bfield_bknd_t>(
         shared_mr, toy_cfg);
 
     auto det_buff = detray::get_buffer(det, dev_mr, sycl_cpy);
 
-    run_propagation_test<const_backend_t>(&mng_mr, &q, det,
+    run_propagation_test(&mng_mr, &q, det,
 detray::get_data(det_buff));
 }*/
