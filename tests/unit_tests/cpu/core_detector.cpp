@@ -122,7 +122,7 @@ GTEST_TEST(detray_core, detector) {
     using namespace detray;
 
     using detector_t =
-        detector<detector_registry::default_detector, covfie::field>;
+        detector<detector_registry::default_detector, covfie::field<const_backend_t>>;
     using mask_id = typename detector_t::masks::id;
     using material_id = typename detector_t::materials::id;
     using finder_id = typename detector_t::sf_finders::id;
@@ -177,7 +177,7 @@ GTEST_TEST(detray_tools, surface_factory) {
     using namespace detray;
 
     using detector_t =
-        detector<detector_registry::default_detector, covfie::field>;
+        detector<detector_registry::default_detector, covfie::field<const_backend_t>>;
     using transform3 = typename detector_t::transform3;
     using mask_id = typename detector_t::masks::id;
 
@@ -373,7 +373,7 @@ GTEST_TEST(detray_tools, volume_builder) {
     vecmem::host_memory_resource host_mr;
 
     using detector_t =
-        detector<detector_registry::default_detector, covfie::field>;
+        detector<detector_registry::default_detector, covfie::field<const_backend_t>>;
 
     detector_t d(host_mr);
 
@@ -395,7 +395,7 @@ GTEST_TEST(detray_tools, detector_volume_construction) {
     using namespace detray;
 
     using detector_t =
-        detray::detector<detector_registry::default_detector, covfie::field>;
+        detray::detector<detector_registry::default_detector, covfie::field<const_backend_t>>;
     using transform3 = typename detector_t::transform3;
     using geo_obj_id = typename detector_t::geo_obj_ids;
     using mask_id = typename detector_t::masks::id;

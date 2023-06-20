@@ -31,11 +31,10 @@ TEST_P(CudaPropConstBFieldMng, propagator) {
 
     // Create the toy geometry
     toy_cfg.bfield_vec(B);
-    auto det = create_toy_geometry<const_bfield_bknd_t>(
+    auto det = create_toy_geometry<const_backend_t>(
         mng_mr, toy_cfg);
 
-    run_propagation_test<const_bfield_bknd_t>(&mng_mr, det,
-                                              detray::get_data(det));
+    run_propagation_test(&mng_mr, det, detray::get_data(det));
 }
 
 class CudaPropConstBFieldCpy : public ::testing::TestWithParam<vector3_t> {};
@@ -54,13 +53,12 @@ TEST_P(CudaPropConstBFieldCpy, propagator) {
 
     // Create the toy geometry
     toy_cfg.bfield_vec(B);
-    auto det = create_toy_geometry<const_bfield_bknd_t>(
+    auto det = create_toy_geometry<const_backend_t>(
         host_mr, toy_cfg);
 
-    auto det_buff = detray::get_buffer(det, dev_mr, cuda_cpy);
+    auto det_buff = detray::get_buffer<covfie::field<const_backend_t>>(det, dev_mr, cuda_cpy);
 
-    run_propagation_test<const_bfield_bknd_t>(&mng_mr, det,
-                                              detray::get_data(det_buff));
+    run_propagation_test(&mng_mr, det, detray::get_data(det_buff));
 }
 
 INSTANTIATE_TEST_SUITE_P(CudaPropagatorValidation1, CudaPropConstBFieldMng,
@@ -104,20 +102,6 @@ INSTANTIATE_TEST_SUITE_P(CudaPropagatorValidation8, CudaPropConstBFieldCpy,
                                                      1. * unit<scalar>::T}));
 
 /// This tests the device propagation in an inhomogenepus magnetic field
-TEST(CudaPropagatorValidation9, inhomogeneous_bfield_mng) {
-
-    // VecMem memory resource(s)
-    vecmem::cuda::managed_memory_resource mng_mr;
-
-    // Create the toy geometry with inhomogeneous bfield from file
-    auto det = create_toy_geometry<inhom_bfield_bknd_t>(
-        mng_mr, toy_cfg);
-
-    run_propagation_test<inhom_bfield_bknd_t>(&mng_mr, det,
-                                              detray::get_data(det));
-}
-
-/// This tests the device propagation in an inhomogenepus magnetic field
 TEST(CudaPropagatorValidation10, inhomogeneous_bfield_cpy) {
 
     // VecMem memory resource(s)
@@ -131,8 +115,7 @@ TEST(CudaPropagatorValidation10, inhomogeneous_bfield_cpy) {
     auto det = create_toy_geometry<inhom_bfield_bknd_t>(
         host_mr, toy_cfg);
 
-    auto det_buff = detray::get_buffer(det, dev_mr, cuda_cpy);
+    auto det_buff = detray::get_buffer<covfie::field<inhom_bfield_bknd_cuda_t>>(det, dev_mr, cuda_cpy);
 
-    run_propagation_test<inhom_bfield_bknd_t>(&mng_mr, det,
-                                              detray::get_data(det_buff));
+    run_propagation_test(&mng_mr, det, detray::get_data(det_buff));
 }

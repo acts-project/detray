@@ -52,7 +52,7 @@ int main() {
         detray::create_toy_geometry(host_mr);
 
     // Copy the detector data to device (synchronous copy, fixed size buffers)
-    auto det_fixed_buff = detray::get_buffer(det_host, dev_mr, cuda_cpy);
+    auto det_fixed_buff = detray::get_buffer<covfie::field<detray::const_backend_t>>(det_host, dev_mr, cuda_cpy);
 
     // Get the detector view from the buffer and call the kernel
     std::cout << "\nSynchronous copy, fixed size buffers:" << std::endl;
@@ -60,7 +60,7 @@ int main() {
 
     // Copy the data to device in resizable buffers (synchronous copy)
     auto det_resz_buff =
-        detray::get_buffer(det_host, dev_mr, cuda_cpy, detray::copy::sync,
+        detray::get_buffer<covfie::field<detray::const_backend_t>>(det_host, dev_mr, cuda_cpy, detray::copy::sync,
                            vecmem::data::buffer_type::resizable);
 
     std::cout << "\nSynchronous copy, resizable buffers:" << std::endl;
@@ -92,7 +92,7 @@ int main() {
                                          vecmem::data::buffer_type::fixed_size);
 
     // Assemble the detector buffer
-    auto det_custom_buff = detray::detector_buffer(
+    auto det_custom_buff = detray::detector_buffer<covfie::field<detray::const_backend_t>, detray::tutorial::detector_host_t>(
         det_host, std::move(vol_buff), std::move(trf_buff), std::move(msk_buff),
         std::move(mat_buff), std::move(sf_buff), std::move(vgrid_buff));
 

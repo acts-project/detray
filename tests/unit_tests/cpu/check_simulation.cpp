@@ -218,7 +218,7 @@ TEST_P(TelescopeDetectorSimulation, telescope_detector_simulation) {
     // Detector type
     using detector_type = detray::detector<
         detray::detector_registry::template telescope_detector<rectangle2D<>>,
-        covfie::field>;
+        covfie::field<const_backend_t>>;
 
     // Create B field
     const vector3 B{0.f, 0.f, 2.f * unit<scalar>::T};

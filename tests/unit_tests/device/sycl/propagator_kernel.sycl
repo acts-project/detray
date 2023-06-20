@@ -93,10 +93,10 @@ void propagator_test(
 }
 
 /// Explicit instantiation for a constant magnetic field
-template void propagator_test<const_bfield_bknd_t>(
-    typename detector_host_t<const_bfield_bknd_t>::detector_view_type,
+template void propagator_test<const_backend_t>(
+    typename detector_host_t<const_backend_t>::detector_view_type,
     vecmem::data::vector_view<track_t> &,
-    vecmem::data::jagged_vector_view<intersection_t<const_bfield_bknd_t>> &,
+    vecmem::data::jagged_vector_view<intersection_t<const_backend_t>> &,
     vecmem::data::jagged_vector_view<scalar> &,
     vecmem::data::jagged_vector_view<vector3_t> &,
     vecmem::data::jagged_vector_view<free_matrix> &,

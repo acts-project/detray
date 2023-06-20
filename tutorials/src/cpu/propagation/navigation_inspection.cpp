@@ -31,7 +31,7 @@
 /// of the encountered surfaces (using the navigation inspectors)
 int main() {
     // Toy detector
-    using toy_detector_t = detray::detector<detray::toy_metadata<>>;
+    using toy_detector_t = detray::detector<detray::toy_metadata>;
 
     /// Type that holds the intersection information
     using intersection_t =

@@ -10,11 +10,11 @@
 
 namespace detray {
 
-template <typename bfield_bknd_t>
+template <typename detector_t, typename bfield_bknd_t>
 __global__ void propagator_test_kernel(
-    typename detector_host_t<bfield_bknd_t>::detector_view_type det_data,
+    detector_view<covfie::field<bfield_bknd_t>, detector_t> det_data,
     vecmem::data::vector_view<track_t> tracks_data,
-    vecmem::data::jagged_vector_view<intersection_t<bfield_bknd_t>>
+    vecmem::data::jagged_vector_view<intersection_t<detector_t>>
         candidates_data,
     vecmem::data::jagged_vector_view<scalar> path_lengths_data,
     vecmem::data::jagged_vector_view<vector3_t> positions_data,
@@ -24,7 +24,7 @@ __global__ void propagator_test_kernel(
 
     detector_device_t<bfield_bknd_t> det(det_data);
     vecmem::device_vector<track_t> tracks(tracks_data);
-    vecmem::jagged_device_vector<intersection_t<bfield_bknd_t>> candidates(
+    vecmem::jagged_device_vector<intersection_t<detector_t>> candidates(
         candidates_data);
     vecmem::jagged_device_vector<scalar> path_lengths(path_lengths_data);
     vecmem::jagged_device_vector<vector3_t> positions(positions_data);
@@ -70,11 +70,11 @@ __global__ void propagator_test_kernel(
 }
 
 /// Launch the device kernel
-template <typename bfield_bknd_t>
+template <typename detector_t, typename bfield_bknd_t>
 void propagator_test(
-    typename detector_host_t<bfield_bknd_t>::detector_view_type det_view,
+    detector_view<covfie::field<bfield_bknd_t>, detector_t> det_view,
     vecmem::data::vector_view<track_t>& tracks_data,
-    vecmem::data::jagged_vector_view<intersection_t<bfield_bknd_t>>&
+    vecmem::data::jagged_vector_view<intersection_t<detector_t>>&
         candidates_data,
     vecmem::data::jagged_vector_view<scalar>& path_lengths_data,
     vecmem::data::jagged_vector_view<vector3_t>& positions_data,
@@ -84,7 +84,7 @@ void propagator_test(
     constexpr int block_dim = theta_steps * phi_steps / thread_dim + 1;
 
     // run the test kernel
-    propagator_test_kernel<bfield_bknd_t><<<block_dim, thread_dim>>>(
+    propagator_test_kernel<<<block_dim, thread_dim>>>(
         det_view, tracks_data, candidates_data, path_lengths_data,
         positions_data, jac_transports_data);
 
@@ -94,19 +94,19 @@ void propagator_test(
 }
 
 /// Explicit instantiation for a constant magnetic field
-template void propagator_test<const_bfield_bknd_t>(
-    typename detector_host_t<const_bfield_bknd_t>::detector_view_type,
+template void propagator_test<detector_host_t<const_backend_t>, const_backend_t>(
+    detector_view<covfie::field<const_backend_t>, detector_host_t<const_backend_t>> det_view,
     vecmem::data::vector_view<track_t>&,
-    vecmem::data::jagged_vector_view<intersection_t<const_bfield_bknd_t>>&,
+    vecmem::data::jagged_vector_view<intersection_t<detector_host_t<const_backend_t>>>&,
     vecmem::data::jagged_vector_view<scalar>&,
     vecmem::data::jagged_vector_view<vector3_t>&,
     vecmem::data::jagged_vector_view<free_matrix>&);
 
 /// Explicit instantiation for an inhomogeneous magnetic field
-template void propagator_test<inhom_bfield_bknd_t>(
-    typename detector_host_t<inhom_bfield_bknd_t>::detector_view_type,
+template void propagator_test<detector_host_t<inhom_bfield_bknd_t>, inhom_bfield_bknd_cuda_t>(
+    detector_view<covfie::field<inhom_bfield_bknd_cuda_t>, detector_host_t<inhom_bfield_bknd_t>> det_view,
     vecmem::data::vector_view<track_t>&,
-    vecmem::data::jagged_vector_view<intersection_t<inhom_bfield_bknd_t>>&,
+    vecmem::data::jagged_vector_view<intersection_t<detector_host_t<inhom_bfield_bknd_t>>>&,
     vecmem::data::jagged_vector_view<scalar>&,
     vecmem::data::jagged_vector_view<vector3_t>&,
     vecmem::data::jagged_vector_view<free_matrix>&);

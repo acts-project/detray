@@ -42,7 +42,7 @@ int main(int argc, char** argv) {
     //
 
     // Toy detector type
-    using toy_detector_t = detray::detector<detray::toy_metadata<>>;
+    using toy_detector_t = detray::detector<detray::toy_metadata>;
 
     detray::toy_det_config toy_cfg{};
     // Number of barrel layers (0 - 4)

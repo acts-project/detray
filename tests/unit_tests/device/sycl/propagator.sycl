@@ -47,10 +47,10 @@ TEST_P(SyclPropConstBFieldMng, propagator) {
 
     // Create the toy geometry
     toy_cfg.bfield_vec(B);
-    auto det = create_toy_geometry<const_bfield_bknd_t, host_container_types>(
+    auto det = create_toy_geometry<const_backend_t, host_container_types>(
         shared_mr, toy_cfg);
 
-    run_propagation_test<const_bfield_bknd_t>(&shared_mr, &q, det,
+    run_propagation_test<const_backend_t>(&shared_mr, &q, det,
                                               detray::get_data(det));
 }
 
@@ -75,12 +75,12 @@ TEST_P(SyclPropConstBFieldCpy, propagator) {
 
     // Create the toy geometry
     toy_cfg.bfield_vec(B);
-    auto det = create_toy_geometry<const_bfield_bknd_t, host_container_types>(
+    auto det = create_toy_geometry<const_backend_t, host_container_types>(
         host_mr, toy_cfg);
 
     auto det_buff = detray::get_buffer(det, dev_mr, sycl_cpy);
 
-    run_propagation_test<const_bfield_bknd_t>(&mng_mr, &q, det,
+    run_propagation_test<const_backend_t>(&mng_mr, &q, det,
                                               detray::get_data(det_buff));
 }
 
@@ -139,7 +139,7 @@ INSTANTIATE_TEST_SUITE_P(SyclPropagatorValidation8, SyclPropConstBFieldCpy,
     auto det = create_toy_geometry<inhom_bfield_bknd_t, host_container_types>(
         shared_mr, toy_cfg);
 
-    run_propagation_test<const_bfield_bknd_t>(&shared_mr, &q, det,
+    run_propagation_test<const_backend_t>(&shared_mr, &q, det,
 detray::get_data(det));
 }
 
@@ -163,6 +163,6 @@ TEST(SyclPropagatorValidation10, inhomogeneous_bfield_cpy) {
 
     auto det_buff = detray::get_buffer(det, dev_mr, sycl_cpy);
 
-    run_propagation_test<const_bfield_bknd_t>(&mng_mr, &q, det,
+    run_propagation_test<const_backend_t>(&mng_mr, &q, det,
 detray::get_data(det_buff));
 }*/

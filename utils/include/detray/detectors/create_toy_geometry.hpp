@@ -969,20 +969,15 @@ inline void add_barrel_detector(
 /// @param n_edc_layers number of pixel endcap discs to build (max 7)
 ///
 /// @returns a complete detector object
-template <typename bfield_bknd_t =
-              covfie::backend::constant<covfie::vector::vector_d<scalar, 3>,
-                                        covfie::vector::vector_d<scalar, 3>>>
+template <typename bfield_bknd_t = const_backend_t>
 inline auto create_toy_geometry(vecmem::memory_resource &resource,
                                           const toy_det_config &cfg = {}) {
 
     // detector type
     using detector_t =
-        detector<detector_registry::template toy_detector<bfield_bknd_t>,
-                 covfie::field, host_container_types>;
+        detector<detector_registry::toy_detector,
+                 covfie::field<bfield_bknd_t>, host_container_types>;
 
-    using const_bfield_bknd_t =
-        covfie::backend::constant<covfie::vector::vector_d<scalar, 3>,
-                                  covfie::vector::vector_d<scalar, 3>>;
     /// Leaving world
     using nav_link_t = typename detector_t::surface_type::navigation_link;
     constexpr auto leaving_world{detail::invalid_value<nav_link_t>()};
@@ -1087,10 +1082,10 @@ inline auto create_toy_geometry(vecmem::memory_resource &resource,
     detector_t det(resource);
 
     // Constant b-field: 2T in z-direction as default
-    if constexpr (std::is_same_v<bfield_bknd_t, const_bfield_bknd_t>) {
+    if constexpr (std::is_same_v<bfield_bknd_t, const_backend_t>) {
         const vector3 &B = cfg.bfield_vec();
         auto bfield = covfie::field<bfield_bknd_t>(covfie::make_parameter_pack(
-            const_bfield_bknd_t::configuration_t{B[0], B[1], B[2]}));
+            const_backend_t::configuration_t{B[0], B[1], B[2]}));
         det.set_bfield(std::move(bfield));
     }
     // Read b-field map from file

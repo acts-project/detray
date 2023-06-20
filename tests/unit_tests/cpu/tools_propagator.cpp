@@ -210,8 +210,8 @@ TEST_P(PropagatorWithRkStepper, rk4_propagator_const_bfield) {
 
     // Toy detector
     using detector_t =
-        detector<detector_registry::template toy_detector<bfield_bknd_t>,
-                 covfie::field>;
+        detector<detector_registry::toy_detector,
+                 covfie::field<bfield_bknd_t>>;
 
     // Runge-Kutta propagation
     using navigator_t = navigator<detector_t /*, navigation::print_inspector*/>;
@@ -315,8 +315,8 @@ TEST_P(PropagatorWithRkStepper, rk4_propagator_inhom_bfield) {
 
     // Toy detector
     using detector_t =
-        detector<detector_registry::template toy_detector<bfield_bknd_t>,
-                 covfie::field>;
+        detector<detector_registry::toy_detector,
+                 covfie::field<bfield_bknd_t>>;
 
     // Runge-Kutta propagation
     using navigator_t = navigator<detector_t /*, navigation::print_inspector*/>;
