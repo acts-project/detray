@@ -49,14 +49,14 @@ using inhom_bfield_bknd_t = covfie::backend::affine<
 // Host detector type
 template <typename bfield_bknd_t>
 using detector_host_t =
-    detector<detector_registry::toy_detector,
-             covfie::field<bfield_bknd_t>, host_container_types>;
+    detector<detector_registry::toy_detector, covfie::field<bfield_bknd_t>,
+             host_container_types>;
 
 // Device detector type using views
 template <typename bfield_bknd_t>
 using detector_device_t =
-    detector<detector_registry::toy_detector,
-             covfie::field_view<bfield_bknd_t>, device_container_types>;
+    detector<detector_registry::toy_detector, covfie::field_view<bfield_bknd_t>,
+             device_container_types>;
 
 // These types are identical in host and device code for all bfield types
 using transform3 = typename detector_host_t<const_backend_t>::transform3;

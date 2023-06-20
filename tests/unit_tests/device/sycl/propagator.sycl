@@ -51,7 +51,7 @@ TEST_P(SyclPropConstBFieldMng, propagator) {
         shared_mr, toy_cfg);
 
     run_propagation_test<const_backend_t>(&shared_mr, &q, det,
-                                              detray::get_data(det));
+                                          detray::get_data(det));
 }
 
 class SyclPropConstBFieldCpy : public ::testing::TestWithParam<vector3_t> {};
@@ -81,7 +81,7 @@ TEST_P(SyclPropConstBFieldCpy, propagator) {
     auto det_buff = detray::get_buffer(det, dev_mr, sycl_cpy);
 
     run_propagation_test<const_backend_t>(&mng_mr, &q, det,
-                                              detray::get_data(det_buff));
+                                          detray::get_data(det_buff));
 }
 
 INSTANTIATE_TEST_SUITE_P(SyclPropagatorValidation1, SyclPropConstBFieldMng,

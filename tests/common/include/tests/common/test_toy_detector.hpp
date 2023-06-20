@@ -79,11 +79,9 @@ struct surface_grid_tester {
 };
 
 inline bool test_toy_detector(
-    const detector<detector_registry::toy_detector>&
-        toy_det) {
+    const detector<detector_registry::toy_detector>& toy_det) {
 
-    using detector_t =
-        detector<detector_registry::toy_detector>;
+    using detector_t = detector<detector_registry::toy_detector>;
     using geo_obj_ids = typename detector_t::geo_obj_ids;
     using volume_t = typename detector_t::volume_type;
     using nav_link_t = typename detector_t::surface_type::navigation_link;

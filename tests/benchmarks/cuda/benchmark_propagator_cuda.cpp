@@ -50,8 +50,7 @@ static void BM_PROPAGATOR_CPU(benchmark::State &state) {
 
     // Create the toy geometry
     detector_host_type det =
-        create_toy_geometry<field_type::backend_t>(
-            host_mr, toy_cfg);
+        create_toy_geometry<field_type::backend_t>(host_mr, toy_cfg);
 
     // Create RK stepper
     rk_stepper_type s;
@@ -109,8 +108,7 @@ static void BM_PROPAGATOR_CUDA(benchmark::State &state) {
 
     // Create the toy geometry
     detector_host_type det =
-        create_toy_geometry<field_type::backend_t>(
-            bp_mng_mr, toy_cfg);
+        create_toy_geometry<field_type::backend_t>(bp_mng_mr, toy_cfg);
 
     // Get detector data
     auto det_data = get_data(det);

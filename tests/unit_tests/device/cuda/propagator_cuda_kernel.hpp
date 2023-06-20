@@ -20,8 +20,8 @@ namespace detray {
 
 using inhom_bfield_bknd_cuda_t = covfie::backend::affine<
     covfie::backend::nearest_neighbour<covfie::backend::strided<
-        covfie::vector::ulong3,
-        covfie::backend::cuda_device_array<covfie::vector::vector_d<scalar, 3>>>>>;
+        covfie::vector::ulong3, covfie::backend::cuda_device_array<
+                                    covfie::vector::vector_d<scalar, 3>>>>>;
 
 /// Launch the propagation test kernel
 template <typename detector_t, typename backend_t>
@@ -75,8 +75,8 @@ inline auto run_propagation_device(
 
     // Run the propagator test for GPU device
     propagator_test(det_view, tracks_data, candidates_buffer,
-                                   path_lengths_buffer, positions_buffer,
-                                   jac_transports_buffer);
+                    path_lengths_buffer, positions_buffer,
+                    jac_transports_buffer);
 
     vecmem::jagged_vector<scalar> device_path_lengths(mr);
     vecmem::jagged_vector<vector3_t> device_positions(mr);
@@ -107,8 +107,8 @@ inline auto run_propagation_test(
 
     // Device propagation (device backend specific implementation)
     auto &&[device_path_lengths, device_positions, device_jac_transports] =
-        run_propagation_device<detector_t, bfield_bknd_t>(mr, det, det_view, tracks_device,
-                                              host_positions);
+        run_propagation_device<detector_t, bfield_bknd_t>(
+            mr, det, det_view, tracks_device, host_positions);
 
     // Check the results
     compare_propagation_results(host_positions, device_positions,

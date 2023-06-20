@@ -94,19 +94,27 @@ void propagator_test(
 }
 
 /// Explicit instantiation for a constant magnetic field
-template void propagator_test<detector_host_t<const_backend_t>, const_backend_t>(
-    detector_view<covfie::field<const_backend_t>, detector_host_t<const_backend_t>> det_view,
+template void
+propagator_test<detector_host_t<const_backend_t>, const_backend_t>(
+    detector_view<covfie::field<const_backend_t>,
+                  detector_host_t<const_backend_t>>
+        det_view,
     vecmem::data::vector_view<track_t>&,
-    vecmem::data::jagged_vector_view<intersection_t<detector_host_t<const_backend_t>>>&,
+    vecmem::data::jagged_vector_view<
+        intersection_t<detector_host_t<const_backend_t>>>&,
     vecmem::data::jagged_vector_view<scalar>&,
     vecmem::data::jagged_vector_view<vector3_t>&,
     vecmem::data::jagged_vector_view<free_matrix>&);
 
 /// Explicit instantiation for an inhomogeneous magnetic field
-template void propagator_test<detector_host_t<inhom_bfield_bknd_t>, inhom_bfield_bknd_cuda_t>(
-    detector_view<covfie::field<inhom_bfield_bknd_cuda_t>, detector_host_t<inhom_bfield_bknd_t>> det_view,
+template void
+propagator_test<detector_host_t<inhom_bfield_bknd_t>, inhom_bfield_bknd_cuda_t>(
+    detector_view<covfie::field<inhom_bfield_bknd_cuda_t>,
+                  detector_host_t<inhom_bfield_bknd_t>>
+        det_view,
     vecmem::data::vector_view<track_t>&,
-    vecmem::data::jagged_vector_view<intersection_t<detector_host_t<inhom_bfield_bknd_t>>>&,
+    vecmem::data::jagged_vector_view<
+        intersection_t<detector_host_t<inhom_bfield_bknd_t>>>&,
     vecmem::data::jagged_vector_view<scalar>&,
     vecmem::data::jagged_vector_view<vector3_t>&,
     vecmem::data::jagged_vector_view<free_matrix>&);

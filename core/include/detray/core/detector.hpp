@@ -24,8 +24,8 @@
 #include <vecmem/memory/memory_resource.hpp>
 
 // Covfie include(s)
-#include <covfie/core/field.hpp>
 #include <covfie/core/backend/primitive/constant.hpp>
+#include <covfie/core/field.hpp>
 #include <covfie/core/vector.hpp>
 
 // System include(s)
@@ -41,8 +41,9 @@ template <typename bfield_t, typename detector_t>
 struct detector_view;
 
 /// Global definition of covfie backend for const bfield
-using const_backend_t = covfie::backend::constant<covfie::vector::vector_d<scalar, 3>,
-                                  covfie::vector::vector_d<scalar, 3>>;
+using const_backend_t =
+    covfie::backend::constant<covfie::vector::vector_d<scalar, 3>,
+                              covfie::vector::vector_d<scalar, 3>>;
 
 /// @brief The detector definition.
 ///
@@ -136,8 +137,7 @@ class detector {
         typename metadata::template volume_finder<container_t>;
 
     using this_t = detector<metadata, bfield_t, container_t>;
-    using detector_view_type =
-        detector_view<bfield_t, this_t>;
+    using detector_view_type = detector_view<bfield_t, this_t>;
 
     using free_vector_type =
         typename free_track_parameters<transform3>::vector_type;
@@ -146,11 +146,11 @@ class detector {
 
     /// Detector view types
     using view_t = dmulti_view<dvector_view<volume_type>,
-                                  typename transform_container::view_type,
-                                  typename mask_container::view_type,
-                                  typename material_container::view_type,
-                                  typename surface_container::view_type,
-                                  typename volume_finder::view_type>;
+                               typename transform_container::view_type,
+                               typename mask_container::view_type,
+                               typename material_container::view_type,
+                               typename surface_container::view_type,
+                               typename volume_finder::view_type>;
 
     using const_view_t =
         dmulti_view<dvector_view<const volume_type>,
@@ -162,11 +162,11 @@ class detector {
 
     /// Detector buffer types
     using buffer_t = dmulti_buffer<dvector_buffer<volume_type>,
-                                      typename transform_container::buffer_type,
-                                      typename mask_container::buffer_type,
-                                      typename material_container::buffer_type,
-                                      typename surface_container::buffer_type,
-                                      typename volume_finder::buffer_type>;
+                                   typename transform_container::buffer_type,
+                                   typename mask_container::buffer_type,
+                                   typename material_container::buffer_type,
+                                   typename surface_container::buffer_type,
+                                   typename volume_finder::buffer_type>;
 
     detector() = delete;
     // The detector holds a lot of data and should never be copied
@@ -698,8 +698,8 @@ inline detector_view<typename detector_t::bfield_type, detector_t> get_data(
 /// @param detector the detector to be tranferred
 template <typename bfield_t, typename detector_t>
 inline detector_buffer<bfield_t, detector_t> get_buffer(
-    detector_t &det, vecmem::memory_resource &mr,
-    vecmem::copy &cpy, detray::copy cpy_type = detray::copy::sync,
+    detector_t &det, vecmem::memory_resource &mr, vecmem::copy &cpy,
+    detray::copy cpy_type = detray::copy::sync,
     vecmem::data::buffer_type buff_type =
         vecmem::data::buffer_type::fixed_size) {
     return {det, mr, cpy, cpy_type, buff_type};

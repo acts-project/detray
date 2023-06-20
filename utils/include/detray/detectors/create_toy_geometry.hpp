@@ -281,11 +281,11 @@ template <typename context_t, typename volume_type,
           typename material_container_t, typename transform_container_t,
           typename config_t>
 inline void create_barrel_modules(context_t &ctx, volume_type &vol,
-                                            surface_container_t &surfaces,
-                                            mask_container_t &masks,
-                                            material_container_t &materials,
-                                            transform_container_t &transforms,
-                                            config_t cfg) {
+                                  surface_container_t &surfaces,
+                                  mask_container_t &masks,
+                                  material_container_t &materials,
+                                  transform_container_t &transforms,
+                                  config_t cfg) {
     using surface_type = typename surface_container_t::value_type;
     using nav_link_t = typename surface_type::navigation_link;
     using mask_id = typename surface_type::mask_id;
@@ -503,11 +503,11 @@ template <typename context_t, typename volume_type,
           typename material_container_t, typename transform_container_t,
           typename config_t>
 inline void create_endcap_modules(context_t &ctx, volume_type &vol,
-                                            surface_container_t &surfaces,
-                                            mask_container_t &masks,
-                                            material_container_t &materials,
-                                            transform_container_t &transforms,
-                                            config_t cfg) {
+                                  surface_container_t &surfaces,
+                                  mask_container_t &masks,
+                                  material_container_t &materials,
+                                  transform_container_t &transforms,
+                                  config_t cfg) {
     using surface_type = typename surface_container_t::value_type;
     using nav_link_t = typename surface_type::navigation_link;
     using mask_id = typename surface_type::mask_id;
@@ -971,12 +971,12 @@ inline void add_barrel_detector(
 /// @returns a complete detector object
 template <typename bfield_bknd_t = const_backend_t>
 inline auto create_toy_geometry(vecmem::memory_resource &resource,
-                                          const toy_det_config &cfg = {}) {
+                                const toy_det_config &cfg = {}) {
 
     // detector type
     using detector_t =
-        detector<detector_registry::toy_detector,
-                 covfie::field<bfield_bknd_t>, host_container_types>;
+        detector<detector_registry::toy_detector, covfie::field<bfield_bknd_t>,
+                 host_container_types>;
 
     /// Leaving world
     using nav_link_t = typename detector_t::surface_type::navigation_link;
