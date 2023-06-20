@@ -8,6 +8,7 @@
 #pragma once
 
 // Project include(s).
+#include "detray/geometry/detector_volume.hpp"
 #include "detray/tools/bin_association.hpp"
 #include "detray/tools/bin_fillers.hpp"
 #include "detray/tools/grid_factory.hpp"
@@ -64,14 +65,15 @@ class grid_builder final : public volume_decorator<detector_t> {
 
     /// Fill grid from externally provided surfaces - temporary solution until
     /// the volume builders can be deployed in the toy detector
-    template <typename surface_container_t, typename transform_container_t,
-              typename mask_container_t, typename... Args>
+    template <typename volume_type, typename surface_container_t,
+              typename transform_container_t, typename mask_container_t,
+              typename... Args>
     DETRAY_HOST void fill_grid(
-        const surface_container_t &surfaces,
+        const volume_type &vol, const surface_container_t &surfaces,
         const transform_container_t &transforms, const mask_container_t &masks,
         const typename detector_t::geometry_context ctx = {},
         const bin_filler_t bin_filler = {}, Args &&... args) {
-        bin_filler(m_grid, surfaces, transforms, masks, ctx, args...);
+        bin_filler(m_grid, vol, surfaces, transforms, masks, ctx, args...);
     }
 
     /// Overwrite, to add the sensitives to the grid, instead of the surface vec
@@ -104,7 +106,8 @@ class grid_builder final : public volume_decorator<detector_t> {
         // Add the surfaces (portals and/or passives) that are owned by the vol
         typename detector_t::volume_type *vol_ptr =
             volume_decorator<detector_t>::build(det, ctx);
-        m_bin_filler(m_grid, m_surfaces, m_transforms, m_masks, ctx);
+        m_bin_filler(m_grid, detector_volume{det, *vol_ptr}, m_surfaces,
+                     m_transforms, m_masks, ctx);
 
         // Add the surfaces that were filled into the grid directly to the
         // detector and update their links

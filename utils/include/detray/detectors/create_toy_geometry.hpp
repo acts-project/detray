@@ -12,6 +12,7 @@
 #include "detray/definitions/math.hpp"
 #include "detray/definitions/units.hpp"
 #include "detray/detectors/detector_metadata.hpp"
+#include "detray/geometry/detector_volume.hpp"
 #include "detray/materials/predefined_materials.hpp"
 #include "detray/tools/volume_builder.hpp"
 
@@ -196,6 +197,12 @@ void create_cyl_volume(detector_t &det, vecmem::memory_resource &resource,
     cyl_volume.template set_link<object_id::e_sensitive>(
         detector_t::sf_finders::id::e_default, detail::invalid_value<dindex>());
 
+    // volume placement
+    cyl_volume.set_transform(det.transform_store().size());
+    // translation of the cylinder
+    point3 t{0.f, 0.f, 0.5f * (upper_z + lower_z)};
+    det.transform_store().emplace_back(ctx, t);
+
     // negative and positive, inner and outer portal surface
     add_cylinder_surface(cyl_volume.index(), ctx, surfaces, masks, materials,
                          transforms, inner_r, lower_z, upper_z, volume_links[0],
@@ -358,30 +365,28 @@ inline void add_cylinder_grid(const typename detector_t::geometry_context &ctx,
     typename detector_t::transform_container transforms(resource);
     module_factory(ctx, vol, surfaces, masks, materials, transforms);
 
-    // Add new grid to the detector
-    gbuilder.init_grid(cyl_mask, {cfg.m_binning.first, cfg.m_binning.second});
-    gbuilder.fill_grid(surfaces, transforms, masks, ctx);
-    assert(gbuilder.get().all().size() == surfaces.size());
-
-    // Iterate the surfaces in the grid and update their links
+    // Iterate the surfaces and update their links
     const auto trf_offset{det.transform_store().size(ctx)};
-    for (auto &sf : gbuilder.get().all()) {
+    auto sf_offset{det.n_surfaces()};
+    for (auto &sf : surfaces) {
         // Make sure the volume was constructed correctly
-        assert(sf.volume() < 50);
+        assert(sf.volume() < det.volumes().size());
         // Update the surface links accroding to number of data in detector
         det.mask_store().template visit<detail::mask_index_update>(sf.mask(),
                                                                    sf);
         det.material_store().template visit<detail::material_index_update>(
             sf.material(), sf);
         sf.update_transform(trf_offset);
-        // This gets the surfaces sorted into the surface lookup roughly the
-        // same way as before the grids were added
-        // @TODO: Allow for spatial sorting of transforms/surfaces
-        sf.set_index(sf.transform());
-
+        sf.set_index(sf_offset++);
         // Copy surface descriptor into global lookup
         det.add_surface_to_lookup(sf);
     }
+
+    // Add new grid to the detector
+    gbuilder.init_grid(cyl_mask, {cfg.m_binning.first, cfg.m_binning.second});
+    gbuilder.fill_grid(detector_volume{det, vol}, surfaces, transforms, masks,
+                       ctx);
+    assert(gbuilder.get().all().size() == surfaces.size());
 
     // Add transforms, masks and material to detector
     det.append_masks(std::move(masks));
@@ -436,27 +441,29 @@ inline void add_disc_grid(const typename detector_t::geometry_context &ctx,
     typename detector_t::transform_container transforms(resource);
     module_factory(ctx, vol, surfaces, masks, materials, transforms);
 
-    // Add new grid to the detector
-    gbuilder.init_grid(disc_mask,
-                       {cfg.disc_binning.size(), cfg.disc_binning.front()});
-    gbuilder.fill_grid(surfaces, transforms, masks, ctx);
-    assert(gbuilder.get().all().size() == surfaces.size());
-
-    // Iterate the surfaces in the grid and update their links
+    // Iterate the surfaces and update their links
     const auto trf_offset{det.transform_store().size(ctx)};
-    for (auto &sf : gbuilder.get().all()) {
+    auto sf_offset{det.n_surfaces()};
+    for (auto &sf : surfaces) {
         // Make sure the volume was constructed correctly
-        assert(sf.volume() < 50);
+        assert(sf.volume() < det.volumes().size());
         // Update the surface links accroding to number of data in detector
         det.mask_store().template visit<detail::mask_index_update>(sf.mask(),
                                                                    sf);
         det.material_store().template visit<detail::material_index_update>(
             sf.material(), sf);
         sf.update_transform(trf_offset);
-        sf.set_index(sf.transform());
+        sf.set_index(sf_offset++);
         // Copy surface descriptor into global lookup
         det.add_surface_to_lookup(sf);
     }
+
+    // Add new grid to the detector
+    gbuilder.init_grid(disc_mask,
+                       {cfg.disc_binning.size(), cfg.disc_binning.front()});
+    gbuilder.fill_grid(detector_volume{det, vol}, surfaces, transforms, masks,
+                       ctx);
+    assert(gbuilder.get().all().size() == surfaces.size());
 
     // Add transforms, masks and material to detector
     det.append_masks(std::move(masks));
@@ -672,6 +679,8 @@ inline void add_beampipe(
     typename detector_t::transform_container transforms(resource);
 
     auto &beampipe = det.new_volume(volume_id::e_cylinder);
+    beampipe.set_transform(det.transform_store().size());
+    det.transform_store().emplace_back(ctx);
 
     const auto beampipe_idx = beampipe.index();
     beampipe.template set_link<object_id::e_portal>(
@@ -783,6 +792,10 @@ inline void add_endcap_barrel_connection(
                                          {detector_t::sf_finders::id::e_default,
                                           detail::invalid_value<dindex>()});
     dindex connector_gap_idx{det.volumes().back().index()};
+    connector_gap.set_transform(det.transform_store().size());
+    // translation of the connector gap
+    point3 t{0.f, 0.f, 0.5f * (max_z + min_z)};
+    det.transform_store().emplace_back(ctx, t);
 
     dindex volume_link{beampipe_idx};
     add_cylinder_surface(connector_gap_idx, ctx, surfaces, masks, materials,
@@ -836,7 +849,6 @@ void add_endcap_detector(
     dindex beampipe_idx,
     const std::vector<std::pair<scalar, scalar>> &lay_sizes,
     const std::vector<scalar> &lay_positions, config_t cfg) {
-
     using nav_link_t = typename detector_t::surface_type::navigation_link;
     constexpr auto leaving_world{detail::invalid_value<nav_link_t>()};
 

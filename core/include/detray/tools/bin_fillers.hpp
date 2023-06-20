@@ -35,11 +35,11 @@ struct fill_by_bin {
         typename grid_t::value_type single_element;
     };
 
-    template <typename grid_t, typename surface_container,
+    template <typename grid_t, typename volume_t, typename surface_container,
               typename mask_container, typename transform_container,
-              typename context_t>
-    DETRAY_HOST auto operator()(grid_t &grid, const surface_container &,
-                                const transform_container &,
+              typename context_t, typename... Args>
+    DETRAY_HOST auto operator()(grid_t &grid, const volume_t &,
+                                const surface_container &,
                                 const mask_container &, const context_t,
                                 std::vector<bin_data<grid_t>> &bins) const
         -> void {
@@ -57,24 +57,24 @@ struct fill_by_bin {
 /// @param ctx the geometry context
 struct fill_by_pos {
 
-    template <typename grid_t, typename surface_container,
+    template <typename grid_t, typename volume_t, typename surface_container,
               typename mask_container, typename transform_container,
               typename context_t, typename... Args>
-    DETRAY_HOST auto operator()(grid_t &grid, const surface_container &surfaces,
+    DETRAY_HOST auto operator()(grid_t &grid, const volume_t &vol,
+                                const surface_container &surfaces,
                                 const transform_container &transforms,
                                 const mask_container & /*masks*/,
                                 const context_t ctx, Args &&...) const -> void {
 
         // Fill the volumes surfaces into the grid
-        for (const auto &sf : surfaces) {
+        for (const auto [idx, sf] : detray::views::enumerate(surfaces)) {
             // no portals in grids allowed
             assert(not sf.is_portal());
 
-            const auto &sf_trf = transforms.at(sf.transform(), ctx);
+            const auto &sf_trf = transforms.at(idx, ctx);
             const auto &t = sf_trf.translation();
             // transform to axis coordinate system
-            const auto loc_pos = grid.global_to_local(
-                typename transform_container::value_type{}, t, t);
+            const auto loc_pos = grid.global_to_local(vol.transform(), t, t);
 
             // Populate
             grid.populate(loc_pos, sf);
@@ -100,10 +100,11 @@ struct bin_associator {
                          det.transform_store(), ctx);
     }
 
-    template <typename grid_t, typename surface_container,
+    template <typename grid_t, typename volume_t, typename surface_container,
               typename mask_container, typename transform_container,
               typename context_t, typename... Args>
-    DETRAY_HOST auto operator()(grid_t &grid, const surface_container &surfaces,
+    DETRAY_HOST auto operator()(grid_t &grid, const volume_t &,
+                                const surface_container &surfaces,
                                 const transform_container &transforms,
                                 const mask_container &masks,
                                 const context_t ctx, Args &&...) const -> void {

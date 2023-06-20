@@ -296,12 +296,10 @@ GTEST_TEST(detray_tools, decorator_grid_builder) {
         d.surface_store()
             .template get<
                 test_detector_t::sf_finders::id::e_cylinder_grid>()[0];
-    dindex trf_idx{3u};
-    for (dindex gbin = 0u; gbin < cyl_grid.nbins(); ++gbin) {
-        for (auto& sf : cyl_grid.bin(gbin)) {
-            EXPECT_TRUE(sf.is_sensitive());
-            EXPECT_EQ(sf.volume(), 0u);
-            EXPECT_EQ(sf.transform(), trf_idx++);
-        }
+    dindex trf_idx{4u};
+    for (const auto& sf : cyl_grid.all()) {
+        EXPECT_TRUE(sf.is_sensitive());
+        EXPECT_EQ(sf.volume(), 0u);
+        EXPECT_EQ(sf.transform(), trf_idx++);
     }
 }
