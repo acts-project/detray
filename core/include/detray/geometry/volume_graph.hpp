@@ -9,10 +9,12 @@
 
 // Project include(s)
 #include "detray/definitions/indexing.hpp"
+#include "detray/geometry/detector_volume.hpp"
 #include "detray/utils/ranges.hpp"
 #include "detray/utils/type_traits.hpp"
 
 // System include(s)
+#include <algorithm>
 #include <cmath>
 #include <cstddef>
 #include <iterator>
@@ -66,36 +68,38 @@ class volume_graph {
     struct node_generator
         : public detray::ranges::view_interface<node_generator> {
 
-        /// A node in the graph has an index (volume index) and a collction of
+        /// A functor to retrieve the half-edges of a node
+        struct node_builder {
+            inline void operator()(
+                const typename detector_t::surface_type &sf,
+                vector_t<typename detector_t::surface_type::mask_link>
+                    &half_edges) const {
+                half_edges.push_back(sf.mask());
+            }
+        };
+
+        /// A node in the graph has an index (volume index) and a collection of
         /// edges that belong to it (mask link of every surface in the volume).
         /// One mask link is a half edge in the graph.
         struct node {
 
             /// Constructor from a detectors volume and surface collections
-            node(const typename detector_t::volume_type &volume,
-                 const surface_container_t &surfaces)
-                : _idx(volume.index()) {
-                dindex coll_idx{
-                    volume.template link<geo_obj_ids::e_portal>().index()};
-
-                const auto sf_finder = surfaces.template get<
-                    detector_t::sf_finders::id::e_brute_force>()[coll_idx];
-
-                for (const auto &sf : sf_finder.all()) {
-                    _half_edges.push_back(sf.mask());
-                }
+            node(const detector_volume<detector_t> &volume)
+                : m_idx(volume.index()) {
+                // @TODO: Remove duplicates from multiple placements of surfaces
+                volume.template visit_surfaces<node_builder>(m_half_edges);
             }
 
             /// @returns volume index of the node
-            dindex index() const { return _idx; }
+            dindex index() const { return m_idx; }
 
             /// @returns edges of the node
-            const auto &half_edges() const { return _half_edges; }
+            const auto &half_edges() const { return m_half_edges; }
 
             /// Node(volume) index
-            dindex _idx;
+            dindex m_idx;
             /// Vector of half edges towards other volumes
-            vector_t<typename detector_t::surface_type::mask_link> _half_edges;
+            vector_t<typename detector_t::surface_type::mask_link> m_half_edges;
         };
 
         /// @brief Iterator over the graph nodes.
@@ -113,15 +117,17 @@ class volume_graph {
             using iterator_category =
                 typename std::iterator_traits<volume_iter>::iterator_category;
 
+            /// No default construction because of reference member
+            iterator() = delete;
+
             /// Constructor from an iterator on the detector volume container
             /// and a reference to its surface container.
-            iterator(volume_iter &&vol_itr, const surface_container_t &surfaces)
-                : _vol_itr(vol_itr), _surfaces(surfaces) {}
+            iterator(volume_iter &&vol_itr, const detector_t &det)
+                : m_vol_itr(vol_itr), m_det(det) {}
 
             /// Equality operator
             bool operator==(const iterator &rhs) const {
-                return _vol_itr == rhs._vol_itr and
-                       &_surfaces == &rhs._surfaces;
+                return m_vol_itr == rhs.m_vol_itr;
             }
 
             /// Inequality operator
@@ -130,24 +136,24 @@ class volume_graph {
             }
 
             /// Dereference operator @returns a graph node
-            node operator*() { return node(*_vol_itr, _surfaces); }
+            node operator*() { return node(m_det.volume(*m_vol_itr)); }
 
             /// Prefix increment. No postfix increment implemented
             iterator &operator++() {
-                ++_vol_itr;
+                ++m_vol_itr;
                 return *this;
             }
 
             /// Prefix decrement. No postfix decrement implemented
             iterator &operator--() {
-                --_vol_itr;
+                --m_vol_itr;
                 return *this;
             }
 
             /// @returns an iterator that has been advanced by @param j
             constexpr auto operator+(const difference_type j) const
                 -> iterator {
-                return {_vol_itr + j, _surfaces};
+                return {m_vol_itr + j, m_det};
             }
 
             /// @returns an iterator that has been advanced by - @param j
@@ -159,12 +165,12 @@ class volume_graph {
             /// @returns distance between two iterators
             constexpr auto operator-(const iterator &other) const
                 -> difference_type {
-                return _vol_itr - other._vol_itr;
+                return m_vol_itr - other.m_vol_itr;
             }
 
             /// Advances iterator by @param j
             constexpr auto operator+=(const difference_type j) -> iterator & {
-                _vol_itr += j;
+                m_vol_itr += j;
                 return *this;
             }
 
@@ -173,10 +179,10 @@ class volume_graph {
                 return *this += -j;
             }
 
-            /// Iterator over the detector volume container
-            volume_iter _vol_itr;
-            /// Detector surfaces
-            const surface_container_t &_surfaces;
+            /// Iterator over the detector volume container.
+            volume_iter m_vol_itr;
+            /// Access to detector surfaces
+            const detector_t &m_det;
         };
 
         /// Node iterator type
@@ -186,21 +192,20 @@ class volume_graph {
         node_generator() = delete;
 
         /// Constructor from a detector containers
-        node_generator(const volume_container_t &volumes,
-                       const surface_container_t &surfaces)
-            : _volumes(volumes), _surfaces(surfaces) {}
+        node_generator(const volume_container_t &volumes, const detector_t &det)
+            : m_volumes(volumes), m_det(det) {}
 
         /// @returns beginning of collection
-        iterator begin() const { return iterator(_volumes.begin(), _surfaces); }
+        iterator begin() const { return iterator(m_volumes.begin(), m_det); }
 
         /// @returns end of collection
-        iterator end() const { return iterator(_volumes.end(), _surfaces); }
+        iterator end() const { return iterator(m_volumes.end(), m_det); }
 
         /// @returns the number of nodes
-        dindex size() const { return static_cast<dindex>(_volumes.size()); }
+        dindex size() const { return static_cast<dindex>(m_volumes.size()); }
 
-        const volume_container_t &_volumes;
-        const surface_container_t &_surfaces;
+        const volume_container_t &m_volumes;
+        const detector_t &m_det;
     };
 
     /// @brief Builds graph edges from the detector mask collection on the fly.
@@ -230,8 +235,6 @@ class volume_graph {
         /// Nested functor that fills the edges from a mask container
         struct edges_builder {
 
-            using output_type = vector_t<edge>;
-
             /// @brief Builds the collection of graph edges for a given
             /// node.
             ///
@@ -248,9 +251,9 @@ class volume_graph {
             /// @param mask_range the range of masks in the group for which
             ///                   to build edges
             template <typename mask_group_t, typename mask_range_t>
-            inline output_type operator()(const mask_group_t &mask_group,
-                                          const mask_range_t &mask_range,
-                                          const dindex volume_id) {
+            inline vector_t<edge> operator()(const mask_group_t &mask_group,
+                                             const mask_range_t &mask_range,
+                                             const dindex volume_id) {
                 vector_t<edge> edges{};
                 for (const auto &mask :
                      detray::ranges::subrange(mask_group, mask_range)) {
@@ -311,9 +314,7 @@ class volume_graph {
     /// surfaces which are needed to index the correct masks and the
     /// masks that link to volumes and become graph edges.
     volume_graph(const detector_t &det)
-        : _nodes(det.volumes(), det.surface_store()),
-          _edges(det.mask_store()),
-          _adj_matrix{0} {
+        : _nodes(det.volumes(), det), _edges(det.mask_store()), _adj_matrix{0} {
         build();
     }
 

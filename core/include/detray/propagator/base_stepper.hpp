@@ -76,7 +76,7 @@ class base_stepper {
 
             const auto &trf_store = det.transform_store();
             const auto &mask_store = det.mask_store();
-            const auto &surface = det.surfaces(bound_params.surface_link());
+            const auto &surface = det.surface(bound_params.surface_link());
 
             mask_store.template visit<
                 typename parameter_resetter<transform3_t>::kernel>(

@@ -107,8 +107,8 @@ struct print_inspector {
                 sf_cand.surface.barcode(), local);
 
             debug_stream << sf_cand;
-            debug_stream << "[glob: r:" << getter::perp(pos) << ", z:" << pos[2]
-                         << " | loc: " << local[0] << ", " << local[1] << "] ";
+            debug_stream << ", glob: [r:" << getter::perp(pos)
+                         << ", z:" << pos[2] << "]" << std::endl;
         }
         if (not state.candidates().empty()) {
             debug_stream << "=> next: ";

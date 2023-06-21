@@ -25,6 +25,7 @@ using detector_device_t = detector<detector_registry::toy_detector,
                                    covfie::field_view, device_container_types>;
 
 using mask_id = typename detector_host_t::masks::id;
+using acc_id = typename detector_host_t::sf_finders::id;
 
 /// Detector construction tutorial function (prints some detector statistics)
 void print(typename detector_host_t::detector_view_type det_data);

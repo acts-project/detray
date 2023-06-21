@@ -46,8 +46,8 @@ class populator {
 
     /// Fetch a bin entry from the grid backend storage
     template <typename serialized_storage>
-    DETRAY_HOST_DEVICE auto view(const serialized_storage &storage,
-                                 const dindex gbin) const {
+    DETRAY_HOST_DEVICE constexpr auto view(const serialized_storage &storage,
+                                           const dindex gbin) const {
         return m_populator_impl.view(storage, gbin);
     }
 

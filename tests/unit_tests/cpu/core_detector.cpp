@@ -7,6 +7,7 @@
 
 // Project include(s)
 #include "detray/core/detector.hpp"
+#include "detray/definitions/indexing.hpp"
 #include "detray/detectors/detector_metadata.hpp"
 #include "detray/materials/predefined_materials.hpp"
 #include "detray/test/types.hpp"
@@ -63,6 +64,9 @@ void prefill_detector(detector_t& d,
     surfaces.emplace_back(trfs.size(ctx) - 1, mask_link, material_link, 0u,
                           detray::dindex_invalid,
                           detray::surface_id::e_sensitive);
+    surfaces.back().set_index(
+        static_cast<detray::dindex>(surfaces.size() - 1u));
+
     /// Surface 1
     point3 t1{1.f, 0.f, 0.f};
     trfs.emplace_back(ctx, t1);
@@ -78,6 +82,8 @@ void prefill_detector(detector_t& d,
     surfaces.emplace_back(trfs.size(ctx) - 1, mask_link, material_link, 0u,
                           detray::dindex_invalid,
                           detray::surface_id::e_sensitive);
+    surfaces.back().set_index(
+        static_cast<detray::dindex>(surfaces.size() - 1u));
 
     /// Surface 2
     point3 t2{2.f, 0.f, 0.f};
@@ -94,10 +100,17 @@ void prefill_detector(detector_t& d,
     surfaces.emplace_back(trfs.size(ctx) - 1, mask_link, material_link, 0u,
                           detray::dindex_invalid,
                           detray::surface_id::e_sensitive);
+    surfaces.back().set_index(
+        static_cast<detray::dindex>(surfaces.size() - 1u));
+
+    // Add surfaces to lookup, so they can be easily fetched using a barcode
+    for (const auto sf : surfaces) {
+        d.add_surface_to_lookup(sf);
+    }
 
     // Add the new data
     d.new_volume(detray::volume_id::e_cylinder);
-    d.append_surfaces(std::move(surfaces));
+    d.append_portals(std::move(surfaces));
     d.append_transforms(std::move(trfs));
     d.append_masks(std::move(masks));
     d.append_materials(std::move(materials));
@@ -132,7 +145,7 @@ GTEST_TEST(detray_core, detector) {
     auto geo_ctx = typename detector_t::geometry_context{};
 
     EXPECT_TRUE(d.volumes().empty());
-    EXPECT_TRUE(d.surfaces().empty());
+    EXPECT_TRUE(d.portals().empty());
     EXPECT_TRUE(d.transform_store().empty());
     EXPECT_TRUE(d.mask_store().template empty<mask_id::e_rectangle2>());
     EXPECT_TRUE(d.mask_store().template empty<mask_id::e_trapezoid2>());
@@ -144,16 +157,16 @@ GTEST_TEST(detray_core, detector) {
     EXPECT_TRUE(d.material_store().template empty<material_id::e_slab>());
     EXPECT_TRUE(d.material_store().template empty<material_id::e_rod>());
     EXPECT_TRUE(d.surface_store().template empty<finder_id::e_brute_force>());
-    /*EXPECT_TRUE(d.surface_store().template empty<finder_id::e_disc_grid>());
+    EXPECT_TRUE(d.surface_store().template empty<finder_id::e_disc_grid>());
     EXPECT_TRUE(d.surface_store().template empty<finder_id::e_cylinder_grid>());
-    EXPECT_TRUE(d.surface_store().template empty<finder_id::e_default>());*/
+    EXPECT_TRUE(d.surface_store().template empty<finder_id::e_default>());
 
     // Add some geometrical data
     prefill_detector(d, geo_ctx);
     // TODO: add B-field check
 
     EXPECT_EQ(d.volumes().size(), 1u);
-    EXPECT_EQ(d.surfaces().size(), 3u);
+    EXPECT_EQ(d.portals().size(), 3u);
     EXPECT_EQ(d.transform_store().size(), 3u);
     EXPECT_EQ(d.mask_store().template size<mask_id::e_rectangle2>(), 1u);
     EXPECT_EQ(d.mask_store().template size<mask_id::e_trapezoid2>(), 1u);
@@ -165,10 +178,10 @@ GTEST_TEST(detray_core, detector) {
     EXPECT_EQ(d.material_store().template size<material_id::e_slab>(), 2u);
     EXPECT_EQ(d.material_store().template size<material_id::e_rod>(), 1u);
     EXPECT_EQ(d.surface_store().template size<finder_id::e_brute_force>(), 1u);
-    /*EXPECT_EQ(d.surface_store().template size<finder_id::e_disc_grid>(), 0u);
+    EXPECT_EQ(d.surface_store().template size<finder_id::e_disc_grid>(), 0u);
     EXPECT_EQ(d.surface_store().template size<finder_id::e_cylinder_grid>(),
               0u);
-    EXPECT_EQ(d.surface_store().template size<finder_id::e_default>(), 0u);*/
+    EXPECT_EQ(d.surface_store().template size<finder_id::e_default>(), 1u);
 }
 
 /// This tests the functionality of a surface factory
@@ -439,7 +452,7 @@ GTEST_TEST(detray_tools, detector_volume_construction) {
 
     // initial checks
     EXPECT_EQ(d.volumes().size(), 2u);
-    EXPECT_EQ(d.surfaces().size(), 3u);
+    EXPECT_EQ(d.portals().size(), 3u);
     EXPECT_EQ(vol.index(), 1u);
     EXPECT_EQ(vol.id(), volume_id::e_cylinder);
 
@@ -555,7 +568,7 @@ GTEST_TEST(detray_tools, detector_volume_construction) {
     EXPECT_EQ(vol.template link<geo_obj_id::e_passive>(),
               sf_finder_links[geo_obj_id::e_passive]);
 
-    EXPECT_EQ(d.surfaces().size(), 19u);
+    EXPECT_EQ(d.portals().size(), 19u);
     EXPECT_EQ(d.mask_store().template size<mask_id::e_portal_cylinder2>(), 2u);
     EXPECT_EQ(d.mask_store().template size<mask_id::e_portal_ring2>(), 4u);
     EXPECT_EQ(d.mask_store().template size<mask_id::e_annulus2>(), 3u);
@@ -566,20 +579,23 @@ GTEST_TEST(detray_tools, detector_volume_construction) {
 
     // check surface type and volume link
     std::vector<surface_id> sf_ids{};
-    sf_ids.reserve(d.surfaces().size());
+    sf_ids.reserve(d.n_surfaces());
     sf_ids.insert(sf_ids.end(), 3u, surface_id::e_sensitive);
     sf_ids.insert(sf_ids.end(), 4u, surface_id::e_portal);
     sf_ids.insert(sf_ids.end(), 6u, surface_id::e_sensitive);
     sf_ids.insert(sf_ids.end(), 3u, surface_id::e_passive);
     sf_ids.insert(sf_ids.end(), 3u, surface_id::e_sensitive);
+
     std::vector<dindex> volume_links{};
+    volume_links.reserve(d.n_surfaces());
     volume_links.insert(volume_links.end(), 3u, 0u);
     volume_links.insert(volume_links.end(), 16u, 1u);
-    volume_links.reserve(d.surfaces().size());
+
+    // Check surface id and volume links
     for (const auto [idx, sf_id] : detray::views::enumerate(sf_ids)) {
         geometry::barcode bcd{};
         bcd.set_index(idx);
-        const auto& sf = d.surfaces(bcd);
+        const auto& sf = d.surface(bcd);
         EXPECT_EQ(sf.id(), sf_id) << "error at index: " << idx;
         EXPECT_EQ(sf.volume(), volume_links.at(idx))
             << "error at index: " << idx;
@@ -590,8 +606,7 @@ GTEST_TEST(detray_tools, detector_volume_construction) {
          detray::views::iota(d.transform_store().size() - 1)) {
         geometry::barcode bcd{};
         bcd.set_index(idx);
-        EXPECT_EQ(d.surfaces(bcd).transform(), idx)
-            << "error at index: " << idx;
+        EXPECT_EQ(d.surface(bcd).transform(), idx) << "error at index: " << idx;
     }
 
     // check surface mask links
@@ -618,7 +633,7 @@ GTEST_TEST(detray_tools, detector_volume_construction) {
     for (const auto [idx, m_link] : detray::views::enumerate(mask_links)) {
         geometry::barcode bcd{};
         bcd.set_index(idx);
-        EXPECT_EQ(d.surfaces(bcd).mask(), m_link) << "error at index: " << idx;
+        EXPECT_EQ(d.surface(bcd).mask(), m_link) << "error at index: " << idx;
     }
 
     // check mask volume links

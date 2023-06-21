@@ -62,26 +62,23 @@ void BM_INTERSECT_ALL(benchmark::State &state) {
              uniform_track_generator<free_track_parameters<test::transform3>>(
                  theta_steps, phi_steps, pos)) {
 
-            // Loop over volumes
-            for (const auto &v : d.volumes()) {
-                // Loop over all surfaces in volume
-                for (const auto &sf : d.surfaces(v)) {
+            // Loop over all surfaces in detector
+            for (const auto &sf : d.surface_lookup()) {
 
-                    masks.template visit<intersection_initialize>(
-                        sf.mask(), intersections, detail::ray(track), sf,
-                        transforms);
+                masks.template visit<intersection_initialize>(
+                    sf.mask(), intersections, detail::ray(track), sf,
+                    transforms);
 
-                    ++n_surfaces;
-                }
-                benchmark::DoNotOptimize(hits);
-                benchmark::DoNotOptimize(missed);
-
-                hits += intersections.size();
-                missed += n_surfaces - intersections.size();
-
-                n_surfaces = 0u;
-                intersections.clear();
+                ++n_surfaces;
             }
+            benchmark::DoNotOptimize(hits);
+            benchmark::DoNotOptimize(missed);
+
+            hits += intersections.size();
+            missed += n_surfaces - intersections.size();
+
+            n_surfaces = 0u;
+            intersections.clear();
         }
     }
 

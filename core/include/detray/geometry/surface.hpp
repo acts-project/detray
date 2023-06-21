@@ -95,7 +95,7 @@ class surface {
     }
 
     /// Sets a new surface barcode
-    DETRAY_HOST_DEVICE
+    DETRAY_HOST
     auto set_barcode(const geometry::barcode bcd) -> void { m_barcode = bcd; }
 
     /// @returns the surface barcode
@@ -103,19 +103,25 @@ class surface {
     constexpr auto barcode() const -> geometry::barcode { return m_barcode; }
 
     /// Sets a new surface id (portal/passive/sensitive)
-    DETRAY_HOST_DEVICE
+    DETRAY_HOST
     auto set_id(const surface_id new_id) -> void { m_barcode.set_id(new_id); }
 
     /// @returns the surface id (sensitive, passive or portal)
     DETRAY_HOST_DEVICE
     constexpr auto id() const -> surface_id { return m_barcode.id(); }
 
+    /// Sets a new volume link (index in volume collection of detector)
+    DETRAY_HOST
+    auto set_volume(const dindex new_idx) -> void {
+        m_barcode.set_volume(new_idx);
+    }
+
     /// @returns the surface id (sensitive, passive or portal)
     DETRAY_HOST_DEVICE
     constexpr auto volume() const -> dindex { return m_barcode.volume(); }
 
     /// Sets a new surface index (index in surface collection of surface store)
-    DETRAY_HOST_DEVICE
+    DETRAY_HOST
     auto set_index(const dindex new_idx) -> void {
         m_barcode.set_index(new_idx);
     }
@@ -180,6 +186,17 @@ class surface {
     DETRAY_HOST_DEVICE
     constexpr auto is_passive() const -> bool {
         return m_barcode.id() == surface_id::e_passive;
+    }
+
+    DETRAY_HOST
+    friend std::ostream &operator<<(std::ostream &os, const surface sf) {
+        os << sf.barcode();
+        os << " | trf.: " << sf.transform();
+        os << " | mask: " << static_cast<dindex>(sf.mask().id()) << ", "
+           << sf.mask().index();
+        os << " | mat.: " << static_cast<dindex>(sf.material().id()) << ", "
+           << sf.material().index();
+        return os;
     }
 
     private:

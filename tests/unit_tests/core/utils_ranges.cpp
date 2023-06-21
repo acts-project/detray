@@ -471,6 +471,14 @@ TEST(utils, ranges_subrange) {
     for (const auto& v : detray::ranges::subrange(seq_c, interval)) {
         ASSERT_EQ(v, seq[i++]);
     }
+
+    // Check that an empty subrange does not get iterated
+    interval[0] = 0u;
+    interval[1] = 0u;
+    for (const auto& v : detray::ranges::subrange(seq_c, interval)) {
+        (void)v;
+        ASSERT_TRUE(false);
+    }
 }
 
 //

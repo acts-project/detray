@@ -31,6 +31,8 @@ class bin_base {
     using view_type = view_t<content_t>;
     using const_view_type = view_t<const content_t>;
 
+    using iterator_t = detray::ranges::iterator_t<view_type>;
+
     bin_base() = default;
 
     bin_base(const content_t &bin_content) : m_content{bin_content} {}
@@ -46,6 +48,20 @@ class bin_base {
     DETRAY_HOST_DEVICE auto view(Args &&... args) -> view_type {
         return view_type(m_content, args...);
     }
+
+    /// @returns view iterator over bin content in start position - non-const
+    DETRAY_HOST_DEVICE auto begin() { return detray::ranges::begin(view()); }
+
+    /// @returns view iterator over bin content in start position - const
+    DETRAY_HOST_DEVICE auto begin() const {
+        return detray::ranges::cbegin(view());
+    }
+
+    /// @returns view iterator over bin content in end position - non-const
+    DETRAY_HOST_DEVICE auto end() { return detray::ranges::end(view()); }
+
+    /// @returns view iterator over bin content in end position - const
+    DETRAY_HOST_DEVICE auto end() const { return detray::ranges::end(view()); }
 
     /// @returns the bin content - const
     DETRAY_HOST_DEVICE
@@ -85,7 +101,7 @@ struct replacer {
     static constexpr bool do_sort = false;
 
     template <typename content_t>
-    using bin_type = bin<content_t, detray::views::single>;
+    using bin_type = bin<content_t, detray::views::pointer>;
 
     /// Replace the bin content with a new entry - forwarding
     ///
@@ -142,6 +158,8 @@ class ranged_bin
     using view_type = detray::ranges::subrange<content_t>;
     using const_view_type = detray::ranges::subrange<const content_t>;
 
+    using iterator_t = detray::ranges::iterator_t<view_type>;
+
     ranged_bin() = default;
 
     ranged_bin(const content_t &bin_content, const dindex size)
@@ -154,6 +172,26 @@ class ranged_bin
         const typename content_t::value_type &entry) noexcept {
         this->m_content.at(n_elements) = entry;
         ++n_elements;
+    }
+
+    /// @returns view iterator over bin content in start position - non-const
+    DETRAY_HOST_DEVICE auto begin() {
+        return detray::ranges::begin(this->view(dindex_range{0u, n_elements}));
+    }
+
+    /// @returns view iterator over bin content in start position - const
+    DETRAY_HOST_DEVICE auto begin() const {
+        return detray::ranges::cbegin(this->view(dindex_range{0u, n_elements}));
+    }
+
+    /// @returns view iterator over bin content in end position - non-const
+    DETRAY_HOST_DEVICE auto end() {
+        return detray::ranges::end(this->view(dindex_range{0u, n_elements}));
+    }
+
+    /// @returns view iterator over bin content in end position - const
+    DETRAY_HOST_DEVICE auto end() const {
+        return detray::ranges::end(this->view(dindex_range{0u, n_elements}));
     }
 
     protected:
@@ -208,7 +246,7 @@ struct completer {
 
     template <typename bin_storage_t>
     DETRAY_HOST_DEVICE auto view(bin_storage_t &storage, const dindex gbin) {
-        return storage[gbin].view();
+        return storage[gbin].view(dindex_range{0u, storage[gbin].n_entries()});
     }
 
     /// @returns an initialized storage element that contains @param entry in
@@ -274,7 +312,7 @@ struct regular_attacher {
 
     template <typename bin_storage_t>
     DETRAY_HOST_DEVICE auto view(bin_storage_t &storage, const dindex gbin) {
-        return storage[gbin].view();
+        return storage[gbin].view(dindex_range{0u, storage[gbin].n_entries()});
     }
 
     /// @returns an initialized storage element that contains @param entry in

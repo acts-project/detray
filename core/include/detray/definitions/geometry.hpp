@@ -7,6 +7,9 @@
 
 #pragma once
 
+// System include(s)
+#include <cstdint>
+
 namespace detray {
 
 /// Shape of a detector volume.
@@ -16,12 +19,12 @@ namespace detray {
 /// rectangle: six rectangular portals that form a box (shape: cuboid3D).
 /// trapezoid: six trapezoid portals (shape: cuboid3D).
 /// cuboid: general cuboid form, excluding the previous ones (shape: cuboid3D).
-enum class volume_id {
-    e_cylinder = 0,
-    e_rectangle = 1,
-    e_trapezoid = 2,
-    e_cone = 3,
-    e_cuboid = 4
+enum class volume_id : std::uint_least8_t {
+    e_cylinder = 0u,
+    e_rectangle = 1u,
+    e_trapezoid = 2u,
+    e_cone = 3u,
+    e_cuboid = 4u
 };
 
 /// surface type, resolved during navigation.
@@ -29,10 +32,10 @@ enum class volume_id {
 /// sensitive: can provide measurements and have material.
 /// passive: no measurements, but can have material.
 /// portal: boundary surface between two detector volumes, can have material.
-enum class surface_id {
-    e_sensitive = 0,
-    e_portal = 1,
-    e_passive = 2,
+enum class surface_id : std::uint_least8_t {
+    e_portal = 0u,
+    e_sensitive = 1u,
+    e_passive = 2u,
 };
 
 }  // namespace detray

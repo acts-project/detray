@@ -111,8 +111,8 @@ class grid_collection<
 
     /// @returns the number of grids in the collection - const
     DETRAY_HOST_DEVICE
-    constexpr auto size() const noexcept -> std::size_t {
-        return m_offsets.size();
+    constexpr auto size() const noexcept -> dindex {
+        return static_cast<dindex>(m_offsets.size());
     }
 
     /// @returns the number of grids in the collection - const
@@ -145,18 +145,17 @@ class grid_collection<
 
     /// Create grid from container pointers - const
     DETRAY_HOST_DEVICE
-    auto operator[](const size_type i) const -> const_grid_type {
+    auto operator[](const size_type i) const -> grid_type {
         const size_type axes_offset{grid_type::Dim * i};
-        return const_grid_type(
-            &m_bins, multi_axis_t(&m_axes_data, &m_bin_edges, axes_offset),
-            m_offsets[i]);
+        return grid_type(&m_bins,
+                         multi_axis_t(&m_axes_data, &m_bin_edges, axes_offset),
+                         m_offsets[i]);
     }
 
     /// Create grid from container pointers - non-const
     DETRAY_HOST_DEVICE
     auto operator[](const size_type i) -> grid_type {
-        const unsigned int axes_offset =
-            static_cast<unsigned int>(grid_type::Dim * i);
+        const size_type axes_offset{grid_type::Dim * i};
         return grid_type(&m_bins,
                          multi_axis_t(&m_axes_data, &m_bin_edges, axes_offset),
                          m_offsets[i]);
@@ -182,7 +181,7 @@ class grid_collection<
     DETRAY_HOST constexpr auto push_back(
         const typename grid_type::template type<true> &gr) noexcept(false)
         -> void {
-        m_offsets.push_back(m_bins.size());
+        m_offsets.push_back(static_cast<size_type>(m_bins.size()));
 
         const auto *grid_bins = gr.data().bin_data();
         m_bins.insert(m_bins.end(), grid_bins->begin(), grid_bins->end());

@@ -40,7 +40,10 @@ class volume_builder_interface {
 
     /// @returns reading access to the volume
     DETRAY_HOST
-    virtual auto operator()() -> const typename detector_t::volume_type & = 0;
+    virtual auto operator()() const -> const
+        typename detector_t::volume_type & = 0;
+    DETRAY_HOST
+    virtual auto operator()() -> typename detector_t::volume_type & = 0;
 
     /// @brief Adds a volume and all of its contents to a detector
     DETRAY_HOST
@@ -93,13 +96,18 @@ class volume_decorator : public volume_builder_interface<detector_t> {
     /// Overwrite interface functions using callbacks to the volume builder
     /// @{
     DETRAY_HOST
-    void init_vol(detector_t &det, const volume_id id,
-                  const array_type<scalar_type, 6> &bounds) override {
-        m_builder->init_vol(det, id, bounds);
+    void init_vol(detector_t &det, const volume_id id) override {
+        m_builder->init_vol(det, id);
     }
 
     DETRAY_HOST
-    auto operator()() -> const typename detector_t::volume_type & override {
+    auto operator()() -> typename detector_t::volume_type & override {
+        return m_builder->operator()();
+    }
+
+    DETRAY_HOST
+    auto operator()() const -> const
+        typename detector_t::volume_type & override {
         return m_builder->operator()();
     }
 

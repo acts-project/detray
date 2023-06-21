@@ -33,6 +33,12 @@ __global__ void print_kernel(
            det.mask_store().get<mask_id::e_portal_ring2>().size());
     printf("Number of portal cylinders: %d\n",
            det.mask_store().get<mask_id::e_portal_cylinder2>().size());
+    printf("Number of portal collections: %d\n",
+           det.surface_store().get<acc_id::e_brute_force>().size());
+    printf("Number of disc grids: %d\n",
+           det.surface_store().get<acc_id::e_disc_grid>().size());
+    printf("Number of cylinder grids: %d\n",
+           det.surface_store().get<acc_id::e_cylinder_grid>().size());
 }
 
 void print(

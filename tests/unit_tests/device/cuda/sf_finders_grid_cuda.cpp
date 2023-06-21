@@ -96,7 +96,7 @@ TEST(grids_cuda, grid3_replace_populator) {
     for (unsigned int i_x = 0u; i_x < axis_x.nbins(); i_x++) {
         for (unsigned int i_y = 0u; i_y < axis_y.nbins(); i_y++) {
             for (unsigned int i_z = 0u; i_z < axis_z.nbins(); i_z++) {
-                const auto& bin = g3.at({i_x, i_y, i_z});
+                const auto& bin = g3.bin({i_x, i_y, i_z});
                 auto invalid_bin = populator<
                     host_grid3_replace::populator_impl>::init<point3>();
                 test_content(bin[0], invalid_bin.content());
@@ -113,7 +113,7 @@ TEST(grids_cuda, grid3_replace_populator) {
                 const dindex gbin_idx = g3.serializer()(
                     g3.axes(), detray::n_axis::multi_bin<3>{i_x, i_y, i_z});
 
-                const auto& bin = g3.at(gbin_idx);
+                const auto& bin = g3.bin(gbin_idx);
 
                 const detray::scalar gbin_idx_f{
                     static_cast<detray::scalar>(gbin_idx)};
@@ -159,7 +159,7 @@ TEST(grids_cuda, grid2_replace_populator_ci) {
     // pre-check
     for (unsigned int i_r = 0u; i_r < axis_r.nbins(); i_r++) {
         for (unsigned int i_phi = 0u; i_phi < axis_phi.nbins(); i_phi++) {
-            const auto& bin = g2.at({i_r, i_phi});
+            const auto& bin = g2.bin({i_r, i_phi});
             auto invalid_bin = populator<
                 host_grid2_replace_ci::populator_impl>::init<point3>();
 
@@ -175,7 +175,7 @@ TEST(grids_cuda, grid2_replace_populator_ci) {
         for (unsigned int i_phi = 0u; i_phi < axis_phi.nbins(); i_phi++) {
             const dindex gbin_idx = g2.serializer()(
                 g2.axes(), detray::n_axis::multi_bin<2>{i_r, i_phi});
-            const auto& bin = g2.at(gbin_idx);
+            const auto& bin = g2.bin(gbin_idx);
 
             const detray::scalar gbin_idx_f{
                 static_cast<detray::scalar>(gbin_idx)};
@@ -225,7 +225,7 @@ populator<host_grid2_complete::populator_impl>::init<point3>(first_tp));
     // pre-check
     for (unsigned int i_r = 0u; i_r < axis_r.nbins(); i_r++) {
         for (unsigned int i_phi = 0u; i_phi < axis_phi.nbins(); i_phi++) {
-            auto bin = g2.at({i_r, i_phi});
+            auto bin = g2.bin({i_r, i_phi});
             auto invalid_bin =
                 populator<host_grid2_complete::populator_impl>::init<point3>(first_tp);
 
@@ -241,7 +241,7 @@ populator<host_grid2_complete::populator_impl>::init<point3>(first_tp));
         for (unsigned int i_phi = 0u; i_phi < axis_phi.nbins(); i_phi++) {
             const dindex gbin_idx = g2.serializer()(
                 g2.axes(), detray::n_axis::multi_bin<2>{i_r, i_phi});
-            const auto& bin = g2.at(gbin_idx);
+            const auto& bin = g2.bin(gbin_idx);
 
             // Other point with which the bin has been completed
             const detray::scalar
@@ -301,7 +301,7 @@ constant<scalar>::pi});
     // pre-check
     for (unsigned int i_r = 0u; i_r < axis_r.nbins(); i_r++) {
         for (unsigned int i_phi = 0u; i_phi < axis_phi.nbins(); i_phi++) {
-            auto bin = g2.at({i_r, i_phi});
+            auto bin = g2.bin({i_r, i_phi});
             auto invalid_bin =
                 populator<host_grid2_complete::populator_impl>::init<point3>(first_tp);
 
@@ -317,7 +317,7 @@ constant<scalar>::pi});
         for (unsigned int i_phi = 0u; i_phi < axis_phi.nbins(); i_phi++) {
             const dindex gbin_idx = g2.serializer()(
                 g2.axes(), detray::n_axis::multi_bin<2>{i_r, i_phi});
-            const auto& bin = g2.at(gbin_idx);
+            const auto& bin = g2.bin(gbin_idx);
 
             // Other point with which the bin has been completed
             const detray::scalar

@@ -111,7 +111,7 @@ class iota_view : public detray::ranges::view_interface<iota_view<incr_t>> {
     template <typename deduced_incr_t>
     DETRAY_HOST_DEVICE constexpr iota_view(deduced_incr_t &&start,
                                            deduced_incr_t &&end)
-        : m_start{start}, m_end{end - 1} {}
+        : m_start{start}, m_end{end} {}
 
     /// Copy constructor
     DETRAY_HOST_DEVICE

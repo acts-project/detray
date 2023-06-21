@@ -35,7 +35,7 @@ TEST(detector_cuda, detector) {
 
     // host objects
     auto& volumes_host = toy_det.volumes();
-    auto& surfaces_host = toy_det.surfaces();
+    auto& surfaces_host = toy_det.surface_lookup();
     auto& transforms_host = toy_det.transform_store();
     auto& masks_host = toy_det.mask_store();
     auto& discs_host = masks_host.get<disc_id>();
@@ -93,62 +93,5 @@ TEST(detector_cuda, detector) {
 
     for (unsigned int i = 0u; i < cylinders_host.size(); i++) {
         EXPECT_EQ(cylinders_host[i] == cylinders_device[i], true);
-    }
-}
-
-// test surface enumeration
-TEST(detector_cuda, enumerate) {
-
-    // Helper object for performing memory copies.
-    vecmem::copy copy;
-    vecmem::cuda::copy cuda_cpy;
-
-    // memory resource(s)
-    vecmem::host_memory_resource host_mr;
-    vecmem::cuda::managed_memory_resource mng_mr;
-    vecmem::cuda::device_memory_resource dev_mr;
-
-    // create toy geometry
-    detector_host_t detector =
-        create_toy_geometry<host_container_types>(host_mr);
-
-    // Get the vector of volumes
-    auto& volumes = detector.volumes();
-
-    // Create and fill the vector of surfaces
-    vecmem::jagged_vector<surface_t> surfaces_host(volumes.size(), &mng_mr);
-
-    for (unsigned int i{0u}; i < volumes.size(); i++) {
-        for (const auto& obj : detector.surfaces(detector.volume_by_index(i))) {
-            surfaces_host[i].push_back(obj);
-        }
-    }
-
-    // Create surfaces_buffer with capacity and size
-    std::vector<std::size_t> capacities;
-    for (auto& surfs : surfaces_host) {
-        capacities.push_back(surfs.size());
-    }
-
-    vecmem::data::jagged_vector_buffer<surface_t> surfaces_buffer(
-        capacities, mng_mr, nullptr, vecmem::data::buffer_type::resizable);
-
-    // copy setup for surfaces buffer
-    copy.setup(surfaces_buffer);
-
-    // get data object for toy detector
-    auto det_buff = get_buffer(detector, dev_mr, cuda_cpy);
-    auto det_data = get_data(det_buff);
-
-    // run the test code to test enumerate
-    enumerate_test(det_data, surfaces_buffer);
-
-    // Copy the surfaces_buffer to surfaces_device
-    vecmem::jagged_vector<surface_t> surfaces_device{&mng_mr};
-    copy(surfaces_buffer, surfaces_device);
-
-    // Compare the surfaces_host and surfaces_device
-    for (unsigned int i = 0u; i < surfaces_host.size(); i++) {
-        EXPECT_EQ(surfaces_host[i], surfaces_device[i]);
     }
 }

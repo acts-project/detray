@@ -99,7 +99,7 @@ struct helix_inspector : actor {
 
         // Surface
         const auto& surface =
-            det->surfaces(stepping._bound_params.surface_link());
+            det->surface(stepping._bound_params.surface_link());
 
         const auto free_vec = mask_store.template visit<kernel>(
             surface.mask(), trf_store, surface, stepping);
