@@ -90,7 +90,7 @@ inline bool test_toy_detector(
     // Check number of geomtery objects
     EXPECT_EQ(volumes.size(), 20u);
     EXPECT_EQ(toy_det.n_surfaces(), 3244u);
-    EXPECT_EQ(transforms.size(ctx), 3244u);
+    EXPECT_EQ(transforms.size(ctx), 3264u);
     EXPECT_EQ(masks.size<mask_ids::e_rectangle2>(), 2492u);
     EXPECT_EQ(masks.size<mask_ids::e_trapezoid2>(), 648u);
     EXPECT_EQ(masks.size<mask_ids::e_portal_cylinder2>(), 52u);
@@ -142,7 +142,9 @@ inline bool test_toy_detector(
                 EXPECT_EQ(sf_itr->volume(), vol_index);
                 EXPECT_EQ(sf_itr->id(), surface_id::e_portal);
                 EXPECT_EQ(sf_itr->index(), pti);
-                EXPECT_EQ(sf_itr->transform(), trf_index);
+                // The volume index compensates for the number of volume
+                // transforms in the transform store
+                EXPECT_EQ(sf_itr->transform(), trf_index + vol_index + 1);
                 EXPECT_EQ(sf_itr->mask(), mask_link);
                 // EXPECT_EQ(sf_itr->material(), material_index);
                 const auto volume_link =
@@ -180,7 +182,9 @@ inline bool test_toy_detector(
                 EXPECT_FALSE(sf_itr->id() == surface_id::e_portal)
                     << sf_itr->barcode();
                 EXPECT_EQ(sf_itr->index(), pti);
-                EXPECT_EQ(sf_itr->transform(), trf_index);
+                // The volume index compensates for the number of volume
+                // transforms in the transform store
+                EXPECT_EQ(sf_itr->transform(), trf_index + vol_index + 1);
                 EXPECT_EQ(sf_itr->mask(), mask_index);
                 // EXPECT_EQ(sf_itr->material(), material_index);
                 const auto volume_link =

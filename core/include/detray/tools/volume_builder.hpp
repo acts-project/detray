@@ -69,6 +69,9 @@ class volume_builder : public volume_builder_interface<detector_t> {
     DETRAY_HOST
     auto build(detector_t& det, typename detector_t::geometry_context ctx = {})
         -> typename detector_t::volume_type* override {
+        m_volume->set_transform(det.transform_store().size());
+        det.transform_store().push_back(m_trf);
+
         add_objects_per_volume(ctx, det);
         m_surfaces.clear();
         m_transforms.clear(ctx);
@@ -76,6 +79,24 @@ class volume_builder : public volume_builder_interface<detector_t> {
 
         // Pass to decorator builders
         return m_volume;
+    }
+
+    DETRAY_HOST
+    void add_volume_placement(
+        const typename detector_t::transform3& trf = {}) override {
+        m_trf = trf;
+    }
+
+    DETRAY_HOST
+    void add_volume_placement(const typename detector_t::point3& t) override {
+        m_trf = typename detector_t::transform3{t};
+    }
+
+    DETRAY_HOST
+    void add_volume_placement(const typename detector_t::point3& t,
+                              const typename detector_t::vector3& x,
+                              const typename detector_t::vector3& z) override {
+        m_trf = typename detector_t::transform3{t, z, x, true};
     }
 
     DETRAY_HOST
@@ -145,6 +166,7 @@ class volume_builder : public volume_builder_interface<detector_t> {
     }
 
     typename detector_t::volume_type* m_volume{};
+    typename detector_t::transform3 m_trf{};
 
     typename detector_t::surface_container_t m_surfaces{};
     typename detector_t::transform_container m_transforms{};

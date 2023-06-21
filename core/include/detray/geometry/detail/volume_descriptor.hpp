@@ -8,12 +8,9 @@
 #pragma once
 
 // Project include(s)
-#include "detray/definitions/algebra.hpp"
-#include "detray/definitions/containers.hpp"
 #include "detray/definitions/geometry.hpp"
 #include "detray/definitions/indexing.hpp"
 #include "detray/definitions/qualifiers.hpp"
-#include "detray/definitions/units.hpp"
 
 namespace detray {
 
@@ -54,49 +51,55 @@ class volume_descriptor {
     /// Constructor from shape id.
     ///
     /// @param id id values that determines how to interpret the bounds.
-    explicit constexpr volume_descriptor(const volume_id id) : _id{id} {}
+    explicit constexpr volume_descriptor(const volume_id id) : m_id{id} {}
 
     /// @returns the volume shape id, e.g. 'cylinder'
     DETRAY_HOST_DEVICE
-    constexpr auto id() const -> volume_id { return _id; }
+    constexpr auto id() const -> volume_id { return m_id; }
 
-    /// @return the index of the volume in the detector volume container.
+    /// @returns the index of the volume in the detector volume container.
     DETRAY_HOST_DEVICE
-    constexpr auto index() const -> dindex { return _index; }
+    constexpr auto index() const -> dindex { return m_index; }
 
     /// @param index the index of the volume in the detector volume container.
     DETRAY_HOST
-    constexpr auto set_index(const dindex index) -> void { _index = index; }
+    constexpr auto set_index(const dindex index) -> void { m_index = index; }
+
+    /// @returns the index of the volume tranform in the transform store.
+    DETRAY_HOST_DEVICE
+    constexpr auto transform() const -> dindex { return m_transform; }
+
+    /// @param index the index of the volume in the detector volume container.
+    DETRAY_HOST
+    constexpr auto set_transform(const dindex trf_idx) -> void {
+        m_transform = trf_idx;
+    }
 
     /// @returns link to all acceleration data structures - const access
     DETRAY_HOST_DEVICE constexpr auto full_link() const -> const link_type & {
-        return _sf_finder_links;
+        return m_sf_finder_links;
     }
 
-    /// @returns link for a specific type of object - const access.
+    /// @returns acc data structure link for a specific type of object - const
     template <ID obj_id>
     DETRAY_HOST_DEVICE constexpr auto link() const -> const link_t & {
-        return detail::get<obj_id>(_sf_finder_links);
+        return detail::get<obj_id>(m_sf_finder_links);
     }
 
-    /// @returns link for a specific type of object - non-const access.
-    template <ID obj_id>
-    DETRAY_HOST_DEVICE constexpr auto link() -> link_t & {
-        return detail::get<obj_id>(_sf_finder_links);
-    }
-
-    /// Set surface finder during detector building
+    /// Set surface finder link from @param link
     template <ID obj_id>
     DETRAY_HOST constexpr auto set_link(const link_t &link) -> void {
-        _sf_finder_links[obj_id] = link;
+        m_sf_finder_links[obj_id] = link;
     }
 
-    /// sSt surface finder during detector building
+    /// Set surface finder link from @param id and @param index of the
+    /// acceleration data structure (e.g. type and index of grid in surface
+    /// store)
     template <ID obj_id>
     DETRAY_HOST constexpr auto set_link(const typename link_t::id_type id,
                                         const typename link_t::index_type index)
         -> void {
-        _sf_finder_links[obj_id] = link_t{id, index};
+        m_sf_finder_links[obj_id] = link_t{id, index};
     }
 
     /// Equality operator
@@ -104,21 +107,22 @@ class volume_descriptor {
     /// @param rhs is the right-hand side to compare against.
     DETRAY_HOST_DEVICE
     constexpr auto operator==(const volume_descriptor &rhs) const -> bool {
-        return (_index == rhs._index &&
-                _sf_finder_links == rhs._sf_finder_links &&
-                _sf_finder_links[ID::e_sensitive] ==
-                    rhs._sf_finder_links[ID::e_sensitive]);
+        return (m_id == rhs.m_id && m_index == rhs.m_index &&
+                m_sf_finder_links == rhs.m_sf_finder_links);
     }
 
     private:
     /// How to interpret the boundary values
-    volume_id _id = volume_id::e_cylinder;
+    volume_id m_id = volume_id::e_cylinder;
 
     /// Volume index in the detector's volume container
-    dindex _index = dindex_invalid;
+    dindex m_index = dindex_invalid;
+
+    /// Volume index in the detector's volume container
+    dindex m_transform = dindex_invalid;
 
     /// Links for every object type to an acceleration data structure
-    link_type _sf_finder_links = {};
+    link_type m_sf_finder_links = {};
 };
 
 }  // namespace detray

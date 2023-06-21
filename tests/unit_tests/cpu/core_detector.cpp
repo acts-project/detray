@@ -444,10 +444,14 @@ GTEST_TEST(detray_tools, detector_volume_construction) {
     auto geo_ctx = typename detector_t::geometry_context{};
     // ensure there is a data offset that needs to be handled correctly
     prefill_detector(d, geo_ctx);
+    const dindex first_trf{d.transform_store().size()};
 
     // volume builder
     volume_builder<detector_t> vbuilder{};
     vbuilder.init_vol(d, volume_id::e_cylinder);
+    typename detector_t::point3 t{0.f, 0.f, 20.f};
+    vbuilder.add_volume_placement(t);
+
     const auto& vol = d.volumes().back();
 
     // initial checks
@@ -558,6 +562,11 @@ GTEST_TEST(detray_tools, detector_volume_construction) {
     //
     // check results
     //
+
+    // Check the volume placement
+    typename detector_t::transform3 trf{t};
+    EXPECT_TRUE(d.transform_store()[first_trf] == trf);
+
     // default detector makes no distinction between the surface types
     std::vector<dtyped_index<sf_finder_id, dindex>> sf_finder_links{
         {sf_finder_id::e_brute_force, 1u}};
@@ -601,12 +610,14 @@ GTEST_TEST(detray_tools, detector_volume_construction) {
             << "error at index: " << idx;
     }
 
-    // check that the transform indices are continuous
+    // check that the transform indices are continuous for the newly added
+    // surfaces. The first new transform belongs to the volume itself
     for (std::size_t idx :
-         detray::views::iota(d.transform_store().size() - 1)) {
+         detray::views::iota(dindex_range{3, d.n_surfaces()})) {
         geometry::barcode bcd{};
         bcd.set_index(idx);
-        EXPECT_EQ(d.surface(bcd).transform(), idx) << "error at index: " << idx;
+        EXPECT_EQ(d.surface(bcd).transform(), idx + 1)
+            << "error at index: " << idx;
     }
 
     // check surface mask links

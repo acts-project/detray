@@ -29,7 +29,8 @@ class volume_builder_interface {
 
     virtual ~volume_builder_interface() = default;
 
-    /// @brief Initializes a new volume with shape id @param id in @param det
+    /// @brief Initializes a new volume with shape id @param id in detector
+    /// @param det
     DETRAY_HOST
     virtual void init_vol(detector_t &det, const volume_id id) = 0;
 
@@ -50,6 +51,24 @@ class volume_builder_interface {
     virtual auto build(detector_t &det,
                        typename detector_t::geometry_context ctx = {}) ->
         typename detector_t::volume_type * = 0;
+
+    /// @brief Add the transform for the volume placement - copy
+    DETRAY_HOST
+    virtual void add_volume_placement(
+        const typename detector_t::transform3 &trf = {}) = 0;
+
+    /// @brief Add the transform for the volume placement from the translation
+    /// @param t. The rotation will be the identity matrix.
+    DETRAY_HOST
+    virtual void add_volume_placement(const typename detector_t::point3 &t) = 0;
+
+    /// @brief Add the transform for the volume placement from the translation
+    /// @param t , the new x- and z-axis (@param x, @param z).
+    DETRAY_HOST
+    virtual void add_volume_placement(
+        const typename detector_t::point3 &t,
+        const typename detector_t::vector3 &x,
+        const typename detector_t::vector3 &z) = 0;
 
     /// @brief Add the portals to the volume.
     /// @returns the index range of the portals in the temporary surface
@@ -121,6 +140,24 @@ class volume_decorator : public volume_builder_interface<detector_t> {
                typename detector_t::geometry_context /*ctx*/ = {}) ->
         typename detector_t::volume_type * override {
         return m_builder->build(det);
+    }
+
+    DETRAY_HOST
+    void add_volume_placement(
+        const typename detector_t::transform3 &trf = {}) override {
+        return m_builder->add_volume_placement(trf);
+    }
+
+    DETRAY_HOST
+    void add_volume_placement(const typename detector_t::point3 &t) override {
+        return m_builder->add_volume_placement(t);
+    }
+
+    DETRAY_HOST
+    void add_volume_placement(const typename detector_t::point3 &t,
+                              const typename detector_t::vector3 &x,
+                              const typename detector_t::vector3 &z) override {
+        return m_builder->add_volume_placement(t, x, z);
     }
 
     DETRAY_HOST

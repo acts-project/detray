@@ -355,7 +355,7 @@ class detector {
         if (_surface_lookup.size() < sf.index() + 1) {
             _surface_lookup.resize(sf.index() + 1);
         }
-        _surface_lookup[sf.index()] = sf;
+        _surface_lookup.at(sf.index()) = sf;
     }
 
     /// Append new portals(surfaces) to the detector

@@ -371,8 +371,10 @@ auto create_telescope_detector(
     typename detector_t::geometry_context ctx{};
     const surface_config sf_config{msk.values(), dists, mat, thickness};
 
-    // Dummy volume bounds for now, will be set correctly when portals are built
+    // The telescope detector has only one volume with default placement
     auto &vol = det.new_volume(volume_id::e_cuboid);
+    vol.set_transform(det.transform_store().size());
+    det.transform_store().emplace_back();
 
     // Add module surfaces to volume
     typename detector_t::surface_container_t surfaces(&resource);

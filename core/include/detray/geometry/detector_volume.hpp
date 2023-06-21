@@ -112,6 +112,20 @@ class detector_volume {
         return names.at(m_desc.index() + 1u);
     }
 
+    /// @returns the (non contextual) transform for the placement of the
+    /// volume in the detector geometry.
+    DETRAY_HOST_DEVICE
+    constexpr auto transform() const -> const
+        typename detector_t::transform3 & {
+        return m_detector.transform_store({})[m_desc.transform()];
+    }
+
+    /// @returns the center point of the volume.
+    DETRAY_HOST_DEVICE
+    constexpr auto center() const -> typename detector_t::point3 {
+        return transform().translation();
+    }
+
     /// Apply a functor to all surfaces in the volume.
     ///
     /// @tparam functor_t the prescription to be applied to the surfaces
