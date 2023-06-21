@@ -86,36 +86,38 @@ struct full_metadata {
     using cylinder2D_sf_grid =
         regular_surface_grid_t<cylinder2D<>::axes<>, bin_entry_t, container_t>;
 
-    // 3D cylindrical grid for the entire barrel / endcaps
-    template <typename bin_entry_t, typename container_t>
-    using cylinder3D_sf_grid =
-        regular_surface_grid_t<cylinder3D::axes<>, bin_entry_t, container_t>;
-
     // disc grid for the endcap layers
     template <typename bin_entry_t, typename container_t>
     using disc_sf_grid =
         regular_surface_grid_t<ring2D<>::axes<>, bin_entry_t, container_t>;
 
+    // 3D cylindrical grid for the entire barrel / endcaps
+    template <typename bin_entry_t, typename container_t>
+    using cylinder3D_sf_grid =
+        regular_surface_grid_t<cylinder3D::axes<>, bin_entry_t, container_t>;
+
     // Irregular binning (hopefully not needed)
 
     // cylindrical grid for the barrel layers
-    /*template <typename bin_entry_t, typename container_t>
-    using irr_cylinder_sf_grid =
-        surface_grid_t<cylinder2D<>::axes<n_axis::bounds::e_closed,
-    n_axis::irregular, n_axis::irregular>, bin_entry_t, container_t>;
+    template <typename bin_entry_t, typename container_t>
+    using irr_cylinder2D_sf_grid = regular_surface_grid_t<
+        cylinder2D<>::axes<n_axis::bounds::e_closed, n_axis::irregular,
+                           n_axis::irregular>,
+        bin_entry_t, container_t>;
 
     // disc grid for the endcap layers
     template <typename bin_entry_t, typename container_t>
-    using irr_disc_sf_grid =
-    surface_grid_t<ring2D<>::axes<n_axis::bounds::e_closed, n_axis::irregular,
-    n_axis::irregular>, bin_entry_t, container_t>;
+    using irr_disc_sf_grid = regular_surface_grid_t<
+        ring2D<>::axes<n_axis::bounds::e_closed, n_axis::irregular,
+                       n_axis::irregular>,
+        bin_entry_t, container_t>;
 
     // 3D cylindrical grid for the entire barrel
     template <typename bin_entry_t, typename container_t>
-    using irr_cylinder3D_sf_grid =
-        surface_grid_t<cylinder3D<>::axes<n_axis::bounds::e_closed,
-    n_axis::irregular, n_axis::irregular, n_axis::irregular>, bin_entry_t,
-    container_t>;*/
+    using irr_cylinder3D_sf_grid = regular_surface_grid_t<
+        cylinder3D::axes<n_axis::bounds::e_closed, n_axis::irregular,
+                         n_axis::irregular, n_axis::irregular>,
+        bin_entry_t, container_t>;
 
     /// @}
 
@@ -211,11 +213,11 @@ unbounded_cell, unmasked_plane*/>;
     /// Surface finders
     enum class sf_finder_ids {
         e_brute_force = 0,  // test all surfaces in a volume (brute force)
-        // e_disc_grid = 1,
-        // e_cylinder2_grid = 2,
-        // e_cylinder3_grid = 3,
-        // e_irr_disc_grid = 4,
-        // e_irr_cylinder2_grid = 5,
+        e_disc_grid = 1,
+        e_cylinder2_grid = 2,
+        e_irr_disc_grid = 3,
+        e_irr_cylinder2_grid = 4,
+        // e_cylinder3_grid = 5,
         // e_irr_cylinder3_grid = 6,
         // ... e.g. frustum navigation types
         e_default = e_brute_force,
@@ -226,20 +228,18 @@ unbounded_cell, unmasked_plane*/>;
               typename container_t = host_container_types>
     using surface_finder_store =
         multi_store<sf_finder_ids, empty_context, tuple_t,
-                    brute_force_collection<
-                        surface_type, container_t> /*,
-  grid_collection<disc_sf_grid<surface_type,
-  container_t>>,
-  grid_collection<cylinder2D_sf_grid<surface_type,
-  container_t>>,
-  grid_collection<cylinder3D_sf_grid<surface_type,
-  container_t>>,
-  grid_collection<irr_disc_sf_grid<surface_type,
-  container_t>,
-  grid_collection<irr_cylinder2D_sf_grid<surface_type,
-  container_t>>,
-  grid_collection<irr_cylinder3D_sf_grid<surface_type,
-  container_t>>*/>;
+                    brute_force_collection<surface_type, container_t>,
+                    grid_collection<disc_sf_grid<surface_type, container_t>>,
+                    grid_collection<
+                        cylinder2D_sf_grid<surface_type, container_t>>,
+                    grid_collection<
+                        irr_disc_sf_grid<surface_type, container_t>>,
+                    grid_collection<irr_cylinder2D_sf_grid<
+                        surface_type, container_t>> /*,
+grid_collection<cylinder3D_sf_grid<surface_type,
+container_t>>,
+grid_collection<irr_cylinder3D_sf_grid<surface_type,
+container_t>>*/>;
 
     /// Volume grid
     template <typename container_t = host_container_types>

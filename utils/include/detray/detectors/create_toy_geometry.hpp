@@ -346,7 +346,7 @@ inline void add_cylinder_grid(const typename detector_t::geometry_context &ctx,
     using geo_obj_ids = typename detector_t::geo_obj_ids;
 
     constexpr auto cyl_id = detector_t::masks::id::e_portal_cylinder2;
-    constexpr auto grid_id = detector_t::sf_finders::id::e_cylinder_grid;
+    constexpr auto grid_id = detector_t::sf_finders::id::e_cylinder2_grid;
 
     using cyl_grid_t =
         typename detector_t::surface_container::template get_type<grid_id>;

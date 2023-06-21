@@ -8,7 +8,6 @@
 // Project include(s)
 #include "detray/core/detector.hpp"
 #include "detray/definitions/indexing.hpp"
-#include "detray/detectors/detector_metadata.hpp"
 #include "detray/materials/predefined_materials.hpp"
 #include "detray/test/types.hpp"
 #include "detray/tools/surface_factory.hpp"
@@ -160,7 +159,11 @@ GTEST_TEST(detray_core, detector) {
     EXPECT_TRUE(d.material_store().template empty<material_id::e_rod>());
     EXPECT_TRUE(d.surface_store().template empty<finder_id::e_brute_force>());
     EXPECT_TRUE(d.surface_store().template empty<finder_id::e_disc_grid>());
-    EXPECT_TRUE(d.surface_store().template empty<finder_id::e_cylinder_grid>());
+    EXPECT_TRUE(
+        d.surface_store().template empty<finder_id::e_cylinder2_grid>());
+    EXPECT_TRUE(d.surface_store().template empty<finder_id::e_irr_disc_grid>());
+    EXPECT_TRUE(
+        d.surface_store().template empty<finder_id::e_irr_cylinder2_grid>());
     EXPECT_TRUE(d.surface_store().template empty<finder_id::e_default>());
 
     // Add some geometrical data
@@ -184,8 +187,12 @@ GTEST_TEST(detray_core, detector) {
     EXPECT_EQ(d.material_store().template size<material_id::e_rod>(), 1u);
     EXPECT_EQ(d.surface_store().template size<finder_id::e_brute_force>(), 1u);
     EXPECT_EQ(d.surface_store().template size<finder_id::e_disc_grid>(), 0u);
-    EXPECT_EQ(d.surface_store().template size<finder_id::e_cylinder_grid>(),
+    EXPECT_EQ(d.surface_store().template size<finder_id::e_cylinder2_grid>(),
               0u);
+    EXPECT_EQ(d.surface_store().template size<finder_id::e_irr_disc_grid>(),
+              0u);
+    EXPECT_EQ(
+        d.surface_store().template size<finder_id::e_irr_cylinder2_grid>(), 0u);
     EXPECT_EQ(d.surface_store().template size<finder_id::e_default>(), 1u);
 }
 

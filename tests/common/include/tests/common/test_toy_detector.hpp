@@ -83,7 +83,7 @@ inline bool test_toy_detector(const detector<toy_metadata<>>& toy_det) {
     // Link to outer world (leaving detector)
     constexpr auto leaving_world{detail::invalid_value<nav_link_t>()};
     const bool has_grids =
-        (sf_finders.size<sf_finder_ids::e_cylinder_grid>() != 0u) ||
+        (sf_finders.size<sf_finder_ids::e_cylinder2_grid>() != 0u) ||
         (sf_finders.size<sf_finder_ids::e_disc_grid>() != 0u);
 
     // Check number of geomtery objects
@@ -96,7 +96,7 @@ inline bool test_toy_detector(const detector<toy_metadata<>>& toy_det) {
     EXPECT_EQ(masks.size<mask_ids::e_portal_ring2>(), 52u);
     EXPECT_EQ(sf_finders.size<sf_finder_ids::e_brute_force>(), 20u);
     if (has_grids) {
-        EXPECT_EQ(sf_finders.size<sf_finder_ids::e_cylinder_grid>(), 4);
+        EXPECT_EQ(sf_finders.size<sf_finder_ids::e_cylinder2_grid>(), 4);
         EXPECT_EQ(sf_finders.size<sf_finder_ids::e_disc_grid>(), 6);
     }
     // EXPECT_EQ(materials.size<material_ids::e_slab>(), 3244u);
@@ -230,9 +230,9 @@ inline bool test_toy_detector(const detector<toy_metadata<>>& toy_det) {
 
                 // Test the module search if grids were filled
                 if (not link[1].is_invalid()) {
-                    if (link[1].id() == sf_finder_ids::e_cylinder_grid) {
+                    if (link[1].id() == sf_finder_ids::e_cylinder2_grid) {
                         const auto& cyl_grid = sf_finder_store.get<
-                            sf_finder_ids::e_cylinder_grid>()[link[1].index()];
+                            sf_finder_ids::e_cylinder2_grid>()[link[1].index()];
                         test_finder(cyl_grid, vol_itr->index(), sf_range);
                     } else {
                         const auto& disc_grid = sf_finder_store.get<
@@ -512,7 +512,7 @@ inline bool test_toy_detector(const detector<toy_metadata<>>& toy_det) {
     ++vol_itr;
     range = {370u, 598u};
     index = {7u};
-    sf_finder_link = {sf_finder_ids::e_cylinder_grid, 0u};
+    sf_finder_link = {sf_finder_ids::e_cylinder2_grid, 0u};
 
     // Test the links in the volumes
     test_volume_links(vol_itr, 7u, index, sf_finder_link);
@@ -581,7 +581,7 @@ inline bool test_toy_detector(const detector<toy_metadata<>>& toy_det) {
     ++vol_itr;
     range = {602u, 1054u};
     index = {9u};
-    sf_finder_link = {sf_finder_ids::e_cylinder_grid, 1u};
+    sf_finder_link = {sf_finder_ids::e_cylinder2_grid, 1u};
 
     // Test the links in the volumes
     test_volume_links(vol_itr, 9u, index, sf_finder_link);
@@ -650,7 +650,7 @@ inline bool test_toy_detector(const detector<toy_metadata<>>& toy_det) {
     ++vol_itr;
     range = {1058u, 1790u};
     index = {11u};
-    sf_finder_link = {sf_finder_ids::e_cylinder_grid, 2u};
+    sf_finder_link = {sf_finder_ids::e_cylinder2_grid, 2u};
 
     // Test the links in the volumes
     test_volume_links(vol_itr, 11u, index, sf_finder_link);
@@ -719,7 +719,7 @@ inline bool test_toy_detector(const detector<toy_metadata<>>& toy_det) {
     ++vol_itr;
     range = {1794u, 2890u};
     index = {13u};
-    sf_finder_link = {sf_finder_ids::e_cylinder_grid, 3u};
+    sf_finder_link = {sf_finder_ids::e_cylinder2_grid, 3u};
 
     // Test the links in the volumes
     test_volume_links(vol_itr, 13u, index, sf_finder_link);
