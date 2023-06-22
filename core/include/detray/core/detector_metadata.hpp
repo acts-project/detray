@@ -30,13 +30,13 @@
 
 namespace detray {
 
-/// Defines all available types
-struct full_metadata {
+/// Assembles the detector type. This metatdata contains all available types
+struct default_metadata {
 
-    /// mask-to-(next)-volume link (potentially switchable for SoA)
+    /// Mask-to-(next)-volume link (potentially switchable for SoA)
     using nav_link = std::uint_least16_t;
 
-    /// mask types
+    /// Mask types
     /// @TODO: Need to duplicate for pixel/strip measurement dimensions?
     using rectangle = mask<rectangle2D<>, nav_link>;
     using trapezoid = mask<trapezoid2D<>, nav_link>;
@@ -61,7 +61,7 @@ struct full_metadata {
     using unbounded_cell = mask<unbounded<line<true>>, nav_link>;
     using unmasked_plane = mask<unmasked, nav_link>;
 
-    /// material types
+    /// Material types
     using slab = material_slab<detray::scalar>;
     using rod = material_rod<detray::scalar>;
 
@@ -70,86 +70,69 @@ struct full_metadata {
     /// ...
     /// @}
 
-    /// surface grid types (default bounadries: closed binning)
+    /// surface grid types (default boundaries: closed binning)
     /// @TODO: Will we need the types for all grid configurations (binnning,
     /// bin boundaries, serializers)?
     /// @{
 
-    // surface grid definition: bin-content: std::array<dindex, 9>
+    // surface grid definition: bin-content: std::array<surface_type, 9>
     template <typename grid_shape_t, typename bin_entry_t, typename container_t>
-    using regular_surface_grid_t =
+    using surface_grid_t =
         grid<coordinate_axes<grid_shape_t, false, container_t>, bin_entry_t,
              simple_serializer, regular_attacher<9>>;
 
     // 2D cylindrical grid for the barrel layers
     template <typename bin_entry_t, typename container_t>
     using cylinder2D_sf_grid =
-        regular_surface_grid_t<cylinder2D<>::axes<>, bin_entry_t, container_t>;
+        surface_grid_t<cylinder2D<>::axes<>, bin_entry_t, container_t>;
 
     // disc grid for the endcap layers
     template <typename bin_entry_t, typename container_t>
     using disc_sf_grid =
-        regular_surface_grid_t<ring2D<>::axes<>, bin_entry_t, container_t>;
+        surface_grid_t<ring2D<>::axes<>, bin_entry_t, container_t>;
 
     // 3D cylindrical grid for the entire barrel / endcaps
     template <typename bin_entry_t, typename container_t>
     using cylinder3D_sf_grid =
-        regular_surface_grid_t<cylinder3D::axes<>, bin_entry_t, container_t>;
+        surface_grid_t<cylinder3D::axes<>, bin_entry_t, container_t>;
 
     // Irregular binning (hopefully not needed)
 
     // cylindrical grid for the barrel layers
     template <typename bin_entry_t, typename container_t>
-    using irr_cylinder2D_sf_grid = regular_surface_grid_t<
-        cylinder2D<>::axes<n_axis::bounds::e_closed, n_axis::irregular,
-                           n_axis::irregular>,
-        bin_entry_t, container_t>;
+    using irr_cylinder2D_sf_grid =
+        surface_grid_t<cylinder2D<>::axes<n_axis::bounds::e_closed,
+                                          n_axis::irregular, n_axis::irregular>,
+                       bin_entry_t, container_t>;
 
     // disc grid for the endcap layers
     template <typename bin_entry_t, typename container_t>
-    using irr_disc_sf_grid = regular_surface_grid_t<
-        ring2D<>::axes<n_axis::bounds::e_closed, n_axis::irregular,
-                       n_axis::irregular>,
-        bin_entry_t, container_t>;
+    using irr_disc_sf_grid =
+        surface_grid_t<ring2D<>::axes<n_axis::bounds::e_closed,
+                                      n_axis::irregular, n_axis::irregular>,
+                       bin_entry_t, container_t>;
 
     // 3D cylindrical grid for the entire barrel
     template <typename bin_entry_t, typename container_t>
-    using irr_cylinder3D_sf_grid = regular_surface_grid_t<
+    using irr_cylinder3D_sf_grid = surface_grid_t<
         cylinder3D::axes<n_axis::bounds::e_closed, n_axis::irregular,
                          n_axis::irregular, n_axis::irregular>,
         bin_entry_t, container_t>;
 
     /// @}
 
-    // @TODO: Switch to inhomogenous b-field and read homogeneous b-field also
-    // from file.
+    // @TODO: Switch to inhomogenous b-field
     using bfield_backend_t =
         covfie::backend::constant<covfie::vector::vector_d<scalar, 3>,
                                   covfie::vector::vector_d<scalar, 3>>;
 
-    /// How to index the constituent objects in a volume
-    /// If they share the same index value here, they will be added into the
-    /// same container range without any sorting guarantees
-    enum geo_objects : std::size_t {
-        e_portal = 0,
-        // TODO: Put into grids
-        e_sensitive = 0,  // Sensitive and passive surfaces will be held in the
-        e_passive = 0,    // same acceleration data structure.
-        e_size = 2,       // Every volume holds two acceleration data structures
-        e_all = e_size,   // One for portals and one for all other surfaces.
-    };
-
-    /// How a volume finds its constituent objects in the detector containers
-    /// In this case: One range for sensitive/passive surfaces, one for portals
-    using object_link_type = dmulti_index<dindex_range, geo_objects::e_size>;
-
-    /// How to store and link transforms
+    /// How to store coordinate transform matrices
     template <template <typename...> class vector_t = dvector>
     using transform_store = single_store<__plugin::transform3<detray::scalar>,
                                          vector_t, geometry_context>;
 
-    /// Give your mask types a name (needs to be consecutive to be matched
-    /// to a type!)
+    /// Give your mask types a name (needs to be consecutive and has to match
+    /// the types position in the mask store!)
     enum class mask_ids {
         e_rectangle2 = 0,
         e_portal_rectangle2 = 0,
@@ -174,7 +157,7 @@ struct full_metadata {
         e_unmasked2 = 18,*/
     };
 
-    /// How to store and link masks
+    /// How to store masks
     template <template <typename...> class tuple_t = dtuple,
               template <typename...> class vector_t = dvector>
     using mask_store = regular_multi_store<mask_ids, empty_context, tuple_t,
@@ -186,8 +169,8 @@ single_1, single_2, single_3, unbounded_rectangle, unbounded_trapezoid,
 unbounded_annulus, unbounded_cylinder, unbounded_disc, unbounded_straw,
 unbounded_cell, unmasked_plane*/>;
 
-    /// Give your material types a name (needs to be consecutive to be matched
-    /// to a type!)
+    /// Give your material types a name (needs to be consecutive and has to
+    /// match the types position in the mask store!)
     /// @TODO: Add the material grid types for every surface shape
     enum class material_ids {
         e_slab = 0,
@@ -196,25 +179,37 @@ unbounded_cell, unmasked_plane*/>;
         e_none = 2,
     };
 
-    /// How to store and link materials
+    /// How to store materials
     template <template <typename...> class tuple_t = dtuple,
               template <typename...> class vector_t = dvector>
     using material_store = regular_multi_store<material_ids, empty_context,
                                                tuple_t, vector_t, slab, rod>;
 
-    /// Surface type used for sensitives, passives and portals
+    /// How to link to the entries in the data stores
     using transform_link = typename transform_store<>::link_type;
     using mask_link = typename mask_store<>::single_link;
     using material_link = typename material_store<>::single_link;
     using source_link = dindex;
+    /// Surface type used for sensitives, passives and portals
     using surface_type = surface<mask_link, material_link, transform_link,
                                  nav_link, source_link>;
 
-    /// Surface finders
+    /// How to index the constituent objects (surfaces) in a volume
+    /// If they share the same index value here, they will be added into the
+    /// same acceleration data structure (brute force is always at 0)
+    enum geo_objects : std::size_t {
+        e_portal = 0,     // Brute force search
+        e_sensitive = 1,  // Grid accelerated search (can be different types)
+        e_passive = 0,    // Brute force search
+        e_size = 2,       // Every volume holds two acceleration data structures
+        e_all = e_size,   // i.e. the brute force method and one grid type
+    };
+
+    /// Acceleration data structures
     enum class sf_finder_ids {
-        e_brute_force = 0,  // test all surfaces in a volume (brute force)
-        e_disc_grid = 1,
-        e_cylinder2_grid = 2,
+        e_brute_force = 0,     // test all surfaces in a volume (brute force)
+        e_disc_grid = 1,       // e.g. endcap layers
+        e_cylinder2_grid = 2,  // e.g. barrel layers
         e_irr_disc_grid = 3,
         e_irr_cylinder2_grid = 4,
         // e_cylinder3_grid = 5,
@@ -223,7 +218,12 @@ unbounded_cell, unmasked_plane*/>;
         e_default = e_brute_force,
     };
 
-    /// How to store and link surface grids
+    /// How a volume links to the accelration data structures
+    /// In this case: One link for portals/passives and one sensitive surfaces
+    using object_link_type =
+        dmulti_index<dtyped_index<sf_finder_ids, dindex>, geo_objects::e_size>;
+
+    /// How to store the acceleration data structures
     template <template <typename...> class tuple_t = dtuple,
               typename container_t = host_container_types>
     using surface_finder_store =
@@ -241,7 +241,7 @@ container_t>>,
 grid_collection<irr_cylinder3D_sf_grid<surface_type,
 container_t>>*/>;
 
-    /// Volume grid
+    /// Volume search grid
     template <typename container_t = host_container_types>
     using volume_finder =
         grid<coordinate_axes<

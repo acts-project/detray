@@ -33,18 +33,18 @@ template <typename _bfield_backend_t =
                                         covfie::vector::vector_d<scalar, 3>>>
 struct toy_metadata {
 
-    /// mask to (next) volume link: next volume(s)
+    /// Mask to (next) volume link: next volume(s)
     using nav_link = std::uint_least16_t;
 
-    /// mask types
+    /// Mask types
     using rectangle = mask<rectangle2D<>, nav_link>;
     using trapezoid = mask<trapezoid2D<>, nav_link>;
-    // using cylinder = mask<cylinder2D<>, nav_link>;
+    // using cylinder = mask<cylinder2D<>, nav_link>;  // beampipe
     using cylinder_portal =
         mask<cylinder2D<false, cylinder_portal_intersector>, nav_link>;
-    using disc = mask<ring2D<>, nav_link>;
+    using disc_portal = mask<ring2D<>, nav_link>;
 
-    /// material types
+    /// Material types
     using slab = material_slab<detray::scalar>;
 
     /// surface grid types (regular, open binning)
@@ -70,24 +70,12 @@ struct toy_metadata {
 
     using bfield_backend_t = _bfield_backend_t;
 
-    /// How to index the constituent objects in a volume
-    /// If they share the same index value here, they will be added into the
-    /// same container range without any sorting guarantees
-    enum geo_objects : std::size_t {
-        e_sensitive = 1,
-        e_portal = 0,
-        e_passive = 0,
-        e_size = 2,
-        e_all = e_size,
-    };
-
-    /// How to store and link transforms
+    /// How to store coordinate transform matrices
     template <template <typename...> class vector_t = dvector>
     using transform_store = single_store<__plugin::transform3<detray::scalar>,
                                          vector_t, geometry_context>;
 
-    /// Give your mask types a name (needs to be consecutive to be matched
-    /// to a type!)
+    /// Mask type ids
     enum class mask_ids {
         e_rectangle2 = 0,
         e_trapezoid2 = 1,
@@ -96,35 +84,44 @@ struct toy_metadata {
         e_cylinder2 = 2,
     };
 
-    /// How to store and link masks
+    /// How to store masks
     template <template <typename...> class tuple_t = dtuple,
               template <typename...> class vector_t = dvector>
     using mask_store =
         regular_multi_store<mask_ids, empty_context, tuple_t, vector_t,
-                            rectangle, trapezoid, cylinder_portal, disc>;
+                            rectangle, trapezoid, cylinder_portal, disc_portal>;
 
-    /// Give your material types a name (needs to be consecutive to be matched
-    /// to a type!)
+    /// Material type ids
     enum class material_ids {
         e_slab = 0,
         e_none = 1,
     };
 
-    /// How to store and link materials
+    /// How to store materials
     template <template <typename...> class tuple_t = dtuple,
               template <typename...> class vector_t = dvector>
     using material_store = regular_multi_store<material_ids, empty_context,
                                                tuple_t, vector_t, slab>;
 
-    /// Surface type used for sensitives, passives and portals
+    /// How to link to the entries in the data stores
     using transform_link = typename transform_store<>::link_type;
     using mask_link = typename mask_store<>::single_link;
     using material_link = typename material_store<>::single_link;
     using source_link = dindex;
+    /// Surface type used for sensitives, passives and portals
     using surface_type = surface<mask_link, material_link, transform_link,
                                  nav_link, source_link>;
 
-    /// Surface finders
+    /// Portals and passives in the brute froce search, sensitives in the grids
+    enum geo_objects : std::size_t {
+        e_sensitive = 1,
+        e_portal = 0,
+        e_passive = 0,
+        e_size = 2,
+        e_all = e_size,
+    };
+
+    /// Acceleration data structures
     enum class sf_finder_ids {
         e_brute_force = 0,     // test all surfaces in a volume (brute force)
         e_disc_grid = 1,       // endcap
@@ -132,12 +129,11 @@ struct toy_metadata {
         e_default = e_brute_force,
     };
 
-    /// How a volume finds its constituent objects in the detector containers
-    /// In this case: One range for sensitive/passive surfaces, one for portals
+    /// One link for portals/passives and one sensitive surfaces
     using object_link_type =
         dmulti_index<dtyped_index<sf_finder_ids, dindex>, geo_objects::e_size>;
 
-    /// How to store and link surface grids
+    /// How to store the acceleration data structures
     template <template <typename...> class tuple_t = dtuple,
               typename container_t = host_container_types>
     using surface_finder_store = multi_store<
@@ -146,7 +142,7 @@ struct toy_metadata {
         grid_collection<disc_sf_grid<surface_type, container_t>>,
         grid_collection<cylinder_sf_grid<surface_type, container_t>>>;
 
-    /// Volume grid
+    /// Volume search grid
     template <typename container_t = host_container_types>
     using volume_finder =
         grid<coordinate_axes<

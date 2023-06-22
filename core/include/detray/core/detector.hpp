@@ -50,7 +50,7 @@ struct detector_view;
 /// @tparam bfield_t the type of the b-field frontend
 /// @tparam container_t type collection of the underlying containers
 /// @tparam source_link the surface source link
-template <typename metadata = full_metadata,
+template <typename metadata = default_metadata,
           template <typename> class bfield_t = covfie::field,
           typename container_t = host_container_types>
 class detector {

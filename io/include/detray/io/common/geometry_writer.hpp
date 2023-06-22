@@ -120,7 +120,11 @@ class geometry_writer : public writer_interface<detector_t> {
             mask_data.shape = shape_id::cell_wire;
         } else if constexpr (std::is_same_v<shape_t, line<false>>) {
             mask_data.shape = shape_id::straw_wire;
+        } else if constexpr (std::is_same_v<shape_t, single3D<0>>) {
+            mask_data.shape = shape_id::single1;
         } else if constexpr (std::is_same_v<shape_t, single3D<1>>) {
+            mask_data.shape = shape_id::single2;
+        } else if constexpr (std::is_same_v<shape_t, single3D<2>>) {
             mask_data.shape = shape_id::single3;
         } else if constexpr (std::is_same_v<shape_t, cuboid3D<>>) {
             mask_data.shape = shape_id::cuboid3;

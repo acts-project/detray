@@ -47,7 +47,7 @@ TEST(io, json_toy_geometry) {
 
     EXPECT_TRUE(test_toy_detector(det));
 
-    // Read the toy detector into a comprehensive detector type
+    // Read the toy detector into the default detector type
     detector<> comp_det{host_mr};
     json_geometry_reader<detector<>> comp_geo_reader;
     comp_geo_reader.read(comp_det, volume_name_map, file_name);
@@ -57,7 +57,7 @@ TEST(io, json_toy_geometry) {
 
     EXPECT_EQ(comp_det.volumes().size(), 20u);
     EXPECT_EQ(comp_det.n_surfaces(), 3244u);
-    EXPECT_EQ(comp_det.transform_store().size(), 3244u);
+    EXPECT_EQ(comp_det.transform_store().size(), 3264u);
     EXPECT_EQ(masks.template size<mask_id::e_rectangle2>(), 2492u);
     EXPECT_EQ(masks.template size<mask_id::e_portal_rectangle2>(), 2492u);
     EXPECT_EQ(masks.template size<mask_id::e_trapezoid2>(), 648u);

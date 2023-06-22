@@ -155,8 +155,7 @@ class volume_builder : public volume_builder_interface<detector_t> {
         // surfaces are filled into the default brute_force accelerator.
         // For the other accelerators (grid etc.) there need to be dedicated
         // builders
-        constexpr auto default_acc_id{
-            detector_t::sf_finders::id::e_brute_force};
+        constexpr auto default_acc_id{detector_t::sf_finders::id::e_default};
         m_volume->template set_link<surface_id>(
             default_acc_id,
             det.surface_store().template size<default_acc_id>() - 1u);

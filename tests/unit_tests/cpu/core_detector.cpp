@@ -209,7 +209,7 @@ GTEST_TEST(detray_tools, surface_factory) {
     // check portal cylinder
     //
     using portal_cylinder_factory =
-        surface_factory<detector_t, typename full_metadata::cylinder_portal,
+        surface_factory<detector_t, typename default_metadata::cylinder_portal,
                         mask_id::e_portal_cylinder2, surface_id::e_portal>;
 
     auto pt_cyl_factory = std::make_shared<portal_cylinder_factory>();
@@ -425,7 +425,7 @@ GTEST_TEST(detray_tools, detector_volume_construction) {
 
     // portal factories
     using portal_cylinder_factory =
-        surface_factory<detector_t, typename full_metadata::cylinder_portal,
+        surface_factory<detector_t, typename default_metadata::cylinder_portal,
                         mask_id::e_portal_cylinder2, surface_id::e_portal>;
     using portal_disc_factory =
         surface_factory<detector_t, ring2D<>, mask_id::e_portal_ring2,
@@ -576,15 +576,13 @@ GTEST_TEST(detray_tools, detector_volume_construction) {
     typename detector_t::transform3 trf{t};
     EXPECT_TRUE(d.transform_store()[first_trf] == trf);
 
-    // default detector makes no distinction between the surface types
-    std::vector<dtyped_index<sf_finder_id, dindex>> sf_finder_links{
-        {sf_finder_id::e_brute_force, 1u}, {sf_finder_id::e_brute_force, 1u}};
-    EXPECT_EQ(vol.template link<geo_obj_id::e_portal>(),
-              sf_finder_links[geo_obj_id::e_portal]);
-    EXPECT_EQ(vol.template link<geo_obj_id::e_sensitive>(),
-              sf_finder_links[geo_obj_id::e_sensitive]);
-    EXPECT_EQ(vol.template link<geo_obj_id::e_passive>(),
-              sf_finder_links[geo_obj_id::e_passive]);
+    // Check the acceleration data structure link
+    dtyped_index<sf_finder_id, dindex> acc_link{sf_finder_id::e_default, 1u};
+    ASSERT_TRUE(vol.full_link().size() == geo_obj_id::e_size);
+    EXPECT_EQ(vol.link<geo_obj_id::e_portal>(), acc_link);
+    EXPECT_EQ(vol.link<geo_obj_id::e_passive>(), acc_link);
+    // Not set by the vanilla volume builder
+    EXPECT_TRUE(is_invalid_value(vol.link<geo_obj_id::e_sensitive>()));
 
     EXPECT_EQ(d.portals().size(), 19u);
     EXPECT_EQ(d.mask_store().template size<mask_id::e_portal_cylinder2>(), 2u);

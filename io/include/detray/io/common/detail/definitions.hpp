@@ -26,8 +26,10 @@ enum class mask_shape : unsigned int {
     trapezoid2 = 7u,
     cell_wire = 8u,
     straw_wire = 9u,
-    single3 = 10u,
-    n_shapes = 11u,
+    single1 = 10u,
+    single2 = 11u,
+    single3 = 12u,
+    n_shapes = 13u,
     unknown = n_shapes
 };
 

@@ -111,13 +111,35 @@ struct mask_info<io::detail::mask_shape::ring2, detector_t,
         detector_t::masks::id::e_portal_ring2};
 };
 
-/// Check for a single masked value
+/// Check for a single masked value (1st value is checked)
+template <typename detector_t>
+struct mask_info<io::detail::mask_shape::single1, detector_t,
+                 std::enable_if_t<detector_t::masks::template is_defined<
+                                      mask<single3D<0>, std::uint_least16_t>>(),
+                                  void>> {
+    using type = single3D<0>;
+    static constexpr
+        typename detector_t::masks::id value{detector_t::masks::id::e_single1};
+};
+
+/// Check for a single masked value (2nd value is checked)
+template <typename detector_t>
+struct mask_info<io::detail::mask_shape::single2, detector_t,
+                 std::enable_if_t<detector_t::masks::template is_defined<
+                                      mask<single3D<1>, std::uint_least16_t>>(),
+                                  void>> {
+    using type = single3D<1>;
+    static constexpr
+        typename detector_t::masks::id value{detector_t::masks::id::e_single2};
+};
+
+/// Check for a single masked value (3rd value is checked)
 template <typename detector_t>
 struct mask_info<io::detail::mask_shape::single3, detector_t,
                  std::enable_if_t<detector_t::masks::template is_defined<
-                                      mask<single3D<>, std::uint_least16_t>>(),
+                                      mask<single3D<2>, std::uint_least16_t>>(),
                                   void>> {
-    using type = single3D<>;
+    using type = single3D<2>;
     static constexpr
         typename detector_t::masks::id value{detector_t::masks::id::e_single3};
 };
