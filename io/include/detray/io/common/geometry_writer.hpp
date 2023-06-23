@@ -189,8 +189,8 @@ class geometry_writer : public writer_interface<detector_t> {
         volume_payload vol_data;
 
         vol_data.index = serialize(vol_desc.index());
-        // @todo volumes don't have transforms, yet
-        vol_data.transform = serialize(typename detector_t::transform3());
+        vol_data.transform =
+            serialize(det.transform_store()[vol_desc.transform()]);
         vol_data.type = vol_desc.id();
 
         for (const auto& sf : det.surface_lookup()) {
