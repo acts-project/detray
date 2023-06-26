@@ -70,9 +70,9 @@ class annulus2D {
         e_max_r = 1u,
         e_min_phi_rel = 2u,
         e_max_phi_rel = 3u,
-        e_shift_x = 4u,
-        e_shift_y = 5u,
-        e_average_phi = 6u,
+        e_average_phi = 4u,
+        e_shift_x = 5u,
+        e_shift_y = 6u,
         e_size = 7u,
     };
 

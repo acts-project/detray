@@ -101,7 +101,7 @@ GTEST_TEST(detray_intersection, intersection_kernel_ray) {
 
     const rectangle_t rect{0u, 10.f, 10.f};
     const trapezoid_t trap{0u, 10.f, 20.f, 30.f};
-    const annulus_t annl{0u, 15.f, 55.f, 0.75f, 1.95f, 2.f, -2.f, 0.f};
+    const annulus_t annl{0u, 15.f, 55.f, 0.75f, 1.95f, 0.f, 2.f, -2.f};
     const cylinder_t cyl{0u, 5.f, -10.f, 10.f};
     const cylinder_portal_t cyl_portal{0u, 4.f, -10.f, 10.f};
 
@@ -237,7 +237,7 @@ GTEST_TEST(detray_intersection, intersection_kernel_helix) {
 
     const rectangle_t rect{0u, 10.f, 10.f};
     const trapezoid_t trap{0u, 10.f, 20.f, 30.f};
-    const annulus_t annl{0u, 15.f, 55.f, 0.75f, 1.95f, 2.f, -2.f, 0.f};
+    const annulus_t annl{0u, 15.f, 55.f, 0.75f, 1.95f, 0.f, 2.f, -2.f};
     mask_store.template push_back<e_rectangle2>(rect, empty_context{});
     mask_store.template push_back<e_trapezoid2>(trap, empty_context{});
     mask_store.template push_back<e_annulus2>(annl, empty_context{});

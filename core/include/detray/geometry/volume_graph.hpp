@@ -365,7 +365,8 @@ class volume_graph {
             inspector(*current);
 
             // Visit neighbors and perform action
-            actor(*current, current->template range<geo_obj_ids::e_portal>());
+            actor(*current, current->template
+    range<static_cast<geo_obj_ids>(0)>());
 
             // Add neightbors to queue
             for (const auto &edg_link : current->edges()) {
