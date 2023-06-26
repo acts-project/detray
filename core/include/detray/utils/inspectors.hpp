@@ -144,7 +144,7 @@ struct print_inspector {
                 debug_stream << "status" << tabs << "on_portal" << std::endl;
                 break;
         };
-        debug_stream << "current object\t\t\t" << state.current_object()
+        debug_stream << "current object\t\t\t" << state.surface_barcode()
                      << std::endl;
         debug_stream << "distance to next\t\t";
         if (std::abs(state()) < state.tolerance()) {
@@ -214,19 +214,15 @@ struct print_inspector : actor {
                 break;
         };
 
-        if (navigation.volume() == dindex_invalid) {
+        if (is_invalid_value(navigation.volume())) {
             printer.stream << "volume: " << std::setw(10) << "invalid";
         } else {
             printer.stream << "volume: " << std::setw(10)
                            << navigation.volume();
         }
 
-        if (navigation.current_object().is_invalid()) {
-            printer.stream << "surface: " << std::setw(14) << "invalid";
-        } else {
-            printer.stream << "surface: " << std::setw(14)
-                           << navigation.current_object();
-        }
+        printer.stream << "surface: " << std::setw(14)
+                       << navigation.surface_barcode();
 
         printer.stream << "step_size: " << std::setw(10) << stepping._step_size
                        << std::endl;

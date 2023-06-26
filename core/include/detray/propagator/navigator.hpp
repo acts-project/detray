@@ -239,11 +239,20 @@ class navigator {
             _volume_index = static_cast<nav_link_type>(v);
         }
 
-        /// @returns current object the navigator is on (might be invalid if
-        /// between objects) - const
+        /// @returns barcode of the detector surface the navigator is on
+        /// (might be invalid if between objects) - const
         DETRAY_HOST_DEVICE
-        inline auto current_object() const -> geometry::barcode {
+        inline auto surface_barcode() const -> geometry::barcode {
             return _object_index;
+        }
+
+        /// @returns current detector surface the navigator is on
+        /// (might be invalid if between objects) - const
+        DETRAY_HOST_DEVICE
+        inline auto current_surface() const
+            -> const surface<const detector_type> {
+            assert(is_on_module() or is_on_portal());
+            return surface<const detector_type>{*_detector, _object_index};
         }
 
         /// @returns the next object the navigator indends to reach
@@ -326,7 +335,7 @@ class navigator {
         DETRAY_HOST_DEVICE
         inline auto is_on_sensitive() const -> bool {
             return (_status == navigation::status::e_on_module) &&
-                   (this->current_object().id() == surface_id::e_sensitive);
+                   (_object_index.id() == surface_id::e_sensitive);
         }
 
         /// Helper method to check the track has reached a portal surface

@@ -103,8 +103,10 @@ struct event_writer : actor {
             const auto pos = track.pos();
             const auto mom = track.mom();
 
+            const auto sf = navigation.current_surface();
+
             hit.particle_id = writer_state.particle_id;
-            hit.geometry_id = navigation.current_object().value();
+            hit.geometry_id = sf.barcode().value();
             hit.tx = pos[0];
             hit.ty = pos[1];
             hit.tz = pos[2];
@@ -119,8 +121,6 @@ struct event_writer : actor {
             csv_measurement meas;
 
             const auto bound_params = stepping._bound_params;
-            const auto sf = surface{*navigation.detector(),
-                                    geometry::barcode(hit.geometry_id)};
 
             const auto local = sf.template visit_mask<measurement_kernel>(
                 bound_params, writer_state.m_meas_smearer);
