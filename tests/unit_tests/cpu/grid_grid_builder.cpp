@@ -10,7 +10,7 @@
 // Detray include(s)
 #include "detray/core/detector.hpp"
 #include "detray/definitions/indexing.hpp"
-#include "detray/detectors/detector_metadata.hpp"
+#include "detray/detectors/toy_metadata.hpp"
 #include "detray/masks/masks.hpp"
 #include "detray/surface_finders/grid/populator.hpp"
 #include "detray/surface_finders/grid/serializer.hpp"
@@ -35,7 +35,7 @@ using vector3 = test::vector3;
 
 test::transform3 Identity{};
 
-using test_detector_t = detector<detector_registry::toy_detector>;
+using test_detector_t = detector<toy_metadata<>>;
 
 }  // anonymous namespace
 
@@ -165,7 +165,7 @@ GTEST_TEST(detray_tools, decorator_grid_builder) {
 
     using transform3 = typename test_detector_t::transform3;
     using geo_obj_id = typename test_detector_t::geo_obj_ids;
-    using acc_ids = typename detector_registry::toy_detector::sf_finder_ids;
+    using acc_ids = typename test_detector_t::sf_finders::id;
     using mask_id = typename test_detector_t::masks::id;
 
     // cylinder grid type of the toy detector
@@ -266,9 +266,9 @@ GTEST_TEST(detray_tools, decorator_grid_builder) {
     // check results
     //
     // only the portals are referenced through the volume
-    typename detector_registry::toy_detector::object_link_type sf_range{};
+    typename toy_metadata<>::object_link_type sf_range{};
     sf_range[0] = {acc_ids::e_default, 0u};
-    sf_range[1] = {acc_ids::e_cylinder_grid, 0u};
+    sf_range[1] = {acc_ids::e_cylinder2_grid, 0u};
     // toy detector makes no distinction between the surface types
     EXPECT_EQ(vol.template link<geo_obj_id::e_portal>(),
               sf_range[geo_obj_id::e_portal]);
@@ -295,7 +295,7 @@ GTEST_TEST(detray_tools, decorator_grid_builder) {
     const auto& cyl_grid =
         d.surface_store()
             .template get<
-                test_detector_t::sf_finders::id::e_cylinder_grid>()[0];
+                test_detector_t::sf_finders::id::e_cylinder2_grid>()[0];
     dindex trf_idx{4u};
     for (const auto& sf : cyl_grid.all()) {
         EXPECT_TRUE(sf.is_sensitive());

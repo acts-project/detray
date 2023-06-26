@@ -47,9 +47,9 @@ struct mask_info<io::detail::mask_shape::annulus2, detector_t,
 template <typename detector_t>
 struct mask_info<io::detail::mask_shape::cylinder2, detector_t,
                  std::enable_if_t<detector_t::masks::template is_defined<mask<
-                                      cylinder2D<true>, std::uint_least16_t>>(),
+                                      cylinder2D<>, std::uint_least16_t>>(),
                                   void>> {
-    using type = cylinder2D<true>;
+    using type = cylinder2D<>;
     static constexpr typename detector_t::masks::id value{
         detector_t::masks::id::e_cylinder2};
 };
@@ -57,25 +57,36 @@ struct mask_info<io::detail::mask_shape::cylinder2, detector_t,
 /// Check for a 2D cylinder portal shape
 template <typename detector_t>
 struct mask_info<
-    io::detail::mask_shape::cylinder2, detector_t,
+    io::detail::mask_shape::portal_cylinder2, detector_t,
     std::enable_if_t<detector_t::masks::template is_defined<
                          mask<cylinder2D<false, cylinder_portal_intersector>,
                               std::uint_least16_t>>(),
                      void>> {
-    using type = cylinder2D<true>;
+    using type = cylinder2D<false, cylinder_portal_intersector>;
     static constexpr typename detector_t::masks::id value{
         detector_t::masks::id::e_portal_cylinder2};
 };
 
-/// Check for a line shape
+/// Check for a cell wire line shape
 template <typename detector_t>
-struct mask_info<io::detail::mask_shape::line, detector_t,
+struct mask_info<io::detail::mask_shape::cell_wire, detector_t,
                  std::enable_if_t<detector_t::masks::template is_defined<
-                                      mask<line<>, std::uint_least16_t>>(),
+                                      mask<line<true>, std::uint_least16_t>>(),
                                   void>> {
-    using type = line<>;
-    static constexpr
-        typename detector_t::masks::id value{detector_t::masks::id::e_line};
+    using type = line<true>;
+    static constexpr typename detector_t::masks::id value{
+        detector_t::masks::id::e_cell_wire};
+};
+
+/// Check for a straw wire line shape
+template <typename detector_t>
+struct mask_info<io::detail::mask_shape::straw_wire, detector_t,
+                 std::enable_if_t<detector_t::masks::template is_defined<
+                                      mask<line<false>, std::uint_least16_t>>(),
+                                  void>> {
+    using type = line<false>;
+    static constexpr typename detector_t::masks::id value{
+        detector_t::masks::id::e_straw_wire};
 };
 
 /// Check for a rectangle shape
@@ -100,13 +111,35 @@ struct mask_info<io::detail::mask_shape::ring2, detector_t,
         detector_t::masks::id::e_portal_ring2};
 };
 
-/// Check for a single masked value
+/// Check for a single masked value (1st value is checked)
+template <typename detector_t>
+struct mask_info<io::detail::mask_shape::single1, detector_t,
+                 std::enable_if_t<detector_t::masks::template is_defined<
+                                      mask<single3D<0>, std::uint_least16_t>>(),
+                                  void>> {
+    using type = single3D<0>;
+    static constexpr
+        typename detector_t::masks::id value{detector_t::masks::id::e_single1};
+};
+
+/// Check for a single masked value (2nd value is checked)
+template <typename detector_t>
+struct mask_info<io::detail::mask_shape::single2, detector_t,
+                 std::enable_if_t<detector_t::masks::template is_defined<
+                                      mask<single3D<1>, std::uint_least16_t>>(),
+                                  void>> {
+    using type = single3D<1>;
+    static constexpr
+        typename detector_t::masks::id value{detector_t::masks::id::e_single2};
+};
+
+/// Check for a single masked value (3rd value is checked)
 template <typename detector_t>
 struct mask_info<io::detail::mask_shape::single3, detector_t,
                  std::enable_if_t<detector_t::masks::template is_defined<
-                                      mask<single3D<>, std::uint_least16_t>>(),
+                                      mask<single3D<2>, std::uint_least16_t>>(),
                                   void>> {
-    using type = single3D<>;
+    using type = single3D<2>;
     static constexpr
         typename detector_t::masks::id value{detector_t::masks::id::e_single3};
 };

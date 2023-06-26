@@ -105,6 +105,11 @@ class brute_force_collection {
         m_offsets.push_back(0u);
     }
 
+    /// Constructor from memory resource
+    DETRAY_HOST
+    explicit constexpr brute_force_collection(vecmem::memory_resource& resource)
+        : brute_force_collection(&resource) {}
+
     /// Device-side construction from a vecmem based view type
     template <typename coll_view_t,
               typename std::enable_if_t<detail::is_device_view_v<coll_view_t>,

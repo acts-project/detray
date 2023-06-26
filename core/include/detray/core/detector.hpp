@@ -11,6 +11,7 @@
 #include "detray/core/detail/container_buffers.hpp"
 #include "detray/core/detail/container_views.hpp"
 #include "detray/core/detail/detector_kernel.hpp"
+#include "detray/core/detector_metadata.hpp"
 #include "detray/definitions/containers.hpp"
 #include "detray/definitions/qualifiers.hpp"
 #include "detray/geometry/detail/volume_descriptor.hpp"
@@ -49,7 +50,8 @@ struct detector_view;
 /// @tparam bfield_t the type of the b-field frontend
 /// @tparam container_t type collection of the underlying containers
 /// @tparam source_link the surface source link
-template <typename metadata, template <typename> class bfield_t = covfie::field,
+template <typename metadata = default_metadata,
+          template <typename> class bfield_t = covfie::field,
           typename container_t = host_container_types>
 class detector {
 

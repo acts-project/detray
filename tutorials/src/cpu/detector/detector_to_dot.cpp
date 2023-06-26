@@ -7,7 +7,7 @@
 
 // Project include(s)
 #include "detray/core/detector.hpp"
-#include "detray/detectors/detector_metadata.hpp"
+#include "detray/detectors/toy_metadata.hpp"
 #include "detray/geometry/volume_graph.hpp"
 #include "detray/io/json/json_reader.hpp"
 
@@ -35,8 +35,7 @@ int main(int argc, char** argv) {
     }
 
     // Read a toy detector
-    using detector_t =
-        detray::detector<detray::detector_registry::toy_detector>;
+    using detector_t = detray::detector<detray::toy_metadata<>>;
 
     // Empty volume name map (won't be filled by the reader, yet)
     typename detector_t::name_map volume_name_map = {{0u, "toy_detector"}};

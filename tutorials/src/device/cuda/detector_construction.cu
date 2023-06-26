@@ -38,7 +38,7 @@ __global__ void print_kernel(
     printf("Number of disc grids: %d\n",
            det.surface_store().get<acc_id::e_disc_grid>().size());
     printf("Number of cylinder grids: %d\n",
-           det.surface_store().get<acc_id::e_cylinder_grid>().size());
+           det.surface_store().get<acc_id::e_cylinder2_grid>().size());
 }
 
 void print(

@@ -88,8 +88,8 @@ class volume_descriptor {
 
     /// Set surface finder link from @param link
     template <ID obj_id>
-    DETRAY_HOST constexpr auto set_link(const link_t &link) -> void {
-        m_sf_finder_links[obj_id] = link;
+    DETRAY_HOST constexpr auto set_link(const link_t link) -> void {
+        detail::get<obj_id>(m_sf_finder_links) = link;
     }
 
     /// Set surface finder link from @param id and @param index of the
@@ -99,7 +99,7 @@ class volume_descriptor {
     DETRAY_HOST constexpr auto set_link(const typename link_t::id_type id,
                                         const typename link_t::index_type index)
         -> void {
-        m_sf_finder_links[obj_id] = link_t{id, index};
+        detail::get<obj_id>(m_sf_finder_links) = link_t{id, index};
     }
 
     /// Equality operator

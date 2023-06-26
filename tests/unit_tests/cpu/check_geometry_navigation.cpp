@@ -128,7 +128,7 @@ GTEST_TEST(detray_propagator, helix_navigation) {
     constexpr std::size_t n_edc_layers{7u};
     vecmem::host_memory_resource host_mr;
 
-    using b_field_t = detector<detector_registry::toy_detector>::bfield_type;
+    using b_field_t = detector<toy_metadata<>>::bfield_type;
 
     const vector3 B{0.f * unit<scalar>::T, 0.f * unit<scalar>::T,
                     2.f * unit<scalar>::T};

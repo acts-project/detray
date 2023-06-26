@@ -231,7 +231,7 @@ struct dtyped_index {
                                   static_cast<value_t>(ti.index())};
 
         bool writeSeparator = false;
-        for (auto i = 0u; i < 4u; ++i) {
+        for (auto i = 0u; i < 2u; ++i) {
             if (writeSeparator) {
                 os << " | ";
             }

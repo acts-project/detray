@@ -20,12 +20,16 @@ enum class mask_shape : unsigned int {
     cuboid3 = 1u,
     cylinder2 = 2u,
     cylinder3 = 3u,
-    line = 4u,
+    portal_cylinder2 = 4u,
     rectangle2 = 5u,
     ring2 = 6u,
-    single3 = 7u,
-    trapezoid2 = 8u,
-    n_shapes = 9u,
+    trapezoid2 = 7u,
+    cell_wire = 8u,
+    straw_wire = 9u,
+    single1 = 10u,
+    single2 = 11u,
+    single3 = 12u,
+    n_shapes = 13u,
     unknown = n_shapes
 };
 
@@ -36,15 +40,15 @@ enum class material_type : unsigned int {
     cuboid3 = 1u,
     cylinder2 = 2u,
     cylinder3 = 3u,
-    line = 4u,
-    rectangle2 = 5u,
-    ring2 = 6u,
-    single3 = 7u,
-    trapezoid2 = 8u,
-    unknown = 9u,
-    // Simple materials
-    slab = 11u,
-    rod = 12u
+    rectangle2 = 4u,
+    ring2 = 5u,
+    trapezoid2 = 6u,
+    cell_wire = 7u,
+    straw_wire = 8u,
+    // Homogeneous materials
+    slab = 9u,
+    rod = 10u,
+    unknown = 11u
 };
 
 /// Enumerate the different acceleration data structures
