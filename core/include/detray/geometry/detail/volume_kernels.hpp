@@ -1,0 +1,55 @@
+/** Detray library, part of the ACTS project (R&D line)
+ *
+ * (c) 2023 CERN for the benefit of the ACTS project
+ *
+ * Mozilla Public License Version 2.0
+ */
+
+#pragma once
+
+// Project include(s)
+#include "detray/definitions/indexing.hpp"
+#include "detray/definitions/qualifiers.hpp"
+
+namespace detray::detail {
+
+/// A functor to access the surfaces of a volume
+template <typename functor_t>
+struct surface_getter {
+
+    /// Call operator that forwards the neighborhood search call in a volume
+    /// to a surface finder data structure
+    template <typename sf_finder_group_t, typename sf_finder_index_t,
+              typename... Args>
+    DETRAY_HOST_DEVICE inline void operator()(const sf_finder_group_t &group,
+                                              const sf_finder_index_t index,
+                                              Args &&... args) const {
+
+        // Run over the surfaces in a single acceleration data structure
+        for (const auto &sf : group[index].all()) {
+            functor_t{}(sf, std::forward<Args>(args)...);
+        }
+    }
+};
+
+/// A functor to find surfaces in the neighborhood of a track position
+template <typename functor_t>
+struct neighborhood_getter {
+
+    /// Call operator that forwards the neighborhood search call in a volume
+    /// to a surface finder data structure
+    template <typename sf_finder_group_t, typename sf_finder_index_t,
+              typename detector_t, typename track_t, typename... Args>
+    DETRAY_HOST_DEVICE inline void operator()(
+        const sf_finder_group_t &group, const sf_finder_index_t index,
+        const detector_t &det, const typename detector_t::volume_type &volume,
+        const track_t &track, Args &&... args) const {
+
+        // Run over the surfaces in a single acceleration data structure
+        for (const auto &sf : group[index].search(det, volume, track)) {
+            functor_t{}(sf, std::forward<Args>(args)...);
+        }
+    }
+};
+
+}  // namespace detray::detail
