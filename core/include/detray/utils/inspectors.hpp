@@ -145,13 +145,22 @@ struct print_inspector {
                 debug_stream << "status" << tabs << "on_portal" << std::endl;
                 break;
         };
-        debug_stream << "current object\t\t\t" << state.barcode() << std::endl;
+
+        debug_stream << "current object\t\t\t";
+        if (state.is_on_portal() or state.is_on_module() or
+            state.status() == status::e_on_target) {
+            debug_stream << state.barcode() << std::endl;
+        } else {
+            debug_stream << "undefined" << std::endl;
+        }
+
         debug_stream << "distance to next\t\t";
         if (std::abs(state()) < state.tolerance()) {
             debug_stream << "on obj (within tol)" << std::endl;
         } else {
             debug_stream << state() << std::endl;
         }
+
         switch (state.trust_level()) {
             case trust_level::e_no_trust:
                 debug_stream << "trust" << tabs << "no_trust" << std::endl;
@@ -221,7 +230,13 @@ struct print_inspector : actor {
                            << navigation.volume();
         }
 
-        printer.stream << "surface: " << std::setw(14) << navigation.barcode();
+        printer.stream << "surface: " << std::setw(14);
+        if (navigation.is_on_portal() or navigation.is_on_module() or
+            navigation.status() == navigation::status::e_on_target) {
+            printer.stream << navigation.barcode();
+        } else {
+            printer.stream << "undefined";
+        }
 
         printer.stream << "step_size: " << std::setw(10) << stepping._step_size
                        << std::endl;

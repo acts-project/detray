@@ -41,11 +41,6 @@ inline void check_towards_surface(state_t &state, dindex vol_id,
     ASSERT_EQ(state.status(), navigation::status::e_towards_object);
     ASSERT_EQ(state.volume(), vol_id);
     ASSERT_EQ(state.n_candidates(), n_candidates);
-    // If we are towards some object, we have no current one (even if we are
-    // geometrically still there)
-    ASSERT_EQ(state.barcode().volume(), 4095u);
-    ASSERT_EQ(state.barcode().id(), static_cast<surface_id>(15u));
-    ASSERT_EQ(state.barcode().extra(), 255u);
     // the portal is still the next object, since we did not step
     ASSERT_EQ(state.next_surface().index(), next_id);
     ASSERT_TRUE((state.trust_level() == navigation::trust_level::e_full) or

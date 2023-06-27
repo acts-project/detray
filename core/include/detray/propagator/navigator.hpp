@@ -62,7 +62,7 @@ struct void_inspector {
 
 }  // namespace navigation
 
-/// The geometry navigation class.
+/// @brief The geometry navigation class.
 ///
 /// The navigator is initialized around a detector object, but is itself
 /// agnostic to the detectors's object/primitive types.
@@ -131,7 +131,7 @@ class navigator {
     };
 
     public:
-    /// A navigation state object used to cache the information of the
+    /// @brief A navigation state object used to cache the information of the
     /// current navigation stream.
     ///
     /// The state is passed between navigation calls and is accessible to the
@@ -156,101 +156,101 @@ class navigator {
         /// Default constructor
         state() = default;
 
-        state(const detector_type &det) : _detector(&det) {}
+        state(const detector_type &det) : m_detector(&det) {}
 
         /// Constructor with memory resource
         DETRAY_HOST
         state(const detector_type &det, vecmem::memory_resource &resource)
-            : _detector(&det), _candidates(&resource) {}
+            : m_detector(&det), m_candidates(&resource) {}
 
         /// Constructor from candidates vector_view
         DETRAY_HOST_DEVICE state(const detector_type &det,
                                  vector_type<intersection_type> candidates)
-            : _detector(&det), _candidates(candidates) {}
+            : m_detector(&det), m_candidates(candidates) {}
 
         /// @return start position of valid candidate range.
         DETRAY_HOST_DEVICE
-        constexpr auto begin() -> candidate_itr_t { return _next; }
+        constexpr auto begin() -> candidate_itr_t { return m_next; }
 
         /// @return start position of the valid candidate range - const
         DETRAY_HOST_DEVICE
-        constexpr auto begin() const -> const_candidate_itr_t { return _next; }
+        constexpr auto begin() const -> const_candidate_itr_t { return m_next; }
 
         /// @return sentinel of the valid candidate range.
         DETRAY_HOST_DEVICE
-        constexpr auto end() -> candidate_itr_t { return _last; }
+        constexpr auto end() -> candidate_itr_t { return m_last; }
 
         /// @return sentinel of the valid candidate range.
         DETRAY_HOST_DEVICE
-        constexpr auto end() const -> const_candidate_itr_t { return _last; }
+        constexpr auto end() const -> const_candidate_itr_t { return m_last; }
 
         /// @returns a pointer of detector
         DETRAY_HOST_DEVICE
-        auto detector() const { return _detector; }
+        auto detector() const { return m_detector; }
 
         /// Scalar representation of the navigation state,
         /// @returns distance to next
         DETRAY_HOST_DEVICE
-        scalar_type operator()() const { return _next->path; }
+        scalar_type operator()() const { return m_next->path; }
 
         /// @returns currently cached candidates - const
         DETRAY_HOST_DEVICE
         inline auto candidates() const
             -> const vector_type<intersection_type> & {
-            return _candidates;
+            return m_candidates;
         }
 
         /// @returns numer of currently cached (reachable) candidates - const
         DETRAY_HOST_DEVICE
         inline auto n_candidates() const ->
             typename std::iterator_traits<candidate_itr_t>::difference_type {
-            return std::distance(_next, _last);
+            return std::distance(m_next, m_last);
         }
 
         /// @returns current/previous object that was reached
         DETRAY_HOST_DEVICE
         inline auto current() const -> const_candidate_itr_t {
-            return _next - 1;
+            return m_next - 1;
         }
 
         /// @returns next object that we want to reach (current target) - const
         DETRAY_HOST_DEVICE
         inline auto next() const -> const const_candidate_itr_t & {
-            return _next;
+            return m_next;
         }
 
         /// @returns last valid candidate (by position in the cache) - const
         DETRAY_HOST_DEVICE
         inline auto last() const -> const const_candidate_itr_t & {
-            return _last;
+            return m_last;
         }
 
         /// @returns the navigation inspector
         DETRAY_HOST
-        inline auto &inspector() { return _inspector; }
+        inline auto &inspector() { return m_inspector; }
 
         /// @returns current volume (index) - const
         DETRAY_HOST_DEVICE
-        inline auto volume() const -> nav_link_type { return _volume_index; }
+        inline auto volume() const -> nav_link_type { return m_volume_index; }
 
         /// Set start/new volume
         DETRAY_HOST_DEVICE
         inline void set_volume(dindex v) {
-            _volume_index = static_cast<nav_link_type>(v);
+            m_volume_index = static_cast<nav_link_type>(v);
         }
 
         /// @returns barcode of the detector surface the navigator is on
         /// (invalid when not on surface) - const
         DETRAY_HOST_DEVICE
         inline auto barcode() const -> geometry::barcode {
-            return _object_index;
+            return current()->sf_desc.barcode();
         }
 
         /// @returns the next surface the navigator intends to reach
         DETRAY_HOST_DEVICE
         inline auto next_surface() const -> const surface<const detector_type> {
-            return surface<const detector_type>{*_detector,
-                                                _next->sf_desc.barcode()};
+            return surface<const detector_type>{*m_detector,
+                                                m_next->sf_desc.barcode()};
         }
 
         /// @returns current detector surface the navigator is on
@@ -258,103 +258,103 @@ class navigator {
         DETRAY_HOST_DEVICE
         inline auto get_surface() const -> const surface<const detector_type> {
             assert(is_on_module() or is_on_portal());
-            return surface<const detector_type>{*_detector, _object_index};
+            return surface<const detector_type>{*m_detector, barcode()};
         }
 
         /// @returns current navigation status - const
         DETRAY_HOST_DEVICE
-        inline auto status() const -> navigation::status { return _status; }
+        inline auto status() const -> navigation::status { return m_status; }
 
         /// @returns current navigation direction - const
         DETRAY_HOST_DEVICE
         inline auto direction() const -> navigation::direction {
-            return _direction;
+            return m_direction;
         }
 
         /// Set direction
         DETRAY_HOST_DEVICE
         inline void set_direction(const navigation::direction dir) {
-            _direction = dir;
+            m_direction = dir;
         }
 
         /// @returns tolerance to determine if we are on object - const
         DETRAY_HOST_DEVICE
         inline auto tolerance() const -> scalar_type {
-            return _on_object_tolerance;
+            return m_on_object_tolerance;
         }
 
         /// Adjust the on-object tolerance
         DETRAY_HOST_DEVICE
         inline void set_tolerance(scalar_type tol) {
-            _on_object_tolerance = tol;
+            m_on_object_tolerance = tol;
         }
 
         /// @returns navigation trust level - const
         DETRAY_HOST_DEVICE
         inline auto trust_level() const -> navigation::trust_level {
-            return _trust_level;
+            return m_trust_level;
         }
 
         /// Update navigation trust level to no trust
         DETRAY_HOST_DEVICE
         inline void set_no_trust() {
-            _trust_level = navigation::trust_level::e_no_trust;
+            m_trust_level = navigation::trust_level::e_no_trust;
         }
 
         /// Update navigation trust level to full trust
         DETRAY_HOST_DEVICE
         inline void set_full_trust() {
-            _trust_level = _trust_level <= navigation::trust_level::e_full
-                               ? _trust_level
-                               : navigation::trust_level::e_full;
+            m_trust_level = m_trust_level <= navigation::trust_level::e_full
+                                ? m_trust_level
+                                : navigation::trust_level::e_full;
         }
 
         /// Update navigation trust level to high trust
         DETRAY_HOST_DEVICE
         inline void set_high_trust() {
-            _trust_level = _trust_level <= navigation::trust_level::e_high
-                               ? _trust_level
-                               : navigation::trust_level::e_high;
+            m_trust_level = m_trust_level <= navigation::trust_level::e_high
+                                ? m_trust_level
+                                : navigation::trust_level::e_high;
         }
 
         /// Update navigation trust level to fair trust
         DETRAY_HOST_DEVICE
         inline void set_fair_trust() {
-            _trust_level = _trust_level <= navigation::trust_level::e_fair
-                               ? _trust_level
-                               : navigation::trust_level::e_fair;
+            m_trust_level = m_trust_level <= navigation::trust_level::e_fair
+                                ? m_trust_level
+                                : navigation::trust_level::e_fair;
         }
 
         /// Helper method to check the track has reached a module surface
         DETRAY_HOST_DEVICE
         inline auto is_on_module() const -> bool {
-            return _status == navigation::status::e_on_module;
+            return m_status == navigation::status::e_on_module;
         }
 
         /// Helper method to check the track has reached a sensitive surface
         DETRAY_HOST_DEVICE
         inline auto is_on_sensitive() const -> bool {
-            return (_status == navigation::status::e_on_module) &&
-                   (_object_index.id() == surface_id::e_sensitive);
+            return (m_status == navigation::status::e_on_module) &&
+                   (barcode().id() == surface_id::e_sensitive);
         }
 
         /// Helper method to check the track has reached a portal surface
         DETRAY_HOST_DEVICE
         inline auto is_on_portal() const -> bool {
-            return _status == navigation::status::e_on_portal;
+            return m_status == navigation::status::e_on_portal;
         }
 
         /// Helper method to check if a kernel is exhausted - const
         DETRAY_HOST_DEVICE
         inline auto is_exhausted() const -> bool {
-            return std::distance(_next, _last) <= 0;
+            return std::distance(m_next, m_last) <= 0;
         }
 
         /// @returns flag that indicates whether navigation was successful
         DETRAY_HOST_DEVICE
         inline auto is_complete() const -> bool {
             // Normal exit for this navigation?
-            return _status == navigation::status::e_on_target and !_heartbeat;
+            return m_status == navigation::status::e_on_target and !m_heartbeat;
         }
 
         /// Navigation state that cannot be recovered from. Leave the other
@@ -363,12 +363,12 @@ class navigator {
         /// @return navigation heartbeat (dead)
         DETRAY_HOST_DEVICE
         inline auto abort() -> bool {
-            _status = navigation::status::e_abort;
-            _heartbeat = false;
+            m_status = navigation::status::e_abort;
+            m_heartbeat = false;
             // Don't do anything if aborted
-            _trust_level = navigation::trust_level::e_full;
+            m_trust_level = navigation::trust_level::e_full;
             run_inspector("Aborted: ");
-            return _heartbeat;
+            return m_heartbeat;
         }
 
         /// Navigation reaches target or leaves detector world. Stop
@@ -377,12 +377,12 @@ class navigator {
         /// @return navigation heartbeat (dead)
         DETRAY_HOST_DEVICE
         inline auto exit() -> bool {
-            _status = navigation::status::e_on_target;
-            _heartbeat = false;
-            _trust_level = navigation::trust_level::e_full;
+            m_status = navigation::status::e_on_target;
+            m_heartbeat = false;
+            m_trust_level = navigation::trust_level::e_full;
             run_inspector("Exited: ");
             this->clear();
-            return _heartbeat;
+            return m_heartbeat;
         }
 
         private:
@@ -391,7 +391,7 @@ class navigator {
         DETRAY_HOST_DEVICE inline auto is_on_object(
             const intersection_type &candidate, const track_t &track) const
             -> bool {
-            if ((candidate.path < _on_object_tolerance) and
+            if ((candidate.path < m_on_object_tolerance) and
                 (candidate.path > track.overstep_tolerance())) {
                 return true;
             }
@@ -412,31 +412,32 @@ class navigator {
 
         /// @returns next object that we want to reach (current target)
         DETRAY_HOST_DEVICE
-        inline auto next() -> candidate_itr_t & { return _next; }
+        inline auto next() -> candidate_itr_t & { return m_next; }
 
         /// Updates the iterator position of the last valid candidate
         DETRAY_HOST_DEVICE
         inline void set_next(candidate_itr_t &&new_next) {
-            _next = std::move(new_next);
+            m_next = std::move(new_next);
         }
 
         /// Updates the iterator position of the last valid candidate
         DETRAY_HOST_DEVICE
         inline void set_last(candidate_itr_t &&new_last) {
-            _last = std::move(new_last);
+            m_last = std::move(new_last);
         }
 
         /// @returns currently cached candidates
         DETRAY_HOST_DEVICE
         inline auto candidates() -> vector_type<intersection_type> & {
-            return _candidates;
+            return m_candidates;
         }
 
-        /// Clear the kernel
+        /// Clear the state
         DETRAY_HOST_DEVICE
         inline void clear() {
-            _candidates.clear();
-            _next = _candidates.end();
+            m_candidates.clear();
+            m_next = m_candidates.end();
+            m_last = m_candidates.end();
         }
 
         /// Call the navigation inspector
@@ -444,64 +445,47 @@ class navigator {
         inline void run_inspector([[maybe_unused]] const char *message) {
             if constexpr (not std::is_same_v<inspector_t,
                                              navigation::void_inspector>) {
-                _inspector(*this, message);
+                m_inspector(*this, message);
             }
         }
 
-        /// Helper method to set common state values during naviagtion
-        ///
-        /// @param status current navigation status
-        /// @param obj_idx current object (invalid if not on object)
-        /// @param trust_lvl current truct level of next target state
-        DETRAY_HOST_DEVICE
-        constexpr void set_state(const navigation::status status,
-                                 const geometry::barcode obj_idx,
-                                 const navigation::trust_level trust_lvl) {
-            _object_index = obj_idx;
-            _trust_level = trust_lvl;
-            _status = status;
-        }
-
         /// Heartbeat of this navigation flow signals navigation is alive
-        bool _heartbeat = false;
+        bool m_heartbeat = false;
 
         /// Detector pointer
-        const detector_type *const _detector;
+        const detector_type *const m_detector;
 
         /// Our cache of candidates (intersections with any kind of surface)
-        vector_type<intersection_type> _candidates = {};
+        vector_type<intersection_type> m_candidates = {};
 
         /// The next best candidate
-        candidate_itr_t _next = _candidates.end();
+        candidate_itr_t m_next = m_candidates.end();
 
         /// The last reachable candidate
-        candidate_itr_t _last = _candidates.end();
+        candidate_itr_t m_last = m_candidates.end();
 
         /// The inspector type of this navigation engine
-        inspector_type _inspector;
-
-        /// Index of an object (module/portal) if is reached, otherwise invalid
-        geometry::barcode _object_index{};
+        inspector_type m_inspector;
 
         /// The navigation status
-        navigation::status _status = navigation::status::e_unknown;
+        navigation::status m_status = navigation::status::e_unknown;
 
         /// The navigation direction
-        navigation::direction _direction = navigation::direction::e_forward;
+        navigation::direction m_direction = navigation::direction::e_forward;
 
         /// The on object tolerance - permille
-        scalar_type _on_object_tolerance{1e-3f};
+        scalar_type m_on_object_tolerance{1e-3f};
 
         /// The navigation trust level determines how this states cache is to
         /// be updated in the current navigation call
-        navigation::trust_level _trust_level =
+        navigation::trust_level m_trust_level =
             navigation::trust_level::e_no_trust;
 
         /// Index in the detector volume container of current navigation volume
-        nav_link_type _volume_index{0u};
+        nav_link_type m_volume_index{0u};
     };
 
-    /// Helper method to initialize a volume.
+    /// @brief Helper method to initialize a volume.
     ///
     /// Calls the volumes accelerator structure for local navigation, then tests
     /// the surfaces for intersection and sorts the reachable candidates to find
@@ -520,7 +504,7 @@ class navigator {
 
         // Clean up state
         navigation.clear();
-        navigation._heartbeat = true;
+        navigation.m_heartbeat = true;
         // Get the max number of candidates & run them through the kernel
         // detail::call_reserve(navigation.candidates(), volume.n_objects());
         // @TODO: switch to fixed size buffer
@@ -539,17 +523,17 @@ class navigator {
         // No unreachable candidates in cache after local navigation
         navigation.set_last(navigation.candidates().end());
         // Determine overall state of the navigation after updating the cache
-        update_navigation_state(track, propagation);
+        update_navigation_state(track, navigation);
         // If init was not successful, the propagation setup is broken
         if (navigation.trust_level() != navigation::trust_level::e_full) {
-            navigation._heartbeat = false;
+            navigation.m_heartbeat = false;
         }
         navigation.run_inspector("Init complete: ");
 
-        return navigation._heartbeat;
+        return navigation.m_heartbeat;
     }
 
-    /// Complete update of the nvaigation flow.
+    /// @brief Complete update of the nvaigation flow.
     ///
     /// Restores 'full trust' state to the cadidates cache and checks whether
     /// the track stepped onto a portal and a volume switch is due. If so, or
@@ -568,12 +552,13 @@ class navigator {
 
         state &navigation = propagation._navigation;
 
-        // Candidates are re-evaluated based on the current trust level
+        // Candidates are re-evaluated based on the current trust level.
+        // Should result in 'full trust'
         update_kernel(propagation);
 
         // Update was completely successful (most likely case)
         if (navigation.trust_level() == navigation::trust_level::e_full) {
-            return navigation._heartbeat;
+            return navigation.m_heartbeat;
         }
         // Otherwise: did we run into a portal?
         if (navigation.status() == navigation::status::e_on_portal) {
@@ -583,7 +568,7 @@ class navigator {
             // Navigation reached the end of the detector world
             if (is_invalid_value(navigation.volume())) {
                 navigation.exit();
-                return navigation._heartbeat;
+                return navigation.m_heartbeat;
             }
             // Run inspection when needed (keep for debugging)
             // navigation.run_inspector("Volume switch: ");
@@ -591,7 +576,7 @@ class navigator {
         // If no trust could be restored for the current state, (local)
         // navigation might be exhausted or we switched volumes:
         // re-initialize volume
-        navigation._heartbeat &= init(propagation);
+        navigation.m_heartbeat &= init(propagation);
 
         // Sanity check: Should never be the case after complete update call
         if (navigation.trust_level() != navigation::trust_level::e_full or
@@ -599,7 +584,7 @@ class navigator {
             navigation.abort();
         }
 
-        return navigation._heartbeat;
+        return navigation.m_heartbeat;
     }
 
     private:
@@ -630,14 +615,13 @@ class navigator {
 
             // Update next candidate: If not reachable, 'high trust' is broken
             if (not update_candidate(*navigation.next(), track, det)) {
-                navigation.set_state(navigation::status::e_unknown,
-                                     geometry::barcode{},
-                                     navigation::trust_level::e_no_trust);
+                navigation.m_status = navigation::status::e_unknown;
+                navigation.set_no_trust();
                 return;
             }
 
             // Update navigation flow on the new candidate information
-            update_navigation_state(track, propagation);
+            update_navigation_state(track, navigation);
 
             navigation.run_inspector("Update complete: high trust: ");
 
@@ -661,7 +645,7 @@ class navigator {
             navigation.set_fair_trust();
         }
 
-        // Re-evaluate all currently available candidates
+        // Re-evaluate all currently available candidates and sort again
         // - do this when your navigation state is stale, but not invalid
         if (navigation.trust_level() == navigation::trust_level::e_fair) {
 
@@ -672,14 +656,13 @@ class navigator {
                     candidate.path = std::numeric_limits<scalar_type>::max();
                 }
             }
-            // Sort again
             detail::sequential_sort(navigation.begin(), navigation.end());
             // Take the nearest (sorted) candidate first
             navigation.set_next(navigation.begin());
             // Ignore unreachable elements (needed to determine exhaustion)
             navigation.set_last(find_invalid(navigation.candidates()));
             // Update navigation flow on the new candidate information
-            update_navigation_state(track, propagation);
+            update_navigation_state(track, navigation);
 
             navigation.run_inspector("Update complete: fair trust: ");
 
@@ -689,29 +672,26 @@ class navigator {
         // Actor flagged cache as broken (other cases of 'no trust' are
         // handeled after volume switch was checked in 'update()')
         if (navigation.trust_level() == navigation::trust_level::e_no_trust) {
-            navigation._heartbeat &= init(propagation);
+            navigation.m_heartbeat &= init(propagation);
             return;
         }
     }
 
-    /// Helper method that re-establishes the navigation state after an update.
+    /// @brief Helper method that re-establishes the navigation state after an
+    /// update.
     ///
     /// It checks wether the track has reached a surface or is still moving
     /// towards the next surface candidate. If no new next candidate can be
     //  found, it flags 'no trust' in order to trigger a volume initialization.
-    /// Additionally, all stepper constraints are lifted if a surface is
-    /// reached.
     ///
     /// @tparam track_t the type of the track parametrisation
     /// @tparam propagator_state_t state type of the propagator
     ///
     /// @param track the track that belongs to the current propagation state
     /// @param propagation contains the stepper and navigator states
-    template <typename track_t, typename propagator_state_t>
+    template <typename track_t>
     DETRAY_HOST_DEVICE inline void update_navigation_state(
-        track_t &track, propagator_state_t &propagation) const {
-
-        state &navigation = propagation._navigation;
+        const track_t &track, state &navigation) const {
 
         // Check wether the track reached the current candidate. Might be a
         // portal, in which case the navigation becomes exhausted (the
@@ -721,28 +701,22 @@ class navigator {
             // called once the cache has been updated to a full trust state).
             // Might lead to exhausted cache.
             ++navigation.next();
-            // Update state accordingly
-            navigation.set_state(
-                navigation.volume() != navigation.current()->volume_link
-                    ? navigation::status::e_on_portal
-                    : navigation::status::e_on_module,
-                navigation.current()->sf_desc.barcode(),
-                navigation::trust_level::e_full);
+            navigation.m_status = (navigation.current()->sf_desc.is_portal())
+                                      ? navigation::status::e_on_portal
+                                      : navigation::status::e_on_module;
         } else {
             // Otherwise the track is moving towards a surface
-            navigation.set_state(navigation::status::e_towards_object,
-                                 geometry::barcode{},
-                                 navigation::trust_level::e_full);
+            navigation.m_status = navigation::status::e_towards_object;
         }
-        // Generally happens when after an update no next candidate in the
+        // Exhaustion happens when after an update no next candidate in the
         // cache is reachable anymore -> triggers init of [new] volume
-        if (navigation.is_exhausted()) {
-            navigation.set_no_trust();
-        }
+        navigation.m_trust_level = navigation.is_exhausted()
+                                       ? navigation::trust_level::e_no_trust
+                                       : navigation::trust_level::e_full;
     }
 
-    /// Helper method that updates the intersection of a single candidate and
-    /// checks reachability
+    /// @brief Helper method that updates the intersection of a single candidate
+    /// and checks reachability
     ///
     /// @tparam track_t type of the track parametrization
     ///
