@@ -63,7 +63,7 @@ struct cylinder_intersector {
             case 2:
                 ret[1] = build_candidate(ray, mask, trf, qe.larger(),
                                          mask_tolerance);
-                ret[1].surface = sf;
+                ret[1].sf_desc = sf;
                 // If there are two solutions, reuse the case for a single
                 // solution to setup the intersection with the smaller path
                 // in ret[0]
@@ -71,7 +71,7 @@ struct cylinder_intersector {
             case 1:
                 ret[0] = build_candidate(ray, mask, trf, qe.smaller(),
                                          mask_tolerance);
-                ret[0].surface = sf;
+                ret[0].sf_desc = sf;
                 break;
             case 0:
                 ret[0].status = intersection::status::e_missed;

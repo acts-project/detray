@@ -103,7 +103,7 @@ struct event_writer : actor {
             const auto pos = track.pos();
             const auto mom = track.mom();
 
-            const auto sf = navigation.current_surface();
+            const auto sf = navigation.get_surface();
 
             hit.particle_id = writer_state.particle_id;
             hit.geometry_id = sf.barcode().value();

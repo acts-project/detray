@@ -107,7 +107,7 @@ struct print_inspector {
         for (const auto &sf_cand : state.candidates()) {
             const auto &local = sf_cand.local;
             const auto pos =
-                surface{*state.detector(), sf_cand.surface}.local_to_global(
+                surface{*state.detector(), sf_cand.sf_desc}.local_to_global(
                     geo_ctx_t{}, local);
 
             debug_stream << sf_cand;
@@ -119,7 +119,8 @@ struct print_inspector {
             if (state.is_exhausted()) {
                 debug_stream << "exhausted" << std::endl;
             } else {
-                debug_stream << " -> " << state.next_object() << std::endl;
+                debug_stream << " -> " << state.next_surface().barcode()
+                             << std::endl;
             }
         }
 
@@ -144,8 +145,7 @@ struct print_inspector {
                 debug_stream << "status" << tabs << "on_portal" << std::endl;
                 break;
         };
-        debug_stream << "current object\t\t\t" << state.surface_barcode()
-                     << std::endl;
+        debug_stream << "current object\t\t\t" << state.barcode() << std::endl;
         debug_stream << "distance to next\t\t";
         if (std::abs(state()) < state.tolerance()) {
             debug_stream << "on obj (within tol)" << std::endl;
@@ -221,8 +221,7 @@ struct print_inspector : actor {
                            << navigation.volume();
         }
 
-        printer.stream << "surface: " << std::setw(14)
-                       << navigation.surface_barcode();
+        printer.stream << "surface: " << std::setw(14) << navigation.barcode();
 
         printer.stream << "step_size: " << std::setw(10) << stepping._step_size
                        << std::endl;

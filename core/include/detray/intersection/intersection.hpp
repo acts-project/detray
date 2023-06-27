@@ -54,7 +54,7 @@ struct intersection2D {
     using nav_link_type = typename surface_descr_t::navigation_link;
 
     /// Descriptor of the surface this intersection belongs to
-    surface_descr_t surface;
+    surface_descr_t sf_desc;
 
     /// Local position of the intersection on the surface
     point3 local{detail::invalid_value<scalar_type>(),
@@ -100,7 +100,7 @@ struct intersection2D {
     friend std::ostream &operator<<(std::ostream &out_stream,
                                     const intersection2D &is) {
         out_stream << "dist:" << is.path
-                   << "\tsurface: " << is.surface.barcode() << ", loc ["
+                   << "\tsurface: " << is.sf_desc.barcode() << ", loc ["
                    << is.local[0] << ", " << is.local[1] << ", " << is.local[2]
                    << "]"
                    << ", links to vol:" << is.volume_link << ")";

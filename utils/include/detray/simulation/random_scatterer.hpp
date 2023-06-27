@@ -123,7 +123,7 @@ struct random_scatterer : actor {
         auto& stepping = prop_state._stepping;
         auto& bound_params = stepping._bound_params;
         const auto& is = *navigation.current();
-        const auto sf = navigation.current_surface();
+        const auto sf = navigation.get_surface();
 
         sf.template visit_material<kernel>(is, simulator_state, bound_params);
 

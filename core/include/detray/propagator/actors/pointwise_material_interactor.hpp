@@ -123,7 +123,7 @@ struct pointwise_material_interactor : actor {
 
             this->update(stepping._bound_params, interactor_state,
                          static_cast<int>(navigation.direction()),
-                         *navigation.current(), navigation.current_surface());
+                         *navigation.current(), navigation.get_surface());
         }
     }
 

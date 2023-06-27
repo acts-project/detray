@@ -240,25 +240,25 @@ class navigator {
         }
 
         /// @returns barcode of the detector surface the navigator is on
-        /// (might be invalid if between objects) - const
+        /// (invalid when not on surface) - const
         DETRAY_HOST_DEVICE
-        inline auto surface_barcode() const -> geometry::barcode {
+        inline auto barcode() const -> geometry::barcode {
             return _object_index;
         }
 
-        /// @returns current detector surface the navigator is on
-        /// (might be invalid if between objects) - const
+        /// @returns the next surface the navigator intends to reach
         DETRAY_HOST_DEVICE
-        inline auto current_surface() const
-            -> const surface<const detector_type> {
-            assert(is_on_module() or is_on_portal());
-            return surface<const detector_type>{*_detector, _object_index};
+        inline auto next_surface() const -> const surface<const detector_type> {
+            return surface<const detector_type>{*_detector,
+                                                _next->sf_desc.barcode()};
         }
 
-        /// @returns the next object the navigator indends to reach
+        /// @returns current detector surface the navigator is on
+        /// (cannot be used when not on surface) - const
         DETRAY_HOST_DEVICE
-        inline auto next_object() const -> geometry::barcode {
-            return _next->surface.barcode();
+        inline auto get_surface() const -> const surface<const detector_type> {
+            assert(is_on_module() or is_on_portal());
+            return surface<const detector_type>{*_detector, _object_index};
         }
 
         /// @returns current navigation status - const
@@ -726,7 +726,7 @@ class navigator {
                 navigation.volume() != navigation.current()->volume_link
                     ? navigation::status::e_on_portal
                     : navigation::status::e_on_module,
-                navigation.current()->surface.barcode(),
+                navigation.current()->sf_desc.barcode(),
                 navigation::trust_level::e_full);
         } else {
             // Otherwise the track is moving towards a surface
@@ -755,11 +755,11 @@ class navigator {
         intersection_type &candidate, const track_t &track,
         const detector_type *det) const {
 
-        if (candidate.surface.barcode().is_invalid()) {
+        if (candidate.sf_desc.barcode().is_invalid()) {
             return false;
         }
 
-        const auto sf = surface{*det, candidate.surface};
+        const auto sf = surface{*det, candidate.sf_desc};
 
         // Check whether this candidate is reachable by the track
         return sf.template visit_mask<intersection_update>(
