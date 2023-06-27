@@ -31,7 +31,7 @@ TEST_P(CudaPropConstBFieldMng, propagator) {
 
     // Create the toy geometry
     toy_cfg.bfield_vec(B);
-    auto det = create_toy_geometry<const_backend_t>(mng_mr, toy_cfg);
+    auto det = create_toy_geometry<const_bfield_bknd_t>(mng_mr, toy_cfg);
 
     run_propagation_test(&mng_mr, det, detray::get_data(det));
 }
@@ -52,9 +52,9 @@ TEST_P(CudaPropConstBFieldCpy, propagator) {
 
     // Create the toy geometry
     toy_cfg.bfield_vec(B);
-    auto det = create_toy_geometry<const_backend_t>(host_mr, toy_cfg);
+    auto det = create_toy_geometry<const_bfield_bknd_t>(host_mr, toy_cfg);
 
-    auto det_buff = detray::get_buffer<covfie::field<const_backend_t>>(
+    auto det_buff = detray::get_buffer<covfie::field<const_bfield_bknd_t>>(
         det, dev_mr, cuda_cpy);
 
     run_propagation_test(&mng_mr, det, detray::get_data(det_buff));

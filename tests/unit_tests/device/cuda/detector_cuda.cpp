@@ -136,8 +136,8 @@ TEST(detector_cuda, enumerate) {
     copy.setup(surfaces_buffer);
 
     // get data object for toy detector
-    auto det_buff =
-        get_buffer<covfie::field<const_backend_t>>(detector, dev_mr, cuda_cpy);
+    auto det_buff = get_buffer<covfie::field<const_bfield_bknd_t>>(
+        detector, dev_mr, cuda_cpy);
     auto det_data = get_data(det_buff);
 
     // run the test code to test enumerate

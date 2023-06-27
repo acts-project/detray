@@ -17,6 +17,11 @@
 // Vecmem include(s)
 #include <vecmem/memory/host_memory_resource.hpp>
 
+// Covfie include(s)
+#include <covfie/core/field.hpp>
+#include <covfie/core/backend/primitive/constant.hpp>
+#include <covfie/core/vector.hpp>
+
 // System include(s)
 #include <iostream>
 #include <stdexcept>
@@ -35,8 +40,11 @@ int main(int argc, char** argv) {
     }
 
     // Read a toy detector
+    using const_bfield_bknd_t = 
+    covfie::backend::constant<covfie::vector::vector_d<detray::scalar, 3>,
+                              covfie::vector::vector_d<detray::scalar, 3>>;
     using detector_t =
-        detray::detector<detray::detector_registry::toy_detector>;
+        detray::detector<detray::detector_registry::toy_detector, covfie::field<const_bfield_bknd_t>>;
 
     // Empty volume name map (won't be filled by the reader, yet)
     typename detector_t::name_map volume_name_map = {{0u, "toy_detector"}};

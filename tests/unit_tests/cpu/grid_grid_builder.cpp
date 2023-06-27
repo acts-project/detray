@@ -22,6 +22,11 @@
 // Vecmem include(s)
 #include <vecmem/memory/host_memory_resource.hpp>
 
+// Covfie include(s)
+#include <covfie/core/backend/primitive/constant.hpp>
+#include <covfie/core/field.hpp>
+#include <covfie/core/vector.hpp>
+
 // System include(s)
 #include <limits>
 
@@ -35,7 +40,11 @@ using vector3 = test::vector3;
 
 test::transform3 Identity{};
 
-using test_detector_t = detector<detector_registry::toy_detector>;
+using const_bfield_bknd_t =
+    covfie::backend::constant<covfie::vector::vector_d<detray::scalar, 3>,
+                              covfie::vector::vector_d<detray::scalar, 3>>;
+using test_detector_t = detector<detector_registry::toy_detector,
+                                 covfie::field<const_bfield_bknd_t>>;
 
 }  // anonymous namespace
 

@@ -14,18 +14,26 @@
 #include "detray/detectors/detector_metadata.hpp"
 #include "detray/utils/ranges.hpp"
 
+// Covfie include(s)
+#include <covfie/core/backend/primitive/constant.hpp>
+#include <covfie/core/field.hpp>
+#include <covfie/core/vector.hpp>
+
 using namespace detray;
 using namespace __plugin;
 
 namespace detray {
 
 // some useful type declarations
+using const_bfield_bknd_t =
+    covfie::backend::constant<covfie::vector::vector_d<scalar, 3>,
+                              covfie::vector::vector_d<scalar, 3>>;
 using detector_host_t =
-    detector<detector_registry::toy_detector, covfie::field<const_backend_t>,
-             host_container_types>;
+    detector<detector_registry::toy_detector,
+             covfie::field<const_bfield_bknd_t>, host_container_types>;
 using detector_device_t =
     detector<detector_registry::toy_detector,
-             covfie::field_view<const_backend_t>, device_container_types>;
+             covfie::field_view<const_bfield_bknd_t>, device_container_types>;
 
 using volume_t = typename detector_host_t::volume_type;
 using surface_t = typename detector_host_t::surface_type;

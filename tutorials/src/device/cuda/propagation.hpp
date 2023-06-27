@@ -29,9 +29,9 @@ namespace detray::tutorial {
 
 // Detector
 using detector_host_t = detector<detector_registry::toy_detector,
-                                 covfie::field<const_backend_t>, host_container_types>;
+                                 covfie::field<const_bfield_bknd_t>, host_container_types>;
 using detector_device_t = detector<detector_registry::toy_detector,
-                                   covfie::field_view<const_backend_t>, device_container_types>;
+                                   covfie::field_view<const_bfield_bknd_t>, device_container_types>;
 
 // Navigator
 using intersection_t =

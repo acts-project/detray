@@ -23,6 +23,11 @@
 // Vecmem include(s)
 #include <vecmem/memory/host_memory_resource.hpp>
 
+// Covfie include(s)
+#include <covfie/core/field.hpp>
+#include <covfie/core/backend/primitive/constant.hpp>
+#include <covfie/core/vector.hpp>
+
 // System include(s)
 #include <limits>
 #include <memory>
@@ -31,7 +36,10 @@
 int main() {
 
     // The new detector type
-    using detector_t = detray::detector<detray::tutorial::my_metadata>;
+    using const_bfield_bknd_t = 
+    covfie::backend::constant<covfie::vector::vector_d<detray::scalar, 3>,
+                              covfie::vector::vector_d<detray::scalar, 3>>;
+    using detector_t = detray::detector<detray::tutorial::my_metadata, covfie::field<const_bfield_bknd_t>>;
 
     // First, create an empty detector in in host memory to be filled
     vecmem::host_memory_resource host_mr;

@@ -24,9 +24,7 @@
 #include <vecmem/memory/memory_resource.hpp>
 
 // Covfie include(s)
-#include <covfie/core/backend/primitive/constant.hpp>
 #include <covfie/core/field.hpp>
-#include <covfie/core/vector.hpp>
 
 // System include(s)
 #include <algorithm>
@@ -40,11 +38,6 @@ namespace detray {
 template <typename bfield_t, typename detector_t>
 struct detector_view;
 
-/// Global definition of covfie backend for const bfield
-using const_backend_t =
-    covfie::backend::constant<covfie::vector::vector_d<scalar, 3>,
-                              covfie::vector::vector_d<scalar, 3>>;
-
 /// @brief The detector definition.
 ///
 /// This class is a heavily templated container aggregation, that owns all data
@@ -55,7 +48,7 @@ using const_backend_t =
 /// @tparam bfield_t the type of the b-field frontend
 /// @tparam container_t type collection of the underlying containers
 /// @tparam source_link the surface source link
-template <typename metadata, typename bfield_t = covfie::field<const_backend_t>,
+template <typename metadata, typename bfield_t,
           typename container_t = host_container_types>
 class detector {
 
@@ -71,8 +64,6 @@ class detector {
     using point3 = __plugin::point3<scalar_type>;
     using vector3 = __plugin::vector3<scalar_type>;
     using point2 = __plugin::point2<scalar_type>;
-
-    using bfield_backend_type = typename bfield_t::backend_t;
 
     using bfield_type = bfield_t;
 
@@ -612,7 +603,7 @@ class detector {
     vecmem::memory_resource *_resource = nullptr;
 
     /// Storage for magnetic field data
-    bfield_t _bfield;
+    bfield_type _bfield;
 };
 
 /// @brief A static inplementation of detector data for device

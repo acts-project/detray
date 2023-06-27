@@ -90,8 +90,7 @@ struct grid_writer {
 /// z
 ///
 /// @return a detector object
-template <typename detector_registry,
-          typename bfield_type = covfie::field<const_backend_t>,
+template <typename detector_registry, typename bfield_type,
           template <typename, std::size_t> class array_type = darray,
           template <typename...> class tuple_type = dtuple,
           template <typename...> class vector_type = dvector,

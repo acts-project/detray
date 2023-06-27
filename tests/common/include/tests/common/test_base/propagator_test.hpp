@@ -33,7 +33,6 @@
 #include <covfie/core/backend/transformer/strided.hpp>
 #include <covfie/core/field.hpp>
 #include <covfie/core/field_view.hpp>
-#include <covfie/core/vector.hpp>
 
 // GTest include(s).
 #include <gtest/gtest.h>
@@ -59,7 +58,7 @@ using detector_device_t =
              device_container_types>;
 
 // These types are identical in host and device code for all bfield types
-using transform3 = typename detector_host_t<const_backend_t>::transform3;
+using transform3 = typename detector_host_t<const_bfield_bknd_t>::transform3;
 using vector3_t = typename transform3::vector3;
 using matrix_operator = standard_matrix_operator<scalar>;
 using track_t = free_track_parameters<transform3>;
