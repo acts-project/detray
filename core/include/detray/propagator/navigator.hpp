@@ -429,8 +429,11 @@ class navigator {
 
         /// Call the navigation inspector
         DETRAY_HOST_DEVICE
-        inline void run_inspector(const char *message) {
-            _inspector(*this, message);
+        inline void run_inspector([[maybe_unused]] const char *message) {
+            if constexpr (not std::is_same_v<inspector_t,
+                                             navigation::void_inspector>) {
+                _inspector(*this, message);
+            }
         }
 
         /// Helper method to set common state values during naviagtion
@@ -529,12 +532,7 @@ class navigator {
         if (navigation.trust_level() != navigation::trust_level::e_full) {
             navigation._heartbeat = false;
         }
-
-        // Run inspection when needed
-        if constexpr (not std::is_same_v<inspector_t,
-                                         navigation::void_inspector>) {
-            navigation.run_inspector("Init complete: ");
-        }
+        navigation.run_inspector("Init complete: ");
 
         return navigation._heartbeat;
     }
@@ -576,10 +574,7 @@ class navigator {
                 return navigation._heartbeat;
             }
             // Run inspection when needed (keep for debugging)
-            /*if constexpr (not std::is_same_v<inspector_t,
-                                         navigation::void_inspector>) {
-                navigation.run_inspector("Volume switch: ");
-            }*/
+            // navigation.run_inspector("Volume switch: ");
         }
         // If no trust could be restored for the current state, (local)
         // navigation might be exhausted or we switched volumes:
@@ -632,11 +627,7 @@ class navigator {
             // Update navigation flow on the new candidate information
             update_navigation_state(track, propagation);
 
-            // Run high trust inspection
-            if constexpr (not std::is_same_v<inspector_t,
-                                             navigation::void_inspector>) {
-                navigation.run_inspector("Update complete: high trust: ");
-            }
+            navigation.run_inspector("Update complete: high trust: ");
 
             // The work is done if: the track has not reached a surface yet or
             // trust is gone (portal was reached or the cache is broken).
@@ -678,11 +669,8 @@ class navigator {
             // Update navigation flow on the new candidate information
             update_navigation_state(track, propagation);
 
-            // Run fair trust inspection
-            if constexpr (not std::is_same_v<inspector_t,
-                                             navigation::void_inspector>) {
-                navigation.run_inspector("Update complete: fair trust: ");
-            }
+            navigation.run_inspector("Update complete: fair trust: ");
+
             return;
         }
 
