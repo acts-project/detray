@@ -22,6 +22,11 @@
 // Vecmem include(s)
 #include <vecmem/memory/host_memory_resource.hpp>
 
+// Covfie include(s)
+#include <covfie/core/backend/primitive/constant.hpp>
+#include <covfie/core/field.hpp>
+#include <covfie/core/vector.hpp>
+
 // System include(s)
 #include <limits>
 
@@ -35,7 +40,11 @@ using vector3 = test::vector3;
 
 test::transform3 Identity{};
 
-using test_detector_t = detector<detector_registry::template toy_detector<>>;
+using const_bfield_bknd_t =
+    covfie::backend::constant<covfie::vector::vector_d<detray::scalar, 3>,
+                              covfie::vector::vector_d<detray::scalar, 3>>;
+using test_detector_t = detector<detector_registry::toy_detector,
+                                 covfie::field<const_bfield_bknd_t>>;
 
 }  // anonymous namespace
 
@@ -282,7 +291,7 @@ GTEST_TEST(detray_tools, decorator_grid_builder) {
     //
     EXPECT_FALSE(vol.empty());
     // only the portals are referenced through the volume
-    typename detector_registry::template toy_detector<>::object_link_type
+    typename detector_registry::toy_detector::object_link_type
         sf_range{};
     sf_range[0] = {0u, 3u};
     // toy detector makes no distinction between the surface types

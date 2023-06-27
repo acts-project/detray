@@ -23,7 +23,8 @@ GTEST_TEST(detray_tools, read_detector) {
     using namespace detray;
 
     /*auto [d, name_map] =
-        read_from_csv<detector_registry::tml_detector>(tml_files, host_mr);
+        read_from_csv<detector_registry::tml_detector,
+        covfie::field<const_bfield_bknd_t>>(tml_files, host_mr);
 
     std::cout << d.to_string(name_map) << std::endl;*/
 }

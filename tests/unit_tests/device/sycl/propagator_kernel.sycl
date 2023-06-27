@@ -5,16 +5,17 @@
  * Mozilla Public License Version 2.0
  */
 
-#include "propagator_kernel.hpp"
+#include "propagator_sycl_kernel.hpp"
+#include "tests/common/test_base/propagator_test.hpp"
 
 namespace detray {
 
 /// test function for propagator
-template <typename bfield_bknd_t>
+template <typename detector_t, typename bfield_bknd_t>
 void propagator_test(
-    typename detector_host_t<bfield_bknd_t>::detector_view_type det_view,
+    detector_view<covfie::field<bfield_bknd_t>, detector_t> det_view,
     vecmem::data::vector_view<track_t> &tracks_data,
-    vecmem::data::jagged_vector_view<intersection_t<bfield_bknd_t>>
+    vecmem::data::jagged_vector_view<intersection_t<detector_t>>
         &candidates_data,
     vecmem::data::jagged_vector_view<scalar> &path_lengths_data,
     vecmem::data::jagged_vector_view<vector3> &positions_data,
@@ -37,7 +38,7 @@ void propagator_test(
                 detector_device_t<bfield_bknd_t> dev_det(det_view);
 
                 vecmem::device_vector<track_t> tracks(tracks_data);
-                vecmem::jagged_device_vector<intersection_t<bfield_bknd_t>>
+                vecmem::jagged_device_vector<intersection_t<detector_t>>
                     candidates(candidates_data);
                 vecmem::jagged_device_vector<scalar> path_lengths(
                     path_lengths_data);
@@ -93,10 +94,14 @@ void propagator_test(
 }
 
 /// Explicit instantiation for a constant magnetic field
-template void propagator_test<const_bfield_bknd_t>(
-    typename detector_host_t<const_bfield_bknd_t>::detector_view_type,
+template void
+propagator_test<detector_host_t<const_bfield_bknd_t>, const_bfield_bknd_t>(
+    detector_view<covfie::field<const_bfield_bknd_t>,
+                  detector_host_t<const_bfield_bknd_t>>
+        det_view,
     vecmem::data::vector_view<track_t> &,
-    vecmem::data::jagged_vector_view<intersection_t<const_bfield_bknd_t>> &,
+    vecmem::data::jagged_vector_view<
+        intersection_t<detector_host_t<const_bfield_bknd_t>>> &,
     vecmem::data::jagged_vector_view<scalar> &,
     vecmem::data::jagged_vector_view<vector3_t> &,
     vecmem::data::jagged_vector_view<free_matrix> &,

@@ -16,6 +16,11 @@
 // Vecmem include(s)
 #include <vecmem/memory/host_memory_resource.hpp>
 
+// Covfie include(s)
+#include <covfie/core/backend/primitive/constant.hpp>
+#include <covfie/core/field.hpp>
+#include <covfie/core/vector.hpp>
+
 // GTest include(s)
 #include <gtest/gtest.h>
 
@@ -27,6 +32,9 @@ namespace {
 using point3 = detray::test::point3;
 using vector3 = detray::test::vector3;
 using point2 = detray::test::point2;
+using const_bfield_bknd_t =
+    covfie::backend::constant<covfie::vector::vector_d<detray::scalar, 3>,
+                              covfie::vector::vector_d<detray::scalar, 3>>;
 
 constexpr detray::scalar tol{1e-7f};
 
@@ -121,8 +129,8 @@ GTEST_TEST(detray_core, detector) {
 
     using namespace detray;
 
-    using detector_t =
-        detector<detector_registry::default_detector, covfie::field>;
+    using detector_t = detector<detector_registry::default_detector,
+                                covfie::field<const_bfield_bknd_t>>;
     using mask_id = typename detector_t::masks::id;
     using material_id = typename detector_t::materials::id;
     using finder_id = typename detector_t::sf_finders::id;
@@ -176,8 +184,8 @@ GTEST_TEST(detray_tools, surface_factory) {
 
     using namespace detray;
 
-    using detector_t =
-        detector<detector_registry::default_detector, covfie::field>;
+    using detector_t = detector<detector_registry::default_detector,
+                                covfie::field<const_bfield_bknd_t>>;
     using transform3 = typename detector_t::transform3;
     using mask_id = typename detector_t::masks::id;
 
@@ -372,8 +380,8 @@ GTEST_TEST(detray_tools, volume_builder) {
 
     vecmem::host_memory_resource host_mr;
 
-    using detector_t =
-        detector<detector_registry::default_detector, covfie::field>;
+    using detector_t = detector<detector_registry::default_detector,
+                                covfie::field<const_bfield_bknd_t>>;
 
     detector_t d(host_mr);
 
@@ -394,8 +402,8 @@ GTEST_TEST(detray_tools, detector_volume_construction) {
 
     using namespace detray;
 
-    using detector_t =
-        detray::detector<detector_registry::default_detector, covfie::field>;
+    using detector_t = detray::detector<detector_registry::default_detector,
+                                        covfie::field<const_bfield_bknd_t>>;
     using transform3 = typename detector_t::transform3;
     using geo_obj_id = typename detector_t::geo_obj_ids;
     using mask_id = typename detector_t::masks::id;

@@ -22,10 +22,12 @@ using namespace detray;
 using transform3 = __plugin::transform3<scalar>;
 
 // some useful type declarations
-using detector_host_t = detector<detector_registry::template toy_detector<>,
-                                 covfie::field, host_container_types>;
-using detector_device_t = detector<detector_registry::template toy_detector<>,
-                                   covfie::field_view, device_container_types>;
+using detector_host_t =
+    detector<detector_registry::toy_detector,
+             covfie::field<const_bfield_bknd_t>, host_container_types>;
+using detector_device_t =
+    detector<detector_registry::toy_detector,
+             covfie::field_view<const_bfield_bknd_t>, device_container_types>;
 
 using intersection_t =
     intersection2D<typename detector_device_t::surface_type, transform3>;

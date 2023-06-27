@@ -21,6 +21,11 @@
 // Vecmem include(s)
 #include <vecmem/memory/host_memory_resource.hpp>
 
+// Covfie include(s)
+#include <covfie/core/field.hpp>
+#include <covfie/core/backend/primitive/constant.hpp>
+#include <covfie/core/vector.hpp>
+
 // System include(s)
 #include <cmath>
 #include <cstdlib>
@@ -42,7 +47,10 @@ int main(int argc, char** argv) {
     //
 
     // Toy detector type
-    using toy_detector_t = detray::detector<detray::toy_metadata<>>;
+    using const_bfield_bknd_t = 
+        covfie::backend::constant<covfie::vector::vector_d<detray::scalar, 3>,
+                                  covfie::vector::vector_d<detray::scalar, 3>>;
+    using toy_detector_t = detray::detector<detray::toy_metadata, covfie::field<const_bfield_bknd_t>>;
 
     detray::toy_det_config toy_cfg{};
     // Number of barrel layers (0 - 4)
@@ -78,9 +86,9 @@ int main(int argc, char** argv) {
 
     // Telescope detector types containing the given module shape (can be any)
     using rectgl_telescope_t =
-        detray::detector<detray::telescope_metadata<detray::rectangle2D<>>>;
+        detray::detector<detray::telescope_metadata<detray::rectangle2D<>>, covfie::field<const_bfield_bknd_t>>;
     using trapzd_telescope_t =
-        detray::detector<detray::telescope_metadata<detray::trapezoid2D<>>>;
+        detray::detector<detray::telescope_metadata<detray::trapezoid2D<>>, covfie::field<const_bfield_bknd_t>>;
 
     // Mask with a rectangular shape (20x20 mm)
     detray::mask<detray::rectangle2D<>> rectangle{

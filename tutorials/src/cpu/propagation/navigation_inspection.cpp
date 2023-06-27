@@ -24,6 +24,11 @@
 // Vecmem include(s)
 #include <vecmem/memory/host_memory_resource.hpp>
 
+// Covfie include(s)
+#include <covfie/core/field.hpp>
+#include <covfie/core/backend/primitive/constant.hpp>
+#include <covfie/core/vector.hpp>
+
 // System include(s)
 #include <sstream>
 
@@ -31,7 +36,10 @@
 /// of the encountered surfaces (using the navigation inspectors)
 int main() {
     // Toy detector
-    using toy_detector_t = detray::detector<detray::toy_metadata<>>;
+    using const_bfield_bknd_t = 
+    covfie::backend::constant<covfie::vector::vector_d<detray::scalar, 3>,
+                              covfie::vector::vector_d<detray::scalar, 3>>;
+    using toy_detector_t = detray::detector<detray::toy_metadata, covfie::field<const_bfield_bknd_t>>;
 
     /// Type that holds the intersection information
     using intersection_t =

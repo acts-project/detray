@@ -33,17 +33,11 @@
 #include <covfie/core/backend/transformer/strided.hpp>
 #include <covfie/core/field.hpp>
 #include <covfie/core/field_view.hpp>
-#include <covfie/core/vector.hpp>
 
 // GTest include(s).
 #include <gtest/gtest.h>
 
 namespace detray {
-
-// Constant magnetic field
-using const_bfield_bknd_t =
-    covfie::backend::constant<covfie::vector::vector_d<scalar, 3>,
-                              covfie::vector::vector_d<scalar, 3>>;
 
 // Inhomogeneous magnetic field
 using inhom_bfield_bknd_t = covfie::backend::affine<
@@ -54,14 +48,14 @@ using inhom_bfield_bknd_t = covfie::backend::affine<
 // Host detector type
 template <typename bfield_bknd_t>
 using detector_host_t =
-    detector<detector_registry::template toy_detector<bfield_bknd_t>,
-             covfie::field, host_container_types>;
+    detector<detector_registry::toy_detector, covfie::field<bfield_bknd_t>,
+             host_container_types>;
 
 // Device detector type using views
 template <typename bfield_bknd_t>
 using detector_device_t =
-    detector<detector_registry::template toy_detector<bfield_bknd_t>,
-             covfie::field_view, device_container_types>;
+    detector<detector_registry::toy_detector, covfie::field_view<bfield_bknd_t>,
+             device_container_types>;
 
 // These types are identical in host and device code for all bfield types
 using transform3 = typename detector_host_t<const_bfield_bknd_t>::transform3;
@@ -71,10 +65,9 @@ using track_t = free_track_parameters<transform3>;
 using free_matrix = typename track_t::covariance_type;
 
 // Navigator
-template <typename bfield_bknd_t>
+template <typename detector_t>
 using intersection_t =
-    intersection2D<typename detector_host_t<bfield_bknd_t>::surface_type,
-                   transform3>;
+    intersection2D<typename detector_t::surface_type, transform3>;
 template <typename detector_t>
 using navigator_t = navigator<detector_t>;
 

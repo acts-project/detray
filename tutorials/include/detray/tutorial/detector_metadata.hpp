@@ -25,7 +25,6 @@
 #include "my_square2D.hpp"
 
 // Covfie include(s)
-#include <covfie/core/backend/primitive/constant.hpp>
 #include <covfie/core/vector.hpp>
 
 /// This example defines a detray geometry type for a detector with cuboid
@@ -69,11 +68,6 @@ using slab = material_slab<detray::scalar>;
 /// Defines a detector that contains squares, trapezoids and a bounding portal
 /// box.
 struct my_metadata {
-
-    /// Constant B-field
-    using bfield_backend_type =
-        covfie::backend::constant<covfie::vector::vector_d<scalar, 3>,
-                                  covfie::vector::vector_d<scalar, 3>>;
 
     /// How to index the constituent objects in a volume
     /// If they share the same index value here, they will be added into the

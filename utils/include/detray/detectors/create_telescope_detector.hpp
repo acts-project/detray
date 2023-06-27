@@ -20,7 +20,9 @@
 #include <vecmem/memory/memory_resource.hpp>
 
 // Covfie include(s)
+#include <covfie/core/backend/primitive/constant.hpp>
 #include <covfie/core/field.hpp>
+#include <covfie/core/vector.hpp>
 
 // System include(s)
 #include <limits>
@@ -32,6 +34,9 @@ namespace {
 template <typename mask_shape_t>
 using telescope_types =
     typename detector_registry::template telescope_detector<mask_shape_t>;
+using const_bfield_bknd_t =
+    covfie::backend::constant<covfie::vector::vector_d<scalar, 3>,
+                              covfie::vector::vector_d<scalar, 3>>;
 
 /// Where and how to place the telescope modules.
 struct module_placement {
@@ -337,12 +342,9 @@ inline void create_telescope(context_t &ctx, const trajectory_t &traj,
 /// @returns a complete detector object
 template <typename mask_t = mask<rectangle2D<>>,
           typename trajectory_t = detail::ray<__plugin::transform3<scalar>>,
-          typename container_t = host_container_types>
+          typename bfield_backend_t = const_bfield_bknd_t>
 auto create_telescope_detector(
-    vecmem::memory_resource &resource,
-    covfie::field<
-        typename telescope_types<typename mask_t::shape>::bfield_backend_type>
-        &&bfield,
+    vecmem::memory_resource &resource, covfie::field<bfield_backend_t> &&bfield,
     const mask_t &msk, std::vector<scalar> dists,
     const material<scalar> mat = silicon_tml<scalar>(),
     const scalar thickness = 80.f * unit<scalar>::um,
@@ -350,8 +352,9 @@ auto create_telescope_detector(
     const scalar envelope = 0.1f * unit<scalar>::mm) {
 
     // detector type
-    using detector_t = detector<telescope_types<typename mask_t::shape>,
-                                covfie::field, container_t>;
+    using detector_t =
+        detector<telescope_types<typename mask_t::shape>,
+                 covfie::field<bfield_backend_t>, host_container_types>;
 
     // @todo: Temporal restriction due to missing local navigation
     assert((dists.size() < 20u) &&
@@ -401,12 +404,9 @@ auto create_telescope_detector(
 /// @param tel_length the total length of the steps by the stepper
 template <typename mask_t = mask<rectangle2D<>>,
           typename trajectory_t = detail::ray<__plugin::transform3<scalar>>,
-          typename container_t = host_container_types>
+          typename bfield_backend_t = const_bfield_bknd_t>
 auto create_telescope_detector(
-    vecmem::memory_resource &resource,
-    covfie::field<
-        typename telescope_types<typename mask_t::shape>::bfield_backend_type>
-        &&bfield,
+    vecmem::memory_resource &resource, covfie::field<bfield_backend_t> &&bfield,
     const mask_t &msk, std::size_t n_surfaces = 10u,
     const scalar tel_length = 500.f * unit<scalar>::mm,
     const material<scalar> mat = silicon_tml<scalar>(),
@@ -425,15 +425,15 @@ auto create_telescope_detector(
     }
 
     // Build the geometry
-    return create_telescope_detector<mask_t>(resource, std::move(bfield), msk,
-                                             distances, mat, thickness, traj,
-                                             envelope);
+    return create_telescope_detector<mask_t, trajectory_t, bfield_backend_t>(
+        resource, std::move(bfield), msk, distances, mat, thickness, traj,
+        envelope);
 }
 
 /// Wrapper for create_telescope_geometry with constant zero bfield.
 template <typename mask_t = mask<rectangle2D<>>,
           typename trajectory_t = detail::ray<__plugin::transform3<scalar>>,
-          typename container_t = host_container_types>
+          typename bfield_backend_t = const_bfield_bknd_t>
 auto create_telescope_detector(
     vecmem::memory_resource &resource, const mask_t &msk,
     const std::vector<scalar> dists,
@@ -442,21 +442,18 @@ auto create_telescope_detector(
     const trajectory_t traj = {{0.f, 0.f, 0.f}, 0.f, {0.f, 0.f, 1.f}, -1.f},
     const scalar envelope = 0.1f * unit<scalar>::mm) {
 
-    using covfie_bkdn_t =
-        typename telescope_types<typename mask_t::shape>::bfield_backend_type;
-
     // Build the geometry
-    return create_telescope_detector<mask_t, trajectory_t, container_t>(
+    return create_telescope_detector<mask_t, trajectory_t, bfield_backend_t>(
         resource,
-        covfie::field<covfie_bkdn_t>{covfie::make_parameter_pack(
-            typename covfie_bkdn_t::configuration_t{0.f, 0.f, 0.f})},
+        covfie::field<bfield_backend_t>{covfie::make_parameter_pack(
+            typename bfield_backend_t::configuration_t{0.f, 0.f, 0.f})},
         msk, dists, mat, thickness, traj, envelope);
 }
 
 /// Wrapper for create_telescope_geometry with constant zero bfield.
 template <typename mask_t = mask<rectangle2D<>>,
           typename trajectory_t = detail::ray<__plugin::transform3<scalar>>,
-          typename container_t = host_container_types>
+          typename bfield_backend_t = const_bfield_bknd_t>
 auto create_telescope_detector(
     vecmem::memory_resource &resource, const mask_t &msk,
     std::size_t n_surfaces = 10u,
@@ -466,14 +463,11 @@ auto create_telescope_detector(
     const trajectory_t traj = {{0.f, 0.f, 0.f}, 0.f, {0.f, 0.f, 1.f}, -1.f},
     const scalar envelope = 0.1f * unit<scalar>::mm) {
 
-    using covfie_bkdn_t =
-        typename telescope_types<typename mask_t::shape>::bfield_backend_type;
-
     // Build the geometry
-    return create_telescope_detector<mask_t, trajectory_t, container_t>(
+    return create_telescope_detector<mask_t, trajectory_t, bfield_backend_t>(
         resource,
-        covfie::field<covfie_bkdn_t>{covfie::make_parameter_pack(
-            typename covfie_bkdn_t::configuration_t{0.f, 0.f, 0.f})},
+        covfie::field<bfield_backend_t>{covfie::make_parameter_pack(
+            typename bfield_backend_t::configuration_t{0.f, 0.f, 0.f})},
         msk, n_surfaces, tel_length, mat, thickness, traj, envelope);
 }
 

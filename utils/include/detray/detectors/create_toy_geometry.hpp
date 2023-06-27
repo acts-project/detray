@@ -21,6 +21,7 @@
 // Covfie include(s)
 #include <covfie/core/backend/primitive/constant.hpp>
 #include <covfie/core/field.hpp>
+#include <covfie/core/vector.hpp>
 
 // System include(s)
 #include <limits>
@@ -36,6 +37,9 @@ namespace {
 using point3 = __plugin::point3<detray::scalar>;
 using vector3 = __plugin::vector3<detray::scalar>;
 using point2 = __plugin::point2<detray::scalar>;
+using const_bfield_bknd_t =
+    covfie::backend::constant<covfie::vector::vector_d<scalar, 3>,
+                              covfie::vector::vector_d<scalar, 3>>;
 
 /// Configure the toy detector
 struct toy_det_config {
@@ -100,7 +104,7 @@ struct toy_det_config {
 template <typename context_t, typename surface_container_t,
           typename mask_container_t, typename material_container_t,
           typename transform_container_t, typename volume_links>
-inline constexpr void add_cylinder_surface(
+inline void add_cylinder_surface(
     const dindex volume_idx, context_t &ctx, surface_container_t &surfaces,
     mask_container_t &masks, material_container_t &materials,
     transform_container_t &transforms, const scalar r, const scalar lower_z,
@@ -158,7 +162,7 @@ inline constexpr void add_cylinder_surface(
 template <typename context_t, typename surface_container_t,
           typename mask_container_t, typename material_container_t,
           typename transform_container_t, typename volume_links>
-inline constexpr void add_disc_surface(
+inline void add_disc_surface(
     const dindex volume_idx, context_t &ctx, surface_container_t &surfaces,
     mask_container_t &masks, material_container_t &materials,
     transform_container_t &transforms, const scalar inner_r,
@@ -280,12 +284,12 @@ template <typename context_t, typename volume_type,
           typename surface_container_t, typename mask_container_t,
           typename material_container_t, typename transform_container_t,
           typename config_t>
-inline constexpr void create_barrel_modules(context_t &ctx, volume_type &vol,
-                                            surface_container_t &surfaces,
-                                            mask_container_t &masks,
-                                            material_container_t &materials,
-                                            transform_container_t &transforms,
-                                            config_t cfg) {
+inline void create_barrel_modules(context_t &ctx, volume_type &vol,
+                                  surface_container_t &surfaces,
+                                  mask_container_t &masks,
+                                  material_container_t &materials,
+                                  transform_container_t &transforms,
+                                  config_t cfg) {
     using surface_type = typename surface_container_t::value_type;
     using nav_link_t = typename surface_type::navigation_link;
     using mask_id = typename surface_type::mask_id;
@@ -502,12 +506,12 @@ template <typename context_t, typename volume_type,
           typename surface_container_t, typename mask_container_t,
           typename material_container_t, typename transform_container_t,
           typename config_t>
-inline constexpr void create_endcap_modules(context_t &ctx, volume_type &vol,
-                                            surface_container_t &surfaces,
-                                            mask_container_t &masks,
-                                            material_container_t &materials,
-                                            transform_container_t &transforms,
-                                            config_t cfg) {
+inline void create_endcap_modules(context_t &ctx, volume_type &vol,
+                                  surface_container_t &surfaces,
+                                  mask_container_t &masks,
+                                  material_container_t &materials,
+                                  transform_container_t &transforms,
+                                  config_t cfg) {
     using surface_type = typename surface_container_t::value_type;
     using nav_link_t = typename surface_type::navigation_link;
     using mask_id = typename surface_type::mask_id;
@@ -624,7 +628,7 @@ inline constexpr void create_endcap_modules(context_t &ctx, volume_type &vol,
  * @param brl_half_z half length of the barrel region in z
  */
 template <typename detector_t>
-inline constexpr void add_beampipe(
+inline void add_beampipe(
     detector_t &det, vecmem::memory_resource &resource,
     typename detector_t::geometry_context &ctx, const unsigned int n_edc_layers,
     const unsigned int n_brl_layers,
@@ -720,7 +724,7 @@ inline constexpr void add_beampipe(
  * @param edc_vol_idx index of the bordering endcap volume
  */
 template <typename detector_t>
-inline constexpr void add_endcap_barrel_connection(
+inline void add_endcap_barrel_connection(
     detector_t &det, vecmem::memory_resource &resource,
     typename detector_t::geometry_context &ctx, const int side,
     const unsigned int n_brl_layers, const dindex beampipe_idx,
@@ -794,7 +798,7 @@ inline constexpr void add_endcap_barrel_connection(
  */
 template <typename empty_vol_factory, typename edc_module_factory,
           typename detector_t, typename config_t>
-inline constexpr void add_endcap_detector(
+inline void add_endcap_detector(
     detector_t &det, vecmem::memory_resource &resource,
     typename detector_t::geometry_context &ctx, dindex n_layers,
     dindex beampipe_idx,
@@ -892,7 +896,7 @@ inline constexpr void add_endcap_detector(
  */
 template <typename empty_vol_factory, typename brl_module_factory,
           typename detector_t, typename config_t>
-inline constexpr void add_barrel_detector(
+inline void add_barrel_detector(
     detector_t &det, vecmem::memory_resource &resource,
     typename detector_t::geometry_context &ctx, const unsigned int n_layers,
     dindex beampipe_idx, const scalar brl_half_z,
@@ -969,21 +973,15 @@ inline constexpr void add_barrel_detector(
 /// @param n_edc_layers number of pixel endcap discs to build (max 7)
 ///
 /// @returns a complete detector object
-template <typename bfield_bknd_t =
-              covfie::backend::constant<covfie::vector::vector_d<scalar, 3>,
-                                        covfie::vector::vector_d<scalar, 3>>,
-          typename container_t = host_container_types>
-inline constexpr auto create_toy_geometry(vecmem::memory_resource &resource,
-                                          const toy_det_config &cfg = {}) {
+template <typename bfield_bknd_t = const_bfield_bknd_t>
+inline auto create_toy_geometry(vecmem::memory_resource &resource,
+                                const toy_det_config &cfg = {}) {
 
     // detector type
     using detector_t =
-        detector<detector_registry::template toy_detector<bfield_bknd_t>,
-                 covfie::field, container_t>;
+        detector<detector_registry::toy_detector, covfie::field<bfield_bknd_t>,
+                 host_container_types>;
 
-    using const_bfield_bknd_t =
-        covfie::backend::constant<covfie::vector::vector_d<scalar, 3>,
-                                  covfie::vector::vector_d<scalar, 3>>;
     /// Leaving world
     using nav_link_t = typename detector_t::surface_type::navigation_link;
     constexpr auto leaving_world{detail::invalid_value<nav_link_t>()};
