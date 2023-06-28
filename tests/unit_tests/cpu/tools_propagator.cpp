@@ -157,8 +157,8 @@ TEST_P(PropagatorWithRkStepper, propagator_rk_stepper) {
     vecmem::host_memory_resource host_mr;
 
     // Construct the constant magnetic field.
-    using b_field_t = decltype(create_toy_geometry(host_mr, n_brl_layers,
-                                                   n_edc_layers))::bfield_type;
+    using b_field_t = decltype(
+        create_toy_geometry(host_mr, n_brl_layers, n_edc_layers))::bfield_type;
     const vector3 B = std::get<0>(GetParam());
 
     const auto d = create_toy_geometry(

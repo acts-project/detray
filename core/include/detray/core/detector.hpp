@@ -17,7 +17,6 @@
 #include "detray/geometry/detector_volume.hpp"
 #include "detray/geometry/surface.hpp"
 #include "detray/tools/volume_builder.hpp"
-#include "detray/tracks/tracks.hpp"
 #include "detray/utils/ranges.hpp"
 
 // Vecmem include(s)
@@ -134,11 +133,6 @@ class detector {
 
     using detector_view_type =
         detector_view<metadata, covfie::field, host_container_types>;
-
-    using free_vector_type =
-        typename free_track_parameters<transform3>::vector_type;
-    using bound_vector_type =
-        typename bound_track_parameters<transform3>::vector_type;
 
     /// Detector view types
     using view_type = dmulti_view<
