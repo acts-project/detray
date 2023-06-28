@@ -8,7 +8,7 @@
 // Project include(s)
 #include "detray/definitions/units.hpp"
 #include "detray/detectors/create_toy_geometry.hpp"
-#include "detray/geometry/propagation_surface.hpp"
+#include "detray/geometry/surface.hpp"
 #include "detray/intersection/detail/trajectories.hpp"
 #include "detray/propagator/actor_chain.hpp"
 #include "detray/propagator/actors/aborters.hpp"
@@ -74,8 +74,8 @@ struct helix_inspector : actor {
         }
 
         // Surface
-        const auto sf = propagation::surface{
-            *navigation.detector(), stepping._bound_params.surface_link()};
+        const auto sf = surface{*navigation.detector(),
+                                stepping._bound_params.surface_link()};
 
         const auto free_vec =
             sf.bound_to_free_vector(ctx, stepping._bound_params.vector());
@@ -157,8 +157,8 @@ TEST_P(PropagatorWithRkStepper, propagator_rk_stepper) {
     vecmem::host_memory_resource host_mr;
 
     // Construct the constant magnetic field.
-    using b_field_t = decltype(
-        create_toy_geometry(host_mr, n_brl_layers, n_edc_layers))::bfield_type;
+    using b_field_t = decltype(create_toy_geometry(host_mr, n_brl_layers,
+                                                   n_edc_layers))::bfield_type;
     const vector3 B = std::get<0>(GetParam());
 
     const auto d = create_toy_geometry(
