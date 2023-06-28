@@ -44,10 +44,6 @@ GTEST_TEST(detray_materials, telescope_geometry_energy_loss) {
 
     vecmem::host_memory_resource host_mr;
 
-    // Use rectangle surfaces in telescope
-    mask<rectangle2D<>> rectangle{0u, 20.f * unit<scalar>::mm,
-                                  20.f * unit<scalar>::mm};
-
     // Build in x-direction from given module positions
     detail::ray<transform3> traj{{0.f, 0.f, 0.f}, 0.f, {1.f, 0.f, 0.f}, -1.f};
     std::vector<scalar> positions = {0.f,   50.f,  100.f, 150.f, 200.f, 250.f,
@@ -56,8 +52,14 @@ GTEST_TEST(detray_materials, telescope_geometry_energy_loss) {
     const auto mat = silicon_tml<scalar>();
     constexpr scalar thickness{0.17f * unit<scalar>::cm};
 
-    const auto det = create_telescope_detector(host_mr, rectangle, positions,
-                                               mat, thickness, traj);
+    tel_det_config<rectangle2D<>> tel_cfg{20.f * unit<scalar>::mm,
+                                          20.f * unit<scalar>::mm};
+    tel_cfg.positions(positions)
+        .pilot_track(traj)
+        .module_material(mat)
+        .mat_thickness(thickness);
+
+    const auto det = create_telescope_detector(host_mr, tel_cfg);
 
     using navigator_t = navigator<decltype(det)>;
     using stepper_t = line_stepper<transform3>;
@@ -227,13 +229,15 @@ GTEST_TEST(detray_materials, telescope_geometry_scattering_angle) {
     const auto mat = silicon_tml<scalar>();
     const scalar thickness = 100.f * unit<scalar>::cm;
 
-    // Use rectangle surfaces in the telescope
-    mask<rectangle2D<>> rectangle{0u, 2000.f * unit<scalar>::mm,
-                                  2000.f * unit<scalar>::mm};
-
     // Create telescope geometry
-    const auto det = create_telescope_detector(host_mr, rectangle, positions,
-                                               mat, thickness, traj);
+    tel_det_config<rectangle2D<>> tel_cfg{2000.f * unit<scalar>::mm,
+                                          2000.f * unit<scalar>::mm};
+    tel_cfg.positions(positions)
+        .pilot_track(traj)
+        .module_material(mat)
+        .mat_thickness(thickness);
+
+    const auto det = create_telescope_detector(host_mr, tel_cfg);
 
     using navigator_t = navigator<decltype(det)>;
     using stepper_t = line_stepper<transform3>;

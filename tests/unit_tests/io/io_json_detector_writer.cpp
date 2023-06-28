@@ -39,6 +39,8 @@ mask<annulus2D<>> ann2{0u, minR, maxR, minPhi, maxPhi, offset_x, offset_y, 0.f};
 std::vector<scalar> positions = {0.f,   50.f,  100.f, 150.f, 200.f, 250.f,
                                  300.f, 350.f, 400.f, 450.f, 500.f};
 
+tel_det_config<annulus2D<>> tel_cfg{ann2};
+
 }  // anonymous namespace
 
 /// Test the writing of a telescope detector geometry to json
@@ -48,7 +50,8 @@ TEST(io, json_telescope_geometry_writer) {
 
     // Telescope detector
     vecmem::host_memory_resource host_mr;
-    detector_t det = create_telescope_detector(host_mr, ann2, positions);
+    detector_t det =
+        create_telescope_detector(host_mr, tel_cfg.positions(positions));
 
     json_geometry_writer<detector_t> geo_writer;
     geo_writer.write(det, {{0u, "telescope_detector"}}, std::ios_base::out);
@@ -61,7 +64,9 @@ TEST(io, json_telescope_material_writer) {
 
     // Telescope detector
     vecmem::host_memory_resource host_mr;
-    detector_t det = create_telescope_detector(host_mr, ann2, positions);
+
+    detector_t det =
+        create_telescope_detector(host_mr, tel_cfg.positions(positions));
 
     json_homogeneous_material_writer<detector_t> mat_writer;
     mat_writer.write(det, {{0u, "telescope_detector"}}, std::ios_base::out);
