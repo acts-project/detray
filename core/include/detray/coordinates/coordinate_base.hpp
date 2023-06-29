@@ -66,6 +66,12 @@ struct coordinate_base {
     using track_helper = detail::track_helper<matrix_operator>;
 
     /// @}
+    DETRAY_HOST_DEVICE inline vector3 normal(const transform3_t& trf3,
+                                             const point3& pos,
+                                             const vector3& dir) const {
+        return Derived<transform3_t>().normal(trf3, pos, dir);
+        ;
+    }
 
     DETRAY_HOST_DEVICE
     inline bound_vector free_to_bound_vector(
@@ -79,6 +85,7 @@ struct coordinate_base {
         bound_vector bound_vec;
         matrix_operator().element(bound_vec, e_bound_loc0, 0u) = local[0];
         matrix_operator().element(bound_vec, e_bound_loc1, 0u) = local[1];
+        // The angles are defined in the global frame!
         matrix_operator().element(bound_vec, e_bound_phi, 0u) =
             getter::phi(dir);
         matrix_operator().element(bound_vec, e_bound_theta, 0u) =

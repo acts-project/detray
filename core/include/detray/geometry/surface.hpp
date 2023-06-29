@@ -38,6 +38,7 @@ class surface {
 
     public:
     using algebra = typename detector_t::transform3;
+    using scalar_type = typename detector_t::scalar_type;
     using transform3 = algebra;
     using point3 = typename transform3::point3;
     using vector3 = typename transform3::point3;
@@ -126,10 +127,20 @@ class surface {
         return transform(ctx).translation();
     }
 
-    /// @returns the surface normal in global coordinates
+    /// @returns the surface normal in global coordinates at a given local
+    /// position @param local
     DETRAY_HOST_DEVICE
-    constexpr auto normal(const context &ctx) const -> const vector3 & {
-        return transform(ctx).translation();
+    constexpr auto normal(const context &ctx, const point3 &local) const
+        -> const vector3 & {
+        return visit_mask<typename kernels::normal>(transform(ctx), local);
+    }
+
+    /// @returns the cosine of the incidence angle given a local position
+    /// @param local and a global direction @param dir
+    DETRAY_HOST_DEVICE
+    constexpr auto cos_angle(const context &ctx, const point3 &local,
+                             const vector3 &dir) const -> scalar_type {
+        return vector::dot(dir, normal(ctx, local));
     }
 
     /// @returns the local position to the global point @param global for
@@ -198,7 +209,7 @@ class surface {
     /// @tparam functor_t the prescription to be applied to the mask
     /// @tparam Args      types of additional arguments to the functor
     template <typename functor_t, typename... Args>
-    DETRAY_HOST_DEVICE constexpr auto visit_mask(Args &&... args) const {
+    DETRAY_HOST_DEVICE constexpr auto visit_mask(Args &&...args) const {
         const auto &masks = m_detector.mask_store();
 
         return masks.template visit<functor_t>(m_desc.mask(),
@@ -210,7 +221,7 @@ class surface {
     /// @tparam functor_t the prescription to be applied to the mask
     /// @tparam Args      types of additional arguments to the functor
     template <typename functor_t, typename... Args>
-    DETRAY_HOST_DEVICE constexpr auto visit_material(Args &&... args) const {
+    DETRAY_HOST_DEVICE constexpr auto visit_material(Args &&...args) const {
         const auto &materials = m_detector.material_store();
 
         return materials.template visit<functor_t>(m_desc.material(),

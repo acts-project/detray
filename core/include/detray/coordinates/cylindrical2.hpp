@@ -96,11 +96,10 @@ struct cylindrical2 : public coordinate_base<cylindrical2, transform3_t> {
                                      {p[0], p[1], mask[mask_t::shape::e_r]});
     }
 
+    /// @returns the normal vector given a local position @param loc_pos
     DETRAY_HOST_DEVICE inline vector3 normal(const transform3_t &trf3,
-                                             const point3 &pos,
-                                             const vector3 &dir) const {
-        const point3 local = this->global_to_local(trf3, pos, dir);
-        const scalar_type phi{local[0] / local[2]};
+                                             const point3 &loc_pos) const {
+        const scalar_type phi{loc_pos[0] / loc_pos[2]};
         const vector3 local_normal{math_ns::cos(phi), math_ns::sin(phi), 0.f};
 
         // normal vector in local coordinate
@@ -117,7 +116,8 @@ struct cylindrical2 : public coordinate_base<cylindrical2, transform3_t> {
             matrix_operator().template block<3, 1>(trf3.matrix(), 0u, 2u);
 
         // z axis of the new frame is the vector normal to the cylinder surface
-        const vector3 new_zaxis = normal(trf3, pos, dir);
+        const point3 local = this->global_to_local(trf3, pos, dir);
+        const vector3 new_zaxis = normal(trf3, local);
 
         // x axis
         const vector3 new_xaxis = vector::cross(new_yaxis, new_zaxis);
@@ -139,7 +139,8 @@ struct cylindrical2 : public coordinate_base<cylindrical2, transform3_t> {
         free_to_path_matrix derivative =
             matrix_operator().template zero<1u, e_free_size>();
 
-        const vector3 normal = this->normal(trf3, pos, dir);
+        const point3 local = this->global_to_local(trf3, pos, dir);
+        const vector3 normal = this->normal(trf3, local);
 
         const vector3 pos_term = -1.f / vector::dot(normal, dir) * normal;
 

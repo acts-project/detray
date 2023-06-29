@@ -112,6 +112,12 @@ struct line2 : public coordinate_base<line2, transform3_t> {
         return locZ_in_global + p[0] * vector::normalize(r);
     }
 
+    /// @returns the normal vector
+    DETRAY_HOST_DEVICE inline vector3 normal(const transform3_t &trf3,
+                                             const point3 & = {}) const {
+        return trf3.z();
+    }
+
     DETRAY_HOST_DEVICE inline rotation_matrix reference_frame(
         const transform3_t &trf3, const point3 & /*pos*/,
         const vector3 &dir) const {

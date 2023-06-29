@@ -32,6 +32,17 @@ struct surface_kernels {
         typename matrix_operator::template matrix_type<ROWS, COLS>;
     using free_matrix = matrix_type<e_free_size, e_free_size>;
 
+    /// A functor get the surface normal at a given local position
+    struct normal {
+        template <typename mask_group_t, typename index_t>
+        DETRAY_HOST_DEVICE inline point3 operator()(
+            const mask_group_t& mask_group, const index_t& index,
+            const transform3& trf3, const point3& pos) const {
+
+            return mask_group[index].local_frame().normal(trf3, pos);
+        }
+    };
+
     /// A functor to perform global to local transformation
     struct global_to_local {
         template <typename mask_group_t, typename index_t>
