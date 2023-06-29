@@ -66,12 +66,6 @@ struct coordinate_base {
     using track_helper = detail::track_helper<matrix_operator>;
 
     /// @}
-    DETRAY_HOST_DEVICE inline vector3 normal(const transform3_t& trf3,
-                                             const point3& pos,
-                                             const vector3& dir) const {
-        return Derived<transform3_t>().normal(trf3, pos, dir);
-        ;
-    }
 
     DETRAY_HOST_DEVICE
     inline bound_vector free_to_bound_vector(

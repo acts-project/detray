@@ -58,16 +58,6 @@ struct cylindrical3 final : public coordinate_base<cylindrical3, transform3_t> {
         return trf.point_to_global(point3{x, y, p[2]});
     }
 
-    /// @returns the normal vector given a local position @param loc_pos
-    DETRAY_HOST_DEVICE inline vector3 normal(const transform3_t &trf3,
-                                             const point3 &loc_pos) const {
-        const vector3 local_normal{math_ns::cos(loc_pos[1]),
-                                   math_ns::sin(loc_pos[1]), 0.f};
-
-        // normal vector in local coordinate
-        return trf3.rotation() * local_normal;
-    }
-
 };  // struct cylindrical3
 
 }  // namespace detray

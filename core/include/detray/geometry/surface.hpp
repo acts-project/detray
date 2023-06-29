@@ -15,6 +15,9 @@
 #include "detray/geometry/barcode.hpp"
 #include "detray/geometry/detail/surface_kernels.hpp"
 
+// System include(s)
+#include <type_traits>
+
 namespace detray {
 
 /// @brief Facade for a detray detector surface.
@@ -40,8 +43,9 @@ class surface {
     using algebra = typename detector_t::transform3;
     using scalar_type = typename detector_t::scalar_type;
     using transform3 = algebra;
-    using point3 = typename transform3::point3;
-    using vector3 = typename transform3::point3;
+    using point2 = typename algebra::point2;
+    using point3 = typename algebra::point3;
+    using vector3 = typename algebra::point3;
     using context = typename detector_t::geometry_context;
 
     /// Not allowed: always needs a detector and a descriptor.
@@ -123,42 +127,63 @@ class surface {
 
     /// @returns the center position on the surface in global coordinates
     DETRAY_HOST_DEVICE
-    constexpr auto center(const context &ctx) const -> const point3 & {
+    constexpr auto center(const context &ctx) const -> const point3 {
         return transform(ctx).translation();
     }
 
-    /// @returns the surface normal in global coordinates at a given local
-    /// position @param local
-    DETRAY_HOST_DEVICE
-    constexpr auto normal(const context &ctx, const point3 &local) const
-        -> const vector3 & {
-        return visit_mask<typename kernels::normal>(transform(ctx), local);
+    /// @returns the surface normal in global coordinates at a given bound/local
+    /// position @param p
+    template <typename point_t = point2,
+              std::enable_if_t<std::is_same_v<point_t, point3> or
+                                   std::is_same_v<point_t, point2>,
+                               bool> = true>
+    DETRAY_HOST_DEVICE constexpr auto normal(const context &ctx,
+                                             const point_t &p = {}) const
+        -> const vector3 {
+        return visit_mask<typename kernels::normal>(transform(ctx), p);
     }
 
-    /// @returns the cosine of the incidence angle given a local position
-    /// @param local and a global direction @param dir
+    /// @returns the cosine of the incidence angle given a local/bound position
+    /// @param p and a global direction @param dir
+    template <typename point_t = point2,
+              std::enable_if_t<std::is_same_v<point_t, point3> or
+                                   std::is_same_v<point_t, point2>,
+                               bool> = true>
+    DETRAY_HOST_DEVICE constexpr auto cos_angle(const context &ctx,
+                                                const vector3 &dir,
+                                                const point_t &p = {}) const
+        -> scalar_type {
+        return vector::dot(dir, normal(ctx, p));
+    }
+
+    /// @returns the bound (2D) position to the global point @param global for
+    /// a given geometry context @param ctx and track direction @param dir
     DETRAY_HOST_DEVICE
-    constexpr auto cos_angle(const context &ctx, const point3 &local,
-                             const vector3 &dir) const -> scalar_type {
-        return vector::dot(dir, normal(ctx, local));
+    constexpr point2 global_to_bound(const context &ctx, const point3 &global,
+                                     const vector3 &dir = {}) const {
+        return visit_mask<typename kernels::global_to_bound>(transform(ctx),
+                                                             global, dir);
     }
 
     /// @returns the local position to the global point @param global for
     /// a given geometry context @param ctx and track direction @param dir
     DETRAY_HOST_DEVICE
     constexpr point3 global_to_local(const context &ctx, const point3 &global,
-                                     const vector3 &dir) const {
+                                     const vector3 &dir = {}) const {
         return visit_mask<typename kernels::global_to_local>(transform(ctx),
                                                              global, dir);
     }
 
-    /// @returns the global position to the given local position @param local
+    /// @returns the global position to the given local/bound position @param p
     /// for a given geometry context @param ctx
-    DETRAY_HOST_DEVICE
-    constexpr point3 local_to_global(const context &ctx,
-                                     const point3 &local) const {
-        return visit_mask<typename kernels::local_to_global>(transform(ctx),
-                                                             local);
+    template <typename point_t,
+              std::enable_if_t<std::is_same_v<point_t, point3> or
+                                   std::is_same_v<point_t, point2>,
+                               bool> = true>
+    DETRAY_HOST_DEVICE constexpr point3 local_to_global(
+        const context &ctx, const point_t &p, const vector3 &dir = {}) const {
+        return visit_mask<typename kernels::local_to_global>(transform(ctx), p,
+                                                             dir);
     }
 
     /// @returns the track parametrization projected onto the surface (bound)
@@ -209,7 +234,7 @@ class surface {
     /// @tparam functor_t the prescription to be applied to the mask
     /// @tparam Args      types of additional arguments to the functor
     template <typename functor_t, typename... Args>
-    DETRAY_HOST_DEVICE constexpr auto visit_mask(Args &&...args) const {
+    DETRAY_HOST_DEVICE constexpr auto visit_mask(Args &&... args) const {
         const auto &masks = m_detector.mask_store();
 
         return masks.template visit<functor_t>(m_desc.mask(),
@@ -221,7 +246,7 @@ class surface {
     /// @tparam functor_t the prescription to be applied to the mask
     /// @tparam Args      types of additional arguments to the functor
     template <typename functor_t, typename... Args>
-    DETRAY_HOST_DEVICE constexpr auto visit_material(Args &&...args) const {
+    DETRAY_HOST_DEVICE constexpr auto visit_material(Args &&... args) const {
         const auto &materials = m_detector.material_store();
 
         return materials.template visit<functor_t>(m_desc.material(),

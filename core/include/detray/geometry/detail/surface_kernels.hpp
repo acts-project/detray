@@ -19,6 +19,7 @@ template <typename algebra_t>
 struct surface_kernels {
 
     using transform3 = algebra_t;
+    using point2 = typename algebra_t::point2;
     using point3 = typename algebra_t::point3;
     using vector3 = typename algebra_t::vector3;
     using free_vector_type =
@@ -32,14 +33,39 @@ struct surface_kernels {
         typename matrix_operator::template matrix_type<ROWS, COLS>;
     using free_matrix = matrix_type<e_free_size, e_free_size>;
 
-    /// A functor get the surface normal at a given local position
+    /// A functor get the surface normal at a given local/bound position
     struct normal {
         template <typename mask_group_t, typename index_t>
         DETRAY_HOST_DEVICE inline point3 operator()(
             const mask_group_t& mask_group, const index_t& index,
-            const transform3& trf3, const point3& pos) const {
+            const transform3& trf3, const point2& bound) const {
+            // Get the concrete mask instance for this surface
+            const auto& m = mask_group[index];
 
-            return mask_group[index].local_frame().normal(trf3, pos);
+            return m.local_frame().normal(trf3, bound, m);
+        }
+
+        template <typename mask_group_t, typename index_t>
+        DETRAY_HOST_DEVICE inline point3 operator()(
+            const mask_group_t& mask_group, const index_t& index,
+            const transform3& trf3, const point3& local) const {
+
+            return mask_group[index].local_frame().normal(trf3, local);
+        }
+    };
+
+    /// A functor to perform global to local bound transformation
+    struct global_to_bound {
+        template <typename mask_group_t, typename index_t>
+        DETRAY_HOST_DEVICE inline point2 operator()(
+            const mask_group_t& mask_group, const index_t& index,
+            const transform3& trf3, const point3& global,
+            const vector3& dir) const {
+
+            const point3 local =
+                mask_group[index].to_local_frame(trf3, global, dir);
+
+            return {local[0], local[1]};
         }
     };
 
@@ -48,10 +74,10 @@ struct surface_kernels {
         template <typename mask_group_t, typename index_t>
         DETRAY_HOST_DEVICE inline point3 operator()(
             const mask_group_t& mask_group, const index_t& index,
-            const transform3& trf3, const point3& pos,
+            const transform3& trf3, const point3& global,
             const vector3& dir) const {
 
-            return mask_group[index].to_local_frame(trf3, pos, dir);
+            return mask_group[index].to_local_frame(trf3, global, dir);
         }
     };
 
@@ -61,7 +87,18 @@ struct surface_kernels {
         template <typename mask_group_t, typename index_t>
         DETRAY_HOST_DEVICE inline point3 operator()(
             const mask_group_t& mask_group, const index_t& index,
-            const transform3& trf3, const point3& local) const {
+            const transform3& trf3, const point2& bound,
+            const vector3& dir) const {
+            const auto& m = mask_group[index];
+
+            return mask_group[index].local_frame().bound_local_to_global(
+                trf3, m, bound, dir);
+        }
+
+        template <typename mask_group_t, typename index_t>
+        DETRAY_HOST_DEVICE inline point3 operator()(
+            const mask_group_t& mask_group, const index_t& index,
+            const transform3& trf3, const point3& local, const vector3&) const {
 
             return mask_group[index].to_global_frame(trf3, local);
         }

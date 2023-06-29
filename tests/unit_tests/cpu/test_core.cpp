@@ -72,17 +72,6 @@ GTEST_TEST(detray_core, typed_index) {
     EXPECT_TRUE(ti.is_invalid());
 }
 
-// This tests the construction of a surface descriptor object
-GTEST_TEST(detray_geometry, surface_descriptor) {
-
-    mask_link_t mask_id{mask_ids::e_unmasked, 0u};
-    material_link_t material_id{material_ids::e_slab, 0u};
-
-    surface_descriptor<mask_link_t, material_link_t> s(
-        dindex_invalid, mask_id, material_id, dindex_invalid, dindex_invalid,
-        surface_id::e_sensitive);
-}
-
 // This tests the construction of a intresection
 GTEST_TEST(detray_intersection, intersection) {
 

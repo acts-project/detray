@@ -96,6 +96,18 @@ struct cylindrical2 : public coordinate_base<cylindrical2, transform3_t> {
                                      {p[0], p[1], mask[mask_t::shape::e_r]});
     }
 
+    /// @returns the normal vector
+    template <typename mask_t>
+    DETRAY_HOST_DEVICE inline vector3 normal(const transform3_t &trf3,
+                                             const point2 &bound_pos,
+                                             const mask_t &mask) const {
+        const scalar_type phi{bound_pos[0] / mask[mask_t::shape::e_r]};
+        const vector3 local_normal{math_ns::cos(phi), math_ns::sin(phi), 0.f};
+
+        // normal vector in local coordinate
+        return trf3.rotation() * local_normal;
+    }
+
     /// @returns the normal vector given a local position @param loc_pos
     DETRAY_HOST_DEVICE inline vector3 normal(const transform3_t &trf3,
                                              const point3 &loc_pos) const {

@@ -89,6 +89,14 @@ struct polar2 : public coordinate_base<polar2, transform3_t> {
     }
 
     /// @returns the normal vector
+    template <typename mask_t>
+    DETRAY_HOST_DEVICE inline vector3 normal(const transform3_t &trf3,
+                                             const point2 & = {},
+                                             const mask_t & = {}) const {
+        return trf3.z();
+    }
+
+    /// @returns the normal vector
     DETRAY_HOST_DEVICE inline vector3 normal(const transform3_t &trf3,
                                              const point3 & = {}) const {
         return trf3.z();

@@ -52,12 +52,6 @@ struct cartesian3 final : public coordinate_base<cartesian3, transform3_t> {
         return trf.point_to_global(p);
     }
 
-    /// @returns the normal vector
-    DETRAY_HOST_DEVICE inline vector3 normal(const transform3_t &trf3,
-                                             const point3 & = {}) const {
-        return trf3.z();
-    }
-
 };  // struct cartesian3
 
 }  // namespace detray
