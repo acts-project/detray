@@ -12,7 +12,7 @@
 #include "detray/core/detail/single_store.hpp"
 #include "detray/definitions/containers.hpp"
 #include "detray/definitions/indexing.hpp"
-#include "detray/geometry/surface.hpp"
+#include "detray/geometry/detail/surface_descriptor.hpp"
 #include "detray/masks/masks.hpp"
 #include "detray/materials/material_rod.hpp"
 #include "detray/materials/material_slab.hpp"
@@ -110,8 +110,9 @@ struct telescope_metadata {
     using material_link = typename material_store<>::single_link;
     using source_link = dindex;
     /// Surface type used for sensitives, passives and portals
-    using surface_type = surface<mask_link, material_link, transform_link,
-                                 nav_link, source_link>;
+    using surface_type =
+        surface_descriptor<mask_link, material_link, transform_link, nav_link,
+                           source_link>;
 
     /// No grids/other acceleration data structure, everything is brute forced
     enum geo_objects : std::size_t {

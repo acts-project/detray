@@ -6,7 +6,6 @@
  */
 
 // Project include(s)
-#include "detray/geometry/surface.hpp"
 #include "detray/test/types.hpp"
 #include "detray/tracks/tracks.hpp"
 
@@ -35,15 +34,6 @@ using material_link_t = dtyped_index<material_ids, dindex>;
 constexpr scalar tol{1e-5f};
 
 GTEST_TEST(detray_tracks, bound_track_parameters) {
-
-    // surface container
-    std::vector<surface<mask_link_t, material_link_t>> surfaces;
-    surfaces.emplace_back(0u, mask_link_t{e_rectangle2, 0u},
-                          material_link_t{e_slab, 0u}, 0u, 0u,
-                          surface_id::e_sensitive);
-    surfaces.emplace_back(1u, mask_link_t{e_rectangle2, 0u},
-                          material_link_t{e_slab, 0u}, 0u, 0u,
-                          surface_id::e_sensitive);
 
     /// Declare track parameters
 

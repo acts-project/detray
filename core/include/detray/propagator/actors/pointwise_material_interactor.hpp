@@ -10,6 +10,7 @@
 // Project include(s).
 #include "detray/definitions/qualifiers.hpp"
 #include "detray/definitions/track_parametrization.hpp"
+#include "detray/geometry/surface.hpp"
 #include "detray/materials/interaction.hpp"
 #include "detray/propagator/base_actor.hpp"
 #include "detray/tracks/bound_track_parameters.hpp"
@@ -113,7 +114,7 @@ struct pointwise_material_interactor : actor {
 
         interactor_state.reset();
 
-        auto &navigation = prop_state._navigation;
+        const auto &navigation = prop_state._navigation;
 
         // Do material interaction when the track is on surface
         if (navigation.is_on_module()) {
@@ -123,7 +124,8 @@ struct pointwise_material_interactor : actor {
 
             this->update(stepping._bound_params, interactor_state,
                          static_cast<int>(navigation.direction()),
-                         *navigation.current(), det->material_store());
+                         *navigation.current(),
+                         surface{*det, navigation.current()->surface});
         }
     }
 
@@ -134,14 +136,14 @@ struct pointwise_material_interactor : actor {
     /// @param[in]  nav_dir navigation direction
     /// @param[in]  is intersection
     /// @param[in]  mat_store material store
-    template <typename intersection_t, typename material_store_t>
+    template <typename intersection_t, typename surface_t>
     DETRAY_HOST_DEVICE inline void update(
         bound_track_parameters<transform3_type> &bound_params,
         state &interactor_state, const int nav_dir, const intersection_t &is,
-        const material_store_t &mat_store) const {
+        const surface_t &sf) const {
 
-        auto succeed = mat_store.template visit<kernel>(
-            is.surface.material(), is, interactor_state, bound_params);
+        const bool succeed = sf.template visit_material<kernel>(
+            is, interactor_state, bound_params);
 
         if (succeed) {
 

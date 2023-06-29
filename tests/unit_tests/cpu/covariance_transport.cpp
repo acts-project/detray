@@ -7,7 +7,7 @@
 
 // Project include(s).
 #include "detray/definitions/units.hpp"
-#include "detray/geometry/surface.hpp"
+#include "detray/geometry/detail/surface_descriptor.hpp"
 #include "detray/masks/masks.hpp"
 #include "detray/masks/unbounded.hpp"
 #include "detray/test/types.hpp"
@@ -29,7 +29,7 @@ using namespace detray;
 using matrix_operator = standard_matrix_operator<scalar>;
 using transform3 = test::transform3;
 using vector3 = typename transform3::vector3;
-using intersection_t = intersection2D<surface<>, transform3>;
+using intersection_t = intersection2D<surface_descriptor<>, transform3>;
 
 // Mask types to be tested
 using rectangle_type = detray::mask<detray::rectangle2D<>>;
@@ -183,7 +183,8 @@ class HelixCovarianceTransportValidation : public ::testing::Test {
         // Get the intersection on the next surface
         const intersection_t is = get_intersection(
             helix_intersector<intersection_t, destination_mask_type>{}(
-                hlx, surface<>{}, mask_1, trf_1, this->mask_tolerance));
+                hlx, surface_descriptor<>{}, mask_1, trf_1,
+                this->mask_tolerance));
 
         sfis.push_back(is);
 

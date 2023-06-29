@@ -12,7 +12,7 @@
 #include "detray/core/detail/single_store.hpp"
 #include "detray/definitions/containers.hpp"
 #include "detray/definitions/indexing.hpp"
-#include "detray/geometry/surface.hpp"
+#include "detray/geometry/detail/surface_descriptor.hpp"
 #include "detray/io/common/detail/type_traits.hpp"  // mask_info
 #include "detray/masks/masks.hpp"
 #include "detray/materials/material_slab.hpp"
@@ -133,8 +133,9 @@ struct my_metadata {
     using mask_link = typename mask_store<>::single_link;
     using material_link = typename material_store<>::single_link;
     using source_link = dindex;
-    using surface_type = surface<mask_link, material_link, transform_link,
-                                 nav_link, source_link>;
+    using surface_type =
+        surface_descriptor<mask_link, material_link, transform_link, nav_link,
+                           source_link>;
 
     /// The acceleration data structures live in another tuple that needs to
     /// indexed correctly

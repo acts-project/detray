@@ -117,13 +117,16 @@ class navigator {
         /// Test the volume links
         template <typename track_t>
         DETRAY_HOST_DEVICE void operator()(
-            const typename detector_type::surface_type &sf,
+            const typename detector_type::surface_type &sf_descr,
             const detector_type &det, const track_t &track,
             vector_type<intersection_type> &candidates,
             const scalar_type tol) const {
-            det.mask_store().template visit<intersection_initialize>(
-                sf.mask(), candidates, detail::ray(track), sf,
-                det.transform_store(), tol);
+
+            const auto sf = surface{det, sf_descr};
+
+            sf.template visit_mask<intersection_initialize>(
+                candidates, detail::ray(track), sf_descr, det.transform_store(),
+                tol);
         }
     };
 
@@ -746,12 +749,13 @@ class navigator {
         if (candidate.surface.barcode().is_invalid()) {
             return false;
         }
-        const auto &mask_store = det->mask_store();
+
+        const auto sf = surface{*det, candidate.surface};
 
         // Check whether this candidate is reachable by the track
-        return mask_store.template visit<intersection_update>(
-            candidate.surface.mask(), detail::ray(track), candidate,
-            det->transform_store(), 15.f * unit<scalar_type>::um);
+        return sf.template visit_mask<intersection_update>(
+            detail::ray(track), candidate, det->transform_store(),
+            15.f * unit<scalar_type>::um);
     }
 
     /// Helper to evict all unreachable/invalid candidates from the cache:

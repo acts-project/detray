@@ -8,7 +8,7 @@
 // Project include(s)
 #include "detray/core/detail/multi_store.hpp"
 #include "detray/core/detail/single_store.hpp"
-#include "detray/geometry/surface.hpp"
+#include "detray/geometry/detail/surface_descriptor.hpp"
 #include "detray/intersection/cylinder_intersector.hpp"
 #include "detray/intersection/cylinder_portal_intersector.hpp"
 #include "detray/intersection/detail/trajectories.hpp"
@@ -71,7 +71,8 @@ using point3 = typename transform3_t::point3;
 using transform_link_t = dindex;
 
 /// The Surface definition:
-using surface_t = surface<mask_link_t, material_link_t, transform_link_t>;
+using surface_t =
+    surface_descriptor<mask_link_t, material_link_t, transform_link_t>;
 using surface_container_t = dvector<surface_t>;
 
 // TODO: How about merging ray and helix tests into one to remove the code

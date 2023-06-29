@@ -9,6 +9,7 @@
 
 // Project include(s).
 #include "detray/geometry/detector_volume.hpp"
+#include "detray/geometry/surface.hpp"
 #include "detray/tools/bin_association.hpp"
 #include "detray/tools/bin_fillers.hpp"
 #include "detray/tools/grid_factory.hpp"
@@ -112,10 +113,10 @@ class grid_builder final : public volume_decorator<detector_t> {
         // Add the surfaces that were filled into the grid directly to the
         // detector and update their links
         const auto trf_offset{det.transform_store().size(ctx)};
-        for (auto &sf : m_grid.all()) {
-            det.mask_store().template visit<detail::mask_index_update>(
-                sf.mask(), sf);
-            sf.update_transform(trf_offset);
+        for (auto &sf_desc : m_grid.all()) {
+            const auto sf = surface{det, sf_desc};
+            sf.template visit_mask<detail::mask_index_update>(sf_desc);
+            sf_desc.update_transform(trf_offset);
         }
 
         // Add transforms and masks to detector

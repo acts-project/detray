@@ -13,6 +13,7 @@
 #include "detray/definitions/units.hpp"
 #include "detray/detectors/toy_metadata.hpp"
 #include "detray/geometry/detector_volume.hpp"
+#include "detray/geometry/surface.hpp"
 #include "detray/materials/predefined_materials.hpp"
 #include "detray/tools/volume_builder.hpp"
 
@@ -368,18 +369,19 @@ inline void add_cylinder_grid(const typename detector_t::geometry_context &ctx,
     // Iterate the surfaces and update their links
     const auto trf_offset{det.transform_store().size(ctx)};
     auto sf_offset{det.n_surfaces()};
-    for (auto &sf : surfaces) {
+    for (auto &sf_desc : surfaces) {
         // Make sure the volume was constructed correctly
-        assert(sf.volume() < det.volumes().size());
+        assert(sf_desc.volume() < det.volumes().size());
+
         // Update the surface links accroding to number of data in detector
-        det.mask_store().template visit<detail::mask_index_update>(sf.mask(),
-                                                                   sf);
-        det.material_store().template visit<detail::material_index_update>(
-            sf.material(), sf);
-        sf.update_transform(trf_offset);
-        sf.set_index(sf_offset++);
+        const auto sf = surface{det, sf_desc};
+        sf.template visit_mask<detail::mask_index_update>(sf_desc);
+        sf.template visit_material<detail::material_index_update>(sf_desc);
+        sf_desc.update_transform(trf_offset);
+        sf_desc.set_index(sf_offset++);
+
         // Copy surface descriptor into global lookup
-        det.add_surface_to_lookup(sf);
+        det.add_surface_to_lookup(sf_desc);
     }
 
     // Add new grid to the detector
@@ -444,18 +446,19 @@ inline void add_disc_grid(const typename detector_t::geometry_context &ctx,
     // Iterate the surfaces and update their links
     const auto trf_offset{det.transform_store().size(ctx)};
     auto sf_offset{det.n_surfaces()};
-    for (auto &sf : surfaces) {
+    for (auto &sf_desc : surfaces) {
         // Make sure the volume was constructed correctly
-        assert(sf.volume() < det.volumes().size());
+        assert(sf_desc.volume() < det.volumes().size());
+
         // Update the surface links accroding to number of data in detector
-        det.mask_store().template visit<detail::mask_index_update>(sf.mask(),
-                                                                   sf);
-        det.material_store().template visit<detail::material_index_update>(
-            sf.material(), sf);
-        sf.update_transform(trf_offset);
-        sf.set_index(sf_offset++);
+        const auto sf = surface{det, sf_desc};
+        sf.template visit_mask<detail::mask_index_update>(sf_desc);
+        sf.template visit_material<detail::material_index_update>(sf_desc);
+        sf_desc.update_transform(trf_offset);
+        sf_desc.set_index(sf_offset++);
+
         // Copy surface descriptor into global lookup
-        det.add_surface_to_lookup(sf);
+        det.add_surface_to_lookup(sf_desc);
     }
 
     // Add new grid to the detector
