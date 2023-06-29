@@ -6,7 +6,6 @@
  */
 
 // Project include(s).
-#include "detray/geometry/detail/surface_descriptor.hpp"
 #include "detray/materials/interaction.hpp"
 #include "detray/materials/material.hpp"
 #include "detray/materials/material_slab.hpp"
@@ -25,8 +24,6 @@
 using namespace detray;
 using transform3 = test::transform3;
 
-using sf_desc_t = surface_descriptor<>;
-
 // Test class for MUON energy loss with Bethe function
 // Input tuple: < material / energy / expected output from
 // https://pdg.lbl.gov/2022/AtomicNuclearProperties for Muon dEdX and range >
@@ -40,12 +37,14 @@ TEST_P(EnergyLossBetheValidation, bethe_energy_loss) {
     // Interaction object
     interaction<scalar> I;
 
-    // intersection with a zero incidence angle
-    intersection2D<sf_desc_t> is;
-    is.cos_incidence_angle = 1.f;
+    // Zero incidence angle
+    const scalar cos_inc_ang{1.f};
 
     // H2 liquid with a unit thickness
     material_slab<scalar> slab(std::get<0>(GetParam()), 1.f * unit<scalar>::cm);
+
+    // Path segment in the material
+    const scalar path_segment{slab.path_segment(cos_inc_ang)};
 
     // muon
     constexpr int pdg = pdg_particle::eMuon;
@@ -58,8 +57,8 @@ TEST_P(EnergyLossBetheValidation, bethe_energy_loss) {
 
     // Bethe Stopping power in MeV * cm^2 / g
     const scalar dEdx{
-        I.compute_energy_loss_bethe(is, slab, pdg, m, qOverP, -1.f) /
-        slab.path_segment(is) / slab.get_material().mass_density() /
+        I.compute_energy_loss_bethe(path_segment, slab, pdg, m, qOverP, -1.f) /
+        path_segment / slab.get_material().mass_density() /
         (unit<scalar>::MeV * unit<scalar>::cm2 / unit<scalar>::g)};
 
     const scalar expected_dEdx = std::get<2>(GetParam());
@@ -162,9 +161,8 @@ TEST_P(EnergyLossLandauValidation, landau_energy_loss) {
     // Interaction object
     interaction<scalar> I;
 
-    // intersection with a zero incidence angle
-    intersection2D<sf_desc_t> is;
-    is.cos_incidence_angle = 1.f;
+    // Zero incidence angle
+    const scalar cos_inc_ang{1.f};
 
     // Material
     const auto mat = std::get<0>(GetParam());
@@ -174,6 +172,9 @@ TEST_P(EnergyLossLandauValidation, landau_energy_loss) {
 
     // Material slab with a unit thickness
     material_slab<scalar> slab(mat, thickness);
+
+    // Path segment in the material
+    const scalar path_segment{slab.path_segment(cos_inc_ang)};
 
     // muon
     constexpr int pdg{pdg_particle::eMuon};
@@ -195,7 +196,7 @@ TEST_P(EnergyLossLandauValidation, landau_energy_loss) {
 
     // Landau Energy loss in MeV
     const scalar Landau_MeV{
-        I.compute_energy_loss_landau(is, slab, pdg, m, qOverP, q) /
+        I.compute_energy_loss_landau(path_segment, slab, pdg, m, qOverP, q) /
         unit<scalar>::MeV};
 
     // Check if difference is within 5% error
@@ -203,9 +204,9 @@ TEST_P(EnergyLossLandauValidation, landau_energy_loss) {
                 0.05f);
 
     // Landau Energy loss Fluctuation
-    const scalar fwhm_MeV{
-        I.compute_energy_loss_landau_fwhm(is, slab, pdg, m, qOverP, q) /
-        unit<scalar>::MeV};
+    const scalar fwhm_MeV{I.compute_energy_loss_landau_fwhm(path_segment, slab,
+                                                            pdg, m, qOverP, q) /
+                          unit<scalar>::MeV};
 
     // Check if difference is within 10% error
     EXPECT_TRUE(std::abs(std::get<3>(GetParam()) - fwhm_MeV) / fwhm_MeV < 0.1f);
@@ -231,9 +232,8 @@ TEST_P(LandauDistributionValidation, landau_distribution) {
     // Interaction object
     interaction<scalar> I;
 
-    // intersection with a zero incidence angle
-    intersection2D<sf_desc_t> is;
-    is.cos_incidence_angle = 1.f;
+    // Zero incidence angle
+    const scalar cos_inc_ang{1.f};
 
     // Material
     const auto mat = silicon<scalar>();
@@ -243,6 +243,9 @@ TEST_P(LandauDistributionValidation, landau_distribution) {
 
     // Material slab with a unit thickness
     material_slab<scalar> slab(mat, thickness);
+
+    // Path segment in the material
+    const scalar path_segment{slab.path_segment(cos_inc_ang)};
 
     // muon
     constexpr int pdg{pdg_particle::eMuon};
@@ -263,14 +266,16 @@ TEST_P(LandauDistributionValidation, landau_distribution) {
     const scalar qOverP{q / p};
 
     // Bethe energy loss
-    const scalar dE{I.compute_energy_loss_bethe(is, slab, pdg, m, qOverP, q)};
+    const scalar dE{
+        I.compute_energy_loss_bethe(path_segment, slab, pdg, m, qOverP, q)};
 
     // Landau Energy loss
-    const scalar mpv{I.compute_energy_loss_landau(is, slab, pdg, m, qOverP, q)};
+    const scalar mpv{
+        I.compute_energy_loss_landau(path_segment, slab, pdg, m, qOverP, q)};
 
     // Landau Energy loss Sigma
-    const scalar sigma{
-        I.compute_energy_loss_landau_sigma(is, slab, pdg, m, qOverP, q)};
+    const scalar sigma{I.compute_energy_loss_landau_sigma(path_segment, slab,
+                                                          pdg, m, qOverP, q)};
 
     // Landau Sampling
     landau_distribution<scalar> landau;

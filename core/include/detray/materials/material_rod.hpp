@@ -56,33 +56,39 @@ struct material_rod : public detail::homogeneous_material_tag {
     DETRAY_HOST_DEVICE
     constexpr scalar_type radius() const { return m_radius; }
 
-    /// Return the path segment
-    template <typename intersection_t>
-    DETRAY_HOST_DEVICE scalar_type
-    path_segment(const intersection_t& is) const {
+    /// @returns the path segment through the material
+    ///
+    /// @param cos_inc_angle cosine of the track incidence angle
+    /// @param approach the closes approach of the track to the wire
+    DETRAY_HOST_DEVICE constexpr scalar_type path_segment(
+        const scalar_type cos_inc_angle, const scalar_type approach) const {
         // Assume that is.local[0] is radial distance of line intersector
-        if (is.local[0] > m_radius) {
+        if (approach > m_radius) {
             return 0.f;
         }
 
-        const scalar_type sin_incidence_angle_2{
-            1.f - is.cos_incidence_angle * is.cos_incidence_angle};
+        const scalar_type sin_inc_angle_2{1.f - cos_inc_angle * cos_inc_angle};
 
-        return 2.f *
-               std::sqrt((m_radius * m_radius - is.local[0] * is.local[0]) /
-                         sin_incidence_angle_2);
+        return 2.f * std::sqrt((m_radius * m_radius - approach * approach) /
+                               sin_inc_angle_2);
     }
-    /// Return the path segment in X0
-    template <typename intersection_t>
-    DETRAY_HOST_DEVICE scalar_type
-    path_segment_in_X0(const intersection_t& is) const {
-        return this->path_segment(is) / m_material.X0();
+
+    /// @returns the path segment through the material in X0
+    ///
+    /// @param cos_inc_angle cosine of the track incidence angle
+    /// @param approach the closes approach of the track to the wire
+    DETRAY_HOST_DEVICE constexpr scalar_type path_segment_in_X0(
+        const scalar_type cos_inc_angle, const scalar_type approach) const {
+        return this->path_segment(cos_inc_angle, approach) / m_material.X0();
     }
-    /// Return the path segment in L0
-    template <typename intersection_t>
-    DETRAY_HOST_DEVICE scalar_type
-    path_segment_in_L0(const intersection_t& is) const {
-        return this->path_segment(is) / m_material.L0();
+
+    /// @returns the path segment through the material in L0
+    ///
+    /// @param cos_inc_angle cosine of the track incidence angle
+    /// @param approach the closes approach of the track to the wire
+    DETRAY_HOST_DEVICE constexpr scalar_type path_segment_in_L0(
+        const scalar_type cos_inc_angle, const scalar_type approach) const {
+        return this->path_segment(cos_inc_angle, approach) / m_material.L0();
     }
 
     private:
