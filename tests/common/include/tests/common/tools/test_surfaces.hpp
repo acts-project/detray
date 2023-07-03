@@ -9,7 +9,7 @@
 
 // Project include(s)
 #include "detray/definitions/indexing.hpp"
-#include "detray/geometry/surface.hpp"
+#include "detray/geometry/detail/surface_descriptor.hpp"
 #include "detray/grids/axis.hpp"
 #include "detray/grids/grid2.hpp"
 #include "detray/grids/populator.hpp"
@@ -50,13 +50,14 @@ using binned_neighborhood = darray<darray<dindex, 2>, 2>;
 
 /// This method creates a number (distances.size()) planes along a direction
 [[maybe_unused]] dvector<
-    surface<plane_mask_link_t, plane_material_link_t, transform3>>
+    surface_descriptor<plane_mask_link_t, plane_material_link_t, transform3>>
 planes_along_direction(const dvector<scalar> &distances, vector3 direction) {
     // Rotation matrix
     vector3 z = direction;
     vector3 x = vector::normalize(vector3{0.f, -z[2], z[1]});
 
-    dvector<surface<plane_mask_link_t, plane_material_link_t, transform3>>
+    dvector<surface_descriptor<plane_mask_link_t, plane_material_link_t,
+                               transform3>>
         surfaces;
     surfaces.reserve(distances.size());
     for (const auto [idx, d] : detray::views::enumerate(distances)) {

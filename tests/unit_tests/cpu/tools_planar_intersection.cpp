@@ -6,7 +6,7 @@
  */
 
 // Project include(s)
-#include "detray/geometry/surface.hpp"
+#include "detray/geometry/detail/surface_descriptor.hpp"
 #include "detray/intersection/detail/trajectories.hpp"
 #include "detray/intersection/intersection.hpp"
 #include "detray/intersection/plane_intersector.hpp"
@@ -27,7 +27,7 @@ using namespace detray;
 using vector3 = test::vector3;
 using point3 = test::point3;
 using transform3 = test::transform3;
-using intersection_t = intersection2D<surface<>, transform3>;
+using intersection_t = intersection2D<surface_descriptor<>, transform3>;
 
 constexpr scalar tol{std::numeric_limits<scalar>::epsilon()};
 
@@ -44,7 +44,8 @@ GTEST_TEST(detray_intersection, translated_plane_ray) {
     // The same test but bound to local frame
     plane_intersector<intersection_t> pi;
     mask<unmasked> unmasked_bound{};
-    const auto hit_bound = pi(r, surface<>{}, unmasked_bound, shifted);
+    const auto hit_bound =
+        pi(r, surface_descriptor<>{}, unmasked_bound, shifted);
 
     ASSERT_TRUE(hit_bound.status == intersection::status::e_inside);
     // Global intersection information - unchanged
@@ -61,7 +62,8 @@ GTEST_TEST(detray_intersection, translated_plane_ray) {
 
     // The same test but bound to local frame & masked - inside
     mask<rectangle2D<>> rect_for_inside{0u, 3.f, 3.f};
-    const auto hit_bound_inside = pi(r, surface<>{}, rect_for_inside, shifted);
+    const auto hit_bound_inside =
+        pi(r, surface_descriptor<>{}, rect_for_inside, shifted);
     ASSERT_TRUE(hit_bound_inside.status == intersection::status::e_inside);
     // Global intersection information - unchanged
     const auto global1 =
@@ -76,7 +78,7 @@ GTEST_TEST(detray_intersection, translated_plane_ray) {
     // The same test but bound to local frame & masked - outside
     mask<rectangle2D<>> rect_for_outside{0u, 0.5f, 3.5f};
     const auto hit_bound_outside =
-        pi(r, surface<>{}, rect_for_outside, shifted);
+        pi(r, surface_descriptor<>{}, rect_for_outside, shifted);
     ASSERT_TRUE(hit_bound_outside.status == intersection::status::e_outside);
     // Global intersection information - not written out anymore
     const auto global2 =
@@ -108,7 +110,7 @@ GTEST_TEST(detray_intersection, plane_incidence_angle) {
     // The same test but bound to local frame & masked - inside
     mask<rectangle2D<>> rect{0u, 3.f, 3.f};
 
-    const auto is = pi(r, surface<>{}, rect, rotated);
+    const auto is = pi(r, surface_descriptor<>{}, rect, rotated);
 
     ASSERT_NEAR(is.cos_incidence_angle, std::cos(constant<scalar>::pi_4), tol);
 }

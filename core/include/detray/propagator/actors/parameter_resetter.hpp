@@ -10,6 +10,7 @@
 // Project include(s).
 #include "detray/definitions/qualifiers.hpp"
 #include "detray/definitions/track_parametrization.hpp"
+#include "detray/geometry/surface.hpp"
 #include "detray/propagator/base_actor.hpp"
 #include "detray/tracks/detail/track_helper.hpp"
 
@@ -64,22 +65,23 @@ struct parameter_resetter : actor {
     DETRAY_HOST_DEVICE void operator()(state& /*resetter_state*/,
                                        propagator_state_t& propagation) const {
 
-        auto& navigation = propagation._navigation;
+        const auto& navigation = propagation._navigation;
         auto& stepping = propagation._stepping;
 
         // Do covariance transport when the track is on surface
-        if (navigation.is_on_module()) {
-
-            auto* det = navigation.detector();
-            const auto& trf_store = det->transform_store();
-            const auto& mask_store = det->mask_store();
-
-            // Surface
-            const auto& surface = navigation.current()->surface;
-
-            mask_store.template visit<kernel>(
-                surface.mask(), trf_store[surface.transform()], stepping);
+        if (not navigation.is_on_module()) {
+            return;
         }
+
+        using geo_cxt_t =
+            typename propagator_state_t::detector_type::geometry_context;
+        const geo_cxt_t ctx{};
+
+        // Surface
+        const auto sf =
+            surface{*navigation.detector(), navigation.current()->surface};
+
+        sf.template visit_mask<kernel>(sf.transform(ctx), stepping);
     }
 };
 

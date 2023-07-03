@@ -8,6 +8,7 @@
 // Project include(s).
 #include "detray/detectors/create_telescope_detector.hpp"
 #include "detray/detectors/create_toy_geometry.hpp"
+#include "detray/geometry/surface.hpp"
 #include "detray/io/common/detail/utils.hpp"
 #include "detray/masks/masks.hpp"
 #include "detray/masks/unbounded.hpp"
@@ -89,6 +90,9 @@ GTEST_TEST(detray_simulation, toy_geometry_simulation) {
     const auto detector = create_toy_geometry(
         host_mr,
         b_field_t(b_field_t::backend_t::configuration_t{B[0], B[1], B[2]}));
+
+    using geo_cxt_t = typename decltype(detector)::geometry_context;
+    const geo_cxt_t ctx{};
 
     // Create track generator
     constexpr unsigned int n_tracks{2500u};
@@ -181,8 +185,8 @@ GTEST_TEST(detray_simulation, toy_geometry_simulation) {
             const point3 pos{hits[i].tx, hits[i].ty, hits[i].tz};
             const vector3 mom{hits[i].tpx, hits[i].tpy, hits[i].tpz};
             const auto truth_local =
-                detector.global_to_local(geometry::barcode(hits[i].geometry_id),
-                                         pos, vector::normalize(mom));
+                surface{detector, geometry::barcode(hits[i].geometry_id)}
+                    .global_to_local(ctx, pos, vector::normalize(mom));
 
             local0_diff.push_back(truth_local[0] - measurements[i].local0);
             local1_diff.push_back(truth_local[1] - measurements[i].local1);

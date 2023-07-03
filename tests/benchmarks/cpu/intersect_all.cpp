@@ -8,6 +8,7 @@
 // Project include(s)
 #include "detray/core/detector.hpp"
 #include "detray/detectors/create_toy_geometry.hpp"
+#include "detray/geometry/surface.hpp"
 #include "detray/intersection/intersection_kernel.hpp"
 #include "detray/simulation/event_generator/track_generators.hpp"
 #include "detray/test/types.hpp"
@@ -43,7 +44,6 @@ void BM_INTERSECT_ALL(benchmark::State &state) {
     using detector_t = decltype(d);
     detector_t::geometry_context geo_context;
 
-    const auto &masks = d.mask_store();
     const auto &transforms = d.transform_store(geo_context);
 
     std::size_t hits{0u};
@@ -62,11 +62,10 @@ void BM_INTERSECT_ALL(benchmark::State &state) {
                  theta_steps, phi_steps, pos)) {
 
             // Loop over all surfaces in detector
-            for (const auto &sf : d.surface_lookup()) {
-
-                masks.template visit<intersection_initialize>(
-                    sf.mask(), intersections, detail::ray(track), sf,
-                    transforms);
+            for (const auto &sf_desc : d.surface_lookup()) {
+                const auto sf = surface{d, sf_desc};
+                sf.template visit_mask<intersection_initialize>(
+                    intersections, detail::ray(track), sf_desc, transforms);
 
                 ++n_surfaces;
             }

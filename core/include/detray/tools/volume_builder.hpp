@@ -9,6 +9,7 @@
 
 // Project include(s).
 #include "detray/definitions/geometry.hpp"
+#include "detray/geometry/surface.hpp"
 #include "detray/tools/volume_builder_interface.hpp"
 
 // System include(s)
@@ -140,12 +141,12 @@ class volume_builder : public volume_builder_interface<detector_t> {
         // Update mask and transform index of surfaces and set a
         // unique barcode (index of surface in container)
         auto sf_offset{static_cast<dindex>(det.portals().size())};
-        for (auto& sf : m_surfaces) {
-            det.mask_store().template visit<detail::mask_index_update>(
-                sf.mask(), sf);
-            sf.update_transform(trf_offset);
-            sf.set_index(sf_offset++);
-            det.add_surface_to_lookup(sf);
+        for (auto& sf_desc : m_surfaces) {
+            const auto sf = surface{det, sf_desc};
+            sf.template visit_mask<detail::mask_index_update>(sf_desc);
+            sf_desc.update_transform(trf_offset);
+            sf_desc.set_index(sf_offset++);
+            det.add_surface_to_lookup(sf_desc);
         }
 
         // Append surfaces

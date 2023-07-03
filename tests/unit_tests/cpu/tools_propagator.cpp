@@ -5,12 +5,10 @@
  * Mozilla Public License Version 2.0
  */
 
-#include <gtest/gtest.h>
-
-#include <vecmem/memory/host_memory_resource.hpp>
-
+// Project include(s)
 #include "detray/definitions/units.hpp"
 #include "detray/detectors/create_toy_geometry.hpp"
+#include "detray/geometry/surface.hpp"
 #include "detray/intersection/detail/trajectories.hpp"
 #include "detray/propagator/actor_chain.hpp"
 #include "detray/propagator/actors/aborters.hpp"
@@ -26,6 +24,12 @@
 #include "detray/test/types.hpp"
 #include "detray/tracks/tracks.hpp"
 #include "detray/utils/inspectors.hpp"
+
+// Vecmem include(s)
+#include <vecmem/memory/host_memory_resource.hpp>
+
+// GTest include(s)
+#include <gtest/gtest.h>
 
 using namespace detray;
 using transform3 = test::transform3;
@@ -45,34 +49,6 @@ struct helix_inspector : actor {
     };
 
     using matrix_operator = standard_matrix_operator<scalar>;
-    using size_type = typename matrix_operator::size_ty;
-    using scalar_type = typename matrix_operator::scalar_type;
-    template <size_type ROWS, size_type COLS>
-    using matrix_type =
-        typename matrix_operator::template matrix_type<ROWS, COLS>;
-    using free_vector = matrix_type<e_free_size, 1>;
-
-    // Kernel to get a free position at the last surface
-    struct kernel {
-
-        template <typename mask_group_t, typename index_t,
-                  typename transform_store_t, typename surface_t,
-                  typename stepper_state_t>
-        DETRAY_HOST_DEVICE inline free_vector operator()(
-            const mask_group_t& mask_group, const index_t& index,
-            const transform_store_t& trf_store, const surface_t& surface,
-            const stepper_state_t& stepping) {
-
-            const auto& trf3 = trf_store[surface.transform()];
-
-            const auto& mask = mask_group[index];
-
-            auto local_coordinate = mask.local_frame();
-
-            return local_coordinate.bound_to_free_vector(
-                trf3, mask, stepping._bound_params.vector());
-        }
-    };
 
     /// Check that the stepper remains on the right helical track for its pos.
     template <typename propagator_state_t>
@@ -81,6 +57,10 @@ struct helix_inspector : actor {
 
         const auto& navigation = prop_state._navigation;
         const auto& stepping = prop_state._stepping;
+
+        using geo_cxt_t =
+            typename propagator_state_t::detector_type::geometry_context;
+        const geo_cxt_t ctx{};
 
         inspector_state._nav_status.push_back(navigation.status());
 
@@ -93,16 +73,12 @@ struct helix_inspector : actor {
             return;
         }
 
-        const auto& det = navigation.detector();
-        const auto& trf_store = det->transform_store();
-        const auto& mask_store = det->mask_store();
-
         // Surface
-        const auto& surface =
-            det->surface(stepping._bound_params.surface_link());
+        const auto sf = surface{*navigation.detector(),
+                                stepping._bound_params.surface_link()};
 
-        const auto free_vec = mask_store.template visit<kernel>(
-            surface.mask(), trf_store, surface, stepping);
+        const auto free_vec =
+            sf.bound_to_free_vector(ctx, stepping._bound_params.vector());
 
         const auto last_pos =
             detail::track_helper<matrix_operator>().pos(free_vec);

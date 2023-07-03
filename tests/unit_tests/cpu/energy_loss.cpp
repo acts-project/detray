@@ -6,7 +6,7 @@
  */
 
 // Project include(s).
-#include "detray/geometry/surface.hpp"
+#include "detray/geometry/detail/surface_descriptor.hpp"
 #include "detray/materials/interaction.hpp"
 #include "detray/materials/material.hpp"
 #include "detray/materials/material_slab.hpp"
@@ -25,7 +25,7 @@
 using namespace detray;
 using transform3 = test::transform3;
 
-using sf_handle_t = surface<>;
+using sf_desc_t = surface_descriptor<>;
 
 // Test class for MUON energy loss with Bethe function
 // Input tuple: < material / energy / expected output from
@@ -41,7 +41,7 @@ TEST_P(EnergyLossBetheValidation, bethe_energy_loss) {
     interaction<scalar> I;
 
     // intersection with a zero incidence angle
-    intersection2D<sf_handle_t> is;
+    intersection2D<sf_desc_t> is;
     is.cos_incidence_angle = 1.f;
 
     // H2 liquid with a unit thickness
@@ -163,7 +163,7 @@ TEST_P(EnergyLossLandauValidation, landau_energy_loss) {
     interaction<scalar> I;
 
     // intersection with a zero incidence angle
-    intersection2D<sf_handle_t> is;
+    intersection2D<sf_desc_t> is;
     is.cos_incidence_angle = 1.f;
 
     // Material
@@ -232,7 +232,7 @@ TEST_P(LandauDistributionValidation, landau_distribution) {
     interaction<scalar> I;
 
     // intersection with a zero incidence angle
-    intersection2D<sf_handle_t> is;
+    intersection2D<sf_desc_t> is;
     is.cos_incidence_angle = 1.f;
 
     // Material

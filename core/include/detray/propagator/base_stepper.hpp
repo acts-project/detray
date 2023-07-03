@@ -10,6 +10,7 @@
 // Project include(s).
 #include "detray/definitions/qualifiers.hpp"
 #include "detray/definitions/units.hpp"
+#include "detray/geometry/surface.hpp"
 #include "detray/propagator/actors/parameter_resetter.hpp"
 #include "detray/propagator/constrained_step.hpp"
 #include "detray/tracks/tracks.hpp"
@@ -74,13 +75,13 @@ class base_stepper {
             const detector_t &det)
             : _bound_params(bound_params) {
 
-            const auto &trf_store = det.transform_store();
-            const auto &mask_store = det.mask_store();
-            const auto &surface = det.surface(bound_params.surface_link());
+            // Surface
+            const auto sf = surface{det, bound_params.surface_link()};
 
-            mask_store.template visit<
+            const typename detector_t::geometry_context ctx{};
+            sf.template visit_mask<
                 typename parameter_resetter<transform3_t>::kernel>(
-                surface.mask(), trf_store[surface.transform()], *this);
+                sf.transform(ctx), *this);
         }
 
         /// free track parameter

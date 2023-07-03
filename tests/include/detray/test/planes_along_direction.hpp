@@ -10,7 +10,7 @@
 // Detray core include(s).
 #include "detray/definitions/algebra.hpp"
 #include "detray/definitions/containers.hpp"
-#include "detray/geometry/surface.hpp"
+#include "detray/geometry/detail/surface_descriptor.hpp"
 #include "detray/utils/ranges.hpp"
 
 // Detray tests include(s).
@@ -31,14 +31,16 @@ using plane_mask_link_t = dtyped_index<plane_mask_ids, dindex>;
 using plane_material_link_t = dtyped_index<plane_material_ids, dindex>;
 
 /// This method creates a number (distances.size()) planes along a direction
-dvector<surface<plane_mask_link_t, plane_material_link_t, transform3>>
+dvector<
+    surface_descriptor<plane_mask_link_t, plane_material_link_t, transform3>>
 planes_along_direction(const dvector<scalar> &distances, vector3 direction) {
 
     // Rotation matrix
     vector3 z = direction;
     vector3 x = vector::normalize(vector3{0.f, -z[2], z[1]});
 
-    dvector<surface<plane_mask_link_t, plane_material_link_t, transform3>>
+    dvector<surface_descriptor<plane_mask_link_t, plane_material_link_t,
+                               transform3>>
         surfaces;
     surfaces.reserve(distances.size());
     for (const auto [idx, d] : detray::views::enumerate(distances)) {

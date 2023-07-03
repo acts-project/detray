@@ -12,7 +12,7 @@
 #include "detray/core/detail/single_store.hpp"
 #include "detray/definitions/containers.hpp"
 #include "detray/definitions/indexing.hpp"
-#include "detray/geometry/surface.hpp"
+#include "detray/geometry/detail/surface_descriptor.hpp"
 #include "detray/intersection/cylinder_portal_intersector.hpp"
 #include "detray/io/common/detail/type_traits.hpp"  // mask_info
 #include "detray/masks/masks.hpp"
@@ -114,8 +114,10 @@ struct itk_metadata {
     using mask_link = typename mask_store<>::single_link;
     using material_link = typename material_store<>::single_link;
     using source_link = dindex;
-    using surface_type = surface<mask_link, material_link, transform_link,
-                                 nav_link, source_link>;
+    /// Surface type used for sensitives, passives and portals
+    using surface_type =
+        surface_descriptor<mask_link, material_link, transform_link, nav_link,
+                           source_link>;
 
     /// How to index the constituent objects in a volume
     /// If they share the same index value here, they will be added into the
