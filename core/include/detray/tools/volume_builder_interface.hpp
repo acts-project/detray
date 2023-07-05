@@ -37,7 +37,7 @@ class volume_builder_interface {
     /// @returns the global index for the volume
     /// @note the correct index is only available after calling @c init_vol
     DETRAY_HOST
-    virtual auto get_vol_index() -> dindex = 0;
+    virtual auto vol_index() -> dindex = 0;
 
     /// @returns reading access to the volume
     DETRAY_HOST
@@ -131,9 +131,7 @@ class volume_decorator : public volume_builder_interface<detector_t> {
     }
 
     DETRAY_HOST
-    auto get_vol_index() -> dindex override {
-        return m_builder->get_vol_index();
-    }
+    auto vol_index() -> dindex override { return m_builder->vol_index(); }
 
     DETRAY_HOST
     auto build(detector_t &det,
