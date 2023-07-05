@@ -226,7 +226,7 @@ TEST_P(TelescopeDetectorSimulation, telescope_detector_simulation) {
                                           1000.f * unit<scalar>::mm};
     tel_cfg.positions(positions).mat_thickness(thickness);
 
-    const auto detector = create_telescope_detector(host_mr, tel_cfg);
+    const auto [detector, names] = create_telescope_detector(host_mr, tel_cfg);
 
     // Momentum
     const scalar mom = std::get<0>(GetParam());

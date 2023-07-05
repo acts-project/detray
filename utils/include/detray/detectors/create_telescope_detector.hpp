@@ -52,7 +52,7 @@ struct tel_det_config {
     template <
         typename... Args,
         std::enable_if_t<(std::is_same_v<Args, scalar> || ...), bool> = true>
-    tel_det_config(Args &&... args) : m_mask(0u, std::forward<Args>(args)...) {}
+    tel_det_config(Args &&...args) : m_mask(0u, std::forward<Args>(args)...) {}
 
     /// Mask of the test surfaces
     mask<mask_shape_t> m_mask;
@@ -445,6 +445,10 @@ inline auto create_telescope_detector(
     using detector_t = detector<telescope_types<mask_shape_t>, covfie::field,
                                 host_container_types>;
 
+    // Detector and volume names
+    typename detector_t::name_map name_map = {{0u, "telescope_detector"},
+                                              {1u, "telescope_world"}};
+
     // Infer the snesitive surface placement from the telescope length if no
     // concrete positions were given
     std::vector<scalar> positions;
@@ -503,7 +507,7 @@ inline auto create_telescope_detector(
     det.add_objects_per_volume(ctx, vol, surfaces, masks, transforms,
                                materials);
 
-    return det;
+    return std::make_pair(std::move(det), std::move(name_map));
 }
 
 }  // namespace detray

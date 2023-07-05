@@ -126,7 +126,8 @@ GTEST_TEST(detray_geometry, telescope_geometry_scan) {
                                           20.f * unit<scalar>::mm};
     tel_cfg.n_surfaces(10u).length(500.f * unit<scalar>::mm);
 
-    const auto tel_det = create_telescope_detector(host_mr, tel_cfg);
+    const auto [tel_det, tel_names] =
+        create_telescope_detector(host_mr, tel_cfg);
 
     using nav_link_t =
         typename decltype(tel_det)::surface_type::navigation_link;

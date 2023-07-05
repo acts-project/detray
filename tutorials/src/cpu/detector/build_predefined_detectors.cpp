@@ -108,7 +108,7 @@ int main(int argc, char** argv) {
     // Case 1: Defaults: Straight telescope in z-direction,
     //         10 rectangle surfaces, 500mm in length, modules evenly spaced,
     //         no B-field, silicon material (80mm)
-    const auto tel_det1 =
+    const auto [tel_det1, tel_names1] =
         detray::create_telescope_detector<detray::rectangle2D<>>(host_mr);
 
     std::cout << "\nTelescope detector - case 1:\n"
@@ -122,7 +122,8 @@ int main(int argc, char** argv) {
     detray::tel_det_config trp_cfg{trapezoid};
     trp_cfg.n_surfaces(15).length(2000.f * detray::unit<detray::scalar>::mm);
 
-    const auto tel_det2 = detray::create_telescope_detector(host_mr, trp_cfg);
+    const auto [tel_det2, tel_names2] =
+        detray::create_telescope_detector(host_mr, trp_cfg);
 
     std::cout << "\nTelescope detector - case 2:\n"
               << "----------------------------\n"
@@ -140,7 +141,8 @@ int main(int argc, char** argv) {
     detray::tel_det_config rct_cfg{rectangle};
     rct_cfg.positions(positions).pilot_track(x_track);
 
-    const auto tel_det3 = create_telescope_detector(host_mr, rct_cfg);
+    const auto [tel_det3, tel_names3] =
+        create_telescope_detector(host_mr, rct_cfg);
 
     std::cout << "\nTelescope detector - case 3:\n"
               << "----------------------------\n"
@@ -164,7 +166,8 @@ int main(int argc, char** argv) {
     detray::tel_det_config htrp_cfg{trapezoid, helix};
     htrp_cfg.positions(positions).bfield_vec(B_z);
 
-    const auto tel_det4 = detray::create_telescope_detector(host_mr, htrp_cfg);
+    const auto [tel_det4, tel_names4] =
+        detray::create_telescope_detector(host_mr, htrp_cfg);
 
     std::cout << "\nTelescope detector - case 4:\n"
               << "----------------------------\n"

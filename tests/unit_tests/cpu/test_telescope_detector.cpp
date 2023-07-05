@@ -99,13 +99,14 @@ GTEST_TEST(detray_detectors, telescope_detector) {
     std::vector<scalar> positions = {0.f,   50.f,  100.f, 150.f, 200.f, 250.f,
                                      300.f, 350.f, 400.f, 450.f, 500.f};
     // Build telescope detector with unbounded planes
-    const auto z_tel_det1 =
+    const auto [z_tel_det1, z_tel_names1] =
         create_telescope_detector(host_mr, tel_cfg.positions(positions));
 
     // Build the same telescope detector with rectangular planes and given
     // length/number of surfaces
     tel_cfg.positions({}).n_surfaces(11u).length(500.f * unit<scalar>::mm);
-    const auto z_tel_det2 = create_telescope_detector(host_mr, tel_cfg);
+    const auto [z_tel_det2, z_tel_names2] =
+        create_telescope_detector(host_mr, tel_cfg);
 
     // Compare
     for (std::size_t i{0u}; i < z_tel_det1.surface_lookup().size(); ++i) {
@@ -125,7 +126,7 @@ GTEST_TEST(detray_detectors, telescope_detector) {
     detail::ray<transform3> x_track({0.f, 0.f, 0.f}, 0.f, {1.f, 0.f, 0.f},
                                     -1.f);
 
-    const auto x_tel_det =
+    const auto [x_tel_det, x_tel_names] =
         create_telescope_detector(host_mr, tel_cfg.pilot_track(x_track));
 
     //
@@ -225,7 +226,8 @@ GTEST_TEST(detray_detectors, telescope_detector) {
 
     tel_det_config htel_cfg{rectangle, helix_bz};
     htel_cfg.n_surfaces(11u).length(500.f * unit<scalar>::mm);
-    const auto tel_detector = create_telescope_detector(host_mr, htel_cfg);
+    const auto [tel_detector, tel_names] =
+        create_telescope_detector(host_mr, htel_cfg);
 
     // make at least sure it is navigatable
     navigator<decltype(tel_detector), inspector_t> tel_navigator;
