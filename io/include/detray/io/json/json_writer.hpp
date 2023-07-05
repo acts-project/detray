@@ -59,7 +59,7 @@ class json_writer final : public common_writer_t<detector_t> {
 
         // Write the detector data into the json stream by using the
         // conversion functions defined in "detray/io/json/json_io.hpp"
-        out_json["data"] = base_writer::serialize(det);
+        out_json["data"] = base_writer::serialize(det, names);
 
         // Write to file
         *file << std::setw(4) << out_json << std::endl;
