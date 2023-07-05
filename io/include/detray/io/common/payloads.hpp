@@ -155,6 +155,11 @@ struct links_payload {
     std::optional<grid_objects_payload> grid_links;
 };
 
+/// @brief A payload for a simple detector material description
+struct detector_grids_payload {
+    std::vector<links_payload> grids = {};
+};
+
 /// @}
 
 /// @brief A payload for a detector
