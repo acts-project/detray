@@ -66,7 +66,7 @@ GTEST_TEST(detray_geometry, toy_geometry_scan) {
 
     // Build the geometry (modeled as a unified index geometry)
     vecmem::host_memory_resource host_mr;
-    auto toy_det = create_toy_geometry(host_mr);
+    auto [toy_det, names] = create_toy_geometry(host_mr);
     using nav_link_t =
         typename decltype(toy_det)::surface_type::navigation_link;
     constexpr auto leaving_world{detail::invalid_value<nav_link_t>()};

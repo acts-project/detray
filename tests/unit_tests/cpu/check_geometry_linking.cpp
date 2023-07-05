@@ -11,7 +11,7 @@
 
 #include "detray/geometry/volume_graph.hpp"
 #include "tests/common/tools/hash_tree.hpp"
-//#include "tests/common/tools/read_geometry.hpp"
+// #include "tests/common/tools/read_geometry.hpp"
 #include "detray/detectors/create_toy_geometry.hpp"
 #include "detray/test/types.hpp"
 
@@ -29,7 +29,8 @@ GTEST_TEST(detray_geometry, check_geometry_linking) {
     constexpr std::size_t n_brl_layers{4};
     constexpr std::size_t n_edc_layers{3};
     vecmem::host_memory_resource host_mr;
-    auto det = create_toy_geometry(host_mr, n_brl_layers, n_edc_layers);
+    auto [det, names] =
+        create_toy_geometry(host_mr, n_brl_layers, n_edc_layers);
 
     // Build the graph
     volume_graph graph(det);

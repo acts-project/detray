@@ -41,9 +41,6 @@ int main(int argc, char** argv) {
     // Toy detector
     //
 
-    // Toy detector type
-    using toy_detector_t = detray::detector<detray::toy_metadata<>>;
-
     // Number of barrel layers (0 - 4)
     unsigned int n_brl_layers{4u};
     // Number of endcap layers on either side (0 - 7)
@@ -58,7 +55,7 @@ int main(int argc, char** argv) {
     }
 
     // Fill the detector
-    const toy_detector_t toy_det =
+    const auto [toy_det, names] =
         detray::create_toy_geometry(host_mr, n_brl_layers, n_edc_layers);
 
     // Print the volume graph of the toy detector

@@ -29,7 +29,7 @@ TEST(detector_cuda, detector) {
     vecmem::cuda::managed_memory_resource mng_mr;
 
     // create toy geometry
-    detector_host_t toy_det = create_toy_geometry<host_container_types>(mng_mr);
+    auto [toy_det, names] = create_toy_geometry<host_container_types>(mng_mr);
 
     auto ctx0 = typename detector_host_t::geometry_context();
 

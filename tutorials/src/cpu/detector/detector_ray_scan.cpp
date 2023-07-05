@@ -39,7 +39,7 @@ int main() {
 
     // Build the geometry
     vecmem::host_memory_resource host_mr;
-    auto det = detray::create_toy_geometry(host_mr);
+    const auto [det, names] = detray::create_toy_geometry(host_mr);
 
     // The invalid link value for the toy detector
     using nav_link_t = typename decltype(det)::surface_type::navigation_link;

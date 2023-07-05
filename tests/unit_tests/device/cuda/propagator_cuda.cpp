@@ -30,7 +30,7 @@ TEST_P(CudaPropagatorWithRkStepper, propagator) {
     const vector3 B = GetParam();
 
     // Create the toy geometry
-    detector_host_type det = create_toy_geometry<host_container_types>(
+    auto [det, names] = create_toy_geometry<host_container_types>(
         mng_mr,
         field_type(field_type::backend_t::configuration_t{B[0], B[1], B[2]}),
         n_brl_layers, n_edc_layers);

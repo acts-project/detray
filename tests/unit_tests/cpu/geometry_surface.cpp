@@ -92,7 +92,7 @@ GTEST_TEST(detray_geometry, surface) {
     using vector3_t = surface<detector_t>::vector3;
 
     vecmem::host_memory_resource host_mr;
-    const detector_t toy_det = create_toy_geometry(host_mr);
+    const auto [toy_det, names] = create_toy_geometry(host_mr);
 
     auto ctx = typename detector_t::geometry_context{};
 

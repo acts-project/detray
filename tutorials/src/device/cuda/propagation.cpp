@@ -30,7 +30,7 @@ int main() {
                                   2. * detray::unit<detray::scalar>::T};
 
     // Create the toy geometry
-    detray::tutorial::detector_host_t det =
+    auto [det, names] =
         detray::create_toy_geometry<detray::host_container_types>(
             mng_mr, detray::tutorial::field_t(
                         detray::tutorial::field_t::backend_t::configuration_t{

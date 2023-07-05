@@ -24,7 +24,8 @@ GTEST_TEST(detray_geometry, volume_graph) {
     unsigned int n_brl_layers{4u};
     unsigned int n_edc_layers{1u};
 
-    auto det = create_toy_geometry(host_mr, n_brl_layers, n_edc_layers);
+    auto [det, names] =
+        create_toy_geometry(host_mr, n_brl_layers, n_edc_layers);
     using detector_t = decltype(det);
 
     /// Prints linking information for every node when visited

@@ -33,7 +33,7 @@ TEST(io, json_toy_geometry) {
 
     // Toy detector
     vecmem::host_memory_resource host_mr;
-    detector_t toy_det = create_toy_geometry(host_mr);
+    auto [toy_det, names] = create_toy_geometry(host_mr);
 
     // Write the detector
     json_geometry_writer<detector_t> geo_writer;

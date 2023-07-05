@@ -20,7 +20,7 @@ int main() {
 
     // First, create an example detector in in host memory to be written to disk
     vecmem::host_memory_resource host_mr;
-    auto det = detray::create_toy_geometry(host_mr);
+    const auto [det, names] = detray::create_toy_geometry(host_mr);
 
     // Configuration for the writer:
     //     - use json format
@@ -31,5 +31,5 @@ int main() {
 
     // Takes the detector 'det', a volume name map (only entry here the
     // detector name) and the writer config
-    detray::io::write_detector(det, {{0u, "toy_detector"}}, writer_cfg);
+    detray::io::write_detector(det, names, writer_cfg);
 }
