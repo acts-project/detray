@@ -127,7 +127,7 @@ struct detector_homogeneous_material_payload {
 /// Payloads for a uniform grid
 /// @{
 
-/// @brief a payload for the simple material file header
+/// @brief a payload for the simple grid file header
 struct grid_header_payload {
     std::string version, detector, tag, date;
     std::size_t n_grids;
@@ -144,7 +144,7 @@ struct axis_payload {
     std::size_t bins = 0u;
 };
 
-/// @brief A payload for a grid entry
+/// @brief A payload for a grid bin entry
 struct grid_entry_payload {
     std::size_t entry = std::numeric_limits<std::size_t>::max();
 };
@@ -177,14 +177,14 @@ struct links_payload {
     std::optional<grid_objects_payload> grid_links;
 };
 
-/// @brief A payload for a simple detector material description
+/// @brief A payload for the grid collections of a detector
 struct detector_grids_payload {
     std::vector<grid_payload> grids = {};
 };
 
 /// @}
 
-/// @brief A payload for a detector
+/// @brief A payload for a detector geometry
 struct detector_payload {
     std::vector<volume_payload> volumes = {};
     grid_objects_payload volume_grid;

@@ -135,11 +135,11 @@ TEST(io, json_grid_payload) {
 }
 
 /// This tests the json io for a surface search grid
-/*TEST(io, grid_objects_payload) {
+TEST(io, grid_objects_payload) {
     detray::grid_objects_payload go;
 
-    std::vector<std::vector<unsigned int>> bins = {
-        {0u, 1u}, {0u, 2u}, {1u, 1u}, {1u, 2u}, {2u, 1u}, {2u, 2u}};
+    std::vector<detray::grid_bin_payload> bins = {
+        {{0u, 1u}, {0u, 2u}}, {{1u, 1u}, {1u, 2u}}, {{2u, 1u}, {2u, 2u}}};
 
     detray::axis_payload a0{
         detray::n_axis::binning::e_regular, detray::n_axis::bounds::e_circular,
@@ -153,8 +153,10 @@ TEST(io, json_grid_payload) {
         detray::n_axis::label::e_r, std::vector<detray::real_io>{0.f, 2.f}, 2u};
 
     detray::grid_payload g;
+    g.type = detray::grid_payload::grid_type::disc_grid;
+    g.index = 12u;
     g.axes = {a0, a1};
-    //g.bins = bins;
+    g.bins = bins;
 
     go.grid = g;
 
@@ -163,7 +165,7 @@ TEST(io, json_grid_payload) {
     detray::grid_objects_payload pgo = j["links"];
 
     EXPECT_EQ(go.grid.axes.size(), pgo.grid.axes.size());
-    EXPECT_EQ(go.grid.bins, pgo.grid.bins);
+    EXPECT_EQ(go.grid.bins.size(), pgo.grid.bins.size());
 
     detray::transform_payload p;
     p.tr = {100.f, 200.f, 300.f};
@@ -178,7 +180,7 @@ TEST(io, json_grid_payload) {
     detray::grid_objects_payload pgot = j["links_t"];
 
     EXPECT_EQ(got.grid.axes.size(), pgot.grid.axes.size());
-    EXPECT_EQ(got.grid.bins, pgot.grid.bins);
+    EXPECT_EQ(got.grid.bins.size(), pgot.grid.bins.size());
     EXPECT_EQ(got.transform.value().tr, pgot.transform.value().tr);
     EXPECT_EQ(got.transform.value().rot, pgot.transform.value().rot);
 }
@@ -186,8 +188,8 @@ TEST(io, json_grid_payload) {
 /// This tests the json io for a surface search grid, including links
 TEST(io, json_links_payload) {
 
-    std::vector<std::vector<unsigned int>> bins = {
-        {0u, 1u}, {0u, 2u}, {1u, 1u}, {1u, 2u}, {2u, 1u}, {2u, 2u}};
+    std::vector<detray::grid_bin_payload> bins = {
+        {{0u, 1u}, {0u, 2u}}, {{1u, 1u}, {1u, 2u}}, {{2u, 1u}, {2u, 2u}}};
 
     detray::axis_payload a0{
         detray::n_axis::binning::e_regular, detray::n_axis::bounds::e_circular,
@@ -201,8 +203,10 @@ TEST(io, json_links_payload) {
         detray::n_axis::label::e_r, std::vector<detray::real_io>{0.f, 2.f}, 2u};
 
     detray::grid_payload g;
+    g.type = detray::grid_payload::grid_type::disc_grid;
+    g.index = 12u;
     g.axes = {a0, a1};
-    //g.bins = bins;
+    g.bins = bins;
 
     detray::grid_objects_payload go;
     go.grid = g;
@@ -222,9 +226,9 @@ TEST(io, json_links_payload) {
     EXPECT_EQ(l.single_links.size(), pl.single_links.size());
     EXPECT_EQ(l.grid_links.value().grid.axes.size(),
               pl.grid_links.value().grid.axes.size());
-    EXPECT_EQ(l.grid_links.value().grid.bins,
-              pl.grid_links.value().grid.bins);
-}*/
+    EXPECT_EQ(l.grid_links.value().grid.bins.size(),
+              pl.grid_links.value().grid.bins.size());
+}
 
 /// This tests the json io for a surface mask
 TEST(io, json_mask_payload) {
