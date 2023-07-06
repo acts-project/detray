@@ -15,6 +15,7 @@
 // System include(s)
 #include <array>
 #include <cstdint>
+#include <limits>
 #include <optional>
 #include <string>
 #include <vector>
@@ -126,6 +127,12 @@ struct detector_homogeneous_material_payload {
 /// Payloads for a uniform grid
 /// @{
 
+/// @brief a payload for the simple material file header
+struct grid_header_payload {
+    std::string version, detector, tag, date;
+    std::size_t n_grids;
+};
+
 /// @brief axis definition and bin edges
 struct axis_payload {
     /// axis lookup type
@@ -137,10 +144,25 @@ struct axis_payload {
     std::size_t bins = 0u;
 };
 
+/// @brief A payload for a grid entry
+struct grid_entry_payload {
+    std::size_t entry = std::numeric_limits<std::size_t>::max();
+};
+
+/// @brief A payload for a grid bin
+struct grid_bin_payload {
+    std::vector<unsigned int> loc_index = {};
+    std::vector<std::size_t> content = {};
+};
+
 /// @brief A payload for a grid definition
 struct grid_payload {
+    using grid_type = io::detail::acc_type;
+    grid_type type = grid_type::unknown;
+    std::size_t index;
+
     std::vector<axis_payload> axes = {};
-    std::vector<std::vector<unsigned int>> entries = {};
+    std::vector<grid_bin_payload> bins = {};
 };
 
 /// @brief A payload for objects within a grid
@@ -157,7 +179,7 @@ struct links_payload {
 
 /// @brief A payload for a simple detector material description
 struct detector_grids_payload {
-    std::vector<links_payload> grids = {};
+    std::vector<grid_payload> grids = {};
 };
 
 /// @}

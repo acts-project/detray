@@ -365,7 +365,20 @@ class grid {
         return 20u;
     }
 
+    /// @returns an instance of the grid serializer
     static constexpr auto serializer() -> serializer_t<Dim> { return {}; }
+
+    /// @returns a local multi-bin index from a global bin index @param gid
+    constexpr auto serialize(const std::size_t gid) const
+        -> n_axis::multi_bin<Dim> {
+        return serializer()(axes(), gid);
+    }
+
+    /// @returns a global bin index from a local bin index @param mbin
+    constexpr auto serialize(const n_axis::multi_bin<Dim> &mbin) const
+        -> dindex {
+        return serializer()(axes(), mbin);
+    }
 
     /// @returns view of a grid, including the grids mulit_axis. Also valid if
     /// the value type of the grid is cv qualified (then value_t propagates

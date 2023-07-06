@@ -10,6 +10,7 @@
 // Project include(s)
 #include "detray/io/common/detail/file_handle.hpp"
 #include "detray/io/common/geometry_writer.hpp"
+#include "detray/io/common/grid_writer.hpp"
 #include "detray/io/common/homogeneous_material_writer.hpp"
 #include "detray/io/json/json.hpp"
 #include "detray/io/json/json_serializers.hpp"
@@ -75,5 +76,9 @@ using json_geometry_writer = json_writer<detector_t, geometry_writer>;
 template <typename detector_t>
 using json_homogeneous_material_writer =
     json_writer<detector_t, homogeneous_material_writer>;
+
+/// Write the detector grid collections to file in json format
+template <typename detector_t>
+using json_grid_writer = json_writer<detector_t, grid_writer>;
 
 }  // namespace detray
