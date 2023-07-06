@@ -53,9 +53,14 @@ enum class material_type : unsigned int {
 
 /// Enumerate the different acceleration data structures
 enum class acc_type : unsigned int {
-    cyl_grid = 0u,
-    disc_grid = 1u,
-    unknown = 2u,
+    brute_force = 0u,      // try all
+    cartesian2_grid = 1u,  // rectangle, trapezoid, (triangle) grids
+    cuboid3_grid = 2u,     // cuboid grid
+    polar2_grid = 3u,      // ring/disc, annulus grids
+    cylinder2_grid = 4u,   // 2D cylinder grid
+    cylinder3_grid = 5u,   // 3D cylinder grid
+    n_accel = 6u,
+    unknown = n_accel
 };
 
 }  // namespace io::detail

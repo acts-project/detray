@@ -117,7 +117,7 @@ TEST(io, json_grid_payload) {
         detray::n_axis::label::e_r, 2u, std::vector<detray::real_io>{0.f, 2.f}};
 
     detray::grid_payload g;
-    g.type = detray::grid_payload::grid_type::disc_grid;
+    g.type = detray::grid_payload::grid_type::polar2_grid;
     g.index = 12u;
     g.axes = {a0, a1};
     g.bins = bins;
@@ -151,7 +151,7 @@ TEST(io, grid_objects_payload) {
         detray::n_axis::label::e_r, 2u, std::vector<detray::real_io>{0.f, 2.f}};
 
     detray::grid_payload g;
-    g.type = detray::grid_payload::grid_type::disc_grid;
+    g.type = detray::grid_payload::grid_type::polar2_grid;
     g.index = 12u;
     g.axes = {a0, a1};
     g.bins = bins;
@@ -200,7 +200,7 @@ TEST(io, json_links_payload) {
         detray::n_axis::label::e_r, 2u, std::vector<detray::real_io>{0.f, 2.f}};
 
     detray::grid_payload g;
-    g.type = detray::grid_payload::grid_type::disc_grid;
+    g.type = detray::grid_payload::grid_type::polar2_grid;
     g.index = 12u;
     g.axes = {a0, a1};
     g.bins = bins;
@@ -311,7 +311,7 @@ TEST(io, json_surface_payload) {
 TEST(io, acc_links_payload) {
 
     detray::acc_links_payload l;
-    l.type = detray::acc_links_payload::acc_type::cyl_grid;
+    l.type = detray::acc_links_payload::acc_type::cylinder2_grid;
     l.index = 2u;
 
     nlohmann::ordered_json j;
@@ -335,7 +335,7 @@ TEST(io, json_volume_payload) {
     sl.link = 1u;
 
     detray::acc_links_payload al;
-    al.type = detray::acc_links_payload::acc_type::cyl_grid;
+    al.type = detray::acc_links_payload::acc_type::cylinder2_grid;
     al.index = 2u;
 
     detray::surface_payload s;

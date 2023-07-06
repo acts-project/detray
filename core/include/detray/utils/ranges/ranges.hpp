@@ -257,7 +257,8 @@ class view_interface : public base_view {
     template <typename R = view_impl_t,
               std::enable_if_t<detray::ranges::forward_range_v<R>, bool> = true>
     DETRAY_HOST_DEVICE constexpr auto size() const {
-        return detray::ranges::distance(_impl_ptr->begin(), _impl_ptr->end());
+        return static_cast<dindex>(
+            detray::ranges::distance(_impl_ptr->begin(), _impl_ptr->end()));
     }
 
     /// @note requires forward range

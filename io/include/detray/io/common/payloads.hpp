@@ -143,12 +143,6 @@ struct axis_payload {
     std::vector<real_io> edges = {};
 };
 
-/// @brief A payload for a grid bin entry
-template <typename grid_entry_payload_t>
-struct grid_entry_payload {
-    grid_entry_payload_t entry{};
-};
-
 /// @brief A payload for a grid bin
 struct grid_bin_payload {
     std::vector<unsigned int> loc_index = {};

@@ -8,6 +8,7 @@
 #pragma once
 
 // Project include(s)
+#include "detray/coordinates/coordinates.hpp"
 #include "detray/definitions/indexing.hpp"
 #include "detray/io/common/detail/utils.hpp"
 #include "detray/io/common/io_interface.hpp"
@@ -84,34 +85,6 @@ class grid_writer : public writer_interface<detector_t> {
         return grids_data;
     }
 
-    /// Serialize a link @param idx into its io payload
-    static single_link_payload serialize(const std::size_t idx) {
-        single_link_payload link_data;
-        link_data.link = idx;
-
-        return link_data;
-    }
-
-    /// Serialize a multi-bin @param mbin into its io payload
-    template <std::size_t DIM, typename content_range_t>
-    static grid_bin_payload serialize(const n_axis::multi_bin<DIM> mbin,
-                                      const content_range_t& content) {
-        grid_bin_payload bin_data;
-
-        // Local bin indices are written in the order the grid axis are stored
-        for (unsigned int i = 0u; i < DIM; ++i) {
-            bin_data.loc_index.push_back(mbin[i]);
-        }
-
-        // Put all entries of the bin into the payload
-        bin_data.content.reserve(content.size());
-        for (const auto& entry : content) {
-            bin_data.content.push_back(entry.index());
-        }
-
-        return bin_data;
-    }
-
     /// Serialize a grid @param gr of type @param type and index @param idx
     /// into its io payload
     template <class grid_t>
@@ -175,6 +148,26 @@ class grid_writer : public writer_interface<detector_t> {
         return axis_data;
     }
 
+    /// Serialize a multi-bin @param mbin into its io payload
+    template <std::size_t DIM, typename content_range_t>
+    static grid_bin_payload serialize(const n_axis::multi_bin<DIM> mbin,
+                                      const content_range_t& content) {
+        grid_bin_payload bin_data;
+
+        // Local bin indices are written in the order the grid axis are stored
+        for (unsigned int i = 0u; i < DIM; ++i) {
+            bin_data.loc_index.push_back(mbin[i]);
+        }
+
+        // Put all entries of the bin into the payload
+        bin_data.content.reserve(content.size());
+        for (const auto& entry : content) {
+            bin_data.content.push_back(entry.index());
+        }
+
+        return bin_data;
+    }
+
     private:
     /// Retrieve @c grid_payload s from grid collection elements
     template <std::size_t I = 0>
@@ -192,12 +185,33 @@ class grid_writer : public writer_interface<detector_t> {
 
             for (unsigned int i = 0u; i < coll.size(); ++i) {
                 grids_data.grids.push_back(serialize(
-                    static_cast<io::detail::acc_type>(I), i, coll[i]));
+                    get_id(accelerator_t::local_frame()), i, coll[i]));
             }
         }
 
         if constexpr (I < store_t::n_collections() - 1u) {
             get_grid_payload<I + 1>(store, grids_data);
+        }
+    }
+
+    // Infer the grid id from its coordinate system
+    template <template <typename> class frame_t, typename algebra_t>
+    static constexpr io::detail::acc_type get_id(const frame_t<algebra_t>&) {
+        // Local coordinate frame
+        using frame = frame_t<algebra_t>;
+
+        if constexpr (std::is_same_v<frame, cartesian2<algebra_t>>) {
+            return io::detail::acc_type::cartesian2_grid;
+        } else if constexpr (std::is_same_v<frame, cartesian3<algebra_t>>) {
+            return io::detail::acc_type::cuboid3_grid;
+        } else if constexpr (std::is_same_v<frame, polar2<algebra_t>>) {
+            return io::detail::acc_type::polar2_grid;
+        } else if constexpr (std::is_same_v<frame, cylindrical2<algebra_t>>) {
+            return io::detail::acc_type::cylinder2_grid;
+        } else if constexpr (std::is_same_v<frame, cylindrical3<algebra_t>>) {
+            return io::detail::acc_type::cylinder3_grid;
+        } else {
+            return io::detail::acc_type::unknown;
         }
     }
 };
