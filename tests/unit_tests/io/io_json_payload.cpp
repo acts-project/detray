@@ -108,14 +108,13 @@ TEST(io, json_grid_payload) {
 
     detray::axis_payload a0{
         detray::n_axis::binning::e_regular, detray::n_axis::bounds::e_circular,
-        detray::n_axis::label::e_phi,
+        detray::n_axis::label::e_phi, 3u,
         std::vector<detray::real_io>{-detray::constant<detray::real_io>::pi,
-                                     detray::constant<detray::real_io>::pi},
-        3u};
+                                     detray::constant<detray::real_io>::pi}};
 
     detray::axis_payload a1{
         detray::n_axis::binning::e_regular, detray::n_axis::bounds::e_closed,
-        detray::n_axis::label::e_r, std::vector<detray::real_io>{0.f, 2.f}, 2u};
+        detray::n_axis::label::e_r, 2u, std::vector<detray::real_io>{0.f, 2.f}};
 
     detray::grid_payload g;
     g.type = detray::grid_payload::grid_type::disc_grid;
@@ -143,14 +142,13 @@ TEST(io, grid_objects_payload) {
 
     detray::axis_payload a0{
         detray::n_axis::binning::e_regular, detray::n_axis::bounds::e_circular,
-        detray::n_axis::label::e_phi,
+        detray::n_axis::label::e_phi, 3u,
         std::vector<detray::real_io>{-detray::constant<detray::real_io>::pi,
-                                     detray::constant<detray::real_io>::pi},
-        3u};
+                                     detray::constant<detray::real_io>::pi}};
 
     detray::axis_payload a1{
         detray::n_axis::binning::e_regular, detray::n_axis::bounds::e_closed,
-        detray::n_axis::label::e_r, std::vector<detray::real_io>{0.f, 2.f}, 2u};
+        detray::n_axis::label::e_r, 2u, std::vector<detray::real_io>{0.f, 2.f}};
 
     detray::grid_payload g;
     g.type = detray::grid_payload::grid_type::disc_grid;
@@ -193,14 +191,13 @@ TEST(io, json_links_payload) {
 
     detray::axis_payload a0{
         detray::n_axis::binning::e_regular, detray::n_axis::bounds::e_circular,
-        detray::n_axis::label::e_phi,
+        detray::n_axis::label::e_phi, 3u,
         std::vector<detray::real_io>{-detray::constant<detray::real_io>::pi,
-                                     detray::constant<detray::real_io>::pi},
-        3u};
+                                     detray::constant<detray::real_io>::pi}};
 
     detray::axis_payload a1{
         detray::n_axis::binning::e_regular, detray::n_axis::bounds::e_closed,
-        detray::n_axis::label::e_r, std::vector<detray::real_io>{0.f, 2.f}, 2u};
+        detray::n_axis::label::e_r, 2u, std::vector<detray::real_io>{0.f, 2.f}};
 
     detray::grid_payload g;
     g.type = detray::grid_payload::grid_type::disc_grid;

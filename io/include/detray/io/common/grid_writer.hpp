@@ -18,9 +18,25 @@
 #include <array>
 #include <string>
 #include <string_view>
+#include <type_traits>
 #include <vector>
 
 namespace detray {
+
+namespace detail {
+
+template <class grid_t>
+struct is_grid : public std::false_type {};
+
+template <typename multi_axis_t, typename value_t,
+          template <std::size_t> class serializer_t, typename populator_impl_t>
+struct is_grid<grid<multi_axis_t, value_t, serializer_t, populator_impl_t>>
+    : public std::true_type {};
+
+template <typename T>
+inline constexpr bool is_grid_v = is_grid<T>::value;
+
+}  // namespace detail
 
 /// @brief Abstract base class for accelerator grid writers
 template <class detector_t>
@@ -47,7 +63,11 @@ class grid_writer : public writer_interface<detector_t> {
         header_data.tag = tag;
         header_data.date = detail::get_current_date();
 
-        header_data.n_grids = det.volumes().size();
+        const auto& accel_store = det.surface_store();
+        header_data.n_grids =
+            accel_store.total_size() -
+            accel_store
+                .template size<detector_t::sf_finders::id::e_brute_force>();
 
         return header_data;
     }
@@ -56,28 +76,10 @@ class grid_writer : public writer_interface<detector_t> {
     /// payload
     static detector_grids_payload serialize(const detector_t& det) {
 
-        using sf_finders = typename detector_t::sf_finders::id;
-
         detector_grids_payload grids_data;
 
-        // The surface store does not only contain grids (can be anything)
-        const auto& accel_store = det.surface_store();
-        const auto& disc_grids =
-            accel_store.template get<sf_finders::e_disc_grid>();
-
-        // Go through all potentially known grids types
-        for (unsigned int i = 0u; i < disc_grids.size(); ++i) {
-            grids_data.grids.push_back(
-                serialize(io::detail::acc_type::disc_grid, i, disc_grids[i]));
-        }
-
-        const auto& cyl_grids =
-            accel_store.template get<sf_finders::e_cylinder2_grid>();
-
-        for (unsigned int i = 0u; i < cyl_grids.size(); ++i) {
-            grids_data.grids.push_back(
-                serialize(io::detail::acc_type::cyl_grid, i, cyl_grids[i]));
-        }
+        // Access the acceleration data structures recursively
+        get_grid_payload(det.surface_store(), grids_data);
 
         return grids_data;
     }
@@ -144,7 +146,7 @@ class grid_writer : public writer_interface<detector_t> {
         const n_axis::multi_axis<ownership, local_frame_t, axis_ts...>& axes) {
 
         // Serialize every single axis and construct array from their payloads
-        std::array<axis_payload, axes.Dim> axes_data{
+        std::array<axis_payload, sizeof...(axis_ts)> axes_data{
             serialize(axes.template get_axis<axis_ts>())...};
 
         return axes_data;
@@ -174,14 +176,30 @@ class grid_writer : public writer_interface<detector_t> {
     }
 
     private:
-    /// Retrieve @c mask_payload from mask_store element
-    /*struct get_grid_payload {
-        template <typename grid_coll_t, typename index_t>
-        inline auto operator()(const grid_coll_t& grid_coll,
-                               const index_t& index) const {
-            return grid_writer<detector_t>::serialize(grid_coll[index]);
+    /// Retrieve @c grid_payload s from grid collection elements
+    template <std::size_t I = 0>
+    static void get_grid_payload(
+        const typename detector_t::surface_container& store,
+        detector_grids_payload& grids_data) {
+
+        using store_t = typename detector_t::surface_container;
+        constexpr auto coll_id{store_t::value_types::to_id(I)};
+        using accelerator_t = typename store_t::template get_type<coll_id>;
+
+        if constexpr (detail::is_grid_v<accelerator_t>) {
+
+            const auto& coll = store.template get<coll_id>();
+
+            for (unsigned int i = 0u; i < coll.size(); ++i) {
+                grids_data.grids.push_back(serialize(
+                    static_cast<io::detail::acc_type>(I), i, coll[i]));
+            }
         }
-    };*/
+
+        if constexpr (I < store_t::n_collections() - 1u) {
+            get_grid_payload<I + 1>(store, grids_data);
+        }
+    }
 };
 
 }  // namespace detray

@@ -41,16 +41,16 @@ void to_json(nlohmann::ordered_json& j, const axis_payload& a) {
     j["label"] = static_cast<unsigned int>(a.label);
     j["bounds"] = static_cast<unsigned int>(a.bounds);
     j["binning"] = static_cast<unsigned int>(a.binning);
-    j["edges"] = a.edges;
     j["bins"] = a.bins;
+    j["edges"] = a.edges;
 }
 
 void from_json(const nlohmann::ordered_json& j, axis_payload& a) {
     a.binning = static_cast<n_axis::binning>(j["binning"]);
     a.bounds = static_cast<n_axis::bounds>(j["bounds"]);
     a.label = static_cast<n_axis::label>(j["label"]);
-    a.edges = j["edges"].get<std::vector<real_io>>();
     a.bins = j["bins"];
+    a.edges = j["edges"].get<std::vector<real_io>>();
 }
 
 void to_json(nlohmann::ordered_json& j, const grid_bin_payload& g) {

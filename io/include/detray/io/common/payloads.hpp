@@ -15,7 +15,6 @@
 // System include(s)
 #include <array>
 #include <cstdint>
-#include <limits>
 #include <optional>
 #include <string>
 #include <vector>
@@ -140,13 +139,14 @@ struct axis_payload {
     n_axis::bounds bounds = n_axis::bounds::e_closed;
     n_axis::label label = n_axis::label::e_r;
 
-    std::vector<real_io> edges = {};
     std::size_t bins = 0u;
+    std::vector<real_io> edges = {};
 };
 
 /// @brief A payload for a grid bin entry
+template <typename grid_entry_payload_t>
 struct grid_entry_payload {
-    std::size_t entry = std::numeric_limits<std::size_t>::max();
+    grid_entry_payload_t entry{};
 };
 
 /// @brief A payload for a grid bin
