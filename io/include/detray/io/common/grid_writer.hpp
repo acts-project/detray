@@ -87,11 +87,7 @@ class grid_writer : public writer_interface<detector_t> {
         header_data.tag = tag;
         header_data.date = detail::get_current_date();
 
-        const auto& accel_store = det.surface_store();
-        header_data.n_grids =
-            accel_store.total_size() -
-            accel_store
-                .template size<detector_t::sf_finders::id::e_brute_force>();
+        header_data.n_grids = get_n_grids(det.surface_store());
 
         return header_data;
     }
@@ -192,8 +188,8 @@ class grid_writer : public writer_interface<detector_t> {
     }
 
     private:
-    /// Retrieve @c grid_payload s from grid collection elements
-    template <std::size_t I = 0>
+    /// Retrieve @c grid_payload (s) from grid collection elements
+    template <std::size_t I = 0u>
     static void get_grid_payload(
         const typename detector_t::surface_container& store,
         detector_grids_payload& grids_data) {
@@ -216,6 +212,26 @@ class grid_writer : public writer_interface<detector_t> {
         if constexpr (I < store_t::n_collections() - 1u) {
             get_grid_payload<I + 1>(store, grids_data);
         }
+    }
+
+    /// Retrieve number of overall grids in detector
+    template <std::size_t I = 0u>
+    static std::size_t get_n_grids(
+        const typename detector_t::surface_container& store,
+        std::size_t n = 0u) {
+
+        using store_t = typename detector_t::surface_container;
+        constexpr auto coll_id{store_t::value_types::to_id(I)};
+        using accelerator_t = typename store_t::template get_type<coll_id>;
+
+        if constexpr (detail::is_grid_v<accelerator_t>) {
+            n += store.template size<coll_id>();
+        }
+
+        if constexpr (I < store_t::n_collections() - 1u) {
+            return get_n_grids<I + 1>(store, n);
+        }
+        return n;
     }
 };
 
