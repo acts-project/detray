@@ -10,12 +10,14 @@
 // Project include(s)
 #include "detray/coordinates/coordinates.hpp"
 #include "detray/definitions/indexing.hpp"
+#include "detray/io/common/detail/definitions.hpp"
 #include "detray/io/common/detail/utils.hpp"
 #include "detray/io/common/io_interface.hpp"
 #include "detray/io/common/payloads.hpp"
 #include "detray/surface_finders/accelerator_grid.hpp"
 
 // System include(s)
+#include <algorithm>
 #include <array>
 #include <string>
 #include <string_view>
@@ -36,6 +38,27 @@ struct is_grid<grid<multi_axis_t, value_t, serializer_t, populator_impl_t>>
 
 template <typename T>
 inline constexpr bool is_grid_v = is_grid<T>::value;
+
+/// Infer the grid id from its coordinate system
+template <template <typename> class frame_t, typename algebra_t>
+static constexpr io::detail::acc_type get_grid_id(const frame_t<algebra_t>&) {
+    // Local coordinate frame
+    using frame = frame_t<algebra_t>;
+
+    if constexpr (std::is_same_v<frame, cartesian2<algebra_t>>) {
+        return io::detail::acc_type::cartesian2_grid;
+    } else if constexpr (std::is_same_v<frame, cartesian3<algebra_t>>) {
+        return io::detail::acc_type::cuboid3_grid;
+    } else if constexpr (std::is_same_v<frame, polar2<algebra_t>>) {
+        return io::detail::acc_type::polar2_grid;
+    } else if constexpr (std::is_same_v<frame, cylindrical2<algebra_t>>) {
+        return io::detail::acc_type::cylinder2_grid;
+    } else if constexpr (std::is_same_v<frame, cylindrical3<algebra_t>>) {
+        return io::detail::acc_type::cylinder3_grid;
+    }
+
+    return io::detail::acc_type::unknown;
+}
 
 }  // namespace detail
 
@@ -184,34 +207,14 @@ class grid_writer : public writer_interface<detector_t> {
             const auto& coll = store.template get<coll_id>();
 
             for (unsigned int i = 0u; i < coll.size(); ++i) {
-                grids_data.grids.push_back(serialize(
-                    get_id(accelerator_t::local_frame()), i, coll[i]));
+                grids_data.grids.push_back(
+                    serialize(detail::get_grid_id(accelerator_t::local_frame()),
+                              i, coll[i]));
             }
         }
 
         if constexpr (I < store_t::n_collections() - 1u) {
             get_grid_payload<I + 1>(store, grids_data);
-        }
-    }
-
-    // Infer the grid id from its coordinate system
-    template <template <typename> class frame_t, typename algebra_t>
-    static constexpr io::detail::acc_type get_id(const frame_t<algebra_t>&) {
-        // Local coordinate frame
-        using frame = frame_t<algebra_t>;
-
-        if constexpr (std::is_same_v<frame, cartesian2<algebra_t>>) {
-            return io::detail::acc_type::cartesian2_grid;
-        } else if constexpr (std::is_same_v<frame, cartesian3<algebra_t>>) {
-            return io::detail::acc_type::cuboid3_grid;
-        } else if constexpr (std::is_same_v<frame, polar2<algebra_t>>) {
-            return io::detail::acc_type::polar2_grid;
-        } else if constexpr (std::is_same_v<frame, cylindrical2<algebra_t>>) {
-            return io::detail::acc_type::cylinder2_grid;
-        } else if constexpr (std::is_same_v<frame, cylindrical3<algebra_t>>) {
-            return io::detail::acc_type::cylinder3_grid;
-        } else {
-            return io::detail::acc_type::unknown;
         }
     }
 };
