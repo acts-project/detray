@@ -41,7 +41,7 @@ int main(int argc, char* argv[]) {
     // The 13th surface in the detector should be a disc
     const auto disc_descr = det.surface_lookup()[13];
     const auto disc_surface = detray::surface{det, disc_descr};
-    auto proto_surface = disc_surface.visit_mask<to_proto_surface<>>();
+    auto proto_surface = disc_surface.visit_mask<surface_converter::to_proto_surface<>>();//surface_converter::convert(disc_surface);
 
     // Style proto surface.
     proto_surface._fill = style::fill({{0, 100, 0}, 0.5});

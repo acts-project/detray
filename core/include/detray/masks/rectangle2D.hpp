@@ -127,25 +127,20 @@ class rectangle2D {
 
     /// @brief Calculates the coordinates of the vertices.
     ///
-    /// @note an exception is raised if the shape is not a polygon.
-    ///
     /// @param bounds the boundary values for this shape
-    /// @param loc_p the point to be checked in the local coordinate system
-    /// @param tol dynamic tolerance determined by caller
     ///
     /// @returns an array of vertices in clockwise order.
     template <template <typename, std::size_t> class bounds_t,
               typename scalar_t,
               std::size_t kDIM,
-              typename point2_t = std::array<scalar_t, 2>,
+              typename point_t = std::array<scalar_t, 3>,
               typename std::enable_if_t<kDIM == e_size, bool> = true>
-    DETRAY_HOST_DEVICE inline std::vector<point2_t> local_vertices(
-        const bounds_t<scalar_t, kDIM>& bounds
-        ) const {
-        point2_t v1 = {bounds[e_half_x], bounds[e_half_y]};
-        point2_t v2 = {-bounds[e_half_x], bounds[e_half_y]};
-        point2_t v3 = {-bounds[e_half_x], -bounds[e_half_y]};
-        point2_t v4 = {bounds[e_half_x], -bounds[e_half_y]};
+    DETRAY_HOST_DEVICE inline std::vector<point_t> local_vertices(
+        const bounds_t<scalar_t, kDIM>& bounds) const {
+        point_t v1 = {bounds[e_half_x], bounds[e_half_y], 0};
+        point_t v2 = {bounds[e_half_x], -bounds[e_half_y], 0};
+        point_t v3 = {-bounds[e_half_x], -bounds[e_half_y], 0};
+        point_t v4 = {-bounds[e_half_x], bounds[e_half_y], 0};
         return { v1, v2, v3, v4 };
     }
 };

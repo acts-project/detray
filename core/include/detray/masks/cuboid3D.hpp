@@ -128,6 +128,29 @@ class cuboid3D {
         }
         return o_bounds;
     }
+
+    /// @brief Calculates the coordinates of the vertices.
+    ///
+    /// @param bounds the boundary values for this shape
+    ///
+    /// @returns an array of vertices.
+    template <template <typename, std::size_t> class bounds_t,
+              typename scalar_t,
+              std::size_t kDIM,
+              typename point_t = std::array<scalar_t, 3>,
+              typename std::enable_if_t<kDIM == e_size, bool> = true>
+    DETRAY_HOST_DEVICE inline std::vector<point_t> local_vertices(
+        const bounds_t<scalar_t, kDIM>& bounds) const {
+        point_t v1 = {bounds[e_min_x], bounds[e_min_y], bounds[e_min_z]};
+        point_t v2 = {bounds[e_min_x], bounds[e_min_y], bounds[e_max_z]};
+        point_t v3 = {bounds[e_min_x], bounds[e_max_y], bounds[e_min_z]};
+        point_t v4 = {bounds[e_min_x], bounds[e_max_y], bounds[e_max_z]};
+        point_t v5 = {bounds[e_max_x], bounds[e_min_y], bounds[e_min_z]};
+        point_t v6 = {bounds[e_max_x], bounds[e_min_y], bounds[e_max_z]};
+        point_t v7 = {bounds[e_max_x], bounds[e_max_y], bounds[e_min_z]};
+        point_t v8 = {bounds[e_max_x], bounds[e_max_y], bounds[e_max_z]};
+        return { v1, v2, v4, v3, v7, v8, v6, v5};
+    }
 };
 
 }  // namespace detray
