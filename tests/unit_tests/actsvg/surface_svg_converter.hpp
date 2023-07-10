@@ -13,27 +13,27 @@ namespace surface_converter{
     using point3_container = std::vector<point3>;
     using proto_surface = proto::surface<point3_container>;
 
-    template <typename transform_t>
-    inline auto convert_transform(transform_t d_transform){
-        auto translation = d_transform.translation();
-        auto euler_angles = rotation_matrix_to_euler_angles(d_transform.rotation);
-        //TODO: skew and scale
-
-        auto ret = actsvg::style::transform();
-        ret._tr = {translation[0], translation[1]};
-        ret._rot = {euler_angles[0], euler_angles[2], euler_angles[3]};
-
-        return ret;
-    }
-
-    template <typename point3_t, typename matrix_t>
-    inline point3_t rotation_matrix_to_euler_angles(matrix_t mat){
+    template <typename matrix_t>
+    inline std::array<detray::scalar, 3> rotation_matrix_to_euler_angles(matrix_t mat){
         float a = sqrt(mat[0][0] * mat[0][0] + mat[1][0] * mat[1][0]);
-        // Checking if is singular.
+        // Checking if it is singular.
         if (a < 1e-6)
             return {atan2(-mat[1][2], mat[1][1]), atan2(-mat[2][0], a), 0};
 
         return {atan2(mat[2][1], mat[2][2]), atan2(-mat[2][0], a), atan2(mat[1][0], mat[0][0])};
+    }
+
+    template <typename transform_t>
+    inline auto convert_transform(transform_t d_transform){
+        auto translation = d_transform.translation();
+        auto euler_angles = rotation_matrix_to_euler_angles<>(d_transform.rotation());
+        //TODO: skew and scale
+
+        auto ret = actsvg::style::transform();
+        ret._tr = {static_cast<scalar>(translation[0]), static_cast<scalar>(translation[1])};
+        ret._rot = {static_cast<scalar>(euler_angles[0]), static_cast<scalar>(euler_angles[2]), static_cast<scalar>(euler_angles[3])};
+
+        return ret;
     }
 
     template <class mask_t>
@@ -54,7 +54,7 @@ namespace surface_converter{
             auto ri = static_cast<scalar>(m[shape.e_min_r]);
             auto ro = static_cast<scalar>(m[shape.e_max_r]);
 
-            p_surface._type = proto_surface::type::e_annulus;
+            //p_surface._type = proto_surface::type::e_annulus;
             p_surface._radii = {ri, ro};
         }
 
@@ -89,7 +89,7 @@ namespace surface_converter{
         }
 
         // Set vertices.
-        auto detray_vertices = shape.template local_vertices<>(m.values());            
+        auto detray_vertices = m.local_vertices();            
         point3_container actsvg_vertices;
         for (auto dv : detray_vertices)
         {
@@ -114,10 +114,10 @@ namespace surface_converter{
     };
     
     template <typename surface_t, typename context_t>
-    proto_surface convert_surface(surface_t d_surface, context_t context)
+    proto_surface convert_surface(const surface_t d_surface, const context_t context)
     {
-        auto p_surface = d_surface.template visit_mask<to_proto_surface>();
-        p_surface._transform = convert_transform(p_surface.transform(context));
+        auto p_surface = d_surface.template visit_mask<to_proto_surface<>>();
+        p_surface._transform = convert_transform(d_surface.transform(context));
         return p_surface;
     }
 }

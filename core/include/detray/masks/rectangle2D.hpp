@@ -143,6 +143,7 @@ class rectangle2D {
         point_t v4 = {-bounds[e_half_x], bounds[e_half_y], 0};
         return { v1, v2, v3, v4 };
     }
+    
 };
 
 }  // namespace detray

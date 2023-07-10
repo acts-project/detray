@@ -219,6 +219,19 @@ class mask {
         return {bounds, std::numeric_limits<unsigned int>::max()};
     }
 
+    /// @brief Calculates the coordinates of the vertices.
+    ///
+    /// @param bounds the boundary values for this shape.
+    ///
+    /// @returns an array of vertices in clockwise order. 
+    /// If the shape contains no vertices and empty array 
+    /// will be returned.
+    DETRAY_HOST_DEVICE 
+    auto local_vertices() const {
+        const auto vertices = _shape.template local_vertices<>(_values);
+        return vertices;
+    }
+
     /// @returns a string representation of the mask
     DETRAY_HOST
     auto to_string() const -> std::string {

@@ -14,6 +14,7 @@
 #include <array>
 #include <limits>
 #include <string>
+#include <vector>
 
 namespace detray {
 
@@ -80,6 +81,23 @@ class unbounded {
         const bounds_t<scalar_t, kDIM>& bounds,
         const scalar_t env = std::numeric_limits<scalar_t>::epsilon()) const {
         return shape{}.template local_min_bounds<algebra_t>(bounds, env);
+    }
+
+    /// @brief Calculates the coordinates of the vertices.
+    ///
+    /// @param bounds the boundary values for this shape.
+    ///
+    /// @returns an array of vertices in clockwise order. 
+    /// If the shape contains no vertices an empty array 
+    /// will be returned.
+    template <template <typename, std::size_t> class bounds_t,
+              typename scalar_t,
+              std::size_t kDIM,
+              typename point_t = std::array<scalar_t, 3>,
+              typename std::enable_if_t<kDIM == boundaries::e_size, bool> = true>
+    DETRAY_HOST_DEVICE inline std::vector<point_t> local_vertices(
+        const bounds_t<scalar_t, kDIM>& bounds) const {
+        return { };
     }
 };
 
