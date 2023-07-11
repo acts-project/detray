@@ -92,6 +92,19 @@ class detector_volume {
         return transform().translation();
     }
 
+    /// @returns all portals of the volume - const
+    /// @note Depending on the detector type, this can also contain other
+    /// surfaces
+    DETRAY_HOST_DEVICE auto portals() const {
+        // In case of portals, we know where they live
+        constexpr auto brute_force{detector_t::sf_finders::id::e_brute_force};
+        const auto &bf_finder =
+            m_detector.surface_store().template get<brute_force>();
+
+        constexpr auto portal_id{descr_t::object_id::e_portal};
+        return bf_finder[m_desc.template link<portal_id>().index()];
+    }
+
     /// Apply a functor to all surfaces in the volume.
     ///
     /// @tparam functor_t the prescription to be applied to the surfaces
