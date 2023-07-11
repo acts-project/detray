@@ -4,6 +4,7 @@
 #include "detray/geometry/surface.hpp"
 #include "actsvg/meta.hpp"
 #include "actsvg/proto/surface.hpp"
+#include "detray/definitions/units.hpp"
 
 using namespace actsvg;
 
@@ -30,8 +31,12 @@ namespace surface_converter{
         //TODO: skew and scale
 
         auto ret = actsvg::style::transform();
+        constexpr auto rad_to_deg = 180.0/3.14;
         ret._tr = {static_cast<scalar>(translation[0]), static_cast<scalar>(translation[1])};
-        ret._rot = {static_cast<scalar>(euler_angles[0]), static_cast<scalar>(euler_angles[2]), static_cast<scalar>(euler_angles[3])};
+        ret._rot = {
+            static_cast<scalar>(euler_angles[2] * rad_to_deg),
+            static_cast<scalar>(euler_angles[1] * rad_to_deg),
+            static_cast<scalar>(euler_angles[0] * rad_to_deg)};
 
         return ret;
     }

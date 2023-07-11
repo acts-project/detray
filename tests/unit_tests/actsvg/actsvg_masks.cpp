@@ -75,8 +75,8 @@ int main(int argc, char* argv[]) {
     detray::mask<detray::rectangle2D<>> rec2D{0u, 100.0, 100.0};
     auto p = surface_converter::convert_mask(rec2D);
     auto tf = actsvg::style::transform();
-    tf._rot = {90, 100., 0.8};
-    tf._tr = { 10, 20};
+    tf._rot = {35., 0., 0.};
+    tf._tr = {10, 20};
     p._transform = tf;
     write_svg(p, "test_plugins_actsvg_rectangle2D.svg");
 
