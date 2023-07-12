@@ -223,13 +223,11 @@ class mask {
     ///
     /// @param bounds the boundary values for this shape.
     ///
-    /// @returns an array of vertices in clockwise order. 
-    /// If the shape contains no vertices and empty array 
-    /// will be returned.
-    DETRAY_HOST_DEVICE 
+    /// @returns a vector of vertices. If the shape contains
+    /// no vertices an empty vector will be returned.
+    DETRAY_HOST
     auto local_vertices() const {
-        const auto vertices = _shape.template local_vertices<>(_values);
-        return vertices;
+        return _shape.template local_vertices<>(_values);
     }
 
     /// @returns a string representation of the mask

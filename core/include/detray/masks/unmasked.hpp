@@ -101,15 +101,14 @@ class unmasked {
     ///
     /// @param bounds the boundary values for this shape.
     ///
-    /// @returns an array of vertices in clockwise order. 
-    /// If the shape contains no vertices an empty array 
-    /// will be returned.
+    /// @returns a vector of vertices. If the shape contains
+    /// no vertices an empty vector will be returned.
     template <template <typename, std::size_t> class bounds_t,
               typename scalar_t,
               std::size_t kDIM,
               typename point_t = std::array<scalar_t, 3>,
               typename std::enable_if_t<kDIM == e_size, bool> = true>
-    DETRAY_HOST_DEVICE inline std::vector<point_t> local_vertices(
+    DETRAY_HOST inline std::vector<point_t> local_vertices(
         const bounds_t<scalar_t, kDIM>& bounds) const {
         return { };
     }
