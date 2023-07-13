@@ -10,6 +10,7 @@
 // Project include(s).
 #include "detray/definitions/qualifiers.hpp"
 #include "detray/definitions/track_parametrization.hpp"
+#include "detray/definitions/units.hpp"
 #include "detray/tracks/detail/track_helper.hpp"
 
 namespace detray {
@@ -158,7 +159,7 @@ struct free_track_parameters {
     vector_type m_vector = matrix_operator().template zero<e_free_size, 1>();
     covariance_type m_covariance =
         matrix_operator().template zero<e_free_size, e_free_size>();
-    scalar_type m_overstep_tolerance{-1e-4f};
+    scalar_type m_overstep_tolerance{-100 * unit<scalar_type>::um};
 };
 
 }  // namespace detray

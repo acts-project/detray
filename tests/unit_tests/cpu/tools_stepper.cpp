@@ -44,6 +44,7 @@ constexpr scalar tol{1e-3f};
 struct nav_state {
     scalar operator()() const { return _step_size; }
     inline auto current_object() const -> dindex { return dindex_invalid; }
+    inline auto tolerance() const -> scalar { return tol; }
 
     inline void set_full_trust() {}
     inline void set_high_trust() {}

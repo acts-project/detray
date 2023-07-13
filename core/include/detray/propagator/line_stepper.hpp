@@ -92,10 +92,11 @@ class line_stepper final
     /// @return returning the heartbeat, indicating if the stepping is alive
     template <typename propagation_state_t>
     DETRAY_HOST_DEVICE bool step(propagation_state_t& propagation) {
-        // Get stepper state
+        // Get stepper and navigator states
         state& stepping = propagation._stepping;
+        auto& navigation = propagation._navigation;
         // Distance to next surface as fixed step size
-        scalar step_size = propagation._navigation();
+        scalar step_size = navigation();
 
         // Update navigation direction
         const step::direction dir = step_size > 0 ? step::direction::e_forward
