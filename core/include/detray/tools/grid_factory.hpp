@@ -26,41 +26,6 @@
 
 namespace detray {
 
-namespace detail {
-
-/// @brief Helper type to assemble an multi-axis from bounds tuple and binnings
-template <bool is_owning, typename containers, typename local_frame, typename,
-          typename>
-struct multi_axis_assembler;
-
-/// @brief Specialized struct to extract axis bounds from a tuple
-template <bool is_owning, typename containers, typename local_frame,
-          typename... axis_bounds, typename... binning_ts>
-struct multi_axis_assembler<is_owning, containers, local_frame,
-                            dtuple<axis_bounds...>, dtuple<binning_ts...>> {
-
-    static_assert(sizeof...(axis_bounds) == sizeof...(binning_ts),
-                  "Number of axis bounds for this mask and given binning types "
-                  "don't match!");
-
-    using type =
-        n_axis::multi_axis<is_owning, local_frame,
-                           n_axis::single_axis<axis_bounds, binning_ts>...>;
-};
-
-}  // namespace detail
-
-/// Typedef for easier construction @c multi_axis from mask shapes
-template <typename shape_t, bool is_owning = true,
-          typename containers = host_container_types,
-          typename algebra_t = __plugin::transform3<detray::scalar>>
-using coordinate_axes = typename detail::multi_axis_assembler<
-    is_owning, containers,
-    typename shape_t::template coordinate_type<algebra_t>,
-    typename shape_t::axes::types,
-    typename shape_t::axes::template binning<
-        containers, typename algebra_t::scalar_type>>::type;
-
 /// @brief Provides functionality to instantiate grids and grid collections.
 ///
 /// @tparam value_t type of entries in the grid bins

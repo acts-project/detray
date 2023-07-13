@@ -113,16 +113,16 @@ class volume_descriptor {
 
     private:
     /// How to interpret the boundary values
-    volume_id m_id = volume_id::e_cylinder;
+    volume_id m_id{volume_id::e_unknown};
 
     /// Volume index in the detector's volume container
-    dindex m_index = dindex_invalid;
+    dindex m_index{dindex_invalid};
 
     /// Volume index in the detector's volume container
-    dindex m_transform = dindex_invalid;
+    dindex m_transform{dindex_invalid};
 
     /// Links for every object type to an acceleration data structure
-    link_type m_sf_finder_links = {};
+    link_type m_sf_finder_links{};
 };
 
 }  // namespace detray

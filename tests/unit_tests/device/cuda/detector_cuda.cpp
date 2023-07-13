@@ -45,8 +45,8 @@ TEST(detector_cuda, detector) {
     // copied outpus from device side
     vecmem::vector<volume_t> volumes_device(volumes_host.size(), &mng_mr);
     vecmem::vector<surface_t> surfaces_device(surfaces_host.size(), &mng_mr);
-    vecmem::vector<transform_t> transforms_device(transforms_host.size(),
-                                                  &mng_mr);
+    vecmem::vector<transform3_t> transforms_device(transforms_host.size(),
+                                                   &mng_mr);
     vecmem::vector<rectangle_t> rectangles_device(rectangles_host.size(),
                                                   &mng_mr);
     vecmem::vector<disc_t> discs_device(discs_host.size(), &mng_mr);

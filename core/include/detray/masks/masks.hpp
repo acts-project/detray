@@ -25,6 +25,7 @@
 // System include(s)
 #include <algorithm>
 #include <cassert>
+#include <ostream>
 #include <sstream>
 #include <vector>
 
@@ -217,6 +218,19 @@ class mask {
         static_assert(bounds.size() == cuboid3D<>::e_size,
                       "Shape returns incompatible bounds for bound box");
         return {bounds, std::numeric_limits<unsigned int>::max()};
+    }
+
+    /// @returns true if the mask boundary values are consistent
+    DETRAY_HOST
+    constexpr bool self_check(std::ostream& os) const {
+
+        const bool result = _shape.check_consistency(_values, os);
+
+        if (not result) {
+            os << to_string();
+        }
+
+        return result;
     }
 
     /// @returns a string representation of the mask

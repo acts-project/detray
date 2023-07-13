@@ -500,8 +500,16 @@ class detector {
     ///
     /// @param v_grid the volume grid to be added
     DETRAY_HOST
-    inline auto add_volume_finder(volume_finder &&v_grid) -> void {
+    inline auto set_volume_finder(volume_finder &&v_grid) -> void {
         _volume_finder = std::move(v_grid);
+    }
+
+    /// Add the volume grid - copy semantics
+    ///
+    /// @param v_grid the volume grid to be added
+    DETRAY_HOST
+    inline auto set_volume_finder(const volume_finder &v_grid) -> void {
+        _volume_finder = v_grid;
     }
 
     /// @return the volume grid - const access

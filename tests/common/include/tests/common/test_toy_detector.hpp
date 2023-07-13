@@ -9,6 +9,7 @@
 
 // Project include(s)
 #include "detray/test/types.hpp"
+#include "detray/utils/consistency_checker.hpp"
 
 // GTest include(s)
 #include <gtest/gtest.h>
@@ -66,6 +67,9 @@ inline bool test_toy_detector(const detector<toy_metadata<>>& toy_det,
     using sf_finder_link_t = typename volume_t::link_type::index_type;
 
     EXPECT_EQ(names.at(0u), "toy_detector");
+
+    // Test general consistency
+    detail::check_consistency(toy_det);
 
     geo_context_t ctx{};
     auto& volumes = toy_det.volumes();

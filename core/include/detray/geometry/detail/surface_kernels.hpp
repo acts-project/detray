@@ -12,6 +12,9 @@
 #include "detray/definitions/qualifiers.hpp"
 #include "detray/tracks/tracks.hpp"
 
+// System include(s)
+#include <ostream>
+
 namespace detray::detail {
 
 /// Functors to be used in the @c surface class
@@ -32,6 +35,27 @@ struct surface_kernels {
     using matrix_type =
         typename matrix_operator::template matrix_type<ROWS, COLS>;
     using free_matrix = matrix_type<e_free_size, e_free_size>;
+
+    /// A functor to retrieve the masks volume link
+    struct get_volume_link {
+        template <typename mask_group_t, typename index_t>
+        DETRAY_HOST_DEVICE inline auto operator()(
+            const mask_group_t& mask_group, const index_t& index) const {
+
+            return mask_group.at(index).volume_link();
+        }
+    };
+
+    /// A functor to run the mask self check. Puts error messages into @param os
+    struct mask_self_check {
+        template <typename mask_group_t, typename index_t>
+        DETRAY_HOST_DEVICE inline auto operator()(
+            const mask_group_t& mask_group, const index_t& index,
+            std::ostream& os) const {
+
+            return mask_group.at(index).self_check(os);
+        }
+    };
 
     /// A functor get the surface normal at a given local/bound position
     struct normal {

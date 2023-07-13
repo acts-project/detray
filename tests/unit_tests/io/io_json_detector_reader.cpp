@@ -12,6 +12,7 @@
 #include "detray/io/common/detector_writer.hpp"
 #include "detray/io/json/json_reader.hpp"
 #include "detray/io/json/json_writer.hpp"
+#include "detray/utils/consistency_checker.hpp"
 #include "tests/common/test_toy_detector.hpp"
 
 // Vecmem include(s)
@@ -72,6 +73,8 @@ TEST(io, json_toy_geometry) {
     EXPECT_EQ(masks.template size<mask_id::e_portal_ring2>(), 52u);
     EXPECT_EQ(masks.template size<mask_id::e_straw_wire>(), 0u);
     EXPECT_EQ(masks.template size<mask_id::e_cell_wire>(), 0u);
+
+    detail::check_consistency(comp_det);
 }
 
 /// Test the reading and writing of a toy detector geometry

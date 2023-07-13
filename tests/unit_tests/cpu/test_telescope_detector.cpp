@@ -16,6 +16,7 @@
 #include "detray/propagator/rk_stepper.hpp"
 #include "detray/test/types.hpp"
 #include "detray/tracks/tracks.hpp"
+#include "detray/utils/consistency_checker.hpp"
 #include "detray/utils/inspectors.hpp"
 
 // Vecmem include(s)
@@ -106,11 +107,17 @@ GTEST_TEST(detray_detectors, telescope_detector) {
     EXPECT_EQ(z_tel_names1.at(0u), "telescope_detector");
     EXPECT_EQ(z_tel_names1.at(1u), "telescope_world_0");
 
+    // Check general consistency of the detector
+    detail::check_consistency(z_tel_det1);
+
     // Build the same telescope detector with rectangular planes and given
     // length/number of surfaces
     tel_cfg.positions({}).n_surfaces(11u).length(500.f * unit<scalar>::mm);
     const auto [z_tel_det2, z_tel_names2] =
         create_telescope_detector(host_mr, tel_cfg);
+
+    // Check general consistency of the detector
+    detail::check_consistency(z_tel_det2);
 
     // Compare
     for (std::size_t i{0u}; i < z_tel_det1.surface_lookup().size(); ++i) {
@@ -132,6 +139,9 @@ GTEST_TEST(detray_detectors, telescope_detector) {
 
     const auto [x_tel_det, x_tel_names] =
         create_telescope_detector(host_mr, tel_cfg.pilot_track(x_track));
+
+    // Check general consistency of the detector
+    detail::check_consistency(x_tel_det);
 
     //
     // test propagation in all telescope detector instances
@@ -232,6 +242,9 @@ GTEST_TEST(detray_detectors, telescope_detector) {
     htel_cfg.n_surfaces(11u).length(500.f * unit<scalar>::mm);
     const auto [tel_detector, tel_names] =
         create_telescope_detector(host_mr, htel_cfg);
+
+    // Check general consistency of the detector
+    detail::check_consistency(tel_detector);
 
     // make at least sure it is navigatable
     navigator<decltype(tel_detector), inspector_t> tel_navigator;
