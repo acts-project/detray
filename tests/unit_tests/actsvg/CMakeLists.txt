@@ -7,10 +7,8 @@
 # Set up the core tests.
 detray_add_test( actsvg_masks
    "actsvg_masks.cpp"
-   "surface_svg_converter.hpp"
-   LINK_LIBRARIES GTest::gtest_main detray_tests_common detray::core_array actsvg::core actsvg::meta )
+   LINK_LIBRARIES GTest::gtest_main detray_tests_common detray::core_array actsvg::core actsvg::meta detray::actsvg)
 
 detray_add_test( actsvg_detector
    "actsvg_detector.cpp"
-   "surface_svg_converter.hpp"
-   LINK_LIBRARIES GTest::gtest_main detray_tests_common detray::core_array actsvg::core actsvg::meta )
+   LINK_LIBRARIES GTest::gtest_main detray_tests_common detray::core_array actsvg::core actsvg::meta detray::actsvg)

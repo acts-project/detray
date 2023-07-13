@@ -227,7 +227,8 @@ class mask {
     /// no vertices an empty vector will be returned.
     DETRAY_HOST
     auto local_vertices() const {
-        return _shape.template local_vertices<>(_values);
+        using point3_container_t = dvector<point3_t>;
+        return _shape.template local_vertices<point3_container_t>(_values);
     }
 
     /// @returns a string representation of the mask
