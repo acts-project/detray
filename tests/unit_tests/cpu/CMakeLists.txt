@@ -39,7 +39,6 @@ macro( detray_add_cpu_test algebra )
       "grid_grid.cpp"
       "grid_populator.cpp"
       "grid_serializer.cpp"
-      "io_read_detector.cpp"
       "line_stepper.cpp"
       "masks_annulus2D.cpp"
       "masks_cylinder.cpp"
