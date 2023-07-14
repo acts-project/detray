@@ -25,8 +25,8 @@ void to_json(nlohmann::ordered_json& j,
     j["detector"] = h.detector;
     j["date"] = h.date;
     j["tag"] = h.tag;
-    j["no. slabs"] = h.n_slabs;
-    j["no. rods"] = h.n_rods;
+    j["slab_count"] = h.n_slabs;
+    j["rod_count"] = h.n_rods;
 }
 
 void from_json(const nlohmann::ordered_json& j,
@@ -35,8 +35,8 @@ void from_json(const nlohmann::ordered_json& j,
     h.detector = j["detector"];
     h.date = j["date"];
     h.tag = j["tag"];
-    h.n_slabs = j["no. slabs"];
-    h.n_rods = j["no. rods"];
+    h.n_slabs = j["slab_count"];
+    h.n_rods = j["rod_count"];
 }
 
 void to_json(nlohmann::ordered_json& j, const material_payload& m) {

@@ -27,8 +27,8 @@ void to_json(nlohmann::ordered_json& j, const geo_header_payload& h) {
     j["detector"] = h.detector;
     j["date"] = h.date;
     j["tag"] = h.tag;
-    j["no. volumes"] = h.n_volumes;
-    j["no. surfaces"] = h.n_surfaces;
+    j["volume_count"] = h.n_volumes;
+    j["surface_count"] = h.n_surfaces;
 }
 
 void from_json(const nlohmann::ordered_json& j, geo_header_payload& h) {
@@ -36,8 +36,8 @@ void from_json(const nlohmann::ordered_json& j, geo_header_payload& h) {
     h.detector = j["detector"];
     h.date = j["date"];
     h.tag = j["tag"];
-    h.n_volumes = j["no. volumes"];
-    h.n_surfaces = j["no. surfaces"];
+    h.n_volumes = j["volume_count"];
+    h.n_surfaces = j["surface_count"];
 }
 
 void to_json(nlohmann::ordered_json& j, const single_link_payload& so) {
