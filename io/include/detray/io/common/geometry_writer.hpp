@@ -19,6 +19,7 @@
 #include "detray/masks/masks.hpp"
 #include "detray/materials/material_rod.hpp"
 #include "detray/materials/material_slab.hpp"
+#include "detray/utils/type_registry.hpp"
 
 // System include(s)
 #include <algorithm>
@@ -224,11 +225,11 @@ class geometry_writer : public writer_interface<detector_t> {
         constexpr inline auto operator()(const acc_group_t&,
                                          const index_t& index) const {
 
-            using accelerator_t = typename acc_group_t::value_type;
+            using accel_t = typename acc_group_t::value_type;
 
-            if constexpr (detail::is_grid_v<accelerator_t>) {
-                constexpr auto id{
-                    detail::get_grid_id(accelerator_t::local_frame())};
+            if constexpr (detail::is_grid_v<accel_t>) {
+                constexpr auto id{detail::get_grid_id<accel_t>()};
+
                 return geometry_writer<detector_t>::serialize(id, index);
             } else {
                 // This functor is only called for accelerator data structures
@@ -243,39 +244,21 @@ class geometry_writer : public writer_interface<detector_t> {
     template <typename shape_t>
     static constexpr io::detail::mask_shape get_shape_id() {
 
-        // Find the correct shape IO id;
-        if constexpr (std::is_same_v<shape_t, rectangle2D<>>) {
-            return io::detail::mask_shape::rectangle2;
-        } else if constexpr (std::is_same_v<shape_t, trapezoid2D<>>) {
-            return io::detail::mask_shape::trapezoid2;
-        } else if constexpr (std::is_same_v<shape_t, cylinder2D<>>) {
-            return io::detail::mask_shape::cylinder2;
-        } else if constexpr (std::is_same_v<
-                                 shape_t,
-                                 cylinder2D<false,
-                                            cylinder_portal_intersector>>) {
-            return io::detail::mask_shape::portal_cylinder2;
-        } else if constexpr (std::is_same_v<shape_t, ring2D<>>) {
-            return io::detail::mask_shape::ring2;
-        } else if constexpr (std::is_same_v<shape_t, annulus2D<>>) {
-            return io::detail::mask_shape::annulus2;
-        } else if constexpr (std::is_same_v<shape_t, line<true>>) {
-            return io::detail::mask_shape::cell_wire;
-        } else if constexpr (std::is_same_v<shape_t, line<false>>) {
-            return io::detail::mask_shape::straw_wire;
-        } else if constexpr (std::is_same_v<shape_t, single3D<0>>) {
-            return io::detail::mask_shape::single1;
-        } else if constexpr (std::is_same_v<shape_t, single3D<1>>) {
-            return io::detail::mask_shape::single2;
-        } else if constexpr (std::is_same_v<shape_t, single3D<2>>) {
-            return io::detail::mask_shape::single3;
-        } else if constexpr (std::is_same_v<shape_t, cuboid3D<>>) {
-            return io::detail::mask_shape::cuboid3;
-        } else if constexpr (std::is_same_v<shape_t, cylinder3D>) {
-            return io::detail::mask_shape::cylinder3;
-        }
+        /// Register the mask shapes to the @c mask_shape enum in the io
+        /// definitions
+        using shape_registry =
+            type_registry<detray::io::detail::mask_shape, annulus2D<>,
+                          cuboid3D<>, cylinder2D<>, cylinder3D,
+                          cylinder2D<false, cylinder_portal_intersector>,
+                          rectangle2D<>, ring2D<>, trapezoid2D<>, line<true>,
+                          line<false>, single3D<0>, single3D<1>, single3D<2>>;
 
-        return io::detail::mask_shape::unknown;
+        // Find the correct shape IO id;
+        if constexpr (shape_registry::is_defined(shape_t{})) {
+            return shape_registry::get_id(shape_t{});
+        } else {
+            return io::detail::mask_shape::unknown;
+        }
     }
 };
 

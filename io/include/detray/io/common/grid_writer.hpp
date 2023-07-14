@@ -15,6 +15,7 @@
 #include "detray/io/common/io_interface.hpp"
 #include "detray/io/common/payloads.hpp"
 #include "detray/surface_finders/accelerator_grid.hpp"
+#include "detray/utils/type_registry.hpp"
 
 // System include(s)
 #include <algorithm>
@@ -40,24 +41,26 @@ template <typename T>
 inline constexpr bool is_grid_v = is_grid<T>::value;
 
 /// Infer the grid id from its coordinate system
-template <template <typename> class frame_t, typename algebra_t>
-static constexpr io::detail::acc_type get_grid_id(const frame_t<algebra_t>&) {
-    // Local coordinate frame
-    using frame = frame_t<algebra_t>;
+template <typename grid_t, std::enable_if_t<is_grid_v<grid_t>, bool> = true>
+constexpr io::detail::acc_type get_grid_id() {
 
-    if constexpr (std::is_same_v<frame, cartesian2<algebra_t>>) {
-        return io::detail::acc_type::cartesian2_grid;
-    } else if constexpr (std::is_same_v<frame, cartesian3<algebra_t>>) {
-        return io::detail::acc_type::cuboid3_grid;
-    } else if constexpr (std::is_same_v<frame, polar2<algebra_t>>) {
-        return io::detail::acc_type::polar2_grid;
-    } else if constexpr (std::is_same_v<frame, cylindrical2<algebra_t>>) {
-        return io::detail::acc_type::cylinder2_grid;
-    } else if constexpr (std::is_same_v<frame, cylindrical3<algebra_t>>) {
-        return io::detail::acc_type::cylinder3_grid;
+    using frame_t = typename grid_t::local_frame_type;
+    using algebra_t = typename frame_t::transform3_type;
+
+    /// Register the grid shapes to the @c acc_type enum in the io definitions
+    /// @note the first type corresponds to a non-grid type in the enum (brute
+    /// force)
+    using frame_registry =
+        type_registry<detray::io::detail::acc_type, void, cartesian2<algebra_t>,
+                      cartesian3<algebra_t>, polar2<algebra_t>,
+                      cylindrical2<algebra_t>, cylindrical3<algebra_t>>;
+
+    // Find the correct shape IO id;
+    if constexpr (frame_registry::is_defined(frame_t{})) {
+        return frame_registry::get_id(frame_t{});
+    } else {
+        return io::detail::acc_type::unknown;
     }
-
-    return io::detail::acc_type::unknown;
 }
 
 }  // namespace detail
@@ -196,16 +199,15 @@ class grid_writer : public writer_interface<detector_t> {
 
         using store_t = typename detector_t::surface_container;
         constexpr auto coll_id{store_t::value_types::to_id(I)};
-        using accelerator_t = typename store_t::template get_type<coll_id>;
+        using accel_t = typename store_t::template get_type<coll_id>;
 
-        if constexpr (detail::is_grid_v<accelerator_t>) {
+        if constexpr (detail::is_grid_v<accel_t>) {
 
             const auto& coll = store.template get<coll_id>();
 
             for (unsigned int i = 0u; i < coll.size(); ++i) {
                 grids_data.grids.push_back(
-                    serialize(detail::get_grid_id(accelerator_t::local_frame()),
-                              i, coll[i]));
+                    serialize(detail::get_grid_id<accel_t>(), i, coll[i]));
             }
         }
 
@@ -222,9 +224,9 @@ class grid_writer : public writer_interface<detector_t> {
 
         using store_t = typename detector_t::surface_container;
         constexpr auto coll_id{store_t::value_types::to_id(I)};
-        using accelerator_t = typename store_t::template get_type<coll_id>;
+        using accel_t = typename store_t::template get_type<coll_id>;
 
-        if constexpr (detail::is_grid_v<accelerator_t>) {
+        if constexpr (detail::is_grid_v<accel_t>) {
             n += store.template size<coll_id>();
         }
 
