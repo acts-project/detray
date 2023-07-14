@@ -15,7 +15,7 @@
 #include "detray/io/common/detector_writer.hpp"
 #include "detray/masks/cylinder2D.hpp"
 #include "detray/masks/masks.hpp"
-#include "detray/plugins/actsvg/surface_svg_converter.hpp"
+#include "detray/plugins/actsvg/mask_conversion.hpp"
 #include "detray/tracks/tracks.hpp"
 
 // Vecmem include(s)
