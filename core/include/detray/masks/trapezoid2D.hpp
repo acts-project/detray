@@ -146,8 +146,7 @@ class trapezoid2D {
     /// @returns a container of vertices in clockwise order.
     template <typename point3_container_t,
               template <typename, std::size_t> class bounds_t,
-              typename scalar_t,
-              std::size_t kDIM,
+              typename scalar_t, std::size_t kDIM,
               typename std::enable_if_t<kDIM == e_size, bool> = true>
     DETRAY_HOST inline point3_container_t local_vertices(
         const bounds_t<scalar_t, kDIM>& bounds) const {
@@ -156,7 +155,7 @@ class trapezoid2D {
         point3_t v2 = {bounds[e_half_length_0], -bounds[e_half_length_2], 0};
         point3_t v3 = {-bounds[e_half_length_0], -bounds[e_half_length_2], 0};
         point3_t v4 = {-bounds[e_half_length_1], bounds[e_half_length_2], 0};
-        return { v1, v2, v3, v4 };
+        return {v1, v2, v3, v4};
     }
 };
 

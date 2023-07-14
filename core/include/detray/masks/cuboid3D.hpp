@@ -136,11 +136,10 @@ class cuboid3D {
     /// @returns a container of vertices.
     template <typename point3_container_t,
               template <typename, std::size_t> class bounds_t,
-              typename scalar_t,
-              std::size_t kDIM,
+              typename scalar_t, std::size_t kDIM,
               typename std::enable_if_t<kDIM == e_size, bool> = true>
     DETRAY_HOST inline point3_container_t local_vertices(
-        const bounds_t<scalar_t, kDIM>& bounds) const {
+        const bounds_t<scalar_t, kDIM> &bounds) const {
         using point3_t = typename point3_container_t::value_type;
         point3_t v1 = {bounds[e_min_x], bounds[e_min_y], bounds[e_min_z]};
         point3_t v2 = {bounds[e_min_x], bounds[e_min_y], bounds[e_max_z]};
@@ -150,7 +149,7 @@ class cuboid3D {
         point3_t v6 = {bounds[e_max_x], bounds[e_min_y], bounds[e_max_z]};
         point3_t v7 = {bounds[e_max_x], bounds[e_max_y], bounds[e_min_z]};
         point3_t v8 = {bounds[e_max_x], bounds[e_max_y], bounds[e_max_z]};
-        return { v1, v2, v4, v3, v7, v8, v6, v5};
+        return {v1, v2, v4, v3, v7, v8, v6, v5};
     }
 };
 

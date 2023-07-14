@@ -3,23 +3,20 @@
 #include <fstream>
 #include <iostream>
 #include <string>
-#include <vector>
 #include <type_traits>
-
-
+#include <vector>
 
 // Project include(s)
+#include "detray/core/detector.hpp"
+#include "detray/definitions/indexing.hpp"
+#include "detray/definitions/qualifiers.hpp"
 #include "detray/detectors/create_toy_geometry.hpp"
+#include "detray/geometry/surface.hpp"
 #include "detray/io/common/detector_writer.hpp"
 #include "detray/masks/cylinder2D.hpp"
 #include "detray/masks/masks.hpp"
-#include "detray/core/detector.hpp"
-#include "detray/detectors/create_toy_geometry.hpp"
-#include "detray/geometry/surface.hpp"
-#include "detray/definitions/indexing.hpp"
-#include "detray/definitions/qualifiers.hpp"
-#include "detray/tracks/tracks.hpp"
 #include "detray/plugins/actsvg/surface_svg_converter.hpp"
+#include "detray/tracks/tracks.hpp"
 
 // Vecmem include(s)
 #include <vecmem/memory/host_memory_resource.hpp>
@@ -27,8 +24,8 @@
 // Actsvg include(s)
 #include "actsvg/core.hpp"
 #include "actsvg/core/defs.hpp"
-#include "actsvg/meta.hpp"
 #include "actsvg/display/geometry.hpp"
+#include "actsvg/meta.hpp"
 #include "actsvg/proto/surface.hpp"
 #include "actsvg/styles/defaults.hpp"
 
@@ -38,7 +35,7 @@ using point3 = std::array<scalar, 3>;
 using point3_container = std::vector<point3>;
 using proto_surface = proto::surface<point3_container>;
 
-void write_svg(proto_surface p_surface, std::string file_name){
+void write_svg(proto_surface p_surface, std::string file_name) {
     // Style proto surface.
     p_surface._fill = style::fill({{0, 100, 0}, 0.5});
 
@@ -48,7 +45,8 @@ void write_svg(proto_surface p_surface, std::string file_name){
 
     // Draw x-y-axis.
     style::stroke stroke_black = style::stroke();
-    auto x_y_a = draw::x_y_axes("xy", {-250, 250}, {-250, 250}, stroke_black, "x", "y");
+    auto x_y_a =
+        draw::x_y_axes("xy", {-250, 250}, {-250, 250}, stroke_black, "x", "y");
 
     // Create SVG file.
     svg::file file;
@@ -64,15 +62,19 @@ void write_svg(proto_surface p_surface, std::string file_name){
 
 int main(int argc, char* argv[]) {
 
-    //e_min_r, e_max_r, e_min_phi_rel, e_max_phi_rel, e_average_phi, e_shift_x, e_shift_y, e_size
-    detray::mask<detray::annulus2D<>> ann2D{0u, 100.0, 200.0, 0.0, 0.0, 0.0, 0.0, 0.0};
-    write_svg(detray::actsvg_visualization::convert_mask(ann2D), "test_plugins_actsvg_annulus2D.svg");
+    // e_min_r, e_max_r, e_min_phi_rel, e_max_phi_rel, e_average_phi, e_shift_x,
+    // e_shift_y, e_size
+    detray::mask<detray::annulus2D<>> ann2D{0u,  100.0, 200.0, 0.0,
+                                            0.0, 0.0,   0.0,   0.0};
+    write_svg(detray::actsvg_visualization::convert_mask(ann2D),
+              "test_plugins_actsvg_annulus2D.svg");
 
-    //e_r, e_n_half_z, e_p_half_z, e_size
+    // e_r, e_n_half_z, e_p_half_z, e_size
     detray::mask<detray::cylinder2D<>> cyl2D{0u, 100.0, -10.0, 10.0};
-    write_svg(detray::actsvg_visualization::convert_mask(cyl2D), "test_plugins_actsvg_cylinder2D.svg");
+    write_svg(detray::actsvg_visualization::convert_mask(cyl2D),
+              "test_plugins_actsvg_cylinder2D.svg");
 
-    //e_half_x, e_half_y, e_size
+    // e_half_x, e_half_y, e_size
     detray::mask<detray::rectangle2D<>> rec2D{0u, 100.0, 100.0};
     auto p = detray::actsvg_visualization::convert_mask(rec2D);
     auto tf = actsvg::style::transform();
@@ -81,12 +83,13 @@ int main(int argc, char* argv[]) {
     p._transform = tf;
     write_svg(p, "test_plugins_actsvg_rectangle2D.svg");
 
-    //e_inner_r, e_outer_r, e_size
+    // e_inner_r, e_outer_r, e_size
     detray::mask<detray::ring2D<>> rin2D{0u, 50.0, 100.0};
-    write_svg(detray::actsvg_visualization::convert_mask(rin2D), "test_plugins_actsvg_ring2D.svg");
+    write_svg(detray::actsvg_visualization::convert_mask(rin2D),
+              "test_plugins_actsvg_ring2D.svg");
 
-    //e_half_length_0, e_half_length_1, e_half_length_2, e_divisor, e_size
-    detray::mask<detray::trapezoid2D<>> tra2D{0u, 100.0, 50.0, 200.0 };
-    write_svg(detray::actsvg_visualization::convert_mask(tra2D), "test_plugins_actsvg_trapezoid2D.svg");
-
+    // e_half_length_0, e_half_length_1, e_half_length_2, e_divisor, e_size
+    detray::mask<detray::trapezoid2D<>> tra2D{0u, 100.0, 50.0, 200.0};
+    write_svg(detray::actsvg_visualization::convert_mask(tra2D),
+              "test_plugins_actsvg_trapezoid2D.svg");
 }

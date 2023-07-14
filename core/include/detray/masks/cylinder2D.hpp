@@ -151,12 +151,11 @@ class cylinder2D {
     /// no vertices an empty container will be returned.
     template <typename point3_container_t,
               template <typename, std::size_t> class bounds_t,
-              typename scalar_t,
-              std::size_t kDIM,
+              typename scalar_t, std::size_t kDIM,
               typename std::enable_if_t<kDIM == e_size, bool> = true>
     DETRAY_HOST inline point3_container_t local_vertices(
         const bounds_t<scalar_t, kDIM>&) const {
-        return { };
+        return {};
     }
 };
 
