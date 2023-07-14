@@ -10,7 +10,6 @@
 // Project include(s)
 #include "detray/definitions/indexing.hpp"
 #include "detray/geometry/surface.hpp"
-#include "detray/intersection/cylinder_portal_intersector.hpp"
 #include "detray/io/common/detail/definitions.hpp"
 #include "detray/io/common/detail/utils.hpp"
 #include "detray/io/common/grid_writer.hpp"
@@ -19,7 +18,6 @@
 #include "detray/masks/masks.hpp"
 #include "detray/materials/material_rod.hpp"
 #include "detray/materials/material_slab.hpp"
-#include "detray/utils/type_registry.hpp"
 
 // System include(s)
 #include <algorithm>
@@ -104,7 +102,7 @@ class geometry_writer : public writer_interface<detector_t> {
     static mask_payload serialize(const mask_t& m) {
         mask_payload mask_data;
 
-        mask_data.shape = get_shape_id<typename mask_t::shape>();
+        mask_data.shape = io::detail::get_shape_id<typename mask_t::shape>();
 
         mask_data.volume_link = serialize(m.volume_link());
 
@@ -228,7 +226,7 @@ class geometry_writer : public writer_interface<detector_t> {
             using accel_t = typename acc_group_t::value_type;
 
             if constexpr (detail::is_grid_v<accel_t>) {
-                constexpr auto id{detail::get_grid_id<accel_t>()};
+                constexpr auto id{io::detail::get_grid_id<accel_t>()};
 
                 return geometry_writer<detector_t>::serialize(id, index);
             } else {
@@ -239,27 +237,6 @@ class geometry_writer : public writer_interface<detector_t> {
             }
         }
     };
-
-    /// Infer the IO shape id from the shape type
-    template <typename shape_t>
-    static constexpr io::detail::mask_shape get_shape_id() {
-
-        /// Register the mask shapes to the @c mask_shape enum in the io
-        /// definitions
-        using shape_registry =
-            type_registry<detray::io::detail::mask_shape, annulus2D<>,
-                          cuboid3D<>, cylinder2D<>, cylinder3D,
-                          cylinder2D<false, cylinder_portal_intersector>,
-                          rectangle2D<>, ring2D<>, trapezoid2D<>, line<true>,
-                          line<false>, single3D<0>, single3D<1>, single3D<2>>;
-
-        // Find the correct shape IO id;
-        if constexpr (shape_registry::is_defined(shape_t{})) {
-            return shape_registry::get_id(shape_t{});
-        } else {
-            return io::detail::mask_shape::unknown;
-        }
-    }
 };
 
 }  // namespace detray

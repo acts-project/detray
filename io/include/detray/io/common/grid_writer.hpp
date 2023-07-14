@@ -8,14 +8,12 @@
 #pragma once
 
 // Project include(s)
-#include "detray/coordinates/coordinates.hpp"
 #include "detray/definitions/indexing.hpp"
 #include "detray/io/common/detail/definitions.hpp"
 #include "detray/io/common/detail/utils.hpp"
 #include "detray/io/common/io_interface.hpp"
 #include "detray/io/common/payloads.hpp"
 #include "detray/surface_finders/accelerator_grid.hpp"
-#include "detray/utils/type_registry.hpp"
 
 // System include(s)
 #include <algorithm>
@@ -39,29 +37,6 @@ struct is_grid<grid<multi_axis_t, value_t, serializer_t, populator_impl_t>>
 
 template <typename T>
 inline constexpr bool is_grid_v = is_grid<T>::value;
-
-/// Infer the grid id from its coordinate system
-template <typename grid_t, std::enable_if_t<is_grid_v<grid_t>, bool> = true>
-constexpr io::detail::acc_type get_grid_id() {
-
-    using frame_t = typename grid_t::local_frame_type;
-    using algebra_t = typename frame_t::transform3_type;
-
-    /// Register the grid shapes to the @c acc_type enum in the io definitions
-    /// @note the first type corresponds to a non-grid type in the enum (brute
-    /// force)
-    using frame_registry =
-        type_registry<detray::io::detail::acc_type, void, cartesian2<algebra_t>,
-                      cartesian3<algebra_t>, polar2<algebra_t>,
-                      cylindrical2<algebra_t>, cylindrical3<algebra_t>>;
-
-    // Find the correct shape IO id;
-    if constexpr (frame_registry::is_defined(frame_t{})) {
-        return frame_registry::get_id(frame_t{});
-    } else {
-        return io::detail::acc_type::unknown;
-    }
-}
 
 }  // namespace detail
 
@@ -207,7 +182,7 @@ class grid_writer : public writer_interface<detector_t> {
 
             for (unsigned int i = 0u; i < coll.size(); ++i) {
                 grids_data.grids.push_back(
-                    serialize(detail::get_grid_id<accel_t>(), i, coll[i]));
+                    serialize(io::detail::get_grid_id<accel_t>(), i, coll[i]));
             }
         }
 
