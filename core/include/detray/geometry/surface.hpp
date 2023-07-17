@@ -76,7 +76,7 @@ class surface {
     DETRAY_HOST_DEVICE
     constexpr auto volume() const -> dindex { return barcode().volume(); }
 
-    /// @returns the index fo the surface in the detector surface lookup
+    /// @returns the index of the surface in the detector surface lookup
     DETRAY_HOST_DEVICE
     constexpr auto index() const -> dindex { return barcode().index(); }
 

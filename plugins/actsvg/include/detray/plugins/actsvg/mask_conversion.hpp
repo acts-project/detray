@@ -1,13 +1,17 @@
-#include <math.h>
-
-#include <type_traits>
-#include <vector>
+#pragma once
 
 // Project include(s)
-#include "actsvg/meta.hpp"
-#include "actsvg/proto/surface.hpp"
 #include "detray/definitions/units.hpp"
 #include "detray/geometry/surface.hpp"
+#include "detray/plugins/actsvg/transform_conversion.hpp"
+
+// Actsvg include(s)
+#include "actsvg/meta.hpp"
+#include "actsvg/proto/surface.hpp"
+
+// System include(s)
+#include <type_traits>
+#include <vector>
 
 namespace detray::actsvg_visualization {
 
@@ -75,10 +79,7 @@ inline proto_surface convert_mask(const mask_t& mask) {
     auto detray_vertices = mask.local_vertices();
     point3_container actsvg_vertices;
     for (auto dv : detray_vertices) {
-        point3 av = {static_cast<actsvg::scalar>(dv[0]),
-                     static_cast<actsvg::scalar>(dv[1]),
-                     static_cast<actsvg::scalar>(dv[2])};
-        actsvg_vertices.push_back(av);
+        actsvg_vertices.push_back(convert_point<3>(dv));
     }
     p_surface._vertices = actsvg_vertices;
 

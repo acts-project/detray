@@ -1,12 +1,16 @@
-#include <math.h>
-
-#include <type_traits>
-#include <vector>
+#pragma once
 
 // Project include(s)
+#include "detray/definitions/units.hpp"
+
+// Actsvg include(s)
 #include "actsvg/meta.hpp"
 #include "actsvg/proto/surface.hpp"
-#include "detray/definitions/units.hpp"
+
+// System include(s)
+#include <math.h>
+#include <type_traits>
+#include <vector>
 
 namespace detray::actsvg_visualization {
 
@@ -14,7 +18,7 @@ namespace detray::actsvg_visualization {
 ///
 /// @param matrix The rotation matrix.
 ///
-/// @returns an array containing the euler angles around the x, y, and z axis (in that order),
+/// @returns an array containing the euler angles around the x, y, and z axis (in that order).
 template <typename matrix_t>
 inline std::array<detray::scalar, 3> rotation_matrix_to_euler_angles(
     const matrix_t& matrix) {
@@ -26,6 +30,21 @@ inline std::array<detray::scalar, 3> rotation_matrix_to_euler_angles(
 
     return {std::atan2(matrix[2][1], matrix[2][2]), std::atan2(-matrix[2][0], a),
             std::atan2(matrix[1][0], matrix[0][0])};
+}
+
+/// @brief Calculates the detray point3 as an actsvg point.
+///
+/// @param d_point The detray point3.
+///
+/// @returns an actsvg point3.
+template <std::size_t dim, typename point_t>
+inline std::array<actsvg::scalar, dim> convert_point(
+    const point_t& d_point) {
+    std::array<actsvg::scalar, dim> ret;
+    for (std::size_t i = 0; i < ret.size(); i++){
+        ret[i] = static_cast<actsvg::scalar>(d_point[i]);
+    }
+    return ret;
 }
 
 /// @brief Calculates the equivalent actsvg transform of a detray transform.

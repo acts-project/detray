@@ -1,15 +1,18 @@
-#include <math.h>
-
-#include <type_traits>
-#include <vector>
+#pragma once
 
 // Project include(s)
-#include "actsvg/meta.hpp"
-#include "actsvg/proto/surface.hpp"
 #include "detray/definitions/units.hpp"
 #include "detray/geometry/surface.hpp"
 #include "detray/plugins/actsvg/mask_conversion.hpp"
 #include "detray/plugins/actsvg/transform_conversion.hpp"
+
+// Actsvg include(s)
+#include "actsvg/meta.hpp"
+#include "actsvg/proto/surface.hpp"
+
+// System include(s)
+#include <type_traits>
+#include <vector>
 
 namespace detray::actsvg_visualization {
 

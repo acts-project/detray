@@ -1,11 +1,3 @@
-
-#include <array>
-#include <fstream>
-#include <iostream>
-#include <string>
-#include <type_traits>
-#include <vector>
-
 // Project include(s)
 #include "detray/core/detector.hpp"
 #include "detray/definitions/indexing.hpp"
@@ -28,6 +20,14 @@
 #include "actsvg/meta.hpp"
 #include "actsvg/proto/surface.hpp"
 #include "actsvg/styles/defaults.hpp"
+
+// System include(s)
+#include <array>
+#include <fstream>
+#include <iostream>
+#include <string>
+#include <type_traits>
+#include <vector>
 
 using namespace actsvg;
 
@@ -60,7 +60,7 @@ void write_svg(proto_surface p_surface, std::string file_name) {
     stream.close();
 }
 
-int main(int argc, char* argv[]) {
+int main(int, char**) {
 
     // e_min_r, e_max_r, e_min_phi_rel, e_max_phi_rel, e_average_phi, e_shift_x,
     // e_shift_y, e_size

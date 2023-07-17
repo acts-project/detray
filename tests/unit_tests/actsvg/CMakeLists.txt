@@ -9,6 +9,11 @@ detray_add_test( actsvg_masks
    "actsvg_masks.cpp"
    LINK_LIBRARIES GTest::gtest_main detray_tests_common detray::core_array actsvg::core actsvg::meta detray::actsvg)
 
-detray_add_test( actsvg_detector
-   "actsvg_detector.cpp"
+detray_add_test( actsvg_detectors
+   "actsvg_detectors.cpp"
    LINK_LIBRARIES GTest::gtest_main detray_tests_common detray::core_array actsvg::core actsvg::meta detray::actsvg)
+
+   detray_add_test( actsvg_portals
+   "actsvg_portals.cpp"
+   LINK_LIBRARIES GTest::gtest_main detray_tests_common detray::core_array actsvg::core actsvg::meta detray::actsvg)
+
