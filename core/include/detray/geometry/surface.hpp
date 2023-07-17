@@ -84,6 +84,10 @@ class surface {
     DETRAY_HOST_DEVICE
     constexpr auto id() const -> surface_id { return barcode().id(); }
 
+    /// @returns the extra bits in the barcode
+    DETRAY_HOST_DEVICE
+    constexpr auto extra() const -> dindex { return barcode().extra(); }
+
     /// @returns an id for the surface type (e.g. 'rectangle')
     DETRAY_HOST_DEVICE
     constexpr auto shape_id() const { return m_desc.mask().id(); }

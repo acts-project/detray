@@ -98,9 +98,9 @@ GTEST_TEST(detray_propagator, guided_navigator) {
         auto bcd = geometry::barcode{};
         bcd.set_volume(0u).set_index(sf_sequence[i]);
         bcd.set_id((i == 11u) ? surface_id::e_portal : surface_id::e_sensitive);
-        EXPECT_TRUE(candidate.surface.barcode() == bcd)
+        EXPECT_TRUE(candidate.sf_desc.barcode() == bcd)
             << "error at intersection on surface:\n"
             << "Expected: " << bcd
-            << "\nFound: " << candidate.surface.barcode();
+            << "\nFound: " << candidate.sf_desc.barcode();
     }
 }

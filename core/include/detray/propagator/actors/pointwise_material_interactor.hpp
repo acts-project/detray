@@ -120,12 +120,10 @@ struct pointwise_material_interactor : actor {
         if (navigation.is_on_module()) {
 
             auto &stepping = prop_state._stepping;
-            const auto *det = navigation.detector();
 
             this->update(stepping._bound_params, interactor_state,
                          static_cast<int>(navigation.direction()),
-                         *navigation.current(),
-                         surface{*det, navigation.current()->surface});
+                         *navigation.current(), navigation.get_surface());
         }
     }
 
