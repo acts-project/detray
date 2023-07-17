@@ -39,18 +39,16 @@ GTEST_TEST(detray_propagator, covariance_transport) {
 
     vecmem::host_memory_resource host_mr;
 
-    // Use unbounded rectangle surfaces
-    mask<rectangle2D<>> rectangle{0u, 200.f * unit<scalar>::mm,
-                                  200.f * unit<scalar>::mm};
-
     // Build in x-direction from given module positions
     detail::ray<transform3> traj{{0.f, 0.f, 0.f}, 0.f, {1.f, 0.f, 0.f}, -1.f};
     std::vector<scalar> positions = {0.f, 10.f, 20.f, 30.f, 40.f, 50.f, 60.f};
 
+    tel_det_config<rectangle2D<>> tel_cfg{200.f * unit<scalar>::mm,
+                                          200.f * unit<scalar>::mm};
+    tel_cfg.positions(positions).pilot_track(traj);
+
     // Build telescope detector with unbounded planes
-    const auto det = create_telescope_detector(host_mr, rectangle, positions,
-                                               silicon_tml<scalar>(),
-                                               80.f * unit<scalar>::um, traj);
+    const auto det = create_telescope_detector(host_mr, tel_cfg);
 
     using navigator_t = navigator<decltype(det)>;
     using cline_stepper_t = line_stepper<transform3>;

@@ -75,24 +75,20 @@ int main(int argc, char** argv) {
     // distances. The world portals are constructed from a bounding box around
     // the test surfaces (the envelope is configurable).
 
-    // Telescope detector types containing the given module shape (can be any)
-    using rectgl_telescope_t =
-        detray::detector<detray::telescope_metadata<detray::rectangle2D<>>>;
-    using trapzd_telescope_t =
-        detray::detector<detray::telescope_metadata<detray::trapezoid2D<>>>;
-
     // Mask with a rectangular shape (20x20 mm)
+
     detray::mask<detray::rectangle2D<>> rectangle{
         0u, 20.f * detray::unit<detray::scalar>::mm,
         20.f * detray::unit<detray::scalar>::mm};
 
     // Mask with a trapezoid shape
+    using trapezoid_t = detray::mask<detray::trapezoid2D<>>;
+
     constexpr detray::scalar hx_min_y{10.f * detray::unit<detray::scalar>::mm};
     constexpr detray::scalar hx_max_y{30.f * detray::unit<detray::scalar>::mm};
     constexpr detray::scalar hy{20.f * detray::unit<detray::scalar>::mm};
     constexpr detray::scalar divisor{10.f / (20.f * hy)};
-    detray::mask<detray::trapezoid2D<>> trapezoid{0u, hx_min_y, hx_max_y, hy,
-                                                  divisor};
+    trapezoid_t trapezoid{0u, hx_min_y, hx_max_y, hy, divisor};
 
     // Build from given module positions (places 11 surfaces)
     std::vector<detray::scalar> positions = {
@@ -112,8 +108,8 @@ int main(int argc, char** argv) {
     // Case 1: Defaults: Straight telescope in z-direction,
     //         10 rectangle surfaces, 500mm in length, modules evenly spaced,
     //         no B-field, silicon material (80mm)
-    const rectgl_telescope_t tel_det1 =
-        detray::create_telescope_detector(host_mr, rectangle);
+    const auto tel_det1 =
+        detray::create_telescope_detector<detray::rectangle2D<>>(host_mr);
 
     std::cout << "\nTelescope detector - case 1:\n"
               << "----------------------------\n"
@@ -123,8 +119,10 @@ int main(int argc, char** argv) {
     // Case 2: Straight telescope in z-direction, 15 trapezoid surfaces, 2000mm
     //         in length, modules evenly spaced, no B-field,
     //         silicon material (80mm)
-    const trapzd_telescope_t tel_det2 = detray::create_telescope_detector(
-        host_mr, trapezoid, 15, 2000.f * detray::unit<detray::scalar>::mm);
+    detray::tel_det_config trp_cfg{trapezoid};
+    trp_cfg.n_surfaces(15).length(2000.f * detray::unit<detray::scalar>::mm);
+
+    const auto tel_det2 = detray::create_telescope_detector(host_mr, trp_cfg);
 
     std::cout << "\nTelescope detector - case 2:\n"
               << "----------------------------\n"
@@ -139,9 +137,10 @@ int main(int argc, char** argv) {
     detray::detail::ray<detray::tutorial::transform3> x_track{
         {0.f, 0.f, 0.f}, 0.f, {1.f, 0.f, 0.f}, -1.f};
 
-    const rectgl_telescope_t tel_det3 = create_telescope_detector(
-        host_mr, rectangle, positions, detray::silicon_tml<detray::scalar>(),
-        80.f * detray::unit<detray::scalar>::um, x_track);
+    detray::tel_det_config rct_cfg{rectangle};
+    rct_cfg.positions(positions).pilot_track(x_track);
+
+    const auto tel_det3 = create_telescope_detector(host_mr, rct_cfg);
 
     std::cout << "\nTelescope detector - case 3:\n"
               << "----------------------------\n"
@@ -155,20 +154,17 @@ int main(int argc, char** argv) {
     // Pilot track in x-direction
     detray::free_track_parameters<detray::tutorial::transform3> y_track{
         {0.f, 0.f, 0.f}, 0.f, {1.f, 0.f, 0.f}, -1.f};
+
     // Helix in a constant B-field 1T in z-direction
+    using helix_t = detray::detail::helix<detray::tutorial::transform3>;
     detray::tutorial::vector3 B_z{0.f, 0.f,
                                   1.f * detray::unit<detray::scalar>::T};
-    detray::detail::helix<detray::tutorial::transform3> helix(y_track, &B_z);
+    helix_t helix(y_track, &B_z);
 
-    // Prepare constant B-field
-    using b_field_t = typename trapzd_telescope_t::bfield_type;
-    b_field_t b_field_z{
-        b_field_t::backend_t::configuration_t{B_z[0], B_z[1], B_z[2]}};
+    detray::tel_det_config htrp_cfg{trapezoid, helix};
+    htrp_cfg.positions(positions).bfield_vec(B_z);
 
-    const trapzd_telescope_t tel_det4 = detray::create_telescope_detector(
-        host_mr, std::move(b_field_z), trapezoid, positions,
-        detray::silicon_tml<detray::scalar>(),
-        80.f * detray::unit<detray::scalar>::um, helix);
+    const auto tel_det4 = detray::create_telescope_detector(host_mr, htrp_cfg);
 
     std::cout << "\nTelescope detector - case 4:\n"
               << "----------------------------\n"
