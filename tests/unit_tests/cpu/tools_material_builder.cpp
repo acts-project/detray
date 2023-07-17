@@ -8,6 +8,8 @@
 // Detray include(s)
 #include "detray/core/detector.hpp"
 #include "detray/definitions/indexing.hpp"
+#include "detray/tools/cuboid_portal_generator.hpp"
+#include "detray/tools/detector_builder.hpp"
 #include "detray/tools/material_builder.hpp"
 #include "detray/tools/material_factory.hpp"
 #include "detray/tools/surface_factory.hpp"
@@ -118,18 +120,11 @@ GTEST_TEST(detray_tools, decorator_material_builder) {
     detector_t d(host_mr);
     auto geo_ctx = typename detector_t::geometry_context{};
 
-    auto vbuilder = std::make_unique<volume_builder<detector_t>>();
+    auto vbuilder =
+        std::make_unique<volume_builder<detector_t>>(volume_id::e_cylinder);
     auto mat_builder = material_builder<detector_t>{std::move(vbuilder)};
 
     EXPECT_TRUE(d.volumes().size() == 0);
-
-    // Now init the volume
-    mat_builder.init_vol(d, volume_id::e_cylinder);
-
-    const auto &vol = d.volumes().back();
-    EXPECT_TRUE(d.volumes().size() == 1u);
-    EXPECT_EQ(vol.index(), 0u);
-    EXPECT_EQ(vol.id(), volume_id::e_cylinder);
 
     // Add some portals first
     auto pt_cyl_factory = std::make_unique<portal_cylinder_factory_t>();
@@ -200,6 +195,11 @@ GTEST_TEST(detray_tools, decorator_material_builder) {
     //
     // check results
     //
+    const auto &vol = d.volumes().back();
+    EXPECT_TRUE(d.volumes().size() == 1u);
+    EXPECT_EQ(vol.index(), 0u);
+    EXPECT_EQ(vol.id(), volume_id::e_cylinder);
+
     EXPECT_EQ(d.surface_lookup().size(), 7u);
     EXPECT_EQ(d.transform_store().size(), 8u);
     EXPECT_EQ(d.mask_store().template size<mask_id::e_portal_cylinder2>(), 2u);
@@ -221,5 +221,86 @@ GTEST_TEST(detray_tools, decorator_material_builder) {
          d.material_store().template get<material_id::e_slab>()) {
         EXPECT_TRUE(mat_slab.get_material() == silicon<scalar>() or
                     mat_slab.get_material() == tungsten<scalar>());
+    }
+}
+
+/// Integration test to build an empty cuboid volume with material
+GTEST_TEST(detray_tools, detector_builder_with_material) {
+    using namespace detray;
+
+    using mask_id = typename detector_t::masks::id;
+    using material_id = typename detector_t::materials::id;
+
+    // detector builder
+    detector_builder<default_metadata, volume_builder> det_builder{};
+
+    // Vanilla volume builder
+    auto vbuilder = det_builder.new_volume(volume_id::e_cuboid);
+
+    // Add material
+    auto mv_builder =
+        det_builder.template decorate<material_builder>(vbuilder->vol_index());
+
+    typename detector_t::point3 t{0.f, 0.f, 20.f};
+    mv_builder->add_volume_placement(t);
+
+    // Add a portal box around the cuboid volume with a min distance of 'env'
+    constexpr auto env{0.1f * unit<detray::scalar>::mm};
+    auto portal_generator =
+        std::make_unique<cuboid_portal_generator<detector_t>>(env);
+
+    // Add homogeneous material to every portal
+    auto mat_portal_factory = std::make_shared<material_factory<detector_t>>(
+        std::move(portal_generator));
+    mat_portal_factory->add_material(
+        material_id::e_slab, {1.f * unit<scalar>::mm, silicon<scalar>()});
+    mat_portal_factory->add_material(
+        material_id::e_slab, {2.f * unit<scalar>::mm, silicon<scalar>()});
+    mat_portal_factory->add_material(
+        material_id::e_slab, {3.f * unit<scalar>::mm, silicon<scalar>()});
+    mat_portal_factory->add_material(
+        material_id::e_slab, {4.f * unit<scalar>::mm, silicon<scalar>()});
+    mat_portal_factory->add_material(
+        material_id::e_slab, {5.f * unit<scalar>::mm, silicon<scalar>()});
+    mat_portal_factory->add_material(
+        material_id::e_slab, {6.f * unit<scalar>::mm, silicon<scalar>()});
+
+    mv_builder->add_portals(mat_portal_factory);
+
+    //
+    // build the detector
+    //
+    vecmem::host_memory_resource host_mr;
+    const detector_t d = det_builder.build(host_mr);
+    const auto &vol = d.volume_by_index(0u);
+
+    // check the results
+    EXPECT_EQ(d.volumes().size(), 1u);
+    EXPECT_EQ(vol.id(), volume_id::e_cuboid);
+    EXPECT_EQ(vol.index(), 0u);
+
+    // Check the volume placement
+    typename detector_t::transform3 trf{t};
+    EXPECT_TRUE(vol.transform() == trf);
+    EXPECT_TRUE(d.transform_store()[0u] == trf);
+
+    EXPECT_EQ(d.surface_lookup().size(), 6u);
+    EXPECT_EQ(d.mask_store().template size<mask_id::e_rectangle2>(), 3u);
+    EXPECT_EQ(d.material_store().template size<material_id::e_slab>(), 6u);
+
+    // Check the material links
+    for (const auto [idx, sf_desc] :
+         detray::views::enumerate(d.surface_lookup())) {
+        EXPECT_EQ(sf_desc.material().id(), material_id::e_slab);
+        EXPECT_EQ(sf_desc.material().index(), idx);
+    }
+
+    // Check the material
+    scalar thickness{1.f * unit<scalar>::mm};
+    for (const auto &slab :
+         d.material_store().template get<material_id::e_slab>()) {
+        EXPECT_EQ(slab.get_material(), silicon<scalar>());
+        EXPECT_NEAR(slab.thickness(), thickness, tol);
+        thickness += 1.f * unit<scalar>::mm;
     }
 }

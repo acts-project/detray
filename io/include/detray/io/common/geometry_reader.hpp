@@ -77,9 +77,9 @@ class geometry_reader : public reader_interface<detector_t> {
         // Deserialize the volumes one-by-one
         for (const auto& vol_data : det_data.volumes) {
             // Get a generic volume builder first and decorate it later
-            volume_builder<detector_t> vbuilder{};
-
-            vbuilder.init_vol(det, static_cast<volume_id>(vol_data.type));
+            volume_builder<detector_t> vbuilder{
+                static_cast<volume_id>(vol_data.type),
+                deserialize(vol_data.index)};
 
             // Set the volume name if available
             name_map[vbuilder.vol_index() + 1u] = vol_data.name;
