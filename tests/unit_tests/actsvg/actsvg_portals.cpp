@@ -3,14 +3,9 @@
 #include "detray/definitions/indexing.hpp"
 #include "detray/definitions/qualifiers.hpp"
 #include "detray/detectors/create_toy_geometry.hpp"
-#include "detray/geometry/surface.hpp"
 #include "detray/io/common/detail/file_handle.hpp"
 #include "detray/io/common/detector_writer.hpp"
-#include "detray/masks/cylinder2D.hpp"
-#include "detray/masks/masks.hpp"
-#include "detray/plugins/actsvg/surface_conversion.hpp"
-#include "detray/plugins/actsvg/portal_conversion.hpp"
-#include "detray/tracks/tracks.hpp"
+#include "detray/plugins/actsvg/svg_conversion.hpp"
 
 // Vecmem include(s)
 #include <vecmem/memory/host_memory_resource.hpp>
@@ -38,38 +33,19 @@ int main(int, char**) {
 
     vecmem::host_memory_resource host_mr;
     const toy_detector_t det = detray::create_toy_geometry(host_mr, 4, 3);
+
     toy_detector_t::geometry_context context{};
-
-    views::x_y x_y_view;
-
-    // Create x-y-axis.
-    style::stroke stroke_black = style::stroke();
-    auto x_y_a =
-        draw::x_y_axes("xy", {-250, 250}, {-250, 250}, stroke_black, "x", "y");
-
-    auto indices = {13, 20, 100, 150, 200, 250};
+    views::x_y view;
 
     for (const auto& description : det.portals()) {
 
         const auto portal = detray::surface{det, description};
-        auto p_portal =
-            detray::actsvg_visualization::convert_portal(portal, context);
-
-        // Style proto surface.
-        p_portal._surface._fill = style::fill({{0, 100, 0}, 0.5});
-
-        // Draw proto surface.
         const auto name = "toy_detector_portal";
-        const auto svg = display::portal(name, p_portal, x_y_view);
 
-        // Create SVG file.
+        const auto svg = detray::actsvg_visualization::svg(name, det, portal, context, view);
+
         svg::file file;
-
-        // Edit SVG file.
-        file.add_object(x_y_a);
         file.add_object(svg);
-
-        // Write SVG File.
         detray::io::detail::file_handle stream{std::string("test_plugins_actsvg_") + name,
                                            ".svg",
                                            std::ios::out | std::ios::trunc};

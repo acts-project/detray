@@ -44,15 +44,18 @@ proto_link convert_link(link_t d_link)
 }
 
 template <typename detector_t>
-proto_portal convert_portal(const detray::surface<detector_t>& d_portal, const typename detector_t::geometry_context& context)
+proto_portal convert_portal(const detector_t& detector, const detray::surface<detector_t>& d_portal, const typename detector_t::geometry_context& context)
 {
     assert(d_portal.is_portal());
     proto_portal p_portal;
     proto_surface p_surface = convert_surface(d_portal, context);
     p_portal._surface = p_surface;
-    auto d_link = d_portal.template visit_mask<get_link>();
+    const auto d_link_idx = d_portal.template visit_mask<get_link>();
+    const auto d_link_volume = detector.volume_by_index(d_link_idx);
 
-    std::cout << typeid(d_link).name();
+
+
+    std::cout << typeid(d_link_idx).name();
     return p_portal;
 
     //p_portal._surface = convert_surface(d_portal, context);
