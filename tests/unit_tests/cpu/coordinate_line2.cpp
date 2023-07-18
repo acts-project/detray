@@ -85,6 +85,10 @@ GTEST_TEST(detray_coordinates, line2_case1) {
                     isclose);
     }
 
+    // Normal vector
+    const vector3 n = l2.normal(trf);
+    ASSERT_EQ(n, z);
+
     // Test Jacobian transformation
     const matrix_type<6, 6> J = l2.free_to_bound_jacobian(trf, free_vec1) *
                                 l2.bound_to_free_jacobian(trf, mask, bound_vec);

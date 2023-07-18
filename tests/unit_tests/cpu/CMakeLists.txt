@@ -33,6 +33,7 @@ macro( detray_add_cpu_test algebra )
       "energy_loss.cpp"
       "geometry_volume.cpp"
       "geometry_volume_graph.cpp"
+      "geometry_surface.cpp"
       "grid_axis.cpp"
       "grid_grid_builder.cpp"
       "grid_grid_collection.cpp"

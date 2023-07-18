@@ -108,7 +108,7 @@ struct print_inspector {
             const auto &local = sf_cand.local;
             const auto pos =
                 surface{*state.detector(), sf_cand.sf_desc}.local_to_global(
-                    geo_ctx_t{}, local);
+                    geo_ctx_t{}, local, {});
 
             debug_stream << sf_cand;
             debug_stream << ", glob: [r:" << getter::perp(pos)
