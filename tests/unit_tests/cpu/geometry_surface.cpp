@@ -117,20 +117,18 @@ GTEST_TEST(detray_geometry, surface) {
 
     // Surface normal
     const auto z_axis = vector3_t{0.f, 0.f, 1.f};
-    ASSERT_EQ(disc.normal(ctx), z_axis);
     ASSERT_EQ(disc.normal(ctx, point3_t{}), z_axis);  // trigger all code paths
     ASSERT_EQ(disc.normal(ctx, point2_t{}), z_axis);
 
     // Incidence angle
     const auto dir = vector3_t{1.f, 1.f, 1.f};
-    ASSERT_NEAR(disc.cos_angle(ctx, dir), 1.f, tol);
     ASSERT_NEAR(disc.cos_angle(ctx, dir, point3_t{}), 1.f, tol);
     ASSERT_NEAR(disc.cos_angle(ctx, dir, point2_t{}), 1.f, tol);
 
     // Coordinate transformations
     const point3_t glob_pos = {4.f, 7.f, 4.f};
-    const point3_t local = disc.global_to_local(ctx, glob_pos);
-    const point2_t bound = disc.global_to_bound(ctx, glob_pos);
+    const point3_t local = disc.global_to_local(ctx, glob_pos, {});
+    const point2_t bound = disc.global_to_bound(ctx, glob_pos, {});
 
     ASSERT_NEAR(local[0], std::sqrt(65.f), tol);
     ASSERT_NEAR(local[1], std::atan2(7.f, 4.f), tol);
@@ -138,8 +136,8 @@ GTEST_TEST(detray_geometry, surface) {
     ASSERT_NEAR(bound[1], local[1], tol);
 
     // Roundtrip
-    const point3_t global = disc.local_to_global(ctx, local);
-    const point3_t global2 = disc.local_to_global(ctx, bound);
+    const point3_t global = disc.local_to_global(ctx, local, {});
+    const point3_t global2 = disc.local_to_global(ctx, bound, {});
 
     ASSERT_NEAR(glob_pos[0], global[0], tol);
     ASSERT_NEAR(glob_pos[1], global[1], tol);

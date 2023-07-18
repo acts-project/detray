@@ -138,7 +138,7 @@ class surface {
                                    std::is_same_v<point_t, point2>,
                                bool> = true>
     DETRAY_HOST_DEVICE constexpr auto normal(const context &ctx,
-                                             const point_t &p = {}) const
+                                             const point_t &p) const
         -> const vector3 {
         return visit_mask<typename kernels::normal>(transform(ctx), p);
     }
@@ -151,7 +151,7 @@ class surface {
                                bool> = true>
     DETRAY_HOST_DEVICE constexpr auto cos_angle(const context &ctx,
                                                 const vector3 &dir,
-                                                const point_t &p = {}) const
+                                                const point_t &p) const
         -> scalar_type {
         return vector::dot(dir, normal(ctx, p));
     }
@@ -160,7 +160,7 @@ class surface {
     /// a given geometry context @param ctx and track direction @param dir
     DETRAY_HOST_DEVICE
     constexpr point2 global_to_bound(const context &ctx, const point3 &global,
-                                     const vector3 &dir = {}) const {
+                                     const vector3 &dir) const {
         return visit_mask<typename kernels::global_to_bound>(transform(ctx),
                                                              global, dir);
     }
@@ -169,7 +169,7 @@ class surface {
     /// a given geometry context @param ctx and track direction @param dir
     DETRAY_HOST_DEVICE
     constexpr point3 global_to_local(const context &ctx, const point3 &global,
-                                     const vector3 &dir = {}) const {
+                                     const vector3 &dir) const {
         return visit_mask<typename kernels::global_to_local>(transform(ctx),
                                                              global, dir);
     }
@@ -181,7 +181,7 @@ class surface {
                                    std::is_same_v<point_t, point2>,
                                bool> = true>
     DETRAY_HOST_DEVICE constexpr point3 local_to_global(
-        const context &ctx, const point_t &p, const vector3 &dir = {}) const {
+        const context &ctx, const point_t &p, const vector3 &dir) const {
         return visit_mask<typename kernels::local_to_global>(transform(ctx), p,
                                                              dir);
     }
