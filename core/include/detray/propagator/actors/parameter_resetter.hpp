@@ -12,7 +12,6 @@
 #include "detray/definitions/track_parametrization.hpp"
 #include "detray/geometry/surface.hpp"
 #include "detray/propagator/base_actor.hpp"
-#include "detray/tracks/detail/track_helper.hpp"
 
 namespace detray {
 

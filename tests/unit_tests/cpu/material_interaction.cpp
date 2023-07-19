@@ -130,28 +130,30 @@ GTEST_TEST(detray_materials, telescope_geometry_energy_loss) {
     // Interaction object
     interaction<scalar> I;
 
-    // intersection with a zero incidence angle
-    intersection2D<typename decltype(det)::surface_type, transform3> is;
-    is.cos_incidence_angle = 1.f;
+    // Zero incidence angle
+    const scalar cos_inc_ang{1.f};
 
     // Same material used for default telescope detector
     material_slab<scalar> slab(mat, thickness);
+
+    // Path segment in the material
+    const scalar path_segment{slab.path_segment(cos_inc_ang)};
 
     // Expected Bethe Stopping power for telescope geometry is estimated
     // as (number of planes * energy loss per plane assuming 1 GeV muon).
     // It is not perfectly precise as the track loses its energy during
     // propagation. However, since the energy loss << the track momentum,
     // the assumption is not very bad
-    const scalar dE{
-        I.compute_energy_loss_bethe(is, slab, pdg, mass, q / iniP, q) *
-        static_cast<scalar>(positions.size())};
+    const scalar dE{I.compute_energy_loss_bethe(path_segment, slab, pdg, mass,
+                                                q / iniP, q) *
+                    static_cast<scalar>(positions.size())};
 
     // Check if the new energy after propagation is enough close to the
     // expected value
     EXPECT_NEAR(newE, iniE - dE, 1e-5f);
 
     const scalar sigma_qop{I.compute_energy_loss_landau_sigma_QOverP(
-        is, slab, pdg, mass, q / iniP, q)};
+        path_segment, slab, pdg, mass, q / iniP, q)};
 
     const scalar dvar_qop{sigma_qop * sigma_qop *
                           static_cast<scalar>(positions.size() - 1u)};
