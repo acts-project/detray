@@ -37,15 +37,24 @@ int main(int, char**) {
     toy_detector_t::geometry_context context{};
     views::x_y view;
 
-    for (const auto& description : det.portals()) {
+    style::stroke stroke_black = style::stroke();
+    auto axis =
+        draw::x_y_axes("xy", {-250, 250}, {-250, 250}, stroke_black, "x", "y");
 
+    auto indices = {0, 1, 2, 3};
+
+    auto q = detray::views::pick(det.portals(), indices);
+    int index = 0;
+    for (const auto& description : det.portals()) {
+        index++;
         const auto portal = detray::surface{det, description};
-        const auto name = "toy_detector_portal";
+        const auto name = "toy_detector_portal" + std::to_string(index);
 
         const auto svg = detray::actsvg_visualization::svg(name, det, portal, context, view);
 
         svg::file file;
         file.add_object(svg);
+        file.add_object(axis);
         detray::io::detail::file_handle stream{std::string("test_plugins_actsvg_") + name,
                                            ".svg",
                                            std::ios::out | std::ios::trunc};

@@ -64,9 +64,9 @@ inline auto convert_transform(const transform_t& d_transform) {
     constexpr auto rad_to_deg = 180.0 / 3.14;
     ret._tr = {static_cast<actsvg::scalar>(translation[0]),
                static_cast<actsvg::scalar>(translation[1])};
-    ret._rot = {static_cast<actsvg::scalar>(euler_angles[2] * rad_to_deg),
+    ret._rot = {static_cast<actsvg::scalar>(euler_angles[0] * rad_to_deg),
                 static_cast<actsvg::scalar>(euler_angles[1] * rad_to_deg),
-                static_cast<actsvg::scalar>(euler_angles[0] * rad_to_deg)};
+                static_cast<actsvg::scalar>(euler_angles[2] * rad_to_deg)};
 
     return ret;
 }

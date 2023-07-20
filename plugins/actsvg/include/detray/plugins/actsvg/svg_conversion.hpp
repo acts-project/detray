@@ -100,11 +100,21 @@ namespace detray::actsvg_visualization {
     const detector_t detector,
     const typename detector_t::geometry_context& context,
     const view_t view,
-    const detector_style = default_detector_style
+    const detector_style& style = default_detector_style
     )
     {
-        actsvg::svg::object t;
-        return t;
+        actsvg::svg::object ret;
+        ret._tag = "g";
+        ret._id = object_name;
+        for (size_t i = 0; i < detector.surface_lookup().size(); i++){
+            const auto description = detector.surface_lookup()[i];
+            if (description.volume() != 7){
+                continue;
+            }
+            const auto d_surface = detray::surface{detector, description};
+            ret.add_object(svg(object_name + std::to_string(i), detector, d_surface, context, view, style));
+        }
+        return ret;
     }
 
     void write_svg(const actsvg::svg::object& svg, const std::string& path){

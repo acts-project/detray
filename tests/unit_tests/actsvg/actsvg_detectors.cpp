@@ -41,30 +41,15 @@ int main(int, char**) {
 
     views::x_y view;
 
-    // Create SVG file.
-    svg::file file;
-
-    auto indices = {13, 20, 100, 150, 200, 250};
-
-    std::vector<actsvg::svg::object> objs;
-
-    for (const auto& pair :
-         detray::views::pick(det.surface_lookup(), indices)) {
-        const auto index = pair.first;
-        const auto description = pair.second;
-        const auto surface = detray::surface{det, description};
-
-        auto name = "detector_surface" + std::to_string(index);
-        const auto svg = detray::actsvg_visualization::svg(name, det, surface, context, view);
-
-        objs.push_back(svg);
-    }
+    const auto name = std::string("test_plugins_actsvg_detector");
 
     // Draw x-y-axis.
     style::stroke stroke_black = style::stroke();
     auto axis =
         draw::x_y_axes("xy", {-250, 250}, {-250, 250}, stroke_black, "x", "y");  
-    objs.push_back(axis);
+    
+    // Draw detetector
+    const auto svg = detray::actsvg_visualization::svg(name, det, context, view);
 
-    detray::actsvg_visualization::write_svg(objs, "test_plugins_actsvg_detector.svg");
+    detray::actsvg_visualization::write_svg(std::array{axis, svg}, name + ".svg");
 }
