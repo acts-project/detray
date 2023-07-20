@@ -68,23 +68,29 @@ struct material_slab : public detail::homogeneous_material_tag {
     /// Return the nuclear interaction length fraction.
     DETRAY_HOST_DEVICE
     constexpr scalar_type thickness_in_L0() const { return m_thickness_in_L0; }
-    /// Return the path segment
-    template <typename intersection_t>
+
+    /// @returns the path segment through the material
+    ///
+    /// @param cos_inc_angle cosine of the track incidence angle
     DETRAY_HOST_DEVICE constexpr scalar_type path_segment(
-        const intersection_t& is) const {
-        return m_thickness / is.cos_incidence_angle;
+        const scalar_type cos_inc_angle, const scalar_type = 0.f) const {
+        return m_thickness / cos_inc_angle;
     }
-    /// Return the path segment in X0
-    template <typename intersection_t>
+
+    /// @returns the path segment through the material in X0
+    ///
+    /// @param cos_inc_angle cosine of the track incidence angle
     DETRAY_HOST_DEVICE constexpr scalar_type path_segment_in_X0(
-        const intersection_t& is) const {
-        return m_thickness_in_X0 / is.cos_incidence_angle;
+        const scalar_type cos_inc_angle, const scalar_type = 0.f) const {
+        return m_thickness_in_X0 / cos_inc_angle;
     }
-    /// Return the path segment in L0
-    template <typename intersection_t>
+
+    /// @returns the path segment through the material in L0
+    ///
+    /// @param cos_inc_angle cosine of the track incidence angle
     DETRAY_HOST_DEVICE constexpr scalar_type path_segment_in_L0(
-        const intersection_t& is) const {
-        return m_thickness_in_L0 / is.cos_incidence_angle;
+        const scalar_type cos_inc_angle, const scalar_type = 0.f) const {
+        return m_thickness_in_L0 / cos_inc_angle;
     }
 
     private:

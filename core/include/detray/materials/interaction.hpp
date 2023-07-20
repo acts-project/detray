@@ -24,20 +24,14 @@ struct interaction {
     using relativistic_quantities =
         detail::relativistic_quantities<scalar_type>;
 
-    template <typename material_t, typename surface_t, typename algebra_t>
+    template <typename material_t>
     DETRAY_HOST_DEVICE scalar_type compute_energy_loss_bethe(
-        const intersection2D<surface_t, algebra_t>& is, const material_t& mat,
+        const scalar_type path_segment, const material_t& mat,
         const int /*pdg*/, const scalar_type m, const scalar_type qOverP,
         const scalar_type q) const {
 
-        // return early in case of vacuum or zero thickness
-        if (not mat) {
-            return 0.f;
-        }
-
         const scalar_t I{mat.get_material().mean_excitation_energy()};
         const scalar_t Ne{mat.get_material().molar_electron_density()};
-        const scalar_t path_segment{mat.path_segment(is)};
         const relativistic_quantities rq(m, qOverP, q);
         const scalar_t eps{rq.compute_epsilon(Ne, path_segment)};
         const scalar_t dhalf{rq.compute_delta_half(mat.get_material())};
@@ -53,20 +47,14 @@ struct interaction {
         return eps * running;
     }
 
-    template <typename material_t, typename surface_t, typename algebra_t>
+    template <typename material_t>
     DETRAY_HOST_DEVICE scalar_type compute_energy_loss_landau(
-        const intersection2D<surface_t, algebra_t>& is, const material_t& mat,
+        const scalar_type path_segment, const material_t& mat,
         const int /*pdg*/, const scalar_type m, const scalar_type qOverP,
         const scalar_type q) const {
 
-        // return early in case of vacuum or zero thickness
-        if (not mat) {
-            return 0.f;
-        }
-
         const scalar_t I{mat.get_material().mean_excitation_energy()};
         const scalar_t Ne{mat.get_material().molar_electron_density()};
-        const scalar_t path_segment{mat.path_segment(is)};
         const relativistic_quantities rq(m, qOverP, q);
         const scalar_t eps{rq.compute_epsilon(Ne, path_segment)};
         const scalar_t dhalf{rq.compute_delta_half(mat.get_material())};
@@ -77,49 +65,38 @@ struct interaction {
         return eps * running;
     }
 
-    template <typename material_t, typename surface_t, typename algebra_t>
+    template <typename material_t>
     DETRAY_HOST_DEVICE scalar_type compute_energy_loss_landau_fwhm(
-        const intersection2D<surface_t, algebra_t>& is, const material_t& mat,
+        const scalar_type path_segment, const material_t& mat,
         const int /*pdg*/, const scalar_type m, const scalar_type qOverP,
         const scalar_type q) const {
         const auto Ne = mat.get_material().molar_electron_density();
-        const auto path_segment = mat.path_segment(is);
         const relativistic_quantities rq(m, qOverP, q);
 
         // the Landau-Vavilov fwhm is 4*eps (see RPP2018 fig. 33.7)
         return 4.f * rq.compute_epsilon(Ne, path_segment);
     }
 
-    template <typename material_t, typename surface_t, typename algebra_t>
+    template <typename material_t>
     DETRAY_HOST_DEVICE scalar_type compute_energy_loss_landau_sigma(
-        const intersection2D<surface_t, algebra_t>& is, const material_t& mat,
-        const int pdg, const scalar_type m, const scalar_type qOverP,
+        const scalar_type path_segment, const material_t& mat, const int pdg,
+        const scalar_type m, const scalar_type qOverP,
         const scalar_type q) const {
 
-        // return early in case of vacuum or zero thickness
-        if (not mat) {
-            return 0.f;
-        }
-
-        const scalar_t fwhm{
-            compute_energy_loss_landau_fwhm(is, mat, pdg, m, qOverP, q)};
+        const scalar_t fwhm{compute_energy_loss_landau_fwhm(path_segment, mat,
+                                                            pdg, m, qOverP, q)};
 
         return convert_landau_fwhm_to_gaussian_sigma(fwhm);
     }
 
-    template <typename material_t, typename surface_t, typename algebra_t>
+    template <typename material_t>
     DETRAY_HOST_DEVICE scalar_type compute_energy_loss_landau_sigma_QOverP(
-        const intersection2D<surface_t, algebra_t>& is, const material_t& mat,
-        const int pdg, const scalar_type m, const scalar_type qOverP,
+        const scalar_type path_segment, const material_t& mat, const int pdg,
+        const scalar_type m, const scalar_type qOverP,
         const scalar_type q) const {
 
-        // return early in case of vacuum or zero thickness
-        if (not mat) {
-            return 0.f;
-        }
-
-        const scalar_t sigmaE{
-            compute_energy_loss_landau_sigma(is, mat, pdg, m, qOverP, q)};
+        const scalar_t sigmaE{compute_energy_loss_landau_sigma(
+            path_segment, mat, pdg, m, qOverP, q)};
 
         //  var(q/p) = (d(q/p)/dE)² * var(E)
         // d(q/p)/dE = d/dE (q/sqrt(E²-m²))
@@ -136,18 +113,10 @@ struct interaction {
         return std::sqrt(rq.m_q2OverBeta2) * pInv * pInv * sigmaE;
     }
 
-    template <typename material_t, typename surface_t, typename algebra_t>
     DETRAY_HOST_DEVICE scalar_type compute_multiple_scattering_theta0(
-        const intersection2D<surface_t, algebra_t>& is, const material_t& mat,
-        const int pdg, const scalar_type m, const scalar_type qOverP,
-        const scalar_type q) const {
-        // return early in case of vacuum or zero thickness
-        if (not mat) {
-            return 0.f;
-        }
+        const scalar_type xOverX0, const int pdg, const scalar_type m,
+        const scalar_type qOverP, const scalar_type q) const {
 
-        // relative radiation length
-        const scalar_type xOverX0{mat.path_segment_in_X0(is)};
         // 1/p = q/(pq) = (q/p)/q
         const scalar_type momentumInv{std::abs(qOverP / q)};
         // q²/beta²; a smart compiler should be able to remove the unused

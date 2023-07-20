@@ -131,14 +131,14 @@ GTEST_TEST(detray_materials, material_slab) {
     constexpr material_slab<scalar> slab(oxygen_gas<scalar>(),
                                          2.f * unit<scalar>::mm);
 
-    intersection_t is;
-    is.cos_incidence_angle = 0.3f;
+    const scalar cos_inc_ang{0.3f};
 
-    EXPECT_NEAR(slab.path_segment(is), 2.f * unit<scalar>::mm / 0.3f, tol);
-    EXPECT_NEAR(slab.path_segment_in_X0(is),
-                slab.path_segment(is) / slab.get_material().X0(), tol);
-    EXPECT_NEAR(slab.path_segment_in_L0(is),
-                slab.path_segment(is) / slab.get_material().L0(), tol);
+    EXPECT_NEAR(slab.path_segment(cos_inc_ang), 2.f * unit<scalar>::mm / 0.3f,
+                tol);
+    EXPECT_NEAR(slab.path_segment_in_X0(cos_inc_ang),
+                slab.path_segment(cos_inc_ang) / slab.get_material().X0(), tol);
+    EXPECT_NEAR(slab.path_segment_in_L0(cos_inc_ang),
+                slab.path_segment(cos_inc_ang) / slab.get_material().L0(), tol);
 }
 
 // This tests the material rod functionalities
@@ -166,10 +166,15 @@ GTEST_TEST(detray_materials, material_rod) {
     intersection_t is = line_intersector<intersection_t>()(
         detail::ray<transform3>(trk), surface_descriptor<>{}, ln, tf);
 
-    EXPECT_NEAR(rod.path_segment(is), 2.f * std::sqrt(10.f - 10.f / 36.f),
-                1e-5f);
-    EXPECT_NEAR(rod.path_segment_in_X0(is),
-                rod.path_segment(is) / rod.get_material().X0(), tol);
-    EXPECT_NEAR(rod.path_segment_in_L0(is),
-                rod.path_segment(is) / rod.get_material().L0(), tol);
+    const scalar cos_inc_ang{is.cos_incidence_angle};
+    const scalar approach{is.local[0]};
+
+    EXPECT_NEAR(rod.path_segment(cos_inc_ang, approach),
+                2.f * std::sqrt(10.f - 10.f / 36.f), 1e-5f);
+    EXPECT_NEAR(
+        rod.path_segment_in_X0(cos_inc_ang, approach),
+        rod.path_segment(cos_inc_ang, approach) / rod.get_material().X0(), tol);
+    EXPECT_NEAR(
+        rod.path_segment_in_L0(cos_inc_ang, approach),
+        rod.path_segment(cos_inc_ang, approach) / rod.get_material().L0(), tol);
 }
