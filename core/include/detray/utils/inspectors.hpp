@@ -107,8 +107,8 @@ struct print_inspector {
         for (const auto &sf_cand : state.candidates()) {
             const auto &local = sf_cand.local;
             const auto pos =
-                surface{*state.detector(), sf_cand.surface}.local_to_global(
-                    geo_ctx_t{}, local);
+                surface{*state.detector(), sf_cand.sf_desc}.local_to_global(
+                    geo_ctx_t{}, local, {});
 
             debug_stream << sf_cand;
             debug_stream << ", glob: [r:" << getter::perp(pos)
@@ -119,7 +119,8 @@ struct print_inspector {
             if (state.is_exhausted()) {
                 debug_stream << "exhausted" << std::endl;
             } else {
-                debug_stream << " -> " << state.next_object() << std::endl;
+                debug_stream << " -> " << state.next_surface().barcode()
+                             << std::endl;
             }
         }
 
@@ -144,14 +145,22 @@ struct print_inspector {
                 debug_stream << "status" << tabs << "on_portal" << std::endl;
                 break;
         };
-        debug_stream << "current object\t\t\t" << state.current_object()
-                     << std::endl;
+
+        debug_stream << "current object\t\t\t";
+        if (state.is_on_portal() or state.is_on_module() or
+            state.status() == status::e_on_target) {
+            debug_stream << state.barcode() << std::endl;
+        } else {
+            debug_stream << "undefined" << std::endl;
+        }
+
         debug_stream << "distance to next\t\t";
         if (std::abs(state()) < state.tolerance()) {
             debug_stream << "on obj (within tol)" << std::endl;
         } else {
             debug_stream << state() << std::endl;
         }
+
         switch (state.trust_level()) {
             case trust_level::e_no_trust:
                 debug_stream << "trust" << tabs << "no_trust" << std::endl;
@@ -214,18 +223,19 @@ struct print_inspector : actor {
                 break;
         };
 
-        if (navigation.volume() == dindex_invalid) {
+        if (is_invalid_value(navigation.volume())) {
             printer.stream << "volume: " << std::setw(10) << "invalid";
         } else {
             printer.stream << "volume: " << std::setw(10)
                            << navigation.volume();
         }
 
-        if (navigation.current_object().is_invalid()) {
-            printer.stream << "surface: " << std::setw(14) << "invalid";
+        printer.stream << "surface: " << std::setw(14);
+        if (navigation.is_on_portal() or navigation.is_on_module() or
+            navigation.status() == navigation::status::e_on_target) {
+            printer.stream << navigation.barcode();
         } else {
-            printer.stream << "surface: " << std::setw(14)
-                           << navigation.current_object();
+            printer.stream << "undefined";
         }
 
         printer.stream << "step_size: " << std::setw(10) << stepping._step_size

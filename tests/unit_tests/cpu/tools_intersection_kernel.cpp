@@ -160,28 +160,28 @@ GTEST_TEST(detray_intersection, intersection_kernel_ray) {
 
         vector3 global;
 
-        if (sfi_init[i].surface.mask().id() == e_rectangle2) {
+        if (sfi_init[i].sf_desc.mask().id() == e_rectangle2) {
             global =
                 rect.to_global_frame(transform_store[0], sfi_init[i].local);
-        } else if (sfi_init[i].surface.mask().id() == e_trapezoid2) {
+        } else if (sfi_init[i].sf_desc.mask().id() == e_trapezoid2) {
             global =
                 trap.to_global_frame(transform_store[1], sfi_init[i].local);
-        } else if (sfi_init[i].surface.mask().id() == e_annulus2) {
+        } else if (sfi_init[i].sf_desc.mask().id() == e_annulus2) {
             global =
                 annl.to_global_frame(transform_store[2], sfi_init[i].local);
-        } else if (sfi_init[i].surface.mask().id() == e_cylinder2) {
+        } else if (sfi_init[i].sf_desc.mask().id() == e_cylinder2) {
             global = cyl.to_global_frame(transform_store[3], sfi_init[i].local);
-        } else if (sfi_init[i].surface.mask().id() == e_cylinder2_portal) {
+        } else if (sfi_init[i].sf_desc.mask().id() == e_cylinder2_portal) {
             global = cyl_portal.to_global_frame(transform_store[4],
                                                 sfi_init[i].local);
         }
 
         EXPECT_NEAR(global[0], expected_points[i][0], 1e-3f)
-            << " at surface " << sfi_init[i].surface.barcode();
+            << " at surface " << sfi_init[i].sf_desc.barcode();
         EXPECT_NEAR(global[1], expected_points[i][1], 1e-3f)
-            << " at surface " << sfi_init[i].surface.barcode();
+            << " at surface " << sfi_init[i].sf_desc.barcode();
         EXPECT_NEAR(global[2], expected_points[i][2], 1e-3f)
-            << " at surface " << sfi_init[i].surface.barcode();
+            << " at surface " << sfi_init[i].sf_desc.barcode();
     }
 
     // Update kernel
@@ -192,7 +192,7 @@ GTEST_TEST(detray_intersection, intersection_kernel_ray) {
     sfi_update.resize(5);
 
     for (const auto [idx, surface] : detray::views::enumerate(surfaces)) {
-        sfi_update[idx].surface = surface;
+        sfi_update[idx].sf_desc = surface;
         mask_store.visit<intersection_update>(
             surface.mask(), detail::ray(track), sfi_update[idx],
             transform_store);

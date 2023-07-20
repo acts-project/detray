@@ -72,13 +72,12 @@ struct random_scatterer : actor {
         using scalar_type = typename interaction_type::scalar_type;
         using state = typename random_scatterer::state;
 
-        template <typename material_group_t, typename index_t,
-                  typename surface_t>
+        template <typename material_group_t, typename index_t>
         DETRAY_HOST_DEVICE inline void operator()(
             const material_group_t& material_group,
-            const index_t& material_range,
-            const intersection2D<surface_t, transform3_type>& is, state& s,
-            const bound_track_parameters<transform3_type>& bound_params) const {
+            const index_t& material_range, state& s,
+            const bound_track_parameters<transform3_type>& bound_params,
+            const scalar_type cos_inc_angle, const scalar_type approach) const {
 
             const scalar qop = bound_params.qop();
             const scalar charge = bound_params.charge();
@@ -86,24 +85,32 @@ struct random_scatterer : actor {
             for (const auto& mat :
                  detray::ranges::subrange(material_group, material_range)) {
 
+                if (not mat) {
+                    continue;
+                }
+
+                const scalar_type path_segment{
+                    mat.path_segment(cos_inc_angle, approach)};
+
                 // Energy Loss
                 if (s.do_energy_loss) {
                     s.e_loss_mpv =
                         interaction_type().compute_energy_loss_landau(
-                            is, mat, s.pdg, s.mass, qop, charge);
+                            path_segment, mat, s.pdg, s.mass, qop, charge);
 
                     s.e_loss_sigma =
                         interaction_type().compute_energy_loss_landau_sigma(
-                            is, mat, s.pdg, s.mass, qop, charge);
+                            path_segment, mat, s.pdg, s.mass, qop, charge);
                 }
 
-                // Covariance update
+                // Scattering angle
                 if (s.do_multiple_scattering) {
                     // @todo: use momentum before or after energy loss in
                     // backward mode?
                     s.projected_scattering_angle =
                         interaction_type().compute_multiple_scattering_theta0(
-                            is, mat, s.pdg, s.mass, qop, charge);
+                            mat.path_segment_in_X0(cos_inc_angle, approach),
+                            s.pdg, s.mass, qop, charge);
                 }
             }
         }
@@ -123,9 +130,10 @@ struct random_scatterer : actor {
         auto& stepping = prop_state._stepping;
         auto& bound_params = stepping._bound_params;
         const auto& is = *navigation.current();
-        const auto sf = surface{*navigation.detector(), is.surface};
+        const auto sf = navigation.get_surface();
 
-        sf.template visit_material<kernel>(is, simulator_state, bound_params);
+        sf.template visit_material<kernel>(simulator_state, bound_params,
+                                           is.cos_incidence_angle, is.local[0]);
 
         // Get the new momentum
         const auto new_mom = attenuate(

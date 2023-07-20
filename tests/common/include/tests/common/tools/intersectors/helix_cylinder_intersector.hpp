@@ -161,7 +161,7 @@ struct helix_cylinder_intersector
 
             // Compute some additional information if the intersection is valid
             if (is.status == intersection::status::e_inside) {
-                is.surface = sf;
+                is.sf_desc = sf;
                 is.direction = std::signbit(s)
                                    ? intersection::direction::e_opposite
                                    : intersection::direction::e_along;

@@ -214,31 +214,19 @@ TEST_P(TelescopeDetectorSimulation, telescope_detector_simulation) {
     // Create geometry
     vecmem::host_memory_resource host_mr;
 
-    // Use rectangle surfaces
-    mask<rectangle2D<>> rectangle{0u, 1000.f * unit<scalar>::mm,
-                                  1000.f * unit<scalar>::mm};
-
     // Build from given module positions
     std::vector<scalar> positions = {0.f,   50.f,  100.f, 150.f, 200.f, 250.f,
                                      300.f, 350.f, 400.f, 450.f, 500.f};
 
-    const auto mat = silicon_tml<scalar>();
     // A thickness larger than 0.1 cm will flip the track direction of low
     // energy (or non-relativistic) particle due to the large scattering
     const scalar thickness = 0.005f * unit<scalar>::cm;
 
-    // Detector type
-    using detector_type =
-        detray::detector<telescope_metadata<rectangle2D<>>, covfie::field>;
+    tel_det_config<rectangle2D<>> tel_cfg{1000.f * unit<scalar>::mm,
+                                          1000.f * unit<scalar>::mm};
+    tel_cfg.positions(positions).mat_thickness(thickness);
 
-    // Create B field
-    const vector3 B{0.f, 0.f, 2.f * unit<scalar>::T};
-    using b_field_t = typename detector_type::bfield_type;
-
-    const auto detector = create_telescope_detector(
-        host_mr,
-        b_field_t(b_field_t::backend_t::configuration_t{B[0], B[1], B[2]}),
-        rectangle, positions, mat, thickness);
+    const auto detector = create_telescope_detector(host_mr, tel_cfg);
 
     // Momentum
     const scalar mom = std::get<0>(GetParam());

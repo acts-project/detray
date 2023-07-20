@@ -78,7 +78,7 @@ struct cylinder_portal_intersector
                                     : qe.larger()};
             is = this->template build_candidate(ray, mask, trf, t,
                                                 mask_tolerance);
-            is.surface = sf;
+            is.sf_desc = sf;
         } else {
             is.status = intersection::status::e_missed;
         }
@@ -103,7 +103,7 @@ struct cylinder_portal_intersector
         const ray_type &ray, intersection_t &sfi, const mask_t &mask,
         const transform3_type &trf,
         const scalar_type mask_tolerance = 0.f) const {
-        sfi = this->operator()(ray, sfi.surface, mask, trf, mask_tolerance);
+        sfi = this->operator()(ray, sfi.sf_desc, mask, trf, mask_tolerance);
     }
 };
 

@@ -37,6 +37,8 @@ class ray {
     using matrix_operator = typename transform3_t::matrix_actor;
     using track_helper = detail::track_helper<matrix_operator>;
 
+    ray() = default;
+
     /// Parametrized constructor that complies with track interface
     ///
     /// @param pos the track position

@@ -79,6 +79,7 @@ struct coordinate_base {
         bound_vector bound_vec;
         matrix_operator().element(bound_vec, e_bound_loc0, 0u) = local[0];
         matrix_operator().element(bound_vec, e_bound_loc1, 0u) = local[1];
+        // The angles are defined in the global frame!
         matrix_operator().element(bound_vec, e_bound_phi, 0u) =
             getter::phi(dir);
         matrix_operator().element(bound_vec, e_bound_theta, 0u) =

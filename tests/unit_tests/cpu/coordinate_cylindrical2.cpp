@@ -93,7 +93,7 @@ GTEST_TEST(detray_coordinates, cylindrical2) {
     }
 
     // Normal vector
-    const vector3 n = c2.normal(trf, free_params.pos(), free_params.dir());
+    const vector3 n = c2.normal(trf, local);
     ASSERT_NEAR(n[0], constant<scalar>::inv_sqrt2, isclose);
     ASSERT_NEAR(n[1], constant<scalar>::inv_sqrt2, isclose);
     ASSERT_NEAR(n[2], 0.f, isclose);
