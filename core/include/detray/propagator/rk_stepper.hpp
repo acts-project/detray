@@ -71,9 +71,14 @@ class rk_stepper final
 
         /// stepping data required for RKN4
         struct {
-            vector3 b_first, b_middle, b_last;
-            vector3 k1, k2, k3, k4;
-            array_t<scalar, 4> k_qop;
+            vector3 b_first{0.f, 0.f, 0.f};
+            vector3 b_middle{0.f, 0.f, 0.f};
+            vector3 b_last{0.f, 0.f, 0.f};
+            vector3 k1{0.f, 0.f, 0.f};
+            vector3 k2{0.f, 0.f, 0.f};
+            vector3 k3{0.f, 0.f, 0.f};
+            vector3 k4{0.f, 0.f, 0.f};
+            array_t<scalar, 4> k_qop{0.f, 0.f, 0.f, 0.f};
         } _step_data;
 
         /// Magnetic field view
