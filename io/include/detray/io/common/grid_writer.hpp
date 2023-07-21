@@ -72,7 +72,8 @@ class grid_writer : public writer_interface<detector_t> {
 
     /// Serialize the grid collections of a detector @param det into their io
     /// payload
-    static detector_grids_payload serialize(const detector_t& det) {
+    static detector_grids_payload serialize(
+        const detector_t& det, const typename detector_t::name_map&) {
 
         detector_grids_payload grids_data;
 

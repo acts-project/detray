@@ -82,9 +82,7 @@ class geometry_reader : public reader_interface<detector_t> {
             vbuilder.init_vol(det, static_cast<volume_id>(vol_data.type));
 
             // Set the volume name if available
-            if (not vol_data.name.empty()) {
-                name_map[vbuilder.vol_index() + 1u] = vol_data.name;
-            }
+            name_map[vbuilder.vol_index() + 1u] = vol_data.name;
 
             // @todo add the volume placement, once it can be checked for the
             // test detectors

@@ -50,7 +50,8 @@ inline void test_finder(const acc_t& finder, const dindex volume_index,
     }
 }
 
-inline bool test_toy_detector(const detector<toy_metadata<>>& toy_det) {
+inline bool test_toy_detector(const detector<toy_metadata<>>& toy_det,
+                              const detector<toy_metadata<>>::name_map& names) {
 
     using detector_t = detector<toy_metadata<>>;
     using geo_obj_ids = typename detector_t::geo_obj_ids;
@@ -63,6 +64,8 @@ inline bool test_toy_detector(const detector<toy_metadata<>>& toy_det) {
     using material_link_t = typename detector_t::surface_type::material_link;
     using sf_finder_ids = typename detector_t::sf_finders::id;
     using sf_finder_link_t = typename volume_t::link_type::index_type;
+
+    EXPECT_EQ(names.at(0u), "toy_detector");
 
     geo_context_t ctx{};
     auto& volumes = toy_det.volumes();
@@ -249,6 +252,7 @@ inline bool test_toy_detector(const detector<toy_metadata<>>& toy_det) {
 
     // Check volume
     auto vol_itr = volumes.begin();
+    EXPECT_EQ(names.at(vol_itr->index() + 1), "beampipe_0");
     darray<dindex, 1> index = {0u};
     sf_finder_link_t sf_finder_link{sf_finder_ids::e_brute_force, 0u};
 
@@ -294,6 +298,7 @@ inline bool test_toy_detector(const detector<toy_metadata<>>& toy_det) {
 
     // Check volume
     ++vol_itr;
+    EXPECT_EQ(names.at(vol_itr->index() + 1), "endcap_1");
     range = {16u, 128u};
     index = {1u};
     sf_finder_link = {sf_finder_ids::e_disc_grid, 0u};
@@ -334,6 +339,7 @@ inline bool test_toy_detector(const detector<toy_metadata<>>& toy_det) {
 
     // Check volume
     ++vol_itr;
+    EXPECT_EQ(names.at(vol_itr->index() + 1), "gap_2");
     range = {128u, 132u};
     index = {2u};
     sf_finder_link = {sf_finder_ids::e_brute_force, 0u};
@@ -365,6 +371,7 @@ inline bool test_toy_detector(const detector<toy_metadata<>>& toy_det) {
 
     // Check volume
     ++vol_itr;
+    EXPECT_EQ(names.at(vol_itr->index() + 1), "endcap_3");
     range = {132u, 244u};
     index = {3u};
     sf_finder_link = {sf_finder_ids::e_disc_grid, 1u};
@@ -404,6 +411,7 @@ inline bool test_toy_detector(const detector<toy_metadata<>>& toy_det) {
 
     // Check volume
     ++vol_itr;
+    EXPECT_EQ(names.at(vol_itr->index() + 1), "gap_4");
     range = {244u, 248u};
     index = {4u};
     sf_finder_link = {sf_finder_ids::e_brute_force, 0u};
@@ -435,6 +443,7 @@ inline bool test_toy_detector(const detector<toy_metadata<>>& toy_det) {
 
     // Check volume
     ++vol_itr;
+    EXPECT_EQ(names.at(vol_itr->index() + 1), "endcap_5");
     range = {248u, 360u};
     index = {5u};
     sf_finder_link = {sf_finder_ids::e_disc_grid, 2u};
@@ -474,6 +483,7 @@ inline bool test_toy_detector(const detector<toy_metadata<>>& toy_det) {
 
     // Check volume
     ++vol_itr;
+    EXPECT_EQ(names.at(vol_itr->index() + 1), "connector_gap_6");
     range = {360u, 370u};
     index = {6u};
     sf_finder_link = {sf_finder_ids::e_brute_force, 0u};
@@ -510,6 +520,7 @@ inline bool test_toy_detector(const detector<toy_metadata<>>& toy_det) {
 
     // Check volume
     ++vol_itr;
+    EXPECT_EQ(names.at(vol_itr->index() + 1), "barrel_7");
     range = {370u, 598u};
     index = {7u};
     sf_finder_link = {sf_finder_ids::e_cylinder2_grid, 0u};
@@ -549,6 +560,7 @@ inline bool test_toy_detector(const detector<toy_metadata<>>& toy_det) {
 
     // Check volume
     ++vol_itr;
+    EXPECT_EQ(names.at(vol_itr->index() + 1), "gap_8");
     range = {598u, 602u};
     index = {8u};
     sf_finder_link = {sf_finder_ids::e_brute_force, 0u};
@@ -579,6 +591,7 @@ inline bool test_toy_detector(const detector<toy_metadata<>>& toy_det) {
 
     // Check volume
     ++vol_itr;
+    EXPECT_EQ(names.at(vol_itr->index() + 1), "barrel_9");
     range = {602u, 1054u};
     index = {9u};
     sf_finder_link = {sf_finder_ids::e_cylinder2_grid, 1u};
@@ -618,6 +631,7 @@ inline bool test_toy_detector(const detector<toy_metadata<>>& toy_det) {
 
     // Check volume
     ++vol_itr;
+    EXPECT_EQ(names.at(vol_itr->index() + 1), "gap_10");
     range = {1054u, 1058u};
     index = {10u};
     sf_finder_link = {sf_finder_ids::e_brute_force, 0u};
@@ -648,6 +662,7 @@ inline bool test_toy_detector(const detector<toy_metadata<>>& toy_det) {
 
     // Check volume
     ++vol_itr;
+    EXPECT_EQ(names.at(vol_itr->index() + 1), "barrel_11");
     range = {1058u, 1790u};
     index = {11u};
     sf_finder_link = {sf_finder_ids::e_cylinder2_grid, 2u};
@@ -687,6 +702,7 @@ inline bool test_toy_detector(const detector<toy_metadata<>>& toy_det) {
 
     // Check volume
     ++vol_itr;
+    EXPECT_EQ(names.at(vol_itr->index() + 1), "gap_12");
     range = {1790u, 1794u};
     index = {12u};
     sf_finder_link = {sf_finder_ids::e_brute_force, 0u};
@@ -717,6 +733,7 @@ inline bool test_toy_detector(const detector<toy_metadata<>>& toy_det) {
 
     // Check volume
     ++vol_itr;
+    EXPECT_EQ(names.at(vol_itr->index() + 1), "barrel_13");
     range = {1794u, 2890u};
     index = {13u};
     sf_finder_link = {sf_finder_ids::e_cylinder2_grid, 3u};
@@ -761,6 +778,7 @@ inline bool test_toy_detector(const detector<toy_metadata<>>& toy_det) {
 
     // Check volume
     ++vol_itr;
+    EXPECT_EQ(names.at(vol_itr->index() + 1), "connector_gap_14");
     range = {2890u, 2900u};
     index = {14u};
     sf_finder_link = {sf_finder_ids::e_brute_force, 0u};
@@ -793,6 +811,7 @@ inline bool test_toy_detector(const detector<toy_metadata<>>& toy_det) {
 
     // Check volume
     ++vol_itr;
+    EXPECT_EQ(names.at(vol_itr->index() + 1), "endcap_15");
     range = {2900u, 3012u};
     index = {15u};
     sf_finder_link = {sf_finder_ids::e_disc_grid, 3u};
@@ -832,6 +851,7 @@ inline bool test_toy_detector(const detector<toy_metadata<>>& toy_det) {
 
     // Check volume
     ++vol_itr;
+    EXPECT_EQ(names.at(vol_itr->index() + 1), "gap_16");
     range = {3012u, 3016u};
     index = {16u};
     sf_finder_link = {sf_finder_ids::e_brute_force, 0u};
@@ -863,6 +883,7 @@ inline bool test_toy_detector(const detector<toy_metadata<>>& toy_det) {
 
     // Check volume
     ++vol_itr;
+    EXPECT_EQ(names.at(vol_itr->index() + 1), "endcap_17");
     range = {3016u, 3128u};
     index = {17u};
     sf_finder_link = {sf_finder_ids::e_disc_grid, 4u};
@@ -902,6 +923,7 @@ inline bool test_toy_detector(const detector<toy_metadata<>>& toy_det) {
 
     // Check volume
     ++vol_itr;
+    EXPECT_EQ(names.at(vol_itr->index() + 1), "gap_18");
     range = {3128u, 3132u};
     index = {18u};
     sf_finder_link = {sf_finder_ids::e_brute_force, 0u};
@@ -933,6 +955,7 @@ inline bool test_toy_detector(const detector<toy_metadata<>>& toy_det) {
 
     // Check volume
     ++vol_itr;
+    EXPECT_EQ(names.at(vol_itr->index() + 1), "endcap_19");
     range = {3132u, 3244u};
     index = {19u};
     sf_finder_link = {sf_finder_ids::e_disc_grid, 5u};

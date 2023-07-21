@@ -28,5 +28,5 @@ GTEST_TEST(detray_detectors, toy_geometry) {
     const auto [toy_det, names] =
         create_toy_geometry(host_mr, n_brl_layers, n_edc_layers);
 
-    EXPECT_TRUE(test_toy_detector(toy_det));
+    EXPECT_TRUE(test_toy_detector(toy_det, names));
 }

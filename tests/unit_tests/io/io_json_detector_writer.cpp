@@ -79,11 +79,10 @@ TEST(io, json_toy_grid_writer) {
 
     // Toy detector
     vecmem::host_memory_resource host_mr;
-    detector_t det = create_toy_geometry(host_mr);
+    auto [det, names] = create_toy_geometry(host_mr);
 
     json_grid_writer<detector_t> grid_writer;
-    grid_writer.write(det, {{0u, "toy_detector"}},
-                      std::ios_base::out | std::ios_base::trunc);
+    grid_writer.write(det, names, std::ios_base::out | std::ios_base::trunc);
 }
 
 /// Test the writing of the entire toy detector to json
