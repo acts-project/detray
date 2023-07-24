@@ -51,7 +51,7 @@ class grid {
     /// owning grid holds a non-owning multi-axis member.
     using axes_type = multi_axis_t;
     using container_types = typename axes_type::container_types;
-    using local_frame = typename axes_type::local_frame_type;
+    using local_frame_type = typename axes_type::local_frame_type;
     using scalar_type = typename axes_type::scalar_type;
 
     /// Grid dimension
@@ -141,6 +141,10 @@ class grid {
     DETRAY_HOST_DEVICE
     auto axes() const -> const axes_type & { return m_axes; }
 
+    /// @returns the grid local coordinate system
+    DETRAY_HOST_DEVICE
+    static constexpr auto local_frame() -> local_frame_type { return {}; }
+
     /// @returns an axis object, corresponding to the index.
     template <std::size_t index>
     DETRAY_HOST_DEVICE inline constexpr auto get_axis() const {
@@ -187,7 +191,7 @@ class grid {
     DETRAY_HOST_DEVICE auto global_to_local(const transform_t &trf,
                                             const point3_t &p,
                                             const vector3_t &d) const {
-        return local_frame().global_to_local(trf, p, d);
+        return local_frame_type().global_to_local(trf, p, d);
     }
 
     /// @returns the iterable view of the bin content
@@ -278,7 +282,7 @@ class grid {
     ///
     /// @return the iterable view of the bin content
     DETRAY_HOST_DEVICE auto search(
-        const typename local_frame::point3 &p) const {
+        const typename local_frame_type::point3 &p) const {
         return bin(m_axes.bins(p));
     }
 
@@ -365,7 +369,19 @@ class grid {
         return 20u;
     }
 
+    /// @returns an instance of the grid serializer
     static constexpr auto serializer() -> serializer_t<Dim> { return {}; }
+
+    /// @returns a local multi-bin index from a global bin index @param gid
+    constexpr auto serialize(const dindex gid) const -> n_axis::multi_bin<Dim> {
+        return serializer()(axes(), gid);
+    }
+
+    /// @returns a global bin index from a local bin index @param mbin
+    constexpr auto serialize(const n_axis::multi_bin<Dim> &mbin) const
+        -> dindex {
+        return serializer()(axes(), mbin);
+    }
 
     /// @returns view of a grid, including the grids mulit_axis. Also valid if
     /// the value type of the grid is cv qualified (then value_t propagates

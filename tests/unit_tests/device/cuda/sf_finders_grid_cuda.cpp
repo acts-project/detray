@@ -110,8 +110,8 @@ TEST(grids_cuda, grid3_replace_populator) {
     for (unsigned int i_x = 0u; i_x < axis_x.nbins(); i_x++) {
         for (unsigned int i_y = 0u; i_y < axis_y.nbins(); i_y++) {
             for (unsigned int i_z = 0u; i_z < axis_z.nbins(); i_z++) {
-                const dindex gbin_idx = g3.serializer()(
-                    g3.axes(), detray::n_axis::multi_bin<3>{i_x, i_y, i_z});
+                const dindex gbin_idx =
+                    g3.serialize(detray::n_axis::multi_bin<3>{i_x, i_y, i_z});
 
                 const auto& bin = g3.bin(gbin_idx);
 
@@ -173,8 +173,8 @@ TEST(grids_cuda, grid2_replace_populator_ci) {
     // post-check
     for (unsigned int i_r = 0u; i_r < axis_r.nbins(); i_r++) {
         for (unsigned int i_phi = 0u; i_phi < axis_phi.nbins(); i_phi++) {
-            const dindex gbin_idx = g2.serializer()(
-                g2.axes(), detray::n_axis::multi_bin<2>{i_r, i_phi});
+            const dindex gbin_idx =
+                g2.serialize(detray::n_axis::multi_bin<2>{i_r, i_phi});
             const auto& bin = g2.bin(gbin_idx);
 
             const detray::scalar gbin_idx_f{
@@ -239,8 +239,8 @@ populator<host_grid2_complete::populator_impl>::init<point3>(first_tp));
     // post-check
     for (unsigned int i_r = 0u; i_r < axis_r.nbins(); i_r++) {
         for (unsigned int i_phi = 0u; i_phi < axis_phi.nbins(); i_phi++) {
-            const dindex gbin_idx = g2.serializer()(
-                g2.axes(), detray::n_axis::multi_bin<2>{i_r, i_phi});
+            const dindex gbin_idx = g2.serialize(
+                detray::n_axis::multi_bin<2>{i_r, i_phi});
             const auto& bin = g2.bin(gbin_idx);
 
             // Other point with which the bin has been completed
@@ -315,8 +315,8 @@ constant<scalar>::pi});
     // post-check
     for (unsigned int i_r = 0u; i_r < axis_r.nbins(); i_r++) {
         for (unsigned int i_phi = 0u; i_phi < axis_phi.nbins(); i_phi++) {
-            const dindex gbin_idx = g2.serializer()(
-                g2.axes(), detray::n_axis::multi_bin<2>{i_r, i_phi});
+            const dindex gbin_idx = g2.serialize(
+                detray::n_axis::multi_bin<2>{i_r, i_phi});
             const auto& bin = g2.bin(gbin_idx);
 
             // Other point with which the bin has been completed

@@ -10,8 +10,9 @@
 // Project include(s)
 #include "detray/definitions/indexing.hpp"
 #include "detray/geometry/surface.hpp"
-#include "detray/intersection/cylinder_portal_intersector.hpp"
+#include "detray/io/common/detail/definitions.hpp"
 #include "detray/io/common/detail/utils.hpp"
+#include "detray/io/common/grid_writer.hpp"
 #include "detray/io/common/io_interface.hpp"
 #include "detray/io/common/payloads.hpp"
 #include "detray/masks/masks.hpp"
@@ -19,6 +20,8 @@
 #include "detray/materials/material_slab.hpp"
 
 // System include(s)
+#include <algorithm>
+#include <limits>
 #include <string>
 #include <string_view>
 #include <vector>
@@ -97,43 +100,9 @@ class geometry_writer : public writer_interface<detector_t> {
               std::enable_if_t<!std::is_same_v<typename mask_t::shape, void>,
                                bool> = true>
     static mask_payload serialize(const mask_t& m) {
-        using shape_id = mask_payload::mask_shape;
         mask_payload mask_data;
 
-        // Find the correct shape index (use name for simplicity)
-        using shape_t = typename mask_t::shape;
-        if constexpr (std::is_same_v<shape_t, rectangle2D<>>) {
-            mask_data.shape = shape_id::rectangle2;
-        } else if constexpr (std::is_same_v<shape_t, trapezoid2D<>>) {
-            mask_data.shape = shape_id::trapezoid2;
-        } else if constexpr (std::is_same_v<shape_t, cylinder2D<>>) {
-            mask_data.shape = shape_id::cylinder2;
-        } else if constexpr (std::is_same_v<
-                                 shape_t,
-                                 cylinder2D<false,
-                                            cylinder_portal_intersector>>) {
-            mask_data.shape = shape_id::portal_cylinder2;
-        } else if constexpr (std::is_same_v<shape_t, ring2D<>>) {
-            mask_data.shape = shape_id::ring2;
-        } else if constexpr (std::is_same_v<shape_t, annulus2D<>>) {
-            mask_data.shape = shape_id::annulus2;
-        } else if constexpr (std::is_same_v<shape_t, line<true>>) {
-            mask_data.shape = shape_id::cell_wire;
-        } else if constexpr (std::is_same_v<shape_t, line<false>>) {
-            mask_data.shape = shape_id::straw_wire;
-        } else if constexpr (std::is_same_v<shape_t, single3D<0>>) {
-            mask_data.shape = shape_id::single1;
-        } else if constexpr (std::is_same_v<shape_t, single3D<1>>) {
-            mask_data.shape = shape_id::single2;
-        } else if constexpr (std::is_same_v<shape_t, single3D<2>>) {
-            mask_data.shape = shape_id::single3;
-        } else if constexpr (std::is_same_v<shape_t, cuboid3D<>>) {
-            mask_data.shape = shape_id::cuboid3;
-        } else if constexpr (std::is_same_v<shape_t, cylinder3D>) {
-            mask_data.shape = shape_id::cylinder3;
-        } else {
-            mask_data.shape = shape_id::unknown;
-        }
+        mask_data.shape = io::detail::get_shape_id<typename mask_t::shape>();
 
         mask_data.volume_link = serialize(m.volume_link());
 
@@ -182,11 +151,10 @@ class geometry_writer : public writer_interface<detector_t> {
     }
 
     /// Serialize a link @param idx into its io payload
-    template <typename vol_acc_id>
-    static acc_links_payload serialize(const vol_acc_id id,
+    static acc_links_payload serialize(const acc_links_payload::acc_type id,
                                        const std::size_t idx) {
         acc_links_payload link_data;
-        link_data.type = static_cast<acc_links_payload::acc_type>(id);
+        link_data.type = id;
         link_data.index = idx;
 
         return link_data;
@@ -220,7 +188,9 @@ class geometry_writer : public writer_interface<detector_t> {
         for (unsigned int i = 1u; i < link.size(); ++i) {
             const auto& l = link[i];
             if (not l.is_invalid()) {
-                vol_data.acc_links->push_back(serialize(l.id(), l.index()));
+                const auto aclp =
+                    det.surface_store().template visit<get_acc_link_payload>(l);
+                vol_data.acc_links->push_back(aclp);
             }
         }
 
@@ -236,13 +206,35 @@ class geometry_writer : public writer_interface<detector_t> {
             return geometry_writer<detector_t>::serialize(mask_group[index]);
         }
     };
-    /// Retrieve @c material_payload from material_store element
+
+    /// Retrieve @c material_link_payload from material_store element
     struct get_material_payload {
         template <typename material_group_t, typename index_t>
         inline auto operator()(const material_group_t&,
                                const index_t& index) const {
             return geometry_writer<detector_t>::template serialize<
                 typename material_group_t::value_type>(index);
+        }
+    };
+
+    /// Retrieve @c acc_links_payload from surface_tore collection
+    struct get_acc_link_payload {
+        template <typename acc_group_t, typename index_t>
+        constexpr inline auto operator()(const acc_group_t&,
+                                         const index_t& index) const {
+
+            using accel_t = typename acc_group_t::value_type;
+
+            if constexpr (detail::is_grid_v<accel_t>) {
+                constexpr auto id{io::detail::get_grid_id<accel_t>()};
+
+                return geometry_writer<detector_t>::serialize(id, index);
+            } else {
+                // This functor is only called for accelerator data structures
+                // that are not 'brute force'
+                return geometry_writer<detector_t>::serialize(
+                    acc_links_payload::acc_type::unknown, index);
+            }
         }
     };
 };
