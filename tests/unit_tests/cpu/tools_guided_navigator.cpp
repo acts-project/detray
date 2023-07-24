@@ -41,7 +41,7 @@ GTEST_TEST(detray_propagator, guided_navigator) {
     tel_det_config<unbounded<rectangle2D<>>> tel_cfg{20.f * unit<scalar>::mm,
                                                      20.f * unit<scalar>::mm};
 
-    const auto telescope_det =
+    const auto [telescope_det, names] =
         create_telescope_detector(host_mr, tel_cfg.positions(positions));
 
     // Inspectors are optional, of course

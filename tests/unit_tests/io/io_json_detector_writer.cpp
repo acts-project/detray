@@ -50,11 +50,11 @@ TEST(io, json_telescope_geometry_writer) {
 
     // Telescope detector
     vecmem::host_memory_resource host_mr;
-    detector_t det =
+    auto [det, names] =
         create_telescope_detector(host_mr, tel_cfg.positions(positions));
 
     json_geometry_writer<detector_t> geo_writer;
-    geo_writer.write(det, {{0u, "telescope_detector"}}, std::ios_base::out);
+    geo_writer.write(det, names, std::ios_base::out);
 }
 
 /// Test the writing of the toy detector material to json
@@ -65,11 +65,11 @@ TEST(io, json_telescope_material_writer) {
     // Telescope detector
     vecmem::host_memory_resource host_mr;
 
-    detector_t det =
+    auto [det, names] =
         create_telescope_detector(host_mr, tel_cfg.positions(positions));
 
     json_homogeneous_material_writer<detector_t> mat_writer;
-    mat_writer.write(det, {{0u, "telescope_detector"}}, std::ios_base::out);
+    mat_writer.write(det, names, std::ios_base::out);
 }
 
 /// Test the writing of the toy detector grids to json
@@ -79,24 +79,21 @@ TEST(io, json_toy_grid_writer) {
 
     // Toy detector
     vecmem::host_memory_resource host_mr;
-    detector_t det = create_toy_geometry(host_mr);
+    auto [det, names] = create_toy_geometry(host_mr);
 
     json_grid_writer<detector_t> grid_writer;
-    grid_writer.write(det, {{0u, "toy_detector"}},
-                      std::ios_base::out | std::ios_base::trunc);
+    grid_writer.write(det, names, std::ios_base::out | std::ios_base::trunc);
 }
 
 /// Test the writing of the entire toy detector to json
 TEST(io, json_toy_detector_writer) {
 
-    using detector_t = detector<toy_metadata<>>;
-
     // Toy detector
     vecmem::host_memory_resource host_mr;
-    detector_t det = create_toy_geometry(host_mr);
+    auto [det, names] = create_toy_geometry(host_mr);
 
     auto writer_cfg = io::detector_writer_config{}
                           .format(io::format::json)
                           .replace_files(true);
-    io::write_detector(det, {{0u, "toy_detector"}}, writer_cfg);
+    io::write_detector(det, names, writer_cfg);
 }

@@ -51,17 +51,23 @@ class surface {
     /// Not allowed: always needs a detector and a descriptor.
     surface() = delete;
 
-    /// Constructor from detector @param det and volume descriptor
-    /// @param vol_idx from that detector.
+    /// Constructor from detector @param det and surface descriptor
+    /// @param desc from that detector.
     DETRAY_HOST_DEVICE
     constexpr surface(const detector_t &det, const descr_t &desc)
         : m_detector{det}, m_desc{desc} {}
 
-    /// Constructor from detector @param det and volume index @param vol_idx in
+    /// Constructor from detector @param det and barcode @param bcd in
     /// that detector.
     DETRAY_HOST_DEVICE
     constexpr surface(const detector_t &det, const geometry::barcode bcd)
         : surface(det, det.surface(bcd)) {}
+
+    /// Conversion to surface interface around constant detector type
+    DETRAY_HOST_DEVICE
+    constexpr operator surface<const detector_t>() const {
+        return surface<const detector_t>{this->m_detector, this->m_desc};
+    }
 
     /// Equality operator
     ///

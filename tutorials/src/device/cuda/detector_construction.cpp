@@ -33,8 +33,7 @@ int main() {
     //
 
     // create toy geometry with vecmem managed memory resouce
-    detray::tutorial::detector_host_t det_mng =
-        detray::create_toy_geometry(mng_mr);
+    auto [det_mng, names_mng] = detray::create_toy_geometry(mng_mr);
 
     // Get the view onto the detector data directly
     auto det_mng_data = detray::get_data(det_mng);
@@ -48,8 +47,7 @@ int main() {
     //
 
     // create toy geometry in host memory
-    detray::tutorial::detector_host_t det_host =
-        detray::create_toy_geometry(host_mr);
+    auto [det_host, names_host] = detray::create_toy_geometry(host_mr);
 
     // Copy the detector data to device (synchronous copy, fixed size buffers)
     auto det_fixed_buff = detray::get_buffer(det_host, dev_mr, cuda_cpy);

@@ -38,7 +38,7 @@ int main(int argc, char** argv) {
     using detector_t = detray::detector<detray::toy_metadata<>>;
 
     // Empty volume name map (won't be filled by the reader, yet)
-    typename detector_t::name_map volume_name_map = {{0u, "toy_detector"}};
+    typename detector_t::name_map volume_name_map;
 
     // Create an empty detector to be filled
     vecmem::host_memory_resource host_mr;

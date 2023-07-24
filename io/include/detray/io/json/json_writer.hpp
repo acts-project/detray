@@ -18,6 +18,7 @@
 // System include(s)
 #include <cassert>
 #include <ios>
+#include <stdexcept>
 #include <string>
 
 namespace detray {
@@ -49,17 +50,23 @@ class json_writer final : public common_writer_t<detector_t> {
                 (mode == (std::ios_base::out | std::ios_base::trunc))) &&
                "Illegal file mode for json writer");
 
+        // By convention the name of the detector is the first element
+        std::string det_name = "";
+        if (not names.empty()) {
+            det_name = names.at(0);
+        }
+
         // Create a new file
-        std::string file_stem{names.at(0) + "_" + base_writer::tag};
+        std::string file_stem{det_name + "_" + base_writer::tag};
         io::detail::file_handle file{file_stem, this->m_file_extension, mode};
 
         // Write some general information
         nlohmann::ordered_json out_json;
-        out_json["header"] = base_writer::write_header(det, names.at(0));
+        out_json["header"] = base_writer::write_header(det, det_name);
 
         // Write the detector data into the json stream by using the
         // conversion functions defined in "detray/io/json/json_io.hpp"
-        out_json["data"] = base_writer::serialize(det);
+        out_json["data"] = base_writer::serialize(det, names);
 
         // Write to file
         *file << std::setw(4) << out_json << std::endl;

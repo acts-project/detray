@@ -60,12 +60,19 @@ class geometry_writer : public writer_interface<detector_t> {
     }
 
     /// Serialize a detector @param det into its io payload
-    static detector_payload serialize(const detector_t& det) {
+    static detector_payload serialize(
+        const detector_t& det, const typename detector_t::name_map& names) {
         detector_payload det_data;
         det_data.volumes.reserve((det.volumes().size()));
 
         for (const auto& vol : det.volumes()) {
-            det_data.volumes.push_back(serialize(vol, det));
+            const auto map_itr = names.find(vol.index() + 1u);
+            if (map_itr == names.end()) {
+                det_data.volumes.push_back(serialize(vol, det, ""));
+            } else {
+                det_data.volumes.push_back(
+                    serialize(vol, det, map_itr->second));
+            }
         }
 
         return det_data;
@@ -162,11 +169,12 @@ class geometry_writer : public writer_interface<detector_t> {
 
     /// Serialize a detector portal @param sf into its io payload
     static volume_payload serialize(
-        const typename detector_t::volume_type& vol_desc,
-        const detector_t& det) {
+        const typename detector_t::volume_type& vol_desc, const detector_t& det,
+        const std::string& name) {
         volume_payload vol_data;
 
         vol_data.index = serialize(vol_desc.index());
+        vol_data.name = name;
         vol_data.transform =
             serialize(det.transform_store()[vol_desc.transform()]);
         vol_data.type = vol_desc.id();

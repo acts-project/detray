@@ -28,24 +28,23 @@ TEST(io, json_toy_geometry) {
 
     using detector_t = detector<toy_metadata<>>;
 
-    // @todo : Create volume name map in 'create_toy_detector'
-    typename detector_t::name_map volume_name_map = {{0u, "toy_detector"}};
-
     // Toy detector
     vecmem::host_memory_resource host_mr;
-    detector_t toy_det = create_toy_geometry(host_mr);
+    auto [toy_det, names] = create_toy_geometry(host_mr);
 
     // Write the detector
     json_geometry_writer<detector_t> geo_writer;
     auto file_name = geo_writer.write(
-        toy_det, volume_name_map, std::ios_base::out | std::ios_base::trunc);
+        toy_det, names, std::ios_base::out | std::ios_base::trunc);
 
     // Read the detector back in
     detector_t det{host_mr};
+    typename detector_t::name_map volume_name_map = {{0u, "toy_detector"}};
+
     json_geometry_reader<detector_t> geo_reader;
     geo_reader.read(det, volume_name_map, file_name);
 
-    EXPECT_TRUE(test_toy_detector(det));
+    EXPECT_TRUE(test_toy_detector(det, volume_name_map));
 
     // Read the toy detector into the default detector type
     detector<> comp_det{host_mr};

@@ -117,7 +117,8 @@ GTEST_TEST(detray_propagator, navigator) {
 
     unsigned int n_brl_layers{4u};
     unsigned int n_edc_layers{3u};
-    auto toy_det = create_toy_geometry(host_mr, n_brl_layers, n_edc_layers);
+    auto [toy_det, names] =
+        create_toy_geometry(host_mr, n_brl_layers, n_edc_layers);
     using detector_t = decltype(toy_det);
     using inspector_t = navigation::print_inspector;
     using navigator_t = navigator<detector_t, inspector_t>;

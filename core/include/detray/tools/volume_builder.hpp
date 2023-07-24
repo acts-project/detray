@@ -41,7 +41,7 @@ class volume_builder : public volume_builder_interface<detector_t> {
     /// Adds the @param name of the volume to a name map
     template <typename name_map>
     DETRAY_HOST void add_name(const name_map& names, std::string&& name) {
-        names.at(get_vol_index()) = std::move(name);
+        names.at(vol_index()) = std::move(name);
     }
 
     DETRAY_HOST
@@ -55,7 +55,7 @@ class volume_builder : public volume_builder_interface<detector_t> {
     };
 
     DETRAY_HOST
-    auto get_vol_index() -> dindex override { return m_volume->index(); }
+    auto vol_index() -> dindex override { return m_volume->index(); }
 
     DETRAY_HOST
     auto operator()() const -> const

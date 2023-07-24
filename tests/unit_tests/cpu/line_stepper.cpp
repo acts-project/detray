@@ -48,7 +48,7 @@ GTEST_TEST(detray_propagator, covariance_transport) {
     tel_cfg.positions(positions).pilot_track(traj);
 
     // Build telescope detector with unbounded planes
-    const auto det = create_telescope_detector(host_mr, tel_cfg);
+    const auto [det, names] = create_telescope_detector(host_mr, tel_cfg);
 
     using navigator_t = navigator<decltype(det)>;
     using cline_stepper_t = line_stepper<transform3>;
