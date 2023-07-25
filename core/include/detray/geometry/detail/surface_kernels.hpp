@@ -128,6 +128,19 @@ struct surface_kernels {
             return m.local_frame().path_correction(pos, dir, dtds, trf3);
         }
     };
+
+     /// A functor to get the local_vertices
+    struct local_vertices {
+
+        template <typename mask_group_t, typename index_t>
+        DETRAY_HOST_DEVICE inline auto operator()(
+            const mask_group_t& mask_group, const index_t& index) const {
+
+            const auto& m = mask_group[index];
+
+            return m.local_vertices();
+        }
+    };
 };
 
 }  // namespace detray::detail

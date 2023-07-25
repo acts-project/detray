@@ -20,24 +20,19 @@ using point3 = std::array<actsvg::scalar, 3>;
 using point3_container = std::vector<point3>;
 using proto_surface = actsvg::proto::surface<point3_container>;
 
-/// @brief A functor to get the proto surface.
-///
-/// @note Does not account for the surface surface transform.
-///
-/// @returns An actsvg proto surface of the mask.
-struct to_proto_surface {
+
+/// @brief A functor to set the proto surfaces type and bounds to be equivalent to the mask.
+struct set_type_and_bounds_functor {
 
     template <typename mask_group_t, typename index_t>
-    DETRAY_HOST inline actsvg::proto::surface<point3_container> operator()(
-        const mask_group_t& mask_group, const index_t& index) const {
+    DETRAY_HOST inline void operator()(
+        const mask_group_t& mask_group, const index_t& index, proto_surface& p_surface) const {
         const auto& m = mask_group[index];
-        return convert_mask(m);
+        set_type_and_bounds(p_surface, m.get_shape(), m.values());
     }
 };
 
 /// @brief Calculates the proto surface of a surface.
-///
-/// @note Accounts for the transform of the surface.
 ///
 /// @param d_surface The detray surface.
 /// @param context The context.
@@ -47,9 +42,9 @@ template <typename detector_t>
 proto_surface convert_surface(
     const detray::surface<detector_t>& d_surface,
     const typename detector_t::geometry_context& context) {
-    auto p_surface = d_surface.template visit_mask<to_proto_surface>();
-    p_surface._transform = convert_transform(d_surface.transform(context));
-
-    return p_surface;
+        proto_surface p_surface;
+        d_surface.template visit_mask<set_type_and_bounds_functor>(p_surface);
+        set_vertices(p_surface, d_surface.global_vertices(context));
+        return p_surface;
 }
 }  // namespace detray::actsvg_visualization

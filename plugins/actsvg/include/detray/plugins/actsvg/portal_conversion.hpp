@@ -30,6 +30,7 @@ struct get_link {
     }
 };
 
+/// @returns returns the actsvg proto link from detray portal to volume.
 template <typename detector_t>
 proto_link create_p_link(const detray::surface<detector_t>& d_portal, const detray::detector_volume<detector_t>& d_volume, const typename detector_t::geometry_context& context)
 {
@@ -38,11 +39,13 @@ proto_link create_p_link(const detray::surface<detector_t>& d_portal, const detr
     const auto volume_position = d_volume.transform().translation();
     p_link._start = convert_point<3>(portal_position);
     p_link._end = convert_point<3>(volume_position);
-    auto p = portal_position;
-    std::cout<<"(" + std::to_string(p[0]) + ", " + std::to_string(p[1]) + ", " + std::to_string(p[3]) + ")";
+    //auto p = portal_position;
+    //std::cout<<"(" + std::to_string(p[0]) + ", " + std::to_string(p[1]) + ", " + std::to_string(p[3]) + ")";
     return p_link;
 }
 
+/// @returns An actsvg proto portal representing the portal.
+/// @note detray portal is_portal() must be true.
 template <typename detector_t>
 proto_portal convert_portal(const detector_t& detector, const detray::surface<detector_t>& d_portal, const typename detector_t::geometry_context& context)
 {

@@ -189,6 +189,22 @@ class surface {
                                                              pos, dir, dtds);
     }
 
+    /// @returns the vertices in local frame
+    DETRAY_HOST
+    constexpr auto local_vertices() const {
+        return visit_mask<typename kernels::local_vertices>();
+    }
+
+    /// @returns the vertices in global frame
+    DETRAY_HOST
+    constexpr auto global_vertices(const context &ctx) const {
+        auto vertices = local_vertices();
+        for (size_t i = 0; i < vertices.size(); i++){
+            vertices[i] = local_to_global(ctx, vertices[i]);
+        }
+        return vertices;
+    }
+
     /// Call a functor on the surfaces mask with additional arguments.
     ///
     /// @tparam functor_t the prescription to be applied to the mask

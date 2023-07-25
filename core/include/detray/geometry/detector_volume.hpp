@@ -151,6 +151,17 @@ class detector_volume {
         }
     }
 
+    /// @return the sub-surfaces of the volume - non-const access
+    DETRAY_HOST auto surface_lookup() const {
+    typename detector_t::surface_lookup_container descriptors;
+        for (auto desc : m_detector.surface_lookup()){
+            if (desc.volume() == index()){
+                descriptors.push_back(desc);
+            }
+        }
+        return descriptors;
+    }
+
     private:
     /// Apply a functor to all acceleration structures of this volume.
     ///
