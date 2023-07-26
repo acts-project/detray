@@ -248,17 +248,17 @@ class navigator {
 
         /// @returns the next surface the navigator intends to reach
         DETRAY_HOST_DEVICE
-        inline auto next_surface() const -> const surface<const detector_type> {
-            return surface<const detector_type>{*m_detector,
-                                                m_next->sf_desc.barcode()};
+        inline auto next_surface() const {
+            return surface<detector_type>{*m_detector,
+                                          m_next->sf_desc.barcode()};
         }
 
         /// @returns current detector surface the navigator is on
         /// (cannot be used when not on surface) - const
         DETRAY_HOST_DEVICE
-        inline auto get_surface() const -> const surface<const detector_type> {
+        inline auto get_surface() const {
             assert(is_on_module() or is_on_portal());
-            return surface<const detector_type>{*m_detector, barcode()};
+            return surface<detector_type>{*m_detector, barcode()};
         }
 
         /// @returns current navigation status - const

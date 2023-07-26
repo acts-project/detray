@@ -65,7 +65,7 @@ class homogeneous_material_writer : public writer_interface<detector_t> {
     /// Serialize the material description of a detector @param det into its io
     /// payload
     static detector_homogeneous_material_payload serialize(
-        const detector_t& det) {
+        const detector_t& det, const typename detector_t::name_map&) {
         using mat_types = typename detector_t::material_container::value_types;
 
         detector_homogeneous_material_payload dm_data;

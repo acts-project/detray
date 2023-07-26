@@ -118,7 +118,7 @@ struct helix_inspector : actor {
 GTEST_TEST(detray_propagator, propagator_line_stepper) {
 
     vecmem::host_memory_resource host_mr;
-    const auto d = create_toy_geometry(host_mr);
+    const auto [d, names] = create_toy_geometry(host_mr);
 
     using navigator_t = navigator<decltype(d), navigation::print_inspector>;
     using stepper_t = line_stepper<transform3>;
@@ -157,11 +157,12 @@ TEST_P(PropagatorWithRkStepper, propagator_rk_stepper) {
     vecmem::host_memory_resource host_mr;
 
     // Construct the constant magnetic field.
-    using b_field_t = decltype(
-        create_toy_geometry(host_mr, n_brl_layers, n_edc_layers))::bfield_type;
+    using b_field_t =
+        decltype(create_toy_geometry(host_mr, n_brl_layers, n_edc_layers)
+                     .first)::bfield_type;
     const vector3 B = std::get<0>(GetParam());
 
-    const auto d = create_toy_geometry(
+    const auto [d, names] = create_toy_geometry(
         host_mr,
         b_field_t(b_field_t::backend_t::configuration_t{B[0], B[1], B[2]}),
         n_brl_layers, n_edc_layers);

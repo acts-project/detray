@@ -69,7 +69,7 @@ class geometry_reader : public reader_interface<detector_t> {
     /// Deserialize a detector @param det from its io payload @param det_data
     /// and add the volume names to @param name_map
     static void deserialize(detector_t& det,
-                            typename detector_t::name_map& /*name_map*/,
+                            typename detector_t::name_map& name_map,
                             const detector_payload& det_data) {
 
         // @todo Add volume grid
@@ -80,6 +80,9 @@ class geometry_reader : public reader_interface<detector_t> {
             volume_builder<detector_t> vbuilder{};
 
             vbuilder.init_vol(det, static_cast<volume_id>(vol_data.type));
+
+            // Set the volume name if available
+            name_map[vbuilder.vol_index() + 1u] = vol_data.name;
 
             // @todo add the volume placement, once it can be checked for the
             // test detectors

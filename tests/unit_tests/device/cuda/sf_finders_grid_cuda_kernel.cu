@@ -28,8 +28,7 @@ __global__ void grid_replace_test_kernel(
     const auto& axis_y = g3_device.template get_axis<n_axis::label::e_y>();
     const auto& axis_z = g3_device.template get_axis<n_axis::label::e_z>();
 
-    dindex gid = g3_device.serializer()(
-        g3_device.axes(),
+    dindex gid = g3_device.serialize(
         detray::n_axis::multi_bin<3>{threadIdx.x, threadIdx.y, threadIdx.z});
 
     point3 tp{axis_x.min() + gid * axis_x.bin_width(),

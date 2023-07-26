@@ -25,8 +25,8 @@ GTEST_TEST(detray_detectors, toy_geometry) {
     constexpr std::size_t n_brl_layers{4u};
     constexpr std::size_t n_edc_layers{3u};
 
-    const auto toy_det =
+    const auto [toy_det, names] =
         create_toy_geometry(host_mr, n_brl_layers, n_edc_layers);
 
-    EXPECT_TRUE(test_toy_detector(toy_det));
+    EXPECT_TRUE(test_toy_detector(toy_det, names));
 }

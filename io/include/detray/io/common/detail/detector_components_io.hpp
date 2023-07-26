@@ -103,7 +103,7 @@ class detector_component_readers final {
     /// Reads the full detector into @param det by calling the readers, while
     /// using the name map @param names for to write the volume names.
     virtual void read(const detector_t& det,
-                      const typename detector_t::name_map& names,
+                      typename detector_t::name_map& names,
                       const std::vector<std::string>& file_names) {
         // We have to at least read a geometry
         assert(m_readers.size() != 0u &&

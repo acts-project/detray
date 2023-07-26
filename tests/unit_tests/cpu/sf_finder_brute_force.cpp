@@ -91,7 +91,7 @@ GTEST_TEST(detray_surface_finders, brute_force_collection) {
 /// navigation
 GTEST_TEST(detray_surface_finders, brute_force_search) {
 
-    const auto det = create_toy_geometry(host_mr);
+    const auto [det, names] = create_toy_geometry(host_mr);
 
     using detector_t = decltype(det);
 

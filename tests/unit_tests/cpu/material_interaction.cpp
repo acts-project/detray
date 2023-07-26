@@ -59,7 +59,7 @@ GTEST_TEST(detray_materials, telescope_geometry_energy_loss) {
         .module_material(mat)
         .mat_thickness(thickness);
 
-    const auto det = create_telescope_detector(host_mr, tel_cfg);
+    const auto [det, names] = create_telescope_detector(host_mr, tel_cfg);
 
     using navigator_t = navigator<decltype(det)>;
     using stepper_t = line_stepper<transform3>;
@@ -239,7 +239,7 @@ GTEST_TEST(detray_materials, telescope_geometry_scattering_angle) {
         .module_material(mat)
         .mat_thickness(thickness);
 
-    const auto det = create_telescope_detector(host_mr, tel_cfg);
+    const auto [det, names] = create_telescope_detector(host_mr, tel_cfg);
 
     using navigator_t = navigator<decltype(det)>;
     using stepper_t = line_stepper<transform3>;

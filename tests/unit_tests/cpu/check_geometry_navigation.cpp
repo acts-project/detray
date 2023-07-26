@@ -39,7 +39,8 @@ GTEST_TEST(detray_propagator, straight_line_navigation) {
     constexpr std::size_t n_brl_layers{4u};
     constexpr std::size_t n_edc_layers{7u};
     vecmem::host_memory_resource host_mr;
-    auto det = create_toy_geometry(host_mr, n_brl_layers, n_edc_layers);
+    auto [det, names] =
+        create_toy_geometry(host_mr, n_brl_layers, n_edc_layers);
 
     // Straight line navigation
     using detector_t = decltype(det);
@@ -133,7 +134,7 @@ GTEST_TEST(detray_propagator, helix_navigation) {
     const vector3 B{0.f * unit<scalar>::T, 0.f * unit<scalar>::T,
                     2.f * unit<scalar>::T};
 
-    auto det = create_toy_geometry(
+    auto [det, names] = create_toy_geometry(
         host_mr,
         b_field_t(b_field_t::backend_t::configuration_t{B[0], B[1], B[2]}),
         n_brl_layers, n_edc_layers);

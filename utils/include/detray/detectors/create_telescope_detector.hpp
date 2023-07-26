@@ -29,6 +29,7 @@
 #include <iterator>
 #include <limits>
 #include <type_traits>
+#include <utility>
 
 namespace detray {
 
@@ -445,6 +446,10 @@ inline auto create_telescope_detector(
     using detector_t = detector<telescope_types<mask_shape_t>, covfie::field,
                                 host_container_types>;
 
+    // Detector and volume names
+    typename detector_t::name_map name_map = {{0u, "telescope_detector"},
+                                              {1u, "telescope_world_0"}};
+
     // Infer the snesitive surface placement from the telescope length if no
     // concrete positions were given
     std::vector<scalar> positions;
@@ -503,7 +508,7 @@ inline auto create_telescope_detector(
     det.add_objects_per_volume(ctx, vol, surfaces, masks, transforms,
                                materials);
 
-    return det;
+    return std::make_pair(std::move(det), std::move(name_map));
 }
 
 }  // namespace detray

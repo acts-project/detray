@@ -90,9 +90,9 @@ detail::detector_component_writers<detector_t> assemble_writer(
             // Material maps
             // ...
         }
-
-        // Grids
-        // ...
+        if (cfg.write_grids()) {
+            writers.template add<json_grid_writer>();
+        }
     }
 
     return writers;
