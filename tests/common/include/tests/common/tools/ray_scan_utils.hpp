@@ -189,20 +189,20 @@ inline auto trace_intersections(const record_container &intersection_records,
 
         /// getter
         /// @{
-        inline auto surface_idx() const { return entry.second.surface.index(); }
+        inline auto surface_idx() const { return entry.second.sf_desc.index(); }
         inline auto surface_volume_idx() const {
-            return entry.second.surface.volume();
+            return entry.second.sf_desc.volume();
         }
         inline auto &inters() const { return entry.second; }
         inline auto &volume_idx() const { return entry.first; }
         inline auto &volume_link() const { return entry.second.volume_link; }
         inline auto &dist() const { return entry.second.path; }
         inline bool is_portal() const {
-            return entry.second.surface.is_portal();
+            return entry.second.sf_desc.is_portal();
         }
         inline bool is_portal(
             const typename record_container::value_type &inters_record) const {
-            return inters_record.second.surface.is_portal();
+            return inters_record.second.sf_desc.is_portal();
         }
         /// @}
     };

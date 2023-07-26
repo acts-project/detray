@@ -12,7 +12,6 @@
 #include "detray/definitions/track_parametrization.hpp"
 #include "detray/geometry/surface.hpp"
 #include "detray/propagator/base_actor.hpp"
-#include "detray/tracks/detail/track_helper.hpp"
 
 namespace detray {
 
@@ -78,8 +77,7 @@ struct parameter_resetter : actor {
         const geo_cxt_t ctx{};
 
         // Surface
-        const auto sf =
-            surface{*navigation.detector(), navigation.current()->surface};
+        const auto sf = navigation.get_surface();
 
         sf.template visit_mask<kernel>(sf.transform(ctx), stepping);
     }

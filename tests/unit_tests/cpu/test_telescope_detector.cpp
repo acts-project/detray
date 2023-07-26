@@ -21,6 +21,11 @@
 // Vecmem include(s)
 #include <vecmem/memory/host_memory_resource.hpp>
 
+// Covfie include(s)
+#include <covfie/core/backend/primitive/constant.hpp>
+#include <covfie/core/field.hpp>
+#include <covfie/core/vector.hpp>
+
 // GTest include
 #include <gtest/gtest.h>
 
@@ -59,11 +64,13 @@ GTEST_TEST(detray_detectors, telescope_detector) {
     // Use rectangle surfaces
     mask<rectangle2D<>> rectangle{0u, 20.f * unit<scalar>::mm,
                                   20.f * unit<scalar>::mm};
+    tel_det_config<> tel_cfg{rectangle};
 
-    using b_field_t = decltype(create_telescope_detector(
-        std::declval<vecmem::host_memory_resource &>(),
-        std::declval<mask<rectangle2D<>> &>(),
-        std::declval<std::vector<scalar> &>()))::bfield_type;
+    using const_bfield_bknd_t =
+        covfie::backend::constant<covfie::vector::vector_d<scalar, 3>,
+                                  covfie::vector::vector_d<scalar, 3>>;
+    using b_field_t = covfie::field<const_bfield_bknd_t>;
+
     using rk_stepper_t = rk_stepper<b_field_t::view_t, transform3>;
     using inspector_t = navigation::print_inspector;
 
@@ -92,15 +99,18 @@ GTEST_TEST(detray_detectors, telescope_detector) {
     std::vector<scalar> positions = {0.f,   50.f,  100.f, 150.f, 200.f, 250.f,
                                      300.f, 350.f, 400.f, 450.f, 500.f};
     // Build telescope detector with unbounded planes
-    const auto z_tel_det1 =
-        create_telescope_detector(host_mr, rectangle, positions);
+    const auto [z_tel_det1, z_tel_names1] =
+        create_telescope_detector(host_mr, tel_cfg.positions(positions));
+
+    // Test this only once, it is the same for all telescope detectors
+    EXPECT_EQ(z_tel_names1.at(0u), "telescope_detector");
+    EXPECT_EQ(z_tel_names1.at(1u), "telescope_world_0");
 
     // Build the same telescope detector with rectangular planes and given
     // length/number of surfaces
-    const std::size_t n_surfaces{11u};
-    const scalar tel_length{500.f * unit<scalar>::mm};
-    const auto z_tel_det2 =
-        create_telescope_detector(host_mr, rectangle, n_surfaces, tel_length);
+    tel_cfg.positions({}).n_surfaces(11u).length(500.f * unit<scalar>::mm);
+    const auto [z_tel_det2, z_tel_names2] =
+        create_telescope_detector(host_mr, tel_cfg);
 
     // Compare
     for (std::size_t i{0u}; i < z_tel_det1.surface_lookup().size(); ++i) {
@@ -120,9 +130,8 @@ GTEST_TEST(detray_detectors, telescope_detector) {
     detail::ray<transform3> x_track({0.f, 0.f, 0.f}, 0.f, {1.f, 0.f, 0.f},
                                     -1.f);
 
-    const auto x_tel_det = create_telescope_detector(
-        host_mr, rectangle, n_surfaces, tel_length, silicon_tml<scalar>(),
-        80.f * unit<scalar>::um, x_track);
+    const auto [x_tel_det, x_tel_names] =
+        create_telescope_detector(host_mr, tel_cfg.pilot_track(x_track));
 
     //
     // test propagation in all telescope detector instances
@@ -219,9 +228,10 @@ GTEST_TEST(detray_detectors, telescope_detector) {
 
     detail::helix<transform3> helix_bz(pilot_track, &B_z);
 
-    const auto tel_detector = create_telescope_detector(
-        host_mr, rectangle, n_surfaces, tel_length, silicon_tml<scalar>(),
-        80.f * unit<scalar>::um, helix_bz);
+    tel_det_config htel_cfg{rectangle, helix_bz};
+    htel_cfg.n_surfaces(11u).length(500.f * unit<scalar>::mm);
+    const auto [tel_detector, tel_names] =
+        create_telescope_detector(host_mr, htel_cfg);
 
     // make at least sure it is navigatable
     navigator<decltype(tel_detector), inspector_t> tel_navigator;

@@ -28,8 +28,8 @@ int main() {
     const vector3 B{0.f, 0.f, 2.f * unit<scalar>::T};
 
     // Create geometry
-    using b_field_t = decltype(create_toy_geometry(host_mr))::bfield_type;
-    const auto detector = create_toy_geometry(
+    using b_field_t = decltype(create_toy_geometry(host_mr).first)::bfield_type;
+    const auto [detector, names] = create_toy_geometry(
         host_mr,
         b_field_t(b_field_t::backend_t::configuration_t{B[0], B[1], B[2]}));
 

@@ -33,7 +33,7 @@ int main() {
 
     // Get an example detector
     vecmem::host_memory_resource host_mr;
-    auto det = detray::create_toy_geometry(host_mr);
+    const auto [det, names] = detray::create_toy_geometry(host_mr);
 
     // Build the graph and get its adjacency matrix
     detray::volume_graph graph(det);

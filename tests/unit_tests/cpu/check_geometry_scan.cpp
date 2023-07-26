@@ -66,7 +66,7 @@ GTEST_TEST(detray_geometry, toy_geometry_scan) {
 
     // Build the geometry (modeled as a unified index geometry)
     vecmem::host_memory_resource host_mr;
-    auto toy_det = create_toy_geometry(host_mr);
+    auto [toy_det, names] = create_toy_geometry(host_mr);
     using nav_link_t =
         typename decltype(toy_det)::surface_type::navigation_link;
     constexpr auto leaving_world{detail::invalid_value<nav_link_t>()};
@@ -121,15 +121,14 @@ GTEST_TEST(detray_geometry, telescope_geometry_scan) {
 
     vecmem::host_memory_resource host_mr;
 
-    // Use rectangle surfaces
-    mask<rectangle2D<>> rectangle{0u, 20.f * unit<scalar>::mm,
-                                  20.f * unit<scalar>::mm};
-
     // Build telescope detector with 10 rectangles
-    const std::size_t n_surfaces{10u};
-    const scalar length{500.f * unit<scalar>::mm};
-    const auto tel_det =
-        create_telescope_detector(host_mr, rectangle, n_surfaces, length);
+    tel_det_config<rectangle2D<>> tel_cfg{20.f * unit<scalar>::mm,
+                                          20.f * unit<scalar>::mm};
+    tel_cfg.n_surfaces(10u).length(500.f * unit<scalar>::mm);
+
+    const auto [tel_det, tel_names] =
+        create_telescope_detector(host_mr, tel_cfg);
+
     using nav_link_t =
         typename decltype(tel_det)::surface_type::navigation_link;
     constexpr auto leaving_world{detail::invalid_value<nav_link_t>()};

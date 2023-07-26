@@ -408,7 +408,7 @@ GTEST_TEST(detray_tools, volume_builder) {
 
     EXPECT_TRUE(d.volumes().size() == 1u);
     EXPECT_EQ(vol.index(), 0u);
-    EXPECT_EQ(vol.index(), vbuilder.get_vol_index());
+    EXPECT_EQ(vol.index(), vbuilder.vol_index());
     EXPECT_EQ(vol.id(), volume_id::e_cylinder);
 }
 

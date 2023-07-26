@@ -118,7 +118,7 @@ struct intersection_update {
         const transform_container_t &contextual_transforms,
         const scalar mask_tolerance = 0.f) const {
 
-        const auto &ctf = contextual_transforms[sfi.surface.transform()];
+        const auto &ctf = contextual_transforms[sfi.sf_desc.transform()];
 
         // Run over the masks that belong to the surface
         for (const auto &mask :

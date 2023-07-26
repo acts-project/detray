@@ -126,6 +126,12 @@ struct detector_homogeneous_material_payload {
 /// Payloads for a uniform grid
 /// @{
 
+/// @brief a payload for the simple grid file header
+struct grid_header_payload {
+    std::string version, detector, tag, date;
+    std::size_t n_grids;
+};
+
 /// @brief axis definition and bin edges
 struct axis_payload {
     /// axis lookup type
@@ -133,14 +139,24 @@ struct axis_payload {
     n_axis::bounds bounds = n_axis::bounds::e_closed;
     n_axis::label label = n_axis::label::e_r;
 
-    std::vector<real_io> edges = {};
     std::size_t bins = 0u;
+    std::vector<real_io> edges = {};
+};
+
+/// @brief A payload for a grid bin
+struct grid_bin_payload {
+    std::vector<unsigned int> loc_index = {};
+    std::vector<std::size_t> content = {};
 };
 
 /// @brief A payload for a grid definition
 struct grid_payload {
+    using grid_type = io::detail::acc_type;
+    grid_type type = grid_type::unknown;
+    std::size_t index;
+
     std::vector<axis_payload> axes = {};
-    std::vector<std::vector<unsigned int>> entries = {};
+    std::vector<grid_bin_payload> bins = {};
 };
 
 /// @brief A payload for objects within a grid
@@ -155,9 +171,14 @@ struct links_payload {
     std::optional<grid_objects_payload> grid_links;
 };
 
+/// @brief A payload for the grid collections of a detector
+struct detector_grids_payload {
+    std::vector<grid_payload> grids = {};
+};
+
 /// @}
 
-/// @brief A payload for a detector
+/// @brief A payload for a detector geometry
 struct detector_payload {
     std::vector<volume_payload> volumes = {};
     grid_objects_payload volume_grid;

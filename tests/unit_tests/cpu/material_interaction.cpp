@@ -44,10 +44,6 @@ GTEST_TEST(detray_materials, telescope_geometry_energy_loss) {
 
     vecmem::host_memory_resource host_mr;
 
-    // Use rectangle surfaces in telescope
-    mask<rectangle2D<>> rectangle{0u, 20.f * unit<scalar>::mm,
-                                  20.f * unit<scalar>::mm};
-
     // Build in x-direction from given module positions
     detail::ray<transform3> traj{{0.f, 0.f, 0.f}, 0.f, {1.f, 0.f, 0.f}, -1.f};
     std::vector<scalar> positions = {0.f,   50.f,  100.f, 150.f, 200.f, 250.f,
@@ -56,8 +52,14 @@ GTEST_TEST(detray_materials, telescope_geometry_energy_loss) {
     const auto mat = silicon_tml<scalar>();
     constexpr scalar thickness{0.17f * unit<scalar>::cm};
 
-    const auto det = create_telescope_detector(host_mr, rectangle, positions,
-                                               mat, thickness, traj);
+    tel_det_config<rectangle2D<>> tel_cfg{20.f * unit<scalar>::mm,
+                                          20.f * unit<scalar>::mm};
+    tel_cfg.positions(positions)
+        .pilot_track(traj)
+        .module_material(mat)
+        .mat_thickness(thickness);
+
+    const auto [det, names] = create_telescope_detector(host_mr, tel_cfg);
 
     using navigator_t = navigator<decltype(det)>;
     using stepper_t = line_stepper<transform3>;
@@ -128,28 +130,30 @@ GTEST_TEST(detray_materials, telescope_geometry_energy_loss) {
     // Interaction object
     interaction<scalar> I;
 
-    // intersection with a zero incidence angle
-    intersection2D<typename decltype(det)::surface_type, transform3> is;
-    is.cos_incidence_angle = 1.f;
+    // Zero incidence angle
+    const scalar cos_inc_ang{1.f};
 
     // Same material used for default telescope detector
     material_slab<scalar> slab(mat, thickness);
+
+    // Path segment in the material
+    const scalar path_segment{slab.path_segment(cos_inc_ang)};
 
     // Expected Bethe Stopping power for telescope geometry is estimated
     // as (number of planes * energy loss per plane assuming 1 GeV muon).
     // It is not perfectly precise as the track loses its energy during
     // propagation. However, since the energy loss << the track momentum,
     // the assumption is not very bad
-    const scalar dE{
-        I.compute_energy_loss_bethe(is, slab, pdg, mass, q / iniP, q) *
-        static_cast<scalar>(positions.size())};
+    const scalar dE{I.compute_energy_loss_bethe(path_segment, slab, pdg, mass,
+                                                q / iniP, q) *
+                    static_cast<scalar>(positions.size())};
 
     // Check if the new energy after propagation is enough close to the
     // expected value
     EXPECT_NEAR(newE, iniE - dE, 1e-5f);
 
     const scalar sigma_qop{I.compute_energy_loss_landau_sigma_QOverP(
-        is, slab, pdg, mass, q / iniP, q)};
+        path_segment, slab, pdg, mass, q / iniP, q)};
 
     const scalar dvar_qop{sigma_qop * sigma_qop *
                           static_cast<scalar>(positions.size() - 1u)};
@@ -227,13 +231,15 @@ GTEST_TEST(detray_materials, telescope_geometry_scattering_angle) {
     const auto mat = silicon_tml<scalar>();
     const scalar thickness = 100.f * unit<scalar>::cm;
 
-    // Use rectangle surfaces in the telescope
-    mask<rectangle2D<>> rectangle{0u, 2000.f * unit<scalar>::mm,
-                                  2000.f * unit<scalar>::mm};
-
     // Create telescope geometry
-    const auto det = create_telescope_detector(host_mr, rectangle, positions,
-                                               mat, thickness, traj);
+    tel_det_config<rectangle2D<>> tel_cfg{2000.f * unit<scalar>::mm,
+                                          2000.f * unit<scalar>::mm};
+    tel_cfg.positions(positions)
+        .pilot_track(traj)
+        .module_material(mat)
+        .mat_thickness(thickness);
+
+    const auto [det, names] = create_telescope_detector(host_mr, tel_cfg);
 
     using navigator_t = navigator<decltype(det)>;
     using stepper_t = line_stepper<transform3>;

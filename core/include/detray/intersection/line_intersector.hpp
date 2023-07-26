@@ -107,7 +107,7 @@ struct line_intersector {
             // prepare some additional information in case the intersection
             // is valid
             if (is.status == intersection::status::e_inside) {
-                is.surface = sf;
+                is.sf_desc = sf;
 
                 is.direction = detail::signbit(is.path)
                                    ? intersection::direction::e_opposite
@@ -138,7 +138,7 @@ struct line_intersector {
         const ray_type &ray, intersection_t &sfi, const mask_t &mask,
         const transform3_type &trf,
         const scalar_type mask_tolerance = 0.f) const {
-        sfi = this->operator()(ray, sfi.surface, mask, trf, mask_tolerance);
+        sfi = this->operator()(ray, sfi.sf_desc, mask, trf, mask_tolerance);
     }
 };
 

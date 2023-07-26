@@ -39,7 +39,8 @@ GTEST_TEST(detray_propagator, straight_line_navigation) {
     constexpr std::size_t n_brl_layers{4u};
     constexpr std::size_t n_edc_layers{7u};
     vecmem::host_memory_resource host_mr;
-    auto det = create_toy_geometry(host_mr, n_brl_layers, n_edc_layers);
+    auto [det, names] =
+        create_toy_geometry(host_mr, n_brl_layers, n_edc_layers);
 
     // Straight line navigation
     using detector_t = decltype(det);
@@ -98,21 +99,21 @@ GTEST_TEST(detray_propagator, straight_line_navigation) {
 
         // Check every single recorded intersection
         for (std::size_t i = 0u; i < obj_tracer.object_trace.size(); ++i) {
-            if (obj_tracer[i].surface.barcode() !=
-                intersection_trace[i].second.surface.barcode()) {
+            if (obj_tracer[i].sf_desc.barcode() !=
+                intersection_trace[i].second.sf_desc.barcode()) {
                 // Intersection record at portal bound might be flipped
                 // (the portals overlap completely)
-                if (obj_tracer[i].surface.barcode() ==
-                        intersection_trace[i + 1u].second.surface.barcode() and
-                    obj_tracer[i + 1u].surface.barcode() ==
-                        intersection_trace[i].second.surface.barcode()) {
+                if (obj_tracer[i].sf_desc.barcode() ==
+                        intersection_trace[i + 1u].second.sf_desc.barcode() and
+                    obj_tracer[i + 1u].sf_desc.barcode() ==
+                        intersection_trace[i].second.sf_desc.barcode()) {
                     // Have already checked the next record
                     ++i;
                     continue;
                 }
             }
-            EXPECT_EQ(obj_tracer[i].surface.barcode(),
-                      intersection_trace[i].second.surface.barcode())
+            EXPECT_EQ(obj_tracer[i].sf_desc.barcode(),
+                      intersection_trace[i].second.sf_desc.barcode())
                 << debug_printer.to_string() << debug_stream.str();
         }
     }
@@ -133,7 +134,7 @@ GTEST_TEST(detray_propagator, helix_navigation) {
     const vector3 B{0.f * unit<scalar>::T, 0.f * unit<scalar>::T,
                     2.f * unit<scalar>::T};
 
-    auto det = create_toy_geometry(
+    auto [det, names] = create_toy_geometry(
         host_mr,
         b_field_t(b_field_t::backend_t::configuration_t{B[0], B[1], B[2]}),
         n_brl_layers, n_edc_layers);
@@ -210,21 +211,21 @@ GTEST_TEST(detray_propagator, helix_navigation) {
 
         // Check every single recorded intersection
         for (std::size_t i = 0u; i < max_entries; ++i) {
-            if (obj_tracer[i].surface.barcode() !=
-                intersection_trace[i].second.surface.barcode()) {
+            if (obj_tracer[i].sf_desc.barcode() !=
+                intersection_trace[i].second.sf_desc.barcode()) {
                 // Intersection record at portal bound might be flipped
                 // (the portals overlap completely)
-                if (obj_tracer[i].surface.barcode() ==
-                        intersection_trace[i + 1u].second.surface.barcode() and
-                    obj_tracer[i + 1u].surface.barcode() ==
-                        intersection_trace[i].second.surface.barcode()) {
+                if (obj_tracer[i].sf_desc.barcode() ==
+                        intersection_trace[i + 1u].second.sf_desc.barcode() and
+                    obj_tracer[i + 1u].sf_desc.barcode() ==
+                        intersection_trace[i].second.sf_desc.barcode()) {
                     // Have already checked the next record
                     ++i;
                     continue;
                 }
             }
-            EXPECT_EQ(obj_tracer[i].surface.barcode(),
-                      intersection_trace[i].second.surface.barcode())
+            EXPECT_EQ(obj_tracer[i].sf_desc.barcode(),
+                      intersection_trace[i].second.sf_desc.barcode())
                 << " intersection: " << i << "/" << n_inters_nav
                 << " on track: " << n_tracks << "/"
                 << trk_state_generator.size();

@@ -15,6 +15,9 @@
 #include "detray/geometry/barcode.hpp"
 #include "detray/geometry/detail/surface_kernels.hpp"
 
+// System include(s)
+#include <type_traits>
+
 namespace detray {
 
 /// @brief Facade for a detray detector surface.
@@ -38,25 +41,33 @@ class surface {
 
     public:
     using algebra = typename detector_t::transform3;
+    using scalar_type = typename detector_t::scalar_type;
     using transform3 = algebra;
-    using point3 = typename transform3::point3;
-    using vector3 = typename transform3::point3;
+    using point2 = typename algebra::point2;
+    using point3 = typename algebra::point3;
+    using vector3 = typename algebra::point3;
     using context = typename detector_t::geometry_context;
 
     /// Not allowed: always needs a detector and a descriptor.
     surface() = delete;
 
-    /// Constructor from detector @param det and volume descriptor
-    /// @param vol_idx from that detector.
+    /// Constructor from detector @param det and surface descriptor
+    /// @param desc from that detector.
     DETRAY_HOST_DEVICE
     constexpr surface(const detector_t &det, const descr_t &desc)
         : m_detector{det}, m_desc{desc} {}
 
-    /// Constructor from detector @param det and volume index @param vol_idx in
+    /// Constructor from detector @param det and barcode @param bcd in
     /// that detector.
     DETRAY_HOST_DEVICE
     constexpr surface(const detector_t &det, const geometry::barcode bcd)
         : surface(det, det.surface(bcd)) {}
+
+    /// Conversion to surface interface around constant detector type
+    DETRAY_HOST_DEVICE
+    constexpr operator surface<const detector_t>() const {
+        return surface<const detector_t>{this->m_detector, this->m_desc};
+    }
 
     /// Equality operator
     ///
@@ -83,6 +94,10 @@ class surface {
     /// @returns the surface id (sensitive, passive or portal)
     DETRAY_HOST_DEVICE
     constexpr auto id() const -> surface_id { return barcode().id(); }
+
+    /// @returns the extra bits in the barcode
+    DETRAY_HOST_DEVICE
+    constexpr auto extra() const -> dindex { return barcode().extra(); }
 
     /// @returns an id for the surface type (e.g. 'rectangle')
     DETRAY_HOST_DEVICE
@@ -118,14 +133,42 @@ class surface {
 
     /// @returns the center position on the surface in global coordinates
     DETRAY_HOST_DEVICE
-    constexpr auto center(const context &ctx) const -> const point3 & {
+    constexpr auto center(const context &ctx) const -> const point3 {
         return transform(ctx).translation();
     }
 
-    /// @returns the surface normal in global coordinates
+    /// @returns the surface normal in global coordinates at a given bound/local
+    /// position @param p
+    template <typename point_t = point2,
+              std::enable_if_t<std::is_same_v<point_t, point3> or
+                                   std::is_same_v<point_t, point2>,
+                               bool> = true>
+    DETRAY_HOST_DEVICE constexpr auto normal(const context &ctx,
+                                             const point_t &p) const
+        -> const vector3 {
+        return visit_mask<typename kernels::normal>(transform(ctx), p);
+    }
+
+    /// @returns the cosine of the incidence angle given a local/bound position
+    /// @param p and a global direction @param dir
+    template <typename point_t = point2,
+              std::enable_if_t<std::is_same_v<point_t, point3> or
+                                   std::is_same_v<point_t, point2>,
+                               bool> = true>
+    DETRAY_HOST_DEVICE constexpr auto cos_angle(const context &ctx,
+                                                const vector3 &dir,
+                                                const point_t &p) const
+        -> scalar_type {
+        return vector::dot(dir, normal(ctx, p));
+    }
+
+    /// @returns the bound (2D) position to the global point @param global for
+    /// a given geometry context @param ctx and track direction @param dir
     DETRAY_HOST_DEVICE
-    constexpr auto normal(const context &ctx) const -> const vector3 & {
-        return transform(ctx).translation();
+    constexpr point2 global_to_bound(const context &ctx, const point3 &global,
+                                     const vector3 &dir) const {
+        return visit_mask<typename kernels::global_to_bound>(transform(ctx),
+                                                             global, dir);
     }
 
     /// @returns the local position to the global point @param global for
@@ -137,13 +180,16 @@ class surface {
                                                              global, dir);
     }
 
-    /// @returns the global position to the given local position @param local
+    /// @returns the global position to the given local/bound position @param p
     /// for a given geometry context @param ctx
-    DETRAY_HOST_DEVICE
-    constexpr point3 local_to_global(const context &ctx,
-                                     const point3 &local) const {
-        return visit_mask<typename kernels::local_to_global>(transform(ctx),
-                                                             local);
+    template <typename point_t,
+              std::enable_if_t<std::is_same_v<point_t, point3> or
+                                   std::is_same_v<point_t, point2>,
+                               bool> = true>
+    DETRAY_HOST_DEVICE constexpr point3 local_to_global(
+        const context &ctx, const point_t &p, const vector3 &dir) const {
+        return visit_mask<typename kernels::local_to_global>(transform(ctx), p,
+                                                             dir);
     }
 
     /// @returns the track parametrization projected onto the surface (bound)

@@ -62,7 +62,7 @@ int main() {
 
     vecmem::host_memory_resource host_mr;
 
-    const toy_detector_t det = detray::create_toy_geometry(host_mr);
+    const auto [det, names] = detray::create_toy_geometry(host_mr);
 
     // Build the propagator
     propagator_t prop(stepper_t{}, navigator_t{});

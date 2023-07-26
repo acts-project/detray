@@ -88,16 +88,18 @@ struct polar2 : public coordinate_base<polar2, transform3_t> {
         return this->local_to_global(trf, {p[0], p[1], 0.f});
     }
 
+    /// @returns the normal vector
+    template <typename mask_t>
     DETRAY_HOST_DEVICE inline vector3 normal(const transform3_t &trf3,
-                                             const point3 & /*pos*/,
-                                             const vector3 & /*dir*/) const {
-        vector3 ret;
-        const auto n =
-            matrix_operator().template block<3, 1>(trf3.matrix(), 0u, 2u);
-        ret[0] = matrix_operator().element(n, 0u, 0u);
-        ret[1] = matrix_operator().element(n, 1u, 0u);
-        ret[2] = matrix_operator().element(n, 2u, 0u);
-        return ret;
+                                             const point2 & = {},
+                                             const mask_t & = {}) const {
+        return trf3.z();
+    }
+
+    /// @returns the normal vector
+    DETRAY_HOST_DEVICE inline vector3 normal(const transform3_t &trf3,
+                                             const point3 & = {}) const {
+        return trf3.z();
     }
 
     DETRAY_HOST_DEVICE inline rotation_matrix reference_frame(
@@ -107,12 +109,13 @@ struct polar2 : public coordinate_base<polar2, transform3_t> {
     }
 
     DETRAY_HOST_DEVICE inline free_to_path_matrix path_derivative(
-        const transform3_t &trf3, const point3 &pos, const vector3 &dir) const {
+        const transform3_t &trf3, const point3 & /*pos*/,
+        const vector3 &dir) const {
 
         free_to_path_matrix derivative =
             matrix_operator().template zero<1u, e_free_size>();
 
-        const vector3 normal = this->normal(trf3, pos, dir);
+        const vector3 normal = this->normal(trf3);
 
         const vector3 pos_term = -1.f / vector::dot(normal, dir) * normal;
 

@@ -14,7 +14,6 @@
 #include "detray/materials/interaction.hpp"
 #include "detray/propagator/base_actor.hpp"
 #include "detray/tracks/bound_track_parameters.hpp"
-#include "detray/utils/axis_rotation.hpp"
 #include "detray/utils/ranges.hpp"
 
 namespace detray {
@@ -66,31 +65,42 @@ struct pointwise_material_interactor : actor {
         using scalar_type = typename interaction_type::scalar_type;
         using state = typename pointwise_material_interactor::state;
 
-        template <typename material_group_t, typename index_t,
-                  typename surface_t>
+        template <typename material_group_t, typename index_t>
         DETRAY_HOST_DEVICE inline bool operator()(
             const material_group_t &material_group,
-            const index_t &material_range,
-            const intersection2D<surface_t, transform3_type> &is, state &s,
-            const bound_track_parameters<transform3_type> &bound_params) const {
+            const index_t &material_range, state &s,
+            const bound_track_parameters<transform3_type> &bound_params,
+            const scalar_type cos_inc_angle, const scalar_type approach) const {
 
             const scalar qop = bound_params.qop();
             const scalar charge = bound_params.charge();
 
+            bool success = false;
+
             for (const auto &mat :
                  detray::ranges::subrange(material_group, material_range)) {
+
+                // return early in case of vacuum or zero thickness
+                if (not mat) {
+                    continue;
+                }
+                success |= true;
+
+                const scalar_type path_segment{
+                    mat.path_segment(cos_inc_angle, approach)};
 
                 // Energy Loss
                 if (s.do_energy_loss) {
                     s.e_loss = interaction_type().compute_energy_loss_bethe(
-                        is, mat, s.pdg, s.mass, qop, charge);
+                        path_segment, mat, s.pdg, s.mass, qop, charge);
                 }
 
                 // @todo: include the radiative loss (Bremsstrahlung)
                 if (s.do_energy_loss && s.do_covariance_transport) {
-                    s.sigma_qop = interaction_type()
-                                      .compute_energy_loss_landau_sigma_QOverP(
-                                          is, mat, s.pdg, s.mass, qop, charge);
+                    s.sigma_qop =
+                        interaction_type()
+                            .compute_energy_loss_landau_sigma_QOverP(
+                                path_segment, mat, s.pdg, s.mass, qop, charge);
                 }
 
                 // Covariance update
@@ -99,12 +109,12 @@ struct pointwise_material_interactor : actor {
                     // backward mode?
                     s.projected_scattering_angle =
                         interaction_type().compute_multiple_scattering_theta0(
-                            is, mat, s.pdg, s.mass, qop, charge);
+                            mat.path_segment_in_X0(cos_inc_angle, approach),
+                            s.pdg, s.mass, qop, charge);
                 }
             }
 
-            // always true?
-            return true;
+            return success;
         }
     };
 
@@ -120,12 +130,11 @@ struct pointwise_material_interactor : actor {
         if (navigation.is_on_module()) {
 
             auto &stepping = prop_state._stepping;
-            const auto *det = navigation.detector();
 
             this->update(stepping._bound_params, interactor_state,
                          static_cast<int>(navigation.direction()),
-                         *navigation.current(),
-                         surface{*det, navigation.current()->surface});
+                         navigation.get_surface(),
+                         navigation.current()->cos_incidence_angle);
         }
     }
 
@@ -134,16 +143,20 @@ struct pointwise_material_interactor : actor {
     /// @param[out] bound_params bound track parameter
     /// @param[out] interactor_state actor state
     /// @param[in]  nav_dir navigation direction
-    /// @param[in]  is intersection
-    /// @param[in]  mat_store material store
-    template <typename intersection_t, typename surface_t>
+    /// @param[in]  sf the surface
+    template <typename surface_t>
     DETRAY_HOST_DEVICE inline void update(
         bound_track_parameters<transform3_type> &bound_params,
-        state &interactor_state, const int nav_dir, const intersection_t &is,
-        const surface_t &sf) const {
+        state &interactor_state, const int nav_dir, const surface_t &sf,
+        const scalar_type cos_inc_angle) const {
+
+        // Closest approach of the track to a line surface. Otherwise this is
+        // ignored.
+        const auto approach{
+            matrix_operator().element(bound_params.vector(), e_bound_loc0, 0)};
 
         const bool succeed = sf.template visit_material<kernel>(
-            is, interactor_state, bound_params);
+            interactor_state, bound_params, cos_inc_angle, approach);
 
         if (succeed) {
 

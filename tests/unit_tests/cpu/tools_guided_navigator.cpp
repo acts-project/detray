@@ -33,17 +33,16 @@ GTEST_TEST(detray_propagator, guided_navigator) {
 
     vecmem::host_memory_resource host_mr;
 
-    // Use unbounded rectangle surfaces that cannot be missed
-    mask<unbounded<rectangle2D<>>> urectangle{0u, 20.f * unit<scalar>::mm,
-                                              20.f * unit<scalar>::mm};
-
     // Module positions along z-axis
     const std::vector<scalar> positions = {0.f,  10.f, 20.f, 30.f, 40.f, 50.f,
                                            60.f, 70.f, 80.f, 90.f, 100.f};
 
     // Build telescope detector with unbounded rectangles
-    const auto telescope_det =
-        create_telescope_detector(host_mr, urectangle, positions);
+    tel_det_config<unbounded<rectangle2D<>>> tel_cfg{20.f * unit<scalar>::mm,
+                                                     20.f * unit<scalar>::mm};
+
+    const auto [telescope_det, names] =
+        create_telescope_detector(host_mr, tel_cfg.positions(positions));
 
     // Inspectors are optional, of course
     using detector_t = decltype(telescope_det);
@@ -98,9 +97,9 @@ GTEST_TEST(detray_propagator, guided_navigator) {
         auto bcd = geometry::barcode{};
         bcd.set_volume(0u).set_index(sf_sequence[i]);
         bcd.set_id((i == 11u) ? surface_id::e_portal : surface_id::e_sensitive);
-        EXPECT_TRUE(candidate.surface.barcode() == bcd)
+        EXPECT_TRUE(candidate.sf_desc.barcode() == bcd)
             << "error at intersection on surface:\n"
             << "Expected: " << bcd
-            << "\nFound: " << candidate.surface.barcode();
+            << "\nFound: " << candidate.sf_desc.barcode();
     }
 }

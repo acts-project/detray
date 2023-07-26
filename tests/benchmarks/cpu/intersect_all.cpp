@@ -39,7 +39,7 @@ void BM_INTERSECT_ALL(benchmark::State &state) {
     static constexpr std::size_t n_brl_layers{4u};
     static constexpr std::size_t n_edc_layers{7u};
     vecmem::host_memory_resource host_mr;
-    auto d = create_toy_geometry(host_mr, n_brl_layers, n_edc_layers);
+    auto [d, names] = create_toy_geometry(host_mr, n_brl_layers, n_edc_layers);
 
     using detector_t = decltype(d);
     detector_t::geometry_context geo_context;

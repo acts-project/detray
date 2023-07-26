@@ -44,8 +44,16 @@ class type_registry {
 
     /// Get the index for a type. Use template parameter deduction.
     template <typename object_t>
-    DETRAY_HOST_DEVICE static constexpr ID get_id(object_t& /*obj*/) {
+    DETRAY_HOST_DEVICE static constexpr ID get_id(const object_t& /*obj*/) {
         return get_id<object_t>();
+    }
+
+    /// Checks whether a given types is known in the registry.
+    /// Use template parameter deduction.
+    template <typename object_t>
+    DETRAY_HOST_DEVICE static constexpr bool is_defined(
+        const object_t& /*obj*/) {
+        return not(get_id<object_t>() == static_cast<ID>(e_unknown));
     }
 
     /// Checks whether a given types is known in the registry.
