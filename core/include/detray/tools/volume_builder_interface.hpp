@@ -35,11 +35,6 @@ class volume_builder_interface {
 
     virtual ~volume_builder_interface() = default;
 
-    /// @brief Initializes a new volume with shape id @param id in detector
-    /// @param det
-    DETRAY_HOST
-    virtual void init_vol(detector_t &det, const volume_id id) = 0;
-
     /// @returns the global index for the volume
     /// @note the correct index is only available after calling @c init_vol
     DETRAY_HOST
@@ -125,13 +120,6 @@ class volume_decorator : public volume_builder_interface<detector_t> {
     volume_decorator(
         std::unique_ptr<volume_builder_interface<detector_t>> vol_builder)
         : m_builder(std::move(vol_builder)) {}
-
-    /// Overwrite interface functions using callbacks to the volume builder
-    /// @{
-    DETRAY_HOST
-    void init_vol(detector_t &det, const volume_id id) override {
-        m_builder->init_vol(det, id);
-    }
 
     DETRAY_HOST
     auto operator()() -> typename detector_t::volume_type & override {

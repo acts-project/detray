@@ -123,6 +123,7 @@ class grid_builder final : public volume_decorator<detector_t> {
         for (auto &sf_desc : m_grid.all()) {
             const auto sf = surface{det, sf_desc};
             sf.template visit_mask<detail::mask_index_update>(sf_desc);
+            sf_desc.set_volume(vol_ptr->index());
             sf_desc.update_transform(trf_offset);
         }
 

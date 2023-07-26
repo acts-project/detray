@@ -190,8 +190,12 @@ GTEST_TEST(detray_tools, decorator_grid_builder) {
     vecmem::host_memory_resource host_mr;
     test_detector_t d(host_mr);
     auto geo_ctx = typename test_detector_t::geometry_context{};
+    const auto vol_idx{
+        static_cast<typename test_detector_t::surface_type::navigation_link>(
+            d.volumes().size())};
 
-    auto vbuilder = std::make_unique<volume_builder<test_detector_t>>();
+    auto vbuilder = std::make_unique<volume_builder<test_detector_t>>(
+        volume_id::e_cylinder);
     auto gbuilder =
         grid_builder<test_detector_t, cyl_grid_t>{std::move(vbuilder)};
     // passive surfaces are added to the grid
@@ -205,14 +209,6 @@ GTEST_TEST(detray_tools, decorator_grid_builder) {
     gbuilder.init_grid(cyl_mask, {n_phi_bins, n_z_bins});
 
     EXPECT_TRUE(d.volumes().size() == 0);
-
-    // Now init the volume
-    gbuilder.init_vol(d, volume_id::e_cylinder);
-
-    const auto& vol = d.volumes().back();
-    EXPECT_TRUE(d.volumes().size() == 1u);
-    EXPECT_EQ(vol.index(), 0u);
-    EXPECT_EQ(vol.id(), volume_id::e_cylinder);
 
     // Add some portals first
     auto pt_cyl_factory = std::make_shared<portal_cylinder_factory_t>();
@@ -228,25 +224,25 @@ GTEST_TEST(detray_tools, decorator_grid_builder) {
     auto rect_factory = std::make_shared<rectangle_factory>();
 
     typename rectangle_factory::sf_data_collection rect_sf_data;
-    rect_sf_data.emplace_back(transform3(point3{0.f, 0.f, -10.f}), vol.index(),
+    rect_sf_data.emplace_back(transform3(point3{0.f, 0.f, -10.f}), vol_idx,
                               std::vector<scalar>{10.f, 8.f});
-    rect_sf_data.emplace_back(transform3(point3{0.f, 0.f, -20.f}), vol.index(),
+    rect_sf_data.emplace_back(transform3(point3{0.f, 0.f, -20.f}), vol_idx,
                               std::vector<scalar>{10.f, 8.f});
-    rect_sf_data.emplace_back(transform3(point3{0.f, 0.f, -30.f}), vol.index(),
+    rect_sf_data.emplace_back(transform3(point3{0.f, 0.f, -30.f}), vol_idx,
                               std::vector<scalar>{10.f, 8.f});
     rect_factory->push_back(std::move(rect_sf_data));
 
     auto trpz_factory = std::make_shared<trapezoid_factory>();
 
     typename trapezoid_factory::sf_data_collection trpz_sf_data;
-    trpz_sf_data.emplace_back(transform3(point3{0.f, 0.f, 1000.f}), vol.index(),
+    trpz_sf_data.emplace_back(transform3(point3{0.f, 0.f, 1000.f}), vol_idx,
                               std::vector<scalar>{1.f, 3.f, 2.f, 0.25f});
     trpz_factory->push_back(std::move(trpz_sf_data));
 
     auto cyl_factory = std::make_shared<cylinder_factory>();
 
     cyl_sf_data.clear();
-    cyl_sf_data.emplace_back(transform3(point3{0.f, 0.f, 0.f}), vol.index(),
+    cyl_sf_data.emplace_back(transform3(point3{0.f, 0.f, 0.f}), vol_idx,
                              std::vector<scalar>{5.f, -1300.f, 1300.f});
     cyl_factory->push_back(std::move(cyl_sf_data));
 
@@ -265,6 +261,11 @@ GTEST_TEST(detray_tools, decorator_grid_builder) {
     //
     // check results
     //
+    const auto& vol = d.volumes().back();
+    EXPECT_TRUE(d.volumes().size() == 1u);
+    EXPECT_EQ(vol.index(), 0u);
+    EXPECT_EQ(vol.id(), volume_id::e_cylinder);
+
     // only the portals are referenced through the volume
     typename toy_metadata<>::object_link_type sf_range{};
     sf_range[0] = {acc_ids::e_default, 0u};

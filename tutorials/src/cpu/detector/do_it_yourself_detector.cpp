@@ -40,10 +40,7 @@ int main() {
     // Now fill the detector
 
     // Get a generic volume builder first and decorate it later
-    detray::volume_builder<detector_t> vbuilder{};
-
-    // Create a new cuboid volume in the detector
-    vbuilder.init_vol(det, detray::volume_id::e_cuboid);
+    detray::volume_builder<detector_t> vbuilder{detray::volume_id::e_cuboid};
 
     // Fill some squares into the volume
     using square_factory_t =
