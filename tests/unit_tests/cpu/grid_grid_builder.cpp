@@ -175,8 +175,8 @@ GTEST_TEST(detray_tools, decorator_grid_builder) {
              regular_attacher<9>>;
 
     using portal_cylinder_factory_t =
-        surface_factory<test_detector_t, cylinder2D<>, mask_id::e_cylinder2,
-                        surface_id::e_portal>;
+        surface_factory<test_detector_t, cylinder2D<>,
+                        mask_id::e_portal_cylinder2, surface_id::e_portal>;
     using rectangle_factory =
         surface_factory<test_detector_t, rectangle2D<>, mask_id::e_rectangle2,
                         surface_id::e_sensitive>;

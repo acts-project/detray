@@ -20,7 +20,7 @@ namespace detray {
 
 namespace detail {
 
-/// A functor to update the mask index in surface objects
+/// A functor to update the mask index in surface descriptors
 struct mask_index_update;
 
 }  // namespace detail
@@ -122,6 +122,14 @@ class volume_builder : public volume_builder_interface<detector_t> {
     }
 
     protected:
+    typename detector_t::surface_container_t& surfaces() override {
+        return m_surfaces;
+    }
+    typename detector_t::transform_container& transforms() override {
+        return m_transforms;
+    }
+    typename detector_t::mask_container& masks() override { return m_masks; }
+
     /// Add a new full set of detector components (e.g. transforms or volumes)
     /// according to given geometry_context.
     ///
@@ -183,6 +191,18 @@ struct mask_index_update {
                                        const index_t& /*index*/,
                                        surface_t& sf) const {
         sf.update_mask(static_cast<dindex>(group.size()));
+    }
+};
+
+/// TODO: Remove once the material builder is used everywhere
+/// A functor to update the material index in surface objects
+struct material_index_update {
+
+    template <typename group_t, typename index_t, typename surface_t>
+    DETRAY_HOST inline void operator()(const group_t& group,
+                                       const index_t& /*index*/,
+                                       surface_t& sf) const {
+        sf.update_material(static_cast<dindex>(group.size()));
     }
 };
 
