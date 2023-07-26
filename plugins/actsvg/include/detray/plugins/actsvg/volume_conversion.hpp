@@ -38,10 +38,12 @@ auto convert_volume(
         for (auto& description : d_volume.surface_lookup()){
             const auto item = detray::surface{detector, description};
             if (item.is_portal()){
-                portals.push_back(convert_portal(detector, item, context));
+                auto portal = convert_portal(detector, item, context);
+                portals.push_back(portal);
             }
             else{
-                surfaces.push_back(convert_surface(item, context));
+                auto surface = convert_surface(item, context);
+                surfaces.push_back(surface);
             }
         }
         p_volume._v_surfaces = surfaces;

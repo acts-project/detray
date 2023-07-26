@@ -7,6 +7,10 @@
 // Actsvg include(s)
 #include "actsvg/meta.hpp"
 #include "actsvg/proto/surface.hpp"
+#include "actsvg/core.hpp"
+
+// Algebra include(s)
+#include "algebra/math/cmath.hpp"
 
 // System include(s)
 #include <assert.h>
@@ -32,15 +36,21 @@ struct get_link {
 
 /// @returns returns the actsvg proto link from detray portal to volume.
 template <typename detector_t>
-proto_link create_p_link(const detray::surface<detector_t>& d_portal, const detray::detector_volume<detector_t>& d_volume, const typename detector_t::geometry_context& context)
-{
+proto_link create_p_link(const detray::surface<detector_t>& d_portal, const detray::detector_volume<detector_t>& d_volume, const typename detector_t::geometry_context& context){
+    //actsvg::views::x_y view;
     proto_link p_link;
-    const auto portal_position = d_portal.transform(context).translation();
-    const auto volume_position = d_volume.transform().translation();
-    p_link._start = convert_point<3>(portal_position);
-    p_link._end = convert_point<3>(volume_position);
-    //auto p = portal_position;
-    //std::cout<<"(" + std::to_string(p[0]) + ", " + std::to_string(p[1]) + ", " + std::to_string(p[3]) + ")";
+    const auto start = d_portal.center(context); //d_volume.center()
+
+    
+
+    const auto end = d_portal.center(context);//algebra::cmath::operator+(d_portal.center(context), d_portal.normal(context)); //+ d_portal.normal(context)
+    //std::cout << typeid(d_volume.center()).name();
+    //std::cout << typeid(d_portal.normal(context)).name();
+    //std::cout << typeid(d_volume.center() + d_portal.normal(context)).name();
+    p_link._start = convert_point<3>(start);
+    p_link._end = convert_point<3>(end);//convert_point<3>(volume_position);
+    auto p = end;
+    std::cout<<"(" + std::to_string(p[0]) + ", " + std::to_string(p[1]) + ", " + std::to_string(p[3]) + ")";
     return p_link;
 }
 

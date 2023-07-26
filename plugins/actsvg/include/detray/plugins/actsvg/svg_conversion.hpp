@@ -16,10 +16,18 @@
 #include "actsvg/proto/surface.hpp"
 
 // System include(s)
+#include <assert.h>
 #include <type_traits>
 #include <vector>
 
 namespace detray::actsvg_visualization {
+
+inline void assert_legal_name(const std::string& name){
+    auto legal_name = name;
+    legal_name.erase(remove_if(legal_name.begin(), legal_name.end(), isspace), legal_name.end());
+    assert(name == legal_name);
+}
+
 
 template <typename shape_t, typename view_t>
 actsvg::svg::object svg(
@@ -29,6 +37,7 @@ const view_t& view,
 const detector_style& style = default_detector_style
 )
 {
+    assert_legal_name(object_name);
     auto p_surface = convert_mask(mask);
     apply_style(p_surface, style);
     return actsvg::display::surface(object_name, p_surface, view);
@@ -46,6 +55,7 @@ const view_t& view,
 const detector_style& style = default_detector_style
 )
 {
+    assert_legal_name(object_name);
     if (d_surface.is_portal()){
         auto p_portal = convert_portal(detector, d_surface, context);
         apply_style(p_portal, style);
@@ -69,6 +79,7 @@ const view_t& view,
 const detector_style& style = default_detector_style
 )
 {
+    assert_legal_name(object_name);
     auto p_volume = convert_volume(detector, d_volume, context);
     apply_style(p_volume, style);
     return actsvg::display::volume(object_name, p_volume, view);
@@ -85,6 +96,7 @@ const view_t view,
 const detector_style& style = default_detector_style
 )
 {
+    assert_legal_name(object_name);
     auto p_detector = convert_detector(detector, context);
     apply_style(p_detector, style);
     return actsvg::display::detector(object_name, p_detector, view);

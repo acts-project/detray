@@ -31,7 +31,7 @@ auto convert_detector(
     const typename detector_t::geometry_context& context) {
         proto_detector p_detector;
         std::vector<proto_volume> volumes;
-        for (auto descriptor : d_detector.volumes()){
+        for (const auto& descriptor : d_detector.volumes()){
             auto d_volume = detray::detector_volume{d_detector, descriptor};
             volumes.push_back(convert_volume(d_detector, d_volume, context));
         }

@@ -37,6 +37,8 @@ struct set_type_and_bounds_functor {
 /// @param d_surface The detray surface.
 /// @param context The context.
 ///
+/// @note The transform is not taken into account for objects such as rings, cylinders etc (not implemented yet).
+///
 /// @returns An actsvg proto surface representing the surface.
 template <typename detector_t>
 proto_surface convert_surface(

@@ -48,7 +48,7 @@ void set_type_and_bounds(proto_surface& p_surface, const detray::cylinder2D<kRad
 
 /// @brief Sets the proto surfaces type and bounds to be equivalent to the detray shape.
 ///
-/// @param shape A cylinder2D.
+/// @param shape A ring2D.
 template <typename bounds_t>
 void set_type_and_bounds(proto_surface& p_surface, const detray::ring2D<>& shape, const bounds_t& bounds)
 {

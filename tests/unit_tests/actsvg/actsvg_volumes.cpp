@@ -37,8 +37,8 @@ int main(int, char**) {
         draw::x_y_axes("xy", {-250, 250}, {-250, 250}, stroke_black, "x", "y");  
 
 
-    for (int i = 0; i < 10; i++){
-        const auto name = std::string("test_plugins_actsvg_volume ") + std::to_string(i);
+    for (size_t i = 0; i < det.volumes().size(); i++){
+        const auto name = std::string("test_plugins_actsvg_volume") + std::to_string(i);
         // Draw volume
         const auto svg = detray::actsvg_visualization::svg(name, det, det.volume_by_index(i), context, view);
         detray::actsvg_visualization::write_svg(std::array{axis, svg}, name + ".svg");

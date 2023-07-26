@@ -41,9 +41,9 @@ int main(int, char**) {
     auto axis =
         draw::x_y_axes("xy", {-250, 250}, {-250, 250}, stroke_black, "x", "y");
 
-    auto indices = {0, 1, 2, 3};
-
-    auto q = detray::views::pick(det.portals(), indices);
+    //auto indices = {0, 1, 2, 3};
+    //auto q = detray::views::pick(det.portals(), indices);
+    
     int index = 0;
     for (const auto& description : det.portals()) {
         index++;
@@ -51,13 +51,7 @@ int main(int, char**) {
         const auto name = "toy_detector_portal" + std::to_string(index);
 
         const auto svg = detray::actsvg_visualization::svg(name, det, portal, context, view);
-
-        svg::file file;
-        file.add_object(svg);
-        file.add_object(axis);
-        detray::io::detail::file_handle stream{std::string("test_plugins_actsvg_") + name,
-                                           ".svg",
-                                           std::ios::out | std::ios::trunc};
-        *stream << file;
+        
+        detray::actsvg_visualization::write_svg(std::array{svg, axis}, std::string("test_plugins_actsvg_") + name + ".svg");
     }
 }
