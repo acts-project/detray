@@ -41,6 +41,11 @@ class reader_interface {
         typename detector_t::name_map&, const std::string&) = 0;
 
     protected:
+    /// @returns a link from its io payload @param link_data
+    static dindex deserialize(const single_link_payload& link_data) {
+        return static_cast<dindex>(link_data.link);
+    }
+
     /// Extension that matches the file format of the respective reader
     std::string m_file_extension;
 };
@@ -79,6 +84,27 @@ class writer_interface {
         header_data.date = detail::get_current_date();
 
         return header_data;
+    }
+
+    /// Serialize a link @param idx into its io payload
+    static single_link_payload serialize(const std::size_t idx) {
+        single_link_payload link_data;
+        link_data.link = idx;
+
+        return link_data;
+    }
+
+    /// Serialize a typed link with a type id @param id and and index
+    /// @param idx into its io payload
+    template <typename type_id>
+    static typed_link_payload<type_id> serialize(const type_id id,
+                                                 const std::size_t idx) {
+        typed_link_payload<type_id> link_data;
+
+        link_data.type = id;
+        link_data.index = idx;
+
+        return link_data;
     }
 
     /// Extension that matches the file format of the respective writer

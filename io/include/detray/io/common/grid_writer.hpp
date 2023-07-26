@@ -45,12 +45,11 @@ class grid_writer : public writer_interface<detector_t> {
                                             const std::string_view det_name) {
         grid_header_payload header_data;
 
-        header_data.version = detail::get_detray_version();
-        header_data.detector = det_name;
-        header_data.tag = tag;
-        header_data.date = detail::get_current_date();
+        header_data.common = base_type::serialize(det_name, tag);
 
-        header_data.n_grids = get_n_grids(det.surface_store());
+        header_data.sub_header.emplace();
+        auto& grid_sub_header = header_data.sub_header.value();
+        grid_sub_header.n_grids = get_n_grids(det.surface_store());
 
         return header_data;
     }
@@ -62,8 +61,22 @@ class grid_writer : public writer_interface<detector_t> {
 
         detector_grids_payload grids_data;
 
-        // Access the acceleration data structures recursively
-        get_grid_payload(det.surface_store(), grids_data);
+        for (const auto& vol_desc : det.volumes()) {
+            // Links to all acceleration data structures in the volume
+            const auto& multi_link = vol_desc.full_link();
+
+            for (dindex i = 0u; i < multi_link.size(); ++i) {
+                const auto& acc_link = multi_link[i];
+                // Don't look at empty links
+                if (acc_link.is_invalid()) {
+                    continue;
+                }
+
+                // If the accelerator is a grid, insert the payload
+                det.surface_store().template visit<get_grid_payload>(
+                    acc_link, vol_desc.index(), grids_data);
+            }
+        }
 
         return grids_data;
     }
@@ -71,12 +84,13 @@ class grid_writer : public writer_interface<detector_t> {
     /// Serialize a grid @param gr of type @param type and index @param idx
     /// into its io payload
     template <class grid_t>
-    static grid_payload serialize(io::detail::acc_type type,
+    static grid_payload serialize(std::size_t volume_index,
+                                  io::detail::acc_type type,
                                   const std::size_t idx, const grid_t& gr) {
         grid_payload grid_data;
 
-        grid_data.type = type;
-        grid_data.index = idx;
+        grid_data.volume_link = base_type::serialize(volume_index);
+        grid_data.acc_link = base_type::serialize(type, idx);
 
         // Serialize the multi-axis into single axis payloads
         const std::array<axis_payload, grid_t::Dim> axes_data =
@@ -152,30 +166,25 @@ class grid_writer : public writer_interface<detector_t> {
     }
 
     private:
-    /// Retrieve @c grid_payload (s) from grid collection elements
-    template <std::size_t I = 0u>
-    static void get_grid_payload(
-        const typename detector_t::surface_container& store,
-        detector_grids_payload& grids_data) {
+    /// Retrieve a @c grid_payload from grid collection elements
+    struct get_grid_payload {
 
-        using store_t = typename detector_t::surface_container;
-        constexpr auto coll_id{store_t::value_types::to_id(I)};
-        using accel_t = typename store_t::template get_type<coll_id>;
+        template <typename grid_group_t, typename index_t>
+        inline void operator()(
+            [[maybe_unused]] const grid_group_t& coll,
+            [[maybe_unused]] const index_t& index,
+            [[maybe_unused]] std::size_t volume_index,
+            [[maybe_unused]] detector_grids_payload& grids_data) const {
+            using accel_t = typename grid_group_t::value_type;
 
-        if constexpr (detail::is_grid_v<accel_t>) {
+            if constexpr (detail::is_grid_v<accel_t>) {
 
-            const auto& coll = store.template get<coll_id>();
-
-            for (unsigned int i = 0u; i < coll.size(); ++i) {
                 grids_data.grids.push_back(
-                    serialize(io::detail::get_grid_id<accel_t>(), i, coll[i]));
+                    serialize(volume_index, io::detail::get_grid_id<accel_t>(),
+                              index, coll[index]));
             }
         }
-
-        if constexpr (I < store_t::n_collections() - 1u) {
-            get_grid_payload<I + 1>(store, grids_data);
-        }
-    }
+    };
 
     /// Retrieve number of overall grids in detector
     template <std::size_t I = 0u>
