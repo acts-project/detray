@@ -10,4 +10,5 @@
 #include "detray/io/json/json_algebra_io.hpp"
 #include "detray/io/json/json_geometry_io.hpp"
 #include "detray/io/json/json_grids_io.hpp"
+#include "detray/io/json/json_header_io.hpp"
 #include "detray/io/json/json_material_io.hpp"

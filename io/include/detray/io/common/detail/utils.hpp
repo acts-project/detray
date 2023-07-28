@@ -44,4 +44,6 @@ inline std::string get_detray_version() {
     return "detray - " + std::string(detray::version);
 }
 
+inline static const std::string minimal_io_version{"detray - 0.35.0"};
+
 }  // namespace detray::detail

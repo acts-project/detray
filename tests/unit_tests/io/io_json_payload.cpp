@@ -14,6 +14,26 @@
 // GTest include(s)
 #include <gtest/gtest.h>
 
+/// This tests the json io for the general file header information
+TEST(io, json_header_payload) {
+
+    detray::header_payload<bool> h;
+    h.common.version = "v0.0.1";
+    h.common.detector = "test_detector";
+    h.common.tag = "test_file";
+    h.common.date = "01.01.2023";
+
+    nlohmann::ordered_json j;
+    j["header"] = h;
+
+    detray::header_payload<bool> ph = j["header"];
+
+    EXPECT_EQ(h.common.version, ph.common.version);
+    EXPECT_EQ(h.common.detector, ph.common.detector);
+    EXPECT_EQ(h.common.tag, ph.common.tag);
+    EXPECT_EQ(h.common.date, ph.common.date);
+}
+
 /// This tests the json io for a single index link
 TEST(io, single_link_payload) {
     detray::single_link_payload sl;
