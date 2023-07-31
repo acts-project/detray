@@ -9,8 +9,8 @@ detray_add_test( actsvg_masks
    "actsvg_masks.cpp"
    LINK_LIBRARIES GTest::gtest_main detray_tests_common detray::core_array actsvg::core actsvg::meta detray::actsvg)
 
-detray_add_test( actsvg_detectors
-   "actsvg_detectors.cpp"
+detray_add_test( actsvg_links
+   "actsvg_links.cpp"
    LINK_LIBRARIES GTest::gtest_main detray_tests_common detray::core_array actsvg::core actsvg::meta detray::actsvg)
 
 detray_add_test( actsvg_portals
@@ -19,5 +19,9 @@ detray_add_test( actsvg_portals
 
 detray_add_test( actsvg_volumes
    "actsvg_volumes.cpp"
+   LINK_LIBRARIES GTest::gtest_main detray_tests_common detray::core_array actsvg::core actsvg::meta detray::actsvg)
+
+detray_add_test( actsvg_detectors
+   "actsvg_detectors.cpp"
    LINK_LIBRARIES GTest::gtest_main detray_tests_common detray::core_array actsvg::core actsvg::meta detray::actsvg)
 

@@ -143,6 +143,20 @@ class rectangle2D {
         point3_t v4 = {-bounds[e_half_x], bounds[e_half_y], 0};
         return {v1, v2, v3, v4};
     }
+    
+    /// @brief Finds the closest point lying on the surface to the given point.
+    ///
+    /// @param bounds the boundary values for this shape.
+    /// @param loc_p the point in the local coordinate system.
+    ///
+    /// @returns the closest point lying on the surface in the local_coordinate system.
+        template <template <typename, std::size_t> class bounds_t,
+              typename scalar_t, std::size_t kDIM, typename point_t,
+              typename std::enable_if_t<kDIM == e_size, bool> = true>
+    DETRAY_HOST inline point_t closest_surface_point(
+        const bounds_t<scalar_t, kDIM>& bounds, const point_t& loc_p) const {
+            return point_t{};
+    }
 };
 
 }  // namespace detray

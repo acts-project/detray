@@ -18,6 +18,7 @@
 #include <cmath>
 #include <limits>
 #include <string>
+#include <iostream>
 
 namespace detray {
 
@@ -139,6 +140,24 @@ class ring2D {
     DETRAY_HOST inline point3_container_t local_vertices(
         const bounds_t<scalar_t, kDIM>&) const {
         return {};
+    }
+
+    /// @brief Finds the closest point lying on the surface to the given point.
+    ///
+    /// @param bounds the boundary values for this shape.
+    /// @param loc_p the point in the local coordinate system.
+    ///
+    /// @returns the closest point lying on the surface in the local_coordinate system.
+        template <template <typename, std::size_t> class bounds_t,
+              typename scalar_t, std::size_t kDIM, typename point_t,
+              typename std::enable_if_t<kDIM == e_size, bool> = true>
+    DETRAY_HOST inline point_t closest_surface_point(
+        const bounds_t<scalar_t, kDIM>& bounds, const point_t& loc_p) const {
+            const auto r = std::clamp(loc_p[0], bounds[e_inner_r], bounds[e_outer_r]);
+            const auto phi = loc_p[1];
+            const auto z = 0;
+            std::cout << std::to_string(loc_p[2]) + "\n";
+            return point_t{r, phi, z};
     }
 };
 

@@ -14,11 +14,6 @@
 
 namespace detray::actsvg_visualization {
 
-using point3 = std::array<actsvg::scalar, 3>;
-using point3_container = std::vector<point3>;
-using proto_volume = actsvg::proto::volume<point3_container>;
-using proto_detector = actsvg::proto::detector<point3_container>;
-
 /// @brief Calculates the proto detector of a detray detector.
 ///
 /// @param d_detector The detray detector.

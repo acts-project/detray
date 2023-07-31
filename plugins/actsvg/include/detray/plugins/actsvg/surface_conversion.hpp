@@ -3,8 +3,8 @@
 // Project include(s)
 #include "detray/definitions/units.hpp"
 #include "detray/geometry/surface.hpp"
-#include "detray/plugins/actsvg/mask_conversion.hpp"
 #include "detray/plugins/actsvg/transform_conversion.hpp"
+#include "detray/plugins/actsvg/proto_types.hpp"
 
 // Actsvg include(s)
 #include "actsvg/meta.hpp"
@@ -16,22 +16,91 @@
 
 namespace detray::actsvg_visualization {
 
-using point3 = std::array<actsvg::scalar, 3>;
-using point3_container = std::vector<point3>;
-using proto_surface = actsvg::proto::surface<point3_container>;
+namespace {
 
+/// @brief Sets the vertices of the proto surfaces type to be equivalent to the detray shape.
+template <class container_t>
+void set_vertices(proto_surface& p_surface, const container_t& vertices)
+{
+    point3_container actsvg_vertices;
+    for (auto v : vertices) {
+        actsvg_vertices.push_back(convert_point<3>(v));
+    }
+    p_surface._vertices = actsvg_vertices;
+}
+
+/// @brief Sets the proto surfaces type and bounds to be equivalent to the detray shape.
+///
+/// @param shape An annulus2D.
+template <typename detector_t, typename bounds_t>
+auto convert_surface(const detray::surface<detector_t>& d_surface, const typename detector_t::geometry_context&, const detray::annulus2D<>& shape, const bounds_t& bounds)
+{
+    proto_surface p_surface;
+    auto ri = static_cast<actsvg::scalar>(bounds[shape.e_min_r]);
+    auto ro = static_cast<actsvg::scalar>(bounds[shape.e_max_r]);
+    //p_surface._type = proto_surface::type::e_annulus;
+    p_surface._type = proto_surface::type::e_disc;
+    p_surface._radii = {ri, ro};
+    //p_surface._zparameters = {nhz + hz, hz};
+    return p_surface;
+}
+
+/// @brief Sets the proto surfaces type and bounds to be equivalent to the detray shape.
+///
+/// @param shape A cylinder2D.
+template <typename detector_t, typename bounds_t, bool kRadialCheck, template <typename> class intersector_t>
+auto convert_surface(const detray::surface<detector_t>& d_surface, const typename detector_t::geometry_context&, const detray::cylinder2D<kRadialCheck, intersector_t>& shape, const bounds_t& bounds)
+{
+    proto_surface p_surface;
+    auto r = static_cast<actsvg::scalar>(bounds[shape.e_r]);
+    auto nhz = static_cast<actsvg::scalar>(bounds[shape.e_n_half_z]);
+    auto phz = static_cast<actsvg::scalar>(bounds[shape.e_p_half_z]);
+    p_surface._type = proto_surface::type::e_cylinder;
+    p_surface._radii = {0., r};
+    auto hz = (phz-nhz)/2;
+    p_surface._zparameters = {nhz + hz, hz};
+    return p_surface;
+}
+
+/// @brief Sets the proto surfaces type and bounds to be equivalent to the detray shape.
+///
+/// @param shape A ring2D.
+template <typename detector_t, typename bounds_t>
+auto convert_surface(const detray::surface<detector_t>& d_surface, const typename detector_t::geometry_context&, const detray::ring2D<>& shape, const bounds_t& bounds)
+{
+    proto_surface p_surface;
+    auto ri = static_cast<actsvg::scalar>(bounds[shape.e_inner_r]);
+    auto ro = static_cast<actsvg::scalar>(bounds[shape.e_outer_r]);
+    p_surface._type = proto_surface::type::e_disc;
+    p_surface._radii = {ri, ro};
+    return p_surface;
+}
+
+/// @brief Sets the proto surfaces type and bounds to be equivalent to the detray shape.
+///
+/// @param shape A polygon.
+template <typename detector_t, typename bounds_t, typename polygon_t>
+auto convert_surface(const detray::surface<detector_t>& d_surface, const typename detector_t::geometry_context& context, const polygon_t, const bounds_t&)
+{
+    proto_surface p_surface;
+    p_surface._type = proto_surface::type::e_polygon;
+    std::array dir{0.,0.,1.};
+    set_vertices(p_surface, d_surface.global_vertices(context, dir));
+    return p_surface;
+}
 
 /// @brief A functor to set the proto surfaces type and bounds to be equivalent to the mask.
-struct set_type_and_bounds_functor {
+struct convert_surface_functor {
 
-    template <typename mask_group_t, typename index_t>
-    DETRAY_HOST inline void operator()(
-        const mask_group_t& mask_group, const index_t& index, proto_surface& p_surface) const {
+    template <typename mask_group_t, typename index_t, typename detector_t>
+    DETRAY_HOST inline auto operator()(
+        const mask_group_t& mask_group, const index_t& index, const detray::surface<detector_t>& d_surface, const typename detector_t::geometry_context& context) const {
         const auto& m = mask_group[index];
-        set_type_and_bounds(p_surface, m.get_shape(), m.values());
+        return convert_surface(d_surface, context, m.get_shape(), m.values());
     }
 };
 
+}
 /// @brief Calculates the proto surface of a surface.
 ///
 /// @param d_surface The detray surface.
@@ -41,12 +110,9 @@ struct set_type_and_bounds_functor {
 ///
 /// @returns An actsvg proto surface representing the surface.
 template <typename detector_t>
-proto_surface convert_surface(
+auto convert_surface(
     const detray::surface<detector_t>& d_surface,
     const typename detector_t::geometry_context& context) {
-        proto_surface p_surface;
-        d_surface.template visit_mask<set_type_and_bounds_functor>(p_surface);
-        set_vertices(p_surface, d_surface.global_vertices(context));
-        return p_surface;
+    return d_surface.template visit_mask<convert_surface_functor>(d_surface, context);
 }
 }  // namespace detray::actsvg_visualization

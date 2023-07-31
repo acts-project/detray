@@ -28,6 +28,9 @@ inline void assert_legal_name(const std::string& name){
     assert(name == legal_name);
 }
 
+using point3 = std::array<actsvg::scalar, 3>;
+using point3_container = std::vector<point3>;
+using proto_surface = actsvg::proto::surface<point3_container>;
 
 template <typename shape_t, typename view_t>
 actsvg::svg::object svg(
@@ -38,7 +41,8 @@ const detector_style& style = default_detector_style
 )
 {
     assert_legal_name(object_name);
-    auto p_surface = convert_mask(mask);
+    //auto p_surface = convert_mask(mask);
+    proto_surface p_surface;
     apply_style(p_surface, style);
     return actsvg::display::surface(object_name, p_surface, view);
 }
@@ -104,7 +108,7 @@ const detector_style& style = default_detector_style
 
 /// @brief Writes a collection of svgs objects to a single file.
 template <typename container_t>
-void write_svg(const container_t& svgs, const std::string& path){
+void write_svg(const std::string& path, const container_t& svgs){
     actsvg::svg::file file;
     for (const actsvg::svg::object& obj : svgs){
         file.add_object(obj);
@@ -116,8 +120,14 @@ void write_svg(const container_t& svgs, const std::string& path){
 }
 
 /// @brief Writes an svg objects to a file.
-void write_svg(const actsvg::svg::object& svg, const std::string& path){
-    write_svg(std::array{svg}, path);
+void write_svg(const std::string& path, const std::initializer_list<actsvg::svg::object>& svgs){
+    std::vector<actsvg::svg::object> arg = svgs;
+    write_svg(path, arg);
+}
+
+/// @brief Writes an svg objects to a file.
+void write_svg(const std::string& path, const actsvg::svg::object& svg){
+    write_svg(path, std::array{svg});
 }
 
 }  // namespace detray::actsvg_visualization

@@ -36,7 +36,7 @@ int main(int, char**) {
     using toy_detector_t = detray::detector<detray::toy_metadata<>>;
 
     vecmem::host_memory_resource host_mr;
-    const toy_detector_t det = detray::create_toy_geometry(host_mr, 4, 3);
+    const auto [det, names] = detray::create_toy_geometry(host_mr, 4, 3);
     toy_detector_t::geometry_context context{};
 
     views::z_r view;
@@ -46,10 +46,10 @@ int main(int, char**) {
     // Draw x-y-axis.
     style::stroke stroke_black = style::stroke();
     auto axis =
-        draw::x_y_axes("xy", {-250, 250}, {-250, 250}, stroke_black, "x", "y");  
+        draw::x_y_axes("axes", {-250, 250}, {-250, 250}, stroke_black, "z", "r");  
     
     // Draw detetector
     const auto svg = detray::actsvg_visualization::svg(name, det, context, view);
 
-    detray::actsvg_visualization::write_svg(std::array{axis, svg}, name + ".svg");
+    detray::actsvg_visualization::write_svg(name + ".svg", {axis, svg});
 }

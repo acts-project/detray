@@ -30,6 +30,7 @@ void set_type_and_bounds(proto_surface& p_surface, const detray::annulus2D<>& sh
     //p_surface._type = proto_surface::type::e_annulus;
     p_surface._type = proto_surface::type::e_disc;
     p_surface._radii = {ri, ro};
+    //p_surface._zparameters = {nhz + hz, hz};
 }
 
 /// @brief Sets the proto surfaces type and bounds to be equivalent to the detray shape.
@@ -43,7 +44,8 @@ void set_type_and_bounds(proto_surface& p_surface, const detray::cylinder2D<kRad
         auto phz = static_cast<actsvg::scalar>(bounds[shape.e_p_half_z]);
         p_surface._type = proto_surface::type::e_cylinder;
         p_surface._radii = {0., r};
-        p_surface._zparameters = {-nhz, -phz};
+        auto hz = (phz-nhz)/2;
+        p_surface._zparameters = {nhz + hz, hz};
 }
 
 /// @brief Sets the proto surfaces type and bounds to be equivalent to the detray shape.

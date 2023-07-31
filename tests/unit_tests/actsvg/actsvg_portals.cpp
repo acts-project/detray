@@ -32,10 +32,10 @@ int main(int, char**) {
     using toy_detector_t = detray::detector<detray::toy_metadata<>>;
 
     vecmem::host_memory_resource host_mr;
-    const toy_detector_t det = detray::create_toy_geometry(host_mr, 4, 3);
+    const auto [det, names] = detray::create_toy_geometry(host_mr, 4, 3);
 
     toy_detector_t::geometry_context context{};
-    views::x_y view;
+    views::z_r view;
 
     style::stroke stroke_black = style::stroke();
     auto axis =
@@ -46,12 +46,12 @@ int main(int, char**) {
     
     int index = 0;
     for (const auto& description : det.portals()) {
-        index++;
         const auto portal = detray::surface{det, description};
         const auto name = "toy_detector_portal" + std::to_string(index);
 
         const auto svg = detray::actsvg_visualization::svg(name, det, portal, context, view);
         
-        detray::actsvg_visualization::write_svg(std::array{svg, axis}, std::string("test_plugins_actsvg_") + name + ".svg");
+        detray::actsvg_visualization::write_svg(std::string("test_plugins_actsvg_") + name + ".svg", {svg});
+        index++;
     }
 }

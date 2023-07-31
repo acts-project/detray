@@ -15,12 +15,6 @@
 
 namespace detray::actsvg_visualization {
 
-using point3 = std::array<actsvg::scalar, 3>;
-using point3_container = std::vector<point3>;
-using proto_surface = actsvg::proto::surface<point3_container>;
-using proto_portal = actsvg::proto::portal<point3_container>;
-using proto_volume = actsvg::proto::volume<point3_container>;
-
 /// @brief Calculates the proto volume of a detray volume.
 ///
 /// @param d_volume The detray volume.

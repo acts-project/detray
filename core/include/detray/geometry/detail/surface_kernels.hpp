@@ -177,7 +177,7 @@ struct surface_kernels {
         }
     };
 
-     /// A functor to get the local_vertices
+    /// A functor to get the local_vertices
     struct local_vertices {
 
         template <typename mask_group_t, typename index_t>
@@ -187,6 +187,19 @@ struct surface_kernels {
             const auto& m = mask_group[index];
 
             return m.local_vertices();
+        }
+    };
+
+    /// A functor to get the closest point on the surface
+    struct closest_surface_point {
+
+        template <typename mask_group_t, typename index_t>
+        DETRAY_HOST_DEVICE inline auto operator()(
+            const mask_group_t& mask_group, const index_t& index, const point3 local_point) const {
+
+            const auto& m = mask_group[index];
+
+            return m.closest_surface_point(local_point);
         }
     };
 };

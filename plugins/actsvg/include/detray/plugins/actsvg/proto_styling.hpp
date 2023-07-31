@@ -69,6 +69,7 @@ void apply_style(actsvg::proto::surface<point3_container_t>& p_surface, const de
 {
     auto fill_color = pick_random(style.surface_styling.fill_colors);
     p_surface._fill = actsvg::style::fill(fill_color);
+    p_surface._stroke = actsvg::style::stroke(fill_color);
 }
 
 /// @brief Sets the style of the proto portal.
@@ -77,6 +78,8 @@ void apply_style(actsvg::proto::portal<point3_container_t>& p_portal, const dete
 {
     auto fill_color = pick_random(style.portal_styling.fill_colors);
     p_portal._surface._fill = actsvg::style::fill(fill_color);
+    auto stroke = actsvg::style::stroke(fill_color, 4);
+    p_portal._surface._stroke = stroke;
 }
 
 /// @brief Sets the style of the proto volume.

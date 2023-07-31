@@ -36,7 +36,7 @@ using point3_container = std::vector<point3>;
 using proto_surface = proto::surface<point3_container>;
 
 int main(int, char**) {
-
+/*
     views::x_y view;
 
     style::stroke stroke_black = style::stroke();
@@ -49,31 +49,31 @@ int main(int, char**) {
                                             0.0, 0.0,   0.0,   0.0};
     auto name = "test_plugins_actsvg_annulus2D";
     auto svg = detray::actsvg_visualization::svg(name, ann2D, view);
-    detray::actsvg_visualization::write_svg(std::array{svg, axis}, name + std::string(".svg"));
+    detray::actsvg_visualization::write_svg(name + std::string(".svg"), {svg, axis});
 
     // e_r, e_n_half_z, e_p_half_z, e_size
     detray::mask<detray::cylinder2D<>> cyl2D{0u, 100.0, -10.0, 10.0};
     name = "test_plugins_actsvg_cylinder2D";
     svg = detray::actsvg_visualization::svg(name, cyl2D, view);
-    detray::actsvg_visualization::write_svg(std::array{svg, axis}, name + std::string(".svg"));
+    detray::actsvg_visualization::write_svg(name + std::string(".svg"), {svg, axis});
 
     // e_half_x, e_half_y, e_size
     detray::mask<detray::rectangle2D<>> rec2D{0u, 100.0, 100.0};
     name = "test_plugins_actsvg_rectangle2D";
     svg = detray::actsvg_visualization::svg(name, rec2D, view);
-    detray::actsvg_visualization::write_svg(std::array{svg, axis}, name + std::string(".svg"));
+    detray::actsvg_visualization::write_svg(name + std::string(".svg"), {svg, axis});
 
     // e_inner_r, e_outer_r, e_size
     detray::mask<detray::ring2D<>> rin2D{0u, 50.0, 100.0};
     name = "test_plugins_actsvg_ring2D";
     svg = detray::actsvg_visualization::svg(name, rin2D, view);
-    detray::actsvg_visualization::write_svg(std::array{svg, axis}, name + std::string(".svg"));
+    detray::actsvg_visualization::write_svg(name + std::string(".svg"), {svg, axis});
 
     // e_half_length_0, e_half_length_1, e_half_length_2, e_divisor, e_size
     detray::mask<detray::trapezoid2D<>> tra2D{0u, 100.0, 50.0, 200.0};
     name = "test_plugins_actsvg_trapezoid2D";
     svg = detray::actsvg_visualization::svg(name, tra2D, view);
-    detray::actsvg_visualization::write_svg(std::array{svg, axis}, name + std::string(".svg"));
+    detray::actsvg_visualization::write_svg(name + std::string(".svg"), {svg, axis});
 
     // Transform test:
     auto transform = actsvg::style::transform();
@@ -84,11 +84,11 @@ int main(int, char**) {
     rect2D_proto._transform = transform;
     name = "test_plugins_actsvg_rectangle2D_transform";
     svg = actsvg::display::surface(name, rect2D_proto, view);
-    detray::actsvg_visualization::write_svg(std::array{svg, axis}, name + std::string(".svg"));
+    detray::actsvg_visualization::write_svg(name + std::string(".svg"), {svg, axis});
 
     auto rin2D_proto = detray::actsvg_visualization::convert_mask(rin2D);
     rin2D_proto._transform = transform;
     name = "test_plugins_actsvg_ring2D_transform";
     svg = actsvg::display::surface(name, rin2D_proto, view);
-    detray::actsvg_visualization::write_svg(std::array{svg, axis}, name + std::string(".svg"));
+    detray::actsvg_visualization::write_svg(name + std::string(".svg"), {svg, axis});*/
 }

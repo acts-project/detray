@@ -26,7 +26,7 @@ int main(int, char**) {
     using toy_detector_t = detray::detector<detray::toy_metadata<>>;
 
     vecmem::host_memory_resource host_mr;
-    const toy_detector_t det = detray::create_toy_geometry(host_mr, 4, 3);
+    const auto [det, names] = detray::create_toy_geometry(host_mr, 4, 3);
     toy_detector_t::geometry_context context{};
 
     views::x_y view;
@@ -41,6 +41,6 @@ int main(int, char**) {
         const auto name = std::string("test_plugins_actsvg_volume") + std::to_string(i);
         // Draw volume
         const auto svg = detray::actsvg_visualization::svg(name, det, det.volume_by_index(i), context, view);
-        detray::actsvg_visualization::write_svg(std::array{axis, svg}, name + ".svg");
+        detray::actsvg_visualization::write_svg(name + ".svg", {axis, svg});
     }
 }
