@@ -30,6 +30,14 @@ std::string point_to_string(point3_t point){
     return "(" + std::to_string(point[0]) + ", " + std::to_string(point[1]) + ", " + std::to_string(point[2]) + ")";
 }
 
+template <typename detector_t>
+auto bounding_box_center(const detray::surface<detector_t>& d_portal, const typename detector_t::geometry_context& context){
+    const auto local_min_bounds = d_portal.local_min_bounds();
+    const auto center = d_portal.center(context);
+    const typename detector_t::point3 bounding_box_center{(local_min_bounds[3] + local_min_bounds[0])/2, (local_min_bounds[4] + local_min_bounds[1])/2, (local_min_bounds[5] + local_min_bounds[2])/2};
+    return bounding_box_center + center;
+}
+
 int main(int, char**) {
 
     using toy_detector_t = detray::detector<detray::toy_metadata<>>;
@@ -52,22 +60,23 @@ int main(int, char**) {
         draw::x_y_axes("xy", {-250, 250}, {-250, 250}, stroke_black, "x", "y");
     std::vector<actsvg::svg::object> objs;
     objs.push_back(axis);
-    for (size_t i = 22; i < 23; i++){ 
+    for (size_t i = 0; i < det.portals().size(); i++){ 
 
     const auto portal_desc = det.portals()[i];
     const auto d_portal = detray::surface{det, portal_desc};
 
     const auto dir = toy_detector_t::point3{};
-    
-    std::array point{100., 100., 1000.};
-    point = d_portal.global_to_local(context, point, dir);
+
+
+    toy_detector_t::point3 point{0., 1., 0};
+    const auto center = bounding_box_center(d_portal, context);
+    point = d_portal.global_to_local(context, point + center, dir);
     const auto rim = d_portal.local_to_global(context, d_portal.closest_surface_point(point), dir);
     const auto n = d_portal.normal(context, point) * 10.;
-    const auto center = d_portal.center(context);
 
     const auto start = rim;//std::array{10., 0., 0.};
     const auto end = n + start;
-    auto p_link = detray::actsvg_visualization::convert_link(start, end);
+    auto p_link = detray::actsvg_visualization::convert_link(d_portal, context);
     p_link._stroke = style::stroke(c);
     proto_portal p_portal;
     const auto svg = display::portal_link("link", p_portal, p_link, view);

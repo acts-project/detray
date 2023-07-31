@@ -28,10 +28,6 @@ inline void assert_legal_name(const std::string& name){
     assert(name == legal_name);
 }
 
-using point3 = std::array<actsvg::scalar, 3>;
-using point3_container = std::vector<point3>;
-using proto_surface = actsvg::proto::surface<point3_container>;
-
 template <typename shape_t, typename view_t>
 actsvg::svg::object svg(
 const std::string& object_name,

@@ -35,6 +35,9 @@ void set_vertices(proto_surface& p_surface, const container_t& vertices)
 template <typename detector_t, typename bounds_t>
 auto convert_surface(const detray::surface<detector_t>& d_surface, const typename detector_t::geometry_context&, const detray::annulus2D<>& shape, const bounds_t& bounds)
 {
+    //Rotation for circular objects is currently not supported.
+    assert(d_surface.transform.rotation(context) == typename detector_t::transform3{});
+
     proto_surface p_surface;
     auto ri = static_cast<actsvg::scalar>(bounds[shape.e_min_r]);
     auto ro = static_cast<actsvg::scalar>(bounds[shape.e_max_r]);
@@ -51,6 +54,9 @@ auto convert_surface(const detray::surface<detector_t>& d_surface, const typenam
 template <typename detector_t, typename bounds_t, bool kRadialCheck, template <typename> class intersector_t>
 auto convert_surface(const detray::surface<detector_t>& d_surface, const typename detector_t::geometry_context&, const detray::cylinder2D<kRadialCheck, intersector_t>& shape, const bounds_t& bounds)
 {
+    //Rotation for circular objects is currently not supported.
+    assert(d_surface.transform.rotation(context) == typename detector_t::transform3{});
+
     proto_surface p_surface;
     auto r = static_cast<actsvg::scalar>(bounds[shape.e_r]);
     auto nhz = static_cast<actsvg::scalar>(bounds[shape.e_n_half_z]);
@@ -66,13 +72,18 @@ auto convert_surface(const detray::surface<detector_t>& d_surface, const typenam
 ///
 /// @param shape A ring2D.
 template <typename detector_t, typename bounds_t>
-auto convert_surface(const detray::surface<detector_t>& d_surface, const typename detector_t::geometry_context&, const detray::ring2D<>& shape, const bounds_t& bounds)
+auto convert_surface(const detray::surface<detector_t>& d_surface, const typename detector_t::geometry_context& context, const detray::ring2D<>& shape, const bounds_t& bounds)
 {
+    //Rotation for circular objects is currently not supported.
+    assert(d_surface.transform.rotation(context) == typename detector_t::transform3{});
+
     proto_surface p_surface;
     auto ri = static_cast<actsvg::scalar>(bounds[shape.e_inner_r]);
     auto ro = static_cast<actsvg::scalar>(bounds[shape.e_outer_r]);
+    auto center = convert_point<3>(d_surface.center(context));
     p_surface._type = proto_surface::type::e_disc;
     p_surface._radii = {ri, ro};
+    p_surface._zparameters = {center[2], 0};
     return p_surface;
 }
 
