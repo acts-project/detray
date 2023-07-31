@@ -250,6 +250,25 @@ auto create_wire_chamber(vecmem::memory_resource &resource,
         det.append_masks(std::move(masks));
         det.append_transforms(std::move(transforms));
         det.append_materials(std::move(materials));
+
+        // Add volume grid
+        // TODO: Fill it
+
+        // Dimensions of the volume grid: minr, min phi, minz, maxr, maxphi,
+        // maxz
+        // TODO: Adapt to number of layers
+        mask<cylinder3D> vgrid_dims{0u,     0.f,   -constant<scalar>::pi,
+                                    -600.f, 180.f, constant<scalar>::pi,
+                                    600.f};
+        std::array<std::size_t, 3> n_vgrid_bins{1u, 1u, 1u};
+
+        grid_factory_type<typename detector_t::volume_finder> vgrid_factory{};
+        auto vgrid = vgrid_factory.template new_grid<
+            n_axis::open<n_axis::label::e_r>,
+            n_axis::circular<n_axis::label::e_phi>,
+            n_axis::open<n_axis::label::e_z>, n_axis::irregular<>,
+            n_axis::regular<>, n_axis::irregular<>>(vgrid_dims, n_vgrid_bins);
+        det.set_volume_finder(std::move(vgrid));
     }
 
     return std::make_pair(std::move(det), std::move(name_map));
