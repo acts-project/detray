@@ -16,5 +16,4 @@ using proto_link = proto_portal::link;
 using proto_volume = actsvg::proto::volume<point3_container>;
 using proto_detector = actsvg::proto::detector<point3_container>;
 
-
 }

@@ -1,15 +1,12 @@
 #pragma once
 
 // Project include(s)
-#include "detray/definitions/units.hpp"
 #include "detray/plugins/actsvg/volume_conversion.hpp"
 
 // Actsvg include(s)
 #include "actsvg/meta.hpp"
-#include "actsvg/proto/detector.hpp"
 
 // System include(s)
-#include <type_traits>
 #include <vector>
 
 namespace detray::actsvg_visualization {
