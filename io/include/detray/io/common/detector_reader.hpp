@@ -12,6 +12,7 @@
 #include "detray/io/common/detail/type_traits.hpp"
 #include "detray/io/json/json_reader.hpp"
 #include "detray/tools/detector_builder.hpp"
+#include "detray/utils/consistency_checker.hpp"
 
 // System include(s)
 #include <filesystem>
@@ -30,16 +31,23 @@ namespace io {
 struct detector_reader_config {
     /// Input files
     std::vector<std::string> m_files;
+    /// Run detector consistency check after reading
+    bool m_do_check{false};
 
     /// Getters
     /// @{
     const std::vector<std::string>& files() const { return m_files; }
+    bool do_check() const { return m_do_check; }
     /// @}
 
     /// Setters
     /// @{
     detector_reader_config& add_file(const std::string file_name) {
         m_files.push_back(std::move(file_name));
+        return *this;
+    }
+    detector_reader_config& do_check(const bool check) {
+        m_do_check = check;
         return *this;
     }
     /// @}
@@ -116,7 +124,13 @@ auto read_detector(vecmem::memory_resource& resc,
     reader.read(det_builder, names);
 
     // Build and return the detector
-    return std::make_pair(det_builder.build(resc), std::move(names));
+    auto det = det_builder.build(resc);
+
+    if (cfg.do_check()) {
+        detray::detail::check_consistency(det);
+    }
+
+    return std::make_pair(std::move(det), std::move(names));
 }
 
 }  // namespace io

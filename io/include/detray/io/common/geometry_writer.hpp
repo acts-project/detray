@@ -12,7 +12,6 @@
 #include "detray/geometry/surface.hpp"
 #include "detray/io/common/detail/definitions.hpp"
 #include "detray/io/common/detail/utils.hpp"
-#include "detray/io/common/grid_writer.hpp"
 #include "detray/io/common/io_interface.hpp"
 #include "detray/io/common/payloads.hpp"
 #include "detray/masks/masks.hpp"

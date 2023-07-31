@@ -9,12 +9,15 @@
 
 // Project include(s)
 #include "detray/coordinates/cartesian2.hpp"
+#include "detray/definitions/containers.hpp"
 #include "detray/definitions/qualifiers.hpp"
 #include "detray/intersection/plane_intersector.hpp"
 #include "detray/surface_finders/grid/detail/axis_binning.hpp"
 #include "detray/surface_finders/grid/detail/axis_bounds.hpp"
 
 // System include(s)
+#include <limits>
+#include <ostream>
 #include <string>
 
 namespace detray {
@@ -89,12 +92,27 @@ class unmasked {
               template <typename, std::size_t> class bounds_t,
               typename scalar_t, std::size_t kDIM,
               typename std::enable_if_t<kDIM == e_size, bool> = true>
-    DETRAY_HOST_DEVICE constexpr std::array<scalar_t, 6> local_min_bounds(
+    DETRAY_HOST_DEVICE constexpr darray<scalar_t, 6> local_min_bounds(
         const bounds_t<scalar_t, kDIM>& /*bounds*/,
         const scalar_t /*env*/ =
             std::numeric_limits<scalar_t>::epsilon()) const {
         constexpr scalar_t inf{std::numeric_limits<scalar_t>::infinity()};
         return {-inf, -inf, -inf, inf, inf, inf};
+    }
+
+    /// @brief Check consistency of boundary values.
+    ///
+    /// @param bounds the boundary values for this shape
+    /// @param os output stream for error messages
+    ///
+    /// @return true if the bounds are consistent.
+    template <template <typename, std::size_t> class bounds_t,
+              typename scalar_t, std::size_t kDIM,
+              typename std::enable_if_t<kDIM == e_size, bool> = true>
+    DETRAY_HOST constexpr bool check_consistency(
+        const bounds_t<scalar_t, kDIM>& /*bounds*/,
+        std::ostream& /*os*/) const {
+        return true;
     }
 };
 

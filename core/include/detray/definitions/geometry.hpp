@@ -24,7 +24,8 @@ enum class volume_id : std::uint_least8_t {
     e_rectangle = 1u,
     e_trapezoid = 2u,
     e_cone = 3u,
-    e_cuboid = 4u
+    e_cuboid = 4u,
+    e_unknown = 5u
 };
 
 /// surface type, resolved during navigation.
@@ -36,6 +37,7 @@ enum class surface_id : std::uint_least8_t {
     e_portal = 0u,
     e_sensitive = 1u,
     e_passive = 2u,
+    e_unknown = 3u
 };
 
 }  // namespace detray

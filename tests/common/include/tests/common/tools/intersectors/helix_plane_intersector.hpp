@@ -11,6 +11,7 @@
 #include "detray/definitions/qualifiers.hpp"
 #include "detray/intersection/detail/trajectories.hpp"
 #include "detray/intersection/intersection.hpp"
+#include "detray/intersection/plane_intersector.hpp"
 #include "tests/common/tools/intersectors/helix_intersector.hpp"
 
 // System include(s)

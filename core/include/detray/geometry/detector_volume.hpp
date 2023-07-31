@@ -14,6 +14,10 @@
 #include "detray/definitions/qualifiers.hpp"
 #include "detray/geometry/detail/volume_kernels.hpp"
 
+// System include(s)
+#include <iostream>
+#include <sstream>
+
 namespace detray {
 
 /// @brief Facade for a detray detector volume.
@@ -149,6 +153,77 @@ class detector_volume {
         } else {
             return n;
         }
+    }
+
+    /// Do a consistency check on the volume after building the detector.
+    ///
+    /// @param os output stream for error messages.
+    ///
+    /// @returns true if the volume is consistent
+    DETRAY_HOST bool self_check(std::ostream &os) const {
+        if (id() == volume_id::e_unknown) {
+            os << "ERROR: Unknown volume shape type in volume:\n"
+               << *this << std::endl;
+            return false;
+        }
+        if (is_invalid_value(index())) {
+            os << "ERROR: Volume index undefined in volume:\n"
+               << *this << std::endl;
+            return false;
+        }
+        if (index() >= m_detector.volumes().size()) {
+            os << "ERROR: Volume index out of bounds in volume:\n"
+               << *this << std::endl;
+            return false;
+        }
+        if (is_invalid_value(m_desc.transform())) {
+            os << "ERROR: Volume transform undefined in volume:\n"
+               << *this << std::endl;
+            return false;
+        }
+        if (m_desc.transform() >= m_detector.transform_store().size()) {
+            os << "ERROR: Volume transform index out of bounds in volume:\n"
+               << *this << std::endl;
+            return false;
+        }
+        const auto &acc_link = m_desc.full_link();
+        if (is_invalid_value(acc_link[0])) {
+            os << "ERROR: Link to portal lookup broken in volume: " << acc_link
+               << "\n in volume: " << *this << std::endl;
+            return false;
+        }
+
+        // Warnings
+        bool suspicious_links = false;
+        std::stringstream warnigns{};
+        for (std::size_t i = 1u; i < acc_link.size(); ++i) {
+            // An acceleration data structure link was set, but is invalid
+            if (!acc_link[i].is_invalid_id() and
+                acc_link[i].is_invalid_index()) {
+                suspicious_links = true;
+                warnigns << "Link to acceleration data structure "
+                         << static_cast<int>(acc_link[i].id()) << " is invalid"
+                         << std::endl;
+            }
+        }
+        if (suspicious_links) {
+            std::cout << "WARNING: " << warnigns.str()
+                      << " in volume: " << *this << std::endl;
+        }
+
+        return true;
+    }
+
+    /// @returns a string stream that prints the volume details
+    DETRAY_HOST
+    friend std::ostream &operator<<(std::ostream &os,
+                                    const detector_volume &v) {
+        os << "id: " << static_cast<int>(v.m_desc.id());
+        os << " | index: " << v.m_desc.index();
+        os << " | trf.: " << v.m_desc.transform();
+        os << " | acc link: " << v.m_desc.full_link();
+
+        return os;
     }
 
     private:

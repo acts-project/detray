@@ -15,6 +15,7 @@
 #include "detray/geometry/detector_volume.hpp"
 #include "detray/geometry/surface.hpp"
 #include "detray/materials/predefined_materials.hpp"
+#include "detray/tools/grid_builder.hpp"
 #include "detray/tools/volume_builder.hpp"
 
 // Vecmem include(s)
@@ -172,9 +173,6 @@ void create_cyl_volume(detector_t &det, vecmem::memory_resource &resource,
                        const scalar lay_inner_r, const scalar lay_outer_r,
                        const scalar lay_neg_z, const scalar lay_pos_z,
                        const std::vector<dindex> &volume_links) {
-    // Get the object types handled by the volume
-    using object_id = typename detector_t::volume_type::object_id;
-
     // volume bounds
     const scalar inner_r{std::min(lay_inner_r, lay_outer_r)};
     const scalar outer_r{std::max(lay_inner_r, lay_outer_r)};
@@ -189,12 +187,6 @@ void create_cyl_volume(detector_t &det, vecmem::memory_resource &resource,
 
     auto &cyl_volume = det.new_volume(
         volume_id::e_cylinder, {detector_t::sf_finders::id::e_default, 0u});
-    cyl_volume.template set_link<object_id::e_portal>(
-        detector_t::sf_finders::id::e_default, detail::invalid_value<dindex>());
-    cyl_volume.template set_link<object_id::e_passive>(
-        detector_t::sf_finders::id::e_default, detail::invalid_value<dindex>());
-    cyl_volume.template set_link<object_id::e_sensitive>(
-        detector_t::sf_finders::id::e_default, detail::invalid_value<dindex>());
 
     // volume placement
     cyl_volume.set_transform(det.transform_store().size());
@@ -694,8 +686,6 @@ inline void add_beampipe(
         detector_t::sf_finders::id::e_default, 0u);
     beampipe.template set_link<object_id::e_passive>(
         detector_t::sf_finders::id::e_default, 0u);
-    beampipe.template set_link<object_id::e_sensitive>(
-        detector_t::sf_finders::id::e_default, detail::invalid_value<dindex>());
 
     // This is the beampipe surface
     dindex volume_link{beampipe_idx};
@@ -1223,6 +1213,26 @@ auto create_toy_geometry(
             det, resource, ctx0, name_map, n_edc_layers, beampipe_idx,
             edc_lay_sizes, edc_positions, edc_config);
     }
+
+    // Add volume grid
+    // TODO: Fill it
+
+    // Dimensions of the volume grid: minr, min phi, minz, maxr, maxphi, maxz
+    // TODO: Adapt to number of layers
+    mask<cylinder3D> vgrid_dims{0u,      0.f,   -constant<scalar>::pi,
+                                -2000.f, 180.f, constant<scalar>::pi,
+                                2000.f};
+    std::array<std::size_t, 3> n_vgrid_bins{1u, 1u, 1u};
+
+    grid_factory_type<typename detector_t::volume_finder> vgrid_factory{};
+    auto vgrid =
+        vgrid_factory.template new_grid<n_axis::open<n_axis::label::e_r>,
+                                        n_axis::circular<n_axis::label::e_phi>,
+                                        n_axis::open<n_axis::label::e_z>,
+                                        n_axis::irregular<>, n_axis::regular<>,
+                                        n_axis::irregular<>>(vgrid_dims,
+                                                             n_vgrid_bins);
+    det.set_volume_finder(std::move(vgrid));
 
     return std::make_pair(std::move(det), std::move(name_map));
 }

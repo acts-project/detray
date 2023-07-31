@@ -16,6 +16,7 @@
 #include "detray/geometry/detail/surface_kernels.hpp"
 
 // System include(s)
+#include <ostream>
 #include <type_traits>
 
 namespace detray {
@@ -259,9 +260,75 @@ class surface {
                                                    std::forward<Args>(args)...);
     }
 
+    /// Do a consistency check on the surface after building the detector.
+    ///
+    /// @param os output stream for error messages.
+    ///
+    /// @returns true if the surface is consistent
+    DETRAY_HOST bool self_check(std::ostream &os) const {
+        if (barcode().is_invalid()) {
+            os << "ERROR: Invalid barcode for surface:\n" << *this << std::endl;
+            return false;
+        }
+        if (index() >= m_detector.surface_lookup().size()) {
+            os << "ERROR: Surface index out of bounds for surface:\n"
+               << *this << std::endl;
+            return false;
+        }
+        if (volume() >= m_detector.volumes().size()) {
+            os << "ERROR: Surface volume index out of bounds for surface:\n"
+               << *this << std::endl;
+            return false;
+        }
+        if (is_invalid_value(m_desc.transform())) {
+            os << "ERROR: Surface transform undefined for surface:\n"
+               << *this << std::endl;
+            return false;
+        }
+        if (m_desc.transform() >= m_detector.transform_store().size()) {
+            os << "ERROR: Surface transform index out of bounds for surface:\n"
+               << *this << std::endl;
+            return false;
+        }
+        if (is_invalid_value(m_desc.mask())) {
+            os << "ERROR: Surface does not have a valid mask link:\n"
+               << *this << std::endl;
+            return false;
+        }
+        // Only check, if there is material in the detector
+        if (not m_detector.material_store().all_empty()) {
+            if (is_invalid_value(m_desc.material())) {
+                os << "ERROR: Surface does not have valid material:\n"
+                   << *this << std::endl;
+                return false;
+            }
+        }
+        // Check the mask boundaries
+        if (not visit_mask<typename kernels::mask_self_check>(os)) {
+            os << "\nSurface: " << *this << std::endl;
+            return false;
+        }
+        // Check the mask volume link
+        const auto vol_link = visit_mask<typename kernels::get_volume_link>();
+        if (is_portal()) {
+            if (vol_link == volume()) {
+                os << "ERROR: Portal surface links to mother volume:\n"
+                   << *this << std::endl;
+                return false;
+            }
+        } else if (vol_link != volume()) {
+            os << "ERROR: Passive/sensitive surface does not link to mother "
+                  "volume:\n"
+               << *this << std::endl;
+            return false;
+        }
+
+        return true;
+    }
+
     /// @returns a string stream that prints the surface details
     DETRAY_HOST
-    friend std::ostream &operator<<(std::ostream &os, const surface sf) {
+    friend std::ostream &operator<<(std::ostream &os, const surface &sf) {
         os << sf.barcode();
         os << " | trf.: " << sf.m_desc.transform();
         os << " | mask: " << static_cast<dindex>(sf.m_desc.mask().id()) << ", "

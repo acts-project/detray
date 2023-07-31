@@ -13,6 +13,7 @@
 #include "detray/io/common/io_interface.hpp"
 #include "detray/io/common/payloads.hpp"
 #include "detray/tools/detector_builder.hpp"
+#include "detray/tools/grid_builder.hpp"
 #include "detray/tools/surface_factory.hpp"
 #include "detray/tools/volume_builder.hpp"
 
@@ -125,9 +126,13 @@ class geometry_reader : public reader_interface<detector_t> {
                     case surface_id::e_passive:
                         vbuilder->add_passives(sf_factory_ptr, geo_ctx);
                         break;
+                    case surface_id::e_unknown:
+                        break;
                 };
             }
         }
+
+        det_builder.template set_volume_finder();
     }
 
     /// @returns a link from its io payload @param link_data
@@ -211,6 +216,9 @@ class geometry_reader : public reader_interface<detector_t> {
                             surface_factory<detector_t, shape_t, mask_id,
                                             surface_id::e_passive>;
                         return std::make_shared<ps_factory_t>();
+                    case surface_id::e_unknown:
+                        throw std::runtime_error(
+                            "Unknown surface type in geometry file");
                 };
             }
         }
