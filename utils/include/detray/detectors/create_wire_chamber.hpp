@@ -72,7 +72,7 @@ auto create_wire_chamber(vecmem::memory_resource &resource,
                          const wire_chamber_config &cfg) {
 
     // Detector type
-    using detector_t = detector<>;
+    using detector_t = detector<default_metadata, covfie::field, container_t>;
 
     using nav_link_t = typename detector_t::surface_type::navigation_link;
     using mask_id = typename detector_t::surface_type::mask_id;
@@ -159,7 +159,7 @@ auto create_wire_chamber(vecmem::memory_resource &resource,
         typename detector_t::transform_container transforms(resource);
 
         // Wire center positions
-        detray::dvector<point3> m_centers;
+        detray::dvector<point3> m_centers{};
         for (unsigned int i_w = 0u; i_w < n_wires_per_layer; i_w++) {
             const scalar x =
                 center_layer_rad * std::cos(theta * static_cast<scalar>(i_w));
