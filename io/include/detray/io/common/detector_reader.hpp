@@ -14,6 +14,11 @@
 #include "detray/tools/detector_builder.hpp"
 #include "detray/utils/consistency_checker.hpp"
 
+// Covfie include(s)
+#include <covfie/core/backend/primitive/constant.hpp>
+#include <covfie/core/field.hpp>
+#include <covfie/core/vector.hpp>
+
 // System include(s)
 #include <filesystem>
 #include <ios>
@@ -33,11 +38,19 @@ struct detector_reader_config {
     std::vector<std::string> m_files;
     /// Run detector consistency check after reading
     bool m_do_check{false};
+    /// Field vector for an homogenoues b-field
+    std::array<scalar, 3> m_bfield_vec{};
 
     /// Getters
     /// @{
     const std::vector<std::string>& files() const { return m_files; }
     bool do_check() const { return m_do_check; }
+    template <typename const_bfield_bknd_t>
+    auto bfield() const {
+        return covfie::field<const_bfield_bknd_t>(
+            typename const_bfield_bknd_t::configuration_t{
+                m_bfield_vec[0], m_bfield_vec[1], m_bfield_vec[2]});
+    }
     /// @}
 
     /// Setters
@@ -48,6 +61,11 @@ struct detector_reader_config {
     }
     detector_reader_config& do_check(const bool check) {
         m_do_check = check;
+        return *this;
+    }
+    detector_reader_config& bfield_vec(const scalar x, const scalar y,
+                                       const scalar z) {
+        m_bfield_vec = {x, y, z};
         return *this;
     }
     /// @}
@@ -123,8 +141,15 @@ auto read_detector(vecmem::memory_resource& resc,
     names.emplace(0u, std::move(det_name));
     reader.read(det_builder, names);
 
+    // TODO: Remove once bfield reader is available
+    using scalar_t = typename detector_t::scalar_type;
+    using const_bfield_bknd_t =
+        covfie::backend::constant<covfie::vector::vector_d<scalar_t, 3>,
+                                  covfie::vector::vector_d<scalar_t, 3>>;
+
     // Build and return the detector
-    auto det = det_builder.build(resc);
+    auto det =
+        det_builder.build(resc, cfg.template bfield<const_bfield_bknd_t>());
 
     if (cfg.do_check()) {
         detray::detail::check_consistency(det);

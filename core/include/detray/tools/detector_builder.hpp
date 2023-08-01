@@ -80,9 +80,11 @@ class detector_builder {
     /// Assembles the final detector from the volumes builders and allocates
     /// the detector containers with the memory resource @param resource
     DETRAY_HOST
-    auto build(vecmem::memory_resource& resource) -> detector_type {
+    auto build(vecmem::memory_resource& resource,
+               typename detector_type::bfield_type&& field) -> detector_type {
 
-        detector_type det{resource};
+        detector_type det{
+            resource, std::forward<typename detector_type::bfield_type>(field)};
 
         for (auto& vol_builder : m_volumes) {
             vol_builder->build(det);
@@ -93,6 +95,17 @@ class detector_builder {
         // TODO: Add sorting, data deduplication etc. here later...
 
         return det;
+    }
+
+    /// Assembles the detector, without a magnetic field
+    // TODO: Remove, won't work for non-constant bfields
+    DETRAY_HOST
+    auto build(vecmem::memory_resource& resource) -> detector_type {
+        using bfield_bknd_t = typename detector_type::bfield_type::backend_t;
+
+        return build(resource, typename detector_type::bfield_type(
+                                   typename bfield_bknd_t::configuration_t{
+                                       0.f, 0.f, 0.f}));
     }
 
     /// Put the volumes into a search data structure
