@@ -24,8 +24,9 @@ proto_portal convert_portal(const detector_t& detector, const detray::surface<de
     proto_portal p_portal;
     if (has_link(d_portal))
     {
-        const auto p_link = convert_link(d_portal, context);
-        p_portal._volume_links = {p_link};
+        const auto pos_p_link = convert_link(d_portal, context, 1);
+        const auto neg_p_link = convert_link(d_portal, context, -1);
+        p_portal._volume_links = {pos_p_link, neg_p_link};
     }
     p_portal._surface = convert_surface(d_portal, context);
     return p_portal;

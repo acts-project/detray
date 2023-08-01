@@ -8,6 +8,7 @@
 
 // System include(s)
 #include <vector>
+#include <iostream>
 
 namespace detray::actsvg_visualization {
 
@@ -24,6 +25,7 @@ auto convert_detector(
         proto_detector p_detector;
         std::vector<proto_volume> volumes;
         for (const auto& descriptor : d_detector.volumes()){
+            std::cout << "doesnt draw middle portals \n";
             auto d_volume = detray::detector_volume{d_detector, descriptor};
             volumes.push_back(convert_volume(d_detector, d_volume, context));
         }

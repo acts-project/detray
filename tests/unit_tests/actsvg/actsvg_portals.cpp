@@ -35,7 +35,7 @@ int main(int, char**) {
     const auto [det, names] = detray::create_toy_geometry(host_mr, 4, 3);
 
     toy_detector_t::geometry_context context{};
-    views::x_y view;
+    views::z_r view;
 
     style::stroke stroke_black = style::stroke();
     auto axis =
@@ -43,8 +43,8 @@ int main(int, char**) {
 
     //auto indices = {0, 1, 2, 3};
     //auto q = detray::views::pick(det.portals(), indices);
-    std::vector<actsvg::svg::object> portal_svgs;
-    portal_svgs.push_back(axis);
+    std::vector<actsvg::svg::object> all_svgs;
+    all_svgs.push_back(axis);
     int index = 0;
     for (const auto& description : det.portals()) {
         const auto portal = detray::surface{det, description};
@@ -55,7 +55,7 @@ int main(int, char**) {
         detray::actsvg_visualization::write_svg(std::string("test_plugins_actsvg_") + name + ".svg", {svg});
         index++;
 
-        portal_svgs.push_back(svg);
+        all_svgs.push_back(svg);
     }
-    detray::actsvg_visualization::write_svg("test_plugins_actsvg_all_portals.svg", portal_svgs);
+    detray::actsvg_visualization::write_svg("test_plugins_actsvg_all_portals.svg", all_svgs);
 }

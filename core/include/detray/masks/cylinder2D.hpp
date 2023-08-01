@@ -19,7 +19,6 @@
 #include <cmath>
 #include <limits>
 #include <string>
-#include <iostream>
 
 namespace detray {
 
@@ -172,7 +171,6 @@ class cylinder2D {
             const scalar_t phi{loc_p[0] / loc_p[2]};
             const scalar_t z = std::clamp(loc_p[1], bounds[e_n_half_z], bounds[e_p_half_z]);
             const scalar_t r = bounds[e_r];
-            std::cout << std::to_string(bounds[e_n_half_z]) + " " + std::to_string(bounds[e_p_half_z]) + " " + std::to_string(loc_p[1]) + " " + std::to_string(z) + "\n";
             return point_t{phi*r, z, r};
     }
 

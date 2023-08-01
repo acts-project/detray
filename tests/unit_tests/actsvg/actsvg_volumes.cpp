@@ -29,7 +29,7 @@ int main(int, char**) {
     const auto [det, names] = detray::create_toy_geometry(host_mr, 4, 3);
     toy_detector_t::geometry_context context{};
 
-    views::x_y view;
+    views::z_r view;
 
     // Draw x-y-axis.
     style::stroke stroke_black = style::stroke();
@@ -37,10 +37,14 @@ int main(int, char**) {
         draw::x_y_axes("xy", {-250, 250}, {-250, 250}, stroke_black, "x", "y");  
 
 
+    std::vector<actsvg::svg::object> all_svgs;
+    all_svgs.push_back(axis);
     for (size_t i = 0; i < det.volumes().size(); i++){
         const auto name = std::string("test_plugins_actsvg_volume") + std::to_string(i);
         // Draw volume
         const auto svg = detray::actsvg_visualization::svg(name, det, det.volume_by_index(i), context, view);
         detray::actsvg_visualization::write_svg(name + ".svg", {axis, svg});
+        all_svgs.push_back(svg);
     }
+    detray::actsvg_visualization::write_svg("test_plugins_actsvg_all_volumes.svg", all_svgs);
 }

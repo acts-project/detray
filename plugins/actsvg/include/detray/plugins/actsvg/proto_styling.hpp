@@ -78,7 +78,7 @@ void apply_style(actsvg::proto::portal<point3_container_t>& p_portal, const dete
 {
     auto fill_color = pick_random(style.portal_styling.fill_colors);
     p_portal._surface._fill = actsvg::style::fill(fill_color);
-    auto stroke = actsvg::style::stroke(fill_color, 4);
+    auto stroke = actsvg::style::stroke(fill_color, 2);
     p_portal._surface._stroke = stroke;
 }
 

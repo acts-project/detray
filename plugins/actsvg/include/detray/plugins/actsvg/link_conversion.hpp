@@ -102,19 +102,22 @@ proto_link convert_link(const point3_t& start, const point3_t& end){
     proto_link p_link;
     p_link._start = convert_point<3>(start);
     p_link._end = convert_point<3>(end);
-    actsvg::style::color c{{255, 0, 0}, 0.9};
+    actsvg::style::color c{{255, 0, 0}, 0.75};
+    auto marker = actsvg::style::marker({"<<"});
+    marker._size = 1.2;
     p_link._stroke = actsvg::style::stroke(c);
+    p_link._end_marker = marker;
     return p_link;
 }
 
 /// @returns The actsvg proto link of a detray portal.
 template <typename detector_t>
-proto_link convert_link(const detray::surface<detector_t>& d_portal, const typename detector_t::geometry_context& context){
+proto_link convert_link(const detray::surface<detector_t>& d_portal, const typename detector_t::geometry_context& context, const double sign = 1.){
     actsvg::views::x_y view;
     typename detector_t::point3 dir{};
     const auto start = link_start(d_portal, context, dir, view);
     const auto n = d_portal.normal(context, d_portal.global_to_local(context, start, dir));
-    const auto end = (n*10.) + start;
+    const auto end = (n*sign*3.) + start;
     return convert_link(start, end);
 }
 

@@ -18,7 +18,6 @@
 #include <cmath>
 #include <limits>
 #include <string>
-#include <iostream>
 
 namespace detray {
 
@@ -156,7 +155,6 @@ class ring2D {
             const auto r = std::clamp(loc_p[0], bounds[e_inner_r], bounds[e_outer_r]);
             const auto phi = loc_p[1];
             const auto z = 0;
-            std::cout << std::to_string(loc_p[2]) + "\n";
             return point_t{r, phi, z};
     }
 };
