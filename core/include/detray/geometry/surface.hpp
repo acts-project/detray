@@ -65,9 +65,10 @@ class surface {
         : surface(det, det.surface(bcd)) {}
 
     /// Conversion to surface interface around constant detector type
-    DETRAY_HOST_DEVICE
-    constexpr operator surface<const detector_t>() const {
-        return surface<const detector_t>{this->m_detector, this->m_desc};
+    template <typename detector_type = detector_t,
+              std::enable_if_t<!std::is_const_v<detector_type>, bool> = true>
+    DETRAY_HOST_DEVICE constexpr operator surface<const detector_type>() const {
+        return surface<const detector_type>{this->m_detector, this->m_desc};
     }
 
     /// Equality operator
