@@ -57,6 +57,7 @@ macro( detray_add_cpu_test algebra )
       "sf_finder_brute_force.cpp"
       "test_core.cpp"
       "test_telescope_detector.cpp"
+      "test_wire_chamber.cpp"
       "test_toy_geometry.cpp"
       "tools_bounding_volume.cpp"
       "tools_cuboid_intersector.cpp"

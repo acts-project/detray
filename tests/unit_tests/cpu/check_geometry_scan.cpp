@@ -8,6 +8,7 @@
 // Project include(s)
 #include "detray/detectors/create_telescope_detector.hpp"
 #include "detray/detectors/create_toy_geometry.hpp"
+#include "detray/detectors/create_wire_chamber.hpp"
 #include "detray/geometry/volume_graph.hpp"
 #include "detray/intersection/detail/trajectories.hpp"
 #include "detray/simulation/event_generator/track_generators.hpp"
@@ -157,6 +158,54 @@ GTEST_TEST(detray_geometry, telescope_geometry_scan) {
         // Record all intersections and objects along the ray
         const auto intersection_record =
             particle_gun::shoot_particle(tel_det, test_ray);
+
+        // Create a trace of the volume indices that were encountered
+        auto [portal_trace, surface_trace] = trace_intersections<leaving_world>(
+            intersection_record, start_index);
+
+        // Is this a sensible trace to be further examined?
+        ASSERT_TRUE(check_connectivity<leaving_world>(portal_trace));
+
+        // Discover new linking information from this trace
+        build_adjacency<leaving_world>(portal_trace, surface_trace,
+                                       adj_mat_scan, obj_hashes);
+    }
+}
+
+// @TODO: Create common check function for all detectors
+/// Tests the consistency of the wire chamber
+GTEST_TEST(detray_geometry, wire_chamber_scan) {
+
+    vecmem::host_memory_resource host_mr;
+
+    const auto [wire_det, names] =
+        create_wire_chamber(host_mr, wire_chamber_config{});
+
+    using nav_link_t =
+        typename decltype(wire_det)::surface_type::navigation_link;
+    constexpr auto leaving_world{detail::invalid_value<nav_link_t>()};
+
+    // Build the graph
+    volume_graph graph(wire_det);
+    const auto &adj_mat = graph.adjacency_matrix();
+
+    // Now get the adjaceny matrix from ray scan
+    dvector<dindex> adj_mat_scan(adj_mat.size(), 0);
+    // Keep track of the objects that have already been seen per volume
+    std::unordered_set<dindex> obj_hashes = {};
+
+    unsigned int theta_steps{100u};
+    unsigned int phi_steps{100u};
+    const point3 ori{0.f, 0.f, 0.f};
+    dindex start_index{0u};
+
+    // Iterate through uniformly distributed momentum directions
+    for (const auto test_ray :
+         uniform_track_generator<ray_type>(theta_steps, phi_steps, ori)) {
+
+        // Record all intersections and objects along the ray
+        const auto intersection_record =
+            particle_gun::shoot_particle(wire_det, test_ray);
 
         // Create a trace of the volume indices that were encountered
         auto [portal_trace, surface_trace] = trace_intersections<leaving_world>(
