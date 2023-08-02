@@ -99,7 +99,7 @@ class detector {
 
     /// Forward mask types that are present in this detector
     using material_container =
-        typename metadata::template material_store<tuple_type, vector_type>;
+        typename metadata::template material_store<tuple_type, container_t>;
     using materials = typename material_container::value_types;
     using material_link = typename material_container::single_link;
 

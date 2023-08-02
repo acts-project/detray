@@ -93,7 +93,7 @@ detail::detector_component_writers<detector_t> assemble_writer(
         // Find other writers, depending on the detector type
         if (cfg.write_material()) {
             // Simple material
-            if constexpr (detail::is_homogeneous_material_v<detector_t>) {
+            if constexpr (detail::has_homogeneous_material_v<detector_t>) {
                 writers.template add<json_homogeneous_material_writer>();
             }
             // Material maps
@@ -119,7 +119,7 @@ namespace io {
 /// using @param names to name the components
 template <class detector_t>
 void write_detector(detector_t& det, const typename detector_t::name_map& names,
-                    const detector_writer_config& cfg) {
+                    detector_writer_config& cfg) {
     // How to open the file
     const std::ios_base::openmode out_mode{std::ios_base::out |
                                            std::ios_base::binary};
@@ -127,6 +127,10 @@ void write_detector(detector_t& det, const typename detector_t::name_map& names,
         cfg.replace_files() ? (out_mode | std::ios_base::trunc) : out_mode;
 
     const auto file_path = detray::detail::create_path(cfg.path());
+
+    if (det.material_store().all_empty()) {
+        cfg.write_material(false);
+    }
 
     // Get the writer
     auto writer = detray::detail::assemble_writer<detector_t>(cfg);

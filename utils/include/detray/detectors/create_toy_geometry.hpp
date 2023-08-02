@@ -16,6 +16,7 @@
 #include "detray/geometry/detector_volume.hpp"
 #include "detray/geometry/surface.hpp"
 #include "detray/io/common/detail/file_handle.hpp"
+#include "detray/materials/mixture.hpp"
 #include "detray/materials/predefined_materials.hpp"
 #include "detray/tools/grid_builder.hpp"
 #include "detray/tools/volume_builder.hpp"
@@ -46,6 +47,27 @@ struct toy_det_config {
     unsigned int m_n_brl_layers{4u};
     /// No. of endcap layers (on either side) the detector should be built with
     unsigned int m_n_edc_layers{3u};
+    /// Do material maps on portals
+    bool m_use_material_maps{false};
+    /// Number of bins for material maps
+    std::array<std::size_t, 2> m_cyl_map_bins{20u, 20u};
+    std::array<std::size_t, 2> m_disc_map_bins{3u, 20u};
+    /// Material to be filled into the maps
+    material<scalar> m_mapped_material =
+        mixture<scalar, silicon_tml<scalar, std::ratio<9, 10>>,
+                aluminium<scalar, std::ratio<1, 10>>>{};
+    /// Minimal thickness of the material slabs
+    scalar m_thickness{1.5f * unit<scalar>::mm};
+    /// Generate material along z bins for a cylinder material grid
+    std::function<std::vector<material_slab<scalar>>(
+        const std::array<scalar, 2u> &, const std::size_t, material<scalar>,
+        const scalar)>
+        m_cyl_mat_generator = detray::detail::generate_cyl_mat;
+    /// Generate material along r bins for a disc material grid
+    std::function<std::vector<material_slab<scalar>>(
+        const std::array<scalar, 2u> &, const std::size_t, material<scalar>,
+        const scalar)>
+        m_disc_mat_generator = detray::detail::generate_disc_mat;
 
     /// Setters
     /// @{
@@ -57,18 +79,50 @@ struct toy_det_config {
         m_n_edc_layers = n;
         return *this;
     }
+    constexpr toy_det_config &use_material_maps(const bool b) {
+        m_use_material_maps = b;
+        return *this;
+    }
+    constexpr toy_det_config &cyl_map_bins(const std::size_t n_rphi,
+                                           const std::size_t n_z) {
+        m_cyl_map_bins = {n_rphi, n_z};
+        return *this;
+    }
+    constexpr toy_det_config &disc_map_bins(const std::size_t n_r,
+                                            const std::size_t n_phi) {
+        m_disc_map_bins = {n_r, n_phi};
+        return *this;
+    }
+    toy_det_config &thickness(const scalar t) {
+        assert(t > 0.f);
+        m_thickness = t;
+        return *this;
+    }
+    constexpr toy_det_config &mapped_material(const material<scalar> &mat) {
+        m_mapped_material = mat;
+        return *this;
+    }
     /// @}
 
     /// Getters
     /// @{
     constexpr unsigned int n_brl_layers() const { return m_n_brl_layers; }
     constexpr unsigned int n_edc_layers() const { return m_n_edc_layers; }
+    constexpr bool use_material_maps() const { return m_use_material_maps; }
+    constexpr const std::array<std::size_t, 2> &cyl_map_bins() const {
+        return m_cyl_map_bins;
+    }
+    constexpr const std::array<std::size_t, 2> &disc_map_bins() const {
+        return m_disc_map_bins;
+    }
+    scalar thickness() const { return m_thickness; }
+    auto barrel_mat_generator() const { return m_cyl_mat_generator; }
+    auto edc_mat_generator() const { return m_disc_mat_generator; }
+    material<scalar> mapped_material() const { return m_mapped_material; }
     /// @}
 };
 
 /** Helper function that creates a layer of rectangular barrel modules.
- *
- * @tparam rctangle_id default rectangle id
  *
  * @param ctx geometric context
  * @param volume_idx volume the portal should be added to
@@ -523,7 +577,8 @@ inline void create_endcap_modules(context_t &ctx, volume_type &vol,
  */
 template <typename detector_t>
 inline void add_beampipe(
-    detector_t &det, vecmem::memory_resource &resource,
+    const toy_det_config &cfg, detector_t &det,
+    vecmem::memory_resource &resource,
     typename detector_t::geometry_context &ctx,
     typename detector_t::name_map &names, const unsigned int n_edc_layers,
     const unsigned int n_brl_layers,
@@ -533,9 +588,13 @@ inline void add_beampipe(
 
     // Get the object types handled by the volume
     using object_id = typename detector_t::volume_type::object_id;
+    using material_id = typename detector_t::materials::id;
+    using material_link_t = typename detector_t::surface_type::material_link;
     using nav_link_t = typename detector_t::surface_type::navigation_link;
     constexpr auto leaving_world{detail::invalid_value<nav_link_t>()};
     constexpr auto cyl_id = detector_t::masks::id::e_portal_cylinder2;
+
+    const detail::detector_helper<transform3_t> det_helper{};
 
     scalar max_z{n_edc_layers == 0u ? brl_half_z
                                     : edc_lay_sizes[n_edc_layers - 1u].second};
@@ -572,49 +631,61 @@ inline void add_beampipe(
 
     // negative endcap portals
     dindex link = beampipe_idx;
+    auto &material_coll =
+        cfg.use_material_maps() ? det.material_store() : materials;
     for (int i = static_cast<int>(vol_sizes.size()) - 1; i >= 0; --i) {
         volume_link = ++link;
-        detail::detector_helper<transform3_t>().add_cylinder_surface<cyl_id>(
-            beampipe_idx, ctx, surfaces, masks, materials, transforms,
-            edc_inner_r, -vol_sizes[static_cast<unsigned int>(i)].second,
-            -vol_sizes[static_cast<unsigned int>(i)].first, volume_link,
-            vacuum<scalar>(), 0.f * unit<scalar>::mm);
+        auto [neg_cyl, neg_cyl_mask] = det_helper.add_cylinder_surface<cyl_id>(
+            beampipe_idx, ctx, surfaces, masks, transforms, edc_inner_r,
+            -vol_sizes[static_cast<unsigned int>(i)].second,
+            -vol_sizes[static_cast<unsigned int>(i)].first, volume_link);
+
+        det_helper.create_material(cfg, neg_cyl, neg_cyl_mask, material_coll);
     }
 
     // barrel portals
     volume_link = n_brl_layers <= 0u ? leaving_world : link + 1u;
-    detail::detector_helper<transform3_t>().add_cylinder_surface<cyl_id>(
-        beampipe_idx, ctx, surfaces, masks, materials, transforms, edc_inner_r,
-        -brl_half_z, brl_half_z, volume_link, vacuum<scalar>(),
-        0.f * unit<scalar>::mm);
+    auto [barr_cyl, barr_cyl_mask] = det_helper.add_cylinder_surface<cyl_id>(
+        beampipe_idx, ctx, surfaces, masks, transforms, edc_inner_r,
+        -brl_half_z, brl_half_z, volume_link);
+
+    det_helper.create_material(cfg, barr_cyl, barr_cyl_mask, material_coll);
 
     // positive endcap portals
     link += 7u;
     for (unsigned int i = 0u; i < vol_sizes.size(); ++i) {
         volume_link = ++link;
-        detail::detector_helper<transform3_t>().add_cylinder_surface<cyl_id>(
-            beampipe_idx, ctx, surfaces, masks, materials, transforms,
-            edc_inner_r, vol_sizes[i].second, vol_sizes[i].first, volume_link,
-            vacuum<scalar>(), 0.f * unit<scalar>::mm);
+        auto [pos_cyl, pos_cyl_mask] = det_helper.add_cylinder_surface<cyl_id>(
+            beampipe_idx, ctx, surfaces, masks, transforms, edc_inner_r,
+            vol_sizes[i].second, vol_sizes[i].first, volume_link);
+
+        det_helper.create_material(cfg, pos_cyl, pos_cyl_mask, material_coll);
     }
 
     // disc portals
     volume_link = leaving_world;
-    detail::detector_helper<transform3_t>().add_disc_surface(
-        beampipe_idx, ctx, surfaces, masks, materials, transforms,
-        beampipe_vol_size.first, beampipe_vol_size.second, min_z, volume_link,
-        vacuum<scalar>(), 0.f * unit<scalar>::mm);
-    detail::detector_helper<transform3_t>().add_disc_surface(
-        beampipe_idx, ctx, surfaces, masks, materials, transforms,
-        beampipe_vol_size.first, beampipe_vol_size.second, max_z, volume_link,
-        vacuum<scalar>(), 0.f * unit<scalar>::mm);
+    auto [neg_disc, neg_disc_mask] = det_helper.add_disc_surface(
+        beampipe_idx, ctx, surfaces, masks, transforms, beampipe_vol_size.first,
+        beampipe_vol_size.second, min_z, volume_link);
+    det_helper.create_material(cfg, neg_disc, neg_disc_mask, material_coll);
+
+    auto [pos_disc, pos_disc_mask] = det_helper.add_disc_surface(
+        beampipe_idx, ctx, surfaces, masks, transforms, beampipe_vol_size.first,
+        beampipe_vol_size.second, max_z, volume_link);
+    det_helper.create_material(cfg, pos_disc, pos_disc_mask, material_coll);
 
     // This is the beampipe surface
-    detail::detector_helper<transform3_t>()
-        .add_cylinder_surface<detector_t::masks::id::e_cylinder2>(
-            beampipe_idx, ctx, surfaces, masks, materials, transforms,
-            beampipe_r, min_z, max_z, beampipe_idx, beryllium_tml<scalar>(),
-            0.8f * unit<scalar>::mm);
+    auto [bp, bp_mask] =
+        det_helper.add_cylinder_surface<detector_t::masks::id::e_cylinder2>(
+            beampipe_idx, ctx, surfaces, masks, transforms, beampipe_r, min_z,
+            max_z, beampipe_idx);
+
+    materials.template emplace_back<material_id::e_slab>(
+        {}, beryllium_tml<scalar>(), 0.8f * unit<scalar>::mm);
+
+    bp.material() =
+        material_link_t{material_id::e_slab,
+                        materials.template size<material_id::e_slab>() - 1u};
 
     det.add_objects_per_volume(ctx, beampipe, surfaces, masks, transforms,
                                materials);
@@ -638,7 +709,8 @@ inline void add_beampipe(
  */
 template <typename detector_t>
 inline void add_endcap_barrel_connection(
-    detector_t &det, vecmem::memory_resource &resource,
+    const toy_det_config &cfg, detector_t &det,
+    vecmem::memory_resource &resource,
     typename detector_t::geometry_context &ctx,
     typename detector_t::name_map &names, const int side,
     const unsigned int n_brl_layers, const dindex beampipe_idx,
@@ -650,6 +722,8 @@ inline void add_endcap_barrel_connection(
     using nav_link_t = typename detector_t::surface_type::navigation_link;
     constexpr auto leaving_world{detail::invalid_value<nav_link_t>()};
     constexpr auto cyl_id = detector_t::masks::id::e_portal_cylinder2;
+
+    const detail::detector_helper<transform3_t> det_helper{};
 
     const scalar sign{static_cast<scalar>(side)};
     const scalar min_z{std::min(sign * gap_lower_z, sign * gap_upper_z)};
@@ -674,20 +748,24 @@ inline void add_endcap_barrel_connection(
     det.transform_store().emplace_back(ctx, t);
 
     dindex volume_link{beampipe_idx};
-    detail::detector_helper<transform3_t>().add_cylinder_surface<cyl_id>(
-        connector_gap_idx, ctx, surfaces, masks, materials, transforms,
-        edc_inner_r, min_z, max_z, volume_link, vacuum<scalar>(),
-        0.f * unit<scalar>::mm);
+    auto &material_coll =
+        cfg.use_material_maps() ? det.material_store() : materials;
+    auto [inner_cyl, inner_cyl_mask] = det_helper.add_cylinder_surface<cyl_id>(
+        connector_gap_idx, ctx, surfaces, masks, transforms, edc_inner_r, min_z,
+        max_z, volume_link);
+    det_helper.create_material(cfg, inner_cyl, inner_cyl_mask, material_coll);
+
     volume_link = leaving_world;
-    detail::detector_helper<transform3_t>().add_cylinder_surface<cyl_id>(
-        connector_gap_idx, ctx, surfaces, masks, materials, transforms,
-        edc_outer_r, min_z, max_z, volume_link, vacuum<scalar>(),
-        0.f * unit<scalar>::mm);
+    auto [outer_cyl, outer_cyl_mask] = det_helper.add_cylinder_surface<cyl_id>(
+        connector_gap_idx, ctx, surfaces, masks, transforms, edc_outer_r, min_z,
+        max_z, volume_link);
+    det_helper.create_material(cfg, outer_cyl, outer_cyl_mask, material_coll);
+
     volume_link = edc_vol_idx;
-    detail::detector_helper<transform3_t>().add_disc_surface(
-        connector_gap_idx, ctx, surfaces, masks, materials, transforms,
-        edc_inner_r, edc_outer_r, edc_disc_z, volume_link, vacuum<scalar>(),
-        0.f * unit<scalar>::mm);
+    auto [inner_disc, inner_disc_mask] = det_helper.add_disc_surface(
+        connector_gap_idx, ctx, surfaces, masks, transforms, edc_inner_r,
+        edc_outer_r, edc_disc_z, volume_link);
+    det_helper.create_material(cfg, inner_disc, inner_disc_mask, material_coll);
 
     // Get vol sizes in z also for gap volumes
     std::vector<std::pair<scalar, scalar>> vol_sizes;
@@ -700,10 +778,11 @@ inline void add_endcap_barrel_connection(
     volume_link = brl_vol_idx;
     for (unsigned int i = 0u; i < 2u * n_brl_layers - 1u; ++i) {
         volume_link = brl_vol_idx++;
-        detail::detector_helper<transform3_t>().add_disc_surface(
-            connector_gap_idx, ctx, surfaces, masks, materials, transforms,
-            vol_sizes[i].first, vol_sizes[i].second, brl_disc_z, volume_link,
-            vacuum<scalar>(), 0.f * unit<scalar>::mm);
+        auto [outer_disc, outer_disc_mask] = det_helper.add_disc_surface(
+            connector_gap_idx, ctx, surfaces, masks, transforms,
+            vol_sizes[i].first, vol_sizes[i].second, brl_disc_z, volume_link);
+        det_helper.create_material(cfg, outer_disc, outer_disc_mask,
+                                   material_coll);
     }
 
     det.add_objects_per_volume(ctx, connector_gap, surfaces, masks, transforms,
@@ -723,13 +802,16 @@ inline void add_endcap_barrel_connection(
  */
 template <typename edc_module_factory, typename detector_t, typename config_t>
 inline void add_endcap_detector(
-    detector_t &det, vecmem::memory_resource &resource,
+    const toy_det_config &cfg, detector_t &det,
+    vecmem::memory_resource &resource,
     typename detector_t::geometry_context &ctx,
     typename detector_t::name_map &names, dindex n_layers, dindex beampipe_idx,
     const std::vector<std::pair<scalar, scalar>> &lay_sizes,
-    const std::vector<scalar> &lay_positions, config_t cfg) {
+    const std::vector<scalar> &lay_positions, config_t factory_cfg) {
     using nav_link_t = typename detector_t::surface_type::navigation_link;
     constexpr auto leaving_world{detail::invalid_value<nav_link_t>()};
+
+    const detail::detector_helper<transform3_t> det_helper{};
 
     // Generate consecutive linking between volumes (all volume_links for every
     // vol.)
@@ -744,7 +826,7 @@ inline void add_endcap_detector(
             {beampipe_idx, leaving_world, ++prev_vol_idx, ++next_vol_idx});
     }
     // Edge of the world is flipped
-    if (cfg.side < 0) {
+    if (factory_cfg.side < 0) {
         volume_links_vec.insert(
             volume_links_vec.begin(),
             {beampipe_idx, leaving_world, leaving_world, first_vol_idx + 1u});
@@ -771,12 +853,12 @@ inline void add_endcap_detector(
         vol_sizes.emplace_back(lay_sizes[i].first, lay_sizes[i].second);
     }
 
-    edc_module_factory m_factory{cfg};
+    edc_module_factory m_factory{factory_cfg};
 
     auto vol_size_itr = vol_sizes.begin();
     auto pos_itr = lay_positions.begin();
     // Reverse iteration for negative endcap
-    if (cfg.side < 0) {
+    if (factory_cfg.side < 0) {
         std::advance(vol_size_itr, 2u * n_layers - 2u);
         std::advance(pos_itr, n_layers - 1u);
     }
@@ -784,23 +866,25 @@ inline void add_endcap_detector(
     for (int i = 0; i < 2 * static_cast<int>(n_layers) - 1; ++i) {
         // Every second layer is a gap volume
         is_gap = !is_gap;
-        const scalar sign{static_cast<scalar>(cfg.side)};
+        const scalar sign{static_cast<scalar>(factory_cfg.side)};
         if (is_gap) {
-            detail::detector_helper<transform3_t>().create_cyl_volume(
-                det, resource, ctx, cfg.inner_r, cfg.outer_r,
-                sign * (vol_size_itr + cfg.side * i)->first,
-                sign * (vol_size_itr + cfg.side * i)->second,
+            det_helper.create_cyl_volume(
+                cfg, det, resource, ctx, factory_cfg.inner_r,
+                factory_cfg.outer_r,
+                sign * (vol_size_itr + factory_cfg.side * i)->first,
+                sign * (vol_size_itr + factory_cfg.side * i)->second,
                 volume_links_vec[static_cast<unsigned int>(i)]);
 
             dindex vol_idx = det.volumes().back().index();
             names[vol_idx + 1u] = "gap_" + std::to_string(vol_idx);
 
         } else {
-            m_factory.cfg.edc_position = *(pos_itr + cfg.side * i / 2);
-            detail::detector_helper<transform3_t>().create_cyl_volume(
-                det, resource, ctx, cfg.inner_r, cfg.outer_r,
-                sign * (vol_size_itr + cfg.side * i)->first,
-                sign * (vol_size_itr + cfg.side * i)->second,
+            m_factory.cfg.edc_position = *(pos_itr + factory_cfg.side * i / 2);
+            det_helper.create_cyl_volume(
+                cfg, det, resource, ctx, factory_cfg.inner_r,
+                factory_cfg.outer_r,
+                sign * (vol_size_itr + factory_cfg.side * i)->first,
+                sign * (vol_size_itr + factory_cfg.side * i)->second,
                 volume_links_vec[static_cast<unsigned int>(i)]);
 
             dindex vol_idx = det.volumes().back().index();
@@ -825,16 +909,19 @@ inline void add_endcap_detector(
  */
 template <typename brl_module_factory, typename detector_t, typename config_t>
 inline void add_barrel_detector(
-    detector_t &det, vecmem::memory_resource &resource,
+    const toy_det_config &cfg, detector_t &det,
+    vecmem::memory_resource &resource,
     typename detector_t::geometry_context &ctx,
     typename detector_t::name_map &names, const unsigned int n_layers,
     dindex beampipe_idx, const scalar brl_half_z,
     const std::vector<std::pair<scalar, scalar>> &lay_sizes,
     const std::vector<scalar> &lay_positions,
-    const std::vector<std::pair<int, int>> &m_binning, config_t cfg) {
+    const std::vector<std::pair<int, int>> &m_binning, config_t factory_cfg) {
 
     using nav_link_t = typename detector_t::surface_type::navigation_link;
     constexpr auto leaving_world{detail::invalid_value<nav_link_t>()};
+
+    const detail::detector_helper<transform3_t> det_helper{};
 
     // Generate consecutive linking between volumes
     dindex first_vol_idx = det.volumes().back().index();
@@ -868,25 +955,27 @@ inline void add_barrel_detector(
         vol_sizes.emplace_back(lay_sizes[i].first, lay_sizes[i].second);
     }
 
-    brl_module_factory m_factory{cfg};
+    brl_module_factory m_factory{factory_cfg};
     bool is_gap = true;
     for (unsigned int i = 0u; i < 2u * n_layers - 1u; ++i) {
         unsigned int j = (i + 2u) / 2u;
         // Every second layer is a gap volume
         is_gap = !is_gap;
         if (is_gap) {
-            detail::detector_helper<transform3_t>().create_cyl_volume(
-                det, resource, ctx, vol_sizes[i].first, vol_sizes[i].second,
-                -brl_half_z, brl_half_z, volume_links_vec[i]);
+            det_helper.create_cyl_volume(cfg, det, resource, ctx,
+                                         vol_sizes[i].first,
+                                         vol_sizes[i].second, -brl_half_z,
+                                         brl_half_z, volume_links_vec[i]);
 
             dindex vol_idx = det.volumes().back().index();
             names[vol_idx + 1u] = "gap_" + std::to_string(vol_idx);
         } else {
             m_factory.cfg.m_binning = m_binning[j];
             m_factory.cfg.layer_r = lay_positions[j];
-            detail::detector_helper<transform3_t>().create_cyl_volume(
-                det, resource, ctx, vol_sizes[i].first, vol_sizes[i].second,
-                -brl_half_z, brl_half_z, volume_links_vec[i]);
+            det_helper.create_cyl_volume(cfg, det, resource, ctx,
+                                         vol_sizes[i].first,
+                                         vol_sizes[i].second, -brl_half_z,
+                                         brl_half_z, volume_links_vec[i]);
 
             dindex vol_idx = det.volumes().back().index();
             names[vol_idx + 1u] = "barrel_" + std::to_string(vol_idx);
@@ -1036,7 +1125,7 @@ inline auto create_toy_geometry(vecmem::memory_resource &resource,
 
     // beampipe
     const dindex beampipe_idx{0u};
-    add_beampipe(det, resource, ctx0, name_map, cfg.n_edc_layers(),
+    add_beampipe(cfg, det, resource, ctx0, name_map, cfg.n_edc_layers(),
                  cfg.n_brl_layers(), edc_lay_sizes, brl_lay_sizes[0],
                  brl_positions[0], brl_half_z, edc_config.inner_r);
 
@@ -1044,8 +1133,8 @@ inline auto create_toy_geometry(vecmem::memory_resource &resource,
         edc_config.side = -1;
         // negative endcap layers
         add_endcap_detector<edc_module_factory>(
-            det, resource, ctx0, name_map, cfg.n_edc_layers(), beampipe_idx,
-            edc_lay_sizes, edc_positions, edc_config);
+            cfg, det, resource, ctx0, name_map, cfg.n_edc_layers(),
+            beampipe_idx, edc_lay_sizes, edc_positions, edc_config);
 
         // gap volume that connects barrel and neg. endcap
         dindex prev_vol_idx = det.volumes().back().index();
@@ -1055,15 +1144,17 @@ inline auto create_toy_geometry(vecmem::memory_resource &resource,
                                   : det.volumes().back().index() + 2u;
 
         add_endcap_barrel_connection(
-            det, resource, ctx0, name_map, edc_config.side, cfg.n_brl_layers(),
-            beampipe_idx, brl_lay_sizes, edc_config.inner_r, edc_config.outer_r,
-            edc_lay_sizes[0].first, brl_half_z, next_vol_idx, prev_vol_idx);
+            cfg, det, resource, ctx0, name_map, edc_config.side,
+            cfg.n_brl_layers(), beampipe_idx, brl_lay_sizes, edc_config.inner_r,
+            edc_config.outer_r, edc_lay_sizes[0].first, brl_half_z,
+            next_vol_idx, prev_vol_idx);
     }
     if (cfg.n_brl_layers() > 0u) {
         // barrel
         add_barrel_detector<brl_module_factory>(
-            det, resource, ctx0, name_map, cfg.n_brl_layers(), beampipe_idx,
-            brl_half_z, brl_lay_sizes, brl_positions, brl_binning, brl_config);
+            cfg, det, resource, ctx0, name_map, cfg.n_brl_layers(),
+            beampipe_idx, brl_half_z, brl_lay_sizes, brl_positions, brl_binning,
+            brl_config);
     }
     if (cfg.n_edc_layers() > 0u) {
         // gap layer that connects barrel and pos. endcap
@@ -1077,14 +1168,15 @@ inline auto create_toy_geometry(vecmem::memory_resource &resource,
                                   : det.volumes().back().index() + 2u;
 
         add_endcap_barrel_connection(
-            det, resource, ctx0, name_map, edc_config.side, cfg.n_brl_layers(),
-            beampipe_idx, brl_lay_sizes, edc_config.inner_r, edc_config.outer_r,
-            brl_half_z, edc_lay_sizes[0].first, prev_vol_idx, next_vol_idx);
+            cfg, det, resource, ctx0, name_map, edc_config.side,
+            cfg.n_brl_layers(), beampipe_idx, brl_lay_sizes, edc_config.inner_r,
+            edc_config.outer_r, brl_half_z, edc_lay_sizes[0].first,
+            prev_vol_idx, next_vol_idx);
 
         // positive endcap layers
         add_endcap_detector<edc_module_factory>(
-            det, resource, ctx0, name_map, cfg.n_edc_layers(), beampipe_idx,
-            edc_lay_sizes, edc_positions, edc_config);
+            cfg, det, resource, ctx0, name_map, cfg.n_edc_layers(),
+            beampipe_idx, edc_lay_sizes, edc_positions, edc_config);
     }
 
     // Add volume grid

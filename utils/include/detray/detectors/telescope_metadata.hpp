@@ -86,14 +86,14 @@ struct telescope_metadata {
 
     /// How to store materials
     template <template <typename...> class tuple_t = dtuple,
-              template <typename...> class vector_t = dvector>
+              typename container_t = host_container_types>
     using material_store = std::conditional_t<
         std::is_same_v<mask<mask_shape_t, nav_link>, cell_wire> |
             std::is_same_v<mask<mask_shape_t, nav_link>, straw_wire>,
-        regular_multi_store<material_ids, empty_context, tuple_t, vector_t,
-                            slab, rod>,
-        regular_multi_store<material_ids, empty_context, tuple_t, vector_t,
-                            slab>>;
+        regular_multi_store<material_ids, empty_context, tuple_t,
+                            container_t::template vector_type, slab, rod>,
+        regular_multi_store<material_ids, empty_context, tuple_t,
+                            container_t::template vector_type, slab>>;
 
     /// How to link to the entries in the data stores
     using transform_link = typename transform_store<>::link_type;

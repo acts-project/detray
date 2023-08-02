@@ -344,6 +344,14 @@ class navigator {
             return m_status == navigation::status::e_on_portal;
         }
 
+        /// Helper method to check the track has encountered material
+        DETRAY_HOST_DEVICE
+        inline auto encountered_material() const -> bool {
+            return (is_on_module() or is_on_portal()) and
+                   (current()->sf_desc.material().id() !=
+                    detector_t::materials::id::e_none);
+        }
+
         /// Helper method to check if a kernel is exhausted - const
         DETRAY_HOST_DEVICE
         inline auto is_exhausted() const -> bool {

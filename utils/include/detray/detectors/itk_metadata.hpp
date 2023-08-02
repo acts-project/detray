@@ -16,6 +16,7 @@
 #include "detray/intersection/cylinder_portal_intersector.hpp"
 #include "detray/io/common/detail/type_traits.hpp"  // mask_info
 #include "detray/masks/masks.hpp"
+#include "detray/materials/material_map.hpp"
 #include "detray/materials/material_slab.hpp"
 #include "detray/surface_finders/accelerator_grid.hpp"
 #include "detray/surface_finders/brute_force_finder.hpp"
@@ -59,6 +60,20 @@ struct itk_metadata {
     /// material
     using slab = material_slab<detray::scalar>;
 
+    // Cylindrical material map
+    template <typename container_t>
+    using cylinder_map_t =
+        material_map<cylinder2D<>::axes<>, scalar, container_t>;
+
+    // Disc material map
+    template <typename container_t>
+    using disc_map_t = material_map<ring2D<>::axes<>, scalar, container_t>;
+
+    // Rectangular material map
+    template <typename container_t>
+    using rectangular_map_t =
+        material_map<rectangle2D<>::axes<>, scalar, container_t>;
+
     /// How to store and link transforms. The geometry context allows to resolve
     /// the conditions data for e.g. module alignment
     template <template <typename...> class vector_t = dvector>
@@ -70,10 +85,10 @@ struct itk_metadata {
     /// order to minimize the depth of the 'unrolling' before a mask is found
     /// in the tuple
     enum class mask_ids : std::uint8_t {
-        e_rectangle2 = 0,
-        e_annulus2 = 1,
-        e_portal_cylinder2 = 2,
-        e_portal_ring2 = 3,
+        e_rectangle2 = 0u,
+        e_annulus2 = 1u,
+        e_portal_cylinder2 = 2u,
+        e_portal_ring2 = 3u,
     };
 
     /// This is the mask collections tuple (in the detector called 'mask store')
@@ -87,16 +102,24 @@ struct itk_metadata {
 
     /// Similar to the mask store, there is a material store, which
     enum class material_ids : std::uint8_t {
-        e_slab = 0,
-        e_none = 1,
+        e_disc2_map = 0u,
+        e_annulus2_map = 0u,
+        e_cylinder2_map = 1u,
+        e_reactangle2_map = 2u,
+        e_slab = 3u,  //< keep for the EF-tracking geometry
+        e_none = 4u,
     };
 
     /// How to store and link materials. The material does not make use of
     /// conditions data ( @c empty_context )
     template <template <typename...> class tuple_t = dtuple,
-              template <typename...> class vector_t = dvector>
-    using material_store = regular_multi_store<material_ids, empty_context,
-                                               tuple_t, vector_t, slab>;
+              typename container_t = host_container_types>
+    using material_store =
+        multi_store<material_ids, empty_context, tuple_t,
+                    grid_collection<disc_map_t<container_t>>,
+                    grid_collection<cylinder_map_t<container_t>>,
+                    grid_collection<rectangular_map_t<container_t>>,
+                    typename container_t::template vector_type<slab>>;
 
     /// Surface descriptor type used for sensitives, passives and portals
     /// It holds the indices to the surface data in the detector data stores
@@ -123,7 +146,7 @@ struct itk_metadata {
     /// The acceleration data structures live in another tuple that needs to be
     /// indexed correctly:
     enum class accel_ids : std::uint8_t {
-        e_brute_force = 0,  //< test all surfaces in a volume (brute force)
+        e_brute_force = 0u,  //< test all surfaces in a volume (brute force)
         e_default = e_brute_force,
     };
 

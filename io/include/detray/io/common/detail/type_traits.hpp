@@ -157,22 +157,44 @@ struct mask_info<io::detail::mask_shape::trapezoid2, detector_t,
 /// @}
 
 template <class detector_t, typename = void>
-struct is_homogeneous_material : public std::false_type {};
+struct has_material_slabs : public std::false_type {};
+
+template <class detector_t>
+struct has_material_slabs<
+    detector_t,
+    std::enable_if_t<detector_t::materials::template is_defined<
+                         material_slab<typename detector_t::scalar_type>>(),
+                     void>> : public std::true_type {};
+
+template <typename T>
+inline constexpr bool has_material_slabs_v = has_material_slabs<T>::value;
+
+template <class detector_t, typename = void>
+struct has_material_rods : public std::false_type {};
+
+template <class detector_t>
+struct has_material_rods<
+    detector_t,
+    std::enable_if_t<detector_t::materials::template is_defined<
+                         material_rod<typename detector_t::scalar_type>>(),
+                     void>> : public std::true_type {};
+
+template <typename T>
+inline constexpr bool has_material_rods_v = has_material_rods<T>::value;
+
+template <class detector_t, typename = void>
+struct has_homogeneous_material : public std::false_type {};
 
 /// Is the value type in the detector material store a simple material or is it
 /// wrapped in another class (e.g. grids for material maps)
 template <class detector_t>
-struct is_homogeneous_material<
-    detector_t,
-    std::enable_if_t<
-        std::is_base_of_v<detail::homogeneous_material_tag,
-                          typename detail::tuple_element_t<
-                              0, typename detector_t::material_container::
-                                     tuple_type>::value_type>,
-        void>> : public std::true_type {};
+struct has_homogeneous_material<
+    detector_t, std::enable_if_t<has_material_slabs_v<detector_t> or
+                                     has_material_rods_v<detector_t>,
+                                 void>> : public std::true_type {};
 
 template <typename T>
-inline constexpr bool is_homogeneous_material_v =
-    is_homogeneous_material<T>::value;
+inline constexpr bool has_homogeneous_material_v =
+    has_homogeneous_material<T>::value;
 
 }  // namespace detray::detail

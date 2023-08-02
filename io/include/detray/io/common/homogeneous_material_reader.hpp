@@ -50,7 +50,7 @@ class homogeneous_material_reader : public reader_interface<detector_t> {
             det_builder,
         typename detector_t::name_map& /*name_map*/,
         const detector_homogeneous_material_payload& det_mat_data) {
-        using mat_types = typename detector_t::material_container::value_types;
+
         using material_id = typename detector_t::materials::id;
 
         // Deserialize the material volume by volume
@@ -72,7 +72,7 @@ class homogeneous_material_reader : public reader_interface<detector_t> {
                 mat_factory->add_material(material_id::e_slab,
                                           deserialize(slab_data), sf_link);
             }
-            if constexpr (mat_types::n_types == 2u) {
+            if constexpr (detail::has_material_rods_v<detector_t>) {
                 if (mv_data.mat_rods.has_value()) {
                     for (const auto& rod_data : *(mv_data.mat_rods)) {
                         assert(rod_data.type == io::detail::material_type::rod);

@@ -13,6 +13,7 @@
 #include "detray/definitions/units.hpp"
 #include "detray/detectors/detector_helper.hpp"
 #include "detray/masks/masks.hpp"
+#include "detray/materials/mixture.hpp"
 #include "detray/materials/predefined_materials.hpp"
 #include "detray/tools/grid_builder.hpp"
 #include "detray/utils/axis_rotation.hpp"
@@ -39,6 +40,27 @@ struct wire_chamber_config {
 
     /// Half z of cylinder chamber
     scalar m_half_z{1000.f * unit<scalar>::mm};
+    /// Do material maps on portals
+    bool m_use_material_maps{false};
+    /// Number of bins for material maps
+    std::array<std::size_t, 2> m_cyl_map_bins{20u, 20u};
+    std::array<std::size_t, 2> m_disc_map_bins{3u, 20u};
+    /// Material to be filled into the maps
+    material<scalar> m_material =
+        mixture<scalar, silicon_tml<scalar, std::ratio<9, 10>>,
+                aluminium<scalar, std::ratio<1, 10>>>{};
+    /// Minimal thickness of the material slabs
+    scalar m_thickness{1.5f * unit<scalar>::mm};
+    /// Generate material along z bins for a cylinder material grid
+    std::function<std::vector<material_slab<scalar>>(
+        const std::array<scalar, 2u> &, const std::size_t, material<scalar>,
+        const scalar)>
+        m_cyl_mat_generator = detray::detail::generate_cyl_mat;
+    /// Generate material along r bins for a disc material grid
+    std::function<std::vector<material_slab<scalar>>(
+        const std::array<scalar, 2u> &, const std::size_t, material<scalar>,
+        const scalar)>
+        m_disc_mat_generator = detray::detail::generate_disc_mat;
 
     constexpr wire_chamber_config &n_layers(const unsigned int n) {
         m_n_layers = n;
@@ -49,9 +71,39 @@ struct wire_chamber_config {
         m_half_z = hz;
         return *this;
     }
+    constexpr wire_chamber_config &use_material_maps(const bool b) {
+        m_use_material_maps = b;
+        return *this;
+    }
+    constexpr wire_chamber_config &cyl_map_bins(const std::size_t n_rphi,
+                                                const std::size_t n_z) {
+        m_cyl_map_bins = {n_rphi, n_z};
+        return *this;
+    }
+    constexpr wire_chamber_config &disc_map_bins(const std::size_t n_r,
+                                                 const std::size_t n_phi) {
+        m_disc_map_bins = {n_r, n_phi};
+        return *this;
+    }
+    constexpr wire_chamber_config &mapped_material(
+        const material<scalar> &mat) {
+        m_material = mat;
+        return *this;
+    }
 
     constexpr unsigned int n_layers() const { return m_n_layers; }
     constexpr scalar half_z() const { return m_half_z; }
+    constexpr bool use_material_maps() const { return m_use_material_maps; }
+    constexpr const std::array<std::size_t, 2> &cyl_map_bins() const {
+        return m_cyl_map_bins;
+    }
+    constexpr const std::array<std::size_t, 2> &disc_map_bins() const {
+        return m_disc_map_bins;
+    }
+    scalar thickness() const { return m_thickness; }
+    auto barrel_mat_generator() const { return m_cyl_mat_generator; }
+    auto edc_mat_generator() const { return m_disc_mat_generator; }
+    material<scalar> mapped_material() const { return m_material; }
 
 };  // wire chamber config
 
@@ -89,7 +141,7 @@ inline auto create_wire_chamber(vecmem::memory_resource &resource,
 
     // Beam collision volume
     detail::detector_helper<transform3_t>().create_cyl_volume(
-        det, resource, ctx0, 0.f, inner_cyl_rad, -cyl_half_z, cyl_half_z,
+        cfg, det, resource, ctx0, 0.f, inner_cyl_rad, -cyl_half_z, cyl_half_z,
         {leaving_world, 1u, leaving_world, leaving_world});
 
     name_map[1u] = "beam_vol_0";
@@ -106,12 +158,12 @@ inline auto create_wire_chamber(vecmem::memory_resource &resource,
 
         if (i_lay < n_layers - 1) {
             detail::detector_helper<transform3_t>().create_cyl_volume(
-                det, resource, ctx0, inner_layer_rad, outer_layer_rad,
+                cfg, det, resource, ctx0, inner_layer_rad, outer_layer_rad,
                 -cyl_half_z, cyl_half_z,
                 {i_lay, i_lay + 2, leaving_world, leaving_world});
         } else {
             detail::detector_helper<transform3_t>().create_cyl_volume(
-                det, resource, ctx0, inner_layer_rad, outer_layer_rad,
+                cfg, det, resource, ctx0, inner_layer_rad, outer_layer_rad,
                 -cyl_half_z, cyl_half_z,
                 {i_lay, leaving_world, leaving_world, leaving_world});
         }

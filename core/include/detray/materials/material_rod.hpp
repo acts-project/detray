@@ -8,9 +8,14 @@
 #pragma once
 
 // Project include(s)
+#include "detray/definitions/math.hpp"
 #include "detray/definitions/qualifiers.hpp"
 #include "detray/materials/material.hpp"
 #include "detray/materials/predefined_materials.hpp"
+
+// System include(s)
+#include <limits>
+#include <ostream>
 
 namespace detray {
 
@@ -66,14 +71,14 @@ struct material_rod : public detail::homogeneous_material_tag {
     DETRAY_HOST_DEVICE constexpr scalar_type path_segment(
         const scalar_type cos_inc_angle, const scalar_type approach) const {
         // Assume that is.local[0] is radial distance of line intersector
-        if (std::abs(approach) > m_radius) {
+        if (math_ns::abs(approach) > m_radius) {
             return 0.f;
         }
 
         const scalar_type sin_inc_angle_2{1.f - cos_inc_angle * cos_inc_angle};
 
-        return 2.f * std::sqrt((m_radius * m_radius - approach * approach) /
-                               sin_inc_angle_2);
+        return 2.f * math_ns::sqrt((m_radius * m_radius - approach * approach) /
+                                   sin_inc_angle_2);
     }
 
     /// @returns the path segment through the material in X0
@@ -92,6 +97,16 @@ struct material_rod : public detail::homogeneous_material_tag {
     DETRAY_HOST_DEVICE constexpr scalar_type path_segment_in_L0(
         const scalar_type cos_inc_angle, const scalar_type approach) const {
         return this->path_segment(cos_inc_angle, approach) / m_material.L0();
+    }
+
+    /// @returns a string stream that prints the material details
+    DETRAY_HOST
+    friend std::ostream& operator<<(std::ostream& os, const material_rod& mat) {
+        os << "rod: ";
+        os << mat.get_material().to_string();
+        os << " | radius: " << mat.radius() << "mm";
+
+        return os;
     }
 
     private:

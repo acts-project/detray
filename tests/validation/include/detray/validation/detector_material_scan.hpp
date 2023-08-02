@@ -117,8 +117,7 @@ class material_scan : public test::fixture_base<> {
 
                 const auto [seg, t, mx0, ml0] =
                     sf.template visit_material<get_material_params>(
-                        record.second.cos_incidence_angle,
-                        record.second.local[0]);
+                        record.second.local, record.second.cos_incidence_angle);
 
                 if (mx0 > 0.f) {
                     mat_sX0 += seg / mx0;
@@ -154,15 +153,40 @@ class material_scan : public test::fixture_base<> {
     /// @brief Functor to retrieve the material parameters of a given
     /// intersection
     struct get_material_params {
-        template <typename mat_group_t, typename index_t>
+
+        /// Access to material slabs or rods in a homogeneous material
+        /// description
+        template <class material_coll_t, class point_t,
+                  std::enable_if_t<not detail::is_grid_v<
+                                       typename material_coll_t::value_type>,
+                                   bool> = true>
+        inline constexpr decltype(auto) get_material(
+            const material_coll_t &material_coll, const dindex idx,
+            const point_t &) const noexcept {
+            return material_coll[idx];
+        }
+
+        /// Access to material slabs in a material map
+        template <class material_coll_t, class point_t,
+                  std::enable_if_t<
+                      detail::is_grid_v<typename material_coll_t::value_type>,
+                      bool> = true>
+        inline constexpr decltype(auto) get_material(
+            const material_coll_t &material_coll, const dindex idx,
+            const point_t &loc_point) const noexcept {
+
+            // Find the material slab (only one entry per bin)
+            return *(material_coll[idx].search(loc_point));
+        }
+
+        template <typename mat_group_t, typename index_t, typename point_t>
         inline auto operator()(const mat_group_t &mat_group,
-                               const index_t &index,
-                               const scalar_t cos_inc_angle,
-                               const scalar_t approach) const {
+                               const index_t &index, const point_t &loc,
+                               const scalar_t cos_inc_angle) const {
 
-            const auto slab = mat_group[index];
+            const auto slab = get_material(mat_group, index, loc);
 
-            const scalar_t seg{slab.path_segment(cos_inc_angle, approach)};
+            const scalar_t seg{slab.path_segment(cos_inc_angle, loc[0])};
             const scalar_t t{slab.thickness()};
             const scalar_t mat_X0{slab.get_material().X0()};
             const scalar_t mat_L0{slab.get_material().L0()};

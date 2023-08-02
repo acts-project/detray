@@ -75,6 +75,9 @@ class brute_force_collection {
         /// @returns an iterator over all surfaces in the data structure
         DETRAY_HOST_DEVICE constexpr auto all() const { return *this; }
 
+        /// @returns an iterator over all surfaces in the data structure
+        DETRAY_HOST_DEVICE auto all() { return *this; }
+
         /// @return the maximum number of surface candidates during a
         /// neighborhood lookup
         DETRAY_HOST_DEVICE constexpr auto n_max_candidates() const
@@ -149,6 +152,12 @@ class brute_force_collection {
     /// Create brute force surface finder from surface container - const
     DETRAY_HOST_DEVICE
     auto operator[](const size_type i) const -> value_type {
+        return {m_surfaces, dindex_range{m_offsets[i], m_offsets[i + 1u]}};
+    }
+
+    /// Create brute force surface finder from surface container - const
+    DETRAY_HOST_DEVICE
+    auto operator[](const size_type i) -> value_type {
         return {m_surfaces, dindex_range{m_offsets[i], m_offsets[i + 1u]}};
     }
 

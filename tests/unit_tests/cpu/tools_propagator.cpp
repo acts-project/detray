@@ -119,7 +119,9 @@ struct helix_inspector : actor {
 GTEST_TEST(detray_propagator, propagator_line_stepper) {
 
     vecmem::host_memory_resource host_mr;
-    const auto [d, names] = create_toy_geometry(host_mr);
+    toy_det_config toy_cfg{};
+    toy_cfg.use_material_maps(false);
+    const auto [d, names] = create_toy_geometry(host_mr, toy_cfg);
 
     using navigator_t = navigator<decltype(d), navigation::print_inspector>;
     using stepper_t = line_stepper<transform3>;
@@ -190,7 +192,8 @@ TEST_P(PropagatorWithRkStepper, rk4_propagator_const_bfield) {
                     parameter_resetter<transform3>>;
     using propagator_t = propagator<stepper_t, navigator_t, actor_chain_t>;
 
-    // Build detector and magnetic field
+    // Build detector
+    toy_cfg.use_material_maps(false);
     const auto [det, names] = create_toy_geometry(host_mr, toy_cfg);
 
     const bfield_t bfield = bfield::create_const_field(std::get<2>(GetParam()));
@@ -292,6 +295,7 @@ TEST_P(PropagatorWithRkStepper, rk4_propagator_inhom_bfield) {
     using propagator_t = propagator<stepper_t, navigator_t, actor_chain_t>;
 
     // Build detector and magnetic field
+    toy_cfg.use_material_maps(false);
     const auto [det, names] = create_toy_geometry(host_mr, toy_cfg);
     const bfield_t bfield = bfield::create_inhom_field();
 

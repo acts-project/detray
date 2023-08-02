@@ -47,6 +47,7 @@ macro( detray_add_cpu_test algebra )
       "masks_unbounded.cpp"
       "masks_unmasked.cpp"
       "material_interaction.cpp"
+      "material_maps.cpp"
       "materials.cpp"
       "scattering.cpp"
       "sf_finder_brute_force.cpp"

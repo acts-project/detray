@@ -39,7 +39,6 @@ struct pointwise_material_interactor : actor {
         scalar_type mass{105.7f * unit<scalar_type>::MeV};
         /// The particle pdg
         int pdg = 13;  // default muon
-
         /// Evaluated energy loss
         scalar_type e_loss{0.f};
         /// Evaluated projected scattering angle
@@ -67,54 +66,75 @@ struct pointwise_material_interactor : actor {
 
         template <typename material_group_t, typename index_t>
         DETRAY_HOST_DEVICE inline bool operator()(
-            const material_group_t &material_group,
-            const index_t &material_range, state &s,
+            const material_group_t &material_group, const index_t &mat_index,
+            state &s,
             const bound_track_parameters<transform3_type> &bound_params,
             const scalar_type cos_inc_angle, const scalar_type approach) const {
+
+            const auto &mat = this->get_material(material_group, mat_index,
+                                                 bound_params.bound_local());
+
+            // return early in case of vacuum or zero thickness
+            if (not mat) {
+                return false;
+            }
 
             const scalar qop = bound_params.qop();
             const scalar charge = bound_params.charge();
 
-            bool success = false;
+            const scalar_type path_segment{
+                mat.path_segment(cos_inc_angle, approach)};
 
-            for (const auto &mat :
-                 detray::ranges::subrange(material_group, material_range)) {
-
-                // return early in case of vacuum or zero thickness
-                if (not mat) {
-                    continue;
-                }
-                success |= true;
-
-                const scalar_type path_segment{
-                    mat.path_segment(cos_inc_angle, approach)};
-
-                // Energy Loss
-                if (s.do_energy_loss) {
-                    s.e_loss = interaction_type().compute_energy_loss_bethe(
-                        path_segment, mat, s.pdg, s.mass, qop, charge);
-                }
-
-                // @todo: include the radiative loss (Bremsstrahlung)
-                if (s.do_energy_loss && s.do_covariance_transport) {
-                    s.sigma_qop =
-                        interaction_type()
-                            .compute_energy_loss_landau_sigma_QOverP(
-                                path_segment, mat, s.pdg, s.mass, qop, charge);
-                }
-
-                // Covariance update
-                if (s.do_multiple_scattering) {
-                    // @todo: use momentum before or after energy loss in
-                    // backward mode?
-                    s.projected_scattering_angle =
-                        interaction_type().compute_multiple_scattering_theta0(
-                            mat.path_segment_in_X0(cos_inc_angle, approach),
-                            s.pdg, s.mass, qop, charge);
-                }
+            // Energy Loss
+            if (s.do_energy_loss) {
+                s.e_loss = interaction_type().compute_energy_loss_bethe(
+                    path_segment, mat, s.pdg, s.mass, qop, charge);
             }
 
-            return success;
+            // @todo: include the radiative loss (Bremsstrahlung)
+            if (s.do_energy_loss && s.do_covariance_transport) {
+                s.sigma_qop =
+                    interaction_type().compute_energy_loss_landau_sigma_QOverP(
+                        path_segment, mat, s.pdg, s.mass, qop, charge);
+            }
+
+            // Covariance update
+            if (s.do_multiple_scattering) {
+                // @todo: use momentum before or after energy loss in
+                // backward mode?
+                s.projected_scattering_angle =
+                    interaction_type().compute_multiple_scattering_theta0(
+                        mat.path_segment_in_X0(cos_inc_angle, approach), s.pdg,
+                        s.mass, qop, charge);
+            }
+
+            return true;
+        }
+
+        private:
+        /// Access to material slabs or rods in a homogeneous material
+        /// description
+        template <class material_coll_t, class point_t,
+                  std::enable_if_t<not detail::is_grid_v<
+                                       typename material_coll_t::value_type>,
+                                   bool> = true>
+        inline constexpr decltype(auto) get_material(
+            const material_coll_t &material_coll, const dindex idx,
+            const point_t &) const noexcept {
+            return material_coll[idx];
+        }
+
+        /// Access to material slabs in a material map
+        template <class material_coll_t, class point_t,
+                  std::enable_if_t<
+                      detail::is_grid_v<typename material_coll_t::value_type>,
+                      bool> = true>
+        inline constexpr decltype(auto) get_material(
+            const material_coll_t &material_coll, const dindex idx,
+            const point_t &loc_point) const noexcept {
+
+            // Find the material slab (only one entry per bin)
+            return *(material_coll[idx].search(loc_point));
         }
     };
 
@@ -126,8 +146,8 @@ struct pointwise_material_interactor : actor {
 
         const auto &navigation = prop_state._navigation;
 
-        // Do material interaction when the track is on surface
-        if (navigation.is_on_module()) {
+        // Do material interaction when the track is on material surface
+        if (navigation.encountered_material()) {
 
             auto &stepping = prop_state._stepping;
 

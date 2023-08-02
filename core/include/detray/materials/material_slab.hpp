@@ -14,6 +14,7 @@
 
 // System include(s)
 #include <limits>
+#include <ostream>
 
 namespace detray {
 
@@ -90,6 +91,17 @@ struct material_slab : public detail::homogeneous_material_tag {
     DETRAY_HOST_DEVICE constexpr scalar_type path_segment_in_L0(
         const scalar_type cos_inc_angle, const scalar_type = 0.f) const {
         return m_thickness_in_L0 / cos_inc_angle;
+    }
+
+    /// @returns a string stream that prints the material details
+    DETRAY_HOST
+    friend std::ostream& operator<<(std::ostream& os,
+                                    const material_slab& mat) {
+        os << "slab: ";
+        os << mat.get_material().to_string();
+        os << " | thickness: " << mat.thickness() << "mm";
+
+        return os;
     }
 
     private:
