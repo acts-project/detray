@@ -8,6 +8,7 @@
 // Project include(s)
 #include "detray/definitions/algebra.hpp"
 #include "detray/detectors/create_toy_geometry.hpp"
+#include "detray/detectors/create_wire_chamber.hpp"
 #include "detray/io/common/detector_reader.hpp"
 #include "detray/io/common/detector_writer.hpp"
 #include "detray/io/json/json_reader.hpp"
@@ -100,4 +101,30 @@ TEST(io, json_toy_detector_reader) {
         io::read_detector<detector_t>(host_mr, reader_cfg);
 
     EXPECT_TRUE(test_toy_detector(det, names));
+}
+
+/// Test the reading and writing of a wire chamber
+TEST(io, json_wire_chamber_reader) {
+
+    using detector_t = detector<default_metadata>;
+
+    // Wire chamber
+    vecmem::host_memory_resource host_mr;
+    auto [wire_det, wire_names] =
+        create_wire_chamber(host_mr, wire_chamber_config{});
+
+    auto writer_cfg = io::detector_writer_config{}
+                          .format(io::format::json)
+                          .replace_files(true);
+    io::write_detector(wire_det, wire_names, writer_cfg);
+
+    // Read the detector back in
+    io::detector_reader_config reader_cfg{};
+    reader_cfg.add_file("wire_chamber_geometry.json")
+        .add_file("wire_chamber_homogeneous_material.json");
+
+    const auto [det, names] =
+        io::read_detector<detector_t>(host_mr, reader_cfg);
+
+    EXPECT_EQ(det.volumes().size(), 11u);
 }

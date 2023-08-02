@@ -10,6 +10,7 @@
 #include "detray/definitions/units.hpp"
 #include "detray/detectors/create_telescope_detector.hpp"
 #include "detray/detectors/create_toy_geometry.hpp"
+#include "detray/detectors/create_wire_chamber.hpp"
 #include "detray/io/common/detector_writer.hpp"
 #include "detray/io/json/json_writer.hpp"
 
@@ -91,6 +92,19 @@ TEST(io, json_toy_detector_writer) {
     // Toy detector
     vecmem::host_memory_resource host_mr;
     auto [det, names] = create_toy_geometry(host_mr);
+
+    auto writer_cfg = io::detector_writer_config{}
+                          .format(io::format::json)
+                          .replace_files(true);
+    io::write_detector(det, names, writer_cfg);
+}
+
+/// Test the writing of the entire wire chamber to json
+TEST(io, json_wire_chamber_writer) {
+
+    // Wire chamber
+    vecmem::host_memory_resource host_mr;
+    auto [det, names] = create_wire_chamber(host_mr, wire_chamber_config{});
 
     auto writer_cfg = io::detector_writer_config{}
                           .format(io::format::json)

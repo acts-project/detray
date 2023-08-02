@@ -276,7 +276,7 @@ struct irregular {
         detray::detail::call_reserve(edges, nbins());
 
         edges.insert(
-            edges->end(),
+            edges.end(),
             m_bin_edges->begin() +
                 static_cast<index_type>(detray::detail::get<0>(*m_edges_range)),
             m_bin_edges->begin() + static_cast<index_type>(
