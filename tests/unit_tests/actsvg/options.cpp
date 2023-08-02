@@ -42,12 +42,13 @@ int main(int, char**) {
     toy_detector_t::geometry_context context{};
 
     // Creating the converter for the detector.
-    detray::actsvg_visualization::svg_converter det_converter{det, names};
+    detray::actsvg_visualization::detector_visualizer det_converter{det, names};
 
     // Hide portals and links.
     builder
-    .portals_visible(false)
-    .link_visible(false);
+    .visible_volumes()
+    .visible_surfaces()
+    .link_visibility(false);
 
     // Create svg.
     const auto svg = det_converter.xy(context, builder.get_options());

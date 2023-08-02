@@ -1,6 +1,6 @@
 // Project include(s)
 #include "detray/detectors/create_toy_geometry.hpp"
-#include "detray/plugins/actsvg_visualization/svg_converter.hpp"
+#include "detray/plugins/actsvg_visualization/svg.hpp"
 
 // Vecmem include(s)
 #include <vecmem/memory/host_memory_resource.hpp>
@@ -34,18 +34,18 @@ int main(int, char**) {
     toy_detector_t::geometry_context context{};
 
     // Creating the converter for the detector.
-    const detray::actsvg_visualization::svg_converter det_converter{det, names};
+    const detray::actsvg_visualization::detector_visualizer det_converter{det};
 
     // Indexes of the volumes in the detector to be visualized.
     std::array indexes{0, 1, 2, 3};
-    for (size_t i : indexes) {
+    for (int i : indexes) {
         // Getting volume i:
         const auto volume = det.volume_by_index(i);
 
         // Visualization of volume i:
-        const auto svg_xy = det_converter.xy(context, volume);
+        const auto svg_xy = det_converter.xy_volume(context, volume);
         detray::actsvg_visualization::write_svg("test_actsvg_volume" + std::to_string(i) + "xy", {axes, svg_xy});
-        const auto svg_zr = det_converter.zr(context, volume);
+        const auto svg_zr = det_converter.zr_volume(context, volume);
         detray::actsvg_visualization::write_svg("test_actsvg_volume" + std::to_string(i) + "zr", {axes, svg_zr});
     }
     

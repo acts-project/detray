@@ -8,7 +8,7 @@
 #include "detray/io/common/detector_writer.hpp"
 #include "detray/masks/cylinder2D.hpp"
 #include "detray/masks/masks.hpp"
-#include "detray/plugins/actsvg_visualization/svg_converter.hpp"
+#include "detray/plugins/actsvg_visualization/svg.hpp"
 #include "detray/tracks/tracks.hpp"
 
 // Vecmem include(s)
@@ -49,7 +49,7 @@ int main(int, char**) {
     toy_detector_t::geometry_context context{};
 
     // Creating the converter for the detector.
-    detray::actsvg_visualization::svg_converter det_converter{det, names};
+    detray::actsvg_visualization::detector_visualizer det_converter{det};
 
     // Get the svg of the toy detetector in x-y view.
     const auto svg_xy = det_converter.xy(context);
@@ -60,5 +60,5 @@ int main(int, char**) {
     const auto svg_zr = det_converter.zr(context);
     // Write the svg of toy detector in z-r view
     detray::actsvg_visualization::write_svg("test_actsvg_detector_zr.svg", {zr_axis, svg_zr});
-    
+
 }

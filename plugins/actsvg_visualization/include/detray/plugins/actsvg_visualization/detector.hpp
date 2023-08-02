@@ -13,7 +13,10 @@
 namespace detray::actsvg_visualization::detector {
 
 struct detector_options{
+    // The volume options
     volume::volume_options v_options;
+    // Indexes of the visible volumes.
+    std::vector<int> visible_volumes;
 };
 
 /// @brief Calculates the proto detector of a detray detector.
