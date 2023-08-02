@@ -3,9 +3,10 @@
 // Project include(s)
 #include "detray/definitions/units.hpp"
 #include "detray/geometry/surface.hpp"
-#include "detray/plugins/actsvg/portal_conversion.hpp"
-#include "detray/plugins/actsvg/surface_conversion.hpp"
-#include "detray/plugins/actsvg/volume_conversion.hpp"
+#include "detray/plugins/actsvg_visualization/portal.hpp"
+#include "detray/plugins/actsvg_visualization/surface.hpp"
+#include "detray/plugins/actsvg_visualization/volume.hpp"
+#include "detray/plugins/actsvg_visualization/conversion_types.hpp"
 #include "detray/io/common/detail/file_handle.hpp"
 #include "detray/io/common/detector_writer.hpp"
 
@@ -58,10 +59,6 @@ auto pick_random(container_t container){
     int idx = rand() % container.size();
     return container[idx];
 }
-
-using proto_surface = actsvg::proto::surface<point3_container>;
-using proto_portal = actsvg::proto::portal<point3_container>;
-using proto_volume = actsvg::proto::volume<point3_container>;
 
 /// @brief Sets the style of the proto surface.
 template <typename point3_container_t>

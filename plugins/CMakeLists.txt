@@ -6,4 +6,4 @@
 
 # Add all subdirectories.
 add_subdirectory( algebra )
-add_subdirectory( actsvg )
+add_subdirectory( actsvg_visualization )

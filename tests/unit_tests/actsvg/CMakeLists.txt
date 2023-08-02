@@ -6,14 +6,14 @@
 
 # Set up the core tests.
 detray_add_test( actsvg_portals
-   "actsvg_portals.cpp"
+   "portals.cpp"
    LINK_LIBRARIES GTest::gtest_main detray_tests_common detray::core_array actsvg::core actsvg::meta detray::actsvg)
 
 detray_add_test( actsvg_volumes
-   "actsvg_volumes.cpp"
+   "volumes.cpp"
    LINK_LIBRARIES GTest::gtest_main detray_tests_common detray::core_array actsvg::core actsvg::meta detray::actsvg)
 
 detray_add_test( actsvg_detectors
-   "actsvg_detectors.cpp"
+   "detectors.cpp"
    LINK_LIBRARIES GTest::gtest_main detray_tests_common detray::core_array actsvg::core actsvg::meta detray::actsvg)
 

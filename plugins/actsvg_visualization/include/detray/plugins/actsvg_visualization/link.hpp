@@ -2,13 +2,14 @@
 
 // Project include(s)
 #include "detray/geometry/surface.hpp"
-#include "detray/plugins/actsvg/surface_conversion.hpp"
+#include "detray/plugins/actsvg_visualization/conversion_types.hpp"
+#include "detray/plugins/actsvg_visualization/surface.hpp"
 
 // Actsvg include(s)
 #include "actsvg/meta.hpp"
 #include "actsvg/core.hpp"
 
-namespace detray::actsvg_visualization {
+namespace detray::actsvg_visualization::link {
 
 namespace {
 struct get_link {
@@ -57,51 +58,51 @@ auto closest_surface_point(const mask_t& mask, const transform_t& transform, con
     return frame.local_to_global(transform, loc_surface_point);
 }
 
-template <typename mask_t, typename transform_t, typename view_t>
-auto link_start(const mask_t& mask, const transform_t& transform, const typename mask_t::point3_t& dir, const view_t& view){
-    if constexpr (std::is_same_v<decltype(view), const actsvg::views::x_y&>){
-        return closest_surface_point(mask, transform, dir, {0.,1.,0.});
-    }
-    if constexpr (std::is_same_v<decltype(view), const actsvg::views::z_r&>){
-        return closest_surface_point(mask, transform, dir, {0.,0.,1.});
-    }
+// Calculates the link starting location of the remaining shapes.
+template <typename mask_t, typename transform_t>
+auto link_start(const mask_t& mask, const transform_t& transform, const typename mask_t::point3_t& dir){
     return closest_surface_point(mask, transform, dir, {0.,0.,0.});
 }
 
-template <typename transform_t, typename view_t>
-auto link_start(const detray::mask<detray::ring2D<>>& mask, const transform_t& transform, const typename detray::mask<detray::ring2D<>>::point3_t& dir, const view_t& view){
+// Calculates the (optimal) link starting point for rings.
+template <typename transform_t>
+auto link_start(const detray::mask<detray::ring2D<>>& mask, const transform_t& transform, const typename detray::mask<detray::ring2D<>>::point3_t& dir){
     const auto shape = mask.get_shape();
     if (mask[shape.e_inner_r] == mask[shape.e_outer_r]){
         return closest_surface_point(mask, transform, dir, {0.,1.,0.});
     }
     const auto r = (mask[shape.e_inner_r] + mask[shape.e_outer_r])/2;
     const detray::mask<detray::ring2D<>> middle_circle{0u, r, r};
-    return link_start(middle_circle, transform, dir, view);
+    return link_start(middle_circle, transform, dir);
+}
+
+// Calculates the (optimal) link starting point for cylinders.
+template <typename transform_t, bool kRadialCheck, template <typename> class intersector_t>
+auto link_start(const detray::mask<detray::cylinder2D<kRadialCheck, intersector_t>>& mask, const transform_t& transform, const typename detray::mask<detray::ring2D<>>::point3_t& dir){
+return closest_surface_point(mask, transform, dir, {0.,1.,0.}); //TODO: Take into account z rotation.
 }
 
 struct link_start_functor {
-    template <typename mask_group_t, typename index_t, typename transform_t, typename point_t, typename view_t>
+    template <typename mask_group_t, typename index_t, typename transform_t, typename point_t>
     DETRAY_HOST inline auto operator()(
-        const mask_group_t& mask_group, const index_t& index, const transform_t& transform, const point_t& dir, const view_t& view) const {
+        const mask_group_t& mask_group, const index_t& index, const transform_t& transform, const point_t& dir) const {
         const auto& m = mask_group[index];
-        return link_start(m, transform, dir, view);
+        return link_start(m, transform, dir);
     }
 };
 
-/// @brief Calculates a suitable starting point for the actsvg link depending on the given the shape.
-template <typename detector_t, typename view_t>
-auto link_start(const detray::surface<detector_t>& d_portal, const typename detector_t::geometry_context& context, const typename detector_t::point3& dir, const view_t& view){
-    return d_portal.template visit_mask<link_start_functor>(d_portal.transform(context), dir, view);
 }
 
-}
+struct link_options{
 
-/// @returns The actsvg proto link from detray portal to volume.
+};
+
+/// @returns The actsvg proto link from one point to another.
 template <typename point3_t>
-proto_link convert_link(const point3_t& start, const point3_t& end){
-    proto_link p_link;
-    p_link._start = convert_point<3>(start);
-    p_link._end = convert_point<3>(end);
+inline auto to_proto_link(const point3_t& start, const point3_t& end){
+    conversion_types::link p_link;
+    p_link._start = transform::convert_point<3>(start);
+    p_link._end = transform::convert_point<3>(end);
     actsvg::style::color c{{255, 0, 0}, 0.75};
     auto marker = actsvg::style::marker({"<<"});
     marker._size = 1.2;
@@ -110,15 +111,15 @@ proto_link convert_link(const point3_t& start, const point3_t& end){
     return p_link;
 }
 
-/// @returns The actsvg proto link of a detray portal.
+/// @returns a tuple with the link calculated using the surface normal. The first and second item is are the links in the negative and positive direction of the normal, respectively.
 template <typename detector_t>
-proto_link convert_link(const detray::surface<detector_t>& d_portal, const typename detector_t::geometry_context& context, const double sign = 1.){
-    actsvg::views::x_y view;
+inline auto proto_links(const typename detector_t::geometry_context& context, const detray::surface<detector_t>& d_portal, const link_options& l_options){
     typename detector_t::point3 dir{};
-    const auto start = link_start(d_portal, context, dir, view);
+    const auto start = d_portal.template visit_mask<link_start_functor>(d_portal.transform(context), dir);
     const auto n = d_portal.normal(context, d_portal.global_to_local(context, start, dir));
-    const auto end = (n*sign*3.) + start;
-    return convert_link(start, end);
+    const auto pos_end = (n*3.) + start;
+    const auto neg_end = (n*-3.) + start;
+    return std::array{to_proto_link(start, neg_end), to_proto_link(start, pos_end)};
 }
 
 }

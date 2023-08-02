@@ -8,7 +8,8 @@
 #include "detray/io/common/detector_writer.hpp"
 #include "detray/masks/cylinder2D.hpp"
 #include "detray/masks/masks.hpp"
-#include "detray/plugins/actsvg/svg_conversion.hpp"
+#include "detray/plugins/actsvg_visualization/svg_converter.hpp"
+#include "detray/plugins/actsvg_visualization/options";
 #include "detray/tracks/tracks.hpp"
 
 // Vecmem include(s)
@@ -33,23 +34,24 @@ using namespace actsvg;
 
 int main(int, char**) {
 
+    auto detray::actsvg_visualization::options_builder builder{};
+    // Creating the detector and geomentry context.
     using toy_detector_t = detray::detector<detray::toy_metadata<>>;
-
     vecmem::host_memory_resource host_mr;
     const auto [det, names] = detray::create_toy_geometry(host_mr, 4, 3);
     toy_detector_t::geometry_context context{};
 
-    views::z_r view;
+    // Creating the converter for the detector.
+    detray::actsvg_visualization::svg_converter det_converter{det, names};
 
-    const auto name = std::string("test_plugins_actsvg_detector");
+    // Hide portals and links.
+    builder
+    .portals_visible(false)
+    .link_visible(false);
 
-    // Draw x-y-axis.
-    style::stroke stroke_black = style::stroke();
-    auto axis =
-        draw::x_y_axes("axes", {-250, 250}, {-250, 250}, stroke_black, "z", "r");  
+    // Create svg.
+    const auto svg = det_converter.xy(context, builder.get_options());
+    // Write the svg of toy detector.
+    detray::actsvg_visualization::write_svg("test_actsvg_detector_only_surfaces.svg", svg);
     
-    // Draw detetector
-    const auto svg = detray::actsvg_visualization::svg(name, det, context, view);
-
-    detray::actsvg_visualization::write_svg(name + ".svg", {axis, svg});
 }

@@ -7,14 +7,13 @@
 
 // Actsvg include(s)
 #include "actsvg/meta.hpp"
-#include "actsvg/proto/surface.hpp"
 
 // System include(s)
 #include <math.h>
 #include <type_traits>
 #include <vector>
 
-namespace detray::actsvg_visualization {
+namespace detray::actsvg_visualization::transform {
 
 /// @brief Calculates the euler angles of a rotation matrix.
 ///
@@ -22,7 +21,7 @@ namespace detray::actsvg_visualization {
 ///
 /// @returns An array containing the euler angles around the x, y, and z axis (in that order).
 template <typename matrix_t>
-inline std::array<detray::scalar, 3> rotation_matrix_to_euler_angles(
+inline std::array<detray::scalar, 3> mat_to_euler(
     const matrix_t& matrix) {
     float a = std::sqrt(matrix[0][0] * matrix[0][0] + matrix[1][0] * matrix[1][0]);
     // Checking if it is singular.
@@ -57,7 +56,7 @@ inline std::array<actsvg::scalar, dim> convert_point(
 ///
 /// @returns An actsvg transform.
 template <typename transform_t>
-inline auto convert_transform(const transform_t& d_transform) {
+inline auto to_actsvg_transform(const transform_t& d_transform) {
     auto translation = d_transform.translation();
     auto euler_angles =
         rotation_matrix_to_euler_angles<>(d_transform.rotation());

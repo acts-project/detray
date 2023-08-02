@@ -10,7 +10,7 @@ message(STATUS "Building 'detray::actsvg' component")
 # Set up the library.
 file( GLOB _detray_actsvg_public_headers
    RELATIVE "${CMAKE_CURRENT_SOURCE_DIR}"
-   "include/detray/plugins/actsvg/*.hpp" )
+   "include/detray/plugins/actsvg_visualization/*.hpp" )
 
 detray_add_library( detray_actsvg actsvg
    ${_detray_actsvg_public_headers} )

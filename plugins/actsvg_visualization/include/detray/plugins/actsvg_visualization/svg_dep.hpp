@@ -3,11 +3,11 @@
 // Project include(s)
 #include "detray/definitions/units.hpp"
 #include "detray/geometry/surface.hpp"
-#include "detray/plugins/actsvg/portal_conversion.hpp"
-#include "detray/plugins/actsvg/surface_conversion.hpp"
-#include "detray/plugins/actsvg/volume_conversion.hpp"
-#include "detray/plugins/actsvg/detector_conversion.hpp"
-#include "detray/plugins/actsvg/proto_styling.hpp"
+#include "detray/plugins/actsvg_visualization/portal.hpp"
+#include "detray/plugins/actsvg_visualization/surface.hpp"
+#include "detray/plugins/actsvg_visualization/volume.hpp"
+#include "detray/plugins/actsvg_visualization/detector.hpp"
+#include "detray/plugins/actsvg_visualization/proto_styling.hpp"
 #include "detray/io/common/detail/file_handle.hpp"
 #include "detray/io/common/detector_writer.hpp"
 
@@ -28,41 +28,25 @@ inline void assert_legal_name(const std::string& name){
     assert(name == legal_name);
 }
 
-template <typename shape_t, typename view_t>
-actsvg::svg::object svg(
-const std::string& object_name,
-const detray::mask<shape_t>& mask,
-const view_t& view,
-const detector_style& style = default_detector_style
-)
-{
-    assert_legal_name(object_name);
-    //auto p_surface = convert_mask(mask);
-    proto_surface p_surface;
-    apply_style(p_surface, style);
-    return actsvg::display::surface(object_name, p_surface, view);
-}
-
 /// @brief Converts the detray surface/portal to svg.
 /// @returns svg.
 template <typename detector_t, typename view_t>
-actsvg::svg::object svg(
-const std::string& object_name,
+actsvg::svg::object to_svg(
+const typename detector_t::geometry_context& context,
 const detector_t detector,
 const detray::surface<detector_t>& d_surface,
-const typename detector_t::geometry_context& context,
 const view_t& view,
 const detector_style& style = default_detector_style
 )
 {
-    assert_legal_name(object_name);
+    const auto object_name = "surface";
     if (d_surface.is_portal()){
-        auto p_portal = convert_portal(detector, d_surface, context);
+        auto p_portal = portal::to_proto(context, d_surface);
         apply_style(p_portal, style);
         return actsvg::display::portal(object_name, p_portal, view);
     }
 
-    auto p_surface = convert_surface(d_surface, context);
+    auto p_surface = surface::to_proto(context, d_surface);
     apply_style(p_surface, style);
     return actsvg::display::surface(object_name, p_surface, view);
 }
@@ -70,17 +54,16 @@ const detector_style& style = default_detector_style
 /// @brief Converts the detray volume to svg.
 /// @returns svg.
 template <typename detector_t, typename view_t>
-actsvg::svg::object svg(
-const std::string& object_name,
+actsvg::svg::object to_svg(
+const typename detector_t::geometry_context& context,
 const detector_t detector,
 const detray::detector_volume<detector_t>& d_volume,
-const typename detector_t::geometry_context& context,
 const view_t& view,
 const detector_style& style = default_detector_style
 )
 {
-    assert_legal_name(object_name);
-    auto p_volume = convert_volume(detector, d_volume, context);
+    const auto object_name = "volume";
+    auto p_volume = volume::to_proto(context, detector, d_volume);
     apply_style(p_volume, style);
     return actsvg::display::volume(object_name, p_volume, view);
 }
@@ -88,16 +71,15 @@ const detector_style& style = default_detector_style
 /// @brief Converts the detray detector to svg.
 /// @returns svg.
 template <typename detector_t, typename view_t>
-actsvg::svg::object svg(
-const std::string object_name,
-const detector_t detector,
+actsvg::svg::object to_svg(
 const typename detector_t::geometry_context& context,
+const detector_t detector,
 const view_t view,
 const detector_style& style = default_detector_style
 )
 {
-    assert_legal_name(object_name);
-    auto p_detector = convert_detector(detector, context);
+    const auto object_name = "detector";
+    auto p_detector = detector::to_proto(context, detector);
     apply_style(p_detector, style);
     return actsvg::display::detector(object_name, p_detector, view);
 }
