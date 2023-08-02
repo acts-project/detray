@@ -33,18 +33,19 @@ using inhom_bknd_t = covfie::backend::affine<covfie::backend::linear<
 
 /// Launch the propagation test kernel
 template <typename bfield_bknd_t, typename detector_t>
-void propagator_test(
-    typename detector_t::view_type, const propagation::config &,
-    covfie::field_view<bfield_bknd_t>, vecmem::data::vector_view<track_t> &,
-    vecmem::data::jagged_vector_view<scalar> &,
-    vecmem::data::jagged_vector_view<point3_t> &,
-    vecmem::data::jagged_vector_view<free_matrix_t> &);
+void propagator_test(typename detector_t::view_type,
+                     const propagation::config &,
+                     covfie::field_view<bfield_bknd_t>,
+                     vecmem::data::vector_view<track_t> &,
+                     vecmem::data::jagged_vector_view<scalar> &,
+                     vecmem::data::jagged_vector_view<point3_t> &,
+                     vecmem::data::jagged_vector_view<free_matrix_t> &);
 
 /// Test function for propagator on the device
 template <typename bfield_bknd_t, typename detector_t>
 inline auto run_propagation_device(
-    vecmem::memory_resource *mr, detector_t &det,
-    const propagation::config &cfg, typename detector_t::view_type det_view,
+    vecmem::memory_resource *mr, const propagation::config &cfg,
+    typename detector_t::view_type det_view,
     covfie::field_view<bfield_bknd_t> field_data, dvector<track_t> &tracks,
     const vecmem::jagged_vector<point3_t> &host_positions)
     -> std::tuple<vecmem::jagged_vector<scalar>,
@@ -77,8 +78,8 @@ inline auto run_propagation_device(
 
     // Run the propagator test for GPU device
     propagator_test<bfield_bknd_t, detector_t>(
-        det_view, cfg, field_data, tracks_data,
-        path_lengths_buffer, positions_buffer, jac_transports_buffer);
+        det_view, cfg, field_data, tracks_data, path_lengths_buffer,
+        positions_buffer, jac_transports_buffer);
 
     vecmem::jagged_vector<scalar> device_path_lengths(mr);
     vecmem::jagged_vector<point3_t> device_positions(mr);
@@ -112,8 +113,8 @@ inline auto run_propagation_test(vecmem::memory_resource *mr, detector_t &det,
     // Device propagation (device backend specific implementation)
     covfie::field<device_bfield_bknd_t> device_field(field);
     auto &&[device_path_lengths, device_positions, device_jac_transports] =
-        run_propagation_device<device_bfield_bknd_t>(
-            mr, det, cfg.propagation, det_view, device_field, tracks_device,
+        run_propagation_device<device_bfield_bknd_t, detector_t>(
+            mr, cfg.propagation, det_view, device_field, tracks_device,
             host_positions);
 
     // Check the results

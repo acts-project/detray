@@ -69,10 +69,11 @@ struct nav_state {
     scalar operator()() const { return m_step_size; }
     inline auto current_object() const -> dindex { return dindex_invalid; }
     inline auto tolerance() const -> scalar { return tol; }
-    inline auto detector() const -> const detray::detector<> * {
-        return m_det.get();
+    inline auto detector() const -> const detray::detector<> & {
+        return *(m_det.get());
     }
     inline auto volume() -> unsigned int { return 0u; }
+    inline auto get_volume() { return tracking_volume{this->detector(), 0u}; }
     inline void set_full_trust() {}
     inline void set_high_trust() {}
     inline void set_fair_trust() {}

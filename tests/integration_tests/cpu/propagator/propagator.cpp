@@ -80,7 +80,7 @@ struct helix_inspector : actor {
         }
 
         // Surface
-        const auto sf = tracking_surface{*navigation.detector(),
+        const auto sf = tracking_surface{navigation.detector(),
                                          stepping._bound_params.surface_link()};
 
         const free_track_parameters<algebra_t> free_params =

@@ -68,18 +68,16 @@ struct propagator {
         using scalar_type = typename navigator_t::scalar_type;
 
         /// Construct the propagation state with free parameter
-        DETRAY_HOST_DEVICE state(
-            const free_track_parameters_type &free_params,
-            const detector_type &det)
+        DETRAY_HOST_DEVICE state(const free_track_parameters_type &free_params,
+                                 const detector_type &det)
             : _stepping(free_params), _navigation(det) {}
 
         /// Construct the propagation state with free parameter
         template <typename field_t>
-        DETRAY_HOST_DEVICE state(
-            const free_track_parameters_type &free_params,
-            const field_t &magnetic_field, const detector_type &det)
-            : _stepping(free_params, magnetic_field),
-              _navigation(det) {}
+        DETRAY_HOST_DEVICE state(const free_track_parameters_type &free_params,
+                                 const field_t &magnetic_field,
+                                 const detector_type &det)
+            : _stepping(free_params, magnetic_field), _navigation(det) {}
 
         /// Construct the propagation state from the navigator state view
         DETRAY_HOST_DEVICE state(
@@ -98,8 +96,8 @@ struct propagator {
               _navigation(det, nav_view) {}
 
         /// Construct the propagation state with bound parameter
-        DETRAY_HOST_DEVICE state(
-            const bound_track_parameters_type &param, const detector_type &det)
+        DETRAY_HOST_DEVICE state(const bound_track_parameters_type &param,
+                                 const detector_type &det)
             : _stepping(param, det), _navigation(det) {}
 
         /// Construct the propagation state with bound parameter
@@ -107,8 +105,7 @@ struct propagator {
         DETRAY_HOST_DEVICE state(const bound_track_parameters_type &param,
                                  const field_t &magnetic_field,
                                  const detector_type &det)
-            : _stepping(param, magnetic_field, det),
-              _navigation(det) {}
+            : _stepping(param, magnetic_field, det), _navigation(det) {}
 
         /// Set the particle hypothesis
         DETRAY_HOST_DEVICE
@@ -136,7 +133,8 @@ struct propagator {
     ///
     /// @return propagation success.
     DETRAY_HOST_DEVICE bool propagate(
-        state &propagation, typename actor_chain_t::state actor_state_refs) {
+        state &propagation,
+        typename actor_chain_t::state actor_state_refs) const {
 
         // Initialize the navigation
         propagation._heartbeat =
@@ -199,8 +197,8 @@ struct propagator {
     ///
     /// @return propagation success.
     template <typename state_t, typename actor_states_t = actor_chain<>::state>
-    DETRAY_HOST_DEVICE bool propagate_sync(state_t &propagation,
-                                           actor_states_t &&actor_states = {}) {
+    DETRAY_HOST_DEVICE bool propagate_sync(
+        state_t &propagation, actor_states_t &&actor_states = {}) const {
 
         // Initialize the navigation
         propagation._heartbeat =
@@ -259,7 +257,7 @@ struct propagator {
     }
 
     template <typename state_t>
-    DETRAY_HOST void inspect(state_t &propagation) {
+    DETRAY_HOST void inspect(state_t &propagation) const {
         const auto &navigation = propagation._navigation;
         const auto &stepping = propagation._stepping;
 

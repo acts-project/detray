@@ -81,7 +81,7 @@ __global__ void material_validation_kernel(
 }
 
 /// Launch the device kernel
-template <typename detector_t, typename intersection_t>
+template <typename detector_t>
 void material_validation_device(
     typename detector_t::view_type det_view, const propagation::config &cfg,
     vecmem::data::vector_view<
@@ -105,10 +105,7 @@ void material_validation_device(
 /// Macro declaring the template instantiations for the different detector types
 #define DECLARE_MATERIAL_VALIDATION(METADATA)                                 \
                                                                               \
-    template void material_validation_device<                                 \
-        detector<METADATA>,                                                   \
-        detray::intersection2D<typename detector<METADATA>::surface_type,     \
-                               typename detector<METADATA>::algebra_type>>(   \
+    template void material_validation_device<detector<METADATA>>(             \
         typename detector<METADATA>::view_type, const propagation::config &,  \
         vecmem::data::vector_view<                                            \
             free_track_parameters<typename detector<METADATA>::algebra_type>> \

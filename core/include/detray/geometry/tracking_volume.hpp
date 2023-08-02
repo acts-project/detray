@@ -138,7 +138,7 @@ class tracking_volume {
     template <typename functor_t,
               int I = static_cast<int>(descr_t::object_id::e_size) - 1,
               typename... Args>
-    DETRAY_HOST_DEVICE constexpr void visit_surfaces(Args &&...args) const {
+    DETRAY_HOST_DEVICE constexpr void visit_surfaces(Args &&... args) const {
         visit_surfaces_impl<detail::surface_getter<functor_t>>(
             std::forward<Args>(args)...);
     }
@@ -304,7 +304,7 @@ class tracking_volume {
               int I = static_cast<int>(descr_t::object_id::e_size) - 1,
               typename... Args>
     DETRAY_HOST_DEVICE constexpr void visit_surfaces_impl(
-        Args &&...args) const {
+        Args &&... args) const {
         // Get the acceleration data structures for this volume
         const auto &link{m_desc.template accel_link<
             static_cast<typename descr_t::object_id>(I)>()};

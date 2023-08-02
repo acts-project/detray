@@ -56,15 +56,15 @@ struct void_inspector {
     using view_type = void_view;
     using const_view_type = const void_view;
 
-    void_inspector() = default;
+    constexpr void_inspector() = default;
 
     DETRAY_HOST_DEVICE
     constexpr void_inspector(void_view & /*ignored*/) { /*Do nothing*/
     }
 
     template <typename state_t>
-    DETRAY_HOST_DEVICE void operator()(const state_t & /*ignored*/,
-                                       const char * /*ignored*/) {
+    DETRAY_HOST_DEVICE constexpr void operator()(const state_t & /*ignored*/,
+                                                 const char * /*ignored*/) {
         /*Do nothing*/
     }
 };
@@ -131,19 +131,22 @@ class navigator {
     /// elements  in the state's cache with every navigation call, establishing
     /// 'full trust' again.
     class state : public detray::ranges::view_interface<state> {
+
         friend class navigator;
+
         // Allow the filling/updating of candidates
         friend struct intersection_initialize<ray_intersector>;
         friend struct intersection_update<ray_intersector>;
 
-        using candidate_cache_t =
-            std::array<intersection_type, k_cache_capacity>;
+        using candidate_t = intersection_type;
+        using candidate_cache_t = std::array<candidate_t, k_cache_capacity>;
         using candidate_itr_t = typename candidate_cache_t::iterator;
         using const_candidate_itr_t =
             typename candidate_cache_t::const_iterator;
+        using dist_t = detray::ranges::range_difference_t<candidate_cache_t>;
 
         public:
-        using value_type = intersection_type;
+        using value_type = candidate_t;
         using detector_type = navigator::detector_type;
 
         using view_type = dmulti_view<detail::get_view_t<inspector_t>>;
@@ -166,31 +169,44 @@ class navigator {
         /// @return start position of valid candidate range.
         DETRAY_HOST_DEVICE
         constexpr auto begin() -> candidate_itr_t {
-            return (is_on_module() || is_on_portal()) ? m_next - 1 : m_next;
+            candidate_itr_t itr = m_candidates.begin();
+            detray::ranges::advance(
+                itr, ((is_on_module() || is_on_portal()) && (m_next > 1))
+                         ? m_next - 1
+                         : 0);
+            return itr;
         }
 
         /// @return start position of the valid candidate range - const
         DETRAY_HOST_DEVICE
         constexpr auto begin() const -> const_candidate_itr_t {
-            return (is_on_module() || is_on_portal()) ? current() : next();
+            const_candidate_itr_t itr = m_candidates.begin();
+            detray::ranges::advance(
+                itr, ((is_on_module() || is_on_portal()) && (m_next > 1))
+                         ? m_next - 1
+                         : 0);
+            return itr;
         }
 
         /// @return sentinel of the valid candidate range.
         DETRAY_HOST_DEVICE
-        constexpr auto end() -> candidate_itr_t { return m_last; }
+        constexpr auto end() -> candidate_itr_t {
+            candidate_itr_t itr = m_candidates.begin();
+            detray::ranges::advance(itr, m_last + 1);
+            return itr;
+        }
 
         /// @return sentinel of the valid candidate range.
         DETRAY_HOST_DEVICE
-        constexpr auto end() const -> const_candidate_itr_t { return m_last; }
+        constexpr auto end() const -> const_candidate_itr_t {
+            const_candidate_itr_t itr = m_candidates.begin();
+            detray::ranges::advance(itr, m_last + 1);
+            return itr;
+        }
 
         /// @returns a pointer of detector
         DETRAY_HOST_DEVICE
-        auto detector() const { return m_detector; }
-
-        /// Scalar representation of the navigation state,
-        /// @returns distance to next
-        DETRAY_HOST_DEVICE
-        scalar_type operator()() const { return m_next->path; }
+        const detector_type &detector() const { return (*m_detector); }
 
         /// @returns currently cached candidates - const
         DETRAY_HOST_DEVICE
@@ -200,52 +216,46 @@ class navigator {
 
         /// @returns numer of currently cached (reachable) candidates - const
         DETRAY_HOST_DEVICE
-        inline auto n_candidates() const ->
-            typename std::iterator_traits<candidate_itr_t>::difference_type {
-            return std::distance(m_next, m_last);
+        inline auto n_candidates() const -> dindex {
+            assert(m_last - m_next + 1 >= 0);
+            return static_cast<dindex>(m_last - m_next + 1);
         }
 
         /// @returns current/previous object that was reached
         DETRAY_HOST_DEVICE
-        inline auto current() const -> const_candidate_itr_t {
-            return m_next - 1;
+        inline auto current() const -> const candidate_t & {
+            assert(m_next > 0);
+            return m_candidates[static_cast<std::size_t>(m_next - 1)];
         }
 
         /// @returns next object that we want to reach (current target) - const
         DETRAY_HOST_DEVICE
-        inline auto next() const -> const_candidate_itr_t { return m_next; }
-
-        /// @returns last valid candidate (by position in the cache) - const
-        DETRAY_HOST_DEVICE
-        inline auto last() const -> const_candidate_itr_t { return m_last; }
-
-        /// @returns last valid candidate (by position in the cache) - const
-        DETRAY_HOST_DEVICE
-        inline auto insert(const_candidate_itr_t itr_pos,
-                           const intersection_type &new_cadidate)
-            -> candidate_itr_t {
-            // Cannot be placed - out of capacity
-            if (itr_pos == m_candidates.end() or last() == m_candidates.end()) {
-                return m_candidates.end();
-            }
-            const auto pos{itr_pos - begin()};
-            const auto size{this->size()};
-
-            assert(size < m_candidates.size());
-
-            // Shift old elements up to and including pos
-            if (pos < size and size > 0) {
-                for (int i = size - 1; i >= static_cast<int>(pos); --i) {
-                    m_candidates[i + 1] = m_candidates[i];
-                }
-            }
-
-            // Insert new element
-            m_candidates[pos] = new_cadidate;
-            ++m_last;
-
-            return begin() + pos;
+        inline auto target() const -> const candidate_t & {
+            return m_candidates[static_cast<std::size_t>(m_next)];
         }
+
+        /// @returns last valid candidate (by position in the cache) - const
+        DETRAY_HOST_DEVICE
+        inline auto last() const -> const candidate_t & {
+            return m_candidates[static_cast<std::size_t>(m_last)];
+        }
+
+        /// Append new element @param new_cadidate
+        DETRAY_HOST_DEVICE
+        inline constexpr void push_back(const intersection_type &new_cadidate) {
+            const auto i{static_cast<std::size_t>(++m_last)};
+            // Cache as many candidates as memory allocation allows
+            if (i < k_cache_capacity) {
+                m_candidates[i] = new_cadidate;
+            } else {
+                --m_last;
+            }
+        }
+
+        /// Scalar representation of the navigation state,
+        /// @returns distance to next
+        DETRAY_HOST_DEVICE
+        scalar_type operator()() const { return target().path; }
 
         /// @returns the navigation inspector
         DETRAY_HOST
@@ -265,14 +275,14 @@ class navigator {
         /// (invalid when not on surface) - const
         DETRAY_HOST_DEVICE
         inline auto barcode() const -> geometry::barcode {
-            return current()->sf_desc.barcode();
+            return current().sf_desc.barcode();
         }
 
         /// @returns the next surface the navigator intends to reach
         DETRAY_HOST_DEVICE
         inline auto next_surface() const {
             return tracking_surface<detector_type>{*m_detector,
-                                                   m_next->sf_desc.barcode()};
+                                                   target().sf_desc};
         }
 
         /// @returns current detector surface the navigator is on
@@ -280,7 +290,14 @@ class navigator {
         DETRAY_HOST_DEVICE
         inline auto get_surface() const {
             assert(is_on_module() || is_on_portal());
-            return tracking_surface<detector_type>{*m_detector, barcode()};
+            return tracking_surface<detector_type>{*m_detector,
+                                                   current().sf_desc};
+        }
+
+        /// @returns current detector volume of the navigation stream
+        DETRAY_HOST_DEVICE
+        inline auto get_volume() const {
+            return tracking_volume<detector_type>{*m_detector, m_volume_index};
         }
 
         /// @returns current navigation status - const
@@ -358,14 +375,14 @@ class navigator {
         DETRAY_HOST_DEVICE
         inline auto encountered_sf_material() const -> bool {
             return (is_on_module() || is_on_portal()) &&
-                   (current()->sf_desc.material().id() !=
+                   (current().sf_desc.material().id() !=
                     detector_t::materials::id::e_none);
         }
 
         /// Helper method to check if a kernel is exhausted - const
         DETRAY_HOST_DEVICE
         inline auto is_exhausted() const -> bool {
-            return std::distance(m_next, m_last) <= 0;
+            return n_candidates() == 0u;
         }
 
         /// @returns flag that indicates whether navigation was successful
@@ -411,32 +428,60 @@ class navigator {
             return (math::fabs(candidate.path) < cfg.path_tolerance);
         }
 
-        /// @returns next object that we want to reach (current target)
-        /// @note must be lvalue to update the iterator position correctly
-        DETRAY_HOST_DEVICE
-        inline auto next() -> candidate_itr_t & { return m_next; }
-
-        /// Updates the iterator position of the last valid candidate
-        DETRAY_HOST_DEVICE
-        inline void set_next(candidate_itr_t &&new_next) {
-            m_next = std::move(new_next);
-        }
-
-        /// Updates the iterator position of the last valid candidate
-        DETRAY_HOST_DEVICE
-        inline void set_last(candidate_itr_t &&new_last) {
-            m_last = std::move(new_last);
-        }
-
         /// @returns currently cached candidates
         DETRAY_HOST_DEVICE
         inline auto candidates() -> candidate_cache_t & { return m_candidates; }
 
+        /// @returns next object that we want to reach (current target)
+        DETRAY_HOST_DEVICE
+        inline auto target() -> candidate_t & {
+            return m_candidates[static_cast<std::size_t>(m_next)];
+        }
+
+        /// @returns last valid candidate (by position in the cache)
+        DETRAY_HOST_DEVICE
+        inline auto last() -> candidate_t & {
+            return m_candidates[static_cast<std::size_t>(m_last)];
+        }
+
+        /// Set the next surface that we want to reach (update target)
+        DETRAY_HOST_DEVICE
+        inline auto next() -> void {
+            ++m_next;
+            assert(m_next < static_cast<dist_t>(k_cache_capacity));
+        }
+
+        /// Set the next surface that we want to reach (update target)
+        DETRAY_HOST_DEVICE
+        inline void set_next(dindex pos) {
+            m_next = pos;
+            assert(m_next < static_cast<dist_t>(k_cache_capacity));
+        }
+
+        /// Set the next surface that we want to reach (update target)
+        DETRAY_HOST_DEVICE
+        inline void set_next(candidate_itr_t new_next) {
+            m_next = detray::ranges::distance(m_candidates.begin(), new_next);
+            assert(m_next < static_cast<dist_t>(k_cache_capacity));
+        }
+
+        /// Updates the position of the last valid candidate
+        DETRAY_HOST_DEVICE
+        inline void set_last(candidate_itr_t new_last) {
+            m_last =
+                detray::ranges::distance(m_candidates.begin(), new_last) - 1;
+            assert(m_last < static_cast<dist_t>(k_cache_capacity));
+        }
+
         /// Clear the state
         DETRAY_HOST_DEVICE
         inline void clear() {
-            m_next = m_candidates.begin();
-            m_last = m_candidates.begin();
+            // Mark all data in the cache as unreachable
+            for (std::size_t i = 0u; i < k_cache_capacity; ++i) {
+                m_candidates[i].path = std::numeric_limits<scalar_type>::max();
+            }
+            m_next = 0;
+            m_last = -1;
         }
 
         /// Call the navigation inspector
@@ -456,16 +501,16 @@ class navigator {
         bool m_heartbeat = false;
 
         /// Detector pointer
-        const detector_type *const m_detector;
+        const detector_type *const m_detector{nullptr};
 
         /// Our cache of candidates (intersections with any kind of surface)
         candidate_cache_t m_candidates{};
 
-        /// The next best candidate
-        candidate_itr_t m_next = m_candidates.begin();
+        /// The next best candidate (target)
+        dist_t m_next{0};
 
         /// The last reachable candidate
-        candidate_itr_t m_last = m_candidates.begin();
+        dist_t m_last{-1};
 
         /// The inspector type of this navigation engine
         inspector_type m_inspector;
@@ -525,9 +570,9 @@ class navigator {
         const navigation::config &cfg = {}) const {
 
         state &navigation = propagation._navigation;
-        const auto det = navigation.detector();
+        const auto &det = navigation.detector();
         const auto &track = propagation._stepping();
-        const auto volume = tracking_volume{*det, navigation.volume()};
+        const auto volume = tracking_volume{det, navigation.volume()};
 
         // Clean up state
         navigation.clear();
@@ -535,11 +580,15 @@ class navigator {
 
         // Search for neighboring surfaces and fill candidates into cache
         volume.template visit_neighborhood<candidate_search>(
-            track, cfg, *det, track, navigation,
+            track, cfg, det, track, navigation,
             std::array<scalar_type, 2u>{cfg.min_mask_tolerance,
                                         cfg.max_mask_tolerance},
             static_cast<scalar_type>(cfg.mask_tolerance_scalor),
             static_cast<scalar_type>(cfg.overstep_tolerance));
+
+        // Sort all candidates and pick the closest one
+        detail::sequential_sort(navigation.candidates().begin(),
+                                navigation.candidates().end());
 
         // Determine overall state of the navigation after updating the cache
         update_navigation_state(cfg, propagation);
@@ -590,7 +639,7 @@ class navigator {
         // Otherwise: did we run into a portal?
         else if (navigation.is_on_portal()) {
             // Set volume index to the next volume provided by the portal
-            navigation.set_volume(navigation.current()->volume_link);
+            navigation.set_volume(navigation.current().volume_link);
 
             // Navigation reached the end of the detector world
             if (detail::is_invalid_value(navigation.volume())) {
@@ -636,7 +685,7 @@ class navigator {
         propagator_state_t &propagation, const navigation::config &cfg) const {
 
         state &navigation = propagation._navigation;
-        const auto det = navigation.detector();
+        const auto &det = navigation.detector();
         const auto &track = propagation._stepping();
 
         // Current candidates are up to date, nothing left to do
@@ -651,7 +700,7 @@ class navigator {
              navigation.trust_level() == navigation::trust_level::e_high)) {
 
             // Update next candidate: If not reachable, 'high trust' is broken
-            if (!update_candidate(*navigation.next(), track, det, cfg)) {
+            if (!update_candidate(navigation.target(), track, det, cfg)) {
                 navigation.m_status = navigation::status::e_unknown;
                 navigation.set_fair_trust();
             } else {
@@ -659,22 +708,21 @@ class navigator {
                 // Update navigation flow on the new candidate information
                 update_navigation_state(cfg, propagation);
 
+                navigation.run_inspector(cfg, track.pos(), track.dir(),
+                                         "Update complete: high trust: ");
+
                 // The work is done if: the track has not reached a surface yet
                 // or trust is gone (portal was reached or the cache is broken).
                 if (navigation.status() ==
                         navigation::status::e_towards_object ||
                     navigation.trust_level() ==
                         navigation::trust_level::e_no_trust) {
-                    navigation.run_inspector(cfg, track.pos(), track.dir(),
-                                             "Update complete: high trust: ");
                     return;
                 }
 
                 // Else: Track is on module.
                 // Ready the next candidate after the current module
-                if (update_candidate(*navigation.next(), track, det, cfg)) {
-                    navigation.run_inspector(cfg, track.pos(), track.dir(),
-                                             "Update complete: high trust: ");
+                if (update_candidate(navigation.target(), track, det, cfg)) {
                     return;
                 }
 
@@ -689,21 +737,19 @@ class navigator {
         // - do this when your navigation state is stale, but not invalid
         if (navigation.trust_level() == navigation::trust_level::e_fair) {
 
-            auto &candidates = navigation.candidates();
-
-            for (auto cand_itr = candidates.begin();
-                 cand_itr != navigation.last(); ++cand_itr) {
+            for (auto &candidate : navigation.candidates()) {
                 // Disregard this candidate if it is not reachable
-                if (!update_candidate(*cand_itr, track, det, cfg)) {
+                if (!update_candidate(candidate, track, det, cfg)) {
                     // Forcefully set dist to numeric max for sorting
-                    cand_itr->path = std::numeric_limits<scalar_type>::max();
+                    candidate.path = std::numeric_limits<scalar_type>::max();
                 }
             }
-            detail::sequential_sort(candidates.begin(), candidates.end());
+            detail::sequential_sort(navigation.candidates().begin(),
+                                    navigation.candidates().end());
             // Take the nearest (sorted) candidate first
-            navigation.set_next(candidates.begin());
+            navigation.set_next(0u);
             // Ignore unreachable elements (needed to determine exhaustion)
-            navigation.set_last(find_invalid(candidates));
+            navigation.set_last(find_invalid(navigation.candidates()));
             // Update navigation flow on the new candidate information
             update_navigation_state(cfg, propagation);
 
@@ -745,12 +791,12 @@ class navigator {
         // Check whether the track reached the current candidate. Might be a
         // portal, in which case the navigation needs to be re-initialized
         if (!navigation.is_exhausted() &&
-            navigation.is_on_object(*navigation.next(), cfg)) {
+            navigation.is_on_object(navigation.target(), cfg)) {
             // Set the next object that we want to reach (this function is only
             // called once the cache has been updated to a full trust state).
             // Might lead to exhausted cache.
-            ++navigation.next();
-            navigation.m_status = (navigation.current()->sf_desc.is_portal())
+            navigation.next();
+            navigation.m_status = (navigation.current().sf_desc.is_portal())
                                       ? navigation::status::e_on_portal
                                       : navigation::status::e_on_module;
 
@@ -783,17 +829,17 @@ class navigator {
     template <typename track_t>
     DETRAY_HOST_DEVICE inline bool update_candidate(
         intersection_type &candidate, const track_t &track,
-        const detector_type *det, const navigation::config &cfg) const {
+        const detector_type &det, const navigation::config &cfg) const {
 
         if (candidate.sf_desc.barcode().is_invalid()) {
             return false;
         }
 
-        const auto sf = tracking_surface{*det, candidate.sf_desc};
+        const auto sf = tracking_surface{det, candidate.sf_desc};
 
         // Check whether this candidate is reachable by the track
         return sf.template visit_mask<intersection_update<ray_intersector>>(
-            detail::ray(track), candidate, det->transform_store(),
+            detail::ray(track), candidate, det.transform_store(),
             sf.is_portal() ? std::array<scalar_type, 2>{0.f, 0.f}
                            : std::array<scalar_type, 2>{cfg.min_mask_tolerance,
                                                         cfg.max_mask_tolerance},

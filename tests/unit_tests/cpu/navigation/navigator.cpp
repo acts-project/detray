@@ -64,7 +64,8 @@ inline void check_on_surface(state_t &state, dindex vol_id,
     ASSERT_TRUE(state.status() == navigation::status::e_on_module ||
                 state.status() == navigation::status::e_on_portal);
     // Points towards next candidate
-    ASSERT_TRUE(std::abs(state()) >= 1.f * unit<scalar>::um) << state.inspector().to_string();
+    ASSERT_TRUE(std::abs(state()) >= 1.f * unit<scalar>::um)
+        << state.inspector().to_string();
     ASSERT_EQ(state.volume(), vol_id);
     ASSERT_EQ(state.n_candidates(), n_candidates);
     ASSERT_EQ(state.barcode().volume(), vol_id);
@@ -208,6 +209,7 @@ GTEST_TEST(detray_navigation, navigator_toy_geometry) {
     ASSERT_TRUE(nav.update(propagation, cfg))
         << navigation.inspector().to_string();
     ASSERT_EQ(navigation.trust_level(), trust_level::e_full);
+    ASSERT_EQ(navigation.volume(), 8u);
 
     //
     // barrel
@@ -280,7 +282,7 @@ GTEST_TEST(detray_navigation, navigator_toy_geometry) {
     }
 
     // Leave for debugging
-    // std::cout << navigation.inspector().to_string() << std::endl;
+    std::cout << navigation.inspector().to_string() << std::endl;
     ASSERT_TRUE(navigation.is_complete()) << navigation.inspector().to_string();
 }
 

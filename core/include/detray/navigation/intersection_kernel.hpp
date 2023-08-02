@@ -77,11 +77,7 @@ struct intersection_initialize {
         is_container_t &inters) const {
 
         if (sfi.status) {
-            assert(intersections.size() < intersections.capacity() &&
-                   "Navigation cache size too small");
-            const auto itr =
-                detail::upper_bound(inters.begin(), inters.end(), sfi);
-            inters.insert(itr, sfi);
+            inters.push_back(sfi);
         }
         return sfi.status;
     }
@@ -93,11 +89,7 @@ struct intersection_initialize {
         bool is_valid = false;
         for (auto &sfi : solutions) {
             if (sfi.status) {
-                assert(intersections.size() < intersections.capacity() &&
-                       "Navigation cache size too small");
-                const auto itr =
-                    detail::upper_bound(inters.begin(), inters.end(), sfi);
-                inters.insert(itr, sfi);
+                inters.push_back(sfi);
             }
             is_valid |= sfi.status;
         }

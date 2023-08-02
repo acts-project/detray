@@ -143,14 +143,14 @@ struct random_scatterer : actor {
         auto& stepping = prop_state._stepping;
         const auto& ptc = stepping._ptc;
         auto& bound_params = stepping._bound_params;
-        const auto& is = *navigation.current();
         const auto sf = navigation.get_surface();
         const scalar_type cos_inc_angle{
             sf.cos_angle(geo_context_type{}, bound_params.dir(),
                          bound_params.bound_local())};
 
         sf.template visit_material<kernel>(simulator_state, ptc, bound_params,
-                                           cos_inc_angle, is.local[0]);
+                                           cos_inc_angle,
+                                           bound_params.bound_local()[0]);
 
         // Get the new momentum
         const auto new_mom =

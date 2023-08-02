@@ -156,7 +156,7 @@ struct object_tracer {
                  10.f * std::numeric_limits<scalar_t>::epsilon()) ||
                 (state.is_on_portal() && current_vol != state.volume())) {
 
-                object_trace.push_back({pos, dir, *(state.current())});
+                object_trace.push_back({pos, dir, state.current()});
                 last_pos = pos;
                 last_dir = dir;
                 current_vol = state.volume();
@@ -208,7 +208,7 @@ struct print_inspector {
         for (const auto &sf_cand : state) {
             const auto &local = sf_cand.local;
             const auto pos =
-                tracking_surface{*state.detector(), sf_cand.sf_desc}
+                tracking_surface{state.detector(), sf_cand.sf_desc}
                     .local_to_global(geo_ctx_t{}, local, track_dir);
 
             debug_stream << sf_cand;
