@@ -53,13 +53,6 @@ int main() {
         bfield);
     auto tracks_data = detray::get_data(tracks);
 
-    // Create navigator candidates buffer
-    vecmem::copy copy;  //< Helper object for performing memory copies.
-    auto candidates_buffer =
-        detray::create_candidates_buffer(det, theta_steps * phi_steps, mng_mr);
-    copy.setup(candidates_buffer);
-
     // Run the propagator test for GPU device
-    detray::tutorial::propagation(det_data, device_bfield, tracks_data,
-                                  candidates_buffer);
+    detray::tutorial::propagation(det_data, device_bfield, tracks_data);
 }

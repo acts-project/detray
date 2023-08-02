@@ -38,7 +38,6 @@ namespace detray::cuda {
 /// @param[in] det_view the detector vecmem view
 /// @param[in] cfg the propagation configuration
 /// @param[in] field_data the magentic field view (maybe an empty field)
-/// @param[in] navigation_cache_view the navigation cache vecemem view
 /// @param[in] truth_intersection_traces_view vecemem view of the truth data
 /// @param[out] recorded_intersections_view vecemem view of the intersections
 ///                                         recorded by the navigator
@@ -47,9 +46,6 @@ template <typename bfield_t, typename detector_t,
 void navigation_validation_device(
     typename detector_t::view_type det_view, const propagation::config &cfg,
     bfield_t field_data,
-    vecmem::data::jagged_vector_view<
-        typename intersection_record_t::intersection_type>
-        &navigation_cache_view,
     vecmem::data::jagged_vector_view<const intersection_record_t>
         &truth_intersection_traces_view,
     vecmem::data::jagged_vector_view<navigation::detail::candidate_record<
@@ -82,12 +78,6 @@ inline auto run_navigation_validation(
     // Copy the detector to device and get its view
     auto det_buffer = detray::get_buffer(det, *dev_mr, cuda_cpy);
     auto det_view = detray::get_data(det_buffer);
-
-    // Allocate memory for the navigation cache on the device
-    const std::size_t n_tracks{truth_intersection_traces.size()};
-    auto navigation_cache_buffer =
-        detray::create_candidates_buffer(det, n_tracks, *dev_mr, host_mr);
-    cuda_cpy.setup(navigation_cache_buffer);
 
     // Move truth intersection traces data to device
     auto truth_intersection_traces_data =
@@ -123,7 +113,7 @@ inline auto run_navigation_validation(
 
     // Run the navigation validation test on device
     navigation_validation_device<bfield_t, detector_t, intersection_record_t>(
-        det_view, cfg, field_data, navigation_cache_buffer,
+        det_view, cfg, field_data,
         truth_intersection_traces_view, recorded_intersections_view,
         mat_records_view);
 

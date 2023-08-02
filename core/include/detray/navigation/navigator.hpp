@@ -27,10 +27,6 @@
 #include "detray/navigation/navigation_config.hpp"
 #include "detray/utils/ranges.hpp"
 
-// vecmem include(s)
-#include <vecmem/containers/data/jagged_vector_buffer.hpp>
-#include <vecmem/memory/memory_resource.hpp>
-
 namespace detray {
 
 namespace navigation {
@@ -108,6 +104,7 @@ struct void_inspector {
 ///         about the navigation state at different points of the nav. flow.
 template <
     typename detector_t, typename inspector_t = navigation::void_inspector,
+    std::size_t k_cache_capacity = 20u,
     typename intersection_t = intersection2D<typename detector_t::surface_type,
                                              typename detector_t::algebra_type>>
 class navigator {
@@ -124,31 +121,6 @@ class navigator {
     using intersection_type = intersection_t;
     using nav_link_type = typename detector_t::surface_type::navigation_link;
 
-    private:
-    /// A functor that fills the navigation candidates vector by intersecting
-    /// the surfaces in the volume neighborhood
-    struct candidate_search {
-
-        /// Test the volume links
-        template <typename track_t>
-        DETRAY_HOST_DEVICE void operator()(
-            const typename detector_type::surface_type &sf_descr,
-            const detector_type &det, const track_t &track,
-            vector_type<intersection_type> &candidates,
-            const std::array<scalar_type, 2> mask_tol,
-            const scalar_type mask_tol_scalor,
-            const scalar_type overstep_tol) const {
-
-            const auto sf = tracking_surface{det, sf_descr};
-
-            sf.template visit_mask<intersection_initialize<ray_intersector>>(
-                candidates, detail::ray(track), sf_descr, det.transform_store(),
-                sf.is_portal() ? std::array<scalar_type, 2>{0.f, 0.f}
-                               : mask_tol,
-                mask_tol_scalor, overstep_tol);
-        }
-    };
-
     public:
     /// @brief A navigation state object used to cache the information of the
     /// current navigation stream.
@@ -164,44 +136,32 @@ class navigator {
         friend struct intersection_initialize<ray_intersector>;
         friend struct intersection_update<ray_intersector>;
 
-        using candidate_itr_t =
-            typename vector_type<intersection_type>::iterator;
+        using candidate_cache_t =
+            std::array<intersection_type, k_cache_capacity>;
+        using candidate_itr_t = typename candidate_cache_t::iterator;
         using const_candidate_itr_t =
-            typename vector_type<intersection_type>::const_iterator;
+            typename candidate_cache_t::const_iterator;
 
         public:
+        using value_type = intersection_type;
         using detector_type = navigator::detector_type;
 
-        using view_type = dmulti_view<djagged_vector_view<intersection_type>,
-                                      detail::get_view_t<inspector_t>>;
+        using view_type = dmulti_view<detail::get_view_t<inspector_t>>;
         using const_view_type =
-            dmulti_view<djagged_vector_view<const intersection_type>,
-                        detail::get_view_t<const inspector_t>>;
+            dmulti_view<detail::get_view_t<const inspector_t>>;
 
         /// Default constructor
         state() = default;
 
+        DETRAY_HOST_DEVICE
         explicit state(const detector_type &det) : m_detector(&det) {}
-
-        /// Constructor with memory resource
-        DETRAY_HOST
-        state(const detector_type &det, vecmem::memory_resource &resource)
-            : m_detector(&det), m_candidates(&resource) {}
-
-        /// Constructor from candidates vector
-        DETRAY_HOST_DEVICE state(const detector_type &det,
-                                 vector_type<intersection_type> candidates)
-            : m_detector(&det), m_candidates(candidates) {}
 
         /// Constructor from candidates vector_view
         template <
             typename view_t,
             std::enable_if_t<detail::is_device_view_v<view_t>, bool> = true>
-        DETRAY_HOST_DEVICE state(const detector_type &det,
-                                 std::size_t track_idx, view_t view)
-            : m_detector(&det),
-              m_candidates(detail::get<0>(view.m_view).ptr()[track_idx]),
-              m_inspector(detail::get<1>(view.m_view)) {}
+        DETRAY_HOST_DEVICE state(const detector_type &det, view_t view)
+            : m_detector(&det), m_inspector(detail::get<0>(view.m_view)) {}
 
         /// @return start position of valid candidate range.
         DETRAY_HOST_DEVICE
@@ -234,8 +194,7 @@ class navigator {
 
         /// @returns currently cached candidates - const
         DETRAY_HOST_DEVICE
-        inline auto candidates() const
-            -> const vector_type<intersection_type> & {
+        inline auto candidates() const -> const candidate_cache_t & {
             return m_candidates;
         }
 
@@ -259,6 +218,34 @@ class navigator {
         /// @returns last valid candidate (by position in the cache) - const
         DETRAY_HOST_DEVICE
         inline auto last() const -> const_candidate_itr_t { return m_last; }
+
+        /// @returns last valid candidate (by position in the cache) - const
+        DETRAY_HOST_DEVICE
+        inline auto insert(const_candidate_itr_t itr_pos,
+                           const intersection_type &new_cadidate)
+            -> candidate_itr_t {
+            // Cannot be placed - out of capacity
+            if (itr_pos == m_candidates.end() or last() == m_candidates.end()) {
+                return m_candidates.end();
+            }
+            const auto pos{itr_pos - begin()};
+            const auto size{this->size()};
+
+            assert(size < m_candidates.size());
+
+            // Shift old elements up to and including pos
+            if (pos < size and size > 0) {
+                for (int i = size - 1; i >= static_cast<int>(pos); --i) {
+                    m_candidates[i + 1] = m_candidates[i];
+                }
+            }
+
+            // Insert new element
+            m_candidates[pos] = new_cadidate;
+            ++m_last;
+
+            return begin() + pos;
+        }
 
         /// @returns the navigation inspector
         DETRAY_HOST
@@ -443,16 +430,13 @@ class navigator {
 
         /// @returns currently cached candidates
         DETRAY_HOST_DEVICE
-        inline auto candidates() -> vector_type<intersection_type> & {
-            return m_candidates;
-        }
+        inline auto candidates() -> candidate_cache_t & { return m_candidates; }
 
         /// Clear the state
         DETRAY_HOST_DEVICE
         inline void clear() {
-            m_candidates.clear();
-            m_next = m_candidates.end();
-            m_last = m_candidates.end();
+            m_next = m_candidates.begin();
+            m_last = m_candidates.begin();
         }
 
         /// Call the navigation inspector
@@ -475,13 +459,13 @@ class navigator {
         const detector_type *const m_detector;
 
         /// Our cache of candidates (intersections with any kind of surface)
-        vector_type<intersection_type> m_candidates = {};
+        candidate_cache_t m_candidates{};
 
         /// The next best candidate
-        candidate_itr_t m_next = m_candidates.end();
+        candidate_itr_t m_next = m_candidates.begin();
 
         /// The last reachable candidate
-        candidate_itr_t m_last = m_candidates.end();
+        candidate_itr_t m_last = m_candidates.begin();
 
         /// The inspector type of this navigation engine
         inspector_type m_inspector;
@@ -501,6 +485,31 @@ class navigator {
         nav_link_type m_volume_index{0u};
     };
 
+    private:
+    /// A functor that fills the navigation candidates vector by intersecting
+    /// the surfaces in the volume neighborhood
+    struct candidate_search {
+
+        /// Test the volume links
+        template <typename track_t>
+        DETRAY_HOST_DEVICE void operator()(
+            const typename detector_type::surface_type &sf_descr,
+            const detector_type &det, const track_t &track, state &nav_state,
+            const std::array<scalar_type, 2> mask_tol,
+            const scalar_type mask_tol_scalor,
+            const scalar_type overstep_tol) const {
+
+            const auto sf = tracking_surface{det, sf_descr};
+
+            sf.template visit_mask<intersection_initialize<ray_intersector>>(
+                nav_state, detail::ray(track), sf_descr, det.transform_store(),
+                sf.is_portal() ? std::array<scalar_type, 2>{0.f, 0.f}
+                               : mask_tol,
+                mask_tol_scalor, overstep_tol);
+        }
+    };
+
+    public:
     /// @brief Helper method to initialize a volume.
     ///
     /// Calls the volumes accelerator structure for local navigation, then tests
@@ -523,28 +532,18 @@ class navigator {
         // Clean up state
         navigation.clear();
         navigation.m_heartbeat = true;
-        // Get the max number of candidates & run them through the kernel
-        // detail::call_reserve(navigation.candidates(), volume.n_objects());
-        // @TODO: switch to fixed size buffer
-        detail::call_reserve(navigation.candidates(), 20u);
 
         // Search for neighboring surfaces and fill candidates into cache
         volume.template visit_neighborhood<candidate_search>(
-            track, cfg, *det, track, navigation.candidates(),
+            track, cfg, *det, track, navigation,
             std::array<scalar_type, 2u>{cfg.min_mask_tolerance,
                                         cfg.max_mask_tolerance},
             static_cast<scalar_type>(cfg.mask_tolerance_scalor),
             static_cast<scalar_type>(cfg.overstep_tolerance));
 
-        // Sort all candidates and pick the closest one
-        detail::sequential_sort(navigation.candidates().begin(),
-                                navigation.candidates().end());
-
-        navigation.set_next(navigation.candidates().begin());
-        // No unreachable candidates in cache after local navigation
-        navigation.set_last(navigation.candidates().end());
         // Determine overall state of the navigation after updating the cache
         update_navigation_state(cfg, propagation);
+
         // If init was not successful, the propagation setup is broken
         if (navigation.trust_level() != navigation::trust_level::e_full) {
             navigation.m_heartbeat = false;
@@ -660,21 +659,22 @@ class navigator {
                 // Update navigation flow on the new candidate information
                 update_navigation_state(cfg, propagation);
 
-                navigation.run_inspector(cfg, track.pos(), track.dir(),
-                                         "Update complete: high trust: ");
-
                 // The work is done if: the track has not reached a surface yet
                 // or trust is gone (portal was reached or the cache is broken).
                 if (navigation.status() ==
                         navigation::status::e_towards_object ||
                     navigation.trust_level() ==
                         navigation::trust_level::e_no_trust) {
+                    navigation.run_inspector(cfg, track.pos(), track.dir(),
+                                             "Update complete: high trust: ");
                     return;
                 }
 
                 // Else: Track is on module.
                 // Ready the next candidate after the current module
                 if (update_candidate(*navigation.next(), track, det, cfg)) {
+                    navigation.run_inspector(cfg, track.pos(), track.dir(),
+                                             "Update complete: high trust: ");
                     return;
                 }
 
@@ -689,18 +689,21 @@ class navigator {
         // - do this when your navigation state is stale, but not invalid
         if (navigation.trust_level() == navigation::trust_level::e_fair) {
 
-            for (auto &candidate : navigation) {
+            auto &candidates = navigation.candidates();
+
+            for (auto cand_itr = candidates.begin();
+                 cand_itr != navigation.last(); ++cand_itr) {
                 // Disregard this candidate if it is not reachable
-                if (!update_candidate(candidate, track, det, cfg)) {
+                if (!update_candidate(*cand_itr, track, det, cfg)) {
                     // Forcefully set dist to numeric max for sorting
-                    candidate.path = std::numeric_limits<scalar_type>::max();
+                    cand_itr->path = std::numeric_limits<scalar_type>::max();
                 }
             }
-            detail::sequential_sort(navigation.begin(), navigation.end());
+            detail::sequential_sort(candidates.begin(), candidates.end());
             // Take the nearest (sorted) candidate first
-            navigation.set_next(navigation.begin());
+            navigation.set_next(candidates.begin());
             // Ignore unreachable elements (needed to determine exhaustion)
-            navigation.set_last(find_invalid(navigation.candidates()));
+            navigation.set_last(find_invalid(candidates));
             // Update navigation flow on the new candidate information
             update_navigation_state(cfg, propagation);
 
@@ -804,7 +807,7 @@ class navigator {
     ///
     /// @param candidates the cache of candidates to be cleaned
     DETRAY_HOST_DEVICE inline auto find_invalid(
-        vector_type<intersection_type> &candidates) const {
+        typename state::candidate_cache_t &candidates) const {
         // Depends on previous invalidation of unreachable candidates!
         auto not_reachable = [](const intersection_type &candidate) {
             return candidate.path == std::numeric_limits<scalar_type>::max();
@@ -814,24 +817,5 @@ class navigator {
                                not_reachable);
     }
 };
-
-/// @return the vecmem jagged vector buffer for surface candidates
-// TODO: det.get_n_max_objects_per_volume() is way too many for
-// candidates size allocation. With the local navigation, the size can be
-// restricted to much smaller value
-template <typename detector_t>
-DETRAY_HOST vecmem::data::jagged_vector_buffer<intersection2D<
-    typename detector_t::surface_type, typename detector_t::algebra_type>>
-create_candidates_buffer(
-    const detector_t &det, const std::size_t n_tracks,
-    vecmem::memory_resource &device_resource,
-    vecmem::memory_resource *host_access_resource = nullptr) {
-    // Build the buffer from capacities, device and host accessible resources
-    return vecmem::data::jagged_vector_buffer<intersection2D<
-        typename detector_t::surface_type, typename detector_t::algebra_type>>(
-        std::vector<std::size_t>(n_tracks, det.n_max_candidates()),
-        device_resource, host_access_resource,
-        vecmem::data::buffer_type::resizable);
-}
 
 }  // namespace detray

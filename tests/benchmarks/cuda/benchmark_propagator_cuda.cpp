@@ -76,14 +76,8 @@ static void BM_PROPAGATOR_CUDA(benchmark::State &state) {
         // Get tracks data
         auto tracks_data = vecmem::get_data(tracks);
 
-        // Create navigator candidates buffer
-        auto candidates_buffer =
-            create_candidates_buffer(det, tracks.size(), dev_mr, &mng_mr);
-        copy.setup(candidates_buffer);
-
         // Run the propagator test for GPU device
-        propagator_benchmark(det_data, bfield, tracks_data, candidates_buffer,
-                             opt);
+        propagator_benchmark(det_data, bfield, tracks_data, opt);
     }
 
     state.counters["TracksPropagated"] = benchmark::Counter(

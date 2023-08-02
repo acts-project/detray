@@ -64,7 +64,7 @@ inline void check_on_surface(state_t &state, dindex vol_id,
     ASSERT_TRUE(state.status() == navigation::status::e_on_module ||
                 state.status() == navigation::status::e_on_portal);
     // Points towards next candidate
-    ASSERT_TRUE(std::abs(state()) >= 1.f * unit<scalar>::um);
+    ASSERT_TRUE(std::abs(state()) >= 1.f * unit<scalar>::um) << state.inspector().to_string();
     ASSERT_EQ(state.volume(), vol_id);
     ASSERT_EQ(state.n_candidates(), n_candidates);
     ASSERT_EQ(state.barcode().volume(), vol_id);
@@ -145,7 +145,7 @@ GTEST_TEST(detray_navigation, navigator_toy_geometry) {
     cfg.search_window = {3u, 3u};
 
     prop_state<stepper_t::state, navigator_t::state> propagation{
-        stepper_t::state{traj}, navigator_t::state(toy_det, host_mr)};
+        stepper_t::state{traj}, navigator_t::state(toy_det)};
     navigator_t::state &navigation = propagation._navigation;
     stepper_t::state &stepping = propagation._stepping;
 
@@ -320,7 +320,7 @@ GTEST_TEST(detray_navigation, navigator_wire_chamber) {
     cfg.search_window = {3u, 3u};
 
     prop_state<stepper_t::state, navigator_t::state> propagation{
-        stepper_t::state{traj}, navigator_t::state(wire_det, host_mr)};
+        stepper_t::state{traj}, navigator_t::state(wire_det)};
     navigator_t::state &navigation = propagation._navigation;
     stepper_t::state &stepping = propagation._stepping;
 

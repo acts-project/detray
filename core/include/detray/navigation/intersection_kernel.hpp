@@ -8,6 +8,7 @@
 #pragma once
 
 // Project include(s)
+#include "detray/definitions/detail/algorithms.hpp"
 #include "detray/definitions/detail/qualifiers.hpp"
 #include "detray/definitions/units.hpp"
 #include "detray/navigation/intersection/intersection.hpp"
@@ -73,12 +74,14 @@ struct intersection_initialize {
     template <typename is_container_t>
     DETRAY_HOST_DEVICE bool place_in_collection(
         const typename is_container_t::value_type &sfi,
-        is_container_t &intersections) const {
+        is_container_t &inters) const {
 
         if (sfi.status) {
             assert(intersections.size() < intersections.capacity() &&
                    "Navigation cache size too small");
-            intersections.push_back(sfi);
+            const auto itr =
+                detail::upper_bound(inters.begin(), inters.end(), sfi);
+            inters.insert(itr, sfi);
         }
         return sfi.status;
     }
@@ -86,13 +89,15 @@ struct intersection_initialize {
     template <typename is_container_t>
     DETRAY_HOST_DEVICE bool place_in_collection(
         std::array<typename is_container_t::value_type, 2> &&solutions,
-        is_container_t &intersections) const {
+        is_container_t &inters) const {
         bool is_valid = false;
         for (auto &sfi : solutions) {
             if (sfi.status) {
                 assert(intersections.size() < intersections.capacity() &&
                        "Navigation cache size too small");
-                intersections.push_back(sfi);
+                const auto itr =
+                    detail::upper_bound(inters.begin(), inters.end(), sfi);
+                inters.insert(itr, sfi);
             }
             is_valid |= sfi.status;
         }

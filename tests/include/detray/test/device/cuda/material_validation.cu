@@ -17,10 +17,9 @@
 
 namespace detray::cuda {
 
-template <typename detector_t, typename intersection_t>
+template <typename detector_t>
 __global__ void material_validation_kernel(
     typename detector_t::view_type det_data, const propagation::config cfg,
-    vecmem::data::jagged_vector_view<intersection_t> navigation_cache_view,
     vecmem::data::vector_view<
         free_track_parameters<typename detector_t::algebra_type>>
         tracks_view,
@@ -47,8 +46,6 @@ __global__ void material_validation_kernel(
 
     detector_device_t det(det_data);
 
-    vecmem::jagged_device_vector<intersection_t> navigation_cache(
-        navigation_cache_view);
     vecmem::device_vector<free_track_parameters<algebra_t>> tracks(tracks_view);
     vecmem::device_vector<typename material_tracer_t::material_record_type>
         mat_records(mat_records_view);
@@ -74,9 +71,8 @@ __global__ void material_validation_kernel(
     // Run propagation
     navigation::void_inspector::view_type void_view{};
     typename propagator_t::state propagation(
-        tracks[trk_id], det, trk_id,
-        typename navigator_t::state::view_type{navigation_cache_view,
-                                               void_view});
+        tracks[trk_id], det, typename navigator_t::state::view_type{void_view});
+
     p.propagate(propagation, actor_states);
 
     // Record the accumulated material
@@ -88,7 +84,6 @@ __global__ void material_validation_kernel(
 template <typename detector_t, typename intersection_t>
 void material_validation_device(
     typename detector_t::view_type det_view, const propagation::config &cfg,
-    vecmem::data::jagged_vector_view<intersection_t> &navigation_cache_view,
     vecmem::data::vector_view<
         free_track_parameters<typename detector_t::algebra_type>> &tracks_view,
     vecmem::data::vector_view<
@@ -100,7 +95,7 @@ void material_validation_device(
 
     // run the test kernel
     material_validation_kernel<detector_t><<<block_dim, thread_dim>>>(
-        det_view, cfg, navigation_cache_view, tracks_view, mat_records_view);
+        det_view, cfg, tracks_view, mat_records_view);
 
     // cuda error check
     DETRAY_CUDA_ERROR_CHECK(cudaGetLastError());
@@ -108,21 +103,17 @@ void material_validation_device(
 }
 
 /// Macro declaring the template instantiations for the different detector types
-#define DECLARE_MATERIAL_VALIDATION(METADATA)                                  \
-                                                                               \
-    template void material_validation_device<                                  \
-        detector<METADATA>,                                                    \
-        detray::intersection2D<typename detector<METADATA>::surface_type,      \
-                               typename detector<METADATA>::algebra_type>>(    \
-        typename detector<METADATA>::view_type, const propagation::config &,   \
-        vecmem::data::jagged_vector_view<                                      \
-            detray::intersection2D<typename detector<METADATA>::surface_type,  \
-                                   typename detector<METADATA>::algebra_type>> \
-            &,                                                                 \
-        vecmem::data::vector_view<                                             \
-            free_track_parameters<typename detector<METADATA>::algebra_type>>  \
-            &,                                                                 \
-        vecmem::data::vector_view<material_validator::material_record<         \
+#define DECLARE_MATERIAL_VALIDATION(METADATA)                                 \
+                                                                              \
+    template void material_validation_device<                                 \
+        detector<METADATA>,                                                   \
+        detray::intersection2D<typename detector<METADATA>::surface_type,     \
+                               typename detector<METADATA>::algebra_type>>(   \
+        typename detector<METADATA>::view_type, const propagation::config &,  \
+        vecmem::data::vector_view<                                            \
+            free_track_parameters<typename detector<METADATA>::algebra_type>> \
+            &,                                                                \
+        vecmem::data::vector_view<material_validator::material_record<        \
             typename detector<METADATA>::scalar_type>> &);
 
 DECLARE_MATERIAL_VALIDATION(default_metadata)

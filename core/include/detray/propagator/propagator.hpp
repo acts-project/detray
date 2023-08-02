@@ -70,50 +70,45 @@ struct propagator {
         /// Construct the propagation state with free parameter
         DETRAY_HOST_DEVICE state(
             const free_track_parameters_type &free_params,
-            const detector_type &det,
-            vector_type<intersection_type> &&candidates = {})
-            : _stepping(free_params), _navigation(det, std::move(candidates)) {}
+            const detector_type &det)
+            : _stepping(free_params), _navigation(det) {}
 
         /// Construct the propagation state with free parameter
         template <typename field_t>
         DETRAY_HOST_DEVICE state(
             const free_track_parameters_type &free_params,
-            const field_t &magnetic_field, const detector_type &det,
-            vector_type<intersection_type> &&candidates = {})
+            const field_t &magnetic_field, const detector_type &det)
             : _stepping(free_params, magnetic_field),
-              _navigation(det, std::move(candidates)) {}
+              _navigation(det) {}
 
         /// Construct the propagation state from the navigator state view
         DETRAY_HOST_DEVICE state(
             const free_track_parameters_type &free_params,
-            const detector_type &det, std::size_t track_index,
+            const detector_type &det,
             typename navigator_type::state::view_type nav_view)
-            : _stepping(free_params), _navigation(det, track_index, nav_view) {}
+            : _stepping(free_params), _navigation(det, nav_view) {}
 
         /// Construct the propagation state from the navigator state view
         template <typename field_t>
         DETRAY_HOST_DEVICE state(
             const free_track_parameters_type &free_params,
             const field_t &magnetic_field, const detector_type &det,
-            std::size_t track_index,
             typename navigator_type::state::view_type nav_view)
             : _stepping(free_params, magnetic_field),
-              _navigation(det, track_index, nav_view) {}
+              _navigation(det, nav_view) {}
 
         /// Construct the propagation state with bound parameter
         DETRAY_HOST_DEVICE state(
-            const bound_track_parameters_type &param, const detector_type &det,
-            vector_type<intersection_type> &&candidates = {})
-            : _stepping(param, det), _navigation(det, std::move(candidates)) {}
+            const bound_track_parameters_type &param, const detector_type &det)
+            : _stepping(param, det), _navigation(det) {}
 
         /// Construct the propagation state with bound parameter
         template <typename field_t>
-        DETRAY_HOST_DEVICE state(
-            const bound_track_parameters_type &param,
-            const field_t &magnetic_field, const detector_type &det,
-            vector_type<intersection_type> &&candidates = {})
+        DETRAY_HOST_DEVICE state(const bound_track_parameters_type &param,
+                                 const field_t &magnetic_field,
+                                 const detector_type &det)
             : _stepping(param, magnetic_field, det),
-              _navigation(det, std::move(candidates)) {}
+              _navigation(det) {}
 
         /// Set the particle hypothesis
         DETRAY_HOST_DEVICE

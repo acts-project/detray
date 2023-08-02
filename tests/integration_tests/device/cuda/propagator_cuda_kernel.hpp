@@ -36,7 +36,6 @@ template <typename bfield_bknd_t, typename detector_t>
 void propagator_test(
     typename detector_t::view_type, const propagation::config &,
     covfie::field_view<bfield_bknd_t>, vecmem::data::vector_view<track_t> &,
-    vecmem::data::jagged_vector_view<intersection_t<detector_t>> &,
     vecmem::data::jagged_vector_view<scalar> &,
     vecmem::data::jagged_vector_view<point3_t> &,
     vecmem::data::jagged_vector_view<free_matrix_t> &);
@@ -58,10 +57,6 @@ inline auto run_propagation_device(
     // Get tracks data
     auto tracks_data = vecmem::get_data(tracks);
 
-    // Create navigator candidates buffer
-    auto candidates_buffer = create_candidates_buffer(det, tracks.size(), *mr);
-    copy.setup(candidates_buffer);
-
     // Create vector buffer for track recording
     std::vector<std::size_t> sizes(tracks.size(), 0);
     std::vector<std::size_t> capacities;
@@ -82,7 +77,7 @@ inline auto run_propagation_device(
 
     // Run the propagator test for GPU device
     propagator_test<bfield_bknd_t, detector_t>(
-        det_view, cfg, field_data, tracks_data, candidates_buffer,
+        det_view, cfg, field_data, tracks_data,
         path_lengths_buffer, positions_buffer, jac_transports_buffer);
 
     vecmem::jagged_vector<scalar> device_path_lengths(mr);

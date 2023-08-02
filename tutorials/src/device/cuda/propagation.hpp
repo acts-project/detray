@@ -71,7 +71,6 @@ void propagation(
     typename device_field_t::view_t field_data,
     const vecmem::data::vector_view<
         free_track_parameters<detray::tutorial::algebra_t>>
-        tracks_data,
-    vecmem::data::jagged_vector_view<intersection_t> candidates_data);
+        tracks_data);
 
 }  // namespace detray::tutorial
