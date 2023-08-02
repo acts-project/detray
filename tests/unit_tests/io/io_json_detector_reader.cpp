@@ -98,12 +98,17 @@ TEST(io, json_toy_detector_reader) {
     io::detector_reader_config reader_cfg{};
     reader_cfg.add_file("toy_detector_geometry.json")
         .add_file("toy_detector_homogeneous_material.json")
+        .add_file("toy_detector_surface_grids.json")
         .add_file(toy_cfg.bfield_file());
 
     const auto [det, names] =
-        io::read_detector<detector_t>(host_mr, reader_cfg);
+        io::read_detector<detector_t, 1u>(host_mr, reader_cfg);
 
-    // EXPECT_TRUE(test_toy_detector(det, names));
+    // Write the result to a different set of files
+    writer_cfg.replace_files(false);
+    io::write_detector(det, names, writer_cfg);
+
+    EXPECT_TRUE(test_toy_detector(det, names));
 }
 
 /// Test the reading and writing of a wire chamber
@@ -124,7 +129,8 @@ TEST(io, json_wire_chamber_reader) {
     // Read the detector back in
     io::detector_reader_config reader_cfg{};
     reader_cfg.add_file("wire_chamber_geometry.json")
-        .add_file("wire_chamber_homogeneous_material.json");
+        .add_file("wire_chamber_homogeneous_material.json")
+        .add_file("wire_chamber_surface_grids.json");
 
     const auto [det, names] =
         io::read_detector<detector_t>(host_mr, reader_cfg);

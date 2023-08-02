@@ -118,16 +118,6 @@ GTEST_TEST(detray_tools, grid_factory) {
                                                 closed<label::e_cyl_z>,
                                                 regular<>, irregular<>>(
         cyl2, {bin_edges_z.size() - 1, 10u}, {bin_edges_phi, bin_edges_z});
-
-    // Get grid collection with the correct allocator
-    auto grid_coll = gr_factory.new_collection<decltype(cyl_gr)>();
-    EXPECT_TRUE(grid_coll.size() == 0u);
-    grid_coll.push_back(cyl_gr);
-    grid_coll.push_back(cyl_gr2);
-    EXPECT_TRUE(grid_coll.size() == 2u);
-
-    EXPECT_EQ(grid_coll[0].search(loc_p)[0], 33u);
-    // gr_factory.to_string(grid_coll[0]);
 }
 
 /// Unittest: Test the grid builder
@@ -137,10 +127,10 @@ GTEST_TEST(detray_tools, grid_builder) {
     using cyl_grid_t =
         grid<coordinate_axes<cylinder2D<>::axes<>, false, host_container_types>,
              test_detector_t::surface_type, simple_serializer,
-             regular_attacher<9>>;
+             regular_attacher<1>>;
 
     auto gbuilder = grid_builder<test_detector_t, cyl_grid_t,
-                                 detray::detail::bin_associator>{};
+                                 detray::detail::bin_associator>{nullptr};
 
     // The cylinder portals are at the end of the surface range by construction
     const auto cyl_mask = mask<cylinder2D<>>{0u, 10.f, -500.f, 500.f};
@@ -173,7 +163,7 @@ GTEST_TEST(detray_tools, decorator_grid_builder) {
     using cyl_grid_t =
         grid<coordinate_axes<cylinder2D<>::axes<>, false, host_container_types>,
              test_detector_t::surface_type, simple_serializer,
-             regular_attacher<9>>;
+             regular_attacher<1>>;
 
     using portal_cylinder_factory_t =
         surface_factory<test_detector_t, cylinder2D<>,
@@ -225,18 +215,18 @@ GTEST_TEST(detray_tools, decorator_grid_builder) {
     auto rect_factory = std::make_shared<rectangle_factory>();
 
     typename rectangle_factory::sf_data_collection rect_sf_data;
-    rect_sf_data.emplace_back(transform3(point3{0.f, 0.f, -10.f}), vol_idx,
+    rect_sf_data.emplace_back(transform3(point3{7.07f, 7.07f, -500.f}), vol_idx,
                               std::vector<scalar>{10.f, 8.f});
-    rect_sf_data.emplace_back(transform3(point3{0.f, 0.f, -20.f}), vol_idx,
+    rect_sf_data.emplace_back(transform3(point3{7.07f, 7.07f, -250.f}), vol_idx,
                               std::vector<scalar>{10.f, 8.f});
-    rect_sf_data.emplace_back(transform3(point3{0.f, 0.f, -30.f}), vol_idx,
+    rect_sf_data.emplace_back(transform3(point3{7.07f, 7.07f, 100.f}), vol_idx,
                               std::vector<scalar>{10.f, 8.f});
     rect_factory->push_back(std::move(rect_sf_data));
 
     auto trpz_factory = std::make_shared<trapezoid_factory>();
 
     typename trapezoid_factory::sf_data_collection trpz_sf_data;
-    trpz_sf_data.emplace_back(transform3(point3{0.f, 0.f, 1000.f}), vol_idx,
+    trpz_sf_data.emplace_back(transform3(point3{7.07f, 7.07f, 600.f}), vol_idx,
                               std::vector<scalar>{1.f, 3.f, 2.f, 0.25f});
     trpz_factory->push_back(std::move(trpz_sf_data));
 
@@ -280,8 +270,7 @@ GTEST_TEST(detray_tools, decorator_grid_builder) {
     EXPECT_EQ(vol.template link<geo_obj_id::e_passive>(),
               sf_range[geo_obj_id::e_passive]);
 
-    // Only the portals should be in the detector's surface container now
-    EXPECT_EQ(d.surface_lookup().size(), 3u);
+    EXPECT_EQ(d.surface_lookup().size(), 7u);
     EXPECT_EQ(d.mask_store().template size<mask_id::e_portal_cylinder2>(), 3u);
     EXPECT_EQ(d.mask_store().template size<mask_id::e_portal_ring2>(), 0u);
     EXPECT_EQ(d.mask_store().template size<mask_id::e_cylinder2>(), 3u);
@@ -289,9 +278,13 @@ GTEST_TEST(detray_tools, decorator_grid_builder) {
     EXPECT_EQ(d.mask_store().template size<mask_id::e_trapezoid2>(), 1u);
 
     // check the portals in the detector
-    for (const auto& sf : d.surface_lookup()) {
+    const auto& bf_finder =
+        d.surface_store()
+            .template get<test_detector_t::sf_finders::id::e_brute_force>()[0];
+    for (const auto& sf : bf_finder.all()) {
         EXPECT_TRUE((sf.id() == surface_id::e_portal) or
                     (sf.id() == surface_id::e_passive));
+        EXPECT_EQ(sf.volume(), 0u);
     }
 
     // check the sensitive surfaces in the grid
@@ -299,7 +292,7 @@ GTEST_TEST(detray_tools, decorator_grid_builder) {
         d.surface_store()
             .template get<
                 test_detector_t::sf_finders::id::e_cylinder2_grid>()[0];
-    dindex trf_idx{4u};
+    dindex trf_idx{3u};
     for (const auto& sf : cyl_grid.all()) {
         EXPECT_TRUE(sf.is_sensitive());
         EXPECT_EQ(sf.volume(), 0u);

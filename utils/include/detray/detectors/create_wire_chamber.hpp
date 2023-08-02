@@ -247,6 +247,11 @@ auto create_wire_chamber(vecmem::memory_resource &resource,
             det.add_surface_to_lookup(sf_desc);
         }
 
+        // Add transforms, masks and material to detector
+        det.append_masks(std::move(masks));
+        det.append_transforms(std::move(transforms));
+        det.append_materials(std::move(materials));
+
         //
         // Fill Grid
         //
@@ -259,26 +264,33 @@ auto create_wire_chamber(vecmem::memory_resource &resource,
         using cyl_grid_t =
             typename detector_t::surface_container::template get_type<grid_id>;
         auto gbuilder =
-            grid_builder<detector_t, cyl_grid_t, detray::detail::fill_by_pos>{};
+            grid_builder<detector_t, cyl_grid_t, detray::detail::fill_by_pos>{
+                nullptr};
 
-        // The disc portals are at the end of the portal range by construction
-        auto portal_mask_idx = (det.portals(vol).end() - 3u)->mask().index();
-        const auto &cyl_mask =
+        // The portal portals are at the end of the portal range by construction
+        auto portal_mask_idx = (det.portals(vol).end() - 4u)->mask().index();
+        const auto &inner_cyl_mask =
             det.mask_store().template get<cyl_id>().at(portal_mask_idx);
+        portal_mask_idx = (det.portals(vol).end() - 3u)->mask().index();
+        const auto &outer_cyl_mask =
+            det.mask_store().template get<cyl_id>().at(portal_mask_idx);
+
+        // Correct cylinder radius so that the grid lies in the middle
+        using cyl_mask_t = detail::remove_cvref_t<decltype(outer_cyl_mask)>;
+        typename cyl_mask_t::mask_values mask_values{outer_cyl_mask.values()};
+        mask_values[cylinder2D<>::e_r] =
+            0.5f * (inner_cyl_mask.values()[cylinder2D<>::e_r] +
+                    outer_cyl_mask.values()[cylinder2D<>::e_r]);
+        const cyl_mask_t cyl_mask{mask_values, 0u};
 
         // Add new grid to the detector
         gbuilder.init_grid(cyl_mask, {100u, 1u});
-        gbuilder.fill_grid(detector_volume{det, vol}, surfaces, transforms,
-                           masks, ctx0);
+        gbuilder.fill_grid(detector_volume{det, vol}, det.surface_lookup(),
+                           det.transform_store(), det.mask_store(), ctx0);
 
         det.surface_store().template push_back<grid_id>(gbuilder.get());
         vol.template set_link<geo_obj_ids::e_sensitive>(
             grid_id, det.surface_store().template size<grid_id>() - 1u);
-
-        // Add transforms, masks and material to detector
-        det.append_masks(std::move(masks));
-        det.append_transforms(std::move(transforms));
-        det.append_materials(std::move(materials));
 
         // Add volume grid
         // TODO: Fill it

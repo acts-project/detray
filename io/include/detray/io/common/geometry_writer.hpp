@@ -109,9 +109,11 @@ class geometry_writer : public writer_interface<detector_t> {
     }
 
     /// Serialize a detector surface @param sf into its io payload
-    static surface_payload serialize(const surface<detector_t>& sf) {
+    static surface_payload serialize(const surface<detector_t>& sf,
+                                     std::size_t sf_idx) {
         surface_payload sf_data;
 
+        sf_data.index_in_coll = sf_idx;
         sf_data.type = sf.id();
         sf_data.barcode = sf.barcode().value();
         sf_data.transform = serialize(sf.transform({}));
@@ -134,9 +136,13 @@ class geometry_writer : public writer_interface<detector_t> {
             serialize(det.transform_store()[vol_desc.transform()]);
         vol_data.type = vol_desc.id();
 
+        // Count the surfaces belonging to this volume
+        std::size_t sf_idx{0};
+
         for (const auto& sf_desc : det.surface_lookup()) {
             if (sf_desc.volume() == vol_desc.index()) {
-                vol_data.surfaces.push_back(serialize(surface{det, sf_desc}));
+                vol_data.surfaces.push_back(
+                    serialize(surface{det, sf_desc}, sf_idx++));
             }
         }
 

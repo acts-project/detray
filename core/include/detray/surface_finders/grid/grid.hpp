@@ -202,9 +202,15 @@ class grid {
         return bin(n_axis::multi_bin<Dim>{{indices...}});
     }
 
-    /// @param mbin the multi-index of bins over all axes
+    /// @param mbin the multi-index of bins over all axes - const
     DETRAY_HOST_DEVICE
     auto bin(const n_axis::multi_bin<Dim> &mbin) const {
+        return bin(m_serializer(m_axes, mbin));
+    }
+
+    /// @param mbin the multi-index of bins over all axes
+    DETRAY_HOST_DEVICE
+    auto bin(const n_axis::multi_bin<Dim> &mbin) {
         return bin(m_serializer(m_axes, mbin));
     }
 
@@ -276,13 +282,22 @@ class grid {
         return all();
     }
 
-    /// Find the value of a single bin
+    /// Find the value of a single bin - const
     ///
     /// @param p is point in the local frame
     ///
     /// @return the iterable view of the bin content
     DETRAY_HOST_DEVICE auto search(
         const typename local_frame_type::point3 &p) const {
+        return bin(m_axes.bins(p));
+    }
+
+    /// Find the value of a single bin
+    ///
+    /// @param p is point in the local frame
+    ///
+    /// @return the iterable view of the bin content
+    DETRAY_HOST_DEVICE auto search(const typename local_frame_type::point3 &p) {
         return bin(m_axes.bins(p));
     }
 

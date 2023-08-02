@@ -239,7 +239,8 @@ GTEST_TEST(detray_tools, detector_builder_with_material) {
 
     // Add material
     auto mv_builder =
-        det_builder.template decorate<material_builder>(vbuilder->vol_index());
+        det_builder.template decorate<material_builder<detector_t>>(
+            vbuilder->vol_index());
 
     typename detector_t::point3 t{0.f, 0.f, 20.f};
     mv_builder->add_volume_placement(t);

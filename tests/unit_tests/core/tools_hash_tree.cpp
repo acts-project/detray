@@ -8,7 +8,6 @@
 #include <gtest/gtest.h>
 
 #include <cmath>
-#include <iostream>
 
 // detray test
 #include "tests/common/tools/hash_tree.hpp"

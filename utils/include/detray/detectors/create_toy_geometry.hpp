@@ -190,11 +190,13 @@ inline void create_barrel_modules(context_t &ctx, volume_type &vol,
 
 /// Helper function that creates a surface grid of rectangular barrel modules.
 ///
-/// @param surfaces_grid the grid to be created with proper axes
-/// @param resource vecmem memory resource
-/// @param cfg config struct for module creation
+/// @param ctx the detector geometry context
+/// @param resource memory resource for the grid data allocations
+/// @param vol the detector volume in which to build the grid
+/// @param det the detector to fill the grid into
+/// @param module_factory factory to create the volume surfaces
 template <
-    typename detector_t, typename config_t, typename factory_t,
+    typename detector_t, typename factory_t,
     std::enable_if_t<
         std::is_invocable_v<factory_t, typename detector_t::geometry_context &,
                             typename detector_t::volume_type &,
@@ -206,8 +208,7 @@ template <
 inline void add_cylinder_grid(const typename detector_t::geometry_context &ctx,
                               vecmem::memory_resource &resource,
                               typename detector_t::volume_type &vol,
-                              detector_t &det, const config_t &cfg,
-                              factory_t &module_factory) {
+                              detector_t &det, factory_t &module_factory) {
     // Get relevant ids
     using geo_obj_ids = typename detector_t::geo_obj_ids;
 
@@ -217,12 +218,24 @@ inline void add_cylinder_grid(const typename detector_t::geometry_context &ctx,
     using cyl_grid_t =
         typename detector_t::surface_container::template get_type<grid_id>;
     auto gbuilder =
-        grid_builder<detector_t, cyl_grid_t, detray::detail::fill_by_pos>{};
+        grid_builder<detector_t, cyl_grid_t, detray::detail::fill_by_pos>{
+            nullptr};
 
-    // The disc portals are at the end of the portal range by construction
-    auto portal_mask_idx = (det.portals(vol).end() - 3u)->mask().index();
-    const auto &cyl_mask =
+    // The portals are at the end of the portal range by construction
+    auto portal_mask_idx = (det.portals(vol).end() - 4u)->mask().index();
+    const auto &inner_cyl_mask =
         det.mask_store().template get<cyl_id>().at(portal_mask_idx);
+    portal_mask_idx = (det.portals(vol).end() - 3u)->mask().index();
+    const auto &outer_cyl_mask =
+        det.mask_store().template get<cyl_id>().at(portal_mask_idx);
+
+    // Correct cylinder radius so that the grid lies in the middle
+    using cyl_mask_t = detail::remove_cvref_t<decltype(outer_cyl_mask)>;
+    typename cyl_mask_t::mask_values mask_values{outer_cyl_mask.values()};
+    mask_values[cylinder2D<>::e_r] =
+        0.5f * (inner_cyl_mask.values()[cylinder2D<>::e_r] +
+                outer_cyl_mask.values()[cylinder2D<>::e_r]);
+    const cyl_mask_t cyl_mask{mask_values, 0u};
 
     // Create the sensitive surfaces
     typename detector_t::surface_container_t surfaces(&resource);
@@ -249,16 +262,18 @@ inline void add_cylinder_grid(const typename detector_t::geometry_context &ctx,
         det.add_surface_to_lookup(sf_desc);
     }
 
-    // Add new grid to the detector
-    gbuilder.init_grid(cyl_mask, {cfg.m_binning.first, cfg.m_binning.second});
-    gbuilder.fill_grid(detector_volume{det, vol}, surfaces, transforms, masks,
-                       ctx);
-    assert(gbuilder.get().all().size() == surfaces.size());
-
     // Add transforms, masks and material to detector
     det.append_masks(std::move(masks));
     det.append_transforms(std::move(transforms));
     det.append_materials(std::move(materials));
+
+    // Add new grid to the detector
+    gbuilder.init_grid(cyl_mask, {module_factory.cfg.m_binning.first,
+                                  module_factory.cfg.m_binning.second});
+    gbuilder.fill_grid(detector_volume{det, vol}, det.surface_lookup(),
+                       det.transform_store(), det.mask_store(), ctx);
+    assert(gbuilder.get().all().size() == surfaces.size());
+
     det.surface_store().template push_back<grid_id>(gbuilder.get());
     vol.template set_link<geo_obj_ids::e_sensitive>(
         grid_id, det.surface_store().template size<grid_id>() - 1u);
@@ -266,12 +281,13 @@ inline void add_cylinder_grid(const typename detector_t::geometry_context &ctx,
 
 /// Helper function that creates a surface grid of trapezoidal endcap modules.
 ///
-/// @param vol the detector volume that should be equipped with a grid
-/// @param surfaces_grid the grid to be created with proper axes
-/// @param resource vecmem memory resource
-/// @param cfg config struct for module creation
+/// @param ctx the detector geometry context
+/// @param resource memory resource for the grid data allocations
+/// @param vol the detector volume in which to build the grid
+/// @param det the detector to fill the grid into
+/// @param module_factory factory to create the volume surfaces
 template <
-    typename detector_t, typename config_t, typename factory_t,
+    typename detector_t, typename factory_t,
     std::enable_if_t<
         std::is_invocable_v<factory_t, typename detector_t::geometry_context &,
                             typename detector_t::volume_type &,
@@ -283,8 +299,7 @@ template <
 inline void add_disc_grid(const typename detector_t::geometry_context &ctx,
                           vecmem::memory_resource &resource,
                           typename detector_t::volume_type &vol,
-                          detector_t &det, const config_t &cfg,
-                          factory_t &module_factory) {
+                          detector_t &det, factory_t &module_factory) {
     // Get relevant ids
     using geo_obj_ids = typename detector_t::geo_obj_ids;
 
@@ -294,7 +309,8 @@ inline void add_disc_grid(const typename detector_t::geometry_context &ctx,
     using disc_grid_t =
         typename detector_t::surface_container::template get_type<grid_id>;
     auto gbuilder =
-        grid_builder<detector_t, disc_grid_t, detray::detail::fill_by_pos>{};
+        grid_builder<detector_t, disc_grid_t, detray::detail::fill_by_pos>{
+            nullptr};
 
     // The disc portals are at the end of the portal range by construction
     auto portal_mask_idx = det.portals(vol).back().mask().index();
@@ -326,17 +342,18 @@ inline void add_disc_grid(const typename detector_t::geometry_context &ctx,
         det.add_surface_to_lookup(sf_desc);
     }
 
-    // Add new grid to the detector
-    gbuilder.init_grid(disc_mask,
-                       {cfg.disc_binning.size(), cfg.disc_binning.front()});
-    gbuilder.fill_grid(detector_volume{det, vol}, surfaces, transforms, masks,
-                       ctx);
-    assert(gbuilder.get().all().size() == surfaces.size());
-
     // Add transforms, masks and material to detector
     det.append_masks(std::move(masks));
     det.append_transforms(std::move(transforms));
     det.append_materials(std::move(materials));
+
+    // Add new grid to the detector
+    gbuilder.init_grid(disc_mask, {module_factory.cfg.disc_binning.size(),
+                                   module_factory.cfg.disc_binning.back()});
+    gbuilder.fill_grid(detector_volume{det, vol}, det.surface_lookup(),
+                       det.transform_store(), det.mask_store(), ctx);
+    assert(gbuilder.get().all().size() == surfaces.size());
+
     det.surface_store().template push_back<grid_id>(gbuilder.get());
     vol.template set_link<geo_obj_ids::e_sensitive>(
         grid_id, det.surface_store().template size<grid_id>() - 1u);
@@ -810,8 +827,7 @@ inline void add_endcap_detector(
             dindex vol_idx = det.volumes().back().index();
             names[vol_idx + 1u] = "endcap_" + std::to_string(vol_idx);
 
-            add_disc_grid(ctx, resource, det.volumes().back(), det, cfg,
-                          m_factory);
+            add_disc_grid(ctx, resource, det.volumes().back(), det, m_factory);
         }
     }
 }
@@ -896,7 +912,7 @@ inline void add_barrel_detector(
             dindex vol_idx = det.volumes().back().index();
             names[vol_idx + 1u] = "barrel_" + std::to_string(vol_idx);
 
-            add_cylinder_grid(ctx, resource, det.volumes().back(), det, cfg,
+            add_cylinder_grid(ctx, resource, det.volumes().back(), det,
                               m_factory);
         }
     }

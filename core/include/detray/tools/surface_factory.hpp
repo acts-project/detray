@@ -17,6 +17,7 @@
 #include "detray/utils/ranges.hpp"
 
 // System include(s)
+#include <algorithm>
 #include <cassert>
 #include <limits>
 #include <memory>
@@ -99,7 +100,7 @@ class surface_factory
     DETRAY_HOST
     void push_back(surface_data_t &&sf_data) override {
 
-        auto [trf, vlink, bounds] = sf_data.get_data();
+        auto [vlink, bounds, trf, index] = sf_data.get_data();
 
         assert(bounds.size() == mask_shape_t::boundaries::e_size);
 
@@ -113,6 +114,7 @@ class surface_factory
             m_volume_link.push_back(vlink);
         }
 
+        m_indices.push_back(index);
         m_transforms.push_back(trf);
         m_components.push_back(std::move(bounds));
     }
@@ -127,6 +129,7 @@ class surface_factory
         const auto n_surfaces{
             static_cast<dindex>(size() + surface_data.size())};
 
+        m_indices.reserve(n_surfaces);
         m_transforms.reserve(n_surfaces);
         m_components.reserve(n_surfaces);
 
@@ -145,6 +148,7 @@ class surface_factory
     /// Clear old data
     DETRAY_HOST
     auto clear() -> void override {
+        m_indices.clear();
         m_components.clear();
         m_transforms.clear();
         // cannot clear the single-view
@@ -176,7 +180,7 @@ class surface_factory
         // The material will be added in a later step
         constexpr auto no_material = surface_t::material_id::e_none;
         // In case the surfaces container is prefilled with other surfaces
-        dindex surfaces_offset = static_cast<dindex>(surfaces.size());
+        const dindex surfaces_offset = static_cast<dindex>(surfaces.size());
 
         // Nothing to construct
         if (size() == 0u) {
@@ -185,8 +189,15 @@ class surface_factory
 
         for (const auto [idx, comp] : detray::views::enumerate(m_components)) {
 
+            // Append the surfaces relative to the current number of surfaces
+            // in the stores
+            const dindex sf_idx{is_invalid_value(m_indices[idx])
+                                    ? dindex_invalid
+                                    : m_indices[idx]};
+
             // Add transform
-            transforms.push_back(m_transforms[idx], ctx);
+            const dindex trf_idx =
+                insert_in_container(transforms, m_transforms[idx], sf_idx, ctx);
 
             if constexpr (std::is_same_v<mask_shape_t, unmasked>) {
                 masks.template emplace_back<mask_id>(
@@ -200,20 +211,42 @@ class surface_factory
             // Add surface with all links set (relative to the given containers)
             mask_link_t mask_link{mask_id, masks.template size<mask_id>() - 1u};
             material_link_t material_link{no_material, dindex_invalid};
-            surfaces.emplace_back(transforms.size(ctx) - 1u, mask_link,
-                                  material_link, volume.index(), dindex_invalid,
-                                  sf_id);
+
+            insert_in_container(surfaces,
+                                {trf_idx, mask_link, material_link,
+                                 volume.index(), dindex_invalid, sf_id},
+                                sf_idx);
         }
 
         return {surfaces_offset, static_cast<dindex>(surfaces.size())};
     }
 
     private:
+    template <typename container_t, typename... Args>
+    DETRAY_HOST dindex insert_in_container(
+        container_t &cont, const typename container_t::value_type value,
+        const dindex idx, Args &&... args) const {
+        if (is_invalid_value(idx)) {
+            cont.push_back(value, std::forward<Args>(args)...);
+
+            return static_cast<dindex>(cont.size() - 1u);
+        } else {
+            if (cont.size() < idx + 1) {
+                cont.resize(idx + 1, std::forward<Args>(args)...);
+            }
+
+            cont.at(idx, std::forward<Args>(args)...) = value;
+
+            return idx;
+        }
+    }
+
     /// Check that the containers have the same size
     DETRAY_HOST
     void check() const {
         // This should not happend (need same number and ordering of data)
         assert(m_components.size() == m_transforms.size());
+        assert(m_components.size() == m_indices.size());
         if constexpr (sf_id == surface_id::e_portal) {
             assert(m_components.size() == m_volume_link.size());
         } else {
@@ -221,6 +254,8 @@ class surface_factory
         }
     }
 
+    dindex_range m_range{dindex_invalid, dindex_invalid};
+    std::vector<dindex> m_indices{};
     std::vector<std::vector<scalar_t>> m_components{};
     std::vector<typename detector_t::transform3> m_transforms{};
     volume_link_collection m_volume_link{};

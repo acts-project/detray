@@ -147,7 +147,7 @@ class volume_builder : public volume_builder_interface<detector_t> {
 
         // Update mask and transform index of surfaces and set a
         // unique barcode (index of surface in container)
-        auto sf_offset{static_cast<dindex>(det.portals().size())};
+        auto sf_offset{static_cast<dindex>(det.surface_lookup().size())};
         for (auto& sf_desc : m_surfaces) {
             const auto sf = surface{det, sf_desc};
             sf.template visit_mask<detail::mask_index_update>(sf_desc);

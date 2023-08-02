@@ -13,7 +13,6 @@
 
 // System include(s)
 #include <cmath>
-#include <iostream>
 
 namespace detray::svgtools::utils {
 

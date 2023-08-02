@@ -59,12 +59,12 @@ class detector_builder {
 
     /// Decorate a volume builder at position @param volume_idx with more
     /// functionality
-    template <template <typename> class builder_t>
+    template <class builder_t>
     DETRAY_HOST auto decorate(dindex volume_idx)
         -> volume_builder_interface<detector_type>* {
 
-        m_volumes[volume_idx] = std::make_unique<builder_t<detector_type>>(
-            std::move(m_volumes[volume_idx]));
+        m_volumes[volume_idx] =
+            std::make_unique<builder_t>(std::move(m_volumes[volume_idx]));
 
         return m_volumes[volume_idx].get();
     }

@@ -39,8 +39,8 @@ class grid_builder final : public volume_decorator<detector_t> {
 
     // TODO: nullptr can lead to exceptions, remove in the full implementation
     DETRAY_HOST
-    grid_builder(std::unique_ptr<volume_builder_interface<detector_t>>
-                     vol_builder = nullptr)
+    grid_builder(
+        std::unique_ptr<volume_builder_interface<detector_t>> vol_builder)
         : volume_decorator<detector_t>(std::move(vol_builder)) {}
 
     /// Should the passive surfaces be added to the grid ?
@@ -49,15 +49,26 @@ class grid_builder final : public volume_decorator<detector_t> {
     }
 
     /// Delegate init call depending on @param span type
-    template <typename axis_span_t>
+    template <typename grid_shape_t>
     DETRAY_HOST void init_grid(
-        const axis_span_t &span,
+        const mask<grid_shape_t> &bounds,
         const std::array<std::size_t, grid_t::Dim> &n_bins,
         const std::array<std::vector<scalar_type>, grid_t::Dim> &ax_bin_edges =
             {{}}) {
-        init_impl(span, n_bins, ax_bin_edges,
+        init_impl(bounds, n_bins, ax_bin_edges,
                   typename grid_t::axes_type::bounds{},
                   typename grid_t::axes_type::binnings{});
+    }
+
+    /// Build the empty grid from axis parameters
+    DETRAY_HOST void init_grid(
+        const std::vector<scalar_type> &spans,
+        const std::vector<std::size_t> &n_bins,
+        const std::vector<std::vector<scalar_type>> &ax_bin_edges = {{}}) {
+
+        m_grid = m_factory.template new_grid<typename grid_t::local_frame_type>(
+            spans, n_bins, ax_bin_edges, typename grid_t::axes_type::bounds{},
+            typename grid_t::axes_type::binnings{});
     }
 
     /// Fill grid from existing volume using a bin filling strategy
@@ -83,53 +94,79 @@ class grid_builder final : public volume_decorator<detector_t> {
         bin_filler(m_grid, vol, surfaces, transforms, masks, ctx, args...);
     }
 
-    /// Overwrite, to add the sensitives to the grid, instead of the surface vec
-    DETRAY_HOST
-    void add_sensitives(
-        std::shared_ptr<surface_factory_interface<detector_t>> sf_factory,
-        typename detector_t::geometry_context ctx = {}) override {
-        (*sf_factory)(volume_decorator<detector_t>::operator()(), m_surfaces,
-                      m_transforms, m_masks, ctx);
-    }
-
-    /// Overwrite, to add the passives to the grid, instead of the surface vec
-    DETRAY_HOST
-    void add_passives(
-        std::shared_ptr<surface_factory_interface<detector_t>> ps_factory,
-        typename detector_t::geometry_context ctx = {}) override {
-        if (m_add_passives) {
-            (*ps_factory)(volume_decorator<detector_t>::operator()(),
-                          m_surfaces, m_transforms, m_masks, ctx);
-            ps_factory->clear();
-        } else {
-            volume_decorator<detector_t>::add_passives(std::move(ps_factory),
-                                                       ctx);
-        }
-    }
-
     /// Add the volume and the grid to the detector @param det
     DETRAY_HOST
     auto build(detector_t &det, typename detector_t::geometry_context ctx = {})
         -> typename detector_t::volume_type * override {
+
+        using surface_desc_t = typename detector_t::surface_type;
+
         // Add the surfaces (portals and/or passives) that are owned by the vol
         typename detector_t::volume_type *vol_ptr =
             volume_decorator<detector_t>::build(det, ctx);
-        m_bin_filler(m_grid, detector_volume{det, *vol_ptr}, m_surfaces,
-                     m_transforms, m_masks, ctx);
 
-        // Add the surfaces that were filled into the grid directly to the
-        // detector and update their links
-        const auto trf_offset{det.transform_store().size(ctx)};
-        for (auto &sf_desc : m_grid.all()) {
-            const auto sf = surface{det, sf_desc};
-            sf.template visit_mask<detail::mask_index_update>(sf_desc);
-            sf_desc.set_volume(vol_ptr->index());
-            sf_desc.update_transform(trf_offset);
+        // Take the surfaces that should be filled into the grid out of the
+        // brute force finder
+        const auto vol_idx{vol_ptr->index()};
+        constexpr auto bf_id{detector_t::sf_finders::id::e_brute_force};
+        auto &bf_search = det.surface_store().template get<bf_id>();
+
+        // Grid has not been filled previously, fill it automatically
+        if (m_grid.size() == 0u) {
+            std::vector<surface_desc_t> surfaces{};
+            for (auto itr = bf_search.all().begin();
+                 itr != bf_search.all().end();) {
+                if (itr->volume() != vol_idx) {
+                    continue;
+                }
+                if (itr->is_sensitive() or
+                    (m_add_passives and itr->is_passive())) {
+                    surfaces.push_back(*itr);
+                    bf_search.erase(itr);
+                } else {
+                    ++itr;
+                }
+            }
+
+            this->fill_grid(
+                detector_volume{det,
+                                volume_decorator<detector_t>::operator()()},
+                surfaces, det.transform_store(), det.mask_store(), ctx);
+        } else {
+            // The grid is prefilled with surface descriptors that contain the
+            // correct surface indices per bin (e.g. from file IO).
+            // Now add the rest of the linking information, which is only
+            // available after the volume builder ran
+            for (auto itr = bf_search.all().begin();
+                 itr != bf_search.all().end();) {
+                if (itr->volume() != vol_idx) {
+                    ++itr;
+                    continue;
+                }
+                if (itr->is_sensitive() or
+                    (m_add_passives and itr->is_passive())) {
+                    const auto vol = det.volume_by_index(itr->volume());
+                    // The current volume is already built, so the surface
+                    // interface is safe to use
+                    const auto sf = surface{det, *itr};
+                    const auto t = sf.center(ctx);
+                    const auto loc_pos =
+                        m_grid.global_to_local(vol.transform(), t, t);
+                    auto bin_content = m_grid.search(loc_pos);
+
+                    for (surface_desc_t &sf_desc : bin_content) {
+                        // Find the correct surface and update all links
+                        if (sf_desc.index() == sf.index()) {
+                            sf_desc = *itr;
+                        }
+                    }
+
+                    bf_search.erase(itr);
+                } else {
+                    ++itr;
+                }
+            }
         }
-
-        // Add transforms and masks to detector
-        det.append_masks(std::move(m_masks));
-        det.append_transforms(std::move(m_transforms));
 
         // Add the grid to the detector and link it to its volume
         constexpr auto gid{detector_t::sf_finders::template get_id<grid_t>()};
@@ -159,30 +196,10 @@ class grid_builder final : public volume_decorator<detector_t> {
             bounds, n_bins, ax_bin_edges);
     }
 
-    /// Build the empty grid from axis parameters
-    template <typename grid_shape_t, typename... axis_bounds,
-              typename... binning_ts>
-    DETRAY_HOST void init_impl(
-        const std::vector<scalar_type> &spans,
-        const std::vector<std::size_t> *n_bins,
-        const std::vector<std::vector<scalar_type>> &ax_bin_edges,
-        std::tuple<axis_bounds...>, std::tuple<binning_ts...>) {
-
-        m_grid =
-            m_factory
-                .template new_grid<grid_shape_t, axis_bounds..., binning_ts...>(
-                    spans, n_bins, ax_bin_edges);
-    }
-
     grid_factory_t m_factory{};
     typename grid_t::template type<true> m_grid{};
     bin_filler_t m_bin_filler{};
     bool m_add_passives{false};
-
-    // surfaces that are filled into the grid, but not the volume
-    typename detector_t::surface_container_t m_surfaces{};
-    typename detector_t::transform_container m_transforms{};
-    typename detector_t::mask_container m_masks{};
 };
 
 /// Grid builder from single components

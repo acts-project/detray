@@ -244,6 +244,13 @@ class mask {
         return ss.str();
     }
 
+    /// @returns a string stream that prints the mask details
+    DETRAY_HOST
+    friend std::ostream& operator<<(std::ostream& os, const mask& m) {
+        os << m.to_string();
+        return os;
+    }
+
     private:
     shape _shape;
     mask_values _values;

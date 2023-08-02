@@ -67,6 +67,9 @@ inline void to_json(nlohmann::ordered_json& j, const surface_payload& s) {
     if (s.material.has_value()) {
         j["material"] = s.material.value();
     }
+    if (s.index_in_coll.has_value()) {
+        j["index_in_coll"] = s.index_in_coll.value();
+    }
 }
 
 inline void from_json(const nlohmann::ordered_json& j, surface_payload& s) {
@@ -77,6 +80,9 @@ inline void from_json(const nlohmann::ordered_json& j, surface_payload& s) {
     s.mask = j["mask"];
     if (j.find("material") != j.end()) {
         s.material = j["material"];
+    }
+    if (j.find("index_in_coll") != j.end()) {
+        s.index_in_coll = j["index_in_coll"];
     }
 }
 
