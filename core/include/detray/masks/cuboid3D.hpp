@@ -163,7 +163,10 @@ class cuboid3D {
               typename std::enable_if_t<kDIM == e_size, bool> = true>
     DETRAY_HOST inline point_t closest_surface_point(
         const bounds_t<scalar_t, kDIM>& bounds, const point_t& loc_p) const {
-            return point_t{};
+            const scalar_t x = std::clamp(loc_p[0], bounds[e_min_x], bounds[e_max_x]);
+            const scalar_t y = std::clamp(loc_p[1], bounds[e_min_z], bounds[e_max_z]);
+            const scalar_t z = std::clamp(loc_p[2], bounds[e_min_z], bounds[e_max_z]);
+            return point_t{x, y, z};
     }
 };
 

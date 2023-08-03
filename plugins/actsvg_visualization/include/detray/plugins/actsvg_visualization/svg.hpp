@@ -15,7 +15,6 @@
 #include "actsvg/proto/surface.hpp"
 
 // System include(s)
-#include <assert.h>
 #include <type_traits>
 #include <vector>
 

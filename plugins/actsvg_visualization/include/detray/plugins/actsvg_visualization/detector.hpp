@@ -15,10 +15,8 @@ namespace detray::actsvg_visualization::detector {
 struct detector_options{
     // The volume options
     volume::volume_options v_options;
-    // Indexes of the visible volumes.
-    std::vector<int> visible_volumes;
 };
-
+/*
 /// @brief Calculates the proto detector of a detray detector.
 ///
 /// @param d_detector The detray detector.
@@ -47,5 +45,19 @@ auto to_svg(const typename detector_t::geometry_context& context, const view_t& 
 {
     auto p_detector = to_proto_detector(context, detector, d_options);
     return actsvg::display::detector(name, p_detector, view);
+}*/
+
+template <typename detector_t, typename view_t>
+auto to_svg(const typename detector_t::geometry_context& context, const view_t& view, const detector_t& detector, const detector_options& d_options, const std::string& identification)
+{
+    actsvg::svg::object ret;
+    ret._tag = "g";
+    ret._id = identification;
+    for (size_t i = 0; i < detector.volumes().size(); i++){
+        const auto d_volume = detector.volume_by_index(static_cast<int>(i));
+        const auto svg = volume::to_svg(context, view, detector, d_volume, d_options.v_options, "volume_" + std::to_string(i));
+        ret.add_object(svg);
+    }
+    return ret;
 }
 }

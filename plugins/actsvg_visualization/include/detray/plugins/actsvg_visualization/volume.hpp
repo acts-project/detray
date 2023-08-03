@@ -18,8 +18,6 @@ namespace detray::actsvg_visualization::volume {
 struct volume_options{
     surface::surface_options s_options;
     surface::portal_options p_options;
-    // Indexes of the visible surfaces/portals.
-    std::vector<int> visible_surfaces;
 };
 
 /// @brief Calculates the proto volume of a detray volume.
@@ -54,9 +52,9 @@ const volume_options& v_options) {
 }
 
 template <typename detector_t, typename view_t>
-auto to_svg(const typename detector_t::geometry_context& context, const view_t& view, const detector_t& detector, const detray::detector_volume<detector_t>& d_volume, const volume_options& v_options, const std::string& name)
+auto to_svg(const typename detector_t::geometry_context& context, const view_t& view, const detector_t& detector, const detray::detector_volume<detector_t>& d_volume, const volume_options& v_options, const std::string& identification)
 {
     auto p_volume = volume::to_proto_volume(context, detector, d_volume, v_options);
-    return actsvg::display::volume(name, p_volume, view);
+    return actsvg::display::volume(identification, p_volume, view);
 }
 }

@@ -83,6 +83,8 @@ struct unit {
     static constexpr scalar_t rad{static_cast<scalar_t>(1.0)};
     static constexpr scalar_t degree{
         static_cast<scalar_t>(0.017453292519943295)};  // pi / 180
+    static constexpr scalar_t rad_to_deg = {
+        static_cast<scalar_t>(57.2957795130823208768)};
 };
 
 /// Physical and mathematical constants

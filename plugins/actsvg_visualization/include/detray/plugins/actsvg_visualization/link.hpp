@@ -94,7 +94,7 @@ struct link_start_functor {
 }
 
 struct link_options{
-
+    double length;
 };
 
 /// @returns The actsvg proto link from one point to another.
@@ -117,8 +117,8 @@ inline auto proto_links(const typename detector_t::geometry_context& context, co
     typename detector_t::point3 dir{};
     const auto start = d_portal.template visit_mask<link_start_functor>(d_portal.transform(context), dir);
     const auto n = d_portal.normal(context, d_portal.global_to_local(context, start, dir));
-    const auto pos_end = (n*3.) + start;
-    const auto neg_end = (n*-3.) + start;
+    const auto pos_end = (n*l_options.length) + start;
+    const auto neg_end = (n*-l_options.length) + start;
     return std::array{to_proto_link(start, neg_end), to_proto_link(start, pos_end)};
 }
 

@@ -25,12 +25,10 @@ inline std::array<detray::scalar, 3> mat_to_euler(
     const matrix_t& matrix) {
     float a = std::sqrt(matrix[0][0] * matrix[0][0] + matrix[1][0] * matrix[1][0]);
     // Checking if it is singular.
-    if (a < 1e-6)
-        return {std::atan2(-matrix[1][2], matrix[1][1]), std::atan2(-matrix[2][0], a),
-                0};
-
-    return {std::atan2(matrix[2][1], matrix[2][2]), std::atan2(-matrix[2][0], a),
-            std::atan2(matrix[1][0], matrix[0][0])};
+    if (a < 1e-6){
+        return {std::atan2(-matrix[1][2], matrix[1][1]), std::atan2(-matrix[2][0], a), 0};
+    }
+    return {std::atan2(matrix[2][1], matrix[2][2]), std::atan2(-matrix[2][0], a), std::atan2(matrix[1][0], matrix[0][0])};
 }
 
 /// @brief Calculates the detray point3 as an actsvg point.
@@ -59,17 +57,16 @@ template <typename transform_t>
 inline auto to_actsvg_transform(const transform_t& d_transform) {
     auto translation = d_transform.translation();
     auto euler_angles =
-        rotation_matrix_to_euler_angles<>(d_transform.rotation());
+        rotation_matrix_to_euler_angles(d_transform.rotation());
 
     auto ret = actsvg::style::transform();
-    constexpr auto rad_to_deg = 180.0 / 3.14;
 
     // The translate(<x> [<y>]) transform function moves the object by x and y.
     ret._tr = {static_cast<actsvg::scalar>(translation[0]),
                static_cast<actsvg::scalar>(translation[1])};
 
     // The rotate(<a> [<x> <y>]) transform function specifies a rotation by a degrees about a given point which is (0,0) here.
-    ret._rot = {static_cast<actsvg::scalar>(euler_angles[2] * rad_to_deg),
+    ret._rot = {static_cast<actsvg::scalar>(euler_angles[2] * detray::unit<detray::scalar>::rad_to_deg),
                 static_cast<actsvg::scalar>(0),
                 static_cast<actsvg::scalar>(0)};
 
