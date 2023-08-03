@@ -135,11 +135,6 @@ class geometry_reader : public reader_interface<detector_t> {
         det_builder.template set_volume_finder();
     }
 
-    /// @returns a link from its io payload @param link_data
-    static dindex deserialize(const single_link_payload& link_data) {
-        return static_cast<dindex>(link_data.link);
-    }
-
     /// @returns a surface transform from its io payload @param trf_data
     static typename detector_t::transform3 deserialize(
         const transform_payload& trf_data) {
@@ -177,7 +172,8 @@ class geometry_reader : public reader_interface<detector_t> {
                   std::back_inserter(mask_boundaries));
 
         return {deserialize(sf_data.transform),
-                static_cast<nav_link_t>(deserialize(sf_data.mask.volume_link)),
+                static_cast<nav_link_t>(
+                    base_type::deserialize(sf_data.mask.volume_link)),
                 std::move(mask_boundaries)};
     }
 

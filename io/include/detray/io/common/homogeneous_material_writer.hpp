@@ -13,7 +13,6 @@
 #include "detray/io/common/payloads.hpp"
 #include "detray/materials/material_rod.hpp"
 #include "detray/materials/material_slab.hpp"
-#include "detray/utils/ranges.hpp"
 
 // System include(s)
 #include <string>
@@ -26,6 +25,7 @@ template <class detector_t>
 class homogeneous_material_writer : public writer_interface<detector_t> {
 
     using base_type = writer_interface<detector_t>;
+    using scalar_t = typename detector_t::scalar_type;
 
     protected:
     /// Tag the writer as "homogeneous_material"
@@ -82,10 +82,10 @@ class homogeneous_material_writer : public writer_interface<detector_t> {
     static material_volume_payload serialize(
         const typename detector_t::volume_type& vol_desc,
         const detector_t& det) {
-        using material_type = material_slab_payload::material_type;
+        using material_type = material_slab_payload::type;
 
         material_volume_payload mv_data;
-        mv_data.index = vol_desc.index();
+        mv_data.volume_link = base_type::serialize(vol_desc.index());
 
         // Find all surfaces that belong to the volume
         for (const auto& sf_desc : det.surface_lookup()) {
@@ -97,9 +97,9 @@ class homogeneous_material_writer : public writer_interface<detector_t> {
             const material_slab_payload mslp =
                 sf.template visit_material<get_material_payload>();
 
-            if (mslp.type == material_type::slab) {
+            if (mslp.mat_link.type == material_type::slab) {
                 mv_data.mat_slabs.push_back(mslp);
-            } else if (mslp.type == material_type::rod) {
+            } else if (mslp.mat_link.type == material_type::rod) {
                 if (not mv_data.mat_rods.has_value()) {
                     mv_data.mat_rods.emplace();
                 }
@@ -107,7 +107,7 @@ class homogeneous_material_writer : public writer_interface<detector_t> {
             } else {
                 throw std::runtime_error(
                     "Material could not be matched to payload (found type " +
-                    std::to_string(static_cast<int>(mslp.type)) + ")");
+                    std::to_string(static_cast<int>(mslp.mat_link.type)) + ")");
             }
         }
 
@@ -131,26 +131,24 @@ class homogeneous_material_writer : public writer_interface<detector_t> {
 
     /// Serialize a surface material slab @param mat_slab into its io payload
     static material_slab_payload serialize(
-        const material_slab<typename detector_t::scalar_type>& mat_slab,
-        std::size_t idx) {
+        const material_slab<scalar_t>& mat_slab, std::size_t idx) {
         material_slab_payload mat_data;
 
-        mat_data.type = material_slab_payload::material_type::slab;
-        mat_data.index = idx;
+        mat_data.mat_link = base_type::serialize(
+            io::detail::get_material_id<material_slab<scalar_t>>(), idx);
         mat_data.thickness = mat_slab.thickness();
         mat_data.mat = serialize(mat_slab.get_material());
 
         return mat_data;
     }
 
-    /// Serialize a line material rod @param mat_rod into its io payload
+    /// Serialize a wire material rod @param mat_rod into its io payload
     static material_slab_payload serialize(
-        const material_rod<typename detector_t::scalar_type>& mat_rod,
-        std::size_t idx) {
+        const material_rod<scalar_t>& mat_rod, std::size_t idx) {
         material_slab_payload mat_data;
 
-        mat_data.type = material_slab_payload::material_type::rod;
-        mat_data.index = idx;
+        mat_data.mat_link = base_type::serialize(
+            io::detail::get_material_id<material_rod<scalar_t>>(), idx);
         mat_data.thickness = mat_rod.radius();
         mat_data.mat = serialize(mat_rod.get_material());
 

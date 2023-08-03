@@ -37,4 +37,28 @@ void from_json(const nlohmann::ordered_json& j, header_payload<bool>& h) {
     // Do not look at the optional subheader here
 }
 
+/// Data links IO
+/// @{
+void to_json(nlohmann::ordered_json& j, const single_link_payload& so) {
+    j = so.link;
+}
+
+void from_json(const nlohmann::ordered_json& j, single_link_payload& so) {
+    so.link = j;
+}
+
+template <typename type_id>
+void to_json(nlohmann::ordered_json& j, const typed_link_payload<type_id>& m) {
+    j["type"] = static_cast<unsigned int>(m.type);
+    j["index"] = m.index;
+}
+
+template <typename type_id>
+void from_json(const nlohmann::ordered_json& j,
+               typed_link_payload<type_id>& m) {
+    m.type = static_cast<type_id>(j["type"]);
+    m.index = j["index"];
+}
+/// @}
+
 }  // namespace detray

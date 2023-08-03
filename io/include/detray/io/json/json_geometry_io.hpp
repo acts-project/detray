@@ -11,7 +11,8 @@
 #include "detray/io/common/payloads.hpp"
 #include "detray/io/json/json.hpp"
 #include "detray/io/json/json_algebra_io.hpp"
-#include "detray/io/json/json_header_io.hpp"
+#include "detray/io/json/json_common_io.hpp"
+#include "detray/io/json/json_grids_io.hpp"
 
 // System include(s)
 #include <array>
@@ -45,14 +46,6 @@ void from_json(const nlohmann::ordered_json& j, geo_header_payload& h) {
     }
 }
 
-void to_json(nlohmann::ordered_json& j, const single_link_payload& so) {
-    j = so.link;
-}
-
-void from_json(const nlohmann::ordered_json& j, single_link_payload& so) {
-    so.link = j;
-}
-
 void to_json(nlohmann::ordered_json& j, const mask_payload& m) {
     j["shape"] = static_cast<unsigned int>(m.shape);
     j["volume_link"] = m.volume_link;
@@ -63,16 +56,6 @@ void from_json(const nlohmann::ordered_json& j, mask_payload& m) {
     m.shape = static_cast<mask_payload::mask_shape>(j["shape"]);
     m.volume_link = j["volume_link"];
     m.boundaries = j["boundaries"].get<std::vector<real_io>>();
-}
-
-void to_json(nlohmann::ordered_json& j, const material_link_payload& m) {
-    j["type"] = static_cast<unsigned int>(m.type);
-    j["index"] = m.index;
-}
-
-void from_json(const nlohmann::ordered_json& j, material_link_payload& m) {
-    m.type = static_cast<material_link_payload::material_type>(j["type"]);
-    m.index = j["index"];
 }
 
 void to_json(nlohmann::ordered_json& j, const surface_payload& s) {
@@ -95,16 +78,6 @@ void from_json(const nlohmann::ordered_json& j, surface_payload& s) {
     if (j.find("material") != j.end()) {
         s.material = j["material"];
     }
-}
-
-void to_json(nlohmann::ordered_json& j, const acc_links_payload& al) {
-    j["type"] = static_cast<unsigned int>(al.type);
-    j["index"] = al.index;
-}
-
-void from_json(const nlohmann::ordered_json& j, acc_links_payload& al) {
-    al.type = static_cast<acc_links_payload::acc_type>(j["type"]);
-    al.index = j["index"];
 }
 
 void to_json(nlohmann::ordered_json& j, const volume_payload& v) {
@@ -141,6 +114,26 @@ void from_json(const nlohmann::ordered_json& j, volume_payload& v) {
             acc_links_payload al = jl;
             v.acc_links->push_back(al);
         }
+    }
+}
+
+void to_json(nlohmann::ordered_json& j, const detector_payload& d) {
+    if (not d.volumes.empty()) {
+        nlohmann::ordered_json jvolumes;
+        for (const auto& v : d.volumes) {
+            jvolumes.push_back(v);
+        }
+        j["volumes"] = jvolumes;
+        j["volume_grid"] = d.volume_grid;
+    }
+}
+
+void from_json(const nlohmann::ordered_json& j, detector_payload& d) {
+    if (j.find("volumes") != j.end()) {
+        for (auto jvolume : j["volumes"]) {
+            d.volumes.push_back(jvolume);
+        }
+        d.volume_grid = j["volume_grid"];
     }
 }
 

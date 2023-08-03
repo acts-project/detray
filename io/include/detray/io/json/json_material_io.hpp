@@ -10,7 +10,7 @@
 // Project include(s)
 #include "detray/io/common/payloads.hpp"
 #include "detray/io/json/json.hpp"
-#include "detray/io/json/json_header_io.hpp"
+#include "detray/io/json/json_common_io.hpp"
 
 // System include(s)
 #include <array>
@@ -52,21 +52,19 @@ void from_json(const nlohmann::ordered_json& j, material_payload& m) {
 }
 
 void to_json(nlohmann::ordered_json& j, const material_slab_payload& m) {
-    j["type"] = material_slab_payload::material_type::slab;
-    j["index"] = m.index;
+    j["mat_link"] = m.mat_link;
     j["thickness"] = m.thickness;
     j["material"] = m.mat;
 }
 
 void from_json(const nlohmann::ordered_json& j, material_slab_payload& m) {
-    m.type = material_slab_payload::material_type::slab;
-    m.index = j["index"];
+    m.mat_link = j["mat_link"];
     m.thickness = j["thickness"];
     m.mat = j["material"];
 }
 
 void to_json(nlohmann::ordered_json& j, const material_volume_payload& mv) {
-    j["index"] = mv.index;
+    j["volume_link"] = mv.volume_link;
 
     if (not mv.mat_slabs.empty()) {
         nlohmann::ordered_json jmats;
@@ -85,7 +83,7 @@ void to_json(nlohmann::ordered_json& j, const material_volume_payload& mv) {
 }
 
 void from_json(const nlohmann::ordered_json& j, material_volume_payload& mv) {
-    mv.index = j["index"];
+    mv.volume_link = j["volume_link"];
 
     if (j.find("material_slabs") != j.end()) {
         for (auto jmats : j["material_slabs"]) {

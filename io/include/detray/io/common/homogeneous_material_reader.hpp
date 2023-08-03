@@ -24,7 +24,7 @@
 
 namespace detray {
 
-/// @brief Abstract base class for tracking geometry readers
+/// @brief Abstract base class for a homogeneous material reader.
 template <class detector_t>
 class homogeneous_material_reader : public reader_interface<detector_t> {
 
@@ -57,7 +57,7 @@ class homogeneous_material_reader : public reader_interface<detector_t> {
         for (const auto& mv_data : det_mat_data.volumes) {
             // Decorate the current volume builder with material
             auto vm_builder = det_builder.template decorate<material_builder>(
-                static_cast<dindex>(mv_data.index));
+                base_type::deserialize(mv_data.volume_link));
 
             // Add the material data to the factory
             auto mat_factory = std::make_shared<material_factory<detector_t>>();
