@@ -100,12 +100,9 @@ class file_handle final {
     std::fstream m_stream;
 
     /// How many files have been created? Maximum: 65'536
-    static std::size_t n_files;
-    static std::size_t n_open_files;
+    std::size_t n_files{0};
+    std::size_t n_open_files{0};
 };
-
-std::size_t file_handle::n_files{0u};
-std::size_t file_handle::n_open_files{0u};
 
 }  // namespace detail
 

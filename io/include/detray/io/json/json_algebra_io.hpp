@@ -15,12 +15,12 @@
 /// JSON I/O extension
 namespace detray {
 
-void to_json(nlohmann::ordered_json& j, const transform_payload& t) {
+inline void to_json(nlohmann::ordered_json& j, const transform_payload& t) {
     j["translation"] = t.tr;
     j["rotation"] = t.rot;
 }
 
-void from_json(const nlohmann::ordered_json& j, transform_payload& t) {
+inline void from_json(const nlohmann::ordered_json& j, transform_payload& t) {
     t.tr = j["translation"];
     t.rot = j["rotation"];
 }

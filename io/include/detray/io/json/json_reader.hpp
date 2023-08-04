@@ -24,7 +24,7 @@
 namespace detray {
 
 /// @brief Function that reads the common header part of a file
-common_header_payload read_json_header(const std::string& file_name) {
+inline common_header_payload read_json_header(const std::string& file_name) {
 
     // Read json file
     io::detail::file_handle file{file_name,

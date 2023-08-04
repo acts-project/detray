@@ -13,49 +13,53 @@
 
 namespace detray {
 
-void to_json(nlohmann::ordered_json& j, const common_header_payload& h) {
+inline void to_json(nlohmann::ordered_json& j, const common_header_payload& h) {
     j["version"] = h.version;
     j["detector"] = h.detector;
     j["date"] = h.date;
     j["tag"] = h.tag;
 }
 
-void from_json(const nlohmann::ordered_json& j, common_header_payload& h) {
+inline void from_json(const nlohmann::ordered_json& j,
+                      common_header_payload& h) {
     h.version = j["version"];
     h.detector = j["detector"];
     h.date = j["date"];
     h.tag = j["tag"];
 }
 
-void to_json(nlohmann::ordered_json& j, const header_payload<bool>& h) {
+inline void to_json(nlohmann::ordered_json& j, const header_payload<bool>& h) {
     j["common"] = h.common;
     // Do write the optional subheader here, but in the dedicated serializers
 }
 
-void from_json(const nlohmann::ordered_json& j, header_payload<bool>& h) {
+inline void from_json(const nlohmann::ordered_json& j,
+                      header_payload<bool>& h) {
     h.common = j["common"];
     // Do not look at the optional subheader here
 }
 
 /// Data links IO
 /// @{
-void to_json(nlohmann::ordered_json& j, const single_link_payload& so) {
+inline void to_json(nlohmann::ordered_json& j, const single_link_payload& so) {
     j = so.link;
 }
 
-void from_json(const nlohmann::ordered_json& j, single_link_payload& so) {
+inline void from_json(const nlohmann::ordered_json& j,
+                      single_link_payload& so) {
     so.link = j;
 }
 
 template <typename type_id>
-void to_json(nlohmann::ordered_json& j, const typed_link_payload<type_id>& m) {
+inline void to_json(nlohmann::ordered_json& j,
+                    const typed_link_payload<type_id>& m) {
     j["type"] = static_cast<unsigned int>(m.type);
     j["index"] = m.index;
 }
 
 template <typename type_id>
-void from_json(const nlohmann::ordered_json& j,
-               typed_link_payload<type_id>& m) {
+inline void from_json(const nlohmann::ordered_json& j,
+                      typed_link_payload<type_id>& m) {
     m.type = static_cast<type_id>(j["type"]);
     m.index = j["index"];
 }
