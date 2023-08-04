@@ -7,6 +7,7 @@
 
 // Project include(s)
 #include "detray/definitions/algebra.hpp"
+#include "detray/detectors/create_telescope_detector.hpp"
 #include "detray/detectors/create_toy_geometry.hpp"
 #include "detray/detectors/create_wire_chamber.hpp"
 #include "detray/io/common/detector_reader.hpp"
@@ -103,6 +104,55 @@ TEST(io, json_toy_detector_reader) {
     EXPECT_TRUE(test_toy_detector(det, names));
 }
 
+/// Test the reading and writing of a telescope detector
+TEST(io, json_telescope_detector_reader) {
+
+    mask<rectangle2D<>> rec2{0u, 100.f, 100.f};
+
+    // Surface positions
+    std::vector<scalar> positions = {0.f,   50.f,  100.f, 150.f, 200.f, 250.f,
+                                     300.f, 350.f, 400.f, 450.f, 500.f};
+
+    tel_det_config<rectangle2D<>> tel_cfg{rec2};
+
+    using detector_t = detector<default_metadata>;
+
+    // Wire chamber
+    vecmem::host_memory_resource host_mr;
+    auto [telescope_det, telescope_names] =
+        create_telescope_detector(host_mr, tel_cfg);
+
+    auto writer_cfg = io::detector_writer_config{}
+                          .format(io::format::json)
+                          .replace_files(true);
+    io::write_detector(telescope_det, telescope_names, writer_cfg);
+
+    // Read the detector back in
+    io::detector_reader_config reader_cfg{};
+    reader_cfg.add_file("telescope_detector_geometry.json")
+        .add_file("telescope_detector_homogeneous_material.json");
+
+    const auto [det, names] =
+        io::read_detector<detector_t>(host_mr, reader_cfg);
+
+    EXPECT_EQ(det.volumes().size(), 1u);
+    detray::detail::check_consistency(det);
+
+    const auto mat_store = det.material_store();
+
+    const auto slabs = mat_store.get<default_metadata::material_ids::e_slab>();
+
+    EXPECT_EQ(slabs.size(), positions.size() + 6u);
+
+    const auto surfaces = det.surface_lookup();
+
+    for (auto& sf : surfaces) {
+        std::cout << sf.material() << "  Is Sensitive: " << sf.is_sensitive()
+                  << "  Thickness: " << slabs[sf.index()].thickness()
+                  << std::endl;
+    }
+}
+
 /// Test the reading and writing of a wire chamber
 TEST(io, json_wire_chamber_reader) {
 
@@ -127,4 +177,5 @@ TEST(io, json_wire_chamber_reader) {
         io::read_detector<detector_t>(host_mr, reader_cfg);
 
     EXPECT_EQ(det.volumes().size(), 11u);
+    detray::detail::check_consistency(det);
 }
