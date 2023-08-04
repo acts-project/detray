@@ -19,13 +19,13 @@
 #include <type_traits>
 #include <vector>
 
-using namespace actsvg;
+#include "detray/plugins/actsvg_visualization/proto/volume.hpp"
 
 int main(int, char**) {
 
-    // Generic axes.
+    // Axes.
     const auto axes =
-        draw::x_y_axes("axes", {-250, 250}, {-250, 250}, style::stroke(), "axis1", "axis2");
+        actsvg::draw::x_y_axes("axes", {-250, 250}, {-250, 250}, actsvg::style::stroke(), "axis1", "axis2");
 
     // Creating the detector and geomentry context.
     using toy_detector_t = detray::detector<detray::toy_metadata<>>;
@@ -34,19 +34,17 @@ int main(int, char**) {
     toy_detector_t::geometry_context context{};
 
     // Creating the converter for the detector.
-    const detray::actsvg_visualization::detector_visualizer det_converter{det};
+    const detray::actsvg_visualization::svg_converter converter{det, names};
 
     // Indexes of the volumes in the detector to be visualized.
-    std::array indexes{0, 1, 2, 3};
-    for (int i : indexes) {
-        // Getting volume i:
-        const auto volume = det.volume_by_index(i);
-
+    std::array indices{0, 1, 2, 3};
+    for (int i : indices) {
+        std::string name = "test_actsvg_volume" + std::to_string(i);
         // Visualization of volume i:
-        const auto svg_xy = det_converter.xy_volume(context, volume);
-        detray::actsvg_visualization::write_svg("test_actsvg_volume" + std::to_string(i) + "xy", {axes, svg_xy});
-        const auto svg_zr = det_converter.zr_volume(context, volume);
-        detray::actsvg_visualization::write_svg("test_actsvg_volume" + std::to_string(i) + "zr", {axes, svg_zr});
+        const auto svg_xy = converter.xy_volume(name, context, i);
+        detray::actsvg_visualization::write_svg(name + "_xy.svg", {axes, svg_xy});
+        const auto svg_zr = converter.zr_volume(name, context, i);
+        detray::actsvg_visualization::write_svg(name + "_zr.svg", {axes, svg_zr});
     }
     
 }

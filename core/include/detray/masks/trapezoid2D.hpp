@@ -151,25 +151,35 @@ class trapezoid2D {
     DETRAY_HOST inline point3_container_t local_vertices(
         const bounds_t<scalar_t, kDIM>& bounds) const {
         using point3_t = typename point3_container_t::value_type;
-        point3_t v1 = {bounds[e_half_length_1], bounds[e_half_length_2], 0};
-        point3_t v2 = {bounds[e_half_length_0], -bounds[e_half_length_2], 0};
-        point3_t v3 = {-bounds[e_half_length_0], -bounds[e_half_length_2], 0};
-        point3_t v4 = {-bounds[e_half_length_1], bounds[e_half_length_2], 0};
+        const scalar_t z{0};
+        point3_t v1 = {bounds[e_half_length_1], bounds[e_half_length_2], z};
+        point3_t v2 = {bounds[e_half_length_0], -bounds[e_half_length_2], z};
+        point3_t v3 = {-bounds[e_half_length_0], -bounds[e_half_length_2], z};
+        point3_t v4 = {-bounds[e_half_length_1], bounds[e_half_length_2], z};
         return {v1, v2, v3, v4};
     }
 
-    /// @brief Finds the closest point lying on the surface to the given point.
+    /// @brief Finds the shape's nearest point to the given point.
     ///
     /// @param bounds the boundary values for this shape.
     /// @param loc_p the point in the local coordinate system.
     ///
-    /// @returns the closest point lying on the surface in the local_coordinate system.
+    /// @returns the nearest point in the local_coordinate system.
         template <template <typename, std::size_t> class bounds_t,
               typename scalar_t, std::size_t kDIM, typename point_t,
               typename std::enable_if_t<kDIM == e_size, bool> = true>
-    DETRAY_HOST inline point_t closest_surface_point(
+    DETRAY_HOST inline point_t nearest_point(
         const bounds_t<scalar_t, kDIM>& bounds, const point_t& loc_p) const {
-            return point_t{};
+        const scalar_t rel_y{(bounds[e_half_length_2] + loc_p[1]) *
+        bounds[e_divisor]};
+        const auto a = bounds[e_half_length_0] +
+                                        rel_y * (bounds[e_half_length_1] -
+                                                bounds[e_half_length_0]);
+        const scalar_t x{std::clamp(loc_p[0], -a, a)};
+        const scalar_t y{std::clamp(loc_p[1], -bounds[e_half_length_2], bounds[e_half_length_2])};
+        const scalar_t z{0};
+        
+        return point_t{x, y, z};
     }
 };
 

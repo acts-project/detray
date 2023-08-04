@@ -157,16 +157,17 @@ class cylinder2D {
         const bounds_t<scalar_t, kDIM>&) const {
         return {};
     }
-    /// @brief Finds the closest point lying on the surface to the given point.
+
+    /// @brief Finds the shape's nearest point to the given point.
     ///
     /// @param bounds the boundary values for this shape.
     /// @param loc_p the point in the local coordinate system.
     ///
-    /// @returns the closest point lying on the surface in the local_coordinate system.
+    /// @returns the nearest point in the local_coordinate system.
         template <template <typename, std::size_t> class bounds_t,
               typename scalar_t, std::size_t kDIM, typename point_t,
               typename std::enable_if_t<kDIM == e_size, bool> = true>
-    DETRAY_HOST inline point_t closest_surface_point(
+    DETRAY_HOST inline point_t nearest_point(
         const bounds_t<scalar_t, kDIM>& bounds, const point_t& loc_p) const {
             const scalar_t phi{loc_p[0] / loc_p[2]};
             const scalar_t z = std::clamp(loc_p[1], bounds[e_n_half_z], bounds[e_p_half_z]);

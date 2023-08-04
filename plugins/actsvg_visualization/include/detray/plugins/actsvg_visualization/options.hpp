@@ -1,5 +1,5 @@
 #pragma once
-
+/*
 // Project include(s)
 #include "detray/plugins/actsvg_visualization/surface.hpp"
 #include "detray/plugins/actsvg_visualization/volume.hpp"
@@ -45,4 +45,4 @@ const detector::detector_options default_options{
         detector::detector_options _options;
     };
 
-}
+}*/

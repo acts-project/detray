@@ -332,6 +332,20 @@ class detector {
         return _surface_lookup;
     }
 
+    /// @return the surface by @param surface_index - const
+    DETRAY_HOST_DEVICE
+    inline auto surface_by_index(dindex surface_index) const
+        -> const surface<detector> {
+        return detray::surface{*this, _surface_lookup[surface_index]};
+    }
+
+    /// @return the surface by @param surface_index - non-const access
+    DETRAY_HOST_DEVICE
+    inline auto surface_by_index(dindex surface_index)
+        -> surface<detector> {
+        return detray::surface{*this, _surface_lookup[surface_index]};
+    }
+
     /// @returns a surface using its barcode - const
     DETRAY_HOST_DEVICE
     constexpr auto surface(geometry::barcode bcd) const

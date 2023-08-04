@@ -231,14 +231,14 @@ class mask {
         return _shape.template local_vertices<point3_container_t>(_values);
     }
 
-    /// @brief Finds the closest point lying on the surface to the given point.
+    /// @brief Finds the shape's nearest point to the given point.
     ///
     /// @param bounds the boundary values for this shape.
     /// @param loc_p the point in the local coordinate system.
     ///
-    /// @returns the closest point lying on the surface in the local_coordinate system.
-    DETRAY_HOST inline auto closest_surface_point(const point3_t& local_point) const {
-            return _shape.template closest_surface_point(_values, local_point);
+    /// @returns the nearest point in the local_coordinate system.
+    DETRAY_HOST inline auto nearest_point(const point3_t& local_point) const {
+            return _shape.template nearest_point(_values, local_point);
     }
 
     /// @returns a string representation of the mask

@@ -13,6 +13,7 @@
 #include "detray/intersection/cylinder_intersector.hpp"
 #include "detray/surface_finders/grid/detail/axis_binning.hpp"
 #include "detray/surface_finders/grid/detail/axis_bounds.hpp"
+#include "detray/masks/annulus2D.hpp"
 
 // System include(s)
 #include <cmath>
@@ -140,18 +141,38 @@ class cylinder3D {
         return {};
     }
 
-    /// @brief Finds the closest point lying on the surface to the given point.
+    /// @brief Finds the shape's nearest point to the given point.
     ///
     /// @param bounds the boundary values for this shape.
     /// @param loc_p the point in the local coordinate system.
     ///
-    /// @returns the closest point lying on the surface in the local_coordinate system.
+    /// @returns the nearest point in the local_coordinate system.
         template <template <typename, std::size_t> class bounds_t,
               typename scalar_t, std::size_t kDIM, typename point_t,
               typename std::enable_if_t<kDIM == e_size, bool> = true>
-    DETRAY_HOST inline point_t closest_surface_point(
+    DETRAY_HOST inline point_t nearest_point(
         const bounds_t<scalar_t, kDIM>& bounds, const point_t& loc_p) const {
-            return point_t{};
+            const auto ann_bounds = annulus_slice(bounds);
+            const annulus2D<> ann{};
+
+            const auto ann_nearest = ann.nearest_point(ann_bounds, loc_p);
+            const auto z = std::clamp(loc_p[2], bounds[e_min_z], bounds[e_max_z]);
+            return point_t{ann_nearest[0], ann_nearest[1], z};
+    }
+
+    /// @brief Calculates the 2D annulus bounds.
+    ///
+    /// @returns the bounds.
+        template <template <typename, std::size_t> class bounds_t,
+              typename scalar_t, std::size_t kDIM,
+              typename std::enable_if_t<kDIM == e_size, bool> = true>
+    DETRAY_HOST inline auto annulus_slice(
+        const bounds_t<scalar_t, kDIM>& bounds) const {
+            const scalar_t average_phi{(bounds[e_min_phi] + bounds[e_max_phi])/2};
+            const scalar_t shift_x{0};
+            const scalar_t shift_y{0};
+            const bounds_t<scalar_t, kDIM> ann_bounds{bounds[e_min_r], bounds[e_max_r], bounds[e_min_phi]-average_phi, bounds[e_max_phi]-average_phi, average_phi, shift_x, shift_y};
+            return ann_bounds;
     }
 };
 

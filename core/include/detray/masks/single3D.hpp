@@ -133,22 +133,30 @@ class single3D {
               typename scalar_t, std::size_t kDIM,
               typename std::enable_if_t<kDIM == e_size, bool> = true>
     DETRAY_HOST inline point3_container_t local_vertices(
-        const bounds_t<scalar_t, kDIM>&) const {
-        return {};
+        const bounds_t<scalar_t, kDIM>& bounds) const {
+        using point3_t = typename point3_container_t::value_type;
+        point3_t v1{};
+        v1[kCheckIndex] += bounds[e_lower];
+        point3_t v2{};
+        v2[kCheckIndex] += bounds[e_upper];
+        return {v1, v2};
     }
 
-    /// @brief Finds the closest point lying on the surface to the given point.
+    /// @brief Finds the shape's nearest point to the given point.
     ///
     /// @param bounds the boundary values for this shape.
     /// @param loc_p the point in the local coordinate system.
     ///
-    /// @returns the closest point lying on the surface in the local_coordinate system.
+    /// @returns the nearest point in the local_coordinate system.
         template <template <typename, std::size_t> class bounds_t,
               typename scalar_t, std::size_t kDIM, typename point_t,
               typename std::enable_if_t<kDIM == e_size, bool> = true>
-    DETRAY_HOST inline point_t closest_surface_point(
+    DETRAY_HOST inline point_t nearest_point(
         const bounds_t<scalar_t, kDIM>& bounds, const point_t& loc_p) const {
-            return point_t{};
+            auto a = std::clamp(loc_p[kCheckIndex], bounds[e_lower], bounds[e_upper]);
+            point_t ret{};
+            ret[kCheckIndex] = a;
+            return ret;
     }
 };
 

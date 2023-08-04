@@ -29,18 +29,16 @@
 #include <type_traits>
 #include <vector>
 
-using namespace actsvg;
-
 int main(int, char**) {
 
     // The axis
-    style::stroke stroke_black = style::stroke();
+    actsvg::style::stroke stroke_black = actsvg::style::stroke();
     // x-y axis
     auto xy_axis =
-        draw::x_y_axes("axes", {-250, 250}, {-250, 250}, stroke_black, "x", "y");  
+        actsvg::draw::x_y_axes("axes", {-250, 250}, {-250, 250}, stroke_black, "x", "y");  
     // z-r axis
     auto zr_axis =
-        draw::x_y_axes("axes", {-250, 250}, {-250, 250}, stroke_black, "z", "r");  
+        actsvg::draw::x_y_axes("axes", {-250, 250}, {-250, 250}, stroke_black, "z", "r");  
 
     // Creating the detector and geomentry context.
     using toy_detector_t = detray::detector<detray::toy_metadata<>>;
@@ -49,15 +47,15 @@ int main(int, char**) {
     toy_detector_t::geometry_context context{};
 
     // Creating the converter for the detector.
-    detray::actsvg_visualization::detector_visualizer det_converter{det};
+    detray::actsvg_visualization::svg_converter converter{det, names};
 
     // Get the svg of the toy detetector in x-y view.
-    const auto svg_xy = det_converter.xy(context);
+    const auto svg_xy = converter.xy_detector("detector_xy", context);
     // Write the svg of toy detector.
     detray::actsvg_visualization::write_svg("test_actsvg_detector_xy.svg", {xy_axis, svg_xy});
 
-    // Get the svg of the toy detetector in x-y view.
-    const auto svg_zr = det_converter.zr(context);
+    // Get the svg of the toy detetector in z-r view.
+    const auto svg_zr = converter.zr_detector("detector_zr", context);
     // Write the svg of toy detector in z-r view
     detray::actsvg_visualization::write_svg("test_actsvg_detector_zr.svg", {zr_axis, svg_zr});
 

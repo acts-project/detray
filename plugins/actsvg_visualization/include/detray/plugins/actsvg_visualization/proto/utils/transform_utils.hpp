@@ -13,7 +13,7 @@
 #include <type_traits>
 #include <vector>
 
-namespace detray::actsvg_visualization::transform {
+namespace detray::actsvg_visualization::proto::utils {
 
 /// @brief Calculates the euler angles of a rotation matrix.
 ///
