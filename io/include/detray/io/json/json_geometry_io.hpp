@@ -24,7 +24,7 @@
 /// JSON I/O extension
 namespace detray {
 
-void to_json(nlohmann::ordered_json& j, const geo_header_payload& h) {
+inline void to_json(nlohmann::ordered_json& j, const geo_header_payload& h) {
     j["common"] = h.common;
 
     if (h.sub_header.has_value()) {
@@ -34,7 +34,7 @@ void to_json(nlohmann::ordered_json& j, const geo_header_payload& h) {
     }
 }
 
-void from_json(const nlohmann::ordered_json& j, geo_header_payload& h) {
+inline void from_json(const nlohmann::ordered_json& j, geo_header_payload& h) {
     h.common = j["common"];
 
     if (j.find("volume_count") != j.end() and
@@ -46,19 +46,19 @@ void from_json(const nlohmann::ordered_json& j, geo_header_payload& h) {
     }
 }
 
-void to_json(nlohmann::ordered_json& j, const mask_payload& m) {
+inline void to_json(nlohmann::ordered_json& j, const mask_payload& m) {
     j["shape"] = static_cast<unsigned int>(m.shape);
     j["volume_link"] = m.volume_link;
     j["boundaries"] = m.boundaries;
 }
 
-void from_json(const nlohmann::ordered_json& j, mask_payload& m) {
+inline void from_json(const nlohmann::ordered_json& j, mask_payload& m) {
     m.shape = static_cast<mask_payload::mask_shape>(j["shape"]);
     m.volume_link = j["volume_link"];
     m.boundaries = j["boundaries"].get<std::vector<real_io>>();
 }
 
-void to_json(nlohmann::ordered_json& j, const surface_payload& s) {
+inline void to_json(nlohmann::ordered_json& j, const surface_payload& s) {
     j["barcode"] = s.barcode;
     j["type"] = static_cast<unsigned int>(s.type);
     j["source"] = s.source;
@@ -69,7 +69,7 @@ void to_json(nlohmann::ordered_json& j, const surface_payload& s) {
     }
 }
 
-void from_json(const nlohmann::ordered_json& j, surface_payload& s) {
+inline void from_json(const nlohmann::ordered_json& j, surface_payload& s) {
     s.barcode = j["barcode"];
     s.type = static_cast<detray::surface_id>(j["type"]);
     s.source = j["source"];
@@ -80,7 +80,7 @@ void from_json(const nlohmann::ordered_json& j, surface_payload& s) {
     }
 }
 
-void to_json(nlohmann::ordered_json& j, const volume_payload& v) {
+inline void to_json(nlohmann::ordered_json& j, const volume_payload& v) {
     j["name"] = v.name;
     j["index"] = v.index;
     j["type"] = v.type;
@@ -99,7 +99,7 @@ void to_json(nlohmann::ordered_json& j, const volume_payload& v) {
     }
 }
 
-void from_json(const nlohmann::ordered_json& j, volume_payload& v) {
+inline void from_json(const nlohmann::ordered_json& j, volume_payload& v) {
     v.name = j["name"];
     v.index = j["index"];
     v.type = j["type"];
@@ -117,7 +117,7 @@ void from_json(const nlohmann::ordered_json& j, volume_payload& v) {
     }
 }
 
-void to_json(nlohmann::ordered_json& j, const detector_payload& d) {
+inline void to_json(nlohmann::ordered_json& j, const detector_payload& d) {
     if (not d.volumes.empty()) {
         nlohmann::ordered_json jvolumes;
         for (const auto& v : d.volumes) {
@@ -128,7 +128,7 @@ void to_json(nlohmann::ordered_json& j, const detector_payload& d) {
     }
 }
 
-void from_json(const nlohmann::ordered_json& j, detector_payload& d) {
+inline void from_json(const nlohmann::ordered_json& j, detector_payload& d) {
     if (j.find("volumes") != j.end()) {
         for (auto jvolume : j["volumes"]) {
             d.volumes.push_back(jvolume);

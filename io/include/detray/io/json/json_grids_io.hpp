@@ -21,7 +21,7 @@
 
 namespace detray {
 
-void to_json(nlohmann::ordered_json& j, const grid_header_payload& h) {
+inline void to_json(nlohmann::ordered_json& j, const grid_header_payload& h) {
     j["common"] = h.common;
 
     if (h.sub_header.has_value()) {
@@ -30,7 +30,7 @@ void to_json(nlohmann::ordered_json& j, const grid_header_payload& h) {
     }
 }
 
-void from_json(const nlohmann::ordered_json& j, grid_header_payload& h) {
+inline void from_json(const nlohmann::ordered_json& j, grid_header_payload& h) {
     h.common = j["common"];
 
     if (j.find("grid_count") != j.end()) {
@@ -40,7 +40,7 @@ void from_json(const nlohmann::ordered_json& j, grid_header_payload& h) {
     }
 }
 
-void to_json(nlohmann::ordered_json& j, const axis_payload& a) {
+inline void to_json(nlohmann::ordered_json& j, const axis_payload& a) {
     j["label"] = static_cast<unsigned int>(a.label);
     j["bounds"] = static_cast<unsigned int>(a.bounds);
     j["binning"] = static_cast<unsigned int>(a.binning);
@@ -48,7 +48,7 @@ void to_json(nlohmann::ordered_json& j, const axis_payload& a) {
     j["edges"] = a.edges;
 }
 
-void from_json(const nlohmann::ordered_json& j, axis_payload& a) {
+inline void from_json(const nlohmann::ordered_json& j, axis_payload& a) {
     a.binning = static_cast<n_axis::binning>(j["binning"]);
     a.bounds = static_cast<n_axis::bounds>(j["bounds"]);
     a.label = static_cast<n_axis::label>(j["label"]);
@@ -56,17 +56,17 @@ void from_json(const nlohmann::ordered_json& j, axis_payload& a) {
     a.edges = j["edges"].get<std::vector<real_io>>();
 }
 
-void to_json(nlohmann::ordered_json& j, const grid_bin_payload& g) {
+inline void to_json(nlohmann::ordered_json& j, const grid_bin_payload& g) {
     j["loc_index"] = g.loc_index;
     j["content"] = g.content;
 }
 
-void from_json(const nlohmann::ordered_json& j, grid_bin_payload& g) {
+inline void from_json(const nlohmann::ordered_json& j, grid_bin_payload& g) {
     g.loc_index = j["loc_index"].get<std::vector<unsigned int>>();
     g.content = j["content"].get<std::vector<std::size_t>>();
 }
 
-void to_json(nlohmann::ordered_json& j, const grid_payload& g) {
+inline void to_json(nlohmann::ordered_json& j, const grid_payload& g) {
     j["volume_link"] = g.volume_link;
     j["acc_link"] = g.acc_link;
 
@@ -87,7 +87,7 @@ void to_json(nlohmann::ordered_json& j, const grid_payload& g) {
     }
 }
 
-void from_json(const nlohmann::ordered_json& j, grid_payload& g) {
+inline void from_json(const nlohmann::ordered_json& j, grid_payload& g) {
     g.volume_link = j["volume_link"];
     g.acc_link = j["acc_link"];
 
@@ -109,7 +109,8 @@ void from_json(const nlohmann::ordered_json& j, grid_payload& g) {
     }
 }
 
-void to_json(nlohmann::ordered_json& j, const detector_grids_payload& d) {
+inline void to_json(nlohmann::ordered_json& j,
+                    const detector_grids_payload& d) {
     if (not d.grids.empty()) {
         nlohmann::ordered_json jgrids;
         for (const auto& gr : d.grids) {
@@ -119,7 +120,8 @@ void to_json(nlohmann::ordered_json& j, const detector_grids_payload& d) {
     }
 }
 
-void from_json(const nlohmann::ordered_json& j, detector_grids_payload& d) {
+inline void from_json(const nlohmann::ordered_json& j,
+                      detector_grids_payload& d) {
     if (j.find("grids") != j.end()) {
         for (auto jgrid : j["grids"]) {
             grid_payload grp = jgrid;
