@@ -5,6 +5,7 @@
 #include "detray/plugins/actsvg_visualization/proto/conversion_types.hpp"
 #include "detray/plugins/actsvg_visualization/proto/utils/surface_utils.hpp"
 #include "detray/plugins/actsvg_visualization/proto/utils/transform_utils.hpp"
+#include "detray/definitions/units.hpp"
 
 // Actsvg include(s)
 #include "actsvg/meta.hpp"
@@ -37,29 +38,34 @@ struct link_start_functor {
     private:
 
     // Calculates the link starting location of the remaining shapes.
-    template <typename mask_t, typename transform_t>
-    auto link_start(const mask_t& mask, const transform_t& transform, const typename mask_t::point3_t& dir) const {
-        return nearest_point_from_center(mask, transform, dir, {0.,0.,0.});
+    template <typename mask_t, typename transform_t, typename point3_t>
+    auto inline link_start(const mask_t& mask, const transform_t& transform, const typename mask_t::point3_t& dir) const {
+        return mask.local_min_bounds_center(transform);
     }
 
     // Calculates the (optimal) link starting point for rings.
-    template <typename transform_t>
-    auto link_start(const detray::mask<detray::ring2D<>>& mask, const transform_t& transform, const typename detray::mask<detray::ring2D<>>::point3_t& dir) const {
-        const auto shape = mask.get_shape();
-        if (mask[shape.e_inner_r] == mask[shape.e_outer_r]){
-            return nearest_point_from_center(mask, transform, dir, {0.,1.,0.});
-        }
+    template <typename transform_t, typename point3_t>
+    auto inline link_start(const detray::mask<detray::ring2D<>>& mask, const transform_t& transform, const point3_t& dir) const {
+        using shape = mask::shape;
         const auto r = (mask[shape.e_inner_r] + mask[shape.e_outer_r])/2;
-        const detray::mask<detray::ring2D<>> middle_circle{0u, r, r};
-        return link_start(middle_circle, transform, dir);
+        const typename mask::scalar_type phi{detray::units::pi_2};
+        const typename mask::scalar_type z{0};
+        
+        const auto rel_point = mask_type::local_frame_type{}.local_to_global(transform, point3_t{r, phi, z}, dir)
+        return rel_point + mask.local_min_bounds_center(transform);
     }
 
     // Calculates the (optimal) link starting point for cylinders (2D).
     template <typename transform_t, bool kRadialCheck, template <typename> class intersector_t>
-    auto link_start(const detray::mask<detray::cylinder2D<kRadialCheck, intersector_t>>& mask, const transform_t& transform, const typename detray::mask<detray::ring2D<>>::point3_t& dir) const {
-    return nearest_point_from_center(mask, transform, dir, {0.,1.,0.}); //TODO: Take into account z rotation.
+    auto inline link_start(const detray::mask<detray::cylinder2D<kRadialCheck, intersector_t>>& mask, const transform_t& transform, const typename detray::mask<detray::ring2D<>>::point3_t& dir) const {
+        using shape = mask::shape;
+        const auto r = mask[shape.e_r];
+        const typename mask::scalar_type phi{detray::units::pi_2};
+        const typename mask::scalar_type z{0};
+        
+        const auto rel_point = mask::local_frame_type{}.local_to_global(transform, point3_t{r, phi, z}, dir)
+        return rel_point + mask.local_min_bounds_center(transform); 
     }
-
 };
 
 /// @brief A functor to set the proto surfaces type and bounds to be equivalent to the mask.
@@ -78,7 +84,7 @@ struct to_proto_surface_functor {
 
     // Returns the proto surface for remaining shapes.
     template <typename detector_t, typename bounds_t, typename polygon_t>
-    auto to_proto_surface(const typename detector_t::geometry_context& context, const detray::surface<detector_t>& d_surface, const polygon_t, const bounds_t&) const 
+    auto inline to_proto_surface(const typename detector_t::geometry_context& context, const detray::surface<detector_t>& d_surface, const polygon_t, const bounds_t&) const 
     {
         proto::proto_surface p_surface;
         p_surface._type = proto::proto_surface::type::e_polygon;
@@ -89,7 +95,7 @@ struct to_proto_surface_functor {
 
     // Returns the proto surface for 2D cylinders.
     template <typename detector_t, typename bounds_t, bool kRadialCheck, template <typename> class intersector_t>
-    auto to_proto_surface(const typename detector_t::geometry_context& context, const detray::surface<detector_t>& d_surface, const detray::cylinder2D<kRadialCheck, intersector_t>& shape, const bounds_t& bounds) const 
+    auto inline to_proto_surface(const typename detector_t::geometry_context& context, const detray::surface<detector_t>& d_surface, const detray::cylinder2D<kRadialCheck, intersector_t>& shape, const bounds_t& bounds) const 
     {
         //Rotation for circular objects is currently not supported.
         assert(d_surface.transform.rotation(context) == typename detector_t::transform3{});
@@ -128,7 +134,7 @@ struct to_proto_surface_functor {
 
     // Returns the proto surface for 2D annuluses.
     template <typename detector_t, typename bounds_t>
-    auto to_proto_surface(const typename detector_t::geometry_context& context, const detray::surface<detector_t>& d_surface, const detray::annulus2D<>& shape, const bounds_t& bounds) const 
+    auto inline to_proto_surface(const typename detector_t::geometry_context& context, const detray::surface<detector_t>& d_surface, const detray::annulus2D<>& shape, const bounds_t& bounds) const 
     {
         //Rotation for circular objects is currently not supported.
         assert(d_surface.transform.rotation(context) == typename detector_t::transform3{});
@@ -152,7 +158,7 @@ struct to_proto_surface_functor {
 
     /// @brief Sets the vertices of the proto surfaces type to be equivalent to the detray shape.
     template <class container_t>
-    void set_vertices(proto::proto_surface& p_surface, const container_t& vertices) const 
+    void inline set_vertices(proto::proto_surface& p_surface, const container_t& vertices) const 
     {
         proto::point3_container actsvg_vertices;
         for (auto v : vertices) {
