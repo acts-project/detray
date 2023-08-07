@@ -5,7 +5,7 @@
 #include "detray/plugins/actsvg_visualization/proto/conversion_types.hpp"
 #include "detray/plugins/actsvg_visualization/proto/utils/surface_functors.hpp"
 #include "detray/plugins/actsvg_visualization/proto/utils/transform_utils.hpp"
-
+#include "detray/plugins/actsvg_visualization/proto/utils/link_utils.hpp"
 // Actsvg include(s)
 #include "actsvg/meta.hpp"
 #include "actsvg/core.hpp"
@@ -14,11 +14,11 @@ namespace detray::actsvg_visualization::proto {
 
 /// @returns The link calculated using the surface normal vector.
 template <typename detector_t>
-inline auto link(const typename detector_t::geometry_context& context, const detray::surface<detector_t>& d_portal, const double link_length){
+inline auto link(const typename detector_t::geometry_context& context, const detector_t& detector, const detray::surface<detector_t>& d_portal){
     typename detector_t::point3 dir{};
-    const auto start = d_portal.template visit_mask<utils::link_start_functor>(d_portal.transform(context), dir);
-    const auto n = d_portal.normal(context, d_portal.global_to_local(context, start, dir));
-    const auto end = (n*link_length) + start;
+    constexpr double link_length = 3.;
+
+    const auto [start, end] = utils::link_points(context, detector, d_portal, dir, link_length);
     
     proto_link p_link;
     p_link._start = utils::convert_point<3>(start);

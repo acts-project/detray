@@ -35,7 +35,7 @@ const detray::detector_volume<detector_t>& d_volume) {
     for (const auto desc : d_volume.surface_lookup()){
         const auto item = detray::surface{detector, desc};
         if (item.is_portal()){
-            auto portal = proto::portal(context, item);
+            auto portal = proto::portal(context, detector, item);
             portals.push_back(portal);
         }
         else{
@@ -58,17 +58,18 @@ const detray::detector_volume<detector_t>& d_volume) {
 template <typename detector_t>
 auto volume(
 const typename detector_t::geometry_context& context,
+const detector_t& detector,
 const std::vector<detray::surface<detector_t>>& d_surfaces) {
     proto_volume p_volume;
     std::vector<proto_surface> surfaces;
     std::vector<proto_portal> portals;
     for (const auto& item : d_surfaces){
         if (item.is_portal()){
-            auto portal = proto::portal(context, item);
+            auto portal = proto::portal(context, detector, item);
             portals.push_back(portal);
         }
         else{
-            auto surface = proto::surface(context, item);
+            auto surface = proto::surface(context, detector, item);
             surfaces.push_back(surface);
         }
     }

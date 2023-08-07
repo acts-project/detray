@@ -80,6 +80,13 @@ void apply_style(actsvg::proto::surface<point3_container_t>& p_surface, const st
     
 }
 
+/// @brief Sets the style of the proto link.
+template <typename point3_container_t>
+void apply_style(typename actsvg::proto::portal<point3_container_t>::link& p_link, const style& styling)
+{
+    p_link._end_marker._size = styling.marker_size;
+}
+
 /// @brief Sets the style of the proto portal.
 template <typename point3_container_t>
 void apply_style(actsvg::proto::portal<point3_container_t>& p_portal, const style& styling)
@@ -92,7 +99,7 @@ void apply_style(actsvg::proto::portal<point3_container_t>& p_portal, const styl
     }
     for (auto& volume_link : p_portal._volume_links)
     {
-        volume_link._end_marker._size = styling.marker_size;
+        apply_style<point3_container_t>(volume_link, styling);
     }
 }
 

@@ -244,7 +244,7 @@ class mask {
     /// @brief Calculates the center of the min bounds bounding box.
     /// @returns The center point in global cartesian coordinates.
     template <typename transform3_t>
-    auto local_min_bounds_center(const transform3_t& trf){
+    auto local_min_bounds_center(const transform3_t& trf) const{
         const auto m = local_min_bounds();
         const auto cuboid = m.get_shape();
         return trf.point_to_global(point3_t{

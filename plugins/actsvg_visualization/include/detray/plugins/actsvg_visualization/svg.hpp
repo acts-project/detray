@@ -142,7 +142,7 @@ class svg_converter{
         const auto surface = _detector.surface_by_index(static_cast<detray::dindex>(index));
         if (surface.is_portal())
         {
-            auto p_portal = proto::portal(context, surface);
+            auto p_portal = proto::portal(context, _detector, surface);
             styling::apply_style(p_portal, _style);
             return actsvg::display::portal(identification, p_portal, view);
         }
