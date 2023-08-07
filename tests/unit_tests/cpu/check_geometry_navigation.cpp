@@ -239,7 +239,9 @@ GTEST_TEST(wire_chamber, straight_line_navigation) {
 
     // Detector configuration
     vecmem::host_memory_resource host_mr;
-    auto [det, names] = create_wire_chamber(host_mr, wire_chamber_config{});
+    wire_chamber_config wire_chamber_cfg{};
+    wire_chamber_cfg.half_z(500.f * unit<scalar>::mm);
+    auto [det, names] = create_wire_chamber(host_mr, wire_chamber_cfg);
 
     // Straight line navigation
     using detector_t = decltype(det);
