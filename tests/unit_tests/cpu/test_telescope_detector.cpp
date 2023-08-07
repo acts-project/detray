@@ -51,6 +51,8 @@ struct prop_state {
     prop_state(const track_t &t_in, const field_type &field,
                const typename navigation_t::detector_type &det)
         : _stepping(t_in, field), _navigation(det) {}
+
+    scalar mask_tolerance() const { return 15.f * unit<scalar>::um; }
 };
 
 }  // anonymous namespace
