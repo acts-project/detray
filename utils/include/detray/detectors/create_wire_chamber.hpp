@@ -43,11 +43,19 @@ struct wire_chamber_config {
     /// Number of layers
     unsigned int m_n_layers{10u};
 
+    /// Half z of cylinder chamber
+    scalar m_half_z{1000.f * unit<scalar>::mm};
+
     /// Field vector for an homogenoues b-field
     vector3 m_bfield_vec{0.f, 0.f, 2.f * unit<scalar>::T};
 
     constexpr wire_chamber_config &n_layers(const unsigned int n) {
         m_n_layers = n;
+        return *this;
+    }
+
+    constexpr wire_chamber_config &half_z(const scalar hz) {
+        m_half_z = hz;
         return *this;
     }
 
@@ -63,6 +71,7 @@ struct wire_chamber_config {
     }
 
     constexpr unsigned int n_layers() const { return m_n_layers; }
+    constexpr scalar half_z() const { return m_half_z; }
     constexpr const vector3 &bfield_vec() const { return m_bfield_vec; }
 
 };  // wire chamber config
@@ -84,7 +93,7 @@ auto create_wire_chamber(vecmem::memory_resource &resource,
     constexpr auto leaving_world{detail::invalid_value<nav_link_t>()};
 
     // Detector configurations
-    constexpr scalar cyl_half_z{500.f * unit<scalar>::mm};
+    const scalar cyl_half_z{cfg.half_z()};
     constexpr scalar inner_cyl_rad{500.f * unit<scalar>::mm};
     constexpr scalar cell_size = 10.f * unit<scalar>::mm;
     constexpr scalar stereo_angle = 50.f * unit<scalar>::mrad;
