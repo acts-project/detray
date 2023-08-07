@@ -38,7 +38,7 @@ struct detector_reader_config {
     /// Input files
     std::vector<std::string> m_files;
     /// Run detector consistency check after reading
-    bool m_do_check{false};
+    bool m_do_check{true};
     /// Field vector for an homogenoues b-field
     std::array<scalar, 3> m_bfield_vec{};
 
@@ -76,10 +76,15 @@ struct detector_reader_config {
 
 namespace detail {
 
-/// From the list of file that are given as part of the config @param cfg,
-/// infer the readers that are needed by peeking into the file header
+/// From the list of files that are given as part of the config @param cfg,
+/// infer the readers that are needed by peeking into the file headers
+///
+/// @tparam detector_t type of the detector instance: Must match the data that
+///                    is read from file!
+/// @tparam CAP surface grid bin capacity (@TODO make runtime)
+/// @tparam DIM dimension of the surface grids, usually 2D
 template <class detector_t, std::size_t CAP, std::size_t DIM>
-auto assemble_reader(const io::detector_reader_config& cfg) {
+auto assemble_reader(const io::detector_reader_config& cfg) noexcept(false) {
 
     detail::detector_component_readers<detector_t> readers;
 
@@ -88,17 +93,27 @@ auto assemble_reader(const io::detector_reader_config& cfg) {
 
     for (const std::string& file_name : cfg.files()) {
 
+        if (file_name.empty()) {
+            std::cout << "WARNING: Empty file name. Component will not be built"
+                      << std::endl;
+            continue;
+        }
+
         std::string extension{std::filesystem::path{file_name}.extension()};
+
         if (extension == ".json") {
+
             // Peek at the header to determine the kind of reader that is needed
             common_header_payload header = read_json_header(file_name);
 
             if (header.tag == "geometry") {
                 det_name = header.detector;
                 readers.template add<json_geometry_reader>(file_name);
+
             } else if (header.tag == "homogeneous_material") {
                 readers.template add<json_homogeneous_material_reader>(
                     file_name);
+
             } else if (header.tag == "surface_grids") {
                 using surface_t = typename detector_t::surface_type;
                 readers.template add<json_grid_reader, surface_t,
@@ -110,12 +125,13 @@ auto assemble_reader(const io::detector_reader_config& cfg) {
                                             header.tag +
                                             "' in input file: " + file_name);
             }
-        } else if (extension == ".cvf" and check_covfie_file(file_name)) {
+
             // This is the file type covfie uses
+        } else if (extension == ".cvf" and check_covfie_file(file_name)) {
+
             if constexpr (not std::is_same_v<
                               typename detector_t::bfield_type::backend_t,
                               bfield::const_bknd_t>) {
-                std::cout << "Adding an inhom bfield reader" << std::endl;
                 readers.template add<covfie_reader>(file_name);
             }
         } else {
@@ -134,6 +150,8 @@ namespace io {
 /// @brief Reader function for detray detectors.
 ///
 /// @tparam detector_t the type of detector to be built
+/// @tparam CAP surface grid bin capacity (@TODO make runtime)
+/// @tparam DIM dimension of the surface grids, usually 2D
 /// @tparam volume_builder_t the type of base volume builder to be used
 ///
 /// @param resc the memory resource to be used for the detector container allocs
@@ -143,7 +161,7 @@ namespace io {
 template <class detector_t, std::size_t CAP = 9u, std::size_t DIM = 2u,
           template <typename> class volume_builder_t = volume_builder>
 auto read_detector(vecmem::memory_resource& resc,
-                   const detector_reader_config& cfg) {
+                   const detector_reader_config& cfg) noexcept(false) {
 
     using bfield_bknd_t = typename detector_t::bfield_type::backend_t;
 
@@ -171,7 +189,9 @@ auto read_detector(vecmem::memory_resource& resc,
     auto det = det_builder.build(resc);
 
     if (cfg.do_check()) {
+        // This will throw an exception in case of inconsistencies
         detray::detail::check_consistency(det);
+        std::cout << "Detector check: OK" << std::endl;
     }
 
     return std::make_pair(std::move(det), std::move(names));

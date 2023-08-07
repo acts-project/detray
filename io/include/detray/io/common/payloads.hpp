@@ -128,9 +128,11 @@ struct material_payload {
 
 /// @brief A payload object for a material slab/rod
 struct material_slab_payload {
-    using type = io::detail::material_type;
+    using mat_type = io::detail::material_type;
 
-    material_link_payload mat_link{};
+    mat_type type{mat_type::unknown};
+    std::optional<std::size_t> index_in_coll;
+    single_link_payload surface{};
     real_io thickness{std::numeric_limits<real_io>::max()};
     material_payload mat{};
 };

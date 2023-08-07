@@ -52,16 +52,24 @@ inline void from_json(const nlohmann::ordered_json& j, material_payload& m) {
 }
 
 inline void to_json(nlohmann::ordered_json& j, const material_slab_payload& m) {
-    j["mat_link"] = m.mat_link;
+    j["type"] = m.type;
+    j["surface_idx"] = m.surface;
     j["thickness"] = m.thickness;
     j["material"] = m.mat;
+    if (m.index_in_coll.has_value()) {
+        j["index_in_coll"] = m.index_in_coll.value();
+    }
 }
 
 inline void from_json(const nlohmann::ordered_json& j,
                       material_slab_payload& m) {
-    m.mat_link = j["mat_link"];
+    m.type = j["type"];
+    m.surface = j["surface_idx"];
     m.thickness = j["thickness"];
     m.mat = j["material"];
+    if (j.find("index_in_coll") != j.end()) {
+        m.index_in_coll = j["index_in_coll"];
+    }
 }
 
 inline void to_json(nlohmann::ordered_json& j,
@@ -95,7 +103,7 @@ inline void from_json(const nlohmann::ordered_json& j,
         }
     }
     if (j.find("material_rods") != j.end()) {
-        mv.mat_rods = {};
+        mv.mat_rods.emplace();
         for (auto jmats : j["material_rods"]) {
             material_slab_payload mslp = jmats;
             mv.mat_rods->push_back(mslp);

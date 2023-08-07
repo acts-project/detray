@@ -40,52 +40,16 @@ class material_builder final : public volume_decorator<detector_t> {
     /// present in the factory, otherwise only add material)
     /// @{
     DETRAY_HOST
-    void add_portals(
-        std::shared_ptr<surface_factory_interface<detector_t>> pt_factory,
-        typename detector_t::geometry_context ctx = {}) override {
-
-        // If the factory also holds surface data, call base volume builder
-        volume_decorator<detector_t>::add_portals(pt_factory, ctx);
-
-        // Add material
-        auto mat_factory =
-            std::dynamic_pointer_cast<material_factory<detector_t>>(pt_factory);
-        if (mat_factory) {
-            (*mat_factory)(this->surfaces(), m_materials);
-        } else {
-            throw std::runtime_error("Not a material factory");
-        }
-    }
-
-    DETRAY_HOST
-    void add_sensitives(
+    void add_surfaces(
         std::shared_ptr<surface_factory_interface<detector_t>> sf_factory,
         typename detector_t::geometry_context ctx = {}) override {
 
         // If the factory also holds surface data, call base volume builder
-        volume_decorator<detector_t>::add_sensitives(sf_factory, ctx);
+        volume_decorator<detector_t>::add_surfaces(sf_factory, ctx);
 
         // Add material
         auto mat_factory =
             std::dynamic_pointer_cast<material_factory<detector_t>>(sf_factory);
-        if (mat_factory) {
-            (*mat_factory)(this->surfaces(), m_materials);
-        } else {
-            throw std::runtime_error("Not a material factory");
-        }
-    }
-
-    DETRAY_HOST
-    void add_passives(
-        std::shared_ptr<surface_factory_interface<detector_t>> ps_factory,
-        typename detector_t::geometry_context ctx = {}) override {
-
-        // If the factory also holds surface data, call base volume builder
-        volume_decorator<detector_t>::add_passives(ps_factory, ctx);
-
-        // Add material
-        auto mat_factory =
-            std::dynamic_pointer_cast<material_factory<detector_t>>(ps_factory);
         if (mat_factory) {
             (*mat_factory)(this->surfaces(), m_materials);
         } else {
