@@ -33,6 +33,8 @@ template <typename stepping_t, typename navigation_t>
 struct prop_state {
     stepping_t _stepping;
     navigation_t _navigation;
+
+    scalar mask_tolerance() const { return 15.f * unit<scalar>::um; }
 };
 
 /// Checks for a correct 'towards_surface' state

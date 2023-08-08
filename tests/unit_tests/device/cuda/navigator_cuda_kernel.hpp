@@ -50,6 +50,9 @@ template <typename navigation_t>
 struct prop_state {
     stepper_t::state _stepping;
     navigation_t _navigation;
+
+    DETRAY_HOST_DEVICE
+    scalar mask_tolerance() const { return 15.f * unit<scalar>::um; }
 };
 
 namespace detray {

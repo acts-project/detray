@@ -61,6 +61,7 @@ struct propagator {
 
         using detector_type = typename navigator_t::detector_type;
         using navigator_state_type = typename navigator_t::state;
+        using scalar_type = typename navigator_t::scalar_type;
 
         /// Construct the propagation state.
         ///
@@ -106,6 +107,17 @@ struct propagator {
 
         DETRAY_HOST_DEVICE
         void set_param_type(const parameter_type t) { m_param_type = t; }
+
+        DETRAY_HOST_DEVICE
+        void set_mask_tolerance(const scalar_type tol) {
+            m_mask_tolerance = tol;
+        }
+
+        DETRAY_HOST_DEVICE
+        scalar_type mask_tolerance() const { return m_mask_tolerance; }
+
+        // Mask tolerance
+        scalar_type m_mask_tolerance{15.f * unit<scalar_type>::um};
 
         // Is the propagation still alive?
         bool _heartbeat = false;

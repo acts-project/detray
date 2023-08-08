@@ -513,7 +513,7 @@ class navigator {
         // Search for neighboring surfaces and fill candidates into cache
         volume.template visit_neighborhood<candidate_search>(
             track, *det, track, navigation.candidates(),
-            15.f * unit<scalar_type>::um);
+            propagation.mask_tolerance());
 
         // Sort all candidates and pick the closest one
         detail::sequential_sort(navigation.candidates().begin(),
@@ -614,7 +614,8 @@ class navigator {
             navigation.n_candidates() == 1) {
 
             // Update next candidate: If not reachable, 'high trust' is broken
-            if (not update_candidate(*navigation.next(), track, det)) {
+            if (not update_candidate(*navigation.next(), track, det,
+                                     propagation.mask_tolerance())) {
                 navigation.m_status = navigation::status::e_unknown;
                 navigation.set_no_trust();
                 return;
@@ -635,7 +636,8 @@ class navigator {
 
             // Else: Track is on module.
             // Ready the next candidate after the current module
-            if (update_candidate(*navigation.next(), track, det)) {
+            if (update_candidate(*navigation.next(), track, det,
+                                 propagation.mask_tolerance())) {
                 return;
             }
 
@@ -651,7 +653,8 @@ class navigator {
 
             for (auto &candidate : navigation) {
                 // Disregard this candidate if it is not reachable
-                if (not update_candidate(candidate, track, det)) {
+                if (not update_candidate(candidate, track, det,
+                                         propagation.mask_tolerance())) {
                     // Forcefully set dist to numeric max for sorting
                     candidate.path = std::numeric_limits<scalar_type>::max();
                 }
@@ -727,7 +730,7 @@ class navigator {
     template <typename track_t>
     DETRAY_HOST_DEVICE inline bool update_candidate(
         intersection_type &candidate, const track_t &track,
-        const detector_type *det) const {
+        const detector_type *det, const scalar_type tol) const {
 
         if (candidate.sf_desc.barcode().is_invalid()) {
             return false;
@@ -737,8 +740,7 @@ class navigator {
 
         // Check whether this candidate is reachable by the track
         return sf.template visit_mask<intersection_update>(
-            detail::ray(track), candidate, det->transform_store(),
-            15.f * unit<scalar_type>::um);
+            detail::ray(track), candidate, det->transform_store(), tol);
     }
 
     /// Helper to evict all unreachable/invalid candidates from the cache:
