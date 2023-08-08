@@ -289,7 +289,7 @@ GTEST_TEST(detray_navigator, wire_chamber) {
 
     // test track
     point3 pos{0.f, 0.f, 0.f};
-    vector3 mom{1.f, 0.f, 0.f};
+    vector3 mom{0.f, 1.f, 0.f};
     free_track_parameters<transform3> traj(pos, 0.f, mom, -1.f);
 
     stepper_t stepper;
@@ -364,16 +364,16 @@ GTEST_TEST(detray_navigator, wire_chamber) {
     std::map<dindex, std::vector<dindex>> sf_sequences;
 
     // layer 1 to 10
-    sf_sequences[1] = {3u, 7u, 4u};
-    sf_sequences[2] = {167u, 171u, 168u};
-    sf_sequences[3] = {337u, 341u, 338u};
-    sf_sequences[4] = {513u, 517u, 514u};
-    sf_sequences[5] = {696u, 700u, 697u};
-    sf_sequences[6] = {885u, 889u, 886u};
-    sf_sequences[7] = {1080u, 1084u, 1081u};
-    sf_sequences[8] = {1281u, 1285u, 1282u};
-    sf_sequences[9] = {1489u, 1493u, 1490u};
-    sf_sequences[10] = {1703u, 1707u, 1704u};
+    sf_sequences[1] = {3u, 47u, 4u};
+    sf_sequences[2] = {168u, 214u, 169u};
+    sf_sequences[3] = {339u, 386u, 340u};
+    sf_sequences[4] = {516u, 565u, 517u};
+    sf_sequences[5] = {700u, 750u, 701u};
+    sf_sequences[6] = {890u, 942u, 891u};
+    sf_sequences[7] = {1086u, 1139u, 1087u};
+    sf_sequences[8] = {1288u, 1343u, 1289u};
+    sf_sequences[9] = {1497u, 1554u, 1498u};
+    sf_sequences[10] = {1712u, 1770u, 1713u};
 
     // Every iteration steps through one wire layer
     for (const auto &[vol_id, sf_seq] : sf_sequences) {
