@@ -25,6 +25,7 @@
 // System include(s)
 #include <algorithm>
 #include <cassert>
+#include <ostream>
 #include <sstream>
 #include <vector>
 
@@ -242,6 +243,19 @@ class mask {
             (m[cuboid.e_max_y] + m[cuboid.e_min_y])/2,
             (m[cuboid.e_max_z] + m[cuboid.e_min_z])/2
         });
+    }
+    
+    /// @returns true if the mask boundary values are consistent
+    DETRAY_HOST
+    constexpr bool self_check(std::ostream& os) const {
+
+        const bool result = _shape.check_consistency(_values, os);
+
+        if (not result) {
+            os << to_string();
+        }
+
+        return result;
     }
 
     /// @returns a string representation of the mask

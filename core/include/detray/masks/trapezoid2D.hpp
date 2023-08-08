@@ -9,6 +9,7 @@
 
 // Project include(s)
 #include "detray/coordinates/cartesian2.hpp"
+#include "detray/definitions/containers.hpp"
 #include "detray/definitions/qualifiers.hpp"
 #include "detray/intersection/plane_intersector.hpp"
 #include "detray/surface_finders/grid/detail/axis_binning.hpp"
@@ -17,6 +18,7 @@
 // System include(s)
 #include <cmath>
 #include <limits>
+#include <ostream>
 #include <string>
 
 namespace detray {
@@ -102,7 +104,7 @@ class trapezoid2D {
               typename scalar_t, std::size_t kDIM, typename point_t,
               typename std::enable_if_t<kDIM == e_size, bool> = true>
     DETRAY_HOST_DEVICE inline bool check_boundaries(
-        const bounds_t<scalar_t, kDIM>& bounds, const point_t& loc_p,
+        const bounds_t<scalar_t, kDIM> &bounds, const point_t &loc_p,
         const scalar_t tol = std::numeric_limits<scalar_t>::epsilon()) const {
         const scalar_t rel_y{(bounds[e_half_length_2] + loc_p[1]) *
                              bounds[e_divisor]};
@@ -126,8 +128,8 @@ class trapezoid2D {
               template <typename, std::size_t> class bounds_t,
               typename scalar_t, std::size_t kDIM,
               typename std::enable_if_t<kDIM == e_size, bool> = true>
-    DETRAY_HOST_DEVICE inline std::array<scalar_t, 6> local_min_bounds(
-        const bounds_t<scalar_t, kDIM>& bounds,
+    DETRAY_HOST_DEVICE inline darray<scalar_t, 6> local_min_bounds(
+        const bounds_t<scalar_t, kDIM> &bounds,
         const scalar_t env = std::numeric_limits<scalar_t>::epsilon()) const {
         assert(env > 0.f);
         const scalar_t x_bound{
@@ -159,6 +161,40 @@ class trapezoid2D {
         return {v1, v2, v3, v4};
     }
 
+    /// @brief Check consistency of boundary values.
+    ///
+    /// @param bounds the boundary values for this shape
+    /// @param os output stream for error messages
+    ///
+    /// @return true if the bounds are consistent.
+    template <template <typename, std::size_t> class bounds_t,
+              typename scalar_t, std::size_t kDIM,
+              typename std::enable_if_t<kDIM == e_size, bool> = true>
+    DETRAY_HOST constexpr bool check_consistency(
+        const bounds_t<scalar_t, kDIM> &bounds, std::ostream &os) const {
+
+        constexpr auto tol{10.f * std::numeric_limits<scalar_t>::epsilon()};
+
+        if (bounds[e_half_length_0] < tol or bounds[e_half_length_1] < tol) {
+            os << "ERROR: Half length in x must be in the range (0, "
+                  "numeric_max)"
+               << std::endl;
+            return false;
+        }
+        if (bounds[e_half_length_2] < tol) {
+            os << "ERROR: Half length in y must be in the range (0, "
+                  "numeric_max)"
+               << std::endl;
+            return false;
+        }
+        const auto div{1.f / (2.f * bounds[e_half_length_2])};
+        if (std::abs(bounds[e_divisor] - div) > tol) {
+            os << "ERROR: Divisor incorrect. Should be: " << div << std::endl;
+            return false;
+        }
+
+        return true;
+    }
 };
 
 }  // namespace detray

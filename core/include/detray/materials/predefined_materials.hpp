@@ -27,8 +27,8 @@ namespace detray {
  * charge number (Z) are doubled
  */
 // Vacuum
-DETRAY_DECLARE_MATERIAL(vacuum, std::numeric_limits<scalar>::infinity(),
-                        std::numeric_limits<scalar>::infinity(), 0.f, 0.f, 0.f,
+DETRAY_DECLARE_MATERIAL(vacuum, std::numeric_limits<scalar>::max(),
+                        std::numeric_limits<scalar>::max(), 0.f, 0.f, 0.f,
                         material_state::e_gas);
 
 // H₂ (1): Hydrogen Gas

@@ -16,10 +16,6 @@ macro( detray_add_cpu_test algebra )
    # Build the test executable.
    detray_add_test( cpu_${algebra}
       "axis_rotation.cpp"
-      "check_geometry_linking.cpp"
-      "check_geometry_navigation.cpp"
-      "check_geometry_scan.cpp"
-      "check_simulation.cpp"
       "coordinate_cartesian2.cpp"
       "coordinate_cartesian3.cpp"
       "coordinate_cylindrical2.cpp"
@@ -57,6 +53,7 @@ macro( detray_add_cpu_test algebra )
       "sf_finder_brute_force.cpp"
       "test_core.cpp"
       "test_telescope_detector.cpp"
+      "test_wire_chamber.cpp"
       "test_toy_geometry.cpp"
       "tools_bounding_volume.cpp"
       "tools_cuboid_intersector.cpp"
@@ -66,6 +63,7 @@ macro( detray_add_cpu_test algebra )
       "tools_helix_trajectory.cpp"
       "tools_intersection_kernel.cpp"
       "tools_line_intersection.cpp"
+      "tools_material_builder.cpp"
       "tools_matrix_helper.cpp"
       "tools_navigator.cpp"
       "tools_particle_gun.cpp"

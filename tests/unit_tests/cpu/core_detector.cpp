@@ -10,6 +10,8 @@
 #include "detray/definitions/indexing.hpp"
 #include "detray/materials/predefined_materials.hpp"
 #include "detray/test/types.hpp"
+#include "detray/tools/cuboid_portal_generator.hpp"
+#include "detray/tools/detector_builder.hpp"
 #include "detray/tools/surface_factory.hpp"
 #include "detray/tools/volume_builder.hpp"
 
@@ -402,8 +404,9 @@ GTEST_TEST(detray_tools, volume_builder) {
 
     EXPECT_TRUE(d.volumes().size() == 0u);
 
-    volume_builder<detector_t> vbuilder{};
-    vbuilder.init_vol(d, volume_id::e_cylinder);
+    volume_builder<detector_t> vbuilder{volume_id::e_cylinder};
+    vbuilder.build(d);
+
     const auto& vol = d.volumes().back();
 
     EXPECT_TRUE(d.volumes().size() == 1u);
@@ -454,20 +457,18 @@ GTEST_TEST(detray_tools, detector_volume_construction) {
     // ensure there is a data offset that needs to be handled correctly
     prefill_detector(d, geo_ctx);
     const dindex first_trf{d.transform_store().size()};
-
-    // volume builder
-    volume_builder<detector_t> vbuilder{};
-    vbuilder.init_vol(d, volume_id::e_cylinder);
-    typename detector_t::point3 t{0.f, 0.f, 20.f};
-    vbuilder.add_volume_placement(t);
-
-    const auto& vol = d.volumes().back();
+    const auto vol_idx{
+        static_cast<typename detector_t::surface_type::navigation_link>(
+            d.volumes().size())};
 
     // initial checks
-    EXPECT_EQ(d.volumes().size(), 2u);
+    EXPECT_EQ(d.volumes().size(), 1u);
     EXPECT_EQ(d.portals().size(), 3u);
-    EXPECT_EQ(vol.index(), 1u);
-    EXPECT_EQ(vol.id(), volume_id::e_cylinder);
+
+    // volume builder
+    volume_builder<detector_t> vbuilder{volume_id::e_cylinder};
+    typename detector_t::point3 t{0.f, 0.f, 20.f};
+    vbuilder.add_volume_placement(t);
 
     //
     // Fill the surface factories with data
@@ -497,41 +498,41 @@ GTEST_TEST(detray_tools, detector_volume_construction) {
     auto ann_factory = std::make_shared<annulus_factory>();
     typename annulus_factory::sf_data_collection ann_sf_data;
     ann_sf_data.emplace_back(
-        transform3(point3{0.f, 0.f, 1000.f}), vol.index(),
+        transform3(point3{0.f, 0.f, 1000.f}), vol_idx,
         std::vector<scalar>{300.f, 350.f, -0.1f, 0.1f, 0.5f, 0.6f, 1.4f});
     ann_sf_data.emplace_back(
-        transform3(point3{0.f, 0.f, 1000.f}), vol.index(),
+        transform3(point3{0.f, 0.f, 1000.f}), vol_idx,
         std::vector<scalar>{350.f, 400.f, -0.1f, 0.1f, 0.5f, 0.6f, 1.4f});
     ann_factory->push_back(std::move(ann_sf_data));
 
     auto rect_factory = std::make_shared<rectangle_factory>();
     typename rectangle_factory::sf_data_collection rect_sf_data;
-    rect_sf_data.emplace_back(transform3(point3{0.f, 0.f, -10.f}), vol.index(),
+    rect_sf_data.emplace_back(transform3(point3{0.f, 0.f, -10.f}), vol_idx,
                               std::vector<scalar>{10.f, 8.f});
-    rect_sf_data.emplace_back(transform3(point3{0.f, 0.f, -20.f}), vol.index(),
+    rect_sf_data.emplace_back(transform3(point3{0.f, 0.f, -20.f}), vol_idx,
                               std::vector<scalar>{10.f, 8.f});
-    rect_sf_data.emplace_back(transform3(point3{0.f, 0.f, -30.f}), vol.index(),
+    rect_sf_data.emplace_back(transform3(point3{0.f, 0.f, -30.f}), vol_idx,
                               std::vector<scalar>{10.f, 8.f});
     rect_factory->push_back(std::move(rect_sf_data));
 
     auto trpz_factory = std::make_shared<trapezoid_factory>();
     typename trapezoid_factory::sf_data_collection trpz_sf_data;
-    trpz_sf_data.emplace_back(transform3(point3{0.f, 0.f, 1000.f}), vol.index(),
+    trpz_sf_data.emplace_back(transform3(point3{0.f, 0.f, 1000.f}), vol_idx,
                               std::vector<scalar>{1.f, 3.f, 2.f, 0.25f});
     trpz_factory->push_back(std::move(trpz_sf_data));
 
     // passive surfaces
     auto cyl_factory = std::make_shared<cylinder_factory>();
     cyl_sf_data.clear();
-    cyl_sf_data.emplace_back(transform3(point3{0.f, 0.f, 0.f}), vol.index(),
+    cyl_sf_data.emplace_back(transform3(point3{0.f, 0.f, 0.f}), vol_idx,
                              std::vector<scalar>{5.f, -1300.f, 1300.f});
     cyl_factory->push_back(std::move(cyl_sf_data));
 
     auto rng_factory = std::make_shared<ring_factory>();
     ring_sf_data.clear();
-    ring_sf_data.emplace_back(transform3(point3{0.f, 0.f, -1300.f}),
-                              vol.index(), std::vector<scalar>{0.f, 5.f});
-    ring_sf_data.emplace_back(transform3(point3{0.f, 0.f, 1300.f}), vol.index(),
+    ring_sf_data.emplace_back(transform3(point3{0.f, 0.f, -1300.f}), vol_idx,
+                              std::vector<scalar>{0.f, 5.f});
+    ring_sf_data.emplace_back(transform3(point3{0.f, 0.f, 1300.f}), vol_idx,
                               std::vector<scalar>{0.f, 5.f});
     rng_factory->push_back(std::move(ring_sf_data));
 
@@ -551,13 +552,13 @@ GTEST_TEST(detray_tools, detector_volume_construction) {
     // try adding something extra later...
     rect_factory->clear();
     rect_sf_data.clear();
-    rect_sf_data.emplace_back(transform3(point3{0.f, 0.f, 10.f}), vol.index(),
+    rect_sf_data.emplace_back(transform3(point3{0.f, 0.f, 10.f}), vol_idx,
                               std::vector<scalar>{10.f, 8.f});
-    rect_sf_data.emplace_back(transform3(point3{0.f, 0.f, 20.f}), vol.index(),
+    rect_sf_data.emplace_back(transform3(point3{0.f, 0.f, 20.f}), vol_idx,
                               std::vector<scalar>{10.f, 8.f});
     rect_factory->push_back(std::move(rect_sf_data));
     rect_sf_data.clear();
-    rect_sf_data.emplace_back(transform3(point3{0.f, 0.f, 30.f}), vol.index(),
+    rect_sf_data.emplace_back(transform3(point3{0.f, 0.f, 30.f}), vol_idx,
                               std::vector<scalar>{10.f, 8.f});
     rect_factory->push_back(std::move(rect_sf_data));
 
@@ -571,6 +572,11 @@ GTEST_TEST(detray_tools, detector_volume_construction) {
     //
     // check results
     //
+    const auto& vol = d.volumes().back();
+
+    EXPECT_EQ(d.volumes().size(), 2u);
+    EXPECT_EQ(vol.index(), 1u);
+    EXPECT_EQ(vol.id(), volume_id::e_cylinder);
 
     // Check the volume placement
     typename detector_t::transform3 trf{t};
@@ -681,4 +687,105 @@ GTEST_TEST(detray_tools, detector_volume_construction) {
     volume_links.clear();
     volume_links = {0u, 1u};
     check_mask<detector_t, mask_id::e_trapezoid2>(d, volume_links);
+}
+
+/// Integration test to build a cylinder volume with contained surfaces
+GTEST_TEST(detray_tools, detector_builder) {
+    using namespace detray;
+
+    using detector_t = detector<>;
+    using transform3 = typename detector_t::transform3;
+    using mask_id = typename detector_t::masks::id;
+
+    // Surface factories
+    using trapezoid_factory =
+        surface_factory<detector_t, trapezoid2D<>, mask_id::e_trapezoid2,
+                        surface_id::e_sensitive>;
+
+    // detector builder
+    auto geo_ctx = typename detector_t::geometry_context{};
+
+    detector_builder<default_metadata, volume_builder> det_builder{};
+
+    //
+    // first volume builder
+    //
+    auto vbuilder = det_builder.new_volume(volume_id::e_cylinder);
+
+    typename detector_t::point3 t{0.f, 0.f, 0.f};
+    vbuilder->add_volume_placement(t);
+
+    // initial checks
+    EXPECT_EQ(vbuilder->vol_index(), 0u);
+
+    const auto vol_idx{
+        static_cast<typename detector_t::surface_type::navigation_link>(
+            vbuilder->vol_index())};
+
+    auto trpz_factory = std::make_shared<trapezoid_factory>();
+    typename trapezoid_factory::sf_data_collection trpz_sf_data;
+    trpz_sf_data.emplace_back(transform3(point3{0.f, 0.f, 1000.f}), vol_idx,
+                              std::vector<scalar>{1.f, 3.f, 2.f, 0.25f});
+    trpz_sf_data.emplace_back(transform3(point3{0.f, 0.f, 1100.f}), vol_idx,
+                              std::vector<scalar>{1.f, 3.f, 2.f, 0.25f});
+    trpz_sf_data.emplace_back(transform3(point3{0.f, 0.f, 1200.f}), vol_idx,
+                              std::vector<scalar>{1.f, 3.f, 2.f, 0.25f});
+    trpz_factory->push_back(std::move(trpz_sf_data));
+
+    vbuilder->add_sensitives(trpz_factory, geo_ctx);
+
+    //
+    // second volume builder
+    //
+    auto vbuilder2 = det_builder.new_volume(volume_id::e_cuboid);
+
+    // volume builder
+    t = typename detector_t::point3{0.f, 0.f, 20.f};
+    vbuilder2->add_volume_placement(t);
+
+    // Add a portal box around the cuboid volume with a min distance of 'env'
+    constexpr auto env{0.1f * unit<detray::scalar>::mm};
+    auto portal_generator =
+        std::make_shared<cuboid_portal_generator<detector_t>>(env);
+
+    vbuilder2->add_portals(portal_generator);
+
+    // initial checks
+    EXPECT_EQ(vbuilder2->vol_index(), 1u);
+
+    //
+    // build the detector
+    //
+    vecmem::host_memory_resource host_mr;
+    const detector_t d = det_builder.build(host_mr);
+    const auto& vol0 = d.volume_by_index(0u);
+    const auto& vol1 = d.volume_by_index(1u);
+
+    // check the results
+    EXPECT_EQ(d.volumes().size(), 2u);
+    EXPECT_EQ(vol0.id(), volume_id::e_cylinder);
+    EXPECT_EQ(vol0.index(), 0u);
+    EXPECT_EQ(vol1.id(), volume_id::e_cuboid);
+    EXPECT_EQ(vol1.index(), 1u);
+
+    // Check the volume placements for both volumes
+    typename detector_t::transform3 identity{};
+    EXPECT_TRUE(vol0.transform() == identity);
+    EXPECT_TRUE(d.transform_store()[0u] == identity);
+    typename detector_t::transform3 trf{t};
+    EXPECT_TRUE(vol1.transform() == trf);
+    EXPECT_TRUE(d.transform_store()[4u] == trf);
+
+    // Check the acceleration data structure link (indirectly)
+    EXPECT_EQ(vol0.n_max_candidates(), 3u);
+    EXPECT_EQ(vol1.n_max_candidates(), 6u);
+
+    EXPECT_EQ(d.surface_lookup().size(), 9u);
+    EXPECT_EQ(d.mask_store().template size<mask_id::e_portal_cylinder2>(), 0u);
+    EXPECT_EQ(d.mask_store().template size<mask_id::e_portal_ring2>(), 0u);
+    EXPECT_EQ(d.mask_store().template size<mask_id::e_annulus2>(), 0u);
+    EXPECT_EQ(d.mask_store().template size<mask_id::e_cylinder2>(), 0u);
+    EXPECT_EQ(d.mask_store().template size<mask_id::e_rectangle2>(), 3u);
+    EXPECT_EQ(d.mask_store().template size<mask_id::e_ring2>(), 0u);
+    EXPECT_EQ(d.mask_store().template size<mask_id::e_trapezoid2>(), 3u);
 }

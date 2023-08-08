@@ -11,6 +11,7 @@
 #include "detray/intersection/detail/trajectories.hpp"
 #include "detray/utils/ranges.hpp"
 #include "tests/common/tools/intersectors/helix_cylinder_intersector.hpp"
+#include "tests/common/tools/intersectors/helix_line_intersector.hpp"
 #include "tests/common/tools/intersectors/helix_plane_intersector.hpp"
 
 namespace detray {

@@ -8,11 +8,13 @@
 #pragma once
 
 // Project include(s)
+#include "detray/definitions/containers.hpp"
 #include "detray/definitions/qualifiers.hpp"
 
 // System include(s)
 #include <array>
 #include <limits>
+#include <ostream>
 #include <string>
 #include <vector>
 
@@ -53,7 +55,7 @@ class unbounded {
     /// @return always true
     template <typename bounds_t, typename point_t, typename scalar_t>
     DETRAY_HOST_DEVICE inline constexpr bool check_boundaries(
-        const bounds_t& /*bounds*/, const point_t& /*loc_p*/,
+        const bounds_t & /*bounds*/, const point_t & /*loc_p*/,
         const scalar_t /*tol*/) const {
         return true;
     }
@@ -77,8 +79,8 @@ class unbounded {
         typename algebra_t, template <typename, std::size_t> class bounds_t,
         typename scalar_t, std::size_t kDIM,
         typename std::enable_if_t<kDIM == boundaries::e_size, bool> = true>
-    DETRAY_HOST_DEVICE constexpr std::array<scalar_t, 6> local_min_bounds(
-        const bounds_t<scalar_t, kDIM>& bounds,
+    DETRAY_HOST_DEVICE constexpr darray<scalar_t, 6> local_min_bounds(
+        const bounds_t<scalar_t, kDIM> &bounds,
         const scalar_t env = std::numeric_limits<scalar_t>::epsilon()) const {
         return shape{}.template local_min_bounds<algebra_t>(bounds, env);
     }
@@ -99,6 +101,21 @@ class unbounded {
         return shape{}.template local_vertices<>(bounds);
     }
 
+    /// @brief Check consistency of boundary values.
+    ///
+    /// @param bounds the boundary values for this shape
+    /// @param os output stream for error messages
+    ///
+    /// @return true if the bounds are consistent.
+    template <
+        template <typename, std::size_t> class bounds_t, typename scalar_t,
+        std::size_t kDIM,
+        typename std::enable_if_t<kDIM == boundaries::e_size, bool> = true>
+    DETRAY_HOST constexpr bool check_consistency(
+        const bounds_t<scalar_t, kDIM> & /*bounds*/,
+        std::ostream & /*os*/) const {
+        return true;
+    }
 };
 
 }  // namespace detray

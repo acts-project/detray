@@ -10,6 +10,7 @@
 // Project include(s)
 #include "detray/coordinates/cartesian2.hpp"
 #include "detray/coordinates/cartesian3.hpp"
+#include "detray/definitions/containers.hpp"
 #include "detray/definitions/qualifiers.hpp"
 #include "detray/intersection/plane_intersector.hpp"
 #include "detray/surface_finders/grid/detail/axis_binning.hpp"
@@ -18,6 +19,7 @@
 // System include(s)
 #include <cmath>
 #include <limits>
+#include <ostream>
 #include <string>
 
 namespace detray {
@@ -93,7 +95,7 @@ class single3D {
               typename scalar_t, std::size_t kDIM, typename point_t,
               typename std::enable_if_t<kDIM == e_size, bool> = true>
     DETRAY_HOST_DEVICE inline bool check_boundaries(
-        const bounds_t<scalar_t, kDIM>& bounds, const point_t& loc_p,
+        const bounds_t<scalar_t, kDIM> &bounds, const point_t &loc_p,
         const scalar_t tol = std::numeric_limits<scalar_t>::epsilon()) const {
         return (bounds[e_lower] - tol <= loc_p[kCheckIndex] and
                 loc_p[kCheckIndex] <= bounds[e_upper] + tol);
@@ -112,11 +114,11 @@ class single3D {
               template <typename, std::size_t> class bounds_t,
               typename scalar_t, std::size_t kDIM,
               typename std::enable_if_t<kDIM == e_size, bool> = true>
-    DETRAY_HOST_DEVICE inline std::array<scalar_t, 6> local_min_bounds(
-        const bounds_t<scalar_t, kDIM>& bounds,
+    DETRAY_HOST_DEVICE inline darray<scalar_t, 6> local_min_bounds(
+        const bounds_t<scalar_t, kDIM> &bounds,
         const scalar_t env = std::numeric_limits<scalar_t>::epsilon()) const {
         assert(env > 0.f);
-        std::array<scalar_t, 6> o_bounds{-env, -env, -env, env, env, env};
+        darray<scalar_t, 6> o_bounds{-env, -env, -env, env, env, env};
         o_bounds[kCheckIndex] += bounds[e_lower];
         o_bounds[3u + kCheckIndex] += bounds[e_upper];
         return o_bounds;
@@ -140,6 +142,26 @@ class single3D {
         point3_t v2{};
         v2[kCheckIndex] += bounds[e_upper];
         return {v1, v2};
+        }
+        
+    /// @brief Check consistency of boundary values.
+    ///
+    /// @param bounds the boundary values for this shape
+    /// @param os output stream for error messages
+    ///
+    /// @return true if the bounds are consistent.
+    template <template <typename, std::size_t> class bounds_t,
+              typename scalar_t, std::size_t kDIM,
+              typename std::enable_if_t<kDIM == e_size, bool> = true>
+    DETRAY_HOST constexpr bool check_consistency(
+        const bounds_t<scalar_t, kDIM> &bounds, std::ostream &os) const {
+
+        if (bounds[e_upper] < bounds[e_lower]) {
+            os << "ERROR: Upper bounds must be smaller than lower bounds ";
+            return false;
+        }
+
+        return true;
     }
 };
 

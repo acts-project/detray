@@ -12,12 +12,9 @@
 #include "detray/geometry/surface.hpp"
 #include "detray/io/common/detail/definitions.hpp"
 #include "detray/io/common/detail/utils.hpp"
-#include "detray/io/common/grid_writer.hpp"
 #include "detray/io/common/io_interface.hpp"
 #include "detray/io/common/payloads.hpp"
 #include "detray/masks/masks.hpp"
-#include "detray/materials/material_rod.hpp"
-#include "detray/materials/material_slab.hpp"
 
 // System include(s)
 #include <algorithm>
@@ -48,13 +45,12 @@ class geometry_writer : public writer_interface<detector_t> {
                                            const std::string_view det_name) {
         geo_header_payload header_data;
 
-        header_data.version = detail::get_detray_version();
-        header_data.detector = det_name;
-        header_data.tag = tag;
-        header_data.date = detail::get_current_date();
+        header_data.common = base_type::serialize(det_name, tag);
 
-        header_data.n_volumes = det.volumes().size();
-        header_data.n_surfaces = det.n_surfaces();
+        header_data.sub_header.emplace();
+        auto& geo_sub_header = header_data.sub_header.value();
+        geo_sub_header.n_volumes = det.volumes().size();
+        geo_sub_header.n_surfaces = det.n_surfaces();
 
         return header_data;
     }
@@ -76,14 +72,6 @@ class geometry_writer : public writer_interface<detector_t> {
         }
 
         return det_data;
-    }
-
-    /// Serialize a link @param idx into its io payload
-    static single_link_payload serialize(const std::size_t idx) {
-        single_link_payload link_data;
-        link_data.link = idx;
-
-        return link_data;
     }
 
     /// Serialize a surface transform @param trf into its io payload
@@ -111,36 +99,13 @@ class geometry_writer : public writer_interface<detector_t> {
 
         mask_data.shape = io::detail::get_shape_id<typename mask_t::shape>();
 
-        mask_data.volume_link = serialize(m.volume_link());
+        mask_data.volume_link = base_type::serialize(m.volume_link());
 
         mask_data.boundaries.resize(mask_t::boundaries::e_size);
         std::copy(std::cbegin(m.values()), std::cend(m.values()),
                   std::begin(mask_data.boundaries));
 
         return mask_data;
-    }
-
-    /// Serialize a surface material link @param m into its io payload
-    template <class material_t>
-    static material_link_payload serialize(const std::size_t idx) {
-        using scalar_t = typename material_t::scalar_type;
-        using type_id = material_link_payload::material_type;
-
-        material_link_payload mat_data;
-
-        // Find the correct material type index (use name for simplicity)
-        if constexpr (std::is_same_v<material_t, material_slab<scalar_t>>) {
-            mat_data.type = type_id::slab;
-        } else if constexpr (std::is_same_v<material_t,
-                                            material_rod<scalar_t>>) {
-            mat_data.type = type_id::rod;
-        } else {
-            mat_data.type = type_id::unknown;
-        }
-
-        mat_data.index = idx;
-
-        return mat_data;
     }
 
     /// Serialize a detector surface @param sf into its io payload
@@ -152,19 +117,9 @@ class geometry_writer : public writer_interface<detector_t> {
         sf_data.transform = serialize(sf.transform({}));
         sf_data.mask = sf.template visit_mask<get_mask_payload>();
         sf_data.material = sf.template visit_material<get_material_payload>();
-        sf_data.source = serialize(sf.source());
+        sf_data.source = base_type::serialize(sf.source());
 
         return sf_data;
-    }
-
-    /// Serialize a link @param idx into its io payload
-    static acc_links_payload serialize(const acc_links_payload::acc_type id,
-                                       const std::size_t idx) {
-        acc_links_payload link_data;
-        link_data.type = id;
-        link_data.index = idx;
-
-        return link_data;
     }
 
     /// Serialize a detector portal @param sf into its io payload
@@ -173,7 +128,7 @@ class geometry_writer : public writer_interface<detector_t> {
         const std::string& name) {
         volume_payload vol_data;
 
-        vol_data.index = serialize(vol_desc.index());
+        vol_data.index = base_type::serialize(vol_desc.index());
         vol_data.name = name;
         vol_data.transform =
             serialize(det.transform_store()[vol_desc.transform()]);
@@ -220,8 +175,11 @@ class geometry_writer : public writer_interface<detector_t> {
         template <typename material_group_t, typename index_t>
         inline auto operator()(const material_group_t&,
                                const index_t& index) const {
-            return geometry_writer<detector_t>::template serialize<
-                typename material_group_t::value_type>(index);
+            using material_t = typename material_group_t::value_type;
+
+            // Find the correct material type index
+            return base_type::serialize(
+                io::detail::get_material_id<material_t>(), index);
         }
     };
 
@@ -233,16 +191,14 @@ class geometry_writer : public writer_interface<detector_t> {
 
             using accel_t = typename acc_group_t::value_type;
 
-            if constexpr (detail::is_grid_v<accel_t>) {
-                constexpr auto id{io::detail::get_grid_id<accel_t>()};
+            auto id{acc_links_payload::type_id::unknown};
 
-                return geometry_writer<detector_t>::serialize(id, index);
-            } else {
-                // This functor is only called for accelerator data structures
-                // that are not 'brute force'
-                return geometry_writer<detector_t>::serialize(
-                    acc_links_payload::acc_type::unknown, index);
+            // Only serialize grids
+            if constexpr (detail::is_grid_v<accel_t>) {
+                id = io::detail::get_grid_id<accel_t>();
             }
+
+            return base_type::serialize(id, index);
         }
     };
 };

@@ -34,6 +34,11 @@ struct interaction {
         const scalar_t Ne{mat.get_material().molar_electron_density()};
         const relativistic_quantities rq(m, qOverP, q);
         const scalar_t eps{rq.compute_epsilon(Ne, path_segment)};
+
+        if (eps <= 0.f) {
+            return 0.f;
+        }
+
         const scalar_t dhalf{rq.compute_delta_half(mat.get_material())};
         const scalar_t u{rq.compute_mass_term(constant<scalar_t>::m_e)};
         const scalar_t wmax{rq.compute_WMax(m)};
@@ -57,6 +62,11 @@ struct interaction {
         const scalar_t Ne{mat.get_material().molar_electron_density()};
         const relativistic_quantities rq(m, qOverP, q);
         const scalar_t eps{rq.compute_epsilon(Ne, path_segment)};
+
+        if (eps <= 0.f) {
+            return 0.f;
+        }
+
         const scalar_t dhalf{rq.compute_delta_half(mat.get_material())};
         const scalar_t t{rq.compute_mass_term(constant<scalar_t>::m_e)};
         // uses RPP2018 eq. 33.11
@@ -142,6 +152,10 @@ struct interaction {
     DETRAY_HOST_DEVICE scalar_type
     theta0Highland(const scalar_type xOverX0, const scalar_type momentumInv,
                    const scalar_type q2OverBeta2) const {
+        if (xOverX0 <= 0.f) {
+            return 0.f;
+        }
+
         // RPP2018 eq. 33.15 (treats beta and q² consistenly)
         const scalar_type t{std::sqrt(xOverX0 * q2OverBeta2)};
         // log((x/X0) * (q²/beta²)) = log((sqrt(x/X0) * (q/beta))²)
@@ -154,6 +168,10 @@ struct interaction {
     DETRAY_HOST_DEVICE scalar_type
     theta0RossiGreisen(const scalar_type xOverX0, const scalar_type momentumInv,
                        const scalar_type q2OverBeta2) const {
+        if (xOverX0 <= 0.f) {
+            return 0.f;
+        }
+
         // TODO add source paper/ resource
         const scalar_type t{std::sqrt(xOverX0 * q2OverBeta2)};
         return 17.5f * unit<scalar_type>::MeV * momentumInv * t *

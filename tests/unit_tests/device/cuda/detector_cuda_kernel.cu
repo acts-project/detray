@@ -15,7 +15,7 @@ __global__ void detector_test_kernel(
     typename detector_host_t::detector_view_type det_data,
     vecmem::data::vector_view<volume_t> volumes_data,
     vecmem::data::vector_view<surface_t> surfaces_data,
-    vecmem::data::vector_view<transform_t> transforms_data,
+    vecmem::data::vector_view<transform3_t> transforms_data,
     vecmem::data::vector_view<rectangle_t> rectangles_data,
     vecmem::data::vector_view<disc_t> discs_data,
     vecmem::data::vector_view<cylinder_t> cylinders_data) {
@@ -26,7 +26,7 @@ __global__ void detector_test_kernel(
     // convert subdetector data objects into objects w/ device vectors
     vecmem::device_vector<volume_t> volumes_device(volumes_data);
     vecmem::device_vector<surface_t> surfaces_device(surfaces_data);
-    vecmem::device_vector<transform_t> transforms_device(transforms_data);
+    vecmem::device_vector<transform3_t> transforms_device(transforms_data);
     vecmem::device_vector<rectangle_t> rectangles_device(rectangles_data);
     vecmem::device_vector<disc_t> discs_device(discs_data);
     vecmem::device_vector<cylinder_t> cylinders_device(cylinders_data);
@@ -87,7 +87,7 @@ __global__ void detector_test_kernel(
 void detector_test(typename detector_host_t::detector_view_type det_data,
                    vecmem::data::vector_view<volume_t> volumes_data,
                    vecmem::data::vector_view<surface_t> surfaces_data,
-                   vecmem::data::vector_view<transform_t> transforms_data,
+                   vecmem::data::vector_view<transform3_t> transforms_data,
                    vecmem::data::vector_view<rectangle_t> rectangles_data,
                    vecmem::data::vector_view<disc_t> discs_data,
                    vecmem::data::vector_view<cylinder_t> cylinders_data) {

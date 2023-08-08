@@ -48,16 +48,18 @@ struct detector_view;
 /// @tparam bfield_t the type of the b-field frontend
 /// @tparam container_t type collection of the underlying containers
 /// @tparam source_link the surface source link
-template <typename metadata = default_metadata,
+template <typename metadata_t = default_metadata,
           template <typename> class bfield_t = covfie::field,
           typename container_t = host_container_types>
 class detector {
 
     // Allow the building of the detector containers
     friend class volume_builder_interface<
-        detector<metadata, bfield_t, container_t>>;
+        detector<metadata_t, bfield_t, container_t>>;
 
     public:
+    using metadata = metadata_t;
+
     /// Algebra types
     /// @TODO: scalar as a template parameter
     using scalar_type = scalar;
@@ -512,8 +514,16 @@ class detector {
     ///
     /// @param v_grid the volume grid to be added
     DETRAY_HOST
-    inline auto add_volume_finder(volume_finder &&v_grid) -> void {
+    inline auto set_volume_finder(volume_finder &&v_grid) -> void {
         _volume_finder = std::move(v_grid);
+    }
+
+    /// Add the volume grid - copy semantics
+    ///
+    /// @param v_grid the volume grid to be added
+    DETRAY_HOST
+    inline auto set_volume_finder(const volume_finder &v_grid) -> void {
+        _volume_finder = v_grid;
     }
 
     /// @return the volume grid - const access

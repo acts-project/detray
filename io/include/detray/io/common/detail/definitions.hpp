@@ -19,6 +19,8 @@
 #include "detray/masks/ring2D.hpp"
 #include "detray/masks/single3D.hpp"
 #include "detray/masks/trapezoid2D.hpp"
+#include "detray/materials/material_rod.hpp"
+#include "detray/materials/material_slab.hpp"
 #include "detray/utils/type_registry.hpp"
 
 namespace detray {
@@ -84,6 +86,26 @@ enum class material_type : unsigned int {
     rod = 10u,
     unknown = 11u
 };
+
+/// Infer the IO material id from the material type
+template <typename material_t>
+constexpr material_type get_material_id() {
+    using scalar_t = typename material_t::scalar_type;
+
+    /// Register the material types to the @c material_type enum
+    using mat_registry =
+        type_registry<material_type, annulus2D<>, cuboid3D<>, cylinder2D<>,
+                      cylinder3D, rectangle2D<>, ring2D<>, trapezoid2D<>,
+                      line<true>, line<false>, material_slab<scalar_t>,
+                      material_rod<scalar_t>>;
+
+    // Find the correct material IO id;
+    if constexpr (mat_registry::is_defined(material_t{})) {
+        return mat_registry::get_id(material_t{});
+    } else {
+        return material_type::unknown;
+    }
+}
 
 /// Enumerate the different acceleration data structures
 enum class acc_type : unsigned int {

@@ -9,6 +9,7 @@
 
 // Project include(s)
 #include "detray/test/types.hpp"
+#include "detray/utils/consistency_checker.hpp"
 
 // GTest include(s)
 #include <gtest/gtest.h>
@@ -67,13 +68,16 @@ inline bool test_toy_detector(const detector<toy_metadata<>>& toy_det,
 
     EXPECT_EQ(names.at(0u), "toy_detector");
 
+    // Test general consistency
+    detail::check_consistency(toy_det);
+
     geo_context_t ctx{};
     auto& volumes = toy_det.volumes();
     auto& surfaces = toy_det.surface_lookup();
     auto& sf_finders = toy_det.surface_store();
     auto& transforms = toy_det.transform_store();
     auto& masks = toy_det.mask_store();
-    // auto& materials = toy_det.material_store();
+    auto& materials = toy_det.material_store();
 
     // Materials
     auto portal_mat =
@@ -88,6 +92,7 @@ inline bool test_toy_detector(const detector<toy_metadata<>>& toy_det,
     const bool has_grids =
         (sf_finders.size<sf_finder_ids::e_cylinder2_grid>() != 0u) ||
         (sf_finders.size<sf_finder_ids::e_disc_grid>() != 0u);
+    const bool has_material = (materials.size<material_ids::e_slab>() != 0);
 
     // Check number of geomtery objects
     EXPECT_EQ(volumes.size(), 20u);
@@ -102,7 +107,9 @@ inline bool test_toy_detector(const detector<toy_metadata<>>& toy_det,
         EXPECT_EQ(sf_finders.size<sf_finder_ids::e_cylinder2_grid>(), 4);
         EXPECT_EQ(sf_finders.size<sf_finder_ids::e_disc_grid>(), 6);
     }
-    // EXPECT_EQ(materials.size<material_ids::e_slab>(), 3244u);
+    if (has_material) {
+        EXPECT_EQ(materials.size<material_ids::e_slab>(), 3244u);
+    }
 
     /** Test the links of a volume.
      *
@@ -138,7 +145,7 @@ inline bool test_toy_detector(const detector<toy_metadata<>>& toy_det,
         [&](const dindex vol_index, decltype(surfaces.begin())&& sf_itr,
             const darray<dindex, 2>& range, dindex trf_index,
             mask_link_t&& mask_link, material_link_t&& material_index,
-            const material_slab<scalar>& /*mat*/,
+            const material_slab<scalar>& mat,
             const dvector<dindex>&& volume_links) {
             for (dindex pti = range[0]; pti < range[1]; ++pti) {
                 EXPECT_EQ(sf_itr->volume(), vol_index);
@@ -148,14 +155,16 @@ inline bool test_toy_detector(const detector<toy_metadata<>>& toy_det,
                 // transforms in the transform store
                 EXPECT_EQ(sf_itr->transform(), trf_index + vol_index + 1);
                 EXPECT_EQ(sf_itr->mask(), mask_link);
-                // EXPECT_EQ(sf_itr->material(), material_index);
                 const auto volume_link =
                     masks.template visit<volume_link_getter>(sf_itr->mask());
                 EXPECT_EQ(volume_link, volume_links[pti - range[0]]);
-                /*EXPECT_EQ(
-                    materials
-                        .get<material_ids::e_slab>()[sf_itr->material().index()],
-                    mat);*/
+                if (has_material) {
+                    EXPECT_EQ(sf_itr->material(), material_index);
+                    EXPECT_EQ(
+                        materials.get<
+                            material_ids::e_slab>()[sf_itr->material().index()],
+                        mat);
+                }
 
                 ++sf_itr;
                 ++trf_index;
@@ -177,7 +186,7 @@ inline bool test_toy_detector(const detector<toy_metadata<>>& toy_det,
         [&](const dindex vol_index, decltype(surfaces.begin())&& sf_itr,
             const darray<dindex, 2>& range, dindex trf_index,
             mask_link_t&& mask_index, material_link_t&& material_index,
-            const material_slab<scalar>& /*mat*/,
+            const material_slab<scalar>& mat,
             const dvector<dindex>&& volume_links) {
             for (dindex pti = range[0]; pti < range[1]; ++pti) {
                 EXPECT_EQ(sf_itr->volume(), vol_index);
@@ -188,14 +197,17 @@ inline bool test_toy_detector(const detector<toy_metadata<>>& toy_det,
                 // transforms in the transform store
                 EXPECT_EQ(sf_itr->transform(), trf_index + vol_index + 1);
                 EXPECT_EQ(sf_itr->mask(), mask_index);
-                // EXPECT_EQ(sf_itr->material(), material_index);
                 const auto volume_link =
                     masks.template visit<volume_link_getter>(sf_itr->mask());
                 EXPECT_EQ(volume_link, volume_links[0]);
-                /*EXPECT_EQ(
-                    materials
-                        .get<material_ids::e_slab>()[sf_itr->material().index()],
-                    mat);*/
+                if (has_material) {
+                    EXPECT_EQ(sf_itr->material(), material_index);
+                    EXPECT_EQ(
+                        materials.get<
+                            material_ids::e_slab>()[sf_itr->material().index()],
+                        mat);
+                }
+
                 ++sf_itr;
                 ++trf_index;
                 ++mask_index;

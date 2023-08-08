@@ -130,4 +130,10 @@ template <typename T, typename... Ts>
 inline constexpr std::size_t get_type_pos_v = get_type_pos<T, Ts...>::value;
 /// @}
 
+template <class grid_t>
+struct is_grid : public std::false_type {};
+
+template <typename T>
+inline constexpr bool is_grid_v = is_grid<T>::value;
+
 }  // namespace detray::detail

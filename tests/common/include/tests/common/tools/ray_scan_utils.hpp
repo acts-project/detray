@@ -55,12 +55,21 @@ inline bool check_connectivity(
     std::vector<std::pair<entry_type, entry_type>> trace,
     dindex start_volume = 0u) {
 
+    /// Error messages
+    std::stringstream err_stream;
+
+    /// Print errors of this function
+    auto print_err = [](const std::stringstream &stream) {
+        std::cerr << "\n<<<<<<<<<<<<<<< ERROR in connectivity check\n"
+                  << std::endl;
+        std::cerr << stream.str() << std::endl;
+        std::cerr << "\n>>>>>>>>>>>>>>>\n" << std::endl;
+    };
+
     // There must always be portals!
     if (trace.empty()) {
-        std::cerr << "\n<<<<<<<<<<<<<<< ERROR while checking trace of volumes"
-                  << std::endl;
-        std::cerr << "\nTrace empty!\n" << std::endl;
-        std::cerr << ">>>>>>>>>>>>>>>\n" << std::endl;
+        err_stream << "Trace empty!";
+        print_err(err_stream);
 
         return false;
     }
@@ -79,7 +88,7 @@ inline bool check_connectivity(
         // Get the next record
         get_connected_record = [&](index_t next) -> records_iterator_t {
             auto rec = trace.begin() + next;
-            // Make sure that the record conatins the volume that is currently
+            // Make sure that the record contains the volume that is currently
             // being checked for connectivity
             if ((std::get<1>(rec->first) == current_volume) or
                 (std::get<1>(rec->second) == current_volume)) {
@@ -105,9 +114,10 @@ inline bool check_connectivity(
 
     // Check first volume index, which has no partner otherwise
     if (std::get<1>(record->first) != start_volume) {
-        std::cerr << "First record does not start at given initial volume: "
-                  << std::get<1>(record->first) << " vs. " << start_volume
-                  << std::endl;
+        err_stream << "First record does not start at given initial volume: "
+                   << std::get<1>(record->first) << " vs. " << start_volume;
+
+        print_err(err_stream);
 
         return false;
     }
@@ -138,12 +148,12 @@ inline bool check_connectivity(
     // There are unconnected elements left (we didn't leave world before
     // termination)
     if (current_volume != invalid_value) {
-        std::cerr << "\n<<<<<<<<<<<<<<< ERROR while checking volume trace"
-                  << std::endl;
-        std::cerr << "Didn't leave world or unconnected elements left in trace:"
-                  << "\n\nValid connections that were found:" << std::endl;
-        std::cerr << record_stream.str();
-        std::cerr << ">>>>>>>>>>>>>>>\n" << std::endl;
+        err_stream
+            << "Didn't leave world or unconnected elements left in trace:"
+            << "\n\nValid connections that were found:" << std::endl;
+        err_stream << record_stream.str();
+
+        print_err(err_stream);
 
         return false;
     }
@@ -182,6 +192,8 @@ inline auto trace_intersections(const record_container &intersection_records,
     std::vector<trace_entry> module_trace = {};
     /// Debug output if an error in the trace is discovered
     std::stringstream record_stream;
+    /// Error messages
+    std::stringstream err_stream;
 
     /// Readable access to the data of a recorded intersection
     struct record {
@@ -200,23 +212,60 @@ inline auto trace_intersections(const record_container &intersection_records,
         inline bool is_portal() const {
             return entry.second.sf_desc.is_portal();
         }
-        inline bool is_portal(
-            const typename record_container::value_type &inters_record) const {
-            return inters_record.second.sf_desc.is_portal();
+        inline bool is_sensitive() const {
+            return entry.second.sf_desc.is_sensitive();
+        }
+        inline bool is_passive() const {
+            return entry.second.sf_desc.is_passive();
         }
         /// @}
     };
 
-    // Go through recorded intersection (two at a time)
-    for (std::size_t rec = 0u; rec < intersection_records.size() - 1u;) {
+    /// Print errors of this function
+    auto print_err = [](const std::stringstream &stream) {
+        std::cerr << "\n<<<<<<<<<<<<<<< ERROR intersection trace\n"
+                  << std::endl;
+        std::cerr << stream.str() << std::endl;
+        std::cerr << "\n>>>>>>>>>>>>>>>\n" << std::endl;
+    };
 
-        // For portals read 2 elements from the sorted records vector
+    // No intersections found by ray
+    if (intersection_records.empty()) {
+        err_stream << "No surfaces found!";
+        print_err(err_stream);
+
+        return std::make_pair(portal_trace, module_trace);
+    }
+
+    // If there is only one surface in the trace, it must be a portal
+    if (intersection_records.size() == 1u) {
+
+        const record rec{intersection_records.at(0u)};
+
+        // No exit potal
+        if (not rec.is_portal()) {
+            const std::string sf_type{rec.is_sensitive() ? "sensitive"
+                                                         : "passive"};
+
+            err_stream << "We don't leave the detector by portal!" << std::endl;
+            err_stream << "Only found single " << sf_type
+                       << " surface: portal(s) missing!";
+
+            print_err(err_stream);
+
+            return std::make_pair(portal_trace, module_trace);
+        }
+    }
+
+    // Go through recorded intersection (two at a time)
+    for (std::size_t rec = 0u; rec < (intersection_records.size() - 1u);) {
+
         const record current_rec = record{intersection_records.at(rec)};
-        const record next_rec = record{intersection_records.at(rec + 1)};
+        const record next_rec = record{intersection_records.at(rec + 1u)};
 
         // Keep a debug stream
         record_stream << current_rec.volume_idx() << "\t"
-                      << current_rec.inters();
+                      << current_rec.inters() << std::endl;
 
         // If the current record is not a portal, add an entry to the module
         // trace and continue in more fine-grained steps (sensitive/passive
@@ -230,19 +279,22 @@ inline auto trace_intersections(const record_container &intersection_records,
                 module_trace.emplace_back(current_rec.surface_idx(),
                                           current_rec.volume_idx());
             } else {
-                record_stream
-                    << "\n(!!) Surface outside of its volume (Found: "
-                    << current_rec.volume_idx()
-                    << ", belongs in: " << current_rec.surface_volume_idx()
-                    << ")" << std::endl;
+                err_stream << "\n(!!) Surface outside of its volume (Found: "
+                           << current_rec.volume_idx() << ", belongs in: "
+                           << current_rec.surface_volume_idx() << ")";
+
+                err_stream << record_stream.str();
+
+                print_err(err_stream);
 
                 return std::make_pair(portal_trace, module_trace);
             }
-            rec++;
+            ++rec;
             continue;
         }
 
-        record_stream << next_rec.volume_idx() << "\t" << next_rec.inters();
+        record_stream << next_rec.volume_idx() << "\t" << next_rec.inters()
+                      << std::endl;
 
         // Check that also the second surface was found in the volume it claims
         // to belong to
@@ -296,26 +348,27 @@ inline auto trace_intersections(const record_container &intersection_records,
         // Something went wrong
         else {
             // Print search log
-            std::cerr << "\n<<<<<<<<<<<<<<< ERROR in portal matching\n"
-                      << std::endl;
-            std::cerr << "volume id\t(intersection info)" << std::endl;
+            err_stream << "\nError in portal matching:\n" << std::endl;
+            err_stream << "volume id\t(intersection info)" << std::endl;
 
-            std::cerr << record_stream.str() << std::endl;
+            err_stream << record_stream.str() << std::endl;
 
-            std::cerr << "-----\nINFO: Ray terminated at portal x-ing "
-                      << (rec + 1) / 2 << ":\n"
-                      << current_rec.inters() << " <-> " << next_rec.inters();
+            err_stream << "-----\nINFO: Ray terminated at portal x-ing "
+                       << (rec + 1) / 2 << ":\n"
+                       << current_rec.inters() << " <-> " << next_rec.inters()
+                       << std::endl;
 
-            record rec_front{intersection_records.front()};
-            record rec_back{intersection_records.back()};
-            std::cerr << "Start volume : " << start_volume << std::endl;
-            std::cerr << "- first recorded intersection: (sf id:"
-                      << rec_front.surface_idx()
-                      << ", dist:" << rec_front.dist() << ")," << std::endl;
-            std::cerr << "- last recorded intersection:  (sf id:"
-                      << rec_back.surface_idx() << ", dist:" << rec_back.dist()
-                      << ")," << std::endl;
-            std::cerr << ">>>>>>>>>>>>>>>\n" << std::endl;
+            const record rec_front{intersection_records.front()};
+            const record rec_back{intersection_records.back()};
+            err_stream << "Start volume : " << start_volume << std::endl;
+            err_stream << "- first recorded intersection: (sf id:"
+                       << rec_front.surface_idx()
+                       << ", dist:" << rec_front.dist() << ")," << std::endl;
+            err_stream << "- last recorded intersection:  (sf id:"
+                       << rec_back.surface_idx() << ", dist:" << rec_back.dist()
+                       << "),";
+
+            print_err(err_stream);
 
             return std::make_pair(portal_trace, module_trace);
         }
@@ -325,9 +378,10 @@ inline auto trace_intersections(const record_container &intersection_records,
     }
 
     // Look at the last entry, which is a single portal
-    record rec_back{intersection_records.back()};
+    const record rec_back{intersection_records.back()};
     if (not rec_back.is_portal()) {
-        std::cerr << "We don't leave the detector by portal!" << std::endl;
+        err_stream << "We don't leave the detector by portal!";
+        print_err(err_stream);
     } else {
         trace_entry lower(rec_back.surface_idx(), rec_back.volume_idx());
         trace_entry upper(rec_back.surface_idx(), rec_back.volume_link());

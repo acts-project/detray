@@ -17,6 +17,12 @@
 #include "detray/tools/volume_builder.hpp"
 #include "detray/tools/volume_builder_interface.hpp"
 
+// System include(s)
+#include <array>
+#include <cassert>
+#include <memory>
+#include <vector>
+
 namespace detray {
 
 /// @brief Build a grid of a certain shape.
@@ -94,6 +100,7 @@ class grid_builder final : public volume_decorator<detector_t> {
         if (m_add_passives) {
             (*ps_factory)(volume_decorator<detector_t>::operator()(),
                           m_surfaces, m_transforms, m_masks, ctx);
+            ps_factory->clear();
         } else {
             volume_decorator<detector_t>::add_passives(std::move(ps_factory),
                                                        ctx);
@@ -116,6 +123,7 @@ class grid_builder final : public volume_decorator<detector_t> {
         for (auto &sf_desc : m_grid.all()) {
             const auto sf = surface{det, sf_desc};
             sf.template visit_mask<detail::mask_index_update>(sf_desc);
+            sf_desc.set_volume(vol_ptr->index());
             sf_desc.update_transform(trf_offset);
         }
 

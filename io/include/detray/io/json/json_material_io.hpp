@@ -10,6 +10,7 @@
 // Project include(s)
 #include "detray/io/common/payloads.hpp"
 #include "detray/io/json/json.hpp"
+#include "detray/io/json/json_common_io.hpp"
 
 // System include(s)
 #include <array>
@@ -19,79 +20,105 @@
 /// JSON I/O extension
 namespace detray {
 
-void to_json(nlohmann::ordered_json& j,
-             const homogeneous_material_header_payload& h) {
-    j["version"] = h.version;
-    j["detector"] = h.detector;
-    j["date"] = h.date;
-    j["tag"] = h.tag;
-    j["slab_count"] = h.n_slabs;
-    j["rod_count"] = h.n_rods;
+inline void to_json(nlohmann::ordered_json& j,
+                    const homogeneous_material_header_payload& h) {
+    j["common"] = h.common;
+
+    if (h.sub_header.has_value()) {
+        const auto& mat_sub_header = h.sub_header.value();
+        j["slab_count"] = mat_sub_header.n_slabs;
+        j["rod_count"] = mat_sub_header.n_rods;
+    }
 }
 
-void from_json(const nlohmann::ordered_json& j,
-               homogeneous_material_header_payload& h) {
-    h.version = j["version"];
-    h.detector = j["detector"];
-    h.date = j["date"];
-    h.tag = j["tag"];
-    h.n_slabs = j["slab_count"];
-    h.n_rods = j["rod_count"];
+inline void from_json(const nlohmann::ordered_json& j,
+                      homogeneous_material_header_payload& h) {
+    h.common = j["common"];
+
+    if (j.find("slab_count") != j.end() and j.find("rod_count") != j.end()) {
+        h.sub_header.emplace();
+        auto& mat_sub_header = h.sub_header.value();
+        mat_sub_header.n_slabs = j["slab_count"];
+        mat_sub_header.n_rods = j["rod_count"];
+    }
 }
 
-void to_json(nlohmann::ordered_json& j, const material_payload& m) {
+inline void to_json(nlohmann::ordered_json& j, const material_payload& m) {
     j["params"] = m.params;
 }
 
-void from_json(const nlohmann::ordered_json& j, material_payload& m) {
-    m.params = j["params"];
+inline void from_json(const nlohmann::ordered_json& j, material_payload& m) {
+    m.params = j["params"].get<std::array<real_io, 7>>();
 }
 
-void to_json(nlohmann::ordered_json& j, const material_slab_payload& m) {
-    j["type"] = material_slab_payload::material_type::slab;
-    j["index"] = m.index;
+inline void to_json(nlohmann::ordered_json& j, const material_slab_payload& m) {
+    j["mat_link"] = m.mat_link;
     j["thickness"] = m.thickness;
     j["material"] = m.mat;
 }
 
-void from_json(const nlohmann::ordered_json& j, material_slab_payload& m) {
-    m.type = material_slab_payload::material_type::slab;
-    m.index = j["index"];
+inline void from_json(const nlohmann::ordered_json& j,
+                      material_slab_payload& m) {
+    m.mat_link = j["mat_link"];
     m.thickness = j["thickness"];
     m.mat = j["material"];
 }
 
-void to_json(nlohmann::ordered_json& j,
-             const detector_homogeneous_material_payload& d) {
-    if (not d.mat_slabs.empty()) {
+inline void to_json(nlohmann::ordered_json& j,
+                    const material_volume_payload& mv) {
+    j["volume_link"] = mv.volume_link;
+
+    if (not mv.mat_slabs.empty()) {
         nlohmann::ordered_json jmats;
-        for (const auto& m : d.mat_slabs) {
+        for (const auto& m : mv.mat_slabs) {
             jmats.push_back(m);
         }
         j["material_slabs"] = jmats;
     }
-    if (d.mat_rods.has_value() and not d.mat_rods->empty()) {
+    if (mv.mat_rods.has_value() and not mv.mat_rods->empty()) {
         nlohmann::ordered_json jmats;
-        for (const auto& m : d.mat_rods.value()) {
+        for (const auto& m : mv.mat_rods.value()) {
             jmats.push_back(m);
         }
         j["material_rods"] = jmats;
     }
 }
 
-void from_json(const nlohmann::ordered_json& j,
-               detector_homogeneous_material_payload& d) {
+inline void from_json(const nlohmann::ordered_json& j,
+                      material_volume_payload& mv) {
+    mv.volume_link = j["volume_link"];
+
     if (j.find("material_slabs") != j.end()) {
         for (auto jmats : j["material_slabs"]) {
             material_slab_payload mslp = jmats;
-            d.mat_slabs.push_back(mslp);
+            mv.mat_slabs.push_back(mslp);
         }
     }
     if (j.find("material_rods") != j.end()) {
-        d.mat_rods = {};
+        mv.mat_rods = {};
         for (auto jmats : j["material_rods"]) {
             material_slab_payload mslp = jmats;
-            d.mat_rods->push_back(mslp);
+            mv.mat_rods->push_back(mslp);
+        }
+    }
+}
+
+inline void to_json(nlohmann::ordered_json& j,
+                    const detector_homogeneous_material_payload& d) {
+    if (not d.volumes.empty()) {
+        nlohmann::ordered_json jmats;
+        for (const auto& m : d.volumes) {
+            jmats.push_back(m);
+        }
+        j["volumes"] = jmats;
+    }
+}
+
+inline void from_json(const nlohmann::ordered_json& j,
+                      detector_homogeneous_material_payload& d) {
+    if (j.find("volumes") != j.end()) {
+        for (auto jvolume : j["volumes"]) {
+            d.volumes.push_back(jvolume);
         }
     }
 }

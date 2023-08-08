@@ -13,7 +13,9 @@
 #include "detray/definitions/qualifiers.hpp"
 
 // System include(s)
+#include <memory>
 #include <tuple>
+#include <vector>
 
 namespace detray {
 
@@ -74,16 +76,21 @@ class surface_factory_interface {
     DETRAY_HOST
     virtual surface_id surface_type() const = 0;
 
-    /// Uniform interface to surface data from different sources
+    /// Add data to the factory
+    /// @{
     DETRAY_HOST
     virtual void push_back(surface_data<detector_t> &&) = 0;
 
     DETRAY_HOST
-    virtual auto push_back(std::vector<surface_data<detector_t>> &&)
-        -> void /*std::tuple<typename detector_t::transform3 &, navigation_link
-                   &, std::vector<typename detector_t::scalar_type> &>*/
-        = 0;
+    virtual void push_back(std::vector<surface_data<detector_t>> &&) = 0;
+    /// @}
 
+    /// Clear all data in the factory
+    DETRAY_HOST
+    virtual void clear() = 0;
+
+    /// Construct detector components from the data in the factory and add them
+    /// the containers of a volume builder.
     DETRAY_HOST
     virtual auto operator()(
         typename detector_t::volume_type &volume,
@@ -92,6 +99,56 @@ class surface_factory_interface {
         typename detector_t::mask_container &masks,
         typename detector_t::geometry_context ctx = {}) const
         -> dindex_range = 0;
+};
+
+/// @brief Decorator for the surface factories.
+///
+/// Delegates all mandatory method calls to the underlying surface factory
+template <typename detector_t>
+class factory_decorator : public surface_factory_interface<detector_t> {
+
+    public:
+    DETRAY_HOST
+    factory_decorator(
+        std::unique_ptr<surface_factory_interface<detector_t>> factory)
+        : m_factory(std::move(factory)) {}
+
+    /// Overwrite interface functions using callbacks to the base factory
+    /// @{
+    DETRAY_HOST
+    dindex size() const override { return m_factory->size(); }
+
+    DETRAY_HOST
+    surface_id surface_type() const override {
+        return m_factory->surface_type();
+    }
+
+    DETRAY_HOST
+    void push_back(surface_data<detector_t> &&data) override {
+        m_factory->push_back(std::move(data));
+    }
+
+    DETRAY_HOST
+    void push_back(std::vector<surface_data<detector_t>> &&data) override {
+        m_factory->push_back(std::move(data));
+    }
+
+    DETRAY_HOST
+    void clear() override { m_factory->clear(); }
+
+    DETRAY_HOST
+    auto operator()(typename detector_t::volume_type &volume,
+                    typename detector_t::surface_container_t &surfaces,
+                    typename detector_t::transform_container &transforms,
+                    typename detector_t::mask_container &masks,
+                    typename detector_t::geometry_context ctx = {}) const
+        -> dindex_range override {
+        return (*m_factory)(volume, surfaces, transforms, masks, ctx);
+    }
+    /// @}
+
+    protected:
+    std::unique_ptr<surface_factory_interface<detector_t>> m_factory;
 };
 
 }  // namespace detray

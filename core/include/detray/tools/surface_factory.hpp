@@ -36,12 +36,14 @@ namespace detray {
 template <typename detector_t, typename mask_shape_t,
           typename detector_t::mask_link::id_type mask_id, surface_id sf_id,
           typename volume_link_t = dindex>
-class surface_factory final
+class surface_factory
     : public surface_factory_interface<detector_t>,
       public std::enable_shared_from_this<surface_factory<
           detector_t, mask_shape_t, mask_id, sf_id, volume_link_t>> {
     public:
     using scalar_t = typename detector_t::scalar_type;
+    using shape_type = mask_shape_t;
+    using detector_type = detector_t;
     // Set individual volume link for portals, but only the mothervolume index
     // for other surfaces.
     using volume_link_collection =
@@ -142,7 +144,7 @@ class surface_factory final
 
     /// Clear old data
     DETRAY_HOST
-    auto clear() -> void {
+    auto clear() -> void override {
         m_components.clear();
         m_transforms.clear();
         // cannot clear the single-view

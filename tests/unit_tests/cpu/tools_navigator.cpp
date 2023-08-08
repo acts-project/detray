@@ -8,6 +8,7 @@
 // Project include(s)
 #include "detray/definitions/indexing.hpp"
 #include "detray/detectors/create_toy_geometry.hpp"
+#include "detray/detectors/create_wire_chamber.hpp"
 #include "detray/propagator/line_stepper.hpp"
 #include "detray/propagator/navigator.hpp"
 #include "detray/test/types.hpp"
@@ -32,6 +33,8 @@ template <typename stepping_t, typename navigation_t>
 struct prop_state {
     stepping_t _stepping;
     navigation_t _navigation;
+
+    scalar mask_tolerance() const { return 15.f * unit<scalar>::um; }
 };
 
 /// Checks for a correct 'towards_surface' state
@@ -105,7 +108,7 @@ inline void check_step(navigator_t &nav, stepper_t &stepper,
 }  // namespace detray
 
 /// This tests the construction and general methods of the navigator
-GTEST_TEST(detray_propagator, navigator) {
+GTEST_TEST(detray_navigator, toy_geometry) {
     using namespace detray;
     using namespace detray::navigation;
     using transform3 = test::transform3;
@@ -256,6 +259,159 @@ GTEST_TEST(detray_propagator, navigator) {
             ASSERT_EQ(navigation.trust_level(), trust_level::e_full);
         } else {
             ASSERT_TRUE(nav.update(propagation));
+        }
+    }
+
+    // Leave for debugging
+    // std::cout << navigation.inspector().to_string() << std::endl;
+    ASSERT_TRUE(navigation.is_complete()) << navigation.inspector().to_string();
+}
+
+GTEST_TEST(detray_navigator, wire_chamber) {
+
+    using namespace detray;
+    using namespace detray::navigation;
+    using transform3 = test::transform3;
+
+    vecmem::host_memory_resource host_mr;
+
+    /// Tolerance for tests
+    constexpr double tol{0.01};
+
+    constexpr std::size_t n_layers{10};
+    auto [wire_det, names] =
+        create_wire_chamber(host_mr, wire_chamber_config{});
+    using detector_t = decltype(wire_det);
+    using inspector_t = navigation::print_inspector;
+    using navigator_t = navigator<detector_t, inspector_t>;
+    using constraint_t = constrained_step<>;
+    using stepper_t = line_stepper<transform3, constraint_t>;
+
+    // test track
+    point3 pos{0.f, 0.f, 0.f};
+    vector3 mom{1.f, 0.f, 0.f};
+    free_track_parameters<transform3> traj(pos, 0.f, mom, -1.f);
+
+    stepper_t stepper;
+    navigator_t nav;
+
+    prop_state<stepper_t::state, navigator_t::state> propagation{
+        stepper_t::state{traj}, navigator_t::state(wire_det, host_mr)};
+    navigator_t::state &navigation = propagation._navigation;
+    stepper_t::state &stepping = propagation._stepping;
+
+    // Check that the state is unitialized
+    // Default volume is zero
+    ASSERT_EQ(navigation.volume(), 0u);
+    // No surface candidates
+    ASSERT_EQ(navigation.n_candidates(), 0u);
+    // You can not trust the state
+    ASSERT_EQ(navigation.trust_level(), trust_level::e_no_trust);
+    // The status is unkown
+    ASSERT_EQ(navigation.status(), status::e_unknown);
+
+    //
+    // Beam Collison region
+    //
+
+    // Initialize navigation
+    // Test that the navigator has a heartbeat
+    ASSERT_TRUE(nav.init(propagation));
+    // The status is towards portal
+    // One candidates: barrel cylinder portal
+    check_towards_surface<navigator_t>(navigation, 0u, 1u, 0u);
+    // Distance to portal
+    ASSERT_NEAR(navigation(), 500.f * unit<scalar>::mm, tol);
+
+    // Let's make half the step towards the portal
+    stepping.template set_constraint<step::constraint::e_user>(navigation() *
+                                                               0.5f);
+    stepper.step(propagation);
+    // Navigation policy might reduce trust level to fair trust
+    navigation.set_fair_trust();
+    // Release user constraint again
+    stepping.template release_step<step::constraint::e_user>();
+    ASSERT_TRUE(navigation.trust_level() == trust_level::e_fair);
+    // Re-navigate
+    ASSERT_TRUE(nav.update(propagation));
+    // Trust level is restored
+    ASSERT_EQ(navigation.trust_level(), trust_level::e_full);
+    // The status remains: towards surface
+    check_towards_surface<navigator_t>(navigation, 0u, 1u, 0u);
+    // Distance to portal is now halved
+    ASSERT_NEAR(navigation(), 250.f * unit<scalar>::mm, tol);
+
+    // Let's immediately update, nothing should change, as there is full trust
+    ASSERT_TRUE(nav.update(propagation));
+    check_towards_surface<navigator_t>(navigation, 0u, 1u, 0u);
+    ASSERT_NEAR(navigation(), 250.f * unit<scalar>::mm, tol);
+
+    // Step onto portal in volume 0
+    stepper.step(propagation);
+    navigation.set_high_trust();
+    ASSERT_TRUE(navigation.trust_level() == trust_level::e_high);
+    ASSERT_TRUE(nav.update(propagation)) << navigation.inspector().to_string();
+    ASSERT_EQ(navigation.trust_level(), trust_level::e_full);
+
+    //
+    // Wire Layer
+    //
+
+    // Last volume before we leave world
+    dindex last_vol_id = n_layers;
+
+    // maps volume id to the sequence of surfaces that the navigator encounters
+    std::map<dindex, std::vector<dindex>> sf_sequences;
+
+    // layer 1 to 10
+    sf_sequences[1] = {3u, 7u, 4u};
+    sf_sequences[2] = {167u, 171u, 168u};
+    sf_sequences[3] = {337u, 341u, 338u};
+    sf_sequences[4] = {513u, 517u, 514u};
+    sf_sequences[5] = {696u, 700u, 697u};
+    sf_sequences[6] = {885u, 889u, 886u};
+    sf_sequences[7] = {1080u, 1084u, 1081u};
+    sf_sequences[8] = {1281u, 1285u, 1282u};
+    sf_sequences[9] = {1489u, 1493u, 1490u};
+    sf_sequences[10] = {1703u, 1707u, 1704u};
+
+    // Every iteration steps through one wire layer
+    for (const auto &[vol_id, sf_seq] : sf_sequences) {
+
+        // Exclude the portal we are already on
+        std::size_t n_candidates = sf_seq.size() - 1u;
+
+        // We switched to next barrel volume
+        check_volume_switch<navigator_t>(navigation, vol_id);
+
+        // The status is: on adjacent portal in volume, towards next candidate
+        check_on_surface<navigator_t>(navigation, vol_id, n_candidates,
+                                      sf_seq[0], sf_seq[1]);
+
+        // Step through the module surfaces
+        for (std::size_t sf = 1u; sf < sf_seq.size() - 1u; ++sf) {
+            // Count only the currently reachable candidates
+            check_step(nav, stepper, propagation, vol_id, n_candidates - sf,
+                       sf_seq[sf], sf_seq[sf + 1u]);
+        }
+
+        // Step onto the portal in volume
+        stepper.step(propagation);
+        navigation.set_high_trust();
+
+        // Check agianst last volume
+        if (vol_id == last_vol_id) {
+            ASSERT_FALSE(nav.update(propagation));
+            // The status is: exited
+            ASSERT_EQ(navigation.status(), status::e_on_target);
+            // Switch to next volume leads out of the detector world -> exit
+            ASSERT_TRUE(is_invalid_value(navigation.volume()));
+            // We know we went out of the detector
+            ASSERT_EQ(navigation.trust_level(), trust_level::e_full);
+        } else {
+            // ASSERT_TRUE(nav.update(propagation));
+            ASSERT_TRUE(nav.update(propagation))
+                << navigation.inspector().to_string();
         }
     }
 

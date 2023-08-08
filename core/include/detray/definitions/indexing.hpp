@@ -220,6 +220,18 @@ struct dtyped_index {
         return encoder::template is_invalid<id_mask, index_mask>(m_value);
     }
 
+    /// Check wether the type id is invalid.
+    DETRAY_HOST_DEVICE
+    constexpr bool is_invalid_id() const noexcept {
+        return encoder::template is_invalid<id_mask>(m_value);
+    }
+
+    /// Check wether the index is invalid.
+    DETRAY_HOST_DEVICE
+    constexpr bool is_invalid_index() const noexcept {
+        return encoder::template is_invalid<index_mask>(m_value);
+    }
+
     DETRAY_HOST
     friend std::ostream& operator<<(std::ostream& os, const dtyped_index ti) {
         if (ti.is_invalid()) {

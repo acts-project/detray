@@ -12,6 +12,7 @@
 #include "detray/io/common/detail/type_traits.hpp"
 #include "detray/io/common/io_interface.hpp"
 #include "detray/io/common/payloads.hpp"
+#include "detray/tools/detector_builder.hpp"
 #include "detray/tools/surface_factory.hpp"
 #include "detray/tools/volume_builder.hpp"
 
@@ -68,7 +69,8 @@ class geometry_reader : public reader_interface<detector_t> {
     protected:
     /// Deserialize a detector @param det from its io payload @param det_data
     /// and add the volume names to @param name_map
-    static void deserialize(detector_t& det,
+    static void deserialize(detector_builder<typename detector_t::metadata,
+                                             volume_builder>& det_builder,
                             typename detector_t::name_map& name_map,
                             const detector_payload& det_data) {
 
@@ -77,12 +79,11 @@ class geometry_reader : public reader_interface<detector_t> {
         // Deserialize the volumes one-by-one
         for (const auto& vol_data : det_data.volumes) {
             // Get a generic volume builder first and decorate it later
-            volume_builder<detector_t> vbuilder{};
+            auto vbuilder =
+                det_builder.new_volume(static_cast<volume_id>(vol_data.type));
 
-            vbuilder.init_vol(det, static_cast<volume_id>(vol_data.type));
-
-            // Set the volume name if available
-            name_map[vbuilder.vol_index() + 1u] = vol_data.name;
+            // Set the volume name
+            name_map[vbuilder->vol_index() + 1u] = vol_data.name;
 
             // @todo add the volume placement, once it can be checked for the
             // test detectors
@@ -116,25 +117,21 @@ class geometry_reader : public reader_interface<detector_t> {
                 // Sort the surfaces into the volume builder by type
                 switch (sf_factory_ptr->surface_type()) {
                     case surface_id::e_portal:
-                        vbuilder.add_portals(sf_factory_ptr, geo_ctx);
+                        vbuilder->add_portals(sf_factory_ptr, geo_ctx);
                         break;
                     case surface_id::e_sensitive:
-                        vbuilder.add_sensitives(sf_factory_ptr, geo_ctx);
+                        vbuilder->add_sensitives(sf_factory_ptr, geo_ctx);
                         break;
                     case surface_id::e_passive:
-                        vbuilder.add_passives(sf_factory_ptr, geo_ctx);
+                        vbuilder->add_passives(sf_factory_ptr, geo_ctx);
+                        break;
+                    case surface_id::e_unknown:
                         break;
                 };
             }
-
-            // Add the volume to the detector
-            vbuilder.build(det);
         }
-    }
 
-    /// @returns a link from its io payload @param link_data
-    static dindex deserialize(const single_link_payload& link_data) {
-        return static_cast<dindex>(link_data.link);
+        det_builder.template set_volume_finder();
     }
 
     /// @returns a surface transform from its io payload @param trf_data
@@ -174,7 +171,8 @@ class geometry_reader : public reader_interface<detector_t> {
                   std::back_inserter(mask_boundaries));
 
         return {deserialize(sf_data.transform),
-                static_cast<nav_link_t>(deserialize(sf_data.mask.volume_link)),
+                static_cast<nav_link_t>(
+                    base_type::deserialize(sf_data.mask.volume_link)),
                 std::move(mask_boundaries)};
     }
 
@@ -213,6 +211,9 @@ class geometry_reader : public reader_interface<detector_t> {
                             surface_factory<detector_t, shape_t, mask_id,
                                             surface_id::e_passive>;
                         return std::make_shared<ps_factory_t>();
+                    case surface_id::e_unknown:
+                        throw std::runtime_error(
+                            "Unknown surface type in geometry file");
                 };
             }
         }

@@ -9,6 +9,7 @@
 
 // Project include(s)
 #include "detray/coordinates/cartesian3.hpp"
+#include "detray/definitions/containers.hpp"
 #include "detray/definitions/qualifiers.hpp"
 #include "detray/intersection/bounding_box/cuboid_intersector.hpp"
 #include "detray/surface_finders/grid/detail/axis_binning.hpp"
@@ -17,6 +18,7 @@
 // System include(s)
 #include <cmath>
 #include <limits>
+#include <ostream>
 #include <string>
 
 namespace detray {
@@ -117,7 +119,7 @@ class cuboid3D {
               template <typename, std::size_t> class bounds_t,
               typename scalar_t, std::size_t kDIM,
               typename std::enable_if_t<kDIM == e_size, bool> = true>
-    DETRAY_HOST_DEVICE inline std::array<scalar_t, 6> local_min_bounds(
+    DETRAY_HOST_DEVICE inline darray<scalar_t, 6> local_min_bounds(
         const bounds_t<scalar_t, kDIM> &bounds,
         const scalar_t env = std::numeric_limits<scalar_t>::epsilon()) const {
         assert(env > 0.f);
@@ -150,6 +152,39 @@ class cuboid3D {
         point3_t v7 = {bounds[e_max_x], bounds[e_max_y], bounds[e_min_z]};
         point3_t v8 = {bounds[e_max_x], bounds[e_max_y], bounds[e_max_z]};
         return {v1, v2, v4, v3, v7, v8, v6, v5};
+        }
+        
+    /// @brief Check consistency of boundary values.
+    ///
+    /// @param bounds the boundary values for this shape
+    /// @param os output stream for error messages
+    ///
+    /// @return true if the bounds are consistent.
+    template <template <typename, std::size_t> class bounds_t,
+              typename scalar_t, std::size_t kDIM,
+              typename std::enable_if_t<kDIM == e_size, bool> = true>
+    DETRAY_HOST constexpr bool check_consistency(
+        const bounds_t<scalar_t, kDIM> &bounds, std::ostream &os) const {
+
+        constexpr auto tol{10.f * std::numeric_limits<scalar_t>::epsilon()};
+
+        if (bounds[e_min_x] >= bounds[e_max_x] or
+            std::abs(bounds[e_min_x] - bounds[e_max_x]) < tol) {
+            os << "ERROR: Min x must be smaller than max x.";
+            return false;
+        }
+        if (bounds[e_min_y] >= bounds[e_max_y] or
+            std::abs(bounds[e_min_y] - bounds[e_max_y]) < tol) {
+            os << "ERROR: Min y must be smaller than max y.";
+            return false;
+        }
+        if (bounds[e_min_z] >= bounds[e_max_z] or
+            std::abs(bounds[e_min_z] - bounds[e_max_z]) < tol) {
+            os << "ERROR: Min z must be smaller than max z.";
+            return false;
+        }
+
+        return true;
     }
 };
 

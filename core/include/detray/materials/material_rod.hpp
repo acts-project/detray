@@ -63,7 +63,7 @@ struct material_rod : public detail::homogeneous_material_tag {
     DETRAY_HOST_DEVICE constexpr scalar_type path_segment(
         const scalar_type cos_inc_angle, const scalar_type approach) const {
         // Assume that is.local[0] is radial distance of line intersector
-        if (approach > m_radius) {
+        if (std::abs(approach) > m_radius) {
             return 0.f;
         }
 

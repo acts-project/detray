@@ -47,6 +47,9 @@ class square_surface_generator final
     auto size() const -> dindex override { return m_n_squares; }
 
     DETRAY_HOST
+    void clear() override{/*Do nothing*/};
+
+    DETRAY_HOST
     void push_back(surface_data<detector_t> &&) override { /*Do nothing*/
     }
     DETRAY_HOST

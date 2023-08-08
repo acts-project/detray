@@ -18,9 +18,15 @@ namespace detray {
 template <typename detector_t>
 class surface_factory_interface;
 
+template <typename detector_t>
+class volume_decorator;
+
 /// @brief Interface for volume builders (and volume builder decorators)
 template <typename detector_t>
 class volume_builder_interface {
+
+    // Access protected methods
+    friend class volume_decorator<detector_t>;
 
     public:
     using scalar_type = typename detector_t::scalar_type;
@@ -28,11 +34,6 @@ class volume_builder_interface {
     using array_type = typename detector_t::template array_type<T, N>;
 
     virtual ~volume_builder_interface() = default;
-
-    /// @brief Initializes a new volume with shape id @param id in detector
-    /// @param det
-    DETRAY_HOST
-    virtual void init_vol(detector_t &det, const volume_id id) = 0;
 
     /// @returns the global index for the volume
     /// @note the correct index is only available after calling @c init_vol
@@ -93,6 +94,14 @@ class volume_builder_interface {
     virtual void add_passives(
         std::shared_ptr<surface_factory_interface<detector_t>> ps_factory,
         typename detector_t::geometry_context ctx = {}) = 0;
+
+    protected:
+    /// Access to builder data
+    /// @{
+    virtual typename detector_t::surface_container_t &surfaces() = 0;
+    virtual typename detector_t::transform_container &transforms() = 0;
+    virtual typename detector_t::mask_container &masks() = 0;
+    /// @}
 };
 
 /// @brief Decorator for the volume builder.
@@ -111,13 +120,6 @@ class volume_decorator : public volume_builder_interface<detector_t> {
     volume_decorator(
         std::unique_ptr<volume_builder_interface<detector_t>> vol_builder)
         : m_builder(std::move(vol_builder)) {}
-
-    /// Overwrite interface functions using callbacks to the volume builder
-    /// @{
-    DETRAY_HOST
-    void init_vol(detector_t &det, const volume_id id) override {
-        m_builder->init_vol(det, id);
-    }
 
     DETRAY_HOST
     auto operator()() -> typename detector_t::volume_type & override {
@@ -181,22 +183,17 @@ class volume_decorator : public volume_builder_interface<detector_t> {
     /// @}
 
     protected:
+    typename detector_t::surface_container_t &surfaces() override {
+        return m_builder->surfaces();
+    }
+    typename detector_t::transform_container &transforms() override {
+        return m_builder->transforms();
+    }
+    typename detector_t::mask_container &masks() override {
+        return m_builder->masks();
+    }
+
     std::unique_ptr<volume_builder_interface<detector_t>> m_builder;
 };
-
-namespace detail {
-
-/// A functor to update the material index in surface objects
-struct material_index_update {
-
-    template <typename group_t, typename index_t, typename surface_t>
-    DETRAY_HOST inline void operator()(const group_t &group,
-                                       const index_t & /*index*/,
-                                       surface_t &sf) const {
-        sf.update_material(static_cast<dindex>(group.size()));
-    }
-};
-
-}  // namespace detail
 
 }  // namespace detray

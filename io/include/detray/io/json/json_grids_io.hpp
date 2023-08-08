@@ -12,7 +12,7 @@
 #include "detray/io/common/payloads.hpp"
 #include "detray/io/json/json.hpp"
 #include "detray/io/json/json_algebra_io.hpp"
-#include "detray/io/json/json_geometry_io.hpp"
+#include "detray/io/json/json_common_io.hpp"
 
 // System include(s).
 #include <array>
@@ -21,23 +21,26 @@
 
 namespace detray {
 
-void to_json(nlohmann::ordered_json& j, const grid_header_payload& h) {
-    j["version"] = h.version;
-    j["detector"] = h.detector;
-    j["date"] = h.date;
-    j["tag"] = h.tag;
-    j["no. grids"] = h.n_grids;
+inline void to_json(nlohmann::ordered_json& j, const grid_header_payload& h) {
+    j["common"] = h.common;
+
+    if (h.sub_header.has_value()) {
+        const auto& grid_sub_header = h.sub_header.value();
+        j["grid_count"] = grid_sub_header.n_grids;
+    }
 }
 
-void from_json(const nlohmann::ordered_json& j, grid_header_payload& h) {
-    h.version = j["version"];
-    h.detector = j["detector"];
-    h.date = j["date"];
-    h.tag = j["tag"];
-    h.n_grids = j["no. grids"];
+inline void from_json(const nlohmann::ordered_json& j, grid_header_payload& h) {
+    h.common = j["common"];
+
+    if (j.find("grid_count") != j.end()) {
+        h.sub_header.emplace();
+        auto& grid_sub_header = h.sub_header.value();
+        grid_sub_header.n_grids = j["grid_count"];
+    }
 }
 
-void to_json(nlohmann::ordered_json& j, const axis_payload& a) {
+inline void to_json(nlohmann::ordered_json& j, const axis_payload& a) {
     j["label"] = static_cast<unsigned int>(a.label);
     j["bounds"] = static_cast<unsigned int>(a.bounds);
     j["binning"] = static_cast<unsigned int>(a.binning);
@@ -45,7 +48,7 @@ void to_json(nlohmann::ordered_json& j, const axis_payload& a) {
     j["edges"] = a.edges;
 }
 
-void from_json(const nlohmann::ordered_json& j, axis_payload& a) {
+inline void from_json(const nlohmann::ordered_json& j, axis_payload& a) {
     a.binning = static_cast<n_axis::binning>(j["binning"]);
     a.bounds = static_cast<n_axis::bounds>(j["bounds"]);
     a.label = static_cast<n_axis::label>(j["label"]);
@@ -53,19 +56,19 @@ void from_json(const nlohmann::ordered_json& j, axis_payload& a) {
     a.edges = j["edges"].get<std::vector<real_io>>();
 }
 
-void to_json(nlohmann::ordered_json& j, const grid_bin_payload& g) {
+inline void to_json(nlohmann::ordered_json& j, const grid_bin_payload& g) {
     j["loc_index"] = g.loc_index;
     j["content"] = g.content;
 }
 
-void from_json(const nlohmann::ordered_json& j, grid_bin_payload& g) {
+inline void from_json(const nlohmann::ordered_json& j, grid_bin_payload& g) {
     g.loc_index = j["loc_index"].get<std::vector<unsigned int>>();
     g.content = j["content"].get<std::vector<std::size_t>>();
 }
 
-void to_json(nlohmann::ordered_json& j, const grid_payload& g) {
-    j["type"] = static_cast<unsigned int>(g.type);
-    j["index"] = g.index;
+inline void to_json(nlohmann::ordered_json& j, const grid_payload& g) {
+    j["volume_link"] = g.volume_link;
+    j["acc_link"] = g.acc_link;
 
     nlohmann::ordered_json jaxes;
     for (const auto& a : g.axes) {
@@ -78,11 +81,15 @@ void to_json(nlohmann::ordered_json& j, const grid_payload& g) {
         jbins.push_back(bin);
     }
     j["bins"] = jbins;
+
+    if (g.transform.has_value()) {
+        j["transform"] = g.transform.value();
+    }
 }
 
-void from_json(const nlohmann::ordered_json& j, grid_payload& g) {
-    g.type = static_cast<grid_payload::grid_type>(j["type"]);
-    g.index = j["index"];
+inline void from_json(const nlohmann::ordered_json& j, grid_payload& g) {
+    g.volume_link = j["volume_link"];
+    g.acc_link = j["acc_link"];
 
     nlohmann::ordered_json jaxes = j["axes"];
     for (auto jax : jaxes) {
@@ -95,65 +102,15 @@ void from_json(const nlohmann::ordered_json& j, grid_payload& g) {
         grid_bin_payload b = jbin;
         g.bins.push_back(std::move(b));
     }
-}
 
-void to_json(nlohmann::ordered_json& j, const grid_objects_payload& g) {
-    j["grid"] = g.grid;
-    if (g.transform.has_value()) {
-        j["transform"] = g.transform.value();
-    }
-}
-
-void from_json(const nlohmann::ordered_json& j, grid_objects_payload& g) {
-    g.grid = j["grid"];
     if (j.find("transform") != j.end()) {
+        g.transform.emplace();
         g.transform = j["transform"];
     }
 }
 
-void to_json(nlohmann::ordered_json& j, const links_payload& l) {
-    nlohmann::ordered_json js;
-    for (const auto& so : l.single_links) {
-        js.push_back(so);
-    }
-    j["single_links"] = js;
-    if (l.grid_links.has_value()) {
-        j["grid_links"] = l.grid_links.value();
-    }
-}
-
-void from_json(const nlohmann::ordered_json& j, links_payload& l) {
-    nlohmann::ordered_json jsl = j["single_links"];
-    for (auto jl : jsl) {
-        single_link_payload sl = jl;
-        l.single_links.push_back(sl);
-    }
-    if (j.find("grid_links") != j.end()) {
-        l.grid_links = j["grid_links"];
-    }
-}
-
-void to_json(nlohmann::ordered_json& j, const detector_payload& d) {
-    if (not d.volumes.empty()) {
-        nlohmann::ordered_json jvolumes;
-        for (const auto& v : d.volumes) {
-            jvolumes.push_back(v);
-        }
-        j["volumes"] = jvolumes;
-        j["volume_grid"] = d.volume_grid;
-    }
-}
-
-void from_json(const nlohmann::ordered_json& j, detector_payload& d) {
-    if (j.find("volumes") != j.end()) {
-        for (auto jvolume : j["volumes"]) {
-            d.volumes.push_back(jvolume);
-        }
-        d.volume_grid = j["volume_grid"];
-    }
-}
-
-void to_json(nlohmann::ordered_json& j, const detector_grids_payload& d) {
+inline void to_json(nlohmann::ordered_json& j,
+                    const detector_grids_payload& d) {
     if (not d.grids.empty()) {
         nlohmann::ordered_json jgrids;
         for (const auto& gr : d.grids) {
@@ -163,7 +120,8 @@ void to_json(nlohmann::ordered_json& j, const detector_grids_payload& d) {
     }
 }
 
-void from_json(const nlohmann::ordered_json& j, detector_grids_payload& d) {
+inline void from_json(const nlohmann::ordered_json& j,
+                      detector_grids_payload& d) {
     if (j.find("grids") != j.end()) {
         for (auto jgrid : j["grids"]) {
             grid_payload grp = jgrid;

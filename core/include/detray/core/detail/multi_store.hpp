@@ -173,6 +173,18 @@ class multi_store {
             .empty();
     }
 
+    /// @returns true if every collection in container is empty.
+    template <std::size_t current_idx = 0>
+    DETRAY_HOST_DEVICE constexpr bool all_empty(const context_type &ctx = {},
+                                                bool is_empty = true) const {
+        is_empty &= empty<value_types::to_id(current_idx)>(ctx);
+
+        if constexpr (current_idx < sizeof...(Ts) - 1) {
+            return all_empty<current_idx + 1>(ctx, is_empty);
+        }
+        return is_empty;
+    }
+
     /// Removes and destructs all elements in a specific collection.
     template <ID id>
     DETRAY_HOST void clear(const context_type & /*ctx*/) {

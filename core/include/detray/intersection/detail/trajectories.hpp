@@ -332,6 +332,18 @@ class helix {
         return ret;
     }
 
+    /// Print
+    DETRAY_HOST
+    friend std::ostream &operator<<(std::ostream &os, const helix &h) {
+        os << "helix: ";
+        os << "ori = [" << h._pos[0] << ", " << h._pos[1] << ", " << h._pos[2]
+           << "], ";
+        os << "dir = [" << h._t0[0] << ", " << h._t0[1] << ", " << h._t0[2]
+           << "]" << std::endl;
+
+        return os;
+    }
+
     /// origin
     point3 _pos;
 

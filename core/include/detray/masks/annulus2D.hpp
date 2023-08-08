@@ -9,6 +9,7 @@
 
 // Project include(s)
 #include "detray/coordinates/polar2.hpp"
+#include "detray/definitions/containers.hpp"
 #include "detray/definitions/math.hpp"
 #include "detray/definitions/qualifiers.hpp"
 #include "detray/definitions/units.hpp"
@@ -19,6 +20,7 @@
 // System include(s)
 #include <cmath>
 #include <limits>
+#include <ostream>
 #include <string>
 
 namespace detray {
@@ -127,8 +129,8 @@ class annulus2D {
     template <template <typename, std::size_t> class bounds_t,
               typename scalar_t, std::size_t kDIM,
               typename std::enable_if_t<kDIM == e_size, bool> = true>
-    DETRAY_HOST_DEVICE std::array<scalar_t, 8> stereo_angle(
-        const bounds_t<scalar_t, kDIM>& bounds) const {
+    DETRAY_HOST_DEVICE darray<scalar_t, 8> stereo_angle(
+        const bounds_t<scalar_t, kDIM> &bounds) const {
         // Half stereo angle (phi_s / 2) (y points in the long strip direction)
         return 2.f * math_ns::atan(bounds[e_shift_y] / bounds[e_shift_x]);
     }
@@ -148,7 +150,7 @@ class annulus2D {
               typename scalar_t, std::size_t kDIM, typename point_t,
               typename std::enable_if_t<kDIM == e_size, bool> = true>
     DETRAY_HOST_DEVICE inline bool check_boundaries(
-        const bounds_t<scalar_t, kDIM>& bounds, const point_t& loc_p,
+        const bounds_t<scalar_t, kDIM> &bounds, const point_t &loc_p,
         const scalar_t tol = std::numeric_limits<scalar_t>::epsilon()) const {
 
         // The two quantities to check: r^2 in beam system, phi in focal system:
@@ -197,8 +199,8 @@ class annulus2D {
               template <typename, std::size_t> class bounds_t,
               typename scalar_t, std::size_t kDIM,
               typename std::enable_if_t<kDIM == e_size, bool> = true>
-    DETRAY_HOST_DEVICE std::array<scalar_t, 6> local_min_bounds(
-        const bounds_t<scalar_t, kDIM>& bounds,
+    DETRAY_HOST_DEVICE darray<scalar_t, 6> local_min_bounds(
+        const bounds_t<scalar_t, kDIM> &bounds,
         const scalar_t env = std::numeric_limits<scalar_t>::epsilon()) const {
 
         using point_t = typename algebra_t::point2;
@@ -221,12 +223,12 @@ class annulus2D {
         const point_t t = bounds[e_max_r] * vector::normalize(c + b);
 
         // Find the min/max positions in x and y
-        std::array<scalar_t, 5> x_pos{
-            c_pos[2] * math_ns::cos(c_pos[3]) - o_x, b[0], c[0],
-            c_pos[0] * math_ns::cos(c_pos[1]) - o_x, t[0]};
-        std::array<scalar_t, 5> y_pos{
-            c_pos[2] * math_ns::sin(c_pos[3]) - o_y, b[1], c[1],
-            c_pos[0] * math_ns::sin(c_pos[1]) - o_y, t[1]};
+        darray<scalar_t, 5> x_pos{c_pos[2] * math_ns::cos(c_pos[3]) - o_x, b[0],
+                                  c[0], c_pos[0] * math_ns::cos(c_pos[1]) - o_x,
+                                  t[0]};
+        darray<scalar_t, 5> y_pos{c_pos[2] * math_ns::sin(c_pos[3]) - o_y, b[1],
+                                  c[1], c_pos[0] * math_ns::sin(c_pos[1]) - o_y,
+                                  t[1]};
 
         constexpr scalar_t inf{std::numeric_limits<scalar_t>::infinity()};
         scalar_t min_x{inf}, min_y{inf}, max_x{-inf}, max_y{-inf};
@@ -252,8 +254,8 @@ class annulus2D {
     template <template <typename, std::size_t> class bounds_t,
               typename scalar_t, std::size_t kDIM,
               typename std::enable_if_t<kDIM == e_size, bool> = true>
-    DETRAY_HOST_DEVICE std::array<scalar_t, 8> corners(
-        const bounds_t<scalar_t, kDIM>& bounds) const {
+    DETRAY_HOST_DEVICE darray<scalar_t, 8> corners(
+        const bounds_t<scalar_t, kDIM> &bounds) const {
 
         // Calculate the r-coordinate of a point in the strip system from the
         // circle arc radius (e.g. min_r) and the phi position in the strip
@@ -277,7 +279,7 @@ class annulus2D {
         // Calculate the polar coordinates for the corners
         const scalar_t min_phi{bounds[e_average_phi] + bounds[e_min_phi_rel]};
         const scalar_t max_phi{bounds[e_average_phi] + bounds[e_max_phi_rel]};
-        std::array<scalar_t, 8> corner_pos;
+        darray<scalar_t, 8> corner_pos;
         // bottom left: min_r, min_phi_rel
         corner_pos[0] = get_strips_pc_r(bounds[e_min_r], min_phi);
         corner_pos[1] = min_phi;
@@ -314,6 +316,48 @@ class annulus2D {
         point3_t v3 = {c[4], c[4], z};
         point3_t v4 = {c[6], c[7], z};
         return {v1, v2, v4, v3};
+        }
+        
+    /// @brief Check consistency of boundary values.
+    ///
+    /// @param bounds the boundary values for this shape
+    /// @param os output stream for error messages
+    ///
+    /// @return true if the bounds are consistent.
+    template <template <typename, std::size_t> class bounds_t,
+              typename scalar_t, std::size_t kDIM,
+              typename std::enable_if_t<kDIM == e_size, bool> = true>
+    DETRAY_HOST constexpr bool check_consistency(
+        const bounds_t<scalar_t, kDIM> &bounds, std::ostream &os) const {
+
+        constexpr auto tol{10.f * std::numeric_limits<scalar_t>::epsilon()};
+
+        if (std::signbit(bounds[e_min_r]) or bounds[e_max_r] < tol) {
+            os << "ERROR: Radial bounds must be in the range [0, numeric_max)";
+            return false;
+        }
+        if (bounds[e_min_r] >= bounds[e_max_r] or
+            std::abs(bounds[e_min_r] - bounds[e_max_r]) < tol) {
+            os << "ERROR: Min radius must be smaller than max radius.";
+            return false;
+        }
+        if ((bounds[e_min_phi_rel] < -constant<scalar_t>::pi or
+             bounds[e_min_phi_rel] > constant<scalar_t>::pi) or
+            (bounds[e_max_phi_rel] < -constant<scalar_t>::pi or
+             bounds[e_max_phi_rel] > constant<scalar_t>::pi) or
+            (bounds[e_average_phi] < -constant<scalar_t>::pi or
+             bounds[e_average_phi] > constant<scalar_t>::pi)) {
+            os << "ERROR: Angles must map onto [-pi, pi] range.";
+            return false;
+        }
+        if (bounds[e_min_phi_rel] >= bounds[e_max_phi_rel] or
+            std::abs(bounds[e_min_phi_rel] - bounds[e_max_phi_rel]) < tol) {
+            os << "ERROR: Min relative angle must be smaller than max relative "
+                  "angle.";
+            return false;
+        }
+
+        return true;
     }
 };
 
