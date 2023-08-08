@@ -74,7 +74,9 @@ struct object_tracer {
     }
 
     /// @returns a specific candidate from the trace
-    auto operator[](std::size_t i) { return object_trace[i]; }
+    const candidate_t &operator[](std::size_t i) const {
+        return object_trace[i];
+    }
 
     /// Compares a navigation status with the tracers references
     bool is_status(const status &nav_stat, const status &ref_stat) {
@@ -98,7 +100,7 @@ struct print_inspector {
         debug_stream << msg << std::endl;
 
         debug_stream << "Volume" << tabs << state.volume() << std::endl;
-        debug_stream << "No. reachable\t\t" << state.n_candidates()
+        debug_stream << "No. reachable\t\t\t" << state.n_candidates()
                      << std::endl;
 
         debug_stream << "Surface candidates: " << std::endl;

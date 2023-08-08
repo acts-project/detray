@@ -88,7 +88,7 @@ inline bool check_connectivity(
         // Get the next record
         get_connected_record = [&](index_t next) -> records_iterator_t {
             auto rec = trace.begin() + next;
-            // Make sure that the record conatins the volume that is currently
+            // Make sure that the record contains the volume that is currently
             // being checked for connectivity
             if ((std::get<1>(rec->first) == current_volume) or
                 (std::get<1>(rec->second) == current_volume)) {

@@ -474,7 +474,7 @@ class navigator {
         navigation::direction m_direction = navigation::direction::e_forward;
 
         /// The on object tolerance - permille
-        scalar_type m_on_object_tolerance{1e-3f};
+        scalar_type m_on_object_tolerance{1.f * unit<scalar_type>::um};
 
         /// The navigation trust level determines how this states cache is to
         /// be updated in the current navigation call

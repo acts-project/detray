@@ -16,10 +16,6 @@ macro( detray_add_cpu_test algebra )
    # Build the test executable.
    detray_add_test( cpu_${algebra}
       "axis_rotation.cpp"
-      "check_geometry_linking.cpp"
-      "check_geometry_navigation.cpp"
-      "check_geometry_scan.cpp"
-      "check_simulation.cpp"
       "coordinate_cartesian2.cpp"
       "coordinate_cartesian3.cpp"
       "coordinate_cylindrical2.cpp"

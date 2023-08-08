@@ -21,10 +21,10 @@ target_link_libraries( detray_test INTERFACE
 unset( _detray_test_headers )
 
 # Include all of the code-holding sub-directories.
-add_subdirectory( common )
-add_subdirectory( checks )
-add_subdirectory( unit_tests )
-add_subdirectory( simulation )
 if( DETRAY_BENCHMARKS )
    add_subdirectory( benchmarks )
 endif()
+add_subdirectory( common )
+add_subdirectory( simulation )
+add_subdirectory( unit_tests )
+add_subdirectory( validation )

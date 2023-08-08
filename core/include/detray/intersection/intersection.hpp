@@ -100,10 +100,10 @@ struct intersection2D {
     friend std::ostream &operator<<(std::ostream &out_stream,
                                     const intersection2D &is) {
         out_stream << "dist:" << is.path
-                   << "\tsurface: " << is.sf_desc.barcode() << ", loc ["
-                   << is.local[0] << ", " << is.local[1] << ", " << is.local[2]
-                   << "]"
-                   << ", links to vol:" << is.volume_link << ")";
+                   << "\tsurface: " << is.sf_desc.barcode()
+                   << ", links to vol:" << is.volume_link << ")"
+                   << ", loc [" << is.local[0] << ", " << is.local[1] << ", "
+                   << is.local[2] << "], ";
 
         switch (is.status) {
             case intersection::status::e_outside:
@@ -130,8 +130,6 @@ struct intersection2D {
                 out_stream << ", direction: along";
                 break;
         };
-        out_stream << ", loc: [" << is.local[0] << ", " << is.local[1] << ", "
-                   << is.local[2] << "]";
 
         return out_stream;
     }
