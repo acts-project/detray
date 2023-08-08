@@ -219,8 +219,9 @@ struct surface_kernels {
 
         template <typename mask_group_t, typename index_t, typename scalar_t>
         DETRAY_HOST_DEVICE inline auto operator()(
-            const mask_group_t& mask_group, const index_t& index, const scalar_t env =
-                              std::numeric_limits<scalar_t>::epsilon()) const {
+            const mask_group_t& mask_group, const index_t& index,
+            const scalar_t env =
+                std::numeric_limits<scalar_t>::epsilon()) const {
 
             const auto& m = mask_group[index];
 

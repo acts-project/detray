@@ -343,8 +343,7 @@ class detector {
 
     /// @return the surface by @param surface_index - non-const access
     DETRAY_HOST_DEVICE
-    inline auto surface_by_index(dindex surface_index)
-        -> surface<detector> {
+    inline auto surface_by_index(dindex surface_index) -> surface<detector> {
         return detray::surface{*this, _surface_lookup[surface_index]};
     }
 

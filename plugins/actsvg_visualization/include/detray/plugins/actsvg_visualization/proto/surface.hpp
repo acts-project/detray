@@ -2,8 +2,8 @@
 
 // Project include(s)
 #include "detray/geometry/surface.hpp"
-#include "detray/plugins/actsvg_visualization/proto/utils/surface_functors.hpp"
 #include "detray/plugins/actsvg_visualization/proto/conversion_types.hpp"
+#include "detray/plugins/actsvg_visualization/proto/utils/surface_functors.hpp"
 
 namespace detray::actsvg_visualization::proto {
 
@@ -12,15 +12,15 @@ namespace detray::actsvg_visualization::proto {
 /// @param d_surface The detray surface.
 /// @param context The context.
 ///
-/// @note The transform is not taken into account for objects such as rings, cylinders etc (not implemented yet).
+/// @note The transform is not taken into account for objects such as rings,
+/// cylinders etc (not implemented yet).
 ///
 /// @returns An actsvg proto surface representing the surface.
 template <typename detector_t>
-auto surface(
-    const typename detector_t::geometry_context& context,
-    const detray::surface<detector_t>& d_surface
-    ) {
-    return d_surface.template visit_mask<utils::to_proto_surface_functor>(context, d_surface);
+auto surface(const typename detector_t::geometry_context& context,
+             const detray::surface<detector_t>& d_surface) {
+    return d_surface.template visit_mask<utils::to_proto_surface_functor>(
+        context, d_surface);
 }
 
-}  // namespace detray::actsvg_visualization
+}  // namespace detray::actsvg_visualization::proto

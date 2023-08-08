@@ -113,7 +113,7 @@ class unmasked {
     DETRAY_HOST inline point3_container_t local_vertices(
         const bounds_t<scalar_t, kDIM>& /*bounds*/) const {
         return {};
-        }
+    }
 
     /// @brief Check consistency of boundary values.
     ///

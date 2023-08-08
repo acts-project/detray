@@ -152,8 +152,8 @@ class cuboid3D {
         point3_t v7 = {bounds[e_max_x], bounds[e_max_y], bounds[e_min_z]};
         point3_t v8 = {bounds[e_max_x], bounds[e_max_y], bounds[e_max_z]};
         return {v1, v2, v4, v3, v7, v8, v6, v5};
-        }
-        
+    }
+
     /// @brief Check consistency of boundary values.
     ///
     /// @param bounds the boundary values for this shape

@@ -137,7 +137,7 @@ class rectangle2D {
               typename scalar_t, std::size_t kDIM,
               typename std::enable_if_t<kDIM == e_size, bool> = true>
     DETRAY_HOST inline point3_container_t local_vertices(
-        const bounds_t<scalar_t, kDIM>& bounds) const {
+        const bounds_t<scalar_t, kDIM> &bounds) const {
         using point3_t = typename point3_container_t::value_type;
         scalar_t z{0};
         point3_t v1 = {bounds[e_half_x], bounds[e_half_y], z};
@@ -146,7 +146,7 @@ class rectangle2D {
         point3_t v4 = {-bounds[e_half_x], bounds[e_half_y], z};
         return {v1, v2, v3, v4};
     }
-    
+
     /// @brief Check consistency of boundary values.
     ///
     /// @param bounds the boundary values for this shape

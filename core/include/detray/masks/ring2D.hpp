@@ -139,7 +139,7 @@ class ring2D {
               typename scalar_t, std::size_t kDIM,
               typename std::enable_if_t<kDIM == e_size, bool> = true>
     DETRAY_HOST inline point3_container_t local_vertices(
-        const bounds_t<scalar_t, kDIM>&) const {
+        const bounds_t<scalar_t, kDIM> &) const {
         return {};
     }
 

@@ -307,7 +307,7 @@ class annulus2D {
               typename scalar_t, std::size_t kDIM,
               typename std::enable_if_t<kDIM == e_size, bool> = true>
     DETRAY_HOST inline point3_container_t local_vertices(
-        const bounds_t<scalar_t, kDIM>& bounds) const {
+        const bounds_t<scalar_t, kDIM> &bounds) const {
         using point3_t = typename point3_container_t::value_type;
         scalar_t z{0};
         const auto c = corners(bounds);
@@ -316,8 +316,8 @@ class annulus2D {
         point3_t v3 = {c[4], c[4], z};
         point3_t v4 = {c[6], c[7], z};
         return {v1, v2, v4, v3};
-        }
-        
+    }
+
     /// @brief Check consistency of boundary values.
     ///
     /// @param bounds the boundary values for this shape

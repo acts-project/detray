@@ -151,7 +151,7 @@ class trapezoid2D {
               typename scalar_t, std::size_t kDIM,
               typename std::enable_if_t<kDIM == e_size, bool> = true>
     DETRAY_HOST inline point3_container_t local_vertices(
-        const bounds_t<scalar_t, kDIM>& bounds) const {
+        const bounds_t<scalar_t, kDIM> &bounds) const {
         using point3_t = typename point3_container_t::value_type;
         const scalar_t z{0};
         point3_t v1 = {bounds[e_half_length_1], bounds[e_half_length_2], z};
