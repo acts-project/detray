@@ -1,4 +1,5 @@
 // Project include(s)
+#include "detray/core/detector.hpp"
 #include "detray/detectors/create_toy_geometry.hpp"
 #include "detray/plugins/actsvg_visualization/svg.hpp"
 
@@ -7,14 +8,10 @@
 
 // Actsvg include(s)
 #include "actsvg/core.hpp"
-#include "actsvg/core/defs.hpp"
-#include "actsvg/display/geometry.hpp"
-#include "actsvg/meta.hpp"
 
 // System include(s)
 #include <array>
 #include <string>
-#include <vector>
 
 int main(int, char**) {
 

@@ -145,22 +145,6 @@ class rectangle2D {
         return {v1, v2, v3, v4};
     }
     
-    /// @brief Finds the shape's nearest point to the given point.
-    ///
-    /// @param bounds the boundary values for this shape.
-    /// @param loc_p the point in the local coordinate system.
-    ///
-    /// @returns the nearest point in the local_coordinate system.
-        template <template <typename, std::size_t> class bounds_t,
-              typename scalar_t, std::size_t kDIM, typename point_t,
-              typename std::enable_if_t<kDIM == e_size, bool> = true>
-    DETRAY_HOST inline point_t nearest_point(
-        const bounds_t<scalar_t, kDIM>& bounds, const point_t& loc_p) const {
-            const scalar_t x = std::clamp(loc_p[0], -bounds[e_half_x], bounds[e_half_x]);
-            const scalar_t y = std::clamp(loc_p[1], -bounds[e_half_y], bounds[e_half_y]);
-            const scalar_t z = scalar_t{0};
-            return point_t{x, y, z};
-    }
 };
 
 }  // namespace detray

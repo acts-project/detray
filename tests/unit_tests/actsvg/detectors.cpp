@@ -1,33 +1,17 @@
 // Project include(s)
 #include "detray/core/detector.hpp"
-#include "detray/definitions/indexing.hpp"
-#include "detray/definitions/qualifiers.hpp"
 #include "detray/detectors/create_toy_geometry.hpp"
-#include "detray/geometry/surface.hpp"
-#include "detray/io/common/detail/file_handle.hpp"
-#include "detray/io/common/detector_writer.hpp"
-#include "detray/masks/cylinder2D.hpp"
-#include "detray/masks/masks.hpp"
 #include "detray/plugins/actsvg_visualization/svg.hpp"
-#include "detray/tracks/tracks.hpp"
 
 // Vecmem include(s)
 #include <vecmem/memory/host_memory_resource.hpp>
 
 // Actsvg include(s)
 #include "actsvg/core.hpp"
-#include "actsvg/core/defs.hpp"
-#include "actsvg/display/geometry.hpp"
-#include "actsvg/meta.hpp"
-#include "actsvg/proto/surface.hpp"
 
 // System include(s)
 #include <array>
-#include <fstream>
-#include <iostream>
 #include <string>
-#include <type_traits>
-#include <vector>
 
 int main(int, char**) {
 

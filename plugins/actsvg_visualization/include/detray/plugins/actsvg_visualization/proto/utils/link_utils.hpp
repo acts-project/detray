@@ -4,16 +4,10 @@
 #include "detray/geometry/surface.hpp"
 #include "detray/plugins/actsvg_visualization/proto/utils/surface_functors.hpp"
 #include "detray/utils/invalid_values.hpp"
-#include "detray/definitions/math.hpp"
-
-
-// Actsvg include(s)
-#include "actsvg/meta.hpp"
-#include "actsvg/core.hpp"
 
 // System include(s)
 #include <assert.h>
-#include <cmath>
+#include <tuple>
 
 namespace detray::actsvg_visualization::proto::utils {
 
@@ -23,6 +17,7 @@ inline auto has_link(const detray::surface<detector_t>& d_portal){
     const auto d_link_idx = d_portal.template visit_mask<get_link_functor>();
     return !is_invalid_value(d_link_idx);
 }
+
 /// @note expects that the detray surface has a volume link.
 /// @returns the volume link of the detray surface.
 template <typename detector_t>
@@ -33,7 +28,7 @@ inline auto get_link_volume(const detector_t& detector, const detray::surface<de
 }
 
 /// @brief Calculates the start and end point of the link.
-/// @note expects that the detray surface has a volume link.
+/// @note The detray surface must have a volume link.
 /// @returns (start, end).
 template <typename detector_t>
 inline auto link_points(const typename detector_t::geometry_context& context, const detector_t& detector, const detray::surface<detector_t>& d_portal, typename detector_t::point3 dir, const double link_length)

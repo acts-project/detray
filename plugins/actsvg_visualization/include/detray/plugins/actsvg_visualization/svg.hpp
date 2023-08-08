@@ -1,7 +1,6 @@
 #pragma once
 
 // Project include(s)
-#include "detray/definitions/units.hpp"
 #include "detray/geometry/surface.hpp"
 #include "detray/plugins/actsvg_visualization/proto/surface.hpp"
 #include "detray/plugins/actsvg_visualization/proto/volume.hpp"
@@ -9,12 +8,7 @@
 #include "detray/io/common/detail/file_handle.hpp"
 #include "detray/io/common/detector_writer.hpp"
 
-// Actsvg include(s)
-#include "actsvg/meta.hpp"
-#include "actsvg/proto/surface.hpp"
-
 // System include(s)
-#include <type_traits>
 #include <vector>
 
 namespace detray::actsvg_visualization {
@@ -75,7 +69,7 @@ class svg_converter{
         return svg_volumes(identification, context, indices, _xy_view);
     }
 
-    /// @brief Converts a detray surface detector to an actsvg svg.
+    /// @brief Converts a detray detector to an actsvg svg.
     /// @param identification the id of the svg object.
     /// @param context the geometry context.
     /// @param detector the detector.
@@ -126,7 +120,7 @@ class svg_converter{
         return svg_volumes(identification, context, indices, _zr_view);
     }
 
-    /// @brief Converts a detray surface detector to an actsvg svg.
+    /// @brief Converts a detray detector to an actsvg svg.
     /// @param identification the id of the svg object.
     /// @param context the geometry context.
     /// @param detector the detector.
@@ -137,6 +131,7 @@ class svg_converter{
 
     private:
 
+    // Converts a detray surface detector to an actsvg svg.
     template <typename view_t>
     inline auto svg_surface(const std::string& identification, const typename detector_t::geometry_context& context, const size_t index, const view_t& view) const {
         const auto surface = _detector.surface_by_index(static_cast<detray::dindex>(index));
@@ -151,6 +146,7 @@ class svg_converter{
         return actsvg::display::surface(identification, p_surface, view);
     }
 
+    // Converts a collection of detray surfaces to an actsvg svg.
     template <typename iterator_t, typename view_t>
     inline auto svg_surfaces(const std::string& identification, const typename detector_t::geometry_context& context, const iterator_t& indices, const view_t& view) const {
         actsvg::svg::object ret;
@@ -163,6 +159,7 @@ class svg_converter{
         return ret;
     }
 
+    // Converts a detray volume to an actsvg svg.
     template <typename view_t>
     inline auto svg_volume(const std::string& identification, const typename detector_t::geometry_context& context, const size_t index, const view_t& view) const {
         const auto volume = _detector.volume_by_index(static_cast<detray::dindex>(index));
@@ -171,6 +168,7 @@ class svg_converter{
         return actsvg::display::volume(identification, p_volume, view);
     }
 
+    // Converts a collection of detray volumes to an actsvg svg.
     template <typename iterator_t, typename view_t>
     inline auto svg_volumes(const std::string& identification, const typename detector_t::geometry_context& context, const iterator_t& indices, const view_t& view) const {
         actsvg::svg::object ret;
@@ -183,6 +181,7 @@ class svg_converter{
         return ret;
     }
 
+    // Converts a detray detector to an actsvg svg.
     template <typename view_t>
     inline auto svg(const std::string& identification, const typename detector_t::geometry_context& context, const view_t& view) const {
         actsvg::svg::object ret;

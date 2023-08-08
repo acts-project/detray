@@ -1,18 +1,9 @@
 #pragma once
 
 // Project include(s)
-#include "detray/definitions/units.hpp"
 #include "detray/geometry/surface.hpp"
 #include "detray/plugins/actsvg_visualization/proto/utils/surface_functors.hpp"
 #include "detray/plugins/actsvg_visualization/proto/conversion_types.hpp"
-
-// Actsvg include(s)
-#include "actsvg/meta.hpp"
-#include "actsvg/proto/surface.hpp"
-
-// System include(s)
-#include <type_traits>
-#include <vector>
 
 namespace detray::actsvg_visualization::proto {
 

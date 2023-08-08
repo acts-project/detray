@@ -1,10 +1,15 @@
 #pragma once
 
 // Actsvg include(s)
+#include "actsvg/core/defs.hpp"
 #include "actsvg/proto/surface.hpp"
 #include "actsvg/proto/portal.hpp"
 #include "actsvg/proto/volume.hpp"
 #include "actsvg/proto/detector.hpp"
+
+// System include(s)
+#include <array>
+#include <vector>
 
 namespace detray::actsvg_visualization::proto {
 

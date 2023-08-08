@@ -3,13 +3,8 @@
 // Project include(s)
 #include "detray/geometry/surface.hpp"
 #include "detray/plugins/actsvg_visualization/proto/conversion_types.hpp"
-#include "detray/plugins/actsvg_visualization/proto/utils/surface_utils.hpp"
 #include "detray/plugins/actsvg_visualization/proto/utils/transform_utils.hpp"
 #include "detray/definitions/units.hpp"
-
-// Actsvg include(s)
-#include "actsvg/meta.hpp"
-#include "actsvg/core.hpp"
 
 // System include(s)
 #include <optional>
@@ -125,7 +120,7 @@ struct link_start_functor {
         const auto rel_point = frame.local_to_global(transform, point3_t{r*phi, z, r}) - transform.translation();
         return rel_point + true_center;
     }
-    
+
 };
 
 /// @brief Functor to calculate the outermost radius a shape.

@@ -231,16 +231,6 @@ class mask {
         return _shape.template local_vertices<point3_container_t>(_values);
     }
 
-    /// @brief Finds the shape's nearest point to the given point.
-    ///
-    /// @param bounds the boundary values for this shape.
-    /// @param loc_p the point in the local coordinate system.
-    ///
-    /// @returns the nearest point in the local_coordinate system.
-    DETRAY_HOST inline auto nearest_point(const point3_t& local_point) const {
-            return _shape.template nearest_point(_values, local_point);
-    }
-
     /// @brief Calculates the center of the min bounds bounding box.
     /// @returns The center point in global cartesian coordinates.
     template <typename transform3_t>

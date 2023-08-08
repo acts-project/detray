@@ -141,22 +141,6 @@ class ring2D {
         return {};
     }
 
-    /// @brief Finds the shape's nearest point to the given point.
-    ///
-    /// @param bounds the boundary values for this shape.
-    /// @param loc_p the point in the local coordinate system.
-    ///
-    /// @returns the nearest point in the local_coordinate system.
-        template <template <typename, std::size_t> class bounds_t,
-              typename scalar_t, std::size_t kDIM, typename point_t,
-              typename std::enable_if_t<kDIM == e_size, bool> = true>
-    DETRAY_HOST inline point_t nearest_point(
-        const bounds_t<scalar_t, kDIM>& bounds, const point_t& loc_p) const {
-            const auto r = std::clamp(loc_p[0], bounds[e_inner_r], bounds[e_outer_r]);
-            const auto phi = loc_p[1];
-            const scalar_t z{0};
-            return point_t{r, phi, z};
-    }
 };
 
 }  // namespace detray

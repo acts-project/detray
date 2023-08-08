@@ -1,11 +1,13 @@
 #pragma once
 
 // Project include(s)
-#include "detray/plugins/actsvg_visualization/proto/surface.hpp"
-#include "detray/plugins/actsvg_visualization/proto/volume.hpp"
+#include "detray/plugins/actsvg_visualization/proto/conversion_types.hpp"
+
+// Actsvg include(s)
+#include "actsvg/core.hpp"
 
 // System include(s)
-#include <assert.h>
+#include <cstdlib>
 #include <vector>
 
 namespace detray::actsvg_visualization::styling {
@@ -23,7 +25,7 @@ namespace colors{
 /// @brief Picks a random element in the container.
 template <typename container_t>
 auto pick_random(container_t container){
-    int idx = rand() % container.size();
+    int idx = std::rand() % container.size();
     return container[idx];
 }
 

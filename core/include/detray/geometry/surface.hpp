@@ -241,13 +241,6 @@ class surface {
         return visit_mask<typename kernels::local_vertices>();
     }
 
-    /// @param local_point the point in the local coordinate system.
-    /// @returns the closest point on the surface in the local coordinate system.
-    DETRAY_HOST
-    constexpr auto closest_surface_point(point3 local_point) const {
-        return visit_mask<typename kernels::closest_surface_point>(local_point);
-    }
-
     /// @returns the vertices in global frame.
     DETRAY_HOST
     constexpr auto global_vertices(const context &ctx, const vector3 &dir) const {
