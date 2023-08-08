@@ -9,14 +9,14 @@
 
 // Project include(s)
 #include "detray/geometry/surface.hpp"
-#include "detray/plugins/svg/utils/surface_kernels.hpp"
+#include "detray/plugins/svgtools/utils/surface_kernels.hpp"
 #include "detray/utils/invalid_values.hpp"
 
 // System include(s)
 #include <cassert>
 #include <tuple>
 
-namespace detray::svg::utils {
+namespace detray::svgtools::utils {
 
 /// @brief Checks if the detray surface has a volume link.
 template <typename detector_t>
@@ -47,7 +47,7 @@ inline auto link_points(const typename detector_t::geometry_context& context,
     assert(is_not_world_portal(d_portal));
 
     // Calculating the start position:
-    const auto start = d_portal.template visit_mask<link_getter>(
+    const auto start = d_portal.template visit_mask<link_start_getter>(
         d_portal.transform(context));
 
     // Calculating the end position:

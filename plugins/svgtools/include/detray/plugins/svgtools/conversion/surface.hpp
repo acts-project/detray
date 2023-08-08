@@ -9,24 +9,17 @@
 
 // Project include(s)
 #include "detray/geometry/surface.hpp"
-#include "detray/plugins/svg/utils/corners.hpp"
+#include "detray/plugins/svgtools/utils/mask_utils.hpp"
+#include "detray/plugins/svgtools/conversion/point.hpp"
 
-namespace detray::svg::conversion {
+// Actsvg include(s)
+#include "actsvg/proto/surface.hpp"
 
-namespace{
-/// @brief A functor to set the proto surfaces type and bounds to be equivalent
-/// to the mask.
-template <typename point3_container_t>
-struct surface_getter {
-    template <typename mask_group_t, typename index_t, typename transform_t>
-    DETRAY_HOST inline auto operator()(
-        const mask_group_t& mask_group, const index_t& index,
-        const transform_t& transform) const {
-        const auto& m = mask_group[index];
-        return surface(transform, m);
-    }
-};
-}
+// System include(s)
+#include <algorithm>
+#include <iterator>
+
+namespace detray::svgtools::conversion {
 
 /// @brief Returns the proto surface for a shape.
 template <typename point3_container_t, typename transform_t, typename mask_t>
@@ -34,13 +27,14 @@ auto inline surface(
     const transform_t& transform, const mask_t& mask) {
 
     using point3_t = typename point3_container_t::value_type;
-    using p_surface_t = typename actsvg::proto::surface<point3_container_t>;
+    using p_surface_t = actsvg::proto::surface<point3_container_t>;
 
     p_surface_t p_surface;
     p_surface._type = p_surface_t::type::e_polygon;
 
-    const auto vertices = svg::utils::global_corners(transform, mask);
-    std::transform(vertices.cbegin(), vertices.cend(), std::back_inserter(p_surface._vertices), &svg::conversion::point<point3_t>);
+    const auto vertices = svgtools::utils::global_vertices(transform, mask);
+    // Set the p_surface vertices (casting needed).
+    std::transform(vertices.cbegin(), vertices.cend(), std::back_inserter(p_surface._vertices), &svgtools::conversion::point<point3_t, typename decltype(vertices)::value_type>);
     return p_surface;
 }
 
@@ -61,7 +55,7 @@ auto inline surface(
 
     using point3_t = typename point3_container_t::value_type;
     using scalar_t = typename point3_t::value_type;
-    using p_surface_t = typename actsvg::proto::surface<point3_container_t>;
+    using p_surface_t = actsvg::proto::surface<point3_container_t>;
 
     p_surface_t p_surface;
     const auto shape = mask.get_shape();
@@ -92,14 +86,14 @@ auto surface(const transform_t& transform,
     
     using point3_t = typename point3_container_t::value_type;
     using scalar_t = typename point3_t::value_type;
-    using p_surface_t = typename actsvg::proto::surface<point3_container_t>;
+    using p_surface_t = actsvg::proto::surface<point3_container_t>;
 
     p_surface_t p_surface;
 
     const auto shape = mask.get_shape();
     auto ri = static_cast<scalar_t>(mask[shape.e_inner_r]);
     auto ro = static_cast<scalar_t>(mask[shape.e_outer_r]);
-    auto center = svg::conversion::point<point3_t>(transform.translate());
+    auto center = svgtools::conversion::point<point3_t>(transform.translation());
 
     p_surface._type = p_surface_t::type::e_disc;
     p_surface._radii = {ri, ro};
@@ -124,22 +118,38 @@ auto inline surface(
 
     using point3_t = typename point3_container_t::value_type;
     using scalar_t = typename point3_t::value_type;
-    using p_surface_t = typename actsvg::proto::surface<point3_container_t>;
+    using p_surface_t = actsvg::proto::surface<point3_container_t>;
     
     p_surface_t p_surface;
     const auto shape = mask.get_shape();
 
     auto ri = static_cast<scalar_t>(mask[shape.e_min_r]);
     auto ro = static_cast<scalar_t>(mask[shape.e_max_r]);
-    auto center = svg::conversion::point<point3_t>(transform.translate());
+    auto center = svgtools::conversion::point<point3_t>(transform.translation());
 
     p_surface._type = p_surface_t::type::e_annulus;
     p_surface._radii = {ri, ro};
     p_surface._zparameters = {center[2], static_cast<scalar_t>(0)};
-    const auto vertices = svg::utils::global_corners(transform, mask);
-    std::transform(vertices.cbegin(), vertices.cend(), std::back_inserter(p_surface._vertices), &svg::conversion::point<point3_t>);
+    const auto vertices = svgtools::utils::global_vertices(transform, mask);
+    // Set the p_surface vertices (casting needed).
+    std::transform(vertices.cbegin(), vertices.cend(), std::back_inserter(p_surface._vertices), &svgtools::conversion::point<point3_t, typename decltype(vertices)::value_type>);
 
     return p_surface;
+}
+
+namespace{
+/// @brief A functor to set the proto surfaces type and bounds to be equivalent
+/// to the mask.
+template <typename point3_container_t>
+struct surface_getter {
+    template <typename mask_group_t, typename index_t, typename transform_t>
+    DETRAY_HOST inline auto operator()(
+        const mask_group_t& mask_group, const index_t& index,
+        const transform_t& transform) const {
+        const auto& m = mask_group[index];
+        return svgtools::conversion::surface<point3_container_t>(transform, m);
+    }
+};
 }
 
 /// @brief Calculates the proto surface of a surface.

@@ -9,14 +9,14 @@
 
 // Project include(s)
 #include "detray/geometry/surface.hpp"
-#include "detray/plugins/svg/conversion/link.hpp"
-#include "detray/plugins/svg/conversion/surface.hpp"
-#include "detray/plugins/svg/utils/link_utils.hpp"
+#include "detray/plugins/svgtools/conversion/link.hpp"
+#include "detray/plugins/svgtools/conversion/surface.hpp"
+#include "detray/plugins/svgtools/utils/link_utils.hpp"
 
 // Actsvg includes(s)
 #include "actsvg/proto/portal.hpp"
 
-namespace detray::svg::conversion {
+namespace detray::svgtools::conversion {
 
 /// @returns An actsvg proto portal representing the portal.
 /// @note detray portal is_portal() should be true.
@@ -27,10 +27,10 @@ auto portal(const typename detector_t::geometry_context& context,
     assert(d_portal.is_portal());
     using p_portal_t = actsvg::proto::portal<point3_container_t>;
     p_portal_t p_portal;
-    if (svg::utils::is_not_world_portal(d_portal)) {
-        p_portal._volume_links = {svg::conversion::link<point3_container_t>(context, detector, d_portal)};
+    if (svgtools::utils::is_not_world_portal(d_portal)) {
+        p_portal._volume_links = {svgtools::conversion::link<point3_container_t>(context, detector, d_portal)};
     }
-    p_portal._surface = svg::conversion::surface<point3_container_t>(context, d_portal);
+    p_portal._surface = svgtools::conversion::surface<point3_container_t>(context, d_portal);
     return p_portal;
 }
 

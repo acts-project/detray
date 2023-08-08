@@ -9,14 +9,14 @@
 
 // Project include(s)
 #include "detray/geometry/surface.hpp"
-#include "detray/plugins/svg/utils/link_utils.hpp"
-#include "detray/plugins/svg/utils/surface_kernels.hpp"
-#include "detray/plugins/svg/conversion/point.hpp"
+#include "detray/plugins/svgtools/utils/link_utils.hpp"
+#include "detray/plugins/svgtools/utils/surface_kernels.hpp"
+#include "detray/plugins/svgtools/conversion/point.hpp"
 
 // Actsvg includes(s)
 #include "actsvg/proto/portal.hpp"
 
-namespace detray::svg::conversion {
+namespace detray::svgtools::conversion {
 
 /// @returns The link calculated using the surface normal vector.
 template <typename point3_container_t, typename detector_t>
@@ -33,11 +33,11 @@ inline auto link(const typename detector_t::geometry_context& context,
     constexpr double link_length = 3.;
 
     const auto [start, end] =
-        svg::utils::link_points(context, detector, d_portal, dir, link_length);
+        svgtools::utils::link_points(context, detector, d_portal, dir, link_length);
 
     p_link_t p_link;
-    p_link._start = svg::conversion::point<point3_t>(start);
-    p_link._end = svg::conversion::point<point3_t>(end);
+    p_link._start = svgtools::conversion::point<point3_t>(start);
+    p_link._end = svgtools::conversion::point<point3_t>(end);
 
     return p_link;
 }

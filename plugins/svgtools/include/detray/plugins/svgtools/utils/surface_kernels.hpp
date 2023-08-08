@@ -12,11 +12,12 @@
 #include "detray/masks/masks.hpp"
 #include "detray/geometry/surface.hpp"
 #include "detray/geometry/detector_volume.hpp"
+#include "detray/plugins/svgtools/utils/volume_utils.hpp"
 
 // System include(s)
 #include <optional>
 
-namespace detray::svg::utils {
+namespace detray::svgtools::utils {
 
 /// @brief Functor to calculate the outermost radius a shape.
 /// If the shape is not defined by a radius, then null option is returned.
@@ -91,7 +92,7 @@ struct link_start_getter {
     template <typename mask_t, typename transform_t>
     auto inline link_start(const mask_t& mask,
                            const transform_t& transform) const {
-        return mask.local_min_bounds_center(transform);
+        return mask.global_min_bounds_center(transform);
     }
 
     // Calculates the (optimal) link starting point for rings.
@@ -157,7 +158,7 @@ struct link_start_getter {
         // Cylindrical coordinate system.
         const typename mask_t::local_frame_type frame{};
 
-        const auto true_center = mask.local_min_bounds_center(transform);
+        const auto true_center = mask.global_min_bounds_center(transform);
         const auto rel_point =
             frame.local_to_global(transform, point3_t{r * phi, z, r}) -
             transform.translation();
@@ -236,7 +237,7 @@ struct link_end_getter {
         const detray::detector_volume<detector_t>& volume,
         const point3_t& /*surface_point*/,
         const vector3_t& surface_normal) const {
-        for (const auto& desc : volume.surface_lookup()) {
+        for (const auto& desc : svgtools::utils::surface_lookup(detector, volume)) {
             const detray::surface surface{detector, desc};
             if (surface.is_portal()) {
                 if (auto radius =

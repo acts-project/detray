@@ -5,23 +5,12 @@
  * Mozilla Public License Version 2.0
  */
 
-// Not used currently in visualization implementation i.e. detray-actsvg
-// conversion.
-
 #pragma once
 
-// Project include(s)
-#include "detray/definitions/units.hpp"
-
-// Actsvg include(s)
-#include "actsvg/meta.hpp"
-
 // System include(s)
-#include <math.h>
-#include <type_traits>
-#include <vector>
+#include <cmath>
 
-namespace detray::svg::conversion {
+namespace detray::svgtools::conversion {
 
 template <typename ret_point_t, typename arg_point_t>
 inline auto point(const arg_point_t& p)
