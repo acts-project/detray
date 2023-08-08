@@ -125,8 +125,11 @@ struct link_start_functor {
         const auto rel_point = frame.local_to_global(transform, point3_t{r*phi, z, r}) - transform.translation();
         return rel_point + true_center;
     }
+    
 };
 
+/// @brief Functor to calculate the outermost radius a shape.
+/// If the shape is not defined by a radius, then null option is returned.
 struct outer_radius_functor
 {
 
@@ -181,6 +184,9 @@ struct link_end_functor {
         return link_dir(m, detector, volume_link, surface_point, surface_normal) * link_length + surface_point;
     }
 
+    private: 
+
+    /// @brief Calculates the direction of the link for remaining shapes.
     template <typename detector_t, typename mask_t, typename point3_t>
     inline auto link_dir(const mask_t& /*mask*/, const detector_t& /*detector*/, const detray::detector_volume<detector_t>& volume_link, const point3_t& surface_point, const point3_t& surface_normal) const
     {
@@ -196,6 +202,7 @@ struct link_end_functor {
         return sgn * surface_normal;
     }
 
+    /// @brief Calculates the direction of the link for cylinders (2D)
     template <typename detector_t, bool kRadialCheck, template <typename> class intersector_t, typename point3_t>
     inline auto link_dir(const detray::mask<detray::cylinder2D<kRadialCheck, intersector_t>>& mask, const detector_t& detector, const detray::detector_volume<detector_t>& volume_link, const point3_t& /*surface_point*/, const point3_t& surface_normal) const
     {
@@ -208,8 +215,7 @@ struct link_end_functor {
                         return surface_normal;
                     }
                 }
-            }
-            
+            } 
         }
         return typename detector_t::scalar_type{-1} * surface_normal;
     }
@@ -230,7 +236,7 @@ struct to_proto_surface_functor {
 
     private:
 
-    // Returns the proto surface for remaining shapes.
+    /// @brief Returns the proto surface for remaining shapes.
     template <typename detector_t, typename bounds_t, typename polygon_t>
     auto inline to_proto_surface(const typename detector_t::geometry_context& context, const detray::surface<detector_t>& d_surface, const polygon_t, const bounds_t&) const 
     {
@@ -241,7 +247,7 @@ struct to_proto_surface_functor {
         return p_surface;
     }
 
-    // Returns the proto surface for 2D cylinders.
+    /// @brief Returns the proto surface for 2D cylinders.
     template <typename detector_t, typename bounds_t, bool kRadialCheck, template <typename> class intersector_t>
     auto inline to_proto_surface(const typename detector_t::geometry_context& context, const detray::surface<detector_t>& d_surface, const detray::cylinder2D<kRadialCheck, intersector_t>& shape, const bounds_t& bounds) const 
     {
@@ -261,7 +267,7 @@ struct to_proto_surface_functor {
         return p_surface;
     }
 
-    // Returns the proto surface for 2D rings.
+    /// @brief Returns the proto surface for 2D rings.
     template <typename detector_t, typename bounds_t>
     auto to_proto_surface(const typename detector_t::geometry_context& context, const detray::surface<detector_t>& d_surface, const detray::ring2D<>& shape, const bounds_t& bounds) const 
     {
@@ -280,13 +286,14 @@ struct to_proto_surface_functor {
         return p_surface;
     }
 
-    // Returns the proto surface for 2D annuluses.
+    /// @brief Returns the proto surface for 2D annuluses.
     template <typename detector_t, typename bounds_t>
     auto inline to_proto_surface(const typename detector_t::geometry_context& context, const detray::surface<detector_t>& d_surface, const detray::annulus2D<>& shape, const bounds_t& bounds) const 
     {
         //Rotation for circular objects is currently not supported.
         assert(d_surface.transform.rotation(context) == typename detector_t::transform3{});
-        //Only translation one z axis is supported.
+        
+        //Only translation on z axis is supported.
         assert(d_surface.transform.translate(context).x() == 0 && d_surface.transform.translate(context).y() == 0);
 
         proto::proto_surface p_surface;
