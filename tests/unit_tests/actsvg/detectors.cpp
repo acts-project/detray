@@ -15,7 +15,6 @@
 
 int main(int, char**) {
 
-    // The axis
     actsvg::style::stroke stroke_black = actsvg::style::stroke();
     // x-y axis
     auto xy_axis =

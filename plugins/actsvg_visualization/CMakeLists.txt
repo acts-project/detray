@@ -7,6 +7,9 @@
 # Let the user know what's happening.
 message(STATUS "Building 'detray::actsvg' component")
 
+include_directories( SYSTEM $<TARGET_PROPERTY:actsvg::meta,INTERFACE_INCLUDE_DIRECTORIES> )
+include_directories( SYSTEM $<TARGET_PROPERTY:actsvg::core,INTERFACE_INCLUDE_DIRECTORIES> )
+
 # Set up the library.
 file( GLOB _detray_actsvg_public_headers
    RELATIVE "${CMAKE_CURRENT_SOURCE_DIR}"

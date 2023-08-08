@@ -5,6 +5,10 @@
 # Mozilla Public License Version 2.0
 
 # Set up the core tests.
+
+include_directories( SYSTEM $<TARGET_PROPERTY:actsvg::meta,INTERFACE_INCLUDE_DIRECTORIES> )
+include_directories( SYSTEM $<TARGET_PROPERTY:actsvg::core,INTERFACE_INCLUDE_DIRECTORIES> )
+
 detray_add_test( actsvg_surfaces
    "surfaces.cpp"
    LINK_LIBRARIES GTest::gtest_main detray_tests_common detray::core_array actsvg::core actsvg::meta detray::actsvg)

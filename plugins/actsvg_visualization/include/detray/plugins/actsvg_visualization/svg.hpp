@@ -8,6 +8,9 @@
 #include "detray/io/common/detail/file_handle.hpp"
 #include "detray/io/common/detector_writer.hpp"
 
+// Actsvg include(s)
+#include "actsvg/meta.hpp"
+
 // System include(s)
 #include <vector>
 
