@@ -41,7 +41,7 @@ int main(int, char**) {
     const detray::svgtools::illustrator il{det, names};
 
     // Indexes of the surfaces in the detector to be visualized.
-    std::array indices{0, 1, 2, 3};
+    std::array indices{30u, 3200u};
 
     for (size_t i : indices) {
         std::string name = "test_svgtools_surface" + std::to_string(i);
