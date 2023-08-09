@@ -28,17 +28,16 @@ GTEST_TEST(detray_simulation, uniform_track_generator) {
 
     std::array<vector3, phi_steps * theta_steps> momenta{};
 
-    // Loops of theta values ]0,pi[
+    // Loops of theta values [0,pi]
     for (std::size_t itheta{0u}; itheta < theta_steps; ++itheta) {
-        const scalar theta{0.01f + static_cast<scalar>(itheta) *
-                                       (constant<scalar>::pi - 0.01f) /
-                                       static_cast<scalar>(theta_steps)};
+        const scalar theta{static_cast<scalar>(itheta) * constant<scalar>::pi /
+                           static_cast<scalar>(theta_steps - 1u)};
 
-        // Loops of phi values [-pi, pi]
+        // Loops of phi values ]-pi, pi]
         for (std::size_t iphi{0u}; iphi < phi_steps; ++iphi) {
             // The direction
             const scalar phi{-constant<scalar>::pi +
-                             static_cast<scalar>(iphi) *
+                             static_cast<scalar>(iphi + 1) *
                                  (2.f * constant<scalar>::pi) /
                                  static_cast<scalar>(phi_steps)};
 
@@ -63,7 +62,9 @@ GTEST_TEST(detray_simulation, uniform_track_generator) {
 
         // Compare with for loop
         EXPECT_NEAR(getter::norm(expected - result), 0.f, tol)
-            << "Track: \n"
+            << "Phi: " << getter::phi(expected) << "\t" << getter::phi(result)
+            << "\nTheta: " << getter::theta(expected) << "\t"
+            << getter::theta(result) << "\nTrack: \n"
             << expected[0] << "\t" << result[0] << "\n"
             << expected[1] << "\t" << result[1] << "\n"
             << expected[2] << "\t" << result[2] << std::endl;
@@ -74,8 +75,12 @@ GTEST_TEST(detray_simulation, uniform_track_generator) {
 
     // Generate rays
     n_tracks = 0u;
-    for (const auto r : uniform_track_generator<detail::ray<transform3>>(
-             theta_steps, phi_steps)) {
+    auto ray_generator = uniform_track_generator<detail::ray<transform3>>{};
+    ray_generator.config().phi_steps(phi_steps).theta_steps(theta_steps);
+
+    ASSERT_EQ(ray_generator.size(), phi_steps * theta_steps);
+
+    for (const auto r : ray_generator) {
         vector3 &expected = momenta[n_tracks];
         vector3 result = r.dir();
 
@@ -117,36 +122,34 @@ GTEST_TEST(detray_simulation, uniform_track_generator_with_range) {
 
     constexpr const scalar tol{1e-5f};
 
-    constexpr std::size_t theta_steps{2u};
-    constexpr std::size_t phi_steps{4u};
-
     std::vector<std::array<scalar, 2>> theta_phi;
+    auto generator =
+        uniform_track_generator<free_track_parameters<transform3>>{};
+    generator.config().theta_steps(2u).phi_steps(4u);
+    generator.config().phi_range(-2.f, 2.f).theta_range(1.f, 2.f);
 
-    for (const auto track :
-         uniform_track_generator<free_track_parameters<transform3>>(
-             theta_steps, phi_steps, {0.f, 0.f, 0.f}, 1.f * unit<scalar>::GeV,
-             {1.f, 2.f}, {-2.f, 2.f})) {
+    for (const auto track : generator) {
         const auto dir = track.dir();
         theta_phi.push_back({getter::theta(dir), getter::phi(dir)});
     }
 
     EXPECT_EQ(theta_phi.size(), 8u);
     EXPECT_NEAR(theta_phi[0][0], 1.f, tol);
-    EXPECT_NEAR(theta_phi[0][1], -2.f, tol);
+    EXPECT_NEAR(theta_phi[0][1], -1.f, tol);
     EXPECT_NEAR(theta_phi[1][0], 1.f, tol);
-    EXPECT_NEAR(theta_phi[1][1], -1.f, tol);
+    EXPECT_NEAR(theta_phi[1][1], 0.f, tol);
     EXPECT_NEAR(theta_phi[2][0], 1.f, tol);
-    EXPECT_NEAR(theta_phi[2][1], 0.f, tol);
+    EXPECT_NEAR(theta_phi[2][1], 1.f, tol);
     EXPECT_NEAR(theta_phi[3][0], 1.f, tol);
-    EXPECT_NEAR(theta_phi[3][1], 1.f, tol);
-    EXPECT_NEAR(theta_phi[4][0], 1.5f, tol);
-    EXPECT_NEAR(theta_phi[4][1], -2.f, tol);
-    EXPECT_NEAR(theta_phi[5][0], 1.5f, tol);
-    EXPECT_NEAR(theta_phi[5][1], -1.f, tol);
-    EXPECT_NEAR(theta_phi[6][0], 1.5f, tol);
-    EXPECT_NEAR(theta_phi[6][1], 0.f, tol);
-    EXPECT_NEAR(theta_phi[7][0], 1.5f, tol);
-    EXPECT_NEAR(theta_phi[7][1], 1.f, tol);
+    EXPECT_NEAR(theta_phi[3][1], 2.f, tol);
+    EXPECT_NEAR(theta_phi[4][0], 2.f, tol);
+    EXPECT_NEAR(theta_phi[4][1], -1.f, tol);
+    EXPECT_NEAR(theta_phi[5][0], 2.f, tol);
+    EXPECT_NEAR(theta_phi[5][1], 0.f, tol);
+    EXPECT_NEAR(theta_phi[6][0], 2.f, tol);
+    EXPECT_NEAR(theta_phi[6][1], 1.f, tol);
+    EXPECT_NEAR(theta_phi[7][0], 2.f, tol);
+    EXPECT_NEAR(theta_phi[7][1], 2.f, tol);
 }
 
 /// Tests a random number based track state generator - uniform distribution
