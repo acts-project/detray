@@ -86,7 +86,7 @@ int main(int, char**) {
 
 
     size_t index = 0;
-    //  Iterate through uniformly distributed momentum directions with ray
+    // Iterate through uniformly distributed momentum directions with ray
     for (const auto test_ray :
          detray::uniform_track_generator<detray::detail::ray<transform3_t>>(
              theta_steps, phi_steps, ori)) {
