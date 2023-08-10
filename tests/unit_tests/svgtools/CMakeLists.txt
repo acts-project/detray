@@ -25,10 +25,10 @@ detray_add_test( svgtools_detectors
    "detectors.cpp"
    LINK_LIBRARIES GTest::gtest_main detray_tests_common detray::core_array actsvg::core actsvg::meta detray::svgtools)
 
-detray_add_test( actsvg_groups
+detray_add_test( svgtools_groups
    "groups.cpp"
    LINK_LIBRARIES GTest::gtest_main detray_tests_common detray::core_array actsvg::core actsvg::meta detray::svgtools)
 
-detray_add_test( actsvg_intersections
+detray_add_test( svgtools_intersections
    "intersections.cpp"
    LINK_LIBRARIES GTest::gtest_main detray_tests_common detray::core_array actsvg::core actsvg::meta detray::svgtools)
