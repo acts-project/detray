@@ -1,3 +1,10 @@
+/** Detray library, part of the ACTS project (R&D line)
+ *
+ * (c) 2023 CERN for the benefit of the ACTS project
+ *
+ * Mozilla Public License Version 2.0
+ */
+
 #pragma once
 
 // Project include(s)
@@ -15,10 +22,12 @@ inline auto link(const typename detector_t::geometry_context& context,
                  const detector_t& detector,
                  const detray::surface<detector_t>& d_portal) {
     typename detector_t::point3 dir{};
+
+    // Length of link arrow is hardcoded to 3.
     constexpr double link_length = 3.;
 
     const auto [start, end] =
-        utils::link_points(context, detector, d_portal, dir, link_length);
+        proto::utils::link_points(context, detector, d_portal, dir, link_length);
 
     proto_link p_link;
     p_link._start = utils::convert_point<3>(start);

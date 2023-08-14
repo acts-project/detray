@@ -16,7 +16,6 @@
 #include <limits>
 #include <ostream>
 #include <string>
-#include <vector>
 
 namespace detray {
 

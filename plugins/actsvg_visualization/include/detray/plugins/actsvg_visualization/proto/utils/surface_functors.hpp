@@ -1,3 +1,10 @@
+/** Detray library, part of the ACTS project (R&D line)
+ *
+ * (c) 2023 CERN for the benefit of the ACTS project
+ *
+ * Mozilla Public License Version 2.0
+ */
+
 #pragma once
 
 // Project include(s)
@@ -58,11 +65,7 @@ struct link_start_functor {
         // Polar coordinate system.
         const typename mask_t::local_frame_type frame{};
 
-        const auto true_center = mask.local_min_bounds_center(transform);
-        const auto rel_point =
-            frame.local_to_global(transform, point3_t{r, phi, z}) -
-            transform.translation();
-        return rel_point + true_center;
+        return frame.local_to_global(transform, point3_t{r, phi, z});
     }
 
     // Calculates the (optimal) link starting point for annuluses.
@@ -190,15 +193,15 @@ struct link_end_functor {
 
     public:
     template <typename mask_group_t, typename index_t, typename detector_t,
-              typename point3_t, typename scalar_t>
+              typename point3_t, typename vector3_t, typename scalar_t>
     DETRAY_HOST inline auto operator()(
         const mask_group_t& mask_group, const index_t& index,
         const detector_t& detector,
-        const detray::detector_volume<detector_t>& volume_link,
-        const point3_t& surface_point, const point3_t& surface_normal,
+        const detray::detector_volume<detector_t>& volume,
+        const point3_t& surface_point, const vector3_t& surface_normal,
         const scalar_t& link_length) const {
         const auto& m = mask_group[index];
-        return link_dir(m, detector, volume_link, surface_point,
+        return link_dir(m, detector, volume, surface_point,
                         surface_normal) *
                    link_length +
                surface_point;
@@ -206,13 +209,13 @@ struct link_end_functor {
 
     private:
     /// @brief Calculates the direction of the link for remaining shapes.
-    template <typename detector_t, typename mask_t, typename point3_t>
+    template <typename detector_t, typename mask_t, typename point3_t, typename vector3_t>
     inline auto link_dir(const mask_t& /*mask*/, const detector_t& /*detector*/,
-                         const detray::detector_volume<detector_t>& volume_link,
+                         const detray::detector_volume<detector_t>& volume,
                          const point3_t& surface_point,
-                         const point3_t& surface_normal) const {
-        const auto dir = volume_link.center() - surface_point;
-        const auto dot_prod = algebra::cmath::dot(dir, surface_normal);
+                         const vector3_t& surface_normal) const {
+        const auto dir = volume.center() - surface_point;
+        const auto dot_prod = vector::dot(dir, surface_normal);
         typename detector_t::scalar_type sgn{0};
         if (dot_prod > 0) {
             sgn = 1;
@@ -225,15 +228,15 @@ struct link_end_functor {
 
     /// @brief Calculates the direction of the link for cylinders (2D)
     template <typename detector_t, bool kRadialCheck,
-              template <typename> class intersector_t, typename point3_t>
+              template <typename> class intersector_t, typename point3_t, typename vector3_t>
     inline auto link_dir(
         const detray::mask<detray::cylinder2D<kRadialCheck, intersector_t>>&
             mask,
         const detector_t& detector,
-        const detray::detector_volume<detector_t>& volume_link,
+        const detray::detector_volume<detector_t>& volume,
         const point3_t& /*surface_point*/,
-        const point3_t& surface_normal) const {
-        for (const auto& desc : volume_link.surface_lookup()) {
+        const vector3_t& surface_normal) const {
+        for (const auto& desc : volume.surface_lookup()) {
             const detray::surface surface{detector, desc};
             if (surface.is_portal()) {
                 if (auto radius =
@@ -244,7 +247,7 @@ struct link_end_functor {
                 }
             }
         }
-        return typename detector_t::scalar_type{-1} * surface_normal;
+        return -1.f * surface_normal;
     }
 };
 
@@ -271,7 +274,7 @@ struct to_proto_surface_functor {
         const bounds_t&) const {
         proto::proto_surface p_surface;
         p_surface._type = proto::proto_surface::type::e_polygon;
-        std::array dir{0., 0., 1.};
+        std::array dir{};
         set_vertices(p_surface, d_surface.global_vertices(context, dir));
         return p_surface;
     }
@@ -349,7 +352,7 @@ struct to_proto_surface_functor {
         p_surface._radii = {ri, ro};
         p_surface._zparameters = {center[2], static_cast<actsvg::scalar>(0)};
 
-        std::array dir{0., 0., 1.};
+        std::array dir{};
         set_vertices(p_surface, d_surface.global_vertices(context, dir));
 
         return p_surface;
@@ -361,7 +364,7 @@ struct to_proto_surface_functor {
     void inline set_vertices(proto::proto_surface& p_surface,
                              const container_t& vertices) const {
         proto::point3_container actsvg_vertices;
-        for (auto v : vertices) {
+        for (const auto& v : vertices) {
             actsvg_vertices.push_back(utils::convert_point<3>(v));
         }
         p_surface._vertices = actsvg_vertices;

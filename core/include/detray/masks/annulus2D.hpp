@@ -309,12 +309,17 @@ class annulus2D {
     DETRAY_HOST inline point3_container_t local_vertices(
         const bounds_t<scalar_t, kDIM> &bounds) const {
         using point3_t = typename point3_container_t::value_type;
-        scalar_t z{0};
         const auto c = corners(bounds);
-        point3_t v1 = {c[0], c[1], z};
-        point3_t v2 = {c[2], c[3], z};
-        point3_t v3 = {c[4], c[4], z};
-        point3_t v4 = {c[6], c[7], z};
+        auto calc_vertex = [c](int i){
+            scalar_t z{0};
+            const scalar_t x{c[i*2] * math_ns::cos(c[i*2+1])};
+            const scalar_t y{c[i*2] * math_ns::sin(c[i*2+1])};
+            return point3_t{x, y, z};
+        };
+        point3_t v1 = calc_vertex(0);
+        point3_t v2 = calc_vertex(1);
+        point3_t v3 = calc_vertex(2);
+        point3_t v4 = calc_vertex(3);
         return {v1, v2, v4, v3};
     }
 

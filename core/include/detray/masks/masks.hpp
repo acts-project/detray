@@ -222,6 +222,8 @@ class mask {
 
     /// @brief Calculates the coordinates of the vertices.
     ///
+    /// @note The order of the vertices is in an order that allows for correct visualization in actsvg.
+    ///
     /// @param bounds the boundary values for this shape.
     ///
     /// @returns a vector of vertices. If the shape contains
@@ -235,13 +237,11 @@ class mask {
     /// @brief Calculates the center of the min bounds bounding box.
     /// @returns The center point in global cartesian coordinates.
     template <typename transform3_t>
-    auto local_min_bounds_center(const transform3_t& trf) const {
+    auto global_min_bounds_center(const transform3_t& trf) const {
         const auto m = local_min_bounds();
         const auto cuboid = m.get_shape();
-        return trf.point_to_global(
-            point3_t{(m[cuboid.e_max_x] + m[cuboid.e_min_x]) / 2,
-                     (m[cuboid.e_max_y] + m[cuboid.e_min_y]) / 2,
-                     (m[cuboid.e_max_z] + m[cuboid.e_min_z]) / 2});
+        const auto center{0.5f * (point3_t{m[cuboid.e_max_x], m[cuboid.e_max_y], m[cuboid.e_max_z]} + point3_t{m[cuboid.e_min_x], m[cuboid.e_min_y], m[cuboid.e_min_z]})};
+        return trf.point_to_global(center);
     }
 
     /// @returns true if the mask boundary values are consistent

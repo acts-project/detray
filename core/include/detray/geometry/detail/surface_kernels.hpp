@@ -14,6 +14,7 @@
 
 // System include(s)
 #include <ostream>
+#include <limits>
 
 namespace detray::detail {
 

@@ -1,3 +1,10 @@
+/** Detray library, part of the ACTS project (R&D line)
+ *
+ * (c) 2023 CERN for the benefit of the ACTS project
+ *
+ * Mozilla Public License Version 2.0
+ */
+
 #pragma once
 
 // Project include(s)
@@ -6,7 +13,7 @@
 #include "detray/utils/invalid_values.hpp"
 
 // System include(s)
-#include <assert.h>
+#include <cassert>
 
 #include <tuple>
 
@@ -14,7 +21,7 @@ namespace detray::actsvg_visualization::proto::utils {
 
 /// @brief Checks if the detray surface has a volume link.
 template <typename detector_t>
-inline auto has_link(const detray::surface<detector_t>& d_portal) {
+inline auto is_not_world_portal(const detray::surface<detector_t>& d_portal) {
     const auto d_link_idx = d_portal.template visit_mask<get_link_functor>();
     return !is_invalid_value(d_link_idx);
 }
@@ -22,9 +29,9 @@ inline auto has_link(const detray::surface<detector_t>& d_portal) {
 /// @note expects that the detray surface has a volume link.
 /// @returns the volume link of the detray surface.
 template <typename detector_t>
-inline auto get_link_volume(const detector_t& detector,
+inline auto get_linked_volume(const detector_t& detector,
                             const detray::surface<detector_t>& d_portal) {
-    assert(has_link(d_portal));
+    assert(is_not_world_portal(d_portal));
     const auto d_link_idx = d_portal.template visit_mask<get_link_functor>();
     return detector.volume_by_index(d_link_idx);
 }
@@ -38,7 +45,7 @@ inline auto link_points(const typename detector_t::geometry_context& context,
                         const detray::surface<detector_t>& d_portal,
                         typename detector_t::point3 dir,
                         const double link_length) {
-    assert(has_link(d_portal));
+    assert(is_not_world_portal(d_portal));
 
     // Calculating the start position:
     const auto start = d_portal.template visit_mask<utils::link_start_functor>(
@@ -47,9 +54,9 @@ inline auto link_points(const typename detector_t::geometry_context& context,
     // Calculating the end position:
     const auto n =
         d_portal.normal(context, d_portal.global_to_local(context, start, dir));
-    const auto volume_link = get_link_volume(detector, d_portal);
+    const auto volume = get_linked_volume(detector, d_portal);
     const auto end = d_portal.template visit_mask<utils::link_end_functor>(
-        detector, volume_link, start, n, link_length);
+        detector, volume, start, n, link_length);
 
     return std::make_tuple(start, end);
 }

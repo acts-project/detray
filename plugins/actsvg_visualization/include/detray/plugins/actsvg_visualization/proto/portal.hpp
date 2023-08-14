@@ -1,3 +1,10 @@
+/** Detray library, part of the ACTS project (R&D line)
+ *
+ * (c) 2023 CERN for the benefit of the ACTS project
+ *
+ * Mozilla Public License Version 2.0
+ */
+
 #pragma once
 
 // Project include(s)
@@ -17,7 +24,7 @@ auto portal(const typename detector_t::geometry_context& context,
             const detray::surface<detector_t>& d_portal) {
     assert(d_portal.is_portal());
     proto_portal p_portal;
-    if (utils::has_link(d_portal)) {
+    if (proto::utils::is_not_world_portal(d_portal)) {
         p_portal._volume_links = {proto::link(context, detector, d_portal)};
     }
     p_portal._surface = surface(context, d_portal);

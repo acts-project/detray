@@ -138,9 +138,9 @@ class single3D {
         const bounds_t<scalar_t, kDIM> &bounds) const {
         using point3_t = typename point3_container_t::value_type;
         point3_t v1{};
-        v1[kCheckIndex] += bounds[e_lower];
+        v1[kCheckIndex] = bounds[e_lower];
         point3_t v2{};
-        v2[kCheckIndex] += bounds[e_upper];
+        v2[kCheckIndex] = bounds[e_upper];
         return {v1, v2};
     }
 
