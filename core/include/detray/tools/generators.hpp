@@ -121,9 +121,6 @@ dvector<point3_t> vertices(
     return annulus_vertices;
 }
 
-
-
-
 /** Generate vertices, spacialized for masks: cylinder3
  *
  * @note template types are simply forwarded to mask
@@ -273,7 +270,5 @@ std::vector<point2_t> r_phi_polygon(scalar_t rmin, scalar_t rmax,
 
     return r_phi_poly;
 }
-
-
 
 }  // namespace detray

@@ -9,9 +9,9 @@
 
 // Project include(s)
 #include "detray/definitions/units.hpp"
-#include "detray/masks/masks.hpp"
-#include "detray/geometry/surface.hpp"
 #include "detray/geometry/detector_volume.hpp"
+#include "detray/geometry/surface.hpp"
+#include "detray/masks/masks.hpp"
 #include "detray/plugins/svgtools/utils/volume_utils.hpp"
 
 // System include(s)
@@ -202,15 +202,15 @@ struct link_end_getter {
         const point3_t& surface_point, const vector3_t& surface_normal,
         const scalar_t& link_length) const {
         const auto& m = mask_group[index];
-        return link_dir(m, detector, volume, surface_point,
-                        surface_normal) *
+        return link_dir(m, detector, volume, surface_point, surface_normal) *
                    link_length +
                surface_point;
     }
 
     private:
     /// @brief Calculates the direction of the link for remaining shapes.
-    template <typename detector_t, typename mask_t, typename point3_t, typename vector3_t>
+    template <typename detector_t, typename mask_t, typename point3_t,
+              typename vector3_t>
     inline auto link_dir(const mask_t& /*mask*/, const detector_t& /*detector*/,
                          const detray::detector_volume<detector_t>& volume,
                          const point3_t& surface_point,
@@ -229,7 +229,8 @@ struct link_end_getter {
 
     /// @brief Calculates the direction of the link for cylinders (2D)
     template <typename detector_t, bool kRadialCheck,
-              template <typename> class intersector_t, typename point3_t, typename vector3_t>
+              template <typename> class intersector_t, typename point3_t,
+              typename vector3_t>
     inline auto link_dir(
         const detray::mask<detray::cylinder2D<kRadialCheck, intersector_t>>&
             mask,
@@ -237,7 +238,8 @@ struct link_end_getter {
         const detray::detector_volume<detector_t>& volume,
         const point3_t& /*surface_point*/,
         const vector3_t& surface_normal) const {
-        for (const auto& desc : svgtools::utils::surface_lookup(detector, volume)) {
+        for (const auto& desc :
+             svgtools::utils::surface_lookup(detector, volume)) {
             const detray::surface surface{detector, desc};
             if (surface.is_portal()) {
                 if (auto radius =
@@ -252,5 +254,4 @@ struct link_end_getter {
     }
 };
 
-
-}  // namespace detray::actsvg_visualization::proto::utils
+}  // namespace detray::svgtools::utils

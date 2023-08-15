@@ -13,8 +13,8 @@
 #include "detray/tracks/tracks.hpp"
 
 // System include(s)
-#include <ostream>
 #include <limits>
+#include <ostream>
 
 namespace detray::detail {
 

@@ -29,7 +29,7 @@ inline auto is_not_world_portal(const detray::surface<detector_t>& d_portal) {
 /// @returns the volume link of the detray surface.
 template <typename detector_t>
 inline auto get_linked_volume(const detector_t& detector,
-                            const detray::surface<detector_t>& d_portal) {
+                              const detray::surface<detector_t>& d_portal) {
     assert(is_not_world_portal(d_portal));
     const auto d_link_idx = d_portal.template visit_mask<link_getter>();
     return detector.volume_by_index(d_link_idx);
@@ -60,4 +60,4 @@ inline auto link_points(const typename detector_t::geometry_context& context,
     return std::make_tuple(start, end);
 }
 
-}  // namespace detray::actsvg_visualization::proto::utils
+}  // namespace detray::svgtools::utils

@@ -28,10 +28,13 @@ auto portal(const typename detector_t::geometry_context& context,
     using p_portal_t = actsvg::proto::portal<point3_container_t>;
     p_portal_t p_portal;
     if (svgtools::utils::is_not_world_portal(d_portal)) {
-        p_portal._volume_links = {svgtools::conversion::link<point3_container_t>(context, detector, d_portal)};
+        p_portal._volume_links = {
+            svgtools::conversion::link<point3_container_t>(context, detector,
+                                                           d_portal)};
     }
-    p_portal._surface = svgtools::conversion::surface<point3_container_t>(context, d_portal);
+    p_portal._surface =
+        svgtools::conversion::surface<point3_container_t>(context, d_portal);
     return p_portal;
 }
 
-}  // namespace detray::actsvg_visualization::proto
+}  // namespace detray::svgtools::conversion

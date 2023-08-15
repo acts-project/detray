@@ -9,9 +9,9 @@
 
 // Project include(s)
 #include "detray/geometry/surface.hpp"
+#include "detray/plugins/svgtools/conversion/point.hpp"
 #include "detray/plugins/svgtools/utils/link_utils.hpp"
 #include "detray/plugins/svgtools/utils/surface_kernels.hpp"
-#include "detray/plugins/svgtools/conversion/point.hpp"
 
 // Actsvg includes(s)
 #include "actsvg/proto/portal.hpp"
@@ -26,14 +26,14 @@ inline auto link(const typename detector_t::geometry_context& context,
 
     using point3_t = typename point3_container_t::value_type;
     using p_link_t = typename actsvg::proto::portal<point3_container_t>::link;
-    
+
     typename detector_t::point3 dir{};
 
     // Length of link arrow is hardcoded to 3.
     constexpr double link_length = 3.;
 
-    const auto [start, end] =
-        svgtools::utils::link_points(context, detector, d_portal, dir, link_length);
+    const auto [start, end] = svgtools::utils::link_points(
+        context, detector, d_portal, dir, link_length);
 
     p_link_t p_link;
     p_link._start = svgtools::conversion::point<point3_t>(start);
@@ -42,4 +42,4 @@ inline auto link(const typename detector_t::geometry_context& context,
     return p_link;
 }
 
-}  // namespace detray::actsvg_visualization::proto
+}  // namespace detray::svgtools::conversion
