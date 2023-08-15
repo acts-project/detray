@@ -151,9 +151,7 @@ auto create_wire_chamber(vecmem::memory_resource &resource,
 
         // Layer configuration
         const scalar center_layer_rad = inner_layer_rad + cell_size;
-        const scalar theta = 2 * cell_size / center_layer_rad;
-        const unsigned int n_wires_per_layer =
-            static_cast<unsigned int>(2 * constant<scalar>::pi / theta);
+        const scalar delta = 2 * cell_size / center_layer_rad;
 
         // Get volume ID
         auto volume_idx = vol.index();
@@ -169,14 +167,19 @@ auto create_wire_chamber(vecmem::memory_resource &resource,
 
         // Wire center positions
         detray::dvector<point3> m_centers{};
-        for (unsigned int i_w = 0u; i_w < n_wires_per_layer; i_w++) {
-            const scalar x =
-                center_layer_rad * std::cos(theta * static_cast<scalar>(i_w));
-            const scalar y =
-                center_layer_rad * std::sin(theta * static_cast<scalar>(i_w));
+
+        unsigned int n_wires_per_layer{0u};
+        scalar theta{0.f};
+        while (theta <= 2.f * constant<scalar>::pi) {
+
+            const scalar x = center_layer_rad * std::cos(theta);
+            const scalar y = center_layer_rad * std::sin(theta);
             const scalar z = 0.f;
 
             m_centers.push_back({x, y, z});
+
+            n_wires_per_layer++;
+            theta += delta;
         }
 
         for (auto &m_center : m_centers) {

@@ -11,6 +11,7 @@
 #include "detray/coordinates/cartesian3.hpp"
 #include "detray/coordinates/line2.hpp"
 #include "detray/definitions/containers.hpp"
+#include "detray/definitions/math.hpp"
 #include "detray/definitions/qualifiers.hpp"
 #include "detray/intersection/line_intersector.hpp"
 #include "detray/surface_finders/grid/detail/axis_binning.hpp"
@@ -122,9 +123,9 @@ class line {
         // size and (2) the distance to the point of closest approach on thw
         // line from the line center is less than the half line length
         if constexpr (square_cross_sect) {
-            return (std::abs(loc_p[0] * std::cos(loc_p[2])) <=
+            return (std::abs(loc_p[0] * math_ns::cos(loc_p[2])) <=
                         bounds[e_cross_section] + tol &&
-                    std::abs(loc_p[0] * std::sin(loc_p[2])) <=
+                    std::abs(loc_p[0] * math_ns::sin(loc_p[2])) <=
                         bounds[e_cross_section] + tol &&
                     std::abs(loc_p[1]) <= bounds[e_half_z] + tol);
 

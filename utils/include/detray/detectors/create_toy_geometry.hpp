@@ -453,7 +453,8 @@ void create_endcap_modules(context_t &ctx, volume_type &vol,
             // the module transform from the position
             scalar m_phi{algebra::getter::phi(m_position)};
             // the center position of the modules
-            point3 m_center{static_cast<scalar>(cfg.side) * m_position};
+            point3 m_center{m_position};
+            m_center[2] *= static_cast<scalar>(cfg.side);
             // the rotation matrix of the module
             vector3 m_local_y{math_ns::cos(m_phi), std::sin(m_phi), 0.f};
             // take different axis to have the same readout direction

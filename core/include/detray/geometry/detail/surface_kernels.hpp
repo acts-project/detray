@@ -58,6 +58,17 @@ struct surface_kernels {
         }
     };
 
+    /// A functor get the measurement dimension
+    struct meas_dim {
+        template <typename mask_group_t, typename index_t>
+        DETRAY_HOST_DEVICE inline unsigned int operator()(
+            const mask_group_t& /*mask_group*/,
+            const index_t& /*index*/) const {
+
+            return mask_group_t::value_type::shape::meas_dim;
+        }
+    };
+
     /// A functor get the surface normal at a given local/bound position
     struct normal {
         template <typename mask_group_t, typename index_t>
