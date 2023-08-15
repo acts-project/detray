@@ -124,26 +124,6 @@ class single3D {
         return o_bounds;
     }
 
-    /// @brief Calculates the coordinates of the vertices.
-    ///
-    /// @param bounds the boundary values for this shape.
-    ///
-    /// @returns a container of vertices. If the shape contains
-    /// no vertices an empty container will be returned.
-    template <typename point3_container_t,
-              template <typename, std::size_t> class bounds_t,
-              typename scalar_t, std::size_t kDIM,
-              typename std::enable_if_t<kDIM == e_size, bool> = true>
-    DETRAY_HOST inline point3_container_t local_vertices(
-        const bounds_t<scalar_t, kDIM> &bounds) const {
-        using point3_t = typename point3_container_t::value_type;
-        point3_t v1{};
-        v1[kCheckIndex] = bounds[e_lower];
-        point3_t v2{};
-        v2[kCheckIndex] = bounds[e_upper];
-        return {v1, v2};
-    }
-
     /// @brief Check consistency of boundary values.
     ///
     /// @param bounds the boundary values for this shape

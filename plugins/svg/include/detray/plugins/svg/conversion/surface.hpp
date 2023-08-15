@@ -1,0 +1,161 @@
+/** Detray library, part of the ACTS project (R&D line)
+ *
+ * (c) 2023 CERN for the benefit of the ACTS project
+ *
+ * Mozilla Public License Version 2.0
+ */
+
+#pragma once
+
+// Project include(s)
+#include "detray/geometry/surface.hpp"
+#include "detray/plugins/svg/utils/corners.hpp"
+
+namespace detray::svg::conversion {
+
+namespace{
+/// @brief A functor to set the proto surfaces type and bounds to be equivalent
+/// to the mask.
+template <typename point3_container_t>
+struct surface_getter {
+    template <typename mask_group_t, typename index_t, typename transform_t>
+    DETRAY_HOST inline auto operator()(
+        const mask_group_t& mask_group, const index_t& index,
+        const transform_t& transform) const {
+        const auto& m = mask_group[index];
+        return surface(transform, m);
+    }
+};
+}
+
+/// @brief Returns the proto surface for a shape.
+template <typename point3_container_t, typename transform_t, typename mask_t>
+auto inline surface(
+    const transform_t& transform, const mask_t& mask) {
+
+    using point3_t = typename point3_container_t::value_type;
+    using p_surface_t = typename actsvg::proto::surface<point3_container_t>;
+
+    p_surface_t p_surface;
+    p_surface._type = p_surface_t::type::e_polygon;
+
+    const auto vertices = svg::utils::global_corners(transform, mask);
+    std::transform(vertices.cbegin(), vertices.cend(), std::back_inserter(p_surface._vertices), &svg::conversion::point<point3_t>);
+    return p_surface;
+}
+
+/// @brief Returns the proto surface for 2D cylinders.
+template <typename point3_container_t, typename transform_t, bool kRadialCheck,
+            template <typename> class intersector_t>
+auto inline surface(
+    const transform_t& transform,
+    const mask<cylinder2D<kRadialCheck, intersector_t>>& mask) {
+    // Rotation for circular objects is currently not supported.
+    assert(transform.rotation().x() == 0 &&
+        transform.rotation().y() == 0 &&
+        transform.rotation().z() == 0);
+
+    // Only translation on z axis is supported.
+    assert(transform.translate().x() == 0 &&
+            transform.translate().y() == 0);
+
+    using point3_t = typename point3_container_t::value_type;
+    using scalar_t = typename point3_t::value_type;
+    using p_surface_t = typename actsvg::proto::surface<point3_container_t>;
+
+    p_surface_t p_surface;
+    const auto shape = mask.get_shape();
+
+    auto r = static_cast<scalar_t>(mask[shape.e_r]);
+    auto nhz = static_cast<scalar_t>(mask[shape.e_n_half_z]);
+    auto phz = static_cast<scalar_t>(mask[shape.e_p_half_z]);
+    p_surface._type = p_surface_t::type::e_cylinder;
+    p_surface._radii = {static_cast<scalar_t>(0), r};
+    auto hz = (phz - nhz) / 2 +
+                static_cast<scalar_t>(transform.translation()[2]);
+    p_surface._zparameters = {nhz + hz, hz};
+    return p_surface;
+}
+
+/// @brief Returns the proto surface for 2D rings.
+template <typename point3_container_t, typename transform_t>
+auto surface(const transform_t& transform,
+                        const mask<ring2D<>>& mask){
+    // Rotation for circular objects is currently not supported.
+    assert(transform.rotation().x() == 0 &&
+        transform.rotation().y() == 0 &&
+        transform.rotation().z() == 0);
+
+    // Only translation on z axis is supported.
+    assert(transform.translate().x() == 0 &&
+            transform.translate().y() == 0);
+    
+    using point3_t = typename point3_container_t::value_type;
+    using scalar_t = typename point3_t::value_type;
+    using p_surface_t = typename actsvg::proto::surface<point3_container_t>;
+
+    p_surface_t p_surface;
+
+    const auto shape = mask.get_shape();
+    auto ri = static_cast<scalar_t>(mask[shape.e_inner_r]);
+    auto ro = static_cast<scalar_t>(mask[shape.e_outer_r]);
+    auto center = svg::conversion::point<point3_t>(transform.translate());
+
+    p_surface._type = p_surface_t::type::e_disc;
+    p_surface._radii = {ri, ro};
+    p_surface._zparameters = {center[2], static_cast<scalar_t>(0)};
+
+    return p_surface;
+}
+
+/// @brief Returns the proto surface for 2D annuluses.
+template <typename point3_container_t, typename transform_t>
+auto inline surface(
+    const transform_t& transform,
+    const mask<detray::annulus2D<>>& mask){
+    // Rotation for circular objects is currently not supported.
+    assert(transform.rotation().x() == 0 &&
+        transform.rotation().y() == 0 &&
+        transform.rotation().z() == 0);
+
+    // Only translation on z axis is supported.
+    assert(transform.translate().x() == 0 &&
+            transform.translate().y() == 0);
+
+    using point3_t = typename point3_container_t::value_type;
+    using scalar_t = typename point3_t::value_type;
+    using p_surface_t = typename actsvg::proto::surface<point3_container_t>;
+    
+    p_surface_t p_surface;
+    const auto shape = mask.get_shape();
+
+    auto ri = static_cast<scalar_t>(mask[shape.e_min_r]);
+    auto ro = static_cast<scalar_t>(mask[shape.e_max_r]);
+    auto center = svg::conversion::point<point3_t>(transform.translate());
+
+    p_surface._type = p_surface_t::type::e_annulus;
+    p_surface._radii = {ri, ro};
+    p_surface._zparameters = {center[2], static_cast<scalar_t>(0)};
+    const auto vertices = svg::utils::global_corners(transform, mask);
+    std::transform(vertices.cbegin(), vertices.cend(), std::back_inserter(p_surface._vertices), &svg::conversion::point<point3_t>);
+
+    return p_surface;
+}
+
+/// @brief Calculates the proto surface of a surface.
+///
+/// @param d_surface The detray surface.
+/// @param context The context.
+///
+/// @note The transform is not taken into account for objects such as rings,
+/// cylinders etc (not implemented yet).
+///
+/// @returns An actsvg proto surface representing the surface.
+template <typename point3_container_t, typename detector_t>
+auto surface(const typename detector_t::geometry_context& context,
+             const detray::surface<detector_t>& d_surface) {
+    return d_surface.template visit_mask<surface_getter<point3_container_t>>(
+        d_surface.transform(context));
+}
+
+}  // namespace detray::actsvg_visualization::proto

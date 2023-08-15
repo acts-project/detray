@@ -220,20 +220,6 @@ class mask {
         return {bounds, std::numeric_limits<unsigned int>::max()};
     }
 
-    /// @brief Calculates the coordinates of the vertices.
-    ///
-    /// @note The order of the vertices is in an order that allows for correct visualization in actsvg.
-    ///
-    /// @param bounds the boundary values for this shape.
-    ///
-    /// @returns a vector of vertices. If the shape contains
-    /// no vertices an empty vector will be returned.
-    DETRAY_HOST
-    auto local_vertices() const {
-        using point3_container_t = dvector<point3_t>;
-        return _shape.template local_vertices<point3_container_t>(_values);
-    }
-
     /// @brief Calculates the center of the min bounds bounding box.
     /// @returns The center point in global cartesian coordinates.
     template <typename transform3_t>

@@ -296,33 +296,6 @@ class annulus2D {
         return corner_pos;
     }
 
-    /// @brief Calculates the coordinates of the vertices.
-    ///
-    /// @param bounds the boundary values for this shape.
-    ///
-    /// @returns a container of vertices. If the shape contains
-    /// no vertices an empty container will be returned.
-    template <typename point3_container_t,
-              template <typename, std::size_t> class bounds_t,
-              typename scalar_t, std::size_t kDIM,
-              typename std::enable_if_t<kDIM == e_size, bool> = true>
-    DETRAY_HOST inline point3_container_t local_vertices(
-        const bounds_t<scalar_t, kDIM> &bounds) const {
-        using point3_t = typename point3_container_t::value_type;
-        const auto c = corners(bounds);
-        auto calc_vertex = [c](int i){
-            scalar_t z{0};
-            const scalar_t x{c[i*2] * math_ns::cos(c[i*2+1])};
-            const scalar_t y{c[i*2] * math_ns::sin(c[i*2+1])};
-            return point3_t{x, y, z};
-        };
-        point3_t v1 = calc_vertex(0);
-        point3_t v2 = calc_vertex(1);
-        point3_t v3 = calc_vertex(2);
-        point3_t v4 = calc_vertex(3);
-        return {v1, v2, v4, v3};
-    }
-
     /// @brief Check consistency of boundary values.
     ///
     /// @param bounds the boundary values for this shape

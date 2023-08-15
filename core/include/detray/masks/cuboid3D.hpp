@@ -131,29 +131,6 @@ class cuboid3D {
         return o_bounds;
     }
 
-    /// @brief Calculates the coordinates of the vertices.
-    ///
-    /// @param bounds the boundary values for this shape.
-    ///
-    /// @returns a container of vertices.
-    template <typename point3_container_t,
-              template <typename, std::size_t> class bounds_t,
-              typename scalar_t, std::size_t kDIM,
-              typename std::enable_if_t<kDIM == e_size, bool> = true>
-    DETRAY_HOST inline point3_container_t local_vertices(
-        const bounds_t<scalar_t, kDIM> &bounds) const {
-        using point3_t = typename point3_container_t::value_type;
-        point3_t v1 = {bounds[e_min_x], bounds[e_min_y], bounds[e_min_z]};
-        point3_t v2 = {bounds[e_min_x], bounds[e_min_y], bounds[e_max_z]};
-        point3_t v3 = {bounds[e_min_x], bounds[e_max_y], bounds[e_min_z]};
-        point3_t v4 = {bounds[e_min_x], bounds[e_max_y], bounds[e_max_z]};
-        point3_t v5 = {bounds[e_max_x], bounds[e_min_y], bounds[e_min_z]};
-        point3_t v6 = {bounds[e_max_x], bounds[e_min_y], bounds[e_max_z]};
-        point3_t v7 = {bounds[e_max_x], bounds[e_max_y], bounds[e_min_z]};
-        point3_t v8 = {bounds[e_max_x], bounds[e_max_y], bounds[e_max_z]};
-        return {v1, v2, v4, v3, v7, v8, v6, v5};
-    }
-
     /// @brief Check consistency of boundary values.
     ///
     /// @param bounds the boundary values for this shape
