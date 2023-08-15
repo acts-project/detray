@@ -33,8 +33,10 @@ int main(int, char**) {
     using point3_container = std::vector<point3>;
 
     using toy_detector_t = detray::detector<detray::toy_metadata<>>;
+    using transform_t = typename toy_detector_t::transform3;
 
-    const typename toy_detector_t::transform3 transform;
+    const typename transform_t::vector3 tr{0.f,150.f,0.f};
+    const typename toy_detector_t::transform3 transform(tr);
     const actsvg::views::x_y view{};
 
     // e_min_r, e_max_r, e_min_phi_rel, e_max_phi_rel, e_average_phi, e_shift_x,
@@ -78,4 +80,12 @@ int main(int, char**) {
                                                                 tra2D);
     const auto tra2D_svg = actsvg::display::surface("", tra2D_proto, view);
     detray::svgtools::write_svg("svgtools_trapezoid2D.svg", {axes, tra2D_svg});
+
+    // e_cross_section, e_half_z
+    detray::mask<detray::trapezoid2D<>> lin2D{0u, 1.0, 100.0};
+    const auto lin2D_proto =
+        detray::svgtools::conversion::surface<point3_container>(transform,
+                                                                lin2D);
+    const auto lin2D_svg = actsvg::display::surface("", lin2D_proto, view);
+    detray::svgtools::write_svg("svgtools_line2D.svg", {axes, lin2D_svg});
 }

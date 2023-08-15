@@ -22,8 +22,29 @@
 namespace detray::svgtools::conversion {
 
 /// @brief Returns the proto surface for a shape.
+/// @note For lines, the thickness is fixed and not determined by the cross section.
 template <typename point3_container_t, typename transform_t, typename mask_t>
 auto inline surface(const transform_t& transform, const mask_t& mask) {
+
+    using point3_t = typename point3_container_t::value_type;
+    using p_surface_t = actsvg::proto::surface<point3_container_t>;
+
+    p_surface_t p_surface;
+    p_surface._type = p_surface_t::type::e_polygon;
+
+    const auto vertices = svgtools::utils::global_vertices(transform, mask);
+    // Set the p_surface vertices (casting needed).
+    std::transform(
+        vertices.cbegin(), vertices.cend(),
+        std::back_inserter(p_surface._vertices),
+        &svgtools::conversion::point<point3_t,
+                                     typename decltype(vertices)::value_type>);
+    return p_surface;
+}
+
+/// @brief Returns the proto surface for a line.
+template <typename point3_container_t, typename transform_t>
+auto inline surface(const transform_t& transform, const mask<line<>>& mask) {
 
     using point3_t = typename point3_container_t::value_type;
     using p_surface_t = actsvg::proto::surface<point3_container_t>;
