@@ -10,11 +10,11 @@
 // Project include(s)
 #include "detray/geometry/detector_volume.hpp"
 
-namespace detray::svgtools::utils
-{
+namespace detray::svgtools::utils {
 /// @return the sub-surfaces of the volume - non-const access
 template <typename detector_t>
-auto surface_lookup(const detector_t& detector, const detector_volume<detector_t>& d_volume) {
+auto surface_lookup(const detector_t& detector,
+                    const detector_volume<detector_t>& d_volume) {
     typename detector_t::surface_lookup_container descriptors;
     for (auto desc : detector.surface_lookup()) {
         if (desc.volume() == d_volume.index()) {
@@ -23,4 +23,4 @@ auto surface_lookup(const detector_t& detector, const detector_volume<detector_t
     }
     return descriptors;
 }
-} // namespace detray::svg::utils
+}  // namespace detray::svgtools::utils

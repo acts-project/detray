@@ -27,9 +27,8 @@
 int main(int, char**) {
 
     // Axes.
-    const auto axes =
-        actsvg::draw::x_y_axes("axes", {-250, 250}, {-250, 250},
-                               actsvg::style::stroke());
+    const auto axes = actsvg::draw::x_y_axes("axes", {-250, 250}, {-250, 250},
+                                             actsvg::style::stroke());
 
     using point3 = std::array<actsvg::scalar, 3>;
     using point3_container = std::vector<point3>;

@@ -24,8 +24,8 @@
 int main(int, char**) {
 
     // Axes.
-    const auto axes =
-        actsvg::draw::x_y_axes("axes", {-250, 250}, {-250, 250}, actsvg::style::stroke());
+    const auto axes = actsvg::draw::x_y_axes("axes", {-250, 250}, {-250, 250},
+                                             actsvg::style::stroke());
 
     // Creating the views.
     const actsvg::views::x_y xy;
@@ -43,22 +43,33 @@ int main(int, char**) {
     // Visualisation of a group of surfaces.
     const std::array surface_group_indices{1, 100, 10, 200};
 
-    const auto svg_surface_group_xy = il.draw_surfaces("my_surface_group1_xy", context, surface_group_indices, xy);
-    detray::svgtools::write_svg("test_svgtools_surface_group_xy.svgtools", {axes, svg_surface_group_xy});
+    const auto svg_surface_group_xy = il.draw_surfaces(
+        "my_surface_group1_xy", context, surface_group_indices, xy);
+    detray::svgtools::write_svg("test_svgtools_surface_group_xy.svgtools",
+                                {axes, svg_surface_group_xy});
 
-    const auto svg_surface_group_zr = il.draw_surfaces("my_surface_group1_zr", context, surface_group_indices, zr);
-    detray::svgtools::write_svg("test_svgtools_surface_group_zr.svgtools", {axes, svg_surface_group_zr});
-    
+    const auto svg_surface_group_zr = il.draw_surfaces(
+        "my_surface_group1_zr", context, surface_group_indices, zr);
+    detray::svgtools::write_svg("test_svgtools_surface_group_zr.svgtools",
+                                {axes, svg_surface_group_zr});
+
     // Visualisation of a group of volumes.
     const std::array volume_group_indices{3, 5};
 
-    const auto svg_volume_group_xy = il.draw_volumes("my_volume_group1_xy", context, volume_group_indices, xy);
-    detray::svgtools::write_svg("test_svgtools_volume_group_xy.svgtools", {axes, svg_volume_group_xy});
+    const auto svg_volume_group_xy = il.draw_volumes(
+        "my_volume_group1_xy", context, volume_group_indices, xy);
+    detray::svgtools::write_svg("test_svgtools_volume_group_xy.svgtools",
+                                {axes, svg_volume_group_xy});
 
-    const auto svg_volume_group_zr = il.draw_volumes("my_volume_group1_zr", context, volume_group_indices, zr);
-    detray::svgtools::write_svg("test_svgtools_volume_group_zr.svgtools", {axes, svg_volume_group_zr});
-    
+    const auto svg_volume_group_zr = il.draw_volumes(
+        "my_volume_group1_zr", context, volume_group_indices, zr);
+    detray::svgtools::write_svg("test_svgtools_volume_group_zr.svgtools",
+                                {axes, svg_volume_group_zr});
+
     // Writing SVGs to a combined file.
-    // NOTE: The all svgtools object's identification must be unique in the file!
-    detray::svgtools::write_svg("test_svgtools_volume_and_surface_group.svgtools", {axes, svg_surface_group_xy, svg_volume_group_zr});
+    // NOTE: The all svgtools object's identification must be unique in the
+    // file!
+    detray::svgtools::write_svg(
+        "test_svgtools_volume_and_surface_group.svgtools",
+        {axes, svg_surface_group_xy, svg_volume_group_zr});
 }
