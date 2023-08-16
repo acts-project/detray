@@ -18,7 +18,7 @@
 
 namespace detray::svgtools::conversion {
 
-/// @returns The link calculated using the surface normal vector.
+/// @returns The proto link calculated using the surface normal vector.
 template <typename point3_container_t, typename detector_t>
 inline auto link(const typename detector_t::geometry_context& context,
                  const detector_t& detector,

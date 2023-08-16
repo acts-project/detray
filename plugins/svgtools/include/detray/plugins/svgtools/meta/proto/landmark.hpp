@@ -1,3 +1,10 @@
+/** Detray library, part of the ACTS project (R&D line)
+ *
+ * (c) 2023 CERN for the benefit of the ACTS project
+ *
+ * Mozilla Public License Version 2.0
+ */
+
 #pragma once
 
 // Actsvg include(s)
@@ -8,6 +15,7 @@
 
 namespace detray::svgtools::meta::proto {
 
+/// @brief A proto landmark class as a simple translation layer from a description of a point.
 template <typename point3_t>
 class landmark{
     public:

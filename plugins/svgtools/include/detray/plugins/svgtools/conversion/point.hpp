@@ -12,6 +12,11 @@
 
 namespace detray::svgtools::conversion {
 
+/// @brief Converts one type of point to another.
+/// @tparam ret_point_t The type of the point returned
+/// @tparam arg_point_t The type of the point to convert.
+/// @param p The point to convert.
+/// @return The point converted/casted
 template <typename ret_point_t, typename arg_point_t>
 inline auto point(const arg_point_t& p) {
     ret_point_t ret{};
