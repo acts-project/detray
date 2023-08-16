@@ -86,7 +86,6 @@ jobs:
         cmake --build build
     # Run the unit test(s).
     - name: Test
-      if: "matrix.BUILD_TYPE == 'Release'"
       run: |
         cd build
         source ${GITHUB_WORKSPACE}/.github/ci_setup.sh ${{ matrix.PLATFORM.NAME }}
