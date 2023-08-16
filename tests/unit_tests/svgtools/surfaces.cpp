@@ -24,8 +24,8 @@
 int main(int, char**) {
 
     // Axes.
-    const auto axes =
-        actsvg::draw::x_y_axes("axes", {-250, 250}, {-250, 250}, actsvg::style::stroke());
+    const auto axes = actsvg::draw::x_y_axes("axes", {-250, 250}, {-250, 250},
+                                             actsvg::style::stroke());
 
     // Creating the views.
     const actsvg::views::x_y xy;
@@ -51,5 +51,4 @@ int main(int, char**) {
         const auto svg_zr = il.draw_surface(name, context, i, zr);
         detray::svgtools::write_svg(name + "_zr.svgtools", {axes, svg_zr});
     }
-
 }

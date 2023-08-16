@@ -25,11 +25,11 @@ int main(int, char**) {
 
     actsvg::style::stroke stroke_black = actsvg::style::stroke();
     // x-y axis.
-    auto xy_axis =
-        actsvg::draw::x_y_axes("axes", {-250, 250}, {-250, 250}, stroke_black, "x", "y");  
+    auto xy_axis = actsvg::draw::x_y_axes("axes", {-250, 250}, {-250, 250},
+                                          stroke_black, "x", "y");
     // z-r axis.
-    auto zr_axis =
-        actsvg::draw::x_y_axes("axes", {-250, 250}, {-250, 250}, stroke_black, "z", "r");  
+    auto zr_axis = actsvg::draw::x_y_axes("axes", {-250, 250}, {-250, 250},
+                                          stroke_black, "z", "r");
 
     // Creating the views.
     const actsvg::views::x_y xy;
@@ -47,11 +47,12 @@ int main(int, char**) {
     // Get the svgtools of the toy detetector in x-y view.
     const auto svg_xy = il.draw_detector("detector_xy", context, xy);
     // Write the svgtools of toy detector.
-    detray::svgtools::write_svg("test_svgtools_detector_xy.svgtools", {xy_axis, svg_xy});
+    detray::svgtools::write_svg("test_svgtools_detector_xy.svgtools",
+                                {xy_axis, svg_xy});
 
     // Get the svgtools of the toy detetector in z-r view.
     const auto svg_zr = il.draw_detector("detector_zr", context, zr);
     // Write the svgtools of toy detector in z-r view
-    detray::svgtools::write_svg("test_svgtools_detector_zr.svgtools", {zr_axis, svg_zr});
-
+    detray::svgtools::write_svg("test_svgtools_detector_zr.svgtools",
+                                {zr_axis, svg_zr});
 }
