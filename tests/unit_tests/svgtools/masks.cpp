@@ -55,7 +55,7 @@ int main(int, char**) {
         detray::svgtools::conversion::surface<point3_container>(transform,
                                                                 cyl2D);
     const auto cyl2D_svg = actsvg::display::surface("", cyl2D_proto, view);
-    detray::svgtools::write_svg("Test_svgtools_cylinder2D.svg", {axes, cyl2D_svg});
+    detray::svgtools::write_svg("test_svgtools_cylinder2D.svg", {axes, cyl2D_svg});
 
     // e_half_x, e_half_y, e_size
     detray::mask<detray::rectangle2D<>> rec2D{0u, 100.0, 100.0};
