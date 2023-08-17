@@ -69,7 +69,7 @@ template <typename point3_container_t, typename transform_t, bool kRadialCheck,
           template <typename> class intersector_t>
 auto inline surface(const transform_t& transform,
                     const mask<cylinder2D<kRadialCheck, intersector_t>>& m) {
-    // Rotation for circular objects is currently not supported.
+    // Rotation is currently not supported.
     // Furthermore, only translation on z axis is supported.
 
     using mask_t = mask<cylinder2D<kRadialCheck, intersector_t>>;
@@ -98,7 +98,7 @@ auto inline surface(const transform_t& transform,
 /// @brief Returns the proto surface for 2D rings.
 template <typename point3_container_t, typename transform_t>
 auto surface(const transform_t& transform, const mask<ring2D<>>& m) {
-    // Rotation for circular objects is currently not supported.
+    // Rotation is currently not supported.
     // Furthermore, only translation on z axis is supported.
 
     using mask_t = mask<ring2D<>>;
@@ -126,7 +126,7 @@ auto surface(const transform_t& transform, const mask<ring2D<>>& m) {
 /// @brief Returns the proto surface for 2D annuli.
 template <typename point3_container_t, typename transform_t>
 auto inline surface(const transform_t& transform, const mask<annulus2D<>>& m) {
-    // Rotation for circular objects is currently not supported.
+    // Rotation is currently not supported.
     // Furthermore, only translation on z axis is supported.
 
     using mask_t = mask<annulus2D<>>;
