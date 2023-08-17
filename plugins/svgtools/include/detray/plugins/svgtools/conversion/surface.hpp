@@ -73,11 +73,7 @@ template <typename point3_container_t, typename transform_t, bool kRadialCheck,
 auto inline surface(const transform_t& transform,
                     const mask<cylinder2D<kRadialCheck, intersector_t>>& m) {
     // Rotation for circular objects is currently not supported.
-    assert(transform.rotation().x() == 0 && transform.rotation().y() == 0 &&
-           transform.rotation().z() == 0);
-
-    // Only translation on z axis is supported.
-    assert(transform.translate().x() == 0 && transform.translate().y() == 0);
+    // Furthermore, only translation on z axis is supported.
 
     using mask_t = mask<cylinder2D<kRadialCheck, intersector_t>>;
     using shape_t = typename mask_t::shape;
@@ -106,11 +102,7 @@ auto inline surface(const transform_t& transform,
 template <typename point3_container_t, typename transform_t>
 auto surface(const transform_t& transform, const mask<ring2D<>>& m) {
     // Rotation for circular objects is currently not supported.
-    assert(transform.rotation().x() == 0 && transform.rotation().y() == 0 &&
-           transform.rotation().z() == 0);
-
-    // Only translation on z axis is supported.
-    assert(transform.translate().x() == 0 && transform.translate().y() == 0);
+    // Furthermore, only translation on z axis is supported.
 
     using mask_t = mask<ring2D<>>;
     using shape_t = typename mask_t::shape;
@@ -138,11 +130,7 @@ auto surface(const transform_t& transform, const mask<ring2D<>>& m) {
 template <typename point3_container_t, typename transform_t>
 auto inline surface(const transform_t& transform, const mask<annulus2D<>>& m) {
     // Rotation for circular objects is currently not supported.
-    assert(transform.rotation().x() == 0 && transform.rotation().y() == 0 &&
-           transform.rotation().z() == 0);
-
-    // Only translation on z axis is supported.
-    assert(transform.translate().x() == 0 && transform.translate().y() == 0);
+    // Furthermore, only translation on z axis is supported.
 
     using mask_t = mask<annulus2D<>>;
     using shape_t = typename mask_t::shape;
