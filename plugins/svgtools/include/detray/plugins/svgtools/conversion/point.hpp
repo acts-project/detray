@@ -8,7 +8,7 @@
 #pragma once
 
 // System include(s)
-#include <cmath>
+#include <algorithm>
 
 namespace detray::svgtools::conversion {
 
@@ -16,7 +16,7 @@ template <typename ret_point_t, typename arg_point_t>
 inline auto point(const arg_point_t& p) {
     ret_point_t ret{};
     const auto n = std::min(ret.size(), p.size());
-    for (size_t i = 0; i < n; i++) {
+    for (std::size_t i = 0; i < n; i++) {
         ret[i] = p[i];
     }
     return ret;

@@ -42,7 +42,7 @@ template <typename detector_t>
 inline auto link_points(const typename detector_t::geometry_context& context,
                         const detector_t& detector,
                         const detray::surface<detector_t>& d_portal,
-                        typename detector_t::point3 dir,
+                        typename detector_t::vector3 dir,
                         const double link_length) {
     assert(is_not_world_portal(d_portal));
 

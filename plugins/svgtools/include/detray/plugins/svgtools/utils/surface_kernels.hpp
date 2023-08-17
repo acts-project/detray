@@ -16,6 +16,7 @@
 
 // System include(s)
 #include <optional>
+#include <cassert>
 
 namespace detray::svgtools::utils {
 
@@ -65,7 +66,7 @@ struct outer_radius_getter {
     }
 };
 
-/// @returns functor to obtain the volume link.
+/// @brief Functor to obtain the volume link.
 struct link_getter {
     template <typename mask_group_t, typename index_t>
     DETRAY_HOST inline auto operator()(const mask_group_t& mask_group,
@@ -75,7 +76,7 @@ struct link_getter {
     }
 };
 
-/// @returns functor to an optimal starting point for displaying the link.
+/// @brief Functor to calculate a suitable starting point for displaying the link arrow.
 struct link_start_getter {
 
     public:
@@ -190,6 +191,7 @@ struct link_start_getter {
     }
 };
 
+/// @brief Functor to calculate a suitable end point for displaying the link arrow.
 struct link_end_getter {
 
     public:
@@ -217,13 +219,9 @@ struct link_end_getter {
                          const vector3_t& surface_normal) const {
         const auto dir = volume.center() - surface_point;
         const auto dot_prod = vector::dot(dir, surface_normal);
-        typename detector_t::scalar_type sgn{0};
-        if (dot_prod > 0) {
-            sgn = 1;
-        }
-        if (dot_prod < 0) {
-            sgn = -1;
-        }
+        // Should geometrically not happen with a local point 'surface_point'
+        assert(dot_prod != 0.f)
+        typename detector_t::scalar_type sgn = dot_prod > 0.f ? 1.f : -1.f;
         return sgn * surface_normal;
     }
 

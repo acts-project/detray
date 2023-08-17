@@ -27,7 +27,7 @@ inline auto link(const typename detector_t::geometry_context& context,
     using point3_t = typename point3_container_t::value_type;
     using p_link_t = typename actsvg::proto::portal<point3_container_t>::link;
 
-    typename detector_t::point3 dir{};
+    typename detector_t::vector3 dir{};
 
     // Length of link arrow is currently hardcoded to 3.
     constexpr double link_length = 3.;
