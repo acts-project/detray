@@ -20,7 +20,7 @@ namespace detray::svgtools::utils {
 template <typename mask_t>
 inline auto local_vertices(const mask_t& mask) {
     return vertices<typename mask_t::point2_t, typename mask_t::point3_t>(mask,
-                                                                          10);
+                                                                          10u);
 }
 
 inline auto local_vertices(const mask<line<>>& m) {

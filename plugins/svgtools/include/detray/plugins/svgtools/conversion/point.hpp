@@ -17,7 +17,7 @@ inline auto point(const arg_point_t& p) {
     ret_point_t ret{};
     const auto n = std::min(ret.size(), p.size());
     for (std::size_t i = 0; i < n; i++) {
-        ret[i] = p[i];
+        ret[i] = static_cast<typename ret_point_t::value_type>(p[i]);
     }
     return ret;
 }
