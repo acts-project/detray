@@ -17,18 +17,22 @@
 
 // System include(s)
 #include <algorithm>
-#include <iterator>
 #include <iostream>
+#include <iterator>
 
 namespace detray::svgtools::conversion {
 
 /// @brief Sets the measures of the proto surface to be the same as the mask.
 template <typename point3_container_t, typename mask_t>
-inline void set_measures(actsvg::proto::surface<point3_container_t>& p_surface, const mask_t& m){
+inline void set_measures(actsvg::proto::surface<point3_container_t>& p_surface,
+                         const mask_t& m) {
     using point3_t = typename point3_container_t::value_type;
     using scalar_t = typename point3_t::value_type;
-    auto cast_scalar = [](const typename mask_t::scalar_type& v){ return static_cast<scalar_t>(v); };
-    std::transform(m.values().cbegin(), m.values().cend(), std::back_inserter(p_surface._measures), cast_scalar);
+    auto cast_scalar = [](const typename mask_t::scalar_type& v) {
+        return static_cast<scalar_t>(v);
+    };
+    std::transform(m.values().cbegin(), m.values().cend(),
+                   std::back_inserter(p_surface._measures), cast_scalar);
     for (const auto mea : p_surface._measures)
         std::cout << std::to_string(mea) + " ";
     std::cout << "\n";
@@ -36,7 +40,8 @@ inline void set_measures(actsvg::proto::surface<point3_container_t>& p_surface, 
 
 /// @brief Sets the vertices of the proto surface to be the same as the mask.
 template <typename point3_container_t, typename transform_t, typename mask_t>
-inline void set_vertices(actsvg::proto::surface<point3_container_t>& p_surface, const transform_t& transform, const mask_t& m){
+inline void set_vertices(actsvg::proto::surface<point3_container_t>& p_surface,
+                         const transform_t& transform, const mask_t& m) {
     using point3_t = typename point3_container_t::value_type;
     const auto vertices = svgtools::utils::global_vertices(transform, m);
     std::transform(
@@ -86,8 +91,9 @@ auto inline surface(const transform_t& transform,
     const auto r = static_cast<scalar_t>(m[shape_t::e_r]);
     const auto nhz = static_cast<scalar_t>(m[shape_t::e_n_half_z]);
     const auto phz = static_cast<scalar_t>(m[shape_t::e_p_half_z]);
-    const auto hz = (phz - nhz) / 2 + static_cast<scalar_t>(transform.translation()[2]);
-    
+    const auto hz =
+        (phz - nhz) / 2 + static_cast<scalar_t>(transform.translation()[2]);
+
     p_surface._type = p_surface_t::type::e_cylinder;
     p_surface._radii = {static_cast<scalar_t>(0), r};
     p_surface._zparameters = {nhz + hz, hz};
@@ -117,7 +123,8 @@ auto surface(const transform_t& transform, const mask<ring2D<>>& m) {
 
     const auto ri = static_cast<scalar_t>(m[shape_t::e_inner_r]);
     const auto ro = static_cast<scalar_t>(m[shape_t::e_outer_r]);
-    const auto center = svgtools::conversion::point<point3_t>(transform.translation());
+    const auto center =
+        svgtools::conversion::point<point3_t>(transform.translation());
 
     p_surface._type = p_surface_t::type::e_disc;
     p_surface._radii = {ri, ro};
@@ -129,8 +136,7 @@ auto surface(const transform_t& transform, const mask<ring2D<>>& m) {
 
 /// @brief Returns the proto surface for 2D annuli.
 template <typename point3_container_t, typename transform_t>
-auto inline surface(const transform_t& transform,
-                    const mask<annulus2D<>>& m) {
+auto inline surface(const transform_t& transform, const mask<annulus2D<>>& m) {
     // Rotation for circular objects is currently not supported.
     assert(transform.rotation().x() == 0 && transform.rotation().y() == 0 &&
            transform.rotation().z() == 0);

@@ -15,8 +15,8 @@
 #include "detray/plugins/svgtools/utils/volume_utils.hpp"
 
 // System include(s)
-#include <optional>
 #include <cassert>
+#include <optional>
 
 namespace detray::svgtools::utils {
 
@@ -76,7 +76,8 @@ struct link_getter {
     }
 };
 
-/// @brief Functor to calculate a suitable starting point for displaying the link arrow.
+/// @brief Functor to calculate a suitable starting point for displaying the
+/// link arrow.
 struct link_start_getter {
 
     public:
@@ -191,7 +192,8 @@ struct link_start_getter {
     }
 };
 
-/// @brief Functor to calculate a suitable end point for displaying the link arrow.
+/// @brief Functor to calculate a suitable end point for displaying the link
+/// arrow.
 struct link_end_getter {
 
     public:
@@ -221,7 +223,8 @@ struct link_end_getter {
         const auto dot_prod = vector::dot(dir, surface_normal);
         // Should geometrically not happen with a local point 'surface_point'
         assert(dot_prod != 0.f);
-        typename detector_t::scalar_type sgn = dot_prod > 0.f ? 1.f : (dot_prod < 0.f ? -1.f : 0);
+        typename detector_t::scalar_type sgn =
+            dot_prod > 0.f ? 1.f : (dot_prod < 0.f ? -1.f : 0);
         return sgn * surface_normal;
     }
 

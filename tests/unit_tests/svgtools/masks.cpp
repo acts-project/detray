@@ -6,9 +6,10 @@
  */
 
 // Project include(s)
+#include "detray/masks/masks.hpp"
+
 #include "detray/core/detector.hpp"
 #include "detray/detectors/create_toy_geometry.hpp"
-#include "detray/masks/masks.hpp"
 #include "detray/plugins/svgtools/conversion/surface.hpp"
 #include "detray/plugins/svgtools/writer.hpp"
 
