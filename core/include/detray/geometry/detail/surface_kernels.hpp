@@ -213,19 +213,6 @@ struct surface_kernels {
         }
     };
 
-    /// A functor to get the local_vertices
-    struct local_vertices {
-
-        template <typename mask_group_t, typename index_t>
-        DETRAY_HOST_DEVICE inline auto operator()(
-            const mask_group_t& mask_group, const index_t& index) const {
-
-            const auto& m = mask_group[index];
-
-            return m.local_vertices();
-        }
-    };
-
     /// A functor to get the local min bounds.
     struct local_min_bounds {
 
