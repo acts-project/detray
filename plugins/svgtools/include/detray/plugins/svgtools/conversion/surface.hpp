@@ -33,9 +33,6 @@ inline void set_measures(actsvg::proto::surface<point3_container_t>& p_surface,
     };
     std::transform(m.values().cbegin(), m.values().cend(),
                    std::back_inserter(p_surface._measures), cast_scalar);
-    for (const auto mea : p_surface._measures)
-        std::cout << std::to_string(mea) + " ";
-    std::cout << "\n";
 }
 
 /// @brief Sets the vertices of the proto surface to be the same as the mask.
