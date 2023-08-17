@@ -86,7 +86,7 @@ int main(int, char**) {
                                 {axes, tra2D_svg});
 
     // e_cross_section, e_half_z
-    detray::mask<detray::trapezoid2D<>> lin2D{0u, 1.0, 100.0};
+    detray::mask<detray::line<>> lin2D{0u, 1.0, 100.0};
     const auto lin2D_proto =
         detray::svgtools::conversion::surface<point3_container>(transform,
                                                                 lin2D);
