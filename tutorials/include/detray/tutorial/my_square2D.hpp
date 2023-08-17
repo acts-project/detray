@@ -29,7 +29,7 @@ namespace detray::tutorial {
 /// It is defined by the half length of the square (bounds[0]),
 /// and can be checked with a tolerance in t.
 template <template <typename> class intersector_t = plane_intersector,
-          unsigned int kMeasDim = 2u, bool kNormalOrder = true>
+          unsigned int kMeasDim = 2u>
 class square2D {
     public:
     /// The name for this shape
@@ -39,7 +39,7 @@ class square2D {
     inline static constexpr const unsigned int meas_dim{kMeasDim};
 
     /// Normal ordering
-    inline static constexpr const bool normal_order{kNormalOrder};
+    inline static constexpr const bool normal_order{true};
 
     // Measurement dimension check
     static_assert(meas_dim == 1u || meas_dim == 2u,

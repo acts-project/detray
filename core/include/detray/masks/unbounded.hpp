@@ -32,9 +32,6 @@ class unbounded {
     /// The measurement dimension
     inline static constexpr const std::size_t meas_dim = shape::meas_dim;
 
-    /// normal ordering
-    inline static constexpr const bool normal_order = shape::normal_order;
-
     /// Local coordinate frame for boundary checks
     template <typename algebra_t>
     using local_frame_type =

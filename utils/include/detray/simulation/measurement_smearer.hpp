@@ -61,8 +61,7 @@ struct measurement_smearer {
             ret[1u] = scalar_type{0.f};
             // Special treatment for line coordinate: we don't allow negative
             // radial distance
-            if (mask_t::shape::name == "line" &&
-                mask_t::shape::normal_order == true) {
+            if (mask_t::shape::name == "line" && mask.normal_order == true) {
                 ret[0u] = std::max(ret[0u], static_cast<scalar_type>(0.f));
             }
 
@@ -74,7 +73,7 @@ struct measurement_smearer {
             // radial distance
             if (mask_t::shape::name == "line") {
 
-                if constexpr (mask_t::shape::normal_order == true) {
+                if (mask.normal_order == true) {
                     ret[0u] = std::max(ret[0u], static_cast<scalar_type>(0.f));
                 } else {
                     ret[1u] = std::max(ret[1u], static_cast<scalar_type>(0.f));
