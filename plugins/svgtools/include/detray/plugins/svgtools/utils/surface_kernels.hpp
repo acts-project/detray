@@ -220,7 +220,7 @@ struct link_end_getter {
         const auto dir = volume.center() - surface_point;
         const auto dot_prod = vector::dot(dir, surface_normal);
         // Should geometrically not happen with a local point 'surface_point'
-        assert(dot_prod != 0.f)
+        assert(dot_prod != 0.f);
         typename detector_t::scalar_type sgn = dot_prod > 0.f ? 1.f : -1.f;
         return sgn * surface_normal;
     }
