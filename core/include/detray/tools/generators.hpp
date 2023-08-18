@@ -28,7 +28,7 @@ static inline dvector<scalar_t> phi_values(scalar_t start_phi, scalar_t end_phi,
     values.reserve(lseg + 1u);
     scalar_t step_phi = (end_phi - start_phi) / static_cast<scalar_t>(lseg);
     for (unsigned int istep = 0u; istep <= lseg; ++istep) {
-        values.push_back(start_phi + istep * step_phi);
+        values.push_back(start_phi + static_cast<scalar_t>(istep) * step_phi);
     }
     return values;
 }
