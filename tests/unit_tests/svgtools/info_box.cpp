@@ -12,6 +12,9 @@
 #include "detray/detectors/create_toy_geometry.hpp"
 #include "detray/plugins/svgtools/conversion/surface.hpp"
 #include "detray/plugins/svgtools/writer.hpp"
+#include "detray/plugins/svgtools/conversion/information_section.hpp"
+#include "detray/plugins/svgtools/meta/display/geometry.hpp"
+#include "detray/plugins/svgtools/meta/display/information.hpp"
 
 // Vecmem include(s)
 #include <vecmem/memory/host_memory_resource.hpp>
@@ -23,6 +26,8 @@
 // System include(s)
 #include <array>
 #include <string>
+#include <iostream>
+
 
 int main(int, char**) {
 
@@ -30,44 +35,26 @@ int main(int, char**) {
     const auto axes = actsvg::draw::x_y_axes("axes", {-250, 250}, {-250, 250},
                                              actsvg::style::stroke());
 
-    std::string title = "info box";
-    actsvg::style::fill title_blue;
-    title_blue._fc._rgb = {0, 0, 150};
-    title_blue._fc._opacity = 0.8;
-    actsvg::style::font title_font;
-    title_font._size = 24;
-    title_font._fc = actsvg::style::color{{255, 255, 255}};
+    const actsvg::views::x_y view;
 
-    std::vector<std::string> info = {"this is an info box", "a = 101",
-                                     "this line should define the length"};
+    using point3 = std::array<actsvg::scalar, 3>;
+    using point3_container = std::vector<point3>;
 
-    actsvg::style::fill info_blue;
-    info_blue._fc._rgb = {0, 0, 150};
-    info_blue._fc._opacity = 0.4;
-    actsvg::style::font info_font;
-    info_font._size = 18;
+    using toy_detector_t = detray::detector<detray::toy_metadata<>>;
+    vecmem::host_memory_resource host_mr;
+    const auto [det, names] = detray::create_toy_geometry(host_mr, 4, 3);
+    toy_detector_t::geometry_context context{};
 
-    actsvg::style::stroke stroke;
+    const auto surface = detray::surface{det, det.surface_lookup()[0]};
+    const auto proto_sur = detray::svgtools::conversion::surface<point3_container>(context, surface);
+    const auto svg_sur = actsvg::display::surface("surface", proto_sur, view);
 
-    auto p = actsvg::draw::circle("test_circle", {-100, 100}, 15., title_blue, stroke);
+    const auto proto_is = detray::svgtools::conversion::information_section<point3>(context, surface);
+    const actsvg::point2 offset{100, 100};
+    const auto svg_is = detray::svgtools::meta::display::information_section("info", proto_is, view, offset, svg_sur);
 
-    auto t =
-        actsvg::draw::text("test_instruction", {-100, 120},
-                   {"Move the mouse cursor over the the circle"}, info_font);
+    detray::svgtools::write_svg("test_info.svg", {axes, svg_sur, svg_is});
 
-    auto info_box = actsvg::draw::connected_info_box("test_box_", {100, 100}, title,
-                                             title_blue, title_font, info,
-                                             info_blue, info_font, stroke, p);
-
-    //auto info_box = actsvg::draw::connected_text("ok", {100,100}, info, info_font, actsvg::style::transform{}, p);
-
-    actsvg::svg::file ifile;
-    ifile.add_object(p);
-    ifile.add_object(t);
-    ifile.add_object(info_box);
-
-    std::ofstream tstream;
-    tstream.open("test_core_infobox.svg");
-    tstream << ifile;
-    tstream.close();
+    //TODO: Test on a surface.
+    //TODO: Rename or put text code in another file than "geometry" .hpp.
 }
