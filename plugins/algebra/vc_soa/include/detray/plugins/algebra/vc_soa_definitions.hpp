@@ -21,17 +21,25 @@ using algebra::storage::operator/;
 using algebra::storage::operator-;
 using algebra::storage::operator+;
 
-/// Define scalar type
 using scalar = DETRAY_CUSTOM_SCALARTYPE;
 
 /// Define affine transformation types
 /// @{
-using transform3D = algebra::vc_soa::transform3<scalar>;
-using point3D = algebra::vc_soa::point3<scalar>;
-using vector3D = algebra::vc_soa::vector3<scalar>;
-/// @}
+template <typename V = DETRAY_CUSTOM_SCALARTYPE>
+struct vc_soa {
+    /// Define scalar type
+    using value_type = V;
 
-/// 
+    template <typename T>
+    using simd = Vc::Vector<T>;
+
+    using boolean = Vc::Mask<V>;
+    using scalar = simd<value_type>;
+    using transform3D = algebra::vc_soa::transform3<value_type>;
+    using point3D = algebra::vc_soa::point3<value_type>;
+    using vector3D = algebra::vc_soa::vector3<value_type>;
+};
+/// @}
 
 // Define namespace(s)
 namespace getter = algebra::getter;

@@ -21,76 +21,72 @@
 
 namespace detray::soa {
 
-#if(IS_SOA)
+#if (IS_SOA)
 /// @brief This class holds the intersection information.
 ///
 /// @tparam surface_descr_t is the type of surface descriptor
-template <typename surface_descr_t,
-          typename algebra_t = __plugin::transform3<detray::scalar>>
+template <typename surface_descr_t, typename T = scalar,
+          template <typename> class algebra_t = vc_soa>
 struct intersection2D {
 
-    using transform3_type = algebra_t;
-    using scalar_type = typename algebra_t::scalar_type;
-    using value_type = typename algebra_t::value_type;
-    using point3 = typename algebra_t::point3;
-    using point2 = typename algebra_t::point2;
-    using nav_link_type = typename surface_descr_t::navigation_link;
+    using scalar_t = dscalar<algebra_t<T>>;
+    using value_t = T;
+    using bool_mask = dbool<algebra_t<T>>;
+    using point3D = dpoint3D<algebra_t<T>>;
+    using vector3D = dvector3D<algebra_t<T>>;
+    using transform3D = dtransform3D<algebra_t<T>>;
+    using nav_link_t = typename surface_descr_t::navigation_link;
 
     /// Descriptor of the surface this intersection belongs to
     surface_descr_t surface;
 
     /// Local position of the intersection on the surface
-    point3 local{detail::invalid_value<scalar_type>(),
-                 detail::invalid_value<scalar_type>(),
-                 detail::invalid_value<scalar_type>()};
+    point3D local{detail::invalid_value<T>(), detail::invalid_value<T>(),
+                  detail::invalid_value<T>()};
 
     /// Distance between track and candidate
-    value_type path{detail::invalid_value<scalar_type>()};
+    scalar_t path = detail::invalid_value<T>();
 
-    /// cosine of incidence angle
-    value_type cos_incidence_angle{detail::invalid_value<scalar_type>()};
+    /// Cosine of incidence angle
+    scalar_t cos_incidence_angle = detail::invalid_value<T>();
 
     /// Navigation information (next volume to go to)
-    nav_link_type volume_link{detail::invalid_value<typename nav_link_type::value_type>()};
+    nav_link_t volume_link;
 
     /// Result of the intersection (true = inside, false = outside)
-    typename value_type::mask_type status{};
+    bool_mask status;
 
-    /// Direction of the intersection with respect to the track (true = along, 
+    /// Direction of the intersection with respect to the track (true = along,
     /// false = opposite)
-    typename value_type::mask_type direction{};
+    bool_mask direction;
 
     /// @param rhs is the right hand side intersection for comparison
-    /*DETRAY_HOST_DEVICE
-    bool operator<(const intersection2D &rhs) const {
-        return (std::abs(path) < std::abs(rhs.path));
+    DETRAY_HOST_DEVICE
+    auto operator<(const intersection2D &rhs) const {
+        return (Vc::abs(path) < Vc::abs(rhs.path));
     }
 
     /// @param rhs is the left hand side intersection for comparison
     DETRAY_HOST_DEVICE
-    bool operator>(const intersection2D &rhs) const {
-        return (std::abs(path) > std::abs(rhs.path));
+    auto operator>(const intersection2D &rhs) const {
+        return (Vc::abs(path) > Vc::abs(rhs.path));
     }
 
     /// @param rhs is the left hand side intersection for comparison
     DETRAY_HOST_DEVICE
-    bool operator==(const intersection2D &rhs) const {
-        return std::abs(path - rhs.path) <
-               std::numeric_limits<scalar_type>::epsilon();
-    }*/
+    auto operator==(const intersection2D &rhs) const {
+        return Vc::abs(path - rhs.path) < std::numeric_limits<T>::epsilon();
+    }
 
     DETRAY_HOST_DEVICE
-    constexpr bool is_inside() const {
-        return Vc::any_of(this->status);
-    }
+    constexpr bool is_inside() const { return Vc::any_of(this->status); }
 
     /// Transform to a string for output debugging
     DETRAY_HOST
     friend std::ostream &operator<<(std::ostream &out_stream,
                                     const intersection2D &is) {
-        out_stream << "dist:" << is.path
-                   << ", loc pos [" << is.local[0] << ", " << is.local[1] 
-                   << ", " << is.local[2] << "]"
+        out_stream << "dist:" << is.path << ", loc pos [" << is.local[0] << ", "
+                   << is.local[1] << ", " << is.local[2] << "]"
                    << ", (sf index:" << is.surface.barcode()
                    << ", links to vol:" << is.volume_link << ")";
         /*switch (is.status) {
@@ -124,4 +120,4 @@ struct intersection2D {
 };
 #endif
 
-}  // namespace detray
+}  // namespace detray::soa

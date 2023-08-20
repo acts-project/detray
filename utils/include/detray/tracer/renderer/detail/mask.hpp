@@ -42,11 +42,12 @@ class tracer_mask {
     using scalar_type = typename algebra_t::scalar_type;
     using shape = shape_t;
     using boundaries = typename shape::boundaries;
-    #if(IS_SOA)
-    using mask_values = array_t<typename algebra_t::value_type, boundaries::e_size>;
-    #else
+#if (IS_SOA)
+    using mask_values =
+        array_t<typename algebra_t::value_type, boundaries::e_size>;
+#else
     using mask_values = array_t<scalar_type, boundaries::e_size>;
-    #endif
+#endif
     using local_frame_type =
         typename shape::template local_frame_type<algebra_t>;
     // Linear algebra types
@@ -60,7 +61,7 @@ class tracer_mask {
     /// Constructor from single mask boundary values
     template <typename... Args>
     DETRAY_HOST_DEVICE explicit constexpr tracer_mask(const links_type& link,
-                                               Args&&... args)
+                                                      Args&&... args)
         : _values({{std::forward<Args>(args)...}}), _volume_link(link) {}
 
     /// Constructor from mask boundary array
@@ -70,7 +71,7 @@ class tracer_mask {
 
     /// Constructor from mask boundary vector
     DETRAY_HOST tracer_mask(const std::vector<scalar_type>& values,
-                     const links_type& link)
+                            const links_type& link)
         : _volume_link(link) {
         assert(values.size() == boundaries::e_size &&
                " Given number of boundaries does not match mask shape.");
@@ -173,7 +174,8 @@ class tracer_mask {
     /// @returns return local frame object (used in geometrical checks)
     DETRAY_HOST_DEVICE
     constexpr vector3_t normal(const point3_t& loc_p) const {
-        return vector::normalize(_shape.template normal<algebra_t>(_values, loc_p));
+        return vector::normalize(
+            _shape.template normal<algebra_t>(_values, loc_p));
     }
 
     /// @returns the boundary values
@@ -220,7 +222,7 @@ class tracer_mask {
     private:
     shape _shape;
     mask_values _values;
-    links_type _volume_link{std::numeric_limits<links_type>::max()};
+    links_type _volume_link = std::numeric_limits<links_type>::max();
 };
 
 }  // namespace detray

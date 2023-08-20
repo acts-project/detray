@@ -18,7 +18,7 @@
 
 namespace detray {
 
-#if(IS_SOA)
+#if (IS_SOA)
 using algebra::storage::operator*;
 using algebra::storage::operator/;
 using algebra::storage::operator-;
@@ -26,7 +26,10 @@ using algebra::storage::operator+;
 #endif
 
 /// Calculates the color of a pixel. Starting point of the shader pipeline
+template <typename T, template <typename> class algebra_t>
 struct material_shader : public detray::actor {
+
+    using vector3D = dvector3D<algebra_t<T>>;
 
     /// Equality operator: Only considers exact match
     template <typename scene_handle_t, typename intersector_state_t>
@@ -35,15 +38,16 @@ struct material_shader : public detray::actor {
         using color_depth = typename decltype(sc.m_pixel)::color_depth;
 
         if (intr_state.m_is_inside) {
-            // auto c = texture::detail::material_color_helper<color_depth>(
-            //         intr_state.material());
-            auto normal = sc.geometry().mask().normal(
-                intr_state.m_intersections[0].local);
+            auto c = texture::detail::material_color_helper<color_depth>(
+                intr_state.material());
+            const auto &intr = intr_state.m_intersections[0];
+            auto normal = sc.geometry().mask().normal(intr.local);
             normal = normal + vector3D{1.f, 1.f, 1.f};
             normal = 255.99f * 0.5f * normal;
-            sc.m_pixel.set_color({static_cast<color_depth>(normal[0][0]),
-                                  static_cast<color_depth>(normal[1][0]),
-                                  static_cast<color_depth>(normal[2][0])});
+            const auto idx = intr.status.firstOne();
+            sc.m_pixel.set_color({static_cast<color_depth>(normal[0][idx]),
+                                  static_cast<color_depth>(normal[1][idx]),
+                                  static_cast<color_depth>(normal[2][idx])});
         }
     }
 };

@@ -6,14 +6,14 @@
  */
 
 // Algebra include(s).
-//#include "detray/plugins/algebra/vc_array_definitions.hpp"
+// #include "detray/plugins/algebra/vc_array_definitions.hpp"
 #include "detray/plugins/algebra/vc_soa_definitions.hpp"
 
 // Project include(s).
 #include "detray/intersection/detail/trajectories.hpp"
 #include "detray/intersection/intersection.hpp"
 #include "detray/io/image/ppm_writer.hpp"
-//#include "detray/masks/masks.hpp"
+// #include "detray/masks/masks.hpp"
 #include "detray/masks/sphere2D.hpp"
 #include "detray/materials/predefined_materials.hpp"
 #include "detray/tracer/renderer/camera.hpp"
@@ -46,10 +46,10 @@ inline void write_test_image(raw_image<color_depth> &im) {
             const float g{i_y / im.height()};
             const float b{0.2f};
 
-            const texture::color<color_depth> c_grad{static_cast<color_depth>(255.99f * r),
-                                          static_cast<color_depth>(255.99f * g),
-                                          static_cast<color_depth>(255.99f * b),
-                                          0u};
+            const texture::color<color_depth> c_grad{
+                static_cast<color_depth>(255.99f * r),
+                static_cast<color_depth>(255.99f * g),
+                static_cast<color_depth>(255.99f * b), 0u};
 
             im.set_pixel(i_x, i_y, c_grad);
         }
@@ -57,25 +57,29 @@ inline void write_test_image(raw_image<color_depth> &im) {
 }
 
 /// Render a shape
-template <typename color_depth, typename aspect_ratio, typename mask_t,
-          typename material_t, class im_background_t = gradient_background>
+template <typename T, template <typename> class algebra_t, typename color_depth,
+          typename aspect_ratio, typename mask_t, typename material_t,
+          class im_background_t = gradient_background<T, algebra_t>>
 inline void render_single_shape(raw_image<color_depth, aspect_ratio> &im,
-                                const mask_t &mask, const transform3D &trf,
+                                const mask_t &mask,
+                                const dtransform3D<algebra_t<T>> &trf,
                                 const material_t &mat) {
-    using scalar_t = transform3D::scalar_type;
+    using scalar_t = dscalar<algebra_t<T>>;
+    using point3D = dpoint3D<algebra_t<T>>;
+    using transform3D = dtransform3D<algebra_t<T>>;
 
     // Rendering steps
-    using intersector_t = single_shape<mask_t, material_t>;
+    using intersector_t = single_shape<T, algebra_t, mask_t, material_t>;
     using backgr_shader_t = background_shader<inf_plane<im_background_t>>;
-    using mat_shader_t = material_shader;
+    using mat_shader_t = material_shader<T, algebra_t>;
     // The rendering pipeline: The intersector finds the shape intersections
     using pipeline_t =
         rendering_pipeline<intersector_t, backgr_shader_t, mat_shader_t>;
 
-    const scalar_t viewport_height{2.0f};
+    const scalar_t viewport_height = 2.0f;
     const point3D origin{0.0f, 0.0f, 0.0f};
 
-    camera<scalar_t, aspect_ratio> cam(viewport_height, origin);
+    camera<T, algebra_t, aspect_ratio> cam(viewport_height, origin);
 
     // For the single shape render, the scene is actually encoded directly in
     // the single shape intersector
@@ -87,7 +91,7 @@ inline void render_single_shape(raw_image<color_depth, aspect_ratio> &im,
 
             // Ray to render the pixel at (i_x, i_y)
             ray<transform3D> ray = cam.get_ray(i_x, i_y, im);
-            ray.set_overstep_tolerance(-std::numeric_limits<scalar>::max());
+            ray.set_overstep_tolerance(-std::numeric_limits<T>::max());
 
             // Strap the global geometry state and the thread-local ray together
             scene_handle::state scene{geo, im, ray, i_x, i_y};
@@ -107,21 +111,26 @@ inline void render_single_shape(raw_image<color_depth, aspect_ratio> &im,
 
 }  // namespace
 
-int main() {
-#if(IS_SOA)
-    using color_depth = Vc::int_v;
+#if (IS_SOA)
+template <typename T>
+using algebra_t = vc_soa<T>;
 #else
-    using color_depth = std::uint8_t;
+using algebra_t = scalar;
 #endif
 
-    io::ppm_writer<color_depth> ppm{};
+int main() {
+
+    using point3D = dpoint3D<vc_soa<float>>;
+    using vector3D = dvector3D<vc_soa<float>>;
+
+    io::ppm_writer<unsigned int> ppm{};
 
     //
     // Test image
     //
 
     // write a test image
-    raw_image<color_depth> image{500u};
+    raw_image<unsigned int> image{500u};
     write_test_image(image);
     ppm.write(image, "test");
 
@@ -130,16 +139,18 @@ int main() {
     //
 
     // Affine transform matrix to place the shapes
-    vector3D x{1.0f, 0.0f, 0.0f};
-    vector3D z{0.0f, 0.0f, 1.f};
-    vector3D t;
-    t[0] = t[0].IndexesFromZero();
-    t[0] *= 10.f;
-    t[1] = 0.f;
-    t[2] = 30.f;
-    transform3D trf{t, z, x};
+    dvector3D<algebra_t<scalar>> x{1.0f, 0.0f, 0.0f};
+    dvector3D<algebra_t<scalar>> z{0.0f, 0.0f, 1.f};
+    dvector3D<algebra_t<scalar>> t;
+    t[0] = t[0].Random();
+    t[0] = 0.1f * (image.width() * t[0] - 0.5f * image.width());
+    t[1] = t[1].Random();
+    t[1] = 0.1f * (image.height() * t[1] - 0.5f * image.height());
+    t[2] = -30.f;
 
-    const silicon_tml<scalar> sf_mat{};
+    dtransform3D<algebra_t<scalar>> trf{t, z, x};
+
+    const silicon_tml<dscalar<scalar>> sf_mat{};
 
     // render a rectangle mask
     /*const mask<rectangle2D<>> rect{0u, 12.f, 20.f};
@@ -163,9 +174,13 @@ int main() {
     ppm.write(image, "annulus");*/
 
     // render a spherical mask
-    const tracer_mask<sphere2D<>> sph2{0u, 10.f * vector3D::value_type{}.IndexesFromZero()};
-    render_single_shape<color_depth>(image, sph2, trf, silicon<scalar>{});
-    //ppm.write(image, "sphere");
+    // const tracer_mask<sphere2D<>> sph2{0u, 10.f * dsimd<vc_soa,
+    // scalar>{}.IndexesFromZero()};
+    const tracer_mask<sphere2D<>> sph2{0u,
+                                       10.f * dsimd<vc_soa, scalar>{}.Random()};
+
+    render_single_shape<scalar, algebra_t>(image, sph2, trf, silicon<scalar>{});
+    ppm.write(image, "sphere");
 
     return EXIT_SUCCESS;
 }

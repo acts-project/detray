@@ -24,15 +24,18 @@ class ppm_writer final : public image_writer<color_depth> {
     void write(const raw_image<color_depth> &im,
                const std::string &file_stem) override {
         // Create a new file
-        io::detail::file_handle file{file_stem, this->m_file_extension, (std::ios_base::out | std::ios_base::trunc)};
+        io::detail::file_handle file{
+            file_stem, this->m_file_extension,
+            (std::ios_base::out | std::ios_base::trunc)};
 
         // ppm file header
         *file << "P3\n" << im.width() << " " << im.height() << "\n255\n";
 
         // Image data
         for (const auto &px : im.pixel_data()) {
-            *file << static_cast<color_depth>(px[0]) << " " << static_cast<color_depth>(px[1])
-                  << " " << static_cast<color_depth>(px[2]) << std::endl;
+            *file << static_cast<unsigned int>(px[0]) << " "
+                  << static_cast<unsigned int>(px[1]) << " "
+                  << static_cast<unsigned int>(px[2]) << std::endl;
         }
     };
 };

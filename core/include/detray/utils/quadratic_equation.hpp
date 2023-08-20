@@ -15,7 +15,6 @@
 
 // System include(s)
 #include <limits>
-#include <iostream>
 
 namespace detray::detail {
 
@@ -34,10 +33,9 @@ class quadratic_equation {
     ///
     /// @param tolerance threshhold to compare the discrimant against to decide
     ///                  if we have two separate solutions.
-    template<typename S = scalar_t, 
-            std::enable_if_t<std::is_scalar_v<S>, bool> = true>
-    DETRAY_HOST_DEVICE
-    constexpr quadratic_equation(
+    template <typename S = scalar_t,
+              std::enable_if_t<std::is_scalar_v<S>, bool> = true>
+    DETRAY_HOST_DEVICE constexpr quadratic_equation(
         const scalar_t a, const scalar_t b, const scalar_t c,
         const scalar_t tolerance = std::numeric_limits<scalar_t>::epsilon()) {
         // linear case
@@ -68,45 +66,6 @@ class quadratic_equation {
         }
     }
 
-    /// @brief SoA version
-    template<typename simd_vec_t = scalar_t, 
-        std::enable_if_t<!std::is_scalar_v<simd_vec_t>, bool> = true>
-    DETRAY_HOST_DEVICE
-    constexpr quadratic_equation(
-        const scalar_t a, const scalar_t b, const scalar_t c,
-        const scalar_t tolerance = std::numeric_limits<scalar_t>::epsilon()) {
-#if(IS_SOA)
-        m_solutions = 1.f;
-        // linear case
-        const auto one_sol = (Vc::abs(a) <= tolerance);
-        m_solutions.setZeroInverted(one_sol);
-        m_values[0] = -c / b;
-        m_values[0].setZero(one_sol);
-        //std::cout << m_values[0] << std::endl;
-
-        const simd_vec_t discriminant = b * b - (4.f * a) * c;
-            // If there is more than one solution, then a != 0 and q != 0
-        const auto two_sol = (discriminant > tolerance);
-        /*        m_solutions = 2;
-                const simd_vec_t q{
-                    -0.5f *
-                    (b + detail::copysign(math_ns::sqrt(discriminant), b))};
-                m_values = {q / a, c / q};
-                // Sort the two solutions
-                if (m_values[0] > m_values[1]) {
-                    m_values = {m_values[1], m_values[0]};
-                }
-            }
-            // Only one solution and a != 0
-            else if (discriminant >= 0.f) {
-                m_solutions = 1;
-                m_values[0] = -0.5f * b / a;
-            }*/
-            // discriminant < 0 is not allowed, since all solutions should be
-            // real
-#endif
-    }
-
     /// Getters for the solution(s)
     /// @{
     constexpr auto solutions() const { return m_solutions; }
@@ -116,11 +75,7 @@ class quadratic_equation {
 
     private:
     /// Number of solutions of the equation
-#if(IS_SOA)
-    Vc::float_v m_solutions{0};
-#else
     int m_solutions{0};
-#endif
     /// The solutions
     std::array<scalar_t, 2> m_values{detail::invalid_value<scalar_t>(),
                                      detail::invalid_value<scalar_t>()};

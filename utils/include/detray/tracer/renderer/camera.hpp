@@ -17,23 +17,29 @@
 
 namespace detray {
 
-template <typename scalar_t, typename aspect_ratio = std::ratio<16, 9>>
+template <typename T, template <typename> class algebra_t,
+          typename aspect_ratio = std::ratio<16, 9>>
 class camera {
+    using scalar_t = dscalar<algebra_t<T>>;
+    using point3D = dpoint3D<algebra_t<T>>;
+    using vector3D = dvector3D<algebra_t<T>>;
+    using transform3D = dtransform3D<algebra_t<T>>;
+
     public:
     DETRAY_HOST_DEVICE
     camera(const scalar_t viewport_height = 2.0f,
            const point3D origin = {0.0f, 0.0f, 0.0f},
            const scalar_t focal_length = 1.0f)
         : m_origin(origin) {
-        constexpr scalar_t a{static_cast<scalar_t>(aspect_ratio::num) /
-                             static_cast<scalar_t>(aspect_ratio::den)};
+        constexpr T a{static_cast<T>(aspect_ratio::num) /
+                      static_cast<T>(aspect_ratio::den)};
         const scalar_t viewport_width{a * viewport_height};
 
         m_horizontal = point3D{viewport_width, 0.f, 0.f};
         m_vertical = point3D{0.f, viewport_height, 0.f};
         point3D av = (m_horizontal + m_vertical);
-        m_lower_left_corner = m_origin - 0.5f * av -
-                              vector3D{0.f, 0.f, focal_length};
+        m_lower_left_corner =
+            m_origin - 0.5f * av - vector3D{0.f, 0.f, focal_length};
     }
 
     DETRAY_HOST_DEVICE
@@ -43,8 +49,8 @@ class camera {
         const raw_image<color_depth> &image) const {
 
         // percentage of pixel position of the width/height of the image
-        const float u{x / static_cast<scalar_t>(image.width() - 1u)};
-        const float v{y / static_cast<scalar_t>(image.height() - 1u)};
+        const scalar_t u = x / static_cast<T>(image.width() - 1u);
+        const scalar_t v = y / static_cast<T>(image.height() - 1u);
 
         return {
             m_origin,

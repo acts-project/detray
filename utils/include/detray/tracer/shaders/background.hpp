@@ -22,46 +22,57 @@ namespace detray {
 struct image_background {};
 
 /// @brief Single color image background
+template <typename T, template <typename> class algebra_t>
 struct plain_background : public image_background {
 
-    template <typename color_depth = uint8_t>
+    using transform3D = dtransform3D<algebra_t<T>>;
+
+    template <typename color_depth = unsigned int>
     constexpr texture::color<color_depth> get(
         const detray::ray<transform3D> &) {
         return m_color<color_depth>;
     }
 
-    template <typename color_depth = uint8_t>
+    template <typename color_depth = unsigned int>
     static constexpr auto m_color = texture::white<color_depth>;
 };
 
 /// @brief Gradient background as described in
+template <typename T, template <typename> class algebra_t>
 struct gradient_background : public image_background {
 
-    template <typename color_depth = uint8_t>
+    using point3D = dpoint3D<algebra_t<T>>;
+    using vector3D = dvector3D<algebra_t<T>>;
+    using transform3D = dtransform3D<algebra_t<T>>;
+
+    template <typename color_depth = unsigned int>
     constexpr texture::color<color_depth> get(
         const detray::ray<transform3D> &ray) {
         vector3D dir = vector::normalize(ray.dir());
         point3D p1{1.0f, 1.0f, 1.0f};
         point3D p2{0.85f, 0.85f, 1.0f};
-        const auto t{0.5f * dir[1] + 1.0f};
+        const auto t = 0.5f * dir[1] + 1.0f;
         point3D p4 = ((1.0f - t) * p1 + t * p2);
         point3D p3 = 255.99f * p4;
 
-        return {
-            static_cast<color_depth>(p3[0]), static_cast<color_depth>(p3[1]),
-            static_cast<color_depth>(p3[2]), static_cast<color_depth>(255u)};
+        return {static_cast<color_depth>(p3[0][0]),
+                static_cast<color_depth>(p3[1][0]),
+                static_cast<color_depth>(p3[2][0]),
+                static_cast<color_depth>(255u)};
     }
 };
 
 /// @brief Gradient background as described in
-template <class image_background_t = plain_background>
+template <class image_background_t>
 struct inf_plane : public image_background {
 
-    template <typename color_depth = uint8_t>
+    using transform3D = typename image_background_t::transform3D;
+
+    template <typename color_depth = unsigned int>
     constexpr texture::color<color_depth> get(
         const detray::ray<transform3D> &ray) {
 
-#if(IS_SOA)
+#if (IS_SOA)
         if ((ray.dir()[1] < 0.f).isFull()) {
 #else
         if (not std::signbit(ray.dir()[1])) {
@@ -74,7 +85,7 @@ struct inf_plane : public image_background {
 };
 
 /// Calculates the color of a pixel. Starting point of the shader pipeline
-template <class image_background_t = plain_background>
+template <class image_background_t>
 struct background_shader : public detray::actor {
 
     /// Equality operator: Only considers exact match

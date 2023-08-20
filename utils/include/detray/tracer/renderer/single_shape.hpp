@@ -9,12 +9,12 @@
 
 // Project include(s)
 #include "detray/definitions/qualifiers.hpp"
-#include "detray/geometry/surface.hpp"
+#include "detray/geometry/detail/surface_descriptor.hpp"
 #include "detray/intersection/detail/trajectories.hpp"
-#include "detray/tracer/renderer/detail/intersection.hpp"
 #include "detray/materials/material_rod.hpp"
 #include "detray/materials/material_slab.hpp"
 #include "detray/propagator/base_actor.hpp"
+#include "detray/tracer/renderer/detail/intersection.hpp"
 
 // System include(s)
 #include <iostream>
@@ -24,19 +24,23 @@
 namespace detray {
 
 /// Calculates the color of a pixel. Starting point of the shader pipeline
-template <typename mask_t, typename material_t = material_slab<scalar>>
+template <typename T, template <typename> class algebra_t, typename mask_t,
+          typename material_t = material_slab<T>>
 struct single_shape : detray::actor {
-#if(IS_SOA)
-    using surface_t = surface<dtyped_index<Vc::int_v, Vc::int_v>, 
-                              dtyped_index<Vc::int_v, Vc::int_v>,
-                              Vc::int_v, Vc::int_v, Vc::int_v>;
-    using intersection_t = soa::intersection2D<surface_t>;
+#if (IS_SOA)
+    using surface_t = surface_descriptor<dtyped_index<>, dtyped_index<>,
+                                         Vc::uint_v, Vc::uint_v, Vc::uint_v>;
+    using intersection_t = soa::intersection2D<surface_t, T, algebra_t>;
 #else
-    using surface_t = surface<>;
+    using surface_t = surface_descriptor<>;
     using intersection_t = intersection2D<surface_t>;
 #endif
 
     struct global_state {
+        using scalar_t = dscalar<algebra_t<T>>;
+        using point3D = dpoint3D<algebra_t<T>>;
+        using vector3D = dvector3D<algebra_t<T>>;
+        using transform3D = dtransform3D<algebra_t<T>>;
 
         /// Construct from surface data:
         DETRAY_HOST_DEVICE
@@ -51,7 +55,7 @@ struct single_shape : detray::actor {
         const material_t &material() const { return m_material; }
         /// @}
 
-        /// The surface descriptor
+        /// The surfaces data
         transform3D m_trf;
         mask_t m_mask;
         material_t m_material;
@@ -60,17 +64,16 @@ struct single_shape : detray::actor {
     struct state {
 
         DETRAY_HOST_DEVICE
-        state(const scalar min = 0.f,
-              const scalar max = std::numeric_limits<scalar>::infinity())
+        state(const T min = 0.f, const T max = std::numeric_limits<T>::max())
             : m_interval{min, max} {}
 
         const material_t &material() const { return *m_material; }
 
-        std::array<scalar, 2> m_interval;
+        std::array<T, 2> m_interval;
         /// Resulting intersection
-        std::array<intersection_t, 2> m_intersections;
+        std::array<intersection_t, 2> m_intersections{};
         /// Pointer to the material of the surface
-        const material_t *m_material;
+        const material_t *m_material{nullptr};
         /// Flag to the obseving colorizer/shaders that the surface was hit
         bool m_is_inside = false;
     };

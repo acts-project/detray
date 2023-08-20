@@ -10,6 +10,15 @@ if( NOT ALGEBRA_PLUGINS_INCLUDE_VC )
       "The configuration will likely fail." )
 endif()
 
+include( detray-compiler-options-cpp )
+
+# Use the preferred compiler flags from Vc for the entire project. Do not
+# set them on the libraries individually, as the clients of the libraries
+# may want to use a different optimisation.
+vc_set_preferred_compiler_flags()
+add_compile_definitions( ${Vc_DEFINITIONS} )
+add_compile_options( ${Vc_COMPILE_FLAGS} ${Vc_ARCHITECTURE_FLAGS} )
+
 # Set up the SoA library.
 detray_add_library( detray_algebra_vc_soa algebra_vc_soa
    "include/detray/plugins/algebra/vc_soa_definitions.hpp" )

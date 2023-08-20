@@ -46,7 +46,7 @@ class sphere2D {
     using intersector_type = intersector_t<intersection_t>;
 
     /// Behaviour of the two local axes (circular in phi, circular in theta)
-    template<
+    template <
         template <typename, typename> class binning_loc0 = n_axis::regular,
         template <typename, typename> class binning_loc1 = n_axis::regular>
     struct axes {
@@ -54,8 +54,8 @@ class sphere2D {
         static constexpr n_axis::label axis_loc1 = n_axis::label::e_theta;
         static constexpr std::size_t dim{2u};
 
-        using types = dtuple<n_axis::circular<axis_loc0>,
-                             n_axis::circular<axis_loc1>>;
+        using types =
+            dtuple<n_axis::circular<axis_loc0>, n_axis::circular<axis_loc1>>;
 
         /// Local coordinate frame (both for disc and focal system ?)
         template <typename algebra_t>
@@ -77,7 +77,7 @@ class sphere2D {
     ///
     /// @return true if the local point lies within the given boundaries.
     template <template <typename, std::size_t> class bounds_t,
-              typename scalar_t, std::size_t kDIM, typename point_t, 
+              typename scalar_t, std::size_t kDIM, typename point_t,
               typename std::enable_if_t<kDIM == e_size, bool> = true>
     DETRAY_HOST_DEVICE inline bool check_boundaries(
         const bounds_t<scalar_t, kDIM>& bounds, const point_t& loc_p,
@@ -87,11 +87,11 @@ class sphere2D {
 
     /// @returns the normal vector given a local position @param loc_p .
     DETRAY_HOST_DEVICE
-    template<typename algebra_t, 
-             template <typename, std::size_t> class bounds_t,
-             typename scalar_t, std::size_t kDIM, typename point_t>
+    template <typename algebra_t,
+              template <typename, std::size_t> class bounds_t,
+              typename scalar_t, std::size_t kDIM, typename point_t>
     constexpr auto normal(const bounds_t<scalar_t, kDIM>&,
-                             const point_t & loc_p) const {
+                          const point_t& loc_p) const {
         return local_frame_type<algebra_t>{}.normal(loc_p);
     }
 
@@ -112,7 +112,7 @@ class sphere2D {
         const bounds_t<scalar_t, kDIM>& bounds,
         const scalar_t env = std::numeric_limits<scalar_t>::epsilon()) const {
         assert(env > 0.f);
-        const scalar_t r_bound{env + bounds[e_r]};
+        const scalar_t r_bound = env + bounds[e_r];
         return {-r_bound, -r_bound, -env, r_bound, r_bound, env};
     }
 };
