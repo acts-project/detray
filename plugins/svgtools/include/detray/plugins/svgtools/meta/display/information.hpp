@@ -19,7 +19,7 @@
 namespace detray::svgtools::meta::display {
 
 template <typename point3_t, typename point2_t, typename view_t>
-inline auto information_section(const std::string& id, const svgtools::meta::proto::information_section<point3_t>& is, const view_t& view, const point2_t& screen_position, const actsvg::svg::object& connected_object)
+inline auto information_section(const std::string& id, const svgtools::meta::proto::information_section<point3_t>& is, const view_t& /*view*/, const point2_t& screen_offset, const actsvg::svg::object& connected_object)
 {
     // Title style
     actsvg::style::fill title_fill;
@@ -27,7 +27,7 @@ inline auto information_section(const std::string& id, const svgtools::meta::pro
     title_fill._fc._opacity = 0.8;
     actsvg::style::font title_font;
 
-    title_font._size = 24;
+    title_font._size = 16;
     title_font._fc = actsvg::style::color{{255, 255, 255}};
 
     // Info text style
@@ -36,15 +36,15 @@ inline auto information_section(const std::string& id, const svgtools::meta::pro
     info_fill._fc._opacity = 0.4;
 
     actsvg::style::font info_font;
-    info_font._size = 18;
+    info_font._size = 12;
 
     // Box stroke
     actsvg::style::stroke stroke;
 
-    //const auto position = view(std::vector{is._position})[0] + post_view_offset;
+    const auto position = screen_offset; // + view(std::vector{is._position})[0];
 
-    return actsvg::draw::connected_info_box(id, screen_position, is._title,
+    return actsvg::draw::connected_info_box(id, position, is._title,
                                              title_fill, title_font, is._info,
-                                             info_fill, info_font, stroke, connected_object);
+                                             info_fill, info_font, stroke, connected_object, {"mousedown", "mouseout"});
 }
 }

@@ -9,11 +9,13 @@
 
 // Project include(s)
 #include "detray/geometry/surface.hpp"
+#include "detray/plugins/svgtools/conversion/information_section.hpp"
 #include "detray/plugins/svgtools/conversion/intersection_record.hpp"
 #include "detray/plugins/svgtools/conversion/landmark.hpp"
 #include "detray/plugins/svgtools/conversion/surface.hpp"
 #include "detray/plugins/svgtools/conversion/volume.hpp"
 #include "detray/plugins/svgtools/meta/display/geometry.hpp"
+#include "detray/plugins/svgtools/meta/display/information.hpp"
 #include "detray/plugins/svgtools/styling/styling.hpp"
 #include "detray/plugins/svgtools/utils/volume_utils.hpp"
 #include "detray/utils/ranges.hpp"
@@ -40,8 +42,13 @@ class illustrator {
 
     illustrator(const detector_t& detector,
                 const typename detector_t::name_map& name_map,
-                const styling::style& style)
-        : _detector{detector}, _name_map{name_map}, _style{style} {}
+                const bool show_info)
+        : _detector{detector}, _name_map{name_map}, _show_info{show_info} {}
+
+    illustrator(const detector_t& detector,
+                const typename detector_t::name_map& name_map,
+                const bool show_info, const styling::style& style)
+        : _detector{detector}, _name_map{name_map}, _show_info{show_info}, _style{style} {}
 
     /// @brief Converts a detray surface in the detector to an svg.
     /// @param identification the id of the svg object.
@@ -50,25 +57,32 @@ class illustrator {
     /// @param view the display view.
     /// @returns actsvg::svg::object of the detector's surface.
     template <typename view_t>
-    inline auto draw_surface(
-        const std::string& identification,
-        const typename detector_t::geometry_context& context,
-        const std::size_t index, const view_t& view) const {
-        const auto surface = detray::surface{
-            _detector,
-            _detector.surface_lookup()[static_cast<detray::dindex>(index)]};
-        if (surface.is_portal()) {
-            auto p_portal = svgtools::conversion::portal<point3_container>(
-                context, _detector, surface);
-            svgtools::styling::apply_style(p_portal,
-                                           _style._volume_style._portal_style);
-            return actsvg::display::portal(identification, p_portal, view);
+    inline auto draw_surface(const std::string& identification, const typename detector_t::geometry_context& context, const std::size_t index, const view_t& view) const {
+        const auto surface = detray::surface{_detector, _detector.surface_lookup()[static_cast<detray::dindex>(index)]};
+        actsvg::svg::object ret{._tag = "g", ._id = "group_" + identification};
+        actsvg::svg::object svg_sur;
+        std::array<int, 3> color;
+        if (surface.is_portal())
+        {
+            auto p_portal = svgtools::conversion::portal<point3_container>(context, _detector, surface);
+            svgtools::styling::apply_style(p_portal, _style._volume_style._portal_style);
+            std::copy(p_portal._surface._fill._fc._rgb.begin(), p_portal._surface._fill._fc._rgb.end(), color.begin());
+            svg_sur = actsvg::display::portal(identification, p_portal, view);
         }
-        auto p_surface =
-            svgtools::conversion::surface<point3_container>(context, surface);
-        svgtools::styling::apply_style(p_surface,
-                                       _style._volume_style._surface_style);
-        return actsvg::display::surface(identification, p_surface, view);
+        else{
+            auto p_surface = svgtools::conversion::surface<point3_container>(context, surface);
+            svgtools::styling::apply_style(p_surface, _style._volume_style._surface_style);
+            std::copy(p_surface._fill._fc._rgb.begin(), p_surface._fill._fc._rgb.end(), color.begin());
+            svg_sur = actsvg::display::surface(identification, p_surface, view);
+        }
+        if (_show_info)
+        {
+            auto p_information_section = svgtools::conversion::information_section<point3>(context, surface);
+            std::copy(color.begin(), color.end(), p_information_section._color.begin());
+            ret.add_object(svgtools::meta::display::information_section(identification + "_information_section", p_information_section, view, _info_screen_offset, svg_sur));
+        }
+        ret.add_object(svg_sur);
+        return ret;
     }
 
     /// @brief Converts a collection of detray surfaces in the detector to an
@@ -103,16 +117,15 @@ class illustrator {
     /// @param view the display view.
     /// @returns actsvg::svg::object of the detector's volume.
     template <typename view_t>
-    inline auto draw_volume(
-        const std::string& identification,
-        const typename detector_t::geometry_context& context,
-        const std::size_t index, const view_t& view) const {
-        const auto volume =
-            _detector.volume_by_index(static_cast<detray::dindex>(index));
-        auto p_volume = svgtools::conversion::volume<point3_container>(
-            context, _detector, volume);
-        svgtools::styling::apply_style(p_volume, _style._volume_style);
-        return actsvg::display::volume(identification, p_volume, view);
+    inline auto draw_volume(const std::string& identification, const typename detector_t::geometry_context& context, const std::size_t index, const view_t& view) const {
+        actsvg::svg::object ret{._tag = "g", ._id = identification};
+        const auto d_volume = _detector.volume_by_index(static_cast<detray::dindex>(index));
+        auto surface_descs = svgtools::utils::surface_lookup(_detector, d_volume);
+        for (std::size_t i = 0; i < surface_descs.size(); i++){
+            const auto surface_index = surface_descs[i].index();
+            ret.add_object(draw_surface(identification + "_surface" + std::to_string(surface_index), context, surface_index, view));
+        }
+        return ret;
     }
 
     /// @brief Converts a collection of detray volumes in the detector to an
@@ -182,8 +195,10 @@ class illustrator {
     using point3 = std::array<actsvg::scalar, 3>;
     using point3_container = std::vector<point3>;
 
+    const actsvg::point2 _info_screen_offset{0,80};
     const detector_t& _detector;
     const typename detector_t::name_map& _name_map;
+    const bool _show_info = false;
     const styling::style _style = styling::style1;
 };
 

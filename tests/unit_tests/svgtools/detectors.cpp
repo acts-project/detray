@@ -42,7 +42,7 @@ int main(int, char**) {
     toy_detector_t::geometry_context context{};
 
     // Creating the svg generator for the detector.
-    detray::svgtools::illustrator il{det, names};
+    detray::svgtools::illustrator il{det, names, true};
 
     // Get the svg of the toy detetector in x-y view.
     const auto svg_xy = il.draw_detector("detector_xy", context, xy);

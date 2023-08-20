@@ -104,9 +104,9 @@ struct style {
     const landmark_style _intersection_style;
 };
 
-const surface_style surface_style1{colors::blue_theme(0.8f), 1.f};
+const surface_style surface_style1{colors::blue_theme(0.8f), 3.f};
 
-const surface_style surface_style2{colors::red_theme(0.8f), 1.f};
+const surface_style surface_style2{colors::red_theme(0.8f), 3.f};
 
 const link_style link_style1{1.2f};
 
