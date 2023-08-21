@@ -89,7 +89,7 @@ class surface {
     DETRAY_HOST_DEVICE
     constexpr auto volume() const -> dindex { return barcode().volume(); }
 
-    /// @returns the index fo the surface in the detector surface lookup
+    /// @returns the index of the surface in the detector surface lookup
     DETRAY_HOST_DEVICE
     constexpr auto index() const -> dindex { return barcode().index(); }
 
@@ -241,6 +241,33 @@ class surface {
                                    const vector3 &dtds) const {
         return visit_mask<typename kernels::path_correction>(transform(ctx),
                                                              pos, dir, dtds);
+    }
+
+    /// @returns the vertices in local frame
+    DETRAY_HOST
+    constexpr auto local_vertices() const {
+        return visit_mask<typename kernels::local_vertices>();
+    }
+
+    /// @returns the vertices in global frame.
+    DETRAY_HOST
+    constexpr auto global_vertices(const context &ctx,
+                                   const vector3 &dir) const {
+        auto vertices = local_vertices();
+        for (size_t i = 0; i < vertices.size(); i++) {
+            vertices[i] = local_to_global(ctx, vertices[i], dir);
+        }
+        return vertices;
+    }
+
+    /// @brief Lower and upper point for minimal axis aligned bounding box.
+    ///
+    /// Computes the min and max vertices in a local cartesian frame.
+    DETRAY_HOST
+    constexpr auto local_min_bounds(
+        const scalar_type env =
+            std::numeric_limits<scalar_type>::epsilon()) const {
+        return visit_mask<typename kernels::local_min_bounds>(env);
     }
 
     /// Call a functor on the surfaces mask with additional arguments.

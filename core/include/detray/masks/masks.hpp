@@ -220,6 +220,19 @@ class mask {
         return {bounds, std::numeric_limits<unsigned int>::max()};
     }
 
+    /// @brief Calculates the center of the min bounds bounding box.
+    /// @returns The center point in global cartesian coordinates.
+    template <typename transform3_t>
+    auto global_min_bounds_center(const transform3_t& trf) const {
+        const auto m = local_min_bounds();
+        const auto cuboid = m.get_shape();
+        const auto center{0.5f * (point3_t{m[cuboid.e_max_x], m[cuboid.e_max_y],
+                                           m[cuboid.e_max_z]} +
+                                  point3_t{m[cuboid.e_min_x], m[cuboid.e_min_y],
+                                           m[cuboid.e_min_z]})};
+        return trf.point_to_global(center);
+    }
+
     /// @returns true if the mask boundary values are consistent
     DETRAY_HOST
     constexpr bool self_check(std::ostream& os) const {

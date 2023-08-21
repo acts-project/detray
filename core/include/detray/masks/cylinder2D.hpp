@@ -130,7 +130,7 @@ class cylinder2D {
     /// @param bounds the boundary values for this shape
     /// @param env dynamic envelope around the shape
     ///
-    /// @returns and array of coordinates that contains the lower point (first
+    /// @returns an array of coordinates that contains the lower point (first
     /// three values) and the upper point (latter three values) .
     template <typename algebra_t,
               template <typename, std::size_t> class bounds_t,
