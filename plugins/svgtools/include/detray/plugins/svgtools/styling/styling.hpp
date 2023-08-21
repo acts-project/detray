@@ -80,8 +80,8 @@ std::vector<actsvg::style::color> green_theme(const actsvg::scalar opacity) {
 
 }  // namespace colors
 
-const style default_style{colors::blue_theme(0.8f), colors::red_theme(0.8f), 1.f,
-                          1.2f, false};
+const style default_style{colors::blue_theme(0.8f), colors::red_theme(0.8f),
+                          1.f, 1.2f, false};
 
 /// @brief Sets the style of the proto surface.
 template <typename point3_container_t>

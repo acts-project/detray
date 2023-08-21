@@ -154,7 +154,8 @@ class illustrator {
         actsvg::svg::object ret;
         ret._tag = "g";
         ret._id = identification;
-        for (std::size_t index = 0; index < _detector.volumes().size(); index++) {
+        for (std::size_t index = 0; index < _detector.volumes().size();
+             index++) {
             const auto svg =
                 draw_volume(identification + "_volume" + std::to_string(index),
                             context, index, view);

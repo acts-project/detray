@@ -225,10 +225,11 @@ class mask {
     template <typename transform3_t>
     auto global_min_bounds_center(const transform3_t& trf) const {
         const auto m = local_min_bounds();
-        const auto center{0.5f * (point3_t{m[cuboid3D<>::e_max_x], m[cuboid3D<>::e_max_y],
-                                           m[cuboid3D<>::e_max_z]} +
-                                  point3_t{m[cuboid3D<>::e_min_x], m[cuboid3D<>::e_min_y],
-                                           m[cuboid3D<>::e_min_z]})};
+        const auto center{
+            0.5f * (point3_t{m[cuboid3D<>::e_max_x], m[cuboid3D<>::e_max_y],
+                             m[cuboid3D<>::e_max_z]} +
+                    point3_t{m[cuboid3D<>::e_min_x], m[cuboid3D<>::e_min_y],
+                             m[cuboid3D<>::e_min_z]})};
         return trf.point_to_global(center);
     }
 
