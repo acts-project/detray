@@ -29,7 +29,7 @@ namespace colors {
 /// @brief Picks a random element in the container.
 template <typename container_t>
 auto pick_random(container_t container) {
-    int idx = std::rand() % container.size();
+    const auto idx = static_cast<std::size_t>(std::rand()) % container.size();
     return container[idx];
 }
 
