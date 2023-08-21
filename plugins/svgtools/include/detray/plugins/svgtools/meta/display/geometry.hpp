@@ -10,6 +10,7 @@
 // Project inlude(s)
 #include "detray/plugins/svgtools/meta/proto/intersection_record.hpp"
 #include "detray/plugins/svgtools/meta/proto/landmark.hpp"
+#include "detray/plugins/svgtools/meta/proto/trajectory.hpp"
 
 // Actsvg include(s)
 #include "actsvg/core.hpp"
@@ -17,6 +18,7 @@
 // System include(s)
 #include <string>
 #include <vector>
+#include <iostream>
 
 namespace detray::svgtools::meta::display {
 
@@ -47,4 +49,20 @@ inline auto intersection_record(
     return ret;
 }
 
-}  // namespace detray::svgtools::meta::display
+/// @brief Converts a proto trajectory to a SVG object.
+template <typename point3_t, typename view_t>
+inline auto trajectory(const std::string& id, const svgtools::meta::proto::trajectory<point3_t>& p_trajectory, const view_t& view)
+{
+    std::vector<actsvg::point2> points;
+    auto change_view = [view](const point3_t& p){ return view(std::vector{p})[0];};
+    std::transform(p_trajectory._points.cbegin(), p_trajectory._points.cend(), std::back_inserter(points), change_view);
+    actsvg::svg::object ret{._tag = "g", ._id = id};
+    for (std::size_t i = 0; i < points.size()-1; i++)
+    {
+        const auto l = actsvg::draw::line(id, points[i], points[i+1], p_trajectory._stroke);
+        ret.add_object(l);
+    }
+    return ret;
+}
+
+}

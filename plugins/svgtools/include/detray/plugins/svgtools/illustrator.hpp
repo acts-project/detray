@@ -13,6 +13,7 @@
 #include "detray/plugins/svgtools/conversion/intersection_record.hpp"
 #include "detray/plugins/svgtools/conversion/landmark.hpp"
 #include "detray/plugins/svgtools/conversion/surface.hpp"
+#include "detray/plugins/svgtools/conversion/trajectory.hpp"
 #include "detray/plugins/svgtools/conversion/volume.hpp"
 #include "detray/plugins/svgtools/meta/display/geometry.hpp"
 #include "detray/plugins/svgtools/meta/display/information.hpp"
@@ -173,7 +174,7 @@ class illustrator {
     /// @param context the geometry context.
     /// @param intersection_record the intersection record.
     /// @param view the display view.
-    /// @return actsvg::svg::object of the intersectio record.
+    /// @return actsvg::svg::object of the intersection record.
     template <typename view_t>
     inline auto draw_intersections(
         const std::string& identification,
@@ -191,6 +192,19 @@ class illustrator {
                                                             p_ir, view);
     }
 
+    /// @brief Converts a trajectory to an svg.
+    /// @param identification the id of the svg object.
+    /// @param trajectory the trajectory (eg. ray or helix).
+    /// @param view the display view.
+    /// @return actsvg::svg::object of the trajectory.
+    template <typename view_t, template <typename> class trajectory_t, typename transform3_t>
+    inline auto draw_trajectory(const std::string& identification, const trajectory_t<transform3_t>& trajectory, const view_t& view) const
+    {
+        auto p_trajectory = svgtools::conversion::trajectory<point3>(trajectory);
+        //svgtools::styling::apply_style(p_trajectory, ...);
+        return svgtools::meta::display::trajectory(identification, p_trajectory, view);
+    }
+    
     private:
     using point3 = std::array<actsvg::scalar, 3>;
     using point3_container = std::vector<point3>;
