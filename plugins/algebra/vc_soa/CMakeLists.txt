@@ -12,12 +12,8 @@ endif()
 
 include( detray-compiler-options-cpp )
 
-# Use the preferred compiler flags from Vc for the entire project. Do not
-# set them on the libraries individually, as the clients of the libraries
-# may want to use a different optimisation.
+# Use the preferred compiler flags from Vc for the entire project.
 vc_set_preferred_compiler_flags()
-add_compile_definitions( ${Vc_DEFINITIONS} )
-add_compile_options( ${Vc_COMPILE_FLAGS} ${Vc_ARCHITECTURE_FLAGS} )
 
 # Set up the SoA library.
 detray_add_library( detray_algebra_vc_soa algebra_vc_soa
@@ -26,7 +22,9 @@ target_link_libraries( detray_algebra_vc_soa
    INTERFACE algebra::vc_soa algebra::vc_soa_storage vecmem::core )
 target_compile_definitions( detray_algebra_vc_soa
    INTERFACE DETRAY_CUSTOM_SCALARTYPE=${DETRAY_CUSTOM_SCALARTYPE}
-             DETRAY_ALGEBRA_VC_SOA )
+             DETRAY_ALGEBRA_VC_SOA ${Vc_DEFINITIONS} )
+target_compile_options(detray_algebra_vc_soa
+   INTERFACE ${Vc_COMPILE_FLAGS} ${Vc_ARCHITECTURE_FLAGS} )
 
 # Set up tests for the public header(s) of detray::algebra_vc_soa.
 detray_test_public_headers( detray_algebra_vc_soa

@@ -26,7 +26,6 @@ if(("${CMAKE_CXX_COMPILER_ID}" MATCHES "GNU") OR
    ("${CMAKE_CXX_COMPILER_ID}" MATCHES "Clang") OR
    ("${CMAKE_CXX_COMPILER_ID}" MATCHES "IntelLLVM"))
    # Basic flags for all build modes.
-   detray_add_flag(CMAKE_CXX_FLAGS "-march=native")
    detray_add_flag(CMAKE_CXX_FLAGS "-Wall")
    detray_add_flag(CMAKE_CXX_FLAGS "-Wextra")
    detray_add_flag(CMAKE_CXX_FLAGS "-Wshadow")
