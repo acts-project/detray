@@ -19,8 +19,8 @@ namespace detray::svgtools::styling {
 struct style {
     const std::vector<actsvg::style::color> surface_fill_colors;
     const std::vector<actsvg::style::color> portal_fill_colors;
-    const double stroke_width;
-    const double marker_size;
+    const actsvg::scalar stroke_width;
+    const actsvg::scalar marker_size;
     const bool hide_links;
 };
 
@@ -78,7 +78,7 @@ std::vector<actsvg::style::color> green_theme(const actsvg::scalar opacity) {
             {shamrock_green, opacity}};
 }
 
-};  // namespace colors
+}  // namespace colors
 
 const style default_style{colors::blue_theme(0.8f), colors::red_theme(0.8f), 1.f,
                           1.2f, false};
