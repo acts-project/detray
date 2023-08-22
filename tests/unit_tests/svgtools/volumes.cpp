@@ -41,7 +41,7 @@ int main(int, char**) {
     const detray::svgtools::illustrator il{det, names};
 
     // Indexes of the volumes in the detector to be visualized.
-    std::array indices{0, 1, 2, 3};
+    std::array indices{0UL, 1UL, 2UL, 3UL};
     for (std::size_t i : indices) {
         std::string name = "test_svgtools_volume" + std::to_string(i);
         // Visualization of volume i:
