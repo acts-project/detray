@@ -52,7 +52,7 @@ class illustrator {
     inline auto draw_surface(
         const std::string& identification,
         const typename detector_t::geometry_context& context,
-        const size_t index, const view_t& view) const {
+        const std::size_t index, const view_t& view) const {
         const auto surface = detray::surface{
             _detector,
             _detector.surface_lookup()[static_cast<detray::dindex>(index)]};
@@ -103,7 +103,7 @@ class illustrator {
     inline auto draw_volume(
         const std::string& identification,
         const typename detector_t::geometry_context& context,
-        const size_t index, const view_t& view) const {
+        const std::size_t index, const view_t& view) const {
         const auto volume =
             _detector.volume_by_index(static_cast<detray::dindex>(index));
         auto p_volume = svgtools::conversion::volume<point3_container>(

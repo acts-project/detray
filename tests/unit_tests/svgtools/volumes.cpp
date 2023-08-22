@@ -42,7 +42,7 @@ int main(int, char**) {
 
     // Indexes of the volumes in the detector to be visualized.
     std::array indices{0, 1, 2, 3};
-    for (int i : indices) {
+    for (std::size_t i : indices) {
         std::string name = "test_svgtools_volume" + std::to_string(i);
         // Visualization of volume i:
         const auto svg_xy = il.draw_volume(name, context, i, xy);

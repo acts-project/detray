@@ -43,7 +43,7 @@ int main(int, char**) {
     // Indexes of the surfaces in the detector to be visualized.
     std::array indices{0, 1, 2, 3};
 
-    for (size_t i : indices) {
+    for (std::size_t i : indices) {
         std::string name = "test_svgtools_surface" + std::to_string(i);
         // Visualization of portal i:
         const auto svg_xy = il.draw_surface(name, context, i, xy);
