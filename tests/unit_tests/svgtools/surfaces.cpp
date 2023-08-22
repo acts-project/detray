@@ -47,8 +47,8 @@ int main(int, char**) {
         std::string name = "test_svgtools_surface" + std::to_string(i);
         // Visualization of portal i:
         const auto svg_xy = il.draw_surface(name, context, i, xy);
-        detray::svgtools::write_svg(name + "_xy.svgtools", {axes, svg_xy});
+        detray::svgtools::write_svg(name + "_xy.svg", {axes, svg_xy});
         const auto svg_zr = il.draw_surface(name, context, i, zr);
-        detray::svgtools::write_svg(name + "_zr.svgtools", {axes, svg_zr});
+        detray::svgtools::write_svg(name + "_zr.svg", {axes, svg_zr});
     }
 }
