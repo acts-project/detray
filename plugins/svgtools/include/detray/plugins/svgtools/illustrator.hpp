@@ -147,7 +147,8 @@ class illustrator {
         const std::string& identification,
         const typename detector_t::geometry_context& context,
         const view_t& view) const {
-        auto indices = detray::views::iota(std::size_t{0u}, _detector.volumes().size());
+        auto indices =
+            detray::views::iota(std::size_t{0u}, _detector.volumes().size());
         return draw_volumes(identification, context, indices, view);
     }
 
