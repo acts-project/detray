@@ -20,6 +20,7 @@ namespace detray {
 template <typename transform3_t>
 struct measurement_smearer {
 
+    using transform3_type = transform3_t;
     using matrix_operator = typename transform3_t::matrix_actor;
     using scalar_type = typename transform3_t::scalar_type;
     using size_type = typename matrix_operator::size_ty;
