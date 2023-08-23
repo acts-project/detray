@@ -35,7 +35,9 @@ inline auto intersection_record(
     const std::string& id,
     const svgtools::meta::proto::intersection_record<point3_t>& ir,
     const view_t& view) {
-    actsvg::svg::object ret{._tag = "g", ._id = id};
+    actsvg::svg::object ret;
+    ret._tag = "g";
+    ret._id = identification;
     for (size_t index = 0; index < ir._landmarks.size(); index++) {
         const auto lm = ir._landmarks[index];
         const auto svg = svgtools::meta::display::landmark(
