@@ -56,7 +56,9 @@ inline auto trajectory(const std::string& id, const svgtools::meta::proto::traje
     std::vector<actsvg::point2> points;
     auto change_view = [view](const point3_t& p){ return view(std::vector{p})[0];};
     std::transform(p_trajectory._points.cbegin(), p_trajectory._points.cend(), std::back_inserter(points), change_view);
-    actsvg::svg::object ret{._tag = "g", ._id = id};
+    actsvg::svg::object ret;
+    ret._tag = "g";
+    ret._id = id;
     for (std::size_t i = 0; i < points.size()-1; i++)
     {
         //TODO: use smooth curves instead of lines.

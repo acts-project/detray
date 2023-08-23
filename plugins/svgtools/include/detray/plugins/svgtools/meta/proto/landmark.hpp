@@ -22,6 +22,6 @@ class landmark {
     public:
     point3_t _position;
     std::string _name;
-    actsvg::style::marker _marker{"x", 1.};
+    actsvg::style::marker _marker{"x", 1.f};
 };
 }  // namespace detray::svgtools::meta::proto

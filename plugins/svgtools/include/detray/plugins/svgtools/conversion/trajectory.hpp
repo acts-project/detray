@@ -31,10 +31,10 @@ inline auto trajectory(const std::vector<point3_t>& points){
 template <typename point3_t, template <typename> class trajectory_t, typename transform3_t>
 inline auto trajectory(const trajectory_t<transform3_t>& traj){
     const auto ds = 1.f;
-    const auto S0 = 0;
-    const auto S1 = 500;
+    const auto S0 = 0.f;
+    const auto S1 = 500.f;
     std::vector<point3_t> points;
-    for (float s = S0; s < S1; s+=ds){
+    for (auto s = S0; s < S1; s+=ds){
         points.push_back(svgtools::conversion::point<point3_t>(traj.pos(s)));
     }
     return trajectory(points);
@@ -43,8 +43,8 @@ inline auto trajectory(const trajectory_t<transform3_t>& traj){
 /// @returns The proto trajectory of a vector of a trajectory.
 template <typename point3_t, typename transform3_t>
 inline auto trajectory(const detray::detail::ray<transform3_t>& traj){
-    const auto S0 = 0;
-    const auto S1 = 500;
+    const auto S0 = 0.f;
+    const auto S1 = 500.f;
     std::vector<point3_t> points = {svgtools::conversion::point<point3_t>(traj.pos(S0)), svgtools::conversion::point<point3_t>(traj.pos(S1))};
     return trajectory<point3_t>(points);
 }

@@ -24,16 +24,16 @@ inline auto information_section(const std::string& id, const svgtools::meta::pro
     // Title style
     actsvg::style::fill title_fill;
     title_fill._fc._rgb = is._color;
-    title_fill._fc._opacity = 0.8;
+    title_fill._fc._opacity = 0.8f;
     actsvg::style::font title_font;
 
-    title_font._size = 16;
+    title_font._size = 16u;
     title_font._fc = actsvg::style::color{{255, 255, 255}};
 
     // Info text style
     actsvg::style::fill info_fill;
     info_fill._fc._rgb = is._color;
-    info_fill._fc._opacity = 0.4;
+    info_fill._fc._opacity = 0.4f;
 
     actsvg::style::font info_font;
     info_font._size = 12;
