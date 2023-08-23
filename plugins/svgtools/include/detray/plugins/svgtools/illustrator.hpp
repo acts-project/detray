@@ -241,7 +241,7 @@ class illustrator {
     const actsvg::point2 _info_screen_offset{-400,400};
     const detector_t& _detector;
     const typename detector_t::name_map& _name_map;
-    const bool _show_info = false;
+    const bool _show_info = true;
     const styling::style _style = styling::style1;
 };
 
