@@ -238,7 +238,7 @@ class illustrator {
     using point3 = std::array<actsvg::scalar, 3>;
     using point3_container = std::vector<point3>;
 
-    const actsvg::point2 _info_screen_offset{0,80};
+    const actsvg::point2 _info_screen_offset{-400,400};
     const detector_t& _detector;
     const typename detector_t::name_map& _name_map;
     const bool _show_info = false;
