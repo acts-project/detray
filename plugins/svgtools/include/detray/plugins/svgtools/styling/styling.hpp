@@ -196,16 +196,15 @@ void apply_style(
 
 /// @brief Sets the style of the proto intersection record.
 template <typename point3_t>
-void apply_style(
-    meta::proto::trajectory<point3_t>& p_trajectory,
-    const trajectory_style& styling) {
+void apply_style(meta::proto::trajectory<point3_t>& p_trajectory,
+                 const trajectory_style& styling) {
     auto fill_color = colors::pick_random(styling._fill_colors);
     p_trajectory._stroke =
         actsvg::style::stroke(fill_color, styling._stroke_width);
 }
 
 template <typename style1_t, typename style2_t>
-auto copy_fill_colors(style1_t target, const style2_t& reference){
+auto copy_fill_colors(style1_t target, const style2_t& reference) {
     target._fill_colors = reference._fill_colors;
     return target;
 }
