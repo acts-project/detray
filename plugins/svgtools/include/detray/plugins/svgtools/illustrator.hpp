@@ -60,7 +60,9 @@ class illustrator {
     template <typename view_t>
     inline auto draw_surface(const std::string& identification, const typename detector_t::geometry_context& context, const std::size_t index, const view_t& view) const {
         const auto surface = detray::surface{_detector, _detector.surface_lookup()[static_cast<detray::dindex>(index)]};
-        actsvg::svg::object ret{._tag = "g", ._id = "group_" + identification};
+        actsvg::svg::object ret;
+        ret._tag = "g";
+        ret._id = identification;
         actsvg::svg::object svg_sur;
         std::array<int, 3> color;
         if (surface.is_portal())
@@ -119,7 +121,9 @@ class illustrator {
     /// @returns actsvg::svg::object of the detector's volume.
     template <typename view_t>
     inline auto draw_volume(const std::string& identification, const typename detector_t::geometry_context& context, const std::size_t index, const view_t& view) const {
-        actsvg::svg::object ret{._tag = "g", ._id = identification};
+        actsvg::svg::object ret;
+        ret._tag = "g";
+        ret._id = identification;
         const auto d_volume = _detector.volume_by_index(static_cast<detray::dindex>(index));
         auto surface_descs = svgtools::utils::surface_lookup(_detector, d_volume);
         for (std::size_t i = 0; i < surface_descs.size(); i++){
@@ -218,7 +222,9 @@ class illustrator {
                                              typename detector_t::transform3>>>&
             intersection_record, const trajectory_t<transform3_t>& trajectory, const view_t& view) const {
 
-        actsvg::svg::object ret{._tag = "g", ._id = identification};
+        actsvg::svg::object ret;
+        ret._tag = "g";
+        ret._id = identification;
         auto i_style = svgtools::styling::copy_fill_colors(_style._intersection_style, _style._trajectory_style);
         auto p_ir = svgtools::conversion::intersection_record<point3>(
         context, _detector, intersection_record);
