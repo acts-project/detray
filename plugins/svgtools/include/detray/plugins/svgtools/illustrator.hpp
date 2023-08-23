@@ -11,13 +11,13 @@
 #include "detray/geometry/surface.hpp"
 #include "detray/io/common/detail/file_handle.hpp"
 #include "detray/io/common/detector_writer.hpp"
+#include "detray/plugins/svgtools/conversion/intersection_record.hpp"
+#include "detray/plugins/svgtools/conversion/landmark.hpp"
 #include "detray/plugins/svgtools/conversion/surface.hpp"
 #include "detray/plugins/svgtools/conversion/volume.hpp"
+#include "detray/plugins/svgtools/meta/display/geometry.hpp"
 #include "detray/plugins/svgtools/styling/styling.hpp"
 #include "detray/plugins/svgtools/utils/volume_utils.hpp"
-#include "detray/plugins/svgtools/conversion/landmark.hpp"
-#include "detray/plugins/svgtools/conversion/intersection_record.hpp"
-#include "detray/plugins/svgtools/meta/display/geometry.hpp"
 
 // Actsvg include(s)
 #include "actsvg/meta.hpp"
@@ -52,20 +52,29 @@ class illustrator {
     /// @param view the display view.
     /// @returns actsvg::svg::object of the detector's surface.
     template <typename view_t>
-    inline auto draw_surface(const std::string& identification, const typename detector_t::geometry_context& context, const size_t index, const view_t& view) const {
-        const auto surface = detray::surface{_detector, _detector.surface_lookup()[static_cast<detray::dindex>(index)]};
-        if (surface.is_portal())
-        {
-            auto p_portal = svgtools::conversion::portal<point3_container>(context, _detector, surface);
-            svgtools::styling::apply_style(p_portal, _style._volume_style._portal_style);
+    inline auto draw_surface(
+        const std::string& identification,
+        const typename detector_t::geometry_context& context,
+        const size_t index, const view_t& view) const {
+        const auto surface = detray::surface{
+            _detector,
+            _detector.surface_lookup()[static_cast<detray::dindex>(index)]};
+        if (surface.is_portal()) {
+            auto p_portal = svgtools::conversion::portal<point3_container>(
+                context, _detector, surface);
+            svgtools::styling::apply_style(p_portal,
+                                           _style._volume_style._portal_style);
             return actsvg::display::portal(identification, p_portal, view);
         }
-        auto p_surface = svgtools::conversion::surface<point3_container>(context, surface);
-        svgtools::styling::apply_style(p_surface, _style._volume_style._surface_style);
+        auto p_surface =
+            svgtools::conversion::surface<point3_container>(context, surface);
+        svgtools::styling::apply_style(p_surface,
+                                       _style._volume_style._surface_style);
         return actsvg::display::surface(identification, p_surface, view);
     }
 
-    /// @brief Converts a collection of detray surfaces in the detector to an svg.
+    /// @brief Converts a collection of detray surfaces in the detector to an
+    /// svg.
     /// @param identification the id of the svg object.
     /// @param context the geometry context.
     /// @param detector the detector.
@@ -98,14 +107,20 @@ class illustrator {
     /// @param view the display view.
     /// @returns actsvg::svg::object of the detector's volume.
     template <typename view_t>
-    inline auto draw_volume(const std::string& identification, const typename detector_t::geometry_context& context, const size_t index, const view_t& view) const {
-        const auto volume = _detector.volume_by_index(static_cast<detray::dindex>(index));
-        auto p_volume = svgtools::conversion::volume<point3_container>(context, _detector, volume);
+    inline auto draw_volume(
+        const std::string& identification,
+        const typename detector_t::geometry_context& context,
+        const size_t index, const view_t& view) const {
+        const auto volume =
+            _detector.volume_by_index(static_cast<detray::dindex>(index));
+        auto p_volume = svgtools::conversion::volume<point3_container>(
+            context, _detector, volume);
         svgtools::styling::apply_style(p_volume, _style._volume_style);
         return actsvg::display::volume(identification, p_volume, view);
     }
 
-    /// @brief Converts a collection of detray volumes in the detector to an svg.
+    /// @brief Converts a collection of detray volumes in the detector to an
+    /// svg.
     /// @param identification the id of the svg object.
     /// @param context the geometry context.
     /// @param detector the detector.
@@ -160,15 +175,23 @@ class illustrator {
     /// @param view the display view.
     /// @return actsvg::svg::object of the intersectio record.
     template <typename view_t>
-    inline auto draw_intersections(const std::string& identification, const typename detector_t::geometry_context& context, const std::vector<std::pair<detray::dindex, detray::intersection2D<typename detector_t::surface_type, typename detector_t::transform3>>>& intersection_record, const view_t& view) const
-    {
-        auto p_ir = svgtools::conversion::intersection_record<point3>(context, _detector, intersection_record);
+    inline auto draw_intersections(
+        const std::string& identification,
+        const typename detector_t::geometry_context& context,
+        const std::vector<
+            std::pair<detray::dindex,
+                      detray::intersection2D<typename detector_t::surface_type,
+                                             typename detector_t::transform3>>>&
+            intersection_record,
+        const view_t& view) const {
+        auto p_ir = svgtools::conversion::intersection_record<point3>(
+            context, _detector, intersection_record);
         svgtools::styling::apply_style(p_ir, _style._intersection_style);
-        return svgtools::meta::display::intersection_record(identification, p_ir, view);
+        return svgtools::meta::display::intersection_record(identification,
+                                                            p_ir, view);
     }
-    
-    private:
 
+    private:
     private:
     using point3 = std::array<actsvg::scalar, 3>;
     using point3_container = std::vector<point3>;

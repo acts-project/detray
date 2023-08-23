@@ -9,8 +9,8 @@
 
 // Actsvg include(s)
 #include "actsvg/core.hpp"
-#include "detray/plugins/svgtools/meta/proto/landmark.hpp"
 #include "detray/plugins/svgtools/meta/proto/intersection_record.hpp"
+#include "detray/plugins/svgtools/meta/proto/landmark.hpp"
 
 // System include(s)
 #include <cstdlib>
@@ -18,7 +18,7 @@
 
 namespace detray::svgtools::styling {
 
-namespace colors{
+namespace colors {
 
 /// @brief Picks a random element in the container.
 template <typename container_t>
@@ -74,128 +74,109 @@ std::vector<actsvg::style::color> green_theme(const actsvg::scalar opacity) {
 
 };  // namespace colors
 
-struct landmark_style{
+struct landmark_style {
     const std::vector<actsvg::style::color> _fill_colors;
     const actsvg::scalar _marker_size;
 };
 
-struct surface_style{
+struct surface_style {
     const std::vector<actsvg::style::color> _fill_colors;
     const actsvg::scalar _stroke_width;
 };
 
-struct link_style{
+struct link_style {
     const actsvg::scalar _marker_size;
 };
 
-struct portal_style{
+struct portal_style {
     const surface_style _surface_style;
     const link_style _link_style;
     const bool _hide_links;
 };
 
-struct volume_style{
+struct volume_style {
     const surface_style _surface_style;
     const portal_style _portal_style;
 };
 
-struct style{
+struct style {
     const volume_style _volume_style;
     const landmark_style _intersection_style;
 };
 
-const surface_style surface_style1{
-    colors::blue_theme(0.8),
-    1.f
-};
+const surface_style surface_style1{colors::blue_theme(0.8), 1.f};
 
-const surface_style surface_style2{
-    colors::red_theme(0.8),
-    1.f
-};
+const surface_style surface_style2{colors::red_theme(0.8), 1.f};
 
+const link_style link_style1{1.2f};
 
-const link_style link_style1{
-    1.2f
-};
+const portal_style portal_style1{surface_style2, link_style1, false};
 
-const portal_style portal_style1{
-    surface_style2,
-    link_style1,
-    false
-};
+const volume_style volume_style1{surface_style1, portal_style1};
 
-const volume_style volume_style1{
-    surface_style1,
-    portal_style1
-};
+const landmark_style landmark_style1{colors::green_theme(0.8), 5.f};
 
-const landmark_style landmark_style1{
-    colors::green_theme(0.8),
-    5.f
-};
-
-const style style1{
-    volume_style1,
-    landmark_style1
-};
+const style style1{volume_style1, landmark_style1};
 
 /// @brief Sets the style of the proto surface.
 template <typename point3_container_t>
-void apply_style(actsvg::proto::surface<point3_container_t>& p_surface, const surface_style& styling)
-{
+void apply_style(actsvg::proto::surface<point3_container_t>& p_surface,
+                 const surface_style& styling) {
     auto fill_color = colors::pick_random(styling._fill_colors);
     p_surface._fill = actsvg::style::fill(fill_color);
-    p_surface._stroke = actsvg::style::stroke(fill_color, styling._stroke_width);
-    
+    p_surface._stroke =
+        actsvg::style::stroke(fill_color, styling._stroke_width);
 }
 
 /// @brief Sets the style of the proto link.
 template <typename point3_container_t>
-void apply_style(typename actsvg::proto::portal<point3_container_t>::link& p_link, const link_style& styling)
-{
+void apply_style(
+    typename actsvg::proto::portal<point3_container_t>::link& p_link,
+    const link_style& styling) {
     p_link._end_marker._size = styling._marker_size;
 }
 
 /// @brief Sets the style of the proto portal.
 template <typename point3_container_t>
-void apply_style(actsvg::proto::portal<point3_container_t>& p_portal, const portal_style& styling)
-{
+void apply_style(actsvg::proto::portal<point3_container_t>& p_portal,
+                 const portal_style& styling) {
     auto fill_color = colors::pick_random(styling._surface_style._fill_colors);
     p_portal._surface._fill = actsvg::style::fill(fill_color);
-    p_portal._surface._stroke = actsvg::style::stroke(fill_color, styling._surface_style._stroke_width);
-    if (styling._hide_links){
+    p_portal._surface._stroke =
+        actsvg::style::stroke(fill_color, styling._surface_style._stroke_width);
+    if (styling._hide_links) {
         p_portal._volume_links = {};
     }
-    for (auto& volume_link : p_portal._volume_links)
-    {
+    for (auto& volume_link : p_portal._volume_links) {
         apply_style<point3_container_t>(volume_link, styling._link_style);
     }
 }
 
 /// @brief Sets the style of the proto volume.
 template <typename point3_container_t>
-void apply_style(actsvg::proto::volume<point3_container_t>& p_volume, const volume_style& styling)
-{
-    for (auto& p_surface : p_volume._v_surfaces){
+void apply_style(actsvg::proto::volume<point3_container_t>& p_volume,
+                 const volume_style& styling) {
+    for (auto& p_surface : p_volume._v_surfaces) {
         apply_style(p_surface, styling._surface_style);
     }
-    for (auto& p_portals : p_volume._portals){
+    for (auto& p_portals : p_volume._portals) {
         apply_style(p_portals, styling._portal_style);
     }
 }
 
 /// @brief Sets the style of the proto intersection record.
 template <typename point3_t>
-void apply_style(meta::proto::intersection_record<point3_t>& p_intersection_record, const landmark_style& styling)
-{
+void apply_style(
+    meta::proto::intersection_record<point3_t>& p_intersection_record,
+    const landmark_style& styling) {
     const auto fill_color = colors::pick_random(styling._fill_colors);
     const auto fill = actsvg::style::fill(fill_color);
     const auto stroke = actsvg::style::stroke(fill_color, 3.f);
-    const auto marker = actsvg::style::marker{"x", styling._marker_size, fill, stroke};
-    for (auto& p_landmark : p_intersection_record._landmarks){
+    const auto marker =
+        actsvg::style::marker{"x", styling._marker_size, fill, stroke};
+    for (auto& p_landmark : p_intersection_record._landmarks) {
         p_landmark._marker = marker;
     }
 }
 
-} 
+}  // namespace detray::svgtools::styling

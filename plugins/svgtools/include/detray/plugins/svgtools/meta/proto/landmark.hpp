@@ -15,12 +15,13 @@
 
 namespace detray::svgtools::meta::proto {
 
-/// @brief A proto landmark class as a simple translation layer from a description of a point.
+/// @brief A proto landmark class as a simple translation layer from a
+/// description of a point.
 template <typename point3_t>
-class landmark{
+class landmark {
     public:
     point3_t _position;
     std::string _name;
     actsvg::style::marker _marker{"x", 1.};
 };
-}  
+}  // namespace detray::svgtools::meta::proto

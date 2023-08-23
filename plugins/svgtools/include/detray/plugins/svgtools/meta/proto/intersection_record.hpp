@@ -14,17 +14,18 @@
 #include "actsvg/core.hpp"
 
 // System include(s)
-#include <vector>
 #include <string>
+#include <vector>
 
 namespace detray::svgtools::meta::proto {
 
-/// @brief A proto intersection record class as a simple translation layer from a intersection record description.
+/// @brief A proto intersection record class as a simple translation layer from
+/// a intersection record description.
 template <typename point3_t>
-class intersection_record{
+class intersection_record {
     public:
     using landmark_type = svgtools::meta::proto::landmark<point3_t>;
     std::vector<landmark_type> _landmarks;
     std::string _name;
 };
-}
+}  // namespace detray::svgtools::meta::proto
