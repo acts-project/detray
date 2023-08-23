@@ -9,8 +9,6 @@
 
 // Project include(s)
 #include "detray/geometry/surface.hpp"
-#include "detray/io/common/detail/file_handle.hpp"
-#include "detray/io/common/detector_writer.hpp"
 #include "detray/plugins/svgtools/conversion/intersection_record.hpp"
 #include "detray/plugins/svgtools/conversion/landmark.hpp"
 #include "detray/plugins/svgtools/conversion/surface.hpp"
@@ -18,6 +16,7 @@
 #include "detray/plugins/svgtools/meta/display/geometry.hpp"
 #include "detray/plugins/svgtools/styling/styling.hpp"
 #include "detray/plugins/svgtools/utils/volume_utils.hpp"
+#include "detray/utils/ranges.hpp"
 
 // Actsvg include(s)
 #include "actsvg/meta.hpp"
@@ -47,7 +46,6 @@ class illustrator {
     /// @brief Converts a detray surface in the detector to an svg.
     /// @param identification the id of the svg object.
     /// @param context the geometry context.
-    /// @param detector the detector.
     /// @param index the index of the surface in the detector.
     /// @param view the display view.
     /// @returns actsvg::svg::object of the detector's surface.
@@ -55,7 +53,7 @@ class illustrator {
     inline auto draw_surface(
         const std::string& identification,
         const typename detector_t::geometry_context& context,
-        const size_t index, const view_t& view) const {
+        const std::size_t index, const view_t& view) const {
         const auto surface = detray::surface{
             _detector,
             _detector.surface_lookup()[static_cast<detray::dindex>(index)]};
@@ -77,7 +75,6 @@ class illustrator {
     /// svg.
     /// @param identification the id of the svg object.
     /// @param context the geometry context.
-    /// @param detector the detector.
     /// @param indices the collection of surface indices in the detector to
     /// convert.
     /// @param view the display view.
@@ -102,7 +99,6 @@ class illustrator {
     /// @brief Converts a detray volume in the detector to an svg.
     /// @param identification the id of the svg object.
     /// @param context the geometry context.
-    /// @param detector the detector.
     /// @param index the index of the volume in the detector.
     /// @param view the display view.
     /// @returns actsvg::svg::object of the detector's volume.
@@ -110,7 +106,7 @@ class illustrator {
     inline auto draw_volume(
         const std::string& identification,
         const typename detector_t::geometry_context& context,
-        const size_t index, const view_t& view) const {
+        const std::size_t index, const view_t& view) const {
         const auto volume =
             _detector.volume_by_index(static_cast<detray::dindex>(index));
         auto p_volume = svgtools::conversion::volume<point3_container>(
@@ -123,7 +119,6 @@ class illustrator {
     /// svg.
     /// @param identification the id of the svg object.
     /// @param context the geometry context.
-    /// @param detector the detector.
     /// @param indices the collection of volume indices in the detector to
     /// convert.
     /// @param view the display view.
@@ -148,7 +143,6 @@ class illustrator {
     /// @brief Converts a detray detector to an svg.
     /// @param identification the id of the svg object.
     /// @param context the geometry context.
-    /// @param detector the detector.
     /// @param view the display view.
     /// @returns actsvg::svg::object of the detector.
     template <typename view_t>
@@ -156,16 +150,9 @@ class illustrator {
         const std::string& identification,
         const typename detector_t::geometry_context& context,
         const view_t& view) const {
-        actsvg::svg::object ret;
-        ret._tag = "g";
-        ret._id = identification;
-        for (size_t index = 0; index < _detector.volumes().size(); index++) {
-            const auto svg =
-                draw_volume(identification + "_volume" + std::to_string(index),
-                            context, index, view);
-            ret.add_object(svg);
-        }
-        return ret;
+        auto indices =
+            detray::views::iota(std::size_t{0u}, _detector.volumes().size());
+        return draw_volumes(identification, context, indices, view);
     }
 
     /// @brief Converts an intersection record to an svg.

@@ -41,14 +41,14 @@ int main(int, char**) {
     const detray::svgtools::illustrator il{det, names};
 
     // Indexes of the surfaces in the detector to be visualized.
-    std::array indices{30u, 3200u};
+    std::array indices{0UL, 1UL, 2UL, 3UL};
 
-    for (size_t i : indices) {
+    for (std::size_t i : indices) {
         std::string name = "test_svgtools_surface" + std::to_string(i);
         // Visualization of portal i:
         const auto svg_xy = il.draw_surface(name, context, i, xy);
-        detray::svgtools::write_svg(name + "_xy.svgtools", {axes, svg_xy});
+        detray::svgtools::write_svg(name + "_xy.svg", {axes, svg_xy});
         const auto svg_zr = il.draw_surface(name, context, i, zr);
-        detray::svgtools::write_svg(name + "_zr.svgtools", {axes, svg_zr});
+        detray::svgtools::write_svg(name + "_zr.svg", {axes, svg_zr});
     }
 }

@@ -17,14 +17,12 @@
 
 namespace detray::svgtools::utils {
 
-/// @return The local vertices of the mask.
 template <typename mask_t>
 inline auto local_vertices(const mask_t& mask) {
     return vertices<typename mask_t::point2_t, typename mask_t::point3_t>(mask,
-                                                                          10);
+                                                                          10u);
 }
 
-/// @return The local vertices of the mask.
 inline auto local_vertices(const mask<line<>>& m) {
     using point3_t = typename mask<line<>>::point3_t;
     const auto hz = m[line<>::e_half_z];

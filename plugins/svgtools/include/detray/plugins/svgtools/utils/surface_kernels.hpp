@@ -107,7 +107,7 @@ struct link_start_getter {
         using scalar_t = typename mask_t::scalar_type;
 
         const scalar_t r{(mask[shape_t::e_inner_r] + mask[shape_t::e_outer_r]) /
-                         2};
+                         2.f};
         const scalar_t phi{detray::constant<scalar_t>::pi_2};
         const scalar_t z{0};
 
@@ -126,7 +126,8 @@ struct link_start_getter {
         using point3_t = typename mask_t::point3_t;
         using scalar_t = typename mask_t::scalar_type;
 
-        const scalar_t r{(mask[shape_t::e_min_r] + mask[shape_t::e_max_r]) / 2};
+        const scalar_t r{(mask[shape_t::e_min_r] + mask[shape_t::e_max_r]) /
+                         2.f};
         const scalar_t phi{mask[shape_t::e_average_phi]};
         const scalar_t z{0};
 
@@ -176,9 +177,10 @@ struct link_start_getter {
         using point3_t = typename mask_t::point3_t;
         using scalar_t = typename mask_t::scalar_type;
 
-        const scalar_t r{(mask[shape_t::e_min_r] + mask[shape_t::e_max_r]) / 2};
+        const scalar_t r{(mask[shape_t::e_min_r] + mask[shape_t::e_max_r]) /
+                         2.f};
         const scalar_t phi{
-            (mask[shape_t::e_max_phi] + mask[shape_t::e_max_phi]) / 2};
+            (mask[shape_t::e_max_phi] + mask[shape_t::e_max_phi]) / 2.f};
         const scalar_t z{0};
 
         // Cylindrical coordinate system.

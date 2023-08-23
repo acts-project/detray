@@ -23,7 +23,7 @@ namespace colors {
 /// @brief Picks a random element in the container.
 template <typename container_t>
 auto pick_random(container_t container) {
-    int idx = std::rand() % container.size();
+    const auto idx = static_cast<std::size_t>(std::rand()) % container.size();
     return container[idx];
 }
 
@@ -104,9 +104,9 @@ struct style {
     const landmark_style _intersection_style;
 };
 
-const surface_style surface_style1{colors::blue_theme(0.8), 1.f};
+const surface_style surface_style1{colors::blue_theme(0.8f), 1.f};
 
-const surface_style surface_style2{colors::red_theme(0.8), 1.f};
+const surface_style surface_style2{colors::red_theme(0.8f), 1.f};
 
 const link_style link_style1{1.2f};
 
@@ -114,7 +114,7 @@ const portal_style portal_style1{surface_style2, link_style1, false};
 
 const volume_style volume_style1{surface_style1, portal_style1};
 
-const landmark_style landmark_style1{colors::green_theme(0.8), 5.f};
+const landmark_style landmark_style1{colors::green_theme(0.8f), 5.f};
 
 const style style1{volume_style1, landmark_style1};
 
