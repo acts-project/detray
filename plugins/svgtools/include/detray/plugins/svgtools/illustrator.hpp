@@ -179,7 +179,6 @@ class illustrator {
     }
 
     private:
-    private:
     using point3 = std::array<actsvg::scalar, 3>;
     using point3_container = std::vector<point3>;
 
