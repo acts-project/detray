@@ -72,7 +72,7 @@ std::vector<actsvg::style::color> green_theme(const actsvg::scalar opacity) {
             {shamrock_green, opacity}};
 }
 
-};  // namespace colors
+}  // namespace colors
 
 struct landmark_style {
     const std::vector<actsvg::style::color> _fill_colors;
