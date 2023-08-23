@@ -36,3 +36,7 @@ detray_add_test( svgtools_intersections
 detray_add_test( svgtools_trajectories
    "trajectories.cpp"
    LINK_LIBRARIES GTest::gtest_main detray_tests_common detray::core_array actsvg::core actsvg::meta detray::svgtools)
+
+detray_add_test( svgtools_grids
+   "grids.cpp"
+   LINK_LIBRARIES GTest::gtest_main detray_tests_common detray::core_array actsvg::core actsvg::meta detray::svgtools)
