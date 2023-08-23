@@ -59,6 +59,7 @@ inline auto trajectory(const std::string& id, const svgtools::meta::proto::traje
     actsvg::svg::object ret{._tag = "g", ._id = id};
     for (std::size_t i = 0; i < points.size()-1; i++)
     {
+        //TODO: use smooth curves instead of lines.
         const auto l = actsvg::draw::line(id, points[i], points[i+1], p_trajectory._stroke);
         ret.add_object(l);
     }

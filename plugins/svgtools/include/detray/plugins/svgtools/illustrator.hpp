@@ -201,8 +201,31 @@ class illustrator {
     inline auto draw_trajectory(const std::string& identification, const trajectory_t<transform3_t>& trajectory, const view_t& view) const
     {
         auto p_trajectory = svgtools::conversion::trajectory<point3>(trajectory);
-        //svgtools::styling::apply_style(p_trajectory, ...);
+        svgtools::styling::apply_style(p_trajectory, _style._trajectory_style);
         return svgtools::meta::display::trajectory(identification, p_trajectory, view);
+    }
+
+    /// @brief Converts a trajectory and its intersection record to an svg with a related coloring.
+    /// @param identification the id of the svg object.
+    /// @param trajectory the trajectory (eg. ray or helix).
+    /// @param intersection_record the intersection record.
+    /// @param view the display view.
+    /// @return actsvg::svg::object of the trajectory and intersection record.
+    template <typename view_t, template <typename> class trajectory_t, typename transform3_t>
+    inline auto draw_intersections_and_trajectory(const std::string& identification, const typename detector_t::geometry_context& context, std::vector<
+            std::pair<detray::dindex,
+                      detray::intersection2D<typename detector_t::surface_type,
+                                             typename detector_t::transform3>>>&
+            intersection_record, const trajectory_t<transform3_t>& trajectory, const view_t& view) const {
+
+        actsvg::svg::object ret{._tag = "g", ._id = identification};
+        auto i_style = svgtools::styling::copy_fill_colors(_style._intersection_style, _style._trajectory_style);
+        auto p_ir = svgtools::conversion::intersection_record<point3>(
+        context, _detector, intersection_record);
+        svgtools::styling::apply_style(p_ir, i_style);
+        ret.add_object(svgtools::meta::display::intersection_record(identification + "_record",                                                  p_ir, view));
+        ret.add_object(draw_trajectory(identification + "_trajectory", trajectory, view));
+        return ret;
     }
     
     private:

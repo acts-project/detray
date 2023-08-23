@@ -27,6 +27,9 @@ auto pick_random(container_t container) {
     return container[idx];
 }
 
+// Black
+constexpr std::array black{0, 0, 0};
+
 // Red tones
 constexpr std::array cardinal{167, 51, 63};
 constexpr std::array madder{165, 28, 48};
@@ -47,6 +50,10 @@ constexpr std::array aquamarine1{188, 255, 219};
 constexpr std::array aquamarine2{141, 255, 205};
 constexpr std::array emerald{104, 216, 155};
 constexpr std::array shamrock_green{79, 157, 105};
+
+std::vector<actsvg::style::color> black_theme(const actsvg::scalar opacity) {
+    return {{black, opacity}};
+}
 
 std::vector<actsvg::style::color> red_theme(const actsvg::scalar opacity) {
     return {{cardinal, opacity},
@@ -75,33 +82,39 @@ std::vector<actsvg::style::color> green_theme(const actsvg::scalar opacity) {
 }  // namespace colors
 
 struct landmark_style {
-    const std::vector<actsvg::style::color> _fill_colors;
-    const actsvg::scalar _marker_size;
+    std::vector<actsvg::style::color> _fill_colors;
+    actsvg::scalar _marker_size;
+};
+
+struct trajectory_style {
+    std::vector<actsvg::style::color> _fill_colors;
+    actsvg::scalar _stroke_width;
 };
 
 struct surface_style {
-    const std::vector<actsvg::style::color> _fill_colors;
-    const actsvg::scalar _stroke_width;
+    std::vector<actsvg::style::color> _fill_colors;
+    actsvg::scalar _stroke_width;
 };
 
 struct link_style {
-    const actsvg::scalar _marker_size;
+    actsvg::scalar _marker_size;
 };
 
 struct portal_style {
-    const surface_style _surface_style;
-    const link_style _link_style;
-    const bool _hide_links;
+    surface_style _surface_style;
+    link_style _link_style;
+    bool _hide_links;
 };
 
 struct volume_style {
-    const surface_style _surface_style;
-    const portal_style _portal_style;
+    surface_style _surface_style;
+    portal_style _portal_style;
 };
 
 struct style {
-    const volume_style _volume_style;
-    const landmark_style _intersection_style;
+    volume_style _volume_style;
+    landmark_style _intersection_style;
+    trajectory_style _trajectory_style;
 };
 
 const surface_style surface_style1{colors::blue_theme(0.8f), 3.f};
@@ -114,9 +127,11 @@ const portal_style portal_style1{surface_style2, link_style1, false};
 
 const volume_style volume_style1{surface_style1, portal_style1};
 
-const landmark_style landmark_style1{colors::green_theme(0.8f), 5.f};
+const landmark_style landmark_style1{colors::black_theme(0.8f), 5.f};
 
-const style style1{volume_style1, landmark_style1};
+const trajectory_style trajectory_style1{colors::green_theme(1.f), 1.f};
+
+const style style1{volume_style1, landmark_style1, trajectory_style1};
 
 /// @brief Sets the style of the proto surface.
 template <typename point3_container_t>
@@ -177,6 +192,22 @@ void apply_style(
     for (auto& p_landmark : p_intersection_record._landmarks) {
         p_landmark._marker = marker;
     }
+}
+
+/// @brief Sets the style of the proto intersection record.
+template <typename point3_t>
+void apply_style(
+    meta::proto::trajectory<point3_t>& p_trajectory,
+    const trajectory_style& styling) {
+    auto fill_color = colors::pick_random(styling._fill_colors);
+    p_trajectory._stroke =
+        actsvg::style::stroke(fill_color, styling._stroke_width);
+}
+
+template <typename style1_t, typename style2_t>
+auto copy_fill_colors(style1_t target, const style2_t& reference){
+    target._fill_colors = reference._fill_colors;
+    return target;
 }
 
 }  // namespace detray::svgtools::styling
