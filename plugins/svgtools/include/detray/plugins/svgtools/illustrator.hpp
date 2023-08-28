@@ -9,6 +9,7 @@
 
 // Project include(s)
 #include "detray/geometry/surface.hpp"
+#include "detray/plugins/svgtools/conversion/grid.hpp"
 #include "detray/plugins/svgtools/conversion/information_section.hpp"
 #include "detray/plugins/svgtools/conversion/intersection_record.hpp"
 #include "detray/plugins/svgtools/conversion/landmark.hpp"
@@ -261,6 +262,14 @@ class illustrator {
             draw_trajectory(identification + "_trajectory", trajectory, view));
         return ret;
     }
+
+    template <typename view_t>
+    auto draw_grid(const std::string& identification, const std::size_t index, const view_t& view){
+        auto p_grid = svgtools::conversion::grid<actsvg::scalar>(_detector, index, view);
+        svgtools::styling::apply_style(p_grid, _style._grid_style);
+        return actsvg::display::grid(identification, p_grid);
+    }
+
 
     private:
     using point3 = std::array<actsvg::scalar, 3>;

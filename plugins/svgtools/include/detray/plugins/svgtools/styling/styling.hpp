@@ -81,6 +81,10 @@ std::vector<actsvg::style::color> green_theme(const actsvg::scalar opacity) {
 
 }  // namespace colors
 
+struct grid_style {
+    actsvg::scalar _stroke_width;
+};
+
 struct landmark_style {
     std::vector<actsvg::style::color> _fill_colors;
     actsvg::scalar _marker_size;
@@ -115,6 +119,7 @@ struct style {
     volume_style _volume_style;
     landmark_style _intersection_style;
     trajectory_style _trajectory_style;
+    grid_style _grid_style;
 };
 
 const surface_style surface_style1{colors::blue_theme(0.8f), 3.f};
@@ -129,9 +134,11 @@ const volume_style volume_style1{surface_style1, portal_style1};
 
 const landmark_style landmark_style1{colors::black_theme(0.8f), 5.f};
 
+const grid_style grid_style1{2.f};
+
 const trajectory_style trajectory_style1{colors::green_theme(1.f), 1.f};
 
-const style style1{volume_style1, landmark_style1, trajectory_style1};
+const style style1{volume_style1, landmark_style1, trajectory_style1, grid_style1};
 
 /// @brief Sets the style of the proto surface.
 template <typename point3_container_t>
@@ -201,6 +208,12 @@ void apply_style(meta::proto::trajectory<point3_t>& p_trajectory,
     auto fill_color = colors::pick_random(styling._fill_colors);
     p_trajectory._stroke =
         actsvg::style::stroke(fill_color, styling._stroke_width);
+}
+
+/// @brief Sets the style of the proto grid.
+void apply_style(actsvg::proto::grid& p_grid,
+                 const grid_style& styling) {
+    p_grid._stroke._width = styling._stroke_width;
 }
 
 template <typename style1_t, typename style2_t>
