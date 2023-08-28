@@ -38,7 +38,7 @@ int main(int, char**) {
 
     const typename transform_t::vector3 tr{0.f, 150.f, 0.f};
     const typename toy_detector_t::transform3 transform(tr);
-    const actsvg::views::x_y view{};
+    const actsvg::views::z_phi view{};
 
     // e_min_r, e_max_r, e_min_phi_rel, e_max_phi_rel, e_average_phi, e_shift_x,
     // e_shift_y, e_size

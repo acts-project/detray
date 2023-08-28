@@ -43,8 +43,8 @@ int main(int, char**) {
     detector_t::geometry_context context{};
 
     // Svg for the detector.
-    const detray::svgtools::illustrator il{det, names};
-    const auto svg_det = il.draw_detector("detector", context, view);
+    const detray::svgtools::illustrator il{det, context};
+    const auto svg_det = il.draw_detector("detector", view);
 
     // Creating the rays.
     // using intersection_t = detray::intersection2D<typename
@@ -66,9 +66,9 @@ int main(int, char**) {
         const auto intersection_record =
             detray::particle_gun::shoot_particle(det, test_ray);
 
-        const std::string name = "record" + std::to_string(index);
+        const std::string name = "test_svgtools_intersection_record" + std::to_string(index);
         const auto svg_ir =
-            il.draw_intersections(name, context, intersection_record, view);
+            il.draw_intersections(name, intersection_record, view);
 
         detray::svgtools::write_svg(name + ".svg", {svg_det, svg_ir});
 

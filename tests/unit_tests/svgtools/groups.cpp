@@ -38,18 +38,18 @@ int main(int, char**) {
     toy_detector_t::geometry_context context{};
 
     // Creating the svg generator for the detector.
-    const detray::svgtools::illustrator il{det, names};
+    const detray::svgtools::illustrator il{det, context};
 
     // Visualisation of a group of surfaces.
     const std::array surface_group_indices{1UL, 100UL, 10UL, 200UL};
 
     const auto svg_surface_group_xy = il.draw_surfaces(
-        "my_surface_group1_xy", context, surface_group_indices, xy);
+        "my_surface_group1_xy", surface_group_indices, xy);
     detray::svgtools::write_svg("test_svgtools_surface_group_xy.svg",
                                 {axes, svg_surface_group_xy});
 
     const auto svg_surface_group_zr = il.draw_surfaces(
-        "my_surface_group1_zr", context, surface_group_indices, zr);
+        "my_surface_group1_zr",  surface_group_indices, zr);
     detray::svgtools::write_svg("test_svgtools_surface_group_zr.svg",
                                 {axes, svg_surface_group_zr});
 
@@ -57,12 +57,12 @@ int main(int, char**) {
     const std::array volume_group_indices{3UL, 5UL};
 
     const auto svg_volume_group_xy = il.draw_volumes(
-        "my_volume_group1_xy", context, volume_group_indices, xy);
+        "my_volume_group1_xy", volume_group_indices, xy);
     detray::svgtools::write_svg("test_svgtools_volume_group_xy.svg",
                                 {axes, svg_volume_group_xy});
 
     const auto svg_volume_group_zr = il.draw_volumes(
-        "my_volume_group1_zr", context, volume_group_indices, zr);
+        "my_volume_group1_zr", volume_group_indices, zr);
     detray::svgtools::write_svg("test_svgtools_volume_group_zr.svg",
                                 {axes, svg_volume_group_zr});
 

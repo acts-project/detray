@@ -38,16 +38,16 @@ int main(int, char**) {
     toy_detector_t::geometry_context context{};
 
     // Creating the svg generator for the detector.
-    const detray::svgtools::illustrator il{det, names};
+    const detray::svgtools::illustrator il{det, context};
 
     // Indexes of the volumes in the detector to be visualized.
-    std::array indices{0UL, 1UL, 2UL, 3UL};
+    std::array indices{0UL, 1UL, 2UL, 3UL, 4UL, 5UL, 6UL, 7UL, 8UL, 9UL, 10UL, 11UL, 12UL, 13UL, 14UL, 15UL, 16UL, 17UL, 18UL, 19UL};
     for (std::size_t i : indices) {
         std::string name = "test_svgtools_volume" + std::to_string(i);
         // Visualization of volume i:
-        const auto svg_xy = il.draw_volume(name, context, i, xy);
+        const auto svg_xy = il.draw_volume(name, i, xy);
         detray::svgtools::write_svg(name + "_xy.svg", {axes, svg_xy});
-        const auto svg_zr = il.draw_volume(name, context, i, zr);
+        const auto svg_zr = il.draw_volume(name, i, zr);
         detray::svgtools::write_svg(name + "_zr.svg", {axes, svg_zr});
     }
 }

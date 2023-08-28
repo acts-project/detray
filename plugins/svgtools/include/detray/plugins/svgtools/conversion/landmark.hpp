@@ -12,6 +12,7 @@
 #include "detray/intersection/intersection.hpp"
 #include "detray/plugins/svgtools/conversion/point.hpp"
 #include "detray/plugins/svgtools/meta/proto/landmark.hpp"
+#include "detray/plugins/svgtools/utils/intersection_utils.hpp"
 
 namespace detray::svgtools::conversion {
 
@@ -23,16 +24,19 @@ inline auto landmark(
     const detray::intersection2D<typename detector_t::surface_type,
                                  typename detector_t::transform3>&
         d_intersection) {
-    using p_landmark_t = svgtools::meta::proto::landmark<point3_t>;
-
-    const typename detector_t::point3 dir{};
-    const detray::surface surface{detector, d_intersection.sf_desc};
-    const auto position = svgtools::conversion::point<point3_t>(
-        surface.local_to_global(context, d_intersection.local, dir));
-
-    p_landmark_t p_lm;
-    p_lm._position = position;
-    return p_lm;
+    const auto position = svgtools::utils::intersection_point(context, detector, d_intersection);
+    return svgtools::conversion::landmark<point3>(position);
 }
+
+
+/// @returns The proto landmark of a detray point.
+template <typename point3_t, typename d_point3_t>
+inline auto landmark(
+    d_point3_t& position) {
+    using p_landmark_t = svgtools::meta::proto::landmark<point3_t>;
+    p_landmark_t p_lm;
+    p_lm._position = svgtools::conversion::point<point3_t>(position);
+    return p_lm;
+} 
 
 }  // namespace detray::svgtools::conversion

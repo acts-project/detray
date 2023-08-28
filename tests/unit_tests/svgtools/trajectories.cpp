@@ -33,7 +33,7 @@ int main(int, char**) {
                                actsvg::style::stroke(), "axis1", "axis2");
 
     // Creating the view.
-    const actsvg::views::z_r view;
+    const actsvg::views::x_y view;
 
     // Creating the detector and geomentry context.
     using detector_t = detray::detector<detray::toy_metadata<>>;
@@ -42,14 +42,14 @@ int main(int, char**) {
     detector_t::geometry_context context{};
 
     // Svg for the detector.
-    const detray::svgtools::illustrator il{det, names};
-    const auto svg_det = il.draw_detector("detector", context, view);
+    const detray::svgtools::illustrator il{det, context, true};
+    const auto svg_volumes = il.draw_volumes("detector", std::vector{7, 9, 11, 13}, view);
 
     // Creating the rays.
     using transform3_t = typename detector_t::transform3;
     using vector3 = typename detector_t::vector3;
 
-    const typename detector_t::point3 ori{0.f, 0.f, 100.f};
+    const typename detector_t::point3 ori{0.f, 0.f, 80.f};
     const typename detector_t::point3 dir{0, 1, 1};
 
     const detray::detail::ray<transform3_t> ray(ori, 0.f, dir, 0.f);
@@ -57,20 +57,20 @@ int main(int, char**) {
 
     const auto svg_ray = il.draw_trajectory("trajectory", ray, view);
     const auto svg_ray_ir =
-        il.draw_intersections("record", context, ray_ir, view);
-    detray::svgtools::write_svg("ray.svg", {svg_det, svg_ray, svg_ray_ir});
+        il.draw_intersections("record", ray_ir, view);
+    detray::svgtools::write_svg("test_svgtools_ray.svg", {svg_volumes, svg_ray, svg_ray_ir});
 
     // Constant magnetic field
-    vector3 B{1.f * detray::unit<detray::scalar>::T,
-              1.f * detray::unit<detray::scalar>::T,
+    vector3 B{0.f * detray::unit<detray::scalar>::T,
+              0.f * detray::unit<detray::scalar>::T,
               1.f * detray::unit<detray::scalar>::T};
 
-    const detray::detail::helix<transform3_t> helix(ori, 0.f, dir, -500.f, &B);
+    const detray::detail::helix<transform3_t> helix(ori, 0.f, dir, -8.f, &B);
     const auto helix_ir = detray::particle_gun::shoot_particle(det, helix);
 
     const auto svg_helix = il.draw_trajectory("trajectory", helix, view);
     const auto svg_helix_ir =
-        il.draw_intersections("record", context, helix_ir, view);
-    detray::svgtools::write_svg("helix.svg",
-                                {svg_det, svg_helix, svg_helix_ir});
+        il.draw_intersections("record", helix_ir, view);
+    detray::svgtools::write_svg("test_svgtools_helix.svg",
+                                {svg_volumes, svg_helix, svg_helix_ir});
 }

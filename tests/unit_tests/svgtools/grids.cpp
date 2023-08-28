@@ -113,22 +113,21 @@ auto cylinder2_grid_type_and_edges(const detector_t& detector, const link_t& lin
 
     auto edges_rphi = bin_edges<detray::n_axis::label::e_rphi>(detector, link);
     auto edges_z = bin_edges<detray::n_axis::label::e_cyl_z>(detector, link);
-    /*auto [edges_phi, r] = r_phi_split(edges_rphi);
-    std::vector edges_r{0.f, r}
+    auto [edges_phi, r] = r_phi_split(edges_rphi);
+    std::vector edges_r{0.f, r};
 
-    if (std::is_same_v<view_t, actsvg::views::x_y>()){
+    if (std::is_same_v<view_t, actsvg::views::x_y>){
         return std::tuple(actsvg::proto::grid::e_r_phi, edges_r, edges_phi);
     }
-    if (std::is_same_v<view_t, actsvg::views::z_r>()){
+    if (std::is_same_v<view_t, actsvg::views::z_r>){
         return std::tuple(actsvg::proto::grid::e_x_y, edges_z, edges_r);
     }
-    if (std::is_same_v<view_t, actsvg::views::z_phi>()){
+    if (std::is_same_v<view_t, actsvg::views::z_phi>){
         return std::tuple(actsvg::proto::grid::e_x_y, edges_z, edges_phi);
-    }*/
+    }
     if (std::is_same_v<view_t, typename actsvg::views::z_rphi>){
         return std::tuple(actsvg::proto::grid::e_x_y, edges_z, edges_rphi);
     }
-    //throw std::domain_error("View must x_y, z_r, z_phi, or z_rphi");
     using scalar_t = typename detector_t::scalar_type;
     return std::tuple(actsvg::proto::grid::e_x_y, std::vector<scalar_t>{}, std::vector<scalar_t>{});
 }
@@ -142,16 +141,6 @@ auto disc_grid_type_and_edges(const detector_t& detector, const link_t& link, co
     if (std::is_same_v<view_t, typename actsvg::views::x_y>){
         return std::tuple(actsvg::proto::grid::e_r_phi, edges_r, edges_phi);
     }
-    /*if (std::is_same_v<view_t, actsvg::views::z_r>()){
-        return std::tuple(actsvg::proto::grid::e_x_y, edges_z, edges_r);
-    }
-    if (std::is_same_v<view_t, actsvg::views::z_phi>()){
-        return std::tuple(actsvg::proto::grid::e_x_y, edges_z, edges_phi);
-    }
-    if (std::is_same_v<view_t, actsvg::views::z_rphi>()){
-        return std::tuple(actsvg::proto::grid::e_x_y, edges_z, edges_rphi);
-    }*/
-    //throw std::domain_error("View must x_y, z_r, z_phi, or z_rphi");
     using scalar_t = typename detector_t::scalar_type;
     return std::tuple(actsvg::proto::grid::e_x_y, std::vector<scalar_t>{}, std::vector<scalar_t>{});
 }
@@ -217,10 +206,10 @@ int main(int, char**) {
     detector_t::geometry_context context{};
 
     // Creating the view.
-    const actsvg::views::z_r view;
+    const actsvg::views::x_y view;
 
     // Creating the svg generator for the detector.
-    detray::svgtools::illustrator il{det, names, true};
+    detray::svgtools::illustrator il{det, context, true};
 
     std::cout << "volumes size: " + std::to_string(det.volumes().size()) + "\n";
 
@@ -232,7 +221,7 @@ int main(int, char**) {
         std::string name = "volume" + std::to_string(i) + "_grid";
         std::cout << "checking " + name + "\n";
         const auto grid_svg = draw_grid(name, det, i, view);
-        const auto volume_svg = il.draw_volume("volume", context, i, view);
+        const auto volume_svg = il.draw_volume("volume", i, view);
         
         detray::svgtools::write_svg(name + ".svg", {volume_svg, grid_svg});
         std::cout << "\n";
