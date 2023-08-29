@@ -24,6 +24,7 @@
 
 namespace detray::svgtools::conversion {
 
+/// @returns a point as a string.
 template <typename point3_t>
 inline std::string point_to_string(point3_t point) {
 
@@ -33,6 +34,7 @@ inline std::string point_to_string(point3_t point) {
     return stream.str();
 }
 
+/// @returns the information section for a detray surface.
 template <typename point3_t, typename detector_t>
 inline auto information_section(
     const typename detector_t::geometry_context& context,

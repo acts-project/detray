@@ -122,9 +122,9 @@ struct style {
     grid_style _grid_style;
 };
 
-const surface_style surface_style1{colors::blue_theme(0.8f), 3.f};
+const surface_style surface_style1{colors::blue_theme(0.5f), 3.f};
 
-const surface_style surface_style2{colors::red_theme(0.8f), 3.f};
+const surface_style surface_style2{colors::red_theme(0.5f), 3.f};
 
 const link_style link_style1{1.2f};
 
@@ -136,7 +136,7 @@ const landmark_style landmark_style1{colors::black_theme(0.8f), 5.f};
 
 const grid_style grid_style1{2.f};
 
-const trajectory_style trajectory_style1{colors::green_theme(1.f), 1.f};
+const trajectory_style trajectory_style1{colors::green_theme(1.f), 3.f};
 
 const style style1{volume_style1, landmark_style1, trajectory_style1, grid_style1};
 

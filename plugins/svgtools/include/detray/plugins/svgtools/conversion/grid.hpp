@@ -22,11 +22,9 @@
 
 namespace detray::svgtools::conversion {
 
-/// A functor to access the surfaces of a volume
+/// A functor to access the bin edges.
 template <typename scalar_t, detray::n_axis::label axis_label>
 struct edge_getter {
-    /// Call operator that forwards the neighborhood search call in a volume
-    /// to a surface finder data structure
     template <typename group_t, typename index_t,
               typename... Args>
     DETRAY_HOST_DEVICE inline auto operator()([[maybe_unused]] const group_t &group,
@@ -43,6 +41,7 @@ struct edge_getter {
     }
 };
 
+/// @return the bin edges of the grid.
 template <typename detray::n_axis::label axis_label, typename detector_t, typename link_t>
 auto bin_edges(const detector_t& detector, const link_t& link){
     using d_scalar_t = typename detector_t::scalar_type;
@@ -60,6 +59,7 @@ auto r_phi_split(const std::vector<d_scalar_t>& edges_rphi){
     return std::tuple(edges_phi, r);
 }
 
+/// @return returns the actsvg grid type and edge values for a detray cylinder grid.
 template <typename detector_t, typename link_t, typename view_t>
 auto cylinder2_grid_type_and_edges(const detector_t& detector, const link_t& link, const view_t&){
 
@@ -84,6 +84,7 @@ auto cylinder2_grid_type_and_edges(const detector_t& detector, const link_t& lin
     return std::tuple(actsvg::proto::grid::e_x_y, std::vector<scalar_t>{}, std::vector<scalar_t>{});
 }
 
+/// @return returns the actsvg grid type and edge values for a detray disc grid.
 template <typename detector_t, typename link_t, typename view_t>
 auto disc_grid_type_and_edges(const detector_t& detector, const link_t& link, const view_t&){
 
@@ -97,6 +98,7 @@ auto disc_grid_type_and_edges(const detector_t& detector, const link_t& link, co
     return std::tuple(actsvg::proto::grid::e_x_y, std::vector<scalar_t>{}, std::vector<scalar_t>{});
 }
 
+/// @return retunrs the detray grids respective actsvg grid type and edge values.
 template <typename accel_ids_t, typename detector_t, typename link_t, typename view_t>
 auto get_type_and_axes(const detector_t& detector, const link_t& link, const view_t& view)
 {
@@ -115,6 +117,11 @@ auto get_type_and_axes(const detector_t& detector, const link_t& link, const vie
     }
 }
 
+/// @brief Converts a detray grid to a actsvg proto grid.
+/// @param detector the detector
+/// @param index the index of the grid's volume
+/// @param view the view
+/// @returns a proto grid
 template <typename a_scalar_t, typename detector_t, typename view_t>
 auto grid(const detector_t& detector, const std::size_t index, const view_t& view)
 {

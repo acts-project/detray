@@ -32,21 +32,33 @@
 namespace detray::svgtools {
 
 /// @brief SVG generator for a detector and related entities.
+/// @note To view information boxes, they must be enabled in the constructor.
+/// Furthermore the svg viewer (opening the file after it is created) must support animations.
 template <typename detector_t>
 class illustrator {
 
     public:
     illustrator() = delete;
 
+    /// @param detector the detector
+    /// @param context the geometry context
+    /// @note information boxes are disabled unless expicitly enabled (use another constructor)
     illustrator(const detector_t& detector,
                 const geometry_context& context)
         : _detector{detector}, _context{context} {}
 
+    /// @param detector the detector
+    /// @param context the geometry context
+    /// @param show_info boolean to choose if information boxes should be included
     illustrator(const detector_t& detector,
                 const geometry_context& context,
                 const bool show_info)
         : _detector{detector}, _context{context}, _show_info{show_info} {}
 
+    /// @param detector the detector
+    /// @param context the geometry context
+    /// @param show_info boolean to choose if information boxes should be included
+    /// @param style the styling options to apply
     illustrator(const detector_t& detector,
                 const geometry_context& context,
                 const bool show_info, const styling::style& style)
@@ -264,7 +276,7 @@ class illustrator {
     }
 
     template <typename view_t>
-    auto draw_grid(const std::string& identification, const std::size_t index, const view_t& view){
+    auto draw_grid(const std::string& identification, const std::size_t index, const view_t& view) const{
         auto p_grid = svgtools::conversion::grid<actsvg::scalar>(_detector, index, view);
         svgtools::styling::apply_style(p_grid, _style._grid_style);
         return actsvg::display::grid(identification, p_grid);
@@ -276,7 +288,7 @@ class illustrator {
     using point3_container = std::vector<point3>;
     using geometry_context = typename detector_t::geometry_context;
 
-    const actsvg::point2 _info_screen_offset{-400, 400};
+    const actsvg::point2 _info_screen_offset{-300, 300};
     const detector_t& _detector;
     const geometry_context& _context;
     const bool _show_info = false;
