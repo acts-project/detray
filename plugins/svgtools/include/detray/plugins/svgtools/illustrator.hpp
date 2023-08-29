@@ -31,7 +31,9 @@
 
 namespace detray::svgtools {
 
-/// @brief SVG generator for a detector and related entities.
+/// @brief SVG generator for a detector and related entities. Provides an easy interface for displaying typical objects in a detector. 
+/// For more flexibility, use the tools in svgtools::conversion to convert detray objects to their respective proto object. 
+/// Use functions in svgtools::meta::display and actsvg::display to display the proto objects.
 /// @note To view information boxes, they must be enabled in the constructor.
 /// Furthermore the svg viewer (opening the file after it is created) must support animations.
 template <typename detector_t>
@@ -185,6 +187,23 @@ class illustrator {
         auto indices =
             detray::views::iota(std::size_t{0u}, _detector.volumes().size());
         return draw_volumes(identification, indices, view);
+    }
+
+    /// @brief Converts a point to an svg.
+    /// @param identification the id of the svg object.
+    /// @param point the point.
+    /// @param view the display view.
+    /// @return actsvg::svg::object of the point.
+    template <typename view_t, typename point_t>
+    inline auto draw_landmark(
+        const std::string& identification,
+        const point_t&
+            point,
+        const view_t& view) const {
+        auto p_landmark = svgtools::conversion::landmark<point3>(point);
+        svgtools::styling::apply_style(p_landmark, _style._landmark_style);
+        return svgtools::meta::display::landmark(identification,
+                                                            p_landmark, view);
     }
 
     /// @brief Converts an intersection record to an svg.

@@ -88,6 +88,7 @@ struct grid_style {
 struct landmark_style {
     std::vector<actsvg::style::color> _fill_colors;
     actsvg::scalar _marker_size;
+    std::string _marker_type;
 };
 
 struct trajectory_style {
@@ -120,6 +121,7 @@ struct style {
     landmark_style _intersection_style;
     trajectory_style _trajectory_style;
     grid_style _grid_style;
+    landmark_style _landmark_style;
 };
 
 const surface_style surface_style1{colors::blue_theme(0.5f), 3.f};
@@ -132,13 +134,15 @@ const portal_style portal_style1{surface_style2, link_style1, false};
 
 const volume_style volume_style1{surface_style1, portal_style1};
 
-const landmark_style landmark_style1{colors::black_theme(0.8f), 5.f};
+const landmark_style landmark_style1{colors::black_theme(0.8f), 5.f, "x"};
+
+const landmark_style landmark_style2{colors::black_theme(1.f), 3.f, "o"};
 
 const grid_style grid_style1{2.f};
 
 const trajectory_style trajectory_style1{colors::green_theme(1.f), 3.f};
 
-const style style1{volume_style1, landmark_style1, trajectory_style1, grid_style1};
+const style style1{volume_style1, landmark_style1, trajectory_style1, grid_style1, landmark_style2};
 
 /// @brief Sets the style of the proto surface.
 template <typename point3_container_t>
@@ -186,6 +190,20 @@ void apply_style(actsvg::proto::volume<point3_container_t>& p_volume,
     }
 }
 
+/// @brief Sets the style of the proto landmark.
+template <typename point3_t>
+void apply_style(
+    meta::proto::landmark<point3_t>& p_landmark,
+    const landmark_style& styling) {
+    const auto fill_color = colors::pick_random(styling._fill_colors);
+    const auto fill = actsvg::style::fill(fill_color);
+    const auto stroke = actsvg::style::stroke(fill_color, 3.f);
+    const auto marker =
+        actsvg::style::marker{styling._marker_type, styling._marker_size, fill, stroke};
+    p_landmark._marker = marker;
+}
+
+
 /// @brief Sets the style of the proto intersection record.
 template <typename point3_t>
 void apply_style(
@@ -195,13 +213,13 @@ void apply_style(
     const auto fill = actsvg::style::fill(fill_color);
     const auto stroke = actsvg::style::stroke(fill_color, 3.f);
     const auto marker =
-        actsvg::style::marker{"x", styling._marker_size, fill, stroke};
+        actsvg::style::marker{styling._marker_type, styling._marker_size, fill, stroke};
     for (auto& p_landmark : p_intersection_record._landmarks) {
         p_landmark._marker = marker;
     }
 }
 
-/// @brief Sets the style of the proto intersection record.
+/// @brief Sets the style of the proto trajectory.
 template <typename point3_t>
 void apply_style(meta::proto::trajectory<point3_t>& p_trajectory,
                  const trajectory_style& styling) {

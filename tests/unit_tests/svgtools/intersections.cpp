@@ -42,16 +42,13 @@ int main(int, char**) {
     const auto [det, names] = detray::create_toy_geometry(host_mr, 4, 3);
     detector_t::geometry_context context{};
 
+    using transform3_t = typename detector_t::transform3;
+
     // Svg for the detector.
     const detray::svgtools::illustrator il{det, context};
     const auto svg_det = il.draw_detector("detector", view);
 
     // Creating the rays.
-    // using intersection_t = detray::intersection2D<typename
-    // detector_t::surface_type,
-    //                                      typename detector_t::transform3>;
-    using transform3_t = typename detector_t::transform3;
-
     unsigned int theta_steps{10u};
     unsigned int phi_steps{10u};
     const typename detector_t::point3 ori{0.f, 0.f, 100.f};
@@ -70,7 +67,7 @@ int main(int, char**) {
         const auto svg_ir =
             il.draw_intersections(name, intersection_record, view);
 
-        detray::svgtools::write_svg(name + ".svg", {svg_det, svg_ir});
+        detray::svgtools::write_svg(name + ".svg", {axes, svg_det, svg_ir});
 
         index++;
     }
