@@ -12,3 +12,19 @@ include_directories( SYSTEM $<TARGET_PROPERTY:actsvg::core,INTERFACE_INCLUDE_DIR
 detray_add_test( svgtools_masks
    "masks.cpp"
    LINK_LIBRARIES GTest::gtest_main detray_tests_common detray::core_array actsvg::core actsvg::meta detray::svgtools)
+
+detray_add_test( svgtools_surfaces
+   "surfaces.cpp"
+   LINK_LIBRARIES GTest::gtest_main detray_tests_common detray::core_array actsvg::core actsvg::meta detray::svgtools)
+
+detray_add_test( svgtools_volumes
+   "volumes.cpp"
+   LINK_LIBRARIES GTest::gtest_main detray_tests_common detray::core_array actsvg::core actsvg::meta detray::svgtools)
+
+detray_add_test( svgtools_detectors
+   "detectors.cpp"
+   LINK_LIBRARIES GTest::gtest_main detray_tests_common detray::core_array actsvg::core actsvg::meta detray::svgtools)
+
+detray_add_test( svgtools_groups
+   "groups.cpp"
+   LINK_LIBRARIES GTest::gtest_main detray_tests_common detray::core_array actsvg::core actsvg::meta detray::svgtools)
