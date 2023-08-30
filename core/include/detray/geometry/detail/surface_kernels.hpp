@@ -13,6 +13,7 @@
 #include "detray/tracks/tracks.hpp"
 
 // System include(s)
+#include <limits>
 #include <ostream>
 
 namespace detray::detail {
@@ -209,6 +210,21 @@ struct surface_kernels {
             const auto& m = mask_group[index];
 
             return m.local_frame().path_correction(pos, dir, dtds, trf3);
+        }
+    };
+
+    /// A functor to get the local min bounds.
+    struct local_min_bounds {
+
+        template <typename mask_group_t, typename index_t, typename scalar_t>
+        DETRAY_HOST_DEVICE inline auto operator()(
+            const mask_group_t& mask_group, const index_t& index,
+            const scalar_t env =
+                std::numeric_limits<scalar_t>::epsilon()) const {
+
+            const auto& m = mask_group[index];
+
+            return m.local_min_bounds(env);
         }
     };
 };
