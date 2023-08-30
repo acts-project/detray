@@ -30,7 +30,7 @@ int main(int, char**) {
                                              actsvg::style::stroke());
 
     // Creating the views.
-    const actsvg::views::x_y view;
+    const actsvg::views::z_r view;
 
     // Creating the detector and geomentry context.
     using detector_t = detray::detector<detray::toy_metadata<>>;
@@ -47,7 +47,7 @@ int main(int, char**) {
     // Indexes of the volumes in the detector to be visualized.
     std::array indices{0UL, 1UL, 2UL, 3UL, 4UL, 5UL, 6UL, 7UL, 8UL, 9UL, 10UL, 11UL, 12UL, 13UL, 14UL, 15UL, 16UL, 17UL, 18UL, 19UL};
     for (std::size_t i : indices) {
-        std::string name = "(C) Volume " + std::to_string(i);
+        std::string name = "Volume " + std::to_string(i);
         // Visualization of volume i:
         const auto svg = il.draw_volume("", i, view);
         detray::svgtools::write_svg(name + ".svg", svg);
@@ -57,13 +57,13 @@ int main(int, char**) {
         if (i % 2 == 0){
             continue;
         }
-        std::string name = "(B) Grid " + std::to_string(i);
+        std::string name = "Grid " + std::to_string(i);
         const auto svg = il.draw_grid(name, i, view);
         detray::svgtools::write_svg(name + ".svg", svg);
     }
 
     for (const auto qop : std::vector{-4, -8, -16}){
-        std::string name = "(A) Helix (qop: " + std::to_string(qop) + ")";
+        std::string name = "Helix (qop: " + std::to_string(qop) + ")";
 
         const typename detector_t::point3 ori{0.f, 0.f, 80.f};
         const typename detector_t::point3 dir{0, 1, 1};
