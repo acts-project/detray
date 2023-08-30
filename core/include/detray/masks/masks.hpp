@@ -65,6 +65,9 @@ class mask {
     using matrix_type = typename algebra_t::template matrix_type<ROWS, COLS>;
     using projection_matrix_type = matrix_type<shape::meas_dim, e_bound_size>;
 
+    // Measurement ordering
+    bool normal_order = true;
+
     /// Default constructor
     constexpr mask() = default;
 
@@ -197,9 +200,8 @@ class mask {
     /// @returns the projection matrix for measurement
     DETRAY_HOST_DEVICE projection_matrix_type projection_matrix(
         const bound_track_parameters<algebra_t>& bound_params) const {
-        return this->local_frame()
-            .template projection_matrix<shape::meas_dim, shape::normal_order>(
-                bound_params);
+        return this->local_frame().template projection_matrix<shape::meas_dim>(
+            bound_params, normal_order);
     }
 
     /// @brief Lower and upper point for minimum axis aligned bounding box.
