@@ -35,16 +35,16 @@ constexpr scalar tol{1e-7f};
 // Test measurement smearer
 GTEST_TEST(detray_simulation, measurement_smearer) {
 
-    const mask<line<false, line_intersector, 1u, true>> ln_1D{
+    const mask<line<false, line_intersector, 1u>> ln_1D{
         0u, 10.f * unit<scalar>::mm, 50.f * unit<scalar>::mm};
 
-    const mask<line<false, line_intersector, 2u, true>> ln_2D{
+    const mask<line<false, line_intersector, 2u>> ln_2D{
         0u, 10.f * unit<scalar>::mm, 50.f * unit<scalar>::mm};
 
-    const mask<rectangle2D<plane_intersector, 1u, true>> re_1D{
+    const mask<rectangle2D<plane_intersector, 1u>> re_1D{
         0u, 10.f * unit<scalar>::mm, 10.f * unit<scalar>::mm};
 
-    const mask<rectangle2D<plane_intersector, 2u, true>> re_2D{
+    const mask<rectangle2D<plane_intersector, 2u>> re_2D{
         0u, 10.f * unit<scalar>::mm, 10.f * unit<scalar>::mm};
 
     bound_track_parameters<transform3> bound_params;

@@ -65,6 +65,9 @@ class mask {
     using matrix_type = typename algebra_t::template matrix_type<ROWS, COLS>;
     using projection_matrix_type = matrix_type<shape::meas_dim, e_bound_size>;
 
+    // Measurement ordering
+    bool normal_order = true;
+
     /// Default constructor
     constexpr mask() = default;
 
@@ -197,9 +200,8 @@ class mask {
     /// @returns the projection matrix for measurement
     DETRAY_HOST_DEVICE projection_matrix_type projection_matrix(
         const bound_track_parameters<algebra_t>& bound_params) const {
-        return this->local_frame()
-            .template projection_matrix<shape::meas_dim, shape::normal_order>(
-                bound_params);
+        return this->local_frame().template projection_matrix<shape::meas_dim>(
+            bound_params, normal_order);
     }
 
     /// @brief Lower and upper point for minimum axis aligned bounding box.
@@ -225,11 +227,11 @@ class mask {
     template <typename transform3_t>
     auto global_min_bounds_center(const transform3_t& trf) const {
         const auto m = local_min_bounds();
-        const auto cuboid = m.get_shape();
-        const auto center{0.5f * (point3_t{m[cuboid.e_max_x], m[cuboid.e_max_y],
-                                           m[cuboid.e_max_z]} +
-                                  point3_t{m[cuboid.e_min_x], m[cuboid.e_min_y],
-                                           m[cuboid.e_min_z]})};
+        const auto center{
+            0.5f * (point3_t{m[cuboid3D<>::e_max_x], m[cuboid3D<>::e_max_y],
+                             m[cuboid3D<>::e_max_z]} +
+                    point3_t{m[cuboid3D<>::e_min_x], m[cuboid3D<>::e_min_y],
+                             m[cuboid3D<>::e_min_z]})};
         return trf.point_to_global(center);
     }
 
