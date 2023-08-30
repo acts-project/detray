@@ -24,13 +24,18 @@
 
 namespace detray {
 
-template <typename transform3_t, typename smearer_t>
-struct event_writer : actor {
+template <typename smearer_t>
+struct smearing_writer : actor {
 
-    using scalar_type = typename transform3_t::scalar_type;
+    using transform3_type = typename smearer_t::transform3_type;
+    using scalar_type = typename transform3_type::scalar_type;
+
+    struct config {
+        smearer_t smearer;
+    };
 
     struct state {
-        state(std::size_t event_id, smearer_t& smearer,
+        state(std::size_t event_id, config&& writer_cfg,
               const std::string directory)
             : m_particle_writer(directory + detail::get_event_filename(
                                                 event_id, "-particles.csv")),
@@ -41,7 +46,7 @@ struct event_writer : actor {
               m_meas_hit_id_writer(
                   directory + detail::get_event_filename(
                                   event_id, "-measurement-simhit-map.csv")),
-              m_meas_smearer(smearer) {}
+              m_meas_smearer(writer_cfg.smearer) {}
 
         uint64_t particle_id = 0u;
         particle_writer m_particle_writer;
@@ -53,7 +58,8 @@ struct event_writer : actor {
 
         void set_seed(const uint_fast64_t sd) { m_meas_smearer.set_seed(sd); }
 
-        void write_particle(const free_track_parameters<transform3_t>& track) {
+        void write_particle(
+            const free_track_parameters<transform3_type>& track) {
             csv_particle particle;
             const auto pos = track.pos();
             const auto mom = track.mom();
@@ -77,7 +83,7 @@ struct event_writer : actor {
         template <typename mask_group_t, typename index_t>
         inline std::array<scalar_type, 2> operator()(
             const mask_group_t& mask_group, const index_t& index,
-            const bound_track_parameters<transform3_t>& bound_params,
+            const bound_track_parameters<transform3_type>& bound_params,
             smearer_t& smearer) const {
 
             const auto& mask = mask_group[index];
