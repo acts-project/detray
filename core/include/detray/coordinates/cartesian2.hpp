@@ -158,10 +158,11 @@ struct cartesian2 final : public coordinate_base<cartesian2, transform3_t> {
         // Do nothing
     }
 
-    template <size_type meas_dim, bool normal_order>
+    template <size_type meas_dim>
     DETRAY_HOST_DEVICE inline void unsigned_local(
         matrix_type<meas_dim, e_bound_size> & /*projection_matrix*/,
-        const bound_track_parameters<transform3_t> & /*bound_params*/) {
+        const bound_track_parameters<transform3_t> & /*bound_params*/,
+        const bool /*normal_order*/) {
         // Do nothing
         return;
     }
