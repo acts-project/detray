@@ -27,8 +27,8 @@ using detector_host_t =
 using detector_device_t =
     detector<toy_metadata<>, covfie::field_view, device_container_types>;
 
-using intersection_t =
-    intersection2D<typename detector_device_t::surface_type, transform3>;
+using intersection_t = intersection2D<typename detector_device_t::surface_type,
+                                      detray::scalar, array>;
 
 using navigator_host_t = navigator<detector_host_t>;
 using navigator_device_t = navigator<detector_device_t>;

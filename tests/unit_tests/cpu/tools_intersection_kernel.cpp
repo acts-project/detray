@@ -145,7 +145,7 @@ GTEST_TEST(detray_intersection, intersection_kernel_ray) {
         expected_cylinder1, expected_cylinder2, expected_cylinder_pt};
 
     // Initialize kernel
-    std::vector<intersection2D<surface_t, transform3_t>> sfi_init;
+    std::vector<intersection2D<surface_t, detray::scalar, array>> sfi_init;
 
     for (const auto &surface : surfaces) {
         mask_store.visit<intersection_initialize>(surface.mask(), sfi_init,
@@ -155,7 +155,7 @@ GTEST_TEST(detray_intersection, intersection_kernel_ray) {
     // Also check intersections
     for (std::size_t i = 0u; i < expected_points.size(); ++i) {
 
-        EXPECT_EQ(sfi_init[i].direction, intersection::direction::e_along);
+        EXPECT_TRUE(sfi_init[i].direction);
         EXPECT_EQ(sfi_init[i].volume_link, 0u);
 
         vector3 global;
@@ -188,8 +188,8 @@ GTEST_TEST(detray_intersection, intersection_kernel_ray) {
     // @fixme: The intersection update kernel does not work for non-portal
     // cylinders, since it assigns the closest intersection to both
     // solutions
-    /*std::vector<intersection2D_point<surface_t, transform3_t>> sfi_update;
-    sfi_update.resize(5);
+    /*std::vector<intersection2D_point<surface_t, detray::scalar, array>>
+    sfi_update; sfi_update.resize(5);
 
     for (const auto [idx, surface] : detray::views::enumerate(surfaces)) {
         sfi_update[idx].sf_desc = surface;
@@ -197,9 +197,9 @@ GTEST_TEST(detray_intersection, intersection_kernel_ray) {
             surface.mask(), detail::ray(track), sfi_update[idx],
             transform_store);
 
-        if(sfi_update[idx].status != intersection::status::e_inside) {
-    continue; } ASSERT_EQ(sfi_update[idx].direction,
-    intersection::direction::e_along) << " at surface " << sfi_update[idx]
+        if(not sfi_update[idx].status) {
+    continue; } ASSERT_TRUE(sfi_update[idx].direction) << " at surface " <<
+    sfi_update[idx]
     << ", " << sfi_init[idx]; ASSERT_EQ(sfi_update[idx].volume_link, 0u);
         ASSERT_NEAR(sfi_update[idx].p3[0], expected_points[idx][0],
     is_close)
@@ -264,7 +264,15 @@ GTEST_TEST(detray_intersection, intersection_kernel_helix) {
     const point3 expected_annulus{0.03f, 0.03f, 30.f};
     const std::vector<point3> expected_points = {
         expected_rectangle, expected_trapezoid, expected_annulus};
-    std::vector<intersection2D<surface_t, transform3_t>> sfi_helix{};
+    std::vector<intersection2D<surface_t, detray::scalar, detray::array>>
+        sfi_helix{};
+    static_assert(
+        std::is_same_v<
+            mask<cylinder2D<>>::shape::template intersector_type<
+                intersection2D<surface_t, detray::scalar, detray::array>>,
+            cylinder_intersector<
+                intersection2D<surface_t, detray::scalar, detray::array>>>,
+        "Oops");
 
     // Try the intersections - with automated dispatching via the kernel
     for (const auto [sf_idx, surface] : detray::views::enumerate(surfaces)) {

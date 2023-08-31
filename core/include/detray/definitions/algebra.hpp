@@ -40,7 +40,7 @@ struct get_scalar<T, std::enable_if_t<std::is_arithmetic_v<T>, void>> {
 
 template <typename T>
 struct get_scalar<
-    T, std::enable_if_t<!std::is_arithmetic_v<typename T::scalar>, void>> {
+    T, std::enable_if_t<!std::is_same_v<typename T::scalar, void>, void>> {
     using scalar = typename T::scalar;
     using boolean = typename T::boolean;
 };
@@ -60,7 +60,8 @@ struct get_algebra<T, std::enable_if_t<std::is_arithmetic_v<T>, void>> {
 
 template <typename T>
 struct get_algebra<
-    T, std::enable_if_t<!std::is_arithmetic_v<typename T::point3D>, void>> {
+    T, std::enable_if_t<!std::is_same_v<typename T::point3D, void>, void>> {
+    using point2D = typename T::point2D;
     using point3D = typename T::point3D;
     using vector3D = typename T::vector3D;
     using transform3D = typename T::transform3D;
@@ -73,6 +74,9 @@ using dsimd = typename A<float>::simd<T>;
 
 template <typename A = detray::scalar>
 using dscalar = typename detail::get_scalar<A>::scalar;
+
+template <typename A>
+using dpoint2D = typename detail::get_algebra<A>::point2D;
 
 template <typename A>
 using dpoint3D = typename detail::get_algebra<A>::point3D;

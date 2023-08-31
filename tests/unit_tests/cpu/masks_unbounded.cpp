@@ -55,7 +55,7 @@ GTEST_TEST(detray_masks, unbounded) {
 
     // Test boundary check
     typename mask<unbounded_t>::point3_t p2 = {0.5f, -9.f, 0.f};
-    ASSERT_TRUE(u.is_inside(p2, 0.f) == intersection::status::e_inside);
+    ASSERT_TRUE(u.is_inside(p2, 0.f));
 
     // Dummy bound track parameter
     bound_track_parameters<transform3_t> bound_params;

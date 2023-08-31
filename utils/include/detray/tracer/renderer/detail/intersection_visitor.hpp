@@ -45,12 +45,10 @@ struct intersector_visitor {
     DETRAY_HOST_DEVICE bool place_in_collection(
         typename is_container_t::value_type &&sfi,
         is_container_t &intersections) const {
-        if (sfi.status == intersection::status::e_inside) {
+        if (sfi.status) {
             intersections.push_back(sfi);
-            return true;
-        } else {
-            return false;
         }
+        return sfi.status;
     }
 
     template <typename is_container_t>
@@ -59,7 +57,7 @@ struct intersector_visitor {
         is_container_t &intersections) const {
         bool is_valid = false;
         for (auto &sfi : solutions) {
-            if (sfi.status == intersection::status::e_inside) {
+            if (sfi.status) {
                 intersections.push_back(sfi);
                 is_valid = true;
             }

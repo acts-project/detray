@@ -32,11 +32,11 @@ struct cylinder_portal_intersector
 
     /// linear algebra types
     /// @{
-    using transform3_type = typename intersection_t::transform3_type;
-    using scalar_type = typename transform3_type::scalar_type;
-    using point3 = typename transform3_type::point3;
-    using point2 = typename transform3_type::point2;
-    using vector3 = typename transform3_type::vector3;
+    using transform3_type = typename intersection_t::transform3D;
+    using scalar_type = typename intersection_t::scalar_t;
+    using point3 = typename intersection_t::point3D;
+    using point2 = typename intersection_t::point2D;
+    using vector3 = typename intersection_t::vector3D;
     /// @}
 
     using intersection_type = intersection_t;
@@ -64,6 +64,7 @@ struct cylinder_portal_intersector
         const scalar_type mask_tolerance = 0.f) const {
 
         intersection_t is;
+        is.status = false;
 
         // Intersecting the cylinder from the inside yield one intersection
         // along the direction of the track and one behind it
@@ -80,7 +81,7 @@ struct cylinder_portal_intersector
                                                 mask_tolerance);
             is.sf_desc = sf;
         } else {
-            is.status = intersection::status::e_missed;
+            is.status = false;
         }
 
         return is;

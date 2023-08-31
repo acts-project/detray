@@ -30,7 +30,7 @@ namespace detail {
 template <typename intersection_t>
 struct helix_line_intersector {
 
-    using transform3_type = typename intersection_t::transform3_type;
+    using transform3_type = typename intersection_t::transform3D;
     using scalar_type = typename transform3_type::scalar_type;
     using matrix_operator = typename transform3_type::matrix_actor;
     using point3 = typename transform3_type::point3;
@@ -84,7 +84,7 @@ struct helix_line_intersector {
         // @NOTE We might not have to call this which is meant to be for ray
         // intersection...
         if (denom < 1e-5f) {
-            sfi.status = intersection::status::e_missed;
+            sfi.status = false;
             return sfi;
         }
 
@@ -152,11 +152,9 @@ struct helix_line_intersector {
         sfi.status = mask.is_inside(local, mask_tolerance);
 
         // Compute some additional information if the intersection is valid
-        if (sfi.status == intersection::status::e_inside) {
+        if (sfi.status) {
             sfi.sf_desc = sf;
-            sfi.direction = std::signbit(s)
-                                ? intersection::direction::e_opposite
-                                : intersection::direction::e_along;
+            sfi.direction = !std::signbit(s);
             sfi.volume_link = mask.volume_link();
         }
 

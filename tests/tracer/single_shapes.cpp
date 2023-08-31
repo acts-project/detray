@@ -120,8 +120,7 @@ using algebra_t = scalar;
 
 int main() {
 
-    using point3D = dpoint3D<vc_soa<float>>;
-    using vector3D = dvector3D<vc_soa<float>>;
+    using vector3D = dvector3D<vc_soa<scalar>>;
 
     io::ppm_writer<unsigned int> ppm{};
 
@@ -139,9 +138,9 @@ int main() {
     //
 
     // Affine transform matrix to place the shapes
-    dvector3D<algebra_t<scalar>> x{1.0f, 0.0f, 0.0f};
-    dvector3D<algebra_t<scalar>> z{0.0f, 0.0f, 1.f};
-    dvector3D<algebra_t<scalar>> t;
+    vector3D x{1.0f, 0.0f, 0.0f};
+    vector3D z{0.0f, 0.0f, 1.f};
+    vector3D t;
     t[0] = t[0].Random();
     t[0] = 0.1f * (image.width() * t[0] - 0.5f * image.width());
     t[1] = t[1].Random();
@@ -174,8 +173,6 @@ int main() {
     ppm.write(image, "annulus");*/
 
     // render a spherical mask
-    // const tracer_mask<sphere2D<>> sph2{0u, 10.f * dsimd<vc_soa,
-    // scalar>{}.IndexesFromZero()};
     const tracer_mask<sphere2D<>> sph2{0u,
                                        10.f * dsimd<vc_soa, scalar>{}.Random()};
 

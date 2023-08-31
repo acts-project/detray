@@ -54,21 +54,14 @@ GTEST_TEST(detray_masks, annulus2D) {
     ASSERT_NEAR(ann2[annulus2D<>::e_shift_y], 2.0f, tol);
     ASSERT_NEAR(ann2[annulus2D<>::e_average_phi], 0.f, tol);
 
-    ASSERT_TRUE(ann2.is_inside(toStripFrame(p2_in)) ==
-                intersection::status::e_inside);
-    ASSERT_TRUE(ann2.is_inside(toStripFrame(p2_out1)) ==
-                intersection::status::e_outside);
-    ASSERT_TRUE(ann2.is_inside(toStripFrame(p2_out2)) ==
-                intersection::status::e_outside);
-    ASSERT_TRUE(ann2.is_inside(toStripFrame(p2_out3)) ==
-                intersection::status::e_outside);
-    ASSERT_TRUE(ann2.is_inside(toStripFrame(p2_out4)) ==
-                intersection::status::e_outside);
+    ASSERT_TRUE(ann2.is_inside(toStripFrame(p2_in)));
+    ASSERT_FALSE(ann2.is_inside(toStripFrame(p2_out1)));
+    ASSERT_FALSE(ann2.is_inside(toStripFrame(p2_out2)));
+    ASSERT_FALSE(ann2.is_inside(toStripFrame(p2_out3)));
+    ASSERT_FALSE(ann2.is_inside(toStripFrame(p2_out4)));
     // Move outside point inside using a tolerance
-    ASSERT_TRUE(ann2.is_inside(toStripFrame(p2_out1), 1.3f) ==
-                intersection::status::e_inside);
-    ASSERT_TRUE(ann2.is_inside(toStripFrame(p2_out4), 0.07f) ==
-                intersection::status::e_inside);
+    ASSERT_TRUE(ann2.is_inside(toStripFrame(p2_out1), 1.3f));
+    ASSERT_TRUE(ann2.is_inside(toStripFrame(p2_out4), 0.07f));
 
     // Dummy bound track parameter
     bound_track_parameters<transform3_t> bound_params;

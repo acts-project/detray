@@ -84,7 +84,7 @@ class straight_line_navigation : public test::fixture_base<> {
         using free_track_parameters_t = free_track_parameters<transform3_t>;
         /// Type that holds the intersection information
         using intersection_t =
-            intersection2D<typename detector_t::surface_type, transform3_t>;
+            intersection2D<typename detector_t::surface_type, scalar_t, array>;
 
         /// Inspector that records all encountered surfaces
         using object_tracer_t =

@@ -34,12 +34,11 @@ GTEST_TEST(detray_masks, ring2D) {
     ASSERT_NEAR(r2[ring2D<>::e_inner_r], 0.f, tol);
     ASSERT_NEAR(r2[ring2D<>::e_outer_r], 3.5f, tol);
 
-    ASSERT_TRUE(r2.is_inside(p2_pl_in) == intersection::status::e_inside);
-    ASSERT_TRUE(r2.is_inside(p2_pl_edge) == intersection::status::e_inside);
-    ASSERT_TRUE(r2.is_inside(p2_pl_out) == intersection::status::e_outside);
+    ASSERT_TRUE(r2.is_inside(p2_pl_in));
+    ASSERT_TRUE(r2.is_inside(p2_pl_edge));
+    ASSERT_FALSE(r2.is_inside(p2_pl_out));
     // Move outside point inside using a tolerance
-    ASSERT_TRUE(r2.is_inside(p2_pl_out, 1.2f) ==
-                intersection::status::e_inside);
+    ASSERT_TRUE(r2.is_inside(p2_pl_out, 1.2f));
 
     // Dummy bound track parameter
     bound_track_parameters<transform3_t> bound_params;

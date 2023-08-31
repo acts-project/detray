@@ -6,6 +6,7 @@
  */
 
 // Project include(s).
+#include "detray/definitions/algebra.hpp"
 #include "detray/definitions/units.hpp"
 #include "detray/geometry/detail/surface_descriptor.hpp"
 #include "detray/masks/masks.hpp"
@@ -27,9 +28,10 @@ using namespace detray;
 
 // Algebra types
 using matrix_operator = standard_matrix_operator<scalar>;
-using transform3 = test::transform3;
-using vector3 = typename transform3::vector3;
-using intersection_t = intersection2D<surface_descriptor<>, transform3>;
+using transform3 = dtransform3D<array<scalar>>;
+using vector3 = dvector3D<array<scalar>>;
+using intersection_t =
+    intersection2D<surface_descriptor<>, scalar, detray::array>;
 
 // Mask types to be tested
 using rectangle_type = detray::mask<detray::rectangle2D<>>;
@@ -58,8 +60,6 @@ class HelixCovarianceTransportValidation : public ::testing::Test {
     // First mask at the origin is always rectangle
     using first_mask_type = rectangle_type;
     using first_local_frame_type = typename first_mask_type::local_frame_type;
-    using first_helix_intersector_type =
-        detail::helix_plane_intersector<intersection_t>;
 
     // Transform3 type
     using transform3_type = typename local_frame_type::transform3_type;
@@ -337,8 +337,8 @@ TYPED_TEST(HelixCovarianceTransportValidation, one_loop_test) {
 
     ASSERT_EQ(sfis.size(), n_planes);
     for (std::size_t i = 0u; i < n_planes; i++) {
-        EXPECT_TRUE(sfis[i].status == intersection::status::e_inside);
-        EXPECT_TRUE(sfis[i].direction == intersection::direction::e_along);
+        EXPECT_TRUE(sfis[i].status);
+        EXPECT_TRUE(sfis[i].direction);
     }
 
     // Check if the same vector is obtained after one loop

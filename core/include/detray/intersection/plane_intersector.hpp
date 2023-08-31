@@ -24,11 +24,11 @@ struct plane_intersector {
 
     /// linear algebra types
     /// @{
-    using transform3_type = typename intersection_t::transform3_type;
-    using scalar_type = typename transform3_type::scalar_type;
-    using point3 = typename transform3_type::point3;
-    using point2 = typename transform3_type::point2;
-    using vector3 = typename transform3_type::vector3;
+    using transform3_type = typename intersection_t::transform3D;
+    using scalar_type = typename intersection_t::scalar_t;
+    using point3 = typename intersection_t::point3D;
+    using point2 = typename intersection_t::point2D;
+    using vector3 = typename intersection_t::vector3D;
     /// @}
 
     using intersection_type = intersection_t;
@@ -53,6 +53,7 @@ struct plane_intersector {
         const scalar_type mask_tolerance = 0.f) const {
 
         intersection_t is;
+        is.status = false;
 
         // Retrieve the surface normal & translation (context resolved)
         const auto &sm = trf.matrix();
@@ -76,12 +77,10 @@ struct plane_intersector {
 
                 // prepare some additional information in case the intersection
                 // is valid
-                if (is.status == intersection::status::e_inside) {
+                if (is.status) {
                     is.sf_desc = sf;
 
-                    is.direction = detail::signbit(is.path)
-                                       ? intersection::direction::e_opposite
-                                       : intersection::direction::e_along;
+                    is.direction = !detail::signbit(is.path);
                     is.volume_link = mask.volume_link();
 
                     // Get incidene angle
@@ -89,7 +88,7 @@ struct plane_intersector {
                 }
             }
         } else {
-            is.status = intersection::status::e_missed;
+            is.status = false;
         }
 
         return is;

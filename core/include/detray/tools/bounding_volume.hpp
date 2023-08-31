@@ -8,6 +8,7 @@
 #pragma once
 
 // Project include(s).
+#include "detray/definitions/algebra.hpp"
 #include "detray/definitions/qualifiers.hpp"
 #include "detray/definitions/units.hpp"
 #include "detray/intersection/intersection.hpp"
@@ -23,7 +24,7 @@
 namespace detray {
 
 /// An axis aligned bounding box of a given @tparam shape_t
-template <typename shape_t, typename scalar_t = scalar>
+template <typename shape_t, typename T = detray::scalar>
 class axis_aligned_bounding_volume {
     public:
     /// Define geometric properties
@@ -51,15 +52,15 @@ class axis_aligned_bounding_volume {
         typename mask_t, typename S = shape_t,
         typename std::enable_if_t<std::is_same_v<S, cuboid3D<>>, bool> = true>
     DETRAY_HOST_DEVICE constexpr axis_aligned_bounding_volume(
-        const mask_t& mask, std::size_t box_id, const scalar_t envelope)
+        const mask_t& mask, std::size_t box_id, const T envelope)
         : m_mask{mask.local_min_bounds(envelope).values(), box_id} {
         // Make sure the box is actually 'bounding'
-        assert(envelope >= std::numeric_limits<scalar_t>::epsilon());
+        assert(envelope >= std::numeric_limits<T>::epsilon());
     }
 
     /// Construct from mask boundary vector
-    DETRAY_HOST axis_aligned_bounding_volume(
-        const std::vector<scalar_t>& values, std::size_t box_id)
+    DETRAY_HOST axis_aligned_bounding_volume(const std::vector<T>& values,
+                                             std::size_t box_id)
         : m_mask(values, box_id) {
         assert(values.size() == shape::boundaries::e_size &&
                " Given number of boundaries does not match mask shape.");
@@ -77,14 +78,13 @@ class axis_aligned_bounding_volume {
     DETRAY_HOST constexpr axis_aligned_bounding_volume(
         const std::vector<
             axis_aligned_bounding_volume<other_shape_t, other_scalar_t>>& aabbs,
-        std::size_t box_id, const scalar_t env) {
+        std::size_t box_id, const T env) {
 
-        using loc_point_t =
-            std::array<scalar_t, other_shape_t::template axes<>::dim>;
+        using loc_point_t = std::array<T, other_shape_t::template axes<>::dim>;
 
         // Find min/max extent of the local aabb in local coordinates
-        constexpr scalar_t inf{std::numeric_limits<scalar_t>::infinity()};
-        scalar_t min_x{inf}, min_y{inf}, min_z{inf}, max_x{-inf}, max_y{-inf},
+        constexpr T inf{std::numeric_limits<T>::infinity()};
+        T min_x{inf}, min_y{inf}, min_z{inf}, max_x{-inf}, max_y{-inf},
             max_z{-inf};
         for (const auto& vol : aabbs) {
             const auto min_point = vol.template loc_min<loc_point_t>();
@@ -109,7 +109,7 @@ class axis_aligned_bounding_volume {
 
     /// Subscript operator @returns a single box boundary.
     DETRAY_HOST_DEVICE
-    constexpr auto operator[](const std::size_t i) const -> scalar_t {
+    constexpr auto operator[](const std::size_t i) const -> T {
         return m_mask[i];
     }
 
@@ -137,7 +137,7 @@ class axis_aligned_bounding_volume {
 
         // If the volume shape is not supported, return universal minimum
         assert(false);
-        constexpr scalar_t inf{std::numeric_limits<scalar_t>::infinity()};
+        constexpr T inf{std::numeric_limits<T>::infinity()};
         return point_t{-inf, -inf, -inf};
     }
 
@@ -156,7 +156,7 @@ class axis_aligned_bounding_volume {
         // If the volume shape is not supported, return universal minimum
         // (or compilation error for 2D point)
         assert(false);
-        constexpr scalar_t inf{std::numeric_limits<scalar_t>::infinity()};
+        constexpr T inf{std::numeric_limits<T>::infinity()};
         return point_t{inf, inf, inf};
     }
     /// @returns the minimum bounds of the volume in global cartesian
@@ -177,7 +177,7 @@ class axis_aligned_bounding_volume {
         // If the volume shape is not supported, return universal minimum
         // (or compilation error for 2D point)
         assert(false);
-        constexpr scalar_t inf{std::numeric_limits<scalar_t>::infinity()};
+        constexpr T inf{std::numeric_limits<T>::infinity()};
         return point3_t{-inf, -inf, -inf};
     }
 
@@ -198,7 +198,7 @@ class axis_aligned_bounding_volume {
 
         // If the volume shape is not supported, return universal minimum
         assert(false);
-        constexpr scalar_t inf{std::numeric_limits<scalar_t>::infinity()};
+        constexpr T inf{std::numeric_limits<T>::infinity()};
         return point3_t{inf, inf, inf};
     }
 
@@ -206,11 +206,11 @@ class axis_aligned_bounding_volume {
     template <typename point3_t>
     DETRAY_HOST_DEVICE constexpr auto center() const -> point3_t {
 
-        const scalar_t center_x{
+        const T center_x{
             0.5f * (m_mask[cuboid3D<>::e_max_x] + m_mask[cuboid3D<>::e_min_x])};
-        const scalar_t center_y{
+        const T center_y{
             0.5f * (m_mask[cuboid3D<>::e_max_y] + m_mask[cuboid3D<>::e_min_y])};
-        const scalar_t center_z{
+        const T center_z{
             0.5f * (m_mask[cuboid3D<>::e_max_z] + m_mask[cuboid3D<>::e_min_z])};
 
         return {std::isinf(center_x) ? 0.f : center_x,
@@ -235,11 +235,11 @@ class axis_aligned_bounding_volume {
 
         using point3_t = typename transform3_t::point3;
 
-        const scalar_t scalor_x{
+        const T scalor_x{
             (m_mask[cuboid3D<>::e_max_x] - m_mask[cuboid3D<>::e_min_x])};
-        const scalar_t scalor_y{
+        const T scalor_y{
             (m_mask[cuboid3D<>::e_max_y] - m_mask[cuboid3D<>::e_min_y])};
-        const scalar_t scalor_z{
+        const T scalor_z{
             (m_mask[cuboid3D<>::e_max_z] - m_mask[cuboid3D<>::e_min_z])};
 
         // Cannot handle 'inf' propagation through the calculation for now
@@ -271,8 +271,8 @@ class axis_aligned_bounding_volume {
         glob_c_points[7] = glob_c_points[1] - new_box_z;
 
         // Find min/max extent of the local aabb in global coordinates
-        constexpr scalar_t inf{std::numeric_limits<scalar_t>::infinity()};
-        scalar_t min_x{inf}, min_y{inf}, min_z{inf}, max_x{-inf}, max_y{-inf},
+        constexpr T inf{std::numeric_limits<T>::infinity()};
+        T min_x{inf}, min_y{inf}, min_z{inf}, max_x{-inf}, max_y{-inf},
             max_z{-inf};
         for (const point3_t& p : glob_c_points) {
             // Check every coordinate of the point
@@ -295,30 +295,29 @@ class axis_aligned_bounding_volume {
     template <typename point_t>
     constexpr auto is_inside(
         const point_t& loc_p,
-        const scalar_t t = std::numeric_limits<scalar_t>::epsilon()) const
-        -> intersection::status {
+        const T t = std::numeric_limits<T>::epsilon()) const {
         return m_mask.is_inside(loc_p, t);
     }
 
     /// Intersect the box with a ray
-    DETRAY_HOST_DEVICE
-    template <typename algebra_t>
+    /*DETRAY_HOST_DEVICE
+    template <typename transform_t>
     constexpr bool intersect(
-        const detail::ray<algebra_t>& ray,
-        const scalar_t t = std::numeric_limits<scalar_t>::epsilon()) const {
+        const detail::ray<transform_t>& ray,
+        const T t = std::numeric_limits<T>::epsilon()) const {
         static_assert(std::is_same_v<shape, cuboid3D<>>,
                       "aabbs are only implemented in cuboid shape for now");
-        return m_mask.template intersector<intersection2D<bool, algebra_t>>()(
+        return m_mask.template intersector<intersection2D<bool, T>>()(
             ray, m_mask, t);
-    }
+    }*/
 
     /// @TODO: Overlapping aabbs
     /*DETRAY_HOST_DEVICE
     template<typename algebra_t>
     constexpr auto intersect(
         const axis_aligned_bounding_volume &aabb,
-        const scalar_t t = std::numeric_limits<scalar_t>::epsilon()) const
-        -> intersection::status {
+        const T t = std::numeric_limits<T>::epsilon()) const
+        {
         return m_mask.is_overlap(aabb.bounds());
     }*/
 
@@ -327,8 +326,8 @@ class axis_aligned_bounding_volume {
     template<typename algebra_t>
     constexpr auto intersect(
         const detail::frustum<algebra_t> frustum,
-        const scalar_t t = std::numeric_limits<scalar_t>::epsilon()) const
-        -> intersection::status {
+        const T t = std::numeric_limits<T>::epsilon()) const
+        {
         ....
     }*/
 
@@ -337,10 +336,9 @@ class axis_aligned_bounding_volume {
     mask<shape, std::size_t> m_mask;
 };
 
-template <typename shape_t, typename scalar_t = scalar>
+template <typename shape_t, typename T = scalar>
 DETRAY_HOST std::ostream& operator<<(
-    std::ostream& os,
-    const axis_aligned_bounding_volume<shape_t, scalar_t>& aabb) {
+    std::ostream& os, const axis_aligned_bounding_volume<shape_t, T>& aabb) {
     return os << aabb.bounds().to_string();
 }
 

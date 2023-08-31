@@ -8,6 +8,8 @@
 #pragma once
 
 // Project include(s)
+#include <iostream>
+
 #include "detray/intersection/detail/trajectories.hpp"
 #include "detray/utils/ranges.hpp"
 #include "tests/common/tools/intersectors/helix_cylinder_intersector.hpp"
@@ -68,12 +70,10 @@ struct helix_intersection_initialize {
     DETRAY_HOST_DEVICE bool place_in_collection(
         typename is_container_t::value_type &&sfi,
         is_container_t &intersections) const {
-        if (sfi.status == intersection::status::e_inside) {
+        if (sfi.status) {
             intersections.push_back(sfi);
-            return true;
-        } else {
-            return false;
         }
+        return sfi.status;
     }
 
     template <typename is_container_t>
@@ -82,7 +82,7 @@ struct helix_intersection_initialize {
         is_container_t &intersections) const {
         bool is_valid = false;
         for (auto &sfi : solutions) {
-            if (sfi.status == intersection::status::e_inside) {
+            if (sfi.status) {
                 intersections.push_back(sfi);
                 is_valid = true;
             }

@@ -25,6 +25,25 @@ using point3D = transform3D::point3;
 using vector3D = transform3D::vector3;
 /// @}
 
+/// Define affine transformation types
+/// @{
+template <typename V = DETRAY_CUSTOM_SCALARTYPE>
+struct array {
+    /// Define scalar type
+    using value_type = V;
+
+    template <typename T>
+    using simd = T;
+
+    using boolean = bool;
+    using scalar = value_type;
+    using transform3D = algebra::array::transform3<value_type>;
+    using point2D = algebra::array::point2<value_type>;
+    using point3D = algebra::array::point3<value_type>;
+    using vector3D = algebra::array::vector3<value_type>;
+};
+/// @}
+
 // Define namespace(s)
 namespace getter = algebra::getter;
 namespace vector = algebra::vector;

@@ -27,9 +27,10 @@ struct sphere_intersector {
     /// linear algebra types
     /// @{
     using transform3_type = typename intersection_t::transform3D;
-    using scalar_type = typename intersection_t::scalar_t;
     using value_type = typename intersection_t::value_t;
+    using scalar_type = typename intersection_t::scalar_t;
     using point3 = typename intersection_t::point3D;
+    using point2 = typename intersection_t::point2D;
     using vector3 = typename intersection_t::vector3D;
     /// @}
 
@@ -131,8 +132,7 @@ struct sphere_intersector {
     template <typename mask_t, typename surface_t>
     DETRAY_HOST_DEVICE inline std::array<intersection_t, 2> operator()(
         const ray_type &ray, const surface_t &sf, const mask_t &mask,
-        const transform3_type &trf,
-        const scalar_type mask_tolerance = 0.f) const {
+        const transform3_type &trf, const scalar_type = 0.f) const {
 
         intersection_t is;
 
@@ -150,26 +150,12 @@ struct sphere_intersector {
         const auto qe = soa_quadratic_equation{a[0], b, c, 0.f};
 
         std::array<intersection_t, 2> ret;
-        // switch (qe.solutions()) {
-        //     case 2:
         ret[1] = build_candidate(ray, mask, trf, qe.larger(), qe.solutions());
-        ret[1].surface = sf;
-        // If there are two solutions, reuse the case for a single
-        // solution to setup the intersection with the smaller path
-        // in ret[0]
-        //        [[fallthrough]];
-        //    case 1:
-        ret[0] = build_candidate(ray, mask, trf, qe.smaller(), qe.solutions());
-        ret[0].surface = sf;
-        //        break;
-        //    case 0:
-        //        ret[0].status = intersection::status::e_missed;
-        //        ret[1].status = intersection::status::e_missed;
-        //};
+        ret[1].sf_desc = sf;
 
-        // Even if there are two geometrically valid solutions, the smaller one
-        // might not be passed on if it is below the overstepping tolerance:
-        // see 'build_candidate'
+        ret[0] = build_candidate(ray, mask, trf, qe.smaller(), qe.solutions());
+        ret[0].sf_desc = sf;
+
         return ret;
     }
 
@@ -250,18 +236,18 @@ struct sphere_intersector {
         switch (qe.solutions()) {
             case 2:
                 ret[1] = build_candidate(ray, mask, trf, qe.larger());
-                ret[1].surface = sf;
+                ret[1].sf_desc = sf;
                 // If there are two solutions, reuse the case for a single
                 // solution to setup the intersection with the smaller path
                 // in ret[0]
                 [[fallthrough]];
             case 1:
                 ret[0] = build_candidate(ray, mask, trf, qe.smaller());
-                ret[0].surface = sf;
+                ret[0].sf_desc = sf;
                 break;
             case 0:
-                ret[0].status = intersection::status::e_missed;
-                ret[1].status = intersection::status::e_missed;
+                ret[0].status = false;
+                ret[1].status = false;
         };
 
         // Even if there are two geometrically valid solutions, the smaller one
@@ -295,18 +281,16 @@ struct sphere_intersector {
             // No further mask check needed, if the quadratic equation found a
             // solution, an intersection is guaranteed
             is.local = mask.to_local_frame(trf, p3);
-            is.status = intersection::status::e_inside;
+            is.status = true;
 
-            is.direction = std::signbit(is.path)
-                               ? intersection::direction::e_opposite
-                               : intersection::direction::e_along;
+            is.direction = !std::signbit(is.path);
             is.volume_link = mask.volume_link();
 
             // Get incidence angle
             const vector3 normal = mask.normal(is.local);
             is.cos_incidence_angle = vector::dot(rd, normal);
         } else {
-            is.status = intersection::status::e_missed;
+            is.status = false;
         }
 
         return is;

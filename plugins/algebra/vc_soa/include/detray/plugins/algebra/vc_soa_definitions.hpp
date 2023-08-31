@@ -36,6 +36,7 @@ struct vc_soa {
     using boolean = Vc::Mask<V>;
     using scalar = simd<value_type>;
     using transform3D = algebra::vc_soa::transform3<value_type>;
+    using point2D = algebra::vc_soa::point2<value_type>;
     using point3D = algebra::vc_soa::point3<value_type>;
     using vector3D = algebra::vc_soa::vector3<value_type>;
 };

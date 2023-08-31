@@ -22,7 +22,7 @@
 
 // Use the detray:: namespace implicitly.
 using namespace detray;
-using point3 = __plugin::point3<scalar>;
+/*using point3 = __plugin::point3<scalar>;
 
 static constexpr unsigned int steps_x3{1000u};
 static constexpr unsigned int steps_y3{1000u};
@@ -56,11 +56,7 @@ void BM_RECTANGLE_2D_MASK(benchmark::State &state) {
                     benchmark::DoNotOptimize(inside);
                     benchmark::DoNotOptimize(outside);
                     const point3 loc_p{r.to_local_frame(trf, {x, y, z})};
-                    if (r.is_inside(loc_p) == intersection::status::e_inside) {
-                        ++inside;
-                    } else {
-                        ++outside;
-                    }
+                    r.is_inside(loc_p) ? ++inside : ++outside;
                 }
             }
         }
@@ -108,11 +104,7 @@ void BM_TRAPEZOID_2D_MASK(benchmark::State &state) {
                     benchmark::DoNotOptimize(inside);
                     benchmark::DoNotOptimize(outside);
                     const point3 loc_p{t.to_local_frame(trf, {x, y, z})};
-                    if (t.is_inside(loc_p) == intersection::status::e_inside) {
-                        ++inside;
-                    } else {
-                        ++outside;
-                    }
+                    t.is_inside(loc_p) ? ++inside : ++outside;
                 }
             }
         }
@@ -160,11 +152,7 @@ void BM_DISC_2D_MASK(benchmark::State &state) {
                     benchmark::DoNotOptimize(inside);
                     benchmark::DoNotOptimize(outside);
                     const point3 loc_p{r.to_local_frame(trf, {x, y, z})};
-                    if (r.is_inside(loc_p) == intersection::status::e_inside) {
-                        ++inside;
-                    } else {
-                        ++outside;
-                    }
+                    r.is_inside(loc_p) ? ++inside : ++outside;
                 }
             }
         }
@@ -212,11 +200,7 @@ void BM_RING_2D_MASK(benchmark::State &state) {
                     benchmark::DoNotOptimize(inside);
                     benchmark::DoNotOptimize(outside);
                     const point3 loc_p{r.to_local_frame(trf, {x, y, z})};
-                    if (r.is_inside(loc_p) == intersection::status::e_inside) {
-                        ++inside;
-                    } else {
-                        ++outside;
-                    }
+                    r.is_inside(loc_p) ? ++inside : ++outside;
                 }
             }
         }
@@ -264,12 +248,7 @@ void BM_CYLINDER_2D_MASK(benchmark::State &state) {
                     benchmark::DoNotOptimize(inside);
                     benchmark::DoNotOptimize(outside);
                     const point3 loc_p{c.to_local_frame(trf, {x, y, z})};
-                    if (c.is_inside(loc_p, 0.1f) ==
-                        intersection::status::e_inside) {
-                        ++inside;
-                    } else {
-                        ++outside;
-                    }
+                    c.is_inside(loc_p) ? ++inside : ++outside;
                 }
             }
         }
@@ -315,12 +294,7 @@ void BM_ANNULUS_2D_MASK(benchmark::State &state) {
                     benchmark::DoNotOptimize(inside);
                     benchmark::DoNotOptimize(outside);
                     const point3 loc_p{ann.to_local_frame(trf, {x, y, z})};
-                    if (ann.is_inside(loc_p) ==
-                        intersection::status::e_inside) {
-                        ++inside;
-                    } else {
-                        ++outside;
-                    }
+                    ann.is_inside(loc_p) ? ++inside : ++outside;
                 }
             }
         }
@@ -339,3 +313,4 @@ BENCHMARK(BM_ANNULUS_2D_MASK)
     ->ThreadRange(1, benchmark::CPUInfo::Get().num_cpus)
 #endif
     ->Unit(benchmark::kMillisecond);
+*/

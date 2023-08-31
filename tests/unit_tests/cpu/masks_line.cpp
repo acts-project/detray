@@ -40,10 +40,10 @@ GTEST_TEST(detray_masks, line_radial_cross_sect) {
     ASSERT_NEAR(ln[line<>::e_cross_section], 1.f * unit<scalar>::mm, tol);
     ASSERT_NEAR(ln[line<>::e_half_z], 50.f * unit<scalar>::mm, tol);
 
-    ASSERT_TRUE(ln.is_inside(ln_in) == intersection::status::e_inside);
-    ASSERT_TRUE(ln.is_inside(ln_edge) == intersection::status::e_inside);
-    ASSERT_TRUE(ln.is_inside(ln_out1) == intersection::status::e_outside);
-    ASSERT_TRUE(ln.is_inside(ln_out2) == intersection::status::e_outside);
+    ASSERT_TRUE(ln.is_inside(ln_in));
+    ASSERT_TRUE(ln.is_inside(ln_edge));
+    ASSERT_FALSE(ln.is_inside(ln_out1));
+    ASSERT_FALSE(ln.is_inside(ln_out2));
 
     // Dummy bound track parameter
     bound_track_parameters<transform3_t> bound_params;
@@ -88,12 +88,11 @@ GTEST_TEST(detray_masks, line_square_cross_sect) {
     ASSERT_NEAR(ln[line<>::e_cross_section], 1.f * unit<scalar>::mm, tol);
     ASSERT_NEAR(ln[line<>::e_half_z], 50.f * unit<scalar>::mm, tol);
 
-    ASSERT_TRUE(ln.is_inside(ln_in) == intersection::status::e_inside);
-    ASSERT_TRUE(ln.is_inside(ln_edge, 1e-5f) == intersection::status::e_inside);
-    ASSERT_TRUE(ln.is_inside(ln_edge, -1e-5f) ==
-                intersection::status::e_outside);
-    ASSERT_TRUE(ln.is_inside(ln_out1) == intersection::status::e_outside);
-    ASSERT_TRUE(ln.is_inside(ln_out2) == intersection::status::e_outside);
+    ASSERT_TRUE(ln.is_inside(ln_in));
+    ASSERT_TRUE(ln.is_inside(ln_edge, 1e-5f));
+    ASSERT_FALSE(ln.is_inside(ln_edge, -1e-5f));
+    ASSERT_FALSE(ln.is_inside(ln_out1));
+    ASSERT_FALSE(ln.is_inside(ln_out2));
 
     // Dummy bound track parameter
     bound_track_parameters<transform3_t> bound_params;

@@ -35,7 +35,7 @@ using detector_device_t = detector<detray::toy_metadata<>, covfie::field_view,
 
 // Navigator
 using intersection_t = intersection2D<typename detector_device_t::surface_type,
-                                      detray::tutorial::transform3>;
+                                      detray::scalar, detray::array>;
 using navigator_t = navigator<detector_device_t>;
 
 // Stepper

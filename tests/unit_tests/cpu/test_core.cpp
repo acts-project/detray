@@ -75,28 +75,17 @@ GTEST_TEST(detray_core, typed_index) {
 // This tests the construction of a intresection
 GTEST_TEST(detray_intersection, intersection) {
 
-    using intersection_t = intersection2D<surface_t, transform3>;
+    using intersection_t = intersection2D<surface_t, detray::scalar, array>;
 
-    intersection_t i0 = {surface_t{},
-                         point3{0.2f, 0.4f, 0.f},
-                         2.f,
-                         1.f,
-                         1u,
-                         intersection::status::e_outside,
-                         intersection::direction::e_along};
+    intersection_t i0 = {
+        surface_t{}, point3{0.2f, 0.4f, 0.f}, 2.f, 1.f, 1u, false, true};
 
     intersection_t i1 = {
-        surface_t{},
-        point3{0.2f, 0.4f, 0.f},
-        1.7f,
-        -1.f,
-        0u,
-        intersection::status::e_inside,
-        intersection::direction::e_opposite,
+        surface_t{}, point3{0.2f, 0.4f, 0.f}, 1.7f, -1.f, 0u, true, false,
     };
 
     intersection_t invalid;
-    ASSERT_TRUE(invalid.status == intersection::status::e_undefined);
+    ASSERT_FALSE(invalid.status);
 
     dvector<intersection_t> intersections = {invalid, i0, i1};
     std::sort(intersections.begin(), intersections.end());

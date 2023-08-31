@@ -33,7 +33,7 @@ using detector_device_type =
     detector<toy_metadata<>, covfie::field_view, device_container_types>;
 
 using intersection_t =
-    intersection2D<typename detector_device_type::surface_type, transform3>;
+    intersection2D<typename detector_device_type::surface_type, scalar, array>;
 
 using navigator_host_type = navigator<detector_host_type>;
 using navigator_device_type = navigator<detector_device_type>;

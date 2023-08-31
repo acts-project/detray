@@ -30,11 +30,11 @@ struct single_shape : detray::actor {
 #if (IS_SOA)
     using surface_t = surface_descriptor<dtyped_index<>, dtyped_index<>,
                                          Vc::uint_v, Vc::uint_v, Vc::uint_v>;
-    using intersection_t = soa::intersection2D<surface_t, T, algebra_t>;
 #else
     using surface_t = surface_descriptor<>;
-    using intersection_t = intersection2D<surface_t>;
 #endif
+
+    using intersection_t = intersection2D<surface_t, T, algebra_t>;
 
     struct global_state {
         using scalar_t = dscalar<algebra_t<T>>;

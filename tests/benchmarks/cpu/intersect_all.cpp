@@ -30,7 +30,7 @@
 using namespace detray;
 
 // This test runs intersection with all surfaces of the TrackML detector
-void BM_INTERSECT_ALL(benchmark::State &state) {
+/*void BM_INTERSECT_ALL(benchmark::State &state) {
 
     static const unsigned int theta_steps{100u};
     static const unsigned int phi_steps{100u};
@@ -91,3 +91,4 @@ BENCHMARK(BM_INTERSECT_ALL)
     ->ThreadRange(1, benchmark::CPUInfo::Get().num_cpus)
 #endif
     ->Unit(benchmark::kMillisecond);
+*/

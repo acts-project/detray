@@ -14,7 +14,7 @@
 #include <gtest/gtest.h>
 
 using namespace detray;
-using point_t = test::point3;
+using point_t = dpoint3D<test::algebra_t<detray::scalar>>;
 
 namespace {
 
@@ -54,11 +54,11 @@ GTEST_TEST(detray_tools, bounding_cuboid3D) {
     ASSERT_NEAR(bounds[cuboid3D<>::e_max_y], hy + envelope, tol);
     ASSERT_NEAR(bounds[cuboid3D<>::e_max_z], hz + envelope, tol);
 
-    ASSERT_TRUE(aabb.is_inside(p2_in) == intersection::status::e_inside);
-    ASSERT_TRUE(aabb.is_inside(p2_edge) == intersection::status::e_inside);
-    ASSERT_TRUE(aabb.is_inside(p2_out) == intersection::status::e_outside);
+    ASSERT_TRUE(aabb.is_inside(p2_in));
+    ASSERT_TRUE(aabb.is_inside(p2_edge));
+    ASSERT_FALSE(aabb.is_inside(p2_out));
     // Move outside point inside using a tolerance
-    ASSERT_TRUE(aabb.is_inside(p2_out, 1.) == intersection::status::e_inside);
+    ASSERT_TRUE(aabb.is_inside(p2_out, 1.));
 }
 
 /// This tests the basic functionality cylindrical axis aligned bounding box
@@ -89,12 +89,12 @@ GTEST_TEST(detray_tools, bounding_cylinder3D) {
     ASSERT_NEAR(bounds[cylinder3D::e_min_z], -hz, tol);
     ASSERT_NEAR(bounds[cylinder3D::e_max_z], hz, tol);
 
-    ASSERT_TRUE(aabc.is_inside(p3_in) == intersection::status::e_inside);
-    ASSERT_TRUE(aabc.is_inside(p3_edge) == intersection::status::e_inside);
-    ASSERT_TRUE(aabc.is_inside(p3_out) == intersection::status::e_outside);
-    ASSERT_TRUE(aabc.is_inside(p3_off) == intersection::status::e_outside);
+    ASSERT_TRUE(aabc.is_inside(p3_in));
+    ASSERT_TRUE(aabc.is_inside(p3_edge));
+    ASSERT_FALSE(aabc.is_inside(p3_out));
+    ASSERT_FALSE(aabc.is_inside(p3_off));
     // Move outside point inside using a tolerance
-    ASSERT_TRUE(aabc.is_inside(p3_out, 0.6f) == intersection::status::e_inside);
+    ASSERT_TRUE(aabc.is_inside(p3_out, 0.6f));
 }
 
 /// This tests the basic functionality of an aabb around a stereo annulus

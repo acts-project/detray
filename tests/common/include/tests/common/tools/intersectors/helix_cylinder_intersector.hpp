@@ -36,7 +36,7 @@ template <typename intersection_t>
 struct helix_cylinder_intersector
     : public cylinder_intersector<intersection_t> {
 
-    using transform3_type = typename intersection_t::transform3_type;
+    using transform3_type = typename intersection_t::transform3D;
     using scalar_type = typename transform3_type::scalar_type;
     using matrix_operator = typename transform3_type::matrix_actor;
     using point2 = typename transform3_type::point2;
@@ -62,6 +62,8 @@ struct helix_cylinder_intersector
         const scalar_type mask_tolerance = 0.f) const {
 
         std::array<intersection_t, 2> ret;
+        ret[0].status = false;
+        ret[1].status = false;
 
         // Guard against inifinite loops
         constexpr std::size_t max_n_tries{1000u};
@@ -115,6 +117,7 @@ struct helix_cylinder_intersector
 
             scalar_type &s = paths[i];
             intersection_t &is = ret[i];
+            is.status = false;
 
             // Path length in the previous iteration step
             scalar_type s_prev{0.f};
@@ -151,20 +154,14 @@ struct helix_cylinder_intersector
 
             // Perform the r-check for Newton solution even if it is not
             // required by the mask's shape
-            const bool r_check =
-                std::abs(r - is.local[2]) <
-                mask_tolerance +
-                    5.f * std::numeric_limits<scalar_type>::epsilon();
-            if (not r_check) {
-                is.status = intersection::status::e_outside;
-            }
+            is.status &= std::abs(r - is.local[2]) <
+                         mask_tolerance +
+                             5.f * std::numeric_limits<scalar_type>::epsilon();
 
             // Compute some additional information if the intersection is valid
-            if (is.status == intersection::status::e_inside) {
+            if (is.status) {
                 is.sf_desc = sf;
-                is.direction = std::signbit(s)
-                                   ? intersection::direction::e_opposite
-                                   : intersection::direction::e_along;
+                is.direction = !std::signbit(s);
                 is.volume_link = mask.volume_link();
             }
         }
@@ -181,7 +178,7 @@ struct helix_intersector<
     intersection_t, mask_t,
     std::enable_if_t<
         std::is_same_v<typename mask_t::local_frame_type,
-                       cylindrical2<typename intersection_t::transform3_type>>,
+                       cylindrical2<typename intersection_t::transform3D>>,
         void>> : public detail::helix_cylinder_intersector<intersection_t> {
     using intersector_impl = detail::helix_cylinder_intersector<intersection_t>;
 

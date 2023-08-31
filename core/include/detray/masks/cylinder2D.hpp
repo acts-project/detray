@@ -112,9 +112,7 @@ class cylinder2D {
         const scalar_t tol = std::numeric_limits<scalar_t>::epsilon()) const {
 
         if constexpr (kRadialCheck) {
-            if (std::abs(loc_p[2] - bounds[e_r]) > tol) {
-                return false;
-            }
+            return (std::abs(loc_p[2] - bounds[e_r]) <= tol);
         }
         return (bounds[e_n_half_z] - tol <= loc_p[1] and
                 loc_p[1] <= bounds[e_p_half_z] + tol);

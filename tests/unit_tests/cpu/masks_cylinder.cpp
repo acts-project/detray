@@ -35,11 +35,11 @@ GTEST_TEST(detray_masks, cylinder2D) {
     ASSERT_NEAR(c[cylinder2D<>::e_n_half_z], -hz, tol);
     ASSERT_NEAR(c[cylinder2D<>::e_p_half_z], hz, tol);
 
-    ASSERT_TRUE(c.is_inside(p2_in) == intersection::status::e_inside);
-    ASSERT_TRUE(c.is_inside(p2_edge) == intersection::status::e_inside);
-    ASSERT_TRUE(c.is_inside(p2_out) == intersection::status::e_outside);
+    ASSERT_TRUE(c.is_inside(p2_in));
+    ASSERT_TRUE(c.is_inside(p2_edge));
+    ASSERT_FALSE(c.is_inside(p2_out));
     // Move outside point inside using a tolerance
-    ASSERT_TRUE(c.is_inside(p2_out, 0.6f) == intersection::status::e_inside);
+    ASSERT_TRUE(c.is_inside(p2_out, 0.6f));
 
     // Dummy bound track parameter
     bound_track_parameters<transform3_t> bound_params;
@@ -87,12 +87,12 @@ GTEST_TEST(detray_masks, cylinder3D) {
     ASSERT_NEAR(c[cylinder3D::e_min_z], -hz, tol);
     ASSERT_NEAR(c[cylinder3D::e_max_z], hz, tol);
 
-    ASSERT_TRUE(c.is_inside(p3_in) == intersection::status::e_inside);
-    ASSERT_TRUE(c.is_inside(p3_edge) == intersection::status::e_inside);
-    ASSERT_TRUE(c.is_inside(p3_out) == intersection::status::e_outside);
-    ASSERT_TRUE(c.is_inside(p3_off) == intersection::status::e_outside);
+    ASSERT_TRUE(c.is_inside(p3_in));
+    ASSERT_TRUE(c.is_inside(p3_edge));
+    ASSERT_FALSE(c.is_inside(p3_out));
+    ASSERT_FALSE(c.is_inside(p3_off));
     // Move outside point inside using a tolerance
-    ASSERT_TRUE(c.is_inside(p3_out, 0.6f) == intersection::status::e_inside);
+    ASSERT_TRUE(c.is_inside(p3_out, 0.6f));
 
     // Check bounding box
     constexpr scalar envelope{0.01f};

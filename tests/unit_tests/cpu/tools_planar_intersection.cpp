@@ -27,7 +27,8 @@ using namespace detray;
 using vector3 = test::vector3;
 using point3 = test::point3;
 using transform3 = test::transform3;
-using intersection_t = intersection2D<surface_descriptor<>, transform3>;
+using intersection_t =
+    intersection2D<surface_descriptor<>, detray::scalar, array>;
 
 constexpr scalar tol{std::numeric_limits<scalar>::epsilon()};
 
@@ -47,7 +48,7 @@ GTEST_TEST(detray_intersection, translated_plane_ray) {
     const auto hit_bound =
         pi(r, surface_descriptor<>{}, unmasked_bound, shifted);
 
-    ASSERT_TRUE(hit_bound.status == intersection::status::e_inside);
+    ASSERT_TRUE(hit_bound.status);
     // Global intersection information - unchanged
     const auto global0 =
         unmasked_bound.to_global_frame(shifted, hit_bound.local);
@@ -64,7 +65,7 @@ GTEST_TEST(detray_intersection, translated_plane_ray) {
     mask<rectangle2D<>> rect_for_inside{0u, 3.f, 3.f};
     const auto hit_bound_inside =
         pi(r, surface_descriptor<>{}, rect_for_inside, shifted);
-    ASSERT_TRUE(hit_bound_inside.status == intersection::status::e_inside);
+    ASSERT_TRUE(hit_bound_inside.status);
     // Global intersection information - unchanged
     const auto global1 =
         rect_for_inside.to_global_frame(shifted, hit_bound_inside.local);
@@ -79,7 +80,7 @@ GTEST_TEST(detray_intersection, translated_plane_ray) {
     mask<rectangle2D<>> rect_for_outside{0u, 0.5f, 3.5f};
     const auto hit_bound_outside =
         pi(r, surface_descriptor<>{}, rect_for_outside, shifted);
-    ASSERT_TRUE(hit_bound_outside.status == intersection::status::e_outside);
+    ASSERT_FALSE(hit_bound_outside.status);
     // Global intersection information - not written out anymore
     const auto global2 =
         rect_for_outside.to_global_frame(shifted, hit_bound_outside.local);

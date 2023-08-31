@@ -46,7 +46,7 @@ template <typename point2_t, typename point3_t, typename links_t,
           typename transform3_t>
 dvector<point3_t> vertices(
     const mask<annulus2D<>, links_t, transform3_t> &annulus_mask, dindex lseg) {
-    using scalar_t = typename transform3_t::scalar_type;
+    using scalar_t = typename mask<annulus2D<>, links_t, transform3_t>::scalar_type;
 
     const auto &m_values = annulus_mask.values();
 

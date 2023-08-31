@@ -22,7 +22,7 @@
 using namespace detray;
 
 // Benchmarks the cost of searching a volume by position
-void BM_FIND_VOLUMES(benchmark::State &state) {
+/*void BM_FIND_VOLUMES(benchmark::State &state) {
 
     // This test is broken at the moment, don't run it.
     state.SkipWithError("Benchmark disabled for the toy geometry");
@@ -81,3 +81,4 @@ BENCHMARK(BM_FIND_VOLUMES)
     ->ThreadRange(1, benchmark::CPUInfo::Get().num_cpus)
 #endif
     ->Unit(benchmark::kMillisecond);
+*/

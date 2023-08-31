@@ -31,7 +31,8 @@ using transform3_t = test::transform3;
 using vector3 = test::vector3;
 using point3 = test::point3;
 using ray_t = detray::detail::ray<transform3_t>;
-using intersection_t = intersection2D<surface_descriptor<>, transform3_t>;
+using intersection_t =
+    intersection2D<surface_descriptor<>, detray::scalar, array>;
 
 constexpr scalar not_defined = std::numeric_limits<scalar>::infinity();
 constexpr scalar tol{1e-5f};
@@ -55,14 +56,13 @@ GTEST_TEST(detray_intersection, translated_cylinder) {
     ray.set_overstep_tolerance(-not_defined);
 
     // Intersect:
-    mask<cylinder2D<>, std::uint_least16_t, transform3_t> cylinder{0u, r, -hz,
-                                                                   hz};
+    mask<cylinder2D<>, std::uint_least16_t> cylinder{0u, r, -hz, hz};
     const auto hits_bound =
         ci(ray, surface_descriptor<>{}, cylinder, shifted, tol);
 
     // first intersection lies behind the track
-    EXPECT_TRUE(hits_bound[0].status == intersection::status::e_inside);
-    EXPECT_TRUE(hits_bound[0].direction == intersection::direction::e_opposite);
+    EXPECT_TRUE(hits_bound[0].status);
+    ASSERT_FALSE(hits_bound[0].direction);
 
     const auto global0 = cylinder.to_global_frame(shifted, hits_bound[0].local);
     EXPECT_NEAR(global0[0], -1.f, tol);
@@ -77,8 +77,8 @@ GTEST_TEST(detray_intersection, translated_cylinder) {
     EXPECT_NEAR(hits_bound[0].cos_incidence_angle, -1.f, tol);
 
     // second intersection lies in front of the track
-    EXPECT_TRUE(hits_bound[1].status == intersection::status::e_inside);
-    EXPECT_TRUE(hits_bound[1].direction == intersection::direction::e_along);
+    EXPECT_TRUE(hits_bound[1].status);
+    EXPECT_TRUE(hits_bound[1].direction);
 
     const auto global1 = cylinder.to_global_frame(shifted, hits_bound[1].local);
     EXPECT_NEAR(global1[0], 7.f, tol);
@@ -106,8 +106,7 @@ GTEST_TEST(detray_intersection, cylinder_incidence_angle) {
 
     // Intersect: Set an infinite overstep tolerance, so that no solution is
     // optimized away
-    mask<cylinder2D<>, std::uint_least16_t, transform3_t> cylinder{0u, r, -hz,
-                                                                   hz};
+    mask<cylinder2D<>, std::uint_least16_t> cylinder{0u, r, -hz, hz};
     const auto hits_bound =
         ci(ray, surface_descriptor<>{}, cylinder, identity, tol);
 
@@ -125,8 +124,7 @@ GTEST_TEST(detray_intersection, cylinder_portal) {
 
     // Create a concentric cylinder and test intersection
     const transform3_t identity{};
-    mask<cylinder2D<>, std::uint_least16_t, transform3_t> cylinder{0u, r, -hz,
-                                                                   hz};
+    mask<cylinder2D<>, std::uint_least16_t> cylinder{0u, r, -hz, hz};
 
     cylinder_intersector<intersection_t> ci;
     cylinder_portal_intersector<intersection_t> cpi;
@@ -137,12 +135,10 @@ GTEST_TEST(detray_intersection, cylinder_portal) {
     const auto hit_cocylindrical =
         cpi(ray, surface_descriptor<>{}, cylinder, identity, tol);
 
-    ASSERT_TRUE(hits_cylinrical[1].status == intersection::status::e_inside);
-    ASSERT_TRUE(hit_cocylindrical.status == intersection::status::e_inside);
-    ASSERT_TRUE(hits_cylinrical[1].direction ==
-                intersection::direction::e_along);
-    ASSERT_TRUE(hit_cocylindrical.direction ==
-                intersection::direction::e_along);
+    ASSERT_TRUE(hits_cylinrical[1].status);
+    ASSERT_TRUE(hit_cocylindrical.status);
+    ASSERT_TRUE(hits_cylinrical[1].direction);
+    ASSERT_TRUE(hit_cocylindrical.direction);
 
     const auto global0 =
         cylinder.to_global_frame(identity, hits_cylinrical[1].local);
@@ -172,8 +168,7 @@ GTEST_TEST(detray_intersection, concentric_cylinders) {
 
     // Create a concentric cylinder and test intersection
     const transform3_t identity{};
-    mask<cylinder2D<>, std::uint_least16_t, transform3_t> cylinder{0u, r, -hz,
-                                                                   hz};
+    mask<cylinder2D<>, std::uint_least16_t> cylinder{0u, r, -hz, hz};
 
     cylinder_intersector<intersection_t> ci;
     concentric_cylinder_intersector<intersection_t> cci;
@@ -184,12 +179,10 @@ GTEST_TEST(detray_intersection, concentric_cylinders) {
     const auto hit_cocylindrical =
         cci(ray, surface_descriptor<>{}, cylinder, identity, tol);
 
-    ASSERT_TRUE(hits_cylinrical[1].status == intersection::status::e_inside);
-    ASSERT_TRUE(hit_cocylindrical.status == intersection::status::e_inside);
-    ASSERT_TRUE(hits_cylinrical[1].direction ==
-                intersection::direction::e_along);
-    ASSERT_TRUE(hit_cocylindrical.direction ==
-                intersection::direction::e_along);
+    ASSERT_TRUE(hits_cylinrical[1].status);
+    ASSERT_TRUE(hit_cocylindrical.status);
+    ASSERT_TRUE(hits_cylinrical[1].direction);
+    ASSERT_TRUE(hit_cocylindrical.direction);
 
     const auto global0 =
         cylinder.to_global_frame(identity, hits_cylinrical[1].local);

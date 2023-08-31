@@ -47,8 +47,8 @@ GTEST_TEST(detray_propagator, guided_navigator) {
 
     // Inspectors are optional, of course
     using detector_t = decltype(telescope_det);
-    using intersection_t =
-        intersection2D<typename detector_t::surface_type, transform3_t>;
+    using intersection_t = intersection2D<typename detector_t::surface_type,
+                                          detray::scalar, array>;
     using object_tracer_t =
         object_tracer<intersection_t, dvector, status::e_on_portal,
                       status::e_on_module>;

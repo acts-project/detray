@@ -38,11 +38,11 @@ GTEST_TEST(detray_masks, trapezoid2D) {
     ASSERT_NEAR(t2[trapezoid2D<>::e_half_length_2], hy, tol);
     ASSERT_NEAR(t2[trapezoid2D<>::e_divisor], divisor, tol);
 
-    ASSERT_TRUE(t2.is_inside(p2_in) == intersection::status::e_inside);
-    ASSERT_TRUE(t2.is_inside(p2_edge) == intersection::status::e_inside);
-    ASSERT_TRUE(t2.is_inside(p2_out) == intersection::status::e_outside);
+    ASSERT_TRUE(t2.is_inside(p2_in));
+    ASSERT_TRUE(t2.is_inside(p2_edge));
+    ASSERT_FALSE(t2.is_inside(p2_out));
     // Move outside point inside using a tolerance
-    ASSERT_TRUE(t2.is_inside(p2_out, 1.) == intersection::status::e_inside);
+    ASSERT_TRUE(t2.is_inside(p2_out, 1.));
 
     // Dummy bound track parameter
     bound_track_parameters<transform3_t> bound_params;

@@ -29,7 +29,8 @@ using point2 = test::point2;
 using point3 = test::point3;
 using transform3 = test::transform3;
 using vector3 = test::vector3;
-using intersection_t = intersection2D<surface_descriptor<>, transform3>;
+using intersection_t =
+    intersection2D<surface_descriptor<>, detray::scalar, array>;
 
 namespace {
 
