@@ -39,7 +39,8 @@ GTEST_TEST(detray_masks, projection_matrix_rectangle) {
     }
 
     // 2D, reverse ordering
-    mask<rectangle2D<plane_intersector, 2u, false>> rec_1{0u, 0.f, 0.f};
+    mask<rectangle2D<plane_intersector, 2u>> rec_1{0u, 0.f, 0.f};
+    rec_1.normal_order = false;
 
     // Check the projection matrix
     // [ 0 1 0 0 0 0 ]
@@ -72,7 +73,8 @@ GTEST_TEST(detray_masks, projection_matrix_rectangle) {
     }
 
     // 1D, reverse ordering
-    mask<rectangle2D<plane_intersector, 1u, false>> rec_3{0u, 0.f, 0.f};
+    mask<rectangle2D<plane_intersector, 1u>> rec_3{0u, 0.f, 0.f};
+    rec_3.normal_order = false;
 
     // Check the projection matrix
     // [ 0 1 0 0 0 0 ]
@@ -94,6 +96,7 @@ TEST(projection_matrix, annulus) {
 
     // 1D reverse ordering
     mask<annulus2D<>> ann_0{0u, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f};
+    ann_0.normal_order = false;
 
     // Check the projection matrix
     // [ 0 1 0 0 0 0 ]
@@ -109,8 +112,8 @@ TEST(projection_matrix, annulus) {
     }
 
     // 1D normal ordering
-    mask<annulus2D<plane_intersector, 1u, true>> ann_1{0u,  0.f, 0.f, 0.f,
-                                                       0.f, 0.f, 0.f, 0.f};
+    mask<annulus2D<plane_intersector, 1u>> ann_1{0u,  0.f, 0.f, 0.f,
+                                                 0.f, 0.f, 0.f, 0.f};
 
     // Check the projection matrix
     // [ 1 0 0 0 0 0 ]
@@ -128,6 +131,7 @@ TEST(projection_matrix, annulus) {
     // 2D reverse ordering
     mask<annulus2D<plane_intersector, 2u>> ann_2{0u,  0.f, 0.f, 0.f,
                                                  0.f, 0.f, 0.f, 0.f};
+    ann_2.normal_order = false;
 
     // Check the projection matrix
     // [ 0 1 0 0 0 0 ]
@@ -144,8 +148,8 @@ TEST(projection_matrix, annulus) {
     }
 
     // 2D normal ordering
-    mask<annulus2D<plane_intersector, 2u, true>> ann_3{0u,  0.f, 0.f, 0.f,
-                                                       0.f, 0.f, 0.f, 0.f};
+    mask<annulus2D<plane_intersector, 2u>> ann_3{0u,  0.f, 0.f, 0.f,
+                                                 0.f, 0.f, 0.f, 0.f};
 
     // Check the projection matrix
     // [ 1 0 0 0 0 0 ]
@@ -185,7 +189,8 @@ TEST(projection_matrix, line) {
     }
 
     // 1D reverse ordering
-    mask<line<false, line_intersector, 1u, false>> ln_1{0u, 0.f, 0.f};
+    mask<line<false, line_intersector, 1u>> ln_1{0u, 0.f, 0.f};
+    ln_1.normal_order = false;
 
     // Check the projection matrix
     // [ 0 1 0 0 0 0 ]
@@ -220,7 +225,8 @@ TEST(projection_matrix, line) {
     }
 
     // 2D reverse ordering
-    mask<line<false, line_intersector, 2u, false>> ln_3{0u, 0.f, 0.f};
+    mask<line<false, line_intersector, 2u>> ln_3{0u, 0.f, 0.f};
+    ln_3.normal_order = false;
 
     // Check the projection matrix
     // [ 0 1 0 0 0 0 ]

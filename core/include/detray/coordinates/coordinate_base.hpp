@@ -241,15 +241,15 @@ struct coordinate_base {
     }
 
     /// @returns the projection matrix for measurement
-    template <size_type meas_dim, bool normal_order>
+    template <size_type meas_dim>
     DETRAY_HOST_DEVICE inline matrix_type<meas_dim, e_bound_size>
-    projection_matrix(
-        const bound_track_parameters<transform3_t>& bound_params) {
+    projection_matrix(const bound_track_parameters<transform3_t>& bound_params,
+                      const bool normal_order) {
 
         matrix_type<meas_dim, e_bound_size> proj =
             matrix_operator().template zero<meas_dim, e_bound_size>();
         // For normal ordering
-        if constexpr (normal_order == true) {
+        if (normal_order == true) {
             // For meas_dim == 1, Return:
             // [ 1 0 0 0 0 0 ]
             if constexpr (meas_dim == 1u) {
@@ -279,8 +279,8 @@ struct coordinate_base {
             }
         }
 
-        Derived<transform3_t>().template unsigned_local<meas_dim, normal_order>(
-            proj, bound_params);
+        Derived<transform3_t>().template unsigned_local<meas_dim>(
+            proj, bound_params, normal_order);
 
         return proj;
     }

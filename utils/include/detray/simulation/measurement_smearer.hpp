@@ -20,6 +20,7 @@ namespace detray {
 template <typename transform3_t>
 struct measurement_smearer {
 
+    using transform3_type = transform3_t;
     using matrix_operator = typename transform3_t::matrix_actor;
     using scalar_type = typename transform3_t::scalar_type;
     using size_type = typename matrix_operator::size_ty;
@@ -61,8 +62,7 @@ struct measurement_smearer {
             ret[1u] = scalar_type{0.f};
             // Special treatment for line coordinate: we don't allow negative
             // radial distance
-            if (mask_t::shape::name == "line" &&
-                mask_t::shape::normal_order == true) {
+            if (mask_t::shape::name == "line" && mask.normal_order == true) {
                 ret[0u] = std::max(ret[0u], static_cast<scalar_type>(0.f));
             }
 
@@ -74,7 +74,7 @@ struct measurement_smearer {
             // radial distance
             if (mask_t::shape::name == "line") {
 
-                if constexpr (mask_t::shape::normal_order == true) {
+                if (mask.normal_order == true) {
                     ret[0u] = std::max(ret[0u], static_cast<scalar_type>(0.f));
                 } else {
                     ret[1u] = std::max(ret[1u], static_cast<scalar_type>(0.f));

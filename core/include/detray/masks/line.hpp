@@ -41,7 +41,7 @@ namespace detray {
 /// in z.
 template <bool kSquareCrossSect = false,
           template <typename> class intersector_t = line_intersector,
-          unsigned int kMeasDim = 1u, bool kNormalOrder = true>
+          unsigned int kMeasDim = 1u>
 class line {
     public:
     /// The name for this shape
@@ -52,9 +52,6 @@ class line {
 
     /// The measurement dimension
     inline static constexpr const unsigned int meas_dim{kMeasDim};
-
-    /// Normal ordering
-    inline static constexpr const bool normal_order{kNormalOrder};
 
     // Measurement dimension check
     static_assert(meas_dim == 1u || meas_dim == 2u,

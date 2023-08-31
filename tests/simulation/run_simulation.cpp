@@ -45,8 +45,15 @@ int main() {
     measurement_smearer<transform3> smearer(100.f * unit<scalar>::um,
                                             100.f * unit<scalar>::um);
 
+    using detector_type = decltype(detector);
+    using generator_type = decltype(generator);
+    using writer_type = smearing_writer<measurement_smearer<transform3>>;
+
+    typename writer_type::config writer_cfg{smearer};
+
     std::size_t n_events = 2u;
-    auto sim = simulator(n_events, detector, std::move(generator), smearer);
+    auto sim = simulator<detector_type, generator_type, writer_type>(
+        n_events, detector, std::move(generator), std::move(writer_cfg));
 
     sim.run();
 

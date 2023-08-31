@@ -35,16 +35,16 @@ constexpr scalar tol{1e-7f};
 // Test measurement smearer
 GTEST_TEST(detray_simulation, measurement_smearer) {
 
-    const mask<line<false, line_intersector, 1u, true>> ln_1D{
+    const mask<line<false, line_intersector, 1u>> ln_1D{
         0u, 10.f * unit<scalar>::mm, 50.f * unit<scalar>::mm};
 
-    const mask<line<false, line_intersector, 2u, true>> ln_2D{
+    const mask<line<false, line_intersector, 2u>> ln_2D{
         0u, 10.f * unit<scalar>::mm, 50.f * unit<scalar>::mm};
 
-    const mask<rectangle2D<plane_intersector, 1u, true>> re_1D{
+    const mask<rectangle2D<plane_intersector, 1u>> re_1D{
         0u, 10.f * unit<scalar>::mm, 10.f * unit<scalar>::mm};
 
-    const mask<rectangle2D<plane_intersector, 2u, true>> re_2D{
+    const mask<rectangle2D<plane_intersector, 2u>> re_2D{
         0u, 10.f * unit<scalar>::mm, 10.f * unit<scalar>::mm};
 
     bound_track_parameters<transform3> bound_params;
@@ -106,8 +106,16 @@ GTEST_TEST(detray_simulation, toy_geometry_simulation) {
                                             170.f * unit<scalar>::um);
 
     std::size_t n_events{10u};
-    auto sim = simulator(n_events, detector, std::move(generator), smearer,
-                         test::filenames);
+
+    using detector_type = decltype(detector);
+    using generator_type = decltype(generator);
+    using writer_type = smearing_writer<measurement_smearer<transform3>>;
+
+    typename writer_type::config writer_cfg{smearer};
+
+    auto sim = simulator<detector_type, generator_type, writer_type>(
+        n_events, detector, std::move(generator), std::move(writer_cfg),
+        test::filenames);
 
     // Lift step size constraints
     sim.get_config().step_constraint = std::numeric_limits<scalar>::max();
@@ -245,8 +253,15 @@ TEST_P(TelescopeDetectorSimulation, telescope_detector_simulation) {
 
     std::size_t n_events{1000u};
 
-    auto sim = simulator(n_events, detector, std::move(generator), smearer,
-                         test::filenames);
+    using detector_type = decltype(detector);
+    using generator_type = decltype(generator);
+    using writer_type = smearing_writer<measurement_smearer<transform3>>;
+
+    typename writer_type::config writer_cfg{smearer};
+
+    auto sim = simulator<detector_type, generator_type, writer_type>(
+        n_events, detector, std::move(generator), std::move(writer_cfg),
+        test::filenames);
 
     // Lift step size constraints
     sim.get_config().step_constraint = std::numeric_limits<scalar>::max();
