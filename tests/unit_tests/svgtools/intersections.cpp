@@ -8,9 +8,9 @@
 // Project include(s)
 #include "detray/core/detector.hpp"
 #include "detray/detectors/create_toy_geometry.hpp"
+#include "detray/intersection/detail/trajectories.hpp"
 #include "detray/plugins/svgtools/illustrator.hpp"
 #include "detray/plugins/svgtools/writer.hpp"
-#include "detray/intersection/detail/trajectories.hpp"
 #include "detray/simulation/event_generator/track_generators.hpp"
 #include "detray/tracks/tracks.hpp"
 #include "tests/common/tools/particle_gun.hpp"
