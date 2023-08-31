@@ -31,6 +31,7 @@ inline auto local_vertices(const mask<line<>>& m) {
     return dvector<point3_t>{p1, p2};
 }
 
+/// @return The global vertices of the mask.
 template <typename transform_t, typename mask_t>
 inline auto global_vertices(const transform_t& transform, const mask_t& mask) {
     auto ret = local_vertices(mask);
