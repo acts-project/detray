@@ -49,7 +49,7 @@ int main(int, char**) {
     using vector3 = typename detector_t::vector3;
 
     // Creating the svg generator for the detector.
-    const detray::svgtools::illustrator il{det, context, true};
+    const detray::svgtools::illustrator il{det, context};
 
     // The vector of svgs that we want to include on the webpage.
     std::vector<actsvg::svg::object> svgs;
@@ -61,7 +61,7 @@ int main(int, char**) {
 
     // Draw the volumes and include them in the svg vector.
     for (std::size_t i : indices) {
-        std::string name = "Volume " + std::to_string(i);
+        std::string name = "Volume_" + std::to_string(i);
         const auto svg = il.draw_volume(name, i, view);
         svgs.push_back(svg);
     }
@@ -71,7 +71,7 @@ int main(int, char**) {
         if (i % 2 == 0) {
             continue;
         }
-        std::string name = "Grid " + std::to_string(i);
+        std::string name = "Grid_" + std::to_string(i);
         const auto svg = il.draw_grid(name, i, view);
         svgs.push_back(svg);
     }
@@ -79,7 +79,7 @@ int main(int, char**) {
     // Draw some example trajectories and include them in the svg vector (along
     // with their intersections).
     for (const auto qop : std::vector{-4, -8, -16}) {
-        std::string name = "Helix (qop: " + std::to_string(qop) + ")";
+        std::string name = "Helix_qop_" + std::to_string(qop) + ")";
 
         const typename detector_t::point3 ori{0.f, 0.f, 80.f};
         const typename detector_t::point3 dir{0, 1, 1};

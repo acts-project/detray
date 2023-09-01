@@ -35,7 +35,8 @@ namespace detray::svgtools {
 /// @brief SVG generator for a detector and related entities. Provides an easy interface for displaying typical objects in a detector. 
 /// For more flexibility, use the tools in svgtools::conversion to convert detray objects to their respective proto object. 
 /// Use functions in svgtools::meta::display and actsvg::display to display the proto objects.
-/// @note To view information boxes, they must be enabled in the constructor.
+/// @note Avoid using ids containing spaces or dashes as this seems to cause issues (for instance regarding information boxes).
+/// Furthermore, to view information boxes, they must be enabled in the constructor.
 /// Furthermore the svg viewer (opening the file after it is created) must support animations.
 template <typename detector_t>
 class illustrator {
