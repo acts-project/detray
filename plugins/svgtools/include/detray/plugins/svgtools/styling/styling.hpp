@@ -87,6 +87,7 @@ struct grid_style {
 
 struct landmark_style {
     std::vector<actsvg::style::color> _fill_colors;
+    actsvg::scalar _stroke_width;
     actsvg::scalar _marker_size;
     std::string _marker_type;
 };
@@ -134,9 +135,9 @@ const portal_style portal_style1{surface_style2, link_style1, false};
 
 const volume_style volume_style1{surface_style1, portal_style1};
 
-const landmark_style landmark_style1{colors::black_theme(0.8f), 5.f, "x"};
+const landmark_style landmark_style1{colors::black_theme(1.f), 1.f, 5.f, "x"};
 
-const landmark_style landmark_style2{colors::black_theme(1.f), 3.f, "o"};
+const landmark_style landmark_style2{colors::black_theme(1.f), 1.f, 3.f, "o"};
 
 const grid_style grid_style1{2.f};
 
@@ -197,7 +198,7 @@ void apply_style(
     const landmark_style& styling) {
     const auto fill_color = colors::pick_random(styling._fill_colors);
     const auto fill = actsvg::style::fill(fill_color);
-    const auto stroke = actsvg::style::stroke(fill_color, 3.f);
+    const auto stroke = actsvg::style::stroke(fill_color, styling._stroke_width);
     const auto marker =
         actsvg::style::marker{styling._marker_type, styling._marker_size, fill, stroke};
     p_landmark._marker = marker;
@@ -211,7 +212,7 @@ void apply_style(
     const landmark_style& styling) {
     const auto fill_color = colors::pick_random(styling._fill_colors);
     const auto fill = actsvg::style::fill(fill_color);
-    const auto stroke = actsvg::style::stroke(fill_color, 3.f);
+    const auto stroke = actsvg::style::stroke(fill_color, styling._stroke_width);
     const auto marker =
         actsvg::style::marker{styling._marker_type, styling._marker_size, fill, stroke};
     for (auto& p_landmark : p_intersection_record._landmarks) {

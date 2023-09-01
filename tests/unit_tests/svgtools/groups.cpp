@@ -10,6 +10,7 @@
 #include "detray/detectors/create_toy_geometry.hpp"
 #include "detray/plugins/svgtools/illustrator.hpp"
 #include "detray/plugins/svgtools/writer.hpp"
+#include "detray/plugins/svgtools/utils/groups.hpp"
 
 // Vecmem include(s)
 #include <vecmem/memory/host_memory_resource.hpp>
@@ -66,10 +67,19 @@ int main(int, char**) {
     detray::svgtools::write_svg("test_svgtools_volume_group_zr.svg",
                                 {axes, svg_volume_group_zr});
 
-    // Writing SVGs to a combined file.
+    // We can also use the svgtools::utils to group actsvg::svg::objects into one.
+    auto svg_combined_group = detray::svgtools::utils::group("combined_group");
+    svg_combined_group.add_object(svg_surface_group_xy);
+    svg_combined_group.add_object(svg_volume_group_zr);
+
+    detray::svgtools::write_svg("test_svgtools_combined_group1.svg",
+                                {axes, svg_combined_group});
+
+    // Alternatively, this is equivalent to:
+    detray::svgtools::write_svg(
+        "test_svgtools_combined_group2.svg",
+        {axes, svg_surface_group_xy, svg_volume_group_zr});
+
     // NOTE: The all svg object's identification must be unique in the
     // file!
-    detray::svgtools::write_svg(
-        "test_svgtools_volume_and_surface_group.svg",
-        {axes, svg_surface_group_xy, svg_volume_group_zr});
 }

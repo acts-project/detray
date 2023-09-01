@@ -47,4 +47,4 @@ detray_add_test( svgtools_land_marks
 
 detray_add_test( svgtools_web
    "web.cpp"
-   LINK_LIBRARIES GTest::gtest_main detray_tests_common detray::core_array actsvg::core actsvg::meta detray::svgtools)
+   LINK_LIBRARIES GTest::gtest_main detray_tests_common detray::core_array actsvg::core actsvg::meta detray::svgtools actsvg::web)

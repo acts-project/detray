@@ -16,6 +16,11 @@
 
 int main(int, char**) {
     
+    // This test creates the visualization using the illustrator class.
+    // However, for full control over the process, it is also possible to use the tools
+    // in svgstools::conversion, svgstools::display, and actsvg::display 
+    // by converting the object to a proto object, optionally styling it, and then displaying it.
+
     // Creating the detector and geomentry context.
     using detector_t = detray::detector<detray::toy_metadata<>>;
     vecmem::host_memory_resource host_mr;
@@ -28,13 +33,18 @@ int main(int, char**) {
     // Creating the svg generator for the detector.
     detray::svgtools::illustrator il{det, context, true};
 
-    std::vector<std::size_t> indices = {0, 1, 2, 3, 4, 5, 6, 7, 8, 9,
-                                        10, 11, 12, 13, 14, 15, 16, 17, 18, 19};
+    // In this example we want to draw the grids of the volumes with indices 0, 1, ... in the detector.
+    std::vector<std::size_t> indices = {0UL, 1UL, 2UL, 3UL, 4UL, 5UL, 6UL, 7UL, 8UL, 9UL,
+                                        10UL, 11UL, 12UL, 13UL, 14UL, 15UL, 16UL, 17UL, 18UL, 19UL};
 
     for (const auto i : indices){
         std::string name = "volume" + std::to_string(i) + "_grid";
+        // Draw the grid for volume i.
         const auto grid_svg = il.draw_grid(name, i, view);
+        // Draw volume i.
         const auto volume_svg = il.draw_volume("volume", i, view);
+        // Write volume i and its grid 
+        // (the grid is last in the list since we want it to be displayed on top of the volume).
         detray::svgtools::write_svg(name + ".svg", {volume_svg, grid_svg});
     }
 }

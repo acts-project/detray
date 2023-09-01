@@ -42,6 +42,8 @@ int main(int, char**) {
     // Creating the illustrator class.
     const detray::svgtools::illustrator il{det, context};
 
+    // Sometimes its useful to be able to just draw a point while debugging. 
+    // For this the draw_landmark function is available.
     const point test_point{100, 50, 20};
 
     const auto svg_xy =

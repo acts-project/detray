@@ -19,6 +19,7 @@
 #include "detray/plugins/svgtools/meta/display/geometry.hpp"
 #include "detray/plugins/svgtools/meta/display/information.hpp"
 #include "detray/plugins/svgtools/styling/styling.hpp"
+#include "detray/plugins/svgtools/utils/groups.hpp"
 #include "detray/plugins/svgtools/utils/volume_utils.hpp"
 #include "detray/utils/ranges.hpp"
 
@@ -81,9 +82,7 @@ class illustrator {
         const auto surface = detray::surface{
             _detector,
             _detector.surface_lookup()[static_cast<detray::dindex>(index)]};
-        actsvg::svg::object ret;
-        ret._tag = "g";
-        ret._id = identification;
+        auto ret = svgtools::utils::group(identification);
         actsvg::svg::object svg_sur;
         std::array<int, 3> color;
         if (surface.is_portal()) {
@@ -128,9 +127,7 @@ class illustrator {
     inline auto draw_surfaces(
         const std::string& identification,
         const iterator_t& indices, const view_t& view) const {
-        actsvg::svg::object ret;
-        ret._tag = "g";
-        ret._id = identification;
+        auto ret = svgtools::utils::group(identification);
         for (const auto index : indices) {
             const auto svg = draw_surface(
                 identification + "_surface" + std::to_string(index),
@@ -164,9 +161,7 @@ class illustrator {
     inline auto draw_volumes(
         const std::string& identification,
         const iterator_t& indices, const view_t& view) const {
-        actsvg::svg::object ret;
-        ret._tag = "g";
-        ret._id = identification;
+        auto ret = svgtools::utils::group(identification);
         for (const auto index : indices) {
             const auto svg =
                 draw_volume(identification + "_volume" + std::to_string(index),
@@ -279,18 +274,16 @@ class illustrator {
         const trajectory_t<transform3_t>& trajectory,
         const view_t& view) const {
 
-        actsvg::svg::object ret;
-        ret._tag = "g";
-        ret._id = identification;
+        auto ret = svgtools::utils::group(identification);
         auto i_style = svgtools::styling::copy_fill_colors(
             _style._intersection_style, _style._trajectory_style);
         auto p_ir = svgtools::conversion::intersection_record<point3>(
             _context, _detector, intersection_record);
         svgtools::styling::apply_style(p_ir, i_style);
-        ret.add_object(svgtools::meta::display::intersection_record(
-            identification + "_record", p_ir, view));
         ret.add_object(
             draw_trajectory(identification + "_trajectory", trajectory, view));
+        ret.add_object(svgtools::meta::display::intersection_record(
+            identification + "_record", p_ir, view));
         return ret;
     }
 
@@ -310,7 +303,7 @@ class illustrator {
     const actsvg::point2 _info_screen_offset{-300, 300};
     const detector_t& _detector;
     const geometry_context& _context;
-    const bool _show_info = false;
+    const bool _show_info = true;
     const styling::style _style = styling::style1;
 };
 

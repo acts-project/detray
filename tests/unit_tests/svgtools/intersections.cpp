@@ -27,6 +27,11 @@
 
 int main(int, char**) {
 
+    // This test creates the visualization using the illustrator class.
+    // However, for full control over the process, it is also possible to use the tools
+    // in svgstools::conversion, svgstools::display, and actsvg::display 
+    // by converting the object to a proto object, optionally styling it, and then displaying it.
+
     // Axes.
     const auto axes =
         actsvg::draw::x_y_axes("axes", {-250, 250}, {-250, 250},
@@ -43,8 +48,10 @@ int main(int, char**) {
 
     using transform3_t = typename detector_t::transform3;
 
-    // Svg for the detector.
+    // Creating the illustrator.
     const detray::svgtools::illustrator il{det, context};
+
+    // Drawing the detector.
     const auto svg_det = il.draw_detector("detector", view);
 
     // Creating the rays.
@@ -63,6 +70,8 @@ int main(int, char**) {
             detray::particle_gun::shoot_particle(det, test_ray);
 
         const std::string name = "test_svgtools_intersection_record" + std::to_string(index);
+
+        // Drawing the intersections.
         const auto svg_ir =
             il.draw_intersections(name, intersection_record, view);
 
