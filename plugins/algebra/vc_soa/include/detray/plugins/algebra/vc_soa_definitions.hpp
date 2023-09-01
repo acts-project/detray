@@ -8,10 +8,9 @@
 #pragma once
 
 // Algebra-Plugins include
-#include "algebra/vc_soa.hpp"
+#include "algebra/math/vc_soa.hpp"
+#include "algebra/storage/vc_soa.hpp"
 
-#define __plugin algebra::vc_soa
-#define ALGEBRA_PLUGIN vc_soa
 #define IS_SOA 1
 
 namespace detray {
@@ -27,24 +26,43 @@ using scalar = DETRAY_CUSTOM_SCALARTYPE;
 /// @{
 template <typename V = DETRAY_CUSTOM_SCALARTYPE>
 struct vc_soa {
-    /// Define scalar type
+    /// Define scalar precision
     using value_type = V;
 
     template <typename T>
     using simd = Vc::Vector<T>;
 
     using boolean = Vc::Mask<V>;
+
+    /// Linear Algebra type definitions
+    /// @{
     using scalar = simd<value_type>;
-    using transform3D = algebra::vc_soa::transform3<value_type>;
+    using transform3D =
+        algebra::vc_soa::math::transform3<algebra::vc_soa::storage_type,
+                                          value_type>;
     using point2D = algebra::vc_soa::point2<value_type>;
     using point3D = algebra::vc_soa::point3<value_type>;
     using vector3D = algebra::vc_soa::vector3<value_type>;
+    /// @}
 };
 /// @}
 
-// Define namespace(s)
-namespace getter = algebra::getter;
-namespace vector = algebra::vector;
-namespace matrix = algebra::matrix;
+namespace vector {
+
+using algebra::vc_soa::math::cross;
+using algebra::vc_soa::math::dot;
+using algebra::vc_soa::math::normalize;
+
+}  // namespace vector
+
+namespace getter {
+
+using algebra::vc_soa::math::eta;
+using algebra::vc_soa::math::norm;
+using algebra::vc_soa::math::perp;
+using algebra::vc_soa::math::phi;
+using algebra::vc_soa::math::theta;
+
+}  // namespace getter
 
 }  // namespace detray

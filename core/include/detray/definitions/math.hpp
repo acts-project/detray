@@ -126,8 +126,7 @@ namespace detail {
 
 /// boolean utilities
 /// @{
-template <typename T, std::enable_if_t<std::is_scalar_v<T>, bool> = true>
-inline bool any_of(bool b) {
+inline constexpr bool any_of(bool b) {
     // Do nothing
     return b;
 }

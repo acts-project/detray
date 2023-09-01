@@ -8,7 +8,9 @@
 #pragma once
 
 // Project include(s)
+#include "detray/definitions/algebra.hpp"
 #include "detray/definitions/indexing.hpp"
+#include "detray/definitions/math.hpp"
 #include "detray/definitions/qualifiers.hpp"
 #include "detray/intersection/intersection.hpp"
 
@@ -34,26 +36,22 @@ namespace detray {
 /// @tparam links_t the type of link into the volume container
 ///                 (e.g. single index vs range)
 template <typename shape_t, typename links_t = std::uint_least16_t,
-          typename algebra_t = __plugin::transform3<detray::scalar>,
-          template <typename, std::size_t> class array_t = darray>
+          typename T = detray::scalar,
+          template <typename> class algebra_t = detray::vc_soa>
 class tracer_mask {
     public:
-    using links_type = links_t;
-    using scalar_type = typename algebra_t::scalar_type;
+    using scalar_type = dscalar<algebra_t<T>>;
+    using transform3 = dtransform3D<algebra_t<T>>;
+    using vector3D = dvector3D<algebra_t<T>>;
+    using point3D = dpoint3D<algebra_t<T>>;
+    using point2D = dpoint2D<algebra_t<T>>;
+
     using shape = shape_t;
+    using links_type = dsimd<algebra_t, links_t>;
     using boundaries = typename shape::boundaries;
-#if (IS_SOA)
-    using mask_values =
-        array_t<typename algebra_t::value_type, boundaries::e_size>;
-#else
-    using mask_values = array_t<scalar_type, boundaries::e_size>;
-#endif
+    using mask_values = darray<scalar_type, boundaries::e_size>;
     using local_frame_type =
-        typename shape::template local_frame_type<algebra_t>;
-    // Linear algebra types
-    using vector3_t = typename algebra_t::vector3;
-    using point3_t = typename algebra_t::point3;
-    using point2_t = typename algebra_t::point2;
+        typename shape::template local_frame_type<algebra_t<T>>;
 
     /// Default constructor
     constexpr tracer_mask() = default;
@@ -83,7 +81,7 @@ class tracer_mask {
     /// @param rhs is the right hand side object
     DETRAY_HOST
     auto operator=(const mask_values& rhs)
-        -> tracer_mask<shape_t, links_t, algebra_t, array_t>& {
+        -> tracer_mask<shape_t, links_t, T, algebra_t>& {
         _values = rhs;
         return (*this);
     }
@@ -96,7 +94,7 @@ class tracer_mask {
     /// links are equal.
     DETRAY_HOST_DEVICE
     bool operator==(
-        const tracer_mask<shape_t, links_t, algebra_t, array_t>& rhs) const {
+        const tracer_mask<shape_t, links_t, T, algebra_t>& rhs) const {
         return (_values == rhs._values && _volume_link == rhs._volume_link);
     }
 
@@ -124,8 +122,8 @@ class tracer_mask {
     /// the local geometric coordinate system.
     template <typename transform3_t>
     DETRAY_HOST_DEVICE inline auto to_local_frame(
-        const transform3_t& trf, const point3_t& glob_p,
-        const point3_t& glob_dir = {}) const -> point3_t {
+        const transform3_t& trf, const point3D& glob_p,
+        const point3D& glob_dir = {}) const -> point3D {
         return local_frame_type{}.global_to_local(trf, glob_p, glob_dir);
     }
 
@@ -133,8 +131,8 @@ class tracer_mask {
     /// coordinate system
     template <typename transform3_t>
     DETRAY_HOST_DEVICE inline auto to_global_frame(const transform3_t& trf,
-                                                   const point3_t& loc) const
-        -> point3_t {
+                                                   const point3D& loc) const
+        -> point3D {
         return local_frame_type{}.local_to_global(trf, loc);
     }
 
@@ -157,7 +155,7 @@ class tracer_mask {
     /// @return an intersection status e_inside / e_outside
     DETRAY_HOST_DEVICE
     inline auto is_inside(
-        const point3_t& loc_p,
+        const point3D& loc_p,
         const scalar_type t =
             std::numeric_limits<scalar_type>::epsilon()) const {
         return _shape.check_boundaries(_values, loc_p, t);
@@ -170,9 +168,9 @@ class tracer_mask {
 
     /// @returns return local frame object (used in geometrical checks)
     DETRAY_HOST_DEVICE
-    constexpr vector3_t normal(const point3_t& loc_p) const {
+    constexpr vector3D normal(const point3D& loc_p) const {
         return vector::normalize(
-            _shape.template normal<algebra_t>(_values, loc_p));
+            _shape.template normal<algebra_t<T>>(_values, loc_p));
     }
 
     /// @returns the boundary values

@@ -45,9 +45,39 @@ struct array {
 /// @}
 
 // Define namespace(s)
-namespace getter = algebra::getter;
-namespace vector = algebra::vector;
 namespace matrix = algebra::matrix;
+
+namespace vector {
+
+using algebra::cmath::cross;
+using algebra::cmath::dot;
+using algebra::cmath::normalize;
+
+}  // namespace vector
+
+namespace getter {
+
+using algebra::cmath::eta;
+using algebra::cmath::norm;
+using algebra::cmath::perp;
+using algebra::cmath::phi;
+using algebra::cmath::theta;
+
+using algebra::cmath::element;
+
+/// Function extracting a slice from a matrix
+template <std::size_t SIZE, std::size_t ROWS, std::size_t COLS,
+          typename scalar_t>
+ALGEBRA_HOST_DEVICE inline auto vector(
+    const algebra::array::matrix_type<scalar_t, ROWS, COLS>& m, std::size_t row,
+    std::size_t col) {
+
+    return algebra::cmath::vector_getter<
+        std::size_t, algebra::array::storage_type, scalar_t, SIZE>()(m, row,
+                                                                     col);
+}
+
+}  // namespace getter
 
 // Define matrix/vector operator
 template <typename scalar_t>

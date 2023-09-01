@@ -59,27 +59,24 @@ inline void write_test_image(raw_image<color_depth> &im) {
 /// Render a shape
 template <typename T, template <typename> class algebra_t, typename color_depth,
           typename aspect_ratio, typename mask_t, typename material_t,
-          class im_background_t = gradient_background<T, algebra_t>>
+          class im_background_t = gradient_background<T, detray::array>>
 inline void render_single_shape(raw_image<color_depth, aspect_ratio> &im,
                                 const mask_t &mask,
                                 const dtransform3D<algebra_t<T>> &trf,
                                 const material_t &mat) {
-    using scalar_t = dscalar<algebra_t<T>>;
-    using point3D = dpoint3D<algebra_t<T>>;
-    using transform3D = dtransform3D<algebra_t<T>>;
 
     // Rendering steps
     using intersector_t = single_shape<T, algebra_t, mask_t, material_t>;
     using backgr_shader_t = background_shader<inf_plane<im_background_t>>;
-    using mat_shader_t = material_shader<T, algebra_t>;
+    using mat_shader_t = material_shader<T, detray::array>;
     // The rendering pipeline: The intersector finds the shape intersections
     using pipeline_t =
         rendering_pipeline<intersector_t, backgr_shader_t, mat_shader_t>;
 
-    const scalar_t viewport_height = 2.0f;
-    const point3D origin{0.0f, 0.0f, 0.0f};
+    const T viewport_height = 2.0f;
+    const dpoint3D<detray::array<T>> origin{0.0f, 0.0f, 0.0f};
 
-    camera<T, algebra_t, aspect_ratio> cam(viewport_height, origin);
+    camera<T, detray::array, aspect_ratio> cam(viewport_height, origin);
 
     // For the single shape render, the scene is actually encoded directly in
     // the single shape intersector
@@ -90,7 +87,7 @@ inline void render_single_shape(raw_image<color_depth, aspect_ratio> &im,
         for (std::size_t i_x = 0u; i_x < im.width(); ++i_x) {
 
             // Ray to render the pixel at (i_x, i_y)
-            ray<transform3D> ray = cam.get_ray(i_x, i_y, im);
+            auto ray = cam.get_ray(i_x, i_y, im);
             ray.set_overstep_tolerance(-std::numeric_limits<T>::max());
 
             // Strap the global geometry state and the thread-local ray together

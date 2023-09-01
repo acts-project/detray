@@ -9,7 +9,6 @@
 
 // Project include(s)
 #include "detray/propagator/actor_chain.hpp"
-#include "detray/tracer/renderer/intersector.hpp"
 #include "detray/tracer/renderer/raw_image.hpp"
 #include "detray/tracer/renderer/single_shape.hpp"
 #include "detray/tracer/texture/pixel.hpp"
@@ -35,16 +34,18 @@ struct scene_handle {
     struct state {
 
         using transform3D = typename geometry_t::transform3D;
+        using ray_t = detray::ray<dtransform3D<detray::array<detray::scalar>>>;
 
         DETRAY_HOST_DEVICE
-        state(const geometry_t &geo, const raw_image<color_depth> &im,
-              const detray::ray<typename geometry_t::transform3D> &ray,
-              const pixel_coord x, const pixel_coord y)
+        state(
+            const geometry_t &geo, const raw_image<color_depth> &im,
+            const detray::ray<dtransform3D<detray::array<detray::scalar>>> &ray,
+            const pixel_coord x, const pixel_coord y)
             : m_geo{&geo}, m_image{&im}, m_ray{&ray}, m_pixel{{x, y}} {}
 
         /// Threadsafe interface
         /// @{
-        const detray::ray<transform3D> &ray() const { return *m_ray; }
+        const ray_t &ray() const { return *m_ray; }
         const geometry_t &geometry() const { return *m_geo; }
         /// @}
 
@@ -53,7 +54,7 @@ struct scene_handle {
         /// The image handle
         const raw_image<color_depth> *m_image;
         /// The ray handle
-        const detray::ray<transform3D> *m_ray;
+        const ray_t *m_ray;
         /// The pixel for this ray
         texture::pixel<pixel_coord, color_depth> m_pixel;
     };
@@ -62,7 +63,7 @@ struct scene_handle {
     template <typename geometry_t, typename color_depth, typename pixel_coord>
     DETRAY_HOST_DEVICE state(
         const geometry_t &geo, const raw_image<color_depth> &im,
-        const detray::ray<typename geometry_t::transform3D> &ray,
+        const detray::ray<dtransform3D<detray::array<detray::scalar>>> &ray,
         const pixel_coord x, const pixel_coord y)
         -> state<geometry_t, color_depth, pixel_coord>;
 #endif

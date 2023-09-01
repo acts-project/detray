@@ -6,4 +6,4 @@
 
 detray_add_executable(run_tracer
    "single_shapes.cpp"
-   LINK_LIBRARIES detray_algebra_vc_soa detray::test detray::io detray::utils)
+   LINK_LIBRARIES detray_algebra_array detray_algebra_vc_soa detray::test detray::io detray::utils)

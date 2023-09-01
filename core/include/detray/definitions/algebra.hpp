@@ -53,9 +53,10 @@ struct get_algebra {};
 
 template <typename T>
 struct get_algebra<T, std::enable_if_t<std::is_arithmetic_v<T>, void>> {
-    using point3D = std::array<T, 3>;
-    using vector3D = std::array<T, 3>;
-    using transform3D = std::array<T, 9>;
+    // vectors and transforms defined in 4D homogeneous coordinates
+    using point3D = std::array<T, 4>;
+    using vector3D = std::array<T, 4>;
+    using transform3D = std::array<T, 16>;
 };
 
 template <typename T>

@@ -35,7 +35,7 @@ struct sphere_intersector {
     /// @}
 
     using intersection_type = intersection_t;
-    using ray_type = detray::ray<transform3_type>;
+    using ray_type = detray::ray<dtransform3D<detray::array<value_type>>>;
 #if (IS_SOA)
 
     /// Class to solve a quadratic equation of type a * x^2 + b * x + c = 0
@@ -139,8 +139,10 @@ struct sphere_intersector {
         const scalar_type r = mask[mask_t::shape::e_r];
         const vector3 center = trf.translation();
 
-        const point3 &ro = ray.pos();
-        const vector3 &rd = ray.dir();
+        const auto &pos = ray.pos();
+        const auto &dir = ray.dir();
+        const point3 ro{pos[0], pos[1], pos[2]};
+        const vector3 rd{dir[0], dir[1], dir[2]};
 
         const point3 oc = ro - center;
         const scalar_type a = vector::dot(rd, rd);
@@ -179,8 +181,10 @@ struct sphere_intersector {
             return is;
         }
 
-        const point3 &ro = ray.pos();
-        const vector3 &rd = ray.dir();
+        const auto &pos = ray.pos();
+        const auto &dir = ray.dir();
+        const point3 ro{pos[0], pos[1], pos[2]};
+        const vector3 rd{dir[0], dir[1], dir[2]};
 
         is.path = path;
         const point3 p3 = ro + is.path * rd;
