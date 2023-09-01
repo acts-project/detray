@@ -28,9 +28,10 @@
 int main(int, char**) {
 
     // This test creates the visualization using the illustrator class.
-    // However, for full control over the process, it is also possible to use the tools
-    // in svgstools::conversion, svgstools::display, and actsvg::display 
-    // by converting the object to a proto object, optionally styling it, and then displaying it.
+    // However, for full control over the process, it is also possible to use
+    // the tools in svgstools::conversion, svgstools::display, and
+    // actsvg::display by converting the object to a proto object, optionally
+    // styling it, and then displaying it.
 
     // Axes.
     const auto axes =
@@ -69,7 +70,8 @@ int main(int, char**) {
         const auto intersection_record =
             detray::particle_gun::shoot_particle(det, test_ray);
 
-        const std::string name = "test_svgtools_intersection_record" + std::to_string(index);
+        const std::string name =
+            "test_svgtools_intersection_record" + std::to_string(index);
 
         // Drawing the intersections.
         const auto svg_ir =

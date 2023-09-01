@@ -28,10 +28,10 @@
 int main(int, char**) {
 
     // This test creates the visualization using the illustrator class.
-    // However, for full control over the process, it is also possible to use the tools
-    // in svgstools::conversion, svgstools::display, and actsvg::display 
-    // by converting the object to a proto object, optionally styling it, and then displaying it.
-    // Creating the axes.
+    // However, for full control over the process, it is also possible to use
+    // the tools in svgstools::conversion, svgstools::display, and
+    // actsvg::display by converting the object to a proto object, optionally
+    // styling it, and then displaying it. Creating the axes.
     const auto axes =
         actsvg::draw::x_y_axes("axes", {-250, 250}, {-250, 250},
                                actsvg::style::stroke(), "axis1", "axis2");
@@ -49,7 +49,8 @@ int main(int, char**) {
     const detray::svgtools::illustrator il{det, context, true};
 
     // Show the relevant volumes in the detector.
-    const auto svg_volumes = il.draw_volumes("detector", std::vector{7, 9, 11, 13}, view);
+    const auto svg_volumes =
+        il.draw_volumes("detector", std::vector{7, 9, 11, 13}, view);
 
     // Creating a ray.
     using transform3_t = typename detector_t::transform3;
@@ -65,10 +66,10 @@ int main(int, char**) {
     const auto svg_ray = il.draw_trajectory("trajectory", ray, view);
 
     // Draw the intersections.
-    const auto svg_ray_ir =
-        il.draw_intersections("record", ray_ir, view);
+    const auto svg_ray_ir = il.draw_intersections("record", ray_ir, view);
 
-    detray::svgtools::write_svg("test_svgtools_ray.svg", {svg_volumes, svg_ray, svg_ray_ir});
+    detray::svgtools::write_svg("test_svgtools_ray.svg",
+                                {svg_volumes, svg_ray, svg_ray_ir});
 
     // Creating a helix trajectory.
 
@@ -84,8 +85,7 @@ int main(int, char**) {
     const auto svg_helix = il.draw_trajectory("trajectory", helix, view);
 
     // Draw the intersections.
-    const auto svg_helix_ir =
-        il.draw_intersections("record", helix_ir, view);
+    const auto svg_helix_ir = il.draw_intersections("record", helix_ir, view);
 
     detray::svgtools::write_svg("test_svgtools_helix.svg",
                                 {svg_volumes, svg_helix, svg_helix_ir});

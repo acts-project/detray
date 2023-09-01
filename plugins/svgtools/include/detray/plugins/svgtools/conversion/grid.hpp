@@ -9,32 +9,33 @@
 
 // Project include(s)
 #include "detray/core/detector.hpp"
-#include "detray/grids/axis.hpp"
 #include "detray/definitions/units.hpp"
-
+#include "detray/grids/axis.hpp"
 
 // Actsvg include(s)
 #include "actsvg/proto/grid.hpp"
 
 // System include(s)
-#include <vector>
 #include <algorithm>
+#include <vector>
 
 namespace detray::svgtools::conversion {
 
 /// A functor to access the bin edges.
 template <typename scalar_t, detray::n_axis::label axis_label>
 struct edge_getter {
-    template <typename group_t, typename index_t,
-              typename... Args>
-    DETRAY_HOST_DEVICE inline auto operator()([[maybe_unused]] const group_t &group,
-                                              [[maybe_unused]] const index_t index) const {
+    template <typename group_t, typename index_t, typename... Args>
+    DETRAY_HOST_DEVICE inline auto operator()(
+        [[maybe_unused]] const group_t& group,
+        [[maybe_unused]] const index_t index) const {
         using accel_t = typename group_t::value_type;
         if constexpr (detray::detail::is_grid_v<accel_t>) {
             const auto grid = group[index];
-            const auto axis_bin_edges = grid.axes().template get_axis<axis_label>().bin_edges();
+            const auto axis_bin_edges =
+                grid.axes().template get_axis<axis_label>().bin_edges();
             std::vector<scalar_t> edges;
-            std::copy(axis_bin_edges.cbegin(), axis_bin_edges.cend(), std::back_inserter(edges));
+            std::copy(axis_bin_edges.cbegin(), axis_bin_edges.cend(),
+                      std::back_inserter(edges));
             return edges;
         }
         return std::vector<scalar_t>{};
@@ -42,77 +43,90 @@ struct edge_getter {
 };
 
 /// @return the bin edges of the grid.
-template <typename detray::n_axis::label axis_label, typename detector_t, typename link_t>
-auto bin_edges(const detector_t& detector, const link_t& link){
+template <typename detray::n_axis::label axis_label, typename detector_t,
+          typename link_t>
+auto bin_edges(const detector_t& detector, const link_t& link) {
     using d_scalar_t = typename detector_t::scalar_type;
-    return detector.surface_store().template visit<edge_getter<d_scalar_t, axis_label>>(link);
+    return detector.surface_store()
+        .template visit<edge_getter<d_scalar_t, axis_label>>(link);
 }
 
-// Calculating r under the assumption that for edges_rphi then (bin_edge_min - bin_edge_max) / (2*pi).
+// Calculating r under the assumption that for edges_rphi then (bin_edge_min -
+// bin_edge_max) / (2*pi).
 template <typename d_scalar_t>
-auto r_phi_split(const std::vector<d_scalar_t>& edges_rphi){
+auto r_phi_split(const std::vector<d_scalar_t>& edges_rphi) {
     d_scalar_t pi2 = (2.f * detray::constant<d_scalar_t>().pi);
-    const auto [min, max] = std::minmax_element(edges_rphi.cbegin(), edges_rphi.cend());
+    const auto [min, max] =
+        std::minmax_element(edges_rphi.cbegin(), edges_rphi.cend());
     auto r = (*max - *min) / pi2;
     std::vector<d_scalar_t> edges_phi;
-    std::transform(edges_rphi.cbegin(), edges_rphi.cend(), std::back_inserter(edges_phi), [r](d_scalar_t e){return e/r;});
+    std::transform(edges_rphi.cbegin(), edges_rphi.cend(),
+                   std::back_inserter(edges_phi),
+                   [r](d_scalar_t e) { return e / r; });
     return std::tuple(edges_phi, r);
 }
 
-/// @return returns the actsvg grid type and edge values for a detray cylinder grid.
+/// @return returns the actsvg grid type and edge values for a detray cylinder
+/// grid.
 template <typename detector_t, typename link_t, typename view_t>
-auto cylinder2_grid_type_and_edges(const detector_t& detector, const link_t& link, const view_t&){
+auto cylinder2_grid_type_and_edges(const detector_t& detector,
+                                   const link_t& link, const view_t&) {
 
     auto edges_rphi = bin_edges<detray::n_axis::label::e_rphi>(detector, link);
     auto edges_z = bin_edges<detray::n_axis::label::e_cyl_z>(detector, link);
     auto [edges_phi, r] = r_phi_split(edges_rphi);
     std::vector edges_r{0.f, r};
 
-    if (std::is_same_v<view_t, actsvg::views::x_y>){
+    if (std::is_same_v<view_t, actsvg::views::x_y>) {
         return std::tuple(actsvg::proto::grid::e_r_phi, edges_r, edges_phi);
     }
-    if (std::is_same_v<view_t, actsvg::views::z_r>){
+    if (std::is_same_v<view_t, actsvg::views::z_r>) {
         return std::tuple(actsvg::proto::grid::e_x_y, edges_z, edges_r);
     }
-    if (std::is_same_v<view_t, actsvg::views::z_phi>){
+    if (std::is_same_v<view_t, actsvg::views::z_phi>) {
         return std::tuple(actsvg::proto::grid::e_x_y, edges_z, edges_phi);
     }
-    if (std::is_same_v<view_t, typename actsvg::views::z_rphi>){
+    if (std::is_same_v<view_t, typename actsvg::views::z_rphi>) {
         return std::tuple(actsvg::proto::grid::e_x_y, edges_z, edges_rphi);
     }
     using scalar_t = typename detector_t::scalar_type;
-    return std::tuple(actsvg::proto::grid::e_x_y, std::vector<scalar_t>{}, std::vector<scalar_t>{});
+    return std::tuple(actsvg::proto::grid::e_x_y, std::vector<scalar_t>{},
+                      std::vector<scalar_t>{});
 }
 
 /// @return returns the actsvg grid type and edge values for a detray disc grid.
 template <typename detector_t, typename link_t, typename view_t>
-auto disc_grid_type_and_edges(const detector_t& detector, const link_t& link, const view_t&){
+auto disc_grid_type_and_edges(const detector_t& detector, const link_t& link,
+                              const view_t&) {
 
     auto edges_r = bin_edges<detray::n_axis::label::e_r>(detector, link);
     auto edges_phi = bin_edges<detray::n_axis::label::e_phi>(detector, link);
 
-    if (std::is_same_v<view_t, typename actsvg::views::x_y>){
+    if (std::is_same_v<view_t, typename actsvg::views::x_y>) {
         return std::tuple(actsvg::proto::grid::e_r_phi, edges_r, edges_phi);
     }
     using scalar_t = typename detector_t::scalar_type;
-    return std::tuple(actsvg::proto::grid::e_x_y, std::vector<scalar_t>{}, std::vector<scalar_t>{});
+    return std::tuple(actsvg::proto::grid::e_x_y, std::vector<scalar_t>{},
+                      std::vector<scalar_t>{});
 }
 
-/// @return retunrs the detray grids respective actsvg grid type and edge values.
-template <typename accel_ids_t, typename detector_t, typename link_t, typename view_t>
-auto get_type_and_axes(const detector_t& detector, const link_t& link, const view_t& view)
-{
-    switch (link.id()){
+/// @return retunrs the detray grids respective actsvg grid type and edge
+/// values.
+template <typename accel_ids_t, typename detector_t, typename link_t,
+          typename view_t>
+auto get_type_and_axes(const detector_t& detector, const link_t& link,
+                       const view_t& view) {
+    switch (link.id()) {
         case accel_ids_t::e_cylinder2_grid: {
             return cylinder2_grid_type_and_edges(detector, link, view);
         }
         case accel_ids_t::e_disc_grid: {
             return disc_grid_type_and_edges(detector, link, view);
         }
-        default:
-        {
+        default: {
             using scalar_t = typename detector_t::scalar_type;
-            return std::tuple(actsvg::proto::grid::e_x_y, std::vector<scalar_t>{}, std::vector<scalar_t>{});
+            return std::tuple(actsvg::proto::grid::e_x_y,
+                              std::vector<scalar_t>{}, std::vector<scalar_t>{});
         }
     }
 }
@@ -123,8 +137,8 @@ auto get_type_and_axes(const detector_t& detector, const link_t& link, const vie
 /// @param view the view
 /// @returns a proto grid
 template <typename a_scalar_t, typename detector_t, typename view_t>
-auto grid(const detector_t& detector, const std::size_t index, const view_t& view)
-{
+auto grid(const detector_t& detector, const std::size_t index,
+          const view_t& view) {
     using d_scalar_t = typename detector_t::scalar_type;
     using geo_object_ids = typename detector_t::geo_obj_ids;
     using accel_ids = typename detector_t::sf_finders::id;
@@ -134,10 +148,15 @@ auto grid(const detector_t& detector, const std::size_t index, const view_t& vie
     actsvg::proto::grid p_grid;
 
     if (not link.is_invalid()) {
-        const auto [type, edges0, edges1] = get_type_and_axes<accel_ids>(detector, link, view);
+        const auto [type, edges0, edges1] =
+            get_type_and_axes<accel_ids>(detector, link, view);
         p_grid._type = type;
-        std::transform(edges0.cbegin(), edges0.cend(), std::back_inserter(p_grid._edges_0), [](d_scalar_t v){ return static_cast<a_scalar_t>(v); });
-        std::transform(edges1.cbegin(), edges1.cend(), std::back_inserter(p_grid._edges_1), [](d_scalar_t v){ return static_cast<a_scalar_t>(v); });
+        std::transform(edges0.cbegin(), edges0.cend(),
+                       std::back_inserter(p_grid._edges_0),
+                       [](d_scalar_t v) { return static_cast<a_scalar_t>(v); });
+        std::transform(edges1.cbegin(), edges1.cend(),
+                       std::back_inserter(p_grid._edges_1),
+                       [](d_scalar_t v) { return static_cast<a_scalar_t>(v); });
     }
     return p_grid;
 }

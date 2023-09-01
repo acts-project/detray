@@ -16,17 +16,17 @@
 namespace detray::svgtools::utils {
 
 template <typename iterator_t>
-auto group(const std::string& identification, const iterator_t& iterator){
+auto group(const std::string& identification, const iterator_t& iterator) {
     actsvg::svg::object ret;
     ret._tag = "g";
     ret._id = identification;
-    for (const auto& item : iterator){
+    for (const auto& item : iterator) {
         ret.add_object(item);
     }
     return ret;
 }
 
-auto group(const std::string& identification){
+auto group(const std::string& identification) {
     return group(identification, std::vector<actsvg::svg::object>{});
 }
-}  // namespace detray::svgtools
+}  // namespace detray::svgtools::utils

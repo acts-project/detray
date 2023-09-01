@@ -72,7 +72,7 @@ int main(int, char**) {
     const auto rec2D_svg = actsvg::display::surface("", rec2D_proto, view);
     detray::svgtools::write_svg("test_svgtools_rectangle2D.svg",
                                 {axes, rec2D_svg});
-    
+
     // Visualize a 2D ring.
     // e_inner_r, e_outer_r, e_size
     detray::mask<detray::ring2D<>> rin2D{0u, 50.f, 100.f};

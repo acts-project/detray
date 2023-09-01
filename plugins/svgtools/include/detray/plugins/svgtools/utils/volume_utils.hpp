@@ -25,13 +25,12 @@ auto surface_lookup(const detector_t& detector,
 }
 
 template <typename detector_t, typename dindex>
-auto surface_indices(const detector_t& detector,
-                    const dindex volume_index) {
-     const auto d_volume =
-            detector.volume_by_index(static_cast<detray::dindex>(volume_index));
+auto surface_indices(const detector_t& detector, const dindex volume_index) {
+    const auto d_volume =
+        detector.volume_by_index(static_cast<detray::dindex>(volume_index));
     const auto descriptors = surface_lookup(detector, d_volume);
     std::vector<dindex> ret;
-    for (const auto& desc : descriptors){
+    for (const auto& desc : descriptors) {
         ret.push_back(desc.index());
     }
     return ret;

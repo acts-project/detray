@@ -6,11 +6,12 @@
  */
 
 // Project include(s)
+#include "detray/plugins/svgtools/utils/groups.hpp"
+
 #include "detray/core/detector.hpp"
 #include "detray/detectors/create_toy_geometry.hpp"
 #include "detray/plugins/svgtools/illustrator.hpp"
 #include "detray/plugins/svgtools/writer.hpp"
-#include "detray/plugins/svgtools/utils/groups.hpp"
 
 // Vecmem include(s)
 #include <vecmem/memory/host_memory_resource.hpp>
@@ -44,30 +45,31 @@ int main(int, char**) {
     // Visualisation of a group of surfaces.
     const std::array surface_group_indices{1UL, 100UL, 10UL, 200UL};
 
-    const auto svg_surface_group_xy = il.draw_surfaces(
-        "my_surface_group1_xy", surface_group_indices, xy);
+    const auto svg_surface_group_xy =
+        il.draw_surfaces("my_surface_group1_xy", surface_group_indices, xy);
     detray::svgtools::write_svg("test_svgtools_surface_group_xy.svg",
                                 {axes, svg_surface_group_xy});
 
-    const auto svg_surface_group_zr = il.draw_surfaces(
-        "my_surface_group1_zr",  surface_group_indices, zr);
+    const auto svg_surface_group_zr =
+        il.draw_surfaces("my_surface_group1_zr", surface_group_indices, zr);
     detray::svgtools::write_svg("test_svgtools_surface_group_zr.svg",
                                 {axes, svg_surface_group_zr});
 
     // Visualisation of a group of volumes.
     const std::array volume_group_indices{3UL, 5UL};
 
-    const auto svg_volume_group_xy = il.draw_volumes(
-        "my_volume_group1_xy", volume_group_indices, xy);
+    const auto svg_volume_group_xy =
+        il.draw_volumes("my_volume_group1_xy", volume_group_indices, xy);
     detray::svgtools::write_svg("test_svgtools_volume_group_xy.svg",
                                 {axes, svg_volume_group_xy});
 
-    const auto svg_volume_group_zr = il.draw_volumes(
-        "my_volume_group1_zr", volume_group_indices, zr);
+    const auto svg_volume_group_zr =
+        il.draw_volumes("my_volume_group1_zr", volume_group_indices, zr);
     detray::svgtools::write_svg("test_svgtools_volume_group_zr.svg",
                                 {axes, svg_volume_group_zr});
 
-    // We can also use the svgtools::utils to group actsvg::svg::objects into one.
+    // We can also use the svgtools::utils to group actsvg::svg::objects into
+    // one.
     auto svg_combined_group = detray::svgtools::utils::group("combined_group");
     svg_combined_group.add_object(svg_surface_group_xy);
     svg_combined_group.add_object(svg_volume_group_zr);

@@ -24,9 +24,10 @@
 int main(int, char**) {
 
     // This test creates the visualization using the illustrator class.
-    // However, for full control over the process, it is also possible to use the tools
-    // in svgstools::conversion, svgstools::display, and actsvg::display 
-    // by converting the object to a proto object, optionally styling it, and then displaying it.
+    // However, for full control over the process, it is also possible to use
+    // the tools in svgstools::conversion, svgstools::display, and
+    // actsvg::display by converting the object to a proto object, optionally
+    // styling it, and then displaying it.
 
     // Axes.
     const auto axes = actsvg::draw::x_y_axes("axes", {-250, 250}, {-250, 250},
@@ -46,7 +47,9 @@ int main(int, char**) {
     const detray::svgtools::illustrator il{det, context};
 
     // Indexes of the volumes in the detector to be visualized.
-    std::array indices{0UL, 1UL, 2UL, 3UL, 4UL, 5UL, 6UL, 7UL, 8UL, 9UL, 10UL, 11UL, 12UL, 13UL, 14UL, 15UL, 16UL, 17UL, 18UL, 19UL};
+    std::array indices{0UL,  1UL,  2UL,  3UL,  4UL,  5UL,  6UL,
+                       7UL,  8UL,  9UL,  10UL, 11UL, 12UL, 13UL,
+                       14UL, 15UL, 16UL, 17UL, 18UL, 19UL};
     for (std::size_t i : indices) {
         std::string name = "test_svgtools_volume" + std::to_string(i);
         // Visualization of volume i:

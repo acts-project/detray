@@ -24,9 +24,10 @@
 int main(int, char**) {
 
     // This test creates the visualization using the illustrator class.
-    // However, for full control over the process, it is also possible to use the tools
-    // in svgstools::conversion, svgstools::display, and actsvg::display 
-    // by converting the object to a proto object, optionally styling it, and then displaying it.
+    // However, for full control over the process, it is also possible to use
+    // the tools in svgstools::conversion, svgstools::display, and
+    // actsvg::display by converting the object to a proto object, optionally
+    // styling it, and then displaying it.
 
     // Axes.
     const auto axes = actsvg::draw::x_y_axes("axes", {-250, 250}, {-250, 250},
