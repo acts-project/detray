@@ -21,7 +21,7 @@ inline auto intersection_point(
     const detray::intersection2D<typename detector_t::surface_type,
                                  typename detector_t::transform3>&
         d_intersection) {
-    const typename detector_t::point3 dir{};
+    const typename detector_t::vector3 dir{};
     const detray::surface surface{detector, d_intersection.sf_desc};
     return surface.local_to_global(context, d_intersection.local, dir);
 }
