@@ -59,7 +59,7 @@ class illustrator {
     /// @param context the geometry context.
     /// @param index the index of the surface in the detector.
     /// @param view the display view.
-    /// @returns actsvg::svg::object of the detector's surface.
+    /// @returns @c actsvg::svg::object of the detector's surface.
     template <typename view_t>
     inline auto draw_surface(
         const std::string& identification,
@@ -111,7 +111,7 @@ class illustrator {
     /// @param indices the collection of surface indices in the detector to
     /// convert.
     /// @param view the display view.
-    /// @returns actsvg::svg::object of the detector's surfaces.
+    /// @returns @c actsvg::svg::object of the detector's surfaces.
     template <typename iterator_t, typename view_t>
     inline auto draw_surfaces(
         const std::string& identification,
@@ -134,7 +134,7 @@ class illustrator {
     /// @param context the geometry context.
     /// @param index the index of the volume in the detector.
     /// @param view the display view.
-    /// @returns actsvg::svg::object of the detector's volume.
+    /// @returns @c actsvg::svg::object of the detector's volume.
     template <typename view_t>
     inline auto draw_volume(
         const std::string& identification,
@@ -163,7 +163,7 @@ class illustrator {
     /// @param indices the collection of volume indices in the detector to
     /// convert.
     /// @param view the display view.
-    /// @returns actsvg::svg::object of the detector's volumes.
+    /// @returns @c actsvg::svg::object of the detector's volumes.
     template <typename iterator_t, typename view_t>
     inline auto draw_volumes(
         const std::string& identification,
@@ -185,7 +185,7 @@ class illustrator {
     /// @param identification the id of the svg object.
     /// @param context the geometry context.
     /// @param view the display view.
-    /// @returns actsvg::svg::object of the detector.
+    /// @returns @c actsvg::svg::object of the detector.
     template <typename view_t>
     inline auto draw_detector(
         const std::string& identification,
@@ -201,7 +201,7 @@ class illustrator {
     /// @param context the geometry context.
     /// @param intersection_record the intersection record.
     /// @param view the display view.
-    /// @return actsvg::svg::object of the intersection record.
+    /// @return @c actsvg::svg::object of the intersectio record.
     template <typename view_t>
     inline auto draw_intersections(
         const std::string& identification,
@@ -223,7 +223,7 @@ class illustrator {
     /// @param identification the id of the svg object.
     /// @param trajectory the trajectory (eg. ray or helix).
     /// @param view the display view.
-    /// @return actsvg::svg::object of the trajectory.
+    /// @return @c actsvg::svg::object of the trajectory.
     template <typename view_t, template <typename> class trajectory_t,
               typename transform3_t>
     inline auto draw_trajectory(const std::string& identification,
@@ -242,7 +242,7 @@ class illustrator {
     /// @param trajectory the trajectory (eg. ray or helix).
     /// @param intersection_record the intersection record.
     /// @param view the display view.
-    /// @return actsvg::svg::object of the trajectory and intersection record.
+    /// @return @c actsvg::svg::object of the trajectory and intersection record.
     template <typename view_t, template <typename> class trajectory_t,
               typename transform3_t>
     inline auto draw_intersections_and_trajectory(

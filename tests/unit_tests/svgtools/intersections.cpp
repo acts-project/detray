@@ -8,8 +8,12 @@
 // Project include(s)
 #include "detray/core/detector.hpp"
 #include "detray/detectors/create_toy_geometry.hpp"
+#include "detray/intersection/detail/trajectories.hpp"
 #include "detray/plugins/svgtools/illustrator.hpp"
 #include "detray/plugins/svgtools/writer.hpp"
+#include "detray/simulation/event_generator/track_generators.hpp"
+#include "detray/tracks/tracks.hpp"
+#include "tests/common/tools/particle_gun.hpp"
 
 // Vecmem include(s)
 #include <vecmem/memory/host_memory_resource.hpp>
@@ -20,11 +24,6 @@
 // System include(s)
 #include <array>
 #include <string>
-
-#include "detray/intersection/detail/trajectories.hpp"
-#include "detray/simulation/event_generator/track_generators.hpp"
-#include "detray/tracks/tracks.hpp"
-#include "tests/common/tools/particle_gun.hpp"
 
 int main(int, char**) {
 
@@ -42,21 +41,18 @@ int main(int, char**) {
     const auto [det, names] = detray::create_toy_geometry(host_mr, 4, 3);
     detector_t::geometry_context context{};
 
+    using transform3_t = typename detector_t::transform3;
+
     // Svg for the detector.
     const detray::svgtools::illustrator il{det, names};
     const auto svg_det = il.draw_detector("detector", context, view);
 
     // Creating the rays.
-    // using intersection_t = detray::intersection2D<typename
-    // detector_t::surface_type,
-    //                                      typename detector_t::transform3>;
-    using transform3_t = typename detector_t::transform3;
-
     unsigned int theta_steps{10u};
     unsigned int phi_steps{10u};
     const typename detector_t::point3 ori{0.f, 0.f, 100.f};
 
-    size_t index = 0;
+    std::size_t index = 0;
     // Iterate through uniformly distributed momentum directions with ray
     for (const auto test_ray :
          detray::uniform_track_generator<detray::detail::ray<transform3_t>>(

@@ -194,7 +194,7 @@ void apply_style(
     }
 }
 
-/// @brief Sets the style of the proto intersection record.
+/// @brief Sets the style of the proto trajectory.
 template <typename point3_t>
 void apply_style(meta::proto::trajectory<point3_t>& p_trajectory,
                  const trajectory_style& styling) {

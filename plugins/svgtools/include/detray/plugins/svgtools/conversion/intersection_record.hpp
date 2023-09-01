@@ -31,9 +31,9 @@ inline auto intersection_record(
         svgtools::meta::proto::intersection_record<point3_t>;
     p_intersection_record_t p_ir;
     std::vector<typename p_intersection_record_t::landmark_type> landmarks;
-    for (const auto& intersection : intersection_record) {
+    for (const auto& record : intersection_record) {
         const auto p_lm = svgtools::conversion::landmark<point3_t>(
-            context, detector, intersection.second);
+            context, detector, record.second);
         landmarks.push_back(p_lm);
     }
     p_ir._landmarks = landmarks;

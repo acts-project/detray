@@ -25,7 +25,7 @@ inline auto landmark(
         d_intersection) {
     using p_landmark_t = svgtools::meta::proto::landmark<point3_t>;
 
-    const typename detector_t::point3 dir{};
+    const typename detector_t::vector3 dir{};
     const detray::surface surface{detector, d_intersection.sf_desc};
     const auto position = svgtools::conversion::point<point3_t>(
         surface.local_to_global(context, d_intersection.local, dir));
