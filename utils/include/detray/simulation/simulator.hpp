@@ -15,8 +15,8 @@
 #include "detray/propagator/navigator.hpp"
 #include "detray/propagator/propagator.hpp"
 #include "detray/propagator/rk_stepper.hpp"
-#include "detray/simulation/event_writer.hpp"
 #include "detray/simulation/random_scatterer.hpp"
+#include "detray/simulation/smearing_writer.hpp"
 
 // System include(s).
 #include <limits>
@@ -24,7 +24,7 @@
 
 namespace detray {
 
-template <typename detector_t, typename track_generator_t, typename smearer_t>
+template <typename detector_t, typename track_generator_t, typename writer_t>
 struct simulator {
 
     using scalar_type = typename detector_t::scalar_type;
@@ -37,9 +37,10 @@ struct simulator {
     using transform3 = typename detector_t::transform3;
     using bfield_type = typename detector_t::bfield_type;
 
-    using actor_chain_type = actor_chain<
-        dtuple, parameter_transporter<transform3>, random_scatterer<transform3>,
-        parameter_resetter<transform3>, event_writer<transform3, smearer_t>>;
+    using actor_chain_type =
+        actor_chain<dtuple, parameter_transporter<transform3>,
+                    random_scatterer<transform3>,
+                    parameter_resetter<transform3>, writer_t>;
 
     using navigator_type = navigator<detector_t>;
     using stepper_type = rk_stepper<typename bfield_type::view_t, transform3,
@@ -48,33 +49,35 @@ struct simulator {
         propagator<stepper_type, navigator_type, actor_chain_type>;
 
     simulator(std::size_t events, const detector_t& det,
-              track_generator_t&& track_gen, smearer_t& smearer,
+              track_generator_t&& track_gen,
+              typename writer_t::config&& writer_cfg,
               const std::string directory = "")
         : m_events(events),
           m_directory(directory),
           m_detector(std::make_unique<detector_t>(det)),
           m_track_generator(
               std::make_unique<track_generator_t>(std::move(track_gen))),
-          m_smearer(smearer) {}
+          m_writer_cfg(writer_cfg) {}
 
     config& get_config() { return m_cfg; }
 
     void run() {
 
         for (std::size_t event_id = 0u; event_id < m_events; event_id++) {
-            typename event_writer<transform3, smearer_t>::state writer(
-                event_id, m_smearer, m_directory);
+
+            typename writer_t::state writer_state(
+                event_id, std::move(m_writer_cfg), m_directory);
 
             // Set random seed
             m_scatterer.set_seed(event_id);
-            writer.set_seed(event_id);
+            writer_state.set_seed(event_id);
 
             auto actor_states =
-                std::tie(m_transporter, m_scatterer, m_resetter, writer);
+                std::tie(m_transporter, m_scatterer, m_resetter, writer_state);
 
             for (auto track : *m_track_generator.get()) {
 
-                writer.write_particle(track);
+                writer_state.write_particle(track);
 
                 typename propagator_type::state propagation(
                     track, m_detector->get_bfield(), *m_detector);
@@ -91,7 +94,7 @@ struct simulator {
                 p.propagate(propagation, actor_states);
 
                 // Increase the particle id
-                writer.particle_id++;
+                writer_state.particle_id++;
             }
         }
     }
@@ -102,7 +105,7 @@ struct simulator {
     std::string m_directory = "";
     std::unique_ptr<detector_t> m_detector;
     std::unique_ptr<track_generator_t> m_track_generator;
-    smearer_t m_smearer;
+    typename writer_t::config m_writer_cfg;
 
     /// Actor states
     typename parameter_transporter<transform3>::state m_transporter{};

@@ -44,6 +44,7 @@ GTEST_TEST(detray_masks, annulus2D) {
 
     mask<annulus2D<>> ann2{0u,     minR, maxR,      minPhi,
                            maxPhi, 0.f,  offset[0], offset[1]};
+    ann2.normal_order = false;
 
     ASSERT_NEAR(ann2[annulus2D<>::e_min_r], 7.2f, tol);
     ASSERT_NEAR(ann2[annulus2D<>::e_max_r], 12.0f, tol);

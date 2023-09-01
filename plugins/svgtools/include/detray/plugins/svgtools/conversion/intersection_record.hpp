@@ -44,8 +44,8 @@ inline auto intersection_record(
                                          typename detector_t::transform3>>>&
         intersection_record) {
     std::vector<typename detector_t::point3> points;
-    for (const auto& intersection : intersection_record) {
-        const auto point = svgtools::utils::intersection_point(context, detector, intersection.second);
+    for (const auto& record : intersection_record) {
+        const auto point = svgtools::utils::intersection_point(context, detector, record.second);
         points.push_back(point);
     }
     return svgtools::conversion::intersection_record<point3_t>(points);

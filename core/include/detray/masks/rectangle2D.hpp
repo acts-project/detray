@@ -33,7 +33,7 @@ namespace detray {
 ///
 /// It is defined by half length in local0 coordinates bounds[0] and bounds[1]
 template <template <typename> class intersector_t = plane_intersector,
-          unsigned int kMeasDim = 2u, bool kNormalOrder = true>
+          unsigned int kMeasDim = 2u>
 class rectangle2D {
     public:
     /// The name for this shape
@@ -41,9 +41,6 @@ class rectangle2D {
 
     /// The measurement dimension
     inline static constexpr const unsigned int meas_dim{kMeasDim};
-
-    /// Normal ordering
-    inline static constexpr const bool normal_order{kNormalOrder};
 
     // Measurement dimension check
     static_assert(meas_dim == 1u || meas_dim == 2u,

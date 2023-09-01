@@ -36,7 +36,7 @@ namespace detray {
 /// the precomputed value of 1 / (2 * bounds[2]), which avoids
 /// excessive floating point divisions.
 template <template <typename> class intersector_t = plane_intersector,
-          unsigned int kMeasDim = 2u, bool kNormalOrder = true>
+          unsigned int kMeasDim = 2u>
 class trapezoid2D {
     public:
     /// The name for this shape
@@ -44,9 +44,6 @@ class trapezoid2D {
 
     /// The measurement dimension
     inline static constexpr const unsigned int meas_dim{kMeasDim};
-
-    /// Normal ordering
-    inline static constexpr const bool normal_order{kNormalOrder};
 
     // Measurement dimension check
     static_assert(meas_dim == 1u || meas_dim == 2u,
