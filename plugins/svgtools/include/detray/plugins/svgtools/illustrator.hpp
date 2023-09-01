@@ -45,7 +45,7 @@ class illustrator {
 
     /// @param detector the detector
     /// @param context the geometry context
-    /// @note information boxes are disabled unless expicitly enabled (use another constructor)
+    /// @note information boxes are enabled by default
     illustrator(const detector_t& detector,
                 const geometry_context& context)
         : _detector{detector}, _context{context} {}
