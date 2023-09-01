@@ -261,7 +261,8 @@ class illustrator {
     /// @param trajectory the trajectory (eg. ray or helix).
     /// @param intersection_record the intersection record.
     /// @param view the display view.
-    /// @return @c actsvg::svg::object of the trajectory and intersection record.
+    /// @return @c actsvg::svg::object of the trajectory and intersection
+    /// record.
     template <typename view_t, template <typename> class trajectory_t,
               typename transform3_t>
     inline auto draw_intersections_and_trajectory(
