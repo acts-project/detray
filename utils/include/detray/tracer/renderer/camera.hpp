@@ -44,7 +44,7 @@ class camera {
 
     DETRAY_HOST_DEVICE
     template <typename color_depth>
-    constexpr ray<transform3D> get_ray(
+    constexpr detail::ray<transform3D> get_ray(
         const scalar_t x, const scalar_t y,
         const raw_image<color_depth> &image) const {
 
@@ -53,9 +53,9 @@ class camera {
         const scalar_t v = y / static_cast<T>(image.height() - 1u);
 
         return {
-            m_origin,
+            m_origin, 0.f,
             m_lower_left_corner + u * m_horizontal + v * m_vertical - m_origin,
-            0.f, 0.f};
+            0.f};
     }
 
     private:

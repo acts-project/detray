@@ -19,80 +19,7 @@
 #include <limits>
 #include <ostream>
 
-namespace detray {
-
-namespace detail {
-
-/// @brief describes a straight-line trajectory
-template <typename transform3_t>
-class simple_ray {
-    public:
-    using transform3_type = transform3_t;
-    using scalar_type = typename transform3_type::scalar_type;
-    using vector3 = typename transform3_type::vector3;
-    using point3 = typename transform3_type::point3;
-
-    /// Parametrized constructor that complies with track interface
-    ///
-    /// @param pos the track position
-    /// @param dir the track momentum direction
-    DETRAY_HOST_DEVICE simple_ray(const point3 &pos, const vector3 &dir,
-                                  const scalar_type /*t*/,
-                                  const scalar_type /*qop*/)
-        : _pos{pos}, _dir{dir} {}
-
-    /// @returns position on the ray (compatible with tracks/intersectors)
-    DETRAY_HOST_DEVICE point3 pos() const { return _pos; }
-
-    /// @returns position on the ray paramterized by path length
-    DETRAY_HOST_DEVICE point3 pos(const scalar_type s) const {
-        // Direction is always normalized in the constructor
-        return _pos + s * _dir;
-    }
-
-    /// @param position new position on the ray
-    DETRAY_HOST_DEVICE void set_pos(point3 pos) { _pos = pos; }
-
-    /// @returns direction of the ray (compatible with tracks/intersectors)
-    DETRAY_HOST_DEVICE vector3 dir() const { return _dir; }
-
-    /// @returns direction of the ray paramterized by path length
-    DETRAY_HOST_DEVICE vector3 dir(const scalar_type /*s*/) const {
-        return this->dir();
-    }
-
-    /// @returns overstep tolerance to comply with track interface
-    DETRAY_HOST_DEVICE
-    scalar_type overstep_tolerance() const { return _overstep_tolerance; }
-
-    /// Sets overstep tolerance to comply with track interface
-    DETRAY_HOST_DEVICE
-    void set_overstep_tolerance(const scalar_type tolerance) {
-        _overstep_tolerance = tolerance;
-    }
-
-    /// Print
-    DETRAY_HOST
-    friend std::ostream &operator<<(std::ostream &os, const simple_ray &r) {
-        os << "ray: ";
-        os << "ori = [" << r._pos[0] << ", " << r._pos[1] << ", " << r._pos[2]
-           << "], ";
-        os << "dir = [" << r._dir[0] << ", " << r._dir[1] << ", " << r._dir[2]
-           << "], ";
-        os << "tol = " << r._overstep_tolerance << std::endl;
-
-        return os;
-    }
-
-    private:
-    /// origin of ray
-    point3 _pos{0.f, 0.f, 0.f};
-    /// direction of ray
-    vector3 _dir{0.f, 0.f, 1.f};
-
-    /// Overstep tolerance on a geometry surface
-    scalar_type _overstep_tolerance{-1e-4f};
-};
+namespace detray::detail {
 
 /// @brief describes a straight-line trajectory
 template <typename transform3_t>
@@ -454,9 +381,4 @@ class helix {
     scalar_type _vz_over_vt;
 };
 
-}  // namespace detail
-
-template <typename algebra_t>
-using ray = detail::simple_ray<algebra_t>;
-
-}  // namespace detray
+}  // namespace detray::detail

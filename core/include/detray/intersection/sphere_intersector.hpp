@@ -35,7 +35,7 @@ struct sphere_intersector {
     /// @}
 
     using intersection_type = intersection_t;
-    using ray_type = detray::ray<dtransform3D<detray::array<value_type>>>;
+    using ray_type = detail::ray<dtransform3D<detray::array<value_type>>>;
 #if (IS_SOA)
 
     /// Class to solve a quadratic equation of type a * x^2 + b * x + c = 0
