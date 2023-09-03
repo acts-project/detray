@@ -28,7 +28,7 @@ using vector3D = transform3D::vector3;
 /// Define affine transformation types
 /// @{
 template <typename V = DETRAY_CUSTOM_SCALARTYPE>
-struct array {
+struct cmath {
     /// Define scalar type
     using value_type = V;
 

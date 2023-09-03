@@ -33,9 +33,9 @@ namespace detray {
 template <typename detector_t>
 class helix_navigation : public test::fixture_base<> {
 
-    using scalar_t = dscalar<detray::array<typename detector_t::scalar_type>>;
+    using scalar_t = dscalar<detray::cmath<typename detector_t::scalar_type>>;
     using transform3_t =
-        dtransform3D<detray::array<typename detector_t::scalar_type>>;
+        dtransform3D<detray::cmath<typename detector_t::scalar_type>>;
     using free_track_parameters_t = free_track_parameters<transform3_t>;
 
     public:
@@ -82,8 +82,8 @@ class helix_navigation : public test::fixture_base<> {
         using namespace navigation;
 
         /// Type that holds the intersection information
-        using intersection_t =
-            intersection2D<typename detector_t::surface_type, scalar_t, array>;
+        using intersection_t = intersection2D<typename detector_t::surface_type,
+                                              scalar_t, detray::cmath>;
 
         /// Inspector that records all encountered surfaces
         using object_tracer_t =

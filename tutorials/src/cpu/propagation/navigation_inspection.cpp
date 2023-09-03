@@ -38,7 +38,7 @@ int main() {
     using intersection_t =
         detray::intersection2D<typename toy_detector_t::surface_type,
                                typename toy_detector_t::scalar_type,
-                               detray::array>;
+                               detray::cmath>;
 
     /// Inspector that records all encountered surfaces
     using object_tracer_t = detray::navigation::object_tracer<

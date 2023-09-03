@@ -59,7 +59,7 @@ inline void write_test_image(raw_image<color_depth> &im) {
 /// Render a shape
 template <typename T, template <typename> class algebra_t, typename color_depth,
           typename aspect_ratio, typename mask_t, typename material_t,
-          class im_background_t = gradient_background<T, detray::array>>
+          class im_background_t = gradient_background<T, detray::cmath>>
 inline void render_single_shape(raw_image<color_depth, aspect_ratio> &im,
                                 const mask_t &mask,
                                 const dtransform3D<algebra_t<T>> &trf,
@@ -68,15 +68,15 @@ inline void render_single_shape(raw_image<color_depth, aspect_ratio> &im,
     // Rendering steps
     using intersector_t = single_shape<T, algebra_t, mask_t, material_t>;
     using backgr_shader_t = background_shader<inf_plane<im_background_t>>;
-    using mat_shader_t = material_shader<T, detray::array>;
+    using mat_shader_t = material_shader<T, detray::cmath>;
     // The rendering pipeline: The intersector finds the shape intersections
     using pipeline_t =
         rendering_pipeline<intersector_t, backgr_shader_t, mat_shader_t>;
 
     const T viewport_height = 2.0f;
-    const dpoint3D<detray::array<T>> origin{0.0f, 0.0f, 0.0f};
+    const dpoint3D<detray::cmath<T>> origin{0.0f, 0.0f, 0.0f};
 
-    camera<T, detray::array, aspect_ratio> cam(viewport_height, origin);
+    camera<T, detray::cmath, aspect_ratio> cam(viewport_height, origin);
 
     // For the single shape render, the scene is actually encoded directly in
     // the single shape intersector

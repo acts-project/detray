@@ -34,7 +34,7 @@ using vector3 = test::vector3;
 using point3 = test::point3;
 using helix_t = detray::detail::helix<transform3_t>;
 using intersection_t =
-    intersection2D<surface_descriptor<>, detray::scalar, array>;
+    intersection2D<surface_descriptor<>, detray::scalar, detray::cmath>;
 
 constexpr auto not_defined{detail::invalid_value<scalar>()};
 constexpr scalar tol{1e-4f};

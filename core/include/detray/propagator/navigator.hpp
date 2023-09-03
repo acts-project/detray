@@ -63,7 +63,7 @@ struct void_inspector {
 }  // namespace navigation
 
 template <typename T>
-struct array;
+struct cmath;
 
 /// @brief The geometry navigation class.
 ///
@@ -100,7 +100,7 @@ template <typename detector_t,
           typename inspector_t = navigation::void_inspector,
           typename intersection_t =
               intersection2D<typename detector_t::surface_type,
-                             typename detector_t::scalar_type, array>>
+                             typename detector_t::scalar_type, detray::cmath>>
 class navigator {
 
     public:
@@ -769,8 +769,9 @@ class navigator {
 // candidates size allocation. With the local navigation, the size can be
 // restricted to much smaller value
 template <typename detector_t>
-DETRAY_HOST vecmem::data::jagged_vector_buffer<intersection2D<
-    typename detector_t::surface_type, typename detector_t::scalar_type, array>>
+DETRAY_HOST vecmem::data::jagged_vector_buffer<
+    intersection2D<typename detector_t::surface_type,
+                   typename detector_t::scalar_type, detray::cmath>>
 create_candidates_buffer(
     const detector_t &det, const std::size_t n_tracks,
     vecmem::memory_resource &device_resource,
@@ -778,7 +779,7 @@ create_candidates_buffer(
     // Build the buffer from capacities, device and host accessible resources
     return vecmem::data::jagged_vector_buffer<
         intersection2D<typename detector_t::surface_type,
-                       typename detector_t::scalar_type, array>>(
+                       typename detector_t::scalar_type, detray::cmath>>(
         std::vector<std::size_t>(n_tracks, det.n_max_candidates()),
         device_resource, host_access_resource,
         vecmem::data::buffer_type::resizable);

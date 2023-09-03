@@ -28,10 +28,10 @@ using namespace detray;
 
 // Algebra types
 using matrix_operator = standard_matrix_operator<scalar>;
-using transform3 = dtransform3D<array<scalar>>;
-using vector3 = dvector3D<array<scalar>>;
+using transform3 = dtransform3D<detray::cmath<scalar>>;
+using vector3 = dvector3D<detray::cmath<scalar>>;
 using intersection_t =
-    intersection2D<surface_descriptor<>, scalar, detray::array>;
+    intersection2D<surface_descriptor<>, scalar, detray::cmath>;
 
 // Mask types to be tested
 using rectangle_type = detray::mask<detray::rectangle2D<>>;

@@ -32,7 +32,7 @@ using vector3 = test::vector3;
 using point3 = test::point3;
 using ray_t = detray::detail::ray<transform3_t>;
 using intersection_t =
-    intersection2D<surface_descriptor<>, detray::scalar, array>;
+    intersection2D<surface_descriptor<>, detray::scalar, detray::cmath>;
 
 constexpr scalar not_defined = std::numeric_limits<scalar>::infinity();
 constexpr scalar tol{1e-5f};

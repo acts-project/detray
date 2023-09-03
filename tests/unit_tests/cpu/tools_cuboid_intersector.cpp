@@ -20,9 +20,9 @@ using namespace detray;
 namespace {
 
 template <typename T = scalar>
-using transform3 = dtransform3D<detray::array<T>>;
-using vector3 = dvector3D<detray::array<scalar>>;
-using point3 = dpoint3D<detray::array<scalar>>;
+using transform3 = dtransform3D<detray::cmath<T>>;
+using vector3 = dvector3D<detray::cmath<scalar>>;
+using point3 = dpoint3D<detray::cmath<scalar>>;
 
 // cuboid
 constexpr scalar x_min{1.f * unit<scalar>::mm};

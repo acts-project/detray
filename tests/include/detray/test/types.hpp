@@ -23,7 +23,7 @@ using vector3 = __plugin::vector3<detray::scalar>;
 
 // The std::array based algebra plugin is always available in the tests
 template <typename T = test::scalar>
-using algebra_t = detray::array<T>;
+using algebra_t = detray::cmath<T>;
 static constexpr char filenames[] = "array-";
 
 #elif DETRAY_ALGEBRA_EIGEN

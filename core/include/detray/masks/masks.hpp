@@ -46,7 +46,7 @@ namespace detray {
 /// @tparam links_t the type of link into the volume container
 ///                 (e.g. single index vs range)
 template <typename shape_t, typename links_t = std::uint_least16_t,
-          typename algebra_t = detray::array<detray::scalar>,
+          typename algebra_t = detray::cmath<detray::scalar>,
           template <typename, std::size_t> class array_t = darray>
 class mask {
     public:
@@ -198,8 +198,7 @@ class mask {
     /// @returns the projection matrix for measurement
     DETRAY_HOST_DEVICE projection_matrix_type projection_matrix(
         const bound_track_parameters<transform3>& bound_params) const {
-        return this->local_frame()
-            .template projection_matrix<shape::meas_dim>(
+        return this->local_frame().template projection_matrix<shape::meas_dim>(
             bound_params, normal_order);
     }
 
