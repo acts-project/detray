@@ -34,7 +34,7 @@ using vector3 = test::vector3;
 using point3 = test::point3;
 using helix_t = detray::detail::helix<transform3_t>;
 using intersection_t =
-    intersection2D<surface_descriptor<>, detray::scalar, detray::cmath>;
+    intersection2D<surface_descriptor<>, detray::scalar, ALGEBRA_PLUGIN>;
 
 constexpr auto not_defined{detail::invalid_value<scalar>()};
 constexpr scalar tol{1e-4f};
@@ -222,11 +222,6 @@ GTEST_TEST(detray_intersection, helix_cylinder_intersector) {
     const mask<cylinder2D<>> cylinder{0u, r, -hz, hz};
 
     const detail::helix_cylinder_intersector<intersection_t> hci;
-
-    static_assert(
-        std::is_same_v<typename mask<cylinder2D<>>::local_frame_type,
-                       cylindrical2<typename intersection_t::transform3D>>,
-        "Damn");
 
     // Get the intersection on the next surface
     const auto is = hci(hlx, surface_descriptor<>{}, cylinder, trf, tol);

@@ -82,17 +82,7 @@ class sphere2D {
     DETRAY_HOST_DEVICE inline bool check_boundaries(
         const bounds_t<scalar_t, kDIM>& bounds, const point_t& loc_p,
         const scalar_t tol = std::numeric_limits<scalar_t>::epsilon()) const {
-        return (std::abs(loc_p[0] - bounds[e_r]) > tol);
-    }
-
-    /// @returns the normal vector given a local position @param loc_p .
-    DETRAY_HOST_DEVICE
-    template <typename algebra_t,
-              template <typename, std::size_t> class bounds_t,
-              typename scalar_t, std::size_t kDIM, typename point_t>
-    constexpr auto normal(const bounds_t<scalar_t, kDIM>&,
-                          const point_t& loc_p) const {
-        return local_frame_type<algebra_t>{}.normal(loc_p);
+        return (math_ns::abs(loc_p[0] - bounds[e_r]) > tol);
     }
 
     /// @brief Lower and upper point for minimal axis aligned bounding box.
@@ -114,6 +104,29 @@ class sphere2D {
         assert(env > 0.f);
         const scalar_t r_bound = env + bounds[e_r];
         return {-r_bound, -r_bound, -env, r_bound, r_bound, env};
+    }
+
+    /// @brief Check consistency of boundary values.
+    ///
+    /// @param bounds the boundary values for this shape
+    /// @param os output stream for error messages
+    ///
+    /// @return true if the bounds are consistent.
+    template <template <typename, std::size_t> class bounds_t,
+              typename scalar_t, std::size_t kDIM,
+              typename std::enable_if_t<kDIM == e_size, bool> = true>
+    DETRAY_HOST constexpr bool check_consistency(
+        const bounds_t<scalar_t, kDIM>& bounds, std::ostream& os) const {
+
+        constexpr auto tol{10.f * std::numeric_limits<scalar_t>::epsilon()};
+
+        if (bounds[e_r] < tol) {
+            os << "ERROR: Radius must be in the range [0, numeric_max)"
+               << std::endl;
+            return false;
+        }
+
+        return true;
     }
 };
 

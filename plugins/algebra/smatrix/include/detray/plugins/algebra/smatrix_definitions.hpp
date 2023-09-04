@@ -1,6 +1,6 @@
 /** Detray library, part of the ACTS project (R&D line)
  *
- * (c) 2020-2022 CERN for the benefit of the ACTS project
+ * (c) 2020-2023 CERN for the benefit of the ACTS project
  *
  * Mozilla Public License Version 2.0
  */
@@ -11,7 +11,7 @@
 #include "algebra/smatrix_smatrix.hpp"
 
 #define __plugin algebra::smatrix
-#define ALGEBRA_PLUGIN smatrix
+#define ALGEBRA_PLUGIN detray::smatrix
 
 namespace detray {
 
@@ -45,9 +45,39 @@ struct smatrix {
 /// @}
 
 // Define namespace(s)
-namespace getter = algebra::getter;
-namespace vector = algebra::vector;
 namespace matrix = algebra::matrix;
+
+namespace vector {
+
+using algebra::smatrix::math::cross;
+using algebra::smatrix::math::dot;
+using algebra::smatrix::math::normalize;
+
+}  // namespace vector
+
+namespace getter {
+
+using algebra::smatrix::math::eta;
+using algebra::smatrix::math::norm;
+using algebra::smatrix::math::perp;
+using algebra::smatrix::math::phi;
+using algebra::smatrix::math::theta;
+
+using algebra::smatrix::math::element;
+
+/// Function extracting a slice from the matrix used by
+/// @c algebra::smatrix::transform3
+template <unsigned int SIZE, unsigned int ROWS, unsigned int COLS,
+          typename scalar_t>
+ALGEBRA_HOST_DEVICE inline auto vector(
+    const ROOT::Math::SMatrix<scalar_t, ROWS, COLS>& m, unsigned int row,
+    unsigned int col) {
+
+    return m.template SubCol<algebra::smatrix::storage_type<scalar_t, SIZE>>(
+        col, row);
+}
+
+}  // namespace getter
 
 // Define matrix/vector operator
 template <typename scalar_t>

@@ -27,7 +27,7 @@
 namespace detray {
 
 namespace detail {
-/// The detray scalar/boolean types (can be SIMD)
+/// The detray scalar types (can be SIMD)
 /// @{
 template <typename T, typename = void>
 struct get_scalar {};
@@ -35,14 +35,12 @@ struct get_scalar {};
 template <typename T>
 struct get_scalar<T, std::enable_if_t<std::is_arithmetic_v<T>, void>> {
     using scalar = T;
-    using boolean = bool;
 };
 
 template <typename T>
 struct get_scalar<
     T, std::enable_if_t<!std::is_same_v<typename T::scalar, void>, void>> {
     using scalar = typename T::scalar;
-    using boolean = typename T::boolean;
 };
 /// @}
 

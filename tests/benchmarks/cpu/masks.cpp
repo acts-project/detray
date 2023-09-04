@@ -22,7 +22,7 @@
 
 // Use the detray:: namespace implicitly.
 using namespace detray;
-/*using point3 = __plugin::point3<scalar>;
+using point3 = __plugin::point3<scalar>;
 
 static constexpr unsigned int steps_x3{1000u};
 static constexpr unsigned int steps_y3{1000u};
@@ -313,4 +313,3 @@ BENCHMARK(BM_ANNULUS_2D_MASK)
     ->ThreadRange(1, benchmark::CPUInfo::Get().num_cpus)
 #endif
     ->Unit(benchmark::kMillisecond);
-*/

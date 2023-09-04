@@ -76,7 +76,7 @@ GTEST_TEST(detray_core, typed_index) {
 GTEST_TEST(detray_intersection, intersection) {
 
     using intersection_t =
-        intersection2D<surface_t, detray::scalar, detray::cmath>;
+        intersection2D<surface_t, detray::scalar, ALGEBRA_PLUGIN>;
 
     intersection_t i0 = {
         surface_t{}, point3{0.2f, 0.4f, 0.f}, 2.f, 1.f, 1u, false, true};

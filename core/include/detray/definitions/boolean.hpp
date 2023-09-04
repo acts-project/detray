@@ -16,7 +16,7 @@
 namespace detray {
 
 namespace detail {
-/// The detray scalar/boolean types (can be SIMD)
+/// The detray boolean (mask) types (can be SIMD)
 /// @{
 template <typename T, typename = void>
 struct get_bool {};

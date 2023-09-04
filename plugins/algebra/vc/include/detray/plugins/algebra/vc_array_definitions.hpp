@@ -1,6 +1,6 @@
 /** Detray library, part of the ACTS project (R&D line)
  *
- * (c) 2020-2022 CERN for the benefit of the ACTS project
+ * (c) 2020-2023 CERN for the benefit of the ACTS project
  *
  * Mozilla Public License Version 2.0
  */
@@ -11,7 +11,7 @@
 #include "algebra/vc_cmath.hpp"
 
 #define __plugin algebra::vc
-#define ALGEBRA_PLUGIN vc_array
+#define ALGEBRA_PLUGIN detray::vc_cmath
 
 namespace detray {
 
@@ -28,7 +28,7 @@ using vector3D = algebra::vc::vector3<scalar>;
 /// Define affine transformation types
 /// @{
 template <typename V = DETRAY_CUSTOM_SCALARTYPE>
-struct vc {
+struct vc_cmath {
     /// Define scalar type
     using value_type = V;
 
@@ -45,9 +45,48 @@ struct vc {
 /// @}
 
 // Define namespace(s)
-namespace getter = algebra::getter;
-namespace vector = algebra::vector;
 namespace matrix = algebra::matrix;
+
+namespace vector {
+
+using algebra::cmath::dot;
+using algebra::cmath::normalize;
+using algebra::vc::math::cross;
+using algebra::vc::math::dot;
+using algebra::vc::math::normalize;
+
+}  // namespace vector
+
+namespace getter {
+
+using algebra::cmath::eta;
+using algebra::cmath::norm;
+using algebra::cmath::perp;
+using algebra::cmath::phi;
+using algebra::cmath::theta;
+
+using algebra::vc::math::eta;
+using algebra::vc::math::norm;
+using algebra::vc::math::perp;
+using algebra::vc::math::phi;
+using algebra::vc::math::theta;
+
+using algebra::cmath::element;
+
+/// Function extracting a slice from the matrix used by
+/// @c algebra::vc::transform3
+template <std::size_t SIZE, std::size_t ROWS, std::size_t COLS,
+          typename scalar_t>
+ALGEBRA_HOST_DEVICE inline Vc::array<scalar_t, SIZE> vector(
+    const algebra::vc::matrix_type<scalar_t, ROWS, COLS>& m, std::size_t row,
+    std::size_t col) {
+
+    return algebra::cmath::vector_getter<std::size_t, Vc::array, scalar_t, SIZE,
+                                         Vc::array<scalar_t, SIZE>>()(m, row,
+                                                                      col);
+}
+
+}  // namespace getter
 
 // Define matrix/vector operator
 template <typename scalar_t>

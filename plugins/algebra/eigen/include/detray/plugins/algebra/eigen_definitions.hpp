@@ -1,6 +1,6 @@
 /** Detray library, part of the ACTS project (R&D line)
  *
- * (c) 2020-2022 CERN for the benefit of the ACTS project
+ * (c) 2020-2023 CERN for the benefit of the ACTS project
  *
  * Mozilla Public License Version 2.0
  */
@@ -11,7 +11,7 @@
 #include "algebra/eigen_eigen.hpp"
 
 #define __plugin algebra::eigen
-#define ALGEBRA_PLUGIN eigen
+#define ALGEBRA_PLUGIN detray::eigen
 
 namespace detray {
 
@@ -45,9 +45,37 @@ struct eigen {
 /// @}
 
 // Define namespace(s)
-namespace getter = algebra::getter;
-namespace vector = algebra::vector;
 namespace matrix = algebra::matrix;
+
+namespace vector {
+
+using algebra::eigen::math::cross;
+using algebra::eigen::math::dot;
+using algebra::eigen::math::normalize;
+
+}  // namespace vector
+
+namespace getter {
+
+using algebra::eigen::math::eta;
+using algebra::eigen::math::norm;
+using algebra::eigen::math::perp;
+using algebra::eigen::math::phi;
+using algebra::eigen::math::theta;
+
+using algebra::eigen::math::element;
+
+/// Function extracting a slice from the matrix used by
+/// @c algebra::eigen::transform3
+template <unsigned int SIZE, typename derived_type>
+ALGEBRA_HOST_DEVICE inline auto vector(const Eigen::MatrixBase<derived_type>& m,
+                                       std::size_t row, std::size_t col) {
+
+    return m.template block<SIZE, 1>(static_cast<Eigen::Index>(row),
+                                     static_cast<Eigen::Index>(col));
+}
+
+}  // namespace getter
 
 // Define matrix/vector operator
 template <typename scalar_t>

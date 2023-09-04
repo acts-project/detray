@@ -15,12 +15,12 @@
 #include "detray/utils/soa/quadratic_equation.hpp"
 
 // System include(s)
-#include <iostream>
 #include <type_traits>
 
 namespace detray::soa {
 
-/// A functor to find intersections between straight line and planar surface
+/// A functor to find intersections between straight line and a batch of
+/// sherical surfaces (SoA memory layout)
 template <typename intersection_t>
 struct sphere_intersector {
 
@@ -36,7 +36,7 @@ struct sphere_intersector {
 
     using intersection_type = intersection_t;
     using ray_type =
-        detray::detail::ray<dtransform3D<detray::cmath<value_type>>>;
+        detray::detail::ray<dtransform3D<ALGEBRA_PLUGIN<value_type>>>;
 
     /// Operator function to find intersections between ray and planar mask
     ///

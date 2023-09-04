@@ -25,7 +25,7 @@
 // Use the detray:: namespace implicitly.
 using namespace detray;
 
-/*namespace {
+namespace {
 
 /// Make a regular grid for the tests.
 auto make_regular_grid(vecmem::memory_resource &mr) {
@@ -150,4 +150,3 @@ BENCHMARK(BM_IRREGULAR_GRID_ZONE)
     ->ThreadRange(1, benchmark::CPUInfo::Get().num_cpus)
 #endif
     ->Unit(benchmark::kMillisecond);
-*/

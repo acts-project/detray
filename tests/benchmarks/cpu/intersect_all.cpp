@@ -30,7 +30,7 @@
 using namespace detray;
 
 // This test runs intersection with all surfaces of the TrackML detector
-/*void BM_INTERSECT_ALL(benchmark::State &state) {
+void BM_INTERSECT_ALL(benchmark::State &state) {
 
     static const unsigned int theta_steps{100u};
     static const unsigned int phi_steps{100u};
@@ -51,8 +51,9 @@ using namespace detray;
 
     for (auto _ : state) {
         test::point3 pos{0.f, 0.f, 0.f};
-        std::vector<intersection2D<typename detector_t::surface_type,
-                                   typename detector_t::transform3>>
+        std::vector<
+            intersection2D<typename detector_t::surface_type,
+                           typename detector_t::scalar_type, ALGEBRA_PLUGIN>>
             intersections{};
         std::size_t n_surfaces{0u};
 
@@ -91,4 +92,3 @@ BENCHMARK(BM_INTERSECT_ALL)
     ->ThreadRange(1, benchmark::CPUInfo::Get().num_cpus)
 #endif
     ->Unit(benchmark::kMillisecond);
-*/

@@ -28,7 +28,7 @@ using vector3 = test::vector3;
 using point3 = test::point3;
 using transform3 = test::transform3;
 using intersection_t =
-    intersection2D<surface_descriptor<>, detray::scalar, detray::cmath>;
+    intersection2D<surface_descriptor<>, detray::scalar, ALGEBRA_PLUGIN>;
 
 constexpr scalar tol{std::numeric_limits<scalar>::epsilon()};
 

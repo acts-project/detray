@@ -29,11 +29,14 @@ struct spherical3D {
 
     // Local point type on a 2D spherical surface
     using loc_point = point2D;
+    /// @}
 
-    /// @brief project to a 2D spherical local frame
+    /// @brief transform a point from 3D cartesian to 2D sherical frame
     DETRAY_HOST_DEVICE
-    constexpr loc_point to_2D_local(const point3D &p) const {
-        return {p[1], p[2]};
+    point2D global_to_bound(const transform3D &trf, const point3D &p,
+                            const vector3D & /*d*/) const {
+        const auto local3 = trf.point_to_local(p);
+        return {getter::phi(local3), getter::theta(local3)};
     }
 
     /// @brief transform a point from 3D cartesian to 3D sherical frame
@@ -43,6 +46,16 @@ struct spherical3D {
         const auto local3 = trf.point_to_local(p);
         return {getter::norm(local3), getter::phi(local3),
                 getter::theta(local3)};
+    }
+
+    /// @returns the global cartesian point from a bound local (2D) point
+    template <typename mask_t>
+    DETRAY_HOST_DEVICE inline point3D bound_local_to_global(
+        const transform3D &trf3, const mask_t &mask, const point2D &p,
+        const vector3D & /*d*/) const {
+
+        return this->local_to_global(trf3,
+                                     {mask[mask_t::shape::e_r], p[0], p[1]});
     }
 
     /// @brief transform a point from 3D sherical to 3D cartesian frame

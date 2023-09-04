@@ -15,7 +15,6 @@
 #include "detray/utils/quadratic_equation.hpp"
 
 // System include(s)
-#include <iostream>
 #include <type_traits>
 
 namespace detray {
@@ -35,7 +34,7 @@ struct sphere_intersector {
     /// @}
 
     using intersection_type = intersection_t;
-    using ray_type = detail::ray<dtransform3D<detray::cmath<value_type>>>;
+    using ray_type = detail::ray<dtransform3D<ALGEBRA_PLUGIN<value_type>>>;
 
     /// Operator function to find intersections between ray and planar mask
     ///

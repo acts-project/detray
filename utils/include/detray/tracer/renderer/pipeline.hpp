@@ -34,13 +34,13 @@ struct scene_handle {
     struct state {
 
         using transform3D = typename geometry_t::transform3D;
-        using ray_t = detail::ray<dtransform3D<detray::cmath<detray::scalar>>>;
+        using ray_t = detail::ray<dtransform3D<ALGEBRA_PLUGIN<detray::scalar>>>;
 
         DETRAY_HOST_DEVICE
-        state(
-            const geometry_t &geo, const raw_image<color_depth> &im,
-            const detail::ray<dtransform3D<detray::cmath<detray::scalar>>> &ray,
-            const pixel_coord x, const pixel_coord y)
+        state(const geometry_t &geo, const raw_image<color_depth> &im,
+              const detail::ray<dtransform3D<ALGEBRA_PLUGIN<detray::scalar>>>
+                  &ray,
+              const pixel_coord x, const pixel_coord y)
             : m_geo{&geo}, m_image{&im}, m_ray{&ray}, m_pixel{{x, y}} {}
 
         /// Threadsafe interface
@@ -63,7 +63,7 @@ struct scene_handle {
     template <typename geometry_t, typename color_depth, typename pixel_coord>
     DETRAY_HOST_DEVICE state(
         const geometry_t &geo, const raw_image<color_depth> &im,
-        const detail::ray<dtransform3D<detray::cmath<detray::scalar>>> &ray,
+        const detail::ray<dtransform3D<ALGEBRA_PLUGIN<detray::scalar>>> &ray,
         const pixel_coord x, const pixel_coord y)
         -> state<geometry_t, color_depth, pixel_coord>;
 #endif

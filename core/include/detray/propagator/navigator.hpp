@@ -62,9 +62,6 @@ struct void_inspector {
 
 }  // namespace navigation
 
-template <typename T>
-struct cmath;
-
 /// @brief The geometry navigation class.
 ///
 /// The navigator is initialized around a detector object, but is itself
@@ -100,7 +97,7 @@ template <typename detector_t,
           typename inspector_t = navigation::void_inspector,
           typename intersection_t =
               intersection2D<typename detector_t::surface_type,
-                             typename detector_t::scalar_type, detray::cmath>>
+                             typename detector_t::scalar_type, ALGEBRA_PLUGIN>>
 class navigator {
 
     public:
@@ -771,7 +768,7 @@ class navigator {
 template <typename detector_t>
 DETRAY_HOST vecmem::data::jagged_vector_buffer<
     intersection2D<typename detector_t::surface_type,
-                   typename detector_t::scalar_type, detray::cmath>>
+                   typename detector_t::scalar_type, ALGEBRA_PLUGIN>>
 create_candidates_buffer(
     const detector_t &det, const std::size_t n_tracks,
     vecmem::memory_resource &device_resource,
@@ -779,7 +776,7 @@ create_candidates_buffer(
     // Build the buffer from capacities, device and host accessible resources
     return vecmem::data::jagged_vector_buffer<
         intersection2D<typename detector_t::surface_type,
-                       typename detector_t::scalar_type, detray::cmath>>(
+                       typename detector_t::scalar_type, ALGEBRA_PLUGIN>>(
         std::vector<std::size_t>(n_tracks, det.n_max_candidates()),
         device_resource, host_access_resource,
         vecmem::data::buffer_type::resizable);

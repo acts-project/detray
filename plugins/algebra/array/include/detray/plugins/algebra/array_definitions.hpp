@@ -1,6 +1,6 @@
 /** Detray library, part of the ACTS project (R&D line)
  *
- * (c) 2020-2022 CERN for the benefit of the ACTS project
+ * (c) 2020-2023 CERN for the benefit of the ACTS project
  *
  * Mozilla Public License Version 2.0
  */
@@ -11,7 +11,7 @@
 #include "algebra/array_cmath.hpp"
 
 #define __plugin algebra::array
-#define ALGEBRA_PLUGIN array
+#define ALGEBRA_PLUGIN detray::cmath
 
 namespace detray {
 

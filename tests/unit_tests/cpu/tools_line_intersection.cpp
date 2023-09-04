@@ -30,7 +30,7 @@ using vector3 = test::vector3;
 using point3 = test::point3;
 using point2 = test::point2;
 using intersection_t =
-    intersection2D<surface_descriptor<>, detray::scalar, detray::cmath>;
+    intersection2D<surface_descriptor<>, detray::scalar, ALGEBRA_PLUGIN>;
 using line_intersector_type = line_intersector<intersection_t>;
 
 constexpr scalar tol{1e-5f};

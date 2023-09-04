@@ -33,9 +33,9 @@ namespace detray {
 template <typename detector_t>
 class helix_navigation : public test::fixture_base<> {
 
-    using scalar_t = dscalar<detray::cmath<typename detector_t::scalar_type>>;
+    using scalar_t = dscalar<ALGEBRA_PLUGIN<typename detector_t::scalar_type>>;
     using transform3_t =
-        dtransform3D<detray::cmath<typename detector_t::scalar_type>>;
+        dtransform3D<ALGEBRA_PLUGIN<typename detector_t::scalar_type>>;
     using free_track_parameters_t = free_track_parameters<transform3_t>;
 
     public:
@@ -83,7 +83,7 @@ class helix_navigation : public test::fixture_base<> {
 
         /// Type that holds the intersection information
         using intersection_t = intersection2D<typename detector_t::surface_type,
-                                              scalar_t, detray::cmath>;
+                                              scalar_t, ALGEBRA_PLUGIN>;
 
         /// Inspector that records all encountered surfaces
         using object_tracer_t =
@@ -105,12 +105,6 @@ class helix_navigation : public test::fixture_base<> {
         // Propagator with pathlimit aborter
         using actor_chain_t = actor_chain<dtuple, pathlimit_aborter>;
         using propagator_t = propagator<stepper_t, navigator_t, actor_chain_t>;
-
-        static_assert(
-            std::is_same_v<mask<rectangle2D<>>::shape::
-                               template intersector_type<intersection_t>,
-                           plane_intersector<intersection_t>>,
-            "Oops");
 
         // Propagator
         propagator_t prop(stepper_t{}, navigator_t{});

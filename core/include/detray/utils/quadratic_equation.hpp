@@ -33,8 +33,6 @@ class quadratic_equation {
     ///
     /// @param tolerance threshhold to compare the discrimant against to decide
     ///                  if we have two separate solutions.
-    template <typename S = scalar_t,
-              std::enable_if_t<std::is_scalar_v<S>, bool> = true>
     DETRAY_HOST_DEVICE constexpr quadratic_equation(
         const scalar_t a, const scalar_t b, const scalar_t c,
         const scalar_t tolerance = std::numeric_limits<scalar_t>::epsilon()) {
@@ -68,7 +66,7 @@ class quadratic_equation {
 
     /// Getters for the solution(s)
     /// @{
-    constexpr auto solutions() const { return m_solutions; }
+    constexpr int solutions() const { return m_solutions; }
     constexpr scalar_t smaller() const { return m_values[0]; }
     constexpr scalar_t larger() const { return m_values[1]; }
     /// @}

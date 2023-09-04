@@ -41,13 +41,12 @@ GTEST_TEST(detray_tools, particle_gun) {
     // Record ray tracing
     using detector_t = decltype(toy_det);
     using intersection_t = intersection2D<typename detector_t::surface_type,
-                                          detray::scalar, detray::cmath>;
+                                          detray::scalar, ALGEBRA_PLUGIN>;
     std::vector<std::vector<std::pair<dindex, intersection_t>>> expected;
     //  Iterate through uniformly distributed momentum directions with ray
     for (const auto test_ray :
          uniform_track_generator<detail::ray<transform3_type>>(
              theta_steps, phi_steps, ori)) {
-        // std::cout << "ray: " << test_ray << std::endl;
 
         // Record all intersections and objects along the ray
         const auto intersection_record =
@@ -65,7 +64,6 @@ GTEST_TEST(detray_tools, particle_gun) {
          uniform_track_generator<free_track_parameters<transform3_type>>(
              theta_steps, phi_steps, ori)) {
         const detail::helix test_helix(track, &B);
-        // std::cout << "helix: " << test_helix << std::endl;
 
         // Record all intersections and objects along the ray
         const auto intersection_trace =
@@ -77,11 +75,6 @@ GTEST_TEST(detray_tools, particle_gun) {
 
         // Check every single recorded intersection
         for (std::size_t i = 0u; i < intersection_trace.size(); ++i) {
-            // std::cout << std::boolalpha <<
-            // intersection_trace[i].second.status << ", " <<
-            // intersection_trace[i].first << ", " <<
-            // intersection_trace[i].second.sf_desc.volume() << ", " <<
-            // intersection_trace[i].second << std::endl;
             if (expected[n_tracks][i].first != intersection_trace[i].first) {
                 // Intersection record at portal bound might be flipped
                 // (the portals overlap completely)

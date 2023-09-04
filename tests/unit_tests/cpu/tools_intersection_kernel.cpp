@@ -145,7 +145,7 @@ GTEST_TEST(detray_intersection, intersection_kernel_ray) {
         expected_cylinder1, expected_cylinder2, expected_cylinder_pt};
 
     // Initialize kernel
-    std::vector<intersection2D<surface_t, detray::scalar, detray::cmath>>
+    std::vector<intersection2D<surface_t, detray::scalar, ALGEBRA_PLUGIN>>
         sfi_init;
 
     for (const auto &surface : surfaces) {
@@ -190,7 +190,7 @@ GTEST_TEST(detray_intersection, intersection_kernel_ray) {
     // cylinders, since it assigns the closest intersection to both
     // solutions
     /*std::vector<intersection2D_point<surface_t, detray::scalar,
-    detray::cmath>> sfi_update; sfi_update.resize(5);
+    ALGEBRA_PLUGIN>> sfi_update; sfi_update.resize(5);
 
     for (const auto [idx, surface] : detray::views::enumerate(surfaces)) {
         sfi_update[idx].sf_desc = surface;
@@ -265,15 +265,8 @@ GTEST_TEST(detray_intersection, intersection_kernel_helix) {
     const point3 expected_annulus{0.03f, 0.03f, 30.f};
     const std::vector<point3> expected_points = {
         expected_rectangle, expected_trapezoid, expected_annulus};
-    std::vector<intersection2D<surface_t, detray::scalar, detray::cmath>>
+    std::vector<intersection2D<surface_t, detray::scalar, ALGEBRA_PLUGIN>>
         sfi_helix{};
-    static_assert(
-        std::is_same_v<
-            mask<cylinder2D<>>::shape::template intersector_type<
-                intersection2D<surface_t, detray::scalar, detray::cmath>>,
-            cylinder_intersector<
-                intersection2D<surface_t, detray::scalar, detray::cmath>>>,
-        "Oops");
 
     // Try the intersections - with automated dispatching via the kernel
     for (const auto [sf_idx, surface] : detray::views::enumerate(surfaces)) {
