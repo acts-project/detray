@@ -119,7 +119,7 @@ struct sphere_intersector {
         is.volume_link = mask.volume_link();
 
         // Get incidence angle
-        const vector3 normal = mask.normal(is.local);
+        const vector3 normal = mask.local_frame().normal(trf, is.local);
         is.cos_incidence_angle = vector::dot(rd, normal);
 
         return is;

@@ -118,6 +118,11 @@ class tracer_mask {
     DETRAY_HOST_DEVICE
     inline constexpr auto get_shape() const -> const shape& { return _shape; }
 
+    /// @returns return local frame object (used in geometrical checks)
+    DETRAY_HOST_DEVICE inline constexpr local_frame_type local_frame() const {
+        return local_frame_type{};
+    }
+
     /// @returns the functor that projects a global cartesian point onto
     /// the local geometric coordinate system.
     template <typename transform3_t>
@@ -159,18 +164,6 @@ class tracer_mask {
         const scalar_type t =
             std::numeric_limits<scalar_type>::epsilon()) const {
         return _shape.check_boundaries(_values, loc_p, t);
-    }
-
-    /// @returns return local frame object (used in geometrical checks)
-    DETRAY_HOST_DEVICE inline constexpr local_frame_type local_frame() const {
-        return local_frame_type{};
-    }
-
-    /// @returns return local frame object (used in geometrical checks)
-    DETRAY_HOST_DEVICE
-    constexpr vector3D normal(const point3D& loc_p) const {
-        return vector::normalize(
-            _shape.template normal<algebra_t<T>>(_values, loc_p));
     }
 
     /// @returns the boundary values

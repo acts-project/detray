@@ -52,23 +52,22 @@ struct sphere_intersector {
     template <typename mask_t, typename surface_t>
     DETRAY_HOST_DEVICE inline std::array<intersection_t, 2> operator()(
         const ray_type &ray, const surface_t &sf, const mask_t &mask,
-        const transform3_type &trf,
-        const scalar_type mask_tolerance = 0.f) const {
+        const transform3_type &trf, const scalar_type = 0.f) const {
 
         intersection_t is;
 
-        const auto r{mask[mask_t::shape::e_r]};
+        const scalar_type r{mask[mask_t::shape::e_r]};
         const vector3 center = trf.translation();
 
         const point3 &ro = ray.pos();
         const vector3 &rd = ray.dir();
 
         const point3 oc = ro - center;
-        auto a{vector::dot(rd, rd)};
-        auto b{2.f * vector::dot(oc, rd)};
-        auto c{vector::dot(oc, oc) - (r * r)};
+        scalar_type a{vector::dot(rd, rd)};
+        scalar_type b{2.f * vector::dot(oc, rd)};
+        scalar_type c{vector::dot(oc, oc) - (r * r)};
 
-        const auto qe = detail::quadratic_equation<decltype(a)>{a, b, c, 0.f};
+        const auto qe = detail::quadratic_equation<scalar_type>{a, b, c};
 
         std::array<intersection_t, 2> ret;
         switch (qe.solutions()) {
@@ -125,7 +124,7 @@ struct sphere_intersector {
             is.volume_link = mask.volume_link();
 
             // Get incidence angle
-            const vector3 normal = mask.normal(is.local);
+            const vector3 normal = mask.local_frame().normal(trf, is.local);
             is.cos_incidence_angle = vector::dot(rd, normal);
         } else {
             is.status = false;

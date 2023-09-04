@@ -13,7 +13,7 @@
 #include "detray/intersection/intersection.hpp"
 #include "detray/intersection/soa/sphere_intersector.hpp"
 #include "detray/io/image/ppm_writer.hpp"
-// #include "detray/masks/masks.hpp"
+#include "detray/masks/masks.hpp"
 #include "detray/masks/sphere2D.hpp"
 #include "detray/materials/predefined_materials.hpp"
 #include "detray/tracer/renderer/camera.hpp"
@@ -108,16 +108,17 @@ inline void render_single_shape(raw_image<color_depth, aspect_ratio> &im,
 
 }  // namespace
 
-#if (IS_SOA)
+/// Linear algebra implementation using SoA memory layout
 template <typename T>
-using algebra_t = vc_soa<T>;
-#else
-using algebra_t = scalar;
-#endif
+using algebra_soa_t = vc_soa<T>;
+
+/// Linear algebra implementation using AoS memory layout
+template <typename T>
+using algebra_aos_t = cmath<T>;
 
 int main() {
 
-    using vector3D = dvector3D<vc_soa<scalar>>;
+    using vector3D = dvector3D<algebra_soa_t<scalar>>;
 
     io::ppm_writer<unsigned int> ppm{};
 
@@ -144,37 +145,57 @@ int main() {
     t[1] = 0.1f * (image.height() * t[1] - 0.5f * image.height());
     t[2] = -30.f;
 
-    dtransform3D<algebra_t<scalar>> trf{t, z, x};
+    dtransform3D<algebra_soa_t<scalar>> trf{t, z, x};
+
+    dvector3D<algebra_aos_t<scalar>> x_aos{1.0f, 0.0f, 0.0f};
+    dvector3D<algebra_aos_t<scalar>> z_aos{0.0f, 0.0f, 1.f};
+    dvector3D<algebra_aos_t<scalar>> t_aos{0.f, 0.0f, -30.0f};
+    dtransform3D<algebra_aos_t<scalar>> trf_aos{t_aos, z_aos, x_aos};
 
     const silicon_tml<dscalar<scalar>> sf_mat{};
 
     // render a rectangle mask
-    /*const mask<rectangle2D<>> rect{0u, 12.f, 20.f};
-    render_single_shape(image, rect, trf, beryllium<scalar>{});
-    ppm.write(image, "rectangle");
+    const mask<rectangle2D<>> rect{0u, 0.01f * image.width(),
+                                   0.01f * image.height()};
+    render_single_shape<scalar, algebra_aos_t>(image, rect, trf_aos,
+                                               beryllium<scalar>{});
+    ppm.write(image, "rectangle_AoS");
 
     // render a trapezoid mask
     const mask<trapezoid2D<>> trpz{0u, 10.f, 30.f, 20.f, 1.f / 40.f};
-    render_single_shape<>(image, trpz, trf, aluminium<scalar>{});
-    ppm.write(image, "trapezoid");
+    render_single_shape<scalar, algebra_aos_t>(image, trpz, trf_aos,
+                                               aluminium<scalar>{});
+    ppm.write(image, "trapezoid_AoS");
 
     // render a ring mask
     const mask<ring2D<>> ring{0u, 12.f, 20.f};
-    render_single_shape<>(image, ring, trf, gold<scalar>{});
-    ppm.write(image, "ring");
+    render_single_shape<scalar, algebra_aos_t>(image, ring, trf_aos,
+                                               gold<scalar>{});
+    ppm.write(image, "ring_AoS");
 
     // render an annulus mask
     const mask<annulus2D<>> ann2{0u,       5.f,  13.0f, 0.74195f,
                                  1.33970f, -2.f, 2.f,   0.f};
-    render_single_shape<>(image, ann2, trf, silicon<scalar>{});
-    ppm.write(image, "annulus");*/
+    render_single_shape<scalar, algebra_aos_t>(image, ann2, trf_aos,
+                                               silicon<scalar>{});
+    ppm.write(image, "annulus_AoS");
 
     // render a spherical mask
-    const tracer_mask<sphere2D<soa::sphere_intersector>> sph2{
-        0u, 10.f * dsimd<vc_soa, scalar>{}.Random()};
+    // AoS
+    const tracer_mask<sphere2D<>, std::uint_least16_t, scalar, algebra_aos_t>
+        sph2_aos{0u, 10.f};
 
-    render_single_shape<scalar, algebra_t>(image, sph2, trf, silicon<scalar>{});
-    ppm.write(image, "sphere");
+    render_single_shape<scalar, algebra_aos_t>(image, sph2_aos, trf_aos,
+                                               silicon<scalar>{});
+    ppm.write(image, "sphere_AoS");
+
+    // SoA
+    const tracer_mask<sphere2D<soa::sphere_intersector>> sph2{
+        0u, 10.f * dsimd<algebra_soa_t, scalar>{}.Random()};
+
+    render_single_shape<scalar, algebra_soa_t>(image, sph2, trf,
+                                               silicon<scalar>{});
+    ppm.write(image, "sphere_SoA");
 
     return EXIT_SUCCESS;
 }

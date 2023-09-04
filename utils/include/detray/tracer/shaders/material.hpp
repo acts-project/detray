@@ -38,17 +38,19 @@ struct material_shader : public detray::actor {
         using color_depth = typename decltype(sc.m_pixel)::color_depth;
 
         if (intr_state.m_is_inside) {
-            // auto c = texture::detail::material_color_helper<color_depth>(
-            //     intr_state.material());
+            auto c = texture::detail::material_color_helper<color_depth>(
+                intr_state.material());
             const auto &intr = intr_state.m_intersections[0];
-            auto normal = sc.geometry().mask().normal(intr.local);
+            auto normal = sc.geometry().mask().local_frame().normal(
+                sc.geometry().transform(), intr.local);
             normal = normal + decltype(normal){1.f, 1.f, 1.f};
             normal = 255.99f * 0.5f * normal;
             // Of the masks that were tested, get the closest one that was hit
-            const auto idx = intr.status.firstOne();
-            sc.m_pixel.set_color({static_cast<color_depth>(normal[0][idx]),
+            // const auto idx = intr_state.closest_solution();
+            /*sc.m_pixel.set_color({static_cast<color_depth>(normal[0][idx]),
                                   static_cast<color_depth>(normal[1][idx]),
-                                  static_cast<color_depth>(normal[2][idx])});
+                                  static_cast<color_depth>(normal[2][idx])});*/
+            sc.m_pixel.set_color(c);
         }
     }
 };

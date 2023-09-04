@@ -15,16 +15,6 @@
 
 namespace detray {
 
-namespace math {
-#if (IS_SOA)
-using Vc::cos;
-using Vc::sin;
-#else
-using std::cos;
-using std::sin;
-#endif
-}  // namespace math
-
 template <typename algebra_t>
 struct spherical3D {
 
@@ -59,23 +49,34 @@ struct spherical3D {
     DETRAY_HOST_DEVICE
     point3D local_to_global(const transform3D &trf,
                             const point3D &loc_p) const {
-        const auto sin_theta{math::sin(loc_p[2])};
+        const auto sin_theta{math_ns::sin(loc_p[2])};
 
-        const point3D glob_p{sin_theta * math::cos(loc_p[1]),
-                             sin_theta * math::sin(loc_p[1]),
-                             math::cos(loc_p[2])};
+        const point3D glob_p{sin_theta * math_ns::cos(loc_p[1]),
+                             sin_theta * math_ns::sin(loc_p[1]),
+                             math_ns::cos(loc_p[2])};
 
         return trf.point_to_global(loc_p[0] * glob_p);
     }
 
-    /// @returns the normal vector given a local position @param loc_p and the
-    /// radius of the sphere @param radius.
-    DETRAY_HOST_DEVICE
-    constexpr vector3D normal(const point3D &loc_p) const {
-        const auto sin_theta{math::sin(loc_p[2])};
+    /// @returns the normal vector given a bound position @param bound_pos
+    template <typename mask_t>
+    DETRAY_HOST_DEVICE inline vector3D normal(const transform3D &,
+                                              const point2D &bound_pos,
+                                              const mask_t &) const {
+        const auto sin_theta{math_ns::sin(bound_pos[1])};
 
-        return {sin_theta * math::cos(loc_p[1]),
-                sin_theta * math::sin(loc_p[1]), math::cos(loc_p[2])};
+        return {sin_theta * math_ns::cos(bound_pos[0]),
+                sin_theta * math_ns::sin(bound_pos[0]),
+                math_ns::cos(bound_pos[1])};
+    }
+
+    /// @returns the normal vector given a local position @param loc_pos
+    DETRAY_HOST_DEVICE inline vector3D normal(const transform3D &,
+                                              const point3D &loc_pos) const {
+        const auto sin_theta{math_ns::sin(loc_pos[2])};
+
+        return {sin_theta * math_ns::cos(loc_pos[1]),
+                sin_theta * math_ns::sin(loc_pos[1]), math_ns::cos(loc_pos[2])};
     }
 };
 
