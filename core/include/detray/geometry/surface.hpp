@@ -139,12 +139,6 @@ class surface {
         return transform(ctx).translation();
     }
 
-    /// @returns the measurement dimesntion of surface
-    DETRAY_HOST_DEVICE
-    constexpr auto meas_dim() const -> unsigned int {
-        return visit_mask<typename kernels::meas_dim>();
-    }
-
     /// @returns the surface normal in global coordinates at a given bound/local
     /// position @param p
     template <typename point_t = point2,

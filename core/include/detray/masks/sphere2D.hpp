@@ -120,7 +120,7 @@ class sphere2D {
 
         constexpr auto tol{10.f * std::numeric_limits<scalar_t>::epsilon()};
 
-        if (bounds[e_r] < tol) {
+        if (not detail::any_of(bounds[e_r] < tol)) {
             os << "ERROR: Radius must be in the range [0, numeric_max)"
                << std::endl;
             return false;

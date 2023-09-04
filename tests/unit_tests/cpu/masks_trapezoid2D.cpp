@@ -10,7 +10,6 @@
 #include "detray/definitions/units.hpp"
 #include "detray/masks/masks.hpp"
 #include "detray/test/types.hpp"
-#include "detray/tracks/bound_track_parameters.hpp"
 
 using namespace detray;
 using point3_t = test::point3;
@@ -43,21 +42,6 @@ GTEST_TEST(detray_masks, trapezoid2D) {
     ASSERT_FALSE(t2.is_inside(p2_out));
     // Move outside point inside using a tolerance
     ASSERT_TRUE(t2.is_inside(p2_out, 1.));
-
-    // Dummy bound track parameter
-    bound_track_parameters<transform3_t> bound_params;
-
-    // Check projection matrix
-    const auto proj = t2.projection_matrix(bound_params);
-    for (unsigned int i = 0u; i < decltype(t2)::shape::meas_dim; i++) {
-        for (unsigned int j = 0u; j < e_bound_size; j++) {
-            if (i == j) {
-                ASSERT_EQ(getter::element(proj, i, j), 1u);
-            } else {
-                ASSERT_EQ(getter::element(proj, i, j), 0u);
-            }
-        }
-    }
 
     // Check bounding box
     constexpr scalar envelope{0.01f};

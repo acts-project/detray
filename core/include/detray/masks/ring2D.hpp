@@ -27,25 +27,14 @@ namespace detray {
 ///
 /// @tparam intersector_t defines how to intersect the underlying surface
 ///         geometry
-/// @tparam kMeasDim defines the dimension of the measurement
-/// @tparam kNormalOrder true if the index for measurement parameter follows
-/// the local coordinate system
 ///
 /// It is defined by the two radii bounds[0] and bounds[1],
 /// and can be checked with a tolerance in t[0] and t[1].
-template <template <typename> class intersector_t = plane_intersector,
-          unsigned int kMeasDim = 2u>
+template <template <typename> class intersector_t = plane_intersector>
 class ring2D {
     public:
     /// The name for this shape
     inline static const std::string name = "ring2D";
-
-    /// The measurement dimension
-    inline static constexpr const unsigned int meas_dim{kMeasDim};
-
-    // Measurement dimension check
-    static_assert(meas_dim == 1u || meas_dim == 2u,
-                  "Only 1D or 2D measurement is allowed");
 
     enum boundaries : unsigned int {
         e_inner_r = 0u,

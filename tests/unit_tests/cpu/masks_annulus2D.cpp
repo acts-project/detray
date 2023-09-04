@@ -10,7 +10,6 @@
 #include "detray/definitions/units.hpp"
 #include "detray/masks/masks.hpp"
 #include "detray/test/types.hpp"
-#include "detray/tracks/bound_track_parameters.hpp"
 
 using namespace detray;
 using point3_t = test::point3;
@@ -62,19 +61,6 @@ GTEST_TEST(detray_masks, annulus2D) {
     // Move outside point inside using a tolerance
     ASSERT_TRUE(ann2.is_inside(toStripFrame(p2_out1), 1.3f));
     ASSERT_TRUE(ann2.is_inside(toStripFrame(p2_out4), 0.07f));
-
-    // Dummy bound track parameter
-    bound_track_parameters<transform3_t> bound_params;
-
-    // Check projection matrix
-    const auto proj = ann2.projection_matrix(bound_params);
-    for (unsigned int i = 0u; i < e_bound_size; i++) {
-        if (i == 1u) {
-            ASSERT_EQ(getter::element(proj, 0u, i), 1u);
-        } else {
-            ASSERT_EQ(getter::element(proj, 0u, i), 0u);
-        }
-    }
 
     // Check corner positions
     std::array<scalar, 8> c = ann2.get_shape().corners(ann2.values());
