@@ -24,16 +24,20 @@
 namespace detray {
 
 /// An axis aligned bounding box of a given @tparam shape_t
-template <typename shape_t, typename T = detray::scalar>
+template <typename shape_t, typename T = detray::scalar,
+          template <typename> class algebra_t = ALGEBRA_PLUGIN>
 class axis_aligned_bounding_volume {
+    using transform3D = dtransform3D<algebra_t<T>>;
+    using point3D = dpoint3D<algebra_t<T>>;
+
     public:
     /// Define geometric properties
     /// @{
     using shape = shape_t;
     using boundaries = typename shape_t::boundaries;
     using axes = typename shape_t::template axes<>;
-    template <typename algebra_t>
-    using local_frame = typename shape_t::template local_frame_type<algebra_t>;
+    using local_frame =
+        typename shape_t::template local_frame_type<algebra_t<T>>;
 
     static constexpr std::size_t Dim{axes::Dim};
     /// @}
@@ -72,23 +76,22 @@ class axis_aligned_bounding_volume {
     template <typename other_shape_t, typename other_scalar_t,
               typename std::enable_if_t<
                   std::is_same_v<
-                      typename shape::template local_frame_type<void>,
-                      typename other_shape_t::template local_frame_type<void>>,
+                      typename shape::template local_frame_type<algebra_t<T>>,
+                      typename other_shape_t::template local_frame_type<
+                          algebra_t<T>>>,
                   bool> = true>
     DETRAY_HOST constexpr axis_aligned_bounding_volume(
         const std::vector<
             axis_aligned_bounding_volume<other_shape_t, other_scalar_t>>& aabbs,
         std::size_t box_id, const T env) {
 
-        using loc_point_t = std::array<T, other_shape_t::template axes<>::dim>;
-
         // Find min/max extent of the local aabb in local coordinates
         constexpr T inf{std::numeric_limits<T>::infinity()};
         T min_x{inf}, min_y{inf}, min_z{inf}, max_x{-inf}, max_y{-inf},
             max_z{-inf};
         for (const auto& vol : aabbs) {
-            const auto min_point = vol.template loc_min<loc_point_t>();
-            const auto max_point = vol.template loc_max<loc_point_t>();
+            const auto min_point = vol.template loc_min();
+            const auto max_point = vol.template loc_max();
 
             // Check every coordinate of the points
             min_x = min_point[0] < min_x ? min_point[0] : min_x;
@@ -124,9 +127,7 @@ class axis_aligned_bounding_volume {
     }
 
     /// @returns the minimum bounds of the volume in local coordinates
-    template <typename point_t>
-    DETRAY_HOST_DEVICE constexpr auto loc_min() const -> point_t {
-
+    DETRAY_HOST_DEVICE constexpr auto loc_min() const -> point3D {
         if constexpr (std::is_same_v<shape, cuboid3D<>>) {
             return {m_mask[cuboid3D<>::e_min_x], m_mask[cuboid3D<>::e_min_y],
                     m_mask[cuboid3D<>::e_min_z]};
@@ -138,13 +139,11 @@ class axis_aligned_bounding_volume {
         // If the volume shape is not supported, return universal minimum
         assert(false);
         constexpr T inf{std::numeric_limits<T>::infinity()};
-        return point_t{-inf, -inf, -inf};
+        return {-inf, -inf, -inf};
     }
 
     /// @returns the maximum bounds of the volume in local coordinates
-    template <typename point_t>
-    DETRAY_HOST_DEVICE constexpr auto loc_max() const -> point_t {
-
+    DETRAY_HOST_DEVICE constexpr auto loc_max() const -> point3D {
         if constexpr (std::is_same_v<shape, cuboid3D<>>) {
             return {m_mask[cuboid3D<>::e_max_x], m_mask[cuboid3D<>::e_max_y],
                     m_mask[cuboid3D<>::e_max_z]};
@@ -157,54 +156,47 @@ class axis_aligned_bounding_volume {
         // (or compilation error for 2D point)
         assert(false);
         constexpr T inf{std::numeric_limits<T>::infinity()};
-        return point_t{inf, inf, inf};
+        return {inf, inf, inf};
     }
     /// @returns the minimum bounds of the volume in global cartesian
     /// coordinates
-    template <typename transform3_t>
-    DETRAY_HOST_DEVICE constexpr auto glob_min(const transform3_t& trf) const ->
-        typename transform3_t::point3 {
-
-        using point3_t = typename transform3_t::point3;
+    DETRAY_HOST_DEVICE constexpr auto glob_min(const transform3D& trf) const
+        -> point3D {
 
         if constexpr (std::is_same_v<shape, cuboid3D<>>) {
-            return trf.point_to_global(loc_min<point3_t>());
+            return trf.point_to_global(loc_min());
         } else if constexpr (std::is_same_v<shape, cylinder3D>) {
-            return cylindrical3<transform3_t>{}.local_to_global(
-                trf, m_mask, loc_min<point3_t>());
+            return cylindrical3<transform3D>{}.local_to_global(trf, m_mask,
+                                                               loc_min());
         }
 
         // If the volume shape is not supported, return universal minimum
         // (or compilation error for 2D point)
         assert(false);
         constexpr T inf{std::numeric_limits<T>::infinity()};
-        return point3_t{-inf, -inf, -inf};
+        return {-inf, -inf, -inf};
     }
 
     /// @returns the maximum bounds of the volume in global cartesian
     /// coordinates
-    template <typename transform3_t>
-    DETRAY_HOST_DEVICE constexpr auto glob_max(const transform3_t& trf) const ->
-        typename transform3_t::point3 {
-
-        using point3_t = typename transform3_t::point3;
+    DETRAY_HOST_DEVICE constexpr auto glob_max(const transform3D& trf) const
+        -> point3D {
 
         if constexpr (std::is_same_v<shape, cuboid3D<>>) {
-            return trf.point_to_global(loc_max<point3_t>());
+            return trf.point_to_global(loc_max());
         } else if constexpr (std::is_same_v<shape, cylinder3D>) {
-            return cylindrical3<transform3_t>{}.local_to_global(
-                trf, m_mask, loc_max<point3_t>());
+            return cylindrical3<transform3D>{}.local_to_global(trf, m_mask,
+                                                               loc_max());
         }
 
         // If the volume shape is not supported, return universal minimum
         assert(false);
         constexpr T inf{std::numeric_limits<T>::infinity()};
-        return point3_t{inf, inf, inf};
+        return {inf, inf, inf};
     }
 
     /// @returns the geometric center position in global cartesian system
-    template <typename point3_t>
-    DETRAY_HOST_DEVICE constexpr auto center() const -> point3_t {
+    DETRAY_HOST_DEVICE constexpr auto center() const -> point3D {
 
         const T center_x{
             0.5f * (m_mask[cuboid3D<>::e_max_x] + m_mask[cuboid3D<>::e_min_x])};
@@ -228,12 +220,10 @@ class axis_aligned_bounding_volume {
     ///
     /// @returns a new, transformed aabb.
     template <
-        typename transform3_t, typename S = shape_t,
+        typename S = shape_t,
         typename std::enable_if_t<std::is_same_v<S, cuboid3D<>>, bool> = true>
-    DETRAY_HOST_DEVICE auto transform(const transform3_t& trf) const
+    DETRAY_HOST_DEVICE auto transform(const transform3D& trf) const
         -> axis_aligned_bounding_volume {
-
-        using point3_t = typename transform3_t::point3;
 
         const T scalor_x{
             (m_mask[cuboid3D<>::e_max_x] - m_mask[cuboid3D<>::e_min_x])};
@@ -254,13 +244,13 @@ class axis_aligned_bounding_volume {
 
         // The new axis vectors, scaled to the aabb dimensions
         // (e.g. max_x - min_x)
-        const point3_t new_box_x = scalor_x * trf.x();
-        const point3_t new_box_y = scalor_y * trf.y();
-        const point3_t new_box_z = scalor_z * trf.z();
+        const point3D new_box_x = scalor_x * trf.x();
+        const point3D new_box_y = scalor_y * trf.y();
+        const point3D new_box_z = scalor_z * trf.z();
 
         // Transform the old min and max points to the global frame and
         // construct all corner points of the local aabb in global coordinates
-        std::array<point3_t, 8> glob_c_points;
+        std::array<point3D, 8> glob_c_points;
         glob_c_points[0] = glob_min(trf);
         glob_c_points[1] = glob_max(trf);
         glob_c_points[2] = glob_c_points[0] + new_box_x;
@@ -274,7 +264,7 @@ class axis_aligned_bounding_volume {
         constexpr T inf{std::numeric_limits<T>::infinity()};
         T min_x{inf}, min_y{inf}, min_z{inf}, max_x{-inf}, max_y{-inf},
             max_z{-inf};
-        for (const point3_t& p : glob_c_points) {
+        for (const point3D& p : glob_c_points) {
             // Check every coordinate of the point
             min_x = p[0] < min_x ? p[0] : min_x;
             max_x = p[0] > max_x ? p[0] : max_x;
@@ -300,20 +290,19 @@ class axis_aligned_bounding_volume {
     }
 
     /// Intersect the box with a ray
-    /*DETRAY_HOST_DEVICE
-    template <typename transform_t>
+    DETRAY_HOST_DEVICE
     constexpr bool intersect(
-        const detail::ray<transform_t>& ray,
+        const detail::ray<transform3D>& ray,
         const T t = std::numeric_limits<T>::epsilon()) const {
         static_assert(std::is_same_v<shape, cuboid3D<>>,
                       "aabbs are only implemented in cuboid shape for now");
-        return m_mask.template intersector<intersection2D<bool, T>>()(
-            ray, m_mask, t);
-    }*/
+        return m_mask
+            .template intersector<intersection2D<bool, T, algebra_t>>()(
+                ray, m_mask, t);
+    }
 
     /// @TODO: Overlapping aabbs
     /*DETRAY_HOST_DEVICE
-    template<typename algebra_t>
     constexpr auto intersect(
         const axis_aligned_bounding_volume &aabb,
         const T t = std::numeric_limits<T>::epsilon()) const
@@ -323,9 +312,8 @@ class axis_aligned_bounding_volume {
 
     /// @TODO: Frustum intersection
     /*DETRAY_HOST_DEVICE
-    template<typename algebra_t>
     constexpr auto intersect(
-        const detail::frustum<algebra_t> frustum,
+        const detail::frustum<T, algebra_t> frustum,
         const T t = std::numeric_limits<T>::epsilon()) const
         {
         ....
@@ -333,12 +321,14 @@ class axis_aligned_bounding_volume {
 
     private:
     /// Keeps the box boundary values and id
-    mask<shape, std::size_t> m_mask;
+    mask<shape, std::size_t, algebra_t<T>> m_mask;
 };
 
-template <typename shape_t, typename T = scalar>
+template <typename shape_t, typename T = scalar,
+          template <typename> class algebra_t = ALGEBRA_PLUGIN>
 DETRAY_HOST std::ostream& operator<<(
-    std::ostream& os, const axis_aligned_bounding_volume<shape_t, T>& aabb) {
+    std::ostream& os,
+    const axis_aligned_bounding_volume<shape_t, T, algebra_t>& aabb) {
     return os << aabb.bounds().to_string();
 }
 

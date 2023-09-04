@@ -48,5 +48,5 @@ GTEST_TEST(detray_intersection, cuboid_aabb_intersector) {
     mask<cuboid3D<>> c3{0u, x_min, y_min, z_min, x_max, y_max, z_max};
     axis_aligned_bounding_volume<cuboid3D<>> aabb{c3, 0u, envelope};
 
-    // ASSERT_TRUE(aabb.intersect(r));
+    ASSERT_TRUE(aabb.intersect(r));
 }

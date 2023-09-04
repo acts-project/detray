@@ -53,7 +53,7 @@ struct tel_det_config {
     template <
         typename... Args,
         std::enable_if_t<(std::is_same_v<Args, scalar> || ...), bool> = true>
-    tel_det_config(Args &&... args) : m_mask(0u, std::forward<Args>(args)...) {}
+    tel_det_config(Args &&...args) : m_mask(0u, std::forward<Args>(args)...) {}
 
     /// Mask of the test surfaces
     mask<mask_shape_t> m_mask;
@@ -237,11 +237,11 @@ inline void create_cuboid_portals(context_t &ctx, const scalar pt_envelope,
     aabb_t world_box{boxes, boxes.size(), pt_envelope};
 
     // translation
-    const point3 center = world_box.template center<point3>();
+    const point3 center = world_box.center();
 
     // The world box local frame is the global coordinate frame
-    const point3 box_min = world_box.template loc_min<point3>();
-    const point3 box_max = world_box.template loc_max<point3>();
+    const point3 box_min = world_box.loc_min();
+    const point3 box_max = world_box.loc_max();
 
     // Get the half lengths for the rectangle sides and translation
     const point3 h_lengths = 0.5f * (box_max - box_min);
