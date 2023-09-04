@@ -6,12 +6,12 @@
  */
 
 // Algebra include(s).
-// #include "detray/plugins/algebra/vc_array_definitions.hpp"
 #include "detray/plugins/algebra/vc_soa_definitions.hpp"
 
 // Project include(s).
 #include "detray/intersection/detail/trajectories.hpp"
 #include "detray/intersection/intersection.hpp"
+#include "detray/intersection/soa/sphere_intersector.hpp"
 #include "detray/io/image/ppm_writer.hpp"
 // #include "detray/masks/masks.hpp"
 #include "detray/masks/sphere2D.hpp"
@@ -170,8 +170,8 @@ int main() {
     ppm.write(image, "annulus");*/
 
     // render a spherical mask
-    const tracer_mask<sphere2D<>> sph2{0u,
-                                       10.f * dsimd<vc_soa, scalar>{}.Random()};
+    const tracer_mask<sphere2D<soa::sphere_intersector>> sph2{
+        0u, 10.f * dsimd<vc_soa, scalar>{}.Random()};
 
     render_single_shape<scalar, algebra_t>(image, sph2, trf, silicon<scalar>{});
     ppm.write(image, "sphere");

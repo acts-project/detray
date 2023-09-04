@@ -97,10 +97,11 @@ inline decltype(auto) atan(T &&vec) {
     return Vc::atan(std::forward<T>(vec));
 }
 
-template <typename T,
-          std::enable_if_t<Vc::Traits::is_simd_vector<T>::value, bool> = true>
-inline decltype(auto) copysign(T &&mag, T &&sgn) {
-    return Vc::copysign(std::forward<T>(mag), std::forward<T>(sgn));
+template <typename T, typename S,
+          std::enable_if_t<Vc::Traits::is_simd_vector<T>::value, bool> = true,
+          std::enable_if_t<Vc::Traits::is_simd_vector<S>::value, bool> = true>
+inline decltype(auto) copysign(T &&mag, S &&sgn) {
+    return Vc::copysign(std::forward<T>(mag), std::forward<S>(sgn));
 }
 
 template <typename T,
@@ -123,21 +124,6 @@ namespace math_ns = std;
 #endif  // SYCL
 
 namespace detail {
-
-/// boolean utilities
-/// @{
-inline constexpr bool any_of(bool b) {
-    // Do nothing
-    return b;
-}
-#if IS_SOA
-template <typename T,
-          std::enable_if_t<Vc::Traits::is_simd_mask<T>::value, bool> = true>
-inline bool any_of(T &&mask) {
-    return Vc::any_of(std::forward<T>(mask));
-}
-#endif
-/// @}
 
 using math_ns::copysign;
 using math_ns::signbit;

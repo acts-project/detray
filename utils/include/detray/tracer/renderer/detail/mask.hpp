@@ -197,7 +197,7 @@ class tracer_mask {
                               std::numeric_limits<scalar_type>::epsilon()) const
         -> tracer_mask<cuboid3D<>, unsigned int> {
         const auto bounds =
-            _shape.template local_min_bounds<algebra_t>(_values, env);
+            _shape.template local_min_bounds<transform3>(_values, env);
         static_assert(bounds.size() == cuboid3D<>::e_size,
                       "Shape returns incompatible bounds for bound box");
         return {bounds, std::numeric_limits<unsigned int>::max()};

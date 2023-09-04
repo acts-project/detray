@@ -17,6 +17,7 @@ file( GLOB _detray_core_public_headers
    "include/detray/grids/*.hpp"
    "include/detray/intersection/bounding_box/*.hpp"
    "include/detray/intersection/*.hpp"
+   "include/detray/intersection/soa/*.hpp"
    "include/detray/masks/*.hpp"
    "include/detray/materials/*.hpp"
    "include/detray/propagator/actors/*.hpp"
@@ -26,6 +27,7 @@ file( GLOB _detray_core_public_headers
    "include/detray/tools/*.hpp"
    "include/detray/tracks/*.hpp"
    "include/detray/utils/ranges/*.hpp"
+   "include/detray/utils/soa/*.hpp"
    "include/detray/utils/*.hpp" )
 file( GLOB _detray_core_private_headers
    "include/detray/*/detail/*.hpp"

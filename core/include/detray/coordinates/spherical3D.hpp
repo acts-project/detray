@@ -9,6 +9,7 @@
 
 // Project include(s).
 #include "detray/definitions/algebra.hpp"
+#include "detray/definitions/boolean.hpp"
 #include "detray/definitions/math.hpp"
 #include "detray/definitions/qualifiers.hpp"
 

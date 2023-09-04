@@ -88,7 +88,4 @@ using dvector3D = typename detail::get_algebra<A>::vector3D;
 template <typename A>
 using dtransform3D = typename detail::get_algebra<A>::transform3D;
 
-template <typename A>
-using dbool = typename detail::get_scalar<A>::boolean;
-
 }  // namespace detray
