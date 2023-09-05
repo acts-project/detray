@@ -122,6 +122,9 @@ struct sphere_intersector {
         const vector3 normal = mask.local_frame().normal(trf, is.local);
         is.cos_incidence_angle = vector::dot(rd, normal);
 
+        // Mask the values where the overstepping tolerance was not met
+        is.status &= (is.path >= ray.overstep_tolerance());
+
         return is;
     }
 

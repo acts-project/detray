@@ -63,6 +63,54 @@ using algebra::vc_soa::math::perp;
 using algebra::vc_soa::math::phi;
 using algebra::vc_soa::math::theta;
 
+/// Function extracting a slice from the matrix used by
+/// @c algebra::vc::transform3<float>
+template <std::size_t SIZE, std::enable_if_t<SIZE <= 4, bool> = true>
+ALGEBRA_HOST_DEVICE inline auto vector(
+    const algebra::vc_soa::math::transform3<algebra::vc_soa::storage_type,
+                                            float>::matrix44& m,
+    [[maybe_unused]] std::size_t row, std::size_t col) {
+
+    assert(row == 0);
+    assert(col < 4);
+    switch (col) {
+        case 0:
+            return m.x;
+        case 1:
+            return m.y;
+        case 2:
+            return m.z;
+        case 3:
+            return m.t;
+        default:
+            return m.x;
+    }
+}
+
+/// Function extracting a slice from the matrix used by
+/// @c algebra::vc::transform3<double>
+template <std::size_t SIZE, std::enable_if_t<SIZE <= 4, bool> = true>
+ALGEBRA_HOST_DEVICE inline auto vector(
+    const algebra::vc_soa::math::transform3<algebra::vc_soa::storage_type,
+                                            double>::matrix44& m,
+    [[maybe_unused]] std::size_t row, std::size_t col) {
+
+    assert(row == 0);
+    assert(col < 4);
+    switch (col) {
+        case 0:
+            return m.x;
+        case 1:
+            return m.y;
+        case 2:
+            return m.z;
+        case 3:
+            return m.t;
+        default:
+            return m.x;
+    }
+}
+
 }  // namespace getter
 
 }  // namespace detray

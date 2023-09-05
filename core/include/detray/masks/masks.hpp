@@ -62,9 +62,6 @@ class mask {
     using point3_t = dpoint3D<algebra_t>;
     using point2_t = dpoint2D<algebra_t>;
 
-    // Measurement ordering
-    bool normal_order = true;
-
     /// Default constructor
     constexpr mask() = default;
 

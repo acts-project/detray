@@ -9,6 +9,7 @@
 
 // Project include(s)
 #include "detray/coordinates/polar2D.hpp"
+#include "detray/definitions/boolean.hpp"
 #include "detray/definitions/containers.hpp"
 #include "detray/definitions/math.hpp"
 #include "detray/definitions/qualifiers.hpp"
@@ -135,40 +136,39 @@ class annulus2D {
     template <template <typename, std::size_t> class bounds_t,
               typename scalar_t, std::size_t kDIM, typename point_t,
               typename std::enable_if_t<kDIM == e_size, bool> = true>
-    DETRAY_HOST_DEVICE inline bool check_boundaries(
+    DETRAY_HOST_DEVICE inline auto check_boundaries(
         const bounds_t<scalar_t, kDIM> &bounds, const point_t &loc_p,
         const scalar_t tol = std::numeric_limits<scalar_t>::epsilon()) const {
 
         // The two quantities to check: r^2 in beam system, phi in focal system:
 
         // Rotate by avr phi in the focal system (this is usually zero)
-        const scalar_t phi_strp{loc_p[1] - bounds[e_average_phi]};
+        const scalar_t phi_strp = loc_p[1] - bounds[e_average_phi];
 
         // Check phi boundaries, which are well def. in focal frame
-        if ((phi_strp < bounds[e_min_phi_rel] - tol) or
-            (phi_strp > bounds[e_max_phi_rel] + tol)) {
-            return false;
-        }
+        const auto phi_check = !((phi_strp < (bounds[e_min_phi_rel] - tol)) or
+                                 (phi_strp > (bounds[e_max_phi_rel] + tol)));
 
         // Now go to beam frame to check r boundaries. Use the origin
         // shift in polar coordinates for that
         // TODO: Put shift in r-phi into the bounds?
         const point_t shift_xy = {-bounds[e_shift_x], -bounds[e_shift_y], 0.f};
-        const scalar_t shift_r{getter::perp(shift_xy)};
-        const scalar_t shift_phi{getter::phi(shift_xy)};
+        const scalar_t shift_r = getter::perp(shift_xy);
+        const scalar_t shift_phi = getter::phi(shift_xy);
 
-        const scalar_t r_mod2{shift_r * shift_r + loc_p[0] * loc_p[0] +
-                              2.f * shift_r * loc_p[0] *
-                                  math_ns::cos(phi_strp - shift_phi)};
+        const scalar_t r_mod2 =
+            shift_r * shift_r + loc_p[0] * loc_p[0] +
+            2.f * shift_r * loc_p[0] * math_ns::cos(phi_strp - shift_phi);
 
         // Apply tolerances as squares: 0 <= a, 0 <= b: a^2 <= b^2 <=> a <= b
-        const scalar_t minR_tol{bounds[e_min_r] - tol};
-        const scalar_t maxR_tol{bounds[e_max_r] + tol};
+        const scalar_t minR_tol = bounds[e_min_r] - tol;
+        const scalar_t maxR_tol = bounds[e_max_r] + tol;
 
-        assert(minR_tol >= 0.f);
+        assert(!detail::any_of(minR_tol >= scalar_t(0.f)));
 
-        return ((r_mod2 >= minR_tol * minR_tol) and
-                (r_mod2 <= maxR_tol * maxR_tol));
+        return ((r_mod2 >= (minR_tol * minR_tol)) and
+                (r_mod2 <= (maxR_tol * maxR_tol))) and
+               phi_check;
     }
 
     /// @brief Lower and upper point for minimal axis aligned bounding box.

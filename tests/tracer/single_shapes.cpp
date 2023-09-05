@@ -11,6 +11,7 @@
 // Project include(s).
 #include "detray/intersection/detail/trajectories.hpp"
 #include "detray/intersection/intersection.hpp"
+#include "detray/intersection/soa/plane_intersector.hpp"
 #include "detray/intersection/soa/sphere_intersector.hpp"
 #include "detray/io/image/ppm_writer.hpp"
 #include "detray/masks/masks.hpp"
@@ -154,23 +155,58 @@ int main() {
     const silicon_tml<dscalar<scalar>> sf_mat{};
 
     // render a rectangle mask
+    // AoS
     const mask<rectangle2D<>> rect{0u, 0.01f * image.width(),
                                    0.01f * image.height()};
     render_single_shape<scalar, algebra_aos_t>(image, rect, trf_aos,
                                                beryllium<scalar>{});
     ppm.write(image, "rectangle_AoS");
 
+    // SoA
+    const mask<rectangle2D<soa::plane_intersector>, std::uint_least16_t,
+               algebra_soa_t<scalar>>
+        rect_soa{
+            0u, 0.01f * image.width() * dsimd<algebra_soa_t, scalar>{}.Random(),
+            0.01f * image.height() * dsimd<algebra_soa_t, scalar>{}.Random()};
+    render_single_shape<scalar, algebra_soa_t>(image, rect_soa, trf,
+                                               beryllium<scalar>{});
+    ppm.write(image, "rectangle_SoA");
+
     // render a trapezoid mask
+    // AoS
     const mask<trapezoid2D<>> trpz{0u, 10.f, 30.f, 20.f, 1.f / 40.f};
     render_single_shape<scalar, algebra_aos_t>(image, trpz, trf_aos,
                                                aluminium<scalar>{});
     ppm.write(image, "trapezoid_AoS");
 
+    // SoA
+    const mask<trapezoid2D<soa::plane_intersector>, std::uint_least16_t,
+               algebra_soa_t<scalar>>
+        trap_soa{
+            0u, 0.01f * image.width() * dsimd<algebra_soa_t, scalar>{}.Random(),
+            0.03f * image.height() * dsimd<algebra_soa_t, scalar>{}.Random(),
+            0.02f * image.height() * dsimd<algebra_soa_t, scalar>{}.Random(),
+            1.f / 40.f * 1.f / 1000.f * image.height() *
+                dsimd<algebra_soa_t, scalar>{}.Random()};
+    render_single_shape<scalar, algebra_soa_t>(image, trap_soa, trf,
+                                               aluminium<scalar>{});
+    ppm.write(image, "trapezoid_SoA");
+
     // render a ring mask
+    // AoS
     const mask<ring2D<>> ring{0u, 12.f, 20.f};
     render_single_shape<scalar, algebra_aos_t>(image, ring, trf_aos,
                                                gold<scalar>{});
     ppm.write(image, "ring_AoS");
+
+    // SoA
+    const mask<ring2D<soa::plane_intersector>, std::uint_least16_t,
+               algebra_soa_t<scalar>>
+        ring_soa{0u, 23.f * dsimd<algebra_soa_t, scalar>{}.Random(),
+                 30.f * dsimd<algebra_soa_t, scalar>{}.Random()};
+    render_single_shape<scalar, algebra_soa_t>(image, ring_soa, trf,
+                                               gold<scalar>{});
+    ppm.write(image, "ring_SoA");
 
     // render an annulus mask
     const mask<annulus2D<>> ann2{0u,       5.f,  13.0f, 0.74195f,
@@ -178,6 +214,22 @@ int main() {
     render_single_shape<scalar, algebra_aos_t>(image, ann2, trf_aos,
                                                silicon<scalar>{});
     ppm.write(image, "annulus_AoS");
+
+    // SoA
+    const auto rand = 2.f * dsimd<algebra_soa_t, scalar>{}.Random();
+    const mask<annulus2D<soa::plane_intersector>, std::uint_least16_t,
+               algebra_soa_t<scalar>>
+        ann_soa{0u,
+                5.f * rand,
+                13.0f * rand,
+                0.74195f * rand,
+                1.33970f * rand,
+                -2.f * rand,
+                2.f * rand,
+                0.f * rand};
+    render_single_shape<scalar, algebra_soa_t>(image, ann_soa, trf,
+                                               silicon<scalar>{});
+    ppm.write(image, "annulus_SoA");
 
     // render a spherical mask
     // AoS

@@ -9,6 +9,7 @@
 
 // Project include(s)
 #include "detray/coordinates/spherical3D.hpp"
+#include "detray/definitions/boolean.hpp"
 #include "detray/definitions/math.hpp"
 #include "detray/definitions/qualifiers.hpp"
 #include "detray/intersection/sphere_intersector.hpp"

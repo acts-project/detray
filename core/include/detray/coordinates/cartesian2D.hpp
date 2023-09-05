@@ -62,14 +62,14 @@ struct cartesian2D {
     DETRAY_HOST_DEVICE static inline vector3D normal(const transform3D &trf3,
                                                      const point2D & = {},
                                                      const mask_t & = {}) {
-        return trf3.z();
+        return getter::vector<3>(trf3.matrix(), 0u, 2u);
     }
 
     /// @returns the normal vector
     DETRAY_HOST_DEVICE
     static inline vector3D normal(const transform3D &trf3,
                                   const point3D & = {}) {
-        return trf3.z();
+        return getter::vector<3>(trf3.matrix(), 0u, 2u);
     }
 
 };  // struct cartesian2
