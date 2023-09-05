@@ -11,6 +11,7 @@
 // Project include(s).
 #include "detray/intersection/detail/trajectories.hpp"
 #include "detray/intersection/intersection.hpp"
+#include "detray/intersection/soa/line_intersector.hpp"
 #include "detray/intersection/soa/plane_intersector.hpp"
 #include "detray/intersection/soa/sphere_intersector.hpp"
 #include "detray/io/image/ppm_writer.hpp"
@@ -128,8 +129,8 @@ int main() {
 
     // write a test image
     raw_image<unsigned int> image{500u};
-    write_test_image(image);
-    ppm.write(image, "test");
+    // write_test_image(image);
+    // ppm.write(image, "test");
 
     //
     // Render single shape
@@ -147,8 +148,8 @@ int main() {
 
     dtransform3D<algebra_soa_t<scalar>> trf{t, z, x};
 
-    dvector3D<algebra_aos_t<scalar>> x_aos{1.0f, 0.0f, 0.0f};
-    dvector3D<algebra_aos_t<scalar>> z_aos{0.0f, 0.0f, 1.f};
+    dvector3D<algebra_aos_t<scalar>> x_aos{5.0f, 1.0f, 1.0f};
+    dvector3D<algebra_aos_t<scalar>> z_aos{0.0f, 1.0f, 0.f};
     dvector3D<algebra_aos_t<scalar>> t_aos{0.f, 0.0f, -30.0f};
     dtransform3D<algebra_aos_t<scalar>> trf_aos{t_aos, z_aos, x_aos};
 
@@ -248,6 +249,25 @@ int main() {
     render_single_shape<scalar, algebra_soa_t>(image, sph2, trf,
                                                silicon<scalar>{});
     ppm.write(image, "sphere_SoA");
+
+    // render a spherical mask
+    // AoS
+    const mask<line<true>, std::uint_least16_t, algebra_aos_t<scalar>> ln2_aos{
+        0u, 10.f, std::numeric_limits<scalar>::infinity()};
+
+    render_single_shape<scalar, algebra_aos_t>(image, ln2_aos, trf_aos,
+                                               gold<scalar>{});
+    ppm.write(image, "line_AoS");
+
+    // SoA
+    const mask<line<true, soa::line_intersector>, std::uint_least16_t,
+               algebra_soa_t<scalar>>
+        ln2_soa{0u, 10.f * rand,
+                std::numeric_limits<scalar>::infinity() * rand};
+
+    render_single_shape<scalar, algebra_soa_t>(image, ln2_soa, trf,
+                                               gold<scalar>{});
+    ppm.write(image, "line_SoA");
 
     return EXIT_SUCCESS;
 }

@@ -66,7 +66,6 @@ struct plane_intersector {
         const auto &dir = ray.dir();
         const vector3 ro{pos[0], pos[1], pos[2]};
         const vector3 rd{dir[0], dir[1], dir[2]};
-        const scalar_type overstepping_tol = ray.overstep_tolerance();
 
         const scalar_type denom = vector::dot(rd, sn);
         const vector3 diff = st - ro;
@@ -94,7 +93,7 @@ struct plane_intersector {
             is.cos_incidence_angle = math_ns::abs(denom);
 
             // Mask the values where the overstepping tolerance was not met
-            is.status &= (is.path >= overstepping_tol);
+            is.status &= (is.path >= ray.overstep_tolerance());
         } else {
             is.status = decltype(is.status)(false);
         }

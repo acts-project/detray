@@ -12,12 +12,11 @@
 #include "detray/definitions/math.hpp"
 #include "detray/definitions/qualifiers.hpp"
 #include "detray/intersection/detail/trajectories.hpp"
-#include "detray/intersection/intersection.hpp"
 
 // System include(s)
 #include <type_traits>
 
-namespace detray {
+namespace detray::soa {
 
 /// A functor to find intersections between trajectory and line mask
 template <typename intersection_t>
@@ -26,6 +25,7 @@ struct line_intersector {
     /// linear algebra types
     /// @{
     using transform3_type = typename intersection_t::transform3D;
+    using value_type = typename intersection_t::value_t;
     using scalar_type = typename intersection_t::scalar_t;
     using point3 = typename intersection_t::point3D;
     using point2 = typename intersection_t::point2D;
@@ -33,7 +33,8 @@ struct line_intersector {
     /// @}
 
     using intersection_type = intersection_t;
-    using ray_type = detail::ray<transform3_type>;
+    using ray_type =
+        detray::detail::ray<dtransform3D<ALGEBRA_PLUGIN<value_type>>>;
 
     /// Operator function to find intersections between ray and line mask
     ///
@@ -47,77 +48,70 @@ struct line_intersector {
     /// @param mask_tolerance is the tolerance for mask edges
     //
     /// @return the intersection
-    template <
-        typename mask_t, typename surface_t,
-        std::enable_if_t<std::is_same_v<typename mask_t::local_frame_type,
-                                        line2D<ALGEBRA_PLUGIN<scalar_type>>>,
-                         bool> = true>
+    template <typename mask_t, typename surface_t>
     DETRAY_HOST_DEVICE inline intersection_t operator()(
         const ray_type &ray, const surface_t &sf, const mask_t &mask,
         const transform3_type &trf,
         const scalar_type mask_tolerance = 0.f) const {
 
         intersection_type is;
-        is.status = false;
 
         // line direction
-        const vector3 _z = getter::vector<3>(trf.matrix(), 0u, 2u);
+        const vector3 sz = getter::vector<3>(trf.matrix(), 0u, 2u);
 
         // line center
-        const point3 _t = trf.translation();
+        const point3 st = trf.translation();
 
-        // track direction
-        const vector3 _d = ray.dir();
-
-        // track position
-        const point3 _p = ray.pos();
+        // Broadcast ray data
+        const auto &pos = ray.pos();
+        const auto &dir = ray.dir();
+        const vector3 ro{pos[0], pos[1], pos[2]};
+        const vector3 rd{dir[0], dir[1], dir[2]};
 
         // Projection of line to track direction
-        const scalar_type zd{vector::dot(_z, _d)};
+        const scalar_type zd = vector::dot(sz, rd);
 
-        const scalar_type denom{1.f - (zd * zd)};
+        const scalar_type denom = 1.f - (zd * zd);
 
         // Case for wire is parallel to track
-        if (denom < 1e-6f) {
-            is.status = false;
+        if (detail::all_of(denom < 1e-5f)) {
+            is.status = decltype(is.status)(false);
             return is;
         }
 
         // vector from track position to line center
-        const auto t2l = _t - _p;
+        const vector3 t2l = st - ro;
 
         // t2l projection on line direction
-        const scalar_type t2l_on_line{vector::dot(t2l, _z)};
+        const scalar_type t2l_on_line = vector::dot(t2l, sz);
 
         // t2l projection on track direction
-        const scalar_type t2l_on_track{vector::dot(t2l, _d)};
+        const scalar_type t2l_on_track = vector::dot(t2l, rd);
 
         // path length to the point of closest approach on the track
-        const scalar_type A{1.f / denom * (t2l_on_track - t2l_on_line * zd)};
+        is.path = (t2l_on_track - t2l_on_line * zd) / denom;
 
-        is.path = A;
-        // Intersection is not valid for navigation - return early
-        if (is.path >= ray.overstep_tolerance()) {
+        // point of closest approach on the track
+        const point3 m = ro + rd * is.path;
+        is.local = mask.to_local_frame(trf, m, rd);
+        is.status = mask.is_inside(is.local, mask_tolerance);
 
-            // point of closest approach on the track
-            const point3 m = _p + _d * A;
-
-            is.local = mask.to_local_frame(trf, m, _d);
-
-            is.status = mask.is_inside(is.local, mask_tolerance);
-
-            // prepare some additional information in case the intersection
-            // is valid
-            if (is.status) {
-                is.sf_desc = sf;
-
-                is.direction = !detail::signbit(is.path);
-                is.volume_link = mask.volume_link();
-
-                // Get incidence angle
-                is.cos_incidence_angle = std::abs(zd);
-            }
+        // Early return, in case all intersections are invalid
+        if (is.status.isEmpty()) {
+            return is;
         }
+
+        is.sf_desc = sf;
+
+        is.direction = !detail::signbit(is.path);
+        is.volume_link = mask.volume_link();
+
+        // Get incidence angle
+        is.cos_incidence_angle = math_ns::abs(zd);
+
+        // Mask the values where the overstepping tolerance was not met
+        is.status &= (is.path >= ray.overstep_tolerance());
+
         return is;
     }
 
@@ -143,4 +137,4 @@ struct line_intersector {
     }
 };
 
-}  // namespace detray
+}  // namespace detray::soa

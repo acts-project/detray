@@ -39,10 +39,10 @@ struct line2D {
         const auto local3 = trf.point_to_local(p);
 
         // Line direction
-        const vector3D z = trf.z();
+        const vector3D z = getter::vector<3>(trf.matrix(), 0u, 2u);
 
         // Line center
-        const point3D t = trf.translation();
+        const point3D tp = trf.translation() - p;
 
         // Radial vector
         const vector3D r = vector::cross(z, d);
@@ -50,7 +50,8 @@ struct line2D {
         // Assign the sign depending on the position w.r.t line
         // Right: -1
         // Left: 1
-        const scalar_t sign = vector::dot(r, t - p) > 0.f ? -1.f : 1.f;
+        const scalar_t sign =
+            math_ns::copysign(scalar_t(1.f), vector::dot(r, tp));
 
         return {sign * getter::perp(local3), local3[2], getter::phi(local3)};
     }
@@ -60,7 +61,7 @@ struct line2D {
     DETRAY_HOST_DEVICE
     static inline point3D local_to_global(const transform3D &trf,
                                           const point3D &p) {
-        const scalar_t R = std::abs(p[0]);
+        const scalar_t R = math_ns::abs(p[0]);
         const point3D local = {R * math_ns::cos(p[2]), R * math_ns::sin(p[2]),
                                p[1]};
 
@@ -75,7 +76,7 @@ struct line2D {
         const vector3D &d) {
 
         // Line direction
-        const vector3D z = trf.z();
+        const vector3D z = getter::vector<3>(trf.matrix(), 0u, 2u);
 
         // Radial vector
         const vector3D r = vector::cross(z, d);
@@ -92,14 +93,14 @@ struct line2D {
     DETRAY_HOST_DEVICE static inline vector3D normal(const transform3D &trf3,
                                                      const point2D & = {},
                                                      const mask_t & = {}) {
-        return trf3.z();
+        return getter::vector<3>(trf3.matrix(), 0u, 2u);
     }
 
     /// @returns the normal vector
     DETRAY_HOST_DEVICE
     static inline vector3D normal(const transform3D &trf3,
                                   const point3D & = {}) {
-        return trf3.z();
+        return getter::vector<3>(trf3.matrix(), 0u, 2u);
     }
 };
 

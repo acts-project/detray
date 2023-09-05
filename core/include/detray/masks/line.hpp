@@ -9,6 +9,7 @@
 
 // Project include(s).
 #include "detray/coordinates/line2D.hpp"
+#include "detray/definitions/boolean.hpp"
 #include "detray/definitions/containers.hpp"
 #include "detray/definitions/math.hpp"
 #include "detray/definitions/qualifiers.hpp"
@@ -17,7 +18,6 @@
 #include "detray/surface_finders/grid/detail/axis_bounds.hpp"
 
 // System include(s)
-#include <cmath>
 #include <limits>
 #include <ostream>
 #include <type_traits>
@@ -99,7 +99,7 @@ class line {
     template <template <typename, std::size_t> class bounds_t,
               typename scalar_t, std::size_t kDIM, typename point_t,
               typename std::enable_if_t<kDIM == 2u, bool> = true>
-    DETRAY_HOST_DEVICE inline bool check_boundaries(
+    DETRAY_HOST_DEVICE inline auto check_boundaries(
         const bounds_t<scalar_t, kDIM> &bounds, const point_t &loc_p,
         const scalar_t tol = std::numeric_limits<scalar_t>::epsilon()) const {
 
@@ -108,11 +108,11 @@ class line {
         // size and (2) the distance to the point of closest approach on thw
         // line from the line center is less than the half line length
         if constexpr (square_cross_sect) {
-            return (std::abs(loc_p[0] * math_ns::cos(loc_p[2])) <=
-                        bounds[e_cross_section] + tol &&
-                    std::abs(loc_p[0] * math_ns::sin(loc_p[2])) <=
-                        bounds[e_cross_section] + tol &&
-                    std::abs(loc_p[1]) <= bounds[e_half_z] + tol);
+            return (math_ns::abs(loc_p[0] * math_ns::cos(loc_p[2])) <=
+                        (bounds[e_cross_section] + tol) &&
+                    math_ns::abs(loc_p[0] * math_ns::sin(loc_p[2])) <=
+                        (bounds[e_cross_section] + tol) &&
+                    math_ns::abs(loc_p[1]) <= (bounds[e_half_z] + tol));
 
         }
         // For a circular cross section (e.g. straw tube), we check if (1) the
@@ -120,8 +120,8 @@ class line {
         // of closest approach on the line from the line center is less than the
         // line half length
         else {
-            return (loc_p[0] <= bounds[e_cross_section] + tol &&
-                    std::abs(loc_p[1]) <= bounds[e_half_z] + tol);
+            return (loc_p[0] <= (bounds[e_cross_section] + tol) &&
+                    math_ns::abs(loc_p[1]) <= (bounds[e_half_z] + tol));
         }
     }
 
