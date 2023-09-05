@@ -17,7 +17,6 @@
 #include "detray/masks/sphere2D.hpp"
 #include "detray/materials/predefined_materials.hpp"
 #include "detray/tracer/renderer/camera.hpp"
-#include "detray/tracer/renderer/detail/mask.hpp"
 #include "detray/tracer/renderer/pipeline.hpp"
 #include "detray/tracer/renderer/raw_image.hpp"
 #include "detray/tracer/shaders/background.hpp"
@@ -182,16 +181,17 @@ int main() {
 
     // render a spherical mask
     // AoS
-    const tracer_mask<sphere2D<>, std::uint_least16_t, scalar, algebra_aos_t>
-        sph2_aos{0u, 10.f};
+    const mask<sphere2D<>, std::uint_least16_t, algebra_aos_t<scalar>> sph2_aos{
+        0u, 10.f};
 
     render_single_shape<scalar, algebra_aos_t>(image, sph2_aos, trf_aos,
                                                silicon<scalar>{});
     ppm.write(image, "sphere_AoS");
 
     // SoA
-    const tracer_mask<sphere2D<soa::sphere_intersector>> sph2{
-        0u, 10.f * dsimd<algebra_soa_t, scalar>{}.Random()};
+    const mask<sphere2D<soa::sphere_intersector>, std::uint_least16_t,
+               algebra_soa_t<scalar>>
+        sph2{0u, 10.f * dsimd<algebra_soa_t, scalar>{}.Random()};
 
     render_single_shape<scalar, algebra_soa_t>(image, sph2, trf,
                                                silicon<scalar>{});

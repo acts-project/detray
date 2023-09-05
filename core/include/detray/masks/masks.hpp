@@ -51,7 +51,7 @@ template <typename shape_t, typename links_t = std::uint_least16_t,
 class mask {
     public:
     using links_type = links_t;
-    using scalar_type = detray::scalar;
+    using scalar_type = dscalar<algebra_t>;
     using shape = shape_t;
     using boundaries = typename shape::boundaries;
     using mask_values = array_t<scalar_type, boundaries::e_size>;
