@@ -8,7 +8,7 @@
 #pragma once
 
 // Project include(s)
-#include "detray/coordinates/polar2.hpp"
+#include "detray/coordinates/polar2D.hpp"
 #include "detray/definitions/containers.hpp"
 #include "detray/definitions/math.hpp"
 #include "detray/definitions/qualifiers.hpp"
@@ -66,7 +66,7 @@ class annulus2D {
 
     /// Local coordinate frame ( focal system )
     template <typename algebra_t>
-    using local_frame_type = polar2<algebra_t>;
+    using local_frame_type = polar2D<algebra_t>;
 
     /// Underlying surface geometry: planar
     template <typename intersection_t>

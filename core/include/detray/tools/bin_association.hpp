@@ -41,16 +41,16 @@ static inline void bin_association(const context_t & /*context*/,
                                    const std::array<scalar, 2> &bin_tolerance,
                                    bool absolute_tolerance = true) {
 
-    using transform_t = typename transform_container_t::value_type;
-    using point2_t = typename transform_t::point2;
-    using point3_t = typename transform_t::point3;
+    using algebra = typename grid_t::local_frame_type::algebra;
+    using point2_t = dpoint2D<algebra>;
+    using point3_t = dpoint3D<algebra>;
 
     const auto &axis_0 = grid.template get_axis<0>();
     const auto &axis_1 = grid.template get_axis<1>();
 
     // Disk type bin association
     if constexpr (std::is_same_v<typename grid_t::local_frame_type,
-                                 polar2<transform_t>>) {
+                                 polar2D<algebra>>) {
         // Run with two different associators: center of gravity and edge
         // intersection
         center_of_gravity_generic cgs_assoc;
@@ -117,7 +117,7 @@ static inline void bin_association(const context_t & /*context*/,
             }
         }
     } else if constexpr (std::is_same_v<typename grid_t::local_frame_type,
-                                        cylindrical2<transform_t>>) {
+                                        cylindrical2D<algebra>>) {
 
         center_of_gravity_rectangle cgs_assoc;
         edges_intersect_generic edges_assoc;

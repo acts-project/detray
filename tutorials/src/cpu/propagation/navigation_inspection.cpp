@@ -57,7 +57,7 @@ int main() {
     // Navigation with inspection
     using navigator_t = detray::navigator<toy_detector_t, inspector_t>;
     // Line stepper
-    using stepper_t = detray::line_stepper<detray::tutorial::transform3>;
+    using stepper_t = detray::line_stepper<detray::scalar, ALGEBRA_PLUGIN>;
     // Propagator with empty actor chain
     using propagator_t =
         detray::propagator<stepper_t, navigator_t, detray::actor_chain<>>;

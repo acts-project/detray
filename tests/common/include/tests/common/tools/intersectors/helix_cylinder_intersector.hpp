@@ -8,7 +8,7 @@
 #pragma once
 
 // Project include(s)
-#include "detray/coordinates/cylindrical2.hpp"
+#include "detray/coordinates/cylindrical2D.hpp"
 #include "detray/definitions/qualifiers.hpp"
 #include "detray/intersection/cylinder_intersector.hpp"
 #include "detray/intersection/detail/trajectories.hpp"
@@ -178,7 +178,7 @@ struct helix_intersector<
     intersection_t, mask_t,
     std::enable_if_t<
         std::is_same_v<typename mask_t::local_frame_type,
-                       cylindrical2<typename intersection_t::transform3D>>,
+                       cylindrical2D<ALGEBRA_PLUGIN<detray::scalar>>>,
         void>> : public detail::helix_cylinder_intersector<intersection_t> {
     using intersector_impl = detail::helix_cylinder_intersector<intersection_t>;
 

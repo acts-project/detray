@@ -130,7 +130,7 @@ struct surface_kernels {
     };
 
     /// A functor to get from a free to a bound vector
-    struct free_to_bound_vector {
+    /*struct free_to_bound_vector {
 
         // Visitor to the detector mask store that is called on the mask
         // collection that contains the mask (shape) type of the surface
@@ -154,6 +154,10 @@ struct surface_kernels {
             const transform3& trf3, const bound_vector_type& bound_vec) const {
 
             const auto& m = mask_group[index];
+
+            using jacobian_engine =
+    detail::jacobian_engine<mask_group_t::value_type::shape::template
+    local_frame_type, T, algebra_t>;
 
             return m.local_frame().bound_to_free_vector(trf3, m, bound_vec);
         }
@@ -200,7 +204,7 @@ struct surface_kernels {
 
             return m.local_frame().path_correction(pos, dir, dtds, trf3);
         }
-    };
+    };*/
 
     /// A functor to get the local min bounds.
     struct local_min_bounds {

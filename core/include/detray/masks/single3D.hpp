@@ -8,8 +8,8 @@
 #pragma once
 
 // Project include(s)
-#include "detray/coordinates/cartesian2.hpp"
-#include "detray/coordinates/cartesian3.hpp"
+#include "detray/coordinates/cartesian2D.hpp"
+#include "detray/coordinates/cartesian3D.hpp"
 #include "detray/definitions/containers.hpp"
 #include "detray/definitions/qualifiers.hpp"
 #include "detray/intersection/plane_intersector.hpp"
@@ -45,7 +45,7 @@ class single3D {
 
     /// Local coordinate frame for boundary checks
     template <typename algebra_t>
-    using local_frame_type = cartesian2<algebra_t>;
+    using local_frame_type = cartesian2D<algebra_t>;
 
     /// Underlying surface geometry: planar
     template <typename intersection_t>

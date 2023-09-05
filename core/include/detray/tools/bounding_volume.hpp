@@ -8,6 +8,7 @@
 #pragma once
 
 // Project include(s).
+#include "detray/coordinates/cylindrical3D.hpp"
 #include "detray/definitions/algebra.hpp"
 #include "detray/definitions/qualifiers.hpp"
 #include "detray/definitions/units.hpp"
@@ -166,8 +167,8 @@ class axis_aligned_bounding_volume {
         if constexpr (std::is_same_v<shape, cuboid3D<>>) {
             return trf.point_to_global(loc_min());
         } else if constexpr (std::is_same_v<shape, cylinder3D>) {
-            return cylindrical3<transform3D>{}.local_to_global(trf, m_mask,
-                                                               loc_min());
+            return cylindrical3D<algebra_t<T>>{}.local_to_global(trf, m_mask,
+                                                                 loc_min());
         }
 
         // If the volume shape is not supported, return universal minimum
@@ -185,8 +186,8 @@ class axis_aligned_bounding_volume {
         if constexpr (std::is_same_v<shape, cuboid3D<>>) {
             return trf.point_to_global(loc_max());
         } else if constexpr (std::is_same_v<shape, cylinder3D>) {
-            return cylindrical3<transform3D>{}.local_to_global(trf, m_mask,
-                                                               loc_max());
+            return cylindrical3D<algebra_t<T>>{}.local_to_global(trf, m_mask,
+                                                                 loc_max());
         }
 
         // If the volume shape is not supported, return universal minimum

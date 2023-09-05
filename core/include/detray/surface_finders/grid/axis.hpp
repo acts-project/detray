@@ -99,7 +99,7 @@ struct single_axis {
     /// @returns the width of a bin
     template <typename... Args>
     DETRAY_HOST_DEVICE inline constexpr scalar_type bin_width(
-        Args &&... args) const {
+        Args &&...args) const {
         return m_binning.bin_width(std::forward<Args &&>(args)...);
     }
 
@@ -441,12 +441,12 @@ struct multi_axis_assembler<is_owning, containers, local_frame,
 /// Typedef for easier construction @c multi_axis from mask shapes
 template <typename shape_t, bool is_owning = true,
           typename containers = host_container_types,
-          typename algebra_t = __plugin::transform3<detray::scalar>>
+          typename algebra_t = ALGEBRA_PLUGIN<detray::scalar>>
 using coordinate_axes = typename detail::multi_axis_assembler<
     is_owning, containers,
     typename shape_t::template coordinate_type<algebra_t>,
     typename shape_t::axes::types,
-    typename shape_t::axes::template binning<
-        containers, typename algebra_t::scalar_type>>::type;
+    typename shape_t::axes::template binning<containers,
+                                             dscalar<algebra_t>>>::type;
 
 }  // namespace detray

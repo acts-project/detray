@@ -8,127 +8,58 @@
 #pragma once
 
 // Project include(s).
-#include "detray/coordinates/coordinate_base.hpp"
+#include "detray/coordinates/line2D.hpp"
 #include "detray/definitions/qualifiers.hpp"
+#include "detray/definitions/track_parametrization.hpp"
+#include "detray/propagator/detail/jacobian_kernel.hpp"
 #include "detray/tracks/bound_track_parameters.hpp"
+#include "detray/tracks/detail/track_helper.hpp"
+#include "detray/utils/invalid_values.hpp"
 
-namespace detray {
+namespace detray::detail {
 
-template <typename transform3_t>
-struct line2 : public coordinate_base<line2, transform3_t> {
+/// @brief Specialization for 2D cartesian frames
+template <typename T, template <typename> class algebra_t>
+struct jacobian_kernel<line2D, T, algebra_t> {
 
     /// @name Type definitions for the struct
     /// @{
-
-    // Transform type
-    using transform3_type = transform3_t;
-    // Base type
-    using base_type = coordinate_base<line2, transform3_t>;
-    // Sclar type
-    using scalar_type = typename base_type::scalar_type;
-    // Point in 2D space
-    using point2 = typename base_type::point2;
-    // Point in 3D space
-    using point3 = typename base_type::point3;
-    // Vector in 3D space
-    using vector3 = typename base_type::vector3;
-    // Matrix actor
-    using matrix_operator = typename base_type::matrix_operator;
+    using coordinate_frame = line2D<algebra_t<T>>;
+    using transform3_type = dtransform3D<algebra_t<T>>;
+    using scalar_type = dscalar<algebra_t<T>>;
+    using point2 = dpoint2D<algebra_t<T>>;
+    using point3 = dpoint3D<algebra_t<T>>;
+    using vector3 = dvector3D<algebra_t<T>>;
+    // Matrix operator
+    using matrix_operator = typename transform3_type::matrix_actor;
     // Matrix size type
-    using size_type = typename base_type::size_type;
+    using size_type = typename matrix_operator::size_ty;
     // 2D matrix type
     template <size_type ROWS, size_type COLS>
-    using matrix_type = typename base_type::template matrix_type<ROWS, COLS>;
+    using matrix_type =
+        typename matrix_operator::template matrix_type<ROWS, COLS>;
     // Rotation Matrix
-    using rotation_matrix = typename base_type::rotation_matrix;
-    // Vector types
-    using bound_vector = typename base_type::bound_vector;
-    using free_vector = typename base_type::free_vector;
-    // Track Helper
-    using track_helper = typename base_type::track_helper;
-    // Matrix types
-    using free_to_bound_matrix = typename base_type::free_to_bound_matrix;
-    using bound_to_free_matrix = typename base_type::bound_to_free_matrix;
-    using free_to_path_matrix = typename base_type::free_to_path_matrix;
-
-    // Local point type in line coordinates
-    using loc_point = point2;
-
+    using rotation_matrix = matrix_type<3, 3>;
+    // Shorthand vector/matrix types related to bound track parameters.
+    using bound_vector = matrix_type<e_bound_size, 1>;
+    using bound_matrix = matrix_type<e_bound_size, e_bound_size>;
+    // Mapping from bound track parameters.
+    using bound_to_free_matrix = matrix_type<e_free_size, e_bound_size>;
+    // Shorthand vector/matrix types related to free track parameters.
+    using free_vector = matrix_type<e_free_size, 1>;
+    using free_matrix = matrix_type<e_free_size, e_free_size>;
+    // Mapping from free track parameters.
+    using free_to_bound_matrix = matrix_type<e_bound_size, e_free_size>;
+    using free_to_path_matrix = matrix_type<1, e_free_size>;
+    using path_to_free_matrix = matrix_type<e_free_size, 1>;
+    // Track helper
+    using track_helper = detail::track_helper<matrix_operator>;
     /// @}
 
-    /** This method transform from a point from global cartesian 3D frame to a
-     * local 2D line point */
     DETRAY_HOST_DEVICE
-    inline point3 global_to_local(const transform3_t &trf, const point3 &p,
-                                  const vector3 &d) const {
-
-        const auto local3 = trf.point_to_local(p);
-
-        // Line direction
-        const vector3 z = trf.z();
-
-        // Line center
-        const point3 t = trf.translation();
-
-        // Radial vector
-        const vector3 r = vector::cross(z, d);
-
-        // Assign the sign depending on the position w.r.t line
-        // Right: -1
-        // Left: 1
-        const scalar_type sign = vector::dot(r, t - p) > 0.f ? -1.f : 1.f;
-
-        return {sign * getter::perp(local3), local3[2], getter::phi(local3)};
-    }
-
-    /** This method transform from a local 2D line point to a point global
-     * cartesian 3D frame*/
-    DETRAY_HOST_DEVICE inline point3 local_to_global(const transform3_t &trf,
-                                                     const point3 &p) const {
-        const scalar_type R = std::abs(p[0]);
-        const point3 local = {R * math_ns::cos(p[2]), R * math_ns::sin(p[2]),
-                              p[1]};
-
-        return trf.point_to_global(local);
-    }
-
-    /** This method transform from a local 2D line point to a point global
-     * cartesian 3D frame*/
-    template <typename mask_t>
-    DETRAY_HOST_DEVICE inline point3 bound_local_to_global(
-        const transform3_t &trf, const mask_t & /*mask*/, const point2 &p,
-        const vector3 &d) const {
-
-        // Line direction
-        const vector3 z = trf.z();
-
-        // Radial vector
-        const vector3 r = vector::cross(z, d);
-
-        // Local Z poisition in global cartesian coordinate
-        const point3 locZ_in_global =
-            trf.point_to_global(point3{0.f, 0.f, p[1]});
-
-        return locZ_in_global + p[0] * vector::normalize(r);
-    }
-
-    /// @returns the normal vector
-    template <typename mask_t>
-    DETRAY_HOST_DEVICE inline vector3 normal(const transform3_t &trf3,
-                                             const point2 & = {},
-                                             const mask_t & = {}) const {
-        return trf3.z();
-    }
-
-    /// @returns the normal vector
-    DETRAY_HOST_DEVICE inline vector3 normal(const transform3_t &trf3,
-                                             const point3 & = {}) const {
-        return trf3.z();
-    }
-
-    DETRAY_HOST_DEVICE inline rotation_matrix reference_frame(
-        const transform3_t &trf3, const point3 & /*pos*/,
-        const vector3 &dir) const {
+    static inline rotation_matrix reference_frame(const transform3_type &trf3,
+                                                  const point3 & /*pos*/,
+                                                  const vector3 &dir) {
 
         rotation_matrix rot = matrix_operator().template zero<3, 3>();
 
@@ -153,8 +84,9 @@ struct line2 : public coordinate_base<line2, transform3_t> {
         return rot;
     }
 
-    DETRAY_HOST_DEVICE inline free_to_path_matrix path_derivative(
-        const transform3_t &trf3, const point3 &pos, const vector3 &dir) const {
+    DETRAY_HOST_DEVICE
+    static inline free_to_path_matrix path_derivative(
+        const transform3_type &trf3, const point3 &pos, const vector3 &dir) {
 
         free_to_path_matrix derivative =
             matrix_operator().template zero<1u, e_free_size>();
@@ -187,9 +119,10 @@ struct line2 : public coordinate_base<line2, transform3_t> {
         return derivative;
     }
 
-    DETRAY_HOST_DEVICE inline void set_bound_pos_to_free_pos_derivative(
-        bound_to_free_matrix &bound_to_free_jacobian, const transform3_t &trf3,
-        const point3 &pos, const vector3 &dir) const {
+    DETRAY_HOST_DEVICE
+    static inline void set_bound_pos_to_free_pos_derivative(
+        bound_to_free_matrix &bound_to_free_jacobian,
+        const transform3_type &trf3, const point3 &pos, const vector3 &dir) {
 
         const auto frame = reference_frame(trf3, pos, dir);
 
@@ -202,9 +135,10 @@ struct line2 : public coordinate_base<line2, transform3_t> {
                                              e_free_pos0, e_bound_loc0);
     }
 
-    DETRAY_HOST_DEVICE inline void set_free_pos_to_bound_pos_derivative(
-        free_to_bound_matrix &free_to_bound_jacobian, const transform3_t &trf3,
-        const point3 &pos, const vector3 &dir) const {
+    DETRAY_HOST_DEVICE
+    static inline void set_free_pos_to_bound_pos_derivative(
+        free_to_bound_matrix &free_to_bound_jacobian,
+        const transform3_type &trf3, const point3 &pos, const vector3 &dir) {
 
         const auto frame = reference_frame(trf3, pos, dir);
         const auto frameT = matrix_operator().transpose(frame);
@@ -218,12 +152,13 @@ struct line2 : public coordinate_base<line2, transform3_t> {
                                              e_bound_loc0, e_free_pos0);
     }
 
-    DETRAY_HOST_DEVICE inline void set_bound_angle_to_free_pos_derivative(
-        bound_to_free_matrix &bound_to_free_jacobian, const transform3_t &trf3,
-        const point3 &pos, const vector3 &dir) const {
+    DETRAY_HOST_DEVICE
+    static inline void set_bound_angle_to_free_pos_derivative(
+        bound_to_free_matrix &bound_to_free_jacobian,
+        const transform3_type &trf3, const point3 &pos, const vector3 &dir) {
 
         // local2
-        const auto local2 = this->global_to_local(trf3, pos, dir);
+        const auto local2 = coordinate_frame::global_to_local(trf3, pos, dir);
 
         // Reference frame
         const auto frame = reference_frame(trf3, pos, dir);
@@ -284,28 +219,6 @@ struct line2 : public coordinate_base<line2, transform3_t> {
                                   e_bound_theta) =
             theta_to_free_pos_derivative[2];
     }
-
-    template <size_type meas_dim>
-    DETRAY_HOST_DEVICE inline void unsigned_local(
-        matrix_type<meas_dim, e_bound_size> &projection_matrix,
-        const bound_track_parameters<transform3_t> &bound_params,
-        const bool normal_order) {
-
-        const auto bound_local = bound_params.bound_local();
-
-        // Change the sign of radial distance if it is negative
-        if (bound_local[0] < 0.f) {
-            if (normal_order == true) {
-                matrix_operator().element(projection_matrix, 0u, 0u) = -1.f;
-            } else {
-                if constexpr (meas_dim == 2u) {
-                    matrix_operator().element(projection_matrix, 1u, 0u) = -1.f;
-                }
-            }
-        }
-
-        return;
-    }
 };
 
-}  // namespace detray
+}  // namespace detray::detail

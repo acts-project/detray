@@ -8,7 +8,7 @@
 #pragma once
 
 // Project include(s)
-#include "detray/coordinates/cartesian3.hpp"
+#include "detray/coordinates/cartesian3D.hpp"
 #include "detray/definitions/containers.hpp"
 #include "detray/definitions/qualifiers.hpp"
 #include "detray/intersection/bounding_box/cuboid_intersector.hpp"
@@ -45,7 +45,7 @@ class cuboid3D {
 
     /// Local coordinate frame for boundary checks
     template <typename algebra_t>
-    using local_frame_type = cartesian3<algebra_t>;
+    using local_frame_type = cartesian3D<algebra_t>;
 
     /// Underlying surface geometry: not a surface
     template <typename = void>

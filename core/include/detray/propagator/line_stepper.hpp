@@ -20,14 +20,16 @@
 namespace detray {
 
 /// Straight line stepper implementation
-template <typename transform3_t, typename constraint_t = unconstrained_step,
+template <typename T, template <typename> class algebra_t,
+          typename constraint_t = unconstrained_step,
           typename policy_t = stepper_default_policy>
 class line_stepper final
-    : public base_stepper<transform3_t, constraint_t, policy_t> {
+    : public base_stepper<T, algebra_t, constraint_t, policy_t> {
 
     public:
-    using base_type = base_stepper<transform3_t, constraint_t, policy_t>;
-    using transform3_type = transform3_t;
+    using base_type = base_stepper<T, algebra_t, constraint_t, policy_t>;
+    using vector3 = dvector3D<algebra_t<T>>;
+    using transform3_type = dtransform3D<algebra_t<T>>;
     using policy_type = policy_t;
     using free_track_parameters_type =
         typename base_type::free_track_parameters_type;
@@ -35,7 +37,6 @@ class line_stepper final
         typename base_type::bound_track_parameters_type;
     using matrix_operator = typename base_type::matrix_operator;
     using size_type = typename matrix_operator::size_ty;
-    using vector3 = typename transform3_type::vector3;
     template <size_type ROWS, size_type COLS>
     using matrix_type =
         typename matrix_operator::template matrix_type<ROWS, COLS>;

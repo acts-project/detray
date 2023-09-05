@@ -126,7 +126,7 @@ GTEST_TEST(detray_navigator, toy_geometry) {
     using inspector_t = navigation::print_inspector;
     using navigator_t = navigator<detector_t, inspector_t>;
     using constraint_t = constrained_step<>;
-    using stepper_t = line_stepper<transform3, constraint_t>;
+    using stepper_t = line_stepper<test::scalar, ALGEBRA_PLUGIN, constraint_t>;
 
     // test track
     point3 pos{0.f, 0.f, 0.f};
@@ -285,7 +285,7 @@ GTEST_TEST(detray_navigator, wire_chamber) {
     using inspector_t = navigation::print_inspector;
     using navigator_t = navigator<detector_t, inspector_t>;
     using constraint_t = constrained_step<>;
-    using stepper_t = line_stepper<transform3, constraint_t>;
+    using stepper_t = line_stepper<test::scalar, ALGEBRA_PLUGIN, constraint_t>;
 
     // test track
     point3 pos{0.f, 0.f, 0.f};

@@ -57,7 +57,7 @@ class mask {
     using mask_values = array_t<scalar_type, boundaries::e_size>;
     using transform3 = dtransform3D<algebra_t>;
     using local_frame_type =
-        typename shape::template local_frame_type<transform3>;
+        typename shape::template local_frame_type<algebra_t>;
     // Linear algebra types
     using point3_t = dpoint3D<algebra_t>;
     using point2_t = dpoint2D<algebra_t>;

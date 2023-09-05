@@ -8,8 +8,7 @@
 #pragma once
 
 // Project include(s).
-#include "detray/coordinates/cartesian3.hpp"
-#include "detray/coordinates/line2.hpp"
+#include "detray/coordinates/line2D.hpp"
 #include "detray/definitions/containers.hpp"
 #include "detray/definitions/math.hpp"
 #include "detray/definitions/qualifiers.hpp"
@@ -54,7 +53,7 @@ class line {
 
     /// Local coordinate frame for boundary checks
     template <typename algebra_t>
-    using local_frame_type = line2<algebra_t>;
+    using local_frame_type = line2D<algebra_t>;
 
     /// Underlying surface geometry: line
     template <typename intersection_t>
@@ -75,7 +74,7 @@ class line {
 
         /// How to convert into the local axis system and back
         template <typename algebra_t>
-        using coordinate_type = line2<algebra_t>;
+        using coordinate_type = line2D<algebra_t>;
 
         template <typename C, typename S>
         using binning = dtuple<binning_loc0<C, S>, binning_loc1<C, S>>;

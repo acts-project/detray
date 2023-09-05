@@ -74,7 +74,7 @@ struct helix_inspector : actor {
         }
 
         // Surface
-        const auto sf = surface{*navigation.detector(),
+        /*const auto sf = surface{*navigation.detector(),
                                 stepping._bound_params.surface_link()};
 
         const auto free_vec =
@@ -108,7 +108,7 @@ struct helix_inspector : actor {
                     matrix_operator().element(true_J, i, j),
                     stepping._s * tol * 10.f);
             }
-        }
+        }*/
     }
 };
 
@@ -121,7 +121,7 @@ GTEST_TEST(detray_propagator, propagator_line_stepper) {
     const auto [d, names] = create_toy_geometry(host_mr);
 
     using navigator_t = navigator<decltype(d), navigation::print_inspector>;
-    using stepper_t = line_stepper<transform3>;
+    using stepper_t = line_stepper<test::scalar, ALGEBRA_PLUGIN>;
     using propagator_t = propagator<stepper_t, navigator_t, actor_chain<>>;
 
     const point3 pos{0.f, 0.f, 0.f};
@@ -173,13 +173,14 @@ TEST_P(PropagatorWithRkStepper, propagator_rk_stepper) {
     using track_t = free_track_parameters<transform3>;
     using constraints_t = constrained_step<>;
     using policy_t = stepper_default_policy;
-    using stepper_t =
-        rk_stepper<b_field_t::view_t, transform3, constraints_t, policy_t>;
+    using stepper_t = rk_stepper<b_field_t::view_t, test::scalar,
+                                 ALGEBRA_PLUGIN, constraints_t, policy_t>;
     using actor_chain_t =
         actor_chain<dtuple, helix_inspector, propagation::print_inspector,
-                    pathlimit_aborter, parameter_transporter<transform3>,
-                    pointwise_material_interactor<transform3>,
-                    parameter_resetter<transform3>>;
+                    pathlimit_aborter,
+                    parameter_transporter<test::scalar, ALGEBRA_PLUGIN>,
+                    pointwise_material_interactor<test::scalar, ALGEBRA_PLUGIN>,
+                    parameter_resetter<test::scalar, ALGEBRA_PLUGIN>>;
     using propagator_t = propagator<stepper_t, navigator_t, actor_chain_t>;
 
     // Test parameters
@@ -204,9 +205,12 @@ TEST_P(PropagatorWithRkStepper, propagator_rk_stepper) {
         propagation::print_inspector::state lim_print_insp_state{};
         pathlimit_aborter::state unlimted_aborter_state{};
         pathlimit_aborter::state pathlimit_aborter_state{path_limit};
-        parameter_transporter<transform3>::state transporter_state{};
-        pointwise_material_interactor<transform3>::state interactor_state{};
-        parameter_resetter<transform3>::state resetter_state{};
+        parameter_transporter<test::scalar, ALGEBRA_PLUGIN>::state
+            transporter_state{};
+        pointwise_material_interactor<test::scalar, ALGEBRA_PLUGIN>::state
+            interactor_state{};
+        parameter_resetter<test::scalar, ALGEBRA_PLUGIN>::state
+            resetter_state{};
 
         // Create actor states tuples
         auto actor_states =

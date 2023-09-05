@@ -55,8 +55,8 @@ GTEST_TEST(detray_propagator, guided_navigator) {
     using inspector_t = aggregate_inspector<object_tracer_t, print_inspector>;
     using b_field_t = detector_t::bfield_type;
     using runge_kutta_stepper =
-        rk_stepper<b_field_t::view_t, transform3_t, unconstrained_step,
-                   guided_navigation>;
+        rk_stepper<b_field_t::view_t, test::scalar, ALGEBRA_PLUGIN,
+                   unconstrained_step, guided_navigation>;
     using guided_navigator = navigator<detector_t, inspector_t>;
     using actor_chain_t = actor_chain<dtuple, pathlimit_aborter>;
     using propagator_t =

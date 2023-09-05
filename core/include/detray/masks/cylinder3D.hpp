@@ -8,7 +8,7 @@
 #pragma once
 
 // Project include(s)
-#include "detray/coordinates/cylindrical3.hpp"
+#include "detray/coordinates/cylindrical3D.hpp"
 #include "detray/definitions/containers.hpp"
 #include "detray/definitions/qualifiers.hpp"
 #include "detray/intersection/cylinder_intersector.hpp"
@@ -43,7 +43,7 @@ class cylinder3D {
 
     /// Local coordinate frame for boundary checks
     template <typename algebra_t>
-    using local_frame_type = cylindrical3<algebra_t>;
+    using local_frame_type = cylindrical3D<algebra_t>;
 
     /// Underlying surface geometry: not a surface.
     template <typename intersection_t>

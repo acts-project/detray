@@ -22,26 +22,28 @@ namespace detray {
 /// @tparam magnetic_field_t the type of magnetic field
 /// @tparam track_t the type of track that is being advanced by the stepper
 /// @tparam constraint_ the type of constraints on the stepper
-template <typename magnetic_field_t, typename transform3_t,
+template <typename magnetic_field_t, typename T = detray::scalar,
+          template <typename> class algebra_t = ALGEBRA_PLUGIN,
           typename constraint_t = unconstrained_step,
           typename policy_t = stepper_default_policy,
           template <typename, std::size_t> class array_t = darray>
 class rk_stepper final
-    : public base_stepper<transform3_t, constraint_t, policy_t> {
+    : public base_stepper<T, algebra_t, constraint_t, policy_t> {
 
     public:
-    using base_type = base_stepper<transform3_t, constraint_t, policy_t>;
-    using transform3_type = transform3_t;
-    using policy_type = policy_t;
-    using point3 = typename transform3_type::point3;
-    using vector2 = typename transform3_type::point2;
-    using vector3 = typename transform3_type::vector3;
+    using base_type = base_stepper<T, algebra_t, constraint_t, policy_t>;
+    using transform3_type = dtransform3D<algebra_t<T>>;
+    using point3 = dpoint3D<algebra_t<T>>;
+    using vector2 = dpoint2D<algebra_t<T>>;
+    using vector3 = dvector3D<algebra_t<T>>;
     using matrix_operator = typename base_type::matrix_operator;
     using mat_helper = matrix_helper<matrix_operator>;
     using free_track_parameters_type =
         typename base_type::free_track_parameters_type;
     using bound_track_parameters_type =
         typename base_type::bound_track_parameters_type;
+
+    using policy_type = policy_t;
 
     DETRAY_HOST_DEVICE
     rk_stepper() {}

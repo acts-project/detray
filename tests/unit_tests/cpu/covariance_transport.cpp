@@ -11,6 +11,7 @@
 #include "detray/geometry/detail/surface_descriptor.hpp"
 #include "detray/masks/masks.hpp"
 #include "detray/masks/unbounded.hpp"
+#include "detray/propagator/detail/jacobian_engine.hpp"
 #include "detray/test/types.hpp"
 #include "detray/tracks/tracks.hpp"
 #include "detray/utils/axis_rotation.hpp"
@@ -28,8 +29,9 @@ using namespace detray;
 
 // Algebra types
 using matrix_operator = standard_matrix_operator<scalar>;
-using transform3 = dtransform3D<ALGEBRA_PLUGIN<scalar>>;
-using vector3 = dvector3D<ALGEBRA_PLUGIN<scalar>>;
+using algebra_t = ALGEBRA_PLUGIN<scalar>;
+using transform3 = dtransform3D<algebra_t>;
+using vector3 = dvector3D<algebra_t>;
 using intersection_t =
     intersection2D<surface_descriptor<>, scalar, ALGEBRA_PLUGIN>;
 
@@ -59,22 +61,25 @@ class HelixCovarianceTransportValidation : public ::testing::Test {
 
     // First mask at the origin is always rectangle
     using first_mask_type = rectangle_type;
-    using first_local_frame_type = typename first_mask_type::local_frame_type;
+    using first_jacobian_engine = detail::jacobian_engine<
+        first_mask_type::shape::template local_frame_type, scalar,
+        ALGEBRA_PLUGIN>;
 
     // Transform3 type
-    using transform3_type = typename local_frame_type::transform3_type;
+    using transform3_type = typename local_frame_type::transform3D;
     // Scalar type
     using scalar_type = typename transform3_type::scalar_type;
 
     // Vector and matrix types
-    using free_vector = typename local_frame_type::free_vector;
-    using bound_vector = typename local_frame_type::bound_vector;
-    using bound_matrix = typename local_frame_type::bound_matrix;
-    using free_to_bound_matrix =
-        typename local_frame_type::free_to_bound_matrix;
-    using bound_to_free_matrix =
-        typename local_frame_type::bound_to_free_matrix;
-    using free_matrix = typename local_frame_type::free_matrix;
+    using jacobian_engine =
+        detail::jacobian_engine<mask_type::shape::template local_frame_type,
+                                scalar, ALGEBRA_PLUGIN>;
+    using free_vector = typename jacobian_engine::free_vector;
+    using bound_vector = typename jacobian_engine::bound_vector;
+    using bound_matrix = typename jacobian_engine::bound_matrix;
+    using free_to_bound_matrix = typename jacobian_engine::free_to_bound_matrix;
+    using bound_to_free_matrix = typename jacobian_engine::bound_to_free_matrix;
+    using free_matrix = typename jacobian_engine::free_matrix;
 
     std::tuple<rectangle_type, trapezoid_type, ring_type, cylinder_type,
                straw_wire_type, cell_wire_type>
@@ -114,8 +119,8 @@ class HelixCovarianceTransportValidation : public ::testing::Test {
             vector3 v = vector::cross(z_axis, w);
 
             if (i > 0u &&
-                (std::is_same_v<local_frame_type, cylindrical2<transform3>> ||
-                 std::is_same_v<local_frame_type, line2<transform3>>)) {
+                (std::is_same_v<local_frame_type, cylindrical2D<algebra_t>> ||
+                 std::is_same_v<local_frame_type, line2D<algebra_t>>)) {
 
                 const vector3 r_axis = vector::cross(w, z_axis);
 
@@ -157,17 +162,20 @@ class HelixCovarianceTransportValidation : public ::testing::Test {
         const departure_mask_type& mask_0, const destination_mask_type& mask_1,
         scalar_type& total_path_length, std::vector<intersection_t>& sfis) {
 
-        const auto departure_frame =
-            typename departure_mask_type::local_frame_type{};
-        const auto destination_frame =
-            typename destination_mask_type::local_frame_type{};
+        using departure_jacobian_engine = detail::jacobian_engine<
+            departure_mask_type::shape::template local_frame_type, scalar,
+            ALGEBRA_PLUGIN>;
+
+        using destination_jacobian_engine = detail::jacobian_engine<
+            destination_mask_type::shape::template local_frame_type, scalar,
+            ALGEBRA_PLUGIN>;
 
         const bound_vector& bound_vec_0 = bound_params.vector();
         const bound_matrix& bound_cov_0 = bound_params.covariance();
 
         // Free vector at the departure surface
-        const auto free_vec_0 =
-            departure_frame.bound_to_free_vector(trf_0, mask_0, bound_vec_0);
+        const auto free_vec_0 = departure_jacobian_engine::bound_to_free_vector(
+            trf_0, mask_0, bound_vec_0);
 
         // Free track at the departure surface
         free_track_parameters<transform3> free_trk_0;
@@ -178,7 +186,8 @@ class HelixCovarianceTransportValidation : public ::testing::Test {
 
         // Bound-to-free jacobian at the departure surface
         const bound_to_free_matrix bound_to_free_jacobi =
-            departure_frame.bound_to_free_jacobian(trf_0, mask_0, bound_vec_0);
+            departure_jacobian_engine::bound_to_free_jacobian(trf_0, mask_0,
+                                                              bound_vec_0);
 
         // Get the intersection on the next surface
         const intersection_t is = get_intersection(
@@ -214,7 +223,7 @@ class HelixCovarianceTransportValidation : public ::testing::Test {
 
         // Path correction
         const free_matrix path_correction =
-            destination_frame.path_correction(r, t, dtds, trf_1);
+            destination_jacobian_engine::path_correction(r, t, dtds, trf_1);
 
         // Correction term for the path variation
         const free_matrix correction_term =
@@ -223,12 +232,13 @@ class HelixCovarianceTransportValidation : public ::testing::Test {
 
         // Free-to-bound jacobian at the destination surface
         const free_to_bound_matrix free_to_bound_jacobi =
-            destination_frame.free_to_bound_jacobian(trf_1,
-                                                     free_trk_1.vector());
+            destination_jacobian_engine::free_to_bound_jacobian(
+                trf_1, free_trk_1.vector());
 
         // Bound vector at the destination surface
         const bound_vector bound_vec_1 =
-            destination_frame.free_to_bound_vector(trf_1, free_trk_1.vector());
+            destination_jacobian_engine::free_to_bound_vector(
+                trf_1, free_trk_1.vector());
 
         // Full jacobian
         const bound_matrix full_jacobi = free_to_bound_jacobi *
@@ -278,7 +288,7 @@ TYPED_TEST(HelixCovarianceTransportValidation, one_loop_test) {
 
     // Set the initial bound vector
     typename bound_track_parameters<transform3>::vector_type bound_vec_0 =
-        typename TestFixture::first_local_frame_type{}.free_to_bound_vector(
+        TestFixture::first_jacobian_engine::free_to_bound_vector(
             trfs[0], free_trk.vector());
 
     // Set the initial bound covariance

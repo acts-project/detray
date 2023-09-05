@@ -101,7 +101,7 @@ class straight_line_navigation : public test::fixture_base<> {
         // Navigation with inspection
         using navigator_t = navigator<detector_t, inspector_t>;
         //  Line stepper
-        using stepper_t = line_stepper<transform3_t>;
+        using stepper_t = line_stepper<scalar_t, ALGEBRA_PLUGIN>;
         // Propagator with pathlimit aborter
         using actor_chain_t = actor_chain<dtuple, pathlimit_aborter>;
         using propagator_t = propagator<stepper_t, navigator_t, actor_chain_t>;

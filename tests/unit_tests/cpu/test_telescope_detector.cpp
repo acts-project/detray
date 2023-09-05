@@ -74,7 +74,8 @@ GTEST_TEST(detray_detectors, telescope_detector) {
                                   covfie::vector::vector_d<scalar, 3>>;
     using b_field_t = covfie::field<const_bfield_bknd_t>;
 
-    using rk_stepper_t = rk_stepper<b_field_t::view_t, transform3>;
+    using rk_stepper_t =
+        rk_stepper<b_field_t::view_t, test::scalar, ALGEBRA_PLUGIN>;
     using inspector_t = navigation::print_inspector;
 
     // Test tolerance

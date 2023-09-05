@@ -199,7 +199,7 @@ class surface {
     }
 
     /// @returns the track parametrization projected onto the surface (bound)
-    DETRAY_HOST_DEVICE
+    /*DETRAY_HOST_DEVICE
     constexpr auto free_to_bound_vector(
         const context &ctx, const free_vector_type &free_vec) const {
         return visit_mask<typename kernels::free_to_bound_vector>(
@@ -239,7 +239,7 @@ class surface {
                                    const vector3 &dtds) const {
         return visit_mask<typename kernels::path_correction>(transform(ctx),
                                                              pos, dir, dtds);
-    }
+    }*/
 
     /// @returns the vertices in local frame
     DETRAY_HOST

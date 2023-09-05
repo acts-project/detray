@@ -8,7 +8,7 @@
 #pragma once
 
 // Project include(s)
-#include "detray/coordinates/cartesian3.hpp"
+#include "detray/coordinates/cartesian3D.hpp"
 #include "detray/definitions/qualifiers.hpp"
 #include "detray/intersection/plane_intersector.hpp"
 
@@ -28,22 +28,11 @@ namespace detray::tutorial {
 ///
 /// It is defined by the half length of the square (bounds[0]),
 /// and can be checked with a tolerance in t.
-template <template <typename> class intersector_t = plane_intersector,
-          unsigned int kMeasDim = 2u>
+template <template <typename> class intersector_t = plane_intersector>
 class square2D {
     public:
     /// The name for this shape
     inline static const std::string name = "square2D";
-
-    /// The measurement dimension
-    inline static constexpr const unsigned int meas_dim{kMeasDim};
-
-    /// Normal ordering
-    inline static constexpr const bool normal_order{true};
-
-    // Measurement dimension check
-    static_assert(meas_dim == 1u || meas_dim == 2u,
-                  "Only 1D or 2D measurement is allowed");
 
     enum boundaries : unsigned int {
         e_half_length = 0,  // < boundary value: the half length of the square
@@ -52,7 +41,7 @@ class square2D {
 
     /// Local coordinate frame for boundary checks: cartesian
     template <typename algebra_t>
-    using local_frame_type = cartesian3<algebra_t>;
+    using local_frame_type = cartesian3D<algebra_t>;
 
     /// Underlying surface geometry: planar
     template <typename intersection_t>

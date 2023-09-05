@@ -8,8 +8,7 @@
 #pragma once
 
 // Project include(s)
-#include "detray/coordinates/cylindrical2.hpp"
-#include "detray/coordinates/cylindrical3.hpp"
+#include "detray/coordinates/cylindrical2D.hpp"
 #include "detray/definitions/containers.hpp"
 #include "detray/definitions/qualifiers.hpp"
 #include "detray/intersection/cylinder_intersector.hpp"
@@ -51,7 +50,7 @@ class cylinder2D {
 
     /// Local coordinate frame for boundary checks
     template <typename algebra_t>
-    using local_frame_type = cylindrical2<algebra_t>;
+    using local_frame_type = cylindrical2D<algebra_t>;
 
     /// Underlying surface geometry: cylindrical
     template <typename intersection_t>
@@ -72,7 +71,7 @@ class cylinder2D {
 
         /// How to convert into the local axis system and back
         template <typename algebra_t>
-        using coordinate_type = cylindrical2<algebra_t>;
+        using coordinate_type = cylindrical2D<algebra_t>;
 
         template <typename C, typename S>
         using binning = dtuple<binning_loc0<C, S>, binning_loc1<C, S>>;

@@ -21,6 +21,7 @@ file( GLOB _detray_core_public_headers
    "include/detray/masks/*.hpp"
    "include/detray/materials/*.hpp"
    "include/detray/propagator/actors/*.hpp"
+   "include/detray/propagator/detail/*.hpp"
    "include/detray/propagator/*.hpp"
    "include/detray/surface_finders/grid/*.hpp"
    "include/detray/surface_finders/*.hpp"
