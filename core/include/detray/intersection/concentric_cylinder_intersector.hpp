@@ -12,7 +12,6 @@
 #include "detray/definitions/math.hpp"
 #include "detray/definitions/qualifiers.hpp"
 #include "detray/intersection/detail/trajectories.hpp"
-#include "detray/intersection/intersection.hpp"
 #include "detray/utils/invalid_values.hpp"
 #include "detray/utils/quadratic_equation.hpp"
 
@@ -26,8 +25,9 @@ namespace detray {
 template <typename intersection_t>
 struct concentric_cylinder_intersector {
 
-    /// linear algebra types
+    /// Linear algebra types
     /// @{
+    using algebra = typename intersection_t::algebra;
     using transform3_type = typename intersection_t::transform3D;
     using scalar_type = typename intersection_t::scalar_t;
     using point3 = typename intersection_t::point3D;
@@ -52,10 +52,9 @@ struct concentric_cylinder_intersector {
     ///
     /// @return the intersection
     template <typename mask_t, typename surface_t,
-              std::enable_if_t<
-                  std::is_same_v<typename mask_t::local_frame_type,
-                                 cylindrical2D<ALGEBRA_PLUGIN<scalar_type>>>,
-                  bool> = true>
+              std::enable_if_t<std::is_same_v<typename mask_t::local_frame_type,
+                                              cylindrical2D<algebra>>,
+                               bool> = true>
     DETRAY_HOST_DEVICE inline intersection_t operator()(
         const ray_type &ray, const surface_t &sf, const mask_t &mask,
         const transform3_type & /*trf*/,
@@ -143,10 +142,9 @@ struct concentric_cylinder_intersector {
     /// @param trf is the surface placement transform
     /// @param mask_tolerance is the tolerance for mask edges
     template <typename mask_t, typename surface_t,
-              std::enable_if_t<
-                  std::is_same_v<typename mask_t::local_frame_type,
-                                 cylindrical2D<ALGEBRA_PLUGIN<scalar_type>>>,
-                  bool> = true>
+              std::enable_if_t<std::is_same_v<typename mask_t::local_frame_type,
+                                              cylindrical2D<algebra>>,
+                               bool> = true>
     DETRAY_HOST_DEVICE inline void update(
         const ray_type &ray, intersection_t &sfi, const mask_t &mask,
         const transform3_type &trf,

@@ -71,7 +71,7 @@ struct cylindrical2D {
         return local_to_global(trf, {p[0], p[1], mask[mask_t::shape::e_r]});
     }
 
-    /// @returns the normal vector
+    /// @returns the normal vector given a bound position @param bound_pos
     template <typename mask_t>
     DETRAY_HOST_DEVICE static inline vector3D normal(const transform3D &trf3,
                                                      const point2D &bound_pos,
@@ -80,7 +80,7 @@ struct cylindrical2D {
         const vector3D local_normal{math_ns::cos(phi), math_ns::sin(phi), 0.f};
 
         // normal vector in local coordinate
-        return trf3.rotation() * local_normal;
+        return trf3.rotate(trf3.matrix(), local_normal);
     }
 
     /// @returns the normal vector given a local position @param loc_pos
@@ -91,7 +91,7 @@ struct cylindrical2D {
         const vector3D local_normal{math_ns::cos(phi), math_ns::sin(phi), 0.f};
 
         // normal vector in local coordinate
-        return trf3.rotation() * local_normal;
+        return trf3.rotate(trf3.matrix(), local_normal);
     }
 
 };  // struct cylindrical2

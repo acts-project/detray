@@ -1,6 +1,6 @@
 /** Detray library, part of the ACTS project (R&D line)
  *
- * (c) 2022-2023 CERN for the benefit of the ACTS project
+ * (c) 2023 CERN for the benefit of the ACTS project
  *
  * Mozilla Public License Version 2.0
  */
@@ -8,24 +8,33 @@
 #pragma once
 
 // Project include(s)
-#include "detray/coordinates/line2D.hpp"
+#include "detray/coordinates/cylindrical2D.hpp"
+#include "detray/definitions/boolean.hpp"
 #include "detray/definitions/math.hpp"
 #include "detray/definitions/qualifiers.hpp"
+#include "detray/intersection/cylinder_intersector.hpp"
 #include "detray/intersection/detail/trajectories.hpp"
+#include "detray/utils/soa/quadratic_equation.hpp"
 
 // System include(s)
 #include <type_traits>
 
-namespace detray {
+namespace detray::soa {
 
-/// A functor to find intersections between trajectory and line mask
+/// @brief A functor to find intersections between a straight line and a
+/// cylindrical portal surface.
+///
+/// With the way the navigation works, only the closest one of the two possible
+/// intersection points is needed in the case of a cylinderical portal surface.
 template <typename intersection_t>
-struct line_intersector {
+struct cylinder_portal_intersector
+    : public cylinder_intersector<intersection_t> {
 
     /// Linear algebra types
     /// @{
     using algebra = typename intersection_t::algebra;
     using transform3_type = typename intersection_t::transform3D;
+    using value_type = typename intersection_t::value_t;
     using scalar_type = typename intersection_t::scalar_t;
     using point3 = typename intersection_t::point3D;
     using point2 = typename intersection_t::point2D;
@@ -33,9 +42,10 @@ struct line_intersector {
     /// @}
 
     using intersection_type = intersection_t;
-    using ray_type = detail::ray<transform3_type>;
+    using ray_type =
+        detray::detail::ray<dtransform3D<ALGEBRA_PLUGIN<value_type>>>;
 
-    /// Operator function to find intersections between ray and line mask
+    /// Operator function to find intersections between ray and cylinder mask
     ///
     /// @tparam mask_t is the input mask type
     /// @tparam surface_t is the type of surface handle
@@ -45,82 +55,44 @@ struct line_intersector {
     /// @param mask is the input mask that defines the surface extent
     /// @param trf is the surface placement transform
     /// @param mask_tolerance is the tolerance for mask edges
-    //
-    /// @return the intersection
+    ///
+    /// @return the closest intersection
     template <typename mask_t, typename surface_t,
               std::enable_if_t<std::is_same_v<typename mask_t::local_frame_type,
-                                              line2D<algebra>>,
+                                              cylindrical2D<algebra>>,
                                bool> = true>
     DETRAY_HOST_DEVICE inline intersection_t operator()(
         const ray_type &ray, const surface_t &sf, const mask_t &mask,
         const transform3_type &trf,
         const scalar_type mask_tolerance = 0.f) const {
 
-        intersection_type is;
-        is.status = false;
+        intersection_t is;
 
-        // line direction
-        const vector3 _z = getter::vector<3>(trf.matrix(), 0u, 2u);
+        // Intersecting the cylinder from the inside yield one intersection
+        // along the direction of the track and one behind it
+        const auto qe = this->solve_intersection(ray, mask, trf);
 
-        // line center
-        const point3 _t = trf.translation();
-
-        // track direction
-        const vector3 _d = ray.dir();
-
-        // track position
-        const point3 _p = ray.pos();
-
-        // Projection of line to track direction
-        const scalar_type zd{vector::dot(_z, _d)};
-
-        const scalar_type denom{1.f - (zd * zd)};
-
-        // Case for wire is parallel to track
-        if (denom < 1e-6f) {
-            is.status = false;
+        // None of the cylinders has a valid intersection
+        if (detray::detail::all_of(qe.solutions() <= 0) or
+            detray::detail::all_of(qe.larger() <= ray.overstep_tolerance())) {
+            is.status = decltype(is.status)(false);
             return is;
         }
 
-        // vector from track position to line center
-        const auto t2l = _t - _p;
+        // Only the closest intersection that is outside the overstepping
+        // tolerance is needed
+        const auto valid_smaller = (qe.smaller() > ray.overstep_tolerance());
+        scalar_type t = 0.f;
+        t(valid_smaller) = qe.smaller();
+        t(!valid_smaller) = qe.larger();
 
-        // t2l projection on line direction
-        const scalar_type t2l_on_line{vector::dot(t2l, _z)};
+        is = this->template build_candidate(ray, mask, trf, t, mask_tolerance);
+        is.sf_desc = sf;
 
-        // t2l projection on track direction
-        const scalar_type t2l_on_track{vector::dot(t2l, _d)};
-
-        // path length to the point of closest approach on the track
-        const scalar_type A{1.f / denom * (t2l_on_track - t2l_on_line * zd)};
-
-        is.path = A;
-        // Intersection is not valid for navigation - return early
-        if (is.path >= ray.overstep_tolerance()) {
-
-            // point of closest approach on the track
-            const point3 m = _p + _d * A;
-
-            is.local = mask.to_local_frame(trf, m, _d);
-
-            is.status = mask.is_inside(is.local, mask_tolerance);
-
-            // prepare some additional information in case the intersection
-            // is valid
-            if (is.status) {
-                is.sf_desc = sf;
-
-                is.direction = !detail::signbit(is.path);
-                is.volume_link = mask.volume_link();
-
-                // Get incidence angle
-                is.cos_incidence_angle = std::abs(zd);
-            }
-        }
         return is;
     }
 
-    /// Operator function to find intersections between a ray and a line.
+    /// Operator function to find intersections between a ray and a 2D cylinder
     ///
     /// @tparam mask_t is the input mask type
     ///
@@ -131,7 +103,7 @@ struct line_intersector {
     /// @param mask_tolerance is the tolerance for mask edges
     template <typename mask_t,
               std::enable_if_t<std::is_same_v<typename mask_t::local_frame_type,
-                                              line2D<algebra>>,
+                                              cylindrical2D<algebra>>,
                                bool> = true>
     DETRAY_HOST_DEVICE inline void update(
         const ray_type &ray, intersection_t &sfi, const mask_t &mask,
@@ -141,4 +113,4 @@ struct line_intersector {
     }
 };
 
-}  // namespace detray
+}  // namespace detray::soa

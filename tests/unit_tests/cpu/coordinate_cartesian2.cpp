@@ -37,10 +37,6 @@ GTEST_TEST(detray_coordinates, cartesian2) {
     const point3 global1 = {4.f, 7.f, 4.f};
     const vector3 mom = {1.f, 2.f, 3.f};
     const vector3 d = vector::normalize(mom);
-    const scalar time{0.1f};
-    const scalar charge{-1.f};
-    struct dummy_mask {
-    } mask;
 
     // Global to local transformation
     const point3 local = c2.global_to_local(trf, global1, d);

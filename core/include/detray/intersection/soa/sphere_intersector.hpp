@@ -8,10 +8,10 @@
 #pragma once
 
 // Project include(s)
+#include "detray/definitions/boolean.hpp"
 #include "detray/definitions/math.hpp"
 #include "detray/definitions/qualifiers.hpp"
 #include "detray/intersection/detail/trajectories.hpp"
-#include "detray/intersection/intersection.hpp"
 #include "detray/utils/soa/quadratic_equation.hpp"
 
 // System include(s)
@@ -24,8 +24,9 @@ namespace detray::soa {
 template <typename intersection_t>
 struct sphere_intersector {
 
-    /// linear algebra types
+    /// Linear algebra types
     /// @{
+    using algebra = typename intersection_t::algebra;
     using transform3_type = typename intersection_t::transform3D;
     using value_type = typename intersection_t::value_t;
     using scalar_type = typename intersection_t::scalar_t;
@@ -70,8 +71,7 @@ struct sphere_intersector {
         const scalar_type b = 2.f * vector::dot(oc, rd);
         const scalar_type c = vector::dot(oc, oc) - (r * r);
 
-        const auto qe =
-            soa::detail::quadratic_equation{a[0], b, c, scalar_type(0.f)};
+        const auto qe = soa::detail::quadratic_equation{a, b, c};
 
         std::array<intersection_t, 2> ret;
         ret[1] = build_candidate(ray, mask, trf, qe.larger(), qe.solutions());
@@ -99,7 +99,7 @@ struct sphere_intersector {
         // Construct the candidate only when needed
         is.status = (n_solutions > 0.f);
 
-        if (is.status.isEmpty()) {
+        if (detray::detail::none_of(is.status)) {
             return is;
         }
 

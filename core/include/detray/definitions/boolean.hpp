@@ -48,6 +48,9 @@ inline constexpr bool any_of(bool b) {
 inline constexpr bool all_of(bool b) {
     return b;
 }
+inline constexpr bool none_of(bool b) {
+    return !b;
+}
 
 #if (IS_SOA)
 template <typename T,
@@ -60,6 +63,12 @@ template <typename T,
           std::enable_if_t<Vc::Traits::is_simd_mask<T>::value, bool> = true>
 inline bool all_of(T &&mask) {
     return Vc::all_of(std::forward<T>(mask));
+}
+
+template <typename T,
+          std::enable_if_t<Vc::Traits::is_simd_mask<T>::value, bool> = true>
+inline bool none_of(T &&mask) {
+    return Vc::none_of(std::forward<T>(mask));
 }
 #endif
 /// @}

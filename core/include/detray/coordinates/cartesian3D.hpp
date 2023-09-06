@@ -14,6 +14,9 @@ namespace detray {
 
 /// @brief Frame projection into a 3D cartesian coordinate frame
 template <typename algebra_t>
-using cartesian3D = cartesian2D<algebra_t>;
+struct cartesian3D : cartesian2D<algebra_t> {
+    // Import all constructors
+    using cartesian2D<algebra_t>::cartesian2D;
+};
 
 }  // namespace detray

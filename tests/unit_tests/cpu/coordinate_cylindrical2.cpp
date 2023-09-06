@@ -43,8 +43,6 @@ GTEST_TEST(detray_coordinates, cylindrical2) {
     const point3 global1 = {3.4142136f, 4.4142136f, 9.f};
     const vector3 mom = {1.f, 2.f, 3.f};
     const vector3 d = vector::normalize(mom);
-    const scalar time{0.1f};
-    const scalar charge{-1.f};
 
     const scalar r{2.f};
     const scalar hz{std::numeric_limits<scalar>::infinity()};

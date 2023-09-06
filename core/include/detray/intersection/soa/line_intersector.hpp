@@ -9,6 +9,7 @@
 
 // Project include(s)
 #include "detray/coordinates/line2D.hpp"
+#include "detray/definitions/boolean.hpp"
 #include "detray/definitions/math.hpp"
 #include "detray/definitions/qualifiers.hpp"
 #include "detray/intersection/detail/trajectories.hpp"
@@ -22,8 +23,9 @@ namespace detray::soa {
 template <typename intersection_t>
 struct line_intersector {
 
-    /// linear algebra types
+    /// Linear algebra types
     /// @{
+    using algebra = typename intersection_t::algebra;
     using transform3_type = typename intersection_t::transform3D;
     using value_type = typename intersection_t::value_t;
     using scalar_type = typename intersection_t::scalar_t;
@@ -48,7 +50,10 @@ struct line_intersector {
     /// @param mask_tolerance is the tolerance for mask edges
     //
     /// @return the intersection
-    template <typename mask_t, typename surface_t>
+    template <typename mask_t, typename surface_t,
+              std::enable_if_t<std::is_same_v<typename mask_t::local_frame_type,
+                                              line2D<algebra>>,
+                               bool> = true>
     DETRAY_HOST_DEVICE inline intersection_t operator()(
         const ray_type &ray, const surface_t &sf, const mask_t &mask,
         const transform3_type &trf,
@@ -74,7 +79,7 @@ struct line_intersector {
         const scalar_type denom = 1.f - (zd * zd);
 
         // Case for wire is parallel to track
-        if (detail::all_of(denom < 1e-5f)) {
+        if (detray::detail::all_of(denom < 1e-5f)) {
             is.status = decltype(is.status)(false);
             return is;
         }
@@ -97,13 +102,13 @@ struct line_intersector {
         is.status = mask.is_inside(is.local, mask_tolerance);
 
         // Early return, in case all intersections are invalid
-        if (is.status.isEmpty()) {
+        if (detray::detail::none_of(is.status)) {
             return is;
         }
 
         is.sf_desc = sf;
 
-        is.direction = !detail::signbit(is.path);
+        is.direction = math_ns::signbit(is.path);
         is.volume_link = mask.volume_link();
 
         // Get incidence angle
@@ -124,11 +129,10 @@ struct line_intersector {
     /// @param mask is the input mask that defines the surface extent
     /// @param trf is the surface placement transform
     /// @param mask_tolerance is the tolerance for mask edges
-    template <
-        typename mask_t,
-        std::enable_if_t<std::is_same_v<typename mask_t::local_frame_type,
-                                        line2D<ALGEBRA_PLUGIN<scalar_type>>>,
-                         bool> = true>
+    template <typename mask_t,
+              std::enable_if_t<std::is_same_v<typename mask_t::local_frame_type,
+                                              line2D<algebra>>,
+                               bool> = true>
     DETRAY_HOST_DEVICE inline void update(
         const ray_type &ray, intersection_t &sfi, const mask_t &mask,
         const transform3_type &trf,

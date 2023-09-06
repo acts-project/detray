@@ -11,7 +11,6 @@
 #include "detray/definitions/math.hpp"
 #include "detray/definitions/qualifiers.hpp"
 #include "detray/intersection/detail/trajectories.hpp"
-#include "detray/intersection/intersection.hpp"
 #include "detray/utils/quadratic_equation.hpp"
 
 // System include(s)
@@ -23,8 +22,9 @@ namespace detray {
 template <typename intersection_t>
 struct sphere_intersector {
 
-    /// linear algebra types
+    /// Linear algebra types
     /// @{
+    using algebra = typename intersection_t::algebra;
     using transform3_type = typename intersection_t::transform3D;
     using value_type = typename intersection_t::value_t;
     using scalar_type = typename intersection_t::scalar_t;

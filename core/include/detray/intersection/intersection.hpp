@@ -27,13 +27,14 @@ template <typename surface_descr_t, typename T,
           template <typename> class algebra_t>
 struct intersection2D {
 
+    using algebra = algebra_t<T>;
     using value_t = T;
-    using scalar_t = dscalar<algebra_t<T>>;
-    using bool_t = dbool<algebra_t<T>>;
-    using point2D = dpoint2D<algebra_t<T>>;
-    using point3D = dpoint3D<algebra_t<T>>;
-    using vector3D = dvector3D<algebra_t<T>>;
-    using transform3D = dtransform3D<algebra_t<T>>;
+    using scalar_t = dscalar<algebra>;
+    using bool_t = dbool<algebra>;
+    using point2D = dpoint2D<algebra>;
+    using point3D = dpoint3D<algebra>;
+    using vector3D = dvector3D<algebra>;
+    using transform3D = dtransform3D<algebra>;
     using nav_link_t = typename surface_descr_t::navigation_link;
 
     /// Descriptor of the surface this intersection belongs to
