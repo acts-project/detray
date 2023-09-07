@@ -15,6 +15,7 @@
 #include "detray/materials/material_rod.hpp"
 #include "detray/materials/material_slab.hpp"
 #include "detray/propagator/base_actor.hpp"
+#include "detray/utils/ranges.hpp"
 
 // System include(s)
 #include <iostream>
@@ -41,21 +42,24 @@ struct single_shape : detray::actor {
 
         /// Construct from surface data:
         DETRAY_HOST_DEVICE
-        global_state(const transform3D &trf, const mask_t &mask,
-                     const material_t &mat)
-            : m_trf{trf}, m_mask{mask}, m_material{mat} {}
+        global_state(const std::vector<transform3D> &trf,
+                     std::vector<mask_t> &&mask,
+                     const std::vector<material_t> &mat)
+            : m_trf{std::move(trf)},
+              m_mask{std::move(mask)},
+              m_material{std::move(mat)} {}
 
         /// Threadsafe interface
         /// @{
-        const transform3D &transform() const { return m_trf; }
-        const mask_t &mask() const { return m_mask; }
-        const material_t &material() const { return m_material; }
+        const std::vector<transform3D> &transform() const { return m_trf; }
+        const std::vector<mask_t> &mask() const { return m_mask; }
+        const std::vector<material_t> &material() const { return m_material; }
         /// @}
 
         /// The surfaces data
-        transform3D m_trf;
-        mask_t m_mask;
-        material_t m_material;
+        std::vector<transform3D> m_trf;
+        std::vector<mask_t> m_mask;
+        std::vector<material_t> m_material;
     };
 
     struct state {
@@ -69,12 +73,19 @@ struct single_shape : detray::actor {
         /// From potentialliy multiple intersected surfaces in the intersection,
         /// get the index of the closest one
         std::size_t closest_solution() const {
-            return m_intersections[0].status.firstOne();
+            // AoS?
+            if constexpr (std::is_same_v<decltype(m_intersection.status),
+                                         bool>) {
+                return 0;
+            } else {
+                // Should be handled by the surface links
+                return m_intersection.status.firstOne();
+            }
         }
 
         std::array<T, 2> m_interval;
         /// Resulting intersection
-        std::array<intersection_t, 2> m_intersections{};
+        intersection_t m_intersection{};
         /// Pointer to the material of the surface
         const material_t *m_material{nullptr};
         /// Flag to the obseving colorizer/shaders that the surface was hit
@@ -89,28 +100,30 @@ struct single_shape : detray::actor {
         // In this special case, the geometry will be this actor's global_state
         const global_state &geo = sc.geometry();
 
-        // Perform the intersection
-        loc_st.m_is_inside = place_in_collection(
-            geo.mask().template intersector<intersection_t>()(
-                sc.ray(), surface_t{}, geo.mask(), geo.transform()),
-            loc_st.m_intersections);
-        if (loc_st.m_is_inside) {
-            loc_st.m_material = std::addressof(geo.material());
+        // Perform the intersection on every mask in the geometry
+        for (const auto &[idx, mask] : detray::views::enumerate(geo.mask())) {
+            if (place_in_collection(
+                    mask.template intersector<intersection_t>()(
+                        sc.ray(), surface_t{}, mask, geo.transform()[idx]),
+                    loc_st.m_intersection)) {
+                const auto mat_idx = idx + loc_st.closest_solution();
+                loc_st.m_material = std::addressof(geo.material()[mat_idx]);
+                loc_st.m_is_inside |= true;
+            }
         }
     }
 
     private:
     /// Places the single solution of a ray-surface intersection @param sfi
     /// in the given container @param intersections, if the surfaces was hit.
-    /// @todo: Add sorting algorithm
     ///
     /// @returns @c true if the intersection was is valid.
-    template <typename is_container_t>
     DETRAY_HOST_DEVICE bool place_in_collection(
-        typename is_container_t::value_type &&sfi,
-        is_container_t &intersections) const {
-        if (sfi.is_inside()) {
-            intersections[0] = sfi;
+        intersection_t &&sfi, intersection_t &intersection) const {
+        if (detail::any_of(
+                (math_ns::abs(sfi.path) < math_ns::abs(intersection.path)) &&
+                sfi.status)) {
+            intersection = std::move(sfi);
             return true;
         } else {
             return false;
@@ -119,18 +132,17 @@ struct single_shape : detray::actor {
 
     /// Places all of those solutions of a ray-surface intersection @param sfi
     /// in the given container @param intersections, that hit the surface
-    /// @todo: Add sorting algorithm
     ///
     /// @returns @c true if at least one valid intersection solution was found.
-    template <typename is_container_t>
     DETRAY_HOST_DEVICE bool place_in_collection(
-        std::array<typename is_container_t::value_type, 2> &&solutions,
-        is_container_t &intersections) const {
+        std::array<intersection_t, 2> &&solutions,
+        intersection_t &intersection) const {
         bool is_valid = false;
-        std::size_t n_sol{0u};
-        for (std::size_t i = 0u; i < 2u; ++i) {
-            if (solutions[i].is_inside()) {
-                intersections[n_sol++] = solutions[i];
+        for (auto &sfi : solutions) {
+            if (detail::any_of((math_ns::abs(sfi.path) <
+                                math_ns::abs(intersection.path)) &&
+                               sfi.status)) {
+                intersection = std::move(sfi);
                 is_valid = true;
             }
         }

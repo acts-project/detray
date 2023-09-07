@@ -65,10 +65,10 @@ inline void write_test_image(raw_image<color_depth> &im) {
 template <typename T, template <typename> class algebra_t, typename color_depth,
           typename aspect_ratio, typename mask_t, typename material_t,
           class im_background_t = gradient_background<T, ALGEBRA_PLUGIN>>
-inline void render_single_shape(raw_image<color_depth, aspect_ratio> &im,
-                                const mask_t &mask,
-                                const dtransform3D<algebra_t<T>> &trf,
-                                const material_t &mat) {
+inline void render_single_shape(
+    raw_image<color_depth, aspect_ratio> &im, std::vector<mask_t> &&mask,
+    const std::vector<dtransform3D<algebra_t<T>>> &trf,
+    const std::vector<material_t> &mat) {
 
     // Rendering steps
     using intersector_t = single_shape<T, algebra_t, mask_t, material_t>;
@@ -85,7 +85,8 @@ inline void render_single_shape(raw_image<color_depth, aspect_ratio> &im,
 
     // For the single shape render, the scene is actually encoded directly in
     // the single shape intersector
-    typename intersector_t::global_state geo{trf, mask, mat};
+    typename intersector_t::global_state geo{std::move(trf), std::move(mask),
+                                             std::move(mat)};
 
     // Iterate through pixel matrix
     for (std::size_t i_y = 0u; i_y < im.height(); ++i_y) {
@@ -140,14 +141,9 @@ int main() {
 
     using vector3D_s = dvector3D<algebra_s<scalar>>;
     using vector3D_v = dvector3D<algebra_v<scalar>>;
+    constexpr std::size_t soa_size{dscalar<algebra_v<scalar>>::size()};
 
     // Affine transform matrix to place the shapes
-    // AoS
-    vector3D_s x_s{1.0f, 0.0f, 0.0f};
-    vector3D_s z_s{0.0f, 0.0f, 1.f};
-    vector3D_s t_s{0.f, 0.0f, -30.0f};
-
-    dtransform3D<algebra_s<scalar>> trf_s{t_s, z_s, x_s};
 
     // SoA
     vector3D_v x_v{1.0f, 0.0f, 0.0f};
@@ -157,19 +153,38 @@ int main() {
     t_v[0] = 0.1f * (image.width() * t_v[0] - 0.5f * image.width());
     t_v[1] = t_v[1].Random();
     t_v[1] = 0.1f * (image.height() * t_v[1] - 0.5f * image.height());
-    t_v[2] = -30.f;
+    t_v[2] = -30.1f;
 
-    dtransform3D<algebra_v<scalar>> trf_v{t_v, z_v, x_v};
+    std::vector<dtransform3D<algebra_v<scalar>>> trfs_v;
+    trfs_v.emplace_back(t_v, z_v, x_v);
+
+    // AoS
+    std::vector<dtransform3D<algebra_s<scalar>>> trfs_s;
+    trfs_s.reserve(soa_size);
+    for (std::size_t i = 0; i < soa_size; ++i) {
+        vector3D_s x_s{x_v[0][i], x_v[1][i], x_v[2][i]};
+        vector3D_s z_s{z_v[0][i], z_v[1][i], z_v[2][i]};
+        vector3D_s t_s{t_v[0][i], t_v[1][i], t_v[2][i]};
+
+        trfs_s.emplace_back(t_s, z_s, x_s);
+    }
+
+    // Different materials per surface
+    std::vector<material<scalar>> mat{beryllium<scalar>{}, aluminium<scalar>{},
+                                      gold<scalar>{},      silicon<scalar>{},
+                                      tungsten<scalar>{},  gold<scalar>{},
+                                      aluminium<scalar>{}, silicon<scalar>{}};
 
     // render a rectangle mask
 
     // AoS
-    const mask<rectangle2D<>> rect2_s{0u, 0.01f * image.width(),
-                                      0.01f * image.height()};
+    mask<rectangle2D<>> rect2_s{0u, 0.01f * image.width(),
+                                0.01f * image.height()};
+    std::vector<mask<rectangle2D<>>> rect2_vec(soa_size, rect2_s);
 
     auto start = std::chrono::high_resolution_clock::now();
-    render_single_shape<scalar, algebra_s>(image, rect2_s, trf_s,
-                                           beryllium<scalar>{});
+    render_single_shape<scalar, algebra_s>(image, std::move(rect2_vec), trfs_s,
+                                           mat);
     auto end = std::chrono::high_resolution_clock::now();
 
     std::cout << "\nRectangle AoS: "
@@ -182,14 +197,16 @@ int main() {
     ppm.write(image, "rectangle_AoS");
 
     // SoA
-    const mask<rectangle2D<soa::plane_intersector>, std::uint_least16_t,
-               algebra_v<scalar>>
-        rect2_v{0u, 0.01f * image.width() * dsimd<algebra_v, scalar>{}.Random(),
-                0.01f * image.height() * dsimd<algebra_v, scalar>{}.Random()};
+    std::vector<mask<rectangle2D<soa::plane_intersector>, std::uint_least16_t,
+                     algebra_v<scalar>>>
+        rect2_v;
+    rect2_v.emplace_back(
+        0u, 0.01f * image.width() * dsimd<algebra_v, scalar>{}.Random(),
+        0.01f * image.height() * dsimd<algebra_v, scalar>{}.Random());
 
     start = std::chrono::high_resolution_clock::now();
-    render_single_shape<scalar, algebra_v>(image, rect2_v, trf_v,
-                                           beryllium<scalar>{});
+    render_single_shape<scalar, algebra_v>(image, std::move(rect2_v), trfs_v,
+                                           mat);
     end = std::chrono::high_resolution_clock::now();
 
     std::cout << "Rectangle SoA: "
@@ -205,9 +222,11 @@ int main() {
 
     // AoS
     const mask<trapezoid2D<>> trpz2_s{0u, 10.f, 30.f, 20.f, 1.f / 40.f};
+    std::vector<mask<trapezoid2D<>>> trpz2_vec(soa_size, trpz2_s);
+
     start = std::chrono::high_resolution_clock::now();
-    render_single_shape<scalar, algebra_s>(image, trpz2_s, trf_s,
-                                           aluminium<scalar>{});
+    render_single_shape<scalar, algebra_s>(image, std::move(trpz2_vec), trfs_s,
+                                           mat);
 
     end = std::chrono::high_resolution_clock::now();
 
@@ -221,17 +240,19 @@ int main() {
     ppm.write(image, "trapezoid_AoS");
 
     // SoA
-    const mask<trapezoid2D<soa::plane_intersector>, std::uint_least16_t,
-               algebra_v<scalar>>
-        trap2_v{0u, 0.01f * image.width() * dsimd<algebra_v, scalar>{}.Random(),
-                0.03f * image.height() * dsimd<algebra_v, scalar>{}.Random(),
-                0.02f * image.height() * dsimd<algebra_v, scalar>{}.Random(),
-                1.f / 40.f * 1.f / 1000.f * image.height() *
-                    dsimd<algebra_v, scalar>{}.Random()};
+    std::vector<mask<trapezoid2D<soa::plane_intersector>, std::uint_least16_t,
+                     algebra_v<scalar>>>
+        trap2_v;
+    trap2_v.emplace_back(
+        0u, 0.01f * image.width() * dsimd<algebra_v, scalar>{}.Random(),
+        0.03f * image.height() * dsimd<algebra_v, scalar>{}.Random(),
+        0.02f * image.height() * dsimd<algebra_v, scalar>{}.Random(),
+        1.f / 40.f * 1.f / 1000.f * image.height() *
+            dsimd<algebra_v, scalar>{}.Random());
 
     start = std::chrono::high_resolution_clock::now();
-    render_single_shape<scalar, algebra_v>(image, trap2_v, trf_v,
-                                           aluminium<scalar>{});
+    render_single_shape<scalar, algebra_v>(image, std::move(trap2_v), trfs_v,
+                                           mat);
     end = std::chrono::high_resolution_clock::now();
 
     std::cout << "Trapezoid SoA: "
@@ -247,10 +268,11 @@ int main() {
 
     // AoS
     const mask<ring2D<>> ring2_s{0u, 12.f, 20.f};
+    std::vector<mask<ring2D<>>> ring2_vec(soa_size, ring2_s);
 
     start = std::chrono::high_resolution_clock::now();
-    render_single_shape<scalar, algebra_s>(image, ring2_s, trf_s,
-                                           gold<scalar>{});
+    render_single_shape<scalar, algebra_s>(image, std::move(ring2_vec), trfs_s,
+                                           mat);
     end = std::chrono::high_resolution_clock::now();
 
     std::cout << "\nRing AoS: "
@@ -263,14 +285,15 @@ int main() {
     ppm.write(image, "ring_AoS");
 
     // SoA
-    const mask<ring2D<soa::plane_intersector>, std::uint_least16_t,
-               algebra_v<scalar>>
-        ring2_v{0u, 23.f * dsimd<algebra_v, scalar>{}.Random(),
-                30.f * dsimd<algebra_v, scalar>{}.Random()};
+    std::vector<mask<ring2D<soa::plane_intersector>, std::uint_least16_t,
+                     algebra_v<scalar>>>
+        ring2_v;
+    ring2_v.emplace_back(0u, 23.f * dsimd<algebra_v, scalar>{}.Random(),
+                         30.f * dsimd<algebra_v, scalar>{}.Random());
 
     start = std::chrono::high_resolution_clock::now();
-    render_single_shape<scalar, algebra_v>(image, ring2_v, trf_v,
-                                           gold<scalar>{});
+    render_single_shape<scalar, algebra_v>(image, std::move(ring2_v), trfs_v,
+                                           mat);
     end = std::chrono::high_resolution_clock::now();
 
     std::cout << "Ring SoA: "
@@ -287,10 +310,11 @@ int main() {
     // AoS
     const mask<annulus2D<>> ann2_s{0u,       5.f,  13.0f, 0.74195f,
                                    1.33970f, -2.f, 2.f,   0.f};
+    std::vector<mask<annulus2D<>>> ann2_vec(soa_size, ann2_s);
 
     start = std::chrono::high_resolution_clock::now();
-    render_single_shape<scalar, algebra_s>(image, ann2_s, trf_s,
-                                           silicon<scalar>{});
+    render_single_shape<scalar, algebra_s>(image, std::move(ann2_vec), trfs_s,
+                                           mat);
     end = std::chrono::high_resolution_clock::now();
 
     std::cout << "\nAnnulus AoS: "
@@ -304,20 +328,15 @@ int main() {
 
     // SoA
     const auto rand = 2.f * dsimd<algebra_v, scalar>{}.Random();
-    const mask<annulus2D<soa::plane_intersector>, std::uint_least16_t,
-               algebra_v<scalar>>
-        ann2_v{0u,
-               5.f * rand,
-               13.0f * rand,
-               0.74195f * rand,
-               1.33970f * rand,
-               -2.f * rand,
-               2.f * rand,
-               0.f * rand};
+    std::vector<mask<annulus2D<soa::plane_intersector>, std::uint_least16_t,
+                     algebra_v<scalar>>>
+        ann2_v;
+    ann2_v.emplace_back(0u, 5.f * rand, 13.0f * rand, 0.74195f * rand,
+                        1.33970f * rand, -2.f * rand, 2.f * rand, 0.f * rand);
 
     start = std::chrono::high_resolution_clock::now();
-    render_single_shape<scalar, algebra_v>(image, ann2_v, trf_v,
-                                           silicon<scalar>{});
+    render_single_shape<scalar, algebra_v>(image, std::move(ann2_v), trfs_v,
+                                           mat);
     end = std::chrono::high_resolution_clock::now();
 
     std::cout << "Annulus SoA: "
@@ -334,10 +353,11 @@ int main() {
     // AoS
     const mask<sphere2D<>, std::uint_least16_t, algebra_s<scalar>> sph2_s{0u,
                                                                           10.f};
+    std::vector<mask<sphere2D<>>> sph2_vec(soa_size, sph2_s);
 
     start = std::chrono::high_resolution_clock::now();
-    render_single_shape<scalar, algebra_s>(image, sph2_s, trf_s,
-                                           silicon<scalar>{});
+    render_single_shape<scalar, algebra_s>(image, std::move(sph2_vec), trfs_s,
+                                           mat);
     end = std::chrono::high_resolution_clock::now();
 
     std::cout << "\nSphere AoS: "
@@ -350,13 +370,14 @@ int main() {
     ppm.write(image, "sphere_AoS");
 
     // SoA
-    const mask<sphere2D<soa::sphere_intersector>, std::uint_least16_t,
-               algebra_v<scalar>>
-        sph2_v{0u, 10.f * dsimd<algebra_v, scalar>{}.Random()};
+    std::vector<mask<sphere2D<soa::sphere_intersector>, std::uint_least16_t,
+                     algebra_v<scalar>>>
+        sph2_v;
+    sph2_v.emplace_back(0u, 10.f * dsimd<algebra_v, scalar>{}.Random());
 
     start = std::chrono::high_resolution_clock::now();
-    render_single_shape<scalar, algebra_v>(image, sph2_v, trf_v,
-                                           silicon<scalar>{});
+    render_single_shape<scalar, algebra_v>(image, std::move(sph2_v), trfs_v,
+                                           mat);
     end = std::chrono::high_resolution_clock::now();
 
     std::cout << "Sphere SoA: "
@@ -373,9 +394,11 @@ int main() {
     // AoS
     const mask<line<true>, std::uint_least16_t, algebra_s<scalar>> ln2_s{
         0u, 10.f, std::numeric_limits<scalar>::infinity()};
+    std::vector<mask<line<true>>> ln2_vec(soa_size, ln2_s);
 
     start = std::chrono::high_resolution_clock::now();
-    render_single_shape<scalar, algebra_s>(image, ln2_s, trf_s, gold<scalar>{});
+    render_single_shape<scalar, algebra_s>(image, std::move(ln2_vec), trfs_s,
+                                           mat);
     end = std::chrono::high_resolution_clock::now();
 
     std::cout << "\nLine AoS: "
@@ -388,12 +411,15 @@ int main() {
     ppm.write(image, "line_AoS");
 
     // SoA
-    const mask<line<true, soa::line_intersector>, std::uint_least16_t,
-               algebra_v<scalar>>
-        ln2_v{0u, 10.f * rand, std::numeric_limits<scalar>::infinity() * rand};
+    std::vector<mask<line<true, soa::line_intersector>, std::uint_least16_t,
+                     algebra_v<scalar>>>
+        ln2_v;
+    ln2_v.emplace_back(0u, 10.f * rand,
+                       std::numeric_limits<scalar>::infinity() * rand);
 
     start = std::chrono::high_resolution_clock::now();
-    render_single_shape<scalar, algebra_v>(image, ln2_v, trf_v, gold<scalar>{});
+    render_single_shape<scalar, algebra_v>(image, std::move(ln2_v), trfs_v,
+                                           mat);
     end = std::chrono::high_resolution_clock::now();
 
     std::cout << "Line SoA: "
@@ -410,10 +436,11 @@ int main() {
     // AoS
     const mask<cylinder2D<>, std::uint_least16_t, algebra_s<scalar>> cyl2_s{
         0u, 0.5f * image.height(), 0.5f * image.width(), 0.7f * image.width()};
+    std::vector<mask<cylinder2D<>>> cyl2_vec(soa_size, cyl2_s);
 
     start = std::chrono::high_resolution_clock::now();
-    render_single_shape<scalar, algebra_s>(image, cyl2_s, trf_s,
-                                           silicon<scalar>{});
+    render_single_shape<scalar, algebra_s>(image, std::move(cyl2_vec), trfs_s,
+                                           mat);
     end = std::chrono::high_resolution_clock::now();
 
     std::cout << "\nCylinder AoS: "
@@ -426,14 +453,15 @@ int main() {
     ppm.write(image, "cylinder_AoS");
 
     // SoA
-    const mask<cylinder2D<false, soa::cylinder_intersector>,
-               std::uint_least16_t, algebra_v<scalar>>
-        cyl2_v{0u, 0.5f * image.height() * rand, 0.5f * image.width(),
-               0.7f * image.width()};
+    std::vector<mask<cylinder2D<false, soa::cylinder_intersector>,
+                     std::uint_least16_t, algebra_v<scalar>>>
+        cyl2_v;
+    cyl2_v.emplace_back(0u, 0.5f * image.height() * rand, 0.5f * image.width(),
+                        0.7f * image.width());
 
     start = std::chrono::high_resolution_clock::now();
-    render_single_shape<scalar, algebra_v>(image, cyl2_v, trf_v,
-                                           silicon<scalar>{});
+    render_single_shape<scalar, algebra_v>(image, std::move(cyl2_v), trfs_v,
+                                           mat);
     end = std::chrono::high_resolution_clock::now();
 
     std::cout << "Cylinder SoA: "
@@ -452,10 +480,12 @@ int main() {
                std::uint_least16_t, algebra_s<scalar>>
         pt_cyl2_s{0u, 0.1f * image.height(), 0.5f * image.width(),
                   0.7f * image.width()};
+    std::vector<mask<cylinder2D<false, cylinder_portal_intersector>>>
+        pt_cyl2_vec(soa_size, pt_cyl2_s);
 
     start = std::chrono::high_resolution_clock::now();
-    render_single_shape<scalar, algebra_s>(image, pt_cyl2_s, trf_s,
-                                           silicon<scalar>{});
+    render_single_shape<scalar, algebra_s>(image, std::move(pt_cyl2_vec),
+                                           trfs_s, mat);
     end = std::chrono::high_resolution_clock::now();
 
     std::cout << "\nPortal Cylinder AoS: "
@@ -468,14 +498,15 @@ int main() {
     ppm.write(image, "portal_cylinder_AoS");
 
     // SoA
-    const mask<cylinder2D<false, soa::cylinder_portal_intersector>,
-               std::uint_least16_t, algebra_v<scalar>>
-        pt_cyl2_v{0u, 0.5f * image.height() * rand, 0.5f * image.width(),
-                  0.7f * image.width()};
+    std::vector<mask<cylinder2D<false, soa::cylinder_portal_intersector>,
+                     std::uint_least16_t, algebra_v<scalar>>>
+        pt_cyl2_v;
+    pt_cyl2_v.emplace_back(0u, 0.5f * image.height() * rand,
+                           0.5f * image.width(), 0.7f * image.width());
 
     start = std::chrono::high_resolution_clock::now();
-    render_single_shape<scalar, algebra_v>(image, pt_cyl2_v, trf_v,
-                                           silicon<scalar>{});
+    render_single_shape<scalar, algebra_v>(image, std::move(pt_cyl2_v), trfs_v,
+                                           mat);
     end = std::chrono::high_resolution_clock::now();
 
     std::cout << "Portal Cylinder SoA: "
