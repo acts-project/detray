@@ -88,13 +88,13 @@ inline void render_single_shape(
     typename intersector_t::global_state geo{std::move(trf), std::move(mask),
                                              std::move(mat)};
 
-    // Iterate through pixel matrix
+// Iterate through pixel matrix
+#pragma omp parallel for collapse(2)
     for (std::size_t i_y = 0u; i_y < im.height(); ++i_y) {
         for (std::size_t i_x = 0u; i_x < im.width(); ++i_x) {
 
             // Ray to render the pixel at (i_x, i_y)
             auto ray = cam.get_ray(i_x, i_y, im);
-            ray.set_overstep_tolerance(-std::numeric_limits<T>::max());
 
             // Strap the global geometry state and the thread-local ray together
             scene_handle::state scene{geo, im, ray, i_x, i_y};

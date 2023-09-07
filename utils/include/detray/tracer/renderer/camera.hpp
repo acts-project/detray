@@ -52,10 +52,13 @@ class camera {
         const scalar_t u = x / static_cast<T>(image.width() - 1u);
         const scalar_t v = y / static_cast<T>(image.height() - 1u);
 
-        return {
+        detail::ray<transform3D> ray{
             m_origin, 0.f,
             m_lower_left_corner + u * m_horizontal + v * m_vertical - m_origin,
             0.f};
+        ray.set_overstep_tolerance(-std::numeric_limits<T>::max());
+
+        return ray;
     }
 
     private:
