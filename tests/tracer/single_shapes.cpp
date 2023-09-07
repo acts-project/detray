@@ -30,6 +30,7 @@
 #include "detray/tracer/texture/pixel.hpp"
 
 // System include(s)
+#include <chrono>
 #include <cstdlib>
 #include <iostream>
 #include <limits>
@@ -165,8 +166,19 @@ int main() {
     // AoS
     const mask<rectangle2D<>> rect2_s{0u, 0.01f * image.width(),
                                       0.01f * image.height()};
+
+    auto start = std::chrono::high_resolution_clock::now();
     render_single_shape<scalar, algebra_s>(image, rect2_s, trf_s,
                                            beryllium<scalar>{});
+    auto end = std::chrono::high_resolution_clock::now();
+
+    std::cout << "\nRectangle AoS: "
+              << std::chrono::duration_cast<std::chrono::nanoseconds>(end -
+                                                                      start)
+                         .count() /
+                     1000'000.
+              << " ms" << std::endl;
+
     ppm.write(image, "rectangle_AoS");
 
     // SoA
@@ -174,16 +186,38 @@ int main() {
                algebra_v<scalar>>
         rect2_v{0u, 0.01f * image.width() * dsimd<algebra_v, scalar>{}.Random(),
                 0.01f * image.height() * dsimd<algebra_v, scalar>{}.Random()};
+
+    start = std::chrono::high_resolution_clock::now();
     render_single_shape<scalar, algebra_v>(image, rect2_v, trf_v,
                                            beryllium<scalar>{});
+    end = std::chrono::high_resolution_clock::now();
+
+    std::cout << "Rectangle SoA: "
+              << std::chrono::duration_cast<std::chrono::nanoseconds>(end -
+                                                                      start)
+                         .count() /
+                     1000'000.
+              << " ms" << std::endl;
+
     ppm.write(image, "rectangle_SoA");
 
     // render a trapezoid mask
 
     // AoS
     const mask<trapezoid2D<>> trpz2_s{0u, 10.f, 30.f, 20.f, 1.f / 40.f};
+    start = std::chrono::high_resolution_clock::now();
     render_single_shape<scalar, algebra_s>(image, trpz2_s, trf_s,
                                            aluminium<scalar>{});
+
+    end = std::chrono::high_resolution_clock::now();
+
+    std::cout << "\nTrapezoid AoS: "
+              << std::chrono::duration_cast<std::chrono::nanoseconds>(end -
+                                                                      start)
+                         .count() /
+                     1000'000.
+              << " ms" << std::endl;
+
     ppm.write(image, "trapezoid_AoS");
 
     // SoA
@@ -194,16 +228,38 @@ int main() {
                 0.02f * image.height() * dsimd<algebra_v, scalar>{}.Random(),
                 1.f / 40.f * 1.f / 1000.f * image.height() *
                     dsimd<algebra_v, scalar>{}.Random()};
+
+    start = std::chrono::high_resolution_clock::now();
     render_single_shape<scalar, algebra_v>(image, trap2_v, trf_v,
                                            aluminium<scalar>{});
+    end = std::chrono::high_resolution_clock::now();
+
+    std::cout << "Trapezoid SoA: "
+              << std::chrono::duration_cast<std::chrono::nanoseconds>(end -
+                                                                      start)
+                         .count() /
+                     1000'000.
+              << " ms" << std::endl;
+
     ppm.write(image, "trapezoid_SoA");
 
     // render a ring mask
 
     // AoS
     const mask<ring2D<>> ring2_s{0u, 12.f, 20.f};
+
+    start = std::chrono::high_resolution_clock::now();
     render_single_shape<scalar, algebra_s>(image, ring2_s, trf_s,
                                            gold<scalar>{});
+    end = std::chrono::high_resolution_clock::now();
+
+    std::cout << "\nRing AoS: "
+              << std::chrono::duration_cast<std::chrono::nanoseconds>(end -
+                                                                      start)
+                         .count() /
+                     1000'000.
+              << " ms" << std::endl;
+
     ppm.write(image, "ring_AoS");
 
     // SoA
@@ -211,8 +267,19 @@ int main() {
                algebra_v<scalar>>
         ring2_v{0u, 23.f * dsimd<algebra_v, scalar>{}.Random(),
                 30.f * dsimd<algebra_v, scalar>{}.Random()};
+
+    start = std::chrono::high_resolution_clock::now();
     render_single_shape<scalar, algebra_v>(image, ring2_v, trf_v,
                                            gold<scalar>{});
+    end = std::chrono::high_resolution_clock::now();
+
+    std::cout << "Ring SoA: "
+              << std::chrono::duration_cast<std::chrono::nanoseconds>(end -
+                                                                      start)
+                         .count() /
+                     1000'000.
+              << " ms" << std::endl;
+
     ppm.write(image, "ring_SoA");
 
     // render an annulus mask
@@ -220,8 +287,19 @@ int main() {
     // AoS
     const mask<annulus2D<>> ann2_s{0u,       5.f,  13.0f, 0.74195f,
                                    1.33970f, -2.f, 2.f,   0.f};
+
+    start = std::chrono::high_resolution_clock::now();
     render_single_shape<scalar, algebra_s>(image, ann2_s, trf_s,
                                            silicon<scalar>{});
+    end = std::chrono::high_resolution_clock::now();
+
+    std::cout << "\nAnnulus AoS: "
+              << std::chrono::duration_cast<std::chrono::nanoseconds>(end -
+                                                                      start)
+                         .count() /
+                     1000'000.
+              << " ms" << std::endl;
+
     ppm.write(image, "annulus_AoS");
 
     // SoA
@@ -236,8 +314,19 @@ int main() {
                -2.f * rand,
                2.f * rand,
                0.f * rand};
+
+    start = std::chrono::high_resolution_clock::now();
     render_single_shape<scalar, algebra_v>(image, ann2_v, trf_v,
                                            silicon<scalar>{});
+    end = std::chrono::high_resolution_clock::now();
+
+    std::cout << "Annulus SoA: "
+              << std::chrono::duration_cast<std::chrono::nanoseconds>(end -
+                                                                      start)
+                         .count() /
+                     1000'000.
+              << " ms" << std::endl;
+
     ppm.write(image, "annulus_SoA");
 
     // render a spherical mask
@@ -246,8 +335,18 @@ int main() {
     const mask<sphere2D<>, std::uint_least16_t, algebra_s<scalar>> sph2_s{0u,
                                                                           10.f};
 
+    start = std::chrono::high_resolution_clock::now();
     render_single_shape<scalar, algebra_s>(image, sph2_s, trf_s,
                                            silicon<scalar>{});
+    end = std::chrono::high_resolution_clock::now();
+
+    std::cout << "\nSphere AoS: "
+              << std::chrono::duration_cast<std::chrono::nanoseconds>(end -
+                                                                      start)
+                         .count() /
+                     1000'000.
+              << " ms" << std::endl;
+
     ppm.write(image, "sphere_AoS");
 
     // SoA
@@ -255,8 +354,18 @@ int main() {
                algebra_v<scalar>>
         sph2_v{0u, 10.f * dsimd<algebra_v, scalar>{}.Random()};
 
+    start = std::chrono::high_resolution_clock::now();
     render_single_shape<scalar, algebra_v>(image, sph2_v, trf_v,
                                            silicon<scalar>{});
+    end = std::chrono::high_resolution_clock::now();
+
+    std::cout << "Sphere SoA: "
+              << std::chrono::duration_cast<std::chrono::nanoseconds>(end -
+                                                                      start)
+                         .count() /
+                     1000'000.
+              << " ms" << std::endl;
+
     ppm.write(image, "sphere_SoA");
 
     // render a line mask
@@ -265,7 +374,17 @@ int main() {
     const mask<line<true>, std::uint_least16_t, algebra_s<scalar>> ln2_s{
         0u, 10.f, std::numeric_limits<scalar>::infinity()};
 
+    start = std::chrono::high_resolution_clock::now();
     render_single_shape<scalar, algebra_s>(image, ln2_s, trf_s, gold<scalar>{});
+    end = std::chrono::high_resolution_clock::now();
+
+    std::cout << "\nLine AoS: "
+              << std::chrono::duration_cast<std::chrono::nanoseconds>(end -
+                                                                      start)
+                         .count() /
+                     1000'000.
+              << " ms" << std::endl;
+
     ppm.write(image, "line_AoS");
 
     // SoA
@@ -273,7 +392,17 @@ int main() {
                algebra_v<scalar>>
         ln2_v{0u, 10.f * rand, std::numeric_limits<scalar>::infinity() * rand};
 
+    start = std::chrono::high_resolution_clock::now();
     render_single_shape<scalar, algebra_v>(image, ln2_v, trf_v, gold<scalar>{});
+    end = std::chrono::high_resolution_clock::now();
+
+    std::cout << "Line SoA: "
+              << std::chrono::duration_cast<std::chrono::nanoseconds>(end -
+                                                                      start)
+                         .count() /
+                     1000'000.
+              << " ms" << std::endl;
+
     ppm.write(image, "line_SoA");
 
     // render a cylinder mask
@@ -282,8 +411,18 @@ int main() {
     const mask<cylinder2D<>, std::uint_least16_t, algebra_s<scalar>> cyl2_s{
         0u, 0.5f * image.height(), 0.5f * image.width(), 0.7f * image.width()};
 
+    start = std::chrono::high_resolution_clock::now();
     render_single_shape<scalar, algebra_s>(image, cyl2_s, trf_s,
                                            silicon<scalar>{});
+    end = std::chrono::high_resolution_clock::now();
+
+    std::cout << "\nCylinder AoS: "
+              << std::chrono::duration_cast<std::chrono::nanoseconds>(end -
+                                                                      start)
+                         .count() /
+                     1000'000.
+              << " ms" << std::endl;
+
     ppm.write(image, "cylinder_AoS");
 
     // SoA
@@ -292,8 +431,18 @@ int main() {
         cyl2_v{0u, 0.5f * image.height() * rand, 0.5f * image.width(),
                0.7f * image.width()};
 
+    start = std::chrono::high_resolution_clock::now();
     render_single_shape<scalar, algebra_v>(image, cyl2_v, trf_v,
                                            silicon<scalar>{});
+    end = std::chrono::high_resolution_clock::now();
+
+    std::cout << "Cylinder SoA: "
+              << std::chrono::duration_cast<std::chrono::nanoseconds>(end -
+                                                                      start)
+                         .count() /
+                     1000'000.
+              << " ms" << std::endl;
+
     ppm.write(image, "cylinder_SoA");
 
     // render a portal cylinder mask
@@ -304,8 +453,18 @@ int main() {
         pt_cyl2_s{0u, 0.1f * image.height(), 0.5f * image.width(),
                   0.7f * image.width()};
 
+    start = std::chrono::high_resolution_clock::now();
     render_single_shape<scalar, algebra_s>(image, pt_cyl2_s, trf_s,
                                            silicon<scalar>{});
+    end = std::chrono::high_resolution_clock::now();
+
+    std::cout << "\nPortal Cylinder AoS: "
+              << std::chrono::duration_cast<std::chrono::nanoseconds>(end -
+                                                                      start)
+                         .count() /
+                     1000'000.
+              << " ms" << std::endl;
+
     ppm.write(image, "portal_cylinder_AoS");
 
     // SoA
@@ -314,8 +473,19 @@ int main() {
         pt_cyl2_v{0u, 0.5f * image.height() * rand, 0.5f * image.width(),
                   0.7f * image.width()};
 
+    start = std::chrono::high_resolution_clock::now();
     render_single_shape<scalar, algebra_v>(image, pt_cyl2_v, trf_v,
                                            silicon<scalar>{});
+    end = std::chrono::high_resolution_clock::now();
+
+    std::cout << "Portal Cylinder SoA: "
+              << std::chrono::duration_cast<std::chrono::nanoseconds>(end -
+                                                                      start)
+                         .count() /
+                     1000'000.
+              << " ms\n"
+              << std::endl;
+
     ppm.write(image, "portal_cylinder_SoA");
 
     return EXIT_SUCCESS;
