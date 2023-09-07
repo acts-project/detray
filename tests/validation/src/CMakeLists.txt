@@ -22,7 +22,3 @@ detray_add_test(toy_detector
 detray_add_test(wire_chamber
                 "wire_chamber_validation.cpp"
                 LINK_LIBRARIES GTest::gtest GTest::gtest_main detray_validation)
-
-detray_add_test(simulation 
-                "simulation_validation.cpp"
-                LINK_LIBRARIES GTest::gtest GTest::gtest_main detray_validation)
