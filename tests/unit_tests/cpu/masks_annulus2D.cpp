@@ -44,7 +44,6 @@ GTEST_TEST(detray_masks, annulus2D) {
 
     mask<annulus2D<>> ann2{0u,     minR, maxR,      minPhi,
                            maxPhi, 0.f,  offset[0], offset[1]};
-    ann2.normal_order = false;
 
     ASSERT_NEAR(ann2[annulus2D<>::e_min_r], 7.2f, tol);
     ASSERT_NEAR(ann2[annulus2D<>::e_max_r], 12.0f, tol);
@@ -69,19 +68,6 @@ GTEST_TEST(detray_masks, annulus2D) {
                 intersection::status::e_inside);
     ASSERT_TRUE(ann2.is_inside(toStripFrame(p2_out4), 0.07f) ==
                 intersection::status::e_inside);
-
-    // Dummy bound track parameter
-    bound_track_parameters<transform3_t> bound_params;
-
-    // Check projection matrix
-    const auto proj = ann2.projection_matrix(bound_params);
-    for (unsigned int i = 0u; i < e_bound_size; i++) {
-        if (i == 1u) {
-            ASSERT_EQ(getter::element(proj, 0u, i), 1u);
-        } else {
-            ASSERT_EQ(getter::element(proj, 0u, i), 0u);
-        }
-    }
 
     // Check corner positions
     std::array<scalar, 8> c = ann2.get_shape().corners(ann2.values());

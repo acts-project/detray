@@ -50,18 +50,6 @@ GTEST_TEST(detray_masks, line_radial_cross_sect) {
     auto& bound_vec = bound_params.vector();
     getter::element(bound_vec, e_bound_loc0, 0u) = 1.f;
 
-    // Check projection matrix
-    const auto proj = ln.projection_matrix(bound_params);
-    for (unsigned int i = 0u; i < decltype(ln)::shape::meas_dim; i++) {
-        for (unsigned int j = 0u; j < e_bound_size; j++) {
-            if (i == j) {
-                ASSERT_EQ(getter::element(proj, i, j), 1u);
-            } else {
-                ASSERT_EQ(getter::element(proj, i, j), 0u);
-            }
-        }
-    }
-
     // Check bounding box
     constexpr scalar envelope{0.01f};
     const auto loc_bounds = ln.local_min_bounds(envelope);
@@ -99,22 +87,6 @@ GTEST_TEST(detray_masks, line_square_cross_sect) {
     bound_track_parameters<transform3_t> bound_params;
     auto& bound_vec = bound_params.vector();
     getter::element(bound_vec, e_bound_loc0, 0u) = -1.f;
-
-    // Check projection matrix
-    const auto proj = ln.projection_matrix(bound_params);
-    for (unsigned int i = 0u; i < decltype(ln)::shape::meas_dim; i++) {
-        for (unsigned int j = 0u; j < e_bound_size; j++) {
-            if (i == j) {
-                if (i == 1) {
-                    ASSERT_EQ(getter::element(proj, i, j), -1.f);
-                } else if (i == 2) {
-                    ASSERT_EQ(getter::element(proj, i, j), 1.f);
-                }
-            } else {
-                ASSERT_EQ(getter::element(proj, i, j), 0u);
-            }
-        }
-    }
 
     // Check bounding box
     constexpr scalar envelope{0.01f};

@@ -31,9 +31,6 @@ class cylinder3D {
     /// The name for this shape
     inline static const std::string name = "cylinder3D";
 
-    /// The measurement dimension (not allowed)
-    inline static constexpr const unsigned int meas_dim{0u};
-
     enum boundaries : unsigned int {
         e_min_r = 0u,
         e_min_phi = 1u,

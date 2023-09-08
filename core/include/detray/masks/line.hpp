@@ -40,8 +40,7 @@ namespace detray {
 /// half length of the square. The second boundary bounds[1] is the half length
 /// in z.
 template <bool kSquareCrossSect = false,
-          template <typename> class intersector_t = line_intersector,
-          unsigned int kMeasDim = 1u>
+          template <typename> class intersector_t = line_intersector>
 class line {
     public:
     /// The name for this shape
@@ -49,13 +48,6 @@ class line {
 
     /// Geometrical cross section of the line
     static constexpr bool square_cross_sect = kSquareCrossSect;
-
-    /// The measurement dimension
-    inline static constexpr const unsigned int meas_dim{kMeasDim};
-
-    // Measurement dimension check
-    static_assert(meas_dim == 1u || meas_dim == 2u,
-                  "Only 1D or 2D measurement is allowed");
 
     enum boundaries : unsigned int {
         e_cross_section = 0u,
