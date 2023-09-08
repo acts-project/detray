@@ -29,12 +29,12 @@ namespace {
 
 // polar coordinate system with regular binning on both axes
 using polar_axes = multi_axis<
-    true, polar2<test::transform3>,
+    true, polar2D<ALGEBRA_PLUGIN<test::scalar>>,
     single_axis<closed<label::e_r>, regular<host_container_types, scalar>>,
     single_axis<circular<label::e_phi>, regular<host_container_types, scalar>>>;
 // 3-dim cylindrical coordinate system with regular binning
 using cylinder_axes = multi_axis<
-    true, cylindrical3<test::transform3>,
+    true, cylindrical3D<ALGEBRA_PLUGIN<test::scalar>>,
     single_axis<closed<label::e_r>, regular<host_container_types, scalar>>,
     single_axis<circular<label::e_phi>, regular<host_container_types, scalar>>,
     single_axis<closed<label::e_z>, regular<host_container_types, scalar>>>;

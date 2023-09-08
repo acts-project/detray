@@ -8,11 +8,10 @@
 #pragma once
 
 // Project include(s)
-#include "detray/coordinates/line2.hpp"
+#include "detray/coordinates/line2D.hpp"
 #include "detray/definitions/math.hpp"
 #include "detray/definitions/qualifiers.hpp"
 #include "detray/intersection/detail/trajectories.hpp"
-#include "detray/intersection/intersection.hpp"
 
 // System include(s)
 #include <type_traits>
@@ -23,13 +22,14 @@ namespace detray {
 template <typename intersection_t>
 struct line_intersector {
 
-    /// linear algebra types
+    /// Linear algebra types
     /// @{
-    using transform3_type = typename intersection_t::transform3_type;
-    using scalar_type = typename transform3_type::scalar_type;
-    using point3 = typename transform3_type::point3;
-    using point2 = typename transform3_type::point2;
-    using vector3 = typename transform3_type::vector3;
+    using algebra = typename intersection_t::algebra;
+    using transform3_type = typename intersection_t::transform3D;
+    using scalar_type = typename intersection_t::scalar_t;
+    using point3 = typename intersection_t::point3D;
+    using point2 = typename intersection_t::point2D;
+    using vector3 = typename intersection_t::vector3D;
     /// @}
 
     using intersection_type = intersection_t;
@@ -49,7 +49,7 @@ struct line_intersector {
     /// @return the intersection
     template <typename mask_t, typename surface_t,
               std::enable_if_t<std::is_same_v<typename mask_t::local_frame_type,
-                                              line2<transform3_type>>,
+                                              line2D<algebra>>,
                                bool> = true>
     DETRAY_HOST_DEVICE inline intersection_t operator()(
         const ray_type &ray, const surface_t &sf, const mask_t &mask,
@@ -57,6 +57,7 @@ struct line_intersector {
         const scalar_type mask_tolerance = 0.f) const {
 
         intersection_type is;
+        is.status = false;
 
         // line direction
         const vector3 _z = getter::vector<3>(trf.matrix(), 0u, 2u);
@@ -76,8 +77,8 @@ struct line_intersector {
         const scalar_type denom{1.f - (zd * zd)};
 
         // Case for wire is parallel to track
-        if (denom < 1e-5f) {
-            is.status = intersection::status::e_missed;
+        if (denom < 1e-6f) {
+            is.status = false;
             return is;
         }
 
@@ -106,12 +107,10 @@ struct line_intersector {
 
             // prepare some additional information in case the intersection
             // is valid
-            if (is.status == intersection::status::e_inside) {
+            if (is.status) {
                 is.sf_desc = sf;
 
-                is.direction = detail::signbit(is.path)
-                                   ? intersection::direction::e_opposite
-                                   : intersection::direction::e_along;
+                is.direction = !detail::signbit(is.path);
                 is.volume_link = mask.volume_link();
 
                 // Get incidence angle
@@ -132,7 +131,7 @@ struct line_intersector {
     /// @param mask_tolerance is the tolerance for mask edges
     template <typename mask_t,
               std::enable_if_t<std::is_same_v<typename mask_t::local_frame_type,
-                                              line2<transform3_type>>,
+                                              line2D<algebra>>,
                                bool> = true>
     DETRAY_HOST_DEVICE inline void update(
         const ray_type &ray, intersection_t &sfi, const mask_t &mask,

@@ -93,10 +93,11 @@ struct void_inspector {
 /// @tparam detector_t the detector to navigate
 /// @tparam inspector_t is a validation inspector that can record information
 ///         about the navaigation state at different points of the nav. flow.
-template <
-    typename detector_t, typename inspector_t = navigation::void_inspector,
-    typename intersection_t = intersection2D<typename detector_t::surface_type,
-                                             typename detector_t::transform3>>
+template <typename detector_t,
+          typename inspector_t = navigation::void_inspector,
+          typename intersection_t =
+              intersection2D<typename detector_t::surface_type,
+                             typename detector_t::scalar_type, ALGEBRA_PLUGIN>>
 class navigator {
 
     public:
@@ -405,7 +406,7 @@ class navigator {
         template <typename track_t>
         DETRAY_HOST_DEVICE inline auto is_reachable(
             const intersection_type &candidate, track_t &track) const -> bool {
-            return candidate.status == intersection::status::e_inside and
+            return candidate.status and
                    candidate.path < std::numeric_limits<scalar_type>::max() and
                    candidate.path >= track.overstep_tolerance();
         }
@@ -765,15 +766,17 @@ class navigator {
 // candidates size allocation. With the local navigation, the size can be
 // restricted to much smaller value
 template <typename detector_t>
-DETRAY_HOST vecmem::data::jagged_vector_buffer<intersection2D<
-    typename detector_t::surface_type, typename detector_t::transform3>>
+DETRAY_HOST vecmem::data::jagged_vector_buffer<
+    intersection2D<typename detector_t::surface_type,
+                   typename detector_t::scalar_type, ALGEBRA_PLUGIN>>
 create_candidates_buffer(
     const detector_t &det, const std::size_t n_tracks,
     vecmem::memory_resource &device_resource,
     vecmem::memory_resource *host_access_resource = nullptr) {
     // Build the buffer from capacities, device and host accessible resources
-    return vecmem::data::jagged_vector_buffer<intersection2D<
-        typename detector_t::surface_type, typename detector_t::transform3>>(
+    return vecmem::data::jagged_vector_buffer<
+        intersection2D<typename detector_t::surface_type,
+                       typename detector_t::scalar_type, ALGEBRA_PLUGIN>>(
         std::vector<std::size_t>(n_tracks, det.n_max_candidates()),
         device_resource, host_access_resource,
         vecmem::data::buffer_type::resizable);

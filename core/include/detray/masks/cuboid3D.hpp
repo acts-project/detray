@@ -8,7 +8,8 @@
 #pragma once
 
 // Project include(s)
-#include "detray/coordinates/cartesian3.hpp"
+#include "detray/coordinates/cartesian3D.hpp"
+#include "detray/definitions/boolean.hpp"
 #include "detray/definitions/containers.hpp"
 #include "detray/definitions/qualifiers.hpp"
 #include "detray/intersection/bounding_box/cuboid_intersector.hpp"
@@ -33,9 +34,6 @@ class cuboid3D {
     /// The name for this shape
     inline static const std::string name = "cuboid3D";
 
-    /// The measurement dimension (not allowed)
-    inline static constexpr const unsigned int meas_dim{0u};
-
     enum boundaries : unsigned int {
         e_min_x = 0u,
         e_min_y = 1u,
@@ -48,7 +46,7 @@ class cuboid3D {
 
     /// Local coordinate frame for boundary checks
     template <typename algebra_t>
-    using local_frame_type = cartesian3<algebra_t>;
+    using local_frame_type = cartesian3D<algebra_t>;
 
     /// Underlying surface geometry: not a surface
     template <typename = void>
@@ -95,15 +93,15 @@ class cuboid3D {
     template <template <typename, std::size_t> class bounds_t,
               typename scalar_t, std::size_t kDIM, typename point_t,
               typename std::enable_if_t<kDIM == e_size, bool> = true>
-    DETRAY_HOST_DEVICE inline bool check_boundaries(
+    DETRAY_HOST_DEVICE inline auto check_boundaries(
         const bounds_t<scalar_t, kDIM> &bounds, const point_t &loc_p,
         const scalar_t tol = std::numeric_limits<scalar_t>::epsilon()) const {
-        return (bounds[e_min_x] - tol <= loc_p[0] and
-                bounds[e_min_y] - tol <= loc_p[1] and
-                bounds[e_min_x] - tol <= loc_p[2] and
-                loc_p[0] <= bounds[e_max_x] + tol and
-                loc_p[1] <= bounds[e_max_y] + tol and
-                loc_p[2] <= bounds[e_max_z] + tol);
+        return ((bounds[e_min_x] - tol) <= loc_p[0] and
+                (bounds[e_min_y] - tol) <= loc_p[1] and
+                (bounds[e_min_x] - tol) <= loc_p[2] and
+                loc_p[0] <= (bounds[e_max_x] + tol) and
+                loc_p[1] <= (bounds[e_max_y] + tol) and
+                loc_p[2] <= (bounds[e_max_z] + tol));
     }
 
     /// @brief Lower and upper point for minimal axis aligned bounding box.

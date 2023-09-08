@@ -168,7 +168,8 @@ class illustrator {
         const std::vector<
             std::pair<detray::dindex,
                       detray::intersection2D<typename detector_t::surface_type,
-                                             typename detector_t::transform3>>>&
+                                             typename detector_t::scalar_type,
+                                             ALGEBRA_PLUGIN>>>&
             intersection_record,
         const view_t& view) const {
         auto p_ir = svgtools::conversion::intersection_record<point3>(

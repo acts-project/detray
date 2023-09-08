@@ -193,11 +193,11 @@ class surface_descriptor {
     }
 
     private:
-    geometry::barcode m_barcode{};
-    mask_link _mask{};
-    material_link _material{};
-    transform_link_t _trf{};
-    source_link_t _src{};
+    geometry::barcode m_barcode;
+    mask_link _mask;
+    material_link _material;
+    transform_link_t _trf;
+    source_link_t _src;
 };
 
 }  // namespace detray

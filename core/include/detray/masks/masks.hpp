@@ -8,6 +8,7 @@
 #pragma once
 
 // Project include(s)
+#include "detray/definitions/algebra.hpp"
 #include "detray/definitions/indexing.hpp"
 #include "detray/definitions/qualifiers.hpp"
 #include "detray/definitions/track_parametrization.hpp"
@@ -45,28 +46,21 @@ namespace detray {
 /// @tparam links_t the type of link into the volume container
 ///                 (e.g. single index vs range)
 template <typename shape_t, typename links_t = std::uint_least16_t,
-          typename algebra_t = __plugin::transform3<detray::scalar>,
+          typename algebra_t = ALGEBRA_PLUGIN<detray::scalar>,
           template <typename, std::size_t> class array_t = darray>
 class mask {
     public:
     using links_type = links_t;
-    using scalar_type = typename algebra_t::scalar_type;
+    using scalar_type = dscalar<algebra_t>;
     using shape = shape_t;
     using boundaries = typename shape::boundaries;
     using mask_values = array_t<scalar_type, boundaries::e_size>;
+    using transform3 = dtransform3D<algebra_t>;
     using local_frame_type =
         typename shape::template local_frame_type<algebra_t>;
     // Linear algebra types
-    using point3_t = typename algebra_t::point3;
-    using point2_t = typename algebra_t::point2;
-    using matrix_operator = typename algebra_t::matrix_actor;
-    using size_type = typename algebra_t::size_type;
-    template <size_type ROWS, size_type COLS>
-    using matrix_type = typename algebra_t::template matrix_type<ROWS, COLS>;
-    using projection_matrix_type = matrix_type<shape::meas_dim, e_bound_size>;
-
-    // Measurement ordering
-    bool normal_order = true;
+    using point3_t = dpoint3D<algebra_t>;
+    using point2_t = dpoint2D<algebra_t>;
 
     /// Default constructor
     constexpr mask() = default;
@@ -172,12 +166,9 @@ class mask {
     DETRAY_HOST_DEVICE
     inline auto is_inside(
         const point3_t& loc_p,
-        const scalar_type t = std::numeric_limits<scalar_type>::epsilon()) const
-        -> intersection::status {
-
-        return _shape.check_boundaries(_values, loc_p, t)
-                   ? intersection::status::e_inside
-                   : intersection::status::e_outside;
+        const scalar_type t =
+            std::numeric_limits<scalar_type>::epsilon()) const {
+        return _shape.check_boundaries(_values, loc_p, t);
     }
 
     /// @returns return local frame object (used in geometrical checks)
@@ -197,13 +188,6 @@ class mask {
     DETRAY_HOST_DEVICE
     auto volume_link() -> links_type& { return _volume_link; }
 
-    /// @returns the projection matrix for measurement
-    DETRAY_HOST_DEVICE projection_matrix_type projection_matrix(
-        const bound_track_parameters<algebra_t>& bound_params) const {
-        return this->local_frame().template projection_matrix<shape::meas_dim>(
-            bound_params, normal_order);
-    }
-
     /// @brief Lower and upper point for minimum axis aligned bounding box.
     ///
     /// Computes the min and max vertices in a local 3 dim cartesian frame.
@@ -216,7 +200,7 @@ class mask {
                               std::numeric_limits<scalar_type>::epsilon()) const
         -> mask<cuboid3D<>, unsigned int> {
         const auto bounds =
-            _shape.template local_min_bounds<algebra_t>(_values, env);
+            _shape.template local_min_bounds<transform3>(_values, env);
         static_assert(bounds.size() == cuboid3D<>::e_size,
                       "Shape returns incompatible bounds for bound box");
         return {bounds, std::numeric_limits<unsigned int>::max()};

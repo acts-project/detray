@@ -19,9 +19,10 @@ using namespace detray;
 
 namespace {
 
-using transform3 = test::transform3;
-using vector3 = typename transform3::vector3;
-using point3 = typename transform3::point3;
+template <typename T = scalar>
+using transform3 = dtransform3D<ALGEBRA_PLUGIN<T>>;
+using vector3 = dvector3D<ALGEBRA_PLUGIN<scalar>>;
+using point3 = dpoint3D<ALGEBRA_PLUGIN<scalar>>;
 
 // cuboid
 constexpr scalar x_min{1.f * unit<scalar>::mm};
@@ -41,7 +42,7 @@ GTEST_TEST(detray_intersection, cuboid_aabb_intersector) {
     // Test ray
     const point3 pos{2.f, 1.f, 0.f};
     const vector3 mom{0.f, 0.f, 1.f};
-    const detail::ray<transform3> r(pos, 0.f, mom, 0.f);
+    const detail::ray<transform3<>> r(pos, 0.f, mom, 0.f);
 
     // The bounding box
     mask<cuboid3D<>> c3{0u, x_min, y_min, z_min, x_max, y_max, z_max};

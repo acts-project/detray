@@ -83,8 +83,8 @@ class straight_line_navigation : public test::fixture_base<> {
         // Straight line navigation
         using free_track_parameters_t = free_track_parameters<transform3_t>;
         /// Type that holds the intersection information
-        using intersection_t =
-            intersection2D<typename detector_t::surface_type, transform3_t>;
+        using intersection_t = intersection2D<typename detector_t::surface_type,
+                                              scalar_t, ALGEBRA_PLUGIN>;
 
         /// Inspector that records all encountered surfaces
         using object_tracer_t =
@@ -101,7 +101,7 @@ class straight_line_navigation : public test::fixture_base<> {
         // Navigation with inspection
         using navigator_t = navigator<detector_t, inspector_t>;
         //  Line stepper
-        using stepper_t = line_stepper<transform3_t>;
+        using stepper_t = line_stepper<scalar_t, ALGEBRA_PLUGIN>;
         // Propagator with pathlimit aborter
         using actor_chain_t = actor_chain<dtuple, pathlimit_aborter>;
         using propagator_t = propagator<stepper_t, navigator_t, actor_chain_t>;

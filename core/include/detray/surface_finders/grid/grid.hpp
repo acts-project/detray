@@ -282,7 +282,7 @@ class grid {
     ///
     /// @return the iterable view of the bin content
     DETRAY_HOST_DEVICE auto search(
-        const typename local_frame_type::point3 &p) const {
+        const typename local_frame_type::point3D &p) const {
         return bin(m_axes.bins(p));
     }
 

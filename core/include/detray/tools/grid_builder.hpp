@@ -66,7 +66,7 @@ class grid_builder final : public volume_decorator<detector_t> {
     DETRAY_HOST void fill_grid(
         const detector_t &det, const volume_type &vol,
         const typename detector_t::geometry_context ctx = {},
-        const bin_filler_t bin_filler = {}, Args &&... args) {
+        const bin_filler_t bin_filler = {}, Args &&...args) {
         bin_filler(m_grid, det, vol, ctx, args...);
     }
 
@@ -79,7 +79,7 @@ class grid_builder final : public volume_decorator<detector_t> {
         const volume_type &vol, const surface_container_t &surfaces,
         const transform_container_t &transforms, const mask_container_t &masks,
         const typename detector_t::geometry_context ctx = {},
-        const bin_filler_t bin_filler = {}, Args &&... args) {
+        const bin_filler_t bin_filler = {}, Args &&...args) {
         bin_filler(m_grid, vol, surfaces, transforms, masks, ctx, args...);
     }
 
@@ -192,7 +192,7 @@ template <typename detector_t,
           typename grid_shape_t, typename value_t,
           template <std::size_t> class serializer_t, typename populator_impl_t,
           n_axis::bounds e_bounds = n_axis::bounds::e_closed,
-          typename algebra_t = typename detector_t::transform3,
+          typename algebra_t = ALGEBRA_PLUGIN<detray::scalar>,
           template <typename, typename> class... binning_ts>
 using grid_builder_type = grid_builder<
     detector_t,

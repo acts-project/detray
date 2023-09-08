@@ -7,15 +7,17 @@
 
 #pragma once
 
-#include <covfie/core/field.hpp>
-#include <covfie/core/field_view.hpp>
-
+// Project include(s)
 #include "detray/definitions/algebra.hpp"
 #include "detray/definitions/units.hpp"
 #include "detray/detectors/create_toy_geometry.hpp"
 #include "detray/propagator/line_stepper.hpp"
 #include "detray/propagator/navigator.hpp"
 #include "detray/simulation/event_generator/track_generators.hpp"
+
+// Covfie include(s)
+#include <covfie/core/field.hpp>
+#include <covfie/core/field_view.hpp>
 
 using namespace detray;
 
@@ -27,8 +29,8 @@ using detector_host_t =
 using detector_device_t =
     detector<toy_metadata<>, covfie::field_view, device_container_types>;
 
-using intersection_t =
-    intersection2D<typename detector_device_t::surface_type, transform3>;
+using intersection_t = intersection2D<typename detector_device_t::surface_type,
+                                      detray::scalar, ALGEBRA_PLUGIN>;
 
 using navigator_host_t = navigator<detector_host_t>;
 using navigator_device_t = navigator<detector_device_t>;

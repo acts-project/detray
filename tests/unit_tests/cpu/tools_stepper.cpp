@@ -32,9 +32,10 @@ using transform3 = test::transform3;
 using matrix_operator = standard_matrix_operator<scalar>;
 using mag_field_t = covfie::field<covfie::backend::constant<
     covfie::vector::vector_d<scalar, 3>, covfie::vector::vector_d<scalar, 3>>>;
-using rk_stepper_t = rk_stepper<mag_field_t::view_t, transform3>;
-using crk_stepper_t =
-    rk_stepper<mag_field_t::view_t, transform3, constrained_step<>>;
+using rk_stepper_t =
+    rk_stepper<mag_field_t::view_t, test::scalar, ALGEBRA_PLUGIN>;
+using crk_stepper_t = rk_stepper<mag_field_t::view_t, test::scalar,
+                                 ALGEBRA_PLUGIN, constrained_step<>>;
 
 namespace {
 
@@ -69,8 +70,9 @@ GTEST_TEST(detray_propagator, line_stepper) {
     using namespace step;
 
     // Line stepper with and without constrained stepping
-    using line_stepper_t = line_stepper<transform3>;
-    using cline_stepper_t = line_stepper<transform3, constrained_step<>>;
+    using line_stepper_t = line_stepper<test::scalar, ALGEBRA_PLUGIN>;
+    using cline_stepper_t =
+        line_stepper<test::scalar, ALGEBRA_PLUGIN, constrained_step<>>;
 
     point3 pos{0.f, 0.f, 0.f};
     vector3 mom{1.f, 1.f, 0.f};

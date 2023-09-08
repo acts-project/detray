@@ -30,7 +30,7 @@ namespace detail {
 template <typename intersection_t>
 struct helix_plane_intersector {
 
-    using transform3_type = typename intersection_t::transform3_type;
+    using transform3_type = typename intersection_t::transform3D;
     using scalar_type = typename transform3_type::scalar_type;
     using matrix_operator = typename transform3_type::matrix_actor;
     using point3 = typename transform3_type::point3;
@@ -56,6 +56,7 @@ struct helix_plane_intersector {
         const scalar_type mask_tolerance = 0.f) const {
 
         intersection_t sfi;
+        sfi.status = false;
 
         // Guard against inifinite loops
         constexpr std::size_t max_n_tries{1000u};
@@ -99,11 +100,9 @@ struct helix_plane_intersector {
         sfi.status = mask.is_inside(sfi.local, mask_tolerance);
 
         // Compute some additional information if the intersection is valid
-        if (sfi.status == intersection::status::e_inside) {
+        if (sfi.status) {
             sfi.sf_desc = sf;
-            sfi.direction = std::signbit(s)
-                                ? intersection::direction::e_opposite
-                                : intersection::direction::e_along;
+            sfi.direction = !std::signbit(s);
             sfi.volume_link = mask.volume_link();
         }
 

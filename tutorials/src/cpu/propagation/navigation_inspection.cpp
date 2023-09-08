@@ -6,6 +6,7 @@
  */
 
 // Project include(s)
+#include "detray/definitions/algebra.hpp"
 #include "detray/definitions/units.hpp"
 #include "detray/detectors/create_toy_geometry.hpp"
 #include "detray/intersection/detail/trajectories.hpp"  // ray
@@ -36,7 +37,8 @@ int main() {
     /// Type that holds the intersection information
     using intersection_t =
         detray::intersection2D<typename toy_detector_t::surface_type,
-                               detray::tutorial::transform3>;
+                               typename toy_detector_t::scalar_type,
+                               ALGEBRA_PLUGIN>;
 
     /// Inspector that records all encountered surfaces
     using object_tracer_t = detray::navigation::object_tracer<
@@ -55,7 +57,7 @@ int main() {
     // Navigation with inspection
     using navigator_t = detray::navigator<toy_detector_t, inspector_t>;
     // Line stepper
-    using stepper_t = detray::line_stepper<detray::tutorial::transform3>;
+    using stepper_t = detray::line_stepper<detray::scalar, ALGEBRA_PLUGIN>;
     // Propagator with empty actor chain
     using propagator_t =
         detray::propagator<stepper_t, navigator_t, detray::actor_chain<>>;

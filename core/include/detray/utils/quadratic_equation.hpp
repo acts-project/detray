@@ -33,8 +33,7 @@ class quadratic_equation {
     ///
     /// @param tolerance threshhold to compare the discrimant against to decide
     ///                  if we have two separate solutions.
-    DETRAY_HOST_DEVICE
-    constexpr quadratic_equation(
+    DETRAY_HOST_DEVICE constexpr quadratic_equation(
         const scalar_t a, const scalar_t b, const scalar_t c,
         const scalar_t tolerance = std::numeric_limits<scalar_t>::epsilon()) {
         // linear case

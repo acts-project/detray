@@ -8,7 +8,8 @@
 #pragma once
 
 // Project include(s)
-#include "detray/coordinates/polar2.hpp"
+#include "detray/coordinates/polar2D.hpp"
+#include "detray/definitions/boolean.hpp"
 #include "detray/definitions/containers.hpp"
 #include "detray/definitions/qualifiers.hpp"
 #include "detray/intersection/plane_intersector.hpp"
@@ -27,25 +28,14 @@ namespace detray {
 ///
 /// @tparam intersector_t defines how to intersect the underlying surface
 ///         geometry
-/// @tparam kMeasDim defines the dimension of the measurement
-/// @tparam kNormalOrder true if the index for measurement parameter follows
-/// the local coordinate system
 ///
 /// It is defined by the two radii bounds[0] and bounds[1],
 /// and can be checked with a tolerance in t[0] and t[1].
-template <template <typename> class intersector_t = plane_intersector,
-          unsigned int kMeasDim = 2u>
+template <template <typename> class intersector_t = plane_intersector>
 class ring2D {
     public:
     /// The name for this shape
     inline static const std::string name = "ring2D";
-
-    /// The measurement dimension
-    inline static constexpr const unsigned int meas_dim{kMeasDim};
-
-    // Measurement dimension check
-    static_assert(meas_dim == 1u || meas_dim == 2u,
-                  "Only 1D or 2D measurement is allowed");
 
     enum boundaries : unsigned int {
         e_inner_r = 0u,
@@ -55,7 +45,7 @@ class ring2D {
 
     /// Local coordinate frame for boundary checks
     template <typename algebra_t>
-    using local_frame_type = polar2<algebra_t>;
+    using local_frame_type = polar2D<algebra_t>;
 
     /// Underlying surface geometry: planar
     template <typename intersection_t>
@@ -96,12 +86,12 @@ class ring2D {
     template <template <typename, std::size_t> class bounds_t,
               typename scalar_t, std::size_t kDIM, typename point_t,
               typename std::enable_if_t<kDIM == e_size, bool> = true>
-    DETRAY_HOST_DEVICE inline bool check_boundaries(
+    DETRAY_HOST_DEVICE inline auto check_boundaries(
         const bounds_t<scalar_t, kDIM> &bounds, const point_t &loc_p,
         const scalar_t tol = std::numeric_limits<scalar_t>::epsilon()) const {
 
-        return (loc_p[0] + tol >= bounds[e_inner_r] and
-                loc_p[0] <= bounds[e_outer_r] + tol);
+        return ((loc_p[0] + tol) >= bounds[e_inner_r] and
+                loc_p[0] <= (bounds[e_outer_r] + tol));
     }
 
     /// @brief Lower and upper point for minimal axis aligned bounding box.

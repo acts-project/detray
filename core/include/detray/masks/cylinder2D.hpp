@@ -8,8 +8,7 @@
 #pragma once
 
 // Project include(s)
-#include "detray/coordinates/cylindrical2.hpp"
-#include "detray/coordinates/cylindrical3.hpp"
+#include "detray/coordinates/cylindrical2D.hpp"
 #include "detray/definitions/containers.hpp"
 #include "detray/definitions/qualifiers.hpp"
 #include "detray/intersection/cylinder_intersector.hpp"
@@ -30,14 +29,10 @@ namespace detray {
 ///         needs to be checked (changes local coordinate system def.)
 /// @tparam intersector_t defines how to intersect the underlying surface
 ///         geometry
-/// @tparam kMeasDim defines the dimension of the measurement
-/// @tparam kNormalOrder true if the index for measurement parameter follows
-/// the local coordinate system
 ///
 /// It is defined by r and the two half lengths rel to the coordinate center.
 template <bool kRadialCheck = false,
-          template <typename> class intersector_t = cylinder_intersector,
-          unsigned int kMeasDim = 2u>
+          template <typename> class intersector_t = cylinder_intersector>
 class cylinder2D {
     public:
     /// The name for this shape
@@ -45,13 +40,6 @@ class cylinder2D {
 
     /// Check the radial position in boundary check
     static constexpr bool check_radius = kRadialCheck;
-
-    /// The measurement dimension
-    inline static constexpr const unsigned int meas_dim{kMeasDim};
-
-    // Measurement dimension check
-    static_assert(meas_dim == 1u || meas_dim == 2u,
-                  "Only 1D or 2D measurement is allowed");
 
     enum boundaries : unsigned int {
         e_r = 0u,
@@ -62,7 +50,7 @@ class cylinder2D {
 
     /// Local coordinate frame for boundary checks
     template <typename algebra_t>
-    using local_frame_type = cylindrical2<algebra_t>;
+    using local_frame_type = cylindrical2D<algebra_t>;
 
     /// Underlying surface geometry: cylindrical
     template <typename intersection_t>
@@ -83,7 +71,7 @@ class cylinder2D {
 
         /// How to convert into the local axis system and back
         template <typename algebra_t>
-        using coordinate_type = cylindrical2<algebra_t>;
+        using coordinate_type = cylindrical2D<algebra_t>;
 
         template <typename C, typename S>
         using binning = dtuple<binning_loc0<C, S>, binning_loc1<C, S>>;
@@ -107,17 +95,15 @@ class cylinder2D {
     template <template <typename, std::size_t> class bounds_t,
               typename scalar_t, std::size_t kDIM, typename point_t,
               typename std::enable_if_t<kDIM == e_size, bool> = true>
-    DETRAY_HOST_DEVICE inline bool check_boundaries(
+    DETRAY_HOST_DEVICE inline auto check_boundaries(
         const bounds_t<scalar_t, kDIM> &bounds, const point_t &loc_p,
         const scalar_t tol = std::numeric_limits<scalar_t>::epsilon()) const {
 
         if constexpr (kRadialCheck) {
-            if (std::abs(loc_p[2] - bounds[e_r]) > tol) {
-                return false;
-            }
+            return (math_ns::abs(loc_p[2] - bounds[e_r]) <= tol);
         }
-        return (bounds[e_n_half_z] - tol <= loc_p[1] and
-                loc_p[1] <= bounds[e_p_half_z] + tol);
+        return ((bounds[e_n_half_z] - tol) <= loc_p[1] and
+                loc_p[1] <= (bounds[e_p_half_z] + tol));
     }
 
     /// @brief Lower and upper point for minimal axis aligned bounding box.

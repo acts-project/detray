@@ -8,7 +8,7 @@
 #pragma once
 
 // Project include(s)
-#include "detray/coordinates/cartesian2.hpp"
+#include "detray/coordinates/cartesian2D.hpp"
 #include "detray/definitions/containers.hpp"
 #include "detray/definitions/qualifiers.hpp"
 #include "detray/intersection/plane_intersector.hpp"
@@ -28,17 +28,11 @@ class unmasked {
     /// The name for this shape
     inline static const std::string name = "unmasked";
 
-    /// The measurement dimension
-    inline static constexpr const unsigned int meas_dim{2u};
-
-    /// normal ordering
-    inline static constexpr const bool normal_order = true;
-
     enum boundaries : unsigned int { e_size = 1u };
 
     /// Local coordinate frame for boundary checks
     template <typename algebra_t>
-    using local_frame_type = cartesian2<algebra_t>;
+    using local_frame_type = cartesian2D<algebra_t>;
 
     /// Underlying surface geometry: planar
     template <typename intersection_t>

@@ -51,9 +51,10 @@ GTEST_TEST(detray_propagator, covariance_transport) {
     const auto [det, names] = create_telescope_detector(host_mr, tel_cfg);
 
     using navigator_t = navigator<decltype(det)>;
-    using cline_stepper_t = line_stepper<transform3>;
-    using actor_chain_t = actor_chain<dtuple, parameter_transporter<transform3>,
-                                      parameter_resetter<transform3>>;
+    using cline_stepper_t = line_stepper<test::scalar, ALGEBRA_PLUGIN>;
+    using actor_chain_t =
+        actor_chain<dtuple, parameter_transporter<test::scalar, ALGEBRA_PLUGIN>,
+                    parameter_resetter<test::scalar, ALGEBRA_PLUGIN>>;
     using propagator_t =
         propagator<cline_stepper_t, navigator_t, actor_chain_t>;
 
@@ -79,8 +80,8 @@ GTEST_TEST(detray_propagator, covariance_transport) {
         geometry::barcode{}.set_index(0u), bound_vector, bound_cov);
 
     // Actors
-    parameter_transporter<transform3>::state bound_updater{};
-    parameter_resetter<transform3>::state rst{};
+    parameter_transporter<test::scalar, ALGEBRA_PLUGIN>::state bound_updater{};
+    parameter_resetter<test::scalar, ALGEBRA_PLUGIN>::state rst{};
 
     propagator_t p({}, {});
     propagator_t::state propagation(bound_param0, det);

@@ -15,6 +15,75 @@
 #include "detray/plugins/algebra/smatrix_definitions.hpp"
 #elif DETRAY_ALGEBRA_VC
 #include "detray/plugins/algebra/vc_array_definitions.hpp"
+#elif DETRAY_ALGEBRA_VC_SOA
+#include "detray/plugins/algebra/vc_soa_definitions.hpp"
 #else
 #error "No algebra plugin selected! Please link to one of the algebra plugins."
 #endif
+
+// System include(s)
+#include <type_traits>
+
+namespace detray {
+
+namespace detail {
+/// The detray scalar types (can be SIMD)
+/// @{
+template <typename T, typename = void>
+struct get_scalar {};
+
+template <typename T>
+struct get_scalar<T, std::enable_if_t<std::is_arithmetic_v<T>, void>> {
+    using scalar = T;
+};
+
+template <typename T>
+struct get_scalar<
+    T, std::enable_if_t<!std::is_same_v<typename T::scalar, void>, void>> {
+    using scalar = typename T::scalar;
+};
+/// @}
+
+/// The detray algebra types (can be SIMD)
+/// @{
+template <typename T, typename = void>
+struct get_algebra {};
+
+template <typename T>
+struct get_algebra<T, std::enable_if_t<std::is_arithmetic_v<T>, void>> {
+    // vectors and transforms defined in 4D homogeneous coordinates
+    using point3D = std::array<T, 4>;
+    using vector3D = std::array<T, 4>;
+    using transform3D = std::array<T, 16>;
+};
+
+template <typename T>
+struct get_algebra<
+    T, std::enable_if_t<!std::is_same_v<typename T::point3D, void>, void>> {
+    using point2D = typename T::point2D;
+    using point3D = typename T::point3D;
+    using vector3D = typename T::vector3D;
+    using transform3D = typename T::transform3D;
+};
+/// @}
+}  // namespace detail
+
+template <template <typename> class A, typename T>
+using dsimd = typename A<float>::simd<T>;
+
+template <typename A = detray::scalar>
+using dscalar = typename detail::get_scalar<A>::scalar;
+
+template <typename A>
+using dpoint2D = typename detail::get_algebra<A>::point2D;
+
+template <typename A>
+using dpoint3D = typename detail::get_algebra<A>::point3D;
+
+template <typename A>
+using dvector3D = typename detail::get_algebra<A>::vector3D;
+
+template <typename A>
+using dtransform3D = typename detail::get_algebra<A>::transform3D;
+
+}  // namespace detray

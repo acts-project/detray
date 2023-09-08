@@ -53,17 +53,16 @@ void BM_INTERSECT_PLANES(benchmark::State &state) {
                  theta_steps, phi_steps, ori, 1.f)) {
 
             for (const auto &plane : planes) {
-                auto pi = rect.intersector<intersection2D<
-                    decltype(planes)::value_type, test::transform3>>();
+                auto pi = rect.intersector<
+                    intersection2D<decltype(planes)::value_type, test::scalar,
+                                   ALGEBRA_PLUGIN>>();
                 auto is = pi(ray, plane, rect, plane.transform());
 
                 benchmark::DoNotOptimize(sfhit);
                 benchmark::DoNotOptimize(sfmiss);
-                if (is.status == intersection::status::e_inside) {
-                    ++sfhit;
-                } else {
-                    ++sfmiss;
-                }
+
+                is.status ? ++sfhit : ++sfmiss;
+
                 benchmark::ClobberMemory();
             }
         }
@@ -95,7 +94,8 @@ using material_link_t = dtyped_index<material_ids, dindex>;
 
 using plane_surface =
     surface_descriptor<mask_link_t, material_link_t, test::transform3>;
-using intersection_t = intersection2D<plane_surface, test::transform3>;
+using intersection_t =
+    intersection2D<plane_surface, test::scalar, ALGEBRA_PLUGIN>;
 
 /// This benchmark runs intersection with the cylinder intersector
 void BM_INTERSECT_CYLINDERS(benchmark::State &state) {
@@ -132,13 +132,11 @@ void BM_INTERSECT_CYLINDERS(benchmark::State &state) {
 
                 benchmark::DoNotOptimize(sfhit);
                 benchmark::DoNotOptimize(sfmiss);
+
                 for (const auto &sfi : inters) {
-                    if (sfi.status == intersection::status::e_inside) {
-                        ++sfhit;
-                    } else {
-                        ++sfmiss;
-                    }
+                    sfi.status ? ++sfhit : ++sfmiss;
                 }
+
                 benchmark::ClobberMemory();
             }
         }
@@ -187,11 +185,9 @@ void BM_INTERSECT_PORTAL_CYLINDERS(benchmark::State &state) {
 
                 benchmark::DoNotOptimize(sfhit);
                 benchmark::DoNotOptimize(sfmiss);
-                if (is.status == intersection::status::e_inside) {
-                    ++sfhit;
-                } else {
-                    ++sfmiss;
-                }
+
+                is.status ? ++sfhit : ++sfmiss;
+
                 benchmark::ClobberMemory();
             }
         }
@@ -237,11 +233,9 @@ void BM_INTERSECT_CONCETRIC_CYLINDERS(benchmark::State &state) {
 
                 benchmark::DoNotOptimize(sfhit);
                 benchmark::DoNotOptimize(sfmiss);
-                if (is.status == intersection::status::e_inside) {
-                    ++sfhit;
-                } else {
-                    ++sfmiss;
-                }
+
+                is.status ? ++sfhit : ++sfmiss;
+
                 benchmark::ClobberMemory();
             }
         }

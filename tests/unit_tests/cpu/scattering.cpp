@@ -104,8 +104,9 @@ GTEST_TEST(detray_simulation, angle_update) {
     // variance of samples taken by random scattering
 
     // Update the bound covariance with projected scattering angle
-    pointwise_material_interactor<transform3>().update_angle_variance(
-        bound_cov, dir, projected_scattering_angle, direction_sign);
+    pointwise_material_interactor<test::scalar, ALGEBRA_PLUGIN>()
+        .update_angle_variance(bound_cov, dir, projected_scattering_angle,
+                               direction_sign);
 
     // Get the samples of phi and theta after the random scattering
     std::vector<scalar> phis;

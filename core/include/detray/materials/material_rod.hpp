@@ -9,7 +9,6 @@
 
 // Project include(s)
 #include "detray/definitions/qualifiers.hpp"
-#include "detray/intersection/intersection.hpp"
 #include "detray/materials/material.hpp"
 #include "detray/materials/predefined_materials.hpp"
 

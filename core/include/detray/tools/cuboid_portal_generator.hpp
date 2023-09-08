@@ -137,11 +137,11 @@ class cuboid_portal_generator final
         aabb_t world_box{boxes, boxes.size(), m_envelope};
 
         // translation
-        const point3_t center = world_box.template center<point3_t>();
+        const point3_t center = world_box.center();
 
         // The world box local frame is the global coordinate frame
-        const point3_t box_min = world_box.template loc_min<point3_t>();
-        const point3_t box_max = world_box.template loc_max<point3_t>();
+        const point3_t box_min = world_box.loc_min();
+        const point3_t box_max = world_box.loc_max();
 
         // Get the half lengths for the rectangle sides and translation
         const point3_t h_lengths = 0.5f * (box_max - box_min);

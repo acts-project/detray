@@ -25,7 +25,7 @@ struct actor {
     struct state {};
 };
 
-/// Composition of actors
+/// @brief Composition of actors.
 ///
 /// The composition represents an actor together with its observers. In
 /// addition to running its own implementation, it notifies its observing actors

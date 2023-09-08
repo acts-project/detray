@@ -58,9 +58,8 @@ using device_store_type =
                         rectangle, trapezoid, ring, cylinder, single, annulus>;
 
 /// test function for mask store
-void mask_test(
-    typename host_store_type::view_type store_data,
-    vecmem::data::vector_view<point3> input_point3_data,
-    vecmem::data::jagged_vector_view<intersection::status> output_data);
+void mask_test(typename host_store_type::view_type store_data,
+               vecmem::data::vector_view<point3> input_point3_data,
+               vecmem::data::jagged_vector_view<bool> output_data);
 
 }  // namespace detray

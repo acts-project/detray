@@ -8,10 +8,10 @@
 // System include(s)
 #include <cmath>
 
-template <typename magnetic_field_t, typename transform3_t,
-          typename constraint_t, typename policy_t,
-          template <typename, std::size_t> class array_t>
-void detray::rk_stepper<magnetic_field_t, transform3_t, constraint_t, policy_t,
+template <typename magnetic_field_t, typename T,
+          template <typename> class algebra_t, typename constraint_t,
+          typename policy_t, template <typename, std::size_t> class array_t>
+void detray::rk_stepper<magnetic_field_t, T, algebra_t, constraint_t, policy_t,
                         array_t>::state::advance_track() {
 
     const auto& sd = this->_step_data;
@@ -34,10 +34,10 @@ void detray::rk_stepper<magnetic_field_t, transform3_t, constraint_t, policy_t,
     this->_s += h;
 }
 
-template <typename magnetic_field_t, typename transform3_t,
-          typename constraint_t, typename policy_t,
-          template <typename, std::size_t> class array_t>
-void detray::rk_stepper<magnetic_field_t, transform3_t, constraint_t, policy_t,
+template <typename magnetic_field_t, typename T,
+          template <typename> class algebra_t, typename constraint_t,
+          typename policy_t, template <typename, std::size_t> class array_t>
+void detray::rk_stepper<magnetic_field_t, T, algebra_t, constraint_t, policy_t,
                         array_t>::state::advance_jacobian() {
     /// The calculations are based on ATL-SOFT-PUB-2009-002. The update of the
     /// Jacobian matrix is requires only the calculation of eq. 17 and 18.
@@ -132,10 +132,10 @@ void detray::rk_stepper<magnetic_field_t, transform3_t, constraint_t, policy_t,
     this->_jac_transport = D * this->_jac_transport;
 }
 
-template <typename magnetic_field_t, typename transform3_t,
-          typename constraint_t, typename policy_t,
-          template <typename, std::size_t> class array_t>
-auto detray::rk_stepper<magnetic_field_t, transform3_t, constraint_t, policy_t,
+template <typename magnetic_field_t, typename T,
+          template <typename> class algebra_t, typename constraint_t,
+          typename policy_t, template <typename, std::size_t> class array_t>
+auto detray::rk_stepper<magnetic_field_t, T, algebra_t, constraint_t, policy_t,
                         array_t>::state::evaluate_k(const vector3& b_field,
                                                     const int i, const scalar h,
                                                     const vector3& k_prev)
@@ -156,11 +156,11 @@ auto detray::rk_stepper<magnetic_field_t, transform3_t, constraint_t, policy_t,
     return k_new;
 }
 
-template <typename magnetic_field_t, typename transform3_t,
-          typename constraint_t, typename policy_t,
-          template <typename, std::size_t> class array_t>
+template <typename magnetic_field_t, typename T,
+          template <typename> class algebra_t, typename constraint_t,
+          typename policy_t, template <typename, std::size_t> class array_t>
 template <typename propagation_state_t>
-bool detray::rk_stepper<magnetic_field_t, transform3_t, constraint_t, policy_t,
+bool detray::rk_stepper<magnetic_field_t, T, algebra_t, constraint_t, policy_t,
                         array_t>::step(propagation_state_t& propagation) {
 
     // Get stepper and navigator states

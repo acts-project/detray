@@ -33,8 +33,9 @@ namespace detray {
 template <typename detector_t>
 class helix_navigation : public test::fixture_base<> {
 
-    using scalar_t = typename detector_t::scalar_type;
-    using transform3_t = typename detector_t::transform3;
+    using scalar_t = dscalar<ALGEBRA_PLUGIN<typename detector_t::scalar_type>>;
+    using transform3_t =
+        dtransform3D<ALGEBRA_PLUGIN<typename detector_t::scalar_type>>;
     using free_track_parameters_t = free_track_parameters<transform3_t>;
 
     public:
@@ -81,8 +82,8 @@ class helix_navigation : public test::fixture_base<> {
         using namespace navigation;
 
         /// Type that holds the intersection information
-        using intersection_t =
-            intersection2D<typename detector_t::surface_type, transform3_t>;
+        using intersection_t = intersection2D<typename detector_t::surface_type,
+                                              scalar_t, ALGEBRA_PLUGIN>;
 
         /// Inspector that records all encountered surfaces
         using object_tracer_t =
@@ -100,7 +101,8 @@ class helix_navigation : public test::fixture_base<> {
         using navigator_t = navigator<detector_t, inspector_t, intersection_t>;
         // Runge-Kutta stepper
         using b_field_t = typename detector_t::bfield_type;
-        using stepper_t = rk_stepper<typename b_field_t::view_t, transform3_t>;
+        using stepper_t =
+            rk_stepper<typename b_field_t::view_t, scalar_t, ALGEBRA_PLUGIN>;
         // Propagator with pathlimit aborter
         using actor_chain_t = actor_chain<dtuple, pathlimit_aborter>;
         using propagator_t = propagator<stepper_t, navigator_t, actor_chain_t>;

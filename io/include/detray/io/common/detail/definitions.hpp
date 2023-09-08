@@ -124,15 +124,15 @@ template <typename grid_t>
 constexpr acc_type get_grid_id() {
 
     using frame_t = typename grid_t::local_frame_type;
-    using algebra_t = typename frame_t::transform3_type;
+    using algebra_t = typename frame_t::algebra;
 
     /// Register the grid shapes to the @c acc_type enum
     /// @note the first type corresponds to a non-grid type in the enum
     /// (brute force)
     using frame_registry =
-        type_registry<acc_type, void, cartesian2<algebra_t>,
-                      cartesian3<algebra_t>, polar2<algebra_t>,
-                      cylindrical2<algebra_t>, cylindrical3<algebra_t>>;
+        type_registry<acc_type, void, cartesian2D<algebra_t>,
+                      cartesian3D<algebra_t>, polar2D<algebra_t>,
+                      cylindrical2D<algebra_t>, cylindrical3D<algebra_t>>;
 
     // Find the correct grid shape IO id;
     if constexpr (frame_registry::is_defined(frame_t{})) {

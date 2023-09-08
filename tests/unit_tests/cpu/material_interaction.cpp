@@ -62,12 +62,14 @@ GTEST_TEST(detray_materials, telescope_geometry_energy_loss) {
     const auto [det, names] = create_telescope_detector(host_mr, tel_cfg);
 
     using navigator_t = navigator<decltype(det)>;
-    using stepper_t = line_stepper<transform3>;
-    using interactor_t = pointwise_material_interactor<transform3>;
+    using stepper_t = line_stepper<test::scalar, ALGEBRA_PLUGIN>;
+    using interactor_t =
+        pointwise_material_interactor<test::scalar, ALGEBRA_PLUGIN>;
     using actor_chain_t =
         actor_chain<dtuple, propagation::print_inspector, pathlimit_aborter,
-                    parameter_transporter<transform3>, interactor_t,
-                    parameter_resetter<transform3>>;
+                    parameter_transporter<test::scalar, ALGEBRA_PLUGIN>,
+                    interactor_t,
+                    parameter_resetter<test::scalar, ALGEBRA_PLUGIN>>;
     using propagator_t = propagator<stepper_t, navigator_t, actor_chain_t>;
 
     // Propagator is built from the stepper and navigator
@@ -92,9 +94,10 @@ GTEST_TEST(detray_materials, telescope_geometry_energy_loss) {
 
     propagation::print_inspector::state print_insp_state{};
     pathlimit_aborter::state aborter_state{};
-    parameter_transporter<transform3>::state bound_updater{};
+    parameter_transporter<test::scalar, ALGEBRA_PLUGIN>::state bound_updater{};
     interactor_t::state interactor_state{};
-    parameter_resetter<transform3>::state parameter_resetter_state{};
+    parameter_resetter<test::scalar, ALGEBRA_PLUGIN>::state
+        parameter_resetter_state{};
 
     // Create actor states tuples
     auto actor_states = std::tie(print_insp_state, aborter_state, bound_updater,
@@ -166,8 +169,9 @@ GTEST_TEST(detray_materials, telescope_geometry_energy_loss) {
 
     using alt_actor_chain_t =
         actor_chain<dtuple, propagation::print_inspector, pathlimit_aborter,
-                    parameter_transporter<transform3>, next_surface_aborter,
-                    interactor_t, parameter_resetter<transform3>>;
+                    parameter_transporter<test::scalar, ALGEBRA_PLUGIN>,
+                    next_surface_aborter, interactor_t,
+                    parameter_resetter<test::scalar, ALGEBRA_PLUGIN>>;
     using alt_propagator_t =
         propagator<stepper_t, navigator_t, alt_actor_chain_t>;
 
@@ -242,12 +246,13 @@ GTEST_TEST(detray_materials, telescope_geometry_scattering_angle) {
     const auto [det, names] = create_telescope_detector(host_mr, tel_cfg);
 
     using navigator_t = navigator<decltype(det)>;
-    using stepper_t = line_stepper<transform3>;
+    using stepper_t = line_stepper<test::scalar, ALGEBRA_PLUGIN>;
     using simulator_t = random_scatterer<transform3>;
     using actor_chain_t =
         actor_chain<dtuple, propagation::print_inspector, pathlimit_aborter,
-                    parameter_transporter<transform3>, simulator_t,
-                    parameter_resetter<transform3>>;
+                    parameter_transporter<test::scalar, ALGEBRA_PLUGIN>,
+                    simulator_t,
+                    parameter_resetter<test::scalar, ALGEBRA_PLUGIN>>;
     using propagator_t = propagator<stepper_t, navigator_t, actor_chain_t>;
 
     // Propagator is built from the stepper and navigator
@@ -277,11 +282,13 @@ GTEST_TEST(detray_materials, telescope_geometry_scattering_angle) {
 
         propagation::print_inspector::state print_insp_state{};
         pathlimit_aborter::state aborter_state{};
-        parameter_transporter<transform3>::state bound_updater{};
+        parameter_transporter<test::scalar, ALGEBRA_PLUGIN>::state
+            bound_updater{};
         // Seed = sample id
         simulator_t::state simulator_state{i};
         simulator_state.do_energy_loss = false;
-        parameter_resetter<transform3>::state parameter_resetter_state{};
+        parameter_resetter<test::scalar, ALGEBRA_PLUGIN>::state
+            parameter_resetter_state{};
 
         // Create actor states tuples
         auto actor_states =
@@ -298,9 +305,10 @@ GTEST_TEST(detray_materials, telescope_geometry_scattering_angle) {
 
         // Updated phi and theta variance
         if (i == 0u) {
-            pointwise_material_interactor<transform3>{}.update_angle_variance(
-                bound_cov, traj.dir(),
-                simulator_state.projected_scattering_angle, 1);
+            pointwise_material_interactor<test::scalar, ALGEBRA_PLUGIN>{}
+                .update_angle_variance(
+                    bound_cov, traj.dir(),
+                    simulator_state.projected_scattering_angle, 1);
         }
 
         phis.push_back(final_param.phi());

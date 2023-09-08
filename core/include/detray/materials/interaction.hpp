@@ -12,7 +12,6 @@
 #include "detray/definitions/pdg_particle.hpp"
 #include "detray/definitions/qualifiers.hpp"
 #include "detray/definitions/units.hpp"
-#include "detray/intersection/intersection.hpp"
 #include "detray/materials/detail/relativistic_quantities.hpp"
 
 namespace detray {

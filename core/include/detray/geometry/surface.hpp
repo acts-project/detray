@@ -139,12 +139,6 @@ class surface {
         return transform(ctx).translation();
     }
 
-    /// @returns the measurement dimesntion of surface
-    DETRAY_HOST_DEVICE
-    constexpr auto meas_dim() const -> unsigned int {
-        return visit_mask<typename kernels::meas_dim>();
-    }
-
     /// @returns the surface normal in global coordinates at a given bound/local
     /// position @param p
     template <typename point_t = point2,
@@ -190,18 +184,22 @@ class surface {
 
     /// @returns the global position to the given local/bound position @param p
     /// for a given geometry context @param ctx
-    template <typename point_t,
-              std::enable_if_t<std::is_same_v<point_t, point3> or
-                                   std::is_same_v<point_t, point2>,
-                               bool> = true>
     DETRAY_HOST_DEVICE constexpr point3 local_to_global(
-        const context &ctx, const point_t &p, const vector3 &dir) const {
+        const context &ctx, const point3 &p, const vector3 &dir) const {
+        return visit_mask<typename kernels::local_to_global>(transform(ctx), p,
+                                                             dir);
+    }
+
+    /// @returns the global position to the given local/bound position @param p
+    /// for a given geometry context @param ctx
+    DETRAY_HOST_DEVICE constexpr point3 local_to_global(
+        const context &ctx, const point2 &p, const vector3 &dir) const {
         return visit_mask<typename kernels::local_to_global>(transform(ctx), p,
                                                              dir);
     }
 
     /// @returns the track parametrization projected onto the surface (bound)
-    DETRAY_HOST_DEVICE
+    /*DETRAY_HOST_DEVICE
     constexpr auto free_to_bound_vector(
         const context &ctx, const free_vector_type &free_vec) const {
         return visit_mask<typename kernels::free_to_bound_vector>(
@@ -241,7 +239,7 @@ class surface {
                                    const vector3 &dtds) const {
         return visit_mask<typename kernels::path_correction>(transform(ctx),
                                                              pos, dir, dtds);
-    }
+    }*/
 
     /// @returns the vertices in local frame
     DETRAY_HOST
@@ -275,7 +273,7 @@ class surface {
     /// @tparam functor_t the prescription to be applied to the mask
     /// @tparam Args      types of additional arguments to the functor
     template <typename functor_t, typename... Args>
-    DETRAY_HOST_DEVICE constexpr auto visit_mask(Args &&... args) const {
+    DETRAY_HOST_DEVICE constexpr auto visit_mask(Args &&...args) const {
         const auto &masks = m_detector.mask_store();
 
         return masks.template visit<functor_t>(m_desc.mask(),
@@ -287,7 +285,7 @@ class surface {
     /// @tparam functor_t the prescription to be applied to the mask
     /// @tparam Args      types of additional arguments to the functor
     template <typename functor_t, typename... Args>
-    DETRAY_HOST_DEVICE constexpr auto visit_material(Args &&... args) const {
+    DETRAY_HOST_DEVICE constexpr auto visit_material(Args &&...args) const {
         const auto &materials = m_detector.material_store();
 
         return materials.template visit<functor_t>(m_desc.material(),
@@ -381,10 +379,10 @@ class surface {
 
 template <typename detector_t, typename descr_t>
 DETRAY_HOST_DEVICE surface(const detector_t &, const descr_t &)
-    ->surface<detector_t>;
+    -> surface<detector_t>;
 
 template <typename detector_t>
 DETRAY_HOST_DEVICE surface(const detector_t &, const geometry::barcode)
-    ->surface<detector_t>;
+    -> surface<detector_t>;
 
 }  // namespace detray

@@ -8,8 +8,8 @@
 #pragma once
 
 // Project include(s).
-#include "detray/coordinates/cartesian3.hpp"
-#include "detray/coordinates/line2.hpp"
+#include "detray/coordinates/line2D.hpp"
+#include "detray/definitions/boolean.hpp"
 #include "detray/definitions/containers.hpp"
 #include "detray/definitions/math.hpp"
 #include "detray/definitions/qualifiers.hpp"
@@ -18,7 +18,6 @@
 #include "detray/surface_finders/grid/detail/axis_bounds.hpp"
 
 // System include(s)
-#include <cmath>
 #include <limits>
 #include <ostream>
 #include <type_traits>
@@ -31,17 +30,13 @@ namespace detray {
 ///         square cross section. This also changes the local coord. frame.
 /// @tparam intersector_t defines how to intersect the underlying surface
 ///         geometry
-/// @tparam kMeasDim defines the dimension of the measurement
-/// @tparam kNormalOrder true if the index for measurement parameter follows
-/// the local coordinate system
 ///
 /// The line can either have a circular or a square cross section. In the first
 /// case bounds[0] refers to the radius, while in the second case it is the
 /// half length of the square. The second boundary bounds[1] is the half length
 /// in z.
 template <bool kSquareCrossSect = false,
-          template <typename> class intersector_t = line_intersector,
-          unsigned int kMeasDim = 1u>
+          template <typename> class intersector_t = line_intersector>
 class line {
     public:
     /// The name for this shape
@@ -49,13 +44,6 @@ class line {
 
     /// Geometrical cross section of the line
     static constexpr bool square_cross_sect = kSquareCrossSect;
-
-    /// The measurement dimension
-    inline static constexpr const unsigned int meas_dim{kMeasDim};
-
-    // Measurement dimension check
-    static_assert(meas_dim == 1u || meas_dim == 2u,
-                  "Only 1D or 2D measurement is allowed");
 
     enum boundaries : unsigned int {
         e_cross_section = 0u,
@@ -65,7 +53,7 @@ class line {
 
     /// Local coordinate frame for boundary checks
     template <typename algebra_t>
-    using local_frame_type = line2<algebra_t>;
+    using local_frame_type = line2D<algebra_t>;
 
     /// Underlying surface geometry: line
     template <typename intersection_t>
@@ -86,7 +74,7 @@ class line {
 
         /// How to convert into the local axis system and back
         template <typename algebra_t>
-        using coordinate_type = line2<algebra_t>;
+        using coordinate_type = line2D<algebra_t>;
 
         template <typename C, typename S>
         using binning = dtuple<binning_loc0<C, S>, binning_loc1<C, S>>;
@@ -111,7 +99,7 @@ class line {
     template <template <typename, std::size_t> class bounds_t,
               typename scalar_t, std::size_t kDIM, typename point_t,
               typename std::enable_if_t<kDIM == 2u, bool> = true>
-    DETRAY_HOST_DEVICE inline bool check_boundaries(
+    DETRAY_HOST_DEVICE inline auto check_boundaries(
         const bounds_t<scalar_t, kDIM> &bounds, const point_t &loc_p,
         const scalar_t tol = std::numeric_limits<scalar_t>::epsilon()) const {
 
@@ -120,11 +108,11 @@ class line {
         // size and (2) the distance to the point of closest approach on thw
         // line from the line center is less than the half line length
         if constexpr (square_cross_sect) {
-            return (std::abs(loc_p[0] * math_ns::cos(loc_p[2])) <=
-                        bounds[e_cross_section] + tol &&
-                    std::abs(loc_p[0] * math_ns::sin(loc_p[2])) <=
-                        bounds[e_cross_section] + tol &&
-                    std::abs(loc_p[1]) <= bounds[e_half_z] + tol);
+            return (math_ns::abs(loc_p[0] * math_ns::cos(loc_p[2])) <=
+                        (bounds[e_cross_section] + tol) &&
+                    math_ns::abs(loc_p[0] * math_ns::sin(loc_p[2])) <=
+                        (bounds[e_cross_section] + tol) &&
+                    math_ns::abs(loc_p[1]) <= (bounds[e_half_z] + tol));
 
         }
         // For a circular cross section (e.g. straw tube), we check if (1) the
@@ -132,8 +120,8 @@ class line {
         // of closest approach on the line from the line center is less than the
         // line half length
         else {
-            return (loc_p[0] <= bounds[e_cross_section] + tol &&
-                    std::abs(loc_p[1]) <= bounds[e_half_z] + tol);
+            return (loc_p[0] <= (bounds[e_cross_section] + tol) &&
+                    math_ns::abs(loc_p[1]) <= (bounds[e_half_z] + tol));
         }
     }
 

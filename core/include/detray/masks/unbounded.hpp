@@ -29,9 +29,6 @@ class unbounded {
     /// The name for this shape
     inline static const std::string name = "unbounded " + shape::name;
 
-    /// The measurement dimension
-    inline static constexpr const std::size_t meas_dim = shape::meas_dim;
-
     /// Local coordinate frame for boundary checks
     template <typename algebra_t>
     using local_frame_type =

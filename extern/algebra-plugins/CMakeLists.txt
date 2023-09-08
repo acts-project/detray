@@ -17,8 +17,11 @@ endif()
 message(STATUS "Building Algebra Plugins as part of the Detray project")
 
 # Declare where to get Algebra Plugins from.
+#set( DETRAY_ALGEBRA_PLUGINS_SOURCE
+#   "URL;https://github.com/acts-project/algebra-plugins/archive/refs/tags/v0.19.0.tar.gz;URL_MD5;8357b024b1bcdb70350d8a378055cfee"
+#   CACHE STRING "Source for Algebra Plugins, when built as part of this project" )
 set( DETRAY_ALGEBRA_PLUGINS_SOURCE
-   "URL;https://github.com/acts-project/algebra-plugins/archive/refs/tags/v0.21.0.tar.gz;URL_MD5;0fde9e5069c597eb5eccff4c35d0ddd9"
+     "GIT_REPOSITORY;https://github.com/niermann999/algebra-plugins;GIT_TAG;feat-vectorized-transf"
    CACHE STRING "Source for Algebra Plugins, when built as part of this project" )
 mark_as_advanced(DETRAY_ALGEBRA_PLUGINS_SOURCE)
 FetchContent_Declare(AlgebraPlugins ${DETRAY_ALGEBRA_PLUGINS_SOURCE})

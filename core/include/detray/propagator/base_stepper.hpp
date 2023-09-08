@@ -29,18 +29,19 @@ enum class id {
 }  // namespace stepping
 
 /// Base stepper implementation
-template <typename transform3_t, typename constraint_t, typename policy_t>
+template <typename T, template <typename> class algebra_t,
+          typename constraint_t, typename policy_t>
 class base_stepper {
 
     public:
-    using transform3_type = transform3_t;
-    using free_track_parameters_type = free_track_parameters<transform3_t>;
-    using bound_track_parameters_type = bound_track_parameters<transform3_t>;
-    using matrix_operator = typename transform3_t::matrix_actor;
+    using scalar_type = dscalar<algebra_t<T>>;
+    using transform3_type = dtransform3D<algebra_t<T>>;
+    using free_track_parameters_type = free_track_parameters<transform3_type>;
+    using bound_track_parameters_type = bound_track_parameters<transform3_type>;
+    using matrix_operator = typename transform3_type::matrix_actor;
     using track_helper = detail::track_helper<matrix_operator>;
 
     using size_type = typename transform3_type::size_type;
-    using scalar_type = typename transform3_type::scalar_type;
     template <size_type ROWS, size_type COLS>
     using matrix_type =
         typename transform3_type::matrix_actor::template matrix_type<ROWS,
@@ -80,7 +81,7 @@ class base_stepper {
 
             const typename detector_t::geometry_context ctx{};
             sf.template visit_mask<
-                typename parameter_resetter<transform3_t>::kernel>(
+                typename parameter_resetter<T, algebra_t>::kernel>(
                 sf.transform(ctx), *this);
         }
 
@@ -119,22 +120,22 @@ class base_stepper {
         typename policy_t::state _policy_state = {};
 
         /// Track path length
-        scalar _path_length{0.};
+        scalar_type _path_length{0.};
 
         /// Track path length from the last surface. It will be reset to 0 when
         /// the track reaches a new surface
-        scalar _s{0.};
+        scalar_type _s{0.};
 
         /// Current step size
-        scalar _step_size{0.};
+        scalar_type _step_size{0.};
 
         /// TODO: Use options?
         /// hypothetical mass of particle (assume pion by default)
-        /// scalar _mass = 139.57018 * unit<scalar_type>::MeV;
+        /// scalar_type _mass = 139.57018 * unit<scalar_type>::MeV;
 
         /// Set new step constraint
         template <step::constraint type = step::constraint::e_actor>
-        DETRAY_HOST_DEVICE inline void set_constraint(scalar step_size) {
+        DETRAY_HOST_DEVICE inline void set_constraint(scalar_type step_size) {
             _constraint.template set<type>(step_size);
         }
 
@@ -165,15 +166,15 @@ class base_stepper {
 
         /// Set next step size
         DETRAY_HOST_DEVICE
-        inline void set_step_size(const scalar step) { _step_size = step; }
+        inline void set_step_size(const scalar_type step) { _step_size = step; }
 
         /// @returns the current step size of this state.
         DETRAY_HOST_DEVICE
-        inline scalar step_size() const { return _step_size; }
+        inline scalar_type step_size() const { return _step_size; }
 
         /// @returns this states remaining path length.
         DETRAY_HOST_DEVICE
-        inline scalar path_length() const { return _path_length; }
+        inline scalar_type path_length() const { return _path_length; }
     };
 };
 

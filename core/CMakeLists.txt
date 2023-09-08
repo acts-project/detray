@@ -17,15 +17,18 @@ file( GLOB _detray_core_public_headers
    "include/detray/grids/*.hpp"
    "include/detray/intersection/bounding_box/*.hpp"
    "include/detray/intersection/*.hpp"
+   "include/detray/intersection/soa/*.hpp"
    "include/detray/masks/*.hpp"
    "include/detray/materials/*.hpp"
    "include/detray/propagator/actors/*.hpp"
+   "include/detray/propagator/detail/*.hpp"
    "include/detray/propagator/*.hpp"
    "include/detray/surface_finders/grid/*.hpp"
    "include/detray/surface_finders/*.hpp"
    "include/detray/tools/*.hpp"
    "include/detray/tracks/*.hpp"
    "include/detray/utils/ranges/*.hpp"
+   "include/detray/utils/soa/*.hpp"
    "include/detray/utils/*.hpp" )
 file( GLOB _detray_core_private_headers
    "include/detray/*/detail/*.hpp"
@@ -67,6 +70,12 @@ if( DETRAY_VC_PLUGIN )
    detray_add_library( detray_core_vc core_vc )
    target_link_libraries( detray_core_vc
       INTERFACE detray::core detray::algebra_vc )
+endif()
+
+if( DETRAY_VC_SOA_PLUGIN )
+   detray_add_library( detray_core_vc_soa core_vc_soa )
+   target_link_libraries( detray_core_vc_soa
+      INTERFACE detray::core detray::algebra_vc_soa )
 endif()
 
 # Test the public headers of the detray core libraries.

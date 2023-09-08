@@ -8,9 +8,10 @@
 #pragma once
 
 // Project include(s).
-#include "detray/coordinates/cartesian2.hpp"
-#include "detray/coordinates/cartesian3.hpp"
-#include "detray/coordinates/cylindrical2.hpp"
-#include "detray/coordinates/cylindrical3.hpp"
-#include "detray/coordinates/line2.hpp"
-#include "detray/coordinates/polar2.hpp"
+#include "detray/coordinates/cartesian2D.hpp"
+#include "detray/coordinates/cartesian3D.hpp"
+#include "detray/coordinates/cylindrical2D.hpp"
+#include "detray/coordinates/cylindrical3D.hpp"
+#include "detray/coordinates/line2D.hpp"
+#include "detray/coordinates/polar2D.hpp"
+#include "detray/coordinates/spherical3D.hpp"

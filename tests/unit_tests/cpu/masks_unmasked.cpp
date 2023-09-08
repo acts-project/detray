@@ -22,22 +22,7 @@ GTEST_TEST(detray_masks, unmasked) {
 
     mask<unmasked> u{};
 
-    ASSERT_TRUE(u.is_inside(p2, 0.f) == intersection::status::e_inside);
-
-    // Dummy bound track parameter
-    bound_track_parameters<transform3_t> bound_params;
-
-    // Check projection matrix
-    const auto proj = u.projection_matrix(bound_params);
-    for (unsigned int i = 0u; i < decltype(u)::shape::meas_dim; i++) {
-        for (unsigned int j = 0u; j < e_bound_size; j++) {
-            if (i == j) {
-                ASSERT_EQ(getter::element(proj, i, j), 1u);
-            } else {
-                ASSERT_EQ(getter::element(proj, i, j), 0u);
-            }
-        }
-    }
+    ASSERT_TRUE(u.is_inside(p2, 0.f));
 
     // Check bounding box
     constexpr scalar envelope{0.01f};

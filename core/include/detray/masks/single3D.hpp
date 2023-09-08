@@ -8,8 +8,8 @@
 #pragma once
 
 // Project include(s)
-#include "detray/coordinates/cartesian2.hpp"
-#include "detray/coordinates/cartesian3.hpp"
+#include "detray/coordinates/cartesian2D.hpp"
+#include "detray/coordinates/cartesian3D.hpp"
 #include "detray/definitions/containers.hpp"
 #include "detray/definitions/qualifiers.hpp"
 #include "detray/intersection/plane_intersector.hpp"
@@ -30,19 +30,12 @@ namespace detray {
 ///         applied
 /// @tparam intersector_t defines how to intersect the underlying surface
 ///         geometry
-/// @tparam kMeasDim defines the dimension of the measurement
-/// @tparam kNormalOrder true if the index for measurement parameter follows
-/// the local coordinate system
 template <unsigned int kCheckIndex = 0u,
-          template <typename> class intersector_t = plane_intersector,
-          unsigned int kMeasDim = 2u>
+          template <typename> class intersector_t = plane_intersector>
 class single3D {
     public:
     /// The name for this shape
     inline static const std::string name = "single3D";
-
-    /// The measurement dimension
-    inline static constexpr const unsigned int meas_dim{kMeasDim};
 
     enum boundaries : unsigned int {
         e_lower = 0u,
@@ -52,7 +45,7 @@ class single3D {
 
     /// Local coordinate frame for boundary checks
     template <typename algebra_t>
-    using local_frame_type = cartesian2<algebra_t>;
+    using local_frame_type = cartesian2D<algebra_t>;
 
     /// Underlying surface geometry: planar
     template <typename intersection_t>

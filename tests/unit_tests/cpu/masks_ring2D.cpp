@@ -10,7 +10,6 @@
 #include "detray/definitions/units.hpp"
 #include "detray/masks/masks.hpp"
 #include "detray/test/types.hpp"
-#include "detray/tracks/bound_track_parameters.hpp"
 
 using namespace detray;
 using point3_t = test::point3;
@@ -34,27 +33,11 @@ GTEST_TEST(detray_masks, ring2D) {
     ASSERT_NEAR(r2[ring2D<>::e_inner_r], 0.f, tol);
     ASSERT_NEAR(r2[ring2D<>::e_outer_r], 3.5f, tol);
 
-    ASSERT_TRUE(r2.is_inside(p2_pl_in) == intersection::status::e_inside);
-    ASSERT_TRUE(r2.is_inside(p2_pl_edge) == intersection::status::e_inside);
-    ASSERT_TRUE(r2.is_inside(p2_pl_out) == intersection::status::e_outside);
+    ASSERT_TRUE(r2.is_inside(p2_pl_in));
+    ASSERT_TRUE(r2.is_inside(p2_pl_edge));
+    ASSERT_FALSE(r2.is_inside(p2_pl_out));
     // Move outside point inside using a tolerance
-    ASSERT_TRUE(r2.is_inside(p2_pl_out, 1.2f) ==
-                intersection::status::e_inside);
-
-    // Dummy bound track parameter
-    bound_track_parameters<transform3_t> bound_params;
-
-    // Check projection matrix
-    const auto proj = r2.projection_matrix(bound_params);
-    for (unsigned int i = 0u; i < decltype(r2)::shape::meas_dim; i++) {
-        for (unsigned int j = 0u; j < e_bound_size; j++) {
-            if (i == j) {
-                ASSERT_EQ(getter::element(proj, i, j), 1u);
-            } else {
-                ASSERT_EQ(getter::element(proj, i, j), 0u);
-            }
-        }
-    }
+    ASSERT_TRUE(r2.is_inside(p2_pl_out, 1.2f));
 
     // Check bounding box
     constexpr scalar envelope{0.01f};

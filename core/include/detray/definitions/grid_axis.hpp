@@ -28,12 +28,14 @@ enum class bounds {
 /// x, y, z: cartesian coordinate axes.
 /// r, phi: polar coordinate axes.
 /// rphi, cyl_z: 2D cylinder axes (3D cylinder uses r, phi, z).
+/// theta, phi: sherical coordinate axes (r fixed).
 enum class label {
     e_x = 0,
     e_y = 1,
     e_z = 2,
     e_r = 0,
     e_phi = 1,
+    e_theta = 0,
     e_rphi = 0,
     e_cyl_z = 1,
 };
