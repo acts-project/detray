@@ -12,7 +12,6 @@ file( GLOB _detray_io_public_headers
    RELATIVE "${CMAKE_CURRENT_SOURCE_DIR}"
    "include/detray/io/common/*.hpp"
    "include/detray/io/csv/*.hpp"
-   "include/detray/io/image/*.hpp"
    "include/detray/io/json/*.hpp" )
 detray_add_library( detray_io io
    ${_detray_io_public_headers} )
