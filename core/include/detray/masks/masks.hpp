@@ -59,14 +59,6 @@ class mask {
     // Linear algebra types
     using point3_t = typename algebra_t::point3;
     using point2_t = typename algebra_t::point2;
-    using matrix_operator = typename algebra_t::matrix_actor;
-    using size_type = typename algebra_t::size_type;
-    template <size_type ROWS, size_type COLS>
-    using matrix_type = typename algebra_t::template matrix_type<ROWS, COLS>;
-    using projection_matrix_type = matrix_type<shape::meas_dim, e_bound_size>;
-
-    // Measurement ordering
-    bool normal_order = true;
 
     /// Default constructor
     constexpr mask() = default;
@@ -196,13 +188,6 @@ class mask {
     /// @returns the volume link - non-const access
     DETRAY_HOST_DEVICE
     auto volume_link() -> links_type& { return _volume_link; }
-
-    /// @returns the projection matrix for measurement
-    DETRAY_HOST_DEVICE projection_matrix_type projection_matrix(
-        const bound_track_parameters<algebra_t>& bound_params) const {
-        return this->local_frame().template projection_matrix<shape::meas_dim>(
-            bound_params, normal_order);
-    }
 
     /// @brief Lower and upper point for minimum axis aligned bounding box.
     ///
