@@ -38,12 +38,8 @@ inline auto information_section(
     const typename detector_t::geometry_context& context,
     const detray::surface<detector_t>& d_surface) {
     svgtools::meta::proto::information_section<point3_t> is;
-    if (d_surface.is_portal()) {
-        is._title = "Portal";
-    } else {
-        is._title = "Surface";
-    }
-    const auto position = d_surface.transform(context).translation();
+    is._title = d_surface.is_portal() ? "Portal" : "Surface";
+    const auto position = d_surface.center(context);
     is._info = {"Idx: " + std::to_string(d_surface.index()),
                 point_to_string(position)};
     is._position = svgtools::conversion::point<point3_t>(position);
