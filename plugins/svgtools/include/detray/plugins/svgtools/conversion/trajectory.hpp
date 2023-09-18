@@ -31,7 +31,10 @@ inline auto trajectory(const std::vector<point3_t>& points) {
 /// @returns The proto trajectory of a parametrized trajectory
 template <typename point3_t, template <typename> class trajectory_t,
           typename transform3_t>
-inline auto trajectory(const trajectory_t<transform3_t>& traj, const typename transform3_t::scalar_type path_length = 500.f, const typename transform3_t::scalar_type step_size = 1.f) {
+inline auto trajectory(
+    const trajectory_t<transform3_t>& traj,
+    const typename transform3_t::scalar_type path_length = 500.f,
+    const typename transform3_t::scalar_type step_size = 1.f) {
     const typename transform3_t::scalar_type S0 = 0.f;
     std::vector<point3_t> points;
     for (auto s = S0; s < path_length; s += step_size) {
@@ -44,7 +47,9 @@ inline auto trajectory(const trajectory_t<transform3_t>& traj, const typename tr
 /// @param path_legth the length of the path
 /// @returns The proto trajectory of a ray.
 template <typename point3_t, typename transform3_t>
-inline auto trajectory(const detray::detail::ray<transform3_t>& traj, const typename transform3_t::scalar_type path_length = 500.f) {
+inline auto trajectory(
+    const detray::detail::ray<transform3_t>& traj,
+    const typename transform3_t::scalar_type path_length = 500.f) {
     const typename transform3_t::scalar_type S0 = 0.f;
     std::vector<point3_t> points = {
         svgtools::conversion::point<point3_t>(traj.pos(S0)),

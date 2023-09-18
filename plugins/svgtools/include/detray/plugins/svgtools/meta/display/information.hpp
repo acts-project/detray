@@ -45,7 +45,10 @@ inline auto information_section(
     // Box stroke
     actsvg::style::stroke stroke;
 
-    const auto position = use_relative_offset?(screen_offset + view(std::vector{is._position})[0]):screen_offset;  
+    const auto position =
+        use_relative_offset
+            ? (screen_offset + view(std::vector{is._position})[0])
+            : screen_offset;
 
     return actsvg::draw::connected_info_box(
         id, position, is._title, title_fill, title_font, is._info, info_fill,
