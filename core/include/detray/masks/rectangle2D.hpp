@@ -32,19 +32,11 @@ namespace detray {
 /// the local coordinate system
 ///
 /// It is defined by half length in local0 coordinates bounds[0] and bounds[1]
-template <template <typename> class intersector_t = plane_intersector,
-          unsigned int kMeasDim = 2u>
+template <template <typename> class intersector_t = plane_intersector>
 class rectangle2D {
     public:
     /// The name for this shape
     inline static const std::string name = "rectangle2D";
-
-    /// The measurement dimension
-    inline static constexpr const unsigned int meas_dim{kMeasDim};
-
-    // Measurement dimension check
-    static_assert(meas_dim == 1u || meas_dim == 2u,
-                  "Only 1D or 2D measurement is allowed");
 
     enum boundaries : unsigned int {
         e_half_x = 0u,

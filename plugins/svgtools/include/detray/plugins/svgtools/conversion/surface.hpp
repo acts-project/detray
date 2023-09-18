@@ -157,7 +157,9 @@ auto inline surface(const transform_t& transform, const mask<annulus2D<>>& m) {
 /// section.
 template <typename point3_container_t, typename mask_t>
 auto inline surface(const mask_t& m) {
-    return surface<point3_container_t>(detray::transform3_t{}, m);
+    using transform_t = typename mask_t::local_frame_type::transform3_type;
+    return detray::svgtools::conversion::surface<point3_container_t>(
+        transform_t{}, m);
 }
 
 namespace {

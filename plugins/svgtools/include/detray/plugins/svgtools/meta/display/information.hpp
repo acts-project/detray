@@ -22,8 +22,9 @@ template <typename point3_t, typename point2_t, typename view_t>
 inline auto information_section(
     const std::string& id,
     const svgtools::meta::proto::information_section<point3_t>& is,
-    const view_t& /*view*/, const point2_t& screen_offset,
-    const actsvg::svg::object& connected_object) {
+    const view_t& view, const point2_t& screen_offset,
+    const actsvg::svg::object& connected_object,
+    const bool use_relative_offset = false) {
     // Title style
     actsvg::style::fill title_fill;
     title_fill._fc._rgb = is._color;
@@ -45,8 +46,9 @@ inline auto information_section(
     actsvg::style::stroke stroke;
 
     const auto position =
-        screen_offset;  // + view(std::vector{is._position})[0]; // Include for
-                        // relative position
+        use_relative_offset
+            ? (screen_offset + view(std::vector{is._position})[0])
+            : screen_offset;
 
     return actsvg::draw::connected_info_box(
         id, position, is._title, title_fill, title_font, is._info, info_fill,

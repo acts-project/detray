@@ -72,18 +72,6 @@ GTEST_TEST(detray_masks, single3_1) {
     // Dummy bound track parameter
     bound_track_parameters<transform3_t> bound_params;
 
-    // Check projection matrix
-    const auto proj = m1_1.projection_matrix(bound_params);
-    for (unsigned int i = 0u; i < decltype(m1_1)::shape::meas_dim; i++) {
-        for (unsigned int j = 0u; j < e_bound_size; j++) {
-            if (i == j) {
-                ASSERT_EQ(getter::element(proj, i, j), 1u);
-            } else {
-                ASSERT_EQ(getter::element(proj, i, j), 0u);
-            }
-        }
-    }
-
     // Check bounding box
     constexpr scalar envelope{0.01f};
     const auto loc_bounds = m1_1.local_min_bounds(envelope);
@@ -117,18 +105,6 @@ GTEST_TEST(detray_masks, single3_2) {
 
     // Dummy bound track parameter
     bound_track_parameters<transform3_t> bound_params;
-
-    // Check projection matrix
-    const auto proj = m1_2.projection_matrix(bound_params);
-    for (unsigned int i = 0u; i < decltype(m1_2)::shape::meas_dim; i++) {
-        for (unsigned int j = 0u; j < e_bound_size; j++) {
-            if (i == j) {
-                ASSERT_EQ(getter::element(proj, i, j), 1u);
-            } else {
-                ASSERT_EQ(getter::element(proj, i, j), 0u);
-            }
-        }
-    }
 
     // Check bounding box
     constexpr scalar envelope{0.01f};
