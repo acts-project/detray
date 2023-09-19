@@ -23,8 +23,7 @@ TEST(navigator_cuda, navigator) {
     vecmem::cuda::device_memory_resource dev_mr;
 
     // Create detector
-    auto [det, names] = create_toy_geometry<host_container_types>(
-        mng_mr, n_brl_layers, n_edc_layers);
+    auto [det, names] = create_toy_geometry(mng_mr);
 
     // Create navigator
     navigator_host_t nav;
@@ -106,7 +105,7 @@ TEST(navigator_cuda, navigator) {
     copy.setup(position_records_buffer);
 
     // Get detector data
-    auto det_data = get_data(det);
+    auto det_data = detray::get_data<bfield::const_bknd_t>(det);
 
     // Get tracks data
     auto tracks_data = vecmem::get_data(tracks_device);

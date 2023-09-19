@@ -9,12 +9,14 @@
 
 // Project include(s)
 #include "detray/core/detector.hpp"
+#include "detray/definitions/bfield_backends.hpp"
 #include "detray/definitions/math.hpp"
 #include "detray/definitions/units.hpp"
 #include "detray/detectors/detector_helper.hpp"
 #include "detray/detectors/toy_metadata.hpp"
 #include "detray/geometry/detector_volume.hpp"
 #include "detray/geometry/surface.hpp"
+#include "detray/io/common/detail/file_handle.hpp"
 #include "detray/materials/predefined_materials.hpp"
 #include "detray/tools/grid_builder.hpp"
 #include "detray/tools/volume_builder.hpp"
@@ -22,13 +24,11 @@
 // Vecmem include(s)
 #include <vecmem/memory/memory_resource.hpp>
 
-// Covfie include(s)
-#include <covfie/core/backend/primitive/constant.hpp>
-#include <covfie/core/field.hpp>
-
 // System include(s)
 #include <limits>
 #include <stdexcept>
+#include <string>
+#include <string_view>
 #include <type_traits>
 #include <utility>
 
@@ -40,6 +40,52 @@ using transform3_t = __plugin::transform3<detray::scalar>;
 using point3 = __plugin::point3<detray::scalar>;
 using vector3 = __plugin::vector3<detray::scalar>;
 using point2 = __plugin::point2<detray::scalar>;
+
+/// Configure the toy detector
+struct toy_det_config {
+    /// No. of barrel layers the detector should be built with
+    unsigned int m_n_brl_layers{4u};
+    /// No. of endcap layers (on either side) the detector should be built with
+    unsigned int m_n_edc_layers{3u};
+    /// Field vector for an homogenoues b-field
+    vector3 m_bfield_vec{0.f, 0.f, 2.f * unit<scalar>::T};
+    /// Input file name for the covfie b-field
+    std::string m_bfield_file{!std::getenv("DETRAY_BFIELD_FILE")
+                                  ? ""
+                                  : std::getenv("DETRAY_BFIELD_FILE")};
+
+    /// Setters
+    /// @{
+    constexpr toy_det_config &n_brl_layers(const unsigned int n) {
+        m_n_brl_layers = n;
+        return *this;
+    }
+    constexpr toy_det_config &n_edc_layers(const unsigned int n) {
+        m_n_edc_layers = n;
+        return *this;
+    }
+    toy_det_config &bfield_vec(const vector3 &field_vec) {
+        m_bfield_vec = field_vec;
+        return *this;
+    }
+    toy_det_config &bfield_vec(const scalar x, const scalar y, const scalar z) {
+        m_bfield_vec = {x, y, z};
+        return *this;
+    }
+    toy_det_config &bfield_file(const std::string &file_name) {
+        m_bfield_file = file_name;
+        return *this;
+    }
+    /// @}
+
+    /// Getters
+    /// @{
+    constexpr unsigned int n_brl_layers() const { return m_n_brl_layers; }
+    constexpr unsigned int n_edc_layers() const { return m_n_edc_layers; }
+    constexpr const vector3 &bfield_vec() const { return m_bfield_vec; }
+    const std::string &bfield_file() const { return m_bfield_file; }
+    /// @}
+};
 
 /** Helper function that creates a layer of rectangular barrel modules.
  *
@@ -357,11 +403,12 @@ template <typename context_t, typename volume_type,
           typename surface_container_t, typename mask_container_t,
           typename material_container_t, typename transform_container_t,
           typename config_t>
-void create_endcap_modules(context_t &ctx, volume_type &vol,
-                           surface_container_t &surfaces,
-                           mask_container_t &masks,
-                           material_container_t &materials,
-                           transform_container_t &transforms, config_t cfg) {
+inline void create_endcap_modules(context_t &ctx, volume_type &vol,
+                                  surface_container_t &surfaces,
+                                  mask_container_t &masks,
+                                  material_container_t &materials,
+                                  transform_container_t &transforms,
+                                  config_t cfg) {
     using surface_type = typename surface_container_t::value_type;
     using nav_link_t = typename surface_type::navigation_link;
     using mask_id = typename surface_type::mask_id;
@@ -679,7 +726,7 @@ inline void add_endcap_barrel_connection(
  * @param cfg config struct for module creation
  */
 template <typename edc_module_factory, typename detector_t, typename config_t>
-void add_endcap_detector(
+inline void add_endcap_detector(
     detector_t &det, vecmem::memory_resource &resource,
     typename detector_t::geometry_context &ctx,
     typename detector_t::name_map &names, dindex n_layers, dindex beampipe_idx,
@@ -782,7 +829,7 @@ void add_endcap_detector(
  * @param cfg config struct for module creation
  */
 template <typename brl_module_factory, typename detector_t, typename config_t>
-void add_barrel_detector(
+inline void add_barrel_detector(
     detector_t &det, vecmem::memory_resource &resource,
     typename detector_t::geometry_context &ctx,
     typename detector_t::name_map &names, const unsigned int n_layers,
@@ -857,24 +904,24 @@ void add_barrel_detector(
 
 }  // namespace
 
-/** Builds a detray geometry that contains the innermost tml layers. The number
- *  of barrel and endcap layers can be chosen, but all barrel layers should be
- *  present when an endcap detector is built to have the barrel region radius
- *  match the endcap diameter.
- *
- * @param n_brl_layers number of pixel barrel layer to build (max 4)
- * @param n_edc_layers number of pixel endcap discs to build (max 7)
- *
- * @returns a complete detector object
- */
-template <typename container_t = host_container_types>
-auto create_toy_geometry(
-    vecmem::memory_resource &resource,
-    covfie::field<toy_metadata<>::bfield_backend_t> &&bfield,
-    unsigned int n_brl_layers = 4u, unsigned int n_edc_layers = 3u) {
+/// Builds a detray geometry that contains the innermost tml layers. The number
+/// of barrel and endcap layers can be chosen, but all barrel layers should be
+/// present when an endcap detector is built to have the barrel region radius
+/// match the endcap diameter.
+///
+/// @tparam bfield_bknd_t the type of magnetic field to construct
+///
+/// @param resource vecmem memory resource to use for container allocations
+/// @param cfg toy detector configuration
+///
+/// @returns a complete detector object
+template <typename bfield_bknd_t = bfield::const_bknd_t>
+inline auto create_toy_geometry(vecmem::memory_resource &resource,
+                                const toy_det_config &cfg = {}) {
 
     // detector type
-    using detector_t = detector<toy_metadata<>, covfie::field, container_t>;
+    using detector_t = detector<toy_metadata, covfie::field<bfield_bknd_t>,
+                                host_container_types>;
 
     // Detector and volume names
     typename detector_t::name_map name_map = {{0u, "toy_detector"}};
@@ -969,7 +1016,22 @@ auto create_toy_geometry(
     };
 
     // create empty detector
-    detector_t det(resource, std::move(bfield));
+    detector_t det(resource);
+
+    // Constant b-field: 2T in z-direction as default
+    if constexpr (std::is_same_v<bfield_bknd_t, bfield::const_bknd_t>) {
+        const vector3 &B = cfg.bfield_vec();
+        auto bfield = covfie::field<bfield_bknd_t>(covfie::make_parameter_pack(
+            bfield::const_bknd_t::configuration_t{B[0], B[1], B[2]}));
+        det.set_bfield(std::move(bfield));
+    }
+    // Read b-field map from file
+    else {
+        detray::io::detail::file_handle file(cfg.bfield_file(),
+                                             std::ios::binary | std::ios::in);
+
+        det.set_bfield(covfie::field<bfield_bknd_t>(*file));
+    }
 
     // geometry context object
     typename detector_t::geometry_context ctx0{};
@@ -977,19 +1039,20 @@ auto create_toy_geometry(
     brl_m_config brl_config{};
     edc_m_config edc_config{};
 
-    if (n_edc_layers > edc_positions.size()) {
+    if (cfg.n_edc_layers() > edc_positions.size()) {
         throw std::invalid_argument(
             "ERROR: Too many endcap layers requested (max " +
             std::to_string(edc_positions.size()) + ")!");
     }
-    if (n_brl_layers > brl_positions.size() - 1u) {
+    if (cfg.n_brl_layers() > brl_positions.size() - 1u) {
         throw std::invalid_argument(
             "ERROR: Too many barrel layers requested (max " +
             std::to_string(brl_positions.size() - 1u) + ")!");
     }
     // the radius of the endcaps and  the barrel section need to match
-    if (n_edc_layers > 0 and
-        std::fabs(brl_lay_sizes[n_brl_layers].second - edc_config.outer_r) >
+    if (cfg.n_edc_layers() > 0 and
+        std::fabs(brl_lay_sizes[cfg.n_brl_layers()].second -
+                  edc_config.outer_r) >
             std::numeric_limits<scalar>::epsilon()) {
         throw std::invalid_argument(
             "ERROR: Barrel and endcap radii do not match!");
@@ -997,53 +1060,54 @@ auto create_toy_geometry(
 
     // beampipe
     const dindex beampipe_idx{0u};
-    add_beampipe(det, resource, ctx0, name_map, n_edc_layers, n_brl_layers,
-                 edc_lay_sizes, brl_lay_sizes[0], brl_positions[0], brl_half_z,
-                 edc_config.inner_r);
+    add_beampipe(det, resource, ctx0, name_map, cfg.n_edc_layers(),
+                 cfg.n_brl_layers(), edc_lay_sizes, brl_lay_sizes[0],
+                 brl_positions[0], brl_half_z, edc_config.inner_r);
 
-    if (n_edc_layers > 0u) {
+    if (cfg.n_edc_layers() > 0u) {
         edc_config.side = -1;
         // negative endcap layers
         add_endcap_detector<edc_module_factory>(
-            det, resource, ctx0, name_map, n_edc_layers, beampipe_idx,
+            det, resource, ctx0, name_map, cfg.n_edc_layers(), beampipe_idx,
             edc_lay_sizes, edc_positions, edc_config);
 
         // gap volume that connects barrel and neg. endcap
         dindex prev_vol_idx = det.volumes().back().index();
         prev_vol_idx = prev_vol_idx == 0u ? leaving_world : prev_vol_idx;
-        dindex next_vol_idx = n_brl_layers == 0u
+        dindex next_vol_idx = cfg.n_brl_layers() == 0u
                                   ? leaving_world
                                   : det.volumes().back().index() + 2u;
 
         add_endcap_barrel_connection(
-            det, resource, ctx0, name_map, edc_config.side, n_brl_layers,
+            det, resource, ctx0, name_map, edc_config.side, cfg.n_brl_layers(),
             beampipe_idx, brl_lay_sizes, edc_config.inner_r, edc_config.outer_r,
             edc_lay_sizes[0].first, brl_half_z, next_vol_idx, prev_vol_idx);
     }
-    if (n_brl_layers > 0u) {
+    if (cfg.n_brl_layers() > 0u) {
         // barrel
         add_barrel_detector<brl_module_factory>(
-            det, resource, ctx0, name_map, n_brl_layers, beampipe_idx,
+            det, resource, ctx0, name_map, cfg.n_brl_layers(), beampipe_idx,
             brl_half_z, brl_lay_sizes, brl_positions, brl_binning, brl_config);
     }
-    if (n_edc_layers > 0u) {
+    if (cfg.n_edc_layers() > 0u) {
         // gap layer that connects barrel and pos. endcap
         edc_config.side = 1.;
         // innermost barrel layer volume id
-        dindex prev_vol_idx =
-            n_brl_layers == 0 ? leaving_world : 2u * n_edc_layers + 1u;
+        dindex prev_vol_idx = cfg.n_brl_layers() == 0
+                                  ? leaving_world
+                                  : 2u * cfg.n_edc_layers() + 1u;
         dindex next_vol_idx = prev_vol_idx == 1u
                                   ? leaving_world
                                   : det.volumes().back().index() + 2u;
 
         add_endcap_barrel_connection(
-            det, resource, ctx0, name_map, edc_config.side, n_brl_layers,
+            det, resource, ctx0, name_map, edc_config.side, cfg.n_brl_layers(),
             beampipe_idx, brl_lay_sizes, edc_config.inner_r, edc_config.outer_r,
             brl_half_z, edc_lay_sizes[0].first, prev_vol_idx, next_vol_idx);
 
         // positive endcap layers
         add_endcap_detector<edc_module_factory>(
-            det, resource, ctx0, name_map, n_edc_layers, beampipe_idx,
+            det, resource, ctx0, name_map, cfg.n_edc_layers(), beampipe_idx,
             edc_lay_sizes, edc_positions, edc_config);
     }
 
@@ -1068,19 +1132,6 @@ auto create_toy_geometry(
     det.set_volume_finder(std::move(vgrid));
 
     return std::make_pair(std::move(det), std::move(name_map));
-}
-
-/** Wrapper for create_toy_geometry with constant zero bfield.
- */
-template <typename container_t = host_container_types>
-auto create_toy_geometry(vecmem::memory_resource &resource,
-                         unsigned int n_brl_layers = 4u,
-                         unsigned int n_edc_layers = 3u) {
-    return create_toy_geometry<container_t>(
-        resource,
-        covfie::field<toy_metadata<>::bfield_backend_t>{
-            toy_metadata<>::bfield_backend_t::configuration_t{0.f, 0.f, 0.f}},
-        n_brl_layers, n_edc_layers);
 }
 
 }  // namespace detray

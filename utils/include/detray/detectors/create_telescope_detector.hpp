@@ -9,6 +9,7 @@
 
 // Project include(s)
 #include "detray/core/detector.hpp"
+#include "detray/definitions/bfield_backends.hpp"
 #include "detray/definitions/units.hpp"
 #include "detray/detectors/telescope_metadata.hpp"
 #include "detray/masks/masks.hpp"
@@ -18,11 +19,6 @@
 
 // Vecmem include(s)
 #include <vecmem/memory/memory_resource.hpp>
-
-// Covfie include(s)
-#include <covfie/core/backend/primitive/constant.hpp>
-#include <covfie/core/field.hpp>
-#include <covfie/core/vector.hpp>
 
 // System include(s)
 #include <algorithm>
@@ -34,9 +30,6 @@
 namespace detray {
 
 namespace {
-
-template <typename mask_shape_t>
-using telescope_types = telescope_metadata<mask_shape_t>;
 
 /// Configure the toy detector
 template <typename mask_shape_t = rectangle2D<>,
@@ -443,8 +436,9 @@ inline auto create_telescope_detector(
         20.f * unit<scalar>::mm, 20.f * unit<scalar>::mm}) {
 
     // detector type
-    using detector_t = detector<telescope_types<mask_shape_t>, covfie::field,
-                                host_container_types>;
+    using detector_t =
+        detector<telescope_metadata<mask_shape_t>,
+                 covfie::field<bfield::const_bknd_t>, host_container_types>;
 
     // Detector and volume names
     typename detector_t::name_map name_map = {{0u, "telescope_detector"},
@@ -472,12 +466,10 @@ inline auto create_telescope_detector(
     assert((positions.size() < 20u) &&
            "Due to WIP, please choose less than 20 surfaces for now");
 
-    using const_bfield_bknd_t =
-        covfie::backend::constant<covfie::vector::vector_d<scalar, 3>,
-                                  covfie::vector::vector_d<scalar, 3>>;
     const auto &B = cfg.bfield_vec();
-    auto bfield = covfie::field<const_bfield_bknd_t>(
-        const_bfield_bknd_t::configuration_t{B[0], B[1], B[2]});
+    auto bfield =
+        covfie::field<bfield::const_bknd_t>{covfie::make_parameter_pack(
+            bfield::const_bknd_t::configuration_t{B[0], B[1], B[2]})};
 
     // create empty detector
     detector_t det(resource, std::move(bfield));

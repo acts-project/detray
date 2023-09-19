@@ -118,10 +118,8 @@ GTEST_TEST(detray_navigator, toy_geometry) {
     /// Tolerance for tests
     constexpr double tol{0.01};
 
-    unsigned int n_brl_layers{4u};
-    unsigned int n_edc_layers{3u};
-    auto [toy_det, names] =
-        create_toy_geometry(host_mr, n_brl_layers, n_edc_layers);
+    auto [toy_det, names] = create_toy_geometry(host_mr);
+
     using detector_t = decltype(toy_det);
     using inspector_t = navigation::print_inspector;
     using navigator_t = navigator<detector_t, inspector_t>;

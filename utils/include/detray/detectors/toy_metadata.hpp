@@ -21,16 +21,9 @@
 #include "detray/surface_finders/accelerator_grid.hpp"
 #include "detray/surface_finders/brute_force_finder.hpp"
 
-// Covfie include(s)
-#include <covfie/core/backend/primitive/constant.hpp>
-#include <covfie/core/vector.hpp>
-
 namespace detray {
 
 /// Defines the data types needed for the toy detector
-template <typename _bfield_backend_t =
-              covfie::backend::constant<covfie::vector::vector_d<scalar, 3>,
-                                        covfie::vector::vector_d<scalar, 3>>>
 struct toy_metadata {
 
     /// Mask to (next) volume link: next volume(s)
@@ -67,8 +60,6 @@ struct toy_metadata {
         surface_grid_t<ring2D<>::axes<>, bin_entry_t, container_t>;
 
     /// @}
-
-    using bfield_backend_t = _bfield_backend_t;
 
     /// How to store coordinate transform matrices
     template <template <typename...> class vector_t = dvector>

@@ -7,26 +7,14 @@
 
 #pragma once
 
+// Project include(s)
+#include "queue_wrapper.hpp"
 #include "tests/common/test_base/propagator_test.hpp"
 
 // Vecmem include(s)
-#include <vecmem/memory/memory_resource.hpp>
-#include <vecmem/utils/cuda/copy.hpp>
-
-// Covfie include(s)
-#include <covfie/cuda/backend/primitive/cuda_device_array.hpp>
+#include "vecmem/utils/sycl/copy.hpp"
 
 namespace detray {
-
-namespace bfield::cuda {
-
-// Inhomogeneous field (cuda)
-using inhom_bknd_t = covfie::backend::affine<
-    covfie::backend::nearest_neighbour<covfie::backend::strided<
-        covfie::vector::ulong3, covfie::backend::cuda_device_array<
-                                    covfie::vector::vector_d<scalar, 3>>>>>;
-
-}  // namespace bfield::cuda
 
 /// Launch the propagation test kernel
 template <typename bfield_bknd_t, typename detector_t>
@@ -36,14 +24,14 @@ void propagator_test(
     vecmem::data::jagged_vector_view<intersection_t<detector_t>> &,
     vecmem::data::jagged_vector_view<scalar> &,
     vecmem::data::jagged_vector_view<vector3_t> &,
-    vecmem::data::jagged_vector_view<free_matrix> &);
+    vecmem::data::jagged_vector_view<free_matrix> &, sycl::queue_wrapper);
 
-/// Test function for propagator on the device
+/// test function for propagator on the device
 template <typename bfield_bknd_t, typename detector_t>
 inline auto run_propagation_device(
     vecmem::memory_resource *mr, detector_t &det,
     typename detector_t::template detector_view_type<bfield_bknd_t> det_view,
-    dvector<track_t> &tracks,
+    sycl::queue_wrapper queue, dvector<track_t> &tracks,
     const vecmem::jagged_vector<vector3_t> &host_positions)
     -> std::tuple<vecmem::jagged_vector<scalar>,
                   vecmem::jagged_vector<vector3_t>,
@@ -81,7 +69,7 @@ inline auto run_propagation_device(
     // Run the propagator test for GPU device
     propagator_test<bfield_bknd_t, detector_t>(
         det_view, tracks_data, candidates_buffer, path_lengths_buffer,
-        positions_buffer, jac_transports_buffer);
+        positions_buffer, jac_transports_buffer, queue);
 
     vecmem::jagged_vector<scalar> device_path_lengths(mr);
     vecmem::jagged_vector<vector3_t> device_positions(mr);
@@ -99,7 +87,7 @@ inline auto run_propagation_device(
 /// Test chain for the propagator
 template <typename bfield_bknd_t, typename detector_t>
 inline auto run_propagation_test(
-    vecmem::memory_resource *mr, detector_t &det,
+    vecmem::memory_resource *mr, ::sycl::queue *q, detector_t &det,
     typename detector_t::template detector_view_type<bfield_bknd_t> det_view) {
 
     // Create the vector of initial track parameterizations
@@ -110,10 +98,12 @@ inline auto run_propagation_test(
     auto &&[host_path_lengths, host_positions, host_jac_transports] =
         run_propagation_host(mr, det, tracks_host);
 
-    // Device propagation (device backend specific implementation)
+    // Device propagation
+    detray::sycl::queue_wrapper queue(q);
+
     auto &&[device_path_lengths, device_positions, device_jac_transports] =
-        run_propagation_device<bfield_bknd_t>(mr, det, det_view, tracks_device,
-                                              host_positions);
+        run_propagation_device<bfield_bknd_t>(mr, det, det_view, queue,
+                                              tracks_device, host_positions);
 
     // Check the results
     compare_propagation_results(host_positions, device_positions,

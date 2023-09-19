@@ -705,7 +705,7 @@ GTEST_TEST(detray_tools, detector_builder) {
     // detector builder
     auto geo_ctx = typename detector_t::geometry_context{};
 
-    detector_builder<default_metadata, volume_builder> det_builder{};
+    detector_builder<default_metadata> det_builder{};
 
     //
     // first volume builder

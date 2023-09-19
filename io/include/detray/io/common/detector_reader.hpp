@@ -8,6 +8,7 @@
 #pragma once
 
 // Project include(s)
+#include "detray/io/common/bfield_reader.hpp"
 #include "detray/io/common/detail/detector_components_io.hpp"
 #include "detray/io/common/detail/type_traits.hpp"
 #include "detray/io/json/json_reader.hpp"
@@ -47,9 +48,9 @@ struct detector_reader_config {
     bool do_check() const { return m_do_check; }
     template <typename const_bfield_bknd_t>
     auto bfield() const {
-        return covfie::field<const_bfield_bknd_t>(
+        return covfie::field<const_bfield_bknd_t>(covfie::make_parameter_pack(
             typename const_bfield_bknd_t::configuration_t{
-                m_bfield_vec[0], m_bfield_vec[1], m_bfield_vec[2]});
+                m_bfield_vec[0], m_bfield_vec[1], m_bfield_vec[2]}));
     }
     /// @}
 
@@ -103,6 +104,14 @@ auto assemble_reader(const io::detector_reader_config& cfg) {
                                             header.tag +
                                             "' in input file: " + file_name);
             }
+        } else if (extension == ".cvf" and check_covfie_file(file_name)) {
+            // This is the file type covfie uses
+            if constexpr (not std::is_same_v<
+                              typename detector_t::bfield_type::backend_t,
+                              bfield::const_bknd_t>) {
+                std::cout << "Adding an inhom bfield reader" << std::endl;
+                readers.template add<covfie_reader>(file_name);
+            }
         } else {
             throw std::runtime_error("Unsupported file format '" + extension +
                                      "' for input file: " + file_name);
@@ -129,27 +138,30 @@ template <class detector_t,
           template <typename> class volume_builder_t = volume_builder>
 auto read_detector(vecmem::memory_resource& resc,
                    const detector_reader_config& cfg) {
-    // Map the volue names to their indices
+
+    using bfield_bknd_t = typename detector_t::bfield_type::backend_t;
+
+    // Map the volume names to their indices
     typename detector_t::name_map names{};
 
-    detector_builder<typename detector_t::metadata, volume_builder_t>
+    detector_builder<typename detector_t::metadata, bfield_bknd_t,
+                     volume_builder_t>
         det_builder;
 
-    // Find all required the readers
+    // Find all required readers
     auto [reader, det_name] = detray::detail::assemble_reader<detector_t>(cfg);
 
+    // Add a constant b-field (no bfield reader is added in this case)
+    if constexpr (std::is_same_v<bfield_bknd_t, bfield::const_bknd_t>) {
+        det_builder.set_bfield(cfg.template bfield<bfield_bknd_t>());
+    }
+
+    // Read the data
     names.emplace(0u, std::move(det_name));
     reader.read(det_builder, names);
 
-    // TODO: Remove once bfield reader is available
-    using scalar_t = typename detector_t::scalar_type;
-    using const_bfield_bknd_t =
-        covfie::backend::constant<covfie::vector::vector_d<scalar_t, 3>,
-                                  covfie::vector::vector_d<scalar_t, 3>>;
-
     // Build and return the detector
-    auto det =
-        det_builder.build(resc, cfg.template bfield<const_bfield_bknd_t>());
+    auto det = det_builder.build(resc);
 
     if (cfg.do_check()) {
         detray::detail::check_consistency(det);
