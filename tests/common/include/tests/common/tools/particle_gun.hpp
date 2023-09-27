@@ -13,7 +13,6 @@
 #include "detray/intersection/intersection.hpp"
 #include "detray/intersection/intersection_kernel.hpp"
 #include "detray/utils/ranges.hpp"
-#include "tests/common/tools/intersectors/helix_intersection_kernel.hpp"
 
 // System include(s)
 #include <cmath>
@@ -46,14 +45,6 @@ struct particle_gun {
 
         std::vector<std::pair<dindex, intersection_t>> intersection_record;
 
-        using helix_type =
-            detail::helix<typename trajectory_t::transform3_type>;
-
-        using intersection_kernel_t =
-            std::conditional_t<std::is_same_v<trajectory_t, helix_type>,
-                               helix_intersection_initialize,
-                               intersection_initialize>;
-
         // Loop over all surfaces in the detector
         const auto &tf_store = detector.transform_store();
 
@@ -62,7 +53,7 @@ struct particle_gun {
         for (const auto &sf_desc : detector.surface_lookup()) {
             // Retrieve candidate(s) from the surface
             const auto sf = surface{detector, sf_desc};
-            sf.template visit_mask<intersection_kernel_t>(
+            sf.template visit_mask<intersection_initialize>(
                 intersections, traj, sf_desc, tf_store, mask_tolerance);
 
             // Candidate is invalid if it lies in the opposite direction

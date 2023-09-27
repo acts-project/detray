@@ -41,6 +41,7 @@ struct cylinder_portal_intersector
 
     using intersection_type = intersection_t;
     using ray_type = detail::ray<transform3_type>;
+    using helix_type = detail::helix<transform3_type>;
 
     /// Operator function to find intersections between ray and cylinder mask
     ///
@@ -84,6 +85,31 @@ struct cylinder_portal_intersector
         }
 
         return is;
+    }
+
+    /// Operator function to find intersections between ray and cylinder mask
+    ///
+    /// @tparam mask_t is the input mask type
+    /// @tparam surface_t is the type of surface handle
+    ///
+    /// @param h is the input helix trajectory
+    /// @param sf the surface handle the mask is associated with
+    /// @param mask is the input mask that defines the surface extent
+    /// @param trf is the surface placement transform
+    /// @param mask_tolerance is the tolerance for mask edges
+    ///
+    /// @return the closest intersection
+    template <typename mask_t, typename surface_t,
+              std::enable_if_t<std::is_same_v<typename mask_t::local_frame_type,
+                                              cylindrical2<transform3_type>>,
+                               bool> = true>
+    DETRAY_HOST_DEVICE inline std::array<intersection_t, 2> operator()(
+        const helix_type &h, const surface_t &sf, const mask_t &mask,
+        const transform3_type &trf,
+        const scalar_type mask_tolerance = 0.f) const {
+
+        return cylinder_intersector<intersection_t>()(h, sf, mask, trf,
+                                                      mask_tolerance);
     }
 
     /// Operator function to find intersections between a ray and a 2D cylinder

@@ -13,9 +13,6 @@
 #include "detray/test/types.hpp"
 #include "detray/tracks/tracks.hpp"
 #include "detray/utils/axis_rotation.hpp"
-#include "tests/common/tools/intersectors/helix_cylinder_intersector.hpp"
-#include "tests/common/tools/intersectors/helix_line_intersector.hpp"
-#include "tests/common/tools/intersectors/helix_plane_intersector.hpp"
 
 // Vecmem include(s)
 #include <vecmem/memory/host_memory_resource.hpp>
@@ -53,13 +50,10 @@ class HelixCovarianceTransportValidation : public ::testing::Test {
     // Test types
     using mask_type = T;
     using local_frame_type = typename mask_type::local_frame_type;
-    using helix_intersector_type = helix_intersector<intersection_t, mask_type>;
 
     // First mask at the origin is always rectangle
     using first_mask_type = rectangle_type;
     using first_local_frame_type = typename first_mask_type::local_frame_type;
-    using first_helix_intersector_type =
-        detail::helix_plane_intersector<intersection_t>;
 
     // Transform3 type
     using transform3_type = typename local_frame_type::transform3_type;
@@ -181,8 +175,8 @@ class HelixCovarianceTransportValidation : public ::testing::Test {
             departure_frame.bound_to_free_jacobian(trf_0, mask_0, bound_vec_0);
 
         // Get the intersection on the next surface
-        const intersection_t is = get_intersection(
-            helix_intersector<intersection_t, destination_mask_type>{}(
+        const intersection_t is =
+            get_intersection(mask_1.template intersector<intersection_t>()(
                 hlx, surface_descriptor<>{}, mask_1, trf_1,
                 this->mask_tolerance));
 

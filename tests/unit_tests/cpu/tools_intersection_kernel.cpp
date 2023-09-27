@@ -18,7 +18,6 @@
 #include "detray/test/types.hpp"
 #include "detray/tracks/tracks.hpp"
 #include "detray/utils/ranges.hpp"
-#include "tests/common/tools/intersectors/helix_intersection_kernel.hpp"
 
 // Vecmem include(s)
 #include <vecmem/memory/host_memory_resource.hpp>
@@ -268,8 +267,8 @@ GTEST_TEST(detray_intersection, intersection_kernel_helix) {
 
     // Try the intersections - with automated dispatching via the kernel
     for (const auto [sf_idx, surface] : detray::views::enumerate(surfaces)) {
-        mask_store.visit<helix_intersection_initialize>(
-            surface.mask(), sfi_helix, h, surface, transform_store);
+        mask_store.visit<intersection_initialize>(surface.mask(), sfi_helix, h,
+                                                  surface, transform_store);
 
         vector3 global;
 
