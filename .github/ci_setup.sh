@@ -17,8 +17,12 @@ PLATFORM_NAME=$1
 if [ "${PLATFORM_NAME}" = "SYCL" ]; then
    if [ -f "/opt/intel/oneapi/setvars.sh" ]; then
       source /opt/intel/oneapi/setvars.sh
-   fi
-   export SYCL_DEVICE_FILTER=host
+      export CC=`which icx`
+      export CXX=`which icpx`
+      export SYCLCXX="${CXX} -fsycl -fsycl-targets=nvptx64-nvidia-cuda"
+   else
+      export SYCL_DEVICE_FILTER=host
+   fi      
 fi
 
 # Make sure that GNU Make and CTest would use all available cores.
