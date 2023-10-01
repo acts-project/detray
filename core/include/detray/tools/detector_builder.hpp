@@ -10,6 +10,7 @@
 // Project include(s).
 #include "detray/core/detector.hpp"
 #include "detray/core/detector_metadata.hpp"
+#include "detray/definitions/bfield_backends.hpp"
 #include "detray/definitions/geometry.hpp"
 #include "detray/tools/grid_factory.hpp"
 #include "detray/tools/volume_builder.hpp"
@@ -18,9 +19,6 @@
 
 // Vecmem include(s)
 #include <vecmem/memory/memory_resource.hpp>
-
-// Covfie include(s)
-#include <covfie/core/field.hpp>
 
 // System include(s)
 #include <memory>
@@ -35,12 +33,13 @@ namespace detray {
 ///                          geometry data
 /// @tparam volume_data_t the data structure that hold the volume builders
 template <typename metadata = default_metadata,
+          typename bfield_bknd_t = bfield::const_bknd_t,
           template <typename> class volume_builder_t = volume_builder,
           template <typename...> class volume_data_t = std::vector>
 class detector_builder {
     public:
     using detector_type =
-        detector<metadata, covfie::field, host_container_types>;
+        detector<metadata, covfie::field<bfield_bknd_t>, host_container_types>;
 
     /// Empty detector builder
     detector_builder() = default;
@@ -80,16 +79,15 @@ class detector_builder {
     /// Assembles the final detector from the volumes builders and allocates
     /// the detector containers with the memory resource @param resource
     DETRAY_HOST
-    auto build(vecmem::memory_resource& resource,
-               typename detector_type::bfield_type&& field) -> detector_type {
+    auto build(vecmem::memory_resource& resource) -> detector_type {
 
-        detector_type det{
-            resource, std::forward<typename detector_type::bfield_type>(field)};
+        detector_type det{resource};
 
         for (auto& vol_builder : m_volumes) {
             vol_builder->build(det);
         }
 
+        det.set_bfield(std::move(m_bfield));
         det.set_volume_finder(std::move(m_vol_finder));
 
         // TODO: Add sorting, data deduplication etc. here later...
@@ -100,12 +98,8 @@ class detector_builder {
     /// Assembles the detector, without a magnetic field
     // TODO: Remove, won't work for non-constant bfields
     DETRAY_HOST
-    auto build(vecmem::memory_resource& resource) -> detector_type {
-        using bfield_bknd_t = typename detector_type::bfield_type::backend_t;
-
-        return build(resource, typename detector_type::bfield_type(
-                                   typename bfield_bknd_t::configuration_t{
-                                       0.f, 0.f, 0.f}));
+    void set_bfield(typename detector_type::bfield_type&& field) {
+        m_bfield = std::forward<typename detector_type::bfield_type>(field);
     }
 
     /// Put the volumes into a search data structure
@@ -139,6 +133,8 @@ class detector_builder {
         m_volumes{};
     /// Data structure to find volumes
     typename detector_type::volume_finder m_vol_finder{};
+    /// The detector bfield
+    typename detector_type::bfield_type m_bfield;
 };
 
 }  // namespace detray

@@ -5,16 +5,18 @@
  * Mozilla Public License Version 2.0
  */
 
-#include <benchmark/benchmark.h>
+// Project include(s)
+#include "benchmark_propagator_cuda_kernel.hpp"
+#include "detray/simulation/event_generator/track_generators.hpp"
 
-#include <covfie/core/field.hpp>
+// Vecmem include(s)
 #include <vecmem/memory/binary_page_memory_resource.hpp>
 #include <vecmem/memory/cuda/device_memory_resource.hpp>
 #include <vecmem/memory/cuda/managed_memory_resource.hpp>
+#include <vecmem/utils/cuda/copy.hpp>
 
-#include "benchmark_propagator_cuda_kernel.hpp"
-#include "detray/simulation/event_generator/track_generators.hpp"
-#include "vecmem/utils/cuda/copy.hpp"
+// Google include(s).
+#include <benchmark/benchmark.h>
 
 using namespace detray;
 
@@ -25,8 +27,7 @@ vecmem::cuda::device_memory_resource dev_mr;
 vecmem::binary_page_memory_resource bp_mng_mr(mng_mr);
 
 // detector configuration
-constexpr std::size_t n_brl_layers{4u};
-constexpr std::size_t n_edc_layers{7u};
+toy_det_config toy_cfg{4u, 7u};
 
 void fill_tracks(vecmem::vector<free_track_parameters<transform3>> &tracks,
                  const std::size_t theta_steps, const std::size_t phi_steps) {
@@ -45,11 +46,8 @@ template <propagate_option opt>
 static void BM_PROPAGATOR_CPU(benchmark::State &state) {
 
     // Create the toy geometry
-    auto [det, names] = create_toy_geometry<host_container_types>(
-        host_mr,
-        field_type(field_type::backend_t::configuration_t{
-            0.f, 0.f, 2.f * unit<scalar>::T}),
-        n_brl_layers, n_edc_layers);
+    auto [det, names] =
+        create_toy_geometry<field_type::backend_t>(host_mr, toy_cfg);
 
     // Create RK stepper
     rk_stepper_type s;
@@ -106,11 +104,11 @@ template <propagate_option opt>
 static void BM_PROPAGATOR_CUDA(benchmark::State &state) {
 
     // Create the toy geometry
-    auto [det, names] = create_toy_geometry<host_container_types>(
-        bp_mng_mr, n_brl_layers, n_edc_layers);
+    auto [det, names] =
+        create_toy_geometry<field_type::backend_t>(bp_mng_mr, toy_cfg);
 
     // Get detector data
-    auto det_data = get_data(det);
+    auto det_data = detray::get_data<field_type::backend_t>(det);
 
     // vecmem copy helper object
     vecmem::cuda::copy copy;

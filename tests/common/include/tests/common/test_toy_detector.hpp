@@ -51,10 +51,13 @@ inline void test_finder(const acc_t& finder, const dindex volume_index,
     }
 }
 
-inline bool test_toy_detector(const detector<toy_metadata<>>& toy_det,
-                              const detector<toy_metadata<>>::name_map& names) {
+inline bool test_toy_detector(
+    const detector<toy_metadata, covfie::field<bfield::const_bknd_t>>& toy_det,
+    const detector<toy_metadata, covfie::field<bfield::const_bknd_t>>::name_map&
+        names) {
 
-    using detector_t = detector<toy_metadata<>>;
+    using detector_t =
+        detector<toy_metadata, covfie::field<bfield::const_bknd_t>>;
     using geo_obj_ids = typename detector_t::geo_obj_ids;
     using volume_t = typename detector_t::volume_type;
     using nav_link_t = typename detector_t::surface_type::navigation_link;

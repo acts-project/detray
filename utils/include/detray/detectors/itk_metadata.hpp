@@ -23,10 +23,6 @@
 // Linear algebra types
 #include "detray/definitions/algebra.hpp"
 
-// Covfie include(s)
-#include <covfie/core/backend/primitive/constant.hpp>
-#include <covfie/core/vector.hpp>
-
 namespace detray {
 
 // linear algebra types
@@ -62,11 +58,6 @@ struct itk_metadata {
     /// The material types to be mapped onto the surfaces: Here homogeneous
     /// material
     using slab = material_slab<detray::scalar>;
-
-    /// Constant B-field
-    using bfield_backend_t =
-        covfie::backend::constant<covfie::vector::vector_d<scalar, 3>,
-                                  covfie::vector::vector_d<scalar, 3>>;
 
     /// How to store and link transforms. The geometry context allows to resolve
     /// the conditions data for e.g. module alignment

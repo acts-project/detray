@@ -9,6 +9,7 @@
 
 // Detray include(s)
 #include "detray/core/detector.hpp"
+#include "detray/definitions/bfield_backends.hpp"
 #include "detray/definitions/indexing.hpp"
 #include "detray/detectors/toy_metadata.hpp"
 #include "detray/masks/masks.hpp"
@@ -35,7 +36,7 @@ using vector3 = test::vector3;
 
 test::transform3 Identity{};
 
-using test_detector_t = detector<toy_metadata<>>;
+using test_detector_t = detector<toy_metadata>;
 
 }  // anonymous namespace
 
@@ -267,9 +268,10 @@ GTEST_TEST(detray_tools, decorator_grid_builder) {
     EXPECT_EQ(vol.id(), volume_id::e_cylinder);
 
     // only the portals are referenced through the volume
-    typename toy_metadata<>::object_link_type sf_range{};
+    typename toy_metadata::object_link_type sf_range{};
     sf_range[0] = {acc_ids::e_default, 0u};
     sf_range[1] = {acc_ids::e_cylinder2_grid, 0u};
+
     // toy detector makes no distinction between the surface types
     EXPECT_EQ(vol.template link<geo_obj_id::e_portal>(),
               sf_range[geo_obj_id::e_portal]);

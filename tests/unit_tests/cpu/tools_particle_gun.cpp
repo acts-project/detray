@@ -30,9 +30,16 @@ constexpr const scalar tol{1e-3f};
 /// without B-field
 GTEST_TEST(detray_tools, particle_gun) {
 
+    // Simulate straight line track
+    const vector3 B{0.f * unit<scalar>::T, 0.f * unit<scalar>::T,
+                    tol * unit<scalar>::T};
+
     // Build the geometry
     vecmem::host_memory_resource host_mr;
-    auto [toy_det, names] = create_toy_geometry(host_mr);
+    toy_det_config toy_cfg{};
+    toy_cfg.bfield_vec(B);
+
+    auto [toy_det, names] = create_toy_geometry(host_mr, toy_cfg);
 
     unsigned int theta_steps{50u};
     unsigned int phi_steps{50u};
@@ -55,9 +62,6 @@ GTEST_TEST(detray_tools, particle_gun) {
         expected.push_back(intersection_record);
     }
 
-    // Simulate straight line track
-    const vector3 B{0.f * unit<scalar>::T, 0.f * unit<scalar>::T,
-                    tol * unit<scalar>::T};
     // Iterate through uniformly distributed momentum directions with helix
     std::size_t n_tracks{0u};
     for (const auto track :

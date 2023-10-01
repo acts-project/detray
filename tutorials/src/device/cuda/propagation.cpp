@@ -30,11 +30,10 @@ int main() {
                                   2. * detray::unit<detray::scalar>::T};
 
     // Create the toy geometry
-    auto [det, names] =
-        detray::create_toy_geometry<detray::host_container_types>(
-            mng_mr, detray::tutorial::field_t(
-                        detray::tutorial::field_t::backend_t::configuration_t{
-                            B[0], B[1], B[2]}));
+    detray::toy_det_config toy_cfg{};
+    toy_cfg.bfield_vec(B);
+
+    auto [det, names] = detray::create_toy_geometry(mng_mr, toy_cfg);
 
     // Create the vector of initial track parameters
     vecmem::vector<detray::free_track_parameters<detray::tutorial::transform3>>
@@ -61,7 +60,7 @@ int main() {
     }
 
     // Get data for device
-    auto det_data = detray::get_data(det);
+    auto det_data = detray::get_data<detray::bfield::const_bknd_t>(det);
     auto tracks_data = detray::get_data(tracks);
 
     // Create navigator candidates buffer

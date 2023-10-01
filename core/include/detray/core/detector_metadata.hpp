@@ -24,10 +24,6 @@
 #include "detray/surface_finders/accelerator_grid.hpp"
 #include "detray/surface_finders/brute_force_finder.hpp"
 
-// Covfie include(s)
-#include <covfie/core/backend/primitive/constant.hpp>
-#include <covfie/core/vector.hpp>
-
 namespace detray {
 
 /// Assembles the detector type. This metatdata contains all available types
@@ -120,11 +116,6 @@ struct default_metadata {
         bin_entry_t, container_t>;
 
     /// @}
-
-    // @TODO: Switch to inhomogenous b-field
-    using bfield_backend_t =
-        covfie::backend::constant<covfie::vector::vector_d<scalar, 3>,
-                                  covfie::vector::vector_d<scalar, 3>>;
 
     /// How to store coordinate transform matrices
     template <template <typename...> class vector_t = dvector>

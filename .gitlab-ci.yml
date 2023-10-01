@@ -8,7 +8,7 @@ build_cuda:
   stage: build
   image: ghcr.io/acts-project/ubuntu2004_cuda:v30
   artifacts:
-    paths: 
+    paths:
       - build
   script:
       - git clone $CLONE_URL src
@@ -26,12 +26,18 @@ build_cuda:
 
 
 test_cuda:
+  variables:
+    DETRAY_DATA_DIRECTORY: src/data/
+    DETRAY_BFIELD_FILE: $CI_PROJECT_DIR/src/data/odd-bfield_v0_8_0.cvf
   stage: test
   tags: [docker-gpu-nvidia]
   image: ghcr.io/acts-project/ubuntu2004_cuda:v30
-  needs: 
+  needs:
     - build_cuda
   script:
+    - git clone $CLONE_URL src
+    - git -C src checkout $HEAD_SHA
+    - src/data/detray_data_get_files.sh
     - cd build
     - nvidia-smi
     - ctest --output-on-failure -R ".*cuda.*"
@@ -43,7 +49,7 @@ build_sycl:
   stage: build
   image: "ghcr.io/acts-project/ubuntu2004_oneapi:v30"
   artifacts:
-    paths: 
+    paths:
       - build
   script:
       - git clone $CLONE_URL src
@@ -66,7 +72,7 @@ test_sycl:
   stage: test
   tags: [docker-gpu-nvidia]
   image: "ghcr.io/acts-project/ubuntu2004_oneapi:v30"
-  needs: 
+  needs:
     - build_sycl
   script:
     - git clone $CLONE_URL src

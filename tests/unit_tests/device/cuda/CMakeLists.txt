@@ -46,7 +46,7 @@ foreach(algebra ${algebras})
       "propagator_cuda.cpp" "propagator_cuda_kernel.hpp"
       "propagator_cuda_kernel.cu"
       LINK_LIBRARIES GTest::gtest_main vecmem::cuda detray_tests_common
-      detray::algebra_${algebra})
+                     covfie::cuda detray::algebra_${algebra})
    target_compile_definitions(detray_test_${algebra}_cuda
       PRIVATE ${algebra}=${algebra})
 endforeach()
