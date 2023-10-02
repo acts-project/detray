@@ -42,9 +42,9 @@ int main(int, char**) {
     const actsvg::views::z_r view;
 
     // Creating the detector and geomentry context.
-    using detector_t = detray::detector<detray::toy_metadata<>>;
+    using detector_t = detray::detector<detray::toy_metadata>;
     vecmem::host_memory_resource host_mr;
-    const auto [det, names] = detray::create_toy_geometry(host_mr, 4, 3);
+    const auto [det, names] = detray::create_toy_geometry(host_mr);
     detector_t::geometry_context context{};
 
     using transform3_t = typename detector_t::transform3;

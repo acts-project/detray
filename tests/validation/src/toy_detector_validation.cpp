@@ -31,21 +31,17 @@ int main(int argc, char **argv) {
     //
     // Toy detector configuration
     //
-    constexpr std::size_t n_brl_layers{4u};
-    constexpr std::size_t n_edc_layers{7u};
-    vecmem::host_memory_resource host_mr;
+    toy_det_config toy_cfg{};
+    toy_cfg.n_brl_layers(4u).n_edc_layers(7u);
+    toy_cfg.bfield_vec(
+        {0.f * unit<scalar>::T, 0.f * unit<scalar>::T, 2.f * unit<scalar>::T});
 
-    using toy_detector_t = detector<toy_metadata<>>;
-    using b_field_t = toy_detector_t::bfield_type;
+    using toy_detector_t = detector<toy_metadata>;
     using scalar_t = typename toy_detector_t::scalar_type;
 
-    const toy_detector_t::vector3 B{
-        0.f * unit<scalar>::T, 0.f * unit<scalar>::T, 2.f * unit<scalar>::T};
-
-    const auto [toy_det, toy_names] = create_toy_geometry(
-        host_mr,
-        b_field_t(b_field_t::backend_t::configuration_t{B[0], B[1], B[2]}),
-        n_brl_layers, n_edc_layers);
+    // Build the geometry
+    vecmem::host_memory_resource host_mr;
+    auto [toy_det, toy_names] = create_toy_geometry(host_mr, toy_cfg);
 
     // General data consistency of the detector
     consistency_check<toy_detector_t>::config cfg_cons{};

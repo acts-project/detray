@@ -36,10 +36,10 @@ void BM_INTERSECT_ALL(benchmark::State &state) {
     static const unsigned int phi_steps{100u};
 
     // Detector configuration
-    static constexpr std::size_t n_brl_layers{4u};
-    static constexpr std::size_t n_edc_layers{7u};
     vecmem::host_memory_resource host_mr;
-    auto [d, names] = create_toy_geometry(host_mr, n_brl_layers, n_edc_layers);
+    toy_det_config toy_cfg{};
+    toy_cfg.n_edc_layers(7u);
+    auto [d, names] = create_toy_geometry(host_mr, toy_cfg);
 
     using detector_t = decltype(d);
     detector_t::geometry_context geo_context;

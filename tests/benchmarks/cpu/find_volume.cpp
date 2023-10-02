@@ -29,10 +29,10 @@ void BM_FIND_VOLUMES(benchmark::State &state) {
     return;
 
     // Detector configuration
-    static constexpr unsigned int n_brl_layers{4u};
-    static constexpr unsigned int n_edc_layers{7u};
     vecmem::host_memory_resource host_mr;
-    auto [d, names] = create_toy_geometry(host_mr, n_brl_layers, n_edc_layers);
+    toy_det_config toy_cfg{};
+    toy_cfg.n_edc_layers(7u);
+    auto [d, names] = create_toy_geometry(host_mr, toy_cfg);
 
     static const unsigned int itest = 10000u;
 

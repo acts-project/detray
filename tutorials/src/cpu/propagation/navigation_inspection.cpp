@@ -6,6 +6,7 @@
  */
 
 // Project include(s)
+#include "detray/definitions/bfield_backends.hpp"
 #include "detray/definitions/units.hpp"
 #include "detray/detectors/create_toy_geometry.hpp"
 #include "detray/intersection/detail/trajectories.hpp"  // ray
@@ -31,7 +32,9 @@
 /// of the encountered surfaces (using the navigation inspectors)
 int main() {
     // Toy detector
-    using toy_detector_t = detray::detector<detray::toy_metadata<>>;
+    using toy_detector_t =
+        detray::detector<detray::toy_metadata,
+                         covfie::field<detray::bfield::const_bknd_t>>;
 
     /// Type that holds the intersection information
     using intersection_t =

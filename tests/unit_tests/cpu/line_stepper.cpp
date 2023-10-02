@@ -8,6 +8,7 @@
 // Project include(s).
 #include "detray/propagator/line_stepper.hpp"
 
+#include "detray/definitions/bfield_backends.hpp"
 #include "detray/definitions/units.hpp"
 #include "detray/detectors/create_telescope_detector.hpp"
 #include "detray/masks/masks.hpp"
@@ -18,10 +19,6 @@
 #include "detray/propagator/navigator.hpp"
 #include "detray/propagator/propagator.hpp"
 #include "detray/test/types.hpp"
-
-// Covfie include(s).
-#include <covfie/core/field.hpp>
-#include <covfie/core/field_view.hpp>
 
 // Vecmem include(s).
 #include <vecmem/memory/host_memory_resource.hpp>

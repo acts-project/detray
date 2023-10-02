@@ -34,7 +34,7 @@ int main(int, char**) {
     using point3 = std::array<actsvg::scalar, 3>;
     using point3_container = std::vector<point3>;
 
-    using toy_detector_t = detray::detector<detray::toy_metadata<>>;
+    using toy_detector_t = detray::detector<detray::toy_metadata>;
     using transform_t = typename toy_detector_t::transform3;
 
     const typename transform_t::vector3 tr{0.f, 150.f, 0.f};

@@ -11,7 +11,8 @@
 namespace detray {
 
 __global__ void __launch_bounds__(256, 4) propagator_benchmark_kernel(
-    typename detector_host_type::detector_view_type det_data,
+    typename detector_host_type::detector_view_type<bfield::const_bknd_t>
+        det_data,
     vecmem::data::vector_view<free_track_parameters<transform3>> tracks_data,
     vecmem::data::jagged_vector_view<intersection_t> candidates_data,
     const propagate_option opt) {
@@ -56,7 +57,8 @@ __global__ void __launch_bounds__(256, 4) propagator_benchmark_kernel(
 }
 
 void propagator_benchmark(
-    typename detector_host_type::detector_view_type det_data,
+    typename detector_host_type::detector_view_type<bfield::const_bknd_t>
+        det_data,
     vecmem::data::vector_view<free_track_parameters<transform3>>& tracks_data,
     vecmem::data::jagged_vector_view<intersection_t>& candidates_data,
     const propagate_option opt) {

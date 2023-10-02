@@ -47,7 +47,10 @@ class json_writer final : public common_writer_t<detector_t> {
                               const std::ios_base::openmode mode) override {
         // Assert output stream
         assert(((mode == std::ios_base::out) or
-                (mode == (std::ios_base::out | std::ios_base::trunc))) &&
+                (mode == (std::ios_base::out | std::ios_base::binary)) or
+                (mode == (std::ios_base::out | std::ios_base::trunc)) or
+                (mode == (std::ios_base::out | std::ios_base::trunc |
+                          std::ios_base::binary))) &&
                "Illegal file mode for json writer");
 
         // By convention the name of the detector is the first element

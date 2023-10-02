@@ -12,7 +12,7 @@ namespace detray {
 
 // cuda kernel to copy sub-detector objects
 __global__ void detector_test_kernel(
-    typename detector_host_t::detector_view_type det_data,
+    typename detector_host_t::detector_view_type<bfield::const_bknd_t> det_data,
     vecmem::data::vector_view<volume_t> volumes_data,
     vecmem::data::vector_view<surface_t> surfaces_data,
     vecmem::data::vector_view<transform3_t> transforms_data,
@@ -84,13 +84,14 @@ __global__ void detector_test_kernel(
 }
 
 /// implementation of the test function for detector
-void detector_test(typename detector_host_t::detector_view_type det_data,
-                   vecmem::data::vector_view<volume_t> volumes_data,
-                   vecmem::data::vector_view<surface_t> surfaces_data,
-                   vecmem::data::vector_view<transform3_t> transforms_data,
-                   vecmem::data::vector_view<rectangle_t> rectangles_data,
-                   vecmem::data::vector_view<disc_t> discs_data,
-                   vecmem::data::vector_view<cylinder_t> cylinders_data) {
+void detector_test(
+    typename detector_host_t::detector_view_type<bfield::const_bknd_t> det_data,
+    vecmem::data::vector_view<volume_t> volumes_data,
+    vecmem::data::vector_view<surface_t> surfaces_data,
+    vecmem::data::vector_view<transform3_t> transforms_data,
+    vecmem::data::vector_view<rectangle_t> rectangles_data,
+    vecmem::data::vector_view<disc_t> discs_data,
+    vecmem::data::vector_view<cylinder_t> cylinders_data) {
 
     constexpr int block_dim = 1u;
     constexpr int thread_dim = 1u;

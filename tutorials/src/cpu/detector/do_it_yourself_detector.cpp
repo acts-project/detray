@@ -7,6 +7,7 @@
 
 // Project include(s)
 #include "detray/core/detector.hpp"
+#include "detray/definitions/bfield_backends.hpp"
 #include "detray/definitions/geometry.hpp"
 #include "detray/definitions/units.hpp"
 #include "detray/detectors/create_toy_geometry.hpp"
@@ -31,7 +32,9 @@
 int main() {
 
     // The new detector type
-    using detector_t = detray::detector<detray::tutorial::my_metadata>;
+    using detector_t =
+        detray::detector<detray::tutorial::my_metadata,
+                         covfie::field<detray::bfield::const_bknd_t>>;
 
     // First, create an empty detector in in host memory to be filled
     vecmem::host_memory_resource host_mr;
