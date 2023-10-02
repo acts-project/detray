@@ -85,6 +85,7 @@ struct mask_payload {
 
 /// @brief  A payload for surfaces
 struct surface_payload {
+    std::optional<std::size_t> index_in_coll;
     transform_payload transform{};
     mask_payload mask{};
     std::optional<material_link_payload> material;
@@ -171,12 +172,14 @@ struct axis_payload {
 };
 
 /// @brief A payload for a grid bin
+template <typename content_t = std::size_t>
 struct grid_bin_payload {
     std::vector<unsigned int> loc_index{};
-    std::vector<std::size_t> content{};
+    std::vector<content_t> content{};
 };
 
 /// @brief A payload for a grid definition
+template <typename bin_content_t = std::size_t>
 struct grid_payload {
     using grid_type = io::detail::acc_type;
 
@@ -184,13 +187,14 @@ struct grid_payload {
     acc_links_payload acc_link{};
 
     std::vector<axis_payload> axes{};
-    std::vector<grid_bin_payload> bins{};
+    std::vector<grid_bin_payload<bin_content_t>> bins{};
     std::optional<transform_payload> transform;
 };
 
 /// @brief A payload for the grid collections of a detector
+template <typename bin_content_t = std::size_t>
 struct detector_grids_payload {
-    std::vector<grid_payload> grids = {};
+    std::vector<grid_payload<bin_content_t>> grids = {};
 };
 
 /// @}
@@ -198,7 +202,7 @@ struct detector_grids_payload {
 /// @brief A payload for a detector geometry
 struct detector_payload {
     std::vector<volume_payload> volumes = {};
-    grid_payload volume_grid;
+    grid_payload<std::size_t> volume_grid;
 };
 
 }  // namespace detray

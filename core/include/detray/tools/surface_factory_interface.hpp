@@ -33,26 +33,32 @@ class surface_data {
     DETRAY_HOST
     surface_data(
         const typename detector_t::transform3 &trf, navigation_link volume_link,
-        const std::vector<typename detector_t::scalar_type> &mask_boundaries)
-        : m_transform{trf},
-          m_volume_link{volume_link},
-          m_boundaries{mask_boundaries} {}
+        const std::vector<typename detector_t::scalar_type> &mask_boundaries,
+        const dindex idx = dindex_invalid)
+        : m_volume_link{volume_link},
+          m_index{idx},
+          m_boundaries{mask_boundaries},
+          m_transform{trf} {}
 
     DETRAY_HOST
     auto get_data()
-        -> std::tuple<typename detector_t::transform3 &, navigation_link &,
-                      std::vector<typename detector_t::scalar_type> &> {
-        return std::tie(m_transform, m_volume_link, m_boundaries);
+        -> std::tuple<navigation_link &,
+                      std::vector<typename detector_t::scalar_type> &,
+                      typename detector_t::transform3 &, dindex &> {
+        return std::tie(m_volume_link, m_boundaries, m_transform, m_index);
     }
 
     private:
-    /// The surface placement
-    typename detector_t::transform3 m_transform;
     /// The index of the volume that this surface links to
     navigation_link m_volume_link;
-    // simple tuple of all mask types in the detector. Only one entry is filled
+    /// The position of the surface in the detector containers, used to match
+    /// the surface to e.g. its material
+    dindex m_index;
+    // Simple tuple of all mask types in the detector. Only one entry is filled
     // with the mask that corresponds to this specific surface.
     std::vector<typename detector_t::scalar_type> m_boundaries;
+    /// The surface placement
+    typename detector_t::transform3 m_transform;
 };
 
 /// @brief How to generate surfaces with their corresponding masks and

@@ -26,14 +26,21 @@
 namespace detray {
 
 /// @brief Abstract base class for accelerator grid writers
-template <class detector_t>
+template <class detector_t,
+          typename value_t = typename detector_t::surface_type>
 class grid_writer : public writer_interface<detector_t> {
 
     using base_type = writer_interface<detector_t>;
 
+    // Bin content type to be written into the grid bin payloads
+    // For detector surface descriptors, write only the surface index
+    using content_t = std::conditional_t<
+        std::is_same_v<value_t, typename detector_t::surface_type>, std::size_t,
+        value_t>;
+
     protected:
-    /// Tag the writer as "grids"
-    inline static const std::string tag = "grids";
+    /// Tag the writer as "surface_grids"
+    inline static const std::string tag = "surface_grids";
 
     public:
     /// Same constructors for this class as for base_type
@@ -43,6 +50,7 @@ class grid_writer : public writer_interface<detector_t> {
     /// Serialize the header information into its payload
     static grid_header_payload write_header(const detector_t& det,
                                             const std::string_view det_name) {
+
         grid_header_payload header_data;
 
         header_data.common = base_type::serialize(det_name, tag);
@@ -56,10 +64,14 @@ class grid_writer : public writer_interface<detector_t> {
 
     /// Serialize the grid collections of a detector @param det into their io
     /// payload
-    static detector_grids_payload serialize(
+    template <
+        typename V = value_t,
+        std::enable_if_t<std::is_same_v<V, typename detector_t::surface_type>,
+                         bool> = true>
+    static detector_grids_payload<std::size_t> serialize(
         const detector_t& det, const typename detector_t::name_map&) {
 
-        detector_grids_payload grids_data;
+        detector_grids_payload<std::size_t> grids_data;
 
         for (const auto& vol_desc : det.volumes()) {
             // Links to all acceleration data structures in the volume
@@ -84,10 +96,12 @@ class grid_writer : public writer_interface<detector_t> {
     /// Serialize a grid @param gr of type @param type and index @param idx
     /// into its io payload
     template <class grid_t>
-    static grid_payload serialize(std::size_t volume_index,
-                                  io::detail::acc_type type,
-                                  const std::size_t idx, const grid_t& gr) {
-        grid_payload grid_data;
+    static grid_payload<content_t> serialize(std::size_t volume_index,
+                                             io::detail::acc_type type,
+                                             const std::size_t idx,
+                                             const grid_t& gr) {
+
+        grid_payload<content_t> grid_data;
 
         grid_data.volume_link = base_type::serialize(volume_index);
         grid_data.acc_link = base_type::serialize(type, idx);
@@ -147,9 +161,10 @@ class grid_writer : public writer_interface<detector_t> {
 
     /// Serialize a multi-bin @param mbin into its io payload
     template <std::size_t DIM, typename content_range_t>
-    static grid_bin_payload serialize(const n_axis::multi_bin<DIM> mbin,
-                                      const content_range_t& content) {
-        grid_bin_payload bin_data;
+    static grid_bin_payload<content_t> serialize(
+        const n_axis::multi_bin<DIM> mbin, const content_range_t& content) {
+
+        grid_bin_payload<content_t> bin_data;
 
         // Local bin indices are written in the order the grid axis are stored
         for (unsigned int i = 0u; i < DIM; ++i) {
@@ -174,7 +189,9 @@ class grid_writer : public writer_interface<detector_t> {
             [[maybe_unused]] const grid_group_t& coll,
             [[maybe_unused]] const index_t& index,
             [[maybe_unused]] std::size_t volume_index,
-            [[maybe_unused]] detector_grids_payload& grids_data) const {
+            [[maybe_unused]] detector_grids_payload<content_t>& grids_data)
+            const {
+
             using accel_t = typename grid_group_t::value_type;
 
             if constexpr (detail::is_grid_v<accel_t>) {

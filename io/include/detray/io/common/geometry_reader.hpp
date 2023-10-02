@@ -76,8 +76,6 @@ class geometry_reader : public reader_interface<detector_t> {
         typename detector_t::name_map& name_map,
         const detector_payload& det_data) {
 
-        // @todo Add volume grid
-
         // Deserialize the volumes one-by-one
         for (const auto& vol_data : det_data.volumes) {
             // Get a generic volume builder first and decorate it later
@@ -87,8 +85,8 @@ class geometry_reader : public reader_interface<detector_t> {
             // Set the volume name
             name_map[vbuilder->vol_index() + 1u] = vol_data.name;
 
-            // @todo add the volume placement, once it can be checked for the
-            // test detectors
+            // Volume placement
+            vbuilder->add_volume_placement(deserialize(vol_data.transform));
 
             // Prepare the surface factories (one per shape and surface type)
             std::map<std::pair<surface_id, mask_shape>, sf_factory_ptr_t>
@@ -172,10 +170,14 @@ class geometry_reader : public reader_interface<detector_t> {
                   sf_data.mask.boundaries.end(),
                   std::back_inserter(mask_boundaries));
 
+        const std::size_t sf_idx{sf_data.index_in_coll.has_value()
+                                     ? *(sf_data.index_in_coll)
+                                     : detail::invalid_value<std::size_t>()};
+
         return {deserialize(sf_data.transform),
                 static_cast<nav_link_t>(
                     base_type::deserialize(sf_data.mask.volume_link)),
-                std::move(mask_boundaries)};
+                std::move(mask_boundaries), static_cast<dindex>(sf_idx)};
     }
 
     private:
@@ -214,7 +216,7 @@ class geometry_reader : public reader_interface<detector_t> {
                                             surface_id::e_passive>;
                         return std::make_shared<ps_factory_t>();
                     case surface_id::e_unknown:
-                        throw std::runtime_error(
+                        throw std::invalid_argument(
                             "Unknown surface type in geometry file");
                 };
             }
@@ -227,10 +229,11 @@ class geometry_reader : public reader_interface<detector_t> {
         }
         // Test some edge cases
         if (shape_id == mask_shape::unknown) {
-            throw std::runtime_error("Unknown mask shape in geometry file!");
+            throw std::invalid_argument(
+                "Unknown mask shape id in geometry file!");
         } else {
-            throw std::runtime_error(
-                "Given mask type could not be matched: " +
+            throw std::invalid_argument(
+                "Given shape id could not be matched to a mask type: " +
                 std::to_string(static_cast<std::int64_t>(shape_id)));
 
             // Cannot be reached

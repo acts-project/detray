@@ -107,14 +107,14 @@ TEST(io, json_axis_payload) {
 /// This tests the json io for a grid bin
 TEST(io, json_bin_payload) {
 
-    detray::grid_bin_payload b;
+    detray::grid_bin_payload<> b;
     b.loc_index = std::vector<unsigned int>{1u, 0u, 2u};
     b.content = std::vector<std::size_t>{0u, 1u, 2u, 3u};
 
     nlohmann::ordered_json jbin;
     jbin["bin"] = b;
 
-    detray::grid_bin_payload pb = jbin["bin"];
+    detray::grid_bin_payload<> pb = jbin["bin"];
 
     EXPECT_EQ(b.loc_index.size(), pb.loc_index.size());
     EXPECT_EQ(b.content.size(), pb.content.size());
@@ -123,7 +123,7 @@ TEST(io, json_bin_payload) {
 /// This tests the json io for a grid
 TEST(io, json_grid_payload) {
 
-    std::vector<detray::grid_bin_payload> bins = {
+    std::vector<detray::grid_bin_payload<>> bins = {
         {{0u, 1u}, {0u, 2u}}, {{1u, 1u}, {1u, 2u}}, {{2u, 1u}, {2u, 2u}}};
 
     detray::axis_payload a0{
@@ -136,8 +136,8 @@ TEST(io, json_grid_payload) {
         detray::n_axis::binning::e_regular, detray::n_axis::bounds::e_closed,
         detray::n_axis::label::e_r, 2u, std::vector<detray::real_io>{0.f, 2.f}};
 
-    detray::grid_payload g;
-    g.acc_link = {detray::grid_payload::grid_type::polar2_grid, 12u};
+    detray::grid_payload<> g;
+    g.acc_link = {detray::grid_payload<>::grid_type::polar2_grid, 12u};
     g.volume_link = {2u};
     g.axes = {a0, a1};
     g.bins = bins;
@@ -145,7 +145,7 @@ TEST(io, json_grid_payload) {
     nlohmann::ordered_json j;
     j["grid"] = g;
 
-    detray::grid_payload pg = j["grid"];
+    detray::grid_payload<> pg = j["grid"];
 
     EXPECT_EQ(g.acc_link.type, pg.acc_link.type);
     EXPECT_EQ(g.acc_link.index, pg.acc_link.index);

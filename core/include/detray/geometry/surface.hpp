@@ -357,12 +357,7 @@ class surface {
     /// @returns a string stream that prints the surface details
     DETRAY_HOST
     friend std::ostream &operator<<(std::ostream &os, const surface &sf) {
-        os << sf.barcode();
-        os << " | trf.: " << sf.m_desc.transform();
-        os << " | mask: " << static_cast<dindex>(sf.m_desc.mask().id()) << ", "
-           << sf.m_desc.mask().index();
-        os << " | mat.: " << static_cast<dindex>(sf.m_desc.material().id())
-           << ", " << sf.m_desc.material().index();
+        os << sf.m_desc;
         return os;
     }
 

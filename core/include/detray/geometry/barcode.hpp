@@ -142,7 +142,7 @@ class barcode {
     DETRAY_HOST
     friend std::ostream& operator<<(std::ostream& os, const barcode c) {
         if (c.is_invalid()) {
-            return (os << "undefined");
+            os << "INVALID: ";
         }
 
         static const char* const names[] = {

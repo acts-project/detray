@@ -47,7 +47,7 @@ struct toy_metadata {
     template <typename grid_shape_t, typename bin_entry_t, typename container_t>
     using surface_grid_t =
         grid<coordinate_axes<grid_shape_t, false, container_t>, bin_entry_t,
-             simple_serializer, regular_attacher<9>>;
+             simple_serializer, regular_attacher<1>>;
 
     // cylindrical grid for the barrel layers
     template <typename bin_entry_t, typename container_t>

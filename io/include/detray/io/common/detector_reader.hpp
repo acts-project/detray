@@ -78,7 +78,7 @@ namespace detail {
 
 /// From the list of file that are given as part of the config @param cfg,
 /// infer the readers that are needed by peeking into the file header
-template <class detector_t>
+template <class detector_t, std::size_t CAP, std::size_t DIM>
 auto assemble_reader(const io::detector_reader_config& cfg) {
 
     detail::detector_component_readers<detector_t> readers;
@@ -98,6 +98,12 @@ auto assemble_reader(const io::detector_reader_config& cfg) {
                 readers.template add<json_geometry_reader>(file_name);
             } else if (header.tag == "homogeneous_material") {
                 readers.template add<json_homogeneous_material_reader>(
+                    file_name);
+            } else if (header.tag == "surface_grids") {
+                using surface_t = typename detector_t::surface_type;
+                readers.template add<json_grid_reader, surface_t,
+                                     std::integral_constant<std::size_t, CAP>,
+                                     std::integral_constant<std::size_t, DIM>>(
                     file_name);
             } else {
                 throw std::invalid_argument("Unsupported file tag '" +
@@ -134,7 +140,7 @@ namespace io {
 /// @param cfg the detector reader configuration
 ///
 /// @returns a complete detector object + a map that contains the volume names
-template <class detector_t,
+template <class detector_t, std::size_t CAP = 9u, std::size_t DIM = 2u,
           template <typename> class volume_builder_t = volume_builder>
 auto read_detector(vecmem::memory_resource& resc,
                    const detector_reader_config& cfg) {
@@ -149,7 +155,8 @@ auto read_detector(vecmem::memory_resource& resc,
         det_builder;
 
     // Find all required readers
-    auto [reader, det_name] = detray::detail::assemble_reader<detector_t>(cfg);
+    auto [reader, det_name] =
+        detray::detail::assemble_reader<detector_t, CAP, DIM>(cfg);
 
     // Add a constant b-field (no bfield reader is added in this case)
     if constexpr (std::is_same_v<bfield_bknd_t, bfield::const_bknd_t>) {

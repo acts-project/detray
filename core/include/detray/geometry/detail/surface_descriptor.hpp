@@ -192,6 +192,17 @@ class surface_descriptor {
         return m_barcode.id() == surface_id::e_passive;
     }
 
+    /// @returns a string stream that prints the surface details
+    DETRAY_HOST
+    friend std::ostream &operator<<(std::ostream &os,
+                                    const surface_descriptor &sf) {
+        os << sf.m_barcode;
+        os << " | trf.: " << sf._trf;
+        os << " | mask: " << sf._mask;
+        os << " | mat.: " << sf._material;
+        return os;
+    }
+
     private:
     geometry::barcode m_barcode{};
     mask_link _mask{};
