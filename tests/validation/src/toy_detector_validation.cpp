@@ -61,10 +61,7 @@ int main(int argc, char **argv) {
     cfg_hel_scan.name("toy_detector_helix_scan");
     cfg_hel_scan.overstepping_tolerance(-100.f * unit<scalar_t>::um);
     cfg_hel_scan.track_generator().p_mag(10.f * unit<scalar_t>::GeV);
-    // Fails in single precision for more helices (unless is configured with
-    // only three edc layers)
-    // cfg_hel_scan.track_generator().theta_steps(100u).phi_steps(100u);
-    cfg_hel_scan.track_generator().theta_steps(30u).phi_steps(30u);
+    cfg_hel_scan.track_generator().theta_steps(100u).phi_steps(100u);
     detray::detail::register_checks<detray::helix_scan>(toy_det, toy_names,
                                                         cfg_hel_scan);
 
@@ -84,7 +81,7 @@ int main(int argc, char **argv) {
     // TODO: Fails due to mask tolerances for more helices, regardless of edc
     // configuration/precision
     // cfg_hel_nav.track_generator().theta_steps(100u).phi_steps(100u);
-    cfg_hel_nav.track_generator().theta_steps(30u).phi_steps(30u);
+    cfg_hel_nav.track_generator().theta_steps(50u).phi_steps(50u);
 
     detail::register_checks<helix_navigation>(toy_det, toy_names, cfg_hel_nav);
 

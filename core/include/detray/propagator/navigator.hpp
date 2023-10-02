@@ -126,7 +126,7 @@ class navigator {
 
             sf.template visit_mask<intersection_initialize>(
                 candidates, detail::ray(track), sf_descr, det.transform_store(),
-                tol);
+                sf.is_portal() ? 0.f : tol);
         }
     };
 
@@ -740,7 +740,8 @@ class navigator {
 
         // Check whether this candidate is reachable by the track
         return sf.template visit_mask<intersection_update>(
-            detail::ray(track), candidate, det->transform_store(), tol);
+            detail::ray(track), candidate, det->transform_store(),
+            sf.is_portal() ? 0.f : tol);
     }
 
     /// Helper to evict all unreachable/invalid candidates from the cache:

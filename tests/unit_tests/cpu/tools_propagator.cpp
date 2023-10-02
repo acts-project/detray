@@ -160,7 +160,6 @@ class PropagatorWithRkStepper
     /// Track generator configuration
     unsigned int theta_steps{50u};
     unsigned int phi_steps{50u};
-    point3 ori{0.f, 0.f, 0.f};
     scalar mom{10.f * unit<scalar>::GeV};
 
     /// Stepper configuration
@@ -200,7 +199,7 @@ TEST_P(PropagatorWithRkStepper, rk4_propagator_const_bfield) {
 
     // Iterate through uniformly distributed momentum directions
     for (auto track :
-         uniform_track_generator<track_t>(theta_steps, phi_steps, ori, mom)) {
+         uniform_track_generator<track_t>(phi_steps, theta_steps, mom)) {
         // Generate second track state used for propagation with pathlimit
         track_t lim_track(track);
 
@@ -241,7 +240,7 @@ TEST_P(PropagatorWithRkStepper, rk4_propagator_const_bfield) {
         // Propagate the entire detector
         ASSERT_TRUE(p.propagate(state, actor_states))
             << print_insp_state.to_string() << std::endl;
-        // << state._navigation.inspector().to_string() << std::endl;
+        //  << state._navigation.inspector().to_string() << std::endl;
 
         // Propagate with path limit
         ASSERT_NEAR(pathlimit_aborter_state.path_limit(), path_limit, tol);
@@ -299,7 +298,7 @@ TEST_P(PropagatorWithRkStepper, rk4_propagator_inhom_bfield) {
 
     // Iterate through uniformly distributed momentum directions
     for (auto track :
-         uniform_track_generator<track_t>(theta_steps, phi_steps, ori, mom)) {
+         uniform_track_generator<track_t>(phi_steps, theta_steps, mom)) {
         // Genrate second track state used for propagation with pathlimit
         track_t lim_track(track);
 

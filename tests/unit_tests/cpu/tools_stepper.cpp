@@ -166,7 +166,6 @@ GTEST_TEST(detray_propagator, rk_stepper) {
     constexpr scalar stepsize_constr{0.5f * unit<scalar>::mm};
 
     // Track generator configuration
-    const point3 ori{0.f, 0.f, 0.f};
     const scalar p_mag{10.f * unit<scalar>::GeV};
     constexpr unsigned int theta_steps = 100u;
     constexpr unsigned int phi_steps = 100u;
@@ -174,7 +173,7 @@ GTEST_TEST(detray_propagator, rk_stepper) {
     // Iterate through uniformly distributed momentum directions
     for (auto track :
          uniform_track_generator<free_track_parameters<transform3>>(
-             theta_steps, phi_steps, ori, p_mag)) {
+             phi_steps, theta_steps, p_mag)) {
         // Generate track state used for propagation with constrained step size
         free_track_parameters c_track(track);
 
@@ -241,7 +240,7 @@ GTEST_TEST(detray_propagator, rk_stepper) {
         ASSERT_NEAR(crk_state.path_length(), 0.f, tol);
 
         const point3 backward_relative_error{1.f / (2.f * path_length) *
-                                             (rk_state().pos() - ori)};
+                                             (rk_state().pos())};
         // Make sure that relative error is smaller than the tolerance
         EXPECT_NEAR(getter::norm(backward_relative_error), 0.f, tol);
 
@@ -271,7 +270,6 @@ TEST(detray_propagator, rk_stepper_inhomogeneous_bfield) {
     constexpr scalar stepsize_constr{0.5f * unit<scalar>::mm};
 
     // Track generator configuration
-    const point3 ori{0.f, 0.f, 0.f};
     const scalar p_mag{10.f * unit<scalar>::GeV};
     constexpr unsigned int theta_steps = 100u;
     constexpr unsigned int phi_steps = 100u;
@@ -279,7 +277,7 @@ TEST(detray_propagator, rk_stepper_inhomogeneous_bfield) {
     // Iterate through uniformly distributed momentum directions
     for (auto track :
          uniform_track_generator<free_track_parameters<transform3>>(
-             theta_steps, phi_steps, ori, p_mag)) {
+             phi_steps, theta_steps, p_mag)) {
         // Generate track state used for propagation with constrained step size
         free_track_parameters c_track(track);
 
@@ -328,7 +326,7 @@ TEST(detray_propagator, rk_stepper_inhomogeneous_bfield) {
         ASSERT_NEAR(crk_state.path_length(), 0.f, tol);
 
         const point3 backward_relative_error{1.f / (2.f * path_length) *
-                                             (rk_state().pos() - ori)};
+                                             (rk_state().pos())};
         // Make sure that relative error is smaller than the tolerance
         EXPECT_NEAR(getter::norm(backward_relative_error), 0.f, tol);
 

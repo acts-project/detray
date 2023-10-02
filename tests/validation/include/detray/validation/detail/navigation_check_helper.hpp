@@ -84,7 +84,7 @@ bool compare_traces(const inters_trace_t &intersection_trace,
     // Do a final check on the trace sizes
     const bool is_size{n_inters_nav == intersection_trace.size()};
     EXPECT_TRUE(is_size) << "ERROR: Intersection traces found different number "
-                            "of surfaces! Please check the last elements"
+                            "of surfaces! Please check the last elements\n"
                          << debug_stream.str();
     if (not is_size) {
         return false;

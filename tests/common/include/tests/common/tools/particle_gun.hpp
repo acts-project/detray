@@ -63,7 +63,8 @@ struct particle_gun {
             // Retrieve candidate(s) from the surface
             const auto sf = surface{detector, sf_desc};
             sf.template visit_mask<intersection_kernel_t>(
-                intersections, traj, sf_desc, tf_store, mask_tolerance);
+                intersections, traj, sf_desc, tf_store,
+                sf.is_portal() ? 0.f : mask_tolerance);
 
             // Candidate is invalid if it lies in the opposite direction
             for (auto &sfi : intersections) {
