@@ -12,16 +12,18 @@
 
 // System include(s)
 #include <string>
+#include <vector>
 
 namespace detray::svgtools::meta::proto {
 
-/// @brief A proto landmark class as a simple translation layer from a
-/// description of a point.
+/// @brief A proto intersection record class as a simple translation layer from
+/// a intersection record description.
 template <typename point3_t>
-class landmark {
+class information_section {
     public:
+    std::vector<std::string> _info;
+    std::string _title;
+    std::array<int, 3> _color;
     point3_t _position;
-    std::string _name;
-    actsvg::style::marker _marker{"x", 1.f};
 };
 }  // namespace detray::svgtools::meta::proto

@@ -152,6 +152,16 @@ auto inline surface(const transform_t& transform, const mask<annulus2D<>>& m) {
     return p_surface;
 }
 
+/// @brief Returns the proto surface for a shape.
+/// @note For lines, the thickness is fixed and not determined by the cross
+/// section.
+template <typename point3_container_t, typename mask_t>
+auto inline surface(const mask_t& m) {
+    using transform_t = typename mask_t::local_frame_type::transform3_type;
+    return detray::svgtools::conversion::surface<point3_container_t>(
+        transform_t{}, m);
+}
+
 namespace {
 /// @brief A functor to set the proto surfaces type and bounds to be equivalent
 /// to the mask.

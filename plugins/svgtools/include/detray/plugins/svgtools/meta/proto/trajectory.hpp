@@ -12,16 +12,17 @@
 
 // System include(s)
 #include <string>
+#include <vector>
 
 namespace detray::svgtools::meta::proto {
 
 /// @brief A proto landmark class as a simple translation layer from a
 /// description of a point.
 template <typename point3_t>
-class landmark {
+class trajectory {
     public:
-    point3_t _position;
+    std::vector<point3_t> _points;
     std::string _name;
-    actsvg::style::marker _marker{"x", 1.f};
+    actsvg::style::stroke _stroke = actsvg::style::stroke();
 };
 }  // namespace detray::svgtools::meta::proto
