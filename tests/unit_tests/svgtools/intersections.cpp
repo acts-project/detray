@@ -48,15 +48,14 @@ int main(int, char**) {
     const auto svg_det = il.draw_detector("detector", context, view);
 
     // Creating the rays.
-    unsigned int theta_steps{10u};
-    unsigned int phi_steps{10u};
-    const typename detector_t::point3 ori{0.f, 0.f, 100.f};
+    using generator_t =
+        detray::uniform_track_generator<detray::detail::ray<transform3_t>>;
+    auto trk_gen_cfg = generator_t::configuration{};
+    trk_gen_cfg.origin({0.f, 0.f, 100.f}).phi_steps(10u).theta_steps(10u);
 
     std::size_t index = 0;
     // Iterate through uniformly distributed momentum directions with ray
-    for (const auto test_ray :
-         detray::uniform_track_generator<detray::detail::ray<transform3_t>>(
-             theta_steps, phi_steps, ori)) {
+    for (const auto test_ray : generator_t{trk_gen_cfg}) {
 
         // Record all intersections and objects along the ray
         const auto intersection_record =

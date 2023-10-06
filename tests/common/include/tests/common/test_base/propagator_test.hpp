@@ -139,14 +139,11 @@ inline vecmem::vector<track_t> generate_tracks(
     // Track collection
     vecmem::vector<track_t> tracks(mr);
 
-    // Set origin position of tracks
-    const point3 ori{0.f, 0.f, 0.f};
+    // Set momentum of tracks
     const scalar p_mag{10.f * unit<scalar>::GeV};
 
     // Iterate through uniformly distributed momentum directions
-    for (auto track : uniform_track_generator<track_t>(
-             ts, ps, ori, p_mag, {0.01f, constant<scalar>::pi},
-             {-constant<scalar>::pi, constant<scalar>::pi})) {
+    for (auto track : uniform_track_generator<track_t>(ps, ts, p_mag)) {
         track.set_overstep_tolerance(overstep_tolerance);
 
         // Put it into vector of trajectories

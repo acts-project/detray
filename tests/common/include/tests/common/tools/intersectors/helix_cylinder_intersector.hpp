@@ -66,7 +66,7 @@ struct helix_cylinder_intersector
         // Guard against inifinite loops
         constexpr std::size_t max_n_tries{1000u};
         // Tolerance for convergence
-        constexpr scalar_type tol{1e-4f};
+        constexpr scalar_type tol{1e-3f};
 
         // Get the surface placement
         const auto &sm = trf.matrix();
@@ -128,10 +128,12 @@ struct helix_cylinder_intersector
                 const vector3 crp = vector::cross(h.pos(s) - sc, sz);
                 const scalar_type denom{
                     2.f * vector::dot(crp, vector::cross(h.dir(s), sz))};
+
                 // No intersection can be found if dividing by zero
                 if (denom == 0.f) {
                     return ret;
                 }
+
                 // x_n+1 = x_n - f(s) / f'(s)
                 s_prev = s;
                 s -= (vector::dot(crp, crp) - r * r) / denom;
@@ -148,16 +150,6 @@ struct helix_cylinder_intersector
             const auto p3 = h.pos(s);
             is.local = mask.to_local_frame(trf, p3);
             is.status = mask.is_inside(is.local, mask_tolerance);
-
-            // Perform the r-check for Newton solution even if it is not
-            // required by the mask's shape
-            const bool r_check =
-                std::abs(r - is.local[2]) <
-                mask_tolerance +
-                    5.f * std::numeric_limits<scalar_type>::epsilon();
-            if (not r_check) {
-                is.status = intersection::status::e_outside;
-            }
 
             // Compute some additional information if the intersection is valid
             if (is.status == intersection::status::e_inside) {

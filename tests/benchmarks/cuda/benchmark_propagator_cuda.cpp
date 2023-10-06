@@ -31,13 +31,12 @@ toy_det_config toy_cfg{4u, 7u};
 
 void fill_tracks(vecmem::vector<free_track_parameters<transform3>> &tracks,
                  const std::size_t theta_steps, const std::size_t phi_steps) {
-    // Set origin position of tracks
-    const point3 ori{0.f, 0.f, 0.f};
+    // Set momentum of tracks
     const scalar mom_mag{10.f * unit<scalar>::GeV};
 
     // Iterate through uniformly distributed momentum directions
     for (auto traj : uniform_track_generator<free_track_parameters<transform3>>(
-             theta_steps, phi_steps, ori, mom_mag)) {
+             phi_steps, theta_steps, mom_mag)) {
         tracks.push_back(traj);
     }
 }

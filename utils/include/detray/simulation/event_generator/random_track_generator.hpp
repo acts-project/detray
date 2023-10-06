@@ -82,6 +82,8 @@ class random_track_generator
 
     /// Configure how tracks are generated
     struct configuration {
+        /// Ensure sensible values at the theta bounds, even in single precision
+        static constexpr scalar epsilon{1e-2f};
 
         /// Gaussian vertex smearing
         bool m_do_vtx_smearing = true;
@@ -89,10 +91,12 @@ class random_track_generator
         /// How many tracks will be generated
         std::size_t m_n_tracks{10u};
 
-        /// Range for theta and phi
+        /// Range for phi and theta
         std::array<scalar, 2> m_phi_range{-constant<scalar>::pi,
                                           constant<scalar>::pi};
-        std::array<scalar, 2> m_theta_range{0.01f, constant<scalar>::pi};
+        std::array<scalar, 2> m_theta_range{epsilon,
+                                            constant<scalar>::pi - epsilon};
+
         /// Momentum range
         std::array<scalar, 2> m_mom_range{1.f * unit<scalar>::GeV,
                                           1.f * unit<scalar>::GeV};
@@ -104,35 +108,49 @@ class random_track_generator
 
         /// Setters
         /// @{
-        configuration& do_vertex_smearing(bool b) {
+        DETRAY_HOST_DEVICE configuration& do_vertex_smearing(bool b) {
             m_do_vtx_smearing = b;
             return *this;
         }
-        configuration& n_tracks(std::size_t n) {
+        DETRAY_HOST_DEVICE configuration& n_tracks(std::size_t n) {
+            assert(n > 0);
             m_n_tracks = n;
             return *this;
         }
-        configuration& theta_range(scalar low, scalar high) {
-            m_theta_range = {low, high};
-            return *this;
-        }
-        configuration& phi_range(scalar low, scalar high) {
+        DETRAY_HOST_DEVICE configuration& phi_range(scalar low, scalar high) {
+            assert(low <= high);
             m_phi_range = {low, high};
             return *this;
         }
-        configuration& origin(point3 ori) {
+        DETRAY_HOST_DEVICE configuration& theta_range(scalar low, scalar high) {
+            auto min_theta{
+                std::clamp(low, epsilon, constant<scalar>::pi - epsilon)};
+            auto max_theta{
+                std::clamp(high, epsilon, constant<scalar>::pi - epsilon)};
+
+            assert(min_theta <= max_theta);
+
+            m_theta_range = {min_theta, max_theta};
+            return *this;
+        }
+        DETRAY_HOST_DEVICE configuration& mom_range(scalar low, scalar high) {
+            assert(low <= high);
+            m_mom_range = {low, high};
+            return *this;
+        }
+        DETRAY_HOST_DEVICE configuration& origin(point3 ori) {
             m_origin = ori;
             return *this;
         }
-        configuration& origin_stddev(point3 stddev) {
+        DETRAY_HOST_DEVICE configuration& origin_stddev(point3 stddev) {
             m_origin_stddev = stddev;
             return *this;
         }
-        configuration& time(scalar t) {
+        DETRAY_HOST_DEVICE configuration& time(scalar t) {
             m_time = t;
             return *this;
         }
-        configuration& charge(scalar q) {
+        DETRAY_HOST_DEVICE configuration& charge(scalar q) {
             m_charge = q;
             return *this;
         }
@@ -140,23 +158,32 @@ class random_track_generator
 
         /// Getters
         /// @{
-        constexpr bool do_vertex_smearing() const { return m_do_vtx_smearing; }
-        constexpr std::size_t n_tracks() const { return m_n_tracks; }
-        constexpr const std::array<scalar, 2>& theta_range() const {
-            return m_theta_range;
+        DETRAY_HOST_DEVICE constexpr bool do_vertex_smearing() const {
+            return m_do_vtx_smearing;
         }
-        constexpr const std::array<scalar, 2>& phi_range() const {
+        DETRAY_HOST_DEVICE constexpr std::size_t n_tracks() const {
+            return m_n_tracks;
+        }
+        DETRAY_HOST_DEVICE constexpr const std::array<scalar, 2>& phi_range()
+            const {
             return m_phi_range;
         }
-        constexpr const std::array<scalar, 2>& mom_range() const {
+        DETRAY_HOST_DEVICE constexpr const std::array<scalar, 2>& theta_range()
+            const {
+            return m_theta_range;
+        }
+        DETRAY_HOST_DEVICE constexpr const std::array<scalar, 2>& mom_range()
+            const {
             return m_mom_range;
         }
-        constexpr const point3& origin() const { return m_origin; }
-        constexpr const point3& origin_stddev() const {
+        DETRAY_HOST_DEVICE constexpr const point3& origin() const {
+            return m_origin;
+        }
+        DETRAY_HOST_DEVICE constexpr const point3& origin_stddev() const {
             return m_origin_stddev;
         }
-        constexpr scalar time() const { return m_time; }
-        constexpr scalar charge() const { return m_charge; }
+        DETRAY_HOST_DEVICE constexpr scalar time() const { return m_time; }
+        DETRAY_HOST_DEVICE constexpr scalar charge() const { return m_charge; }
         /// @}
     };
 
@@ -253,38 +280,35 @@ class random_track_generator
     constexpr random_track_generator() = default;
 
     /// Construct from external configuration
+    DETRAY_HOST_DEVICE
     constexpr random_track_generator(configuration cfg) : m_gen{}, m_cfg(cfg) {}
 
-    /// Paramtetrized constructor for fine-grained configurations
+    /// Paramtetrized constructor for quick construction of simple tasks
+    ///
+    /// @note For more complex tasks, use the @c configuration type
     ///
     /// @param n_tracks the number of steps in the theta space
-    /// @param trk_origin the starting point of the track
-    /// @param origin_stddev the standard deviation of origin
     /// @param mom_range the range of the track momentum (in GeV)
-    /// @param theta_range the range for theta values
-    /// @param phi_range the range for phi values
-    /// @param time time measurement (micro seconds)
     /// @param charge charge of particle (e)
     DETRAY_HOST_DEVICE
     random_track_generator(
-        std::size_t n_tracks, point3 trk_origin = {0.f, 0.f, 0.f},
-        point3 origin_stddev = {0.f, 0.f, 0.f},
+        std::size_t n_tracks,
         std::array<scalar, 2> mom_range = {1.f * unit<scalar>::GeV,
                                            1.f * unit<scalar>::GeV},
-        std::array<scalar, 2> theta_range = {0.01f, constant<scalar>::pi},
-        std::array<scalar, 2> phi_range = {-constant<scalar>::pi,
-                                           constant<scalar>::pi},
-        scalar time = 0.f * unit<scalar>::us,
-        scalar charge = -1.f * unit<scalar>::e, bool do_vertex_smearing = true)
-        : m_gen{}, m_cfg{do_vertex_smearing, n_tracks,  phi_range,
-                         theta_range,        mom_range, trk_origin,
-                         origin_stddev,      time,      charge} {}
+        scalar charge = -1.f * unit<scalar>::e)
+        : m_gen{}, m_cfg{} {
+        m_cfg.n_tracks(n_tracks);
+        m_cfg.mom_range(mom_range);
+        m_cfg.charge(charge);
+    }
 
     /// Move constructor
+    DETRAY_HOST_DEVICE
     random_track_generator(random_track_generator&& other)
         : m_gen(std::move(other.m_gen)), m_cfg(std::move(other.m_cfg)) {}
 
     /// Access the configuration
+    DETRAY_HOST_DEVICE
     constexpr configuration& config() { return m_cfg; }
 
     /// @returns the generator in initial state.

@@ -56,13 +56,9 @@ int main() {
     // Index of the volume that the ray origin lies in
     detray::dindex start_index{0u};
 
-    // Number of rays in theta and phi
-    unsigned int theta_steps{100u};
-    unsigned int phi_steps{100u};
-    // Origin of the rays
-    const detray::tutorial::point3 origin{0.f, 0.f, 0.f};
-    auto ray_generator =
-        detray::uniform_track_generator<ray_t>(theta_steps, phi_steps, origin);
+    // Generate a number of rays
+    auto ray_generator = detray::uniform_track_generator<ray_t>{};
+    ray_generator.config().theta_steps(100u).phi_steps(100u);
 
     // Run the check
     std::cout << "\nScanning detector (" << ray_generator.size()

@@ -26,6 +26,8 @@
 // Use the detray:: namespace implicitly.
 using namespace detray;
 
+using ray_generator_t = uniform_track_generator<detail::ray<test::transform3>>;
+
 static const unsigned int theta_steps = 1000u;
 static const unsigned int phi_steps = 1000u;
 
@@ -41,16 +43,17 @@ void BM_INTERSECT_PLANES(benchmark::State &state) {
     auto planes = test::planes_along_direction(
         dists, vector::normalize(test::vector3{1.f, 1.f, 1.f}));
     constexpr mask<rectangle2D<>> rect{0u, 10.f, 20.f};
-    test::point3 ori = {0.f, 0.f, 0.f};
+
+    // Iterate through uniformly distributed momentum directions
+    auto ray_generator = ray_generator_t{};
+    ray_generator.config().theta_steps(theta_steps).phi_steps(phi_steps);
 
     for (auto _ : state) {
         benchmark::DoNotOptimize(sfhit);
         benchmark::DoNotOptimize(sfmiss);
 
         // Iterate through uniformly distributed momentum directions
-        for (const auto ray :
-             uniform_track_generator<detail::ray<test::transform3>>(
-                 theta_steps, phi_steps, ori, 1.f)) {
+        for (const auto ray : ray_generator) {
 
             for (const auto &plane : planes) {
                 auto pi = rect.intersector<intersection2D<
@@ -115,16 +118,16 @@ void BM_INTERSECT_CYLINDERS(benchmark::State &state) {
     plane_surface plane(test::transform3(), mask_link, material_link, 0u, false,
                         surface_id::e_sensitive);
 
-    const test::point3 ori = {0.f, 0.f, 0.f};
+    // Iterate through uniformly distributed momentum directions
+    auto ray_generator = ray_generator_t{};
+    ray_generator.config().theta_steps(theta_steps).phi_steps(phi_steps);
 
     for (auto _ : state) {
         benchmark::DoNotOptimize(sfhit);
         benchmark::DoNotOptimize(sfmiss);
 
         // Iterate through uniformly distributed momentum directions
-        for (const auto ray :
-             uniform_track_generator<detail::ray<test::transform3>>(
-                 theta_steps, phi_steps, ori, 1.f)) {
+        for (const auto ray : ray_generator) {
 
             for (const auto &cylinder : cylinders) {
                 auto ci = cylinder.intersector<intersection_t>();
@@ -170,16 +173,16 @@ void BM_INTERSECT_PORTAL_CYLINDERS(benchmark::State &state) {
     plane_surface plane(test::transform3(), mask_link, material_link, 0u, false,
                         surface_id::e_sensitive);
 
-    const test::point3 ori = {0.f, 0.f, 0.f};
+    // Iterate through uniformly distributed momentum directions
+    auto ray_generator = ray_generator_t{};
+    ray_generator.config().theta_steps(theta_steps).phi_steps(phi_steps);
 
     for (auto _ : state) {
         benchmark::DoNotOptimize(sfhit);
         benchmark::DoNotOptimize(sfmiss);
 
         // Iterate through uniformly distributed momentum directions
-        for (const auto ray :
-             uniform_track_generator<detail::ray<test::transform3>>(
-                 theta_steps, phi_steps, ori, 1.f)) {
+        for (const auto ray : ray_generator) {
 
             for (const auto &cylinder : cylinders) {
                 auto cpi = cylinder.intersector<intersection_t>();
@@ -222,14 +225,14 @@ void BM_INTERSECT_CONCETRIC_CYLINDERS(benchmark::State &state) {
     plane_surface plane(test::transform3(), mask_link, material_link, 0u, false,
                         surface_id::e_sensitive);
 
-    const test::point3 ori = {0.f, 0.f, 0.f};
+    // Iterate through uniformly distributed momentum directions
+    auto ray_generator = ray_generator_t{};
+    ray_generator.config().theta_steps(theta_steps).phi_steps(phi_steps);
 
     for (auto _ : state) {
 
         // Iterate through uniformly distributed momentum directions
-        for (const auto ray :
-             uniform_track_generator<detail::ray<test::transform3>>(
-                 theta_steps, phi_steps, ori, 1.f)) {
+        for (const auto ray : ray_generator) {
 
             for (const auto &cylinder : cylinders) {
                 auto cci = cylinder.intersector<intersection_t>();
