@@ -119,9 +119,9 @@ TEST(io, json_telescope_detector_reader) {
     writer_cfg.replace_files(false);
     io::write_detector(det, names, writer_cfg);
 
-    // Not equal due to missing data deduplication in IO
-    /*EXPECT_TRUE(compare_files("telescope_detector_geometry.json",
-     * "telescope_detector_geometry_2.json"));*/
+    // Compare writing round-trip
+    EXPECT_TRUE(compare_files("telescope_detector_geometry.json",
+                              "telescope_detector_geometry_2.json"));
     EXPECT_TRUE(
         compare_files("telescope_detector_homogeneous_material.json",
                       "telescope_detector_homogeneous_material_2.json"));

@@ -111,7 +111,7 @@ class material_factory final : public factory_decorator<detector_t> {
     /// @returns the number of material instances that will be built by the
     /// factory
     DETRAY_HOST
-    auto size() const -> dindex {
+    auto n_materials() const -> dindex {
 
         const dindex n_surfaces{static_cast<dindex>(m_links.size())};
 
@@ -194,8 +194,12 @@ class material_factory final : public factory_decorator<detector_t> {
         using mat_types = typename detector_t::material_container::value_types;
         using link_t = typename detector_t::surface_type::material_link;
 
+        if (m_materials.empty()) {
+            return;
+        }
+
         // Check that the surfaces were set up correctly
-        const std::size_t n_materials{this->size()};
+        const std::size_t n_materials{this->n_materials()};
         assert(surfaces.size() >= n_materials);
 
         // If no concrete surface ordering was passed, use index sequence
