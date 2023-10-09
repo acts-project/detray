@@ -723,6 +723,7 @@ GTEST_TEST(detray_tools, detector_builder) {
     auto portal_generator =
         std::make_shared<cuboid_portal_generator<detector_t>>(env);
 
+    vbuilder2->add_surfaces(trpz_factory, geo_ctx);
     vbuilder2->add_surfaces(portal_generator);
 
     // initial checks
@@ -753,14 +754,14 @@ GTEST_TEST(detray_tools, detector_builder) {
 
     // Check the acceleration data structure link (indirectly)
     EXPECT_EQ(vol0.n_max_candidates(), 3u);
-    EXPECT_EQ(vol1.n_max_candidates(), 6u);
+    EXPECT_EQ(vol1.n_max_candidates(), 9u);
 
-    EXPECT_EQ(d.surface_lookup().size(), 9u);
+    EXPECT_EQ(d.surface_lookup().size(), 12u);
     EXPECT_EQ(d.mask_store().template size<mask_id::e_portal_cylinder2>(), 0u);
     EXPECT_EQ(d.mask_store().template size<mask_id::e_portal_ring2>(), 0u);
     EXPECT_EQ(d.mask_store().template size<mask_id::e_annulus2>(), 0u);
     EXPECT_EQ(d.mask_store().template size<mask_id::e_cylinder2>(), 0u);
     EXPECT_EQ(d.mask_store().template size<mask_id::e_rectangle2>(), 3u);
     EXPECT_EQ(d.mask_store().template size<mask_id::e_ring2>(), 0u);
-    EXPECT_EQ(d.mask_store().template size<mask_id::e_trapezoid2>(), 3u);
+    EXPECT_EQ(d.mask_store().template size<mask_id::e_trapezoid2>(), 6u);
 }
