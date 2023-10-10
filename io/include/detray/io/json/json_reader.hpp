@@ -78,10 +78,12 @@ class json_reader final : public common_reader_t<detector_t, Args...> {
         // Read json from file
         io::detail::file_handle file{file_name,
                                      std::ios_base::in | std::ios_base::binary};
+
+        // Reads the data from file and returns the corresponding io payloads
         nlohmann::json in_json;
         *file >> in_json;
 
-        // Reads the data from file and returns the corresponding io payloads
+        // Add the data from the payload to the detray detector builder
         base_reader::deserialize(det_builder, name_map, in_json["data"]);
     }
 };

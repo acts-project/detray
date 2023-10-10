@@ -54,12 +54,6 @@ class cuboid_portal_generator final
     DETRAY_HOST
     cuboid_portal_generator(const scalar_t env) : m_envelope{env} {}
 
-    /// @returns the id for the surface type (portal surfaces)
-    DETRAY_HOST
-    auto surface_type() const -> surface_id override {
-        return surface_id::e_portal;
-    }
-
     /// @returns the number of rectangle portals this factory will produce
     DETRAY_HOST
     auto size() const -> dindex override { return 6u; }

@@ -42,13 +42,10 @@ constexpr scalar tol{std::numeric_limits<scalar>::epsilon()};
 TEST(detray_tools, material_builder) {
 
     using transform3 = typename detector_t::transform3;
-    using mask_id = typename detector_t::masks::id;
     using material_id = typename detector_t::materials::id;
 
     // Build rectangle surfaces with material slabs
-    using rectangle_factory =
-        surface_factory<detector_t, rectangle2D<>, mask_id::e_rectangle2,
-                        surface_id::e_sensitive>;
+    using rectangle_factory = surface_factory<detector_t, rectangle2D<>>;
     auto mat_factory = std::make_unique<material_factory<detector_t>>(
         std::make_unique<rectangle_factory>());
 
@@ -64,16 +61,19 @@ TEST(detray_tools, material_builder) {
     EXPECT_TRUE(mat_factory->thickness().empty());
 
     // Add material for a few rectangle surfaces
-    mat_factory->push_back({transform3(point3{0.f, 0.f, -1.f}), 1u,
+    mat_factory->push_back({surface_id::e_sensitive,
+                            transform3(point3{0.f, 0.f, -1.f}), 1u,
                             std::vector<scalar>{10.f, 8.f}});
     mat_factory->add_material(material_id::e_slab,
                               {1.f * unit<scalar>::mm, silicon<scalar>()});
-    mat_factory->push_back({transform3(point3{0.f, 0.f, 1.f}), 1u,
+    mat_factory->push_back({surface_id::e_sensitive,
+                            transform3(point3{0.f, 0.f, 1.f}), 1u,
                             std::vector<scalar>{20.f, 16.f}});
     mat_factory->add_material(material_id::e_slab,
                               {10.f * unit<scalar>::mm, tungsten<scalar>()});
     // Pass the parameters for 'gold'
-    mat_factory->push_back({transform3(point3{0.f, 0.f, 1.f}), 1u,
+    mat_factory->push_back({surface_id::e_sensitive,
+                            transform3(point3{0.f, 0.f, 1.f}), 1u,
                             std::vector<scalar>{20.f, 16.f}});
     mat_factory->add_material(
         material_id::e_rod,
@@ -101,18 +101,11 @@ GTEST_TEST(detray_tools, decorator_material_builder) {
     using mask_id = typename detector_t::masks::id;
     using material_id = typename detector_t::materials::id;
 
-    using portal_cylinder_factory_t =
-        surface_factory<detector_t, cylinder2D<>, mask_id::e_portal_cylinder2,
-                        surface_id::e_portal>;
-    using rectangle_factory =
-        surface_factory<detector_t, rectangle2D<>, mask_id::e_rectangle2,
-                        surface_id::e_sensitive>;
-    using trapezoid_factory =
-        surface_factory<detector_t, trapezoid2D<>, mask_id::e_trapezoid2,
-                        surface_id::e_sensitive>;
-    using cylinder_factory =
-        surface_factory<detector_t, cylinder2D<>, mask_id::e_cylinder2,
-                        surface_id::e_passive>;
+    using pt_cylinder_t = cylinder2D<false, cylinder_portal_intersector>;
+    using pt_cylinder_factory_t = surface_factory<detector_t, pt_cylinder_t>;
+    using rectangle_factory = surface_factory<detector_t, rectangle2D<>>;
+    using trapezoid_factory = surface_factory<detector_t, trapezoid2D<>>;
+    using cylinder_factory = surface_factory<detector_t, cylinder2D<>>;
 
     using mat_factory_t = material_factory<detector_t>;
 
@@ -127,33 +120,40 @@ GTEST_TEST(detray_tools, decorator_material_builder) {
     EXPECT_TRUE(d.volumes().size() == 0);
 
     // Add some portals first
-    auto pt_cyl_factory = std::make_unique<portal_cylinder_factory_t>();
+    auto pt_cyl_factory = std::make_unique<pt_cylinder_factory_t>();
 
-    pt_cyl_factory->push_back({transform3(point3{0.f, 0.f, 0.f}), 1u,
+    pt_cyl_factory->push_back({surface_id::e_portal,
+                               transform3(point3{0.f, 0.f, 0.f}), 1u,
                                std::vector<scalar>{10.f, -1500.f, 1500.f}});
-    pt_cyl_factory->push_back({transform3(point3{0.f, 0.f, 0.f}), 2u,
+    pt_cyl_factory->push_back({surface_id::e_portal,
+                               transform3(point3{0.f, 0.f, 0.f}), 2u,
                                std::vector<scalar>{20.f, -1500.f, 1500.f}});
 
     // Then some passive and sensitive surfaces
     auto rect_factory = std::make_unique<rectangle_factory>();
 
     typename rectangle_factory::sf_data_collection rect_sf_data;
-    rect_sf_data.emplace_back(transform3(point3{0.f, 0.f, -10.f}), 0u,
+    rect_sf_data.emplace_back(surface_id::e_sensitive,
+                              transform3(point3{0.f, 0.f, -10.f}), 0u,
                               std::vector<scalar>{10.f, 8.f});
-    rect_sf_data.emplace_back(transform3(point3{0.f, 0.f, -20.f}), 0u,
+    rect_sf_data.emplace_back(surface_id::e_sensitive,
+                              transform3(point3{0.f, 0.f, -20.f}), 0u,
                               std::vector<scalar>{10.f, 8.f});
-    rect_sf_data.emplace_back(transform3(point3{0.f, 0.f, -30.f}), 0u,
+    rect_sf_data.emplace_back(surface_id::e_sensitive,
+                              transform3(point3{0.f, 0.f, -30.f}), 0u,
                               std::vector<scalar>{10.f, 8.f});
     rect_factory->push_back(std::move(rect_sf_data));
 
     auto trpz_factory = std::make_unique<trapezoid_factory>();
 
-    trpz_factory->push_back({transform3(point3{0.f, 0.f, 1000.f}), 0u,
+    trpz_factory->push_back({surface_id::e_sensitive,
+                             transform3(point3{0.f, 0.f, 1000.f}), 0u,
                              std::vector<scalar>{1.f, 3.f, 2.f, 0.25f}});
 
     auto cyl_factory = std::make_unique<cylinder_factory>();
 
-    cyl_factory->push_back({transform3(point3{0.f, 0.f, 0.f}), 0u,
+    cyl_factory->push_back({surface_id::e_passive,
+                            transform3(point3{0.f, 0.f, 0.f}), 0u,
                             std::vector<scalar>{5.f, -1300.f, 1300.f}});
 
     // Now add the material for each surface
@@ -184,10 +184,10 @@ GTEST_TEST(detray_tools, decorator_material_builder) {
         material_id::e_slab, {1.5f * unit<scalar>::mm, tungsten<scalar>()});
 
     // Add surfaces and material to detector
-    mat_builder.add_portals(mat_pt_cyl_factory, geo_ctx);
-    mat_builder.add_sensitives(mat_rect_factory, geo_ctx);
-    mat_builder.add_sensitives(mat_trpz_factory, geo_ctx);
-    mat_builder.add_passives(mat_cyl_factory, geo_ctx);
+    mat_builder.add_surfaces(mat_pt_cyl_factory, geo_ctx);
+    mat_builder.add_surfaces(mat_rect_factory, geo_ctx);
+    mat_builder.add_surfaces(mat_trpz_factory, geo_ctx);
+    mat_builder.add_surfaces(mat_cyl_factory, geo_ctx);
 
     // Add the volume to the detector
     mat_builder.build(d);
@@ -266,7 +266,7 @@ GTEST_TEST(detray_tools, detector_builder_with_material) {
     mat_portal_factory->add_material(
         material_id::e_slab, {6.f * unit<scalar>::mm, silicon<scalar>()});
 
-    mv_builder->add_portals(mat_portal_factory);
+    mv_builder->add_surfaces(mat_portal_factory);
 
     //
     // build the detector

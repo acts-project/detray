@@ -307,7 +307,9 @@ TEST(io, json_volume_payload) {
 TEST(io, json_material_slab_payload) {
 
     detray::material_slab_payload m;
-    m.mat_link = {detray::material_slab_payload::type::slab, 21u};
+    m.type = detray::material_slab_payload::mat_type::slab;
+    m.index_in_coll = 21u;
+    m.surface.link = 5u;
     m.thickness = 1.2f;
     m.mat.params = {1.f, 2.f, 3.f, 4.f, 5.f, 6.f, 7.f};
 
@@ -316,8 +318,9 @@ TEST(io, json_material_slab_payload) {
 
     detray::material_slab_payload pm = j["material"];
 
-    EXPECT_EQ(m.mat_link.type, pm.mat_link.type);
-    EXPECT_EQ(m.mat_link.index, pm.mat_link.index);
+    EXPECT_EQ(m.type, pm.type);
+    EXPECT_EQ(m.index_in_coll, pm.index_in_coll);
+    EXPECT_EQ(m.surface.link, pm.surface.link);
     EXPECT_EQ(m.thickness, pm.thickness);
     EXPECT_EQ(m.mat.params, pm.mat.params);
 }

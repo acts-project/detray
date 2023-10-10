@@ -82,33 +82,37 @@ class homogeneous_material_writer : public writer_interface<detector_t> {
     static material_volume_payload serialize(
         const typename detector_t::volume_type& vol_desc,
         const detector_t& det) {
-        using material_type = material_slab_payload::type;
+        using material_type = material_slab_payload::mat_type;
 
         material_volume_payload mv_data;
         mv_data.volume_link = base_type::serialize(vol_desc.index());
 
-        // Find all surfaces that belong to the volume
+        // Find all surfaces that belong to the volume and count them
+        std::size_t sf_idx{0u}, slab_idx{0u}, rod_idx{0u};
         for (const auto& sf_desc : det.surface_lookup()) {
             if (sf_desc.volume() != vol_desc.index()) {
                 continue;
             }
             // Serialize material slabs and rods
             const auto sf = surface{det, sf_desc};
-            const material_slab_payload mslp =
-                sf.template visit_material<get_material_payload>();
+            material_slab_payload mslp =
+                sf.template visit_material<get_material_payload>(sf_idx);
 
-            if (mslp.mat_link.type == material_type::slab) {
+            if (mslp.type == material_type::slab) {
+                mslp.index_in_coll = slab_idx++;
                 mv_data.mat_slabs.push_back(mslp);
-            } else if (mslp.mat_link.type == material_type::rod) {
+            } else if (mslp.type == material_type::rod) {
                 if (not mv_data.mat_rods.has_value()) {
                     mv_data.mat_rods.emplace();
                 }
+                mslp.index_in_coll = rod_idx++;
                 mv_data.mat_rods->push_back(mslp);
             } else {
                 throw std::runtime_error(
                     "Material could not be matched to payload (found type " +
-                    std::to_string(static_cast<int>(mslp.mat_link.type)) + ")");
+                    std::to_string(static_cast<int>(mslp.type)) + ")");
             }
+            ++sf_idx;
         }
 
         return mv_data;
@@ -131,11 +135,11 @@ class homogeneous_material_writer : public writer_interface<detector_t> {
 
     /// Serialize a surface material slab @param mat_slab into its io payload
     static material_slab_payload serialize(
-        const material_slab<scalar_t>& mat_slab, std::size_t idx) {
+        const material_slab<scalar_t>& mat_slab, std::size_t sf_idx) {
         material_slab_payload mat_data;
 
-        mat_data.mat_link = base_type::serialize(
-            io::detail::get_material_id<material_slab<scalar_t>>(), idx);
+        mat_data.type = io::detail::get_material_id<material_slab<scalar_t>>();
+        mat_data.surface = base_type::serialize(sf_idx);
         mat_data.thickness = mat_slab.thickness();
         mat_data.mat = serialize(mat_slab.get_material());
 
@@ -144,11 +148,11 @@ class homogeneous_material_writer : public writer_interface<detector_t> {
 
     /// Serialize a wire material rod @param mat_rod into its io payload
     static material_slab_payload serialize(
-        const material_rod<scalar_t>& mat_rod, std::size_t idx) {
+        const material_rod<scalar_t>& mat_rod, std::size_t sf_idx) {
         material_slab_payload mat_data;
 
-        mat_data.mat_link = base_type::serialize(
-            io::detail::get_material_id<material_rod<scalar_t>>(), idx);
+        mat_data.type = io::detail::get_material_id<material_rod<scalar_t>>();
+        mat_data.surface = base_type::serialize(sf_idx);
         mat_data.thickness = mat_rod.radius();
         mat_data.mat = serialize(mat_rod.get_material());
 
@@ -160,9 +164,10 @@ class homogeneous_material_writer : public writer_interface<detector_t> {
     struct get_material_payload {
         template <typename material_group_t, typename index_t>
         inline auto operator()(const material_group_t& material_group,
-                               const index_t& index) const {
+                               const index_t& index,
+                               std::size_t sf_index) const {
             return homogeneous_material_writer<detector_t>::serialize(
-                material_group[index], index);
+                material_group[index], sf_index);
         }
     };
 };

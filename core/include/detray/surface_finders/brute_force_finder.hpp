@@ -119,6 +119,12 @@ class brute_force_collection {
         : m_offsets(detail::get<0>(view.m_view)),
           m_surfaces(detail::get<1>(view.m_view)) {}
 
+    /// @returns access to the volume offsets - const
+    DETRAY_HOST const auto& offsets() const { return m_offsets; }
+
+    /// @returns access to the volume offsets
+    DETRAY_HOST auto& offsets() { return m_offsets; }
+
     /// @returns number of surface collections (at least on per volume) - const
     DETRAY_HOST_DEVICE
     constexpr auto size() const noexcept -> size_type {
@@ -131,12 +137,6 @@ class brute_force_collection {
     constexpr auto empty() const noexcept -> bool {
         return size() == size_type{0};
     }
-
-    /// @returns access to the volume offsets - const
-    DETRAY_HOST const auto& offsets() const { return m_offsets; }
-
-    /// @returns access to the volume offsets
-    DETRAY_HOST auto& offsets() { return m_offsets; }
 
     /// @return access to the surface container - const.
     DETRAY_HOST_DEVICE
