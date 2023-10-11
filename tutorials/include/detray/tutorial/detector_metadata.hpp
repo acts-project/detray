@@ -32,8 +32,7 @@
 /// navigation.
 /// In this example detector design, volumes do not contain other volumes, so
 /// the volume lookup is done using a uniform grid.
-/// Furthermore, the detector will contain homogeneous material on its surfaces
-/// and a constant B-field.
+/// Furthermore, the detector will contain homogeneous material on its surfaces.
 namespace detray {
 
 namespace tutorial {

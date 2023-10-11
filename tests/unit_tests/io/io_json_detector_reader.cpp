@@ -185,8 +185,7 @@ TEST(io, json_toy_geometry) {
 /// Test the reading and writing of a toy detector geometry
 TEST(io, json_toy_detector_reader) {
 
-    using detector_t =
-        detector<toy_metadata, covfie::field<bfield::inhom_bknd_t>>;
+    using detector_t = detector<toy_metadata>;
 
     // Toy detector
     vecmem::host_memory_resource host_mr;
@@ -203,8 +202,7 @@ TEST(io, json_toy_detector_reader) {
     reader_cfg.do_check(true)
         .add_file("toy_detector_geometry.json")
         .add_file("toy_detector_homogeneous_material.json")
-        .add_file("toy_detector_surface_grids.json")
-        .add_file(toy_cfg.bfield_file());
+        .add_file("toy_detector_surface_grids.json");
 
     const auto [det, names] =
         io::read_detector<detector_t, 1u>(host_mr, reader_cfg);

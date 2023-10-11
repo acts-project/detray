@@ -38,7 +38,6 @@ int main(int argc, char **argv) {
 
     wire_chamber_config wire_chamber_cfg{};
     wire_chamber_cfg.half_z(500.f * unit<scalar>::mm);
-    wire_chamber_cfg.bfield_vec(0.f, 0.f, 2.f * unit<scalar>::T);
 
     auto [det, names] = create_wire_chamber(host_mr, wire_chamber_cfg);
 

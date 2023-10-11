@@ -53,7 +53,7 @@ TEST(detector_cuda, detector) {
     vecmem::vector<cylinder_t> cylinders_device(cylinders_host.size(), &mng_mr);
 
     // get data object for toy detector
-    auto toy_det_data = detray::get_data<bfield::const_bknd_t>(toy_det);
+    auto toy_det_data = detray::get_data(toy_det);
 
     // get data object for device outputs
     auto volumes_data = vecmem::get_data(volumes_device);

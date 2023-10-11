@@ -8,6 +8,7 @@
 #pragma once
 
 // Project include(s)
+#include "detray/detectors/bfield.hpp"
 #include "detray/intersection/detail/trajectories.hpp"
 #include "detray/propagator/actor_chain.hpp"
 #include "detray/propagator/actors/aborters.hpp"
@@ -99,8 +100,8 @@ class helix_navigation : public test::fixture_base<> {
         // Navigation with inspection
         using navigator_t = navigator<detector_t, inspector_t, intersection_t>;
         // Runge-Kutta stepper
-        using b_field_t = typename detector_t::bfield_type;
-        using stepper_t = rk_stepper<typename b_field_t::view_t, transform3_t>;
+        using bfield_t = bfield::const_field_t;
+        using stepper_t = rk_stepper<typename bfield_t::view_t, transform3_t>;
         // Propagator with pathlimit aborter
         using actor_chain_t = actor_chain<dtuple, pathlimit_aborter>;
         using propagator_t = propagator<stepper_t, navigator_t, actor_chain_t>;
@@ -109,11 +110,10 @@ class helix_navigation : public test::fixture_base<> {
         propagator_t prop(stepper_t{}, navigator_t{});
 
         // B-field vector for helix
-        const auto &origin = m_cfg.track_generator().origin();
-        typename b_field_t::view_t bfield_view{m_det.get_bfield()};
-        const typename b_field_t::output_t bvec =
-            bfield_view.at(origin[0], origin[1], origin[2]);
-        const typename fixture_type::point3 B{bvec[0], bvec[1], bvec[2]};
+        const typename fixture_type::point3 B{0.f * unit<scalar_t>::T,
+                                              0.f * unit<scalar_t>::T,
+                                              2.f * unit<scalar_t>::T};
+        bfield_t hom_bfield = bfield::create_const_field(B);
 
         // Iterate through uniformly distributed momentum directions
         std::size_t n_tracks{0u};
@@ -144,8 +144,7 @@ class helix_navigation : public test::fixture_base<> {
                                                              unit<scalar_t>::m};
             auto actor_states = std::tie(pathlimit_aborter_state);
 
-            typename propagator_t::state propagation(track, m_det.get_bfield(),
-                                                     m_det);
+            typename propagator_t::state propagation(track, hom_bfield, m_det);
 
             // Access to navigation information
             auto &inspector = propagation._navigation.inspector();

@@ -9,7 +9,6 @@
 
 // Detray include(s)
 #include "detray/core/detector.hpp"
-#include "detray/definitions/bfield_backends.hpp"
 #include "detray/definitions/indexing.hpp"
 #include "detray/detectors/toy_metadata.hpp"
 #include "detray/intersection/cylinder_portal_intersector.hpp"

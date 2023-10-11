@@ -9,7 +9,6 @@
 
 // Project include(s)
 #include "detray/core/detector.hpp"
-#include "detray/definitions/bfield_backends.hpp"
 #include "detray/definitions/units.hpp"
 #include "detray/detectors/telescope_metadata.hpp"
 #include "detray/masks/masks.hpp"
@@ -46,7 +45,7 @@ struct tel_det_config {
     template <
         typename... Args,
         std::enable_if_t<(std::is_same_v<Args, scalar> || ...), bool> = true>
-    tel_det_config(Args &&... args) : m_mask(0u, std::forward<Args>(args)...) {}
+    tel_det_config(Args &&...args) : m_mask(0u, std::forward<Args>(args)...) {}
 
     /// Mask of the test surfaces
     mask<mask_shape_t> m_mask;
@@ -64,8 +63,6 @@ struct tel_det_config {
     trajectory_t m_trajectory{};
     /// Safety envelope between the test surfaces and the portals
     scalar m_envelope{0.1f * unit<scalar>::mm};
-    /// Field vector for an homogenoues b-field
-    vector3 m_bfield_vec{0.f, 0.f, 2.f * unit<scalar>::T};
 
     /// Setters
     /// @{
@@ -108,14 +105,6 @@ struct tel_det_config {
         m_envelope = e;
         return *this;
     }
-    tel_det_config &bfield_vec(const vector3 &field_vec) {
-        m_bfield_vec = field_vec;
-        return *this;
-    }
-    tel_det_config &bfield_vec(const scalar x, const scalar y, const scalar z) {
-        m_bfield_vec = {x, y, z};
-        return *this;
-    }
     /// @}
 
     /// Getters
@@ -130,7 +119,6 @@ struct tel_det_config {
     constexpr scalar mat_thickness() const { return m_thickness; }
     const trajectory_t &pilot_track() const { return m_trajectory; }
     constexpr scalar envelope() const { return m_envelope; }
-    constexpr const vector3 &bfield_vec() const { return m_bfield_vec; }
     /// @}
 };
 
@@ -426,7 +414,6 @@ inline void create_telescope(context_t &ctx, volume_t &volume,
 /// @tparam trajectory_t the type of the pilot trajectory
 ///
 /// @param resource the memory resource for the detector containers
-/// @param bfield
 ///
 /// @returns a complete detector object
 template <typename mask_shape_t = rectangle2D<>,
@@ -438,8 +425,7 @@ inline auto create_telescope_detector(
 
     // detector type
     using detector_t =
-        detector<telescope_metadata<mask_shape_t>,
-                 covfie::field<bfield::const_bknd_t>, host_container_types>;
+        detector<telescope_metadata<mask_shape_t>, host_container_types>;
 
     // Detector and volume names
     typename detector_t::name_map name_map = {{0u, "telescope_detector"},
@@ -467,13 +453,8 @@ inline auto create_telescope_detector(
     assert((positions.size() < 20u) &&
            "Due to WIP, please choose less than 20 surfaces for now");
 
-    const auto &B = cfg.bfield_vec();
-    auto bfield =
-        covfie::field<bfield::const_bknd_t>{covfie::make_parameter_pack(
-            bfield::const_bknd_t::configuration_t{B[0], B[1], B[2]})};
-
     // create empty detector
-    detector_t det(resource, std::move(bfield));
+    detector_t det(resource);
 
     typename detector_t::geometry_context ctx{};
 

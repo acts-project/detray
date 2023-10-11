@@ -44,9 +44,10 @@ void fill_tracks(vecmem::vector<free_track_parameters<transform3>> &tracks,
 template <propagate_option opt>
 static void BM_PROPAGATOR_CPU(benchmark::State &state) {
 
-    // Create the toy geometry
-    auto [det, names] =
-        create_toy_geometry<field_type::backend_t>(host_mr, toy_cfg);
+    // Create the toy geometry and bfield
+    auto [det, names] = create_toy_geometry(host_mr, toy_cfg);
+    vector3 B{0.f, 0.f, 2.f * unit<scalar>::T};
+    auto bfield = bfield::create_const_field(B);
 
     // Create RK stepper
     rk_stepper_type s;
@@ -84,7 +85,7 @@ static void BM_PROPAGATOR_CPU(benchmark::State &state) {
                 tie(transporter_state, interactor_state, resetter_state);
 
             // Create the propagator state
-            propagator_host_type::state p_state(track, det.get_bfield(), det);
+            propagator_host_type::state p_state(track, bfield, det);
 
             // Run propagation
             if constexpr (opt == propagate_option::e_unsync) {
@@ -103,11 +104,12 @@ template <propagate_option opt>
 static void BM_PROPAGATOR_CUDA(benchmark::State &state) {
 
     // Create the toy geometry
-    auto [det, names] =
-        create_toy_geometry<field_type::backend_t>(bp_mng_mr, toy_cfg);
+    auto [det, names] = create_toy_geometry(bp_mng_mr, toy_cfg);
+    vector3 B{0.f, 0.f, 2.f * unit<scalar>::T};
+    auto bfield = bfield::create_const_field(B);
 
     // Get detector data
-    auto det_data = detray::get_data<field_type::backend_t>(det);
+    auto det_data = detray::get_data(det);
 
     // vecmem copy helper object
     vecmem::cuda::copy copy;
@@ -136,7 +138,8 @@ static void BM_PROPAGATOR_CUDA(benchmark::State &state) {
         copy.setup(candidates_buffer);
 
         // Run the propagator test for GPU device
-        propagator_benchmark(det_data, tracks_data, candidates_buffer, opt);
+        propagator_benchmark(det_data, bfield, tracks_data, candidates_buffer,
+                             opt);
     }
 
     state.counters["TracksPropagated"] = benchmark::Counter(

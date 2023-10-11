@@ -9,7 +9,6 @@
 
 // Project include(s)
 #include "detray/core/detector.hpp"
-#include "detray/definitions/bfield_backends.hpp"
 #include "detray/definitions/math.hpp"
 #include "detray/definitions/units.hpp"
 #include "detray/detectors/detector_helper.hpp"
@@ -47,12 +46,6 @@ struct toy_det_config {
     unsigned int m_n_brl_layers{4u};
     /// No. of endcap layers (on either side) the detector should be built with
     unsigned int m_n_edc_layers{3u};
-    /// Field vector for an homogenoues b-field
-    vector3 m_bfield_vec{0.f, 0.f, 2.f * unit<scalar>::T};
-    /// Input file name for the covfie b-field
-    std::string m_bfield_file{!std::getenv("DETRAY_BFIELD_FILE")
-                                  ? ""
-                                  : std::getenv("DETRAY_BFIELD_FILE")};
 
     /// Setters
     /// @{
@@ -64,26 +57,12 @@ struct toy_det_config {
         m_n_edc_layers = n;
         return *this;
     }
-    toy_det_config &bfield_vec(const vector3 &field_vec) {
-        m_bfield_vec = field_vec;
-        return *this;
-    }
-    toy_det_config &bfield_vec(const scalar x, const scalar y, const scalar z) {
-        m_bfield_vec = {x, y, z};
-        return *this;
-    }
-    toy_det_config &bfield_file(const std::string &file_name) {
-        m_bfield_file = file_name;
-        return *this;
-    }
     /// @}
 
     /// Getters
     /// @{
     constexpr unsigned int n_brl_layers() const { return m_n_brl_layers; }
     constexpr unsigned int n_edc_layers() const { return m_n_edc_layers; }
-    constexpr const vector3 &bfield_vec() const { return m_bfield_vec; }
-    const std::string &bfield_file() const { return m_bfield_file; }
     /// @}
 };
 
@@ -925,19 +904,15 @@ inline void add_barrel_detector(
 /// present when an endcap detector is built to have the barrel region radius
 /// match the endcap diameter.
 ///
-/// @tparam bfield_bknd_t the type of magnetic field to construct
-///
 /// @param resource vecmem memory resource to use for container allocations
 /// @param cfg toy detector configuration
 ///
 /// @returns a complete detector object
-template <typename bfield_bknd_t = bfield::const_bknd_t>
 inline auto create_toy_geometry(vecmem::memory_resource &resource,
                                 const toy_det_config &cfg = {}) {
 
     // detector type
-    using detector_t = detector<toy_metadata, covfie::field<bfield_bknd_t>,
-                                host_container_types>;
+    using detector_t = detector<toy_metadata, host_container_types>;
 
     // Detector and volume names
     typename detector_t::name_map name_map = {{0u, "toy_detector"}};
@@ -1033,21 +1008,6 @@ inline auto create_toy_geometry(vecmem::memory_resource &resource,
 
     // create empty detector
     detector_t det(resource);
-
-    // Constant b-field: 2T in z-direction as default
-    if constexpr (std::is_same_v<bfield_bknd_t, bfield::const_bknd_t>) {
-        const vector3 &B = cfg.bfield_vec();
-        auto bfield = covfie::field<bfield_bknd_t>(covfie::make_parameter_pack(
-            bfield::const_bknd_t::configuration_t{B[0], B[1], B[2]}));
-        det.set_bfield(std::move(bfield));
-    }
-    // Read b-field map from file
-    else {
-        detray::io::detail::file_handle file(cfg.bfield_file(),
-                                             std::ios::binary | std::ios::in);
-
-        det.set_bfield(covfie::field<bfield_bknd_t>(*file));
-    }
 
     // geometry context object
     typename detector_t::geometry_context ctx0{};

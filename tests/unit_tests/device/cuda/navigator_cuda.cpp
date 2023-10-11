@@ -103,7 +103,7 @@ TEST(navigator_cuda, navigator) {
     copy.setup(position_records_buffer);
 
     // Get detector data
-    auto det_data = detray::get_data<bfield::const_bknd_t>(det);
+    auto det_data = detray::get_data(det);
 
     // Get tracks data
     auto tracks_data = vecmem::get_data(tracks_device);

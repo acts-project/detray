@@ -34,7 +34,7 @@ int main(int argc, char** argv) {
         throw std::runtime_error("Please specify an input file name!");
     }
 
-    // Read a toy detector with constant bfield (default)
+    // Read a toy detector
     using detector_t = detray::detector<detray::toy_metadata>;
 
     // Create an empty detector to be filled

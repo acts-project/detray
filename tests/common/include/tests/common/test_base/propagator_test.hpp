@@ -9,8 +9,8 @@
 
 // Project include(s).
 #include "detray/definitions/algebra.hpp"
-#include "detray/definitions/bfield_backends.hpp"
 #include "detray/definitions/units.hpp"
+#include "detray/detectors/bfield.hpp"
 #include "detray/detectors/create_toy_geometry.hpp"
 #include "detray/propagator/actor_chain.hpp"
 #include "detray/propagator/actors/aborters.hpp"
@@ -36,18 +36,13 @@
 namespace detray {
 
 // Host detector type
-template <typename bfield_bknd_t>
-using detector_host_t =
-    detector<toy_metadata, covfie::field<bfield_bknd_t>, host_container_types>;
+using detector_host_t = detector<toy_metadata, host_container_types>;
 
 // Device detector type using views
-template <typename bfield_bknd_t>
-using detector_device_t =
-    detector<toy_metadata, covfie::field_view<bfield_bknd_t>,
-             device_container_types>;
+using detector_device_t = detector<toy_metadata, device_container_types>;
 
 // These types are identical in host and device code for all bfield types
-using transform3 = typename detector_host_t<bfield::const_bknd_t>::transform3;
+using transform3 = typename detector_host_t::transform3;
 using vector3_t = typename transform3::vector3;
 using matrix_operator = standard_matrix_operator<scalar>;
 using track_t = free_track_parameters<transform3>;
@@ -156,16 +151,16 @@ inline vecmem::vector<track_t> generate_tracks(
 /// Test function for propagator on the host
 template <typename bfield_bknd_t>
 inline auto run_propagation_host(vecmem::memory_resource *mr,
-                                 const detector_host_t<bfield_bknd_t> &det,
+                                 const detector_host_t &det,
+                                 covfie::field<bfield_bknd_t> &field,
                                  const vecmem::vector<track_t> &tracks)
     -> std::tuple<vecmem::jagged_vector<scalar>,
                   vecmem::jagged_vector<vector3_t>,
                   vecmem::jagged_vector<free_matrix>> {
 
     // Construct propagator from stepper and navigator
-    auto stepr = rk_stepper_t<
-        typename detector_host_t<bfield_bknd_t>::bfield_type::view_t>{};
-    auto nav = navigator_t<detector_host_t<bfield_bknd_t>>{};
+    auto stepr = rk_stepper_t<typename covfie::field<bfield_bknd_t>::view_t>{};
+    auto nav = navigator_t<detector_host_t>{};
 
     using propagator_host_t =
         propagator<decltype(stepr), decltype(nav), actor_chain_host_t>;
@@ -188,7 +183,7 @@ inline auto run_propagation_host(vecmem::memory_resource *mr,
             detray::tie(insp_state, pathlimit_state, transporter_state,
                         interactor_state, resetter_state);
 
-        typename propagator_host_t::state state(trk, det.get_bfield(), det);
+        typename propagator_host_t::state state(trk, field, det);
 
         state._stepping.template set_constraint<step::constraint::e_accuracy>(
             constrainted_step_size);

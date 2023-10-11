@@ -10,7 +10,6 @@
 // Project include(s).
 #include "detray/core/detector.hpp"
 #include "detray/core/detector_metadata.hpp"
-#include "detray/definitions/bfield_backends.hpp"
 #include "detray/definitions/geometry.hpp"
 #include "detray/tools/grid_factory.hpp"
 #include "detray/tools/volume_builder.hpp"
@@ -34,13 +33,11 @@ namespace detray {
 ///                          geometry data
 /// @tparam volume_data_t the data structure that holds the volume builders
 template <typename metadata = default_metadata,
-          typename bfield_bknd_t = bfield::const_bknd_t,
           template <typename> class volume_builder_t = volume_builder,
           template <typename...> class volume_data_t = std::vector>
 class detector_builder {
     public:
-    using detector_type =
-        detector<metadata, covfie::field<bfield_bknd_t>, host_container_types>;
+    using detector_type = detector<metadata, host_container_types>;
 
     /// Empty detector builder
     detector_builder() = default;
@@ -88,18 +85,11 @@ class detector_builder {
             vol_builder->build(det);
         }
 
-        det.set_bfield(std::move(m_bfield));
         det.set_volume_finder(std::move(m_vol_finder));
 
         // TODO: Add sorting, data deduplication etc. here later...
 
         return det;
-    }
-
-    /// Assembles the detector, without a magnetic field
-    DETRAY_HOST
-    void set_bfield(typename detector_type::bfield_type&& field) {
-        m_bfield = std::forward<typename detector_type::bfield_type>(field);
     }
 
     /// Put the volumes into a search data structure
@@ -133,8 +123,6 @@ class detector_builder {
         m_volumes{};
     /// Data structure to find volumes
     typename detector_type::volume_finder m_vol_finder{};
-    /// The detector bfield
-    typename detector_type::bfield_type m_bfield;
 };
 
 }  // namespace detray

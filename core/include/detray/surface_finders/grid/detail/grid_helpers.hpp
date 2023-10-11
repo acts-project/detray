@@ -30,7 +30,7 @@ struct grid_data {
     grid_data() = default;
 
     /// Construct containers using a memory resources
-    DETRAY_HOST_DEVICE
+    DETRAY_HOST
     grid_data(vecmem::memory_resource &resource) : m_bin_data(&resource) {}
 
     /// Construct grid data from containers - move

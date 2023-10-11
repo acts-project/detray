@@ -33,7 +33,6 @@ int main(int argc, char **argv) {
 
     // Use the most general type to be able to read in all detector files
     using detector_t = detray::detector<>;
-    using scalar_t = detector_t::scalar_type;
 
     // Filter out the google test flags
     ::testing::InitGoogleTest(&argc, argv);
@@ -44,8 +43,6 @@ int main(int argc, char **argv) {
     desc.add_options()("help", "produce help message")(
         "geometry_file", po::value<std::string>(), "geometry input file")(
         "material_file", po::value<std::string>(), "material input file")(
-        "bfield_file", po::value<std::string>(),
-        "magnetic field map input file")(
         "phi_steps", po::value<std::size_t>()->default_value(50u),
         "# phi steps for particle gun")(
         "eta_steps", po::value<std::size_t>()->default_value(50u),
@@ -82,11 +79,6 @@ int main(int argc, char **argv) {
         err_stream << "Please specify a material input file!\n\n" << desc;
 
         throw std::invalid_argument(err_stream.str());
-    }
-    if (vm.count("bfield_file")) {
-        reader_cfg.add_file(vm["bfield_file"].as<std::string>());
-    } else {
-        reader_cfg.bfield_vec(0.f, 0.f, 2.f * unit<scalar_t>::T);
     }
 
     // Particle gun
