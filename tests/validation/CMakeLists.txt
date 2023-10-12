@@ -3,6 +3,7 @@
 # (c) 2021-2023 CERN for the benefit of the ACTS project
 #
 # Mozilla Public License Version 2.0
+
 include( CMakeFindDependencyMacro )
 
 find_dependency( Boost COMPONENTS program_options )
