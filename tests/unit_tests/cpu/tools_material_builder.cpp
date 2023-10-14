@@ -228,14 +228,22 @@ GTEST_TEST(detray_tools, decorator_material_builder) {
 GTEST_TEST(detray_tools, detector_builder_with_material) {
     using namespace detray;
 
+    using transform3 = typename detector_t::transform3;
     using mask_id = typename detector_t::masks::id;
     using material_id = typename detector_t::materials::id;
 
+    // Surface factories
+    using trapezoid_factory = surface_factory<detector_t, trapezoid2D<>>;
+
     // detector builder
     detector_builder<default_metadata> det_builder{};
+    auto geo_ctx = typename detector_t::geometry_context{};
 
     // Vanilla volume builder
     auto vbuilder = det_builder.new_volume(volume_id::e_cuboid);
+    const auto vol_idx{
+        static_cast<typename detector_t::surface_type::navigation_link>(
+            vbuilder->vol_index())};
 
     // Add material
     auto mv_builder =
@@ -244,6 +252,18 @@ GTEST_TEST(detray_tools, detector_builder_with_material) {
 
     typename detector_t::point3 t{0.f, 0.f, 20.f};
     mv_builder->add_volume_placement(t);
+
+    // Add a senstive surface
+    auto trpz_factory = std::make_unique<trapezoid_factory>();
+    // Add material to the surface
+    auto mat_sf_factory =
+        std::make_shared<material_factory<detector_t>>(std::move(trpz_factory));
+
+    mat_sf_factory->push_back({surface_id::e_sensitive,
+                               transform3(point3{0.f, 0.f, 1000.f}), vol_idx,
+                               std::vector<scalar>{1.f, 3.f, 2.f, 0.25f}});
+    mat_sf_factory->add_material(material_id::e_slab,
+                                 {1.f * unit<scalar>::mm, silicon<scalar>()});
 
     // Add a portal box around the cuboid volume with a min distance of 'env'
     constexpr auto env{0.1f * unit<detray::scalar>::mm};
@@ -254,8 +274,6 @@ GTEST_TEST(detray_tools, detector_builder_with_material) {
     auto mat_portal_factory = std::make_shared<material_factory<detector_t>>(
         std::move(portal_generator));
     mat_portal_factory->add_material(
-        material_id::e_slab, {1.f * unit<scalar>::mm, silicon<scalar>()});
-    mat_portal_factory->add_material(
         material_id::e_slab, {2.f * unit<scalar>::mm, silicon<scalar>()});
     mat_portal_factory->add_material(
         material_id::e_slab, {3.f * unit<scalar>::mm, silicon<scalar>()});
@@ -265,7 +283,10 @@ GTEST_TEST(detray_tools, detector_builder_with_material) {
         material_id::e_slab, {5.f * unit<scalar>::mm, silicon<scalar>()});
     mat_portal_factory->add_material(
         material_id::e_slab, {6.f * unit<scalar>::mm, silicon<scalar>()});
+    mat_portal_factory->add_material(
+        material_id::e_slab, {7.f * unit<scalar>::mm, silicon<scalar>()});
 
+    mv_builder->add_surfaces(mat_sf_factory, geo_ctx);
     mv_builder->add_surfaces(mat_portal_factory);
 
     //
@@ -285,9 +306,10 @@ GTEST_TEST(detray_tools, detector_builder_with_material) {
     EXPECT_TRUE(vol.transform() == trf);
     EXPECT_TRUE(d.transform_store()[0u] == trf);
 
-    EXPECT_EQ(d.surface_lookup().size(), 6u);
+    EXPECT_EQ(d.surface_lookup().size(), 7u);
     EXPECT_EQ(d.mask_store().template size<mask_id::e_rectangle2>(), 3u);
-    EXPECT_EQ(d.material_store().template size<material_id::e_slab>(), 6u);
+    EXPECT_EQ(d.mask_store().template size<mask_id::e_trapezoid2>(), 1u);
+    EXPECT_EQ(d.material_store().template size<material_id::e_slab>(), 7u);
 
     // Check the material links
     for (const auto [idx, sf_desc] :
