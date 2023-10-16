@@ -17,7 +17,7 @@ inline constexpr detray::scalar path_limit{2.f *
 /// Kernel that runs the entire propagation loop
 __global__ void propagation_kernel(
     typename detray::tutorial::detector_host_t::view_type det_data,
-    covfie::field_view<detray::tutorial::inhom_cuda_bknd_t> field_data,
+    typename detray::tutorial::field_t::view_t field_data,
     const vecmem::data::vector_view<
         detray::free_track_parameters<detray::tutorial::transform3>>
         tracks_data,
@@ -67,7 +67,7 @@ __global__ void propagation_kernel(
 
 void propagation(
     typename detray::tutorial::detector_host_t::view_type det_data,
-    covfie::field_view<detray::tutorial::inhom_cuda_bknd_t> field_data,
+    typename detray::tutorial::field_t::view_t field_data,
     const vecmem::data::vector_view<
         detray::free_track_parameters<detray::tutorial::transform3>>
         tracks_data,

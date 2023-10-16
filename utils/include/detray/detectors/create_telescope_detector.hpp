@@ -45,7 +45,7 @@ struct tel_det_config {
     template <
         typename... Args,
         std::enable_if_t<(std::is_same_v<Args, scalar> || ...), bool> = true>
-    tel_det_config(Args &&...args) : m_mask(0u, std::forward<Args>(args)...) {}
+    tel_det_config(Args &&... args) : m_mask(0u, std::forward<Args>(args)...) {}
 
     /// Mask of the test surfaces
     mask<mask_shape_t> m_mask;

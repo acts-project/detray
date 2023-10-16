@@ -11,7 +11,7 @@
 #include "detray/definitions/algebra.hpp"
 #include "detray/definitions/units.hpp"
 #include "detray/detectors/bfield.hpp"
-#include "detray/detectors/create_toy_geometry.hpp"
+#include "detray/detectors/toy_metadata.hpp"
 #include "detray/propagator/actor_chain.hpp"
 #include "detray/propagator/actors/aborters.hpp"
 #include "detray/propagator/actors/parameter_resetter.hpp"

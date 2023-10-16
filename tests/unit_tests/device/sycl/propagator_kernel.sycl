@@ -32,9 +32,9 @@ void propagator_test(
 
     reinterpret_cast<::sycl::queue*>(queue.queue())
         ->submit([&](::sycl::handler& h) {
-            h.parallel_for(ndrange, [det_data, tracks_data, candidates_data,
-                                     path_lengths_data, positions_data,
-                                     jac_transports_data](
+            h.parallel_for(ndrange, [det_data, field_data, tracks_data,
+                                     candidates_data, path_lengths_data,
+                                     positions_data, jac_transports_data](
                                         ::sycl::nd_item<1> item) {
                 detector_device_t dev_det(det_data);
 
@@ -43,7 +43,8 @@ void propagator_test(
                     candidates(candidates_data);
                 vecmem::jagged_device_vector<scalar> path_lengths(
                     path_lengths_data);
-                vecmem::jagged_device_vector<vector3> positions(positions_data);
+                vecmem::jagged_device_vector<vector3_t> positions(
+                    positions_data);
                 vecmem::jagged_device_vector<free_matrix> jac_transports(
                     jac_transports_data);
 
@@ -93,7 +94,7 @@ void propagator_test(
 }
 
 /// Explicit instantiation for a constant magnetic field
-template void propagator_test<bfield::const_bknd_t>(
+template void propagator_test<bfield::const_bknd_t, detector_host_t>(
     detector_host_t::view_type, covfie::field_view<bfield::const_bknd_t>,
     vecmem::data::vector_view<track_t>&,
     vecmem::data::jagged_vector_view<intersection_t<detector_host_t>>&,

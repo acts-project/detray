@@ -11,7 +11,7 @@
 #include "detray/definitions/algebra.hpp"
 #include "detray/definitions/units.hpp"
 #include "detray/detectors/bfield.hpp"
-#include "detray/detectors/create_toy_geometry.hpp"
+#include "detray/detectors/toy_metadata.hpp"
 #include "detray/propagator/actor_chain.hpp"
 #include "detray/propagator/actors/aborters.hpp"
 #include "detray/propagator/actors/parameter_resetter.hpp"
@@ -44,6 +44,7 @@ using detector_device_t = detector<toy_metadata, device_container_types>;
 // These types are identical in host and device code for all bfield types
 using transform3 = typename detector_host_t::transform3;
 using vector3_t = typename transform3::vector3;
+using point3_t = typename transform3::point3;
 using matrix_operator = standard_matrix_operator<scalar>;
 using track_t = free_track_parameters<transform3>;
 using free_matrix = typename track_t::covariance_type;
@@ -58,9 +59,6 @@ using intersection_t = typename navigator_t<detector_t>::intersection_type;
 using constraints_t = constrained_step<>;
 template <typename bfield_view_t>
 using rk_stepper_t = rk_stepper<bfield_view_t, transform3, constraints_t>;
-
-// Detector configuration
-toy_det_config toy_cfg{};
 
 // Geomery navigation configurations
 constexpr unsigned int theta_steps{10u};
@@ -229,7 +227,7 @@ inline void compare_propagation_results(
             const vector3_t &device_pos = device_positions[i][j];
 
             auto relative_error =
-                static_cast<point3>(1. / host_pl * (host_pos - device_pos));
+                static_cast<point3_t>(1. / host_pl * (host_pos - device_pos));
 
             ASSERT_NEAR(getter::norm(relative_error), 0.f, is_close);
         }

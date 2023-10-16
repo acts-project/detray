@@ -6,6 +6,7 @@
  */
 
 // Project include(s)
+#include "detray/detectors/create_toy_geometry.hpp"
 #include "propagator_sycl_kernel.hpp"
 
 // Vecmem include(s)
@@ -43,14 +44,16 @@ TEST_P(SyclPropConstBFieldMng, propagator) {
     vecmem::sycl::shared_memory_resource shared_mr;
 
     // Set the magnetic field
-    const vector3 B = GetParam();
+    const vector3_t B = GetParam();
+    auto field = bfield::create_const_field(B);
 
     // Create the toy geometry
-    toy_cfg.bfield_vec(B);
-    auto [det, names] = create_toy_geometry(shared_mr, toy_cfg);
+    auto [det, names] = create_toy_geometry(shared_mr);
 
-    run_propagation_test<bfield::const_bknd_t>(
-        &shared_mr, &q, det, detray::get_data<bfield::const_bknd_t>(det));
+    auto det_view = detray::get_data(det);
+
+    run_propagation_test<bfield::const_bknd_t>(&shared_mr, &q, det, det_view,
+                                               field);
 }
 
 class SyclPropConstBFieldCpy : public ::testing::TestWithParam<vector3_t> {};
@@ -71,17 +74,16 @@ TEST_P(SyclPropConstBFieldCpy, propagator) {
     vecmem::sycl::copy sycl_cpy(q_wrapper);
 
     // Set the magnetic field
-    const vector3 B = GetParam();
+    const vector3_t B = GetParam();
+    auto field = bfield::create_const_field(B);
 
     // Create the toy geometry
-    toy_cfg.bfield_vec(B);
-    auto [det, names] = create_toy_geometry(host_mr, toy_cfg);
+    auto [det, names] = create_toy_geometry(host_mr);
 
-    auto det_buff =
-        detray::get_buffer<bfield::const_bknd_t>(det, dev_mr, sycl_cpy);
+    auto det_buff = detray::get_buffer(det, dev_mr, sycl_cpy);
 
-    run_propagation_test<bfield::const_bknd_t>(&shared_mr, &q, det,
-                                               detray::get_data(det_buff));
+    run_propagation_test<bfield::const_bknd_t>(
+        &shared_mr, &q, det, detray::get_data(det_buff), field);
 }
 
 INSTANTIATE_TEST_SUITE_P(SyclPropagatorValidation1, SyclPropConstBFieldMng,

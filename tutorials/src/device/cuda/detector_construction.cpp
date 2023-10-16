@@ -9,6 +9,7 @@
 #include "detector_construction.hpp"
 
 #include "detray/detectors/bfield.hpp"
+#include "detray/detectors/create_toy_geometry.hpp"
 
 // Vecmem include(s)
 #include <vecmem/memory/cuda/device_memory_resource.hpp>

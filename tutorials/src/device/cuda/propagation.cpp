@@ -8,6 +8,7 @@
 // Project include(s)
 #include "propagation.hpp"
 
+#include "detray/detectors/create_toy_geometry.hpp"
 #include "detray/simulation/event_generator/track_generators.hpp"
 
 // Vecmem include(s)
@@ -16,23 +17,23 @@
 
 #include "vecmem/utils/cuda/copy.hpp"
 
+// System
+
 /// Prepare the data and move it to device
 int main() {
     // VecMem memory resource(s)
     vecmem::cuda::managed_memory_resource mng_mr;
 
-    // Set the magnetic field
+    // Create the bfield
+    const auto B =
+        detray::tutorial::vector3{0. * detray::unit<detray::scalar>::T,
+                                  0. * detray::unit<detray::scalar>::T,
+                                  2. * detray::unit<detray::scalar>::T};
 
-    // Define the name of the input file: use detray unittest data in this case
-    const std::string field_file = !std::getenv("DETRAY_BFIELD_FILE")
-                                       ? ""
-                                       : std::getenv("DETRAY_BFIELD_FILE");
-    detray::tutorial::field_host_t bfield =
-        detray::io::read_bfield<detray::bfield::inhom_field_t>(field_file);
+    detray::tutorial::field_t bfield = detray::bfield::create_const_field(B);
 
     // Create the toy geometry
-    detray::toy_det_config toy_cfg{};
-    auto [det, names] = detray::create_toy_geometry(mng_mr, toy_cfg);
+    auto [det, names] = detray::create_toy_geometry(mng_mr);
 
     // Create the vector of initial track parameters
     vecmem::vector<detray::free_track_parameters<detray::tutorial::transform3>>
@@ -61,10 +62,6 @@ int main() {
     auto det_data = detray::get_data(det);
     auto tracks_data = detray::get_data(tracks);
 
-    // Get the device bfield
-    detray::tutorial::field_device_t device_field(bfield);
-    detray::tutorial::field_device_t::view_t device_field_view(device_field);
-
     // Create navigator candidates buffer
     vecmem::copy copy;  //< Helper object for performing memory copies.
     auto candidates_buffer =
@@ -72,6 +69,6 @@ int main() {
     copy.setup(candidates_buffer);
 
     // Run the propagator test for GPU device
-    detray::tutorial::propagation(det_data, device_field_view, tracks_data,
+    detray::tutorial::propagation(det_data, bfield, tracks_data,
                                   candidates_buffer);
 }

@@ -57,7 +57,7 @@ jobs:
         SCALAR_TYPE: ["float", "double"]
         PLATFORM:
           - NAME: "HOST"
-            CONTAINER: "ghcr.io/acts-project/ubuntu2004:v30"
+            CONTAINER: "ghcr.io/acts-project/ubuntu2004:v43"
             OPTIONS: -DDETRAY_EIGEN_PLUGIN=ON -DDETRAY_SMATRIX_PLUGIN=ON -DDETRAY_VC_PLUGIN=ON
 
     # The system to run on.

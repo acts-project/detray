@@ -10,7 +10,7 @@
 // Project include(s)
 #include "detray/definitions/algebra.hpp"
 #include "detray/definitions/units.hpp"
-#include "detray/detectors/create_toy_geometry.hpp"
+#include "detray/detectors/toy_metadata.hpp"
 #include "detray/propagator/line_stepper.hpp"
 #include "detray/propagator/navigator.hpp"
 #include "detray/simulation/event_generator/track_generators.hpp"
@@ -18,6 +18,7 @@
 using namespace detray;
 
 using transform3 = __plugin::transform3<scalar>;
+using point3 = __plugin::point3<scalar>;
 
 // some useful type declarations
 using detector_host_t = detector<toy_metadata, host_container_types>;

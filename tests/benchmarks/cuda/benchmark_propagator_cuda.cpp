@@ -7,6 +7,7 @@
 
 // Project include(s)
 #include "benchmark_propagator_cuda_kernel.hpp"
+#include "detray/detectors/create_toy_geometry.hpp"
 #include "detray/simulation/event_generator/track_generators.hpp"
 
 // Vecmem include(s)

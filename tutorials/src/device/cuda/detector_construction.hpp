@@ -8,8 +8,9 @@
 #pragma once
 
 // Project include(s).
+#include "detray/core/detector.hpp"
 #include "detray/definitions/units.hpp"
-#include "detray/detectors/create_toy_geometry.hpp"
+#include "detray/detectors/toy_metadata.hpp"
 #include "detray/tutorial/types.hpp"
 
 namespace detray::tutorial {

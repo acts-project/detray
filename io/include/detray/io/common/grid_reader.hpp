@@ -94,7 +94,7 @@ class grid_reader : public reader_interface<detector_t> {
               typename binning_ts = types::type_list<>, typename... Ts>
     static void deserialize(std::queue<n_axis::bounds> &bound_ids,
                             std::queue<n_axis::binning> &binning_ids,
-                            Ts &&...data) {
+                            Ts &&... data) {
         using namespace n_axis;
 
         constexpr std::size_t n_bounds_types{types::size<bounds_ts>};
@@ -152,7 +152,7 @@ class grid_reader : public reader_interface<detector_t> {
     template <typename bounds_ts, typename binning_ts, typename... Ts,
               std::enable_if_t<types::size<bounds_ts> == Dim, bool> = true>
     static void deserialize(std::queue<n_axis::binning> &binning_ids,
-                            Ts &&...data) {
+                            Ts &&... data) {
 
         using namespace n_axis;
 
