@@ -19,13 +19,14 @@
 
 namespace detray::svgtools::meta::proto {
 
-/// @brief A proto intersection record class as a simple translation layer from
-/// a intersection record description.
+/// @brief A proto intersection class as a simple translation layer from
+/// an intersection description.
 template <typename point3_t>
-class intersection_record {
+class intersection {
     public:
     using landmark_type = svgtools::meta::proto::landmark<point3_t>;
     std::vector<landmark_type> _landmarks;
     std::string _name;
 };
+
 }  // namespace detray::svgtools::meta::proto

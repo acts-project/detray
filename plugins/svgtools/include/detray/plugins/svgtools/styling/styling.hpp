@@ -82,11 +82,11 @@ std::vector<actsvg::style::color> blue_theme(const actsvg::scalar opacity) {
 }
 
 std::vector<actsvg::style::color> green_theme(const actsvg::scalar opacity) {
-    return {{celadon, opacity},
+    return {{emerald, opacity},
+            {shamrock_green, opacity},
+            {celadon, opacity},
             {aquamarine1, opacity},
-            {aquamarine2, opacity},
-            {emerald, opacity},
-            {shamrock_green, opacity}};
+            {aquamarine2, opacity}};
 }
 
 // Same color circle that is used in matplot plugin
@@ -174,12 +174,12 @@ const portal_style portal_style2{surface_style4, link_style1, false};
 const volume_style volume_style1{surface_style1, portal_style1};
 const volume_style volume_style2{surface_style5, portal_style2};
 
-const landmark_style landmark_style1{colors::black_theme(1.f), 1.f, 5.f, "x"};
-const landmark_style landmark_style2{colors::black_theme(1.f), 1.f, 3.f, "o"};
+const landmark_style landmark_style1{colors::black_theme(1.f), 0.8f, 5.f, "x"};
+const landmark_style landmark_style2{colors::black_theme(1.f), 0.8f, 3.f, "o"};
 
 const grid_style grid_style1{2.f};
 
-const trajectory_style trajectory_style1{colors::green_theme(1.f), 3.f};
+const trajectory_style trajectory_style1{colors::green_theme(1.f), 1.f};
 
 const style style1{volume_style1, landmark_style1, trajectory_style1,
                    grid_style1, landmark_style2};
@@ -241,11 +241,14 @@ void apply_style(actsvg::proto::volume<point3_container_t>& p_volume,
 /// @brief Sets the style of the proto landmark.
 template <typename point3_t>
 void apply_style(meta::proto::landmark<point3_t>& p_landmark,
-                 const landmark_style& styling) {
-    const auto fill_color = colors::pick_random(styling._fill_colors);
+                 const landmark_style& styling, bool do_random_coloring) {
+    auto fill_color = do_random_coloring
+                          ? colors::pick_random(styling._fill_colors)
+                          : styling._fill_colors.front();
     const auto fill = actsvg::style::fill(fill_color);
     const auto stroke =
         actsvg::style::stroke(fill_color, styling._stroke_width);
+
     const auto marker = actsvg::style::marker{
         styling._marker_type, styling._marker_size, fill, stroke};
     p_landmark._marker = marker;
@@ -253,16 +256,20 @@ void apply_style(meta::proto::landmark<point3_t>& p_landmark,
 
 /// @brief Sets the style of the proto intersection record.
 template <typename point3_t>
-void apply_style(
-    meta::proto::intersection_record<point3_t>& p_intersection_record,
-    const landmark_style& styling) {
-    const auto fill_color = colors::pick_random(styling._fill_colors);
-    const auto fill = actsvg::style::fill(fill_color);
+void apply_style(meta::proto::intersection<point3_t>& p_intersection,
+                 const landmark_style& styling, bool do_random_coloring) {
+    auto fill_color = do_random_coloring
+                          ? colors::pick_random(styling._fill_colors)
+                          : styling._fill_colors.front();
     const auto stroke =
         actsvg::style::stroke(fill_color, styling._stroke_width);
+    fill_color._opacity *= 0.5f;
+    const auto fill = actsvg::style::fill(fill_color);
+
     const auto marker = actsvg::style::marker{
         styling._marker_type, styling._marker_size, fill, stroke};
-    for (auto& p_landmark : p_intersection_record._landmarks) {
+
+    for (auto& p_landmark : p_intersection._landmarks) {
         p_landmark._marker = marker;
     }
 }
@@ -270,8 +277,10 @@ void apply_style(
 /// @brief Sets the style of the proto trajectory.
 template <typename point3_t>
 void apply_style(meta::proto::trajectory<point3_t>& p_trajectory,
-                 const trajectory_style& styling) {
-    auto fill_color = colors::pick_random(styling._fill_colors);
+                 const trajectory_style& styling, bool do_random_coloring) {
+    auto fill_color = do_random_coloring
+                          ? colors::pick_random(styling._fill_colors)
+                          : styling._fill_colors.front();
     p_trajectory._stroke =
         actsvg::style::stroke(fill_color, styling._stroke_width);
 }

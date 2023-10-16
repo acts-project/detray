@@ -11,8 +11,10 @@
 #include "detray/geometry/surface.hpp"
 #include "detray/intersection/detail/trajectories.hpp"
 #include "detray/io/common/detail/file_handle.hpp"
+#include "detray/plugins/svgtools/illustrator.hpp"
 #include "detray/simulation/event_generator/track_generators.hpp"
 #include "detray/test/types.hpp"
+#include "detray/validation/detail/svg_display.hpp"
 #include "tests/common/test_base/fixture_base.hpp"
 #include "tests/common/tools/particle_gun.hpp"
 #include "tests/common/tools/ray_scan_utils.hpp"
@@ -42,6 +44,9 @@ class helix_scan : public test::fixture_base<> {
         std::string m_name{"helix_scan"};
         bool m_write_inters{false};
         trk_gen_config_t m_trk_gen_cfg{};
+        // Visualization style to be applied to the svgs
+        detray::svgtools::styling::style m_style =
+            detray::svgtools::styling::tableau_colorblind;
 
         /// Getters
         /// @{
@@ -51,6 +56,7 @@ class helix_scan : public test::fixture_base<> {
         const trk_gen_config_t &track_generator() const {
             return m_trk_gen_cfg;
         }
+        const auto &svg_style() const { return m_style; }
         /// @}
 
         /// Setters
@@ -142,15 +148,31 @@ class helix_scan : public test::fixture_base<> {
 
             // Create a trace of the volume indices that were encountered
             // and check that portal intersections are connected
-            auto [portal_trace, surface_trace] =
+            auto [portal_trace, surface_trace, err_code] =
                 trace_intersections<leaving_world>(intersection_record,
                                                    start_index);
 
             // Is the succession of volumes consistent ?
-            ASSERT_TRUE(check_connectivity<leaving_world>(portal_trace))
-                << "\nFailed on helix " << n_tracks << "/"
-                << trk_state_generator.size() << "\n"
-                << helix;
+            err_code &= check_connectivity<leaving_world>(portal_trace);
+
+            // Display the detector, track and intersections for debugging
+            if (not err_code) {
+
+                // Creating the svg generator for the detector.
+                detray::svgtools::illustrator il{m_det, m_names,
+                                                 m_cfg.svg_style()};
+                il.show_info(true);
+                il.hide_portals(false);
+                il.hide_passives(false);
+
+                detail::svg_display(gctx, il, intersection_record, helix,
+                                    "helix", m_cfg.name());
+            }
+
+            // Is the succession of volumes consistent ?
+            ASSERT_TRUE(err_code) << "\nFailed on helix " << n_tracks << "/"
+                                  << trk_state_generator.size() << "\n"
+                                  << helix;
 
             ++n_tracks;
         }

@@ -17,6 +17,6 @@ target_include_directories( detray_validation
 target_link_libraries( detray_validation
    INTERFACE GTest::gtest GTest::gtest_main Boost::program_options
              vecmem::core covfie::core detray::test detray_tests_common
-             detray::io detray::utils detray::core_array )
+             detray::io detray::utils detray::core_array detray::svgtools )
 
 add_subdirectory( src )

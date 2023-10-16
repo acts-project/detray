@@ -31,17 +31,17 @@ inline auto landmark(const std::string& id,
     return actsvg::draw::marker(id, point_view, lm._marker);
 }
 
-/// @brief Converts a proto intersection record to a SVG object.
+/// @brief Converts a proto intersection to a SVG object.
 template <typename point3_t, typename view_t>
-inline auto intersection_record(
+inline auto intersection(
     const std::string& id,
-    const svgtools::meta::proto::intersection_record<point3_t>& ir,
+    const svgtools::meta::proto::intersection<point3_t>& intr,
     const view_t& view) {
     actsvg::svg::object ret;
     ret._tag = "g";
     ret._id = id;
-    for (size_t index = 0; index < ir._landmarks.size(); index++) {
-        const auto lm = ir._landmarks[index];
+    for (size_t index = 0; index < intr._landmarks.size(); index++) {
+        const auto lm = intr._landmarks[index];
         const auto svg = svgtools::meta::display::landmark(
             id + "_intersection" + std::to_string(index), lm, view);
         ret.add_object(svg);
