@@ -87,7 +87,7 @@ TEST(io, json_telescope_detector_reader) {
     tel_det_config<rectangle2D<>> tel_cfg{rec2};
     tel_cfg.positions(positions);
 
-    // Wire chamber
+    // Telescope detector
     vecmem::host_memory_resource host_mr;
     auto [telescope_det, telescope_names] =
         create_telescope_detector(host_mr, tel_cfg);
