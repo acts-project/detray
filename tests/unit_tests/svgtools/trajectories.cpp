@@ -31,9 +31,9 @@ int main(int, char**) {
     // However, for full control over the process, it is also possible to use
     // the tools in svgstools::conversion, svgstools::display, and
     // actsvg::display by converting the object to a proto object, optionally
-    // styling it, and then displaying it. 
-    
-    //Creating the axes.
+    // styling it, and then displaying it.
+
+    // Creating the axes.
     const auto axes =
         actsvg::draw::x_y_axes("axes", {-250, 250}, {-250, 250},
                                actsvg::style::stroke(), "axis1", "axis2");

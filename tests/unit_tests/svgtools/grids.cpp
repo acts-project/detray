@@ -43,14 +43,14 @@ int main(int, char**) {
     for (const auto i : indices) {
         std::string name = "volume" + std::to_string(i) + "_grid";
         // Draw the grid for volume i.
-        if (auto grid_svg_ptr = il.draw_grid(name, i, view)){
+        if (auto grid_svg_ptr = il.draw_grid(name, i, view)) {
             // Draw volume i.
             const auto volume_svg = il.draw_volume("volume", i, view);
             // Write volume i and its grid
-            // (the grid is last in the list since we want it to be displayed on top
-            // of the volume).
-            detray::svgtools::write_svg(name + ".svg", {volume_svg, *grid_svg_ptr});
+            // (the grid is last in the list since we want it to be displayed on
+            // top of the volume).
+            detray::svgtools::write_svg(name + ".svg",
+                                        {volume_svg, *grid_svg_ptr});
         }
-
     }
 }

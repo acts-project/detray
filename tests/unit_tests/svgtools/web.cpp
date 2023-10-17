@@ -69,8 +69,8 @@ int main(int, char**) {
     // Draw the grids and include them in the svg vector.
     for (const auto i : indices) {
         std::string name = "Grid_" + std::to_string(i);
-        if (auto svg_ptr = il.draw_grid(name, i, view)){
-        svgs.push_back(*svg_ptr);
+        if (auto svg_ptr = il.draw_grid(name, i, view)) {
+            svgs.push_back(*svg_ptr);
         }
     }
 

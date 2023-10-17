@@ -33,12 +33,15 @@
 
 namespace detray::svgtools {
 
-/// @brief SVG generator for a detector and related entities. Provides an easy interface for displaying typical objects in a detector. 
-/// For more flexibility, use the tools in svgtools::conversion to convert detray objects to their respective proto object. 
-/// Use functions in svgtools::meta::display and actsvg::display to display the proto objects.
-/// @note Avoid using ids containing spaces or dashes as this seems to cause issues (for instance regarding information boxes).
-/// Furthermore, to view information boxes, they must be enabled in the constructor.
-/// Furthermore the svg viewer (opening the file after it is created) must support animations.
+/// @brief SVG generator for a detector and related entities. Provides an easy
+/// interface for displaying typical objects in a detector. For more
+/// flexibility, use the tools in svgtools::conversion to convert detray objects
+/// to their respective proto object. Use functions in svgtools::meta::display
+/// and actsvg::display to display the proto objects.
+/// @note Avoid using ids containing spaces or dashes as this seems to cause
+/// issues (for instance regarding information boxes). Furthermore, to view
+/// information boxes, they must be enabled in the constructor. Furthermore the
+/// svg viewer (opening the file after it is created) must support animations.
 template <typename detector_t>
 class illustrator {
 
@@ -48,24 +51,23 @@ class illustrator {
     /// @param detector the detector
     /// @param context the geometry context
     /// @note information boxes are enabled by default
-    illustrator(const detector_t& detector,
-                const geometry_context& context)
+    illustrator(const detector_t& detector, const geometry_context& context)
         : _detector{detector}, _context{context} {}
 
     /// @param detector the detector
     /// @param context the geometry context
-    /// @param show_info boolean to choose if information boxes should be included
-    illustrator(const detector_t& detector,
-                const geometry_context& context,
+    /// @param show_info boolean to choose if information boxes should be
+    /// included
+    illustrator(const detector_t& detector, const geometry_context& context,
                 const bool show_info)
         : _detector{detector}, _context{context}, _show_info{show_info} {}
 
     /// @param detector the detector
     /// @param context the geometry context
-    /// @param show_info boolean to choose if information boxes should be included
+    /// @param show_info boolean to choose if information boxes should be
+    /// included
     /// @param style the styling options to apply
-    illustrator(const detector_t& detector,
-                const geometry_context& context,
+    illustrator(const detector_t& detector, const geometry_context& context,
                 const bool show_info, const styling::style& style)
         : _detector{detector},
           _context{context},
@@ -78,9 +80,9 @@ class illustrator {
     /// @param view the display view.
     /// @returns @c actsvg::svg::object of the detector's surface.
     template <typename view_t>
-    inline auto draw_surface(
-        const std::string& identification,
-        const std::size_t index, const view_t& view) const {
+    inline auto draw_surface(const std::string& identification,
+                             const std::size_t index,
+                             const view_t& view) const {
         const auto surface = detray::surface{
             _detector,
             _detector.surface_lookup()[static_cast<detray::dindex>(index)]};
@@ -126,14 +128,14 @@ class illustrator {
     /// @param view the display view.
     /// @returns @c actsvg::svg::object of the detector's surfaces.
     template <typename iterator_t, typename view_t>
-    inline auto draw_surfaces(
-        const std::string& identification,
-        const iterator_t& indices, const view_t& view) const {
+    inline auto draw_surfaces(const std::string& identification,
+                              const iterator_t& indices,
+                              const view_t& view) const {
         auto ret = svgtools::utils::group(identification);
         for (const auto index : indices) {
             const auto svg = draw_surface(
-                identification + "_surface" + std::to_string(index),
-                index, view);
+                identification + "_surface" + std::to_string(index), index,
+                view);
             ret.add_object(svg);
         }
         return ret;
@@ -145,10 +147,10 @@ class illustrator {
     /// @param view the display view.
     /// @returns @c actsvg::svg::object of the detector's volume.
     template <typename view_t>
-    inline auto draw_volume(
-        const std::string& identification,
-        const std::size_t index, const view_t& view) const {
-        const auto surface_indices = svgtools::utils::surface_indices(_detector, index);
+    inline auto draw_volume(const std::string& identification,
+                            const std::size_t index, const view_t& view) const {
+        const auto surface_indices =
+            svgtools::utils::surface_indices(_detector, index);
         return draw_surfaces(identification, surface_indices, view);
     }
 
@@ -160,9 +162,9 @@ class illustrator {
     /// @param view the display view.
     /// @returns @c actsvg::svg::object of the detector's volumes.
     template <typename iterator_t, typename view_t>
-    inline auto draw_volumes(
-        const std::string& identification,
-        const iterator_t& indices, const view_t& view) const {
+    inline auto draw_volumes(const std::string& identification,
+                             const iterator_t& indices,
+                             const view_t& view) const {
         auto ret = svgtools::utils::group(identification);
         for (const auto index : indices) {
             const auto svg =
@@ -178,9 +180,8 @@ class illustrator {
     /// @param view the display view.
     /// @returns @c actsvg::svg::object of the detector.
     template <typename view_t>
-    inline auto draw_detector(
-        const std::string& identification,
-        const view_t& view) const {
+    inline auto draw_detector(const std::string& identification,
+                              const view_t& view) const {
         auto indices =
             detray::views::iota(std::size_t{0u}, _detector.volumes().size());
         return draw_volumes(identification, indices, view);
@@ -192,15 +193,12 @@ class illustrator {
     /// @param view the display view.
     /// @return actsvg::svg::object of the point.
     template <typename view_t, typename point_t>
-    inline auto draw_landmark(
-        const std::string& identification,
-        const point_t&
-            point,
-        const view_t& view) const {
+    inline auto draw_landmark(const std::string& identification,
+                              const point_t& point, const view_t& view) const {
         auto p_landmark = svgtools::conversion::landmark<point3>(point);
         svgtools::styling::apply_style(p_landmark, _style._landmark_style);
-        return svgtools::meta::display::landmark(identification,
-                                                            p_landmark, view);
+        return svgtools::meta::display::landmark(identification, p_landmark,
+                                                 view);
     }
 
     /// @brief Converts an intersection record to an svg.
@@ -250,8 +248,7 @@ class illustrator {
     inline auto draw_trajectory(const std::string& identification,
                                 const point3_container& points,
                                 const view_t& view) const {
-        auto p_trajectory =
-            svgtools::conversion::trajectory<point3>(points);
+        auto p_trajectory = svgtools::conversion::trajectory<point3>(points);
         svgtools::styling::apply_style(p_trajectory, _style._trajectory_style);
         return svgtools::meta::display::trajectory(identification, p_trajectory,
                                                    view);
@@ -291,14 +288,16 @@ class illustrator {
     }
 
     template <typename view_t>
-    std::optional<actsvg::svg::object> draw_grid(const std::string& identification, const std::size_t index, const view_t& view) const{
-        if (auto p_grid_ptr = svgtools::conversion::grid<actsvg::scalar>(_detector, index, view)){
+    std::optional<actsvg::svg::object> draw_grid(
+        const std::string& identification, const std::size_t index,
+        const view_t& view) const {
+        if (auto p_grid_ptr = svgtools::conversion::grid<actsvg::scalar>(
+                _detector, index, view)) {
             svgtools::styling::apply_style(*p_grid_ptr, _style._grid_style);
             return actsvg::display::grid(identification, *p_grid_ptr);
         }
         return {};
     }
-
 
     private:
     using point3 = std::array<actsvg::scalar, 3>;

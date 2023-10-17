@@ -53,8 +53,8 @@ auto bin_edges(const detector_t& detector, const link_t& link) {
         .template visit<edge_getter<d_scalar_t, axis_label>>(link);
 }
 
-// Calculating r under the assumption that the cylinder grid is closed in phi: (bin_edge_min -
-// bin_edge_max) / (2*pi).
+// Calculating r under the assumption that the cylinder grid is closed in phi:
+// (bin_edge_min - bin_edge_max) / (2*pi).
 template <typename d_scalar_t>
 auto r_phi_split(const std::vector<d_scalar_t>& edges_rphi) {
     const auto r = edges_rphi.back() * detray::constant<d_scalar_t>::inv_pi;
@@ -136,8 +136,9 @@ auto get_type_and_axes(const detector_t& detector, const link_t& link,
 /// @param view the view
 /// @returns a proto grid
 template <typename a_scalar_t, typename detector_t, typename view_t>
-std::optional<actsvg::proto::grid> grid(const detector_t& detector, const std::size_t index,
-          const view_t& view) {
+std::optional<actsvg::proto::grid> grid(const detector_t& detector,
+                                        const std::size_t index,
+                                        const view_t& view) {
     using d_scalar_t = typename detector_t::scalar_type;
     using geo_object_ids = typename detector_t::geo_obj_ids;
     using accel_ids = typename detector_t::sf_finders::id;
