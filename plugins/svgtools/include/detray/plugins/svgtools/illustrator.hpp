@@ -28,6 +28,7 @@
 
 // System include(s)
 #include <array>
+#include <optional>
 #include <vector>
 
 namespace detray::svgtools {
@@ -290,10 +291,12 @@ class illustrator {
     }
 
     template <typename view_t>
-    auto draw_grid(const std::string& identification, const std::size_t index, const view_t& view) const{
-        auto p_grid = svgtools::conversion::grid<actsvg::scalar>(_detector, index, view);
-        svgtools::styling::apply_style(p_grid, _style._grid_style);
-        return actsvg::display::grid(identification, p_grid);
+    std::optional<actsvg::svg::object> draw_grid(const std::string& identification, const std::size_t index, const view_t& view) const{
+        if (auto p_grid_ptr = svgtools::conversion::grid<actsvg::scalar>(_detector, index, view)){
+            svgtools::styling::apply_style(*p_grid_ptr, _style._grid_style);
+            return actsvg::display::grid(identification, *p_grid_ptr);
+        }
+        return {};
     }
 
 

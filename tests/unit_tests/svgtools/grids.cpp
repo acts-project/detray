@@ -23,9 +23,9 @@ int main(int, char**) {
     // styling it, and then displaying it.
 
     // Creating the detector and geomentry context.
-    using detector_t = detray::detector<detray::toy_metadata>;
     vecmem::host_memory_resource host_mr;
     const auto [det, names] = detray::create_toy_geometry(host_mr);
+    using detector_t = decltype(det);
     detector_t::geometry_context context{};
 
     // Creating the view.
@@ -43,12 +43,14 @@ int main(int, char**) {
     for (const auto i : indices) {
         std::string name = "volume" + std::to_string(i) + "_grid";
         // Draw the grid for volume i.
-        const auto grid_svg = il.draw_grid(name, i, view);
-        // Draw volume i.
-        const auto volume_svg = il.draw_volume("volume", i, view);
-        // Write volume i and its grid
-        // (the grid is last in the list since we want it to be displayed on top
-        // of the volume).
-        detray::svgtools::write_svg(name + ".svg", {volume_svg, grid_svg});
+        if (auto grid_svg_ptr = il.draw_grid(name, i, view)){
+            // Draw volume i.
+            const auto volume_svg = il.draw_volume("volume", i, view);
+            // Write volume i and its grid
+            // (the grid is last in the list since we want it to be displayed on top
+            // of the volume).
+            detray::svgtools::write_svg(name + ".svg", {volume_svg, *grid_svg_ptr});
+        }
+
     }
 }

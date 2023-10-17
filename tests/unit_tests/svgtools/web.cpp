@@ -40,9 +40,9 @@ int main(int, char**) {
     const actsvg::views::x_y view;
 
     // Creating the detector and geomentry context.
-    using detector_t = detray::detector<detray::toy_metadata<>>;
     vecmem::host_memory_resource host_mr;
-    const auto [det, names] = detray::create_toy_geometry(host_mr, 4, 3);
+    const auto [det, names] = detray::create_toy_geometry(host_mr);
+    using detector_t = decltype(det);
     detector_t::geometry_context context{};
 
     using transform3_t = typename detector_t::transform3;
@@ -68,12 +68,10 @@ int main(int, char**) {
 
     // Draw the grids and include them in the svg vector.
     for (const auto i : indices) {
-        if (i % 2 == 0) {
-            continue;
-        }
         std::string name = "Grid_" + std::to_string(i);
-        const auto svg = il.draw_grid(name, i, view);
-        svgs.push_back(svg);
+        if (auto svg_ptr = il.draw_grid(name, i, view)){
+        svgs.push_back(*svg_ptr);
+        }
     }
 
     // Draw some example trajectories and include them in the svg vector (along
@@ -82,7 +80,7 @@ int main(int, char**) {
         std::string name = "Helix_qop_" + std::to_string(qop) + ")";
 
         const typename detector_t::point3 ori{0.f, 0.f, 80.f};
-        const typename detector_t::point3 dir{0, 1, 1};
+        const typename detector_t::point3 dir{0.f, 1.f, 1.f};
 
         // Create the helix trajectory.
         // Constant magnetic field

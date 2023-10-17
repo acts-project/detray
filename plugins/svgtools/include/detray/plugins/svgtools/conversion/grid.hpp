@@ -17,6 +17,8 @@
 
 // System include(s)
 #include <algorithm>
+#include <optional>
+#include <string>
 #include <vector>
 
 namespace detray::svgtools::conversion {
@@ -51,14 +53,11 @@ auto bin_edges(const detector_t& detector, const link_t& link) {
         .template visit<edge_getter<d_scalar_t, axis_label>>(link);
 }
 
-// Calculating r under the assumption that for edges_rphi then (bin_edge_min -
+// Calculating r under the assumption that the cylinder grid is closed in phi: (bin_edge_min -
 // bin_edge_max) / (2*pi).
 template <typename d_scalar_t>
 auto r_phi_split(const std::vector<d_scalar_t>& edges_rphi) {
-    d_scalar_t pi2 = (2.f * detray::constant<d_scalar_t>().pi);
-    const auto [min, max] =
-        std::minmax_element(edges_rphi.cbegin(), edges_rphi.cend());
-    auto r = (*max - *min) / pi2;
+    const auto r = edges_rphi.back() * detray::constant<d_scalar_t>::inv_pi;
     std::vector<d_scalar_t> edges_phi;
     std::transform(edges_rphi.cbegin(), edges_rphi.cend(),
                    std::back_inserter(edges_phi),
@@ -71,7 +70,7 @@ auto r_phi_split(const std::vector<d_scalar_t>& edges_rphi) {
 template <typename detector_t, typename link_t, typename view_t>
 auto cylinder2_grid_type_and_edges(const detector_t& detector,
                                    const link_t& link, const view_t&) {
-
+    assert(link.id() == detector_t::sf_finders::id::e_cylinder2_grid);
     auto edges_rphi = bin_edges<detray::n_axis::label::e_rphi>(detector, link);
     auto edges_z = bin_edges<detray::n_axis::label::e_cyl_z>(detector, link);
     auto [edges_phi, r] = r_phi_split(edges_rphi);
@@ -98,7 +97,7 @@ auto cylinder2_grid_type_and_edges(const detector_t& detector,
 template <typename detector_t, typename link_t, typename view_t>
 auto disc_grid_type_and_edges(const detector_t& detector, const link_t& link,
                               const view_t&) {
-
+    assert(link.id() == detector_t::sf_finders::id::e_disc_grid);
     auto edges_r = bin_edges<detray::n_axis::label::e_r>(detector, link);
     auto edges_phi = bin_edges<detray::n_axis::label::e_phi>(detector, link);
 
@@ -110,7 +109,7 @@ auto disc_grid_type_and_edges(const detector_t& detector, const link_t& link,
                       std::vector<scalar_t>{});
 }
 
-/// @return retunrs the detray grids respective actsvg grid type and edge
+/// @return returns the detray grids respective actsvg grid type and edge
 /// values.
 template <typename accel_ids_t, typename detector_t, typename link_t,
           typename view_t>
@@ -137,7 +136,7 @@ auto get_type_and_axes(const detector_t& detector, const link_t& link,
 /// @param view the view
 /// @returns a proto grid
 template <typename a_scalar_t, typename detector_t, typename view_t>
-auto grid(const detector_t& detector, const std::size_t index,
+std::optional<actsvg::proto::grid> grid(const detector_t& detector, const std::size_t index,
           const view_t& view) {
     using d_scalar_t = typename detector_t::scalar_type;
     using geo_object_ids = typename detector_t::geo_obj_ids;
@@ -157,8 +156,9 @@ auto grid(const detector_t& detector, const std::size_t index,
         std::transform(edges1.cbegin(), edges1.cend(),
                        std::back_inserter(p_grid._edges_1),
                        [](d_scalar_t v) { return static_cast<a_scalar_t>(v); });
+        return p_grid;
     }
-    return p_grid;
+    return {};
 }
 
 }  // namespace detray::svgtools::conversion

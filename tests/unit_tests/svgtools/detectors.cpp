@@ -36,10 +36,10 @@ int main(int, char**) {
     const actsvg::views::z_r zr;
 
     // Creating the detector and geomentry context.
-    using toy_detector_t = detray::detector<detray::toy_metadata>;
     vecmem::host_memory_resource host_mr;
     const auto [det, names] = detray::create_toy_geometry(host_mr);
-    toy_detector_t::geometry_context context{};
+    using detector_t = decltype(det);
+    detector_t::geometry_context context{};
 
     // Creating the svg generator for the detector.
     detray::svgtools::illustrator il{det, context};
