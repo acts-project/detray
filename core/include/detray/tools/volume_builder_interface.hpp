@@ -71,28 +71,12 @@ class volume_builder_interface {
         const typename detector_t::vector3 &x,
         const typename detector_t::vector3 &z) = 0;
 
-    /// @brief Add the portals to the volume.
-    /// @returns the index range of the portals in the temporary surface
-    /// container used by the factory ( gets final update in @c build() )
-    DETRAY_HOST
-    virtual void add_portals(
-        std::shared_ptr<surface_factory_interface<detector_t>> pt_factory,
-        typename detector_t::geometry_context ctx = {}) = 0;
-
-    /// @brief Add sensitive surfaces to the volume, if any
+    /// @brief Add surfaces to the volume
     /// @returns the index range of the sensitives in the temporary surface
     /// container used by the factory ( gets final update in @c build() )
     DETRAY_HOST
-    virtual void add_sensitives(
+    virtual void add_surfaces(
         std::shared_ptr<surface_factory_interface<detector_t>> sf_factory,
-        typename detector_t::geometry_context ctx = {}) = 0;
-
-    /// @brief Add passive surfaces to the volume, if any
-    /// @returns the index range of the passives in the temporary surface
-    /// container used by the factory ( gets final update in @c build() )
-    DETRAY_HOST
-    virtual void add_passives(
-        std::shared_ptr<surface_factory_interface<detector_t>> ps_factory,
         typename detector_t::geometry_context ctx = {}) = 0;
 
     protected:
@@ -161,24 +145,10 @@ class volume_decorator : public volume_builder_interface<detector_t> {
     }
 
     DETRAY_HOST
-    void add_portals(
-        std::shared_ptr<surface_factory_interface<detector_t>> pt_factory,
-        typename detector_t::geometry_context ctx = {}) override {
-        return m_builder->add_portals(std::move(pt_factory), ctx);
-    }
-
-    DETRAY_HOST
-    void add_sensitives(
+    void add_surfaces(
         std::shared_ptr<surface_factory_interface<detector_t>> sf_factory,
         typename detector_t::geometry_context ctx = {}) override {
-        return m_builder->add_sensitives(std::move(sf_factory), ctx);
-    }
-
-    DETRAY_HOST
-    void add_passives(
-        std::shared_ptr<surface_factory_interface<detector_t>> ps_factory,
-        typename detector_t::geometry_context ctx = {}) override {
-        return m_builder->add_passives(std::move(ps_factory), ctx);
+        return m_builder->add_surfaces(std::move(sf_factory), ctx);
     }
     /// @}
 

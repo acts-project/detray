@@ -26,16 +26,11 @@
 
 namespace std {
 
-// Specialize std::hash so this pair can be used as key in e.g. a map
+// Specialize std::hash directly to the shape id type
 template <>
-struct hash<std::pair<detray::surface_id, detray::io::detail::mask_shape>> {
-    auto operator()(
-        std::pair<detray::surface_id, detray::io::detail::mask_shape> p)
-        const noexcept {
-        // Calculate a hash from both numbers and avoid collisions
-        return std::hash<std::size_t>()(static_cast<std::size_t>(p.first)) +
-               1000u *
-                   std::hash<std::size_t>()(static_cast<std::size_t>(p.second));
+struct hash<detray::io::detail::mask_shape> {
+    auto operator()(detray::io::detail::mask_shape m) const noexcept {
+        return std::hash<std::size_t>()(static_cast<std::size_t>(m));
     }
 };
 
@@ -76,8 +71,6 @@ class geometry_reader : public reader_interface<detector_t> {
         typename detector_t::name_map& name_map,
         const detector_payload& det_data) {
 
-        // @todo Add volume grid
-
         // Deserialize the volumes one-by-one
         for (const auto& vol_data : det_data.volumes) {
             // Get a generic volume builder first and decorate it later
@@ -87,49 +80,44 @@ class geometry_reader : public reader_interface<detector_t> {
             // Set the volume name
             name_map[vbuilder->vol_index() + 1u] = vol_data.name;
 
-            // @todo add the volume placement, once it can be checked for the
-            // test detectors
+            // Volume placement
+            vbuilder->add_volume_placement(deserialize(vol_data.transform));
 
             // Prepare the surface factories (one per shape and surface type)
-            std::map<std::pair<surface_id, mask_shape>, sf_factory_ptr_t>
-                sf_factories;
+            std::map<mask_shape, sf_factory_ptr_t> pt_factories, sf_factories;
 
             // Add the surfaces to the factories
             for (const auto& sf_data : vol_data.surfaces) {
 
                 const mask_payload& mask_data = sf_data.mask;
 
+                // Get a reference to the correct factory colleciton
+                auto& factories{sf_data.type == surface_id::e_portal
+                                    ? pt_factories
+                                    : sf_factories};
+
                 // Check if a fitting factory already exists. If not, add it
                 // dynamically
-                const auto key = std::make_pair(sf_data.type, mask_data.shape);
-                if (auto search = sf_factories.find(key);
-                    search == sf_factories.end()) {
-                    sf_factories[key] =
+                const auto key{mask_data.shape};
+                if (auto search = factories.find(key);
+                    search == factories.end()) {
+                    factories[key] =
                         std::move(init_factory<mask_shape::n_shapes>(
                             mask_data.shape, sf_data.type));
                 }
 
                 // Add the data to the factory
-                sf_factories.at(key)->push_back(deserialize(sf_data));
+                factories.at(key)->push_back(deserialize(sf_data));
             }
 
-            // Add the surfaces to the volume
+            // Add the portals to the volume first
             typename detector_t::geometry_context geo_ctx{};
-            for (auto [key, sf_factory_ptr] : sf_factories) {
-                // Sort the surfaces into the volume builder by type
-                switch (sf_factory_ptr->surface_type()) {
-                    case surface_id::e_portal:
-                        vbuilder->add_portals(sf_factory_ptr, geo_ctx);
-                        break;
-                    case surface_id::e_sensitive:
-                        vbuilder->add_sensitives(sf_factory_ptr, geo_ctx);
-                        break;
-                    case surface_id::e_passive:
-                        vbuilder->add_passives(sf_factory_ptr, geo_ctx);
-                        break;
-                    case surface_id::e_unknown:
-                        break;
-                };
+            for (auto [key, pt_factory] : pt_factories) {
+                vbuilder->add_surfaces(pt_factory, geo_ctx);
+            }
+            // Add all other surfaces next
+            for (auto [key, sf_factory] : sf_factories) {
+                vbuilder->add_surfaces(sf_factory, geo_ctx);
             }
         }
 
@@ -172,10 +160,14 @@ class geometry_reader : public reader_interface<detector_t> {
                   sf_data.mask.boundaries.end(),
                   std::back_inserter(mask_boundaries));
 
-        return {deserialize(sf_data.transform),
+        const std::size_t sf_idx{sf_data.index_in_coll.has_value()
+                                     ? *(sf_data.index_in_coll)
+                                     : detail::invalid_value<std::size_t>()};
+
+        return {sf_data.type, deserialize(sf_data.transform),
                 static_cast<nav_link_t>(
                     base_type::deserialize(sf_data.mask.volume_link)),
-                std::move(mask_boundaries)};
+                std::move(mask_boundaries), static_cast<dindex>(sf_idx)};
     }
 
     private:
@@ -192,31 +184,10 @@ class geometry_reader : public reader_interface<detector_t> {
             // detector
             using mask_info_t = mask_info<I>;
             using shape_t = typename mask_info_t::type;
-            [[maybe_unused]] constexpr auto mask_id{mask_info_t::value};
 
             // Test wether this shape exists in detector
             if constexpr (not std::is_same_v<shape_t, void>) {
-                // Get the correct factory for the type of surface
-                switch (sf_type) {
-                    case surface_id::e_portal:
-                        using pt_factory_t =
-                            surface_factory<detector_t, shape_t, mask_id,
-                                            surface_id::e_portal>;
-                        return std::make_shared<pt_factory_t>();
-                    case surface_id::e_sensitive:
-                        using sf_factory_t =
-                            surface_factory<detector_t, shape_t, mask_id,
-                                            surface_id::e_sensitive>;
-                        return std::make_shared<sf_factory_t>();
-                    case surface_id::e_passive:
-                        using ps_factory_t =
-                            surface_factory<detector_t, shape_t, mask_id,
-                                            surface_id::e_passive>;
-                        return std::make_shared<ps_factory_t>();
-                    case surface_id::e_unknown:
-                        throw std::runtime_error(
-                            "Unknown surface type in geometry file");
-                };
+                return std::make_shared<surface_factory<detector_t, shape_t>>();
             }
         }
         // Test next shape id
@@ -227,10 +198,11 @@ class geometry_reader : public reader_interface<detector_t> {
         }
         // Test some edge cases
         if (shape_id == mask_shape::unknown) {
-            throw std::runtime_error("Unknown mask shape in geometry file!");
+            throw std::invalid_argument(
+                "Unknown mask shape id in geometry file!");
         } else {
-            throw std::runtime_error(
-                "Given mask type could not be matched: " +
+            throw std::invalid_argument(
+                "Given shape id could not be matched to a mask type: " +
                 std::to_string(static_cast<std::int64_t>(shape_id)));
 
             // Cannot be reached

@@ -11,6 +11,7 @@
 #include "detray/core/detail/container_buffers.hpp"
 #include "detray/core/detail/container_views.hpp"
 #include "detray/definitions/containers.hpp"
+#include "detray/definitions/detail/algorithms.hpp"
 #include "detray/definitions/indexing.hpp"
 #include "detray/definitions/qualifiers.hpp"
 #include "detray/utils/ranges.hpp"
@@ -118,6 +119,12 @@ class brute_force_collection {
         : m_offsets(detail::get<0>(view.m_view)),
           m_surfaces(detail::get<1>(view.m_view)) {}
 
+    /// @returns access to the volume offsets - const
+    DETRAY_HOST const auto& offsets() const { return m_offsets; }
+
+    /// @returns access to the volume offsets
+    DETRAY_HOST auto& offsets() { return m_offsets; }
+
     /// @returns number of surface collections (at least on per volume) - const
     DETRAY_HOST_DEVICE
     constexpr auto size() const noexcept -> size_type {
@@ -159,6 +166,23 @@ class brute_force_collection {
         m_surfaces.insert(m_surfaces.end(), surfaces.begin(), surfaces.end());
         // End of this range is the start of the next range
         m_offsets.push_back(static_cast<dindex>(m_surfaces.size()));
+    }
+
+    /// Remove surface from collection
+    DETRAY_HOST auto erase(
+        typename vector_type<surface_t>::iterator pos) noexcept(false) {
+        // Remove one element
+        auto next = m_surfaces.erase(pos);
+
+        // Update the upper bound of the range and all following ranges
+        const auto idx{static_cast<std::size_t>(pos - m_surfaces.begin())};
+        auto offset =
+            detail::upper_bound(m_offsets.begin(), m_offsets.end(), idx);
+        for (auto itr = offset; itr != m_offsets.end(); ++itr) {
+            --(*itr);
+        }
+
+        return next;
     }
 
     /// @return the view on the brute force finders - non-const

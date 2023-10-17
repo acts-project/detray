@@ -164,9 +164,14 @@ class single_store {
         m_container.clear();
     }
 
-    /// Reserve memory of size @param n for a collection given by @tparam id
+    /// Reserve memory of size @param n for a given geometry context
     DETRAY_HOST void reserve(std::size_t n, const context_type & /*ctx*/) {
         m_container.reserve(n);
+    }
+
+    /// Resize the underlying container to @param n for a given geometry context
+    DETRAY_HOST void resize(std::size_t n, const context_type & /*ctx*/) {
+        m_container.resize(n);
     }
 
     /// Add a new element to the collection - copy

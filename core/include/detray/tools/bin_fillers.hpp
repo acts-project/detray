@@ -69,10 +69,13 @@ struct fill_by_pos {
         // Fill the volumes surfaces into the grid
         for (const auto [idx, sf] : detray::views::enumerate(surfaces)) {
             // no portals in grids allowed
-            assert(not sf.is_portal());
+            if (not sf.is_sensitive() or sf.volume() != vol.index()) {
+                continue;
+            }
 
-            const auto &sf_trf = transforms.at(idx, ctx);
+            const auto &sf_trf = transforms.at(sf.transform(), ctx);
             const auto &t = sf_trf.translation();
+
             // transform to axis coordinate system
             const auto loc_pos = grid.global_to_local(vol.transform(), t, t);
 

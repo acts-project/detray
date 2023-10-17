@@ -32,10 +32,11 @@ namespace detray {
 ///
 /// @note The resulting writer types will fulfill @c writer_interface through
 /// the common writers they are being extended with
-template <class detector_t, template <class> class common_writer_t>
-class json_writer final : public common_writer_t<detector_t> {
+template <class detector_t, template <typename...> class common_writer_t,
+          typename... Args>
+class json_writer final : public common_writer_t<detector_t, Args...> {
 
-    using base_writer = common_writer_t<detector_t>;
+    using base_writer = common_writer_t<detector_t, Args...>;
 
     public:
     /// File gets created with the json file extension
@@ -88,7 +89,8 @@ using json_homogeneous_material_writer =
     json_writer<detector_t, homogeneous_material_writer>;
 
 /// Write the detector grid collections to file in json format
-template <typename detector_t>
-using json_grid_writer = json_writer<detector_t, grid_writer>;
+template <typename detector_t,
+          typename value_t = typename detector_t::surface_type>
+using json_grid_writer = json_writer<detector_t, grid_writer, value_t>;
 
 }  // namespace detray

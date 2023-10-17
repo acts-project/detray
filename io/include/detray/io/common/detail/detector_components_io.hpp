@@ -41,12 +41,12 @@ class detector_component_writers final {
     detector_component_writers() = default;
 
     /// Create a new writer of type @tparam writer_t
-    template <template <typename> class writer_t,
+    template <template <typename...> class writer_t, typename... Args,
               std::enable_if_t<std::is_base_of_v<writer_interface<detector_t>,
-                                                 writer_t<detector_t>>,
+                                                 writer_t<detector_t, Args...>>,
                                bool> = true>
     void add() {
-        add(std::make_unique<writer_t<detector_t>>());
+        add(std::make_unique<writer_t<detector_t, Args...>>());
     }
 
     /// Attach an existing writer via @param w_ptr to the writers
@@ -92,12 +92,12 @@ class detector_component_readers final {
     detector_component_readers() = default;
 
     /// Create a new reader of type @tparam reader_t
-    template <template <typename> class reader_t,
+    template <template <typename...> class reader_t, typename... Args,
               std::enable_if_t<std::is_base_of_v<reader_interface<detector_t>,
-                                                 reader_t<detector_t>>,
+                                                 reader_t<detector_t, Args...>>,
                                bool> = true>
     void add(const std::string& file_name) {
-        add(std::make_unique<reader_t<detector_t>>(), file_name);
+        add(std::make_unique<reader_t<detector_t, Args...>>(), file_name);
     }
 
     /// Attach an existing reader via @param w_ptr to the readers

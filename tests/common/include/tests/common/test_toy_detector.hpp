@@ -37,7 +37,8 @@ inline void test_finder(const acc_t& finder, const dindex volume_index,
 
     std::vector<dindex> indices;
 
-    // Check if right volume is linked to surface in grid
+    // Check if the correct volume is linked to surface in grid
+    // and record the surface indices
     for (const auto& sf : finder.all()) {
         EXPECT_EQ(sf.volume(), volume_index);
         indices.push_back(sf.index());
@@ -51,13 +52,12 @@ inline void test_finder(const acc_t& finder, const dindex volume_index,
     }
 }
 
+template <typename bfield_t>
 inline bool test_toy_detector(
-    const detector<toy_metadata, covfie::field<bfield::const_bknd_t>>& toy_det,
-    const detector<toy_metadata, covfie::field<bfield::const_bknd_t>>::name_map&
-        names) {
+    const detector<toy_metadata, bfield_t>& toy_det,
+    const typename detector<toy_metadata, bfield_t>::name_map& names) {
 
-    using detector_t =
-        detector<toy_metadata, covfie::field<bfield::const_bknd_t>>;
+    using detector_t = detector<toy_metadata, bfield_t>;
     using geo_obj_ids = typename detector_t::geo_obj_ids;
     using volume_t = typename detector_t::volume_type;
     using nav_link_t = typename detector_t::surface_type::navigation_link;
@@ -93,25 +93,27 @@ inline bool test_toy_detector(
     // Link to outer world (leaving detector)
     constexpr auto leaving_world{detail::invalid_value<nav_link_t>()};
     const bool has_grids =
-        (sf_finders.size<sf_finder_ids::e_cylinder2_grid>() != 0u) ||
-        (sf_finders.size<sf_finder_ids::e_disc_grid>() != 0u);
-    const bool has_material = (materials.size<material_ids::e_slab>() != 0);
+        (sf_finders.template size<sf_finder_ids::e_cylinder2_grid>() != 0u) ||
+        (sf_finders.template size<sf_finder_ids::e_disc_grid>() != 0u);
+    const bool has_material =
+        (materials.template size<material_ids::e_slab>() != 0);
 
     // Check number of geomtery objects
     EXPECT_EQ(volumes.size(), 20u);
     EXPECT_EQ(toy_det.n_surfaces(), 3244u);
     EXPECT_EQ(transforms.size(ctx), 3264u);
-    EXPECT_EQ(masks.size<mask_ids::e_rectangle2>(), 2492u);
-    EXPECT_EQ(masks.size<mask_ids::e_trapezoid2>(), 648u);
-    EXPECT_EQ(masks.size<mask_ids::e_portal_cylinder2>(), 52u);
-    EXPECT_EQ(masks.size<mask_ids::e_portal_ring2>(), 52u);
-    EXPECT_EQ(sf_finders.size<sf_finder_ids::e_brute_force>(), 20u);
+    EXPECT_EQ(masks.template size<mask_ids::e_rectangle2>(), 2492u);
+    EXPECT_EQ(masks.template size<mask_ids::e_trapezoid2>(), 648u);
+    EXPECT_EQ(masks.template size<mask_ids::e_portal_cylinder2>(), 52u);
+    EXPECT_EQ(masks.template size<mask_ids::e_portal_ring2>(), 52u);
+    EXPECT_EQ(sf_finders.template size<sf_finder_ids::e_brute_force>(), 20u);
     if (has_grids) {
-        EXPECT_EQ(sf_finders.size<sf_finder_ids::e_cylinder2_grid>(), 4);
-        EXPECT_EQ(sf_finders.size<sf_finder_ids::e_disc_grid>(), 6);
+        EXPECT_EQ(sf_finders.template size<sf_finder_ids::e_cylinder2_grid>(),
+                  4);
+        EXPECT_EQ(sf_finders.template size<sf_finder_ids::e_disc_grid>(), 6);
     }
     if (has_material) {
-        EXPECT_EQ(materials.size<material_ids::e_slab>(), 3244u);
+        EXPECT_EQ(materials.template size<material_ids::e_slab>(), 3244u);
     }
 
     /** Test the links of a volume.
@@ -164,7 +166,7 @@ inline bool test_toy_detector(
                 if (has_material) {
                     EXPECT_EQ(sf_itr->material(), material_index);
                     EXPECT_EQ(
-                        materials.get<
+                        materials.template get<
                             material_ids::e_slab>()[sf_itr->material().index()],
                         mat);
                 }
@@ -206,7 +208,7 @@ inline bool test_toy_detector(
                 if (has_material) {
                     EXPECT_EQ(sf_itr->material(), material_index);
                     EXPECT_EQ(
-                        materials.get<
+                        materials.template get<
                             material_ids::e_slab>()[sf_itr->material().index()],
                         mat);
                 }
@@ -223,7 +225,7 @@ inline bool test_toy_detector(
     /// @param vol_itr iterator over the volume descriptors
     /// @param sf_finder_store the detectors acceleration data structure store
     /// @param pt_range index range of the portals in the surface lookup
-    /// @param sf_range index range of the portals in the surface lookup
+    /// @param sf_range index range of the surfaces in the surface lookup
     auto test_sf_finders =
         [has_grids](
             decltype(volumes.begin())& vol_itr,
@@ -234,9 +236,8 @@ inline bool test_toy_detector(
             const auto& link = vol_itr->full_link();
 
             // Test the portal search
-            const auto& bf_finder =
-                sf_finder_store
-                    .get<sf_finder_ids::e_brute_force>()[link[0].index()];
+            const auto& bf_finder = sf_finder_store.template get<
+                sf_finder_ids::e_brute_force>()[link[0].index()];
 
             // This means no grids, all surfaces are in the brute force method
             if (not has_grids) {
@@ -249,11 +250,11 @@ inline bool test_toy_detector(
                 // Test the module search if grids were filled
                 if (not link[1].is_invalid()) {
                     if (link[1].id() == sf_finder_ids::e_cylinder2_grid) {
-                        const auto& cyl_grid = sf_finder_store.get<
+                        const auto& cyl_grid = sf_finder_store.template get<
                             sf_finder_ids::e_cylinder2_grid>()[link[1].index()];
                         test_finder(cyl_grid, vol_itr->index(), sf_range);
                     } else {
-                        const auto& disc_grid = sf_finder_store.get<
+                        const auto& disc_grid = sf_finder_store.template get<
                             sf_finder_ids::e_disc_grid>()[link[1].index()];
                         test_finder(disc_grid, vol_itr->index(), sf_range);
                     }

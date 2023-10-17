@@ -29,9 +29,10 @@ namespace detray {
 /// @brief Provides functionality to build a detray detector volume by volume
 ///
 /// @tparam metadata the type definitions for the detector
+/// @tparam bfield_bknd_t the type of magnetic field to be used
 /// @tparam volume_builder_t the basic volume builder to be used for the
 ///                          geometry data
-/// @tparam volume_data_t the data structure that hold the volume builders
+/// @tparam volume_data_t the data structure that holds the volume builders
 template <typename metadata = default_metadata,
           typename bfield_bknd_t = bfield::const_bknd_t,
           template <typename> class volume_builder_t = volume_builder,
@@ -59,12 +60,12 @@ class detector_builder {
 
     /// Decorate a volume builder at position @param volume_idx with more
     /// functionality
-    template <template <typename> class builder_t>
+    template <class builder_t>
     DETRAY_HOST auto decorate(dindex volume_idx)
         -> volume_builder_interface<detector_type>* {
 
-        m_volumes[volume_idx] = std::make_unique<builder_t<detector_type>>(
-            std::move(m_volumes[volume_idx]));
+        m_volumes[volume_idx] =
+            std::make_unique<builder_t>(std::move(m_volumes[volume_idx]));
 
         return m_volumes[volume_idx].get();
     }
@@ -96,7 +97,6 @@ class detector_builder {
     }
 
     /// Assembles the detector, without a magnetic field
-    // TODO: Remove, won't work for non-constant bfields
     DETRAY_HOST
     void set_bfield(typename detector_type::bfield_type&& field) {
         m_bfield = std::forward<typename detector_type::bfield_type>(field);

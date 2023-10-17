@@ -43,7 +43,6 @@ GTEST_TEST(detray_tools, particle_gun) {
 
     unsigned int theta_steps{50u};
     unsigned int phi_steps{50u};
-    const point3 ori{0.f, 0.f, 0.f};
 
     // Record ray tracing
     using detector_t = decltype(toy_det);
@@ -52,8 +51,8 @@ GTEST_TEST(detray_tools, particle_gun) {
     std::vector<std::vector<std::pair<dindex, intersection_t>>> expected;
     //  Iterate through uniformly distributed momentum directions with ray
     for (const auto test_ray :
-         uniform_track_generator<detail::ray<transform3_type>>(
-             theta_steps, phi_steps, ori)) {
+         uniform_track_generator<detail::ray<transform3_type>>(phi_steps,
+                                                               theta_steps)) {
 
         // Record all intersections and objects along the ray
         const auto intersection_record =
@@ -66,7 +65,7 @@ GTEST_TEST(detray_tools, particle_gun) {
     std::size_t n_tracks{0u};
     for (const auto track :
          uniform_track_generator<free_track_parameters<transform3_type>>(
-             theta_steps, phi_steps, ori)) {
+             phi_steps, theta_steps)) {
         const detail::helix test_helix(track, &B);
 
         // Record all intersections and objects along the ray

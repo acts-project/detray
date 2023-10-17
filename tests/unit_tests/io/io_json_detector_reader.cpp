@@ -7,6 +7,7 @@
 
 // Project include(s)
 #include "detray/definitions/algebra.hpp"
+#include "detray/detectors/create_telescope_detector.hpp"
 #include "detray/detectors/create_toy_geometry.hpp"
 #include "detray/detectors/create_wire_chamber.hpp"
 #include "detray/io/common/detector_reader.hpp"
@@ -23,9 +24,112 @@
 #include <gtest/gtest.h>
 
 // System include(s)
+#include <filesystem>
 #include <ios>
 
 using namespace detray;
+
+namespace {
+
+/// Compare two files with names @param file_name1 and @param file_name2 for
+/// equality, while skipping the first @param skip lines (header part)
+bool compare_files(const std::string& file_name1, const std::string& file_name2,
+                   std::size_t skip = 15u) {
+    auto file1 = io::detail::file_handle(
+        file_name1, std::ios_base::in | std::ios_base::binary);
+    auto file2 = io::detail::file_handle(
+        file_name2, std::ios_base::in | std::ios_base::binary);
+
+    std::string line1, line2;
+
+    // Check files line by line
+    std::size_t i{1u};
+    while (std::getline(*file1, line1)) {
+        if (std::getline(*file2, line2)) {
+            if (skip < i and line1 != line2) {
+                std::cout << "In line " << i << ":" << std::endl
+                          << line1 << std::endl
+                          << line2 << std::endl;
+                return false;
+            }
+        } else {
+            std::cout << "Could not read next line from file 2:" << std::endl
+                      << "In line " << i << ":" << std::endl
+                      << line1 << std::endl;
+            return false;
+        }
+        ++i;
+    }
+
+    // Are there more lines in file2 than file1?
+    if (std::getline(*file2, line2)) {
+        std::cout << "Could not read next line from file 1:" << std::endl
+                  << "In line " << i << ":" << std::endl
+                  << line2 << std::endl;
+        return false;
+    }
+
+    // Passed
+    return true;
+}
+
+}  // anonymous namespace
+
+/// Test the reading and writing of a telescope detector
+TEST(io, json_telescope_detector_reader) {
+
+    mask<rectangle2D<>> rec2{0u, 100.f, 100.f};
+
+    // Surface positions
+    std::vector<scalar> positions = {1.f,   50.f,  100.f, 150.f, 200.f, 250.f,
+                                     300.f, 350.f, 400.f, 450.f, 500.f};
+
+    tel_det_config<rectangle2D<>> tel_cfg{rec2};
+    tel_cfg.positions(positions);
+
+    // Wire chamber
+    vecmem::host_memory_resource host_mr;
+    auto [telescope_det, telescope_names] =
+        create_telescope_detector(host_mr, tel_cfg);
+
+    using detector_t = decltype(telescope_det);
+
+    auto writer_cfg = io::detector_writer_config{}
+                          .format(io::format::json)
+                          .write_grids(false)
+                          .replace_files(true);
+    io::write_detector(telescope_det, telescope_names, writer_cfg);
+
+    // Read the detector back in
+    io::detector_reader_config reader_cfg{};
+    reader_cfg.do_check(true)
+        .add_file("telescope_detector_geometry.json")
+        .add_file("telescope_detector_homogeneous_material.json");
+
+    const auto [det, names] =
+        io::read_detector<detector_t>(host_mr, reader_cfg);
+
+    const auto mat_store = det.material_store();
+    const auto slabs = mat_store.get<detector_t::materials::id::e_slab>();
+
+    EXPECT_EQ(det.volumes().size(), 1u);
+    EXPECT_EQ(slabs.size(), positions.size() + 6u);
+
+    // Write the result to a different set of files
+    writer_cfg.replace_files(false);
+    io::write_detector(det, names, writer_cfg);
+
+    // Not equal due to missing data deduplication in IO
+    /*EXPECT_TRUE(compare_files("telescope_detector_geometry.json",
+     * "telescope_detector_geometry_2.json"));*/
+    EXPECT_TRUE(
+        compare_files("telescope_detector_homogeneous_material.json",
+                      "telescope_detector_homogeneous_material_2.json"));
+
+    // Remove files
+    std::filesystem::remove("telescope_detector_geometry_2.json");
+    std::filesystem::remove("telescope_detector_homogeneous_material_2.json");
+}
 
 /// Test the reading and writing of a toy detector geometry
 TEST(io, json_toy_geometry) {
@@ -96,14 +200,33 @@ TEST(io, json_toy_detector_reader) {
 
     // Read the detector back in
     io::detector_reader_config reader_cfg{};
-    reader_cfg.add_file("toy_detector_geometry.json")
+    reader_cfg.do_check(true)
+        .add_file("toy_detector_geometry.json")
         .add_file("toy_detector_homogeneous_material.json")
+        .add_file("toy_detector_surface_grids.json")
         .add_file(toy_cfg.bfield_file());
 
     const auto [det, names] =
-        io::read_detector<detector_t>(host_mr, reader_cfg);
+        io::read_detector<detector_t, 1u>(host_mr, reader_cfg);
 
-    // EXPECT_TRUE(test_toy_detector(det, names));
+    EXPECT_TRUE(test_toy_detector(det, names));
+
+    // Write the result to a different set of files
+    writer_cfg.replace_files(false);
+    io::write_detector(det, names, writer_cfg);
+
+    // Compare writing round-trip
+    EXPECT_TRUE(compare_files("toy_detector_geometry.json",
+                              "toy_detector_geometry_2.json"));
+    EXPECT_TRUE(compare_files("toy_detector_homogeneous_material.json",
+                              "toy_detector_homogeneous_material_2.json"));
+    EXPECT_TRUE(compare_files("toy_detector_surface_grids.json",
+                              "toy_detector_surface_grids_2.json"));
+
+    // Remove files
+    std::filesystem::remove("toy_detector_geometry_2.json");
+    std::filesystem::remove("toy_detector_homogeneous_material_2.json");
+    std::filesystem::remove("toy_detector_surface_grids_2.json");
 }
 
 /// Test the reading and writing of a wire chamber
@@ -123,11 +246,30 @@ TEST(io, json_wire_chamber_reader) {
 
     // Read the detector back in
     io::detector_reader_config reader_cfg{};
-    reader_cfg.add_file("wire_chamber_geometry.json")
-        .add_file("wire_chamber_homogeneous_material.json");
+    reader_cfg.do_check(true)
+        .add_file("wire_chamber_geometry.json")
+        .add_file("wire_chamber_homogeneous_material.json")
+        .add_file("wire_chamber_surface_grids.json");
 
     const auto [det, names] =
         io::read_detector<detector_t>(host_mr, reader_cfg);
 
     EXPECT_EQ(det.volumes().size(), 11u);
+
+    // Write the result to a different set of files
+    writer_cfg.replace_files(false);
+    io::write_detector(det, names, writer_cfg);
+
+    // Compare writing round-trip
+    EXPECT_TRUE(compare_files("wire_chamber_geometry.json",
+                              "wire_chamber_geometry_2.json"));
+    EXPECT_TRUE(compare_files("wire_chamber_homogeneous_material.json",
+                              "wire_chamber_homogeneous_material_2.json"));
+    EXPECT_TRUE(compare_files("wire_chamber_surface_grids.json",
+                              "wire_chamber_surface_grids_2.json"));
+
+    // Remove files
+    std::filesystem::remove("wire_chamber_geometry_2.json");
+    std::filesystem::remove("wire_chamber_homogeneous_material_2.json");
+    std::filesystem::remove("wire_chamber_surface_grids_2.json");
 }

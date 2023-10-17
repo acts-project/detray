@@ -13,12 +13,15 @@
 #include "detray/definitions/qualifiers.hpp"
 #include "detray/masks/masks.hpp"
 #include "detray/masks/unmasked.hpp"
+#include "detray/materials/material_rod.hpp"
+#include "detray/materials/material_slab.hpp"
 #include "detray/tools/surface_factory_interface.hpp"
 #include "detray/utils/ranges.hpp"
 
 // System include(s)
+#include <algorithm>
 #include <cassert>
-#include <limits>
+#include <exception>
 #include <memory>
 #include <tuple>
 #include <type_traits>
@@ -31,34 +34,20 @@ namespace detray {
 ///
 /// @tparam detector_t the type of detector the volume belongs to.
 /// @tparam mask_shape_t the shape of the surface.
-/// @tparam mask_id the concrete mask id that must be defined in the detector_t.
-/// @tparam sf_id eihter portal, passive or sensitive.
-template <typename detector_t, typename mask_shape_t,
-          typename detector_t::mask_link::id_type mask_id, surface_id sf_id,
-          typename volume_link_t = dindex>
-class surface_factory
-    : public surface_factory_interface<detector_t>,
-      public std::enable_shared_from_this<surface_factory<
-          detector_t, mask_shape_t, mask_id, sf_id, volume_link_t>> {
-    public:
+template <typename detector_t, typename mask_shape_t>
+class surface_factory : public surface_factory_interface<detector_t> {
+
     using scalar_t = typename detector_t::scalar_type;
-    using shape_type = mask_shape_t;
-    using detector_type = detector_t;
+    using volume_link_t = typename detector_t::surface_type::navigation_link;
     // Set individual volume link for portals, but only the mothervolume index
     // for other surfaces.
-    using volume_link_collection =
-        std::conditional_t<sf_id == surface_id::e_portal,
-                           std::vector<volume_link_t>,
-                           detray::views::single<volume_link_t>>;
-    // ensures correct returning of shared pointers without pointless
-    // construction and destructing of surface factories
-    using smart_ptr_handler = std::enable_shared_from_this<surface_factory<
-        detector_t, mask_shape_t, mask_id, sf_id, volume_link_t>>;
+    using volume_link_collection = std::vector<volume_link_t>;
+
+    public:
+    using detector_type = detector_t;
 
     /// shorthad for a colleciton of surface data that can be read by a surface
     /// factory
-    // using surface_data_t = std::unique_ptr<
-    //     surface_data_interface<detector_t, mask_shape_t, volume_link_t>>;
     using surface_data_t = surface_data<detector_t>;
     using sf_data_collection = std::vector<surface_data_t>;
 
@@ -66,22 +55,22 @@ class surface_factory
     DETRAY_HOST
     surface_factory() = default;
 
-    /// @returns the id for the surface type the factory handles (e.g. portals)
-    DETRAY_HOST
-    auto surface_type() const -> surface_id override { return sf_id; }
-
     /// @returns the current number of surfaces that will be built by this
     /// factory
     DETRAY_HOST
     auto size() const -> dindex override {
         check();
-        return static_cast<dindex>(m_components.size());
+        return static_cast<dindex>(m_bounds.size());
     }
+
+    /// @returns the surface types
+    DETRAY_HOST
+    auto types() const -> const std::vector<surface_id> & { return m_types; }
 
     /// @returns the mask boundaries currently held by the factory
     DETRAY_HOST
-    auto components() const -> const std::vector<std::vector<scalar_t>> & {
-        return m_components;
+    auto bounds() const -> const std::vector<std::vector<scalar_t>> & {
+        return m_bounds;
     }
 
     /// @returns the transforms currently held by the factory
@@ -99,60 +88,43 @@ class surface_factory
     DETRAY_HOST
     void push_back(surface_data_t &&sf_data) override {
 
-        auto [trf, vlink, bounds] = sf_data.get_data();
+        auto [type, vlink, index, bounds, trf] = sf_data.get_data();
 
         assert(bounds.size() == mask_shape_t::boundaries::e_size);
 
-        if constexpr (sf_id != surface_id::e_portal) {
-            if (size() == 0u) {
-                *m_volume_link = vlink;
-            } else {
-                assert(*m_volume_link == vlink);
-            }
-        } else {
-            m_volume_link.push_back(vlink);
-        }
-
+        m_types.push_back(type);
+        m_volume_link.push_back(vlink);
+        m_indices.push_back(index);
+        m_bounds.push_back(std::move(bounds));
         m_transforms.push_back(trf);
-        m_components.push_back(std::move(bounds));
     }
 
     /// Add all necessary compontents to the factory from bundled surface
     /// data in @param surface_data .
     DETRAY_HOST
-    auto push_back(sf_data_collection &&surface_data)
-        -> void /*std::shared_ptr<surface_factory<detector_t, mask_shape_t,
-                   mask_id, sf_id, volume_link_t>>*/
-        override {
+    auto push_back(sf_data_collection &&surface_data) -> void override {
         const auto n_surfaces{
             static_cast<dindex>(size() + surface_data.size())};
 
+        m_volume_link.reserve(n_surfaces);
+        m_indices.reserve(n_surfaces);
+        m_bounds.reserve(n_surfaces);
         m_transforms.reserve(n_surfaces);
-        m_components.reserve(n_surfaces);
-
-        if constexpr (sf_id == surface_id::e_portal) {
-            m_volume_link.reserve(n_surfaces);
-        }
 
         // Get per-surface data into detector level container layout
         for (auto &sf_data : surface_data) {
             push_back(std::move(sf_data));
         }
-
-        // return smart_ptr_handler::shared_from_this();
     }
 
     /// Clear old data
     DETRAY_HOST
     auto clear() -> void override {
-        m_components.clear();
+        m_types.clear();
+        m_volume_link.clear();
+        m_indices.clear();
+        m_bounds.clear();
         m_transforms.clear();
-        // cannot clear the single-view
-        if constexpr (sf_id == surface_id::e_portal) {
-            m_volume_link.clear();
-        } else {
-            *m_volume_link = volume_link_t{};
-        }
     }
 
     /// Generate the surfaces and add them to given data collections.
@@ -162,68 +134,111 @@ class surface_factory
     /// @param transforms the transforms of the surfaces.
     /// @param masks the masks of the surfaces (all of the same shape).
     /// @param ctx the geometry context.
+    ///
+    /// @returns index range of inserted surfaces in @param surfaces container
     DETRAY_HOST
-    auto operator()(typename detector_t::volume_type &volume,
+    auto operator()([[maybe_unused]] typename detector_t::volume_type &volume,
+                    [[maybe_unused]]
                     typename detector_t::surface_container_t &surfaces,
+                    [[maybe_unused]]
                     typename detector_t::transform_container &transforms,
-                    typename detector_t::mask_container &masks,
+                    [[maybe_unused]] typename detector_t::mask_container &masks,
+                    [[maybe_unused]]
                     typename detector_t::geometry_context ctx = {}) const
         -> dindex_range override {
-        using surface_t = typename detector_t::surface_type;
-        using mask_link_t = typename surface_t::mask_link;
-        using material_link_t = typename surface_t::material_link;
-
-        // The material will be added in a later step
-        constexpr auto no_material = surface_t::material_id::e_none;
         // In case the surfaces container is prefilled with other surfaces
-        dindex surfaces_offset = static_cast<dindex>(surfaces.size());
+        const dindex surfaces_offset = static_cast<dindex>(surfaces.size());
 
         // Nothing to construct
         if (size() == 0u) {
             return {surfaces_offset, surfaces_offset};
         }
 
-        for (const auto [idx, comp] : detray::views::enumerate(m_components)) {
+        constexpr auto mask_id{detector_t::masks::template get_id<
+            mask<mask_shape_t, volume_link_t>>()};
 
-            // Add transform
-            transforms.push_back(m_transforms[idx], ctx);
+        if constexpr (static_cast<std::size_t>(mask_id) >=
+                      detector_t::masks::n_types) {
 
-            if constexpr (std::is_same_v<mask_shape_t, unmasked>) {
-                masks.template emplace_back<mask_id>(
-                    empty_context{}, m_volume_link[idx],
-                    std::numeric_limits<scalar_t>::infinity());
-            } else {
-                masks.template emplace_back<mask_id>(empty_context{}, comp,
-                                                     m_volume_link[idx]);
+            throw std::invalid_argument(
+                "ERROR: Cannot match shape type to mask ID: Found " +
+                mask_shape_t::name + " at mask id " +
+                std::to_string(static_cast<std::size_t>(mask_id)));
+
+        } else {
+
+            using surface_t = typename detector_t::surface_type;
+            using mask_link_t = typename surface_t::mask_link;
+            using material_link_t = typename surface_t::material_link;
+
+            // The material will be added in a later step
+            constexpr auto no_material{surface_t::material_id::e_none};
+
+            for (const auto [idx, bound] : detray::views::enumerate(m_bounds)) {
+
+                // Append the surfaces relative to the current number of
+                // surfaces in the stores
+                const dindex sf_idx{is_invalid_value(m_indices[idx])
+                                        ? dindex_invalid
+                                        : m_indices[idx]};
+
+                // Add transform
+                const dindex trf_idx = this->insert_in_container(
+                    transforms, m_transforms[idx], sf_idx, ctx);
+
+                // Masks are simply appended, since they are distributed onto
+                // multiple containers, their ordering is different from the
+                // surfaces
+                if constexpr (std::is_same_v<mask_shape_t, unmasked>) {
+                    masks.template emplace_back<mask_id>(
+                        empty_context{}, m_volume_link[idx],
+                        detail::invalid_value<scalar_t>());
+                } else {
+                    masks.template emplace_back<mask_id>(empty_context{}, bound,
+                                                         m_volume_link[idx]);
+                }
+
+                // Add surface with all links set (relative to the given
+                // containers)
+                mask_link_t mask_link{mask_id,
+                                      masks.template size<mask_id>() - 1u};
+                // If material is present, it is added in a later step
+                material_link_t material_link{no_material, dindex_invalid};
+
+                // Add the surface descriptor at the position given by 'sf_idx'
+                this->insert_in_container(
+                    surfaces,
+                    {trf_idx, mask_link, material_link, volume.index(),
+                     dindex_invalid, m_types[idx]},
+                    sf_idx);
             }
-
-            // Add surface with all links set (relative to the given containers)
-            mask_link_t mask_link{mask_id, masks.template size<mask_id>() - 1u};
-            material_link_t material_link{no_material, dindex_invalid};
-            surfaces.emplace_back(transforms.size(ctx) - 1u, mask_link,
-                                  material_link, volume.index(), dindex_invalid,
-                                  sf_id);
         }
 
         return {surfaces_offset, static_cast<dindex>(surfaces.size())};
     }
 
     private:
-    /// Check that the containers have the same size
+    /// Run internal consistency check of surface data in the builder
     DETRAY_HOST
     void check() const {
         // This should not happend (need same number and ordering of data)
-        assert(m_components.size() == m_transforms.size());
-        if constexpr (sf_id == surface_id::e_portal) {
-            assert(m_components.size() == m_volume_link.size());
-        } else {
-            assert(m_volume_link.size() == 1);
-        }
+        assert(m_bounds.size() == m_types.size());
+        assert(m_bounds.size() == m_volume_link.size());
+        assert(m_bounds.size() == m_indices.size());
+        assert(m_bounds.size() == m_transforms.size());
     }
 
-    std::vector<std::vector<scalar_t>> m_components{};
-    std::vector<typename detector_t::transform3> m_transforms{};
+    /// Types of the surface (portal|sensitive|passive)
+    std::vector<surface_id> m_types{};
+    /// Mask volume link (used for navigation)
     volume_link_collection m_volume_link{};
+    /// Indices of surfaces for the placement in container
+    /// (counted as "volume-local": 0 to n_sf_in_volume)
+    std::vector<dindex> m_indices{};
+    /// Mask boundaries of surfaces
+    std::vector<std::vector<scalar_t>> m_bounds{};
+    /// Transforms of surfaces
+    std::vector<typename detector_t::transform3> m_transforms{};
 };
 
 }  // namespace detray

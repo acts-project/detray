@@ -57,28 +57,40 @@ class homogeneous_material_reader : public reader_interface<detector_t> {
         // Deserialize the material volume by volume
         for (const auto& mv_data : det_mat_data.volumes) {
             // Decorate the current volume builder with material
-            auto vm_builder = det_builder.template decorate<material_builder>(
-                base_type::deserialize(mv_data.volume_link));
+            auto vm_builder =
+                det_builder.template decorate<material_builder<detector_t>>(
+                    base_type::deserialize(mv_data.volume_link));
 
             // Add the material data to the factory
             auto mat_factory = std::make_shared<material_factory<detector_t>>();
             for (const auto& slab_data : mv_data.mat_slabs) {
+                assert(slab_data.type == io::detail::material_type::slab);
+
+                const auto sf_link{slab_data.index_in_coll.has_value()
+                                       ? slab_data.index_in_coll.value()
+                                       : detail::invalid_value<std::size_t>()};
 
                 mat_factory->add_material(material_id::e_slab,
-                                          deserialize(slab_data));
+                                          deserialize(slab_data), sf_link);
             }
             if constexpr (mat_types::n_types == 2u) {
                 if (mv_data.mat_rods.has_value()) {
                     for (const auto& rod_data : *(mv_data.mat_rods)) {
+                        assert(rod_data.type == io::detail::material_type::rod);
 
-                        mat_factory->add_material(material_id::e_rod,
-                                                  deserialize(rod_data));
+                        const auto sf_link{
+                            rod_data.index_in_coll.has_value()
+                                ? rod_data.index_in_coll.value()
+                                : detail::invalid_value<std::size_t>()};
+
+                        mat_factory->add_material(
+                            material_id::e_rod, deserialize(rod_data), sf_link);
                     }
                 }
             }
 
             // Add the material to the volume
-            vm_builder->add_sensitives(mat_factory);
+            vm_builder->add_surfaces(mat_factory);
         }
     }
 
@@ -88,7 +100,8 @@ class homogeneous_material_reader : public reader_interface<detector_t> {
         const material_slab_payload& slab_data) {
 
         return {static_cast<scalar_type>(slab_data.thickness),
-                deserialize(slab_data.mat)};
+                deserialize(slab_data.mat),
+                base_type::deserialize(slab_data.surface)};
     }
 
     /// @returns the material from its IO payload @param mat_data

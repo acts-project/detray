@@ -9,7 +9,6 @@
 
 // Project include(s)
 #include "detray/definitions/qualifiers.hpp"
-#include "detray/intersection/intersection.hpp"
 #include "detray/materials/material.hpp"
 #include "detray/materials/predefined_materials.hpp"
 
@@ -52,9 +51,13 @@ struct material_rod : public detail::homogeneous_material_tag {
     DETRAY_HOST_DEVICE
     constexpr const material_type& get_material() const { return m_material; }
 
-    /// Return the radius
+    /// @returns the radius
     DETRAY_HOST_DEVICE
     constexpr scalar_type radius() const { return m_radius; }
+
+    /// @returns the radius (alias function to keep interfaces homogeneous)
+    DETRAY_HOST_DEVICE
+    constexpr scalar_type thickness() const { return m_radius; }
 
     /// @returns the path segment through the material
     ///

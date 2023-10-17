@@ -44,9 +44,9 @@ int main() {
     auto geo_checker = detray::hash_tree(adj_mat);
 
     if (geo_checker.root() == root_hash) {
-        std::cout << "Geometry are links consistent" << std::endl;
+        std::cout << "Geometry links are consistent" << std::endl;
     } else {
-        std::cerr << "\nGeometry are linking has changed! Please check:\n"
+        std::cerr << "\nGeometry linking has changed! Please check:\n"
                   << graph.to_string() << std::endl;
     }
 }

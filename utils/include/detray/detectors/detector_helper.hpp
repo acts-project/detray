@@ -8,8 +8,6 @@
 #pragma once
 
 // Project include(s).
-#include <iostream>
-
 #include "detray/core/detail/data_context.hpp"
 #include "detray/definitions/geometry.hpp"
 #include "detray/definitions/indexing.hpp"

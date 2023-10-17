@@ -209,6 +209,7 @@ inline bool check_consistency(const detector_t &det) {
 
         // Check that nothing is obviously broken
         if (not sf.self_check(err_stream)) {
+            err_stream << "\nat surface no. " << std::to_string(idx);
             throw std::invalid_argument(err_stream.str());
         }
 

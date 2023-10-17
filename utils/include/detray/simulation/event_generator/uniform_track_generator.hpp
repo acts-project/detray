@@ -39,14 +39,23 @@ class uniform_track_generator
 
     /// Configure how tracks are generated
     struct configuration {
+        /// Ensure sensible values at the theta bounds, even in single precision
+        static constexpr scalar epsilon{1e-2f};
 
         /// Range for theta and phi
-        std::array<scalar, 2> m_theta_range{0.01f, constant<scalar>::pi};
         std::array<scalar, 2> m_phi_range{-constant<scalar>::pi,
                                           constant<scalar>::pi};
+        std::array<scalar, 2> m_theta_range{epsilon,
+                                            constant<scalar>::pi - epsilon};
+        std::array<scalar, 2> m_eta_range{-5.f, 5.f};
+
         /// Angular step size
-        std::size_t m_theta_steps{50u};
         std::size_t m_phi_steps{50u};
+        std::size_t m_theta_steps{50u};
+
+        /// Do uniform eta steps instead of uniform theta steps
+        /// (use same number of steps and range)
+        bool m_uniform_eta{false};
 
         /// Track origin
         point3 m_origin{0.f, 0.f, 0.f};
@@ -56,39 +65,74 @@ class uniform_track_generator
         scalar m_p_mag{1.f * unit<scalar>::GeV};
 
         /// Time parameter and charge of the track
-        scalar m_time{0.f * unit<scalar>::us}, m_charge{-1.f * unit<scalar>::e};
+        scalar m_time{0.f * unit<scalar>::us};
+        scalar m_charge{-1.f * unit<scalar>::e};
 
         /// Setters
         /// @{
-        configuration& theta_range(scalar low, scalar high) {
-            m_theta_range = {low, high};
-            return *this;
-        }
-        configuration& phi_range(scalar low, scalar high) {
+        DETRAY_HOST_DEVICE configuration& phi_range(scalar low, scalar high) {
+            assert(low <= high);
             m_phi_range = {low, high};
             return *this;
         }
-        configuration& theta_steps(std::size_t n) {
-            m_theta_steps = n;
+        DETRAY_HOST_DEVICE configuration& theta_range(scalar low, scalar high) {
+            auto min_theta{
+                std::clamp(low, epsilon, constant<scalar>::pi - epsilon)};
+            auto max_theta{
+                std::clamp(high, epsilon, constant<scalar>::pi - epsilon)};
+
+            assert(min_theta <= max_theta);
+
+            m_theta_range = {min_theta, max_theta};
+            m_uniform_eta = false;
             return *this;
         }
-        configuration& phi_steps(std::size_t n) {
+        DETRAY_HOST_DEVICE configuration& eta_range(scalar low, scalar high) {
+            // This value is more or less random
+            constexpr auto num_max{0.001f * std::numeric_limits<scalar>::max()};
+            auto min_eta{low > -num_max ? low : -num_max};
+            auto max_eta{high < num_max ? high : num_max};
+
+            assert(min_eta <= max_eta);
+
+            m_eta_range = {min_eta, max_eta};
+            m_uniform_eta = true;
+            return *this;
+        }
+        DETRAY_HOST_DEVICE configuration& phi_steps(std::size_t n) {
+            assert(n > 0);
             m_phi_steps = n;
             return *this;
         }
-        configuration& origin(point3 ori) {
+        DETRAY_HOST_DEVICE configuration& theta_steps(std::size_t n) {
+            assert(n > 0);
+            m_theta_steps = n;
+            m_uniform_eta = false;
+            return *this;
+        }
+        DETRAY_HOST_DEVICE configuration& eta_steps(std::size_t n) {
+            assert(n > 0);
+            m_theta_steps = n;
+            m_uniform_eta = true;
+            return *this;
+        }
+        DETRAY_HOST_DEVICE configuration& uniform_eta(bool b) {
+            m_uniform_eta = b;
+            return *this;
+        }
+        DETRAY_HOST_DEVICE configuration& origin(point3 ori) {
             m_origin = ori;
             return *this;
         }
-        configuration& p_mag(scalar p) {
+        DETRAY_HOST_DEVICE configuration& p_mag(scalar p) {
             m_p_mag = p;
             return *this;
         }
-        configuration& time(scalar t) {
+        DETRAY_HOST_DEVICE configuration& time(scalar t) {
             m_time = t;
             return *this;
         }
-        configuration& charge(scalar q) {
+        DETRAY_HOST_DEVICE configuration& charge(scalar q) {
             m_charge = q;
             return *this;
         }
@@ -96,18 +140,33 @@ class uniform_track_generator
 
         /// Getters
         /// @{
-        constexpr std::array<scalar, 2> theta_range() const {
-            return m_theta_range;
-        }
-        constexpr std::array<scalar, 2> phi_range() const {
+        DETRAY_HOST_DEVICE constexpr std::array<scalar, 2> phi_range() const {
             return m_phi_range;
         }
-        constexpr std::size_t theta_steps() const { return m_theta_steps; }
-        constexpr std::size_t phi_steps() const { return m_phi_steps; }
-        constexpr const point3& origin() const { return m_origin; }
-        constexpr scalar p_mag() const { return m_p_mag; }
-        constexpr scalar time() const { return m_time; }
-        constexpr scalar charge() const { return m_charge; }
+        DETRAY_HOST_DEVICE constexpr std::array<scalar, 2> theta_range() const {
+            return m_theta_range;
+        }
+        DETRAY_HOST_DEVICE constexpr std::array<scalar, 2> eta_range() const {
+            return m_eta_range;
+        }
+        DETRAY_HOST_DEVICE constexpr std::size_t phi_steps() const {
+            return m_phi_steps;
+        }
+        DETRAY_HOST_DEVICE constexpr std::size_t theta_steps() const {
+            return m_theta_steps;
+        }
+        DETRAY_HOST_DEVICE constexpr std::size_t eta_steps() const {
+            return m_theta_steps;
+        }
+        DETRAY_HOST_DEVICE constexpr bool uniform_eta() const {
+            return m_uniform_eta;
+        }
+        DETRAY_HOST_DEVICE constexpr const point3& origin() const {
+            return m_origin;
+        }
+        DETRAY_HOST_DEVICE constexpr scalar p_mag() const { return m_p_mag; }
+        DETRAY_HOST_DEVICE constexpr scalar time() const { return m_time; }
+        DETRAY_HOST_DEVICE constexpr scalar charge() const { return m_charge; }
         /// @}
     };
 
@@ -127,12 +186,15 @@ class uniform_track_generator
         constexpr iterator(configuration cfg, std::size_t iph = 1u,
                            std::size_t ith = 0u)
             : m_cfg{cfg},
-              m_theta_step_size{(cfg.theta_range()[1] - cfg.theta_range()[0]) /
-                                static_cast<scalar>(cfg.theta_steps())},
               m_phi_step_size{(cfg.phi_range()[1] - cfg.phi_range()[0]) /
                               static_cast<scalar>(cfg.phi_steps())},
+              m_theta_step_size{(cfg.theta_range()[1] - cfg.theta_range()[0]) /
+                                static_cast<scalar>(cfg.theta_steps() - 1u)},
+              m_eta_step_size{(cfg.eta_range()[1] - cfg.eta_range()[0]) /
+                              static_cast<scalar>(cfg.eta_steps() - 1u)},
               m_phi{cfg.phi_range()[0]},
-              m_theta{cfg.theta_range()[0]},
+              m_theta{cfg.uniform_eta() ? get_theta(cfg.eta_range()[0])
+                                        : cfg.theta_range()[0]},
               i_phi{iph},
               i_theta{ith} {}
 
@@ -153,8 +215,10 @@ class uniform_track_generator
         /// @returns the generator at its next position.
         DETRAY_HOST_DEVICE
         constexpr auto operator++() -> iterator& {
+
             // Check theta range according to step size
             if (i_theta < m_cfg.theta_steps()) {
+
                 // Check phi sub-range
                 if (i_phi < m_cfg.phi_steps()) {
                     // Calculate new phi in the given range
@@ -169,8 +233,16 @@ class uniform_track_generator
 
                 // Calculate new theta in the given range
                 ++i_theta;
-                m_theta = m_cfg.theta_range()[0] +
-                          static_cast<scalar>(i_theta) * m_theta_step_size;
+
+                if (m_cfg.uniform_eta()) {
+                    const scalar eta =
+                        m_cfg.eta_range()[0] +
+                        static_cast<scalar>(i_theta) * m_eta_step_size;
+                    m_theta = get_theta(eta);
+                } else {
+                    m_theta = m_cfg.theta_range()[0] +
+                              static_cast<scalar>(i_theta) * m_theta_step_size;
+                }
             }
             return *this;
         }
@@ -179,29 +251,38 @@ class uniform_track_generator
         DETRAY_HOST_DEVICE
         track_t operator*() const {
             // Momentum direction from angles
-            vector3 mom{math_ns::cos(m_phi) * std::sin(m_theta),
-                        std::sin(m_phi) * std::sin(m_theta),
-                        math_ns::cos(m_theta)};
+            vector3 p{math_ns::cos(m_phi) * std::sin(m_theta),
+                      std::sin(m_phi) * std::sin(m_theta),
+                      math_ns::cos(m_theta)};
             // Magnitude of momentum
-            vector::normalize(mom);
-            mom = m_cfg.p_mag() * mom;
+            vector::normalize(p);
+            p = m_cfg.p_mag() * p;
 
-            return track_t{m_cfg.origin(), m_cfg.time(), mom, m_cfg.charge()};
+            return track_t{m_cfg.origin(), m_cfg.time(), p, m_cfg.charge()};
         }
 
         /// Current configuration
         configuration m_cfg{};
 
         /// Angular step sizes
-        scalar m_theta_step_size{0.f};
         scalar m_phi_step_size{0.f};
+        scalar m_theta_step_size{0.f};
+        scalar m_eta_step_size{0.f};
 
         /// Phi and theta angles of momentum direction
-        scalar m_phi{-constant<scalar>::pi}, m_theta{0.01f};
+        scalar m_phi{-constant<scalar>::pi};
+        scalar m_theta{configuration::epsilon};
 
         /// Iteration indices
         std::size_t i_phi{0u};
         std::size_t i_theta{0u};
+
+        private:
+        /// @returns the theta angle for a given @param eta value
+        DETRAY_HOST_DEVICE
+        scalar get_theta(const scalar eta) {
+            return 2.f * std::atan(std::exp(-eta));
+        }
     };
 
     configuration m_cfg{};
@@ -216,30 +297,29 @@ class uniform_track_generator
     DETRAY_HOST_DEVICE
     constexpr uniform_track_generator(configuration cfg) : m_cfg{cfg} {}
 
-    /// Paramtetrized constructor for fine-grained configurations
+    /// Paramtetrized constructor for quick construction of simple tasks
+    ///
+    /// @note For more complex tasks, use the @c configuration type
     ///
     /// @param n_theta the number of steps in the theta space
     /// @param n_phi the number of steps in the phi space
-    /// @param trk_origin the starting point of the track
-    /// @param trk_mom magnitude of the track momentum (in GeV)
-    /// @param theta_range the range for theta values
-    /// @param phi_range the range for phi values
-    /// @param time time measurement (micro seconds)
+    /// @param p_mag magnitude of the track momentum (in GeV)
+    /// @param uniform_eta uniformly step through eta space instead of theta
     /// @param charge charge of particle (e)
     DETRAY_HOST_DEVICE
-    uniform_track_generator(
-        std::size_t n_theta, std::size_t n_phi,
-        point3 trk_origin = {0.f, 0.f, 0.f},
-        scalar trk_mom = 1.f * unit<scalar>::GeV,
-        std::array<scalar, 2> theta_range = {0.01f, constant<scalar>::pi},
-        std::array<scalar, 2> phi_range = {-constant<scalar>::pi,
-                                           constant<scalar>::pi},
-        scalar time = 0.f * unit<scalar>::us,
-        scalar charge = -1.f * unit<scalar>::e)
-        : m_cfg{theta_range, phi_range, n_theta, n_phi,
-                trk_origin,  trk_mom,   time,    charge} {}
+    uniform_track_generator(std::size_t n_phi, std::size_t n_theta,
+                            scalar p_mag = 1.f * unit<scalar>::GeV,
+                            bool uniform_eta = false,
+                            scalar charge = -1.f * unit<scalar>::e)
+        : m_cfg{} {
+        m_cfg.phi_steps(n_phi).theta_steps(n_theta);
+        m_cfg.uniform_eta(uniform_eta);
+        m_cfg.p_mag(p_mag);
+        m_cfg.charge(charge);
+    }
 
     /// Move constructor
+    DETRAY_HOST_DEVICE
     uniform_track_generator(uniform_track_generator&& other)
         : m_cfg(std::move(other.m_cfg)) {}
 
@@ -252,6 +332,7 @@ class uniform_track_generator
     }
 
     /// Access the configuration
+    DETRAY_HOST_DEVICE
     constexpr configuration& config() { return m_cfg; }
 
     /// @returns the generator in initial state: Default values reflect the
@@ -270,7 +351,7 @@ class uniform_track_generator
     /// @returns the number of tracks that will be generated
     DETRAY_HOST_DEVICE
     constexpr auto size() const noexcept -> std::size_t {
-        return m_cfg.theta_steps() * m_cfg.phi_steps();
+        return m_cfg.phi_steps() * m_cfg.theta_steps();
     }
 };
 

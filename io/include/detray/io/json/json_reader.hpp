@@ -11,6 +11,7 @@
 #include "detray/io/common/detail/file_handle.hpp"
 #include "detray/io/common/detail/utils.hpp"
 #include "detray/io/common/geometry_reader.hpp"
+#include "detray/io/common/grid_reader.hpp"
 #include "detray/io/common/homogeneous_material_reader.hpp"
 #include "detray/io/json/json.hpp"
 #include "detray/io/json/json_serializers.hpp"
@@ -56,10 +57,11 @@ inline common_header_payload read_json_header(const std::string& file_name) {
 ///
 /// @note The resulting reader types will fulfill @c reader_interface through
 /// the common readers they are being extended with
-template <class detector_t, template <class> class common_reader_t>
-class json_reader final : public common_reader_t<detector_t> {
+template <class detector_t, template <typename...> class common_reader_t,
+          typename... Args>
+class json_reader final : public common_reader_t<detector_t, Args...> {
 
-    using base_reader = common_reader_t<detector_t>;
+    using base_reader = common_reader_t<detector_t, Args...>;
 
     public:
     /// Set json file extension
@@ -76,10 +78,12 @@ class json_reader final : public common_reader_t<detector_t> {
         // Read json from file
         io::detail::file_handle file{file_name,
                                      std::ios_base::in | std::ios_base::binary};
+
+        // Reads the data from file and returns the corresponding io payloads
         nlohmann::json in_json;
         *file >> in_json;
 
-        // Reads the data from file and returns the corresponding io payloads
+        // Add the data from the payload to the detray detector builder
         base_reader::deserialize(det_builder, name_map, in_json["data"]);
     }
 };
@@ -92,5 +96,13 @@ using json_geometry_reader = json_reader<detector_t, geometry_reader>;
 template <typename detector_t>
 using json_homogeneous_material_reader =
     json_reader<detector_t, homogeneous_material_reader>;
+
+/// Reads a homogeneous material descritption from file in json format
+template <typename detector_t,
+          typename value_t = typename detector_t::surface_type,
+          typename CAP = std::integral_constant<std::size_t, 2>,
+          typename DIM = std::integral_constant<std::size_t, 2>>
+using json_grid_reader =
+    json_reader<detector_t, grid_reader, value_t, CAP, DIM>;
 
 }  // namespace detray

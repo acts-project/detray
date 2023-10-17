@@ -60,9 +60,7 @@ int main(int argc, char **argv) {
     cfg_hel_scan.name("wire_chamber_helix_scan");
     cfg_hel_scan.overstepping_tolerance(-100.f * unit<scalar_t>::um);
     cfg_hel_scan.track_generator().p_mag(10.f * unit<scalar_t>::GeV);
-    // Fails in single precision for more helices
-    // cfg_hel_scan.track_generator().theta_steps(100u).phi_steps(100u);
-    cfg_hel_scan.track_generator().theta_steps(3u).phi_steps(10u);
+    cfg_hel_scan.track_generator().theta_steps(100u).phi_steps(100u);
     detray::detail::register_checks<detray::helix_scan>(det, names,
                                                         cfg_hel_scan);
 
@@ -80,7 +78,7 @@ int main(int argc, char **argv) {
     cfg_hel_nav.track_generator() = cfg_hel_scan.track_generator();
     // TODO: Fails for more helices
     // cfg_hel_nav.track_generator().theta_steps(100u).phi_steps(100u);
-    cfg_hel_nav.track_generator().theta_steps(3u).phi_steps(10u);
+    cfg_hel_nav.track_generator().theta_steps(25u).phi_steps(25u);
 
     detail::register_checks<helix_navigation>(det, names, cfg_hel_nav);
 
