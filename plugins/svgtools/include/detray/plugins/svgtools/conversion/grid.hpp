@@ -142,7 +142,6 @@ std::optional<actsvg::proto::grid> grid(const detector_t& detector,
                                         const view_t& view) {
     using d_scalar_t = typename detector_t::scalar_type;
     using geo_object_ids = typename detector_t::geo_obj_ids;
-    using accel_ids = typename detector_t::sf_finders::id;
 
     const auto vol_desc = detector.volumes()[index];
     const auto link = vol_desc.template link<geo_object_ids::e_sensitive>();
