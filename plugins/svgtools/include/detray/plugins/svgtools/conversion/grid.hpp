@@ -111,10 +111,11 @@ auto disc_grid_type_and_edges(const detector_t& detector, const link_t& link,
 
 /// @returns the detray grids respective actsvg grid type and edge
 /// values.
-template <typename accel_ids_t, typename detector_t, typename link_t,
+template <typename detector_t, typename link_t,
           typename view_t>
 auto get_type_and_axes(const detector_t& detector, const link_t& link,
                        const view_t& view) {
+    using accel_ids_t = typename detector_t::sf_finders::id;
     switch (link.id()) {
         case accel_ids_t::e_cylinder2_grid: {
             return cylinder2_grid_type_and_edges(detector, link, view);
@@ -149,7 +150,7 @@ std::optional<actsvg::proto::grid> grid(const detector_t& detector,
 
     if (not link.is_invalid()) {
         const auto [type, edges0, edges1] =
-            get_type_and_axes<accel_ids>(detector, link, view);
+            get_type_and_axes(detector, link, view);
         p_grid._type = type;
         std::transform(edges0.cbegin(), edges0.cend(),
                        std::back_inserter(p_grid._edges_0),
