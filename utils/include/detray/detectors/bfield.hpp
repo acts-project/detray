@@ -22,8 +22,8 @@ namespace detray::bfield {
 
 /// Constant bfield (host and device)
 using const_bknd_t =
-    covfie::backend::constant<covfie::vector::vector_d<scalar, 3>,
-                              covfie::vector::vector_d<scalar, 3>>;
+    covfie::backend::constant<covfie::vector::vector_d<detray::scalar, 3>,
+                              covfie::vector::vector_d<detray::scalar, 3>>;
 
 using const_field_t = covfie::field<const_bknd_t>;
 
@@ -31,7 +31,7 @@ using const_field_t = covfie::field<const_bknd_t>;
 using inhom_bknd_t = covfie::backend::affine<
     covfie::backend::nearest_neighbour<covfie::backend::strided<
         covfie::vector::ulong3,
-        covfie::backend::array<covfie::vector::vector_d<scalar, 3>>>>>;
+        covfie::backend::array<covfie::vector::vector_d<detray::scalar, 3>>>>>;
 
 using inhom_field_t = covfie::field<inhom_bknd_t>;
 
