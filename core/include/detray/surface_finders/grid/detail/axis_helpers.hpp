@@ -49,7 +49,7 @@ struct multi_axis_data {
     multi_axis_data() = default;
 
     /// Construct containers using a specific memory resources
-    DETRAY_HOST_DEVICE
+    DETRAY_HOST
     multi_axis_data(vecmem::memory_resource &resource)
         : m_axes_data(&resource), m_edges(&resource) {}
 

@@ -64,12 +64,10 @@ class geometry_reader : public reader_interface<detector_t> {
     protected:
     /// Deserialize a detector @param det from its io payload @param det_data
     /// and add the volume names to @param name_map
-    static void deserialize(
-        detector_builder<typename detector_t::metadata,
-                         typename detector_t::bfield_type::backend_t,
-                         volume_builder>& det_builder,
-        typename detector_t::name_map& name_map,
-        const detector_payload& det_data) {
+    static void deserialize(detector_builder<typename detector_t::metadata,
+                                             volume_builder>& det_builder,
+                            typename detector_t::name_map& name_map,
+                            const detector_payload& det_data) {
 
         // Deserialize the volumes one-by-one
         for (const auto& vol_data : det_data.volumes) {

@@ -25,12 +25,10 @@ namespace detray::tutorial {
 
 /// @brief Generates a sequence of square surfaces for the example detector
 class square_surface_generator final
-    : public surface_factory_interface<detector<
-          tutorial::my_metadata, covfie::field<bfield::const_bknd_t>>> {
+    : public surface_factory_interface<detector<tutorial::my_metadata>> {
 
     public:
-    using detector_t =
-        detector<tutorial::my_metadata, covfie::field<bfield::const_bknd_t>>;
+    using detector_t = detector<tutorial::my_metadata>;
     using scalar_t = typename detector_t::scalar_type;
 
     /// Generate @param n square surfaces with half length @param hl .

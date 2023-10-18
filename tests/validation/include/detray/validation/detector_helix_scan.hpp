@@ -77,7 +77,6 @@ class helix_scan : public test::fixture_base<> {
 
     /// Run the helix scan
     void TestBody() override {
-        using b_field_t = typename detector_t::bfield_type;
         using scalar_t = typename detector_t::scalar_type;
         using nav_link_t = typename detector_t::surface_type::navigation_link;
 
@@ -87,11 +86,9 @@ class helix_scan : public test::fixture_base<> {
         dindex start_index{0u};
 
         // B-field vector for helix
-        const auto &origin = m_cfg.track_generator().origin();
-        typename b_field_t::view_t bfield_view{m_det.get_bfield()};
-        const typename b_field_t::output_t bvec =
-            bfield_view.at(origin[0], origin[1], origin[2]);
-        const typename fixture_type::point3 B{bvec[0], bvec[1], bvec[2]};
+        const typename fixture_type::point3 B{0.f * unit<scalar_t>::T,
+                                              0.f * unit<scalar_t>::T,
+                                              2.f * unit<scalar_t>::T};
 
         // Iterate through uniformly distributed momentum directions
         std::size_t n_tracks{0u};

@@ -37,7 +37,6 @@ GTEST_TEST(detray_tools, particle_gun) {
     // Build the geometry
     vecmem::host_memory_resource host_mr;
     toy_det_config toy_cfg{};
-    toy_cfg.bfield_vec(B);
 
     auto [toy_det, names] = create_toy_geometry(host_mr, toy_cfg);
 

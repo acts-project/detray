@@ -50,8 +50,6 @@ int main(int argc, char **argv) {
         "write_ray_scan", "writes the ray scan intersections to file")(
         "geometry_file", po::value<std::string>(), "geometry input file")(
         "material_file", po::value<std::string>(), "material input file")(
-        "bfield_file", po::value<std::string>(),
-        "magnetic field map input file")(
         "phi_steps", po::value<std::size_t>()->default_value(50u),
         "# phi steps for particle gun")(
         "theta_steps", po::value<std::size_t>()->default_value(50u),
@@ -101,12 +99,6 @@ int main(int argc, char **argv) {
     }
     if (vm.count("material_file")) {
         reader_cfg.add_file(vm["material_file"].as<std::string>());
-    }
-    if (vm.count("bfield_file")) {
-        // reader_cfg.add_file(vm["bfield_file"].as<std::string>());
-        throw std::invalid_argument("Reading of bfield file not implemented");
-    } else {
-        reader_cfg.bfield_vec(0.f, 0.f, 2.f * unit<scalar_t>::T);
     }
 
     // Particle gun

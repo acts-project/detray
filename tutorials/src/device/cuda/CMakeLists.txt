@@ -14,18 +14,18 @@ enable_language(CUDA)
 include(detray-compiler-options-cuda)
 
 # Examples using the array algebra plugin.
-detray_add_tutorial( detector_construction_cuda
-   "detector_construction.cpp"
-   "detector_construction.hpp"
-   "detector_construction.cu"
-   LINK_LIBRARIES vecmem::cuda detray::core_array covfie::core
-                  detray::tutorial detray::utils)
-target_compile_definitions(detray_tutorial_detector_construction_cuda PRIVATE array=array)
+#detray_add_tutorial( detector_construction_cuda
+#   "detector_construction.cpp"
+#   "detector_construction.hpp"
+#   "detector_construction.cu"
+#   LINK_LIBRARIES vecmem::cuda detray::core_array
+#                  detray::tutorial detray::utils)
+#target_compile_definitions(detray_tutorial_detector_construction_cuda PRIVATE array=array)
 
-detray_add_tutorial( propagation_cuda
-   "propagation.cpp"
-   "propagation.hpp"
-   "propagation_kernel.cu"
-   LINK_LIBRARIES vecmem::cuda detray::core_array covfie::core
-                  detray::tutorial detray::utils)
-target_compile_definitions(detray_tutorial_propagation_cuda PRIVATE array=array)
+#detray_add_tutorial( propagation_cuda
+#   "propagation.cpp"
+#   "propagation.hpp"
+#   "propagation_kernel.cu"
+#   LINK_LIBRARIES vecmem::cuda detray::core_array covfie::core covfie::cuda
+#                  detray::tutorial detray::utils)
+#target_compile_definitions(detray_tutorial_propagation_cuda PRIVATE array=array)

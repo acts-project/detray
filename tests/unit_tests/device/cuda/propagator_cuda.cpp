@@ -6,6 +6,8 @@
  */
 
 // Project include(s)
+#include "detray/detectors/bfield.hpp"
+#include "detray/detectors/create_toy_geometry.hpp"
 #include "propagator_cuda_kernel.hpp"
 
 // Vecmem include(s)
@@ -26,15 +28,15 @@ TEST_P(CudaPropConstBFieldMng, propagator) {
     // VecMem memory resource(s)
     vecmem::cuda::managed_memory_resource mng_mr;
 
-    // Set the magnetic field
+    // Get the magnetic field
     const vector3_t B = GetParam();
+    auto field = bfield::create_const_field(B);
 
     // Create the toy geometry
-    toy_cfg.bfield_vec(B);
-    auto [det, names] = create_toy_geometry(mng_mr, toy_cfg);
+    auto [det, names] = create_toy_geometry(mng_mr);
 
     run_propagation_test<bfield::const_bknd_t>(
-        &mng_mr, det, detray::get_data<bfield::const_bknd_t>(det));
+        &mng_mr, det, detray::get_data(det), std::move(field));
 }
 
 class CudaPropConstBFieldCpy : public ::testing::TestWithParam<vector3_t> {};
@@ -48,18 +50,17 @@ TEST_P(CudaPropConstBFieldCpy, propagator) {
 
     vecmem::cuda::copy cuda_cpy;
 
-    // Set the magnetic field
+    // Get the magnetic field
     const vector3_t B = GetParam();
+    auto field = bfield::create_const_field(B);
 
     // Create the toy geometry
-    toy_cfg.bfield_vec(B);
-    auto [det, names] = create_toy_geometry(host_mr, toy_cfg);
+    auto [det, names] = create_toy_geometry(host_mr);
 
-    auto det_buff =
-        detray::get_buffer<bfield::const_bknd_t>(det, dev_mr, cuda_cpy);
+    auto det_buff = detray::get_buffer(det, dev_mr, cuda_cpy);
 
-    run_propagation_test<bfield::const_bknd_t>(&mng_mr, det,
-                                               detray::get_data(det_buff));
+    run_propagation_test<bfield::const_bknd_t>(
+        &mng_mr, det, detray::get_data(det_buff), std::move(field));
 }
 
 INSTANTIATE_TEST_SUITE_P(CudaPropagatorValidation1, CudaPropConstBFieldMng,
@@ -112,13 +113,14 @@ TEST(CudaPropagatorValidation10, inhomogeneous_bfield_cpy) {
 
     vecmem::cuda::copy cuda_cpy;
 
-    // Create the toy geometry with inhomogeneous bfield from file
-    auto [det, names] =
-        create_toy_geometry<bfield::inhom_bknd_t>(host_mr, toy_cfg);
+    // Get the magnetic field
+    auto field = bfield::create_inhom_field();
 
-    auto det_buff =
-        detray::get_buffer<bfield::cuda::inhom_bknd_t>(det, dev_mr, cuda_cpy);
+    // Create the toy geometry with inhomogeneous bfield from file
+    auto [det, names] = create_toy_geometry(host_mr);
+
+    auto det_buff = detray::get_buffer(det, dev_mr, cuda_cpy);
 
     run_propagation_test<bfield::cuda::inhom_bknd_t>(
-        &mng_mr, det, detray::get_data(det_buff));
+        &mng_mr, det, detray::get_data(det_buff), std::move(field));
 }

@@ -62,9 +62,8 @@ class grid_reader : public reader_interface<detector_t> {
     /// Deserialize the detector grids @param grids_data from their IO
     /// payload
     static void deserialize(
-        detector_builder<typename detector_t::metadata,
-                         typename detector_t::bfield_type::backend_t,
-                         volume_builder> &det_builder,
+        detector_builder<typename detector_t::metadata, volume_builder>
+            &det_builder,
         typename detector_t::name_map &,
         const detector_grids_payload<content_t> &grids_data) {
 
@@ -205,11 +204,9 @@ class grid_reader : public reader_interface<detector_t> {
               std::enable_if_t<types::size<bounds_ts> == Dim and
                                    types::size<binning_ts> == Dim,
                                bool> = true>
-    static void deserialize(
-        const grid_payload<content_t> &grid_data,
-        detector_builder<typename detector_t::metadata,
-                         typename detector_t::bfield_type::backend_t,
-                         volume_builder> &det_builder) {
+    static void deserialize(const grid_payload<content_t> &grid_data,
+                            detector_builder<typename detector_t::metadata,
+                                             volume_builder> &det_builder) {
 
         // Throw expection if the accelerator link type id is invalid
         auto print_error = [](io::detail::acc_type acc_link) -> void {
@@ -280,12 +277,11 @@ class grid_reader : public reader_interface<detector_t> {
               std::enable_if_t<sizeof...(bounds_ts) == Dim and
                                    sizeof...(binning_ts) == Dim,
                                bool> = true>
-    static void deserialize(
-        const grid_payload<content_t> &grid_data,
-        detector_builder<typename detector_t::metadata,
-                         typename detector_t::bfield_type::backend_t,
-                         volume_builder> &det_builder,
-        types::type_list<bounds_ts...>, types::type_list<binning_ts...>) {
+    static void deserialize(const grid_payload<content_t> &grid_data,
+                            detector_builder<typename detector_t::metadata,
+                                             volume_builder> &det_builder,
+                            types::type_list<bounds_ts...>,
+                            types::type_list<binning_ts...>) {
         // Assemble the grid type
         using populator_t = regular_attacher<bin_capacity>;
         using axes_t =

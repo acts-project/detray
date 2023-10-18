@@ -8,6 +8,7 @@
 // Project include(s)
 #include "propagation.hpp"
 
+#include "detray/detectors/create_toy_geometry.hpp"
 #include "detray/simulation/event_generator/track_generators.hpp"
 
 // Vecmem include(s)
@@ -23,17 +24,16 @@ int main() {
     // VecMem memory resource(s)
     vecmem::cuda::managed_memory_resource mng_mr;
 
-    // Set the magnetic field vector
+    // Create the bfield
     const auto B =
         detray::tutorial::vector3{0. * detray::unit<detray::scalar>::T,
                                   0. * detray::unit<detray::scalar>::T,
                                   2. * detray::unit<detray::scalar>::T};
 
-    // Create the toy geometry
-    detray::toy_det_config toy_cfg{};
-    toy_cfg.bfield_vec(B);
+    detray::tutorial::field_t bfield = detray::bfield::create_const_field(B);
 
-    auto [det, names] = detray::create_toy_geometry(mng_mr, toy_cfg);
+    // Create the toy geometry
+    auto [det, names] = detray::create_toy_geometry(mng_mr);
 
     // Create the vector of initial track parameters
     vecmem::vector<detray::free_track_parameters<detray::tutorial::transform3>>
@@ -59,7 +59,7 @@ int main() {
     }
 
     // Get data for device
-    auto det_data = detray::get_data<detray::bfield::const_bknd_t>(det);
+    auto det_data = detray::get_data(det);
     auto tracks_data = detray::get_data(tracks);
 
     // Create navigator candidates buffer
@@ -69,5 +69,6 @@ int main() {
     copy.setup(candidates_buffer);
 
     // Run the propagator test for GPU device
-    detray::tutorial::propagation(det_data, tracks_data, candidates_buffer);
+    detray::tutorial::propagation(det_data, bfield, tracks_data,
+                                  candidates_buffer);
 }

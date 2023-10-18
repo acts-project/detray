@@ -6,8 +6,8 @@
  */
 
 // detray include(s)
-#include "detray/definitions/bfield_backends.hpp"
 #include "detray/definitions/units.hpp"
+#include "detray/detectors/bfield.hpp"
 #include "detray/geometry/surface.hpp"
 #include "detray/intersection/detail/trajectories.hpp"
 #include "detray/io/common/detail/file_handle.hpp"
@@ -37,18 +37,6 @@ using crk_stepper_t =
 namespace {
 
 constexpr scalar tol{1e-3f};
-
-template <typename bfield_t>
-inline bfield_t load_field() {
-    detray::io::detail::file_handle file(
-        !std::getenv("DETRAY_BFIELD_FILE") ? ""
-                                           : std::getenv("DETRAY_BFIELD_FILE"),
-        std::ios_base::binary | std::ios_base::in);
-
-    bfield_t field(*file);
-
-    return field;
-}
 
 // dummy navigation struct
 struct nav_state {
@@ -150,12 +138,11 @@ GTEST_TEST(detray_propagator, rk_stepper) {
     using namespace step;
 
     // Constant magnetic field
-    using bfield_t = covfie::field<bfield::const_bknd_t>;
+    using bfield_t = bfield::const_field_t;
 
     vector3 B{1.f * unit<scalar>::T, 1.f * unit<scalar>::T,
               1.f * unit<scalar>::T};
-    bfield_t hom_bfield(covfie::make_parameter_pack(
-        typename bfield_t::backend_t::configuration_t{B[0], B[1], B[2]}));
+    const bfield_t hom_bfield = bfield::create_const_field(B);
 
     // RK stepper
     rk_stepper_t<bfield_t> rk_stepper;
@@ -256,10 +243,9 @@ GTEST_TEST(detray_propagator, rk_stepper) {
 TEST(detray_propagator, rk_stepper_inhomogeneous_bfield) {
     using namespace step;
 
-    using bfield_t = covfie::field<bfield::inhom_bknd_t>;
-
     // Read the magnetic field map
-    bfield_t inhom_bfield(load_field<bfield_t>());
+    using bfield_t = bfield::inhom_field_t;
+    bfield_t inhom_bfield = bfield::create_inhom_field();
 
     // RK stepper
     rk_stepper_t<bfield_t> rk_stepper;

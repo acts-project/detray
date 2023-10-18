@@ -5,11 +5,8 @@
  * Mozilla Public License Version 2.0
  */
 
-#include <gtest/gtest.h>
-
-#include <vecmem/memory/host_memory_resource.hpp>
-
 #include "detray/definitions/units.hpp"
+#include "detray/detectors/bfield.hpp"
 #include "detray/detectors/create_telescope_detector.hpp"
 #include "detray/masks/masks.hpp"
 #include "detray/masks/unbounded.hpp"
@@ -22,6 +19,12 @@
 #include "detray/test/types.hpp"
 #include "detray/tracks/tracks.hpp"
 #include "detray/utils/inspectors.hpp"
+
+// vecmem include(s)
+#include <vecmem/memory/host_memory_resource.hpp>
+
+// GTest include(s)
+#include <gtest/gtest.h>
 
 // This tests the construction and general methods of the navigator
 GTEST_TEST(detray_propagator, guided_navigator) {
@@ -53,7 +56,7 @@ GTEST_TEST(detray_propagator, guided_navigator) {
         object_tracer<intersection_t, dvector, status::e_on_portal,
                       status::e_on_module>;
     using inspector_t = aggregate_inspector<object_tracer_t, print_inspector>;
-    using b_field_t = detector_t::bfield_type;
+    using b_field_t = bfield::const_field_t;
     using runge_kutta_stepper =
         rk_stepper<b_field_t::view_t, transform3_t, unconstrained_step,
                    guided_navigation>;
@@ -67,8 +70,7 @@ GTEST_TEST(detray_propagator, guided_navigator) {
     const vector3 mom{0.f, 0.f, 1.f};
     free_track_parameters<transform3_t> track(pos, 0.f, mom, -1.f);
     const vector3 B{0.f, 0.f, 1.f * unit<scalar>::T};
-    const b_field_t b_field(covfie::make_parameter_pack(
-        b_field_t::backend_t::configuration_t{B[0], B[1], B[2]}));
+    const b_field_t b_field = bfield::create_const_field(B);
 
     // Actors
     pathlimit_aborter::state pathlimit{200.f * unit<scalar>::cm};

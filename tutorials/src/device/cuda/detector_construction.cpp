@@ -8,6 +8,9 @@
 // Project include(s)
 #include "detector_construction.hpp"
 
+#include "detray/detectors/bfield.hpp"
+#include "detray/detectors/create_toy_geometry.hpp"
+
 // Vecmem include(s)
 #include <vecmem/memory/cuda/device_memory_resource.hpp>
 #include <vecmem/memory/cuda/managed_memory_resource.hpp>
@@ -36,7 +39,7 @@ int main() {
     auto [det_mng, names_mng] = detray::create_toy_geometry(mng_mr);
 
     // Get the view onto the detector data directly
-    auto det_mng_data = detray::get_data<detray::bfield::const_bknd_t>(det_mng);
+    auto det_mng_data = detray::get_data(det_mng);
 
     // Pass the view and call the kernel
     std::cout << "Using CUDA unified memory:" << std::endl;
@@ -50,17 +53,16 @@ int main() {
     auto [det_host, names_host] = detray::create_toy_geometry(host_mr);
 
     // Copy the detector data to device (synchronous copy, fixed size buffers)
-    auto det_fixed_buff = detray::get_buffer<detray::bfield::const_bknd_t>(
-        det_host, dev_mr, cuda_cpy);
+    auto det_fixed_buff = detray::get_buffer(det_host, dev_mr, cuda_cpy);
 
     // Get the detector view from the buffer and call the kernel
     std::cout << "\nSynchronous copy, fixed size buffers:" << std::endl;
     detray::tutorial::print(detray::get_data(det_fixed_buff));
 
     // Copy the data to device in resizable buffers (synchronous copy)
-    auto det_resz_buff = detray::get_buffer<detray::bfield::const_bknd_t>(
-        det_host, dev_mr, cuda_cpy, detray::copy::sync,
-        vecmem::data::buffer_type::resizable);
+    auto det_resz_buff =
+        detray::get_buffer(det_host, dev_mr, cuda_cpy, detray::copy::sync,
+                           vecmem::data::buffer_type::resizable);
 
     std::cout << "\nSynchronous copy, resizable buffers:" << std::endl;
     detray::tutorial::print(detray::get_data(det_resz_buff));
@@ -94,13 +96,10 @@ int main() {
                                          vecmem::data::buffer_type::fixed_size);
 
     // Assemble the detector buffer
-    auto det_custom_buff =
-        detray::detector_buffer<detray::bfield::const_bknd_t,
-                                detray::toy_metadata,
-                                covfie::field<detray::bfield::const_bknd_t>>(
-            det_host, std::move(vol_buff), std::move(trf_buff),
-            std::move(msk_buff), std::move(mat_buff), std::move(sf_buff),
-            std::move(sf_lkp_buff), std::move(vgrid_buff));
+    auto det_custom_buff = typename decltype(det_host)::buffer_type(
+        std::move(vol_buff), std::move(trf_buff), std::move(msk_buff),
+        std::move(mat_buff), std::move(sf_buff), std::move(sf_lkp_buff),
+        std::move(vgrid_buff));
 
     std::cout << "\nCustom buffer setup:" << std::endl;
     detray::tutorial::print(detray::get_data(det_custom_buff));
