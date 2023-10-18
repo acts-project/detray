@@ -65,7 +65,7 @@ auto r_phi_split(const std::vector<d_scalar_t>& edges_rphi) {
     return std::tuple(edges_phi, r);
 }
 
-/// @return returns the actsvg grid type and edge values for a detray cylinder
+/// @returns the actsvg grid type and edge values for a detray cylinder
 /// grid.
 template <typename detector_t, typename link_t, typename view_t>
 auto cylinder2_grid_type_and_edges(const detector_t& detector,
@@ -74,7 +74,7 @@ auto cylinder2_grid_type_and_edges(const detector_t& detector,
     auto edges_rphi = bin_edges<detray::n_axis::label::e_rphi>(detector, link);
     auto edges_z = bin_edges<detray::n_axis::label::e_cyl_z>(detector, link);
     auto [edges_phi, r] = r_phi_split(edges_rphi);
-    std::vector edges_r{0.f, r};
+    std::vector edges_r{r, r};
 
     if (std::is_same_v<view_t, actsvg::views::x_y>) {
         return std::tuple(actsvg::proto::grid::e_r_phi, edges_r, edges_phi);
@@ -93,7 +93,7 @@ auto cylinder2_grid_type_and_edges(const detector_t& detector,
                       std::vector<scalar_t>{});
 }
 
-/// @return returns the actsvg grid type and edge values for a detray disc grid.
+/// @returns the actsvg grid type and edge values for a detray disc grid.
 template <typename detector_t, typename link_t, typename view_t>
 auto disc_grid_type_and_edges(const detector_t& detector, const link_t& link,
                               const view_t&) {
@@ -109,7 +109,7 @@ auto disc_grid_type_and_edges(const detector_t& detector, const link_t& link,
                       std::vector<scalar_t>{});
 }
 
-/// @return returns the detray grids respective actsvg grid type and edge
+/// @returns the detray grids respective actsvg grid type and edge
 /// values.
 template <typename accel_ids_t, typename detector_t, typename link_t,
           typename view_t>

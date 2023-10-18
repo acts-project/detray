@@ -11,6 +11,7 @@
 #include "actsvg/core.hpp"
 
 // System include(s)
+#include <string>
 #include <vector>
 
 namespace detray::svgtools::utils {
