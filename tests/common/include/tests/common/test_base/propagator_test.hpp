@@ -10,8 +10,6 @@
 // Project include(s).
 #include "detray/definitions/algebra.hpp"
 #include "detray/definitions/units.hpp"
-#include "detray/detectors/bfield.hpp"
-#include "detray/detectors/toy_metadata.hpp"
 #include "detray/propagator/actor_chain.hpp"
 #include "detray/propagator/actors/aborters.hpp"
 #include "detray/propagator/actors/parameter_resetter.hpp"
@@ -27,6 +25,9 @@
 // Vecmem include(s)
 #include <vecmem/memory/memory_resource.hpp>
 
+// Covfie include(s)
+#include <covfie/core/field.hpp>
+
 // GTest include(s).
 #include <gtest/gtest.h>
 
@@ -35,14 +36,8 @@
 
 namespace detray {
 
-// Host detector type
-using detector_host_t = detector<toy_metadata, host_container_types>;
-
-// Device detector type using views
-using detector_device_t = detector<toy_metadata, device_container_types>;
-
 // These types are identical in host and device code for all bfield types
-using transform3 = typename detector_host_t::transform3;
+using transform3 = __plugin::transform3<detray::scalar>;
 using vector3_t = typename transform3::vector3;
 using point3_t = typename transform3::point3;
 using matrix_operator = standard_matrix_operator<scalar>;
@@ -147,9 +142,9 @@ inline vecmem::vector<track_t> generate_tracks(
 }
 
 /// Test function for propagator on the host
-template <typename bfield_bknd_t>
+template <typename bfield_bknd_t, typename host_detector_t>
 inline auto run_propagation_host(vecmem::memory_resource *mr,
-                                 const detector_host_t &det,
+                                 const host_detector_t &det,
                                  covfie::field<bfield_bknd_t> &field,
                                  const vecmem::vector<track_t> &tracks)
     -> std::tuple<vecmem::jagged_vector<scalar>,
@@ -158,7 +153,7 @@ inline auto run_propagation_host(vecmem::memory_resource *mr,
 
     // Construct propagator from stepper and navigator
     auto stepr = rk_stepper_t<typename covfie::field<bfield_bknd_t>::view_t>{};
-    auto nav = navigator_t<detector_host_t>{};
+    auto nav = navigator_t<host_detector_t>{};
 
     using propagator_host_t =
         propagator<decltype(stepr), decltype(nav), actor_chain_host_t>;

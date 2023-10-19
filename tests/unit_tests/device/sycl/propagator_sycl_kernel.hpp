@@ -8,6 +8,8 @@
 #pragma once
 
 // Project include(s)
+#include "detray/detectors/bfield.hpp"
+#include "detray/detectors/toy_metadata.hpp"
 #include "queue_wrapper.hpp"
 #include "tests/common/test_base/propagator_test.hpp"
 
