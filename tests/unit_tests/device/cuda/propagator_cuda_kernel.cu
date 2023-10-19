@@ -22,6 +22,12 @@ __global__ void propagator_test_kernel(
     vecmem::data::jagged_vector_view<free_matrix> jac_transports_data) {
 
     int gid = threadIdx.x + blockIdx.x * blockDim.x;
+    using detector_device_t =
+        detector<typename detector_t::metadata, device_container_types>;
+
+    static_assert(std::is_same_v<typename detector_t::view_type,
+                                 typename detector_device_t::view_type>,
+                  "Host and device detector views do not match");
 
     detector_device_t det(det_data);
     vecmem::device_vector<track_t> tracks(tracks_data);
@@ -96,19 +102,25 @@ void propagator_test(
 }
 
 /// Explicit instantiation for a constant magnetic field
-template void propagator_test<bfield::const_bknd_t, detector_host_t>(
-    detector_host_t::view_type, covfie::field_view<bfield::const_bknd_t>,
+template void propagator_test<bfield::const_bknd_t,
+                              detector<toy_metadata, host_container_types>>(
+    detector<toy_metadata, host_container_types>::view_type,
+    covfie::field_view<bfield::const_bknd_t>,
     vecmem::data::vector_view<track_t>&,
-    vecmem::data::jagged_vector_view<intersection_t<detector_host_t>>&,
+    vecmem::data::jagged_vector_view<
+        intersection_t<detector<toy_metadata, host_container_types>>>&,
     vecmem::data::jagged_vector_view<scalar>&,
     vecmem::data::jagged_vector_view<vector3_t>&,
     vecmem::data::jagged_vector_view<free_matrix>&);
 
 /// Explicit instantiation for an inhomogeneous magnetic field
-template void propagator_test<bfield::cuda::inhom_bknd_t, detector_host_t>(
-    detector_host_t::view_type, covfie::field_view<bfield::cuda::inhom_bknd_t>,
+template void propagator_test<bfield::cuda::inhom_bknd_t,
+                              detector<toy_metadata, host_container_types>>(
+    detector<toy_metadata, host_container_types>::view_type,
+    covfie::field_view<bfield::cuda::inhom_bknd_t>,
     vecmem::data::vector_view<track_t>&,
-    vecmem::data::jagged_vector_view<intersection_t<detector_host_t>>&,
+    vecmem::data::jagged_vector_view<
+        intersection_t<detector<toy_metadata, host_container_types>>>&,
     vecmem::data::jagged_vector_view<scalar>&,
     vecmem::data::jagged_vector_view<vector3_t>&,
     vecmem::data::jagged_vector_view<free_matrix>&);

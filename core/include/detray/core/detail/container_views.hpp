@@ -169,9 +169,23 @@ struct detail::has_view<vecmem::vector<T>, void> : public std::true_type {
     using type = dvector_view<T>;
 };
 
-/// Specialization of the view getter for @c vecmem::vector
+/// Specialization of the view getter for @c vecmem::vector - const
 template <typename T>
 struct detail::has_view<const vecmem::vector<T>, void> : public std::true_type {
+    using type = dvector_view<const T>;
+};
+
+/// Specialization of the view getter for @c vecmem::device_vector
+template <typename T>
+struct detail::has_view<vecmem::device_vector<T>, void>
+    : public std::true_type {
+    using type = dvector_view<T>;
+};
+
+/// Specialization of the view getter for @c vecmem::device_vector - const
+template <typename T>
+struct detail::has_view<const vecmem::device_vector<T>, void>
+    : public std::true_type {
     using type = dvector_view<const T>;
 };
 
@@ -198,13 +212,27 @@ struct detail::has_view<vecmem::jagged_vector<T>, void>
     using type = djagged_vector_view<T>;
 };
 
-/// Specialization of the view getter for @c vecmem::jagged_vector
+/// Specialization of the view getter for @c vecmem::jagged_vector - const
 template <typename T>
 struct detail::has_view<const vecmem::jagged_vector<T>, void>
     : public std::true_type {
     using type = djagged_vector_view<const T>;
 };
 
+/// Specialization of the view getter for @c vecmem::jagged_device_vector
+template <typename T>
+struct detail::has_view<vecmem::jagged_device_vector<T>, void>
+    : public std::true_type {
+    using type = djagged_vector_view<T>;
+};
+
+/// Specialization of the view getter for @c vecmem::jagged_device_vector
+/// - const
+template <typename T>
+struct detail::has_view<const vecmem::jagged_device_vector<T>, void>
+    : public std::true_type {
+    using type = djagged_vector_view<const T>;
+};
 /// @}
 
 }  // namespace detray

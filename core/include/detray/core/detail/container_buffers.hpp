@@ -126,6 +126,19 @@ struct has_buffer<const vecmem::vector<T>, void> : public std::true_type {
     using type = vecmem::data::vector_buffer<const T>;
 };
 
+/// Specialization of the buffer getter for @c vecmem::device_vector
+template <typename T>
+struct has_buffer<vecmem::device_vector<T>, void> : public std::true_type {
+    using type = vecmem::data::vector_buffer<T>;
+};
+
+/// Specialization of the buffer getter for @c vecmem::device_vector - const
+template <typename T>
+struct has_buffer<const vecmem::device_vector<T>, void>
+    : public std::true_type {
+    using type = vecmem::data::vector_buffer<const T>;
+};
+
 template <class T>
 inline constexpr bool has_buffer_v = has_buffer<T>::value;
 
