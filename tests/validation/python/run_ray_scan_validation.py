@@ -46,8 +46,10 @@ def __main__():
                         help=("z range for the xy-view."),
                         default = [-50, 50], type=float)
     parser.add_argument("--hide_portals",
+                        help=("Hide intersections with portal surfaces."),
                         action="store_true", default=False)
     parser.add_argument("--hide_passives",
+                        help=("Hide intersections with passive surfaces."),
                         action="store_true", default=False)
 
     args = parser.parse_args()

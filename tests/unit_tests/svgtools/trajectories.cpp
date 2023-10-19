@@ -45,10 +45,9 @@ int main(int, char**) {
     vecmem::host_memory_resource host_mr;
     const auto [det, names] = detray::create_toy_geometry(host_mr);
     using detector_t = decltype(det);
-    detector_t::geometry_context context{};
 
     // Creating the illustrator.
-    const detray::svgtools::illustrator il{det, context, true};
+    const detray::svgtools::illustrator il{det, names};
 
     // Show the relevant volumes in the detector.
     const auto svg_volumes =
@@ -59,7 +58,7 @@ int main(int, char**) {
     using vector3 = typename detector_t::vector3;
 
     const typename detector_t::point3 ori{0.f, 0.f, 80.f};
-    const typename detector_t::point3 dir{0, 1, 1};
+    const typename detector_t::point3 dir{0, 1.f, 1.f};
 
     const detray::detail::ray<transform3_t> ray(ori, 0.f, dir, 0.f);
     const auto ray_ir = detray::particle_gun::shoot_particle(det, ray);
@@ -70,7 +69,7 @@ int main(int, char**) {
     // Draw the intersections.
     const auto svg_ray_ir = il.draw_intersections("record", ray_ir, view);
 
-    detray::svgtools::write_svg("test_svgtools_ray.svg",
+    detray::svgtools::write_svg("test_svgtools_ray",
                                 {svg_volumes, svg_ray, svg_ray_ir});
 
     // Creating a helix trajectory.
@@ -89,6 +88,6 @@ int main(int, char**) {
     // Draw the intersections.
     const auto svg_helix_ir = il.draw_intersections("record", helix_ir, view);
 
-    detray::svgtools::write_svg("test_svgtools_helix.svg",
+    detray::svgtools::write_svg("test_svgtools_helix",
                                 {svg_volumes, svg_helix, svg_helix_ir});
 }

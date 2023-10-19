@@ -25,14 +25,12 @@ int main(int, char**) {
     // Creating the detector and geomentry context.
     vecmem::host_memory_resource host_mr;
     const auto [det, names] = detray::create_toy_geometry(host_mr);
-    using detector_t = decltype(det);
-    detector_t::geometry_context context{};
 
     // Creating the view.
     const actsvg::views::x_y view;
 
     // Creating the svg generator for the detector.
-    detray::svgtools::illustrator il{det, context, true};
+    detray::svgtools::illustrator il{det, names};
 
     // In this example we want to draw the grids of the volumes with indices 0,
     // 1, ... in the detector.

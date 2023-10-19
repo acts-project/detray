@@ -29,6 +29,10 @@ auto pick_random(container_t container) {
 
 // Black
 constexpr std::array black{0, 0, 0};
+constexpr std::array dark_grey{171, 171, 171};
+constexpr std::array mortar{89, 89, 89};
+constexpr std::array suva_grey{137, 137, 137};
+constexpr std::array very_light_grey{207, 207, 207};
 
 // Red tones
 constexpr std::array cardinal{167, 51, 63};
@@ -36,13 +40,19 @@ constexpr std::array madder{165, 28, 48};
 constexpr std::array auburn{167, 51, 63};
 constexpr std::array burgundy{116, 18, 29};
 constexpr std::array chocolate_cosmos{88, 12, 31};
+constexpr std::array macaroni_and_cheese{255, 188, 121};
+constexpr std::array pumpkin{255, 128, 14};
+constexpr std::array tenne{200, 82, 0};
 
 // Blue tones
 constexpr std::array celestial_blue{62, 146, 204};
+constexpr std::array cerulean{0, 107, 164};
 constexpr std::array lapis_lazulli{42, 98, 143};
+constexpr std::array picton_blue{95, 158, 209};
 constexpr std::array prussian_blue1{19, 41, 61};
 constexpr std::array prussian_blue2{22, 50, 79};
 constexpr std::array indigo_dye{24, 67, 90};
+constexpr std::array sail{162, 200, 236};
 
 // Green tones
 constexpr std::array celadon{190, 230, 206};
@@ -78,6 +88,27 @@ std::vector<actsvg::style::color> green_theme(const actsvg::scalar opacity) {
             {emerald, opacity},
             {shamrock_green, opacity}};
 }
+
+// Same color circle that is used in matplot plugin
+struct tableau_colorblind10 {
+    static std::vector<actsvg::style::color> grey_tones(
+        const actsvg::scalar opacity) {
+        return {{dark_grey, opacity},
+                {mortar, opacity},
+                {suva_grey, opacity},
+                {very_light_grey, opacity}};
+    }
+    static std::vector<actsvg::style::color> blue_tones(
+        const actsvg::scalar opacity) {
+        return {{cerulean, opacity}, {picton_blue, opacity}, {sail, opacity}};
+    }
+    static std::vector<actsvg::style::color> red_tones(
+        const actsvg::scalar opacity) {
+        return {{tenne, opacity},
+                {pumpkin, opacity},
+                {macaroni_and_cheese, opacity}};
+    }
+};
 
 }  // namespace colors
 
@@ -123,20 +154,27 @@ struct style {
     trajectory_style _trajectory_style;
     grid_style _grid_style;
     landmark_style _landmark_style;
+    bool _do_random_coloring = true;
 };
 
 const surface_style surface_style1{colors::blue_theme(0.5f), 3.f};
-
 const surface_style surface_style2{colors::red_theme(0.5f), 3.f};
+const surface_style surface_style3{
+    colors::tableau_colorblind10::grey_tones(0.8f), 1.f};
+const surface_style surface_style4{
+    colors::tableau_colorblind10::blue_tones(0.3f), 1.5f};
+const surface_style surface_style5{
+    colors::tableau_colorblind10::red_tones(0.4f), 1.f};
 
 const link_style link_style1{1.2f};
 
 const portal_style portal_style1{surface_style2, link_style1, false};
+const portal_style portal_style2{surface_style4, link_style1, false};
 
 const volume_style volume_style1{surface_style1, portal_style1};
+const volume_style volume_style2{surface_style5, portal_style2};
 
 const landmark_style landmark_style1{colors::black_theme(1.f), 1.f, 5.f, "x"};
-
 const landmark_style landmark_style2{colors::black_theme(1.f), 1.f, 3.f, "o"};
 
 const grid_style grid_style1{2.f};
@@ -145,12 +183,17 @@ const trajectory_style trajectory_style1{colors::green_theme(1.f), 3.f};
 
 const style style1{volume_style1, landmark_style1, trajectory_style1,
                    grid_style1, landmark_style2};
+const style tableau_colorblind{volume_style2,     landmark_style1,
+                               trajectory_style1, grid_style1,
+                               landmark_style2,   false};
 
 /// @brief Sets the style of the proto surface.
 template <typename point3_container_t>
 void apply_style(actsvg::proto::surface<point3_container_t>& p_surface,
-                 const surface_style& styling) {
-    auto fill_color = colors::pick_random(styling._fill_colors);
+                 const surface_style& styling, bool do_random_coloring = true) {
+    auto fill_color = do_random_coloring
+                          ? colors::pick_random(styling._fill_colors)
+                          : styling._fill_colors.front();
     p_surface._fill = actsvg::style::fill(fill_color);
     p_surface._stroke =
         actsvg::style::stroke(fill_color, styling._stroke_width);
@@ -167,8 +210,11 @@ void apply_style(
 /// @brief Sets the style of the proto portal.
 template <typename point3_container_t>
 void apply_style(actsvg::proto::portal<point3_container_t>& p_portal,
-                 const portal_style& styling) {
-    auto fill_color = colors::pick_random(styling._surface_style._fill_colors);
+                 const portal_style& styling, bool do_random_coloring = true) {
+    auto fill_color =
+        do_random_coloring
+            ? colors::pick_random(styling._surface_style._fill_colors)
+            : styling._surface_style._fill_colors.front();
     p_portal._surface._fill = actsvg::style::fill(fill_color);
     p_portal._surface._stroke =
         actsvg::style::stroke(fill_color, styling._surface_style._stroke_width);
@@ -183,12 +229,12 @@ void apply_style(actsvg::proto::portal<point3_container_t>& p_portal,
 /// @brief Sets the style of the proto volume.
 template <typename point3_container_t>
 void apply_style(actsvg::proto::volume<point3_container_t>& p_volume,
-                 const volume_style& styling) {
+                 const volume_style& styling, bool do_random_coloring) {
     for (auto& p_surface : p_volume._v_surfaces) {
-        apply_style(p_surface, styling._surface_style);
+        apply_style(p_surface, styling._surface_style, do_random_coloring);
     }
     for (auto& p_portals : p_volume._portals) {
-        apply_style(p_portals, styling._portal_style);
+        apply_style(p_portals, styling._portal_style, do_random_coloring);
     }
 }
 
