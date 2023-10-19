@@ -42,6 +42,7 @@ class rk_stepper final
         typename base_type::free_track_parameters_type;
     using bound_track_parameters_type =
         typename base_type::bound_track_parameters_type;
+    using magnetic_field_type = magnetic_field_t;
 
     DETRAY_HOST_DEVICE
     rk_stepper() {}
