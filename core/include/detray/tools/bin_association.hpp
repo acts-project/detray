@@ -9,9 +9,11 @@
 #pragma once
 
 // Project include(s)
+#include "detray/coordinates/cylindrical2.hpp"
+#include "detray/coordinates/polar2.hpp"
 #include "detray/definitions/units.hpp"
+#include "detray/masks/detail/vertexing.hpp"
 #include "detray/tools/associator.hpp"
-#include "detray/tools/generators.hpp"
 #include "detray/utils/ranges.hpp"
 
 // System include(s)
@@ -74,7 +76,7 @@ static inline void bin_association(const context_t & /*context*/,
 
                 // Create a contour for the bin
                 std::vector<point2_t> bin_contour =
-                    r_phi_polygon<scalar, point2_t>(
+                    detail::r_phi_polygon<scalar, point2_t>(
                         r_borders[0] - r_add, r_borders[1] + r_add,
                         phi_borders[0] - phi_add, phi_borders[1] + phi_add);
 
@@ -89,10 +91,8 @@ static inline void bin_association(const context_t & /*context*/,
                     // Unroll the mask container and generate vertices
                     const auto &transform = transforms[sf.transform()];
 
-                    auto vertices_per_masks =
-                        surface_masks
-                            .template visit<vertexer<point2_t, point3_t>>(
-                                sf.mask());
+                    auto vertices_per_masks = surface_masks.template visit<
+                        detail::vertexer<point2_t, point3_t>>(sf.mask());
 
                     // Usually one mask per surface, but design allows - a
                     // single association  is sufficient though
@@ -162,10 +162,8 @@ static inline void bin_association(const context_t & /*context*/,
                     // Unroll the mask container and generate vertices
                     const auto &transform = transforms[sf.transform()];
 
-                    auto vertices_per_masks =
-                        surface_masks
-                            .template visit<vertexer<point2_t, point3_t>>(
-                                sf.mask());
+                    auto vertices_per_masks = surface_masks.template visit<
+                        detail::vertexer<point2_t, point3_t>>(sf.mask());
 
                     for (auto &vertices : vertices_per_masks) {
 

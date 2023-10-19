@@ -220,6 +220,18 @@ class mask {
         return trf.point_to_global(center);
     }
 
+    /// @brief Vertices of the mask in local cartesian coordinates.
+    ///
+    /// Computes vertices along the mask boundary.
+    ///
+    /// @param n_seg the number of segments in for arcs
+    ///
+    /// @returns a vector of vertices.
+    DETRAY_HOST
+    auto vertices(const dindex n_seg) const -> dvector<point3_t> {
+        return _shape.template vertices<point2_t, point3_t>(_values, n_seg);
+    }
+
     /// @returns true if the mask boundary values are consistent
     DETRAY_HOST
     constexpr bool self_check(std::ostream& os) const {

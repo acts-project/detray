@@ -43,7 +43,7 @@ struct surface_kernels {
         DETRAY_HOST_DEVICE inline auto operator()(
             const mask_group_t& mask_group, const index_t& index) const {
 
-            return mask_group.at(index).volume_link();
+            return mask_group[index].volume_link();
         }
     };
 
@@ -64,7 +64,7 @@ struct surface_kernels {
         DETRAY_HOST_DEVICE inline point3 operator()(
             const mask_group_t& mask_group, const index_t& index,
             const transform3& trf3, const point2& bound) const {
-            // Get the concrete mask instance for this surface
+
             const auto& m = mask_group[index];
 
             return m.local_frame().normal(trf3, bound, m);
@@ -114,6 +114,7 @@ struct surface_kernels {
             const mask_group_t& mask_group, const index_t& index,
             const transform3& trf3, const point2& bound,
             const vector3& dir) const {
+
             const auto& m = mask_group[index];
 
             return mask_group[index].local_frame().bound_local_to_global(
@@ -138,10 +139,9 @@ struct surface_kernels {
         DETRAY_HOST_DEVICE inline bound_vector_type operator()(
             const mask_group_t& mask_group, const index_t& index,
             const transform3& trf3, const free_vector_type& free_vec) const {
-            // Get the concrete mask instance for this surface
-            const auto& m = mask_group[index];
-            // Call shape-specific behaviour on the mask
-            return m.local_frame().free_to_bound_vector(trf3, free_vec);
+
+            return mask_group[index].local_frame().free_to_bound_vector(
+                trf3, free_vec);
         }
     };
 
@@ -167,9 +167,8 @@ struct surface_kernels {
             const mask_group_t& mask_group, const index_t& index,
             const transform3& trf3, const free_vector_type& free_vec) const {
 
-            const auto& m = mask_group[index];
-
-            return m.local_frame().free_to_bound_jacobian(trf3, free_vec);
+            return mask_group[index].local_frame().free_to_bound_jacobian(
+                trf3, free_vec);
         }
     };
 
@@ -196,9 +195,8 @@ struct surface_kernels {
             const transform3& trf3, const vector3& pos, const vector3& dir,
             const vector3& dtds) const {
 
-            const auto& m = mask_group[index];
-
-            return m.local_frame().path_correction(pos, dir, dtds, trf3);
+            return mask_group[index].local_frame().path_correction(pos, dir,
+                                                                   dtds, trf3);
         }
     };
 
@@ -211,9 +209,19 @@ struct surface_kernels {
             const scalar_t env =
                 std::numeric_limits<scalar_t>::epsilon()) const {
 
-            const auto& m = mask_group[index];
+            return mask_group[index].local_min_bounds(env);
+        }
+    };
 
-            return m.local_min_bounds(env);
+    /// A functor to get the vertices in local coordinates.
+    struct local_vertices {
+
+        template <typename mask_group_t, typename index_t, typename scalar_t>
+        DETRAY_HOST_DEVICE inline auto operator()(
+            const mask_group_t& mask_group, const index_t& index,
+            const dindex n_seg) const {
+
+            return mask_group[index].vertices(n_seg);
         }
     };
 };

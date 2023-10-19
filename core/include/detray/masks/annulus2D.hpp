@@ -14,11 +14,11 @@
 #include "detray/definitions/qualifiers.hpp"
 #include "detray/definitions/units.hpp"
 #include "detray/intersection/plane_intersector.hpp"
+#include "detray/masks/detail/vertexing.hpp"
 #include "detray/surface_finders/grid/detail/axis_binning.hpp"
 #include "detray/surface_finders/grid/detail/axis_bounds.hpp"
 
 // System include(s)
-#include <cmath>
 #include <limits>
 #include <ostream>
 #include <string>
@@ -92,24 +92,6 @@ class annulus2D {
         template <typename C, typename S>
         using binning = dtuple<binning_loc0<C, S>, binning_loc1<C, S>>;
     };
-
-    /// Given a local polar point given in the disc frame, @returns the
-    /// correponding point in the focal frame
-    /*DETRAY_HOST_DEVICE
-    template<typename scalar_t>
-    static inline constexpr loc_point_type<scalar_t> to_focal_frame(
-        const loc_point_type<scalar_t> & pc_mod_point) {
-        return {};
-    }
-
-    /// Given a local polar point given in the focal frame, @returns the
-    /// correponding point in the disc frame
-    DETRAY_HOST_DEVICE
-    template<typename scalar_t>
-    static inline constexpr loc_point_type<scalar_t> to_disc_frame(
-        const loc_point_type<scalar_t> & pc_strp_point) {
-        return {};
-    }*/
 
     /// @returns the stereo angle calculated from the mask @param bounds .
     template <template <typename, std::size_t> class bounds_t,
@@ -280,6 +262,92 @@ class annulus2D {
         corner_pos[7] = min_phi;
 
         return corner_pos;
+    }
+
+    /// Generate vertices in local cartesian frame
+    ///
+    /// @param bounds the boundary values for the stereo annulus
+    /// @param n_seg is the number of line segments
+    ///
+    /// @return a generated list of vertices
+    template <typename point2_t, typename point3_t,
+              template <typename, std::size_t> class bounds_t,
+              typename scalar_t, std::size_t kDIM,
+              typename std::enable_if_t<kDIM == e_size, bool> = true>
+    DETRAY_HOST dvector<point3_t> vertices(
+        const bounds_t<scalar_t, kDIM> &bounds, dindex n_seg) const {
+
+        scalar_t min_r = bounds[e_min_r];
+        scalar_t max_r = bounds[e_max_r];
+        scalar_t min_phi_rel = bounds[e_min_phi_rel];
+        scalar_t max_phi_rel = bounds[e_max_phi_rel];
+        scalar_t origin_x = bounds[e_shift_x];
+        scalar_t origin_y = bounds[e_shift_y];
+
+        point2_t origin_m = {origin_x, origin_y};
+
+        /// Helper method: find inner outer radius at edges in STRIP PC
+        auto circIx = [](scalar_t O_x, scalar_t O_y, scalar_t r,
+                         scalar_t phi) -> point2_t {
+            //                      _____________________________________________
+            //                     /      2  2                    2    2  2    2
+            //     O_x + O_y*m - \/  - O_x *m  + 2*O_x*O_y*m - O_y  + m *r  + r
+            // x =
+            // --------------------------------------------------------------
+            //                                  2
+            //                                 m  + 1
+            //
+            // y = m*x
+            //
+            scalar_t m = std::tan(phi);
+            point2_t dir = {math_ns::cos(phi), std::sin(phi)};
+            scalar_t x1 = (O_x + O_y * m -
+                           std::sqrt(-std::pow(O_x, 2.f) * std::pow(m, 2.f) +
+                                     2.f * O_x * O_y * m - std::pow(O_y, 2.f) +
+                                     std::pow(m, 2.f) * std::pow(r, 2.f) +
+                                     std::pow(r, 2.f))) /
+                          (std::pow(m, 2.f) + 1.f);
+            scalar_t x2 = (O_x + O_y * m +
+                           std::sqrt(-std::pow(O_x, 2.f) * std::pow(m, 2.f) +
+                                     2.f * O_x * O_y * m - std::pow(O_y, 2.f) +
+                                     std::pow(m, 2.f) * std::pow(r, 2.f) +
+                                     std::pow(r, 2.f))) /
+                          (std::pow(m, 2.f) + 1.f);
+
+            point2_t v1 = {x1, m * x1};
+            if (vector::dot(v1, dir) > 0.f)
+                return v1;
+            return {x2, m * x2};
+        };
+
+        // calculate corners in STRIP XY
+        point2_t ul_xy = circIx(origin_x, origin_y, max_r, max_phi_rel);
+        point2_t ll_xy = circIx(origin_x, origin_y, min_r, max_phi_rel);
+        point2_t ur_xy = circIx(origin_x, origin_y, max_r, min_phi_rel);
+        point2_t lr_xy = circIx(origin_x, origin_y, min_r, min_phi_rel);
+
+        auto inner_phi =
+            detail::phi_values(getter::phi(ll_xy - origin_m),
+                               getter::phi(lr_xy - origin_m), n_seg);
+        auto outer_phi =
+            detail::phi_values(getter::phi(ur_xy - origin_m),
+                               getter::phi(ul_xy - origin_m), n_seg);
+
+        dvector<point3_t> annulus_vertices;
+        annulus_vertices.reserve(inner_phi.size() + outer_phi.size());
+        for (auto iphi : inner_phi) {
+            annulus_vertices.push_back(
+                point3_t{min_r * math_ns::cos(iphi) + origin_x,
+                         min_r * std::sin(iphi) + origin_y, 0.f});
+        }
+
+        for (auto ophi : outer_phi) {
+            annulus_vertices.push_back(
+                point3_t{max_r * math_ns::cos(ophi) + origin_x,
+                         max_r * std::sin(ophi) + origin_y, 0.f});
+        }
+
+        return annulus_vertices;
     }
 
     /// @brief Check consistency of boundary values.

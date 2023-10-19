@@ -9,6 +9,7 @@
 
 // Project include(s)
 #include "detray/definitions/containers.hpp"
+#include "detray/definitions/indexing.hpp"
 #include "detray/definitions/qualifiers.hpp"
 
 // System include(s)
@@ -76,6 +77,22 @@ class unbounded {
         const bounds_t<scalar_t, kDIM>& bounds,
         const scalar_t env = std::numeric_limits<scalar_t>::epsilon()) const {
         return shape{}.template local_min_bounds<algebra_t>(bounds, env);
+    }
+
+    /// Generate vertices in local cartesian frame
+    ///
+    /// @param bounds the boundary values for the underlying shape
+    /// @param ls is the number of line segments
+    ///
+    /// @return a generated list of vertices
+    template <
+        typename point2_t, typename point3_t,
+        template <typename, std::size_t> class bounds_t, typename scalar_t,
+        std::size_t kDIM,
+        typename std::enable_if_t<kDIM == boundaries::e_size, bool> = true>
+    DETRAY_HOST dvector<point3_t> vertices(
+        const bounds_t<scalar_t, kDIM>& bounds, dindex n_seg) const {
+        return shape{}.template vertices<point2_t, point3_t>(bounds, n_seg);
     }
 
     /// @brief Check consistency of boundary values.
