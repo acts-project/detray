@@ -131,6 +131,9 @@ class detector {
         typename surface_container::view_type, dvector_view<surface_type>,
         typename volume_finder::view_type>;
 
+    static_assert(detail::is_device_view_v<view_type>,
+                  "Detector view type ill-formed");
+
     using const_view_type =
         dmulti_view<dvector_view<const volume_type>,
                     typename transform_container::const_view_type,
@@ -140,6 +143,9 @@ class detector {
                     dvector_view<const surface_type>,
                     typename volume_finder::const_view_type>;
 
+    static_assert(detail::is_device_view_v<const_view_type>,
+                  "Detector const view type ill-formed");
+
     /// Detector buffer types
     using buffer_type = dmulti_buffer<
         dvector_buffer<volume_type>, typename transform_container::buffer_type,
@@ -147,6 +153,9 @@ class detector {
         typename material_container::buffer_type,
         typename surface_container::buffer_type, dvector_buffer<surface_type>,
         typename volume_finder::buffer_type>;
+
+    static_assert(detail::is_buffer_v<buffer_type>,
+                  "Detector buffer type ill-formed");
 
     detector() = delete;
     // The detector holds a lot of data and should never be copied
