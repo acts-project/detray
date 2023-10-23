@@ -76,6 +76,13 @@ class detector {
     /// In case the detector needs to be printed
     using name_map = std::map<dindex, std::string>;
 
+    /// The surface takes a mask (defines the local coordinates and the surface
+    /// extent), its material, a link to an element in the transform container
+    /// to define its placement and a source link to the object it represents.
+    using surface_type = typename metadata::surface_type;
+    using surface_container = vector_type<surface_type>;
+    using surface_lookup_container = surface_container;
+
     /// Forward the alignable transform container (surface placements) and
     /// the geo context (e.g. for alignment)
     using transform_container =
@@ -98,24 +105,14 @@ class detector {
 
     /// Surface Finders: structures that enable neigborhood searches in the
     /// detector geometry during navigation. Can be different in each volume
-    using surface_container =
-        typename metadata::template surface_finder_store<tuple_type,
-                                                         container_t>;
-    using sf_finders = typename surface_container::value_types;
-    using sf_finder_link = typename surface_container::single_link;
+    using accelerator_container =
+        typename metadata::template accelerator_store<tuple_type, container_t>;
+    using accel = typename accelerator_container::value_types;
+    using accel_link = typename accelerator_container::single_link;
 
-    // TODO: Move to the following to volume builder
-
-    /// The surface takes a mask (defines the local coordinates and the surface
-    /// extent), its material, a link to an element in the transform container
-    /// to define its placement and a source link to the object it represents.
-    using surface_type = typename metadata::surface_type;
-    using surface_lookup_container = vector_type<surface_type>;
-
-    using surface_container_t = vector_type<surface_type>;
     /// Volume type
     using geo_obj_ids = typename metadata::geo_objects;
-    using volume_type = volume_descriptor<geo_obj_ids, sf_finder_link>;
+    using volume_type = volume_descriptor<geo_obj_ids, accel_link>;
     using volume_container = vector_type<volume_type>;
 
     /// Volume finder definition: Make volume index available from track
@@ -124,35 +121,37 @@ class detector {
         typename metadata::template volume_finder<container_t>;
 
     /// Detector view types
-    using view_type = dmulti_view<
-        dvector_view<volume_type>, typename transform_container::view_type,
-        typename mask_container::view_type,
-        typename material_container::view_type,
-        typename surface_container::view_type, dvector_view<surface_type>,
-        typename volume_finder::view_type>;
+    using view_type =
+        dmulti_view<dvector_view<volume_type>, dvector_view<surface_type>,
+                    typename transform_container::view_type,
+                    typename mask_container::view_type,
+                    typename material_container::view_type,
+                    typename accelerator_container::view_type,
+                    typename volume_finder::view_type>;
 
     static_assert(detail::is_device_view_v<view_type>,
                   "Detector view type ill-formed");
 
     using const_view_type =
         dmulti_view<dvector_view<const volume_type>,
+                    dvector_view<const surface_type>,
                     typename transform_container::const_view_type,
                     typename mask_container::const_view_type,
                     typename material_container::const_view_type,
-                    typename surface_container::const_view_type,
-                    dvector_view<const surface_type>,
+                    typename accelerator_container::const_view_type,
                     typename volume_finder::const_view_type>;
 
     static_assert(detail::is_device_view_v<const_view_type>,
                   "Detector const view type ill-formed");
 
     /// Detector buffer types
-    using buffer_type = dmulti_buffer<
-        dvector_buffer<volume_type>, typename transform_container::buffer_type,
-        typename mask_container::buffer_type,
-        typename material_container::buffer_type,
-        typename surface_container::buffer_type, dvector_buffer<surface_type>,
-        typename volume_finder::buffer_type>;
+    using buffer_type =
+        dmulti_buffer<dvector_buffer<volume_type>, dvector_buffer<surface_type>,
+                      typename transform_container::buffer_type,
+                      typename mask_container::buffer_type,
+                      typename material_container::buffer_type,
+                      typename accelerator_container::buffer_type,
+                      typename volume_finder::buffer_type>;
 
     static_assert(detail::is_buffer_v<buffer_type>,
                   "Detector buffer type ill-formed");
@@ -170,11 +169,11 @@ class detector {
     DETRAY_HOST
     explicit detector(vecmem::memory_resource &resource)
         : _volumes(&resource),
+          _surfaces(&resource),
           _transforms(resource),
           _masks(resource),
           _materials(resource),
-          _surfaces(resource),
-          _surface_lookup(&resource),
+          _accelerators(resource),
           _volume_finder(resource),
           _resource(&resource) {}
 
@@ -184,18 +183,18 @@ class detector {
                   detail::is_device_view_v<detector_view_t>, bool> = true>
     DETRAY_HOST_DEVICE explicit detector(detector_view_t &det_data)
         : _volumes(detray::detail::get<0>(det_data.m_view)),
-          _transforms(detray::detail::get<1>(det_data.m_view)),
-          _masks(detray::detail::get<2>(det_data.m_view)),
-          _materials(detray::detail::get<3>(det_data.m_view)),
-          _surfaces(detray::detail::get<4>(det_data.m_view)),
-          _surface_lookup(detray::detail::get<5>(det_data.m_view)),
+          _surfaces(detray::detail::get<1>(det_data.m_view)),
+          _transforms(detray::detail::get<2>(det_data.m_view)),
+          _masks(detray::detail::get<3>(det_data.m_view)),
+          _materials(detray::detail::get<4>(det_data.m_view)),
+          _accelerators(detray::detail::get<5>(det_data.m_view)),
           _volume_finder(detray::detail::get<6>(det_data.m_view)) {}
     /// @}
 
     /// Add a new volume and retrieve a reference to it.
     ///
     /// @param id the shape id for the volume
-    /// @param sf_finder_link of the volume, where to entry the surface finder
+    /// @param accel_link of the volume, where to entry the surface finder
     ///
     /// @return non-const reference to the new volume
     DETRAY_HOST
@@ -264,13 +263,15 @@ class detector {
 
     /// @returns access to the surface finder container
     DETRAY_HOST_DEVICE
-    inline auto surface_store() const -> const surface_container & {
-        return _surfaces;
+    inline auto accelerator_store() const -> const accelerator_container & {
+        return _accelerators;
     }
 
     /// @returns access to the surface finder container
     DETRAY_HOST_DEVICE
-    inline auto surface_store() -> surface_container & { return _surfaces; }
+    inline auto accelerator_store() -> accelerator_container & {
+        return _accelerators;
+    }
 
     /// @returns all portals - const
     /// @note Depending on the detector type, this can also contain other
@@ -278,7 +279,7 @@ class detector {
     DETRAY_HOST_DEVICE
     inline const auto &portals() const {
         // In case of portals, we know where they live
-        return _surfaces.template get<sf_finders::id::e_brute_force>().all();
+        return _accelerators.template get<accel::id::e_brute_force>().all();
     }
 
     /// @returns all portals - non-const
@@ -286,7 +287,7 @@ class detector {
     /// surfaces
     DETRAY_HOST_DEVICE
     inline auto &portals() {
-        return _surfaces.template get<sf_finders::id::e_brute_force>().all();
+        return _accelerators.template get<accel::id::e_brute_force>().all();
     }
 
     /// @returns the portals of a given volume @param v - const
@@ -299,8 +300,7 @@ class detector {
             v.template link<geo_obj_ids::e_portal>().index()};
 
         const auto &pt_coll =
-            _surfaces
-                .template get<sf_finders::id::e_brute_force>()[pt_coll_idx];
+            _accelerators.template get<accel::id::e_brute_force>()[pt_coll_idx];
 
         return pt_coll.all();
     }
@@ -308,41 +308,41 @@ class detector {
     /// @return the sub-volumes of the detector - const access
     DETRAY_HOST_DEVICE
     inline auto surface_lookup() const -> const vector_type<surface_type> & {
-        return _surface_lookup;
+        return _surfaces;
     }
 
     /// @return the sub-volumes of the detector - non-const access
     DETRAY_HOST_DEVICE
     inline auto surface_lookup() -> vector_type<surface_type> & {
-        return _surface_lookup;
+        return _surfaces;
     }
 
     /// @returns a surface using its barcode - const
     DETRAY_HOST_DEVICE
     constexpr auto surface(geometry::barcode bcd) const
         -> const surface_type & {
-        return _surface_lookup[bcd.index()];
+        return _surfaces[bcd.index()];
     }
 
     /// @returns the overall number of surfaces in the detector
     DETRAY_HOST_DEVICE
     constexpr auto n_surfaces() const -> dindex {
-        return static_cast<dindex>(_surface_lookup.size());
+        return static_cast<dindex>(_surfaces.size());
     }
 
     /// Add a new surface to the lookup according to its index.
     DETRAY_HOST
     constexpr auto add_surface_to_lookup(const surface_type sf) -> void {
-        if (_surface_lookup.size() < sf.index() + 1) {
-            _surface_lookup.resize(sf.index() + 1);
+        if (_surfaces.size() < sf.index() + 1) {
+            _surfaces.resize(sf.index() + 1);
         }
-        _surface_lookup.at(sf.index()) = sf;
+        _surfaces.at(sf.index()) = sf;
     }
 
     /// Append new portals(surfaces) to the detector
     DETRAY_HOST
-    inline void append_portals(surface_container_t &&new_surfaces) {
-        _surfaces.template push_back<sf_finders::id::e_brute_force>(
+    inline void append_portals(surface_container &&new_surfaces) {
+        _accelerators.template push_back<accel::id::e_brute_force>(
             std::move(new_surfaces));
     }
 
@@ -415,7 +415,7 @@ class detector {
     template <geo_obj_ids surface_id = static_cast<geo_obj_ids>(0)>
     DETRAY_HOST auto add_objects_per_volume(
         const geometry_context ctx, volume_type &vol,
-        surface_container_t &surfaces_per_vol, mask_container &masks_per_vol,
+        surface_container &surfaces_per_vol, mask_container &masks_per_vol,
         transform_container &trfs_per_vol) noexcept(false) -> void {
 
         // Append transforms
@@ -437,13 +437,13 @@ class detector {
         }
 
         // Append surfaces to base surface collection
-        _surfaces.template push_back<sf_finders::id::e_default>(
+        _accelerators.template push_back<accel::id::e_default>(
             surfaces_per_vol);
 
         // Update the surface link in a volume
         vol.template set_link<surface_id>(
-            sf_finders::id::e_default,
-            _surfaces.template size<sf_finders::id::e_default>() - 1);
+            accel::id::e_default,
+            _accelerators.template size<accel::id::e_default>() - 1);
 
         // Append mask and material container
         _masks.append(std::move(masks_per_vol));
@@ -464,7 +464,7 @@ class detector {
     DETRAY_HOST
     auto add_objects_per_volume(
         const geometry_context ctx, volume_type &vol,
-        surface_container_t &surfaces_per_vol, mask_container &masks_per_vol,
+        surface_container &surfaces_per_vol, mask_container &masks_per_vol,
         transform_container &trfs_per_vol,
         material_container &materials_per_vol) noexcept(false) -> void {
 
@@ -523,18 +523,18 @@ class detector {
     /// @returns view of a detector
     DETRAY_HOST auto get_data() -> view_type {
         return view_type{
-            detray::get_data(_volumes),      detray::get_data(_transforms),
-            detray::get_data(_masks),        detray::get_data(_materials),
-            detray::get_data(_surfaces),     detray::get_data(_surface_lookup),
+            detray::get_data(_volumes),      detray::get_data(_surfaces),
+            detray::get_data(_transforms),   detray::get_data(_masks),
+            detray::get_data(_materials),    detray::get_data(_accelerators),
             detray::get_data(_volume_finder)};
     }
 
     /// @returns const view of a detector
     DETRAY_HOST auto get_data() const -> const_view_type {
         return const_view_type{
-            detray::get_data(_volumes),      detray::get_data(_transforms),
-            detray::get_data(_masks),        detray::get_data(_materials),
-            detray::get_data(_surfaces),     detray::get_data(_surface_lookup),
+            detray::get_data(_volumes),      detray::get_data(_surfaces),
+            detray::get_data(_transforms),   detray::get_data(_masks),
+            detray::get_data(_materials),    detray::get_data(_accelerators),
             detray::get_data(_volume_finder)};
     }
 
@@ -546,11 +546,10 @@ class detector {
 
         ss << "[>] Detector '" << names.at(0) << "' has " << _volumes.size()
            << " volumes." << std::endl;
-        ss << " local surface finders." << std::endl;
 
         for (const auto [i, v] : detray::views::enumerate(_volumes)) {
             ss << "[>>] Volume at index " << i << ": " << std::endl;
-            ss << " - name: '" << v.name(names) << "'" << std::endl;
+            ss << " - name: '" << names.at(v.index() + 1u) << "'" << std::endl;
 
             ss << "     contains    "
                << v.template n_objects<geo_obj_ids::e_sensitive>()
@@ -560,12 +559,12 @@ class detector {
                << v.template n_objects<geo_obj_ids::e_portal>() << " portals "
                << std::endl;
 
-            ss << "                 " << _surfaces.n_collections()
+            ss << "                 " << _accelerators.n_collections()
                << " surface finders " << std::endl;
 
-            if (v.sf_finder_index() != dindex_invalid) {
-                ss << "  sf finder id " << v.sf_finder_type()
-                   << "  sf finders idx " << v.sf_finder_index() << std::endl;
+            if (v.accel_index() != dindex_invalid) {
+                ss << "  sf finder id " << v.accel_type() << "  sf finders idx "
+                   << v.accel_index() << std::endl;
             }
         }
 
@@ -584,6 +583,9 @@ class detector {
     /// Contains the detector sub-volumes.
     volume_container _volumes;
 
+    /// Lookup for surfaces from barcodes
+    surface_lookup_container _surfaces;
+
     /// Keeps all of the transform data in contiguous memory
     transform_container _transforms;
 
@@ -594,10 +596,7 @@ class detector {
     material_container _materials;
 
     /// All surface finder data structures that are used in the detector volumes
-    surface_container _surfaces;
-
-    /// Lookup for surfaces from barcodes
-    surface_lookup_container _surface_lookup;
+    accelerator_container _accelerators;
 
     /// Search structure for volumes
     volume_finder _volume_finder;

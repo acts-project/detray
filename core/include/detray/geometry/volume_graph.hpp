@@ -56,7 +56,6 @@ class volume_graph {
     public:
     using geo_obj_ids = typename detector_t::geo_obj_ids;
     using volume_container_t = vector_t<typename detector_t::volume_type>;
-    using surface_container_t = typename detector_t::surface_container;
     using mask_container_t = typename detector_t::mask_container;
 
     /// @brief Builds a graph node from the detector collections on the fly.

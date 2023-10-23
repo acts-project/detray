@@ -69,9 +69,9 @@ __global__ void detector_test_kernel(
     }
 
     // print output test for surface finder
-    /*auto& sf_finder_device = det_device.sf_finders_store();
-    for (unsigned int i_s = 0u; i_s < sf_finder_device.size(); i_s++) {
-        auto& grid = sf_finder_device[i_s];
+    /*auto& accel_device = det_device.accelerator_store();
+    for (unsigned int i_s = 0u; i_s < accel_device.size(); i_s++) {
+        auto& grid = accel_device[i_s];
         for (unsigned int i = 0u; i < grid.axis_p0().bins(); i++) {
             for (unsigned int j = 0u; j < grid.axis_p1().bins(); j++) {
                 const auto& bin = grid.bin(i, j);

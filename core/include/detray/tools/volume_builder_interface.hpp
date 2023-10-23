@@ -82,7 +82,7 @@ class volume_builder_interface {
     protected:
     /// Access to builder data
     /// @{
-    virtual typename detector_t::surface_container_t &surfaces() = 0;
+    virtual typename detector_t::surface_container &surfaces() = 0;
     virtual typename detector_t::transform_container &transforms() = 0;
     virtual typename detector_t::mask_container &masks() = 0;
     /// @}
@@ -153,7 +153,7 @@ class volume_decorator : public volume_builder_interface<detector_t> {
     /// @}
 
     protected:
-    typename detector_t::surface_container_t &surfaces() override {
+    typename detector_t::surface_container &surfaces() override {
         return m_builder->surfaces();
     }
     typename detector_t::transform_container &transforms() override {

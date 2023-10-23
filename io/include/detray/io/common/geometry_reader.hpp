@@ -99,26 +99,25 @@ class geometry_reader : public reader_interface<detector_t> {
                 const auto key{mask_data.shape};
                 if (auto search = factories.find(key);
                     search == factories.end()) {
-                    factories[key] =
-                        std::move(init_factory<mask_shape::n_shapes>(
-                            mask_data.shape, sf_data.type));
+                    factories[key] = std::move(
+                        init_factory<mask_shape::n_shapes>(mask_data.shape));
                 }
 
                 // Add the data to the factory
                 factories.at(key)->push_back(deserialize(sf_data));
             }
 
-            // Add the portals to the volume first
+            // Add all portals and surfaces to the volume
             typename detector_t::geometry_context geo_ctx{};
             for (auto [key, pt_factory] : pt_factories) {
                 vbuilder->add_surfaces(pt_factory, geo_ctx);
             }
-            // Add all other surfaces next
             for (auto [key, sf_factory] : sf_factories) {
                 vbuilder->add_surfaces(sf_factory, geo_ctx);
             }
         }
 
+        // @TODO: Implement voume finder IO
         det_builder.template set_volume_finder();
     }
 
@@ -162,10 +161,13 @@ class geometry_reader : public reader_interface<detector_t> {
                                      ? *(sf_data.index_in_coll)
                                      : detail::invalid_value<std::size_t>()};
 
-        return {sf_data.type, deserialize(sf_data.transform),
+        return {sf_data.type,
+                deserialize(sf_data.transform),
                 static_cast<nav_link_t>(
                     base_type::deserialize(sf_data.mask.volume_link)),
-                std::move(mask_boundaries), static_cast<dindex>(sf_idx)};
+                std::move(mask_boundaries),
+                static_cast<dindex>(sf_idx),
+                sf_data.source};
     }
 
     private:
@@ -174,12 +176,11 @@ class geometry_reader : public reader_interface<detector_t> {
     ///
     /// @return the corresponding surface factory.
     template <mask_shape I>
-    static sf_factory_ptr_t init_factory(
-        const mask_shape shape_id, [[maybe_unused]] const surface_id sf_type) {
+    static sf_factory_ptr_t init_factory(const mask_shape shape_id) {
+
         // Shape index of surface data found
         if (shape_id == I) {
-            // Get the corresponding mask shape type and its type id in the
-            // detector
+            // Get the corresponding mask shape type
             using mask_info_t = mask_info<I>;
             using shape_t = typename mask_info_t::type;
 
@@ -192,7 +193,7 @@ class geometry_reader : public reader_interface<detector_t> {
         constexpr int current_id{static_cast<int>(I)};
         if constexpr (current_id > 0) {
             return init_factory<static_cast<mask_shape>(current_id - 1)>(
-                shape_id, sf_type);
+                shape_id);
         }
         // Test some edge cases
         if (shape_id == mask_shape::unknown) {
@@ -202,10 +203,10 @@ class geometry_reader : public reader_interface<detector_t> {
             throw std::invalid_argument(
                 "Given shape id could not be matched to a mask type: " +
                 std::to_string(static_cast<std::int64_t>(shape_id)));
-
-            // Cannot be reached
-            return {nullptr};
         }
+
+        // Cannot be reached
+        return {nullptr};
     }
 };
 

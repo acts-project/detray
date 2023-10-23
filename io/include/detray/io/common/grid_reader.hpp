@@ -295,7 +295,7 @@ class grid_reader : public reader_interface<detector_t> {
 
         // The compiler will instantiate this function for all possible types of
         // grids: Only proceed, if the grid type is known by the detector
-        if constexpr (detector_t::sf_finders::template is_defined<grid_t>()) {
+        if constexpr (detector_t::accel::template is_defined<grid_t>()) {
 
             // Decorate the current volume builder with the grid
             using grid_builder_t =
