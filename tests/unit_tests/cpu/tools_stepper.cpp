@@ -6,6 +6,7 @@
  */
 
 // detray include(s)
+#include "detray/core/detector.hpp"
 #include "detray/definitions/units.hpp"
 #include "detray/detectors/bfield.hpp"
 #include "detray/geometry/surface.hpp"
@@ -15,6 +16,7 @@
 #include "detray/propagator/rk_stepper.hpp"
 #include "detray/simulation/event_generator/track_generators.hpp"
 #include "detray/test/types.hpp"
+#include "detray/tools/volume_builder.hpp"
 #include "detray/tracks/tracks.hpp"
 
 // System include(s)
@@ -41,37 +43,34 @@ namespace {
 
 constexpr scalar tol{1e-3f};
 
-struct dummy_descriptor {
-    inline auto material() -> detray::material<scalar> {
-        return vacuum<scalar>();
-    }
-};
-
-struct dummy_detector {
-
-    inline auto volume_by_index(const int /*idx*/) {
-        return dummy_descriptor();
-    }
-};
+vecmem::host_memory_resource host_mr;
 
 // dummy navigation struct
 struct nav_state {
+    /// New detector
+    nav_state(vecmem::host_memory_resource &mr)
+        : m_step_size{1.f * unit<scalar>::mm},
+          m_det{std::make_unique<detray::detector<>>(mr)} {
+        // Empty dummy volume
+        volume_builder<detray::detector<>> vbuilder{volume_id::e_cylinder};
+        vbuilder.build(*m_det);
+    }
 
-    nav_state() : m_det{std::make_unique<dummy_detector>()} {}
-
-    scalar operator()() const { return _step_size; }
+    scalar operator()() const { return m_step_size; }
     inline auto current_object() const -> dindex { return dindex_invalid; }
     inline auto tolerance() const -> scalar { return tol; }
-    inline auto detector() const -> dummy_detector * { return m_det.get(); }
-    inline auto volume() -> int { return 0; }
+    inline auto detector() const -> const detray::detector<> * {
+        return m_det.get();
+    }
+    inline auto volume() -> unsigned int { return 0u; }
     inline void set_full_trust() {}
     inline void set_high_trust() {}
     inline void set_fair_trust() {}
     inline void set_no_trust() {}
     inline bool abort() { return false; }
 
-    scalar _step_size{1.f * unit<scalar>::mm};
-    std::unique_ptr<dummy_detector> m_det;
+    scalar m_step_size;
+    std::unique_ptr<detray::detector<>> m_det;
 };
 
 // dummy propagator state
@@ -100,9 +99,9 @@ GTEST_TEST(detray_propagator, line_stepper) {
     cline_stepper_t cl_stepper;
 
     prop_state<line_stepper_t::state, nav_state> propagation{
-        line_stepper_t::state{track}, nav_state{}};
+        line_stepper_t::state{track}, nav_state{host_mr}};
     prop_state<cline_stepper_t::state, nav_state> c_propagation{
-        cline_stepper_t::state{c_track}, nav_state{}};
+        cline_stepper_t::state{c_track}, nav_state{host_mr}};
 
     cline_stepper_t::state &cl_state = c_propagation._stepping;
 
@@ -190,9 +189,11 @@ GTEST_TEST(detray_propagator, rk_stepper) {
 
         // RK Stepping into forward direction
         prop_state<rk_stepper_t<bfield_t>::state, nav_state> propagation{
-            rk_stepper_t<bfield_t>::state{track, hom_bfield}, nav_state{}};
+            rk_stepper_t<bfield_t>::state{track, hom_bfield},
+            nav_state{host_mr}};
         prop_state<crk_stepper_t<bfield_t>::state, nav_state> c_propagation{
-            crk_stepper_t<bfield_t>::state{c_track, hom_bfield}, nav_state{}};
+            crk_stepper_t<bfield_t>::state{c_track, hom_bfield},
+            nav_state{host_mr}};
 
         rk_stepper_t<bfield_t>::state &rk_state = propagation._stepping;
         crk_stepper_t<bfield_t>::state &crk_state = c_propagation._stepping;
@@ -208,8 +209,8 @@ GTEST_TEST(detray_propagator, rk_stepper) {
                     0.5f * unit<scalar>::mm, tol);
 
         // Reset step size in the navigation state to a positive value
-        n_state._step_size = 1.f * unit<scalar>::mm;
-        cn_state._step_size = 1.f * unit<scalar>::mm;
+        n_state.m_step_size = 1.f * unit<scalar>::mm;
+        cn_state.m_step_size = 1.f * unit<scalar>::mm;
         for (unsigned int i_s = 0u; i_s < rk_steps; i_s++) {
             rk_stepper.step(propagation);
             crk_stepper.step(c_propagation);
@@ -235,8 +236,8 @@ GTEST_TEST(detray_propagator, rk_stepper) {
         // Roll the same track back to the origin
         // Use the same path length, since there is no overstepping
         const scalar path_length = rk_state.path_length();
-        n_state._step_size *= -unit<scalar>::mm;
-        cn_state._step_size *= -unit<scalar>::mm;
+        n_state.m_step_size *= -unit<scalar>::mm;
+        cn_state.m_step_size *= -unit<scalar>::mm;
         for (unsigned int i_s = 0u; i_s < rk_steps; i_s++) {
             rk_stepper.step(propagation);
             crk_stepper.step(c_propagation);
@@ -290,9 +291,11 @@ TEST(detray_propagator, rk_stepper_inhomogeneous_bfield) {
 
         // RK Stepping into forward direction
         prop_state<rk_stepper_t<bfield_t>::state, nav_state> propagation{
-            rk_stepper_t<bfield_t>::state{track, inhom_bfield}, nav_state{}};
+            rk_stepper_t<bfield_t>::state{track, inhom_bfield},
+            nav_state{host_mr}};
         prop_state<crk_stepper_t<bfield_t>::state, nav_state> c_propagation{
-            crk_stepper_t<bfield_t>::state{c_track, inhom_bfield}, nav_state{}};
+            crk_stepper_t<bfield_t>::state{c_track, inhom_bfield},
+            nav_state{host_mr}};
 
         rk_stepper_t<bfield_t>::state &rk_state = propagation._stepping;
         crk_stepper_t<bfield_t>::state &crk_state = c_propagation._stepping;
@@ -305,8 +308,8 @@ TEST(detray_propagator, rk_stepper_inhomogeneous_bfield) {
         ASSERT_NEAR(crk_state.constraints().template size<>(),
                     0.5f * unit<scalar>::mm, tol);
 
-        n_state._step_size = 1.f * unit<scalar>::mm;
-        cn_state._step_size = 1.f * unit<scalar>::mm;
+        n_state.m_step_size = 1.f * unit<scalar>::mm;
+        cn_state.m_step_size = 1.f * unit<scalar>::mm;
         for (unsigned int i_s = 0u; i_s < rk_steps; i_s++) {
             rk_stepper.step(propagation);
             crk_stepper.step(c_propagation);
@@ -320,8 +323,8 @@ TEST(detray_propagator, rk_stepper_inhomogeneous_bfield) {
 
         // Roll the same track back to the origin
         // Use the same path length, since there is no overstepping
-        n_state._step_size *= -unit<scalar>::mm;
-        cn_state._step_size *= -unit<scalar>::mm;
+        n_state.m_step_size *= -unit<scalar>::mm;
+        cn_state.m_step_size *= -unit<scalar>::mm;
         for (unsigned int i_s = 0u; i_s < rk_steps; i_s++) {
             rk_stepper.step(propagation);
             crk_stepper.step(c_propagation);

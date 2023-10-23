@@ -50,7 +50,7 @@ planes_along_direction(const dvector<scalar> &distances, vector3 direction) {
         plane_material_link_t material_link{plane_material_ids::e_plane_slab,
                                             0u};
         surfaces.emplace_back(std::move(trf), std::move(mask_link),
-                              std::move(material_link), 0u, false,
+                              std::move(material_link), 0u,
                               surface_id::e_sensitive);
         surfaces.back().set_index(idx);
     }

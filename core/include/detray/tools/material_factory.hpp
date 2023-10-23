@@ -187,7 +187,7 @@ class material_factory final : public factory_decorator<detector_t> {
     /// @param material material store of the volume builder that the new
     ///                 materials get added to.
     DETRAY_HOST
-    auto operator()(typename detector_t::surface_container &surfaces,
+    auto operator()(typename detector_t::surface_lookup_container &surfaces,
                     typename detector_t::material_container &materials) {
 
         using link_t = typename detector_t::surface_type::material_link;
@@ -243,7 +243,8 @@ class material_factory final : public factory_decorator<detector_t> {
 
             // Set the initial surface material link (will be updated when
             // added to the detector)
-            surfaces.at(i).material() = link_t{m_links[sf_idx].first, mat_idx};
+            surfaces.at(static_cast<dindex>(i)).material() =
+                link_t{m_links[sf_idx].first, mat_idx};
         }
     }
 

@@ -59,7 +59,7 @@ struct particle_gun {
 
         std::vector<intersection_t> intersections{};
 
-        for (const auto &sf_desc : detector.surface_lookup()) {
+        for (const auto &sf_desc : detector.surfaces()) {
             // Retrieve candidate(s) from the surface
             const auto sf = surface{detector, sf_desc};
             sf.template visit_mask<intersection_kernel_t>(

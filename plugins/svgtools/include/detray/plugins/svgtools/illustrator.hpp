@@ -23,7 +23,6 @@
 #include "detray/plugins/svgtools/meta/proto/eta_lines.hpp"
 #include "detray/plugins/svgtools/styling/styling.hpp"
 #include "detray/plugins/svgtools/utils/groups.hpp"
-#include "detray/plugins/svgtools/utils/volume_utils.hpp"
 
 // Actsvg include(s)
 #include "actsvg/meta.hpp"

@@ -14,8 +14,10 @@
 #include "detray/definitions/qualifiers.hpp"
 #include "detray/geometry/detail/volume_kernels.hpp"
 #include "detray/materials/material.hpp"
+#include "detray/utils/ranges.hpp"
 
 // System include(s)
+#include <algorithm>
 #include <iostream>
 #include <sstream>
 
@@ -33,8 +35,6 @@ namespace detray {
 /// accelerator data structure, e.g. portals reside in a brute force
 /// accelerator (a simple vector), while sensitive surfaces are usually sorted
 /// into a spacial grid.
-///
-/// @TODO: Add access to the volume placement transform and volume center
 template <typename detector_t>  // @TODO: This needs a concept
 class detector_volume {
 
@@ -48,9 +48,6 @@ class detector_volume {
     /// In case the geometry needs to be printed
     using name_map = dmap<dindex, std::string>;
 
-    /// Allow detector to access descriptor. @TODO: Remove once possible
-    friend detector_t;
-
     /// Not allowed: always needs a detector and a descriptor.
     detector_volume() = delete;
 
@@ -62,7 +59,7 @@ class detector_volume {
     /// Constructor from detector @param det and volume index @param vol_idx in
     /// that detector.
     constexpr detector_volume(const detector_t &det, const dindex vol_idx)
-        : detector_volume(det, det.volumes()[vol_idx]) {}
+        : detector_volume(det, det.volume(vol_idx)) {}
 
     /// Equality operator
     ///
@@ -80,18 +77,12 @@ class detector_volume {
     DETRAY_HOST_DEVICE
     constexpr auto index() const -> dindex { return m_desc.index(); }
 
-    /// @returns the volume name (add an offset for the detector name).
-    DETRAY_HOST_DEVICE
-    constexpr auto name(const name_map &names) const -> const std::string & {
-        return names.at(m_desc.index() + 1u);
-    }
-
     /// @returns the (non contextual) transform for the placement of the
     /// volume in the detector geometry.
     DETRAY_HOST_DEVICE
     constexpr auto transform() const -> const
         typename detector_t::transform3 & {
-        return m_detector.transform_store({})[m_desc.transform()];
+        return m_detector.transform_store()[m_desc.transform()];
     }
 
     /// @returns the center point of the volume.
@@ -102,8 +93,27 @@ class detector_volume {
 
     /// @returns the material of the volume
     DETRAY_HOST_DEVICE
-    constexpr auto material() const -> material<scalar_type> {
+    constexpr auto material() const -> const material<scalar_type> & {
         return m_desc.material();
+    }
+
+    /// @returns an iterator pair for the requested type of surfaces.
+    template <surface_id sf_type = surface_id::e_all>
+    DETRAY_HOST_DEVICE constexpr decltype(auto) surfaces() const {
+        if constexpr (sf_type == surface_id::e_all) {
+            return detray::ranges::subrange{m_detector.surfaces(),
+                                            m_desc.full_sf_range()};
+        } else {
+            return detray::ranges::subrange{m_detector.surfaces(),
+                                            m_desc.template sf_link<sf_type>()};
+        }
+    }
+
+    /// @returns an iterator pair for the requested type of surfaces.
+    DETRAY_HOST_DEVICE constexpr decltype(auto) portals() const {
+        return detray::ranges::subrange{
+            m_detector.surfaces(),
+            m_desc.template sf_link<surface_id::e_portal>()};
     }
 
     /// Apply a functor to all surfaces in the volume.
@@ -143,9 +153,8 @@ class detector_volume {
         // Get the index of the surface collection with type index 'I'
         constexpr auto sf_col_id{
             static_cast<typename detector_t::accel::id>(I)};
-        const auto &link{
-            m_desc
-                .template link<static_cast<typename descr_t::object_id>(I)>()};
+        const auto &link{m_desc.template accel_link<
+            static_cast<typename descr_t::object_id>(I)>()};
 
         // Check if this volume holds such a collection and, if so, add max
         // number of candidates that we can expect from it
@@ -196,10 +205,47 @@ class detector_volume {
                << *this << std::endl;
             return false;
         }
-        const auto &acc_link = m_desc.full_link();
+        const auto &acc_link = m_desc.accel_link();
         if (detail::is_invalid_value(acc_link[0])) {
-            os << "ERROR: Link to portal lookup broken in volume: " << acc_link
+            os << "ERROR: Link to portal lookup broken: " << acc_link[0]
                << "\n in volume: " << *this << std::endl;
+            return false;
+        }
+        const auto &pt_link = m_desc.template sf_link<surface_id::e_portal>();
+        if (detail::is_invalid_value(pt_link)) {
+            os << "ERROR: Link to portal surfaces broken: " << pt_link
+               << "\n in volume: " << *this << std::endl;
+            return false;
+        }
+        // Check consistency of surface ranges
+        std::vector<dindex_range> sf_ranges = {
+            m_desc.template sf_link<surface_id::e_portal>()};
+
+        // Only add the other ranges in case they are not empty
+        const auto &sens_range =
+            m_desc.template sf_link<surface_id::e_sensitive>();
+        if (sens_range[0] != sens_range[1]) {
+            sf_ranges.push_back(sens_range);
+        }
+
+        const auto &psv_range =
+            m_desc.template sf_link<surface_id::e_passive>();
+        if (psv_range[0] != psv_range[1]) {
+            sf_ranges.push_back(psv_range);
+        }
+
+        // Sort and check that the ranges are contiguous
+        auto compare_ranges = [](const dindex_range &rg1,
+                                 const dindex_range &rg2) {
+            return rg1[0] < rg2[0];
+        };
+
+        std::sort(std::begin(sf_ranges), std::end(sf_ranges), compare_ranges);
+
+        if ((sf_ranges.size() > 1 && sf_ranges[0][1] != sf_ranges[1][0]) ||
+            (sf_ranges.size() > 2 && sf_ranges[1][1] != sf_ranges[2][0])) {
+            os << "ERROR: Surface index ranges not contigous: "
+               << m_desc.sf_link() << "\n in volume: " << *this << std::endl;
             return false;
         }
 
@@ -224,6 +270,12 @@ class detector_volume {
         return true;
     }
 
+    /// @returns the volume name (add an offset for the detector name).
+    DETRAY_HOST_DEVICE
+    constexpr auto name(const name_map &names) const -> const std::string & {
+        return names.at(m_desc.index() + 1u);
+    }
+
     /// @returns a string stream that prints the volume details
     DETRAY_HOST
     friend std::ostream &operator<<(std::ostream &os,
@@ -231,7 +283,8 @@ class detector_volume {
         os << "id: " << static_cast<int>(v.m_desc.id());
         os << " | index: " << v.m_desc.index();
         os << " | trf.: " << v.m_desc.transform();
-        os << " | acc link: " << v.m_desc.full_link();
+        os << " | acc link: " << v.m_desc.accel_link();
+        os << " | sf link: " << v.m_desc.sf_link();
 
         return os;
     }
@@ -247,9 +300,8 @@ class detector_volume {
     DETRAY_HOST_DEVICE constexpr void visit_surfaces_impl(
         Args &&... args) const {
         // Get the acceleration data structures for this volume
-        const auto &link{
-            m_desc
-                .template link<static_cast<typename descr_t::object_id>(I)>()};
+        const auto &link{m_desc.template accel_link<
+            static_cast<typename descr_t::object_id>(I)>()};
 
         // Only visit, if object type is contained in volume
         if (not link.is_invalid()) {

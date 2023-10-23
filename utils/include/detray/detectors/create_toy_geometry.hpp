@@ -198,7 +198,7 @@ inline void create_barrel_modules(context_t &ctx, volume_type &vol,
                                          materials.template size<slab_id>()};
         const auto trf_index = transforms.size(ctx);
         surfaces.emplace_back(trf_index, mask_link, material_link, volume_idx,
-                              dindex_invalid, surface_id::e_sensitive);
+                              surface_id::e_sensitive);
 
         // The rectangle bounds for this module
         masks.template emplace_back<rectangle_id>(
@@ -238,10 +238,10 @@ template <
                             typename detector_t::material_container &,
                             typename detector_t::transform_container &>,
         bool> = true>
-inline void add_cylinder_grid(const typename detector_t::geometry_context &ctx,
-                              vecmem::memory_resource &resource,
-                              typename detector_t::volume_type &vol,
-                              detector_t &det, factory_t &module_factory) {
+inline dindex_range add_cylinder_grid(
+    const typename detector_t::geometry_context &ctx,
+    vecmem::memory_resource &resource, typename detector_t::volume_type &vol,
+    detector_t &det, factory_t &module_factory) {
     // Get relevant ids
     using geo_obj_ids = typename detector_t::geo_obj_ids;
 
@@ -279,7 +279,9 @@ inline void add_cylinder_grid(const typename detector_t::geometry_context &ctx,
 
     // Iterate the surfaces and update their links
     const auto trf_offset{det.transform_store().size(ctx)};
-    auto sf_offset{det.n_surfaces()};
+    auto sf_offset{static_cast<dindex>(det.surfaces().size())};
+    dindex_range sf_range{sf_offset,
+                          sf_offset + static_cast<dindex>(surfaces.size())};
     for (auto &sf_desc : surfaces) {
         // Make sure the volume was constructed correctly
         assert(sf_desc.volume() < det.volumes().size());
@@ -292,7 +294,7 @@ inline void add_cylinder_grid(const typename detector_t::geometry_context &ctx,
         sf_desc.set_index(sf_offset++);
 
         // Copy surface descriptor into global lookup
-        det.add_surface_to_lookup(sf_desc);
+        det.surfaces().insert(sf_desc);
     }
 
     // Add transforms, masks and material to detector
@@ -303,13 +305,15 @@ inline void add_cylinder_grid(const typename detector_t::geometry_context &ctx,
     // Add new grid to the detector
     gbuilder.init_grid(cyl_mask, {module_factory.cfg.m_binning.first,
                                   module_factory.cfg.m_binning.second});
-    gbuilder.fill_grid(detector_volume{det, vol}, det.surface_lookup(),
+    gbuilder.fill_grid(detector_volume{det, vol}, det.surfaces(),
                        det.transform_store(), det.mask_store(), ctx);
     assert(gbuilder.get().all().size() == surfaces.size());
 
     det.accelerator_store().template push_back<grid_id>(gbuilder.get());
-    vol.template set_link<geo_obj_ids::e_sensitive>(
+    vol.template set_accel_link<geo_obj_ids::e_sensitive>(
         grid_id, det.accelerator_store().template size<grid_id>() - 1u);
+
+    return sf_range;
 }
 
 /// Helper function that creates a surface grid of trapezoidal endcap modules.
@@ -329,10 +333,10 @@ template <
                             typename detector_t::material_container &,
                             typename detector_t::transform_container &>,
         bool> = true>
-inline void add_disc_grid(const typename detector_t::geometry_context &ctx,
-                          vecmem::memory_resource &resource,
-                          typename detector_t::volume_type &vol,
-                          detector_t &det, factory_t &module_factory) {
+inline dindex_range add_disc_grid(
+    const typename detector_t::geometry_context &ctx,
+    vecmem::memory_resource &resource, typename detector_t::volume_type &vol,
+    detector_t &det, factory_t &module_factory) {
     // Get relevant ids
     using geo_obj_ids = typename detector_t::geo_obj_ids;
 
@@ -359,7 +363,9 @@ inline void add_disc_grid(const typename detector_t::geometry_context &ctx,
 
     // Iterate the surfaces and update their links
     const auto trf_offset{det.transform_store().size(ctx)};
-    auto sf_offset{det.n_surfaces()};
+    auto sf_offset{static_cast<dindex>(det.surfaces().size())};
+    dindex_range sf_range{sf_offset,
+                          sf_offset + static_cast<dindex>(surfaces.size())};
     for (auto &sf_desc : surfaces) {
         // Make sure the volume was constructed correctly
         assert(sf_desc.volume() < det.volumes().size());
@@ -372,7 +378,7 @@ inline void add_disc_grid(const typename detector_t::geometry_context &ctx,
         sf_desc.set_index(sf_offset++);
 
         // Copy surface descriptor into global lookup
-        det.add_surface_to_lookup(sf_desc);
+        det.surfaces().insert(sf_desc);
     }
 
     // Add transforms, masks and material to detector
@@ -383,13 +389,15 @@ inline void add_disc_grid(const typename detector_t::geometry_context &ctx,
     // Add new grid to the detector
     gbuilder.init_grid(disc_mask, {module_factory.cfg.disc_binning.size(),
                                    module_factory.cfg.disc_binning.back()});
-    gbuilder.fill_grid(detector_volume{det, vol}, det.surface_lookup(),
+    gbuilder.fill_grid(detector_volume{det, vol}, det.surfaces(),
                        det.transform_store(), det.mask_store(), ctx);
     assert(gbuilder.get().all().size() == surfaces.size());
 
     det.accelerator_store().template push_back<grid_id>(gbuilder.get());
-    vol.template set_link<geo_obj_ids::e_sensitive>(
+    vol.template set_accel_link<geo_obj_ids::e_sensitive>(
         grid_id, det.accelerator_store().template size<grid_id>() - 1u);
+
+    return sf_range;
 }
 
 /** Helper method for positioning of modules in an endcap ring
@@ -544,7 +552,7 @@ inline void create_endcap_modules(context_t &ctx, volume_type &vol,
 
             // Surfaces with the linking into the local containers
             surfaces.emplace_back(transforms.size(ctx), mask_link,
-                                  material_link, volume_idx, dindex_invalid,
+                                  material_link, volume_idx,
                                   surface_id::e_sensitive);
 
             // the module transform from the position
@@ -611,9 +619,9 @@ inline void add_beampipe(
     beampipe.set_transform(det.transform_store().size());
     det.transform_store().emplace_back(ctx);
 
-    beampipe.template set_link<object_id::e_portal>(
+    beampipe.template set_accel_link<object_id::e_portal>(
         detector_t::accel::id::e_default, 0u);
-    beampipe.template set_link<object_id::e_passive>(
+    beampipe.template set_accel_link<object_id::e_passive>(
         detector_t::accel::id::e_default, 0u);
 
     // This is the beampipe surface
@@ -687,6 +695,12 @@ inline void add_beampipe(
     bp.material() =
         material_link_t{material_id::e_slab,
                         materials.template size<material_id::e_slab>() - 1u};
+
+    auto sf_offset{static_cast<dindex>(det.surfaces().size())};
+    auto n_surfaces{static_cast<dindex>(surfaces.size())};
+    beampipe.template update_sf_link<surface_id::e_portal>(sf_offset,
+                                                           n_surfaces - 1);
+    beampipe.template update_sf_link<surface_id::e_passive>(n_surfaces - 1, 1);
 
     det.add_objects_per_volume(ctx, beampipe, surfaces, masks, transforms,
                                materials);
@@ -787,6 +801,11 @@ inline void add_endcap_barrel_connection(
         det_helper.create_material(cfg, outer_disc, outer_disc_mask,
                                    material_coll);
     }
+
+    auto sf_offset{static_cast<dindex>(det.surfaces().size())};
+    auto n_surfaces{static_cast<dindex>(surfaces.size())};
+    connector_gap.template update_sf_link<surface_id::e_portal>(sf_offset,
+                                                                n_surfaces);
 
     det.add_objects_per_volume(ctx, connector_gap, surfaces, masks, transforms,
                                materials);
@@ -893,7 +912,12 @@ inline void add_endcap_detector(
             dindex vol_idx = det.volumes().back().index();
             names[vol_idx + 1u] = "endcap_" + std::to_string(vol_idx);
 
-            add_disc_grid(ctx, resource, det.volumes().back(), det, m_factory);
+            dindex_range sf_range = add_disc_grid(
+                ctx, resource, det.volumes().back(), det, m_factory);
+
+            det.volumes()
+                .back()
+                .template update_sf_link<surface_id::e_sensitive>(sf_range);
         }
     }
 }
@@ -983,8 +1007,12 @@ inline void add_barrel_detector(
             dindex vol_idx = det.volumes().back().index();
             names[vol_idx + 1u] = "barrel_" + std::to_string(vol_idx);
 
-            add_cylinder_grid(ctx, resource, det.volumes().back(), det,
-                              m_factory);
+            dindex_range sf_range = add_cylinder_grid(
+                ctx, resource, det.volumes().back(), det, m_factory);
+
+            det.volumes()
+                .back()
+                .template update_sf_link<surface_id::e_sensitive>(sf_range);
         }
     }
 }

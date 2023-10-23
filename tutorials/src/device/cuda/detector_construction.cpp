@@ -74,8 +74,8 @@ int main() {
     auto vol_buff = detray::get_buffer(det_host.volumes(), dev_mr, cuda_cpy,
                                        detray::copy::sync,
                                        vecmem::data::buffer_type::fixed_size);
-    auto sf_buff = detray::get_buffer(det_host.surface_lookup(), dev_mr,
-                                      cuda_cpy, detray::copy::sync,
+    auto sf_buff = detray::get_buffer(det_host.surfaces(), dev_mr, cuda_cpy,
+                                      detray::copy::sync,
                                       vecmem::data::buffer_type::fixed_size);
     // Use resizable buffer and asynchronous copy for alignment
     auto trf_buff = detray::get_buffer(det_host.transform_store(), dev_mr,

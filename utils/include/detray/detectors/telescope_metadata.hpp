@@ -99,17 +99,15 @@ struct telescope_metadata {
     using transform_link = typename transform_store<>::link_type;
     using mask_link = typename mask_store<>::single_link;
     using material_link = typename material_store<>::single_link;
-    using source_link = std::uint64_t;
     /// Surface type used for sensitives, passives and portals
     using surface_type =
-        surface_descriptor<mask_link, material_link, transform_link, nav_link,
-                           source_link>;
+        surface_descriptor<mask_link, material_link, transform_link, nav_link>;
 
     /// No grids/other acceleration data structure, everything is brute forced
     enum geo_objects : std::uint8_t {
-        e_sensitive = 0,
         e_portal = 0,
-        e_size = 1,
+        e_sensitive = 1,
+        e_size = 2,
         e_all = e_size,
     };
 

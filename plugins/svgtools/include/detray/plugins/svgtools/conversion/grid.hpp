@@ -224,8 +224,9 @@ auto grid(const detector_t& detector, const dindex index, const view_t& view,
     using scalar_t = typename detector_t::scalar_type;
     using geo_object_ids = typename detector_t::geo_obj_ids;
 
-    const auto& vol_desc = detector.volumes()[index];
-    const auto& link = vol_desc.template link<geo_object_ids::e_sensitive>();
+    const auto vol_desc = detector.volume(index);
+    const auto link =
+        vol_desc.template accel_link<geo_object_ids::e_sensitive>();
     actsvg::proto::grid p_grid;
 
     if (not link.is_invalid()) {
@@ -268,8 +269,9 @@ std::vector<std::vector<std::size_t>> get_bin_association(
 
     using geo_object_ids = typename detector_t::geo_obj_ids;
 
-    const auto& vol_desc = det.volumes()[vol.index()];
-    const auto& link = vol_desc.template link<geo_object_ids::e_sensitive>();
+    const auto& vol_desc = det.volume(vol.index());
+    const auto& link =
+        vol_desc.template accel_link<geo_object_ids::e_sensitive>();
 
     if (not link.is_invalid()) {
         return det.accelerator_store()

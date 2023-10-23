@@ -60,7 +60,7 @@ class square_surface_generator final
     /// @param ctx the geometry context.
     DETRAY_HOST
     auto operator()(typename detector_t::volume_type &volume,
-                    typename detector_t::surface_container &surfaces,
+                    typename detector_t::surface_lookup_container &surfaces,
                     typename detector_t::transform_container &transforms,
                     typename detector_t::mask_container &masks,
                     typename detector_t::geometry_context ctx = {}) const
@@ -75,6 +75,8 @@ class square_surface_generator final
         constexpr auto no_material = surface_t::material_id::e_none;
         // In case the surfaces container is prefilled with other surfaces
         dindex surfaces_offset = static_cast<dindex>(surfaces.size());
+
+        constexpr auto invalid_src_link{detail::invalid_value<std::uint64_t>()};
 
         // Produce a series of square surfaces,
         scalar_t z_translation{0.f};
@@ -95,9 +97,10 @@ class square_surface_generator final
             material_link_t material_link{
                 no_material,
                 detail::invalid_value<typename material_link_t::index_type>()};
-            surfaces.emplace_back(transforms.size(ctx) - 1u, mask_link,
-                                  material_link, volume.index(), dindex_invalid,
-                                  surface_id::e_sensitive);
+            surfaces.push_back(
+                {transforms.size(ctx) - 1u, mask_link, material_link,
+                 volume.index(), surface_id::e_sensitive},
+                invalid_src_link);
         }
 
         return {surfaces_offset, static_cast<dindex>(surfaces.size())};

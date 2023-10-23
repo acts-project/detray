@@ -142,7 +142,7 @@ class surface_factory : public surface_factory_interface<detector_t> {
     DETRAY_HOST
     auto operator()([[maybe_unused]] typename detector_t::volume_type &volume,
                     [[maybe_unused]]
-                    typename detector_t::surface_container &surfaces,
+                    typename detector_t::surface_lookup_container &surfaces,
                     [[maybe_unused]]
                     typename detector_t::transform_container &transforms,
                     [[maybe_unused]] typename detector_t::mask_container &masks,
@@ -211,8 +211,9 @@ class surface_factory : public surface_factory_interface<detector_t> {
                 // Add the surface descriptor at the position given by 'sf_idx'
                 this->insert_in_container(
                     surfaces,
-                    {trf_idx, mask_link, material_link, volume.index(),
-                     m_sources[idx], m_types[idx]},
+                    {surface_t{trf_idx, mask_link, material_link,
+                               volume.index(), m_types[idx]},
+                     m_sources[idx]},
                     sf_idx);
             }
         }

@@ -59,7 +59,7 @@ class surface_grid_writer
 
         for (const auto& vol_desc : det.volumes()) {
             // Links to all acceleration data structures in the volume
-            const auto& multi_link = vol_desc.full_link();
+            const auto& multi_link = vol_desc.accel_link();
 
             for (dindex i = 0u; i < multi_link.size(); ++i) {
                 const auto& acc_link = multi_link[i];

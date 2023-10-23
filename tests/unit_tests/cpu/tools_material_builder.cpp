@@ -200,7 +200,7 @@ GTEST_TEST(detray_tools, decorator_material_builder) {
     EXPECT_EQ(vol.index(), 0u);
     EXPECT_EQ(vol.id(), volume_id::e_cylinder);
 
-    EXPECT_EQ(d.surface_lookup().size(), 7u);
+    EXPECT_EQ(d.surfaces().size(), 7u);
     EXPECT_EQ(d.transform_store().size(), 8u);
     EXPECT_EQ(d.mask_store().template size<mask_id::e_portal_cylinder2>(), 2u);
     EXPECT_EQ(d.mask_store().template size<mask_id::e_portal_ring2>(), 0u);
@@ -211,7 +211,7 @@ GTEST_TEST(detray_tools, decorator_material_builder) {
     EXPECT_EQ(d.material_store().template size<material_id::e_slab>(), 7u);
     EXPECT_EQ(d.material_store().template size<material_id::e_rod>(), 0u);
 
-    for (auto [idx, sf_desc] : detray::views::enumerate(d.surface_lookup())) {
+    for (auto [idx, sf_desc] : detray::views::enumerate(d.surfaces())) {
         const auto &mat_link = sf_desc.material();
         EXPECT_EQ(mat_link.id(), material_id::e_slab);
         EXPECT_EQ(mat_link.index(), idx);
@@ -294,7 +294,7 @@ GTEST_TEST(detray_tools, detector_builder_with_material) {
     //
     vecmem::host_memory_resource host_mr;
     const detector_t d = det_builder.build(host_mr);
-    const auto &vol = d.volume_by_index(0u);
+    const auto vol = detector_volume{d, 0u};
 
     // check the results
     EXPECT_EQ(d.volumes().size(), 1u);
@@ -306,14 +306,13 @@ GTEST_TEST(detray_tools, detector_builder_with_material) {
     EXPECT_TRUE(vol.transform() == trf);
     EXPECT_TRUE(d.transform_store()[0u] == trf);
 
-    EXPECT_EQ(d.surface_lookup().size(), 7u);
+    EXPECT_EQ(d.surfaces().size(), 7u);
     EXPECT_EQ(d.mask_store().template size<mask_id::e_rectangle2>(), 3u);
     EXPECT_EQ(d.mask_store().template size<mask_id::e_trapezoid2>(), 1u);
     EXPECT_EQ(d.material_store().template size<material_id::e_slab>(), 7u);
 
     // Check the material links
-    for (const auto [idx, sf_desc] :
-         detray::views::enumerate(d.surface_lookup())) {
+    for (const auto [idx, sf_desc] : detray::views::enumerate(d.surfaces())) {
         EXPECT_EQ(sf_desc.material().id(), material_id::e_slab);
         EXPECT_EQ(sf_desc.material().index(), idx);
     }

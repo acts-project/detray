@@ -97,7 +97,7 @@ GTEST_TEST(detray_surface_finders, brute_force_search) {
 
     // Now run a brute force surface search in the first barrel layer
     dindex test_vol_idx{7UL};
-    const auto& vol = det.volume_by_index(test_vol_idx);
+    const auto vol = detector_volume{det, test_vol_idx};
 
     // track in x-direction
     detail::ray<typename detector_t::transform3> trk({0.f, 0.f, 0.f}, 0.f,

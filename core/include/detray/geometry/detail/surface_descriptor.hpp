@@ -27,12 +27,10 @@ namespace detray {
 /// @tparam material_registry_t the type collection of material that can be
 ///                             linked to the surface
 /// @tparam transform_link_t how to reference the surfaces transforms
-/// @tparam source_link_t the type of the source link representation
 template <typename mask_link_t = dtyped_index<dindex, dindex>,
           typename material_link_t = dtyped_index<dindex, dindex>,
           typename transform_link_t = dindex,
-          typename navigation_link_t = dindex,
-          typename source_link_t = std::uint64_t>
+          typename navigation_link_t = dindex>
 class surface_descriptor {
 
     public:
@@ -45,7 +43,6 @@ class surface_descriptor {
     using mask_id = typename mask_link::id_type;
     using material_link = material_link_t;
     using material_id = typename material_link::id_type;
-    using source_link = source_link_t;
 
     /// Constructor with full arguments - move semantics
     ///
@@ -58,11 +55,10 @@ class surface_descriptor {
     DETRAY_HOST
     constexpr surface_descriptor(transform_link &&trf, mask_link &&mask,
                                  material_link &&material, dindex volume,
-                                 source_link &&src, surface_id sf_id)
+                                 surface_id sf_id)
         : _mask(std::move(mask)),
           _material(std::move(material)),
-          _trf(std::move(trf)),
-          _src(std::move(src)) {
+          _trf(std::move(trf)) {
 
         m_barcode = geometry::barcode{}.set_volume(volume).set_id(sf_id);
     }
@@ -79,9 +75,8 @@ class surface_descriptor {
     constexpr surface_descriptor(const transform_link trf,
                                  const mask_link &mask,
                                  const material_link &material,
-                                 const dindex volume, const source_link &src,
-                                 const surface_id sf_id)
-        : _mask(mask), _material(material), _trf(trf), _src(src) {
+                                 const dindex volume, const surface_id sf_id)
+        : _mask(mask), _material(material), _trf(trf) {
         m_barcode = geometry::barcode{}.set_volume(volume).set_id(sf_id);
     }
 
@@ -95,8 +90,7 @@ class surface_descriptor {
     DETRAY_HOST_DEVICE
     constexpr auto operator==(const surface_descriptor &rhs) const -> bool {
         return (_mask == rhs._mask and _material == rhs._material and
-                _trf == rhs._trf and _src == rhs._src and
-                m_barcode == rhs.m_barcode);
+                _trf == rhs._trf and m_barcode == rhs.m_barcode);
     }
 
     /// Sets a new surface barcode
@@ -171,10 +165,6 @@ class surface_descriptor {
         return _material;
     }
 
-    /// @return the source link
-    DETRAY_HOST_DEVICE
-    constexpr auto source() const -> const source_link & { return _src; }
-
     /// @returns true if the surface is a senstive detector module.
     DETRAY_HOST_DEVICE
     constexpr auto is_sensitive() const -> bool {
@@ -209,7 +199,6 @@ class surface_descriptor {
     mask_link _mask{};
     material_link _material{};
     transform_link_t _trf{};
-    source_link_t _src{};
 };
 
 }  // namespace detray

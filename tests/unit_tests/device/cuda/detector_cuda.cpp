@@ -35,7 +35,7 @@ TEST(detector_cuda, detector) {
 
     // host objects
     auto& volumes_host = toy_det.volumes();
-    auto& surfaces_host = toy_det.surface_lookup();
+    auto& surfaces_host = toy_det.surfaces();
     auto& transforms_host = toy_det.transform_store();
     auto& masks_host = toy_det.mask_store();
     auto& discs_host = masks_host.get<disc_id>();
@@ -74,7 +74,7 @@ TEST(detector_cuda, detector) {
 
     // check if the same surface objects are copied
     for (unsigned int i = 0u; i < surfaces_host.size(); i++) {
-        EXPECT_EQ(surfaces_host[i] == surfaces_device[i], true);
+        EXPECT_EQ(surfaces_device[i] == surfaces_host[i], true);
     }
 
     // check if the same transform objects are copied

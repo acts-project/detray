@@ -37,6 +37,10 @@ class grid_builder final : public volume_decorator<detector_t> {
     public:
     using scalar_type = typename detector_t::scalar_type;
 
+    /// Use the grid builder stand-alone
+    DETRAY_HOST
+    grid_builder() : volume_decorator<detector_t>(nullptr) {}
+
     /// Decorate a volume with a grid
     DETRAY_HOST
     grid_builder(
@@ -112,15 +116,14 @@ class grid_builder final : public volume_decorator<detector_t> {
             volume_decorator<detector_t>::build(det, ctx);
 
         // Find the surfaces that should be filled into the grid
-        const auto vol_idx{vol_ptr->index()};
+        const auto vol = detector_volume{det, vol_ptr->index()};
 
         // Grid has not been filled previously, fill it automatically
         if (m_grid.size() == 0u) {
+
             std::vector<surface_desc_t> surfaces{};
-            for (auto &sf_desc : det.surface_lookup()) {
-                if (sf_desc.volume() != vol_idx) {
-                    continue;
-                }
+            for (auto &sf_desc : vol.surfaces()) {
+
                 if (sf_desc.is_sensitive() or
                     (m_add_passives and sf_desc.is_passive())) {
                     surfaces.push_back(sf_desc);
@@ -136,13 +139,10 @@ class grid_builder final : public volume_decorator<detector_t> {
             // correct surface indices per bin (e.g. from file IO).
             // Now add the rest of the linking information, which is only
             // available after the volume builder ran
-            for (auto &sf_desc : det.surface_lookup()) {
-                if (sf_desc.volume() != vol_idx) {
-                    continue;
-                }
+            for (auto &sf_desc : vol.surfaces()) {
+
                 if (sf_desc.is_sensitive() or
                     (m_add_passives and sf_desc.is_passive())) {
-                    const auto vol = det.volume_by_index(sf_desc.volume());
                     // The current volume is already built, so the surface
                     // interface is safe to use
                     const auto sf = surface{det, sf_desc};
@@ -165,7 +165,7 @@ class grid_builder final : public volume_decorator<detector_t> {
         // Add the grid to the detector and link it to its volume
         constexpr auto gid{detector_t::accel::template get_id<grid_t>()};
         det.accelerator_store().template push_back<gid>(m_grid);
-        vol_ptr->template set_link<
+        vol_ptr->template set_accel_link<
             detector_t::volume_type::object_id::e_sensitive>(
             gid, det.accelerator_store().template size<gid>() - 1);
 

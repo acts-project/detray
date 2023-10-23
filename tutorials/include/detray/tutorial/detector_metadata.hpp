@@ -123,10 +123,8 @@ struct my_metadata {
     using transform_link = typename transform_store<>::link_type;
     using mask_link = typename mask_store<>::single_link;
     using material_link = typename material_store<>::single_link;
-    using source_link = std::uint64_t;
     using surface_type =
-        surface_descriptor<mask_link, material_link, transform_link, nav_link,
-                           source_link>;
+        surface_descriptor<mask_link, material_link, transform_link, nav_link>;
 
     /// The acceleration data structures live in another tuple that needs to
     /// indexed correctly

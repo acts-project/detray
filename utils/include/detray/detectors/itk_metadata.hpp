@@ -127,11 +127,9 @@ struct itk_metadata {
     using transform_link = typename transform_store<>::link_type;
     using mask_link = typename mask_store<>::single_link;
     using material_link = typename material_store<>::single_link;
-    using source_link = std::uint64_t;
     /// Surface type used for sensitives, passives and portals
     using surface_type =
-        surface_descriptor<mask_link, material_link, transform_link, nav_link,
-                           source_link>;
+        surface_descriptor<mask_link, material_link, transform_link, nav_link>;
 
     /// How to index the constituent objects in a volume
     /// If they share the same index value here, they will be added into the

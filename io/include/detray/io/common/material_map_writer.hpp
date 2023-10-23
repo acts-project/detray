@@ -66,10 +66,8 @@ class material_map_writer
         for (const auto& vol_desc : det.volumes()) {
 
             /// Check if a surface has a metrial map
-            for (const auto& sf_desc : det.surface_lookup()) {
-                if (sf_desc.volume() != vol_desc.index()) {
-                    continue;
-                }
+            auto vol = detector_volume{det, vol_desc};
+            for (const auto& sf_desc : vol.surfaces()) {
 
                 const auto& mat_link = sf_desc.material();
                 // Don't look at empty links

@@ -93,11 +93,13 @@ struct track_helper {
 
     DETRAY_HOST_DEVICE
     inline scalar_type p(const free_vector& free_vec) const {
+        assert(qop(free_vec) != 0.f);
         return charge(free_vec) / qop(free_vec);
     }
 
     DETRAY_HOST_DEVICE
     inline scalar_type p(const bound_vector& bound_vec) const {
+        assert(qop(bound_vec) != 0.f);
         return charge(bound_vec) / qop(bound_vec);
     }
 
@@ -124,6 +126,7 @@ struct track_helper {
     DETRAY_HOST_DEVICE
     inline scalar_type qopT(const free_vector& free_vec) const {
         const auto dir = this->dir(free_vec);
+        assert(getter::perp(dir) != 0.f);
         return matrix_operator().element(free_vec, e_free_qoverp, 0u) /
                getter::perp(dir);
     }
@@ -133,6 +136,7 @@ struct track_helper {
         const scalar_type theta{
             matrix_operator().element(bound_vec, e_bound_theta, 0u)};
         const scalar_type sinTheta{math_ns::sin(theta)};
+        assert(sinTheta != 0.f);
         return matrix_operator().element(bound_vec, e_bound_qoverp, 0u) /
                sinTheta;
     }
@@ -148,6 +152,7 @@ struct track_helper {
         const scalar_type theta{
             matrix_operator().element(bound_vec, e_bound_theta, 0u)};
         const scalar_type cosTheta{math_ns::cos(theta)};
+        assert(cosTheta != 0.f);
         return matrix_operator().element(bound_vec, e_bound_qoverp, 0u) /
                cosTheta;
     }

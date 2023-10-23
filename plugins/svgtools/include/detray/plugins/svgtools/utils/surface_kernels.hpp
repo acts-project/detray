@@ -12,7 +12,6 @@
 #include "detray/geometry/detector_volume.hpp"
 #include "detray/geometry/surface.hpp"
 #include "detray/masks/masks.hpp"
-#include "detray/plugins/svgtools/utils/volume_utils.hpp"
 
 // System include(s)
 #include <cassert>
@@ -217,12 +216,10 @@ struct link_end_getter {
         const detray::detector_volume<detector_t>& volume,
         const point3_t& /*surface_point*/,
         const vector3_t& surface_normal) const {
-        for (const auto& desc :
-             svgtools::utils::surface_lookup(detector, volume)) {
+        for (const auto& desc : volume.portals()) {
+
             const detray::surface surface{detector, desc};
-            if (!surface.is_portal()) {
-                continue;
-            }
+
             if (auto r = surface.template visit_mask<outer_radius_getter>()) {
                 if (*r > mask[cylinder2D<>::e_r]) {
                     return surface_normal;

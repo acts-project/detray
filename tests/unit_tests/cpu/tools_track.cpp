@@ -18,7 +18,6 @@ using vector3 = test::vector3;
 using point3 = test::point3;
 using transform3 = test::transform3;
 using matrix_operator = standard_matrix_operator<scalar>;
-using track_helper = detail::track_helper<matrix_operator>;
 
 enum mask_ids : unsigned int {
     e_rectangle2 = 0,

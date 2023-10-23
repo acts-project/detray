@@ -7,6 +7,7 @@
 
 // Project include(s)
 #include "detray/definitions/units.hpp"
+#include "detray/detectors/create_toy_geometry.hpp"
 #include "detray/geometry/detail/volume_descriptor.hpp"
 #include "detray/test/types.hpp"
 
@@ -33,7 +34,7 @@ enum accel_ids : unsigned int {
 }  // namespace
 
 // This tests the detector volume class and its many links
-GTEST_TEST(detray_geometry, detector_volume) {
+GTEST_TEST(detray_geometry, volume_descriptor) {
     using namespace detray;
 
     using accel_link_t = dtyped_index<accel_ids, dindex>;
@@ -42,26 +43,154 @@ GTEST_TEST(detray_geometry, detector_volume) {
     // Check construction, setters and getters
     volume_t v1(volume_id::e_cylinder);
     v1.set_index(12345u);
-    v1.template set_link<geo_objects::e_portal>({accel_ids::e_default, 1u});
-    v1.template set_link<geo_objects::e_sensitive>({accel_ids::e_grid, 12u});
+    v1.template set_accel_link<geo_objects::e_portal>(
+        {accel_ids::e_default, 1u});
+    v1.template set_accel_link<geo_objects::e_sensitive>(
+        {accel_ids::e_grid, 12u});
 
     ASSERT_TRUE(v1.id() == volume_id::e_cylinder);
     ASSERT_TRUE(v1.index() == 12345u);
-    ASSERT_TRUE(v1.template link<geo_objects::e_portal>().id() ==
+    ASSERT_TRUE(v1.template accel_link<geo_objects::e_portal>().id() ==
                 accel_ids::e_default);
-    ASSERT_TRUE(v1.template link<geo_objects::e_portal>().index() == 1u);
-    ASSERT_TRUE(v1.template link<geo_objects::e_sensitive>().id() ==
+    ASSERT_TRUE(v1.template accel_link<geo_objects::e_portal>().index() == 1u);
+    ASSERT_TRUE(v1.template accel_link<geo_objects::e_sensitive>().id() ==
                 accel_ids::e_grid);
-    ASSERT_TRUE(v1.template link<geo_objects::e_sensitive>().index() == 12u);
+    ASSERT_TRUE(v1.template accel_link<geo_objects::e_sensitive>().index() ==
+                12u);
 
     // Check copy constructor
     const auto v2 = volume_t(v1);
     ASSERT_EQ(v2.id(), volume_id::e_cylinder);
     ASSERT_EQ(v2.index(), 12345u);
-    ASSERT_TRUE(v2.template link<geo_objects::e_portal>().id() ==
+    ASSERT_TRUE(v2.template accel_link<geo_objects::e_portal>().id() ==
                 accel_ids::e_default);
-    ASSERT_TRUE(v2.template link<geo_objects::e_portal>().index() == 1u);
-    ASSERT_TRUE(v2.template link<geo_objects::e_sensitive>().id() ==
+    ASSERT_TRUE(v2.template accel_link<geo_objects::e_portal>().index() == 1u);
+    ASSERT_TRUE(v2.template accel_link<geo_objects::e_sensitive>().id() ==
                 accel_ids::e_grid);
-    ASSERT_TRUE(v2.template link<geo_objects::e_sensitive>().index() == 12u);
+    ASSERT_TRUE(v2.template accel_link<geo_objects::e_sensitive>().index() ==
+                12u);
+}
+
+/// This tests the functionality of a detector volume interface
+GTEST_TEST(detray_geometry, detector_volume) {
+
+    using namespace detray;
+
+    constexpr auto tol{std::numeric_limits<scalar>::epsilon()};
+
+    vecmem::host_memory_resource host_mr;
+    const auto [toy_det, names] = create_toy_geometry(host_mr);
+
+    //
+    // Volume 7 is a barrrel layer with sensitive surfaces
+    //
+    const auto vol7 = detector_volume{toy_det, 7u};
+
+    ASSERT_EQ(vol7.id(), volume_id::e_cylinder) << vol7 << std::endl;
+    ASSERT_EQ(vol7.index(), 7u) << vol7 << std::endl;
+    ASSERT_EQ(vol7.name(names), "barrel_7") << vol7 << std::endl;
+    auto t = vol7.center();
+    ASSERT_NEAR(t[0], 0.f, tol);
+    ASSERT_NEAR(t[1], 0.f, tol);
+    ASSERT_NEAR(t[2], 0.f, tol);
+    ASSERT_EQ(vol7.surfaces().size(), 228u);
+
+    // Access to all surfaces
+    std::vector<dindex> sf_indices{};
+    sf_indices.reserve(vol7.surfaces().size());
+    for (const auto& sf : vol7.surfaces()) {
+        sf_indices.push_back(sf.index());
+    }
+    auto seq = detray::views::iota(370u, 598u);
+    EXPECT_TRUE(std::equal(sf_indices.begin(), sf_indices.end(), seq.begin()));
+
+    // Access to portals
+    sf_indices.clear();
+    for (const auto& pt : vol7.portals()) {
+        sf_indices.push_back(pt.index());
+    }
+    seq = detray::views::iota(370u, 374u);
+    EXPECT_TRUE(std::equal(sf_indices.begin(), sf_indices.end(), seq.begin()));
+
+    // Access to sensitive surfaces
+    sf_indices.clear();
+    for (const auto& sens : vol7.template surfaces<surface_id::e_sensitive>()) {
+        sf_indices.push_back(sens.index());
+    }
+    seq = detray::views::iota(374u, 598u);
+    EXPECT_TRUE(std::equal(sf_indices.begin(), sf_indices.end(), seq.begin()));
+    //
+    // Volume 5 is negative endcap layer with sensitive surfaces
+    //
+    const auto vol5 = detector_volume{toy_det, 5u};
+
+    ASSERT_EQ(vol5.id(), volume_id::e_cylinder) << vol5 << std::endl;
+    ASSERT_EQ(vol5.index(), 5u) << vol5 << std::endl;
+    ASSERT_EQ(vol5.name(names), "endcap_5") << vol5 << std::endl;
+    t = vol5.center();
+    ASSERT_NEAR(t[0], 0.f, tol);
+    ASSERT_NEAR(t[1], 0.f, tol);
+    ASSERT_NEAR(t[2], -600.f, tol);
+    ASSERT_EQ(vol5.surfaces().size(), 112u);
+
+    // Access to all surfaces
+    sf_indices.clear();
+    for (const auto& sf : vol5.surfaces()) {
+        sf_indices.push_back(sf.index());
+    }
+    seq = detray::views::iota(248u, 360u);
+    EXPECT_TRUE(std::equal(sf_indices.begin(), sf_indices.end(), seq.begin()));
+
+    // Access to portals
+    sf_indices.clear();
+    for (const auto& pt : vol5.portals()) {
+        sf_indices.push_back(pt.index());
+    }
+    seq = detray::views::iota(248u, 252u);
+    EXPECT_TRUE(std::equal(sf_indices.begin(), sf_indices.end(), seq.begin()));
+
+    // Access to sensitive surfaces
+    sf_indices.clear();
+    for (const auto& sens : vol5.template surfaces<surface_id::e_sensitive>()) {
+        sf_indices.push_back(sens.index());
+    }
+    seq = detray::views::iota(252u, 360u);
+    EXPECT_TRUE(std::equal(sf_indices.begin(), sf_indices.end(), seq.begin()));
+
+    //
+    // Volume 14 is the positive connector gap
+    //
+    const auto vol14 = detector_volume{toy_det, 14u};
+
+    ASSERT_EQ(vol14.id(), volume_id::e_cylinder) << vol14 << std::endl;
+    ASSERT_EQ(vol14.index(), 14u) << vol14 << std::endl;
+    ASSERT_EQ(vol14.name(names), "connector_gap_14") << vol14 << std::endl;
+    t = vol14.center();
+    ASSERT_NEAR(t[0], 0.f, tol);
+    ASSERT_NEAR(t[1], 0.f, tol);
+    ASSERT_NEAR(t[2], 547.5f, tol);
+    ASSERT_EQ(vol14.surfaces().size(), 10u);
+
+    // Access to all surfaces
+    sf_indices.clear();
+    for (const auto& sf : vol14.surfaces()) {
+        sf_indices.push_back(sf.index());
+    }
+    seq = detray::views::iota(2890u, 2900u);
+    EXPECT_TRUE(std::equal(sf_indices.begin(), sf_indices.end(), seq.begin()));
+
+    // Access to portals
+    sf_indices.clear();
+    for (const auto& pt : vol14.portals()) {
+        sf_indices.push_back(pt.index());
+    }
+    EXPECT_TRUE(std::equal(sf_indices.begin(), sf_indices.end(), seq.begin()));
+
+    // Access to sensitive surfaces: None in gap volume
+    sf_indices.clear();
+    for (const auto& sens :
+         vol14.template surfaces<surface_id::e_sensitive>()) {
+        sf_indices.push_back(sens.index());
+    }
+    EXPECT_TRUE(sf_indices.empty());
 }

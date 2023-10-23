@@ -169,14 +169,14 @@ inline auto create_wire_chamber(vecmem::memory_resource &resource,
         }
 
         // Current vol
-        auto &vol = det.volumes().back();
+        auto &vol_desc = det.volumes().back();
 
         // Layer configuration
         const scalar center_layer_rad = inner_layer_rad + cell_size;
         const scalar delta = 2 * cell_size / center_layer_rad;
 
         // Get volume ID
-        auto volume_idx = vol.index();
+        auto volume_idx = vol_desc.index();
         name_map[volume_idx + 1u] = "layer_vol_" + std::to_string(volume_idx);
 
         auto mask_volume_link{static_cast<nav_link_t>(volume_idx)};
@@ -210,8 +210,7 @@ inline auto create_wire_chamber(vecmem::memory_resource &resource,
                                              materials.template size<rod_id>()};
             const auto trf_index = transforms.size(ctx0);
             surfaces.emplace_back(trf_index, mask_link, material_link,
-                                  volume_idx, dindex_invalid,
-                                  surface_id::e_sensitive);
+                                  volume_idx, surface_id::e_sensitive);
 
             // The wire bounds
             masks.template emplace_back<wire_id>(
@@ -232,7 +231,10 @@ inline auto create_wire_chamber(vecmem::memory_resource &resource,
 
         // Iterate the surfaces and update their links
         const auto trf_offset{det.transform_store().size(ctx0)};
-        auto sf_offset{det.n_surfaces()};
+        auto sf_offset{static_cast<dindex>(det.surfaces().size())};
+
+        vol_desc.template update_sf_link<surface_id::e_sensitive>(
+            sf_offset, surfaces.size());
 
         for (auto &sf_desc : surfaces) {
             // Make sure the volume was constructed correctly
@@ -246,7 +248,7 @@ inline auto create_wire_chamber(vecmem::memory_resource &resource,
             sf_desc.set_index(sf_offset++);
 
             // Copy surface descriptor into global lookup
-            det.add_surface_to_lookup(sf_desc);
+            det.surfaces().insert(sf_desc);
         }
 
         // Add transforms, masks and material to detector
@@ -266,15 +268,15 @@ inline auto create_wire_chamber(vecmem::memory_resource &resource,
         using cyl_grid_t =
             typename detector_t::accelerator_container::template get_type<
                 grid_id>;
-        auto gbuilder =
-            grid_builder<detector_t, cyl_grid_t, detray::detail::fill_by_pos>{
-                nullptr};
+        auto gbuilder = grid_builder<detector_t, cyl_grid_t>{};
 
         // The portal portals are at the end of the portal range by construction
-        auto portal_mask_idx = (det.portals(vol).end() - 4u)->mask().index();
+        auto vol = detector_volume{det, vol_desc};
+        auto portal_mask_idx = (vol.portals().end() - 4)->mask().index();
         const auto &inner_cyl_mask =
             det.mask_store().template get<cyl_id>().at(portal_mask_idx);
-        portal_mask_idx = (det.portals(vol).end() - 3u)->mask().index();
+
+        portal_mask_idx = (vol.portals().end() - 3)->mask().index();
         const auto &outer_cyl_mask =
             det.mask_store().template get<cyl_id>().at(portal_mask_idx);
 
@@ -288,11 +290,11 @@ inline auto create_wire_chamber(vecmem::memory_resource &resource,
 
         // Add new grid to the detector
         gbuilder.init_grid(cyl_mask, {100u, 1u});
-        gbuilder.fill_grid(detector_volume{det, vol}, det.surface_lookup(),
-                           det.transform_store(), det.mask_store(), ctx0);
+        gbuilder.fill_grid(vol, det.surfaces(), det.transform_store(),
+                           det.mask_store(), ctx0);
 
         det.accelerator_store().template push_back<grid_id>(gbuilder.get());
-        vol.template set_link<geo_obj_ids::e_sensitive>(
+        vol_desc.template set_accel_link<geo_obj_ids::e_sensitive>(
             grid_id, det.accelerator_store().template size<grid_id>() - 1u);
 
         // Add volume grid

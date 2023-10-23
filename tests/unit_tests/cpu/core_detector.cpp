@@ -63,7 +63,6 @@ void prefill_detector(detector_t& d,
         material_id::e_slab,
         materials.template size<material_id::e_slab>() - 1};
     surfaces.emplace_back(trfs.size(ctx) - 1, mask_link, material_link, 0u,
-                          detray::dindex_invalid,
                           detray::surface_id::e_sensitive);
     surfaces.back().set_index(
         static_cast<detray::dindex>(surfaces.size() - 1u));
@@ -81,7 +80,6 @@ void prefill_detector(detector_t& d,
     material_link = {material_id::e_slab,
                      materials.template size<material_id::e_slab>() - 1};
     surfaces.emplace_back(trfs.size(ctx) - 1, mask_link, material_link, 0u,
-                          detray::dindex_invalid,
                           detray::surface_id::e_sensitive);
     surfaces.back().set_index(
         static_cast<detray::dindex>(surfaces.size() - 1u));
@@ -99,14 +97,13 @@ void prefill_detector(detector_t& d,
     material_link = {material_id::e_rod,
                      materials.template size<material_id::e_rod>() - 1};
     surfaces.emplace_back(trfs.size(ctx) - 1, mask_link, material_link, 0u,
-                          detray::dindex_invalid,
                           detray::surface_id::e_sensitive);
     surfaces.back().set_index(
         static_cast<detray::dindex>(surfaces.size() - 1u));
 
     // Add surfaces to lookup, so they can be easily fetched using a barcode
     for (const auto sf : surfaces) {
-        d.add_surface_to_lookup(sf);
+        d.surfaces().insert(sf);
     }
 
     // Add the new data
@@ -563,11 +560,12 @@ GTEST_TEST(detray_tools, detector_volume_construction) {
 
     // Check the acceleration data structure link
     dtyped_index<accel_id, dindex> acc_link{accel_id::e_default, 1u};
-    ASSERT_TRUE(vol.full_link().size() == geo_obj_id::e_size);
-    EXPECT_EQ(vol.link<geo_obj_id::e_portal>(), acc_link);
-    EXPECT_EQ(vol.link<geo_obj_id::e_passive>(), acc_link);
+    ASSERT_TRUE(vol.accel_link().size() == geo_obj_id::e_size);
+    EXPECT_EQ(vol.accel_link<geo_obj_id::e_portal>(), acc_link);
+    EXPECT_EQ(vol.accel_link<geo_obj_id::e_passive>(), acc_link);
     // Not set by the vanilla volume builder
-    EXPECT_TRUE(detail::is_invalid_value(vol.link<geo_obj_id::e_sensitive>()));
+    EXPECT_TRUE(
+        detail::is_invalid_value(vol.accel_link<geo_obj_id::e_sensitive>()));
 
     EXPECT_EQ(d.portals().size(), 19u);
     EXPECT_EQ(d.mask_store().template size<mask_id::e_portal_cylinder2>(), 2u);
@@ -580,7 +578,7 @@ GTEST_TEST(detray_tools, detector_volume_construction) {
 
     // check surface type and volume link
     std::vector<surface_id> sf_ids{};
-    sf_ids.reserve(d.n_surfaces());
+    sf_ids.reserve(d.surfaces().size());
     sf_ids.insert(sf_ids.end(), 3u, surface_id::e_sensitive);
     sf_ids.insert(sf_ids.end(), 4u, surface_id::e_portal);
     sf_ids.insert(sf_ids.end(), 6u, surface_id::e_sensitive);
@@ -588,7 +586,7 @@ GTEST_TEST(detray_tools, detector_volume_construction) {
     sf_ids.insert(sf_ids.end(), 3u, surface_id::e_sensitive);
 
     std::vector<dindex> volume_links{};
-    volume_links.reserve(d.n_surfaces());
+    volume_links.reserve(d.surfaces().size());
     volume_links.insert(volume_links.end(), 3u, 0u);
     volume_links.insert(volume_links.end(), 16u, 1u);
 
@@ -605,7 +603,7 @@ GTEST_TEST(detray_tools, detector_volume_construction) {
     // check that the transform indices are continuous for the newly added
     // surfaces. The first new transform belongs to the volume itself
     for (std::size_t idx :
-         detray::views::iota(dindex_range{3, d.n_surfaces()})) {
+         detray::views::iota(dindex_range{3, d.surfaces().size()})) {
         geometry::barcode bcd{};
         bcd.set_index(idx);
         EXPECT_EQ(d.surface(bcd).transform(), idx + 1)
@@ -739,8 +737,8 @@ GTEST_TEST(detray_tools, detector_builder) {
     //
     vecmem::host_memory_resource host_mr;
     const detector_t d = det_builder.build(host_mr);
-    const auto& vol0 = d.volume_by_index(0u);
-    const auto& vol1 = d.volume_by_index(1u);
+    const auto& vol0 = detector_volume{d, 0u};
+    const auto& vol1 = detector_volume{d, 1u};
 
     // check the results
     EXPECT_EQ(d.volumes().size(), 2u);
@@ -761,7 +759,7 @@ GTEST_TEST(detray_tools, detector_builder) {
     EXPECT_EQ(vol0.n_max_candidates(), 3u);
     EXPECT_EQ(vol1.n_max_candidates(), 9u);
 
-    EXPECT_EQ(d.surface_lookup().size(), 12u);
+    EXPECT_EQ(d.surfaces().size(), 12u);
     EXPECT_EQ(d.mask_store().template size<mask_id::e_portal_cylinder2>(), 0u);
     EXPECT_EQ(d.mask_store().template size<mask_id::e_portal_ring2>(), 0u);
     EXPECT_EQ(d.mask_store().template size<mask_id::e_annulus2>(), 0u);

@@ -40,7 +40,7 @@ struct surface_checker {
     template <typename detector_t>
     DETRAY_HOST_DEVICE void operator()(
         const typename detector_t::surface_type &sf_descr,
-        const detector_t &det, const unsigned int vol_idx) const {
+        const detector_t &det, const dindex vol_idx) const {
 
         const auto sf = surface{det, sf_descr};
         std::stringstream err_stream{};
@@ -50,7 +50,8 @@ struct surface_checker {
         }
 
         if (sf.volume() != vol_idx) {
-            err_stream << "ERROR: Incorrect volume index on surface: " << sf;
+            err_stream << "ERROR: Incorrect volume index on surface: vol "
+                       << vol_idx << ", sf: " << sf;
 
             throw std::invalid_argument(err_stream.str());
         }
@@ -142,7 +143,7 @@ inline void check_empty(const detector_t &det) {
     if (det.volumes().empty()) {
         throw std::runtime_error("ERROR: No volumes in detector");
     }
-    if (det.surface_lookup().empty()) {
+    if (det.surfaces().empty()) {
         throw std::runtime_error("ERROR: No surfaces found");
     }
     if (det.transform_store().empty()) {
@@ -212,7 +213,7 @@ inline bool check_consistency(const detector_t &det) {
 
     // Check the surfaces in the detector's surface lookup
     for (const auto &[idx, sf_desc] :
-         detray::views::enumerate(det.surface_lookup())) {
+         detray::views::enumerate(det.surfaces())) {
         const auto sf = surface{det, sf_desc};
 
         // Check that nothing is obviously broken
@@ -231,7 +232,7 @@ inline bool check_consistency(const detector_t &det) {
         // Check that the surface can be found in its volume's acceleration
         // data structures (if there are no grids, must at least be in the
         // brute force method)
-        const auto vol = det.volume_by_index(sf.volume());
+        const auto vol = detector_volume{det, sf.volume()};
         bool is_registered = false;
 
         vol.template visit_surfaces<detail::surface_checker>(

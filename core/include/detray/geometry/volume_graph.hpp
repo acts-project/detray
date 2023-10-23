@@ -135,7 +135,7 @@ class volume_graph {
             }
 
             /// Dereference operator @returns a graph node
-            node operator*() { return node(m_det.volume(*m_vol_itr)); }
+            node operator*() { return node({m_det, m_vol_itr->index()}); }
 
             /// Prefix increment. No postfix increment implemented
             iterator &operator++() {

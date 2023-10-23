@@ -50,7 +50,7 @@ class geometry_writer : public writer_interface<detector_t> {
         header_data.sub_header.emplace();
         auto& geo_sub_header = header_data.sub_header.value();
         geo_sub_header.n_volumes = det.volumes().size();
-        geo_sub_header.n_surfaces = det.n_surfaces();
+        geo_sub_header.n_surfaces = det.surfaces().size();
 
         return header_data;
     }
@@ -139,7 +139,7 @@ class geometry_writer : public writer_interface<detector_t> {
         // Count the surfaces belonging to this volume
         std::size_t sf_idx{0};
 
-        for (const auto& sf_desc : det.surface_lookup()) {
+        for (const auto& sf_desc : det.surfaces()) {
             if (sf_desc.volume() == vol_desc.index()) {
                 vol_data.surfaces.push_back(
                     serialize(surface{det, sf_desc}, sf_idx++));
@@ -147,7 +147,7 @@ class geometry_writer : public writer_interface<detector_t> {
         }
 
         // Only run the query, if object type is contained in volume
-        const auto& link = vol_desc.full_link();
+        const auto& link = vol_desc.accel_link();
         // Initialize the std::optional
         if (link.size() > 1u) {
             vol_data.acc_links.emplace();

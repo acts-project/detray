@@ -67,7 +67,7 @@ inline bool test_toy_detector(
     using material_ids = typename detector_t::materials::id;
     using material_link_t = typename detector_t::surface_type::material_link;
     using accel_ids = typename detector_t::accel::id;
-    using accel_link_t = typename volume_t::link_type::index_type;
+    using accel_link_t = typename volume_t::accel_link_type::index_type;
 
     EXPECT_EQ(names.at(0u), "toy_detector");
 
@@ -76,7 +76,7 @@ inline bool test_toy_detector(
 
     geo_context_t ctx{};
     auto& volumes = toy_det.volumes();
-    auto& surfaces = toy_det.surface_lookup();
+    auto& surfaces = toy_det.surfaces();
     auto& accel = toy_det.accelerator_store();
     auto& transforms = toy_det.transform_store();
     auto& masks = toy_det.mask_store();
@@ -102,7 +102,7 @@ inline bool test_toy_detector(
 
     // Check number of geomtery objects
     EXPECT_EQ(volumes.size(), 20u);
-    EXPECT_EQ(toy_det.n_surfaces(), 3244u);
+    EXPECT_EQ(toy_det.surfaces().size(), 3244u);
     EXPECT_EQ(transforms.size(ctx), 3264u);
     EXPECT_EQ(masks.template size<mask_ids::e_rectangle2>(), 2492u);
     EXPECT_EQ(masks.template size<mask_ids::e_trapezoid2>(), 648u);
@@ -122,36 +122,43 @@ inline bool test_toy_detector(
         EXPECT_EQ(materials.template size<material_ids::e_disc2_map>(), 52u);
     }
 
-    /** Test the links of a volume.
-     *
-     * @param vol_index volume the modules belong to
-     * @param sf_itr iterator into the surface container, start of the modules
-     * @param range index range of the modules in the surface container
-     * @param trf_index index of the transform (trf container) for the module
-     * @param mask_index type and index of module mask in respective mask cont
-     * @param volume_links links to next volume and next surfaces finder
-     */
+    /// Test the surface ranges in the volume
+    auto check_sf_ranges = [](const typename detector_t::volume_type& vol,
+                              dindex_range pt_range, dindex_range sf_range,
+                              dindex_range psv_range) {
+        EXPECT_EQ(vol.template sf_link<surface_id::e_portal>(), pt_range);
+        EXPECT_EQ(vol.template sf_link<surface_id::e_sensitive>(), sf_range);
+        EXPECT_EQ(vol.template sf_link<surface_id::e_passive>(), psv_range);
+    };
+
+    /// Test the links of a volume.
+    ///
+    /// @param vol_index volume the modules belong to
+    /// @param sf_itr iterator into the surface container, start of the modules
+    /// @param range index range of the modules in the surface container
+    /// @param trf_index index of the transform (trf container) for the module
+    /// @param mask_index type and index of module mask in respective mask cont
+    /// @param volume_links links to next volume and next surfaces finder
     auto test_volume_links = [&](decltype(volumes.begin())& vol_itr,
                                  const dindex vol_index,
                                  const darray<dindex, 1>& range,
                                  const accel_link_t& /*accel_link*/) {
         EXPECT_EQ(vol_itr->index(), vol_index);
-        EXPECT_EQ(vol_itr->template link<geo_obj_ids::e_portal>().id(),
+        EXPECT_EQ(vol_itr->template accel_link<geo_obj_ids::e_portal>().id(),
                   accel_ids::e_brute_force);
-        EXPECT_EQ(vol_itr->template link<geo_obj_ids::e_portal>().index(),
+        EXPECT_EQ(vol_itr->template accel_link<geo_obj_ids::e_portal>().index(),
                   range[0]);
     };
 
-    /** Test the links of portals (into the next volume or invalid if we leave
-     * the detector).
-     *
-     * @param vol_index volume the portals belong to
-     * @param sf_itr iterator into the surface container, start of the portals
-     * @param range index range of the portals in the surface container
-     * @param trf_index index of the transform (trf container) for the portal
-     * @param mask_index type and index of portal mask in respective mask cont
-     * @param volume_links links to next volume contained in the masks
-     */
+    /// Test the links of portals (into the next volume or invalid if we leave
+    /// the detector).
+    ///
+    /// @param vol_index volume the portals belong to
+    /// @param sf_itr iterator into the surface container, start of the portals
+    /// @param range index range of the portals in the surface container
+    /// @param trf_index index of the transform (trf container) for the portal
+    /// @param mask_index type and index of portal mask in respective mask cont
+    /// @param volume_links links to next volume contained in the masks
     auto test_portal_links =
         [&](const dindex vol_index, decltype(surfaces.begin())&& sf_itr,
             const darray<dindex, 2>& range, dindex trf_index,
@@ -184,15 +191,14 @@ inline bool test_toy_detector(
             }
         };
 
-    /** Test the links of module surface (alway stay in their volume).
-     *
-     * @param vol_index volume the modules belong to
-     * @param sf_itr iterator into the surface container, start of the modules
-     * @param range index range of the modules in the surface container
-     * @param trf_index index of the transform (trf container) for the module
-     * @param mask_index type and index of module mask in respective mask cont
-     * @param volume_links links to next volume contained in the masks
-     */
+    /// Test the links of module surface (alway stay in their volume).
+    ///
+    /// @param vol_index volume the modules belong to
+    /// @param sf_itr iterator into the surface container, start of the modules
+    /// @param range index range of the modules in the surface container
+    /// @param trf_index index of the transform (trf container) for the module
+    /// @param mask_index type and index of module mask in respective mask cont
+    /// @param volume_links links to next volume contained in the masks
     auto test_module_links =
         [&](const dindex vol_index, decltype(surfaces.begin())&& sf_itr,
             const darray<dindex, 2>& range, dindex trf_index,
@@ -240,7 +246,7 @@ inline bool test_toy_detector(
             const darray<dindex, 2>& pt_range,
             const darray<dindex, 2>& sf_range = {0u, 0u}) {
             // Link to the acceleration data structures the volume holds
-            const auto& link = vol_itr->full_link();
+            const auto& link = vol_itr->accel_link();
 
             // Test the portal search
             const auto& bf_finder =
@@ -279,6 +285,7 @@ inline bool test_toy_detector(
     EXPECT_EQ(names.at(vol_itr->index() + 1), "beampipe_0");
     darray<dindex, 1> index = {0u};
     accel_link_t accel_link{accel_ids::e_brute_force, 0u};
+    check_sf_ranges(*vol_itr, {0u, 15u}, {}, {15u, 16u});
 
     // Test the links in the volumes
     test_volume_links(vol_itr, 0u, index, accel_link);
@@ -326,6 +333,7 @@ inline bool test_toy_detector(
     range = {16u, 128u};
     index = {1u};
     accel_link = {accel_ids::e_disc_grid, 0u};
+    check_sf_ranges(*vol_itr, {16u, 20u}, {20u, 128u}, {});
 
     // Test the links in the volumes
     test_volume_links(vol_itr, 1u, index, accel_link);
@@ -367,6 +375,7 @@ inline bool test_toy_detector(
     range = {128u, 132u};
     index = {2u};
     accel_link = {accel_ids::e_brute_force, 0u};
+    check_sf_ranges(*vol_itr, {128u, 132u}, {}, {});
 
     // Test the links in the volumes
     test_volume_links(vol_itr, 2u, index, accel_link);
@@ -399,6 +408,7 @@ inline bool test_toy_detector(
     range = {132u, 244u};
     index = {3u};
     accel_link = {accel_ids::e_disc_grid, 1u};
+    check_sf_ranges(*vol_itr, {132u, 136u}, {136u, 244u}, {});
 
     // Test the links in the volumes
     test_volume_links(vol_itr, 3u, index, accel_link);
@@ -439,6 +449,7 @@ inline bool test_toy_detector(
     range = {244u, 248u};
     index = {4u};
     accel_link = {accel_ids::e_brute_force, 0u};
+    check_sf_ranges(*vol_itr, {244u, 248u}, {}, {});
 
     // Test the links in the volumes
     test_volume_links(vol_itr, 4u, index, accel_link);
@@ -471,6 +482,7 @@ inline bool test_toy_detector(
     range = {248u, 360u};
     index = {5u};
     accel_link = {accel_ids::e_disc_grid, 2u};
+    check_sf_ranges(*vol_itr, {248u, 252u}, {252u, 360u}, {});
 
     // Test the links in the volumes
     test_volume_links(vol_itr, 5u, index, accel_link);
@@ -511,6 +523,7 @@ inline bool test_toy_detector(
     range = {360u, 370u};
     index = {6u};
     accel_link = {accel_ids::e_brute_force, 0u};
+    check_sf_ranges(*vol_itr, {360u, 370u}, {}, {});
 
     // Test the links in the volumes
     test_volume_links(vol_itr, 6u, index, accel_link);
@@ -548,6 +561,7 @@ inline bool test_toy_detector(
     range = {370u, 598u};
     index = {7u};
     accel_link = {accel_ids::e_cylinder2_grid, 0u};
+    check_sf_ranges(*vol_itr, {370u, 374u}, {374u, 598u}, {});
 
     // Test the links in the volumes
     test_volume_links(vol_itr, 7u, index, accel_link);
@@ -588,6 +602,7 @@ inline bool test_toy_detector(
     range = {598u, 602u};
     index = {8u};
     accel_link = {accel_ids::e_brute_force, 0u};
+    check_sf_ranges(*vol_itr, {598u, 602u}, {}, {});
 
     // Test the links in the volumes
     test_volume_links(vol_itr, 8u, index, accel_link);
@@ -619,6 +634,7 @@ inline bool test_toy_detector(
     range = {602u, 1054u};
     index = {9u};
     accel_link = {accel_ids::e_cylinder2_grid, 1u};
+    check_sf_ranges(*vol_itr, {602u, 606u}, {606u, 1054u}, {});
 
     // Test the links in the volumes
     test_volume_links(vol_itr, 9u, index, accel_link);
@@ -659,6 +675,7 @@ inline bool test_toy_detector(
     range = {1054u, 1058u};
     index = {10u};
     accel_link = {accel_ids::e_brute_force, 0u};
+    check_sf_ranges(*vol_itr, {1054u, 1058u}, {}, {});
 
     // Test the links in the volumes
     test_volume_links(vol_itr, 10u, index, accel_link);
@@ -690,6 +707,7 @@ inline bool test_toy_detector(
     range = {1058u, 1790u};
     index = {11u};
     accel_link = {accel_ids::e_cylinder2_grid, 2u};
+    check_sf_ranges(*vol_itr, {1058u, 1062u}, {1062u, 1790u}, {});
 
     // Test the links in the volumes
     test_volume_links(vol_itr, 11u, index, accel_link);
@@ -730,6 +748,7 @@ inline bool test_toy_detector(
     range = {1790u, 1794u};
     index = {12u};
     accel_link = {accel_ids::e_brute_force, 0u};
+    check_sf_ranges(*vol_itr, {1790u, 1794u}, {}, {});
 
     // Test the links in the volumes
     test_volume_links(vol_itr, 12u, index, accel_link);
@@ -761,6 +780,7 @@ inline bool test_toy_detector(
     range = {1794u, 2890u};
     index = {13u};
     accel_link = {accel_ids::e_cylinder2_grid, 3u};
+    check_sf_ranges(*vol_itr, {1794u, 1798u}, {1798u, 2890u}, {});
 
     // Test the links in the volumes
     test_volume_links(vol_itr, 13u, index, accel_link);
@@ -806,6 +826,7 @@ inline bool test_toy_detector(
     range = {2890u, 2900u};
     index = {14u};
     accel_link = {accel_ids::e_brute_force, 0u};
+    check_sf_ranges(*vol_itr, {2890u, 2900u}, {}, {});
 
     // Test the links in the volumes
     test_volume_links(vol_itr, 14u, index, accel_link);
@@ -839,6 +860,7 @@ inline bool test_toy_detector(
     range = {2900u, 3012u};
     index = {15u};
     accel_link = {accel_ids::e_disc_grid, 3u};
+    check_sf_ranges(*vol_itr, {2900u, 2904u}, {2904u, 3012u}, {});
 
     // Test the links in the volumes
     test_volume_links(vol_itr, 15u, index, accel_link);
@@ -879,6 +901,7 @@ inline bool test_toy_detector(
     range = {3012u, 3016u};
     index = {16u};
     accel_link = {accel_ids::e_brute_force, 0u};
+    check_sf_ranges(*vol_itr, {3012u, 3016u}, {}, {});
 
     // Test the links in the volumes
     test_volume_links(vol_itr, 16u, index, accel_link);
@@ -911,6 +934,7 @@ inline bool test_toy_detector(
     range = {3016u, 3128u};
     index = {17u};
     accel_link = {accel_ids::e_disc_grid, 4u};
+    check_sf_ranges(*vol_itr, {3016u, 3020u}, {3020u, 3128u}, {});
 
     // Test the links in the volumes
     test_volume_links(vol_itr, 17u, index, accel_link);
@@ -951,6 +975,7 @@ inline bool test_toy_detector(
     range = {3128u, 3132u};
     index = {18u};
     accel_link = {accel_ids::e_brute_force, 0u};
+    check_sf_ranges(*vol_itr, {3128u, 3132u}, {}, {});
 
     // Test the links in the volumes
     test_volume_links(vol_itr, 18u, index, accel_link);
@@ -983,6 +1008,7 @@ inline bool test_toy_detector(
     range = {3132u, 3244u};
     index = {19u};
     accel_link = {accel_ids::e_disc_grid, 5u};
+    check_sf_ranges(*vol_itr, {3132u, 3136u}, {3136u, 3244u}, {});
 
     // Test the links in the volumes
     test_volume_links(vol_itr, 19u, index, accel_link);

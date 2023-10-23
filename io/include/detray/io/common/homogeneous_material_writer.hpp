@@ -109,10 +109,9 @@ class homogeneous_material_writer : public writer_interface<detector_t> {
 
         // Find all surfaces that belong to the volume and count them
         std::size_t sf_idx{0u}, slab_idx{0u}, rod_idx{0u};
-        for (const auto& sf_desc : det.surface_lookup()) {
-            if (sf_desc.volume() != vol_desc.index()) {
-                continue;
-            }
+        auto vol = detector_volume{det, vol_desc};
+        for (const auto& sf_desc : vol.surfaces()) {
+
             // Serialize material slabs and rods
             const auto sf = surface{det, sf_desc};
             material_slab_payload mslp =
