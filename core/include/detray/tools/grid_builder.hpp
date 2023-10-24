@@ -108,8 +108,8 @@ class grid_builder final : public volume_decorator<detector_t> {
         // Take the surfaces that should be filled into the grid out of the
         // brute force finder
         const auto vol_idx{vol_ptr->index()};
-        constexpr auto bf_id{detector_t::sf_finders::id::e_brute_force};
-        auto &bf_search = det.surface_store().template get<bf_id>();
+        constexpr auto bf_id{detector_t::accel::id::e_brute_force};
+        auto &bf_search = det.accelerator_store().template get<bf_id>();
 
         // Grid has not been filled previously, fill it automatically
         if (m_grid.size() == 0u) {
@@ -169,11 +169,11 @@ class grid_builder final : public volume_decorator<detector_t> {
         }
 
         // Add the grid to the detector and link it to its volume
-        constexpr auto gid{detector_t::sf_finders::template get_id<grid_t>()};
-        det.surface_store().template push_back<gid>(m_grid);
+        constexpr auto gid{detector_t::accel::template get_id<grid_t>()};
+        det.accelerator_store().template push_back<gid>(m_grid);
         vol_ptr->template set_link<
             detector_t::volume_type::object_id::e_sensitive>(
-            gid, det.surface_store().template size<gid>() - 1);
+            gid, det.accelerator_store().template size<gid>() - 1);
 
         return vol_ptr;
     }

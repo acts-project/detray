@@ -89,7 +89,7 @@ struct surface_payload {
     transform_payload transform{};
     mask_payload mask{};
     std::optional<material_link_payload> material;
-    single_link_payload source{};
+    std::uint64_t source{};
     // Write the surface barcode as an additional information
     std::uint64_t barcode{std::numeric_limits<std::uint64_t>::max()};
     detray::surface_id type{detray::surface_id::e_sensitive};

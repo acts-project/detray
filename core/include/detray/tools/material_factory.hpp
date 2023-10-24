@@ -187,7 +187,7 @@ class material_factory final : public factory_decorator<detector_t> {
     /// @param material material store of the volume builder that the new
     ///                 materials get added to.
     DETRAY_HOST
-    auto operator()(typename detector_t::surface_container_t &surfaces,
+    auto operator()(typename detector_t::surface_container &surfaces,
                     typename detector_t::material_container &materials) {
 
         // This builder is only called on a homogeneous material description

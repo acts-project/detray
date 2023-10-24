@@ -45,7 +45,7 @@ struct telescope_metadata {
 
     /// Rectangles are always needed as portals (but the yhave the same type as
     /// module rectangles). Only one additional mask shape is allowed
-    enum class mask_ids {
+    enum class mask_ids : std::uint8_t {
         e_rectangle2 = 0,
         e_portal_rectangle2 = 0,
         e_annulus2 = 1,
@@ -78,7 +78,7 @@ struct telescope_metadata {
                             rectangle, mask<mask_shape_t, nav_link>>>;
 
     /// Material type ids
-    enum class material_ids {
+    enum class material_ids : std::uint8_t {
         e_slab = 0,
         e_rod = 0,
         e_none = 1,
@@ -99,14 +99,14 @@ struct telescope_metadata {
     using transform_link = typename transform_store<>::link_type;
     using mask_link = typename mask_store<>::single_link;
     using material_link = typename material_store<>::single_link;
-    using source_link = dindex;
+    using source_link = std::uint64_t;
     /// Surface type used for sensitives, passives and portals
     using surface_type =
         surface_descriptor<mask_link, material_link, transform_link, nav_link,
                            source_link>;
 
     /// No grids/other acceleration data structure, everything is brute forced
-    enum geo_objects : std::size_t {
+    enum geo_objects : std::uint8_t {
         e_sensitive = 0,
         e_portal = 0,
         e_size = 1,
@@ -114,20 +114,20 @@ struct telescope_metadata {
     };
 
     /// Acceleration data structures
-    enum class sf_finder_ids {
+    enum class accel_ids {
         e_brute_force = 0,  // test all surfaces in a volume (brute force)
         e_default = e_brute_force,
     };
 
     /// One link for all surfaces (in the brute force method)
     using object_link_type =
-        dmulti_index<dtyped_index<sf_finder_ids, dindex>, geo_objects::e_size>;
+        dmulti_index<dtyped_index<accel_ids, dindex>, geo_objects::e_size>;
 
     /// How to store the brute force search data structure
     template <template <typename...> class tuple_t = dtuple,
               typename container_t = host_container_types>
-    using surface_finder_store =
-        multi_store<sf_finder_ids, empty_context, tuple_t,
+    using accelerator_store =
+        multi_store<accel_ids, empty_context, tuple_t,
                     brute_force_collection<surface_type, container_t>>;
 
     /// Volume search (only one volume exists)

@@ -57,7 +57,7 @@ class grid_writer : public writer_interface<detector_t> {
 
         header_data.sub_header.emplace();
         auto& grid_sub_header = header_data.sub_header.value();
-        grid_sub_header.n_grids = get_n_grids(det.surface_store());
+        grid_sub_header.n_grids = get_n_grids(det.accelerator_store());
 
         return header_data;
     }
@@ -85,7 +85,7 @@ class grid_writer : public writer_interface<detector_t> {
                 }
 
                 // If the accelerator is a grid, insert the payload
-                det.surface_store().template visit<get_grid_payload>(
+                det.accelerator_store().template visit<get_grid_payload>(
                     acc_link, vol_desc.index(), grids_data);
             }
         }
@@ -206,10 +206,10 @@ class grid_writer : public writer_interface<detector_t> {
     /// Retrieve number of overall grids in detector
     template <std::size_t I = 0u>
     static std::size_t get_n_grids(
-        const typename detector_t::surface_container& store,
+        const typename detector_t::accelerator_container& store,
         std::size_t n = 0u) {
 
-        using store_t = typename detector_t::surface_container;
+        using store_t = typename detector_t::accelerator_container;
         constexpr auto coll_id{store_t::value_types::to_id(I)};
         using accel_t = typename store_t::template get_type<coll_id>;
 

@@ -460,12 +460,12 @@ inline auto create_telescope_detector(
 
     // The telescope detector has only one volume with default placement
     auto &vol = det.new_volume(volume_id::e_cuboid,
-                               {detector_t::sf_finders::id::e_default, 0u});
+                               {detector_t::accel::id::e_default, 0u});
     vol.set_transform(det.transform_store().size());
     det.transform_store().emplace_back();
 
     // Add module surfaces to volume
-    typename detector_t::surface_container_t surfaces(&resource);
+    typename detector_t::surface_container surfaces(&resource);
     typename detector_t::mask_container masks(resource);
     typename detector_t::material_container materials(resource);
     typename detector_t::transform_container transforms(resource);

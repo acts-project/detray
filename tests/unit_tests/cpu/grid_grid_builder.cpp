@@ -156,7 +156,7 @@ GTEST_TEST(detray_tools, decorator_grid_builder) {
 
     using transform3 = typename detector_t::transform3;
     using geo_obj_id = typename detector_t::geo_obj_ids;
-    using acc_ids = typename detector_t::sf_finders::id;
+    using acc_ids = typename detector_t::accel::id;
     using mask_id = typename detector_t::masks::id;
 
     // cylinder grid type of the toy detector
@@ -278,8 +278,8 @@ GTEST_TEST(detray_tools, decorator_grid_builder) {
 
     // check the portals in the detector
     const auto& bf_finder =
-        d.surface_store()
-            .template get<detector_t::sf_finders::id::e_brute_force>()[0];
+        d.accelerator_store()
+            .template get<detector_t::accel::id::e_brute_force>()[0];
     for (const auto& sf : bf_finder.all()) {
         EXPECT_TRUE((sf.id() == surface_id::e_portal) or
                     (sf.id() == surface_id::e_passive));
@@ -288,8 +288,8 @@ GTEST_TEST(detray_tools, decorator_grid_builder) {
 
     // check the sensitive surfaces in the grid
     const auto& cyl_grid =
-        d.surface_store()
-            .template get<detector_t::sf_finders::id::e_cylinder2_grid>()[0];
+        d.accelerator_store()
+            .template get<detector_t::accel::id::e_cylinder2_grid>()[0];
     dindex trf_idx{3u};
     for (const auto& sf : cyl_grid.all()) {
         EXPECT_TRUE(sf.is_sensitive());

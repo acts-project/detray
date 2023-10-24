@@ -179,7 +179,7 @@ template <
     std::enable_if_t<
         std::is_invocable_v<factory_t, typename detector_t::geometry_context &,
                             typename detector_t::volume_type &,
-                            typename detector_t::surface_container_t &,
+                            typename detector_t::surface_container &,
                             typename detector_t::mask_container &,
                             typename detector_t::material_container &,
                             typename detector_t::transform_container &>,
@@ -192,10 +192,10 @@ inline void add_cylinder_grid(const typename detector_t::geometry_context &ctx,
     using geo_obj_ids = typename detector_t::geo_obj_ids;
 
     constexpr auto cyl_id = detector_t::masks::id::e_portal_cylinder2;
-    constexpr auto grid_id = detector_t::sf_finders::id::e_cylinder2_grid;
+    constexpr auto grid_id = detector_t::accel::id::e_cylinder2_grid;
 
     using cyl_grid_t =
-        typename detector_t::surface_container::template get_type<grid_id>;
+        typename detector_t::accelerator_container::template get_type<grid_id>;
     auto gbuilder =
         grid_builder<detector_t, cyl_grid_t, detray::detail::fill_by_pos>{
             nullptr};
@@ -217,7 +217,7 @@ inline void add_cylinder_grid(const typename detector_t::geometry_context &ctx,
     const cyl_mask_t cyl_mask{mask_values, 0u};
 
     // Create the sensitive surfaces
-    typename detector_t::surface_container_t surfaces(&resource);
+    typename detector_t::surface_container surfaces(&resource);
     typename detector_t::mask_container masks(resource);
     typename detector_t::material_container materials(resource);
     typename detector_t::transform_container transforms(resource);
@@ -253,9 +253,9 @@ inline void add_cylinder_grid(const typename detector_t::geometry_context &ctx,
                        det.transform_store(), det.mask_store(), ctx);
     assert(gbuilder.get().all().size() == surfaces.size());
 
-    det.surface_store().template push_back<grid_id>(gbuilder.get());
+    det.accelerator_store().template push_back<grid_id>(gbuilder.get());
     vol.template set_link<geo_obj_ids::e_sensitive>(
-        grid_id, det.surface_store().template size<grid_id>() - 1u);
+        grid_id, det.accelerator_store().template size<grid_id>() - 1u);
 }
 
 /// Helper function that creates a surface grid of trapezoidal endcap modules.
@@ -270,7 +270,7 @@ template <
     std::enable_if_t<
         std::is_invocable_v<factory_t, typename detector_t::geometry_context &,
                             typename detector_t::volume_type &,
-                            typename detector_t::surface_container_t &,
+                            typename detector_t::surface_container &,
                             typename detector_t::mask_container &,
                             typename detector_t::material_container &,
                             typename detector_t::transform_container &>,
@@ -283,10 +283,10 @@ inline void add_disc_grid(const typename detector_t::geometry_context &ctx,
     using geo_obj_ids = typename detector_t::geo_obj_ids;
 
     constexpr auto disc_id = detector_t::masks::id::e_portal_ring2;
-    constexpr auto grid_id = detector_t::sf_finders::id::e_disc_grid;
+    constexpr auto grid_id = detector_t::accel::id::e_disc_grid;
 
     using disc_grid_t =
-        typename detector_t::surface_container::template get_type<grid_id>;
+        typename detector_t::accelerator_container::template get_type<grid_id>;
     auto gbuilder =
         grid_builder<detector_t, disc_grid_t, detray::detail::fill_by_pos>{
             nullptr};
@@ -297,7 +297,7 @@ inline void add_disc_grid(const typename detector_t::geometry_context &ctx,
         det.mask_store().template get<disc_id>().at(portal_mask_idx);
 
     // Create the sensitive surfaces
-    typename detector_t::surface_container_t surfaces(&resource);
+    typename detector_t::surface_container surfaces(&resource);
     typename detector_t::mask_container masks(resource);
     typename detector_t::material_container materials(resource);
     typename detector_t::transform_container transforms(resource);
@@ -333,9 +333,9 @@ inline void add_disc_grid(const typename detector_t::geometry_context &ctx,
                        det.transform_store(), det.mask_store(), ctx);
     assert(gbuilder.get().all().size() == surfaces.size());
 
-    det.surface_store().template push_back<grid_id>(gbuilder.get());
+    det.accelerator_store().template push_back<grid_id>(gbuilder.get());
     vol.template set_link<geo_obj_ids::e_sensitive>(
-        grid_id, det.surface_store().template size<grid_id>() - 1u);
+        grid_id, det.accelerator_store().template size<grid_id>() - 1u);
 }
 
 /** Helper method for positioning of modules in an endcap ring
@@ -541,7 +541,7 @@ inline void add_beampipe(
                                     : edc_lay_sizes[n_edc_layers - 1u].second};
     scalar min_z{-max_z};
 
-    typename detector_t::surface_container_t surfaces(&resource);
+    typename detector_t::surface_container surfaces(&resource);
     typename detector_t::mask_container masks(resource);
     typename detector_t::material_container materials(resource);
     typename detector_t::transform_container transforms(resource);
@@ -553,9 +553,9 @@ inline void add_beampipe(
     det.transform_store().emplace_back(ctx);
 
     beampipe.template set_link<object_id::e_portal>(
-        detector_t::sf_finders::id::e_default, 0u);
+        detector_t::accel::id::e_default, 0u);
     beampipe.template set_link<object_id::e_passive>(
-        detector_t::sf_finders::id::e_default, 0u);
+        detector_t::accel::id::e_default, 0u);
 
     // This is the beampipe surface
     dindex volume_link{beampipe_idx};
@@ -657,14 +657,14 @@ inline void add_endcap_barrel_connection(
     const scalar edc_disc_z{side < 0 ? min_z : max_z};
     const scalar brl_disc_z{side < 0 ? max_z : min_z};
 
-    typename detector_t::surface_container_t surfaces(&resource);
+    typename detector_t::surface_container surfaces(&resource);
     typename detector_t::mask_container masks(resource);
     typename detector_t::material_container materials(resource);
     typename detector_t::transform_container transforms(resource);
 
-    auto &connector_gap = det.new_volume(volume_id::e_cylinder,
-                                         {detector_t::sf_finders::id::e_default,
-                                          detail::invalid_value<dindex>()});
+    auto &connector_gap = det.new_volume(
+        volume_id::e_cylinder,
+        {detector_t::accel::id::e_default, detail::invalid_value<dindex>()});
     dindex connector_gap_idx{det.volumes().back().index()};
     names[connector_gap_idx + 1u] =
         "connector_gap_" + std::to_string(connector_gap_idx);
@@ -982,7 +982,7 @@ inline auto create_toy_geometry(vecmem::memory_resource &resource,
 
         void operator()(const typename detector_t::geometry_context &ctx,
                         typename detector_t::volume_type &volume,
-                        typename detector_t::surface_container_t &surfaces,
+                        typename detector_t::surface_container &surfaces,
                         typename detector_t::mask_container &masks,
                         typename detector_t::material_container &materials,
                         typename detector_t::transform_container &transforms) {
@@ -997,7 +997,7 @@ inline auto create_toy_geometry(vecmem::memory_resource &resource,
 
         void operator()(const typename detector_t::geometry_context &ctx,
                         typename detector_t::volume_type &volume,
-                        typename detector_t::surface_container_t &surfaces,
+                        typename detector_t::surface_container &surfaces,
                         typename detector_t::mask_container &masks,
                         typename detector_t::material_container &materials,
                         typename detector_t::transform_container &transforms) {

@@ -67,7 +67,7 @@ struct toy_metadata {
                                          vector_t, geometry_context>;
 
     /// Mask type ids
-    enum class mask_ids {
+    enum class mask_ids : std::uint8_t {
         e_rectangle2 = 0,
         e_trapezoid2 = 1,
         e_portal_cylinder2 = 2,
@@ -83,7 +83,7 @@ struct toy_metadata {
                             rectangle, trapezoid, cylinder_portal, disc_portal>;
 
     /// Material type ids
-    enum class material_ids {
+    enum class material_ids : std::uint8_t {
         e_slab = 0,
         e_none = 1,
     };
@@ -98,14 +98,14 @@ struct toy_metadata {
     using transform_link = typename transform_store<>::link_type;
     using mask_link = typename mask_store<>::single_link;
     using material_link = typename material_store<>::single_link;
-    using source_link = dindex;
+    using source_link = std::uint64_t;
     /// Surface type used for sensitives, passives and portals
     using surface_type =
         surface_descriptor<mask_link, material_link, transform_link, nav_link,
                            source_link>;
 
     /// Portals and passives in the brute froce search, sensitives in the grids
-    enum geo_objects : std::size_t {
+    enum geo_objects : std::uint8_t {
         e_sensitive = 1,
         e_portal = 0,
         e_passive = 0,
@@ -114,7 +114,7 @@ struct toy_metadata {
     };
 
     /// Acceleration data structures
-    enum class sf_finder_ids {
+    enum class accel_ids : std::uint8_t {
         e_brute_force = 0,     // test all surfaces in a volume (brute force)
         e_disc_grid = 1,       // endcap
         e_cylinder2_grid = 2,  // barrel
@@ -123,13 +123,13 @@ struct toy_metadata {
 
     /// One link for portals/passives and one sensitive surfaces
     using object_link_type =
-        dmulti_index<dtyped_index<sf_finder_ids, dindex>, geo_objects::e_size>;
+        dmulti_index<dtyped_index<accel_ids, dindex>, geo_objects::e_size>;
 
     /// How to store the acceleration data structures
     template <template <typename...> class tuple_t = dtuple,
               typename container_t = host_container_types>
-    using surface_finder_store = multi_store<
-        sf_finder_ids, empty_context, tuple_t,
+    using accelerator_store = multi_store<
+        accel_ids, empty_context, tuple_t,
         brute_force_collection<surface_type, container_t>,
         grid_collection<disc_sf_grid<surface_type, container_t>>,
         grid_collection<cylinder_sf_grid<surface_type, container_t>>>;

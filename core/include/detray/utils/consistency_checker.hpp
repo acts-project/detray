@@ -166,8 +166,8 @@ inline void check_empty(const detector_t &det) {
 
     // Check for empty acceleration data structure collections (e.g. grids)
     detail::report_empty(
-        det.surface_store(), "acceleration data structures store",
-        std::make_index_sequence<detector_t::sf_finders::n_types>{});
+        det.accelerator_store(), "acceleration data structures store",
+        std::make_index_sequence<detector_t::accel::n_types>{});
 
     // Check volume search data structure
     if (not find_volumes(det.volume_search_grid())) {

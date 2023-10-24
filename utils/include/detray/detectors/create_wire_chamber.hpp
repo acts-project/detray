@@ -130,7 +130,7 @@ inline auto create_wire_chamber(vecmem::memory_resource &resource,
         auto mask_volume_link{static_cast<nav_link_t>(volume_idx)};
 
         // Containers per volume
-        typename detector_t::surface_container_t surfaces(&resource);
+        typename detector_t::surface_container surfaces(&resource);
         typename detector_t::mask_container masks(resource);
         typename detector_t::material_container materials(resource);
         typename detector_t::transform_container transforms(resource);
@@ -212,10 +212,11 @@ inline auto create_wire_chamber(vecmem::memory_resource &resource,
         // Get relevant ids
         using geo_obj_ids = typename detector_t::geo_obj_ids;
         constexpr auto cyl_id = detector_t::masks::id::e_portal_cylinder2;
-        constexpr auto grid_id = detector_t::sf_finders::id::e_cylinder2_grid;
+        constexpr auto grid_id = detector_t::accel::id::e_cylinder2_grid;
 
         using cyl_grid_t =
-            typename detector_t::surface_container::template get_type<grid_id>;
+            typename detector_t::accelerator_container::template get_type<
+                grid_id>;
         auto gbuilder =
             grid_builder<detector_t, cyl_grid_t, detray::detail::fill_by_pos>{
                 nullptr};
@@ -241,9 +242,9 @@ inline auto create_wire_chamber(vecmem::memory_resource &resource,
         gbuilder.fill_grid(detector_volume{det, vol}, det.surface_lookup(),
                            det.transform_store(), det.mask_store(), ctx0);
 
-        det.surface_store().template push_back<grid_id>(gbuilder.get());
+        det.accelerator_store().template push_back<grid_id>(gbuilder.get());
         vol.template set_link<geo_obj_ids::e_sensitive>(
-            grid_id, det.surface_store().template size<grid_id>() - 1u);
+            grid_id, det.accelerator_store().template size<grid_id>() - 1u);
 
         // Add volume grid
         // TODO: Fill it
