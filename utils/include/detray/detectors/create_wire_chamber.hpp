@@ -138,7 +138,6 @@ inline auto create_wire_chamber(vecmem::memory_resource &resource,
         // Wire center positions
         detray::dvector<point3> m_centers{};
 
-        unsigned int n_wires_per_layer{0u};
         scalar theta{0.f};
         while (theta <= 2.f * constant<scalar>::pi) {
 
@@ -147,8 +146,6 @@ inline auto create_wire_chamber(vecmem::memory_resource &resource,
             const scalar z = 0.f;
 
             m_centers.push_back({x, y, z});
-
-            n_wires_per_layer++;
             theta += delta;
         }
 
