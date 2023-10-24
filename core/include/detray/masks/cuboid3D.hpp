@@ -12,6 +12,7 @@
 #include "detray/definitions/containers.hpp"
 #include "detray/definitions/qualifiers.hpp"
 #include "detray/intersection/bounding_box/cuboid_intersector.hpp"
+#include "detray/masks/shape_types.hpp"
 #include "detray/surface_finders/grid/detail/axis_binning.hpp"
 #include "detray/surface_finders/grid/detail/axis_bounds.hpp"
 
@@ -32,6 +33,9 @@ class cuboid3D {
     public:
     /// The name for this shape
     inline static const std::string name = "cuboid3D";
+
+    /// Shape type
+    inline static const shape_types shape_type = shape_types::cuboid3D;
 
     enum boundaries : unsigned int {
         e_min_x = 0u,

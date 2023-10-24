@@ -19,9 +19,9 @@
 #include "detray/masks/line.hpp"
 #include "detray/masks/rectangle2D.hpp"
 #include "detray/masks/ring2D.hpp"
+#include "detray/masks/shape_types.hpp"
 #include "detray/masks/single3D.hpp"
 #include "detray/masks/trapezoid2D.hpp"
-
 // System include(s)
 #include <algorithm>
 #include <cassert>

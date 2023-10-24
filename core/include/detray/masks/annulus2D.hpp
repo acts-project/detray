@@ -14,6 +14,7 @@
 #include "detray/definitions/qualifiers.hpp"
 #include "detray/definitions/units.hpp"
 #include "detray/intersection/plane_intersector.hpp"
+#include "detray/masks/shape_types.hpp"
 #include "detray/surface_finders/grid/detail/axis_binning.hpp"
 #include "detray/surface_finders/grid/detail/axis_bounds.hpp"
 
@@ -51,6 +52,9 @@ class annulus2D {
     public:
     /// The name for this shape
     inline static const std::string name = "(stereo) annulus2D";
+
+    /// Shape type
+    inline static const shape_types shape_type = shape_types::annulus2D;
 
     /// Names for the mask boundary values
     enum boundaries : unsigned int {

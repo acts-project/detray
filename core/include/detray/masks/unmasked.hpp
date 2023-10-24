@@ -12,9 +12,9 @@
 #include "detray/definitions/containers.hpp"
 #include "detray/definitions/qualifiers.hpp"
 #include "detray/intersection/plane_intersector.hpp"
+#include "detray/masks/shape_types.hpp"
 #include "detray/surface_finders/grid/detail/axis_binning.hpp"
 #include "detray/surface_finders/grid/detail/axis_bounds.hpp"
-
 // System include(s)
 #include <limits>
 #include <ostream>
@@ -27,6 +27,9 @@ class unmasked {
     public:
     /// The name for this shape
     inline static const std::string name = "unmasked";
+
+    /// Shape type
+    inline static const shape_types shape_type = shape_types::unmasked;
 
     enum boundaries : unsigned int { e_size = 1u };
 

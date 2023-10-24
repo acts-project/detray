@@ -13,9 +13,9 @@
 #include "detray/definitions/containers.hpp"
 #include "detray/definitions/qualifiers.hpp"
 #include "detray/intersection/cylinder_intersector.hpp"
+#include "detray/masks/shape_types.hpp"
 #include "detray/surface_finders/grid/detail/axis_binning.hpp"
 #include "detray/surface_finders/grid/detail/axis_bounds.hpp"
-
 // System include(s)
 #include <cmath>
 #include <limits>
@@ -38,6 +38,9 @@ class cylinder2D {
     public:
     /// The name for this shape
     inline static const std::string name = "cylinder2D";
+
+    /// Shape type
+    inline static const shape_types shape_type = shape_types::cylinder2D;
 
     /// Check the radial position in boundary check
     static constexpr bool check_radius = kRadialCheck;

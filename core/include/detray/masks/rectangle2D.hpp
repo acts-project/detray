@@ -12,9 +12,9 @@
 #include "detray/definitions/containers.hpp"
 #include "detray/definitions/qualifiers.hpp"
 #include "detray/intersection/plane_intersector.hpp"
+#include "detray/masks/shape_types.hpp"
 #include "detray/surface_finders/grid/detail/axis_binning.hpp"
 #include "detray/surface_finders/grid/detail/axis_bounds.hpp"
-
 // System include(s)
 #include <cmath>
 #include <limits>
@@ -37,6 +37,9 @@ class rectangle2D {
     public:
     /// The name for this shape
     inline static const std::string name = "rectangle2D";
+
+    /// Shape type
+    inline static const shape_types shape_type = shape_types::rectangle2D;
 
     enum boundaries : unsigned int {
         e_half_x = 0u,

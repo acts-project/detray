@@ -14,9 +14,9 @@
 #include "detray/definitions/math.hpp"
 #include "detray/definitions/qualifiers.hpp"
 #include "detray/intersection/line_intersector.hpp"
+#include "detray/masks/shape_types.hpp"
 #include "detray/surface_finders/grid/detail/axis_binning.hpp"
 #include "detray/surface_finders/grid/detail/axis_bounds.hpp"
-
 // System include(s)
 #include <cmath>
 #include <limits>
@@ -45,6 +45,9 @@ class line {
     public:
     /// The name for this shape
     inline static const std::string name = "line";
+
+    /// Shape type
+    inline static const shape_types shape_type = shape_types::line;
 
     /// Geometrical cross section of the line
     static constexpr bool square_cross_sect = kSquareCrossSect;

@@ -10,7 +10,7 @@
 // Project include(s)
 #include "detray/definitions/containers.hpp"
 #include "detray/definitions/qualifiers.hpp"
-
+#include "detray/masks/shape_types.hpp"
 // System include(s)
 #include <array>
 #include <limits>
@@ -28,6 +28,9 @@ class unbounded {
 
     /// The name for this shape
     inline static const std::string name = "unbounded " + shape::name;
+
+    /// Shape type
+    inline static const shape_types shape_type = shape_types::unbounded;
 
     /// Local coordinate frame for boundary checks
     template <typename algebra_t>
