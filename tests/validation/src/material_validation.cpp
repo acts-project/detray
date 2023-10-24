@@ -33,12 +33,13 @@ int main(int argc, char **argv) {
 
     // Use the most general type to be able to read in all detector files
     using detector_t = detray::detector<>;
+    using scalar_t = detector_t::scalar_type;
 
     // Filter out the google test flags
     ::testing::InitGoogleTest(&argc, argv);
 
     // Options parsing
-    po::options_description desc("\ndetray validation options");
+    po::options_description desc("\ndetray material validation options");
 
     desc.add_options()("help", "produce help message")(
         "geometry_file", po::value<std::string>(), "geometry input file")(
@@ -46,10 +47,17 @@ int main(int argc, char **argv) {
         "phi_steps", po::value<std::size_t>()->default_value(50u),
         "# phi steps for particle gun")(
         "eta_steps", po::value<std::size_t>()->default_value(50u),
-        "# eta steps for particle gun");
+        "# eta steps for particle gun")(
+        "eta_range", po::value<std::vector<scalar_t>>()->multitoken(),
+        "min, max range of eta values for particle gun")(
+        "origin", po::value<std::vector<scalar_t>>()->multitoken(),
+        "coordintates for particle gun origin position");
 
     po::variables_map vm;
-    po::store(po::parse_command_line(argc, argv, desc), vm);
+    po::store(parse_command_line(argc, argv, desc,
+                                 po::command_line_style::unix_style ^
+                                     po::command_line_style::allow_short),
+              vm);
     po::notify(vm);
 
     // Help message
@@ -92,6 +100,25 @@ int main(int argc, char **argv) {
 
         mat_scan_cfg.track_generator().eta_steps(eta_steps);
         mat_scan_cfg.track_generator().eta_range(-4.f, 4.f);
+    }
+    if (vm.count("eta_range")) {
+        const auto eta_range = vm["eta_range"].as<std::vector<scalar_t>>();
+        if (eta_range.size() == 2u) {
+            mat_scan_cfg.track_generator().eta_range(eta_range[0],
+                                                     eta_range[1]);
+        } else {
+            throw std::invalid_argument("Eta range needs two arguments");
+        }
+    }
+    if (vm.count("origin")) {
+        const auto origin = vm["origin"].as<std::vector<scalar_t>>();
+        if (origin.size() == 3u) {
+            mat_scan_cfg.track_generator().origin(
+                {origin[0], origin[1], -origin[2]});
+        } else {
+            throw std::invalid_argument(
+                "Particle gun origin needs three arguments");
+        }
     }
 
     vecmem::host_memory_resource host_mr;

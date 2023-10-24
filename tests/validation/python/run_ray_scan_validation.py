@@ -4,7 +4,7 @@
 #
 # Mozilla Public License Version 2.0
 
-import plot_material_scan
+import plot_ray_scan
 from pyplot_factory import pyplot_factory
 
 # python includes
@@ -26,22 +26,29 @@ def __main__():
 
 #----------------------------------------------------------------arg parsing
 
-    parser = argparse.ArgumentParser(description = "Detray Material Validation")
+    parser = argparse.ArgumentParser(description = "Detray Ray Scan")
     parser.add_argument("--debug", "-d",
-                        help=("Enables debug output"), 
+                        help=("Enables debug logging"), 
                         action="store_true")
     parser.add_argument("--logfile",
                         help=("Write log in file"), 
                         default = "", type=str)
     parser.add_argument("--input", "-i",
-                        help=("Input material scan data file."),
-                        default = "", type=str)
+                        help=("Input ray scan data file."),
+                        default = "", type=str, required=True)
     parser.add_argument("--outdir", "-o",
                         help=("Output directory for plots."),
-                        default = "./material_plots/", type=str)
+                        default = "./geometry_plots/", type=str)
     parser.add_argument("--output_format", "-of",
                         help=("Format of the plot files (svg|png|pdf)."),
                         default = "png", type=str)
+    parser.add_argument("--z_range", "-zrng", nargs=2,
+                        help=("z range for the xy-view."),
+                        default = [-50, 50], type=float)
+    parser.add_argument("--hide_portals",
+                        action="store_true", default=False)
+    parser.add_argument("--hide_passives",
+                        action="store_true", default=False)
 
     args = parser.parse_args()
 
@@ -77,7 +84,7 @@ def __main__():
                                     " %(message)s"), level=logLevel)
 
     logging.info("\n--------------------------------------------------------\n"
-                 "Running material validation "+\
+                 "Running ray scan validation "+\
                  str(datetime.now().strftime("%d/%m/%Y %H:%M"))+\
                  "\n--------------------------------------------------------\n")
 
@@ -94,28 +101,33 @@ def __main__():
         logging.error(f"Unknown output file format: {out_format}")
         sys.exit(1)
 
-    mat_scan_file = args.input
+    ray_scan_file = args.input
     out_format = args.output_format
 
 #----------------------------------------------------------------prepare data
 
     # Get detector name
-    detector_name = mat_scan_file.removeprefix('material_scan_')
+    if ray_scan_file.find('ray_scan_') != -1:
+        detector_name = ray_scan_file.removeprefix('ray_scan_')
+        scan_type = "ray"
+    elif ray_scan_file.find('helix_scan_') != -1:
+        detector_name = ray_scan_file.removeprefix('helix_scan_')
+        scan_type = "helix"
+    else:
+        logging.error('Input filename needs to contain \'ray_scan\' prefix')
     detector_name = detector_name.removesuffix('.csv')
     detector_name = detector_name.replace('_', ' ')
 
-    df = pd.read_csv(mat_scan_file)
+    df = pd.read_csv(ray_scan_file)
 
-    plot_factory = pyplot_factory(outdir + "material_", logging)
+    plot_factory = pyplot_factory(outdir + "geometry_", logging)
 
 #------------------------------------------------------------------------run
 
-    # The histograms are not re-weighted (if the rays are not evenly distributed
-    # the material in some bins might be artificially high)!
-    plot_material_scan.X0_vs_eta_phi(df, detector_name, plot_factory, out_format)
-    plot_material_scan.L0_vs_eta_phi(df, detector_name, plot_factory, out_format)
-    plot_material_scan.X0_vs_eta(df, detector_name, plot_factory, out_format)
-    plot_material_scan.L0_vs_eta(df, detector_name, plot_factory, out_format)
+    plot_ray_scan.intersection_points_xy(args, df, detector_name,
+                                         scan_type, plot_factory, out_format)
+    plot_ray_scan.intersection_points_rz(args, df, detector_name, scan_type,
+                                         plot_factory, out_format)
 
 #-------------------------------------------------------------------------------
 
