@@ -119,7 +119,7 @@ class geometry_writer : public writer_interface<detector_t> {
         sf_data.transform = serialize(sf.transform({}));
         sf_data.mask = sf.template visit_mask<get_mask_payload>();
         sf_data.material = sf.template visit_material<get_material_payload>();
-        sf_data.source = base_type::serialize(sf.source());
+        sf_data.source = sf.source();
 
         return sf_data;
     }
@@ -157,8 +157,8 @@ class geometry_writer : public writer_interface<detector_t> {
         for (unsigned int i = 1u; i < link.size(); ++i) {
             const auto& l = link[i];
             if (not l.is_invalid()) {
-                const auto aclp =
-                    det.surface_store().template visit<get_acc_link_payload>(l);
+                const auto aclp = det.accelerator_store()
+                                      .template visit<get_acc_link_payload>(l);
                 vol_data.acc_links->push_back(aclp);
             }
         }

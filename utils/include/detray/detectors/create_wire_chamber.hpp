@@ -10,13 +10,10 @@
 // Project include(s)
 #include "detray/core/detector.hpp"
 #include "detray/core/detector_metadata.hpp"
-#include "detray/definitions/bfield_backends.hpp"
 #include "detray/definitions/units.hpp"
 #include "detray/detectors/detector_helper.hpp"
-#include "detray/io/common/detail/file_handle.hpp"
 #include "detray/masks/masks.hpp"
 #include "detray/materials/predefined_materials.hpp"
-#include "detray/tools/bounding_volume.hpp"
 #include "detray/tools/grid_builder.hpp"
 #include "detray/utils/axis_rotation.hpp"
 #include "detray/utils/unit_vectors.hpp"
@@ -43,14 +40,6 @@ struct wire_chamber_config {
     /// Half z of cylinder chamber
     scalar m_half_z{1000.f * unit<scalar>::mm};
 
-    /// Field vector for an homogenoues b-field
-    vector3 m_bfield_vec{0.f, 0.f, 2.f * unit<scalar>::T};
-
-    /// Input file name for the covfie b-field
-    std::string m_bfield_file{!std::getenv("DETRAY_BFIELD_FILE")
-                                  ? ""
-                                  : std::getenv("DETRAY_BFIELD_FILE")};
-
     constexpr wire_chamber_config &n_layers(const unsigned int n) {
         m_n_layers = n;
         return *this;
@@ -61,36 +50,16 @@ struct wire_chamber_config {
         return *this;
     }
 
-    wire_chamber_config &bfield_vec(const vector3 &field_vec) {
-        m_bfield_vec = field_vec;
-        return *this;
-    }
-
-    wire_chamber_config &bfield_vec(const scalar x, const scalar y,
-                                    const scalar z) {
-        m_bfield_vec = {x, y, z};
-        return *this;
-    }
-
-    wire_chamber_config &bfield_file(const std::string &file_name) {
-        m_bfield_file = file_name;
-        return *this;
-    }
-
     constexpr unsigned int n_layers() const { return m_n_layers; }
     constexpr scalar half_z() const { return m_half_z; }
-    constexpr const vector3 &bfield_vec() const { return m_bfield_vec; }
-    const std::string &bfield_file() const { return m_bfield_file; }
 
 };  // wire chamber config
 
-template <typename bfield_bknd_t = bfield::const_bknd_t>
-auto create_wire_chamber(vecmem::memory_resource &resource,
-                         const wire_chamber_config &cfg) {
+inline auto create_wire_chamber(vecmem::memory_resource &resource,
+                                const wire_chamber_config &cfg) {
 
     // Detector type
-    using detector_t = detector<default_metadata, covfie::field<bfield_bknd_t>,
-                                host_container_types>;
+    using detector_t = detector<default_metadata, host_container_types>;
 
     using nav_link_t = typename detector_t::surface_type::navigation_link;
     using mask_id = typename detector_t::surface_type::mask_id;
@@ -111,22 +80,6 @@ auto create_wire_chamber(vecmem::memory_resource &resource,
 
     // Create detector
     detector_t det(resource);
-
-    // B field
-    // Constant b-field: 2T in z-direction as default
-    if constexpr (std::is_same_v<bfield_bknd_t, bfield::const_bknd_t>) {
-        const vector3 &B = cfg.bfield_vec();
-        auto bfield = covfie::field<bfield_bknd_t>(covfie::make_parameter_pack(
-            bfield::const_bknd_t::configuration_t{B[0], B[1], B[2]}));
-        det.set_bfield(std::move(bfield));
-    }
-    // Read b-field map from file
-    else {
-        detray::io::detail::file_handle file(cfg.bfield_file(),
-                                             std::ios::binary | std::ios::in);
-
-        det.set_bfield(covfie::field<bfield_bknd_t>(*file));
-    }
 
     // Detector and volume names
     typename detector_t::name_map name_map = {{0u, "wire_chamber"}};
@@ -177,7 +130,7 @@ auto create_wire_chamber(vecmem::memory_resource &resource,
         auto mask_volume_link{static_cast<nav_link_t>(volume_idx)};
 
         // Containers per volume
-        typename detector_t::surface_container_t surfaces(&resource);
+        typename detector_t::surface_container surfaces(&resource);
         typename detector_t::mask_container masks(resource);
         typename detector_t::material_container materials(resource);
         typename detector_t::transform_container transforms(resource);
@@ -185,7 +138,6 @@ auto create_wire_chamber(vecmem::memory_resource &resource,
         // Wire center positions
         detray::dvector<point3> m_centers{};
 
-        unsigned int n_wires_per_layer{0u};
         scalar theta{0.f};
         while (theta <= 2.f * constant<scalar>::pi) {
 
@@ -194,8 +146,6 @@ auto create_wire_chamber(vecmem::memory_resource &resource,
             const scalar z = 0.f;
 
             m_centers.push_back({x, y, z});
-
-            n_wires_per_layer++;
             theta += delta;
         }
 
@@ -259,10 +209,11 @@ auto create_wire_chamber(vecmem::memory_resource &resource,
         // Get relevant ids
         using geo_obj_ids = typename detector_t::geo_obj_ids;
         constexpr auto cyl_id = detector_t::masks::id::e_portal_cylinder2;
-        constexpr auto grid_id = detector_t::sf_finders::id::e_cylinder2_grid;
+        constexpr auto grid_id = detector_t::accel::id::e_cylinder2_grid;
 
         using cyl_grid_t =
-            typename detector_t::surface_container::template get_type<grid_id>;
+            typename detector_t::accelerator_container::template get_type<
+                grid_id>;
         auto gbuilder =
             grid_builder<detector_t, cyl_grid_t, detray::detail::fill_by_pos>{
                 nullptr};
@@ -288,9 +239,9 @@ auto create_wire_chamber(vecmem::memory_resource &resource,
         gbuilder.fill_grid(detector_volume{det, vol}, det.surface_lookup(),
                            det.transform_store(), det.mask_store(), ctx0);
 
-        det.surface_store().template push_back<grid_id>(gbuilder.get());
+        det.accelerator_store().template push_back<grid_id>(gbuilder.get());
         vol.template set_link<geo_obj_ids::e_sensitive>(
-            grid_id, det.surface_store().template size<grid_id>() - 1u);
+            grid_id, det.accelerator_store().template size<grid_id>() - 1u);
 
         // Add volume grid
         // TODO: Fill it

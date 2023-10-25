@@ -175,8 +175,7 @@ bool detray::rk_stepper<magnetic_field_t, transform3_t, constraint_t, policy_t,
     // First Runge-Kutta point
     const vector3 pos = stepping().pos();
     const vector3 dir = stepping().dir();
-    const typename magnetic_field_t::output_t bvec =
-        magnetic_field.at(pos[0], pos[1], pos[2]);
+    const auto bvec = magnetic_field.at(pos[0], pos[1], pos[2]);
     sd.b_first[0] = bvec[0];
     sd.b_first[1] = bvec[1];
     sd.b_first[2] = bvec[2];
@@ -190,8 +189,7 @@ bool detray::rk_stepper<magnetic_field_t, transform3_t, constraint_t, policy_t,
 
         // Second Runge-Kutta point
         const vector3 pos1 = pos + half_h * dir + h2 * 0.125f * sd.k1;
-        const typename magnetic_field_t::output_t bvec1 =
-            magnetic_field.at(pos1[0], pos1[1], pos1[2]);
+        const auto bvec1 = magnetic_field.at(pos1[0], pos1[1], pos1[2]);
         sd.b_middle[0] = bvec1[0];
         sd.b_middle[1] = bvec1[1];
         sd.b_middle[2] = bvec1[2];
@@ -202,8 +200,7 @@ bool detray::rk_stepper<magnetic_field_t, transform3_t, constraint_t, policy_t,
 
         // Last Runge-Kutta point
         const vector3 pos2 = pos + h * dir + h2 * 0.5f * sd.k3;
-        const typename magnetic_field_t::output_t bvec2 =
-            magnetic_field.at(pos2[0], pos2[1], pos2[2]);
+        const auto bvec2 = magnetic_field.at(pos2[0], pos2[1], pos2[2]);
         sd.b_last[0] = bvec2[0];
         sd.b_last[1] = bvec2[1];
         sd.b_last[2] = bvec2[2];

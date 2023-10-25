@@ -43,10 +43,12 @@ class surface_data {
         const surface_id type, const typename detector_t::transform3 &trf,
         navigation_link volume_link,
         const std::vector<typename detector_t::scalar_type> &mask_boundaries,
-        const dindex idx = dindex_invalid)
+        const dindex idx = dindex_invalid,
+        const std::uint64_t source = detail::invalid_value<std::uint64_t>())
         : m_type{type},
           m_volume_link{volume_link},
           m_index{idx},
+          m_source{source},
           m_boundaries{mask_boundaries},
           m_transform{trf} {}
 
@@ -54,9 +56,10 @@ class surface_data {
     DETRAY_HOST
     auto get_data()
         -> std::tuple<surface_id &, navigation_link &, dindex &,
+                      std::uint64_t &,
                       std::vector<typename detector_t::scalar_type> &,
                       typename detector_t::transform3 &> {
-        return std::tie(m_type, m_volume_link, m_index, m_boundaries,
+        return std::tie(m_type, m_volume_link, m_index, m_source, m_boundaries,
                         m_transform);
     }
 
@@ -68,8 +71,9 @@ class surface_data {
     /// The position of the surface in the detector containers, used to match
     /// the surface to e.g. its material
     dindex m_index;
-    // Simple tuple of all mask types in the detector. Only one entry is filled
-    // with the mask that corresponds to this specific surface.
+    /// Source link (ACTS geoID)
+    std::uint64_t m_source;
+    /// Vector of mask boundary values
     std::vector<typename detector_t::scalar_type> m_boundaries;
     /// The surface placement
     typename detector_t::transform3 m_transform;
@@ -109,7 +113,7 @@ class surface_factory_interface {
     DETRAY_HOST
     virtual auto operator()(
         typename detector_t::volume_type &volume,
-        typename detector_t::surface_container_t &surfaces,
+        typename detector_t::surface_container &surfaces,
         typename detector_t::transform_container &transforms,
         typename detector_t::mask_container &masks,
         typename detector_t::geometry_context ctx = {}) const
@@ -178,7 +182,7 @@ class factory_decorator : public surface_factory_interface<detector_t> {
 
     DETRAY_HOST
     auto operator()(typename detector_t::volume_type &volume,
-                    typename detector_t::surface_container_t &surfaces,
+                    typename detector_t::surface_container &surfaces,
                     typename detector_t::transform_container &transforms,
                     typename detector_t::mask_container &masks,
                     typename detector_t::geometry_context ctx = {}) const

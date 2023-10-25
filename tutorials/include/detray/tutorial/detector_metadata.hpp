@@ -32,8 +32,7 @@
 /// navigation.
 /// In this example detector design, volumes do not contain other volumes, so
 /// the volume lookup is done using a uniform grid.
-/// Furthermore, the detector will contain homogeneous material on its surfaces
-/// and a constant B-field.
+/// Furthermore, the detector will contain homogeneous material on its surfaces.
 namespace detray {
 
 namespace tutorial {
@@ -69,7 +68,7 @@ struct my_metadata {
     /// How to index the constituent objects in a volume
     /// If they share the same index value here, they will be added into the
     /// same acceleration data structure in every respective volume
-    enum geo_objects : std::size_t {
+    enum geo_objects : std::uint8_t {
         e_surface = 0u,  //< This detector keeps all surfaces in the same
                          //  acceleration data structure (id 0)
         e_size = 1u
@@ -89,7 +88,7 @@ struct my_metadata {
     /// good idea to have the most common types in the first tuple entries, in
     /// order to minimize the depth of the 'unrolling' before a mask is found
     /// in the tuple
-    enum class mask_ids {
+    enum class mask_ids : std::uint8_t {
         e_square2 = 0,
         e_trapezoid2 = 1,
         e_portal_rectangle2 = 2
@@ -105,7 +104,7 @@ struct my_metadata {
                             trapezoid, rectangle>;
 
     /// Similar to the mask store, there is a material store, which
-    enum class material_ids {
+    enum class material_ids : std::uint8_t {
         e_slab = 0,
         e_none = 1,
     };
@@ -123,14 +122,14 @@ struct my_metadata {
     using transform_link = typename transform_store<>::link_type;
     using mask_link = typename mask_store<>::single_link;
     using material_link = typename material_store<>::single_link;
-    using source_link = dindex;
+    using source_link = std::uint64_t;
     using surface_type =
         surface_descriptor<mask_link, material_link, transform_link, nav_link,
                            source_link>;
 
     /// The acceleration data structures live in another tuple that needs to
     /// indexed correctly
-    enum class sf_finder_ids {
+    enum class accel_ids : std::uint8_t {
         e_brute_force = 0,  //< test all surfaces in a volume (brute force)
         e_default = e_brute_force,
     };
@@ -141,8 +140,8 @@ struct my_metadata {
     /// ( @c empty_context )
     template <template <typename...> class tuple_t = dtuple,
               typename container_t = host_container_types>
-    using surface_finder_store =
-        multi_store<sf_finder_ids, empty_context, tuple_t,
+    using accelerator_store =
+        multi_store<accel_ids, empty_context, tuple_t,
                     brute_force_collection<surface_type, container_t>>;
 
     /// Data structure that allows to find the current detector volume from a

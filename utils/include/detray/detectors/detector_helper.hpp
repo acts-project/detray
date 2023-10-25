@@ -169,13 +169,13 @@ struct detector_helper {
         const scalar_t upper_z{std::max(lay_neg_z, lay_pos_z)};
 
         // Add module surfaces to volume
-        typename detector_t::surface_container_t surfaces(&resource);
+        typename detector_t::surface_container surfaces(&resource);
         typename detector_t::mask_container masks(resource);
         typename detector_t::material_container materials(resource);
         typename detector_t::transform_container transforms(resource);
 
         auto &cyl_volume = det.new_volume(
-            volume_id::e_cylinder, {detector_t::sf_finders::id::e_default, 0u});
+            volume_id::e_cylinder, {detector_t::accel::id::e_default, 0u});
 
         // volume placement
         cyl_volume.set_transform(det.transform_store().size());

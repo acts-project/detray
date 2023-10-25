@@ -16,9 +16,8 @@ inline constexpr detray::scalar path_limit{2.f *
 
 /// Kernel that runs the entire propagation loop
 __global__ void propagation_kernel(
-    typename detray::tutorial::detector_host_t::detector_view_type<
-        bfield::const_bknd_t>
-        det_data,
+    typename detray::tutorial::detector_host_t::view_type det_data,
+    typename detray::tutorial::device_field_t::view_t field_data,
     const vecmem::data::vector_view<
         detray::free_track_parameters<detray::tutorial::transform3>>
         tracks_data,
@@ -41,8 +40,6 @@ __global__ void propagation_kernel(
     // Setup of the avigator cache
     vecmem::jagged_device_vector<detray::tutorial::intersection_t> candidates(
         candidates_data);
-    // Setup of the device b-field
-    detray::tutorial::detector_device_t::bfield_type B_field = det.get_bfield();
 
     // Create propagator from a stepper and a navigator
     detray::tutorial::propagator_t p(detray::tutorial::stepper_t{},
@@ -61,7 +58,7 @@ __global__ void propagation_kernel(
                                     interactor_state, resetter_state);
 
     // Create the propagator state for the track
-    detray::tutorial::propagator_t::state state(tracks[gid], B_field, det,
+    detray::tutorial::propagator_t::state state(tracks[gid], field_data, det,
                                                 candidates.at(gid));
 
     // Run propagation
@@ -69,9 +66,8 @@ __global__ void propagation_kernel(
 }
 
 void propagation(
-    typename detray::tutorial::detector_host_t::detector_view_type<
-        bfield::const_bknd_t>
-        det_data,
+    typename detray::tutorial::detector_host_t::view_type det_data,
+    typename detray::tutorial::device_field_t::view_t field_data,
     const vecmem::data::vector_view<
         detray::free_track_parameters<detray::tutorial::transform3>>
         tracks_data,
@@ -82,8 +78,8 @@ void propagation(
     int block_dim = tracks_data.size() / thread_dim + 1;
 
     // run the tutorial kernel
-    propagation_kernel<<<block_dim, thread_dim>>>(det_data, tracks_data,
-                                                  candidates_data);
+    propagation_kernel<<<block_dim, thread_dim>>>(det_data, field_data,
+                                                  tracks_data, candidates_data);
 
     // cuda error check
     DETRAY_CUDA_ERROR_CHECK(cudaGetLastError());

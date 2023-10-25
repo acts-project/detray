@@ -8,8 +8,10 @@
 #pragma once
 
 // Project include(s)
+#include "detray/geometry/surface.hpp"
 #include "detray/geometry/volume_graph.hpp"
 #include "detray/intersection/detail/trajectories.hpp"
+#include "detray/io/common/detail/file_handle.hpp"
 #include "detray/simulation/event_generator/track_generators.hpp"
 #include "detray/test/types.hpp"
 #include "tests/common/test_base/fixture_base.hpp"
@@ -112,6 +114,7 @@ class ray_scan : public test::fixture_base<> {
         using nav_link_t = typename detector_t::surface_type::navigation_link;
 
         constexpr auto leaving_world{detail::invalid_value<nav_link_t>()};
+        typename detector_t::geometry_context gctx{};
 
         // Get the volume adjaceny matrix from ray scan
         volume_graph graph(m_det);
@@ -128,15 +131,40 @@ class ray_scan : public test::fixture_base<> {
         auto ray_generator =
             uniform_track_generator<ray_t>(m_cfg.track_generator());
 
+        // Csv output file
+        detray::io::detail::file_handle outfile{
+            m_cfg.name(), ".csv",
+            std::ios::out | std::ios::binary | std::ios::trunc};
+
+        if (m_cfg.write_intersections()) {
+            *outfile << "index,type,x,y,z," << std::endl;
+        }
+
         std::cout << "INFO: Running ray scan on: " << m_names.at(0) << "\n("
                   << ray_generator.size() << " rays) ...\n"
                   << std::endl;
 
-        for (const auto ray : ray_generator) {
+        for (const auto &ray : ray_generator) {
 
             // Record all intersections and surfaces along the ray
             const auto intersection_record =
                 particle_gun::shoot_particle(m_det, ray);
+
+            // Csv output
+            if (m_cfg.write_intersections()) {
+                for (const auto &single_ir : intersection_record) {
+                    const auto &intersection = single_ir.second;
+                    const auto sf =
+                        detray::surface{m_det, intersection.sf_desc};
+                    auto glob_pos =
+                        sf.local_to_global(gctx, intersection.local, ray.dir());
+                    *outfile
+                        << n_tracks << ","
+                        << static_cast<int>(intersection.sf_desc.barcode().id())
+                        << "," << glob_pos[0] << "," << glob_pos[1] << ","
+                        << glob_pos[2] << "," << std::endl;
+                }
+            }
 
             // Create a trace of the volume indices that were encountered
             // and check that portal intersections are connected

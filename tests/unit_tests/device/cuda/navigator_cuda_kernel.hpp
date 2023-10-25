@@ -9,9 +9,8 @@
 
 // Project include(s)
 #include "detray/definitions/algebra.hpp"
-#include "detray/definitions/bfield_backends.hpp"
 #include "detray/definitions/units.hpp"
-#include "detray/detectors/create_toy_geometry.hpp"
+#include "detray/detectors/toy_metadata.hpp"
 #include "detray/propagator/line_stepper.hpp"
 #include "detray/propagator/navigator.hpp"
 #include "detray/simulation/event_generator/track_generators.hpp"
@@ -19,14 +18,11 @@
 using namespace detray;
 
 using transform3 = __plugin::transform3<scalar>;
+using point3 = __plugin::point3<scalar>;
 
 // some useful type declarations
-using detector_host_t =
-    detector<toy_metadata, covfie::field<bfield::const_bknd_t>,
-             host_container_types>;
-using detector_device_t =
-    detector<toy_metadata, covfie::field_view<bfield::const_bknd_t>,
-             device_container_types>;
+using detector_host_t = detector<toy_metadata, host_container_types>;
+using detector_device_t = detector<toy_metadata, device_container_types>;
 
 using intersection_t =
     intersection2D<typename detector_device_t::surface_type, transform3>;
@@ -60,7 +56,7 @@ namespace detray {
 
 /// test function for navigator with single state
 void navigator_test(
-    typename detector_host_t::detector_view_type<bfield::const_bknd_t> det_data,
+    typename detector_host_t::view_type det_data,
     vecmem::data::vector_view<free_track_parameters<transform3>>& tracks_data,
     vecmem::data::jagged_vector_view<intersection_t>& candidates_data,
     vecmem::data::jagged_vector_view<dindex>& volume_records_data,

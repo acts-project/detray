@@ -87,7 +87,7 @@ TEST(io, json_telescope_detector_reader) {
     tel_det_config<rectangle2D<>> tel_cfg{rec2};
     tel_cfg.positions(positions);
 
-    // Wire chamber
+    // Telescope detector
     vecmem::host_memory_resource host_mr;
     auto [telescope_det, telescope_names] =
         create_telescope_detector(host_mr, tel_cfg);
@@ -185,8 +185,7 @@ TEST(io, json_toy_geometry) {
 /// Test the reading and writing of a toy detector geometry
 TEST(io, json_toy_detector_reader) {
 
-    using detector_t =
-        detector<toy_metadata, covfie::field<bfield::inhom_bknd_t>>;
+    using detector_t = detector<toy_metadata>;
 
     // Toy detector
     vecmem::host_memory_resource host_mr;
@@ -203,8 +202,7 @@ TEST(io, json_toy_detector_reader) {
     reader_cfg.do_check(true)
         .add_file("toy_detector_geometry.json")
         .add_file("toy_detector_homogeneous_material.json")
-        .add_file("toy_detector_surface_grids.json")
-        .add_file(toy_cfg.bfield_file());
+        .add_file("toy_detector_surface_grids.json");
 
     const auto [det, names] =
         io::read_detector<detector_t, 1u>(host_mr, reader_cfg);

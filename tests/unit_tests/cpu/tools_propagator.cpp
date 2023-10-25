@@ -6,8 +6,8 @@
  */
 
 // Project include(s)
-#include "detray/definitions/bfield_backends.hpp"
 #include "detray/definitions/units.hpp"
+#include "detray/detectors/bfield.hpp"
 #include "detray/detectors/create_toy_geometry.hpp"
 #include "detray/geometry/surface.hpp"
 #include "detray/intersection/detail/trajectories.hpp"
@@ -170,10 +170,10 @@ class PropagatorWithRkStepper
 TEST_P(PropagatorWithRkStepper, rk4_propagator_const_bfield) {
 
     // Constant magnetic field type
-    using bfield_t = covfie::field<bfield::const_bknd_t>;
+    using bfield_t = bfield::const_field_t;
 
     // Toy detector
-    using detector_t = detector<toy_metadata, bfield_t>;
+    using detector_t = detector<toy_metadata>;
 
     // Runge-Kutta propagation
     using navigator_t = navigator<detector_t /*, navigation::print_inspector*/>;
@@ -191,8 +191,9 @@ TEST_P(PropagatorWithRkStepper, rk4_propagator_const_bfield) {
     using propagator_t = propagator<stepper_t, navigator_t, actor_chain_t>;
 
     // Build detector and magnetic field
-    toy_cfg.bfield_vec(std::get<2>(GetParam()));
     const auto [det, names] = create_toy_geometry(host_mr, toy_cfg);
+
+    const bfield_t bfield = bfield::create_const_field(std::get<2>(GetParam()));
 
     // Propagator is built from the stepper and navigator
     propagator_t p(stepper_t{}, navigator_t{});
@@ -228,8 +229,8 @@ TEST_P(PropagatorWithRkStepper, rk4_propagator_const_bfield) {
             transporter_state, interactor_state, resetter_state);
 
         // Init propagator states
-        propagator_t::state state(track, det.get_bfield(), det);
-        propagator_t::state lim_state(lim_track, det.get_bfield(), det);
+        propagator_t::state state(track, bfield, det);
+        propagator_t::state lim_state(lim_track, bfield, det);
 
         // Set step constraints
         state._stepping.template set_constraint<step::constraint::e_accuracy>(
@@ -270,10 +271,10 @@ TEST_P(PropagatorWithRkStepper, rk4_propagator_const_bfield) {
 TEST_P(PropagatorWithRkStepper, rk4_propagator_inhom_bfield) {
 
     // Magnetic field map using nearest neightbor interpolation
-    using bfield_t = covfie::field<bfield::inhom_bknd_t>;
+    using bfield_t = bfield::inhom_field_t;
 
     // Toy detector
-    using detector_t = detector<toy_metadata, bfield_t>;
+    using detector_t = detector<toy_metadata>;
 
     // Runge-Kutta propagation
     using navigator_t = navigator<detector_t /*, navigation::print_inspector*/>;
@@ -291,8 +292,9 @@ TEST_P(PropagatorWithRkStepper, rk4_propagator_inhom_bfield) {
     using propagator_t = propagator<stepper_t, navigator_t, actor_chain_t>;
 
     // Build detector and magnetic field
-    const auto [det, names] =
-        create_toy_geometry<bfield::inhom_bknd_t>(host_mr, toy_cfg);
+    const auto [det, names] = create_toy_geometry(host_mr, toy_cfg);
+    const bfield_t bfield = bfield::create_inhom_field();
+
     // Propagator is built from the stepper and navigator
     propagator_t p(stepper_t{}, navigator_t{});
 
@@ -323,8 +325,8 @@ TEST_P(PropagatorWithRkStepper, rk4_propagator_inhom_bfield) {
                      transporter_state, interactor_state, resetter_state);
 
         // Init propagator states
-        propagator_t::state state(track, det.get_bfield(), det);
-        propagator_t::state lim_state(lim_track, det.get_bfield(), det);
+        propagator_t::state state(track, bfield, det);
+        propagator_t::state lim_state(lim_track, bfield, det);
 
         // Set step constraints
         state._stepping.template set_constraint<step::constraint::e_accuracy>(

@@ -46,9 +46,8 @@ class homogeneous_material_reader : public reader_interface<detector_t> {
     /// Deserialize the detector material @param det_mat_data from its IO
     /// payload
     static void deserialize(
-        detector_builder<typename detector_t::metadata,
-                         typename detector_t::bfield_type::backend_t,
-                         volume_builder>& det_builder,
+        detector_builder<typename detector_t::metadata, volume_builder>&
+            det_builder,
         typename detector_t::name_map& /*name_map*/,
         const detector_homogeneous_material_payload& det_mat_data) {
         using mat_types = typename detector_t::material_container::value_types;

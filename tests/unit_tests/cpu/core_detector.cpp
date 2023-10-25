@@ -46,7 +46,7 @@ void prefill_detector(detector_t& d,
     detray::empty_context empty_ctx{};
     vecmem::memory_resource* host_mr = d.resource();
     typename detector_t::transform_container trfs(*host_mr);
-    typename detector_t::surface_container_t surfaces{};
+    typename detector_t::surface_container surfaces{};
     typename detector_t::mask_container masks(*host_mr);
     typename detector_t::material_container materials(*host_mr);
 
@@ -138,7 +138,7 @@ GTEST_TEST(detray_core, detector) {
     using detector_t = detector<>;
     using mask_id = typename detector_t::masks::id;
     using material_id = typename detector_t::materials::id;
-    using finder_id = typename detector_t::sf_finders::id;
+    using finder_id = typename detector_t::accel::id;
 
     vecmem::host_memory_resource host_mr;
     detector_t d(host_mr);
@@ -159,14 +159,16 @@ GTEST_TEST(detray_core, detector) {
     EXPECT_TRUE(d.mask_store().template empty<mask_id::e_cell_wire>());
     EXPECT_TRUE(d.material_store().template empty<material_id::e_slab>());
     EXPECT_TRUE(d.material_store().template empty<material_id::e_rod>());
-    EXPECT_TRUE(d.surface_store().template empty<finder_id::e_brute_force>());
-    EXPECT_TRUE(d.surface_store().template empty<finder_id::e_disc_grid>());
     EXPECT_TRUE(
-        d.surface_store().template empty<finder_id::e_cylinder2_grid>());
-    EXPECT_TRUE(d.surface_store().template empty<finder_id::e_irr_disc_grid>());
+        d.accelerator_store().template empty<finder_id::e_brute_force>());
+    EXPECT_TRUE(d.accelerator_store().template empty<finder_id::e_disc_grid>());
     EXPECT_TRUE(
-        d.surface_store().template empty<finder_id::e_irr_cylinder2_grid>());
-    EXPECT_TRUE(d.surface_store().template empty<finder_id::e_default>());
+        d.accelerator_store().template empty<finder_id::e_cylinder2_grid>());
+    EXPECT_TRUE(
+        d.accelerator_store().template empty<finder_id::e_irr_disc_grid>());
+    EXPECT_TRUE(d.accelerator_store()
+                    .template empty<finder_id::e_irr_cylinder2_grid>());
+    EXPECT_TRUE(d.accelerator_store().template empty<finder_id::e_default>());
 
     // Add some geometrical data
     prefill_detector(d, geo_ctx);
@@ -187,15 +189,18 @@ GTEST_TEST(detray_core, detector) {
     EXPECT_EQ(d.mask_store().template size<mask_id::e_cell_wire>(), 0u);
     EXPECT_EQ(d.material_store().template size<material_id::e_slab>(), 2u);
     EXPECT_EQ(d.material_store().template size<material_id::e_rod>(), 1u);
-    EXPECT_EQ(d.surface_store().template size<finder_id::e_brute_force>(), 1u);
-    EXPECT_EQ(d.surface_store().template size<finder_id::e_disc_grid>(), 0u);
-    EXPECT_EQ(d.surface_store().template size<finder_id::e_cylinder2_grid>(),
-              0u);
-    EXPECT_EQ(d.surface_store().template size<finder_id::e_irr_disc_grid>(),
+    EXPECT_EQ(d.accelerator_store().template size<finder_id::e_brute_force>(),
+              1u);
+    EXPECT_EQ(d.accelerator_store().template size<finder_id::e_disc_grid>(),
               0u);
     EXPECT_EQ(
-        d.surface_store().template size<finder_id::e_irr_cylinder2_grid>(), 0u);
-    EXPECT_EQ(d.surface_store().template size<finder_id::e_default>(), 1u);
+        d.accelerator_store().template size<finder_id::e_cylinder2_grid>(), 0u);
+    EXPECT_EQ(d.accelerator_store().template size<finder_id::e_irr_disc_grid>(),
+              0u);
+    EXPECT_EQ(
+        d.accelerator_store().template size<finder_id::e_irr_cylinder2_grid>(),
+        0u);
+    EXPECT_EQ(d.accelerator_store().template size<finder_id::e_default>(), 1u);
 }
 
 /// This tests the functionality of a surface factory
@@ -398,7 +403,7 @@ GTEST_TEST(detray_tools, detector_volume_construction) {
     using transform3 = typename detector_t::transform3;
     using geo_obj_id = typename detector_t::geo_obj_ids;
     using mask_id = typename detector_t::masks::id;
-    using sf_finder_id = typename detector_t::sf_finders::id;
+    using accel_id = typename detector_t::accel::id;
 
     // Surface factories
     using portal_cylinder_factory =
@@ -557,7 +562,7 @@ GTEST_TEST(detray_tools, detector_volume_construction) {
     EXPECT_TRUE(d.transform_store()[first_trf] == trf);
 
     // Check the acceleration data structure link
-    dtyped_index<sf_finder_id, dindex> acc_link{sf_finder_id::e_default, 1u};
+    dtyped_index<accel_id, dindex> acc_link{accel_id::e_default, 1u};
     ASSERT_TRUE(vol.full_link().size() == geo_obj_id::e_size);
     EXPECT_EQ(vol.link<geo_obj_id::e_portal>(), acc_link);
     EXPECT_EQ(vol.link<geo_obj_id::e_passive>(), acc_link);

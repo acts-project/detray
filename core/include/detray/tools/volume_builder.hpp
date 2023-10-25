@@ -47,7 +47,7 @@ class volume_builder : public volume_builder_interface<detector_t> {
         // force method that will at least contain the portals
         m_volume
             .template set_link<static_cast<typename volume_type::object_id>(0)>(
-                detector_t::sf_finders::id::e_default, 0);
+                detector_t::accel::id::e_default, 0);
     };
 
     /// Adds the @param name of the volume to a @param name_map
@@ -129,7 +129,7 @@ class volume_builder : public volume_builder_interface<detector_t> {
 
     protected:
     /// @returns Access to the surface descriptor data
-    typename detector_t::surface_container_t& surfaces() override {
+    typename detector_t::surface_container& surfaces() override {
         return m_surfaces;
     }
 
@@ -176,10 +176,10 @@ class volume_builder : public volume_builder_interface<detector_t> {
         // surfaces are filled into the default brute_force accelerator.
         // For the other accelerators (grid etc.) there need to be dedicated
         // builders
-        constexpr auto default_acc_id{detector_t::sf_finders::id::e_default};
+        constexpr auto default_acc_id{detector_t::accel::id::e_default};
         m_volume.template set_link<surface_id>(
             default_acc_id,
-            det.surface_store().template size<default_acc_id>() - 1u);
+            det.accelerator_store().template size<default_acc_id>() - 1u);
 
         // Append masks
         det.append_masks(std::move(m_masks));
@@ -195,7 +195,7 @@ class volume_builder : public volume_builder_interface<detector_t> {
 
     /// Data of conatined surfaces
     /// @{
-    typename detector_t::surface_container_t m_surfaces{};
+    typename detector_t::surface_container m_surfaces{};
     typename detector_t::transform_container m_transforms{};
     typename detector_t::mask_container m_masks{};
     /// @}

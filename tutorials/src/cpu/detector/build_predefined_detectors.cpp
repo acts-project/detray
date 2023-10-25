@@ -6,7 +6,6 @@
  */
 
 // Project include(s)
-#include "detray/definitions/bfield_backends.hpp"
 #include "detray/definitions/units.hpp"
 #include "detray/detectors/create_telescope_detector.hpp"
 #include "detray/detectors/create_toy_geometry.hpp"
@@ -106,7 +105,7 @@ int main(int argc, char** argv) {
     //
     // Case 1: Defaults: Straight telescope in z-direction,
     //         10 rectangle surfaces, 500mm in length, modules evenly spaced,
-    //         no B-field, silicon material (80mm)
+    //         silicon material (80mm)
     const auto [tel_det1, tel_names1] =
         detray::create_telescope_detector<detray::rectangle2D<>>(host_mr);
 
@@ -116,8 +115,7 @@ int main(int argc, char** argv) {
 
     //
     // Case 2: Straight telescope in z-direction, 15 trapezoid surfaces, 2000mm
-    //         in length, modules evenly spaced, no B-field,
-    //         silicon material (80mm)
+    //         in length, modules evenly spaced, silicon material (80mm)
     detray::tel_det_config trp_cfg{trapezoid};
     trp_cfg.n_surfaces(15).length(2000.f * detray::unit<detray::scalar>::mm);
 
@@ -130,7 +128,7 @@ int main(int argc, char** argv) {
 
     //
     // Case 3: Straight telescope in x-direction, 11 rectangle surfaces, 2000mm
-    //         in length, modules places according to 'positions', no B-field,
+    //         in length, modules places according to 'positions',
     //         silicon material (80mm)
 
     // Pilot trajectory in x-direction
@@ -150,7 +148,7 @@ int main(int argc, char** argv) {
     //
     // Case 4: Bent telescope along helical track, 11 trapezoid surfaces,
     //         modules spaced according to given positions,
-    //         constant B-field, silicon material (80mm)
+    //         silicon material (80mm)
 
     // Pilot track in x-direction
     detray::free_track_parameters<detray::tutorial::transform3> y_track{
@@ -163,7 +161,7 @@ int main(int argc, char** argv) {
     helix_t helix(y_track, &B_z);
 
     detray::tel_det_config htrp_cfg{trapezoid, helix};
-    htrp_cfg.positions(positions).bfield_vec(B_z);
+    htrp_cfg.positions(positions);
 
     const auto [tel_det4, tel_names4] =
         detray::create_telescope_detector(host_mr, htrp_cfg);

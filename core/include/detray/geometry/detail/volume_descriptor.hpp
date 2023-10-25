@@ -77,19 +77,19 @@ class volume_descriptor {
 
     /// @returns link to all acceleration data structures - const access
     DETRAY_HOST_DEVICE constexpr auto full_link() const -> const link_type & {
-        return m_sf_finder_links;
+        return m_accel_links;
     }
 
     /// @returns acc data structure link for a specific type of object - const
     template <ID obj_id>
     DETRAY_HOST_DEVICE constexpr auto link() const -> const link_t & {
-        return detail::get<obj_id>(m_sf_finder_links);
+        return detail::get<obj_id>(m_accel_links);
     }
 
     /// Set surface finder link from @param link
     template <ID obj_id>
     DETRAY_HOST constexpr auto set_link(const link_t link) -> void {
-        detail::get<obj_id>(m_sf_finder_links) = link;
+        detail::get<obj_id>(m_accel_links) = link;
     }
 
     /// Set surface finder link from @param id and @param index of the
@@ -99,7 +99,7 @@ class volume_descriptor {
     DETRAY_HOST constexpr auto set_link(const typename link_t::id_type id,
                                         const typename link_t::index_type index)
         -> void {
-        detail::get<obj_id>(m_sf_finder_links) = link_t{id, index};
+        detail::get<obj_id>(m_accel_links) = link_t{id, index};
     }
 
     /// Equality operator
@@ -108,7 +108,7 @@ class volume_descriptor {
     DETRAY_HOST_DEVICE
     constexpr auto operator==(const volume_descriptor &rhs) const -> bool {
         return (m_id == rhs.m_id && m_index == rhs.m_index &&
-                m_sf_finder_links == rhs.m_sf_finder_links);
+                m_accel_links == rhs.m_accel_links);
     }
 
     private:
@@ -122,7 +122,7 @@ class volume_descriptor {
     dindex m_transform{dindex_invalid};
 
     /// Links for every object type to an acceleration data structure
-    link_type m_sf_finder_links{};
+    link_type m_accel_links{};
 };
 
 }  // namespace detray

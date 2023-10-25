@@ -19,10 +19,9 @@ struct surface_getter {
 
     /// Call operator that forwards the neighborhood search call in a volume
     /// to a surface finder data structure
-    template <typename sf_finder_group_t, typename sf_finder_index_t,
-              typename... Args>
-    DETRAY_HOST_DEVICE inline void operator()(const sf_finder_group_t &group,
-                                              const sf_finder_index_t index,
+    template <typename accel_group_t, typename accel_index_t, typename... Args>
+    DETRAY_HOST_DEVICE inline void operator()(const accel_group_t &group,
+                                              const accel_index_t index,
                                               Args &&... args) const {
 
         // Run over the surfaces in a single acceleration data structure
@@ -38,10 +37,10 @@ struct neighborhood_getter {
 
     /// Call operator that forwards the neighborhood search call in a volume
     /// to a surface finder data structure
-    template <typename sf_finder_group_t, typename sf_finder_index_t,
+    template <typename accel_group_t, typename accel_index_t,
               typename detector_t, typename track_t, typename... Args>
     DETRAY_HOST_DEVICE inline void operator()(
-        const sf_finder_group_t &group, const sf_finder_index_t index,
+        const accel_group_t &group, const accel_index_t index,
         const detector_t &det, const typename detector_t::volume_type &volume,
         const track_t &track, Args &&... args) const {
 

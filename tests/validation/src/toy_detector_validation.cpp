@@ -33,8 +33,6 @@ int main(int argc, char **argv) {
     //
     toy_det_config toy_cfg{};
     toy_cfg.n_brl_layers(4u).n_edc_layers(7u);
-    toy_cfg.bfield_vec(
-        {0.f * unit<scalar>::T, 0.f * unit<scalar>::T, 2.f * unit<scalar>::T});
 
     using toy_detector_t = detector<toy_metadata>;
     using scalar_t = typename toy_detector_t::scalar_type;

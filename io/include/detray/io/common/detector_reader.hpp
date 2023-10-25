@@ -8,17 +8,11 @@
 #pragma once
 
 // Project include(s)
-#include "detray/io/common/bfield_reader.hpp"
 #include "detray/io/common/detail/detector_components_io.hpp"
 #include "detray/io/common/detail/type_traits.hpp"
 #include "detray/io/json/json_reader.hpp"
 #include "detray/tools/detector_builder.hpp"
 #include "detray/utils/consistency_checker.hpp"
-
-// Covfie include(s)
-#include <covfie/core/backend/primitive/constant.hpp>
-#include <covfie/core/field.hpp>
-#include <covfie/core/vector.hpp>
 
 // System include(s)
 #include <filesystem>
@@ -46,12 +40,6 @@ struct detector_reader_config {
     /// @{
     const std::vector<std::string>& files() const { return m_files; }
     bool do_check() const { return m_do_check; }
-    template <typename const_bfield_bknd_t>
-    auto bfield() const {
-        return covfie::field<const_bfield_bknd_t>(covfie::make_parameter_pack(
-            typename const_bfield_bknd_t::configuration_t{
-                m_bfield_vec[0], m_bfield_vec[1], m_bfield_vec[2]}));
-    }
     /// @}
 
     /// Setters
@@ -62,11 +50,6 @@ struct detector_reader_config {
     }
     detector_reader_config& do_check(const bool check) {
         m_do_check = check;
-        return *this;
-    }
-    detector_reader_config& bfield_vec(const scalar x, const scalar y,
-                                       const scalar z) {
-        m_bfield_vec = {x, y, z};
         return *this;
     }
     /// @}
@@ -125,15 +108,6 @@ auto assemble_reader(const io::detector_reader_config& cfg) noexcept(false) {
                                             header.tag +
                                             "' in input file: " + file_name);
             }
-
-            // This is the file type covfie uses
-        } else if (extension == ".cvf" and check_covfie_file(file_name)) {
-
-            if constexpr (not std::is_same_v<
-                              typename detector_t::bfield_type::backend_t,
-                              bfield::const_bknd_t>) {
-                readers.template add<covfie_reader>(file_name);
-            }
         } else {
             throw std::runtime_error("Unsupported file format '" + extension +
                                      "' for input file: " + file_name);
@@ -163,23 +137,15 @@ template <class detector_t, std::size_t CAP = 9u, std::size_t DIM = 2u,
 auto read_detector(vecmem::memory_resource& resc,
                    const detector_reader_config& cfg) noexcept(false) {
 
-    using bfield_bknd_t = typename detector_t::bfield_type::backend_t;
-
     // Map the volume names to their indices
     typename detector_t::name_map names{};
 
-    detector_builder<typename detector_t::metadata, bfield_bknd_t,
-                     volume_builder_t>
+    detector_builder<typename detector_t::metadata, volume_builder_t>
         det_builder;
 
     // Find all required readers
     auto [reader, det_name] =
         detray::detail::assemble_reader<detector_t, CAP, DIM>(cfg);
-
-    // Add a constant b-field (no bfield reader is added in this case)
-    if constexpr (std::is_same_v<bfield_bknd_t, bfield::const_bknd_t>) {
-        det_builder.set_bfield(cfg.template bfield<bfield_bknd_t>());
-    }
 
     // Read the data
     names.emplace(0u, std::move(det_name));

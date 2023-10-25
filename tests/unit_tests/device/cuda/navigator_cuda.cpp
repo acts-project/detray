@@ -5,13 +5,17 @@
  * Mozilla Public License Version 2.0
  */
 
-#include <gtest/gtest.h>
+// Project include(s)
+#include "detray/detectors/create_toy_geometry.hpp"
+#include "navigator_cuda_kernel.hpp"
 
+// vecmem include(s)
 #include <vecmem/memory/cuda/device_memory_resource.hpp>
 #include <vecmem/memory/cuda/managed_memory_resource.hpp>
+#include <vecmem/utils/cuda/copy.hpp>
 
-#include "navigator_cuda_kernel.hpp"
-#include "vecmem/utils/cuda/copy.hpp"
+// GTest include(s)
+#include <gtest/gtest.h>
 
 TEST(navigator_cuda, navigator) {
 
@@ -103,7 +107,7 @@ TEST(navigator_cuda, navigator) {
     copy.setup(position_records_buffer);
 
     // Get detector data
-    auto det_data = detray::get_data<bfield::const_bknd_t>(det);
+    auto det_data = detray::get_data(det);
 
     // Get tracks data
     auto tracks_data = vecmem::get_data(tracks_device);
