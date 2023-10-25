@@ -49,7 +49,7 @@ template <typename detray::n_axis::label axis_label, typename detector_t,
           typename link_t>
 auto bin_edges(const detector_t& detector, const link_t& link) {
     using d_scalar_t = typename detector_t::scalar_type;
-    return detector.surface_store()
+    return detector.accelerator_store()
         .template visit<edge_getter<d_scalar_t, axis_label>>(link);
 }
 
@@ -70,7 +70,7 @@ auto r_phi_split(const std::vector<d_scalar_t>& edges_rphi) {
 template <typename detector_t, typename link_t, typename view_t>
 auto cylinder2_grid_type_and_edges(const detector_t& detector,
                                    const link_t& link, const view_t&) {
-    assert(link.id() == detector_t::sf_finders::id::e_cylinder2_grid);
+    assert(link.id() == detector_t::accel::id::e_cylinder2_grid);
     auto edges_rphi = bin_edges<detray::n_axis::label::e_rphi>(detector, link);
     auto edges_z = bin_edges<detray::n_axis::label::e_cyl_z>(detector, link);
     auto [edges_phi, r] = r_phi_split(edges_rphi);
@@ -97,7 +97,7 @@ auto cylinder2_grid_type_and_edges(const detector_t& detector,
 template <typename detector_t, typename link_t, typename view_t>
 auto disc_grid_type_and_edges(const detector_t& detector, const link_t& link,
                               const view_t&) {
-    assert(link.id() == detector_t::sf_finders::id::e_disc_grid);
+    assert(link.id() == detector_t::accel::id::e_disc_grid);
     auto edges_r = bin_edges<detray::n_axis::label::e_r>(detector, link);
     auto edges_phi = bin_edges<detray::n_axis::label::e_phi>(detector, link);
 
@@ -111,11 +111,10 @@ auto disc_grid_type_and_edges(const detector_t& detector, const link_t& link,
 
 /// @returns the detray grids respective actsvg grid type and edge
 /// values.
-template <typename detector_t, typename link_t,
-          typename view_t>
+template <typename detector_t, typename link_t, typename view_t>
 auto get_type_and_axes(const detector_t& detector, const link_t& link,
                        const view_t& view) {
-    using accel_ids_t = typename detector_t::sf_finders::id;
+    using accel_ids_t = typename detector_t::accel::id;
     switch (link.id()) {
         case accel_ids_t::e_cylinder2_grid: {
             return cylinder2_grid_type_and_edges(detector, link, view);
