@@ -25,8 +25,9 @@
 #include <string>
 
 int main(int, char**) {
+    // This tests demonstrate the different masks that can be visualized.
 
-    // Axes.
+    // Create the axes.
     const auto axes = actsvg::draw::x_y_axes("axes", {-250, 250}, {-250, 250},
                                              actsvg::style::stroke());
 
@@ -38,8 +39,9 @@ int main(int, char**) {
 
     const typename transform_t::vector3 tr{0.f, 150.f, 0.f};
     const typename toy_detector_t::transform3 transform(tr);
-    const actsvg::views::x_y view{};
+    const actsvg::views::z_phi view{};
 
+    // Visualize a 2D annulus.
     // e_min_r, e_max_r, e_min_phi_rel, e_max_phi_rel, e_average_phi, e_shift_x,
     // e_shift_y, e_size
     detray::mask<detray::annulus2D<>> ann2D{0u,  100.f, 200.f, -1.f,
@@ -51,6 +53,7 @@ int main(int, char**) {
     detray::svgtools::write_svg("test_svgtools_annulus2D.svg",
                                 {axes, ann2D_svg});
 
+    // Visualize a 2D cylinder.
     // e_r, e_n_half_z, e_p_half_z, e_size
     detray::mask<detray::cylinder2D<>> cyl2D{0u, 100.f, -10.f, 10.f};
     const auto cyl2D_proto =
@@ -60,6 +63,7 @@ int main(int, char**) {
     detray::svgtools::write_svg("test_svgtools_cylinder2D.svg",
                                 {axes, cyl2D_svg});
 
+    // Visualize a 2D rectangle.
     // e_half_x, e_half_y, e_size
     detray::mask<detray::rectangle2D<>> rec2D{0u, 100.f, 100.f};
     const auto rec2D_proto =
@@ -69,6 +73,7 @@ int main(int, char**) {
     detray::svgtools::write_svg("test_svgtools_rectangle2D.svg",
                                 {axes, rec2D_svg});
 
+    // Visualize a 2D ring.
     // e_inner_r, e_outer_r, e_size
     detray::mask<detray::ring2D<>> rin2D{0u, 50.f, 100.f};
     const auto rin2D_proto =
@@ -77,6 +82,7 @@ int main(int, char**) {
     const auto rin2D_svg = actsvg::display::surface("", rin2D_proto, view);
     detray::svgtools::write_svg("test_svgtools_ring2D.svg", {axes, rin2D_svg});
 
+    // Visualize a 2D trapezoid.
     // e_half_length_0, e_half_length_1, e_half_length_2, e_divisor, e_size
     detray::mask<detray::trapezoid2D<>> tra2D{0u, 100.f, 50.f, 200.f};
     const auto tra2D_proto =
@@ -86,6 +92,7 @@ int main(int, char**) {
     detray::svgtools::write_svg("test_svgtools_trapezoid2D.svg",
                                 {axes, tra2D_svg});
 
+    // Visualize a line.
     // e_cross_section, e_half_z
     detray::mask<detray::line<>> lin2D{0u, 1.f, 100.f};
     const auto lin2D_proto =

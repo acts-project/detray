@@ -29,8 +29,8 @@ inline auto link(const typename detector_t::geometry_context& context,
 
     typename detector_t::vector3 dir{};
 
-    // Length of link arrow is currently hardcoded to 3.
-    constexpr double link_length = 3.;
+    // Length of link arrow is currently hardcoded.
+    constexpr double link_length = 4.;
 
     const auto [start, end] = svgtools::utils::link_points(
         context, detector, d_portal, dir, link_length);

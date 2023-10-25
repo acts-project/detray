@@ -6,6 +6,8 @@
  */
 
 // Project include(s)
+#include "detray/plugins/svgtools/utils/groups.hpp"
+
 #include "detray/core/detector.hpp"
 #include "detray/detectors/create_toy_geometry.hpp"
 #include "detray/plugins/svgtools/illustrator.hpp"
@@ -32,44 +34,54 @@ int main(int, char**) {
     const actsvg::views::z_r zr;
 
     // Creating the detector and geomentry context.
-    using toy_detector_t = detray::detector<detray::toy_metadata>;
     vecmem::host_memory_resource host_mr;
     const auto [det, names] = detray::create_toy_geometry(host_mr);
-    toy_detector_t::geometry_context context{};
+    using detector_t = decltype(det);
+    detector_t::geometry_context context{};
 
     // Creating the svg generator for the detector.
-    const detray::svgtools::illustrator il{det, names};
+    const detray::svgtools::illustrator il{det, context};
 
     // Visualisation of a group of surfaces.
     const std::array surface_group_indices{1UL, 100UL, 10UL, 200UL};
 
-    const auto svg_surface_group_xy = il.draw_surfaces(
-        "my_surface_group1_xy", context, surface_group_indices, xy);
+    const auto svg_surface_group_xy =
+        il.draw_surfaces("my_surface_group1_xy", surface_group_indices, xy);
     detray::svgtools::write_svg("test_svgtools_surface_group_xy.svg",
                                 {axes, svg_surface_group_xy});
 
-    const auto svg_surface_group_zr = il.draw_surfaces(
-        "my_surface_group1_zr", context, surface_group_indices, zr);
+    const auto svg_surface_group_zr =
+        il.draw_surfaces("my_surface_group1_zr", surface_group_indices, zr);
     detray::svgtools::write_svg("test_svgtools_surface_group_zr.svg",
                                 {axes, svg_surface_group_zr});
 
     // Visualisation of a group of volumes.
     const std::array volume_group_indices{3UL, 5UL};
 
-    const auto svg_volume_group_xy = il.draw_volumes(
-        "my_volume_group1_xy", context, volume_group_indices, xy);
+    const auto svg_volume_group_xy =
+        il.draw_volumes("my_volume_group1_xy", volume_group_indices, xy);
     detray::svgtools::write_svg("test_svgtools_volume_group_xy.svg",
                                 {axes, svg_volume_group_xy});
 
-    const auto svg_volume_group_zr = il.draw_volumes(
-        "my_volume_group1_zr", context, volume_group_indices, zr);
+    const auto svg_volume_group_zr =
+        il.draw_volumes("my_volume_group1_zr", volume_group_indices, zr);
     detray::svgtools::write_svg("test_svgtools_volume_group_zr.svg",
                                 {axes, svg_volume_group_zr});
 
-    // Writing SVGs to a combined file.
+    // We can also use the svgtools::utils to group actsvg::svg::objects into
+    // one.
+    auto svg_combined_group = detray::svgtools::utils::group("combined_group");
+    svg_combined_group.add_object(svg_surface_group_xy);
+    svg_combined_group.add_object(svg_volume_group_zr);
+
+    detray::svgtools::write_svg("test_svgtools_combined_group1.svg",
+                                {axes, svg_combined_group});
+
+    // Alternatively, this is equivalent to:
+    detray::svgtools::write_svg(
+        "test_svgtools_combined_group2.svg",
+        {axes, svg_surface_group_xy, svg_volume_group_zr});
+
     // NOTE: The all svg object's identification must be unique in the
     // file!
-    detray::svgtools::write_svg(
-        "test_svgtools_volume_and_surface_group.svg",
-        {axes, svg_surface_group_xy, svg_volume_group_zr});
 }
