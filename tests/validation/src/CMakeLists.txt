@@ -10,6 +10,11 @@ detray_add_executable(detector_validation
                       LINK_LIBRARIES GTest::gtest GTest::gtest_main 
                       detray_validation)
 
+detray_add_executable(material_validation
+                      "material_validation.cpp"
+                      LINK_LIBRARIES GTest::gtest GTest::gtest_main 
+                      detray_validation)
+
 # Build the CI tests
 detray_add_test(telescope_detector
                 "telescope_detector_validation.cpp"
@@ -21,8 +26,4 @@ detray_add_test(toy_detector
 
 detray_add_test(wire_chamber
                 "wire_chamber_validation.cpp"
-                LINK_LIBRARIES GTest::gtest GTest::gtest_main detray_validation)
-
-detray_add_test(simulation 
-                "simulation_validation.cpp"
                 LINK_LIBRARIES GTest::gtest GTest::gtest_main detray_validation)

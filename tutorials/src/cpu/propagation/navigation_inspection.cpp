@@ -31,7 +31,7 @@
 /// of the encountered surfaces (using the navigation inspectors)
 int main() {
     // Toy detector
-    using toy_detector_t = detray::detector<detray::toy_metadata<>>;
+    using toy_detector_t = detray::detector<detray::toy_metadata>;
 
     /// Type that holds the intersection information
     using intersection_t =
@@ -72,11 +72,10 @@ int main() {
     using ray_type = detray::detail::ray<detray::tutorial::transform3>;
     constexpr std::size_t theta_steps{1};
     constexpr std::size_t phi_steps{1};
-    const detray::tutorial::point3 origin{0.f, 0.f, 0.f};
 
     // Iterate through uniformly distributed momentum directions
-    for (const auto ray : detray::uniform_track_generator<ray_type>(
-             theta_steps, phi_steps, origin)) {
+    for (const auto ray :
+         detray::uniform_track_generator<ray_type>(phi_steps, theta_steps)) {
 
         // Shoot ray through the detector and record all surface intersections
         const auto intersection_trace =

@@ -132,7 +132,7 @@ class detector_volume {
         unsigned int n = 0u) const -> unsigned int {
         // Get the index of the surface collection with type index 'I'
         constexpr auto sf_col_id{
-            static_cast<typename detector_t::sf_finders::id>(I)};
+            static_cast<typename detector_t::accel::id>(I)};
         const auto &link{
             m_desc
                 .template link<static_cast<typename descr_t::object_id>(I)>()};
@@ -141,7 +141,7 @@ class detector_volume {
         // number of candidates that we can expect from it
         if (not link.is_invalid()) {
             const unsigned int n_max{
-                m_detector.surface_store()
+                m_detector.accelerator_store()
                     .template get<sf_col_id>()[detail::get<1>(link)]
                     .n_max_candidates()};
             // @todo: Remove when local navigation becomes available !!!!
@@ -245,7 +245,7 @@ class detector_volume {
         if (not link.is_invalid()) {
             // Run over the surfaces in a single acceleration data structure
             // and apply the functor to the resulting neighborhood
-            m_detector.surface_store().template visit<functor_t>(
+            m_detector.accelerator_store().template visit<functor_t>(
                 link, std::forward<Args>(args)...);
         }
         // Check the next surface type

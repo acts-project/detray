@@ -36,12 +36,6 @@ class square_surface_generator final
     square_surface_generator(std::size_t n, scalar_t hl)
         : m_n_squares{static_cast<dindex>(n)}, m_half_length{hl} {}
 
-    /// @returns the id for the surface type (sensitive surfaces)
-    DETRAY_HOST
-    auto surface_type() const -> surface_id override {
-        return surface_id::e_sensitive;
-    }
-
     /// @returns the number of surfaces this factory will produce
     DETRAY_HOST
     auto size() const -> dindex override { return m_n_squares; }
@@ -66,7 +60,7 @@ class square_surface_generator final
     /// @param ctx the geometry context.
     DETRAY_HOST
     auto operator()(typename detector_t::volume_type &volume,
-                    typename detector_t::surface_container_t &surfaces,
+                    typename detector_t::surface_container &surfaces,
                     typename detector_t::transform_container &transforms,
                     typename detector_t::mask_container &masks,
                     typename detector_t::geometry_context ctx = {}) const
@@ -103,7 +97,7 @@ class square_surface_generator final
                 detail::invalid_value<typename material_link_t::index_type>()};
             surfaces.emplace_back(transforms.size(ctx) - 1u, mask_link,
                                   material_link, volume.index(), dindex_invalid,
-                                  surface_type());
+                                  surface_id::e_sensitive);
         }
 
         return {surfaces_offset, static_cast<dindex>(surfaces.size())};

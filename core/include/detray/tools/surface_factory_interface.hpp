@@ -30,29 +30,53 @@ class surface_data {
     public:
     using navigation_link = typename detector_t::surface_type::navigation_link;
 
+    /// Parametrized constructor
+    ///
+    /// @param type the surface type (portal|sensitive|passive)
+    /// @param trf the surface placement transformation
+    /// @param volume_link the mask volume link (used for navigation)
+    /// @param mask_boundaries define the extent of the surface
+    /// @param idx the index of the surface in the global detector lookup, needs
+    ///            to be passed only if a special ordering should be observed
     DETRAY_HOST
     surface_data(
-        const typename detector_t::transform3 &trf, navigation_link volume_link,
-        const std::vector<typename detector_t::scalar_type> &mask_boundaries)
-        : m_transform{trf},
+        const surface_id type, const typename detector_t::transform3 &trf,
+        navigation_link volume_link,
+        const std::vector<typename detector_t::scalar_type> &mask_boundaries,
+        const dindex idx = dindex_invalid,
+        const std::uint64_t source = detail::invalid_value<std::uint64_t>())
+        : m_type{type},
           m_volume_link{volume_link},
-          m_boundaries{mask_boundaries} {}
+          m_index{idx},
+          m_source{source},
+          m_boundaries{mask_boundaries},
+          m_transform{trf} {}
 
+    /// Access the contained data through structured binding
     DETRAY_HOST
     auto get_data()
-        -> std::tuple<typename detector_t::transform3 &, navigation_link &,
-                      std::vector<typename detector_t::scalar_type> &> {
-        return std::tie(m_transform, m_volume_link, m_boundaries);
+        -> std::tuple<surface_id &, navigation_link &, dindex &,
+                      std::uint64_t &,
+                      std::vector<typename detector_t::scalar_type> &,
+                      typename detector_t::transform3 &> {
+        return std::tie(m_type, m_volume_link, m_index, m_source, m_boundaries,
+                        m_transform);
     }
 
     private:
-    /// The surface placement
-    typename detector_t::transform3 m_transform;
+    /// Surface type
+    surface_id m_type;
     /// The index of the volume that this surface links to
     navigation_link m_volume_link;
-    // simple tuple of all mask types in the detector. Only one entry is filled
-    // with the mask that corresponds to this specific surface.
+    /// The position of the surface in the detector containers, used to match
+    /// the surface to e.g. its material
+    dindex m_index;
+    /// Source link (ACTS geoID)
+    std::uint64_t m_source;
+    /// Vector of mask boundary values
     std::vector<typename detector_t::scalar_type> m_boundaries;
+    /// The surface placement
+    typename detector_t::transform3 m_transform;
 };
 
 /// @brief How to generate surfaces with their corresponding masks and
@@ -70,11 +94,6 @@ class surface_factory_interface {
     /// @returns the number of surfaces the factory will produce
     DETRAY_HOST
     virtual dindex size() const = 0;
-
-    /// @returns a surface id that corresponds to the surface type
-    /// i.e. portal/sensisitve/passive
-    DETRAY_HOST
-    virtual surface_id surface_type() const = 0;
 
     /// Add data to the factory
     /// @{
@@ -94,11 +113,41 @@ class surface_factory_interface {
     DETRAY_HOST
     virtual auto operator()(
         typename detector_t::volume_type &volume,
-        typename detector_t::surface_container_t &surfaces,
+        typename detector_t::surface_container &surfaces,
         typename detector_t::transform_container &transforms,
         typename detector_t::mask_container &masks,
         typename detector_t::geometry_context ctx = {}) const
         -> dindex_range = 0;
+
+    protected:
+    /// Insert a value in a container at a specific index
+    ///
+    /// @param cont the container to be filled
+    /// @param value the value to be put into the container
+    /// @param idx the position where to insert the value
+    /// @param args optional additional parameters for the container access
+    ///
+    /// @returns the position where the value has been copied.
+    template <typename container_t, typename... Args>
+    DETRAY_HOST dindex insert_in_container(
+        container_t &cont, const typename container_t::value_type value,
+        const dindex idx, Args &&... args) const {
+        // If no valid position is given, perform push back
+        if (is_invalid_value(idx)) {
+            cont.push_back(value, std::forward<Args>(args)...);
+
+            return static_cast<dindex>(cont.size() - 1u);
+        } else {
+            // Make sure the container size encompasses the new value
+            if (cont.size() < idx + 1) {
+                cont.resize(idx + 1, std::forward<Args>(args)...);
+            }
+
+            cont.at(idx, std::forward<Args>(args)...) = value;
+
+            return idx;
+        }
+    }
 };
 
 /// @brief Decorator for the surface factories.
@@ -119,11 +168,6 @@ class factory_decorator : public surface_factory_interface<detector_t> {
     dindex size() const override { return m_factory->size(); }
 
     DETRAY_HOST
-    surface_id surface_type() const override {
-        return m_factory->surface_type();
-    }
-
-    DETRAY_HOST
     void push_back(surface_data<detector_t> &&data) override {
         m_factory->push_back(std::move(data));
     }
@@ -138,7 +182,7 @@ class factory_decorator : public surface_factory_interface<detector_t> {
 
     DETRAY_HOST
     auto operator()(typename detector_t::volume_type &volume,
-                    typename detector_t::surface_container_t &surfaces,
+                    typename detector_t::surface_container &surfaces,
                     typename detector_t::transform_container &transforms,
                     typename detector_t::mask_container &masks,
                     typename detector_t::geometry_context ctx = {}) const

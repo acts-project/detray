@@ -46,7 +46,7 @@ void prefill_detector(detector_t& d,
     detray::empty_context empty_ctx{};
     vecmem::memory_resource* host_mr = d.resource();
     typename detector_t::transform_container trfs(*host_mr);
-    typename detector_t::surface_container_t surfaces{};
+    typename detector_t::surface_container surfaces{};
     typename detector_t::mask_container masks(*host_mr);
     typename detector_t::material_container materials(*host_mr);
 
@@ -138,7 +138,7 @@ GTEST_TEST(detray_core, detector) {
     using detector_t = detector<>;
     using mask_id = typename detector_t::masks::id;
     using material_id = typename detector_t::materials::id;
-    using finder_id = typename detector_t::sf_finders::id;
+    using finder_id = typename detector_t::accel::id;
 
     vecmem::host_memory_resource host_mr;
     detector_t d(host_mr);
@@ -159,14 +159,16 @@ GTEST_TEST(detray_core, detector) {
     EXPECT_TRUE(d.mask_store().template empty<mask_id::e_cell_wire>());
     EXPECT_TRUE(d.material_store().template empty<material_id::e_slab>());
     EXPECT_TRUE(d.material_store().template empty<material_id::e_rod>());
-    EXPECT_TRUE(d.surface_store().template empty<finder_id::e_brute_force>());
-    EXPECT_TRUE(d.surface_store().template empty<finder_id::e_disc_grid>());
     EXPECT_TRUE(
-        d.surface_store().template empty<finder_id::e_cylinder2_grid>());
-    EXPECT_TRUE(d.surface_store().template empty<finder_id::e_irr_disc_grid>());
+        d.accelerator_store().template empty<finder_id::e_brute_force>());
+    EXPECT_TRUE(d.accelerator_store().template empty<finder_id::e_disc_grid>());
     EXPECT_TRUE(
-        d.surface_store().template empty<finder_id::e_irr_cylinder2_grid>());
-    EXPECT_TRUE(d.surface_store().template empty<finder_id::e_default>());
+        d.accelerator_store().template empty<finder_id::e_cylinder2_grid>());
+    EXPECT_TRUE(
+        d.accelerator_store().template empty<finder_id::e_irr_disc_grid>());
+    EXPECT_TRUE(d.accelerator_store()
+                    .template empty<finder_id::e_irr_cylinder2_grid>());
+    EXPECT_TRUE(d.accelerator_store().template empty<finder_id::e_default>());
 
     // Add some geometrical data
     prefill_detector(d, geo_ctx);
@@ -187,15 +189,18 @@ GTEST_TEST(detray_core, detector) {
     EXPECT_EQ(d.mask_store().template size<mask_id::e_cell_wire>(), 0u);
     EXPECT_EQ(d.material_store().template size<material_id::e_slab>(), 2u);
     EXPECT_EQ(d.material_store().template size<material_id::e_rod>(), 1u);
-    EXPECT_EQ(d.surface_store().template size<finder_id::e_brute_force>(), 1u);
-    EXPECT_EQ(d.surface_store().template size<finder_id::e_disc_grid>(), 0u);
-    EXPECT_EQ(d.surface_store().template size<finder_id::e_cylinder2_grid>(),
-              0u);
-    EXPECT_EQ(d.surface_store().template size<finder_id::e_irr_disc_grid>(),
+    EXPECT_EQ(d.accelerator_store().template size<finder_id::e_brute_force>(),
+              1u);
+    EXPECT_EQ(d.accelerator_store().template size<finder_id::e_disc_grid>(),
               0u);
     EXPECT_EQ(
-        d.surface_store().template size<finder_id::e_irr_cylinder2_grid>(), 0u);
-    EXPECT_EQ(d.surface_store().template size<finder_id::e_default>(), 1u);
+        d.accelerator_store().template size<finder_id::e_cylinder2_grid>(), 0u);
+    EXPECT_EQ(d.accelerator_store().template size<finder_id::e_irr_disc_grid>(),
+              0u);
+    EXPECT_EQ(
+        d.accelerator_store().template size<finder_id::e_irr_cylinder2_grid>(),
+        0u);
+    EXPECT_EQ(d.accelerator_store().template size<finder_id::e_default>(), 1u);
 }
 
 /// This tests the functionality of a surface factory
@@ -205,25 +210,27 @@ GTEST_TEST(detray_tools, surface_factory) {
 
     using detector_t = detector<>;
     using transform3 = typename detector_t::transform3;
-    using mask_id = typename detector_t::masks::id;
 
     //
     // check portal cylinder
     //
     using portal_cylinder_factory =
-        surface_factory<detector_t, typename default_metadata::cylinder_portal,
-                        mask_id::e_portal_cylinder2, surface_id::e_portal>;
+        surface_factory<detector_t,
+                        typename default_metadata::cylinder_portal::shape>;
 
     auto pt_cyl_factory = std::make_shared<portal_cylinder_factory>();
 
     typename portal_cylinder_factory::sf_data_collection cyl_sf_data;
-    cyl_sf_data.emplace_back(transform3(point3{0.f, 0.f, -1000.f}), 0u,
+    cyl_sf_data.emplace_back(surface_id::e_portal,
+                             transform3(point3{0.f, 0.f, -1000.f}), 0u,
                              std::vector<scalar>{10.f, -1000.f, 1500.f});
-    cyl_sf_data.emplace_back(transform3(point3{0.f, 0.f, 1000.f}), 2u,
+    cyl_sf_data.emplace_back(surface_id::e_portal,
+                             transform3(point3{0.f, 0.f, 1000.f}), 2u,
                              std::vector<scalar>{20.f, -1500.f, 1000.f});
 
     EXPECT_EQ(pt_cyl_factory->size(), 0u);
-    EXPECT_TRUE(pt_cyl_factory->components().empty());
+    EXPECT_TRUE(pt_cyl_factory->types().empty());
+    EXPECT_TRUE(pt_cyl_factory->bounds().empty());
     EXPECT_TRUE(pt_cyl_factory->transforms().empty());
     EXPECT_TRUE(pt_cyl_factory->volume_links().empty());
 
@@ -232,10 +239,11 @@ GTEST_TEST(detray_tools, surface_factory) {
     cyl_sf_data.clear();
 
     EXPECT_EQ(pt_cyl_factory->size(), 2u);
-    EXPECT_EQ(pt_cyl_factory->components().size(), 2u);
+    EXPECT_EQ(pt_cyl_factory->types().size(), 2u);
+    EXPECT_EQ(pt_cyl_factory->bounds().size(), 2u);
     EXPECT_EQ(pt_cyl_factory->transforms().size(), 2u);
     EXPECT_EQ(pt_cyl_factory->volume_links().size(), 2u);
-    const auto& portal_cyl_comps = pt_cyl_factory->components().front();
+    const auto& portal_cyl_comps = pt_cyl_factory->bounds().front();
     EXPECT_NEAR(portal_cyl_comps[0], 10.f, tol);
     EXPECT_NEAR(portal_cyl_comps[1], -1000.f, tol);
     EXPECT_NEAR(portal_cyl_comps[2], 1500.f, tol);
@@ -247,89 +255,62 @@ GTEST_TEST(detray_tools, surface_factory) {
     // check sensitive cylinder
     //
     using sensitive_cylinder_factory =
-        surface_factory<detector_t, cylinder2D<>, mask_id::e_cylinder2,
-                        surface_id::e_sensitive>;
+        surface_factory<detector_t, cylinder2D<>>;
 
-    auto sens_cyl_factory = std::make_shared<sensitive_cylinder_factory>();
+    auto cyl_factory = std::make_shared<sensitive_cylinder_factory>();
 
-    cyl_sf_data.emplace_back(transform3(point3{0.f, 0.f, -50.f}), 1u,
+    cyl_sf_data.emplace_back(surface_id::e_sensitive,
+                             transform3(point3{0.f, 0.f, -50.f}), 1u,
                              std::vector<scalar>{5.f, -900.f, 900.f});
-    cyl_sf_data.emplace_back(transform3(point3{0.f, 0.f, 50.f}), 1u,
+    cyl_sf_data.emplace_back(surface_id::e_sensitive,
+                             transform3(point3{0.f, 0.f, 50.f}), 1u,
                              std::vector<scalar>{5.f, -900.f, 900.f});
 
-    EXPECT_EQ(sens_cyl_factory->size(), 0u);
-    EXPECT_TRUE(sens_cyl_factory->components().empty());
-    EXPECT_TRUE(sens_cyl_factory->transforms().empty());
-    // The single view is never empty, only uninitialized
-    EXPECT_FALSE(sens_cyl_factory->volume_links().empty());
+    cyl_sf_data.emplace_back(surface_id::e_passive,
+                             transform3(point3{0.f, 0.f, -20.f}), 1u,
+                             std::vector<scalar>{4.9f, -900.f, 900.f});
+    cyl_sf_data.emplace_back(surface_id::e_passive,
+                             transform3(point3{0.f, 0.f, 20.f}), 1u,
+                             std::vector<scalar>{4.9f, -900.f, 900.f});
 
-    sens_cyl_factory->push_back(std::move(cyl_sf_data));
+    EXPECT_EQ(cyl_factory->size(), 0u);
+    EXPECT_TRUE(cyl_factory->types().empty());
+    EXPECT_TRUE(cyl_factory->bounds().empty());
+    EXPECT_TRUE(cyl_factory->transforms().empty());
+    EXPECT_TRUE(cyl_factory->volume_links().empty());
+
+    cyl_factory->push_back(std::move(cyl_sf_data));
     cyl_sf_data.clear();
 
-    EXPECT_EQ(sens_cyl_factory->size(), 2u);
-    EXPECT_EQ(sens_cyl_factory->components().size(), 2u);
-    EXPECT_EQ(sens_cyl_factory->transforms().size(), 2u);
-    EXPECT_EQ(sens_cyl_factory->volume_links().size(), 1u);
-    const auto& sens_cyl_comps = sens_cyl_factory->components().front();
+    EXPECT_EQ(cyl_factory->size(), 4u);
+    EXPECT_EQ(cyl_factory->types().size(), 4u);
+    EXPECT_EQ(cyl_factory->bounds().size(), 4u);
+    EXPECT_EQ(cyl_factory->transforms().size(), 4u);
+    EXPECT_EQ(cyl_factory->volume_links().size(), 4u);
+    const auto& sens_cyl_comps = cyl_factory->bounds().front();
     EXPECT_NEAR(sens_cyl_comps[0], 5.f, tol);
     EXPECT_NEAR(sens_cyl_comps[1], -900.f, tol);
     EXPECT_NEAR(sens_cyl_comps[2], 900.f, tol);
-    const auto& sens_cyl_vol_links = sens_cyl_factory->volume_links();
+    const auto& sens_cyl_vol_links = cyl_factory->volume_links();
     EXPECT_EQ(sens_cyl_vol_links[0], 1u);
-
-    //
-    // check passive cylinder
-    //
-    using passive_cylinder_factory =
-        surface_factory<detector_t, cylinder2D<>, mask_id::e_cylinder2,
-                        surface_id::e_passive>;
-
-    auto psv_cyl_factory = std::make_shared<passive_cylinder_factory>();
-
-    cyl_sf_data.emplace_back(transform3(point3{0.f, 0.f, -20.f}), 1u,
-                             std::vector<scalar>{4.9f, -900.f, 900.f});
-    cyl_sf_data.emplace_back(transform3(point3{0.f, 0.f, 20.f}), 1u,
-                             std::vector<scalar>{4.9f, -900.f, 900.f});
-
-    EXPECT_EQ(psv_cyl_factory->size(), 0u);
-    EXPECT_TRUE(psv_cyl_factory->components().empty());
-    EXPECT_TRUE(psv_cyl_factory->transforms().empty());
-    // The single view is never empty, only uninitialized
-    EXPECT_FALSE(psv_cyl_factory->volume_links().empty());
-
-    psv_cyl_factory->push_back(std::move(cyl_sf_data));
-    cyl_sf_data.clear();
-
-    EXPECT_EQ(psv_cyl_factory->size(), 2u);
-    EXPECT_EQ(psv_cyl_factory->components().size(), 2u);
-    EXPECT_EQ(psv_cyl_factory->transforms().size(), 2u);
-    EXPECT_EQ(psv_cyl_factory->volume_links().size(), 1u);
-    const auto& psv_cyl_comps = psv_cyl_factory->components().front();
-    EXPECT_NEAR(psv_cyl_comps[0], 4.9f, tol);
-    EXPECT_NEAR(psv_cyl_comps[1], -900.f, tol);
-    EXPECT_NEAR(psv_cyl_comps[2], 900.f, tol);
-    const auto& psv_cyl_vol_links = psv_cyl_factory->volume_links();
-    EXPECT_EQ(psv_cyl_vol_links[0], 1u);
 
     //
     // check the other mask types for this detector
     //
 
     // annulus
-    using annulus_factory =
-        surface_factory<detector_t, annulus2D<>, mask_id::e_annulus2,
-                        surface_id::e_sensitive>;
+    using annulus_factory = surface_factory<detector_t, annulus2D<>>;
 
     auto ann_factory = std::make_shared<annulus_factory>();
 
     typename annulus_factory::sf_data_collection ann_sf_data;
     ann_sf_data.emplace_back(
-        transform3(point3{0.f, 0.f, 0.f}), 1u,
+        surface_id::e_sensitive, transform3(point3{0.f, 0.f, 0.f}), 1u,
         std::vector<scalar>{300.f, 350.f, -0.1f, 0.1f, 0.5f, 0.6f, 1.4f});
     ann_factory->push_back(std::move(ann_sf_data));
     ann_sf_data.clear();
 
-    const auto& ann_comps = ann_factory->components().front();
+    const auto& ann_comps = ann_factory->bounds().front();
     EXPECT_NEAR(ann_comps[0], 300.f, tol);
     EXPECT_NEAR(ann_comps[1], 350.f, tol);
     EXPECT_NEAR(ann_comps[2], -0.1f, tol);
@@ -339,52 +320,50 @@ GTEST_TEST(detray_tools, surface_factory) {
     EXPECT_NEAR(ann_comps[6], 1.4f, tol);
 
     // rectangles
-    using rectangle_factory =
-        surface_factory<detector_t, rectangle2D<>, mask_id::e_rectangle2,
-                        surface_id::e_sensitive>;
+    using rectangle_factory = surface_factory<detector_t, rectangle2D<>>;
 
     auto rect_factory = std::make_shared<rectangle_factory>();
 
     typename rectangle_factory::sf_data_collection rect_sf_data;
-    rect_sf_data.emplace_back(transform3(point3{0.f, 0.f, 0.f}), 1u,
+    rect_sf_data.emplace_back(surface_id::e_sensitive,
+                              transform3(point3{0.f, 0.f, 0.f}), 1u,
                               std::vector<scalar>{10.f, 8.f});
     rect_factory->push_back(std::move(rect_sf_data));
     rect_sf_data.clear();
 
-    const auto& rectgl_comps = rect_factory->components().front();
+    const auto& rectgl_comps = rect_factory->bounds().front();
     EXPECT_NEAR(rectgl_comps[0], 10.f, tol);
     EXPECT_NEAR(rectgl_comps[1], 8.f, tol);
 
     // ring
-    using ring_factory = surface_factory<detector_t, ring2D<>, mask_id::e_ring2,
-                                         surface_id::e_passive>;
+    using disc_factory = surface_factory<detector_t, ring2D<>>;
 
-    auto rng_factory = std::make_shared<ring_factory>();
+    auto sf_disc_factory = std::make_shared<disc_factory>();
 
-    typename ring_factory::sf_data_collection ring_sf_data;
-    ring_sf_data.emplace_back(transform3(point3{0.f, 0.f, 0.f}), 1u,
+    typename disc_factory::sf_data_collection disc_sf_data;
+    disc_sf_data.emplace_back(surface_id::e_passive,
+                              transform3(point3{0.f, 0.f, 0.f}), 1u,
                               std::vector<scalar>{0.f, 5.f});
-    rng_factory->push_back(std::move(ring_sf_data));
-    ring_sf_data.clear();
+    sf_disc_factory->push_back(std::move(disc_sf_data));
+    disc_sf_data.clear();
 
-    const auto& ring_comps = rng_factory->components().front();
+    const auto& ring_comps = sf_disc_factory->bounds().front();
     EXPECT_NEAR(ring_comps[0], 0.f, tol);
     EXPECT_NEAR(ring_comps[1], 5.f, tol);
 
     // trapezoid
-    using trapezoid_factory =
-        surface_factory<detector_t, trapezoid2D<>, mask_id::e_trapezoid2,
-                        surface_id::e_sensitive>;
+    using trapezoid_factory = surface_factory<detector_t, trapezoid2D<>>;
 
     auto trpz_factory = std::make_shared<trapezoid_factory>();
 
     typename trapezoid_factory::sf_data_collection trpz_sf_data;
-    trpz_sf_data.emplace_back(transform3(point3{0.f, 0.f, 0.f}), 1u,
+    trpz_sf_data.emplace_back(surface_id::e_sensitive,
+                              transform3(point3{0.f, 0.f, 0.f}), 1u,
                               std::vector<scalar>{1.f, 3.f, 2.f, 0.25f});
     trpz_factory->push_back(std::move(trpz_sf_data));
     trpz_sf_data.clear();
 
-    const auto& trpz_comps = trpz_factory->components().front();
+    const auto& trpz_comps = trpz_factory->bounds().front();
     EXPECT_NEAR(trpz_comps[0], 1.f, tol);
     EXPECT_NEAR(trpz_comps[1], 3.f, tol);
     EXPECT_NEAR(trpz_comps[2], 2.f, tol);
@@ -424,31 +403,17 @@ GTEST_TEST(detray_tools, detector_volume_construction) {
     using transform3 = typename detector_t::transform3;
     using geo_obj_id = typename detector_t::geo_obj_ids;
     using mask_id = typename detector_t::masks::id;
-    using sf_finder_id = typename detector_t::sf_finders::id;
+    using accel_id = typename detector_t::accel::id;
 
-    // portal factories
+    // Surface factories
     using portal_cylinder_factory =
-        surface_factory<detector_t, typename default_metadata::cylinder_portal,
-                        mask_id::e_portal_cylinder2, surface_id::e_portal>;
-    using portal_disc_factory =
-        surface_factory<detector_t, ring2D<>, mask_id::e_portal_ring2,
-                        surface_id::e_portal>;
-
-    // sensitive/passive surface factories
-    using annulus_factory =
-        surface_factory<detector_t, annulus2D<>, mask_id::e_annulus2,
-                        surface_id::e_sensitive>;
-    using cylinder_factory =
-        surface_factory<detector_t, cylinder2D<>, mask_id::e_cylinder2,
-                        surface_id::e_passive>;
-    using rectangle_factory =
-        surface_factory<detector_t, rectangle2D<>, mask_id::e_rectangle2,
-                        surface_id::e_sensitive>;
-    using ring_factory = surface_factory<detector_t, ring2D<>, mask_id::e_ring2,
-                                         surface_id::e_passive>;
-    using trapezoid_factory =
-        surface_factory<detector_t, trapezoid2D<>, mask_id::e_trapezoid2,
-                        surface_id::e_sensitive>;
+        surface_factory<detector_t,
+                        typename default_metadata::cylinder_portal::shape>;
+    using annulus_factory = surface_factory<detector_t, annulus2D<>>;
+    using cylinder_factory = surface_factory<detector_t, cylinder2D<>>;
+    using rectangle_factory = surface_factory<detector_t, rectangle2D<>>;
+    using disc_factory = surface_factory<detector_t, ring2D<>>;
+    using trapezoid_factory = surface_factory<detector_t, trapezoid2D<>>;
 
     // detector
     vecmem::host_memory_resource host_mr;
@@ -479,90 +444,104 @@ GTEST_TEST(detray_tools, detector_volume_construction) {
     typename portal_cylinder_factory::sf_data_collection cyl_sf_data;
     // Creates two cylinders at radius 0mm and 10mm with an extent in z
     // of -5mm to 5mm and linking to volumes 0 and 2, respectively.
-    cyl_sf_data.emplace_back(transform3(point3{0.f, 0.f, 0.f}), 0u,
+    cyl_sf_data.emplace_back(surface_id::e_portal,
+                             transform3(point3{0.f, 0.f, 0.f}), 0u,
                              std::vector<scalar>{10.f, -1500.f, 1500.f});
-    cyl_sf_data.emplace_back(transform3(point3{0.f, 0.f, 0.f}), 2u,
+    cyl_sf_data.emplace_back(surface_id::e_portal,
+                             transform3(point3{0.f, 0.f, 0.f}), 2u,
                              std::vector<scalar>{20.f, -1500.f, 1500.f});
     pt_cyl_factory->push_back(std::move(cyl_sf_data));
 
-    auto pt_disc_factory = std::make_shared<portal_disc_factory>();
-    typename portal_disc_factory::sf_data_collection ring_sf_data;
+    auto pt_disc_factory = std::make_shared<disc_factory>();
+    typename disc_factory::sf_data_collection disc_sf_data;
     // Creates two discs with a radius of 10mm, linking to volumes 3 and 4
-    ring_sf_data.emplace_back(transform3(point3{0.f, 0.f, -1500.f}), 3u,
+    disc_sf_data.emplace_back(surface_id::e_portal,
+                              transform3(point3{0.f, 0.f, -1500.f}), 3u,
                               std::vector<scalar>{0.f, 10.f});
-    ring_sf_data.emplace_back(transform3(point3{0.f, 0.f, 1500.f}), 4u,
+    disc_sf_data.emplace_back(surface_id::e_portal,
+                              transform3(point3{0.f, 0.f, 1500.f}), 4u,
                               std::vector<scalar>{0.f, 10.f});
-    pt_disc_factory->push_back(std::move(ring_sf_data));
+    pt_disc_factory->push_back(std::move(disc_sf_data));
 
     // sensitive surfaces
     auto ann_factory = std::make_shared<annulus_factory>();
     typename annulus_factory::sf_data_collection ann_sf_data;
     ann_sf_data.emplace_back(
-        transform3(point3{0.f, 0.f, 1000.f}), vol_idx,
+        surface_id::e_sensitive, transform3(point3{0.f, 0.f, 1000.f}), vol_idx,
         std::vector<scalar>{300.f, 350.f, -0.1f, 0.1f, 0.5f, 0.6f, 1.4f});
     ann_sf_data.emplace_back(
-        transform3(point3{0.f, 0.f, 1000.f}), vol_idx,
+        surface_id::e_sensitive, transform3(point3{0.f, 0.f, 1000.f}), vol_idx,
         std::vector<scalar>{350.f, 400.f, -0.1f, 0.1f, 0.5f, 0.6f, 1.4f});
     ann_factory->push_back(std::move(ann_sf_data));
 
     auto rect_factory = std::make_shared<rectangle_factory>();
     typename rectangle_factory::sf_data_collection rect_sf_data;
-    rect_sf_data.emplace_back(transform3(point3{0.f, 0.f, -10.f}), vol_idx,
+    rect_sf_data.emplace_back(surface_id::e_sensitive,
+                              transform3(point3{0.f, 0.f, -10.f}), vol_idx,
                               std::vector<scalar>{10.f, 8.f});
-    rect_sf_data.emplace_back(transform3(point3{0.f, 0.f, -20.f}), vol_idx,
+    rect_sf_data.emplace_back(surface_id::e_sensitive,
+                              transform3(point3{0.f, 0.f, -20.f}), vol_idx,
                               std::vector<scalar>{10.f, 8.f});
-    rect_sf_data.emplace_back(transform3(point3{0.f, 0.f, -30.f}), vol_idx,
+    rect_sf_data.emplace_back(surface_id::e_sensitive,
+                              transform3(point3{0.f, 0.f, -30.f}), vol_idx,
                               std::vector<scalar>{10.f, 8.f});
     rect_factory->push_back(std::move(rect_sf_data));
 
     auto trpz_factory = std::make_shared<trapezoid_factory>();
     typename trapezoid_factory::sf_data_collection trpz_sf_data;
-    trpz_sf_data.emplace_back(transform3(point3{0.f, 0.f, 1000.f}), vol_idx,
+    trpz_sf_data.emplace_back(surface_id::e_sensitive,
+                              transform3(point3{0.f, 0.f, 1000.f}), vol_idx,
                               std::vector<scalar>{1.f, 3.f, 2.f, 0.25f});
     trpz_factory->push_back(std::move(trpz_sf_data));
 
     // passive surfaces
     auto cyl_factory = std::make_shared<cylinder_factory>();
     cyl_sf_data.clear();
-    cyl_sf_data.emplace_back(transform3(point3{0.f, 0.f, 0.f}), vol_idx,
+    cyl_sf_data.emplace_back(surface_id::e_passive,
+                             transform3(point3{0.f, 0.f, 0.f}), vol_idx,
                              std::vector<scalar>{5.f, -1300.f, 1300.f});
     cyl_factory->push_back(std::move(cyl_sf_data));
 
-    auto rng_factory = std::make_shared<ring_factory>();
-    ring_sf_data.clear();
-    ring_sf_data.emplace_back(transform3(point3{0.f, 0.f, -1300.f}), vol_idx,
+    auto sf_disc_factory = std::make_shared<disc_factory>();
+    disc_sf_data.clear();
+    disc_sf_data.emplace_back(surface_id::e_passive,
+                              transform3(point3{0.f, 0.f, -1300.f}), vol_idx,
                               std::vector<scalar>{0.f, 5.f});
-    ring_sf_data.emplace_back(transform3(point3{0.f, 0.f, 1300.f}), vol_idx,
+    disc_sf_data.emplace_back(surface_id::e_passive,
+                              transform3(point3{0.f, 0.f, 1300.f}), vol_idx,
                               std::vector<scalar>{0.f, 5.f});
-    rng_factory->push_back(std::move(ring_sf_data));
+    sf_disc_factory->push_back(std::move(disc_sf_data));
 
     //
     // Fill everything into volume
     //
-    vbuilder.add_portals(pt_cyl_factory, geo_ctx);
-    vbuilder.add_portals(pt_disc_factory, geo_ctx);
+    vbuilder.add_surfaces(pt_cyl_factory, geo_ctx);
+    vbuilder.add_surfaces(pt_disc_factory, geo_ctx);
 
-    vbuilder.add_sensitives(ann_factory, geo_ctx);
-    vbuilder.add_sensitives(rect_factory, geo_ctx);
-    vbuilder.add_sensitives(trpz_factory, geo_ctx);
+    vbuilder.add_surfaces(ann_factory, geo_ctx);
+    vbuilder.add_surfaces(rect_factory, geo_ctx);
+    vbuilder.add_surfaces(trpz_factory, geo_ctx);
 
-    vbuilder.add_passives(cyl_factory, geo_ctx);
-    vbuilder.add_passives(rng_factory, geo_ctx);
+    vbuilder.add_surfaces(cyl_factory, geo_ctx);
+    vbuilder.add_surfaces(sf_disc_factory, geo_ctx);
 
     // try adding something extra later...
     rect_factory->clear();
     rect_sf_data.clear();
-    rect_sf_data.emplace_back(transform3(point3{0.f, 0.f, 10.f}), vol_idx,
+    rect_sf_data.emplace_back(surface_id::e_sensitive,
+                              transform3(point3{0.f, 0.f, 10.f}), vol_idx,
                               std::vector<scalar>{10.f, 8.f});
-    rect_sf_data.emplace_back(transform3(point3{0.f, 0.f, 20.f}), vol_idx,
+    rect_sf_data.emplace_back(surface_id::e_sensitive,
+                              transform3(point3{0.f, 0.f, 20.f}), vol_idx,
                               std::vector<scalar>{10.f, 8.f});
     rect_factory->push_back(std::move(rect_sf_data));
     rect_sf_data.clear();
-    rect_sf_data.emplace_back(transform3(point3{0.f, 0.f, 30.f}), vol_idx,
+    rect_sf_data.emplace_back(surface_id::e_sensitive,
+                              transform3(point3{0.f, 0.f, 30.f}), vol_idx,
                               std::vector<scalar>{10.f, 8.f});
     rect_factory->push_back(std::move(rect_sf_data));
 
-    vbuilder.add_sensitives(rect_factory, geo_ctx);
+    vbuilder.add_surfaces(rect_factory, geo_ctx);
 
     //
     // Adds all surfaces to the detector
@@ -583,7 +562,7 @@ GTEST_TEST(detray_tools, detector_volume_construction) {
     EXPECT_TRUE(d.transform_store()[first_trf] == trf);
 
     // Check the acceleration data structure link
-    dtyped_index<sf_finder_id, dindex> acc_link{sf_finder_id::e_default, 1u};
+    dtyped_index<accel_id, dindex> acc_link{accel_id::e_default, 1u};
     ASSERT_TRUE(vol.full_link().size() == geo_obj_id::e_size);
     EXPECT_EQ(vol.link<geo_obj_id::e_portal>(), acc_link);
     EXPECT_EQ(vol.link<geo_obj_id::e_passive>(), acc_link);
@@ -698,14 +677,12 @@ GTEST_TEST(detray_tools, detector_builder) {
     using mask_id = typename detector_t::masks::id;
 
     // Surface factories
-    using trapezoid_factory =
-        surface_factory<detector_t, trapezoid2D<>, mask_id::e_trapezoid2,
-                        surface_id::e_sensitive>;
+    using trapezoid_factory = surface_factory<detector_t, trapezoid2D<>>;
 
     // detector builder
     auto geo_ctx = typename detector_t::geometry_context{};
 
-    detector_builder<default_metadata, volume_builder> det_builder{};
+    detector_builder<default_metadata> det_builder{};
 
     //
     // first volume builder
@@ -724,15 +701,18 @@ GTEST_TEST(detray_tools, detector_builder) {
 
     auto trpz_factory = std::make_shared<trapezoid_factory>();
     typename trapezoid_factory::sf_data_collection trpz_sf_data;
-    trpz_sf_data.emplace_back(transform3(point3{0.f, 0.f, 1000.f}), vol_idx,
+    trpz_sf_data.emplace_back(surface_id::e_sensitive,
+                              transform3(point3{0.f, 0.f, 1000.f}), vol_idx,
                               std::vector<scalar>{1.f, 3.f, 2.f, 0.25f});
-    trpz_sf_data.emplace_back(transform3(point3{0.f, 0.f, 1100.f}), vol_idx,
+    trpz_sf_data.emplace_back(surface_id::e_sensitive,
+                              transform3(point3{0.f, 0.f, 1100.f}), vol_idx,
                               std::vector<scalar>{1.f, 3.f, 2.f, 0.25f});
-    trpz_sf_data.emplace_back(transform3(point3{0.f, 0.f, 1200.f}), vol_idx,
+    trpz_sf_data.emplace_back(surface_id::e_sensitive,
+                              transform3(point3{0.f, 0.f, 1200.f}), vol_idx,
                               std::vector<scalar>{1.f, 3.f, 2.f, 0.25f});
     trpz_factory->push_back(std::move(trpz_sf_data));
 
-    vbuilder->add_sensitives(trpz_factory, geo_ctx);
+    vbuilder->add_surfaces(trpz_factory, geo_ctx);
 
     //
     // second volume builder
@@ -748,7 +728,8 @@ GTEST_TEST(detray_tools, detector_builder) {
     auto portal_generator =
         std::make_shared<cuboid_portal_generator<detector_t>>(env);
 
-    vbuilder2->add_portals(portal_generator);
+    vbuilder2->add_surfaces(trpz_factory, geo_ctx);
+    vbuilder2->add_surfaces(portal_generator);
 
     // initial checks
     EXPECT_EQ(vbuilder2->vol_index(), 1u);
@@ -778,14 +759,14 @@ GTEST_TEST(detray_tools, detector_builder) {
 
     // Check the acceleration data structure link (indirectly)
     EXPECT_EQ(vol0.n_max_candidates(), 3u);
-    EXPECT_EQ(vol1.n_max_candidates(), 6u);
+    EXPECT_EQ(vol1.n_max_candidates(), 9u);
 
-    EXPECT_EQ(d.surface_lookup().size(), 9u);
+    EXPECT_EQ(d.surface_lookup().size(), 12u);
     EXPECT_EQ(d.mask_store().template size<mask_id::e_portal_cylinder2>(), 0u);
     EXPECT_EQ(d.mask_store().template size<mask_id::e_portal_ring2>(), 0u);
     EXPECT_EQ(d.mask_store().template size<mask_id::e_annulus2>(), 0u);
     EXPECT_EQ(d.mask_store().template size<mask_id::e_cylinder2>(), 0u);
     EXPECT_EQ(d.mask_store().template size<mask_id::e_rectangle2>(), 3u);
     EXPECT_EQ(d.mask_store().template size<mask_id::e_ring2>(), 0u);
-    EXPECT_EQ(d.mask_store().template size<mask_id::e_trapezoid2>(), 3u);
+    EXPECT_EQ(d.mask_store().template size<mask_id::e_trapezoid2>(), 6u);
 }

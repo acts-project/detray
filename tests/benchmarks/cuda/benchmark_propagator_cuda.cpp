@@ -5,16 +5,19 @@
  * Mozilla Public License Version 2.0
  */
 
-#include <benchmark/benchmark.h>
+// Project include(s)
+#include "benchmark_propagator_cuda_kernel.hpp"
+#include "detray/detectors/create_toy_geometry.hpp"
+#include "detray/simulation/event_generator/track_generators.hpp"
 
-#include <covfie/core/field.hpp>
+// Vecmem include(s)
 #include <vecmem/memory/binary_page_memory_resource.hpp>
 #include <vecmem/memory/cuda/device_memory_resource.hpp>
 #include <vecmem/memory/cuda/managed_memory_resource.hpp>
+#include <vecmem/utils/cuda/copy.hpp>
 
-#include "benchmark_propagator_cuda_kernel.hpp"
-#include "detray/simulation/event_generator/track_generators.hpp"
-#include "vecmem/utils/cuda/copy.hpp"
+// Google include(s).
+#include <benchmark/benchmark.h>
 
 using namespace detray;
 
@@ -25,18 +28,16 @@ vecmem::cuda::device_memory_resource dev_mr;
 vecmem::binary_page_memory_resource bp_mng_mr(mng_mr);
 
 // detector configuration
-constexpr std::size_t n_brl_layers{4u};
-constexpr std::size_t n_edc_layers{7u};
+toy_det_config toy_cfg{4u, 7u};
 
 void fill_tracks(vecmem::vector<free_track_parameters<transform3>> &tracks,
                  const std::size_t theta_steps, const std::size_t phi_steps) {
-    // Set origin position of tracks
-    const point3 ori{0.f, 0.f, 0.f};
+    // Set momentum of tracks
     const scalar mom_mag{10.f * unit<scalar>::GeV};
 
     // Iterate through uniformly distributed momentum directions
     for (auto traj : uniform_track_generator<free_track_parameters<transform3>>(
-             theta_steps, phi_steps, ori, mom_mag)) {
+             phi_steps, theta_steps, mom_mag)) {
         tracks.push_back(traj);
     }
 }
@@ -44,12 +45,10 @@ void fill_tracks(vecmem::vector<free_track_parameters<transform3>> &tracks,
 template <propagate_option opt>
 static void BM_PROPAGATOR_CPU(benchmark::State &state) {
 
-    // Create the toy geometry
-    auto [det, names] = create_toy_geometry<host_container_types>(
-        host_mr,
-        field_type(field_type::backend_t::configuration_t{
-            0.f, 0.f, 2.f * unit<scalar>::T}),
-        n_brl_layers, n_edc_layers);
+    // Create the toy geometry and bfield
+    auto [det, names] = create_toy_geometry(host_mr, toy_cfg);
+    vector3 B{0.f, 0.f, 2.f * unit<scalar>::T};
+    auto bfield = bfield::create_const_field(B);
 
     // Create RK stepper
     rk_stepper_type s;
@@ -87,7 +86,7 @@ static void BM_PROPAGATOR_CPU(benchmark::State &state) {
                 tie(transporter_state, interactor_state, resetter_state);
 
             // Create the propagator state
-            propagator_host_type::state p_state(track, det.get_bfield(), det);
+            propagator_host_type::state p_state(track, bfield, det);
 
             // Run propagation
             if constexpr (opt == propagate_option::e_unsync) {
@@ -106,11 +105,12 @@ template <propagate_option opt>
 static void BM_PROPAGATOR_CUDA(benchmark::State &state) {
 
     // Create the toy geometry
-    auto [det, names] = create_toy_geometry<host_container_types>(
-        bp_mng_mr, n_brl_layers, n_edc_layers);
+    auto [det, names] = create_toy_geometry(bp_mng_mr, toy_cfg);
+    vector3 B{0.f, 0.f, 2.f * unit<scalar>::T};
+    auto bfield = bfield::create_const_field(B);
 
     // Get detector data
-    auto det_data = get_data(det);
+    auto det_data = detray::get_data(det);
 
     // vecmem copy helper object
     vecmem::cuda::copy copy;
@@ -139,7 +139,8 @@ static void BM_PROPAGATOR_CUDA(benchmark::State &state) {
         copy.setup(candidates_buffer);
 
         // Run the propagator test for GPU device
-        propagator_benchmark(det_data, tracks_data, candidates_buffer, opt);
+        propagator_benchmark(det_data, bfield, tracks_data, candidates_buffer,
+                             opt);
     }
 
     state.counters["TracksPropagated"] = benchmark::Counter(

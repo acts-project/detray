@@ -29,7 +29,7 @@ TEST(detector_cuda, detector) {
     vecmem::cuda::managed_memory_resource mng_mr;
 
     // create toy geometry
-    auto [toy_det, names] = create_toy_geometry<host_container_types>(mng_mr);
+    auto [toy_det, names] = create_toy_geometry(mng_mr);
 
     auto ctx0 = typename detector_host_t::geometry_context();
 
@@ -53,7 +53,7 @@ TEST(detector_cuda, detector) {
     vecmem::vector<cylinder_t> cylinders_device(cylinders_host.size(), &mng_mr);
 
     // get data object for toy detector
-    auto toy_det_data = get_data(toy_det);
+    auto toy_det_data = detray::get_data(toy_det);
 
     // get data object for device outputs
     auto volumes_data = vecmem::get_data(volumes_device);

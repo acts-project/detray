@@ -5,13 +5,17 @@
  * Mozilla Public License Version 2.0
  */
 
-#include <gtest/gtest.h>
+// Project include(s)
+#include "detray/detectors/create_toy_geometry.hpp"
+#include "navigator_cuda_kernel.hpp"
 
+// vecmem include(s)
 #include <vecmem/memory/cuda/device_memory_resource.hpp>
 #include <vecmem/memory/cuda/managed_memory_resource.hpp>
+#include <vecmem/utils/cuda/copy.hpp>
 
-#include "navigator_cuda_kernel.hpp"
-#include "vecmem/utils/cuda/copy.hpp"
+// GTest include(s)
+#include <gtest/gtest.h>
 
 TEST(navigator_cuda, navigator) {
 
@@ -23,8 +27,7 @@ TEST(navigator_cuda, navigator) {
     vecmem::cuda::device_memory_resource dev_mr;
 
     // Create detector
-    auto [det, names] = create_toy_geometry<host_container_types>(
-        mng_mr, n_brl_layers, n_edc_layers);
+    auto [det, names] = create_toy_geometry(mng_mr);
 
     // Create navigator
     navigator_host_t nav;
@@ -33,15 +36,13 @@ TEST(navigator_cuda, navigator) {
     vecmem::vector<free_track_parameters<transform3>> tracks_host(&mng_mr);
     vecmem::vector<free_track_parameters<transform3>> tracks_device(&mng_mr);
 
-    // Set origin position of tracks
-    const point3 ori{0.f, 0.f, 0.f};
+    // Magnitude of total momentum of tracks
     const scalar p_mag{10.f * unit<scalar>::GeV};
 
     // Iterate through uniformly distributed momentum directions
     for (auto track :
          uniform_track_generator<free_track_parameters<transform3>>(
-             theta_steps, phi_steps, ori, p_mag, {0.01f, constant<scalar>::pi},
-             {-constant<scalar>::pi, constant<scalar>::pi})) {
+             phi_steps, theta_steps, p_mag)) {
         track.set_overstep_tolerance(overstep_tolerance);
 
         tracks_host.push_back(track);
@@ -106,7 +107,7 @@ TEST(navigator_cuda, navigator) {
     copy.setup(position_records_buffer);
 
     // Get detector data
-    auto det_data = get_data(det);
+    auto det_data = detray::get_data(det);
 
     // Get tracks data
     auto tracks_data = vecmem::get_data(tracks_device);

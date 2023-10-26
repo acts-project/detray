@@ -85,7 +85,7 @@ GTEST_TEST(detray_geometry, surface) {
 
     using namespace detray;
 
-    using detector_t = detector<toy_metadata<>>;
+    using detector_t = detector<toy_metadata>;
 
     using point2_t = surface<detector_t>::point2;
     using point3_t = surface<detector_t>::point3;
@@ -147,7 +147,4 @@ GTEST_TEST(detray_geometry, surface) {
     ASSERT_NEAR(global2[1], glob_pos[1], tol);
     // The bound transform assumes the point is on surface
     ASSERT_NEAR(global2[2], disc_translation[2], tol);
-
-    // WARNING: This should be 0u for portal
-    ASSERT_EQ(disc.meas_dim(), 2u);
 }

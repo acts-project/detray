@@ -19,10 +19,6 @@
 #include "detray/propagator/propagator.hpp"
 #include "detray/test/types.hpp"
 
-// Covfie include(s).
-#include <covfie/core/field.hpp>
-#include <covfie/core/field_view.hpp>
-
 // Vecmem include(s).
 #include <vecmem/memory/host_memory_resource.hpp>
 

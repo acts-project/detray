@@ -31,7 +31,8 @@ namespace detray {
 template <typename mask_link_t = dtyped_index<dindex, dindex>,
           typename material_link_t = dtyped_index<dindex, dindex>,
           typename transform_link_t = dindex,
-          typename navigation_link_t = dindex, typename source_link_t = dindex>
+          typename navigation_link_t = dindex,
+          typename source_link_t = std::uint64_t>
 class surface_descriptor {
 
     public:
@@ -79,7 +80,7 @@ class surface_descriptor {
                                  const mask_link &mask,
                                  const material_link &material,
                                  const dindex volume, const source_link &src,
-                                 surface_id sf_id)
+                                 const surface_id sf_id)
         : _mask(mask), _material(material), _trf(trf), _src(src) {
         m_barcode = geometry::barcode{}.set_volume(volume).set_id(sf_id);
     }
@@ -190,6 +191,17 @@ class surface_descriptor {
     DETRAY_HOST_DEVICE
     constexpr auto is_passive() const -> bool {
         return m_barcode.id() == surface_id::e_passive;
+    }
+
+    /// @returns a string stream that prints the surface details
+    DETRAY_HOST
+    friend std::ostream &operator<<(std::ostream &os,
+                                    const surface_descriptor &sf) {
+        os << sf.m_barcode;
+        os << " | trf.: " << sf._trf;
+        os << " | mask: " << sf._mask;
+        os << " | mat.: " << sf._material;
+        return os;
     }
 
     private:

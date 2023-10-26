@@ -34,18 +34,11 @@ namespace detray {
 /// @tparam kNormalOrder true if the index for measurement parameter follows
 /// the local coordinate system
 template <unsigned int kCheckIndex = 0u,
-          template <typename> class intersector_t = plane_intersector,
-          unsigned int kMeasDim = 2u, bool kNormalOrder = true>
+          template <typename> class intersector_t = plane_intersector>
 class single3D {
     public:
     /// The name for this shape
     inline static const std::string name = "single3D";
-
-    /// The measurement dimension
-    inline static constexpr const unsigned int meas_dim{kMeasDim};
-
-    /// Normal ordering
-    inline static constexpr const bool normal_order{kNormalOrder};
 
     enum boundaries : unsigned int {
         e_lower = 0u,

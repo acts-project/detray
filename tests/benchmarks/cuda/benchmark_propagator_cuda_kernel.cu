@@ -11,7 +11,8 @@
 namespace detray {
 
 __global__ void __launch_bounds__(256, 4) propagator_benchmark_kernel(
-    typename detector_host_type::detector_view_type det_data,
+    typename detector_host_type::view_type det_data,
+    covfie::field_view<bfield::const_bknd_t> field_data,
     vecmem::data::vector_view<free_track_parameters<transform3>> tracks_data,
     vecmem::data::jagged_vector_view<intersection_t> candidates_data,
     const propagate_option opt) {
@@ -44,7 +45,7 @@ __global__ void __launch_bounds__(256, 4) propagator_benchmark_kernel(
     auto actor_states =
         tie(transporter_state, interactor_state, resetter_state);
     // Create the propagator state
-    propagator_device_type::state p_state(tracks.at(gid), det.get_bfield(), det,
+    propagator_device_type::state p_state(tracks.at(gid), field_data, det,
                                           candidates.at(gid));
 
     // Run propagation
@@ -56,7 +57,8 @@ __global__ void __launch_bounds__(256, 4) propagator_benchmark_kernel(
 }
 
 void propagator_benchmark(
-    typename detector_host_type::detector_view_type det_data,
+    typename detector_host_type::view_type det_data,
+    covfie::field_view<bfield::const_bknd_t> field_data,
     vecmem::data::vector_view<free_track_parameters<transform3>>& tracks_data,
     vecmem::data::jagged_vector_view<intersection_t>& candidates_data,
     const propagate_option opt) {
@@ -67,7 +69,7 @@ void propagator_benchmark(
 
     // run the test kernel
     propagator_benchmark_kernel<<<block_dim, thread_dim>>>(
-        det_data, tracks_data, candidates_data, opt);
+        det_data, field_data, tracks_data, candidates_data, opt);
 
     // cuda error check
     DETRAY_CUDA_ERROR_CHECK(cudaGetLastError());

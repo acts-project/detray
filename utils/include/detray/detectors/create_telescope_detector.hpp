@@ -19,11 +19,6 @@
 // Vecmem include(s)
 #include <vecmem/memory/memory_resource.hpp>
 
-// Covfie include(s)
-#include <covfie/core/backend/primitive/constant.hpp>
-#include <covfie/core/field.hpp>
-#include <covfie/core/vector.hpp>
-
 // System include(s)
 #include <algorithm>
 #include <iterator>
@@ -34,9 +29,6 @@
 namespace detray {
 
 namespace {
-
-template <typename mask_shape_t>
-using telescope_types = telescope_metadata<mask_shape_t>;
 
 /// Configure the toy detector
 template <typename mask_shape_t = rectangle2D<>,
@@ -71,8 +63,6 @@ struct tel_det_config {
     trajectory_t m_trajectory{};
     /// Safety envelope between the test surfaces and the portals
     scalar m_envelope{0.1f * unit<scalar>::mm};
-    /// Field vector for an homogenoues b-field
-    vector3 m_bfield_vec{0.f, 0.f, 2.f * unit<scalar>::T};
 
     /// Setters
     /// @{
@@ -91,6 +81,7 @@ struct tel_det_config {
         return *this;
     }
     constexpr tel_det_config &positions(const std::vector<scalar> &dists) {
+        m_positions.clear();
         std::copy_if(dists.begin(), dists.end(),
                      std::back_inserter(m_positions),
                      [](scalar d) { return (d >= 0.f); });
@@ -114,14 +105,6 @@ struct tel_det_config {
         m_envelope = e;
         return *this;
     }
-    tel_det_config &bfield_vec(const vector3 &field_vec) {
-        m_bfield_vec = field_vec;
-        return *this;
-    }
-    tel_det_config &bfield_vec(const scalar x, const scalar y, const scalar z) {
-        m_bfield_vec = {x, y, z};
-        return *this;
-    }
     /// @}
 
     /// Getters
@@ -136,7 +119,6 @@ struct tel_det_config {
     constexpr scalar mat_thickness() const { return m_thickness; }
     const trajectory_t &pilot_track() const { return m_trajectory; }
     constexpr scalar envelope() const { return m_envelope; }
-    constexpr const vector3 &bfield_vec() const { return m_bfield_vec; }
     /// @}
 };
 
@@ -432,7 +414,6 @@ inline void create_telescope(context_t &ctx, volume_t &volume,
 /// @tparam trajectory_t the type of the pilot trajectory
 ///
 /// @param resource the memory resource for the detector containers
-/// @param bfield
 ///
 /// @returns a complete detector object
 template <typename mask_shape_t = rectangle2D<>,
@@ -443,8 +424,8 @@ inline auto create_telescope_detector(
         20.f * unit<scalar>::mm, 20.f * unit<scalar>::mm}) {
 
     // detector type
-    using detector_t = detector<telescope_types<mask_shape_t>, covfie::field,
-                                host_container_types>;
+    using detector_t =
+        detector<telescope_metadata<mask_shape_t>, host_container_types>;
 
     // Detector and volume names
     typename detector_t::name_map name_map = {{0u, "telescope_detector"},
@@ -472,26 +453,19 @@ inline auto create_telescope_detector(
     assert((positions.size() < 20u) &&
            "Due to WIP, please choose less than 20 surfaces for now");
 
-    using const_bfield_bknd_t =
-        covfie::backend::constant<covfie::vector::vector_d<scalar, 3>,
-                                  covfie::vector::vector_d<scalar, 3>>;
-    const auto &B = cfg.bfield_vec();
-    auto bfield = covfie::field<const_bfield_bknd_t>(
-        const_bfield_bknd_t::configuration_t{B[0], B[1], B[2]});
-
     // create empty detector
-    detector_t det(resource, std::move(bfield));
+    detector_t det(resource);
 
     typename detector_t::geometry_context ctx{};
 
     // The telescope detector has only one volume with default placement
     auto &vol = det.new_volume(volume_id::e_cuboid,
-                               {detector_t::sf_finders::id::e_default, 0u});
+                               {detector_t::accel::id::e_default, 0u});
     vol.set_transform(det.transform_store().size());
     det.transform_store().emplace_back();
 
     // Add module surfaces to volume
-    typename detector_t::surface_container_t surfaces(&resource);
+    typename detector_t::surface_container surfaces(&resource);
     typename detector_t::mask_container masks(resource);
     typename detector_t::material_container materials(resource);
     typename detector_t::transform_container transforms(resource);

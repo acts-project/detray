@@ -15,6 +15,7 @@
 #include "detray/detectors/toy_metadata.hpp"
 #include "detray/geometry/detector_volume.hpp"
 #include "detray/geometry/surface.hpp"
+#include "detray/io/common/detail/file_handle.hpp"
 #include "detray/materials/predefined_materials.hpp"
 #include "detray/tools/grid_builder.hpp"
 #include "detray/tools/volume_builder.hpp"
@@ -22,13 +23,11 @@
 // Vecmem include(s)
 #include <vecmem/memory/memory_resource.hpp>
 
-// Covfie include(s)
-#include <covfie/core/backend/primitive/constant.hpp>
-#include <covfie/core/field.hpp>
-
 // System include(s)
 #include <limits>
 #include <stdexcept>
+#include <string>
+#include <string_view>
 #include <type_traits>
 #include <utility>
 
@@ -40,6 +39,32 @@ using transform3_t = __plugin::transform3<detray::scalar>;
 using point3 = __plugin::point3<detray::scalar>;
 using vector3 = __plugin::vector3<detray::scalar>;
 using point2 = __plugin::point2<detray::scalar>;
+
+/// Configure the toy detector
+struct toy_det_config {
+    /// No. of barrel layers the detector should be built with
+    unsigned int m_n_brl_layers{4u};
+    /// No. of endcap layers (on either side) the detector should be built with
+    unsigned int m_n_edc_layers{3u};
+
+    /// Setters
+    /// @{
+    constexpr toy_det_config &n_brl_layers(const unsigned int n) {
+        m_n_brl_layers = n;
+        return *this;
+    }
+    constexpr toy_det_config &n_edc_layers(const unsigned int n) {
+        m_n_edc_layers = n;
+        return *this;
+    }
+    /// @}
+
+    /// Getters
+    /// @{
+    constexpr unsigned int n_brl_layers() const { return m_n_brl_layers; }
+    constexpr unsigned int n_edc_layers() const { return m_n_edc_layers; }
+    /// @}
+};
 
 /** Helper function that creates a layer of rectangular barrel modules.
  *
@@ -144,15 +169,17 @@ inline void create_barrel_modules(context_t &ctx, volume_type &vol,
 
 /// Helper function that creates a surface grid of rectangular barrel modules.
 ///
-/// @param surfaces_grid the grid to be created with proper axes
-/// @param resource vecmem memory resource
-/// @param cfg config struct for module creation
+/// @param ctx the detector geometry context
+/// @param resource memory resource for the grid data allocations
+/// @param vol the detector volume in which to build the grid
+/// @param det the detector to fill the grid into
+/// @param module_factory factory to create the volume surfaces
 template <
-    typename detector_t, typename config_t, typename factory_t,
+    typename detector_t, typename factory_t,
     std::enable_if_t<
         std::is_invocable_v<factory_t, typename detector_t::geometry_context &,
                             typename detector_t::volume_type &,
-                            typename detector_t::surface_container_t &,
+                            typename detector_t::surface_container &,
                             typename detector_t::mask_container &,
                             typename detector_t::material_container &,
                             typename detector_t::transform_container &>,
@@ -160,26 +187,37 @@ template <
 inline void add_cylinder_grid(const typename detector_t::geometry_context &ctx,
                               vecmem::memory_resource &resource,
                               typename detector_t::volume_type &vol,
-                              detector_t &det, const config_t &cfg,
-                              factory_t &module_factory) {
+                              detector_t &det, factory_t &module_factory) {
     // Get relevant ids
     using geo_obj_ids = typename detector_t::geo_obj_ids;
 
     constexpr auto cyl_id = detector_t::masks::id::e_portal_cylinder2;
-    constexpr auto grid_id = detector_t::sf_finders::id::e_cylinder2_grid;
+    constexpr auto grid_id = detector_t::accel::id::e_cylinder2_grid;
 
     using cyl_grid_t =
-        typename detector_t::surface_container::template get_type<grid_id>;
+        typename detector_t::accelerator_container::template get_type<grid_id>;
     auto gbuilder =
-        grid_builder<detector_t, cyl_grid_t, detray::detail::fill_by_pos>{};
+        grid_builder<detector_t, cyl_grid_t, detray::detail::fill_by_pos>{
+            nullptr};
 
-    // The disc portals are at the end of the portal range by construction
-    auto portal_mask_idx = (det.portals(vol).end() - 3u)->mask().index();
-    const auto &cyl_mask =
+    // The portals are at the end of the portal range by construction
+    auto portal_mask_idx = (det.portals(vol).end() - 4u)->mask().index();
+    const auto &inner_cyl_mask =
+        det.mask_store().template get<cyl_id>().at(portal_mask_idx);
+    portal_mask_idx = (det.portals(vol).end() - 3u)->mask().index();
+    const auto &outer_cyl_mask =
         det.mask_store().template get<cyl_id>().at(portal_mask_idx);
 
+    // Correct cylinder radius so that the grid lies in the middle
+    using cyl_mask_t = detail::remove_cvref_t<decltype(outer_cyl_mask)>;
+    typename cyl_mask_t::mask_values mask_values{outer_cyl_mask.values()};
+    mask_values[cylinder2D<>::e_r] =
+        0.5f * (inner_cyl_mask.values()[cylinder2D<>::e_r] +
+                outer_cyl_mask.values()[cylinder2D<>::e_r]);
+    const cyl_mask_t cyl_mask{mask_values, 0u};
+
     // Create the sensitive surfaces
-    typename detector_t::surface_container_t surfaces(&resource);
+    typename detector_t::surface_container surfaces(&resource);
     typename detector_t::mask_container masks(resource);
     typename detector_t::material_container materials(resource);
     typename detector_t::transform_container transforms(resource);
@@ -203,33 +241,36 @@ inline void add_cylinder_grid(const typename detector_t::geometry_context &ctx,
         det.add_surface_to_lookup(sf_desc);
     }
 
-    // Add new grid to the detector
-    gbuilder.init_grid(cyl_mask, {cfg.m_binning.first, cfg.m_binning.second});
-    gbuilder.fill_grid(detector_volume{det, vol}, surfaces, transforms, masks,
-                       ctx);
-    assert(gbuilder.get().all().size() == surfaces.size());
-
     // Add transforms, masks and material to detector
     det.append_masks(std::move(masks));
     det.append_transforms(std::move(transforms));
     det.append_materials(std::move(materials));
-    det.surface_store().template push_back<grid_id>(gbuilder.get());
+
+    // Add new grid to the detector
+    gbuilder.init_grid(cyl_mask, {module_factory.cfg.m_binning.first,
+                                  module_factory.cfg.m_binning.second});
+    gbuilder.fill_grid(detector_volume{det, vol}, det.surface_lookup(),
+                       det.transform_store(), det.mask_store(), ctx);
+    assert(gbuilder.get().all().size() == surfaces.size());
+
+    det.accelerator_store().template push_back<grid_id>(gbuilder.get());
     vol.template set_link<geo_obj_ids::e_sensitive>(
-        grid_id, det.surface_store().template size<grid_id>() - 1u);
+        grid_id, det.accelerator_store().template size<grid_id>() - 1u);
 }
 
 /// Helper function that creates a surface grid of trapezoidal endcap modules.
 ///
-/// @param vol the detector volume that should be equipped with a grid
-/// @param surfaces_grid the grid to be created with proper axes
-/// @param resource vecmem memory resource
-/// @param cfg config struct for module creation
+/// @param ctx the detector geometry context
+/// @param resource memory resource for the grid data allocations
+/// @param vol the detector volume in which to build the grid
+/// @param det the detector to fill the grid into
+/// @param module_factory factory to create the volume surfaces
 template <
-    typename detector_t, typename config_t, typename factory_t,
+    typename detector_t, typename factory_t,
     std::enable_if_t<
         std::is_invocable_v<factory_t, typename detector_t::geometry_context &,
                             typename detector_t::volume_type &,
-                            typename detector_t::surface_container_t &,
+                            typename detector_t::surface_container &,
                             typename detector_t::mask_container &,
                             typename detector_t::material_container &,
                             typename detector_t::transform_container &>,
@@ -237,18 +278,18 @@ template <
 inline void add_disc_grid(const typename detector_t::geometry_context &ctx,
                           vecmem::memory_resource &resource,
                           typename detector_t::volume_type &vol,
-                          detector_t &det, const config_t &cfg,
-                          factory_t &module_factory) {
+                          detector_t &det, factory_t &module_factory) {
     // Get relevant ids
     using geo_obj_ids = typename detector_t::geo_obj_ids;
 
     constexpr auto disc_id = detector_t::masks::id::e_portal_ring2;
-    constexpr auto grid_id = detector_t::sf_finders::id::e_disc_grid;
+    constexpr auto grid_id = detector_t::accel::id::e_disc_grid;
 
     using disc_grid_t =
-        typename detector_t::surface_container::template get_type<grid_id>;
+        typename detector_t::accelerator_container::template get_type<grid_id>;
     auto gbuilder =
-        grid_builder<detector_t, disc_grid_t, detray::detail::fill_by_pos>{};
+        grid_builder<detector_t, disc_grid_t, detray::detail::fill_by_pos>{
+            nullptr};
 
     // The disc portals are at the end of the portal range by construction
     auto portal_mask_idx = det.portals(vol).back().mask().index();
@@ -256,7 +297,7 @@ inline void add_disc_grid(const typename detector_t::geometry_context &ctx,
         det.mask_store().template get<disc_id>().at(portal_mask_idx);
 
     // Create the sensitive surfaces
-    typename detector_t::surface_container_t surfaces(&resource);
+    typename detector_t::surface_container surfaces(&resource);
     typename detector_t::mask_container masks(resource);
     typename detector_t::material_container materials(resource);
     typename detector_t::transform_container transforms(resource);
@@ -280,20 +321,21 @@ inline void add_disc_grid(const typename detector_t::geometry_context &ctx,
         det.add_surface_to_lookup(sf_desc);
     }
 
-    // Add new grid to the detector
-    gbuilder.init_grid(disc_mask,
-                       {cfg.disc_binning.size(), cfg.disc_binning.front()});
-    gbuilder.fill_grid(detector_volume{det, vol}, surfaces, transforms, masks,
-                       ctx);
-    assert(gbuilder.get().all().size() == surfaces.size());
-
     // Add transforms, masks and material to detector
     det.append_masks(std::move(masks));
     det.append_transforms(std::move(transforms));
     det.append_materials(std::move(materials));
-    det.surface_store().template push_back<grid_id>(gbuilder.get());
+
+    // Add new grid to the detector
+    gbuilder.init_grid(disc_mask, {module_factory.cfg.disc_binning.size(),
+                                   module_factory.cfg.disc_binning.back()});
+    gbuilder.fill_grid(detector_volume{det, vol}, det.surface_lookup(),
+                       det.transform_store(), det.mask_store(), ctx);
+    assert(gbuilder.get().all().size() == surfaces.size());
+
+    det.accelerator_store().template push_back<grid_id>(gbuilder.get());
     vol.template set_link<geo_obj_ids::e_sensitive>(
-        grid_id, det.surface_store().template size<grid_id>() - 1u);
+        grid_id, det.accelerator_store().template size<grid_id>() - 1u);
 }
 
 /** Helper method for positioning of modules in an endcap ring
@@ -357,11 +399,12 @@ template <typename context_t, typename volume_type,
           typename surface_container_t, typename mask_container_t,
           typename material_container_t, typename transform_container_t,
           typename config_t>
-void create_endcap_modules(context_t &ctx, volume_type &vol,
-                           surface_container_t &surfaces,
-                           mask_container_t &masks,
-                           material_container_t &materials,
-                           transform_container_t &transforms, config_t cfg) {
+inline void create_endcap_modules(context_t &ctx, volume_type &vol,
+                                  surface_container_t &surfaces,
+                                  mask_container_t &masks,
+                                  material_container_t &materials,
+                                  transform_container_t &transforms,
+                                  config_t cfg) {
     using surface_type = typename surface_container_t::value_type;
     using nav_link_t = typename surface_type::navigation_link;
     using mask_id = typename surface_type::mask_id;
@@ -498,7 +541,7 @@ inline void add_beampipe(
                                     : edc_lay_sizes[n_edc_layers - 1u].second};
     scalar min_z{-max_z};
 
-    typename detector_t::surface_container_t surfaces(&resource);
+    typename detector_t::surface_container surfaces(&resource);
     typename detector_t::mask_container masks(resource);
     typename detector_t::material_container materials(resource);
     typename detector_t::transform_container transforms(resource);
@@ -510,9 +553,9 @@ inline void add_beampipe(
     det.transform_store().emplace_back(ctx);
 
     beampipe.template set_link<object_id::e_portal>(
-        detector_t::sf_finders::id::e_default, 0u);
+        detector_t::accel::id::e_default, 0u);
     beampipe.template set_link<object_id::e_passive>(
-        detector_t::sf_finders::id::e_default, 0u);
+        detector_t::accel::id::e_default, 0u);
 
     // This is the beampipe surface
     dindex volume_link{beampipe_idx};
@@ -614,14 +657,14 @@ inline void add_endcap_barrel_connection(
     const scalar edc_disc_z{side < 0 ? min_z : max_z};
     const scalar brl_disc_z{side < 0 ? max_z : min_z};
 
-    typename detector_t::surface_container_t surfaces(&resource);
+    typename detector_t::surface_container surfaces(&resource);
     typename detector_t::mask_container masks(resource);
     typename detector_t::material_container materials(resource);
     typename detector_t::transform_container transforms(resource);
 
-    auto &connector_gap = det.new_volume(volume_id::e_cylinder,
-                                         {detector_t::sf_finders::id::e_default,
-                                          detail::invalid_value<dindex>()});
+    auto &connector_gap = det.new_volume(
+        volume_id::e_cylinder,
+        {detector_t::accel::id::e_default, detail::invalid_value<dindex>()});
     dindex connector_gap_idx{det.volumes().back().index()};
     names[connector_gap_idx + 1u] =
         "connector_gap_" + std::to_string(connector_gap_idx);
@@ -679,7 +722,7 @@ inline void add_endcap_barrel_connection(
  * @param cfg config struct for module creation
  */
 template <typename edc_module_factory, typename detector_t, typename config_t>
-void add_endcap_detector(
+inline void add_endcap_detector(
     detector_t &det, vecmem::memory_resource &resource,
     typename detector_t::geometry_context &ctx,
     typename detector_t::name_map &names, dindex n_layers, dindex beampipe_idx,
@@ -763,8 +806,7 @@ void add_endcap_detector(
             dindex vol_idx = det.volumes().back().index();
             names[vol_idx + 1u] = "endcap_" + std::to_string(vol_idx);
 
-            add_disc_grid(ctx, resource, det.volumes().back(), det, cfg,
-                          m_factory);
+            add_disc_grid(ctx, resource, det.volumes().back(), det, m_factory);
         }
     }
 }
@@ -782,7 +824,7 @@ void add_endcap_detector(
  * @param cfg config struct for module creation
  */
 template <typename brl_module_factory, typename detector_t, typename config_t>
-void add_barrel_detector(
+inline void add_barrel_detector(
     detector_t &det, vecmem::memory_resource &resource,
     typename detector_t::geometry_context &ctx,
     typename detector_t::name_map &names, const unsigned int n_layers,
@@ -849,7 +891,7 @@ void add_barrel_detector(
             dindex vol_idx = det.volumes().back().index();
             names[vol_idx + 1u] = "barrel_" + std::to_string(vol_idx);
 
-            add_cylinder_grid(ctx, resource, det.volumes().back(), det, cfg,
+            add_cylinder_grid(ctx, resource, det.volumes().back(), det,
                               m_factory);
         }
     }
@@ -857,24 +899,20 @@ void add_barrel_detector(
 
 }  // namespace
 
-/** Builds a detray geometry that contains the innermost tml layers. The number
- *  of barrel and endcap layers can be chosen, but all barrel layers should be
- *  present when an endcap detector is built to have the barrel region radius
- *  match the endcap diameter.
- *
- * @param n_brl_layers number of pixel barrel layer to build (max 4)
- * @param n_edc_layers number of pixel endcap discs to build (max 7)
- *
- * @returns a complete detector object
- */
-template <typename container_t = host_container_types>
-auto create_toy_geometry(
-    vecmem::memory_resource &resource,
-    covfie::field<toy_metadata<>::bfield_backend_t> &&bfield,
-    unsigned int n_brl_layers = 4u, unsigned int n_edc_layers = 3u) {
+/// Builds a detray geometry that contains the innermost tml layers. The number
+/// of barrel and endcap layers can be chosen, but all barrel layers should be
+/// present when an endcap detector is built to have the barrel region radius
+/// match the endcap diameter.
+///
+/// @param resource vecmem memory resource to use for container allocations
+/// @param cfg toy detector configuration
+///
+/// @returns a complete detector object
+inline auto create_toy_geometry(vecmem::memory_resource &resource,
+                                const toy_det_config &cfg = {}) {
 
     // detector type
-    using detector_t = detector<toy_metadata<>, covfie::field, container_t>;
+    using detector_t = detector<toy_metadata, host_container_types>;
 
     // Detector and volume names
     typename detector_t::name_map name_map = {{0u, "toy_detector"}};
@@ -944,7 +982,7 @@ auto create_toy_geometry(
 
         void operator()(const typename detector_t::geometry_context &ctx,
                         typename detector_t::volume_type &volume,
-                        typename detector_t::surface_container_t &surfaces,
+                        typename detector_t::surface_container &surfaces,
                         typename detector_t::mask_container &masks,
                         typename detector_t::material_container &materials,
                         typename detector_t::transform_container &transforms) {
@@ -959,7 +997,7 @@ auto create_toy_geometry(
 
         void operator()(const typename detector_t::geometry_context &ctx,
                         typename detector_t::volume_type &volume,
-                        typename detector_t::surface_container_t &surfaces,
+                        typename detector_t::surface_container &surfaces,
                         typename detector_t::mask_container &masks,
                         typename detector_t::material_container &materials,
                         typename detector_t::transform_container &transforms) {
@@ -969,7 +1007,7 @@ auto create_toy_geometry(
     };
 
     // create empty detector
-    detector_t det(resource, std::move(bfield));
+    detector_t det(resource);
 
     // geometry context object
     typename detector_t::geometry_context ctx0{};
@@ -977,19 +1015,20 @@ auto create_toy_geometry(
     brl_m_config brl_config{};
     edc_m_config edc_config{};
 
-    if (n_edc_layers > edc_positions.size()) {
+    if (cfg.n_edc_layers() > edc_positions.size()) {
         throw std::invalid_argument(
             "ERROR: Too many endcap layers requested (max " +
             std::to_string(edc_positions.size()) + ")!");
     }
-    if (n_brl_layers > brl_positions.size() - 1u) {
+    if (cfg.n_brl_layers() > brl_positions.size() - 1u) {
         throw std::invalid_argument(
             "ERROR: Too many barrel layers requested (max " +
             std::to_string(brl_positions.size() - 1u) + ")!");
     }
     // the radius of the endcaps and  the barrel section need to match
-    if (n_edc_layers > 0 and
-        std::fabs(brl_lay_sizes[n_brl_layers].second - edc_config.outer_r) >
+    if (cfg.n_edc_layers() > 0 and
+        std::fabs(brl_lay_sizes[cfg.n_brl_layers()].second -
+                  edc_config.outer_r) >
             std::numeric_limits<scalar>::epsilon()) {
         throw std::invalid_argument(
             "ERROR: Barrel and endcap radii do not match!");
@@ -997,53 +1036,54 @@ auto create_toy_geometry(
 
     // beampipe
     const dindex beampipe_idx{0u};
-    add_beampipe(det, resource, ctx0, name_map, n_edc_layers, n_brl_layers,
-                 edc_lay_sizes, brl_lay_sizes[0], brl_positions[0], brl_half_z,
-                 edc_config.inner_r);
+    add_beampipe(det, resource, ctx0, name_map, cfg.n_edc_layers(),
+                 cfg.n_brl_layers(), edc_lay_sizes, brl_lay_sizes[0],
+                 brl_positions[0], brl_half_z, edc_config.inner_r);
 
-    if (n_edc_layers > 0u) {
+    if (cfg.n_edc_layers() > 0u) {
         edc_config.side = -1;
         // negative endcap layers
         add_endcap_detector<edc_module_factory>(
-            det, resource, ctx0, name_map, n_edc_layers, beampipe_idx,
+            det, resource, ctx0, name_map, cfg.n_edc_layers(), beampipe_idx,
             edc_lay_sizes, edc_positions, edc_config);
 
         // gap volume that connects barrel and neg. endcap
         dindex prev_vol_idx = det.volumes().back().index();
         prev_vol_idx = prev_vol_idx == 0u ? leaving_world : prev_vol_idx;
-        dindex next_vol_idx = n_brl_layers == 0u
+        dindex next_vol_idx = cfg.n_brl_layers() == 0u
                                   ? leaving_world
                                   : det.volumes().back().index() + 2u;
 
         add_endcap_barrel_connection(
-            det, resource, ctx0, name_map, edc_config.side, n_brl_layers,
+            det, resource, ctx0, name_map, edc_config.side, cfg.n_brl_layers(),
             beampipe_idx, brl_lay_sizes, edc_config.inner_r, edc_config.outer_r,
             edc_lay_sizes[0].first, brl_half_z, next_vol_idx, prev_vol_idx);
     }
-    if (n_brl_layers > 0u) {
+    if (cfg.n_brl_layers() > 0u) {
         // barrel
         add_barrel_detector<brl_module_factory>(
-            det, resource, ctx0, name_map, n_brl_layers, beampipe_idx,
+            det, resource, ctx0, name_map, cfg.n_brl_layers(), beampipe_idx,
             brl_half_z, brl_lay_sizes, brl_positions, brl_binning, brl_config);
     }
-    if (n_edc_layers > 0u) {
+    if (cfg.n_edc_layers() > 0u) {
         // gap layer that connects barrel and pos. endcap
         edc_config.side = 1.;
         // innermost barrel layer volume id
-        dindex prev_vol_idx =
-            n_brl_layers == 0 ? leaving_world : 2u * n_edc_layers + 1u;
+        dindex prev_vol_idx = cfg.n_brl_layers() == 0
+                                  ? leaving_world
+                                  : 2u * cfg.n_edc_layers() + 1u;
         dindex next_vol_idx = prev_vol_idx == 1u
                                   ? leaving_world
                                   : det.volumes().back().index() + 2u;
 
         add_endcap_barrel_connection(
-            det, resource, ctx0, name_map, edc_config.side, n_brl_layers,
+            det, resource, ctx0, name_map, edc_config.side, cfg.n_brl_layers(),
             beampipe_idx, brl_lay_sizes, edc_config.inner_r, edc_config.outer_r,
             brl_half_z, edc_lay_sizes[0].first, prev_vol_idx, next_vol_idx);
 
         // positive endcap layers
         add_endcap_detector<edc_module_factory>(
-            det, resource, ctx0, name_map, n_edc_layers, beampipe_idx,
+            det, resource, ctx0, name_map, cfg.n_edc_layers(), beampipe_idx,
             edc_lay_sizes, edc_positions, edc_config);
     }
 
@@ -1068,19 +1108,6 @@ auto create_toy_geometry(
     det.set_volume_finder(std::move(vgrid));
 
     return std::make_pair(std::move(det), std::move(name_map));
-}
-
-/** Wrapper for create_toy_geometry with constant zero bfield.
- */
-template <typename container_t = host_container_types>
-auto create_toy_geometry(vecmem::memory_resource &resource,
-                         unsigned int n_brl_layers = 4u,
-                         unsigned int n_edc_layers = 3u) {
-    return create_toy_geometry<container_t>(
-        resource,
-        covfie::field<toy_metadata<>::bfield_backend_t>{
-            toy_metadata<>::bfield_backend_t::configuration_t{0.f, 0.f, 0.f}},
-        n_brl_layers, n_edc_layers);
 }
 
 }  // namespace detray

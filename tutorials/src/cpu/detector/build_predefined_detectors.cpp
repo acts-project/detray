@@ -40,23 +40,24 @@ int main(int argc, char** argv) {
     //
     // Toy detector
     //
-
+    detray::toy_det_config toy_cfg{};
     // Number of barrel layers (0 - 4)
-    unsigned int n_brl_layers{4u};
+    toy_cfg.n_brl_layers(4u);
     // Number of endcap layers on either side (0 - 7)
     // Note: The detector must be configured with 4 barrel layers to be able to
     // add any encap layers
-    unsigned int n_edc_layers{1u};
+    toy_cfg.n_edc_layers(1u);
 
     // Read toy detector config from commandline, if it was given
     if (argc == 3) {
-        n_brl_layers = static_cast<unsigned int>(std::abs(std::atoi(argv[1])));
-        n_edc_layers = static_cast<unsigned int>(std::abs(std::atoi(argv[2])));
+        toy_cfg.n_brl_layers(
+            static_cast<unsigned int>(std::abs(std::atoi(argv[1]))));
+        toy_cfg.n_edc_layers(
+            static_cast<unsigned int>(std::abs(std::atoi(argv[2]))));
     }
 
     // Fill the detector
-    const auto [toy_det, names] =
-        detray::create_toy_geometry(host_mr, n_brl_layers, n_edc_layers);
+    const auto [toy_det, names] = detray::create_toy_geometry(host_mr, toy_cfg);
 
     // Print the volume graph of the toy detector
     std::cout << "\nToy detector:\n"
@@ -104,7 +105,7 @@ int main(int argc, char** argv) {
     //
     // Case 1: Defaults: Straight telescope in z-direction,
     //         10 rectangle surfaces, 500mm in length, modules evenly spaced,
-    //         no B-field, silicon material (80mm)
+    //         silicon material (80mm)
     const auto [tel_det1, tel_names1] =
         detray::create_telescope_detector<detray::rectangle2D<>>(host_mr);
 
@@ -114,8 +115,7 @@ int main(int argc, char** argv) {
 
     //
     // Case 2: Straight telescope in z-direction, 15 trapezoid surfaces, 2000mm
-    //         in length, modules evenly spaced, no B-field,
-    //         silicon material (80mm)
+    //         in length, modules evenly spaced, silicon material (80mm)
     detray::tel_det_config trp_cfg{trapezoid};
     trp_cfg.n_surfaces(15).length(2000.f * detray::unit<detray::scalar>::mm);
 
@@ -128,7 +128,7 @@ int main(int argc, char** argv) {
 
     //
     // Case 3: Straight telescope in x-direction, 11 rectangle surfaces, 2000mm
-    //         in length, modules places according to 'positions', no B-field,
+    //         in length, modules places according to 'positions',
     //         silicon material (80mm)
 
     // Pilot trajectory in x-direction
@@ -148,7 +148,7 @@ int main(int argc, char** argv) {
     //
     // Case 4: Bent telescope along helical track, 11 trapezoid surfaces,
     //         modules spaced according to given positions,
-    //         constant B-field, silicon material (80mm)
+    //         silicon material (80mm)
 
     // Pilot track in x-direction
     detray::free_track_parameters<detray::tutorial::transform3> y_track{
@@ -161,7 +161,7 @@ int main(int argc, char** argv) {
     helix_t helix(y_track, &B_z);
 
     detray::tel_det_config htrp_cfg{trapezoid, helix};
-    htrp_cfg.positions(positions).bfield_vec(B_z);
+    htrp_cfg.positions(positions);
 
     const auto [tel_det4, tel_names4] =
         detray::create_telescope_detector(host_mr, htrp_cfg);

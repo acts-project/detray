@@ -14,18 +14,12 @@
 #include "detray/detectors/detector_helper.hpp"
 #include "detray/masks/masks.hpp"
 #include "detray/materials/predefined_materials.hpp"
-#include "detray/tools/bounding_volume.hpp"
 #include "detray/tools/grid_builder.hpp"
 #include "detray/utils/axis_rotation.hpp"
 #include "detray/utils/unit_vectors.hpp"
 
 // Vecmem include(s)
 #include <vecmem/memory/memory_resource.hpp>
-
-// Covfie include(s)
-#include <covfie/core/backend/primitive/constant.hpp>
-#include <covfie/core/field.hpp>
-#include <covfie/core/vector.hpp>
 
 namespace detray {
 
@@ -46,9 +40,6 @@ struct wire_chamber_config {
     /// Half z of cylinder chamber
     scalar m_half_z{1000.f * unit<scalar>::mm};
 
-    /// Field vector for an homogenoues b-field
-    vector3 m_bfield_vec{0.f, 0.f, 2.f * unit<scalar>::T};
-
     constexpr wire_chamber_config &n_layers(const unsigned int n) {
         m_n_layers = n;
         return *this;
@@ -59,29 +50,16 @@ struct wire_chamber_config {
         return *this;
     }
 
-    wire_chamber_config &bfield_vec(const vector3 &field_vec) {
-        m_bfield_vec = field_vec;
-        return *this;
-    }
-
-    wire_chamber_config &bfield_vec(const scalar x, const scalar y,
-                                    const scalar z) {
-        m_bfield_vec = {x, y, z};
-        return *this;
-    }
-
     constexpr unsigned int n_layers() const { return m_n_layers; }
     constexpr scalar half_z() const { return m_half_z; }
-    constexpr const vector3 &bfield_vec() const { return m_bfield_vec; }
 
 };  // wire chamber config
 
-template <typename container_t = host_container_types>
-auto create_wire_chamber(vecmem::memory_resource &resource,
-                         const wire_chamber_config &cfg) {
+inline auto create_wire_chamber(vecmem::memory_resource &resource,
+                                const wire_chamber_config &cfg) {
 
     // Detector type
-    using detector_t = detector<default_metadata, covfie::field, container_t>;
+    using detector_t = detector<default_metadata, host_container_types>;
 
     using nav_link_t = typename detector_t::surface_type::navigation_link;
     using mask_id = typename detector_t::surface_type::mask_id;
@@ -100,16 +78,8 @@ auto create_wire_chamber(vecmem::memory_resource &resource,
     const material<scalar> wire_mat = tungsten<scalar>();
     constexpr scalar wire_rad = 15.f * unit<scalar>::um;
 
-    // B field
-    using const_bfield_bknd_t =
-        covfie::backend::constant<covfie::vector::vector_d<scalar, 3>,
-                                  covfie::vector::vector_d<scalar, 3>>;
-    const auto &B = cfg.bfield_vec();
-    auto bfield = covfie::field<const_bfield_bknd_t>(
-        const_bfield_bknd_t::configuration_t{B[0], B[1], B[2]});
-
     // Create detector
-    detector_t det(resource, std::move(bfield));
+    detector_t det(resource);
 
     // Detector and volume names
     typename detector_t::name_map name_map = {{0u, "wire_chamber"}};
@@ -160,7 +130,7 @@ auto create_wire_chamber(vecmem::memory_resource &resource,
         auto mask_volume_link{static_cast<nav_link_t>(volume_idx)};
 
         // Containers per volume
-        typename detector_t::surface_container_t surfaces(&resource);
+        typename detector_t::surface_container surfaces(&resource);
         typename detector_t::mask_container masks(resource);
         typename detector_t::material_container materials(resource);
         typename detector_t::transform_container transforms(resource);
@@ -168,7 +138,6 @@ auto create_wire_chamber(vecmem::memory_resource &resource,
         // Wire center positions
         detray::dvector<point3> m_centers{};
 
-        unsigned int n_wires_per_layer{0u};
         scalar theta{0.f};
         while (theta <= 2.f * constant<scalar>::pi) {
 
@@ -177,8 +146,6 @@ auto create_wire_chamber(vecmem::memory_resource &resource,
             const scalar z = 0.f;
 
             m_centers.push_back({x, y, z});
-
-            n_wires_per_layer++;
             theta += delta;
         }
 
@@ -230,6 +197,11 @@ auto create_wire_chamber(vecmem::memory_resource &resource,
             det.add_surface_to_lookup(sf_desc);
         }
 
+        // Add transforms, masks and material to detector
+        det.append_masks(std::move(masks));
+        det.append_transforms(std::move(transforms));
+        det.append_materials(std::move(materials));
+
         //
         // Fill Grid
         //
@@ -237,31 +209,39 @@ auto create_wire_chamber(vecmem::memory_resource &resource,
         // Get relevant ids
         using geo_obj_ids = typename detector_t::geo_obj_ids;
         constexpr auto cyl_id = detector_t::masks::id::e_portal_cylinder2;
-        constexpr auto grid_id = detector_t::sf_finders::id::e_cylinder2_grid;
+        constexpr auto grid_id = detector_t::accel::id::e_cylinder2_grid;
 
         using cyl_grid_t =
-            typename detector_t::surface_container::template get_type<grid_id>;
+            typename detector_t::accelerator_container::template get_type<
+                grid_id>;
         auto gbuilder =
-            grid_builder<detector_t, cyl_grid_t, detray::detail::fill_by_pos>{};
+            grid_builder<detector_t, cyl_grid_t, detray::detail::fill_by_pos>{
+                nullptr};
 
-        // The disc portals are at the end of the portal range by construction
-        auto portal_mask_idx = (det.portals(vol).end() - 3u)->mask().index();
-        const auto &cyl_mask =
+        // The portal portals are at the end of the portal range by construction
+        auto portal_mask_idx = (det.portals(vol).end() - 4u)->mask().index();
+        const auto &inner_cyl_mask =
             det.mask_store().template get<cyl_id>().at(portal_mask_idx);
+        portal_mask_idx = (det.portals(vol).end() - 3u)->mask().index();
+        const auto &outer_cyl_mask =
+            det.mask_store().template get<cyl_id>().at(portal_mask_idx);
+
+        // Correct cylinder radius so that the grid lies in the middle
+        using cyl_mask_t = detail::remove_cvref_t<decltype(outer_cyl_mask)>;
+        typename cyl_mask_t::mask_values mask_values{outer_cyl_mask.values()};
+        mask_values[cylinder2D<>::e_r] =
+            0.5f * (inner_cyl_mask.values()[cylinder2D<>::e_r] +
+                    outer_cyl_mask.values()[cylinder2D<>::e_r]);
+        const cyl_mask_t cyl_mask{mask_values, 0u};
 
         // Add new grid to the detector
         gbuilder.init_grid(cyl_mask, {100u, 1u});
-        gbuilder.fill_grid(detector_volume{det, vol}, surfaces, transforms,
-                           masks, ctx0);
+        gbuilder.fill_grid(detector_volume{det, vol}, det.surface_lookup(),
+                           det.transform_store(), det.mask_store(), ctx0);
 
-        det.surface_store().template push_back<grid_id>(gbuilder.get());
+        det.accelerator_store().template push_back<grid_id>(gbuilder.get());
         vol.template set_link<geo_obj_ids::e_sensitive>(
-            grid_id, det.surface_store().template size<grid_id>() - 1u);
-
-        // Add transforms, masks and material to detector
-        det.append_masks(std::move(masks));
-        det.append_transforms(std::move(transforms));
-        det.append_materials(std::move(materials));
+            grid_id, det.accelerator_store().template size<grid_id>() - 1u);
 
         // Add volume grid
         // TODO: Fill it

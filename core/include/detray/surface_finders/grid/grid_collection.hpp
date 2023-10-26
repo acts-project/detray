@@ -181,21 +181,64 @@ class grid_collection<
     DETRAY_HOST constexpr auto push_back(
         const typename grid_type::template type<true> &gr) noexcept(false)
         -> void {
+        // Current offset into the global bin storage for the new grid
         m_offsets.push_back(static_cast<size_type>(m_bins.size()));
 
+        // Add the bins of the new grid to the collection
         const auto *grid_bins = gr.data().bin_data();
         m_bins.insert(m_bins.end(), grid_bins->begin(), grid_bins->end());
 
+        // Add the axes data of the new grid to the collection
+        // (how to lookup the axis bin edges)
         const auto *axes_data = gr.axes().data().axes_data();
         m_axes_data.insert(m_axes_data.end(), axes_data->begin(),
                            axes_data->end());
 
+        // Current offset into the global bin edges storage
+        dindex bin_edges_offset = static_cast<dindex>(m_bin_edges.size());
+        // The binning types of the axes
+        const auto binnings = get_binning(gr.axes());
+
+        // Update the bin edges index range for the axes in the grid collection
+        for (std::size_t i = m_axes_data.size() - grid_type::Dim;
+             i < m_axes_data.size(); ++i) {
+            auto &bin_entry_range = m_axes_data[i];
+            bin_entry_range[0] += bin_edges_offset;
+            // If the axis has irregular binning, the second entry is the index
+            // of the last bin edge value instead of the number of bins
+            if (binnings[i] == n_axis::binning::e_irregular) {
+                bin_entry_range[1] += bin_edges_offset;
+            }
+        }
+
+        // Add the bin edges of the new grid to the collection
         const auto *bin_edges = gr.axes().data().edges();
+
         m_bin_edges.insert(m_bin_edges.end(), bin_edges->begin(),
                            bin_edges->end());
     }
 
     private:
+    /// @returns an array that contians the binning enum values of the
+    /// corresponding single axes in @param axes
+    template <bool ownership, typename local_frame_t, typename... axis_ts>
+    static auto get_binning(
+        const n_axis::multi_axis<ownership, local_frame_t, axis_ts...> &axes) {
+
+        // Serialize every single axis and construct array from their payloads
+        std::array<n_axis::binning, sizeof...(axis_ts)> binning_types{
+            get_binning(axes.template get_axis<axis_ts>())...};
+
+        return binning_types;
+    }
+
+    /// @returns the binning enum value of a single axis @param axis
+    template <typename bounds_t, typename binning_t>
+    static auto get_binning(
+        const n_axis::single_axis<bounds_t, binning_t> &axis) {
+        return axis.binning();
+    }
+
     /// Offsets for the respective grids into the bin storage
     vector_type<size_type> m_offsets{};
     /// Contains the bin content for all grids

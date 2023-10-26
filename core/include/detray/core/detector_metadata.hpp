@@ -24,10 +24,6 @@
 #include "detray/surface_finders/accelerator_grid.hpp"
 #include "detray/surface_finders/brute_force_finder.hpp"
 
-// Covfie include(s)
-#include <covfie/core/backend/primitive/constant.hpp>
-#include <covfie/core/vector.hpp>
-
 namespace detray {
 
 /// Assembles the detector type. This metatdata contains all available types
@@ -121,11 +117,6 @@ struct default_metadata {
 
     /// @}
 
-    // @TODO: Switch to inhomogenous b-field
-    using bfield_backend_t =
-        covfie::backend::constant<covfie::vector::vector_d<scalar, 3>,
-                                  covfie::vector::vector_d<scalar, 3>>;
-
     /// How to store coordinate transform matrices
     template <template <typename...> class vector_t = dvector>
     using transform_store = single_store<__plugin::transform3<detray::scalar>,
@@ -133,7 +124,7 @@ struct default_metadata {
 
     /// Give your mask types a name (needs to be consecutive and has to match
     /// the types position in the mask store!)
-    enum class mask_ids {
+    enum class mask_ids : std::uint8_t {
         e_rectangle2 = 0,
         e_portal_rectangle2 = 0,
         e_trapezoid2 = 1,
@@ -172,7 +163,7 @@ unbounded_cell, unmasked_plane*/>;
     /// Give your material types a name (needs to be consecutive and has to
     /// match the types position in the mask store!)
     /// @TODO: Add the material grid types for every surface shape
-    enum class material_ids {
+    enum class material_ids : std::uint8_t {
         e_slab = 0,
         e_rod = 1,
         // ... material map types
@@ -189,7 +180,7 @@ unbounded_cell, unmasked_plane*/>;
     using transform_link = typename transform_store<>::link_type;
     using mask_link = typename mask_store<>::single_link;
     using material_link = typename material_store<>::single_link;
-    using source_link = dindex;
+    using source_link = std::uint64_t;
     /// Surface type used for sensitives, passives and portals
     using surface_type =
         surface_descriptor<mask_link, material_link, transform_link, nav_link,
@@ -198,7 +189,7 @@ unbounded_cell, unmasked_plane*/>;
     /// How to index the constituent objects (surfaces) in a volume
     /// If they share the same index value here, they will be added into the
     /// same acceleration data structure (brute force is always at 0)
-    enum geo_objects : std::size_t {
+    enum geo_objects : std::uint8_t {
         e_portal = 0,     // Brute force search
         e_sensitive = 1,  // Grid accelerated search (can be different types)
         e_passive = 0,    // Brute force search
@@ -207,7 +198,7 @@ unbounded_cell, unmasked_plane*/>;
     };
 
     /// Acceleration data structures
-    enum class sf_finder_ids {
+    enum class accel_ids : std::uint8_t {
         e_brute_force = 0,     // test all surfaces in a volume (brute force)
         e_disc_grid = 1,       // e.g. endcap layers
         e_cylinder2_grid = 2,  // e.g. barrel layers
@@ -222,13 +213,13 @@ unbounded_cell, unmasked_plane*/>;
     /// How a volume links to the accelration data structures
     /// In this case: One link for portals/passives and one sensitive surfaces
     using object_link_type =
-        dmulti_index<dtyped_index<sf_finder_ids, dindex>, geo_objects::e_size>;
+        dmulti_index<dtyped_index<accel_ids, dindex>, geo_objects::e_size>;
 
     /// How to store the acceleration data structures
     template <template <typename...> class tuple_t = dtuple,
               typename container_t = host_container_types>
-    using surface_finder_store =
-        multi_store<sf_finder_ids, empty_context, tuple_t,
+    using accelerator_store =
+        multi_store<accel_ids, empty_context, tuple_t,
                     brute_force_collection<surface_type, container_t>,
                     grid_collection<disc_sf_grid<surface_type, container_t>>,
                     grid_collection<

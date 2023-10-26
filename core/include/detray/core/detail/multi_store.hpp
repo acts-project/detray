@@ -207,6 +207,13 @@ class multi_store {
         detail::get<value_types::to_index(id)>(m_tuple_container).reserve(n);
     }
 
+    /// Resize the underlying container to @param n for a collection given by
+    /// @tparam id
+    template <ID id>
+    DETRAY_HOST void resize(std::size_t n, const context_type & /*ctx*/) {
+        detail::get<value_types::to_index(id)>(m_tuple_container).resize(n);
+    }
+
     /// Add a new element to a collection
     ///
     /// @tparam ID is the id of the collection

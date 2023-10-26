@@ -16,7 +16,6 @@
 
 // System include(s)
 #include <iomanip>
-#include <iostream>
 #include <sstream>
 #include <string>
 #include <tuple>

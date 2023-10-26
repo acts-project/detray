@@ -23,10 +23,6 @@
 // Linear algebra types
 #include "detray/definitions/algebra.hpp"
 
-// Covfie include(s)
-#include <covfie/core/backend/primitive/constant.hpp>
-#include <covfie/core/vector.hpp>
-
 namespace detray {
 
 // linear algebra types
@@ -63,11 +59,6 @@ struct itk_metadata {
     /// material
     using slab = material_slab<detray::scalar>;
 
-    /// Constant B-field
-    using bfield_backend_t =
-        covfie::backend::constant<covfie::vector::vector_d<scalar, 3>,
-                                  covfie::vector::vector_d<scalar, 3>>;
-
     /// How to store and link transforms. The geometry context allows to resolve
     /// the conditions data for e.g. module alignment
     template <template <typename...> class vector_t = dvector>
@@ -78,7 +69,7 @@ struct itk_metadata {
     /// good idea to have the most common types in the first tuple entries, in
     /// order to minimize the depth of the 'unrolling' before a mask is found
     /// in the tuple
-    enum class mask_ids {
+    enum class mask_ids : std::uint8_t {
         e_rectangle2 = 0,
         e_annulus2 = 1,
         e_portal_cylinder2 = 2,
@@ -95,7 +86,7 @@ struct itk_metadata {
                             rectangle, annulus, cylinder_portal, disc_portal>;
 
     /// Similar to the mask store, there is a material store, which
-    enum class material_ids {
+    enum class material_ids : std::uint8_t {
         e_slab = 0,
         e_none = 1,
     };
@@ -113,7 +104,7 @@ struct itk_metadata {
     using transform_link = typename transform_store<>::link_type;
     using mask_link = typename mask_store<>::single_link;
     using material_link = typename material_store<>::single_link;
-    using source_link = dindex;
+    using source_link = std::uint64_t;
     /// Surface type used for sensitives, passives and portals
     using surface_type =
         surface_descriptor<mask_link, material_link, transform_link, nav_link,
@@ -122,7 +113,7 @@ struct itk_metadata {
     /// How to index the constituent objects in a volume
     /// If they share the same index value here, they will be added into the
     /// same acceleration data structure in every respective volume
-    enum geo_objects : unsigned int {
+    enum geo_objects : std::uint8_t {
         e_surface = 0u,  //< This detector keeps all surfaces in the same
         e_portal = 0u,   //  acceleration data structure (id 0)
         e_passive = 0u,
@@ -131,7 +122,7 @@ struct itk_metadata {
 
     /// The acceleration data structures live in another tuple that needs to be
     /// indexed correctly:
-    enum class sf_finder_ids {
+    enum class accel_ids : std::uint8_t {
         e_brute_force = 0,  //< test all surfaces in a volume (brute force)
         e_default = e_brute_force,
     };
@@ -139,7 +130,7 @@ struct itk_metadata {
     /// How a volume finds its constituent objects in the detector containers
     /// In this case: One range for sensitive/passive surfaces, one for portals
     using object_link_type =
-        dmulti_index<dtyped_index<sf_finder_ids, dindex>, geo_objects::e_size>;
+        dmulti_index<dtyped_index<accel_ids, dindex>, geo_objects::e_size>;
 
     /// The tuple store that hold the acceleration data structures for all
     /// volumes. Every collection of accelerationdata structures defines its
@@ -147,8 +138,8 @@ struct itk_metadata {
     /// ( @c empty_context )
     template <template <typename...> class tuple_t = dtuple,
               typename container_t = host_container_types>
-    using surface_finder_store =
-        multi_store<sf_finder_ids, empty_context, tuple_t,
+    using accelerator_store =
+        multi_store<accel_ids, empty_context, tuple_t,
                     brute_force_collection<surface_type, container_t>>;
 
     /// Data structure that allows to find the current detector volume from a

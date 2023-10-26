@@ -30,9 +30,6 @@ namespace detray {
 ///
 /// @tparam intersector_t defines how to intersect the underlying surface
 ///         geometry
-/// @tparam kMeasDim defines the dimension of the measurement
-/// @tparam kNormalOrder true if the index for measurement parameter follows
-/// the local coordinate system
 ///
 /// The stereo annulus is defined in two different(!) polar coordinate systems
 /// that differ by an origin shift. The boundaries are the inner and outer
@@ -49,22 +46,11 @@ namespace detray {
 /// origin from the beam polar system, two additional conversion parameters are
 /// included (bounds[4], bounds[5]). These are the origin shift in x and y
 /// respectively.
-template <template <typename> class intersector_t = plane_intersector,
-          unsigned int kMeasDim = 1u, bool kNormalOrder = false>
+template <template <typename> class intersector_t = plane_intersector>
 class annulus2D {
     public:
     /// The name for this shape
     inline static const std::string name = "(stereo) annulus2D";
-
-    /// The measurement dimension
-    inline static constexpr const unsigned int meas_dim{kMeasDim};
-
-    /// Normal ordering
-    inline static constexpr const bool normal_order{kNormalOrder};
-
-    // Measurement dimension check
-    static_assert(meas_dim == 1u || meas_dim == 2u,
-                  "Only 1D or 2D measurement is allowed");
 
     /// Names for the mask boundary values
     enum boundaries : unsigned int {

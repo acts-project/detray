@@ -284,27 +284,6 @@ struct line2 : public coordinate_base<line2, transform3_t> {
                                   e_bound_theta) =
             theta_to_free_pos_derivative[2];
     }
-
-    template <size_type meas_dim, bool normal_order>
-    DETRAY_HOST_DEVICE inline void unsigned_local(
-        matrix_type<meas_dim, e_bound_size> &projection_matrix,
-        const bound_track_parameters<transform3_t> &bound_params) {
-
-        const auto bound_local = bound_params.bound_local();
-
-        // Change the sign of radial distance if it is negative
-        if (bound_local[0] < 0.f) {
-            if constexpr (normal_order == true) {
-                matrix_operator().element(projection_matrix, 0u, 0u) = -1.f;
-            } else {
-                if constexpr (meas_dim == 2u) {
-                    matrix_operator().element(projection_matrix, 1u, 0u) = -1.f;
-                }
-            }
-        }
-
-        return;
-    }
 };
 
 }  // namespace detray

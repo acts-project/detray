@@ -23,6 +23,7 @@
 #include <cassert>
 #include <iostream>
 #include <string>
+#include <type_traits>
 
 namespace detray {
 
@@ -57,13 +58,6 @@ class grid_factory {
     /// Takes the resource of the detector to allocate memory correctly
     explicit grid_factory(vecmem::memory_resource &resource)
         : m_resource(&resource) {}
-
-    /// Get new grid collection
-    template <typename grid_t>
-    constexpr auto new_collection() {
-        return grid_collection<typename grid_t::template type<!is_owning>>(
-            m_resource);
-    }
 
     /// Print grid - up to three dimensions
     /// @note will likely become obsolete with the actsvg implementation
@@ -305,6 +299,7 @@ class grid_factory {
         // Axes boundaries and local indices
         using boundary = trapezoid2D<>::boundaries;
         using axes = trapezoid2D<>::axes<>;
+
         constexpr auto e_x_axis = static_cast<dindex>(axes::axis_loc0);
         constexpr auto e_y_axis = static_cast<dindex>(axes::axis_loc1);
 
@@ -336,22 +331,54 @@ class grid_factory {
     /// @param ax_bin_edges the explicit bin edges for irregular axes
     ///                     (lower bin edges + the the upper edge of the
     ///                     last bin), otherwise ignored.
-    template <typename grid_shape_t, typename... bound_ts,
-              typename... binning_ts>
+    template <
+        typename grid_shape_t, typename... bound_ts, typename... binning_ts,
+        std::enable_if_t<std::is_enum_v<typename grid_shape_t::boundaries>,
+                         bool> = true>
     auto new_grid(const std::vector<scalar_type> spans,
                   const std::vector<std::size_t> n_bins,
                   const std::vector<std::vector<scalar_type>> &ax_bin_edges,
-                  const std::tuple<bound_ts...>,
-                  const std::tuple<binning_ts...>) const {
+                  const std::tuple<bound_ts...> &bounds,
+                  const std::tuple<binning_ts...> &binnings) const {
+
+        return new_grid<
+            typename grid_shape_t::template local_frame_type<algebra_t>>(
+            spans, n_bins, ax_bin_edges, bounds, binnings);
+    }
+
+    /// @brief Create and empty grid with fully initialized axes.
+    ///
+    /// @tparam grid_shape_t the shape of the resulting grid
+    ///         (e.g. cylinder2D).
+    /// @tparam e_bounds the bounds of the regular axes
+    ///         (open vs. closed bounds).
+    /// @tparam binnings the binning types of the axes
+    ///         (regular vs. irregular)
+    ///
+    /// @param spans the span of the axis values for regular axes, otherwise
+    ///              ignored.
+    /// @param n_bins the number of bins for regular axes, otherwise ignored
+    /// @param ax_bin_edges the explicit bin edges for irregular axes
+    ///                     (lower bin edges + the the upper edge of the
+    ///                     last bin), otherwise ignored.
+    template <
+        typename grid_frame_t, typename... bound_ts, typename... binning_ts,
+        std::enable_if_t<
+            std::is_object_v<typename grid_frame_t::rotation_matrix>, bool> =
+            true>
+    auto new_grid(const std::vector<scalar_type> spans,
+                  const std::vector<std::size_t> n_bins,
+                  const std::vector<std::vector<scalar_type>> &ax_bin_edges,
+                  const std::tuple<bound_ts...> & = {},
+                  const std::tuple<binning_ts...> & = {}) const {
 
         static_assert(sizeof...(bound_ts) == sizeof...(binning_ts),
                       "number of axis bounds and binning types has to match");
 
         // Build the coordinate axes and the grid
-        using axes_t = n_axis::multi_axis<
-            is_owning,
-            typename grid_shape_t::template local_frame_type<algebra_t>,
-            n_axis::single_axis<bound_ts, binning_ts>...>;
+        using axes_t =
+            n_axis::multi_axis<is_owning, grid_frame_t,
+                               n_axis::single_axis<bound_ts, binning_ts>...>;
         using bin_t = typename grid_type<axes_t>::bin_type;
 
         // Prepare data

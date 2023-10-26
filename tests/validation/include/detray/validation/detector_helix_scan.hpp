@@ -8,7 +8,9 @@
 #pragma once
 
 // Project include(s)
+#include "detray/geometry/surface.hpp"
 #include "detray/intersection/detail/trajectories.hpp"
+#include "detray/io/common/detail/file_handle.hpp"
 #include "detray/simulation/event_generator/track_generators.hpp"
 #include "detray/test/types.hpp"
 #include "tests/common/test_base/fixture_base.hpp"
@@ -77,27 +79,33 @@ class helix_scan : public test::fixture_base<> {
 
     /// Run the helix scan
     void TestBody() override {
-        using b_field_t = typename detector_t::bfield_type;
         using scalar_t = typename detector_t::scalar_type;
         using nav_link_t = typename detector_t::surface_type::navigation_link;
 
         constexpr auto leaving_world{detail::invalid_value<nav_link_t>()};
+        typename detector_t::geometry_context gctx{};
 
         // Index of the volume that the helix origin lies in
         dindex start_index{0u};
 
         // B-field vector for helix
-        const auto &origin = m_cfg.track_generator().origin();
-        typename b_field_t::view_t bfield_view{m_det.get_bfield()};
-        const typename b_field_t::output_t bvec =
-            bfield_view.at(origin[0], origin[1], origin[2]);
-        const typename fixture_type::point3 B{bvec[0], bvec[1], bvec[2]};
+        const typename fixture_type::point3 B{0.f * unit<scalar_t>::T,
+                                              0.f * unit<scalar_t>::T,
+                                              2.f * unit<scalar_t>::T};
 
         // Iterate through uniformly distributed momentum directions
         std::size_t n_tracks{0u};
         auto trk_state_generator =
             uniform_track_generator<free_track_parameters_t>(
                 m_cfg.track_generator());
+
+        detray::io::detail::file_handle outfile{
+            m_cfg.name(), ".csv",
+            std::ios::out | std::ios::binary | std::ios::trunc};
+
+        if (m_cfg.write_intersections()) {
+            *outfile << "index,type,x,y,z," << std::endl;
+        }
 
         std::cout << "INFO: Running helix scan on: " << m_names.at(0) << "\n("
                   << trk_state_generator.size() << " helices) ...\n"
@@ -115,6 +123,22 @@ class helix_scan : public test::fixture_base<> {
             // encounters
             const auto intersection_record = particle_gun::shoot_particle(
                 m_det, helix, 14.9f * unit<scalar_t>::um);
+
+            // Csv output
+            if (m_cfg.write_intersections()) {
+                for (const auto &single_ir : intersection_record) {
+                    const auto &intersection = single_ir.second;
+                    const auto sf =
+                        detray::surface{m_det, intersection.sf_desc};
+                    auto glob_pos = sf.local_to_global(gctx, intersection.local,
+                                                       helix.dir());
+                    *outfile
+                        << n_tracks << ","
+                        << static_cast<int>(intersection.sf_desc.barcode().id())
+                        << "," << glob_pos[0] << "," << glob_pos[1] << ","
+                        << glob_pos[2] << "," << std::endl;
+                }
+            }
 
             // Create a trace of the volume indices that were encountered
             // and check that portal intersections are connected

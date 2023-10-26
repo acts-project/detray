@@ -109,15 +109,17 @@ class geometry_writer : public writer_interface<detector_t> {
     }
 
     /// Serialize a detector surface @param sf into its io payload
-    static surface_payload serialize(const surface<detector_t>& sf) {
+    static surface_payload serialize(const surface<detector_t>& sf,
+                                     std::size_t sf_idx) {
         surface_payload sf_data;
 
+        sf_data.index_in_coll = sf_idx;
         sf_data.type = sf.id();
         sf_data.barcode = sf.barcode().value();
         sf_data.transform = serialize(sf.transform({}));
         sf_data.mask = sf.template visit_mask<get_mask_payload>();
         sf_data.material = sf.template visit_material<get_material_payload>();
-        sf_data.source = base_type::serialize(sf.source());
+        sf_data.source = sf.source();
 
         return sf_data;
     }
@@ -134,9 +136,13 @@ class geometry_writer : public writer_interface<detector_t> {
             serialize(det.transform_store()[vol_desc.transform()]);
         vol_data.type = vol_desc.id();
 
+        // Count the surfaces belonging to this volume
+        std::size_t sf_idx{0};
+
         for (const auto& sf_desc : det.surface_lookup()) {
             if (sf_desc.volume() == vol_desc.index()) {
-                vol_data.surfaces.push_back(serialize(surface{det, sf_desc}));
+                vol_data.surfaces.push_back(
+                    serialize(surface{det, sf_desc}, sf_idx++));
             }
         }
 
@@ -151,8 +157,8 @@ class geometry_writer : public writer_interface<detector_t> {
         for (unsigned int i = 1u; i < link.size(); ++i) {
             const auto& l = link[i];
             if (not l.is_invalid()) {
-                const auto aclp =
-                    det.surface_store().template visit<get_acc_link_payload>(l);
+                const auto aclp = det.accelerator_store()
+                                      .template visit<get_acc_link_payload>(l);
                 vol_data.acc_links->push_back(aclp);
             }
         }

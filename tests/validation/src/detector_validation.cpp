@@ -43,26 +43,31 @@ int main(int argc, char **argv) {
     ::testing::InitGoogleTest(&argc, argv);
 
     // Options parsing
-    po::options_description desc("\ndetray validation options");
+    po::options_description desc("\ndetray detector validation options");
 
     desc.add_options()("help", "produce help message")(
         "write_volume_graph", "writes the volume graph to file")(
-        "write_ray_scan", "writes the ray scan intersections to file")(
+        "write_scan_data", "writes the ray/helix scan intersections to file")(
         "geometry_file", po::value<std::string>(), "geometry input file")(
         "material_file", po::value<std::string>(), "material input file")(
-        "bfield_file", po::value<std::string>(),
-        "magnetic field map input file")(
         "phi_steps", po::value<std::size_t>()->default_value(50u),
         "# phi steps for particle gun")(
         "theta_steps", po::value<std::size_t>()->default_value(50u),
         "# theta steps for particle gun")(
+        "theta_range", po::value<std::vector<scalar_t>>()->multitoken(),
+        "min, max range of theta values for particle gun")(
+        "origin", po::value<std::vector<scalar_t>>()->multitoken(),
+        "coordintates for particle gun origin position")(
         "p_mag", po::value<scalar_t>()->default_value(10.f),
         "absolute momentum of the test particle [GeV]")(
         "overstep_tol", po::value<scalar_t>()->default_value(-100.f),
         "overstepping tolerance [um] NOTE: Must be negative!");
 
     po::variables_map vm;
-    po::store(po::parse_command_line(argc, argv, desc), vm);
+    po::store(parse_command_line(argc, argv, desc,
+                                 po::command_line_style::unix_style ^
+                                     po::command_line_style::allow_short),
+              vm);
     po::notify(vm);
 
     // Help message
@@ -84,10 +89,9 @@ int main(int argc, char **argv) {
         con_chk_cfg.write_graph(true);
         throw std::invalid_argument("Writing of voume graph not implemented");
     }
-    if (vm.count("write_ray_scan")) {
+    if (vm.count("write_scan_data")) {
         ray_scan_cfg.write_intersections(true);
         hel_scan_cfg.write_intersections(true);
-        throw std::invalid_argument("Writing of ray scan not implemented");
     }
 
     // Input files
@@ -102,23 +106,42 @@ int main(int argc, char **argv) {
     if (vm.count("material_file")) {
         reader_cfg.add_file(vm["material_file"].as<std::string>());
     }
-    if (vm.count("bfield_file")) {
-        // reader_cfg.add_file(vm["bfield_file"].as<std::string>());
-        throw std::invalid_argument("Reading of bfield file not implemented");
-    } else {
-        reader_cfg.bfield_vec(0.f, 0.f, 2.f * unit<scalar_t>::T);
-    }
 
     // Particle gun
     if (vm.count("phi_steps")) {
         const std::size_t phi_steps{vm["phi_steps"].as<std::size_t>()};
 
         ray_scan_cfg.track_generator().phi_steps(phi_steps);
+        hel_nav_cfg.track_generator().phi_steps(phi_steps);
     }
     if (vm.count("theta_steps")) {
         const std::size_t theta_steps{vm["theta_steps"].as<std::size_t>()};
 
         ray_scan_cfg.track_generator().theta_steps(theta_steps);
+        hel_nav_cfg.track_generator().theta_steps(theta_steps);
+    }
+    if (vm.count("theta_range")) {
+        const auto theta_range = vm["theta_range"].as<std::vector<scalar_t>>();
+        if (theta_range.size() == 2u) {
+            ray_scan_cfg.track_generator().theta_range(theta_range[0],
+                                                       theta_range[1]);
+            hel_nav_cfg.track_generator().theta_range(theta_range[0],
+                                                      theta_range[1]);
+        } else {
+            throw std::invalid_argument("Theta range needs two arguments");
+        }
+    }
+    if (vm.count("origin")) {
+        const auto origin = vm["origin"].as<std::vector<scalar_t>>();
+        if (origin.size() == 3u) {
+            ray_scan_cfg.track_generator().origin(
+                {origin[0], origin[1], origin[2]});
+            hel_nav_cfg.track_generator().origin(
+                {origin[0], origin[1], origin[2]});
+        } else {
+            throw std::invalid_argument(
+                "Particle gun origin needs three arguments");
+        }
     }
     if (vm.count("p_mag")) {
         const scalar_t p_mag{vm["p_mag"].as<scalar_t>()};
@@ -148,22 +171,21 @@ int main(int argc, char **argv) {
                                                                con_chk_cfg);
 
     // Navigation link consistency, discovered by ray intersection
+    ray_scan_cfg.name("ray_scan_" + names.at(0));
     detray::detail::register_checks<detray::ray_scan>(det, names, ray_scan_cfg);
 
     // Navigation link consistency, discovered by helix intersection
-    // Full number of helices only works in double precision
-    // hel_nav_cfg.track_generator().phi_steps(100u).theta_steps(100u);
-    hel_scan_cfg.track_generator().phi_steps(30u).theta_steps(30u);
+    hel_scan_cfg.name("helix_scan_" + names.at(0));
     detray::detail::register_checks<detray::helix_scan>(det, names,
                                                         hel_scan_cfg);
 
     // Comparision of straight line navigation with ray scan
+    str_nav_cfg.name("straight_line_navigation_" + names.at(0));
     detray::detail::register_checks<detray::straight_line_navigation>(
         det, names, str_nav_cfg);
 
     // Comparision of navigation in a constant B-field with helix
-    // For now, run with reduced number of helices, until helix test is fixed
-    hel_nav_cfg.track_generator().phi_steps(30u).theta_steps(30u);
+    hel_nav_cfg.name("helix_navigation_" + names.at(0));
     detray::detail::register_checks<detray::helix_navigation>(det, names,
                                                               hel_nav_cfg);
 

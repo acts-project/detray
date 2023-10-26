@@ -89,7 +89,7 @@ class surface {
     DETRAY_HOST_DEVICE
     constexpr auto volume() const -> dindex { return barcode().volume(); }
 
-    /// @returns the index fo the surface in the detector surface lookup
+    /// @returns the index of the surface in the detector surface lookup
     DETRAY_HOST_DEVICE
     constexpr auto index() const -> dindex { return barcode().index(); }
 
@@ -137,12 +137,6 @@ class surface {
     DETRAY_HOST_DEVICE
     constexpr auto center(const context &ctx) const -> const point3 {
         return transform(ctx).translation();
-    }
-
-    /// @returns the measurement dimesntion of surface
-    DETRAY_HOST_DEVICE
-    constexpr auto meas_dim() const -> unsigned int {
-        return visit_mask<typename kernels::meas_dim>();
     }
 
     /// @returns the surface normal in global coordinates at a given bound/local
@@ -243,6 +237,33 @@ class surface {
                                                              pos, dir, dtds);
     }
 
+    /// @returns the vertices in local frame
+    DETRAY_HOST
+    constexpr auto local_vertices() const {
+        return visit_mask<typename kernels::local_vertices>();
+    }
+
+    /// @returns the vertices in global frame.
+    DETRAY_HOST
+    constexpr auto global_vertices(const context &ctx,
+                                   const vector3 &dir) const {
+        auto vertices = local_vertices();
+        for (size_t i = 0; i < vertices.size(); i++) {
+            vertices[i] = local_to_global(ctx, vertices[i], dir);
+        }
+        return vertices;
+    }
+
+    /// @brief Lower and upper point for minimal axis aligned bounding box.
+    ///
+    /// Computes the min and max vertices in a local cartesian frame.
+    DETRAY_HOST
+    constexpr auto local_min_bounds(
+        const scalar_type env =
+            std::numeric_limits<scalar_type>::epsilon()) const {
+        return visit_mask<typename kernels::local_min_bounds>(env);
+    }
+
     /// Call a functor on the surfaces mask with additional arguments.
     ///
     /// @tparam functor_t the prescription to be applied to the mask
@@ -336,12 +357,7 @@ class surface {
     /// @returns a string stream that prints the surface details
     DETRAY_HOST
     friend std::ostream &operator<<(std::ostream &os, const surface &sf) {
-        os << sf.barcode();
-        os << " | trf.: " << sf.m_desc.transform();
-        os << " | mask: " << static_cast<dindex>(sf.m_desc.mask().id()) << ", "
-           << sf.m_desc.mask().index();
-        os << " | mat.: " << static_cast<dindex>(sf.m_desc.material().id())
-           << ", " << sf.m_desc.material().index();
+        os << sf.m_desc;
         return os;
     }
 

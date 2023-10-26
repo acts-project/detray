@@ -36,10 +36,7 @@ int main(int argc, char **argv) {
 
     tel_det_config<rectangle2D<>> tel_cfg{20.f * unit<scalar_t>::mm,
                                           20.f * unit<scalar_t>::mm};
-    tel_cfg.n_surfaces(10u)
-        .length(500.f * unit<scalar_t>::mm)
-        .bfield_vec(0.f * unit<scalar_t>::T, 0.f * unit<scalar_t>::T,
-                    2.f * unit<scalar_t>::T);
+    tel_cfg.n_surfaces(10u).length(500.f * unit<scalar_t>::mm);
 
     vecmem::host_memory_resource host_mr;
 

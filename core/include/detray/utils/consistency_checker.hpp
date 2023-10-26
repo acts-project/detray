@@ -166,8 +166,8 @@ inline void check_empty(const detector_t &det) {
 
     // Check for empty acceleration data structure collections (e.g. grids)
     detail::report_empty(
-        det.surface_store(), "acceleration data structures store",
-        std::make_index_sequence<detector_t::sf_finders::n_types>{});
+        det.accelerator_store(), "acceleration data structures store",
+        std::make_index_sequence<detector_t::accel::n_types>{});
 
     // Check volume search data structure
     if (not find_volumes(det.volume_search_grid())) {
@@ -209,6 +209,7 @@ inline bool check_consistency(const detector_t &det) {
 
         // Check that nothing is obviously broken
         if (not sf.self_check(err_stream)) {
+            err_stream << "\nat surface no. " << std::to_string(idx);
             throw std::invalid_argument(err_stream.str());
         }
 

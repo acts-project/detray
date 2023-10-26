@@ -1,6 +1,6 @@
 /** Detray library, part of the ACTS project (R&D line)
  *
- * (c) 2022 CERN for the benefit of the ACTS project
+ * (c) 2022-2023 CERN for the benefit of the ACTS project
  *
  * Mozilla Public License Version 2.0
  */
@@ -10,22 +10,31 @@
 
 namespace detray {
 
+template <typename bfield_bknd_t, typename detector_t>
 __global__ void propagator_test_kernel(
-    typename detector_host_type::detector_view_type det_data,
-    vecmem::data::vector_view<free_track_parameters<transform3>> tracks_data,
-    vecmem::data::jagged_vector_view<intersection_t> candidates_data,
+    typename detector_t::view_type det_data,
+    covfie::field_view<bfield_bknd_t> field_data,
+    vecmem::data::vector_view<track_t> tracks_data,
+    vecmem::data::jagged_vector_view<intersection_t<detector_t>>
+        candidates_data,
     vecmem::data::jagged_vector_view<scalar> path_lengths_data,
-    vecmem::data::jagged_vector_view<vector3> positions_data,
+    vecmem::data::jagged_vector_view<vector3_t> positions_data,
     vecmem::data::jagged_vector_view<free_matrix> jac_transports_data) {
 
     int gid = threadIdx.x + blockIdx.x * blockDim.x;
+    using detector_device_t =
+        detector<typename detector_t::metadata, device_container_types>;
 
-    detector_device_type det(det_data);
-    vecmem::device_vector<free_track_parameters<transform3>> tracks(
-        tracks_data);
-    vecmem::jagged_device_vector<intersection_t> candidates(candidates_data);
+    static_assert(std::is_same_v<typename detector_t::view_type,
+                                 typename detector_device_t::view_type>,
+                  "Host and device detector views do not match");
+
+    detector_device_t det(det_data);
+    vecmem::device_vector<track_t> tracks(tracks_data);
+    vecmem::jagged_device_vector<intersection_t<detector_t>> candidates(
+        candidates_data);
     vecmem::jagged_device_vector<scalar> path_lengths(path_lengths_data);
-    vecmem::jagged_device_vector<vector3> positions(positions_data);
+    vecmem::jagged_device_vector<vector3_t> positions(positions_data);
     vecmem::jagged_device_vector<free_matrix> jac_transports(
         jac_transports_data);
 
@@ -33,16 +42,13 @@ __global__ void propagator_test_kernel(
         return;
     }
 
-    detector_device_type::bfield_type B_field = det.get_bfield();
-
-    // Create RK stepper
-    rk_stepper_type s;
-
-    // Create navigator
-    navigator_device_type n;
+    auto stepr = rk_stepper_t<covfie::field_view<bfield_bknd_t>>{};
+    auto nav = navigator_t<detector_device_t>{};
 
     // Create propagator
-    propagator_device_type p(std::move(s), std::move(n));
+    using propagator_device_t =
+        propagator<decltype(stepr), decltype(nav), actor_chain_device_t>;
+    propagator_device_t p(std::move(stepr), std::move(nav));
 
     // Create actor states
     inspector_device_t::state insp_state(
@@ -57,8 +63,8 @@ __global__ void propagator_test_kernel(
         ::detray::tie(insp_state, aborter_state, transporter_state,
                       interactor_state, resetter_state);
     // Create the propagator state
-    propagator_device_type::state state(tracks[gid], B_field, det,
-                                        candidates.at(gid));
+    typename propagator_device_t::state state(tracks[gid], field_data, det,
+                                              candidates.at(gid));
 
     state._stepping.set_tolerance(rk_tolerance);
 
@@ -69,25 +75,54 @@ __global__ void propagator_test_kernel(
     p.propagate(state, actor_states);
 }
 
+/// Launch the device kernel
+template <typename bfield_bknd_t, typename detector_t>
 void propagator_test(
-    typename detector_host_type::detector_view_type det_data,
-    vecmem::data::vector_view<free_track_parameters<transform3>>& tracks_data,
-    vecmem::data::jagged_vector_view<intersection_t>& candidates_data,
+    typename detector_t::view_type det_view,
+    covfie::field_view<bfield_bknd_t> field_data,
+    vecmem::data::vector_view<track_t>& tracks_data,
+    vecmem::data::jagged_vector_view<intersection_t<detector_t>>&
+        candidates_data,
     vecmem::data::jagged_vector_view<scalar>& path_lengths_data,
-    vecmem::data::jagged_vector_view<vector3>& positions_data,
+    vecmem::data::jagged_vector_view<vector3_t>& positions_data,
     vecmem::data::jagged_vector_view<free_matrix>& jac_transports_data) {
 
     constexpr int thread_dim = 2 * WARP_SIZE;
     constexpr int block_dim = theta_steps * phi_steps / thread_dim + 1;
 
     // run the test kernel
-    propagator_test_kernel<<<block_dim, thread_dim>>>(
-        det_data, tracks_data, candidates_data, path_lengths_data,
-        positions_data, jac_transports_data);
+    propagator_test_kernel<bfield_bknd_t, detector_t>
+        <<<block_dim, thread_dim>>>(det_view, field_data, tracks_data,
+                                    candidates_data, path_lengths_data,
+                                    positions_data, jac_transports_data);
 
     // cuda error check
     DETRAY_CUDA_ERROR_CHECK(cudaGetLastError());
     DETRAY_CUDA_ERROR_CHECK(cudaDeviceSynchronize());
 }
+
+/// Explicit instantiation for a constant magnetic field
+template void propagator_test<bfield::const_bknd_t,
+                              detector<toy_metadata, host_container_types>>(
+    detector<toy_metadata, host_container_types>::view_type,
+    covfie::field_view<bfield::const_bknd_t>,
+    vecmem::data::vector_view<track_t>&,
+    vecmem::data::jagged_vector_view<
+        intersection_t<detector<toy_metadata, host_container_types>>>&,
+    vecmem::data::jagged_vector_view<scalar>&,
+    vecmem::data::jagged_vector_view<vector3_t>&,
+    vecmem::data::jagged_vector_view<free_matrix>&);
+
+/// Explicit instantiation for an inhomogeneous magnetic field
+template void propagator_test<bfield::cuda::inhom_bknd_t,
+                              detector<toy_metadata, host_container_types>>(
+    detector<toy_metadata, host_container_types>::view_type,
+    covfie::field_view<bfield::cuda::inhom_bknd_t>,
+    vecmem::data::vector_view<track_t>&,
+    vecmem::data::jagged_vector_view<
+        intersection_t<detector<toy_metadata, host_container_types>>>&,
+    vecmem::data::jagged_vector_view<scalar>&,
+    vecmem::data::jagged_vector_view<vector3_t>&,
+    vecmem::data::jagged_vector_view<free_matrix>&);
 
 }  // namespace detray

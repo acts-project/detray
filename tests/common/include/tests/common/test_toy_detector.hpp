@@ -19,7 +19,7 @@
 
 namespace detray {
 
-/// Functor that returns the volume/sf_finder links of a particluar mask
+/// Functor that returns the volume/accel links of a particluar mask
 /// instance in the mask container of a detector
 struct volume_link_getter {
 
@@ -37,7 +37,8 @@ inline void test_finder(const acc_t& finder, const dindex volume_index,
 
     std::vector<dindex> indices;
 
-    // Check if right volume is linked to surface in grid
+    // Check if the correct volume is linked to surface in grid
+    // and record the surface indices
     for (const auto& sf : finder.all()) {
         EXPECT_EQ(sf.volume(), volume_index);
         indices.push_back(sf.index());
@@ -51,10 +52,12 @@ inline void test_finder(const acc_t& finder, const dindex volume_index,
     }
 }
 
-inline bool test_toy_detector(const detector<toy_metadata<>>& toy_det,
-                              const detector<toy_metadata<>>::name_map& names) {
+template <typename bfield_t>
+inline bool test_toy_detector(
+    const detector<toy_metadata, bfield_t>& toy_det,
+    const typename detector<toy_metadata, bfield_t>::name_map& names) {
 
-    using detector_t = detector<toy_metadata<>>;
+    using detector_t = detector<toy_metadata, bfield_t>;
     using geo_obj_ids = typename detector_t::geo_obj_ids;
     using volume_t = typename detector_t::volume_type;
     using nav_link_t = typename detector_t::surface_type::navigation_link;
@@ -63,8 +66,8 @@ inline bool test_toy_detector(const detector<toy_metadata<>>& toy_det,
     using mask_link_t = typename detector_t::surface_type::mask_link;
     using material_ids = typename detector_t::materials::id;
     using material_link_t = typename detector_t::surface_type::material_link;
-    using sf_finder_ids = typename detector_t::sf_finders::id;
-    using sf_finder_link_t = typename volume_t::link_type::index_type;
+    using accel_ids = typename detector_t::accel::id;
+    using accel_link_t = typename volume_t::link_type::index_type;
 
     EXPECT_EQ(names.at(0u), "toy_detector");
 
@@ -74,7 +77,7 @@ inline bool test_toy_detector(const detector<toy_metadata<>>& toy_det,
     geo_context_t ctx{};
     auto& volumes = toy_det.volumes();
     auto& surfaces = toy_det.surface_lookup();
-    auto& sf_finders = toy_det.surface_store();
+    auto& accel = toy_det.accelerator_store();
     auto& transforms = toy_det.transform_store();
     auto& masks = toy_det.mask_store();
     auto& materials = toy_det.material_store();
@@ -90,25 +93,26 @@ inline bool test_toy_detector(const detector<toy_metadata<>>& toy_det,
     // Link to outer world (leaving detector)
     constexpr auto leaving_world{detail::invalid_value<nav_link_t>()};
     const bool has_grids =
-        (sf_finders.size<sf_finder_ids::e_cylinder2_grid>() != 0u) ||
-        (sf_finders.size<sf_finder_ids::e_disc_grid>() != 0u);
-    const bool has_material = (materials.size<material_ids::e_slab>() != 0);
+        (accel.template size<accel_ids::e_cylinder2_grid>() != 0u) ||
+        (accel.template size<accel_ids::e_disc_grid>() != 0u);
+    const bool has_material =
+        (materials.template size<material_ids::e_slab>() != 0);
 
     // Check number of geomtery objects
     EXPECT_EQ(volumes.size(), 20u);
     EXPECT_EQ(toy_det.n_surfaces(), 3244u);
     EXPECT_EQ(transforms.size(ctx), 3264u);
-    EXPECT_EQ(masks.size<mask_ids::e_rectangle2>(), 2492u);
-    EXPECT_EQ(masks.size<mask_ids::e_trapezoid2>(), 648u);
-    EXPECT_EQ(masks.size<mask_ids::e_portal_cylinder2>(), 52u);
-    EXPECT_EQ(masks.size<mask_ids::e_portal_ring2>(), 52u);
-    EXPECT_EQ(sf_finders.size<sf_finder_ids::e_brute_force>(), 20u);
+    EXPECT_EQ(masks.template size<mask_ids::e_rectangle2>(), 2492u);
+    EXPECT_EQ(masks.template size<mask_ids::e_trapezoid2>(), 648u);
+    EXPECT_EQ(masks.template size<mask_ids::e_portal_cylinder2>(), 52u);
+    EXPECT_EQ(masks.template size<mask_ids::e_portal_ring2>(), 52u);
+    EXPECT_EQ(accel.template size<accel_ids::e_brute_force>(), 20u);
     if (has_grids) {
-        EXPECT_EQ(sf_finders.size<sf_finder_ids::e_cylinder2_grid>(), 4);
-        EXPECT_EQ(sf_finders.size<sf_finder_ids::e_disc_grid>(), 6);
+        EXPECT_EQ(accel.template size<accel_ids::e_cylinder2_grid>(), 4);
+        EXPECT_EQ(accel.template size<accel_ids::e_disc_grid>(), 6);
     }
     if (has_material) {
-        EXPECT_EQ(materials.size<material_ids::e_slab>(), 3244u);
+        EXPECT_EQ(materials.template size<material_ids::e_slab>(), 3244u);
     }
 
     /** Test the links of a volume.
@@ -123,10 +127,10 @@ inline bool test_toy_detector(const detector<toy_metadata<>>& toy_det,
     auto test_volume_links = [&](decltype(volumes.begin())& vol_itr,
                                  const dindex vol_index,
                                  const darray<dindex, 1>& range,
-                                 const sf_finder_link_t& /*sf_finder_link*/) {
+                                 const accel_link_t& /*accel_link*/) {
         EXPECT_EQ(vol_itr->index(), vol_index);
         EXPECT_EQ(vol_itr->template link<geo_obj_ids::e_portal>().id(),
-                  sf_finder_ids::e_brute_force);
+                  accel_ids::e_brute_force);
         EXPECT_EQ(vol_itr->template link<geo_obj_ids::e_portal>().index(),
                   range[0]);
     };
@@ -161,7 +165,7 @@ inline bool test_toy_detector(const detector<toy_metadata<>>& toy_det,
                 if (has_material) {
                     EXPECT_EQ(sf_itr->material(), material_index);
                     EXPECT_EQ(
-                        materials.get<
+                        materials.template get<
                             material_ids::e_slab>()[sf_itr->material().index()],
                         mat);
                 }
@@ -203,7 +207,7 @@ inline bool test_toy_detector(const detector<toy_metadata<>>& toy_det,
                 if (has_material) {
                     EXPECT_EQ(sf_itr->material(), material_index);
                     EXPECT_EQ(
-                        materials.get<
+                        materials.template get<
                             material_ids::e_slab>()[sf_itr->material().index()],
                         mat);
                 }
@@ -218,13 +222,13 @@ inline bool test_toy_detector(const detector<toy_metadata<>>& toy_det,
     /// Test the detectors acceleration data structures.
     ///
     /// @param vol_itr iterator over the volume descriptors
-    /// @param sf_finder_store the detectors acceleration data structure store
+    /// @param accel_store the detectors acceleration data structure store
     /// @param pt_range index range of the portals in the surface lookup
-    /// @param sf_range index range of the portals in the surface lookup
-    auto test_sf_finders =
+    /// @param sf_range index range of the surfaces in the surface lookup
+    auto test_accel =
         [has_grids](
             decltype(volumes.begin())& vol_itr,
-            const typename detector_t::surface_container& sf_finder_store,
+            const typename detector_t::accelerator_container& accel_store,
             const darray<dindex, 2>& pt_range,
             const darray<dindex, 2>& sf_range = {0u, 0u}) {
             // Link to the acceleration data structures the volume holds
@@ -232,8 +236,8 @@ inline bool test_toy_detector(const detector<toy_metadata<>>& toy_det,
 
             // Test the portal search
             const auto& bf_finder =
-                sf_finder_store
-                    .get<sf_finder_ids::e_brute_force>()[link[0].index()];
+                accel_store
+                    .template get<accel_ids::e_brute_force>()[link[0].index()];
 
             // This means no grids, all surfaces are in the brute force method
             if (not has_grids) {
@@ -245,13 +249,13 @@ inline bool test_toy_detector(const detector<toy_metadata<>>& toy_det,
 
                 // Test the module search if grids were filled
                 if (not link[1].is_invalid()) {
-                    if (link[1].id() == sf_finder_ids::e_cylinder2_grid) {
-                        const auto& cyl_grid = sf_finder_store.get<
-                            sf_finder_ids::e_cylinder2_grid>()[link[1].index()];
+                    if (link[1].id() == accel_ids::e_cylinder2_grid) {
+                        const auto& cyl_grid = accel_store.template get<
+                            accel_ids::e_cylinder2_grid>()[link[1].index()];
                         test_finder(cyl_grid, vol_itr->index(), sf_range);
                     } else {
-                        const auto& disc_grid = sf_finder_store.get<
-                            sf_finder_ids::e_disc_grid>()[link[1].index()];
+                        const auto& disc_grid = accel_store.template get<
+                            accel_ids::e_disc_grid>()[link[1].index()];
                         test_finder(disc_grid, vol_itr->index(), sf_range);
                     }
                 }
@@ -266,10 +270,10 @@ inline bool test_toy_detector(const detector<toy_metadata<>>& toy_det,
     auto vol_itr = volumes.begin();
     EXPECT_EQ(names.at(vol_itr->index() + 1), "beampipe_0");
     darray<dindex, 1> index = {0u};
-    sf_finder_link_t sf_finder_link{sf_finder_ids::e_brute_force, 0u};
+    accel_link_t accel_link{accel_ids::e_brute_force, 0u};
 
     // Test the links in the volumes
-    test_volume_links(vol_itr, 0u, index, sf_finder_link);
+    test_volume_links(vol_itr, 0u, index, accel_link);
 
     // Check links of portals
     // cylinder portals
@@ -302,7 +306,7 @@ inline bool test_toy_detector(const detector<toy_metadata<>>& toy_det,
                       {vol_itr->index()});
 
     // Check link of surfaces in surface finder
-    test_sf_finders(vol_itr, sf_finders, {0u, 16u});
+    test_accel(vol_itr, accel, {0u, 16u});
 
     //
     // neg endcap (layer 3)
@@ -313,10 +317,10 @@ inline bool test_toy_detector(const detector<toy_metadata<>>& toy_det,
     EXPECT_EQ(names.at(vol_itr->index() + 1), "endcap_1");
     range = {16u, 128u};
     index = {1u};
-    sf_finder_link = {sf_finder_ids::e_disc_grid, 0u};
+    accel_link = {accel_ids::e_disc_grid, 0u};
 
     // Test the links in the volumes
-    test_volume_links(vol_itr, 1u, index, sf_finder_link);
+    test_volume_links(vol_itr, 1u, index, accel_link);
 
     // Check links of portals
     // cylinder portals
@@ -343,7 +347,7 @@ inline bool test_toy_detector(const detector<toy_metadata<>>& toy_det,
                       {vol_itr->index()});
 
     // Check link of surfaces in surface finder
-    test_sf_finders(vol_itr, sf_finders, {16u, 20u}, range);
+    test_accel(vol_itr, accel, {16u, 20u}, range);
 
     //
     // gap
@@ -354,10 +358,10 @@ inline bool test_toy_detector(const detector<toy_metadata<>>& toy_det,
     EXPECT_EQ(names.at(vol_itr->index() + 1), "gap_2");
     range = {128u, 132u};
     index = {2u};
-    sf_finder_link = {sf_finder_ids::e_brute_force, 0u};
+    accel_link = {accel_ids::e_brute_force, 0u};
 
     // Test the links in the volumes
-    test_volume_links(vol_itr, 2u, index, sf_finder_link);
+    test_volume_links(vol_itr, 2u, index, accel_link);
 
     // Check links of portals
     // cylinder portals
@@ -375,7 +379,7 @@ inline bool test_toy_detector(const detector<toy_metadata<>>& toy_det,
                       {material_ids::e_slab, 130u}, portal_mat, {1u, 3u});
 
     // Check link of surfaces in surface finder
-    test_sf_finders(vol_itr, sf_finders, {128u, 132u});
+    test_accel(vol_itr, accel, {128u, 132u});
 
     //
     // neg endcap (layer 2)
@@ -386,10 +390,10 @@ inline bool test_toy_detector(const detector<toy_metadata<>>& toy_det,
     EXPECT_EQ(names.at(vol_itr->index() + 1), "endcap_3");
     range = {132u, 244u};
     index = {3u};
-    sf_finder_link = {sf_finder_ids::e_disc_grid, 1u};
+    accel_link = {accel_ids::e_disc_grid, 1u};
 
     // Test the links in the volumes
-    test_volume_links(vol_itr, 3u, index, sf_finder_link);
+    test_volume_links(vol_itr, 3u, index, accel_link);
 
     // Check links of portals
     // cylinder portals
@@ -415,7 +419,7 @@ inline bool test_toy_detector(const detector<toy_metadata<>>& toy_det,
                       {vol_itr->index()});
 
     // Check link of surfaces in surface finder
-    test_sf_finders(vol_itr, sf_finders, {132u, 136u}, range);
+    test_accel(vol_itr, accel, {132u, 136u}, range);
 
     //
     // gap
@@ -426,10 +430,10 @@ inline bool test_toy_detector(const detector<toy_metadata<>>& toy_det,
     EXPECT_EQ(names.at(vol_itr->index() + 1), "gap_4");
     range = {244u, 248u};
     index = {4u};
-    sf_finder_link = {sf_finder_ids::e_brute_force, 0u};
+    accel_link = {accel_ids::e_brute_force, 0u};
 
     // Test the links in the volumes
-    test_volume_links(vol_itr, 4u, index, sf_finder_link);
+    test_volume_links(vol_itr, 4u, index, accel_link);
 
     // Check links of portals
     // cylinder portals
@@ -447,7 +451,7 @@ inline bool test_toy_detector(const detector<toy_metadata<>>& toy_det,
                       {material_ids::e_slab, 246u}, portal_mat, {3u, 5u});
 
     // Check link of surfaces in surface finder
-    test_sf_finders(vol_itr, sf_finders, {244u, 248u});
+    test_accel(vol_itr, accel, {244u, 248u});
 
     //
     // neg endcap (layer 1)
@@ -458,10 +462,10 @@ inline bool test_toy_detector(const detector<toy_metadata<>>& toy_det,
     EXPECT_EQ(names.at(vol_itr->index() + 1), "endcap_5");
     range = {248u, 360u};
     index = {5u};
-    sf_finder_link = {sf_finder_ids::e_disc_grid, 2u};
+    accel_link = {accel_ids::e_disc_grid, 2u};
 
     // Test the links in the volumes
-    test_volume_links(vol_itr, 5u, index, sf_finder_link);
+    test_volume_links(vol_itr, 5u, index, accel_link);
 
     // Check links of portals
     // cylinder portals
@@ -487,7 +491,7 @@ inline bool test_toy_detector(const detector<toy_metadata<>>& toy_det,
                       {vol_itr->index()});
 
     // Check link of surfaces in surface finder
-    test_sf_finders(vol_itr, sf_finders, {248u, 252u}, range);
+    test_accel(vol_itr, accel, {248u, 252u}, range);
 
     //
     // gap
@@ -498,10 +502,10 @@ inline bool test_toy_detector(const detector<toy_metadata<>>& toy_det,
     EXPECT_EQ(names.at(vol_itr->index() + 1), "connector_gap_6");
     range = {360u, 370u};
     index = {6u};
-    sf_finder_link = {sf_finder_ids::e_brute_force, 0u};
+    accel_link = {accel_ids::e_brute_force, 0u};
 
     // Test the links in the volumes
-    test_volume_links(vol_itr, 6u, index, sf_finder_link);
+    test_volume_links(vol_itr, 6u, index, accel_link);
 
     // Check links of portals
     // cylinder portals
@@ -520,7 +524,7 @@ inline bool test_toy_detector(const detector<toy_metadata<>>& toy_det,
                       {5u, 7u, 8u, 9u, 10u, 11u, 12u, 13u});
 
     // Check link of surfaces in surface finder
-    test_sf_finders(vol_itr, sf_finders, {360u, 370u});
+    test_accel(vol_itr, accel, {360u, 370u});
 
     //
     // barrel
@@ -535,10 +539,10 @@ inline bool test_toy_detector(const detector<toy_metadata<>>& toy_det,
     EXPECT_EQ(names.at(vol_itr->index() + 1), "barrel_7");
     range = {370u, 598u};
     index = {7u};
-    sf_finder_link = {sf_finder_ids::e_cylinder2_grid, 0u};
+    accel_link = {accel_ids::e_cylinder2_grid, 0u};
 
     // Test the links in the volumes
-    test_volume_links(vol_itr, 7u, index, sf_finder_link);
+    test_volume_links(vol_itr, 7u, index, accel_link);
 
     // Check links of portals
     // cylinder portals
@@ -564,7 +568,7 @@ inline bool test_toy_detector(const detector<toy_metadata<>>& toy_det,
                       {vol_itr->index()});
 
     // Check link of surfaces in surface finder
-    test_sf_finders(vol_itr, sf_finders, {370u, 374u}, range);
+    test_accel(vol_itr, accel, {370u, 374u}, range);
 
     //
     // gap
@@ -575,10 +579,10 @@ inline bool test_toy_detector(const detector<toy_metadata<>>& toy_det,
     EXPECT_EQ(names.at(vol_itr->index() + 1), "gap_8");
     range = {598u, 602u};
     index = {8u};
-    sf_finder_link = {sf_finder_ids::e_brute_force, 0u};
+    accel_link = {accel_ids::e_brute_force, 0u};
 
     // Test the links in the volumes
-    test_volume_links(vol_itr, 8u, index, sf_finder_link);
+    test_volume_links(vol_itr, 8u, index, accel_link);
 
     // Check links of portals
     // cylinder portals
@@ -595,7 +599,7 @@ inline bool test_toy_detector(const detector<toy_metadata<>>& toy_det,
                       {material_ids::e_slab, 600u}, portal_mat, {6u, 14u});
 
     // Check link of surfaces in surface finder
-    test_sf_finders(vol_itr, sf_finders, {598u, 602u});
+    test_accel(vol_itr, accel, {598u, 602u});
 
     //
     // second layer
@@ -606,10 +610,10 @@ inline bool test_toy_detector(const detector<toy_metadata<>>& toy_det,
     EXPECT_EQ(names.at(vol_itr->index() + 1), "barrel_9");
     range = {602u, 1054u};
     index = {9u};
-    sf_finder_link = {sf_finder_ids::e_cylinder2_grid, 1u};
+    accel_link = {accel_ids::e_cylinder2_grid, 1u};
 
     // Test the links in the volumes
-    test_volume_links(vol_itr, 9u, index, sf_finder_link);
+    test_volume_links(vol_itr, 9u, index, accel_link);
 
     // Check links of portals
     // cylinder portals
@@ -635,7 +639,7 @@ inline bool test_toy_detector(const detector<toy_metadata<>>& toy_det,
                       {vol_itr->index()});
 
     // Check link of surfaces in surface finder
-    test_sf_finders(vol_itr, sf_finders, {602u, 606u}, range);
+    test_accel(vol_itr, accel, {602u, 606u}, range);
 
     //
     // gap
@@ -646,10 +650,10 @@ inline bool test_toy_detector(const detector<toy_metadata<>>& toy_det,
     EXPECT_EQ(names.at(vol_itr->index() + 1), "gap_10");
     range = {1054u, 1058u};
     index = {10u};
-    sf_finder_link = {sf_finder_ids::e_brute_force, 0u};
+    accel_link = {accel_ids::e_brute_force, 0u};
 
     // Test the links in the volumes
-    test_volume_links(vol_itr, 10u, index, sf_finder_link);
+    test_volume_links(vol_itr, 10u, index, accel_link);
 
     // Check links of portals
     // cylinder portals
@@ -666,7 +670,7 @@ inline bool test_toy_detector(const detector<toy_metadata<>>& toy_det,
                       {material_ids::e_slab, 1056u}, portal_mat, {6u, 14u});
 
     // Check link of surfaces in surface finder
-    test_sf_finders(vol_itr, sf_finders, {1054u, 1058u});
+    test_accel(vol_itr, accel, {1054u, 1058u});
 
     //
     // third layer
@@ -677,10 +681,10 @@ inline bool test_toy_detector(const detector<toy_metadata<>>& toy_det,
     EXPECT_EQ(names.at(vol_itr->index() + 1), "barrel_11");
     range = {1058u, 1790u};
     index = {11u};
-    sf_finder_link = {sf_finder_ids::e_cylinder2_grid, 2u};
+    accel_link = {accel_ids::e_cylinder2_grid, 2u};
 
     // Test the links in the volumes
-    test_volume_links(vol_itr, 11u, index, sf_finder_link);
+    test_volume_links(vol_itr, 11u, index, accel_link);
 
     // Check links of portals
     // cylinder portals
@@ -706,7 +710,7 @@ inline bool test_toy_detector(const detector<toy_metadata<>>& toy_det,
                       {vol_itr->index()});
 
     // Check link of surfaces in surface finder
-    test_sf_finders(vol_itr, sf_finders, {1058u, 1062u}, range);
+    test_accel(vol_itr, accel, {1058u, 1062u}, range);
 
     //
     // gap
@@ -717,10 +721,10 @@ inline bool test_toy_detector(const detector<toy_metadata<>>& toy_det,
     EXPECT_EQ(names.at(vol_itr->index() + 1), "gap_12");
     range = {1790u, 1794u};
     index = {12u};
-    sf_finder_link = {sf_finder_ids::e_brute_force, 0u};
+    accel_link = {accel_ids::e_brute_force, 0u};
 
     // Test the links in the volumes
-    test_volume_links(vol_itr, 12u, index, sf_finder_link);
+    test_volume_links(vol_itr, 12u, index, accel_link);
 
     // Check links of portals
     // cylinder portals
@@ -737,7 +741,7 @@ inline bool test_toy_detector(const detector<toy_metadata<>>& toy_det,
                       {material_ids::e_slab, 1792u}, portal_mat, {6u, 14u});
 
     // Check link of surfaces in surface finder
-    test_sf_finders(vol_itr, sf_finders, {1790u, 1794u});
+    test_accel(vol_itr, accel, {1790u, 1794u});
 
     //
     // fourth layer
@@ -748,10 +752,10 @@ inline bool test_toy_detector(const detector<toy_metadata<>>& toy_det,
     EXPECT_EQ(names.at(vol_itr->index() + 1), "barrel_13");
     range = {1794u, 2890u};
     index = {13u};
-    sf_finder_link = {sf_finder_ids::e_cylinder2_grid, 3u};
+    accel_link = {accel_ids::e_cylinder2_grid, 3u};
 
     // Test the links in the volumes
-    test_volume_links(vol_itr, 13u, index, sf_finder_link);
+    test_volume_links(vol_itr, 13u, index, accel_link);
 
     // Check links of portals
     // cylinder portals
@@ -778,7 +782,7 @@ inline bool test_toy_detector(const detector<toy_metadata<>>& toy_det,
                       {vol_itr->index()});
 
     // Check link of surfaces in surface finder
-    test_sf_finders(vol_itr, sf_finders, {1794u, 1798u}, range);
+    test_accel(vol_itr, accel, {1794u, 1798u}, range);
 
     //
     // positive endcap
@@ -793,10 +797,10 @@ inline bool test_toy_detector(const detector<toy_metadata<>>& toy_det,
     EXPECT_EQ(names.at(vol_itr->index() + 1), "connector_gap_14");
     range = {2890u, 2900u};
     index = {14u};
-    sf_finder_link = {sf_finder_ids::e_brute_force, 0u};
+    accel_link = {accel_ids::e_brute_force, 0u};
 
     // Test the links in the volumes
-    test_volume_links(vol_itr, 14u, index, sf_finder_link);
+    test_volume_links(vol_itr, 14u, index, accel_link);
 
     // Check links of portals
     // cylinder portals
@@ -815,7 +819,7 @@ inline bool test_toy_detector(const detector<toy_metadata<>>& toy_det,
                       {15u, 7u, 8u, 9u, 10u, 11u, 12u, 13u});
 
     // Check link of surfaces in surface finder
-    test_sf_finders(vol_itr, sf_finders, {2890u, 2900u});
+    test_accel(vol_itr, accel, {2890u, 2900u});
 
     //
     // pos endcap (layer 1)
@@ -826,10 +830,10 @@ inline bool test_toy_detector(const detector<toy_metadata<>>& toy_det,
     EXPECT_EQ(names.at(vol_itr->index() + 1), "endcap_15");
     range = {2900u, 3012u};
     index = {15u};
-    sf_finder_link = {sf_finder_ids::e_disc_grid, 3u};
+    accel_link = {accel_ids::e_disc_grid, 3u};
 
     // Test the links in the volumes
-    test_volume_links(vol_itr, 15u, index, sf_finder_link);
+    test_volume_links(vol_itr, 15u, index, accel_link);
 
     // Check links of portals
     // cylinder portals
@@ -855,7 +859,7 @@ inline bool test_toy_detector(const detector<toy_metadata<>>& toy_det,
                       {vol_itr->index()});
 
     // Check link of surfaces in surface finder
-    test_sf_finders(vol_itr, sf_finders, {2900u, 2904u}, range);
+    test_accel(vol_itr, accel, {2900u, 2904u}, range);
 
     //
     // gap
@@ -866,10 +870,10 @@ inline bool test_toy_detector(const detector<toy_metadata<>>& toy_det,
     EXPECT_EQ(names.at(vol_itr->index() + 1), "gap_16");
     range = {3012u, 3016u};
     index = {16u};
-    sf_finder_link = {sf_finder_ids::e_brute_force, 0u};
+    accel_link = {accel_ids::e_brute_force, 0u};
 
     // Test the links in the volumes
-    test_volume_links(vol_itr, 16u, index, sf_finder_link);
+    test_volume_links(vol_itr, 16u, index, accel_link);
 
     // Check links of portals
     // cylinder portals
@@ -887,7 +891,7 @@ inline bool test_toy_detector(const detector<toy_metadata<>>& toy_det,
                       {material_ids::e_slab, 3014u}, portal_mat, {15u, 17u});
 
     // Check link of surfaces in surface finder
-    test_sf_finders(vol_itr, sf_finders, {3012u, 3016u});
+    test_accel(vol_itr, accel, {3012u, 3016u});
 
     //
     // pos endcap (layer 2)
@@ -898,10 +902,10 @@ inline bool test_toy_detector(const detector<toy_metadata<>>& toy_det,
     EXPECT_EQ(names.at(vol_itr->index() + 1), "endcap_17");
     range = {3016u, 3128u};
     index = {17u};
-    sf_finder_link = {sf_finder_ids::e_disc_grid, 4u};
+    accel_link = {accel_ids::e_disc_grid, 4u};
 
     // Test the links in the volumes
-    test_volume_links(vol_itr, 17u, index, sf_finder_link);
+    test_volume_links(vol_itr, 17u, index, accel_link);
 
     // Check links of portals
     // cylinder portals
@@ -927,7 +931,7 @@ inline bool test_toy_detector(const detector<toy_metadata<>>& toy_det,
                       {vol_itr->index()});
 
     // Check link of surfaces in surface finder
-    test_sf_finders(vol_itr, sf_finders, {3016u, 3020u}, range);
+    test_accel(vol_itr, accel, {3016u, 3020u}, range);
 
     //
     // gap
@@ -938,10 +942,10 @@ inline bool test_toy_detector(const detector<toy_metadata<>>& toy_det,
     EXPECT_EQ(names.at(vol_itr->index() + 1), "gap_18");
     range = {3128u, 3132u};
     index = {18u};
-    sf_finder_link = {sf_finder_ids::e_brute_force, 0u};
+    accel_link = {accel_ids::e_brute_force, 0u};
 
     // Test the links in the volumes
-    test_volume_links(vol_itr, 18u, index, sf_finder_link);
+    test_volume_links(vol_itr, 18u, index, accel_link);
 
     // Check links of portals
     // cylinder portals
@@ -959,7 +963,7 @@ inline bool test_toy_detector(const detector<toy_metadata<>>& toy_det,
                       {material_ids::e_slab, 3130u}, portal_mat, {17u, 19u});
 
     // Check link of surfaces in surface finder
-    test_sf_finders(vol_itr, sf_finders, {3128u, 3132u});
+    test_accel(vol_itr, accel, {3128u, 3132u});
 
     //
     // pos endcap (layer 3)
@@ -970,10 +974,10 @@ inline bool test_toy_detector(const detector<toy_metadata<>>& toy_det,
     EXPECT_EQ(names.at(vol_itr->index() + 1), "endcap_19");
     range = {3132u, 3244u};
     index = {19u};
-    sf_finder_link = {sf_finder_ids::e_disc_grid, 5u};
+    accel_link = {accel_ids::e_disc_grid, 5u};
 
     // Test the links in the volumes
-    test_volume_links(vol_itr, 19u, index, sf_finder_link);
+    test_volume_links(vol_itr, 19u, index, accel_link);
 
     // Check links of portals
     // cylinder portals
@@ -1000,7 +1004,7 @@ inline bool test_toy_detector(const detector<toy_metadata<>>& toy_det,
                       {vol_itr->index()});
 
     // Check link of surfaces in surface finder
-    test_sf_finders(vol_itr, sf_finders, {3132u, 3136u}, range);
+    test_accel(vol_itr, accel, {3132u, 3136u}, range);
 
     return true;
 }

@@ -29,17 +29,20 @@
 // Use the detray:: namespace implicitly.
 using namespace detray;
 
+using trk_generator_t =
+    uniform_track_generator<free_track_parameters<test::transform3>>;
+
+constexpr unsigned int theta_steps{100u};
+constexpr unsigned int phi_steps{100u};
+
 // This test runs intersection with all surfaces of the TrackML detector
 void BM_INTERSECT_ALL(benchmark::State &state) {
 
-    static const unsigned int theta_steps{100u};
-    static const unsigned int phi_steps{100u};
-
     // Detector configuration
-    static constexpr std::size_t n_brl_layers{4u};
-    static constexpr std::size_t n_edc_layers{7u};
     vecmem::host_memory_resource host_mr;
-    auto [d, names] = create_toy_geometry(host_mr, n_brl_layers, n_edc_layers);
+    toy_det_config toy_cfg{};
+    toy_cfg.n_edc_layers(7u);
+    auto [d, names] = create_toy_geometry(host_mr, toy_cfg);
 
     using detector_t = decltype(d);
     detector_t::geometry_context geo_context;
@@ -48,18 +51,22 @@ void BM_INTERSECT_ALL(benchmark::State &state) {
 
     std::size_t hits{0u};
     std::size_t missed{0u};
+    std::size_t n_surfaces{0u};
+    test::point3 origin{0.f, 0.f, 0.f};
+    std::vector<intersection2D<typename detector_t::surface_type,
+                               typename detector_t::transform3>>
+        intersections{};
+
+    // Iterate through uniformly distributed momentum directions
+    auto trk_generator = trk_generator_t{};
+    trk_generator.config()
+        .theta_steps(theta_steps)
+        .phi_steps(phi_steps)
+        .origin(origin);
 
     for (auto _ : state) {
-        test::point3 pos{0.f, 0.f, 0.f};
-        std::vector<intersection2D<typename detector_t::surface_type,
-                                   typename detector_t::transform3>>
-            intersections{};
-        std::size_t n_surfaces{0u};
 
-        // Iterate through uniformly distributed momentum directions
-        for (const auto track :
-             uniform_track_generator<free_track_parameters<test::transform3>>(
-                 theta_steps, phi_steps, pos)) {
+        for (const auto track : trk_generator) {
 
             // Loop over all surfaces in detector
             for (const auto &sf_desc : d.surface_lookup()) {

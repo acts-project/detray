@@ -15,7 +15,6 @@
 
 // System include(s)
 #include <cassert>
-#include <iostream>
 #include <limits>
 #include <type_traits>
 #include <vector>

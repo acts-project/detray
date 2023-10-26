@@ -8,6 +8,8 @@
 // Project include(s)
 #include "detector_construction.hpp"
 
+#include "detray/detectors/create_toy_geometry.hpp"
+
 // Vecmem include(s)
 #include <vecmem/memory/cuda/device_memory_resource.hpp>
 #include <vecmem/memory/cuda/managed_memory_resource.hpp>
@@ -72,6 +74,9 @@ int main() {
     auto vol_buff = detray::get_buffer(det_host.volumes(), dev_mr, cuda_cpy,
                                        detray::copy::sync,
                                        vecmem::data::buffer_type::fixed_size);
+    auto sf_buff = detray::get_buffer(det_host.surface_lookup(), dev_mr,
+                                      cuda_cpy, detray::copy::sync,
+                                      vecmem::data::buffer_type::fixed_size);
     // Use resizable buffer and asynchronous copy for alignment
     auto trf_buff = detray::get_buffer(det_host.transform_store(), dev_mr,
                                        cuda_cpy, detray::copy::async,
@@ -82,20 +87,17 @@ int main() {
     auto mat_buff = detray::get_buffer(det_host.material_store(), dev_mr,
                                        cuda_cpy, detray::copy::sync,
                                        vecmem::data::buffer_type::fixed_size);
-    auto sf_buff = detray::get_buffer(det_host.surface_store(), dev_mr,
-                                      cuda_cpy, detray::copy::sync,
-                                      vecmem::data::buffer_type::fixed_size);
-    auto sf_lkp_buff = detray::get_buffer(
-        det_host.surface_lookup(), dev_mr, cuda_cpy, detray::copy::sync,
-        vecmem::data::buffer_type::fixed_size);
+    auto acc_buff = detray::get_buffer(det_host.accelerator_store(), dev_mr,
+                                       cuda_cpy, detray::copy::sync,
+                                       vecmem::data::buffer_type::fixed_size);
     auto vgrid_buff = detray::get_buffer(det_host.volume_search_grid(), dev_mr,
                                          cuda_cpy, detray::copy::sync,
                                          vecmem::data::buffer_type::fixed_size);
 
     // Assemble the detector buffer
-    auto det_custom_buff = detray::detector_buffer(
-        det_host, std::move(vol_buff), std::move(trf_buff), std::move(msk_buff),
-        std::move(mat_buff), std::move(sf_buff), std::move(sf_lkp_buff),
+    auto det_custom_buff = typename decltype(det_host)::buffer_type(
+        std::move(vol_buff), std::move(sf_buff), std::move(trf_buff),
+        std::move(msk_buff), std::move(mat_buff), std::move(acc_buff),
         std::move(vgrid_buff));
 
     std::cout << "\nCustom buffer setup:" << std::endl;

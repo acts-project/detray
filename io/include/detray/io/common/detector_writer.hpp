@@ -70,11 +70,11 @@ struct detector_writer_config {
 
 namespace detail {
 
-/// From the detector type @tparam detector_t, inferr the writers that are
-/// needed
+/// From the detector type @tparam detector_t, infer the writers that are needed
 template <class detector_t>
 detail::detector_component_writers<detector_t> assemble_writer(
     const io::detector_writer_config& cfg) {
+
     detail::detector_component_writers<detector_t> writers;
 
     if (cfg.format() == io::format::json) {
@@ -112,10 +112,13 @@ template <class detector_t>
 void write_detector(detector_t& det, const typename detector_t::name_map& names,
                     const detector_writer_config& cfg) {
     // How to open the file
-    auto mode = cfg.m_replace ? (std::ios_base::out | std::ios_base::trunc)
-                              : std::ios_base::out;
+    const std::ios_base::openmode out_mode{std::ios_base::out |
+                                           std::ios_base::binary};
+    auto mode = cfg.m_replace ? (out_mode | std::ios_base::trunc) : out_mode;
+
     // Get the writer
     auto writer = detray::detail::assemble_writer<detector_t>(cfg);
+
     writer.write(det, names, mode);
 }
 

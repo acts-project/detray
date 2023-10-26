@@ -38,8 +38,7 @@ class type_registry {
     /// Get the index for a type. Needs to be unrolled in case of thrust tuple.
     template <typename object_t>
     DETRAY_HOST_DEVICE static constexpr ID get_id() {
-        return unroll_ids<std::remove_reference_t<object_t>,
-                          registered_types...>();
+        return unroll_ids<std::decay_t<object_t>, registered_types...>();
     }
 
     /// Get the index for a type. Use template parameter deduction.

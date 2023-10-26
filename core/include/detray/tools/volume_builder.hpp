@@ -36,43 +36,58 @@ class volume_builder : public volume_builder_interface<detector_t> {
     using volume_type = typename detector_t::volume_type;
     using geo_obj_ids = typename detector_t::geo_obj_ids;
 
+    /// Parametrized Constructor
+    ///
+    /// @param id flags the type of volume geometry (e.g. cylindrical, cuboid)
+    /// @param idx the index of the volume in the detector volume container
     volume_builder(const volume_id id, const dindex idx = dindex_invalid)
         : m_volume{id} {
         m_volume.set_index(idx);
+        // The first surface search data structure in every volume is a brute
+        // force method that will at least contain the portals
         m_volume
             .template set_link<static_cast<typename volume_type::object_id>(0)>(
-                detector_t::sf_finders::id::e_default, 0);
+                detector_t::accel::id::e_default, 0);
     };
 
-    /// Adds the @param name of the volume to a name map
+    /// Adds the @param name of the volume to a @param name_map
     template <typename name_map>
     DETRAY_HOST void add_name(const name_map& names, std::string&& name) {
         names.at(vol_index()) = std::move(name);
     }
 
+    /// @returns the volume index in the detector volume container
     DETRAY_HOST
     auto vol_index() -> dindex override { return m_volume.index(); }
 
+    /// Access to the volume under construction - const
     DETRAY_HOST
     auto operator()() const -> const
         typename detector_t::volume_type& override {
         return m_volume;
     }
+
+    /// Access to the volume under construction - non-const
     DETRAY_HOST
     auto operator()() -> typename detector_t::volume_type& override {
         return m_volume;
     }
 
+    /// Build the volume with internal surfaces and portals and add it to the
+    /// detector instance @param det
     DETRAY_HOST
     auto build(detector_t& det, typename detector_t::geometry_context ctx = {})
         -> typename detector_t::volume_type* override {
+        // Prepare volume data
         m_volume.set_index(static_cast<dindex>(det.volumes().size()));
 
         m_volume.set_transform(det.transform_store().size());
         det.transform_store().push_back(m_trf);
 
-        add_objects_per_volume(ctx, det);
+        // Add all data from the builder to the detector containers
+        add_to_detector(ctx, det);
 
+        // Reset after the data was added to the detector
         m_surfaces.clear();
         m_transforms.clear(ctx);
         m_masks.clear_all();
@@ -81,17 +96,22 @@ class volume_builder : public volume_builder_interface<detector_t> {
         return &(det.volumes().back());
     }
 
+    /// Adds a placement transform @param trf for the volume
     DETRAY_HOST
     void add_volume_placement(
         const typename detector_t::transform3& trf = {}) override {
         m_trf = trf;
     }
 
+    /// Constructs a placement transform with identity rotation and translation
+    /// @param t for the volume
     DETRAY_HOST
     void add_volume_placement(const typename detector_t::point3& t) override {
         m_trf = typename detector_t::transform3{t};
     }
 
+    /// Constructs a placement transform from axes @param x and @param z
+    /// and the translation @param t for the volume
     DETRAY_HOST
     void add_volume_placement(const typename detector_t::point3& t,
                               const typename detector_t::vector3& x,
@@ -99,45 +119,37 @@ class volume_builder : public volume_builder_interface<detector_t> {
         m_trf = typename detector_t::transform3{t, z, x, true};
     }
 
+    /// Add data for (a) new surface(s) to the builder
     DETRAY_HOST
-    void add_portals(
-        std::shared_ptr<surface_factory_interface<detector_t>> pt_factory,
-        typename detector_t::geometry_context ctx = {}) override {
-        (*pt_factory)(m_volume, m_surfaces, m_transforms, m_masks, ctx);
-    }
-
-    DETRAY_HOST
-    void add_sensitives(
+    void add_surfaces(
         std::shared_ptr<surface_factory_interface<detector_t>> sf_factory,
         typename detector_t::geometry_context ctx = {}) override {
         (*sf_factory)(m_volume, m_surfaces, m_transforms, m_masks, ctx);
     }
 
-    DETRAY_HOST
-    void add_passives(
-        std::shared_ptr<surface_factory_interface<detector_t>> ps_factory,
-        typename detector_t::geometry_context ctx = {}) override {
-        (*ps_factory)(m_volume, m_surfaces, m_transforms, m_masks, ctx);
-    }
-
     protected:
-    typename detector_t::surface_container_t& surfaces() override {
+    /// @returns Access to the surface descriptor data
+    typename detector_t::surface_container& surfaces() override {
         return m_surfaces;
     }
+
+    /// @returns Access to the surface/volume transform data
     typename detector_t::transform_container& transforms() override {
         return m_transforms;
     }
+
+    /// @returns Access to the surface mask data
     typename detector_t::mask_container& masks() override { return m_masks; }
 
-    /// Add a new full set of detector components (e.g. transforms or volumes)
-    /// according to given geometry_context.
+    /// Adds a new full set of volume components (e.g. transforms or masks)
+    /// to the global detector data stores and updates all links.
     ///
     /// @param ctx is the geometry_context of the call
     /// @param det is the detector instance that the volume should be added to
     ///
     /// @note can throw an exception if input data is inconsistent
     template <geo_obj_ids surface_id = static_cast<geo_obj_ids>(0)>
-    DETRAY_HOST auto add_objects_per_volume(
+    DETRAY_HOST auto add_to_detector(
         const typename detector_t::geometry_context ctx,
         detector_t& det) noexcept(false) -> void {
 
@@ -145,9 +157,9 @@ class volume_builder : public volume_builder_interface<detector_t> {
         const auto trf_offset = det.transform_store().size(ctx);
         det.append_transforms(std::move(m_transforms), ctx);
 
-        // Update mask and transform index of surfaces and set a
-        // unique barcode (index of surface in container)
-        auto sf_offset{static_cast<dindex>(det.portals().size())};
+        // Update mask and transform index of surfaces and set the
+        // correct index of the surface in container
+        auto sf_offset{static_cast<dindex>(det.surface_lookup().size())};
         for (auto& sf_desc : m_surfaces) {
             const auto sf = surface{det, sf_desc};
             sf.template visit_mask<detail::mask_index_update>(sf_desc);
@@ -164,10 +176,10 @@ class volume_builder : public volume_builder_interface<detector_t> {
         // surfaces are filled into the default brute_force accelerator.
         // For the other accelerators (grid etc.) there need to be dedicated
         // builders
-        constexpr auto default_acc_id{detector_t::sf_finders::id::e_default};
+        constexpr auto default_acc_id{detector_t::accel::id::e_default};
         m_volume.template set_link<surface_id>(
             default_acc_id,
-            det.surface_store().template size<default_acc_id>() - 1u);
+            det.accelerator_store().template size<default_acc_id>() - 1u);
 
         // Append masks
         det.append_masks(std::move(m_masks));
@@ -176,12 +188,17 @@ class volume_builder : public volume_builder_interface<detector_t> {
         det.volumes().push_back(m_volume);
     }
 
+    /// Volume descriptor of the volume under construction
     typename detector_t::volume_type m_volume{};
+    /// Placement of the volume under construction
     typename detector_t::transform3 m_trf{};
 
-    typename detector_t::surface_container_t m_surfaces{};
+    /// Data of conatined surfaces
+    /// @{
+    typename detector_t::surface_container m_surfaces{};
     typename detector_t::transform_container m_transforms{};
     typename detector_t::mask_container m_masks{};
+    /// @}
 };
 
 namespace detail {

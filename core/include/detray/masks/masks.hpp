@@ -59,11 +59,6 @@ class mask {
     // Linear algebra types
     using point3_t = typename algebra_t::point3;
     using point2_t = typename algebra_t::point2;
-    using matrix_operator = typename algebra_t::matrix_actor;
-    using size_type = typename algebra_t::size_type;
-    template <size_type ROWS, size_type COLS>
-    using matrix_type = typename algebra_t::template matrix_type<ROWS, COLS>;
-    using projection_matrix_type = matrix_type<shape::meas_dim, e_bound_size>;
 
     /// Default constructor
     constexpr mask() = default;
@@ -194,14 +189,6 @@ class mask {
     DETRAY_HOST_DEVICE
     auto volume_link() -> links_type& { return _volume_link; }
 
-    /// @returns the projection matrix for measurement
-    DETRAY_HOST_DEVICE projection_matrix_type projection_matrix(
-        const bound_track_parameters<algebra_t>& bound_params) const {
-        return this->local_frame()
-            .template projection_matrix<shape::meas_dim, shape::normal_order>(
-                bound_params);
-    }
-
     /// @brief Lower and upper point for minimum axis aligned bounding box.
     ///
     /// Computes the min and max vertices in a local 3 dim cartesian frame.
@@ -218,6 +205,19 @@ class mask {
         static_assert(bounds.size() == cuboid3D<>::e_size,
                       "Shape returns incompatible bounds for bound box");
         return {bounds, std::numeric_limits<unsigned int>::max()};
+    }
+
+    /// @brief Calculates the center of the min bounds bounding box.
+    /// @returns The center point in global cartesian coordinates.
+    template <typename transform3_t>
+    auto global_min_bounds_center(const transform3_t& trf) const {
+        const auto m = local_min_bounds();
+        const auto center{
+            0.5f * (point3_t{m[cuboid3D<>::e_max_x], m[cuboid3D<>::e_max_y],
+                             m[cuboid3D<>::e_max_z]} +
+                    point3_t{m[cuboid3D<>::e_min_x], m[cuboid3D<>::e_min_y],
+                             m[cuboid3D<>::e_min_z]})};
+        return trf.point_to_global(center);
     }
 
     /// @returns true if the mask boundary values are consistent
@@ -242,6 +242,13 @@ class mask {
             ss << ", " << v;
         }
         return ss.str();
+    }
+
+    /// @returns a string stream that prints the mask details
+    DETRAY_HOST
+    friend std::ostream& operator<<(std::ostream& os, const mask& m) {
+        os << m.to_string();
+        return os;
     }
 
     private:

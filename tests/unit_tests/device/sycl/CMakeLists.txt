@@ -17,7 +17,7 @@ set(algebras "array")
 foreach(algebra ${algebras})
    # Unit tests for the selected algebra.
    detray_add_test(${algebra}_sycl
-      "propagator.sycl" "propagator_kernel.hpp"
+      "propagator.sycl" "propagator_sycl_kernel.hpp"
       "propagator_kernel.sycl"
       LINK_LIBRARIES GTest::gtest_main vecmem::sycl detray_tests_common
       detray::algebra_${algebra})
