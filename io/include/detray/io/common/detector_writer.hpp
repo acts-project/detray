@@ -10,9 +10,11 @@
 // Project include(s)
 #include "detray/io/common/detail/detector_components_io.hpp"
 #include "detray/io/common/detail/type_traits.hpp"
+#include "detray/io/common/detail/utils.hpp"
 #include "detray/io/json/json_writer.hpp"
 
 // System include(s)
+#include <filesystem>
 #include <ios>
 
 namespace detray {
@@ -21,6 +23,8 @@ namespace io {
 
 /// @brief config struct for detector writing.
 struct detector_writer_config {
+    /// The path to the output files
+    std::string m_path{"./"};
     /// The output file format
     detray::io::format m_format = detray::io::format::json;
     /// Replace files in case they already exists
@@ -34,6 +38,7 @@ struct detector_writer_config {
 
     /// Getters
     /// @{
+    const std::string& path() const { return m_path; }
     detray::io::format format() const { return m_format; }
     bool replace_files() const { return m_replace; }
     bool compactify_json() const { return m_compact_io; }
@@ -43,6 +48,10 @@ struct detector_writer_config {
 
     /// Setters
     /// @{
+    detector_writer_config& path(std::string p) {
+        m_path = std::move(p);
+        return *this;
+    }
     detector_writer_config& format(detray::io::format f) {
         m_format = f;
         return *this;
@@ -114,12 +123,15 @@ void write_detector(detector_t& det, const typename detector_t::name_map& names,
     // How to open the file
     const std::ios_base::openmode out_mode{std::ios_base::out |
                                            std::ios_base::binary};
-    auto mode = cfg.m_replace ? (out_mode | std::ios_base::trunc) : out_mode;
+    auto mode =
+        cfg.replace_files() ? (out_mode | std::ios_base::trunc) : out_mode;
+
+    const auto file_path = detray::detail::create_path(cfg.path());
 
     // Get the writer
     auto writer = detray::detail::assemble_writer<detector_t>(cfg);
 
-    writer.write(det, names, mode);
+    writer.write(det, names, mode, file_path);
 }
 
 }  // namespace io

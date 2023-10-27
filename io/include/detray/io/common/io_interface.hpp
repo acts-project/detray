@@ -13,6 +13,7 @@
 #include "detray/tools/detector_builder.hpp"
 
 // System include(s)
+#include <filesystem>
 #include <ios>
 #include <string>
 #include <string_view>
@@ -66,9 +67,11 @@ class writer_interface {
 
     /// Writes the respective detector component to file. Since the detector
     /// does not provide the volume names, the name map is also passed.
+    /// @note The existence of the file path has to be guaranteed by the caller
     virtual std::string write(const detector_t&,
                               const typename detector_t::name_map&,
-                              const std::ios_base::openmode) = 0;
+                              const std::ios_base::openmode,
+                              const std::filesystem::path&) = 0;
 
     protected:
     /// Serialize the common header information using the detector name

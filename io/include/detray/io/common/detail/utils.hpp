@@ -12,6 +12,7 @@
 
 // System include(s).
 #include <ctime>
+#include <filesystem>
 #include <iomanip>
 #include <locale>
 #include <sstream>
@@ -19,14 +20,19 @@
 
 namespace detray::detail {
 
-/// Generate the filename for every distinct event
-inline std::string get_event_filename(std::size_t event,
-                                      const std::string& suffix) {
-    std::stringstream stream;
-    stream << "event";
-    stream << std::setfill('0') << std::setw(9) << event;
-    stream << suffix;
-    return stream.str();
+/// Check if a given file path exists and generate it if not
+inline auto create_path(const std::string& outdir) {
+
+    auto path = std::filesystem::path(outdir);
+
+    if (not std::filesystem::exists(path)) {
+        std::error_code err;
+        if (!std::filesystem::create_directories(path, err)) {
+            throw std::runtime_error(err.message());
+        }
+    }
+
+    return path;
 }
 
 /// @returns a string that contains the current date and time
