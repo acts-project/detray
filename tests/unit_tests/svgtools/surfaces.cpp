@@ -40,11 +40,9 @@ int main(int, char**) {
     // Creating the detector and geomentry context.
     vecmem::host_memory_resource host_mr;
     const auto [det, names] = detray::create_toy_geometry(host_mr);
-    using detector_t = decltype(det);
-    detector_t::geometry_context context{};
 
     // Creating the svg generator for the detector.
-    const detray::svgtools::illustrator il{det, context};
+    const detray::svgtools::illustrator il{det, names};
 
     // Indexes of the surfaces in the detector to be visualized.
     std::array indices{200UL, 201UL, 202UL, 203UL, 204UL};
@@ -53,8 +51,8 @@ int main(int, char**) {
         std::string name = "test_svgtools_surface" + std::to_string(i);
         // Visualization of surface/portal i:
         const auto svg_xy = il.draw_surface(name, i, xy);
-        detray::svgtools::write_svg(name + "_xy.svg", {axes, svg_xy});
+        detray::svgtools::write_svg(name + "_xy", {axes, svg_xy});
         const auto svg_zr = il.draw_surface(name, i, zr);
-        detray::svgtools::write_svg(name + "_zr.svg", {axes, svg_zr});
+        detray::svgtools::write_svg(name + "_zr", {axes, svg_zr});
     }
 }

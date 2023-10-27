@@ -36,18 +36,16 @@ int main(int, char**) {
     // Creating the detector and geomentry context.
     vecmem::host_memory_resource host_mr;
     const auto [det, names] = detray::create_toy_geometry(host_mr);
-    using detector_t = decltype(det);
-    detector_t::geometry_context context{};
 
     // Creating the svg generator for the detector.
-    const detray::svgtools::illustrator il{det, context};
+    const detray::svgtools::illustrator il{det, names};
 
     // Visualisation of a group of surfaces.
     const std::array surface_group_indices{1UL, 100UL, 10UL, 200UL};
 
     const auto svg_surface_group_xy =
         il.draw_surfaces("my_surface_group1_xy", surface_group_indices, xy);
-    detray::svgtools::write_svg("test_svgtools_surface_group_xy.svg",
+    detray::svgtools::write_svg("test_svgtools_surface_group_xy",
                                 {axes, svg_surface_group_xy});
 
     const auto svg_surface_group_zr =
@@ -60,12 +58,12 @@ int main(int, char**) {
 
     const auto svg_volume_group_xy =
         il.draw_volumes("my_volume_group1_xy", volume_group_indices, xy);
-    detray::svgtools::write_svg("test_svgtools_volume_group_xy.svg",
+    detray::svgtools::write_svg("test_svgtools_volume_group_xy",
                                 {axes, svg_volume_group_xy});
 
     const auto svg_volume_group_zr =
         il.draw_volumes("my_volume_group1_zr", volume_group_indices, zr);
-    detray::svgtools::write_svg("test_svgtools_volume_group_zr.svg",
+    detray::svgtools::write_svg("test_svgtools_volume_group_zr",
                                 {axes, svg_volume_group_zr});
 
     // We can also use the svgtools::utils to group actsvg::svg::objects into

@@ -45,12 +45,11 @@ int main(int, char**) {
     vecmem::host_memory_resource host_mr;
     const auto [det, names] = detray::create_toy_geometry(host_mr);
     using detector_t = decltype(det);
-    detector_t::geometry_context context{};
 
     using transform3_t = typename detector_t::transform3;
 
     // Creating the illustrator.
-    const detray::svgtools::illustrator il{det, context};
+    const detray::svgtools::illustrator il{det, names};
 
     // Drawing the detector.
     const auto svg_det = il.draw_detector("detector", view);
@@ -76,7 +75,7 @@ int main(int, char**) {
         const auto svg_ir =
             il.draw_intersections(name, intersection_record, view);
 
-        detray::svgtools::write_svg(name + ".svg", {axes, svg_det, svg_ir});
+        detray::svgtools::write_svg(name, {axes, svg_det, svg_ir});
 
         index++;
     }

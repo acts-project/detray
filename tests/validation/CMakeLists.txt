@@ -9,6 +9,7 @@ include( CMakeFindDependencyMacro )
 find_dependency( Boost COMPONENTS program_options )
 
 add_library( detray_validation INTERFACE )
+add_library( detray::validation ALIAS detray_validation )
 
 target_include_directories( detray_validation
    INTERFACE "${CMAKE_CURRENT_SOURCE_DIR}/include" )

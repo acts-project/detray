@@ -43,13 +43,12 @@ int main(int, char**) {
     vecmem::host_memory_resource host_mr;
     const auto [det, names] = detray::create_toy_geometry(host_mr);
     using detector_t = decltype(det);
-    detector_t::geometry_context context{};
 
     using transform3_t = typename detector_t::transform3;
     using vector3 = typename detector_t::vector3;
 
     // Creating the svg generator for the detector.
-    const detray::svgtools::illustrator il{det, context};
+    const detray::svgtools::illustrator il{det, names};
 
     // The vector of svgs that we want to include on the webpage.
     std::vector<actsvg::svg::object> svgs;

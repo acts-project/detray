@@ -35,12 +35,11 @@ int main(int, char**) {
     vecmem::host_memory_resource host_mr;
     const auto [det, names] = detray::create_toy_geometry(host_mr);
     using detector_t = decltype(det);
-    detector_t::geometry_context context{};
 
     using point = typename detector_t::point3;
 
     // Creating the illustrator class.
-    const detray::svgtools::illustrator il{det, context};
+    const detray::svgtools::illustrator il{det, names};
 
     // Sometimes its useful to be able to just draw a point while debugging.
     // For this the draw_landmark function is available.

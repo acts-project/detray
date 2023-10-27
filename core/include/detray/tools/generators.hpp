@@ -213,6 +213,24 @@ dvector<point3_t> vertices(
     return {lh_lc, rh_lc, rh_uc, lh_uc};
 }
 
+/** Generate vertices, specialized for masks: line
+ *
+ * @note template types are simply forwarded to mask
+ *
+ * @param sf is the surface that generates vertices
+ * @param ls is the number of line segments if
+ *
+ * @return a generated list of vertices
+ */
+template <typename point2_t, typename point3_t, bool cross_section,
+          template <class> typename intersector_t, typename links_t,
+          typename transform3_t>
+dvector<point3_t> vertices(const mask<line<cross_section, intersector_t>,
+                                      links_t, transform3_t> & /*line_mask*/,
+                           unsigned int /*lseg*/) {
+    return {};
+}
+
 /// Functor to produce vertices on a mask collection in a mask tuple container.
 template <typename point2_t, typename point3_t>
 struct vertexer {

@@ -50,8 +50,7 @@ int main(int, char**) {
         detray::svgtools::conversion::surface<point3_container>(transform,
                                                                 ann2D);
     const auto ann2D_svg = actsvg::display::surface("", ann2D_proto, view);
-    detray::svgtools::write_svg("test_svgtools_annulus2D.svg",
-                                {axes, ann2D_svg});
+    detray::svgtools::write_svg("test_svgtools_annulus2D", {axes, ann2D_svg});
 
     // Visualize a 2D cylinder.
     // e_r, e_n_half_z, e_p_half_z, e_size
@@ -60,8 +59,7 @@ int main(int, char**) {
         detray::svgtools::conversion::surface<point3_container>(transform,
                                                                 cyl2D);
     const auto cyl2D_svg = actsvg::display::surface("", cyl2D_proto, view);
-    detray::svgtools::write_svg("test_svgtools_cylinder2D.svg",
-                                {axes, cyl2D_svg});
+    detray::svgtools::write_svg("test_svgtools_cylinder2D", {axes, cyl2D_svg});
 
     // Visualize a 2D rectangle.
     // e_half_x, e_half_y, e_size
@@ -70,8 +68,7 @@ int main(int, char**) {
         detray::svgtools::conversion::surface<point3_container>(transform,
                                                                 rec2D);
     const auto rec2D_svg = actsvg::display::surface("", rec2D_proto, view);
-    detray::svgtools::write_svg("test_svgtools_rectangle2D.svg",
-                                {axes, rec2D_svg});
+    detray::svgtools::write_svg("test_svgtools_rectangle2D", {axes, rec2D_svg});
 
     // Visualize a 2D ring.
     // e_inner_r, e_outer_r, e_size
@@ -80,7 +77,7 @@ int main(int, char**) {
         detray::svgtools::conversion::surface<point3_container>(transform,
                                                                 rin2D);
     const auto rin2D_svg = actsvg::display::surface("", rin2D_proto, view);
-    detray::svgtools::write_svg("test_svgtools_ring2D.svg", {axes, rin2D_svg});
+    detray::svgtools::write_svg("test_svgtools_ring2D", {axes, rin2D_svg});
 
     // Visualize a 2D trapezoid.
     // e_half_length_0, e_half_length_1, e_half_length_2, e_divisor, e_size
@@ -89,8 +86,7 @@ int main(int, char**) {
         detray::svgtools::conversion::surface<point3_container>(transform,
                                                                 tra2D);
     const auto tra2D_svg = actsvg::display::surface("", tra2D_proto, view);
-    detray::svgtools::write_svg("test_svgtools_trapezoid2D.svg",
-                                {axes, tra2D_svg});
+    detray::svgtools::write_svg("test_svgtools_trapezoid2D", {axes, tra2D_svg});
 
     // Visualize a line.
     // e_cross_section, e_half_z
@@ -99,5 +95,5 @@ int main(int, char**) {
         detray::svgtools::conversion::surface<point3_container>(transform,
                                                                 lin2D);
     const auto lin2D_svg = actsvg::display::surface("", lin2D_proto, view);
-    detray::svgtools::write_svg("test_svgtools_line2D.svg", {axes, lin2D_svg});
+    detray::svgtools::write_svg("test_svgtools_line2D", {axes, lin2D_svg});
 }

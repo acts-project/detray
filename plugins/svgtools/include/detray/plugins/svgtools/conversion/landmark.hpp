@@ -26,7 +26,7 @@ inline auto landmark(
         d_intersection) {
     const auto position =
         svgtools::utils::intersection_point(context, detector, d_intersection);
-    return svgtools::conversion::landmark<point3>(position);
+    return svgtools::conversion::landmark<point3_t>(position);
 }
 
 /// @returns The proto landmark of a detray point.
