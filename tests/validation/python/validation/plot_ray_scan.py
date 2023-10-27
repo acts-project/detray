@@ -4,8 +4,7 @@
 #
 # Mozilla Public License Version 2.0
 
-import plot_helpers
-from pyplot_factory import legend_options
+from . import plotting
 
 # python includes
 import numpy as np
@@ -24,13 +23,13 @@ def intersection_points_xy(opts, df, detector, scan_type, plotFactory,  out_form
     portal_range = lambda data: ((data['z'] > min_z) & (data['z'] < max_z) & (data['type'] == 0))
     passive_range = lambda data: ((data['z'] > min_z) & (data['z'] < max_z) & (data['type'] == 2))
 
-    senstive_x, senstive_y = plot_helpers.filter_data(
+    senstive_x, senstive_y = plotting.filter_data(
                                                 data      = df,
                                                 filter    = sensitive_range,
                                                 variables = ['x', 'y'])
 
     # Plot the xy coordinates of the filtered intersections points
-    lgd_ops = legend_options('upper center', 4, 0.4, 0.005)
+    lgd_ops = plotting.legend_options('upper center', 4, 0.4, 0.005)
     hist_data = plotFactory.scatter(
                             figsize = (8, 8),
                             x       = senstive_x,
@@ -44,7 +43,7 @@ def intersection_points_xy(opts, df, detector, scan_type, plotFactory,  out_form
 
     # Portal surfaces
     if not opts.hide_portals:
-        portal_x, portal_y = plot_helpers.filter_data(
+        portal_x, portal_y = plotting.filter_data(
                                                 data      = df,
                                                 filter    = portal_range,
                                                 variables = ['x', 'y'])
@@ -54,7 +53,7 @@ def intersection_points_xy(opts, df, detector, scan_type, plotFactory,  out_form
 
     # Passive surfaces
     if not opts.hide_passives:
-        passive_x, passive_y = plot_helpers.filter_data(
+        passive_x, passive_y = plotting.filter_data(
                                                 data      = df,
                                                 filter    = passive_range,
                                                 variables = ['x', 'y'])
@@ -90,13 +89,13 @@ def intersection_points_rz(opts, df, detector, scan_type, plotFactory,  out_form
     portal_range = lambda data: (data['type'] == 0)
     passive_range = lambda data: (data['type'] == 2)
 
-    sensitive_x, sensitive_y, sensitive_z = plot_helpers.filter_data(
+    sensitive_x, sensitive_y, sensitive_z = plotting.filter_data(
                                                 data      = df,
                                                 filter    = sensitive_range,
                                                 variables = ['x', 'y', 'z'])
 
     # Plot the xy coordinates of the filtered intersections points
-    lgd_ops = legend_options('upper center', 4, 0.8, 0.005)
+    lgd_ops = plotting.legend_options('upper center', 4, 0.8, 0.005)
     hist_data = plotFactory.scatter(
                             figsize = (12, 6),
                             x      = sensitive_z,
@@ -110,7 +109,7 @@ def intersection_points_rz(opts, df, detector, scan_type, plotFactory,  out_form
 
     # Portal surfaces
     if not opts.hide_portals:
-        portal_x, portal_y, portal_z = plot_helpers.filter_data(
+        portal_x, portal_y, portal_z = plotting.filter_data(
                                                     data      = df,
                                                     filter    = portal_range,
                                                     variables = ['x', 'y', 'z'])
@@ -121,7 +120,7 @@ def intersection_points_rz(opts, df, detector, scan_type, plotFactory,  out_form
 
     # Passive surfaces
     if not opts.hide_passives:
-        passive_x, passive_y, passive_z = plot_helpers.filter_data(
+        passive_x, passive_y, passive_z = plotting.filter_data(
                                                     data      = df,
                                                     filter    = passive_range,
                                                     variables = ['x', 'y', 'z'])

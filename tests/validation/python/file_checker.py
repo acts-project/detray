@@ -4,15 +4,17 @@
 #
 # Mozilla Public License Version 2.0
 
+# detray json schema definitions
+from validation.json_schema import geometry_schema
+from validation.json_schema import homogeneous_material_schema
+from validation.json_schema import surface_grid_schema
+
+# python includes
 import argparse
 import json
 import os
 import sys
 from jsonschema import validate
-
-from json_schemas.geometry import geometry_schema
-from json_schemas.homogeneous_material import homogeneous_material_schema
-from json_schemas.surface_grids import surface_grid_schema
 
 def __main__():
 #----------------------------------------------------------------arg parsing

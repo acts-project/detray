@@ -4,22 +4,17 @@
 #
 # Mozilla Public License Version 2.0
 
-import plot_material_scan
-from pyplot_factory import pyplot_factory
+# detray includes
+from validation import plot_material_scan as mat_plotter
+from validation import plt_factory
 
 # python includes
 import argparse
 import logging
-import numpy as np
 import pandas as pd
 import os
 import sys
 from datetime import datetime
-import matplotlib.pyplot as plt
-
-
-plt.rc('text', usetex=True)
-plt.rc('text.latex', preamble=r'\usepackage{amsmath}')
 
 
 def __main__():
@@ -106,16 +101,16 @@ def __main__():
 
     df = pd.read_csv(mat_scan_file)
 
-    plot_factory = pyplot_factory(outdir + "material_", logging)
+    plot_factory = plt_factory(outdir + "material_", logging)
 
 #------------------------------------------------------------------------run
 
     # The histograms are not re-weighted (if the rays are not evenly distributed
     # the material in some bins might be artificially high)!
-    plot_material_scan.X0_vs_eta_phi(df, detector_name, plot_factory, out_format)
-    plot_material_scan.L0_vs_eta_phi(df, detector_name, plot_factory, out_format)
-    plot_material_scan.X0_vs_eta(df, detector_name, plot_factory, out_format)
-    plot_material_scan.L0_vs_eta(df, detector_name, plot_factory, out_format)
+    mat_plotter.X0_vs_eta_phi(df, detector_name, plot_factory, out_format)
+    mat_plotter.L0_vs_eta_phi(df, detector_name, plot_factory, out_format)
+    mat_plotter.X0_vs_eta(df, detector_name, plot_factory, out_format)
+    mat_plotter.L0_vs_eta(df, detector_name, plot_factory, out_format)
 
 #-------------------------------------------------------------------------------
 
