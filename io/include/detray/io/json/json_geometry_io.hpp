@@ -59,7 +59,9 @@ inline void from_json(const nlohmann::ordered_json& j, mask_payload& m) {
 }
 
 inline void to_json(nlohmann::ordered_json& j, const surface_payload& s) {
-    j["barcode"] = s.barcode;
+    if (s.barcode.has_value()) {
+        j["barcode"] = s.barcode.value();
+    }
     j["type"] = static_cast<unsigned int>(s.type);
     j["source"] = s.source;
     j["transform"] = s.transform;
@@ -73,7 +75,9 @@ inline void to_json(nlohmann::ordered_json& j, const surface_payload& s) {
 }
 
 inline void from_json(const nlohmann::ordered_json& j, surface_payload& s) {
-    s.barcode = j["barcode"];
+    if (j.find("barcode") != j.end()) {
+        s.barcode = j["barcode"];
+    }
     s.type = static_cast<detray::surface_id>(j["type"]);
     s.source = j["source"];
     s.transform = j["transform"];
@@ -115,7 +119,7 @@ inline void from_json(const nlohmann::ordered_json& j, volume_payload& v) {
         v.surfaces.push_back(s);
     }
     if (j.find("acc_links") != j.end()) {
-        v.acc_links = {};
+        v.acc_links.emplace();
         for (auto jl : j["acc_links"]) {
             acc_links_payload al = jl;
             v.acc_links->push_back(al);

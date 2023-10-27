@@ -127,6 +127,12 @@ class surface {
         return barcode().id() == surface_id::e_passive;
     }
 
+    /// @returns the mask volume link
+    DETRAY_HOST_DEVICE
+    constexpr auto volume_link() const {
+        return visit_mask<typename kernels::get_volume_link>();
+    }
+
     /// @returns the coordinate transform matrix of the surface
     DETRAY_HOST_DEVICE
     constexpr auto transform(const context &ctx) const -> const transform3 & {

@@ -50,8 +50,16 @@ struct surface_checker {
         }
 
         if (sf.volume() != vol_idx) {
-            err_stream << "Incorrect volume index on surface: " << sf;
+            err_stream << "ERROR: Incorrect volume index on surface: " << sf;
 
+            throw std::invalid_argument(err_stream.str());
+        }
+
+        // Does the mask link to an existing volume?
+        if (!is_invalid_value(sf.volume_link()) &&
+            (sf.volume_link() >= det.volumes().size())) {
+            err_stream << "ERROR: Incorrect volume link to non-existent volume "
+                       << sf.volume_link();
             throw std::invalid_argument(err_stream.str());
         }
 
@@ -59,9 +67,9 @@ struct surface_checker {
         // lookup
         const auto sf_from_lkp = surface{det, det.surface(sf.barcode())};
         if (not(sf_from_lkp == sf)) {
-            err_stream << "Surfaces in volume and detector lookups differ:\n"
-                       << "In volume acceleration data structure: " << sf
-                       << "\nIn detector surface lookup: " << sf_from_lkp;
+            err_stream << "ERROR: Surfaces in volume and detector lookups "
+                       << "differ:\n In volume acceleration data structure: "
+                       << sf << "\nIn detector surface lookup: " << sf_from_lkp;
 
             throw std::runtime_error(err_stream.str());
         }
