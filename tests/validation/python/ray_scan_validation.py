@@ -4,8 +4,9 @@
 #
 # Mozilla Public License Version 2.0
 
-import plot_ray_scan
-from pyplot_factory import pyplot_factory
+# detray includes
+from validation import plot_ray_scan as scan_plotter
+from validation import plt_factory
 
 # python includes
 import argparse
@@ -15,11 +16,6 @@ import pandas as pd
 import os
 import sys
 from datetime import datetime
-import matplotlib.pyplot as plt
-
-
-plt.rc('text', usetex=True)
-plt.rc('text.latex', preamble=r'\usepackage{amsmath}')
 
 
 def __main__():
@@ -122,14 +118,14 @@ def __main__():
 
     df = pd.read_csv(ray_scan_file)
 
-    plot_factory = pyplot_factory(outdir + "geometry_", logging)
+    plot_factory = plt_factory(outdir + "geometry_", logging)
 
 #------------------------------------------------------------------------run
 
-    plot_ray_scan.intersection_points_xy(args, df, detector_name,
-                                         scan_type, plot_factory, out_format)
-    plot_ray_scan.intersection_points_rz(args, df, detector_name, scan_type,
-                                         plot_factory, out_format)
+    scan_plotter.intersection_points_xy(args, df, detector_name,
+                                        scan_type, plot_factory, out_format)
+    scan_plotter.intersection_points_rz(args, df, detector_name, scan_type,
+                                        plot_factory, out_format)
 
 #-------------------------------------------------------------------------------
 

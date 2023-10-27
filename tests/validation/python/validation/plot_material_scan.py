@@ -4,12 +4,11 @@
 #
 # Mozilla Public License Version 2.0
 
-from pyplot_factory import get_legend_options
+from . import plotting
 
 # python includes
 import numpy as np
 import math
-import matplotlib.pyplot as plt
 
 
 """ Calculate edges of bins to plot the mateiral data """
@@ -105,7 +104,7 @@ def X0_vs_eta(df, detector, plotFactory,  out_format =  "pdf"):
 
     # Histogram bin edges
     xBinning, _ = get_n_bins(df)
-    lgd_ops = get_legend_options()
+    lgd_ops = plotting.get_legend_options()
     lgd_ops._replace(loc = 'upper center')
 
     hist_data = plotFactory.hist1D(
@@ -140,7 +139,7 @@ def L0_vs_eta(df, detector, plotFactory,  out_format =  "pdf"):
 
     # Histogram bin edges
     xBinning, _ = get_n_bins(df)
-    lgd_ops = get_legend_options()
+    lgd_ops = plotting.get_legend_options()
     lgd_ops._replace(loc = 'upper center')
 
     hist_data = plotFactory.hist1D(
