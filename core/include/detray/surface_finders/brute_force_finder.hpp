@@ -28,9 +28,9 @@ namespace detray {
 ///
 /// This class fulfills all criteria to be used in the detector @c multi_store .
 ///
-/// @tparam surface_t the type of surface data handles in a detector.
+/// @tparam value_t the entry type in the collection (e.g. surface descriptors).
 /// @tparam container_t the types of underlying containers to be used.
-template <class surface_t, typename container_t = host_container_types>
+template <class value_t, typename container_t = host_container_types>
 class brute_force_collection {
 
     public:
@@ -42,16 +42,16 @@ class brute_force_collection {
     /// force). This type will be returned when the surface collection is
     /// queried for the surfaces of a particular volume.
     struct brute_forcer
-        : public detray::ranges::subrange<const vector_type<surface_t>> {
+        : public detray::ranges::subrange<const vector_type<value_t>> {
 
-        using base = detray::ranges::subrange<const vector_type<surface_t>>;
+        using base = detray::ranges::subrange<const vector_type<value_t>>;
 
         /// Default constructor
         brute_forcer() = default;
 
         /// Constructor from @param surface_range - move
         DETRAY_HOST_DEVICE constexpr brute_forcer(
-            const vector_type<surface_t>& surfaces, const dindex_range& range)
+            const vector_type<value_t>& surfaces, const dindex_range& range)
             : base(surfaces, range) {}
 
         /// @returns the complete surface range of the search volume
@@ -64,11 +64,11 @@ class brute_force_collection {
         }
 
         /// @returns the surface at a given index @param i - const
-        DETRAY_HOST_DEVICE constexpr surface_t at(const dindex i) const {
+        DETRAY_HOST_DEVICE constexpr value_t at(const dindex i) const {
             return (*this)[i];
         }
         /// @returns the surface at a given index @param i - non-const
-        DETRAY_HOST_DEVICE constexpr surface_t& at(const dindex i) {
+        DETRAY_HOST_DEVICE constexpr value_t& at(const dindex i) {
             return (*this)[i];
         }
 
@@ -86,11 +86,11 @@ class brute_force_collection {
     using value_type = brute_forcer;
 
     using view_type =
-        dmulti_view<dvector_view<size_type>, dvector_view<surface_t>>;
-    using const_view_type = dmulti_view<dvector_view<const size_type>,
-                                        dvector_view<const surface_t>>;
+        dmulti_view<dvector_view<size_type>, dvector_view<value_t>>;
+    using const_view_type =
+        dmulti_view<dvector_view<const size_type>, dvector_view<const value_t>>;
     using buffer_type =
-        dmulti_buffer<dvector_buffer<size_type>, dvector_buffer<surface_t>>;
+        dmulti_buffer<dvector_buffer<size_type>, dvector_buffer<value_t>>;
 
     /// Default constructor
     constexpr brute_force_collection() {
@@ -140,11 +140,11 @@ class brute_force_collection {
 
     /// @return access to the surface container - const.
     DETRAY_HOST_DEVICE
-    auto all() const -> const vector_type<surface_t>& { return m_surfaces; }
+    auto all() const -> const vector_type<value_t>& { return m_surfaces; }
 
     /// @return access to the surface container - non-const.
     DETRAY_HOST_DEVICE
-    auto all() -> vector_type<surface_t>& { return m_surfaces; }
+    auto all() -> vector_type<value_t>& { return m_surfaces; }
 
     /// Create brute force surface finder from surface container - const
     DETRAY_HOST_DEVICE
@@ -153,13 +153,12 @@ class brute_force_collection {
     }
 
     /// Add a new surface collection
-    template <
-        typename sf_container_t,
-        typename std::enable_if_t<detray::ranges::range_v<sf_container_t>,
-                                  bool> = true,
-        typename std::enable_if_t<
-            std::is_same_v<typename sf_container_t::value_type, surface_t>,
-            bool> = true>
+    template <typename sf_container_t,
+              typename std::enable_if_t<detray::ranges::range_v<sf_container_t>,
+                                        bool> = true,
+              typename std::enable_if_t<
+                  std::is_same_v<typename sf_container_t::value_type, value_t>,
+                  bool> = true>
     DETRAY_HOST auto push_back(const sf_container_t& surfaces) noexcept(false)
         -> void {
         m_surfaces.reserve(m_surfaces.size() + surfaces.size());
@@ -170,7 +169,7 @@ class brute_force_collection {
 
     /// Remove surface from collection
     DETRAY_HOST auto erase(
-        typename vector_type<surface_t>::iterator pos) noexcept(false) {
+        typename vector_type<value_t>::iterator pos) noexcept(false) {
         // Remove one element
         auto next = m_surfaces.erase(pos);
 
@@ -203,7 +202,7 @@ class brute_force_collection {
     /// Offsets for the respective volumes into the surface storage
     vector_type<size_type> m_offsets{};
     /// The storage for all surface handles
-    vector_type<surface_t> m_surfaces{};
+    vector_type<value_t> m_surfaces{};
 };
 
 }  // namespace detray

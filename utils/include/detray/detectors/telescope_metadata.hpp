@@ -132,7 +132,7 @@ struct telescope_metadata {
 
     /// Volume search (only one volume exists)
     template <typename container_t = host_container_types>
-    using volume_finder = brute_force_collection<surface_type, container_t>;
+    using volume_finder = brute_force_collection<dindex, container_t>;
 };
 
 }  // namespace detray

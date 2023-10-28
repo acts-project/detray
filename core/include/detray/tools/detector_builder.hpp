@@ -94,7 +94,7 @@ class detector_builder {
 
     /// Put the volumes into a search data structure
     template <typename... Args>
-    DETRAY_HOST void set_volume_finder(Args&&... /*args*/) {
+    DETRAY_HOST void set_volume_finder([[maybe_unused]] Args&&... args) {
 
         using vol_finder_t = typename detector_type::volume_finder;
 
@@ -114,7 +114,14 @@ class detector_builder {
                 n_axis::open<n_axis::label::e_z>, n_axis::irregular<>,
                 n_axis::regular<>, n_axis::irregular<>>(vgrid_dims,
                                                         n_vgrid_bins);
+        } else {
+            m_vol_finder = vol_finder_t{args...};
         }
+    }
+
+    /// @returns access to the volume finder
+    DETRAY_HOST typename detector_type::volume_finder& volume_finder() {
+        return m_vol_finder;
     }
 
     protected:
