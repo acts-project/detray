@@ -117,6 +117,23 @@ class single3D {
         return o_bounds;
     }
 
+    /// Generate vertices in local cartesian frame
+    ///
+    /// @param bounds the boundary values for the single value
+    /// @param n_seg is the number of line segments
+    ///
+    /// @return a generated list of vertices
+    template <typename point2_t, typename point3_t,
+              template <typename, std::size_t> class bounds_t,
+              typename scalar_t, std::size_t kDIM,
+              typename std::enable_if_t<kDIM == e_size, bool> = true>
+    DETRAY_HOST dvector<point3_t> vertices(const bounds_t<scalar_t, kDIM> &,
+                                           dindex) const {
+        throw std::runtime_error(
+            "Vertex generation for single value shapes is not implemented");
+        return {};
+    }
+
     /// @brief Check consistency of boundary values.
     ///
     /// @param bounds the boundary values for this shape

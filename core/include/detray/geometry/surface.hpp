@@ -243,17 +243,19 @@ class surface {
                                                              pos, dir, dtds);
     }
 
-    /// @returns the vertices in local frame
+    /// @returns the vertices in local frame with @param n_seg the number of
+    /// segments used along acrs
     DETRAY_HOST
-    constexpr auto local_vertices() const {
-        return visit_mask<typename kernels::local_vertices>();
+    constexpr auto local_vertices(const dindex n_seg) const {
+        return visit_mask<typename kernels::vertices>(n_seg);
     }
 
-    /// @returns the vertices in global frame.
+    /// @returns the vertices in global frame with @param n_seg the number of
+    /// segments used along acrs
     DETRAY_HOST
-    constexpr auto global_vertices(const context &ctx,
+    constexpr auto global_vertices(const context &ctx, const dindex n_seg,
                                    const vector3 &dir) const {
-        auto vertices = local_vertices();
+        auto vertices = local_vertices(n_seg);
         for (size_t i = 0; i < vertices.size(); i++) {
             vertices[i] = local_to_global(ctx, vertices[i], dir);
         }

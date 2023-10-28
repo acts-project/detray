@@ -10,7 +10,6 @@
 // Project include(s)
 #include "detray/geometry/surface.hpp"
 #include "detray/plugins/svgtools/conversion/point.hpp"
-#include "detray/plugins/svgtools/utils/mask_utils.hpp"
 
 // Actsvg include(s)
 #include "actsvg/proto/surface.hpp"
@@ -37,9 +36,16 @@ inline void set_measures(actsvg::proto::surface<point3_container_t>& p_surface,
 /// @brief Sets the vertices of the proto surface to be the same as the mask.
 template <typename point3_container_t, typename transform_t, typename mask_t>
 inline void set_vertices(actsvg::proto::surface<point3_container_t>& p_surface,
-                         const transform_t& transform, const mask_t& m) {
+                         const transform_t& trf, const mask_t& m) {
+
     using point3_t = typename point3_container_t::value_type;
-    const auto vertices = svgtools::utils::global_vertices(transform, m);
+
+    // Approximate any acrs in the mask shape with ten line segments
+    auto vertices = m.vertices(10u);
+    for (std::size_t i = 0; i < vertices.size(); i++) {
+        vertices[i] = m.template to_global_frame<transform_t>(trf, vertices[i]);
+    }
+
     std::transform(
         vertices.cbegin(), vertices.cend(),
         std::back_inserter(p_surface._vertices),
@@ -83,11 +89,12 @@ auto inline surface(const transform_t& transform,
     const auto r = static_cast<scalar_t>(m[shape_t::e_r]);
     const auto nhz = static_cast<scalar_t>(m[shape_t::e_n_half_z]);
     const auto phz = static_cast<scalar_t>(m[shape_t::e_p_half_z]);
-    const auto hz =
-        (phz - nhz) / 2 + static_cast<scalar_t>(transform.translation()[2]);
+    const auto center =
+        svgtools::conversion::point<point3_t>(transform.translation());
+    const auto hz = (phz - nhz) / 2 + center[2];
 
     p_surface._type = p_surface_t::type::e_cylinder;
-    p_surface._radii = {static_cast<scalar_t>(0), r};
+    p_surface._radii = {0.f, r};
     p_surface._zparameters = {nhz + hz, hz};
     set_measures(p_surface, m);
 
@@ -116,7 +123,7 @@ auto surface(const transform_t& transform, const mask<ring2D<>>& m) {
 
     p_surface._type = p_surface_t::type::e_disc;
     p_surface._radii = {ri, ro};
-    p_surface._zparameters = {center[2], static_cast<scalar_t>(0)};
+    p_surface._zparameters = {center[2], 0.f};
     set_measures(p_surface, m);
 
     return p_surface;
@@ -144,9 +151,41 @@ auto inline surface(const transform_t& transform, const mask<annulus2D<>>& m) {
 
     p_surface._type = p_surface_t::type::e_annulus;
     p_surface._radii = {ri, ro};
-    p_surface._zparameters = {center[2], static_cast<scalar_t>(0)};
+    p_surface._zparameters = {center[2], 0.f};
     set_measures(p_surface, m);
     set_vertices(p_surface, transform, m);
+
+    return p_surface;
+}
+
+/// @brief Returns the proto surface for 2D rings.
+template <typename point3_container_t, typename transform_t,
+          bool kSquareCrossSect, template <typename> class intersector_t>
+auto surface(const transform_t& transform,
+             const mask<line<kSquareCrossSect, intersector_t>>& m) {
+    // Rotation is currently not supported.
+    // Furthermore, only translation on z axis is supported.
+
+    using mask_t = mask<line<kSquareCrossSect, intersector_t>>;
+    using shape_t = typename mask_t::shape;
+
+    using point3_t = typename point3_container_t::value_type;
+    using scalar_t = typename point3_t::value_type;
+    using p_surface_t = actsvg::proto::surface<point3_container_t>;
+
+    p_surface_t p_surface;
+
+    // All line surfaces are drawn as a circles(straws) in xy-view
+    const auto r{static_cast<scalar_t>(m[shape_t::e_cross_section])};
+    const auto hz = static_cast<scalar_t>(m[shape_t::e_half_z]);
+    const auto center =
+        svgtools::conversion::point<point3_t>(transform.translation());
+
+    p_surface._type = p_surface_t::type::e_straw;
+    p_surface._radii = {1.f, r};
+    p_surface._zparameters = {-hz, hz};
+    p_surface._transform._tr = center;
+    set_measures(p_surface, m);
 
     return p_surface;
 }
@@ -165,7 +204,7 @@ namespace {
 /// @brief A functor to set the proto surfaces type and bounds to be equivalent
 /// to the mask.
 template <typename point3_container_t>
-struct surface_getter {
+struct surface_converter {
     template <typename mask_group_t, typename index_t, typename transform_t>
     DETRAY_HOST inline auto operator()(const mask_group_t& mask_group,
                                        const index_t& index,
@@ -188,7 +227,7 @@ struct surface_getter {
 template <typename point3_container_t, typename detector_t>
 auto surface(const typename detector_t::geometry_context& context,
              const detray::surface<detector_t>& d_surface) {
-    return d_surface.template visit_mask<surface_getter<point3_container_t>>(
+    return d_surface.template visit_mask<surface_converter<point3_container_t>>(
         d_surface.transform(context));
 }
 

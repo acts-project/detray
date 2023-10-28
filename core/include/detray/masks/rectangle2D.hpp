@@ -116,6 +116,30 @@ class rectangle2D {
         return {-x_bound, -y_bound, -env, x_bound, y_bound, env};
     }
 
+    /// Generate vertices in local cartesian frame
+    ///
+    /// @param bounds the boundary values for the stereo annulus
+    /// @param n_seg is the number of line segments
+    ///
+    /// @return a generated list of vertices
+    template <typename point2_t, typename point3_t,
+              template <typename, std::size_t> class bounds_t,
+              typename scalar_t, std::size_t kDIM,
+              typename std::enable_if_t<kDIM == e_size, bool> = true>
+    DETRAY_HOST dvector<point3_t> vertices(
+        const bounds_t<scalar_t, kDIM> &bounds, dindex /*ignored*/) const {
+        // left hand lower corner
+        point3_t lh_lc{-bounds[e_half_x], -bounds[e_half_y], 0.f};
+        // right hand lower corner
+        point3_t rh_lc{bounds[e_half_x], -bounds[e_half_y], 0.f};
+        // right hand upper corner
+        point3_t rh_uc{bounds[e_half_x], bounds[e_half_y], 0.f};
+        // left hand upper corner
+        point3_t lh_uc{-bounds[e_half_x], bounds[e_half_y], 0.f};
+        // Return the confining vertices
+        return {lh_lc, rh_lc, rh_uc, lh_uc};
+    }
+
     /// @brief Check consistency of boundary values.
     ///
     /// @param bounds the boundary values for this shape

@@ -131,6 +131,23 @@ class cylinder2D {
                 xy_bound,  xy_bound,  bounds[e_p_half_z] + env};
     }
 
+    /// Generate vertices in local cartesian frame
+    ///
+    /// @param bounds the boundary values for the cylinder
+    /// @param n_seg is the number of line segments
+    ///
+    /// @return a generated list of vertices
+    template <typename point2_t, typename point3_t,
+              template <typename, std::size_t> class bounds_t,
+              typename scalar_t, std::size_t kDIM,
+              typename std::enable_if_t<kDIM == e_size, bool> = true>
+    DETRAY_HOST dvector<point3_t> vertices(const bounds_t<scalar_t, kDIM> &,
+                                           dindex) const {
+        throw std::runtime_error(
+            "Vertex generation for cylinders is not implemented");
+        return {};
+    }
+
     /// @brief Check consistency of boundary values.
     ///
     /// @param bounds the boundary values for this shape
