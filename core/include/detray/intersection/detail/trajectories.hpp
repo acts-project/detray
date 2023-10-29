@@ -82,6 +82,9 @@ class ray {
         return this->dir();
     }
 
+    /// @param dir new direction of the ray
+    DETRAY_HOST_DEVICE void set_dir(vector3 dir) { _dir = dir; }
+
     /// @returns overstep tolerance to comply with track interface
     DETRAY_HOST_DEVICE
     scalar_type overstep_tolerance() const { return _overstep_tolerance; }

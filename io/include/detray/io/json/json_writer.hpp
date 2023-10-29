@@ -17,6 +17,7 @@
 
 // System include(s)
 #include <cassert>
+#include <filesystem>
 #include <ios>
 #include <stdexcept>
 #include <string>
@@ -43,9 +44,10 @@ class json_writer final : public common_writer_t<detector_t, Args...> {
     json_writer() : base_writer(".json") {}
 
     /// Writes the geometry to file with a given name
-    virtual std::string write(const detector_t &det,
-                              const typename detector_t::name_map &names,
-                              const std::ios_base::openmode mode) override {
+    virtual std::string write(
+        const detector_t &det, const typename detector_t::name_map &names,
+        const std::ios_base::openmode mode = std::ios::out | std::ios::binary,
+        const std::filesystem::path &file_path = {"./"}) override {
         // Assert output stream
         assert(((mode == std::ios_base::out) or
                 (mode == (std::ios_base::out | std::ios_base::binary)) or
@@ -62,7 +64,8 @@ class json_writer final : public common_writer_t<detector_t, Args...> {
 
         // Create a new file
         std::string file_stem{det_name + "_" + base_writer::tag};
-        io::detail::file_handle file{file_stem, this->m_file_extension, mode};
+        io::detail::file_handle file{file_path / file_stem,
+                                     this->m_file_extension, mode};
 
         // Write some general information
         nlohmann::ordered_json out_json;

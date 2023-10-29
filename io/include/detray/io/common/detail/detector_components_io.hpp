@@ -56,15 +56,16 @@ class detector_component_writers final {
     /// writers, while using the name map @param names for the detector
     virtual void write(const detector_t& det,
                        const typename detector_t::name_map& names,
-                       const std::ios_base::openmode mode) {
+                       const std::ios_base::openmode mode,
+                       const std::filesystem::path& file_path) {
         // We have to at least write a geometry
         assert(m_writers.size() != 0u &&
                "No writers registered! Need at least a geometry writer");
 
         // Call the write method on all optional writers
         std::for_each(m_writers.begin(), m_writers.end(),
-                      [&det, &names, mode](writer_ptr_t& writer) {
-                          writer->write(det, names, mode);
+                      [&det, &names, mode, &file_path](writer_ptr_t& writer) {
+                          writer->write(det, names, mode, file_path);
                       });
     }
 
