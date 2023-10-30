@@ -143,10 +143,18 @@ struct bound_track_parameters {
     }
 
     DETRAY_HOST_DEVICE
+    scalar_type qopT() const { return track_helper().qopT(m_vector); }
+
+    DETRAY_HOST_DEVICE
     scalar_type p() const { return track_helper().p(m_vector); }
 
     DETRAY_HOST_DEVICE
     vector3 mom() const { return track_helper().mom(m_vector); }
+
+    DETRAY_HOST_DEVICE
+    scalar_type pT() const {
+        return std::abs(1.f / this->qop() * getter::perp(this->dir()));
+    }
 
     private:
     geometry::barcode m_barcode;
