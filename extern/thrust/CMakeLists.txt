@@ -1,6 +1,6 @@
 # Detray library, part of the ACTS project (R&D line)
 #
-# (c) 2021 CERN for the benefit of the ACTS project
+# (c) 2021-2023 CERN for the benefit of the ACTS project
 #
 # Mozilla Public License Version 2.0
 
@@ -29,3 +29,11 @@ set( THRUST_ENABLE_INSTALL_RULES TRUE CACHE BOOL
 
 # Get it into the current directory.
 FetchContent_MakeAvailable( Thrust )
+
+# Treat the Thrust headers as "system headers", to avoid getting warnings from
+# them. But not for CUDA, as that would make it pick up CUB from the CUDA
+# installation. Breaking the build.
+get_target_property( _incDirs _Thrust_Thrust INTERFACE_INCLUDE_DIRECTORIES )
+target_include_directories( _Thrust_Thrust SYSTEM
+   INTERFACE $<$<NOT:$<COMPILE_LANGUAGE:CUDA>>:${_incDirs}> )
+unset( _incDirs )
