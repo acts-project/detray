@@ -194,6 +194,7 @@ inline auto trace_intersections(const record_container &intersection_records,
     std::stringstream record_stream;
     /// Error messages
     std::stringstream err_stream;
+    bool error_code{true};
 
     /// Readable access to the data of a recorded intersection
     struct record {
@@ -222,11 +223,12 @@ inline auto trace_intersections(const record_container &intersection_records,
     };
 
     /// Print errors of this function
-    auto print_err = [](const std::stringstream &stream) {
+    auto print_err = [&error_code](const std::stringstream &stream) {
         std::cerr << "\n<<<<<<<<<<<<<<< ERROR intersection trace\n"
                   << std::endl;
         std::cerr << stream.str() << std::endl;
         std::cerr << "\n>>>>>>>>>>>>>>>\n" << std::endl;
+        error_code = false;
     };
 
     // No intersections found by ray
@@ -234,7 +236,7 @@ inline auto trace_intersections(const record_container &intersection_records,
         err_stream << "No surfaces found!";
         print_err(err_stream);
 
-        return std::make_pair(portal_trace, module_trace);
+        return std::make_tuple(portal_trace, module_trace, error_code);
     }
 
     // If there is only one surface in the trace, it must be a portal
@@ -253,11 +255,12 @@ inline auto trace_intersections(const record_container &intersection_records,
 
             print_err(err_stream);
 
-            return std::make_pair(portal_trace, module_trace);
+            return std::make_tuple(portal_trace, module_trace, error_code);
         }
     }
 
     // Go through recorded intersection (two at a time)
+    dindex current_vol = start_volume;
     for (std::size_t rec = 0u; rec < (intersection_records.size() - 1u);) {
 
         const record current_rec = record{intersection_records.at(rec)};
@@ -274,23 +277,33 @@ inline auto trace_intersections(const record_container &intersection_records,
             // Check that the surface was found in the volume it claims to
             // belong to
             const bool is_in_volume =
-                current_rec.volume_idx() == current_rec.surface_volume_idx();
+                (current_rec.volume_idx() ==
+                 current_rec.surface_volume_idx()) and
+                (current_rec.surface_volume_idx() == current_vol);
             if (is_in_volume) {
                 module_trace.emplace_back(current_rec.surface_idx(),
                                           current_rec.volume_idx());
             } else {
-                err_stream << "\n(!!) Surface outside of its volume (Found: "
-                           << current_rec.volume_idx() << ", belongs in: "
-                           << current_rec.surface_volume_idx() << ")";
+                err_stream << "\n(!!) Surface " << current_rec.surface_idx()
+                           << " outside of its volume (Found in: "
+                           << current_vol << ", belongs in: "
+                           << current_rec.surface_volume_idx() << ")\n";
 
                 err_stream << record_stream.str();
 
                 print_err(err_stream);
 
-                return std::make_pair(portal_trace, module_trace);
+                return std::make_tuple(portal_trace, module_trace, error_code);
             }
             ++rec;
             continue;
+        }
+        // If the record is a portal, the current volume switches
+        // the portals in the pair may be unordered, so check both
+        else if (current_vol == current_rec.volume_idx()) {
+            current_vol = current_rec.volume_link();
+        } else if (current_vol == next_rec.volume_idx()) {
+            current_vol = next_rec.volume_link();
         }
 
         record_stream << next_rec.volume_idx() << "\t" << next_rec.inters()
@@ -370,7 +383,7 @@ inline auto trace_intersections(const record_container &intersection_records,
 
             print_err(err_stream);
 
-            return std::make_pair(portal_trace, module_trace);
+            return std::make_tuple(portal_trace, module_trace, error_code);
         }
 
         // Advance to inspect next pair
@@ -388,7 +401,7 @@ inline auto trace_intersections(const record_container &intersection_records,
         portal_trace.emplace_back(lower, upper);
     }
 
-    return std::make_pair(portal_trace, module_trace);
+    return std::make_tuple(portal_trace, module_trace, error_code);
 }
 
 /// Build an adjacency list from intersection traces.

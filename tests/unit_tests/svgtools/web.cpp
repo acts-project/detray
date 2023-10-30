@@ -96,8 +96,8 @@ int main(int, char**) {
             il.draw_trajectory(name + "_trajectory", helix, view);
 
         // Draw the intersection record.
-        const auto svg_helix_ir =
-            il.draw_intersections(name + "_record", helix_ir, view);
+        const auto svg_helix_ir = il.draw_intersections(
+            name + "_record", helix_ir, helix.dir(), view);
 
         // We one the trajectory and intersection record to be considered as one
         // svg. Thus we group them together before adding the group to the svg
