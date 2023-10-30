@@ -53,6 +53,12 @@ GTEST_TEST(detray_tracks, bound_track_parameters) {
 
     bound_track_parameters<transform3> bound_param1(
         geometry::barcode{}.set_index(sf_idx1), bound_vec1, bound_cov1);
+    EXPECT_NEAR(bound_param1.pT(),
+                1.f /
+                    std::abs(getter::element(bound_vec1, e_bound_qoverp, 0u)) *
+                    std::sin(getter::element(bound_vec1, e_bound_theta, 0u)),
+                tol);
+    EXPECT_NEAR(bound_param1.qopT(), -1.f / bound_param1.pT(), tol);
 
     // second track
     dindex sf_idx2 = 1u;
@@ -171,6 +177,7 @@ GTEST_TEST(detray_tracks, free_track_parameters) {
                 tol);
     EXPECT_NEAR(free_param1.pT(),
                 std::sqrt(std::pow(mom[0], 2.f) + std::pow(mom[1], 2.f)), tol);
+    EXPECT_NEAR(free_param1.qopT(), charge / free_param1.pT(), tol);
     EXPECT_NEAR(free_param1.mom()[0], free_param1.p() * free_param1.dir()[0],
                 tol);
     EXPECT_NEAR(free_param1.mom()[1], free_param1.p() * free_param1.dir()[1],

@@ -145,6 +145,9 @@ struct free_track_parameters {
     }
 
     DETRAY_HOST_DEVICE
+    scalar_type qopT() const { return track_helper().qopT(m_vector); }
+
+    DETRAY_HOST_DEVICE
     scalar_type p() const { return track_helper().p(m_vector); }
 
     DETRAY_HOST_DEVICE
