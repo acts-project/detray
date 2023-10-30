@@ -268,6 +268,9 @@ class helix {
     DETRAY_HOST_DEVICE
     scalar_type qop() const { return _qop; }
 
+    DETRAY_HOST_DEVICE
+    auto b_field() const { return _mag_field; }
+
     /// @returns the transport jacobian after propagating the path length of s
     DETRAY_HOST_DEVICE
     free_matrix jacobian(const scalar_type s) const {

@@ -10,7 +10,7 @@
 // Project include(s)
 #include "detray/intersection/intersection.hpp"
 #include "detray/plugins/svgtools/conversion/landmark.hpp"
-#include "detray/plugins/svgtools/meta/proto/intersection_record.hpp"
+#include "detray/plugins/svgtools/meta/proto/intersection.hpp"
 
 // System include(s)
 #include <vector>

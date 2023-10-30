@@ -9,7 +9,9 @@
 
 // Actsvg include(s)
 #include "actsvg/core.hpp"
-#include "detray/plugins/svgtools/meta/proto/intersection_record.hpp"
+#include "actsvg/core/style.hpp"
+#include "actsvg/styles/defaults.hpp"
+#include "detray/plugins/svgtools/meta/proto/intersection.hpp"
 #include "detray/plugins/svgtools/meta/proto/landmark.hpp"
 
 // System include(s)
@@ -35,6 +37,7 @@ constexpr std::array suva_grey{137, 137, 137};
 constexpr std::array very_light_grey{207, 207, 207};
 
 // Red tones
+constexpr std::array red{255, 0, 0};
 constexpr std::array cardinal{167, 51, 63};
 constexpr std::array madder{165, 28, 48};
 constexpr std::array auburn{167, 51, 63};
@@ -45,6 +48,7 @@ constexpr std::array pumpkin{255, 128, 14};
 constexpr std::array tenne{200, 82, 0};
 
 // Blue tones
+constexpr std::array blue{0, 0, 255};
 constexpr std::array celestial_blue{62, 146, 204};
 constexpr std::array cerulean{0, 107, 164};
 constexpr std::array lapis_lazulli{42, 98, 143};
@@ -55,6 +59,7 @@ constexpr std::array indigo_dye{24, 67, 90};
 constexpr std::array sail{162, 200, 236};
 
 // Green tones
+constexpr std::array green{0, 255, 0};
 constexpr std::array celadon{190, 230, 206};
 constexpr std::array aquamarine1{188, 255, 219};
 constexpr std::array aquamarine2{141, 255, 205};
@@ -113,6 +118,7 @@ struct tableau_colorblind10 {
 }  // namespace colors
 
 struct grid_style {
+    actsvg::style::color _stroke_color;
     actsvg::scalar _stroke_width;
 };
 
@@ -177,14 +183,16 @@ const volume_style volume_style2{surface_style5, portal_style2};
 const landmark_style landmark_style1{colors::black_theme(1.f), 0.8f, 5.f, "x"};
 const landmark_style landmark_style2{colors::black_theme(1.f), 0.8f, 3.f, "o"};
 
-const grid_style grid_style1{2.f};
+const grid_style grid_style1{colors::red_theme(1.f)[0], 1.f};
+const grid_style grid_style2{colors::tableau_colorblind10::blue_tones(1.f)[2],
+                             1.2f};
 
 const trajectory_style trajectory_style1{colors::green_theme(1.f), 1.f};
 
 const style style1{volume_style1, landmark_style1, trajectory_style1,
                    grid_style1, landmark_style2};
 const style tableau_colorblind{volume_style2,     landmark_style1,
-                               trajectory_style1, grid_style1,
+                               trajectory_style1, grid_style2,
                                landmark_style2,   false};
 
 /// @brief Sets the style of the proto surface.
@@ -224,6 +232,12 @@ void apply_style(actsvg::proto::portal<point3_container_t>& p_portal,
     for (auto& volume_link : p_portal._volume_links) {
         apply_style<point3_container_t>(volume_link, styling._link_style);
     }
+}
+
+/// @brief Sets the style of the proto grid.
+void apply_style(actsvg::proto::grid& p_grid, const grid_style& styling) {
+    p_grid._stroke._sc = styling._stroke_color;
+    p_grid._stroke._width = styling._stroke_width;
 }
 
 /// @brief Sets the style of the proto volume.
@@ -283,11 +297,6 @@ void apply_style(meta::proto::trajectory<point3_t>& p_trajectory,
                           : styling._fill_colors.front();
     p_trajectory._stroke =
         actsvg::style::stroke(fill_color, styling._stroke_width);
-}
-
-/// @brief Sets the style of the proto grid.
-void apply_style(actsvg::proto::grid& p_grid, const grid_style& styling) {
-    p_grid._stroke._width = styling._stroke_width;
 }
 
 template <typename style1_t, typename style2_t>

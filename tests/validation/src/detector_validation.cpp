@@ -49,6 +49,7 @@ int main(int argc, char **argv) {
         "write_volume_graph", "writes the volume graph to file")(
         "write_scan_data", "writes the ray/helix scan intersections to file")(
         "geometry_file", po::value<std::string>(), "geometry input file")(
+        "grid_file", po::value<std::string>(), "Surface grid input file")(
         "material_file", po::value<std::string>(), "material input file")(
         "phi_steps", po::value<std::size_t>()->default_value(50u),
         "# phi steps for particle gun")(
@@ -105,6 +106,9 @@ int main(int argc, char **argv) {
     }
     if (vm.count("material_file")) {
         reader_cfg.add_file(vm["material_file"].as<std::string>());
+    }
+    if (vm.count("grid_file")) {
+        reader_cfg.add_file(vm["grid_file"].as<std::string>());
     }
 
     // Particle gun
