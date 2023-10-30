@@ -72,8 +72,8 @@ int main(int, char**) {
             "test_svgtools_intersection_record" + std::to_string(index);
 
         // Drawing the intersections.
-        const auto svg_ir =
-            il.draw_intersections(name, intersection_record, view);
+        const auto svg_ir = il.draw_intersections(name, intersection_record,
+                                                  test_ray.dir(), view);
 
         detray::svgtools::write_svg(name, {axes, svg_det, svg_ir});
 

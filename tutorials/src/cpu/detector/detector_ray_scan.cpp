@@ -73,9 +73,10 @@ int main() {
 
         // Create a trace of the volume indices that were encountered
         // and check that portal intersections are connected
-        auto [portal_trace, surface_trace] =
+        auto [portal_trace, surface_trace, err_code] =
             detray::trace_intersections<leaving_world>(intersection_record,
                                                        start_index);
+        success &= err_code;
 
         // Is the succession of volumes consistent ?
         success &= detray::check_connectivity<leaving_world>(portal_trace);

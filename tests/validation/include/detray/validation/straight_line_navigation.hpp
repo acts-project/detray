@@ -9,6 +9,7 @@
 
 // Project include(s)
 #include "detray/intersection/detail/trajectories.hpp"
+#include "detray/plugins/svgtools/illustrator.hpp"
 #include "detray/propagator/actor_chain.hpp"
 #include "detray/propagator/actors/aborters.hpp"
 #include "detray/propagator/line_stepper.hpp"
@@ -18,6 +19,7 @@
 #include "detray/tracks/tracks.hpp"
 #include "detray/utils/inspectors.hpp"
 #include "detray/validation/detail/navigation_check_helper.hpp"
+#include "detray/validation/detail/svg_display.hpp"
 #include "tests/common/test_base/fixture_base.hpp"
 #include "tests/common/tools/particle_gun.hpp"
 
@@ -47,6 +49,9 @@ class straight_line_navigation : public test::fixture_base<> {
 
         std::string m_name{"straight_line_navigation"};
         trk_gen_config_t m_trk_gen_cfg{};
+        // Visualization style to be applied to the svgs
+        detray::svgtools::styling::style m_style =
+            detray::svgtools::styling::tableau_colorblind;
 
         /// Getters
         /// @{
@@ -55,6 +60,7 @@ class straight_line_navigation : public test::fixture_base<> {
         const trk_gen_config_t &track_generator() const {
             return m_trk_gen_cfg;
         }
+        const auto &svg_style() const { return m_style; }
         /// @}
 
         /// Setters
@@ -106,6 +112,9 @@ class straight_line_navigation : public test::fixture_base<> {
         using actor_chain_t = actor_chain<dtuple, pathlimit_aborter>;
         using propagator_t = propagator<stepper_t, navigator_t, actor_chain_t>;
 
+        // Use default context
+        typename detector_t::geometry_context gctx{};
+
         // Propagator
         propagator_t prop(stepper_t{}, navigator_t{});
 
@@ -142,15 +151,29 @@ class straight_line_navigation : public test::fixture_base<> {
             auto &obj_tracer = inspector.template get<object_tracer_t>();
             auto &debug_printer = inspector.template get<print_inspector>();
 
+            bool success = prop.propagate(propagation, actor_states);
+
+            if (success) {
+                success &=
+                    detail::compare_traces(intersection_trace, obj_tracer, ray,
+                                           n_tracks, ray_generator.size());
+            }
+            if (not success) {
+                // Creating the svg generator for the detector.
+                detray::svgtools::illustrator il{m_det, m_names,
+                                                 m_cfg.svg_style()};
+                il.show_info(true);
+                il.hide_portals(false);
+                il.hide_passives(false);
+
+                detail::svg_display(gctx, il, intersection_trace, ray, "ray",
+                                    m_cfg.name(), obj_tracer.object_trace);
+            }
+
             // Run the propagation
-            ASSERT_TRUE(prop.propagate(propagation, actor_states))
+            ASSERT_TRUE(success)
                 << "\nFailed on ray " << n_tracks << "/" << ray_generator.size()
                 << ": " << ray << "\n\n"
-                << debug_printer.to_string();
-
-            ASSERT_TRUE(detail::compare_traces(intersection_trace, obj_tracer,
-                                               ray, n_tracks,
-                                               ray_generator.size()))
                 << debug_printer.to_string();
 
             ++n_tracks;

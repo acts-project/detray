@@ -64,10 +64,11 @@ int main(int, char**) {
     const auto ray_ir = detray::particle_gun::shoot_particle(det, ray);
 
     // Draw the trajectory.
-    const auto svg_ray = il.draw_trajectory("trajectory", ray, view);
+    const auto svg_ray = il.draw_trajectory("trajectory", ray, 500.f, view);
 
     // Draw the intersections.
-    const auto svg_ray_ir = il.draw_intersections("record", ray_ir, view);
+    const auto svg_ray_ir =
+        il.draw_intersections("record", ray_ir, ray.dir(), view);
 
     detray::svgtools::write_svg("test_svgtools_ray",
                                 {svg_volumes, svg_ray, svg_ray_ir});
@@ -83,10 +84,11 @@ int main(int, char**) {
     const auto helix_ir = detray::particle_gun::shoot_particle(det, helix);
 
     // Draw the trajectory.
-    const auto svg_helix = il.draw_trajectory("trajectory", helix, view);
+    const auto svg_helix = il.draw_trajectory("trajectory", helix, 500.f, view);
 
     // Draw the intersections.
-    const auto svg_helix_ir = il.draw_intersections("record", helix_ir, view);
+    const auto svg_helix_ir =
+        il.draw_intersections("record", helix_ir, helix.dir(), view);
 
     detray::svgtools::write_svg("test_svgtools_helix",
                                 {svg_volumes, svg_helix, svg_helix_ir});
