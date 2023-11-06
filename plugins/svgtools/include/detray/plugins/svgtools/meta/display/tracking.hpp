@@ -8,7 +8,7 @@
 #pragma once
 
 // Project inlude(s)
-#include "detray/plugins/svgtools/meta/proto/intersection_record.hpp"
+#include "detray/plugins/svgtools/meta/proto/intersection.hpp"
 #include "detray/plugins/svgtools/meta/proto/landmark.hpp"
 #include "detray/plugins/svgtools/meta/proto/trajectory.hpp"
 
@@ -43,7 +43,7 @@ inline auto intersection(
     for (size_t index = 0; index < intr._landmarks.size(); index++) {
         const auto lm = intr._landmarks[index];
         const auto svg = svgtools::meta::display::landmark(
-            id + "_intersection" + std::to_string(index), lm, view);
+            id + "_intersection_" + std::to_string(index), lm, view);
         ret.add_object(svg);
     }
     return ret;

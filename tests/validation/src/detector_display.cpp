@@ -51,6 +51,7 @@ int main(int argc, char **argv) {
     desc.add_options()("help", "produce help message")(
         "outdir", po::value<std::string>(), "Output directory for plots")(
         "geometry_file", po::value<std::string>(), "Geometry input file")(
+        "grid_file", po::value<std::string>(), "Surface grid input file")(
         "volumes", po::value<std::vector<dindex>>(&volumes)->multitoken(),
         "List of volumes that should be displayed")(
         "surfaces", po::value<std::vector<dindex>>(&surfaces)->multitoken(),
@@ -95,6 +96,9 @@ int main(int argc, char **argv) {
         err_stream << "Please specify a geometry input file!\n\n" << desc;
 
         throw std::invalid_argument(err_stream.str());
+    }
+    if (vm.count("grid_file")) {
+        reader_cfg.add_file(vm["grid_file"].as<std::string>());
     }
 
     // Read the detector geometry
