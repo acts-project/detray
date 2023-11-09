@@ -156,6 +156,37 @@ struct mask_info<io::detail::mask_shape::trapezoid2, detector_t,
 };
 /// @}
 
+/// Check for grid types in a data store
+/// @{
+template <typename>
+struct constains_grids;
+
+template <template <typename, typename...> class R, class ID, typename... Ts>
+struct constains_grids<R<ID, Ts...>> {
+    static constexpr bool value{std::disjunction_v<detail::is_grid<Ts>...>};
+};
+
+template <typename T>
+inline constexpr bool constains_grids_v = constains_grids<T>::value;
+/// @}
+
+/// Check for the various types of material
+/// @{
+template <class detector_t, typename = void>
+struct has_surface_grids : public std::false_type {};
+
+template <class detector_t>
+struct has_surface_grids<
+    detector_t,
+    std::enable_if_t<constains_grids_v<typename detector_t::accel>, void>>
+    : public std::true_type {};
+
+template <typename T>
+inline constexpr bool has_surface_grids_v = has_surface_grids<T>::value;
+/// @}
+
+/// Check for the various types of material
+/// @{
 template <class detector_t, typename = void>
 struct has_material_slabs : public std::false_type {};
 
@@ -185,8 +216,6 @@ inline constexpr bool has_material_rods_v = has_material_rods<T>::value;
 template <class detector_t, typename = void>
 struct has_homogeneous_material : public std::false_type {};
 
-/// Is the value type in the detector material store a simple material or is it
-/// wrapped in another class (e.g. grids for material maps)
 template <class detector_t>
 struct has_homogeneous_material<
     detector_t, std::enable_if_t<has_material_slabs_v<detector_t> or
@@ -196,5 +225,18 @@ struct has_homogeneous_material<
 template <typename T>
 inline constexpr bool has_homogeneous_material_v =
     has_homogeneous_material<T>::value;
+
+template <class detector_t, typename = void>
+struct has_material_grids : public std::false_type {};
+
+template <class detector_t>
+struct has_material_grids<
+    detector_t,
+    std::enable_if_t<constains_grids_v<typename detector_t::materials>, void>>
+    : public std::true_type {};
+
+template <typename T>
+inline constexpr bool has_material_grids_v = has_material_grids<T>::value;
+/// @}
 
 }  // namespace detray::detail
