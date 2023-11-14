@@ -5,16 +5,18 @@
  * Mozilla Public License Version 2.0
  */
 
-#include <gtest/gtest.h>
-
+// Project include(s)
 #include "detray/masks/masks.hpp"
 #include "detray/masks/unmasked.hpp"
 #include "detray/test/types.hpp"
-#include "detray/tracks/bound_track_parameters.hpp"
+
+// GTest include
+#include <gtest/gtest.h>
 
 using namespace detray;
 using point3_t = test::point3;
-using transform3_t = test::transform3;
+
+constexpr scalar tol{1e-7f};
 
 /// This tests the basic functionality of an unmasked plane
 GTEST_TEST(detray_masks, unmasked) {
@@ -23,9 +25,6 @@ GTEST_TEST(detray_masks, unmasked) {
     mask<unmasked> u{};
 
     ASSERT_TRUE(u.is_inside(p2, 0.f) == intersection::status::e_inside);
-
-    // Dummy bound track parameter
-    bound_track_parameters<transform3_t> bound_params;
 
     // Check bounding box
     constexpr scalar envelope{0.01f};
@@ -36,4 +35,9 @@ GTEST_TEST(detray_masks, unmasked) {
     ASSERT_TRUE(std::isinf(loc_bounds[cuboid3D<>::e_max_x]));
     ASSERT_TRUE(std::isinf(loc_bounds[cuboid3D<>::e_max_y]));
     ASSERT_TRUE(std::isinf(loc_bounds[cuboid3D<>::e_max_z]));
+
+    const auto centroid = u.centroid();
+    ASSERT_NEAR(centroid[0], 0.f, tol);
+    ASSERT_NEAR(centroid[1], 0.f, tol);
+    ASSERT_NEAR(centroid[2], 0.f, tol);
 }

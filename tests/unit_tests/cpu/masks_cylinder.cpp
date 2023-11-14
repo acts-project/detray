@@ -5,16 +5,16 @@
  * Mozilla Public License Version 2.0
  */
 
-#include <gtest/gtest.h>
-
+// Project include(s)
 #include "detray/definitions/units.hpp"
 #include "detray/masks/masks.hpp"
 #include "detray/test/types.hpp"
-#include "detray/tracks/bound_track_parameters.hpp"
+
+// GTest include
+#include <gtest/gtest.h>
 
 using namespace detray;
 using point3_t = test::point3;
-using transform3_t = test::transform3;
 
 constexpr scalar tol{1e-7f};
 
@@ -41,9 +41,6 @@ GTEST_TEST(detray_masks, cylinder2D) {
     // Move outside point inside using a tolerance
     ASSERT_TRUE(c.is_inside(p2_out, 0.6f) == intersection::status::e_inside);
 
-    // Dummy bound track parameter
-    bound_track_parameters<transform3_t> bound_params;
-
     // Check bounding box
     constexpr scalar envelope{0.01f};
     const auto loc_bounds = c.local_min_bounds(envelope);
@@ -53,6 +50,11 @@ GTEST_TEST(detray_masks, cylinder2D) {
     ASSERT_NEAR(loc_bounds[cuboid3D<>::e_max_x], (r + envelope), tol);
     ASSERT_NEAR(loc_bounds[cuboid3D<>::e_max_y], (r + envelope), tol);
     ASSERT_NEAR(loc_bounds[cuboid3D<>::e_max_z], (hz + envelope), tol);
+
+    const auto centroid = c.centroid();
+    ASSERT_NEAR(centroid[0], 0.f, tol);
+    ASSERT_NEAR(centroid[1], 0.f, tol);
+    ASSERT_NEAR(centroid[2], 0.f, tol);
 }
 
 /// This tests the basic functionality of a 3D cylinder
@@ -91,4 +93,9 @@ GTEST_TEST(detray_masks, cylinder3D) {
     ASSERT_NEAR(loc_bounds[cuboid3D<>::e_max_x], (r + envelope), tol);
     ASSERT_NEAR(loc_bounds[cuboid3D<>::e_max_y], (r + envelope), tol);
     ASSERT_NEAR(loc_bounds[cuboid3D<>::e_max_z], (hz + envelope), tol);
+
+    const auto centroid = c.centroid();
+    ASSERT_NEAR(centroid[0], 0.f, tol);
+    ASSERT_NEAR(centroid[1], 0.f, tol);
+    ASSERT_NEAR(centroid[2], 0.f, tol);
 }

@@ -5,16 +5,16 @@
  * Mozilla Public License Version 2.0
  */
 
-#include <gtest/gtest.h>
-
+// Project include(s)
 #include "detray/definitions/units.hpp"
 #include "detray/masks/masks.hpp"
 #include "detray/test/types.hpp"
-#include "detray/tracks/bound_track_parameters.hpp"
+
+// GTest include
+#include <gtest/gtest.h>
 
 using namespace detray;
 using point3_t = test::point3;
-using transform3_t = test::transform3;
 
 constexpr scalar tol{1e-7f};
 
@@ -41,9 +41,6 @@ GTEST_TEST(detray_masks, ring2D) {
     ASSERT_TRUE(r2.is_inside(p2_pl_out, 1.2f) ==
                 intersection::status::e_inside);
 
-    // Dummy bound track parameter
-    bound_track_parameters<transform3_t> bound_params;
-
     // Check bounding box
     constexpr scalar envelope{0.01f};
     const auto loc_bounds = r2.local_min_bounds(envelope);
@@ -53,4 +50,9 @@ GTEST_TEST(detray_masks, ring2D) {
     ASSERT_NEAR(loc_bounds[cuboid3D<>::e_max_x], (outer_r + envelope), tol);
     ASSERT_NEAR(loc_bounds[cuboid3D<>::e_max_y], (outer_r + envelope), tol);
     ASSERT_NEAR(loc_bounds[cuboid3D<>::e_max_z], envelope, tol);
+
+    const auto centroid = r2.centroid();
+    ASSERT_NEAR(centroid[0], 0.f, tol);
+    ASSERT_NEAR(centroid[1], 0.f, tol);
+    ASSERT_NEAR(centroid[2], 0.f, tol);
 }

@@ -39,7 +39,7 @@ int main(int, char**) {
 
     const typename transform_t::vector3 tr{0.f, 150.f, 0.f};
     const typename toy_detector_t::transform3 transform(tr);
-    const actsvg::views::z_phi view{};
+    const actsvg::views::x_y view{};
 
     // Visualize a 2D annulus.
     // e_min_r, e_max_r, e_min_phi_rel, e_max_phi_rel, e_average_phi, e_shift_x,
@@ -90,7 +90,7 @@ int main(int, char**) {
 
     // Visualize a line.
     // e_cross_section, e_half_z
-    detray::mask<detray::line<>> lin2D{0u, 1.f, 100.f};
+    detray::mask<detray::line<>> lin2D{0u, 10.f, 100.f};
     const auto lin2D_proto =
         detray::svgtools::conversion::surface<point3_container>(transform,
                                                                 lin2D);

@@ -189,6 +189,11 @@ class mask {
     DETRAY_HOST_DEVICE
     auto volume_link() -> links_type& { return _volume_link; }
 
+    /// @returns the masks centroid in local cartesian coordinates
+    DETRAY_HOST_DEVICE auto centroid() const {
+        return _shape.template centroid<algebra_t>(_values);
+    }
+
     /// @brief Lower and upper point for minimum axis aligned bounding box.
     ///
     /// Computes the min and max vertices in a local 3 dim cartesian frame.

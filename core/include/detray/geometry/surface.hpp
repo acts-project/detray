@@ -139,7 +139,15 @@ class surface {
         return m_detector.transform_store(ctx)[m_desc.transform()];
     }
 
-    /// @returns the center position on the surface in global coordinates
+    /// @returns the centroid of the surface mask in local cartesian coordinates
+    DETRAY_HOST_DEVICE
+    constexpr auto centroid() const -> const point3 {
+        return visit_mask<typename kernels::centroid>();
+    }
+
+    /// @returns the center position of the surface in global coordinates
+    /// @note for shapes like the annulus this is not synonymous to the controid
+    /// but the focal point of the strip system instead
     DETRAY_HOST_DEVICE
     constexpr auto center(const context &ctx) const -> const point3 {
         return transform(ctx).translation();
@@ -188,16 +196,20 @@ class surface {
                                                              global, dir);
     }
 
-    /// @returns the global position to the given local/bound position @param p
+    /// @returns the global position to the given local position @param local
     /// for a given geometry context @param ctx
-    template <typename point_t,
-              std::enable_if_t<std::is_same_v<point_t, point3> or
-                                   std::is_same_v<point_t, point2>,
-                               bool> = true>
     DETRAY_HOST_DEVICE constexpr point3 local_to_global(
-        const context &ctx, const point_t &p, const vector3 &dir) const {
-        return visit_mask<typename kernels::local_to_global>(transform(ctx), p,
-                                                             dir);
+        const context &ctx, const point3 &local, const vector3 &dir) const {
+        return visit_mask<typename kernels::local_to_global>(transform(ctx),
+                                                             local, dir);
+    }
+
+    /// @returns the global position to the given bound position @param bound
+    /// for a given geometry context @param ctx
+    DETRAY_HOST_DEVICE constexpr point3 bound_to_global(
+        const context &ctx, const point2 &bound, const vector3 &dir) const {
+        return visit_mask<typename kernels::local_to_global>(transform(ctx),
+                                                             bound, dir);
     }
 
     /// @returns the track parametrization projected onto the surface (bound)
@@ -253,11 +265,11 @@ class surface {
     /// @returns the vertices in global frame with @param n_seg the number of
     /// segments used along acrs
     DETRAY_HOST
-    constexpr auto global_vertices(const context &ctx, const dindex n_seg,
-                                   const vector3 &dir) const {
+    constexpr auto global_vertices(const context &ctx,
+                                   const dindex n_seg) const {
         auto vertices = local_vertices(n_seg);
         for (size_t i = 0; i < vertices.size(); i++) {
-            vertices[i] = local_to_global(ctx, vertices[i], dir);
+            vertices[i] = transform(ctx).point_to_global(vertices[i]);
         }
         return vertices;
     }

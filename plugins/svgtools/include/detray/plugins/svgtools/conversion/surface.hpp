@@ -146,8 +146,8 @@ auto inline surface(const transform_t& transform, const mask<annulus2D<>>& m) {
 
     auto ri = static_cast<scalar_t>(m[shape_t::e_min_r]);
     auto ro = static_cast<scalar_t>(m[shape_t::e_max_r]);
-    auto center =
-        svgtools::conversion::point<point3_t>(transform.translation());
+    auto center = svgtools::conversion::point<point3_t>(
+        transform.point_to_global(m.centroid()));
 
     p_surface._type = p_surface_t::type::e_annulus;
     p_surface._radii = {ri, ro};
