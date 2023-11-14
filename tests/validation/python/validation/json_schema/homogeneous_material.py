@@ -107,7 +107,7 @@ homogeneous_material_schema = {
                                             "required": ["params"]
                                         }
                                     },
-                                    "required": ["type", "surface_idx", "thickness"]
+                                    "required": ["type", "surface_idx", "thickness", "material"]
                                 }
                             },
                             "material_rods": {
@@ -153,7 +153,7 @@ homogeneous_material_schema = {
                                             "required": ["params"]
                                         }
                                     },
-                                    "required": ["type", "surface_idx", "thickness"]
+                                    "required": ["type", "surface_idx", "thickness", "material"]
                                 }
                             },
                         },
