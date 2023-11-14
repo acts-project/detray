@@ -56,6 +56,67 @@ class grid_collection<
     template <typename T>
     using vector_type = typename multi_axis_t::template vector_type<T>;
 
+    private:
+    /// @brief Iterator for the grid collection: Generates grids on the fly.
+    struct iterator {
+
+        using difference_type = std::ptrdiff_t;
+        using value_type = grid_type;
+        using pointer = grid_type *;
+        using reference = grid_type &;
+        using iterator_category = detray::ranges::bidirectional_iterator_tag;
+
+        /// Parametrized Constructor from a grid collection and a start index
+        DETRAY_HOST_DEVICE
+        constexpr explicit iterator(const grid_collection &grid_coll,
+                                    dindex i = 0u)
+            : m_i{i}, m_grid_coll{grid_coll} {}
+
+        constexpr iterator(const iterator &other) = default;
+        constexpr iterator(iterator &&other) = default;
+        constexpr iterator &operator=(const iterator &rhs) = default;
+
+        /// @returns true if grid indices are the same
+        DETRAY_HOST_DEVICE
+        constexpr auto operator==(const iterator &rhs) const -> bool {
+            return (m_i == rhs.m_i);
+        }
+
+        /// @returns true while the grid indices are different
+        DETRAY_HOST_DEVICE
+        constexpr auto operator!=(const iterator &rhs) const -> bool {
+            return (m_i != rhs.m_i);
+        }
+
+        /// Increment the grid index
+        DETRAY_HOST_DEVICE
+        constexpr auto operator++() -> iterator & {
+            ++m_i;
+            return *this;
+        }
+
+        /// Decrement the grid index
+        DETRAY_HOST_DEVICE
+        constexpr auto operator--() -> iterator & {
+            --m_i;
+            return *this;
+        }
+
+        /// @returns the grid instance for the current position in the
+        /// collection
+        DETRAY_HOST_DEVICE
+        constexpr auto operator*() const -> value_type {
+            return m_grid_coll[m_i];
+        }
+
+        private:
+        /// Current value of sequence
+        dindex m_i;
+        /// The grid collection
+        const grid_collection &m_grid_coll;
+    };
+
+    public:
     /// Vecmem based grid collection view type
     using view_type =
         dmulti_view<dvector_view<size_type>,
@@ -115,14 +176,12 @@ class grid_collection<
     }
 
     /// @returns an iterator that points to the first grid
-    /// @note Not implemented!
     DETRAY_HOST_DEVICE
-    constexpr auto begin() noexcept -> bool { return true; }
+    constexpr auto begin() const noexcept { return iterator{*this, 0u}; }
 
     /// @returns an iterator that points to the coll. end
-    /// @note Not implemented!
     DETRAY_HOST_DEVICE
-    constexpr auto end() noexcept -> bool { return false; }
+    constexpr auto end() const noexcept { return iterator{*this, size()}; }
 
     /// @returns the number of grids in the collection - const
     DETRAY_HOST_DEVICE
@@ -191,15 +250,6 @@ class grid_collection<
             m_bin_offsets[i]);
     }
 
-    /// Create grid from container pointers - non-const
-    DETRAY_HOST_DEVICE
-    auto operator[](const size_type i) -> grid_type {
-        const size_type axes_offset{grid_type::dim * i};
-        return grid_type(
-            &m_bins, multi_axis_t(m_bin_edge_offsets, m_bin_edges, axes_offset),
-            m_bin_offsets[i]);
-    }
-
     /// @returns a vecmem view on the grid collection data - non-const
     DETRAY_HOST auto get_data() -> view_type {
         return view_type{detray::get_data(m_bin_offsets),
@@ -247,7 +297,6 @@ class grid_collection<
 
         // Add the bin edges of the new grid to the collection
         const auto &bin_edges = gr.axes().bin_edges();
-
         m_bin_edges.insert(m_bin_edges.end(), bin_edges.begin(),
                            bin_edges.end());
     }

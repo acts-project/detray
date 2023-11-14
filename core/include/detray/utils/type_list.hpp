@@ -19,6 +19,7 @@
 namespace detray::types {
 
 /// @brief type list implementation
+/// @see https://www.codingwiththomas.com/blog/getting-started-with-typelists
 template <typename... Ts>
 struct list {};
 

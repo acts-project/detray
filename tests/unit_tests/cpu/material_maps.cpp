@@ -16,11 +16,11 @@
 using namespace detray;
 using namespace detray::axis;
 
-using material_t = typename material_map_factory<scalar>::bin_type::entry_type;
+using material_t = typename material_grid_factory<scalar>::bin_type::entry_type;
 
 namespace {
 
-material_map_factory<scalar> mat_map_factory{};
+material_grid_factory<scalar> mat_map_factory{};
 
 }  // anonymous namespace
 

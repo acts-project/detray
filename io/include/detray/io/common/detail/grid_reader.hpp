@@ -12,8 +12,8 @@
 #include "detray/io/common/detail/type_traits.hpp"
 #include "detray/io/common/io_interface.hpp"
 #include "detray/io/common/payloads.hpp"
+#include "detray/tools/bin_fillers.hpp"
 #include "detray/tools/detector_builder.hpp"
-#include "detray/tools/grid_builder.hpp"
 #include "detray/tools/grid_factory.hpp"
 #include "detray/utils/ranges.hpp"
 #include "detray/utils/type_list.hpp"
@@ -25,11 +25,12 @@
 #include <type_traits>
 #include <vector>
 
-namespace detray {
+namespace detray::detail {
 
 /// @brief Abstract base class for surface grid readers
-template <class detector_t,
-          typename value_t = typename detector_t::surface_type,
+template <class detector_t, typename value_t,
+          template <typename, typename, typename, typename>
+          class grid_builder_t,
           typename CAP = std::integral_constant<std::size_t, 0>,
           typename DIM = std::integral_constant<std::size_t, 2>>
 class grid_reader : public reader_interface<detector_t> {
@@ -41,30 +42,19 @@ class grid_reader : public reader_interface<detector_t> {
     using algebra_t = typename detector_t::transform3;
     using scalar_t = typename algebra_t::scalar_type;
 
-    // Bin content type to be written into the grid bin payloads
-    // For detector surface descriptors, write only the surface index
-    using content_t = std::conditional_t<
-        std::is_same_v<value_t, typename detector_t::surface_type>, std::size_t,
-        value_t>;
-
     static constexpr std::size_t dim{DIM()};
     static constexpr std::size_t bin_capacity{CAP()};
-
-    protected:
-    /// Tag the reader as "surface_grids"
-    inline static const std::string tag = "surface_grids";
 
     public:
     /// Same constructors for this class as for base_type
     using base_type::base_type;
 
     protected:
-    /// Deserialize the detector grids @param grids_data from their IO
-    /// payload
+    /// Deserialize the detector grids @param grids_data from their IO payload
+    template <typename content_t>
     static void deserialize(
         detector_builder<typename detector_t::metadata, volume_builder>
             &det_builder,
-        typename detector_t::name_map &,
         const detector_grids_payload<content_t> &grids_data) {
 
         // Deserialize the grids volume by volume
@@ -80,7 +70,6 @@ class grid_reader : public reader_interface<detector_t> {
         }
     }
 
-    private:
     /// @brief recursively build the grid: axis bounds (open, closed, circular)
     ///
     /// @tparam bounds_ts type list that contains the bounds types that were
@@ -200,7 +189,7 @@ class grid_reader : public reader_interface<detector_t> {
     ///
     /// @param grid_data grid IO payload (read from file)
     /// @param det_builder gather the grid data and build the final volume
-    template <typename bounds_ts, typename binning_ts,
+    template <typename bounds_ts, typename binning_ts, typename content_t,
               std::enable_if_t<types::size<bounds_ts> == dim and
                                    types::size<binning_ts> == dim,
                                bool> = true>
@@ -227,7 +216,7 @@ class grid_reader : public reader_interface<detector_t> {
         constexpr auto binnings = binning_ts{};
 
         // Check only 2-dimensional grid types
-        if constexpr (dim >= 2) {
+        if constexpr (dim == 2) {
             switch (grid_data.acc_link.type) {
                 // rectangle, trapezoid, (triangle) grids
                 case io::detail::acc_type::cartesian2_grid: {
@@ -249,7 +238,7 @@ class grid_reader : public reader_interface<detector_t> {
                     break;
                 }
             };
-        } else if constexpr (dim >= 3) {
+        } else if constexpr (dim == 3) {
             switch (grid_data.acc_link.type) {
                 // cuboid grid
                 case io::detail::acc_type::cuboid3_grid: {
@@ -272,7 +261,7 @@ class grid_reader : public reader_interface<detector_t> {
     }
 
     /// @brief End of recursion: build the grid from the @param grid_data
-    template <typename local_frame_t, typename... bounds_ts,
+    template <typename local_frame_t, typename content_t, typename... bounds_ts,
               typename... binning_ts,
               std::enable_if_t<sizeof...(bounds_ts) == dim and
                                    sizeof...(binning_ts) == dim,
@@ -303,14 +292,17 @@ class grid_reader : public reader_interface<detector_t> {
 
         // The compiler will instantiate this function for all possible types of
         // grids: Only proceed, if the grid type is known by the detector
-        if constexpr (detector_t::accel::template is_defined<grid_t>()) {
+        if constexpr (detector_t::accel::template is_defined<grid_t>() ||
+                      detector_t::materials::template is_defined<grid_t>()) {
 
             // Decorate the current volume builder with the grid
-            using grid_builder_t =
-                grid_builder<detector_t, grid_t, detail::fill_by_pos>;
+            using builder_t =
+                grid_builder_t<detector_t, grid_t, detail::fill_by_pos,
+                               grid_factory_type<grid_t>>;
+
             auto v_builder =
-                det_builder.template decorate<grid_builder_t>(volume_idx);
-            auto vgr_builder = dynamic_cast<grid_builder_t *>(v_builder);
+                det_builder.template decorate<builder_t>(volume_idx);
+            auto vgr_builder = dynamic_cast<builder_t *>(v_builder);
 
             // Initialize the grid axes
             std::vector<std::size_t> n_bins_per_axis{};
@@ -353,7 +345,7 @@ class grid_reader : public reader_interface<detector_t> {
             auto &grid = vgr_builder->get();
             const std::size_t n_bins{grid.nbins()};
 
-            value_t empty_sf{};
+            value_t entry{};
             axis::multi_bin<dim> mbin;
             for (const auto &bin_data : grid_data.bins) {
 
@@ -377,10 +369,10 @@ class grid_reader : public reader_interface<detector_t> {
                                   << ")" << std::endl;
                         continue;
                     }
-                    empty_sf.set_volume(volume_idx);
-                    empty_sf.set_index(static_cast<dindex>(c));
+                    entry.set_volume(volume_idx);
+                    entry.set_index(static_cast<dindex>(c));
                     vgr_builder->get().template populate<attach<>>(mbin,
-                                                                   empty_sf);
+                                                                   entry);
                 }
             }
         } else {
@@ -392,4 +384,4 @@ class grid_reader : public reader_interface<detector_t> {
     }
 };
 
-}  // namespace detray
+}  // namespace detray::detail

@@ -264,7 +264,7 @@ struct detector_helper {
         using material_link_type = typename surface_desc_t::material_link;
 
         if (cfg.use_material_maps()) {
-            material_map_factory<scalar_t> mat_map_factory{};
+            material_grid_factory<scalar_t> mat_map_factory{};
 
             constexpr auto is_disc_map{
                 std::is_same_v<typename mask_t::shape, ring2D<>>};

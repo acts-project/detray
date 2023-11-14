@@ -32,10 +32,12 @@ namespace detray {
 template <typename detector_t, typename grid_t,
           typename bin_filler_t = detail::fill_by_pos,
           typename grid_factory_t = grid_factory_type<grid_t>>
-class grid_builder final : public volume_decorator<detector_t> {
+class grid_builder : public volume_decorator<detector_t> {
 
     public:
     using scalar_type = typename detector_t::scalar_type;
+    using detector_type = detector_t;
+    using value_type = typename detector_type::surface_type;
 
     /// Use the grid builder stand-alone
     DETRAY_HOST

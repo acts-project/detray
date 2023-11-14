@@ -27,7 +27,7 @@ using material_map = grid<axes<shape>, bins::single<material_slab<scalar_t>>,
 /// How to build material maps of various shapes
 // TODO: Move to material_map_builder once available
 template <typename scalar_t = detray::scalar>
-using material_map_factory =
+using material_grid_factory =
     grid_factory<bins::single<material_slab<scalar_t>>, simple_serializer>;
 
 }  // namespace detray
