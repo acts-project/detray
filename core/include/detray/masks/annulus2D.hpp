@@ -300,17 +300,17 @@ class annulus2D {
 
         scalar_t min_r = bounds[e_min_r];
         scalar_t max_r = bounds[e_max_r];
-        scalar_t min_phi_rel = bounds[e_min_phi_rel];
-        scalar_t max_phi_rel = bounds[e_max_phi_rel];
-        scalar_t origin_x = bounds[e_shift_x];
-        scalar_t origin_y = bounds[e_shift_y];
+        scalar_t min_phi = bounds[e_average_phi] + bounds[e_min_phi_rel];
+        scalar_t max_phi = bounds[e_average_phi] + bounds[e_max_phi_rel];
+        scalar_t origin_x = -bounds[e_shift_x];
+        scalar_t origin_y = -bounds[e_shift_y];
 
         point2_t origin_m = {origin_x, origin_y};
 
         /// Helper method: find inner outer radius at edges in STRIP PC
         auto circIx = [](scalar_t O_x, scalar_t O_y, scalar_t r,
                          scalar_t phi) -> point2_t {
-            //                      _____________________________________________
+            //                      ____________________________________________
             //                     /      2  2                    2    2  2    2
             //     O_x + O_y*m - \/  - O_x *m  + 2*O_x*O_y*m - O_y  + m *r  + r
             // x =
@@ -342,30 +342,30 @@ class annulus2D {
         };
 
         // calculate corners in STRIP XY
-        point2_t ul_xy = circIx(origin_x, origin_y, max_r, max_phi_rel);
-        point2_t ll_xy = circIx(origin_x, origin_y, min_r, max_phi_rel);
-        point2_t ur_xy = circIx(origin_x, origin_y, max_r, min_phi_rel);
-        point2_t lr_xy = circIx(origin_x, origin_y, min_r, min_phi_rel);
+        point2_t ul_xy = circIx(origin_x, origin_y, max_r, max_phi);
+        point2_t ll_xy = circIx(origin_x, origin_y, min_r, max_phi);
+        point2_t ur_xy = circIx(origin_x, origin_y, max_r, min_phi);
+        point2_t lr_xy = circIx(origin_x, origin_y, min_r, min_phi);
 
         auto inner_phi =
-            detail::phi_values(getter::phi(ll_xy - origin_m),
-                               getter::phi(lr_xy - origin_m), n_seg);
+            detail::phi_values(getter::phi(lr_xy - origin_m),
+                               getter::phi(ll_xy - origin_m), n_seg);
         auto outer_phi =
-            detail::phi_values(getter::phi(ur_xy - origin_m),
-                               getter::phi(ul_xy - origin_m), n_seg);
+            detail::phi_values(getter::phi(ul_xy - origin_m),
+                               getter::phi(ur_xy - origin_m), n_seg);
 
         dvector<point3_t> annulus_vertices;
         annulus_vertices.reserve(inner_phi.size() + outer_phi.size());
-        for (auto iphi : inner_phi) {
+        for (scalar_t iphi : inner_phi) {
             annulus_vertices.push_back(
                 point3_t{min_r * math_ns::cos(iphi) + origin_x,
-                         min_r * std::sin(iphi) + origin_y, 0.f});
+                         min_r * math_ns::sin(iphi) + origin_y, 0.f});
         }
 
-        for (auto ophi : outer_phi) {
+        for (scalar_t ophi : outer_phi) {
             annulus_vertices.push_back(
                 point3_t{max_r * math_ns::cos(ophi) + origin_x,
-                         max_r * std::sin(ophi) + origin_y, 0.f});
+                         max_r * math_ns::sin(ophi) + origin_y, 0.f});
         }
 
         return annulus_vertices;
