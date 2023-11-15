@@ -47,7 +47,7 @@ GTEST_TEST(detray_coordinates, cylindrical2) {
     const scalar charge{-1.f};
 
     const scalar r{2.f};
-    const scalar hz{std::numeric_limits<scalar>::infinity()};
+    const scalar hz{detail::invalid_value<scalar>()};
     mask<cylinder2D<>> mask{0u, r, -hz, hz};
 
     // Global to local transformation

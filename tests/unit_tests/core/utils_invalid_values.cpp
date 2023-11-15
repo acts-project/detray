@@ -52,34 +52,37 @@ TEST(utils, invalid_values) {
     ASSERT_EQ(std::numeric_limits<double>::max(),
               detail::invalid_value<double>());
 
-    ASSERT_TRUE(is_invalid_value(std::numeric_limits<int>::max()));
+    ASSERT_TRUE(detail::is_invalid_value(std::numeric_limits<int>::max()));
+    ASSERT_TRUE(detail::is_invalid_value(
+        std::numeric_limits<std::int_least8_t>::max()));
+    ASSERT_TRUE(detail::is_invalid_value(
+        std::numeric_limits<std::int_least16_t>::max()));
+    ASSERT_TRUE(detail::is_invalid_value(
+        std::numeric_limits<std::int_least32_t>::max()));
+    ASSERT_TRUE(detail::is_invalid_value(
+        std::numeric_limits<std::int_least64_t>::max()));
     ASSERT_TRUE(
-        is_invalid_value(std::numeric_limits<std::int_least8_t>::max()));
+        detail::is_invalid_value(std::numeric_limits<unsigned int>::max()));
     ASSERT_TRUE(
-        is_invalid_value(std::numeric_limits<std::int_least16_t>::max()));
+        detail::is_invalid_value(std::numeric_limits<std::size_t>::max()));
+    ASSERT_TRUE(detail::is_invalid_value(
+        std::numeric_limits<std::uint_least8_t>::max()));
+    ASSERT_TRUE(detail::is_invalid_value(
+        std::numeric_limits<std::uint_least16_t>::max()));
+    ASSERT_TRUE(detail::is_invalid_value(
+        std::numeric_limits<std::uint_least32_t>::max()));
+    ASSERT_TRUE(detail::is_invalid_value(
+        std::numeric_limits<std::uint_least64_t>::max()));
     ASSERT_TRUE(
-        is_invalid_value(std::numeric_limits<std::int_least32_t>::max()));
-    ASSERT_TRUE(
-        is_invalid_value(std::numeric_limits<std::int_least64_t>::max()));
-    ASSERT_TRUE(is_invalid_value(std::numeric_limits<unsigned int>::max()));
-    ASSERT_TRUE(is_invalid_value(std::numeric_limits<std::size_t>::max()));
-    ASSERT_TRUE(
-        is_invalid_value(std::numeric_limits<std::uint_least8_t>::max()));
-    ASSERT_TRUE(
-        is_invalid_value(std::numeric_limits<std::uint_least16_t>::max()));
-    ASSERT_TRUE(
-        is_invalid_value(std::numeric_limits<std::uint_least32_t>::max()));
-    ASSERT_TRUE(
-        is_invalid_value(std::numeric_limits<std::uint_least64_t>::max()));
-    ASSERT_TRUE(is_invalid_value(std::numeric_limits<std::uintmax_t>::max()));
-    ASSERT_TRUE(is_invalid_value(std::numeric_limits<float>::max()));
-    ASSERT_TRUE(is_invalid_value(std::numeric_limits<double>::max()));
+        detail::is_invalid_value(std::numeric_limits<std::uintmax_t>::max()));
+    ASSERT_TRUE(detail::is_invalid_value(std::numeric_limits<float>::max()));
+    ASSERT_TRUE(detail::is_invalid_value(std::numeric_limits<double>::max()));
 
-    ASSERT_FALSE(is_invalid_value(1));
-    ASSERT_FALSE(is_invalid_value(0));
-    ASSERT_FALSE(is_invalid_value(-1));
-    ASSERT_FALSE(is_invalid_value(1u));
-    ASSERT_FALSE(is_invalid_value(1ul));
-    ASSERT_FALSE(is_invalid_value(1.));
-    ASSERT_FALSE(is_invalid_value(1.f));
+    ASSERT_FALSE(detail::is_invalid_value(1));
+    ASSERT_FALSE(detail::is_invalid_value(0));
+    ASSERT_FALSE(detail::is_invalid_value(-1));
+    ASSERT_FALSE(detail::is_invalid_value(1u));
+    ASSERT_FALSE(detail::is_invalid_value(1ul));
+    ASSERT_FALSE(detail::is_invalid_value(1.));
+    ASSERT_FALSE(detail::is_invalid_value(1.f));
 }

@@ -56,7 +56,7 @@ struct surface_checker {
         }
 
         // Does the mask link to an existing volume?
-        if (!is_invalid_value(sf.volume_link()) &&
+        if (!detail::is_invalid_value(sf.volume_link()) &&
             (sf.volume_link() >= det.volumes().size())) {
             err_stream << "ERROR: Incorrect volume link to non-existent volume "
                        << sf.volume_link();
@@ -131,7 +131,7 @@ inline void check_empty(const detector_t &det) {
     auto find_volumes =
         [](const typename detector_t::volume_finder &vf) -> bool {
         for (const auto &v : vf.all()) {
-            if (not is_invalid_value(v)) {
+            if (not detail::is_invalid_value(v)) {
                 return true;
             }
         }

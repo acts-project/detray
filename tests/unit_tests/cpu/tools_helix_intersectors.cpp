@@ -91,7 +91,7 @@ GTEST_TEST(detray_intersection, helix_plane_intersector_no_bfield) {
     ASSERT_NEAR(hit_bound.local[0], -1.f, tol);
     ASSERT_NEAR(hit_bound.local[1], -1.f, tol);
     // Incidence angle
-    ASSERT_TRUE(is_invalid_value(hit_bound.cos_incidence_angle));
+    ASSERT_TRUE(detail::is_invalid_value(hit_bound.cos_incidence_angle));
 
     // The same test but bound to local frame & masked - inside
     mask<rectangle2D<>> rect_for_inside{0u, 3.f, 3.f};
@@ -193,7 +193,7 @@ GTEST_TEST(detray_intersection, helix_cylinder_intersector_no_bfield) {
     // p2[0] = r * phi : 180deg in the opposite direction with r = 4
     EXPECT_NEAR(hits_bound[0].local[0], 4.f * M_PI, tol);
     EXPECT_NEAR(hits_bound[0].local[1], -5.f, tol);
-    EXPECT_TRUE(is_invalid_value(hits_bound[0].cos_incidence_angle));
+    EXPECT_TRUE(detail::is_invalid_value(hits_bound[0].cos_incidence_angle));
 
     // first intersection lies behind the track
     const auto global1 = cylinder.to_global_frame(shifted, hits_bound[1].local);
@@ -206,7 +206,7 @@ GTEST_TEST(detray_intersection, helix_cylinder_intersector_no_bfield) {
                 hits_bound[1].local[1] != not_defined);
     EXPECT_NEAR(hits_bound[1].local[0], 0.f, tol);
     EXPECT_NEAR(hits_bound[1].local[1], -5., tol);
-    EXPECT_TRUE(is_invalid_value(hits_bound[1].cos_incidence_angle));
+    EXPECT_TRUE(detail::is_invalid_value(hits_bound[1].cos_incidence_angle));
 }
 
 /// Test the intersection between a helical trajectory and a cylinder

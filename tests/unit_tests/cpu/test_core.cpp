@@ -103,5 +103,5 @@ GTEST_TEST(detray_intersection, intersection) {
 
     ASSERT_NEAR(intersections[0].path, 1.7f, tol);
     ASSERT_NEAR(intersections[1].path, 2.f, tol);
-    ASSERT_TRUE(is_invalid_value(intersections[2].path));
+    ASSERT_TRUE(detail::is_invalid_value(intersections[2].path));
 }

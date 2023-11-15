@@ -166,7 +166,7 @@ class detector_volume {
                << *this << std::endl;
             return false;
         }
-        if (is_invalid_value(index())) {
+        if (detail::is_invalid_value(index())) {
             os << "ERROR: Volume index undefined in volume:\n"
                << *this << std::endl;
             return false;
@@ -176,7 +176,7 @@ class detector_volume {
                << *this << std::endl;
             return false;
         }
-        if (is_invalid_value(m_desc.transform())) {
+        if (detail::is_invalid_value(m_desc.transform())) {
             os << "ERROR: Volume transform undefined in volume:\n"
                << *this << std::endl;
             return false;
@@ -187,7 +187,7 @@ class detector_volume {
             return false;
         }
         const auto &acc_link = m_desc.full_link();
-        if (is_invalid_value(acc_link[0])) {
+        if (detail::is_invalid_value(acc_link[0])) {
             os << "ERROR: Link to portal lookup broken in volume: " << acc_link
                << "\n in volume: " << *this << std::endl;
             return false;

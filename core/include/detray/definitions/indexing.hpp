@@ -296,8 +296,6 @@ DETRAY_HOST_DEVICE constexpr decltype(auto) get(
     return index.index();
 }
 
-}  // namespace detail
-
 /// Overload to check for an invalid typed index link @param ti
 template <typename id_t, typename index_t, typename value_t, value_t id_mask,
           value_t index_mask>
@@ -306,5 +304,7 @@ DETRAY_HOST_DEVICE inline constexpr bool is_invalid_value(
         ti) noexcept {
     return ti.is_invalid();
 }
+
+}  // namespace detail
 
 }  // namespace detray

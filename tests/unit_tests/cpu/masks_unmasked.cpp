@@ -29,12 +29,12 @@ GTEST_TEST(detray_masks, unmasked) {
     // Check bounding box
     constexpr scalar envelope{0.01f};
     const auto loc_bounds = u.local_min_bounds(envelope);
-    ASSERT_TRUE(std::isinf(loc_bounds[cuboid3D<>::e_min_x]));
-    ASSERT_TRUE(std::isinf(loc_bounds[cuboid3D<>::e_min_y]));
-    ASSERT_TRUE(std::isinf(loc_bounds[cuboid3D<>::e_min_z]));
-    ASSERT_TRUE(std::isinf(loc_bounds[cuboid3D<>::e_max_x]));
-    ASSERT_TRUE(std::isinf(loc_bounds[cuboid3D<>::e_max_y]));
-    ASSERT_TRUE(std::isinf(loc_bounds[cuboid3D<>::e_max_z]));
+    ASSERT_TRUE(detail::is_invalid_value(loc_bounds[cuboid3D<>::e_min_x]));
+    ASSERT_TRUE(detail::is_invalid_value(loc_bounds[cuboid3D<>::e_min_y]));
+    ASSERT_TRUE(detail::is_invalid_value(loc_bounds[cuboid3D<>::e_min_z]));
+    ASSERT_TRUE(detail::is_invalid_value(loc_bounds[cuboid3D<>::e_max_x]));
+    ASSERT_TRUE(detail::is_invalid_value(loc_bounds[cuboid3D<>::e_max_y]));
+    ASSERT_TRUE(detail::is_invalid_value(loc_bounds[cuboid3D<>::e_max_z]));
 
     const auto centroid = u.centroid();
     ASSERT_NEAR(centroid[0], 0.f, tol);
