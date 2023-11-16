@@ -62,8 +62,6 @@ class material_builder final : public volume_decorator<detector_t> {
     DETRAY_HOST
     auto build(detector_t &det, typename detector_t::geometry_context ctx = {})
         -> typename detector_t::volume_type * override {
-        // This builder is only called on a homogeneous material description
-        using mat_types = typename detector_t::material_container::value_types;
 
         const auto &material = det.material_store();
 
@@ -74,7 +72,8 @@ class material_builder final : public volume_decorator<detector_t> {
                 sf.update_material(
                     material.template size<material_id::e_slab>());
             }
-            if constexpr (mat_types::n_types == 2u) {
+            if constexpr (detector_t::materials::template is_defined<
+                              material_rod<scalar_type>>()) {
                 if (sf.material().id() == material_id::e_rod) {
                     sf.update_material(
                         material.template size<material_id::e_rod>());

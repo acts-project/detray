@@ -333,7 +333,8 @@ class surface {
         }
         // Only check, if there is material in the detector
         if (not m_detector.material_store().all_empty()) {
-            if (is_invalid_value(m_desc.material())) {
+            if (m_desc.material().id() != detector_t::materials::id::e_none and
+                m_desc.material().is_invalid_index()) {
                 os << "ERROR: Surface does not have valid material:\n"
                    << *this << std::endl;
                 return false;

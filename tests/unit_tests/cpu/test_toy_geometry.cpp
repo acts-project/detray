@@ -23,7 +23,14 @@ GTEST_TEST(detray_detectors, toy_geometry) {
 
     vecmem::host_memory_resource host_mr;
 
-    const auto [toy_det, names] = create_toy_geometry(host_mr);
+    toy_det_config toy_cfg{};
+    toy_cfg.use_material_maps(false);
+    const auto [toy_det, names] = create_toy_geometry(host_mr, toy_cfg);
 
     EXPECT_TRUE(test_toy_detector(toy_det, names));
+
+    toy_cfg.use_material_maps(true);
+    const auto [toy_det2, names2] = create_toy_geometry(host_mr, toy_cfg);
+
+    EXPECT_TRUE(test_toy_detector(toy_det2, names2));
 }

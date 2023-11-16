@@ -284,11 +284,21 @@ class grid {
 
     /// Find the value of a single bin - const
     ///
-    /// @param p is point in the local frame
+    /// @param p is point in the local (bound) frame
     ///
     /// @return the iterable view of the bin content
-    DETRAY_HOST_DEVICE auto search(
-        const typename local_frame_type::point3 &p) const {
+    template <typename point_t>
+    DETRAY_HOST_DEVICE auto search(const point_t &p) const {
+        return bin(m_axes.bins(p));
+    }
+
+    /// Find the value of a single bin
+    ///
+    /// @param p is point in the local (bound) frame
+    ///
+    /// @return the iterable view of the bin content
+    template <typename point_t>
+    DETRAY_HOST_DEVICE auto search(const point_t &p) {
         return bin(m_axes.bins(p));
     }
 

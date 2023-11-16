@@ -83,8 +83,8 @@ inline bool test_toy_detector(
     auto& materials = toy_det.material_store();
 
     // Materials
-    auto portal_mat =
-        material_slab<scalar>(vacuum<scalar>(), 0.f * unit<scalar>::mm);
+    auto portal_mat = material_slab<scalar>(toy_det_config{}.mapped_material(),
+                                            1.5f * unit<scalar>::mm);
     auto beampipe_mat =
         material_slab<scalar>(beryllium_tml<scalar>(), 0.8f * unit<scalar>::mm);
     auto pixel_mat =
@@ -97,6 +97,8 @@ inline bool test_toy_detector(
         (accel.template size<accel_ids::e_disc_grid>() != 0u);
     const bool has_material =
         (materials.template size<material_ids::e_slab>() != 0);
+    const bool has_material_maps =
+        (materials.template size<material_ids::e_disc2_map>() != 0);
 
     // Check number of geomtery objects
     EXPECT_EQ(volumes.size(), 20u);
@@ -111,8 +113,13 @@ inline bool test_toy_detector(
         EXPECT_EQ(accel.template size<accel_ids::e_cylinder2_grid>(), 4);
         EXPECT_EQ(accel.template size<accel_ids::e_disc_grid>(), 6);
     }
-    if (has_material) {
+    if (has_material and !has_material_maps) {
         EXPECT_EQ(materials.template size<material_ids::e_slab>(), 3244u);
+    } else if (has_material and has_material_maps) {
+        EXPECT_EQ(materials.template size<material_ids::e_slab>(), 3141u);
+        EXPECT_EQ(materials.template size<material_ids::e_cylinder2_map>(),
+                  51u);
+        EXPECT_EQ(materials.template size<material_ids::e_disc2_map>(), 52u);
     }
 
     /** Test the links of a volume.
@@ -162,7 +169,7 @@ inline bool test_toy_detector(
                 const auto volume_link =
                     masks.template visit<volume_link_getter>(sf_itr->mask());
                 EXPECT_EQ(volume_link, volume_links[pti - range[0]]);
-                if (has_material) {
+                if (has_material and !has_material_maps) {
                     EXPECT_EQ(sf_itr->material(), material_index);
                     EXPECT_EQ(
                         materials.template get<
@@ -204,12 +211,13 @@ inline bool test_toy_detector(
                 const auto volume_link =
                     masks.template visit<volume_link_getter>(sf_itr->mask());
                 EXPECT_EQ(volume_link, volume_links[0]);
-                if (has_material) {
+                if (has_material and !has_material_maps) {
                     EXPECT_EQ(sf_itr->material(), material_index);
                     EXPECT_EQ(
                         materials.template get<
                             material_ids::e_slab>()[sf_itr->material().index()],
-                        mat);
+                        mat)
+                        << sf_itr->material();
                 }
 
                 ++sf_itr;

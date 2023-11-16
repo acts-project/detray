@@ -115,9 +115,47 @@ class grid_collection<
         return static_cast<dindex>(m_offsets.size());
     }
 
+    /// @returns an iterator that points to the first grid
+    /// @note Not implemented!
+    DETRAY_HOST_DEVICE
+    constexpr auto begin() noexcept -> bool { return true; }
+
+    /// @returns an iterator that points to the coll. end
+    /// @note Not implemented!
+    DETRAY_HOST_DEVICE
+    constexpr auto end() noexcept -> bool { return false; }
+
     /// @returns the number of grids in the collection - const
     DETRAY_HOST_DEVICE
     constexpr auto empty() const noexcept -> bool { return m_offsets.empty(); }
+
+    /// @brief Resize the underlying containers
+    /// @note Not defined! The amount of memory can differ for every grid
+    DETRAY_HOST_DEVICE
+    constexpr void resize(std::size_t) noexcept { /*Not defined*/
+    }
+
+    /// @brief Reserve memory
+    /// @note Not defined! The amount of memory can differ for every grid
+    DETRAY_HOST_DEVICE
+    constexpr void reserve(std::size_t) noexcept { /*Not defined*/
+    }
+
+    /// Removes all data from the grid collection containers
+    DETRAY_HOST_DEVICE
+    constexpr void clear() noexcept {
+        m_offsets.clear();
+        m_bins.clear();
+        m_axes_data.clear();
+        m_bin_edges.clear();
+    }
+
+    /// Insert a number of grids
+    /// @note Not defined! There is no grid iterator implementation
+    template <typename... Args>
+    DETRAY_HOST_DEVICE constexpr void insert(Args &&...) noexcept {
+        /*Not defined*/
+    }
 
     /// @returns the offsets for the grids in the bin storage - const
     DETRAY_HOST_DEVICE

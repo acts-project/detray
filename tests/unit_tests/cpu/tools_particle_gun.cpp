@@ -36,9 +36,7 @@ GTEST_TEST(detray_tools, particle_gun) {
 
     // Build the geometry
     vecmem::host_memory_resource host_mr;
-    toy_det_config toy_cfg{};
-
-    auto [toy_det, names] = create_toy_geometry(host_mr, toy_cfg);
+    auto [toy_det, names] = create_toy_geometry(host_mr);
 
     unsigned int theta_steps{50u};
     unsigned int phi_steps{50u};

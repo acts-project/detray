@@ -112,9 +112,10 @@ struct my_metadata {
     /// How to store and link materials. The material does not make use of
     /// conditions data ( @c empty_context )
     template <template <typename...> class tuple_t = dtuple,
-              template <typename...> class vector_t = dvector>
-    using material_store = regular_multi_store<material_ids, empty_context,
-                                               tuple_t, vector_t, slab>;
+              typename container_t = host_container_types>
+    using material_store =
+        multi_store<material_ids, empty_context, tuple_t,
+                    typename container_t::template vector_type<slab>>;
 
     /// Surface descriptor type used for sensitives, passives and portals
     /// It holds the indices to the surface data in the detector data stores

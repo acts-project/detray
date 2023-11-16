@@ -11,10 +11,11 @@
 #include "detray/definitions/math.hpp"
 #include "detray/definitions/qualifiers.hpp"
 #include "detray/definitions/units.hpp"
+#include "detray/utils/invalid_values.hpp"
 
 // System include(s)
-#include <limits>
 #include <ratio>
+#include <sstream>
 
 namespace detray {
 
@@ -26,7 +27,12 @@ struct homogeneous_material_tag {};
 }  // namespace detail
 
 /// Material State
-enum class material_state { e_solid = 0, e_liquid = 1, e_gas = 2 };
+enum class material_state {
+    e_solid = 0,
+    e_liquid = 1,
+    e_gas = 2,
+    e_unknown = 3
+};
 
 template <typename scalar_t, typename R = std::ratio<1, 1>>
 struct material {
@@ -53,7 +59,7 @@ struct material {
     ///
     /// @param rhs is the right hand side to be compared to
     DETRAY_HOST_DEVICE
-    constexpr bool operator==(const material<scalar_t>& rhs) const {
+    constexpr bool operator==(const material<scalar_t> &rhs) const {
         return (m_x0 == rhs.X0() && m_l0 == rhs.L0() && m_ar == rhs.Ar() &&
                 m_z == rhs.Z());
     }
@@ -105,6 +111,45 @@ struct material {
         }
     }
 
+    /// @returns a string that contains the material details
+    DETRAY_HOST
+    std::string to_string() const {
+        std::stringstream strm;
+        strm << "material: ";
+        strm << " X0: " << m_x0;
+        strm << " | L0: " << m_l0;
+        strm << " | Z: " << m_z;
+
+        strm << " | state: ";
+        switch (m_state) {
+            case material_state::e_solid: {
+                strm << "solid";
+                break;
+            }
+            case material_state::e_liquid: {
+                strm << "liquid";
+                break;
+            }
+            case material_state::e_gas: {
+                strm << "gaseous";
+                break;
+            }
+            default: {
+                strm << "unknown";
+                break;
+            }
+        };
+
+        return strm.str();
+    }
+
+    /// @returns a string stream that prints the material details
+    DETRAY_HOST
+    friend std::ostream &operator<<(std::ostream &os, const material &mat) {
+        os << mat.to_string();
+        return os;
+    }
+
     protected:
     DETRAY_HOST_DEVICE
     constexpr scalar_type mass_to_molar_density(double ar, double mass_rho) {
@@ -119,13 +164,13 @@ struct material {
     }
 
     // Material properties
-    scalar_type m_x0 = std::numeric_limits<scalar_type>::infinity();
-    scalar_type m_l0 = std::numeric_limits<scalar_type>::infinity();
+    scalar_type m_x0 = detail::invalid_value<scalar_type>();
+    scalar_type m_l0 = detail::invalid_value<scalar_type>();
     scalar_type m_ar = 0.f;
     scalar_type m_z = 0.f;
     scalar_type m_mass_rho = 0.f;
     scalar_type m_molar_rho = 0.f;
-    material_state m_state = material_state::e_solid;
+    material_state m_state = material_state::e_unknown;
 };
 
 // Macro for declaring the predefined materials (with Density effect data)

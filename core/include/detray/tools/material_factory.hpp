@@ -190,8 +190,6 @@ class material_factory final : public factory_decorator<detector_t> {
     auto operator()(typename detector_t::surface_container &surfaces,
                     typename detector_t::material_container &materials) {
 
-        // This builder is only called on a homogeneous material description
-        using mat_types = typename detector_t::material_container::value_types;
         using link_t = typename detector_t::surface_type::material_link;
 
         if (m_materials.empty()) {
@@ -231,7 +229,8 @@ class material_factory final : public factory_decorator<detector_t> {
                 mat_idx = this->insert_in_container(mat_coll, mat_slab,
                                                     m_links[sf_idx].second);
             }
-            if constexpr (mat_types::n_types == 2u) {
+            if constexpr (detector_t::materials::template is_defined<
+                              material_rod<scalar_type>>()) {
                 if (m_links.at(sf_idx).first == material_id::e_rod) {
                     auto &mat_coll =
                         materials.template get<material_id::e_rod>();

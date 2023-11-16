@@ -11,6 +11,8 @@
 #include "detray/definitions/geometry.hpp"
 #include "detray/geometry/surface.hpp"
 #include "detray/tools/volume_builder_interface.hpp"
+// @TODO: Remove once material map writing becomes available
+#include "detray/surface_finders/accelerator_grid.hpp"
 
 // System include(s)
 #include <memory>
@@ -219,10 +221,13 @@ struct mask_index_update {
 struct material_index_update {
 
     template <typename group_t, typename index_t, typename surface_t>
-    DETRAY_HOST inline void operator()(const group_t& group,
-                                       const index_t& /*index*/,
-                                       surface_t& sf) const {
-        sf.update_material(static_cast<dindex>(group.size()));
+    DETRAY_HOST inline void operator()(
+        [[maybe_unused]] const group_t& group,
+        [[maybe_unused]] const index_t& /*index*/,
+        [[maybe_unused]] surface_t& sf) const {
+        if constexpr (!detail::is_grid_v<typename group_t::value_type>) {
+            sf.update_material(static_cast<dindex>(group.size()));
+        }
     }
 };
 

@@ -19,6 +19,7 @@
 #include "detray/masks/masks.hpp"
 #include "detray/masks/unbounded.hpp"
 #include "detray/masks/unmasked.hpp"
+#include "detray/materials/material_map.hpp"
 #include "detray/materials/material_rod.hpp"
 #include "detray/materials/material_slab.hpp"
 #include "detray/surface_finders/accelerator_grid.hpp"
@@ -61,9 +62,34 @@ struct default_metadata {
     using slab = material_slab<detray::scalar>;
     using rod = material_rod<detray::scalar>;
 
-    /// @TODO material grids
+    /// Material grid types (default: closed bounds, regular binning)
     /// @{
-    /// ...
+
+    // Disc material grid
+    template <typename container_t>
+    using disc_map_t =
+        material_map<ring2D<>::axes<>, detray::scalar, container_t>;
+
+    // Cylindrical material grid
+    template <typename container_t>
+    using cylinder2_map_t =
+        material_map<cylinder2D<>::axes<>, detray::scalar, container_t>;
+
+    // Rectangular material grid
+    template <typename container_t>
+    using rectangular_map_t =
+        material_map<rectangle2D<>::axes<>, detray::scalar, container_t>;
+
+    // Cuboid volume material grid
+    template <typename container_t>
+    using cuboid_map_t =
+        material_map<cuboid3D<>::axes<>, detray::scalar, container_t>;
+
+    // Cylindrical volume material grid
+    template <typename container_t>
+    using cylinder3_map_t =
+        material_map<cylinder3D::axes<>, detray::scalar, container_t>;
+
     /// @}
 
     /// surface grid types (default boundaries: closed binning)
@@ -162,19 +188,36 @@ unbounded_cell, unmasked_plane*/>;
 
     /// Give your material types a name (needs to be consecutive and has to
     /// match the types position in the mask store!)
-    /// @TODO: Add the material grid types for every surface shape
     enum class material_ids : std::uint8_t {
-        e_slab = 0,
-        e_rod = 1,
-        // ... material map types
-        e_none = 2,
+        // Material texture (grid) shapes
+        e_disc2_map = 0u,
+        e_cylinder2_map = 1u,
+        e_rectangle2_map = 2u,
+        e_trapezoid2_map = 2u,
+        e_annulus2_map = 0u,
+        e_cell_wire_map = 6u,
+        e_straw_wire_map = 6u,
+        // Volume material
+        e_cuboid3_map = 3u,
+        e_cylinder3_map = 4u,
+        // Homogeneous mapetrial
+        e_slab = 5u,
+        e_rod = 6u,
+        e_none = 7u,
     };
 
     /// How to store materials
     template <template <typename...> class tuple_t = dtuple,
-              template <typename...> class vector_t = dvector>
-    using material_store = regular_multi_store<material_ids, empty_context,
-                                               tuple_t, vector_t, slab, rod>;
+              typename container_t = host_container_types>
+    using material_store =
+        multi_store<material_ids, empty_context, tuple_t,
+                    grid_collection<disc_map_t<container_t>>,
+                    grid_collection<cylinder2_map_t<container_t>>,
+                    grid_collection<rectangular_map_t<container_t>>,
+                    grid_collection<cuboid_map_t<container_t>>,
+                    grid_collection<cylinder3_map_t<container_t>>,
+                    typename container_t::template vector_type<slab>,
+                    typename container_t::template vector_type<rod>>;
 
     /// How to link to the entries in the data stores
     using transform_link = typename transform_store<>::link_type;

@@ -138,7 +138,9 @@ TEST(io, json_toy_geometry) {
 
     // Toy detector
     vecmem::host_memory_resource host_mr;
-    auto [toy_det, names] = create_toy_geometry(host_mr);
+    toy_det_config toy_cfg{};
+    toy_cfg.use_material_maps(false);
+    auto [toy_det, names] = create_toy_geometry(host_mr, toy_cfg);
 
     // Write the detector
     json_geometry_writer<detector_t> geo_writer;
@@ -190,6 +192,7 @@ TEST(io, json_toy_detector_reader) {
     // Toy detector
     vecmem::host_memory_resource host_mr;
     toy_det_config toy_cfg{};
+    toy_cfg.use_material_maps(false);
     const auto [toy_det, toy_names] = create_toy_geometry(host_mr, toy_cfg);
 
     auto writer_cfg = io::detector_writer_config{}
@@ -234,8 +237,9 @@ TEST(io, json_wire_chamber_reader) {
 
     // Wire chamber
     vecmem::host_memory_resource host_mr;
-    auto [wire_det, wire_names] =
-        create_wire_chamber(host_mr, wire_chamber_config{});
+    wire_chamber_config wire_cfg{};
+    wire_cfg.use_material_maps(false);
+    auto [wire_det, wire_names] = create_wire_chamber(host_mr, wire_cfg);
 
     auto writer_cfg = io::detector_writer_config{}
                           .format(io::format::json)

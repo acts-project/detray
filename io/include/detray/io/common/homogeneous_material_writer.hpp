@@ -9,10 +9,12 @@
 
 // Project include(s)
 #include "detray/geometry/surface.hpp"
+#include "detray/io/common/detail/type_traits.hpp"
 #include "detray/io/common/io_interface.hpp"
 #include "detray/io/common/payloads.hpp"
 #include "detray/materials/material_rod.hpp"
 #include "detray/materials/material_slab.hpp"
+#include "detray/utils/type_list.hpp"
 
 // System include(s)
 #include <string>
@@ -39,7 +41,6 @@ class homogeneous_material_writer : public writer_interface<detector_t> {
     /// Serialize the header information into its payload
     static homogeneous_material_header_payload write_header(
         const detector_t& det, const std::string_view det_name) {
-        using mat_types = typename detector_t::material_container::value_types;
 
         homogeneous_material_header_payload header_data;
 
@@ -49,15 +50,14 @@ class homogeneous_material_writer : public writer_interface<detector_t> {
 
         header_data.sub_header.emplace();
         auto& mat_sub_header = header_data.sub_header.value();
-        mat_sub_header.n_slabs =
-            materials.template size<mat_types::to_id(0u)>();
+        if constexpr (detail::has_material_slabs_v<detector_t>) {
+            mat_sub_header.n_slabs =
+                materials.template size<detector_t::materials::id::e_slab>();
+        }
         mat_sub_header.n_rods = 0u;
-        if constexpr (mat_types::n_types == 2u) {
-            // The compiler looks at this code, even if the number of material
-            // types is one. Therefore, "mat_types::n_types - 1" is safer to use
+        if constexpr (detail::has_material_rods_v<detector_t>) {
             mat_sub_header.n_rods =
-                materials
-                    .template size<mat_types::to_id(mat_types::n_types - 1)>();
+                materials.template size<detector_t::materials::id::e_rod>();
         }
 
         return header_data;
@@ -87,6 +87,21 @@ class homogeneous_material_writer : public writer_interface<detector_t> {
         material_volume_payload mv_data;
         mv_data.volume_link = base_type::serialize(vol_desc.index());
 
+        // Return early if the stores for homogeneous materials are empty
+        using material_id = typename detector_t::materials::id;
+
+        // If this reader is called, the detector has at least material slabs
+        if (det.material_store().template empty<material_id::e_slab>()) {
+            // Check for material rods that are present in e.g. wire chambers
+            if constexpr (detail::has_material_rods_v<detector_t>) {
+                if (det.material_store().template empty<material_id::e_rod>()) {
+                    return mv_data;
+                }
+            } else {
+                return mv_data;
+            }
+        }
+
         // Find all surfaces that belong to the volume and count them
         std::size_t sf_idx{0u}, slab_idx{0u}, rod_idx{0u};
         for (const auto& sf_desc : det.surface_lookup()) {
@@ -107,10 +122,7 @@ class homogeneous_material_writer : public writer_interface<detector_t> {
                 }
                 mslp.index_in_coll = rod_idx++;
                 mv_data.mat_rods->push_back(mslp);
-            } else {
-                throw std::runtime_error(
-                    "Material could not be matched to payload (found type " +
-                    std::to_string(static_cast<int>(mslp.type)) + ")");
+            } else { /* material maps are handled by another writer */
             }
             ++sf_idx;
         }
@@ -134,27 +146,15 @@ class homogeneous_material_writer : public writer_interface<detector_t> {
     }
 
     /// Serialize a surface material slab @param mat_slab into its io payload
-    static material_slab_payload serialize(
-        const material_slab<scalar_t>& mat_slab, std::size_t sf_idx) {
+    template <template <typename> class material_t>
+    static material_slab_payload serialize(const material_t<scalar_t>& mat,
+                                           std::size_t sf_idx) {
         material_slab_payload mat_data;
 
-        mat_data.type = io::detail::get_material_id<material_slab<scalar_t>>();
+        mat_data.type = io::detail::get_material_id<material_t<scalar_t>>();
         mat_data.surface = base_type::serialize(sf_idx);
-        mat_data.thickness = mat_slab.thickness();
-        mat_data.mat = serialize(mat_slab.get_material());
-
-        return mat_data;
-    }
-
-    /// Serialize a wire material rod @param mat_rod into its io payload
-    static material_slab_payload serialize(
-        const material_rod<scalar_t>& mat_rod, std::size_t sf_idx) {
-        material_slab_payload mat_data;
-
-        mat_data.type = io::detail::get_material_id<material_rod<scalar_t>>();
-        mat_data.surface = base_type::serialize(sf_idx);
-        mat_data.thickness = mat_rod.radius();
-        mat_data.mat = serialize(mat_rod.get_material());
+        mat_data.thickness = mat.thickness();
+        mat_data.mat = serialize(mat.get_material());
 
         return mat_data;
     }
@@ -165,9 +165,20 @@ class homogeneous_material_writer : public writer_interface<detector_t> {
         template <typename material_group_t, typename index_t>
         inline auto operator()(const material_group_t& material_group,
                                const index_t& index,
-                               std::size_t sf_index) const {
-            return homogeneous_material_writer<detector_t>::serialize(
-                material_group[index], sf_index);
+                               [[maybe_unused]] std::size_t sf_index) const {
+            using material_t = typename material_group_t::value_type;
+
+            constexpr bool is_slab =
+                std::is_same_v<material_t, material_slab<scalar_t>>;
+            constexpr bool is_rod =
+                std::is_same_v<material_t, material_rod<scalar_t>>;
+
+            if constexpr (is_slab or is_rod) {
+                return homogeneous_material_writer<detector_t>::serialize(
+                    material_group[index], sf_index);
+            } else {
+                return material_slab_payload{};
+            }
         }
     };
 };

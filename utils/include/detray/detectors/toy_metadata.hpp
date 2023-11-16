@@ -17,6 +17,7 @@
 #include "detray/intersection/cylinder_portal_intersector.hpp"
 #include "detray/intersection/plane_intersector.hpp"
 #include "detray/masks/masks.hpp"
+#include "detray/materials/material_map.hpp"
 #include "detray/materials/material_slab.hpp"
 #include "detray/surface_finders/accelerator_grid.hpp"
 #include "detray/surface_finders/brute_force_finder.hpp"
@@ -40,10 +41,24 @@ struct toy_metadata {
     /// Material types
     using slab = material_slab<detray::scalar>;
 
-    /// surface grid types (regular, open binning)
+    // Cylindrical material grid
+    template <typename container_t>
+    using cylinder_map_t =
+        material_map<cylinder2D<>::axes<>, scalar, container_t>;
+
+    // Disc material grid
+    template <typename container_t>
+    using disc_map_t = material_map<ring2D<>::axes<>, scalar, container_t>;
+
+    // Rectangular material grid
+    template <typename container_t>
+    using rectangular_map_t =
+        material_map<rectangle2D<>::axes<>, scalar, container_t>;
+
+    /// Surface grid types (regular, open binning)
     /// @{
 
-    // surface grid definition: bin-content: std::array<dindex, 9>
+    // Surface grid definition: bin-content: std::array<sf_descriptor, 1>
     template <typename grid_shape_t, typename bin_entry_t, typename container_t>
     using surface_grid_t =
         grid<coordinate_axes<grid_shape_t, false, container_t>, bin_entry_t,
@@ -84,15 +99,22 @@ struct toy_metadata {
 
     /// Material type ids
     enum class material_ids : std::uint8_t {
-        e_slab = 0,
-        e_none = 1,
+        e_disc2_map = 0u,
+        e_cylinder2_map = 1u,
+        e_reactangle2_map = 2u,
+        e_slab = 3u,
+        e_none = 4u,
     };
 
     /// How to store materials
     template <template <typename...> class tuple_t = dtuple,
-              template <typename...> class vector_t = dvector>
-    using material_store = regular_multi_store<material_ids, empty_context,
-                                               tuple_t, vector_t, slab>;
+              typename container_t = host_container_types>
+    using material_store =
+        multi_store<material_ids, empty_context, tuple_t,
+                    grid_collection<disc_map_t<container_t>>,
+                    grid_collection<cylinder_map_t<container_t>>,
+                    grid_collection<rectangular_map_t<container_t>>,
+                    typename container_t::template vector_type<slab>>;
 
     /// How to link to the entries in the data stores
     using transform_link = typename transform_store<>::link_type;
