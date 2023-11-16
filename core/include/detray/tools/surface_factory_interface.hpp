@@ -133,7 +133,7 @@ class surface_factory_interface {
         container_t &cont, const typename container_t::value_type value,
         const dindex idx, Args &&... args) const {
         // If no valid position is given, perform push back
-        if (is_invalid_value(idx)) {
+        if (detail::is_invalid_value(idx)) {
             cont.push_back(value, std::forward<Args>(args)...);
 
             return static_cast<dindex>(cont.size() - 1u);

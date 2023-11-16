@@ -328,7 +328,7 @@ class surface {
                << *this << std::endl;
             return false;
         }
-        if (is_invalid_value(m_desc.transform())) {
+        if (detail::is_invalid_value(m_desc.transform())) {
             os << "ERROR: Surface transform undefined for surface:\n"
                << *this << std::endl;
             return false;
@@ -338,7 +338,7 @@ class surface {
                << *this << std::endl;
             return false;
         }
-        if (is_invalid_value(m_desc.mask())) {
+        if (detail::is_invalid_value(m_desc.mask())) {
             os << "ERROR: Surface does not have a valid mask link:\n"
                << *this << std::endl;
             return false;

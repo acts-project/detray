@@ -90,8 +90,8 @@ class unmasked {
         const bounds_t<scalar_t, kDIM>& /*bounds*/,
         const scalar_t /*env*/ =
             std::numeric_limits<scalar_t>::epsilon()) const {
-        constexpr scalar_t inf{std::numeric_limits<scalar_t>::infinity()};
-        return {-inf, -inf, -inf, inf, inf, inf};
+        constexpr scalar_t inv{detail::invalid_value<scalar_t>()};
+        return {-inv, -inv, -inv, inv, inv, inv};
     }
 
     /// @returns the shapes centroid in global cartesian coordinates

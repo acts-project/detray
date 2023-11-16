@@ -57,9 +57,9 @@ class hash_tree {
 
         hashed_node(hash_t hash)
             : _key(hash),
-              _parent(std::numeric_limits<dindex>::infinity()),
-              _left_child(std::numeric_limits<dindex>::infinity()),
-              _right_child(std::numeric_limits<dindex>::infinity()) {}
+              _parent(detail::invalid_value<dindex>()),
+              _left_child(detail::invalid_value<dindex>()),
+              _right_child(detail::invalid_value<dindex>()) {}
 
         hash_t _key;
         dindex _parent, _left_child, _right_child;

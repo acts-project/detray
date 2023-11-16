@@ -104,7 +104,7 @@ struct material {
         if constexpr (ratio::num == 0) {
             return 0.f;
         } else if constexpr (ratio::den == 0) {
-            return std::numeric_limits<scalar_type>::infinity();
+            return detail::invalid_value<scalar_type>();
         } else {
             return static_cast<scalar_type>(ratio::num) /
                    static_cast<scalar_type>(ratio::den);

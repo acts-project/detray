@@ -224,7 +224,7 @@ struct print_inspector : actor {
                 break;
         };
 
-        if (is_invalid_value(navigation.volume())) {
+        if (detail::is_invalid_value(navigation.volume())) {
             printer.stream << "volume: " << std::setw(10) << "invalid";
         } else {
             printer.stream << "volume: " << std::setw(10)

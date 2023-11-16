@@ -567,7 +567,7 @@ GTEST_TEST(detray_tools, detector_volume_construction) {
     EXPECT_EQ(vol.link<geo_obj_id::e_portal>(), acc_link);
     EXPECT_EQ(vol.link<geo_obj_id::e_passive>(), acc_link);
     // Not set by the vanilla volume builder
-    EXPECT_TRUE(is_invalid_value(vol.link<geo_obj_id::e_sensitive>()));
+    EXPECT_TRUE(detail::is_invalid_value(vol.link<geo_obj_id::e_sensitive>()));
 
     EXPECT_EQ(d.portals().size(), 19u);
     EXPECT_EQ(d.mask_store().template size<mask_id::e_portal_cylinder2>(), 2u);

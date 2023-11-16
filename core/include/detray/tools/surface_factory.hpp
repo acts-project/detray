@@ -181,7 +181,7 @@ class surface_factory : public surface_factory_interface<detector_t> {
 
                 // Append the surfaces relative to the current number of
                 // surfaces in the stores
-                const dindex sf_idx{is_invalid_value(m_indices[idx])
+                const dindex sf_idx{detail::is_invalid_value(m_indices[idx])
                                         ? dindex_invalid
                                         : m_indices[idx]};
 

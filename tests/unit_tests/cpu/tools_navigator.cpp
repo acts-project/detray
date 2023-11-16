@@ -252,7 +252,7 @@ GTEST_TEST(detray_navigator, toy_geometry) {
             // The status is: exited
             ASSERT_EQ(navigation.status(), status::e_on_target);
             // Switch to next volume leads out of the detector world -> exit
-            ASSERT_TRUE(is_invalid_value(navigation.volume()));
+            ASSERT_TRUE(detail::is_invalid_value(navigation.volume()));
             // We know we went out of the detector
             ASSERT_EQ(navigation.trust_level(), trust_level::e_full);
         } else {
@@ -403,7 +403,7 @@ GTEST_TEST(detray_navigator, wire_chamber) {
             // The status is: exited
             ASSERT_EQ(navigation.status(), status::e_on_target);
             // Switch to next volume leads out of the detector world -> exit
-            ASSERT_TRUE(is_invalid_value(navigation.volume()));
+            ASSERT_TRUE(detail::is_invalid_value(navigation.volume()));
             // We know we went out of the detector
             ASSERT_EQ(navigation.trust_level(), trust_level::e_full);
         } else {

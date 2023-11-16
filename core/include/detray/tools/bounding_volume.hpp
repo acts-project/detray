@@ -82,9 +82,9 @@ class axis_aligned_bounding_volume {
             std::array<scalar_t, other_shape_t::template axes<>::dim>;
 
         // Find min/max extent of the local aabb in local coordinates
-        constexpr scalar_t inf{std::numeric_limits<scalar_t>::infinity()};
-        scalar_t min_x{inf}, min_y{inf}, min_z{inf}, max_x{-inf}, max_y{-inf},
-            max_z{-inf};
+        constexpr scalar_t inv{detail::invalid_value<scalar_t>()};
+        scalar_t min_x{inv}, min_y{inv}, min_z{inv}, max_x{-inv}, max_y{-inv},
+            max_z{-inv};
         for (const auto& vol : aabbs) {
             const auto min_point = vol.template loc_min<loc_point_t>();
             const auto max_point = vol.template loc_max<loc_point_t>();
@@ -136,8 +136,8 @@ class axis_aligned_bounding_volume {
 
         // If the volume shape is not supported, return universal minimum
         assert(false);
-        constexpr scalar_t inf{std::numeric_limits<scalar_t>::infinity()};
-        return point_t{-inf, -inf, -inf};
+        constexpr scalar_t inv{detail::invalid_value<scalar_t>()};
+        return point_t{-inv, -inv, -inv};
     }
 
     /// @returns the maximum bounds of the volume in local coordinates
@@ -155,8 +155,8 @@ class axis_aligned_bounding_volume {
         // If the volume shape is not supported, return universal minimum
         // (or compilation error for 2D point)
         assert(false);
-        constexpr scalar_t inf{std::numeric_limits<scalar_t>::infinity()};
-        return point_t{inf, inf, inf};
+        constexpr scalar_t inv{detail::invalid_value<scalar_t>()};
+        return point_t{inv, inv, inv};
     }
     /// @returns the minimum bounds of the volume in global cartesian
     /// coordinates
@@ -176,8 +176,8 @@ class axis_aligned_bounding_volume {
         // If the volume shape is not supported, return universal minimum
         // (or compilation error for 2D point)
         assert(false);
-        constexpr scalar_t inf{std::numeric_limits<scalar_t>::infinity()};
-        return point3_t{-inf, -inf, -inf};
+        constexpr scalar_t inv{detail::invalid_value<scalar_t>()};
+        return point3_t{-inv, -inv, -inv};
     }
 
     /// @returns the maximum bounds of the volume in global cartesian
@@ -197,8 +197,8 @@ class axis_aligned_bounding_volume {
 
         // If the volume shape is not supported, return universal minimum
         assert(false);
-        constexpr scalar_t inf{std::numeric_limits<scalar_t>::infinity()};
-        return point3_t{inf, inf, inf};
+        constexpr scalar_t inv{detail::invalid_value<scalar_t>()};
+        return point3_t{inv, inv, inv};
     }
 
     /// @returns the geometric center position in global cartesian system
@@ -212,9 +212,9 @@ class axis_aligned_bounding_volume {
         const scalar_t center_z{
             0.5f * (m_mask[cuboid3D<>::e_max_z] + m_mask[cuboid3D<>::e_min_z])};
 
-        return {std::isinf(center_x) ? 0.f : center_x,
-                std::isinf(center_y) ? 0.f : center_y,
-                std::isinf(center_z) ? 0.f : center_z};
+        return {detail::is_invalid_value(center_x) ? 0.f : center_x,
+                detail::is_invalid_value(center_y) ? 0.f : center_y,
+                detail::is_invalid_value(center_z) ? 0.f : center_z};
     }
 
     /// @brief Lower and upper point for minimum axis aligned bounding box of
@@ -241,12 +241,14 @@ class axis_aligned_bounding_volume {
         const scalar_t scalor_z{
             (m_mask[cuboid3D<>::e_max_z] - m_mask[cuboid3D<>::e_min_z])};
 
-        // Cannot handle 'inf' propagation through the calculation for now
-        if (std::isinf(scalor_x) or std::isinf(scalor_y) or
-            std::isinf(scalor_z)) {
+        // Cannot handle 'inv' propagation through the calculation for now
+        if (detail::is_invalid_value(scalor_x) or
+            detail::is_invalid_value(scalor_y) or
+            detail::is_invalid_value(scalor_z)) {
             // If the box was infinite to begin with, it stays that way
-            assert(std::isinf(scalor_x) and std::isinf(scalor_y) and
-                   std::isinf(scalor_z));
+            assert(detail::is_invalid_value(scalor_x) and
+                   detail::is_invalid_value(scalor_y) and
+                   detail::is_invalid_value(scalor_z));
 
             return *this;
         }
@@ -270,9 +272,9 @@ class axis_aligned_bounding_volume {
         glob_c_points[7] = glob_c_points[1] - new_box_z;
 
         // Find min/max extent of the local aabb in global coordinates
-        constexpr scalar_t inf{std::numeric_limits<scalar_t>::infinity()};
-        scalar_t min_x{inf}, min_y{inf}, min_z{inf}, max_x{-inf}, max_y{-inf},
-            max_z{-inf};
+        constexpr scalar_t inv{detail::invalid_value<scalar_t>()};
+        scalar_t min_x{inv}, min_y{inv}, min_z{inv}, max_x{-inv}, max_y{-inv},
+            max_z{-inv};
         for (const point3_t& p : glob_c_points) {
             // Check every coordinate of the point
             min_x = p[0] < min_x ? p[0] : min_x;

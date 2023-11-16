@@ -198,8 +198,8 @@ class annulus2D {
                                   c[1], c_pos[0] * math_ns::sin(c_pos[1]) - o_y,
                                   t[1]};
 
-        constexpr scalar_t inf{std::numeric_limits<scalar_t>::infinity()};
-        scalar_t min_x{inf}, min_y{inf}, max_x{-inf}, max_y{-inf};
+        constexpr scalar_t inv{detail::invalid_value<scalar_t>()};
+        scalar_t min_x{inv}, min_y{inv}, max_x{-inv}, max_y{-inv};
         for (unsigned int i{0u}; i < 5u; ++i) {
             min_x = x_pos[i] < min_x ? x_pos[i] : min_x;
             max_x = x_pos[i] > max_x ? x_pos[i] : max_x;

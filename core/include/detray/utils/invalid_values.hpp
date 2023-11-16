@@ -8,15 +8,14 @@
 #pragma once
 
 // Project include(s).
+#include "detray/definitions/math.hpp"
 #include "detray/definitions/qualifiers.hpp"
 
 // System include(s)
 #include <limits>
 #include <type_traits>
 
-namespace detray {
-
-namespace detail {
+namespace detray::detail {
 
 /// Invalid value for fundamental types - constexpr
 template <typename T,
@@ -34,13 +33,15 @@ DETRAY_HOST_DEVICE inline T invalid_value() noexcept {
     return T{};
 }
 
-}  // namespace detail
-
 template <typename T,
           typename std::enable_if_t<std::is_fundamental_v<T>, bool> = true>
 DETRAY_HOST_DEVICE inline constexpr bool is_invalid_value(
     const T value) noexcept {
-    return (value == detail::invalid_value<T>());
+    if constexpr (std::is_signed_v<T>) {
+        return (math_ns::abs(value) == detail::invalid_value<T>());
+    } else {
+        return (value == detail::invalid_value<T>());
+    }
 }
 
 template <typename T,
@@ -50,4 +51,4 @@ DETRAY_HOST_DEVICE inline constexpr bool is_invalid_value(
     return (value == detail::invalid_value<T>());
 }
 
-}  // namespace detray
+}  // namespace detray::detail

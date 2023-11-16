@@ -574,7 +574,7 @@ class navigator {
             navigation.set_volume(navigation.current()->volume_link);
 
             // Navigation reached the end of the detector world
-            if (is_invalid_value(navigation.volume())) {
+            if (detail::is_invalid_value(navigation.volume())) {
                 navigation.exit();
                 return navigation.m_heartbeat;
             }

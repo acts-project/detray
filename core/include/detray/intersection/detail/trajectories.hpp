@@ -16,7 +16,6 @@
 
 // System include(s).
 #include <cmath>
-#include <limits>
 #include <ostream>
 
 namespace detray::detail {
@@ -195,7 +194,7 @@ class helix {
 
         // Handle the case of pT ~ 0
         if (getter::norm(pT) < 1e-6f) {
-            _vz_over_vt = std::numeric_limits<scalar_type>::infinity();
+            _vz_over_vt = detail::invalid_value<scalar_type>();
         } else {
             // Get vz over vt in new coordinate
             _vz_over_vt = pz / getter::norm(pT);
@@ -226,7 +225,7 @@ class helix {
     point3 pos(const scalar_type s) const {
 
         // Handle the case of pT ~ 0
-        if (_vz_over_vt == std::numeric_limits<scalar_type>::infinity()) {
+        if (_vz_over_vt == detail::invalid_value<scalar_type>()) {
             return _pos + s * _h0;
         }
 
@@ -246,7 +245,7 @@ class helix {
     vector3 dir(const scalar_type s) const {
 
         // Handle the case of pT ~ 0
-        if (_vz_over_vt == std::numeric_limits<scalar_type>::infinity()) {
+        if (_vz_over_vt == detail::invalid_value<scalar_type>()) {
             return _t0;
         }
 

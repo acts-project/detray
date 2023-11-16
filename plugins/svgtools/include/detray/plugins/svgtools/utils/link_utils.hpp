@@ -22,7 +22,7 @@ namespace detray::svgtools::utils {
 template <typename detector_t>
 inline auto is_not_world_portal(const detray::surface<detector_t>& d_portal) {
     const auto d_link_idx = d_portal.template visit_mask<link_getter>();
-    return !is_invalid_value(d_link_idx);
+    return !detail::is_invalid_value(d_link_idx);
 }
 
 /// @note expects that the detray surface has a volume link.
