@@ -130,6 +130,24 @@ class trapezoid2D {
         return {-x_bound, -y_bound, -env, x_bound, y_bound, env};
     }
 
+    /// @returns the shapes centroid in local cartesian coordinates
+    template <typename algebra_t,
+              template <typename, std::size_t> class bounds_t,
+              typename scalar_t, std::size_t kDIM,
+              typename std::enable_if_t<kDIM == e_size, bool> = true>
+    DETRAY_HOST_DEVICE typename algebra_t::point3 centroid(
+        const bounds_t<scalar_t, kDIM> &bounds) const {
+
+        const scalar_t h_2{bounds[e_half_length_2]};
+        const scalar_t a_2{bounds[e_half_length_1]};
+        const scalar_t b_2{bounds[e_half_length_0]};
+
+        const scalar_t y{2.f * h_2 * (2.f * a_2 + b_2) * 1.f /
+                         (3.f * (a_2 + b_2))};
+
+        return {0.f, y - h_2, 0.f};
+    }
+
     /// Generate vertices in local cartesian frame
     ///
     /// @param bounds the boundary values for the trapezoid

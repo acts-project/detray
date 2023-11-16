@@ -55,7 +55,7 @@ struct particle_gun {
                                intersection_initialize>;
 
         // Loop over all surfaces in the detector
-        const auto &tf_store = detector.transform_store();
+        const auto &trf_store = detector.transform_store();
 
         std::vector<intersection_t> intersections{};
 
@@ -63,7 +63,7 @@ struct particle_gun {
             // Retrieve candidate(s) from the surface
             const auto sf = surface{detector, sf_desc};
             sf.template visit_mask<intersection_kernel_t>(
-                intersections, traj, sf_desc, tf_store,
+                intersections, traj, sf_desc, trf_store,
                 sf.is_portal() ? 0.f : mask_tolerance);
 
             // Candidate is invalid if it lies in the opposite direction

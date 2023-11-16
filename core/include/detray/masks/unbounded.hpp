@@ -79,6 +79,16 @@ class unbounded {
         return shape{}.template local_min_bounds<algebra_t>(bounds, env);
     }
 
+    /// @returns the shapes centroid in local cartesian coordinates
+    template <
+        typename algebra_t, template <typename, std::size_t> class bounds_t,
+        typename scalar_t, std::size_t kDIM,
+        typename std::enable_if_t<kDIM == boundaries::e_size, bool> = true>
+    DETRAY_HOST_DEVICE auto centroid(
+        const bounds_t<scalar_t, kDIM>& bounds) const {
+        return shape{}.template centroid<algebra_t>(bounds);
+    }
+
     /// Generate vertices in local cartesian frame
     ///
     /// @param bounds the boundary values for the underlying shape

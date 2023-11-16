@@ -264,6 +264,27 @@ class annulus2D {
         return corner_pos;
     }
 
+    /// @returns the shapes centroid in local cartesian coordinates
+    /// @note the caluculated centroid position is only an approximation
+    /// (centroid of the four corner points)!
+    template <typename algebra_t,
+              template <typename, std::size_t> class bounds_t,
+              typename scalar_t, std::size_t kDIM,
+              typename std::enable_if_t<kDIM == e_size, bool> = true>
+    DETRAY_HOST_DEVICE typename algebra_t::point3 centroid(
+        const bounds_t<scalar_t, kDIM> &bounds) const {
+
+        // Strip polar system
+        const auto crns = corners(bounds);
+
+        // Coordinates of the centroid position in strip system
+        const scalar_t r{0.25f * (crns[0] + crns[2] + crns[4] + crns[6])};
+        const scalar_t phi{bounds[e_average_phi]};
+
+        return r * typename algebra_t::point3{math_ns::cos(phi),
+                                              math_ns::sin(phi), 0.f};
+    }
+
     /// Generate vertices in local cartesian frame
     ///
     /// @param bounds the boundary values for the stereo annulus

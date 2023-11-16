@@ -40,18 +40,18 @@ struct helix_line_intersector {
     /// Operator function to find intersections between helix and line mask
     ///
     /// @tparam mask_t is the input mask type
-    /// @tparam transform_t is the input transform type
+    /// @tparam surface_desc_t is the input surface descriptor type
     ///
     /// @param h is the input helix trajectory
-    /// @param sf is the input surface
+    /// @param sf_desc is the surface descriptor
     /// @param mask is the input mask
     /// @param trf is the transform
     /// @param mask_tolerance is the tolerance for mask edges
     ///
     /// @return the intersection
-    template <typename mask_t, typename surface_t>
+    template <typename mask_t, typename surface_desc_t>
     DETRAY_HOST_DEVICE inline intersection_t operator()(
-        const helix_type &h, const surface_t &sf, const mask_t &mask,
+        const helix_type &h, const surface_desc_t &sf_desc, const mask_t &mask,
         const transform3_type &trf,
         const scalar_type mask_tolerance = 0.f) const {
 
@@ -153,7 +153,7 @@ struct helix_line_intersector {
 
         // Compute some additional information if the intersection is valid
         if (sfi.status == intersection::status::e_inside) {
-            sfi.sf_desc = sf;
+            sfi.sf_desc = sf_desc;
             sfi.direction = std::signbit(s)
                                 ? intersection::direction::e_opposite
                                 : intersection::direction::e_along;

@@ -5,16 +5,16 @@
  * Mozilla Public License Version 2.0
  */
 
-#include <gtest/gtest.h>
-
+// Project include(s)
 #include "detray/definitions/units.hpp"
 #include "detray/masks/masks.hpp"
 #include "detray/test/types.hpp"
-#include "detray/tracks/bound_track_parameters.hpp"
+
+// GTest include
+#include <gtest/gtest.h>
 
 using namespace detray;
 using point3_t = test::point3;
-using transform3_t = test::transform3;
 
 constexpr scalar tol{1e-5f};
 
@@ -101,4 +101,10 @@ GTEST_TEST(detray_masks, annulus2D) {
     ASSERT_NEAR(loc_bounds[cuboid3D<>::e_max_x], 10.50652f + envelope, tol);
     ASSERT_NEAR(loc_bounds[cuboid3D<>::e_max_y], 10.89317f + envelope, tol);
     ASSERT_NEAR(loc_bounds[cuboid3D<>::e_max_z], envelope, tol);
+
+    // TODO: Check against visiualization
+    /*const auto centroid = ann2.centroid();
+    ASSERT_NEAR(centroid[0], 0.f, tol);
+    ASSERT_NEAR(centroid[1], 0.f, tol);
+    ASSERT_NEAR(centroid[2], 0.f, tol);*/
 }

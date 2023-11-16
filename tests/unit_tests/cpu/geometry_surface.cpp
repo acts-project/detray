@@ -137,7 +137,7 @@ GTEST_TEST(detray_geometry, surface) {
 
     // Roundtrip
     const point3_t global = disc.local_to_global(ctx, local, {});
-    const point3_t global2 = disc.local_to_global(ctx, bound, {});
+    const point3_t global2 = disc.bound_to_global(ctx, bound, {});
 
     ASSERT_NEAR(glob_pos[0], global[0], tol);
     ASSERT_NEAR(glob_pos[1], global[1], tol);

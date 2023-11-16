@@ -25,30 +25,30 @@ struct helix_intersection_initialize {
     /// @tparam mask_group_t is the input mask group type found by variadic
     /// unrolling
     /// @tparam traj_t is the input trajectory type (e.g. ray or helix)
-    /// @tparam surface_t is the input surface type
+    /// @tparam surface_desc_t is the input surface descriptor type
     /// @tparam transform_container_t is the input transform store type
     ///
     /// @param mask_group is the input mask group
     /// @param traj is the input trajectory
-    /// @param surface is the input surface
+    /// @param sf_desc is the surface descriptor
     /// @param contextual_transforms is the input transform container
     /// @param mask_tolerance is the tolerance for mask size
     ///
     /// @return the intersection
     template <typename mask_group_t, typename mask_range_t,
-              typename is_container_t, typename traj_t, typename surface_t,
+              typename is_container_t, typename traj_t, typename surface_desc_t,
               typename transform_container_t>
     DETRAY_HOST_DEVICE inline void operator()(
         const mask_group_t &mask_group, const mask_range_t &mask_range,
         is_container_t &is_container, const traj_t &traj,
-        const surface_t &surface,
+        const surface_desc_t &sf_desc,
         const transform_container_t &contextual_transforms,
         const scalar mask_tolerance = 0.f) const {
 
         using intersection_t = typename is_container_t::value_type;
         using mask_t = typename mask_group_t::value_type;
 
-        const auto &ctf = contextual_transforms[surface.transform()];
+        const auto &ctf = contextual_transforms[sf_desc.transform()];
 
         // Run over the masks that belong to the surface
         for (const auto &mask :
@@ -56,7 +56,7 @@ struct helix_intersection_initialize {
 
             if (place_in_collection(
                     helix_intersector<intersection_t, mask_t>()(
-                        traj, surface, mask, ctf, mask_tolerance),
+                        traj, sf_desc, mask, ctf, mask_tolerance),
                     is_container)) {
                 return;
             };

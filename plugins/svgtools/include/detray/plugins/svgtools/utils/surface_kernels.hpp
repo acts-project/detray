@@ -94,7 +94,7 @@ struct link_start_getter {
     template <typename mask_t, typename transform_t>
     auto inline link_start(const mask_t& mask,
                            const transform_t& transform) const {
-        return mask.global_min_bounds_center(transform);
+        return transform.point_to_global(mask.centroid());
     }
 
     // Calculates the (optimal) link starting point for rings.
@@ -134,7 +134,7 @@ struct link_start_getter {
         // Polar coordinate system.
         const typename mask_t::local_frame_type frame{};
 
-        const auto true_center = mask.global_min_bounds_center(transform);
+        const auto true_center = transform.point_to_global(mask.centroid());
         const auto rel_point =
             frame.local_to_global(transform, point3_t{r, phi, z}) -
             transform.translation();

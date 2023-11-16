@@ -5,16 +5,16 @@
  * Mozilla Public License Version 2.0
  */
 
-#include <gtest/gtest.h>
-
+// Project include(s)
 #include "detray/definitions/units.hpp"
 #include "detray/masks/masks.hpp"
 #include "detray/test/types.hpp"
-#include "detray/tracks/bound_track_parameters.hpp"
+
+// GTest include
+#include <gtest/gtest.h>
 
 using namespace detray;
 using point3_t = test::point3;
-using transform3_t = test::transform3;
 
 namespace {
 
@@ -45,11 +45,6 @@ GTEST_TEST(detray_masks, line_radial_cross_sect) {
     ASSERT_TRUE(ln.is_inside(ln_out1) == intersection::status::e_outside);
     ASSERT_TRUE(ln.is_inside(ln_out2) == intersection::status::e_outside);
 
-    // Dummy bound track parameter
-    bound_track_parameters<transform3_t> bound_params;
-    auto& bound_vec = bound_params.vector();
-    getter::element(bound_vec, e_bound_loc0, 0u) = 1.f;
-
     // Check bounding box
     constexpr scalar envelope{0.01f};
     const auto loc_bounds = ln.local_min_bounds(envelope);
@@ -59,6 +54,11 @@ GTEST_TEST(detray_masks, line_radial_cross_sect) {
     ASSERT_NEAR(loc_bounds[cuboid3D<>::e_max_x], (cell_size + envelope), tol);
     ASSERT_NEAR(loc_bounds[cuboid3D<>::e_max_y], (cell_size + envelope), tol);
     ASSERT_NEAR(loc_bounds[cuboid3D<>::e_max_z], (hz + envelope), tol);
+
+    const auto centroid = ln.centroid();
+    ASSERT_NEAR(centroid[0], 0.f, tol);
+    ASSERT_NEAR(centroid[1], 0.f, tol);
+    ASSERT_NEAR(centroid[2], 0.f, tol);
 }
 
 /// This tests the basic functionality of a line with a square cross section
@@ -83,11 +83,6 @@ GTEST_TEST(detray_masks, line_square_cross_sect) {
     ASSERT_TRUE(ln.is_inside(ln_out1) == intersection::status::e_outside);
     ASSERT_TRUE(ln.is_inside(ln_out2) == intersection::status::e_outside);
 
-    // Dummy bound track parameter
-    bound_track_parameters<transform3_t> bound_params;
-    auto& bound_vec = bound_params.vector();
-    getter::element(bound_vec, e_bound_loc0, 0u) = -1.f;
-
     // Check bounding box
     constexpr scalar envelope{0.01f};
     const auto loc_bounds = ln.local_min_bounds(envelope);
@@ -97,4 +92,9 @@ GTEST_TEST(detray_masks, line_square_cross_sect) {
     ASSERT_NEAR(loc_bounds[cuboid3D<>::e_max_x], (cell_size + envelope), tol);
     ASSERT_NEAR(loc_bounds[cuboid3D<>::e_max_y], (cell_size + envelope), tol);
     ASSERT_NEAR(loc_bounds[cuboid3D<>::e_max_z], (hz + envelope), tol);
+
+    const auto centroid = ln.centroid();
+    ASSERT_NEAR(centroid[0], 0.f, tol);
+    ASSERT_NEAR(centroid[1], 0.f, tol);
+    ASSERT_NEAR(centroid[2], 0.f, tol);
 }

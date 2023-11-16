@@ -5,16 +5,16 @@
  * Mozilla Public License Version 2.0
  */
 
-#include <gtest/gtest.h>
-
+// Project include(s)
 #include "detray/definitions/units.hpp"
 #include "detray/masks/masks.hpp"
 #include "detray/test/types.hpp"
-#include "detray/tracks/bound_track_parameters.hpp"
+
+// GTest include
+#include <gtest/gtest.h>
 
 using namespace detray;
 using point3_t = test::point3;
-using transform3_t = test::transform3;
 
 constexpr scalar tol{1e-7f};
 
@@ -47,6 +47,11 @@ GTEST_TEST(detray_masks, single3_0) {
     ASSERT_NEAR(loc_bounds[cuboid3D<>::e_max_x], (h0 + envelope), tol);
     ASSERT_NEAR(loc_bounds[cuboid3D<>::e_max_y], envelope, tol);
     ASSERT_NEAR(loc_bounds[cuboid3D<>::e_max_z], envelope, tol);
+
+    const auto centroid = m1_0.centroid();
+    ASSERT_NEAR(centroid[0], 0.f, tol);
+    ASSERT_NEAR(centroid[1], 0.f, tol);
+    ASSERT_NEAR(centroid[2], 0.f, tol);
 }
 
 /// This tests the basic functionality of a single value mask (index 1)
@@ -69,9 +74,6 @@ GTEST_TEST(detray_masks, single3_1) {
     // Move outside point inside using a tolerance - take t1 not t1
     ASSERT_TRUE(m1_1.is_inside(p3_out, 0.6f) == intersection::status::e_inside);
 
-    // Dummy bound track parameter
-    bound_track_parameters<transform3_t> bound_params;
-
     // Check bounding box
     constexpr scalar envelope{0.01f};
     const auto loc_bounds = m1_1.local_min_bounds(envelope);
@@ -81,6 +83,11 @@ GTEST_TEST(detray_masks, single3_1) {
     ASSERT_NEAR(loc_bounds[cuboid3D<>::e_max_x], envelope, tol);
     ASSERT_NEAR(loc_bounds[cuboid3D<>::e_max_y], (h1 + envelope), tol);
     ASSERT_NEAR(loc_bounds[cuboid3D<>::e_max_z], envelope, tol);
+
+    const auto centroid = m1_1.centroid();
+    ASSERT_NEAR(centroid[0], 0.f, tol);
+    ASSERT_NEAR(centroid[1], 0.f, tol);
+    ASSERT_NEAR(centroid[2], 0.f, tol);
 }
 
 /// This tests the basic functionality of a single value mask (index 2)
@@ -103,9 +110,6 @@ GTEST_TEST(detray_masks, single3_2) {
     // Move outside point inside using a tolerance - take t1 not t1
     ASSERT_TRUE(m1_2.is_inside(p3_out, 6.1f) == intersection::status::e_inside);
 
-    // Dummy bound track parameter
-    bound_track_parameters<transform3_t> bound_params;
-
     // Check bounding box
     constexpr scalar envelope{0.01f};
     const auto loc_bounds = m1_2.local_min_bounds(envelope);
@@ -115,4 +119,9 @@ GTEST_TEST(detray_masks, single3_2) {
     ASSERT_NEAR(loc_bounds[cuboid3D<>::e_max_x], envelope, tol);
     ASSERT_NEAR(loc_bounds[cuboid3D<>::e_max_y], envelope, tol);
     ASSERT_NEAR(loc_bounds[cuboid3D<>::e_max_z], (h2 + envelope), tol);
+
+    const auto centroid = m1_2.centroid();
+    ASSERT_NEAR(centroid[0], 0.f, tol);
+    ASSERT_NEAR(centroid[1], 0.f, tol);
+    ASSERT_NEAR(centroid[2], 0.f, tol);
 }

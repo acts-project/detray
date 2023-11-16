@@ -79,6 +79,16 @@ struct surface_kernels {
         }
     };
 
+    /// A functor get the mask centroid in local cartesian coordinates
+    struct centroid {
+        template <typename mask_group_t, typename index_t>
+        DETRAY_HOST_DEVICE inline point3 operator()(
+            const mask_group_t& mask_group, const index_t& index) const {
+
+            return mask_group[index].centroid();
+        }
+    };
+
     /// A functor to perform global to local bound transformation
     struct global_to_bound {
         template <typename mask_group_t, typename index_t>

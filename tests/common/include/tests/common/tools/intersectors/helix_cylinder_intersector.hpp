@@ -47,17 +47,18 @@ struct helix_cylinder_intersector
     /// Operator function to find intersections between helix and cylinder mask
     ///
     /// @tparam mask_t is the input mask type
-    /// @tparam surface_t is the input transform type
+    /// @tparam surface_desc_t is the input transform type
     ///
     /// @param h is the input helix trajectory
+    /// @param sf_desc is the surface descriptor
     /// @param mask is the input mask
     /// @param trf is the transform
     /// @param mask_tolerance is the tolerance for mask edges
     ///
     /// @return the intersection
-    template <typename mask_t, typename surface_t>
+    template <typename mask_t, typename surface_desc_t>
     DETRAY_HOST_DEVICE inline std::array<intersection_t, 2> operator()(
-        const helix_type &h, const surface_t &sf, const mask_t &mask,
+        const helix_type &h, const surface_desc_t &sf_desc, const mask_t &mask,
         const transform3_type &trf,
         const scalar_type mask_tolerance = 0.f) const {
 
@@ -153,7 +154,7 @@ struct helix_cylinder_intersector
 
             // Compute some additional information if the intersection is valid
             if (is.status == intersection::status::e_inside) {
-                is.sf_desc = sf;
+                is.sf_desc = sf_desc;
                 is.direction = std::signbit(s)
                                    ? intersection::direction::e_opposite
                                    : intersection::direction::e_along;

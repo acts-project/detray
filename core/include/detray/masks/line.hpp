@@ -151,6 +151,17 @@ class line {
         return {-xy_bound, -xy_bound, -z_bound, xy_bound, xy_bound, z_bound};
     }
 
+    /// @returns the shapes centroid in local cartesian coordinates
+    template <typename algebra_t,
+              template <typename, std::size_t> class bounds_t,
+              typename scalar_t, std::size_t kDIM,
+              typename std::enable_if_t<kDIM == e_size, bool> = true>
+    DETRAY_HOST_DEVICE typename algebra_t::point3 centroid(
+        const bounds_t<scalar_t, kDIM> &) const {
+
+        return {0.f, 0.f, 0.f};
+    }
+
     /// Generate vertices in local cartesian frame
     ///
     /// @param bounds the boundary values for the line
