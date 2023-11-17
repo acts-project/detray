@@ -37,15 +37,15 @@ int main(int, char**) {
     using toy_detector_t = detray::detector<detray::toy_metadata>;
     using transform_t = typename toy_detector_t::transform3;
 
-    const typename transform_t::vector3 tr{0.f, 150.f, 0.f};
+    const typename transform_t::vector3 tr{50.f, 100.f, 0.f};
     const typename toy_detector_t::transform3 transform(tr);
     const actsvg::views::x_y view{};
 
     // Visualize a 2D annulus.
     // e_min_r, e_max_r, e_min_phi_rel, e_max_phi_rel, e_average_phi, e_shift_x,
-    // e_shift_y, e_size
-    detray::mask<detray::annulus2D<>> ann2D{0u,  100.f, 200.f, -1.f,
-                                            1.f, 0.f,   0.f,   100.f};
+    // e_shift_y
+    detray::mask<detray::annulus2D<>> ann2D{0u,   100.f, 200.f, -0.5f,
+                                            0.5f, 0.f,   4.f,   30.f};
     const auto ann2D_proto =
         detray::svgtools::conversion::surface<point3_container>(transform,
                                                                 ann2D);
@@ -53,7 +53,7 @@ int main(int, char**) {
     detray::svgtools::write_svg("test_svgtools_annulus2D", {axes, ann2D_svg});
 
     // Visualize a 2D cylinder.
-    // e_r, e_n_half_z, e_p_half_z, e_size
+    // e_r, e_n_half_z, e_p_half_z
     detray::mask<detray::cylinder2D<>> cyl2D{0u, 100.f, -10.f, 10.f};
     const auto cyl2D_proto =
         detray::svgtools::conversion::surface<point3_container>(transform,
@@ -62,7 +62,7 @@ int main(int, char**) {
     detray::svgtools::write_svg("test_svgtools_cylinder2D", {axes, cyl2D_svg});
 
     // Visualize a 2D rectangle.
-    // e_half_x, e_half_y, e_size
+    // e_half_x, e_half_y
     detray::mask<detray::rectangle2D<>> rec2D{0u, 100.f, 100.f};
     const auto rec2D_proto =
         detray::svgtools::conversion::surface<point3_container>(transform,
@@ -71,7 +71,7 @@ int main(int, char**) {
     detray::svgtools::write_svg("test_svgtools_rectangle2D", {axes, rec2D_svg});
 
     // Visualize a 2D ring.
-    // e_inner_r, e_outer_r, e_size
+    // e_inner_r, e_outer_r
     detray::mask<detray::ring2D<>> rin2D{0u, 50.f, 100.f};
     const auto rin2D_proto =
         detray::svgtools::conversion::surface<point3_container>(transform,
@@ -80,7 +80,7 @@ int main(int, char**) {
     detray::svgtools::write_svg("test_svgtools_ring2D", {axes, rin2D_svg});
 
     // Visualize a 2D trapezoid.
-    // e_half_length_0, e_half_length_1, e_half_length_2, e_divisor, e_size
+    // e_half_length_0, e_half_length_1, e_half_length_2, e_divisor
     detray::mask<detray::trapezoid2D<>> tra2D{0u, 100.f, 50.f, 200.f};
     const auto tra2D_proto =
         detray::svgtools::conversion::surface<point3_container>(transform,

@@ -142,7 +142,7 @@ int main(int argc, char **argv) {
     if (not surfaces.empty()) {
         std::string name_xy = names.at(0) + "_surface_display_xy";
         const auto sf_xy_svg = il.draw_surfaces(name_xy, surfaces, xy, gctx);
-        detray::svgtools::write_svg(name_xy, {xy_axis, sf_xy_svg});
+        detray::svgtools::write_svg(path / name_xy, {xy_axis, sf_xy_svg});
 
         std::string name_zr = names.at(0) + "_surface_display_zr";
         const auto sf_zr_svg = il.draw_surfaces(name_zr, surfaces, zr, gctx);

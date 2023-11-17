@@ -28,8 +28,7 @@ struct outer_radius_getter {
     template <typename mask_group_t, typename index_t>
     DETRAY_HOST inline std::optional<detray::scalar> operator()(
         const mask_group_t& mask_group, const index_t& index) const {
-        const auto& m = mask_group[index];
-        return outer_radius(m);
+        return outer_radius(mask_group[index]);
     }
 
     private:
@@ -42,13 +41,13 @@ struct outer_radius_getter {
 
     // Calculates the outer radius for rings.
     auto inline outer_radius(const detray::mask<detray::ring2D<>>& mask) const {
-        return std::optional<detray::scalar>(mask[mask.get_shape().e_outer_r]);
+        return std::optional<detray::scalar>(mask[ring2D<>::e_outer_r]);
     }
 
     // Calculates the outer radius for annuluses.
     auto inline outer_radius(
         const detray::mask<detray::annulus2D<>>& mask) const {
-        return std::optional<detray::scalar>(mask[mask.get_shape().e_max_r]);
+        return std::optional<detray::scalar>(mask[annulus2D<>::e_max_r]);
     }
 
     // Calculates the outer radius for cylinders (2D).
@@ -56,13 +55,13 @@ struct outer_radius_getter {
     auto inline outer_radius(
         const detray::mask<detray::cylinder2D<kRadialCheck, intersector_t>>&
             mask) const {
-        return std::optional<detray::scalar>(mask[mask.get_shape().e_r]);
+        return std::optional<detray::scalar>(mask[cylinder2D<>::e_r]);
     }
 
     // Calculates the outer radius for cylinders (3D).
     auto inline outer_radius(
         const detray::mask<detray::cylinder3D>& mask) const {
-        return std::optional<detray::scalar>(mask[mask.get_shape().e_max_r]);
+        return std::optional<detray::scalar>(mask[cylinder3D::e_max_r]);
     }
 };
 
@@ -71,8 +70,7 @@ struct link_getter {
     template <typename mask_group_t, typename index_t>
     DETRAY_HOST inline auto operator()(const mask_group_t& mask_group,
                                        const index_t& index) const {
-        const auto& m = mask_group[index];
-        return m.volume_link();
+        return mask_group[index].volume_link();
     }
 };
 
@@ -85,8 +83,7 @@ struct link_start_getter {
     DETRAY_HOST inline auto operator()(const mask_group_t& mask_group,
                                        const index_t& index,
                                        const transform_t& transform) const {
-        const auto& m = mask_group[index];
-        return link_start(m, transform);
+        return link_start(mask_group[index], transform);
     }
 
     private:
@@ -101,44 +98,34 @@ struct link_start_getter {
     template <typename transform_t>
     auto inline link_start(const detray::mask<detray::ring2D<>>& mask,
                            const transform_t& transform) const {
-        using mask_t = typename detray::mask<detray::ring2D<>>;
-        using shape_t = typename mask_t::shape;
+
+        using shape_t = detray::ring2D<>;
+        using mask_t = detray::mask<shape_t>;
         using point3_t = typename mask_t::point3_t;
         using scalar_t = typename mask_t::scalar_type;
 
-        const scalar_t r{(mask[shape_t::e_inner_r] + mask[shape_t::e_outer_r]) /
-                         2.f};
+        const scalar_t r{0.5f *
+                         (mask[shape_t::e_inner_r] + mask[shape_t::e_outer_r])};
         const scalar_t phi{detray::constant<scalar_t>::pi_2};
-        const scalar_t z{0};
 
-        // Polar coordinate system.
-        const typename mask_t::local_frame_type frame{};
-
-        return frame.local_to_global(transform, point3_t{r, phi, z});
+        return mask.to_global_frame(transform, point3_t{r, phi, 0.f});
     }
 
     // Calculates the (optimal) link starting point for annuluses.
     template <typename transform_t>
     auto inline link_start(const detray::mask<detray::annulus2D<>>& mask,
                            const transform_t& transform) const {
-        using mask_t = typename detray::mask<detray::annulus2D<>>;
-        using shape_t = typename mask_t::shape;
+
+        using shape_t = detray::annulus2D<>;
+        using mask_t = detray::mask<shape_t>;
         using point3_t = typename mask_t::point3_t;
         using scalar_t = typename mask_t::scalar_type;
 
         const scalar_t r{(mask[shape_t::e_min_r] + mask[shape_t::e_max_r]) /
                          2.f};
         const scalar_t phi{mask[shape_t::e_average_phi]};
-        const scalar_t z{0};
 
-        // Polar coordinate system.
-        const typename mask_t::local_frame_type frame{};
-
-        const auto true_center = transform.point_to_global(mask.centroid());
-        const auto rel_point =
-            frame.local_to_global(transform, point3_t{r, phi, z}) -
-            transform.translation();
-        return rel_point + true_center;
+        return mask.to_global_frame(transform, point3_t{r, phi, 0.f});
     }
 
     // Calculates the (optimal) link starting point for cylinders (2D).
@@ -148,49 +135,37 @@ struct link_start_getter {
         const detray::mask<detray::cylinder2D<kRadialCheck, intersector_t>>&
             mask,
         const transform_t& transform) const {
-        using mask_t = typename detray::mask<
-            detray::cylinder2D<kRadialCheck, intersector_t>>;
-        using shape_t = typename mask_t::shape;
+
+        using shape_t = detray::cylinder2D<kRadialCheck, intersector_t>;
+        using mask_t = detray::mask<shape_t>;
         using point3_t = typename mask_t::point3_t;
         using scalar_t = typename mask_t::scalar_type;
 
         const scalar_t r{mask[shape_t::e_r]};
         const scalar_t phi{detray::constant<scalar_t>::pi_2};
-        const scalar_t z{0};
+        // Shift the center to the actual cylider bounds
+        const scalar_t z{mask.centroid()[2]};
 
-        // Cylindrical coordinate system.
-        const typename mask_t::local_frame_type frame{};
-
-        const auto true_center = mask.global_min_bounds_center(transform);
-        const auto rel_point =
-            frame.local_to_global(transform, point3_t{r * phi, z, r}) -
-            transform.translation();
-        return rel_point + true_center;
+        return mask.to_global_frame(transform, point3_t{r * phi, z, r});
     }
 
     // Calculates the (optimal) link starting point for cylinders (3D).
     template <typename transform_t>
     auto inline link_start(const detray::mask<detray::cylinder3D>& mask,
                            const transform_t& transform) const {
-        using mask_t = typename detray::mask<detray::cylinder3D>;
-        using shape_t = typename mask_t::shape;
+
+        using shape_t = detray::cylinder3D;
+        using mask_t = detray::mask<shape_t>;
         using point3_t = typename mask_t::point3_t;
         using scalar_t = typename mask_t::scalar_type;
 
-        const scalar_t r{(mask[shape_t::e_min_r] + mask[shape_t::e_max_r]) /
-                         2.f};
+        const scalar_t r{0.5f *
+                         (mask[shape_t::e_min_r] + mask[shape_t::e_max_r])};
         const scalar_t phi{
-            (mask[shape_t::e_max_phi] + mask[shape_t::e_max_phi]) / 2.f};
-        const scalar_t z{0};
+            0.5f * (mask[shape_t::e_max_phi] + mask[shape_t::e_max_phi])};
+        const scalar_t z{mask.centroid()[2]};
 
-        // Cylindrical coordinate system.
-        const typename mask_t::local_frame_type frame{};
-
-        const auto true_center = mask.global_min_bounds_center(transform);
-        const auto rel_point =
-            frame.local_to_global(transform, point3_t{r * phi, z, r}) -
-            transform.translation();
-        return rel_point + true_center;
+        return mask.to_global_frame(transform, point3_t{r, phi, z});
     }
 };
 
@@ -207,8 +182,9 @@ struct link_end_getter {
         const detray::detector_volume<detector_t>& volume,
         const point3_t& surface_point, const vector3_t& surface_normal,
         const scalar_t& link_length) const {
-        const auto& m = mask_group[index];
-        return link_dir(m, detector, volume, surface_point, surface_normal) *
+
+        return link_dir(mask_group[index], detector, volume, surface_point,
+                        surface_normal) *
                    link_length +
                surface_point;
     }
@@ -223,11 +199,11 @@ struct link_end_getter {
                          const vector3_t& surface_normal) const {
         const auto dir = volume.center() - surface_point;
         const auto dot_prod = vector::dot(dir, surface_normal);
+
         // Should geometrically not happen with a local point 'surface_point'
         assert(dot_prod != 0.f);
-        typename detector_t::scalar_type sgn =
-            dot_prod > 0.f ? 1.f : (dot_prod < 0.f ? -1.f : 0);
-        return sgn * surface_normal;
+
+        return std::copysign(1.f, dot_prod) * surface_normal;
     }
 
     /// @brief Calculates the direction of the link for cylinders (2D)
@@ -244,12 +220,12 @@ struct link_end_getter {
         for (const auto& desc :
              svgtools::utils::surface_lookup(detector, volume)) {
             const detray::surface surface{detector, desc};
-            if (surface.is_portal()) {
-                if (auto radius =
-                        surface.template visit_mask<outer_radius_getter>()) {
-                    if (*radius > mask[mask.get_shape().e_r]) {
-                        return surface_normal;
-                    }
+            if (!surface.is_portal()) {
+                continue;
+            }
+            if (auto r = surface.template visit_mask<outer_radius_getter>()) {
+                if (*r > mask[cylinder2D<>::e_r]) {
+                    return surface_normal;
                 }
             }
         }

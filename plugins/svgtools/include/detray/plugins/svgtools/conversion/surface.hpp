@@ -40,10 +40,10 @@ inline void set_vertices(actsvg::proto::surface<point3_container_t>& p_surface,
 
     using point3_t = typename point3_container_t::value_type;
 
-    // Approximate any acrs in the mask shape with ten line segments
+    // Approximate any arcs in the mask shape with ten line segments
     auto vertices = m.vertices(10u);
     for (std::size_t i = 0; i < vertices.size(); i++) {
-        vertices[i] = m.template to_global_frame<transform_t>(trf, vertices[i]);
+        vertices[i] = trf.point_to_global(vertices[i]);
     }
 
     std::transform(
@@ -75,11 +75,8 @@ template <typename point3_container_t, typename transform_t, bool kRadialCheck,
 auto inline surface(const transform_t& transform,
                     const mask<cylinder2D<kRadialCheck, intersector_t>>& m) {
     // Rotation is currently not supported.
-    // Furthermore, only translation on z axis is supported.
 
-    using mask_t = mask<cylinder2D<kRadialCheck, intersector_t>>;
-    using shape_t = typename mask_t::shape;
-
+    using shape_t = cylinder2D<kRadialCheck, intersector_t>;
     using point3_t = typename point3_container_t::value_type;
     using scalar_t = typename point3_t::value_type;
     using p_surface_t = actsvg::proto::surface<point3_container_t>;
@@ -89,13 +86,13 @@ auto inline surface(const transform_t& transform,
     const auto r = static_cast<scalar_t>(m[shape_t::e_r]);
     const auto nhz = static_cast<scalar_t>(m[shape_t::e_n_half_z]);
     const auto phz = static_cast<scalar_t>(m[shape_t::e_p_half_z]);
-    const auto center =
-        svgtools::conversion::point<point3_t>(transform.translation());
-    const auto hz = (phz - nhz) / 2 + center[2];
+    const auto center = transform.translation();
+    const auto hz = static_cast<scalar_t>(0.5f * (phz - nhz) + center[2]);
 
     p_surface._type = p_surface_t::type::e_cylinder;
     p_surface._radii = {0.f, r};
     p_surface._zparameters = {nhz + hz, hz};
+    p_surface._transform._tr = svgtools::conversion::point<point3_t>(center);
     set_measures(p_surface, m);
 
     return p_surface;
@@ -105,11 +102,8 @@ auto inline surface(const transform_t& transform,
 template <typename point3_container_t, typename transform_t>
 auto surface(const transform_t& transform, const mask<ring2D<>>& m) {
     // Rotation is currently not supported.
-    // Furthermore, only translation on z axis is supported.
 
-    using mask_t = mask<ring2D<>>;
-    using shape_t = typename mask_t::shape;
-
+    using shape_t = ring2D<>;
     using point3_t = typename point3_container_t::value_type;
     using scalar_t = typename point3_t::value_type;
     using p_surface_t = actsvg::proto::surface<point3_container_t>;
@@ -118,12 +112,13 @@ auto surface(const transform_t& transform, const mask<ring2D<>>& m) {
 
     const auto ri = static_cast<scalar_t>(m[shape_t::e_inner_r]);
     const auto ro = static_cast<scalar_t>(m[shape_t::e_outer_r]);
-    const auto center =
-        svgtools::conversion::point<point3_t>(transform.translation());
+    const auto center = transform.translation();
+    const auto z = static_cast<scalar_t>(center[2]);
 
     p_surface._type = p_surface_t::type::e_disc;
     p_surface._radii = {ri, ro};
-    p_surface._zparameters = {center[2], 0.f};
+    p_surface._zparameters = {z, z};
+    p_surface._transform._tr = svgtools::conversion::point<point3_t>(center);
     set_measures(p_surface, m);
 
     return p_surface;
@@ -133,25 +128,12 @@ auto surface(const transform_t& transform, const mask<ring2D<>>& m) {
 template <typename point3_container_t, typename transform_t>
 auto inline surface(const transform_t& transform, const mask<annulus2D<>>& m) {
     // Rotation is currently not supported.
-    // Furthermore, only translation on z axis is supported.
 
-    using mask_t = mask<annulus2D<>>;
-    using shape_t = typename mask_t::shape;
-
-    using point3_t = typename point3_container_t::value_type;
-    using scalar_t = typename point3_t::value_type;
     using p_surface_t = actsvg::proto::surface<point3_container_t>;
 
     p_surface_t p_surface;
 
-    auto ri = static_cast<scalar_t>(m[shape_t::e_min_r]);
-    auto ro = static_cast<scalar_t>(m[shape_t::e_max_r]);
-    auto center = svgtools::conversion::point<point3_t>(
-        transform.point_to_global(m.centroid()));
-
     p_surface._type = p_surface_t::type::e_annulus;
-    p_surface._radii = {ri, ro};
-    p_surface._zparameters = {center[2], 0.f};
     set_measures(p_surface, m);
     set_vertices(p_surface, transform, m);
 
@@ -164,11 +146,8 @@ template <typename point3_container_t, typename transform_t,
 auto surface(const transform_t& transform,
              const mask<line<kSquareCrossSect, intersector_t>>& m) {
     // Rotation is currently not supported.
-    // Furthermore, only translation on z axis is supported.
 
-    using mask_t = mask<line<kSquareCrossSect, intersector_t>>;
-    using shape_t = typename mask_t::shape;
-
+    using shape_t = line<kSquareCrossSect, intersector_t>;
     using point3_t = typename point3_container_t::value_type;
     using scalar_t = typename point3_t::value_type;
     using p_surface_t = actsvg::proto::surface<point3_container_t>;
@@ -177,14 +156,13 @@ auto surface(const transform_t& transform,
 
     // All line surfaces are drawn as a circles(straws) in xy-view
     const auto r{static_cast<scalar_t>(m[shape_t::e_cross_section])};
-    const auto hz = static_cast<scalar_t>(m[shape_t::e_half_z]);
-    const auto center =
-        svgtools::conversion::point<point3_t>(transform.translation());
+    const auto hz{static_cast<scalar_t>(m[shape_t::e_half_z])};
 
     p_surface._type = p_surface_t::type::e_straw;
     p_surface._radii = {1.f, r};
     p_surface._zparameters = {-hz, hz};
-    p_surface._transform._tr = center;
+    p_surface._transform._tr =
+        svgtools::conversion::point<point3_t>(transform.translation());
     set_measures(p_surface, m);
 
     return p_surface;
