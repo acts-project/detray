@@ -74,6 +74,22 @@ TEST(io, json_telescope_material_writer) {
 }
 
 /// Test the writing of the toy detector grids to json
+TEST(io, json_toy_material_maps_writer) {
+
+    using detector_t = detector<toy_metadata>;
+
+    // Toy detector
+    vecmem::host_memory_resource host_mr;
+    toy_det_config toy_cfg{};
+    toy_cfg.use_material_maps(true);
+    auto [det, names] = create_toy_geometry(host_mr, toy_cfg);
+
+    json_material_map_writer<detector_t> map_writer;
+    map_writer.write(det, names,
+                     std::ios::out | std::ios::binary | std::ios::trunc);
+}
+
+/// Test the writing of the toy detector grids to json
 TEST(io, json_toy_grid_writer) {
 
     using detector_t = detector<toy_metadata>;
@@ -82,7 +98,7 @@ TEST(io, json_toy_grid_writer) {
     vecmem::host_memory_resource host_mr;
     auto [det, names] = create_toy_geometry(host_mr);
 
-    json_grid_writer<detector_t> grid_writer;
+    json_surface_grid_writer<detector_t> grid_writer;
     grid_writer.write(det, names,
                       std::ios::out | std::ios::binary | std::ios::trunc);
 }
@@ -92,7 +108,9 @@ TEST(io, json_toy_detector_writer) {
 
     // Toy detector
     vecmem::host_memory_resource host_mr;
-    auto [det, names] = create_toy_geometry(host_mr);
+    toy_det_config toy_cfg{};
+    toy_cfg.use_material_maps(true);
+    const auto [det, names] = create_toy_geometry(host_mr, toy_cfg);
 
     auto writer_cfg = io::detector_writer_config{}
                           .format(io::format::json)

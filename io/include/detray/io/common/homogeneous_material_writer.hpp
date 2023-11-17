@@ -22,12 +22,17 @@
 
 namespace detray {
 
+template <typename detector_t>
+class material_map_writer;
+
 /// @brief Abstract base class for simple material description writers
 template <class detector_t>
 class homogeneous_material_writer : public writer_interface<detector_t> {
 
     using base_type = writer_interface<detector_t>;
     using scalar_t = typename detector_t::scalar_type;
+
+    friend class material_map_writer<detector_t>;
 
     protected:
     /// Tag the writer as "homogeneous_material"

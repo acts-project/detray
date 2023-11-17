@@ -14,6 +14,7 @@
 #include "detray/core/detail/tuple_container.hpp"
 #include "detray/definitions/indexing.hpp"
 #include "detray/definitions/qualifiers.hpp"
+#include "detray/utils/type_list.hpp"
 #include "detray/utils/type_registry.hpp"
 
 // Vecmem include(s)
@@ -356,6 +357,12 @@ class multi_store {
         return m_tuple_container.template visit<functor_t>(
             static_cast<std::size_t>(detail::get<0>(link)),
             detail::get<1>(link), std::forward<Args>(args)...);
+    }
+
+    /// Print the types that are in the store
+    DETRAY_HOST
+    static constexpr void print() {
+        types::print<types::type_list<detail::get_value_t<Ts>...>>();
     }
 
     /// @return the view on this tuple container - non-const

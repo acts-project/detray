@@ -97,10 +97,15 @@ detail::detector_component_writers<detector_t> assemble_writer(
                 writers.template add<json_homogeneous_material_writer>();
             }
             // Material maps
-            // ...
+            if constexpr (detail::has_material_grids_v<detector_t>) {
+                writers.template add<json_material_map_writer>();
+            }
         }
-        if (cfg.write_grids()) {
-            writers.template add<json_grid_writer>();
+        // Navigation acceleration structures
+        if constexpr (detail::has_surface_grids_v<detector_t>) {
+            if (cfg.write_grids()) {
+                writers.template add<json_surface_grid_writer>();
+            }
         }
     }
 
