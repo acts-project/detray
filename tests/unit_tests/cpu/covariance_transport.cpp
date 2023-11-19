@@ -32,6 +32,8 @@ using vector3 = typename transform3::vector3;
 using intersection_t = intersection2D<surface_descriptor<>, transform3>;
 
 // Mask types to be tested
+// @TODO: Remove unbounded tag
+using annulus_type = detray::mask<detray::unbounded<detray::annulus2D<>>>;
 using rectangle_type = detray::mask<detray::rectangle2D<>>;
 using trapezoid_type = detray::mask<detray::trapezoid2D<>>;
 using ring_type = detray::mask<detray::ring2D<>>;
@@ -76,9 +78,11 @@ class HelixCovarianceTransportValidation : public ::testing::Test {
         typename local_frame_type::bound_to_free_matrix;
     using free_matrix = typename local_frame_type::free_matrix;
 
-    std::tuple<rectangle_type, trapezoid_type, ring_type, cylinder_type,
-               straw_wire_type, cell_wire_type>
+    std::tuple<annulus_type, rectangle_type, trapezoid_type, ring_type,
+               cylinder_type, straw_wire_type, cell_wire_type>
         masks = std::make_tuple(
+            annulus_type{0u, 7.2f * unit<scalar>::mm, 12.0f * unit<scalar>::mm,
+                         0.74195f, 1.33970f, 0.f, -2.f, 2.f},
             rectangle_type{0u, 50 * unit<scalar>::mm, 50 * unit<scalar>::mm},
             trapezoid_type{0u, 50 * unit<scalar>::mm, 100 * unit<scalar>::mm,
                            50 * unit<scalar>::mm,
@@ -258,8 +262,8 @@ class HelixCovarianceTransportValidation : public ::testing::Test {
 };
 
 using TestTypes =
-    ::testing::Types<rectangle_type, trapezoid_type, ring_type, cylinder_type,
-                     straw_wire_type, cell_wire_type>;
+    ::testing::Types<annulus_type, rectangle_type, trapezoid_type, ring_type,
+                     cylinder_type, straw_wire_type, cell_wire_type>;
 TYPED_TEST_SUITE(HelixCovarianceTransportValidation, TestTypes, );
 
 TYPED_TEST(HelixCovarianceTransportValidation, one_loop_test) {
