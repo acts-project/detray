@@ -146,6 +146,9 @@ struct bound_track_parameters {
     scalar_type qopT() const { return track_helper().qopT(m_vector); }
 
     DETRAY_HOST_DEVICE
+    scalar_type qopz() const { return track_helper().qopz(m_vector); }
+
+    DETRAY_HOST_DEVICE
     scalar_type p() const { return track_helper().p(m_vector); }
 
     DETRAY_HOST_DEVICE
@@ -154,6 +157,11 @@ struct bound_track_parameters {
     DETRAY_HOST_DEVICE
     scalar_type pT() const {
         return std::abs(1.f / this->qop() * getter::perp(this->dir()));
+    }
+
+    DETRAY_HOST_DEVICE
+    scalar_type pz() const {
+        return std::abs(1.f / this->qop() * this->dir()[2]);
     }
 
     private:
