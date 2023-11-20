@@ -138,6 +138,21 @@ struct track_helper {
     }
 
     DETRAY_HOST_DEVICE
+    inline scalar_type qopz(const free_vector& free_vec) const {
+        const auto dir = this->dir(free_vec);
+        return matrix_operator().element(free_vec, e_free_qoverp, 0u) / dir[2];
+    }
+
+    DETRAY_HOST_DEVICE
+    inline scalar_type qopz(const bound_vector& bound_vec) const {
+        const scalar_type theta{
+            matrix_operator().element(bound_vec, e_bound_theta, 0u)};
+        const scalar_type cosTheta{math_ns::cos(theta)};
+        return matrix_operator().element(bound_vec, e_bound_qoverp, 0u) /
+               cosTheta;
+    }
+
+    DETRAY_HOST_DEVICE
     inline scalar_type time(const free_vector& free_vec) const {
         return matrix_operator().element(free_vec, e_free_time, 0u);
     }
