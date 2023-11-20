@@ -42,7 +42,9 @@ int main(int, char**) {
     const auto [det, names] = detray::create_toy_geometry(host_mr);
 
     // Creating the svg generator for the detector.
-    const detray::svgtools::illustrator il{det, names};
+    detray::svgtools::illustrator il{det, names};
+    // Only test volume conversion here
+    il.hide_grids(true);
 
     // Indexes of the volumes in the detector to be visualized.
     std::array indices{0UL,  1UL,  2UL,  3UL,  4UL,  5UL,  6UL,
@@ -52,9 +54,9 @@ int main(int, char**) {
     for (std::size_t i : indices) {
         std::string name = "test_svgtools_volume" + std::to_string(i);
         // Visualization of volume i:
-        const auto svg_xy = il.draw_volume(name, i, xy);
+        const auto svg_xy = il.draw_volume(i, xy);
         detray::svgtools::write_svg(name + "_xy", {axes, svg_xy});
-        const auto svg_zr = il.draw_volume(name, i, zr);
+        const auto svg_zr = il.draw_volume(i, zr);
         detray::svgtools::write_svg(name + "_zr", {axes, svg_zr});
     }
 }

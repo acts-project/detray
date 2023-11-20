@@ -205,8 +205,14 @@ struct surface_converter {
 template <typename point3_container_t, typename detector_t>
 auto surface(const typename detector_t::geometry_context& context,
              const detray::surface<detector_t>& d_surface) {
-    return d_surface.template visit_mask<surface_converter<point3_container_t>>(
-        d_surface.transform(context));
+
+    auto p_surface =
+        d_surface.template visit_mask<surface_converter<point3_container_t>>(
+            d_surface.transform(context));
+
+    p_surface._name = "surface_" + std::to_string(d_surface.index());
+
+    return p_surface;
 }
 
 }  // namespace detray::svgtools::conversion

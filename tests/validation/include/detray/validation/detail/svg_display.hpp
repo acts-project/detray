@@ -8,6 +8,7 @@
 #pragma once
 
 // Project include(s)
+#include "detray/io/common/detail/utils.hpp"
 #include "detray/plugins/svgtools/illustrator.hpp"
 #include "detray/plugins/svgtools/styling/styling.hpp"
 #include "detray/plugins/svgtools/writer.hpp"
@@ -98,13 +99,7 @@ inline void svg_display(
     }
 
     // General options
-    auto path = std::filesystem::path(outdir);
-    if (not std::filesystem::exists(path)) {
-        std::error_code err;
-        if (!std::filesystem::create_directories(path, err)) {
-            throw std::runtime_error(err.message());
-        }
-    }
+    auto path = detray::detail::create_path(outdir);
 
     actsvg::style::stroke stroke_black = actsvg::style::stroke();
 
@@ -122,18 +117,16 @@ inline void svg_display(
     auto svg_traj = draw_intersection_and_traj_svg(
         gctx, il, intersections_truth, traj, traj_name, intersections, xy);
 
-    std::string name_xy = outfile + "_xy";
-    const auto vol_xy_svg = il.draw_volumes(name_xy, volumes, xy, gctx);
-    detray::svgtools::write_svg(path / name_xy,
+    const auto vol_xy_svg = il.draw_volumes(volumes, xy, gctx);
+    detray::svgtools::write_svg(path / (outfile + "_" + vol_xy_svg._id),
                                 {xy_axis, vol_xy_svg, svg_traj});
 
     // zr - view
     svg_traj = draw_intersection_and_traj_svg(
         gctx, il, intersections_truth, traj, traj_name, intersections, zr);
 
-    std::string name_zr = outfile + "_zr";
-    const auto vol_zr_svg = il.draw_detector(name_zr, zr, gctx);
-    detray::svgtools::write_svg(path / name_zr,
+    const auto vol_zr_svg = il.draw_detector(zr, gctx);
+    detray::svgtools::write_svg(path / (outfile + "_" + vol_zr_svg._id),
                                 {zr_axis, vol_zr_svg, svg_traj});
 
     std::cout << "INFO: Wrote debugging data in: " << path << "\n" << std::endl;

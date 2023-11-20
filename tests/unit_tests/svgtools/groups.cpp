@@ -44,25 +44,23 @@ int main(int, char**) {
     const std::array surface_group_indices{1UL, 100UL, 10UL, 200UL};
 
     const auto svg_surface_group_xy =
-        il.draw_surfaces("my_surface_group1_xy", surface_group_indices, xy);
+        il.draw_surfaces(surface_group_indices, xy);
     detray::svgtools::write_svg("test_svgtools_surface_group_xy",
                                 {axes, svg_surface_group_xy});
 
     const auto svg_surface_group_zr =
-        il.draw_surfaces("my_surface_group1_zr", surface_group_indices, zr);
+        il.draw_surfaces(surface_group_indices, zr);
     detray::svgtools::write_svg("test_svgtools_surface_group_zr.svg",
                                 {axes, svg_surface_group_zr});
 
     // Visualisation of a group of volumes.
     const std::array volume_group_indices{3UL, 5UL};
 
-    const auto svg_volume_group_xy =
-        il.draw_volumes("my_volume_group1_xy", volume_group_indices, xy);
+    const auto svg_volume_group_xy = il.draw_volumes(volume_group_indices, xy);
     detray::svgtools::write_svg("test_svgtools_volume_group_xy",
                                 {axes, svg_volume_group_xy});
 
-    const auto svg_volume_group_zr =
-        il.draw_volumes("my_volume_group1_zr", volume_group_indices, zr);
+    const auto svg_volume_group_zr = il.draw_volumes(volume_group_indices, zr);
     detray::svgtools::write_svg("test_svgtools_volume_group_zr",
                                 {axes, svg_volume_group_zr});
 

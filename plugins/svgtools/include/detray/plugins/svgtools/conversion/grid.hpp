@@ -60,19 +60,19 @@ inline auto grid_type_and_edges(const grid_t& grid, const view_t&) {
     dvector<scalar_t> edges_r{r, r};
 
     if constexpr (std::is_same_v<view_t, actsvg::views::x_y>) {
-        return std::tuple(actsvg::proto::grid::e_r_phi, edges_r, edges_phi);
+        return std::tuple(actsvg::proto::grid::e_r_phi, r, edges_r, edges_phi);
     }
     if constexpr (std::is_same_v<view_t, actsvg::views::z_r>) {
-        return std::tuple(actsvg::proto::grid::e_x_y, edges_z, edges_r);
+        return std::tuple(actsvg::proto::grid::e_x_y, r, edges_z, edges_r);
     }
     if constexpr (std::is_same_v<view_t, actsvg::views::z_phi>) {
-        return std::tuple(actsvg::proto::grid::e_z_phi, edges_z, edges_phi);
+        return std::tuple(actsvg::proto::grid::e_z_phi, r, edges_z, edges_phi);
     }
     if constexpr (std::is_same_v<view_t, typename actsvg::views::z_rphi>) {
-        return std::tuple(actsvg::proto::grid::e_z_phi, edges_z, edges_rphi);
+        return std::tuple(actsvg::proto::grid::e_z_phi, r, edges_z, edges_rphi);
     }
 
-    return std::tuple(actsvg::proto::grid::e_x_y, dvector<scalar_t>{},
+    return std::tuple(actsvg::proto::grid::e_x_y, r, dvector<scalar_t>{},
                       dvector<scalar_t>{});
 }
 
@@ -91,12 +91,14 @@ inline auto grid_type_and_edges(const grid_t& grid, const view_t&) {
 
     auto edges_r = grid.template get_axis<axis_label::e_r>().bin_edges();
     auto edges_phi = grid.template get_axis<axis_label::e_phi>().bin_edges();
+    // The axes are always sorted
+    scalar_t r{edges_r.back()};
 
     if constexpr (std::is_same_v<view_t, typename actsvg::views::x_y>) {
-        return std::tuple(actsvg::proto::grid::e_r_phi, edges_r, edges_phi);
+        return std::tuple(actsvg::proto::grid::e_r_phi, r, edges_r, edges_phi);
     }
 
-    return std::tuple(actsvg::proto::grid::e_x_y, dvector<scalar_t>{},
+    return std::tuple(actsvg::proto::grid::e_x_y, r, dvector<scalar_t>{},
                       dvector<scalar_t>{});
 }
 
@@ -116,8 +118,9 @@ struct type_and_edge_getter {
             return grid_type_and_edges(group[index], view);
         }
 
-        return std::tuple(actsvg::proto::grid::e_x_y, dvector<scalar_t>{},
-                          dvector<scalar_t>{});
+        return std::tuple(actsvg::proto::grid::e_x_y,
+                          detray::detail::invalid_value<scalar_t>(),
+                          dvector<scalar_t>{}, dvector<scalar_t>{});
     }
 };
 
@@ -143,12 +146,13 @@ std::optional<actsvg::proto::grid> grid(const detector_t& detector,
     actsvg::proto::grid p_grid;
 
     if (not link.is_invalid()) {
-        const auto [type, edges0, edges1] =
+        const auto [type, r, edges0, edges1] =
             detector.accelerator_store()
                 .template visit<detail::type_and_edge_getter<d_scalar_t>>(link,
                                                                           view);
 
         p_grid._type = type;
+        p_grid._reference_r = static_cast<a_scalar_t>(r);
 
         std::transform(edges0.cbegin(), edges0.cend(),
                        std::back_inserter(p_grid._edges_0),

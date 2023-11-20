@@ -51,7 +51,7 @@ int main(int, char**) {
 
     // Show the relevant volumes in the detector.
     const auto svg_volumes =
-        il.draw_volumes("detector", std::vector{7UL, 9UL, 11UL, 13UL}, view);
+        il.draw_volumes(std::vector{7UL, 9UL, 11UL, 13UL}, view);
 
     // Creating a ray.
     using transform3_t = typename detector_t::transform3;

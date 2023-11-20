@@ -8,6 +8,7 @@
 // Project include(s)
 #include "detray/core/detector.hpp"
 #include "detray/geometry/volume_graph.hpp"
+#include "detray/io/common/detail/utils.hpp"
 #include "detray/io/common/detector_reader.hpp"
 #include "detray/plugins/svgtools/illustrator.hpp"
 #include "detray/plugins/svgtools/writer.hpp"
@@ -39,7 +40,7 @@ int main(int argc, char **argv) {
     using detector_t = detray::detector<>;
 
     // Visualization style to be applied to the svgs
-    auto style = detray::svgtools::styling::tableau_colorblind;
+    auto style = detray::svgtools::styling::tableau_colorblind::style;
 
     // Filter out the google test flags
     ::testing::InitGoogleTest(&argc, argv);
@@ -80,13 +81,7 @@ int main(int argc, char **argv) {
     // General options
     std::string outdir{vm.count("outdir") ? vm["outdir"].as<std::string>()
                                           : "./plots/"};
-    auto path = std::filesystem::path(outdir);
-    if (not std::filesystem::exists(path)) {
-        std::error_code err;
-        if (!std::filesystem::create_directories(path, err)) {
-            throw std::runtime_error(err.message());
-        }
-    }
+    auto path = detray::detail::create_path(outdir);
 
     // Input files
     if (vm.count("geometry_file")) {
@@ -113,6 +108,7 @@ int main(int argc, char **argv) {
     il.show_info(vm.count("show_info"));
     il.hide_portals(vm.count("hide_portals"));
     il.hide_passives(vm.count("hide_passives"));
+    il.hide_grids(!vm.count("grid_file"));
 
     actsvg::style::stroke stroke_black = actsvg::style::stroke();
 
@@ -122,42 +118,52 @@ int main(int argc, char **argv) {
     // z-r axis.
     auto zr_axis = actsvg::draw::x_y_axes("axes", {-2000, 2000}, {-5, 250},
                                           stroke_black, "z", "r");
+    // z-r axis.
+    auto zrphi_axis = actsvg::draw::x_y_axes("axes", {-2000, 2000}, {-300, 300},
+                                             stroke_black, "z", "r-phi");
 
     // Creating the views.
     const actsvg::views::x_y xy;
     const actsvg::views::z_r zr;
+    const actsvg::views::z_rphi zrphi;
 
     // Display the volumes
     if (not volumes.empty()) {
-        std::string name_xy = names.at(0) + "_volume_display_xy";
-        const auto vol_xy_svg = il.draw_volumes(name_xy, volumes, xy, gctx);
-        detray::svgtools::write_svg(path / name_xy, {xy_axis, vol_xy_svg});
+        const auto vol_xy_svg = il.draw_volumes(volumes, xy, gctx);
+        detray::svgtools::write_svg(path / vol_xy_svg._id,
+                                    {xy_axis, vol_xy_svg});
 
-        std::string name_zr = names.at(0) + "_volume_display_zr";
-        const auto vol_zr_svg = il.draw_volumes(name_zr, volumes, zr, gctx);
-        detray::svgtools::write_svg(path / name_zr, {zr_axis, vol_zr_svg});
+        const auto vol_zr_svg = il.draw_volumes(volumes, zr, gctx);
+        detray::svgtools::write_svg(path / vol_zr_svg._id,
+                                    {zr_axis, vol_zr_svg});
+
+        const auto det_zrphi_svg = il.draw_volumes(volumes, zrphi, gctx);
+        detray::svgtools::write_svg(path / det_zrphi_svg._id,
+                                    {zrphi_axis, det_zrphi_svg});
     }
 
     // Display the surfaces
     if (not surfaces.empty()) {
-        std::string name_xy = names.at(0) + "_surface_display_xy";
-        const auto sf_xy_svg = il.draw_surfaces(name_xy, surfaces, xy, gctx);
-        detray::svgtools::write_svg(path / name_xy, {xy_axis, sf_xy_svg});
+        const auto sf_xy_svg = il.draw_surfaces(surfaces, xy, gctx);
+        detray::svgtools::write_svg(path / sf_xy_svg._id, {xy_axis, sf_xy_svg});
 
-        std::string name_zr = names.at(0) + "_surface_display_zr";
-        const auto sf_zr_svg = il.draw_surfaces(name_zr, surfaces, zr, gctx);
-        detray::svgtools::write_svg(path / name_zr, {zr_axis, sf_zr_svg});
+        const auto sf_zr_svg = il.draw_surfaces(surfaces, zr, gctx);
+        detray::svgtools::write_svg(path / sf_zr_svg._id, {zr_axis, sf_zr_svg});
+
+        const auto det_zrphi_svg = il.draw_surfaces(surfaces, zrphi, gctx);
+        detray::svgtools::write_svg(path / det_zrphi_svg._id,
+                                    {zrphi_axis, det_zrphi_svg});
     }
 
     // If nothing was specified, display the whole detector
     if (volumes.empty() and surfaces.empty()) {
-        std::string name_xy = names.at(0) + "_display_xy";
-        const auto det_xy_svg = il.draw_detector(name_xy, xy, gctx);
-        detray::svgtools::write_svg(path / name_xy, {xy_axis, det_xy_svg});
+        const auto det_xy_svg = il.draw_detector(xy, gctx);
+        detray::svgtools::write_svg(path / det_xy_svg._id,
+                                    {xy_axis, det_xy_svg});
 
-        std::string name_zr = names.at(0) + "_display_zr";
-        const auto det_zr_svg = il.draw_detector(name_zr, zr, gctx);
-        detray::svgtools::write_svg(path / name_zr, {zr_axis, det_zr_svg});
+        const auto det_zr_svg = il.draw_detector(zr, gctx);
+        detray::svgtools::write_svg(path / det_zr_svg._id,
+                                    {zr_axis, det_zr_svg});
     }
 
     // Display the detector volume graph

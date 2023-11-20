@@ -64,6 +64,11 @@ class surface {
     constexpr surface(const detector_t &det, const geometry::barcode bcd)
         : surface(det, det.surface(bcd)) {}
 
+    /// Constructor from detector @param det and surface index @param sf_idx
+    DETRAY_HOST_DEVICE
+    constexpr surface(const detector_t &det, const dindex sf_idx)
+        : surface(det, det.surface(sf_idx)) {}
+
     /// Conversion to surface interface around constant detector type
     template <typename detector_type = detector_t,
               std::enable_if_t<!std::is_const_v<detector_type>, bool> = true>
@@ -131,6 +136,12 @@ class surface {
     DETRAY_HOST_DEVICE
     constexpr auto volume_link() const {
         return visit_mask<typename kernels::get_volume_link>();
+    }
+
+    /// @returns the mask shape name
+    DETRAY_HOST
+    std::string shape_name() const {
+        return visit_mask<typename kernels::get_shape_name>();
     }
 
     /// @returns the coordinate transform matrix of the surface

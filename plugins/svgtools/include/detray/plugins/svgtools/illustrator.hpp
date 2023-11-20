@@ -9,6 +9,7 @@
 
 // Project include(s)
 #include "detray/geometry/surface.hpp"
+#include "detray/plugins/svgtools/conversion/detector.hpp"
 #include "detray/plugins/svgtools/conversion/grid.hpp"
 #include "detray/plugins/svgtools/conversion/information_section.hpp"
 #include "detray/plugins/svgtools/conversion/intersection.hpp"
@@ -21,7 +22,6 @@
 #include "detray/plugins/svgtools/styling/styling.hpp"
 #include "detray/plugins/svgtools/utils/groups.hpp"
 #include "detray/plugins/svgtools/utils/volume_utils.hpp"
-#include "detray/utils/ranges.hpp"
 
 // Actsvg include(s)
 #include "actsvg/meta.hpp"
@@ -62,7 +62,7 @@ class illustrator {
     illustrator(const detector_t& detector,
                 const typename detector_t::name_map& name_map,
                 const styling::style& style =
-                    detray::svgtools::styling::tableau_colorblind)
+                    detray::svgtools::styling::tableau_colorblind::style)
         : _detector{detector}, _name_map{name_map}, _style{style} {}
 
     /// @returns the detector and volume names
@@ -80,9 +80,8 @@ class illustrator {
     /// Toggle passive surfaces
     void hide_passives(bool toggle = true) { _hide_passives = toggle; }
 
-    /// @brief Converts a detray surface in the detector to an svg.
+    /// @brief Converts a single detray surface of the detector to an svg.
     ///
-    /// @param prefix the id of the svg object.
     /// @param index the index of the surface in the detector.
     /// @param view the display view.
     /// @param gctx the geometry context.
@@ -90,66 +89,51 @@ class illustrator {
     /// @returns @c actsvg::svg::object of the detector's surface.
     template <typename view_t>
     inline auto draw_surface(
-        const std::string& prefix, const std::size_t index, const view_t& view,
+        const std::size_t index, const view_t& view,
         const typename detector_t::geometry_context& gctx = {}) const {
 
-        const auto surface = detray::surface{
-            _detector,
-            _detector.surface_lookup()[static_cast<detray::dindex>(index)]};
+        const auto surface =
+            detray::surface{_detector, static_cast<detray::dindex>(index)};
 
-        auto ret = svgtools::utils::group(prefix);
-        actsvg::svg::object svg_sur;
-        std::array<int, 3> color;
+        actsvg::svg::object ret;
+        const auto& style = _style._detector_style._volume_style;
 
         if (surface.is_portal()) {
-            if (!_hide_portals) {
-                auto p_portal = svgtools::conversion::portal<point3_container>(
-                    gctx, _detector, surface);
+            auto p_portal = svgtools::conversion::portal<point3_container>(
+                gctx, _detector, surface, false);
 
-                svgtools::styling::apply_style(
-                    p_portal, _style._volume_style._portal_style,
-                    _style._do_random_coloring);
+            svgtools::styling::apply_style(p_portal, style._portal_style);
 
-                std::copy(p_portal._surface._fill._fc._rgb.begin(),
-                          p_portal._surface._fill._fc._rgb.end(),
-                          color.begin());
-
-                svg_sur = actsvg::display::portal(prefix, p_portal, view);
-            }
-        } else if (!(surface.is_passive() && _hide_passives)) {
+            // Draw the portal directly
+            std::string id = p_portal._name + "_" + svg_id(view);
+            ret = actsvg::display::portal(std::move(id), p_portal, view);
+        } else {
             auto p_surface =
                 svgtools::conversion::surface<point3_container>(gctx, surface);
 
-            svgtools::styling::apply_style(p_surface,
-                                           _style._volume_style._surface_style,
-                                           _style._do_random_coloring);
+            svgtools::styling::apply_style(p_surface, style._surface_style);
 
-            std::copy(p_surface._fill._fc._rgb.begin(),
-                      p_surface._fill._fc._rgb.end(), color.begin());
-
-            svg_sur = actsvg::display::surface(prefix, p_surface, view);
+            // Draw the surface directly
+            std::string id = p_surface._name + "_" + svg_id(view);
+            ret = actsvg::display::surface(std::move(id), p_surface, view);
         }
-        if (_show_info &&
-            !(_hide_portals && _hide_passives && !surface.is_sensitive())) {
+        // Add an optional info box
+        if (_show_info) {
             auto p_information_section =
                 svgtools::conversion::information_section<point3>(gctx,
                                                                   surface);
-            std::copy(color.begin(), color.end(),
-                      p_information_section._color.begin());
 
-            ret.add_object(svgtools::meta::display::information_section(
-                prefix + "_sf_" + std::to_string(index), p_information_section,
-                view, _info_screen_offset, svg_sur));
+            auto info_box = svgtools::meta::display::information_section(
+                ret._id + "_info_box", p_information_section, view,
+                _info_screen_offset, ret);
+            ret.add_object(info_box);
         }
 
-        ret.add_object(svg_sur);
         return ret;
     }
 
-    /// @brief Converts a collection of detray surfaces in the detector to an
-    /// svg.
+    /// @brief Converts a multiple of detray surfaces of the detector to an svg.
     ///
-    /// @param prefix the id of the svg object.
     /// @param indices the collection of surface indices in the detector to
     /// convert.
     /// @param view the display view.
@@ -158,46 +142,22 @@ class illustrator {
     /// @returns @c actsvg::svg::object of the detector's surfaces.
     template <typename iterator_t, typename view_t>
     inline auto draw_surfaces(
-        const std::string& prefix, const iterator_t& indices,
-        const view_t& view,
+        const iterator_t& indices, const view_t& view,
         const typename detector_t::geometry_context& gctx = {}) const {
-        auto ret = svgtools::utils::group(prefix);
+
+        auto ret = svgtools::utils::group(_name_map.at(0) + "_surfaces_" +
+                                          svg_id(view));
+
         for (const auto index : indices) {
-            const auto svg = draw_surface(prefix, index, view, gctx);
+            const auto svg = draw_surface(index, view, gctx);
             ret.add_object(svg);
         }
+
         return ret;
     }
 
-    /// @brief Converts a surface grid to svg.
+    /// @brief Converts a detray volume of the detector to an svg.
     ///
-    /// @param prefix the id of the svg object.
-    /// @param index the index of the grid's volume
-    /// @param view the display view.
-    ///
-    /// @return @c actsvg::svg::object of the trajectory and intersections
-    template <typename view_t>
-    std::optional<actsvg::svg::object> draw_grid(const std::string& prefix,
-                                                 const std::size_t index,
-                                                 const view_t& view) const {
-
-        if (auto p_grid_ptr = svgtools::conversion::grid<actsvg::scalar>(
-                _detector, index, view)) {
-
-            svgtools::styling::apply_style(*p_grid_ptr, _style._grid_style);
-
-            std::string name{prefix + "_" +
-                             _name_map.at(static_cast<detray::dindex>(index)) +
-                             "_grid"};
-            return actsvg::display::grid(std::move(name), *p_grid_ptr);
-        }
-
-        return {};
-    }
-
-    /// @brief Converts a detray volume in the detector to an svg.
-    ///
-    /// @param prefix the id of the svg object.
     /// @param index the index of the volume in the detector.
     /// @param view the display view.
     /// @param gctx the geometry context.
@@ -205,32 +165,34 @@ class illustrator {
     /// @returns @c actsvg::svg::object of the detector's volume.
     template <typename view_t>
     inline auto draw_volume(
-        const std::string& prefix, const std::size_t index, const view_t& view,
+        const std::size_t index, const view_t& view,
         const typename detector_t::geometry_context& gctx = {}) const {
 
-        auto ret = svgtools::utils::group(
-            prefix + "_" + _name_map.at(static_cast<detray::dindex>(index)));
+        const auto d_volume =
+            detector_volume{_detector, static_cast<detray::dindex>(index)};
 
-        const auto surface_indices =
-            svgtools::utils::surface_indices(_detector, index);
-        const auto sf_svg = draw_surfaces(prefix, surface_indices, view, gctx);
+        auto p_volume = svgtools::conversion::volume<point3_container>(
+            gctx, _detector, d_volume, view, _hide_portals, _hide_passives,
+            _hide_grids);
 
-        ret.add_object(sf_svg);
+        // Apply the specific styling
+        svgtools::styling::apply_style(p_volume,
+                                       _style._detector_style._volume_style);
+
+        std::string id = d_volume.name(_name_map) + "_" + svg_id(view);
+        auto vol_svg = actsvg::display::volume(std::move(id), p_volume, view);
 
         if (!_hide_grids) {
-            const auto grid_svg = draw_grid(prefix, index, view);
-            if (grid_svg.has_value()) {
-                ret.add_object(grid_svg.value());
-            }
+            auto grid_svg =
+                actsvg::display::grid(id + "_grid", p_volume._surface_grid);
+            vol_svg.add_object(grid_svg);
         }
 
-        return ret;
+        return vol_svg;
     }
 
-    /// @brief Converts a collection of detray volumes in the detector to an
-    /// svg.
+    /// @brief Converts multiple detray volumes of the detector to an svg.
     ///
-    /// @param prefix the id of the svg object.
     /// @param indices the collection of volume indices in the detector to
     /// convert.
     /// @param view the display view.
@@ -239,13 +201,13 @@ class illustrator {
     /// @returns @c actsvg::svg::object of the detector's volumes.
     template <typename range_t, typename view_t>
     inline auto draw_volumes(
-        const std::string& prefix, const range_t& indices, const view_t& view,
+        const range_t& indices, const view_t& view,
         const typename detector_t::geometry_context& gctx = {}) const {
 
-        auto ret = svgtools::utils::group(prefix);
+        auto ret = svgtools::utils::group(_name_map.at(0) + "_volumes_" +
+                                          svg_id(view));
         for (const auto index : indices) {
-            const auto vol_svg = draw_volume(prefix, index, view, gctx);
-            ret.add_object(vol_svg);
+            ret.add_object(draw_volume(index, view, gctx));
         }
 
         return ret;
@@ -253,18 +215,24 @@ class illustrator {
 
     /// @brief Converts a detray detector to an svg.
     ///
-    /// @param prefix the id of the svg object.
     /// @param view the display view.
     /// @param gctx the geometry context.
     ///
     /// @returns @c actsvg::svg::object of the detector.
     template <typename view_t>
     inline auto draw_detector(
-        const std::string& prefix, const view_t& view,
+        const view_t& view,
         const typename detector_t::geometry_context& gctx = {}) const {
-        auto indices =
-            detray::views::iota(std::size_t{0u}, _detector.volumes().size());
-        return draw_volumes(prefix, indices, view, gctx);
+
+        auto p_detector = svgtools::conversion::detector<point3_container>(
+            gctx, _detector, view, _hide_portals, _hide_passives, _hide_grids);
+
+        // Apply the specific styling
+        svgtools::styling::apply_style(p_detector, _style._detector_style);
+
+        std::string id = _name_map.at(0) + "_" + svg_id(view);
+
+        return actsvg::display::detector(std::move(id), p_detector, view);
     }
 
     /// @brief Converts a point to an svg.
@@ -278,8 +246,7 @@ class illustrator {
     inline auto draw_landmark(const std::string& prefix, const point_t& point,
                               const view_t& view) const {
         auto p_landmark = svgtools::conversion::landmark<point3>(point);
-        svgtools::styling::apply_style(p_landmark, _style._landmark_style,
-                                       _style._do_random_coloring);
+        svgtools::styling::apply_style(p_landmark, _style._landmark_style);
         return svgtools::meta::display::landmark(prefix + "_landmark",
                                                  p_landmark, view);
     }
@@ -329,8 +296,7 @@ class illustrator {
         auto p_ir = svgtools::conversion::intersection<point3>(
             _detector, intersections, dir, gctx);
 
-        svgtools::styling::apply_style(p_ir, _style._intersection_style,
-                                       _style._do_random_coloring);
+        svgtools::styling::apply_style(p_ir, _style._intersection_style);
 
         return svgtools::meta::display::intersection(prefix, p_ir, view);
     }
@@ -351,8 +317,7 @@ class illustrator {
         auto p_trajectory =
             svgtools::conversion::trajectory<point3>(trajectory, path);
 
-        svgtools::styling::apply_style(p_trajectory, _style._trajectory_style,
-                                       _style._do_random_coloring);
+        svgtools::styling::apply_style(p_trajectory, _style._trajectory_style);
 
         return svgtools::meta::display::trajectory(prefix + "_traj",
                                                    p_trajectory, view);
@@ -369,9 +334,11 @@ class illustrator {
     inline auto draw_trajectory(const std::string& prefix,
                                 const point3_container& points,
                                 const view_t& view) const {
+
         auto p_trajectory = svgtools::conversion::trajectory<point3>(points);
-        svgtools::styling::apply_style(p_trajectory, _style._trajectory_style,
-                                       _style._do_random_coloring);
+
+        svgtools::styling::apply_style(p_trajectory, _style._trajectory_style);
+
         return svgtools::meta::display::trajectory(prefix + "_traj",
                                                    p_trajectory, view);
     }
@@ -428,21 +395,15 @@ class illustrator {
         ret._id = prefix;
 
         if (not intersections.empty()) {
-            auto i_style = svgtools::styling::copy_fill_colors(
-                _style._intersection_style, _style._trajectory_style);
-            i_style._fill_colors[0]._opacity = 0.5f;
-            i_style._marker_type = "o";
 
             auto p_ir = svgtools::conversion::intersection<point3>(
                 _detector, intersections, trajectory.dir(0.f), gctx);
-            svgtools::styling::apply_style(p_ir, i_style,
-                                           _style._do_random_coloring);
+            svgtools::styling::apply_style(p_ir, _style._landmark_style);
 
             ret.add_object(svgtools::meta::display::intersection(
                 prefix + "_record", p_ir, view));
 
             // The intersection record is always sorted by path length
-            // const auto max_path{intersections.back().path};
             const auto sf{
                 detray::surface{_detector, intersections.back().sf_desc}};
             const auto final_pos = sf.local_to_global(
@@ -456,6 +417,12 @@ class illustrator {
     }
 
     private:
+    /// @returns the string id of a view
+    template <typename view_t>
+    std::string svg_id(const view_t& view) const {
+        return view._axis_names[0] + view._axis_names[1];
+    }
+
     const actsvg::point2 _info_screen_offset{-300, 300};
     const detector_t& _detector;
     const typename detector_t::name_map& _name_map;
@@ -463,7 +430,7 @@ class illustrator {
     bool _hide_grids = false;
     bool _hide_portals = false;
     bool _hide_passives = false;
-    styling::style _style = styling::style1;
+    styling::style _style = styling::tableau_colorblind::style;
 };
 
 }  // namespace detray::svgtools

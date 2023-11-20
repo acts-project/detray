@@ -44,12 +44,12 @@ int main(int, char**) {
     il.show_info(true);
 
     // Get the svg of the toy detetector in x-y view.
-    const auto svg_xy = il.draw_detector("detector_xy", xy);
+    const auto svg_xy = il.draw_detector(xy);
     // Write the svg of toy detector.
     detray::svgtools::write_svg("test_svgtools_detector_xy", {xy_axis, svg_xy});
 
     // Get the svg of the toy detetector in z-r view.
-    const auto svg_zr = il.draw_detector("detector_zr", zr);
+    const auto svg_zr = il.draw_detector(zr);
     // Write the svg of toy detector in z-r view
     detray::svgtools::write_svg("test_svgtools_detector_zr", {zr_axis, svg_zr});
 }

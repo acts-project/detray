@@ -47,6 +47,16 @@ struct surface_kernels {
         }
     };
 
+    /// A functor to retrieve the masks shape name
+    struct get_shape_name {
+        template <typename mask_group_t, typename index_t>
+        DETRAY_HOST inline std::string operator()(const mask_group_t&,
+                                                  const index_t&) const {
+
+            return mask_group_t::value_type::shape::name;
+        }
+    };
+
     /// A functor to run the mask self check. Puts error messages into @param os
     struct mask_self_check {
         template <typename mask_group_t, typename index_t>

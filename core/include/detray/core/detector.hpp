@@ -324,6 +324,12 @@ class detector {
         return _surfaces[bcd.index()];
     }
 
+    /// @returns a surface using its index - const
+    DETRAY_HOST_DEVICE
+    constexpr auto surface(dindex sf_idx) const -> const surface_type & {
+        return _surfaces[sf_idx];
+    }
+
     /// @returns the overall number of surfaces in the detector
     DETRAY_HOST_DEVICE
     constexpr auto n_surfaces() const -> dindex {

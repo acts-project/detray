@@ -50,9 +50,9 @@ int main(int, char**) {
     for (std::size_t i : indices) {
         std::string name = "test_svgtools_surface" + std::to_string(i);
         // Visualization of surface/portal i:
-        const auto svg_xy = il.draw_surface(name, i, xy);
+        const auto svg_xy = il.draw_surface(i, xy);
         detray::svgtools::write_svg(name + "_xy", {axes, svg_xy});
-        const auto svg_zr = il.draw_surface(name, i, zr);
+        const auto svg_zr = il.draw_surface(i, zr);
         detray::svgtools::write_svg(name + "_zr", {axes, svg_zr});
     }
 }
