@@ -195,15 +195,15 @@ unbounded_cell, unmasked_plane*/>;
         e_rectangle2_map = 2u,
         e_trapezoid2_map = 2u,
         e_annulus2_map = 0u,
-        e_cell_wire_map = 6u,
-        e_straw_wire_map = 6u,
+        e_cell_wire_map = 4u,
+        e_straw_wire_map = 4u,
         // Volume material
-        e_cuboid3_map = 3u,
-        e_cylinder3_map = 4u,
+        // e_cuboid3_map = 3u,
+        // e_cylinder3_map = 4u,
         // Homogeneous mapetrial
-        e_slab = 5u,
-        e_rod = 6u,
-        e_none = 7u,
+        e_slab = 3u,
+        e_rod = 4u,
+        e_none = 5u,
     };
 
     /// How to store materials
@@ -214,8 +214,8 @@ unbounded_cell, unmasked_plane*/>;
                     grid_collection<disc_map_t<container_t>>,
                     grid_collection<cylinder2_map_t<container_t>>,
                     grid_collection<rectangular_map_t<container_t>>,
-                    grid_collection<cuboid_map_t<container_t>>,
-                    grid_collection<cylinder3_map_t<container_t>>,
+                    /*grid_collection<cuboid_map_t<container_t>>,
+                    grid_collection<cylinder3_map_t<container_t>>,*/
                     typename container_t::template vector_type<slab>,
                     typename container_t::template vector_type<rod>>;
 
