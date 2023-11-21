@@ -74,8 +74,8 @@ struct random_scatterer : actor {
 
         template <typename material_group_t, typename index_t>
         DETRAY_HOST_DEVICE inline bool operator()(
-            const material_group_t& material_group,
-            const index_t& material_index, state& s,
+            const material_group_t& material_group, const index_t& mat_index,
+            state& s,
             const bound_track_parameters<transform3_type>& bound_params,
             const scalar_type cos_inc_angle, const scalar_type approach) const {
 
