@@ -73,46 +73,72 @@ struct random_scatterer : actor {
         using state = typename random_scatterer::state;
 
         template <typename material_group_t, typename index_t>
-        DETRAY_HOST_DEVICE inline void operator()(
+        DETRAY_HOST_DEVICE inline bool operator()(
             const material_group_t& material_group,
-            const index_t& material_range, state& s,
+            const index_t& material_index, state& s,
             const bound_track_parameters<transform3_type>& bound_params,
             const scalar_type cos_inc_angle, const scalar_type approach) const {
 
             const scalar qop = bound_params.qop();
             const scalar charge = bound_params.charge();
 
-            for (const auto& mat :
-                 detray::ranges::subrange(material_group, material_range)) {
+            const auto& mat = this->get_material(material_group, mat_index,
+                                                 bound_params.bound_local());
 
-                if (not mat) {
-                    continue;
-                }
-
-                const scalar_type path_segment{
-                    mat.path_segment(cos_inc_angle, approach)};
-
-                // Energy Loss
-                if (s.do_energy_loss) {
-                    s.e_loss_mpv =
-                        interaction_type().compute_energy_loss_landau(
-                            path_segment, mat, s.pdg, s.mass, qop, charge);
-
-                    s.e_loss_sigma =
-                        interaction_type().compute_energy_loss_landau_sigma(
-                            path_segment, mat, s.pdg, s.mass, qop, charge);
-                }
-
-                // Scattering angle
-                if (s.do_multiple_scattering) {
-                    // @todo: use momentum before or after energy loss in
-                    // backward mode?
-                    s.projected_scattering_angle =
-                        interaction_type().compute_multiple_scattering_theta0(
-                            mat.path_segment_in_X0(cos_inc_angle, approach),
-                            s.pdg, s.mass, qop, charge);
-                }
+            if (not mat) {
+                return false;
             }
+
+            const scalar_type path_segment{
+                mat.path_segment(cos_inc_angle, approach)};
+
+            // Energy Loss
+            if (s.do_energy_loss) {
+                s.e_loss_mpv = interaction_type().compute_energy_loss_landau(
+                    path_segment, mat, s.pdg, s.mass, qop, charge);
+
+                s.e_loss_sigma =
+                    interaction_type().compute_energy_loss_landau_sigma(
+                        path_segment, mat, s.pdg, s.mass, qop, charge);
+            }
+
+            // Scattering angle
+            if (s.do_multiple_scattering) {
+                // @todo: use momentum before or after energy loss in
+                // backward mode?
+                s.projected_scattering_angle =
+                    interaction_type().compute_multiple_scattering_theta0(
+                        mat.path_segment_in_X0(cos_inc_angle, approach), s.pdg,
+                        s.mass, qop, charge);
+            }
+
+            return true;
+        }
+
+        private:
+        /// Access to material slabs or rods in a homogeneous material
+        /// description
+        template <class material_coll_t, class point_t,
+                  std::enable_if_t<not detail::is_grid_v<
+                                       typename material_coll_t::value_type>,
+                                   bool> = true>
+        inline constexpr decltype(auto) get_material(
+            const material_coll_t& material_coll, const dindex idx,
+            const point_t&) const noexcept {
+            return material_coll[idx];
+        }
+
+        /// Access to material slabs in a material map
+        template <class material_coll_t, class point_t,
+                  std::enable_if_t<
+                      detail::is_grid_v<typename material_coll_t::value_type>,
+                      bool> = true>
+        inline constexpr decltype(auto) get_material(
+            const material_coll_t& material_coll, const dindex idx,
+            const point_t& loc_point) const noexcept {
+
+            // Find the material slab (only one entry per bin)
+            return *(material_coll[idx].search(loc_point));
         }
     };
 
