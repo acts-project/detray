@@ -10,6 +10,7 @@
 // Project include(s)
 #include "detray/geometry/detector_volume.hpp"
 #include "detray/plugins/svgtools/conversion/volume.hpp"
+#include "detray/plugins/svgtools/styling/styling.hpp"
 
 // Actsvg include(s)
 #include "actsvg/proto/detector.hpp"
@@ -19,25 +20,30 @@ namespace detray::svgtools::conversion {
 /// @brief Generates the proto detector object
 ///
 /// @param context The geometry context.
-/// @param detector The detector object.
+/// @param detector The detector object
+/// @param style the style settings.
 /// @param hide_portals whether to display portals.
 /// @param hide_passives whether to display passive surfaces.
+/// @param hide_grids whether to display the volume surface grids.
 ///
-/// @returns An actsvg proto volume representing the volume.
+/// @returns An actsvg proto detector representing
 template <typename point3_container_t, typename detector_t, typename view_t>
 auto detector(const typename detector_t::geometry_context& context,
               const detector_t& detector, const view_t& view,
+              const styling::detector_style& style =
+                  styling::tableau_colorblind::detector_style,
               bool hide_portals = false, bool hide_passives = false,
               bool hide_grids = false) {
 
     actsvg::proto::detector<point3_container_t> p_detector;
 
     for (const auto& vol_desc : detector.volumes()) {
-
-        p_detector._volumes.push_back(
+        auto [p_volume, gr_type] =
             svgtools::conversion::volume<point3_container_t>(
                 context, detector, detector_volume{detector, vol_desc}, view,
-                hide_portals, hide_passives, hide_grids));
+                style._volume_style, hide_portals, hide_passives, hide_grids);
+
+        p_detector._volumes.push_back(p_volume);
     }
 
     return p_detector;

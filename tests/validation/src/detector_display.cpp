@@ -34,7 +34,7 @@
 namespace po = boost::program_options;
 using namespace detray;
 
-int main(int argc, char **argv) {
+int main(int argc, char** argv) {
 
     // Use the most general type to be able to read in all detector files
     using detector_t = detray::detector<>;
@@ -118,28 +118,29 @@ int main(int argc, char **argv) {
     // z-r axis.
     auto zr_axis = actsvg::draw::x_y_axes("axes", {-2000, 2000}, {-5, 250},
                                           stroke_black, "z", "r");
-    // z-r axis.
-    auto zrphi_axis = actsvg::draw::x_y_axes("axes", {-2000, 2000}, {-300, 300},
-                                             stroke_black, "z", "r-phi");
 
     // Creating the views.
     const actsvg::views::x_y xy;
     const actsvg::views::z_r zr;
-    const actsvg::views::z_rphi zrphi;
+    const actsvg::views::z_phi zphi;
 
     // Display the volumes
     if (not volumes.empty()) {
-        const auto vol_xy_svg = il.draw_volumes(volumes, xy, gctx);
+        const auto [vol_xy_svg, xy_sheets] = il.draw_volumes(volumes, xy, gctx);
         detray::svgtools::write_svg(path / vol_xy_svg._id,
                                     {xy_axis, vol_xy_svg});
+        for (const auto& sheet : xy_sheets) {
+            detray::svgtools::write_svg(path / sheet._id, sheet);
+        }
 
-        const auto vol_zr_svg = il.draw_volumes(volumes, zr, gctx);
+        const auto [vol_zr_svg, _sh] = il.draw_volumes(volumes, zr, gctx);
         detray::svgtools::write_svg(path / vol_zr_svg._id,
                                     {zr_axis, vol_zr_svg});
 
-        const auto det_zrphi_svg = il.draw_volumes(volumes, zrphi, gctx);
-        detray::svgtools::write_svg(path / det_zrphi_svg._id,
-                                    {zrphi_axis, det_zrphi_svg});
+        const auto [_vol, zphi_sheets] = il.draw_volumes(volumes, zphi, gctx);
+        for (const auto& sheet : zphi_sheets) {
+            detray::svgtools::write_svg(path / sheet._id, sheet);
+        }
     }
 
     // Display the surfaces
@@ -149,10 +150,6 @@ int main(int argc, char **argv) {
 
         const auto sf_zr_svg = il.draw_surfaces(surfaces, zr, gctx);
         detray::svgtools::write_svg(path / sf_zr_svg._id, {zr_axis, sf_zr_svg});
-
-        const auto det_zrphi_svg = il.draw_surfaces(surfaces, zrphi, gctx);
-        detray::svgtools::write_svg(path / det_zrphi_svg._id,
-                                    {zrphi_axis, det_zrphi_svg});
     }
 
     // If nothing was specified, display the whole detector
