@@ -27,7 +27,7 @@ namespace detray::svgtools::conversion {
 /// @param hide_grids whether to display the volume surface grids.
 ///
 /// @returns An actsvg proto detector representing
-template <typename point3_container_t, typename detector_t, typename view_t>
+template <typename detector_t, typename view_t>
 auto detector(const typename detector_t::geometry_context& context,
               const detector_t& detector, const view_t& view,
               const styling::detector_style& style =
@@ -35,13 +35,13 @@ auto detector(const typename detector_t::geometry_context& context,
               bool hide_portals = false, bool hide_passives = false,
               bool hide_grids = false) {
 
+    using point3_container_t = std::vector<typename detector_t::point3>;
     actsvg::proto::detector<point3_container_t> p_detector;
 
     for (const auto& vol_desc : detector.volumes()) {
-        auto [p_volume, gr_type] =
-            svgtools::conversion::volume<point3_container_t>(
-                context, detector, detector_volume{detector, vol_desc}, view,
-                style._volume_style, hide_portals, hide_passives, hide_grids);
+        auto [p_volume, gr_type] = svgtools::conversion::volume(
+            context, detector, detector_volume{detector, vol_desc}, view,
+            style._volume_style, hide_portals, hide_passives, hide_grids);
 
         p_detector._volumes.push_back(p_volume);
     }

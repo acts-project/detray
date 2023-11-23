@@ -19,8 +19,7 @@ namespace detray::svgtools::meta::proto {
 /// @brief A proto landmark class as a simple translation layer from a
 /// description of a point.
 template <typename point3_t>
-class trajectory {
-    public:
+struct trajectory {
     std::vector<point3_t> _points;
     std::string _name;
     actsvg::style::stroke _stroke = actsvg::style::stroke();

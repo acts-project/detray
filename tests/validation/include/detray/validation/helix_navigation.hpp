@@ -173,6 +173,7 @@ class helix_navigation : public test::fixture_base<> {
                 detray::svgtools::illustrator il{m_det, m_names,
                                                  m_cfg.svg_style()};
                 il.show_info(true);
+                il.hide_eta_lines(true);
                 il.hide_portals(false);
                 il.hide_passives(false);
 

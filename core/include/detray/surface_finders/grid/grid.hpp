@@ -325,12 +325,13 @@ class grid {
     template <typename point_t, typename neighbor_t, bool sort = false,
               std::enable_if_t<std::is_class_v<point_t>, bool> = true>
     DETRAY_HOST_DEVICE auto search(const point_t &p,
-                                   neighborhood_type<neighbor_t> &nhood) const
-        -> void {
-        n_axis::multi_bin_range<Dim> bin_ranges = axes().bin_ranges(p, nhood);
-        // Return iterable over bin values in the multi-range
+                                   const std::array<neighbor_t, Dim> &) const {
+        // n_axis::multi_bin_range<Dim> bin_ranges = axes().bin_ranges(p,
+        // nhood);
+        //  Return iterable over bin values in the multi-range
 
         // Placeholder
+        return search(p);
     }
 
     /// Poupulate a bin with a single one of its corresponding values @param v

@@ -9,7 +9,6 @@
 
 // Project include(s)
 #include "detray/intersection/detail/trajectories.hpp"
-#include "detray/plugins/svgtools/conversion/point.hpp"
 #include "detray/plugins/svgtools/meta/proto/trajectory.hpp"
 #include "detray/plugins/svgtools/styling/styling.hpp"
 
@@ -23,6 +22,7 @@ template <typename point3_t>
 inline auto trajectory(const std::vector<point3_t>& points,
                        const styling::trajectory_style& style =
                            styling::svg_default::trajectory_style) {
+
     using p_trajectory_t = svgtools::meta::proto::trajectory<point3_t>;
     p_trajectory_t p_trajectory;
 
@@ -39,8 +39,7 @@ inline auto trajectory(const std::vector<point3_t>& points,
 /// @param style the style settings
 ///
 /// @returns The proto trajectory of a parametrized trajectory
-template <typename point3_t, template <typename> class trajectory_t,
-          typename transform3_t>
+template <template <typename> class trajectory_t, typename transform3_t>
 inline auto trajectory(
     const trajectory_t<transform3_t>& traj,
     const styling::trajectory_style& style =
@@ -49,9 +48,9 @@ inline auto trajectory(
     const typename transform3_t::scalar_type step_size = 1.f) {
 
     const typename transform3_t::scalar_type S0 = 0.f;
-    std::vector<point3_t> points;
+    std::vector<typename transform3_t::point3> points;
     for (auto s = S0; s < path_length; s += step_size) {
-        points.push_back(svgtools::conversion::point<point3_t>(traj.pos(s)));
+        points.push_back(traj.pos(s));
     }
 
     return trajectory(points, style);
@@ -62,7 +61,7 @@ inline auto trajectory(
 /// @param style the style settings
 ///
 /// @returns The proto trajectory of a ray.
-template <typename point3_t, typename transform3_t>
+template <typename transform3_t>
 inline auto trajectory(
     const detray::detail::ray<transform3_t>& traj,
     const styling::trajectory_style& style =
@@ -70,11 +69,10 @@ inline auto trajectory(
     const typename transform3_t::scalar_type path_length = 500.f) {
 
     const typename transform3_t::scalar_type S0 = 0.f;
-    std::vector<point3_t> points = {
-        svgtools::conversion::point<point3_t>(traj.pos(S0)),
-        svgtools::conversion::point<point3_t>(traj.pos(path_length))};
+    std::vector<typename transform3_t::point3> points = {traj.pos(S0),
+                                                         traj.pos(path_length)};
 
-    return trajectory<point3_t>(points, style);
+    return trajectory(points, style);
 }
 
 }  // namespace detray::svgtools::conversion

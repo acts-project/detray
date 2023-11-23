@@ -8,6 +8,7 @@
 #pragma once
 
 // Project include(s)
+#include "detray/plugins/svgtools/meta/proto/eta_lines.hpp"
 #include "detray/plugins/svgtools/meta/proto/intersection.hpp"
 #include "detray/plugins/svgtools/meta/proto/landmark.hpp"
 #include "detray/plugins/svgtools/meta/proto/trajectory.hpp"
@@ -93,6 +94,14 @@ struct detector_style {
     grid_style _grid_style;
 };
 
+/// Style applied to proto eta lines
+struct eta_lines_style {
+    actsvg::style::color _fill_color_main;
+    actsvg::style::color _fill_color_half;
+    actsvg::scalar _stroke_width_main;
+    actsvg::scalar _stroke_width_half;
+};
+
 /// Style applied to a proto landmark
 struct landmark_style {
     actsvg::style::color _fill_color;
@@ -111,6 +120,7 @@ struct trajectory_style {
 /// Global styling options
 struct style {
     detector_style _detector_style;
+    eta_lines_style _eta_lines_style;
     trajectory_style _trajectory_style;
     landmark_style _landmark_style;
     landmark_style _intersection_style;
@@ -137,6 +147,10 @@ const styling::volume_style volume_style{surface_style, portal_style,
 // Detector style
 const styling::detector_style detector_style{volume_style, grid_style};
 
+// Eta lines style
+const styling::eta_lines_style eta_lines_style{
+    {colors::black, 1.f}, {colors::black, 1.f}, 1.f, 1.f};
+
 // Intersection points and track state style
 const styling::landmark_style intersection_style{
     colors::black_theme(1.f).front(), 0.8f, 5.f, "x"};
@@ -148,8 +162,8 @@ const styling::trajectory_style trajectory_style{
     colors::green_theme(1.f).front(), 1.f};
 
 // Full style
-const styling::style style{detector_style, trajectory_style, landmark_style,
-                           intersection_style};
+const styling::style style{detector_style, eta_lines_style, trajectory_style,
+                           landmark_style, intersection_style};
 }  // namespace svg_default
 
 /// Styling that matches data plotting
@@ -176,9 +190,9 @@ const styling::volume_style volume_style{surface_style_sensitive, portal_style,
 const styling::detector_style detector_style{volume_style, grid_style};
 
 // Full style
-const styling::style style{detector_style, svg_default::trajectory_style,
-                           svg_default::landmark_style,
-                           svg_default::intersection_style};
+const styling::style style{
+    detector_style, svg_default::eta_lines_style, svg_default::trajectory_style,
+    svg_default::landmark_style, svg_default::intersection_style};
 }  // namespace tableau_colorblind
 
 /// @brief Sets the style of the proto surface.
@@ -245,6 +259,17 @@ void apply_style(actsvg::proto::detector<point3_container_t>& p_detector,
     for (auto& p_volume : p_detector._volumes) {
         apply_style(p_volume, styling._volume_style);
     }
+}
+
+/// @brief Sets the style of the proto eta_lines.
+void apply_style(meta::proto::eta_lines& p_eta_lines,
+                 const eta_lines_style& styling) {
+    p_eta_lines._stroke_main = actsvg::style::stroke(
+        styling._fill_color_main, styling._stroke_width_main);
+
+    p_eta_lines._stroke_half = actsvg::style::stroke(
+        styling._fill_color_half, styling._stroke_width_half);
+    p_eta_lines._stroke_half._dasharray = {2, 2};
 }
 
 /// @brief Sets the style of the proto landmark.
