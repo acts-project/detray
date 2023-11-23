@@ -60,17 +60,8 @@ int main(int, char**) {
 
     // Draw the volumes and include them in the svg vector.
     for (std::size_t i : indices) {
-        std::string name = "Volume_" + std::to_string(i);
-        const auto svg = il.draw_volume(name, i, view);
+        const auto svg = il.draw_volume(i, view);
         svgs.push_back(svg);
-    }
-
-    // Draw the grids and include them in the svg vector.
-    for (const auto i : indices) {
-        std::string name = "Grid_" + std::to_string(i);
-        if (auto svg_ptr = il.draw_grid(name, i, view)) {
-            svgs.push_back(*svg_ptr);
-        }
     }
 
     // Draw some example trajectories and include them in the svg vector (along

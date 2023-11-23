@@ -58,7 +58,7 @@ class detector_volume {
     /// Constructor from detector @param det and volume index @param vol_idx in
     /// that detector.
     constexpr detector_volume(const detector_t &det, const dindex vol_idx)
-        : detector_volume(det, det.volume_by_index(vol_idx)) {}
+        : detector_volume(det, det.volumes()[vol_idx]) {}
 
     /// Equality operator
     ///

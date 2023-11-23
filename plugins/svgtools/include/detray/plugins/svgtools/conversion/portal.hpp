@@ -23,17 +23,22 @@ namespace detray::svgtools::conversion {
 template <typename point3_container_t, typename detector_t>
 auto portal(const typename detector_t::geometry_context& context,
             const detector_t& detector,
-            const detray::surface<detector_t>& d_portal) {
+            const detray::surface<detector_t>& d_portal,
+            bool hide_links = false) {
     assert(d_portal.is_portal());
+
     using p_portal_t = actsvg::proto::portal<point3_container_t>;
+
     p_portal_t p_portal;
-    if (svgtools::utils::is_not_world_portal(d_portal)) {
+    p_portal._name = "portal_" + std::to_string(d_portal.index());
+    if (!hide_links && svgtools::utils::is_not_world_portal(d_portal)) {
         p_portal._volume_links = {
             svgtools::conversion::link<point3_container_t>(context, detector,
                                                            d_portal)};
     }
     p_portal._surface =
         svgtools::conversion::surface<point3_container_t>(context, d_portal);
+
     return p_portal;
 }
 

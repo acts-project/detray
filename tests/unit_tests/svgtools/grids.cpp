@@ -39,16 +39,10 @@ int main(int, char**) {
         10UL, 11UL, 12UL, 13UL, 14UL, 15UL, 16UL, 17UL, 18UL, 19UL};
 
     for (const auto i : indices) {
-        std::string name = "volume" + std::to_string(i) + "_grid";
-        // Draw the grid for volume i.
-        if (auto grid_svg_ptr = il.draw_grid(name, i, view)) {
-            // Draw volume i.
-            const auto volume_svg = il.draw_volume("volume", i, view);
-            // Write volume i and its grid
-            // (the grid is last in the list since we want it to be displayed on
-            // top of the volume).
-            detray::svgtools::write_svg(name + ".svg",
-                                        {volume_svg, *grid_svg_ptr});
-        }
+        // Draw volume i.
+        il.hide_grids(false);
+        const auto volume_svg = il.draw_volume(i, view);
+        // Write volume i and its grid
+        detray::svgtools::write_svg(volume_svg._id, volume_svg);
     }
 }

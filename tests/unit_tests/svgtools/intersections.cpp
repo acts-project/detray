@@ -52,7 +52,7 @@ int main(int, char**) {
     const detray::svgtools::illustrator il{det, names};
 
     // Drawing the detector.
-    const auto svg_det = il.draw_detector("detector", view);
+    const auto svg_det = il.draw_detector(view);
 
     // Creating the rays.
     using generator_t =

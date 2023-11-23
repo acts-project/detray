@@ -46,7 +46,7 @@ class helix_scan : public test::fixture_base<> {
         trk_gen_config_t m_trk_gen_cfg{};
         // Visualization style to be applied to the svgs
         detray::svgtools::styling::style m_style =
-            detray::svgtools::styling::tableau_colorblind;
+            detray::svgtools::styling::tableau_colorblind::style;
 
         /// Getters
         /// @{
