@@ -8,7 +8,6 @@
 #pragma once
 
 // Project include(s)
-#include "detray/intersection/intersection.hpp"
 #include "detray/plugins/svgtools/conversion/landmark.hpp"
 #include "detray/plugins/svgtools/meta/proto/intersection.hpp"
 
@@ -18,7 +17,7 @@
 namespace detray::svgtools::conversion {
 
 /// @returns The proto intersection of a detray intersection.
-template <typename point3_t, typename detector_t, typename intersection_t>
+template <typename detector_t, typename intersection_t>
 inline auto intersection(const detector_t& detector,
                          const dvector<intersection_t>& intersections,
                          const typename detector_t::vector3& dir = {},
@@ -26,14 +25,14 @@ inline auto intersection(const detector_t& detector,
                          const styling::landmark_style& style =
                              styling::svg_default::intersection_style) {
 
+    using point3_t = typename detector_t::point3;
     using p_intersection_t = svgtools::meta::proto::intersection<point3_t>;
     p_intersection_t p_ir;
 
     for (const auto& intr : intersections) {
         const detray::surface surface{detector, intr.sf_desc};
         const auto position = surface.local_to_global(gctx, intr.local, dir);
-        const auto p_lm =
-            svgtools::conversion::landmark<point3_t>(position, style);
+        const auto p_lm = svgtools::conversion::landmark(position, style);
         p_ir._landmarks.push_back(p_lm);
     }
 

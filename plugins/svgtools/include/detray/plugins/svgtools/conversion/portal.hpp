@@ -21,7 +21,7 @@ namespace detray::svgtools::conversion {
 
 /// @returns An actsvg proto portal representing the portal.
 /// @note detray portal is_portal() should be true.
-template <typename point3_container_t, typename detector_t>
+template <typename detector_t>
 auto portal(const typename detector_t::geometry_context& context,
             const detector_t& detector,
             const detray::surface<detector_t>& d_portal,
@@ -31,17 +31,17 @@ auto portal(const typename detector_t::geometry_context& context,
 
     assert(d_portal.is_portal());
 
+    using point3_container_t = std::vector<typename detector_t::point3>;
     using p_portal_t = actsvg::proto::portal<point3_container_t>;
 
     p_portal_t p_portal;
     p_portal._name = "portal_" + std::to_string(d_portal.index());
     if (!hide_links && svgtools::utils::is_not_world_portal(d_portal)) {
         p_portal._volume_links = {
-            svgtools::conversion::link<point3_container_t>(context, detector,
-                                                           d_portal)};
+            svgtools::conversion::link(context, detector, d_portal)};
     }
-    p_portal._surface =
-        svgtools::conversion::surface<point3_container_t>(context, d_portal);
+
+    p_portal._surface = svgtools::conversion::surface(context, d_portal);
 
     svgtools::styling::apply_style(p_portal, style);
 

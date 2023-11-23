@@ -31,9 +31,6 @@ int main(int, char**) {
     const auto axes = actsvg::draw::x_y_axes("axes", {-250, 250}, {-250, 250},
                                              actsvg::style::stroke());
 
-    using point3 = std::array<actsvg::scalar, 3>;
-    using point3_container = std::vector<point3>;
-
     using toy_detector_t = detray::detector<detray::toy_metadata>;
     using transform_t = typename toy_detector_t::transform3;
 
@@ -47,8 +44,7 @@ int main(int, char**) {
     detray::mask<detray::annulus2D<>> ann2D{0u,   100.f, 200.f, -0.5f,
                                             0.5f, 0.f,   4.f,   30.f};
     const auto ann2D_proto =
-        detray::svgtools::conversion::surface<point3_container>(transform,
-                                                                ann2D);
+        detray::svgtools::conversion::surface(transform, ann2D);
     const auto ann2D_svg = actsvg::display::surface("", ann2D_proto, view);
     detray::svgtools::write_svg("test_svgtools_annulus2D", {axes, ann2D_svg});
 
@@ -56,8 +52,7 @@ int main(int, char**) {
     // e_r, e_n_half_z, e_p_half_z
     detray::mask<detray::cylinder2D<>> cyl2D{0u, 100.f, -10.f, 10.f};
     const auto cyl2D_proto =
-        detray::svgtools::conversion::surface<point3_container>(transform,
-                                                                cyl2D);
+        detray::svgtools::conversion::surface(transform, cyl2D);
     const auto cyl2D_svg = actsvg::display::surface("", cyl2D_proto, view);
     detray::svgtools::write_svg("test_svgtools_cylinder2D", {axes, cyl2D_svg});
 
@@ -65,8 +60,7 @@ int main(int, char**) {
     // e_half_x, e_half_y
     detray::mask<detray::rectangle2D<>> rec2D{0u, 100.f, 100.f};
     const auto rec2D_proto =
-        detray::svgtools::conversion::surface<point3_container>(transform,
-                                                                rec2D);
+        detray::svgtools::conversion::surface(transform, rec2D);
     const auto rec2D_svg = actsvg::display::surface("", rec2D_proto, view);
     detray::svgtools::write_svg("test_svgtools_rectangle2D", {axes, rec2D_svg});
 
@@ -74,8 +68,7 @@ int main(int, char**) {
     // e_inner_r, e_outer_r
     detray::mask<detray::ring2D<>> rin2D{0u, 50.f, 100.f};
     const auto rin2D_proto =
-        detray::svgtools::conversion::surface<point3_container>(transform,
-                                                                rin2D);
+        detray::svgtools::conversion::surface(transform, rin2D);
     const auto rin2D_svg = actsvg::display::surface("", rin2D_proto, view);
     detray::svgtools::write_svg("test_svgtools_ring2D", {axes, rin2D_svg});
 
@@ -83,8 +76,7 @@ int main(int, char**) {
     // e_half_length_0, e_half_length_1, e_half_length_2, e_divisor
     detray::mask<detray::trapezoid2D<>> tra2D{0u, 100.f, 50.f, 200.f};
     const auto tra2D_proto =
-        detray::svgtools::conversion::surface<point3_container>(transform,
-                                                                tra2D);
+        detray::svgtools::conversion::surface(transform, tra2D);
     const auto tra2D_svg = actsvg::display::surface("", tra2D_proto, view);
     detray::svgtools::write_svg("test_svgtools_trapezoid2D", {axes, tra2D_svg});
 
@@ -92,8 +84,7 @@ int main(int, char**) {
     // e_cross_section, e_half_z
     detray::mask<detray::line<>> lin2D{0u, 10.f, 100.f};
     const auto lin2D_proto =
-        detray::svgtools::conversion::surface<point3_container>(transform,
-                                                                lin2D);
+        detray::svgtools::conversion::surface(transform, lin2D);
     const auto lin2D_svg = actsvg::display::surface("", lin2D_proto, view);
     detray::svgtools::write_svg("test_svgtools_line2D", {axes, lin2D_svg});
 }

@@ -215,12 +215,12 @@ struct bin_association_getter {
 /// @param style the style settings
 ///
 /// @returns a proto grid
-template <typename a_scalar_t, typename detector_t, typename view_t>
+template <typename detector_t, typename view_t>
 auto grid(const detector_t& detector, const dindex index, const view_t& view,
           const styling::grid_style& style =
               styling::tableau_colorblind::grid_style) {
 
-    using d_scalar_t = typename detector_t::scalar_type;
+    using scalar_t = typename detector_t::scalar_type;
     using geo_object_ids = typename detector_t::geo_obj_ids;
 
     const auto& vol_desc = detector.volumes()[index];
@@ -230,18 +230,18 @@ auto grid(const detector_t& detector, const dindex index, const view_t& view,
     if (not link.is_invalid()) {
         const auto [gr_type, view_type, r, edges0, edges1] =
             detector.accelerator_store()
-                .template visit<detail::type_and_edge_getter<d_scalar_t>>(link,
-                                                                          view);
+                .template visit<detail::type_and_edge_getter<scalar_t>>(link,
+                                                                        view);
 
         p_grid._type = view_type;
-        p_grid._reference_r = static_cast<a_scalar_t>(r);
+        p_grid._reference_r = static_cast<actsvg::scalar>(r);
 
-        std::transform(edges0.cbegin(), edges0.cend(),
-                       std::back_inserter(p_grid._edges_0),
-                       [](d_scalar_t v) { return static_cast<a_scalar_t>(v); });
-        std::transform(edges1.cbegin(), edges1.cend(),
-                       std::back_inserter(p_grid._edges_1),
-                       [](d_scalar_t v) { return static_cast<a_scalar_t>(v); });
+        std::transform(
+            edges0.cbegin(), edges0.cend(), std::back_inserter(p_grid._edges_0),
+            [](scalar_t v) { return static_cast<actsvg::scalar>(v); });
+        std::transform(
+            edges1.cbegin(), edges1.cend(), std::back_inserter(p_grid._edges_1),
+            [](scalar_t v) { return static_cast<actsvg::scalar>(v); });
 
         svgtools::styling::apply_style(p_grid, style);
 

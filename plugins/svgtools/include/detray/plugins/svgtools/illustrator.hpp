@@ -48,7 +48,7 @@ namespace detray::svgtools {
 template <typename detector_t>
 class illustrator {
 
-    using point3 = std::array<actsvg::scalar, 3>;
+    using point3 = typename detector_t::point3;
     using point3_container = std::vector<point3>;
 
     public:
@@ -98,14 +98,14 @@ class illustrator {
         const auto& style = _style._detector_style._volume_style;
 
         if (surface.is_portal()) {
-            auto p_portal = svgtools::conversion::portal<point3_container>(
+            auto p_portal = svgtools::conversion::portal(
                 gctx, _detector, surface, style._portal_style, false);
 
             // Draw the portal directly
             std::string id = p_portal._name + "_" + svg_id(view);
             ret = actsvg::display::portal(std::move(id), p_portal, view);
         } else {
-            auto p_surface = svgtools::conversion::surface<point3_container>(
+            auto p_surface = svgtools::conversion::surface(
                 gctx, surface, style._surface_style);
 
             // Draw the surface directly
@@ -115,8 +115,7 @@ class illustrator {
         // Add an optional info box
         if (_show_info) {
             auto p_information_section =
-                svgtools::conversion::information_section<point3>(gctx,
-                                                                  surface);
+                svgtools::conversion::information_section(gctx, surface);
 
             auto info_box = svgtools::meta::display::information_section(
                 ret._id + "_info_box", p_information_section, view,
@@ -164,11 +163,10 @@ class illustrator {
 
         const auto d_volume = detector_volume{_detector, index};
 
-        auto [p_volume, gr_type] =
-            svgtools::conversion::volume<point3_container>(
-                gctx, _detector, d_volume, view,
-                _style._detector_style._volume_style, _hide_portals,
-                _hide_passives, _hide_grids);
+        auto [p_volume, gr_type] = svgtools::conversion::volume(
+            gctx, _detector, d_volume, view,
+            _style._detector_style._volume_style, _hide_portals, _hide_passives,
+            _hide_grids);
 
         // Draw the basic volume
         p_volume._name = d_volume.name(_name_map);
@@ -256,7 +254,7 @@ class illustrator {
         const view_t& view,
         const typename detector_t::geometry_context& gctx = {}) const {
 
-        auto p_detector = svgtools::conversion::detector<point3_container>(
+        auto p_detector = svgtools::conversion::detector(
             gctx, _detector, view, _style._detector_style, _hide_portals,
             _hide_passives, _hide_grids);
 
@@ -275,8 +273,8 @@ class illustrator {
     template <typename view_t, typename point_t>
     inline auto draw_landmark(const std::string& prefix, const point_t& point,
                               const view_t& view) const {
-        auto p_landmark = svgtools::conversion::landmark<point3>(
-            point, _style._landmark_style);
+        auto p_landmark =
+            svgtools::conversion::landmark(point, _style._landmark_style);
 
         return svgtools::meta::display::landmark(prefix + "_landmark",
                                                  p_landmark, view);
@@ -324,7 +322,7 @@ class illustrator {
         const typename detector_t::vector3 dir, const view_t& view,
         const typename detector_t::geometry_context& gctx = {}) const {
 
-        auto p_ir = svgtools::conversion::intersection<point3>(
+        auto p_ir = svgtools::conversion::intersection(
             _detector, intersections, dir, gctx, _style._intersection_style);
 
         return svgtools::meta::display::intersection(prefix, p_ir, view);
@@ -344,7 +342,7 @@ class illustrator {
                                 const trajectory_t<transform3_t>& trajectory,
                                 const typename transform3_t::scalar_type path,
                                 const view_t& view) const {
-        auto p_trajectory = svgtools::conversion::trajectory<point3>(
+        auto p_trajectory = svgtools::conversion::trajectory(
             trajectory, _style._trajectory_style, path);
 
         return svgtools::meta::display::trajectory(prefix + "_traj",
@@ -363,8 +361,8 @@ class illustrator {
                                 const point3_container& points,
                                 const view_t& view) const {
 
-        auto p_trajectory = svgtools::conversion::trajectory<point3>(
-            points, _style._trajectory_style);
+        auto p_trajectory =
+            svgtools::conversion::trajectory(points, _style._trajectory_style);
 
         return svgtools::meta::display::trajectory(prefix + "_traj",
                                                    p_trajectory, view);
@@ -423,7 +421,7 @@ class illustrator {
 
         if (not intersections.empty()) {
 
-            auto p_ir = svgtools::conversion::intersection<point3>(
+            auto p_ir = svgtools::conversion::intersection(
                 _detector, intersections, trajectory.dir(0.f), gctx,
                 _style._landmark_style);
 

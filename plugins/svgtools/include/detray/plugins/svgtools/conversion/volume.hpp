@@ -41,7 +41,7 @@ namespace detray::svgtools::conversion {
 /// @param hide_grids whether to display the contained surface grid.
 ///
 /// @returns An actsvg proto volume representing the volume.
-template <typename point3_container_t, typename detector_t, typename view_t>
+template <typename detector_t, typename view_t>
 auto volume(const typename detector_t::geometry_context& context,
             const detector_t& detector,
             const detray::detector_volume<detector_t>& d_volume,
@@ -51,6 +51,8 @@ auto volume(const typename detector_t::geometry_context& context,
             bool hide_portals = false, bool hide_passives = false,
             bool hide_grids = false) {
 
+    using point3_container_t = std::vector<typename detector_t::point3>;
+
     actsvg::proto::volume<point3_container_t> p_volume;
     p_volume._index = d_volume.index();
 
@@ -58,7 +60,7 @@ auto volume(const typename detector_t::geometry_context& context,
     std::vector<actsvg::proto::surface<point3_container_t>> p_sensitves;
 
     // Convert grid, if present
-    auto [p_grid, grid_type] = svgtools::conversion::grid<actsvg::scalar>(
+    auto [p_grid, grid_type] = svgtools::conversion::grid(
         detector, p_volume._index, view, style._grid_style);
 
     // Transform the global surface indices to local ones in the volumes
@@ -71,17 +73,16 @@ auto volume(const typename detector_t::geometry_context& context,
 
         if (sf.is_portal()) {
             if (!hide_portals) {
-                auto p_portal =
-                    svgtools::conversion::portal<point3_container_t>(
-                        context, detector, sf, style._portal_style, false);
+                auto p_portal = svgtools::conversion::portal(
+                    context, detector, sf, style._portal_style, false);
 
                 p_volume._portals.push_back(p_portal);
             }
         } else if (!(sf.is_passive() && hide_passives)) {
 
             // Regular volume display
-            auto& p_surface = p_volume._v_surfaces.emplace_back(
-                svgtools::conversion::surface<point3_container_t>(
+            auto& p_surface =
+                p_volume._v_surfaces.emplace_back(svgtools::conversion::surface(
                     context, sf, style._surface_style));
 
             std::stringstream sf_info, msk_info, mat_info;
