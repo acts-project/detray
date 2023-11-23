@@ -11,6 +11,7 @@
 #include "detray/geometry/surface.hpp"
 #include "detray/plugins/svgtools/conversion/link.hpp"
 #include "detray/plugins/svgtools/conversion/surface.hpp"
+#include "detray/plugins/svgtools/styling/styling.hpp"
 #include "detray/plugins/svgtools/utils/link_utils.hpp"
 
 // Actsvg includes(s)
@@ -24,7 +25,10 @@ template <typename point3_container_t, typename detector_t>
 auto portal(const typename detector_t::geometry_context& context,
             const detector_t& detector,
             const detray::surface<detector_t>& d_portal,
+            const styling::portal_style& style =
+                styling::tableau_colorblind::portal_style,
             bool hide_links = false) {
+
     assert(d_portal.is_portal());
 
     using p_portal_t = actsvg::proto::portal<point3_container_t>;
@@ -38,6 +42,8 @@ auto portal(const typename detector_t::geometry_context& context,
     }
     p_portal._surface =
         svgtools::conversion::surface<point3_container_t>(context, d_portal);
+
+    svgtools::styling::apply_style(p_portal, style);
 
     return p_portal;
 }

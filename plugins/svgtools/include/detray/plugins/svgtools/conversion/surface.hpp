@@ -10,6 +10,7 @@
 // Project include(s)
 #include "detray/geometry/surface.hpp"
 #include "detray/plugins/svgtools/conversion/point.hpp"
+#include "detray/plugins/svgtools/styling/styling.hpp"
 
 // Actsvg include(s)
 #include "actsvg/proto/surface.hpp"
@@ -74,7 +75,6 @@ template <typename point3_container_t, typename transform_t, bool kRadialCheck,
           template <typename> class intersector_t>
 auto inline surface(const transform_t& transform,
                     const mask<cylinder2D<kRadialCheck, intersector_t>>& m) {
-    // Rotation is currently not supported.
 
     using shape_t = cylinder2D<kRadialCheck, intersector_t>;
     using point3_t = typename point3_container_t::value_type;
@@ -101,7 +101,6 @@ auto inline surface(const transform_t& transform,
 /// @brief Returns the proto surface for 2D rings.
 template <typename point3_container_t, typename transform_t>
 auto surface(const transform_t& transform, const mask<ring2D<>>& m) {
-    // Rotation is currently not supported.
 
     using shape_t = ring2D<>;
     using point3_t = typename point3_container_t::value_type;
@@ -127,7 +126,6 @@ auto surface(const transform_t& transform, const mask<ring2D<>>& m) {
 /// @brief Returns the proto surface for 2D annuli.
 template <typename point3_container_t, typename transform_t>
 auto inline surface(const transform_t& transform, const mask<annulus2D<>>& m) {
-    // Rotation is currently not supported.
 
     using p_surface_t = actsvg::proto::surface<point3_container_t>;
 
@@ -145,7 +143,6 @@ template <typename point3_container_t, typename transform_t,
           bool kSquareCrossSect, template <typename> class intersector_t>
 auto surface(const transform_t& transform,
              const mask<line<kSquareCrossSect, intersector_t>>& m) {
-    // Rotation is currently not supported.
 
     using shape_t = line<kSquareCrossSect, intersector_t>;
     using point3_t = typename point3_container_t::value_type;
@@ -204,13 +201,16 @@ struct surface_converter {
 /// @returns An actsvg proto surface representing the surface.
 template <typename point3_container_t, typename detector_t>
 auto surface(const typename detector_t::geometry_context& context,
-             const detray::surface<detector_t>& d_surface) {
+             const detray::surface<detector_t>& d_surface,
+             const styling::surface_style& style =
+                 styling::tableau_colorblind::surface_style_sensitive) {
 
     auto p_surface =
         d_surface.template visit_mask<surface_converter<point3_container_t>>(
             d_surface.transform(context));
 
     p_surface._name = "surface_" + std::to_string(d_surface.index());
+    svgtools::styling::apply_style(p_surface, style);
 
     return p_surface;
 }

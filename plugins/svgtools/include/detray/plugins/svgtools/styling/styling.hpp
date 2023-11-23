@@ -16,6 +16,7 @@
 // Actsvg include(s)
 #include "actsvg/core.hpp"
 #include "actsvg/core/style.hpp"
+#include "actsvg/proto/detector.hpp"
 #include "actsvg/proto/grid.hpp"
 #include "actsvg/proto/portal.hpp"
 #include "actsvg/proto/surface.hpp"
@@ -167,8 +168,7 @@ const styling::portal_style portal_style{surface_style_portal,
                                          svg_default::link_style};
 
 // Volume style
-const styling::grid_style grid_style{
-    colors::tableau_colorblind10::blue_tones(1.f)[2], 1.f};
+const styling::grid_style grid_style{{colors::red, 1.f}, 0.6f};
 const styling::volume_style volume_style{surface_style_sensitive, portal_style,
                                          grid_style};
 
@@ -222,7 +222,7 @@ void apply_style(actsvg::proto::grid& p_grid, const grid_style& styling) {
     p_grid._stroke._sc = styling._stroke_color;
     p_grid._stroke._width = styling._stroke_width;
     // Use dashed lines for the grid
-    p_grid._stroke._dasharray = {4};
+    // p_grid._stroke._dasharray = {4};
 }
 
 /// @brief Sets the style of the proto volume.

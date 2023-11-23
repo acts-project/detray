@@ -50,8 +50,8 @@ int main(int, char**) {
     const detray::svgtools::illustrator il{det, names};
 
     // Show the relevant volumes in the detector.
-    const auto svg_volumes =
-        il.draw_volumes(std::vector{7UL, 9UL, 11UL, 13UL}, view);
+    const auto [svg_volumes, _] =
+        il.draw_volumes(std::vector{7u, 9u, 11u, 13u}, view);
 
     // Creating a ray.
     using transform3_t = typename detector_t::transform3;

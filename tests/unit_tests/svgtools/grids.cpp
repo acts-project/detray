@@ -34,15 +34,16 @@ int main(int, char**) {
 
     // In this example we want to draw the grids of the volumes with indices 0,
     // 1, ... in the detector.
-    std::vector<std::size_t> indices = {
-        0UL,  1UL,  2UL,  3UL,  4UL,  5UL,  6UL,  7UL,  8UL,  9UL,
-        10UL, 11UL, 12UL, 13UL, 14UL, 15UL, 16UL, 17UL, 18UL, 19UL};
+    std::vector<detray::dindex> indices = {0u,  1u,  2u,  3u,  4u,  5u,  6u,
+                                           7u,  8u,  9u,  10u, 11u, 12u, 13u,
+                                           14u, 15u, 16u, 17u, 18u, 19u};
 
-    for (const auto i : indices) {
+    for (const detray::dindex i : indices) {
         // Draw volume i.
         il.hide_grids(false);
-        const auto volume_svg = il.draw_volume(i, view);
+        const auto [volume_svg, sheet] = il.draw_volume(i, view);
         // Write volume i and its grid
         detray::svgtools::write_svg(volume_svg._id, volume_svg);
+        detray::svgtools::write_svg(sheet._id, sheet);
     }
 }

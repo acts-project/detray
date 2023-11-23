@@ -13,10 +13,20 @@
 #include "detray/plugins/svgtools/conversion/grid.hpp"
 #include "detray/plugins/svgtools/conversion/portal.hpp"
 #include "detray/plugins/svgtools/conversion/surface.hpp"
+#include "detray/plugins/svgtools/styling/styling.hpp"
 #include "detray/plugins/svgtools/utils/volume_utils.hpp"
 
 // Actsvg include(s)
+#include "actsvg/display/geometry.hpp"
+#include "actsvg/proto/surface.hpp"
 #include "actsvg/proto/volume.hpp"
+
+// System include(s)
+#include <map>
+#include <sstream>
+#include <string>
+#include <tuple>
+#include <vector>
 
 namespace detray::svgtools::conversion {
 
@@ -25,19 +35,34 @@ namespace detray::svgtools::conversion {
 /// @param context The geometry context.
 /// @param detector The detractor the volume belongs to.
 /// @param d_volume The detray volume.
+/// @param style the style settings
 /// @param hide_portals whether to display the volumes portals.
 /// @param hide_passives whether to display the contained passive surfaces.
+/// @param hide_grids whether to display the contained surface grid.
 ///
 /// @returns An actsvg proto volume representing the volume.
 template <typename point3_container_t, typename detector_t, typename view_t>
 auto volume(const typename detector_t::geometry_context& context,
             const detector_t& detector,
             const detray::detector_volume<detector_t>& d_volume,
-            const view_t& view, bool hide_portals = false,
-            bool hide_passives = false, bool hide_grids = false) {
+            const view_t& view,
+            const styling::volume_style& style =
+                styling::tableau_colorblind::volume_style,
+            bool hide_portals = false, bool hide_passives = false,
+            bool hide_grids = false) {
 
     actsvg::proto::volume<point3_container_t> p_volume;
     p_volume._index = d_volume.index();
+
+    // Prepare surfaces to be displayed in module/grid sheets
+    std::vector<actsvg::proto::surface<point3_container_t>> p_sensitves;
+
+    // Convert grid, if present
+    auto [p_grid, grid_type] = svgtools::conversion::grid<actsvg::scalar>(
+        detector, p_volume._index, view, style._grid_style);
+
+    // Transform the global surface indices to local ones in the volumes
+    dindex sf_offset{dindex_invalid};
 
     for (const auto& desc :
          svgtools::utils::surface_lookup(detector, d_volume)) {
@@ -46,26 +71,51 @@ auto volume(const typename detector_t::geometry_context& context,
 
         if (sf.is_portal()) {
             if (!hide_portals) {
-                auto portal = svgtools::conversion::portal<point3_container_t>(
-                    context, detector, sf, false);
-                p_volume._portals.push_back(portal);
+                auto p_portal =
+                    svgtools::conversion::portal<point3_container_t>(
+                        context, detector, sf, style._portal_style, false);
+
+                p_volume._portals.push_back(p_portal);
             }
         } else if (!(sf.is_passive() && hide_passives)) {
-            auto surface =
-                svgtools::conversion::surface<point3_container_t>(context, sf);
-            p_volume._v_surfaces.push_back(surface);
+
+            // Regular volume display
+            auto& p_surface = p_volume._v_surfaces.emplace_back(
+                svgtools::conversion::surface<point3_container_t>(
+                    context, sf, style._surface_style));
+
+            std::stringstream sf_info, msk_info, mat_info;
+            sf_info << "* index " << sf.index();
+            msk_info << "* " << sf.shape_name() << ": " << desc.mask().index();
+            msk_info << "* mat.: " << static_cast<int>(desc.material().id())
+                     << ", " << desc.material().index();
+
+            p_surface._aux_info["module_info"] = {sf_info.str(), msk_info.str(),
+                                                  mat_info.str()};
+            p_surface._aux_info["grid_info"] = {sf_info.str(), msk_info.str(),
+                                                mat_info.str()};
+
+            // Put the sensitive surfaces in the module/grid sheets
+            if (sf.is_sensitive()) {
+
+                // The surfaces are indexed as a sequence
+                sf_offset = std::min(sf_offset, sf.index());
+
+                p_sensitves.push_back(p_surface);
+            }
         }
     }
 
-    // Convert grid, if present
-    if (!hide_grids) {
-        if (auto p_grid_ptr = svgtools::conversion::grid<actsvg::scalar>(
-                detector, p_volume._index, view)) {
-            p_volume._surface_grid = *p_grid_ptr;
-        }
+    // Add the proto grid to the proto volume and find bin associations
+    if (!hide_grids && p_grid.has_value()) {
+        p_volume._surface_grid = *p_grid;
+        p_volume._grid_associations = {
+            get_bin_association(detector, d_volume, sf_offset)};
     }
 
-    return p_volume;
+    p_volume._surfaces = {std::move(p_sensitves)};
+
+    return std::tuple(p_volume, grid_type);
 }
 
 }  // namespace detray::svgtools::conversion

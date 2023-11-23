@@ -47,16 +47,15 @@ int main(int, char**) {
     il.hide_grids(true);
 
     // Indexes of the volumes in the detector to be visualized.
-    std::array indices{0UL,  1UL,  2UL,  3UL,  4UL,  5UL,  6UL,
-                       7UL,  8UL,  9UL,  10UL, 11UL, 12UL, 13UL,
-                       14UL, 15UL, 16UL, 17UL, 18UL, 19UL};
+    std::array indices{0u,  1u,  2u,  3u,  4u,  5u,  6u,  7u,  8u,  9u,
+                       10u, 11u, 12u, 13u, 14u, 15u, 16u, 17u, 18u, 19u};
 
-    for (std::size_t i : indices) {
+    for (detray::dindex i : indices) {
         std::string name = "test_svgtools_volume" + std::to_string(i);
         // Visualization of volume i:
-        const auto svg_xy = il.draw_volume(i, xy);
-        detray::svgtools::write_svg(name + "_xy", {axes, svg_xy});
-        const auto svg_zr = il.draw_volume(i, zr);
-        detray::svgtools::write_svg(name + "_zr", {axes, svg_zr});
+        const auto [vol_svg_xy, xy_sheets] = il.draw_volume(i, xy);
+        detray::svgtools::write_svg(name + "_xy", {axes, vol_svg_xy});
+        const auto [vol_svg_zr, _] = il.draw_volume(i, zr);
+        detray::svgtools::write_svg(name + "_zr", {axes, vol_svg_zr});
     }
 }

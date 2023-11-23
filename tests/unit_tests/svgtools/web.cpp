@@ -54,13 +54,12 @@ int main(int, char**) {
     std::vector<actsvg::svg::object> svgs;
 
     // Indexes of the volumes in the detector to be visualized.
-    std::array indices{0UL,  1UL,  2UL,  3UL,  4UL,  5UL,  6UL,
-                       7UL,  8UL,  9UL,  10UL, 11UL, 12UL, 13UL,
-                       14UL, 15UL, 16UL, 17UL, 18UL, 19UL};
+    std::array indices{0u,  1u,  2u,  3u,  4u,  5u,  6u,  7u,  8u,  9u,
+                       10u, 11u, 12u, 13u, 14u, 15u, 16u, 17u, 18u, 19u};
 
     // Draw the volumes and include them in the svg vector.
-    for (std::size_t i : indices) {
-        const auto svg = il.draw_volume(i, view);
+    for (detray::dindex i : indices) {
+        const auto [svg, _] = il.draw_volume(i, view);
         svgs.push_back(svg);
     }
 
