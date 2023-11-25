@@ -48,19 +48,22 @@ int main(int argc, char** argv) {
     // Options parsing
     po::options_description desc("\ndetray detector validation options");
 
-    std::vector<dindex> volumes, surfaces;
+    std::vector<dindex> volumes, surfaces, window;
     desc.add_options()("help", "produce help message")(
         "outdir", po::value<std::string>(), "Output directory for plots")(
         "geometry_file", po::value<std::string>(), "Geometry input file")(
         "grid_file", po::value<std::string>(), "Surface grid input file")(
+        "context", po::value<dindex>(), "Number of the geometry context")(
+        "search_window", po::value<std::vector<dindex>>(&window)->multitoken(),
+        "Size of the grid surface search window")(
         "volumes", po::value<std::vector<dindex>>(&volumes)->multitoken(),
         "List of volumes that should be displayed")(
         "surfaces", po::value<std::vector<dindex>>(&surfaces)->multitoken(),
         "List of surfaces that should be displayed")(
         "hide_portals", "Hide portal surfaces")("hide_passives",
                                                 "Hide passive surfaces")(
-        "show_info", "Show info boxes")("write_volume_graph",
-                                        "Writes the volume graph to file");
+        "hide_eta_lines", "Hide eta lines")("show_info", "Show info boxes")(
+        "write_volume_graph", "Writes the volume graph to file");
 
     po::variables_map vm;
     po::store(parse_command_line(argc, argv, desc,
@@ -96,19 +99,37 @@ int main(int argc, char** argv) {
         reader_cfg.add_file(vm["grid_file"].as<std::string>());
     }
 
+    // The geometry context to be displayed
+    detector_t::geometry_context gctx;
+    if (vm.count("context")) {
+        gctx = detector_t::geometry_context{vm["context"].as<dindex>()};
+    }
+    // Grid neighborhood size
+    if (vm.count("search_window")) {
+        if (window.size() != 2u) {
+            throw std::invalid_argument(
+                "Incorrect surface grid search window. Please provide two "
+                "integer distances.");
+        }
+    } else {
+        // default
+        window = {2u, 2u};
+    }
+
     // Read the detector geometry
     vecmem::host_memory_resource host_mr;
 
     const auto [det, names] =
         detray::io::read_detector<detector_t>(host_mr, reader_cfg);
-    detector_t::geometry_context gctx{};
 
     // Creating the svg generator for the detector.
     detray::svgtools::illustrator il{det, names, style};
     il.show_info(vm.count("show_info"));
+    il.hide_eta_lines(vm.count("hide_eta_lines"));
     il.hide_portals(vm.count("hide_portals"));
     il.hide_passives(vm.count("hide_passives"));
     il.hide_grids(!vm.count("grid_file"));
+    il.search_window({window[0], window[1]});
 
     actsvg::style::stroke stroke_black = actsvg::style::stroke();
 

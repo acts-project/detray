@@ -139,8 +139,8 @@ struct bin_association_getter {
     template <typename group_t, typename index_t>
     DETRAY_HOST_DEVICE std::vector<std::vector<std::size_t>> operator()(
         [[maybe_unused]] const group_t& group,
-        [[maybe_unused]] const index_t index,
-        [[maybe_unused]] dindex offset) const {
+        [[maybe_unused]] const index_t index, [[maybe_unused]] dindex offset,
+        [[maybe_unused]] const std::array<dindex, 2>& search_window) const {
 
         using accel_t = typename group_t::value_type;
 
@@ -190,7 +190,8 @@ struct bin_association_getter {
                     // Get all the bin entries and calculate the loc index
                     std::vector<std::size_t> entries;
 
-                    for (const auto& sf_desc : grid.search(bin_center)) {
+                    for (const auto& sf_desc :
+                         grid.search(bin_center, search_window)) {
                         entries.push_back(sf_desc.index() - offset);
                     }
 
@@ -215,12 +216,12 @@ struct bin_association_getter {
 /// @param style the style settings
 ///
 /// @returns a proto grid
-template <typename a_scalar_t, typename detector_t, typename view_t>
+template <typename detector_t, typename view_t>
 auto grid(const detector_t& detector, const dindex index, const view_t& view,
           const styling::grid_style& style =
               styling::tableau_colorblind::grid_style) {
 
-    using d_scalar_t = typename detector_t::scalar_type;
+    using scalar_t = typename detector_t::scalar_type;
     using geo_object_ids = typename detector_t::geo_obj_ids;
 
     const auto& vol_desc = detector.volumes()[index];
@@ -230,18 +231,18 @@ auto grid(const detector_t& detector, const dindex index, const view_t& view,
     if (not link.is_invalid()) {
         const auto [gr_type, view_type, r, edges0, edges1] =
             detector.accelerator_store()
-                .template visit<detail::type_and_edge_getter<d_scalar_t>>(link,
-                                                                          view);
+                .template visit<detail::type_and_edge_getter<scalar_t>>(link,
+                                                                        view);
 
         p_grid._type = view_type;
-        p_grid._reference_r = static_cast<a_scalar_t>(r);
+        p_grid._reference_r = static_cast<actsvg::scalar>(r);
 
-        std::transform(edges0.cbegin(), edges0.cend(),
-                       std::back_inserter(p_grid._edges_0),
-                       [](d_scalar_t v) { return static_cast<a_scalar_t>(v); });
-        std::transform(edges1.cbegin(), edges1.cend(),
-                       std::back_inserter(p_grid._edges_1),
-                       [](d_scalar_t v) { return static_cast<a_scalar_t>(v); });
+        std::transform(
+            edges0.cbegin(), edges0.cend(), std::back_inserter(p_grid._edges_0),
+            [](scalar_t v) { return static_cast<actsvg::scalar>(v); });
+        std::transform(
+            edges1.cbegin(), edges1.cend(), std::back_inserter(p_grid._edges_1),
+            [](scalar_t v) { return static_cast<actsvg::scalar>(v); });
 
         svgtools::styling::apply_style(p_grid, style);
 
@@ -262,7 +263,8 @@ auto grid(const detector_t& detector, const dindex index, const view_t& view,
 template <typename detector_t>
 std::vector<std::vector<std::size_t>> get_bin_association(
     const detector_t& det, const detray::detector_volume<detector_t>& vol,
-    std::size_t offset = 0u) {
+    std::size_t offset = 0u,
+    const std::array<dindex, 2>& search_window = {2u, 2u}) {
 
     using geo_object_ids = typename detector_t::geo_obj_ids;
 
@@ -272,7 +274,7 @@ std::vector<std::vector<std::size_t>> get_bin_association(
     if (not link.is_invalid()) {
         return det.accelerator_store()
             .template visit<detail::bin_association_getter>(
-                link, static_cast<dindex>(offset));
+                link, static_cast<dindex>(offset), search_window);
     }
 
     return {};

@@ -42,9 +42,19 @@ class data_context {
 class empty_context {};
 
 /// Context type for geometry data
-class geometry_context : public detail::data_context {};
+class geometry_context : public detail::data_context {
+    using base_t = detail::data_context;
+
+    public:
+    using base_t::base_t;
+};
 
 /// Context type for magnetic field data
-struct magnetic_field_context : public detail::data_context {};
+struct magnetic_field_context : public detail::data_context {
+    using base_t = detail::data_context;
+
+    public:
+    using base_t::base_t;
+};
 
 }  // namespace detray
