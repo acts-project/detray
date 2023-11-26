@@ -28,8 +28,8 @@ using namespace detray;
 
 using ray_generator_t = uniform_track_generator<detail::ray<test::transform3>>;
 
-static const unsigned int theta_steps = 1000u;
-static const unsigned int phi_steps = 1000u;
+static const unsigned int theta_steps = 100u;
+static const unsigned int phi_steps = 100u;
 
 static const dvector<scalar> dists = {1.f, 2.f, 3.f, 4.f, 5.f,
                                       6.f, 7.f, 8.f, 9.f, 10.f};
