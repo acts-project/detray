@@ -1,0 +1,233 @@
+/** Detray library, part of the ACTS project (R&D line)
+ *
+ * (c) 2023 CERN for the benefit of the ACTS project
+ *
+ * Mozilla Public License Version 2.0
+ */
+
+#pragma once
+
+// Project include(s)
+#include "detray/definitions/qualifiers.hpp"
+#include "detray/utils/ranges/ranges.hpp"
+#include "detray/utils/tuple.hpp"
+
+// System include(s)
+#include <tuple>  // < needed for structured binding of iterator values
+
+namespace detray::ranges {
+
+namespace detail {
+
+template <typename... T>
+struct cartesian_product_iterator;
+
+}
+
+/// @brief Range adaptor that generates a cartesian product from the given input
+/// ranges
+///
+/// @see https://en.cppreference.com/w/cpp/ranges/cartesian_product_view
+/// @see
+/// https://github.com/gcc-mirror/gcc/blob/master/libstdc%2B%2B-v3/include/std/ranges
+template <typename... range_ts>
+struct cartesian_product_view : public detray::ranges::view_interface<
+                                    cartesian_product_view<range_ts...>> {
+
+    using iterator_coll_t =
+        detray::tuple<detray::ranges::iterator_t<range_ts>...>;
+    using iterator_t = detray::ranges::detail::cartesian_product_iterator<
+        detray::ranges::iterator_t<range_ts>...>;
+    using value_type = std::tuple<typename std::iterator_traits<
+        detray::ranges::iterator_t<range_ts>>::value_type &...>;
+
+    /// Default constructor
+    constexpr cartesian_product_view() = default;
+
+    /// Construct from a pack of @param ranges.
+    template <typename... ranges_t>
+    DETRAY_HOST_DEVICE constexpr explicit cartesian_product_view(
+        ranges_t &&...ranges)
+        : m_begins{detray::ranges::begin(std::forward<ranges_t>(ranges))...},
+          m_ends{detray::ranges::end(std::forward<ranges_t>(ranges))...} {}
+
+    /// Copy constructor
+    DETRAY_HOST_DEVICE
+    constexpr cartesian_product_view(const cartesian_product_view &other)
+        : m_begins{other.m_begins}, m_ends{other.m_ends} {}
+
+    /// Default destructor
+    ~cartesian_product_view() = default;
+
+    /// Copy assignment operator
+    DETRAY_HOST_DEVICE
+    cartesian_product_view &operator=(const cartesian_product_view &other) {
+        m_begins = other.m_begins;
+        m_ends = other.m_ends;
+        return *this;
+    }
+
+    /// @return start position of range - const
+    DETRAY_HOST_DEVICE
+    constexpr auto begin() const -> iterator_t { return {m_begins, m_ends}; }
+
+    /// @return sentinel of the range - const
+    DETRAY_HOST_DEVICE
+    constexpr auto end() const -> iterator_t { return {m_ends, m_ends}; }
+
+    /// @returns a pointer to the beginning of the data of the first underlying
+    /// range - const
+    DETRAY_HOST_DEVICE
+    constexpr auto data() const { return &(*(detray::get<0>(m_begins()))); }
+
+    /// @returns a pointer to the beginning of the data of the first underlying
+    /// range - non-const
+    DETRAY_HOST_DEVICE
+    constexpr auto data() { return &(*(detray::get<0>(m_begins()))); }
+
+    /// @returns product of the number elements of all ranges in the view
+    template <std::size_t I = sizeof...(range_ts) - 1u>
+    DETRAY_HOST_DEVICE constexpr auto size(std::size_t s = 1u) const noexcept
+        -> std::size_t {
+
+        const auto begin = detray::get<I>(m_begins);
+        const auto end = detray::get<I>(m_ends);
+
+        s *= static_cast<std::size_t>(detray::ranges::distance(begin, end));
+
+        if constexpr (I > 0u) {
+            return size<I - 1u>(s);
+        } else {
+            return s;
+        }
+    }
+
+    private:
+    /// Start and end position of the subranges
+    iterator_coll_t m_begins{}, m_ends{};
+};
+
+namespace views {
+
+/// @brief interface type to construct a @c cartesian_product_view with CTAD
+template <typename... range_ts>
+struct cartesian_product : public ranges::cartesian_product_view<range_ts...> {
+
+    using base_type = ranges::cartesian_product_view<range_ts...>;
+
+    constexpr cartesian_product() = default;
+
+    template <typename... ranges_t>
+    DETRAY_HOST_DEVICE constexpr explicit cartesian_product(
+        ranges_t &&...ranges)
+        : base_type(std::forward<ranges_t>(ranges)...) {}
+};
+
+// deduction guides
+
+template <typename... ranges_ts>
+DETRAY_HOST_DEVICE cartesian_product(ranges_ts &&...ranges)
+    ->cartesian_product<ranges_ts...>;
+
+}  // namespace views
+
+namespace detail {
+
+/// @brief Iterator implementation for the cartesian product view
+template <typename... iterator_ts>
+struct cartesian_product_iterator {
+
+    using difference_type = std::ptrdiff_t;
+    using value_type =
+        std::tuple<typename std::iterator_traits<iterator_ts>::value_type...>;
+    using pointer = value_type *;
+    using reference = value_type &;
+    using iterator_category = detray::ranges::input_iterator_tag;
+
+    /// Default constructor required by LegacyIterator trait
+    constexpr cartesian_product_iterator() = default;
+
+    /// Construct from a collection of @param begin and @param end positions
+    DETRAY_HOST_DEVICE
+    constexpr cartesian_product_iterator(
+        const detray::tuple<iterator_ts...> &begins,
+        const detray::tuple<iterator_ts...> &ends)
+        : m_begins(&begins), m_ends(&ends), m_itrs(begins) {}
+
+    /// Copy assignment operator
+    DETRAY_HOST_DEVICE
+    cartesian_product_iterator &operator=(
+        const cartesian_product_iterator &other) {
+        m_begins = other.m_begins;
+        m_ends = other.m_ends;
+        return *this;
+    }
+
+    /// @returns true if the last range iterators are equal.
+    DETRAY_HOST_DEVICE constexpr bool operator==(
+        const cartesian_product_iterator &rhs) const {
+        return (detray::get<0>(m_itrs) == detray::get<0>(rhs.m_itrs));
+    }
+
+    /// @returns true if the last range iterators are not equal
+    /// @note (if the outermost range (pos 0 in the pack) goes to its end
+    /// position, the iteration stops).
+    DETRAY_HOST_DEVICE constexpr bool operator!=(
+        const cartesian_product_iterator &rhs) const {
+        return (detray::get<0>(m_itrs) != detray::get<0>(rhs.m_itrs));
+    }
+
+    /// Increment iterators.
+    DETRAY_HOST_DEVICE constexpr auto operator++()
+        -> cartesian_product_iterator & {
+        unroll_increment();
+        return *this;
+    }
+
+    /// @returns the structured binding of all current iterator values - const
+    DETRAY_HOST_DEVICE
+    constexpr auto operator*() const {
+        return unroll_values(
+            std::make_integer_sequence<std::size_t, sizeof...(iterator_ts)>{});
+    }
+
+    /// @returns the structured binding of all current iterator values.
+    DETRAY_HOST_DEVICE
+    constexpr auto operator*() {
+        return unroll_values(
+            std::make_integer_sequence<std::size_t, sizeof...(iterator_ts)>{});
+    }
+
+    private:
+    /// Unroll the increment over all iterators and, for the inner iterators,
+    /// reset to start a new iteration
+    /// @see
+    /// https://github.com/gcc-mirror/gcc/blob/master/libstdc%2B%2B-v3/include/std/ranges
+    template <std::size_t I = sizeof...(iterator_ts) - 1u>
+    DETRAY_HOST_DEVICE constexpr void unroll_increment() {
+        auto &itr = detray::get<I>(m_itrs);
+        ++itr;
+        if constexpr (I > 0u) {
+            if (itr == detray::get<I>(*m_ends)) {
+                itr = detray::get<I>(*m_begins);
+                unroll_increment<I - 1>();
+            }
+        }
+    }
+
+    /// Pack the return values
+    /// @note uses @c std::tuple for structured binding
+    template <std::size_t... I>
+    DETRAY_HOST_DEVICE constexpr auto unroll_values(std::index_sequence<I...>) {
+        return std::tie(*detray::get<I>(m_itrs)...);
+    }
+
+    /// Global range collection of begin and end iterators
+    const detray::tuple<iterator_ts...> *m_begins{nullptr}, *m_ends{nullptr};
+    /// Current iterator states
+    detray::tuple<iterator_ts...> m_itrs;
+};
+
+}  // namespace detail
+
+}  // namespace detray::ranges

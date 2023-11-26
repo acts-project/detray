@@ -8,6 +8,7 @@
 #pragma once
 
 // Project include(s)
+#include "detray/utils/ranges/cartesian_product.hpp"
 #include "detray/utils/ranges/empty.hpp"
 #include "detray/utils/ranges/enumerate.hpp"
 #include "detray/utils/ranges/iota.hpp"

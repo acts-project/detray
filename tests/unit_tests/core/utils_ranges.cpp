@@ -5,8 +5,6 @@
  * Mozilla Public License Version 2.0
  */
 
-#include <gtest/gtest.h>
-
 // detray test
 #include "tests/common/test_defs.hpp"
 
@@ -18,6 +16,9 @@
 #include "vecmem/containers/device_vector.hpp"
 #include "vecmem/containers/jagged_device_vector.hpp"
 #include "vecmem/containers/jagged_vector.hpp"
+
+// GTest include(s)
+#include <gtest/gtest.h>
 
 // System include(s)
 #include <forward_list>
@@ -251,6 +252,51 @@ TEST(utils, ranges_iota_interval) {
     ASSERT_EQ(check, reference);
 }
 
+// Unittest for the generation of a cartesian product from a range of intervals
+TEST(utils, ranges_cartesian_product) {
+
+    auto seq1 = detray::views::iota(dindex_range{2u, 7u});
+    auto seq2 = detray::views::iota(dindex_range{1u, 10u});
+    auto seq3 = detray::views::iota(dindex_range{3u, 4u});
+
+    detray::views::cartesian_product cp{std::move(seq1), std::move(seq2),
+                                        std::move(seq3)};
+
+    // General tests
+    static_assert(detray::ranges::range_v<decltype(cp)>);
+    static_assert(detray::ranges::view<decltype(cp)>);
+    static_assert(std::is_copy_assignable_v<decltype(cp)>);
+    static_assert(detray::ranges::input_range_v<decltype(cp)>);
+    static_assert(not detray::ranges::forward_range_v<decltype(cp)>);
+
+    // Test prerequisits for LagacyIterator
+    static_assert(
+        std::is_copy_constructible_v<typename decltype(cp)::iterator_t>);
+    static_assert(std::is_copy_assignable_v<typename decltype(cp)::iterator_t>);
+    static_assert(std::is_destructible_v<typename decltype(cp)::iterator_t>);
+
+    // Test size
+    ASSERT_EQ(cp.size(), seq1.size() * seq2.size() * seq3.size());
+
+    // Generate truth
+    std::vector<std::tuple<dindex, dindex, dindex>> result;
+    for (auto i : seq1) {
+        for (auto j : seq2) {
+            for (auto k : seq3) {
+                result.emplace_back(i, j, k);
+            }
+        }
+    }
+
+    for (std::size_t r = 0; const auto [i, j, k] : cp) {
+        const auto [l, m, n] = result[r];
+        ++r;
+        ASSERT_EQ(i, l);
+        ASSERT_EQ(j, m);
+        ASSERT_EQ(k, n);
+    }
+}
+
 // Unittest for the convenience enumeration of a range
 TEST(utils, ranges_enumerate) {
 
@@ -269,8 +315,8 @@ TEST(utils, ranges_enumerate) {
     static_assert(detray::ranges::random_access_range_v<decltype(enumerator)>);
 
     // Test prerequisits for LagacyIterator
-    static_assert(std::is_copy_constructible_v<typename decltype(
-                      enumerator)::iterator_t>);
+    static_assert(std::is_copy_constructible_v<
+                  typename decltype(enumerator)::iterator_t>);
     static_assert(
         std::is_copy_assignable_v<typename decltype(enumerator)::iterator_t>);
     static_assert(

@@ -158,8 +158,7 @@ class pick_view : public detray::ranges::view_interface<
     public:
     using iterator_t = iterator;
 
-    /// Default constructor (only works if @c imrementable_t is default
-    /// constructible)
+    /// Default constructor
     pick_view() = default;
 
     /// Construct from a @param range that will be enumerated beginning at 0
