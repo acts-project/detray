@@ -53,23 +53,23 @@ GTEST_TEST(detray_grid, serializer2D) {
     simple_serializer<2> serializer{};
 
     // Serializing
-    multi_bin<2> mbin{{0u, 0u}};
+    multi_bin<2> mbin{0u, 0u};
     EXPECT_EQ(serializer(axes, mbin), 0u);
-    mbin = {{5u, 0u}};
+    mbin = {5u, 0u};
     EXPECT_EQ(serializer(axes, mbin), 5u);
-    mbin = {{0u, 1u}};
+    mbin = {0u, 1u};
     EXPECT_EQ(serializer(axes, mbin), 6u);
-    mbin = {{5u, 2u}};
+    mbin = {5u, 2u};
     EXPECT_EQ(serializer(axes, mbin), 17u);
 
     // Deserialize
-    multi_bin<2> expected_mbin{{0u, 0u}};
+    multi_bin<2> expected_mbin{0u, 0u};
     EXPECT_EQ(serializer(axes, 0u), expected_mbin);
-    expected_mbin = {{5u, 0u}};
+    expected_mbin = {5u, 0u};
     EXPECT_EQ(serializer(axes, 5u), expected_mbin);
-    expected_mbin = {{0u, 1u}};
+    expected_mbin = {0u, 1u};
     EXPECT_EQ(serializer(axes, 6u), expected_mbin);
-    expected_mbin = {{5u, 2u}};
+    expected_mbin = {5u, 2u};
     EXPECT_EQ(serializer(axes, 17u), expected_mbin);
 }
 
@@ -85,22 +85,22 @@ GTEST_TEST(detray_grid, serializer3D) {
     simple_serializer<3> serializer{};
 
     // Serializing
-    multi_bin<3> mbin{{0u, 0u, 0u}};
+    multi_bin<3> mbin{0u, 0u, 0u};
     EXPECT_EQ(serializer(axes, mbin), 0u);
-    mbin = {{2u, 1u, 0u}};
+    mbin = {2u, 1u, 0u};
     EXPECT_EQ(serializer(axes, mbin), 6u);
-    mbin = {{3u, 0u, 1u}};
+    mbin = {3u, 0u, 1u};
     EXPECT_EQ(serializer(axes, mbin), 11u);
-    mbin = {{1u, 1u, 1u}};
+    mbin = {1u, 1u, 1u};
     EXPECT_EQ(serializer(axes, mbin), 13u);
 
     // Deserialize
-    multi_bin<3> expected_mbin{{0u, 0u, 0u}};
+    multi_bin<3> expected_mbin{0u, 0u, 0u};
     EXPECT_EQ(serializer(axes, 0u), expected_mbin);
-    expected_mbin = {{2u, 1u, 0u}};
+    expected_mbin = {2u, 1u, 0u};
     EXPECT_EQ(serializer(axes, 6u), expected_mbin);
-    expected_mbin = {{3u, 0u, 1u}};
+    expected_mbin = {3u, 0u, 1u};
     EXPECT_EQ(serializer(axes, 11u), expected_mbin);
-    expected_mbin = {{1u, 1u, 1u}};
+    expected_mbin = {1u, 1u, 1u};
     EXPECT_EQ(serializer(axes, 13u), expected_mbin);
 }

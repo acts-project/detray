@@ -200,8 +200,8 @@ TEST(utils, ranges_iota_single) {
     static_assert(std::is_copy_assignable_v<decltype(seq)>);
     static_assert(detray::ranges::range_v<decltype(seq)>);
     static_assert(detray::ranges::view<decltype(seq)>);
-    static_assert(detray::ranges::input_range_v<decltype(seq)>);
-    static_assert(not detray::ranges::forward_range_v<decltype(seq)>);
+    static_assert(detray::ranges::bidirectional_range_v<decltype(seq)>);
+    static_assert(not detray::ranges::random_access_range_v<decltype(seq)>);
 
     // Test prerequisits for LagacyIterator
     static_assert(
@@ -230,8 +230,8 @@ TEST(utils, ranges_iota_interval) {
     static_assert(detray::ranges::range_v<decltype(seq)>);
     static_assert(detray::ranges::view<decltype(seq)>);
     static_assert(std::is_copy_assignable_v<decltype(seq)>);
-    static_assert(detray::ranges::input_range_v<decltype(seq)>);
-    static_assert(not detray::ranges::forward_range_v<decltype(seq)>);
+    static_assert(detray::ranges::bidirectional_range_v<decltype(seq)>);
+    static_assert(not detray::ranges::random_access_range_v<decltype(seq)>);
 
     // Test prerequisits for LagacyIterator
     static_assert(
@@ -255,9 +255,9 @@ TEST(utils, ranges_iota_interval) {
 // Unittest for the generation of a cartesian product from a range of intervals
 TEST(utils, ranges_cartesian_product) {
 
-    auto seq1 = detray::views::iota(dindex_range{2u, 7u});
-    auto seq2 = detray::views::iota(dindex_range{1u, 10u});
-    auto seq3 = detray::views::iota(dindex_range{3u, 4u});
+    const auto seq1 = detray::views::iota(dindex_range{2u, 7u});
+    const auto seq2 = detray::views::iota(dindex_range{1u, 10u});
+    const auto seq3 = detray::views::iota(dindex_range{3u, 4u});
 
     detray::views::cartesian_product cp{std::move(seq1), std::move(seq2),
                                         std::move(seq3)};
@@ -266,8 +266,8 @@ TEST(utils, ranges_cartesian_product) {
     static_assert(detray::ranges::range_v<decltype(cp)>);
     static_assert(detray::ranges::view<decltype(cp)>);
     static_assert(std::is_copy_assignable_v<decltype(cp)>);
-    static_assert(detray::ranges::input_range_v<decltype(cp)>);
-    static_assert(not detray::ranges::forward_range_v<decltype(cp)>);
+    static_assert(detray::ranges::bidirectional_range_v<decltype(cp)>);
+    static_assert(not detray::ranges::random_access_range_v<decltype(cp)>);
 
     // Test prerequisits for LagacyIterator
     static_assert(
@@ -288,7 +288,8 @@ TEST(utils, ranges_cartesian_product) {
         }
     }
 
-    for (std::size_t r = 0; const auto [i, j, k] : cp) {
+    std::size_t r{0u};
+    for (const auto [i, j, k] : cp) {
         const auto [l, m, n] = result[r];
         ++r;
         ASSERT_EQ(i, l);
@@ -315,8 +316,8 @@ TEST(utils, ranges_enumerate) {
     static_assert(detray::ranges::random_access_range_v<decltype(enumerator)>);
 
     // Test prerequisits for LagacyIterator
-    static_assert(std::is_copy_constructible_v<
-                  typename decltype(enumerator)::iterator_t>);
+    static_assert(std::is_copy_constructible_v<typename decltype(
+                      enumerator)::iterator_t>);
     static_assert(
         std::is_copy_assignable_v<typename decltype(enumerator)::iterator_t>);
     static_assert(
@@ -540,8 +541,8 @@ TEST(utils, ranges_subrange_iota) {
     auto iota_sr = detray::ranges::subrange(detray::views::iota(seq), interval);
 
     // Check iterator category
-    static_assert(detray::ranges::input_range_v<decltype(iota_sr)>);
-    static_assert(not detray::ranges::forward_range_v<decltype(iota_sr)>);
+    static_assert(detray::ranges::bidirectional_range_v<decltype(iota_sr)>);
+    static_assert(not detray::ranges::random_access_range_v<decltype(iota_sr)>);
 
     std::size_t i{4u};
     for (const auto v : iota_sr) {
@@ -595,10 +596,11 @@ TEST(utils, ranges_pick_joined_sequence) {
     auto selected = detray::views::pick(seq, indices);
 
     // Check iterator category
-    static_assert(detray::ranges::input_range_v<decltype(indices)>);
-    static_assert(not detray::ranges::forward_range_v<decltype(indices)>);
-    static_assert(detray::ranges::input_range_v<decltype(selected)>);
-    static_assert(not detray::ranges::forward_range_v<decltype(selected)>);
+    static_assert(detray::ranges::bidirectional_range_v<decltype(indices)>);
+    static_assert(not detray::ranges::random_access_range_v<decltype(indices)>);
+    static_assert(detray::ranges::bidirectional_range_v<decltype(selected)>);
+    static_assert(
+        not detray::ranges::random_access_range_v<decltype(selected)>);
 
     // Test inherited member functions
     const auto [i, v] = selected[2];

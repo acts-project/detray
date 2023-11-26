@@ -113,7 +113,7 @@ int main(int argc, char** argv) {
         }
     } else {
         // default
-        window = {2u, 2u};
+        window = {1u, 1u};
     }
 
     // Read the detector geometry

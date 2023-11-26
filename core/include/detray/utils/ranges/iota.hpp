@@ -39,14 +39,16 @@ class iota_view : public detray::ranges::view_interface<iota_view<incr_t>> {
         using value_type = incr_t;
         using pointer = incr_t *;
         using reference = incr_t &;
-        using iterator_category = detray::ranges::input_iterator_tag;
+        using iterator_category = detray::ranges::bidirectional_iterator_tag;
 
         /// Default construction only works if incr_t is default constructible
-        iterator() = default;
+        constexpr iterator() = default;
+        constexpr iterator(const iterator &other) = default;
+        constexpr iterator(iterator &&other) = default;
+        constexpr iterator &operator=(const iterator &rhs) = default;
 
         /// Parametrized Constructor
-        DETRAY_HOST_DEVICE
-        constexpr explicit iterator(const incr_t i) : m_i{i} {}
+        DETRAY_HOST_DEVICE constexpr explicit iterator(incr_t i) : m_i{i} {}
 
         /// @returns true if incremetables are the same
         DETRAY_HOST_DEVICE
@@ -64,6 +66,13 @@ class iota_view : public detray::ranges::view_interface<iota_view<incr_t>> {
         DETRAY_HOST_DEVICE
         constexpr auto operator++() -> iterator & {
             ++m_i;
+            return *this;
+        }
+
+        /// Decrement the index
+        DETRAY_HOST_DEVICE
+        constexpr auto operator--() -> iterator & {
+            --m_i;
             return *this;
         }
 
@@ -89,7 +98,7 @@ class iota_view : public detray::ranges::view_interface<iota_view<incr_t>> {
 
     /// Default constructor (only works if @c imrementable_t is default
     /// constructible)
-    iota_view() = default;
+    constexpr iota_view() = default;
 
     /// Construct from just a @param start value to represent a single value seq
     template <
@@ -97,7 +106,8 @@ class iota_view : public detray::ranges::view_interface<iota_view<incr_t>> {
         std::enable_if_t<not detray::detail::is_interval_v<deduced_incr_t>,
                          bool> = true>
     DETRAY_HOST_DEVICE constexpr explicit iota_view(deduced_incr_t &&start)
-        : m_start{start}, m_end{start + 1} {}
+        : m_start{start},
+          m_end{static_cast<std::decay_t<deduced_incr_t>>(start + 1)} {}
 
     /// Construct from an @param interval that defines start and end values.
     template <typename interval_t,
@@ -117,6 +127,11 @@ class iota_view : public detray::ranges::view_interface<iota_view<incr_t>> {
     DETRAY_HOST_DEVICE
     constexpr iota_view(const iota_view &other)
         : m_start{other.m_start}, m_end{other.m_end} {}
+
+    /// MOve constructor
+    DETRAY_HOST_DEVICE
+    constexpr iota_view(iota_view &&other)
+        : m_start{std::move(other.m_start)}, m_end{std::move(other.m_end)} {}
 
     /// Default destructor
     DETRAY_HOST_DEVICE ~iota_view() {}

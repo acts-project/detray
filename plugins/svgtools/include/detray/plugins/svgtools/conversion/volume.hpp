@@ -23,7 +23,6 @@
 
 // System include(s)
 #include <map>
-#include <sstream>
 #include <string>
 #include <tuple>
 #include <vector>
@@ -87,16 +86,10 @@ auto volume(const typename detector_t::geometry_context& context,
                 p_volume._v_surfaces.emplace_back(svgtools::conversion::surface(
                     context, sf, style._surface_style));
 
-            std::stringstream sf_info, msk_info, mat_info;
-            sf_info << "* index " << sf.index();
-            msk_info << "* " << sf.shape_name() << ": " << desc.mask().index();
-            mat_info << "* mat.: " << static_cast<int>(desc.material().id())
-                     << ", " << desc.material().index();
+            std::string sf_info{"* index " + std::to_string(sf.index())};
 
-            p_surface._aux_info["module_info"] = {sf_info.str(), msk_info.str(),
-                                                  mat_info.str()};
-            p_surface._aux_info["grid_info"] = {sf_info.str(), msk_info.str(),
-                                                mat_info.str()};
+            p_surface._aux_info["module_info"] = {sf_info};
+            p_surface._aux_info["grid_info"] = {sf_info};
 
             // Put the sensitive surfaces in the module/grid sheets
             if (sf.is_sensitive()) {

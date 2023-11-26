@@ -41,7 +41,7 @@ struct simple_serializer<1> {
     DETRAY_HOST_DEVICE auto operator()(multi_axis_t & /*axes*/,
                                        dindex gbin) const
         -> n_axis::multi_bin<1> {
-        return {{gbin}};
+        return {gbin};
     }
 };
 
@@ -81,7 +81,7 @@ struct simple_serializer<2> {
         dindex bin0{gbin % nbins_axis0};
         dindex bin1{static_cast<dindex>(gbin / nbins_axis0)};
 
-        return {{bin0, bin1}};
+        return {bin0, bin1};
     }
 };
 
@@ -127,7 +127,7 @@ struct simple_serializer<3> {
         dindex bin0{gbin % nbins_axis0};
         dindex bin1{static_cast<dindex>(gbin / (nbins_axis0)) % nbins_axis1};
         dindex bin2{static_cast<dindex>(gbin / (nbins_axis0 * nbins_axis1))};
-        return {{bin0, bin1, bin2}};
+        return {bin0, bin1, bin2};
     }
 };
 

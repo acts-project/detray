@@ -1,6 +1,6 @@
 /** Detray library, part of the ACTS project (R&D line)
  *
- * (c) 2022 CERN for the benefit of the ACTS project
+ * (c) 2022-2023 CERN for the benefit of the ACTS project
  *
  * Mozilla Public License Version 2.0
  */
@@ -11,6 +11,7 @@
 #include "detray/core/detail/container_views.hpp"
 #include "detray/definitions/qualifiers.hpp"
 #include "detray/surface_finders/grid/axis.hpp"
+#include "detray/surface_finders/grid/detail/bin_view.hpp"
 #include "detray/surface_finders/grid/detail/grid_helpers.hpp"
 #include "detray/surface_finders/grid/populator.hpp"
 #include "detray/surface_finders/grid/serializer.hpp"
@@ -141,6 +142,22 @@ class grid {
     DETRAY_HOST_DEVICE
     auto axes() const -> const axes_type & { return m_axes; }
 
+    /// @returns the full range of bins - const
+    DETRAY_HOST_DEVICE
+    auto bins() const {
+        dindex first_bin{data().offset()};
+        return detray::ranges::subrange(
+            *(data().bin_data()), dindex_range{first_bin, first_bin + nbins()});
+    }
+
+    /// @returns the full range of bins
+    DETRAY_HOST_DEVICE
+    auto bins() {
+        dindex first_bin{data().offset()};
+        return detray::ranges::subrange(
+            *(m_data.bin_data()), dindex_range{first_bin, first_bin + nbins()});
+    }
+
     /// @returns the grid local coordinate system
     DETRAY_HOST_DEVICE
     static constexpr auto local_frame() -> local_frame_type { return {}; }
@@ -199,7 +216,7 @@ class grid {
     /// @param indices the single indices corresponding to a multi_bin
     template <typename... I, std::enable_if_t<sizeof...(I) == Dim, bool> = true>
     DETRAY_HOST_DEVICE auto bin(I... indices) const {
-        return bin(n_axis::multi_bin<Dim>{{indices...}});
+        return bin(n_axis::multi_bin<Dim>{indices...});
     }
 
     /// @param mbin the multi-index of bins over all axes - const
@@ -251,21 +268,10 @@ class grid {
     /// @}
 
     /// @returns a view over the flatened bin content by joining the bin ranges
-    DETRAY_HOST_DEVICE auto all() {
-        dindex first_bin{data().offset()};
-        return detray::views::join(detray::ranges::subrange(
-            *(m_data.bin_data()),
-            dindex_range{first_bin, first_bin + nbins()}));
-    }
+    DETRAY_HOST_DEVICE auto all() { return detray::views::join(bins()); }
 
     /// @returns a view over the flatened bin content by joining the bin ranges
-    DETRAY_HOST_DEVICE auto all() const {
-        dindex first_bin{data().offset()};
-        // Save in explicit const subrange, so that 'join' can pick up constness
-        const auto bin_range = detray::ranges::subrange(
-            *(data().bin_data()), dindex_range{first_bin, first_bin + nbins()});
-        return detray::views::join(std::move(bin_range));
-    }
+    DETRAY_HOST_DEVICE auto all() const { return detray::views::join(bins()); }
 
     /// Interface for the navigator
     template <typename detector_t, typename track_t>
@@ -302,36 +308,25 @@ class grid {
         return bin(m_axes.bins(p));
     }
 
-    /// Find the value of a single bin
-    ///
-    /// @param p is point in the local frame
-    ///
-    /// @return the iterable view of the bin content
-    DETRAY_HOST_DEVICE auto search(const typename local_frame_type::point3 &p) {
-        return bin(m_axes.bins(p));
-    }
-
     /// @brief Return a neighborhood of values from the grid
     ///
-    /// The lookup is done with a neighborhood around the bin which contains the
-    /// point
-    ///
-    /// @tparam sort is a directive whether return a sorted neighborhood
+    /// The lookup is done with a search window around the bin
     ///
     /// @param p is point in the local frame
-    /// @param nhood is the binned/scalar neighborhood
+    /// @param win_size size of the binned/scalar search window
     ///
     /// @return the sequence of values
     template <typename point_t, typename neighbor_t, bool sort = false,
               std::enable_if_t<std::is_class_v<point_t>, bool> = true>
-    DETRAY_HOST_DEVICE auto search(const point_t &p,
-                                   const std::array<neighbor_t, Dim> &) const {
-        // n_axis::multi_bin_range<Dim> bin_ranges = axes().bin_ranges(p,
-        // nhood);
-        //  Return iterable over bin values in the multi-range
+    DETRAY_HOST_DEVICE auto search(
+        const point_t &p, const std::array<neighbor_t, 2> &win_size) const {
 
-        // Placeholder
-        return search(p);
+        // Return iterable over bins in the search window
+        auto search_window = axes().bin_ranges(p, win_size);
+        auto search_area = n_axis::detail::bin_view(*this, search_window);
+
+        // Join the respective bins to a single iteration
+        return detray::views::join(std::move(search_area));
     }
 
     /// Poupulate a bin with a single one of its corresponding values @param v

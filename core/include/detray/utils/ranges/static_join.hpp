@@ -238,7 +238,7 @@ struct static_join_iterator {
             // Iterator has reached last valid position in this range during the
             // previous decrement. Now go to the end of the previous range
             --m_idx;
-            m_iter = (*m_ends)[m_idx] - 1;
+            m_iter = detray::ranges::prev((*m_ends)[m_idx]);
         }
         return *this;
     }
