@@ -131,7 +131,7 @@ GTEST_TEST(detray_propagator, propagator_line_stepper) {
     const vector3 mom{1.f, 1.f, 0.f};
     free_track_parameters<transform3> track(pos, 0.f, mom, -1.f);
 
-    propagator_t p(stepper_t{}, navigator_t{});
+    propagator_t p{};
 
     propagator_t::state state(track, d);
 
@@ -204,7 +204,9 @@ TEST_P(PropagatorWithRkStepper, rk4_propagator_const_bfield) {
     const bfield_t bfield = bfield::create_const_field(std::get<2>(GetParam()));
 
     // Propagator is built from the stepper and navigator
-    propagator_t p(stepper_t{}, navigator_t{});
+    propagation::config cfg{};
+    cfg.overstep_tolerance = overstep_tol;
+    propagator_t p{cfg};
 
     // Iterate through uniformly distributed momentum directions
     for (auto track : generator_t{trk_gen_cfg}) {
@@ -213,9 +215,6 @@ TEST_P(PropagatorWithRkStepper, rk4_propagator_const_bfield) {
 
         // Generate second track state used for propagation with pathlimit
         track_t lim_track(track);
-
-        track.set_overstep_tolerance(overstep_tol);
-        lim_track.set_overstep_tolerance(overstep_tol);
 
         // Build actor states: the helix inspector can be shared
         helix_inspector::state helix_insp_state{};
@@ -307,15 +306,14 @@ TEST_P(PropagatorWithRkStepper, rk4_propagator_inhom_bfield) {
     const bfield_t bfield = bfield::create_inhom_field();
 
     // Propagator is built from the stepper and navigator
-    propagator_t p(stepper_t{}, navigator_t{});
+    propagation::config cfg{};
+    cfg.overstep_tolerance = overstep_tol;
+    propagator_t p{cfg};
 
     // Iterate through uniformly distributed momentum directions
     for (auto track : generator_t{trk_gen_cfg}) {
         // Genrate second track state used for propagation with pathlimit
         track_t lim_track(track);
-
-        track.set_overstep_tolerance(overstep_tol);
-        lim_track.set_overstep_tolerance(overstep_tol);
 
         // Build actor states: the helix inspector can be shared
         propagation::print_inspector::state print_insp_state{};

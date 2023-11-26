@@ -28,14 +28,10 @@ __global__ void __launch_bounds__(256, 4) propagator_benchmark_kernel(
         return;
     }
 
-    // Create RK stepper
-    rk_stepper_type s;
-
-    // Create navigator
-    navigator_device_type n;
-
     // Create propagator
-    propagator_device_type p(std::move(s), std::move(n));
+    propagation::config cfg{};
+    cfg.search_window = {3u, 3u};
+    propagator_device_type p{cfg};
 
     parameter_transporter<transform3>::state transporter_state{};
     pointwise_material_interactor<transform3>::state interactor_state{};

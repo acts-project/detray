@@ -61,7 +61,6 @@ int main(int argc, char **argv) {
     // Navigation link consistency, discovered by helix intersection
     helix_scan<tel_detector_t>::config cfg_hel_scan{};
     cfg_hel_scan.name("telescope_detector_helix_scan");
-    cfg_hel_scan.overstepping_tolerance(-100.f * unit<scalar_t>::um);
     cfg_hel_scan.track_generator().p_tot(10.f * unit<scalar_t>::GeV);
     cfg_hel_scan.track_generator().origin({0.f, 0.f, -0.05f});
     cfg_hel_scan.track_generator().theta_steps(100u).phi_steps(100u);
@@ -84,7 +83,6 @@ int main(int argc, char **argv) {
     // Comparision of navigation in a constant B-field with helix
     helix_navigation<tel_detector_t>::config cfg_hel_nav{};
     cfg_hel_nav.name("telescope_detector_helix_navigation");
-    cfg_hel_nav.overstepping_tolerance(-100.f * unit<scalar_t>::um);
     cfg_hel_nav.track_generator() = cfg_hel_scan.track_generator();
     cfg_hel_nav.track_generator().theta_steps(100u).phi_steps(100u);
 

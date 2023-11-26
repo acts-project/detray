@@ -47,13 +47,14 @@ struct cylinder_intersector {
     /// @param mask is the input mask that defines the surface extent
     /// @param trf is the surface placement transform
     /// @param mask_tolerance is the tolerance for mask edges
+    /// @param overstep_tol negative cutoff for the path
     ///
     /// @return the intersections.
     template <typename mask_t, typename surface_t>
     DETRAY_HOST_DEVICE inline std::array<intersection_t, 2> operator()(
         const ray_type &ray, const surface_t &sf, const mask_t &mask,
-        const transform3_type &trf,
-        const scalar_type mask_tolerance = 0.f) const {
+        const transform3_type &trf, const scalar_type mask_tolerance = 0.f,
+        const scalar_type overstep_tol = 0.f) const {
 
         // One or both of these solutions might be invalid
         const auto qe = solve_intersection(ray, mask, trf);
@@ -62,7 +63,7 @@ struct cylinder_intersector {
         switch (qe.solutions()) {
             case 2:
                 ret[1] = build_candidate(ray, mask, trf, qe.larger(),
-                                         mask_tolerance);
+                                         mask_tolerance, overstep_tol);
                 ret[1].sf_desc = sf;
                 // If there are two solutions, reuse the case for a single
                 // solution to setup the intersection with the smaller path
@@ -70,7 +71,7 @@ struct cylinder_intersector {
                 [[fallthrough]];
             case 1:
                 ret[0] = build_candidate(ray, mask, trf, qe.smaller(),
-                                         mask_tolerance);
+                                         mask_tolerance, overstep_tol);
                 ret[0].sf_desc = sf;
                 break;
             case 0:
@@ -93,14 +94,15 @@ struct cylinder_intersector {
     /// @param mask is the input mask that defines the surface extent
     /// @param trf is the surface placement transform
     /// @param mask_tolerance is the tolerance for mask edges
+    /// @param overstep_tol negative cutoff for the path
     template <typename mask_t,
               std::enable_if_t<std::is_same_v<typename mask_t::local_frame_type,
                                               cylindrical2<transform3_type>>,
                                bool> = true>
     DETRAY_HOST_DEVICE inline void update(
         const ray_type &ray, intersection_t &sfi, const mask_t &mask,
-        const transform3_type &trf,
-        const scalar_type mask_tolerance = 0.f) const {
+        const transform3_type &trf, const scalar_type mask_tolerance = 0.f,
+        const scalar_type overstep_tol = 0.f) const {
 
         // One or both of these solutions might be invalid
         const auto qe = solve_intersection(ray, mask, trf);
@@ -108,7 +110,7 @@ struct cylinder_intersector {
         switch (qe.solutions()) {
             case 1:
                 sfi = build_candidate(ray, mask, trf, qe.smaller(),
-                                      mask_tolerance);
+                                      mask_tolerance, overstep_tol);
                 break;
             case 0:
                 sfi.status = intersection::status::e_missed;
@@ -150,12 +152,13 @@ struct cylinder_intersector {
     template <typename mask_t>
     DETRAY_HOST_DEVICE inline intersection_t build_candidate(
         const ray_type &ray, const mask_t &mask, const transform3_type &trf,
-        const scalar_type path, const scalar_type mask_tolerance = 0.f) const {
+        const scalar_type path, const scalar_type mask_tolerance = 0.f,
+        const scalar_type overstep_tol = 0.f) const {
 
         intersection_t is;
 
         // Construct the candidate only when needed
-        if (path >= ray.overstep_tolerance()) {
+        if (path >= overstep_tol) {
 
             const point3 &ro = ray.pos();
             const vector3 &rd = ray.dir();

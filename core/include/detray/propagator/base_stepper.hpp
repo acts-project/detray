@@ -35,6 +35,22 @@ struct void_inspector {
                                                  const char * /*ignored*/) {}
 };
 
+struct config {
+    /// Minimum step size
+    scalar min_stepsize{1e-4f};
+    /// Runge-Kutta numeric error tolerance
+    scalar rk_error_tol{1e-4f};
+    /// Maximum number of Runge-Kutta step trials
+    std::size_t max_rk_updates{10000u};
+    /// Use mean energy loss (Bethe)
+    /// if false, most probable energy loss (Landau) will be used
+    bool use_mean_loss{true};
+    /// Use eloss gradient in error propagation
+    bool use_eloss_gradient{false};
+    /// Use b field gradient in error propagation
+    bool use_field_gradient{false};
+};
+
 }  // namespace stepping
 
 /// Base stepper implementation
@@ -68,11 +84,9 @@ class base_stepper {
     using free_to_bound_matrix = matrix_type<e_bound_size, e_free_size>;
     using free_to_path_matrix = matrix_type<1, e_free_size>;
 
-    /** State struct holding the track
-     *
-     * It has to cast into a const track via the call
-     * operation.
-     */
+    /// @brief State struct holding the track
+    ///
+    /// @note It has to cast into a const track via the call operation.
     struct state {
 
         /// Sets track parameters.
@@ -196,10 +210,11 @@ class base_stepper {
 
         /// Call the stepping inspector
         DETRAY_HOST_DEVICE
-        inline void run_inspector([[maybe_unused]] const char *message) {
+        inline void run_inspector([[maybe_unused]] const stepping::config &cfg,
+                                  [[maybe_unused]] const char *message) {
             if constexpr (not std::is_same_v<inspector_t,
                                              stepping::void_inspector>) {
-                _inspector(*this, message);
+                _inspector(*this, cfg, message);
             }
         }
     };

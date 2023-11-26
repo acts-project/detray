@@ -274,18 +274,17 @@ class grid {
     DETRAY_HOST_DEVICE auto all() const { return detray::views::join(bins()); }
 
     /// Interface for the navigator
-    template <typename detector_t, typename track_t>
+    template <typename detector_t, typename track_t, typename config_t>
     DETRAY_HOST_DEVICE auto search(
-        const detector_t & /*det*/,
-        const typename detector_t::volume_type & /*volume*/,
-        const track_t & /*track*/) const {
+        const detector_t &det, const typename detector_t::volume_type &volume,
+        const track_t &track, const config_t &cfg) const {
+
         // Track position in grid coordinates
-        /*const auto &trf = det.transform_store()[volume.transform()];
+        const auto &trf = det.transform_store()[volume.transform()];
         const auto loc_pos = global_to_local(trf, track.pos(), track.dir());
+
         // Grid lookup
-        return search(loc_pos);*/
-        // @todo: Implement local neighborhood lookup
-        return all();
+        return search(loc_pos, cfg.search_window);
     }
 
     /// Find the value of a single bin - const
@@ -316,7 +315,7 @@ class grid {
     /// @param win_size size of the binned/scalar search window
     ///
     /// @return the sequence of values
-    template <typename point_t, typename neighbor_t, bool sort = false,
+    template <typename point_t, typename neighbor_t,
               std::enable_if_t<std::is_class_v<point_t>, bool> = true>
     DETRAY_HOST_DEVICE auto search(
         const point_t &p, const std::array<neighbor_t, 2> &win_size) const {

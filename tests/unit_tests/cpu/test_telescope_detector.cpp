@@ -243,7 +243,6 @@ GTEST_TEST(detray_detectors, telescope_detector) {
     mom = {0.f, 1.f, 0.f};
 
     auto pilot_track = free_track_parameters<transform3>(pos, 0.f, mom, -1.f);
-    pilot_track.set_overstep_tolerance(-10.f * unit<scalar>::um);
 
     detail::helix<transform3> helix_bz(pilot_track, &B_z);
 

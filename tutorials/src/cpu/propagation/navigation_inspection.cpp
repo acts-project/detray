@@ -65,7 +65,7 @@ int main() {
     const auto [det, names] = detray::create_toy_geometry(host_mr);
 
     // Build the propagator
-    propagator_t prop(stepper_t{}, navigator_t{});
+    propagator_t prop{};
 
     // Track generation config
     // Trivial example: Single track escapes through beampipe

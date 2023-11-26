@@ -43,8 +43,6 @@ TEST(navigator_cuda, navigator) {
     for (auto track :
          uniform_track_generator<free_track_parameters<transform3>>(
              phi_steps, theta_steps, p_mag)) {
-        track.set_overstep_tolerance(overstep_tolerance);
-
         tracks_host.push_back(track);
         tracks_device.push_back(track);
     }

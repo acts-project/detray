@@ -49,6 +49,7 @@ struct concentric_cylinder_intersector {
     /// @param mask is the input mask that defines the surface extent
     /// @param trf is the surface placement transform
     /// @param mask_tolerance is the tolerance for mask edges
+    /// @param overstep_tol negative cutoff for the path
     ///
     /// @return the intersection
     template <typename mask_t, typename surface_t,
@@ -57,8 +58,8 @@ struct concentric_cylinder_intersector {
                                bool> = true>
     DETRAY_HOST_DEVICE inline intersection_t operator()(
         const ray_type &ray, const surface_t &sf, const mask_t &mask,
-        const transform3_type & /*trf*/,
-        const scalar_type mask_tolerance = 0.f) const {
+        const transform3_type & /*trf*/, const scalar_type mask_tolerance = 0.f,
+        const scalar_type overstep_tol = 0.f) const {
 
         intersection_t is;
 
@@ -81,7 +82,7 @@ struct concentric_cylinder_intersector {
                                                    d * d - r * r};
 
         if (qe.solutions() > 0) {
-            const scalar_type overstep_tolerance{ray.overstep_tolerance()};
+            const scalar_type overstep_tolerance{overstep_tol};
             std::array<point3, 2> candidates;
             std::array<scalar_type, 2> t01 = {0.f, 0.f};
 
@@ -142,15 +143,17 @@ struct concentric_cylinder_intersector {
     /// @param mask is the input mask that defines the surface extent
     /// @param trf is the surface placement transform
     /// @param mask_tolerance is the tolerance for mask edges
+    /// @param overstep_tol negative cutoff for the path
     template <typename mask_t, typename surface_t,
               std::enable_if_t<std::is_same_v<typename mask_t::local_frame_type,
                                               cylindrical2<transform3_type>>,
                                bool> = true>
     DETRAY_HOST_DEVICE inline void update(
         const ray_type &ray, intersection_t &sfi, const mask_t &mask,
-        const transform3_type &trf,
-        const scalar_type mask_tolerance = 0.f) const {
-        sfi = this->operator()(ray, sfi.sf_desc, mask, trf, mask_tolerance)[0];
+        const transform3_type &trf, const scalar_type mask_tolerance = 0.f,
+        const scalar_type overstep_tol = 0.f) const {
+        sfi = this->operator()(ray, sfi.sf_desc, mask, trf, mask_tolerance,
+                               overstep_tol)[0];
     }
 };
 

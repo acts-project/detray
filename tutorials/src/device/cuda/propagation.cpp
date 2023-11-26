@@ -38,16 +38,11 @@ int main() {
     constexpr unsigned int phi_steps{10u};
     // Set momentum of tracks
     const detray::scalar p_mag{10.f * detray::unit<detray::scalar>::GeV};
-    // How much can the navigator overshoot on a given surface?
-    constexpr detray::scalar overstep_tolerance{
-        -3.f * detray::unit<detray::scalar>::um};
 
     // Genrate the tracks
     for (auto track : detray::uniform_track_generator<
              detray::free_track_parameters<detray::tutorial::transform3>>(
              phi_steps, theta_steps, p_mag)) {
-        // Set the oversetpping tolerance for every track
-        track.set_overstep_tolerance(overstep_tolerance);
         // Put it into vector of tracks
         tracks.push_back(track);
     }

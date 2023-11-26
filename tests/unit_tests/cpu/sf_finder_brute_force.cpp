@@ -95,6 +95,10 @@ GTEST_TEST(detray_surface_finders, brute_force_search) {
 
     using detector_t = decltype(det);
 
+    struct navigation_cfg {
+        std::array<dindex, 2> search_window;
+    };
+
     // Now run a brute force surface search in the first barrel layer
     dindex test_vol_idx{7UL};
     const auto vol = detector_volume{det, test_vol_idx};
@@ -103,5 +107,6 @@ GTEST_TEST(detray_surface_finders, brute_force_search) {
     detail::ray<typename detector_t::transform3> trk({0.f, 0.f, 0.f}, 0.f,
                                                      {1.f, 0.f, 0.f}, -1.f);
 
-    vol.template visit_neighborhood<neighbor_visit_test>(trk, test_vol_idx);
+    vol.template visit_neighborhood<neighbor_visit_test>(trk, navigation_cfg{},
+                                                         test_vol_idx);
 }

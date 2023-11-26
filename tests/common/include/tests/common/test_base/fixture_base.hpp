@@ -10,6 +10,7 @@
 // Project include(s)
 #include "detray/definitions/algebra.hpp"
 #include "detray/definitions/units.hpp"
+#include "detray/propagator/propagator.hpp"
 
 // GTest include(s)
 #include <gtest/gtest.h>
@@ -48,9 +49,8 @@ class fixture_base : public scope {
 
         /// Propagation
         /// @{
-        /// Maximum total pathlength for a track
+        propagation::config m_prop_cfg{};
         scalar m_path_limit{5.f * unit<scalar>::cm};
-        scalar m_overstep_tolerance{-5.f * unit<scalar>::um};
         scalar m_step_constraint{std::numeric_limits<scalar>::max()};
         /// @}
 
@@ -65,11 +65,6 @@ class fixture_base : public scope {
             m_path_limit = lim;
             return *this;
         }
-        configuration& overstepping_tolerance(scalar t) {
-            assert(t <= 0.f);
-            m_overstep_tolerance = t;
-            return *this;
-        }
         configuration& step_constraint(scalar constr) {
             assert(constr > 0.f);
             m_step_constraint = constr;
@@ -81,7 +76,8 @@ class fixture_base : public scope {
         /// @{
         scalar tol() const { return m_tolerance; }
         scalar path_limit() const { return m_path_limit; }
-        scalar overstepping_tolerance() const { return m_overstep_tolerance; }
+        propagation::config& propagation() { return m_prop_cfg; }
+        const propagation::config& propagation() const { return m_prop_cfg; }
         scalar step_constraint() const { return m_step_constraint; }
         /// @}
 
@@ -89,7 +85,7 @@ class fixture_base : public scope {
         std::ostream& operator<<(std::ostream& os) {
             os << " -> test tolerance:  \t " << tol() << std::endl;
             os << " -> trk path limit:  \t " << path_limit() << std::endl;
-            os << " -> overstepping tol:\t " << overstepping_tolerance()
+            os << " -> overstepping tol:\t " << propagation().overstep_tolerance
                << std::endl;
             os << " -> step constraint:  \t " << step_constraint() << std::endl;
             os << std::endl;
@@ -104,7 +100,7 @@ class fixture_base : public scope {
           inf{cfg.inf},
           epsilon{cfg.epsilon},
           path_limit{cfg.path_limit()},
-          overstep_tolerance{cfg.overstepping_tolerance()},
+          overstep_tolerance{cfg.propagation().overstep_tolerance},
           step_constraint{cfg.step_constraint()} {}
 
     /// @returns the benchmark name

@@ -50,14 +50,10 @@ static void BM_PROPAGATOR_CPU(benchmark::State &state) {
     vector3 B{0.f, 0.f, 2.f * unit<scalar>::T};
     auto bfield = bfield::create_const_field(B);
 
-    // Create RK stepper
-    rk_stepper_type s;
-
-    // Create navigator
-    navigator_host_type n;
-
     // Create propagator
-    propagator_host_type p(std::move(s), std::move(n));
+    propagation::config cfg{};
+    cfg.search_window = {3u, 3u};
+    propagator_host_type p{cfg};
 
     std::size_t total_tracks = 0;
 

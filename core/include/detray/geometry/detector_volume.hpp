@@ -137,11 +137,11 @@ class detector_volume {
     /// @tparam Args      types of additional arguments to the functor
     template <typename functor_t,
               int I = static_cast<int>(descr_t::object_id::e_size) - 1,
-              typename track_t, typename... Args>
+              typename track_t, typename config_t, typename... Args>
     DETRAY_HOST_DEVICE constexpr void visit_neighborhood(
-        const track_t &track, Args &&... args) const {
+        const track_t &track, const config_t &cfg, Args &&... args) const {
         visit_surfaces_impl<detail::neighborhood_getter<functor_t>>(
-            m_detector, m_desc, track, std::forward<Args>(args)...);
+            m_detector, m_desc, track, cfg, std::forward<Args>(args)...);
     }
 
     /// @returns the maximum number of surface candidates during a neighborhood
