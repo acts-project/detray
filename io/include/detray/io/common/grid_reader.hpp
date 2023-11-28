@@ -293,6 +293,12 @@ class grid_reader : public reader_interface<detector_t> {
         static_assert(grid_t::Dim == Dim,
                       "Grid dimension does not meet dimension of grid reader");
 
+        const auto volume_idx{base_type::deserialize(grid_data.volume_link)};
+
+        // Error output
+        std::stringstream err_stream;
+        err_stream << "Volume " << volume_idx << ": ";
+
         // The compiler will instantiate this function for all possible types of
         // grids: Only proceed, if the grid type is known by the detector
         if constexpr (detector_t::accel::template is_defined<grid_t>()) {
@@ -300,20 +306,17 @@ class grid_reader : public reader_interface<detector_t> {
             // Decorate the current volume builder with the grid
             using grid_builder_t =
                 grid_builder<detector_t, grid_t, detail::fill_by_pos>;
-
-            const auto volume_idx{
-                base_type::deserialize(grid_data.volume_link)};
             auto v_builder =
                 det_builder.template decorate<grid_builder_t>(volume_idx);
             auto vgr_builder = dynamic_cast<grid_builder_t *>(v_builder);
 
             // Initialize the grid axes
-            std::vector<std::size_t> n_bins{};
+            std::vector<std::size_t> n_bins_per_axis{};
             std::vector<scalar_t> spans{};
             std::vector<std::vector<scalar_t>> ax_bin_edges{};
 
             for (const auto &axis_data : grid_data.axes) {
-                n_bins.push_back(axis_data.bins);
+                n_bins_per_axis.push_back(axis_data.bins);
                 std::vector<scalar_t> edges{};
                 std::copy(axis_data.edges.begin(), axis_data.edges.end(),
                           std::back_inserter(edges));
@@ -322,7 +325,9 @@ class grid_reader : public reader_interface<detector_t> {
                 spans.push_back(static_cast<scalar_t>(axis_data.edges.back()));
             }
 
-            vgr_builder->init_grid(spans, n_bins, ax_bin_edges);
+            vgr_builder->init_grid(spans, n_bins_per_axis, ax_bin_edges);
+            auto &grid = vgr_builder->get();
+            const std::size_t n_bins{grid.nbins()};
 
             value_t empty_sf{};
             n_axis::multi_bin<Dim> mbin;
@@ -338,6 +343,12 @@ class grid_reader : public reader_interface<detector_t> {
                     mbin[i] = bin_idx;
                 }
 
+                const auto gbin = grid.serializer()(grid.axes(), mbin);
+                if (gbin >= n_bins) {
+                    err_stream << "Bin index " << mbin << " out of bounds";
+                    throw std::invalid_argument(err_stream.str());
+                }
+
                 // For now assume surfaces ids as the only grid input
                 for (const auto c : bin_data.content) {
                     empty_sf.set_volume(volume_idx);
@@ -345,6 +356,11 @@ class grid_reader : public reader_interface<detector_t> {
                     vgr_builder->get().populate(mbin, empty_sf);
                 }
             }
+        } else {
+            types::print<types::type_list<grid_t>>();
+            err_stream
+                << "Grid type in file does not match any grid type in detector";
+            throw std::invalid_argument(err_stream.str());
         }
     }
 };

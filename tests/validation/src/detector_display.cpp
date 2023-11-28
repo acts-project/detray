@@ -134,10 +134,10 @@ int main(int argc, char** argv) {
     actsvg::style::stroke stroke_black = actsvg::style::stroke();
 
     // x-y axis.
-    auto xy_axis = actsvg::draw::x_y_axes("axes", {-250, 250}, {-250, 250},
+    auto xy_axis = actsvg::draw::x_y_axes("axes", {-1100, 1100}, {-1100, 1100},
                                           stroke_black, "x", "y");
     // z-r axis.
-    auto zr_axis = actsvg::draw::x_y_axes("axes", {-2000, 2000}, {-5, 250},
+    auto zr_axis = actsvg::draw::x_y_axes("axes", {-3100, 3100}, {-5, 1100},
                                           stroke_black, "z", "r");
 
     // Creating the views.

@@ -40,6 +40,14 @@ class volume_builder_interface {
     DETRAY_HOST
     virtual auto vol_index() -> dindex = 0;
 
+    /// Toggles whether sensitive surfaces are added to the brute force method
+    DETRAY_HOST
+    virtual void has_accel(bool toggle) = 0;
+
+    /// @returns whether sensitive surfaces are added to the brute force method
+    DETRAY_HOST
+    virtual bool has_accel() const = 0;
+
     /// @returns reading access to the volume
     DETRAY_HOST
     virtual auto operator()() const -> const
@@ -118,6 +126,12 @@ class volume_decorator : public volume_builder_interface<detector_t> {
 
     DETRAY_HOST
     auto vol_index() -> dindex override { return m_builder->vol_index(); }
+
+    DETRAY_HOST
+    void has_accel(bool toggle) override { m_builder->has_accel(toggle); };
+
+    DETRAY_HOST
+    bool has_accel() const override { return m_builder->has_accel(); }
 
     DETRAY_HOST
     auto build(detector_t &det,
