@@ -105,22 +105,33 @@ struct single_axis {
 
     /// Given a value on the axis, find the correct bin.
     ///
+    /// @note This includes bin index wrapping for circular axis.
+    ///
     /// @param v is the value for the bin search
     ///
     /// @returns the bin index.
     DETRAY_HOST_DEVICE
     inline dindex bin(const scalar_type v) const {
-        return m_bounds.map(m_binning.bin(v), m_binning.nbins());
+        int b{m_bounds.map(m_binning.bin(v), m_binning.nbins())};
+
+        if constexpr (bounds_type::type == n_axis::bounds::e_circular) {
+            b = m_bounds.wrap(b, m_binning.nbins());
+        }
+
+        return static_cast<dindex>(b);
     }
 
     /// Given a value on the axis and a neighborhood, find the correct bin range
+    ///
+    /// @note (!) The circular axis index wrap-around happens in a separate
+    ///           step so that index sequences are well defined
     ///
     /// @param v is the value for the bin search
     /// @param nhood is the neighborhood range (in #bins or value interval)
     ///
     /// @returns a dindex_range around the bin index.
     template <typename neighbor_t>
-    DETRAY_HOST_DEVICE dindex_range
+    DETRAY_HOST_DEVICE bin_range
     range(const scalar_type v, const array_type<neighbor_t, 2> &nhood) const {
         return m_bounds.map(m_binning.range(v, nhood), m_binning.nbins());
     }

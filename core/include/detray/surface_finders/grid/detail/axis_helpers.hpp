@@ -17,12 +17,16 @@
 namespace detray::n_axis {
 
 /// @brief Multi-bin: contains bin indices from multiple axes
-template <std::size_t DIM>
-struct multi_bin : public dmulti_index<dindex, DIM> {};
+template <std::size_t DIM, typename index_t = dindex>
+struct multi_bin : public dmulti_index<index_t, DIM> {};
+
+/// @brief Helper to tie two bin indices to a range.
+/// @note Cannot use dindex_range for signed integer bin indices.
+using bin_range = std::array<int, 2>;
 
 /// @brief Multi-bin-range: contains bin index ranges from multiple axes
 template <std::size_t DIM>
-struct multi_bin_range : public dmulti_index<dindex_range, DIM> {};
+struct multi_bin_range : public dmulti_index<bin_range, DIM> {};
 
 namespace detail {
 

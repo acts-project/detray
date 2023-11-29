@@ -49,7 +49,7 @@ GTEST_TEST(detray_grid, open_regular_axis) {
     // second entry is the number of bins (10): Lower and upper bin edges of
     // the max and min bin are -3 and 7 => stepsize is (7 - (-3)) / 10 = 1
     // ... -3, -2, -1,  0,  1,  2,  3,  4,  5,  6,  7 ...
-    //  [0]  [1] [2] [3] [4] [5] [6] [7] [8] [9] [10] [11]
+    //   [0] [1] [2] [3] [4] [5] [6] [7] [8] [9] [10] [11]
     const dindex_range edge_range = {2u, 10u};
 
     // An open regular x-axis
@@ -66,11 +66,11 @@ GTEST_TEST(detray_grid, open_regular_axis) {
     EXPECT_NEAR(or_axis.span()[1], 7.f, tol);
     // Axis bin access
     // Axis is open: Every value smaller than -3 is mapped into bin 0:
-    // which is (inf, -3)
+    // which is (-inf, -3]
     EXPECT_EQ(or_axis.bin(-4.f), 0u);
     EXPECT_EQ(or_axis.bin(2.5f), 6u);
     // Axis is open: Every value greater than 7 is mapped into bin 11:
-    // which is (7, inf)
+    // which is [7, inf)
     EXPECT_EQ(or_axis.bin(8.f), 11u);
 
     // Axis range access - binned (symmetric & asymmetric)
@@ -80,19 +80,19 @@ GTEST_TEST(detray_grid, open_regular_axis) {
     const darray<dindex, 2> nhood44i = {4u, 4u};
     const darray<dindex, 2> nhood55i = {5u, 5u};
 
-    dindex_range expected_range = {6u, 6u};
+    n_axis::bin_range expected_range = {6u, 7u};
     EXPECT_EQ(or_axis.range(2.5f, nhood00i), expected_range);
-    expected_range = {6u, 7u};
+    expected_range = {6u, 8u};
     EXPECT_EQ(or_axis.range(2.5f, nhood01i), expected_range);
-    expected_range = {5u, 7u};
+    expected_range = {5u, 8u};
     EXPECT_EQ(or_axis.range(2.5f, nhood11i), expected_range);
-    expected_range = {2u, 10u};
+    expected_range = {2u, 11u};
     EXPECT_EQ(or_axis.range(2.5f, nhood44i), expected_range);
-    expected_range = {1u, 11u};
+    expected_range = {1u, 12u};
     EXPECT_EQ(or_axis.range(2.5f, nhood55i), expected_range);
-    expected_range = {1u, 9u};
+    expected_range = {1u, 10u};
     EXPECT_EQ(or_axis.range(1.5f, nhood44i), expected_range);
-    expected_range = {4u, 11u};
+    expected_range = {4u, 12u};
     EXPECT_EQ(or_axis.range(5.5f, nhood55i), expected_range);
 
     // Axis range access - scalar (symmteric & asymmetric)
@@ -101,12 +101,12 @@ GTEST_TEST(detray_grid, open_regular_axis) {
     const darray<scalar, 2> nhood11s = {1.f, 1.f};
     const darray<scalar, 2> nhoodAlls = {10.f, 10.f};
 
-    expected_range = {6u, 6u};
+    expected_range = {6u, 7u};
     EXPECT_EQ(or_axis.range(2.5f, nhood00s), expected_range);
     EXPECT_EQ(or_axis.range(2.5f, nhood_tol), expected_range);
-    expected_range = {5u, 7u};
+    expected_range = {5u, 8u};
     EXPECT_EQ(or_axis.range(2.5f, nhood11s), expected_range);
-    expected_range = {0u, 11u};
+    expected_range = {0u, 12u};
     EXPECT_EQ(or_axis.range(2.5f, nhoodAlls), expected_range);
 }
 
@@ -149,19 +149,19 @@ GTEST_TEST(detray_grid, closed_regular_axis) {
     const darray<dindex, 2> nhood44i = {4u, 4u};
     const darray<dindex, 2> nhood55i = {5u, 5u};
 
-    dindex_range expected_range = {5u, 5u};
+    n_axis::bin_range expected_range = {5u, 6u};
     EXPECT_EQ(cr_axis.range(2.5f, nhood00i), expected_range);
-    expected_range = {5u, 6u};
+    expected_range = {5u, 7u};
     EXPECT_EQ(cr_axis.range(2.5f, nhood01i), expected_range);
-    expected_range = {4u, 6u};
+    expected_range = {4u, 7u};
     EXPECT_EQ(cr_axis.range(2.5f, nhood11i), expected_range);
-    expected_range = {1u, 9u};
+    expected_range = {1u, 10u};
     EXPECT_EQ(cr_axis.range(2.5f, nhood44i), expected_range);
-    expected_range = {0u, 9u};
+    expected_range = {0u, 10u};
     EXPECT_EQ(cr_axis.range(2.5f, nhood55i), expected_range);
-    expected_range = {0u, 8u};
+    expected_range = {0u, 9u};
     EXPECT_EQ(cr_axis.range(1.5f, nhood44i), expected_range);
-    expected_range = {3u, 9u};
+    expected_range = {3u, 10u};
     EXPECT_EQ(cr_axis.range(5.5f, nhood55i), expected_range);
 
     // Axis range access - scalar (symmteric & asymmetric)
@@ -170,12 +170,12 @@ GTEST_TEST(detray_grid, closed_regular_axis) {
     const darray<scalar, 2> nhood11s = {1.f, 1.f};
     const darray<scalar, 2> nhoodAlls = {10.f, 10.f};
 
-    expected_range = {5u, 5u};
+    expected_range = {5u, 6u};
     EXPECT_EQ(cr_axis.range(2.5f, nhood00s), expected_range);
     EXPECT_EQ(cr_axis.range(2.5f, nhood_tol), expected_range);
-    expected_range = {4u, 6u};
+    expected_range = {4u, 7u};
     EXPECT_EQ(cr_axis.range(2.5f, nhood11s), expected_range);
-    expected_range = {0u, 9u};
+    expected_range = {0u, 10u};
     EXPECT_EQ(cr_axis.range(2.5f, nhoodAlls), expected_range);
 }
 
@@ -224,17 +224,21 @@ GTEST_TEST(detray_grid, circular_regular_axis) {
     const darray<dindex, 2> nhood11i = {1u, 1u};
     const darray<dindex, 2> nhood22i = {2u, 2u};
 
-    dindex_range expected_range = {0u, 0u};
-    EXPECT_EQ(cr_axis.range(constant<scalar>::pi + tol, nhood00i),
+    n_axis::bin_range expected_range = {0u, 1u};
+    EXPECT_EQ(circ_bounds.wrap(
+                  cr_axis.range(constant<scalar>::pi + tol, nhood00i), 36u),
               expected_range);
-    expected_range = {0u, 1u};
-    EXPECT_EQ(cr_axis.range(constant<scalar>::pi + tol, nhood01i),
+    expected_range = {0u, 2u};
+    EXPECT_EQ(circ_bounds.wrap(
+                  cr_axis.range(constant<scalar>::pi + tol, nhood01i), 36u),
               expected_range);
-    expected_range = {35u, 1u};
-    EXPECT_EQ(cr_axis.range(constant<scalar>::pi + tol, nhood11i),
+    expected_range = {35u, 2u};
+    EXPECT_EQ(circ_bounds.wrap(
+                  cr_axis.range(constant<scalar>::pi + tol, nhood11i), 36u),
               expected_range);
-    expected_range = {34u, 2u};
-    EXPECT_EQ(cr_axis.range(constant<scalar>::pi + tol, nhood22i),
+    expected_range = {34u, 3u};
+    EXPECT_EQ(circ_bounds.wrap(
+                  cr_axis.range(constant<scalar>::pi + tol, nhood22i), 36u),
               expected_range);
 
     // Axis range access - scalar (symmetric & asymmteric)
@@ -243,13 +247,16 @@ GTEST_TEST(detray_grid, circular_regular_axis) {
     const scalar bin_step{cr_axis.bin_width()};
     const darray<scalar, 2> nhood22s = {2.f * bin_step, 2.f * bin_step};
 
-    expected_range = {0u, 0u};
-    EXPECT_EQ(cr_axis.range(constant<scalar>::pi + tol, nhood00s),
+    expected_range = {0u, 1u};
+    EXPECT_EQ(circ_bounds.wrap(
+                  cr_axis.range(constant<scalar>::pi + tol, nhood00s), 36u),
               expected_range);
-    EXPECT_EQ(cr_axis.range(constant<scalar>::pi + tol, nhood_tol),
+    EXPECT_EQ(circ_bounds.wrap(
+                  cr_axis.range(constant<scalar>::pi + tol, nhood_tol), 36u),
               expected_range);
-    expected_range = {34u, 2u};
-    EXPECT_EQ(cr_axis.range(constant<scalar>::pi + tol, nhood22s),
+    expected_range = {34u, 3u};
+    EXPECT_EQ(circ_bounds.wrap(
+                  cr_axis.range(constant<scalar>::pi + tol, nhood22s), 36u),
               expected_range);
 }
 
@@ -290,15 +297,15 @@ GTEST_TEST(detray_grid, closed_irregular_axis) {
     const darray<dindex, 2> nhood11i = {1u, 1u};
     const darray<dindex, 2> nhood22i = {2u, 2u};
 
-    dindex_range expected_range = {2u, 2u};
+    n_axis::bin_range expected_range = {2u, 3u};
     EXPECT_EQ(cir_axis.range(3.f, nhood00i), expected_range);
-    expected_range = {1u, 3u};
+    expected_range = {1u, 4u};
     EXPECT_EQ(cir_axis.range(3.f, nhood11i), expected_range);
-    expected_range = {2u, 3u};
+    expected_range = {2u, 4u};
     EXPECT_EQ(cir_axis.range(3.f, nhood01i), expected_range);
-    expected_range = {0u, 1u};
+    expected_range = {0u, 2u};
     EXPECT_EQ(cir_axis.range(0.f, nhood11i), expected_range);
-    expected_range = {2u, 5u};
+    expected_range = {2u, 6u};
     EXPECT_EQ(cir_axis.range(10.f, nhood22i), expected_range);
 
     // Axis range access - scalar
@@ -306,11 +313,11 @@ GTEST_TEST(detray_grid, closed_irregular_axis) {
     const darray<scalar, 2> nhood10s = {1.5f, 0.2f};
     const darray<scalar, 2> nhood11s = {4.f, 5.5f};
 
-    expected_range = {2u, 2u};
+    expected_range = {2u, 3u};
     EXPECT_EQ(cir_axis.range(3.f, nhood00s), expected_range);
-    expected_range = {1u, 2u};
+    expected_range = {1u, 3u};
     EXPECT_EQ(cir_axis.range(3.f, nhood10s), expected_range);
-    expected_range = {0u, 4u};
+    expected_range = {0u, 5u};
     EXPECT_EQ(cir_axis.range(3.f, nhood11s), expected_range);
 }
 
@@ -361,18 +368,18 @@ GTEST_TEST(detray_grid, multi_axis) {
     const darray<dindex, 2> nhood01i = {0u, 1u};
     const darray<dindex, 2> nhood22i = {2u, 2u};
 
-    dmulti_index<dindex_range, 3> expected_ranges{};
-    expected_ranges[0] = {11u, 11u};
-    expected_ranges[1] = {21u, 21};
-    expected_ranges[2] = {5u, 5u};
-    EXPECT_EQ(axes.bin_ranges(p3, nhood00i), expected_ranges);
+    n_axis::multi_bin_range<3> expected_ranges{};
     expected_ranges[0] = {11u, 12u};
     expected_ranges[1] = {21u, 22u};
     expected_ranges[2] = {5u, 6u};
+    EXPECT_EQ(axes.bin_ranges(p3, nhood00i), expected_ranges);
+    expected_ranges[0] = {11u, 13u};
+    expected_ranges[1] = {21u, 23u};
+    expected_ranges[2] = {5u, 7u};
     EXPECT_EQ(axes.bin_ranges(p3, nhood01i), expected_ranges);
-    expected_ranges[0] = {9u, 13u};
-    expected_ranges[1] = {19u, 23u};
-    expected_ranges[2] = {3u, 7u};
+    expected_ranges[0] = {9u, 14u};
+    expected_ranges[1] = {19u, 24u};
+    expected_ranges[2] = {3u, 8u};
     EXPECT_EQ(axes.bin_ranges(p3, nhood22i), expected_ranges);
 
     // Axis range access - scalar
@@ -380,17 +387,17 @@ GTEST_TEST(detray_grid, multi_axis) {
     const darray<scalar, 2> nhood10s = {1.5f, 0.2f};
     const darray<scalar, 2> nhood11s = {4.f, 5.5f};
 
-    expected_ranges[0] = {11u, 11u};
-    expected_ranges[1] = {21u, 21u};
-    expected_ranges[2] = {5u, 5u};
+    expected_ranges[0] = {11u, 12u};
+    expected_ranges[1] = {21u, 22u};
+    expected_ranges[2] = {5u, 6u};
     EXPECT_EQ(axes.bin_ranges(p3, nhood00s), expected_ranges);
-    expected_ranges[0] = {9u, 11u};
-    expected_ranges[1] = {19u, 21u};
-    expected_ranges[2] = {4u, 5u};
+    expected_ranges[0] = {9u, 12u};
+    expected_ranges[1] = {19u, 22u};
+    expected_ranges[2] = {4u, 6u};
     EXPECT_EQ(axes.bin_ranges(p3, nhood10s), expected_ranges);
-    expected_ranges[0] = {7u, 16u};
-    expected_ranges[1] = {17u, 26u};
-    expected_ranges[2] = {3u, 7u};
+    expected_ranges[0] = {7u, 17u};
+    expected_ranges[1] = {17u, 27u};
+    expected_ranges[2] = {3u, 8u};
     EXPECT_EQ(axes.bin_ranges(p3, nhood11s), expected_ranges);
 
     // Owning multi axis test

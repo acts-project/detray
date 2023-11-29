@@ -73,6 +73,64 @@ TEST(utils_ranges_cuda, iota) {
     ASSERT_EQ(check, reference);
 }
 
+// This tests the cartesian product range adaptor
+TEST(utils_ranges_cuda, cartesian_product) {
+
+    // Helper object for performing memory copies.
+    vecmem::cuda::copy copy;
+
+    // memory resource
+    vecmem::cuda::managed_memory_resource managed_resource;
+
+    // Const range for enumeration test
+    const darray<dindex, 2> range1 = {2u, 7u};
+    const darray<dindex, 2> range2 = {1u, 10u};
+    const darray<dindex, 2> range3 = {3u, 4u};
+
+    auto seq1 = detray::views::iota(range1);
+    auto seq2 = detray::views::iota(range2);
+    auto seq3 = detray::views::iota(range3);
+
+    dindex size{seq1.size() * seq2.size() * seq3.size()};
+
+    // Input reference vector for test
+    vecmem::vector<std::tuple<dindex, dindex, dindex>> result;
+    for (auto i : seq1) {
+        for (auto j : seq2) {
+            for (auto k : seq3) {
+                result.emplace_back(i, j, k);
+            }
+        }
+    }
+
+    // Output vector buffer for enumeration test
+    using buffer_t =
+        vecmem::data::vector_buffer<std::tuple<dindex, dindex, dindex>>;
+    buffer_t check_buffer(static_cast<buffer_t::size_type>(size),
+                          managed_resource,
+                          vecmem::data::buffer_type::resizable);
+    copy.setup(check_buffer);
+
+    // Run test function
+    test_cartesian_product(range1, range2, range3, check_buffer);
+
+    // Copy vector buffer to output vector
+    vecmem::vector<std::tuple<dindex, dindex, dindex>> check{&managed_resource};
+    copy(check_buffer, check);
+
+    // Check the result
+    ASSERT_EQ(result.size(), check.size());
+
+    for (std::size_t r = 0; r < check.size(); ++r) {
+        const auto [i, j, k] = check[r];
+        const auto [l, m, n] = result[r];
+
+        ASSERT_EQ(i, l);
+        ASSERT_EQ(j, m);
+        ASSERT_EQ(k, n);
+    }
+}
+
 // This tests the convenience enumeration function
 TEST(utils_ranges_cuda, enumerate) {
 

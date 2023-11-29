@@ -20,6 +20,10 @@
 
 namespace detray::n_axis {
 
+/// @brief Helper to tie two bin indices to a range.
+/// @note Cannot use dindex_range for signed integer bin indices.
+using bin_range = std::array<int, 2>;
+
 /// @brief A regular binning scheme.
 ///
 /// The binning on the input parameter space is regular and therefore only needs
@@ -80,13 +84,15 @@ struct regular {
 
     /// Access function to a range with binned neighborhood
     ///
+    /// @note This is an inclusive range
+    ///
     /// @param v is the value for the bin search
     /// @param nhood is the neighborhood bin index range (# neighboring bins)
     ///
     /// @returns the corresponding range of bin indices
     DETRAY_HOST_DEVICE
-    array_type<int, 2> range(const scalar_t v,
-                             const array_type<dindex, 2> &nhood) const {
+    bin_range range(const scalar_t v,
+                    const array_type<dindex, 2> &nhood) const {
         const int ibin{bin(v)};
         const int ibinmin{ibin - static_cast<int>(nhood[0])};
         const int ibinmax{ibin + static_cast<int>(nhood[1])};
@@ -96,13 +102,15 @@ struct regular {
 
     /// Access function to a range with scalar neighborhood
     ///
+    /// @note This is an inclusive range
+    ///
     /// @param v is the value for the bin search
     /// @param nhood is the neighborhood value range (range on axis values)
     ///
     /// @returns the corresponding range of bin indices
     DETRAY_HOST_DEVICE
-    array_type<int, 2> range(const scalar_t v,
-                             const array_type<scalar_t, 2> &nhood) const {
+    bin_range range(const scalar_t v,
+                    const array_type<scalar_t, 2> &nhood) const {
         return {bin(v - nhood[0]), bin(v + nhood[1])};
     }
 
@@ -229,13 +237,15 @@ struct irregular {
 
     /// Access function to a range with binned neighborhood
     ///
+    /// @note This is an inclusive range
+    ///
     /// @param v is the value for the bin search
     /// @param nhood is the neighborhood range (# neighboring bins)
     ///
     /// @returns the corresponding range of bin indices
     DETRAY_HOST_DEVICE
-    array_type<int, 2> range(const scalar_t v,
-                             const array_type<dindex, 2> &nhood) const {
+    bin_range range(const scalar_t v,
+                    const array_type<dindex, 2> &nhood) const {
         const int ibin{bin(v)};
         const int ibinmin{ibin - static_cast<int>(nhood[0])};
         const int ibinmax{ibin + static_cast<int>(nhood[1])};
@@ -250,11 +260,9 @@ struct irregular {
     ///
     /// @returns the corresponding range of bin indices
     DETRAY_HOST_DEVICE
-    array_type<int, 2> range(const scalar_t v,
-                             const array_type<scalar_t, 2> &nhood) const {
-        const int nbin{bin(v - nhood[0])};
-        const int pbin{bin(v + nhood[1])};
-        return {nbin, pbin};
+    bin_range range(const scalar_t v,
+                    const array_type<scalar_t, 2> &nhood) const {
+        return {bin(v - nhood[0]), bin(v + nhood[1])};
     }
 
     /// @return the bin edges for a given @param ibin

@@ -24,8 +24,9 @@ inline constexpr dindex dindex_invalid = detail::invalid_value<dindex>();
 using dindex_range = darray<dindex, 2>;
 using dindex_sequence = dvector<dindex>;
 
-DETRAY_HOST
-inline std::ostream& operator<<(std::ostream& os, const dindex_range& r) {
+template <typename I>
+DETRAY_HOST inline std::ostream& operator<<(std::ostream& os,
+                                            const darray<I, 2>& r) {
 
     bool writeSeparator = false;
     for (auto i = 0u; i < r.size(); ++i) {

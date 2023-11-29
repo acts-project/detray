@@ -34,6 +34,12 @@ void test_pointer(const dindex value, dindex& check);
 void test_iota(const darray<dindex, 2> range,
                vecmem::data::vector_view<dindex> check_data);
 
+/// Test @c detray::views::cartesian_product
+void test_cartesian_product(
+    const darray<dindex, 2> range1, const darray<dindex, 2> range2,
+    const darray<dindex, 2> range3,
+    vecmem::data::vector_view<std::tuple<dindex, dindex, dindex>> check_data);
+
 /// Test @c detray::views::enumerate
 void test_enumerate(vecmem::data::vector_view<uint_holder> seq_data,
                     vecmem::data::vector_view<dindex> check_idx_data,

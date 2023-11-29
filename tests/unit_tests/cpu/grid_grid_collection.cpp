@@ -122,8 +122,8 @@ GTEST_TEST(detray_grid, grid_collection) {
     auto flat_bin_view = single_grid.all();
     EXPECT_EQ(seq.size(), 24u);
     EXPECT_EQ(flat_bin_view.size(), 24u);
-    EXPECT_TRUE(std::equal(flat_bin_view.begin(), flat_bin_view.end(),
-                           seq.begin(), seq.end()));
+    EXPECT_TRUE(
+        std::equal(flat_bin_view.begin(), flat_bin_view.end(), seq.begin()));
 
     auto grid_coll_view = get_data(grid_coll);
     static_assert(std::is_same_v<decltype(grid_coll_view),

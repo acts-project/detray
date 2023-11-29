@@ -89,6 +89,39 @@ void test_iota(const darray<dindex, 2> range,
 }
 
 //
+// cartesian product
+//
+__global__ void cartesian_product_kernel(
+    const darray<dindex, 2> range1, const darray<dindex, 2> range2,
+    const darray<dindex, 2> range3,
+    vecmem::data::vector_view<std::tuple<dindex, dindex, dindex>> check_data) {
+
+    vecmem::device_vector<std::tuple<dindex, dindex, dindex>> check(check_data);
+
+    auto seq1 = detray::views::iota(range1);
+    auto seq2 = detray::views::iota(range2);
+    auto seq3 = detray::views::iota(range3);
+
+    for (const auto [i, j, k] : detray::views::cartesian_product(
+             std::move(seq1), std::move(seq2), std::move(seq3))) {
+        check.emplace_back(i, j, k);
+    }
+}
+
+void test_cartesian_product(
+    const darray<dindex, 2> range1, const darray<dindex, 2> range2,
+    const darray<dindex, 2> range3,
+    vecmem::data::vector_view<std::tuple<dindex, dindex, dindex>> check_data) {
+
+    // run the kernel
+    cartesian_product_kernel<<<1, 1>>>(range1, range2, range3, check_data);
+
+    // cuda error check
+    DETRAY_CUDA_ERROR_CHECK(cudaGetLastError());
+    DETRAY_CUDA_ERROR_CHECK(cudaDeviceSynchronize());
+}
+
+//
 // enumerate
 //
 __global__ void enumerate_kernel(

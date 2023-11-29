@@ -232,7 +232,7 @@ static inline void bin_association(const context_t & /*context*/,
 
                             // Register if associated
                             if (associated) {
-                                grid.populate({{bin_0, bin_1}}, sf);
+                                grid.populate({bin_0, bin_1}, sf);
                                 break;
                             }
                         }
