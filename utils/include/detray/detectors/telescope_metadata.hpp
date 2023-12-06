@@ -80,8 +80,8 @@ struct telescope_metadata {
     /// Material type ids
     enum class material_ids : std::uint8_t {
         e_slab = 0,
-        e_rod = 0,
-        e_none = 1,
+        e_rod = 1,
+        e_none = 2,
     };
 
     /// How to store materials
