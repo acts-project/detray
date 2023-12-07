@@ -226,7 +226,7 @@ struct coordinate_base {
         const transform3_t& trf3) const {
 
         free_to_path_matrix path_derivative =
-            Derived<transform3_t>().path_derivative(trf3, pos, dir);
+            Derived<transform3_t>().path_derivative(trf3, pos, dir, dtds);
 
         path_to_free_matrix derivative =
             matrix_operator().template zero<e_free_size, 1u>();

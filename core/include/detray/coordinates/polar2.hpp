@@ -109,8 +109,8 @@ struct polar2 : public coordinate_base<polar2, transform3_t> {
     }
 
     DETRAY_HOST_DEVICE inline free_to_path_matrix path_derivative(
-        const transform3_t &trf3, const point3 & /*pos*/,
-        const vector3 &dir) const {
+        const transform3_t &trf3, const point3 & /*pos*/, const vector3 &dir,
+        const vector3 & /*dtds*/) const {
 
         free_to_path_matrix derivative =
             matrix_operator().template zero<1u, e_free_size>();
