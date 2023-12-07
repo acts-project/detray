@@ -15,6 +15,8 @@
 #include "detray/masks/masks.hpp"
 #include "detray/masks/rectangle2D.hpp"
 #include "detray/tools/surface_factory_interface.hpp"
+#include "detray/utils/axis_rotation.hpp"
+#include "detray/utils/unit_vectors.hpp"
 
 // System include(s)
 #include <cassert>
@@ -146,6 +148,19 @@ class telescope_generator final : public surface_factory_interface<detector_t> {
             // Build the transform
             // Local z axis is the global normal vector
             vector3_t m_local_z = algebra::vector::normalize(mod_placement.dir);
+
+            if constexpr (std::is_same_v<mask_shape_t, detray::line<true>> ||
+                          std::is_same_v<mask_shape_t, detray::line<false>>) {
+
+                // For a telescope with wires, rotate z axis 90
+                // degree around vector on x-y plane
+                auto curvi_u =
+                    unit_vectors<vector3_t>().make_curvilinear_unit_u(
+                        m_local_z);
+                axis_rotation<transform3_t> axis_rot(
+                    curvi_u, constant<scalar>::pi / 2.f);
+                m_local_z = axis_rot(m_local_z);
+            }
 
             // Project onto the weakest direction component of the normal vector
             vector3_t e_i{0.f, 0.f, 0.f};
