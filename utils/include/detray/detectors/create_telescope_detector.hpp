@@ -63,6 +63,8 @@ struct tel_det_config {
     std::vector<scalar> m_positions{};
     /// Material for the test surfaces
     material<scalar> m_material = silicon_tml<scalar>();
+    /// Material for volume
+    material<scalar> m_volume_material = vacuum<scalar>();
     /// Thickness of the material
     scalar m_thickness{80.f * unit<scalar>::um};
     /// Pilot track along which to place the surfaces
@@ -99,6 +101,10 @@ struct tel_det_config {
         m_material = mat;
         return *this;
     }
+    constexpr tel_det_config &volume_material(const material<scalar> &mat) {
+        m_volume_material = mat;
+        return *this;
+    }
     constexpr tel_det_config &mat_thickness(const scalar t) {
         assert(t > 0.f && "Material thickness must be greater than zero");
         m_thickness = t;
@@ -127,6 +133,9 @@ struct tel_det_config {
     const std::vector<scalar> &positions() const { return m_positions; }
     constexpr const material<scalar> &module_material() const {
         return m_material;
+    }
+    constexpr const material<scalar> &volume_material() const {
+        return m_volume_material;
     }
     constexpr scalar mat_thickness() const { return m_thickness; }
     const trajectory_t &pilot_track() const { return m_trajectory; }
@@ -222,6 +231,9 @@ inline auto create_telescope_detector(
 
     // Build and return the detector
     auto det = det_builder.build(resource);
+
+    // Set the volume material
+    det.volumes()[0u].set_material(cfg.volume_material());
 
     if (cfg.do_check()) {
         detray::detail::check_consistency(det);

@@ -13,6 +13,7 @@
 #include "detray/definitions/indexing.hpp"
 #include "detray/definitions/qualifiers.hpp"
 #include "detray/geometry/detail/volume_kernels.hpp"
+#include "detray/materials/material.hpp"
 
 // System include(s)
 #include <iostream>
@@ -36,6 +37,9 @@ namespace detray {
 /// @TODO: Add access to the volume placement transform and volume center
 template <typename detector_t>  // @TODO: This needs a concept
 class detector_volume {
+
+    /// Scalar type
+    using scalar_type = typename detector_t::scalar_type;
 
     /// Volume descriptor type
     using descr_t = typename detector_t::volume_type;
@@ -94,6 +98,12 @@ class detector_volume {
     DETRAY_HOST_DEVICE
     constexpr auto center() const -> typename detector_t::point3 {
         return transform().translation();
+    }
+
+    /// @returns the material of the volume
+    DETRAY_HOST_DEVICE
+    constexpr auto material() const -> material<scalar_type> {
+        return m_desc.material();
     }
 
     /// Apply a functor to all surfaces in the volume.

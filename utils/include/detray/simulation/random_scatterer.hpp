@@ -95,11 +95,13 @@ struct random_scatterer : actor {
             // Energy Loss
             if (s.do_energy_loss) {
                 s.e_loss_mpv = interaction_type().compute_energy_loss_landau(
-                    path_segment, mat, s.pdg, s.mass, qop, charge);
+                    path_segment, mat.get_material(), s.pdg, s.mass, qop,
+                    charge);
 
                 s.e_loss_sigma =
                     interaction_type().compute_energy_loss_landau_sigma(
-                        path_segment, mat, s.pdg, s.mass, qop, charge);
+                        path_segment, mat.get_material(), s.pdg, s.mass, qop,
+                        charge);
             }
 
             // Scattering angle

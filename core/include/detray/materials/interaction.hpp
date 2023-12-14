@@ -23,14 +23,14 @@ struct interaction {
     using relativistic_quantities =
         detail::relativistic_quantities<scalar_type>;
 
-    template <typename material_t>
     DETRAY_HOST_DEVICE scalar_type compute_energy_loss_bethe(
-        const scalar_type path_segment, const material_t& mat,
-        const int /*pdg*/, const scalar_type m, const scalar_type qOverP,
+        const scalar_type path_segment,
+        const detray::material<scalar_type>& mat, const int /*pdg*/,
+        const scalar_type m, const scalar_type qOverP,
         const scalar_type q) const {
 
-        const scalar_t I{mat.get_material().mean_excitation_energy()};
-        const scalar_t Ne{mat.get_material().molar_electron_density()};
+        const scalar_t I{mat.mean_excitation_energy()};
+        const scalar_t Ne{mat.molar_electron_density()};
         const relativistic_quantities rq(m, qOverP, q);
         const scalar_t eps{rq.compute_epsilon(Ne, path_segment)};
 
@@ -38,7 +38,7 @@ struct interaction {
             return 0.f;
         }
 
-        const scalar_t dhalf{rq.compute_delta_half(mat.get_material())};
+        const scalar_t dhalf{rq.compute_delta_half(mat)};
         const scalar_t u{rq.compute_mass_term(constant<scalar_t>::m_e)};
         const scalar_t wmax{rq.compute_WMax(m)};
         // uses RPP2018 eq. 33.5 scaled from mass stopping power to linear
@@ -51,14 +51,13 @@ struct interaction {
         return eps * running;
     }
 
-    template <typename material_t>
     DETRAY_HOST_DEVICE scalar_type compute_energy_loss_landau(
-        const scalar_type path_segment, const material_t& mat,
+        const scalar_type path_segment, const material<scalar_type>& mat,
         const int /*pdg*/, const scalar_type m, const scalar_type qOverP,
         const scalar_type q) const {
 
-        const scalar_t I{mat.get_material().mean_excitation_energy()};
-        const scalar_t Ne{mat.get_material().molar_electron_density()};
+        const scalar_t I{mat.mean_excitation_energy()};
+        const scalar_t Ne{mat.molar_electron_density()};
         const relativistic_quantities rq(m, qOverP, q);
         const scalar_t eps{rq.compute_epsilon(Ne, path_segment)};
 
@@ -66,7 +65,7 @@ struct interaction {
             return 0.f;
         }
 
-        const scalar_t dhalf{rq.compute_delta_half(mat.get_material())};
+        const scalar_t dhalf{rq.compute_delta_half(mat)};
         const scalar_t t{rq.compute_mass_term(constant<scalar_t>::m_e)};
         // uses RPP2018 eq. 33.11
         const scalar_t running{math_ns::log(t / I) + math_ns::log(eps / I) +
@@ -74,22 +73,20 @@ struct interaction {
         return eps * running;
     }
 
-    template <typename material_t>
     DETRAY_HOST_DEVICE scalar_type compute_energy_loss_landau_fwhm(
-        const scalar_type path_segment, const material_t& mat,
+        const scalar_type path_segment, const material<scalar_type>& mat,
         const int /*pdg*/, const scalar_type m, const scalar_type qOverP,
         const scalar_type q) const {
-        const auto Ne = mat.get_material().molar_electron_density();
+        const auto Ne = mat.molar_electron_density();
         const relativistic_quantities rq(m, qOverP, q);
 
         // the Landau-Vavilov fwhm is 4*eps (see RPP2018 fig. 33.7)
         return 4.f * rq.compute_epsilon(Ne, path_segment);
     }
 
-    template <typename material_t>
     DETRAY_HOST_DEVICE scalar_type compute_energy_loss_landau_sigma(
-        const scalar_type path_segment, const material_t& mat, const int pdg,
-        const scalar_type m, const scalar_type qOverP,
+        const scalar_type path_segment, const material<scalar_type>& mat,
+        const int pdg, const scalar_type m, const scalar_type qOverP,
         const scalar_type q) const {
 
         const scalar_t fwhm{compute_energy_loss_landau_fwhm(path_segment, mat,

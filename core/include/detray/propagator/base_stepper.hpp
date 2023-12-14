@@ -128,9 +128,10 @@ class base_stepper {
         /// Current step size
         scalar _step_size{0.};
 
-        /// TODO: Use options?
-        /// hypothetical mass of particle (assume pion by default)
-        /// scalar _mass = 139.57018 * unit<scalar_type>::MeV;
+        /// The particle mass
+        scalar_type _mass{105.7f * unit<scalar_type>::MeV};
+        /// The particle pdg
+        int _pdg = 13;  // default muon
 
         /// Set new step constraint
         template <step::constraint type = step::constraint::e_actor>

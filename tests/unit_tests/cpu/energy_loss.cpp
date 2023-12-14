@@ -57,7 +57,8 @@ TEST_P(EnergyLossBetheValidation, bethe_energy_loss) {
 
     // Bethe Stopping power in MeV * cm^2 / g
     const scalar dEdx{
-        I.compute_energy_loss_bethe(path_segment, slab, pdg, m, qOverP, -1.f) /
+        I.compute_energy_loss_bethe(path_segment, slab.get_material(), pdg, m,
+                                    qOverP, -1.f) /
         path_segment / slab.get_material().mass_density() /
         (unit<scalar>::MeV * unit<scalar>::cm2 / unit<scalar>::g)};
 
@@ -195,16 +196,18 @@ TEST_P(EnergyLossLandauValidation, landau_energy_loss) {
     const scalar qOverP{q / p};
 
     // Landau Energy loss in MeV
-    const scalar Landau_MeV{
-        I.compute_energy_loss_landau(path_segment, slab, pdg, m, qOverP, q) /
-        unit<scalar>::MeV};
+    const scalar Landau_MeV{I.compute_energy_loss_landau(path_segment,
+                                                         slab.get_material(),
+                                                         pdg, m, qOverP, q) /
+                            unit<scalar>::MeV};
 
     // Check if difference is within 5% error
     EXPECT_TRUE(std::abs(std::get<2>(GetParam()) - Landau_MeV) / Landau_MeV <
                 0.05f);
 
     // Landau Energy loss Fluctuation
-    const scalar fwhm_MeV{I.compute_energy_loss_landau_fwhm(path_segment, slab,
+    const scalar fwhm_MeV{I.compute_energy_loss_landau_fwhm(path_segment,
+                                                            slab.get_material(),
                                                             pdg, m, qOverP, q) /
                           unit<scalar>::MeV};
 
@@ -266,16 +269,16 @@ TEST_P(LandauDistributionValidation, landau_distribution) {
     const scalar qOverP{q / p};
 
     // Bethe energy loss
-    const scalar dE{
-        I.compute_energy_loss_bethe(path_segment, slab, pdg, m, qOverP, q)};
+    const scalar dE{I.compute_energy_loss_bethe(
+        path_segment, slab.get_material(), pdg, m, qOverP, q)};
 
     // Landau Energy loss
-    const scalar mpv{
-        I.compute_energy_loss_landau(path_segment, slab, pdg, m, qOverP, q)};
+    const scalar mpv{I.compute_energy_loss_landau(
+        path_segment, slab.get_material(), pdg, m, qOverP, q)};
 
     // Landau Energy loss Sigma
-    const scalar sigma{I.compute_energy_loss_landau_sigma(path_segment, slab,
-                                                          pdg, m, qOverP, q)};
+    const scalar sigma{I.compute_energy_loss_landau_sigma(
+        path_segment, slab.get_material(), pdg, m, qOverP, q)};
 
     // Landau Sampling
     landau_distribution<scalar> landau;
