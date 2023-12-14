@@ -226,9 +226,8 @@ bool detray::rk_stepper<magnetic_field_t, transform3_t, constraint_t, policy_t,
     sd.b_first[1] = bvec[1];
     sd.b_first[2] = bvec[2];
 
-    sd.k_qop1 = stepping().qop();
     sd.k1 = stepping.evaluate_k(sd.b_first, 0, 0.f, vector3{0.f, 0.f, 0.f},
-                                sd.k_qop1);
+                                stepping().qop());
 
     const auto try_rk4 = [&](const scalar& h) -> bool {
         // State the square and half of the step size
@@ -242,12 +241,11 @@ bool detray::rk_stepper<magnetic_field_t, transform3_t, constraint_t, policy_t,
         sd.b_middle[1] = bvec1[1];
         sd.b_middle[2] = bvec1[2];
 
-        sd.k_qop2 = stepping.evaluate_qop(half_h);
-        sd.k2 = stepping.evaluate_k(sd.b_middle, 1, half_h, sd.k1, sd.k_qop2);
+        const scalar k_qop2 = stepping.evaluate_qop(half_h);
+        sd.k2 = stepping.evaluate_k(sd.b_middle, 1, half_h, sd.k1, k_qop2);
 
         // Third Runge-Kutta point
-        sd.k_qop3 = sd.k_qop2;
-        sd.k3 = stepping.evaluate_k(sd.b_middle, 2, half_h, sd.k2, sd.k_qop3);
+        sd.k3 = stepping.evaluate_k(sd.b_middle, 2, half_h, sd.k2, k_qop2);
 
         // Last Runge-Kutta point
         const vector3 pos2 = pos + h * dir + h2 * 0.5f * sd.k3;

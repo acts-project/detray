@@ -82,11 +82,7 @@ class rk_stepper final
             vector3 k2{0.f, 0.f, 0.f};
             vector3 k3{0.f, 0.f, 0.f};
             vector3 k4{0.f, 0.f, 0.f};
-            scalar k_qop1{0.f};
-            scalar k_qop2{0.f};
-            scalar k_qop3{0.f};
             scalar k_qop4{0.f};
-            // array_t<scalar, 4> k_qop{0.f, 0.f, 0.f, 0.f};
         } _step_data;
 
         /// Magnetic field view
