@@ -37,7 +37,7 @@ GTEST_TEST(detray_geometry, detector_volume) {
     using namespace detray;
 
     using accel_link_t = dtyped_index<accel_ids, dindex>;
-    using volume_t = volume_descriptor<geo_objects, accel_link_t>;
+    using volume_t = volume_descriptor<geo_objects, scalar, accel_link_t>;
 
     // Check construction, setters and getters
     volume_t v1(volume_id::e_cylinder);

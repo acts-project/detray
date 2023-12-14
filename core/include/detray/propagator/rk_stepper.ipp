@@ -28,6 +28,7 @@ void detray::rk_stepper<magnetic_field_t, transform3_t, constraint_t, policy_t,
     dir = dir + h_6 * (sd.k1 + 2.f * (sd.k2 + sd.k3) + sd.k4);
     dir = vector::normalize(dir);
     track.set_dir(dir);
+    track.set_qop(sd.k_qop4);
 
     // Update path length
     this->_path_length += h;
@@ -136,21 +137,63 @@ template <typename magnetic_field_t, typename transform3_t,
           typename constraint_t, typename policy_t,
           template <typename, std::size_t> class array_t>
 auto detray::rk_stepper<magnetic_field_t, transform3_t, constraint_t, policy_t,
+                        array_t>::state::evaluate_qop(const scalar h)
+    -> scalar {
+
+    const auto mat = this->_mat;
+    auto& track = this->_track;
+    const scalar qop = track.qop();
+
+    if (mat == detray::vacuum<scalar>()) {
+        return qop;
+    }
+
+    const scalar mass = this->_mass;
+    const auto pdg = this->_pdg;
+    const scalar p = track.p();
+    const scalar q = track.charge();
+    const auto direction = this->_direction;
+
+    scalar new_qop = track.qop();
+
+    if (this->_use_mean_loss) {
+
+        const scalar eloss = interaction<scalar>().compute_energy_loss_bethe(
+            h, mat, pdg, mass, qop, q);
+
+        // @TODO: Recycle the codes in pointwise_material_interactor.hpp
+        // Get new Energy
+        const scalar nextE{
+            std::sqrt(mass * mass + p * p) -
+            std::copysign(eloss, static_cast<scalar>(direction))};
+
+        // Put particle at rest if energy loss is too large
+        const scalar nextP{
+            (mass < nextE) ? std::sqrt(nextE * nextE - mass * mass) : 0.f};
+        new_qop = (q != 0.f) ? q / nextP : 1.f / nextP;
+    }
+
+    return new_qop;
+}
+
+template <typename magnetic_field_t, typename transform3_t,
+          typename constraint_t, typename policy_t,
+          template <typename, std::size_t> class array_t>
+auto detray::rk_stepper<magnetic_field_t, transform3_t, constraint_t, policy_t,
                         array_t>::state::evaluate_k(const vector3& b_field,
                                                     const int i, const scalar h,
-                                                    const vector3& k_prev)
+                                                    const vector3& k_prev,
+                                                    const scalar k_qop)
     -> vector3 {
     auto& track = this->_track;
-
-    const auto qop = track.qop();
     const auto dir = track.dir();
 
     vector3 k_new;
 
     if (i == 0) {
-        k_new = qop * vector::cross(dir, b_field);
+        k_new = k_qop * vector::cross(dir, b_field);
     } else {
-        k_new = qop * vector::cross(dir + h * k_prev, b_field);
+        k_new = k_qop * vector::cross(dir + h * k_prev, b_field);
     }
 
     return k_new;
@@ -168,6 +211,9 @@ bool detray::rk_stepper<magnetic_field_t, transform3_t, constraint_t, policy_t,
     auto& magnetic_field = stepping._magnetic_field;
     auto& navigation = propagation._navigation;
 
+    const auto det = navigation.detector();
+    stepping._mat = det->volume_by_index(navigation.volume()).material();
+
     auto& sd = stepping._step_data;
 
     scalar error_estimate{0.f};
@@ -180,7 +226,9 @@ bool detray::rk_stepper<magnetic_field_t, transform3_t, constraint_t, policy_t,
     sd.b_first[1] = bvec[1];
     sd.b_first[2] = bvec[2];
 
-    sd.k1 = stepping.evaluate_k(sd.b_first, 0, 0.f, vector3{0.f, 0.f, 0.f});
+    sd.k_qop1 = stepping().qop();
+    sd.k1 = stepping.evaluate_k(sd.b_first, 0, 0.f, vector3{0.f, 0.f, 0.f},
+                                sd.k_qop1);
 
     const auto try_rk4 = [&](const scalar& h) -> bool {
         // State the square and half of the step size
@@ -193,10 +241,13 @@ bool detray::rk_stepper<magnetic_field_t, transform3_t, constraint_t, policy_t,
         sd.b_middle[0] = bvec1[0];
         sd.b_middle[1] = bvec1[1];
         sd.b_middle[2] = bvec1[2];
-        sd.k2 = stepping.evaluate_k(sd.b_middle, 1, half_h, sd.k1);
+
+        sd.k_qop2 = stepping.evaluate_qop(half_h);
+        sd.k2 = stepping.evaluate_k(sd.b_middle, 1, half_h, sd.k1, sd.k_qop2);
 
         // Third Runge-Kutta point
-        sd.k3 = stepping.evaluate_k(sd.b_middle, 2, half_h, sd.k2);
+        sd.k_qop3 = sd.k_qop2;
+        sd.k3 = stepping.evaluate_k(sd.b_middle, 2, half_h, sd.k2, sd.k_qop3);
 
         // Last Runge-Kutta point
         const vector3 pos2 = pos + h * dir + h2 * 0.5f * sd.k3;
@@ -204,7 +255,8 @@ bool detray::rk_stepper<magnetic_field_t, transform3_t, constraint_t, policy_t,
         sd.b_last[0] = bvec2[0];
         sd.b_last[1] = bvec2[1];
         sd.b_last[2] = bvec2[2];
-        sd.k4 = stepping.evaluate_k(sd.b_last, 3, h, sd.k3);
+        sd.k_qop4 = stepping.evaluate_qop(h);
+        sd.k4 = stepping.evaluate_k(sd.b_last, 3, h, sd.k3, sd.k_qop4);
 
         // Compute and check the local integration error estimate
         // @Todo

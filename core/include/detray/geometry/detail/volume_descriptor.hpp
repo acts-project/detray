@@ -11,6 +11,8 @@
 #include "detray/definitions/geometry.hpp"
 #include "detray/definitions/indexing.hpp"
 #include "detray/definitions/qualifiers.hpp"
+#include "detray/materials/material.hpp"
+#include "detray/materials/predefined_materials.hpp"
 
 namespace detray {
 
@@ -27,12 +29,16 @@ namespace detray {
 ///         and device. The surface finders reside in an 'unrollable tuple
 ///         container' and are called per volume in the navigator during local
 ///         navigation.
-template <typename ID, typename link_t = dtyped_index<dindex, dindex>>
+template <typename ID, typename scalar_t,
+          typename link_t = dtyped_index<dindex, dindex>>
 class volume_descriptor {
 
     public:
     /// Ids of objects that can be distinguished by the volume
     using object_id = ID;
+
+    /// Scalar type
+    using scalar_type = scalar_t;
 
     /// How to access objects (e.g. sensitives/passives/portals) in this
     /// volume. Keeps one accelerator structure link per object type (by ID):
@@ -75,14 +81,26 @@ class volume_descriptor {
         m_transform = trf_idx;
     }
 
+    /// @returns the volume material
+    DETRAY_HOST_DEVICE
+    constexpr auto material() const -> detray::material<scalar_type> {
+        return m_vol_mat;
+    }
+
+    DETRAY_HOST
+    constexpr auto set_material(const detray::material<scalar_type>& mat)
+        -> void {
+        m_vol_mat = mat;
+    }
+
     /// @returns link to all acceleration data structures - const access
-    DETRAY_HOST_DEVICE constexpr auto full_link() const -> const link_type & {
+    DETRAY_HOST_DEVICE constexpr auto full_link() const -> const link_type& {
         return m_accel_links;
     }
 
     /// @returns acc data structure link for a specific type of object - const
     template <ID obj_id>
-    DETRAY_HOST_DEVICE constexpr auto link() const -> const link_t & {
+    DETRAY_HOST_DEVICE constexpr auto link() const -> const link_t& {
         return detail::get<obj_id>(m_accel_links);
     }
 
@@ -106,7 +124,7 @@ class volume_descriptor {
     ///
     /// @param rhs is the right-hand side to compare against.
     DETRAY_HOST_DEVICE
-    constexpr auto operator==(const volume_descriptor &rhs) const -> bool {
+    constexpr auto operator==(const volume_descriptor& rhs) const -> bool {
         return (m_id == rhs.m_id && m_index == rhs.m_index &&
                 m_accel_links == rhs.m_accel_links);
     }
@@ -123,6 +141,9 @@ class volume_descriptor {
 
     /// Links for every object type to an acceleration data structure
     link_type m_accel_links{};
+
+    /// Volume material
+    detray::material<scalar_type> m_vol_mat = detray::vacuum<scalar_type>();
 };
 
 }  // namespace detray

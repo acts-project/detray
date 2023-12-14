@@ -8,6 +8,7 @@
 // Project include(s).
 #include "detray/definitions/pdg_particle.hpp"
 #include "detray/definitions/units.hpp"
+#include "detray/detectors/bfield.hpp"
 #include "detray/detectors/create_telescope_detector.hpp"
 #include "detray/masks/masks.hpp"
 #include "detray/masks/unbounded.hpp"
@@ -145,7 +146,8 @@ GTEST_TEST(detray_materials, telescope_geometry_energy_loss) {
     // It is not perfectly precise as the track loses its energy during
     // propagation. However, since the energy loss << the track momentum,
     // the assumption is not very bad
-    const scalar dE{I.compute_energy_loss_bethe(path_segment, slab, pdg, mass,
+    const scalar dE{I.compute_energy_loss_bethe(path_segment,
+                                                slab.get_material(), pdg, mass,
                                                 q / iniP, q) *
                     static_cast<scalar>(positions.size())};
 
@@ -154,7 +156,7 @@ GTEST_TEST(detray_materials, telescope_geometry_energy_loss) {
     EXPECT_NEAR(newE, iniE - dE, 1e-5f);
 
     const scalar sigma_qop{I.compute_energy_loss_landau_sigma_QOverP(
-        path_segment, slab, pdg, mass, q / iniP, q)};
+        path_segment, slab.get_material(), pdg, mass, q / iniP, q)};
 
     const scalar dvar_qop{sigma_qop * sigma_qop *
                           static_cast<scalar>(positions.size() - 1u)};
@@ -325,4 +327,96 @@ GTEST_TEST(detray_materials, telescope_geometry_scattering_angle) {
 
     // To make sure that the variances are not zero
     EXPECT_TRUE(ref_phi_variance > 1e-9f && ref_theta_variance > 1e-9f);
+}
+
+// Material interaction test with telescope Geometry with volume material
+GTEST_TEST(detray_materials, telescope_geometry_volume_material) {
+
+    vecmem::host_memory_resource host_mr;
+
+    // Propagator types
+    using bfield_t = bfield::const_field_t;
+    using stepper_t = rk_stepper<bfield_t::view_t, transform3>;
+    using actor_chain_t =
+        actor_chain<dtuple, propagation::print_inspector, pathlimit_aborter>;
+    using vector3 = typename transform3::vector3;
+
+    // Bfield setup
+    vector3 B_z{0.f, 0.f, 2.f * unit<scalar>::T};
+    const bfield_t const_bfield = bfield::create_const_field(B_z);
+
+    // Track setup
+    constexpr scalar q{-1.f};
+    constexpr scalar iniP{10.f * unit<scalar>::GeV};
+    typename bound_track_parameters<transform3>::vector_type bound_vector;
+    getter::element(bound_vector, e_bound_loc0, 0) = 0.f;
+    getter::element(bound_vector, e_bound_loc1, 0) = 0.f;
+    getter::element(bound_vector, e_bound_phi, 0) = 0.f;
+    getter::element(bound_vector, e_bound_theta, 0) = constant<scalar>::pi_2;
+    getter::element(bound_vector, e_bound_qoverp, 0) = q / iniP;
+    getter::element(bound_vector, e_bound_time, 0) = 0.f;
+    typename bound_track_parameters<transform3>::covariance_type bound_cov =
+        matrix_operator().template zero<e_bound_size, e_bound_size>();
+
+    // bound track parameter at first physical plane
+    const bound_track_parameters<transform3> bound_param(
+        geometry::barcode{}.set_index(0u), bound_vector, bound_cov);
+
+    // Create actor states tuples
+    const scalar path_limit = 100 * unit<scalar>::mm;
+
+    // Build in x-direction from given module positions
+    detail::ray<transform3> traj{{0.f, 0.f, 0.f}, 0.f, {1.f, 0.f, 0.f}, -1.f};
+    std::vector<scalar> positions = {0.f, 10000.f * unit<scalar>::mm};
+
+    // NO material at modules
+    const auto module_mat = vacuum<scalar>();
+
+    // Create telescope geometry
+    tel_det_config<rectangle2D<>> tel_cfg{100000.f * unit<scalar>::mm,
+                                          100000.f * unit<scalar>::mm};
+    tel_cfg.positions(positions).pilot_track(traj).module_material(module_mat);
+
+    std::vector<material<scalar>> vol_mats = {
+        vacuum<scalar>(), isobutane<scalar>(), silicon<scalar>(),
+        tungsten<scalar>()};
+
+    for (const auto& mat : vol_mats) {
+        tel_cfg.volume_material(mat);
+        const auto [det, names] = create_telescope_detector(host_mr, tel_cfg);
+
+        using navigator_t = navigator<decltype(det)>;
+        using propagator_t = propagator<stepper_t, navigator_t, actor_chain_t>;
+
+        // Propagator is built from the stepper and navigator
+        propagator_t p({}, {});
+
+        propagator_t::state state(bound_param, const_bfield, det);
+
+        propagation::print_inspector::state prt_state{};
+        pathlimit_aborter::state abrt_state{path_limit};
+        auto actor_states = std::tie(prt_state, abrt_state);
+
+        p.propagate(state, actor_states);
+
+        const auto newP = state._stepping().p();
+        const auto mass = state._stepping._mass;
+
+        const auto eloss_approx =
+            interaction<scalar>().compute_energy_loss_bethe(
+                state._stepping._path_length, mat, state._stepping._pdg, mass,
+                bound_param.qop(), bound_param.charge());
+
+        const auto iniE = std::sqrt(iniP * iniP + mass * mass);
+        const auto newE = std::sqrt(newP * newP + mass * mass);
+        const auto eloss = iniE - newE;
+
+        if (mat == vacuum<scalar>()) {
+            ASSERT_FLOAT_EQ(float(eloss), 0.f);
+        } else {
+            ASSERT_TRUE(eloss > 0.f);
+        }
+
+        ASSERT_NEAR(eloss, eloss_approx, eloss * 0.01);
+    }
 }

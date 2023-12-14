@@ -88,14 +88,16 @@ struct pointwise_material_interactor : actor {
             // Energy Loss
             if (s.do_energy_loss) {
                 s.e_loss = interaction_type().compute_energy_loss_bethe(
-                    path_segment, mat, s.pdg, s.mass, qop, charge);
+                    path_segment, mat.get_material(), s.pdg, s.mass, qop,
+                    charge);
             }
 
             // @todo: include the radiative loss (Bremsstrahlung)
             if (s.do_energy_loss && s.do_covariance_transport) {
                 s.sigma_qop =
                     interaction_type().compute_energy_loss_landau_sigma_QOverP(
-                        path_segment, mat, s.pdg, s.mass, qop, charge);
+                        path_segment, mat.get_material(), s.pdg, s.mass, qop,
+                        charge);
             }
 
             // Covariance update

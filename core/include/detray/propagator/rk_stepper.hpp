@@ -10,6 +10,9 @@
 // Project include(s).
 #include "detray/definitions/qualifiers.hpp"
 #include "detray/definitions/units.hpp"
+#include "detray/materials/interaction.hpp"
+#include "detray/materials/material.hpp"
+#include "detray/materials/predefined_materials.hpp"
 #include "detray/propagator/base_stepper.hpp"
 #include "detray/propagator/navigation_policies.hpp"
 #include "detray/tracks/tracks.hpp"
@@ -79,11 +82,22 @@ class rk_stepper final
             vector3 k2{0.f, 0.f, 0.f};
             vector3 k3{0.f, 0.f, 0.f};
             vector3 k4{0.f, 0.f, 0.f};
-            array_t<scalar, 4> k_qop{0.f, 0.f, 0.f, 0.f};
+            scalar k_qop1{0.f};
+            scalar k_qop2{0.f};
+            scalar k_qop3{0.f};
+            scalar k_qop4{0.f};
+            // array_t<scalar, 4> k_qop{0.f, 0.f, 0.f, 0.f};
         } _step_data;
 
         /// Magnetic field view
         const magnetic_field_t _magnetic_field;
+
+        /// Material that track is passing through. Usually a volume material
+        detray::material<scalar> _mat = detray::vacuum<scalar>();
+
+        /// Use mean energy loss (Bethe)
+        /// if false, most probable energy loss (Landau) will be used
+        bool _use_mean_loss = true;
 
         /// Set the local error tolerenace
         DETRAY_HOST_DEVICE
@@ -97,10 +111,15 @@ class rk_stepper final
         DETRAY_HOST_DEVICE
         inline void advance_jacobian();
 
+        /// evaulate qop for a given step size and material
+        DETRAY_HOST_DEVICE
+        inline scalar evaluate_qop(const scalar h);
+
         /// evaulate k_n for runge kutta stepping
         DETRAY_HOST_DEVICE
         inline vector3 evaluate_k(const vector3& b_field, const int i,
-                                  const scalar h, const vector3& k_prev);
+                                  const scalar h, const vector3& k_prev,
+                                  const scalar k_qop);
 
         DETRAY_HOST_DEVICE
         inline vector3 dtds() const { return this->_step_data.k4; }
