@@ -46,6 +46,10 @@ class rk_stepper final
     using bound_track_parameters_type =
         typename base_type::bound_track_parameters_type;
     using magnetic_field_type = magnetic_field_t;
+    using size_type = typename matrix_operator::size_ty;
+    template <size_type ROWS, size_type COLS>
+    using matrix_type =
+        typename matrix_operator::template matrix_type<ROWS, COLS>;
 
     DETRAY_HOST_DEVICE
     rk_stepper() {}
@@ -82,6 +86,8 @@ class rk_stepper final
             vector3 k2{0.f, 0.f, 0.f};
             vector3 k3{0.f, 0.f, 0.f};
             vector3 k4{0.f, 0.f, 0.f};
+            // @NOTE: k_qop2 = k_qop3
+            scalar k_qop2{0.f};
             scalar k_qop4{0.f};
         } _step_data;
 
@@ -94,6 +100,9 @@ class rk_stepper final
         /// Use mean energy loss (Bethe)
         /// if false, most probable energy loss (Landau) will be used
         bool _use_mean_loss = true;
+
+        /// Use b field gradient in error propagation
+        bool _use_field_gradient = false;
 
         /// Set the local error tolerenace
         DETRAY_HOST_DEVICE
@@ -116,6 +125,9 @@ class rk_stepper final
         inline vector3 evaluate_k(const vector3& b_field, const int i,
                                   const scalar h, const vector3& k_prev,
                                   const scalar k_qop);
+
+        DETRAY_HOST_DEVICE
+        inline matrix_type<3, 3> evaluate_field_gradient(const vector3& pos);
 
         DETRAY_HOST_DEVICE
         inline vector3 dtds() const { return this->_step_data.k4; }

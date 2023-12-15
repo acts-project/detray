@@ -63,12 +63,23 @@ void detray::rk_stepper<magnetic_field_t, transform3_t, constraint_t, policy_t,
     const scalar h{this->_step_size};
     // const auto& mass = this->_mass;
     auto& track = this->_track;
-    const auto dir = track.dir();
-    const auto qop = track.qop();
 
     // Half step length
     const scalar half_h{h * 0.5f};
     const scalar h_6{h * static_cast<scalar>(1. / 6.)};
+
+    // Direction
+    const auto dir1 = track.dir();
+    const vector3 dir2 = dir1 + half_h * sd.k1;
+    const vector3 dir3 = dir1 + half_h * sd.k2;
+    const vector3 dir4 = dir1 + h * sd.k3;
+
+    // Q over P
+    const auto qop1 = track.qop();
+    const auto qop2 = sd.k_qop2;
+    const auto qop3 = qop2;
+    const auto qop4 = sd.k_qop4;
+
     /*---------------------------------------------------------------------------
      * k_{n} is always in the form of [ A(T) X B ] where A is a function of r'
      * and B is magnetic field and X symbol is for cross product. Hence dk{n}dT
@@ -88,13 +99,13 @@ void detray::rk_stepper<magnetic_field_t, transform3_t, constraint_t, policy_t,
     auto dk3dT = matrix_operator().template identity<3, 3>();
     auto dk4dT = matrix_operator().template identity<3, 3>();
 
-    dk1dT = qop * mat_helper().column_wise_cross(dk1dT, sd.b_first);
+    dk1dT = qop1 * mat_helper().column_wise_cross(dk1dT, sd.b_first);
     dk2dT = dk2dT + half_h * dk1dT;
-    dk2dT = qop * mat_helper().column_wise_cross(dk2dT, sd.b_middle);
+    dk2dT = qop2 * mat_helper().column_wise_cross(dk2dT, sd.b_middle);
     dk3dT = dk3dT + half_h * dk2dT;
-    dk3dT = qop * mat_helper().column_wise_cross(dk3dT, sd.b_middle);
+    dk3dT = qop3 * mat_helper().column_wise_cross(dk3dT, sd.b_middle);
     dk4dT = dk4dT + h * dk3dT;
-    dk4dT = qop * mat_helper().column_wise_cross(dk4dT, sd.b_last);
+    dk4dT = qop4 * mat_helper().column_wise_cross(dk4dT, sd.b_last);
 
     // dFdT and dGdT are top-left 3x3 submatrix of equation (17)
     auto dFdT = matrix_operator().template identity<3, 3>();
@@ -104,13 +115,13 @@ void detray::rk_stepper<magnetic_field_t, transform3_t, constraint_t, policy_t,
     dGdT = dGdT + h_6 * (dk1dT + 2.f * (dk2dT + dk3dT) + dk4dT);
 
     // Calculate dk{n}dL where L is qop
-    vector3 dk1dL = vector::cross(dir, sd.b_first);
-    vector3 dk2dL = vector::cross(dir + half_h * sd.k1, sd.b_middle) +
-                    qop * half_h * vector::cross(dk1dL, sd.b_middle);
-    vector3 dk3dL = vector::cross(dir + half_h * sd.k2, sd.b_middle) +
-                    qop * half_h * vector::cross(dk2dL, sd.b_middle);
-    vector3 dk4dL = vector::cross(dir + h * sd.k3, sd.b_last) +
-                    qop * h * vector::cross(dk3dL, sd.b_last);
+    vector3 dk1dL = vector::cross(dir1, sd.b_first);
+    vector3 dk2dL = vector::cross(dir2, sd.b_middle) +
+                    qop2 * half_h * vector::cross(dk1dL, sd.b_middle);
+    vector3 dk3dL = vector::cross(dir3, sd.b_middle) +
+                    qop3 * half_h * vector::cross(dk2dL, sd.b_middle);
+    vector3 dk4dL = vector::cross(dir4, sd.b_last) +
+                    qop4 * h * vector::cross(dk3dL, sd.b_last);
 
     // dFdL and dGdL are top-right 3x1 submatrix of equation (17)
     vector3 dFdL = h * h_6 * (dk1dL + dk2dL + dk3dL);
@@ -123,6 +134,39 @@ void detray::rk_stepper<magnetic_field_t, transform3_t, constraint_t, policy_t,
     matrix_operator().set_block(D, dFdL, 0u, 7u);
     matrix_operator().set_block(D, dGdT, 4u, 4u);
     matrix_operator().set_block(D, dGdL, 4u, 7u);
+
+    if (_use_field_gradient) {
+        auto dFdR = matrix_operator().template identity<3, 3>();
+        auto dGdR = matrix_operator().template identity<3, 3>();
+
+        const vector3 pos1 = track.pos();
+        const vector3 pos2 = pos1 + half_h * dir2;
+        const vector3 pos3 = pos1 + half_h * dir3;
+        const vector3 pos4 = pos1 + h * dir4;
+
+        const matrix_type<3, 3> field_gradient1 = evaluate_field_gradient(pos1);
+        const matrix_type<3, 3> field_gradient2 = evaluate_field_gradient(pos2);
+        const matrix_type<3, 3> field_gradient3 = evaluate_field_gradient(pos3);
+        const matrix_type<3, 3> field_gradient4 = evaluate_field_gradient(pos4);
+
+        matrix_type<3, 3> dk1dR =
+            qop1 * mat_helper().column_wise_cross(field_gradient1, dir1);
+
+        matrix_type<3, 3> dk2dR =
+            qop2 * mat_helper().column_wise_cross(field_gradient2, dir2);
+
+        matrix_type<3, 3> dk3dR =
+            qop3 * mat_helper().column_wise_cross(field_gradient3, dir3);
+
+        matrix_type<3, 3> dk4dR =
+            qop4 * mat_helper().column_wise_cross(field_gradient4, dir4);
+
+        dFdR = dFdR + h * h_6 * (dk1dR + dk2dR + dk3dR);
+        dGdR = h_6 * (dk1dR + 2.f * (dk2dR + dk3dR) + dk4dR);
+
+        matrix_operator().set_block(D, dFdR, 0u, 0u);
+        matrix_operator().set_block(D, dGdR, 4u, 0u);
+    }
 
     /// Calculate (4,4) element of equation (17)
     /// NOTE: Let's skip this element for the moment
@@ -202,6 +246,48 @@ auto detray::rk_stepper<magnetic_field_t, transform3_t, constraint_t, policy_t,
 template <typename magnetic_field_t, typename transform3_t,
           typename constraint_t, typename policy_t,
           template <typename, std::size_t> class array_t>
+auto detray::rk_stepper<magnetic_field_t, transform3_t, constraint_t, policy_t,
+                        array_t>::state::evaluate_field_gradient(const vector3&
+                                                                     pos)
+    -> matrix_type<3, 3> {
+
+    matrix_type<3, 3> dBdr = matrix_operator().template zero<3, 3>();
+
+    const scalar h = 0.001f;
+
+    for (unsigned int i = 0; i < 3; i++) {
+
+        vector3 dpos1 = pos;
+        dpos1[i] += h;
+        const auto bvec1_tmp =
+            this->_magnetic_field.at(dpos1[0], dpos1[1], dpos1[2]);
+        vector3 bvec1;
+        bvec1[0u] = bvec1_tmp[0u];
+        bvec1[1u] = bvec1_tmp[1u];
+        bvec1[2u] = bvec1_tmp[2u];
+
+        vector3 dpos2 = pos;
+        dpos2[i] -= h;
+        const auto bvec2_tmp =
+            this->_magnetic_field.at(dpos2[0], dpos2[1], dpos2[2]);
+        vector3 bvec2;
+        bvec2[0u] = bvec2_tmp[0u];
+        bvec2[1u] = bvec2_tmp[1u];
+        bvec2[2u] = bvec2_tmp[2u];
+
+        const vector3 gradient = (bvec1 - bvec2) * (1.f / (2.f * h));
+
+        getter::element(dBdr, 0u, i) = gradient[0u];
+        getter::element(dBdr, 1u, i) = gradient[1u];
+        getter::element(dBdr, 2u, i) = gradient[2u];
+    }
+
+    return dBdr;
+}
+
+template <typename magnetic_field_t, typename transform3_t,
+          typename constraint_t, typename policy_t,
+          template <typename, std::size_t> class array_t>
 template <typename propagation_state_t>
 bool detray::rk_stepper<magnetic_field_t, transform3_t, constraint_t, policy_t,
                         array_t>::step(propagation_state_t& propagation) {
@@ -241,11 +327,11 @@ bool detray::rk_stepper<magnetic_field_t, transform3_t, constraint_t, policy_t,
         sd.b_middle[1] = bvec1[1];
         sd.b_middle[2] = bvec1[2];
 
-        const scalar k_qop2 = stepping.evaluate_qop(half_h);
-        sd.k2 = stepping.evaluate_k(sd.b_middle, 1, half_h, sd.k1, k_qop2);
+        sd.k_qop2 = stepping.evaluate_qop(half_h);
+        sd.k2 = stepping.evaluate_k(sd.b_middle, 1, half_h, sd.k1, sd.k_qop2);
 
         // Third Runge-Kutta point
-        sd.k3 = stepping.evaluate_k(sd.b_middle, 2, half_h, sd.k2, k_qop2);
+        sd.k3 = stepping.evaluate_k(sd.b_middle, 2, half_h, sd.k2, sd.k_qop2);
 
         // Last Runge-Kutta point
         const vector3 pos2 = pos + h * dir + h2 * 0.5f * sd.k3;
