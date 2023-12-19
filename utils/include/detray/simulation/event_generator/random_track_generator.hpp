@@ -100,6 +100,9 @@ class random_track_generator
         /// Momentum range
         std::array<scalar, 2> m_mom_range{1.f * unit<scalar>::GeV,
                                           1.f * unit<scalar>::GeV};
+        /// Whether to interpret the momentum @c m_mom_range as p_T
+        bool m_is_pT{false};
+
         /// Track origin
         point3 m_origin{0.f, 0.f, 0.f}, m_origin_stddev{0.f, 0.f, 0.f};
 
@@ -134,6 +137,13 @@ class random_track_generator
             return *this;
         }
         DETRAY_HOST_DEVICE configuration& mom_range(scalar low, scalar high) {
+            m_is_pT = false;
+            assert(low <= high);
+            m_mom_range = {low, high};
+            return *this;
+        }
+        DETRAY_HOST_DEVICE configuration& pT_range(scalar low, scalar high) {
+            m_is_pT = true;
             assert(low <= high);
             m_mom_range = {low, high};
             return *this;
@@ -182,6 +192,7 @@ class random_track_generator
         DETRAY_HOST_DEVICE constexpr const point3& origin_stddev() const {
             return m_origin_stddev;
         }
+        DETRAY_HOST_DEVICE constexpr bool is_pT() const { return m_is_pT; }
         DETRAY_HOST_DEVICE constexpr scalar time() const { return m_time; }
         DETRAY_HOST_DEVICE constexpr scalar charge() const { return m_charge; }
         /// @}
@@ -248,14 +259,15 @@ class random_track_generator
                                   phi_rng[0], phi_rng[1])};
             scalar theta{std::clamp(m_rnd_numbers(theta_rng[0], theta_rng[1]),
                                     theta_rng[0], theta_rng[1])};
+            const scalar sin_theta{math_ns::sin(theta)};
 
             // Momentum direction from angles
-            vector3 mom{math_ns::cos(phi) * math_ns::sin(theta),
-                        math_ns::sin(phi) * math_ns::sin(theta),
-                        math_ns::cos(theta)};
+            vector3 mom{math_ns::cos(phi) * sin_theta,
+                        math_ns::sin(phi) * sin_theta, math_ns::cos(theta)};
             // Magnitude of momentum
             vector::normalize(mom);
-            mom = p_mag * mom;
+
+            mom = (m_cfg.is_pT() ? 1.f / sin_theta : 1.f) * p_mag * mom;
 
             return track_t{vtx, m_cfg.time(), mom, m_cfg.charge()};
         }

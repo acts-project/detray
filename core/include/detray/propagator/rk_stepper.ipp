@@ -9,10 +9,10 @@
 #include <cmath>
 
 template <typename magnetic_field_t, typename transform3_t,
-          typename constraint_t, typename policy_t,
+          typename constraint_t, typename policy_t, typename inspector_t,
           template <typename, std::size_t> class array_t>
 void detray::rk_stepper<magnetic_field_t, transform3_t, constraint_t, policy_t,
-                        array_t>::state::advance_track() {
+                        inspector_t, array_t>::state::advance_track() {
 
     const auto& sd = this->_step_data;
     const scalar h{this->_step_size};
@@ -36,10 +36,10 @@ void detray::rk_stepper<magnetic_field_t, transform3_t, constraint_t, policy_t,
 }
 
 template <typename magnetic_field_t, typename transform3_t,
-          typename constraint_t, typename policy_t,
+          typename constraint_t, typename policy_t, typename inspector_t,
           template <typename, std::size_t> class array_t>
 void detray::rk_stepper<magnetic_field_t, transform3_t, constraint_t, policy_t,
-                        array_t>::state::advance_jacobian() {
+                        inspector_t, array_t>::state::advance_jacobian() {
     /// The calculations are based on ATL-SOFT-PUB-2009-002. The update of the
     /// Jacobian matrix is requires only the calculation of eq. 17 and 18.
     /// Since the terms of eq. 18 are currently 0, this matrix is not needed
@@ -134,10 +134,11 @@ void detray::rk_stepper<magnetic_field_t, transform3_t, constraint_t, policy_t,
 }
 
 template <typename magnetic_field_t, typename transform3_t,
-          typename constraint_t, typename policy_t,
+          typename constraint_t, typename policy_t, typename inspector_t,
           template <typename, std::size_t> class array_t>
 auto detray::rk_stepper<magnetic_field_t, transform3_t, constraint_t, policy_t,
-                        array_t>::state::evaluate_qop(const scalar h)
+                        inspector_t, array_t>::state::evaluate_qop(const scalar
+                                                                       h)
     -> scalar {
 
     const auto mat = this->_mat;
@@ -177,9 +178,10 @@ auto detray::rk_stepper<magnetic_field_t, transform3_t, constraint_t, policy_t,
 }
 
 template <typename magnetic_field_t, typename transform3_t,
-          typename constraint_t, typename policy_t,
+          typename constraint_t, typename policy_t, typename inspector_t,
           template <typename, std::size_t> class array_t>
 auto detray::rk_stepper<magnetic_field_t, transform3_t, constraint_t, policy_t,
+                        inspector_t,
                         array_t>::state::evaluate_k(const vector3& b_field,
                                                     const int i, const scalar h,
                                                     const vector3& k_prev,
@@ -200,11 +202,12 @@ auto detray::rk_stepper<magnetic_field_t, transform3_t, constraint_t, policy_t,
 }
 
 template <typename magnetic_field_t, typename transform3_t,
-          typename constraint_t, typename policy_t,
+          typename constraint_t, typename policy_t, typename inspector_t,
           template <typename, std::size_t> class array_t>
 template <typename propagation_state_t>
 bool detray::rk_stepper<magnetic_field_t, transform3_t, constraint_t, policy_t,
-                        array_t>::step(propagation_state_t& propagation) {
+                        inspector_t, array_t>::step(propagation_state_t&
+                                                        propagation) {
 
     // Get stepper and navigator states
     state& stepping = propagation._stepping;
@@ -280,6 +283,9 @@ bool detray::rk_stepper<magnetic_field_t, transform3_t, constraint_t, policy_t,
                                           std::abs(2.f * error_estimate))))),
             static_cast<scalar>(4));
 
+        // Only step size reduction is allowed so that we don't overstep
+        assert(step_size_scaling <= 1.f);
+
         stepping._step_size *= step_size_scaling;
 
         // If step size becomes too small the particle remains at the
@@ -297,6 +303,10 @@ bool detray::rk_stepper<magnetic_field_t, transform3_t, constraint_t, policy_t,
             return navigation.abort();
         }
         n_step_trials++;
+
+        // Run inspection while the stepsize is getting adjusted
+        stepping.run_inspector("Adjust stepsize: ", n_step_trials,
+                               step_size_scaling);
     }
 
     // Update navigation direction
@@ -309,6 +319,10 @@ bool detray::rk_stepper<magnetic_field_t, transform3_t, constraint_t, policy_t,
     if (std::abs(stepping.step_size()) >
         std::abs(
             stepping.constraints().template size<>(stepping.direction()))) {
+
+        // Run inspection before step size is cut
+        stepping.run_inspector("Before constraint: ");
+
         stepping.set_step_size(
             stepping.constraints().template size<>(stepping.direction()));
     }
@@ -321,6 +335,9 @@ bool detray::rk_stepper<magnetic_field_t, transform3_t, constraint_t, policy_t,
 
     // Call navigation update policy
     policy_t{}(stepping.policy_state(), propagation);
+
+    // Run final inspection
+    stepping.run_inspector("Step complete: ");
 
     return true;
 }

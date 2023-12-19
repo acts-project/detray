@@ -107,7 +107,9 @@ class straight_line_navigation : public test::fixture_base<> {
         // Navigation with inspection
         using navigator_t = navigator<detector_t, inspector_t>;
         //  Line stepper
-        using stepper_t = line_stepper<transform3_t>;
+        using stepper_t =
+            line_stepper<transform3_t, unconstrained_step,
+                         stepper_default_policy, stepping::print_inspector>;
         // Propagator with pathlimit aborter
         using actor_chain_t = actor_chain<dtuple, pathlimit_aborter>;
         using propagator_t = propagator<stepper_t, navigator_t, actor_chain_t>;
@@ -128,6 +130,10 @@ class straight_line_navigation : public test::fixture_base<> {
                   << " rays) ...\n"
                   << std::endl;
 
+        std::ios_base::openmode io_mode = std::ios::trunc | std::ios::out;
+        detray::io::detail::file_handle debug_file{"./straight_line_navigation",
+                                                   ".txt", io_mode};
+
         for (const auto ray : ray_generator) {
 
             // Shoot ray through the detector and record all surface
@@ -140,16 +146,19 @@ class straight_line_navigation : public test::fixture_base<> {
             free_track_parameters_t track(ray.pos(), 0.f, ray.dir(), -1.f);
 
             // Build actor and propagator states
-            pathlimit_aborter::state pathlimit_aborter_state{3.5f *
+            pathlimit_aborter::state pathlimit_aborter_state{5.f *
                                                              unit<scalar_t>::m};
             auto actor_states = std::tie(pathlimit_aborter_state);
 
             typename propagator_t::state propagation(track, m_det);
 
             // Access to navigation information
-            auto &inspector = propagation._navigation.inspector();
-            auto &obj_tracer = inspector.template get<object_tracer_t>();
-            auto &debug_printer = inspector.template get<print_inspector>();
+            auto &nav_inspector = propagation._navigation.inspector();
+            auto &obj_tracer = nav_inspector.template get<object_tracer_t>();
+            auto &nav_printer = nav_inspector.template get<print_inspector>();
+
+            // Acces to the stepper information
+            auto &step_printer = propagation._stepping.inspector();
 
             bool success = prop.propagate(propagation, actor_states);
 
@@ -159,6 +168,11 @@ class straight_line_navigation : public test::fixture_base<> {
                                            n_tracks, ray_generator.size());
             }
             if (not success) {
+                // Write debug info to file
+                *debug_file << "RAY " << n_tracks << ":\n\n"
+                            << nav_printer.to_string()
+                            << step_printer.to_string();
+
                 // Creating the svg generator for the detector.
                 detray::svgtools::illustrator il{m_det, m_names,
                                                  m_cfg.svg_style()};
@@ -174,8 +188,7 @@ class straight_line_navigation : public test::fixture_base<> {
             // Run the propagation
             ASSERT_TRUE(success)
                 << "\nFailed on ray " << n_tracks << "/" << ray_generator.size()
-                << ": " << ray << "\n\n"
-                << debug_printer.to_string();
+                << ": " << ray << "\n\n";
 
             ++n_tracks;
         }

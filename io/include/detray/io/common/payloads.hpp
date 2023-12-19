@@ -205,7 +205,7 @@ struct detector_grids_payload {
 /// @brief A payload for a detector geometry
 struct detector_payload {
     std::vector<volume_payload> volumes = {};
-    grid_payload<std::size_t> volume_grid;
+    std::optional<grid_payload<std::size_t>> volume_grid;
 };
 
 }  // namespace detray

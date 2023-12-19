@@ -118,16 +118,18 @@ inline void svg_display(
         gctx, il, intersections_truth, traj, traj_name, intersections, xy);
 
     const auto [vol_xy_svg, _] = il.draw_volumes(volumes, xy, gctx);
-    detray::svgtools::write_svg(path / (outfile + "_" + vol_xy_svg._id),
-                                {xy_axis, vol_xy_svg, svg_traj});
+    detray::svgtools::write_svg(
+        path / (outfile + "_" + vol_xy_svg._id + "_" + traj_name),
+        {xy_axis, vol_xy_svg, svg_traj});
 
     // zr - view
     svg_traj = draw_intersection_and_traj_svg(
         gctx, il, intersections_truth, traj, traj_name, intersections, zr);
 
     const auto vol_zr_svg = il.draw_detector(zr, gctx);
-    detray::svgtools::write_svg(path / (outfile + "_" + vol_zr_svg._id),
-                                {zr_axis, vol_zr_svg, svg_traj});
+    detray::svgtools::write_svg(
+        path / (outfile + "_" + vol_zr_svg._id + "_" + traj_name),
+        {zr_axis, vol_zr_svg, svg_traj});
 
     std::cout << "INFO: Wrote debugging data in: " << path << "\n" << std::endl;
 }

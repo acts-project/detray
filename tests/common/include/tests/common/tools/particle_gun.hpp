@@ -85,6 +85,20 @@ struct particle_gun {
         std::stable_sort(intersection_record.begin(), intersection_record.end(),
                          sort_path);
 
+        // Make sure the intersection record terminates at world portals
+        auto is_world_exit = [](const std::pair<dindex, intersection_t> &r) {
+            return r.second.volume_link ==
+                   detray::detail::invalid_value<decltype(
+                       r.second.volume_link)>();
+        };
+
+        if (auto it = std::find_if(intersection_record.begin(),
+                                   intersection_record.end(), is_world_exit);
+            it != intersection_record.end()) {
+            auto n{static_cast<std::size_t>(it - intersection_record.begin())};
+            intersection_record.resize(n + 1u);
+        }
+
         return intersection_record;
     }
 };

@@ -19,12 +19,15 @@ namespace detray {
 
 /// Straight line stepper implementation
 template <typename transform3_t, typename constraint_t = unconstrained_step,
-          typename policy_t = stepper_default_policy>
+          typename policy_t = stepper_default_policy,
+          typename inspector_t = stepping::void_inspector>
 class line_stepper final
-    : public base_stepper<transform3_t, constraint_t, policy_t> {
+    : public base_stepper<transform3_t, constraint_t, policy_t, inspector_t> {
 
     public:
-    using base_type = base_stepper<transform3_t, constraint_t, policy_t>;
+    using base_type =
+        base_stepper<transform3_t, constraint_t, policy_t, inspector_t>;
+    using inspector_type = inspector_t;
     using transform3_type = transform3_t;
     using policy_type = policy_t;
     using free_track_parameters_type =
@@ -107,6 +110,9 @@ class line_stepper final
         if (std::abs(step_size) >
             std::abs(
                 stepping.constraints().template size<>(stepping.direction()))) {
+            // Run inspection before step size is cut
+            stepping.run_inspector("Before constraint: ");
+
             stepping.set_step_size(
                 stepping.constraints().template size<>(stepping.direction()));
         } else {
@@ -121,6 +127,9 @@ class line_stepper final
 
         // Call navigation update policy
         policy_t{}(stepping.policy_state(), propagation);
+
+        // Run inspection if needed
+        stepping.run_inspector("Step complete: ");
 
         return true;
     }
