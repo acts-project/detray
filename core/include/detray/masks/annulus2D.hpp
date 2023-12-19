@@ -302,8 +302,8 @@ class annulus2D {
         scalar_t max_r = bounds[e_max_r];
         scalar_t min_phi = bounds[e_average_phi] + bounds[e_min_phi_rel];
         scalar_t max_phi = bounds[e_average_phi] + bounds[e_max_phi_rel];
-        scalar_t origin_x = -bounds[e_shift_x];
-        scalar_t origin_y = -bounds[e_shift_y];
+        scalar_t origin_x = bounds[e_shift_x];
+        scalar_t origin_y = bounds[e_shift_y];
 
         point2_t origin_m = {origin_x, origin_y};
 

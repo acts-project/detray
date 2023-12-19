@@ -177,8 +177,8 @@ GTEST_TEST(detray_tools, decorator_grid_builder) {
         static_cast<typename detector_t::surface_type::navigation_link>(
             d.volumes().size())};
 
-    auto vbuilder =
-        std::make_unique<volume_builder<detector_t>>(volume_id::e_cylinder);
+    auto vbuilder = std::make_unique<volume_builder<detector_t>>(
+        volume_id::e_cylinder, vol_idx);
     auto gbuilder = grid_builder<detector_t, cyl_grid_t>{std::move(vbuilder)};
     // passive surfaces are added to the grid
     // gbuilder.set_add_surfaces();

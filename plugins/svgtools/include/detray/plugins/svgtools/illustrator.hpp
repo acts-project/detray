@@ -280,8 +280,8 @@ class illustrator {
                                                _style._eta_lines_style);
 
                 // Hardcoded until we find a way to scale axes automatically
-                p_eta_lines._r = 200.f;
-                p_eta_lines._z = 2000.f;
+                p_eta_lines._r = 1100.f;
+                p_eta_lines._z = 3100.f;
 
                 det_svg.add_object(svgtools::meta::display::eta_lines(
                     "eta_lines_", p_eta_lines));

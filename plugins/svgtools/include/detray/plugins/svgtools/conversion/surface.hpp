@@ -80,11 +80,20 @@ auto inline surface(const transform_t& transform,
     const auto nhz = static_cast<actsvg::scalar>(m[shape_t::e_n_half_z]);
     const auto phz = static_cast<actsvg::scalar>(m[shape_t::e_p_half_z]);
     const auto center = transform.translation();
-    const auto hz = static_cast<actsvg::scalar>(0.5f * (phz - nhz) + center[2]);
+    const auto z0 = static_cast<actsvg::scalar>(center[2]);
+    auto hz = static_cast<actsvg::scalar>(0.5f * (phz - nhz));
+
+    // ACTS-like cylinder definition: symmetric around translation
+    if (std::abs(nhz - phz) <= std::numeric_limits<actsvg::scalar>::epsilon()) {
+        p_surface._zparameters = {z0, hz};
+
+    } else {
+        // detray-like cylinder definition: asymmetric around translation
+        p_surface._zparameters = {nhz + hz + z0, hz};
+    }
 
     p_surface._type = p_surface_t::type::e_cylinder;
     p_surface._radii = {0.f, r};
-    p_surface._zparameters = {nhz + hz, hz};
     p_surface._transform._tr = {static_cast<actsvg::scalar>(center[0]),
                                 static_cast<actsvg::scalar>(center[1])};
     set_measures(p_surface, m);
@@ -163,7 +172,7 @@ auto surface(const transform_t& transform,
 /// @brief Returns the proto surface for a shape.
 /// @note For lines, the thickness is fixed and not determined by the cross
 /// section.
-template <typename point3_container_t, typename mask_t>
+template <typename mask_t>
 auto inline surface(const mask_t& m) {
     using transform_t = typename mask_t::local_frame_type::transform3_type;
     return detray::svgtools::conversion::surface(transform_t{}, m);
