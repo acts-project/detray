@@ -63,6 +63,8 @@ class uniform_track_generator
         /// Magnitude of momentum: Default is one to keep directions normalized
         /// if no momentum information is needed (e.g. for a ray)
         scalar m_p_mag{1.f * unit<scalar>::GeV};
+        /// Whether to interpret the momentum @c m_p_mag as p_T
+        bool m_is_pT{false};
 
         /// Time parameter and charge of the track
         scalar m_time{0.f * unit<scalar>::us};
@@ -124,7 +126,13 @@ class uniform_track_generator
             m_origin = ori;
             return *this;
         }
-        DETRAY_HOST_DEVICE configuration& p_mag(scalar p) {
+        DETRAY_HOST_DEVICE configuration& p_tot(scalar p) {
+            m_is_pT = false;
+            m_p_mag = p;
+            return *this;
+        }
+        DETRAY_HOST_DEVICE configuration& p_T(scalar p) {
+            m_is_pT = true;
             m_p_mag = p;
             return *this;
         }
@@ -164,7 +172,7 @@ class uniform_track_generator
         DETRAY_HOST_DEVICE constexpr const point3& origin() const {
             return m_origin;
         }
-        DETRAY_HOST_DEVICE constexpr scalar p_mag() const { return m_p_mag; }
+        DETRAY_HOST_DEVICE constexpr bool is_pT() const { return m_is_pT; }
         DETRAY_HOST_DEVICE constexpr scalar time() const { return m_time; }
         DETRAY_HOST_DEVICE constexpr scalar charge() const { return m_charge; }
         /// @}
@@ -250,13 +258,16 @@ class uniform_track_generator
         /// @returns a track instance from generated momentum direction
         DETRAY_HOST_DEVICE
         track_t operator*() const {
+
+            const scalar sin_theta{std::sin(m_theta)};
+
             // Momentum direction from angles
-            vector3 p{math_ns::cos(m_phi) * std::sin(m_theta),
-                      std::sin(m_phi) * std::sin(m_theta),
-                      math_ns::cos(m_theta)};
+            vector3 p{math_ns::cos(m_phi) * sin_theta,
+                      std::sin(m_phi) * sin_theta, math_ns::cos(m_theta)};
             // Magnitude of momentum
             vector::normalize(p);
-            p = m_cfg.p_mag() * p;
+
+            p = (m_cfg.is_pT() ? 1.f / sin_theta : 1.f) * m_cfg.m_p_mag * p;
 
             return track_t{m_cfg.origin(), m_cfg.time(), p, m_cfg.charge()};
         }
@@ -314,7 +325,7 @@ class uniform_track_generator
         : m_cfg{} {
         m_cfg.phi_steps(n_phi).theta_steps(n_theta);
         m_cfg.uniform_eta(uniform_eta);
-        m_cfg.p_mag(p_mag);
+        m_cfg.p_tot(p_mag);
         m_cfg.charge(charge);
     }
 

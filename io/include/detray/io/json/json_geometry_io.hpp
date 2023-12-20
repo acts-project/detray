@@ -134,7 +134,9 @@ inline void to_json(nlohmann::ordered_json& j, const detector_payload& d) {
             jvolumes.push_back(v);
         }
         j["volumes"] = jvolumes;
-        j["volume_grid"] = d.volume_grid;
+        if (d.volume_grid.has_value()) {
+            j["volume_grid"] = d.volume_grid.value();
+        }
     }
 }
 
@@ -143,8 +145,11 @@ inline void from_json(const nlohmann::ordered_json& j, detector_payload& d) {
         for (auto jvolume : j["volumes"]) {
             d.volumes.push_back(jvolume);
         }
-        d.volume_grid = j["volume_grid"];
     }
+    // @TODO Put back once volume grids can be read
+    /*if (j.find("volume_grid") != j.end()) {
+        d.volume_grid = j["volume_grid"];
+    }*/
 }
 
 }  // namespace detray

@@ -58,7 +58,7 @@ int main(int argc, char **argv) {
     helix_scan<toy_detector_t>::config cfg_hel_scan{};
     cfg_hel_scan.name("toy_detector_helix_scan");
     cfg_hel_scan.overstepping_tolerance(-100.f * unit<scalar_t>::um);
-    cfg_hel_scan.track_generator().p_mag(10.f * unit<scalar_t>::GeV);
+    cfg_hel_scan.track_generator().p_tot(10.f * unit<scalar_t>::GeV);
     cfg_hel_scan.track_generator().theta_steps(100u).phi_steps(100u);
     detray::detail::register_checks<detray::helix_scan>(toy_det, toy_names,
                                                         cfg_hel_scan);

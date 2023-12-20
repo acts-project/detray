@@ -59,7 +59,10 @@ GTEST_TEST(detray_simulation, uniform_track_generator) {
 
     // Now run the track generator and compare
     std::size_t n_tracks{0u};
-    for (const auto track : generator_t(phi_steps, theta_steps)) {
+    generator_t::configuration trk_gen_cfg{};
+    trk_gen_cfg.phi_steps(phi_steps).theta_steps(theta_steps);
+
+    for (const auto track : generator_t(trk_gen_cfg)) {
         vector3& expected = momenta[n_tracks];
         vector3 result = track.mom();
 

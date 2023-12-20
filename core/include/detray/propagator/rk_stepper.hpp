@@ -27,13 +27,16 @@ namespace detray {
 /// @tparam constraint_ the type of constraints on the stepper
 template <typename magnetic_field_t, typename transform3_t,
           typename constraint_t = unconstrained_step,
-          typename policy_t = stepper_default_policy,
+          typename policy_t = stepper_rk_policy,
+          typename inspector_t = stepping::void_inspector,
           template <typename, std::size_t> class array_t = darray>
 class rk_stepper final
-    : public base_stepper<transform3_t, constraint_t, policy_t> {
+    : public base_stepper<transform3_t, constraint_t, policy_t, inspector_t> {
 
     public:
-    using base_type = base_stepper<transform3_t, constraint_t, policy_t>;
+    using base_type =
+        base_stepper<transform3_t, constraint_t, policy_t, inspector_t>;
+    using inspector_type = inspector_t;
     using transform3_type = transform3_t;
     using policy_type = policy_t;
     using point3 = typename transform3_type::point3;
@@ -119,6 +122,17 @@ class rk_stepper final
 
         DETRAY_HOST_DEVICE
         inline vector3 dtds() const { return this->_step_data.k4; }
+
+        /// Call the stepping inspector
+        template <typename... Args>
+        DETRAY_HOST_DEVICE inline void run_inspector(
+            [[maybe_unused]] const char* message,
+            [[maybe_unused]] Args&&... args) {
+            if constexpr (not std::is_same_v<inspector_t,
+                                             stepping::void_inspector>) {
+                this->_inspector(*this, message, std::forward<Args>(args)...);
+            }
+        }
     };
 
     /// Take a step, using an adaptive Runge-Kutta algorithm.

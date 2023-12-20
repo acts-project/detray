@@ -74,6 +74,8 @@ int main(int argc, char** argv) {
 
     // Configs to be filled
     detray::io::detector_reader_config reader_cfg{};
+    // Also display incorrect geometries for debugging
+    reader_cfg.do_check(false);
 
     // Help message
     if (vm.count("help")) {

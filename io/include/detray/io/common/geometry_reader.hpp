@@ -94,13 +94,18 @@ class geometry_reader : public reader_interface<detector_t> {
                                     ? pt_factories
                                     : sf_factories};
 
+                // @TODO use portal cylinders until intersectors are fixed
+                auto shape_id{mask_data.shape == mask_shape::cylinder2
+                                  ? mask_shape::portal_cylinder2
+                                  : mask_data.shape};
+
                 // Check if a fitting factory already exists. If not, add it
                 // dynamically
-                const auto key{mask_data.shape};
+                const auto key{shape_id};
                 if (auto search = factories.find(key);
                     search == factories.end()) {
-                    factories[key] = std::move(
-                        init_factory<mask_shape::n_shapes>(mask_data.shape));
+                    factories[key] =
+                        std::move(init_factory<mask_shape::n_shapes>(shape_id));
                 }
 
                 // Add the data to the factory
