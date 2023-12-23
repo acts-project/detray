@@ -140,9 +140,9 @@ void detray::rk_stepper<magnetic_field_t, transform3_t, constraint_t, policy_t,
         auto dGdR = matrix_operator().template identity<3, 3>();
 
         const vector3 pos1 = track.pos();
-        const vector3 pos2 = pos1 + half_h * dir2;
-        const vector3 pos3 = pos1 + half_h * dir3;
-        const vector3 pos4 = pos1 + h * dir4;
+        const vector3 pos2 = pos1 + half_h * dir1;
+        const vector3 pos3 = pos1 + half_h * dir2;
+        const vector3 pos4 = pos1 + h * dir3;
 
         const matrix_type<3, 3> field_gradient1 = evaluate_field_gradient(pos1);
         const matrix_type<3, 3> field_gradient2 = evaluate_field_gradient(pos2);
@@ -257,7 +257,7 @@ auto detray::rk_stepper<
 
     matrix_type<3, 3> dBdr = matrix_operator().template zero<3, 3>();
 
-    const scalar h = 0.001f;
+    const scalar h = 1e-4f;
 
     for (unsigned int i = 0; i < 3; i++) {
 
