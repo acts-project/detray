@@ -152,7 +152,7 @@ void detray::rk_stepper<magnetic_field_t, transform3_t, constraint_t, policy_t,
         // dk{n}dR = d(qop_n * t_n X B_n)/dR
         //         = qop_n * [ d(t_n)/dR (X) B_n - d(B_n)/dR (X) t_n ]
         matrix_type<3, 3> dk1dR =
-            qop1 * mat_helper().column_wise_cross(field_gradient1, dir1);
+            -1.f * qop1 * mat_helper().column_wise_cross(field_gradient1, dir1);
         matrix_type<3, 3> dk2dR = qop2 * half_h * dk1dR;
         dk2dR = mat_helper().column_wise_cross(dk2dR, sd.b_middle) -
                 qop2 * mat_helper().column_wise_cross(field_gradient2, dir2);
