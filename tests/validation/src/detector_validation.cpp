@@ -59,8 +59,10 @@ int main(int argc, char **argv) {
         "min, max range of theta values for particle gun")(
         "origin", po::value<std::vector<scalar_t>>()->multitoken(),
         "coordintates for particle gun origin position")(
-        "p_mag", po::value<scalar_t>()->default_value(10.f),
-        "absolute momentum of the test particle [GeV]")(
+        "p_tot", po::value<scalar_t>()->default_value(10.f),
+        "total momentum of the test particle [GeV]")(
+        "p_T", po::value<scalar_t>()->default_value(10.f),
+        "transverse momentum of the test particle [GeV]")(
         "overstep_tol", po::value<scalar_t>()->default_value(-100.f),
         "overstepping tolerance [um] NOTE: Must be negative!");
 
@@ -79,6 +81,7 @@ int main(int argc, char **argv) {
 
     // Configs to be filled
     detray::io::detector_reader_config reader_cfg{};
+    reader_cfg.do_check(false);  // < Don't run consistency check twice
     detray::consistency_check<detector_t>::config con_chk_cfg{};
     detray::ray_scan<detector_t>::config ray_scan_cfg{};
     detray::helix_scan<detector_t>::config hel_scan_cfg{};
@@ -147,10 +150,14 @@ int main(int argc, char **argv) {
                 "Particle gun origin needs three arguments");
         }
     }
-    if (vm.count("p_mag")) {
-        const scalar_t p_mag{vm["p_mag"].as<scalar_t>()};
+    if (vm.count("p_tot")) {
+        const scalar_t p_mag{vm["p_tot"].as<scalar_t>()};
 
-        hel_nav_cfg.track_generator().p_mag(p_mag * unit<scalar_t>::GeV);
+        hel_nav_cfg.track_generator().p_tot(p_mag * unit<scalar_t>::GeV);
+    } else if (vm.count("p_T")) {
+        const scalar_t p_T{vm["p_T"].as<scalar_t>()};
+
+        hel_nav_cfg.track_generator().p_T(p_T * unit<scalar_t>::GeV);
     }
 
     // Navigation

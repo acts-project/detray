@@ -132,7 +132,7 @@ namespace io {
 /// @param cfg the detector reader configuration
 ///
 /// @returns a complete detector object + a map that contains the volume names
-template <class detector_t, std::size_t CAP = 9u, std::size_t DIM = 2u,
+template <class detector_t, std::size_t CAP = 100u, std::size_t DIM = 2u,
           template <typename> class volume_builder_t = volume_builder>
 auto read_detector(vecmem::memory_resource& resc,
                    const detector_reader_config& cfg) noexcept(false) {

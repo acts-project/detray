@@ -104,10 +104,10 @@ inline void svg_display(
     actsvg::style::stroke stroke_black = actsvg::style::stroke();
 
     // x-y axis.
-    auto xy_axis = actsvg::draw::x_y_axes("axes", {-250, 250}, {-250, 250},
+    auto xy_axis = actsvg::draw::x_y_axes("axes", {-1100, 1100}, {-1100, 1100},
                                           stroke_black, "x", "y");
     // z-r axis.
-    auto zr_axis = actsvg::draw::x_y_axes("axes", {-1500, 1500}, {-5, 250},
+    auto zr_axis = actsvg::draw::x_y_axes("axes", {-3100, 3100}, {-5, 1100},
                                           stroke_black, "z", "r");
     // Creating the views.
     const actsvg::views::x_y xy;
@@ -118,16 +118,18 @@ inline void svg_display(
         gctx, il, intersections_truth, traj, traj_name, intersections, xy);
 
     const auto [vol_xy_svg, _] = il.draw_volumes(volumes, xy, gctx);
-    detray::svgtools::write_svg(path / (outfile + "_" + vol_xy_svg._id),
-                                {xy_axis, vol_xy_svg, svg_traj});
+    detray::svgtools::write_svg(
+        path / (outfile + "_" + vol_xy_svg._id + "_" + traj_name),
+        {xy_axis, vol_xy_svg, svg_traj});
 
     // zr - view
     svg_traj = draw_intersection_and_traj_svg(
         gctx, il, intersections_truth, traj, traj_name, intersections, zr);
 
     const auto vol_zr_svg = il.draw_detector(zr, gctx);
-    detray::svgtools::write_svg(path / (outfile + "_" + vol_zr_svg._id),
-                                {zr_axis, vol_zr_svg, svg_traj});
+    detray::svgtools::write_svg(
+        path / (outfile + "_" + vol_zr_svg._id + "_" + traj_name),
+        {zr_axis, vol_zr_svg, svg_traj});
 
     std::cout << "INFO: Wrote debugging data in: " << path << "\n" << std::endl;
 }

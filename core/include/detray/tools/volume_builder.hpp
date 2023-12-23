@@ -43,9 +43,11 @@ class volume_builder : public volume_builder_interface<detector_t> {
     /// @param id flags the type of volume geometry (e.g. cylindrical, cuboid)
     /// @param idx the index of the volume in the detector volume container
     volume_builder(const volume_id id, const dindex idx = dindex_invalid)
-        : m_volume{id} {
+        : m_has_accel{false}, m_volume{id} {
+
         m_volume.set_index(idx);
-        // The first surface search data structure in every volume is a brute
+
+        // The first acceleration data structure in every volume is a brute
         // force method that will at least contain the portals
         m_volume
             .template set_link<static_cast<typename volume_type::object_id>(0)>(
@@ -61,6 +63,14 @@ class volume_builder : public volume_builder_interface<detector_t> {
     /// @returns the volume index in the detector volume container
     DETRAY_HOST
     auto vol_index() -> dindex override { return m_volume.index(); }
+
+    /// Toggles whether sensitive surfaces are added to the brute force method
+    DETRAY_HOST
+    void has_accel(bool toggle) override { m_has_accel = toggle; }
+
+    /// @returns whether sensitive surfaces are added to the brute force method
+    DETRAY_HOST
+    bool has_accel() const override { return m_has_accel; }
 
     /// Access to the volume under construction - const
     DETRAY_HOST
@@ -162,17 +172,37 @@ class volume_builder : public volume_builder_interface<detector_t> {
         // Update mask and transform index of surfaces and set the
         // correct index of the surface in container
         auto sf_offset{static_cast<dindex>(det.surface_lookup().size())};
+        std::size_t n_portals{0u};
         for (auto& sf_desc : m_surfaces) {
+
             const auto sf = surface{det, sf_desc};
+
             sf.template visit_mask<detail::mask_index_update>(sf_desc);
             sf_desc.set_volume(m_volume.index());
             sf_desc.update_transform(trf_offset);
             sf_desc.set_index(sf_offset++);
+
             det.add_surface_to_lookup(sf_desc);
+
+            if (sf_desc.is_portal()) {
+                ++n_portals;
+            }
         }
 
-        // Append surfaces
-        det.append_portals(std::move(m_surfaces));
+        // Add portals to brute force navigation method
+        if (m_has_accel) {
+            typename detector_t::surface_container portals{};
+            portals.reserve(n_portals);
+
+            std::copy_if(m_surfaces.begin(), m_surfaces.end(),
+                         std::back_inserter(portals),
+                         [](auto& sf_desc) { return !sf_desc.is_sensitive(); });
+
+            det.append_portals(std::move(portals));
+        } else {
+            // No acceleration structure: Add all surfaces to brute force method
+            det.append_portals(std::move(m_surfaces));
+        }
 
         // Update the surface link in the volume. In the volume builder, all
         // surfaces are filled into the default brute_force accelerator.
@@ -189,6 +219,9 @@ class volume_builder : public volume_builder_interface<detector_t> {
         // Finally, add the volume descriptor
         det.volumes().push_back(m_volume);
     }
+
+    /// Whether the volume will get an acceleration structure
+    bool m_has_accel{false};
 
     /// Volume descriptor of the volume under construction
     typename detector_t::volume_type m_volume{};

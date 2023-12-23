@@ -92,7 +92,7 @@ struct intersection2D {
     DETRAY_HOST_DEVICE
     bool operator==(const intersection2D &rhs) const {
         return std::abs(path - rhs.path) <
-               std::numeric_limits<scalar_type>::epsilon();
+               std::numeric_limits<float>::epsilon();
     }
 
     /// Transform to a string for output debugging

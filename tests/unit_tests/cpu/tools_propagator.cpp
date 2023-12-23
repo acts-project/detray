@@ -145,10 +145,16 @@ class PropagatorWithRkStepper
           std::tuple<scalar, scalar, __plugin::vector3<scalar>>> {
 
     public:
+    using generator_t =
+        uniform_track_generator<free_track_parameters<transform3>>;
+
     /// Set the test environment up
     virtual void SetUp() {
         overstep_tol = std::get<0>(GetParam());
         step_constr = std::get<1>(GetParam());
+
+        trk_gen_cfg.phi_steps(50u).theta_steps(50u);
+        trk_gen_cfg.p_tot(10.f * unit<scalar>::GeV);
     }
 
     /// Clean up
@@ -160,9 +166,7 @@ class PropagatorWithRkStepper
     toy_det_config toy_cfg{4u, 7u};
 
     /// Track generator configuration
-    unsigned int theta_steps{50u};
-    unsigned int phi_steps{50u};
-    scalar mom{10.f * unit<scalar>::GeV};
+    generator_t::configuration trk_gen_cfg{};
 
     /// Stepper configuration
     scalar overstep_tol, step_constr;
@@ -181,7 +185,7 @@ TEST_P(PropagatorWithRkStepper, rk4_propagator_const_bfield) {
     using navigator_t = navigator<detector_t /*, navigation::print_inspector*/>;
     using track_t = free_track_parameters<transform3>;
     using constraints_t = constrained_step<>;
-    using policy_t = stepper_default_policy;
+    using policy_t = stepper_rk_policy;
     using stepper_t =
         rk_stepper<bfield_t::view_t, transform3, constraints_t, policy_t>;
     // Include helix actor to check track position/covariance
@@ -202,8 +206,7 @@ TEST_P(PropagatorWithRkStepper, rk4_propagator_const_bfield) {
     propagator_t p(stepper_t{}, navigator_t{});
 
     // Iterate through uniformly distributed momentum directions
-    for (auto track :
-         uniform_track_generator<track_t>(phi_steps, theta_steps, mom)) {
+    for (auto track : generator_t{trk_gen_cfg}) {
         // Generate second track state used for propagation with pathlimit
         track_t lim_track(track);
 
@@ -283,7 +286,7 @@ TEST_P(PropagatorWithRkStepper, rk4_propagator_inhom_bfield) {
     using navigator_t = navigator<detector_t /*, navigation::print_inspector*/>;
     using track_t = free_track_parameters<transform3>;
     using constraints_t = constrained_step<>;
-    using policy_t = stepper_default_policy;
+    using policy_t = stepper_rk_policy;
     using stepper_t =
         rk_stepper<bfield_t::view_t, transform3, constraints_t, policy_t>;
     // Include helix actor to check track position/covariance
@@ -303,8 +306,7 @@ TEST_P(PropagatorWithRkStepper, rk4_propagator_inhom_bfield) {
     propagator_t p(stepper_t{}, navigator_t{});
 
     // Iterate through uniformly distributed momentum directions
-    for (auto track :
-         uniform_track_generator<track_t>(phi_steps, theta_steps, mom)) {
+    for (auto track : generator_t{trk_gen_cfg}) {
         // Genrate second track state used for propagation with pathlimit
         track_t lim_track(track);
 
@@ -369,21 +371,21 @@ INSTANTIATE_TEST_SUITE_P(
 // non-z-aligned B-fields
 INSTANTIATE_TEST_SUITE_P(PropagationValidation2, PropagatorWithRkStepper,
                          ::testing::Values(std::make_tuple(
-                             -10.f * unit<scalar>::um, 5.f * unit<scalar>::mm,
+                             -800.f * unit<scalar>::um, 40.f * unit<scalar>::mm,
                              __plugin::vector3<scalar>{
                                  0.f * unit<scalar>::T, 1.f * unit<scalar>::T,
                                  1.f * unit<scalar>::T})));
 
 INSTANTIATE_TEST_SUITE_P(PropagationValidation3, PropagatorWithRkStepper,
                          ::testing::Values(std::make_tuple(
-                             -10.f * unit<scalar>::um, 5.f * unit<scalar>::mm,
+                             -800.f * unit<scalar>::um, 40.f * unit<scalar>::mm,
                              __plugin::vector3<scalar>{
                                  1.f * unit<scalar>::T, 0.f * unit<scalar>::T,
                                  1.f * unit<scalar>::T})));
 
 INSTANTIATE_TEST_SUITE_P(PropagationValidation4, PropagatorWithRkStepper,
                          ::testing::Values(std::make_tuple(
-                             -10.f * unit<scalar>::um, 5.f * unit<scalar>::mm,
+                             -800.f * unit<scalar>::um, 35.f * unit<scalar>::mm,
                              __plugin::vector3<scalar>{
                                  1.f * unit<scalar>::T, 1.f * unit<scalar>::T,
                                  1.f * unit<scalar>::T})));

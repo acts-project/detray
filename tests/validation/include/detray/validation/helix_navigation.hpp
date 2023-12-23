@@ -107,7 +107,9 @@ class helix_navigation : public test::fixture_base<> {
         using navigator_t = navigator<detector_t, inspector_t, intersection_t>;
         // Runge-Kutta stepper
         using bfield_t = bfield::const_field_t;
-        using stepper_t = rk_stepper<typename bfield_t::view_t, transform3_t>;
+        using stepper_t = rk_stepper<typename bfield_t::view_t, transform3_t,
+                                     unconstrained_step, stepper_rk_policy,
+                                     stepping::print_inspector>;
         // Propagator with pathlimit aborter
         using actor_chain_t = actor_chain<dtuple, pathlimit_aborter>;
         using propagator_t = propagator<stepper_t, navigator_t, actor_chain_t>;
@@ -135,6 +137,13 @@ class helix_navigation : public test::fixture_base<> {
                   << " helices) ...\n"
                   << std::endl;
 
+        /// Error statistic
+        std::size_t n_close_miss{0u}, n_fatal{0u};
+
+        std::ios_base::openmode io_mode = std::ios::trunc | std::ios::out;
+        detray::io::detail::file_handle debug_file{"./helix_navigation", ".txt",
+                                                   io_mode};
+
         for (auto track : trk_state_generator) {
 
             // Prepare for overstepping in the presence of b fields
@@ -149,16 +158,19 @@ class helix_navigation : public test::fixture_base<> {
                 m_det, helix, 15.f * unit<scalar_t>::um);
 
             // Build actor and propagator states
-            pathlimit_aborter::state pathlimit_aborter_state{3.5f *
+            pathlimit_aborter::state pathlimit_aborter_state{5.f *
                                                              unit<scalar_t>::m};
             auto actor_states = std::tie(pathlimit_aborter_state);
 
             typename propagator_t::state propagation(track, hom_bfield, m_det);
 
             // Access to navigation information
-            auto &inspector = propagation._navigation.inspector();
-            auto &obj_tracer = inspector.template get<object_tracer_t>();
-            auto &debug_printer = inspector.template get<print_inspector>();
+            auto &nav_inspector = propagation._navigation.inspector();
+            auto &obj_tracer = nav_inspector.template get<object_tracer_t>();
+            auto &nav_printer = nav_inspector.template get<print_inspector>();
+
+            // Acces to the stepper information
+            auto &step_printer = propagation._stepping.inspector();
 
             // Run the propagation
             bool success = prop.propagate(propagation, actor_states);
@@ -169,7 +181,12 @@ class helix_navigation : public test::fixture_base<> {
                                                   trk_state_generator.size());
             }
             if (not success) {
-                // Creating the svg generator for the detector.
+                // Write debug info to file
+                *debug_file << "HELIX " << n_tracks << ":\n\n"
+                            << nav_printer.to_string()
+                            << step_printer.to_string();
+
+                // Create the svg for failed tracks.
                 detray::svgtools::illustrator il{m_det, m_names,
                                                  m_cfg.svg_style()};
                 il.show_info(true);
@@ -178,16 +195,32 @@ class helix_navigation : public test::fixture_base<> {
                 il.hide_passives(false);
 
                 detail::svg_display(gctx, il, intersection_trace, helix,
-                                    "helix", m_cfg.name(),
-                                    obj_tracer.object_trace);
+                                    "helix_" + std::to_string(n_tracks),
+                                    m_cfg.name(), obj_tracer.object_trace);
+
+                // Keep a statistic on the errors that occured
+                if (!propagation._navigation.is_complete()) {
+                    ++n_fatal;
+                } else {
+                    // @TODO: Check mask boundaries
+                    ++n_close_miss;
+                }
             }
 
-            ASSERT_TRUE(success)
+            EXPECT_TRUE(success)
                 << "\nFailed on helix " << n_tracks << "/"
-                << trk_state_generator.size() << ": " << helix << "\n\n"
-                << debug_printer.to_string();
+                << trk_state_generator.size() << ": " << helix << "\n\n";
 
             ++n_tracks;
+        }
+
+        if (n_close_miss > 0u || n_fatal > 0u) {
+            std::cout << "-----------------------------------"
+                      << "Error Statistic:\n\n"
+                      << "\n (close misses: " << n_close_miss
+                      << ", fatal failures: " << n_fatal << ")\n"
+                      << "-----------------------------------\n"
+                      << std::endl;
         }
     }
 

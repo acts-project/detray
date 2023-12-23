@@ -569,7 +569,7 @@ class navigator {
             return navigation.m_heartbeat;
         }
         // Otherwise: did we run into a portal?
-        if (navigation.status() == navigation::status::e_on_portal) {
+        else if (navigation.is_on_portal()) {
             // Set volume index to the next volume provided by the portal
             navigation.set_volume(navigation.current()->volume_link);
 
@@ -580,10 +580,17 @@ class navigator {
             }
             // Run inspection when needed (keep for debugging)
             // navigation.run_inspector("Volume switch: ");
+
+            init(propagation);
+
+            // Fresh initialization, reset trust and hearbeat
+            navigation.m_trust_level = navigation::trust_level::e_full;
+            navigation.m_heartbeat = true;
+
+            return navigation.m_heartbeat;
         }
         // If no trust could be restored for the current state, (local)
-        // navigation might be exhausted or we switched volumes:
-        // re-initialize volume
+        // navigation might be exhausted: re-initialize volume
         navigation.m_heartbeat &= init(propagation);
 
         // Sanity check: Should never be the case after complete update call
@@ -618,8 +625,9 @@ class navigator {
 
         // Update only the current candidate and the corresponding next target
         // - do this only when the navigation state is still coherent
-        if (navigation.trust_level() == navigation::trust_level::e_high or
-            navigation.n_candidates() == 1) {
+        if (navigation.trust_level() == navigation::trust_level::e_high ||
+            (navigation.n_candidates() == 1 &&
+             navigation.trust_level() == navigation::trust_level::e_high)) {
 
             // Update next candidate: If not reachable, 'high trust' is broken
             if (not update_candidate(*navigation.next(), track, det,
@@ -704,9 +712,8 @@ class navigator {
     DETRAY_HOST_DEVICE inline void update_navigation_state(
         const track_t &track, state &navigation) const {
 
-        // Check wether the track reached the current candidate. Might be a
-        // portal, in which case the navigation becomes exhausted (the
-        // exit-portal is the last reachable surface in every volume)
+        // Check whether the track reached the current candidate. Might be a
+        // portal, in which case the navigation needs to be re-initialized
         if (navigation.is_on_object(*navigation.next(), track)) {
             // Set the next object that we want to reach (this function is only
             // called once the cache has been updated to a full trust state).
@@ -721,9 +728,13 @@ class navigator {
         }
         // Exhaustion happens when after an update no next candidate in the
         // cache is reachable anymore -> triggers init of [new] volume
-        navigation.m_trust_level = navigation.is_exhausted()
-                                       ? navigation::trust_level::e_no_trust
-                                       : navigation::trust_level::e_full;
+        // In backwards navigation or with strongly bent tracks, the cache may
+        // not be exhausted when trying to exit the volume (the ray is seeing
+        // the opposite side of the volume)
+        navigation.m_trust_level =
+            navigation.is_exhausted() || navigation.is_on_portal()
+                ? navigation::trust_level::e_no_trust
+                : navigation::trust_level::e_full;
     }
 
     /// @brief Helper method that updates the intersection of a single candidate

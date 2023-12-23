@@ -37,11 +37,17 @@ class grid_builder final : public volume_decorator<detector_t> {
     public:
     using scalar_type = typename detector_t::scalar_type;
 
-    // TODO: nullptr can lead to exceptions, remove in the full implementation
+    /// Decorate a volume with a grid
     DETRAY_HOST
     grid_builder(
         std::unique_ptr<volume_builder_interface<detector_t>> vol_builder)
-        : volume_decorator<detector_t>(std::move(vol_builder)) {}
+        : volume_decorator<detector_t>(std::move(vol_builder)) {
+        // The grid builder provides an acceleration structure to the
+        // volume, so don't add sensitive surfaces to the brute force method
+        if (this->m_builder) {
+            this->m_builder->has_accel(true);
+        }
+    }
 
     /// Should the passive surfaces be added to the grid ?
     void set_add_passives(bool is_add_passive = true) {
@@ -105,26 +111,19 @@ class grid_builder final : public volume_decorator<detector_t> {
         typename detector_t::volume_type *vol_ptr =
             volume_decorator<detector_t>::build(det, ctx);
 
-        // Take the surfaces that should be filled into the grid out of the
-        // brute force finder
+        // Find the surfaces that should be filled into the grid
         const auto vol_idx{vol_ptr->index()};
-        constexpr auto bf_id{detector_t::accel::id::e_brute_force};
-        auto &bf_search = det.accelerator_store().template get<bf_id>();
 
         // Grid has not been filled previously, fill it automatically
         if (m_grid.size() == 0u) {
             std::vector<surface_desc_t> surfaces{};
-            for (auto itr = bf_search.all().begin();
-                 itr != bf_search.all().end();) {
-                if (itr->volume() != vol_idx) {
+            for (auto &sf_desc : det.surface_lookup()) {
+                if (sf_desc.volume() != vol_idx) {
                     continue;
                 }
-                if (itr->is_sensitive() or
-                    (m_add_passives and itr->is_passive())) {
-                    surfaces.push_back(*itr);
-                    bf_search.erase(itr);
-                } else {
-                    ++itr;
+                if (sf_desc.is_sensitive() or
+                    (m_add_passives and sf_desc.is_passive())) {
+                    surfaces.push_back(sf_desc);
                 }
             }
 
@@ -137,33 +136,28 @@ class grid_builder final : public volume_decorator<detector_t> {
             // correct surface indices per bin (e.g. from file IO).
             // Now add the rest of the linking information, which is only
             // available after the volume builder ran
-            for (auto itr = bf_search.all().begin();
-                 itr != bf_search.all().end();) {
-                if (itr->volume() != vol_idx) {
-                    ++itr;
+            for (auto &sf_desc : det.surface_lookup()) {
+                if (sf_desc.volume() != vol_idx) {
                     continue;
                 }
-                if (itr->is_sensitive() or
-                    (m_add_passives and itr->is_passive())) {
-                    const auto vol = det.volume_by_index(itr->volume());
+                if (sf_desc.is_sensitive() or
+                    (m_add_passives and sf_desc.is_passive())) {
+                    const auto vol = det.volume_by_index(sf_desc.volume());
                     // The current volume is already built, so the surface
                     // interface is safe to use
-                    const auto sf = surface{det, *itr};
-                    const auto t = sf.center(ctx);
+                    const auto sf = surface{det, sf_desc};
+                    const auto &sf_trf = sf.transform(ctx);
+                    const auto t = sf_trf.point_to_global(sf.centroid());
                     const auto loc_pos =
                         m_grid.global_to_local(vol.transform(), t, t);
                     auto bin_content = m_grid.search(loc_pos);
 
-                    for (surface_desc_t &sf_desc : bin_content) {
+                    for (surface_desc_t &sf_in_grid : bin_content) {
                         // Find the correct surface and update all links
-                        if (sf_desc.index() == sf.index()) {
-                            sf_desc = *itr;
+                        if (sf_in_grid.index() == sf.index()) {
+                            sf_in_grid = sf_desc;
                         }
                     }
-
-                    bf_search.erase(itr);
-                } else {
-                    ++itr;
                 }
             }
         }

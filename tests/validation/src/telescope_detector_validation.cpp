@@ -62,7 +62,7 @@ int main(int argc, char **argv) {
     helix_scan<tel_detector_t>::config cfg_hel_scan{};
     cfg_hel_scan.name("telescope_detector_helix_scan");
     cfg_hel_scan.overstepping_tolerance(-100.f * unit<scalar_t>::um);
-    cfg_hel_scan.track_generator().p_mag(10.f * unit<scalar_t>::GeV);
+    cfg_hel_scan.track_generator().p_tot(10.f * unit<scalar_t>::GeV);
     cfg_hel_scan.track_generator().origin({0.f, 0.f, -0.05f});
     cfg_hel_scan.track_generator().theta_steps(100u).phi_steps(100u);
     cfg_hel_scan.track_generator().theta_range(constant<scalar_t>::pi_4,

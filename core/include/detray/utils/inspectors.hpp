@@ -185,6 +185,85 @@ struct print_inspector {
 
 }  // namespace navigation
 
+namespace stepping {
+
+/// A stepper inspector that prints information about the current stepper
+/// state. Meant for debugging.
+struct print_inspector {
+
+    /// Gathers stepping information from inside the stepper methods
+    std::stringstream debug_stream{};
+
+    /// Inspector interface. Gathers detailed information during navigation
+    template <typename state_type>
+    void operator()(const state_type &state, const char *message) {
+        std::string msg(message);
+        std::string tabs = "\t\t\t\t";
+
+        debug_stream << msg << std::endl;
+
+        debug_stream << "Step size" << tabs << state.step_size() << std::endl;
+        debug_stream << "Path length" << tabs << state.path_length()
+                     << std::endl;
+
+        switch (state.direction()) {
+            case step::direction::e_forward:
+                debug_stream << "direction" << tabs << "forward" << std::endl;
+                break;
+            case step::direction::e_unknown:
+                debug_stream << "direction" << tabs << "unknown" << std::endl;
+                break;
+            case step::direction::e_backward:
+                debug_stream << "direction" << tabs << "backward" << std::endl;
+                break;
+        };
+
+        auto pos = state().pos();
+
+        debug_stream << "Pos:\t[r = " << std::hypot(pos[0], pos[1])
+                     << ", z = " << pos[2] << "]" << std::endl;
+        debug_stream << "Tangent:\t"
+                     << detail::ray<__plugin::transform3<scalar>>(state())
+                     << std::endl;
+        debug_stream << std::endl;
+    }
+
+    /// Inspector interface. Gathers detailed information during navigation
+    template <typename state_type>
+    void operator()(const state_type &state, const char *message,
+                    const std::size_t n_trials, const scalar step_scalor) {
+        std::string msg(message);
+        std::string tabs = "\t\t\t\t";
+
+        debug_stream << msg << std::endl;
+
+        // Remove trailing newlines
+        debug_stream << "Step size" << tabs << state.step_size() << std::endl;
+        debug_stream << "no. RK adjustments"
+                     << "\t\t" << n_trials << std::endl;
+        debug_stream << "Step size scale factor"
+                     << "\t\t" << step_scalor << std::endl;
+
+        debug_stream << "Bfield points:" << std::endl;
+        const auto &f = state._step_data.b_first;
+        debug_stream << "\tfirst:" << tabs << f[0] << ", " << f[1] << ", "
+                     << f[2] << std::endl;
+        const auto &m = state._step_data.b_middle;
+        debug_stream << "\tmiddle:" << tabs << m[0] << ", " << m[1] << ", "
+                     << m[2] << std::endl;
+        const auto &l = state._step_data.b_last;
+        debug_stream << "\tlast:" << tabs << l[0] << ", " << l[1] << ", "
+                     << l[2] << std::endl;
+
+        debug_stream << std::endl;
+    }
+
+    /// @returns a string representation of the gathered information
+    std::string to_string() { return debug_stream.str(); }
+};
+
+}  // namespace stepping
+
 namespace propagation {
 
 /// Print inspector that runs as actor in the propagation
