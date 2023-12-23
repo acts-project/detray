@@ -250,9 +250,9 @@ auto detray::rk_stepper<magnetic_field_t, transform3_t, constraint_t, policy_t,
 template <typename magnetic_field_t, typename transform3_t,
           typename constraint_t, typename policy_t, typename inspector_t,
           template <typename, std::size_t> class array_t>
-auto detray::rk_stepper<magnetic_field_t, transform3_t, constraint_t, policy_t,
-                        array_t>::state::evaluate_field_gradient(const vector3&
-                                                                     pos)
+auto detray::rk_stepper<
+    magnetic_field_t, transform3_t, constraint_t, policy_t, inspector_t,
+    array_t>::state::evaluate_field_gradient(const vector3& pos)
     -> matrix_type<3, 3> {
 
     matrix_type<3, 3> dBdr = matrix_operator().template zero<3, 3>();
@@ -290,7 +290,7 @@ auto detray::rk_stepper<magnetic_field_t, transform3_t, constraint_t, policy_t,
 }
 
 template <typename magnetic_field_t, typename transform3_t,
-          typename constraint_t, typename policy_t,
+          typename constraint_t, typename policy_t, typename inspector_t,
           template <typename, std::size_t> class array_t>
 template <typename propagation_state_t>
 bool detray::rk_stepper<magnetic_field_t, transform3_t, constraint_t, policy_t,
