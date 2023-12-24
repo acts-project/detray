@@ -84,6 +84,9 @@ class line_stepper final
 
         DETRAY_HOST_DEVICE
         inline vector3 dtds() const { return vector3{0.f, 0.f, 0.f}; }
+
+        DETRAY_HOST_DEVICE
+        inline scalar dqopds() const { return 0.f; }
     };
 
     /// Take a step, regulared by a constrained step
