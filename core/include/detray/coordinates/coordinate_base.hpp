@@ -223,7 +223,7 @@ struct coordinate_base {
 
     DETRAY_HOST_DEVICE inline free_matrix path_correction(
         const vector3& pos, const vector3& dir, const vector3& dtds,
-        const transform3_t& trf3) const {
+        const scalar dqopds, const transform3_t& trf3) const {
 
         free_to_path_matrix path_derivative =
             Derived<transform3_t>().path_derivative(trf3, pos, dir, dtds);
@@ -236,6 +236,7 @@ struct coordinate_base {
         matrix_operator().element(derivative, e_free_dir0, 0u) = dtds[0];
         matrix_operator().element(derivative, e_free_dir1, 0u) = dtds[1];
         matrix_operator().element(derivative, e_free_dir2, 0u) = dtds[2];
+        matrix_operator().element(derivative, e_free_qoverp, 0u) = dqopds;
 
         return derivative * path_derivative;
     }

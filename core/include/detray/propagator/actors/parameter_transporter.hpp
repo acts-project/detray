@@ -86,7 +86,8 @@ struct parameter_transporter : actor {
 
             // Path correction factor
             free_matrix path_correction = local_coordinate.path_correction(
-                stepping().pos(), stepping().dir(), stepping.dtds(), trf3);
+                stepping().pos(), stepping().dir(), stepping.dtds(),
+                stepping.dqopds(), trf3);
 
             const free_matrix correction_term =
                 matrix_operator()

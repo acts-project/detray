@@ -99,6 +99,7 @@ void detray::rk_stepper<magnetic_field_t, transform3_t, constraint_t, policy_t,
     auto dk3dT = matrix_operator().template identity<3, 3>();
     auto dk4dT = matrix_operator().template identity<3, 3>();
 
+    // Top-left 3x3 submatrix of Eq 3.12 of [JINST 4 P04016]
     dk1dT = qop1 * mat_helper().column_wise_cross(dk1dT, sd.b_first);
     dk2dT = dk2dT + half_h * dk1dT;
     dk2dT = qop2 * mat_helper().column_wise_cross(dk2dT, sd.b_middle);
@@ -107,7 +108,6 @@ void detray::rk_stepper<magnetic_field_t, transform3_t, constraint_t, policy_t,
     dk4dT = dk4dT + h * dk3dT;
     dk4dT = qop4 * mat_helper().column_wise_cross(dk4dT, sd.b_last);
 
-    // dFdT and dGdT are top-left 3x3 submatrix of equation (17)
     auto dFdT = matrix_operator().template identity<3, 3>();
     auto dGdT = matrix_operator().template identity<3, 3>();
     dFdT = dFdT + h_6 * (dk1dT + dk2dT + dk3dT);
@@ -135,6 +135,41 @@ void detray::rk_stepper<magnetic_field_t, transform3_t, constraint_t, policy_t,
     matrix_operator().set_block(D, dGdT, 4u, 4u);
     matrix_operator().set_block(D, dGdL, 4u, 7u);
 
+    /// (4,4) element (right-bottom) of Eq. 3.12 [JINST 4 P04016]
+    if (_use_eloss_gradient) {
+        const scalar q = track.charge();
+        const scalar p = q / qop1;
+        const auto& mass = this->_mass;
+        const scalar p2 = p * p;
+        const scalar E2 = p2 + mass * mass;
+        const scalar E = math_ns::sqrt(E2);
+
+        // Interaction object
+        interaction<scalar> I;
+
+        // g: dE/ds = -1 * stopping power
+        const scalar g = -1.f * I.compute_stopping_power(this->_mat, this->_pdg,
+                                                         mass, qop1, q);
+        // dg/d(qop) = -1 * derivation of stopping power
+        const scalar dg_dQop =
+            -1.f *
+            I.derive_stopping_power(this->_mat, this->_pdg, mass, qop1, q);
+
+        // d(Qop)/ds = - qop^3 * E * g / q^2
+        const scalar dQop_ds = (-1.f * qop1 * qop1 * qop1 * E * g) / (q * q);
+
+        const scalar gradient =
+            dQop_ds * (1.f / qop1 * (3 - p2 / E2) + 1.f / g * dg_dQop);
+
+        // As the reference said that "The energy loss and its gradient varies
+        // little within each recursion step, hence the values calculated in the
+        // first stage are recycled by the following stages"
+        //
+        // But it would be better to be more precise in the future
+        getter::element(D, 7u, 7u) = 1.f + gradient * h;
+    }
+
+    // Equation 3.13 of [JINST 4 P04016]
     if (_use_field_gradient) {
         auto dFdR = matrix_operator().template identity<3, 3>();
         auto dGdR = matrix_operator().template identity<3, 3>();
@@ -287,6 +322,37 @@ auto detray::rk_stepper<
     }
 
     return dBdr;
+}
+
+template <typename magnetic_field_t, typename transform3_t,
+          typename constraint_t, typename policy_t, typename inspector_t,
+          template <typename, std::size_t> class array_t>
+auto detray::rk_stepper<magnetic_field_t, transform3_t, constraint_t, policy_t,
+                        inspector_t, array_t>::state::dqopds() const -> scalar {
+
+    const auto& mat = this->_mat;
+    const auto& pdg = this->_pdg;
+
+    // d(qop)ds is zero for empty space
+    if (mat == detray::vacuum<scalar>()) {
+        return 0.f;
+    }
+
+    const scalar qop = this->_step_data.k_qop4;
+    const scalar q = this->_track.charge();
+    const scalar p = q / qop;
+    const scalar mass = this->_mass;
+    const scalar E = std::sqrt(p * p + mass * mass);
+
+    // Compute stopping power
+    const scalar stopping_power =
+        interaction<scalar>().compute_stopping_power(mat, pdg, mass, qop, q);
+
+    // Assert that a momentum is a positive value
+    assert(p >= 0.f);
+
+    // d(qop)ds, which is equal to (qop) * E * (-dE/ds) / p^2
+    return qop * E * stopping_power / (p * p);
 }
 
 template <typename magnetic_field_t, typename transform3_t,

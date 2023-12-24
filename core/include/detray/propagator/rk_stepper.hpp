@@ -104,6 +104,9 @@ class rk_stepper final
         /// if false, most probable energy loss (Landau) will be used
         bool _use_mean_loss = true;
 
+        /// Use eloss gradient in error propagation
+        bool _use_eloss_gradient = false;
+
         /// Use b field gradient in error propagation
         bool _use_field_gradient = false;
 
@@ -132,8 +135,13 @@ class rk_stepper final
         DETRAY_HOST_DEVICE
         inline matrix_type<3, 3> evaluate_field_gradient(const vector3& pos);
 
+        /// Evaluate dtds, where t is unit tangentional direction
         DETRAY_HOST_DEVICE
         inline vector3 dtds() const { return this->_step_data.k4; }
+
+        /// Evaulate d(qop)/ds
+        DETRAY_HOST_DEVICE
+        inline scalar dqopds() const;
 
         /// Call the stepping inspector
         template <typename... Args>
