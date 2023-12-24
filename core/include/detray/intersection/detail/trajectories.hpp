@@ -299,10 +299,14 @@ class helix {
 
         drdt = drdt + math_ns::sin(_K * s) / _K * I33;
 
-        const auto H0 = mat_helper().column_wise_multiply(I33, _h0);
-        drdt = drdt + (_K * s - math_ns::sin(_K * s)) / _K *
-                          mat_helper().column_wise_multiply(
-                              matrix_operator().transpose(H0), _h0);
+        matrix_type<3, 1> H0 = matrix_operator().template zero<3, 1>();
+        getter::element(H0, 0u, 0u) = _h0[0u];
+        getter::element(H0, 1u, 0u) = _h0[1u];
+        getter::element(H0, 2u, 0u) = _h0[2u];
+        const matrix_type<1, 3> H0_T = matrix_operator().transpose(H0);
+        const matrix_type<3, 3> H0H0_T = H0 * H0_T;
+
+        drdt = drdt + (_K * s - math_ns::sin(_K * s)) / _K * H0H0_T;
 
         drdt = drdt + (math_ns::cos(_K * s) - 1.f) / _K *
                           mat_helper().column_wise_cross(I33, _h0);
@@ -312,9 +316,7 @@ class helix {
         // Get dtdt
         auto dtdt = Z33;
         dtdt = dtdt + math_ns::cos(_K * s) * I33;
-        dtdt = dtdt + (1 - math_ns::cos(_K * s)) *
-                          mat_helper().column_wise_multiply(
-                              matrix_operator().transpose(H0), _h0);
+        dtdt = dtdt + (1 - math_ns::cos(_K * s)) * H0H0_T;
         dtdt = dtdt -
                math_ns::sin(_K * s) * mat_helper().column_wise_cross(I33, _h0);
 
