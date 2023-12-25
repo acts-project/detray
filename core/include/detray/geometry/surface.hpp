@@ -260,10 +260,10 @@ class surface {
     /// @returns the path correction term
     DETRAY_HOST_DEVICE
     constexpr auto path_correction(const context &ctx, const vector3 &pos,
-                                   const vector3 &dir,
-                                   const vector3 &dtds) const {
-        return visit_mask<typename kernels::path_correction>(transform(ctx),
-                                                             pos, dir, dtds);
+                                   const vector3 &dir, const vector3 &dtds,
+                                   const scalar dqopds) const {
+        return visit_mask<typename kernels::path_correction>(
+            transform(ctx), pos, dir, dtds, dqopds);
     }
 
     /// @returns the vertices in local frame with @param n_seg the number of

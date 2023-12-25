@@ -210,6 +210,9 @@ class HelixCovarianceTransportValidation : public ::testing::Test {
         // d^2r/ds^2, or dt/ds at the destination surface
         const vector3 dtds = hlx.qop() * vector::cross(t, B);
 
+        // d(qop)/ds, which is zero in this test
+        const scalar dqopds = 0.f;
+
         // Free track at the destination surface
         free_track_parameters<transform3> free_trk_1;
         free_trk_1.set_pos(r);
@@ -218,7 +221,7 @@ class HelixCovarianceTransportValidation : public ::testing::Test {
 
         // Path correction
         const free_matrix path_correction =
-            destination_frame.path_correction(r, t, dtds, trf_1);
+            destination_frame.path_correction(r, t, dtds, dqopds, trf_1);
 
         // Correction term for the path variation
         const free_matrix correction_term =

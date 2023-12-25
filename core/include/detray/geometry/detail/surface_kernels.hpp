@@ -213,10 +213,10 @@ struct surface_kernels {
         DETRAY_HOST_DEVICE inline free_matrix operator()(
             const mask_group_t& mask_group, const index_t& index,
             const transform3& trf3, const vector3& pos, const vector3& dir,
-            const vector3& dtds) const {
+            const vector3& dtds, const scalar dqopds) const {
 
-            return mask_group[index].local_frame().path_correction(pos, dir,
-                                                                   dtds, trf3);
+            return mask_group[index].local_frame().path_correction(
+                pos, dir, dtds, dqopds, trf3);
         }
     };
 

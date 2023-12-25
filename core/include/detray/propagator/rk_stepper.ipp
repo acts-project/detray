@@ -292,6 +292,37 @@ auto detray::rk_stepper<
 template <typename magnetic_field_t, typename transform3_t,
           typename constraint_t, typename policy_t, typename inspector_t,
           template <typename, std::size_t> class array_t>
+auto detray::rk_stepper<magnetic_field_t, transform3_t, constraint_t, policy_t,
+                        inspector_t, array_t>::state::dqopds() const -> scalar {
+
+    const auto& mat = this->_mat;
+    const auto pdg = this->_pdg;
+
+    // d(qop)ds is zero for empty space
+    if (mat == detray::vacuum<scalar>()) {
+        return 0.f;
+    }
+
+    const scalar qop = this->_step_data.k_qop4;
+    const scalar q = this->_track.charge();
+    const scalar p = q / qop;
+    const scalar mass = this->_mass;
+    const scalar E = std::sqrt(p * p + mass * mass);
+
+    // Compute stopping power
+    const scalar stopping_power =
+        interaction<scalar>().compute_stopping_power(mat, pdg, mass, qop, q);
+
+    // Assert that a momentum is a positive value
+    assert(p >= 0.f);
+
+    // d(qop)ds, which is equal to (qop) * E * (-dE/ds) / p^2
+    return qop * E * stopping_power / (p * p);
+}
+
+template <typename magnetic_field_t, typename transform3_t,
+          typename constraint_t, typename policy_t, typename inspector_t,
+          template <typename, std::size_t> class array_t>
 template <typename propagation_state_t>
 bool detray::rk_stepper<magnetic_field_t, transform3_t, constraint_t, policy_t,
                         inspector_t, array_t>::step(propagation_state_t&

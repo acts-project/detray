@@ -23,8 +23,7 @@ struct interaction {
     using relativistic_quantities =
         detail::relativistic_quantities<scalar_type>;
 
-    DETRAY_HOST_DEVICE scalar_type compute_energy_loss_bethe(
-        const scalar_type path_segment,
+    DETRAY_HOST_DEVICE scalar_type compute_stopping_power(
         const detray::material<scalar_type>& mat, const int /*pdg*/,
         const scalar_type m, const scalar_type qOverP,
         const scalar_type q) const {
@@ -32,9 +31,9 @@ struct interaction {
         const scalar_t I{mat.mean_excitation_energy()};
         const scalar_t Ne{mat.molar_electron_density()};
         const relativistic_quantities rq(m, qOverP, q);
-        const scalar_t eps{rq.compute_epsilon(Ne, path_segment)};
+        const scalar_t eps_per_length{rq.compute_epsilon_per_length(Ne)};
 
-        if (eps <= 0.f) {
+        if (eps_per_length <= 0.f) {
             return 0.f;
         }
 
@@ -48,7 +47,16 @@ struct interaction {
         // prefactor epsilon for the most probable value.
         const scalar_t running{math_ns::log(u / I) + math_ns::log(wmax / I) -
                                2.f * rq.m_beta2 - 2.f * dhalf};
-        return eps * running;
+        return eps_per_length * running;
+    }
+
+    DETRAY_HOST_DEVICE scalar_type compute_energy_loss_bethe(
+        const scalar_type path_segment,
+        const detray::material<scalar_type>& mat, const int pdg,
+        const scalar_type m, const scalar_type qOverP,
+        const scalar_type q) const {
+
+        return path_segment * compute_stopping_power(mat, pdg, m, qOverP, q);
     }
 
     DETRAY_HOST_DEVICE scalar_type compute_energy_loss_landau(

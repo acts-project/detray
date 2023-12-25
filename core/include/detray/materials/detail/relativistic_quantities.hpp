@@ -96,18 +96,29 @@ struct relativistic_quantities {
         return -2.f * (a * b - 2.f + m_beta2) / (qOverP * (a * b + 2.f));
     }
 
-    /// Compute epsilon energy pre-factor for RPP2018 eq. 33.11.
+    /// Compute epsilon per length where epsilon is defined at RPP2023
+    /// eq. 34.12. Defined as
+    ///
+    ///     (K/2) * (Z/A) * rho * (q²/beta²)
+    ///
+    /// where (Z/A)*rho is the electron density in the material.
+    DETRAY_HOST_DEVICE inline scalar_type compute_epsilon_per_length(
+        const scalar_type molarElectronDensity) const {
+        return 0.5f * K * molarElectronDensity * m_q2OverBeta2;
+    }
+
+    /// Compute epsilon energy pre-factor for RPP2023 eq. 34.12.
     ///
     /// Defined as
     ///
-    ///     (K/2) * (Z/A)*rho * x * (q²/beta²)
+    ///     (K/2) * (Z/A) * rho * x * (q²/beta²)
     ///
     /// where (Z/A)*rho is the electron density in the material and x is the
     /// traversed length (thickness) of the material.
     DETRAY_HOST_DEVICE inline scalar_type compute_epsilon(
         const scalar_type molarElectronDensity,
         const scalar_type thickness) const {
-        return 0.5f * K * molarElectronDensity * thickness * m_q2OverBeta2;
+        return compute_epsilon_per_length(molarElectronDensity) * thickness;
     }
 
     /// Compute epsilon logarithmic derivative w/ respect to q/p.
