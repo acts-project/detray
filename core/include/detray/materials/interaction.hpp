@@ -8,8 +8,6 @@
 #pragma once
 
 // Project include(s)
-#include <iostream>
-
 #include "detray/definitions/math.hpp"
 #include "detray/definitions/pdg_particle.hpp"
 #include "detray/definitions/qualifiers.hpp"
