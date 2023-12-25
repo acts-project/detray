@@ -159,7 +159,7 @@ void detray::rk_stepper<magnetic_field_t, transform3_t, constraint_t, policy_t,
         const scalar dQop_ds = (-1.f * qop1 * qop1 * qop1 * E * g) / (q * q);
 
         const scalar gradient =
-            dQop_ds * (1.f / qop1 * (3 - p2 / E2) + 1.f / g * dg_dQop);
+            dQop_ds * (1.f / qop1 * (3.f - p2 / E2) + 1.f / g * dg_dQop);
 
         // As the reference of [JINST 4 P04016] said that "The energy loss and
         // its gradient varies little within each recursion step, hence the
