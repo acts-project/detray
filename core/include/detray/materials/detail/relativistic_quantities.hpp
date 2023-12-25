@@ -101,8 +101,7 @@ struct relativistic_quantities {
     ///
     ///     (K/2) * (Z/A) * rho * (q²/beta²)
     ///
-    /// where (Z/A)*rho is the electron density in the material and x is the
-    /// traversed length (thickness) of the material.
+    /// where (Z/A)*rho is the electron density in the material.
     DETRAY_HOST_DEVICE inline scalar_type compute_epsilon_per_length(
         const scalar_type molarElectronDensity) const {
         return 0.5f * K * molarElectronDensity * m_q2OverBeta2;
