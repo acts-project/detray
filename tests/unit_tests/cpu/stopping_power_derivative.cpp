@@ -80,7 +80,7 @@ TEST_P(DerivativeOfStoppingPowerValidation, derivative_of_stopping_power) {
 
         const scalar evaluated = I.derive_stopping_power(mat, pdg, m, qop, q);
 
-        EXPECT_NEAR(numerical, evaluated, numerical * 0.01);
+        EXPECT_NEAR(numerical, evaluated, numerical * 0.01f);
     }
 }
 
