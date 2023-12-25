@@ -16,7 +16,7 @@
 
 using namespace detray;
 
-GTEST_TEST(derivation_test, beta) {
+GTEST_TEST(derivative_test, beta) {
 
     // mass
     constexpr scalar m{105.7f * unit<scalar>::MeV};
@@ -44,11 +44,11 @@ GTEST_TEST(derivation_test, beta) {
     }
 }
 
-// Test class for the derivation of bethe stopping power
-class DerivationStoppingPowerValidation
+// Test class for the derivative of bethe stopping power
+class DerivativeOfStoppingPowerValidation
     : public ::testing::TestWithParam<std::tuple<material<scalar>>> {};
 
-TEST_P(DerivationStoppingPowerValidation, derivation_of_stopping_power) {
+TEST_P(DerivativeOfStoppingPowerValidation, derivative_of_stopping_power) {
 
     // Interaction object
     interaction<scalar> I;
@@ -84,6 +84,6 @@ TEST_P(DerivationStoppingPowerValidation, derivation_of_stopping_power) {
     }
 }
 
-INSTANTIATE_TEST_SUITE_P(StoppingPowerDerivationSilicon,
-                         DerivationStoppingPowerValidation,
+INSTANTIATE_TEST_SUITE_P(StoppingPowerDerivativeSilicon,
+                         DerivativeOfStoppingPowerValidation,
                          ::testing::Values(silicon<scalar>()));
