@@ -14,8 +14,6 @@
 // GTest include(s).
 #include <gtest/gtest.h>
 
-#include <iostream>
-
 using namespace detray;
 
 GTEST_TEST(derivation_test, beta) {
