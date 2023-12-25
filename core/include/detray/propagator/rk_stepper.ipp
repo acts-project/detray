@@ -137,38 +137,43 @@ void detray::rk_stepper<magnetic_field_t, transform3_t, constraint_t, policy_t,
 
     /// (4,4) element (right-bottom) of Eq. 3.12 [JINST 4 P04016]
     if (_use_eloss_gradient) {
-        const scalar q = track.charge();
-        const scalar p = q / qop1;
-        const auto& mass = this->_mass;
-        const scalar p2 = p * p;
-        const scalar E2 = p2 + mass * mass;
-        const scalar E = math_ns::sqrt(E2);
+        if (this->_mat == vacuum<scalar>()) {
+            getter::element(D, e_free_qoverp, e_free_qoverp) = 1.f;
+        } else {
+            const scalar q = track.charge();
+            const scalar p = q / qop1;
+            const auto& mass = this->_mass;
+            const scalar p2 = p * p;
+            const scalar E2 = p2 + mass * mass;
+            const scalar E = math_ns::sqrt(E2);
 
-        // Interaction object
-        interaction<scalar> I;
+            // Interaction object
+            interaction<scalar> I;
 
-        // g: dE/ds = -1 * stopping power
-        const scalar g = -1.f * I.compute_stopping_power(this->_mat, this->_pdg,
-                                                         mass, qop1, q);
-        // dg/d(qop) = -1 * derivation of stopping power
-        const scalar dg_dQop =
-            -1.f *
-            I.derive_stopping_power(this->_mat, this->_pdg, mass, qop1, q);
+            // g: dE/ds = -1 * stopping power
+            const scalar g = -1.f * I.compute_stopping_power(
+                                        this->_mat, this->_pdg, mass, qop1, q);
+            // dg/d(qop) = -1 * derivation of stopping power
+            const scalar dg_dQop =
+                -1.f *
+                I.derive_stopping_power(this->_mat, this->_pdg, mass, qop1, q);
 
-        // d(Qop)/ds = - qop^3 * E * g / q^2
-        const scalar dQop_ds = (-1.f * qop1 * qop1 * qop1 * E * g) / (q * q);
+            // d(Qop)/ds = - qop^3 * E * g / q^2
+            const scalar dQop_ds =
+                (-1.f * qop1 * qop1 * qop1 * E * g) / (q * q);
 
-        const scalar gradient =
-            dQop_ds * (1.f / qop1 * (3.f - p2 / E2) + 1.f / g * dg_dQop);
+            const scalar gradient =
+                dQop_ds * (1.f / qop1 * (3.f - p2 / E2) + 1.f / g * dg_dQop);
 
-        // As the reference of [JINST 4 P04016] said that "The energy loss and
-        // its gradient varies little within each recursion step, hence the
-        // values calculated in the first stage are recycled by the following
-        // stages", we obtain the d(qop)/d(qop) only from the gradient at the
-        // first stage of RKN.
-        //
-        // But it would be better to be more precise in the future.
-        getter::element(D, 7u, 7u) = 1.f + gradient * h;
+            // As the reference of [JINST 4 P04016] said that "The energy loss
+            // and its gradient varies little within each recursion step, hence
+            // the values calculated in the first stage are recycled by the
+            // following stages", we obtain the d(qop)/d(qop) only from the
+            // gradient at the first stage of RKN.
+            //
+            // But it would be better to be more precise in the future.
+            getter::element(D, 7u, 7u) = 1.f + gradient * h;
+        }
     }
 
     // Equation 3.13 of [JINST 4 P04016]
