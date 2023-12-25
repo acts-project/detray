@@ -161,11 +161,13 @@ void detray::rk_stepper<magnetic_field_t, transform3_t, constraint_t, policy_t,
         const scalar gradient =
             dQop_ds * (1.f / qop1 * (3 - p2 / E2) + 1.f / g * dg_dQop);
 
-        // As the reference said that "The energy loss and its gradient varies
-        // little within each recursion step, hence the values calculated in the
-        // first stage are recycled by the following stages"
+        // As the reference of [JINST 4 P04016] said that "The energy loss and
+        // its gradient varies little within each recursion step, hence the
+        // values calculated in the first stage are recycled by the following
+        // stages", we obtain the d(qop)/d(qop) only from the gradient at the
+        // first stage of RKN.
         //
-        // But it would be better to be more precise in the future
+        // But it would be better to be more precise in the future.
         getter::element(D, 7u, 7u) = 1.f + gradient * h;
     }
 
