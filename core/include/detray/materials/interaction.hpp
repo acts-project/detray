@@ -44,8 +44,8 @@ struct interaction {
         // total energy loss instead of an energy loss per length. the required
         // modification only change the prefactor which becomes identical to the
         // prefactor epsilon for the most probable value.
-        const scalar_t running{math_ns::log(u / I) + math_ns::log(wmax / I) -
-                               2.f * rq.m_beta2 - 2.f * dhalf};
+        const scalar_t running{math_ns::log(u * wmax / (I * I)) -
+                               2.f * (rq.m_beta2 + dhalf)};
         return eps_per_length * running;
     }
 
@@ -69,8 +69,8 @@ struct interaction {
         // total energy loss instead of an energy loss per length. the required
         // modification only change the prefactor which becomes identical to the
         // prefactor epsilon for the most probable value.
-        const scalar_t running{math_ns::log(u / I) + math_ns::log(wmax / I) -
-                               2.f * rq.m_beta2 - 2.f * dhalf};
+        const scalar_t running{math_ns::log(u * wmax / (I * I)) -
+                               2.f * (rq.m_beta2 + dhalf)};
 
         // Get d(Beta)/d(qop)
         const scalar_t dBeta_dQop = rq.derive_beta();
