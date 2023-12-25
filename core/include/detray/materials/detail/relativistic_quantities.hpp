@@ -28,7 +28,9 @@ struct relativistic_quantities {
     static constexpr scalar_type PlasmaEnergyScale{28.816f *
                                                    unit<scalar_type>::eV};
 
+    scalar_type m_qOverP{0.f};
     scalar_type m_q2OverBeta2{0.f};
+    scalar_type m_beta{0.f};
     scalar_type m_beta2{0.f};
     scalar_type m_betaGamma{0.f};
     scalar_type m_gamma{0.f};
@@ -36,6 +38,7 @@ struct relativistic_quantities {
     DETRAY_HOST_DEVICE
     relativistic_quantities(const scalar_type mass, const scalar_type qOverP,
                             const scalar_type q) {
+        m_qOverP = qOverP;
         // beta²/q² = (p/E)²/q² = p²/(q²m² + q²p²) = 1/(q² + (m²(q/p)²)
         // q²/beta² = q² + m²(q/p)²
         m_q2OverBeta2 = q * q + (mass * qOverP) * (mass * qOverP);
@@ -44,6 +47,7 @@ struct relativistic_quantities {
         const scalar_type pOverM{1.f / mOverP};
         // beta² = p²/E² = p²/(m² + p²) = 1/(1 + (m/p)²)
         m_beta2 = 1.f / (1.f + mOverP * mOverP);
+        m_beta = math_ns::sqrt(m_beta2);
         // beta*gamma = (p/sqrt(m² + p²))*(sqrt(m² + p²)/m) = p/m
         m_betaGamma = pOverM;
         // gamma = sqrt(m² + p²)/m = sqrt(1 + (p/m)²)
@@ -71,15 +75,21 @@ struct relativistic_quantities {
 
     /// Compute the maximum energy transfer in a single collision.
     ///
-    /// Uses RPP2018 eq. 33.4.
-    DETRAY_HOST_DEVICE inline scalar_type compute_WMax(
+    /// Uses RPP2023 eq. 34.4.
+    DETRAY_HOST_DEVICE inline scalar_type compute_WMax_denominator(
         const scalar_type mass) const {
         const scalar_type mfrac{constant<scalar_type>::m_e / mass};
+        return 1.f + 2.f * m_gamma * mfrac + mfrac * mfrac;
+    }
+
+    /// Compute the maximum energy transfer in a single collision.
+    ///
+    /// Uses RPP2023 eq. 34.4.
+    DETRAY_HOST_DEVICE inline scalar_type compute_WMax(
+        const scalar_type mass) const {
         const scalar_type nominator{2.f * constant<scalar_type>::m_e *
                                     m_betaGamma * m_betaGamma};
-        const scalar_type denonimator{1.f + 2.f * m_gamma * mfrac +
-                                      mfrac * mfrac};
-        return nominator / denonimator;
+        return nominator / compute_WMax_denominator(mass);
     }
 
     /// Compute WMax logarithmic derivative w/ respect to q/p.
@@ -164,6 +174,16 @@ struct relativistic_quantities {
         // which the resulting derivative as
         //     d(beta*gamma)/(beta*gamma)
         return (m_betaGamma < 10.0f) ? 0.0f : (-1.0f / qOverP);
+    }
+
+    /// Compute derivative of beta w.r.t q/p
+    ///
+    /// Used the relation of [p = gamma * m * v]:
+    /// -> dp/d(beta) = mc*gamma*(1+beta^2*gamma^2)
+    ///
+    /// d(beta)/d(qop) = -beta/[qop * (1+beta^2*gamma^2)]
+    DETRAY_HOST_DEVICE inline scalar_type derive_beta() const {
+        return -1.f * m_beta / (m_qOverP * (1 + m_betaGamma * m_betaGamma));
     }
 };
 

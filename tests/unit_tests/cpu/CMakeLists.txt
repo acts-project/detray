@@ -51,6 +51,7 @@ macro( detray_add_cpu_test algebra )
       "materials.cpp"
       "scattering.cpp"
       "sf_finder_brute_force.cpp"
+      "stopping_power_derivative.cpp"
       "test_core.cpp"
       "test_telescope_detector.cpp"
       "test_wire_chamber.cpp"

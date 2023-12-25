@@ -28,26 +28,61 @@ struct interaction {
         const scalar_type m, const scalar_type qOverP,
         const scalar_type q) const {
 
-        const scalar_t I{mat.mean_excitation_energy()};
-        const scalar_t Ne{mat.molar_electron_density()};
         const relativistic_quantities rq(m, qOverP, q);
+        const scalar_t Ne{mat.molar_electron_density()};
         const scalar_t eps_per_length{rq.compute_epsilon_per_length(Ne)};
-
         if (eps_per_length <= 0.f) {
             return 0.f;
         }
 
+        const scalar_t I{mat.mean_excitation_energy()};
         const scalar_t dhalf{rq.compute_delta_half(mat)};
         const scalar_t u{rq.compute_mass_term(constant<scalar_t>::m_e)};
         const scalar_t wmax{rq.compute_WMax(m)};
-        // uses RPP2018 eq. 33.5 scaled from mass stopping power to linear
+        // uses RPP2023 eq. 34.5 scaled from mass stopping power to linear
         // stopping power and multiplied with the material thickness to get a
         // total energy loss instead of an energy loss per length. the required
         // modification only change the prefactor which becomes identical to the
         // prefactor epsilon for the most probable value.
-        const scalar_t running{math_ns::log(u / I) + math_ns::log(wmax / I) -
-                               2.f * rq.m_beta2 - 2.f * dhalf};
+        const scalar_t running{math_ns::log(u * wmax / (I * I)) -
+                               2.f * (rq.m_beta2 + dhalf)};
         return eps_per_length * running;
+    }
+
+    DETRAY_HOST_DEVICE scalar_type derive_stopping_power(
+        const detray::material<scalar_type>& mat, const int /*pdg*/,
+        const scalar_type m, const scalar_type qOverP, const scalar_type q) {
+
+        const relativistic_quantities rq(m, qOverP, q);
+        const scalar_t Ne{mat.molar_electron_density()};
+        const scalar_t eps_per_length{rq.compute_epsilon_per_length(Ne)};
+        if (eps_per_length <= 0.f) {
+            return 0.f;
+        }
+
+        const scalar_t I{mat.mean_excitation_energy()};
+        const scalar_t dhalf{rq.compute_delta_half(mat)};
+        const scalar_t u{rq.compute_mass_term(constant<scalar_t>::m_e)};
+        const scalar_t wmax{rq.compute_WMax(m)};
+        // uses RPP2023 eq. 34.5 scaled from mass stopping power to linear
+        // stopping power and multiplied with the material thickness to get a
+        // total energy loss instead of an energy loss per length. the required
+        // modification only change the prefactor which becomes identical to the
+        // prefactor epsilon for the most probable value.
+        const scalar_t running{math_ns::log(u * wmax / (I * I)) -
+                               2.f * (rq.m_beta2 + dhalf)};
+
+        // Get d(Beta)/d(qop)
+        const scalar_t dBeta_dQop = rq.derive_beta();
+
+        // W Max denominator
+        const scalar_t denom = rq.compute_WMax_denominator(m);
+
+        return -2.f * eps_per_length / rq.m_beta * dBeta_dQop *
+               (running - (1.f + rq.m_betaGamma * rq.m_betaGamma) +
+                2.f * rq.m_beta2 +
+                constant<scalar_t>::m_e / m * rq.m_gamma * rq.m_betaGamma *
+                    rq.m_betaGamma / denom);
     }
 
     DETRAY_HOST_DEVICE scalar_type compute_energy_loss_bethe(

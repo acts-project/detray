@@ -104,6 +104,9 @@ class rk_stepper final
         /// if false, most probable energy loss (Landau) will be used
         bool _use_mean_loss = true;
 
+        /// Use eloss gradient in error propagation
+        bool _use_eloss_gradient = false;
+
         /// Use b field gradient in error propagation
         bool _use_field_gradient = false;
 
