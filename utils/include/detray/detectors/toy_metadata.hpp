@@ -98,7 +98,7 @@ struct toy_metadata {
     enum class material_ids : std::uint8_t {
         e_disc2_map = 0u,
         e_cylinder2_map = 1u,
-        e_reactangle2_map = 2u,
+        e_rectangle2_map = 2u,
         e_slab = 3u,
         e_none = 4u,
     };

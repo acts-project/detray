@@ -34,7 +34,8 @@ class material_data {
     /// @param sf_idx the index of the surface this material belongs to, needs
     ///               to be passed only if a special oredering must be observed
     DETRAY_HOST
-    constexpr material_data(const std::size_t sf_idx)
+    constexpr material_data(
+        const std::size_t sf_idx = detail::invalid_value<std::size_t>())
         : m_sf_index{sf_idx}, m_mat{}, m_thickness{} {}
 
     /// Construct from a predefined material
@@ -92,6 +93,18 @@ class material_data {
         m_thickness.push_back(thickness);
     }
 
+    /// Append new material from @param other @c material_data - move
+    DETRAY_HOST
+    void append(material_data &&other) {
+        m_mat.reserve(m_mat.size() + other.m_mat.size());
+        std::move(other.m_mat.begin(), other.m_mat.end(),
+                  std::back_inserter(m_mat));
+
+        m_thickness.reserve(m_thickness.size() + other.m_thickness.size());
+        std::move(other.m_thickness.begin(), other.m_thickness.end(),
+                  std::back_inserter(m_thickness));
+    }
+
     /// Append new material
     ///
     /// @param thickness of the material slab/rod
@@ -129,7 +142,8 @@ class material_data {
 ///
 /// @tparam detector_t type of detector that contains the material
 template <typename detector_t>
-class homogeneous_material_factory final : public factory_decorator<detector_t> {
+class homogeneous_material_factory final
+    : public factory_decorator<detector_t> {
 
     using mask_id = typename detector_t::masks::id;
     using material_id = typename detector_t::materials::id;
@@ -143,8 +157,9 @@ class homogeneous_material_factory final : public factory_decorator<detector_t> 
     /// Factory with surfaces potentially already filled or empty placeholder
     /// that will not be used.
     DETRAY_HOST
-    homogeneous_material_factory(std::unique_ptr<surface_factory_interface<detector_t>>
-                         sf_factory = std::make_unique<placeholder_factory_t>())
+    homogeneous_material_factory(
+        std::unique_ptr<surface_factory_interface<detector_t>> sf_factory =
+            std::make_unique<placeholder_factory_t>())
         : base_factory(std::move(sf_factory)) {}
 
     /// @returns the number of material instances that will be built by the
@@ -208,6 +223,14 @@ class homogeneous_material_factory final : public factory_decorator<detector_t> 
         for (auto &mat_data : mat_data_vec) {
             this->add_material(id, std::move(mat_data));
         }
+    }
+
+    /// Clear old data
+    DETRAY_HOST
+    auto clear() -> void override {
+        m_links.clear();
+        m_materials.clear();
+        m_thickness.clear();
     }
 
     /// @brief Add material to the containers of a volume builder.
@@ -288,7 +311,7 @@ class homogeneous_material_factory final : public factory_decorator<detector_t> 
     }
 
     protected:
-    /// Material links of surfaces (currently only type ids)
+    /// Material links of surfaces
     std::vector<std::pair<material_id, dindex>> m_links{};
     /// Position of the material in the detector material collection
     std::vector<std::size_t> m_indices{};

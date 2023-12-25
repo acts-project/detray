@@ -7,6 +7,7 @@
 # detray json schema definitions
 from validation.json_schema import geometry_schema
 from validation.json_schema import homogeneous_material_schema
+from validation.json_schema import material_map_schema
 from validation.json_schema import surface_grid_schema
 
 # python includes
@@ -27,6 +28,9 @@ def __main__():
     parser.add_argument("--homogeneous_material_file",
                         help=("Input homogeneous material json file."),
                         default = "", type=str)
+    parser.add_argument("--material_map_file",
+                        help=("Input material map json file."),
+                        default = "", type=str)
     parser.add_argument("--grid_file",
                         help=("Surface grid json file."),
                         default = "", type=str)
@@ -44,13 +48,21 @@ def __main__():
         else:
             filename_dict[geo_file] = geometry_schema
 
-    mat_file = args.homogeneous_material_file
-    if not mat_file == "":
-        if not os.path.isfile(mat_file):
-            print(f"Homogeneous material file does not exist! ({mat_file})")
+    hom_mat_file = args.homogeneous_material_file
+    if not hom_mat_file == "":
+        if not os.path.isfile(hom_mat_file):
+            print(f"Homogeneous material file does not exist! ({hom_mat_file})")
             sys.exit(1)
         else:
-            filename_dict[mat_file] = homogeneous_material_schema
+            filename_dict[hom_mat_file] = homogeneous_material_schema
+
+    mat_map_file = args.material_map_file
+    if not mat_map_file == "":
+        if not os.path.isfile(mat_map_file):
+            print(f"Material map file does not exist! ({mat_map_file})")
+            sys.exit(1)
+        else:
+            filename_dict[mat_map_file] = material_map_schema
 
     grid_file = args.grid_file
     if not grid_file == "":

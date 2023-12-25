@@ -1,6 +1,6 @@
 /** Detray library, part of the ACTS project (R&D line)
  *
- * (c) 2023 CERN for the benefit of the ACTS project
+ * (c) 2023-2024 CERN for the benefit of the ACTS project
  *
  * Mozilla Public License Version 2.0
  */
@@ -28,11 +28,21 @@
 namespace detray::detail {
 
 /// @brief Abstract base class for surface grid readers
+///
+/// @tparam detector_t the detector the grid belongs to
+/// @tparam value_t bin entry type
+/// @tparam grid_builder_t the grid builder to be used
+/// @tparam CAP the storage capacity of a single bin
+/// @tparam DIM the dimension of the grid
+/// @tparam bin_filler_t helper to fill all bins of a grid
+/// @tparam serializer_t memory layout of the grid
 template <class detector_t, typename value_t,
           template <typename, typename, typename, typename>
           class grid_builder_t,
           typename CAP = std::integral_constant<std::size_t, 0>,
-          typename DIM = std::integral_constant<std::size_t, 2>>
+          typename DIM = std::integral_constant<std::size_t, 2>,
+          typename bin_filler_t = detail::fill_by_pos,
+          template <std::size_t> class serializer_t = simple_serializer>
 class grid_reader : public reader_interface<detector_t> {
 
     using base_type = reader_interface<detector_t>;
@@ -51,22 +61,29 @@ class grid_reader : public reader_interface<detector_t> {
 
     protected:
     /// Deserialize the detector grids @param grids_data from their IO payload
-    template <typename content_t>
+    template <typename content_t, typename grid_id_t>
     static void deserialize(
         detector_builder<typename detector_t::metadata, volume_builder>
             &det_builder,
-        const detector_grids_payload<content_t> &grids_data) {
+        const detector_grids_payload<content_t, grid_id_t> &grids_data) {
 
         // Deserialize the grids volume by volume
-        for (const auto &grid_data : grids_data.grids) {
+        for (const auto &[_, grid_data_coll] : grids_data.grids) {
+            for (const auto &[i, grid_data] :
+                 detray::views::enumerate(grid_data_coll)) {
 
-            std::queue<axis::bounds> bounds;
-            std::queue<axis::binning> binnings;
-            for (const auto &axis_data : grid_data.axes) {
-                bounds.push(axis_data.bounds);
-                binnings.push(axis_data.binning);
+                std::queue<axis::bounds> bounds;
+                std::queue<axis::binning> binnings;
+
+                for (const auto &axis_data : grid_data.axes) {
+                    bounds.push(axis_data.bounds);
+                    binnings.push(axis_data.binning);
+                }
+
+                // Don't start at zero, since that is the brute force method
+                deserialize(bounds, binnings, std::make_pair(i + 1, grid_data),
+                            det_builder);
             }
-            deserialize(bounds, binnings, grid_data, det_builder);
         }
     }
 
@@ -193,20 +210,21 @@ class grid_reader : public reader_interface<detector_t> {
               std::enable_if_t<types::size<bounds_ts> == dim and
                                    types::size<binning_ts> == dim,
                                bool> = true>
-    static void deserialize(const grid_payload<content_t> &grid_data,
-                            detector_builder<typename detector_t::metadata,
-                                             volume_builder> &det_builder) {
+    static void deserialize(
+        const std::pair<dindex, grid_payload<content_t>> &grid_data,
+        detector_builder<typename detector_t::metadata, volume_builder>
+            &det_builder) {
 
         // Throw expection if the accelerator link type id is invalid
-        auto print_error = [](io::detail::acc_type acc_link) -> void {
-            if (acc_link == io::detail::acc_type::unknown) {
+        auto print_error = [](io::detail::acc_type grid_link) -> void {
+            if (grid_link == io::detail::acc_type::unknown) {
                 throw std::invalid_argument(
                     "Unknown accelerator id in geometry file!");
             } else {
                 throw std::invalid_argument(
                     "Given accelerator id could not be matched to a grid "
                     "type: " +
-                    std::to_string(static_cast<std::int64_t>(acc_link)));
+                    std::to_string(static_cast<std::int64_t>(grid_link)));
             }
         };
 
@@ -217,7 +235,7 @@ class grid_reader : public reader_interface<detector_t> {
 
         // Check only 2-dimensional grid types
         if constexpr (dim == 2) {
-            switch (grid_data.acc_link.type) {
+            switch (grid_data.second.grid_link.type) {
                 // rectangle, trapezoid, (triangle) grids
                 case io::detail::acc_type::cartesian2_grid: {
                     return deserialize<cartesian2<algebra_t>>(
@@ -234,12 +252,12 @@ class grid_reader : public reader_interface<detector_t> {
                         grid_data, det_builder, bounds, binnings);
                 }
                 default: {
-                    print_error(grid_data.acc_link.type);
+                    print_error(grid_data.second.grid_link.type);
                     break;
                 }
             };
         } else if constexpr (dim == 3) {
-            switch (grid_data.acc_link.type) {
+            switch (grid_data.second.grid_link.type) {
                 // cuboid grid
                 case io::detail::acc_type::cuboid3_grid: {
                     return deserialize<cartesian3<algebra_t>>(
@@ -251,7 +269,7 @@ class grid_reader : public reader_interface<detector_t> {
                         grid_data, det_builder, bounds, binnings);
                 }
                 default: {
-                    print_error(grid_data.acc_link.type);
+                    print_error(grid_data.second.grid_link.type);
                     break;
                 }
             };
@@ -266,11 +284,12 @@ class grid_reader : public reader_interface<detector_t> {
               std::enable_if_t<sizeof...(bounds_ts) == dim and
                                    sizeof...(binning_ts) == dim,
                                bool> = true>
-    static void deserialize(const grid_payload<content_t> &grid_data,
-                            detector_builder<typename detector_t::metadata,
-                                             volume_builder> &det_builder,
-                            types::list<bounds_ts...>,
-                            types::list<binning_ts...>) {
+    static void deserialize(
+        const std::pair<dindex, grid_payload<content_t>> &grid_idx_and_data,
+        detector_builder<typename detector_t::metadata, volume_builder>
+            &det_builder,
+        types::list<bounds_ts...>, types::list<binning_ts...>) {
+
         // Assemble the grid type
         using axes_t =
             axis::multi_axis<false, local_frame_t,
@@ -279,12 +298,13 @@ class grid_reader : public reader_interface<detector_t> {
         using bin_t =
             std::conditional_t<bin_capacity == 0, bins::dynamic_array<value_t>,
                                bins::static_array<value_t, bin_capacity>>;
-        using grid_t = grid<axes_t, bin_t, simple_serializer>;
+        using grid_t = grid<axes_t, bin_t, serializer_t>;
 
         static_assert(grid_t::dim == dim,
                       "Grid dimension does not meet dimension of grid reader");
 
-        const auto volume_idx{base_type::deserialize(grid_data.volume_link)};
+        const auto &[sf_type, grid_data] = grid_idx_and_data;
+        const auto volume_idx{base_type::deserialize(grid_data.owner_link)};
 
         // Error output
         std::stringstream err_stream;
@@ -296,9 +316,8 @@ class grid_reader : public reader_interface<detector_t> {
                       detector_t::materials::template is_defined<grid_t>()) {
 
             // Decorate the current volume builder with the grid
-            using builder_t =
-                grid_builder_t<detector_t, grid_t, detail::fill_by_pos,
-                               grid_factory_type<grid_t>>;
+            using builder_t = grid_builder_t<detector_t, grid_t, bin_filler_t,
+                                             grid_factory_type<grid_t>>;
 
             auto v_builder =
                 det_builder.template decorate<builder_t>(volume_idx);
@@ -327,9 +346,10 @@ class grid_reader : public reader_interface<detector_t> {
                                          bins::dynamic_array<value_t>>) {
                 axis::multi_bin<dim> mbin;
                 for (const auto &bin_data : grid_data.bins) {
-                    assert(dim == bin_data.loc_index.size() &&
-                           "Numer of local bin indices in input file does not "
-                           "match grid dimension");
+                    assert(
+                        dim == bin_data.loc_index.size() &&
+                        "Dimension of local bin indices in input file does not "
+                        "match grid dimension");
 
                     // The local bin indices for the bin to be filled
                     for (const auto &[i, bin_idx] :
@@ -340,6 +360,7 @@ class grid_reader : public reader_interface<detector_t> {
                 }
             }
 
+            vgr_builder->set_type(sf_type);
             vgr_builder->init_grid(spans, n_bins_per_axis, capacities,
                                    ax_bin_edges);
             auto &grid = vgr_builder->get();
@@ -371,8 +392,7 @@ class grid_reader : public reader_interface<detector_t> {
                     }
                     entry.set_volume(volume_idx);
                     entry.set_index(static_cast<dindex>(c));
-                    vgr_builder->get().template populate<attach<>>(mbin,
-                                                                   entry);
+                    vgr_builder->get().template populate<attach<>>(mbin, entry);
                 }
             }
         } else {

@@ -11,8 +11,8 @@
 #include "detray/io/common/detail/grid_reader.hpp"
 #include "detray/io/common/io_interface.hpp"
 #include "detray/io/common/payloads.hpp"
-#include "detray/tools/grid_builder.hpp"
 #include "detray/tools/detector_builder.hpp"
+#include "detray/tools/grid_builder.hpp"
 
 // System include(s)
 #include <string>
@@ -23,9 +23,13 @@ namespace detray {
 template <class detector_t,
           typename CAP = std::integral_constant<std::size_t, 9>,
           typename DIM = std::integral_constant<std::size_t, 2>>
-class surface_grid_reader : public detail::grid_reader<detector_t, typename detector_t::surface_type, grid_builder, CAP, DIM> {
+class surface_grid_reader
+    : public detail::grid_reader<detector_t, typename detector_t::surface_type,
+                                 grid_builder, CAP, DIM> {
 
-    using grid_reader_t = detail::grid_reader<detector_t, typename detector_t::surface_type, grid_builder, CAP, DIM>;
+    using grid_reader_t =
+        detail::grid_reader<detector_t, typename detector_t::surface_type,
+                            grid_builder, CAP, DIM>;
     using base_type = grid_reader_t;
 
     protected:
@@ -43,11 +47,11 @@ class surface_grid_reader : public detail::grid_reader<detector_t, typename dete
         detector_builder<typename detector_t::metadata, volume_builder>
             &det_builder,
         typename detector_t::name_map &,
-        const detector_grids_payload<std::size_t> &grids_data) {
+        const detector_grids_payload<std::size_t, io::detail::acc_type>
+            &grids_data) {
 
         grid_reader_t::deserialize(det_builder, grids_data);
     }
-
 };
 
 }  // namespace detray

@@ -182,12 +182,14 @@ struct grid_bin_payload {
 };
 
 /// @brief A payload for a grid definition
-template <typename bin_content_t = std::size_t>
+template <typename bin_content_t = std::size_t,
+          typename grid_id_t = io::detail::acc_type>
 struct grid_payload {
-    using grid_type = io::detail::acc_type;
-
-    single_link_payload volume_link{};
-    acc_links_payload acc_link{};
+    using grid_type = grid_id_t;
+    // Surface or volume index the grids belongs to
+    single_link_payload owner_link{};
+    // Type and index of the grid
+    typed_link_payload<grid_id_t> grid_link{};
 
     std::vector<axis_payload> axes{};
     std::vector<grid_bin_payload<bin_content_t>> bins{};
@@ -195,9 +197,12 @@ struct grid_payload {
 };
 
 /// @brief A payload for the grid collections of a detector
-template <typename bin_content_t = std::size_t>
+template <typename bin_content_t = std::size_t,
+          typename grid_id_t = io::detail::acc_type>
 struct detector_grids_payload {
-    std::vector<grid_payload<bin_content_t>> grids = {};
+    // A collection of grids per index
+    std::map<std::size_t, std::vector<grid_payload<bin_content_t, grid_id_t>>>
+        grids = {};
 };
 
 /// @}
@@ -205,7 +210,7 @@ struct detector_grids_payload {
 /// @brief A payload for a detector geometry
 struct detector_payload {
     std::vector<volume_payload> volumes = {};
-    std::optional<grid_payload<std::size_t>> volume_grid;
+    std::optional<grid_payload<std::size_t, io::detail::acc_type>> volume_grid;
 };
 
 }  // namespace detray

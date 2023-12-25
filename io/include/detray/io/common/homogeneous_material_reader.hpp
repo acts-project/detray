@@ -62,12 +62,14 @@ class homogeneous_material_reader : public reader_interface<detector_t> {
         // Deserialize the material volume by volume
         for (const auto& mv_data : det_mat_data.volumes) {
             // Decorate the current volume builder with material
-            auto vm_builder =
-                det_builder.template decorate<homogeneous_material_builder<detector_t>>(
-                    base_type::deserialize(mv_data.volume_link));
+            auto vm_builder = det_builder.template decorate<
+                homogeneous_material_builder<detector_t>>(
+                base_type::deserialize(mv_data.volume_link));
 
             // Add the material data to the factory
-            auto mat_factory = std::make_shared<homogeneous_material_factory<detector_t>>();
+            auto mat_factory =
+                std::make_shared<homogeneous_material_factory<detector_t>>();
+
             for (const auto& slab_data : mv_data.mat_slabs) {
                 assert(slab_data.type == io::detail::material_type::slab);
 

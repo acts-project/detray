@@ -1,6 +1,6 @@
 /** Detray library, part of the ACTS project (R&D line)
  *
- * (c) 2022-2023 CERN for the benefit of the ACTS project
+ * (c) 2023-2024 CERN for the benefit of the ACTS project
  *
  * Mozilla Public License Version 2.0
  */
@@ -18,6 +18,7 @@
 // System include(s)
 #include <array>
 #include <cassert>
+#include <map>
 #include <memory>
 #include <stdexcept>
 #include <vector>
@@ -38,19 +39,17 @@ struct add_sf_material_map;
 /// Decorator class to a volume builder that adds material maps to either
 /// surfaces or volumes
 template <typename detector_t, std::size_t DIM = 2u,
-          typename bin_filler_t = detail::fill_by_bin,
           typename mat_map_factory_t =
               material_grid_factory<typename detector_t::scalar_type>>
 class material_map_builder : public volume_decorator<detector_t> {
+    using materials_t = typename detector_t::materials;
 
     public:
     using scalar_type = typename detector_t::scalar_type;
     using detector_type = detector_t;
-    using value_type = typename detector_type::surface_type;
-    using materials_t = typename detector_t::materials;
+    using value_type = material_slab<scalar_type>;
     using bin_data_type =
-        typename bin_filler_t::template bin_data<DIM,
-                                                 material_slab<scalar_type>>;
+        typename detail::fill_by_bin::template bin_data<DIM, value_type>;
 
     /// @param vol_builder volume builder that should be decorated with material
     /// maps
@@ -66,6 +65,12 @@ class material_map_builder : public volume_decorator<detector_t> {
         return m_bin_data;
     }
 
+    /// Not needed for material maps builder
+    DETRAY_HOST void init_grid(const std::vector<scalar_type>&,
+                               const std::vector<std::size_t>&,
+                               const std::vector<std::vector<scalar_type>>& = {
+                                   {}}) {}
+
     /// Overwrite, to add material maps in addition to surfaces
     /// @{
     DETRAY_HOST
@@ -78,11 +83,9 @@ class material_map_builder : public volume_decorator<detector_t> {
 
         // Add material and bin data
         auto mat_factory = std::dynamic_pointer_cast<
-            material_map_factory<detector_t, axis::multi_bin<2>>>(sf_factory);
+            material_map_factory<detector_t, axis::multi_bin<DIM>>>(sf_factory);
         if (mat_factory) {
             (*mat_factory)(this->surfaces(), m_bin_data, m_n_bins);
-        } else {
-            throw std::runtime_error("Not a material factory");
         }
     }
     /// @}
@@ -93,6 +96,7 @@ class material_map_builder : public volume_decorator<detector_t> {
         -> typename detector_t::volume_type* override {
 
         // Ensure the material links are correct BEFORE the surfaces are built
+        // and potentially added to an acceleration data structure
         update_material_links(det);
 
         // Construct the surfaces
@@ -225,7 +229,8 @@ struct add_sf_material_map {
 
             // Add the material slabs to the grid
             for (const auto& bin : bin_data) {
-                mat_grid.template populate<replace<>>(bin.local_bin_idx, bin.single_element);
+                mat_grid.template populate<replace<>>(bin.local_bin_idx,
+                                                      bin.single_element);
             }
 
             // Add the material grid to the detector

@@ -155,7 +155,7 @@ class homogeneous_material_writer : public writer_interface<detector_t> {
                                            std::size_t sf_idx) {
         material_slab_payload mat_data;
 
-        mat_data.type = io::detail::get_material_id<material_t<scalar_t>>();
+        mat_data.type = io::detail::get_id<material_t<scalar_t>>();
         mat_data.surface = base_type::serialize(sf_idx);
         mat_data.thickness = mat.thickness();
         mat_data.mat = serialize(mat.get_material());

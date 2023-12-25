@@ -89,6 +89,16 @@ auto assemble_reader(const io::detector_reader_config& cfg) noexcept(false) {
             // Peek at the header to determine the kind of reader that is needed
             common_header_payload header = read_json_header(file_name);
 
+            [[maybe_unused]] auto print_type_warning =
+                [](const std::string& subject) {
+                    using detector_list_t =
+                        detray::types::list<typename detector_t::metadata>;
+
+                    std::cout << "WARNING: Detector of type ";
+                    types::print<detector_list_t>();
+                    std::cout << "does not support " << subject << std::endl;
+                };
+
             if (header.tag == "geometry") {
                 det_name = header.detector;
                 readers.template add<json_geometry_reader>(file_name);
@@ -97,17 +107,24 @@ auto assemble_reader(const io::detector_reader_config& cfg) noexcept(false) {
                 if constexpr (detail::has_homogeneous_material_v<detector_t>) {
                     readers.template add<json_homogeneous_material_reader>(
                         file_name);
+                } else {
+                    print_type_warning(header.tag);
                 }
-
             } else if (header.tag == "material_maps") {
-                readers.template add<json_material_map_reader>(file_name);
-
+                if constexpr (detail::has_material_grids_v<detector_t>) {
+                    readers.template add<json_material_map_reader>(file_name);
+                } else {
+                    print_type_warning(header.tag);
+                }
             } else if (header.tag == "surface_grids") {
                 if constexpr (detail::has_surface_grids_v<detector_t>) {
-                    readers.template add<json_surface_grid_reader,
-                                     std::integral_constant<std::size_t, CAP>,
-                                     std::integral_constant<std::size_t, DIM>>(
-                                    file_name);
+                    readers
+                        .template add<json_surface_grid_reader,
+                                      std::integral_constant<std::size_t, CAP>,
+                                      std::integral_constant<std::size_t, DIM>>(
+                            file_name);
+                } else {
+                    print_type_warning(header.tag);
                 }
             } else {
                 throw std::invalid_argument("Unsupported file tag '" +

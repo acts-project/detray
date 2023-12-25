@@ -74,7 +74,7 @@ class multi_store {
     // Delegate constructors to tuple container, which handles the memory
 
     /// Copy construct from element types
-    constexpr explicit multi_store(const Ts &...args)
+    constexpr explicit multi_store(const Ts &... args)
         : m_tuple_container(args...) {}
 
     /// Construct with a specific vecmem memory resource @param resource
@@ -91,7 +91,7 @@ class multi_store {
         typename allocator_t = vecmem::memory_resource,
         typename T = tuple_t<Ts...>,
         std::enable_if_t<std::is_same_v<T, std::tuple<Ts...>>, bool> = true>
-    DETRAY_HOST explicit multi_store(allocator_t &resource, const Ts &...args)
+    DETRAY_HOST explicit multi_store(allocator_t &resource, const Ts &... args)
         : m_tuple_container(resource, args...) {}
 
     /// Construct from the container @param view . Mainly used device-side.
@@ -241,7 +241,7 @@ class multi_store {
     /// @note in general can throw an exception
     template <ID id, typename... Args>
     DETRAY_HOST constexpr decltype(auto) emplace_back(
-        const context_type & /*ctx*/ = {}, Args &&...args) noexcept(false) {
+        const context_type & /*ctx*/ = {}, Args &&... args) noexcept(false) {
         auto &coll = detail::get<value_types::to_index(id)>(m_tuple_container);
         return coll.emplace_back(std::forward<Args>(args)...);
     }
@@ -326,16 +326,16 @@ class multi_store {
         }
     }
 
-    /// Calls a functor with a specific data collection (given by ID).
+    /// Calls a functor with a every data collection as parameter.
     ///
-    /// @tparam functor_t functor that will be called on the group.
+    /// @tparam functor_t functor that will be called on the store.
     /// @tparam Args argument types for the functor
     ///
     /// @param args additional functor arguments
     ///
     /// @return the functor output
     template <typename functor_t, typename... Args>
-    DETRAY_HOST_DEVICE decltype(auto) apply(Args &&...args) const {
+    DETRAY_HOST_DEVICE decltype(auto) apply(Args &&... args) const {
         return m_tuple_container.template apply<functor_t>(
             std::forward<Args>(args)...);
     }
@@ -350,7 +350,7 @@ class multi_store {
     ///
     /// @return the functor output
     template <typename functor_t, typename... Args>
-    DETRAY_HOST_DEVICE decltype(auto) visit(const ID id, Args &&...args) {
+    DETRAY_HOST_DEVICE decltype(auto) visit(const ID id, Args &&... args) {
         return m_tuple_container.template visit<functor_t>(
             static_cast<std::size_t>(id), std::forward<Args>(args)...);
     }
@@ -367,7 +367,7 @@ class multi_store {
     /// @return the functor output
     template <typename functor_t, typename link_t, typename... Args>
     DETRAY_HOST_DEVICE decltype(auto) visit(const link_t link,
-                                            Args &&...args) const {
+                                            Args &&... args) const {
         return m_tuple_container.template visit<functor_t>(
             static_cast<std::size_t>(detail::get<0>(link)),
             detail::get<1>(link), std::forward<Args>(args)...);

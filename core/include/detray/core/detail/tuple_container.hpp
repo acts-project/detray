@@ -45,7 +45,7 @@ class tuple_container {
     constexpr tuple_container() = default;
 
     /// Copy construct from element types
-    constexpr explicit tuple_container(const Ts &...args) : _tuple(args...) {}
+    constexpr explicit tuple_container(const Ts &... args) : _tuple(args...) {}
 
     /// Construct with a specific vecmem memory resource @param resource
     /// (host-side only)
@@ -61,7 +61,7 @@ class tuple_container {
         typename T = tuple_t<Ts...>,
         std::enable_if_t<std::is_same_v<T, std::tuple<Ts...>>, bool> = true>
     DETRAY_HOST explicit tuple_container(allocator_t &resource,
-                                         const Ts &...args)
+                                         const Ts &... args)
         : _tuple(std::allocator_arg, resource, args...) {}
 
     /// Construct from the container @param view type. Mainly used device-side.
@@ -111,13 +111,11 @@ class tuple_container {
         return get_data(std::make_index_sequence<sizeof...(Ts)>{});
     }
 
-    /// Visits a tuple element according to its @param idx and calls
-    /// @tparam functor_t with the arguments @param As on it.
+    /// Calls a functor with a all elements as parameters.
     ///
-    /// @returns the functor result (this is necessarily always of the same
-    /// type, regardless the input tuple element type).
+    /// @returns the functor result.
     template <typename functor_t, typename... Args>
-    DETRAY_HOST_DEVICE decltype(auto) apply(Args &&...As) const {
+    DETRAY_HOST_DEVICE decltype(auto) apply(Args &&... As) const {
 
         return apply_impl<functor_t>(std::make_index_sequence<sizeof...(Ts)>{},
                                      std::forward<Args>(As)...);
@@ -130,7 +128,7 @@ class tuple_container {
     /// type, regardless the input tuple element type).
     template <typename functor_t, typename... Args>
     DETRAY_HOST_DEVICE decltype(auto) visit(const std::size_t idx,
-                                            Args &&...As) const {
+                                            Args &&... As) const {
 
         return visit<functor_t>(idx, std::make_index_sequence<sizeof...(Ts)>{},
                                 std::forward<Args>(As)...);
@@ -160,18 +158,17 @@ class tuple_container {
         return detail::make_tuple<tuple_t>(Ts(detail::get<I>(view.m_view))...);
     }
 
-    /// Variadic unrolling of the tuple that calls a functor on the element that
-    /// corresponds to @param idx.
+    /// Variadic unrolling of the tuple that calls a functor on all elements of
+    /// the tuple.
     ///
-    /// @tparam functor_t functor that will be called on the element.
+    /// @tparam functor_t functor that will be called on the elements.
     /// @tparam Args argument types for the functor
-    /// @tparam indices Indices of the tuple elements
     template <typename functor_t, std::size_t... I, typename... Args>
     DETRAY_HOST_DEVICE decltype(auto) apply_impl(
-        std::index_sequence<I...> /*seq*/, Args &&...As) const {
+        std::index_sequence<I...> /*seq*/, Args &&... As) const {
 
-        //
-        return functor_t()(std::forward<Args>(As)..., get<I>()...);
+        // Call the functor on the tuple elements
+        return functor_t{}(std::forward<Args>(As)..., get<I>()...);
     }
 
     /// Variadic unrolling of the tuple that calls a functor on the element that
@@ -190,7 +187,7 @@ class tuple_container {
         functor_t, const detail::tuple_element_t<0, tuple_type> &, Args...>
     visit(const std::size_t idx,
           std::index_sequence<first_idx, remaining_idcs...> /*seq*/,
-          Args &&...As) const {
+          Args &&... As) const {
 
         // Check if the first tuple index is matched to the target ID
         if (idx == first_idx) {

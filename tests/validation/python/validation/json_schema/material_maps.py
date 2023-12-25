@@ -4,8 +4,8 @@
 #
 # Mozilla Public License Version 2.0
 
-""" Schema of a surface grid file """
-surface_grid_schema = {
+""" Schema of a material grid file """
+material_map_schema = {
     "type" : "object",
     "properties" : {
         "header" : {
@@ -31,14 +31,14 @@ surface_grid_schema = {
                         "tag": {
                             "type" : "string",
                             "description": "Type of data",
-                            "enum": ["surface_grids"]
+                            "enum": ["material_maps"]
                         }
                     },
                     "required": ["version", "detector", "tag"]
                 },
                 "grid_count" : {
                     "type" : "integer",
-                    "description": "Number of grids in the detector",
+                    "description": "Number of material maps in the detector",
                     "minimum": 0,
                 },
             },
@@ -53,7 +53,7 @@ surface_grid_schema = {
                     "minitems" : 1,
                     "items" : {
                         "type" : "object",
-                        "description": "Data of all grids in a single volume",
+                        "description": "Data of all material maps in a volume",
                         "properties" : {
                             "volume_link": {
                                 "type" : "integer",
@@ -65,7 +65,7 @@ surface_grid_schema = {
                                 "minitems" : 1,
                                 "items" : {
                                     "type" : "object",
-                                    "description": "Data of a single grid",
+                                    "description": "Data of a single map",
                                     "properties" : {
                                         "owner_link": {
                                             "type" : "integer",
@@ -79,8 +79,8 @@ surface_grid_schema = {
                                                 "type" : {
                                                     "type" : "integer",
                                                     "description" : "Type ID of the acceleration structure",
-                                                    "minimum": 1,
-                                                    "maximum": 5,
+                                                    "minimum": 0,
+                                                    "maximum": 4,
                                                 },
                                                 "index" : {
                                                     "type" : "integer",
@@ -155,8 +155,46 @@ surface_grid_schema = {
                                                         "type" : "array",
                                                         "description" : "Global surface indices",
                                                         "items" : {
-                                                            "type" : "integer",
+                                                            "type" : "object",
                                                             "minimum": 0,
+                                                            "properties": {
+                                                                "type": {
+                                                                    "type" : "integer",
+                                                                    "description" : "Material type ID",
+                                                                    "enum" : [5]
+                                                                },
+                                                                "surface_idx": {
+                                                                    "type" : "integer",
+                                                                    "description" : "Volume-local index of the surface the slab belongs to",
+                                                                    "minimum": 0,
+                                                                },
+                                                                "thickness": {
+                                                                    "type" : "number",
+                                                                    "description" : "Thickness of the slab",
+                                                                    "minimum": 0,
+                                                                },
+                                                                "index_in_coll": {
+                                                                    "type" : "integer",
+                                                                    "description" : "Volume-local sorting index",
+                                                                    "minimum": 0
+                                                                },
+                                                                "material" : {
+                                                                    "type" : "object",
+                                                                    "properties" : {
+                                                                        "params" : {
+                                                                            "type" : "array",
+                                                                            "description" : "Material parameters",
+                                                                            "minitems" : 7,
+                                                                            "maxItems": 7,
+                                                                            "items": {
+                                                                                "type": "number"
+                                                                            }
+                                                                        }
+                                                                    },
+                                                                    "required": ["params"]
+                                                                }
+                                                            },
+                                                            "required": ["type", "thickness","material"]
                                                         }
                                                     }
                                                 },

@@ -165,7 +165,7 @@ inline auto create_telescope_detector(
     const tel_det_config<mask_shape_t, trajectory_t> &cfg = {
         20.f * unit<scalar>::mm, 20.f * unit<scalar>::mm}) {
 
-    using builder_t = 
+    using builder_t =
         detector_builder<telescope_metadata<mask_shape_t>, volume_builder>;
     using detector_t = typename builder_t::detector_type;
 
@@ -179,7 +179,8 @@ inline auto create_telescope_detector(
     auto v_builder = det_builder.new_volume(volume_id::e_cuboid);
     const dindex vol_idx{v_builder->vol_index()};
     auto vm_builder =
-        det_builder.template decorate<homogeneous_material_builder<detector_t>>(vol_idx);
+        det_builder.template decorate<homogeneous_material_builder<detector_t>>(
+            vol_idx);
 
     // Identity transform
     vm_builder->add_volume_placement();
@@ -209,13 +210,16 @@ inline auto create_telescope_detector(
                            std::is_same_v<mask_shape_t, detray::line<false>>};
     const auto mat_id = is_line ? material_id::e_rod : material_id::e_slab;
 
-    auto tel_mat_generator = std::make_shared<homogeneous_material_factory<detector_t>>(
-        std::move(tel_generator));
+    auto tel_mat_generator =
+        std::make_shared<homogeneous_material_factory<detector_t>>(
+            std::move(tel_generator));
     tel_mat_generator->add_material(mat_id, std::move(sf_materials));
 
     // Add a portal box around the cuboid volume
-    auto portal_generator = std::make_shared<homogeneous_material_factory<detector_t>>(
-        std::make_unique<cuboid_portal_generator<detector_t>>(cfg.envelope()));
+    auto portal_generator =
+        std::make_shared<homogeneous_material_factory<detector_t>>(
+            std::make_unique<cuboid_portal_generator<detector_t>>(
+                cfg.envelope()));
 
     // @TODO: Put no material instead of 'vacuum'
     std::vector<material_data<scalar>> pt_materials(

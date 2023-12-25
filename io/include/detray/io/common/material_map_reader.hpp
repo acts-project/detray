@@ -8,7 +8,7 @@
 #pragma once
 
 // Project include(s)
-#include "detray/io/common/detail/grid_reader.hpp"
+#include "detray/io/common/detail/type_traits.hpp"
 #include "detray/io/common/homogeneous_material_reader.hpp"
 #include "detray/io/common/io_interface.hpp"
 #include "detray/io/common/payloads.hpp"
@@ -18,82 +18,126 @@
 #include "detray/utils/type_list.hpp"
 
 // System include(s)
+#include <memory>
 #include <stdexcept>
-#include <string>
+#include <vector>
 
 namespace detray {
 
-namespace detail {
-
-/// Retemplate material map builder to fit the grid builder schema
-template <typename D, typename G, typename B, typename F>
-using material_map_builder_t = material_map_builder<D, D::Dim, B, F>;
-
-}  // namespace detail
-
-/// @brief Abstract base class for surface grid readers
+/// @brief Abstract base class for material map readers
 template <class detector_t,
           typename DIM = std::integral_constant<std::size_t, 2u>>
-class material_map_reader
-    : public detail::grid_reader<
-          detector_t, material_slab<typename detector_t::surface_type>,
-          detail::material_map_builder_t,
-          std::integral_constant<std::size_t, 1u>, DIM> {
+class material_map_reader : public reader_interface<detector_t> {
 
-    using scalar_t = typename detector_t::surface_type;
-    using grid_reader_t =
-        detail::grid_reader<detector_t, material_slab<scalar_t>,
-                            detail::material_map_builder_t,
-                            std::integral_constant<std::size_t, 1u>, DIM>;
-    using base_type = grid_reader_t;
-
+    using scalar_t = typename detector_t::scalar_type;
+    using mat_id = typename detector_t::materials::id;
     using material_reader_t = homogeneous_material_reader<detector_t>;
+
+    public:
+    static constexpr std::size_t dim{DIM()};
+
+    using base_type = reader_interface<detector_t>;
+    using bin_index_type = axis::multi_bin<dim>;
+
+    /// Same constructors for this class as for base_type
+    using base_type::base_type;
+
+    private:
+    using mat_factory_t = material_map_factory<detector_t, bin_index_type>;
+    using mat_data_t = typename mat_factory_t::data_type;
+    /// Gets compile-time mask information
+    template <io::detail::material_type mat_type>
+    using map_info = detail::mat_map_info<mat_type, detector_t>;
 
     protected:
     /// Tag the reader as "material_maps"
     inline static const std::string tag = "material_maps";
 
-    public:
-    /// Same constructors for this class as for base_type
-    using base_type::base_type;
-
-    protected:
-    /// Deserialize the detector grids @param grids_data from their IO
+    /// Deserialize the material grids @param grids_data from their IO
     /// payload
     static void deserialize(
         detector_builder<typename detector_t::metadata, volume_builder>
             &det_builder,
         typename detector_t::name_map &,
-        const detector_grids_payload<material_slab_payload> &grids_data) {
+        detector_grids_payload<material_slab_payload, io::detail::material_type>
+            &&grids_data) {
 
-        using namespace axis;
+        // Deserialize the material volume by volume
+        for (const auto &[vol_idx, mat_grids] : grids_data.grids) {
+            // Decorate the current volume builder with material maps
+            auto vm_builder =
+                det_builder
+                    .template decorate<material_map_builder<detector_t, dim>>(
+                        static_cast<dindex>(vol_idx));
 
-        // Go through the full grid deserialization once volume material is
-        // added, until then, giving the explicit bounds and binnings should be
-        // enough
-        using regular_t = regular<host_container_types, scalar_t>;
-        using bounds2D_ts = types::list<closed<static_cast<label>(0u)>,
-                                        closed<static_cast<label>(1u)>>;
-        using binning2D_ts = types::list<regular_t, regular_t>;
+            // Add the material data to the factory
+            auto mat_factory = std::make_shared<
+                material_map_factory<detector_t, bin_index_type>>();
 
-        for (const grid_payload<material_slab_payload> &g_data :
-             grids_data.grids) {
-            // Start form finding the grid local frame and then build the grid
-            if constexpr (DIM() == 2) {
-                grid_reader_t::template deserialize<bounds2D_ts, binning2D_ts>(
-                    g_data, det_builder);
-            } else if constexpr (DIM() == 3) {
-                using bounds3D_ts =
-                    types::push_back<bounds2D_ts,
-                                     closed<static_cast<label>(2u)>>;
-                using binning3D_ts = types::push_back<binning2D_ts, regular_t>;
+            // Deserialize the material grid of each surface
+            for (const auto &grid_data : mat_grids) {
 
-                grid_reader_t::template deserialize<bounds3D_ts, binning3D_ts>(
-                    g_data, det_builder);
-            } else {
-                throw std::invalid_argument(
-                    "No 1D material grid type defined in detray");
+                mat_id map_id = deserialize<io::detail::material_type::n_mats>(
+                    grid_data.grid_link.type);
+
+                // Get the number of bins per axis
+                std::vector<std::size_t> n_bins{};
+                for (const auto &axis_data : grid_data.axes) {
+                    n_bins.push_back(axis_data.bins);
+                }
+
+                // Get the local bin indices and the material parametrization
+                std::vector<bin_index_type> loc_bins{};
+                mat_data_t mat_data{
+                    base_type::deserialize(grid_data.owner_link)};
+                for (const auto &bin_data : grid_data.bins) {
+
+                    assert(dim == bin_data.loc_index.size() &&
+                           "Dimension of local bin indices in input file does "
+                           "not match material grid dimension");
+
+                    // The local bin indices for the bin to be filled
+                    bin_index_type mbin;
+                    for (const auto &[i, bin_idx] :
+                         detray::views::enumerate(bin_data.loc_index)) {
+                        mbin[i] = bin_idx;
+                    }
+                    loc_bins.push_back(std::move(mbin));
+
+                    // For now assume surfaces ids as the only grid input
+                    for (const auto &slab_data : bin_data.content) {
+                        mat_data.append(
+                            material_reader_t::deserialize(slab_data));
+                    }
+                }
+
+                mat_factory->add_material(map_id, std::move(mat_data),
+                                          std::move(n_bins),
+                                          std::move(loc_bins));
             }
+
+            // Add the material maps to the volume
+            vm_builder->add_surfaces(mat_factory);
+        }
+    }
+
+    private:
+    /// Get the detector material id from the payload material type id
+    template <io::detail::material_type I>
+    static mat_id deserialize(io::detail::material_type type_id) {
+
+        // Material id of map data found
+        if (type_id == I) {
+            // Get the corresponding material id for this detector
+            return map_info<I>::value;
+        }
+        // Test next material type id
+        constexpr int current_id{static_cast<int>(I)};
+        if constexpr (current_id > 0) {
+            return deserialize<static_cast<io::detail::material_type>(
+                current_id - 1)>(type_id);
+        } else {
+            return mat_id::e_none;
         }
     }
 };

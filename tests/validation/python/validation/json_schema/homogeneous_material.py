@@ -74,7 +74,7 @@ homogeneous_material_schema = {
                                         "type": {
                                             "type" : "integer",
                                             "description" : "Material type ID",
-                                            "enum" : [9]
+                                            "enum" : [5]
                                         },
                                         "surface_idx": {
                                             "type" : "integer",
@@ -120,7 +120,7 @@ homogeneous_material_schema = {
                                         "type": {
                                             "type" : "integer",
                                             "description" : "Material type ID",
-                                            "enum" : [10]
+                                            "enum" : [6]
                                         },
                                         "surface_idx": {
                                             "type" : "integer",

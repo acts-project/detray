@@ -49,11 +49,10 @@ class homogeneous_material_builder final : public volume_decorator<detector_t> {
 
         // Add material
         auto mat_factory =
-            std::dynamic_pointer_cast<homogeneous_material_factory<detector_t>>(sf_factory);
+            std::dynamic_pointer_cast<homogeneous_material_factory<detector_t>>(
+                sf_factory);
         if (mat_factory) {
             (*mat_factory)(this->surfaces(), m_materials);
-        } else {
-            throw std::runtime_error("Not a material factory");
         }
     }
     /// @}

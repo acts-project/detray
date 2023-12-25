@@ -8,8 +8,8 @@
 #pragma once
 
 // Project include(s).
-#include "detray/surface_finders/grid/populators.hpp"
 #include "detray/surface_finders/grid/detail/axis.hpp"
+#include "detray/surface_finders/grid/populators.hpp"
 #include "detray/tools/bin_association.hpp"
 
 // System include(s)

@@ -53,21 +53,25 @@ class material_map_writer
 
     /// Serialize the material description of a detector @param det into its io
     /// payload
-    static detector_grids_payload<material_slab_payload> serialize(
-        const detector_t& det, const typename detector_t::name_map&) {
+    static detector_grids_payload<material_slab_payload,
+                                  io::detail::material_type>
+    serialize(const detector_t& det, const typename detector_t::name_map&) {
 
-        detector_grids_payload<material_slab_payload> grids_data;
-
-        // How to serialize a material slab in the grid
-        auto mat_serializer = [](const material_t& mat) {
-            return mat_writer_t::serialize(mat, dindex_invalid);
-        };
+        detector_grids_payload<material_slab_payload, io::detail::material_type>
+            grids_data;
 
         for (const auto& vol_desc : det.volumes()) {
+
+            // Volume local surface indices
+            dindex offset{dindex_invalid};
 
             /// Check if a surface has a metrial map
             auto vol = detector_volume{det, vol_desc};
             for (const auto& sf_desc : vol.surfaces()) {
+
+                if (sf_desc.index() < offset) {
+                    offset = sf_desc.index();
+                }
 
                 const auto& mat_link = sf_desc.material();
                 // Don't look at empty links
@@ -76,10 +80,15 @@ class material_map_writer
                     continue;
                 }
 
+                // How to serialize a material slab in the grid
+                auto mat_serializer = [&sf_desc](const material_t& mat) {
+                    return mat_writer_t::serialize(mat, sf_desc.index());
+                };
+
                 // Generate the payload
-                grid_writer_t::serialize(det.material_store(), mat_link,
-                                         sf_desc.index(), grids_data,
-                                         mat_serializer);
+                grid_writer_t::serialize(
+                    det.material_store(), mat_link, vol_desc.index(),
+                    sf_desc.index() - offset, grids_data, mat_serializer);
             }
         }
 

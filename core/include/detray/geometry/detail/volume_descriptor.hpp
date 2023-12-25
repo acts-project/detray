@@ -231,14 +231,23 @@ class volume_descriptor {
         detail::get<obj_id>(m_accel_links) = link;
     }
 
-    /// Set surface finder link from @param id and @param index of the
-    /// acceleration data structure (e.g. type and index of grid in surface
-    /// store)
+    /// Set link from @param id and @param index of the acceleration data
+    /// structure (e.g. type and index of a grid in the accelerator store)
     template <ID obj_id>
     DETRAY_HOST constexpr auto set_accel_link(
         const typename link_t::id_type id,
         const typename link_t::index_type index) -> void {
         detail::get<obj_id>(m_accel_links) = link_t{id, index};
+    }
+
+    /// Set link for a type of surfaces ( @param obj_id ) from @param id
+    /// and @param index of the acceleration data structure (e.g. type and
+    /// index of a grid in the accelerator store)
+    DETRAY_HOST constexpr auto set_link(const ID obj_id,
+                                        const typename link_t::id_type accel_id,
+                                        const typename link_t::index_type index)
+        -> void {
+        m_accel_links[obj_id] = link_t{accel_id, index};
     }
 
     /// Equality operator

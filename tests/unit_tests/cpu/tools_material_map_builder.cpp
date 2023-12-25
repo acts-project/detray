@@ -1,6 +1,6 @@
 /** Detray library, part of the ACTS project (R&D line)
  *
- * (c) 2023 CERN for the benefit of the ACTS project
+ * (c) 2023-2024 CERN for the benefit of the ACTS project
  *
  * Mozilla Public License Version 2.0
  */
@@ -36,8 +36,6 @@ using point3 = __plugin::point3<scalar>;
 using detector_t = detector<>;
 using mat_id = typename detector_t::materials::id;
 using bin_index_t = axis::multi_bin<2u>;
-
-constexpr scalar tol{std::numeric_limits<scalar>::epsilon()};
 
 /// Add generate input material for material maps
 template <typename material_factory_t, typename scalar_t>
@@ -129,8 +127,6 @@ GTEST_TEST(detray_tools, decorator_material_map_builder) {
     using transform3 = typename detector_t::transform3;
     using scalar_t = typename detector_t::scalar_type;
     using mask_id = typename detector_t::masks::id;
-    using mat_id = typename detector_t::materials::id;
-    using bin_index_t = axis::multi_bin<2u>;
 
     using pt_cylinder_t = cylinder2D<false, cylinder_portal_intersector>;
     using pt_cylinder_factory_t = surface_factory<detector_t, pt_cylinder_t>;
