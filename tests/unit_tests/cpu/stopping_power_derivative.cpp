@@ -84,6 +84,8 @@ TEST_P(DerivativeOfStoppingPowerValidation, derivative_of_stopping_power) {
     }
 }
 
-INSTANTIATE_TEST_SUITE_P(StoppingPowerDerivativeSilicon,
-                         DerivativeOfStoppingPowerValidation,
-                         ::testing::Values(silicon<scalar>()));
+INSTANTIATE_TEST_SUITE_P(
+    StoppingPowerDerivative, DerivativeOfStoppingPowerValidation,
+    ::testing::Values(hydrogen_gas<scalar>(), helium_gas<scalar>(),
+                      isobutane<scalar>(), aluminium<scalar>(),
+                      silicon<scalar>(), tungsten<scalar>(), gold<scalar>()));
