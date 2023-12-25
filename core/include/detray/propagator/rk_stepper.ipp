@@ -331,7 +331,7 @@ auto detray::rk_stepper<magnetic_field_t, transform3_t, constraint_t, policy_t,
                         inspector_t, array_t>::state::dqopds() const -> scalar {
 
     const auto& mat = this->_mat;
-    const auto& pdg = this->_pdg;
+    const auto pdg = this->_pdg;
 
     // d(qop)ds is zero for empty space
     if (mat == detray::vacuum<scalar>()) {
