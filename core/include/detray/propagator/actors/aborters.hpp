@@ -87,7 +87,7 @@ struct target_aborter : actor {
         if (navigation.is_on_module() and
             (navigation.barcode() == abrt_state._target_surface) and
             (stepping.path_length() > 0.f)) {
-            prop_state._heartbeat &= navigation.exit();
+            prop_state._heartbeat &= navigation.abort();
         }
     }
 };
@@ -110,7 +110,7 @@ struct next_surface_aborter : actor {
         // Abort at the next sensitive surface
         if (navigation.is_on_sensitive() &&
             stepping._s > abrt_state.min_step_length) {
-            prop_state._heartbeat &= navigation.exit();
+            prop_state._heartbeat &= navigation.abort();
             abrt_state.success = true;
         }
     }

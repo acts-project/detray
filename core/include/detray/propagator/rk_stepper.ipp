@@ -259,7 +259,9 @@ auto detray::rk_stepper<magnetic_field_t, transform3_t, constraint_t, policy_t,
         // Put particle at rest if energy loss is too large
         const scalar nextP{
             (mass < nextE) ? std::sqrt(nextE * nextE - mass * mass) : 0.f};
-        new_qop = (q != 0.f) ? q / nextP : 1.f / nextP;
+
+        constexpr scalar inv{detail::invalid_value<scalar>()};
+        new_qop = (nextP == 0.f) ? inv : (q != 0.f) ? q / nextP : 1.f / nextP;
     }
 
     return new_qop;

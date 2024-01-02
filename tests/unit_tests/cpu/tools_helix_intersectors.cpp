@@ -47,7 +47,7 @@ const free_track_parameters<transform3_t> free_trk(
 
 // Magnetic field
 const vector3 B{0.f, 0.f, 1.f * unit<scalar>::T};
-const vector3 B_0{0.f * unit<scalar>::T, 0.f * unit<scalar>::T,
+const vector3 B_0{0.f * unit<scalar>::T, tol* unit<scalar>::T,
                   tol* unit<scalar>::T};
 
 // Test helix

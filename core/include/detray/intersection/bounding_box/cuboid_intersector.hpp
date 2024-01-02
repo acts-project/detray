@@ -45,7 +45,10 @@ struct cuboid_intersector {
         const point3 &ro = ray.pos();
         const vector3 &rd = ray.dir();
         // @TODO: put vector-vector operator/ in algebra-plugins
-        const vector3 inv_dir{1.f / rd[0], 1.f / rd[1], 1.f / rd[2]};
+        constexpr scalar_t inv{detail::invalid_value<scalar_t>()};
+        const vector3 inv_dir{rd[0] == 0.f ? inv : 1.f / rd[0],
+                              rd[1] == 0.f ? inv : 1.f / rd[1],
+                              rd[2] == 0.f ? inv : 1.f / rd[2]};
 
         // This is prob. slow -> @todo refactor masks to hold custom mask values
         const vector3 min{box[boundaries::e_min_x], box[boundaries::e_min_y],

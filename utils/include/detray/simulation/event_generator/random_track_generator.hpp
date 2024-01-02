@@ -75,7 +75,8 @@ struct random_numbers {
 /// effect distribution mean etc.
 template <typename track_t, typename generator_t = random_numbers<>>
 class random_track_generator
-    : public detray::ranges::view_interface<random_track_generator<track_t>> {
+    : public detray::ranges::view_interface<
+          random_track_generator<track_t, generator_t>> {
     public:
     using point3 = typename track_t::point3;
     using vector3 = typename track_t::vector3;

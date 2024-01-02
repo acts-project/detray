@@ -96,7 +96,7 @@ class axis_aligned_bounding_volume {
             max_x = max_point[0] > max_x ? max_point[0] : max_x;
             max_y = max_point[1] > max_y ? max_point[1] : max_y;
 
-            if (min_point.size() > 1) {
+            if constexpr (min_point.size() > 2) {
                 min_z = min_point[2] < min_z ? min_point[2] : min_z;
                 max_z = max_point[2] > max_z ? max_point[2] : max_z;
             }

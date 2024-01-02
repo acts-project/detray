@@ -107,13 +107,19 @@ class detector_builder {
                                         2000.f};
             std::array<std::size_t, 3> n_vgrid_bins{1u, 1u, 1u};
 
+            std::array<std::vector<scalar>, 3UL> bin_edges{
+                std::vector<scalar>{0.f, 180.f},
+                std::vector<scalar>{-constant<scalar>::pi,
+                                    constant<scalar>::pi},
+                std::vector<scalar>{-2000.f, 2000.f}};
+
             grid_factory_type<vol_finder_t> vgrid_factory{};
             m_vol_finder = vgrid_factory.template new_grid<
                 n_axis::open<n_axis::label::e_r>,
                 n_axis::circular<n_axis::label::e_phi>,
                 n_axis::open<n_axis::label::e_z>, n_axis::irregular<>,
-                n_axis::regular<>, n_axis::irregular<>>(vgrid_dims,
-                                                        n_vgrid_bins);
+                n_axis::regular<>, n_axis::irregular<>>(
+                vgrid_dims, n_vgrid_bins, bin_edges);
         } else {
             m_vol_finder = vol_finder_t{args...};
         }

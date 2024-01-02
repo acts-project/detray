@@ -388,7 +388,7 @@ struct circular {
             return static_cast<dindex>(opt_bin);
         }
         if (opt_bin < 0) {
-            return n_bins + static_cast<dindex>(opt_bin);
+            return static_cast<dindex>(static_cast<int>(n_bins) + opt_bin);
         }
         return static_cast<dindex>(opt_bin) - n_bins;
     }

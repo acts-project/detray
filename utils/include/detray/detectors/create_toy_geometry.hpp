@@ -624,10 +624,11 @@ inline void add_beampipe(
         {brl_half_z, edc_lay_sizes[0].first}};
     for (unsigned int i = 0u; i < n_edc_layers; ++i) {
         vol_sizes.emplace_back(edc_lay_sizes[i].first, edc_lay_sizes[i].second);
-        vol_sizes.emplace_back(edc_lay_sizes[i].second,
-                               edc_lay_sizes[i + 1].first);
+        if (i < n_edc_layers - 1) {
+            vol_sizes.emplace_back(edc_lay_sizes[i].second,
+                                   edc_lay_sizes[i + 1].first);
+        }
     }
-    vol_sizes.pop_back();
 
     // negative endcap portals
     dindex link = beampipe_idx;
@@ -771,8 +772,10 @@ inline void add_endcap_barrel_connection(
     std::vector<std::pair<scalar, scalar>> vol_sizes;
     for (unsigned int i = 1u; i <= n_brl_layers; ++i) {
         vol_sizes.emplace_back(brl_lay_sizes[i].first, brl_lay_sizes[i].second);
-        vol_sizes.emplace_back(brl_lay_sizes[i].second,
-                               brl_lay_sizes[i + 1u].first);
+        if (i < n_brl_layers) {
+            vol_sizes.emplace_back(brl_lay_sizes[i].second,
+                                   brl_lay_sizes[i + 1u].first);
+        }
     }
 
     volume_link = brl_vol_idx;
@@ -1189,14 +1192,22 @@ inline auto create_toy_geometry(vecmem::memory_resource &resource,
                                 2000.f};
     std::array<std::size_t, 3> n_vgrid_bins{1u, 1u, 1u};
 
+    scalar half_size_z{cfg.n_edc_layers() > 0
+                           ? edc_lay_sizes[cfg.n_edc_layers() - 1].second
+                           : brl_half_z};
+    std::array<std::vector<scalar>, 3UL> bin_edges{
+        std::vector<scalar>{0.f, brl_lay_sizes[cfg.n_brl_layers()].second},
+        std::vector<scalar>{-constant<scalar>::pi, constant<scalar>::pi},
+        std::vector<scalar>{-half_size_z, half_size_z}};
+
     grid_factory_type<typename detector_t::volume_finder> vgrid_factory{};
     auto vgrid =
         vgrid_factory.template new_grid<n_axis::open<n_axis::label::e_r>,
                                         n_axis::circular<n_axis::label::e_phi>,
                                         n_axis::open<n_axis::label::e_z>,
                                         n_axis::irregular<>, n_axis::regular<>,
-                                        n_axis::irregular<>>(vgrid_dims,
-                                                             n_vgrid_bins);
+                                        n_axis::irregular<>>(
+            vgrid_dims, n_vgrid_bins, bin_edges);
     det.set_volume_finder(std::move(vgrid));
 
     return std::make_pair(std::move(det), std::move(name_map));

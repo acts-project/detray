@@ -17,6 +17,9 @@
 #include "detray/test/types.hpp"
 #include "detray/tracks/tracks.hpp"
 
+// System include(s)
+#include <memory>
+
 // google-test include(s)
 #include <gtest/gtest.h>
 
@@ -53,12 +56,13 @@ struct dummy_detector {
 
 // dummy navigation struct
 struct nav_state {
+
+    nav_state() : m_det{std::make_unique<dummy_detector>()} {}
+
     scalar operator()() const { return _step_size; }
     inline auto current_object() const -> dindex { return dindex_invalid; }
     inline auto tolerance() const -> scalar { return tol; }
-    inline auto detector() const -> dummy_detector * {
-        return new dummy_detector();
-    }
+    inline auto detector() const -> dummy_detector * { return m_det.get(); }
     inline auto volume() -> int { return 0; }
     inline void set_full_trust() {}
     inline void set_high_trust() {}
@@ -67,6 +71,7 @@ struct nav_state {
     inline bool abort() { return false; }
 
     scalar _step_size{1.f * unit<scalar>::mm};
+    std::unique_ptr<dummy_detector> m_det;
 };
 
 // dummy propagator state

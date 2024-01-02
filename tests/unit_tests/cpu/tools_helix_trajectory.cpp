@@ -170,7 +170,7 @@ GTEST_TEST(detray_intersection, helix_trajectory_small_pT) {
 
     const point3 pos{0.f, 0.f, 0.f};
     const scalar time{0.f};
-    const vector3 mom{0.f, 0.f, 1.f * unit<scalar>::GeV};
+    const vector3 mom{0.f, tol, 1.f * unit<scalar>::GeV};
     const scalar q{-1. * unit<scalar>::e};
 
     // vertex
