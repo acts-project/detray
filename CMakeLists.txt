@@ -207,6 +207,7 @@ add_subdirectory( io )
 add_subdirectory( utils )
 
 # Set up the test(s).
+cmake_dependent_option(DETRAY_ENABLE_SANITIZER "Compile tests with sanitizers" OFF "BUILD_TESTING AND DETRAY_BUILD_TESTING" OFF)
 if( BUILD_TESTING AND DETRAY_BUILD_TESTING )
    add_subdirectory( tests )
 endif()

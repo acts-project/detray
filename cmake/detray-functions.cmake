@@ -123,6 +123,25 @@ function( detray_add_test name )
       target_link_libraries( ${test_exe_name} PRIVATE ${ARG_LINK_LIBRARIES} )
    endif()
 
+   # Run tests with sanitizers
+   if( DETRAY_ENABLE_SANITIZER )
+
+      # Common flags
+      set(SANITIZER_FLAGS "-fsanitize=address,undefined,pointer-compare,pointer-subtract,float-divide-by-zero")
+
+      # Extra flags for clang
+      if( "${CMAKE_CXX_COMPILER_ID}" MATCHES "Clang" )
+         set(SANITIZER_FLAGS "${SANITIZER_FLAGS},leak,integer,nullability,implicit-conversion,local-bounds")
+      endif()
+
+      target_compile_options(${test_exe_name} PUBLIC ${SANITIZER_FLAGS})
+      target_link_options(${test_exe_name} PUBLIC ${SANITIZER_FLAGS})
+
+      # Clean up
+      unset( SANITIZER_FLAGS )
+
+   endif()
+
    # Run the executable as the test.
    add_test( NAME ${test_exe_name}
       COMMAND ${test_exe_name} )

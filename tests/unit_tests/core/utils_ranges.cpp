@@ -384,7 +384,7 @@ TEST(utils, ranges_pick) {
     ASSERT_EQ(v_back.ui, 8u);
 
     for (auto [j, w] : selected) {
-        ASSERT_TRUE(j == w.ui);
+        ASSERT_EQ(j, w.ui);
         check.push_back(w.ui);
     }
     ASSERT_EQ(check.size(), indices.size());

@@ -149,7 +149,7 @@ class material_factory final : public factory_decorator<detector_t> {
 
         auto [sf_index, mat, thickness] = mat_data.get_data();
 
-        m_links.push_back(std::make_pair(id, index));
+        m_links.push_back(std::make_pair(id, static_cast<dindex>(index)));
         m_indices.push_back(sf_index);
         m_materials.push_back(mat);
         m_thickness.push_back(thickness);
@@ -227,7 +227,7 @@ class material_factory final : public factory_decorator<detector_t> {
 
                 material_slab<scalar_type> mat_slab{mat, t};
                 mat_idx = this->insert_in_container(mat_coll, mat_slab,
-                                                    m_links[sf_idx].second);
+                                                    m_links.at(sf_idx).second);
             }
             if constexpr (detector_t::materials::template is_defined<
                               material_rod<scalar_type>>()) {
@@ -243,7 +243,7 @@ class material_factory final : public factory_decorator<detector_t> {
 
             // Set the initial surface material link (will be updated when
             // added to the detector)
-            surfaces[i].material() = link_t{m_links[sf_idx].first, mat_idx};
+            surfaces.at(i).material() = link_t{m_links[sf_idx].first, mat_idx};
         }
     }
 

@@ -238,13 +238,13 @@ class grid_collection<
         const auto binnings = get_binning(gr.axes());
 
         // Update the bin edges index range for the axes in the grid collection
-        for (std::size_t i = m_axes_data.size() - grid_type::Dim;
-             i < m_axes_data.size(); ++i) {
-            auto &bin_entry_range = m_axes_data[i];
+        const auto start_idx{m_axes_data.size() - grid_type::Dim};
+        for (std::size_t i = start_idx; i < m_axes_data.size(); ++i) {
+            auto &bin_entry_range = m_axes_data.at(i);
             bin_entry_range[0] += bin_edges_offset;
             // If the axis has irregular binning, the second entry is the index
             // of the last bin edge value instead of the number of bins
-            if (binnings[i] == n_axis::binning::e_irregular) {
+            if (binnings.at(i - start_idx) == n_axis::binning::e_irregular) {
                 bin_entry_range[1] += bin_edges_offset;
             }
         }

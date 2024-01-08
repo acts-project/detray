@@ -64,21 +64,22 @@ class pick_view : public detray::ranges::view_interface<
         /// @returns true if we reach end of sequence
         DETRAY_HOST_DEVICE
         constexpr auto operator==(const iterator &rhs) const -> bool {
-            return (m_seq_iter == rhs.m_seq_iter) and
-                   (m_range_iter == rhs.m_range_iter);
+            return (m_seq_iter == rhs.m_seq_iter);
         }
 
         /// Determine whether we reach end of range - const
         DETRAY_HOST_DEVICE constexpr auto operator!=(const iterator &rhs) const
             -> bool {
-            return (m_seq_iter != rhs.m_seq_iter) or
-                   (m_range_iter != rhs.m_range_iter);
+            return (m_seq_iter != rhs.m_seq_iter);
         }
 
         /// Increment iterator and index in lockstep
         DETRAY_HOST_DEVICE constexpr auto operator++() -> iterator & {
-            m_range_iter =
-                m_range_begin + static_cast<difference_type>(*(++m_seq_iter));
+            ++m_seq_iter;
+            if (m_seq_iter != m_seq_end) {
+                m_range_iter =
+                    m_range_begin + static_cast<difference_type>(*(m_seq_iter));
+            }
             return *this;
         }
 
@@ -210,8 +211,7 @@ class pick_view : public detray::ranges::view_interface<
     /// @return sentinel of a sequence.
     DETRAY_HOST_DEVICE
     constexpr auto end() -> iterator {
-        return {m_range_begin + static_cast<difference_t>(*(m_seq_end)),
-                m_range_begin, m_seq_end, m_seq_end};
+        return {m_range_begin, m_range_begin, m_seq_end, m_seq_end};
     }
 
     /// @returns a pointer to the beginning of the data of the first underlying

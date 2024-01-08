@@ -311,8 +311,7 @@ struct print_inspector : actor {
         }
 
         printer.stream << "surface: " << std::setw(14);
-        if (navigation.is_on_portal() or navigation.is_on_module() or
-            navigation.status() == navigation::status::e_on_target) {
+        if (navigation.is_on_portal() or navigation.is_on_module()) {
             printer.stream << navigation.barcode();
         } else {
             printer.stream << "undefined";

@@ -306,12 +306,21 @@ inline auto create_wire_chamber(vecmem::memory_resource &resource,
                                     600.f};
         std::array<std::size_t, 3> n_vgrid_bins{1u, 1u, 1u};
 
+        const scalar outer_radius{inner_cyl_rad +
+                                  static_cast<scalar>(cfg.n_layers() + 1) *
+                                      cell_size * 2.f};
+        std::array<std::vector<scalar>, 3UL> bin_edges{
+            std::vector<scalar>{0.f, outer_radius},
+            std::vector<scalar>{-constant<scalar>::pi, constant<scalar>::pi},
+            std::vector<scalar>{-cyl_half_z, cyl_half_z}};
+
         grid_factory_type<typename detector_t::volume_finder> vgrid_factory{};
         auto vgrid = vgrid_factory.template new_grid<
             n_axis::open<n_axis::label::e_r>,
             n_axis::circular<n_axis::label::e_phi>,
             n_axis::open<n_axis::label::e_z>, n_axis::irregular<>,
-            n_axis::regular<>, n_axis::irregular<>>(vgrid_dims, n_vgrid_bins);
+            n_axis::regular<>, n_axis::irregular<>>(vgrid_dims, n_vgrid_bins,
+                                                    bin_edges);
         det.set_volume_finder(std::move(vgrid));
     }
 

@@ -90,8 +90,9 @@ inline bool check_connectivity(
             auto rec = trace.begin() + next;
             // Make sure that the record contains the volume that is currently
             // being checked for connectivity
-            if ((std::get<1>(rec->first) == current_volume) or
-                (std::get<1>(rec->second) == current_volume)) {
+            if (rec != trace.end() &&
+                ((std::get<1>(rec->first) == current_volume) ||
+                 (std::get<1>(rec->second) == current_volume))) {
                 return rec;
             }
             return trace.end();
