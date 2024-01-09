@@ -14,7 +14,7 @@
 // System include(s).
 #include <cstddef>
 
-namespace detray::n_axis {
+namespace detray::axis {
 
 /// @brief Helper to tie two bin indices to a range.
 /// @note Cannot use dindex_range for signed integer bin indices.
@@ -27,11 +27,11 @@ using bin_range = std::array<int, 2>;
 /// are the overflow bins.
 ///
 /// @tparam axis_label the label of the axis, i.e. x, y, z or r.
-template <n_axis::label axis_label>
+template <axis::label axis_label>
 struct open {
 
-    static constexpr n_axis::label label = axis_label;
-    static constexpr n_axis::bounds type = bounds::e_open;
+    static constexpr axis::label label = axis_label;
+    static constexpr axis::bounds type = bounds::e_open;
 
     /// Map a bin into the axis range
     ///
@@ -94,10 +94,10 @@ struct open {
 /// actual over- or underflow bins (they would be -1 and #bins).
 ///
 /// @tparam axis_label the label of the axis, i.e. x, y, z or r.
-template <n_axis::label axis_label>
+template <axis::label axis_label>
 struct closed {
 
-    static constexpr n_axis::label label = axis_label;
+    static constexpr axis::label label = axis_label;
     static constexpr bounds type = bounds::e_closed;
 
     /// Map a bin into the axis range
@@ -158,10 +158,10 @@ struct closed {
 /// The axis will be periodic, i.e. underflow bins map into #bins - 1 and
 /// overflow bins map into 0: so that [0, #bins - 1], with -1 = #bins - 1 and
 /// #bins = 0.
-template <n_axis::label axis_label = n_axis::label::e_phi>
+template <axis::label axis_label = axis::label::e_phi>
 struct circular {
 
-    static constexpr n_axis::label label = axis_label;
+    static constexpr axis::label label = axis_label;
     static constexpr bounds type = bounds::e_circular;
 
     /// Map a bin into the axis range
@@ -239,4 +239,4 @@ struct circular {
     }
 };
 
-}  // namespace detray::n_axis
+}  // namespace detray::axis

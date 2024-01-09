@@ -36,9 +36,8 @@ class rk_stepper final
     public:
     using base_type =
         base_stepper<transform3_t, constraint_t, policy_t, inspector_t>;
-    using inspector_type = inspector_t;
+
     using transform3_type = transform3_t;
-    using policy_type = policy_t;
     using scalar_type = typename transform3_type::scalar_type;
     using point3 = typename transform3_type::point3;
     using vector2 = typename transform3_type::point2;

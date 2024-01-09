@@ -9,8 +9,8 @@
 
 // Project include(s)
 #include "detray/core/detector.hpp"
+#include "detray/definitions/grid_axis.hpp"
 #include "detray/definitions/units.hpp"
-#include "detray/grids/axis.hpp"
 #include "detray/plugins/svgtools/styling/styling.hpp"
 
 // Actsvg include(s)
@@ -56,7 +56,7 @@ template <
 inline auto grid_type_and_edges(const grid_t& grid, const view_t&) {
 
     using scalar_t = typename grid_t::local_frame_type::scalar_type;
-    using axis_label = detray::n_axis::label;
+    using axis_label = detray::axis::label;
 
     auto edges_rphi = grid.template get_axis<axis_label::e_rphi>().bin_edges();
     auto edges_z = grid.template get_axis<axis_label::e_cyl_z>().bin_edges();
@@ -95,7 +95,7 @@ template <
 inline auto grid_type_and_edges(const grid_t& grid, const view_t&) {
 
     using scalar_t = typename grid_t::local_frame_type::scalar_type;
-    using axis_label = detray::n_axis::label;
+    using axis_label = detray::axis::label;
 
     auto edges_r = grid.template get_axis<axis_label::e_r>().bin_edges();
     auto edges_phi = grid.template get_axis<axis_label::e_phi>().bin_edges();
@@ -152,7 +152,7 @@ struct bin_association_getter {
             using point2_t = typename transform3_t::point2;
 
             // The sheet display only works for 2-dimensional grids
-            if constexpr (accel_t::Dim != 2u) {
+            if constexpr (accel_t::dim != 2u) {
                 return {};
             }
 

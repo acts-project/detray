@@ -35,7 +35,7 @@ namespace detray {
 ///        taken absolute or relative
 template <typename context_t, typename surface_container_t,
           typename transform_container_t, typename mask_container_t,
-          typename grid_t, std::enable_if_t<grid_t::Dim == 2, bool> = true>
+          typename grid_t, std::enable_if_t<grid_t::dim == 2, bool> = true>
 static inline void bin_association(const context_t & /*context*/,
                                    const surface_container_t &surfaces,
                                    const transform_container_t &transforms,

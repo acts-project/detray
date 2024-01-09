@@ -318,11 +318,9 @@ inline auto create_wire_chamber(vecmem::memory_resource &resource,
 
         grid_factory_type<typename detector_t::volume_finder> vgrid_factory{};
         auto vgrid = vgrid_factory.template new_grid<
-            n_axis::open<n_axis::label::e_r>,
-            n_axis::circular<n_axis::label::e_phi>,
-            n_axis::open<n_axis::label::e_z>, n_axis::irregular<>,
-            n_axis::regular<>, n_axis::irregular<>>(vgrid_dims, n_vgrid_bins,
-                                                    bin_edges);
+            axis::open<axis::label::e_r>, axis::circular<axis::label::e_phi>,
+            axis::open<axis::label::e_z>, axis::irregular<>, axis::regular<>,
+            axis::irregular<>>(vgrid_dims, n_vgrid_bins, bin_edges);
         det.set_volume_finder(std::move(vgrid));
     }
 

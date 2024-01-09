@@ -62,17 +62,15 @@ struct itk_metadata {
 
     // Cylindrical material map
     template <typename container_t>
-    using cylinder_map_t =
-        material_map<cylinder2D<>::axes<>, scalar, container_t>;
+    using cylinder_map_t = material_map<cylinder2D<>, scalar, container_t>;
 
     // Disc material map
     template <typename container_t>
-    using disc_map_t = material_map<ring2D<>::axes<>, scalar, container_t>;
+    using disc_map_t = material_map<ring2D<>, scalar, container_t>;
 
     // Rectangular material map
     template <typename container_t>
-    using rectangular_map_t =
-        material_map<rectangle2D<>::axes<>, scalar, container_t>;
+    using rectangular_map_t = material_map<rectangle2D<>, scalar, container_t>;
 
     /// How to store and link transforms. The geometry context allows to resolve
     /// the conditions data for e.g. module alignment
@@ -167,11 +165,9 @@ struct itk_metadata {
     /// given position. Here: Uniform grid with a 3D cylindrical shape
     template <typename container_t = host_container_types>
     using volume_finder =
-        grid<coordinate_axes<
-                 cylinder3D::axes<n_axis::bounds::e_open, n_axis::irregular,
-                                  n_axis::regular, n_axis::irregular>,
-                 true, container_t>,
-             bins::single<dindex>, simple_serializer>;
+        grid<axes<cylinder3D, axis::bounds::e_open, axis::irregular,
+                  axis::regular, axis::irregular>,
+             bins::single<dindex>, simple_serializer, container_t>;
 };
 
 }  // namespace detray

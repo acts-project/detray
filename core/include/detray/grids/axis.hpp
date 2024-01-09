@@ -26,7 +26,7 @@
 
 namespace detray {
 
-namespace axis {
+namespace axis2 {
 /** A regular closed axis.
  *
  * The axis is closed, i.e. each underflow bin is mapped to 0
@@ -611,7 +611,7 @@ struct irregular {
     }
 };
 
-}  // namespace axis
+}  // namespace axis2
 
 /**
  * static implementation of axis data for device

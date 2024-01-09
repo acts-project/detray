@@ -43,36 +43,33 @@ struct toy_metadata {
 
     // Cylindrical material grid
     template <typename container_t>
-    using cylinder_map_t =
-        material_map<cylinder2D<>::axes<>, scalar, container_t>;
+    using cylinder_map_t = material_map<cylinder2D<>, scalar, container_t>;
 
     // Disc material grid
     template <typename container_t>
-    using disc_map_t = material_map<ring2D<>::axes<>, scalar, container_t>;
+    using disc_map_t = material_map<ring2D<>, scalar, container_t>;
 
     // Rectangular material grid
     template <typename container_t>
-    using rectangular_map_t =
-        material_map<rectangle2D<>::axes<>, scalar, container_t>;
+    using rectangular_map_t = material_map<rectangle2D<>, scalar, container_t>;
 
     /// Surface grid types (regular, open binning)
     /// @{
 
     // Surface grid definition: bin-content: std::array<sf_descriptor, 1>
-    template <typename grid_shape_t, typename bin_entry_t, typename container_t>
-    using surface_grid_t =
-        grid<coordinate_axes<grid_shape_t, false, container_t>,
-             bins::static_array<bin_entry_t, 1>, simple_serializer>;
+    template <typename axes_t, typename bin_entry_t, typename container_t>
+    using surface_grid_t = grid<axes_t, bins::static_array<bin_entry_t, 1>,
+                                simple_serializer, container_t, false>;
 
     // cylindrical grid for the barrel layers
     template <typename bin_entry_t, typename container_t>
     using cylinder_sf_grid =
-        surface_grid_t<cylinder2D<>::axes<>, bin_entry_t, container_t>;
+        surface_grid_t<axes<cylinder2D<>>, bin_entry_t, container_t>;
 
     // disc grid for the endcap layers
     template <typename bin_entry_t, typename container_t>
     using disc_sf_grid =
-        surface_grid_t<ring2D<>::axes<>, bin_entry_t, container_t>;
+        surface_grid_t<axes<ring2D<>>, bin_entry_t, container_t>;
 
     /// @}
 
@@ -157,11 +154,9 @@ struct toy_metadata {
     /// Volume search grid
     template <typename container_t = host_container_types>
     using volume_finder =
-        grid<coordinate_axes<
-                 cylinder3D::axes<n_axis::bounds::e_open, n_axis::irregular,
-                                  n_axis::regular, n_axis::irregular>,
-                 true, container_t>,
-             bins::single<dindex>, simple_serializer>;
+        grid<axes<cylinder3D, axis::bounds::e_open, axis::irregular,
+                  axis::regular, axis::irregular>,
+             bins::single<dindex>, simple_serializer, container_t>;
 };
 
 }  // namespace detray

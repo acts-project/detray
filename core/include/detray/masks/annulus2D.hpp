@@ -1,6 +1,6 @@
 /** Detray library, part of the ACTS project (R&D line)
  *
- * (c) 2020-2023 CERN for the benefit of the ACTS project
+ * (c) 2020-2024 CERN for the benefit of the ACTS project
  *
  * Mozilla Public License Version 2.0
  */
@@ -15,8 +15,6 @@
 #include "detray/definitions/units.hpp"
 #include "detray/intersection/plane_intersector.hpp"
 #include "detray/masks/detail/vertexing.hpp"
-#include "detray/surface_finders/grid/detail/axis_binning.hpp"
-#include "detray/surface_finders/grid/detail/axis_bounds.hpp"
 
 // System include(s)
 #include <limits>
@@ -72,26 +70,8 @@ class annulus2D {
     template <typename intersection_t>
     using intersector_type = intersector_t<intersection_t>;
 
-    /// Behaviour of the two local axes (linear in r, circular in phi)
-    template <
-        n_axis::bounds e_s = n_axis::bounds::e_closed,
-        template <typename, typename> class binning_loc0 = n_axis::regular,
-        template <typename, typename> class binning_loc1 = n_axis::regular>
-    struct axes {
-        static constexpr n_axis::label axis_loc0 = n_axis::label::e_r;
-        static constexpr n_axis::label axis_loc1 = n_axis::label::e_phi;
-        static constexpr std::size_t dim{2u};
-
-        using types = dtuple<n_axis::bounds_t<e_s, axis_loc0>,
-                             n_axis::circular<axis_loc1>>;
-
-        /// Local coordinate frame (both for disc and focal system ?)
-        template <typename algebra_t>
-        using coordinate_type = local_frame_type<algebra_t>;
-
-        template <typename C, typename S>
-        using binning = dtuple<binning_loc0<C, S>, binning_loc1<C, S>>;
-    };
+    /// Dimension of the local coordinate system
+    static constexpr std::size_t dim{2u};
 
     /// @returns the stereo angle calculated from the mask @param bounds .
     template <template <typename, std::size_t> class bounds_t,
