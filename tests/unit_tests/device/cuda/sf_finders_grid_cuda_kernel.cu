@@ -162,6 +162,42 @@ void grid_attach_test(host_grid2_array::view_type grid_view, std::size_t dim_x,
     DETRAY_CUDA_ERROR_CHECK(cudaDeviceSynchronize());
 }
 
+// cuda kernel for grid_dynamic_attach_test
+__global__ void grid_dynamic_attach_kernel(
+    host_grid2_dynamic_array::view_type grid_view) {
+
+    // Let's try building the grid object
+    device_grid2_dynamic_array g2_device(grid_view);
+
+    // Get axes on the device-side
+    const auto& axis_r = g2_device.template get_axis<axis::label::e_r>();
+    const auto& axis_phi = g2_device.template get_axis<axis::label::e_phi>();
+
+    auto width_r = axis_r.m_binning.bin_width();
+    auto width_phi = axis_phi.m_binning.bin_width();
+
+    auto gid = threadIdx.x + threadIdx.y * blockDim.x;
+    auto tp = point3{axis_r.min() + gid * width_r,
+                     axis_phi.min() + gid * width_phi, 0.5f};
+
+    g2_device.template populate<attach<>>(gid, std::move(tp));
+}
+
+// grid_dynamic_attach_test implementation
+void grid_dynamic_attach_test(host_grid2_dynamic_array::view_type grid_view,
+                              std::size_t dim_x, std::size_t dim_y) {
+
+    int block_dim = 1;
+    dim3 thread_dim(dim_x, dim_y);
+
+    // run the kernel
+    grid_dynamic_attach_kernel<<<block_dim, thread_dim>>>(grid_view);
+
+    // cuda error check
+    DETRAY_CUDA_ERROR_CHECK(cudaGetLastError());
+    DETRAY_CUDA_ERROR_CHECK(cudaDeviceSynchronize());
+}
+
 //----------------------------------------------------
 // Device side grid reader for debugging
 //----------------------------------------------------
@@ -208,6 +244,9 @@ template void print_grid<device_grid2_single_ci>(
 
 template void print_grid<device_grid2_array>(host_grid2_array::view_type,
                                              dindex, dindex);
+
+template void print_grid<device_grid2_dynamic_array>(
+    device_grid2_dynamic_array::view_type, dindex, dindex);
 
 //---------------------------------------
 //  test function for collection of grids

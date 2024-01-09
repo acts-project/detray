@@ -89,7 +89,9 @@ template <class T>
 struct has_view<
     T, std::enable_if_t<detray::detail::is_device_view_v<typename T::view_type>,
                         void>> : public std::true_type {
-    using type = typename T::view_type;
+    using type =
+        std::conditional_t<std::is_const_v<T>, typename T::const_view_type,
+                           typename T::view_type>;
 };
 
 template <class T>

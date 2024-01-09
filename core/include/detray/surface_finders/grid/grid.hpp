@@ -111,7 +111,7 @@ class grid_impl {
         : m_bins(*bin_data_ptr, offset, axes.nbins()), m_axes(axes) {}
 
     /// Create grid from container pointers - non-owning (both grid and axes)
-    // TODO: Remove
+    // TODO: const correctnes
     DETRAY_HOST_DEVICE
     grid_impl(const bin_container_type *bin_data_ptr, axes_type &&axes,
               const dindex offset = 0)

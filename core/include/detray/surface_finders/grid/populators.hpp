@@ -30,7 +30,7 @@ struct replace {
     /// @param bin the bin for which to replace the content
     /// @param content new content to be added
     template <typename bin_t, typename content_t>
-    DETRAY_HOST_DEVICE void operator()(bin_t &bin, content_t &&entry) const {
+    DETRAY_HOST_DEVICE void operator()(bin_t &&bin, content_t &&entry) const {
         bin.init(std::forward<content_t>(entry));
 
         // Optionally sort the bin content
@@ -51,7 +51,7 @@ struct attach {
     /// @param bin the bin for which to replace the content
     /// @param content new content to be added
     template <typename bin_t, typename entry_t>
-    DETRAY_HOST_DEVICE void operator()(bin_t &bin, entry_t &&entry) const {
+    DETRAY_HOST_DEVICE void operator()(bin_t &&bin, entry_t &&entry) const {
         bin.push_back(std::forward<entry_t>(entry));
 
         // Optionally sort the bin content
@@ -73,7 +73,7 @@ struct complete {
     /// @param bin the bin for which to replace the content
     /// @param content new content to be added
     template <typename bin_t, typename entry_t>
-    DETRAY_HOST_DEVICE void operator()(bin_t &bin, entry_t &&entry) const {
+    DETRAY_HOST_DEVICE void operator()(bin_t &&bin, entry_t &&entry) const {
         for (dindex i{bin.size()}; i < bin.capacity(); ++i) {
             bin.push_back(std::forward<entry_t>(entry));
         }

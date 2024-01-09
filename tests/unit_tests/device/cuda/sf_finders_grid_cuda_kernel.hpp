@@ -56,6 +56,13 @@ using device_grid2_array =
     grid<axes<ring2D<>>, bins::static_array<point3, n_points>,
          simple_serializer, device_container_types>;
 
+using host_grid2_dynamic_array =
+    grid<axes<ring2D<>>, bins::dynamic_array<point3>>;
+
+using device_grid2_dynamic_array =
+    grid<axes<ring2D<>>, bins::dynamic_array<point3>, simple_serializer,
+         device_container_types>;
+
 // grid collection
 template <typename containers>
 using cylinder3D_grid =
@@ -73,15 +80,20 @@ void grid_replace_test(host_grid3_single::view_type grid_view,
 void grid_replace_ci_test(host_grid2_single_ci::view_type grid_view,
                           std::size_t dim_x, std::size_t dim_y);
 
-// test function for complete populator
+/// test function for complete populator
 void grid_complete_test(host_grid2_array::view_type grid_view,
                         std::size_t dim_x, std::size_t dim_y);
 
-// read test function for attach populator
+/// read test function for attach populator
+/// @{
 void grid_attach_test(host_grid2_array::view_type grid_view, std::size_t dim_x,
                       std::size_t dim_y);
 
-// read test function for attach populator
+void grid_dynamic_attach_test(host_grid2_dynamic_array::view_type grid_view,
+                              std::size_t dim_x, std::size_t dim_y);
+/// @}
+
+// print an N-dimensional grid on device
 template <typename device_grid_t, typename view_t, typename... I>
 void print_grid(view_t grid_view, I... dims);
 

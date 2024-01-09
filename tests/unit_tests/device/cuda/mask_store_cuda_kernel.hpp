@@ -19,9 +19,6 @@
 
 #include "vecmem/containers/device_vector.hpp"
 
-// Thrust include(s)
-#include <thrust/tuple.h>
-
 using namespace detray;
 
 using point2 = __plugin::point2<scalar>;

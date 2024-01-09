@@ -331,6 +331,116 @@ TEST(grids_cuda, grid2_attach_populator) {
     // axis_phi.nbins());
 }
 
+// Test the attach population on a grid with dynamic bin capacities
+TEST(grids_cuda, grid2_dynamic_attach_populator) {
+    // memory resource
+    vecmem::cuda::managed_memory_resource mng_mr;
+
+    // Build multi-axis
+    using axes_t = host_grid2_dynamic_array::axes_type;
+    using bin_t = host_grid2_dynamic_array::bin_type;
+
+    typename axes_t::edge_offset_container_type axis_data(&mng_mr);
+    typename axes_t::edges_container_type bin_edges(&mng_mr);
+
+    axis_data.reserve(2);
+    axis_data.insert(axis_data.begin(),
+                     {dindex_range{0u, 2u}, dindex_range{2u, 65u}});
+    bin_edges.reserve(4);
+    bin_edges.insert(bin_edges.begin(),
+                     {0.f, 6.f, -constant<scalar>::pi, constant<scalar>::pi});
+
+    axes_t axes(std::move(axis_data), std::move(bin_edges));
+
+    // build host grid
+    const point3 first_tp{3.f, 3.f, 3.f};
+    const point3 invalid_tp{0.f, 0.f, 0.f};
+
+    host_grid2_dynamic_array::bin_container_type bin_data{mng_mr};
+    vecmem::vector<bin_t::entry_type> entries{&mng_mr};
+    bin_data.bins.resize(2 * 65);
+    bin_data.entries.resize(4 * bin_data.bins.size());
+
+    int i{0};
+    dindex offset{0u};
+    attach<> attacher{};
+
+    // bin content with different bin capacities
+    for (auto& data : bin_data.bins) {
+
+        data.offset = offset;
+        // Every second bin holds one element, otherwise three
+        data.capacity = (i % 2) ? 1u : 3u;
+
+        detray::bins::dynamic_array bin{bin_data.entries.data(), data};
+
+        ASSERT_TRUE(bin.capacity() == (i % 2 ? 1u : 3u));
+        ASSERT_TRUE(bin.size() == 0);
+
+        offset += bin.capacity();
+
+        // Populate the bin
+        attacher(bin, first_tp);
+        ++i;
+    }
+
+    host_grid2_dynamic_array g2(std::move(bin_data), std::move(axes));
+
+    const auto& axis_r = g2.template get_axis<axis::label::e_r>();
+    const auto& axis_phi = g2.template get_axis<axis::label::e_phi>();
+
+    auto width_r = axis_r.bin_width();
+    auto width_phi = axis_phi.bin_width();
+
+    // pre-check
+    for (unsigned int i_phi = 0u; i_phi < axis_phi.nbins(); i_phi++) {
+        for (unsigned int i_r = 0u; i_r < axis_r.nbins(); i_r++) {
+
+            int pt_idx{0};
+            for (auto e : g2.bin({i_r, i_phi})) {
+                if (pt_idx == 0) {
+                    EXPECT_EQ(e, first_tp);
+                } else {
+                    EXPECT_EQ(e, invalid_tp);
+                }
+            }
+        }
+    }
+
+    // run device side test, which populates the grid
+    grid_dynamic_attach_test(get_data(g2), axis_r.nbins(), axis_phi.nbins());
+
+    // post-check
+    for (unsigned int i_r = 0u; i_r < axis_r.nbins(); i_r++) {
+        for (unsigned int i_phi = 0u; i_phi < axis_phi.nbins(); i_phi++) {
+            const dindex gbin = g2.serialize({i_r, i_phi});
+            const auto& bin = g2.bin(gbin);
+
+            // Other point with which the bin has been completed
+            const detray::scalar gbin_f{static_cast<detray::scalar>(gbin)};
+            const point3 tp{axis_r.min() + gbin_f * width_r,
+                            axis_phi.min() + gbin_f * width_phi, 0.5};
+
+            // Go through all points and compare
+            int pt_idx{0};
+            for (const auto& e : bin) {
+                if (pt_idx == 0) {
+                    EXPECT_EQ(e, first_tp) << pt_idx;
+                } else if (pt_idx == 1) {
+                    EXPECT_EQ(e, tp) << pt_idx;
+                } else {
+                    EXPECT_EQ(e, invalid_tp) << pt_idx;
+                }
+                pt_idx++;
+            }
+        }
+    }
+
+    // Print the grid on device
+    // print_grid<device_grid2_dynamic_array>(get_data(g2), axis_r.nbins(),
+    // axis_phi.nbins());
+}
+
 TEST(grids_cuda, cylindrical3D_collection) {
     // Data-owning grid collection
     vecmem::cuda::managed_memory_resource mng_mr;

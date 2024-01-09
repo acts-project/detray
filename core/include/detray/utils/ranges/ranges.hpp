@@ -318,7 +318,7 @@ class view_interface : public base_view {
         std::enable_if_t<detray::ranges::random_access_range_v<R>, bool> = true>
     DETRAY_HOST_DEVICE constexpr decltype(auto) operator[](
         const dindex i) const {
-        return (detray::ranges::begin(cast_impl()))
+        return (detray::ranges::cbegin(cast_impl()))
             [static_cast<detray::ranges::range_difference_t<R>>(i)];
     }
     /// Subscript operator that takes detray @c dindex
@@ -328,7 +328,8 @@ class view_interface : public base_view {
         typename R = view_impl_t,
         std::enable_if_t<detray::ranges::random_access_range_v<R>, bool> = true>
     DETRAY_HOST_DEVICE constexpr decltype(auto) operator[](const dindex i) {
-        return (detray::ranges::begin(cast_impl()))
+        // Call 'begin()' directly here to make CUDA happy
+        return (cast_impl().begin())
             [static_cast<detray::ranges::range_difference_t<R>>(i)];
     }
 };

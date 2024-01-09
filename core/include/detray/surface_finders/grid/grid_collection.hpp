@@ -226,8 +226,7 @@ class grid_collection<
         m_bin_offsets.push_back(static_cast<size_type>(m_bins.size()));
 
         // Add the bins of the new grid to the collection
-        const auto &grid_bins = gr.bins();
-        m_bins.insert(m_bins.end(), grid_bins.begin(), grid_bins.end());
+        insert_bin_data(m_bins, gr.bins());
 
         // Add the bin edge offsets of the new grid to the collection
         // (how to lookup the axis bin edges)
@@ -254,6 +253,23 @@ class grid_collection<
     }
 
     private:
+    /// Insert data into a vector of bins
+    template <typename grid_bin_range_t>
+    DETRAY_HOST void insert_bin_data(
+        vector_type<typename grid_type::bin_type> &bin_data,
+        const grid_bin_range_t &grid_bins) {
+        bin_data.insert(bin_data.end(), grid_bins.begin(), grid_bins.end());
+    }
+
+    /// Insert data into the backend containers of a grid with dynamic bin
+    /// capacities
+    template <typename container_t, typename grid_bin_range_t>
+    DETRAY_HOST void insert_bin_data(
+        detray::detail::dynamic_bin_container<bin_t, container_t> &bin_data,
+        const grid_bin_range_t &grid_bins) {
+        bin_data.append(grid_bins);
+    }
+
     /// Offsets for the respective grids into the bin storage
     vector_type<size_type> m_bin_offsets{};
     /// Contains the bin content for all grids

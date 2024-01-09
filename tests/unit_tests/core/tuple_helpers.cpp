@@ -14,9 +14,6 @@
 #include <tuple>
 #include <type_traits>
 
-// Thrust include(s).
-#include <thrust/tuple.h>
-
 // GoogleTest include(s).
 #include <gtest/gtest.h>
 
