@@ -244,6 +244,10 @@ class bin_storage<is_owning, detray::bins::dynamic_array<entry_t>, containers>
             return *this;
         }
         DETRAY_HOST_DEVICE
+        difference_type operator-(const iterator_adapter& other) {
+            return m_itr - other.m_itr;
+        }
+        DETRAY_HOST_DEVICE
         iterator_adapter operator-(difference_type i) {
             return {m_itr - i, m_entry_data};
         }
@@ -327,6 +331,9 @@ class bin_storage<is_owning, detray::bins::dynamic_array<entry_t>, containers>
     DETRAY_HOST_DEVICE bin_storage(const view_t& view)
         : m_bin_data(detray::detail::get<0>(view.m_view)),
           m_entry_data(detray::detail::get<1>(view.m_view)) {}
+
+    const bin_range_t& bin_data() const { return m_bin_data; }
+    const entry_range_t& entry_data() const { return m_entry_data; }
 
     /// begin and end of the bin range
     /// @{

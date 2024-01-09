@@ -63,6 +63,8 @@ class grid_builder final : public volume_decorator<detector_t> {
     DETRAY_HOST void init_grid(
         const mask<grid_shape_t> &m,
         const std::array<std::size_t, grid_t::dim> &n_bins,
+        const std::vector<std::pair<typename grid_t::loc_bin_index, dindex>>
+            &bin_capacities = {},
         const std::array<std::vector<scalar_type>, grid_t::dim> &ax_bin_edges =
             {{}}) {
 
@@ -72,17 +74,20 @@ class grid_builder final : public volume_decorator<detector_t> {
                            typename grid_t::local_frame_type>,
             "Mask has incorrect shape");
 
-        m_grid = m_factory.template new_grid<grid_t>(m, n_bins, ax_bin_edges);
+        m_grid = m_factory.template new_grid<grid_t>(m, n_bins, bin_capacities,
+                                                     ax_bin_edges);
     }
 
     /// Build the empty grid from axis parameters
     DETRAY_HOST void init_grid(
         const std::vector<scalar_type> &spans,
         const std::vector<std::size_t> &n_bins,
+        const std::vector<std::pair<typename grid_t::loc_bin_index, dindex>>
+            &bin_capacities = {},
         const std::vector<std::vector<scalar_type>> &ax_bin_edges = {{}}) {
 
-        m_grid =
-            m_factory.template new_grid<grid_t>(spans, n_bins, ax_bin_edges);
+        m_grid = m_factory.template new_grid<grid_t>(
+            spans, n_bins, bin_capacities, ax_bin_edges);
     }
 
     /// Fill grid from existing volume using a bin filling strategy

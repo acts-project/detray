@@ -325,7 +325,7 @@ class grid_reader : public reader_interface<detector_t> {
                 spans.push_back(static_cast<scalar_t>(axis_data.edges.back()));
             }
 
-            vgr_builder->init_grid(spans, n_bins_per_axis, ax_bin_edges);
+            vgr_builder->init_grid(spans, n_bins_per_axis, {}, ax_bin_edges);
             auto &grid = vgr_builder->get();
             const std::size_t n_bins{grid.nbins()};
 

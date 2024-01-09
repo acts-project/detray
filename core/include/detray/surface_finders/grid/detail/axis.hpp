@@ -31,7 +31,9 @@ namespace detray::axis {
 
 /// @brief Multi-bin: contains bin indices from multiple axes
 template <std::size_t DIM, typename index_t = dindex>
-struct multi_bin : public dmulti_index<index_t, DIM> {};
+struct multi_bin : public dmulti_index<index_t, DIM> {
+    constexpr multi_bin() = default;
+};
 
 /// @brief Helper to tie two bin indices to a range.
 /// @note Cannot use dindex_range for signed integer bin indices.

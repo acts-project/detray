@@ -64,7 +64,7 @@ auto make_regular_grid(vecmem::memory_resource &mr) {
 
     // Rectangular grid with closed bin bounds and regular binning on all axes
     return gr_factory.template new_grid<rectangle2D<>>(
-        spans, nbins, {},
+        spans, nbins, {}, {},
         types::list<axis::closed<axis::label::e_x>,
                     axis::closed<axis::label::e_y>>{},
         types::list<axis::regular<>, axis::regular<>>{});
@@ -90,7 +90,7 @@ auto make_irregular_grid(vecmem::memory_resource &mr) {
 
     // Rectangular grid with closed bin bounds and irregular binning on all axes
     return gr_factory.template new_grid<rectangle2D<>>(
-        {}, {}, boundaries,
+        {}, {}, {}, boundaries,
         types::list<axis::closed<axis::label::e_x>,
                     axis::closed<axis::label::e_y>>{},
         types::list<axis::irregular<>, axis::irregular<>>{});
