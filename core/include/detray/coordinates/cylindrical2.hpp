@@ -61,7 +61,7 @@ struct cylindrical2 : public coordinate_base<cylindrical2, transform3_t> {
 
     /// @}
 
-    /** This method transform from a point from global cartesian 3D frame to a
+    /** This method transforms a point from a global cartesian 3D frame to a
      * local 2D cylindrical point */
     DETRAY_HOST_DEVICE
     inline point3 global_to_local(const transform3_t &trf, const point3 &p,
@@ -70,6 +70,16 @@ struct cylindrical2 : public coordinate_base<cylindrical2, transform3_t> {
 
         return {getter::perp(local3) * getter::phi(local3), local3[2],
                 getter::perp(local3)};
+    }
+
+    /** This method transforms a point from a global cartesian 3D frame to a
+     * bound 2D cylindrical point */
+    DETRAY_HOST_DEVICE
+    inline loc_point global_to_bound(const transform3_t &trf, const point3 &p,
+                                     const vector3 & /*d*/) const {
+        const auto local3 = trf.point_to_local(p);
+
+        return {getter::perp(local3) * getter::phi(local3), local3[2]};
     }
 
     /** This method transform from a local 2D cylindrical point to a point

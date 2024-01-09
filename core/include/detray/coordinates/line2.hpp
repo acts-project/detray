@@ -56,8 +56,8 @@ struct line2 : public coordinate_base<line2, transform3_t> {
 
     /// @}
 
-    /** This method transform from a point from global cartesian 3D frame to a
-     * local 2D line point */
+    /** This method transforms a point from a global cartesian 3D frame to a
+     * local 3D line point */
     DETRAY_HOST_DEVICE
     inline point3 global_to_local(const transform3_t &trf, const point3 &p,
                                   const vector3 &d) const {
@@ -79,6 +79,17 @@ struct line2 : public coordinate_base<line2, transform3_t> {
         const scalar_type sign = vector::dot(r, t - p) > 0.f ? -1.f : 1.f;
 
         return {sign * getter::perp(local3), local3[2], getter::phi(local3)};
+    }
+
+    /** This method transforms a point from a global cartesian 3D frame to a
+     * bound 2D line point */
+    DETRAY_HOST_DEVICE
+    inline loc_point global_to_bound(const transform3_t &trf, const point3 &p,
+                                     const vector3 &d) const {
+
+        const auto loc_p = global_to_local(trf, p, d);
+
+        return {loc_p[0], loc_p[1]};
     }
 
     /** This method transform from a local 2D line point to a point global

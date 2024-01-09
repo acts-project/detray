@@ -53,7 +53,7 @@ GTEST_TEST(detray_grid, open_regular_axis) {
     const dindex_range edge_range = {2u, 10u};
 
     // An open regular x-axis
-    single_axis<open<label::e_x>, regular<>> or_axis{&edge_range, &bin_edges};
+    single_axis<open<label::e_x>, regular<>> or_axis{edge_range, &bin_edges};
 
     // Test axis bounds
     EXPECT_EQ(or_axis.label(), n_axis::label::e_x);
@@ -122,7 +122,7 @@ GTEST_TEST(detray_grid, closed_regular_axis) {
     const dindex_range edge_range = {2u, 10u};
 
     // A closed regular r-axis
-    single_axis<closed<label::e_r>, regular<>> cr_axis{&edge_range, &bin_edges};
+    single_axis<closed<label::e_r>, regular<>> cr_axis{edge_range, &bin_edges};
 
     // Test axis bounds
     EXPECT_EQ(cr_axis.label(), n_axis::label::e_r);
@@ -193,7 +193,7 @@ GTEST_TEST(detray_grid, circular_regular_axis) {
     const dindex_range edge_range = {1u, 36u};
 
     // A closed regular x-axis
-    single_axis<circular<>, regular<>> cr_axis(&edge_range, &bin_edges);
+    single_axis<circular<>, regular<>> cr_axis(edge_range, &bin_edges);
 
     // Test axis bounds
     EXPECT_EQ(cr_axis.label(), n_axis::label::e_phi);
@@ -266,11 +266,11 @@ GTEST_TEST(detray_grid, closed_irregular_axis) {
     // final upper bin edge
     vecmem::vector<scalar> bin_edges = {-100.f, -3.f, 1.f,  2.f, 4.f,
                                         8.f,    12.f, 15.f, 18.f};
-    // Index range for the bin edges [-3, 15]
-    dindex_range edge_range = {1u, 7u};
+    // Index offset and number of bins for the bin edges [-3, 15]
+    dindex_range edge_range = {1u, 6u};
 
     // A closed irregular z-axis
-    single_axis<closed<label::e_z>, irregular<>> cir_axis(&edge_range,
+    single_axis<closed<label::e_z>, irregular<>> cir_axis(edge_range,
                                                           &bin_edges);
 
     // Test axis bounds
@@ -334,8 +334,8 @@ GTEST_TEST(detray_grid, multi_axis) {
         {0u, 20u}, {2u, 40u}, {4u, 50u}};
 
     // Non-owning multi axis test
-    cartesian_3D<is_not_owning, host_container_types> axes(&edge_ranges,
-                                                           &bin_edges);
+    cartesian_3D<is_not_owning, host_container_types> axes(edge_ranges,
+                                                           bin_edges);
 
     EXPECT_EQ(axes.Dim, 3u);
 

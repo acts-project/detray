@@ -100,8 +100,8 @@ struct default_metadata {
     // surface grid definition: bin-content: std::array<surface_type, 9>
     template <typename grid_shape_t, typename bin_entry_t, typename container_t>
     using surface_grid_t =
-        grid<coordinate_axes<grid_shape_t, false, container_t>, bin_entry_t,
-             simple_serializer, regular_attacher<100>>;
+        grid<coordinate_axes<grid_shape_t, false, container_t>,
+             bins::static_array<bin_entry_t, 50>, simple_serializer>;
 
     // 2D cylindrical grid for the barrel layers
     template <typename bin_entry_t, typename container_t>
@@ -281,7 +281,7 @@ container_t>>*/>;
                  cylinder3D::axes<n_axis::bounds::e_open, n_axis::irregular,
                                   n_axis::regular, n_axis::irregular>,
                  true, container_t>,
-             dindex, simple_serializer, replacer>;
+             bins::single<dindex>, simple_serializer>;
 };
 
 }  // namespace detray

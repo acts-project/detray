@@ -1,6 +1,6 @@
 /** Detray library, part of the ACTS project (R&D line)
  *
- * (c) 2022-2023 CERN for the benefit of the ACTS project
+ * (c) 2022-2024 CERN for the benefit of the ACTS project
  *
  * Mozilla Public License Version 2.0
  */
@@ -149,8 +149,8 @@ class grid_builder final : public volume_decorator<detector_t> {
                     const auto &sf_trf = sf.transform(ctx);
                     const auto t = sf_trf.point_to_global(sf.centroid());
                     const auto loc_pos =
-                        m_grid.global_to_local(vol.transform(), t, t);
-                    auto bin_content = m_grid.search(loc_pos);
+                        m_grid.global_to_bound(vol.transform(), t, t);
+                    auto &bin_content = m_grid.search(loc_pos);
 
                     for (surface_desc_t &sf_in_grid : bin_content) {
                         // Find the correct surface and update all links
@@ -184,7 +184,7 @@ class grid_builder final : public volume_decorator<detector_t> {
         const mask<grid_shape_t> &bounds,
         const std::array<std::size_t, grid_t::Dim> n_bins,
         const std::array<std::vector<scalar_type>, grid_t::Dim> &ax_bin_edges,
-        std::tuple<axis_bounds...>, std::tuple<binning_ts...>) {
+        types::list<axis_bounds...>, types::list<binning_ts...>) {
 
         m_grid = m_factory.template new_grid<axis_bounds..., binning_ts...>(
             bounds, n_bins, ax_bin_edges);
@@ -198,20 +198,19 @@ class grid_builder final : public volume_decorator<detector_t> {
 
 /// Grid builder from single components
 template <typename detector_t,
-          template <typename, template <std::size_t> class, typename, typename>
+          template <class, template <std::size_t> class, typename>
           class grid_factory_t,
-          typename grid_shape_t, typename value_t,
-          template <std::size_t> class serializer_t, typename populator_impl_t,
+          typename grid_shape_t, typename bin_t,
+          template <std::size_t> class serializer_t,
           n_axis::bounds e_bounds = n_axis::bounds::e_closed,
           typename algebra_t = typename detector_t::transform3,
           template <typename, typename> class... binning_ts>
 using grid_builder_type = grid_builder<
     detector_t,
-    typename grid_factory_t<value_t, serializer_t, populator_impl_t,
-                            algebra_t>::
-        template grid_type<coordinate_axes<
+    typename grid_factory_t<bin_t, serializer_t, algebra_t>::template grid_type<
+        coordinate_axes<
             typename grid_shape_t::template axes<e_bounds, binning_ts...>, true,
             host_container_types, algebra_t>>,
-    grid_factory_t<value_t, serializer_t, populator_impl_t, algebra_t>>;
+    grid_factory_t<bin_t, serializer_t, algebra_t>>;
 
 }  // namespace detray

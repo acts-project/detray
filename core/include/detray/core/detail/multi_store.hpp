@@ -362,7 +362,7 @@ class multi_store {
     /// Print the types that are in the store
     DETRAY_HOST
     static constexpr void print() {
-        types::print<types::type_list<detail::get_value_t<Ts>...>>();
+        types::print<types::list<detail::get_value_t<Ts>...>>();
     }
 
     /// @return the view on this tuple container - non-const

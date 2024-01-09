@@ -107,10 +107,8 @@ struct surface_kernels {
             const transform3& trf3, const point3& global,
             const vector3& dir) const {
 
-            const point3 local =
-                mask_group[index].to_local_frame(trf3, global, dir);
-
-            return {local[0], local[1]};
+            return mask_group[index].local_frame().global_to_bound(trf3, global,
+                                                                   dir);
         }
     };
 
