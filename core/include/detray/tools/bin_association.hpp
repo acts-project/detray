@@ -13,6 +13,7 @@
 #include "detray/coordinates/polar2.hpp"
 #include "detray/definitions/units.hpp"
 #include "detray/masks/detail/vertexing.hpp"
+#include "detray/surface_finders/grid/populators.hpp"
 #include "detray/tools/associator.hpp"
 #include "detray/utils/ranges.hpp"
 
@@ -108,7 +109,8 @@ static inline void bin_association(const context_t & /*context*/,
                             // The association has worked
                             if (cgs_assoc(bin_contour, surface_contour) or
                                 edges_assoc(bin_contour, surface_contour)) {
-                                grid.populate({bin_0, bin_1}, sf);
+                                grid.template populate<attach<>>({bin_0, bin_1},
+                                                                 sf);
                                 break;
                             }
                         }
@@ -232,7 +234,9 @@ static inline void bin_association(const context_t & /*context*/,
 
                             // Register if associated
                             if (associated) {
-                                grid.populate({bin_0, bin_1}, sf);
+                                typename grid_t::loc_bin_index mbin{bin_0,
+                                                                    bin_1};
+                                grid.template populate<attach<>>(mbin, sf);
                                 break;
                             }
                         }

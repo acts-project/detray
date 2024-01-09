@@ -1,6 +1,6 @@
 /** Detray library, part of the ACTS project (R&D line)
  *
- * (c) 2021 CERN for the benefit of the ACTS project
+ * (c) 2021-2024 CERN for the benefit of the ACTS project
  *
  * Mozilla Public License Version 2.0
  */
@@ -13,8 +13,8 @@
 #include "detray/surface_finders/grid/axis.hpp"
 #include "detray/surface_finders/grid/grid.hpp"
 #include "detray/surface_finders/grid/grid_collection.hpp"
-#include "detray/surface_finders/grid/populator.hpp"
-#include "detray/surface_finders/grid/serializer.hpp"
+#include "detray/surface_finders/grid/populators.hpp"
+#include "detray/surface_finders/grid/serializers.hpp"
 #include "detray/tools/grid_builder.hpp"
 
 namespace {
@@ -40,12 +40,6 @@ static constexpr bool is_owning = true;
 template <typename containers = host_container_types>
 using cartesian_3D = coordinate_axes<cuboid3D<>::axes<>, is_owning, containers>;
 
-// 3D cylindrical coordinate axes with open bin boundaries and regular binning
-// non-owning
-template <typename containers = host_container_types>
-using cylindrical_3D = coordinate_axes<cylinder3D::axes<bounds::e_open>,
-                                       not is_owning, containers>;
-
 // 2D polar coordinate axes with closed bin boundaries, irregular binning in r
 // and regular binning in phi
 template <typename containers = host_container_types>
@@ -57,69 +51,61 @@ using polar_ir =
 template <typename containers = host_container_types>
 using polar = coordinate_axes<ring2D<>::axes<>, is_owning, containers>;
 
+// 3D cylindrical coordinate axes with open bin boundaries and regular binning
+// non-owning
+template <typename containers = host_container_types>
+using cylindrical_3D = coordinate_axes<cylinder3D::axes<bounds::e_open>,
+                                       not is_owning, containers>;
+
 // host and device grid definitions
-using host_grid3_replace =
-    grid<cartesian_3D<>, point3, simple_serializer, replacer>;
 
-using device_grid3_replace = grid<cartesian_3D<device_container_types>, point3,
-                                  simple_serializer, replacer>;
+// replacer
+using host_grid3_single = grid<cartesian_3D<>, bins::single<point3>>;
 
-using host_grid2_replace_ci =
-    grid<polar_ir<>, point3, simple_serializer, replacer>;
+using device_grid3_single =
+    grid<cartesian_3D<device_container_types>, bins::single<point3>>;
 
-using device_grid2_replace_ci =
-    grid<polar_ir<device_container_types>, point3, simple_serializer, replacer>;
+using host_grid2_single_ci = grid<polar_ir<>, bins::single<point3>>;
 
-using host_grid2_complete =
-    grid<polar<>, point3, simple_serializer, completer<n_points>>;
+using device_grid2_single_ci =
+    grid<polar_ir<device_container_types>, bins::single<point3>>;
 
-using device_grid2_complete = grid<polar<device_container_types>, point3,
-                                   simple_serializer, completer<n_points>>;
+// completer/attacher
+using host_grid2_array = grid<polar<>, bins::static_array<point3, n_points>>;
 
-using host_grid2_attach =
-    grid<polar<>, point3, simple_serializer, regular_attacher<n_points>>;
+using device_grid2_array =
+    grid<polar<device_container_types>, bins::static_array<point3, n_points>>;
 
-using device_grid2_attach = grid<polar<device_container_types>, point3,
-                                 simple_serializer, regular_attacher<n_points>>;
+// grid collection
+using n_own_host_grid2_array =
+    grid<cylindrical_3D<>, bins::static_array<dindex, n_points>>;
 
-using const_host_grid2_attach =
-    grid<polar<>, const point3, simple_serializer, regular_attacher<n_points>>;
-
-using const_device_grid2_attach =
-    grid<polar<device_container_types>, const point3, simple_serializer,
-         regular_attacher<n_points>>;
-
-using n_own_host_grid2_attach =
-    grid<cylindrical_3D<>, dindex, simple_serializer,
-         regular_attacher<n_points>>;
-
-using n_own_device_grid2_attach =
-    grid<cylindrical_3D<device_container_types>, dindex, simple_serializer,
-         regular_attacher<n_points>>;
+using n_own_device_grid2_array = grid<cylindrical_3D<device_container_types>,
+                                      bins::static_array<dindex, n_points>>;
 
 /// test function for replace populator
-void grid_replace_test(host_grid3_replace::view_type grid_view,
+void grid_replace_test(host_grid3_single::view_type grid_view,
                        std::size_t dim_x, std::size_t dim_y, std::size_t dim_z);
 
 /// test function for replace populator with circular and irregular axis
-void grid_replace_ci_test(host_grid2_replace_ci::view_type grid_view,
+void grid_replace_ci_test(host_grid2_single_ci::view_type grid_view,
                           std::size_t dim_x, std::size_t dim_y);
 
 // test function for complete populator
-void grid_complete_test(host_grid2_complete::view_type grid_view,
+void grid_complete_test(host_grid2_array::view_type grid_view,
                         std::size_t dim_x, std::size_t dim_y);
 
-// read test function for grid with attach populator
-void grid_attach_test(host_grid2_attach::view_type grid_view, std::size_t dim_x,
+// read test function for attach populator
+void grid_attach_test(host_grid2_array::view_type grid_view, std::size_t dim_x,
                       std::size_t dim_y);
 
-// read test function for grid with attach populator
-/*void grid_attach_read_test(const_host_grid2_attach::view_type grid_view,
-                           std::size_t dim_x, std::size_t dim_y);*/
+// read test function for attach populator
+template <typename device_grid_t, typename view_t, typename... I>
+void print_grid(view_t grid_view, I... dims);
 
 // test function for a collection of grids
 void grid_collection_test(
-    grid_collection<n_own_host_grid2_attach>::view_type grid_collection_view,
+    grid_collection<n_own_host_grid2_array>::view_type grid_collection_view,
     vecmem::data::vector_view<dindex> n_bins_view,
     vecmem::data::vector_view<std::array<dindex, 3>> result_bins_view,
     std::size_t n_grids, std::size_t dim_x, std::size_t dim_y,
