@@ -9,6 +9,7 @@
 
 // Project include(s).
 #include "detray/definitions/algebra.hpp"
+#include "detray/definitions/math.hpp"
 #include "detray/definitions/qualifiers.hpp"
 
 namespace detray {
@@ -97,6 +98,34 @@ struct matrix_helper {
         matrix_operator().element(m2, 0, 2) = v2[2];
 
         return m1 * m2;
+    }
+
+    /// Cholesky decompose
+    template <size_type N>
+    DETRAY_HOST_DEVICE inline matrix_type<N, N> cholesky_decompose(
+        const matrix_type<N, N>& mat) const {
+
+        matrix_type<N, N> L = matrix_operator().template zero<N, N>();
+
+        // Cholesky–Banachiewicz algorithm
+        for (size_type i = 0u; i < N; i++) {
+            for (size_type j = 0u; j <= i; j++) {
+                scalar_type sum = 0.f;
+                for (size_type k = 0u; k < j; k++)
+                    sum += getter::element(L, i, k) * getter::element(L, j, k);
+
+                if (i == j) {
+                    getter::element(L, i, j) = static_cast<scalar_type>(
+                        math_ns::sqrt(getter::element(mat, i, i) - sum));
+                } else {
+                    getter::element(L, i, j) =
+                        (1.f / getter::element(L, j, j) *
+                         (getter::element(mat, i, j) - sum));
+                }
+            }
+        }
+
+        return L;
     }
 };
 
