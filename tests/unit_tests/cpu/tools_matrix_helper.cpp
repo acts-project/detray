@@ -14,8 +14,11 @@
 
 using namespace detray;
 using transform3 = test::transform3;
-using matrix_operator = standard_matrix_operator<scalar>;
 using vector3 = typename transform3::vector3;
+using matrix_operator = standard_matrix_operator<scalar>;
+using size_type = typename matrix_operator::size_ty;
+template <size_type ROWS, size_type COLS>
+using matrix_type = typename matrix_operator::template matrix_type<ROWS, COLS>;
 
 constexpr scalar tolerance = 1e-6f;
 
@@ -122,4 +125,43 @@ GTEST_TEST(detray_utils, outer_product) {
     EXPECT_NEAR(getter::element(m33, 2u, 0u), 9.f, tolerance);
     EXPECT_NEAR(getter::element(m33, 2u, 1u), 12.f, tolerance);
     EXPECT_NEAR(getter::element(m33, 2u, 2u), 15.f, tolerance);
+}
+
+GTEST_TEST(detray_utils, cholesky_decomposition) {
+
+    // Define A
+    matrix_type<3, 3> A = matrix_operator().template zero<3, 3>();
+    getter::element(A, 0u, 0u) = 4.f;
+    getter::element(A, 0u, 1u) = 12.f;
+    getter::element(A, 0u, 2u) = -16.f;
+    getter::element(A, 1u, 0u) = 12.f;
+    getter::element(A, 1u, 1u) = 37.f;
+    getter::element(A, 1u, 2u) = -43.f;
+    getter::element(A, 2u, 0u) = -16.f;
+    getter::element(A, 2u, 1u) = -43.f;
+    getter::element(A, 2u, 2u) = 98.f;
+
+    // Get L that satisfies A = L * L^T and check if it is the expected value
+    const matrix_type<3, 3> L =
+        matrix_helper<matrix_operator>().cholesky_decompose(A);
+
+    EXPECT_FLOAT_EQ(static_cast<float>(getter::element(L, 0u, 0u)), 2.f);
+    EXPECT_FLOAT_EQ(static_cast<float>(getter::element(L, 0u, 1u)), 0.f);
+    EXPECT_FLOAT_EQ(static_cast<float>(getter::element(L, 0u, 2u)), 0.f);
+    EXPECT_FLOAT_EQ(static_cast<float>(getter::element(L, 1u, 0u)), 6.f);
+    EXPECT_FLOAT_EQ(static_cast<float>(getter::element(L, 1u, 1u)), 1.f);
+    EXPECT_FLOAT_EQ(static_cast<float>(getter::element(L, 1u, 2u)), 0.f);
+    EXPECT_FLOAT_EQ(static_cast<float>(getter::element(L, 2u, 0u)), -8.f);
+    EXPECT_FLOAT_EQ(static_cast<float>(getter::element(L, 2u, 1u)), 5.f);
+    EXPECT_FLOAT_EQ(static_cast<float>(getter::element(L, 2u, 2u)), 3.f);
+
+    // Compare A and L * L^T
+    const matrix_type<3, 3> B = L * matrix_operator().transpose(L);
+
+    for (unsigned int i = 0u; i < 3u; i++) {
+        for (unsigned int j = 0u; j < 3u; j++) {
+            EXPECT_FLOAT_EQ(static_cast<float>(getter::element(A, i, j)),
+                            static_cast<float>(getter::element(B, i, j)));
+        }
+    }
 }
