@@ -105,9 +105,9 @@ struct detector_helper {
                                      ? surface_id::e_portal
                                      : surface_id::e_passive;
 
-        auto &sf_ref = surfaces.emplace_back(transforms.size(ctx) - 1u,
-                                             mask_link, material_link,
-                                             volume_idx, dindex_invalid, sf_id);
+        auto &sf_ref =
+            surfaces.emplace_back(transforms.size(ctx) - 1u, mask_link,
+                                  material_link, volume_idx, sf_id);
 
         return std::tie(sf_ref, mask_ref);
     }
@@ -161,9 +161,9 @@ struct detector_helper {
         const surface_id sf_id = (volume_link != volume_idx)
                                      ? surface_id::e_portal
                                      : surface_id::e_sensitive;
-        auto &sf_ref = surfaces.emplace_back(transforms.size(ctx) - 1u,
-                                             mask_link, material_link,
-                                             volume_idx, dindex_invalid, sf_id);
+        auto &sf_ref =
+            surfaces.emplace_back(transforms.size(ctx) - 1u, mask_link,
+                                  material_link, volume_idx, sf_id);
 
         return std::tie(sf_ref, mask_ref);
     }
@@ -244,6 +244,15 @@ struct detector_helper {
 
         det.add_objects_per_volume(ctx, cyl_volume, surfaces, masks, transforms,
                                    materials);
+
+        // Surface index offset in the global detector container
+        auto sf_offset{static_cast<dindex>(det.surfaces().size())};
+
+        // Identify the portal index range in the global container
+        dindex_range pt_range{sf_offset - (inner_r > 0.f ? 4u : 3u), sf_offset};
+
+        det.volumes().back().template update_sf_link<surface_id::e_portal>(
+            pt_range);
     }
 
     template <typename config_t, typename surface_desc_t, typename mask_t,

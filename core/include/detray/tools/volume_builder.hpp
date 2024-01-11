@@ -10,6 +10,7 @@
 // Project include(s).
 #include "detray/definitions/geometry.hpp"
 #include "detray/geometry/surface.hpp"
+#include "detray/tools/surface_factory_interface.hpp"
 #include "detray/tools/volume_builder_interface.hpp"
 // @TODO: Remove once material map writing becomes available
 #include "detray/surface_finders/accelerator_grid.hpp"
@@ -49,9 +50,9 @@ class volume_builder : public volume_builder_interface<detector_t> {
 
         // The first acceleration data structure in every volume is a brute
         // force method that will at least contain the portals
-        m_volume
-            .template set_link<static_cast<typename volume_type::object_id>(0)>(
-                detector_t::accel::id::e_default, 0);
+        m_volume.template set_accel_link<
+            static_cast<typename volume_type::object_id>(0)>(
+            detector_t::accel::id::e_default, 0);
     };
 
     /// Adds the @param name of the volume to a @param name_map
@@ -141,7 +142,7 @@ class volume_builder : public volume_builder_interface<detector_t> {
 
     protected:
     /// @returns Access to the surface descriptor data
-    typename detector_t::surface_container& surfaces() override {
+    typename detector_t::surface_lookup_container& surfaces() override {
         return m_surfaces;
     }
 
@@ -167,11 +168,45 @@ class volume_builder : public volume_builder_interface<detector_t> {
 
         // Append transforms
         const auto trf_offset = det.transform_store().size(ctx);
-        det.append_transforms(std::move(m_transforms), ctx);
+        det._transforms.append(std::move(m_transforms), ctx);
+
+        // Surface index offset in the global detector container
+        auto sf_offset{static_cast<dindex>(det.surfaces().size())};
+
+        /// Find the surface range specifed by @param sf_id
+        auto find_range = [&](auto sf_id) {
+            // Compare given id to surface barcode
+            auto is_sf_type = [sf_id](const auto& sf) {
+                return sf.id() == sf_id;
+            };
+
+            auto first = static_cast<dindex>(
+                std::abs(std::find_if(std::begin(m_surfaces),
+                                      std::end(m_surfaces), is_sf_type) -
+                         std::begin(m_surfaces)));
+
+            auto last = static_cast<dindex>(
+                std::abs(std::rend(m_surfaces) -
+                         std::find_if(std::rbegin(m_surfaces),
+                                      std::rend(m_surfaces), is_sf_type)));
+
+            // Set correct empty range, otherwise shift by global surface offset
+            return (first >= last)
+                       ? dindex_range{}
+                       : dindex_range{first + sf_offset, last + sf_offset};
+        };
+
+        m_volume.template update_sf_link<surface_id::e_portal>(
+            find_range(surface_id::e_portal));
+
+        m_volume.template update_sf_link<surface_id::e_sensitive>(
+            find_range(surface_id::e_sensitive));
+
+        m_volume.template update_sf_link<surface_id::e_passive>(
+            find_range(surface_id::e_passive));
 
         // Update mask and transform index of surfaces and set the
         // correct index of the surface in container
-        auto sf_offset{static_cast<dindex>(det.surface_lookup().size())};
         std::size_t n_portals{0u};
         for (auto& sf_desc : m_surfaces) {
 
@@ -182,42 +217,54 @@ class volume_builder : public volume_builder_interface<detector_t> {
             sf_desc.update_transform(trf_offset);
             sf_desc.set_index(sf_offset++);
 
-            det.add_surface_to_lookup(sf_desc);
-
             if (sf_desc.is_portal()) {
                 ++n_portals;
             }
+
+            det._surfaces.insert(sf_desc);
         }
+
+        // Place the appropriate surfaces in the brute force search method.
+        constexpr auto default_acc_id{detector_t::accel::id::e_default};
+
+        // Strip the source link from the lookup data structure
+        typename detector_t::surface_container descriptors;
+        descriptors.reserve(m_surfaces.size());
+        std::transform(
+            m_surfaces.begin(), m_surfaces.end(),
+            std::back_inserter(descriptors),
+            [](typename detector_t::surface_lookup_container::value_type& sf) {
+                return static_cast<
+                    typename detector_t::surface_container::value_type>(sf);
+            });
 
         // Add portals to brute force navigation method
         if (m_has_accel) {
             typename detector_t::surface_container portals{};
             portals.reserve(n_portals);
 
-            std::copy_if(m_surfaces.begin(), m_surfaces.end(),
+            std::copy_if(descriptors.begin(), descriptors.end(),
                          std::back_inserter(portals),
                          [](auto& sf_desc) { return !sf_desc.is_sensitive(); });
 
-            det.append_portals(std::move(portals));
+            // Add only the portals to the brute force method
+            det._accelerators.template push_back<default_acc_id>(
+                std::move(portals));
         } else {
-            // No acceleration structure: Add all surfaces to brute force method
-            det.append_portals(std::move(m_surfaces));
+            // Add all surfaces to the brute force method
+            det._accelerators.template push_back<default_acc_id>(
+                std::move(descriptors));
         }
 
-        // Update the surface link in the volume. In the volume builder, all
-        // surfaces are filled into the default brute_force accelerator.
-        // For the other accelerators (grid etc.) there need to be dedicated
-        // builders
-        constexpr auto default_acc_id{detector_t::accel::id::e_default};
-        m_volume.template set_link<surface_id>(
+        m_volume.template set_accel_link<surface_id>(
             default_acc_id,
             det.accelerator_store().template size<default_acc_id>() - 1u);
 
         // Append masks
-        det.append_masks(std::move(m_masks));
+        det._masks.append(std::move(m_masks));
 
-        // Finally, add the volume descriptor
-        det.volumes().push_back(m_volume);
+        // Finally, add the volume descriptor to the detector
+        det._volumes.push_back(m_volume);
     }
 
     /// Whether the volume will get an acceleration structure
@@ -228,9 +275,9 @@ class volume_builder : public volume_builder_interface<detector_t> {
     /// Placement of the volume under construction
     typename detector_t::transform3 m_trf{};
 
-    /// Data of conatined surfaces
+    /// Data of contained surfaces
     /// @{
-    typename detector_t::surface_container m_surfaces{};
+    typename detector_t::surface_lookup_container m_surfaces{};
     typename detector_t::transform_container m_transforms{};
     typename detector_t::mask_container m_masks{};
     /// @}

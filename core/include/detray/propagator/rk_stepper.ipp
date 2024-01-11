@@ -5,6 +5,9 @@
  * Mozilla Public License Version 2.0
  */
 
+// Project include(s).
+#include "detray/geometry/detector_volume.hpp"
+
 // System include(s)
 #include <cmath>
 
@@ -226,26 +229,24 @@ template <typename magnetic_field_t, typename transform3_t,
           template <typename, std::size_t> class array_t>
 auto detray::rk_stepper<magnetic_field_t, transform3_t, constraint_t, policy_t,
                         inspector_t, array_t>::state::evaluate_qop(const scalar
-                                                                       h)
+                                                                       h) const
     -> scalar {
 
-    const auto mat = this->_mat;
-    auto& track = this->_track;
+    const auto& track = this->_track;
     const scalar qop = track.qop();
 
-    if (mat == detray::vacuum<scalar>()) {
-        return qop;
-    }
-
-    const scalar mass = this->_mass;
-    const auto pdg = this->_pdg;
-    const scalar p = track.p();
-    const scalar q = track.charge();
-    const auto direction = this->_direction;
-
-    scalar new_qop = track.qop();
-
     if (this->_use_mean_loss) {
+
+        const auto& mat = this->_mat;
+        if (mat == detray::vacuum<scalar>()) {
+            return qop;
+        }
+
+        const scalar mass = this->_mass;
+        const auto pdg = this->_pdg;
+        const scalar p = track.p();
+        const scalar q = track.charge();
+        const auto direction = this->_direction;
 
         const scalar eloss = interaction<scalar>().compute_energy_loss_bethe(
             h, mat, pdg, mass, qop, q);
@@ -261,10 +262,10 @@ auto detray::rk_stepper<magnetic_field_t, transform3_t, constraint_t, policy_t,
             (mass < nextE) ? std::sqrt(nextE * nextE - mass * mass) : 0.f};
 
         constexpr scalar inv{detail::invalid_value<scalar>()};
-        new_qop = (nextP == 0.f) ? inv : (q != 0.f) ? q / nextP : 1.f / nextP;
+        return (nextP == 0.f) ? inv : (q != 0.f) ? q / nextP : 1.f / nextP;
     }
 
-    return new_qop;
+    return qop;
 }
 
 template <typename magnetic_field_t, typename transform3_t,
@@ -377,8 +378,8 @@ bool detray::rk_stepper<magnetic_field_t, transform3_t, constraint_t, policy_t,
     auto& magnetic_field = stepping._magnetic_field;
     auto& navigation = propagation._navigation;
 
-    const auto det = navigation.detector();
-    stepping._mat = det->volume_by_index(navigation.volume()).material();
+    auto vol = detector_volume{*navigation.detector(), navigation.volume()};
+    stepping._mat = vol.material();
 
     auto& sd = stepping._step_data;
 

@@ -37,8 +37,8 @@ __global__ void detector_test_kernel(
     }
 
     // copy objects - surfaces
-    for (unsigned int i = 0u; i < det_device.surface_lookup().size(); i++) {
-        surfaces_device[i] = det_device.surface_lookup()[i];
+    for (unsigned int i = 0u; i < det_device.surfaces().size(); i++) {
+        surfaces_device[i] = det_device.surfaces()[i];
     }
 
     // copy objects - transforms

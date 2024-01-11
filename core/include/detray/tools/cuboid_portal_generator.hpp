@@ -79,7 +79,7 @@ class cuboid_portal_generator final
     /// @param ctx the geometry context (not needed for portals).
     DETRAY_HOST
     auto operator()(typename detector_t::volume_type &volume,
-                    typename detector_t::surface_container &surfaces,
+                    typename detector_t::surface_lookup_container &surfaces,
                     typename detector_t::transform_container &transforms,
                     typename detector_t::mask_container &masks,
                     typename detector_t::geometry_context ctx = {}) const
@@ -94,6 +94,8 @@ class cuboid_portal_generator final
         using material_link_t = typename surface_t::material_link;
 
         using aabb_t = axis_aligned_bounding_volume<cuboid3D<>>;
+
+        constexpr auto invalid_src_link{detail::invalid_value<std::uint64_t>()};
 
         // Only build box portals for cuboid volumes
         assert(volume.id() == volume_id::e_cuboid);
@@ -167,11 +169,13 @@ class cuboid_portal_generator final
 
         // Build the portal surfaces
         dindex trf_idx{transforms.size(ctx) - 2};
-        surfaces.emplace_back(trf_idx, mask_link, material_link, volume_idx,
-                              dindex_invalid, surface_id::e_portal);
+        surfaces.push_back({trf_idx, mask_link, material_link, volume_idx,
+                            surface_id::e_portal},
+                           invalid_src_link);
 
-        surfaces.emplace_back(++trf_idx, mask_link, material_link, volume_idx,
-                              dindex_invalid, surface_id::e_portal);
+        surfaces.push_back({++trf_idx, mask_link, material_link, volume_idx,
+                            surface_id::e_portal},
+                           invalid_src_link);
 
         //
         // ... x-z plane
@@ -189,11 +193,13 @@ class cuboid_portal_generator final
         transforms.emplace_back(ctx, static_cast<vector3_t>(center - shift),
                                 new_z, new_x);
 
-        surfaces.emplace_back(++trf_idx, mask_link, material_link, volume_idx,
-                              dindex_invalid, surface_id::e_portal);
+        surfaces.push_back({++trf_idx, mask_link, material_link, volume_idx,
+                            surface_id::e_portal},
+                           invalid_src_link);
 
-        surfaces.emplace_back(++trf_idx, mask_link, material_link, volume_idx,
-                              dindex_invalid, surface_id::e_portal);
+        surfaces.push_back({++trf_idx, mask_link, material_link, volume_idx,
+                            surface_id::e_portal},
+                           invalid_src_link);
 
         //
         // ... y-z plane
@@ -211,11 +217,13 @@ class cuboid_portal_generator final
         transforms.emplace_back(ctx, static_cast<vector3_t>(center - shift),
                                 new_z, new_x);
 
-        surfaces.emplace_back(++trf_idx, mask_link, material_link, volume_idx,
-                              dindex_invalid, surface_id::e_portal);
+        surfaces.push_back({++trf_idx, mask_link, material_link, volume_idx,
+                            surface_id::e_portal},
+                           invalid_src_link);
 
-        surfaces.emplace_back(++trf_idx, mask_link, material_link, volume_idx,
-                              dindex_invalid, surface_id::e_portal);
+        surfaces.push_back({++trf_idx, mask_link, material_link, volume_idx,
+                            surface_id::e_portal},
+                           invalid_src_link);
 
         return {surfaces_offset, static_cast<dindex>(surfaces.size())};
     }

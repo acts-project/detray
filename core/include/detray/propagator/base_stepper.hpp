@@ -49,7 +49,6 @@ class base_stepper {
     using free_track_parameters_type = free_track_parameters<transform3_t>;
     using bound_track_parameters_type = bound_track_parameters<transform3_t>;
     using matrix_operator = typename transform3_t::matrix_actor;
-    using track_helper = detail::track_helper<matrix_operator>;
 
     using size_type = typename transform3_type::size_type;
     using scalar_type = typename transform3_type::scalar_type;

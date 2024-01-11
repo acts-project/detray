@@ -261,15 +261,15 @@ GTEST_TEST(detray_tools, decorator_grid_builder) {
     sf_range[1] = {acc_ids::e_cylinder2_grid, 0u};
 
     // toy detector makes no distinction between the surface types
-    EXPECT_EQ(vol.template link<geo_obj_id::e_portal>(),
+    EXPECT_EQ(vol.template accel_link<geo_obj_id::e_portal>(),
               sf_range[geo_obj_id::e_portal]);
-    EXPECT_EQ(vol.template link<geo_obj_id::e_sensitive>(),
+    EXPECT_EQ(vol.template accel_link<geo_obj_id::e_sensitive>(),
               sf_range[geo_obj_id::e_sensitive]);
-    EXPECT_EQ(vol.template link<geo_obj_id::e_passive>(),
+    EXPECT_EQ(vol.template accel_link<geo_obj_id::e_passive>(),
               sf_range[geo_obj_id::e_passive]);
 
     // Only the portals should be in the detector's surface container now
-    EXPECT_EQ(d.surface_lookup().size(), 7u);
+    EXPECT_EQ(d.surfaces().size(), 7u);
     EXPECT_EQ(d.mask_store().template size<mask_id::e_portal_cylinder2>(), 3u);
     EXPECT_EQ(d.mask_store().template size<mask_id::e_portal_ring2>(), 0u);
     EXPECT_EQ(d.mask_store().template size<mask_id::e_cylinder2>(), 3u);

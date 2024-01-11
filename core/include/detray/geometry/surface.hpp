@@ -112,7 +112,9 @@ class surface {
 
     /// @returns the surface source link
     DETRAY_HOST_DEVICE
-    constexpr auto source() const { return m_desc.source(); }
+    constexpr auto source() const {
+        return m_detector.surface(m_desc.barcode()).source;
+    }
 
     /// @returns true if the surface is a senstive detector module.
     DETRAY_HOST_DEVICE
@@ -147,7 +149,7 @@ class surface {
     /// @returns the coordinate transform matrix of the surface
     DETRAY_HOST_DEVICE
     constexpr auto transform(const context &ctx) const -> const transform3 & {
-        return m_detector.transform_store(ctx)[m_desc.transform()];
+        return m_detector.transform_store().at(m_desc.transform(), ctx);
     }
 
     /// @returns the centroid of the surface mask in local cartesian coordinates
@@ -329,7 +331,7 @@ class surface {
             os << "ERROR: Invalid barcode for surface:\n" << *this << std::endl;
             return false;
         }
-        if (index() >= m_detector.surface_lookup().size()) {
+        if (index() >= m_detector.surfaces().size()) {
             os << "ERROR: Surface index out of bounds for surface:\n"
                << *this << std::endl;
             return false;

@@ -156,11 +156,13 @@ struct bound_track_parameters {
 
     DETRAY_HOST_DEVICE
     scalar_type pT() const {
+        assert(this->qop() != 0.f);
         return std::abs(1.f / this->qop() * getter::perp(this->dir()));
     }
 
     DETRAY_HOST_DEVICE
     scalar_type pz() const {
+        assert(this->qop() != 0.f);
         return std::abs(1.f / this->qop() * this->dir()[2]);
     }
 

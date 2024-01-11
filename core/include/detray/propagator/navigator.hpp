@@ -508,7 +508,7 @@ class navigator {
         state &navigation = propagation._navigation;
         const auto det = navigation.detector();
         const auto &track = propagation._stepping();
-        const auto &volume = det->volume_by_index(navigation.volume());
+        const auto volume = detector_volume{*det, navigation.volume()};
 
         // Clean up state
         navigation.clear();

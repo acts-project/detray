@@ -14,7 +14,6 @@
 #include "detray/plugins/svgtools/conversion/portal.hpp"
 #include "detray/plugins/svgtools/conversion/surface.hpp"
 #include "detray/plugins/svgtools/styling/styling.hpp"
-#include "detray/plugins/svgtools/utils/volume_utils.hpp"
 
 // Actsvg include(s)
 #include "actsvg/display/geometry.hpp"
@@ -67,8 +66,7 @@ auto volume(const typename detector_t::geometry_context& context,
     // Transform the global surface indices to local ones in the volumes
     dindex sf_offset{dindex_invalid};
 
-    for (const auto& desc :
-         svgtools::utils::surface_lookup(detector, d_volume)) {
+    for (const auto& desc : d_volume.surfaces()) {
 
         const auto sf = detray::surface{detector, desc};
 

@@ -32,7 +32,7 @@ inline auto get_linked_volume(const detector_t& detector,
                               const detray::surface<detector_t>& d_portal) {
     assert(is_not_world_portal(d_portal));
     const auto d_link_idx = d_portal.template visit_mask<link_getter>();
-    return detector.volume_by_index(d_link_idx);
+    return detector_volume{detector, d_link_idx};
 }
 
 /// @brief Calculates the start and end point of the link.

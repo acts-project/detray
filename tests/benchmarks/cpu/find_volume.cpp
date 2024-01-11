@@ -56,7 +56,7 @@ void BM_FIND_VOLUMES(benchmark::State &state) {
             for (unsigned int i0 = 0u; i0 < itest; ++i0) {
                 test::vector3 rz{static_cast<scalar>(i0) * step0, 0.f,
                                  static_cast<scalar>(i1) * step1};
-                const auto &v = d.volume_by_pos(rz);
+                const auto &v = d.volume(rz);
 
                 benchmark::DoNotOptimize(successful);
                 benchmark::DoNotOptimize(unsuccessful);

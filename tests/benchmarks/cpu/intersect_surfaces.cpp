@@ -115,7 +115,7 @@ void BM_INTERSECT_CYLINDERS(benchmark::State &state) {
 
     mask_link_t mask_link{mask_ids::e_cylinder2, 0};
     material_link_t material_link{material_ids::e_slab, 0};
-    plane_surface plane(test::transform3(), mask_link, material_link, 0u, false,
+    plane_surface plane(test::transform3(), mask_link, material_link, 0u,
                         surface_id::e_sensitive);
 
     // Iterate through uniformly distributed momentum directions
@@ -170,7 +170,7 @@ void BM_INTERSECT_PORTAL_CYLINDERS(benchmark::State &state) {
 
     mask_link_t mask_link{mask_ids::e_cylinder2, 0u};
     material_link_t material_link{material_ids::e_slab, 0u};
-    plane_surface plane(test::transform3(), mask_link, material_link, 0u, false,
+    plane_surface plane(test::transform3(), mask_link, material_link, 0u,
                         surface_id::e_sensitive);
 
     // Iterate through uniformly distributed momentum directions
@@ -222,7 +222,7 @@ void BM_INTERSECT_CONCETRIC_CYLINDERS(benchmark::State &state) {
 
     mask_link_t mask_link{mask_ids::e_conc_cylinder3, 0u};
     material_link_t material_link{material_ids::e_slab, 0u};
-    plane_surface plane(test::transform3(), mask_link, material_link, 0u, false,
+    plane_surface plane(test::transform3(), mask_link, material_link, 0u,
                         surface_id::e_sensitive);
 
     // Iterate through uniformly distributed momentum directions

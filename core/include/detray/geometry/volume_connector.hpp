@@ -75,7 +75,7 @@ void connect_cylindrical_volumes(
         const auto &ref = volume_grid.bin(seed[0], seed[1]);
 
         // Build and add the portal surfaces
-        auto &volume = d.volume_by_index(ref);
+        auto &volume = d.volume(ref);
 
         // Collect portals per seed
         vector_type<tuple_type<array_type<scalar_t, 2>, dindex>>

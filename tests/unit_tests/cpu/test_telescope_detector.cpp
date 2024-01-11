@@ -105,6 +105,13 @@ GTEST_TEST(detray_detectors, telescope_detector) {
     const auto [z_tel_det1, z_tel_names1] =
         create_telescope_detector(host_mr, tel_cfg.positions(positions));
 
+    // Some general checks
+    const auto vol0 = detector_volume{z_tel_det1, 0u};
+    ASSERT_EQ(vol0.portals().size(), 6u);
+    ASSERT_EQ(vol0.surfaces().size(), positions.size() + 6u);
+    ASSERT_EQ(vol0.template surfaces<surface_id::e_sensitive>().size(),
+              positions.size());
+
     // Test this only once, it is the same for all telescope detectors
     EXPECT_EQ(z_tel_names1.at(0u), "telescope_detector");
     EXPECT_EQ(z_tel_names1.at(1u), "telescope_world_0");
@@ -122,10 +129,10 @@ GTEST_TEST(detray_detectors, telescope_detector) {
     detail::check_consistency(z_tel_det2);
 
     // Compare
-    for (std::size_t i{0u}; i < z_tel_det1.surface_lookup().size(); ++i) {
+    for (std::size_t i{0u}; i < z_tel_det1.surfaces().size(); ++i) {
         geometry::barcode bcd{};
         bcd.set_volume(0u).set_index(i);
-        bcd.set_id((i == z_tel_det1.surface_lookup().size() - 1u)
+        bcd.set_id((i == z_tel_det1.surfaces().size() - 1u)
                        ? surface_id::e_portal
                        : surface_id::e_sensitive);
         EXPECT_TRUE(z_tel_det1.surface(bcd) == z_tel_det2.surface(bcd));

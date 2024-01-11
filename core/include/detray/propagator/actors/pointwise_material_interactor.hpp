@@ -219,7 +219,6 @@ struct pointwise_material_interactor : actor {
     inline void update_qop(bound_vector &vector, const scalar_type p,
                            const scalar_type q, const scalar_type m,
                            const scalar_type e_loss, const int sign) const {
-
         // Get new Energy
         const scalar_type nextE{
             std::sqrt(m * m + p * p) -
@@ -230,8 +229,9 @@ struct pointwise_material_interactor : actor {
                                             : 0.f};
 
         // For neutral particles, qoverp = 1/p
+        constexpr auto inv{detail::invalid_value<scalar_type>()};
         getter::element(vector, e_bound_qoverp, 0) =
-            (q != 0.f) ? q / nextP : 1.f / nextP;
+            (nextP == 0.f) ? inv : (q != 0.f) ? q / nextP : 1.f / nextP;
     }
 
     /// @brief Update the variance of q over p of bound track parameter
@@ -264,8 +264,10 @@ struct pointwise_material_interactor : actor {
             projected_scattering_angle * projected_scattering_angle,
             static_cast<scalar_type>(sign))};
 
+        constexpr auto inv{detail::invalid_value<scalar_type>()};
         matrix_operator().element(covariance, e_bound_phi, e_bound_phi) +=
-            var_scattering_angle / (1 - dir[2] * dir[2]);
+            (dir[2] == 1.f) ? inv
+                            : var_scattering_angle / (1.f - dir[2] * dir[2]);
 
         matrix_operator().element(covariance, e_bound_theta, e_bound_theta) +=
             var_scattering_angle;

@@ -45,12 +45,11 @@ GTEST_TEST(detray_geometry, surface_descriptor) {
     material_link_t material_id{material_ids::e_slab, 0u};
 
     surface_descriptor<mask_link_t, material_link_t> desc(
-        1u, mask_id, material_id, 2u, 3u, surface_id::e_sensitive);
+        1u, mask_id, material_id, 2u, surface_id::e_sensitive);
 
     // Test access
     ASSERT_EQ(desc.transform(), 1u);
     ASSERT_EQ(desc.volume(), 2u);
-    ASSERT_EQ(desc.source(), 3u);
     ASSERT_EQ(desc.id(), surface_id::e_sensitive);
     ASSERT_FALSE(desc.is_portal());
     ASSERT_FALSE(desc.is_passive());
@@ -68,7 +67,6 @@ GTEST_TEST(detray_geometry, surface_descriptor) {
 
     ASSERT_EQ(desc.transform(), 8u);
     ASSERT_EQ(desc.volume(), 5u);
-    ASSERT_EQ(desc.source(), 3u);
     ASSERT_EQ(desc.id(), surface_id::e_portal);
     ASSERT_EQ(desc.index(), 6u);
     ASSERT_TRUE(desc.is_portal());
@@ -96,7 +94,7 @@ GTEST_TEST(detray_geometry, surface) {
 
     auto ctx = typename detector_t::geometry_context{};
 
-    const auto disc_descr = toy_det.surface_lookup()[13u];
+    const auto disc_descr = toy_det.surfaces()[13u];
     const auto disc = surface{toy_det, disc_descr};
 
     // IDs

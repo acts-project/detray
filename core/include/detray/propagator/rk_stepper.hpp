@@ -124,7 +124,7 @@ class rk_stepper final
 
         /// evaulate qop for a given step size and material
         DETRAY_HOST_DEVICE
-        inline scalar evaluate_qop(const scalar h);
+        inline scalar evaluate_qop(const scalar h) const;
 
         /// evaulate k_n for runge kutta stepping
         DETRAY_HOST_DEVICE

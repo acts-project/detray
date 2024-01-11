@@ -198,6 +198,7 @@ TEST_P(PropagatorWithRkStepper, rk4_propagator_const_bfield) {
 
     // Build detector
     toy_cfg.use_material_maps(false);
+    toy_cfg.mapped_material(detray::vacuum<scalar>());
     const auto [det, names] = create_toy_geometry(host_mr, toy_cfg);
 
     const bfield_t bfield = bfield::create_const_field(std::get<2>(GetParam()));
@@ -207,6 +208,9 @@ TEST_P(PropagatorWithRkStepper, rk4_propagator_const_bfield) {
 
     // Iterate through uniformly distributed momentum directions
     for (auto track : generator_t{trk_gen_cfg}) {
+
+        assert(track.qop() != 0.f);
+
         // Generate second track state used for propagation with pathlimit
         track_t lim_track(track);
 

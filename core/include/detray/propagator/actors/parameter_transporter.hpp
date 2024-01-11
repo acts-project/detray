@@ -12,7 +12,6 @@
 #include "detray/definitions/track_parametrization.hpp"
 #include "detray/geometry/surface.hpp"
 #include "detray/propagator/base_actor.hpp"
-#include "detray/tracks/detail/track_helper.hpp"
 
 namespace detray {
 
@@ -50,8 +49,6 @@ struct parameter_transporter : actor {
         // Mapping from free track parameters.
         using free_to_bound_matrix = matrix_type<e_bound_size, e_free_size>;
         using free_to_path_matrix = matrix_type<1, e_free_size>;
-        // Track helper
-        using track_helper = detail::track_helper<matrix_operator>;
         // Vector in 3D space
         using vector3 = typename transform3_t::vector3;
 

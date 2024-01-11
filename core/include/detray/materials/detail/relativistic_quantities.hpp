@@ -7,11 +7,14 @@
 
 #pragma once
 
-/// Detray include(s)
+// Detray include(s)
 #include "detray/definitions/math.hpp"
 #include "detray/definitions/qualifiers.hpp"
 #include "detray/definitions/units.hpp"
 #include "detray/materials/material.hpp"
+
+// System include(s)
+#include <cassert>
 
 namespace detray::detail {
 
@@ -38,12 +41,16 @@ struct relativistic_quantities {
     DETRAY_HOST_DEVICE
     relativistic_quantities(const scalar_type mass, const scalar_type qOverP,
                             const scalar_type q) {
+        assert(qOverP != 0.f);
+        assert(mass != 0.f);
+
         m_qOverP = qOverP;
         // beta²/q² = (p/E)²/q² = p²/(q²m² + q²p²) = 1/(q² + (m²(q/p)²)
         // q²/beta² = q² + m²(q/p)²
         m_q2OverBeta2 = q * q + (mass * qOverP) * (mass * qOverP);
         // 1/p = q/(qp) = (q/p)/q
-        const scalar_type mOverP{mass * std::abs(qOverP / q)};
+        const scalar_type mOverP{
+            mass * ((q == 0.f) ? std::abs(qOverP / q) : std::abs(qOverP))};
         const scalar_type pOverM{1.f / mOverP};
         // beta² = p²/E² = p²/(m² + p²) = 1/(1 + (m/p)²)
         m_beta2 = 1.f / (1.f + mOverP * mOverP);
@@ -55,20 +62,23 @@ struct relativistic_quantities {
     }
 
     /// Compute q/p derivative of beta².
-    DETRAY_HOST_DEVICE inline scalar_type derive_beta2(
+    DETRAY_HOST_DEVICE inline constexpr scalar_type derive_beta2(
         const scalar_type qOverP) const {
+        assert(qOverP != 0.f && qOverP == m_qOverP);
+        assert(m_gamma != 0.f);
         return -2.f / (qOverP * m_gamma * m_gamma);
     }
 
     /// Compute the 2 * mass * (beta * gamma)² mass term.
-    DETRAY_HOST_DEVICE inline scalar_type compute_mass_term(
+    DETRAY_HOST_DEVICE inline constexpr scalar_type compute_mass_term(
         const scalar_type mass) const {
         return 2.f * mass * m_betaGamma * m_betaGamma;
     }
 
     /// Compute mass term logarithmic derivative w/ respect to q/p.
-    DETRAY_HOST_DEVICE inline scalar_type log_derive_mass_term(
+    DETRAY_HOST_DEVICE inline constexpr scalar_type log_derive_mass_term(
         const scalar_type qOverP) const {
+        assert(qOverP != 0.f);
         // only need to compute d((beta*gamma)²)/(beta*gamma)²; rest cancels.
         return -2.f / qOverP;
     }
@@ -76,8 +86,9 @@ struct relativistic_quantities {
     /// Compute the maximum energy transfer in a single collision.
     ///
     /// Uses RPP2023 eq. 34.4.
-    DETRAY_HOST_DEVICE inline scalar_type compute_WMax_denominator(
+    DETRAY_HOST_DEVICE inline constexpr scalar_type compute_WMax_denominator(
         const scalar_type mass) const {
+        assert(mass != 0.f);
         const scalar_type mfrac{constant<scalar_type>::m_e / mass};
         return 1.f + 2.f * m_gamma * mfrac + mfrac * mfrac;
     }
@@ -85,7 +96,7 @@ struct relativistic_quantities {
     /// Compute the maximum energy transfer in a single collision.
     ///
     /// Uses RPP2023 eq. 34.4.
-    DETRAY_HOST_DEVICE inline scalar_type compute_WMax(
+    DETRAY_HOST_DEVICE inline constexpr scalar_type compute_WMax(
         const scalar_type mass) const {
         const scalar_type nominator{2.f * constant<scalar_type>::m_e *
                                     m_betaGamma * m_betaGamma};
@@ -95,6 +106,7 @@ struct relativistic_quantities {
     /// Compute WMax logarithmic derivative w/ respect to q/p.
     DETRAY_HOST_DEVICE inline scalar_type log_derive_WMax(
         const scalar_type mass, const scalar_type qOverP) const {
+        assert(qOverP != 0.f && qOverP == m_qOverP);
         // this is (q/p) * (beta/q).
         // both quantities have the same sign and the product must always be
         // positive. we can thus reuse the known (unsigned) quantity (q/beta)².
@@ -112,7 +124,7 @@ struct relativistic_quantities {
     ///     (K/2) * (Z/A) * rho * (q²/beta²)
     ///
     /// where (Z/A)*rho is the electron density in the material.
-    DETRAY_HOST_DEVICE inline scalar_type compute_epsilon_per_length(
+    DETRAY_HOST_DEVICE inline constexpr scalar_type compute_epsilon_per_length(
         const scalar_type molarElectronDensity) const {
         return 0.5f * K * molarElectronDensity * m_q2OverBeta2;
     }
@@ -125,15 +137,17 @@ struct relativistic_quantities {
     ///
     /// where (Z/A)*rho is the electron density in the material and x is the
     /// traversed length (thickness) of the material.
-    DETRAY_HOST_DEVICE inline scalar_type compute_epsilon(
+    DETRAY_HOST_DEVICE inline constexpr scalar_type compute_epsilon(
         const scalar_type molarElectronDensity,
         const scalar_type thickness) const {
         return compute_epsilon_per_length(molarElectronDensity) * thickness;
     }
 
     /// Compute epsilon logarithmic derivative w/ respect to q/p.
-    DETRAY_HOST_DEVICE inline scalar_type log_derive_epsilon(
+    DETRAY_HOST_DEVICE inline constexpr scalar_type log_derive_epsilon(
         const scalar_type qOverP) const {
+        assert(qOverP != 0.f && qOverP == m_qOverP);
+        assert(m_gamma != 0.f);
         // only need to compute d(q²/beta²)/(q²/beta²); everything else cancels.
         return 2.f / (qOverP * m_gamma * m_gamma);
     }
@@ -167,8 +181,9 @@ struct relativistic_quantities {
     }
 
     /// Compute derivative w/ respect to q/p for the density correction.
-    DETRAY_HOST_DEVICE inline scalar_type derive_delta_half(
+    DETRAY_HOST_DEVICE inline constexpr scalar_type derive_delta_half(
         const scalar_type qOverP) const {
+        assert(qOverP != 0.f && qOverP == m_qOverP);
         // original equation is of the form
         //     log(beta*gamma) + log(eplasma/I) - 1/2
         // which the resulting derivative as
@@ -182,8 +197,10 @@ struct relativistic_quantities {
     /// -> dp/d(beta) = mc*gamma*(1+beta^2*gamma^2)
     ///
     /// d(beta)/d(qop) = -beta/[qop * (1+beta^2*gamma^2)]
-    DETRAY_HOST_DEVICE inline scalar_type derive_beta() const {
-        return -1.f * m_beta / (m_qOverP * (1 + m_betaGamma * m_betaGamma));
+    DETRAY_HOST_DEVICE inline constexpr scalar_type derive_beta() const {
+        assert(m_qOverP != 0.f);
+        assert(m_betaGamma != 0.f);
+        return -1.f * m_beta / (m_qOverP * (1.f + m_betaGamma * m_betaGamma));
     }
 };
 

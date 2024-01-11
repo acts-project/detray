@@ -100,7 +100,7 @@ class telescope_generator final : public surface_factory_interface<detector_t> {
     /// @param ctx the geometry context (not needed for portals).
     DETRAY_HOST
     auto operator()(typename detector_t::volume_type &volume,
-                    typename detector_t::surface_container &surfaces,
+                    typename detector_t::surface_lookup_container &surfaces,
                     typename detector_t::transform_container &transforms,
                     typename detector_t::mask_container &masks,
                     typename detector_t::geometry_context ctx = {}) const
@@ -112,6 +112,7 @@ class telescope_generator final : public surface_factory_interface<detector_t> {
         using material_link_t = typename surface_t::material_link;
 
         const dindex surfaces_offset{static_cast<dindex>(surfaces.size())};
+        constexpr auto invalid_src_link{detail::invalid_value<std::uint64_t>()};
 
         // The type id of the surface mask shape
         constexpr auto mask_id{detector_t::mask_container::template get_id<
@@ -137,9 +138,9 @@ class telescope_generator final : public surface_factory_interface<detector_t> {
                 detail::invalid_value<typename material_link_t::index_type>()};
 
             const auto trf_index = transforms.size(ctx);
-            surfaces.emplace_back(trf_index, mask_link, material_link,
-                                  volume_idx, dindex_invalid,
-                                  surface_id::e_sensitive);
+            surfaces.push_back({trf_index, mask_link, material_link, volume_idx,
+                                surface_id::e_sensitive},
+                               invalid_src_link);
 
             // The rectangle bounds for this module
             masks.template emplace_back<mask_id>(empty_context{}, m_boundaries,

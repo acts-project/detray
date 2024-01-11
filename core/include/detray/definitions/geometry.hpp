@@ -37,7 +37,8 @@ enum class surface_id : std::uint_least8_t {
     e_portal = 0u,
     e_sensitive = 1u,
     e_passive = 2u,
-    e_unknown = 3u
+    e_unknown = 3u,
+    e_all = e_unknown
 };
 
 }  // namespace detray

@@ -114,16 +114,16 @@ GTEST_TEST(detray_intersection, intersection_kernel_ray) {
                                                       empty_context{});
 
     // The surfaces and their store
-    surface_t rectangle_surface(0u, {e_rectangle2, 0u}, {e_slab, 0u}, 0u, 0u,
+    surface_t rectangle_surface(0u, {e_rectangle2, 0u}, {e_slab, 0u}, 0u,
                                 surface_id::e_sensitive);
-    surface_t trapezoid_surface(1u, {e_trapezoid2, 0u}, {e_slab, 1u}, 0u, 1u,
+    surface_t trapezoid_surface(1u, {e_trapezoid2, 0u}, {e_slab, 1u}, 0u,
                                 surface_id::e_sensitive);
-    surface_t annulus_surface(2u, {e_annulus2, 0u}, {e_slab, 2u}, 0u, 2u,
+    surface_t annulus_surface(2u, {e_annulus2, 0u}, {e_slab, 2u}, 0u,
                               surface_id::e_sensitive);
-    surface_t cyl_surface(3u, {e_cylinder2, 0u}, {e_slab, 2u}, 0u, 3u,
+    surface_t cyl_surface(3u, {e_cylinder2, 0u}, {e_slab, 2u}, 0u,
                           surface_id::e_passive);
     surface_t cyl_portal_surface(4u, {e_cylinder2_portal, 0u}, {e_slab, 2u}, 0u,
-                                 4u, surface_id::e_portal);
+                                 surface_id::e_portal);
     surface_container_t surfaces = {rectangle_surface, trapezoid_surface,
                                     annulus_surface, cyl_surface,
                                     cyl_portal_surface};
@@ -245,10 +245,10 @@ GTEST_TEST(detray_intersection, intersection_kernel_helix) {
 
     // The surfaces and their store
     const surface_t rectangle_surface(0u, {e_rectangle2, 0u}, {e_slab, 0u}, 0u,
-                                      0u, surface_id::e_sensitive);
+                                      surface_id::e_sensitive);
     const surface_t trapezoid_surface(1u, {e_trapezoid2, 0u}, {e_slab, 1u}, 0u,
-                                      1u, surface_id::e_sensitive);
-    const surface_t annulus_surface(2u, {e_annulus2, 0u}, {e_slab, 2u}, 0u, 2u,
+                                      surface_id::e_sensitive);
+    const surface_t annulus_surface(2u, {e_annulus2, 0u}, {e_slab, 2u}, 0u,
                                     surface_id::e_sensitive);
     surface_container_t surfaces = {rectangle_surface, trapezoid_surface,
                                     annulus_surface};
