@@ -61,26 +61,10 @@ struct relativistic_quantities {
         m_gamma = std::sqrt(1.f + pOverM * pOverM);
     }
 
-    /// Compute q/p derivative of beta².
-    DETRAY_HOST_DEVICE inline constexpr scalar_type derive_beta2(
-        const scalar_type qOverP) const {
-        assert(qOverP != 0.f && qOverP == m_qOverP);
-        assert(m_gamma != 0.f);
-        return -2.f / (qOverP * m_gamma * m_gamma);
-    }
-
     /// Compute the 2 * mass * (beta * gamma)² mass term.
     DETRAY_HOST_DEVICE inline constexpr scalar_type compute_mass_term(
         const scalar_type mass) const {
         return 2.f * mass * m_betaGamma * m_betaGamma;
-    }
-
-    /// Compute mass term logarithmic derivative w/ respect to q/p.
-    DETRAY_HOST_DEVICE inline constexpr scalar_type log_derive_mass_term(
-        const scalar_type qOverP) const {
-        assert(qOverP != 0.f);
-        // only need to compute d((beta*gamma)²)/(beta*gamma)²; rest cancels.
-        return -2.f / qOverP;
     }
 
     /// Compute the maximum energy transfer in a single collision.
@@ -101,21 +85,6 @@ struct relativistic_quantities {
         const scalar_type nominator{2.f * constant<scalar_type>::m_e *
                                     m_betaGamma * m_betaGamma};
         return nominator / compute_WMax_denominator(mass);
-    }
-
-    /// Compute WMax logarithmic derivative w/ respect to q/p.
-    DETRAY_HOST_DEVICE inline scalar_type log_derive_WMax(
-        const scalar_type mass, const scalar_type qOverP) const {
-        assert(qOverP != 0.f && qOverP == m_qOverP);
-        // this is (q/p) * (beta/q).
-        // both quantities have the same sign and the product must always be
-        // positive. we can thus reuse the known (unsigned) quantity (q/beta)².
-        const scalar_type a{std::abs(qOverP / std::sqrt(m_q2OverBeta2))};
-        // (m² + me²) / me = me (1 + (m/me)²)
-        const scalar_type rel_mass{mass / constant<scalar_type>::m_e};
-        const scalar_type b =
-            constant<scalar_type>::m_e * (1.0f + rel_mass * rel_mass);
-        return -2.f * (a * b - 2.f + m_beta2) / (qOverP * (a * b + 2.f));
     }
 
     /// Compute epsilon per length where epsilon is defined at RPP2023
@@ -141,15 +110,6 @@ struct relativistic_quantities {
         const scalar_type molarElectronDensity,
         const scalar_type thickness) const {
         return compute_epsilon_per_length(molarElectronDensity) * thickness;
-    }
-
-    /// Compute epsilon logarithmic derivative w/ respect to q/p.
-    DETRAY_HOST_DEVICE inline constexpr scalar_type log_derive_epsilon(
-        const scalar_type qOverP) const {
-        assert(qOverP != 0.f && qOverP == m_qOverP);
-        assert(m_gamma != 0.f);
-        // only need to compute d(q²/beta²)/(q²/beta²); everything else cancels.
-        return 2.f / (qOverP * m_gamma * m_gamma);
     }
 
     /// Compute the density correction factor delta/2.
@@ -178,17 +138,6 @@ struct relativistic_quantities {
         return math_ns::log(m_betaGamma * plasmaEnergy /
                             mat.mean_excitation_energy()) -
                0.5f;
-    }
-
-    /// Compute derivative w/ respect to q/p for the density correction.
-    DETRAY_HOST_DEVICE inline constexpr scalar_type derive_delta_half(
-        const scalar_type qOverP) const {
-        assert(qOverP != 0.f && qOverP == m_qOverP);
-        // original equation is of the form
-        //     log(beta*gamma) + log(eplasma/I) - 1/2
-        // which the resulting derivative as
-        //     d(beta*gamma)/(beta*gamma)
-        return (m_betaGamma < 10.0f) ? 0.0f : (-1.0f / qOverP);
     }
 
     /// Compute derivative of beta w.r.t q/p
