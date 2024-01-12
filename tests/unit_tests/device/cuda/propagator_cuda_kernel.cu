@@ -48,7 +48,11 @@ __global__ void propagator_test_kernel(
     // Create propagator
     using propagator_device_t =
         propagator<decltype(stepr), decltype(nav), actor_chain_device_t>;
-    propagator_device_t p(std::move(stepr), std::move(nav));
+
+    propagation::config cfg{};
+    cfg.search_window = {3u, 3u};
+    cfg.rk_error_tol = rk_tolerance;
+    propagator_device_t p{cfg};
 
     // Create actor states
     inspector_device_t::state insp_state(
@@ -65,8 +69,6 @@ __global__ void propagator_test_kernel(
     // Create the propagator state
     typename propagator_device_t::state state(tracks[gid], field_data, det,
                                               candidates.at(gid));
-
-    state._stepping.set_tolerance(rk_tolerance);
 
     state._stepping.template set_constraint<step::constraint::e_accuracy>(
         constrainted_step_size);

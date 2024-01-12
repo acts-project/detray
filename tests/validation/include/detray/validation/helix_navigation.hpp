@@ -77,9 +77,9 @@ class helix_navigation : public test::fixture_base<> {
                               const typename detector_t::name_map &names,
                               const config_t &cfg = {})
         : m_det{det}, m_names{names} {
-        m_cfg.overstepping_tolerance(cfg.overstepping_tolerance());
         m_cfg.name(cfg.name());
         m_cfg.track_generator() = cfg.track_generator();
+        m_cfg.propagation() = cfg.propagation();
     }
 
     /// Run the check
@@ -118,7 +118,7 @@ class helix_navigation : public test::fixture_base<> {
         typename detector_t::geometry_context gctx{};
 
         // Propagator
-        propagator_t prop(stepper_t{}, navigator_t{});
+        propagator_t prop{m_cfg.propagation()};
 
         // B-field vector for helix
         const typename fixture_type::point3 B{0.f * unit<scalar_t>::T,
@@ -145,9 +145,6 @@ class helix_navigation : public test::fixture_base<> {
                                                    io_mode};
 
         for (auto track : trk_state_generator) {
-
-            // Prepare for overstepping in the presence of b fields
-            track.set_overstep_tolerance(m_cfg.overstepping_tolerance());
 
             // Get ground truth helix from track
             detail::helix helix(track, &B);

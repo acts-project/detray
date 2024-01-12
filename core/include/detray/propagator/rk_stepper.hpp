@@ -39,6 +39,7 @@ class rk_stepper final
     using inspector_type = inspector_t;
     using transform3_type = transform3_t;
     using policy_type = policy_t;
+    using scalar_type = typename transform3_type::scalar_type;
     using point3 = typename transform3_type::point3;
     using vector2 = typename transform3_type::point2;
     using vector3 = typename transform3_type::vector3;
@@ -71,14 +72,6 @@ class rk_stepper final
             const bound_track_parameters_type& bound_params,
             const magnetic_field_t& mag_field, const detector_t& det)
             : base_type::state(bound_params, det), _magnetic_field(mag_field) {}
-        /// error tolerance
-        scalar _tolerance{1e-4f};
-
-        /// step size cutoff value
-        scalar _step_size_cutoff{1e-4f};
-
-        /// maximum trial number of RK stepping
-        std::size_t _max_rk_step_trials{10000u};
 
         /// stepping data required for RKN4
         struct {
@@ -90,29 +83,15 @@ class rk_stepper final
             vector3 k3{0.f, 0.f, 0.f};
             vector3 k4{0.f, 0.f, 0.f};
             // @NOTE: k_qop2 = k_qop3
-            scalar k_qop2{0.f};
-            scalar k_qop4{0.f};
+            scalar_type k_qop2{0.f};
+            scalar_type k_qop4{0.f};
         } _step_data;
 
         /// Magnetic field view
         const magnetic_field_t _magnetic_field;
 
         /// Material that track is passing through. Usually a volume material
-        detray::material<scalar> _mat = detray::vacuum<scalar>();
-
-        /// Use mean energy loss (Bethe)
-        /// if false, most probable energy loss (Landau) will be used
-        bool _use_mean_loss = true;
-
-        /// Use eloss gradient in error propagation
-        bool _use_eloss_gradient = false;
-
-        /// Use b field gradient in error propagation
-        bool _use_field_gradient = false;
-
-        /// Set the local error tolerenace
-        DETRAY_HOST_DEVICE
-        inline void set_tolerance(scalar tol) { _tolerance = tol; };
+        detray::material<scalar_type> _mat = detray::vacuum<scalar_type>();
 
         /// Update the track state by Runge-Kutta-Nystrom integration.
         DETRAY_HOST_DEVICE
@@ -120,17 +99,18 @@ class rk_stepper final
 
         /// Update the jacobian transport from free propagation
         DETRAY_HOST_DEVICE
-        inline void advance_jacobian();
+        inline void advance_jacobian(const stepping::config& cfg = {});
 
         /// evaulate qop for a given step size and material
         DETRAY_HOST_DEVICE
-        inline scalar evaluate_qop(const scalar h) const;
+        inline scalar_type evaluate_qop(const scalar_type h,
+                                        const stepping::config& cfg = {}) const;
 
         /// evaulate k_n for runge kutta stepping
         DETRAY_HOST_DEVICE
         inline vector3 evaluate_k(const vector3& b_field, const int i,
-                                  const scalar h, const vector3& k_prev,
-                                  const scalar k_qop);
+                                  const scalar_type h, const vector3& k_prev,
+                                  const scalar_type k_qop);
 
         DETRAY_HOST_DEVICE
         inline matrix_type<3, 3> evaluate_field_gradient(const vector3& pos);
@@ -141,16 +121,18 @@ class rk_stepper final
 
         /// Evaulate d(qop)/ds
         DETRAY_HOST_DEVICE
-        inline scalar dqopds() const;
+        inline scalar_type dqopds() const;
 
         /// Call the stepping inspector
         template <typename... Args>
         DETRAY_HOST_DEVICE inline void run_inspector(
+            [[maybe_unused]] const stepping::config& cfg,
             [[maybe_unused]] const char* message,
             [[maybe_unused]] Args&&... args) {
             if constexpr (not std::is_same_v<inspector_t,
                                              stepping::void_inspector>) {
-                this->_inspector(*this, message, std::forward<Args>(args)...);
+                this->_inspector(*this, cfg, message,
+                                 std::forward<Args>(args)...);
             }
         }
     };
@@ -159,7 +141,8 @@ class rk_stepper final
     ///
     /// @return returning the heartbeat, indicating if the stepping is alive
     template <typename propagation_state_t>
-    DETRAY_HOST_DEVICE bool step(propagation_state_t& propagation);
+    DETRAY_HOST_DEVICE bool step(propagation_state_t& propagation,
+                                 const stepping::config& cfg = {});
 };
 
 }  // namespace detray

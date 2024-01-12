@@ -57,15 +57,16 @@ int main(int argc, char **argv) {
     // Navigation link consistency, discovered by helix intersection
     helix_scan<toy_detector_t>::config cfg_hel_scan{};
     cfg_hel_scan.name("toy_detector_helix_scan");
-    cfg_hel_scan.overstepping_tolerance(-100.f * unit<scalar_t>::um);
     cfg_hel_scan.track_generator().p_tot(10.f * unit<scalar_t>::GeV);
     cfg_hel_scan.track_generator().theta_steps(100u).phi_steps(100u);
+
     detray::detail::register_checks<detray::helix_scan>(toy_det, toy_names,
                                                         cfg_hel_scan);
 
     // Comparision of straight line navigation with ray scan
     straight_line_navigation<toy_detector_t>::config cfg_str_nav{};
     cfg_str_nav.name("toy_detector_straight_line_navigation");
+    cfg_str_nav.propagation().search_window = {3u, 3u};
     cfg_str_nav.track_generator().theta_steps(100u).phi_steps(100u);
 
     detail::register_checks<straight_line_navigation>(toy_det, toy_names,
@@ -74,7 +75,7 @@ int main(int argc, char **argv) {
     // Comparision of navigation in a constant B-field with helix
     helix_navigation<toy_detector_t>::config cfg_hel_nav{};
     cfg_hel_nav.name("toy_detector_helix_navigation");
-    cfg_hel_nav.overstepping_tolerance(-100.f * unit<scalar_t>::um);
+    cfg_hel_nav.propagation().search_window = {3u, 3u};
     cfg_hel_nav.track_generator() = cfg_hel_scan.track_generator();
     // TODO: Fails due to mask tolerances for more helices, regardless of edc
     // configuration/precision

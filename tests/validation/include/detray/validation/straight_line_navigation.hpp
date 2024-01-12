@@ -79,6 +79,7 @@ class straight_line_navigation : public test::fixture_base<> {
         : m_det{det}, m_names{names} {
         m_cfg.name(cfg.name());
         m_cfg.track_generator() = cfg.track_generator();
+        m_cfg.propagation() = cfg.propagation();
     }
 
     /// Run the check
@@ -118,7 +119,7 @@ class straight_line_navigation : public test::fixture_base<> {
         typename detector_t::geometry_context gctx{};
 
         // Propagator
-        propagator_t prop(stepper_t{}, navigator_t{});
+        propagator_t prop{m_cfg.propagation()};
 
         // Iterate through uniformly distributed momentum directions
         std::size_t n_tracks{0u};

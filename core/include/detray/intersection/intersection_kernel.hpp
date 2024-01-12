@@ -32,6 +32,7 @@ struct intersection_initialize {
     /// @param surface is the input surface
     /// @param contextual_transforms is the input transform container
     /// @param mask_tolerance is the tolerance for mask size
+    /// @param overstep_tol negative cutoff for the path
     ///
     /// @return the number of valid intersections
     template <typename mask_group_t, typename mask_range_t,
@@ -42,7 +43,8 @@ struct intersection_initialize {
         is_container_t &is_container, const traj_t &traj,
         const surface_t &surface,
         const transform_container_t &contextual_transforms,
-        const scalar mask_tolerance = 0.f) const {
+        const scalar mask_tolerance = 0.f,
+        const scalar overstep_tol = 0.f) const {
 
         using intersection_t = typename is_container_t::value_type;
 
@@ -54,7 +56,7 @@ struct intersection_initialize {
 
             if (place_in_collection(
                     mask.template intersector<intersection_t>()(
-                        traj, surface, mask, ctf, mask_tolerance),
+                        traj, surface, mask, ctf, mask_tolerance, overstep_tol),
                     is_container)) {
                 return;
             };
@@ -108,6 +110,7 @@ struct intersection_update {
     /// @param surface is the input surface
     /// @param contextual_transforms is the input transform container
     /// @param mask_tolerance is the tolerance for mask size
+    /// @param overstep_tol negative cutoff for the path
     ///
     /// @return the intersection
     template <typename mask_group_t, typename mask_range_t, typename traj_t,
@@ -116,7 +119,8 @@ struct intersection_update {
         const mask_group_t &mask_group, const mask_range_t &mask_range,
         const traj_t &traj, intersection_t &sfi,
         const transform_container_t &contextual_transforms,
-        const scalar mask_tolerance = 0.f) const {
+        const scalar mask_tolerance = 0.f,
+        const scalar overstep_tol = 0.f) const {
 
         const auto &ctf = contextual_transforms[sfi.sf_desc.transform()];
 
@@ -125,7 +129,7 @@ struct intersection_update {
              detray::ranges::subrange(mask_group, mask_range)) {
 
             mask.template intersector<intersection_t>().update(
-                traj, sfi, mask, ctf, mask_tolerance);
+                traj, sfi, mask, ctf, mask_tolerance, overstep_tol);
 
             if (sfi.status == intersection::status::e_inside) {
                 return true;

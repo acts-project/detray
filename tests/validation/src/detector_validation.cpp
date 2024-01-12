@@ -45,6 +45,7 @@ int main(int argc, char **argv) {
     // Options parsing
     po::options_description desc("\ndetray detector validation options");
 
+    std::vector<dindex> window;
     desc.add_options()("help", "produce help message")(
         "write_volume_graph", "writes the volume graph to file")(
         "write_scan_data", "writes the ray/helix scan intersections to file")(
@@ -63,6 +64,8 @@ int main(int argc, char **argv) {
         "total momentum of the test particle [GeV]")(
         "p_T", po::value<scalar_t>()->default_value(10.f),
         "transverse momentum of the test particle [GeV]")(
+        "search_window", po::value<std::vector<dindex>>(&window)->multitoken(),
+        "search window size for the grid")(
         "overstep_tol", po::value<scalar_t>()->default_value(-100.f),
         "overstepping tolerance [um] NOTE: Must be negative!");
 
@@ -161,16 +164,27 @@ int main(int argc, char **argv) {
     }
 
     // Navigation
+    // Grid neighborhood size
+    if (vm.count("search_window")) {
+        if (window.size() != 2u) {
+            throw std::invalid_argument(
+                "Incorrect surface grid search window. Please provide two "
+                "integer distances.");
+        }
+        str_nav_cfg.propagation().search_window = {window[0], window[1]};
+        hel_nav_cfg.propagation().search_window = {window[0], window[1]};
+    }
+
     if (vm.count("overstep_tol")) {
         const scalar_t overstep_tol{vm["overstep_tol"].as<scalar_t>()};
 
-        hel_nav_cfg.overstepping_tolerance(overstep_tol * unit<scalar_t>::um);
+        hel_nav_cfg.propagation().overstep_tolerance =
+            overstep_tol * unit<scalar_t>::um;
     }
 
     // Ray scan and straight line navigation check use the same generator type
     str_nav_cfg.track_generator() = ray_scan_cfg.track_generator();
     hel_scan_cfg.track_generator() = hel_nav_cfg.track_generator();
-    hel_scan_cfg.overstepping_tolerance(hel_nav_cfg.overstepping_tolerance());
 
     vecmem::host_memory_resource host_mr;
 

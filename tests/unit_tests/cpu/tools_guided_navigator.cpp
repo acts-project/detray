@@ -76,7 +76,7 @@ GTEST_TEST(detray_propagator, guided_navigator) {
     pathlimit_aborter::state pathlimit{200.f * unit<scalar>::cm};
 
     // Propagator
-    propagator_t p(runge_kutta_stepper{}, guided_navigator{});
+    propagator_t p{};
     propagator_t::state guided_state(track, b_field, telescope_det);
 
     // Propagate

@@ -42,8 +42,9 @@ __global__ void propagation_kernel(
         candidates_data);
 
     // Create propagator from a stepper and a navigator
-    detray::tutorial::propagator_t p(detray::tutorial::stepper_t{},
-                                     detray::tutorial::navigator_t{});
+    propagation::config cfg{};
+    cfg.search_window = {3u, 3u};
+    detray::tutorial::propagator_t p{cfg};
 
     // Create actor states
     detray::pathlimit_aborter::state aborter_state{path_limit};

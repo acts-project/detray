@@ -132,8 +132,6 @@ inline vecmem::vector<track_t> generate_tracks(
 
     // Iterate through uniformly distributed momentum directions
     for (auto track : uniform_track_generator<track_t>(ps, ts, p_mag)) {
-        track.set_overstep_tolerance(overstep_tolerance);
-
         // Put it into vector of trajectories
         tracks.push_back(track);
     }
@@ -157,7 +155,10 @@ inline auto run_propagation_host(vecmem::memory_resource *mr,
 
     using propagator_host_t =
         propagator<decltype(stepr), decltype(nav), actor_chain_host_t>;
-    propagator_host_t p(std::move(stepr), std::move(nav));
+    propagation::config cfg{};
+    cfg.search_window = {3u, 3u};
+    cfg.rk_error_tol = rk_tolerance;
+    propagator_host_t p{cfg};
 
     // Create vector for track recording
     vecmem::jagged_vector<scalar> host_path_lengths(mr);
@@ -180,8 +181,6 @@ inline auto run_propagation_host(vecmem::memory_resource *mr,
 
         state._stepping.template set_constraint<step::constraint::e_accuracy>(
             constrainted_step_size);
-
-        state._stepping.set_tolerance(rk_tolerance);
 
         // Run propagation
         p.propagate(state, actor_states);

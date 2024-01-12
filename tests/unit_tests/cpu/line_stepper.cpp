@@ -78,7 +78,7 @@ GTEST_TEST(detray_propagator, covariance_transport) {
     parameter_transporter<transform3>::state bound_updater{};
     parameter_resetter<transform3>::state rst{};
 
-    propagator_t p({}, {});
+    propagator_t p{};
     propagator_t::state propagation(bound_param0, det);
 
     // Run propagator

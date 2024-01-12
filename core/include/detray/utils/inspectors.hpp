@@ -33,14 +33,15 @@ struct aggregate_inspector {
 
     /// Inspector interface
     template <unsigned int current_id = 0, typename state_type>
-    auto operator()(state_type &state, const char *message) {
+    auto operator()(state_type &state, const navigation::config &cfg,
+                    const char *message) {
         // Call inspector
-        std::get<current_id>(_inspectors)(state, message);
+        std::get<current_id>(_inspectors)(state, cfg, message);
 
         // Next inspector
         if constexpr (current_id <
                       std::tuple_size<inspector_tuple_t>::value - 1) {
-            return operator()<current_id + 1>(state, message);
+            return operator()<current_id + 1>(state, cfg, message);
         }
     }
 
@@ -64,7 +65,8 @@ struct object_tracer {
 
     /// Inspector interface
     template <typename state_type>
-    auto operator()(state_type &state, const char * /*message*/) {
+    auto operator()(state_type &state, const navigation::config &,
+                    const char * /*message*/) {
 
         // Record the candidate of an encountered object
         if ((is_status(state.status(), navigation_status) or ...)) {
@@ -92,7 +94,8 @@ struct print_inspector {
 
     /// Inspector interface. Gathers detailed information during navigation
     template <typename state_type>
-    auto operator()(const state_type &state, const char *message) {
+    auto operator()(const state_type &state, const navigation::config &cfg,
+                    const char *message) {
         std::string msg(message);
         std::string tabs = "\t\t\t\t";
 
@@ -156,7 +159,7 @@ struct print_inspector {
         }
 
         debug_stream << "distance to next\t\t";
-        if (std::abs(state()) < state.tolerance()) {
+        if (state() < std::abs(cfg.on_surface_tolerance)) {
             debug_stream << "on obj (within tol)" << std::endl;
         } else {
             debug_stream << state() << std::endl;
@@ -194,9 +197,10 @@ struct print_inspector {
     /// Gathers stepping information from inside the stepper methods
     std::stringstream debug_stream{};
 
-    /// Inspector interface. Gathers detailed information during navigation
+    /// Inspector interface. Gathers detailed information during stepping
     template <typename state_type>
-    void operator()(const state_type &state, const char *message) {
+    void operator()(const state_type &state, const stepping::config &,
+                    const char *message) {
         std::string msg(message);
         std::string tabs = "\t\t\t\t";
 
@@ -228,10 +232,11 @@ struct print_inspector {
         debug_stream << std::endl;
     }
 
-    /// Inspector interface. Gathers detailed information during navigation
+    /// Inspector interface. Gathers detailed information during stepping
     template <typename state_type>
-    void operator()(const state_type &state, const char *message,
-                    const std::size_t n_trials, const scalar step_scalor) {
+    void operator()(const state_type &state, const stepping::config &,
+                    const char *message, const std::size_t n_trials,
+                    const scalar step_scalor) {
         std::string msg(message);
         std::string tabs = "\t\t\t\t";
 

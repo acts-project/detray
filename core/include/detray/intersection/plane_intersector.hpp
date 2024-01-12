@@ -44,13 +44,14 @@ struct plane_intersector {
     /// @param mask is the input mask that defines the surface extent
     /// @param trf is the surface placement transform
     /// @param mask_tolerance is the tolerance for mask edges
+    /// @param overstep_tol negative cutoff for the path
     ///
     /// @return the intersection
     template <typename mask_t, typename surface_t>
     DETRAY_HOST_DEVICE inline intersection_t operator()(
         const ray_type &ray, const surface_t &sf, const mask_t &mask,
-        const transform3_type &trf,
-        const scalar_type mask_tolerance = 0.f) const {
+        const transform3_type &trf, const scalar_type mask_tolerance = 0.f,
+        const scalar_type overstep_tol = 0.f) const {
 
         intersection_t is;
 
@@ -68,7 +69,7 @@ struct plane_intersector {
             is.path = vector::dot(sn, st - ro) / denom;
 
             // Intersection is valid for navigation - continue
-            if (is.path >= ray.overstep_tolerance()) {
+            if (is.path >= overstep_tol) {
 
                 const point3 p3 = ro + is.path * rd;
                 is.local = mask.to_local_frame(trf, p3, ray.dir());
@@ -105,12 +106,14 @@ struct plane_intersector {
     /// @param mask is the input mask that defines the surface extent
     /// @param trf is the surface placement transform
     /// @param mask_tolerance is the tolerance for mask edges
+    /// @param overstep_tol negative cutoff for the path
     template <typename mask_t>
     DETRAY_HOST_DEVICE inline void update(
         const ray_type &ray, intersection_t &sfi, const mask_t &mask,
-        const transform3_type &trf,
-        const scalar_type mask_tolerance = 0.f) const {
-        sfi = this->operator()(ray, sfi.sf_desc, mask, trf, mask_tolerance);
+        const transform3_type &trf, const scalar_type mask_tolerance = 0.f,
+        const scalar_type overstep_tol = 0.f) const {
+        sfi = this->operator()(ray, sfi.sf_desc, mask, trf, mask_tolerance,
+                               overstep_tol);
     }
 };
 

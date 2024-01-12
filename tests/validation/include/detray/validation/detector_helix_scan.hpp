@@ -79,7 +79,6 @@ class helix_scan : public test::fixture_base<> {
         : m_det{det}, m_names{names} {
         m_cfg.name(cfg.name());
         m_cfg.write_intersections(cfg.write_intersections());
-        m_cfg.overstepping_tolerance(cfg.overstepping_tolerance());
         m_cfg.track_generator() = cfg.track_generator();
     }
 
@@ -118,9 +117,6 @@ class helix_scan : public test::fixture_base<> {
                   << std::endl;
 
         for (auto trk : trk_state_generator) {
-
-            // Prepare for overstepping in the presence of b fields
-            trk.set_overstep_tolerance(m_cfg.overstepping_tolerance());
 
             // Get ground truth helix from track
             detail::helix helix(trk, &B);

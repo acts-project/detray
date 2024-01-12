@@ -111,14 +111,6 @@ struct free_track_parameters {
     void set_covariance(const covariance_type& c) { m_covariance = c; }
 
     DETRAY_HOST_DEVICE
-    scalar_type overstep_tolerance() const { return m_overstep_tolerance; }
-
-    DETRAY_HOST_DEVICE
-    void set_overstep_tolerance(const scalar_type tolerance) {
-        m_overstep_tolerance = tolerance;
-    }
-
-    DETRAY_HOST_DEVICE
     point3 pos() const { return track_helper().pos(m_vector); }
 
     DETRAY_HOST_DEVICE
@@ -172,7 +164,6 @@ struct free_track_parameters {
     vector_type m_vector = matrix_operator().template zero<e_free_size, 1>();
     covariance_type m_covariance =
         matrix_operator().template zero<e_free_size, e_free_size>();
-    scalar_type m_overstep_tolerance{-100 * unit<scalar_type>::um};
 };
 
 }  // namespace detray

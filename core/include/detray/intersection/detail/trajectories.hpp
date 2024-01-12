@@ -57,9 +57,7 @@ class ray {
     ///
     /// @param track the track state that should be approximated
     DETRAY_HOST_DEVICE ray(const free_track_parameters_type &track)
-        : ray(track.vector()) {
-        _overstep_tolerance = track.overstep_tolerance();
-    }
+        : ray(track.vector()) {}
 
     /// @returns position on the ray (compatible with tracks/intersectors)
     DETRAY_HOST_DEVICE point3 pos() const { return _pos; }
@@ -84,16 +82,6 @@ class ray {
     /// @param dir new direction of the ray
     DETRAY_HOST_DEVICE void set_dir(vector3 dir) { _dir = dir; }
 
-    /// @returns overstep tolerance to comply with track interface
-    DETRAY_HOST_DEVICE
-    scalar_type overstep_tolerance() const { return _overstep_tolerance; }
-
-    /// Sets overstep tolerance to comply with track interface
-    DETRAY_HOST_DEVICE
-    void set_overstep_tolerance(const scalar_type tolerance) {
-        _overstep_tolerance = tolerance;
-    }
-
     /// Print
     DETRAY_HOST
     friend std::ostream &operator<<(std::ostream &os, const ray &r) {
@@ -101,8 +89,7 @@ class ray {
         os << "ori = [" << r._pos[0] << ", " << r._pos[1] << ", " << r._pos[2]
            << "], ";
         os << "dir = [" << r._dir[0] << ", " << r._dir[1] << ", " << r._dir[2]
-           << "], ";
-        os << "tol = " << r._overstep_tolerance << std::endl;
+           << "]" << std::endl;
 
         return os;
     }
@@ -112,9 +99,6 @@ class ray {
     point3 _pos{0.f, 0.f, 0.f};
     /// direction of ray
     vector3 _dir{0.f, 0.f, 1.f};
-
-    /// Overstep tolerance on a geometry surface
-    scalar_type _overstep_tolerance{-1e-4f};
 };
 
 /// @brief describes a helical trajectory in a given B-field.

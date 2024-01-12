@@ -73,7 +73,7 @@ GTEST_TEST(detray_materials, telescope_geometry_energy_loss) {
     using propagator_t = propagator<stepper_t, navigator_t, actor_chain_t>;
 
     // Propagator is built from the stepper and navigator
-    propagator_t p({}, {});
+    propagator_t p{};
 
     constexpr scalar q{-1.f};
     constexpr scalar iniP{10.f * unit<scalar>::GeV};
@@ -195,7 +195,7 @@ GTEST_TEST(detray_materials, telescope_geometry_energy_loss) {
                      parameter_resetter_state);
 
         // Propagator and its state
-        alt_propagator_t alt_p({}, {});
+        alt_propagator_t alt_p{};
         alt_propagator_t::state alt_state(alt_bound_param, det);
 
         // Propagate
@@ -254,7 +254,7 @@ GTEST_TEST(detray_materials, telescope_geometry_scattering_angle) {
     using propagator_t = propagator<stepper_t, navigator_t, actor_chain_t>;
 
     // Propagator is built from the stepper and navigator
-    propagator_t p({}, {});
+    propagator_t p{};
 
     constexpr scalar q{-1.f};
     constexpr scalar iniP{10.f * unit<scalar>::GeV};
@@ -389,7 +389,7 @@ GTEST_TEST(detray_materials, telescope_geometry_volume_material) {
         using propagator_t = propagator<stepper_t, navigator_t, actor_chain_t>;
 
         // Propagator is built from the stepper and navigator
-        propagator_t p({}, {});
+        propagator_t p{};
 
         propagator_t::state state(bound_param, const_bfield, det);
 
