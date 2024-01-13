@@ -14,9 +14,10 @@
 // Covfie include(s)
 #include <covfie/core/backend/primitive/constant.hpp>
 #include <covfie/core/backend/transformer/affine.hpp>
-#include <covfie/core/backend/transformer/nearest_neighbour.hpp>
+#include <covfie/core/backend/transformer/linear.hpp>
 #include <covfie/core/backend/transformer/strided.hpp>
 #include <covfie/core/field.hpp>
+#include <covfie/core/vector.hpp>
 
 namespace detray::bfield {
 
@@ -28,9 +29,9 @@ using const_bknd_t =
 using const_field_t = covfie::field<const_bknd_t>;
 
 /// Inhomogeneous field (host)
-using inhom_bknd_t = covfie::backend::affine<
-    covfie::backend::nearest_neighbour<covfie::backend::strided<
-        covfie::vector::ulong3,
+using inhom_bknd_t =
+    covfie::backend::affine<covfie::backend::linear<covfie::backend::strided<
+        covfie::vector::vector_d<std::size_t, 3>,
         covfie::backend::array<covfie::vector::vector_d<detray::scalar, 3>>>>>;
 
 using inhom_field_t = covfie::field<inhom_bknd_t>;

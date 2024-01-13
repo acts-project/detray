@@ -24,10 +24,10 @@ namespace detray {
 namespace bfield::cuda {
 
 // Inhomogeneous field (cuda)
-using inhom_bknd_t = covfie::backend::affine<
-    covfie::backend::nearest_neighbour<covfie::backend::strided<
-        covfie::vector::ulong3, covfie::backend::cuda_device_array<
-                                    covfie::vector::vector_d<scalar, 3>>>>>;
+using inhom_bknd_t = covfie::backend::affine<covfie::backend::linear<
+    covfie::backend::strided<covfie::vector::vector_d<std::size_t, 3>,
+                             covfie::backend::cuda_device_array<
+                                 covfie::vector::vector_d<scalar, 3>>>>>;
 
 }  // namespace bfield::cuda
 
