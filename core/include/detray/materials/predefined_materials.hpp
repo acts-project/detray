@@ -108,6 +108,13 @@ DETRAY_DECLARE_MATERIAL(argon_gas, 1.176E+02f * unit<scalar>::m,
                                             unit<double>::cm3),
                         material_state::e_gas);
 
+// Fe (26)
+DETRAY_DECLARE_MATERIAL(iron, 1.757f * unit<scalar>::cm,
+                        16.77f * unit<scalar>::cm, 55.845f, 26.f,
+                        static_cast<scalar>(7.874 * unit<double>::g /
+                                            unit<double>::cm3),
+                        material_state::e_solid);
+
 // W (74)
 DETRAY_DECLARE_MATERIAL(tungsten, 3.504f * unit<scalar>::mm,
                         99.46f * unit<scalar>::mm, 183.84f, 74.f,
@@ -176,5 +183,13 @@ DETRAY_DECLARE_MATERIAL(propane, 2.429E+02f * unit<scalar>::m,
                         static_cast<scalar>(1.868E-03 * unit<double>::g /
                                             unit<double>::cm3),
                         material_state::e_gas);
+
+// Cesium Iodide (CsI)
+// https://pdg.lbl.gov/2023/AtomicNuclearProperties/HTML/cesium_iodide_CsI.html
+DETRAY_DECLARE_MATERIAL(cesium_iodide, 1.86f * unit<scalar>::cm,
+                        38.04f * unit<scalar>::cm, 259.81f, 108.f,
+                        static_cast<scalar>(4.510f * unit<double>::g /
+                                            unit<double>::cm3),
+                        material_state::e_solid);
 
 }  // namespace detray

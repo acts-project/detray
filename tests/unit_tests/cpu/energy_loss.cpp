@@ -151,6 +151,55 @@ INSTANTIATE_TEST_SUITE_P(
     ::testing::Values(std::make_tuple(silicon<scalar>(),
                                       100.1f * unit<scalar>::GeV, 2.451f)));
 
+INSTANTIATE_TEST_SUITE_P(
+    Bethe_0p1GeV_Fe, EnergyLossBetheValidation,
+    ::testing::Values(std::make_tuple(iron<scalar>(),
+                                      0.1003f * unit<scalar>::GeV, 2.274f)));
+
+/*
+// ~6% discrepancy
+INSTANTIATE_TEST_SUITE_P(
+    Bethe_1GeV_Fe, EnergyLossBetheValidation,
+    ::testing::Values(std::make_tuple(iron<scalar>(),
+                                      1.101f * unit<scalar>::GeV, 1.581f)));
+*/
+
+INSTANTIATE_TEST_SUITE_P(
+    Bethe_10GeV_Fe, EnergyLossBetheValidation,
+    ::testing::Values(std::make_tuple(iron<scalar>(),
+                                      10.11f * unit<scalar>::GeV, 1.942f)));
+
+INSTANTIATE_TEST_SUITE_P(
+    Bethe_100GeV_Fe, EnergyLossBetheValidation,
+    ::testing::Values(std::make_tuple(iron<scalar>(),
+                                      100.1f * unit<scalar>::GeV, 2.207f)));
+
+/*
+// ~10% discrepancy
+INSTANTIATE_TEST_SUITE_P(
+    Bethe_0p1GeV_CsI, EnergyLossBetheValidation,
+    ::testing::Values(std::make_tuple(cesium_iodide<scalar>(),
+                                      0.1003f * unit<scalar>::GeV, 1.869f)));
+*/
+
+/*
+// ~10% discrepancy
+INSTANTIATE_TEST_SUITE_P(
+    Bethe_1GeV_CsI, EnergyLossBetheValidation,
+    ::testing::Values(std::make_tuple(cesium_iodide<scalar>(),
+                                      1.101f * unit<scalar>::GeV, 1.391f)));
+*/
+
+INSTANTIATE_TEST_SUITE_P(
+    Bethe_10GeV_CsI, EnergyLossBetheValidation,
+    ::testing::Values(std::make_tuple(cesium_iodide<scalar>(),
+                                      10.11f * unit<scalar>::GeV, 1.755f)));
+
+INSTANTIATE_TEST_SUITE_P(
+    Bethe_100GeV_CsI, EnergyLossBetheValidation,
+    ::testing::Values(std::make_tuple(cesium_iodide<scalar>(),
+                                      100.1f * unit<scalar>::GeV, 2.012f)));
+
 // Test class for MUON energy loss with Landau function
 // Input tuple: < material / energy / expected energy loss  / expected fwhm  >
 class EnergyLossLandauValidation
