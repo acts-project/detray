@@ -66,8 +66,6 @@ struct helix_cylinder_intersector
 
         // Guard against inifinite loops
         constexpr std::size_t max_n_tries{1000u};
-        // Tolerance for convergence
-        constexpr scalar_type tol{1e-3f};
 
         // Get the surface placement
         const auto &sm = trf.matrix();
@@ -164,6 +162,9 @@ struct helix_cylinder_intersector
 
         return ret;
     }
+
+    // Tolerance for convergence
+    scalar_type tol{1e-3f};
 };
 
 }  // namespace detail

@@ -60,9 +60,6 @@ struct helix_line_intersector {
         // Guard against inifinite loops
         constexpr std::size_t max_n_tries{1000u};
 
-        // Tolerance for convergence
-        constexpr scalar_type tol{1e-3f};
-
         // line axis direction
         const vector3 l = getter::vector<3>(trf.matrix(), 0u, 2u);
 
@@ -162,6 +159,9 @@ struct helix_line_intersector {
 
         return sfi;
     }
+
+    // Tolerance for convergence
+    scalar_type tol{1e-3f};
 };
 
 }  // namespace detail
