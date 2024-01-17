@@ -28,7 +28,7 @@ build_cuda:
 test_cuda:
   variables:
     DETRAY_DATA_DIRECTORY: src/data/
-    DETRAY_BFIELD_FILE: $CI_PROJECT_DIR/src/data/odd-bfield_v0_8_0.cvf
+    DETRAY_BFIELD_FILE: $CI_PROJECT_DIR/src/data/odd-bfield_v0_9_0.cvf
   stage: test
   tags: [docker-gpu-nvidia]
   image: ghcr.io/acts-project/ubuntu2004_cuda:v30

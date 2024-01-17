@@ -27,7 +27,7 @@ usage() {
 }
 
 # Default script arguments.
-DETRAY_DATA_NAME=${DETRAY_DATA_NAME:-"detray-data-v1"}
+DETRAY_DATA_NAME=${DETRAY_DATA_NAME:-"detray-data-v2"}
 DETRAY_WEB_DIRECTORY=${DETRAY_WEB_DIRECTORY:-"https://acts.web.cern.ch/traccc/data"}
 DETRAY_DATA_DIRECTORY=${DETRAY_DATA_DIRECTORY:-$(cd $(dirname "${BASH_SOURCE[0]}") && pwd)}
 DETRAY_CMAKE_EXECUTABLE=${DETRAY_CMAKE_EXECUTABLE:-cmake}
