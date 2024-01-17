@@ -109,7 +109,8 @@ struct helix_cylinder_intersector
 
         // Obtain both possible solutions by looping over the (different)
         // starting positions
-        unsigned int n_runs = std::abs(paths[0] - paths[1]) < tol ? 1u : 2u;
+        unsigned int n_runs =
+            std::abs(paths[0] - paths[1]) < convergence_tolerance ? 1u : 2u;
         for (unsigned int i = 0u; i < n_runs; ++i) {
 
             scalar_type &s = paths[i];
@@ -121,7 +122,8 @@ struct helix_cylinder_intersector
             // f(s) = ((h.pos(s) - sc) x sz)^2 - r^2 == 0
             // Run the iteration on s
             std::size_t n_tries{0u};
-            while (std::abs(s - s_prev) > tol and n_tries < max_n_tries) {
+            while (std::abs(s - s_prev) > convergence_tolerance and
+                   n_tries < max_n_tries) {
 
                 // f'(s) = 2 * ( (h.pos(s) - sc) x sz) * (h.dir(s) x sz) )
                 const vector3 crp = vector::cross(h.pos(s) - sc, sz);
@@ -163,8 +165,8 @@ struct helix_cylinder_intersector
         return ret;
     }
 
-    // Tolerance for convergence
-    scalar_type tol{1e-3f};
+    /// Tolerance for convergence
+    scalar_type convergence_tolerance{1e-3f};
 };
 
 }  // namespace detail

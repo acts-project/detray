@@ -76,7 +76,8 @@ struct helix_plane_intersector {
         // f(s) = sn * (h.pos(s) - st) == 0
         // Run the iteration on s
         std::size_t n_tries{0u};
-        while (std::abs(s - s_prev) > tol and n_tries < max_n_tries) {
+        while (std::abs(s - s_prev) > convergence_tolerance and
+               n_tries < max_n_tries) {
             // f'(s) = sn * h.dir(s)
             const scalar_type denom{vector::dot(sn, h.dir(s))};
             // No intersection can be found if dividing by zero
@@ -110,8 +111,8 @@ struct helix_plane_intersector {
         return sfi;
     }
 
-    // Tolerance for convergence
-    scalar_type tol{1e-3f};
+    /// Tolerance for convergence
+    scalar_type convergence_tolerance{1e-3f};
 };
 
 }  // namespace detail

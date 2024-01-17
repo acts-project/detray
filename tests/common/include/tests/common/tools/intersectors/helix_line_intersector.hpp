@@ -102,7 +102,8 @@ struct helix_line_intersector {
 
         // Run the iteration on s
         std::size_t n_tries{0u};
-        while (std::abs(s - s_prev) > tol and n_tries < max_n_tries) {
+        while (std::abs(s - s_prev) > convergence_tolerance and
+               n_tries < max_n_tries) {
 
             // track direction
             const vector3 t = h.dir(s);
@@ -160,8 +161,8 @@ struct helix_line_intersector {
         return sfi;
     }
 
-    // Tolerance for convergence
-    scalar_type tol{1e-3f};
+    /// Tolerance for convergence
+    scalar_type convergence_tolerance{1e-3f};
 };
 
 }  // namespace detail
