@@ -73,7 +73,7 @@ jobs:
     # Set the path to the test data files
     env:
       DETRAY_DATA_DIRECTORY: ${{ github.workspace }}/data/
-      DETRAY_BFIELD_FILE: ${{ github.workspace }}/data/odd-bfield_v0_8_0.cvf
+      DETRAY_BFIELD_FILE: ${{ github.workspace }}/data/odd-bfield_v0_9_0.cvf
 
     # The build/test steps to execute.
     steps:
