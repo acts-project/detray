@@ -239,7 +239,7 @@ class helix {
         ret = ret + math_ns::cos(_K * s) * _t0;
         ret = ret + _alpha * math_ns::sin(_K * s) * _n0;
 
-        return ret;
+        return vector::normalize(ret);
     }
 
     DETRAY_HOST_DEVICE
