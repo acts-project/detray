@@ -205,7 +205,7 @@ DETRAY_DECLARE_MATERIAL_WITH_DED(cesium_iodide_with_ded,
                                  38.04f * unit<scalar>::cm, 259.81f, 108.f,
                                  static_cast<scalar>(4.510f * unit<double>::g /
                                                      unit<double>::cm3),
-                                 material_state::e_solid, 0.25381, 2.6657,
-                                 0.0395, 3.3353, 553.1, 6.2807, 0.00);
+                                 material_state::e_solid, 0.25381f, 2.6657f,
+                                 0.0395f, 3.3353f, 553.1f, 6.2807f, 0.00f);
 
 }  // namespace detray
