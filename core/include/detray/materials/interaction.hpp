@@ -75,14 +75,24 @@ struct interaction {
         // Get d(Beta)/d(qop)
         const scalar_t dBeta_dQop = rq.derive_beta();
 
+        // Get d(betagamma)/dqop
+        const scalar_t dbetagamma_dqop = rq.derive_betaGamma();
+
         // W Max denominator
         const scalar_t denom = rq.compute_WMax_denominator(m);
 
-        return -2.f * eps_per_length / rq.m_beta * dBeta_dQop *
-               (running - (1.f + rq.m_betaGamma * rq.m_betaGamma) +
-                2.f * rq.m_beta2 +
-                constant<scalar_t>::m_e / m * rq.m_gamma * rq.m_betaGamma *
-                    rq.m_betaGamma / denom);
+        // Get d(epsilon)/dqop
+        const scalar_t depsilon_dqop =
+            eps_per_length * dBeta_dQop * (-2.f / rq.m_beta);
+
+        const scalar_t f1 = 2.f / rq.m_betaGamma * dbetagamma_dqop;
+        const scalar_t f2 = 2.f / rq.m_betaGamma * dbetagamma_dqop -
+                            1.f / denom * rq.derive_WMax_denominator(m);
+        const scalar_t f3 = -4.f * rq.m_beta * dBeta_dQop;
+        const scalar_t f4 = -2.f * rq.derive_delta_half(mat);
+        const scalar_t drunning_dqop = f1 + f2 + f3 + f4;
+
+        return depsilon_dqop * running + eps_per_length * drunning_dqop;
     }
 
     DETRAY_HOST_DEVICE scalar_type compute_energy_loss_bethe(
@@ -151,9 +161,8 @@ struct interaction {
         // d(q/p)/dE = d/dE (q/sqrt(E²-m²))
         //           = q * -(1/2) * 1/p³ * 2E
         //  var(q/p) = (q/p)^4 * (q/beta)² * (1/q)^4 * var(E)
-        //           = -q/p² E/p = -(q/p)² * 1/(q*beta) = -(q/p)² * (q/beta) /
-        //           q²
-        //           = (1/p)^4 * (q/beta)² * var(E)
+        //           = -q/p² E/p = -(q/p)² * 1/(q*beta) = -(q/p)² * (q/beta)
+        //           / q² = (1/p)^4 * (q/beta)² * var(E)
         // do not need to care about the sign since it is only used squared
         const scalar_t pInv{qOverP / q};
 
@@ -217,7 +226,8 @@ struct interaction {
                (1.0f + 0.125f * math_ns::log10(10.0f * xOverX0));
     }
 
-    /// Convert Landau full-width-half-maximum to an equivalent Gaussian sigma,
+    /// Convert Landau full-width-half-maximum to an equivalent Gaussian
+    /// sigma,
     ///
     /// Full-width-half-maximum for a Gaussian is given as
     ///
