@@ -116,28 +116,55 @@ struct relativistic_quantities {
     DETRAY_HOST_DEVICE inline scalar_type compute_delta_half(
         const material<scalar_type>& mat) const {
 
-        // Apply the approximated density effector correction to tracks with
-        // beta*gamma > 10
-        //
-        // @NOTE The approximated function is only accurate for beta*gamma > 100
-        // therefore, the cutoff with 10 might not be a good choice. The cutoff
-        // also introduces a step where the energy loss function is not smooth
-        // anymore.
-        //
-        // For further discussion, please follow the ATLAS JIRA Tickets:
-        // ATLASRECTS-3144 and ATLASRECTS-7586 (ATLAS-restricted)
-        if (m_betaGamma < 10.f) {
-            return 0.f;
+        if (!mat.has_density_effect_data()) {
+            // Apply the approximated density effector correction to tracks with
+            // beta*gamma > 10
+            //
+            // @NOTE The approximated function is only accurate for beta*gamma >
+            // 100 therefore, the cutoff with 10 might not be a good choice. The
+            // cutoff also introduces a step where the energy loss function is
+            // not smooth anymore.
+            //
+            // For further discussion, please follow the ATLAS JIRA Tickets:
+            // ATLASRECTS-3144 and ATLASRECTS-7586 (ATLAS-restricted)
+            if (m_betaGamma < 10.f) {
+                return 0.f;
+            }
+            // Equation 34.6 of PDG2022
+            // @NOTE A factor of 1000 is required to convert the unit of density
+            // (mm^-3 to cm^-3)
+            const scalar_type plasmaEnergy{
+                PlasmaEnergyScale *
+                std::sqrt(1000.f * mat.molar_electron_density())};
+            return math_ns::log(m_betaGamma * plasmaEnergy /
+                                mat.mean_excitation_energy()) -
+                   0.5f;
+        } else {
+            const auto& density = mat.density_effect_data();
+
+            const scalar_type cden{density.get_C_density()};
+            const scalar_type mden{density.get_M_density()};
+            const scalar_type aden{density.get_A_density()};
+            const scalar_type x0den{density.get_X0_density()};
+            const scalar_type x1den{density.get_X1_density()};
+
+            const scalar_type x{math_ns::log10(m_betaGamma)};
+
+            scalar_type delta;
+
+            // From Geant4
+            // processes/electromagnetic/lowenergy/src/G4hBetheBlochModel.cc
+            if (x < x0den) {
+                delta = 0.f;
+
+            } else {
+                delta = 2.f * constant<scalar_type>::ln10 * x - cden;
+                if (x < x1den)
+                    delta += aden * math_ns::pow((x1den - x), mden);
+            }
+
+            return 0.5f * delta;
         }
-        // Equation 34.6 of PDG2022
-        // @NOTE A factor of 1000 is required to convert the unit of density
-        // (mm^-3 to cm^-3)
-        const scalar_type plasmaEnergy{
-            PlasmaEnergyScale *
-            std::sqrt(1000.f * mat.molar_electron_density())};
-        return math_ns::log(m_betaGamma * plasmaEnergy /
-                            mat.mean_excitation_energy()) -
-               0.5f;
     }
 
     /// Compute derivative of beta w.r.t q/p

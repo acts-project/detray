@@ -101,6 +101,14 @@ DETRAY_DECLARE_MATERIAL(silicon, 93.7f * unit<scalar>::mm,
                                             unit<double>::cm3),
                         material_state::e_solid);
 
+// Si (14) with density effect data
+DETRAY_DECLARE_MATERIAL_WITH_DED(silicon_with_ded, 93.7f * unit<scalar>::mm,
+                                 465.2f * unit<scalar>::mm, 28.0855f, 14.f,
+                                 static_cast<scalar>(2.329 * unit<double>::g /
+                                                     unit<double>::cm3),
+                                 material_state::e_solid, 0.1492f, 3.2546f,
+                                 0.2015f, 2.8716f, 173.0f, 4.4355f, 0.14f);
+
 // Ar (18): Argon gas
 DETRAY_DECLARE_MATERIAL(argon_gas, 1.176E+02f * unit<scalar>::m,
                         7.204E+02f * unit<scalar>::m, 39.948f, 18.f,
@@ -191,5 +199,13 @@ DETRAY_DECLARE_MATERIAL(cesium_iodide, 1.86f * unit<scalar>::cm,
                         static_cast<scalar>(4.510f * unit<double>::g /
                                             unit<double>::cm3),
                         material_state::e_solid);
+
+DETRAY_DECLARE_MATERIAL_WITH_DED(cesium_iodide_with_ded,
+                                 1.86f * unit<scalar>::cm,
+                                 38.04f * unit<scalar>::cm, 259.81f, 108.f,
+                                 static_cast<scalar>(4.510f * unit<double>::g /
+                                                     unit<double>::cm3),
+                                 material_state::e_solid, 0.25381, 2.6657,
+                                 0.0395, 3.3353, 553.1, 6.2807, 0.00);
 
 }  // namespace detray

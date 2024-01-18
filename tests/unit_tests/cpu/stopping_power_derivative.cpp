@@ -88,4 +88,6 @@ INSTANTIATE_TEST_SUITE_P(
     StoppingPowerDerivative, DerivativeOfStoppingPowerValidation,
     ::testing::Values(hydrogen_gas<scalar>(), helium_gas<scalar>(),
                       isobutane<scalar>(), aluminium<scalar>(),
-                      silicon<scalar>(), tungsten<scalar>(), gold<scalar>()));
+                      silicon<scalar>(), tungsten<scalar>(), gold<scalar>(),
+                      cesium_iodide<scalar>(), silicon_with_ded<scalar>(),
+                      cesium_iodide_with_ded<scalar>()));

@@ -152,6 +152,26 @@ INSTANTIATE_TEST_SUITE_P(
                                       100.1f * unit<scalar>::GeV, 2.451f)));
 
 INSTANTIATE_TEST_SUITE_P(
+    Bethe_0p1GeV_Si_with_DED, EnergyLossBetheValidation,
+    ::testing::Values(std::make_tuple(silicon_with_ded<scalar>(),
+                                      0.1003f * unit<scalar>::GeV, 2.608f)));
+
+INSTANTIATE_TEST_SUITE_P(
+    Bethe_1GeV_Si_with_DED, EnergyLossBetheValidation,
+    ::testing::Values(std::make_tuple(silicon_with_ded<scalar>(),
+                                      1.101f * unit<scalar>::GeV, 1.803f)));
+
+INSTANTIATE_TEST_SUITE_P(
+    Bethe_10GeV_Si_with_DED, EnergyLossBetheValidation,
+    ::testing::Values(std::make_tuple(silicon_with_ded<scalar>(),
+                                      10.11f * unit<scalar>::GeV, 2.177f)));
+
+INSTANTIATE_TEST_SUITE_P(
+    Bethe_100GeV_Si_with_DED, EnergyLossBetheValidation,
+    ::testing::Values(std::make_tuple(silicon_with_ded<scalar>(),
+                                      100.1f * unit<scalar>::GeV, 2.451f)));
+
+INSTANTIATE_TEST_SUITE_P(
     Bethe_0p1GeV_Fe, EnergyLossBetheValidation,
     ::testing::Values(std::make_tuple(iron<scalar>(),
                                       0.1003f * unit<scalar>::GeV, 2.274f)));
@@ -198,6 +218,26 @@ INSTANTIATE_TEST_SUITE_P(
 INSTANTIATE_TEST_SUITE_P(
     Bethe_100GeV_CsI, EnergyLossBetheValidation,
     ::testing::Values(std::make_tuple(cesium_iodide<scalar>(),
+                                      100.1f * unit<scalar>::GeV, 2.012f)));
+
+INSTANTIATE_TEST_SUITE_P(
+    Bethe_0p1GeV_CsI_with_DED, EnergyLossBetheValidation,
+    ::testing::Values(std::make_tuple(cesium_iodide_with_ded<scalar>(),
+                                      0.1003f * unit<scalar>::GeV, 1.869f)));
+
+INSTANTIATE_TEST_SUITE_P(
+    Bethe_1GeV_CsI_with_DED, EnergyLossBetheValidation,
+    ::testing::Values(std::make_tuple(cesium_iodide_with_ded<scalar>(),
+                                      1.101f * unit<scalar>::GeV, 1.391f)));
+
+INSTANTIATE_TEST_SUITE_P(
+    Bethe_10GeV_CsI_with_DED, EnergyLossBetheValidation,
+    ::testing::Values(std::make_tuple(cesium_iodide_with_ded<scalar>(),
+                                      10.11f * unit<scalar>::GeV, 1.755f)));
+
+INSTANTIATE_TEST_SUITE_P(
+    Bethe_100GeV_CsI_with_DED, EnergyLossBetheValidation,
+    ::testing::Values(std::make_tuple(cesium_iodide_with_ded<scalar>(),
                                       100.1f * unit<scalar>::GeV, 2.012f)));
 
 // Test class for MUON energy loss with Landau function
