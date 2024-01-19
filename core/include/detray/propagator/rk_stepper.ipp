@@ -35,7 +35,7 @@ void detray::rk_stepper<magnetic_field_t, transform3_t, constraint_t, policy_t,
     track.set_dir(dir);
 
     auto qop = track.qop();
-    if (!this->_mat == vacuum<scalar_t>()) {
+    if (this->_mat != vacuum<scalar_t>()) {
         const scalar_t dqopds1 = this->dqopds(qop);
         const scalar_t dqopds2 = this->dqopds(sd.qop2);
         const scalar_t dqopds3 = dqopds2;
