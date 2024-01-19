@@ -123,6 +123,9 @@ class rk_stepper final
         DETRAY_HOST_DEVICE
         inline scalar_type dqopds() const;
 
+        DETRAY_HOST_DEVICE
+        inline scalar_type dqopds(const scalar_type qop) const;
+
         /// Call the stepping inspector
         template <typename... Args>
         DETRAY_HOST_DEVICE inline void run_inspector(

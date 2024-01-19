@@ -33,7 +33,14 @@ void detray::rk_stepper<magnetic_field_t, transform3_t, constraint_t, policy_t,
     dir = dir + h_6 * (sd.k1 + 2.f * (sd.k2 + sd.k3) + sd.k4);
     dir = vector::normalize(dir);
     track.set_dir(dir);
-    track.set_qop(sd.k_qop4);
+
+    auto qop = track.qop();
+    const scalar_t dqopds1 = this->dqopds(qop);
+    const scalar_t dqopds2 = this->dqopds(sd.k_qop2);
+    const scalar_t dqopds3 = dqopds2;
+    const scalar_t dqopds4 = this->dqopds(sd.k_qop4);
+    qop = qop + h_6 * (dqopds1 + 2.f * (dqopds2 + dqopds3) + dqopds4);
+    track.set_qop(qop);
 
     // Update path length
     this->_path_length += h;
@@ -181,7 +188,8 @@ void detray::rk_stepper<
             // gradient at the first stage of RKN.
             //
             // But it would be better to be more precise in the future.
-            getter::element(D, 7u, 7u) = 1.f + gradient * h;
+            getter::element(D, e_free_qoverp, e_free_qoverp) =
+                1.f + gradient * h;
         }
     }
 
@@ -312,12 +320,13 @@ auto detray::rk_stepper<
 
     matrix_type<3, 3> dBdr = matrix_operator().template zero<3, 3>();
 
-    constexpr typename transform3_t::scalar_type h = 1e-4f;
+    constexpr typename transform3_t::scalar_type delta =
+        1e-1f * unit<scalar>::mm;
 
     for (unsigned int i = 0; i < 3; i++) {
 
         vector3 dpos1 = pos;
-        dpos1[i] += h;
+        dpos1[i] += delta;
         const auto bvec1_tmp =
             this->_magnetic_field.at(dpos1[0], dpos1[1], dpos1[2]);
         vector3 bvec1;
@@ -326,7 +335,7 @@ auto detray::rk_stepper<
         bvec1[2u] = bvec1_tmp[2u];
 
         vector3 dpos2 = pos;
-        dpos2[i] -= h;
+        dpos2[i] -= delta;
         const auto bvec2_tmp =
             this->_magnetic_field.at(dpos2[0], dpos2[1], dpos2[2]);
         vector3 bvec2;
@@ -334,7 +343,7 @@ auto detray::rk_stepper<
         bvec2[1u] = bvec2_tmp[1u];
         bvec2[2u] = bvec2_tmp[2u];
 
-        const vector3 gradient = (bvec1 - bvec2) * (1.f / (2.f * h));
+        const vector3 gradient = (bvec1 - bvec2) * (1.f / (2.f * delta));
 
         getter::element(dBdr, 0u, i) = gradient[0u];
         getter::element(dBdr, 1u, i) = gradient[1u];
@@ -350,6 +359,16 @@ template <typename magnetic_field_t, typename transform3_t,
 auto detray::rk_stepper<magnetic_field_t, transform3_t, constraint_t, policy_t,
                         inspector_t, array_t>::state::dqopds() const ->
     typename transform3_t::scalar_type {
+    return this->dqopds(this->_step_data.k_qop4);
+}
+
+template <typename magnetic_field_t, typename transform3_t,
+          typename constraint_t, typename policy_t, typename inspector_t,
+          template <typename, std::size_t> class array_t>
+auto detray::rk_stepper<magnetic_field_t, transform3_t, constraint_t, policy_t,
+                        inspector_t, array_t>::state::dqopds(const scalar_type
+                                                                 qop) const ->
+    typename transform3_t::scalar_type {
 
     using scalar_t = typename transform3_t::scalar_type;
 
@@ -361,7 +380,6 @@ auto detray::rk_stepper<magnetic_field_t, transform3_t, constraint_t, policy_t,
         return 0.f;
     }
 
-    const scalar_t qop = this->_step_data.k_qop4;
     const scalar_t q = this->_track.charge();
     const scalar_t p = q / qop;
     const scalar_t mass = this->_mass;
