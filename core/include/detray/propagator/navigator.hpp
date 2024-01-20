@@ -398,8 +398,7 @@ class navigator {
         DETRAY_HOST_DEVICE inline auto is_on_object(
             const intersection_type &candidate,
             const navigation::config &cfg) const -> bool {
-            return (math_ns::abs(candidate.path) <
-                    math_ns::abs(cfg.on_surface_tolerance));
+            return (math_ns::abs(candidate.path) < cfg.on_surface_tolerance);
         }
 
         /// @returns next object that we want to reach (current target)
