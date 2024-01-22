@@ -29,6 +29,7 @@ template <typename detector_t>
 class material_scan : public test::fixture_base<> {
 
     using transform3_t = typename detector_t::transform3;
+    using point2_t = typename detector_t::point2;
     using scalar_t = typename detector_t::scalar_type;
     using ray_t = detail::ray<transform3_t>;
 
@@ -176,7 +177,8 @@ class material_scan : public test::fixture_base<> {
             const point_t &loc_point) const noexcept {
 
             // Find the material slab (only one entry per bin)
-            return *(material_coll[idx].search(loc_point));
+            return *(material_coll[idx].search(
+                point2_t{loc_point[0], loc_point[1]}));
         }
 
         template <typename mat_group_t, typename index_t, typename point_t>

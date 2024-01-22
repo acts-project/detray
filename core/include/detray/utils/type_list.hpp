@@ -20,7 +20,7 @@ namespace detray::types {
 
 /// @brief type list implementation
 template <typename... Ts>
-struct type_list {};
+struct list {};
 
 /// Number of types in the list
 /// @{
@@ -28,7 +28,7 @@ template <typename = void>
 struct get_size {};
 
 template <typename... Ts>
-struct get_size<type_list<Ts...>>
+struct get_size<list<Ts...>>
     : std::integral_constant<std::size_t, sizeof...(Ts)> {};
 
 template <typename L>
@@ -41,7 +41,7 @@ template <typename = void>
 struct get_front {};
 
 template <typename T, typename... Ts>
-struct get_front<type_list<T, Ts...>> {
+struct get_front<list<T, Ts...>> {
     using type = T;
 };
 template <typename L>
@@ -54,13 +54,13 @@ template <typename = void>
 struct get_back {};
 
 template <typename T, typename... Ts>
-struct get_back<type_list<T, Ts...>> {
+struct get_back<list<T, Ts...>> {
     using type = std::conditional_t<sizeof...(Ts) == 0, T,
-                                    typename get_back<type_list<Ts...>>::type>;
+                                    typename get_back<list<Ts...>>::type>;
 };
 // Base case
 template <>
-struct get_back<type_list<>> {
+struct get_back<list<>> {
     using type = void;
 };
 template <typename L>
@@ -69,15 +69,15 @@ using back = typename get_back<L>::type;
 
 /// Access the N-th type
 /// @{
-template <int N, typename = void>
+template <std::size_t N, typename = void>
 struct get_at {};
 
-template <int N, typename T, typename... Ts>
-struct get_at<N, type_list<T, Ts...>> {
+template <std::size_t N, typename T, typename... Ts>
+struct get_at<N, list<T, Ts...>> {
     using type = detail::remove_cvref_t<decltype(
         detray::get<N>(detray::tuple<T, Ts...>{}))>;
 };
-template <typename L, int N>
+template <typename L, std::size_t N>
 using at = typename get_at<N, L>::type;
 /// @}
 
@@ -87,8 +87,8 @@ template <typename N, typename = void>
 struct do_push_back {};
 
 template <typename N, typename... Ts>
-struct do_push_back<N, type_list<Ts...>> {
-    using type = type_list<Ts..., N>;
+struct do_push_back<N, list<Ts...>> {
+    using type = list<Ts..., N>;
 };
 template <typename L, typename N>
 using push_back = typename do_push_back<N, L>::type;
@@ -100,8 +100,8 @@ template <typename N, typename = void>
 struct do_push_front {};
 
 template <typename N, typename... Ts>
-struct do_push_front<N, type_list<Ts...>> {
-    using type = type_list<N, Ts...>;
+struct do_push_front<N, list<Ts...>> {
+    using type = list<N, Ts...>;
 };
 template <typename L, typename N>
 using push_front = typename do_push_front<N, L>::type;
@@ -116,7 +116,7 @@ template <typename T>
 std::string demangle_type_name() {
 #if defined(__clang__)
     constexpr std::string_view prefix{"[T = "};
-    constexpr std::string_view suffix{"; "};
+    constexpr std::string_view suffix{"]"};
     constexpr std::string_view function{__PRETTY_FUNCTION__};
 #elif defined(__GNUC__)
     constexpr std::string_view prefix{"with T = "};
@@ -145,7 +145,7 @@ template <typename = void>
 struct print {};
 
 template <typename... Ts>
-struct print<type_list<Ts...>> {
+struct print<list<Ts...>> {
 
     template <typename P = void, typename... Ps>
     void print_typeid() {

@@ -19,7 +19,7 @@ namespace detray {
 
 namespace propagation {
 /// Configuration of the propagation
-struct config : public navigation::config, public stepping::config {};
+struct config : public stepping::config, public navigation::config {};
 }  // namespace propagation
 
 /// Templated propagator class, using a stepper and a navigator object in

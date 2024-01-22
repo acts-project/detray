@@ -54,7 +54,7 @@ class single_view
     constexpr single_view(single_view&& other) = default;
 
     /// Default destructor
-    DETRAY_HOST_DEVICE ~single_view() {}
+    ~single_view() = default;
 
     /// Copy assignment operator
     DETRAY_HOST_DEVICE
