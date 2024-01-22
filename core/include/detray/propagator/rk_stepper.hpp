@@ -82,9 +82,9 @@ class rk_stepper final
             vector3 k2{0.f, 0.f, 0.f};
             vector3 k3{0.f, 0.f, 0.f};
             vector3 k4{0.f, 0.f, 0.f};
-            // @NOTE: k_qop2 = k_qop3
-            scalar_type k_qop2{0.f};
-            scalar_type k_qop4{0.f};
+            // @NOTE: qop2 = qop3
+            scalar_type qop2{0.f};
+            scalar_type qop4{0.f};
         } _step_data;
 
         /// Magnetic field view
@@ -110,7 +110,7 @@ class rk_stepper final
         DETRAY_HOST_DEVICE
         inline vector3 evaluate_k(const vector3& b_field, const int i,
                                   const scalar_type h, const vector3& k_prev,
-                                  const scalar_type k_qop);
+                                  const scalar_type qop);
 
         DETRAY_HOST_DEVICE
         inline matrix_type<3, 3> evaluate_field_gradient(const vector3& pos);
@@ -122,6 +122,9 @@ class rk_stepper final
         /// Evaulate d(qop)/ds
         DETRAY_HOST_DEVICE
         inline scalar_type dqopds() const;
+
+        DETRAY_HOST_DEVICE
+        inline scalar_type dqopds(const scalar_type qop) const;
 
         /// Call the stepping inspector
         template <typename... Args>
