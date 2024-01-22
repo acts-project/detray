@@ -130,6 +130,21 @@ GTEST_TEST(detray_materials, mixture) {
                 slab3.thickness() / slab3.get_material().X0(), tol);
 }
 
+GTEST_TEST(detray_materials, mixture2) {
+
+    constexpr mixture<scalar, silicon_with_ded<scalar, std::ratio<1, 3>>,
+                      cesium_iodide_with_ded<scalar, std::ratio<2, 3>>>
+        mix;
+
+    // For the moment, the mixture is not supposed to have density effect data
+    // in any case
+    EXPECT_EQ(mix.has_density_effect_data(), false);
+    EXPECT_EQ(mix.Ar(), silicon<scalar>().Ar() * 1.f / 3.f +
+                            cesium_iodide<scalar>().Ar() * 2.f / 3.f);
+    EXPECT_EQ(mix.Z(), silicon<scalar>().Z() * 1.f / 3.f +
+                           cesium_iodide<scalar>().Z() * 2.f / 3.f);
+}
+
 // This tests the material slab functionalities
 GTEST_TEST(detray_materials, material_slab) {
 
