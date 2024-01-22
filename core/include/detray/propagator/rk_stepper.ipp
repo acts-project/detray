@@ -476,11 +476,11 @@ bool detray::rk_stepper<magnetic_field_t, transform3_t, constraint_t, policy_t,
     // Adjust initial step size to integration error
     while (!try_rk4(stepping._step_size)) {
 
-        step_size_scaling = std::min(
-            std::max(0.25f * unit<scalar_t>::mm,
-                     std::sqrt(std::sqrt(
-                         (cfg.rk_error_tol / std::abs(2.f * error_estimate))))),
-            static_cast<scalar_t>(4));
+        step_size_scaling =
+            std::min(std::max(0.25f * unit<scalar_t>::mm,
+                              std::sqrt(std::sqrt((cfg.rk_error_tol /
+                                                   std::abs(error_estimate))))),
+                     static_cast<scalar_t>(4));
 
         // Only step size reduction is allowed so that we don't overstep
         assert(step_size_scaling <= 1.f);
