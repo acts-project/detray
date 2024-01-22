@@ -175,7 +175,8 @@ struct relativistic_quantities {
             // processes/electromagnetic/lowenergy/src/G4hBetheBlochModel.cc
             if (x < x0den) {
                 delta = 0.f;
-
+                // @TODO: Add a branch for conductors (Eq 34.7 of
+                // https://pdg.lbl.gov/2023/reviews/rpp2023-rev-particle-detectors-accel.pdf)
             } else {
                 delta = 2.f * constant<scalar_type>::ln10 * x - cden;
                 if (x < x1den)
@@ -209,7 +210,8 @@ struct relativistic_quantities {
             // processes/electromagnetic/lowenergy/src/G4hBetheBlochModel.cc
             if (x < x0den) {
                 delta = 0.f;
-
+                // @TODO: Add a branch for conductors (Eq 34.7 of
+                // https://pdg.lbl.gov/2023/reviews/rpp2023-rev-particle-detectors-accel.pdf)
             } else {
                 delta = 2.f / m_betaGamma * this->derive_betaGamma();
                 if (x < x1den)
@@ -243,8 +245,6 @@ struct relativistic_quantities {
     ///
     /// d(betagamma)/dqop = gamma^3 * dbeta/dqop
     DETRAY_HOST_DEVICE inline constexpr scalar_type derive_betaGamma() const {
-        assert(m_qOverP != 0.f);
-        assert(m_betaGamma != 0.f);
         return m_gamma * m_gamma * m_gamma * this->derive_beta();
     }
 };
