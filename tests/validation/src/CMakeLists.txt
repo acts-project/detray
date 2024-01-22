@@ -26,6 +26,11 @@ detray_add_executable(material_validation
                       detray::validation)
 
 # Build the CI tests
+detray_add_test(jacobian_validation
+                "jacobian_validation.cpp"
+                LINK_LIBRARIES GTest::gtest GTest::gtest_main
+                detray::validation)
+
 detray_add_test(telescope_detector
                 "telescope_detector_validation.cpp"
                 LINK_LIBRARIES GTest::gtest GTest::gtest_main

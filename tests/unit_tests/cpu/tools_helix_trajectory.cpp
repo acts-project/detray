@@ -193,3 +193,29 @@ GTEST_TEST(detray_intersection, helix_trajectory_small_pT) {
     EXPECT_NEAR(true_pos[1], helix_pos[1], tol);
     EXPECT_NEAR(true_pos[2], helix_pos[2], tol);
 }
+
+GTEST_TEST(helix, direction_stability) {
+
+    using vector3 = test::vector3;
+    using point3 = test::point3;
+    using transform3_type = test::transform3;
+
+    // magnetic field
+    const vector3 B{0.f, 0.f, 1.f * unit<scalar>::T};
+
+    const point3 pos{0.f, 0.f, 0.f};
+    const scalar time{0.f};
+    const vector3 mom{1.f, 1.f, 1.f * unit<scalar>::GeV};
+    const scalar q{-1.f * unit<scalar>::e};
+
+    // vertex
+    free_track_parameters<transform3_type> vertex(pos, time, mom, q);
+
+    // helix trajectory
+    detail::helix hlx(vertex, &B);
+
+    for (int i = 0; i < 100; i++) {
+        const auto d = hlx.dir(scalar(i) * 10.f);
+        ASSERT_FLOAT_EQ(float(getter::theta(d)), float(getter::theta(mom)));
+    }
+}
