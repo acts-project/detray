@@ -159,7 +159,7 @@ struct print_inspector {
         }
 
         debug_stream << "distance to next\t\t";
-        if (state() < std::abs(cfg.on_surface_tolerance)) {
+        if (math_ns::abs(state()) < cfg.on_surface_tolerance) {
             debug_stream << "on obj (within tol)" << std::endl;
         } else {
             debug_stream << state() << std::endl;
