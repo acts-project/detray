@@ -169,7 +169,7 @@ struct relativistic_quantities {
 
             const scalar_type x{math_ns::log10(m_betaGamma)};
 
-            scalar_type delta;
+            scalar_type delta{0.f};
 
             // From Geant4
             // processes/electromagnetic/lowenergy/src/G4hBetheBlochModel.cc
@@ -204,7 +204,7 @@ struct relativistic_quantities {
 
             const scalar_type x{math_ns::log10(m_betaGamma)};
 
-            scalar_type delta;
+            scalar_type delta{0.f};
 
             // From Geant4
             // processes/electromagnetic/lowenergy/src/G4hBetheBlochModel.cc
