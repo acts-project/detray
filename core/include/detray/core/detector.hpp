@@ -209,7 +209,7 @@ class detector {
         // The 3D cylindrical volume search grid is concentric
         const transform3 identity{};
         const auto loc_pos =
-            _volume_finder.global_to_local(identity, p, identity.translation());
+            _volume_finder.project(identity, p, identity.translation());
 
         // Only one entry per bin
         dindex volume_index{*_volume_finder.search(loc_pos)};

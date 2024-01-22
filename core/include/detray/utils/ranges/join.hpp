@@ -138,10 +138,7 @@ struct join : public ranges::join_view<range_t> {
 // deduction guides
 
 template <typename R>
-DETRAY_HOST_DEVICE join(R &&ranges)
-    ->join<std::conditional_t<std::is_const_v<R>,
-                              const detray::detail::remove_cvref_t<R>,
-                              detray::detail::remove_cvref_t<R>>>;
+DETRAY_HOST_DEVICE join(R &&ranges)->join<R>;
 
 }  // namespace views
 

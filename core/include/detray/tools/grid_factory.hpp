@@ -1,6 +1,6 @@
 /** Detray library, part of the ACTS project (R&D line)
  *
- * (c) 2022-2023 CERN for the benefit of the ACTS project
+ * (c) 2022-2024 CERN for the benefit of the ACTS project
  *
  * Mozilla Public License Version 2.0
  */
@@ -15,6 +15,8 @@
 #include "detray/surface_finders/grid/axis.hpp"
 #include "detray/surface_finders/grid/grid.hpp"
 #include "detray/surface_finders/grid/grid_collection.hpp"
+#include "detray/surface_finders/grid/populators.hpp"
+#include "detray/surface_finders/grid/serializers.hpp"
 
 // Vecmem include(s)
 #include <vecmem/memory/memory_resource.hpp>
@@ -29,13 +31,11 @@ namespace detray {
 
 /// @brief Provides functionality to instantiate grids and grid collections.
 ///
-/// @tparam value_t type of entries in the grid bins
+/// @tparam bin_t type bins in the grid
 /// @tparam serialzier_t  type of the serializer to the storage represenations
-/// @tparam populator_impl_t how to fill the bin content
 /// @tparam algebra_t the matrix/vector/point types to use
 /// @tparam container_t the container types to use
-template <typename value_t, template <std::size_t> class serializer_t,
-          typename populator_impl_t,
+template <typename bin_t, template <std::size_t> class serializer_t,
           typename algebra_t = __plugin::transform3<detray::scalar>>
 class grid_factory {
 
@@ -43,10 +43,9 @@ class grid_factory {
     // All grids are owning since they are used to fill the data
     static constexpr bool is_owning = true;
 
-    using value_type = value_t;
+    using bin_type = bin_t;
     template <typename grid_shape_t>
-    using grid_type =
-        grid<grid_shape_t, value_type, serializer_t, populator_impl_t>;
+    using grid_type = grid<grid_shape_t, bin_type, serializer_t>;
 
     using scalar_type = typename algebra_t::scalar_type;
     template <typename T>
@@ -92,8 +91,8 @@ class grid_factory {
                  b_values[boundary::e_max_phi_rel]},
             {n_bins[e_r_axis], n_bins[e_phi_axis]},
             {bin_edges[e_r_axis], bin_edges[e_phi_axis]},
-            std::tuple<r_bounds, phi_bounds>{},
-            std::tuple<r_binning, phi_binning>{});
+            types::list<r_bounds, phi_bounds>{},
+            types::list<r_binning, phi_binning>{});
     }
 
     //
@@ -125,8 +124,8 @@ class grid_factory {
              b_values[boundary::e_min_z], b_values[boundary::e_max_z]},
             {n_bins[e_x_axis], n_bins[e_y_axis], n_bins[e_z_axis]},
             {bin_edges[e_x_axis], bin_edges[e_y_axis], bin_edges[e_z_axis]},
-            std::tuple<x_bounds, y_bounds, z_bounds>{},
-            std::tuple<x_binning, y_binning, z_binning>{});
+            types::list<x_bounds, y_bounds, z_bounds>{},
+            types::list<x_binning, y_binning, z_binning>{});
     }
 
     //
@@ -156,8 +155,8 @@ class grid_factory {
              b_values[boundary::e_n_half_z], b_values[boundary::e_p_half_z]},
             {n_bins[e_rphi_axis], n_bins[e_z_axis]},
             {bin_edges[e_rphi_axis], bin_edges[e_z_axis]},
-            std::tuple<rphi_bounds, z_bounds>{},
-            std::tuple<rphi_binning, z_binning>{});
+            types::list<rphi_bounds, z_bounds>{},
+            types::list<rphi_binning, z_binning>{});
     }
 
     //
@@ -188,8 +187,8 @@ class grid_factory {
              b_values[boundary::e_n_half_z], b_values[boundary::e_p_half_z]},
             {n_bins[e_rphi_axis], n_bins[e_z_axis]},
             {bin_edges[e_rphi_axis], bin_edges[e_z_axis]},
-            std::tuple<rphi_bounds, z_bounds>{},
-            std::tuple<rphi_binning, z_binning>{});
+            types::list<rphi_bounds, z_bounds>{},
+            types::list<rphi_binning, z_binning>{});
     }
 
     //
@@ -221,8 +220,8 @@ class grid_factory {
              -b_values[boundary::e_min_z], b_values[boundary::e_max_z]},
             {n_bins[e_r_axis], n_bins[e_phi_axis], n_bins[e_z_axis]},
             {bin_edges[e_r_axis], bin_edges[e_phi_axis], bin_edges[e_z_axis]},
-            std::tuple<r_bounds, phi_bounds, z_bounds>{},
-            std::tuple<r_binning, phi_binning, z_binning>{});
+            types::list<r_bounds, phi_bounds, z_bounds>{},
+            types::list<r_binning, phi_binning, z_binning>{});
     }
 
     //
@@ -251,8 +250,8 @@ class grid_factory {
              -constant<scalar_type>::pi, constant<scalar_type>::pi},
             {n_bins[e_r_axis], n_bins[e_phi_axis]},
             {bin_edges[e_r_axis], bin_edges[e_phi_axis]},
-            std::tuple<r_bounds, phi_bounds>{},
-            std::tuple<r_binning, phi_binning>{});
+            types::list<r_bounds, phi_bounds>{},
+            types::list<r_binning, phi_binning>{});
     }
 
     //
@@ -280,8 +279,8 @@ class grid_factory {
              -b_values[boundary::e_half_y], b_values[boundary::e_half_y]},
             {n_bins[e_x_axis], n_bins[e_y_axis]},
             {bin_edges[e_x_axis], bin_edges[e_y_axis]},
-            std::tuple<x_bounds, y_bounds>{},
-            std::tuple<x_binning, y_binning>{});
+            types::list<x_bounds, y_bounds>{},
+            types::list<x_binning, y_binning>{});
     }
 
     //
@@ -312,8 +311,8 @@ class grid_factory {
              b_values[boundary::e_half_length_2]},
             {n_bins[e_x_axis], n_bins[e_y_axis]},
             {bin_edges[e_x_axis], bin_edges[e_y_axis]},
-            std::tuple<x_bounds, y_bounds>{},
-            std::tuple<x_binning, y_binning>{});
+            types::list<x_bounds, y_bounds>{},
+            types::list<x_binning, y_binning>{});
     }
 
     /// @brief Create and empty grid with fully initialized axes.
@@ -338,8 +337,8 @@ class grid_factory {
     auto new_grid(const std::vector<scalar_type> spans,
                   const std::vector<std::size_t> n_bins,
                   const std::vector<std::vector<scalar_type>> &ax_bin_edges,
-                  const std::tuple<bound_ts...> &bounds,
-                  const std::tuple<binning_ts...> &binnings) const {
+                  const types::list<bound_ts...> &bounds,
+                  const types::list<binning_ts...> &binnings) const {
 
         return new_grid<
             typename grid_shape_t::template local_frame_type<algebra_t>>(
@@ -369,8 +368,8 @@ class grid_factory {
     auto new_grid(const std::vector<scalar_type> spans,
                   const std::vector<std::size_t> n_bins,
                   const std::vector<std::vector<scalar_type>> &ax_bin_edges,
-                  const std::tuple<bound_ts...> & = {},
-                  const std::tuple<binning_ts...> & = {}) const {
+                  const types::list<bound_ts...> & = {},
+                  const types::list<binning_ts...> & = {}) const {
 
         static_assert(sizeof...(bound_ts) == sizeof...(binning_ts),
                       "number of axis bounds and binning types has to match");
@@ -379,24 +378,22 @@ class grid_factory {
         using axes_t =
             n_axis::multi_axis<is_owning, grid_frame_t,
                                n_axis::single_axis<bound_ts, binning_ts>...>;
-        using bin_t = typename grid_type<axes_t>::bin_type;
 
         // Prepare data
         vector_type<dindex_range> axes_data{};
         vector_type<scalar_type> bin_edges{};
 
         // Call init for every axis
-        unroll_axis_init<std::tuple<binning_ts...>>(
+        unroll_axis_init<types::list<binning_ts...>>(
             spans, n_bins, ax_bin_edges, axes_data, bin_edges,
             std::make_index_sequence<axes_t::Dim>{});
 
         // Assemble the grid and return it
         axes_t axes(std::move(axes_data), std::move(bin_edges));
 
-        vector_type<bin_t> bin_data{};
-        bin_data.resize(axes.nbins()[0] * axes.nbins()[1],
-                        populator_impl_t::template init<
-                            typename grid_type<axes_t>::value_type>());
+        vector_type<bin_type> bin_data{};
+        bin_data.resize(axes.nbins_per_axis()[0] * axes.nbins_per_axis()[1],
+                        bin_type{});
 
         return grid_type<axes_t>(std::move(bin_data), std::move(axes));
     }
@@ -412,7 +409,7 @@ class grid_factory {
                    vector_type<dindex_range> &axes_data,
                    vector_type<scalar_type> &bin_edges) const {
         if constexpr (std::is_same_v<
-                          std::tuple_element_t<I, binnings>,
+                          types::at<binnings, I>,
                           n_axis::regular<host_container_types, scalar_type>>) {
             axes_data.push_back({static_cast<dindex>(bin_edges.size()),
                                  static_cast<dindex>(n_bins.at(I))});
@@ -422,8 +419,7 @@ class grid_factory {
             const auto &bin_edges_loc = ax_bin_edges.at(I);
             axes_data.push_back(
                 {static_cast<dindex>(bin_edges.size()),
-                 static_cast<dindex>(bin_edges.size() + bin_edges_loc.size() -
-                                     1u)});
+                 static_cast<dindex>(bin_edges_loc.size() - 1u)});
             bin_edges.insert(bin_edges.end(), bin_edges_loc.begin(),
                              bin_edges_loc.end());
         }
@@ -446,14 +442,13 @@ class grid_factory {
     vecmem::memory_resource *m_resource{};
 };
 
-template <typename value_t, template <std::size_t> class serializer_t,
-          typename populator_impl_t, typename algebra_t>
+template <typename bin_t, template <std::size_t> class serializer_t,
+          typename algebra_t>
 template <typename grid_t>
-auto grid_factory<value_t, serializer_t, populator_impl_t,
-                  algebra_t>::to_string(const grid_t &gr) const noexcept
-    -> void {
+auto grid_factory<bin_t, serializer_t, algebra_t>::to_string(
+    const grid_t &gr) const noexcept -> void {
 
-    using entry_t = typename grid_t::value_type;
+    using entry_t = typename grid_t::bin_type;
 
     // Loop over the first dimension
     const auto &ax0 = gr.template get_axis<0>();
@@ -518,8 +513,8 @@ auto grid_factory<value_t, serializer_t, populator_impl_t,
 template <typename grid_t,
           typename algebra_t = __plugin::transform3<detray::scalar>>
 using grid_factory_type =
-    grid_factory<typename grid_t::value_type,
+    grid_factory<typename grid_t::bin_type,
                  simple_serializer /*grid_t::template serializer_type*/,
-                 typename grid_t::populator_impl, algebra_t>;
+                 algebra_t>;
 
 }  // namespace detray

@@ -44,7 +44,7 @@ class pointer_view
     constexpr pointer_view(pointer_view&& other) = default;
 
     /// Default destructor
-    DETRAY_HOST_DEVICE ~pointer_view() {}
+    ~pointer_view() = default;
 
     /// Copy assignment operator
     DETRAY_HOST_DEVICE
@@ -113,9 +113,9 @@ namespace views {
 
 /// @brief interface type to construct a @c pointer_view with CTAD
 template <typename value_t>
-struct pointer : public detray::ranges::pointer_view<value_t> {
+struct pointer : public detray::ranges::pointer_view<const value_t> {
 
-    using base_type = detray::ranges::pointer_view<value_t>;
+    using base_type = detray::ranges::pointer_view<const value_t>;
 
     constexpr pointer() = default;
 

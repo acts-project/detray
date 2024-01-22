@@ -151,7 +151,7 @@ struct my_metadata {
                  cylinder3D::axes<n_axis::bounds::e_open, n_axis::irregular,
                                   n_axis::regular, n_axis::irregular>,
                  true, container_t>,
-             dindex, simple_serializer, replacer>;
+             bins::single<dindex>, simple_serializer>;
 };
 
 }  // namespace tutorial

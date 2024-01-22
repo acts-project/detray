@@ -1,6 +1,6 @@
 /** Detray library, part of the ACTS project (R&D line)
  *
- * (c) 2022 CERN for the benefit of the ACTS project
+ * (c) 2022-2024 CERN for the benefit of the ACTS project
  *
  * Mozilla Public License Version 2.0
  */
@@ -10,7 +10,7 @@
 // Project include(s)
 #include "detray/definitions/indexing.hpp"
 #include "detray/definitions/qualifiers.hpp"
-#include "detray/utils/tuple_helpers.hpp"
+#include "detray/utils/type_list.hpp"
 
 // System include(s)
 #include <type_traits>
@@ -123,10 +123,10 @@ class type_registry {
 
     /// Return a type for an index. If the index cannot be mapped, there will be
     /// a compiler error.
-    template <ID type_id, template <typename...> class tuple_t = dtuple>
+    template <ID type_id>
     struct get_type {
-        using type = std::decay_t<decltype(
-            detail::get<to_index(type_id)>(tuple_t<registered_types...>{}))>;
+        using type = types::at<types::list<registered_types...>,
+                               static_cast<int>(to_index(type_id))>;
     };
 
     private:

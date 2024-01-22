@@ -79,7 +79,7 @@ class grid_writer : public writer_interface<detector_t> {
         for (unsigned int gid = 0u; gid < gr.nbins(); ++gid) {
             // Get the local bin indices and serialize the bin into its payload
             grid_bin_payload binp =
-                serialize(gr.serialize(gid), gr.bin(gid), serializer);
+                serialize(gr.deserialize(gid), gr.bin(gid), serializer);
             grid_data.bins.push_back(std::move(binp));
         }
 

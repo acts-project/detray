@@ -37,11 +37,19 @@ struct cartesian3 final : public coordinate_base<cartesian3, transform3_t> {
 
     /// @}
 
-    /** This method transform from a point from global cartesian 3D frame to a
+    /** This method transforms a point from a global cartesian 3D frame to a
      * local 3D cartesian point */
     DETRAY_HOST_DEVICE
     inline point3 global_to_local(const transform3_t &trf, const point3 &p,
                                   const vector3 & /*d*/) const {
+        return trf.point_to_local(p);
+    }
+
+    /** This method transforms a point from a global cartesian 3D frame to a
+     * bound 3D cartesian point */
+    DETRAY_HOST_DEVICE
+    inline loc_point project_to_axes(const transform3_t &trf, const point3 &p,
+                                     const vector3 & /*d*/) const {
         return trf.point_to_local(p);
     }
 

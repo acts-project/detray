@@ -1,6 +1,6 @@
 /** Detray library, part of the ACTS project (R&D line)
  *
- * (c) 2022 CERN for the benefit of the ACTS project
+ * (c) 2022-2024 CERN for the benefit of the ACTS project
  *
  * Mozilla Public License Version 2.0
  */
@@ -16,7 +16,7 @@
 using namespace detray;
 using namespace detray::n_axis;
 
-using material_t = typename material_map_factory<scalar>::value_type;
+using material_t = typename material_map_factory<scalar>::bin_type::entry_type;
 
 namespace {
 
@@ -52,8 +52,8 @@ GTEST_TEST(detray_material, annulus_map) {
     // Add some material entries
     scalar thickness = 2.f * unit<scalar>::mm;
     for (dindex gbin = 0; gbin < annulus_map.nbins(); ++gbin) {
-        annulus_map.populate(gbin,
-                             material_t(silicon_tml<scalar>{}, thickness));
+        annulus_map.template populate<replace<>>(
+            gbin, material_t(silicon_tml<scalar>{}, thickness));
         thickness += 1.f * unit<scalar>::mm;
     }
 
@@ -94,7 +94,8 @@ GTEST_TEST(detray_material, cylinder_map) {
 
     scalar thickness = 2.f * unit<scalar>::mm;
     for (dindex gbin = 0; gbin < cylinder_map.nbins(); ++gbin) {
-        cylinder_map.populate(gbin, material_t(vacuum<scalar>{}, thickness));
+        cylinder_map.template populate<replace<>>(
+            gbin, material_t(vacuum<scalar>{}, thickness));
         thickness += 1.f * unit<scalar>::mm;
     }
 
@@ -135,8 +136,8 @@ GTEST_TEST(detray_material, rectangle_map) {
 
     scalar thickness = 2.f * unit<scalar>::mm;
     for (dindex gbin = 0; gbin < rectangle_map.nbins(); ++gbin) {
-        rectangle_map.populate(gbin,
-                               material_t(oxygen_gas<scalar>{}, thickness));
+        rectangle_map.template populate<replace<>>(
+            gbin, material_t(oxygen_gas<scalar>{}, thickness));
         thickness += 1.f * unit<scalar>::mm;
     }
 
@@ -177,7 +178,8 @@ GTEST_TEST(detray_material, disc_map) {
 
     scalar thickness = 2.f * unit<scalar>::mm;
     for (dindex gbin = 0; gbin < disc_map.nbins(); ++gbin) {
-        disc_map.populate(gbin, material_t(aluminium<scalar>{}, thickness));
+        disc_map.template populate<replace<>>(
+            gbin, material_t(aluminium<scalar>{}, thickness));
         thickness += 1.f * unit<scalar>::mm;
     }
 
@@ -220,7 +222,8 @@ GTEST_TEST(detray_material, trapezoid_map) {
 
     scalar thickness = 2.f * unit<scalar>::mm;
     for (dindex gbin = 0; gbin < trapezoid_map.nbins(); ++gbin) {
-        trapezoid_map.populate(gbin, material_t(gold<scalar>{}, thickness));
+        trapezoid_map.template populate<replace<>>(
+            gbin, material_t(gold<scalar>{}, thickness));
         thickness += 1.f * unit<scalar>::mm;
     }
 
