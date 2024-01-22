@@ -59,13 +59,22 @@ struct polar2 : public coordinate_base<polar2, transform3_t> {
     // Local point type in polar coordinates
     using loc_point = point2;
 
-    /** This method transform from a point from global cartesian 3D frame to a
-     * local 2D polar point */
+    /** This method transforms a point from a global cartesian 3D frame to a
+     * local 3D polar point */
     DETRAY_HOST_DEVICE
     inline point3 global_to_local(const transform3_t &trf, const point3 &p,
                                   const vector3 & /*d*/) const {
         const auto local3 = trf.point_to_local(p);
         return {getter::perp(local3), getter::phi(local3), local3[2]};
+    }
+
+    /** This method transforms a point from a global cartesian 3D frame to a
+     * bound 2D polar point */
+    DETRAY_HOST_DEVICE
+    inline loc_point project_to_axes(const transform3_t &trf, const point3 &p,
+                                     const vector3 & /*d*/) const {
+        const auto local3 = trf.point_to_local(p);
+        return {getter::perp(local3), getter::phi(local3)};
     }
 
     /** This method transform from a local 2D polar point to a point global

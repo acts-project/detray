@@ -1,6 +1,6 @@
 /** Detray library, part of the ACTS project (R&D line)
  *
- * (c) 2023 CERN for the benefit of the ACTS project
+ * (c) 2023-2024 CERN for the benefit of the ACTS project
  *
  * Mozilla Public License Version 2.0
  */
@@ -144,13 +144,11 @@ struct bin_iterator {
     DETRAY_HOST_DEVICE
     constexpr decltype(auto) operator*() const {
         // Get the correct local bin index
-        auto lbin = n_axis::multi_bin<grid_t::Dim>{};
+        typename grid_t::loc_bin_index lbin{};
         map_circular(*m_bin_indexer, lbin,
                      std::make_integer_sequence<std::size_t, grid_t::Dim>{});
-        // Transform to global bin index
-        const dindex gbin{m_grid.serializer()(m_grid.axes(), lbin)};
         // Fetch the bin
-        return (*(m_grid.data().bin_data()))[gbin + m_grid.data().offset()];
+        return m_grid.bin(lbin);
     }
 
     private:
@@ -158,28 +156,28 @@ struct bin_iterator {
     /// local bin index range, yet
     template <typename... Idx_t, std::size_t... I>
     DETRAY_HOST_DEVICE constexpr void map_circular(
-        std::tuple<Idx_t...> index_tuple, n_axis::multi_bin<grid_t::Dim> &mbin,
+        std::tuple<Idx_t...> index_tuple, typename grid_t::loc_bin_index &lbin,
         std::index_sequence<I...>) const {
         // Run the mapping for every axis in the grid
-        (map_circular(m_grid.template get_axis<I>(), index_tuple, mbin), ...);
+        (map_circular(m_grid.template get_axis<I>(), index_tuple, lbin), ...);
     }
 
     /// Map the local bin index for the phi axis to a periodic range and fill
-    /// the local bin @param mbin
+    /// the local bin @param lbin
     template <typename axis_t, typename... Idx_t>
     DETRAY_HOST_DEVICE constexpr void map_circular(
         const axis_t &ax, std::tuple<Idx_t...> index_tuple,
-        n_axis::multi_bin<grid_t::Dim> &mbin) const {
+        typename grid_t::loc_bin_index &lbin) const {
 
         constexpr auto loc_idx{
             static_cast<std::size_t>(axis_t::bounds_type::label)};
 
         if constexpr (axis_t::bounds_type::type == n_axis::bounds::e_circular) {
-            mbin[loc_idx] = static_cast<dindex>(n_axis::circular<>{}.wrap(
+            lbin[loc_idx] = static_cast<dindex>(n_axis::circular<>{}.wrap(
                 std::get<loc_idx>(index_tuple), ax.nbins()));
         } else {
             // All other axes start with a range that is already mapped
-            mbin[loc_idx] = static_cast<dindex>(std::get<loc_idx>(index_tuple));
+            lbin[loc_idx] = static_cast<dindex>(std::get<loc_idx>(index_tuple));
         }
     }
 

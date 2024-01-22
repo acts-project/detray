@@ -5,22 +5,23 @@
  * Mozilla Public License Version 2.0
  */
 
-#include <gtest/gtest.h>
-
 // Detray include(s)
 #include "detray/definitions/indexing.hpp"
 #include "detray/masks/cylinder3D.hpp"
 #include "detray/surface_finders/grid/axis.hpp"
 #include "detray/surface_finders/grid/grid.hpp"
 #include "detray/surface_finders/grid/grid_collection.hpp"
-#include "detray/surface_finders/grid/populator.hpp"
-#include "detray/surface_finders/grid/serializer.hpp"
+#include "detray/surface_finders/grid/populators.hpp"
+#include "detray/surface_finders/grid/serializers.hpp"
 #include "detray/test/types.hpp"
 #include "detray/tools/grid_builder.hpp"
 
 // System include(s)
 #include <algorithm>
 #include <climits>
+
+// GTest include(s)
+#include <gtest/gtest.h>
 
 using namespace detray;
 using namespace detray::n_axis;
@@ -33,14 +34,16 @@ bool constexpr is_n_owning = false;
 constexpr dindex inf{std::numeric_limits<dindex>::max()};
 
 // Create some bin data for non-owning grid
-template <class populator_t, typename entry_t>
+template <typename populator_t, typename bin_t>
 struct bin_content_sequence {
-
+    using entry_t = typename bin_t::entry_type;
     entry_t entry{0};
 
     auto operator()() {
         entry += entry_t{1};
-        return populator_t::init(entry);
+        bin_t bin{};
+        populator_t{}(bin, entry);
+        return bin;
     }
 };
 
@@ -52,10 +55,8 @@ GTEST_TEST(detray_grid, grid_collection) {
     // grid type
 
     // Non-owning grid type with array<dindex, 3> as bin content
-    using cylindrical_3D =
-        coordinate_axes<cylinder3D::axes<>, is_n_owning, host_container_types>;
-    using grid_t =
-        grid<cylindrical_3D, dindex, simple_serializer, regular_attacher<3>>;
+    using cylindrical_3D = coordinate_axes<cylinder3D::axes<>, is_n_owning>;
+    using grid_t = grid<cylindrical_3D, bins::static_array<dindex, 3>>;
 
     // Build test data
 
@@ -69,11 +70,11 @@ GTEST_TEST(detray_grid, grid_collection) {
                                  15., 0.,  50.,  -15, 15., -35., 35., 0., 550.};
 
     // Bin test entries
-    grid_t::bin_storage_type bin_data{};
+    grid_t::bin_container_type bin_data{};
     bin_data.resize(197u);
     std::generate_n(
         bin_data.begin(), 197u,
-        bin_content_sequence<populator<grid_t::populator_impl>, dindex>());
+        bin_content_sequence<attach<>, typename grid_t::bin_type>());
     dvector<dindex> grid_offsets = {0u, 48u, 72u};
 
     // Data-owning grid collection
@@ -111,8 +112,8 @@ GTEST_TEST(detray_grid, grid_collection) {
     EXPECT_EQ(single_grid.bin(0u, 0u, 0u)[2u], inf);
 
     // Test the bin view
-    auto bin_view = grid_coll[2].bin(101u);
-    grid_coll[2].populate(101u, 42u);
+    auto& bin_view = grid_coll[2].bin(101u);
+    grid_coll[2].template populate<attach<>>(101u, 42u);
     EXPECT_EQ(bin_view[0u], 102u + 72u);
     EXPECT_EQ(bin_view[1u], 42u);
     EXPECT_EQ(bin_view[2u], inf);

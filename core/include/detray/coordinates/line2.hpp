@@ -56,8 +56,8 @@ struct line2 : public coordinate_base<line2, transform3_t> {
 
     /// @}
 
-    /** This method transform from a point from global cartesian 3D frame to a
-     * local 2D line point */
+    /** This method transforms a point from a global cartesian 3D frame to a
+     * local 3D line point */
     DETRAY_HOST_DEVICE
     inline point3 global_to_local(const transform3_t &trf, const point3 &p,
                                   const vector3 &d) const {

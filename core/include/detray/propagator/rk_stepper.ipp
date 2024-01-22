@@ -284,7 +284,6 @@ auto detray::rk_stepper<
         constexpr scalar_t inv{detail::invalid_value<scalar_t>()};
         return (nextP == 0.f) ? inv : (q != 0.f) ? q / nextP : 1.f / nextP;
     }
-
     return qop;
 }
 

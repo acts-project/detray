@@ -1,6 +1,6 @@
 /** Detray library, part of the ACTS project (R&D line)
  *
- * (c) 2022 CERN for the benefit of the ACTS project
+ * (c) 2022-2024 CERN for the benefit of the ACTS project
  *
  * Mozilla Public License Version 2.0
  */
@@ -19,9 +19,9 @@ namespace detray {
 
 /// cuda kernel for grid_replace_test
 __global__ void grid_replace_test_kernel(
-    host_grid3_replace::view_type grid_view) {
+    host_grid3_single::view_type grid_view) {
     // Let's try building the grid object
-    device_grid3_replace g3_device(grid_view);
+    device_grid3_single g3_device(grid_view);
 
     // Get axes on the device-side
     const auto& axis_x = g3_device.template get_axis<n_axis::label::e_x>();
@@ -36,11 +36,11 @@ __global__ void grid_replace_test_kernel(
               axis_z.min() + gid * axis_z.bin_width()};
 
     // replace the bin elements
-    g3_device.populate(gid, std::move(tp));
+    g3_device.template populate<replace<>>(gid, std::move(tp));
 }
 
 /// grid_replace_test implementation
-void grid_replace_test(host_grid3_replace::view_type grid_view,
+void grid_replace_test(host_grid3_single::view_type grid_view,
                        std::size_t dim_x, std::size_t dim_y,
                        std::size_t dim_z) {
     int n_blocks = 1;
@@ -56,9 +56,9 @@ void grid_replace_test(host_grid3_replace::view_type grid_view,
 
 /// cuda kernel for grid_replace_ci_test
 __global__ void grid_replace_ci_test_kernel(
-    host_grid2_replace_ci::view_type grid_view) {
+    host_grid2_single_ci::view_type grid_view) {
     // Let's try building the grid object
-    device_grid2_replace_ci g2_device(grid_view);
+    device_grid2_single_ci g2_device(grid_view);
 
     // Get axes on the device-side
     const auto& axis_r = g2_device.template get_axis<n_axis::label::e_r>();
@@ -70,11 +70,11 @@ __global__ void grid_replace_ci_test_kernel(
               axis_phi.min() + gid * axis_phi.bin_width(), 0.5f};
 
     // replace the bin elements
-    g2_device.populate({threadIdx.x, threadIdx.y}, std::move(tp));
+    g2_device.template populate<replace<>>(gid, std::move(tp));
 }
 
 // test function for replace populator with circular and irregular axis
-void grid_replace_ci_test(host_grid2_replace_ci::view_type grid_view,
+void grid_replace_ci_test(host_grid2_single_ci::view_type grid_view,
                           std::size_t dim_x, std::size_t dim_y) {
     int n_blocks = 1;
     dim3 n_threads(dim_x, dim_y);
@@ -92,10 +92,10 @@ void grid_replace_ci_test(host_grid2_replace_ci::view_type grid_view,
 //----------------------------------------------------
 
 // cuda kernel for grid_complete_test
-__global__ void grid_complete_kernel(host_grid2_complete::view_type grid_view) {
+__global__ void grid_complete_kernel(host_grid2_array::view_type grid_view) {
 
     // Let's try building the grid object
-    device_grid2_complete g2_device(grid_view);
+    device_grid2_array g2_device(grid_view);
 
     // Get axes on the device-side
     const auto& axis_r = g2_device.template get_axis<n_axis::label::e_r>();
@@ -105,11 +105,11 @@ __global__ void grid_complete_kernel(host_grid2_complete::view_type grid_view) {
     auto tp = point3{axis_r.min() + gid * axis_r.bin_width(),
                      axis_phi.min() + gid * axis_phi.bin_width(), 0.5f};
 
-    g2_device.populate({threadIdx.x, threadIdx.y}, std::move(tp));
+    g2_device.template populate<complete<>>(gid, std::move(tp));
 }
 
 // grid_complete_test implementation
-void grid_complete_test(host_grid2_complete::view_type grid_view,
+void grid_complete_test(host_grid2_array::view_type grid_view,
                         std::size_t dim_x, std::size_t dim_y) {
 
     int block_dim = 1;
@@ -128,10 +128,10 @@ void grid_complete_test(host_grid2_complete::view_type grid_view,
 //--------------------------------------------------
 
 // cuda kernel for grid_attach_test
-__global__ void grid_attach_kernel(host_grid2_attach::view_type grid_view) {
+__global__ void grid_attach_kernel(host_grid2_array::view_type grid_view) {
 
     // Let's try building the grid object
-    device_grid2_attach g2_device(grid_view);
+    device_grid2_array g2_device(grid_view);
 
     // Get axes on the device-side
     const auto& axis_r = g2_device.template get_axis<n_axis::label::e_r>();
@@ -144,11 +144,11 @@ __global__ void grid_attach_kernel(host_grid2_attach::view_type grid_view) {
     auto tp = point3{axis_r.min() + gid * width_r,
                      axis_phi.min() + gid * width_phi, 0.5f};
 
-    g2_device.populate({threadIdx.x, threadIdx.y}, std::move(tp));
+    g2_device.template populate<attach<>>(gid, std::move(tp));
 }
 
 // grid_attach_test implementation
-void grid_attach_test(host_grid2_attach::view_type grid_view, std::size_t dim_x,
+void grid_attach_test(host_grid2_array::view_type grid_view, std::size_t dim_x,
                       std::size_t dim_y) {
 
     int block_dim = 1;
@@ -163,35 +163,51 @@ void grid_attach_test(host_grid2_attach::view_type grid_view, std::size_t dim_x,
 }
 
 //----------------------------------------------------
-// read test function for grid with attach populator
+// Device side grid reader for debugging
 //----------------------------------------------------
 
 // cuda kernel for attach_read_test
-__global__ void grid_attach_read_kernel(
-    const_host_grid2_attach::view_type grid_view) {
+template <typename device_grid_t, typename view_t>
+__global__ void print_grid_kernel(view_t grid_view) {
     // Let's try building the grid object
-    const_device_grid2_attach g2_device(grid_view);
+    device_grid_t g2_device(grid_view);
 
-    const auto& bin_content = g2_device.bin({threadIdx.x, threadIdx.y});
+    n_axis::multi_bin<device_grid_t::Dim> mbin;
+    if constexpr (device_grid_t::Dim == 2) {
+        mbin = {threadIdx.x, threadIdx.y};
+    } else {
+        mbin = {threadIdx.x, threadIdx.y, threadIdx.z};
+    }
 
-    for (auto& pt : bin_content) {
-        printf("%f %f %f \n", pt[0], pt[1], pt[2]);
+    for (auto& pt : g2_device.bin(mbin)) {
+        printf("[%f %f %f]\n", pt[0], pt[1], pt[2]);
     }
 }
 
 // grid_attach_read_test implementation
-void grid_attach_read_test(const_host_grid2_attach::view_type grid_view,
-                           std::size_t dim_x, std::size_t dim_y) {
+template <typename device_grid_t, typename view_t, typename... I>
+void print_grid(view_t grid_view, I... dims) {
     int block_dim = 1;
-    dim3 thread_dim(dim_x, dim_y);
+    dim3 thread_dim(dims...);
 
     // run the kernel
-    grid_attach_read_kernel<<<block_dim, thread_dim>>>(grid_view);
+    print_grid_kernel<device_grid_t, view_t>
+        <<<block_dim, thread_dim>>>(grid_view);
 
     // cuda error check
     DETRAY_CUDA_ERROR_CHECK(cudaGetLastError());
     DETRAY_CUDA_ERROR_CHECK(cudaDeviceSynchronize());
 }
+
+// Explicit instantioations
+template void print_grid<device_grid3_single>(host_grid3_single::view_type,
+                                              dindex, dindex, dindex);
+
+template void print_grid<device_grid2_single_ci>(
+    host_grid2_single_ci::view_type, dindex, dindex);
+
+template void print_grid<device_grid2_array>(host_grid2_array::view_type,
+                                             dindex, dindex);
 
 //---------------------------------------
 //  test function for collection of grids
@@ -199,11 +215,11 @@ void grid_attach_read_test(const_host_grid2_attach::view_type grid_view,
 
 /// cuda kernel for grid_collection_test
 __global__ void grid_collection_test_kernel(
-    grid_collection<n_own_host_grid2_attach>::view_type grid_coll_view,
+    grid_collection<n_own_host_grid2_array>::view_type grid_coll_view,
     vecmem::data::vector_view<dindex> n_bins_view,
     vecmem::data::vector_view<std::array<dindex, 3>> result_bins_view) {
     // Let's try building the grid object
-    grid_collection<n_own_device_grid2_attach> device_coll(grid_coll_view);
+    grid_collection<n_own_device_grid2_array> device_coll(grid_coll_view);
     vecmem::device_vector<dindex> n_bins(n_bins_view);
     vecmem::device_vector<std::array<dindex, 3>> result_bins(result_bins_view);
 
@@ -234,7 +250,7 @@ __global__ void grid_collection_test_kernel(
 
 /// grid_collection_test implementation
 void grid_collection_test(
-    grid_collection<n_own_host_grid2_attach>::view_type grid_coll_view,
+    grid_collection<n_own_host_grid2_array>::view_type grid_coll_view,
     vecmem::data::vector_view<dindex> n_bins_view,
     vecmem::data::vector_view<std::array<dindex, 3>> result_bins_view,
     std::size_t n_grids, std::size_t dim_x, std::size_t dim_y,

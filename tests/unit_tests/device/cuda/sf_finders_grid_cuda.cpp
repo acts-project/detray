@@ -1,6 +1,6 @@
 /** Detray library, part of the ACTS project (R&D line)
  *
- * (c) 2022 CERN for the benefit of the ACTS project
+ * (c) 2022-2024 CERN for the benefit of the ACTS project
  *
  * Mozilla Public License Version 2.0
  */
@@ -22,8 +22,8 @@ using namespace detray;
 namespace {
 
 /// Test single entry bin content element by element
-template <typename content_t>
-void test_content(const content_t& bin_content, const content_t& expected) {
+template <typename bin_content_t, typename content_t>
+void test_content(const bin_content_t& bin_content, const content_t& expected) {
     unsigned int i{0u};
     for (const auto& elem : bin_content) {
         ASSERT_NEAR(elem, expected[i++], tol);
@@ -47,18 +47,6 @@ void test_entry_collection(const content_t& bin_content,
     }
 }
 
-// Create some bin data for non-owning grid
-template <class populator_t, typename entry_t>
-struct bin_content_sequence {
-
-    entry_t entry{0};
-
-    auto operator()() {
-        entry += entry_t{1};
-        return populator_t::init(entry);
-    }
-};
-
 }  // anonymous namespace
 
 TEST(grids_cuda, grid3_replace_populator) {
@@ -67,26 +55,25 @@ TEST(grids_cuda, grid3_replace_populator) {
 
     // Build multi-axis
     using axes_t = cartesian_3D<host_container_types>;
+    using bin_t = host_grid3_single::bin_type;
 
-    typename axes_t::boundary_storage_type axis_data(&mng_mr);
-    typename axes_t::edges_storage_type bin_edges(&mng_mr);
+    typename axes_t::edge_offset_container_type axis_data(&mng_mr);
+    typename axes_t::edges_container_type bin_edges(&mng_mr);
 
     axis_data.reserve(3);
     axis_data.insert(
         axis_data.begin(),
         {dindex_range{0u, 3u}, dindex_range{2u, 6u}, dindex_range{4u, 10u}});
     bin_edges.reserve(6);
-    bin_edges.insert(bin_edges.begin(), {-1.f, 4.f, 0.f, 6.f, -5.f, 5.f});
+    bin_edges.insert(bin_edges.begin(), {-1.f, 2.f, 0.f, 6.f, -5.f, 5.f});
 
     axes_t axes(std::move(axis_data), std::move(bin_edges));
 
     // build host grid
-    host_grid3_replace::bin_storage_type bin_data(&mng_mr);
-    bin_data.resize(
-        3u * 6u * 10u,
-        populator<host_grid3_replace::populator_impl>::init<point3>());
+    host_grid3_single::bin_container_type bin_data(&mng_mr);
+    bin_data.resize(3u * 6u * 10u, bin_t{});
 
-    host_grid3_replace g3(std::move(bin_data), std::move(axes));
+    host_grid3_single g3(std::move(bin_data), std::move(axes));
 
     const auto& axis_x = g3.template get_axis<n_axis::label::e_x>();
     const auto& axis_y = g3.template get_axis<n_axis::label::e_y>();
@@ -97,9 +84,8 @@ TEST(grids_cuda, grid3_replace_populator) {
         for (unsigned int i_y = 0u; i_y < axis_y.nbins(); i_y++) {
             for (unsigned int i_z = 0u; i_z < axis_z.nbins(); i_z++) {
                 const auto& bin = g3.bin({i_x, i_y, i_z});
-                auto invalid_bin = populator<
-                    host_grid3_replace::populator_impl>::init<point3>();
-                test_content(bin[0], invalid_bin.content());
+                auto invalid_bin = bin_t{};
+                test_content(*bin, *invalid_bin);
             }
         }
     }
@@ -110,21 +96,23 @@ TEST(grids_cuda, grid3_replace_populator) {
     for (unsigned int i_x = 0u; i_x < axis_x.nbins(); i_x++) {
         for (unsigned int i_y = 0u; i_y < axis_y.nbins(); i_y++) {
             for (unsigned int i_z = 0u; i_z < axis_z.nbins(); i_z++) {
-                const dindex gbin_idx =
-                    g3.serialize(detray::n_axis::multi_bin<3>{i_x, i_y, i_z});
+                const dindex gbin = g3.serialize({i_x, i_y, i_z});
 
-                const auto& bin = g3.bin(gbin_idx);
+                const auto& bin = g3.bin(gbin);
 
-                const detray::scalar gbin_idx_f{
-                    static_cast<detray::scalar>(gbin_idx)};
-                const point3 tp{axis_x.min() + gbin_idx_f * axis_x.bin_width(),
-                                axis_y.min() + gbin_idx_f * axis_y.bin_width(),
-                                axis_z.min() + gbin_idx_f * axis_z.bin_width()};
+                const detray::scalar gbin_f{static_cast<detray::scalar>(gbin)};
+                const point3 tp{axis_x.min() + gbin_f * axis_x.bin_width(),
+                                axis_y.min() + gbin_f * axis_y.bin_width(),
+                                axis_z.min() + gbin_f * axis_z.bin_width()};
 
-                test_content(bin[0], tp);
+                test_content(*bin, tp);
             }
         }
     }
+
+    // Print the grid on device
+    // print_grid<device_grid3_single>(get_data(g3), axis_x.nbins(),
+    // axis_y.nbins(), axis_z.nbins());
 }
 
 TEST(grids_cuda, grid2_replace_populator_ci) {
@@ -133,9 +121,10 @@ TEST(grids_cuda, grid2_replace_populator_ci) {
 
     // Build multi-axis
     using axes_t = polar_ir<host_container_types>;
+    using bin_t = host_grid2_single_ci::bin_type;
 
-    typename axes_t::boundary_storage_type axis_data(&mng_mr);
-    typename axes_t::edges_storage_type bin_edges(&mng_mr);
+    typename axes_t::edge_offset_container_type axis_data(&mng_mr);
+    typename axes_t::edges_container_type bin_edges(&mng_mr);
 
     axis_data.reserve(2u);
     axis_data.insert(axis_data.end(),
@@ -146,12 +135,10 @@ TEST(grids_cuda, grid2_replace_populator_ci) {
     axes_t axes(std::move(axis_data), std::move(bin_edges));
 
     // build host grid
-    host_grid2_replace_ci::bin_storage_type bin_data(&mng_mr);
-    bin_data.resize(
-        2u * 4u,
-        populator<host_grid2_replace_ci::populator_impl>::init<point3>());
+    host_grid2_single_ci::bin_container_type bin_data(&mng_mr);
+    bin_data.resize(4u * 2u, bin_t{});
 
-    host_grid2_replace_ci g2(std::move(bin_data), std::move(axes));
+    host_grid2_single_ci g2(std::move(bin_data), std::move(axes));
 
     const auto& axis_r = g2.template get_axis<n_axis::label::e_r>();
     const auto& axis_phi = g2.template get_axis<n_axis::label::e_phi>();
@@ -160,10 +147,9 @@ TEST(grids_cuda, grid2_replace_populator_ci) {
     for (unsigned int i_r = 0u; i_r < axis_r.nbins(); i_r++) {
         for (unsigned int i_phi = 0u; i_phi < axis_phi.nbins(); i_phi++) {
             const auto& bin = g2.bin({i_r, i_phi});
-            auto invalid_bin = populator<
-                host_grid2_replace_ci::populator_impl>::init<point3>();
+            auto invalid_bin = bin_t{};
 
-            test_content(bin[0], invalid_bin.content());
+            test_content(*bin, *invalid_bin);
         }
     }
 
@@ -173,34 +159,37 @@ TEST(grids_cuda, grid2_replace_populator_ci) {
     // post-check
     for (unsigned int i_r = 0u; i_r < axis_r.nbins(); i_r++) {
         for (unsigned int i_phi = 0u; i_phi < axis_phi.nbins(); i_phi++) {
-            const dindex gbin_idx =
-                g2.serialize(detray::n_axis::multi_bin<2>{i_r, i_phi});
-            const auto& bin = g2.bin(gbin_idx);
+            const dindex gbin = g2.serialize({i_r, i_phi});
+            const auto& bin = g2.bin(gbin);
 
-            const detray::scalar gbin_idx_f{
-                static_cast<detray::scalar>(gbin_idx)};
-            const point3 tp{axis_r.min() + gbin_idx_f * axis_r.bin_width(i_r),
-                            axis_phi.min() + gbin_idx_f * axis_phi.bin_width(),
+            const detray::scalar gbin_f{static_cast<detray::scalar>(gbin)};
+            const point3 tp{axis_r.min() + gbin_f * axis_r.bin_width(i_r),
+                            axis_phi.min() + gbin_f * axis_phi.bin_width(),
                             0.5f};
 
-            test_content(bin[0], tp);
+            test_content(*bin, tp);
         }
     }
+
+    // Print the grid on device
+    // print_grid<device_grid2_single_ci>(get_data(g2), axis_r.nbins(),
+    // axis_phi.nbins());
 }
 
-/*TEST(grids_cuda, grid2_complete_populator) {
+TEST(grids_cuda, grid2_complete_populator) {
     // memory resource
     vecmem::cuda::managed_memory_resource mng_mr;
 
     // Build multi-axis
     using axes_t = polar<host_container_types>;
+    using bin_t = host_grid2_array::bin_type;
 
-    typename axes_t::boundary_storage_type axis_data(&mng_mr);
-    typename axes_t::edges_storage_type bin_edges(&mng_mr);
+    typename axes_t::edge_offset_container_type axis_data(&mng_mr);
+    typename axes_t::edges_container_type bin_edges(&mng_mr);
 
     axis_data.reserve(2u);
     axis_data.insert(axis_data.begin(),
-                      {dindex_range{0u, 3u}, dindex_range{2u, 7u}});
+                     {dindex_range{0u, 3u}, dindex_range{2u, 7u}});
     bin_edges.reserve(4);
     bin_edges.insert(bin_edges.begin(), {0.f, 3.f, -1.f, 6.f});
 
@@ -209,12 +198,10 @@ TEST(grids_cuda, grid2_replace_populator_ci) {
     // build host grid
     const point3 first_tp{3.f, 3.f, 3.f};
 
-    host_grid2_complete::bin_storage_type bin_data(&mng_mr);
-    bin_data.resize(
-        3u * 7u,
-populator<host_grid2_complete::populator_impl>::init<point3>(first_tp));
+    host_grid2_array::bin_container_type bin_data(&mng_mr);
+    bin_data.resize(3u * 7u, bin_t{}.init(first_tp));
 
-    host_grid2_complete g2(std::move(bin_data), std::move(axes));
+    host_grid2_array g2(std::move(bin_data), std::move(axes));
 
     const auto& axis_r = g2.template get_axis<n_axis::label::e_r>();
     const auto& axis_phi = g2.template get_axis<n_axis::label::e_phi>();
@@ -225,11 +212,10 @@ populator<host_grid2_complete::populator_impl>::init<point3>(first_tp));
     // pre-check
     for (unsigned int i_r = 0u; i_r < axis_r.nbins(); i_r++) {
         for (unsigned int i_phi = 0u; i_phi < axis_phi.nbins(); i_phi++) {
-            auto bin = g2.bin({i_r, i_phi});
-            auto invalid_bin =
-                populator<host_grid2_complete::populator_impl>::init<point3>(first_tp);
+            const auto& bin = g2.bin({i_r, i_phi});
+            auto invalid_bin = bin_t{}.init(first_tp);
 
-            test_entry_collection(bin, invalid_bin.view());
+            test_entry_collection(bin, invalid_bin);
         }
     }
 
@@ -239,14 +225,13 @@ populator<host_grid2_complete::populator_impl>::init<point3>(first_tp));
     // post-check
     for (unsigned int i_r = 0u; i_r < axis_r.nbins(); i_r++) {
         for (unsigned int i_phi = 0u; i_phi < axis_phi.nbins(); i_phi++) {
-            const dindex gbin_idx = g2.serialize(
-                detray::n_axis::multi_bin<2>{i_r, i_phi});
-            const auto& bin = g2.bin(gbin_idx);
+            const dindex gbin = g2.serialize({i_r, i_phi});
+            const auto& bin = g2.bin(gbin);
 
             // Other point with which the bin has been completed
-            const detray::scalar
-gbin_idx_f{static_cast<detray::scalar>(gbin_idx)}; const point3 tp{axis_r.min()
-+ gbin_idx_f * width_r, axis_phi.min() + gbin_idx_f * width_phi, 0.5};
+            const detray::scalar gbin_f{static_cast<detray::scalar>(gbin)};
+            const point3 tp{axis_r.min() + gbin_f * width_r,
+                            axis_phi.min() + gbin_f * width_phi, 0.5};
 
             // Go through all points and compare
             int pt_idx{0};
@@ -260,6 +245,10 @@ gbin_idx_f{static_cast<detray::scalar>(gbin_idx)}; const point3 tp{axis_r.min()
             }
         }
     }
+
+    // Print the grid on device
+    // print_grid<device_grid2_array>(get_data(g2), axis_r.nbins(),
+    // axis_phi.nbins());
 }
 
 // Test both the attach population and the const grid reading
@@ -269,16 +258,17 @@ TEST(grids_cuda, grid2_attach_populator) {
 
     // Build multi-axis
     using axes_t = polar<host_container_types>;
+    using bin_t = host_grid2_array::bin_type;
 
-    typename axes_t::boundary_storage_type axis_data(&mng_mr);
-    typename axes_t::edges_storage_type bin_edges(&mng_mr);
+    typename axes_t::edge_offset_container_type axis_data(&mng_mr);
+    typename axes_t::edges_container_type bin_edges(&mng_mr);
 
     axis_data.reserve(2);
     axis_data.insert(axis_data.begin(),
-                      {dindex_range{0u, 2u}, dindex_range{2u, 65u}});
+                     {dindex_range{0u, 2u}, dindex_range{2u, 65u}});
     bin_edges.reserve(4);
-    bin_edges.insert(bin_edges.begin(), {0.f, 6.f, -constant<scalar>::pi,
-constant<scalar>::pi});
+    bin_edges.insert(bin_edges.begin(),
+                     {0.f, 6.f, -constant<scalar>::pi, constant<scalar>::pi});
 
     axes_t axes(std::move(axis_data), std::move(bin_edges));
 
@@ -286,11 +276,10 @@ constant<scalar>::pi});
     const point3 first_tp{3.f, 3.f, 3.f};
     const point3 invalid_tp{0.f, 0.f, 0.f};
 
-    host_grid2_attach::bin_storage_type bin_data(&mng_mr);
-    bin_data.resize(2u * 65u,
-                    populator<host_grid2_attach::populator_impl>::init<point3>(first_tp));
+    host_grid2_array::bin_container_type bin_data(&mng_mr);
+    bin_data.resize(2u * 65u, bin_t{}.init(first_tp));
 
-    host_grid2_attach g2(std::move(bin_data), std::move(axes));
+    host_grid2_array g2(std::move(bin_data), std::move(axes));
 
     const auto& axis_r = g2.template get_axis<n_axis::label::e_r>();
     const auto& axis_phi = g2.template get_axis<n_axis::label::e_phi>();
@@ -302,10 +291,9 @@ constant<scalar>::pi});
     for (unsigned int i_r = 0u; i_r < axis_r.nbins(); i_r++) {
         for (unsigned int i_phi = 0u; i_phi < axis_phi.nbins(); i_phi++) {
             auto bin = g2.bin({i_r, i_phi});
-            auto invalid_bin =
-                populator<host_grid2_complete::populator_impl>::init<point3>(first_tp);
+            auto invalid_bin = bin_t{}.init(first_tp);
 
-            test_entry_collection(bin, invalid_bin.view());
+            test_entry_collection(bin, invalid_bin);
         }
     }
 
@@ -315,14 +303,13 @@ constant<scalar>::pi});
     // post-check
     for (unsigned int i_r = 0u; i_r < axis_r.nbins(); i_r++) {
         for (unsigned int i_phi = 0u; i_phi < axis_phi.nbins(); i_phi++) {
-            const dindex gbin_idx = g2.serialize(
-                detray::n_axis::multi_bin<2>{i_r, i_phi});
-            const auto& bin = g2.bin(gbin_idx);
+            const dindex gbin = g2.serialize({i_r, i_phi});
+            const auto& bin = g2.bin(gbin);
 
             // Other point with which the bin has been completed
-            const detray::scalar
-gbin_idx_f{static_cast<detray::scalar>(gbin_idx)}; const point3 tp{axis_r.min()
-+ gbin_idx_f * width_r, axis_phi.min() + gbin_idx_f * width_phi, 0.5};
+            const detray::scalar gbin_f{static_cast<detray::scalar>(gbin)};
+            const point3 tp{axis_r.min() + gbin_f * width_r,
+                            axis_phi.min() + gbin_f * width_phi, 0.5};
 
             // Go through all points and compare
             int pt_idx{0};
@@ -339,23 +326,22 @@ gbin_idx_f{static_cast<detray::scalar>(gbin_idx)}; const point3 tp{axis_r.min()
         }
     }
 
-    // This seems to be undefined behaviour for now
-    //const host_grid2_attach& g2_const = g2;
-    // Read the grid as a const grid of non-const values
-    //grid_attach_read_test(get_data(g2_const), axis_r.nbins(),
-axis_phi.nbins());
-}*/
+    // Print the grid on device
+    // print_grid<device_grid2_array>(get_data(g2), axis_r.nbins(),
+    // axis_phi.nbins());
+}
 
 TEST(grids_cuda, cylindrical3D_collection) {
     // Data-owning grid collection
     vecmem::cuda::managed_memory_resource mng_mr;
 
-    using grid_collection_t = grid_collection<n_own_host_grid2_attach>;
+    using grid_collection_t = grid_collection<n_own_host_grid2_array>;
+    using bin_t = grid_collection_t::value_type::bin_type;
 
     vecmem::vector<typename grid_collection_t::size_type> grid_offsets(&mng_mr);
-    typename grid_collection_t::bin_storage_type bin_data(&mng_mr);
-    typename grid_collection_t::axes_storage_type edge_ranges(&mng_mr);
-    typename grid_collection_t::edges_storage_type bin_edges(&mng_mr);
+    typename grid_collection_t::bin_container_type bin_data(&mng_mr);
+    typename grid_collection_t::edge_offset_container_type edge_ranges(&mng_mr);
+    typename grid_collection_t::edges_container_type bin_edges(&mng_mr);
 
     // Offsets for the grids into the bin storage
     grid_offsets.reserve(3u);
@@ -376,11 +362,7 @@ TEST(grids_cuda, cylindrical3D_collection) {
                       15.f, 0.f, 50.f, -15.f, 15.f, -35.f, 35.f, 0.f, 550.f});
 
     // Bin test entries
-    bin_data.resize(197u);
-    std::generate_n(
-        bin_data.begin(), 197u,
-        bin_content_sequence<populator<n_own_host_grid2_attach::populator_impl>,
-                             dindex>());
+    bin_data.resize(197u, bin_t{});
 
     vecmem::vector<unsigned int> n_bins(9u, &mng_mr);
     vecmem::vector<std::array<dindex, 3>> result_bins(bin_data.size(), &mng_mr);
@@ -410,6 +392,6 @@ TEST(grids_cuda, cylindrical3D_collection) {
     EXPECT_EQ(7u, n_bins[8]);
 
     for (unsigned int i{0u}; i < bin_data.size(); ++i) {
-        EXPECT_EQ(bin_data[i].content(), result_bins[i]);
+        test_content(bin_data[i], result_bins[i]);
     }
 }

@@ -15,7 +15,7 @@
 TEST(utils, type_list) {
     using namespace detray;
 
-    using list = types::type_list<float, int, double>;
+    using list = types::list<float, int, double>;
 
     static_assert(std::is_same_v<types::front<list>, float>,
                   "Could not access type list front");
@@ -24,11 +24,11 @@ TEST(utils, type_list) {
                   "Could not access type list back");
 
     static_assert(std::is_same_v<types::push_back<list, char>,
-                                 types::type_list<float, int, double, char>>,
+                                 types::list<float, int, double, char>>,
                   "Failed to push back new type");
 
     static_assert(std::is_same_v<types::push_front<list, char>,
-                                 types::type_list<char, float, int, double>>,
+                                 types::list<char, float, int, double>>,
                   "Failed to push front new type");
 
     static_assert(types::size<list> == 3ul, "Incorrect size");

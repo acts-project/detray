@@ -226,31 +226,41 @@ struct base_view {};
 template <typename view_impl_t>
 class view_interface : public base_view {
 
-    public:
-    constexpr view_interface() = default;
+    /// Cast to the implementation type to access its methods
+    /// @{
+    constexpr auto cast_impl() -> view_impl_t& {
+        return static_cast<view_impl_t&>(*this);
+    }
+    constexpr auto cast_impl() const -> const view_impl_t& {
+        return static_cast<const view_impl_t&>(*this);
+    }
+    /// @}
 
+    public:
     /// @note requires forward range
     template <typename R = view_impl_t,
               std::enable_if_t<detray::ranges::forward_range_v<R>, bool> = true>
     DETRAY_HOST_DEVICE constexpr auto empty() const -> bool {
-        return (_impl_ptr->begin() == _impl_ptr->end());
+        return (detray::ranges::begin(cast_impl()) ==
+                detray::ranges::end(cast_impl()));
     }
 
     DETRAY_HOST_DEVICE
     constexpr explicit operator bool() const {
-        return not detray::ranges::empty(*_impl_ptr);
+        return not detray::ranges::empty(cast_impl());
     }
 
     /// @note requires contiguous range (not yet modelled)
     DETRAY_HOST_DEVICE
     constexpr auto data() const {
-        return empty() ? nullptr : std::addressof(*(_impl_ptr->begin()));
+        return empty() ? nullptr
+                       : std::addressof(*(detray::ranges::begin(cast_impl())));
     }
 
     /// @note requires contiguous range (not yet modelled)
     DETRAY_HOST_DEVICE
     constexpr auto data() {
-        return empty() ? nullptr : &(*(_impl_ptr->begin()));
+        return empty() ? nullptr : &(*(detray::ranges::begin(cast_impl())));
     }
 
     /// @note requires forward range
@@ -258,14 +268,15 @@ class view_interface : public base_view {
               std::enable_if_t<detray::ranges::forward_range_v<R>, bool> = true>
     DETRAY_HOST_DEVICE constexpr auto size() const {
         return static_cast<dindex>(
-            detray::ranges::distance(_impl_ptr->begin(), _impl_ptr->end()));
+            detray::ranges::distance(detray::ranges::begin(cast_impl()),
+                                     detray::ranges::end(cast_impl())));
     }
 
     /// @note requires forward range
     template <typename R = view_impl_t,
               std::enable_if_t<detray::ranges::forward_range_v<R>, bool> = true>
     DETRAY_HOST_DEVICE constexpr decltype(auto) front() const {
-        const auto bg = _impl_ptr->begin();
+        const auto bg = detray::ranges::begin(cast_impl());
         assert(not empty());
         return *bg;
     }
@@ -274,7 +285,7 @@ class view_interface : public base_view {
     template <typename R = view_impl_t,
               std::enable_if_t<detray::ranges::forward_range_v<R>, bool> = true>
     DETRAY_HOST_DEVICE constexpr decltype(auto) front() {
-        const auto bg = _impl_ptr->begin();
+        const auto bg = detray::ranges::begin(cast_impl());
         assert(not empty());
         return *bg;
     }
@@ -284,7 +295,7 @@ class view_interface : public base_view {
         typename R = view_impl_t,
         std::enable_if_t<detray::ranges::bidirectional_range_v<R>, bool> = true>
     DETRAY_HOST_DEVICE constexpr decltype(auto) back() const {
-        auto sentinel = _impl_ptr->end();
+        auto sentinel = detray::ranges::end(cast_impl());
         assert(not empty());
         return *(--sentinel);
     }
@@ -294,7 +305,7 @@ class view_interface : public base_view {
         typename R = view_impl_t,
         std::enable_if_t<detray::ranges::bidirectional_range_v<R>, bool> = true>
     DETRAY_HOST_DEVICE constexpr decltype(auto) back() {
-        auto sentinel = _impl_ptr->end();
+        auto sentinel = detray::ranges::end(cast_impl());
         assert(not empty());
         return *(--sentinel);
     }
@@ -307,7 +318,7 @@ class view_interface : public base_view {
         std::enable_if_t<detray::ranges::random_access_range_v<R>, bool> = true>
     DETRAY_HOST_DEVICE constexpr decltype(auto) operator[](
         const dindex i) const {
-        return (_impl_ptr->begin())
+        return (detray::ranges::begin(cast_impl()))
             [static_cast<detray::ranges::range_difference_t<R>>(i)];
     }
     /// Subscript operator that takes detray @c dindex
@@ -317,12 +328,9 @@ class view_interface : public base_view {
         typename R = view_impl_t,
         std::enable_if_t<detray::ranges::random_access_range_v<R>, bool> = true>
     DETRAY_HOST_DEVICE constexpr decltype(auto) operator[](const dindex i) {
-        return (_impl_ptr->begin())
+        return (detray::ranges::begin(cast_impl()))
             [static_cast<detray::ranges::range_difference_t<R>>(i)];
     }
-
-    private:
-    view_impl_t* const _impl_ptr{static_cast<view_impl_t*>(this)};
 };
 
 /// View traits

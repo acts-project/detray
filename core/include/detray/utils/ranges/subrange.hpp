@@ -87,7 +87,7 @@ class subrange : public detray::ranges::view_interface<subrange<range_t>> {
         : m_begin{other.m_begin}, m_end{other.m_end} {}
 
     /// Default destructor
-    DETRAY_HOST_DEVICE ~subrange() {}
+    ~subrange() = default;
 
     /// Copy assignment operator
     DETRAY_HOST_DEVICE

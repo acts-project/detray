@@ -1,19 +1,16 @@
 /** Detray library, part of the ACTS project (R&D line)
  *
- * (c) 2022-2023 CERN for the benefit of the ACTS project
+ * (c) 2022-2024 CERN for the benefit of the ACTS project
  *
  * Mozilla Public License Version 2.0
  */
 
-#include <gtest/gtest.h>
-
 // Detray include(s)
+#include "detray/surface_finders/grid/grid.hpp"
+
 #include "detray/definitions/indexing.hpp"
 #include "detray/masks/cuboid3D.hpp"
 #include "detray/surface_finders/grid/axis.hpp"
-#include "detray/surface_finders/grid/grid.hpp"
-#include "detray/surface_finders/grid/populator.hpp"
-#include "detray/surface_finders/grid/serializer.hpp"
 #include "detray/test/types.hpp"
 #include "detray/tools/grid_builder.hpp"
 
@@ -21,6 +18,9 @@
 #include <vecmem/containers/device_vector.hpp>
 #include <vecmem/containers/vector.hpp>
 #include <vecmem/memory/host_memory_resource.hpp>
+
+// GTest include(s)
+#include <gtest/gtest.h>
 
 // System include(s)
 #include <algorithm>
@@ -51,18 +51,20 @@ dvector<scalar> bin_edges = {-10.f, 10.f, -20.f, 20.f, 0.f, 100.f};
 dvector<dindex_range> edge_ranges = {{0u, 20u}, {2u, 40u}, {4u, 50u}};
 
 // non-owning multi-axis for the non-owning grid
-cartesian_3D<is_n_owning, host_container_types> ax_n_own(&edge_ranges,
-                                                         &bin_edges);
+cartesian_3D<is_n_owning, host_container_types> ax_n_own(edge_ranges,
+                                                         bin_edges);
 
 // Create some bin data for non-owning grid
-template <class populator_t, typename entry_t>
+template <typename populator_t, typename bin_t>
 struct bin_content_sequence {
-
+    using entry_t = typename bin_t::entry_type;
     entry_t entry{0};
 
     auto operator()() {
         entry += entry_t{1};
-        return populator_t::init(entry);
+        bin_t bin{};
+        populator_t{}(bin, entry);
+        return bin;
     }
 };
 
@@ -81,28 +83,25 @@ void test_content(const grid_t& g, const point3& p, const content_t& expected) {
 GTEST_TEST(detray_grid, single_grid) {
 
     // Owning and non-owning, cartesian, 3-dimensional, replacing grids
-    using grid_owning_t =
-        grid<cartesian_3D<>, scalar, simple_serializer, replacer>;
+    using grid_owning_t = grid<cartesian_3D<>, bins::single<scalar>>;
 
     using grid_n_owning_t =
-        grid<cartesian_3D<is_n_owning>, scalar, simple_serializer, replacer>;
+        grid<cartesian_3D<is_n_owning>, bins::single<scalar>>;
 
     using grid_device_t = grid<cartesian_3D<is_owning, device_container_types>,
-                               scalar, simple_serializer, replacer>;
+                               bins::single<scalar>>;
 
     // Fill the bin data for every test
     // bin test entries
-    grid_owning_t::bin_storage_type bin_data{};
+    grid_owning_t::bin_container_type bin_data{};
     bin_data.resize(40'000u);
-    std::generate_n(
-        bin_data.begin(), 40'000u,
-        bin_content_sequence<populator<grid_owning_t::populator_impl>,
-                             scalar>());
+    std::generate_n(bin_data.begin(), 40'000u,
+                    bin_content_sequence<replace<>, bins::single<scalar>>());
 
     // Copy data that will be moved into the data owning types
     dvector<scalar> bin_edges_cp(bin_edges);
     dvector<dindex_range> edge_ranges_cp(edge_ranges);
-    grid_owning_t::bin_storage_type bin_data_cp(bin_data);
+    grid_owning_t::bin_container_type bin_data_cp(bin_data);
 
     // Data-owning axes and grid
     cartesian_3D<is_owning, host_container_types> axes_own(
@@ -153,17 +152,15 @@ GTEST_TEST(detray_grid, single_grid) {
 
     static_assert(
         std::is_same_v<decltype(const_grid_view),
-                       typename grid<cartesian_3D<>, const scalar,
-                                     simple_serializer, replacer>::view_type>,
-        "Const grid view was not correctly constructed!");
+                       typename grid<cartesian_3D<>, bins::single<const
+    scalar>>::view_type>, "Const grid view was not correctly constructed!");
 
-    grid<cartesian_3D<is_owning, device_container_types>, const scalar,
-         simple_serializer, replacer>
-        const_device_grid(const_grid_view);
+    grid<cartesian_3D<is_owning, device_container_types>, bins::single<const
+    scalar>> const_device_grid(const_grid_view);
 
     static_assert(
         std::is_same_v<typename decltype(const_device_grid)::bin_type,
-                       typename replacer::template bin_type<const scalar>>,
+                       typename replace::template bin_type<const scalar>>,
         "Const grid was not correctly constructed from view!");*/
 }
 
@@ -171,21 +168,19 @@ GTEST_TEST(detray_grid, single_grid) {
 GTEST_TEST(detray_grid, bin_view) {
 
     // Non-owning, 3D cartesian, replacing grid
-    using grid_t =
-        grid<cartesian_3D<is_owning>, scalar, simple_serializer, replacer>;
+    using grid_t = grid<cartesian_3D<is_owning>, bins::single<scalar>>;
 
     // Fill the bin data for every test
     // bin test entries
-    grid_t::bin_storage_type bin_data{};
+    grid_t::bin_container_type bin_data{};
     bin_data.resize(40'000u);
-    std::generate_n(
-        bin_data.begin(), 40'000u,
-        bin_content_sequence<populator<grid_t::populator_impl>, scalar>());
+    std::generate_n(bin_data.begin(), 40'000u,
+                    bin_content_sequence<replace<>, bins::single<scalar>>());
 
     // Copy data that will be moved into the data owning types
     dvector<scalar> bin_edges_cp(bin_edges);
     dvector<dindex_range> edge_ranges_cp(edge_ranges);
-    grid_t::bin_storage_type bin_data_cp(bin_data);
+    grid_t::bin_container_type bin_data_cp(bin_data);
 
     // Data-owning axes and grid
     cartesian_3D<is_owning, host_container_types> axes_own(
@@ -294,11 +289,11 @@ GTEST_TEST(detray_grid, bin_view) {
 GTEST_TEST(detray_grid, replace_population) {
 
     // Non-owning, 3D cartesian, replacing grid
-    using grid_t =
-        grid<cartesian_3D<is_n_owning>, scalar, simple_serializer, replacer>;
+    using grid_t = grid<cartesian_3D<is_n_owning>, bins::single<scalar>>;
     // init
-    grid_t::bin_storage_type bin_data{};
-    bin_data.resize(40'000u, populator<grid_t::populator_impl>::init<scalar>());
+    using bin_t = grid_t::bin_type;
+    grid_t::bin_container_type bin_data{};
+    bin_data.resize(40'000u, bin_t{});
 
     // Create non-owning grid
     grid_t g3r(&bin_data, ax_n_own);
@@ -319,7 +314,7 @@ GTEST_TEST(detray_grid, replace_population) {
 
     p = {-4.5f, -4.5f, 4.5f};
     // Fill and read
-    g3r.populate(p, 3u);
+    g3r.template populate<replace<>>(p, 3.f);
     EXPECT_NEAR(g3r.search(p)[0], static_cast<scalar>(3u), tol);
 
     // Fill and read two times, fill first 0-99, then 100-199
@@ -331,7 +326,7 @@ GTEST_TEST(detray_grid, replace_population) {
                     p = {static_cast<scalar>(-10 + ib0),
                          static_cast<scalar>(-20 + ib1),
                          static_cast<scalar>(0 + ib2)};
-                    g3r.populate(p, counter);
+                    g3r.template populate<replace<>>(p, counter);
                     EXPECT_NEAR(g3r.search(p)[0], counter, tol);
                     counter += 1.f;
                 }
@@ -344,27 +339,27 @@ GTEST_TEST(detray_grid, replace_population) {
 GTEST_TEST(detray_grid, complete_population) {
 
     // Non-owning, 3D cartesian, completing grid (4 dims and sort)
-    using grid_t = grid<cartesian_3D<is_n_owning>, scalar, simple_serializer,
-                        completer<4, true>>;
-    using bin_content_t = grid_t::bin_type::content_type;
+    using grid_t =
+        grid<cartesian_3D<is_n_owning>, bins::static_array<scalar, 4>>;
+    using bin_t = grid_t::bin_type;
+    using bin_content_t = std::array<scalar, 4>;
 
     // init
-    grid_t::bin_storage_type bin_data{};
-    bin_data.resize(40'000u, populator<grid_t::populator_impl>::init<scalar>());
+    grid_t::bin_container_type bin_data{};
+    bin_data.resize(40'000u, bin_t{});
     // Create non-owning grid
     grid_t g3c(&bin_data, ax_n_own);
 
     // Test the initialization
     point3 p = {-10.f, -20.f, 0.f};
-    grid_t::bin_type invalid =
-        populator<grid_t::populator_impl>::init<scalar>();
+    bin_t invalid{};
     for (int ib0 = 0; ib0 < 20; ++ib0) {
         for (int ib1 = 0; ib1 < 40; ++ib1) {
             for (int ib2 = 0; ib2 < 100; ib2 += 2) {
                 p = {static_cast<scalar>(-10 + ib0),
                      static_cast<scalar>(-20 + ib1),
                      static_cast<scalar>(0 + ib2)};
-                test_content(g3c, p, invalid.content());
+                test_content(g3c, p, invalid);
             }
         }
     }
@@ -372,7 +367,7 @@ GTEST_TEST(detray_grid, complete_population) {
     p = {-4.5f, -4.5f, 4.5f};
     bin_content_t expected{4.f, 4.f, 4.f, 4.f};
     // Fill and read
-    g3c.populate(p, 4u);
+    g3c.template populate<complete<>>(p, 4.f);
     test_content(g3c, p, expected);
 
     // Test search without search window
@@ -402,13 +397,13 @@ GTEST_TEST(detray_grid, complete_population) {
 
     // Populate some neighboring bins
     point3 p2 = {-5.5f, -4.5f, 4.5f};
-    g3c.populate(p2, 4.f);
+    g3c.template populate<complete<>>(p2, 4.f);
     p2 = {-3.5f, -4.5f, 4.5f};
-    g3c.populate(p2, 4.f);
+    g3c.template populate<complete<>>(p2, 4.f);
     p2 = {-4.5f, -5.5f, 4.5f};
-    g3c.populate(p2, 4.f);
+    g3c.template populate<complete<>>(p2, 4.f);
     p2 = {-4.5f, -3.5f, 4.5f};
-    g3c.populate(p2, 4.f);
+    g3c.template populate<complete<>>(p2, 4.f);
 
     const auto grid_search3 = g3c.search(p, search_window_size);
     ASSERT_EQ(grid_search3.size(), 20u);
@@ -422,28 +417,28 @@ GTEST_TEST(detray_grid, complete_population) {
 GTEST_TEST(detray_grid, regular_attach_population) {
 
     // Non-owning, 3D cartesian, completing grid (4 dims and sort)
-    using grid_t = grid<cartesian_3D<is_n_owning>, scalar, simple_serializer,
-                        regular_attacher<4, true>>;
-    using bin_content_t = grid_t::bin_type::content_type;
+    using grid_t =
+        grid<cartesian_3D<is_n_owning>, bins::static_array<scalar, 4>>;
+    using bin_t = grid_t::bin_type;
+    using bin_content_t = std::array<scalar, 4>;
 
     // init
-    grid_t::bin_storage_type bin_data{};
-    bin_data.resize(40'000u, populator<grid_t::populator_impl>::init<scalar>());
+    grid_t::bin_container_type bin_data{};
+    bin_data.resize(40'000u, bin_t{});
 
     // Create non-owning grid
     grid_t g3ra(&bin_data, ax_n_own);
 
     // Test the initialization
     point3 p = {-10.f, -20.f, 0.f};
-    grid_t::bin_type invalid =
-        populator<grid_t::populator_impl>::init<scalar>();
+    bin_t invalid{};
     for (int ib0 = 0; ib0 < 20; ++ib0) {
         for (int ib1 = 0; ib1 < 40; ++ib1) {
             for (int ib2 = 0; ib2 < 100; ib2 += 2) {
                 p = {static_cast<scalar>(-10 + ib0),
                      static_cast<scalar>(-20 + ib1),
                      static_cast<scalar>(0 + ib2)};
-                test_content(g3ra, p, invalid.content());
+                test_content(g3ra, p, invalid);
             }
         }
     }
@@ -451,7 +446,7 @@ GTEST_TEST(detray_grid, regular_attach_population) {
     p = {-4.5f, -4.5f, 4.5f};
     bin_content_t expected{5.f, inf, inf, inf};
     // Fill and read
-    g3ra.populate(p, 5.f);
+    g3ra.template populate<attach<>>(p, 5.f);
     test_content(g3ra, p, expected);
 
     // Test search without search window
@@ -480,8 +475,8 @@ GTEST_TEST(detray_grid, regular_attach_population) {
     }
 
     // Put more candidates into bin
-    g3ra.populate(p, 6.f);
-    g3ra.populate(p, 7.f);
+    g3ra.template populate<attach<>>(p, 6.f);
+    g3ra.template populate<attach<>>(p, 7.f);
     std::vector<scalar> entries{5.f, 6.f, 7.f};
 
     const auto grid_search3 = g3ra.search(p, search_window_size);
@@ -493,13 +488,13 @@ GTEST_TEST(detray_grid, regular_attach_population) {
 
     // Populate some neighboring bins
     point3 p2 = {-5.5f, -4.5f, 4.5f};
-    g3ra.populate(p2, 5.f);
+    g3ra.template populate<attach<>>(p2, 5.f);
     p2 = {-3.5f, -4.5f, 4.5f};
-    g3ra.populate(p2, 5.f);
+    g3ra.template populate<attach<>>(p2, 5.f);
     p2 = {-4.5f, -5.5f, 4.5f};
-    g3ra.populate(p2, 5.f);
+    g3ra.template populate<attach<>>(p2, 5.f);
     p2 = {-4.5f, -3.5f, 4.5f};
-    g3ra.populate(p2, 5.f);
+    g3ra.template populate<attach<>>(p2, 5.f);
 
     const auto grid_search4 = g3ra.search(p, search_window_size);
     ASSERT_EQ(grid_search4.size(), 7u);
