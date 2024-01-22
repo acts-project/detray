@@ -33,7 +33,16 @@ void detray::rk_stepper<magnetic_field_t, transform3_t, constraint_t, policy_t,
     dir = dir + h_6 * (sd.k1 + 2.f * (sd.k2 + sd.k3) + sd.k4);
     dir = vector::normalize(dir);
     track.set_dir(dir);
-    track.set_qop(sd.k_qop4);
+
+    auto qop = track.qop();
+    if (!(this->_mat == vacuum<scalar_t>())) {
+        const scalar_t dqopds1 = this->dqopds(qop);
+        const scalar_t dqopds2 = this->dqopds(sd.qop2);
+        const scalar_t dqopds3 = dqopds2;
+        const scalar_t dqopds4 = this->dqopds(sd.qop4);
+        qop = qop + h_6 * (dqopds1 + 2.f * (dqopds2 + dqopds3) + dqopds4);
+    }
+    track.set_qop(qop);
 
     // Update path length
     this->_path_length += h;
@@ -84,9 +93,9 @@ void detray::rk_stepper<
 
     // Q over P
     const auto qop1 = track.qop();
-    const auto qop2 = sd.k_qop2;
+    const auto qop2 = sd.qop2;
     const auto qop3 = qop2;
-    const auto qop4 = sd.k_qop4;
+    const auto qop4 = sd.qop4;
 
     /*---------------------------------------------------------------------------
      * k_{n} is always in the form of [ A(T) X B ] where A is a function of r'
@@ -181,7 +190,8 @@ void detray::rk_stepper<
             // gradient at the first stage of RKN.
             //
             // But it would be better to be more precise in the future.
-            getter::element(D, 7u, 7u) = 1.f + gradient * h;
+            getter::element(D, e_free_qoverp, e_free_qoverp) =
+                1.f + gradient * h;
         }
     }
 
@@ -274,7 +284,6 @@ auto detray::rk_stepper<
         constexpr scalar_t inv{detail::invalid_value<scalar_t>()};
         return (nextP == 0.f) ? inv : (q != 0.f) ? q / nextP : 1.f / nextP;
     }
-
     return qop;
 }
 
@@ -286,7 +295,7 @@ auto detray::rk_stepper<
     array_t>::state::evaluate_k(const vector3& b_field, const int i,
                                 const typename transform3_t::scalar_type h,
                                 const vector3& k_prev,
-                                const typename transform3_t::scalar_type k_qop)
+                                const typename transform3_t::scalar_type qop)
     -> vector3 {
     auto& track = this->_track;
     const auto dir = track.dir();
@@ -294,9 +303,9 @@ auto detray::rk_stepper<
     vector3 k_new;
 
     if (i == 0) {
-        k_new = k_qop * vector::cross(dir, b_field);
+        k_new = qop * vector::cross(dir, b_field);
     } else {
-        k_new = k_qop * vector::cross(dir + h * k_prev, b_field);
+        k_new = qop * vector::cross(dir + h * k_prev, b_field);
     }
 
     return k_new;
@@ -312,12 +321,13 @@ auto detray::rk_stepper<
 
     matrix_type<3, 3> dBdr = matrix_operator().template zero<3, 3>();
 
-    constexpr typename transform3_t::scalar_type h = 1e-4f;
+    constexpr typename transform3_t::scalar_type delta =
+        1e-1f * unit<scalar>::mm;
 
     for (unsigned int i = 0; i < 3; i++) {
 
         vector3 dpos1 = pos;
-        dpos1[i] += h;
+        dpos1[i] += delta;
         const auto bvec1_tmp =
             this->_magnetic_field.at(dpos1[0], dpos1[1], dpos1[2]);
         vector3 bvec1;
@@ -326,7 +336,7 @@ auto detray::rk_stepper<
         bvec1[2u] = bvec1_tmp[2u];
 
         vector3 dpos2 = pos;
-        dpos2[i] -= h;
+        dpos2[i] -= delta;
         const auto bvec2_tmp =
             this->_magnetic_field.at(dpos2[0], dpos2[1], dpos2[2]);
         vector3 bvec2;
@@ -334,7 +344,7 @@ auto detray::rk_stepper<
         bvec2[1u] = bvec2_tmp[1u];
         bvec2[2u] = bvec2_tmp[2u];
 
-        const vector3 gradient = (bvec1 - bvec2) * (1.f / (2.f * h));
+        const vector3 gradient = (bvec1 - bvec2) * (1.f / (2.f * delta));
 
         getter::element(dBdr, 0u, i) = gradient[0u];
         getter::element(dBdr, 1u, i) = gradient[1u];
@@ -350,6 +360,16 @@ template <typename magnetic_field_t, typename transform3_t,
 auto detray::rk_stepper<magnetic_field_t, transform3_t, constraint_t, policy_t,
                         inspector_t, array_t>::state::dqopds() const ->
     typename transform3_t::scalar_type {
+    return this->dqopds(this->_step_data.qop4);
+}
+
+template <typename magnetic_field_t, typename transform3_t,
+          typename constraint_t, typename policy_t, typename inspector_t,
+          template <typename, std::size_t> class array_t>
+auto detray::rk_stepper<magnetic_field_t, transform3_t, constraint_t, policy_t,
+                        inspector_t, array_t>::state::dqopds(const scalar_type
+                                                                 qop) const ->
+    typename transform3_t::scalar_type {
 
     using scalar_t = typename transform3_t::scalar_type;
 
@@ -361,7 +381,6 @@ auto detray::rk_stepper<magnetic_field_t, transform3_t, constraint_t, policy_t,
         return 0.f;
     }
 
-    const scalar_t qop = this->_step_data.k_qop4;
     const scalar_t q = this->_track.charge();
     const scalar_t p = q / qop;
     const scalar_t mass = this->_mass;
@@ -424,11 +443,11 @@ bool detray::rk_stepper<magnetic_field_t, transform3_t, constraint_t, policy_t,
         sd.b_middle[1] = bvec1[1];
         sd.b_middle[2] = bvec1[2];
 
-        sd.k_qop2 = stepping.evaluate_qop(half_h, cfg);
-        sd.k2 = stepping.evaluate_k(sd.b_middle, 1, half_h, sd.k1, sd.k_qop2);
+        sd.qop2 = stepping.evaluate_qop(half_h, cfg);
+        sd.k2 = stepping.evaluate_k(sd.b_middle, 1, half_h, sd.k1, sd.qop2);
 
         // Third Runge-Kutta point
-        sd.k3 = stepping.evaluate_k(sd.b_middle, 2, half_h, sd.k2, sd.k_qop2);
+        sd.k3 = stepping.evaluate_k(sd.b_middle, 2, half_h, sd.k2, sd.qop2);
 
         // Last Runge-Kutta point
         const vector3 pos2 = pos + h * dir + h2 * 0.5f * sd.k3;
@@ -436,8 +455,8 @@ bool detray::rk_stepper<magnetic_field_t, transform3_t, constraint_t, policy_t,
         sd.b_last[0] = bvec2[0];
         sd.b_last[1] = bvec2[1];
         sd.b_last[2] = bvec2[2];
-        sd.k_qop4 = stepping.evaluate_qop(h, cfg);
-        sd.k4 = stepping.evaluate_k(sd.b_last, 3, h, sd.k3, sd.k_qop4);
+        sd.qop4 = stepping.evaluate_qop(h, cfg);
+        sd.k4 = stepping.evaluate_k(sd.b_last, 3, h, sd.k3, sd.qop4);
 
         // Compute and check the local integration error estimate
         // @Todo

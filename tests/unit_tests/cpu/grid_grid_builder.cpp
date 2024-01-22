@@ -1,11 +1,9 @@
 /** Detray library, part of the ACTS project (R&D line)
  *
- * (c) 2022-2023 CERN for the benefit of the ACTS project
+ * (c) 2022-2024 CERN for the benefit of the ACTS project
  *
  * Mozilla Public License Version 2.0
  */
-
-#include <gtest/gtest.h>
 
 // Detray include(s)
 #include "detray/core/detector.hpp"
@@ -13,8 +11,6 @@
 #include "detray/detectors/toy_metadata.hpp"
 #include "detray/intersection/cylinder_portal_intersector.hpp"
 #include "detray/masks/masks.hpp"
-#include "detray/surface_finders/grid/populator.hpp"
-#include "detray/surface_finders/grid/serializer.hpp"
 #include "detray/test/types.hpp"
 #include "detray/tools/grid_builder.hpp"
 #include "detray/tools/surface_factory.hpp"
@@ -22,6 +18,9 @@
 
 // Vecmem include(s)
 #include <vecmem/memory/host_memory_resource.hpp>
+
+// Gtest include(s)
+#include <gtest/gtest.h>
 
 // System include(s)
 #include <limits>
@@ -46,7 +45,7 @@ GTEST_TEST(detray_tools, grid_factory) {
     // Data-owning grid collection
     vecmem::host_memory_resource host_mr;
     auto gr_factory =
-        grid_factory<dindex, simple_serializer, regular_attacher<3>>{host_mr};
+        grid_factory<bins::static_array<dindex, 3>, simple_serializer>{host_mr};
 
     // Build from existing mask of a surface
     const scalar minR{0.f};
@@ -72,10 +71,15 @@ GTEST_TEST(detray_tools, grid_factory) {
     // Test fill a bin to see, if bin content was correctly initialized
     point3 p = {0.5f, 2.f, 0.f};
     vector3 d{};
-    auto loc_p = ann_gr.global_to_local(Identity, p, d);
-    ann_gr.populate(loc_p, 3u);
+    auto loc_p = ann_gr.project(Identity, p, d);
+    ann_gr.template populate<attach<>>(loc_p, 3u);
+    ann_gr.template populate<attach<>>(loc_p, 5u);
+    auto bin2 = ann_gr.search(loc_p);
 
-    EXPECT_EQ(ann_gr.search(loc_p)[0], 3u);
+    EXPECT_TRUE(bin2.size() == 2u);
+    EXPECT_FALSE(bin2.empty());
+    EXPECT_EQ(bin2[0], 3u);
+    EXPECT_EQ(bin2[1], 5u);
 
     // gr_builder.to_string(ann_gr);
 
@@ -88,8 +92,8 @@ GTEST_TEST(detray_tools, grid_factory) {
         {bin_edges_z.front(), bin_edges_z.back(), 0.f,
          2.f * constant<scalar>::pi},
         {bin_edges_z.size() - 1, 10u}, {bin_edges_phi, bin_edges_z},
-        std::tuple<circular<label::e_rphi>, closed<label::e_cyl_z>>{},
-        std::tuple<regular<>, irregular<>>{});
+        types::list<circular<label::e_rphi>, closed<label::e_cyl_z>>{},
+        types::list<regular<>, irregular<>>{});
 
     // Test axis
     const auto& cyl_axis_z = cyl_gr.template get_axis<label::e_cyl_z>();
@@ -103,10 +107,12 @@ GTEST_TEST(detray_tools, grid_factory) {
                 std::numeric_limits<scalar>::epsilon());
 
     // Test fill a bin to see, if bin content was correctly initialized
-    loc_p = cyl_gr.global_to_local(Identity, p, d);
-    cyl_gr.populate(loc_p, 33u);
+    loc_p = cyl_gr.project(Identity, p, d);
+    cyl_gr.template populate<attach<>>(loc_p, 33u);
+    cyl_gr.template populate<attach<>>(loc_p, 55u);
 
     EXPECT_EQ(cyl_gr.search(loc_p)[0], 33u);
+    EXPECT_EQ(cyl_gr.search(loc_p)[1], 55u);
 
     // Build the same cylinder grid from a mask
     const scalar r{5.f};
@@ -126,7 +132,7 @@ GTEST_TEST(detray_tools, grid_builder) {
     // cylinder grid type of the toy detector
     using cyl_grid_t =
         grid<coordinate_axes<cylinder2D<>::axes<>, false, host_container_types>,
-             detector_t::surface_type, simple_serializer, regular_attacher<1>>;
+             bins::static_array<detector_t::surface_type, 1>>;
 
     auto gbuilder =
         grid_builder<detector_t, cyl_grid_t, detray::detail::bin_associator>{
@@ -162,7 +168,7 @@ GTEST_TEST(detray_tools, decorator_grid_builder) {
     // cylinder grid type of the toy detector
     using cyl_grid_t =
         grid<coordinate_axes<cylinder2D<>::axes<>, false, host_container_types>,
-             detector_t::surface_type, simple_serializer, regular_attacher<1>>;
+             bins::static_array<detector_t::surface_type, 1>>;
 
     using pt_cylinder_t = cylinder2D<false, cylinder_portal_intersector>;
     using pt_cylinder_factory_t = surface_factory<detector_t, pt_cylinder_t>;
