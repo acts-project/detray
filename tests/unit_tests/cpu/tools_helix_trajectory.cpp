@@ -205,7 +205,8 @@ GTEST_TEST(helix, direction_stability) {
 
     const point3 pos{0.f, 0.f, 0.f};
     const scalar time{0.f};
-    const vector3 mom{1.f, 1.f, 1.f * unit<scalar>::GeV};
+    const vector3 mom{1.f * unit<scalar>::GeV, 1.f * unit<scalar>::GeV,
+                      1.f * unit<scalar>::GeV};
     const scalar q{-1.f * unit<scalar>::e};
 
     // vertex
