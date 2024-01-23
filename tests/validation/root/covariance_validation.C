@@ -168,9 +168,6 @@ void draw_const_fit_par(const double fit_par, const double fit_par_error,
 void draw_tolerance(const double log10_rk_tolerance, const double x,
                     const double y) {
     std::stringstream val_stream;
-    // val_stream << std::fixed << std::setprecision(3) << fit_par << " #pm "
-    //           << fit_par_error;
-
     val_stream << "#tau = 10^{"
                << int(log10_rk_tolerance)
                << "}";

@@ -116,12 +116,6 @@ std::map<std::string, std::vector<double>> get_means(
         const std::array<double, 25u> means = get_means(rdf);
 
         for (unsigned int i = 0; i < 25u; i++) {
-
-            /*
-            // Print labels and log10(mean)
-            std::cout << labels[i] << "  " << TMath::Log10(means[i])
-                      << std::endl;
-            */
             ret[labels[i]].push_back(TMath::Log10(means[i]));
         }
 
@@ -200,7 +194,6 @@ void draw_graphs(const std::string header_title,
 void rk_tolerance_comparison(int min, int max) {
     gStyle->SetOptTitle(0);
     gStyle->SetLegendBorderSize(0);
-    // gStyle->SetLegendFont(22);
     gStyle->SetLegendTextSize(0.023);
 
     const std::array<float, 2> cdim{800, 1400};

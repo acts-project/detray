@@ -179,7 +179,6 @@ void tilt_surface(detector_t& det, const unsigned int sf_id) {
     vector3 displacement({x_shift, y_shift, z_shift});
     vector3 translation = trf.translation() + displacement;
 
-    // transform3_type new_trf(translation, local_z, curvi_u, true);
     transform3_type new_trf(translation, local_z, local_x, true);
 
     det.transform_store()[trf_link] = new_trf;
@@ -1195,9 +1194,8 @@ int main(int argc, char** argv) {
     using trk_generator_t = random_track_generator<track_type, uniform_gen_t>;
     trk_generator_t::configuration trk_gen_cfg{};
     trk_gen_cfg.n_tracks(n_tracks + n_skips);
-    trk_gen_cfg.phi_range(-constant<scalar>::pi + 0.1f,
-                          constant<scalar>::pi - 0.1f);
-    trk_gen_cfg.theta_range(0.1f, constant<scalar>::pi - 0.1f);
+    trk_gen_cfg.phi_range(-constant<scalar>::pi, constant<scalar>::pi);
+    trk_gen_cfg.theta_range(0.f, constant<scalar>::pi);
     trk_gen_cfg.mom_range(0.5f * unit<scalar>::GeV, 100.f * unit<scalar>::GeV);
     trk_gen_cfg.origin({0.f, 0.f, 0.f});
     trk_gen_cfg.origin_stddev({0.f * unit<scalar>::mm, 0.f * unit<scalar>::mm,
