@@ -65,7 +65,7 @@ std::array<double, 25u> get_means(ROOT::RDataFrame& rdf) {
     std::size_t i = 0u;
 
     for (const auto& col : cols_residual) {
-        const double residual_mean = *rdf.Mean(col);
+        const double residual_mean = *rdf.Mean<double>(col);
         ret[i++] = residual_mean;
     }
 

@@ -5,6 +5,23 @@
  * Mozilla Public License Version 2.0
  */
 
+// ROOT include(s).
+#include <Math/ProbFuncMathCore.h>
+#include <TCanvas.h>
+#include <TF1.h>
+#include <TFile.h>
+#include <TH1D.h>
+#include <TLatex.h>
+#include <TMath.h>
+#include <TROOT.h>
+#include <TStyle.h>
+#include <TTree.h>
+
+#include <ROOT/RCsvDS.hxx>
+#include <ROOT/RDataFrame.hxx>
+
+// System include(s).
+#include <iomanip>
 #include <iostream>
 #include <sstream>
 #include <vector>
@@ -168,9 +185,7 @@ void draw_const_fit_par(const double fit_par, const double fit_par_error,
 void draw_tolerance(const double log10_rk_tolerance, const double x,
                     const double y) {
     std::stringstream val_stream;
-    val_stream << "#tau = 10^{"
-               << int(log10_rk_tolerance)
-               << "}";
+    val_stream << "#tau = 10^{" << int(log10_rk_tolerance) << "}";
 
     TLatex* ttext = new TLatex(x, y, TString(val_stream.str()));
     ttext->SetTextFont(132);
@@ -203,7 +218,7 @@ void draw_pull(TH1D* h_pull, const std::string& title_text,
     draw_title(title_text.c_str(), title_x, title_y);
     draw_fit_title("Gaussian fit", fit_title_x, fit_title_y);
     draw_gaus_fit_par(fit_pars, fit_errors, gaus_fit_par_x, gaus_fit_par_y);
-    //draw_tolerance(log10_rk_tol, tolerance_x, tolerance_y);
+    // draw_tolerance(log10_rk_tol, tolerance_x, tolerance_y);
 }
 
 void draw_pval(TH1D* h_pval, const std::string& title_text,
@@ -230,7 +245,7 @@ void draw_pval(TH1D* h_pval, const std::string& title_text,
     draw_title(title_text.c_str(), title_x, title_y);
     draw_fit_title("Constant fit", fit_title_x, fit_title_y);
     draw_const_fit_par(fit_par, fit_error, const_fit_par_x, const_fit_par_y);
-    //draw_tolerance(log10_rk_tol, tolerance_x, tolerance_y);
+    // draw_tolerance(log10_rk_tol, tolerance_x, tolerance_y);
 }
 
 std::string to_pdf(const std::string& name) {

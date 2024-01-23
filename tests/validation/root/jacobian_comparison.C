@@ -5,6 +5,19 @@
  * Mozilla Public License Version 2.0
  */
 
+// ROOT include(s).
+#include <TCanvas.h>
+#include <TLegend.h>
+#include <TMath.h>
+#include <TPaveLabel.h>
+#include <TROOT.h>
+#include <TStyle.h>
+#include <TText.h>
+
+#include <ROOT/RCsvDS.hxx>
+#include <ROOT/RDataFrame.hxx>
+
+// System include(s).
 #include <iostream>
 #include <sstream>
 #include <vector>
@@ -65,9 +78,9 @@ std::vector<double> get_means(ROOT::RDataFrame& rdf) {
         const auto col_evaluate = std::get<1>(cols_per_variable);
         const auto col_numerics = std::get<2>(cols_per_variable);
 
-        const double residual_mean = *rdf.Mean(col_residual);
-        const double evaluate_mean = *rdf.Mean(col_evaluate);
-        const double numerics_mean = *rdf.Mean(col_numerics);
+        const double residual_mean = *rdf.Mean<double>(col_residual);
+        const double evaluate_mean = *rdf.Mean<double>(col_evaluate);
+        const double numerics_mean = *rdf.Mean<double>(col_numerics);
 
         std::cout << col_residual << "  " << residual_mean << "  "
                   << col_evaluate << "  " << evaluate_mean << "  "
@@ -166,10 +179,11 @@ void draw_text(const std::string& text) {
     ttext->Modify();
     ttext->GetBoundingBox(w, h);
 
-    TPaveLabel* plabel = new TPaveLabel(x1, y1, x1 + float(w) / gPad->GetWw(),
-                                      y1 + float(h) / gPad->GetWh(), text.c_str());
+    TPaveLabel* plabel =
+        new TPaveLabel(x1, y1, x1 + float(w) / gPad->GetWw(),
+                       y1 + float(h) / gPad->GetWh(), text.c_str());
     plabel->SetTextFont(132);
-    plabel->SetFillColor(kWhite);                                  
+    plabel->SetFillColor(kWhite);
     plabel->Draw();
 }
 
@@ -216,17 +230,17 @@ void jacobian_comparison() {
     helix_rect_histo->Draw("hist P same");
     rect_legend->AddEntry(helix_rect_histo, "Helix with a homogeneous field",
                           "p");
-    
+
     rect_legend->Draw();
     draw_text(rect_text);
     rect_canvas->Draw();
-    
+
     rect_canvas->SaveAs(rect_pdf.c_str());
 
     /************************
      *  Wire
      * **********************/
-    
+
     auto wire_canvas =
         new TCanvas("wire_canvas", "wire_canvas", cdim[0], cdim[1]);
     wire_canvas->SetGridx();
@@ -240,7 +254,7 @@ void jacobian_comparison() {
     wire_legend->AddEntry(inhom_wire_material_histo,
                           "RKN with an inhomogeneous field and a material",
                           "p");
-    
+
     auto inhom_wire_histo = get_histogram("inhom_wire", 20, 26);
     inhom_wire_histo->Draw("hist P same");
     wire_legend->AddEntry(inhom_wire_histo, "RKN with an inhomogeneous field",
@@ -255,7 +269,7 @@ void jacobian_comparison() {
     helix_wire_histo->Draw("hist P same");
     wire_legend->AddEntry(helix_wire_histo, "Helix with a homogeneous field",
                           "p");
-    
+
     wire_legend->Draw();
     draw_text(wire_text);
     wire_canvas->Draw();

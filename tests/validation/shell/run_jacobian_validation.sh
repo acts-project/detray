@@ -159,10 +159,10 @@ echo "Finished merging Csv files"
 cd ${output_dir}
 
 # Run rk_tolerance_comparision.C
-root -q '../../../../tests/validation/root/rk_tolerance_comparison.C+('${log10_min_rk_tol}','${log10_max_rk_tol}')'
+root -q '../../../../tests/validation/root/rk_tolerance_comparison.C+O('${log10_min_rk_tol}','${log10_max_rk_tol}')'
 
 # Run jacobian_comparison.C
-root -q -l ../../../../tests/validation/root/jacobian_comparison.C
+root -q -l ../../../../tests/validation/root/jacobian_comparison.C+O
 
 # Run covariance_validation.C
-root -q -l ../../../../tests/validation/root/covariance_validation.C
+root -q -l ../../../../tests/validation/root/covariance_validation.C+O
