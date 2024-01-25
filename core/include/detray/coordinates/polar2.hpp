@@ -81,8 +81,8 @@ struct polar2 : public coordinate_base<polar2, transform3_t> {
      * cartesian 3D frame*/
     DETRAY_HOST_DEVICE inline point3 local_to_global(const transform3_t &trf,
                                                      const point3 &p) const {
-        const scalar_type x = p[0] * math_ns::cos(p[1]);
-        const scalar_type y = p[0] * math_ns::sin(p[1]);
+        const scalar_type x = p[0] * math::cos(p[1]);
+        const scalar_type y = p[0] * math::sin(p[1]);
 
         return trf.point_to_global(point3{x, y, p[2]});
     }
@@ -146,8 +146,8 @@ struct polar2 : public coordinate_base<polar2, transform3_t> {
         const scalar_type lrad{local[0]};
         const scalar_type lphi{local[1]};
 
-        const scalar_type lcos_phi{math_ns::cos(lphi)};
-        const scalar_type lsin_phi{math_ns::sin(lphi)};
+        const scalar_type lcos_phi{math::cos(lphi)};
+        const scalar_type lsin_phi{math::sin(lphi)};
 
         // reference matrix
         const auto frame = reference_frame(trf3, pos, dir);
@@ -185,8 +185,8 @@ struct polar2 : public coordinate_base<polar2, transform3_t> {
         const scalar_type lrad{local[0]};
         const scalar_type lphi{local[1]};
 
-        const scalar_type lcos_phi{math_ns::cos(lphi)};
-        const scalar_type lsin_phi{math_ns::sin(lphi)};
+        const scalar_type lcos_phi{math::cos(lphi)};
+        const scalar_type lsin_phi{math::sin(lphi)};
 
         // reference matrix
         const auto frame = reference_frame(trf3, pos, dir);

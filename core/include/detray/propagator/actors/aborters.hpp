@@ -50,7 +50,7 @@ struct pathlimit_aborter : actor {
         }
 
         // Check the path limit
-        abrt_state._path_limit -= std::abs(prop_state._stepping.step_size());
+        abrt_state._path_limit -= math::abs(prop_state._stepping.step_size());
         if (abrt_state.path_limit() <= 0) {
             // Stop navigation
             prop_state._heartbeat &= nav_state.abort();

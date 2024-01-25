@@ -38,7 +38,7 @@ class quadratic_equation {
         const scalar_t a, const scalar_t b, const scalar_t c,
         const scalar_t tolerance = std::numeric_limits<scalar_t>::epsilon()) {
         // linear case
-        if (math_ns::abs(a) <= tolerance) {
+        if (math::abs(a) <= tolerance) {
             m_solutions = 1;
             m_values[0] = -c / b;
         } else {
@@ -48,7 +48,7 @@ class quadratic_equation {
                 m_solutions = 2;
                 const scalar_t q{
                     -0.5f *
-                    (b + detail::copysign(math_ns::sqrt(discriminant), b))};
+                    (b + detail::copysign(math::sqrt(discriminant), b))};
                 m_values = {q / a, c / q};
                 // Sort the two solutions
                 if (m_values[0] > m_values[1]) {

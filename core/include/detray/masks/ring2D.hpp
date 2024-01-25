@@ -159,13 +159,13 @@ class ring2D {
 
         constexpr auto tol{10.f * std::numeric_limits<scalar_t>::epsilon()};
 
-        if (std::signbit(bounds[e_inner_r]) or bounds[e_outer_r] < tol) {
+        if (math::signbit(bounds[e_inner_r]) or bounds[e_outer_r] < tol) {
             os << "ERROR: Radius must be in the range [0, numeric_max)"
                << std::endl;
             return false;
         }
         if (bounds[e_inner_r] >= bounds[e_outer_r] or
-            std::abs(bounds[e_inner_r] - bounds[e_outer_r]) < tol) {
+            math::abs(bounds[e_inner_r] - bounds[e_outer_r]) < tol) {
             os << "ERROR: Inner radius must be smaller outer radius.";
             return false;
         }

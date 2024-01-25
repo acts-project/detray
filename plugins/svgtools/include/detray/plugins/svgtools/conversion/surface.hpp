@@ -84,7 +84,8 @@ auto inline surface(const transform_t& transform,
     auto hz = static_cast<actsvg::scalar>(0.5f * (phz - nhz));
 
     // ACTS-like cylinder definition: symmetric around translation
-    if (std::abs(nhz - phz) <= std::numeric_limits<actsvg::scalar>::epsilon()) {
+    if (math::abs(nhz - phz) <=
+        std::numeric_limits<actsvg::scalar>::epsilon()) {
         p_surface._zparameters = {z0, hz};
 
     } else {

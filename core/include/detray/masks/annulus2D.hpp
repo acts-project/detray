@@ -100,7 +100,7 @@ class annulus2D {
     DETRAY_HOST_DEVICE darray<scalar_t, 8> stereo_angle(
         const bounds_t<scalar_t, kDIM> &bounds) const {
         // Half stereo angle (phi_s / 2) (y points in the long strip direction)
-        return 2.f * math_ns::atan(bounds[e_shift_y] / bounds[e_shift_x]);
+        return 2.f * math::atan(bounds[e_shift_y] / bounds[e_shift_x]);
     }
 
     /// @brief Check boundary values for a local point.
@@ -141,7 +141,7 @@ class annulus2D {
 
         const scalar_t r_mod2{shift_r * shift_r + loc_p[0] * loc_p[0] +
                               2.f * shift_r * loc_p[0] *
-                                  math_ns::cos(phi_strp - shift_phi)};
+                                  math::cos(phi_strp - shift_phi)};
 
         // Apply tolerances as squares: 0 <= a, 0 <= b: a^2 <= b^2 <=> a <= b
         const scalar_t minR_tol{bounds[e_min_r] - tol};
@@ -181,21 +181,21 @@ class annulus2D {
         const scalar_t o_y{bounds[e_shift_y]};
 
         // Corner points 'b' and 'c' in local cartesian beam system
-        const point_t b{c_pos[4] * math_ns::cos(c_pos[5]) - o_x,
-                        c_pos[4] * math_ns::sin(c_pos[5]) - o_y};
-        const point_t c{c_pos[6] * math_ns::cos(c_pos[7]) - o_x,
-                        c_pos[6] * math_ns::sin(c_pos[7]) - o_y};
+        const point_t b{c_pos[4] * math::cos(c_pos[5]) - o_x,
+                        c_pos[4] * math::sin(c_pos[5]) - o_y};
+        const point_t c{c_pos[6] * math::cos(c_pos[7]) - o_x,
+                        c_pos[6] * math::sin(c_pos[7]) - o_y};
 
         // bisector = 0.5 * (c + b). Scale to the length of the full circle to
         // get the outermost point
         const point_t t = bounds[e_max_r] * vector::normalize(c + b);
 
         // Find the min/max positions in x and y
-        darray<scalar_t, 5> x_pos{c_pos[2] * math_ns::cos(c_pos[3]) - o_x, b[0],
-                                  c[0], c_pos[0] * math_ns::cos(c_pos[1]) - o_x,
+        darray<scalar_t, 5> x_pos{c_pos[2] * math::cos(c_pos[3]) - o_x, b[0],
+                                  c[0], c_pos[0] * math::cos(c_pos[1]) - o_x,
                                   t[0]};
-        darray<scalar_t, 5> y_pos{c_pos[2] * math_ns::sin(c_pos[3]) - o_y, b[1],
-                                  c[1], c_pos[0] * math_ns::sin(c_pos[1]) - o_y,
+        darray<scalar_t, 5> y_pos{c_pos[2] * math::sin(c_pos[3]) - o_y, b[1],
+                                  c[1], c_pos[0] * math::sin(c_pos[1]) - o_y,
                                   t[1]};
 
         constexpr scalar_t inv{detail::invalid_value<scalar_t>()};
@@ -237,11 +237,10 @@ class annulus2D {
 
             // f * sin(phi_s / 2 + phi) using: f_y / f = sin(phi_s / 2) and
             // sin(a + b) = sin(a)*cos(b) + cos(a)*sin(b)
-            const scalar_t f_sin_phi{bounds[e_shift_x] * math_ns::cos(phi) +
-                                     bounds[e_shift_y] * math_ns::sin(phi)};
+            const scalar_t f_sin_phi{bounds[e_shift_x] * math::cos(phi) +
+                                     bounds[e_shift_y] * math::sin(phi)};
 
-            return f_sin_phi +
-                   math_ns::sqrt(f_sin_phi * f_sin_phi - f2 + R * R);
+            return f_sin_phi + math::sqrt(f_sin_phi * f_sin_phi - f2 + R * R);
         };
 
         // Calculate the polar coordinates for the corners
@@ -281,8 +280,8 @@ class annulus2D {
         const scalar_t r{0.25f * (crns[0] + crns[2] + crns[4] + crns[6])};
         const scalar_t phi{bounds[e_average_phi]};
 
-        return r * typename algebra_t::point3{math_ns::cos(phi),
-                                              math_ns::sin(phi), 0.f};
+        return r *
+               typename algebra_t::point3{math::cos(phi), math::sin(phi), 0.f};
     }
 
     /// Generate vertices in local cartesian frame
@@ -320,20 +319,22 @@ class annulus2D {
             //
             // y = m*x
             //
-            scalar_t m = std::tan(phi);
-            point2_t dir = {math_ns::cos(phi), std::sin(phi)};
-            scalar_t x1 = (O_x + O_y * m -
-                           std::sqrt(-std::pow(O_x, 2.f) * std::pow(m, 2.f) +
-                                     2.f * O_x * O_y * m - std::pow(O_y, 2.f) +
-                                     std::pow(m, 2.f) * std::pow(r, 2.f) +
-                                     std::pow(r, 2.f))) /
-                          (std::pow(m, 2.f) + 1.f);
-            scalar_t x2 = (O_x + O_y * m +
-                           std::sqrt(-std::pow(O_x, 2.f) * std::pow(m, 2.f) +
-                                     2.f * O_x * O_y * m - std::pow(O_y, 2.f) +
-                                     std::pow(m, 2.f) * std::pow(r, 2.f) +
-                                     std::pow(r, 2.f))) /
-                          (std::pow(m, 2.f) + 1.f);
+            scalar_t m = math::tan(phi);
+            point2_t dir = {math::cos(phi), math::sin(phi)};
+            scalar_t x1 =
+                (O_x + O_y * m -
+                 math::sqrt(-math::pow(O_x, 2.f) * math::pow(m, 2.f) +
+                            2.f * O_x * O_y * m - math::pow(O_y, 2.f) +
+                            math::pow(m, 2.f) * math::pow(r, 2.f) +
+                            math::pow(r, 2.f))) /
+                (math::pow(m, 2.f) + 1.f);
+            scalar_t x2 =
+                (O_x + O_y * m +
+                 math::sqrt(-math::pow(O_x, 2.f) * math::pow(m, 2.f) +
+                            2.f * O_x * O_y * m - math::pow(O_y, 2.f) +
+                            math::pow(m, 2.f) * math::pow(r, 2.f) +
+                            math::pow(r, 2.f))) /
+                (math::pow(m, 2.f) + 1.f);
 
             point2_t v1 = {x1, m * x1};
             if (vector::dot(v1, dir) > 0.f)
@@ -358,14 +359,14 @@ class annulus2D {
         annulus_vertices.reserve(inner_phi.size() + outer_phi.size());
         for (scalar_t iphi : inner_phi) {
             annulus_vertices.push_back(
-                point3_t{min_r * math_ns::cos(iphi) + origin_x,
-                         min_r * math_ns::sin(iphi) + origin_y, 0.f});
+                point3_t{min_r * math::cos(iphi) + origin_x,
+                         min_r * math::sin(iphi) + origin_y, 0.f});
         }
 
         for (scalar_t ophi : outer_phi) {
             annulus_vertices.push_back(
-                point3_t{max_r * math_ns::cos(ophi) + origin_x,
-                         max_r * math_ns::sin(ophi) + origin_y, 0.f});
+                point3_t{max_r * math::cos(ophi) + origin_x,
+                         max_r * math::sin(ophi) + origin_y, 0.f});
         }
 
         return annulus_vertices;
@@ -385,12 +386,12 @@ class annulus2D {
 
         constexpr auto tol{10.f * std::numeric_limits<scalar_t>::epsilon()};
 
-        if (std::signbit(bounds[e_min_r]) or bounds[e_max_r] < tol) {
+        if (math::signbit(bounds[e_min_r]) or bounds[e_max_r] < tol) {
             os << "ERROR: Radial bounds must be in the range [0, numeric_max)";
             return false;
         }
         if (bounds[e_min_r] >= bounds[e_max_r] or
-            std::abs(bounds[e_min_r] - bounds[e_max_r]) < tol) {
+            math::abs(bounds[e_min_r] - bounds[e_max_r]) < tol) {
             os << "ERROR: Min radius must be smaller than max radius.";
             return false;
         }
@@ -404,7 +405,7 @@ class annulus2D {
             return false;
         }
         if (bounds[e_min_phi_rel] >= bounds[e_max_phi_rel] or
-            std::abs(bounds[e_min_phi_rel] - bounds[e_max_phi_rel]) < tol) {
+            math::abs(bounds[e_min_phi_rel] - bounds[e_max_phi_rel]) < tol) {
             os << "ERROR: Min relative angle must be smaller than max relative "
                   "angle.";
             return false;

@@ -170,7 +170,7 @@ inline void create_barrel_modules(context_t &ctx, volume_type &vol,
 
     scalar z_start{-0.5f * static_cast<scalar>(n_z_bins - 1u) *
                    (2.f * cfg.m_half_y - cfg.m_long_overlap)};
-    scalar z_step{(std::abs(z_start) - z_start) /
+    scalar z_step{(math::abs(z_start) - z_start) /
                   static_cast<scalar>(n_z_bins - 1)};
 
     // loop over the z bins
@@ -184,7 +184,7 @@ inline void create_barrel_modules(context_t &ctx, volume_type &vol,
             // calculate the current phi value
             scalar m_phi{min_phi + static_cast<scalar>(phiBin) * phi_step};
             m_centers.push_back(
-                point3{m_r * math_ns::cos(m_phi), m_r * std::sin(m_phi), m_z});
+                point3{m_r * math::cos(m_phi), m_r * math::sin(m_phi), m_z});
         }
     }
 
@@ -210,11 +210,11 @@ inline void create_barrel_modules(context_t &ctx, volume_type &vol,
         // The local phi
         scalar m_phi{algebra::getter::phi(m_center)};
         // Local z axis is the normal vector
-        vector3 m_local_z{math_ns::cos(m_phi + cfg.m_tilt_phi),
-                          std::sin(m_phi + cfg.m_tilt_phi), 0.f};
+        vector3 m_local_z{math::cos(m_phi + cfg.m_tilt_phi),
+                          math::sin(m_phi + cfg.m_tilt_phi), 0.f};
         // Local x axis the normal to local y,z
-        vector3 m_local_x{-std::sin(m_phi + cfg.m_tilt_phi),
-                          math_ns::cos(m_phi + cfg.m_tilt_phi), 0.f};
+        vector3 m_local_x{-math::sin(m_phi + cfg.m_tilt_phi),
+                          math::cos(m_phi + cfg.m_tilt_phi), 0.f};
 
         // Create the module transform
         transforms.emplace_back(ctx, m_center, m_local_z, m_local_x);
@@ -440,8 +440,8 @@ inline auto module_positions_ring(scalar z, scalar radius, scalar phi_stagger,
         scalar phi{min_phi + static_cast<scalar>(iphi) * phi_step};
         // main z position depending on phi bin
         scalar rz{iphi % 2u ? z - 0.5f * phi_stagger : z + 0.5f * phi_stagger};
-        r_positions.push_back(vector3{radius * math_ns::cos(phi),
-                                      radius * std::sin(phi), rz + rzs});
+        r_positions.push_back(vector3{radius * math::cos(phi),
+                                      radius * math::sin(phi), rz + rzs});
     }
     return r_positions;
 }
@@ -561,7 +561,7 @@ inline void create_endcap_modules(context_t &ctx, volume_type &vol,
             point3 m_center{m_position};
             m_center[2] *= static_cast<scalar>(cfg.side);
             // the rotation matrix of the module
-            vector3 m_local_y{math_ns::cos(m_phi), std::sin(m_phi), 0.f};
+            vector3 m_local_y{math::cos(m_phi), math::sin(m_phi), 0.f};
             // take different axis to have the same readout direction
             vector3 m_local_z{0.f, 0.f, static_cast<scalar>(cfg.side)};
             vector3 m_local_x = algebra::vector::cross(m_local_y, m_local_z);
@@ -741,8 +741,8 @@ inline void add_endcap_barrel_connection(
     const detail::detector_helper<transform3_t> det_helper{};
 
     const scalar sign{static_cast<scalar>(side)};
-    const scalar min_z{std::min(sign * gap_lower_z, sign * gap_upper_z)};
-    const scalar max_z{std::max(sign * gap_lower_z, sign * gap_upper_z)};
+    const scalar min_z{math::min(sign * gap_lower_z, sign * gap_upper_z)};
+    const scalar max_z{math::max(sign * gap_lower_z, sign * gap_upper_z)};
     const scalar edc_disc_z{side < 0 ? min_z : max_z};
     const scalar brl_disc_z{side < 0 ? max_z : min_z};
 
@@ -1147,7 +1147,7 @@ inline auto create_toy_geometry(vecmem::memory_resource &resource,
     }
     // the radius of the endcaps and  the barrel section need to match
     if (cfg.n_edc_layers() > 0 and
-        std::fabs(brl_lay_sizes[cfg.n_brl_layers()].second -
+        math::abs(brl_lay_sizes[cfg.n_brl_layers()].second -
                   edc_config.outer_r) >
             std::numeric_limits<scalar>::epsilon()) {
         throw std::invalid_argument(

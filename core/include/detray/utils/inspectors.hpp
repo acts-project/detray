@@ -159,7 +159,7 @@ struct print_inspector {
         }
 
         debug_stream << "distance to next\t\t";
-        if (math_ns::abs(state()) < cfg.on_surface_tolerance) {
+        if (math::abs(state()) < cfg.on_surface_tolerance) {
             debug_stream << "on obj (within tol)" << std::endl;
         } else {
             debug_stream << state() << std::endl;
@@ -224,7 +224,7 @@ struct print_inspector {
 
         auto pos = state().pos();
 
-        debug_stream << "Pos:\t[r = " << std::hypot(pos[0], pos[1])
+        debug_stream << "Pos:\t[r = " << math::hypot(pos[0], pos[1])
                      << ", z = " << pos[2] << "]" << std::endl;
         debug_stream << "Tangent:\t"
                      << detail::ray<__plugin::transform3<scalar>>(state())

@@ -85,10 +85,10 @@ struct track_helper {
             matrix_operator().element(bound_vec, e_bound_phi, 0u)};
         const scalar_type theta{
             matrix_operator().element(bound_vec, e_bound_theta, 0u)};
-        const scalar_type sinTheta{math_ns::sin(theta)};
+        const scalar_type sinTheta{math::sin(theta)};
 
-        return {math_ns::cos(phi) * sinTheta, math_ns::sin(phi) * sinTheta,
-                math_ns::cos(theta)};
+        return {math::cos(phi) * sinTheta, math::sin(phi) * sinTheta,
+                math::cos(theta)};
     }
 
     DETRAY_HOST_DEVICE
@@ -135,7 +135,7 @@ struct track_helper {
     inline scalar_type qopT(const bound_vector& bound_vec) const {
         const scalar_type theta{
             matrix_operator().element(bound_vec, e_bound_theta, 0u)};
-        const scalar_type sinTheta{math_ns::sin(theta)};
+        const scalar_type sinTheta{math::sin(theta)};
         assert(sinTheta != 0.f);
         return matrix_operator().element(bound_vec, e_bound_qoverp, 0u) /
                sinTheta;
@@ -151,7 +151,7 @@ struct track_helper {
     inline scalar_type qopz(const bound_vector& bound_vec) const {
         const scalar_type theta{
             matrix_operator().element(bound_vec, e_bound_theta, 0u)};
-        const scalar_type cosTheta{math_ns::cos(theta)};
+        const scalar_type cosTheta{math::cos(theta)};
         assert(cosTheta != 0.f);
         return matrix_operator().element(bound_vec, e_bound_qoverp, 0u) /
                cosTheta;
@@ -169,7 +169,7 @@ struct track_helper {
 
     DETRAY_HOST_DEVICE
     inline scalar_type charge(const free_vector& free_vec) const {
-        return std::signbit(
+        return math::signbit(
                    matrix_operator().element(free_vec, e_free_qoverp, 0u))
                    ? -1.f
                    : 1.f;
@@ -177,7 +177,7 @@ struct track_helper {
 
     DETRAY_HOST_DEVICE
     inline scalar_type charge(const bound_vector& bound_vec) const {
-        return std::signbit(
+        return math::signbit(
                    matrix_operator().element(bound_vec, e_bound_qoverp, 0u))
                    ? -1.f
                    : 1.f;

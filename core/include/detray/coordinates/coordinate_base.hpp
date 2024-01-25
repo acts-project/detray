@@ -134,10 +134,10 @@ struct coordinate_base {
         const scalar_type phi{
             matrix_operator().element(bound_vec, e_bound_phi, 0u)};
 
-        const scalar_type cos_theta{math_ns::cos(theta)};
-        const scalar_type sin_theta{math_ns::sin(theta)};
-        const scalar_type cos_phi{math_ns::cos(phi)};
-        const scalar_type sin_phi{math_ns::sin(phi)};
+        const scalar_type cos_theta{math::cos(theta)};
+        const scalar_type sin_theta{math::sin(theta)};
+        const scalar_type cos_phi{math::cos(phi)};
+        const scalar_type sin_phi{math::sin(phi)};
 
         // Global position and direction
         const auto free_vec = bound_to_free_vector(trf3, mask, bound_vec);
@@ -188,10 +188,10 @@ struct coordinate_base {
         const scalar_type theta{getter::theta(dir)};
         const scalar_type phi{getter::phi(dir)};
 
-        const scalar_type cos_theta{math_ns::cos(theta)};
-        const scalar_type sin_theta{math_ns::sin(theta)};
-        const scalar_type cos_phi{math_ns::cos(phi)};
-        const scalar_type sin_phi{math_ns::sin(phi)};
+        const scalar_type cos_theta{math::cos(theta)};
+        const scalar_type sin_theta{math::sin(theta)};
+        const scalar_type cos_phi{math::cos(phi)};
+        const scalar_type sin_phi{math::sin(phi)};
 
         // Set d(loc0, loc1)/d(x,y,z)
         Derived<transform3_t>().set_free_pos_to_bound_pos_derivative(

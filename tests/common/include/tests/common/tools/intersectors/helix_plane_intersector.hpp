@@ -76,7 +76,7 @@ struct helix_plane_intersector {
         // f(s) = sn * (h.pos(s) - st) == 0
         // Run the iteration on s
         std::size_t n_tries{0u};
-        while (std::abs(s - s_prev) > convergence_tolerance and
+        while (math::abs(s - s_prev) > convergence_tolerance and
                n_tries < max_n_tries) {
             // f'(s) = sn * h.dir(s)
             const scalar_type denom{vector::dot(sn, h.dir(s))};
@@ -102,7 +102,7 @@ struct helix_plane_intersector {
         // Compute some additional information if the intersection is valid
         if (sfi.status == intersection::status::e_inside) {
             sfi.sf_desc = sf_desc;
-            sfi.direction = std::signbit(s)
+            sfi.direction = math::signbit(s)
                                 ? intersection::direction::e_opposite
                                 : intersection::direction::e_along;
             sfi.volume_link = mask.volume_link();

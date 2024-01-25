@@ -221,11 +221,11 @@ struct pointwise_material_interactor : actor {
                            const scalar_type e_loss, const int sign) const {
         // Get new Energy
         const scalar_type nextE{
-            std::sqrt(m * m + p * p) -
-            std::copysign(e_loss, static_cast<scalar_type>(sign))};
+            math::sqrt(m * m + p * p) -
+            math::copysign(e_loss, static_cast<scalar_type>(sign))};
 
         // Put particle at rest if energy loss is too large
-        const scalar_type nextP{(m < nextE) ? std::sqrt(nextE * nextE - m * m)
+        const scalar_type nextP{(m < nextE) ? math::sqrt(nextE * nextE - m * m)
                                             : 0.f};
 
         // For neutral particles, qoverp = 1/p
@@ -246,7 +246,7 @@ struct pointwise_material_interactor : actor {
         const scalar_type variance_qop{sigma_qop * sigma_qop};
 
         matrix_operator().element(covariance, e_bound_qoverp, e_bound_qoverp) +=
-            std::copysign(variance_qop, static_cast<scalar_type>(sign));
+            math::copysign(variance_qop, static_cast<scalar_type>(sign));
     }
 
     /// @brief Update the variance of phi and theta of bound track parameter
@@ -260,7 +260,7 @@ struct pointwise_material_interactor : actor {
         const scalar_type projected_scattering_angle, const int sign) const {
 
         // variance of projected scattering angle
-        const scalar_type var_scattering_angle{std::copysign(
+        const scalar_type var_scattering_angle{math::copysign(
             projected_scattering_angle * projected_scattering_angle,
             static_cast<scalar_type>(sign))};
 

@@ -181,14 +181,14 @@ class volume_builder : public volume_builder_interface<detector_t> {
             };
 
             auto first = static_cast<dindex>(
-                std::abs(std::find_if(std::begin(m_surfaces),
-                                      std::end(m_surfaces), is_sf_type) -
-                         std::begin(m_surfaces)));
+                math::abs(std::find_if(std::begin(m_surfaces),
+                                       std::end(m_surfaces), is_sf_type) -
+                          std::begin(m_surfaces)));
 
             auto last = static_cast<dindex>(
-                std::abs(std::rend(m_surfaces) -
-                         std::find_if(std::rbegin(m_surfaces),
-                                      std::rend(m_surfaces), is_sf_type)));
+                math::abs(std::rend(m_surfaces) -
+                          std::find_if(std::rbegin(m_surfaces),
+                                       std::rend(m_surfaces), is_sf_type)));
 
             // Set correct empty range, otherwise shift by global surface offset
             return (first >= last)

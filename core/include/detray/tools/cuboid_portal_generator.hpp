@@ -142,9 +142,9 @@ class cuboid_portal_generator final
 
         // Get the half lengths for the rectangle sides and translation
         const point3_t h_lengths = 0.5f * (box_max - box_min);
-        const scalar h_x{math_ns::abs(h_lengths[0])};
-        const scalar h_y{math_ns::abs(h_lengths[1])};
-        const scalar h_z{math_ns::abs(h_lengths[2])};
+        const scalar h_x{math::abs(h_lengths[0])};
+        const scalar h_y{math::abs(h_lengths[1])};
+        const scalar h_z{math::abs(h_lengths[2])};
 
         // Volume links for the portal descriptors and the masks
         const dindex volume_idx{volume.index()};
