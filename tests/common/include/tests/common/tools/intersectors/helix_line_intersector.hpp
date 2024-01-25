@@ -102,7 +102,7 @@ struct helix_line_intersector {
 
         // Run the iteration on s
         std::size_t n_tries{0u};
-        while (std::abs(s - s_prev) > convergence_tolerance and
+        while (math::abs(s - s_prev) > convergence_tolerance and
                n_tries < max_n_tries) {
 
             // track direction
@@ -152,7 +152,7 @@ struct helix_line_intersector {
         // Compute some additional information if the intersection is valid
         if (sfi.status == intersection::status::e_inside) {
             sfi.sf_desc = sf_desc;
-            sfi.direction = std::signbit(s)
+            sfi.direction = math::signbit(s)
                                 ? intersection::direction::e_opposite
                                 : intersection::direction::e_along;
             sfi.volume_link = mask.volume_link();

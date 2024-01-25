@@ -162,7 +162,7 @@ void detray::rk_stepper<
             const auto& mass = this->_mass;
             const scalar_t p2 = p * p;
             const scalar_t E2 = p2 + mass * mass;
-            const scalar_t E = math_ns::sqrt(E2);
+            const scalar_t E = math::sqrt(E2);
 
             // Interaction object
             interaction<scalar> I;
@@ -274,12 +274,12 @@ auto detray::rk_stepper<
         // @TODO: Recycle the codes in pointwise_material_interactor.hpp
         // Get new Energy
         const scalar_t nextE{
-            std::sqrt(mass * mass + p * p) -
-            std::copysign(eloss, static_cast<scalar_t>(direction))};
+            math::sqrt(mass * mass + p * p) -
+            math::copysign(eloss, static_cast<scalar_t>(direction))};
 
         // Put particle at rest if energy loss is too large
         const scalar_t nextP{
-            (mass < nextE) ? std::sqrt(nextE * nextE - mass * mass) : 0.f};
+            (mass < nextE) ? math::sqrt(nextE * nextE - mass * mass) : 0.f};
 
         constexpr scalar_t inv{detail::invalid_value<scalar_t>()};
         return (nextP == 0.f) ? inv : (q != 0.f) ? q / nextP : 1.f / nextP;
@@ -384,7 +384,7 @@ auto detray::rk_stepper<magnetic_field_t, transform3_t, constraint_t, policy_t,
     const scalar_t q = this->_track.charge();
     const scalar_t p = q / qop;
     const scalar_t mass = this->_mass;
-    const scalar_t E = std::sqrt(p * p + mass * mass);
+    const scalar_t E = math::sqrt(p * p + mass * mass);
 
     // Compute stopping power
     const scalar_t stopping_power =
@@ -462,7 +462,7 @@ bool detray::rk_stepper<magnetic_field_t, transform3_t, constraint_t, policy_t,
         // @Todo
         const vector3 err_vec = h2 * (sd.k1 - sd.k2 - sd.k3 + sd.k4);
         error_estimate =
-            std::max(getter::norm(err_vec), static_cast<scalar_t>(1e-20));
+            math::max(getter::norm(err_vec), static_cast<scalar_t>(1e-20));
 
         return (error_estimate <= cfg.rk_error_tol);
     };
@@ -476,11 +476,11 @@ bool detray::rk_stepper<magnetic_field_t, transform3_t, constraint_t, policy_t,
     // Adjust initial step size to integration error
     while (!try_rk4(stepping._step_size)) {
 
-        step_size_scaling =
-            std::min(std::max(0.25f * unit<scalar_t>::mm,
-                              std::sqrt(std::sqrt((cfg.rk_error_tol /
-                                                   std::abs(error_estimate))))),
-                     static_cast<scalar_t>(4));
+        step_size_scaling = math::min(
+            math::max(0.25f * unit<scalar_t>::mm,
+                      math::sqrt(math::sqrt(
+                          (cfg.rk_error_tol / math::abs(error_estimate))))),
+            static_cast<scalar_t>(4));
 
         // Only step size reduction is allowed so that we don't overstep
         assert(step_size_scaling <= 1.f);
@@ -489,7 +489,7 @@ bool detray::rk_stepper<magnetic_field_t, transform3_t, constraint_t, policy_t,
 
         // If step size becomes too small the particle remains at the
         // initial place
-        if (std::abs(stepping._step_size) < std::abs(cfg.min_stepsize)) {
+        if (math::abs(stepping._step_size) < math::abs(cfg.min_stepsize)) {
             // Not moving due to too low momentum needs an aborter
             return navigation.abort();
         }
@@ -514,8 +514,8 @@ bool detray::rk_stepper<magnetic_field_t, transform3_t, constraint_t, policy_t,
     stepping.set_direction(step_dir);
 
     // Check constraints
-    if (std::abs(stepping.step_size()) >
-        std::abs(
+    if (math::abs(stepping.step_size()) >
+        math::abs(
             stepping.constraints().template size<>(stepping.direction()))) {
 
         // Run inspection before step size is cut

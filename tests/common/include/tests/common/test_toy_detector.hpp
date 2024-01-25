@@ -256,7 +256,7 @@ inline bool test_toy_detector(
             // This means no grids, all surfaces are in the brute force method
             if (not has_grids) {
                 const auto full_range = darray<dindex, 2>{
-                    pt_range[0], std::max(pt_range[1], sf_range[1])};
+                    pt_range[0], math::max(pt_range[1], sf_range[1])};
                 test_finder(bf_finder, vol_itr->index(), full_range);
             } else {
                 test_finder(bf_finder, vol_itr->index(), pt_range);

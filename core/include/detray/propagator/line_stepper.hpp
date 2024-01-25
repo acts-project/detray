@@ -112,8 +112,8 @@ class line_stepper final
         stepping.set_direction(dir);
 
         // Check constraints
-        if (std::abs(step_size) >
-            std::abs(
+        if (math::abs(step_size) >
+            math::abs(
                 stepping.constraints().template size<>(stepping.direction()))) {
             // Run inspection before step size is cut
             stepping.run_inspector(cfg, "Before constraint: ");

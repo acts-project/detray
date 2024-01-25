@@ -339,8 +339,7 @@ bound_track_parameters<transform3_type>::covariance_type directly_differentiate(
         scalar delta = hs[i];
 
         if (i == 0 || i == 1) {
-            delta =
-                math_ns::max(avg_step_size * hs[i], 1e-1f * unit<scalar>::mm);
+            delta = math::max(avg_step_size * hs[i], 1e-1f * unit<scalar>::mm);
         } else if (i == 2 || i == 3) {
             delta = hs[i];
         } else if (i == 4) {
@@ -396,7 +395,7 @@ bound_track_parameters<transform3_type> get_initial_parameter(
     auto sfi = hlx_is(hlx, departure_sf, departure_mask, departure_trf, 0.f);
     EXPECT_EQ(sfi.status, intersection::status::e_inside)
         << " Initial surface not found" << std::endl
-        << " log10(Helix tolerance): " << math_ns::log10(helix_tolerance)
+        << " log10(Helix tolerance): " << math::log10(helix_tolerance)
         << " Phi: " << getter::phi(vertex.dir())
         << " Theta: " << getter::theta(vertex.dir())
         << " Mom [GeV/c]: " << vertex.p();
@@ -444,7 +443,7 @@ void evaluate_jacobian_difference(
     // Sanity check
     ASSERT_EQ(reference_param.surface_link().index(), 0u)
         << " Initial surface not found " << std::endl
-        << " log10(RK tolerance): " << math_ns::log10(rk_tolerance)
+        << " log10(RK tolerance): " << math::log10(rk_tolerance)
         << " Path length [mm]: " << bound_getter.m_path_length
         << " Average step size [mm]: " << bound_getter.m_avg_step_size
         << " Phi: " << reference_param.phi()
@@ -452,7 +451,7 @@ void evaluate_jacobian_difference(
         << " Mom [GeV/c]: " << reference_param.p();
     ASSERT_EQ(final_param.surface_link().index(), 1u)
         << " Final surface not found " << std::endl
-        << " log10(RK tolerance): " << math_ns::log10(rk_tolerance)
+        << " log10(RK tolerance): " << math::log10(rk_tolerance)
         << " Path length [mm]: " << bound_getter.m_path_length
         << " Average step size [mm]: " << bound_getter.m_avg_step_size
         << " Phi: " << reference_param.phi()
@@ -519,10 +518,10 @@ void evaluate_jacobian_difference(
     file << bound_getter.m_avg_step_size << ",";
 
     // Log10(RK tolerance)
-    file << math_ns::log10(rk_tolerance) << ",";
+    file << math::log10(rk_tolerance) << ",";
 
     // Log10(on surface tolerance)
-    file << math_ns::log10(on_surface_tolerance) << ",";
+    file << math::log10(on_surface_tolerance) << ",";
 
     // Overstep tolerance
     file << overstep_tolerance;
@@ -563,7 +562,7 @@ void evaluate_covariance_transport(
     // Sanity check
     ASSERT_EQ(reference_param.surface_link().index(), 0u)
         << " Initial surface not found " << std::endl
-        << " log10(RK tolerance): " << math_ns::log10(rk_tolerance)
+        << " log10(RK tolerance): " << math::log10(rk_tolerance)
         << " Path length [mm]: " << bound_getter.m_path_length
         << " Average step size [mm]: " << bound_getter.m_avg_step_size
         << " Phi: " << reference_param.phi()
@@ -571,7 +570,7 @@ void evaluate_covariance_transport(
         << " Mom [GeV/c]: " << reference_param.p();
     ASSERT_EQ(final_param.surface_link().index(), 1u)
         << " Final surface not found " << std::endl
-        << " log10(RK tolerance): " << math_ns::log10(rk_tolerance)
+        << " log10(RK tolerance): " << math::log10(rk_tolerance)
         << " Path length [mm]: " << bound_getter.m_path_length
         << " Average step size [mm]: " << bound_getter.m_avg_step_size
         << " Phi: " << reference_param.phi()
@@ -602,7 +601,7 @@ void evaluate_covariance_transport(
     const bound_vector_type diff = smeared_fin_vec - fin_vec;
     for (unsigned int i = 0u; i < 5u; i++) {
         pulls[i] = getter::element(diff, i, 0u) /
-                   math_ns::sqrt(getter::element(fin_cov, i, i));
+                   math::sqrt(getter::element(fin_cov, i, i));
     }
 
     // Get Chi2
@@ -661,10 +660,10 @@ void evaluate_covariance_transport(
     file << bound_getter.m_avg_step_size << ",";
 
     // Log10(RK tolerance)
-    file << math_ns::log10(rk_tolerance) << ",";
+    file << math::log10(rk_tolerance) << ",";
 
     // Log10(on surface tolerance)
-    file << math_ns::log10(on_surface_tolerance) << ",";
+    file << math::log10(on_surface_tolerance) << ",";
 
     // Overstep tolerance
     file << overstep_tolerance;
@@ -751,7 +750,7 @@ void evaluate_jacobian_difference_helix(
 
     EXPECT_EQ(sfi.status, intersection::status::e_inside)
         << " Final surface not found" << std::endl
-        << " log10(Helix tolerance): " << math_ns::log10(helix_tolerance)
+        << " log10(Helix tolerance): " << math::log10(helix_tolerance)
         << " Phi: " << track.phi() << " Theta: " << track.theta()
         << " Mom [GeV/c]: " << track.p();
 
@@ -870,7 +869,7 @@ void evaluate_jacobian_difference_helix(
     file << 0 << ",";
 
     // Log10(helix intersection tolerance)
-    file << math_ns::log10(helix_tolerance) << ",";
+    file << math::log10(helix_tolerance) << ",";
 
     // Overstep tolerance (Doesn't exist for helix intersection)
     file << 0;
@@ -1058,7 +1057,7 @@ int main(int argc, char** argv) {
         vm["overstep-tolerance-mm"].as<scalar>() * unit<scalar>::mm;
     const scalar on_surface_power =
         vm["log10-on-surface-tolerance-mm"].as<scalar>() * unit<scalar>::mm;
-    const scalar on_surface_tol = math_ns::pow(10.f, on_surface_power);
+    const scalar on_surface_tol = math::pow(10.f, on_surface_power);
     const bool rk_tolerance_iterate_mode =
         vm["rk-tolerance-iterate-mode"].as<bool>();
     const scalar log10_min_rk_tolerance =

@@ -191,18 +191,18 @@ static inline void bin_association(const context_t & /*context*/,
                             for (const auto &v : vertices) {
                                 const point3_t vg =
                                     transform.point_to_global(v);
-                                scalar phi = std::atan2(vg[1], vg[0]);
-                                phi_min = std::min(phi, phi_min);
-                                phi_max = std::max(phi, phi_max);
+                                scalar phi = math::atan2(vg[1], vg[0]);
+                                phi_min = math::min(phi, phi_min);
+                                phi_max = math::max(phi, phi_max);
                                 surface_contour.push_back({vg[2], phi});
                                 if (phi < 0.) {
                                     s_c_neg.push_back({vg[2], phi});
-                                    z_min_neg = std::min(vg[2], z_min_neg);
-                                    z_max_neg = std::max(vg[2], z_max_neg);
+                                    z_min_neg = math::min(vg[2], z_min_neg);
+                                    z_max_neg = math::max(vg[2], z_max_neg);
                                 } else {
                                     s_c_pos.push_back({vg[2], phi});
-                                    z_min_pos = std::min(vg[2], z_min_pos);
-                                    z_max_pos = std::max(vg[2], z_max_pos);
+                                    z_min_pos = math::min(vg[2], z_min_pos);
+                                    z_max_pos = math::max(vg[2], z_max_pos);
                                 }
                             }
                             // Check for phi wrapping

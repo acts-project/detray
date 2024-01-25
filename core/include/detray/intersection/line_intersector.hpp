@@ -116,7 +116,7 @@ struct line_intersector {
                 is.volume_link = mask.volume_link();
 
                 // Get incidence angle
-                is.cos_incidence_angle = std::abs(zd);
+                is.cos_incidence_angle = math::abs(zd);
             }
         }
         return is;

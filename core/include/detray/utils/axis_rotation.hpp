@@ -38,13 +38,13 @@ struct axis_rotation {
         // normalize the axis
         const auto U = vector::normalize(axis);
 
-        scalar_type cos_theta{math_ns::cos(theta)};
+        scalar_type cos_theta{math::cos(theta)};
 
         matrix_type<3, 3> I = matrix_operator().template identity<3, 3>();
         matrix_type<3, 3> axis_cross = mat_helper().cross_matrix(U);
         matrix_type<3, 3> axis_outer = mat_helper().outer_product(U, U);
 
-        R = cos_theta * I + std::sin(theta) * axis_cross +
+        R = cos_theta * I + math::sin(theta) * axis_cross +
             (1.f - cos_theta) * axis_outer;
     }
 

@@ -73,9 +73,9 @@ GTEST_TEST(detray_masks, annulus2D) {
     std::array<scalar, 8> c = ann2.get_shape().corners(ann2.values());
     for (unsigned int i{0u}; i < 8u; i += 2u) {
         // Transform to local cartesian beam system
-        const scalar loc_x{c[i] * math_ns::cos(c[i + 1]) -
+        const scalar loc_x{c[i] * math::cos(c[i + 1]) -
                            ann2.values()[annulus2D<>::e_shift_x]};
-        const scalar loc_y{c[i] * math_ns::sin(c[i + 1]) -
+        const scalar loc_y{c[i] * math::sin(c[i + 1]) -
                            ann2.values()[annulus2D<>::e_shift_y]};
 
         // Inner points

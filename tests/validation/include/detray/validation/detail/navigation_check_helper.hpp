@@ -20,8 +20,8 @@ bool compare_traces(const inters_trace_t &intersection_trace,
 
     std::stringstream debug_stream;
     std::size_t n_inters_nav{obj_tracer.object_trace.size()};
-    std::size_t max_entries{std::max(n_inters_nav, intersection_trace.size())};
-    std::size_t min_entries{std::min(n_inters_nav, intersection_trace.size())};
+    std::size_t max_entries{math::max(n_inters_nav, intersection_trace.size())};
+    std::size_t min_entries{math::min(n_inters_nav, intersection_trace.size())};
 
     // Fill the debug stream with the information from both traces
     for (std::size_t intr_idx = 0u; intr_idx < max_entries; ++intr_idx) {

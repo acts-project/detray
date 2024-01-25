@@ -19,15 +19,15 @@ namespace detray {
 
 /// Namespace to pick up math functions from
 #if defined(CL_SYCL_LANGUAGE_VERSION) || defined(SYCL_LANGUAGE_VERSION)
-namespace math_ns = cl::sycl;
+namespace math = cl::sycl;
 #else
-namespace math_ns = std;
+namespace math = std;
 #endif  // SYCL
 
 namespace detail {
 
-using math_ns::copysign;
-using math_ns::signbit;
+using math::copysign;
+using math::signbit;
 
 /// Composes a floating point value with the magnitude of @param mag and the
 /// sign of @param sgn
@@ -40,7 +40,7 @@ DETRAY_HOST_DEVICE inline scalar_t copysign(scalar_t mag, scalar_t sgn) {
         return copysign(mag, sgn);
     }
 #elif !defined(__CUDACC__)
-    return math_ns::copysign(mag, sgn);
+    return math::copysign(mag, sgn);
 #endif
 }
 
@@ -50,7 +50,7 @@ DETRAY_HOST_DEVICE inline bool signbit(scalar_t arg) {
 #if defined(__CUDACC__)
     return signbit(arg);
 #elif !defined(__CUDACC__)
-    return math_ns::signbit(arg);
+    return math::signbit(arg);
 #endif
 }*/
 
