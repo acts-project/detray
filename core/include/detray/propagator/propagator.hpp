@@ -123,7 +123,9 @@ struct propagator {
         typename navigator_t::state _navigation;
 
         bool do_debug = false;
+#if defined(__NO_DEVICE__)
         std::stringstream debug_stream{};
+#endif
     };
 
     /// Propagate method: Coordinates the calls of the stepper, navigator and
