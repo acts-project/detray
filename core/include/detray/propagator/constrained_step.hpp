@@ -10,6 +10,7 @@
 // detray definitions
 #include "detray/definitions/algebra.hpp"
 #include "detray/definitions/containers.hpp"
+#include "detray/definitions/math.hpp"
 #include "detray/definitions/qualifiers.hpp"
 
 // System include(s).
@@ -72,7 +73,8 @@ struct constrained_step {
         step::constraint type,
         std::enable_if_t<not(type == step::constraint::e_all), bool> = true>
     DETRAY_HOST_DEVICE void set(const scalar step_size) {
-        _constraints[type] = std::min(_constraints[type], std::abs(step_size));
+        _constraints[type] =
+            math::min(_constraints[type], math::abs(step_size));
     }
 
     /// @returns the current step size constraint for a given type or overall
@@ -103,12 +105,12 @@ struct constrained_step {
     DETRAY_HOST_DEVICE scalar min() const {
         scalar min_constr = std::numeric_limits<scalar>::max();
         min_constr =
-            std::min(min_constr, _constraints[step::constraint::e_accuracy]);
+            math::min(min_constr, _constraints[step::constraint::e_accuracy]);
         min_constr =
-            std::min(min_constr, _constraints[step::constraint::e_actor]);
+            math::min(min_constr, _constraints[step::constraint::e_actor]);
         min_constr =
-            std::min(min_constr, _constraints[step::constraint::e_aborter]);
-        return std::min(min_constr, _constraints[step::constraint::e_user]);
+            math::min(min_constr, _constraints[step::constraint::e_aborter]);
+        return math::min(min_constr, _constraints[step::constraint::e_user]);
     }
 
     /// Current step size constraints from accuracy, actors, aborters or user

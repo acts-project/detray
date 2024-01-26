@@ -259,11 +259,11 @@ class uniform_track_generator
         DETRAY_HOST_DEVICE
         track_t operator*() const {
 
-            const scalar sin_theta{std::sin(m_theta)};
+            const scalar sin_theta{math::sin(m_theta)};
 
             // Momentum direction from angles
-            vector3 p{math_ns::cos(m_phi) * sin_theta,
-                      std::sin(m_phi) * sin_theta, math_ns::cos(m_theta)};
+            vector3 p{math::cos(m_phi) * sin_theta,
+                      math::sin(m_phi) * sin_theta, math::cos(m_theta)};
             // Magnitude of momentum
             vector::normalize(p);
 
@@ -292,7 +292,7 @@ class uniform_track_generator
         /// @returns the theta angle for a given @param eta value
         DETRAY_HOST_DEVICE
         scalar get_theta(const scalar eta) {
-            return 2.f * std::atan(std::exp(-eta));
+            return 2.f * math::atan(math::exp(-eta));
         }
     };
 

@@ -50,15 +50,15 @@ struct relativistic_quantities {
         m_q2OverBeta2 = q * q + (mass * qOverP) * (mass * qOverP);
         // 1/p = q/(qp) = (q/p)/q
         const scalar_type mOverP{
-            mass * ((q == 0.f) ? std::abs(qOverP / q) : std::abs(qOverP))};
+            mass * ((q == 0.f) ? math::abs(qOverP / q) : math::abs(qOverP))};
         const scalar_type pOverM{1.f / mOverP};
         // beta² = p²/E² = p²/(m² + p²) = 1/(1 + (m/p)²)
         m_beta2 = 1.f / (1.f + mOverP * mOverP);
-        m_beta = math_ns::sqrt(m_beta2);
+        m_beta = math::sqrt(m_beta2);
         // beta*gamma = (p/sqrt(m² + p²))*(sqrt(m² + p²)/m) = p/m
         m_betaGamma = pOverM;
         // gamma = sqrt(m² + p²)/m = sqrt(1 + (p/m)²)
-        m_gamma = std::sqrt(1.f + pOverM * pOverM);
+        m_gamma = math::sqrt(1.f + pOverM * pOverM);
     }
 
     /// Compute the 2 * mass * (beta * gamma)² mass term.
@@ -154,9 +154,9 @@ struct relativistic_quantities {
             // (mm^-3 to cm^-3)
             const scalar_type plasmaEnergy{
                 PlasmaEnergyScale *
-                std::sqrt(1000.f * mat.molar_electron_density())};
-            return math_ns::log(m_betaGamma * plasmaEnergy /
-                                mat.mean_excitation_energy()) -
+                math::sqrt(1000.f * mat.molar_electron_density())};
+            return math::log(m_betaGamma * plasmaEnergy /
+                             mat.mean_excitation_energy()) -
                    0.5f;
         } else {
             const auto& density = mat.density_effect_data();
@@ -167,7 +167,7 @@ struct relativistic_quantities {
             const scalar_type x0den{density.get_X0_density()};
             const scalar_type x1den{density.get_X1_density()};
 
-            const scalar_type x{math_ns::log10(m_betaGamma)};
+            const scalar_type x{math::log10(m_betaGamma)};
 
             scalar_type delta{0.f};
 
@@ -180,7 +180,7 @@ struct relativistic_quantities {
             } else {
                 delta = 2.f * constant<scalar_type>::ln10 * x - cden;
                 if (x < x1den)
-                    delta += aden * math_ns::pow((x1den - x), mden);
+                    delta += aden * math::pow((x1den - x), mden);
             }
 
             return 0.5f * delta;
@@ -202,7 +202,7 @@ struct relativistic_quantities {
             const scalar_type x0den{density.get_X0_density()};
             const scalar_type x1den{density.get_X1_density()};
 
-            const scalar_type x{math_ns::log10(m_betaGamma)};
+            const scalar_type x{math::log10(m_betaGamma)};
 
             scalar_type delta{0.f};
 
@@ -216,7 +216,7 @@ struct relativistic_quantities {
                 delta = 2.f / m_betaGamma * this->derive_betaGamma();
                 if (x < x1den)
                     delta +=
-                        aden * mden * math_ns::pow(x1den - x, mden - 1) *
+                        aden * mden * math::pow(x1den - x, mden - 1) *
                         (-1.f / (m_betaGamma * constant<scalar_type>::ln10)) *
                         this->derive_betaGamma();
             }

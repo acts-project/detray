@@ -110,7 +110,7 @@ struct helix_cylinder_intersector
         // Obtain both possible solutions by looping over the (different)
         // starting positions
         unsigned int n_runs =
-            std::abs(paths[0] - paths[1]) < convergence_tolerance ? 1u : 2u;
+            math::abs(paths[0] - paths[1]) < convergence_tolerance ? 1u : 2u;
         for (unsigned int i = 0u; i < n_runs; ++i) {
 
             scalar_type &s = paths[i];
@@ -122,7 +122,7 @@ struct helix_cylinder_intersector
             // f(s) = ((h.pos(s) - sc) x sz)^2 - r^2 == 0
             // Run the iteration on s
             std::size_t n_tries{0u};
-            while (std::abs(s - s_prev) > convergence_tolerance and
+            while (math::abs(s - s_prev) > convergence_tolerance and
                    n_tries < max_n_tries) {
 
                 // f'(s) = 2 * ( (h.pos(s) - sc) x sz) * (h.dir(s) x sz) )
@@ -155,7 +155,7 @@ struct helix_cylinder_intersector
             // Compute some additional information if the intersection is valid
             if (is.status == intersection::status::e_inside) {
                 is.sf_desc = sf_desc;
-                is.direction = std::signbit(s)
+                is.direction = math::signbit(s)
                                    ? intersection::direction::e_opposite
                                    : intersection::direction::e_along;
                 is.volume_link = mask.volume_link();

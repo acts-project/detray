@@ -193,8 +193,8 @@ inline auto create_wire_chamber(vecmem::memory_resource &resource,
         scalar theta{0.f};
         while (theta <= 2.f * constant<scalar>::pi) {
 
-            const scalar x = center_layer_rad * std::cos(theta);
-            const scalar y = center_layer_rad * std::sin(theta);
+            const scalar x = center_layer_rad * math::cos(theta);
+            const scalar y = center_layer_rad * math::sin(theta);
             const scalar z = 0.f;
 
             m_centers.push_back({x, y, z});

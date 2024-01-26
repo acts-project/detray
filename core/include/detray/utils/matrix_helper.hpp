@@ -116,7 +116,7 @@ struct matrix_helper {
 
                 if (i == j) {
                     getter::element(L, i, j) = static_cast<scalar_type>(
-                        math_ns::sqrt(getter::element(mat, i, i) - sum));
+                        math::sqrt(getter::element(mat, i, i) - sum));
                 } else {
                     getter::element(L, i, j) =
                         (1.f / getter::element(L, j, j) *

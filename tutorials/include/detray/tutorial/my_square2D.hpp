@@ -97,8 +97,8 @@ class square2D {
     DETRAY_HOST_DEVICE inline bool check_boundaries(
         const bounds_t<scalar_t, kDIM>& bounds, const point_t& loc_p,
         const scalar_t tol = std::numeric_limits<scalar_t>::epsilon()) const {
-        return (std::abs(loc_p[0]) <= bounds[e_half_length] + tol and
-                std::abs(loc_p[1]) <= bounds[e_half_length] + tol);
+        return (math::abs(loc_p[0]) <= bounds[e_half_length] + tol and
+                math::abs(loc_p[1]) <= bounds[e_half_length] + tol);
     }
 
     /// @brief Lower and upper point for minimal axis aligned bounding box.

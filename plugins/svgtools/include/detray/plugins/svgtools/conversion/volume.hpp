@@ -93,7 +93,7 @@ auto volume(const typename detector_t::geometry_context& context,
             if (sf.is_sensitive()) {
 
                 // The surfaces are indexed as a sequence
-                sf_offset = std::min(sf_offset, sf.index());
+                sf_offset = math::min(sf_offset, sf.index());
 
                 p_sensitves.push_back(p_surface);
             }

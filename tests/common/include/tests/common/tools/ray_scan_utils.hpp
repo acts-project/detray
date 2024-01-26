@@ -490,7 +490,7 @@ inline auto build_adjacency(const portal_trace_type &portal_trace,
                             dvector<dindex> &adj_matrix,
                             std::unordered_set<dindex> &obj_hashes) {
 
-    const dindex dim = static_cast<dindex>(std::sqrt(adj_matrix.size()));
+    const dindex dim = static_cast<dindex>(math::sqrt(adj_matrix.size()));
 
     // Every module that was recorded adds a link to the mother volume
     for (const auto &record : module_trace) {

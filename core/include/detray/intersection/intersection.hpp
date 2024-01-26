@@ -79,19 +79,19 @@ struct intersection2D {
     /// @param rhs is the right hand side intersection for comparison
     DETRAY_HOST_DEVICE
     bool operator<(const intersection2D &rhs) const {
-        return (std::abs(path) < std::abs(rhs.path));
+        return (math::abs(path) < math::abs(rhs.path));
     }
 
     /// @param rhs is the left hand side intersection for comparison
     DETRAY_HOST_DEVICE
     bool operator>(const intersection2D &rhs) const {
-        return (std::abs(path) > std::abs(rhs.path));
+        return (math::abs(path) > math::abs(rhs.path));
     }
 
     /// @param rhs is the left hand side intersection for comparison
     DETRAY_HOST_DEVICE
     bool operator==(const intersection2D &rhs) const {
-        return std::abs(path - rhs.path) <
+        return math::abs(path - rhs.path) <
                std::numeric_limits<float>::epsilon();
     }
 

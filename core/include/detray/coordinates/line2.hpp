@@ -85,9 +85,8 @@ struct line2 : public coordinate_base<line2, transform3_t> {
      * cartesian 3D frame*/
     DETRAY_HOST_DEVICE inline point3 local_to_global(const transform3_t &trf,
                                                      const point3 &p) const {
-        const scalar_type R = std::abs(p[0]);
-        const point3 local = {R * math_ns::cos(p[2]), R * math_ns::sin(p[2]),
-                              p[1]};
+        const scalar_type R = math::abs(p[0]);
+        const point3 local = {R * math::cos(p[2]), R * math::sin(p[2]), p[1]};
 
         return trf.point_to_global(local);
     }

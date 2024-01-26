@@ -101,7 +101,7 @@ class cylinder2D {
         const scalar_t tol = std::numeric_limits<scalar_t>::epsilon()) const {
 
         if constexpr (kRadialCheck) {
-            if (std::abs(loc_p[2] - bounds[e_r]) > tol) {
+            if (math::abs(loc_p[2] - bounds[e_r]) > tol) {
                 return false;
             }
         }
@@ -179,7 +179,7 @@ class cylinder2D {
             return false;
         }
         if (bounds[e_n_half_z] >= bounds[e_p_half_z] or
-            std::abs(bounds[e_n_half_z] - bounds[e_p_half_z]) < tol) {
+            math::abs(bounds[e_n_half_z] - bounds[e_p_half_z]) < tol) {
             os << "ERROR: Neg. half length must be smaller than pos. half "
                   "length.";
             return false;

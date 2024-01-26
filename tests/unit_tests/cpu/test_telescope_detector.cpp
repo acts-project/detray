@@ -212,11 +212,11 @@ GTEST_TEST(detray_detectors, telescope_detector) {
         heartbeat_x &= navigator_x.update(propgation_x);
         // The track path lengths should match between all propagations
         EXPECT_NEAR(
-            std::fabs(stepping_z1._path_length - stepping_z2._path_length) /
+            std::abs(stepping_z1._path_length - stepping_z2._path_length) /
                 stepping_z1._path_length,
             0.f, tol);
         EXPECT_NEAR(
-            std::fabs(stepping_z1._path_length - stepping_x._path_length) /
+            std::abs(stepping_z1._path_length - stepping_x._path_length) /
                 stepping_x._path_length,
             0.f, tol);
         // The track positions in z should match exactly

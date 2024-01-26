@@ -255,16 +255,16 @@ class random_track_generator
             const std::array<scalar, 2>& theta_rng = m_cfg.theta_range();
             const std::array<scalar, 2>& mom_rng = m_cfg.mom_range();
             scalar p_mag{
-                std::max(m_rnd_numbers(mom_rng[0], mom_rng[1]), scalar{0.f})};
+                math::max(m_rnd_numbers(mom_rng[0], mom_rng[1]), scalar{0.f})};
             scalar phi{std::clamp(m_rnd_numbers(phi_rng[0], phi_rng[1]),
                                   phi_rng[0], phi_rng[1])};
             scalar theta{std::clamp(m_rnd_numbers(theta_rng[0], theta_rng[1]),
                                     theta_rng[0], theta_rng[1])};
-            const scalar sin_theta{math_ns::sin(theta)};
+            const scalar sin_theta{math::sin(theta)};
 
             // Momentum direction from angles
-            vector3 mom{math_ns::cos(phi) * sin_theta,
-                        math_ns::sin(phi) * sin_theta, math_ns::cos(theta)};
+            vector3 mom{math::cos(phi) * sin_theta, math::sin(phi) * sin_theta,
+                        math::cos(theta)};
             // Magnitude of momentum
             vector::normalize(mom);
 

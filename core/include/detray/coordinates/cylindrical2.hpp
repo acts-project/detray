@@ -88,8 +88,8 @@ struct cylindrical2 : public coordinate_base<cylindrical2, transform3_t> {
                                                      const point3 &p) const {
         const scalar_type r{p[2]};
         const scalar_type phi{p[0] / r};
-        const scalar_type x{r * math_ns::cos(phi)};
-        const scalar_type y{r * math_ns::sin(phi)};
+        const scalar_type x{r * math::cos(phi)};
+        const scalar_type y{r * math::sin(phi)};
         const scalar_type z{p[1]};
 
         return trf.point_to_global(point3{x, y, z});
@@ -112,7 +112,7 @@ struct cylindrical2 : public coordinate_base<cylindrical2, transform3_t> {
                                              const point2 &bound_pos,
                                              const mask_t &mask) const {
         const scalar_type phi{bound_pos[0] / mask[mask_t::shape::e_r]};
-        const vector3 local_normal{math_ns::cos(phi), math_ns::sin(phi), 0.f};
+        const vector3 local_normal{math::cos(phi), math::sin(phi), 0.f};
 
         // normal vector in local coordinate
         return trf3.rotation() * local_normal;
@@ -122,7 +122,7 @@ struct cylindrical2 : public coordinate_base<cylindrical2, transform3_t> {
     DETRAY_HOST_DEVICE inline vector3 normal(const transform3_t &trf3,
                                              const point3 &loc_pos) const {
         const scalar_type phi{loc_pos[0] / loc_pos[2]};
-        const vector3 local_normal{math_ns::cos(phi), math_ns::sin(phi), 0.f};
+        const vector3 local_normal{math::cos(phi), math::sin(phi), 0.f};
 
         // normal vector in local coordinate
         return trf3.rotation() * local_normal;

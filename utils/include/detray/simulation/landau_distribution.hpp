@@ -239,11 +239,11 @@ class landau_distribution {
                 u * (f[i] - f[i - 1] -
                      0.25 * (1 - u) * (f[i + 1] - f[i] - f[i - 1] + f[i - 2]));
         } else if (i < 7) {
-            v = math_ns::log(z);
+            v = math::log(z);
             u = 1 / v;
             ranlan = ((0.99858950 + (3.45213058E1 + 1.70854528E1 * u) * u) /
                       (1. + (3.41760202E1 + 4.01244582 * u) * u)) *
-                     (-math_ns::log(-0.91893853 - v) - 1);
+                     (-math::log(-0.91893853 - v) - 1);
         } else {
             u = 1 - z;
             v = u * u;

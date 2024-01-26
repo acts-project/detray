@@ -153,7 +153,8 @@ class helix {
         _t0 = dir;
 
         // Momentum
-        const vector3 mom = 1.f / static_cast<scalar_type>(std::abs(qop)) * dir;
+        const vector3 mom =
+            1.f / static_cast<scalar_type>(math::abs(qop)) * dir;
 
         // Normalized _h0 X _t0
         _n0 = vector::normalize(vector::cross(_h0, _t0));
@@ -217,9 +218,9 @@ class helix {
         }
 
         point3 ret = _pos;
-        ret = ret + _delta / _K * (_K * s - math_ns::sin(_K * s)) * _h0;
-        ret = ret + math_ns::sin(_K * s) / _K * _t0;
-        ret = ret + _alpha / _K * (1.f - math_ns::cos(_K * s)) * _n0;
+        ret = ret + _delta / _K * (_K * s - math::sin(_K * s)) * _h0;
+        ret = ret + math::sin(_K * s) / _K * _t0;
+        ret = ret + _alpha / _K * (1.f - math::cos(_K * s)) * _n0;
 
         return ret;
     }
@@ -238,9 +239,9 @@ class helix {
 
         vector3 ret{0.f, 0.f, 0.f};
 
-        ret = ret + _delta * (1 - math_ns::cos(_K * s)) * _h0;
-        ret = ret + math_ns::cos(_K * s) * _t0;
-        ret = ret + _alpha * math_ns::sin(_K * s) * _n0;
+        ret = ret + _delta * (1 - math::cos(_K * s)) * _h0;
+        ret = ret + math::cos(_K * s) * _t0;
+        ret = ret + _alpha * math::sin(_K * s) * _n0;
 
         return vector::normalize(ret);
     }
@@ -284,8 +285,8 @@ class helix {
         // Get drdt
         auto drdt = Z33;
 
-        const scalar sin_ks = math_ns::sin(_K * s);
-        const scalar cos_ks = math_ns::cos(_K * s);
+        const scalar sin_ks = math::sin(_K * s);
+        const scalar cos_ks = math::cos(_K * s);
         drdt = drdt + sin_ks / _K * I33;
 
         matrix_type<3, 1> H0 = matrix_operator().template zero<3, 1>();

@@ -49,10 +49,10 @@ inline std::vector<point2_t> r_phi_polygon(scalar_t rmin, scalar_t rmax,
     std::vector<point2_t> r_phi_poly;
     r_phi_poly.reserve(2u * n_segments + 2u);
 
-    scalar_t cos_min_phi = math_ns::cos(phimin);
-    scalar_t sin_min_phi = std::sin(phimin);
-    scalar_t cos_max_phi = math_ns::cos(phimax);
-    scalar_t sin_max_phi = std::sin(phimax);
+    scalar_t cos_min_phi = math::cos(phimin);
+    scalar_t sin_min_phi = math::sin(phimin);
+    scalar_t cos_max_phi = math::cos(phimax);
+    scalar_t sin_max_phi = math::sin(phimax);
 
     // @TODO add phi generators
     r_phi_poly.push_back({rmin * cos_min_phi, rmin * sin_min_phi});

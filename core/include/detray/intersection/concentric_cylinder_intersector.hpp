@@ -71,7 +71,7 @@ struct concentric_cylinder_intersector {
         const point3 l1 = ro + rd;
 
         // swap coorinates x/y for numerical stability
-        const bool swap_x_y = std::abs(rd[0]) < 1e-3f;
+        const bool swap_x_y = math::abs(rd[0]) < 1e-3f;
 
         unsigned int _x = swap_x_y ? 1u : 0u;
         unsigned int _y = swap_x_y ? 0u : 1u;
@@ -125,7 +125,8 @@ struct concentric_cylinder_intersector {
                     is.volume_link = mask.volume_link();
 
                     // Get incidence angle
-                    const vector3 normal = {std::cos(phi), std::sin(phi), 0.f};
+                    const vector3 normal = {math::cos(phi), math::sin(phi),
+                                            0.f};
                     is.cos_incidence_angle = vector::dot(rd, normal);
                 }
             }
