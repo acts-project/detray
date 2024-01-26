@@ -165,8 +165,11 @@ class helix {
         // Dot product of _h0 X _t0
         _delta = vector::dot(_h0, _t0);
 
+        // B field strength
+        _B = getter::norm(*_mag_field);
+
         // Path length scaler
-        _K = -_qop * getter::norm(*_mag_field);
+        _K = -_qop * _B;
 
         // Get longitudinal momentum parallel to B field
         scalar_type pz = vector::dot(mom, _h0);
@@ -175,7 +178,7 @@ class helix {
         vector3 pT = mom - pz * _h0;
 
         // R [mm] =  pT [GeV] / B [T] in natrual unit
-        _R = getter::norm(pT) / getter::norm(*_mag_field);
+        _R = getter::norm(pT) / _B;
 
         // Handle the case of pT ~ 0
         if (getter::norm(pT) < 1e-6f) {
@@ -282,7 +285,9 @@ class helix {
         // Get drdt
         auto drdt = Z33;
 
-        drdt = drdt + math::sin(_K * s) / _K * I33;
+        const scalar sin_ks = math::sin(_K * s);
+        const scalar cos_ks = math::cos(_K * s);
+        drdt = drdt + sin_ks / _K * I33;
 
         matrix_type<3, 1> H0 = matrix_operator().template zero<3, 1>();
         getter::element(H0, 0u, 0u) = _h0[0u];
@@ -291,19 +296,18 @@ class helix {
         const matrix_type<1, 3> H0_T = matrix_operator().transpose(H0);
         const matrix_type<3, 3> H0H0_T = H0 * H0_T;
 
-        drdt = drdt + (_K * s - math::sin(_K * s)) / _K * H0H0_T;
+        drdt = drdt + (_K * s - sin_ks) / _K * H0H0_T;
 
-        drdt = drdt + (math::cos(_K * s) - 1.f) / _K *
-                          mat_helper().column_wise_cross(I33, _h0);
+        drdt = drdt +
+               (cos_ks - 1.f) / _K * mat_helper().column_wise_cross(I33, _h0);
 
         matrix_operator().set_block(ret, drdt, e_free_pos0, e_free_dir0);
 
         // Get dtdt
         auto dtdt = Z33;
-        dtdt = dtdt + math::cos(_K * s) * I33;
-        dtdt = dtdt + (1 - math::cos(_K * s)) * H0H0_T;
-        dtdt =
-            dtdt - math::sin(_K * s) * mat_helper().column_wise_cross(I33, _h0);
+        dtdt = dtdt + cos_ks * I33;
+        dtdt = dtdt + (1 - cos_ks) * H0H0_T;
+        dtdt = dtdt - sin_ks * mat_helper().column_wise_cross(I33, _h0);
 
         matrix_operator().set_block(ret, dtdt, e_free_dir0, e_free_dir0);
 
@@ -313,7 +317,9 @@ class helix {
         matrix_operator().set_block(ret, drdl, e_free_pos0, e_free_qoverp);
 
         // Get dtdl
-        vector3 dtdl = _alpha * _K * s / _qop * _n0;
+        vector3 dtdl =
+            -_B * s *
+            (sin_ks * (H0H0_T - I33) * _t0 + cos_ks * vector::cross(_h0, _t0));
 
         matrix_operator().set_block(ret, dtdl, e_free_dir0, e_free_qoverp);
 
@@ -347,6 +353,9 @@ class helix {
 
     /// B field
     vector3 const *_mag_field;
+
+    /// B field strength
+    scalar _B;
 
     /// Normalized b field
     vector3 _h0;
