@@ -307,8 +307,7 @@ class helix {
         auto dtdt = Z33;
         dtdt = dtdt + cos_ks * I33;
         dtdt = dtdt + (1 - cos_ks) * H0H0_T;
-        dtdt = dtdt -
-               math_ns::sin(_K * s) * mat_helper().column_wise_cross(I33, _h0);
+        dtdt = dtdt - sin_ks * mat_helper().column_wise_cross(I33, _h0);
 
         matrix_operator().set_block(ret, dtdt, e_free_dir0, e_free_dir0);
 
