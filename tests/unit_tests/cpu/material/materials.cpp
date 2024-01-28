@@ -1,20 +1,20 @@
 /** Detray library, part of the ACTS project (R&D line)
  *
- * (c) 2022-2023 CERN for the benefit of the ACTS project
+ * (c) 2022-2024 CERN for the benefit of the ACTS project
  *
  * Mozilla Public License Version 2.0
  */
 
-/// Project include(s)
+// Project include(s)
 #include "detray/definitions/units.hpp"
 #include "detray/geometry/detail/surface_descriptor.hpp"
-#include "detray/intersection/line_intersector.hpp"
 #include "detray/masks/masks.hpp"
 #include "detray/materials/material.hpp"
 #include "detray/materials/material_rod.hpp"
 #include "detray/materials/material_slab.hpp"
 #include "detray/materials/mixture.hpp"
 #include "detray/materials/predefined_materials.hpp"
+#include "detray/navigation/intersection/ray_intersector.hpp"
 #include "detray/test/types.hpp"
 
 // GTest include(s)
@@ -29,7 +29,6 @@ using point2 = test::point2;
 using point3 = test::point3;
 using transform3 = test::transform3;
 using vector3 = test::vector3;
-using intersection_t = intersection2D<surface_descriptor<>, transform3>;
 
 namespace {
 
@@ -183,7 +182,7 @@ GTEST_TEST(detray_material, material_rod) {
     const mask<line<>> ln{0u, 1.f * unit<scalar>::mm,
                           std::numeric_limits<scalar>::infinity()};
 
-    intersection_t is = line_intersector<intersection_t>()(
+    auto is = ray_intersector<transform3, line<>>{}(
         detail::ray<transform3>(trk), surface_descriptor<>{}, ln, tf);
 
     const scalar cos_inc_ang{is.cos_incidence_angle};

@@ -1,6 +1,6 @@
 /** Detray library, part of the ACTS project (R&D line)
  *
- * (c) 2023 CERN for the benefit of the ACTS project
+ * (c) 2023-2024 CERN for the benefit of the ACTS project
  *
  * Mozilla Public License Version 2.0
  */
@@ -45,7 +45,7 @@ int main() {
 
     // Fill some squares into the volume
     using square_factory_t =
-        detray::surface_factory<detector_t, detray::tutorial::square2D<>>;
+        detray::surface_factory<detector_t, detray::tutorial::square2D>;
     auto sq_factory = std::make_shared<square_factory_t>();
 
     // Add a square that is 20x20mm large, links back to its mother volume (0)

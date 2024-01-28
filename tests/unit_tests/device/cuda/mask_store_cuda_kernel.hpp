@@ -28,12 +28,12 @@ const int n_points = 1000;
 
 namespace detray {
 
-using annulus = mask<annulus2D<>>;
-using cylinder = mask<cylinder2D<>>;
-using rectangle = mask<rectangle2D<>>;
-using ring = mask<ring2D<>>;
+using annulus = mask<annulus2D>;
+using cylinder = mask<cylinder2D>;
+using rectangle = mask<rectangle2D>;
+using ring = mask<ring2D>;
 using single = mask<single3D<>>;
-using trapezoid = mask<trapezoid2D<>>;
+using trapezoid = mask<trapezoid2D>;
 
 /** Enumerate different mask types for convenience
  **/

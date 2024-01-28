@@ -10,8 +10,10 @@
 // Project include(s).
 #include "detray/definitions/qualifiers.hpp"
 #include "detray/definitions/units.hpp"
-#include "detray/intersection/intersection.hpp"
 #include "detray/masks/masks.hpp"
+#include "detray/navigation/detail/trajectories.hpp"
+#include "detray/navigation/intersection/bounding_box/cuboid_intersector.hpp"
+#include "detray/navigation/intersection/intersection.hpp"
 
 // System include(s)
 #include <cassert>
@@ -47,7 +49,7 @@ class axis_aligned_bounding_volume {
     /// Construct around an arbitrary surface @param mask
     template <
         typename mask_t, typename S = shape_t,
-        typename std::enable_if_t<std::is_same_v<S, cuboid3D<>>, bool> = true>
+        typename std::enable_if_t<std::is_same_v<S, cuboid3D>, bool> = true>
     DETRAY_HOST_DEVICE constexpr axis_aligned_bounding_volume(
         const mask_t& mask, std::size_t box_id, const scalar_t envelope)
         : m_mask{mask.local_min_bounds(envelope).values(), box_id} {
@@ -124,9 +126,9 @@ class axis_aligned_bounding_volume {
     template <typename point_t>
     DETRAY_HOST_DEVICE constexpr auto loc_min() const -> point_t {
 
-        if constexpr (std::is_same_v<shape, cuboid3D<>>) {
-            return {m_mask[cuboid3D<>::e_min_x], m_mask[cuboid3D<>::e_min_y],
-                    m_mask[cuboid3D<>::e_min_z]};
+        if constexpr (std::is_same_v<shape, cuboid3D>) {
+            return {m_mask[cuboid3D::e_min_x], m_mask[cuboid3D::e_min_y],
+                    m_mask[cuboid3D::e_min_z]};
         } else if constexpr (std::is_same_v<shape, cylinder3D>) {
             return {-m_mask[cylinder3D::e_max_r], m_mask[cylinder3D::e_min_phi],
                     m_mask[cylinder3D::e_min_z]};
@@ -142,9 +144,9 @@ class axis_aligned_bounding_volume {
     template <typename point_t>
     DETRAY_HOST_DEVICE constexpr auto loc_max() const -> point_t {
 
-        if constexpr (std::is_same_v<shape, cuboid3D<>>) {
-            return {m_mask[cuboid3D<>::e_max_x], m_mask[cuboid3D<>::e_max_y],
-                    m_mask[cuboid3D<>::e_max_z]};
+        if constexpr (std::is_same_v<shape, cuboid3D>) {
+            return {m_mask[cuboid3D::e_max_x], m_mask[cuboid3D::e_max_y],
+                    m_mask[cuboid3D::e_max_z]};
         } else if constexpr (std::is_same_v<shape, cylinder3D>) {
             return {m_mask[cylinder3D::e_max_r], m_mask[cylinder3D::e_max_phi],
                     m_mask[cylinder3D::e_max_z]};
@@ -164,7 +166,7 @@ class axis_aligned_bounding_volume {
 
         using point3_t = typename transform3_t::point3;
 
-        if constexpr (std::is_same_v<shape, cuboid3D<>>) {
+        if constexpr (std::is_same_v<shape, cuboid3D>) {
             return trf.point_to_global(loc_min<point3_t>());
         } else if constexpr (std::is_same_v<shape, cylinder3D>) {
             return cylindrical3<transform3_t>{}.local_to_global(
@@ -186,7 +188,7 @@ class axis_aligned_bounding_volume {
 
         using point3_t = typename transform3_t::point3;
 
-        if constexpr (std::is_same_v<shape, cuboid3D<>>) {
+        if constexpr (std::is_same_v<shape, cuboid3D>) {
             return trf.point_to_global(loc_max<point3_t>());
         } else if constexpr (std::is_same_v<shape, cylinder3D>) {
             return cylindrical3<transform3_t>{}.local_to_global(
@@ -204,11 +206,11 @@ class axis_aligned_bounding_volume {
     DETRAY_HOST_DEVICE constexpr auto center() const -> point3_t {
 
         const scalar_t center_x{
-            0.5f * (m_mask[cuboid3D<>::e_max_x] + m_mask[cuboid3D<>::e_min_x])};
+            0.5f * (m_mask[cuboid3D::e_max_x] + m_mask[cuboid3D::e_min_x])};
         const scalar_t center_y{
-            0.5f * (m_mask[cuboid3D<>::e_max_y] + m_mask[cuboid3D<>::e_min_y])};
+            0.5f * (m_mask[cuboid3D::e_max_y] + m_mask[cuboid3D::e_min_y])};
         const scalar_t center_z{
-            0.5f * (m_mask[cuboid3D<>::e_max_z] + m_mask[cuboid3D<>::e_min_z])};
+            0.5f * (m_mask[cuboid3D::e_max_z] + m_mask[cuboid3D::e_min_z])};
 
         return {detail::is_invalid_value(center_x) ? 0.f : center_x,
                 detail::is_invalid_value(center_y) ? 0.f : center_y,
@@ -226,18 +228,18 @@ class axis_aligned_bounding_volume {
     /// @returns a new, transformed aabb.
     template <
         typename transform3_t, typename S = shape_t,
-        typename std::enable_if_t<std::is_same_v<S, cuboid3D<>>, bool> = true>
+        typename std::enable_if_t<std::is_same_v<S, cuboid3D>, bool> = true>
     DETRAY_HOST_DEVICE auto transform(const transform3_t& trf) const
         -> axis_aligned_bounding_volume {
 
         using point3_t = typename transform3_t::point3;
 
         const scalar_t scalor_x{
-            (m_mask[cuboid3D<>::e_max_x] - m_mask[cuboid3D<>::e_min_x])};
+            (m_mask[cuboid3D::e_max_x] - m_mask[cuboid3D::e_min_x])};
         const scalar_t scalor_y{
-            (m_mask[cuboid3D<>::e_max_y] - m_mask[cuboid3D<>::e_min_y])};
+            (m_mask[cuboid3D::e_max_y] - m_mask[cuboid3D::e_min_y])};
         const scalar_t scalor_z{
-            (m_mask[cuboid3D<>::e_max_z] - m_mask[cuboid3D<>::e_min_z])};
+            (m_mask[cuboid3D::e_max_z] - m_mask[cuboid3D::e_min_z])};
 
         // Cannot handle 'inv' propagation through the calculation for now
         if (detail::is_invalid_value(scalor_x) or
@@ -305,10 +307,9 @@ class axis_aligned_bounding_volume {
     constexpr bool intersect(
         const detail::ray<algebra_t>& ray,
         const scalar_t t = std::numeric_limits<scalar_t>::epsilon()) const {
-        static_assert(std::is_same_v<shape, cuboid3D<>>,
+        static_assert(std::is_same_v<shape, cuboid3D>,
                       "aabbs are only implemented in cuboid shape for now");
-        return m_mask.template intersector<intersection2D<bool, algebra_t>>()(
-            ray, m_mask, t);
+        return cuboid_intersector{}(ray, m_mask, t);
     }
 
     /// @TODO: Overlapping aabbs

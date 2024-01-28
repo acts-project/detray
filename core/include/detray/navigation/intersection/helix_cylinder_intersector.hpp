@@ -1,6 +1,6 @@
 /** Detray library, part of the ACTS project (R&D line)
  *
- * (c) 2022-2023 CERN for the benefit of the ACTS project
+ * (c) 2022-2024 CERN for the benefit of the ACTS project
  *
  * Mozilla Public License Version 2.0
  */
@@ -8,23 +8,24 @@
 #pragma once
 
 // Project include(s)
+#include "detray/coordinates/concentric_cylindrical2.hpp"
 #include "detray/coordinates/cylindrical2.hpp"
+#include "detray/definitions/math.hpp"
 #include "detray/definitions/qualifiers.hpp"
-#include "detray/intersection/cylinder_intersector.hpp"
-#include "detray/intersection/detail/trajectories.hpp"
-#include "detray/intersection/intersection.hpp"
 #include "detray/masks/cylinder2D.hpp"
-#include "detray/test/intersection/helix_intersector.hpp"
+#include "detray/navigation/detail/trajectories.hpp"
+#include "detray/navigation/intersection/intersection.hpp"
+#include "detray/navigation/intersection/ray_cylinder_intersector.hpp"
 #include "detray/utils/invalid_values.hpp"
 
 // System include(s)
-#include <cmath>
 #include <limits>
 #include <type_traits>
 
 namespace detray {
 
-namespace detail {
+template <typename algebra_t, typename fame_t>
+struct helix_intersector_impl;
 
 /// @brief Intersection implementation for cylinder surfaces using helical
 /// trajectories.
@@ -32,16 +33,18 @@ namespace detail {
 /// The algorithm uses the Newton-Raphson method to find an intersection on
 /// the unbounded surface and then applies the mask.
 /// @note Don't use for low p_t tracks!
-template <typename intersection_t>
-struct helix_cylinder_intersector
-    : public cylinder_intersector<intersection_t> {
+template <typename algebra_t>
+struct helix_intersector_impl<algebra_t, cylindrical2<algebra_t>>
+    : public ray_intersector_impl<algebra_t, cylindrical2<algebra_t>> {
 
-    using transform3_type = typename intersection_t::transform3_type;
+    using transform3_type = algebra_t;
     using scalar_type = typename transform3_type::scalar_type;
-    using matrix_operator = typename transform3_type::matrix_actor;
     using point2 = typename transform3_type::point2;
     using point3 = typename transform3_type::point3;
     using vector3 = typename transform3_type::vector3;
+
+    template <typename surface_descr_t>
+    using intersection_type = intersection2D<surface_descr_t, algebra_t>;
     using helix_type = detail::helix<transform3_type>;
 
     /// Operator function to find intersections between helix and cylinder mask
@@ -56,13 +59,14 @@ struct helix_cylinder_intersector
     /// @param mask_tolerance is the tolerance for mask edges
     ///
     /// @return the intersection
-    template <typename mask_t, typename surface_desc_t>
-    DETRAY_HOST_DEVICE inline std::array<intersection_t, 2> operator()(
-        const helix_type &h, const surface_desc_t &sf_desc, const mask_t &mask,
-        const transform3_type &trf,
-        const scalar_type mask_tolerance = 0.f) const {
+    template <typename surface_descr_t, typename mask_t>
+    DETRAY_HOST_DEVICE inline std::array<intersection_type<surface_descr_t>, 2>
+    operator()(const helix_type &h, const surface_descr_t &sf_desc,
+               const mask_t &mask, const transform3_type &trf,
+               const scalar_type mask_tolerance = 0.f,
+               const scalar_type = 0.f) const {
 
-        std::array<intersection_t, 2> ret;
+        std::array<intersection_type<surface_descr_t>, 2> ret;
 
         // Guard against inifinite loops
         constexpr std::size_t max_n_tries{1000u};
@@ -76,7 +80,7 @@ struct helix_cylinder_intersector
 
         // Starting point on the helix for the Newton iteration
         // The mask is a cylinder -> it provides its radius as the first value
-        const scalar_type r{mask[cylinder2D<>::e_r]};
+        const scalar_type r{mask[cylinder2D::e_r]};
 
         // Try to guess the best starting positions for the iteration
 
@@ -114,7 +118,7 @@ struct helix_cylinder_intersector
         for (unsigned int i = 0u; i < n_runs; ++i) {
 
             scalar_type &s = paths[i];
-            intersection_t &is = ret[i];
+            intersection_type<surface_descr_t> &is = ret[i];
 
             // Path length in the previous iteration step
             scalar_type s_prev{0.f};
@@ -169,23 +173,8 @@ struct helix_cylinder_intersector
     scalar_type convergence_tolerance{1e-3f};
 };
 
-}  // namespace detail
-
-/// Specialization of the @c helix_intersector for 2D cylindrical surfaces
-template <typename intersection_t, typename mask_t>
-struct helix_intersector<
-    intersection_t, mask_t,
-    std::enable_if_t<
-        std::is_same_v<typename mask_t::local_frame_type,
-                       cylindrical2<typename intersection_t::transform3_type>>,
-        void>> : public detail::helix_cylinder_intersector<intersection_t> {
-    using intersector_impl = detail::helix_cylinder_intersector<intersection_t>;
-
-    using scalar_type = typename intersector_impl::scalar_type;
-    using matrix_operator = typename intersector_impl::matrix_operator;
-    using point3 = typename intersector_impl::point3;
-    using vector3 = typename intersector_impl::vector3;
-    using helix_type = typename intersector_impl::helix_type;
-};
+template <typename algebra_t>
+struct helix_intersector_impl<algebra_t, concentric_cylindrical2<algebra_t>>
+    : public helix_intersector_impl<algebra_t, cylindrical2<algebra_t>> {};
 
 }  // namespace detray

@@ -119,14 +119,14 @@ int main(int argc, char **argv) {
     // Build the geometry
     std::string type{vm["type"].as<std::string>()};
     if (type == "rectangle") {
-        write_telecope<rectangle2D<>>(vm, writer_cfg, mask_params);
+        write_telecope<rectangle2D>(vm, writer_cfg, mask_params);
     } else if (type == "trapezoid") {
-        write_telecope<trapezoid2D<>>(vm, writer_cfg, mask_params);
+        write_telecope<trapezoid2D>(vm, writer_cfg, mask_params);
     } else if (type == "annulus") {
-        write_telecope<annulus2D<>>(vm, writer_cfg, mask_params);
+        write_telecope<annulus2D>(vm, writer_cfg, mask_params);
     } else if (type == "ring") {
-        write_telecope<ring2D<>>(vm, writer_cfg, mask_params);
+        write_telecope<ring2D>(vm, writer_cfg, mask_params);
     } else if (type == "cylinder") {
-        write_telecope<cylinder2D<>>(vm, writer_cfg, mask_params);
+        write_telecope<cylinder2D>(vm, writer_cfg, mask_params);
     }
 }

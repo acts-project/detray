@@ -69,7 +69,7 @@ TEST(detray_tools, material_map_builder) {
     using scalar_t = typename detector_t::scalar_type;
 
     // Build rectangle surfaces with material slabs
-    using rectangle_factory = surface_factory<detector_t, rectangle2D<>>;
+    using rectangle_factory = surface_factory<detector_t, rectangle2D>;
     auto mat_factory =
         std::make_unique<material_map_factory<detector_t, bin_index_t>>(
             std::make_unique<rectangle_factory>());

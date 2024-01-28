@@ -11,7 +11,6 @@
 #include "detray/definitions/math.hpp"
 #include "detray/definitions/qualifiers.hpp"
 #include "detray/definitions/track_parametrization.hpp"
-#include "detray/intersection/detail/trajectories.hpp"
 #include "detray/propagator/base_stepper.hpp"
 #include "detray/tracks/bound_track_parameters.hpp"
 #include "detray/tracks/detail/track_helper.hpp"

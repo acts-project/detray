@@ -22,7 +22,7 @@ namespace detray {
 
 /// Defines a telescope detector type with only rectangle portals and one
 /// additional kind of contained module surfaces (@tparam mask_shape_t)
-template <typename mask_shape_t = rectangle2D<>>
+template <typename mask_shape_t = rectangle2D>
 struct telescope_metadata {
 
     /// Mask to (next) volume link: next volume(s)
@@ -30,7 +30,7 @@ struct telescope_metadata {
 
     /// Mask types (these types are needed for the portals, which are always
     /// there, and to resolve the wire surface material, i.e. slab vs. rod)
-    using rectangle = mask<rectangle2D<>, nav_link>;
+    using rectangle = mask<rectangle2D, nav_link>;
     using straw_wire = mask<line<false>, nav_link>;
     using cell_wire = mask<line<true>, nav_link>;
 

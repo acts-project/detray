@@ -1,18 +1,16 @@
 /** Detray library, part of the ACTS project (R&D line)
  *
- * (c) 2020-2023 CERN for the benefit of the ACTS project
+ * (c) 2020-2024 CERN for the benefit of the ACTS project
  *
  * Mozilla Public License Version 2.0
  */
 
 // Project include(s)
-#include "detray/intersection/plane_intersector.hpp"
-
 #include "detray/geometry/detail/surface_descriptor.hpp"
-#include "detray/intersection/detail/trajectories.hpp"
-#include "detray/intersection/intersection.hpp"
 #include "detray/masks/masks.hpp"
 #include "detray/masks/unmasked.hpp"
+#include "detray/navigation/detail/trajectories.hpp"
+#include "detray/navigation/intersection/ray_intersector.hpp"
 #include "detray/test/types.hpp"
 
 // GTest include(s)
@@ -28,7 +26,6 @@ using namespace detray;
 using vector3 = test::vector3;
 using point3 = test::point3;
 using transform3 = test::transform3;
-using intersection_t = intersection2D<surface_descriptor<>, transform3>;
 
 constexpr scalar tol{std::numeric_limits<scalar>::epsilon()};
 
@@ -43,7 +40,7 @@ GTEST_TEST(detray_intersection, translated_plane_ray) {
     const detail::ray<transform3> r(pos, 0.f, mom, 0.f);
 
     // The same test but bound to local frame
-    plane_intersector<intersection_t> pi;
+    ray_intersector<transform3, unmasked> pi;
     mask<unmasked> unmasked_bound{};
     const auto hit_bound =
         pi(r, surface_descriptor<>{}, unmasked_bound, shifted);
@@ -62,7 +59,7 @@ GTEST_TEST(detray_intersection, translated_plane_ray) {
     ASSERT_NEAR(hit_bound.cos_incidence_angle, 1.f, tol);
 
     // The same test but bound to local frame & masked - inside
-    mask<rectangle2D<>> rect_for_inside{0u, 3.f, 3.f};
+    mask<rectangle2D> rect_for_inside{0u, 3.f, 3.f};
     const auto hit_bound_inside =
         pi(r, surface_descriptor<>{}, rect_for_inside, shifted);
     ASSERT_TRUE(hit_bound_inside.status == intersection::status::e_inside);
@@ -77,7 +74,7 @@ GTEST_TEST(detray_intersection, translated_plane_ray) {
     ASSERT_NEAR(hit_bound_inside.local[1], -1.f, tol);
 
     // The same test but bound to local frame & masked - outside
-    mask<rectangle2D<>> rect_for_outside{0u, 0.5f, 3.5f};
+    mask<rectangle2D> rect_for_outside{0u, 0.5f, 3.5f};
     const auto hit_bound_outside =
         pi(r, surface_descriptor<>{}, rect_for_outside, shifted);
     ASSERT_TRUE(hit_bound_outside.status == intersection::status::e_outside);
@@ -101,7 +98,7 @@ GTEST_TEST(detray_intersection, plane_incidence_angle) {
 
     const transform3 rotated{t, vector::normalize(z), vector::normalize(x)};
 
-    plane_intersector<intersection_t> pi;
+    ray_intersector<transform3, rectangle2D> pi;
 
     // Test ray
     const point3 pos{-1.f, 0.f, 0.f};
@@ -109,7 +106,7 @@ GTEST_TEST(detray_intersection, plane_incidence_angle) {
     const detail::ray<transform3> r(pos, 0.f, mom, 0.f);
 
     // The same test but bound to local frame & masked - inside
-    mask<rectangle2D<>> rect{0u, 3.f, 3.f};
+    mask<rectangle2D> rect{0u, 3.f, 3.f};
 
     const auto is = pi(r, surface_descriptor<>{}, rect, rotated);
 

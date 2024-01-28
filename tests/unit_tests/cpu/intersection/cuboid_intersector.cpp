@@ -6,10 +6,9 @@
  */
 
 // Project include(s)
-#include "detray/intersection/bounding_box/cuboid_intersector.hpp"
-
-#include "detray/intersection/detail/trajectories.hpp"
-#include "detray/intersection/intersection.hpp"
+#include "detray/navigation/detail/trajectories.hpp"
+#include "detray/navigation/intersection/intersection.hpp"
+#include "detray/navigation/intersection/bounding_box/cuboid_intersector.hpp"
 #include "detray/test/types.hpp"
 #include "detray/utils/bounding_volume.hpp"
 
@@ -45,8 +44,8 @@ GTEST_TEST(detray_intersection, cuboid_aabb_intersector) {
     const detail::ray<transform3> r(pos, 0.f, mom, 0.f);
 
     // The bounding box
-    mask<cuboid3D<>> c3{0u, x_min, y_min, z_min, x_max, y_max, z_max};
-    axis_aligned_bounding_volume<cuboid3D<>> aabb{c3, 0u, envelope};
+    mask<cuboid3D> c3{0u, x_min, y_min, z_min, x_max, y_max, z_max};
+    axis_aligned_bounding_volume<cuboid3D> aabb{c3, 0u, envelope};
 
     ASSERT_TRUE(aabb.intersect(r));
 }

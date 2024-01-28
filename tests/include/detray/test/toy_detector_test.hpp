@@ -162,8 +162,9 @@ inline bool toy_detector_test(
         EXPECT_EQ(materials.template size<material_ids::e_slab>(), 3244u);
     } else if (has_material and has_material_maps) {
         EXPECT_EQ(materials.template size<material_ids::e_slab>(), 3141u);
-        EXPECT_EQ(materials.template size<material_ids::e_cylinder2_map>(),
-                  51u);
+        EXPECT_EQ(
+            materials.template size<material_ids::e_concentric_cylinder2_map>(),
+            51u);
         EXPECT_EQ(materials.template size<material_ids::e_disc2_map>(), 52u);
     }
 
@@ -247,11 +248,11 @@ inline bool toy_detector_test(
                     mat);
             } else if (has_material and has_material_maps) {
                 auto mat_link = sf_itr->material();
-                if (mat_link.id() == material_ids::e_cylinder2_map) {
-                    test_mat_map(
-                        materials.template get<
-                            material_ids::e_cylinder2_map>()[mat_link.index()],
-                        true);
+                if (mat_link.id() == material_ids::e_concentric_cylinder2_map) {
+                    test_mat_map(materials.template get<
+                                     material_ids::e_concentric_cylinder2_map>()
+                                     [mat_link.index()],
+                                 true);
                 } else if (mat_link.id() == material_ids::e_disc2_map) {
                     test_mat_map(
                         materials.template get<

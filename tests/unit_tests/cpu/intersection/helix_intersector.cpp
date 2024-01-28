@@ -8,12 +8,10 @@
 // Project include(s).
 #include "detray/definitions/units.hpp"
 #include "detray/geometry/detail/surface_descriptor.hpp"
-#include "detray/intersection/detail/trajectories.hpp"
 #include "detray/masks/masks.hpp"
 #include "detray/masks/unmasked.hpp"
-#include "detray/test/intersection/helix_cylinder_intersector.hpp"
-#include "detray/test/intersection/helix_line_intersector.hpp"
-#include "detray/test/intersection/helix_plane_intersector.hpp"
+#include "detray/navigation/detail/trajectories.hpp"
+#include "detray/navigation/intersection/helix_intersector.hpp"
 #include "detray/test/types.hpp"
 #include "detray/tracks/tracks.hpp"
 
@@ -75,7 +73,7 @@ GTEST_TEST(detray_intersection, helix_plane_intersector_no_bfield) {
     const detail::helix<transform3_t> h({pos, 0.f, mom, -1.f}, &B_0);
 
     // The same test but bound to local frame
-    detail::helix_plane_intersector<intersection_t> pi;
+    helix_intersector<transform3_t, unmasked> pi;
     mask<unmasked> unmasked_bound{};
     const auto hit_bound =
         pi(h, surface_descriptor<>{}, unmasked_bound, shifted);
@@ -94,7 +92,7 @@ GTEST_TEST(detray_intersection, helix_plane_intersector_no_bfield) {
     ASSERT_TRUE(detail::is_invalid_value(hit_bound.cos_incidence_angle));
 
     // The same test but bound to local frame & masked - inside
-    mask<rectangle2D<>> rect_for_inside{0u, 3.f, 3.f};
+    mask<rectangle2D> rect_for_inside{0u, 3.f, 3.f};
     const auto hit_bound_inside =
         pi(h, surface_descriptor<>{}, rect_for_inside, shifted);
     ASSERT_TRUE(hit_bound_inside.status == intersection::status::e_inside);
@@ -109,7 +107,7 @@ GTEST_TEST(detray_intersection, helix_plane_intersector_no_bfield) {
     ASSERT_NEAR(hit_bound_inside.local[1], -1.f, tol);
 
     // The same test but bound to local frame & masked - outside
-    mask<rectangle2D<>> rect_for_outside{0u, 0.5f, 3.5f};
+    mask<rectangle2D> rect_for_outside{0u, 0.5f, 3.5f};
     const auto hit_bound_outside =
         pi(h, surface_descriptor<>{}, rect_for_outside, shifted);
     ASSERT_TRUE(hit_bound_outside.status == intersection::status::e_outside);
@@ -134,10 +132,10 @@ GTEST_TEST(detray_intersection, helix_plane_intersector) {
     const transform3_t trf(trl, w, v);
 
     // Rectangle surface
-    const mask<rectangle2D<>> rectangle{0u, 10.f * unit<scalar>::cm,
-                                        10.f * unit<scalar>::cm};
+    const mask<rectangle2D> rectangle{0u, 10.f * unit<scalar>::cm,
+                                      10.f * unit<scalar>::cm};
 
-    const detail::helix_plane_intersector<intersection_t> hpi;
+    const helix_intersector<transform3_t, rectangle2D> hpi;
 
     // Get the intersection on the next surface
     const auto is = hpi(hlx, surface_descriptor<>{}, rectangle, trf, tol);
@@ -162,7 +160,7 @@ GTEST_TEST(detray_intersection, helix_cylinder_intersector_no_bfield) {
 
     // Create a translated cylinder and test untersection
     const transform3_t shifted(vector3{3.f, 2.f, 10.f});
-    detail::helix_cylinder_intersector<intersection_t> hi;
+    helix_intersector<transform3_t, concentric_cylinder2D> hi;
 
     // Test helix
     const point3 pos{3.f, 2.f, 5.f};
@@ -171,9 +169,8 @@ GTEST_TEST(detray_intersection, helix_cylinder_intersector_no_bfield) {
                     &B_0);
 
     // Intersect
-    mask<cylinder2D<false, detail::helix_cylinder_intersector>,
-         std::uint_least16_t, transform3_t>
-        cylinder{0u, r, -hz, hz};
+    mask<concentric_cylinder2D, std::uint_least16_t, transform3_t> cylinder{
+        0u, r, -hz, hz};
     const auto hits_bound =
         hi(h, surface_descriptor<>{}, cylinder, shifted, tol);
 
@@ -218,9 +215,9 @@ GTEST_TEST(detray_intersection, helix_cylinder_intersector) {
     // Cylinder surface (5 cm radius)
     const scalar r{4.f * unit<scalar>::cm};
     const scalar hz{10.f * unit<scalar>::cm};
-    const mask<cylinder2D<>> cylinder{0u, r, -hz, hz};
+    const mask<cylinder2D> cylinder{0u, r, -hz, hz};
 
-    const detail::helix_cylinder_intersector<intersection_t> hci;
+    const helix_intersector<transform3_t, cylinder2D> hci;
 
     // Get the intersection on the next surface
     const auto is = hci(hlx, surface_descriptor<>{}, cylinder, trf, tol);
@@ -262,7 +259,7 @@ GTEST_TEST(detray_intersection, helix_cylinder_intersector) {
 GTEST_TEST(detray_intersection, helix_line_intersector) {
 
     // Intersector object
-    const detail::helix_line_intersector<intersection_t> hli;
+    const helix_intersector<transform3_t, line<>> hli;
 
     // Get radius of track
     const scalar R{hlx.radius()};

@@ -9,13 +9,13 @@
 
 // Project include(s)
 #include "detray/definitions/indexing.hpp"
+#include "detray/definitions/math.hpp"
 #include "detray/geometry/detector_volume.hpp"
 #include "detray/utils/ranges.hpp"
 #include "detray/utils/type_traits.hpp"
 
 // System include(s)
 #include <algorithm>
-#include <cmath>
 #include <cstddef>
 #include <iterator>
 #include <queue>

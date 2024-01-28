@@ -1,6 +1,6 @@
 /** Detray library, part of the ACTS project (R&D line)
  *
- * (c) 2020-2023 CERN for the benefit of the ACTS project
+ * (c) 2020-2024 CERN for the benefit of the ACTS project
  *
  * Mozilla Public License Version 2.0
  */
@@ -9,10 +9,10 @@
 #include "detray/definitions/containers.hpp"
 #include "detray/definitions/indexing.hpp"
 #include "detray/geometry/detail/surface_descriptor.hpp"
-#include "detray/intersection/concentric_cylinder_intersector.hpp"
-#include "detray/intersection/cylinder_portal_intersector.hpp"
-#include "detray/intersection/detail/trajectories.hpp"
 #include "detray/masks/masks.hpp"
+#include "detray/navigation/detail/trajectories.hpp"
+#include "detray/navigation/intersection/ray_concentric_cylinder_intersector.hpp"
+#include "detray/navigation/intersection/ray_intersector.hpp"
 
 // Detray utility include(s).
 #include "detray/simulation/event_generator/track_generators.hpp"
@@ -42,7 +42,7 @@ void BM_INTERSECT_PLANES(benchmark::State &state) {
 
     auto planes = test::planes_along_direction(
         dists, vector::normalize(test::vector3{1.f, 1.f, 1.f}));
-    constexpr mask<rectangle2D<>> rect{0u, 10.f, 20.f};
+    constexpr mask<rectangle2D> rect{0u, 10.f, 20.f};
 
     // Iterate through uniformly distributed momentum directions
     auto ray_generator = ray_generator_t{};
@@ -56,8 +56,7 @@ void BM_INTERSECT_PLANES(benchmark::State &state) {
         for (const auto ray : ray_generator) {
 
             for (const auto &plane : planes) {
-                auto pi = rect.intersector<intersection2D<
-                    decltype(planes)::value_type, test::transform3>>();
+                auto pi = ray_intersector<test::transform3, rectangle2D>{};
                 auto is = pi(ray, plane, rect, plane.transform());
 
                 benchmark::DoNotOptimize(sfhit);
@@ -103,7 +102,7 @@ using intersection_t = intersection2D<plane_surface, test::transform3>;
 /// This benchmark runs intersection with the cylinder intersector
 void BM_INTERSECT_CYLINDERS(benchmark::State &state) {
 
-    using cylinder_mask = mask<cylinder2D<true, cylinder_intersector>>;
+    using cylinder_mask = mask<cylinder2D>;
 
     unsigned int sfhit = 0u;
     unsigned int sfmiss = 0u;
@@ -130,7 +129,7 @@ void BM_INTERSECT_CYLINDERS(benchmark::State &state) {
         for (const auto ray : ray_generator) {
 
             for (const auto &cylinder : cylinders) {
-                auto ci = cylinder.intersector<intersection_t>();
+                auto ci = ray_intersector<test::transform3, cylinder2D>{};
                 auto inters = ci(ray, plane, cylinder, plane.transform());
 
                 benchmark::DoNotOptimize(sfhit);
@@ -158,7 +157,7 @@ BENCHMARK(BM_INTERSECT_CYLINDERS)
 /// intersector
 void BM_INTERSECT_PORTAL_CYLINDERS(benchmark::State &state) {
 
-    using cylinder_mask = mask<cylinder2D<false, cylinder_portal_intersector>>;
+    using cylinder_mask = mask<concentric_cylinder2D>;
 
     unsigned int sfhit = 0u;
     unsigned int sfmiss = 0u;
@@ -185,7 +184,8 @@ void BM_INTERSECT_PORTAL_CYLINDERS(benchmark::State &state) {
         for (const auto ray : ray_generator) {
 
             for (const auto &cylinder : cylinders) {
-                auto cpi = cylinder.intersector<intersection_t>();
+                auto cpi =
+                    ray_intersector<test::transform3, concentric_cylinder2D>{};
                 auto is = cpi(ray, plane, cylinder, plane.transform());
 
                 benchmark::DoNotOptimize(sfhit);
@@ -212,8 +212,7 @@ void BM_INTERSECT_CONCETRIC_CYLINDERS(benchmark::State &state) {
     unsigned int sfhit = 0u;
     unsigned int sfmiss = 0u;
 
-    using cylinder_mask =
-        mask<cylinder2D<false, concentric_cylinder_intersector>>;
+    using cylinder_mask = mask<concentric_cylinder2D>;
 
     dvector<cylinder_mask> cylinders;
     for (scalar r : dists) {
@@ -235,7 +234,8 @@ void BM_INTERSECT_CONCETRIC_CYLINDERS(benchmark::State &state) {
         for (const auto ray : ray_generator) {
 
             for (const auto &cylinder : cylinders) {
-                auto cci = cylinder.intersector<intersection_t>();
+                auto cci =
+                    ray_concentric_cylinder_intersector<test::transform3>{};
                 auto is = cci(ray, plane, cylinder, plane.transform());
 
                 benchmark::DoNotOptimize(sfhit);

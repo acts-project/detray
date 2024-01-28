@@ -1,6 +1,6 @@
 /** Detray library, part of the ACTS project (R&D line)
  *
- * (c) 2023 CERN for the benefit of the ACTS project
+ * (c) 2023-2024 CERN for the benefit of the ACTS project
  *
  * Mozilla Public License Version 2.0
  */
@@ -8,8 +8,8 @@
 // Project include(s)
 #include "detray/core/detector.hpp"
 #include "detray/detectors/toy_metadata.hpp"
-#include "detray/geometry/volume_graph.hpp"
 #include "detray/io/frontend/detector_reader.hpp"
+#include "detray/navigation/volume_graph.hpp"
 
 // Example linear algebra plugin: std::array
 #include "detray/tutorial/types.hpp"

@@ -12,10 +12,8 @@
 #include "detray/coordinates/cylindrical3.hpp"
 #include "detray/definitions/containers.hpp"
 #include "detray/definitions/qualifiers.hpp"
-#include "detray/intersection/cylinder_intersector.hpp"
 
 // System include(s)
-#include <cmath>
 #include <limits>
 #include <ostream>
 #include <string>
@@ -24,21 +22,11 @@ namespace detray {
 
 /// @brief Geometrical shape of a 2D cylinder.
 ///
-/// @tparam kRadialCheck is a boolean to steer whether the radius compatibility
-///         needs to be checked (changes local coordinate system def.)
-/// @tparam intersector_t defines how to intersect the underlying surface
-///         geometry
-///
 /// It is defined by r and the two half lengths rel to the coordinate center.
-template <bool kRadialCheck = false,
-          template <typename> class intersector_t = cylinder_intersector>
 class cylinder2D {
     public:
     /// The name for this shape
     inline static const std::string name = "cylinder2D";
-
-    /// Check the radial position in boundary check
-    static constexpr bool check_radius = kRadialCheck;
 
     enum boundaries : unsigned int {
         e_r = 0u,
@@ -50,10 +38,6 @@ class cylinder2D {
     /// Local coordinate frame for boundary checks
     template <typename algebra_t>
     using local_frame_type = cylindrical2<algebra_t>;
-
-    /// Underlying surface geometry: cylindrical
-    template <typename intersection_t>
-    using intersector_type = intersector_t<intersection_t>;
 
     /// Dimension of the local coordinate system
     static constexpr std::size_t dim{2u};
@@ -80,11 +64,6 @@ class cylinder2D {
         const bounds_t<scalar_t, kDIM> &bounds, const point_t &loc_p,
         const scalar_t tol = std::numeric_limits<scalar_t>::epsilon()) const {
 
-        if constexpr (kRadialCheck) {
-            if (math::abs(loc_p[2] - bounds[e_r]) > tol) {
-                return false;
-            }
-        }
         return (bounds[e_n_half_z] - tol <= loc_p[1] and
                 loc_p[1] <= bounds[e_p_half_z] + tol);
     }

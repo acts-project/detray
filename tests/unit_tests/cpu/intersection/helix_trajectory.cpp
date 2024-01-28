@@ -5,12 +5,14 @@
  * Mozilla Public License Version 2.0
  */
 
-#include <gtest/gtest.h>
-
+// Project include(s)
 #include "detray/definitions/units.hpp"
-#include "detray/intersection/detail/trajectories.hpp"
+#include "detray/navigation/detail/trajectories.hpp"
 #include "detray/test/types.hpp"
 #include "detray/tracks/tracks.hpp"
+
+// GTest include(s)
+#include <gtest/gtest.h>
 
 // System include(s)
 #include <cmath>

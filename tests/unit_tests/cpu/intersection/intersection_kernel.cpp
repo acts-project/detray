@@ -1,22 +1,21 @@
 /** Detray library, part of the ACTS project (R&D line)
  *
- * (c) 2021-2023 CERN for the benefit of the ACTS project
+ * (c) 2021-2024 CERN for the benefit of the ACTS project
  *
  * Mozilla Public License Version 2.0
  */
 
 // Project include(s)
-#include "detray/intersection/intersection_kernel.hpp"
+#include "detray/navigation/intersection_kernel.hpp"
 
 #include "detray/core/detail/multi_store.hpp"
 #include "detray/core/detail/single_store.hpp"
 #include "detray/geometry/detail/surface_descriptor.hpp"
-#include "detray/intersection/cylinder_intersector.hpp"
-#include "detray/intersection/cylinder_portal_intersector.hpp"
-#include "detray/intersection/detail/trajectories.hpp"
-#include "detray/intersection/plane_intersector.hpp"
 #include "detray/masks/masks.hpp"
-#include "detray/test/intersection/helix_intersection_kernel.hpp"
+#include "detray/navigation/detail/trajectories.hpp"
+#include "detray/navigation/intersection/helix_intersector.hpp"
+#include "detray/navigation/intersection/ray_intersector.hpp"
+#include "detray/navigation/intersection_kernel.hpp"
 #include "detray/test/types.hpp"
 #include "detray/tracks/tracks.hpp"
 #include "detray/utils/ranges.hpp"
@@ -52,12 +51,11 @@ enum material_ids : unsigned int {
 using volume_link_t = std::uint_least16_t;
 
 /// - masks, with mask identifiers 0,1,2
-using rectangle_t = mask<rectangle2D<>, volume_link_t>;
-using trapezoid_t = mask<trapezoid2D<>, volume_link_t>;
-using annulus_t = mask<annulus2D<>, volume_link_t>;
-using cylinder_t = mask<cylinder2D<true, cylinder_intersector>, volume_link_t>;
-using cylinder_portal_t =
-    mask<cylinder2D<false, cylinder_portal_intersector>, volume_link_t>;
+using rectangle_t = mask<rectangle2D, volume_link_t>;
+using trapezoid_t = mask<trapezoid2D, volume_link_t>;
+using annulus_t = mask<annulus2D, volume_link_t>;
+using cylinder_t = mask<cylinder2D, volume_link_t>;
+using cylinder_portal_t = mask<concentric_cylinder2D, volume_link_t>;
 
 using mask_container_t =
     regular_multi_store<mask_ids, empty_context, dtuple, dvector, rectangle_t,
@@ -149,9 +147,9 @@ GTEST_TEST(detray_intersection, intersection_kernel_ray) {
     std::vector<intersection2D<surface_t, transform3_t>> sfi_init;
 
     for (const auto &surface : surfaces) {
-        mask_store.visit<intersection_initialize>(surface.mask(), sfi_init,
-                                                  detail::ray(track), surface,
-                                                  transform_store, tol);
+        mask_store.visit<intersection_initialize<ray_intersector>>(
+            surface.mask(), sfi_init, detail::ray(track), surface,
+            transform_store, tol);
     }
     // Also check intersections
     for (std::size_t i = 0u; i < expected_points.size(); ++i) {
@@ -269,8 +267,8 @@ GTEST_TEST(detray_intersection, intersection_kernel_helix) {
 
     // Try the intersections - with automated dispatching via the kernel
     for (const auto [sf_idx, surface] : detray::views::enumerate(surfaces)) {
-        mask_store.visit<helix_intersection_initialize>(
-            surface.mask(), sfi_helix, h, surface, transform_store);
+        mask_store.visit<intersection_initialize<helix_intersector>>(
+            surface.mask(), sfi_helix, h, surface, transform_store, 0.f, 0.f);
 
         vector3 global;
 

@@ -149,6 +149,25 @@ struct get_axes_types<cylindrical2<A>, e_bounds, binning0_t, binning1_t,
     using binning = detray::types::list<binning0_t<C, S>, binning1_t<C, S>>;
 };
 
+/// Behaviour of the two local axes (circular in r-phi, linear in z)
+template <typename A, axis::bounds e_bounds,
+          template <typename, typename> class binning0_t,
+          template <typename, typename> class binning1_t,
+          template <typename, typename> class binning2_t>
+struct get_axes_types<concentric_cylindrical2<A>, e_bounds, binning0_t,
+                      binning1_t, binning2_t> {
+    template <typename algebra_t>
+    using frame = concentric_cylindrical2<algebra_t>;
+
+    static constexpr auto label0{axis::label::e_rphi};
+    static constexpr auto label1{axis::label::e_cyl_z};
+
+    using bounds =
+        detray::types::list<axis::circular<label0>, bounds_t<e_bounds, label1>>;
+    template <typename C, typename S>
+    using binning = detray::types::list<binning0_t<C, S>, binning1_t<C, S>>;
+};
+
 /// Behaviour of the two local axes (linear in r, circular in phi, linear in z)
 template <typename A, axis::bounds e_bounds,
           template <typename, typename> class binning0_t,

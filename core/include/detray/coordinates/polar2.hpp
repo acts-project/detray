@@ -14,9 +14,6 @@
 #include "detray/tracks/bound_track_parameters.hpp"
 #include "detray/utils/invalid_values.hpp"
 
-// System include(s).
-#include <cmath>
-
 namespace detray {
 
 template <typename transform3_t>

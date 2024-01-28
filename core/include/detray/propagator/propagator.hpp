@@ -1,6 +1,6 @@
 /** Detray library, part of the ACTS project (R&D line)
  *
- * (c) 2021-2023 CERN for the benefit of the ACTS project
+ * (c) 2021-2024 CERN for the benefit of the ACTS project
  *
  * Mozilla Public License Version 2.0
  */
@@ -10,10 +10,10 @@
 // Project include(s).
 #include "detray/definitions/macros.hpp"
 #include "detray/definitions/qualifiers.hpp"
-#include "detray/intersection/intersection.hpp"
+#include "detray/navigation/intersection/intersection.hpp"
+#include "detray/navigation/navigator.hpp"
 #include "detray/propagator/actor_chain.hpp"
 #include "detray/propagator/base_stepper.hpp"
-#include "detray/propagator/navigator.hpp"
 #include "detray/propagator/propagation_config.hpp"
 #include "detray/tracks/tracks.hpp"
 

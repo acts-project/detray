@@ -11,8 +11,8 @@
 #include "detray/coordinates/cylindrical2.hpp"
 #include "detray/definitions/math.hpp"
 #include "detray/definitions/qualifiers.hpp"
-#include "detray/intersection/detail/trajectories.hpp"
-#include "detray/intersection/intersection.hpp"
+#include "detray/navigation/detail/trajectories.hpp"
+#include "detray/navigation/intersection/intersection.hpp"
 #include "detray/utils/invalid_values.hpp"
 #include "detray/utils/quadratic_equation.hpp"
 
@@ -21,26 +21,30 @@
 
 namespace detray {
 
+template <typename algebra_t, typename fame_t>
+struct ray_intersector_impl;
+
 /// A functor to find intersections between a ray and a 2D cylinder mask
-template <typename intersection_t>
-struct cylinder_intersector {
+template <typename algebra_t>
+struct ray_intersector_impl<algebra_t, cylindrical2<algebra_t>> {
 
     /// linear algebra types
     /// @{
-    using transform3_type = typename intersection_t::transform3_type;
+    using transform3_type = algebra_t;
     using scalar_type = typename transform3_type::scalar_type;
     using point3 = typename transform3_type::point3;
     using point2 = typename transform3_type::point2;
     using vector3 = typename transform3_type::vector3;
     /// @}
 
-    using intersection_type = intersection_t;
+    template <typename surface_descr_t>
+    using intersection_type = intersection2D<surface_descr_t, algebra_t>;
     using ray_type = detail::ray<transform3_type>;
 
     /// Operator function to find intersections between a ray and a 2D cylinder
     ///
     /// @tparam mask_t is the input mask type
-    /// @tparam surface_t is the type of surface handle
+    /// @tparam surface_descr_t is the type of surface handle
     ///
     /// @param ray is the input ray trajectory
     /// @param sf the surface handle the mask is associated with
@@ -50,28 +54,29 @@ struct cylinder_intersector {
     /// @param overstep_tol negative cutoff for the path
     ///
     /// @return the intersections.
-    template <typename mask_t, typename surface_t>
-    DETRAY_HOST_DEVICE inline std::array<intersection_t, 2> operator()(
-        const ray_type &ray, const surface_t &sf, const mask_t &mask,
-        const transform3_type &trf, const scalar_type mask_tolerance = 0.f,
-        const scalar_type overstep_tol = 0.f) const {
+    template <typename surface_descr_t, typename mask_t>
+    DETRAY_HOST_DEVICE inline std::array<intersection_type<surface_descr_t>, 2>
+    operator()(const ray_type &ray, const surface_descr_t &sf,
+               const mask_t &mask, const transform3_type &trf,
+               const scalar_type mask_tolerance = 0.f,
+               const scalar_type overstep_tol = 0.f) const {
 
         // One or both of these solutions might be invalid
         const auto qe = solve_intersection(ray, mask, trf);
 
-        std::array<intersection_t, 2> ret;
+        std::array<intersection_type<surface_descr_t>, 2> ret;
         switch (qe.solutions()) {
             case 2:
-                ret[1] = build_candidate(ray, mask, trf, qe.larger(),
-                                         mask_tolerance, overstep_tol);
+                ret[1] = build_candidate<surface_descr_t>(
+                    ray, mask, trf, qe.larger(), mask_tolerance, overstep_tol);
                 ret[1].sf_desc = sf;
                 // If there are two solutions, reuse the case for a single
                 // solution to setup the intersection with the smaller path
                 // in ret[0]
                 [[fallthrough]];
             case 1:
-                ret[0] = build_candidate(ray, mask, trf, qe.smaller(),
-                                         mask_tolerance, overstep_tol);
+                ret[0] = build_candidate<surface_descr_t>(
+                    ray, mask, trf, qe.smaller(), mask_tolerance, overstep_tol);
                 ret[0].sf_desc = sf;
                 break;
             case 0:
@@ -95,13 +100,11 @@ struct cylinder_intersector {
     /// @param trf is the surface placement transform
     /// @param mask_tolerance is the tolerance for mask edges
     /// @param overstep_tol negative cutoff for the path
-    template <typename mask_t,
-              std::enable_if_t<std::is_same_v<typename mask_t::local_frame_type,
-                                              cylindrical2<transform3_type>>,
-                               bool> = true>
+    template <typename surface_descr_t, typename mask_t>
     DETRAY_HOST_DEVICE inline void update(
-        const ray_type &ray, intersection_t &sfi, const mask_t &mask,
-        const transform3_type &trf, const scalar_type mask_tolerance = 0.f,
+        const ray_type &ray, intersection_type<surface_descr_t> &sfi,
+        const mask_t &mask, const transform3_type &trf,
+        const scalar_type mask_tolerance = 0.f,
         const scalar_type overstep_tol = 0.f) const {
 
         // One or both of these solutions might be invalid
@@ -109,8 +112,8 @@ struct cylinder_intersector {
 
         switch (qe.solutions()) {
             case 1:
-                sfi = build_candidate(ray, mask, trf, qe.smaller(),
-                                      mask_tolerance, overstep_tol);
+                sfi = build_candidate<surface_descr_t>(
+                    ray, mask, trf, qe.smaller(), mask_tolerance, overstep_tol);
                 break;
             case 0:
                 sfi.status = intersection::status::e_missed;
@@ -149,13 +152,14 @@ struct cylinder_intersector {
     /// @returns the intersection candidate. Might be (partially) uninitialized
     /// if the overstepping tolerance is not met or the intersection lies
     /// outside of the mask.
-    template <typename mask_t>
-    DETRAY_HOST_DEVICE inline intersection_t build_candidate(
-        const ray_type &ray, const mask_t &mask, const transform3_type &trf,
-        const scalar_type path, const scalar_type mask_tolerance = 0.f,
-        const scalar_type overstep_tol = 0.f) const {
+    template <typename surface_descr_t, typename mask_t>
+    DETRAY_HOST_DEVICE inline intersection_type<surface_descr_t>
+    build_candidate(const ray_type &ray, mask_t &mask,
+                    const transform3_type &trf, const scalar_type path,
+                    const scalar_type mask_tolerance = 0.f,
+                    const scalar_type overstep_tol = 0.f) const {
 
-        intersection_t is;
+        intersection_type<surface_descr_t> is;
 
         // Construct the candidate only when needed
         if (path >= overstep_tol) {

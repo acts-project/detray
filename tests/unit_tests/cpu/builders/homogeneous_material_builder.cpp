@@ -1,6 +1,6 @@
 /** Detray library, part of the ACTS project (R&D line)
  *
- * (c) 2023 CERN for the benefit of the ACTS project
+ * (c) 2023-2024 CERN for the benefit of the ACTS project
  *
  * Mozilla Public License Version 2.0
  */
@@ -46,7 +46,7 @@ TEST(detray_tools, homogeneous_material_builder) {
     using material_id = typename detector_t::materials::id;
 
     // Build rectangle surfaces with material slabs
-    using rectangle_factory = surface_factory<detector_t, rectangle2D<>>;
+    using rectangle_factory = surface_factory<detector_t, rectangle2D>;
     auto mat_factory =
         std::make_unique<homogeneous_material_factory<detector_t>>(
             std::make_unique<rectangle_factory>());

@@ -1,20 +1,25 @@
 /** Detray library, part of the ACTS project (R&D line)
  *
- * (c) 2021-2023 CERN for the benefit of the ACTS project
+ * (c) 2021-2024 CERN for the benefit of the ACTS project
  *
  * Mozilla Public License Version 2.0
  */
 
-#include "detray/geometry/volume_graph.hpp"
-
-#include <gtest/gtest.h>
-
-#include <iostream>
-#include <map>
-#include <vecmem/memory/host_memory_resource.hpp>
+// Project inlcude(s)
+#include "detray/navigation/volume_graph.hpp"
 
 #include "detray/detectors/create_toy_geometry.hpp"
 #include "detray/test/types.hpp"
+
+// Vecmem include(s)
+#include <vecmem/memory/host_memory_resource.hpp>
+
+// GTest include(s)
+#include <gtest/gtest.h>
+
+// System include(s)
+#include <iostream>
+#include <map>
 
 // This tests the linking of a geometry by loading it into a graph structure
 GTEST_TEST(detray_geometry, volume_graph) {

@@ -39,7 +39,7 @@ constexpr scalar tol{1e-7f};
 
 // Either a data owning or non-owning 3D cartesian multi-axis
 template <bool ownership = true, typename containers = host_container_types>
-using cartesian_3D = coordinate_axes<axes<cuboid3D<>>, ownership, containers>;
+using cartesian_3D = coordinate_axes<axes<cuboid3D>, ownership, containers>;
 
 // non-owning multi-axis: Takes external containers
 bool constexpr is_owning = true;
@@ -83,13 +83,13 @@ void test_content(const grid_t& g, const point3& p, const content_t& expected) {
 GTEST_TEST(detray_grid, single_grid) {
 
     // Owning and non-owning, cartesian, 3-dimensional grids
-    using grid_owning_t = grid<axes<cuboid3D<>>, bins::single<scalar>>;
+    using grid_owning_t = grid<axes<cuboid3D>, bins::single<scalar>>;
 
     using grid_n_owning_t =
-        grid<axes<cuboid3D<>>, bins::single<scalar>, simple_serializer,
+        grid<axes<cuboid3D>, bins::single<scalar>, simple_serializer,
              host_container_types, false>;
 
-    using grid_device_t = grid<axes<cuboid3D<>>, bins::single<scalar>,
+    using grid_device_t = grid<axes<cuboid3D>, bins::single<scalar>,
                                simple_serializer, device_container_types>;
 
     // Fill the bin data for every test
@@ -169,13 +169,13 @@ GTEST_TEST(detray_grid, single_grid) {
 GTEST_TEST(detray_grid, dynamic_array) {
 
     // Owning and non-owning, cartesian, 3-dimensional grids
-    using grid_owning_t = grid<axes<cuboid3D<>>, bins::dynamic_array<scalar>>;
+    using grid_owning_t = grid<axes<cuboid3D>, bins::dynamic_array<scalar>>;
 
     using grid_n_owning_t =
-        grid<axes<cuboid3D<>>, bins::dynamic_array<scalar>, simple_serializer,
+        grid<axes<cuboid3D>, bins::dynamic_array<scalar>, simple_serializer,
              host_container_types, false>;
 
-    using grid_device_t = grid<axes<cuboid3D<>>, bins::dynamic_array<scalar>,
+    using grid_device_t = grid<axes<cuboid3D>, bins::dynamic_array<scalar>,
                                simple_serializer, device_container_types>;
 
     // Fill the bin data for every test
@@ -270,7 +270,7 @@ GTEST_TEST(detray_grid, dynamic_array) {
 GTEST_TEST(detray_grid, bin_view) {
 
     // Non-owning, 3D cartesian, replacing grid
-    using grid_t = grid<axes<cuboid3D<>>, bins::single<scalar>>;
+    using grid_t = grid<axes<cuboid3D>, bins::single<scalar>>;
 
     // Fill the bin data for every test
     // bin test entries

@@ -42,16 +42,16 @@ GTEST_TEST(detray_masks, annulus2D) {
         return point_t{r, phi, 0.f};
     };
 
-    mask<annulus2D<>> ann2{0u,     minR, maxR,      minPhi,
-                           maxPhi, 0.f,  offset[0], offset[1]};
+    mask<annulus2D> ann2{0u,     minR, maxR,      minPhi,
+                         maxPhi, 0.f,  offset[0], offset[1]};
 
-    ASSERT_NEAR(ann2[annulus2D<>::e_min_r], 7.2f, tol);
-    ASSERT_NEAR(ann2[annulus2D<>::e_max_r], 12.0f, tol);
-    ASSERT_NEAR(ann2[annulus2D<>::e_min_phi_rel], 0.74195f, tol);
-    ASSERT_NEAR(ann2[annulus2D<>::e_max_phi_rel], 1.33970f, tol);
-    ASSERT_NEAR(ann2[annulus2D<>::e_shift_x], -2.0f, tol);
-    ASSERT_NEAR(ann2[annulus2D<>::e_shift_y], 2.0f, tol);
-    ASSERT_NEAR(ann2[annulus2D<>::e_average_phi], 0.f, tol);
+    ASSERT_NEAR(ann2[annulus2D::e_min_r], 7.2f, tol);
+    ASSERT_NEAR(ann2[annulus2D::e_max_r], 12.0f, tol);
+    ASSERT_NEAR(ann2[annulus2D::e_min_phi_rel], 0.74195f, tol);
+    ASSERT_NEAR(ann2[annulus2D::e_max_phi_rel], 1.33970f, tol);
+    ASSERT_NEAR(ann2[annulus2D::e_shift_x], -2.0f, tol);
+    ASSERT_NEAR(ann2[annulus2D::e_shift_y], 2.0f, tol);
+    ASSERT_NEAR(ann2[annulus2D::e_average_phi], 0.f, tol);
 
     ASSERT_TRUE(ann2.is_inside(toStripFrame(p2_in)) ==
                 intersection::status::e_inside);
@@ -74,9 +74,9 @@ GTEST_TEST(detray_masks, annulus2D) {
     for (unsigned int i{0u}; i < 8u; i += 2u) {
         // Transform to local cartesian beam system
         const scalar loc_x{c[i] * math::cos(c[i + 1]) -
-                           ann2.values()[annulus2D<>::e_shift_x]};
+                           ann2.values()[annulus2D::e_shift_x]};
         const scalar loc_y{c[i] * math::sin(c[i + 1]) -
-                           ann2.values()[annulus2D<>::e_shift_y]};
+                           ann2.values()[annulus2D::e_shift_y]};
 
         // Inner points
         if (i < 4u) {
@@ -95,12 +95,12 @@ GTEST_TEST(detray_masks, annulus2D) {
     // Check bounding box
     constexpr scalar envelope{0.01f};
     const auto loc_bounds = ann2.local_min_bounds(envelope);
-    ASSERT_NEAR(loc_bounds[cuboid3D<>::e_min_x], 3.8954f - envelope, tol);
-    ASSERT_NEAR(loc_bounds[cuboid3D<>::e_min_y], 2.39186f - envelope, tol);
-    ASSERT_NEAR(loc_bounds[cuboid3D<>::e_min_z], -envelope, tol);
-    ASSERT_NEAR(loc_bounds[cuboid3D<>::e_max_x], 10.50652f + envelope, tol);
-    ASSERT_NEAR(loc_bounds[cuboid3D<>::e_max_y], 10.89317f + envelope, tol);
-    ASSERT_NEAR(loc_bounds[cuboid3D<>::e_max_z], envelope, tol);
+    ASSERT_NEAR(loc_bounds[cuboid3D::e_min_x], 3.8954f - envelope, tol);
+    ASSERT_NEAR(loc_bounds[cuboid3D::e_min_y], 2.39186f - envelope, tol);
+    ASSERT_NEAR(loc_bounds[cuboid3D::e_min_z], -envelope, tol);
+    ASSERT_NEAR(loc_bounds[cuboid3D::e_max_x], 10.50652f + envelope, tol);
+    ASSERT_NEAR(loc_bounds[cuboid3D::e_max_y], 10.89317f + envelope, tol);
+    ASSERT_NEAR(loc_bounds[cuboid3D::e_max_z], envelope, tol);
 
     // TODO: Check against visiualization
     /*const auto centroid = ann2.centroid();

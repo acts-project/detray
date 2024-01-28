@@ -1,7 +1,7 @@
 
 /** Detray library, part of the ACTS project (R&D line)
  *
- * (c) 2021-2023 CERN for the benefit of the ACTS project
+ * (c) 2021-2024 CERN for the benefit of the ACTS project
  *
  * Mozilla Public License Version 2.0
  */
@@ -10,6 +10,7 @@
 
 // Project include(s)
 #include "detray/builders/detail/associator.hpp"
+#include "detray/coordinates/concentric_cylindrical2.hpp"
 #include "detray/coordinates/cylindrical2.hpp"
 #include "detray/coordinates/polar2.hpp"
 #include "detray/definitions/units.hpp"
@@ -119,7 +120,9 @@ static inline void bin_association(const context_t & /*context*/,
             }
         }
     } else if constexpr (std::is_same_v<typename grid_t::local_frame_type,
-                                        cylindrical2<transform_t>>) {
+                                        cylindrical2<transform_t>> ||
+                         std::is_same_v<typename grid_t::local_frame_type,
+                                        concentric_cylindrical2<transform_t>>) {
 
         center_of_gravity_rectangle cgs_assoc;
         edges_intersect_generic edges_assoc;

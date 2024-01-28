@@ -29,10 +29,10 @@ GTEST_TEST(detray_masks, ring2D) {
     constexpr scalar inner_r{0.f * unit<scalar>::mm};
     constexpr scalar outer_r{3.5f * unit<scalar>::mm};
 
-    mask<ring2D<>> r2{0u, inner_r, outer_r};
+    mask<ring2D> r2{0u, inner_r, outer_r};
 
-    ASSERT_NEAR(r2[ring2D<>::e_inner_r], 0.f, tol);
-    ASSERT_NEAR(r2[ring2D<>::e_outer_r], 3.5f, tol);
+    ASSERT_NEAR(r2[ring2D::e_inner_r], 0.f, tol);
+    ASSERT_NEAR(r2[ring2D::e_outer_r], 3.5f, tol);
 
     ASSERT_TRUE(r2.is_inside(p2_pl_in) == intersection::status::e_inside);
     ASSERT_TRUE(r2.is_inside(p2_pl_edge) == intersection::status::e_inside);
@@ -44,12 +44,12 @@ GTEST_TEST(detray_masks, ring2D) {
     // Check bounding box
     constexpr scalar envelope{0.01f};
     const auto loc_bounds = r2.local_min_bounds(envelope);
-    ASSERT_NEAR(loc_bounds[cuboid3D<>::e_min_x], -(outer_r + envelope), tol);
-    ASSERT_NEAR(loc_bounds[cuboid3D<>::e_min_y], -(outer_r + envelope), tol);
-    ASSERT_NEAR(loc_bounds[cuboid3D<>::e_min_z], -envelope, tol);
-    ASSERT_NEAR(loc_bounds[cuboid3D<>::e_max_x], (outer_r + envelope), tol);
-    ASSERT_NEAR(loc_bounds[cuboid3D<>::e_max_y], (outer_r + envelope), tol);
-    ASSERT_NEAR(loc_bounds[cuboid3D<>::e_max_z], envelope, tol);
+    ASSERT_NEAR(loc_bounds[cuboid3D::e_min_x], -(outer_r + envelope), tol);
+    ASSERT_NEAR(loc_bounds[cuboid3D::e_min_y], -(outer_r + envelope), tol);
+    ASSERT_NEAR(loc_bounds[cuboid3D::e_min_z], -envelope, tol);
+    ASSERT_NEAR(loc_bounds[cuboid3D::e_max_x], (outer_r + envelope), tol);
+    ASSERT_NEAR(loc_bounds[cuboid3D::e_max_y], (outer_r + envelope), tol);
+    ASSERT_NEAR(loc_bounds[cuboid3D::e_max_z], envelope, tol);
 
     const auto centroid = r2.centroid();
     ASSERT_NEAR(centroid[0], 0.f, tol);

@@ -1,6 +1,6 @@
 /** Detray library, part of the ACTS project (R&D line)
  *
- * (c) 2023 CERN for the benefit of the ACTS project
+ * (c) 2023-2024 CERN for the benefit of the ACTS project
  *
  * Mozilla Public License Version 2.0
  */
@@ -9,8 +9,9 @@
 #include "detray/surface_finders/brute_force_finder.hpp"
 
 #include "detray/detectors/create_toy_geometry.hpp"
+#include "detray/navigation/detail/trajectories.hpp"
 #include "detray/test/types.hpp"
-#include "detray/test/utils/test_surfaces.hpp"
+#include "detray/test/utils/planes_along_direction.hpp"
 
 // Vecmem include(s)
 #include <vecmem/memory/host_memory_resource.hpp>
@@ -21,6 +22,8 @@
 using namespace detray;
 
 namespace {
+
+vecmem::host_memory_resource host_mr;
 
 // Algebra definitions
 using vector3 = test::vector3;
@@ -49,9 +52,9 @@ GTEST_TEST(detray_surface_finders, brute_force_collection) {
     // surface direction
     vector3 direction{0.f, 0.f, 1.f};
 
-    auto surfaces1 = planes_along_direction(distances1, direction);
-    auto surfaces2 = planes_along_direction(distances2, direction);
-    auto surfaces3 = planes_along_direction(distances3, direction);
+    auto surfaces1 = test::planes_along_direction(distances1, direction);
+    auto surfaces2 = test::planes_along_direction(distances2, direction);
+    auto surfaces3 = test::planes_along_direction(distances3, direction);
 
     brute_force_collection<typename decltype(surfaces1)::value_type>
         sf_collection(&host_mr);

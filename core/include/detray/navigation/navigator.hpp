@@ -15,10 +15,11 @@
 #include "detray/definitions/qualifiers.hpp"
 #include "detray/definitions/units.hpp"
 #include "detray/geometry/barcode.hpp"
-#include "detray/intersection/detail/trajectories.hpp"
-#include "detray/intersection/intersection.hpp"
-#include "detray/intersection/intersection_kernel.hpp"
-#include "detray/propagator/navigation_config.hpp"
+#include "detray/navigation/detail/trajectories.hpp"
+#include "detray/navigation/intersection/intersection.hpp"
+#include "detray/navigation/intersection/ray_intersector.hpp"
+#include "detray/navigation/intersection_kernel.hpp"
+#include "detray/navigation/navigation_config.hpp"
 #include "detray/utils/ranges.hpp"
 
 // vecmem include(s)
@@ -117,7 +118,7 @@ class navigator {
 
             const auto sf = surface{det, sf_descr};
 
-            sf.template visit_mask<intersection_initialize>(
+            sf.template visit_mask<intersection_initialize<ray_intersector>>(
                 candidates, detail::ray(track), sf_descr, det.transform_store(),
                 sf.is_portal() ? 0.f : mask_tol, overstep_tol);
         }
@@ -135,8 +136,8 @@ class navigator {
     class state : public detray::ranges::view_interface<state> {
         friend class navigator;
         // Allow the filling/updating of candidates
-        friend struct intersection_initialize;
-        friend struct intersection_update;
+        friend struct intersection_initialize<ray_intersector>;
+        friend struct intersection_update<ray_intersector>;
 
         using candidate_itr_t =
             typename vector_type<intersection_type>::iterator;
@@ -722,7 +723,7 @@ class navigator {
         const auto sf = surface{*det, candidate.sf_desc};
 
         // Check whether this candidate is reachable by the track
-        return sf.template visit_mask<intersection_update>(
+        return sf.template visit_mask<intersection_update<ray_intersector>>(
             detail::ray(track), candidate, det->transform_store(),
             sf.is_portal() ? 0.f : cfg.mask_tolerance, cfg.overstep_tolerance);
     }

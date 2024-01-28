@@ -8,7 +8,7 @@
 #pragma once
 
 // Project include(s).
-#include "detray/propagator/navigation_config.hpp"
+#include "detray/navigation/navigation_config.hpp"
 #include "detray/propagator/stepping_config.hpp"
 
 namespace detray::propagation {

@@ -8,11 +8,9 @@
 // Project include(s).
 #include "detray/definitions/units.hpp"
 #include "detray/geometry/detail/surface_descriptor.hpp"
+#include "detray/navigation/intersection/helix_intersector.hpp"
 #include "detray/masks/masks.hpp"
 #include "detray/masks/unbounded.hpp"
-#include "detray/test/intersection/helix_cylinder_intersector.hpp"
-#include "detray/test/intersection/helix_line_intersector.hpp"
-#include "detray/test/intersection/helix_plane_intersector.hpp"
 #include "detray/test/types.hpp"
 #include "detray/tracks/tracks.hpp"
 #include "detray/utils/axis_rotation.hpp"
@@ -33,11 +31,11 @@ using intersection_t = intersection2D<surface_descriptor<>, transform3>;
 
 // Mask types to be tested
 // @TODO: Remove unbounded tag
-using annulus_type = detray::mask<detray::unbounded<detray::annulus2D<>>>;
-using rectangle_type = detray::mask<detray::rectangle2D<>>;
-using trapezoid_type = detray::mask<detray::trapezoid2D<>>;
-using ring_type = detray::mask<detray::ring2D<>>;
-using cylinder_type = detray::mask<detray::cylinder2D<>>;
+using annulus_type = detray::mask<detray::unbounded<detray::annulus2D>>;
+using rectangle_type = detray::mask<detray::rectangle2D>;
+using trapezoid_type = detray::mask<detray::trapezoid2D>;
+using ring_type = detray::mask<detray::ring2D>;
+using cylinder_type = detray::mask<detray::cylinder2D>;
 using straw_wire_type = detray::mask<detray::line<false>>;
 using cell_wire_type = detray::mask<detray::line<true>>;
 
@@ -55,13 +53,10 @@ class HelixCovarianceTransportValidation : public ::testing::Test {
     // Test types
     using mask_type = T;
     using local_frame_type = typename mask_type::local_frame_type;
-    using helix_intersector_type = helix_intersector<intersection_t, mask_type>;
 
     // First mask at the origin is always rectangle
     using first_mask_type = rectangle_type;
     using first_local_frame_type = typename first_mask_type::local_frame_type;
-    using first_helix_intersector_type =
-        detail::helix_plane_intersector<intersection_t>;
 
     // Transform3 type
     using transform3_type = typename local_frame_type::transform3_type;
@@ -186,7 +181,8 @@ class HelixCovarianceTransportValidation : public ::testing::Test {
 
         // Get the intersection on the next surface
         const intersection_t is = get_intersection(
-            helix_intersector<intersection_t, destination_mask_type>{}(
+            helix_intersector<transform3_type,
+                              typename destination_mask_type::shape>{}(
                 hlx, surface_descriptor<>{}, mask_1, trf_1,
                 this->mask_tolerance));
 

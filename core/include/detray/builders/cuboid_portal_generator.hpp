@@ -35,7 +35,7 @@ class cuboid_portal_generator final
     /// A functor to construct global bounding boxes around masks
     struct bounding_box_creator {
 
-        using aabb_t = axis_aligned_bounding_volume<cuboid3D<>>;
+        using aabb_t = axis_aligned_bounding_volume<cuboid3D>;
 
         template <typename mask_group_t, typename index_t>
         DETRAY_HOST_DEVICE inline void operator()(
@@ -93,7 +93,7 @@ class cuboid_portal_generator final
         using mask_link_t = typename surface_t::mask_link;
         using material_link_t = typename surface_t::material_link;
 
-        using aabb_t = axis_aligned_bounding_volume<cuboid3D<>>;
+        using aabb_t = axis_aligned_bounding_volume<cuboid3D>;
 
         constexpr auto invalid_src_link{detail::invalid_value<std::uint64_t>()};
 

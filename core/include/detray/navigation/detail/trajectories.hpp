@@ -15,7 +15,6 @@
 #include "detray/utils/matrix_helper.hpp"
 
 // System include(s).
-#include <cmath>
 #include <ostream>
 
 namespace detray::detail {

@@ -28,7 +28,7 @@ constexpr scalar tol{1e-7f};
 /// This tests the basic functionality of an unbounded rectangle shape
 GTEST_TEST(detray_masks, unbounded) {
 
-    using shape_t = rectangle2D<>;
+    using shape_t = rectangle2D;
     using unbounded_t = unbounded<shape_t>;
 
     constexpr scalar h{20.f * unit<scalar>::mm};
@@ -44,10 +44,6 @@ GTEST_TEST(detray_masks, unbounded) {
         std::is_same_v<unbounded_t::template local_frame_type<transform3_t>,
                        shape_t::template local_frame_type<transform3_t>>,
         "incorrect local frame");
-    static_assert(
-        std::is_same_v<unbounded_t::template intersector_type<transform3_t>,
-                       shape_t::template intersector_type<transform3_t>>,
-        "incorrect intersector");
 
     // Test static members
     EXPECT_TRUE(unbounded_t::name == "unbounded rectangle2D");
@@ -59,12 +55,12 @@ GTEST_TEST(detray_masks, unbounded) {
     // Check bounding box
     constexpr scalar envelope{0.01f};
     const auto loc_bounds = u.local_min_bounds(envelope);
-    ASSERT_NEAR(loc_bounds[cuboid3D<>::e_min_x], -(h + envelope), tol);
-    ASSERT_NEAR(loc_bounds[cuboid3D<>::e_min_y], -(h + envelope), tol);
-    ASSERT_NEAR(loc_bounds[cuboid3D<>::e_min_z], -envelope, tol);
-    ASSERT_NEAR(loc_bounds[cuboid3D<>::e_max_x], (h + envelope), tol);
-    ASSERT_NEAR(loc_bounds[cuboid3D<>::e_max_y], (h + envelope), tol);
-    ASSERT_NEAR(loc_bounds[cuboid3D<>::e_max_z], envelope, tol);
+    ASSERT_NEAR(loc_bounds[cuboid3D::e_min_x], -(h + envelope), tol);
+    ASSERT_NEAR(loc_bounds[cuboid3D::e_min_y], -(h + envelope), tol);
+    ASSERT_NEAR(loc_bounds[cuboid3D::e_min_z], -envelope, tol);
+    ASSERT_NEAR(loc_bounds[cuboid3D::e_max_x], (h + envelope), tol);
+    ASSERT_NEAR(loc_bounds[cuboid3D::e_max_y], (h + envelope), tol);
+    ASSERT_NEAR(loc_bounds[cuboid3D::e_max_z], envelope, tol);
 
     const auto centroid = u.centroid();
     ASSERT_NEAR(centroid[0], 0.f, tol);

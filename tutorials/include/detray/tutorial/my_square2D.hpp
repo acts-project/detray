@@ -1,6 +1,6 @@
 /** Detray library, part of the ACTS project (R&D line)
  *
- * (c) 2023 CERN for the benefit of the ACTS project
+ * (c) 2023-2024 CERN for the benefit of the ACTS project
  *
  * Mozilla Public License Version 2.0
  */
@@ -8,9 +8,8 @@
 #pragma once
 
 // Project include(s)
-#include "detray/coordinates/cartesian3.hpp"
+#include "detray/coordinates/cartesian2.hpp"
 #include "detray/definitions/qualifiers.hpp"
-#include "detray/intersection/plane_intersector.hpp"
 
 // System include(s)
 #include <limits>
@@ -20,30 +19,12 @@ namespace detray::tutorial {
 
 /// @brief Geometrical shape of a square.
 ///
-/// @tparam intersector_t defines how to intersect the underlying surface
-///         geometry
-/// @tparam kMeasDim defines the dimension of the measurement
-/// @tparam kNormalOrder true if the index for measurement parameter follows
-/// the local coordinate system
-///
 /// It is defined by the half length of the square (bounds[0]),
 /// and can be checked with a tolerance in t.
-template <template <typename> class intersector_t = plane_intersector,
-          unsigned int kMeasDim = 2u>
 class square2D {
     public:
     /// The name for this shape
     inline static const std::string name = "square2D";
-
-    /// The measurement dimension
-    inline static constexpr const unsigned int meas_dim{kMeasDim};
-
-    /// Normal ordering
-    inline static constexpr const bool normal_order{true};
-
-    // Measurement dimension check
-    static_assert(meas_dim == 1u || meas_dim == 2u,
-                  "Only 1D or 2D measurement is allowed");
 
     enum boundaries : unsigned int {
         e_half_length = 0,  // < boundary value: the half length of the square
@@ -53,10 +34,6 @@ class square2D {
     /// Local coordinate frame for boundary checks: cartesian
     template <typename algebra_t>
     using local_frame_type = cartesian2<algebra_t>;
-
-    /// Underlying surface geometry: planar
-    template <typename intersection_t>
-    using intersector_type = intersector_t<intersection_t>;
 
     /// Dimension of the local coordinate system
     static constexpr std::size_t dim{2u};

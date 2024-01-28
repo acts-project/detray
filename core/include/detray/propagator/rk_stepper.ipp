@@ -8,9 +8,6 @@
 // Project include(s).
 #include "detray/geometry/detector_volume.hpp"
 
-// System include(s)
-#include <cmath>
-
 template <typename magnetic_field_t, typename transform3_t,
           typename constraint_t, typename policy_t, typename inspector_t,
           template <typename, std::size_t> class array_t>

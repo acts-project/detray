@@ -32,11 +32,11 @@ GTEST_TEST(detray_core, static_mask_store) {
         e_single3 = 5,
     };
 
-    using rectangle = mask<rectangle2D<>>;
-    using trapezoid = mask<trapezoid2D<>>;
-    using annulus = mask<annulus2D<>>;
-    using cylinder = mask<cylinder2D<>>;
-    using ring = mask<ring2D<>>;
+    using rectangle = mask<rectangle2D>;
+    using trapezoid = mask<trapezoid2D>;
+    using annulus = mask<annulus2D>;
+    using cylinder = mask<cylinder2D>;
+    using ring = mask<ring2D>;
     using single = mask<single3D<>>;
 
     // Types must be sorted according to their id (here: masks/mask_identifier)

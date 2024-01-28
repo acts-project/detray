@@ -1,6 +1,6 @@
 /** Detray library, part of the ACTS project (R&D line)
  *
- * (c) 2023 CERN for the benefit of the ACTS project
+ * (c) 2023-2024 CERN for the benefit of the ACTS project
  *
  * Mozilla Public License Version 2.0
  */
@@ -15,6 +15,7 @@
 #include "detray/definitions/qualifiers.hpp"
 #include "detray/masks/masks.hpp"
 #include "detray/masks/rectangle2D.hpp"
+#include "detray/navigation/detail/trajectories.hpp"
 #include "detray/utils/axis_rotation.hpp"
 #include "detray/utils/unit_vectors.hpp"
 
@@ -27,7 +28,7 @@ namespace detray {
 /// @brief Generates a number of surfaces along a given direction
 ///
 /// @tparam detector_t the type of detector the volume belongs to.
-template <typename detector_t, typename mask_shape_t = rectangle2D<>,
+template <typename detector_t, typename mask_shape_t = rectangle2D,
           typename trajectory_t = detail::ray<typename detector_t::transform3>>
 class telescope_generator final : public surface_factory_interface<detector_t> {
 

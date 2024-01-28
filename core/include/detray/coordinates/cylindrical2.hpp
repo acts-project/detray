@@ -14,9 +14,6 @@
 #include "detray/tracks/bound_track_parameters.hpp"
 #include "detray/utils/invalid_values.hpp"
 
-// System include(s).
-#include <cmath>
-
 namespace detray {
 
 /** Local frame projection into a 2D cylindrical coordinate frame
@@ -79,7 +76,7 @@ struct cylindrical2 : public coordinate_base<cylindrical2, transform3_t> {
                                      const vector3 & /*d*/) const {
         const auto local3 = trf.point_to_local(p);
 
-        return {getter::phi(local3), local3[2]};
+        return {getter::perp(local3) * getter::phi(local3), local3[2]};
     }
 
     /** This method transform from a local 2D cylindrical point to a point

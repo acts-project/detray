@@ -1,6 +1,6 @@
 /** Detray library, part of the ACTS project (R&D line)
  *
- * (c) 2023 CERN for the benefit of the ACTS project
+ * (c) 2023-2024 CERN for the benefit of the ACTS project
  *
  * Mozilla Public License Version 2.0
  */
@@ -8,33 +8,35 @@
 #pragma once
 
 // Project include(s)
+#include "detray/coordinates/line2.hpp"
+#include "detray/definitions/math.hpp"
 #include "detray/definitions/qualifiers.hpp"
-#include "detray/intersection/detail/trajectories.hpp"
-#include "detray/intersection/intersection.hpp"
-#include "detray/intersection/line_intersector.hpp"
-#include "detray/test/intersection/helix_intersector.hpp"
+#include "detray/navigation/detail/trajectories.hpp"
+#include "detray/navigation/intersection/intersection.hpp"
 
 // System include(s)
-#include <cmath>
 #include <type_traits>
 
 namespace detray {
 
-namespace detail {
+template <typename algebra_t, typename fame_t>
+struct helix_intersector_impl;
 
 /// @brief Intersection implementation for helical trajectories with line
 /// surfaces.
 ///
 /// The algorithm uses the Newton-Raphson method to find an intersection on
 /// the unbounded surface and then applies the mask.
-template <typename intersection_t>
-struct helix_line_intersector {
+template <typename algebra_t>
+struct helix_intersector_impl<algebra_t, line2<algebra_t>> {
 
-    using transform3_type = typename intersection_t::transform3_type;
+    using transform3_type = algebra_t;
     using scalar_type = typename transform3_type::scalar_type;
-    using matrix_operator = typename transform3_type::matrix_actor;
     using point3 = typename transform3_type::point3;
     using vector3 = typename transform3_type::vector3;
+
+    template <typename surface_descr_t>
+    using intersection_type = intersection2D<surface_descr_t, algebra_t>;
     using helix_type = detail::helix<transform3_type>;
 
     /// Operator function to find intersections between helix and line mask
@@ -49,13 +51,13 @@ struct helix_line_intersector {
     /// @param mask_tolerance is the tolerance for mask edges
     ///
     /// @return the intersection
-    template <typename mask_t, typename surface_desc_t>
-    DETRAY_HOST_DEVICE inline intersection_t operator()(
-        const helix_type &h, const surface_desc_t &sf_desc, const mask_t &mask,
-        const transform3_type &trf,
-        const scalar_type mask_tolerance = 0.f) const {
+    template <typename surface_descr_t, typename mask_t>
+    DETRAY_HOST_DEVICE inline intersection_type<surface_descr_t> operator()(
+        const helix_type &h, const surface_descr_t &sf_desc, const mask_t &mask,
+        const transform3_type &trf, const scalar_type mask_tolerance = 0.f,
+        const scalar_type = 0.f) const {
 
-        intersection_t sfi;
+        intersection_type<surface_descr_t> sfi;
 
         // Guard against inifinite loops
         constexpr std::size_t max_n_tries{1000u};
@@ -163,27 +165,6 @@ struct helix_line_intersector {
 
     /// Tolerance for convergence
     scalar_type convergence_tolerance{1e-3f};
-};
-
-}  // namespace detail
-
-/// Specialization of the @c helix_intersector for line surfaces
-template <typename intersection_t, typename mask_t>
-struct helix_intersector<
-    intersection_t, mask_t,
-    std::enable_if_t<
-        std::is_same_v<
-            typename mask_t::shape::template intersector_type<intersection_t>,
-            line_intersector<intersection_t>>,
-        void>> : public detail::helix_line_intersector<intersection_t> {
-
-    using intersector_impl = detail::helix_line_intersector<intersection_t>;
-
-    using scalar_type = typename intersector_impl::scalar_type;
-    using matrix_operator = typename intersector_impl::matrix_operator;
-    using point3 = typename intersector_impl::point3;
-    using vector3 = typename intersector_impl::vector3;
-    using helix_type = typename intersector_impl::helix_type;
 };
 
 }  // namespace detray

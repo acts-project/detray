@@ -11,10 +11,8 @@
 #include "detray/coordinates/cartesian3.hpp"
 #include "detray/definitions/containers.hpp"
 #include "detray/definitions/qualifiers.hpp"
-#include "detray/intersection/bounding_box/cuboid_intersector.hpp"
 
 // System include(s)
-#include <cmath>
 #include <limits>
 #include <ostream>
 #include <string>
@@ -25,7 +23,6 @@ namespace detray {
 ///
 /// It is defined by 3 min-max length pairs and checks whether a point is
 /// somewhere inside the cuboid. This type is mainly used for aabb description.
-template <typename intersector_t = detray::cuboid_intersector>
 class cuboid3D {
     public:
     /// The name for this shape
@@ -44,10 +41,6 @@ class cuboid3D {
     /// Local coordinate frame for boundary checks
     template <typename algebra_t>
     using local_frame_type = cartesian3<algebra_t>;
-
-    /// Underlying surface geometry: not a surface
-    template <typename = void>
-    using intersector_type = intersector_t;
 
     /// Dimension of the local coordinate system
     static constexpr std::size_t dim{3u};

@@ -1,6 +1,6 @@
 /** Detray library, part of the ACTS project (R&D line)
  *
- * (c) 2022-2023 CERN for the benefit of the ACTS project
+ * (c) 2022-2024 CERN for the benefit of the ACTS project
  *
  * Mozilla Public License Version 2.0
  */
@@ -11,8 +11,8 @@
 #include "detray/coordinates/cylindrical2.hpp"
 #include "detray/definitions/math.hpp"
 #include "detray/definitions/qualifiers.hpp"
-#include "detray/intersection/detail/trajectories.hpp"
-#include "detray/intersection/intersection.hpp"
+#include "detray/navigation/detail/trajectories.hpp"
+#include "detray/navigation/intersection/intersection.hpp"
 #include "detray/utils/invalid_values.hpp"
 #include "detray/utils/quadratic_equation.hpp"
 
@@ -23,26 +23,27 @@ namespace detray {
 
 /// A functor to find intersections between trajectory and concentric cylinder
 /// mask
-template <typename intersection_t>
-struct concentric_cylinder_intersector {
+template <typename algebra_t>
+struct ray_concentric_cylinder_intersector {
 
     /// linear algebra types
     /// @{
-    using transform3_type = typename intersection_t::transform3_type;
+    using transform3_type = algebra_t;
     using scalar_type = typename transform3_type::scalar_type;
     using point3 = typename transform3_type::point3;
     using point2 = typename transform3_type::point2;
     using vector3 = typename transform3_type::vector3;
     /// @}
 
-    using intersection_type = intersection_t;
+    template <typename surface_descr_t>
+    using intersection_type = intersection2D<surface_descr_t, algebra_t>;
     using ray_type = detail::ray<transform3_type>;
 
     /// Operator function to find intersections between ray and concentric
     /// cylinder mask
     ///
     /// @tparam mask_t is the input mask type
-    /// @tparam surface_t is the type of surface handle
+    /// @tparam surface_descr_t is the type of surface handle
     ///
     /// @param ray is the input ray trajectory
     /// @param sf the surface handle the mask is associated with
@@ -52,16 +53,13 @@ struct concentric_cylinder_intersector {
     /// @param overstep_tol negative cutoff for the path
     ///
     /// @return the intersection
-    template <typename mask_t, typename surface_t,
-              std::enable_if_t<std::is_same_v<typename mask_t::local_frame_type,
-                                              cylindrical2<transform3_type>>,
-                               bool> = true>
-    DETRAY_HOST_DEVICE inline intersection_t operator()(
-        const ray_type &ray, const surface_t &sf, const mask_t &mask,
+    template <typename surface_descr_t, typename mask_t>
+    DETRAY_HOST_DEVICE inline intersection_type<surface_descr_t> operator()(
+        const ray_type &ray, const surface_descr_t &sf, const mask_t &mask,
         const transform3_type & /*trf*/, const scalar_type mask_tolerance = 0.f,
         const scalar_type overstep_tol = 0.f) const {
 
-        intersection_t is;
+        intersection_type<surface_descr_t> is;
 
         const scalar_type r{mask[mask_t::shape::e_r]};
         // Two points on the line, these are in the cylinder frame
@@ -137,7 +135,7 @@ struct concentric_cylinder_intersector {
     /// Operator function to find intersections between a ray and a 2D cylinder
     ///
     /// @tparam mask_t is the input mask type
-    /// @tparam surface_t is the type of surface handle
+    /// @tparam surface_descr_t is the type of surface handle
     ///
     /// @param ray is the input ray trajectory
     /// @param sfi the intersection to be updated
@@ -145,13 +143,11 @@ struct concentric_cylinder_intersector {
     /// @param trf is the surface placement transform
     /// @param mask_tolerance is the tolerance for mask edges
     /// @param overstep_tol negative cutoff for the path
-    template <typename mask_t, typename surface_t,
-              std::enable_if_t<std::is_same_v<typename mask_t::local_frame_type,
-                                              cylindrical2<transform3_type>>,
-                               bool> = true>
+    template <typename surface_descr_t, typename mask_t>
     DETRAY_HOST_DEVICE inline void update(
-        const ray_type &ray, intersection_t &sfi, const mask_t &mask,
-        const transform3_type &trf, const scalar_type mask_tolerance = 0.f,
+        const ray_type &ray, intersection_type<surface_descr_t> &sfi,
+        const mask_t &mask, const transform3_type &trf,
+        const scalar_type mask_tolerance = 0.f,
         const scalar_type overstep_tol = 0.f) const {
         sfi = this->operator()(ray, sfi.sf_desc, mask, trf, mask_tolerance,
                                overstep_tol)[0];

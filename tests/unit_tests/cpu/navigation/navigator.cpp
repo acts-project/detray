@@ -6,11 +6,12 @@
  */
 
 // Project include(s)
-#include "detray/propagator/navigator.hpp"
+#include "detray/navigation/navigator.hpp"
 
 #include "detray/definitions/indexing.hpp"
 #include "detray/detectors/create_toy_geometry.hpp"
 #include "detray/detectors/create_wire_chamber.hpp"
+#include "detray/navigation/navigator.hpp"
 #include "detray/propagator/line_stepper.hpp"
 #include "detray/test/types.hpp"
 #include "detray/tracks/tracks.hpp"

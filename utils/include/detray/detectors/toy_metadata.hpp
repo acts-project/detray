@@ -1,6 +1,6 @@
 /** Detray library, part of the ACTS project (R&D line)
  *
- * (c) 2022-2023 CERN for the benefit of the ACTS project
+ * (c) 2022-2024 CERN for the benefit of the ACTS project
  *
  * Mozilla Public License Version 2.0
  */
@@ -13,9 +13,6 @@
 #include "detray/definitions/containers.hpp"
 #include "detray/definitions/indexing.hpp"
 #include "detray/geometry/detail/surface_descriptor.hpp"
-#include "detray/intersection/cylinder_intersector.hpp"
-#include "detray/intersection/cylinder_portal_intersector.hpp"
-#include "detray/intersection/plane_intersector.hpp"
 #include "detray/masks/masks.hpp"
 #include "detray/materials/material_map.hpp"
 #include "detray/materials/material_slab.hpp"
@@ -31,27 +28,27 @@ struct toy_metadata {
     using nav_link = std::uint_least16_t;
 
     /// Mask types
-    using rectangle = mask<rectangle2D<>, nav_link>;
-    using trapezoid = mask<trapezoid2D<>, nav_link>;
-    // using cylinder = mask<cylinder2D<>, nav_link>;  // beampipe
-    using cylinder_portal =
-        mask<cylinder2D<false, cylinder_portal_intersector>, nav_link>;
-    using disc_portal = mask<ring2D<>, nav_link>;
+    using rectangle = mask<rectangle2D, nav_link>;
+    using trapezoid = mask<trapezoid2D, nav_link>;
+    // using cylinder = mask<cylinder2D, nav_link>;  // beampipe
+    using cylinder_portal = mask<concentric_cylinder2D, nav_link>;
+    using disc_portal = mask<ring2D, nav_link>;
 
     /// Material types
     using slab = material_slab<detray::scalar>;
 
     // Cylindrical material grid
     template <typename container_t>
-    using cylinder_map_t = material_map<cylinder2D<>, scalar, container_t>;
+    using cylinder_map_t =
+        material_map<concentric_cylinder2D, scalar, container_t>;
 
     // Disc material grid
     template <typename container_t>
-    using disc_map_t = material_map<ring2D<>, scalar, container_t>;
+    using disc_map_t = material_map<ring2D, scalar, container_t>;
 
     // Rectangular material grid
     template <typename container_t>
-    using rectangular_map_t = material_map<rectangle2D<>, scalar, container_t>;
+    using rectangular_map_t = material_map<rectangle2D, scalar, container_t>;
 
     /// Surface grid types (regular, open binning)
     /// @{
@@ -64,12 +61,11 @@ struct toy_metadata {
     // cylindrical grid for the barrel layers
     template <typename bin_entry_t, typename container_t>
     using cylinder_sf_grid =
-        surface_grid_t<axes<cylinder2D<>>, bin_entry_t, container_t>;
+        surface_grid_t<axes<concentric_cylinder2D>, bin_entry_t, container_t>;
 
     // disc grid for the endcap layers
     template <typename bin_entry_t, typename container_t>
-    using disc_sf_grid =
-        surface_grid_t<axes<ring2D<>>, bin_entry_t, container_t>;
+    using disc_sf_grid = surface_grid_t<axes<ring2D>, bin_entry_t, container_t>;
 
     /// @}
 
@@ -97,7 +93,7 @@ struct toy_metadata {
     /// Material type ids
     enum class material_ids : std::uint8_t {
         e_disc2_map = 0u,
-        e_cylinder2_map = 1u,
+        e_concentric_cylinder2_map = 1u,
         e_rectangle2_map = 2u,
         e_slab = 3u,
         e_none = 4u,

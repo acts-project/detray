@@ -267,7 +267,7 @@ struct detector_helper {
             material_grid_factory<scalar_t> mat_map_factory{};
 
             constexpr auto is_disc_map{
-                std::is_same_v<typename mask_t::shape, ring2D<>>};
+                std::is_same_v<typename mask_t::shape, ring2D>};
 
             // Scale material thickness either over r- or z-bins
             const std::size_t bins =
@@ -276,13 +276,13 @@ struct detector_helper {
             const auto &bounds = sf_mask.values();
             const auto mat{
                 is_disc_map
-                    ? cfg.edc_mat_generator()({bounds[ring2D<>::e_inner_r],
-                                               bounds[ring2D<>::e_outer_r]},
+                    ? cfg.edc_mat_generator()({bounds[ring2D::e_inner_r],
+                                               bounds[ring2D::e_outer_r]},
                                               bins, cfg.mapped_material(),
                                               cfg.thickness())
                     : cfg.barrel_mat_generator()(
-                          {bounds[cylinder2D<>::e_n_half_z],
-                           bounds[cylinder2D<>::e_p_half_z]},
+                          {bounds[cylinder2D::e_n_half_z],
+                           bounds[cylinder2D::e_p_half_z]},
                           bins, cfg.mapped_material(), cfg.thickness())};
 
             auto material_map = mat_map_factory.template new_grid<>(
@@ -298,8 +298,9 @@ struct detector_helper {
                 }
             }
 
-            constexpr auto map_id{is_disc_map ? material_id::e_disc2_map
-                                              : material_id::e_cylinder2_map};
+            constexpr auto map_id{
+                is_disc_map ? material_id::e_disc2_map
+                            : material_id::e_concentric_cylinder2_map};
 
             materials.template push_back<map_id>(material_map);
 

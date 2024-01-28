@@ -38,20 +38,20 @@ constexpr scalar minPhi{0.74195f};
 constexpr scalar maxPhi{1.33970f};
 constexpr scalar offset_x{-2.f * unit<scalar>::mm};
 constexpr scalar offset_y{-2.f * unit<scalar>::mm};
-mask<annulus2D<>> ann2{0u, minR, maxR, minPhi, maxPhi, offset_x, offset_y, 0.f};
+mask<annulus2D> ann2{0u, minR, maxR, minPhi, maxPhi, offset_x, offset_y, 0.f};
 
 // Surface positions
 std::vector<scalar> positions = {0.f,   50.f,  100.f, 150.f, 200.f, 250.f,
                                  300.f, 350.f, 400.f, 450.f, 500.f};
 
-tel_det_config<annulus2D<>> tel_cfg{ann2};
+tel_det_config<annulus2D> tel_cfg{ann2};
 
 }  // anonymous namespace
 
 /// Test the writing of a telescope detector geometry to json
 GTEST_TEST(io, json_telescope_geometry_writer) {
 
-    using detector_t = detector<telescope_metadata<annulus2D<>>>;
+    using detector_t = detector<telescope_metadata<annulus2D>>;
 
     // Telescope detector
     vecmem::host_memory_resource host_mr;
@@ -65,7 +65,7 @@ GTEST_TEST(io, json_telescope_geometry_writer) {
 /// Test the writing of the toy detector material to json
 GTEST_TEST(io, json_telescope_material_writer) {
 
-    using detector_t = detector<telescope_metadata<annulus2D<>>>;
+    using detector_t = detector<telescope_metadata<annulus2D>>;
 
     // Telescope detector
     vecmem::host_memory_resource host_mr;

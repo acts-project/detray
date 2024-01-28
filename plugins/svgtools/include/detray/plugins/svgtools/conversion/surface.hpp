@@ -1,6 +1,6 @@
 /** Detray library, part of the ACTS project (R&D line)
  *
- * (c) 2023 CERN for the benefit of the ACTS project
+ * (c) 2023-2024 CERN for the benefit of the ACTS project
  *
  * Mozilla Public License Version 2.0
  */
@@ -65,12 +65,47 @@ auto inline surface(const transform_t& transform, const mask_t& m) {
 }
 
 /// @brief Returns the proto surface for 2D cylinders.
-template <typename transform_t, bool kRadialCheck,
-          template <typename> class intersector_t>
-auto inline surface(const transform_t& transform,
-                    const mask<cylinder2D<kRadialCheck, intersector_t>>& m) {
+template <typename transform_t>
+auto inline surface(const transform_t& transform, const mask<cylinder2D>& m) {
 
-    using shape_t = cylinder2D<kRadialCheck, intersector_t>;
+    using shape_t = cylinder2D;
+    using point3_t = typename transform_t::point3;
+    using p_surface_t = actsvg::proto::surface<std::vector<point3_t>>;
+
+    p_surface_t p_surface;
+
+    const auto r = static_cast<actsvg::scalar>(m[shape_t::e_r]);
+    const auto nhz = static_cast<actsvg::scalar>(m[shape_t::e_n_half_z]);
+    const auto phz = static_cast<actsvg::scalar>(m[shape_t::e_p_half_z]);
+    const auto center = transform.translation();
+    const auto z0 = static_cast<actsvg::scalar>(center[2]);
+    auto hz = static_cast<actsvg::scalar>(0.5f * (phz - nhz));
+
+    // ACTS-like cylinder definition: symmetric around translation
+    if (math::abs(nhz - phz) <=
+        std::numeric_limits<actsvg::scalar>::epsilon()) {
+        p_surface._zparameters = {z0, hz};
+
+    } else {
+        // detray-like cylinder definition: asymmetric around translation
+        p_surface._zparameters = {nhz + hz + z0, hz};
+    }
+
+    p_surface._type = p_surface_t::type::e_cylinder;
+    p_surface._radii = {0.f, r};
+    p_surface._transform._tr = {static_cast<actsvg::scalar>(center[0]),
+                                static_cast<actsvg::scalar>(center[1])};
+    set_measures(p_surface, m);
+
+    return p_surface;
+}
+
+/// @brief Returns the proto surface for 2D cylinders.
+template <typename transform_t>
+auto inline surface(const transform_t& transform,
+                    const mask<concentric_cylinder2D>& m) {
+
+    using shape_t = concentric_cylinder2D;
     using point3_t = typename transform_t::point3;
     using p_surface_t = actsvg::proto::surface<std::vector<point3_t>>;
 
@@ -104,9 +139,9 @@ auto inline surface(const transform_t& transform,
 
 /// @brief Returns the proto surface for 2D rings.
 template <typename transform_t>
-auto surface(const transform_t& transform, const mask<ring2D<>>& m) {
+auto surface(const transform_t& transform, const mask<ring2D>& m) {
 
-    using shape_t = ring2D<>;
+    using shape_t = ring2D;
     using point3_t = typename transform_t::point3;
     using p_surface_t = actsvg::proto::surface<std::vector<point3_t>>;
 
@@ -129,7 +164,7 @@ auto surface(const transform_t& transform, const mask<ring2D<>>& m) {
 
 /// @brief Returns the proto surface for 2D annuli.
 template <typename transform_t>
-auto inline surface(const transform_t& transform, const mask<annulus2D<>>& m) {
+auto inline surface(const transform_t& transform, const mask<annulus2D>& m) {
 
     using point3_t = typename transform_t::point3;
     using p_surface_t = actsvg::proto::surface<std::vector<point3_t>>;
@@ -144,12 +179,11 @@ auto inline surface(const transform_t& transform, const mask<annulus2D<>>& m) {
 }
 
 /// @brief Returns the proto surface for 2D rings.
-template <typename transform_t, bool kSquareCrossSect,
-          template <typename> class intersector_t>
+template <typename transform_t, bool kSquareCrossSect>
 auto surface(const transform_t& transform,
-             const mask<line<kSquareCrossSect, intersector_t>>& m) {
+             const mask<line<kSquareCrossSect>>& m) {
 
-    using shape_t = line<kSquareCrossSect, intersector_t>;
+    using shape_t = line<kSquareCrossSect>;
     using point3_t = typename transform_t::point3;
     using p_surface_t = actsvg::proto::surface<std::vector<point3_t>>;
 

@@ -10,10 +10,10 @@
 #include "detray/detectors/create_telescope_detector.hpp"
 #include "detray/masks/masks.hpp"
 #include "detray/masks/unbounded.hpp"
+#include "detray/navigation/navigator.hpp"
+#include "detray/navigation/policies.hpp"
 #include "detray/propagator/actor_chain.hpp"
 #include "detray/propagator/actors/aborters.hpp"
-#include "detray/propagator/navigation_policies.hpp"
-#include "detray/propagator/navigator.hpp"
 #include "detray/propagator/propagator.hpp"
 #include "detray/propagator/rk_stepper.hpp"
 #include "detray/test/types.hpp"
@@ -41,8 +41,8 @@ GTEST_TEST(detray_propagator, guided_navigator) {
                                            60.f, 70.f, 80.f, 90.f, 100.f};
 
     // Build telescope detector with unbounded rectangles
-    tel_det_config<unbounded<rectangle2D<>>> tel_cfg{20.f * unit<scalar>::mm,
-                                                     20.f * unit<scalar>::mm};
+    tel_det_config<unbounded<rectangle2D>> tel_cfg{20.f * unit<scalar>::mm,
+                                                   20.f * unit<scalar>::mm};
     tel_cfg.positions(positions).envelope(0.2f * unit<scalar>::mm);
 
     const auto [telescope_det, names] =

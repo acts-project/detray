@@ -11,11 +11,10 @@
 #include "detray/coordinates/cartesian2.hpp"
 #include "detray/coordinates/cartesian3.hpp"
 #include "detray/definitions/containers.hpp"
+#include "detray/definitions/math.hpp"
 #include "detray/definitions/qualifiers.hpp"
-#include "detray/intersection/plane_intersector.hpp"
 
 // System include(s)
-#include <cmath>
 #include <limits>
 #include <ostream>
 #include <string>
@@ -26,13 +25,7 @@ namespace detray {
 ///
 /// @tparam kCheckIndex is the index of the local point on which the mask is
 ///         applied
-/// @tparam intersector_t defines how to intersect the underlying surface
-///         geometry
-/// @tparam kMeasDim defines the dimension of the measurement
-/// @tparam kNormalOrder true if the index for measurement parameter follows
-/// the local coordinate system
-template <unsigned int kCheckIndex = 0u,
-          template <typename> class intersector_t = plane_intersector>
+template <unsigned int kCheckIndex = 0u>
 class single3D {
     public:
     /// The name for this shape
@@ -47,10 +40,6 @@ class single3D {
     /// Local coordinate frame for boundary checks
     template <typename algebra_t>
     using local_frame_type = cartesian2<algebra_t>;
-
-    /// Underlying surface geometry: planar
-    template <typename intersection_t>
-    using intersector_type = intersector_t<intersection_t>;
 
     /// Dimension of the local coordinate system
     static constexpr std::size_t dim{1u};

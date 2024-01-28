@@ -9,7 +9,7 @@
 
 // Project include(s)
 #include "detray/definitions/qualifiers.hpp"
-#include "detray/intersection/detail/trajectories.hpp"
+#include "detray/navigation/detail/trajectories.hpp"
 
 namespace detray {
 
@@ -38,31 +38,31 @@ struct cuboid_intersector {
         const typename algebra_t::scalar_type /*mask_tolerance*/ = 0.f) const {
 
         using scalar_t = typename algebra_t::scalar_type;
-        using point3 = typename algebra_t::point3;
-        using vector3 = typename algebra_t::vector3;
+        using point3_t = typename algebra_t::point3;
+        using vector3_t = typename algebra_t::vector3;
         using boundaries = typename mask_t::boundaries;
 
-        const point3 &ro = ray.pos();
-        const vector3 &rd = ray.dir();
+        const point3_t &ro = ray.pos();
+        const vector3_t &rd = ray.dir();
         // @TODO: put vector-vector operator/ in algebra-plugins
         constexpr scalar_t inv{detail::invalid_value<scalar_t>()};
-        const vector3 inv_dir{rd[0] == 0.f ? inv : 1.f / rd[0],
-                              rd[1] == 0.f ? inv : 1.f / rd[1],
-                              rd[2] == 0.f ? inv : 1.f / rd[2]};
+        const vector3_t inv_dir{rd[0] == 0.f ? inv : 1.f / rd[0],
+                                rd[1] == 0.f ? inv : 1.f / rd[1],
+                                rd[2] == 0.f ? inv : 1.f / rd[2]};
 
         // This is prob. slow -> @todo refactor masks to hold custom mask values
-        const vector3 min{box[boundaries::e_min_x], box[boundaries::e_min_y],
-                          box[boundaries::e_min_z]};
-        const vector3 max{box[boundaries::e_max_x], box[boundaries::e_max_y],
-                          box[boundaries::e_max_z]};
+        const vector3_t min{box[boundaries::e_min_x], box[boundaries::e_min_y],
+                            box[boundaries::e_min_z]};
+        const vector3_t max{box[boundaries::e_max_x], box[boundaries::e_max_y],
+                            box[boundaries::e_max_z]};
         /// @TODO: Try to avoid copies ?
-        // const auto* min = new (box.values().data()) point3();
-        // const auto* max = new (box.values().data() + 3) point3();
+        // const auto* min = new (box.values().data()) point3_t();
+        // const auto* max = new (box.values().data() + 3) point3_t();
 
         // Find tmin and tmax, which define the segment of the ray that
         // intersects the box
-        vector3 t1 = (min - ro) /* * inv_dir*/;
-        vector3 t2 = (max - ro) /* * inv_dir*/;
+        vector3_t t1 = (min - ro) /* * inv_dir*/;
+        vector3_t t2 = (max - ro) /* * inv_dir*/;
 
         /// @TODO: add operator* for two vectors in algebra-plugins
         for (unsigned int i{0u}; i < 3u; ++i) {

@@ -13,7 +13,6 @@
 #include "detray/core/detector.hpp"
 #include "detray/definitions/indexing.hpp"
 #include "detray/detectors/toy_metadata.hpp"
-#include "detray/intersection/cylinder_portal_intersector.hpp"
 #include "detray/masks/masks.hpp"
 #include "detray/test/types.hpp"
 #include "detray/utils/type_list.hpp"
@@ -50,14 +49,14 @@ GTEST_TEST(detray_tools, decorator_grid_builder) {
     using mask_id = typename detector_t::masks::id;
 
     // cylinder grid type of the toy detector
-    using cyl_grid_t = grid<axes<cylinder2D<>>,
+    using cyl_grid_t = grid<axes<concentric_cylinder2D>,
                             bins::static_array<detector_t::surface_type, 1>,
                             simple_serializer, host_container_types, false>;
 
-    using pt_cylinder_t = cylinder2D<false, cylinder_portal_intersector>;
+    using pt_cylinder_t = concentric_cylinder2D;
     using pt_cylinder_factory_t = surface_factory<detector_t, pt_cylinder_t>;
-    using rectangle_factory = surface_factory<detector_t, rectangle2D<>>;
-    using trapezoid_factory = surface_factory<detector_t, trapezoid2D<>>;
+    using rectangle_factory = surface_factory<detector_t, rectangle2D>;
+    using trapezoid_factory = surface_factory<detector_t, trapezoid2D>;
     using cylinder_factory = surface_factory<detector_t, pt_cylinder_t>;
 
     vecmem::host_memory_resource host_mr;
@@ -74,7 +73,7 @@ GTEST_TEST(detray_tools, decorator_grid_builder) {
     // gbuilder.set_add_surfaces();
 
     // The cylinder portals are at the end of the surface range by construction
-    const auto cyl_mask = mask<cylinder2D<>>{0u, 10.f, -500.f, 500.f};
+    const auto cyl_mask = mask<concentric_cylinder2D>{0u, 10.f, -500.f, 500.f};
     std::size_t n_phi_bins{5u}, n_z_bins{4u};
 
     // Build empty grid

@@ -37,7 +37,7 @@ GTEST_TEST(detray_tools, detector_builder) {
     using mask_id = typename detector_t::masks::id;
 
     // Surface factories
-    using trapezoid_factory = surface_factory<detector_t, trapezoid2D<>>;
+    using trapezoid_factory = surface_factory<detector_t, trapezoid2D>;
 
     // detector builder
     auto geo_ctx = typename detector_t::geometry_context{};

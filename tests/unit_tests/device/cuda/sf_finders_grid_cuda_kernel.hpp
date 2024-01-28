@@ -36,31 +36,31 @@ inline constexpr bool is_owning{true};
 // host and device grid definitions
 
 // replacer
-using host_grid3_single = grid<axes<cuboid3D<>>, bins::single<point3>>;
+using host_grid3_single = grid<axes<cuboid3D>, bins::single<point3>>;
 
-using device_grid3_single = grid<axes<cuboid3D<>>, bins::single<point3>,
+using device_grid3_single = grid<axes<cuboid3D>, bins::single<point3>,
                                  simple_serializer, device_container_types>;
 
 using host_grid2_single_ci =
-    grid<axes<ring2D<>, bounds::e_closed, irregular>, bins::single<point3>>;
+    grid<axes<ring2D, bounds::e_closed, irregular>, bins::single<point3>>;
 
 using device_grid2_single_ci =
-    grid<axes<ring2D<>, bounds::e_closed, irregular>, bins::single<point3>,
+    grid<axes<ring2D, bounds::e_closed, irregular>, bins::single<point3>,
          simple_serializer, device_container_types>;
 
 // completer/attacher
 using host_grid2_array =
-    grid<axes<ring2D<>>, bins::static_array<point3, n_points>>;
+    grid<axes<ring2D>, bins::static_array<point3, n_points>>;
 
 using device_grid2_array =
-    grid<axes<ring2D<>>, bins::static_array<point3, n_points>,
-         simple_serializer, device_container_types>;
+    grid<axes<ring2D>, bins::static_array<point3, n_points>, simple_serializer,
+         device_container_types>;
 
 using host_grid2_dynamic_array =
-    grid<axes<ring2D<>>, bins::dynamic_array<point3>>;
+    grid<axes<ring2D>, bins::dynamic_array<point3>>;
 
 using device_grid2_dynamic_array =
-    grid<axes<ring2D<>>, bins::dynamic_array<point3>, simple_serializer,
+    grid<axes<ring2D>, bins::dynamic_array<point3>, simple_serializer,
          device_container_types>;
 
 // grid collection

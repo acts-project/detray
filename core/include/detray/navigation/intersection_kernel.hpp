@@ -1,6 +1,6 @@
 /** Detray library, part of the ACTS project (R&D line)
  *
- * (c) 2021-2023 CERN for the benefit of the ACTS project
+ * (c) 2021-2024 CERN for the benefit of the ACTS project
  *
  * Mozilla Public License Version 2.0
  */
@@ -9,12 +9,13 @@
 
 // Project include(s)
 #include "detray/definitions/qualifiers.hpp"
-#include "detray/intersection/intersection.hpp"
+#include "detray/navigation/intersection/intersection.hpp"
 #include "detray/utils/ranges.hpp"
 
 namespace detray {
 
 /// A functor to add all valid intersections between the trajectory and surface
+template <template <typename, typename> class intersector_t>
 struct intersection_initialize {
 
     /// Operator function to initalize intersections
@@ -37,16 +38,17 @@ struct intersection_initialize {
     /// @return the number of valid intersections
     template <typename mask_group_t, typename mask_range_t,
               typename is_container_t, typename traj_t, typename surface_t,
-              typename transform_container_t>
+              typename transform_container_t, typename scalar_t>
     DETRAY_HOST_DEVICE inline void operator()(
         const mask_group_t &mask_group, const mask_range_t &mask_range,
         is_container_t &is_container, const traj_t &traj,
         const surface_t &surface,
         const transform_container_t &contextual_transforms,
-        const scalar mask_tolerance = 0.f,
-        const scalar overstep_tol = 0.f) const {
+        const scalar_t mask_tolerance = 0.f,
+        const scalar_t overstep_tol = 0.f) const {
 
-        using intersection_t = typename is_container_t::value_type;
+        using algebra_t = typename transform_container_t::value_type;
+        using mask_t = typename mask_group_t::value_type;
 
         const auto &ctf = contextual_transforms[surface.transform()];
 
@@ -55,7 +57,7 @@ struct intersection_initialize {
              detray::ranges::subrange(mask_group, mask_range)) {
 
             if (place_in_collection(
-                    mask.template intersector<intersection_t>()(
+                    intersector_t<algebra_t, typename mask_t::shape>{}(
                         traj, surface, mask, ctf, mask_tolerance, overstep_tol),
                     is_container)) {
                 return;
@@ -93,6 +95,7 @@ struct intersection_initialize {
 
 /// A functor to update the closest intersection between the trajectory and
 /// surface
+template <template <typename, typename> class intersector_t>
 struct intersection_update {
 
     /// Operator function to update the intersection
@@ -122,13 +125,16 @@ struct intersection_update {
         const scalar mask_tolerance = 0.f,
         const scalar overstep_tol = 0.f) const {
 
+        using algebra_t = typename transform_container_t::value_type;
+        using mask_t = typename mask_group_t::value_type;
+
         const auto &ctf = contextual_transforms[sfi.sf_desc.transform()];
 
         // Run over the masks that belong to the surface
         for (const auto &mask :
              detray::ranges::subrange(mask_group, mask_range)) {
 
-            mask.template intersector<intersection_t>().update(
+            intersector_t<algebra_t, typename mask_t::shape>{}.update(
                 traj, sfi, mask, ctf, mask_tolerance, overstep_tol);
 
             if (sfi.status == intersection::status::e_inside) {

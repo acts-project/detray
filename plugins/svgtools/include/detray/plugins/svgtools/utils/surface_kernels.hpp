@@ -39,22 +39,26 @@ struct outer_radius_getter {
     }
 
     // Calculates the outer radius for rings.
-    auto inline outer_radius(const detray::mask<detray::ring2D<>>& mask) const {
-        return std::optional<detray::scalar>(mask[ring2D<>::e_outer_r]);
+    auto inline outer_radius(const detray::mask<detray::ring2D>& mask) const {
+        return std::optional<detray::scalar>(mask[ring2D::e_outer_r]);
     }
 
     // Calculates the outer radius for annuluses.
     auto inline outer_radius(
-        const detray::mask<detray::annulus2D<>>& mask) const {
-        return std::optional<detray::scalar>(mask[annulus2D<>::e_max_r]);
+        const detray::mask<detray::annulus2D>& mask) const {
+        return std::optional<detray::scalar>(mask[annulus2D::e_max_r]);
     }
 
     // Calculates the outer radius for cylinders (2D).
-    template <bool kRadialCheck, template <typename> class intersector_t>
     auto inline outer_radius(
-        const detray::mask<detray::cylinder2D<kRadialCheck, intersector_t>>&
-            mask) const {
-        return std::optional<detray::scalar>(mask[cylinder2D<>::e_r]);
+        const detray::mask<detray::cylinder2D>& mask) const {
+        return std::optional<detray::scalar>(mask[cylinder2D::e_r]);
+    }
+
+    // Calculates the outer radius for cylinders (2D).
+    auto inline outer_radius(
+        const detray::mask<detray::concentric_cylinder2D>& mask) const {
+        return std::optional<detray::scalar>(mask[concentric_cylinder2D::e_r]);
     }
 
     // Calculates the outer radius for cylinders (3D).
@@ -95,10 +99,10 @@ struct link_start_getter {
 
     // Calculates the (optimal) link starting point for rings.
     template <typename transform_t>
-    auto inline link_start(const detray::mask<detray::ring2D<>>& mask,
+    auto inline link_start(const detray::mask<detray::ring2D>& mask,
                            const transform_t& transform) const {
 
-        using shape_t = detray::ring2D<>;
+        using shape_t = detray::ring2D;
         using mask_t = detray::mask<shape_t>;
         using point3_t = typename mask_t::point3_t;
         using scalar_t = typename mask_t::scalar_type;
@@ -112,10 +116,10 @@ struct link_start_getter {
 
     // Calculates the (optimal) link starting point for annuluses.
     template <typename transform_t>
-    auto inline link_start(const detray::mask<detray::annulus2D<>>& mask,
+    auto inline link_start(const detray::mask<detray::annulus2D>& mask,
                            const transform_t& transform) const {
 
-        using shape_t = detray::annulus2D<>;
+        using shape_t = detray::annulus2D;
         using mask_t = detray::mask<shape_t>;
         using point3_t = typename mask_t::point3_t;
         using scalar_t = typename mask_t::scalar_type;
@@ -128,14 +132,30 @@ struct link_start_getter {
     }
 
     // Calculates the (optimal) link starting point for cylinders (2D).
-    template <typename transform_t, bool kRadialCheck,
-              template <typename> class intersector_t>
+    template <typename transform_t>
+    auto inline link_start(const detray::mask<detray::cylinder2D>& mask,
+                           const transform_t& transform) const {
+
+        using shape_t = detray::cylinder2D;
+        using mask_t = detray::mask<shape_t>;
+        using point3_t = typename mask_t::point3_t;
+        using scalar_t = typename mask_t::scalar_type;
+
+        const scalar_t r{mask[shape_t::e_r]};
+        const scalar_t phi{detray::constant<scalar_t>::pi_2};
+        // Shift the center to the actual cylider bounds
+        const scalar_t z{mask.centroid()[2]};
+
+        return mask.to_global_frame(transform, point3_t{r * phi, z, r});
+    }
+
+    // Calculates the (optimal) link starting point for cylinders (2D).
+    template <typename transform_t>
     auto inline link_start(
-        const detray::mask<detray::cylinder2D<kRadialCheck, intersector_t>>&
-            mask,
+        const detray::mask<detray::concentric_cylinder2D>& mask,
         const transform_t& transform) const {
 
-        using shape_t = detray::cylinder2D<kRadialCheck, intersector_t>;
+        using shape_t = detray::concentric_cylinder2D;
         using mask_t = detray::mask<shape_t>;
         using point3_t = typename mask_t::point3_t;
         using scalar_t = typename mask_t::scalar_type;
@@ -206,12 +226,29 @@ struct link_end_getter {
     }
 
     /// @brief Calculates the direction of the link for cylinders (2D)
-    template <typename detector_t, bool kRadialCheck,
-              template <typename> class intersector_t, typename point3_t,
-              typename vector3_t>
+    template <typename detector_t, typename point3_t, typename vector3_t>
+    inline auto link_dir(const detray::mask<detray::cylinder2D>& mask,
+                         const detector_t& detector,
+                         const detray::detector_volume<detector_t>& volume,
+                         const point3_t& /*surface_point*/,
+                         const vector3_t& surface_normal) const {
+        for (const auto& desc : volume.portals()) {
+
+            const detray::surface surface{detector, desc};
+
+            if (auto r = surface.template visit_mask<outer_radius_getter>()) {
+                if (*r > mask[cylinder2D::e_r]) {
+                    return surface_normal;
+                }
+            }
+        }
+        return -1.f * surface_normal;
+    }
+
+    /// @brief Calculates the direction of the link for cylinders (2D)
+    template <typename detector_t, typename point3_t, typename vector3_t>
     inline auto link_dir(
-        const detray::mask<detray::cylinder2D<kRadialCheck, intersector_t>>&
-            mask,
+        const detray::mask<detray::concentric_cylinder2D>& mask,
         const detector_t& detector,
         const detray::detector_volume<detector_t>& volume,
         const point3_t& /*surface_point*/,
@@ -221,7 +258,7 @@ struct link_end_getter {
             const detray::surface surface{detector, desc};
 
             if (auto r = surface.template visit_mask<outer_radius_getter>()) {
-                if (*r > mask[cylinder2D<>::e_r]) {
+                if (*r > mask[concentric_cylinder2D::e_r]) {
                     return surface_normal;
                 }
             }

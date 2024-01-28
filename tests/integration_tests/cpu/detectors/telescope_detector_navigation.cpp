@@ -31,11 +31,11 @@ int main(int argc, char **argv) {
     //
     // Telescope detector configuration
     //
-    using tel_detector_t = detector<telescope_metadata<rectangle2D<>>>;
+    using tel_detector_t = detector<telescope_metadata<rectangle2D>>;
     using scalar_t = typename tel_detector_t::scalar_type;
 
-    tel_det_config<rectangle2D<>> tel_cfg{20.f * unit<scalar_t>::mm,
-                                          20.f * unit<scalar_t>::mm};
+    tel_det_config<rectangle2D> tel_cfg{20.f * unit<scalar_t>::mm,
+                                        20.f * unit<scalar_t>::mm};
     tel_cfg.n_surfaces(10u).length(500.f * unit<scalar_t>::mm);
 
     vecmem::host_memory_resource host_mr;

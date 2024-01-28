@@ -13,10 +13,8 @@
 #include "detray/definitions/containers.hpp"
 #include "detray/definitions/math.hpp"
 #include "detray/definitions/qualifiers.hpp"
-#include "detray/intersection/line_intersector.hpp"
 
 // System include(s)
-#include <cmath>
 #include <limits>
 #include <ostream>
 #include <type_traits>
@@ -26,19 +24,13 @@ namespace detray {
 /// @brief Geometrical shape of a line surface.
 ///
 /// @tparam kSquareCrossSect determines whether the line has a cricular or
-///         square cross section. This also changes the local coord. frame.
-/// @tparam intersector_t defines how to intersect the underlying surface
-///         geometry
-/// @tparam kMeasDim defines the dimension of the measurement
-/// @tparam kNormalOrder true if the index for measurement parameter follows
-/// the local coordinate system
+///         square cross section. This also changes the local coord. frame.m
 ///
 /// The line can either have a circular or a square cross section. In the first
 /// case bounds[0] refers to the radius, while in the second case it is the
 /// half length of the square. The second boundary bounds[1] is the half length
 /// in z.
-template <bool kSquareCrossSect = false,
-          template <typename> class intersector_t = line_intersector>
+template <bool kSquareCrossSect = false>
 class line {
     public:
     /// The name for this shape
@@ -56,10 +48,6 @@ class line {
     /// Local coordinate frame for boundary checks
     template <typename algebra_t>
     using local_frame_type = line2<algebra_t>;
-
-    /// Underlying surface geometry: line
-    template <typename intersection_t>
-    using intersector_type = intersector_t<intersection_t>;
 
     /// Dimension of the local coordinate system
     static constexpr std::size_t dim{2u};

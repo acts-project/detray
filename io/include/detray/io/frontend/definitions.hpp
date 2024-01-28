@@ -41,26 +41,28 @@ enum class material_id : unsigned int {
     annulus2_map = 0u,
     rectangle2_map = 1u,
     cuboid3_map = 2u,
-    cylinder2_map = 3u,
-    cylinder3_map = 4u,
+    concentric_cylinder2_map = 3u,
+    cylinder2_map = 4u,
+    cylinder3_map = 5u,
     ring2_map = 0u,
     trapezoid2_map = 1u,
     // Homogeneous materials
-    slab = 5u,
-    rod = 6u,
-    n_mats = 7u,
+    slab = 6u,
+    rod = 7u,
+    n_mats = 8u,
     unknown = n_mats
 };
 
 /// Enumerate the different acceleration data structures
 enum class accel_id : unsigned int {
-    brute_force = 0u,      // try all
-    cartesian2_grid = 1u,  // rectangle, trapezoid, (triangle) grids
-    cuboid3_grid = 2u,     // cuboid grid
-    polar2_grid = 3u,      // ring/disc, annulus grids
-    cylinder2_grid = 4u,   // 2D cylinder grid
-    cylinder3_grid = 5u,   // 3D cylinder grid
-    n_accel = 6u,
+    brute_force = 0u,                // try all
+    cartesian2_grid = 1u,            // rectangle, trapezoid, (triangle) grids
+    cuboid3_grid = 2u,               // cuboid grid
+    polar2_grid = 3u,                // ring/disc, annulus grids
+    concentric_cylinder2_grid = 4u,  // 2D concentric cylinder grid
+    cylinder2_grid = 5u,             // 2D cylinder grid
+    cylinder3_grid = 6u,             // 3D cylinder grid
+    n_accel = 7u,
     unknown = n_accel
 };
 

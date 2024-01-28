@@ -1,17 +1,16 @@
 /** Detray library, part of the ACTS project (R&D line)
  *
- * (c) 2022-2023 CERN for the benefit of the ACTS project
+ * (c) 2022-2024 CERN for the benefit of the ACTS project
  *
  * Mozilla Public License Version 2.0
  */
 
 // Project include(s)
-#include "detray/intersection/line_intersector.hpp"
-
 #include "detray/geometry/detail/surface_descriptor.hpp"
-#include "detray/intersection/detail/trajectories.hpp"
-#include "detray/intersection/intersection.hpp"
 #include "detray/masks/masks.hpp"
+#include "detray/navigation/detail/trajectories.hpp"
+#include "detray/navigation/intersection/intersection.hpp"
+#include "detray/navigation/intersection/ray_intersector.hpp"
 #include "detray/test/types.hpp"
 #include "detray/tracks/tracks.hpp"
 
@@ -31,7 +30,7 @@ using vector3 = test::vector3;
 using point3 = test::point3;
 using point2 = test::point2;
 using intersection_t = intersection2D<surface_descriptor<>, transform3>;
-using line_intersector_type = line_intersector<intersection_t>;
+using line_intersector_type = ray_intersector<transform3, line<>>;
 
 constexpr scalar tol{1e-5f};
 
@@ -158,7 +157,7 @@ GTEST_TEST(detray_intersection, line_intersector_square_scope) {
                       -1.f);
 
     // Infinite wire with 1 mm square cell size
-    mask<line<true, line_intersector>, std::uint_least16_t, transform3> ln{
+    mask<line<true>, std::uint_least16_t, transform3> ln{
         0u, 1.f, std::numeric_limits<scalar>::infinity()};
 
     // Test intersect
