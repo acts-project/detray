@@ -89,6 +89,9 @@ class random_track_generator
         /// Gaussian vertex smearing
         bool m_do_vtx_smearing = true;
 
+        /// Monte-Carlo seed
+        std::size_t m_seed;
+
         /// How many tracks will be generated
         std::size_t m_n_tracks{10u};
 
@@ -112,6 +115,11 @@ class random_track_generator
 
         /// Setters
         /// @{
+        DETRAY_HOST_DEVICE configuration& seed(const std::size_t s) {
+            m_seed = s;
+            return *this;
+        }
+
         DETRAY_HOST_DEVICE configuration& do_vertex_smearing(bool b) {
             m_do_vtx_smearing = b;
             return *this;
@@ -169,6 +177,7 @@ class random_track_generator
 
         /// Getters
         /// @{
+        DETRAY_HOST_DEVICE constexpr std::size_t seed() const { return m_seed; }
         DETRAY_HOST_DEVICE constexpr bool do_vertex_smearing() const {
             return m_do_vtx_smearing;
         }
@@ -294,7 +303,9 @@ class random_track_generator
 
     /// Construct from external configuration
     DETRAY_HOST_DEVICE
-    constexpr random_track_generator(configuration cfg) : m_gen{}, m_cfg(cfg) {}
+    constexpr random_track_generator(configuration cfg) : m_gen{}, m_cfg(cfg) {
+        m_gen.engine.seed(m_cfg.seed());
+    }
 
     /// Paramtetrized constructor for quick construction of simple tasks
     ///
