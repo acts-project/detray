@@ -259,11 +259,10 @@ bound_getter<transform3_type>::state evaluate_bound_param(
 
     // Actor states
     parameter_transporter<transform3_type>::state transporter_state{};
-    propagation::print_inspector::state print_insp_state{};
     bound_getter<transform3_type>::state bound_getter_state{};
     parameter_resetter<transform3_type>::state resetter_state{};
-    auto actor_states = std::tie(print_insp_state, transporter_state,
-                                 bound_getter_state, resetter_state);
+    auto actor_states =
+        std::tie(transporter_state, bound_getter_state, resetter_state);
 
     // Init propagator states for the reference track
     typename propagator_t::state state(initial_param, field, det);
@@ -306,11 +305,10 @@ get_displaced_bound_vector(
     // Actor states
     parameter_transporter<transform3_type>::state transporter_state{};
     parameter_resetter<transform3_type>::state resetter_state{};
-    propagation::print_inspector::state print_insp_state{};
     bound_getter<transform3_type>::state bound_getter_state{};
 
-    auto actor_states = std::tie(transporter_state, print_insp_state,
-                                 bound_getter_state, resetter_state);
+    auto actor_states =
+        std::tie(transporter_state, bound_getter_state, resetter_state);
     dstate._stepping
         .template set_constraint<detray::step::constraint::e_accuracy>(
             constraint_step);
@@ -1180,10 +1178,10 @@ int main(int argc, char** argv) {
     const inhom_bfield_t inhom_bfield = bfield::create_inhom_field();
 
     // Actor chain type
-    using actor_chain_t = actor_chain<dtuple, propagation::print_inspector,
-                                      parameter_transporter<transform3_type>,
-                                      bound_getter<transform3_type>,
-                                      parameter_resetter<transform3_type>>;
+    using actor_chain_t =
+        actor_chain<dtuple, parameter_transporter<transform3_type>,
+                    bound_getter<transform3_type>,
+                    parameter_resetter<transform3_type>>;
 
     // Iterate over reference (pilot) tracks for a rectangular telescope
     // geometry and Jacobian calculation
