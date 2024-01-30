@@ -77,13 +77,15 @@ class rk_stepper final
             vector3 b_first{0.f, 0.f, 0.f};
             vector3 b_middle{0.f, 0.f, 0.f};
             vector3 b_last{0.f, 0.f, 0.f};
-            vector3 k1{0.f, 0.f, 0.f};
-            vector3 k2{0.f, 0.f, 0.f};
-            vector3 k3{0.f, 0.f, 0.f};
-            vector3 k4{0.f, 0.f, 0.f};
-            // @NOTE: qop2 = qop3
-            scalar_type qop2{0.f};
-            scalar_type qop4{0.f};
+
+            // t = tangential direction = dr/ds
+            std::array<vector3, 4u> t;
+            // q/p
+            std::array<scalar_type, 4u> qop;
+            // dt/ds = d^2r/ds^2 = q/p ( t X B )
+            std::array<vector3, 4u> dtds;
+            // d(q/p)/ds
+            std::array<scalar_type, 4u> dqopds;
         } _step_data;
 
         /// Magnetic field view
@@ -100,23 +102,25 @@ class rk_stepper final
         DETRAY_HOST_DEVICE
         inline void advance_jacobian(const stepping::config& cfg = {});
 
-        /// evaulate qop for a given step size and material
+        /// evaulate dqopds for a given step size and material
         DETRAY_HOST_DEVICE
-        inline scalar_type evaluate_qop(const scalar_type h,
-                                        const stepping::config& cfg = {}) const;
+        inline scalar_type evaluate_dqopds(
+            const std::size_t i, const typename transform3_t::scalar_type h,
+            const scalar dqopds_prev, const detray::stepping::config& cfg);
 
-        /// evaulate k_n for runge kutta stepping
+        /// evaulate dtds for runge kutta stepping
         DETRAY_HOST_DEVICE
-        inline vector3 evaluate_k(const vector3& b_field, const int i,
-                                  const scalar_type h, const vector3& k_prev,
-                                  const scalar_type qop);
+        inline vector3 evaluate_dtds(const vector3& b_field,
+                                     const std::size_t i, const scalar_type h,
+                                     const vector3& dtds_prev,
+                                     const scalar_type qop);
 
         DETRAY_HOST_DEVICE
         inline matrix_type<3, 3> evaluate_field_gradient(const vector3& pos);
 
         /// Evaluate dtds, where t is the unit tangential direction
         DETRAY_HOST_DEVICE
-        inline vector3 dtds() const { return this->_step_data.k4; }
+        inline vector3 dtds() const { return this->_step_data.dtds[3u]; }
 
         /// Evaulate d(qop)/ds
         DETRAY_HOST_DEVICE
@@ -124,6 +128,14 @@ class rk_stepper final
 
         DETRAY_HOST_DEVICE
         inline scalar_type dqopds(const scalar_type qop) const;
+
+        /// Evaulate dg/dqop where g = -stopping_power
+        DETRAY_HOST_DEVICE
+        inline scalar_type dgdqop(const scalar_type qop) const;
+
+        /// Evaulate d(d(qop)/ds)dqop
+        DETRAY_HOST_DEVICE
+        inline scalar_type d2qopdsdqop(const scalar_type qop) const;
 
         /// Call the stepping inspector
         template <typename... Args>
