@@ -31,8 +31,8 @@ namespace {
 auto make_regular_grid(vecmem::memory_resource &mr) {
 
     // Return the grid.
-    return grid2<replace_populator, axis::regular, axis::regular, serializer2>{
-        {25u, 0.f, 25.f, mr}, {60u, 0.f, 60.f, mr}, mr};
+    return grid2<replace_populator, axis2::regular, axis2::regular,
+                 serializer2>{{25u, 0.f, 25.f, mr}, {60u, 0.f, 60.f, mr}, mr};
 }
 
 }  // namespace
@@ -99,7 +99,7 @@ auto make_irregular_grid(vecmem::memory_resource &mr) {
         yboundaries.push_back(i);
     }
 
-    return grid2<replace_populator, axis::irregular, axis::irregular,
+    return grid2<replace_populator, axis2::irregular, axis2::irregular,
                  serializer2>({xboundaries, mr}, {yboundaries, mr}, mr);
 }
 

@@ -47,7 +47,7 @@ class grid_reader : public reader_interface<detector_t> {
         std::is_same_v<value_t, typename detector_t::surface_type>, std::size_t,
         value_t>;
 
-    static constexpr std::size_t Dim{DIM()};
+    static constexpr std::size_t dim{DIM()};
     static constexpr std::size_t bin_capacity{CAP()};
 
     protected:
@@ -70,8 +70,8 @@ class grid_reader : public reader_interface<detector_t> {
         // Deserialize the grids volume by volume
         for (const auto &grid_data : grids_data.grids) {
 
-            std::queue<n_axis::bounds> bounds;
-            std::queue<n_axis::binning> binnings;
+            std::queue<axis::bounds> bounds;
+            std::queue<axis::binning> binnings;
             for (const auto &axis_data : grid_data.axes) {
                 bounds.push(axis_data.bounds);
                 binnings.push(axis_data.binning);
@@ -92,15 +92,15 @@ class grid_reader : public reader_interface<detector_t> {
     /// @param binning_ids runtime queue of binning type ids (read from file)
     template <typename bounds_ts = types::list<>,
               typename binning_ts = types::list<>, typename... Ts>
-    static void deserialize(std::queue<n_axis::bounds> &bound_ids,
-                            std::queue<n_axis::binning> &binning_ids,
+    static void deserialize(std::queue<axis::bounds> &bound_ids,
+                            std::queue<axis::binning> &binning_ids,
                             Ts &&... data) {
-        using namespace n_axis;
+        using namespace axis;
 
         constexpr std::size_t n_bounds_types{types::size<bounds_ts>};
 
         // Base case: If the bounds types are filled, continue with the binnings
-        if constexpr (n_bounds_types == Dim) {
+        if constexpr (n_bounds_types == dim) {
             return deserialize<bounds_ts, binning_ts>(
                 binning_ids, std::forward<Ts>(data)...);
         } else if (!bound_ids.empty()) {
@@ -150,17 +150,17 @@ class grid_reader : public reader_interface<detector_t> {
     ///
     /// @param binning_ids runtime queue of binning type ids (read from file)
     template <typename bounds_ts, typename binning_ts, typename... Ts,
-              std::enable_if_t<types::size<bounds_ts> == Dim, bool> = true>
-    static void deserialize(std::queue<n_axis::binning> &binning_ids,
+              std::enable_if_t<types::size<bounds_ts> == dim, bool> = true>
+    static void deserialize(std::queue<axis::binning> &binning_ids,
                             Ts &&... data) {
 
-        using namespace n_axis;
+        using namespace axis;
 
         using regular_binning_t = regular<host_container_types, scalar_t>;
         using irregular_binning_t = irregular<host_container_types, scalar_t>;
 
         // Base case: If the binning types are filled, continue with the frame
-        if constexpr (types::size<binning_ts> == Dim) {
+        if constexpr (types::size<binning_ts> == dim) {
             return deserialize<bounds_ts, binning_ts>(
                 std::forward<Ts>(data)...);
         } else if (!binning_ids.empty()) {
@@ -201,8 +201,8 @@ class grid_reader : public reader_interface<detector_t> {
     /// @param grid_data grid IO payload (read from file)
     /// @param det_builder gather the grid data and build the final volume
     template <typename bounds_ts, typename binning_ts,
-              std::enable_if_t<types::size<bounds_ts> == Dim and
-                                   types::size<binning_ts> == Dim,
+              std::enable_if_t<types::size<bounds_ts> == dim and
+                                   types::size<binning_ts> == dim,
                                bool> = true>
     static void deserialize(const grid_payload<content_t> &grid_data,
                             detector_builder<typename detector_t::metadata,
@@ -227,7 +227,7 @@ class grid_reader : public reader_interface<detector_t> {
         constexpr auto binnings = binning_ts{};
 
         // Check only 2-dimensional grid types
-        if constexpr (Dim >= 2) {
+        if constexpr (dim >= 2) {
             switch (grid_data.acc_link.type) {
                 // rectangle, trapezoid, (triangle) grids
                 case io::detail::acc_type::cartesian2_grid: {
@@ -249,7 +249,7 @@ class grid_reader : public reader_interface<detector_t> {
                     break;
                 }
             };
-        } else if constexpr (Dim >= 3) {
+        } else if constexpr (dim >= 3) {
             switch (grid_data.acc_link.type) {
                 // cuboid grid
                 case io::detail::acc_type::cuboid3_grid: {
@@ -274,8 +274,8 @@ class grid_reader : public reader_interface<detector_t> {
     /// @brief End of recursion: build the grid from the @param grid_data
     template <typename local_frame_t, typename... bounds_ts,
               typename... binning_ts,
-              std::enable_if_t<sizeof...(bounds_ts) == Dim and
-                                   sizeof...(binning_ts) == Dim,
+              std::enable_if_t<sizeof...(bounds_ts) == dim and
+                                   sizeof...(binning_ts) == dim,
                                bool> = true>
     static void deserialize(const grid_payload<content_t> &grid_data,
                             detector_builder<typename detector_t::metadata,
@@ -284,13 +284,13 @@ class grid_reader : public reader_interface<detector_t> {
                             types::list<binning_ts...>) {
         // Assemble the grid type
         using axes_t =
-            n_axis::multi_axis<false, local_frame_t,
-                               n_axis::single_axis<bounds_ts, binning_ts>...>;
+            axis::multi_axis<false, local_frame_t,
+                             axis::single_axis<bounds_ts, binning_ts>...>;
         // Ok for now: Only have this serializer
         using grid_t = grid<axes_t, bins::static_array<value_t, bin_capacity>,
                             simple_serializer>;
 
-        static_assert(grid_t::Dim == Dim,
+        static_assert(grid_t::dim == dim,
                       "Grid dimension does not meet dimension of grid reader");
 
         const auto volume_idx{base_type::deserialize(grid_data.volume_link)};
@@ -330,10 +330,10 @@ class grid_reader : public reader_interface<detector_t> {
             const std::size_t n_bins{grid.nbins()};
 
             value_t empty_sf{};
-            n_axis::multi_bin<Dim> mbin;
+            axis::multi_bin<dim> mbin;
             for (const auto &bin_data : grid_data.bins) {
 
-                assert(Dim == bin_data.loc_index.size() &&
+                assert(dim == bin_data.loc_index.size() &&
                        "Numer of local bin indices in input file does not "
                        "match grid dimension");
 

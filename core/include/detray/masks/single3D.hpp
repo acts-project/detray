@@ -1,6 +1,6 @@
 /** Detray library, part of the ACTS project (R&D line)
  *
- * (c) 2020-2023 CERN for the benefit of the ACTS project
+ * (c) 2020-2024 CERN for the benefit of the ACTS project
  *
  * Mozilla Public License Version 2.0
  */
@@ -13,8 +13,6 @@
 #include "detray/definitions/containers.hpp"
 #include "detray/definitions/qualifiers.hpp"
 #include "detray/intersection/plane_intersector.hpp"
-#include "detray/surface_finders/grid/detail/axis_binning.hpp"
-#include "detray/surface_finders/grid/detail/axis_bounds.hpp"
 
 // System include(s)
 #include <cmath>
@@ -54,24 +52,8 @@ class single3D {
     template <typename intersection_t>
     using intersector_type = intersector_t<intersection_t>;
 
-    /// Behaviour of the two local axes (linear in single coordinate x, y or z)
-    template <n_axis::bounds e_s = n_axis::bounds::e_closed,
-              template <typename, typename> class binning_loc0 =
-                  n_axis::regular>
-    struct axes {
-        static constexpr n_axis::label axis_loc0 =
-            static_cast<n_axis::label>(kCheckIndex);
-        static constexpr std::size_t dim{1u};
-
-        /// How to convert into the local axis system and back
-        template <typename algebra_t>
-        using coordinate_type = local_frame_type<algebra_t>;
-
-        using types = dtuple<n_axis::bounds_t<e_s, axis_loc0>>;
-
-        template <typename C, typename S>
-        using binning = dtuple<binning_loc0<C, S>>;
-    };
+    /// Dimension of the local coordinate system
+    static constexpr std::size_t dim{1u};
 
     /// @brief Check boundary values for a local point.
     ///

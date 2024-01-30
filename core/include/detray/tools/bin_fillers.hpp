@@ -1,6 +1,6 @@
 /** Detray library, part of the ACTS project (R&D line)
  *
- * (c) 2023 CERN for the benefit of the ACTS project
+ * (c) 2023-2024 CERN for the benefit of the ACTS project
  *
  * Mozilla Public License Version 2.0
  */
@@ -8,7 +8,6 @@
 #pragma once
 
 // Project include(s).
-#include "detray/surface_finders/grid/axis.hpp"
 #include "detray/surface_finders/grid/populators.hpp"
 #include "detray/tools/bin_association.hpp"
 
@@ -30,7 +29,7 @@ struct fill_by_bin {
     template <typename grid_t>
     struct bin_data {
         /// Bin index on the grid axes
-        n_axis::multi_bin<grid_t::Dim> local_bin_idx;
+        typename grid_t::loc_bin_index local_bin_idx;
         /// Single element of the bin content, which can be a collection of grid
         /// values
         typename grid_t::value_type single_element;

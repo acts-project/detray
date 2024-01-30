@@ -24,8 +24,8 @@ using namespace detray;
 TEST(grids, serialize_deserialize) {
     vecmem::host_memory_resource resource;
 
-    axis::regular<> r6{6u, -3.f, 7.f, resource};
-    axis::circular<> c12{12u, -3.f, 3.f, resource};
+    axis2::regular<> r6{6u, -3.f, 7.f, resource};
+    axis2::circular<> c12{12u, -3.f, 3.f, resource};
 
     serializer2 ser2;
 

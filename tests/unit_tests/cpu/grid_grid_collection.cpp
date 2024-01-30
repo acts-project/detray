@@ -8,7 +8,6 @@
 // Detray include(s)
 #include "detray/definitions/indexing.hpp"
 #include "detray/masks/cylinder3D.hpp"
-#include "detray/surface_finders/grid/axis.hpp"
 #include "detray/surface_finders/grid/grid.hpp"
 #include "detray/surface_finders/grid/grid_collection.hpp"
 #include "detray/surface_finders/grid/populators.hpp"
@@ -24,7 +23,7 @@
 #include <gtest/gtest.h>
 
 using namespace detray;
-using namespace detray::n_axis;
+using namespace detray::axis;
 
 namespace {
 
@@ -52,11 +51,9 @@ struct bin_content_sequence {
 /// Unittest: Test the construction of a collection of grids
 GTEST_TEST(detray_grid, grid_collection) {
 
-    // grid type
-
     // Non-owning grid type with array<dindex, 3> as bin content
-    using cylindrical_3D = coordinate_axes<cylinder3D::axes<>, is_n_owning>;
-    using grid_t = grid<cylindrical_3D, bins::static_array<dindex, 3>>;
+    using grid_t = grid<axes<cylinder3D>, bins::static_array<dindex, 3>,
+                        simple_serializer, host_container_types, is_n_owning>;
 
     // Build test data
 
@@ -96,7 +93,7 @@ GTEST_TEST(detray_grid, grid_collection) {
     static_assert(std::is_same_v<decltype(single_grid), grid_t>,
                   "Grid from collection has wrong type");
 
-    EXPECT_EQ(single_grid.Dim, 3);
+    EXPECT_EQ(single_grid.dim, 3);
     EXPECT_EQ(single_grid.nbins(), 24u);
     auto r_axis = single_grid.get_axis<label::e_r>();
     EXPECT_EQ(r_axis.nbins(), 1u);
