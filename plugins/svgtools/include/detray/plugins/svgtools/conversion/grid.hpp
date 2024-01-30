@@ -12,6 +12,7 @@
 #include "detray/definitions/grid_axis.hpp"
 #include "detray/definitions/units.hpp"
 #include "detray/plugins/svgtools/styling/styling.hpp"
+#include "detray/plugins/svgtools/utils/surface_kernels.hpp"
 
 // Actsvg include(s)
 #include "actsvg/proto/grid.hpp"
@@ -29,22 +30,6 @@ namespace detail {
 
 enum grid_type : std::uint8_t { e_barrel = 0, e_endcap = 1, e_unknown = 2 };
 
-/// @returns the phi edges and radius of an r-phi axis
-template <typename scalar_t>
-inline auto r_phi_split(const dvector<scalar_t>& edges_rphi) {
-
-    // Calculating r under the assumption that the cylinder grid is closed in
-    // phi: (bin_edge_min - bin_edge_max) / (2*pi).
-    const auto r = edges_rphi.back() * detray::constant<scalar_t>::inv_pi;
-    dvector<scalar_t> edges_phi;
-
-    std::transform(edges_rphi.cbegin(), edges_rphi.cend(),
-                   std::back_inserter(edges_phi),
-                   [r](scalar_t e) { return e / r; });
-
-    return std::tuple(edges_phi, r);
-}
-
 /// @returns the actsvg grid type and edge values for a detray 2D cylinder grid.
 template <
     typename grid_t, typename view_t,
@@ -58,29 +43,26 @@ inline auto grid_type_and_edges(const grid_t& grid, const view_t&) {
     using scalar_t = typename grid_t::local_frame_type::scalar_type;
     using axis_label = detray::axis::label;
 
-    auto edges_rphi = grid.template get_axis<axis_label::e_rphi>().bin_edges();
+    auto edges_phi = grid.template get_axis<axis_label::e_rphi>().bin_edges();
     auto edges_z = grid.template get_axis<axis_label::e_cyl_z>().bin_edges();
-    auto [edges_phi, r] = r_phi_split(edges_rphi);
-    dvector<scalar_t> edges_r{r, r};
+    // Unknown for 2D cylinder
+    dvector<scalar_t> edges_r{};
 
     if constexpr (std::is_same_v<view_t, actsvg::views::x_y>) {
-        return std::tuple(grid_type::e_barrel, actsvg::proto::grid::e_r_phi, r,
+        return std::tuple(grid_type::e_barrel, actsvg::proto::grid::e_r_phi,
                           edges_r, edges_phi);
     }
     if constexpr (std::is_same_v<view_t, actsvg::views::z_r>) {
-        return std::tuple(grid_type::e_barrel, actsvg::proto::grid::e_x_y, r,
+        return std::tuple(grid_type::e_barrel, actsvg::proto::grid::e_x_y,
                           edges_z, edges_r);
     }
-    if constexpr (std::is_same_v<view_t, actsvg::views::z_phi>) {
-        return std::tuple(grid_type::e_barrel, actsvg::proto::grid::e_z_phi, r,
+    if constexpr (std::is_same_v<view_t, actsvg::views::z_phi> ||
+                  std::is_same_v<view_t, typename actsvg::views::z_rphi>) {
+        return std::tuple(grid_type::e_barrel, actsvg::proto::grid::e_z_phi,
                           edges_z, edges_phi);
     }
-    if constexpr (std::is_same_v<view_t, typename actsvg::views::z_rphi>) {
-        return std::tuple(grid_type::e_barrel, actsvg::proto::grid::e_z_phi, r,
-                          edges_z, edges_rphi);
-    }
 
-    return std::tuple(grid_type::e_barrel, actsvg::proto::grid::e_x_y, r,
+    return std::tuple(grid_type::e_barrel, actsvg::proto::grid::e_x_y,
                       dvector<scalar_t>{}, dvector<scalar_t>{});
 }
 
@@ -99,16 +81,14 @@ inline auto grid_type_and_edges(const grid_t& grid, const view_t&) {
 
     auto edges_r = grid.template get_axis<axis_label::e_r>().bin_edges();
     auto edges_phi = grid.template get_axis<axis_label::e_phi>().bin_edges();
-    // The axes are always sorted
-    scalar_t r{edges_r.back()};
 
     if constexpr (std::is_same_v<view_t, typename actsvg::views::x_y>) {
-        return std::tuple(grid_type::e_endcap, actsvg::proto::grid::e_r_phi, r,
+        return std::tuple(grid_type::e_endcap, actsvg::proto::grid::e_r_phi,
                           edges_r, edges_phi);
     }
 
-    return std::tuple(grid_type::e_endcap, actsvg::proto::grid::e_x_y, r,
-                      dvector<scalar_t>{}, dvector<scalar_t>{});
+    return std::tuple(grid_type::e_endcap, actsvg::proto::grid::e_x_y, edges_r,
+                      dvector<scalar_t>{});
 }
 
 /// A functor to access the type and bin edges of a grid.
@@ -128,7 +108,6 @@ struct type_and_edge_getter {
         }
 
         return std::tuple(grid_type::e_unknown, actsvg::proto::grid::e_x_y,
-                          detray::detail::invalid_value<scalar_t>(),
                           dvector<scalar_t>{}, dvector<scalar_t>{});
     }
 };
@@ -153,6 +132,9 @@ struct bin_association_getter {
 
             // The sheet display only works for 2-dimensional grids
             if constexpr (accel_t::dim != 2u) {
+                std::cout
+                    << "WARNIGN: Only 2D grids can be displayed as actvg sheets"
+                    << std::endl;
                 return {};
             }
 
@@ -230,13 +212,62 @@ auto grid(const detector_t& detector, const dindex index, const view_t& view,
     actsvg::proto::grid p_grid;
 
     if (not link.is_invalid()) {
-        const auto [gr_type, view_type, r, edges0, edges1] =
+        auto [gr_type, view_type, edges0, edges1] =
             detector.accelerator_store()
                 .template visit<detail::type_and_edge_getter<scalar_t>>(link,
                                                                         view);
-
         p_grid._type = view_type;
-        p_grid._reference_r = static_cast<actsvg::scalar>(r);
+
+        // Find the correct grid radius
+        if (gr_type == detail::grid_type::e_barrel) {
+            // Get the the radii of the volume portal surfaces
+            std::vector<scalar_t> radii{};
+            const auto vol = detector_volume{detector, vol_desc};
+
+            // Passive surfaces could be in the brute force finder, but no
+            // sensitive surfaces, since the volume has a grid. Their radii are,
+            // however, always within the interval of the portal radii
+            for (const auto& pt_desc : vol.portals()) {
+                auto r = detector.mask_store()
+                             .template visit<
+                                 detray::svgtools::utils::outer_radius_getter>(
+                                 pt_desc.mask());
+                if (r.has_value()) {
+                    radii.push_back(*r);
+                }
+            }
+
+            scalar_t inner_r = *std::min_element(radii.begin(), radii.end());
+            scalar_t outer_r = *std::max_element(radii.begin(), radii.end());
+
+            p_grid._reference_r =
+                0.5f * static_cast<actsvg::scalar>(inner_r + outer_r);
+
+            // Add the cylinder radius to the axis binning
+            if constexpr (std::is_same_v<view_t, actsvg::views::x_y>) {
+                if (edges0.empty()) {
+                    edges0 = {p_grid._reference_r, p_grid._reference_r};
+                }
+            }
+            if constexpr (std::is_same_v<view_t, actsvg::views::z_r>) {
+                if (edges1.empty()) {
+                    edges1 = {p_grid._reference_r, p_grid._reference_r};
+                }
+            }
+
+        } else if (gr_type == detail::grid_type::e_endcap) {
+            // An axis is always sorted
+            p_grid._reference_r = static_cast<actsvg::scalar>(edges0.back());
+        }
+
+        // Transform cylinder grid to rphi edges, if rphi view is requested
+        if constexpr (std::is_same_v<view_t, typename actsvg::views::z_rphi>) {
+            if (gr_type == detail::grid_type::e_barrel) {
+                for (auto& e : edges1) {
+                    e *= p_grid._reference_r;
+                }
+            }
+        }
 
         std::transform(
             edges0.cbegin(), edges0.cend(), std::back_inserter(p_grid._edges_0),

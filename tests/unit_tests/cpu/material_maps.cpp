@@ -84,8 +84,8 @@ GTEST_TEST(detray_material, cylinder_map) {
 
     auto rphi_axis = cylinder_map.get_axis<label::e_rphi>();
     EXPECT_EQ(rphi_axis.nbins(), 10u);
-    EXPECT_EQ(rphi_axis.min(), -constant<scalar>::pi * r);
-    EXPECT_EQ(rphi_axis.max(), constant<scalar>::pi * r);
+    EXPECT_EQ(rphi_axis.min(), -constant<scalar>::pi);
+    EXPECT_EQ(rphi_axis.max(), constant<scalar>::pi);
 
     auto z_axis = cylinder_map.get_axis<label::e_cyl_z>();
     EXPECT_EQ(z_axis.nbins(), 20u);
