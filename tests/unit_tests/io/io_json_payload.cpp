@@ -67,9 +67,9 @@ TEST(io, json_algebra_payload) {
 TEST(io, json_axis_payload) {
 
     detray::axis_payload ea;
-    ea.binning = detray::n_axis::binning::e_regular;
-    ea.bounds = detray::n_axis::bounds::e_circular;
-    ea.label = detray::n_axis::label::e_phi;
+    ea.binning = detray::axis::binning::e_regular;
+    ea.bounds = detray::axis::bounds::e_circular;
+    ea.label = detray::axis::label::e_phi;
     ea.edges = {-detray::constant<detray::real_io>::pi,
                 detray::constant<detray::real_io>::pi};
     ea.bins = 10UL;
@@ -86,9 +86,9 @@ TEST(io, json_axis_payload) {
     EXPECT_EQ(ea.bins, pea.bins);
 
     detray::axis_payload va;
-    va.binning = detray::n_axis::binning::e_irregular;
-    va.bounds = detray::n_axis::bounds::e_closed;
-    va.label = detray::n_axis::label::e_r;
+    va.binning = detray::axis::binning::e_irregular;
+    va.bounds = detray::axis::bounds::e_closed;
+    va.label = detray::axis::label::e_r;
     va.edges = {0.f, 1.f, 4.f, 5.f, 8.f, 10.f};
     va.bins = va.edges.size() - 1UL;
 
@@ -127,14 +127,14 @@ TEST(io, json_grid_payload) {
         {{0u, 1u}, {0u, 2u}}, {{1u, 1u}, {1u, 2u}}, {{2u, 1u}, {2u, 2u}}};
 
     detray::axis_payload a0{
-        detray::n_axis::binning::e_regular, detray::n_axis::bounds::e_circular,
-        detray::n_axis::label::e_phi, 3u,
+        detray::axis::binning::e_regular, detray::axis::bounds::e_circular,
+        detray::axis::label::e_phi, 3u,
         std::vector<detray::real_io>{-detray::constant<detray::real_io>::pi,
                                      detray::constant<detray::real_io>::pi}};
 
     detray::axis_payload a1{
-        detray::n_axis::binning::e_regular, detray::n_axis::bounds::e_closed,
-        detray::n_axis::label::e_r, 2u, std::vector<detray::real_io>{0.f, 2.f}};
+        detray::axis::binning::e_regular, detray::axis::bounds::e_closed,
+        detray::axis::label::e_r, 2u, std::vector<detray::real_io>{0.f, 2.f}};
 
     detray::grid_payload<> g;
     g.acc_link = {detray::grid_payload<>::grid_type::polar2_grid, 12u};

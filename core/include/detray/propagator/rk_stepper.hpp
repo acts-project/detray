@@ -36,9 +36,8 @@ class rk_stepper final
     public:
     using base_type =
         base_stepper<transform3_t, constraint_t, policy_t, inspector_t>;
-    using inspector_type = inspector_t;
+
     using transform3_type = transform3_t;
-    using policy_type = policy_t;
     using scalar_type = typename transform3_type::scalar_type;
     using point3 = typename transform3_type::point3;
     using vector2 = typename transform3_type::point2;
@@ -78,10 +77,15 @@ class rk_stepper final
             vector3 b_first{0.f, 0.f, 0.f};
             vector3 b_middle{0.f, 0.f, 0.f};
             vector3 b_last{0.f, 0.f, 0.f};
+
+            // t = tangential direction = dr/ds
             std::array<vector3, 4u> t;
+            // q/p
+            std::array<scalar_type, 4u> qop;
+            // dt/ds = d^2r/ds^2 = q/p ( t X B )
             std::array<vector3, 4u> dtds;
-            std::array<scalar, 4u> qop;
-            std::array<scalar, 4u> dqopds;
+            // d(q/p)/ds
+            std::array<scalar_type, 4u> dqopds;
         } _step_data;
 
         /// Magnetic field view

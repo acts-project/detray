@@ -1,6 +1,6 @@
 /** Detray library, part of the ACTS project (R&D line)
  *
- * (c) 2022-2023 CERN for the benefit of the ACTS project
+ * (c) 2022-2024 CERN for the benefit of the ACTS project
  *
  * Mozilla Public License Version 2.0
  */
@@ -17,11 +17,9 @@ template <typename magnetic_field_t, typename transform3_t,
 void detray::rk_stepper<magnetic_field_t, transform3_t, constraint_t, policy_t,
                         inspector_t, array_t>::state::advance_track() {
 
-    using scalar_t = typename transform3_t::scalar_type;
-
     const auto& sd = this->_step_data;
-    const scalar_t h{this->_step_size};
-    const scalar_t h_6{h * static_cast<scalar_t>(1. / 6.)};
+    const scalar_type h{this->_step_size};
+    const scalar_type h_6{h * static_cast<scalar_type>(1. / 6.)};
     auto& track = this->_track;
     auto pos = track.pos();
     auto dir = track.dir();
@@ -38,7 +36,7 @@ void detray::rk_stepper<magnetic_field_t, transform3_t, constraint_t, policy_t,
     track.set_dir(dir);
 
     auto qop = track.qop();
-    if (!(this->_mat == vacuum<scalar_t>())) {
+    if (!(this->_mat == vacuum<scalar_type>())) {
         // Reference: Eq (82) of https://doi.org/10.1016/0029-554X(81)90063-X
         qop =
             qop + h_6 * (sd.dqopds[0u] + 2.f * (sd.dqopds[1u] + sd.dqopds[2u]) +
@@ -76,17 +74,15 @@ void detray::rk_stepper<
     /// constant offset does not exist for rectangular matrix dGdu' (due to the
     /// missing Lambda part) and only exists for dFdu' in dlambda/dlambda.
 
-    using scalar_t = typename transform3_t::scalar_type;
-
     const auto& sd = this->_step_data;
-    const scalar_t h{this->_step_size};
+    const scalar_type h{this->_step_size};
     // const auto& mass = this->_mass;
     auto& track = this->_track;
 
     // Half step length
-    const scalar_t h2{h * h};
-    const scalar_t half_h{h * 0.5f};
-    const scalar_t h_6{h * static_cast<scalar>(1. / 6.)};
+    const scalar_type h2{h * h};
+    const scalar_type half_h{h * 0.5f};
+    const scalar_type h_6{h * static_cast<scalar_type>(1. / 6.)};
 
     /*---------------------------------------------------------------------------
      * k_{n} is always in the form of [ A(T) X B ] where A is a function of r'
@@ -162,7 +158,7 @@ void detray::rk_stepper<
 
     /// (4,4) element (right-bottom) of Eq. 3.12 [JINST 4 P04016]
     if (cfg.use_eloss_gradient) {
-        if (this->_mat == vacuum<scalar_t>()) {
+        if (this->_mat == vacuum<scalar_type>()) {
             getter::element(D, e_free_qoverp, e_free_qoverp) = 1.f;
         } else {
             // As the reference of [JINST 4 P04016] said that "The energy loss
@@ -234,13 +230,11 @@ auto detray::rk_stepper<
                                      const detray::stepping::config& cfg) ->
     typename transform3_t::scalar_type {
 
-    using scalar_t = typename transform3_t::scalar_type;
-
     const auto& track = this->_track;
-    const scalar_t qop = track.qop();
+    const scalar_type qop = track.qop();
     auto& sd = this->_step_data;
 
-    if (this->_mat == detray::vacuum<scalar_t>()) {
+    if (this->_mat == detray::vacuum<scalar_type>()) {
         sd.qop[i] = qop;
         return 0.f;
     } else {
@@ -298,8 +292,7 @@ auto detray::rk_stepper<
 
     matrix_type<3, 3> dBdr = matrix_operator().template zero<3, 3>();
 
-    constexpr typename transform3_t::scalar_type delta =
-        1e-1f * unit<scalar>::mm;
+    constexpr auto delta{1e-1f * unit<scalar_type>::mm};
 
     for (unsigned int i = 0; i < 3; i++) {
 
@@ -348,24 +341,23 @@ auto detray::rk_stepper<magnetic_field_t, transform3_t, constraint_t, policy_t,
                                                                  qop) const ->
     typename transform3_t::scalar_type {
 
-    using scalar_t = typename transform3_t::scalar_type;
-
     const auto& mat = this->_mat;
 
     // d(qop)ds is zero for empty space
-    if (mat == detray::vacuum<scalar_t>()) {
+    if (mat == detray::vacuum<scalar_type>()) {
         return 0.f;
     }
 
     const auto pdg = this->_pdg;
-    const scalar_t q = this->_track.charge();
-    const scalar_t p = q / qop;
-    const scalar_t mass = this->_mass;
-    const scalar_t E = math::sqrt(p * p + mass * mass);
+    const scalar_type q = this->_track.charge();
+    const scalar_type p = q / qop;
+    const scalar_type mass = this->_mass;
+    const scalar_type E = math::sqrt(p * p + mass * mass);
 
     // Compute stopping power
-    const scalar_t stopping_power =
-        interaction<scalar_t>().compute_stopping_power(mat, pdg, mass, qop, q);
+    const scalar_type stopping_power =
+        interaction<scalar_type>().compute_stopping_power(mat, pdg, mass, qop,
+                                                          q);
 
     // Assert that a momentum is a positive value
     assert(p >= 0.f);
@@ -447,8 +439,6 @@ bool detray::rk_stepper<magnetic_field_t, transform3_t, constraint_t, policy_t,
                         array_t>::step(propagation_state_t& propagation,
                                        const detray::stepping::config& cfg) {
 
-    using scalar_t = typename transform3_t::scalar_type;
-
     // Get stepper and navigator states
     state& stepping = propagation._stepping;
     auto& magnetic_field = stepping._magnetic_field;
@@ -459,7 +449,7 @@ bool detray::rk_stepper<magnetic_field_t, transform3_t, constraint_t, policy_t,
 
     auto& sd = stepping._step_data;
 
-    scalar_t error_estimate{0.f};
+    scalar_type error_estimate{0.f};
 
     // First Runge-Kutta point
     const vector3 pos = stepping().pos();
@@ -474,10 +464,10 @@ bool detray::rk_stepper<magnetic_field_t, transform3_t, constraint_t, policy_t,
     sd.dtds[0u] = stepping.evaluate_dtds(sd.b_first, 0u, 0.f,
                                          vector3{0.f, 0.f, 0.f}, sd.qop[0u]);
 
-    const auto try_rk4 = [&](const scalar& h) -> bool {
+    const auto try_rk4 = [&](const scalar_type& h) -> bool {
         // State the square and half of the step size
-        const scalar_t h2{h * h};
-        const scalar_t half_h{h * 0.5f};
+        const scalar_type h2{h * h};
+        const scalar_type half_h{h * 0.5f};
 
         // Second Runge-Kutta point
         // qop should be recalcuated at every point
@@ -520,7 +510,7 @@ bool detray::rk_stepper<magnetic_field_t, transform3_t, constraint_t, policy_t,
         const vector3 err_vec =
             h2 * (sd.dtds[0u] - sd.dtds[1u] - sd.dtds[2u] + sd.dtds[3u]);
         error_estimate =
-            math::max(getter::norm(err_vec), static_cast<scalar_t>(1e-20));
+            math::max(getter::norm(err_vec), static_cast<scalar_type>(1e-20));
 
         return (error_estimate <= cfg.rk_error_tol);
     };
@@ -528,17 +518,17 @@ bool detray::rk_stepper<magnetic_field_t, transform3_t, constraint_t, policy_t,
     // Initial step size estimate
     stepping.set_step_size(navigation());
 
-    scalar_t step_size_scaling{1.f};
+    scalar_type step_size_scaling{1.f};
     std::size_t n_step_trials{0u};
 
     // Adjust initial step size to integration error
     while (!try_rk4(stepping._step_size)) {
 
         step_size_scaling = math::min(
-            math::max(0.25f * unit<scalar_t>::mm,
+            math::max(0.25f * unit<scalar_type>::mm,
                       math::sqrt(math::sqrt(
                           (cfg.rk_error_tol / math::abs(error_estimate))))),
-            static_cast<scalar_t>(4));
+            static_cast<scalar_type>(4));
 
         // Only step size reduction is allowed so that we don't overstep
         assert(step_size_scaling <= 1.f);
@@ -590,7 +580,7 @@ bool detray::rk_stepper<magnetic_field_t, transform3_t, constraint_t, policy_t,
     stepping.advance_jacobian(cfg);
 
     // Call navigation update policy
-    policy_t{}(stepping.policy_state(), propagation);
+    typename rk_stepper::policy_type{}(stepping.policy_state(), propagation);
 
     // Run final inspection
     stepping.run_inspector(cfg, "Step complete: ");

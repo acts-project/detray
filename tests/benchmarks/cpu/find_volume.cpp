@@ -38,8 +38,8 @@ void BM_FIND_VOLUMES(benchmark::State &state) {
 
     auto &volume_grid = d.volume_search_grid();
 
-    const auto &axis_r = volume_grid.get_axis<n_axis::label::e_r>();
-    const auto &axis_z = volume_grid.get_axis<n_axis::label::e_z>();
+    const auto &axis_r = volume_grid.get_axis<axis::label::e_r>();
+    const auto &axis_z = volume_grid.get_axis<axis::label::e_z>();
 
     // Get a rough step size from irregular axes
     auto range0 = axis_r.span();

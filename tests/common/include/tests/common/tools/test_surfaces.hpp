@@ -118,9 +118,9 @@ create_endcap_components(scalar inner_r, scalar outer_r, scalar pos_z,
 
     // Declare the inner, outer, ecn, ecp object finder
 
-    using cylinder_grid = grid2<replace_populator, axis::circular,
-                                axis::regular, decltype(serializer)>;
-    using disc_grid = grid2<replace_populator, axis::regular, axis::circular,
+    using cylinder_grid = grid2<replace_populator, axis2::circular,
+                                axis2::regular, decltype(serializer)>;
+    using disc_grid = grid2<replace_populator, axis2::regular, axis2::circular,
                             decltype(serializer)>;
 
     typename cylinder_grid::axis_p0_type rphi_axis_inner = {
@@ -231,9 +231,9 @@ create_barrel_components(scalar r, scalar stagger_r, unsigned int n_phi,
                    (module_ly - overlap_z)};
 
     // Declare the inner, outer, ecn, ecp object finder
-    using cylinder_grid = grid2<replace_populator, axis::circular,
-                                axis::regular, decltype(serializer)>;
-    using disc_grid = grid2<replace_populator, axis::regular, axis::circular,
+    using cylinder_grid = grid2<replace_populator, axis2::circular,
+                                axis2::regular, decltype(serializer)>;
+    using disc_grid = grid2<replace_populator, axis2::regular, axis2::circular,
                             decltype(serializer)>;
 
     typename cylinder_grid::axis_p0_type rphi_axis_inner = {
@@ -244,7 +244,7 @@ create_barrel_components(scalar r, scalar stagger_r, unsigned int n_phi,
     typename cylinder_grid::axis_p0_type rphi_axis_outer = {
         n_phi, -volume_outer_r * (constant<scalar>::pi + 0.5f * step_phi),
         volume_outer_r * (constant<scalar>::pi - 0.5f * step_phi), host_mr};
-    // axis::regular<> z_axis_outer = {n_z, -0.5f * length_z, 0.5f * length_z};
+    // axis2::regular<> z_axis_outer = {n_z, -0.5f * length_z, 0.5f * length_z};
     typename disc_grid::axis_p0_type r_axis_ecn = {1, volume_inner_r,
                                                    volume_outer_r, host_mr};
     typename disc_grid::axis_p1_type phi_axis_ecn = {

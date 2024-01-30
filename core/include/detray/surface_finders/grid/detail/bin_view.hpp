@@ -10,12 +10,13 @@
 // Project include(s)
 #include "detray/definitions/containers.hpp"
 #include "detray/definitions/qualifiers.hpp"
+#include "detray/surface_finders/grid/detail/axis_bounds.hpp"
 #include "detray/utils/ranges.hpp"
 
 // System include(s)
 #include <utility>
 
-namespace detray::n_axis::detail {
+namespace detray::axis::detail {
 
 template <typename G, typename I>
 struct bin_iterator;
@@ -24,7 +25,7 @@ struct bin_iterator;
 /// (cartesian product of the bin index ranges on the respective axes)
 template <std::size_t... I>
 DETRAY_HOST_DEVICE inline auto get_bin_indexer(
-    const n_axis::multi_bin_range<sizeof...(I)> &search_window,
+    const axis::multi_bin_range<sizeof...(I)> &search_window,
     std::index_sequence<I...>) {
 
     return detray::views::cartesian_product{
@@ -37,8 +38,8 @@ struct bin_view : public detray::ranges::view_interface<bin_view<grid_t>> {
 
     /// Cartesian product view over the local bin index sequences
     using bin_indexer_t = decltype(
-        get_bin_indexer(std::declval<n_axis::multi_bin_range<grid_t::Dim>>(),
-                        std::declval<std::make_index_sequence<grid_t::Dim>>()));
+        get_bin_indexer(std::declval<axis::multi_bin_range<grid_t::dim>>(),
+                        std::declval<std::make_index_sequence<grid_t::dim>>()));
 
     using iterator_t =
         bin_iterator<grid_t, detray::ranges::iterator_t<bin_indexer_t>>;
@@ -50,11 +51,11 @@ struct bin_view : public detray::ranges::view_interface<bin_view<grid_t>> {
     /// Construct from a @param search_window of local bin index ranges and an
     /// underlying @param grid
     DETRAY_HOST_DEVICE constexpr explicit bin_view(
-        const grid_t &grid, n_axis::multi_bin_range<grid_t::Dim> &search_window)
+        const grid_t &grid, axis::multi_bin_range<grid_t::dim> &search_window)
         : m_grid{grid},
           m_bin_indexer{get_bin_indexer(
               search_window,
-              std::make_integer_sequence<std::size_t, grid_t::Dim>{})} {}
+              std::make_integer_sequence<std::size_t, grid_t::dim>{})} {}
 
     /// Copy constructor
     DETRAY_HOST_DEVICE
@@ -146,7 +147,7 @@ struct bin_iterator {
         // Get the correct local bin index
         typename grid_t::loc_bin_index lbin{};
         map_circular(*m_bin_indexer, lbin,
-                     std::make_integer_sequence<std::size_t, grid_t::Dim>{});
+                     std::make_integer_sequence<std::size_t, grid_t::dim>{});
         // Fetch the bin
         return m_grid.bin(lbin);
     }
@@ -172,8 +173,8 @@ struct bin_iterator {
         constexpr auto loc_idx{
             static_cast<std::size_t>(axis_t::bounds_type::label)};
 
-        if constexpr (axis_t::bounds_type::type == n_axis::bounds::e_circular) {
-            lbin[loc_idx] = static_cast<dindex>(n_axis::circular<>{}.wrap(
+        if constexpr (axis_t::bounds_type::type == axis::bounds::e_circular) {
+            lbin[loc_idx] = static_cast<dindex>(axis::circular<>{}.wrap(
                 std::get<loc_idx>(index_tuple), ax.nbins()));
         } else {
             // All other axes start with a range that is already mapped
@@ -187,4 +188,4 @@ struct bin_iterator {
     bin_indexer_t m_bin_indexer;
 };
 
-}  // namespace detray::n_axis::detail
+}  // namespace detray::axis::detail

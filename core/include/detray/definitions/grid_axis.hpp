@@ -1,6 +1,6 @@
 /** Detray library, part of the ACTS project (R&D line)
  *
- * (c) 2022-2023 CERN for the benefit of the ACTS project
+ * (c) 2022-2024 CERN for the benefit of the ACTS project
  *
  * Mozilla Public License Version 2.0
  */
@@ -10,7 +10,7 @@
 // System include(s).
 #include <type_traits>
 
-namespace detray::n_axis {
+namespace detray::axis {
 
 /// axis bounds names.
 ///
@@ -47,19 +47,4 @@ enum class binning {
     e_irregular = 1,
 };
 
-/// Determine axis bounds as either 'open' or 'closed' for non-circular axes.
-/// Used in the shape structs.
-/// @{
-template <n_axis::label L>
-struct open;
-
-template <n_axis::label L>
-struct closed;
-
-template <n_axis::bounds s, n_axis::label axis_label>
-using bounds_t =
-    std::conditional_t<s == n_axis::bounds::e_open, n_axis::open<axis_label>,
-                       n_axis::closed<axis_label>>;
-/// @}
-
-}  // namespace detray::n_axis
+}  // namespace detray::axis

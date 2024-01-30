@@ -166,9 +166,9 @@ using grid_header_payload = header_payload<grid_sub_header_payload>;
 /// @brief axis definition and bin edges
 struct axis_payload {
     /// axis lookup type
-    n_axis::binning binning{n_axis::binning::e_regular};
-    n_axis::bounds bounds{n_axis::bounds::e_closed};
-    n_axis::label label{n_axis::label::e_r};
+    axis::binning binning{axis::binning::e_regular};
+    axis::bounds bounds{axis::bounds::e_closed};
+    axis::label label{axis::label::e_r};
 
     std::size_t bins{0u};
     std::vector<real_io> edges{};

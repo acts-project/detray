@@ -27,16 +27,14 @@ class line_stepper final
     public:
     using base_type =
         base_stepper<transform3_t, constraint_t, policy_t, inspector_t>;
-    using inspector_type = inspector_t;
-    using transform3_type = transform3_t;
-    using policy_type = policy_t;
+
     using free_track_parameters_type =
         typename base_type::free_track_parameters_type;
     using bound_track_parameters_type =
         typename base_type::bound_track_parameters_type;
     using matrix_operator = typename base_type::matrix_operator;
     using size_type = typename matrix_operator::size_ty;
-    using vector3 = typename transform3_type::vector3;
+    using vector3 = typename line_stepper::transform3_type::vector3;
     template <size_type ROWS, size_type COLS>
     using matrix_type =
         typename matrix_operator::template matrix_type<ROWS, COLS>;
@@ -131,7 +129,8 @@ class line_stepper final
         stepping.advance_jacobian();
 
         // Call navigation update policy
-        policy_t{}(stepping.policy_state(), propagation);
+        typename line_stepper::policy_type{}(stepping.policy_state(),
+                                             propagation);
 
         // Run inspection if needed
         stepping.run_inspector(cfg, "Step complete: ");
