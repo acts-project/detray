@@ -15,6 +15,7 @@
 #include "detray/tools/grid_builder.hpp"
 #include "detray/tools/surface_factory.hpp"
 #include "detray/tools/volume_builder.hpp"
+#include "detray/utils/type_list.hpp"
 
 // Vecmem include(s)
 #include <vecmem/memory/host_memory_resource.hpp>
@@ -26,7 +27,7 @@
 #include <limits>
 
 using namespace detray;
-using namespace detray::n_axis;
+using namespace detray::axis;
 
 namespace {
 
@@ -130,9 +131,9 @@ GTEST_TEST(detray_tools, grid_factory) {
 GTEST_TEST(detray_tools, grid_builder) {
 
     // cylinder grid type of the toy detector
-    using cyl_grid_t =
-        grid<coordinate_axes<cylinder2D<>::axes<>, false, host_container_types>,
-             bins::static_array<detector_t::surface_type, 1>>;
+    using cyl_grid_t = grid<axes<cylinder2D<>>,
+                            bins::static_array<detector_t::surface_type, 1>,
+                            simple_serializer, host_container_types, false>;
 
     auto gbuilder =
         grid_builder<detector_t, cyl_grid_t, detray::detail::bin_associator>{
@@ -166,9 +167,9 @@ GTEST_TEST(detray_tools, decorator_grid_builder) {
     using mask_id = typename detector_t::masks::id;
 
     // cylinder grid type of the toy detector
-    using cyl_grid_t =
-        grid<coordinate_axes<cylinder2D<>::axes<>, false, host_container_types>,
-             bins::static_array<detector_t::surface_type, 1>>;
+    using cyl_grid_t = grid<axes<cylinder2D<>>,
+                            bins::static_array<detector_t::surface_type, 1>,
+                            simple_serializer, host_container_types, false>;
 
     using pt_cylinder_t = cylinder2D<false, cylinder_portal_intersector>;
     using pt_cylinder_factory_t = surface_factory<detector_t, pt_cylinder_t>;

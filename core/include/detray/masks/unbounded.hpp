@@ -1,6 +1,6 @@
 /** Detray library, part of the ACTS project (R&D line)
  *
- * (c) 2023 CERN for the benefit of the ACTS project
+ * (c) 2023-2024 CERN for the benefit of the ACTS project
  *
  * Mozilla Public License Version 2.0
  */
@@ -39,6 +39,9 @@ class unbounded {
     template <typename intersection_t>
     using intersector_type =
         typename shape::template intersector_type<intersection_t>;
+
+    /// Dimension of the local coordinate system
+    static constexpr std::size_t dim{shape_t::dim};
 
     /// @brief Check boundary values for a local point.
     ///

@@ -25,25 +25,22 @@ namespace detray {
 /// @tparam grid_t The type of grid in this collection. Must be non-owning, so
 ///                that the grid collection can manage the underlying memory.
 template <typename grid_t, typename = void>
-class grid_collection {
-    grid_collection() = delete;
-    grid_collection(const grid_collection &) = delete;
-    grid_collection(grid_collection &&) = delete;
-};
+class grid_collection {};
 
 /// Specialization for @c detray::grid
 ///
 /// @todo refactor this, grid_data and grid_view as detray::ranges::grid_view
-template <typename multi_axis_t, typename bin_t,
+template <typename axes_t, typename bin_t,
           template <std::size_t> class serializer_t>
 class grid_collection<
-    detray::grid<multi_axis_t, bin_t, serializer_t>,
-    std::enable_if_t<
-        not detray::grid<multi_axis_t, bin_t, serializer_t>::is_owning, void>> {
+    detray::grid_impl<axes_t, bin_t, serializer_t>,
+    std::enable_if_t<!detray::grid_impl<axes_t, bin_t, serializer_t>::is_owning,
+                     void>> {
 
-    using grid_type = detray::grid<multi_axis_t, bin_t, serializer_t>;
+    using grid_type = detray::grid_impl<axes_t, bin_t, serializer_t>;
     using const_grid_type =
-        const detray::grid<const multi_axis_t, const bin_t, serializer_t>;
+        const detray::grid_impl<const axes_t, const bin_t, serializer_t>;
+    using multi_axis_t = typename grid_type::axes_type;
 
     public:
     using value_type = grid_type;
@@ -188,7 +185,7 @@ class grid_collection<
     /// Create grid from container pointers - const
     DETRAY_HOST_DEVICE
     auto operator[](const size_type i) const -> grid_type {
-        const size_type axes_offset{grid_type::Dim * i};
+        const size_type axes_offset{grid_type::dim * i};
         return grid_type(
             &m_bins, multi_axis_t(m_bin_edge_offsets, m_bin_edges, axes_offset),
             m_bin_offsets[i]);
@@ -197,7 +194,7 @@ class grid_collection<
     /// Create grid from container pointers - non-const
     DETRAY_HOST_DEVICE
     auto operator[](const size_type i) -> grid_type {
-        const size_type axes_offset{grid_type::Dim * i};
+        const size_type axes_offset{grid_type::dim * i};
         return grid_type(
             &m_bins, multi_axis_t(m_bin_edge_offsets, m_bin_edges, axes_offset),
             m_bin_offsets[i]);
@@ -243,7 +240,7 @@ class grid_collection<
         auto bin_edges_offset{static_cast<dindex>(m_bin_edges.size())};
 
         // Update the bin edges index offset for the axes in the grid collection
-        const auto start_idx{m_bin_edge_offsets.size() - grid_type::Dim};
+        const auto start_idx{m_bin_edge_offsets.size() - grid_type::dim};
         for (std::size_t i = start_idx; i < m_bin_edge_offsets.size(); ++i) {
             auto &bin_entry_range = m_bin_edge_offsets.at(i);
             bin_entry_range[0] += bin_edges_offset;

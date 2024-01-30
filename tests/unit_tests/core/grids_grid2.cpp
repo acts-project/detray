@@ -28,7 +28,7 @@ TEST(grids, grid2_replace_populator) {
 
     serializer2 serializer;
 
-    using grid2r = grid2<replace_populator, axis::regular, axis::regular,
+    using grid2r = grid2<replace_populator, axis2::regular, axis2::regular,
                          decltype(serializer)>;
     typename grid2r::axis_p0_type xaxis{10u, -5.f, 5.f, host_mr};
     typename grid2r::axis_p1_type yaxis{10u, -5.f, 5.f, host_mr};
@@ -80,7 +80,7 @@ TEST(grids, grid2_replace_populator) {
               156u, 157u, 163u, 164u, 165u, 166u, 167u};
     EXPECT_EQ(test, expect);
 
-    using grid2cc = grid2<replace_populator, axis::circular, axis::regular,
+    using grid2cc = grid2<replace_populator, axis2::circular, axis2::regular,
                           decltype(serializer)>;
 
     typename grid2cc::axis_p0_type circular{4u, -2.f, 2.f, host_mr};
@@ -108,7 +108,7 @@ TEST(grids, grid2_complete_populator) {
 
     serializer2 serializer;
 
-    using grid2r = grid2<complete_populator, axis::regular, axis::regular,
+    using grid2r = grid2<complete_populator, axis2::regular, axis2::regular,
                          decltype(serializer), dvector, djagged_vector, darray,
                          dtuple, dindex, false, 3>;
 
@@ -183,7 +183,7 @@ TEST(grids, grid2_attach_populator) {
 
     serializer2 serializer;
 
-    using grid2r = grid2<attach_populator, axis::regular, axis::regular,
+    using grid2r = grid2<attach_populator, axis2::regular, axis2::regular,
                          decltype(serializer)>;
     typename grid2r::axis_p0_type xaxis{2u, -1.f, 1.f, host_mr};
     typename grid2r::axis_p1_type yaxis{2u, -1.f, 1.f, host_mr};
@@ -237,7 +237,7 @@ TEST(grids, grid2_shift) {
 
     serializer2 serializer;
 
-    using grid2r = grid2<replace_populator, axis::regular, axis::regular,
+    using grid2r = grid2<replace_populator, axis2::regular, axis2::regular,
                          decltype(serializer)>;
 
     typename grid2r::axis_p0_type xaxis{10u, -5.f, 5.f, host_mr};
@@ -259,7 +259,7 @@ TEST(grids, grid2_irregular_replace) {
     replace_populator<> replacer;
     serializer2 serializer;
 
-    using grid2ir = grid2<replace_populator, axis::irregular, axis::irregular,
+    using grid2ir = grid2<replace_populator, axis2::irregular, axis2::irregular,
                           decltype(serializer)>;
 
     typename grid2ir::axis_p0_type xaxis{

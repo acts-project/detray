@@ -49,9 +49,9 @@ inline void to_json(nlohmann::ordered_json& j, const axis_payload& a) {
 }
 
 inline void from_json(const nlohmann::ordered_json& j, axis_payload& a) {
-    a.binning = static_cast<n_axis::binning>(j["binning"]);
-    a.bounds = static_cast<n_axis::bounds>(j["bounds"]);
-    a.label = static_cast<n_axis::label>(j["label"]);
+    a.binning = static_cast<axis::binning>(j["binning"]);
+    a.bounds = static_cast<axis::bounds>(j["bounds"]);
+    a.label = static_cast<axis::label>(j["label"]);
     a.bins = j["bins"];
     a.edges = j["edges"].get<std::vector<real_io>>();
 }

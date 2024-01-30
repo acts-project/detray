@@ -67,28 +67,26 @@ struct default_metadata {
 
     // Disc material grid
     template <typename container_t>
-    using disc_map_t =
-        material_map<ring2D<>::axes<>, detray::scalar, container_t>;
+    using disc_map_t = material_map<ring2D<>, detray::scalar, container_t>;
 
     // Cylindrical material grid
     template <typename container_t>
     using cylinder2_map_t =
-        material_map<cylinder2D<>::axes<>, detray::scalar, container_t>;
+        material_map<cylinder2D<>, detray::scalar, container_t>;
 
     // Rectangular material grid
     template <typename container_t>
     using rectangular_map_t =
-        material_map<rectangle2D<>::axes<>, detray::scalar, container_t>;
+        material_map<rectangle2D<>, detray::scalar, container_t>;
 
     // Cuboid volume material grid
     template <typename container_t>
-    using cuboid_map_t =
-        material_map<cuboid3D<>::axes<>, detray::scalar, container_t>;
+    using cuboid_map_t = material_map<cuboid3D<>, detray::scalar, container_t>;
 
     // Cylindrical volume material grid
     template <typename container_t>
     using cylinder3_map_t =
-        material_map<cylinder3D::axes<>, detray::scalar, container_t>;
+        material_map<cylinder3D, detray::scalar, container_t>;
 
     /// @}
 
@@ -98,48 +96,47 @@ struct default_metadata {
     /// @{
 
     // surface grid definition: bin-content: std::array<surface_type, 9>
-    template <typename grid_shape_t, typename bin_entry_t, typename container_t>
-    using surface_grid_t =
-        grid<coordinate_axes<grid_shape_t, false, container_t>,
-             bins::static_array<bin_entry_t, 50>, simple_serializer>;
+    template <typename axes_t, typename bin_entry_t, typename container_t>
+    using surface_grid_t = grid<axes_t, bins::static_array<bin_entry_t, 50>,
+                                simple_serializer, container_t, false>;
 
     // 2D cylindrical grid for the barrel layers
     template <typename bin_entry_t, typename container_t>
     using cylinder2D_sf_grid =
-        surface_grid_t<cylinder2D<>::axes<>, bin_entry_t, container_t>;
+        surface_grid_t<axes<cylinder2D<>>, bin_entry_t, container_t>;
 
     // disc grid for the endcap layers
     template <typename bin_entry_t, typename container_t>
     using disc_sf_grid =
-        surface_grid_t<ring2D<>::axes<>, bin_entry_t, container_t>;
+        surface_grid_t<axes<ring2D<>>, bin_entry_t, container_t>;
 
     // 3D cylindrical grid for the entire barrel / endcaps
     template <typename bin_entry_t, typename container_t>
     using cylinder3D_sf_grid =
-        surface_grid_t<cylinder3D::axes<>, bin_entry_t, container_t>;
+        surface_grid_t<axes<cylinder3D>, bin_entry_t, container_t>;
 
     // Irregular binning (hopefully not needed)
 
     // cylindrical grid for the barrel layers
     template <typename bin_entry_t, typename container_t>
     using irr_cylinder2D_sf_grid =
-        surface_grid_t<cylinder2D<>::axes<n_axis::bounds::e_closed,
-                                          n_axis::irregular, n_axis::irregular>,
+        surface_grid_t<axes<cylinder2D<>, axis::bounds::e_closed,
+                            axis::irregular, axis::irregular>,
                        bin_entry_t, container_t>;
 
     // disc grid for the endcap layers
     template <typename bin_entry_t, typename container_t>
     using irr_disc_sf_grid =
-        surface_grid_t<ring2D<>::axes<n_axis::bounds::e_closed,
-                                      n_axis::irregular, n_axis::irregular>,
+        surface_grid_t<axes<ring2D<>, axis::bounds::e_closed, axis::irregular,
+                            axis::irregular>,
                        bin_entry_t, container_t>;
 
     // 3D cylindrical grid for the entire barrel
     template <typename bin_entry_t, typename container_t>
-    using irr_cylinder3D_sf_grid = surface_grid_t<
-        cylinder3D::axes<n_axis::bounds::e_closed, n_axis::irregular,
-                         n_axis::irregular, n_axis::irregular>,
-        bin_entry_t, container_t>;
+    using irr_cylinder3D_sf_grid =
+        surface_grid_t<axes<cylinder3D, axis::bounds::e_closed, axis::irregular,
+                            axis::irregular, axis::irregular>,
+                       bin_entry_t, container_t>;
 
     /// @}
 
@@ -277,11 +274,9 @@ container_t>>*/>;
     /// Volume search grid
     template <typename container_t = host_container_types>
     using volume_finder =
-        grid<coordinate_axes<
-                 cylinder3D::axes<n_axis::bounds::e_open, n_axis::irregular,
-                                  n_axis::regular, n_axis::irregular>,
-                 true, container_t>,
-             bins::single<dindex>, simple_serializer>;
+        grid<axes<cylinder3D, axis::bounds::e_open, axis::irregular,
+                  axis::regular, axis::irregular>,
+             bins::single<dindex>, simple_serializer, container_t>;
 };
 
 }  // namespace detray

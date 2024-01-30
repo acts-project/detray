@@ -24,7 +24,7 @@ using namespace detray;
 TEST(grids, regular_closed_axis) {
     vecmem::host_memory_resource resource;
 
-    axis::regular<> ten_bins{10u, -3.f, 7.f, resource};
+    axis2::regular<> ten_bins{10u, -3.f, 7.f, resource};
     // N bins
     EXPECT_EQ(ten_bins.bins(), 10u);
     // Axis bin access
@@ -93,7 +93,7 @@ TEST(grids, regular_circular_axis) {
     scalar half_module{constant<scalar>::pi / 72.f};
     scalar phi_min = -constant<scalar>::pi + half_module;
     scalar phi_max = constant<scalar>::pi - half_module;
-    axis::circular<> full_pi = {36u, phi_min, phi_max, resource};
+    axis2::circular<> full_pi = {36u, phi_min, phi_max, resource};
     // N bins
     EXPECT_EQ(full_pi.bins(), 36u);
     // Axis bin access
@@ -157,7 +157,7 @@ TEST(grids, regular_circular_axis) {
 TEST(grids, irregular_closed_axis) {
     vecmem::host_memory_resource resource;
 
-    axis::irregular<> nonreg({-3.f, 1.f, 2.f, 4.f, 8.f, 12.f}, resource);
+    axis2::irregular<> nonreg({-3.f, 1.f, 2.f, 4.f, 8.f, 12.f}, resource);
 
     // Axis bin access
     //

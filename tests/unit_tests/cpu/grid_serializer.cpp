@@ -5,16 +5,15 @@
  * Mozilla Public License Version 2.0
  */
 
-// detray test
-#include <vecmem/containers/vector.hpp>
-#include <vecmem/memory/host_memory_resource.hpp>
-
 // detray core
 #include "detray/definitions/indexing.hpp"
 #include "detray/masks/masks.hpp"
-#include "detray/surface_finders/grid/axis.hpp"
+#include "detray/surface_finders/grid/detail/axis.hpp"
 #include "detray/surface_finders/grid/serializers.hpp"
 #include "detray/test/types.hpp"
+
+// vecmem include(s)
+#include <vecmem/containers/vector.hpp>
 
 // GTest include(s)
 #include <gtest/gtest.h>
@@ -23,7 +22,7 @@
 #include <climits>
 
 using namespace detray;
-using namespace detray::n_axis;
+using namespace detray::axis;
 
 namespace {
 

@@ -94,15 +94,20 @@ auto assemble_reader(const io::detector_reader_config& cfg) noexcept(false) {
                 readers.template add<json_geometry_reader>(file_name);
 
             } else if (header.tag == "homogeneous_material") {
-                readers.template add<json_homogeneous_material_reader>(
-                    file_name);
+                if constexpr (detail::has_homogeneous_material_v<detector_t>) {
+                    readers.template add<json_homogeneous_material_reader>(
+                        file_name);
+                }
 
             } else if (header.tag == "surface_grids") {
-                using surface_t = typename detector_t::surface_type;
-                readers.template add<json_grid_reader, surface_t,
-                                     std::integral_constant<std::size_t, CAP>,
-                                     std::integral_constant<std::size_t, DIM>>(
-                    file_name);
+                if constexpr (detail::has_surface_grids_v<detector_t>) {
+                    using surface_t = typename detector_t::surface_type;
+                    readers
+                        .template add<json_grid_reader, surface_t,
+                                      std::integral_constant<std::size_t, CAP>,
+                                      std::integral_constant<std::size_t, DIM>>(
+                            file_name);
+                }
             } else {
                 throw std::invalid_argument("Unsupported file tag '" +
                                             header.tag +

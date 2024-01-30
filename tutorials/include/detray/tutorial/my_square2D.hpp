@@ -52,33 +52,14 @@ class square2D {
 
     /// Local coordinate frame for boundary checks: cartesian
     template <typename algebra_t>
-    using local_frame_type = cartesian3<algebra_t>;
+    using local_frame_type = cartesian2<algebra_t>;
 
     /// Underlying surface geometry: planar
     template <typename intersection_t>
     using intersector_type = intersector_t<intersection_t>;
 
-    /// Behaviour of the two local axes (linear in x, linear in y)
-    /// Needed to map a grid onto the square (material maps)
-    template <
-        n_axis::bounds e_s = n_axis::bounds::e_closed,
-        template <typename, typename> class binning_loc0 = n_axis::regular,
-        template <typename, typename> class binning_loc1 = n_axis::regular>
-    struct axes {
-        static constexpr n_axis::label axis_loc0 = n_axis::label::e_x;
-        static constexpr n_axis::label axis_loc1 = n_axis::label::e_y;
-        static constexpr std::size_t dim{2u};
-
-        /// How to convert into the local axis system and back
-        template <typename algebra_t>
-        using coordinate_type = local_frame_type<algebra_t>;
-
-        using types = dtuple<n_axis::bounds_t<e_s, axis_loc0>,
-                             n_axis::bounds_t<e_s, axis_loc1>>;
-
-        template <typename C, typename S>
-        using binning = dtuple<binning_loc0<C, S>, binning_loc1<C, S>>;
-    };
+    /// Dimension of the local coordinate system
+    static constexpr std::size_t dim{2u};
 
     /// @brief Check boundary values for a local point.
     ///
