@@ -74,6 +74,17 @@ GTEST_TEST(detray_utils, euler_rotation1) {
     EXPECT_NEAR(z2[0], 1.f, isclose);
     EXPECT_NEAR(z2[1], 0.f, isclose);
     EXPECT_NEAR(z2[2], 0.f, isclose);
+
+    euler_rot.gamma = constant<scalar>::pi_2;
+
+    auto [x3, z3] = euler_rot();
+    EXPECT_NEAR(x3[0], 0.f, isclose);
+    EXPECT_NEAR(x3[1], 0.f, isclose);
+    EXPECT_NEAR(x3[2], 1.f, isclose);
+
+    EXPECT_NEAR(z3[0], 1.f, isclose);
+    EXPECT_NEAR(z3[1], 0.f, isclose);
+    EXPECT_NEAR(z3[2], 0.f, isclose);
 }
 
 GTEST_TEST(detray_utils, euler_rotation2) {
