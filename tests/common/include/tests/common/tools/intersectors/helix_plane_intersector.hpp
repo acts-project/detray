@@ -16,6 +16,7 @@
 
 // System include(s)
 #include <cmath>
+#include <limits>
 #include <type_traits>
 
 namespace detray {
@@ -68,30 +69,70 @@ struct helix_plane_intersector {
         // Surface translation
         const point3 st = getter::vector<3>(sm, 0u, 3u);
 
-        // Starting point on the helix for the Newton iteration
-        scalar_type s{
-            getter::norm(trf.point_to_global(mask.centroid()) - h.pos(0.f))};
-        scalar_type s_prev{0.f};
+        const point3 &ro = h._pos;
+        const vector3 &rd = h._t0;
 
-        // f(s) = sn * (h.pos(s) - st) == 0
-        // Run the iteration on s
-        std::size_t n_tries{0u};
-        while (math::abs(s - s_prev) > convergence_tolerance and
-               n_tries < max_n_tries) {
-            // f'(s) = sn * h.dir(s)
-            const scalar_type denom{vector::dot(sn, h.dir(s))};
-            // No intersection can be found if dividing by zero
-            if (denom == 0.f) {
+        // Starting point on the helix for the Newton iteration
+        scalar_type s = vector::dot(sn, st - ro) / vector::dot(rd, sn);
+        scalar_type s_min, s_max;
+        if (s < 0.f) {
+            s_min = 2 * s;
+            s_max = 0.f;
+        } else {
+            s_min = 0.f;
+            s_max = 2 * s;
+        }
+        scalar_type ds_prev = math::abs(s_max - s_min);
+        scalar_type ds = ds_prev;
+        scalar_type f, dfds;
+
+        // Bisection + Newton-Raphson method
+        // Reference: 460-461 page of [Numerical Recipes. 3rd edition]
+        for (std::size_t i = 0u; i < max_n_tries + 1; i++) {
+
+            if (i == max_n_tries) {
                 return sfi;
             }
-            // x_n+1 = x_n - f(s) / f'(s)
-            s_prev = s;
-            s -= vector::dot(sn, h.pos(s) - st) / denom;
-            ++n_tries;
-        }
-        // No intersection found within max number of trials
-        if (n_tries == max_n_tries) {
-            return sfi;
+
+            if (((s - s_max) * dfds - f) * ((s - s_min) * dfds - f) > 0.f ||
+                math::abs(2.f * ds) > math::abs(ds_prev)) {
+                ds_prev = ds;
+                ds = 0.5f * (s_max - s_min);
+                s = s_min + ds;
+
+                if (math::abs(s - s_min) <= convergence_tolerance) {
+                    break;
+                }
+            } else {
+                ds_prev = ds;
+                ds = f / dfds;
+                scalar_type tmp = s;
+                s -= ds;
+
+                if (math::abs(tmp - s) <= convergence_tolerance) {
+                    break;
+                }
+            }
+
+            if (math::abs(ds) < convergence_tolerance) {
+                break;  // Convergence criterion.
+            }
+            // f'(s) = sn * h.dir(s)
+            dfds = vector::dot(sn, h.dir(s));
+            // No intersection can be found if dividing by zero
+            if (dfds == 0.f) {
+                return sfi;
+            }
+
+            // f(s) = sn * (h.pos(s) - st) == 0
+            f = vector::dot(sn, h.pos(s) - st);
+
+            // The one new function evaluation per iteration.
+            if (f < 0.f) {
+                s_min = s;
+            } else {
+                s_max = s;
+            }
         }
 
         // Build intersection struct from helix parameters
