@@ -141,8 +141,6 @@ void detray::rk_stepper<
      *  dqop4/dqop1 = 1 + h * d(dqop1/ds)/dqop1 + h^2/2 d(d^2qop1/ds^2)/dqop1
      *                + h^3/4 d(d^3qop1/ds^3)/dqop1
      *
-     *  We will ignore the terms in O(h^2) or lower scales
-     *
      *  [ Table for dt_n/dqop1 ]
      *  dt1/dqop1 = 0
      *  dt2/dqop1 = d(t1 + h/2 dt1/ds)/dqop1 = h/2 * dk1/dqop1
@@ -315,7 +313,6 @@ void detray::rk_stepper<
         /*-----------------------------------------------------------------
          * Calculate all terms of dk_n/dr1
         -------------------------------------------------------------------*/
-
         // dk1/dr1
         dkndr[0u] =
             -sd.qop[0u] * mat_helper().column_wise_cross(dBdr[0u], sd.t[0u]);
