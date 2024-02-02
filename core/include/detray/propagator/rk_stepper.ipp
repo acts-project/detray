@@ -74,6 +74,10 @@ void detray::rk_stepper<
     /// constant offset does not exist for rectangular matrix dGdu' (due to the
     /// missing Lambda part) and only exists for dFdu' in dlambda/dlambda.
 
+    // Set transport matrix (D) and update Jacobian transport
+    //( JacTransport = D * JacTransport )
+    auto D = matrix_operator().template identity<e_free_size, e_free_size>();
+
     const auto& sd = this->_step_data;
     const scalar_type h{this->_step_size};
     // const auto& mass = this->_mass;
@@ -84,137 +88,303 @@ void detray::rk_stepper<
     const scalar_type half_h{h * 0.5f};
     const scalar_type h_6{h * static_cast<scalar_type>(1. / 6.)};
 
+    // 3X3 Identity matrix
+    const matrix_type<3, 3> I33 = matrix_operator().template identity<3, 3>();
+
+    // Initialize derivatives
+    std::array<matrix_type<3u, 3u>, 4u> dkndt{I33, I33, I33, I33};
+    std::array<vector3, 4u> dkndqop;
+    std::array<matrix_type<3u, 3u>, 4u> dkndr;
+    std::array<scalar, 4u> dqopn_dqop{1.f, 1.f, 1.f, 1.f};
+
     /*---------------------------------------------------------------------------
-     * k_{n} is always in the form of [ A(T) X B ] where A is a function of r'
-     * and B is magnetic field and X symbol is for cross product. Hence dk{n}dT
-     * can be represented as follows:
+     *  dk_n/dt1
+     *    = qop_n * (dt_n/dt1 X B_n)
+     *      + qop_n * ( t_n X dB_n/dt1 ),
+     *  where dB_n/dt1 == dB_n/dr_n * dr_n/dt1.
      *
-     *  dk{n}dT =  d/dT [ A(T) X B ]  = dA(T)/dr (X) B
+     *  The second term is non-zero only for inhomogeneous magnetic fields
      *
-     *  dk{n}dT = d/dT qop_n * ( T_n X B ) = qop_n ( d(T_n)/dT X B )
+     *  Note that [ t_n = t1 + h * d(t_{n-1})/ds) ] as indicated by
+     *  Eq (84) of https://doi.org/10.1016/0029-554X(81)90063-X
+
+     *  [ Table for dt_n/dt1 ]
+     *  dt1/dt1 = I
+     *  dt2/dt1 = d( t1 + h/2 * dt1/ds ) / dt1 = I + h/2 * dk1/dt1
+     *  dt3/dt1 = d( t1 + h/2 * dt2/ds ) / dt1 = I + h/2 * dk2/dt1
+     *  dt4/dt1 = d( t1 + h * dt3/ds ) / dt1 = I + h * dk3/dt1
      *
-     *  dk{n}dT = d/dT qop_n * ( T_n X B ) = qop_n ( d(T_n)/dT X B )
+     *  [ Table for dr_n/dt1 ]
+     *  dr1/dt1 = 0
+     *  dr2/dt1 = d(r1 + h * t1 + h^2/8 dt1/ds)/dt1 = h * I + h^2/8 dk1/dt1
+     *  dr3/dt1 = d(r1 + h * t1 + h^2/8 dt1/ds)/dt1 = h * I + h^2/8 dk1/dt1
+     *  dr4/dt1 = d(r1 + h * t1 + h^2/2 dt3/ds)/dt1 = h * I + h^2/2 dk3/dt1
      *
-     *  where,
-     *  (X) symbol is column-wise cross product between matrix and vector,
-     *  k1 = qop * T X B_first,
-     *  k2 = qop * ( T + h / 2 * k1 ) X B_middle,
-     *  k3 = qop * ( T + h / 2 * k2 ) X B_middle,
-     *  k4 = qop * ( T + h * k3 ) X B_last.
+     *  Note that
+     *  d/dr [ F(T) X B ]  = dF(T)/dr (X) B, where (X) means the column wise
+     *  cross product
     ---------------------------------------------------------------------------*/
-    auto dk1dT = matrix_operator().template identity<3, 3>();
-    auto dk2dT = matrix_operator().template identity<3, 3>();
-    auto dk3dT = matrix_operator().template identity<3, 3>();
-    auto dk4dT = matrix_operator().template identity<3, 3>();
 
-    // Top-left 3x3 submatrix of Eq 3.12 of [JINST 4 P04016]
-    dk1dT = sd.qop[0u] * mat_helper().column_wise_cross(dk1dT, sd.b_first);
-    dk2dT = dk2dT + half_h * dk1dT;
-    dk2dT = sd.qop[1u] * mat_helper().column_wise_cross(dk2dT, sd.b_middle);
-    dk3dT = dk3dT + half_h * dk2dT;
-    dk3dT = sd.qop[2u] * mat_helper().column_wise_cross(dk3dT, sd.b_middle);
-    dk4dT = dk4dT + h * dk3dT;
-    dk4dT = sd.qop[3u] * mat_helper().column_wise_cross(dk4dT, sd.b_last);
+    /*---------------------------------------------------------------------------
+     *  dk_n/dqop_1
+     *    = dqop_n/dqop1 * ( t_n X B_n )
+     *      + qop_n * ( dt_n/dqop1 X B_n )
+     *      + qop_n * ( t_n X dB_n/dqop1 ),
+     *  where dB_n/dqop1 = dB_n/dr_n * dr_n/dqop1
+     *
+     *  Note that [ qop_n = qop1 + h * dqop_{n-1}/ds) ] as indicated by
+     *  Eq (84) of https://doi.org/10.1016/0029-554X(81)90063-X
+     *
+     *  [ Table for dqop_n/dqop1 ]
+     *  dqop1/dqop1 = 1
+     *  dqop2/dqop1 = 1 + h/2 * d(dqop1/ds)/dqop1
+     *  dqop3/dqop1 = 1 + h/2 * d(dqop1/ds)/dqop1 + h^2/4 d(d^2qop1/ds^2)/dqop1
+     *  dqop4/dqop1 = 1 + h * d(dqop1/ds)/dqop1 + h^2/2 d(d^2qop1/ds^2)/dqop1
+     *                + h^3/4 d(d^3qop1/ds^3)/dqop1
+     *
+     *  [ Table for dt_n/dqop1 ]
+     *  dt1/dqop1 = 0
+     *  dt2/dqop1 = d(t1 + h/2 dt1/ds)/dqop1 = h/2 * dk1/dqop1
+     *  dt3/dqop1 = d(t1 + h/2 dt2/ds)/dqop1 = h/2 * dk2/dqop1
+     *  dt4/dqop1 = d(t1 + h dt3/ds)/dqop1 = h * dk3/dqop1
+     *
+     *  [ Table for dr_n/dqop1 ]
+     *  dr1/dqop1 = 0
+     *  dr2/dqop1 = d(r1 + h/2 * t1 + h^2/8 dt1/ds)/dqop1 = h^2/8 * dk1/dqop1
+     *  dr3/dqop1 = d(r1 + h/2 * t1 + h^2/8 dt1/ds)/dqop1 = h^2/8 * dk1/dqop1
+     *  dr4/dqop1 = d(r1 + h * t1 + h^2/2 dt3/ds)/dqop1 = h^2/2 dk3/dqop1
+    ---------------------------------------------------------------------------*/
 
-    auto dFdT = matrix_operator().template identity<3, 3>();
-    auto dGdT = matrix_operator().template identity<3, 3>();
-    dFdT = dFdT + h_6 * (dk1dT + dk2dT + dk3dT);
-    dFdT = h * dFdT;
-    dGdT = dGdT + h_6 * (dk1dT + 2.f * (dk2dT + dk3dT) + dk4dT);
+    /*---------------------------------------------------------------------------
+     *  dk_n/dr1
+     *    = qop_n * ( dt_n/dr1 X B_n )
+     *      + qop_n * ( t_n X dB_n/dr1 ),
+     *  where dB_n/dr1 = dB_n/dr_n * dr_n/dr1
+     *
+     *  [ Table for dt_n/dr1 ]
+     *  dt1/dr1 = 0
+     *  dt2/dr1 = d(t1 + h/2 * dt1/ds)/dr1 = h/2 * dk1/dr1
+     *  dt2/dr1 = d(t1 + h/2 * dt2/ds)/dr1 = h/2 * dk2/dr1
+     *  dt3/dr1 = d(t1 + h * dt3/ds)/dr1 = h * dk3/dr1
+     *
+     *  [ Table for dr_n/dr1 ]
+     *  dr1/dr1 = I
+     *  dr2/dr1 = (r1 + h/2 * t1 + h^2/8 dt1/ds ) / dr1 = I + h^2/8 dk1/dr1
+     *  dr3/dr1 = (r1 + h/2 * t1 + h^2/8 dt1/ds ) / dr1 = I + h^2/8 dk1/dr1
+     *  dr4/dr1 = (r1 + h * t1 + h^2/2 dt3/ds ) / dr1 = I + h^2/2 dk3/dr1
+    ---------------------------------------------------------------------------*/
 
-    // Calculate dk{n}dqop where L is qop
-    // d(k_n)d(qop_1) = d(qop_n * t_n X B_n)/d(qop_1)
-    // = d(qop_n)/d(qop_1) * [ t_n (X) B_n ] + qop_n * [ d(t_n)/d(qop_1) X B_n ]
-    //
-    // Note that [ qop_n = qop_1 + h * d(qop_{n-1})/ds) ] as indicated by
-    // Eq (84) of https://doi.org/10.1016/0029-554X(81)90063-X
-    //
-    // d(qop_n)/d(qop_1) = 1 + h * d(d(qop_{n-1})/ds)/d(qop_1))
-    //
-    // Let us assume that
-    // d(d(qop_{n-1})/ds)/d(qop_1)) ~ d(d(qop_{n-1})/ds)/d(qop_{n-1}))
-    vector3 dk1dqop = vector::cross(sd.t[0u], sd.b_first);
-    vector3 dk2dqop = (1 + half_h * this->d2qopdsdqop(sd.qop[0u])) *
-                          vector::cross(sd.t[1u], sd.b_middle) +
-                      sd.qop[1u] * half_h * vector::cross(dk1dqop, sd.b_middle);
-    vector3 dk3dqop = (1 + half_h * this->d2qopdsdqop(sd.qop[1u])) *
-                          vector::cross(sd.t[2u], sd.b_middle) +
-                      sd.qop[2u] * half_h * vector::cross(dk2dqop, sd.b_middle);
-    vector3 dk4dqop = (1 + h * this->d2qopdsdqop(sd.qop[2u])) *
-                          vector::cross(sd.t[3u], sd.b_last) +
-                      sd.qop[3u] * h * vector::cross(dk3dqop, sd.b_last);
+    /*---------------------------------------------------------------------------
+     *  d(dqop_n/ds)/dqop1
+     *
+     *  [ Table for dqop_n/ds ]
+     *  dqop1/ds = qop1^3 * E * (-dE/ds) / q^2
+     *  dqop2/ds = d(qop1 + h/2 * dqop1/ds)/ds = dqop1/ds + h/2 * d^2(qop1)/ds^2
+     *  dqop3/ds = d(qop1 + h/2 * dqop2/ds)/ds = dqop1/ds + h/2 * d^2(qop2)/ds^2
+     *  dqop4/ds = d(qop1 + h * dqop3/ds)/ds = dqop1/ds + h * d^2(qop3)/ds^2
+    ---------------------------------------------------------------------------*/
 
-    // dFdqop and dGdqop are top-right 3x1 submatrix of equation (17)
-    vector3 dFdqop = h * h_6 * (dk1dqop + dk2dqop + dk3dqop);
-    vector3 dGdqop = h_6 * (dk1dqop + 2.f * (dk2dqop + dk3dqop) + dk4dqop);
+    if (!cfg.use_eloss_gradient) {
+        getter::element(D, e_free_qoverp, e_free_qoverp) = 1.f;
+    } else {
+        // Pre-calculate dqop_n/dqop1
+        // Note that terms with d^2/ds^2 or d^3/ds^3 are ignored
+        const scalar_type d2qop1dsdqop1 = this->d2qopdsdqop(sd.qop[0u]);
+        dqopn_dqop[0u] = 1.f;
+        dqopn_dqop[1u] = 1.f + half_h * d2qop1dsdqop1;
+        dqopn_dqop[2u] = dqopn_dqop[1u];
+        dqopn_dqop[3u] = 1.f + h * d2qop1dsdqop1;
 
-    // Set transport matrix (D) and update Jacobian transport
-    //( JacTransport = D * JacTransport )
-    auto D = matrix_operator().template identity<e_free_size, e_free_size>();
-    matrix_operator().set_block(D, dFdT, 0u, 4u);
+        /*-----------------------------------------------------------------
+         * Calculate the first terms of d(dqop_n/ds)/dqop1
+        -------------------------------------------------------------------*/
+
+        // Note that terms with d^2/ds^2 are ignored
+        getter::element(D, e_free_qoverp, e_free_qoverp) =
+            1.f + d2qop1dsdqop1 * h;
+    }
+
+    // Calculate in the case of not considering B field gradient
+    if (!cfg.use_field_gradient) {
+
+        /*-----------------------------------------------------------------
+         * Calculate the first terms of dk_n/dt1
+        -------------------------------------------------------------------*/
+        // dk1/dt1
+        dkndt[0u] =
+            sd.qop[0u] * mat_helper().column_wise_cross(dkndt[0u], sd.b_first);
+
+        // dk2/dt1
+        dkndt[1u] = dkndt[1u] + half_h * dkndt[0u];
+        dkndt[1u] =
+            sd.qop[1u] * mat_helper().column_wise_cross(dkndt[1u], sd.b_middle);
+
+        // dk3/dt1
+        dkndt[2u] = dkndt[2u] + half_h * dkndt[1u];
+        dkndt[2u] =
+            sd.qop[2u] * mat_helper().column_wise_cross(dkndt[2u], sd.b_middle);
+
+        // dk4/dt1
+        dkndt[3u] = dkndt[3u] + h * dkndt[2u];
+        dkndt[3u] =
+            sd.qop[3u] * mat_helper().column_wise_cross(dkndt[3u], sd.b_last);
+
+        /*-----------------------------------------------------------------
+         * Calculate the first and second terms of dk_n/dqop1
+        -------------------------------------------------------------------*/
+        // dk1/dqop1
+        dkndqop[0u] = dqopn_dqop[0u] * vector::cross(sd.t[0u], sd.b_first);
+
+        // dk2/dqop1
+        dkndqop[1u] =
+            dqopn_dqop[1u] * vector::cross(sd.t[1u], sd.b_middle) +
+            sd.qop[1u] * half_h * vector::cross(dkndqop[0u], sd.b_middle);
+
+        // dk3/dqop1
+        dkndqop[2u] =
+            dqopn_dqop[2u] * vector::cross(sd.t[2u], sd.b_middle) +
+            sd.qop[2u] * half_h * vector::cross(dkndqop[1u], sd.b_middle);
+
+        // dk4/dqop1
+        dkndqop[3u] = dqopn_dqop[3u] * vector::cross(sd.t[3u], sd.b_last) +
+                      sd.qop[3u] * h * vector::cross(dkndqop[2u], sd.b_last);
+    } else {
+
+        // Positions at four stages
+        std::array<vector3, 4u> r;
+        r[0u] = track.pos();
+        r[1u] = r[0u] + half_h * sd.t[0u] + h2 * 0.125f * sd.dtds[0u];
+        r[2u] = r[1u];
+        r[3u] = r[0u] + h * sd.t[0u] + h2 * 0.5f * sd.dtds[2u];
+
+        // Field gradients at four stages
+        std::array<matrix_type<3, 3>, 4u> dBdr;
+        dBdr[0u] = evaluate_field_gradient(r[0u]);
+        dBdr[1u] = evaluate_field_gradient(r[1u]);
+        dBdr[2u] = dBdr[1u];
+        dBdr[3u] = evaluate_field_gradient(r[3u]);
+
+        // Temporary variable for dBdt and dBdr
+        matrix_type<3u, 3u> dBdt_tmp;
+        matrix_type<3u, 3u> dBdr_tmp;
+
+        /*-----------------------------------------------------------------
+         * Calculate all terms of dk_n/dt1
+        -------------------------------------------------------------------*/
+        // dk1/dt1
+        dkndt[0u] =
+            sd.qop[0u] * mat_helper().column_wise_cross(dkndt[0u], sd.b_first);
+
+        // dk2/dt1
+        dkndt[1u] = dkndt[1u] + half_h * dkndt[0u];
+        dkndt[1u] =
+            sd.qop[1u] * mat_helper().column_wise_cross(dkndt[1u], sd.b_middle);
+        dBdt_tmp = dBdr[1u] * (h * I33 + h2 * 0.125f * dkndt[0u]);
+        dkndt[1u] = dkndt[1u] - sd.qop[1u] * mat_helper().column_wise_cross(
+                                                 dBdt_tmp, sd.t[1u]);
+
+        // dk3/dt1
+        dkndt[2u] = dkndt[2u] + half_h * dkndt[1u];
+        dkndt[2u] =
+            sd.qop[2u] * mat_helper().column_wise_cross(dkndt[2u], sd.b_middle);
+        dBdt_tmp = dBdr[2u] * (h * I33 + h2 * 0.125f * dkndt[0u]);
+        dkndt[2u] = dkndt[2u] - sd.qop[2u] * mat_helper().column_wise_cross(
+                                                 dBdt_tmp, sd.t[2u]);
+
+        // dk4/dt1
+        dkndt[3u] = dkndt[3u] + h * dkndt[2u];
+        dkndt[3u] =
+            sd.qop[3u] * mat_helper().column_wise_cross(dkndt[3u], sd.b_last);
+        dBdt_tmp = dBdr[3u] * (h * I33 + h2 * 0.5f * dkndt[2u]);
+        dkndt[3u] = dkndt[3u] - sd.qop[3u] * mat_helper().column_wise_cross(
+                                                 dBdt_tmp, sd.t[3u]);
+
+        /*-----------------------------------------------------------------
+         * Calculate all terms of dk_n/dqop1
+        -------------------------------------------------------------------*/
+        // dk1/dqop1
+        dkndqop[0u] = dqopn_dqop[0u] * vector::cross(sd.t[0u], sd.b_first);
+
+        // dk2/dqop1
+        dkndqop[1u] =
+            dqopn_dqop[1u] * vector::cross(sd.t[1u], sd.b_middle) +
+            sd.qop[1u] * half_h * vector::cross(dkndqop[0u], sd.b_middle);
+        dkndqop[1u] =
+            dkndqop[1u] +
+            sd.qop[1u] *
+                vector::cross(sd.t[1u], h2 * 0.125f * dBdr[1u] * dkndqop[0u]);
+
+        // dk3/dqop1
+        dkndqop[2u] =
+            dqopn_dqop[2u] * vector::cross(sd.t[2u], sd.b_middle) +
+            sd.qop[2u] * half_h * vector::cross(dkndqop[1u], sd.b_middle);
+        dkndqop[2u] =
+            dkndqop[2u] +
+            sd.qop[2u] *
+                vector::cross(sd.t[2u], h2 * 0.125f * dBdr[2u] * dkndqop[0u]);
+
+        // dk4/dqop1
+        dkndqop[3u] = dqopn_dqop[3u] * vector::cross(sd.t[3u], sd.b_last) +
+                      sd.qop[3u] * h * vector::cross(dkndqop[2u], sd.b_last);
+        dkndqop[3u] =
+            dkndqop[3u] +
+            sd.qop[3u] *
+                vector::cross(sd.t[3u], h2 * 0.5f * dBdr[3u] * dkndqop[2u]);
+
+        /*-----------------------------------------------------------------
+         * Calculate all terms of dk_n/dr1
+        -------------------------------------------------------------------*/
+        // dk1/dr1
+        dkndr[0u] =
+            -sd.qop[0u] * mat_helper().column_wise_cross(dBdr[0u], sd.t[0u]);
+
+        // dk2/dr1
+        dkndr[1u] = sd.qop[1u] * mat_helper().column_wise_cross(
+                                     half_h * dkndr[0u], sd.b_middle);
+        dBdr_tmp = dBdr[1u] * (I33 + h2 * 0.125 * dkndr[0u]);
+        dkndr[1u] = dkndr[1u] - sd.qop[1u] * mat_helper().column_wise_cross(
+                                                 dBdr_tmp, sd.t[1u]);
+
+        // dk3/dr1
+        dkndr[2u] = sd.qop[2u] * mat_helper().column_wise_cross(
+                                     half_h * dkndr[1u], sd.b_middle);
+        dBdr_tmp = dBdr[2u] * (I33 + h2 * 0.125 * dkndr[0u]);
+        dkndr[2u] = dkndr[2u] - sd.qop[2u] * mat_helper().column_wise_cross(
+                                                 dBdr_tmp, sd.t[2u]);
+
+        // dk4/dr1
+        dkndr[3u] = sd.qop[3u] *
+                    mat_helper().column_wise_cross(h * dkndr[2u], sd.b_last);
+        dBdr_tmp = dBdr[3u] * (I33 + h2 * 0.5 * dkndr[2u]);
+        dkndr[3u] = dkndr[3u] - sd.qop[3u] * mat_helper().column_wise_cross(
+                                                 dBdr_tmp, sd.t[3u]);
+
+        // Set dF/dr1 and dG/dr1
+        auto dFdr = matrix_operator().template identity<3, 3>();
+        auto dGdr = matrix_operator().template identity<3, 3>();
+        dFdr = dFdr + h * h_6 * (dkndr[0u] + dkndr[1u] + dkndr[2u]);
+        dGdr = h_6 * (dkndr[0u] + 2.f * (dkndr[1u] + dkndr[2u]) + dkndr[3u]);
+
+        matrix_operator().set_block(D, dFdr, 0u, 0u);
+        matrix_operator().set_block(D, dGdr, 4u, 0u);
+    }
+
+    // Set dF/dt1 and dG/dt1
+    auto dFdt = matrix_operator().template identity<3, 3>();
+    auto dGdt = matrix_operator().template identity<3, 3>();
+    dFdt = dFdt + h_6 * (dkndt[0u] + dkndt[1u] + dkndt[2u]);
+    dFdt = h * dFdt;
+    dGdt = dGdt + h_6 * (dkndt[0u] + 2.f * (dkndt[1u] + dkndt[2u]) + dkndt[3u]);
+
+    matrix_operator().set_block(D, dFdt, 0u, 4u);
+    matrix_operator().set_block(D, dGdt, 4u, 4u);
+
+    // Set dF/dqop1 and dG/dqop1
+    vector3 dFdqop = h * h_6 * (dkndqop[0u] + dkndqop[1u] + dkndqop[2u]);
+    vector3 dGdqop =
+        h_6 * (dkndqop[0u] + 2.f * (dkndqop[1u] + dkndqop[2u]) + dkndqop[3u]);
     matrix_operator().set_block(D, dFdqop, 0u, 7u);
-    matrix_operator().set_block(D, dGdT, 4u, 4u);
     matrix_operator().set_block(D, dGdqop, 4u, 7u);
-
-    /// (4,4) element (right-bottom) of Eq. 3.12 [JINST 4 P04016]
-    if (cfg.use_eloss_gradient) {
-        if (this->_mat == vacuum<scalar_type>()) {
-            getter::element(D, e_free_qoverp, e_free_qoverp) = 1.f;
-        } else {
-            // As the reference of [JINST 4 P04016] said that "The energy loss
-            // and its gradient varies little within each recursion step, hence
-            // the values calculated in the first stage are recycled by the
-            // following stages", we obtain the d(qop)/d(qop) only from the
-            // gradient at the first stage of RKN.
-            //
-            // But it would be better to be more precise in the future.
-            getter::element(D, e_free_qoverp, e_free_qoverp) =
-                1.f + d2qopdsdqop(sd.qop[0u]) * h;
-        }
-    }
-
-    // Equation 3.13 of [JINST 4 P04016]
-    if (cfg.use_field_gradient) {
-        auto dFdR = matrix_operator().template identity<3, 3>();
-        auto dGdR = matrix_operator().template identity<3, 3>();
-
-        const vector3 pos1 = track.pos();
-        const vector3 pos2 =
-            pos1 + half_h * sd.t[0u] + h2 * 0.125f * sd.dtds[0u];
-        const vector3 pos4 = pos1 + h * sd.t[0u] + h2 * 0.5f * sd.dtds[2u];
-
-        const matrix_type<3, 3> field_gradient1 = evaluate_field_gradient(pos1);
-        const matrix_type<3, 3> field_gradient2 = evaluate_field_gradient(pos2);
-        const matrix_type<3, 3> field_gradient3 = field_gradient2;
-        const matrix_type<3, 3> field_gradient4 = evaluate_field_gradient(pos4);
-
-        // dk{n}dR = d(qop_n * t_n X B_n)/dR
-        //         = qop_n * [ d(t_n)/dR (X) B_n - d(B_n)/dR (X) t_n ]
-        //
-        // t_n = t_1 + h * dtds_{n-1}
-        // ===> d(t_n)/dR = h * dk{n-1}dR  ( Note that k == dtds )
-        matrix_type<3, 3> dk1dR =
-            -1.f * sd.qop[0u] *
-            mat_helper().column_wise_cross(field_gradient1, sd.t[0u]);
-        matrix_type<3, 3> dk2dR = sd.qop[1u] * half_h * dk1dR;
-        dk2dR = mat_helper().column_wise_cross(dk2dR, sd.b_middle) -
-                sd.qop[1u] *
-                    mat_helper().column_wise_cross(field_gradient2, sd.t[1u]);
-        matrix_type<3, 3> dk3dR = sd.qop[2u] * half_h * dk2dR;
-        dk3dR = mat_helper().column_wise_cross(dk3dR, sd.b_middle) -
-                sd.qop[2u] *
-                    mat_helper().column_wise_cross(field_gradient3, sd.t[2u]);
-        matrix_type<3, 3> dk4dR = sd.qop[3u] * h * dk3dR;
-        dk4dR = mat_helper().column_wise_cross(dk4dR, sd.b_last) -
-                sd.qop[3u] *
-                    mat_helper().column_wise_cross(field_gradient4, sd.t[3u]);
-
-        dFdR = dFdR + h * h_6 * (dk1dR + dk2dR + dk3dR);
-        dGdR = h_6 * (dk1dR + 2.f * (dk2dR + dk3dR) + dk4dR);
-
-        matrix_operator().set_block(D, dFdR, 0u, 0u);
-        matrix_operator().set_block(D, dGdR, 4u, 0u);
-    }
 
     this->_jac_transport = D * this->_jac_transport;
 }
@@ -363,7 +533,8 @@ auto detray::rk_stepper<magnetic_field_t, transform3_t, constraint_t, policy_t,
     assert(p >= 0.f);
 
     // d(qop)ds, which is equal to (qop) * E * (-dE/ds) / p^2
-    return qop * E * stopping_power / (p * p);
+    // or equal to (qop)^3 * E * (-dE/ds) / q^2
+    return qop * qop * qop * E * stopping_power / (q * q);
 }
 
 template <typename magnetic_field_t, typename transform3_t,

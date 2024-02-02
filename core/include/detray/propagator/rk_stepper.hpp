@@ -77,7 +77,6 @@ class rk_stepper final
             vector3 b_first{0.f, 0.f, 0.f};
             vector3 b_middle{0.f, 0.f, 0.f};
             vector3 b_last{0.f, 0.f, 0.f};
-
             // t = tangential direction = dr/ds
             std::array<vector3, 4u> t;
             // q/p
