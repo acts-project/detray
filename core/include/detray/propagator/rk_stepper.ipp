@@ -174,6 +174,16 @@ void detray::rk_stepper<
      *  dr4/dr1 = (r1 + h * t1 + h^2/2 dt3/ds ) / dr1 = I + h^2/2 dk3/dr1
     ---------------------------------------------------------------------------*/
 
+    /*---------------------------------------------------------------------------
+     *  d(dqop_n/ds)/dqop1
+     *
+     *  [ Table for dqop_n/ds ]
+     *  dqop1/ds = qop1^3 * E * (-dE/ds) / q^2
+     *  dqop2/ds = d(qop1 + h/2 * dqop1/ds)/ds = dqop1/ds + h/2 * d^2(qop1)/ds^2
+     *  dqop3/ds = d(qop1 + h/2 * dqop2/ds)/ds = dqop1/ds + h/2 * d^2(qop2)/ds^2
+     *  dqop4/ds = d(qop1 + h * dqop3/ds)/ds = dqop1/ds + h * d^2(qop3)/ds^2
+    ---------------------------------------------------------------------------*/
+
     if (!cfg.use_eloss_gradient) {
         getter::element(D, e_free_qoverp, e_free_qoverp) = 1.f;
     } else {
@@ -524,7 +534,8 @@ auto detray::rk_stepper<magnetic_field_t, transform3_t, constraint_t, policy_t,
     assert(p >= 0.f);
 
     // d(qop)ds, which is equal to (qop) * E * (-dE/ds) / p^2
-    return qop * E * stopping_power / (p * p);
+    // or equal to (qop)^3 * E * (-dE/ds) / q^2
+    return qop * qop * qop * E * stopping_power / (q * q);
 }
 
 template <typename magnetic_field_t, typename transform3_t,
