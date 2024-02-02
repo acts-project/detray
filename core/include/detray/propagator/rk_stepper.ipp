@@ -188,19 +188,18 @@ void detray::rk_stepper<
         getter::element(D, e_free_qoverp, e_free_qoverp) = 1.f;
     } else {
         // Pre-calculate dqop_n/dqop1
+        // Note that terms with d^2/ds^2 or d^3/ds^3 are ignored
         const scalar_type d2qop1dsdqop1 = this->d2qopdsdqop(sd.qop[0u]);
         dqopn_dqop[0u] = 1.f;
         dqopn_dqop[1u] = 1.f + half_h * d2qop1dsdqop1;
         dqopn_dqop[2u] = dqopn_dqop[1u];
         dqopn_dqop[3u] = 1.f + h * d2qop1dsdqop1;
 
-        // As the reference of [JINST 4 P04016] said that "The energy loss
-        // and its gradient varies little within each recursion step, hence
-        // the values calculated in the first stage are recycled by the
-        // following stages", we obtain the d(qop)/d(qop) only from the
-        // gradient at the first stage of RKN.
-        //
-        // But it would be better to be more precise in the future.
+        /*-----------------------------------------------------------------
+         * Calculate the first terms of d(dqop_n/ds)/dqop1
+        -------------------------------------------------------------------*/
+
+        // Note that terms with d^2/ds^2 are ignored
         getter::element(D, e_free_qoverp, e_free_qoverp) =
             1.f + d2qop1dsdqop1 * h;
     }
