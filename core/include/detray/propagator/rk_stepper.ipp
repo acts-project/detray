@@ -95,6 +95,7 @@ void detray::rk_stepper<
     std::array<matrix_type<3u, 3u>, 4u> dkndt{I33, I33, I33, I33};
     std::array<vector3, 4u> dkndqop;
     std::array<matrix_type<3u, 3u>, 4u> dkndr;
+    std::array<scalar, 4u> dqopn_dqop{1.f, 1.f, 1.f, 1.f};
 
     /*---------------------------------------------------------------------------
      *  dk_n/dt1
@@ -173,14 +174,25 @@ void detray::rk_stepper<
      *  dr4/dr1 = (r1 + h * t1 + h^2/2 dt3/ds ) / dr1 = I + h^2/2 dk3/dr1
     ---------------------------------------------------------------------------*/
 
-    // Pre-calculate dqop_n/dqop1
-    std::array<scalar, 4u> dqopn_dqop{1.f, 1.f, 1.f, 1.f};
-    if (!(this->_mat == vacuum<scalar_type>()) && cfg.use_eloss_gradient) {
+    if (!cfg.use_eloss_gradient) {
+        getter::element(D, e_free_qoverp, e_free_qoverp) = 1.f;
+    } else {
+        // Pre-calculate dqop_n/dqop1
         const scalar_type d2qop1dsdqop1 = this->d2qopdsdqop(sd.qop[0u]);
         dqopn_dqop[0u] = 1.f;
         dqopn_dqop[1u] = 1.f + half_h * d2qop1dsdqop1;
         dqopn_dqop[2u] = dqopn_dqop[1u];
         dqopn_dqop[3u] = 1.f + h * d2qop1dsdqop1;
+
+        // As the reference of [JINST 4 P04016] said that "The energy loss
+        // and its gradient varies little within each recursion step, hence
+        // the values calculated in the first stage are recycled by the
+        // following stages", we obtain the d(qop)/d(qop) only from the
+        // gradient at the first stage of RKN.
+        //
+        // But it would be better to be more precise in the future.
+        getter::element(D, e_free_qoverp, e_free_qoverp) =
+            1.f + d2qop1dsdqop1 * h;
     }
 
     // Calculate in the case of not considering B field gradient
@@ -243,7 +255,7 @@ void detray::rk_stepper<
         dBdr[2u] = dBdr[1u];
         dBdr[3u] = evaluate_field_gradient(r[3u]);
 
-        // temporary variable for dBdt and dBdr
+        // Temporary variable for dBdt and dBdr
         matrix_type<3u, 3u> dBdt_tmp;
         matrix_type<3u, 3u> dBdr_tmp;
 
@@ -364,23 +376,6 @@ void detray::rk_stepper<
         h_6 * (dkndqop[0u] + 2.f * (dkndqop[1u] + dkndqop[2u]) + dkndqop[3u]);
     matrix_operator().set_block(D, dFdqop, 0u, 7u);
     matrix_operator().set_block(D, dGdqop, 4u, 7u);
-
-    /// (4,4) element (right-bottom) of Eq. 3.12 [JINST 4 P04016]
-    if (cfg.use_eloss_gradient) {
-        if (this->_mat == vacuum<scalar_type>()) {
-            getter::element(D, e_free_qoverp, e_free_qoverp) = 1.f;
-        } else {
-            // As the reference of [JINST 4 P04016] said that "The energy loss
-            // and its gradient varies little within each recursion step, hence
-            // the values calculated in the first stage are recycled by the
-            // following stages", we obtain the d(qop)/d(qop) only from the
-            // gradient at the first stage of RKN.
-            //
-            // But it would be better to be more precise in the future.
-            getter::element(D, e_free_qoverp, e_free_qoverp) =
-                1.f + d2qopdsdqop(sd.qop[0u]) * h;
-        }
-    }
 
     this->_jac_transport = D * this->_jac_transport;
 }
