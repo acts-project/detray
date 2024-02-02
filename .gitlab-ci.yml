@@ -16,7 +16,8 @@ build_cuda:
       - >
         cmake -S src -B build 
         -DCMAKE_BUILD_TYPE=Release
-        -DBUILD_TESTING=ON 
+        -DDETRAY_CUSTOM_SCALARTYPE=float
+        -DBUILD_TESTING=ON
         -DDETRAY_BUILD_TESTING=ON
         -DDETRAY_BUILD_CUDA=ON
         -DDETRAY_VC_PLUGIN=OFF
@@ -58,6 +59,7 @@ build_sycl:
       - >
         cmake -S src -B build 
         -DCMAKE_BUILD_TYPE=Release
+        -DDETRAY_CUSTOM_SCALARTYPE=float
         -DDETRAY_BUILD_CUDA=OFF
         -DDETRAY_BUILD_SYCL=ON
         -DBUILD_TESTING=ON 

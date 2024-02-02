@@ -40,23 +40,19 @@ constexpr unsigned int theta_steps{100u};
 constexpr unsigned int phi_steps{100u};
 
 constexpr scalar pos_diff_tolerance{1e-3f};
-constexpr scalar overstep_tolerance{-1e-4f};
 
 // dummy propagator state
 template <typename navigation_t>
 struct prop_state {
     stepper_t::state _stepping;
     navigation_t _navigation;
-
-    DETRAY_HOST_DEVICE
-    scalar mask_tolerance() const { return 15.f * unit<scalar>::um; }
 };
 
 namespace detray {
 
 /// test function for navigator with single state
 void navigator_test(
-    typename detector_host_t::view_type det_data,
+    typename detector_host_t::view_type det_data, navigation::config& cfg,
     vecmem::data::vector_view<free_track_parameters<transform3>>& tracks_data,
     vecmem::data::jagged_vector_view<intersection_t>& candidates_data,
     vecmem::data::jagged_vector_view<dindex>& volume_records_data,
