@@ -678,8 +678,11 @@ bool detray::rk_stepper<magnetic_field_t, transform3_t, constraint_t, policy_t,
 
         // Compute and check the local integration error estimate
         // @Todo
+        constexpr const scalar_type one_sixth{
+            static_cast<scalar_type>(1. / 6.)};
         const vector3 err_vec =
-            h2 * (sd.dtds[0u] - sd.dtds[1u] - sd.dtds[2u] + sd.dtds[3u]);
+            one_sixth * h2 *
+            (sd.dtds[0u] - sd.dtds[1u] - sd.dtds[2u] + sd.dtds[3u]);
         error_estimate =
             math::max(getter::norm(err_vec), static_cast<scalar_type>(1e-20));
 
