@@ -82,7 +82,7 @@ void test_content(const grid_t& g, const point3& p, const content_t& expected) {
 /// Unittest: Test single grid construction
 GTEST_TEST(detray_grid, single_grid) {
 
-    // Owning and non-owning, cartesian, 3-dimensional, replacing grids
+    // Owning and non-owning, cartesian, 3-dimensional grids
     using grid_owning_t = grid<axes<cuboid3D<>>, bins::single<scalar>>;
 
     using grid_n_owning_t =
@@ -163,6 +163,107 @@ GTEST_TEST(detray_grid, single_grid) {
         std::is_same_v<typename decltype(const_device_grid)::bin_type,
                        typename replace::template bin_type<const scalar>>,
         "Const grid was not correctly constructed from view!");*/
+}
+
+/// Unittest: Test dynamic grid construction
+GTEST_TEST(detray_grid, dynamic_array) {
+
+    // Owning and non-owning, cartesian, 3-dimensional grids
+    using grid_owning_t = grid<axes<cuboid3D<>>, bins::dynamic_array<scalar>>;
+
+    using grid_n_owning_t =
+        grid<axes<cuboid3D<>>, bins::dynamic_array<scalar>, simple_serializer,
+             host_container_types, false>;
+
+    using grid_device_t = grid<axes<cuboid3D<>>, bins::dynamic_array<scalar>,
+                               simple_serializer, device_container_types>;
+
+    // Fill the bin data for every test
+    // bin test entries
+    grid_owning_t::bin_container_type bin_data{};
+    // 40 000 entries
+    bin_data.entries.resize(80'000u);
+    // 20 000 bins
+    bin_data.bins.resize(40'000u);
+
+    int i{0};
+    dindex offset{0u};
+    scalar entry{0.f};
+    complete<> completer{};
+
+    // Test data to compare bin content against
+    std::vector<scalar> seq;
+    seq.reserve(80'000);
+
+    for (auto& data : bin_data.bins) {
+        data.offset = offset;
+        // Every second bin holds one element, otherwise three
+        data.capacity = (i % 2) ? 1u : 3u;
+
+        detray::bins::dynamic_array bin{bin_data.entries.data(), data};
+
+        ASSERT_TRUE(bin.capacity() == (i % 2 ? 1u : 3u));
+        ASSERT_TRUE(bin.size() == 0);
+
+        offset += bin.capacity();
+
+        // Populate the bin
+        completer(bin, entry);
+
+        for (auto e : bin) {
+            ASSERT_TRUE(e == entry);
+            seq.push_back(e);
+        }
+        entry += 1.f;
+        ++i;
+    }
+
+    // Copy data that will be moved into the data owning types
+    dvector<scalar> bin_edges_cp(bin_edges);
+    dvector<dindex_range> edge_ranges_cp(edge_ranges);
+    grid_owning_t::bin_container_type bin_data_cp(bin_data);
+
+    // Data-owning axes and grid
+    cartesian_3D<is_owning, host_container_types> axes_own(
+        std::move(edge_ranges_cp), std::move(bin_edges_cp));
+    grid_owning_t grid_own(std::move(bin_data_cp), std::move(axes_own));
+
+    // Check a few basics
+    EXPECT_EQ(grid_own.dim, 3u);
+    EXPECT_EQ(grid_own.nbins(), 40'000u);
+    auto y_axis = grid_own.get_axis<label::e_y>();
+    EXPECT_EQ(y_axis.nbins(), 40u);
+    auto z_axis =
+        grid_own.get_axis<single_axis<closed<label::e_z>, regular<>>>();
+    EXPECT_EQ(z_axis.nbins(), 50u);
+
+    // Create non-owning grid
+    grid_n_owning_t grid_n_own(&bin_data, ax_n_own);
+
+    // Test for consistency with owning grid
+    EXPECT_EQ(grid_n_own.dim, grid_own.dim);
+    y_axis = grid_n_own.get_axis<label::e_y>();
+    EXPECT_EQ(y_axis.nbins(), grid_own.get_axis<label::e_y>().nbins());
+    z_axis = grid_n_own.get_axis<label::e_z>();
+    EXPECT_EQ(z_axis.nbins(), grid_own.get_axis<label::e_z>().nbins());
+
+    // Construct a grid from a view
+    grid_owning_t::view_type grid_view = get_data(grid_own);
+    grid_device_t device_grid(grid_view);
+
+    // Test for consistency with non-owning grid
+    EXPECT_EQ(device_grid.dim, grid_n_own.dim);
+    auto y_axis_dev = device_grid.get_axis<label::e_y>();
+    EXPECT_EQ(y_axis_dev.nbins(), grid_n_own.get_axis<label::e_y>().nbins());
+    auto z_axis_dev = device_grid.get_axis<label::e_z>();
+    EXPECT_EQ(z_axis_dev.nbins(), grid_n_own.get_axis<label::e_z>().nbins());
+
+    // Test the global bin iteration
+    auto flat_bin_view = grid_own.all();
+    EXPECT_EQ(seq.size(), 80'000u);
+    EXPECT_EQ(flat_bin_view.size(), 80'000u);
+    EXPECT_TRUE(
+        std::equal(flat_bin_view.begin(), flat_bin_view.end(), seq.begin()));
 }
 
 /// Test bin entry retrieval

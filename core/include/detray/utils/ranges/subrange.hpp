@@ -36,13 +36,8 @@ class subrange : public detray::ranges::view_interface<subrange<range_t>> {
     subrange() = default;
 
     /// Construct from an @param start and @param end iterator pair.
-    template <typename deduced_itr_t,
-              std::enable_if_t<std::is_same_v<deduced_itr_t, iterator_t>,
-                               bool> = true>
-    DETRAY_HOST_DEVICE constexpr subrange(deduced_itr_t &&start,
-                                          deduced_itr_t &&end)
-        : m_begin{std::forward<deduced_itr_t>(start)},
-          m_end{std::forward<deduced_itr_t>(end)} {}
+    DETRAY_HOST_DEVICE constexpr subrange(iterator_t start, iterator_t end)
+        : m_begin{start}, m_end{end} {}
 
     /// Construct from a @param range.
     template <
@@ -82,9 +77,10 @@ class subrange : public detray::ranges::view_interface<subrange<range_t>> {
               static_cast<difference_t>(detray::detail::get<1>(pos)))} {}
 
     /// Copy constructor
-    DETRAY_HOST_DEVICE
-    constexpr subrange(const subrange &other)
-        : m_begin{other.m_begin}, m_end{other.m_end} {}
+    constexpr subrange(const subrange &other) = default;
+
+    /// Move constructor
+    constexpr subrange(subrange &&other) = default;
 
     /// Default destructor
     ~subrange() = default;
@@ -101,25 +97,22 @@ class subrange : public detray::ranges::view_interface<subrange<range_t>> {
     DETRAY_HOST_DEVICE
     constexpr auto begin() -> iterator_t { return m_begin; }
 
+    /// @return sentinel of the range.
+    DETRAY_HOST_DEVICE
+    constexpr auto end() -> iterator_t { return m_end; }
+
     /// @return start position of the range - const
     DETRAY_HOST_DEVICE
-    constexpr auto begin() const -> iterator_t { return m_begin; }
+    constexpr auto begin() const -> const_iterator_t { return m_begin; }
 
     /// @return sentinel of the range.
     DETRAY_HOST_DEVICE
-    constexpr auto end() const -> iterator_t { return m_end; }
+    constexpr auto end() const -> const_iterator_t { return m_end; }
 
     private:
     /// Start and end position of the subrange
     iterator_t m_begin, m_end;
 };
-
-/*template <typename deduced_range_t,
-          std::enable_if_t<detray::ranges::range_v<deduced_range_t>, bool> =
-true> DETRAY_HOST_DEVICE subrange( typename
-detray::ranges::iterator_t<deduced_range_t> &&start, typename
-detray::ranges::iterator_t<deduced_range_t> &&end)
-    ->subrange<deduced_range_t>;*/
 
 template <
     typename deduced_range_t,
