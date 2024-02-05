@@ -181,6 +181,11 @@ class dynamic_array
     public:
     struct data {
         dindex offset{0u}, size{0u}, capacity{0u};
+
+        DETRAY_HOST_DEVICE
+        constexpr void update_offset(std::size_t shift) {
+            offset += static_cast<dindex>(shift);
+        }
     };
 
     using entry_type = entry_t;
@@ -210,10 +215,16 @@ class dynamic_array
 
     /// @returns view iterator over bin content in start or end position
     /// @{
-    DETRAY_HOST_DEVICE auto begin() { return detray::ranges::begin(view()); }
+    DETRAY_HOST_DEVICE auto begin() {
+        bin_view_t bv{view()};
+        return detray::ranges::begin(bv);
+    }
+    DETRAY_HOST_DEVICE auto end() {
+        bin_view_t bv{view()};
+        return detray::ranges::end(bv);
+    }
     DETRAY_HOST_DEVICE
     auto begin() const { return detray::ranges::cbegin(view()); }
-    DETRAY_HOST_DEVICE auto end() { return detray::ranges::end(view()); }
     DETRAY_HOST_DEVICE auto end() const { return detray::ranges::cend(view()); }
     /// @}
 

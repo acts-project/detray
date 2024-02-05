@@ -137,7 +137,7 @@ struct join : public ranges::join_view<range_t> {
 
 // deduction guides
 template <typename R>
-DETRAY_HOST_DEVICE join(R &&ranges)->join<R>;
+DETRAY_HOST_DEVICE join(R &&ranges)->join<std::remove_reference_t<R>>;
 
 }  // namespace views
 
@@ -152,12 +152,16 @@ namespace detail {
 template <typename range_t>
 struct join_iterator {
 
-    using outer_iterator_t = detray::ranges::iterator_t<range_t>;
-    using outer_value_t =
+    using outer_iterator_t =
         std::conditional_t<std::is_const_v<range_t>,
-                           const detray::ranges::range_value_t<range_t>,
-                           detray::ranges::range_value_t<range_t>>;
-    using inner_iterator_t = detray::ranges::iterator_t<const outer_value_t>;
+                           detray::ranges::const_iterator_t<range_t>,
+                           detray::ranges::iterator_t<range_t>>;
+    using outer_value_t = decltype(*std::declval<outer_iterator_t>());
+    using inner_iterator_t = std::conditional_t<
+        std::is_same_v<outer_iterator_t,
+                       detray::ranges::const_iterator_t<range_t>>,
+        detray::ranges::const_iterator_t<outer_value_t>,
+        detray::ranges::iterator_t<outer_value_t>>;
 
     using iterator_t = inner_iterator_t;
     using difference_type =
@@ -177,7 +181,8 @@ struct join_iterator {
         : m_outer_begin(begin), m_outer_end(end), m_outer_itr(begin) {
 
         if (m_outer_itr != m_outer_end) {
-            m_inner_itr = detray::ranges::cbegin(*m_outer_itr);
+            outer_value_t val{*m_outer_itr};
+            m_inner_itr = detray::ranges::begin(val);
         } else {
             m_inner_itr = {};
         }
@@ -352,7 +357,8 @@ struct join_iterator {
         while (m_inner_itr == detray::ranges::end(*m_outer_itr)) {
             ++m_outer_itr;
             if (m_outer_itr != m_outer_end) {
-                m_inner_itr = detray::ranges::begin(*m_outer_itr);
+                outer_value_t val{*m_outer_itr};
+                m_inner_itr = detray::ranges::begin(val);
             } else {
                 break;
             }

@@ -288,8 +288,19 @@ inline auto create_wire_chamber(vecmem::memory_resource &resource,
                     outer_cyl_mask.values()[cylinder2D<>::e_r]);
         const cyl_mask_t cyl_mask{mask_values, 0u};
 
+        std::vector<std::pair<typename cyl_grid_t::loc_bin_index, dindex>>
+            capacities{};
+        auto bin_indexer2D = detray::views::cartesian_product{
+            detray::views::iota{0u, 100u}, detray::views::iota{0u, 1u}};
+        for (const auto &bin_idx : bin_indexer2D) {
+            typename cyl_grid_t::loc_bin_index mbin{std::get<0>(bin_idx),
+                                                    std::get<1>(bin_idx)};
+            // @Todo: fine-tune capacity
+            capacities.emplace_back(mbin, 3u);
+        }
+
         // Add new grid to the detector
-        gbuilder.init_grid(cyl_mask, {100u, 1u});
+        gbuilder.init_grid(cyl_mask, {100u, 1u}, capacities);
         gbuilder.fill_grid(vol, det.surfaces(), det.transform_store(),
                            det.mask_store(), ctx0);
 

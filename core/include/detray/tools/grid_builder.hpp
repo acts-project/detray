@@ -150,25 +150,15 @@ class grid_builder final : public volume_decorator<detector_t> {
             // correct surface indices per bin (e.g. from file IO).
             // Now add the rest of the linking information, which is only
             // available after the volume builder ran
-            for (auto &sf_desc : vol.surfaces()) {
+            for (surface_desc_t &sf_desc : m_grid.all()) {
 
-                if (sf_desc.is_sensitive() or
-                    (m_add_passives and sf_desc.is_passive())) {
-                    // The current volume is already built, so the surface
-                    // interface is safe to use
-                    const auto sf = surface{det, sf_desc};
-                    const auto &sf_trf = sf.transform(ctx);
-                    const auto t = sf_trf.point_to_global(sf.centroid());
-                    const auto loc_pos = m_grid.project(vol.transform(), t, t);
-                    auto &bin_content = m_grid.search(loc_pos);
+                const auto &new_sf_desc = det.surface(sf_desc.index());
 
-                    for (surface_desc_t &sf_in_grid : bin_content) {
-                        // Find the correct surface and update all links
-                        if (sf_in_grid.index() == sf.index()) {
-                            sf_in_grid = sf_desc;
-                        }
-                    }
-                }
+                assert(!detail::is_invalid_value(sf_desc.index()));
+                assert(!new_sf_desc.barcode().is_invalid());
+                assert(new_sf_desc.index() == sf_desc.index());
+
+                sf_desc = new_sf_desc;
             }
         }
 
