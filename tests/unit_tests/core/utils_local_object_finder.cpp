@@ -31,7 +31,7 @@ TEST(utils, local_object_finder) {
 
     test::point2<detray::scalar> p2 = {-4.5f, -4.5f};
 
-    using grid2r = grid2<replace_populator, axis::regular, axis::regular,
+    using grid2r = grid2<replace_populator, axis2::regular, axis2::regular,
                          decltype(serializer)>;
 
     typename grid2r::axis_p0_type xaxis{10u, -5.f, 5.f, host_mr};

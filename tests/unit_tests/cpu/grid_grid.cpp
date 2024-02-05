@@ -10,7 +10,7 @@
 
 #include "detray/definitions/indexing.hpp"
 #include "detray/masks/cuboid3D.hpp"
-#include "detray/surface_finders/grid/axis.hpp"
+#include "detray/surface_finders/grid/detail/axis_helpers.hpp"
 #include "detray/test/types.hpp"
 #include "detray/tools/grid_builder.hpp"
 
@@ -27,7 +27,7 @@
 #include <limits>
 
 using namespace detray;
-using namespace detray::n_axis;
+using namespace detray::axis;
 
 namespace {
 
@@ -39,7 +39,7 @@ constexpr scalar tol{1e-7f};
 
 // Either a data owning or non-owning 3D cartesian multi-axis
 template <bool ownership = true, typename containers = host_container_types>
-using cartesian_3D = coordinate_axes<cuboid3D<>::axes<>, ownership, containers>;
+using cartesian_3D = coordinate_axes<axes<cuboid3D<>>, ownership, containers>;
 
 // non-owning multi-axis: Takes external containers
 bool constexpr is_owning = true;
@@ -82,14 +82,15 @@ void test_content(const grid_t& g, const point3& p, const content_t& expected) {
 /// Unittest: Test single grid construction
 GTEST_TEST(detray_grid, single_grid) {
 
-    // Owning and non-owning, cartesian, 3-dimensional, replacing grids
-    using grid_owning_t = grid<cartesian_3D<>, bins::single<scalar>>;
+    // Owning and non-owning, cartesian, 3-dimensional grids
+    using grid_owning_t = grid<axes<cuboid3D<>>, bins::single<scalar>>;
 
     using grid_n_owning_t =
-        grid<cartesian_3D<is_n_owning>, bins::single<scalar>>;
+        grid<axes<cuboid3D<>>, bins::single<scalar>, simple_serializer,
+             host_container_types, false>;
 
-    using grid_device_t = grid<cartesian_3D<is_owning, device_container_types>,
-                               bins::single<scalar>>;
+    using grid_device_t = grid<axes<cuboid3D<>>, bins::single<scalar>,
+                               simple_serializer, device_container_types>;
 
     // Fill the bin data for every test
     // bin test entries
@@ -109,7 +110,7 @@ GTEST_TEST(detray_grid, single_grid) {
     grid_owning_t grid_own(std::move(bin_data_cp), std::move(axes_own));
 
     // Check a few basics
-    EXPECT_EQ(grid_own.Dim, 3u);
+    EXPECT_EQ(grid_own.dim, 3u);
     EXPECT_EQ(grid_own.nbins(), 40'000u);
     auto y_axis = grid_own.get_axis<label::e_y>();
     EXPECT_EQ(y_axis.nbins(), 40u);
@@ -121,7 +122,7 @@ GTEST_TEST(detray_grid, single_grid) {
     grid_n_owning_t grid_n_own(&bin_data, ax_n_own);
 
     // Test for consistency with owning grid
-    EXPECT_EQ(grid_n_own.Dim, grid_own.Dim);
+    EXPECT_EQ(grid_n_own.dim, grid_own.dim);
     y_axis = grid_n_own.get_axis<label::e_y>();
     EXPECT_EQ(y_axis.nbins(), grid_own.get_axis<label::e_y>().nbins());
     z_axis = grid_n_own.get_axis<label::e_z>();
@@ -132,7 +133,7 @@ GTEST_TEST(detray_grid, single_grid) {
     grid_device_t device_grid(grid_view);
 
     // Test for consistency with non-owning grid
-    EXPECT_EQ(device_grid.Dim, grid_n_own.Dim);
+    EXPECT_EQ(device_grid.dim, grid_n_own.dim);
     auto y_axis_dev = device_grid.get_axis<label::e_y>();
     EXPECT_EQ(y_axis_dev.nbins(), grid_n_own.get_axis<label::e_y>().nbins());
     auto z_axis_dev = device_grid.get_axis<label::e_z>();
@@ -164,11 +165,112 @@ GTEST_TEST(detray_grid, single_grid) {
         "Const grid was not correctly constructed from view!");*/
 }
 
+/// Unittest: Test dynamic grid construction
+GTEST_TEST(detray_grid, dynamic_array) {
+
+    // Owning and non-owning, cartesian, 3-dimensional grids
+    using grid_owning_t = grid<axes<cuboid3D<>>, bins::dynamic_array<scalar>>;
+
+    using grid_n_owning_t =
+        grid<axes<cuboid3D<>>, bins::dynamic_array<scalar>, simple_serializer,
+             host_container_types, false>;
+
+    using grid_device_t = grid<axes<cuboid3D<>>, bins::dynamic_array<scalar>,
+                               simple_serializer, device_container_types>;
+
+    // Fill the bin data for every test
+    // bin test entries
+    grid_owning_t::bin_container_type bin_data{};
+    // 40 000 entries
+    bin_data.entries.resize(80'000u);
+    // 20 000 bins
+    bin_data.bins.resize(40'000u);
+
+    int i{0};
+    dindex offset{0u};
+    scalar entry{0.f};
+    complete<> completer{};
+
+    // Test data to compare bin content against
+    std::vector<scalar> seq;
+    seq.reserve(80'000);
+
+    for (auto& data : bin_data.bins) {
+        data.offset = offset;
+        // Every second bin holds one element, otherwise three
+        data.capacity = (i % 2) ? 1u : 3u;
+
+        detray::bins::dynamic_array bin{bin_data.entries.data(), data};
+
+        ASSERT_TRUE(bin.capacity() == (i % 2 ? 1u : 3u));
+        ASSERT_TRUE(bin.size() == 0);
+
+        offset += bin.capacity();
+
+        // Populate the bin
+        completer(bin, entry);
+
+        for (auto e : bin) {
+            ASSERT_TRUE(e == entry);
+            seq.push_back(e);
+        }
+        entry += 1.f;
+        ++i;
+    }
+
+    // Copy data that will be moved into the data owning types
+    dvector<scalar> bin_edges_cp(bin_edges);
+    dvector<dindex_range> edge_ranges_cp(edge_ranges);
+    grid_owning_t::bin_container_type bin_data_cp(bin_data);
+
+    // Data-owning axes and grid
+    cartesian_3D<is_owning, host_container_types> axes_own(
+        std::move(edge_ranges_cp), std::move(bin_edges_cp));
+    grid_owning_t grid_own(std::move(bin_data_cp), std::move(axes_own));
+
+    // Check a few basics
+    EXPECT_EQ(grid_own.dim, 3u);
+    EXPECT_EQ(grid_own.nbins(), 40'000u);
+    auto y_axis = grid_own.get_axis<label::e_y>();
+    EXPECT_EQ(y_axis.nbins(), 40u);
+    auto z_axis =
+        grid_own.get_axis<single_axis<closed<label::e_z>, regular<>>>();
+    EXPECT_EQ(z_axis.nbins(), 50u);
+
+    // Create non-owning grid
+    grid_n_owning_t grid_n_own(&bin_data, ax_n_own);
+
+    // Test for consistency with owning grid
+    EXPECT_EQ(grid_n_own.dim, grid_own.dim);
+    y_axis = grid_n_own.get_axis<label::e_y>();
+    EXPECT_EQ(y_axis.nbins(), grid_own.get_axis<label::e_y>().nbins());
+    z_axis = grid_n_own.get_axis<label::e_z>();
+    EXPECT_EQ(z_axis.nbins(), grid_own.get_axis<label::e_z>().nbins());
+
+    // Construct a grid from a view
+    grid_owning_t::view_type grid_view = get_data(grid_own);
+    grid_device_t device_grid(grid_view);
+
+    // Test for consistency with non-owning grid
+    EXPECT_EQ(device_grid.dim, grid_n_own.dim);
+    auto y_axis_dev = device_grid.get_axis<label::e_y>();
+    EXPECT_EQ(y_axis_dev.nbins(), grid_n_own.get_axis<label::e_y>().nbins());
+    auto z_axis_dev = device_grid.get_axis<label::e_z>();
+    EXPECT_EQ(z_axis_dev.nbins(), grid_n_own.get_axis<label::e_z>().nbins());
+
+    // Test the global bin iteration
+    auto flat_bin_view = grid_own.all();
+    EXPECT_EQ(seq.size(), 80'000u);
+    EXPECT_EQ(flat_bin_view.size(), 80'000u);
+    EXPECT_TRUE(
+        std::equal(flat_bin_view.begin(), flat_bin_view.end(), seq.begin()));
+}
+
 /// Test bin entry retrieval
 GTEST_TEST(detray_grid, bin_view) {
 
     // Non-owning, 3D cartesian, replacing grid
-    using grid_t = grid<cartesian_3D<is_owning>, bins::single<scalar>>;
+    using grid_t = grid<axes<cuboid3D<>>, bins::single<scalar>>;
 
     // Fill the bin data for every test
     // bin test entries
@@ -191,11 +293,10 @@ GTEST_TEST(detray_grid, bin_view) {
     point3 p = {-10.f, -20.f, 0.f};
 
     std::array<dindex, 2> search_window_size{0, 0};
-    n_axis::multi_bin_range<3> search_window{n_axis::bin_range{0, 1},
-                                             n_axis::bin_range{0, 1},
-                                             n_axis::bin_range{0, 1}};
+    axis::multi_bin_range<3> search_window{
+        axis::bin_range{0, 1}, axis::bin_range{0, 1}, axis::bin_range{0, 1}};
 
-    const auto bview1 = n_axis::detail::bin_view(grid_3D, search_window);
+    const auto bview1 = axis::detail::bin_view(grid_3D, search_window);
     const auto joined_view1 = detray::views::join(bview1);
     const auto grid_search1 = grid_3D.search(p, search_window_size);
 
@@ -222,13 +323,13 @@ GTEST_TEST(detray_grid, bin_view) {
     //
     search_window_size[0] = 1;
     search_window_size[1] = 1;
-    search_window[0] = n_axis::bin_range{0, 2};
-    search_window[1] = n_axis::bin_range{0, 2};
-    search_window[2] = n_axis::bin_range{0, 2};
+    search_window[0] = axis::bin_range{0, 2};
+    search_window[1] = axis::bin_range{0, 2};
+    search_window[2] = axis::bin_range{0, 2};
 
     std::vector<scalar> expected{1, 801, 21, 821, 2, 802, 22, 822};
 
-    const auto bview2 = n_axis::detail::bin_view(grid_3D, search_window);
+    const auto bview2 = axis::detail::bin_view(grid_3D, search_window);
     const auto joined_view2 = detray::views::join(bview2);
     const auto grid_search2 = grid_3D.search(p, search_window_size);
 
@@ -254,15 +355,15 @@ GTEST_TEST(detray_grid, bin_view) {
     // Bin 1 and nearest neighbors
     //
     p = {-9.f, -19.f, 2.f};
-    search_window[0] = n_axis::bin_range{0, 3};
-    search_window[1] = n_axis::bin_range{0, 3};
-    search_window[2] = n_axis::bin_range{0, 3};
+    search_window[0] = axis::bin_range{0, 3};
+    search_window[1] = axis::bin_range{0, 3};
+    search_window[2] = axis::bin_range{0, 3};
 
     expected = {1, 801, 1601, 21, 821, 1621, 41, 841, 1641,
                 2, 802, 1602, 22, 822, 1622, 42, 842, 1642,
                 3, 803, 1603, 23, 823, 1623, 43, 843, 1643};
 
-    const auto bview3 = n_axis::detail::bin_view(grid_3D, search_window);
+    const auto bview3 = axis::detail::bin_view(grid_3D, search_window);
     const auto joined_view3 = detray::views::join(bview3);
     const auto grid_search3 = grid_3D.search(p, search_window_size);
 
@@ -288,8 +389,9 @@ GTEST_TEST(detray_grid, bin_view) {
 /// Integration test: Test replace population
 GTEST_TEST(detray_grid, replace_population) {
 
-    // Non-owning, 3D cartesian, replacing grid
-    using grid_t = grid<cartesian_3D<is_n_owning>, bins::single<scalar>>;
+    // Non-owning, 3D cartesian  grid
+    using grid_t = grid<decltype(ax_n_own), bins::single<scalar>,
+                        simple_serializer, host_container_types, false>;
     // init
     using bin_t = grid_t::bin_type;
     grid_t::bin_container_type bin_data{};
@@ -339,8 +441,8 @@ GTEST_TEST(detray_grid, replace_population) {
 GTEST_TEST(detray_grid, complete_population) {
 
     // Non-owning, 3D cartesian, completing grid (4 dims and sort)
-    using grid_t =
-        grid<cartesian_3D<is_n_owning>, bins::static_array<scalar, 4>>;
+    using grid_t = grid<decltype(ax_n_own), bins::static_array<scalar, 4>,
+                        simple_serializer, host_container_types, false>;
     using bin_t = grid_t::bin_type;
     using bin_content_t = std::array<scalar, 4>;
 
@@ -417,8 +519,8 @@ GTEST_TEST(detray_grid, complete_population) {
 GTEST_TEST(detray_grid, regular_attach_population) {
 
     // Non-owning, 3D cartesian, completing grid (4 dims and sort)
-    using grid_t =
-        grid<cartesian_3D<is_n_owning>, bins::static_array<scalar, 4>>;
+    using grid_t = grid<decltype(ax_n_own), bins::static_array<scalar, 4>,
+                        simple_serializer, host_container_types, false>;
     using bin_t = grid_t::bin_type;
     using bin_content_t = std::array<scalar, 4>;
 

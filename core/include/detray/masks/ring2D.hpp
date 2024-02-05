@@ -1,6 +1,6 @@
 /** Detray library, part of the ACTS project (R&D line)
  *
- * (c) 2020-2023 CERN for the benefit of the ACTS project
+ * (c) 2020-2024 CERN for the benefit of the ACTS project
  *
  * Mozilla Public License Version 2.0
  */
@@ -12,8 +12,6 @@
 #include "detray/definitions/containers.hpp"
 #include "detray/definitions/qualifiers.hpp"
 #include "detray/intersection/plane_intersector.hpp"
-#include "detray/surface_finders/grid/detail/axis_binning.hpp"
-#include "detray/surface_finders/grid/detail/axis_bounds.hpp"
 
 // System include(s)
 #include <cmath>
@@ -53,26 +51,8 @@ class ring2D {
     template <typename intersection_t>
     using intersector_type = intersector_t<intersection_t>;
 
-    /// Behaviour of the two local axes (linear in r, circular in phi)
-    template <
-        n_axis::bounds e_s = n_axis::bounds::e_closed,
-        template <typename, typename> class binning_loc0 = n_axis::regular,
-        template <typename, typename> class binning_loc1 = n_axis::regular>
-    struct axes {
-        static constexpr n_axis::label axis_loc0 = n_axis::label::e_r;
-        static constexpr n_axis::label axis_loc1 = n_axis::label::e_phi;
-        static constexpr std::size_t dim{2u};
-
-        /// How to convert into the local axis system and back
-        template <typename algebra_t>
-        using coordinate_type = local_frame_type<algebra_t>;
-
-        using types = dtuple<n_axis::bounds_t<e_s, axis_loc0>,
-                             n_axis::circular<axis_loc1>>;
-
-        template <typename C, typename S>
-        using binning = dtuple<binning_loc0<C, S>, binning_loc1<C, S>>;
-    };
+    /// Dimension of the local coordinate system
+    static constexpr std::size_t dim{2u};
 
     /// @brief Check boundary values for a local point.
     ///
@@ -159,13 +139,13 @@ class ring2D {
 
         constexpr auto tol{10.f * std::numeric_limits<scalar_t>::epsilon()};
 
-        if (std::signbit(bounds[e_inner_r]) or bounds[e_outer_r] < tol) {
+        if (math::signbit(bounds[e_inner_r]) or bounds[e_outer_r] < tol) {
             os << "ERROR: Radius must be in the range [0, numeric_max)"
                << std::endl;
             return false;
         }
         if (bounds[e_inner_r] >= bounds[e_outer_r] or
-            std::abs(bounds[e_inner_r] - bounds[e_outer_r]) < tol) {
+            math::abs(bounds[e_inner_r] - bounds[e_outer_r]) < tol) {
             os << "ERROR: Inner radius must be smaller outer radius.";
             return false;
         }

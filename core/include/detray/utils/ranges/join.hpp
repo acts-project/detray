@@ -136,7 +136,6 @@ struct join : public ranges::join_view<range_t> {
 };
 
 // deduction guides
-
 template <typename R>
 DETRAY_HOST_DEVICE join(R &&ranges)->join<R>;
 

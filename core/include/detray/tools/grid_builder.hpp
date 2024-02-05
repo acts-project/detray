@@ -61,13 +61,18 @@ class grid_builder final : public volume_decorator<detector_t> {
     /// Delegate init call depending on @param span type
     template <typename grid_shape_t>
     DETRAY_HOST void init_grid(
-        const mask<grid_shape_t> &bounds,
-        const std::array<std::size_t, grid_t::Dim> &n_bins,
-        const std::array<std::vector<scalar_type>, grid_t::Dim> &ax_bin_edges =
+        const mask<grid_shape_t> &m,
+        const std::array<std::size_t, grid_t::dim> &n_bins,
+        const std::array<std::vector<scalar_type>, grid_t::dim> &ax_bin_edges =
             {{}}) {
-        init_impl(bounds, n_bins, ax_bin_edges,
-                  typename grid_t::axes_type::bounds{},
-                  typename grid_t::axes_type::binnings{});
+
+        static_assert(
+            std::is_same_v<typename grid_shape_t::template local_frame_type<
+                               typename detector_t::transform3>,
+                           typename grid_t::local_frame_type>,
+            "Mask has incorrect shape");
+
+        m_grid = m_factory.template new_grid<grid_t>(m, n_bins, ax_bin_edges);
     }
 
     /// Build the empty grid from axis parameters
@@ -76,9 +81,8 @@ class grid_builder final : public volume_decorator<detector_t> {
         const std::vector<std::size_t> &n_bins,
         const std::vector<std::vector<scalar_type>> &ax_bin_edges = {{}}) {
 
-        m_grid = m_factory.template new_grid<typename grid_t::local_frame_type>(
-            spans, n_bins, ax_bin_edges, typename grid_t::axes_type::bounds{},
-            typename grid_t::axes_type::binnings{});
+        m_grid =
+            m_factory.template new_grid<grid_t>(spans, n_bins, ax_bin_edges);
     }
 
     /// Fill grid from existing volume using a bin filling strategy
@@ -88,6 +92,7 @@ class grid_builder final : public volume_decorator<detector_t> {
         const detector_t &det, const volume_type &vol,
         const typename detector_t::geometry_context ctx = {},
         const bin_filler_t bin_filler = {}, Args &&... args) {
+
         bin_filler(m_grid, det, vol, ctx, args...);
     }
 
@@ -101,6 +106,7 @@ class grid_builder final : public volume_decorator<detector_t> {
         const transform_container_t &transforms, const mask_container_t &masks,
         const typename detector_t::geometry_context ctx = {},
         const bin_filler_t bin_filler = {}, Args &&... args) {
+
         bin_filler(m_grid, vol, surfaces, transforms, masks, ctx, args...);
     }
 
@@ -176,19 +182,6 @@ class grid_builder final : public volume_decorator<detector_t> {
     auto &get() { return m_grid; }
 
     protected:
-    /// Build the empty grid from a mask instance
-    template <typename grid_shape_t, typename... axis_bounds,
-              typename... binning_ts>
-    DETRAY_HOST void init_impl(
-        const mask<grid_shape_t> &bounds,
-        const std::array<std::size_t, grid_t::Dim> n_bins,
-        const std::array<std::vector<scalar_type>, grid_t::Dim> &ax_bin_edges,
-        types::list<axis_bounds...>, types::list<binning_ts...>) {
-
-        m_grid = m_factory.template new_grid<axis_bounds..., binning_ts...>(
-            bounds, n_bins, ax_bin_edges);
-    }
-
     grid_factory_t m_factory{};
     typename grid_t::template type<true> m_grid{};
     bin_filler_t m_bin_filler{};
@@ -201,15 +194,13 @@ template <typename detector_t,
           class grid_factory_t,
           typename grid_shape_t, typename bin_t,
           template <std::size_t> class serializer_t,
-          n_axis::bounds e_bounds = n_axis::bounds::e_closed,
+          axis::bounds e_bounds = axis::bounds::e_closed,
           typename algebra_t = typename detector_t::transform3,
           template <typename, typename> class... binning_ts>
 using grid_builder_type = grid_builder<
     detector_t,
     typename grid_factory_t<bin_t, serializer_t, algebra_t>::template grid_type<
-        coordinate_axes<
-            typename grid_shape_t::template axes<e_bounds, binning_ts...>, true,
-            host_container_types, algebra_t>>,
+        axes<grid_shape_t, e_bounds, binning_ts...>>,
     grid_factory_t<bin_t, serializer_t, algebra_t>>;
 
 }  // namespace detray

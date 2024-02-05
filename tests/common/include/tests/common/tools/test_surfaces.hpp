@@ -118,9 +118,9 @@ create_endcap_components(scalar inner_r, scalar outer_r, scalar pos_z,
 
     // Declare the inner, outer, ecn, ecp object finder
 
-    using cylinder_grid = grid2<replace_populator, axis::circular,
-                                axis::regular, decltype(serializer)>;
-    using disc_grid = grid2<replace_populator, axis::regular, axis::circular,
+    using cylinder_grid = grid2<replace_populator, axis2::circular,
+                                axis2::regular, decltype(serializer)>;
+    using disc_grid = grid2<replace_populator, axis2::regular, axis2::circular,
                             decltype(serializer)>;
 
     typename cylinder_grid::axis_p0_type rphi_axis_inner = {
@@ -169,8 +169,8 @@ create_endcap_components(scalar inner_r, scalar outer_r, scalar pos_z,
         ec_grid_p.populate(disc_point2{r, phi}, transform_idx + 0u);
 
         scalar z_addon = (iphi % 2u) ? -stagger_z : stagger_z;
-        scalar cos_phi = std::cos(phi);
-        scalar sin_phi = std::sin(phi);
+        scalar cos_phi = math::cos(phi);
+        scalar sin_phi = math::sin(phi);
         point3 p = {r * cos_phi, r * sin_phi, pos_z + z_addon};
         vector3 z = {0.f, 0.f, 1.f};
         vector3 x = {sin_phi, -cos_phi, 0.f};
@@ -231,9 +231,9 @@ create_barrel_components(scalar r, scalar stagger_r, unsigned int n_phi,
                    (module_ly - overlap_z)};
 
     // Declare the inner, outer, ecn, ecp object finder
-    using cylinder_grid = grid2<replace_populator, axis::circular,
-                                axis::regular, decltype(serializer)>;
-    using disc_grid = grid2<replace_populator, axis::regular, axis::circular,
+    using cylinder_grid = grid2<replace_populator, axis2::circular,
+                                axis2::regular, decltype(serializer)>;
+    using disc_grid = grid2<replace_populator, axis2::regular, axis2::circular,
                             decltype(serializer)>;
 
     typename cylinder_grid::axis_p0_type rphi_axis_inner = {
@@ -244,7 +244,7 @@ create_barrel_components(scalar r, scalar stagger_r, unsigned int n_phi,
     typename cylinder_grid::axis_p0_type rphi_axis_outer = {
         n_phi, -volume_outer_r * (constant<scalar>::pi + 0.5f * step_phi),
         volume_outer_r * (constant<scalar>::pi - 0.5f * step_phi), host_mr};
-    // axis::regular<> z_axis_outer = {n_z, -0.5f * length_z, 0.5f * length_z};
+    // axis2::regular<> z_axis_outer = {n_z, -0.5f * length_z, 0.5f * length_z};
     typename disc_grid::axis_p0_type r_axis_ecn = {1, volume_inner_r,
                                                    volume_outer_r, host_mr};
     typename disc_grid::axis_p1_type phi_axis_ecn = {
@@ -287,9 +287,9 @@ create_barrel_components(scalar r, scalar stagger_r, unsigned int n_phi,
             }
             // Finally create the transform
             scalar r_addon = (iz % 2u) ? -stagger_r : stagger_r;
-            point3 p = {(r + r_addon) * std::cos(phi),
-                        (r + r_addon) * std::sin(phi), pos_z};
-            vector3 z = {std::cos(phi + tilt_phi), std::sin(phi + tilt_phi),
+            point3 p = {(r + r_addon) * math::cos(phi),
+                        (r + r_addon) * math::sin(phi), pos_z};
+            vector3 z = {math::cos(phi + tilt_phi), math::sin(phi + tilt_phi),
                          0.f};
             vector3 x = {z[1], -z[0], 0.f};
             transforms.push_back(transform3(p, z, x));

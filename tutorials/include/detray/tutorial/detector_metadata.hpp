@@ -147,11 +147,9 @@ struct my_metadata {
     /// given position. Here: Uniform grid with a 3D cylindrical shape
     template <typename container_t = host_container_types>
     using volume_finder =
-        grid<coordinate_axes<
-                 cylinder3D::axes<n_axis::bounds::e_open, n_axis::irregular,
-                                  n_axis::regular, n_axis::irregular>,
-                 true, container_t>,
-             bins::single<dindex>, simple_serializer>;
+        grid<axes<cylinder3D, axis::bounds::e_open, axis::irregular,
+                  axis::regular, axis::irregular>,
+             bins::single<dindex>, simple_serializer, container_t>;
 };
 
 }  // namespace tutorial

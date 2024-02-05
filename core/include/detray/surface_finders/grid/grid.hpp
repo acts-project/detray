@@ -10,7 +10,8 @@
 // Project include(s).
 #include "detray/core/detail/container_views.hpp"
 #include "detray/definitions/qualifiers.hpp"
-#include "detray/surface_finders/grid/axis.hpp"
+#include "detray/surface_finders/grid/detail/axis.hpp"
+#include "detray/surface_finders/grid/detail/axis_helpers.hpp"
 #include "detray/surface_finders/grid/detail/bin_storage.hpp"
 #include "detray/surface_finders/grid/detail/bin_view.hpp"
 #include "detray/surface_finders/grid/populators.hpp"
@@ -29,18 +30,17 @@ namespace detray {
 
 /// @brief An N-dimensional grid for object storage.
 ///
-/// @tparam multi_axis_t the types of grid axes
+/// @tparam axes_t the types of grid axes
 /// @tparam bin_t type of bin in the (global) bin storage.
 /// @tparam serializer_t how to serialize axis-local bin indices into global bin
 ///                      indices in the grid backend storage and vice versa.
-template <typename multi_axis_t, typename bin_t,
+template <typename axes_t, typename bin_t,
           template <std::size_t> class serializer_t = simple_serializer>
-class grid {
+class grid_impl {
 
     public:
     /// Grid dimension
-    static constexpr unsigned int Dim = multi_axis_t::Dim;
-    static constexpr bool is_owning = multi_axis_t::is_owning;
+    static constexpr unsigned int dim = axes_t::dim;
 
     /// Single value in a bin entry
     using bin_type = bin_t;
@@ -51,16 +51,18 @@ class grid {
 
     /// The type of the multi-axis is tied to the type of the grid: a non-
     /// owning grid holds a non-owning multi-axis member.
-    using axes_type = multi_axis_t;
+    using axes_type = axes_t;
     using glob_bin_index = dindex;
     using loc_bin_index = typename axes_type::loc_bin_index;
     using local_frame_type = typename axes_type::local_frame_type;
     using point_type = typename axes_type::point_type;
     using scalar_type = typename axes_type::scalar_type;
 
+    static constexpr bool is_owning{axes_type::is_owning};
+
     /// How to define a neighborhood for this grid
     template <typename neighbor_t>
-    using neighborhood_type = std::array<neighbor_t, Dim>;
+    using neighborhood_type = std::array<neighbor_t, dim>;
 
     /// Backend storage type for the grid
     using bin_storage =
@@ -80,54 +82,54 @@ class grid {
 
     /// Find the corresponding (non-)owning grid type
     template <bool owning>
-    using type = grid<typename multi_axis_t::template type<owning>, bin_type,
-                      serializer_t>;
+    using type =
+        grid_impl<typename axes_t::template type<owning>, bin_t, serializer_t>;
 
     /// Make grid default constructible: Empty grid with empty axis
-    grid() = default;
+    grid_impl() = default;
 
     /// Create empty grid with empty axes from specific vecmem memory resource
     DETRAY_HOST
-    explicit grid(vecmem::memory_resource &resource)
+    explicit grid_impl(vecmem::memory_resource &resource)
         : m_bins(resource), m_axes(resource) {}
 
     /// Create grid with well defined @param axes and @param bins_data - move
     DETRAY_HOST_DEVICE
-    grid(bin_container_type &&bin_data, axes_type &&axes)
+    grid_impl(bin_container_type &&bin_data, axes_type &&axes)
         : m_bins(std::move(bin_data)), m_axes(std::move(axes)) {}
 
     /// Create grid from container pointers - non-owning (both grid and axes)
     DETRAY_HOST_DEVICE
-    grid(const bin_container_type *bin_data_ptr, const axes_type &axes,
-         const dindex offset = 0)
+    grid_impl(const bin_container_type *bin_data_ptr, const axes_type &axes,
+              const dindex offset = 0)
         : m_bins(*bin_data_ptr, offset, axes.nbins()), m_axes(axes) {}
 
     /// Create grid from container pointers - non-owning (both grid and axes)
     DETRAY_HOST_DEVICE
-    grid(bin_container_type *bin_data_ptr, axes_type &axes,
-         const dindex offset = 0u)
+    grid_impl(bin_container_type *bin_data_ptr, axes_type &axes,
+              const dindex offset = 0u)
         : m_bins(*bin_data_ptr, offset, axes.nbins()), m_axes(axes) {}
 
     /// Create grid from container pointers - non-owning (both grid and axes)
-    // TODO: Remove
+    // TODO: const correctnes
     DETRAY_HOST_DEVICE
-    grid(const bin_container_type *bin_data_ptr, axes_type &&axes,
-         const dindex offset = 0)
+    grid_impl(const bin_container_type *bin_data_ptr, axes_type &&axes,
+              const dindex offset = 0)
         : m_bins(*(const_cast<bin_container_type *>(bin_data_ptr)), offset,
                  axes.nbins()),
           m_axes(axes) {}
 
     /// Create grid from container pointers - non-owning (both grid and axes)
     DETRAY_HOST_DEVICE
-    grid(bin_container_type *bin_data_ptr, axes_type &&axes,
-         const dindex offset = 0u)
+    grid_impl(bin_container_type *bin_data_ptr, axes_type &&axes,
+              const dindex offset = 0u)
         : m_bins(*bin_data_ptr, offset, axes.nbins()), m_axes(axes) {}
 
     /// Device-side construction from a vecmem based view type
     template <typename grid_view_t,
               typename std::enable_if_t<detail::is_device_view_v<grid_view_t>,
                                         bool> = true>
-    DETRAY_HOST_DEVICE grid(grid_view_t &view)
+    DETRAY_HOST_DEVICE grid_impl(grid_view_t &view)
         : m_bins(detray::detail::get<0>(view.m_view)),
           m_axes(detray::detail::get<1>(view.m_view)) {}
 
@@ -146,7 +148,7 @@ class grid {
     }
 
     /// @returns an axis object, corresponding to the label.
-    template <n_axis::label L>
+    template <axis::label L>
     DETRAY_HOST_DEVICE inline constexpr auto get_axis() const {
         return m_axes.template get_axis<L>();
     }
@@ -169,7 +171,7 @@ class grid {
     }
 
     /// @returns an instance of the grid serializer
-    static constexpr auto serializer() -> serializer_t<Dim> { return {}; }
+    static constexpr auto serializer() -> serializer_t<dim> { return {}; }
 
     /// @returns a local multi-bin index from a global bin index @param gid
     constexpr auto deserialize(const glob_bin_index gid) const
@@ -214,7 +216,7 @@ class grid {
     }
 
     /// @param indices the single indices corresponding to a multi_bin
-    template <typename... I, std::enable_if_t<sizeof...(I) == Dim, bool> = true>
+    template <typename... I, std::enable_if_t<sizeof...(I) == dim, bool> = true>
     DETRAY_HOST_DEVICE decltype(auto) bin(I... indices) const {
         return bin(loc_bin_index{indices...});
     }
@@ -313,7 +315,7 @@ class grid {
 
         // Return iterable over bins in the search window
         auto search_window = axes().bin_ranges(p, win_size);
-        auto search_area = n_axis::detail::bin_view(*this, search_window);
+        auto search_area = axis::detail::bin_view(*this, search_window);
 
         // Join the respective bins to a single iteration
         return detray::views::join(std::move(search_area));
@@ -351,7 +353,7 @@ class grid {
     /// @returns view of a grid, including the grids multi_axis. Also valid if
     /// the value type of the grid is cv qualified (then value_t propagates
     /// quialifiers) - non-const
-    template <bool owner = is_owning, std::enable_if_t<owner, bool> = true>
+    template <bool owning = is_owning, std::enable_if_t<owning, bool> = true>
     DETRAY_HOST auto get_data() -> view_type {
         return view_type{detray::get_data(m_bins), detray::get_data(m_axes)};
     }
@@ -359,7 +361,7 @@ class grid {
     /// @returns view of a grid, including the grids multi_axis. Also valid if
     /// the value type of the grid is cv qualified (then value_t propagates
     /// quialifiers) - const
-    template <bool owner = is_owning, std::enable_if_t<owner, bool> = true>
+    template <bool owning = is_owning, std::enable_if_t<owning, bool> = true>
     DETRAY_HOST auto get_data() const -> const_view_type {
         return const_view_type{detray::get_data(m_bins),
                                detray::get_data(m_axes)};
@@ -371,5 +373,23 @@ class grid {
     /// The axes of the grid
     axes_type m_axes{};
 };
+
+/// Type alias for easier construction
+template <typename axes_t, typename bin_t,
+          template <std::size_t> class serializer_t = simple_serializer,
+          typename containers = host_container_types, bool ownership = true,
+          typename algebra_t = __plugin::transform3<detray::scalar>>
+using grid =
+    grid_impl<coordinate_axes<axes_t, ownership, containers, algebra_t>, bin_t,
+              simple_serializer>;
+
+namespace detail {
+
+template <typename multi_axis_t, typename bin_t,
+          template <std::size_t> class serializer_t>
+struct is_grid<grid_impl<multi_axis_t, bin_t, serializer_t>>
+    : public std::true_type {};
+
+}  // namespace detail
 
 }  // namespace detray

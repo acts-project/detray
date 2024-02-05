@@ -1,6 +1,6 @@
 /** Detray library, part of the ACTS project (R&D line)
  *
- * (c) 2020-2023 CERN for the benefit of the ACTS project
+ * (c) 2020-2024 CERN for the benefit of the ACTS project
  *
  * Mozilla Public License Version 2.0
  */
@@ -12,8 +12,6 @@
 #include "detray/definitions/containers.hpp"
 #include "detray/definitions/qualifiers.hpp"
 #include "detray/intersection/plane_intersector.hpp"
-#include "detray/surface_finders/grid/detail/axis_binning.hpp"
-#include "detray/surface_finders/grid/detail/axis_bounds.hpp"
 
 // System include(s)
 #include <cmath>
@@ -57,26 +55,8 @@ class trapezoid2D {
     template <typename intersection_t>
     using intersector_type = intersector_t<intersection_t>;
 
-    /// Behaviour of the two local axes (linear in x, y)
-    template <
-        n_axis::bounds e_s = n_axis::bounds::e_closed,
-        template <typename, typename> class binning_loc0 = n_axis::regular,
-        template <typename, typename> class binning_loc1 = n_axis::regular>
-    struct axes {
-        static constexpr n_axis::label axis_loc0 = n_axis::label::e_x;
-        static constexpr n_axis::label axis_loc1 = n_axis::label::e_y;
-        static constexpr std::size_t dim{2u};
-
-        /// How to convert into the local axis system and back
-        template <typename algebra_t>
-        using coordinate_type = local_frame_type<algebra_t>;
-
-        using types = dtuple<n_axis::bounds_t<e_s, axis_loc0>,
-                             n_axis::bounds_t<e_s, axis_loc1>>;
-
-        template <typename C, typename S>
-        using binning = dtuple<binning_loc0<C, S>, binning_loc1<C, S>>;
-    };
+    /// Dimension of the local coordinate system
+    static constexpr std::size_t dim{2u};
 
     /// @brief Check boundary values for a local point.
     ///
@@ -97,11 +77,11 @@ class trapezoid2D {
         const scalar_t tol = std::numeric_limits<scalar_t>::epsilon()) const {
         const scalar_t rel_y{(bounds[e_half_length_2] + loc_p[1]) *
                              bounds[e_divisor]};
-        return (std::abs(loc_p[0]) <= bounds[e_half_length_0] +
-                                          rel_y * (bounds[e_half_length_1] -
-                                                   bounds[e_half_length_0]) +
-                                          tol and
-                std::abs(loc_p[1]) <= bounds[e_half_length_2] + tol);
+        return (math::abs(loc_p[0]) <= bounds[e_half_length_0] +
+                                           rel_y * (bounds[e_half_length_1] -
+                                                    bounds[e_half_length_0]) +
+                                           tol and
+                math::abs(loc_p[1]) <= bounds[e_half_length_2] + tol);
     }
 
     /// @brief Lower and upper point for minimal axis aligned bounding box.
@@ -199,7 +179,7 @@ class trapezoid2D {
             return false;
         }
         const auto div{1.f / (2.f * bounds[e_half_length_2])};
-        if (std::abs(bounds[e_divisor] - div) > tol) {
+        if (math::abs(bounds[e_divisor] - div) > tol) {
             os << "ERROR: Divisor incorrect. Should be: " << div << std::endl;
             return false;
         }

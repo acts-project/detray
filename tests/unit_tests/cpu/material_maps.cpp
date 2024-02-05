@@ -14,7 +14,7 @@
 #include <gtest/gtest.h>
 
 using namespace detray;
-using namespace detray::n_axis;
+using namespace detray::axis;
 
 using material_t = typename material_map_factory<scalar>::bin_type::entry_type;
 
@@ -36,7 +36,7 @@ GTEST_TEST(detray_material, annulus_map) {
 
     auto annulus_map = mat_map_factory.new_grid(ann2, {10u, 20u});
 
-    EXPECT_EQ(annulus_map.Dim, 2u);
+    EXPECT_EQ(annulus_map.dim, 2u);
     EXPECT_EQ(annulus_map.nbins(), 200u);
 
     auto r_axis = annulus_map.get_axis<label::e_r>();
@@ -79,13 +79,13 @@ GTEST_TEST(detray_material, cylinder_map) {
 
     auto cylinder_map = mat_map_factory.new_grid(cyl, {10u, 20u});
 
-    EXPECT_EQ(cylinder_map.Dim, 2u);
+    EXPECT_EQ(cylinder_map.dim, 2u);
     EXPECT_EQ(cylinder_map.nbins(), 200u);
 
     auto rphi_axis = cylinder_map.get_axis<label::e_rphi>();
     EXPECT_EQ(rphi_axis.nbins(), 10u);
-    EXPECT_EQ(rphi_axis.min(), -constant<scalar>::pi * r);
-    EXPECT_EQ(rphi_axis.max(), constant<scalar>::pi * r);
+    EXPECT_EQ(rphi_axis.min(), -constant<scalar>::pi);
+    EXPECT_EQ(rphi_axis.max(), constant<scalar>::pi);
 
     auto z_axis = cylinder_map.get_axis<label::e_cyl_z>();
     EXPECT_EQ(z_axis.nbins(), 20u);
@@ -121,7 +121,7 @@ GTEST_TEST(detray_material, rectangle_map) {
 
     auto rectangle_map = mat_map_factory.new_grid(r2, {10u, 20u});
 
-    EXPECT_EQ(rectangle_map.Dim, 2u);
+    EXPECT_EQ(rectangle_map.dim, 2u);
     EXPECT_EQ(rectangle_map.nbins(), 200u);
 
     auto x_axis = rectangle_map.get_axis<label::e_x>();
@@ -163,7 +163,7 @@ GTEST_TEST(detray_material, disc_map) {
 
     auto disc_map = mat_map_factory.new_grid(r2, {10u, 20u});
 
-    EXPECT_EQ(disc_map.Dim, 2u);
+    EXPECT_EQ(disc_map.dim, 2u);
     EXPECT_EQ(disc_map.nbins(), 200u);
 
     auto r_axis = disc_map.get_axis<label::e_r>();
@@ -207,7 +207,7 @@ GTEST_TEST(detray_material, trapezoid_map) {
 
     auto trapezoid_map = mat_map_factory.new_grid(t2, {10u, 20u});
 
-    EXPECT_EQ(trapezoid_map.Dim, 2u);
+    EXPECT_EQ(trapezoid_map.dim, 2u);
     EXPECT_EQ(trapezoid_map.nbins(), 200u);
 
     auto x_axis = trapezoid_map.get_axis<label::e_x>();

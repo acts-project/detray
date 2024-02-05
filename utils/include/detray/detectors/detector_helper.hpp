@@ -87,8 +87,8 @@ struct detector_helper {
         using material_id = typename surface_type::material_id;
         using material_link_type = typename surface_type::material_link;
 
-        const scalar_t min_z{std::min(lower_z, upper_z)};
-        const scalar_t max_z{std::max(lower_z, upper_z)};
+        const scalar_t min_z{math::min(lower_z, upper_z)};
+        const scalar_t max_z{math::max(lower_z, upper_z)};
 
         // translation
         point3 tsl{0.f, 0.f, 0.f};
@@ -144,8 +144,8 @@ struct detector_helper {
 
         constexpr auto disc_id = mask_id::e_portal_ring2;
 
-        const scalar_t min_r{std::min(inner_r, outer_r)};
-        const scalar_t max_r{std::max(inner_r, outer_r)};
+        const scalar_t min_r{math::min(inner_r, outer_r)};
+        const scalar_t max_r{math::max(inner_r, outer_r)};
 
         // translation
         point3 tsl{0.f, 0.f, z};
@@ -193,10 +193,10 @@ struct detector_helper {
                            const scalar_t lay_pos_z,
                            const std::vector<dindex> &volume_links) const {
         // volume bounds
-        const scalar_t inner_r{std::min(lay_inner_r, lay_outer_r)};
-        const scalar_t outer_r{std::max(lay_inner_r, lay_outer_r)};
-        const scalar_t lower_z{std::min(lay_neg_z, lay_pos_z)};
-        const scalar_t upper_z{std::max(lay_neg_z, lay_pos_z)};
+        const scalar_t inner_r{math::min(lay_inner_r, lay_outer_r)};
+        const scalar_t outer_r{math::max(lay_inner_r, lay_outer_r)};
+        const scalar_t lower_z{math::min(lay_neg_z, lay_pos_z)};
+        const scalar_t upper_z{math::max(lay_neg_z, lay_pos_z)};
 
         // Add module surfaces to volume
         typename detector_t::surface_container surfaces(&resource);
@@ -293,7 +293,7 @@ struct detector_helper {
             for (dindex bin0 = 0u; bin0 < n_bins_per_axis[0]; ++bin0) {
                 for (dindex bin1 = 0u; bin1 < n_bins_per_axis[1]; ++bin1) {
                     material_map.template populate<replace<>>(
-                        n_axis::multi_bin<2>{bin0, bin1},
+                        axis::multi_bin<2>{bin0, bin1},
                         mat[is_disc_map ? bin0 : bin1]);
                 }
             }

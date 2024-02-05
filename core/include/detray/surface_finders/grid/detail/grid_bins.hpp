@@ -8,6 +8,7 @@
 #pragma once
 
 // Project include(s).
+#include "detray/core/detail/container_views.hpp"
 #include "detray/definitions/indexing.hpp"
 #include "detray/definitions/qualifiers.hpp"
 #include "detray/utils/invalid_values.hpp"
@@ -60,6 +61,9 @@ class static_array
     using bin_view_t = detray::ranges::subrange<std::array<entry_t, N>>;
     using const_bin_view_t =
         detray::ranges::subrange<const std::array<entry_t, N>>;
+    using bin_iterator_t = typename detray::ranges::iterator_t<bin_view_t>;
+    using const_bin_iterator_t =
+        typename detray::ranges::const_iterator_t<const_bin_view_t>;
 
     public:
     using entry_type = entry_t;
@@ -72,14 +76,20 @@ class static_array
 
     /// @returns view iterator over bin content in start or end position
     /// @{
+    DETRAY_HOST_DEVICE bin_iterator_t begin() {
+        bin_view_t bv{view()};
+        return detray::ranges::begin(bv);
+    }
+    DETRAY_HOST_DEVICE bin_iterator_t end() {
+        bin_view_t bv{view()};
+        return detray::ranges::end(bv);
+    }
     DETRAY_HOST_DEVICE
-    auto begin() { return detray::ranges::begin(view()); }
+    const_bin_iterator_t begin() const {
+        return detray::ranges::cbegin(view());
+    }
     DETRAY_HOST_DEVICE
-    auto begin() const { return detray::ranges::cbegin(view()); }
-    DETRAY_HOST_DEVICE
-    auto end() { return detray::ranges::end(view()); }
-    DETRAY_HOST_DEVICE
-    auto end() const { return detray::ranges::cend(view()); }
+    const_bin_iterator_t end() const { return detray::ranges::cend(view()); }
     /// @}
 
     /// @returns the number of entries in this bin - const
@@ -142,12 +152,12 @@ class static_array
 
     private:
     /// @returns the subrange on the valid bin content - const
-    DETRAY_HOST_DEVICE constexpr auto view() const -> const_bin_view_t {
+    DETRAY_HOST_DEVICE constexpr auto view() const {
         return const_bin_view_t{m_content, dindex_range{0u, m_size}};
     }
 
     /// @returns the subrange on the valid bin content
-    DETRAY_HOST_DEVICE constexpr auto view() -> bin_view_t {
+    DETRAY_HOST_DEVICE constexpr auto view() {
         return bin_view_t{m_content, dindex_range{0u, m_size}};
     }
 
@@ -160,44 +170,56 @@ class static_array
 /// @brief Bin that views a collection of entries it does not own.
 ///
 /// Used if the bin capacity is not static.
-template <typename container_t>
+template <typename entry_t>
 class dynamic_array
-    : public detray::ranges::view_interface<dynamic_array<container_t>> {
+    : public detray::ranges::view_interface<dynamic_array<entry_t>> {
 
-    using base_type =
-        detray::ranges::view_interface<dynamic_array<container_t>>;
+    using container_t = device_container_types::template vector_type<entry_t>;
     using bin_view_t = detray::ranges::subrange<container_t>;
     using const_bin_view_t = detray::ranges::subrange<const container_t>;
 
     public:
-    using entry_type = typename container_t::value_type;
+    struct data {
+        dindex offset{0u}, size{0u}, capacity{0u};
+    };
+
+    using entry_type = entry_t;
+    using entry_ptr_t = const entry_type*;
+    using data_ptr_t = const data*;
 
     /// Default constructor initializer the bin with an invalid value
     DETRAY_HOST_DEVICE constexpr dynamic_array() { init(); };
 
     /// Construct from an externally owned container of bin content
-    /// @param bin_storage with an explict @param capacity and @param size , as
-    /// well as @param offset into the container
-    dynamic_array(container_t& bin_storage, const dindex capacity,
-                  const dindex offset = 0u, const dindex size = 0u)
-        : m_global_storage{&bin_storage},
-          m_size{size},
-          m_capacity{capacity},
-          m_offset{offset} {}
+    /// @param bin_storage and access to an offset, size and capacity
+    /// in @param bin_data
+    DETRAY_HOST_DEVICE
+    dynamic_array(entry_type* bin_storage, data& bin_data)
+        : m_global_storage{bin_storage + bin_data.offset},
+          m_data{&bin_data},
+          m_capacity{bin_data.capacity} {}
+
+    /// Construct from an externally owned container of bin content
+    /// @param bin_storage and access to an offset, size and capacity
+    /// in @param bin_data - const
+    DETRAY_HOST_DEVICE
+    dynamic_array(const entry_type* bin_storage, const data& bin_data)
+        : m_global_storage{bin_storage + bin_data.offset},
+          m_data{&bin_data},
+          m_capacity{bin_data.capacity} {}
 
     /// @returns view iterator over bin content in start or end position
     /// @{
     DETRAY_HOST_DEVICE auto begin() { return detray::ranges::begin(view()); }
-    DETRAY_HOST_DEVICE auto begin() const {
-        return detray::ranges::cbegin(view());
-    }
+    DETRAY_HOST_DEVICE
+    auto begin() const { return detray::ranges::cbegin(view()); }
     DETRAY_HOST_DEVICE auto end() { return detray::ranges::end(view()); }
     DETRAY_HOST_DEVICE auto end() const { return detray::ranges::cend(view()); }
     /// @}
 
     /// @returns the number of entries in this bin - const
     DETRAY_HOST_DEVICE
-    constexpr dindex size() const { return m_size; }
+    constexpr dindex size() const { return m_data->size; }
 
     /// The storage capacity of this bin
     DETRAY_HOST_DEVICE
@@ -206,9 +228,12 @@ class dynamic_array
     /// Add a new entry to the bin
     /// @note This does not check the state of the containter it points to!!!
     template <typename E = entry_type>
-    DETRAY_HOST_DEVICE constexpr void push_back(E&& entry) noexcept {
-        (*m_global_storage)[m_offset + m_size] = std::forward<E>(entry);
-        ++m_size;
+    DETRAY_HOST_DEVICE constexpr void push_back(E&& entry) {
+        if (m_data->size < m_capacity) {
+            *(const_cast<entry_type*>(m_global_storage) + m_data->size) =
+                std::forward<E>(entry);
+            ++(const_cast<data*>(m_data)->size);
+        }
     }
 
     /// @note The bin capacity has to be set correctly before calling this
@@ -226,13 +251,13 @@ class dynamic_array
                   detail::invalid_value<entry_type>());
 
         if (entry == detail::invalid_value<entry_type>()) {
-            m_size = 0u;
+            const_cast<data*>(m_data)->size = 0u;
             return *this;
         }
 
         // The bin has at least a capacity of 1
         this->front() = entry;
-        m_size = 1u;
+        const_cast<data*>(m_data)->size = 1u;
 
         return *this;
     }
@@ -240,38 +265,49 @@ class dynamic_array
     /// Initilialize from an entire bin content @param content.
     ///
     /// @returns Access to the initialized bin
-    DETRAY_HOST_DEVICE
-    constexpr auto init(const container_t& content) -> dynamic_array& {
+    template <typename storage_t>
+    DETRAY_HOST_DEVICE constexpr auto init(const storage_t& content)
+        -> dynamic_array& {
 
-        m_size = 0u;
-        for (dindex i{m_offset}; i < m_offset + m_capacity; ++i) {
+        const_cast<data*>(m_data)->size = 0u;
+        for (dindex i{0u}; i < m_capacity; ++i) {
             if (content[i] != detail::invalid_value<entry_type>()) {
-                m_global_storage[m_offset + i] = content[i];
-                ++m_size;
+                const_cast<entry_type*>(m_global_storage)[i] = content[i];
+                ++(const_cast<data*>(m_data)->size);
             }
         }
-
         return *this;
     }
 
     private:
     /// @returns the subrange on the valid bin content - const
-    DETRAY_HOST_DEVICE auto view() const -> const_bin_view_t {
-        return const_bin_view_t{*m_global_storage,
-                                dindex_range{m_offset, m_offset + m_size}};
+    DETRAY_HOST_DEVICE auto view() const {
+        return const_bin_view_t{m_global_storage,
+                                m_global_storage + m_data->size};
     }
 
     /// @returns the subrange on the valid bin content
-    DETRAY_HOST_DEVICE auto view() -> bin_view_t {
-        return bin_view_t{*m_global_storage,
-                          dindex_range{m_offset, m_offset + m_size}};
+    DETRAY_HOST_DEVICE auto view() {
+        return bin_view_t{
+            const_cast<entry_type*>(m_global_storage),
+            const_cast<entry_type*>(m_global_storage) + m_data->size};
     }
 
     /// Pointer to the global bin storage that is not owned by this class
-    container_t* m_global_storage{nullptr};
-    /// Current number, capacity and offset of bin entries
-    dindex m_size{0u}, m_capacity{0u}, m_offset{0u};
+    /// Includes the offset when part of a larger collection
+    entry_ptr_t m_global_storage{nullptr};
+    /// Access to bin data in the global storage
+    data_ptr_t m_data{nullptr};
+    /// Current bin capacity
+    dindex m_capacity{0u};
 };
+
+template <typename entry_t, typename data_t>
+dynamic_array(entry_t* bin_storage, data_t& bin_data) -> dynamic_array<entry_t>;
+
+template <typename entry_t, typename data_t>
+dynamic_array(const entry_t* bin_storage, const data_t& bin_data)
+    -> dynamic_array<entry_t>;
 /// @}
 
 }  // namespace detray::bins

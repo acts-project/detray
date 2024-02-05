@@ -125,7 +125,7 @@ struct material {
         if (!m_has_density_effect_data) {
             // use approximative computation as defined in ATL-SOFT-PUB-2008-003
             return 16.f * unit<scalar_type>::eV *
-                   math_ns::pow(m_z, static_cast<scalar_type>(0.9));
+                   math::pow(m_z, static_cast<scalar_type>(0.9));
         } else {
             return m_density.get_mean_excitation_energy();
         }

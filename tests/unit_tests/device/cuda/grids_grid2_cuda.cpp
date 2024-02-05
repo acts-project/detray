@@ -26,8 +26,8 @@ TEST(grids_cuda, grid2_replace_populator) {
     vecmem::cuda::managed_memory_resource mng_mr;
 
     // axis
-    axis::regular<> xaxis{4u, -1.f, 3.f, mng_mr};
-    axis::regular<> yaxis{6u, 0.f, 6.f, mng_mr};
+    axis2::regular<> xaxis{4u, -1.f, 3.f, mng_mr};
+    axis2::regular<> yaxis{6u, 0.f, 6.f, mng_mr};
 
     auto x_interval =
         (xaxis.max - xaxis.min) / static_cast<detray::scalar>(xaxis.n_bins);
@@ -74,8 +74,8 @@ TEST(grids_cuda, grid2_replace_populator_ci) {
     vecmem::cuda::managed_memory_resource mng_mr;
 
     // axis
-    axis::circular<> caxis{4u, -2.f, 2.f, mng_mr};
-    axis::irregular<> iaxis{{1.f, 3.f, 9.f, 27.f, 81.f}, mng_mr};
+    axis2::circular<> caxis{4u, -2.f, 2.f, mng_mr};
+    axis2::irregular<> iaxis{{1.f, 3.f, 9.f, 27.f, 81.f}, mng_mr};
 
     auto x_interval =
         (caxis.max - caxis.min) / static_cast<detray::scalar>(caxis.n_bins);
@@ -122,8 +122,8 @@ TEST(grids_cuda, grid2_complete_populator) {
     vecmem::cuda::managed_memory_resource mng_mr;
 
     // axis
-    axis::regular<> xaxis{7u, -1.f, 6.f, mng_mr};
-    axis::regular<> yaxis{3u, 0.f, 3.f, mng_mr};
+    axis2::regular<> xaxis{7u, -1.f, 6.f, mng_mr};
+    axis2::regular<> yaxis{3u, 0.f, 3.f, mng_mr};
 
     // declare grid
     host_grid2_complete g2(std::move(xaxis), std::move(yaxis), mng_mr,
@@ -179,9 +179,9 @@ TEST(grids_cuda, grid2_attach_populator) {
     // memory resource
     vecmem::cuda::managed_memory_resource mng_mr;
 
-    axis::circular<> xaxis{65u, -detray::constant<scalar>::pi,
-                           detray::constant<scalar>::pi, mng_mr};
-    axis::regular<> yaxis{2u, 0.f, 6.f, mng_mr};
+    axis2::circular<> xaxis{65u, -detray::constant<scalar>::pi,
+                            detray::constant<scalar>::pi, mng_mr};
+    axis2::regular<> yaxis{2u, 0.f, 6.f, mng_mr};
 
     auto x_interval =
         (xaxis.max - xaxis.min) / static_cast<detray::scalar>(xaxis.n_bins);
@@ -222,8 +222,8 @@ TEST(grids_cuda, grid2_buffer_attach_populator) {
     // memory resource
     vecmem::cuda::managed_memory_resource mng_mr;
 
-    axis::circular<> xaxis{2u, -1.f, 3.f, mng_mr};
-    axis::regular<> yaxis{2u, 0.f, 6.f, mng_mr};
+    axis2::circular<> xaxis{2u, -1.f, 3.f, mng_mr};
+    axis2::regular<> yaxis{2u, 0.f, 6.f, mng_mr};
 
     grid2_buffer<host_grid2_attach> g2_buffer(
         xaxis, yaxis, {100, 200, 300, 400}, mng_mr, nullptr,
@@ -269,8 +269,8 @@ TEST(grids_cuda, grid2_buffer_attach_populator2) {
     // memory resource
     vecmem::cuda::managed_memory_resource mng_mr;
 
-    axis::circular<> xaxis{2u, -1.f, 3.f, mng_mr};
-    axis::regular<> yaxis{2u, 0.f, 6.f, mng_mr};
+    axis2::circular<> xaxis{2u, -1.f, 3.f, mng_mr};
+    axis2::regular<> yaxis{2u, 0.f, 6.f, mng_mr};
 
     grid2_buffer<host_grid2_attach> g2_buffer(xaxis, yaxis, {1, 2, 3, 4},
                                               mng_mr);

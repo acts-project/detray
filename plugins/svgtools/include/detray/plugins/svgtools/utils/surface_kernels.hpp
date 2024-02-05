@@ -202,7 +202,7 @@ struct link_end_getter {
         // Should geometrically not happen with a local point 'surface_point'
         assert(dot_prod != 0.f);
 
-        return std::copysign(1.f, dot_prod) * surface_normal;
+        return math::copysign(1.f, dot_prod) * surface_normal;
     }
 
     /// @brief Calculates the direction of the link for cylinders (2D)

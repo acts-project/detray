@@ -8,12 +8,16 @@
 #pragma once
 
 // Project include(s).
+#include "detray/definitions/macros.hpp"
 #include "detray/definitions/qualifiers.hpp"
 #include "detray/intersection/intersection.hpp"
 #include "detray/propagator/actor_chain.hpp"
 #include "detray/propagator/base_stepper.hpp"
 #include "detray/propagator/navigator.hpp"
 #include "detray/tracks/tracks.hpp"
+
+// System include(s).
+#include <iomanip>
 
 namespace detray {
 
@@ -117,6 +121,11 @@ struct propagator {
 
         typename stepper_t::state _stepping;
         typename navigator_t::state _navigation;
+
+        bool do_debug = false;
+#if defined(__NO_DEVICE__)
+        std::stringstream debug_stream{};
+#endif
     };
 
     /// Propagate method: Coordinates the calls of the stepper, navigator and
@@ -156,6 +165,12 @@ struct propagator {
 
             // And check the status
             propagation._heartbeat &= m_navigator.update(propagation, m_cfg);
+
+#if defined(__NO_DEVICE__)
+            if (propagation.do_debug) {
+                inspect(propagation);
+            }
+#endif
         }
 
         // Pass on the whether the propagation was successful
@@ -218,11 +233,67 @@ struct propagator {
                 // And check the status
                 propagation._heartbeat &=
                     m_navigator.update(propagation, m_cfg);
+
+#if defined(__NO_DEVICE__)
+                if (propagation.do_debug) {
+                    inspect(propagation);
+                }
+#endif
             }
         }
 
         // Pass on the whether the propagation was successful
         return propagation._navigation.is_complete();
+    }
+
+    template <typename state_t>
+    DETRAY_HOST void inspect(state_t &propagation) {
+        const auto &navigation = propagation._navigation;
+        const auto &stepping = propagation._stepping;
+
+        propagation.debug_stream << std::left << std::setw(30);
+        switch (navigation.status()) {
+            case navigation::status::e_abort:
+                propagation.debug_stream << "status: abort";
+                break;
+            case navigation::status::e_on_target:
+                propagation.debug_stream << "status: e_on_target";
+                break;
+            case navigation::status::e_unknown:
+                propagation.debug_stream << "status: unknowm";
+                break;
+            case navigation::status::e_towards_object:
+                propagation.debug_stream << "status: towards_surface";
+                break;
+            case navigation::status::e_on_module:
+                propagation.debug_stream << "status: on_module";
+                break;
+            case navigation::status::e_on_portal:
+                propagation.debug_stream << "status: on_portal";
+                break;
+        };
+
+        if (detail::is_invalid_value(navigation.volume())) {
+            propagation.debug_stream << "volume: " << std::setw(10)
+                                     << "invalid";
+        } else {
+            propagation.debug_stream << "volume: " << std::setw(10)
+                                     << navigation.volume();
+        }
+
+        propagation.debug_stream << "surface: " << std::setw(14);
+        if (navigation.is_on_portal() or navigation.is_on_module()) {
+            propagation.debug_stream << navigation.barcode();
+        } else {
+            propagation.debug_stream << "undefined";
+        }
+
+        propagation.debug_stream << "step_size: " << std::setw(10)
+                                 << stepping._step_size << std::endl;
+
+        propagation.debug_stream << std::setw(10)
+                                 << detail::ray<transform3_type>(stepping())
+                                 << std::endl;
     }
 };
 

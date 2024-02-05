@@ -31,7 +31,7 @@ namespace detray {
 /// Print and adjacency list
 std::string print_adj(const dvector<dindex> &adjacency_matrix) {
 
-    std::size_t dim = static_cast<dindex>(std::sqrt(adjacency_matrix.size()));
+    std::size_t dim = static_cast<dindex>(math::sqrt(adjacency_matrix.size()));
     std::stringstream out_stream{};
 
     for (std::size_t i = 0u; i < dim - 1; ++i) {

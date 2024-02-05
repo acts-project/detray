@@ -179,8 +179,7 @@ struct cylinder_intersector {
 
                 // Get incidence angle
                 const scalar_type phi{is.local[0] / is.local[2]};
-                const vector3 normal = {math_ns::cos(phi), math_ns::sin(phi),
-                                        0.f};
+                const vector3 normal = {math::cos(phi), math::sin(phi), 0.f};
                 is.cos_incidence_angle = vector::dot(rd, normal);
             }
         } else {

@@ -67,7 +67,7 @@ GTEST_TEST(detray_materials, telescope_geometry_energy_loss) {
     using stepper_t = line_stepper<transform3>;
     using interactor_t = pointwise_material_interactor<transform3>;
     using actor_chain_t =
-        actor_chain<dtuple, propagation::print_inspector, pathlimit_aborter,
+        actor_chain<dtuple, pathlimit_aborter,
                     parameter_transporter<transform3>, interactor_t,
                     parameter_resetter<transform3>>;
     using propagator_t = propagator<stepper_t, navigator_t, actor_chain_t>;
@@ -92,21 +92,21 @@ GTEST_TEST(detray_materials, telescope_geometry_energy_loss) {
     const bound_track_parameters<transform3> bound_param(
         geometry::barcode{}.set_index(0u), bound_vector, bound_cov);
 
-    propagation::print_inspector::state print_insp_state{};
     pathlimit_aborter::state aborter_state{};
     parameter_transporter<transform3>::state bound_updater{};
     interactor_t::state interactor_state{};
     parameter_resetter<transform3>::state parameter_resetter_state{};
 
     // Create actor states tuples
-    auto actor_states = std::tie(print_insp_state, aborter_state, bound_updater,
-                                 interactor_state, parameter_resetter_state);
+    auto actor_states = std::tie(aborter_state, bound_updater, interactor_state,
+                                 parameter_resetter_state);
 
     propagator_t::state state(bound_param, det);
+    state.do_debug = true;
 
     // Propagate the entire detector
     ASSERT_TRUE(p.propagate(state, actor_states))
-        << print_insp_state.to_string() << std::endl;
+        << state.debug_stream.str() << std::endl;
 
     // muon
     const int pdg{interactor_state.pdg};
@@ -168,7 +168,7 @@ GTEST_TEST(detray_materials, telescope_geometry_energy_loss) {
      *********************************/
 
     using alt_actor_chain_t =
-        actor_chain<dtuple, propagation::print_inspector, pathlimit_aborter,
+        actor_chain<dtuple, pathlimit_aborter,
                     parameter_transporter<transform3>, next_surface_aborter,
                     interactor_t, parameter_resetter<transform3>>;
     using alt_propagator_t =
@@ -184,15 +184,13 @@ GTEST_TEST(detray_materials, telescope_geometry_energy_loss) {
         surface_count++;
 
         // Create actor states tuples
-        propagation::print_inspector::state alt_print_insp_state{};
         pathlimit_aborter::state alt_aborter_state{};
         next_surface_aborter::state next_surface_aborter_state{
             0.1f * unit<scalar>::mm};
 
-        auto alt_actor_states =
-            std::tie(alt_print_insp_state, alt_aborter_state, bound_updater,
-                     next_surface_aborter_state, interactor_state,
-                     parameter_resetter_state);
+        auto alt_actor_states = std::tie(
+            alt_aborter_state, bound_updater, next_surface_aborter_state,
+            interactor_state, parameter_resetter_state);
 
         // Propagator and its state
         alt_propagator_t alt_p{};
@@ -248,7 +246,7 @@ GTEST_TEST(detray_materials, telescope_geometry_scattering_angle) {
     using stepper_t = line_stepper<transform3>;
     using simulator_t = random_scatterer<transform3>;
     using actor_chain_t =
-        actor_chain<dtuple, propagation::print_inspector, pathlimit_aborter,
+        actor_chain<dtuple, pathlimit_aborter,
                     parameter_transporter<transform3>, simulator_t,
                     parameter_resetter<transform3>>;
     using propagator_t = propagator<stepper_t, navigator_t, actor_chain_t>;
@@ -278,7 +276,6 @@ GTEST_TEST(detray_materials, telescope_geometry_scattering_angle) {
 
     for (std::size_t i = 0u; i < n_samples; i++) {
 
-        propagation::print_inspector::state print_insp_state{};
         pathlimit_aborter::state aborter_state{};
         parameter_transporter<transform3>::state bound_updater{};
         // Seed = sample id
@@ -287,15 +284,15 @@ GTEST_TEST(detray_materials, telescope_geometry_scattering_angle) {
         parameter_resetter<transform3>::state parameter_resetter_state{};
 
         // Create actor states tuples
-        auto actor_states =
-            std::tie(print_insp_state, aborter_state, bound_updater,
-                     simulator_state, parameter_resetter_state);
+        auto actor_states = std::tie(aborter_state, bound_updater,
+                                     simulator_state, parameter_resetter_state);
 
         propagator_t::state state(bound_param, det);
+        state.do_debug = true;
 
         // Propagate the entire detector
         ASSERT_TRUE(p.propagate(state, actor_states))
-            << print_insp_state.to_string() << std::endl;
+            << state.debug_stream.str() << std::endl;
 
         const auto& final_param = state._stepping._bound_params;
 
@@ -337,8 +334,7 @@ GTEST_TEST(detray_materials, telescope_geometry_volume_material) {
     // Propagator types
     using bfield_t = bfield::const_field_t;
     using stepper_t = rk_stepper<bfield_t::view_t, transform3>;
-    using actor_chain_t =
-        actor_chain<dtuple, propagation::print_inspector, pathlimit_aborter>;
+    using actor_chain_t = actor_chain<dtuple, pathlimit_aborter>;
     using vector3 = typename transform3::vector3;
 
     // Bfield setup
@@ -393,9 +389,8 @@ GTEST_TEST(detray_materials, telescope_geometry_volume_material) {
 
         propagator_t::state state(bound_param, const_bfield, det);
 
-        propagation::print_inspector::state prt_state{};
         pathlimit_aborter::state abrt_state{path_limit};
-        auto actor_states = std::tie(prt_state, abrt_state);
+        auto actor_states = std::tie(abrt_state);
 
         p.propagate(state, actor_states);
 

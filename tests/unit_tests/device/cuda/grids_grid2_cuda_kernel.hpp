@@ -22,47 +22,47 @@ namespace detray {
 static constexpr int n_points = 3;
 
 using host_grid2_replace =
-    grid2<replace_populator, axis::regular, axis::regular, serializer2,
+    grid2<replace_populator, axis2::regular, axis2::regular, serializer2,
           vecmem::vector, vecmem::jagged_vector, darray, std::tuple,
           test::point3<detray::scalar> >;
 
 using device_grid2_replace =
-    grid2<replace_populator, axis::regular, axis::regular, serializer2,
+    grid2<replace_populator, axis2::regular, axis2::regular, serializer2,
           vecmem::device_vector, vecmem::jagged_device_vector, darray,
           std::tuple, test::point3<detray::scalar> >;
 
 using host_grid2_replace_ci =
-    grid2<replace_populator, axis::circular, axis::irregular, serializer2,
+    grid2<replace_populator, axis2::circular, axis2::irregular, serializer2,
           vecmem::vector, vecmem::jagged_vector, darray, std::tuple,
           test::point3<detray::scalar> >;
 
 using device_grid2_replace_ci =
-    grid2<replace_populator, axis::circular, axis::irregular, serializer2,
+    grid2<replace_populator, axis2::circular, axis2::irregular, serializer2,
           vecmem::device_vector, vecmem::jagged_device_vector, darray,
           std::tuple, test::point3<detray::scalar> >;
 
 using host_grid2_complete =
-    grid2<complete_populator, axis::regular, axis::regular, serializer2,
+    grid2<complete_populator, axis2::regular, axis2::regular, serializer2,
           vecmem::vector, vecmem::jagged_vector, darray, std::tuple,
           test::point3<detray::scalar>, false, n_points>;
 
 using device_grid2_complete =
-    grid2<complete_populator, axis::regular, axis::regular, serializer2,
+    grid2<complete_populator, axis2::regular, axis2::regular, serializer2,
           vecmem::device_vector, vecmem::jagged_device_vector, darray,
           std::tuple, test::point3<detray::scalar>, false, n_points>;
 
 using host_grid2_attach =
-    grid2<attach_populator, axis::circular, axis::regular, serializer2,
+    grid2<attach_populator, axis2::circular, axis2::regular, serializer2,
           vecmem::vector, vecmem::jagged_vector, darray, std::tuple,
           test::point3<detray::scalar>, false>;
 
 using device_grid2_attach =
-    grid2<attach_populator, axis::circular, axis::regular, serializer2,
+    grid2<attach_populator, axis2::circular, axis2::regular, serializer2,
           vecmem::device_vector, vecmem::jagged_device_vector, darray,
           std::tuple, test::point3<detray::scalar>, false>;
 
 using const_device_grid2_attach =
-    grid2<attach_populator, axis::circular, axis::regular, serializer2,
+    grid2<attach_populator, axis2::circular, axis2::regular, serializer2,
           vecmem::device_vector, vecmem::jagged_device_vector, darray,
           std::tuple, const test::point3<detray::scalar>, false>;
 

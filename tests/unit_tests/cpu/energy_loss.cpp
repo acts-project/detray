@@ -172,6 +172,29 @@ INSTANTIATE_TEST_SUITE_P(
                                       100.1f * unit<scalar>::GeV, 2.451f)));
 
 INSTANTIATE_TEST_SUITE_P(
+    Bethe_0p1GeV_ArLiquid, EnergyLossBetheValidation,
+    ::testing::Values(std::make_tuple(argon_liquid<scalar>(),
+                                      0.1003f * unit<scalar>::GeV, 2.34f)));
+
+/*
+~6% discrepancy
+INSTANTIATE_TEST_SUITE_P(
+    Bethe_1GeV_ArLiquid, EnergyLossBetheValidation,
+    ::testing::Values(std::make_tuple(argon_liquid<scalar>(),
+                                      1.101f * unit<scalar>::GeV, 1.644f)));
+*/
+
+INSTANTIATE_TEST_SUITE_P(
+    Bethe_10GeV_ArLiquid, EnergyLossBetheValidation,
+    ::testing::Values(std::make_tuple(argon_liquid<scalar>(),
+                                      10.11f * unit<scalar>::GeV, 2.003f)));
+
+INSTANTIATE_TEST_SUITE_P(
+    Bethe_100GeV_ArLiquid, EnergyLossBetheValidation,
+    ::testing::Values(std::make_tuple(argon_liquid<scalar>(),
+                                      100.1f * unit<scalar>::GeV, 2.258f)));
+
+INSTANTIATE_TEST_SUITE_P(
     Bethe_0p1GeV_Fe, EnergyLossBetheValidation,
     ::testing::Values(std::make_tuple(iron<scalar>(),
                                       0.1003f * unit<scalar>::GeV, 2.274f)));
@@ -192,6 +215,26 @@ INSTANTIATE_TEST_SUITE_P(
 INSTANTIATE_TEST_SUITE_P(
     Bethe_100GeV_Fe, EnergyLossBetheValidation,
     ::testing::Values(std::make_tuple(iron<scalar>(),
+                                      100.1f * unit<scalar>::GeV, 2.207f)));
+
+INSTANTIATE_TEST_SUITE_P(
+    Bethe_0p1GeV_Fe_with_DED, EnergyLossBetheValidation,
+    ::testing::Values(std::make_tuple(iron_with_ded<scalar>(),
+                                      0.1003f * unit<scalar>::GeV, 2.274f)));
+
+INSTANTIATE_TEST_SUITE_P(
+    Bethe_1GeV_Fe_with_DED, EnergyLossBetheValidation,
+    ::testing::Values(std::make_tuple(iron_with_ded<scalar>(),
+                                      1.101f * unit<scalar>::GeV, 1.581f)));
+
+INSTANTIATE_TEST_SUITE_P(
+    Bethe_10GeV_Fe_with_DED, EnergyLossBetheValidation,
+    ::testing::Values(std::make_tuple(iron_with_ded<scalar>(),
+                                      10.11f * unit<scalar>::GeV, 1.942f)));
+
+INSTANTIATE_TEST_SUITE_P(
+    Bethe_100GeV_Fe_with_DED, EnergyLossBetheValidation,
+    ::testing::Values(std::make_tuple(iron_with_ded<scalar>(),
                                       100.1f * unit<scalar>::GeV, 2.207f)));
 
 /*

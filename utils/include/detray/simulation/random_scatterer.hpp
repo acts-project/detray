@@ -201,7 +201,7 @@ struct random_scatterer : actor {
             landau_distribution<scalar_type>{}(generator, mpv, sigma);
 
         // E = sqrt(m^2 + p^2)
-        const auto energy = std::sqrt(m0 * m0 + p0 * p0);
+        const auto energy = math::sqrt(m0 * m0 + p0 * p0);
         const auto new_energy = energy - e_loss;
 
         auto p2 = new_energy * new_energy - m0 * m0;
@@ -212,7 +212,7 @@ struct random_scatterer : actor {
         }
 
         // p = sqrt(E^2 - m^2)
-        return std::sqrt(p2);
+        return math::sqrt(p2);
     }
 
     /// @brief Scatter the direction with projected scattering angle

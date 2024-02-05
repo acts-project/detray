@@ -24,12 +24,12 @@ __global__ void grid_replace_test_kernel(
     device_grid3_single g3_device(grid_view);
 
     // Get axes on the device-side
-    const auto& axis_x = g3_device.template get_axis<n_axis::label::e_x>();
-    const auto& axis_y = g3_device.template get_axis<n_axis::label::e_y>();
-    const auto& axis_z = g3_device.template get_axis<n_axis::label::e_z>();
+    const auto& axis_x = g3_device.template get_axis<axis::label::e_x>();
+    const auto& axis_y = g3_device.template get_axis<axis::label::e_y>();
+    const auto& axis_z = g3_device.template get_axis<axis::label::e_z>();
 
     dindex gid = g3_device.serialize(
-        detray::n_axis::multi_bin<3>{threadIdx.x, threadIdx.y, threadIdx.z});
+        detray::axis::multi_bin<3>{threadIdx.x, threadIdx.y, threadIdx.z});
 
     point3 tp{axis_x.min() + gid * axis_x.bin_width(),
               axis_y.min() + gid * axis_y.bin_width(),
@@ -61,8 +61,8 @@ __global__ void grid_replace_ci_test_kernel(
     device_grid2_single_ci g2_device(grid_view);
 
     // Get axes on the device-side
-    const auto& axis_r = g2_device.template get_axis<n_axis::label::e_r>();
-    const auto& axis_phi = g2_device.template get_axis<n_axis::label::e_phi>();
+    const auto& axis_r = g2_device.template get_axis<axis::label::e_r>();
+    const auto& axis_phi = g2_device.template get_axis<axis::label::e_phi>();
 
     auto gid = threadIdx.x + threadIdx.y * blockDim.x;
 
@@ -98,8 +98,8 @@ __global__ void grid_complete_kernel(host_grid2_array::view_type grid_view) {
     device_grid2_array g2_device(grid_view);
 
     // Get axes on the device-side
-    const auto& axis_r = g2_device.template get_axis<n_axis::label::e_r>();
-    const auto& axis_phi = g2_device.template get_axis<n_axis::label::e_phi>();
+    const auto& axis_r = g2_device.template get_axis<axis::label::e_r>();
+    const auto& axis_phi = g2_device.template get_axis<axis::label::e_phi>();
 
     auto gid = threadIdx.x + threadIdx.y * blockDim.x;
     auto tp = point3{axis_r.min() + gid * axis_r.bin_width(),
@@ -134,8 +134,8 @@ __global__ void grid_attach_kernel(host_grid2_array::view_type grid_view) {
     device_grid2_array g2_device(grid_view);
 
     // Get axes on the device-side
-    const auto& axis_r = g2_device.template get_axis<n_axis::label::e_r>();
-    const auto& axis_phi = g2_device.template get_axis<n_axis::label::e_phi>();
+    const auto& axis_r = g2_device.template get_axis<axis::label::e_r>();
+    const auto& axis_phi = g2_device.template get_axis<axis::label::e_phi>();
 
     auto width_r = axis_r.m_binning.bin_width();
     auto width_phi = axis_phi.m_binning.bin_width();
@@ -162,6 +162,42 @@ void grid_attach_test(host_grid2_array::view_type grid_view, std::size_t dim_x,
     DETRAY_CUDA_ERROR_CHECK(cudaDeviceSynchronize());
 }
 
+// cuda kernel for grid_dynamic_attach_test
+__global__ void grid_dynamic_attach_kernel(
+    host_grid2_dynamic_array::view_type grid_view) {
+
+    // Let's try building the grid object
+    device_grid2_dynamic_array g2_device(grid_view);
+
+    // Get axes on the device-side
+    const auto& axis_r = g2_device.template get_axis<axis::label::e_r>();
+    const auto& axis_phi = g2_device.template get_axis<axis::label::e_phi>();
+
+    auto width_r = axis_r.m_binning.bin_width();
+    auto width_phi = axis_phi.m_binning.bin_width();
+
+    auto gid = threadIdx.x + threadIdx.y * blockDim.x;
+    auto tp = point3{axis_r.min() + gid * width_r,
+                     axis_phi.min() + gid * width_phi, 0.5f};
+
+    g2_device.template populate<attach<>>(gid, std::move(tp));
+}
+
+// grid_dynamic_attach_test implementation
+void grid_dynamic_attach_test(host_grid2_dynamic_array::view_type grid_view,
+                              std::size_t dim_x, std::size_t dim_y) {
+
+    int block_dim = 1;
+    dim3 thread_dim(dim_x, dim_y);
+
+    // run the kernel
+    grid_dynamic_attach_kernel<<<block_dim, thread_dim>>>(grid_view);
+
+    // cuda error check
+    DETRAY_CUDA_ERROR_CHECK(cudaGetLastError());
+    DETRAY_CUDA_ERROR_CHECK(cudaDeviceSynchronize());
+}
+
 //----------------------------------------------------
 // Device side grid reader for debugging
 //----------------------------------------------------
@@ -172,8 +208,8 @@ __global__ void print_grid_kernel(view_t grid_view) {
     // Let's try building the grid object
     device_grid_t g2_device(grid_view);
 
-    n_axis::multi_bin<device_grid_t::Dim> mbin;
-    if constexpr (device_grid_t::Dim == 2) {
+    axis::multi_bin<device_grid_t::dim> mbin;
+    if constexpr (device_grid_t::dim == 2) {
         mbin = {threadIdx.x, threadIdx.y};
     } else {
         mbin = {threadIdx.x, threadIdx.y, threadIdx.z};
@@ -209,28 +245,32 @@ template void print_grid<device_grid2_single_ci>(
 template void print_grid<device_grid2_array>(host_grid2_array::view_type,
                                              dindex, dindex);
 
+template void print_grid<device_grid2_dynamic_array>(
+    device_grid2_dynamic_array::view_type, dindex, dindex);
+
 //---------------------------------------
 //  test function for collection of grids
 //---------------------------------------
 
 /// cuda kernel for grid_collection_test
 __global__ void grid_collection_test_kernel(
-    grid_collection<n_own_host_grid2_array>::view_type grid_coll_view,
+    grid_collection<n_own_host_grid3_array>::view_type grid_coll_view,
     vecmem::data::vector_view<dindex> n_bins_view,
     vecmem::data::vector_view<std::array<dindex, 3>> result_bins_view) {
+
     // Let's try building the grid object
-    grid_collection<n_own_device_grid2_array> device_coll(grid_coll_view);
+    grid_collection<n_own_device_grid3_array> device_coll(grid_coll_view);
     vecmem::device_vector<dindex> n_bins(n_bins_view);
     vecmem::device_vector<std::array<dindex, 3>> result_bins(result_bins_view);
 
     // test the grid axes of the second grid in the collection
     if (threadIdx.x == 0 and threadIdx.y == 0 and threadIdx.z == 0) {
         const auto& axis_r =
-            device_coll[blockIdx.x].template get_axis<n_axis::label::e_r>();
+            device_coll[blockIdx.x].template get_axis<axis::label::e_r>();
         const auto& axis_phi =
-            device_coll[blockIdx.x].template get_axis<n_axis::label::e_phi>();
+            device_coll[blockIdx.x].template get_axis<axis::label::e_phi>();
         const auto& axis_z =
-            device_coll[blockIdx.x].template get_axis<n_axis::label::e_z>();
+            device_coll[blockIdx.x].template get_axis<axis::label::e_z>();
 
         n_bins[0 + blockIdx.x * 3] = axis_r.nbins();
         n_bins[1 + blockIdx.x * 3] = axis_phi.nbins();
@@ -250,7 +290,7 @@ __global__ void grid_collection_test_kernel(
 
 /// grid_collection_test implementation
 void grid_collection_test(
-    grid_collection<n_own_host_grid2_array>::view_type grid_coll_view,
+    grid_collection<n_own_host_grid3_array>::view_type grid_coll_view,
     vecmem::data::vector_view<dindex> n_bins_view,
     vecmem::data::vector_view<std::array<dindex, 3>> result_bins_view,
     std::size_t n_grids, std::size_t dim_x, std::size_t dim_y,

@@ -68,7 +68,7 @@ class grid_writer : public writer_interface<detector_t> {
         grid_data.acc_link = base_type::serialize(type, idx);
 
         // Serialize the multi-axis into single axis payloads
-        const std::array<axis_payload, grid_t::Dim> axes_data =
+        const std::array<axis_payload, grid_t::dim> axes_data =
             serialize(gr.axes());
 
         grid_data.axes.resize(axes_data.size());
@@ -89,7 +89,7 @@ class grid_writer : public writer_interface<detector_t> {
     /// Serialize a multi-axis @param axes into its io payload
     template <bool ownership, typename local_frame_t, typename... axis_ts>
     static auto serialize(
-        const n_axis::multi_axis<ownership, local_frame_t, axis_ts...>& axes) {
+        const axis::multi_axis<ownership, local_frame_t, axis_ts...>& axes) {
 
         // Serialize every single axis and construct array from their payloads
         std::array<axis_payload, sizeof...(axis_ts)> axes_data{
@@ -101,7 +101,7 @@ class grid_writer : public writer_interface<detector_t> {
     /// Serialize a single axis @param axis into its io payload
     template <typename bounds_t, typename binning_t>
     static axis_payload serialize(
-        const n_axis::single_axis<bounds_t, binning_t>& axis) {
+        const axis::single_axis<bounds_t, binning_t>& axis) {
         axis_payload axis_data;
 
         axis_data.binning = axis.binning();
@@ -109,7 +109,7 @@ class grid_writer : public writer_interface<detector_t> {
         axis_data.label = axis.label();
         axis_data.bins = axis.nbins();
 
-        if (axis.binning() == n_axis::binning::e_regular) {
+        if (axis.binning() == axis::binning::e_regular) {
             axis_data.edges = {axis.min(), axis.max()};
         } else {
             const auto& bin_edges = axis.bin_edges();
@@ -124,7 +124,7 @@ class grid_writer : public writer_interface<detector_t> {
     /// Serialize a multi-bin @param mbin into its io payload
     template <typename content_t, std::size_t DIM, typename content_range_t>
     static grid_bin_payload<content_t> serialize(
-        const n_axis::multi_bin<DIM> mbin, const content_range_t& content,
+        const axis::multi_bin<DIM> mbin, const content_range_t& content,
         std::function<content_t(const value_t&)> serializer) {
 
         grid_bin_payload<content_t> bin_data;

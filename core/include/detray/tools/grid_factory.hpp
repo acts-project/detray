@@ -12,7 +12,8 @@
 #include "detray/definitions/units.hpp"
 #include "detray/intersection/cylinder_portal_intersector.hpp"
 #include "detray/masks/masks.hpp"
-#include "detray/surface_finders/grid/axis.hpp"
+#include "detray/surface_finders/grid/detail/axis.hpp"
+#include "detray/surface_finders/grid/detail/axis_helpers.hpp"
 #include "detray/surface_finders/grid/grid.hpp"
 #include "detray/surface_finders/grid/grid_collection.hpp"
 #include "detray/surface_finders/grid/populators.hpp"
@@ -67,23 +68,32 @@ class grid_factory {
     // annulus 2D
     //
     template <
-        typename r_bounds = n_axis::closed<n_axis::label::e_r>,
-        typename phi_bounds = n_axis::circular<>,
-        typename r_binning = n_axis::regular<host_container_types, scalar_type>,
-        typename phi_binning =
-            n_axis::regular<host_container_types, scalar_type>>
+        typename r_bounds = axis::closed<axis::label::e_r>,
+        typename phi_bounds = axis::circular<>,
+        typename r_binning = axis::regular<host_container_types, scalar_type>,
+        typename phi_binning = axis::regular<host_container_types, scalar_type>,
+        std::enable_if_t<std::is_enum_v<decltype(r_bounds::label)>, bool> =
+            true>
     auto new_grid(const mask<annulus2D<>> &grid_bounds,
                   const std::array<std::size_t, 2UL> n_bins,
                   const std::array<std::vector<scalar_type>, 2UL> &bin_edges = {
                       {}}) const {
+
+        static_assert(
+            std::is_same_v<phi_bounds, axis::circular<>>,
+            "Phi axis bounds need to be circular for stereo annulus shape");
+
         // Axes boundaries and local indices
         using boundary = annulus2D<>::boundaries;
-        using axes = annulus2D<>::axes<>;
-        constexpr auto e_r_axis = static_cast<dindex>(axes::axis_loc0);
-        constexpr auto e_phi_axis = static_cast<dindex>(axes::axis_loc1);
+        using axes_t = axes<annulus2D<>>::template type<algebra_t>;
+        using local_frame = typename axes_t::template frame<algebra_t>;
+
+        constexpr auto e_r_axis = static_cast<dindex>(axes_t::label0);
+        constexpr auto e_phi_axis = static_cast<dindex>(axes_t::label1);
+
         auto b_values = grid_bounds.values();
 
-        return new_grid<annulus2D<>>(
+        return new_grid<local_frame>(
             {b_values[boundary::e_min_r], b_values[boundary::e_max_r],
              b_values[boundary::e_average_phi] -
                  b_values[boundary::e_min_phi_rel],
@@ -99,26 +109,30 @@ class grid_factory {
     // cuboid 3D
     //
     template <
-        typename x_bounds = n_axis::closed<n_axis::label::e_x>,
-        typename y_bounds = n_axis::closed<n_axis::label::e_y>,
-        typename z_bounds = n_axis::closed<n_axis::label::e_z>,
-        typename x_binning = n_axis::regular<host_container_types, scalar_type>,
-        typename y_binning = n_axis::regular<host_container_types, scalar_type>,
-        typename z_binning = n_axis::regular<host_container_types, scalar_type>>
+        typename x_bounds = axis::closed<axis::label::e_x>,
+        typename y_bounds = axis::closed<axis::label::e_y>,
+        typename z_bounds = axis::closed<axis::label::e_z>,
+        typename x_binning = axis::regular<host_container_types, scalar_type>,
+        typename y_binning = axis::regular<host_container_types, scalar_type>,
+        typename z_binning = axis::regular<host_container_types, scalar_type>,
+        std::enable_if_t<std::is_enum_v<decltype(x_bounds::label)>, bool> =
+            true>
     auto new_grid(const mask<cuboid3D<>> &grid_bounds,
                   const std::array<std::size_t, 3UL> n_bins,
                   const std::array<std::vector<scalar_type>, 3UL> &bin_edges = {
                       {}}) const {
         // Axes boundaries and local indices
         using boundary = cuboid3D<>::boundaries;
-        using axes = cuboid3D<>::axes<>;
-        constexpr auto e_x_axis = static_cast<dindex>(axes::axis_loc0);
-        constexpr auto e_y_axis = static_cast<dindex>(axes::axis_loc1);
-        constexpr auto e_z_axis = static_cast<dindex>(axes::axis_loc2);
+        using axes_t = axes<cuboid3D<>>::template type<algebra_t>;
+        using local_frame = typename axes_t::template frame<algebra_t>;
+
+        constexpr auto e_x_axis = static_cast<dindex>(axes_t::label0);
+        constexpr auto e_y_axis = static_cast<dindex>(axes_t::label1);
+        constexpr auto e_z_axis = static_cast<dindex>(axes_t::label2);
 
         auto b_values = grid_bounds.values();
 
-        return new_grid<cuboid3D<>>(
+        return new_grid<local_frame>(
             {b_values[boundary::e_min_x], b_values[boundary::e_max_x],
              b_values[boundary::e_min_y], b_values[boundary::e_max_y],
              b_values[boundary::e_min_z], b_values[boundary::e_max_z]},
@@ -132,26 +146,34 @@ class grid_factory {
     // cylinder 2D
     //
     template <
-        typename rphi_bounds = n_axis::circular<n_axis::label::e_rphi>,
-        typename z_bounds = n_axis::closed<n_axis::label::e_cyl_z>,
+        typename rphi_bounds = axis::circular<axis::label::e_rphi>,
+        typename z_bounds = axis::closed<axis::label::e_cyl_z>,
         typename rphi_binning =
-            n_axis::regular<host_container_types, scalar_type>,
-        typename z_binning = n_axis::regular<host_container_types, scalar_type>>
+            axis::regular<host_container_types, scalar_type>,
+        typename z_binning = axis::regular<host_container_types, scalar_type>,
+        std::enable_if_t<std::is_enum_v<decltype(rphi_bounds::label)>, bool> =
+            true>
     auto new_grid(const mask<cylinder2D<>> &grid_bounds,
                   const std::array<std::size_t, 2UL> n_bins,
                   const std::array<std::vector<scalar_type>, 2UL> &bin_edges = {
                       {}}) const {
+
+        static_assert(
+            std::is_same_v<rphi_bounds, axis::circular<axis::label::e_rphi>>,
+            "Phi axis bounds need to be circular for cylinder2D shape");
+
         // Axes boundaries and local indices
         using boundary = cylinder2D<>::boundaries;
-        using axes = cylinder2D<>::axes<>;
-        constexpr auto e_rphi_axis = static_cast<dindex>(axes::axis_loc0);
-        constexpr auto e_z_axis = static_cast<dindex>(axes::axis_loc1);
+        using axes_t = axes<cylinder2D<>>::template type<algebra_t>;
+        using local_frame = typename axes_t::template frame<algebra_t>;
+
+        constexpr auto e_rphi_axis = static_cast<dindex>(axes_t::label0);
+        constexpr auto e_z_axis = static_cast<dindex>(axes_t::label1);
 
         auto b_values = grid_bounds.values();
 
-        return new_grid<cylinder2D<>>(
-            {-constant<scalar_type>::pi * b_values[boundary::e_r],
-             constant<scalar_type>::pi * b_values[boundary::e_r],
+        return new_grid<local_frame>(
+            {-constant<scalar_type>::pi, constant<scalar_type>::pi,
              b_values[boundary::e_n_half_z], b_values[boundary::e_p_half_z]},
             {n_bins[e_rphi_axis], n_bins[e_z_axis]},
             {bin_edges[e_rphi_axis], bin_edges[e_z_axis]},
@@ -163,27 +185,35 @@ class grid_factory {
     // cylinder 2D
     //
     template <
-        typename rphi_bounds = n_axis::circular<n_axis::label::e_rphi>,
-        typename z_bounds = n_axis::closed<n_axis::label::e_cyl_z>,
+        typename rphi_bounds = axis::circular<axis::label::e_rphi>,
+        typename z_bounds = axis::closed<axis::label::e_cyl_z>,
         typename rphi_binning =
-            n_axis::regular<host_container_types, scalar_type>,
-        typename z_binning = n_axis::regular<host_container_types, scalar_type>>
+            axis::regular<host_container_types, scalar_type>,
+        typename z_binning = axis::regular<host_container_types, scalar_type>,
+        std::enable_if_t<std::is_enum_v<decltype(rphi_bounds::label)>, bool> =
+            true>
     auto new_grid(
         const mask<cylinder2D<false, cylinder_portal_intersector>> &grid_bounds,
         const std::array<std::size_t, 2UL> n_bins,
         const std::array<std::vector<scalar_type>, 2UL> &bin_edges = {
             {}}) const {
+
+        static_assert(
+            std::is_same_v<rphi_bounds, axis::circular<axis::label::e_rphi>>,
+            "Phi axis bounds need to be circular for cylinder2D portal shape");
+
         // Axes boundaries and local indices
         using boundary = cylinder2D<>::boundaries;
-        using axes = cylinder2D<>::axes<>;
-        constexpr auto e_rphi_axis = static_cast<dindex>(axes::axis_loc0);
-        constexpr auto e_z_axis = static_cast<dindex>(axes::axis_loc1);
+        using axes_t = axes<cylinder2D<>>::template type<algebra_t>;
+        using local_frame = typename axes_t::template frame<algebra_t>;
+
+        constexpr auto e_rphi_axis = static_cast<dindex>(axes_t::label0);
+        constexpr auto e_z_axis = static_cast<dindex>(axes_t::label1);
 
         auto b_values = grid_bounds.values();
 
-        return new_grid<cylinder2D<>>(
-            {-constant<scalar_type>::pi * b_values[boundary::e_r],
-             constant<scalar_type>::pi * b_values[boundary::e_r],
+        return new_grid<local_frame>(
+            {-constant<scalar_type>::pi, constant<scalar_type>::pi,
              b_values[boundary::e_n_half_z], b_values[boundary::e_p_half_z]},
             {n_bins[e_rphi_axis], n_bins[e_z_axis]},
             {bin_edges[e_rphi_axis], bin_edges[e_z_axis]},
@@ -195,26 +225,35 @@ class grid_factory {
     // cylinder 3D
     //
     template <
-        typename r_bounds = n_axis::closed<n_axis::label::e_r>,
-        typename phi_bounds = n_axis::circular<>,
-        typename z_bounds = n_axis::closed<n_axis::label::e_z>,
-        typename r_binning = n_axis::regular<host_container_types, scalar_type>,
-        typename phi_binning =
-            n_axis::regular<host_container_types, scalar_type>,
-        typename z_binning = n_axis::regular<host_container_types, scalar_type>>
+        typename r_bounds = axis::closed<axis::label::e_r>,
+        typename phi_bounds = axis::circular<>,
+        typename z_bounds = axis::closed<axis::label::e_z>,
+        typename r_binning = axis::regular<host_container_types, scalar_type>,
+        typename phi_binning = axis::regular<host_container_types, scalar_type>,
+        typename z_binning = axis::regular<host_container_types, scalar_type>,
+        std::enable_if_t<std::is_enum_v<decltype(r_bounds::label)>, bool> =
+            true>
     auto new_grid(const mask<cylinder3D> &grid_bounds,
                   const std::array<std::size_t, 3UL> n_bins,
                   const std::array<std::vector<scalar_type>, 3UL> &bin_edges = {
                       {}}) const {
+
+        static_assert(
+            std::is_same_v<phi_bounds, axis::circular<>>,
+            "Phi axis bounds need to be circular for cylinder3D shape");
+
         // Axes boundaries and local indices
         using boundary = cylinder3D::boundaries;
-        using axes = cylinder3D::axes<>;
-        constexpr auto e_r_axis = static_cast<dindex>(axes::axis_loc0);
-        constexpr auto e_phi_axis = static_cast<dindex>(axes::axis_loc1);
-        constexpr auto e_z_axis = static_cast<dindex>(axes::axis_loc2);
+        using axes_t = axes<cylinder3D>::template type<algebra_t>;
+        using local_frame = typename axes_t::template frame<algebra_t>;
+
+        constexpr auto e_r_axis = static_cast<dindex>(axes_t::label0);
+        constexpr auto e_phi_axis = static_cast<dindex>(axes_t::label1);
+        constexpr auto e_z_axis = static_cast<dindex>(axes_t::label2);
+
         auto b_values = grid_bounds.values();
 
-        return new_grid<cylinder3D>(
+        return new_grid<local_frame>(
             {b_values[boundary::e_min_r], b_values[boundary::e_max_r],
              b_values[boundary::e_min_phi], b_values[boundary::e_max_phi],
              -b_values[boundary::e_min_z], b_values[boundary::e_max_z]},
@@ -228,24 +267,31 @@ class grid_factory {
     // polar 2D
     //
     template <
-        typename r_bounds = n_axis::closed<n_axis::label::e_r>,
-        typename phi_bounds = n_axis::circular<>,
-        typename r_binning = n_axis::regular<host_container_types, scalar_type>,
-        typename phi_binning =
-            n_axis::regular<host_container_types, scalar_type>>
+        typename r_bounds = axis::closed<axis::label::e_r>,
+        typename phi_bounds = axis::circular<>,
+        typename r_binning = axis::regular<host_container_types, scalar_type>,
+        typename phi_binning = axis::regular<host_container_types, scalar_type>,
+        std::enable_if_t<std::is_enum_v<decltype(r_bounds::label)>, bool> =
+            true>
     auto new_grid(const mask<ring2D<>> &grid_bounds,
                   const std::array<std::size_t, 2UL> n_bins,
                   const std::array<std::vector<scalar_type>, 2UL> &bin_edges = {
                       {}}) const {
+
+        static_assert(std::is_same_v<phi_bounds, axis::circular<>>,
+                      "Phi axis bounds need to be circular for ring shape");
+
         // Axes boundaries and local indices
         using boundary = ring2D<>::boundaries;
-        using axes = ring2D<>::axes<>;
-        constexpr auto e_r_axis = static_cast<dindex>(axes::axis_loc0);
-        constexpr auto e_phi_axis = static_cast<dindex>(axes::axis_loc1);
+        using axes_t = axes<ring2D<>>::template type<algebra_t>;
+        using local_frame = typename axes_t::template frame<algebra_t>;
+
+        constexpr auto e_r_axis = static_cast<dindex>(axes_t::label0);
+        constexpr auto e_phi_axis = static_cast<dindex>(axes_t::label1);
 
         auto b_values = grid_bounds.values();
 
-        return new_grid<ring2D<>>(
+        return new_grid<local_frame>(
             {b_values[boundary::e_inner_r], b_values[boundary::e_outer_r],
              -constant<scalar_type>::pi, constant<scalar_type>::pi},
             {n_bins[e_r_axis], n_bins[e_phi_axis]},
@@ -258,23 +304,27 @@ class grid_factory {
     // rectangle 2D
     //
     template <
-        typename x_bounds = n_axis::closed<n_axis::label::e_x>,
-        typename y_bounds = n_axis::closed<n_axis::label::e_y>,
-        typename x_binning = n_axis::regular<host_container_types, scalar_type>,
-        typename y_binning = n_axis::regular<host_container_types, scalar_type>>
+        typename x_bounds = axis::closed<axis::label::e_x>,
+        typename y_bounds = axis::closed<axis::label::e_y>,
+        typename x_binning = axis::regular<host_container_types, scalar_type>,
+        typename y_binning = axis::regular<host_container_types, scalar_type>,
+        std::enable_if_t<std::is_enum_v<decltype(x_bounds::label)>, bool> =
+            true>
     auto new_grid(const mask<rectangle2D<>> &grid_bounds,
                   const std::array<std::size_t, 2UL> n_bins,
                   const std::array<std::vector<scalar_type>, 2UL> &bin_edges = {
                       {}}) const {
         // Axes boundaries and local indices
         using boundary = rectangle2D<>::boundaries;
-        using axes = rectangle2D<>::axes<>;
-        constexpr auto e_x_axis = static_cast<dindex>(axes::axis_loc0);
-        constexpr auto e_y_axis = static_cast<dindex>(axes::axis_loc1);
+        using axes_t = axes<rectangle2D<>>::template type<algebra_t>;
+        using local_frame = typename axes_t::template frame<algebra_t>;
+
+        constexpr auto e_x_axis = static_cast<dindex>(axes_t::label0);
+        constexpr auto e_y_axis = static_cast<dindex>(axes_t::label1);
 
         auto b_values = grid_bounds.values();
 
-        return new_grid<rectangle2D<>>(
+        return new_grid<local_frame>(
             {-b_values[boundary::e_half_x], b_values[boundary::e_half_x],
              -b_values[boundary::e_half_y], b_values[boundary::e_half_y]},
             {n_bins[e_x_axis], n_bins[e_y_axis]},
@@ -287,62 +337,34 @@ class grid_factory {
     // trapezoid 2D
     //
     template <
-        typename x_bounds = n_axis::closed<n_axis::label::e_x>,
-        typename y_bounds = n_axis::closed<n_axis::label::e_y>,
-        typename x_binning = n_axis::regular<host_container_types, scalar_type>,
-        typename y_binning = n_axis::regular<host_container_types, scalar_type>>
+        typename x_bounds = axis::closed<axis::label::e_x>,
+        typename y_bounds = axis::closed<axis::label::e_y>,
+        typename x_binning = axis::regular<host_container_types, scalar_type>,
+        typename y_binning = axis::regular<host_container_types, scalar_type>,
+        std::enable_if_t<std::is_enum_v<decltype(x_bounds::label)>, bool> =
+            true>
     auto new_grid(const mask<trapezoid2D<>> &grid_bounds,
                   const std::array<std::size_t, 2UL> n_bins,
                   const std::array<std::vector<scalar_type>, 2UL> &bin_edges = {
                       {}}) const {
         // Axes boundaries and local indices
         using boundary = trapezoid2D<>::boundaries;
-        using axes = trapezoid2D<>::axes<>;
+        using axes_t = axes<trapezoid2D<>>::template type<algebra_t>;
+        using local_frame = typename axes_t::template frame<algebra_t>;
 
-        constexpr auto e_x_axis = static_cast<dindex>(axes::axis_loc0);
-        constexpr auto e_y_axis = static_cast<dindex>(axes::axis_loc1);
+        constexpr auto e_x_axis = static_cast<dindex>(axes_t::label0);
+        constexpr auto e_y_axis = static_cast<dindex>(axes_t::label1);
 
         auto b_values = grid_bounds.values();
 
-        return new_grid<trapezoid2D<>>(
-            {-b_values[boundary::e_half_length_1],
-             b_values[boundary::e_half_length_1],
-             -b_values[boundary::e_half_length_2],
-             b_values[boundary::e_half_length_2]},
-            {n_bins[e_x_axis], n_bins[e_y_axis]},
-            {bin_edges[e_x_axis], bin_edges[e_y_axis]},
-            types::list<x_bounds, y_bounds>{},
-            types::list<x_binning, y_binning>{});
-    }
-
-    /// @brief Create and empty grid with fully initialized axes.
-    ///
-    /// @tparam grid_shape_t the shape of the resulting grid
-    ///         (e.g. cylinder2D).
-    /// @tparam e_bounds the bounds of the regular axes
-    ///         (open vs. closed bounds).
-    /// @tparam binnings the binning types of the axes
-    ///         (regular vs. irregular)
-    ///
-    /// @param spans the span of the axis values for regular axes, otherwise
-    ///              ignored.
-    /// @param n_bins the number of bins for regular axes, otherwise ignored
-    /// @param ax_bin_edges the explicit bin edges for irregular axes
-    ///                     (lower bin edges + the the upper edge of the
-    ///                     last bin), otherwise ignored.
-    template <
-        typename grid_shape_t, typename... bound_ts, typename... binning_ts,
-        std::enable_if_t<std::is_enum_v<typename grid_shape_t::boundaries>,
-                         bool> = true>
-    auto new_grid(const std::vector<scalar_type> spans,
-                  const std::vector<std::size_t> n_bins,
-                  const std::vector<std::vector<scalar_type>> &ax_bin_edges,
-                  const types::list<bound_ts...> &bounds,
-                  const types::list<binning_ts...> &binnings) const {
-
-        return new_grid<
-            typename grid_shape_t::template local_frame_type<algebra_t>>(
-            spans, n_bins, ax_bin_edges, bounds, binnings);
+        return new_grid<local_frame>({-b_values[boundary::e_half_length_1],
+                                      b_values[boundary::e_half_length_1],
+                                      -b_values[boundary::e_half_length_2],
+                                      b_values[boundary::e_half_length_2]},
+                                     {n_bins[e_x_axis], n_bins[e_y_axis]},
+                                     {bin_edges[e_x_axis], bin_edges[e_y_axis]},
+                                     types::list<x_bounds, y_bounds>{},
+                                     types::list<x_binning, y_binning>{});
     }
 
     /// @brief Create and empty grid with fully initialized axes.
@@ -376,17 +398,88 @@ class grid_factory {
 
         // Build the coordinate axes and the grid
         using axes_t =
-            n_axis::multi_axis<is_owning, grid_frame_t,
-                               n_axis::single_axis<bound_ts, binning_ts>...>;
+            axis::multi_axis<is_owning, grid_frame_t,
+                             axis::single_axis<bound_ts, binning_ts>...>;
+        using grid_t = grid<axes_t, bin_t, serializer_t>;
+
+        return new_grid<grid_t>(spans, n_bins, ax_bin_edges);
+    }
+
+    /// Helper to build grid from shape plus binning and bounds types
+    template <
+        typename grid_shape_t, typename... bound_ts, typename... binning_ts,
+        std::enable_if_t<std::is_enum_v<typename grid_shape_t::boundaries>,
+                         bool> = true>
+    auto new_grid(const std::vector<scalar_type> spans,
+                  const std::vector<std::size_t> n_bins,
+                  const std::vector<std::vector<scalar_type>> &ax_bin_edges,
+                  const types::list<bound_ts...> &bounds,
+                  const types::list<binning_ts...> &binnings) const {
+
+        return new_grid<
+            typename grid_shape_t::template local_frame_type<algebra_t>>(
+            spans, n_bins, ax_bin_edges, bounds, binnings);
+    }
+
+    /// Helper overload for grid builder: Build from mask and resolve bounds
+    /// and binnings from concrete grid type
+    template <typename grid_t, typename grid_shape_t,
+              std::enable_if_t<detail::is_grid_v<grid_t>, bool> = true>
+    auto new_grid(const mask<grid_shape_t> &spans,
+                  const std::array<std::size_t, grid_t::dim> &n_bins,
+                  const std::array<std::vector<scalar_type>, grid_t::dim>
+                      &ax_bin_edges) const {
+
+        return new_grid(spans, n_bins, ax_bin_edges,
+                        typename grid_t::axes_type::bounds{},
+                        typename grid_t::axes_type::binnings{});
+    }
+
+    /// Helper overload for grid builder: Build from mask and resolve bounds
+    /// and binnings
+    template <
+        typename grid_shape_t, typename... bound_ts, typename... binning_ts,
+        std::enable_if_t<std::is_enum_v<typename grid_shape_t::boundaries>,
+                         bool> = true>
+    auto new_grid(const mask<grid_shape_t> &spans,
+                  const std::array<std::size_t, grid_shape_t::dim> &n_bins,
+                  const std::array<std::vector<scalar_type>, grid_shape_t::dim>
+                      &ax_bin_edges,
+                  const types::list<bound_ts...> &,
+                  const types::list<binning_ts...> &) const {
+
+        return new_grid<bound_ts..., binning_ts...>(spans, n_bins,
+                                                    ax_bin_edges);
+    }
+
+    /// @brief Create and empty grid with fully initialized axes.
+    ///
+    /// @tparam grid_t the tpye of the resulting grid
+    ///
+    /// @param spans the span of the axis values for regular axes, otherwise
+    ///              ignored.
+    /// @param n_bins the number of bins for regular axes, otherwise ignored
+    /// @param ax_bin_edges the explicit bin edges for irregular axes
+    ///                     (lower bin edges + the the upper edge of the
+    ///                     last bin), otherwise ignored.
+    template <typename grid_t,
+              std::enable_if_t<detail::is_grid_v<grid_t>, bool> = true>
+    auto new_grid(
+        const std::vector<scalar_type> spans,
+        const std::vector<std::size_t> n_bins,
+        const std::vector<std::vector<scalar_type>> &ax_bin_edges) const {
+
+        using owning_grid_t = typename grid_t::template type<true>;
+        using axes_t = typename owning_grid_t::axes_type;
 
         // Prepare data
         vector_type<dindex_range> axes_data{};
         vector_type<scalar_type> bin_edges{};
 
         // Call init for every axis
-        unroll_axis_init<types::list<binning_ts...>>(
+        unroll_axis_init<typename axes_t::binnings>(
             spans, n_bins, ax_bin_edges, axes_data, bin_edges,
-            std::make_index_sequence<axes_t::Dim>{});
+            std::make_index_sequence<axes_t::dim>{});
 
         // Assemble the grid and return it
         axes_t axes(std::move(axes_data), std::move(bin_edges));
@@ -395,7 +488,7 @@ class grid_factory {
         bin_data.resize(axes.nbins_per_axis()[0] * axes.nbins_per_axis()[1],
                         bin_type{});
 
-        return grid_type<axes_t>(std::move(bin_data), std::move(axes));
+        return owning_grid_t(std::move(bin_data), std::move(axes));
     }
 
     private:
@@ -410,7 +503,7 @@ class grid_factory {
                    vector_type<scalar_type> &bin_edges) const {
         if constexpr (std::is_same_v<
                           types::at<binnings, I>,
-                          n_axis::regular<host_container_types, scalar_type>>) {
+                          axis::regular<host_container_types, scalar_type>>) {
             axes_data.push_back({static_cast<dindex>(bin_edges.size()),
                                  static_cast<dindex>(n_bins.at(I))});
             bin_edges.push_back(spans.at(I * 2u));
@@ -456,13 +549,13 @@ auto grid_factory<bin_t, serializer_t, algebra_t>::to_string(
     for (unsigned int i{0u}; i < ax0.nbins(); ++i) {
 
         // Loop over the second dimension
-        if constexpr (grid_t::Dim > 1u) {
+        if constexpr (grid_t::dim > 1u) {
             const auto &ax1 = gr.template get_axis<1>();
             std::cout << "{";
             for (unsigned int j{0u}; j < ax1.nbins(); ++j) {
 
                 // Loop over the third dimension
-                if constexpr (grid_t::Dim > 2) {
+                if constexpr (grid_t::dim > 2) {
                     const auto &ax2 = gr.template get_axis<2>();
                     std::cout << "{";
                     for (unsigned int k{0u}; k < ax2.nbins(); ++k) {

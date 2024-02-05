@@ -51,6 +51,8 @@ template <template <typename...> class vector_t = dvector>
 struct test {
 
     using view_type = dmulti_view<dvector_view<int>, dvector_view<double>>;
+    using const_view_type =
+        dmulti_view<dvector_view<const int>, dvector_view<const double>>;
     using buffer_type =
         dmulti_buffer<dvector_buffer<int>, dvector_buffer<double>>;
 

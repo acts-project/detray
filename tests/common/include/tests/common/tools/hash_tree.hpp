@@ -121,7 +121,7 @@ class hash_tree {
         // Size of the tree is already known (all iterators stay valid in
         // recursion)
         // we might need to add one dummy node per level
-        auto n_levels = static_cast<dindex>(std::log(input_data.size()));
+        auto n_levels = static_cast<dindex>(math::log(input_data.size()));
         _tree.reserve(2u * _tree.size() + n_levels);
         // Build next level
         build(_tree.begin(), static_cast<dindex>(_tree.size()));

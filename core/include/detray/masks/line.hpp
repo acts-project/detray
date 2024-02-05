@@ -1,6 +1,6 @@
 /** Detray library, part of the ACTS project (R&D line)
  *
- * (c) 2022-2023 CERN for the benefit of the ACTS project
+ * (c) 2022-2024 CERN for the benefit of the ACTS project
  *
  * Mozilla Public License Version 2.0
  */
@@ -14,8 +14,6 @@
 #include "detray/definitions/math.hpp"
 #include "detray/definitions/qualifiers.hpp"
 #include "detray/intersection/line_intersector.hpp"
-#include "detray/surface_finders/grid/detail/axis_binning.hpp"
-#include "detray/surface_finders/grid/detail/axis_bounds.hpp"
 
 // System include(s)
 #include <cmath>
@@ -63,26 +61,8 @@ class line {
     template <typename intersection_t>
     using intersector_type = intersector_t<intersection_t>;
 
-    /// Behaviour of the two local axes (linear in r/x, linear in z)
-    template <
-        n_axis::bounds e_s = n_axis::bounds::e_closed,
-        template <typename, typename> class binning_loc0 = n_axis::regular,
-        template <typename, typename> class binning_loc1 = n_axis::regular>
-    struct axes {
-        static constexpr n_axis::label axis_loc0 = n_axis::label::e_r;
-        static constexpr n_axis::label axis_loc1 = n_axis::label::e_z;
-        static constexpr std::size_t dim{2u};
-
-        using types = dtuple<n_axis::bounds_t<e_s, axis_loc0>,
-                             n_axis::bounds_t<e_s, axis_loc1>>;
-
-        /// How to convert into the local axis system and back
-        template <typename algebra_t>
-        using coordinate_type = line2<algebra_t>;
-
-        template <typename C, typename S>
-        using binning = dtuple<binning_loc0<C, S>, binning_loc1<C, S>>;
-    };
+    /// Dimension of the local coordinate system
+    static constexpr std::size_t dim{2u};
 
     /// @brief Check boundary values for a local point.
     ///
@@ -112,11 +92,11 @@ class line {
         // size and (2) the distance to the point of closest approach on thw
         // line from the line center is less than the half line length
         if constexpr (square_cross_sect) {
-            return (std::abs(loc_p[0] * math_ns::cos(loc_p[2])) <=
+            return (math::abs(loc_p[0] * math::cos(loc_p[2])) <=
                         bounds[e_cross_section] + tol &&
-                    std::abs(loc_p[0] * math_ns::sin(loc_p[2])) <=
+                    math::abs(loc_p[0] * math::sin(loc_p[2])) <=
                         bounds[e_cross_section] + tol &&
-                    std::abs(loc_p[1]) <= bounds[e_half_z] + tol);
+                    math::abs(loc_p[1]) <= bounds[e_half_z] + tol);
 
         }
         // For a circular cross section (e.g. straw tube), we check if (1) the
@@ -125,7 +105,7 @@ class line {
         // line half length
         else {
             return (loc_p[0] <= bounds[e_cross_section] + tol &&
-                    std::abs(loc_p[1]) <= bounds[e_half_z] + tol);
+                    math::abs(loc_p[1]) <= bounds[e_half_z] + tol);
         }
     }
 

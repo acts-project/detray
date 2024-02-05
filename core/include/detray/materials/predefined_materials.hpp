@@ -116,12 +116,27 @@ DETRAY_DECLARE_MATERIAL(argon_gas, 1.176E+02f * unit<scalar>::m,
                                             unit<double>::cm3),
                         material_state::e_gas);
 
+// Ar (18): Argon liquid
+DETRAY_DECLARE_MATERIAL(argon_liquid, 14.f * unit<scalar>::cm,
+                        85.77f * unit<scalar>::cm, 39.948f, 18.f,
+                        static_cast<scalar>(1.396 * unit<double>::g /
+                                            unit<double>::cm3),
+                        material_state::e_liquid);
+
 // Fe (26)
 DETRAY_DECLARE_MATERIAL(iron, 1.757f * unit<scalar>::cm,
                         16.77f * unit<scalar>::cm, 55.845f, 26.f,
                         static_cast<scalar>(7.874 * unit<double>::g /
                                             unit<double>::cm3),
                         material_state::e_solid);
+
+// Fe (26) with density effect data
+DETRAY_DECLARE_MATERIAL_WITH_DED(iron_with_ded, 1.757f * unit<scalar>::cm,
+                                 16.77f * unit<scalar>::cm, 55.845f, 26.f,
+                                 static_cast<scalar>(7.874 * unit<double>::g /
+                                                     unit<double>::cm3),
+                                 material_state::e_solid, 0.14680f, 2.9632f,
+                                 -0.0012f, 3.1531f, 286.0f, 4.2911f, 0.12f);
 
 // W (74)
 DETRAY_DECLARE_MATERIAL(tungsten, 3.504f * unit<scalar>::mm,

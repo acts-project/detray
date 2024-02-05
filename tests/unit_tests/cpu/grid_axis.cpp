@@ -1,27 +1,26 @@
 /** Detray library, part of the ACTS project (R&D line)
  *
- * (c) 2022-2023 CERN for the benefit of the ACTS project
+ * (c) 2022-2024 CERN for the benefit of the ACTS project
  *
  * Mozilla Public License Version 2.0
  */
 
-#include <gtest/gtest.h>
-
-#include <limits>
-
-// detray test
-#include <vecmem/containers/device_vector.hpp>
-#include <vecmem/containers/vector.hpp>
-#include <vecmem/memory/host_memory_resource.hpp>
-
 // detray core
+#include "detray/coordinates/coordinates.hpp"
 #include "detray/definitions/indexing.hpp"
-#include "detray/masks/masks.hpp"
-#include "detray/surface_finders/grid/axis.hpp"
+#include "detray/surface_finders/grid/detail/axis.hpp"
+#include "detray/surface_finders/grid/detail/axis_binning.hpp"
+#include "detray/surface_finders/grid/detail/axis_bounds.hpp"
 #include "detray/test/types.hpp"
 
+// GTest include(s)
+#include <gtest/gtest.h>
+
+// System include(s)
+#include <limits>
+
 using namespace detray;
-using namespace detray::n_axis;
+using namespace detray::axis;
 
 namespace {
 
@@ -56,9 +55,9 @@ GTEST_TEST(detray_grid, open_regular_axis) {
     single_axis<open<label::e_x>, regular<>> or_axis{edge_range, &bin_edges};
 
     // Test axis bounds
-    EXPECT_EQ(or_axis.label(), n_axis::label::e_x);
-    EXPECT_EQ(or_axis.bounds(), n_axis::bounds::e_open);
-    EXPECT_EQ(or_axis.binning(), n_axis::binning::e_regular);
+    EXPECT_EQ(or_axis.label(), axis::label::e_x);
+    EXPECT_EQ(or_axis.bounds(), axis::bounds::e_open);
+    EXPECT_EQ(or_axis.binning(), axis::binning::e_regular);
 
     // N bins
     EXPECT_EQ(or_axis.nbins(), 10u + 2u);
@@ -80,7 +79,7 @@ GTEST_TEST(detray_grid, open_regular_axis) {
     const darray<dindex, 2> nhood44i = {4u, 4u};
     const darray<dindex, 2> nhood55i = {5u, 5u};
 
-    n_axis::bin_range expected_range = {6u, 7u};
+    axis::bin_range expected_range = {6u, 7u};
     EXPECT_EQ(or_axis.range(2.5f, nhood00i), expected_range);
     expected_range = {6u, 8u};
     EXPECT_EQ(or_axis.range(2.5f, nhood01i), expected_range);
@@ -125,9 +124,9 @@ GTEST_TEST(detray_grid, closed_regular_axis) {
     single_axis<closed<label::e_r>, regular<>> cr_axis{edge_range, &bin_edges};
 
     // Test axis bounds
-    EXPECT_EQ(cr_axis.label(), n_axis::label::e_r);
-    EXPECT_EQ(cr_axis.bounds(), n_axis::bounds::e_closed);
-    EXPECT_EQ(cr_axis.binning(), n_axis::binning::e_regular);
+    EXPECT_EQ(cr_axis.label(), axis::label::e_r);
+    EXPECT_EQ(cr_axis.bounds(), axis::bounds::e_closed);
+    EXPECT_EQ(cr_axis.binning(), axis::binning::e_regular);
 
     // N bins
     EXPECT_EQ(cr_axis.nbins(), 10u);
@@ -149,7 +148,7 @@ GTEST_TEST(detray_grid, closed_regular_axis) {
     const darray<dindex, 2> nhood44i = {4u, 4u};
     const darray<dindex, 2> nhood55i = {5u, 5u};
 
-    n_axis::bin_range expected_range = {5u, 6u};
+    axis::bin_range expected_range = {5u, 6u};
     EXPECT_EQ(cr_axis.range(2.5f, nhood00i), expected_range);
     expected_range = {5u, 7u};
     EXPECT_EQ(cr_axis.range(2.5f, nhood01i), expected_range);
@@ -196,9 +195,9 @@ GTEST_TEST(detray_grid, circular_regular_axis) {
     single_axis<circular<>, regular<>> cr_axis(edge_range, &bin_edges);
 
     // Test axis bounds
-    EXPECT_EQ(cr_axis.label(), n_axis::label::e_phi);
-    EXPECT_EQ(cr_axis.bounds(), n_axis::bounds::e_circular);
-    EXPECT_EQ(cr_axis.binning(), n_axis::binning::e_regular);
+    EXPECT_EQ(cr_axis.label(), axis::label::e_phi);
+    EXPECT_EQ(cr_axis.bounds(), axis::bounds::e_circular);
+    EXPECT_EQ(cr_axis.binning(), axis::binning::e_regular);
 
     // N bins
     EXPECT_EQ(cr_axis.nbins(), 36u);
@@ -224,7 +223,7 @@ GTEST_TEST(detray_grid, circular_regular_axis) {
     const darray<dindex, 2> nhood11i = {1u, 1u};
     const darray<dindex, 2> nhood22i = {2u, 2u};
 
-    n_axis::bin_range expected_range = {0u, 1u};
+    axis::bin_range expected_range = {0u, 1u};
     EXPECT_EQ(circ_bounds.wrap(
                   cr_axis.range(constant<scalar>::pi + tol, nhood00i), 36u),
               expected_range);
@@ -274,9 +273,9 @@ GTEST_TEST(detray_grid, closed_irregular_axis) {
                                                           &bin_edges);
 
     // Test axis bounds
-    EXPECT_EQ(cir_axis.label(), n_axis::label::e_z);
-    EXPECT_EQ(cir_axis.bounds(), n_axis::bounds::e_closed);
-    EXPECT_EQ(cir_axis.binning(), n_axis::binning::e_irregular);
+    EXPECT_EQ(cir_axis.label(), axis::label::e_z);
+    EXPECT_EQ(cir_axis.bounds(), axis::bounds::e_closed);
+    EXPECT_EQ(cir_axis.binning(), axis::binning::e_irregular);
 
     // Axis bin access
     //
@@ -297,7 +296,7 @@ GTEST_TEST(detray_grid, closed_irregular_axis) {
     const darray<dindex, 2> nhood11i = {1u, 1u};
     const darray<dindex, 2> nhood22i = {2u, 2u};
 
-    n_axis::bin_range expected_range = {2u, 3u};
+    axis::bin_range expected_range = {2u, 3u};
     EXPECT_EQ(cir_axis.range(3.f, nhood00i), expected_range);
     expected_range = {1u, 4u};
     EXPECT_EQ(cir_axis.range(3.f, nhood11i), expected_range);
@@ -337,7 +336,7 @@ GTEST_TEST(detray_grid, multi_axis) {
     cartesian_3D<is_not_owning, host_container_types> axes(edge_ranges,
                                                            bin_edges);
 
-    EXPECT_EQ(axes.Dim, 3u);
+    EXPECT_EQ(axes.dim, 3u);
 
     // Get single axis objects
     auto x_axis = axes.get_axis<label::e_x>();
@@ -368,7 +367,7 @@ GTEST_TEST(detray_grid, multi_axis) {
     const darray<dindex, 2> nhood01i = {0u, 1u};
     const darray<dindex, 2> nhood22i = {2u, 2u};
 
-    n_axis::multi_bin_range<3> expected_ranges{};
+    axis::multi_bin_range<3> expected_ranges{};
     expected_ranges[0] = {11u, 12u};
     expected_ranges[1] = {21u, 22u};
     expected_ranges[2] = {5u, 6u};

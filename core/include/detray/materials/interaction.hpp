@@ -44,7 +44,7 @@ struct interaction {
         // total energy loss instead of an energy loss per length. the required
         // modification only change the prefactor which becomes identical to the
         // prefactor epsilon for the most probable value.
-        const scalar_t running{math_ns::log(u * wmax / (I * I)) -
+        const scalar_t running{math::log(u * wmax / (I * I)) -
                                2.f * (rq.m_beta2 + dhalf)};
         return eps_per_length * running;
     }
@@ -69,7 +69,7 @@ struct interaction {
         // total energy loss instead of an energy loss per length. the required
         // modification only change the prefactor which becomes identical to the
         // prefactor epsilon for the most probable value.
-        const scalar_t running{math_ns::log(u * wmax / (I * I)) -
+        const scalar_t running{math::log(u * wmax / (I * I)) -
                                2.f * (rq.m_beta2 + dhalf)};
 
         // Get d(Beta)/d(qop)
@@ -121,8 +121,8 @@ struct interaction {
         const scalar_t dhalf{rq.compute_delta_half(mat)};
         const scalar_t t{rq.compute_mass_term(constant<scalar_t>::m_e)};
         // uses RPP2018 eq. 33.11
-        const scalar_t running{math_ns::log(t / I) + math_ns::log(eps / I) +
-                               0.2f - rq.m_beta2 - 2.f * dhalf};
+        const scalar_t running{math::log(t / I) + math::log(eps / I) + 0.2f -
+                               rq.m_beta2 - 2.f * dhalf};
         return eps * running;
     }
 
@@ -168,7 +168,7 @@ struct interaction {
 
         const relativistic_quantities rq(m, qOverP, q);
 
-        return std::sqrt(rq.m_q2OverBeta2) * pInv * pInv * sigmaE;
+        return math::sqrt(rq.m_q2OverBeta2) * pInv * pInv * sigmaE;
     }
 
     DETRAY_HOST_DEVICE scalar_type compute_multiple_scattering_theta0(
@@ -176,7 +176,7 @@ struct interaction {
         const scalar_type qOverP, const scalar_type q) const {
 
         // 1/p = q/(pq) = (q/p)/q
-        const scalar_type momentumInv{std::abs(qOverP / q)};
+        const scalar_type momentumInv{math::abs(qOverP / q)};
         // q²/beta²; a smart compiler should be able to remove the unused
         // computations
         const relativistic_quantities rq(m, qOverP, q);
@@ -205,11 +205,11 @@ struct interaction {
         }
 
         // RPP2018 eq. 33.15 (treats beta and q² consistenly)
-        const scalar_type t{std::sqrt(xOverX0 * q2OverBeta2)};
+        const scalar_type t{math::sqrt(xOverX0 * q2OverBeta2)};
         // log((x/X0) * (q²/beta²)) = log((sqrt(x/X0) * (q/beta))²)
         //                          = 2 * log(sqrt(x/X0) * (q/beta))
         return 13.6f * unit<scalar_type>::MeV * momentumInv * t *
-               (1.0f + 0.038f * 2.f * math_ns::log(t));
+               (1.0f + 0.038f * 2.f * math::log(t));
     }
 
     /// Multiple scattering theta0 for electrons.
@@ -221,9 +221,9 @@ struct interaction {
         }
 
         // TODO add source paper/ resource
-        const scalar_type t{std::sqrt(xOverX0 * q2OverBeta2)};
+        const scalar_type t{math::sqrt(xOverX0 * q2OverBeta2)};
         return 17.5f * unit<scalar_type>::MeV * momentumInv * t *
-               (1.0f + 0.125f * math_ns::log10(10.0f * xOverX0));
+               (1.0f + 0.125f * math::log10(10.0f * xOverX0));
     }
 
     /// Convert Landau full-width-half-maximum to an equivalent Gaussian
@@ -238,7 +238,7 @@ struct interaction {
     DETRAY_HOST_DEVICE scalar_type
     convert_landau_fwhm_to_gaussian_sigma(const scalar_type fwhm) const {
         return 0.5f * constant<scalar_type>::inv_sqrt2 * fwhm /
-               std::sqrt(constant<scalar_type>::ln2);
+               math::sqrt(constant<scalar_type>::ln2);
     }
 };
 

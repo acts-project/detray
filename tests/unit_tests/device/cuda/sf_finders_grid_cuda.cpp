@@ -54,7 +54,7 @@ TEST(grids_cuda, grid3_replace_populator) {
     vecmem::cuda::managed_memory_resource mng_mr;
 
     // Build multi-axis
-    using axes_t = cartesian_3D<host_container_types>;
+    using axes_t = host_grid3_single::axes_type;
     using bin_t = host_grid3_single::bin_type;
 
     typename axes_t::edge_offset_container_type axis_data(&mng_mr);
@@ -75,9 +75,9 @@ TEST(grids_cuda, grid3_replace_populator) {
 
     host_grid3_single g3(std::move(bin_data), std::move(axes));
 
-    const auto& axis_x = g3.template get_axis<n_axis::label::e_x>();
-    const auto& axis_y = g3.template get_axis<n_axis::label::e_y>();
-    const auto& axis_z = g3.template get_axis<n_axis::label::e_z>();
+    const auto& axis_x = g3.template get_axis<axis::label::e_x>();
+    const auto& axis_y = g3.template get_axis<axis::label::e_y>();
+    const auto& axis_z = g3.template get_axis<axis::label::e_z>();
 
     // pre-check
     for (unsigned int i_x = 0u; i_x < axis_x.nbins(); i_x++) {
@@ -120,7 +120,7 @@ TEST(grids_cuda, grid2_replace_populator_ci) {
     vecmem::cuda::managed_memory_resource mng_mr;
 
     // Build multi-axis
-    using axes_t = polar_ir<host_container_types>;
+    using axes_t = host_grid2_single_ci::axes_type;
     using bin_t = host_grid2_single_ci::bin_type;
 
     typename axes_t::edge_offset_container_type axis_data(&mng_mr);
@@ -140,8 +140,8 @@ TEST(grids_cuda, grid2_replace_populator_ci) {
 
     host_grid2_single_ci g2(std::move(bin_data), std::move(axes));
 
-    const auto& axis_r = g2.template get_axis<n_axis::label::e_r>();
-    const auto& axis_phi = g2.template get_axis<n_axis::label::e_phi>();
+    const auto& axis_r = g2.template get_axis<axis::label::e_r>();
+    const auto& axis_phi = g2.template get_axis<axis::label::e_phi>();
 
     // pre-check
     for (unsigned int i_r = 0u; i_r < axis_r.nbins(); i_r++) {
@@ -181,7 +181,7 @@ TEST(grids_cuda, grid2_complete_populator) {
     vecmem::cuda::managed_memory_resource mng_mr;
 
     // Build multi-axis
-    using axes_t = polar<host_container_types>;
+    using axes_t = host_grid2_array::axes_type;
     using bin_t = host_grid2_array::bin_type;
 
     typename axes_t::edge_offset_container_type axis_data(&mng_mr);
@@ -203,8 +203,8 @@ TEST(grids_cuda, grid2_complete_populator) {
 
     host_grid2_array g2(std::move(bin_data), std::move(axes));
 
-    const auto& axis_r = g2.template get_axis<n_axis::label::e_r>();
-    const auto& axis_phi = g2.template get_axis<n_axis::label::e_phi>();
+    const auto& axis_r = g2.template get_axis<axis::label::e_r>();
+    const auto& axis_phi = g2.template get_axis<axis::label::e_phi>();
 
     auto width_r = axis_r.bin_width();
     auto width_phi = axis_phi.bin_width();
@@ -257,7 +257,7 @@ TEST(grids_cuda, grid2_attach_populator) {
     vecmem::cuda::managed_memory_resource mng_mr;
 
     // Build multi-axis
-    using axes_t = polar<host_container_types>;
+    using axes_t = host_grid2_array::axes_type;
     using bin_t = host_grid2_array::bin_type;
 
     typename axes_t::edge_offset_container_type axis_data(&mng_mr);
@@ -281,8 +281,8 @@ TEST(grids_cuda, grid2_attach_populator) {
 
     host_grid2_array g2(std::move(bin_data), std::move(axes));
 
-    const auto& axis_r = g2.template get_axis<n_axis::label::e_r>();
-    const auto& axis_phi = g2.template get_axis<n_axis::label::e_phi>();
+    const auto& axis_r = g2.template get_axis<axis::label::e_r>();
+    const auto& axis_phi = g2.template get_axis<axis::label::e_phi>();
 
     auto width_r = axis_r.bin_width();
     auto width_phi = axis_phi.bin_width();
@@ -331,11 +331,121 @@ TEST(grids_cuda, grid2_attach_populator) {
     // axis_phi.nbins());
 }
 
+// Test the attach population on a grid with dynamic bin capacities
+TEST(grids_cuda, grid2_dynamic_attach_populator) {
+    // memory resource
+    vecmem::cuda::managed_memory_resource mng_mr;
+
+    // Build multi-axis
+    using axes_t = host_grid2_dynamic_array::axes_type;
+    using bin_t = host_grid2_dynamic_array::bin_type;
+
+    typename axes_t::edge_offset_container_type axis_data(&mng_mr);
+    typename axes_t::edges_container_type bin_edges(&mng_mr);
+
+    axis_data.reserve(2);
+    axis_data.insert(axis_data.begin(),
+                     {dindex_range{0u, 2u}, dindex_range{2u, 65u}});
+    bin_edges.reserve(4);
+    bin_edges.insert(bin_edges.begin(),
+                     {0.f, 6.f, -constant<scalar>::pi, constant<scalar>::pi});
+
+    axes_t axes(std::move(axis_data), std::move(bin_edges));
+
+    // build host grid
+    const point3 first_tp{3.f, 3.f, 3.f};
+    const point3 invalid_tp{0.f, 0.f, 0.f};
+
+    host_grid2_dynamic_array::bin_container_type bin_data{mng_mr};
+    vecmem::vector<bin_t::entry_type> entries{&mng_mr};
+    bin_data.bins.resize(2 * 65);
+    bin_data.entries.resize(4 * bin_data.bins.size());
+
+    int i{0};
+    dindex offset{0u};
+    attach<> attacher{};
+
+    // bin content with different bin capacities
+    for (auto& data : bin_data.bins) {
+
+        data.offset = offset;
+        // Every second bin holds one element, otherwise three
+        data.capacity = (i % 2) ? 1u : 3u;
+
+        detray::bins::dynamic_array bin{bin_data.entries.data(), data};
+
+        ASSERT_TRUE(bin.capacity() == (i % 2 ? 1u : 3u));
+        ASSERT_TRUE(bin.size() == 0);
+
+        offset += bin.capacity();
+
+        // Populate the bin
+        attacher(bin, first_tp);
+        ++i;
+    }
+
+    host_grid2_dynamic_array g2(std::move(bin_data), std::move(axes));
+
+    const auto& axis_r = g2.template get_axis<axis::label::e_r>();
+    const auto& axis_phi = g2.template get_axis<axis::label::e_phi>();
+
+    auto width_r = axis_r.bin_width();
+    auto width_phi = axis_phi.bin_width();
+
+    // pre-check
+    for (unsigned int i_phi = 0u; i_phi < axis_phi.nbins(); i_phi++) {
+        for (unsigned int i_r = 0u; i_r < axis_r.nbins(); i_r++) {
+
+            int pt_idx{0};
+            for (auto e : g2.bin({i_r, i_phi})) {
+                if (pt_idx == 0) {
+                    EXPECT_EQ(e, first_tp);
+                } else {
+                    EXPECT_EQ(e, invalid_tp);
+                }
+            }
+        }
+    }
+
+    // run device side test, which populates the grid
+    grid_dynamic_attach_test(get_data(g2), axis_r.nbins(), axis_phi.nbins());
+
+    // post-check
+    for (unsigned int i_r = 0u; i_r < axis_r.nbins(); i_r++) {
+        for (unsigned int i_phi = 0u; i_phi < axis_phi.nbins(); i_phi++) {
+            const dindex gbin = g2.serialize({i_r, i_phi});
+            const auto& bin = g2.bin(gbin);
+
+            // Other point with which the bin has been completed
+            const detray::scalar gbin_f{static_cast<detray::scalar>(gbin)};
+            const point3 tp{axis_r.min() + gbin_f * width_r,
+                            axis_phi.min() + gbin_f * width_phi, 0.5};
+
+            // Go through all points and compare
+            int pt_idx{0};
+            for (const auto& e : bin) {
+                if (pt_idx == 0) {
+                    EXPECT_EQ(e, first_tp) << pt_idx;
+                } else if (pt_idx == 1) {
+                    EXPECT_EQ(e, tp) << pt_idx;
+                } else {
+                    EXPECT_EQ(e, invalid_tp) << pt_idx;
+                }
+                pt_idx++;
+            }
+        }
+    }
+
+    // Print the grid on device
+    // print_grid<device_grid2_dynamic_array>(get_data(g2), axis_r.nbins(),
+    // axis_phi.nbins());
+}
+
 TEST(grids_cuda, cylindrical3D_collection) {
     // Data-owning grid collection
     vecmem::cuda::managed_memory_resource mng_mr;
 
-    using grid_collection_t = grid_collection<n_own_host_grid2_array>;
+    using grid_collection_t = grid_collection<n_own_host_grid3_array>;
     using bin_t = grid_collection_t::value_type::bin_type;
 
     vecmem::vector<typename grid_collection_t::size_type> grid_offsets(&mng_mr);
@@ -364,6 +474,7 @@ TEST(grids_cuda, cylindrical3D_collection) {
     // Bin test entries
     bin_data.resize(197u, bin_t{});
 
+    // Read the number of bins and bin entries on device
     vecmem::vector<unsigned int> n_bins(9u, &mng_mr);
     vecmem::vector<std::array<dindex, 3>> result_bins(bin_data.size(), &mng_mr);
 
@@ -371,10 +482,9 @@ TEST(grids_cuda, cylindrical3D_collection) {
                                 std::move(edge_ranges), std::move(bin_edges));
 
     // Call test function
-    const auto& axis_r = grid_coll[2].template get_axis<n_axis::label::e_r>();
-    const auto& axis_phi =
-        grid_coll[2].template get_axis<n_axis::label::e_phi>();
-    const auto& axis_z = grid_coll[2].template get_axis<n_axis::label::e_z>();
+    const auto& axis_r = grid_coll[2].template get_axis<axis::label::e_r>();
+    const auto& axis_phi = grid_coll[2].template get_axis<axis::label::e_phi>();
+    const auto& axis_z = grid_coll[2].template get_axis<axis::label::e_z>();
 
     grid_collection_test(get_data(grid_coll), vecmem::get_data(n_bins),
                          vecmem::get_data(result_bins), grid_coll.size(),

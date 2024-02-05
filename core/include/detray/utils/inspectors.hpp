@@ -159,7 +159,7 @@ struct print_inspector {
         }
 
         debug_stream << "distance to next\t\t";
-        if (math_ns::abs(state()) < cfg.on_surface_tolerance) {
+        if (math::abs(state()) < cfg.on_surface_tolerance) {
             debug_stream << "on obj (within tol)" << std::endl;
         } else {
             debug_stream << state() << std::endl;
@@ -224,7 +224,7 @@ struct print_inspector {
 
         auto pos = state().pos();
 
-        debug_stream << "Pos:\t[r = " << std::hypot(pos[0], pos[1])
+        debug_stream << "Pos:\t[r = " << math::hypot(pos[0], pos[1])
                      << ", z = " << pos[2] << "]" << std::endl;
         debug_stream << "Tangent:\t"
                      << detail::ray<__plugin::transform3<scalar>>(state())
@@ -268,72 +268,5 @@ struct print_inspector {
 };
 
 }  // namespace stepping
-
-namespace propagation {
-
-/// Print inspector that runs as actor in the propagation
-struct print_inspector : actor {
-
-    struct state {
-        std::stringstream stream{};
-
-        std::string to_string() const { return stream.str(); }
-    };
-
-    template <typename propagation_state_t>
-    DETRAY_HOST_DEVICE void operator()(
-        state &printer, const propagation_state_t &prop_state) const {
-        const auto &navigation = prop_state._navigation;
-        const auto &stepping = prop_state._stepping;
-
-        printer.stream << std::left << std::setw(30);
-        switch (navigation.status()) {
-            case navigation::status::e_abort:
-                printer.stream << "status: abort";
-                break;
-            case navigation::status::e_on_target:
-                printer.stream << "status: e_on_target";
-                break;
-            case navigation::status::e_unknown:
-                printer.stream << "status: unknowm";
-                break;
-            case navigation::status::e_towards_object:
-                printer.stream << "status: towards_surface";
-                break;
-            case navigation::status::e_on_module:
-                printer.stream << "status: on_module";
-                break;
-            case navigation::status::e_on_portal:
-                printer.stream << "status: on_portal";
-                break;
-        };
-
-        if (detail::is_invalid_value(navigation.volume())) {
-            printer.stream << "volume: " << std::setw(10) << "invalid";
-        } else {
-            printer.stream << "volume: " << std::setw(10)
-                           << navigation.volume();
-        }
-
-        printer.stream << "surface: " << std::setw(14);
-        if (navigation.is_on_portal() or navigation.is_on_module()) {
-            printer.stream << navigation.barcode();
-        } else {
-            printer.stream << "undefined";
-        }
-
-        printer.stream << "step_size: " << std::setw(10) << stepping._step_size
-                       << std::endl;
-
-        printer.stream
-            << std::setw(10)
-            << detail::ray<
-                   typename propagation_state_t::detector_type::transform3>(
-                   stepping())
-            << std::endl;
-    }
-};
-
-}  // namespace propagation
 
 }  // namespace detray

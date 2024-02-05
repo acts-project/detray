@@ -1,6 +1,6 @@
 /** Detray library, part of the ACTS project (R&D line)
  *
- * (c) 2023 CERN for the benefit of the ACTS project
+ * (c) 2023-2024 CERN for the benefit of the ACTS project
  *
  * Mozilla Public License Version 2.0
  */
@@ -29,11 +29,10 @@ class axis_aligned_bounding_volume {
     /// @{
     using shape = shape_t;
     using boundaries = typename shape_t::boundaries;
-    using axes = typename shape_t::template axes<>;
     template <typename algebra_t>
     using local_frame = typename shape_t::template local_frame_type<algebra_t>;
 
-    static constexpr std::size_t Dim{axes::Dim};
+    static constexpr std::size_t dim{shape_t::dim};
     /// @}
 
     /// Default constructor builds an infinite box
@@ -78,8 +77,7 @@ class axis_aligned_bounding_volume {
             axis_aligned_bounding_volume<other_shape_t, other_scalar_t>>& aabbs,
         std::size_t box_id, const scalar_t env) {
 
-        using loc_point_t =
-            std::array<scalar_t, other_shape_t::template axes<>::dim>;
+        using loc_point_t = std::array<scalar_t, other_shape_t::dim>;
 
         // Find min/max extent of the local aabb in local coordinates
         constexpr scalar_t inv{detail::invalid_value<scalar_t>()};

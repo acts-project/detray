@@ -9,6 +9,7 @@
 
 // Project include(s).
 #include "detray/definitions/algebra.hpp"
+#include "detray/definitions/math.hpp"
 #include "detray/definitions/qualifiers.hpp"
 
 // System include(s).
@@ -43,10 +44,10 @@ struct center_of_gravity_rectangle {
         scalar min_l1 = std::numeric_limits<scalar>::max();
         scalar max_l1 = -std::numeric_limits<scalar>::max();
         for (const auto &b : bin_contour) {
-            min_l0 = std::min(b[0], min_l0);
-            max_l0 = std::max(b[0], max_l0);
-            min_l1 = std::min(b[1], min_l1);
-            max_l1 = std::max(b[1], max_l1);
+            min_l0 = math::min(b[0], min_l0);
+            max_l0 = math::max(b[0], max_l0);
+            min_l1 = math::min(b[1], min_l1);
+            max_l1 = math::max(b[1], max_l1);
         }
 
         if (cgs[0] >= min_l0 and cgs[0] < max_l0 and cgs[1] >= min_l1 and

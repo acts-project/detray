@@ -60,6 +60,7 @@ class base_stepper {
 
     public:
     using inspector_type = inspector_t;
+    using policy_type = policy_t;
 
     using transform3_type = transform3_t;
     using free_track_parameters_type = free_track_parameters<transform3_t>;

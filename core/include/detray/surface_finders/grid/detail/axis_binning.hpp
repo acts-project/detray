@@ -18,7 +18,7 @@
 #include <cstddef>
 #include <iterator>
 
-namespace detray::n_axis {
+namespace detray::axis {
 
 /// @brief Helper to tie two bin indices to a range.
 /// @note Cannot use dindex_range for signed integer bin indices.
@@ -303,4 +303,4 @@ struct irregular {
     }
 };
 
-}  // namespace detray::n_axis
+}  // namespace detray::axis
