@@ -47,6 +47,17 @@ GTEST_TEST(detray_utils, axis_rotation) {
     EXPECT_NEAR(matrix_operator().element(u2, 0, 0), 0.f, isclose);
     EXPECT_NEAR(matrix_operator().element(u2, 1, 0), 1.f, isclose);
     EXPECT_NEAR(matrix_operator().element(u2, 2, 0), 0.f, isclose);
+
+    // Counter clockswise pi/4-Rotation of (1,0,0) around (0,0,1) ->
+    // (inv_sqrt2,inv_sqrt2,0)
+    const test::vector3 v3{1.f, 0.f, 0.f};
+
+    const auto u3 =
+        axis_rotation<test::transform3>(axis, constant<scalar>::pi_4)(v3);
+
+    EXPECT_NEAR(u3[0u], constant<scalar>::inv_sqrt2, isclose);
+    EXPECT_NEAR(u3[1u], constant<scalar>::inv_sqrt2, isclose);
+    EXPECT_NEAR(u3[2u], 0.f, isclose);
 }
 
 GTEST_TEST(detray_utils, euler_rotation1) {
