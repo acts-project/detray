@@ -15,6 +15,7 @@
 namespace detray {
 
 /// @brief Helper struct to rotate a vector around a given axis and angle
+/// counterclockwisely
 template <typename transform3_t>
 struct axis_rotation {
 
@@ -49,7 +50,7 @@ struct axis_rotation {
     }
 
     /// @param v vector to be rotated
-    /// @returns Get the rotated vector
+    /// @returns Get the counterclockwisely-rotated vector
     template <typename vector3_t>
     DETRAY_HOST_DEVICE vector3_t operator()(const vector3_t& v) const {
         return R * v;
@@ -61,6 +62,7 @@ struct axis_rotation {
 };
 
 /// @brief Helper struct to perform an euler rotation for a given vector
+/// All rotation operations are counterclockwise
 template <typename transform3_t>
 struct euler_rotation {
 
