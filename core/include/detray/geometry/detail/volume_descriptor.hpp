@@ -144,6 +144,30 @@ class volume_descriptor {
         return idx_range_t{min, max};
     }
 
+    /// @returns a surface index with respect to the volume surface range
+    DETRAY_HOST_DEVICE constexpr dindex to_local_sf_index(dindex sf_idx) const {
+
+        auto full_range = full_sf_range();
+
+        assert(full_range[0] <= sf_idx);
+        assert(sf_idx < full_range[1]);
+
+        return sf_idx - full_range[0];
+    }
+
+    /// @returns a surface index with respect to the global detector containers
+    DETRAY_HOST_DEVICE constexpr dindex to_global_sf_index(
+        dindex sf_idx) const {
+
+        auto full_range = full_sf_range();
+        dindex glob_index{sf_idx + full_range[0]};
+
+        assert(full_range[0] <= glob_index);
+        assert(glob_index < full_range[1]);
+
+        return glob_index;
+    }
+
     /// Set or update the index into a geometry container identified by the
     /// obj_id.
     ///

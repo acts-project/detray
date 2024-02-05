@@ -63,9 +63,6 @@ auto volume(const typename detector_t::geometry_context& context,
     auto [p_grid, grid_type] = svgtools::conversion::grid(
         detector, p_volume._index, view, style._grid_style);
 
-    // Transform the global surface indices to local ones in the volumes
-    dindex sf_offset{dindex_invalid};
-
     for (const auto& desc : d_volume.surfaces()) {
 
         const auto sf = detray::surface{detector, desc};
@@ -91,10 +88,6 @@ auto volume(const typename detector_t::geometry_context& context,
 
             // Put the sensitive surfaces in the module/grid sheets
             if (sf.is_sensitive()) {
-
-                // The surfaces are indexed as a sequence
-                sf_offset = math::min(sf_offset, sf.index());
-
                 p_sensitves.push_back(p_surface);
             }
         }
@@ -104,7 +97,7 @@ auto volume(const typename detector_t::geometry_context& context,
     if (!hide_grids && p_grid.has_value()) {
         p_volume._surface_grid = *p_grid;
         p_volume._grid_associations = {
-            get_bin_association(detector, d_volume, sf_offset, search_window)};
+            get_bin_association(detector, d_volume, search_window)};
     }
 
     p_volume._surfaces = {std::move(p_sensitves)};

@@ -52,14 +52,15 @@ class surface_grid_writer
 
         detector_grids_payload<std::size_t> grids_data;
 
-        // How to serialize the surface descriptors in the grid
-        auto sf_serializer = [](const surface_t& sf_desc) {
-            return sf_desc.index();
-        };
-
         for (const auto& vol_desc : det.volumes()) {
             // Links to all acceleration data structures in the volume
             const auto& multi_link = vol_desc.accel_link();
+
+            // How to serialize the surface descriptors in the grid
+            auto sf_serializer = [&vol_desc = std::as_const(vol_desc)](
+                                     const surface_t& sf_desc) {
+                return vol_desc.to_local_sf_index(sf_desc.index());
+            };
 
             for (dindex i = 0u; i < multi_link.size(); ++i) {
                 const auto& acc_link = multi_link[i];
