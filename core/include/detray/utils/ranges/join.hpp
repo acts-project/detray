@@ -1,6 +1,6 @@
 /** Detray library, part of the ACTS project (R&D line)
  *
- * (c) 2023 CERN for the benefit of the ACTS project
+ * (c) 2023-2024 CERN for the benefit of the ACTS project
  *
  * Mozilla Public License Version 2.0
  */
@@ -181,8 +181,7 @@ struct join_iterator {
         : m_outer_begin(begin), m_outer_end(end), m_outer_itr(begin) {
 
         if (m_outer_itr != m_outer_end) {
-            outer_value_t val{*m_outer_itr};
-            m_inner_itr = detray::ranges::begin(val);
+            m_inner_itr = (*m_outer_itr).begin();
         } else {
             m_inner_itr = {};
         }
@@ -357,8 +356,7 @@ struct join_iterator {
         while (m_inner_itr == detray::ranges::end(*m_outer_itr)) {
             ++m_outer_itr;
             if (m_outer_itr != m_outer_end) {
-                outer_value_t val{*m_outer_itr};
-                m_inner_itr = detray::ranges::begin(val);
+                m_inner_itr = (*m_outer_itr).begin();
             } else {
                 break;
             }

@@ -93,6 +93,10 @@ GTEST_TEST(detray_grid, open_regular_axis) {
     EXPECT_EQ(or_axis.range(1.5f, nhood44i), expected_range);
     expected_range = {4u, 12u};
     EXPECT_EQ(or_axis.range(5.5f, nhood55i), expected_range);
+    expected_range = {11u, 12u};
+    EXPECT_EQ(or_axis.range(7.5f, nhood00i), expected_range);
+    expected_range = {0u, 1u};
+    EXPECT_EQ(or_axis.range(-3.5f, nhood00i), expected_range);
 
     // Axis range access - scalar (symmteric & asymmetric)
     const darray<scalar, 2> nhood00s = {0.f, 0.f};
@@ -162,6 +166,10 @@ GTEST_TEST(detray_grid, closed_regular_axis) {
     EXPECT_EQ(cr_axis.range(1.5f, nhood44i), expected_range);
     expected_range = {3u, 10u};
     EXPECT_EQ(cr_axis.range(5.5f, nhood55i), expected_range);
+    expected_range = {9u, 10u};
+    EXPECT_EQ(cr_axis.range(7.5f, nhood00i), expected_range);
+    expected_range = {0u, 1u};
+    EXPECT_EQ(cr_axis.range(-3.5f, nhood00i), expected_range);
 
     // Axis range access - scalar (symmteric & asymmetric)
     const darray<scalar, 2> nhood00s = {0.f, 0.f};
