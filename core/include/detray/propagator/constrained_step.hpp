@@ -14,7 +14,7 @@
 #include "detray/definitions/qualifiers.hpp"
 
 // System include(s).
-#include <climits>
+#include <limits>
 #include <type_traits>
 
 namespace detray {

@@ -1,6 +1,6 @@
 /** Detray library, part of the ACTS project (R&D line)
  *
- * (c) 2022 CERN for the benefit of the ACTS project
+ * (c) 2022-2024 CERN for the benefit of the ACTS project
  *
  * Mozilla Public License Version 2.0
  */
@@ -13,18 +13,12 @@
 #include "detray/geometry/surface.hpp"
 #include "detray/propagator/actors/parameter_resetter.hpp"
 #include "detray/propagator/constrained_step.hpp"
+#include "detray/propagator/stepping_config.hpp"
 #include "detray/tracks/tracks.hpp"
 
 namespace detray {
 
 namespace stepping {
-
-enum class id {
-    // False for non-charged tracks
-    e_linear = 0,
-    // True for charged tracks
-    e_rk = 1,
-};
 
 /// A void inpector that does nothing.
 ///
@@ -33,22 +27,6 @@ struct void_inspector {
     template <typename state_t>
     DETRAY_HOST_DEVICE constexpr void operator()(const state_t & /*ignored*/,
                                                  const char * /*ignored*/) {}
-};
-
-struct config {
-    /// Minimum step size
-    scalar min_stepsize{1e-4f};
-    /// Runge-Kutta numeric error tolerance
-    scalar rk_error_tol{1e-4f};
-    /// Maximum number of Runge-Kutta step trials
-    std::size_t max_rk_updates{10000u};
-    /// Use mean energy loss (Bethe)
-    /// if false, most probable energy loss (Landau) will be used
-    bool use_mean_loss{true};
-    /// Use eloss gradient in error propagation
-    bool use_eloss_gradient{false};
-    /// Use b field gradient in error propagation
-    bool use_field_gradient{false};
 };
 
 }  // namespace stepping
@@ -211,8 +189,9 @@ class base_stepper {
 
         /// Call the stepping inspector
         DETRAY_HOST_DEVICE
-        inline void run_inspector([[maybe_unused]] const stepping::config &cfg,
-                                  [[maybe_unused]] const char *message) {
+        inline void run_inspector(
+            [[maybe_unused]] const stepping::config<scalar_type> &cfg,
+            [[maybe_unused]] const char *message) {
             if constexpr (not std::is_same_v<inspector_t,
                                              stepping::void_inspector>) {
                 _inspector(*this, cfg, message);

@@ -49,7 +49,7 @@ __global__ void propagator_test_kernel(
     using propagator_device_t =
         propagator<decltype(stepr), decltype(nav), actor_chain_device_t>;
 
-    propagation::config cfg{};
+    propagation::config<scalar> cfg{};
     cfg.search_window = {3u, 3u};
     cfg.rk_error_tol = rk_tolerance;
     propagator_device_t p{cfg};

@@ -11,7 +11,8 @@
 namespace detray {
 
 __global__ void navigator_test_kernel(
-    typename detector_host_t::view_type det_data, navigation::config cfg,
+    typename detector_host_t::view_type det_data,
+    navigation::config<scalar> cfg,
     vecmem::data::vector_view<free_track_parameters<transform3>> tracks_data,
     vecmem::data::jagged_vector_view<intersection_t> candidates_data,
     vecmem::data::jagged_vector_view<dindex> volume_records_data,
@@ -63,7 +64,8 @@ __global__ void navigator_test_kernel(
 }
 
 void navigator_test(
-    typename detector_host_t::view_type det_data, navigation::config& cfg,
+    typename detector_host_t::view_type det_data,
+    navigation::config<scalar>& cfg,
     vecmem::data::vector_view<free_track_parameters<transform3>>& tracks_data,
     vecmem::data::jagged_vector_view<intersection_t>& candidates_data,
     vecmem::data::jagged_vector_view<dindex>& volume_records_data,

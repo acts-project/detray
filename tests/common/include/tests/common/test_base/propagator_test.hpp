@@ -155,7 +155,7 @@ inline auto run_propagation_host(vecmem::memory_resource *mr,
 
     using propagator_host_t =
         propagator<decltype(stepr), decltype(nav), actor_chain_host_t>;
-    propagation::config cfg{};
+    propagation::config<scalar> cfg{};
     cfg.search_window = {3u, 3u};
     cfg.rk_error_tol = rk_tolerance;
     propagator_host_t p{cfg};
