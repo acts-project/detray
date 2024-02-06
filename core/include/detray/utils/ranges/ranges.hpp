@@ -228,9 +228,11 @@ class view_interface : public base_view {
 
     /// Cast to the implementation type to access its methods
     /// @{
+    DETRAY_HOST_DEVICE
     constexpr auto cast_impl() -> view_impl_t& {
         return static_cast<view_impl_t&>(*this);
     }
+    DETRAY_HOST_DEVICE
     constexpr auto cast_impl() const -> const view_impl_t& {
         return static_cast<const view_impl_t&>(*this);
     }
@@ -318,7 +320,8 @@ class view_interface : public base_view {
         std::enable_if_t<detray::ranges::random_access_range_v<R>, bool> = true>
     DETRAY_HOST_DEVICE constexpr decltype(auto) operator[](
         const dindex i) const {
-        return (detray::ranges::cbegin(cast_impl()))
+        // Call 'begin()' directly here to make CUDA happy
+        return (cast_impl().begin())
             [static_cast<detray::ranges::range_difference_t<R>>(i)];
     }
     /// Subscript operator that takes detray @c dindex
