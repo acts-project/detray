@@ -119,7 +119,7 @@ class detector_builder {
                 axis::circular<axis::label::e_phi>,
                 axis::open<axis::label::e_z>, axis::irregular<>,
                 axis::regular<>, axis::irregular<>>(vgrid_dims, n_vgrid_bins,
-                                                    bin_edges);
+                                                    {}, bin_edges);
         } else {
             m_vol_finder = vol_finder_t{args...};
         }

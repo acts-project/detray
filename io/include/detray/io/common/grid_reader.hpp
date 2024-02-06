@@ -30,7 +30,7 @@ namespace detray {
 /// @brief Abstract base class for surface grid readers
 template <class detector_t,
           typename value_t = typename detector_t::surface_type,
-          typename CAP = std::integral_constant<std::size_t, 9>,
+          typename CAP = std::integral_constant<std::size_t, 0>,
           typename DIM = std::integral_constant<std::size_t, 2>>
 class grid_reader : public reader_interface<detector_t> {
 
@@ -287,8 +287,10 @@ class grid_reader : public reader_interface<detector_t> {
             axis::multi_axis<false, local_frame_t,
                              axis::single_axis<bounds_ts, binning_ts>...>;
         // Ok for now: Only have this serializer
-        using grid_t = grid<axes_t, bins::static_array<value_t, bin_capacity>,
-                            simple_serializer>;
+        using bin_t =
+            std::conditional_t<bin_capacity == 0, bins::dynamic_array<value_t>,
+                               bins::static_array<value_t, bin_capacity>>;
+        using grid_t = grid<axes_t, bin_t, simple_serializer>;
 
         static_assert(grid_t::dim == dim,
                       "Grid dimension does not meet dimension of grid reader");
@@ -325,17 +327,35 @@ class grid_reader : public reader_interface<detector_t> {
                 spans.push_back(static_cast<scalar_t>(axis_data.edges.back()));
             }
 
-            vgr_builder->init_grid(spans, n_bins_per_axis, ax_bin_edges);
+            std::vector<std::pair<typename grid_t::loc_bin_index, dindex>>
+                capacities{};
+
+            // If the grid has dynamic bin capacities, find them
+            if constexpr (std::is_same_v<typename grid_t::bin_type,
+                                         bins::dynamic_array<value_t>>) {
+                axis::multi_bin<dim> mbin;
+                for (const auto &bin_data : grid_data.bins) {
+                    assert(dim == bin_data.loc_index.size() &&
+                           "Numer of local bin indices in input file does not "
+                           "match grid dimension");
+
+                    // The local bin indices for the bin to be filled
+                    for (const auto &[i, bin_idx] :
+                         detray::views::enumerate(bin_data.loc_index)) {
+                        mbin[i] = bin_idx;
+                    }
+                    capacities.emplace_back(mbin, bin_data.content.size());
+                }
+            }
+
+            vgr_builder->init_grid(spans, n_bins_per_axis, capacities,
+                                   ax_bin_edges);
             auto &grid = vgr_builder->get();
             const std::size_t n_bins{grid.nbins()};
 
             value_t empty_sf{};
             axis::multi_bin<dim> mbin;
             for (const auto &bin_data : grid_data.bins) {
-
-                assert(dim == bin_data.loc_index.size() &&
-                       "Numer of local bin indices in input file does not "
-                       "match grid dimension");
 
                 // The local bin indices for the bin to be filled
                 for (const auto &[i, bin_idx] :
@@ -351,6 +371,12 @@ class grid_reader : public reader_interface<detector_t> {
 
                 // For now assume surfaces ids as the only grid input
                 for (const auto c : bin_data.content) {
+                    if (detail::is_invalid_value(static_cast<dindex>(c))) {
+                        std::cout << "WARNING: Encountered invalid surface "
+                                  << "index in grid (" << err_stream.str()
+                                  << ")" << std::endl;
+                        continue;
+                    }
                     empty_sf.set_volume(volume_idx);
                     empty_sf.set_index(static_cast<dindex>(c));
                     vgr_builder->get().template populate<attach<>>(mbin,

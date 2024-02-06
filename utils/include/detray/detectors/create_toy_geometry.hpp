@@ -1232,7 +1232,7 @@ inline auto create_toy_geometry(vecmem::memory_resource &resource,
     auto vgrid = vgrid_factory.template new_grid<
         axis::open<axis::label::e_r>, axis::circular<axis::label::e_phi>,
         axis::open<axis::label::e_z>, axis::irregular<>, axis::regular<>,
-        axis::irregular<>>(vgrid_dims, n_vgrid_bins, bin_edges);
+        axis::irregular<>>(vgrid_dims, n_vgrid_bins, {}, bin_edges);
     det.set_volume_finder(std::move(vgrid));
 
     return std::make_pair(std::move(det), std::move(name_map));

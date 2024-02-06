@@ -98,7 +98,7 @@ using json_homogeneous_material_reader =
 /// Reads a homogeneous material descritption from file in json format
 template <typename detector_t,
           typename value_t = typename detector_t::surface_type,
-          typename CAP = std::integral_constant<std::size_t, 2>,
+          typename CAP = std::integral_constant<std::size_t, 0>,
           typename DIM = std::integral_constant<std::size_t, 2>>
 using json_grid_reader =
     json_reader<detector_t, grid_reader, value_t, CAP, DIM>;

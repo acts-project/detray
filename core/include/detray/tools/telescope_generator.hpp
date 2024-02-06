@@ -150,10 +150,6 @@ class telescope_generator final : public surface_factory_interface<detector_t> {
             // Local z axis is the global normal vector
             vector3_t m_local_z = algebra::vector::normalize(mod_placement.dir);
 
-            // Local x axis is the curvilinear vector with respect to local_z
-            auto m_local_x =
-                unit_vectors<vector3_t>().make_curvilinear_unit_u(m_local_z);
-
             if constexpr (std::is_same_v<mask_shape_t, detray::line<true>> ||
                           std::is_same_v<mask_shape_t, detray::line<false>>) {
 
@@ -165,9 +161,11 @@ class telescope_generator final : public surface_factory_interface<detector_t> {
                 axis_rotation<transform3_t> axis_rot(
                     curvi_u, constant<scalar>::pi / 2.f);
                 m_local_z = axis_rot(m_local_z);
-                m_local_x = unit_vectors<vector3_t>().make_curvilinear_unit_u(
-                    m_local_z);
             }
+
+            // Local x axis is the curvilinear vector with respect to local_z
+            auto m_local_x =
+                unit_vectors<vector3_t>().make_curvilinear_unit_u(m_local_z);
 
             // Create the global-to-local transform of the module
             transforms.emplace_back(ctx, mod_placement.pos, m_local_z,

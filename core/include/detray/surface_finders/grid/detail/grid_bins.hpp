@@ -181,6 +181,11 @@ class dynamic_array
     public:
     struct data {
         dindex offset{0u}, size{0u}, capacity{0u};
+
+        DETRAY_HOST_DEVICE
+        constexpr void update_offset(std::size_t shift) {
+            offset += static_cast<dindex>(shift);
+        }
     };
 
     using entry_type = entry_t;
@@ -210,10 +215,16 @@ class dynamic_array
 
     /// @returns view iterator over bin content in start or end position
     /// @{
-    DETRAY_HOST_DEVICE auto begin() { return detray::ranges::begin(view()); }
+    DETRAY_HOST_DEVICE auto begin() {
+        bin_view_t bv{view()};
+        return detray::ranges::begin(bv);
+    }
+    DETRAY_HOST_DEVICE auto end() {
+        bin_view_t bv{view()};
+        return detray::ranges::end(bv);
+    }
     DETRAY_HOST_DEVICE
     auto begin() const { return detray::ranges::cbegin(view()); }
-    DETRAY_HOST_DEVICE auto end() { return detray::ranges::end(view()); }
     DETRAY_HOST_DEVICE auto end() const { return detray::ranges::cend(view()); }
     /// @}
 
@@ -229,6 +240,10 @@ class dynamic_array
     /// @note This does not check the state of the containter it points to!!!
     template <typename E = entry_type>
     DETRAY_HOST_DEVICE constexpr void push_back(E&& entry) {
+        assert(m_capacity > 0);
+        assert(m_data->size < m_capacity);
+        assert(m_global_storage);
+
         if (m_data->size < m_capacity) {
             *(const_cast<entry_type*>(m_global_storage) + m_data->size) =
                 std::forward<E>(entry);

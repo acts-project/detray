@@ -356,7 +356,7 @@ TEST(grids_cuda, grid2_dynamic_attach_populator) {
     const point3 first_tp{3.f, 3.f, 3.f};
     const point3 invalid_tp{0.f, 0.f, 0.f};
 
-    host_grid2_dynamic_array::bin_container_type bin_data{mng_mr};
+    host_grid2_dynamic_array::bin_container_type bin_data{&mng_mr};
     vecmem::vector<bin_t::entry_type> entries{&mng_mr};
     bin_data.bins.resize(2 * 65);
     bin_data.entries.resize(4 * bin_data.bins.size());

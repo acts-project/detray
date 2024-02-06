@@ -97,7 +97,7 @@ struct default_metadata {
 
     // surface grid definition: bin-content: std::array<surface_type, 9>
     template <typename axes_t, typename bin_entry_t, typename container_t>
-    using surface_grid_t = grid<axes_t, bins::static_array<bin_entry_t, 50>,
+    using surface_grid_t = grid<axes_t, bins::dynamic_array<bin_entry_t>,
                                 simple_serializer, container_t, false>;
 
     // 2D cylindrical grid for the barrel layers

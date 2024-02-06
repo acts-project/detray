@@ -133,8 +133,8 @@ struct dynamic_bin_container {
 
     constexpr dynamic_bin_container() = default;
     DETRAY_HOST
-    dynamic_bin_container(vecmem::memory_resource& resource)
-        : bins{&resource}, entries{&resource} {}
+    dynamic_bin_container(vecmem::memory_resource* resource)
+        : bins{resource}, entries{resource} {}
     dynamic_bin_container(const dynamic_bin_container& other) = default;
     dynamic_bin_container(dynamic_bin_container&& other) = default;
 
@@ -150,10 +150,19 @@ struct dynamic_bin_container {
     template <typename grid_bin_range_t>
     DETRAY_HOST void append(const grid_bin_range_t& grid_bins) {
 
-        const auto& g_bins = grid_bins.bins;
-        const auto& g_entries = grid_bins.entries;
+        const auto& g_bins = grid_bins.bin_data();
+        const auto& g_entries = grid_bins.entry_data();
 
         bins.insert(bins.end(), g_bins.begin(), g_bins.end());
+
+        // Update the bin offsets
+        dindex_range new_bins{
+            static_cast<dindex>(bins.size() - grid_bins.size()),
+            static_cast<dindex>(bins.size())};
+        for (auto& bin : detray::ranges::subrange{bins, new_bins}) {
+            bin.update_offset(entries.size());
+        }
+
         entries.insert(entries.end(), g_entries.begin(), g_entries.end());
     }
 
@@ -244,6 +253,10 @@ class bin_storage<is_owning, detray::bins::dynamic_array<entry_t>, containers>
             return *this;
         }
         DETRAY_HOST_DEVICE
+        difference_type operator-(const iterator_adapter& other) {
+            return m_itr - other.m_itr;
+        }
+        DETRAY_HOST_DEVICE
         iterator_adapter operator-(difference_type i) {
             return {m_itr - i, m_entry_data};
         }
@@ -327,6 +340,9 @@ class bin_storage<is_owning, detray::bins::dynamic_array<entry_t>, containers>
     DETRAY_HOST_DEVICE bin_storage(const view_t& view)
         : m_bin_data(detray::detail::get<0>(view.m_view)),
           m_entry_data(detray::detail::get<1>(view.m_view)) {}
+
+    const bin_range_t& bin_data() const { return m_bin_data; }
+    const entry_range_t& entry_data() const { return m_entry_data; }
 
     /// begin and end of the bin range
     /// @{

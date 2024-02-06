@@ -63,6 +63,8 @@ class grid_builder final : public volume_decorator<detector_t> {
     DETRAY_HOST void init_grid(
         const mask<grid_shape_t> &m,
         const std::array<std::size_t, grid_t::dim> &n_bins,
+        const std::vector<std::pair<typename grid_t::loc_bin_index, dindex>>
+            &bin_capacities = {},
         const std::array<std::vector<scalar_type>, grid_t::dim> &ax_bin_edges =
             {{}}) {
 
@@ -72,17 +74,20 @@ class grid_builder final : public volume_decorator<detector_t> {
                            typename grid_t::local_frame_type>,
             "Mask has incorrect shape");
 
-        m_grid = m_factory.template new_grid<grid_t>(m, n_bins, ax_bin_edges);
+        m_grid = m_factory.template new_grid<grid_t>(m, n_bins, bin_capacities,
+                                                     ax_bin_edges);
     }
 
     /// Build the empty grid from axis parameters
     DETRAY_HOST void init_grid(
         const std::vector<scalar_type> &spans,
         const std::vector<std::size_t> &n_bins,
+        const std::vector<std::pair<typename grid_t::loc_bin_index, dindex>>
+            &bin_capacities = {},
         const std::vector<std::vector<scalar_type>> &ax_bin_edges = {{}}) {
 
-        m_grid =
-            m_factory.template new_grid<grid_t>(spans, n_bins, ax_bin_edges);
+        m_grid = m_factory.template new_grid<grid_t>(
+            spans, n_bins, bin_capacities, ax_bin_edges);
     }
 
     /// Fill grid from existing volume using a bin filling strategy
@@ -145,25 +150,15 @@ class grid_builder final : public volume_decorator<detector_t> {
             // correct surface indices per bin (e.g. from file IO).
             // Now add the rest of the linking information, which is only
             // available after the volume builder ran
-            for (auto &sf_desc : vol.surfaces()) {
+            for (surface_desc_t &sf_desc : m_grid.all()) {
 
-                if (sf_desc.is_sensitive() or
-                    (m_add_passives and sf_desc.is_passive())) {
-                    // The current volume is already built, so the surface
-                    // interface is safe to use
-                    const auto sf = surface{det, sf_desc};
-                    const auto &sf_trf = sf.transform(ctx);
-                    const auto t = sf_trf.point_to_global(sf.centroid());
-                    const auto loc_pos = m_grid.project(vol.transform(), t, t);
-                    auto &bin_content = m_grid.search(loc_pos);
+                const auto &new_sf_desc = det.surface(sf_desc.index());
 
-                    for (surface_desc_t &sf_in_grid : bin_content) {
-                        // Find the correct surface and update all links
-                        if (sf_in_grid.index() == sf.index()) {
-                            sf_in_grid = sf_desc;
-                        }
-                    }
-                }
+                assert(!detail::is_invalid_value(sf_desc.index()));
+                assert(!new_sf_desc.barcode().is_invalid());
+                assert(new_sf_desc.index() == sf_desc.index());
+
+                sf_desc = new_sf_desc;
             }
         }
 
