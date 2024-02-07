@@ -51,7 +51,7 @@ static void BM_PROPAGATOR_CPU(benchmark::State &state) {
     auto bfield = bfield::create_const_field(B);
 
     // Create propagator
-    propagation::config cfg{};
+    propagation::config<scalar> cfg{};
     cfg.search_window = {3u, 3u};
     propagator_host_type p{cfg};
 

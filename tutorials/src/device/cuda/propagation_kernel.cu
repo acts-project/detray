@@ -42,7 +42,7 @@ __global__ void propagation_kernel(
         candidates_data);
 
     // Create propagator from a stepper and a navigator
-    propagation::config cfg{};
+    propagation::config<scalar> cfg{};
     cfg.search_window = {3u, 3u};
     detray::tutorial::propagator_t p{cfg};
 

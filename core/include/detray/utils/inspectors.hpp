@@ -32,8 +32,9 @@ struct aggregate_inspector {
     inspector_tuple_t _inspectors{};
 
     /// Inspector interface
-    template <unsigned int current_id = 0, typename state_type>
-    auto operator()(state_type &state, const navigation::config &cfg,
+    template <unsigned int current_id = 0, typename state_type,
+              typename scalar_t>
+    auto operator()(state_type &state, const navigation::config<scalar_t> &cfg,
                     const char *message) {
         // Call inspector
         std::get<current_id>(_inspectors)(state, cfg, message);
@@ -64,8 +65,8 @@ struct object_tracer {
     vector_t<candidate_t> object_trace = {};
 
     /// Inspector interface
-    template <typename state_type>
-    auto operator()(state_type &state, const navigation::config &,
+    template <typename state_type, typename scalar_t>
+    auto operator()(state_type &state, const navigation::config<scalar_t> &,
                     const char * /*message*/) {
 
         // Record the candidate of an encountered object
@@ -93,8 +94,9 @@ struct print_inspector {
     std::stringstream debug_stream{};
 
     /// Inspector interface. Gathers detailed information during navigation
-    template <typename state_type>
-    auto operator()(const state_type &state, const navigation::config &cfg,
+    template <typename state_type, typename scalar_t>
+    auto operator()(const state_type &state,
+                    const navigation::config<scalar_t> &cfg,
                     const char *message) {
         std::string msg(message);
         std::string tabs = "\t\t\t\t";
@@ -198,8 +200,8 @@ struct print_inspector {
     std::stringstream debug_stream{};
 
     /// Inspector interface. Gathers detailed information during stepping
-    template <typename state_type>
-    void operator()(const state_type &state, const stepping::config &,
+    template <typename state_type, typename scalar_t>
+    void operator()(const state_type &state, const stepping::config<scalar_t> &,
                     const char *message) {
         std::string msg(message);
         std::string tabs = "\t\t\t\t";
@@ -233,8 +235,8 @@ struct print_inspector {
     }
 
     /// Inspector interface. Gathers detailed information during stepping
-    template <typename state_type>
-    void operator()(const state_type &state, const stepping::config &,
+    template <typename state_type, typename scalar_t>
+    void operator()(const state_type &state, const stepping::config<scalar_t> &,
                     const char *message, const std::size_t n_trials,
                     const scalar step_scalor) {
         std::string msg(message);

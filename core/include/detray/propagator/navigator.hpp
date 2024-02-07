@@ -18,6 +18,7 @@
 #include "detray/intersection/detail/trajectories.hpp"
 #include "detray/intersection/intersection.hpp"
 #include "detray/intersection/intersection_kernel.hpp"
+#include "detray/propagator/navigation_config.hpp"
 #include "detray/utils/ranges.hpp"
 
 // vecmem include(s)
@@ -41,26 +42,6 @@ enum class status {
     e_towards_object = 0,  ///< move towards next object
     e_on_module = 1,       ///< reached module surface
     e_on_portal = 2,       ///< reached portal surface
-};
-
-/// Navigation trust levels determine how the candidates chache is updated
-enum class trust_level {
-    e_no_trust = 0,  ///< re-initialize the volume (i.e. run local navigation)
-    e_fair = 1,      ///< update the distance & order of the candidates
-    e_high = 3,  ///< update the distance to the next candidate (current target)
-    e_full = 4   ///< don't update anything
-};
-
-/// Navigation configuration
-struct config {
-    /// Tolerance on the masks 'is_inside' check
-    scalar mask_tolerance{15.f * unit<scalar>::um};
-    /// Maximal absolute path distance for a track to be considered 'on surface'
-    scalar on_surface_tolerance{1.f * unit<scalar>::um};
-    /// How far behind the track position to look for candidates
-    scalar overstep_tolerance{-100.f * unit<scalar>::um};
-    /// Search window size for grid based acceleration structures
-    std::array<dindex, 2> search_window = {0u, 0u};
 };
 
 /// A void inpector that does nothing.
@@ -397,7 +378,7 @@ class navigator {
         /// Helper method to check if a candidate lies on a surface - const
         DETRAY_HOST_DEVICE inline auto is_on_object(
             const intersection_type &candidate,
-            const navigation::config &cfg) const -> bool {
+            const navigation::config<scalar_type> &cfg) const -> bool {
             return (math::abs(candidate.path) < cfg.on_surface_tolerance);
         }
 
@@ -434,7 +415,7 @@ class navigator {
         /// Call the navigation inspector
         DETRAY_HOST_DEVICE
         inline void run_inspector(
-            [[maybe_unused]] const navigation::config &cfg,
+            [[maybe_unused]] const navigation::config<scalar_type> &cfg,
             [[maybe_unused]] const char *message) {
             if constexpr (not std::is_same_v<inspector_t,
                                              navigation::void_inspector>) {
@@ -487,7 +468,7 @@ class navigator {
     template <typename propagator_state_t>
     DETRAY_HOST_DEVICE inline bool init(
         propagator_state_t &propagation,
-        const navigation::config &cfg = {}) const {
+        const navigation::config<scalar_type> &cfg = {}) const {
 
         state &navigation = propagation._navigation;
         const auto det = navigation.detector();
@@ -541,7 +522,7 @@ class navigator {
     template <typename propagator_state_t>
     DETRAY_HOST_DEVICE inline bool update(
         propagator_state_t &propagation,
-        const navigation::config &cfg = {}) const {
+        const navigation::config<scalar_type> &cfg = {}) const {
 
         state &navigation = propagation._navigation;
 
@@ -597,7 +578,8 @@ class navigator {
     /// @param propagation contains the stepper and navigator states
     template <typename propagator_state_t>
     DETRAY_HOST_DEVICE inline void update_kernel(
-        propagator_state_t &propagation, const navigation::config &cfg) const {
+        propagator_state_t &propagation,
+        const navigation::config<scalar_type> &cfg) const {
 
         state &navigation = propagation._navigation;
         const auto det = navigation.detector();
@@ -691,7 +673,7 @@ class navigator {
     /// @param track the track that belongs to the current propagation state
     /// @param propagation contains the stepper and navigator states
     DETRAY_HOST_DEVICE inline void update_navigation_state(
-        const navigation::config &cfg, state &navigation) const {
+        const navigation::config<scalar_type> &cfg, state &navigation) const {
 
         // Check whether the track reached the current candidate. Might be a
         // portal, in which case the navigation needs to be re-initialized
@@ -730,7 +712,8 @@ class navigator {
     template <typename track_t>
     DETRAY_HOST_DEVICE inline bool update_candidate(
         intersection_type &candidate, const track_t &track,
-        const detector_type *det, const navigation::config &cfg) const {
+        const detector_type *det,
+        const navigation::config<scalar_type> &cfg) const {
 
         if (candidate.sf_desc.barcode().is_invalid()) {
             return false;

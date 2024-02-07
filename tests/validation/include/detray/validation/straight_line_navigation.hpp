@@ -147,8 +147,8 @@ class straight_line_navigation : public test::fixture_base<> {
             free_track_parameters_t track(ray.pos(), 0.f, ray.dir(), -1.f);
 
             // Build actor and propagator states
-            pathlimit_aborter::state pathlimit_aborter_state{5.f *
-                                                             unit<scalar_t>::m};
+            pathlimit_aborter::state pathlimit_aborter_state{
+                m_cfg.propagation().path_limit};
             auto actor_states = std::tie(pathlimit_aborter_state);
 
             typename propagator_t::state propagation(track, m_det);

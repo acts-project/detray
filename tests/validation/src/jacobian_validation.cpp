@@ -249,7 +249,7 @@ bound_getter<transform3_type>::state evaluate_bound_param(
     bool use_field_gradient) {
 
     // Propagator is built from the stepper and navigator
-    propagation::config cfg{};
+    propagation::config<scalar> cfg{};
     cfg.overstep_tolerance = overstep_tolerance;
     cfg.on_surface_tolerance = on_surface_tolerance;
     cfg.rk_error_tol = rk_tolerance;
@@ -286,7 +286,7 @@ get_displaced_bound_vector(
     const scalar rk_tolerance, const scalar constraint_step,
     const unsigned int target_index, const scalar displacement) {
 
-    propagation::config cfg{};
+    propagation::config<scalar> cfg{};
     cfg.overstep_tolerance = overstep_tolerance;
     cfg.on_surface_tolerance = on_surface_tolerance;
     cfg.rk_error_tol = rk_tolerance;

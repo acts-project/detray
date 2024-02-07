@@ -204,7 +204,7 @@ TEST_P(PropagatorWithRkStepper, rk4_propagator_const_bfield) {
     const bfield_t bfield = bfield::create_const_field(std::get<2>(GetParam()));
 
     // Propagator is built from the stepper and navigator
-    propagation::config cfg{};
+    propagation::config<scalar> cfg{};
     cfg.overstep_tolerance = overstep_tol;
     propagator_t p{cfg};
 
@@ -305,7 +305,7 @@ TEST_P(PropagatorWithRkStepper, rk4_propagator_inhom_bfield) {
     const bfield_t bfield = bfield::create_inhom_field();
 
     // Propagator is built from the stepper and navigator
-    propagation::config cfg{};
+    propagation::config<scalar> cfg{};
     cfg.overstep_tolerance = overstep_tol;
     propagator_t p{cfg};
 

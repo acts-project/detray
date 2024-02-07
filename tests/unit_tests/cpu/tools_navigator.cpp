@@ -133,7 +133,7 @@ GTEST_TEST(detray_navigator, toy_geometry) {
 
     stepper_t stepper;
     navigator_t nav;
-    navigation::config cfg{};
+    navigation::config<scalar> cfg{};
     cfg.on_surface_tolerance = 1.f * unit<scalar>::um;
     cfg.search_window = {3u, 3u};
 
@@ -296,7 +296,7 @@ GTEST_TEST(detray_navigator, wire_chamber) {
 
     stepper_t stepper;
     navigator_t nav;
-    navigation::config cfg{};
+    navigation::config<scalar> cfg{};
     cfg.on_surface_tolerance = 1.f * unit<scalar>::um;
     cfg.search_window = {3u, 3u};
 

@@ -14,17 +14,13 @@
 #include "detray/propagator/actor_chain.hpp"
 #include "detray/propagator/base_stepper.hpp"
 #include "detray/propagator/navigator.hpp"
+#include "detray/propagator/propagation_config.hpp"
 #include "detray/tracks/tracks.hpp"
 
 // System include(s).
 #include <iomanip>
 
 namespace detray {
-
-namespace propagation {
-/// Configuration of the propagation
-struct config : public stepping::config, public navigation::config {};
-}  // namespace propagation
 
 /// Templated propagator class, using a stepper and a navigator object in
 /// succession.
@@ -40,12 +36,13 @@ struct propagator {
     using detector_type = typename navigator_type::detector_type;
     using actor_chain_type = actor_chain_t;
     using transform3_type = typename stepper_t::transform3_type;
+    using scalar_type = typename transform3_type::scalar_type;
     using free_track_parameters_type =
         typename stepper_t::free_track_parameters_type;
     using bound_track_parameters_type =
         typename stepper_t::bound_track_parameters_type;
 
-    propagation::config m_cfg;
+    propagation::config<scalar_type> m_cfg;
 
     stepper_t m_stepper;
     navigator_t m_navigator;
@@ -58,7 +55,7 @@ struct propagator {
 
     /// Construct from a propagator configuration
     DETRAY_HOST_DEVICE
-    propagator(propagation::config cfg = {})
+    propagator(propagation::config<scalar_type> cfg = {})
         : m_cfg{cfg}, m_stepper{}, m_navigator{} {}
 
     /// Propagation that state aggregates a stepping and a navigation state. It
