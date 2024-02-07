@@ -1,6 +1,6 @@
 /** Detray library, part of the ACTS project (R&D line)
  *
- * (c) 2022-2023 CERN for the benefit of the ACTS project
+ * (c) 2022-2024 CERN for the benefit of the ACTS project
  *
  * Mozilla Public License Version 2.0
  */
@@ -67,8 +67,10 @@ struct open {
     constexpr bin_range map(const int lbin, const int ubin,
                             const std::size_t nbins) const noexcept {
         const int bins = static_cast<int>(nbins);
-        const int min_bin = (lbin >= 0) ? lbin + 1 : 0;
-        const int max_bin = (ubin < bins) ? ubin + 1 : bins + 1;
+        int min_bin = (lbin >= 0) ? lbin + 1 : 0;
+        min_bin = (min_bin >= bins) ? bins + 1 : min_bin;
+        int max_bin = (ubin < bins) ? ubin + 1 : bins + 1;
+        max_bin = (max_bin < 0) ? 0 : max_bin;
 
         // The upper range index is exclusive, so go one bin beyond the range
         return {min_bin, max_bin + 1};
@@ -133,8 +135,10 @@ struct closed {
     constexpr bin_range map(const int lbin, const int ubin,
                             const std::size_t nbins) const {
         const int bins = static_cast<int>(nbins);
-        const int min_bin = (lbin > 0) ? lbin : 0;
-        const int max_bin = (ubin >= bins) ? bins - 1 : ubin;
+        int min_bin = (lbin > 0) ? lbin : 0;
+        min_bin = (min_bin >= bins) ? bins - 1 : min_bin;
+        int max_bin = (ubin >= bins) ? bins - 1 : ubin;
+        max_bin = (max_bin < 0) ? 0 : max_bin;
 
         // The upper range index is exclusive, so go one bin beyond the range
         return {min_bin, max_bin + 1};

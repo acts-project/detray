@@ -252,6 +252,42 @@ TEST(utils, ranges_iota_interval) {
     ASSERT_EQ(check, reference);
 }
 
+// Unittest for the generation of a cartesian product (trivial case)
+TEST(utils, ranges_cartesian_product_trivial) {
+
+    const auto seq1 = detray::views::iota(dindex_range{1u, 2u});
+    const auto seq2 = detray::views::iota(dindex_range{2u, 3u});
+    const auto seq3 = detray::views::iota(dindex_range{3u, 4u});
+
+    detray::views::cartesian_product cp{std::move(seq1), std::move(seq2),
+                                        std::move(seq3)};
+
+    // General tests
+    static_assert(detray::ranges::range_v<decltype(cp)>);
+    static_assert(detray::ranges::view<decltype(cp)>);
+    static_assert(std::is_copy_assignable_v<decltype(cp)>);
+    static_assert(detray::ranges::bidirectional_range_v<decltype(cp)>);
+    static_assert(not detray::ranges::random_access_range_v<decltype(cp)>);
+
+    // Test prerequisits for LagacyIterator
+    static_assert(
+        std::is_copy_constructible_v<typename decltype(cp)::iterator_t>);
+    static_assert(std::is_copy_assignable_v<typename decltype(cp)::iterator_t>);
+    static_assert(std::is_destructible_v<typename decltype(cp)::iterator_t>);
+
+    // Test size
+    ASSERT_EQ(cp.size(), 1u);
+
+    std::size_t r{0u};
+    for (const auto [i, j, k] : cp) {
+        ++r;
+        ASSERT_EQ(i, 1u);
+        ASSERT_EQ(j, 2u);
+        ASSERT_EQ(k, 3u);
+    }
+
+    ASSERT_EQ(r, 1u);
+}
 // Unittest for the generation of a cartesian product from a range of intervals
 TEST(utils, ranges_cartesian_product) {
 

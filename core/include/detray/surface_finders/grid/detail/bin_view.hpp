@@ -115,7 +115,10 @@ struct bin_iterator {
     /// @param grid
     DETRAY_HOST_DEVICE
     constexpr bin_iterator(const grid_t &grid, bin_indexer_t &&bin_indexer)
-        : m_grid(grid), m_bin_indexer(std::move(bin_indexer)) {}
+        : m_grid(grid), m_bin_indexer(std::move(bin_indexer)) {
+        map_circular(*m_bin_indexer, m_lbin,
+                     std::make_integer_sequence<std::size_t, grid_t::dim>{});
+    }
 
     /// @returns true if it points to the same local bin.
     DETRAY_HOST_DEVICE constexpr bool operator==(
@@ -132,24 +135,30 @@ struct bin_iterator {
     /// Increment to find next local bin index.
     DETRAY_HOST_DEVICE auto operator++() -> bin_iterator & {
         ++m_bin_indexer;
+
+        // Get the correct local bin index
+        map_circular(*m_bin_indexer, m_lbin,
+                     std::make_integer_sequence<std::size_t, grid_t::dim>{});
+
         return *this;
     }
 
     /// Decrement to find previous local bin index.
     DETRAY_HOST_DEVICE auto operator--() -> bin_iterator & {
         --m_bin_indexer;
+
+        // Get the correct local bin index
+        map_circular(*m_bin_indexer, m_lbin,
+                     std::make_integer_sequence<std::size_t, grid_t::dim>{});
+
         return *this;
     }
 
     /// @returns the bin that corresponds to the current local bin index - const
     DETRAY_HOST_DEVICE
     constexpr decltype(auto) operator*() const {
-        // Get the correct local bin index
-        typename grid_t::loc_bin_index lbin{};
-        map_circular(*m_bin_indexer, lbin,
-                     std::make_integer_sequence<std::size_t, grid_t::dim>{});
         // Fetch the bin
-        return m_grid.bin(lbin);
+        return m_grid.bin(m_lbin);
     }
 
     private:
@@ -186,6 +195,8 @@ struct bin_iterator {
     const grid_t &m_grid;
     /// Bin indexing (cartesian product over local bin index ranges)
     bin_indexer_t m_bin_indexer;
+    /// Current local bin
+    typename grid_t::loc_bin_index m_lbin;
 };
 
 }  // namespace detray::axis::detail
