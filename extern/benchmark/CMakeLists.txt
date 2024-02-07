@@ -1,6 +1,6 @@
 # Detray library, part of the ACTS project (R&D line)
 #
-# (c) 2021 CERN for the benefit of the ACTS project
+# (c) 2021-2024 CERN for the benefit of the ACTS project
 #
 # Mozilla Public License Version 2.0
 
@@ -18,7 +18,7 @@ message(STATUS "Building Google Benchmark as part of the Detray project")
 
 # Declare where to get Google Benchmark from.
 set(DETRAY_BENCHMARK_SOURCE
-   "URL;https://github.com/google/benchmark/archive/refs/tags/v1.6.1.tar.gz;URL_MD5;8c33c51f9b7154e6c290df3750081c87"
+   "URL;https://github.com/google/benchmark/archive/refs/tags/v1.8.3.tar.gz;URL_MD5;7b93dd03670665684f1b2e9b70ad17fe"
    CACHE STRING "Source for Google Benchmark, when built as part of this project")
 mark_as_advanced(DETRAY_BENCHMARK_SOURCE)
 FetchContent_Declare(Benchmark ${DETRAY_BENCHMARK_SOURCE})
