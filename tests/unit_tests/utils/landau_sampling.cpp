@@ -38,9 +38,9 @@ class LandauSamplingValidation : public ::testing::Test {
     constexpr static const scalar_type mpv = -0.22278f;
 
     // Binning information for counting
-    constexpr static const scalar_type bin_size = 0.05f;
-    constexpr static const scalar_type min = -2.f;
-    constexpr static const scalar_type max = 2.f;
+    constexpr static const double bin_size = 0.05;
+    constexpr static const double min = -2.;
+    constexpr static const double max = 2.;
     constexpr static const std::size_t n_bins =
         std::size_t((max - min) / bin_size);
 };
@@ -59,15 +59,20 @@ TYPED_TEST(LandauSamplingValidation, landau_sampling) {
     // Landau distribution for sampling
     landau_distribution<typename TestFixture::scalar_type> ld;
 
+    // Make sure that the number of n_bins is 2 - (-2) / 0.05 = 80
+    EXPECT_EQ(this->n_bins, 80u);
+
     // Counter vector
     std::vector<int> counter(this->n_bins, 0);
 
     // Sampling and counting
     std::size_t n_samples = 10000000u;
+    const auto minf = static_cast<typename TestFixture::scalar_type>(this->min);
+    const auto maxf = static_cast<typename TestFixture::scalar_type>(this->max);
     for (std::size_t i = 0u; i < n_samples; i++) {
         const auto sa = ld(generator, this->mu, this->sigma);
 
-        if (sa > this->min && sa < this->max) {
+        if (sa > minf && sa < maxf) {
             const std::size_t index = this->get_index(sa);
             counter[index]++;
         }
