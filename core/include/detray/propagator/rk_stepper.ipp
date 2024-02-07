@@ -118,8 +118,8 @@ detray::rk_stepper<magnetic_field_t, transform3_t, constraint_t, policy_t,
      *
      *  [ Table for dr_n/dt1 ]
      *  dr1/dt1 = 0
-     *  dr2/dt1 = d(r1 + h * t1 + h^2/8 dt1/ds)/dt1 = h * I + h^2/8 dk1/dt1
-     *  dr3/dt1 = d(r1 + h * t1 + h^2/8 dt1/ds)/dt1 = h * I + h^2/8 dk1/dt1
+     *  dr2/dt1 = d(r1 + h/2 * t1 + h^2/8 dt1/ds)/dt1 = h/2 * I + h^2/8 dk1/dt1
+     *  dr3/dt1 = d(r1 + h/2 * t1 + h^2/8 dt1/ds)/dt1 = h/2 * I + h^2/8 dk1/dt1
      *  dr4/dt1 = d(r1 + h * t1 + h^2/2 dt3/ds)/dt1 = h * I + h^2/2 dk3/dt1
      *
      *  Note that
@@ -281,7 +281,7 @@ detray::rk_stepper<magnetic_field_t, transform3_t, constraint_t, policy_t,
         dkndt[1u] = dkndt[1u] + half_h * dkndt[0u];
         dkndt[1u] =
             sd.qop[1u] * mat_helper().column_wise_cross(dkndt[1u], sd.b_middle);
-        dBdt_tmp = dBdr[1u] * (h * I33 + h2 * 0.125f * dkndt[0u]);
+        dBdt_tmp = dBdr[1u] * (half_h * I33 + h2 * 0.125f * dkndt[0u]);
         dkndt[1u] = dkndt[1u] - sd.qop[1u] * mat_helper().column_wise_cross(
                                                  dBdt_tmp, sd.t[1u]);
 
@@ -289,7 +289,7 @@ detray::rk_stepper<magnetic_field_t, transform3_t, constraint_t, policy_t,
         dkndt[2u] = dkndt[2u] + half_h * dkndt[1u];
         dkndt[2u] =
             sd.qop[2u] * mat_helper().column_wise_cross(dkndt[2u], sd.b_middle);
-        dBdt_tmp = dBdr[2u] * (h * I33 + h2 * 0.125f * dkndt[0u]);
+        dBdt_tmp = dBdr[2u] * (half_h * I33 + h2 * 0.125f * dkndt[0u]);
         dkndt[2u] = dkndt[2u] - sd.qop[2u] * mat_helper().column_wise_cross(
                                                  dBdt_tmp, sd.t[2u]);
 
