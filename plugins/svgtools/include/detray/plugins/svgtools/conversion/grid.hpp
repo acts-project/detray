@@ -115,10 +115,11 @@ struct type_and_edge_getter {
 /// A functor to access the bins and get the associated surface indices
 struct bin_association_getter {
 
-    template <typename group_t, typename index_t>
+    template <typename group_t, typename index_t, typename volume_t>
     DETRAY_HOST_DEVICE std::vector<std::vector<std::size_t>> operator()(
         [[maybe_unused]] const group_t& group,
-        [[maybe_unused]] const index_t index, [[maybe_unused]] dindex offset,
+        [[maybe_unused]] const index_t index,
+        [[maybe_unused]] const volume_t& vol_desc,
         [[maybe_unused]] const std::array<dindex, 2>& search_window) const {
 
         using accel_t = typename group_t::value_type;
@@ -174,8 +175,17 @@ struct bin_association_getter {
 
                     for (const auto& sf_desc :
                          grid.search(bin_center, search_window)) {
+                        // actsvg expects the sensitive surfaces to be numbered
+                        // starting from zero
+                        dindex offset{vol_desc.template sf_link<
+                            surface_id::e_sensitive>()[0]};
                         entries.push_back(sf_desc.index() - offset);
                     }
+
+                    // Remove duplicates
+                    std::sort(entries.begin(), entries.end());
+                    auto last = std::unique(entries.begin(), entries.end());
+                    entries.erase(last, entries.end());
 
                     bin_assoc.push_back(std::move(entries));
                 }
@@ -295,7 +305,6 @@ auto grid(const detector_t& detector, const dindex index, const view_t& view,
 template <typename detector_t>
 std::vector<std::vector<std::size_t>> get_bin_association(
     const detector_t& det, const detray::detector_volume<detector_t>& vol,
-    std::size_t offset = 0u,
     const std::array<dindex, 2>& search_window = {2u, 2u}) {
 
     using geo_object_ids = typename detector_t::geo_obj_ids;
@@ -306,8 +315,8 @@ std::vector<std::vector<std::size_t>> get_bin_association(
 
     if (not link.is_invalid()) {
         return det.accelerator_store()
-            .template visit<detail::bin_association_getter>(
-                link, static_cast<dindex>(offset), search_window);
+            .template visit<detail::bin_association_getter>(link, vol_desc,
+                                                            search_window);
     }
 
     return {};

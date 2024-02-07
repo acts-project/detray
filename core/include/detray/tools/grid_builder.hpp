@@ -147,16 +147,18 @@ class grid_builder final : public volume_decorator<detector_t> {
                 surfaces, det.transform_store(), det.mask_store(), ctx);
         } else {
             // The grid is prefilled with surface descriptors that contain the
-            // correct surface indices per bin (e.g. from file IO).
+            // correct LOCAL surface indices per bin (e.g. from file IO).
             // Now add the rest of the linking information, which is only
             // available after the volume builder ran
             for (surface_desc_t &sf_desc : m_grid.all()) {
 
-                const auto &new_sf_desc = det.surface(sf_desc.index());
-
                 assert(!detail::is_invalid_value(sf_desc.index()));
+
+                dindex glob_idx{vol_ptr->to_global_sf_index(sf_desc.index())};
+                const auto &new_sf_desc = det.surface(glob_idx);
+
+                assert(new_sf_desc.index() == glob_idx);
                 assert(!new_sf_desc.barcode().is_invalid());
-                assert(new_sf_desc.index() == sf_desc.index());
 
                 sf_desc = new_sf_desc;
             }
