@@ -1,6 +1,6 @@
 /** Detray library, part of the ACTS project (R&D line)
  *
- * (c) 2021-2023 CERN for the benefit of the ACTS project
+ * (c) 2021-2024 CERN for the benefit of the ACTS project
  *
  * Mozilla Public License Version 2.0
  */
@@ -294,7 +294,7 @@ inline dindex_range add_cylinder_grid(
         sf_desc.set_index(sf_offset++);
 
         // Copy surface descriptor into global lookup
-        det.surfaces().insert(sf_desc);
+        det.surfaces().insert(sf_desc, sf_desc.index() + 42u);
     }
 
     // Add transforms, masks and material to detector
@@ -378,7 +378,7 @@ inline dindex_range add_disc_grid(
         sf_desc.set_index(sf_offset++);
 
         // Copy surface descriptor into global lookup
-        det.surfaces().insert(sf_desc);
+        det.surfaces().insert(sf_desc, sf_desc.index() + 42u);
     }
 
     // Add transforms, masks and material to detector

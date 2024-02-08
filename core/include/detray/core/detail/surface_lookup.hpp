@@ -26,9 +26,8 @@ namespace detray {
 /// General case: Brute force search for the corresponding sf-descriptor
 struct default_searcher {
 
-    template <typename src_link_t,
-              template <typename...> class container_t = dvector>
-    auto operator()(const container_t<src_link_t> &sf_container) {
+    template <typename source_link_contianer_t>
+    auto operator()(const source_link_contianer_t &sf_container) {
         // Check that this searcher can be used on the passed surface container
         static_assert(
             std::is_same_v<decltype(sf_container[0].source), std::uint64_t>,
@@ -40,6 +39,8 @@ struct default_searcher {
                 return sf;
             }
         }
+
+        return typename source_link_contianer_t::value_type{};
     }
 
     /// The query source link
