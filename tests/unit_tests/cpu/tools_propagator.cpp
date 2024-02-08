@@ -1,6 +1,6 @@
 /** Detray library, part of the ACTS project (R&D line)
  *
- * (c) 2021-2023 CERN for the benefit of the ACTS project
+ * (c) 2021-2024 CERN for the benefit of the ACTS project
  *
  * Mozilla Public License Version 2.0
  */
@@ -205,7 +205,7 @@ TEST_P(PropagatorWithRkStepper, rk4_propagator_const_bfield) {
 
     // Propagator is built from the stepper and navigator
     propagation::config<scalar> cfg{};
-    cfg.overstep_tolerance = overstep_tol;
+    cfg.navigation.overstep_tolerance = overstep_tol;
     propagator_t p{cfg};
 
     // Iterate through uniformly distributed momentum directions
@@ -306,7 +306,7 @@ TEST_P(PropagatorWithRkStepper, rk4_propagator_inhom_bfield) {
 
     // Propagator is built from the stepper and navigator
     propagation::config<scalar> cfg{};
-    cfg.overstep_tolerance = overstep_tol;
+    cfg.navigation.overstep_tolerance = overstep_tol;
     propagator_t p{cfg};
 
     // Iterate through uniformly distributed momentum directions

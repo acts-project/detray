@@ -140,28 +140,33 @@ struct propagator {
                                       actor_states_t &&actor_states = {}) {
 
         // Initialize the navigation
-        propagation._heartbeat = m_navigator.init(propagation, m_cfg);
+        propagation._heartbeat =
+            m_navigator.init(propagation, m_cfg.navigation);
 
         // Run all registered actors/aborters after init
         run_actors(actor_states, propagation);
 
         // Find next candidate
-        propagation._heartbeat &= m_navigator.update(propagation, m_cfg);
+        propagation._heartbeat &=
+            m_navigator.update(propagation, m_cfg.navigation);
 
         // Run while there is a heartbeat
         while (propagation._heartbeat) {
 
             // Take the step
-            propagation._heartbeat &= m_stepper.step(propagation, m_cfg);
+            propagation._heartbeat &=
+                m_stepper.step(propagation, m_cfg.stepping);
 
             // Find next candidate
-            propagation._heartbeat &= m_navigator.update(propagation, m_cfg);
+            propagation._heartbeat &=
+                m_navigator.update(propagation, m_cfg.navigation);
 
             // Run all registered actors/aborters after update
             run_actors(actor_states, propagation);
 
             // And check the status
-            propagation._heartbeat &= m_navigator.update(propagation, m_cfg);
+            propagation._heartbeat &=
+                m_navigator.update(propagation, m_cfg.navigation);
 
 #if defined(__NO_DEVICE__)
             if (propagation.do_debug) {
@@ -191,24 +196,27 @@ struct propagator {
                                            actor_states_t &&actor_states = {}) {
 
         // Initialize the navigation
-        propagation._heartbeat = m_navigator.init(propagation, m_cfg);
+        propagation._heartbeat =
+            m_navigator.init(propagation, m_cfg.navigation);
 
         // Run all registered actors/aborters after init
         run_actors(actor_states, propagation);
 
         // Find next candidate
-        propagation._heartbeat &= m_navigator.update(propagation, m_cfg);
+        propagation._heartbeat &=
+            m_navigator.update(propagation, m_cfg.navigation);
 
         while (propagation._heartbeat) {
 
             while (propagation._heartbeat) {
 
                 // Take the step
-                propagation._heartbeat &= m_stepper.step(propagation, m_cfg);
+                propagation._heartbeat &=
+                    m_stepper.step(propagation, m_cfg.stepping);
 
                 // Find next candidate
                 propagation._heartbeat &=
-                    m_navigator.update(propagation, m_cfg);
+                    m_navigator.update(propagation, m_cfg.navigation);
 
                 // If the track is on a sensitive surface, break the loop to
                 // synchornize the threads
@@ -219,7 +227,7 @@ struct propagator {
 
                     // And check the status
                     propagation._heartbeat &=
-                        m_navigator.update(propagation, m_cfg);
+                        m_navigator.update(propagation, m_cfg.navigation);
                 }
             }
 
@@ -229,7 +237,7 @@ struct propagator {
 
                 // And check the status
                 propagation._heartbeat &=
-                    m_navigator.update(propagation, m_cfg);
+                    m_navigator.update(propagation, m_cfg.navigation);
 
 #if defined(__NO_DEVICE__)
                 if (propagation.do_debug) {

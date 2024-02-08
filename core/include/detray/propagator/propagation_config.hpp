@@ -15,7 +15,9 @@ namespace detray::propagation {
 
 /// Configuration of the propagation
 template <typename scalar_t>
-struct config : public stepping::config<scalar_t>,
-                public navigation::config<scalar_t> {};
+struct config {
+    navigation::config<scalar_t> navigation{};
+    stepping::config<scalar_t> stepping{};
+};
 
 }  // namespace detray::propagation

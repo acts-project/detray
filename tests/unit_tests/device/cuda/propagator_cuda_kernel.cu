@@ -50,8 +50,8 @@ __global__ void propagator_test_kernel(
         propagator<decltype(stepr), decltype(nav), actor_chain_device_t>;
 
     propagation::config<scalar> cfg{};
-    cfg.search_window = {3u, 3u};
-    cfg.rk_error_tol = rk_tolerance;
+    cfg.navigation.search_window = {3u, 3u};
+    cfg.stepping.rk_error_tol = rk_tolerance;
     propagator_device_t p{cfg};
 
     // Create actor states

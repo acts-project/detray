@@ -72,12 +72,12 @@ class fixture_base : public scope {
         /// Print configuration
         std::ostream& operator<<(std::ostream& os) {
             os << " -> test tolerance:  \t " << tol() << std::endl;
-            os << " -> trk path limit:  \t " << propagation().path_limit
-               << std::endl;
-            os << " -> overstepping tol:\t " << propagation().overstep_tolerance
-               << std::endl;
-            os << " -> step constraint:  \t " << propagation().step_constraint
-               << std::endl;
+            os << " -> trk path limit:  \t "
+               << propagation().stepping.path_limit << std::endl;
+            os << " -> overstepping tol:\t "
+               << propagation().navigation.overstep_tolerance << std::endl;
+            os << " -> step constraint:  \t "
+               << propagation().stepping.step_constraint << std::endl;
             os << std::endl;
 
             return os;
@@ -89,9 +89,9 @@ class fixture_base : public scope {
         : tolerance{cfg.tol()},
           inf{cfg.inf},
           epsilon{cfg.epsilon},
-          path_limit{cfg.propagation().path_limit},
-          overstep_tolerance{cfg.propagation().overstep_tolerance},
-          step_constraint{cfg.propagation().step_constraint} {}
+          path_limit{cfg.propagation().stepping.path_limit},
+          overstep_tolerance{cfg.propagation().navigation.overstep_tolerance},
+          step_constraint{cfg.propagation().stepping.step_constraint} {}
 
     /// @returns the benchmark name
     std::string name() const { return "detray_test"; };
