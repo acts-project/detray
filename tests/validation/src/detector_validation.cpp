@@ -171,14 +171,16 @@ int main(int argc, char **argv) {
                 "Incorrect surface grid search window. Please provide two "
                 "integer distances.");
         }
-        str_nav_cfg.propagation().search_window = {window[0], window[1]};
-        hel_nav_cfg.propagation().search_window = {window[0], window[1]};
+        str_nav_cfg.propagation().navigation.search_window = {window[0],
+                                                              window[1]};
+        hel_nav_cfg.propagation().navigation.search_window = {window[0],
+                                                              window[1]};
     }
 
     if (vm.count("overstep_tol")) {
         const scalar_t overstep_tol{vm["overstep_tol"].as<scalar_t>()};
 
-        hel_nav_cfg.propagation().overstep_tolerance =
+        hel_nav_cfg.propagation().navigation.overstep_tolerance =
             overstep_tol * unit<scalar_t>::um;
     }
 

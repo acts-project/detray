@@ -43,7 +43,7 @@ __global__ void propagation_kernel(
 
     // Create propagator from a stepper and a navigator
     propagation::config<scalar> cfg{};
-    cfg.search_window = {3u, 3u};
+    cfg.navigation.search_window = {3u, 3u};
     detray::tutorial::propagator_t p{cfg};
 
     // Create actor states

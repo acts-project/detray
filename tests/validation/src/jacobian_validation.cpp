@@ -250,11 +250,11 @@ bound_getter<transform3_type>::state evaluate_bound_param(
 
     // Propagator is built from the stepper and navigator
     propagation::config<scalar> cfg{};
-    cfg.overstep_tolerance = overstep_tolerance;
-    cfg.on_surface_tolerance = on_surface_tolerance;
-    cfg.rk_error_tol = rk_tolerance;
-    cfg.use_eloss_gradient = true;
-    cfg.use_field_gradient = use_field_gradient;
+    cfg.navigation.overstep_tolerance = overstep_tolerance;
+    cfg.navigation.on_surface_tolerance = on_surface_tolerance;
+    cfg.stepping.rk_error_tol = rk_tolerance;
+    cfg.stepping.use_eloss_gradient = true;
+    cfg.stepping.use_field_gradient = use_field_gradient;
     propagator_t p(cfg);
 
     // Actor states
@@ -287,9 +287,9 @@ get_displaced_bound_vector(
     const unsigned int target_index, const scalar displacement) {
 
     propagation::config<scalar> cfg{};
-    cfg.overstep_tolerance = overstep_tolerance;
-    cfg.on_surface_tolerance = on_surface_tolerance;
-    cfg.rk_error_tol = rk_tolerance;
+    cfg.navigation.overstep_tolerance = overstep_tolerance;
+    cfg.navigation.on_surface_tolerance = on_surface_tolerance;
+    cfg.stepping.rk_error_tol = rk_tolerance;
 
     // Propagator is built from the stepper and navigator
     propagator_t p(cfg);

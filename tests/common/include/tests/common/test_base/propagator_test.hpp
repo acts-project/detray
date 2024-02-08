@@ -1,6 +1,6 @@
 /** Detray library, part of the ACTS project (R&D line)
  *
- * (c) 2023 CERN for the benefit of the ACTS project
+ * (c) 2023-2024 CERN for the benefit of the ACTS project
  *
  * Mozilla Public License Version 2.0
  */
@@ -156,8 +156,8 @@ inline auto run_propagation_host(vecmem::memory_resource *mr,
     using propagator_host_t =
         propagator<decltype(stepr), decltype(nav), actor_chain_host_t>;
     propagation::config<scalar> cfg{};
-    cfg.search_window = {3u, 3u};
-    cfg.rk_error_tol = rk_tolerance;
+    cfg.navigation.search_window = {3u, 3u};
+    cfg.stepping.rk_error_tol = rk_tolerance;
     propagator_host_t p{cfg};
 
     // Create vector for track recording

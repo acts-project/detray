@@ -66,7 +66,7 @@ int main(int argc, char **argv) {
     // Comparision of straight line navigation with ray scan
     straight_line_navigation<wire_chamber_t>::config cfg_str_nav{};
     cfg_str_nav.name("wire_chamber_straight_line_navigation");
-    cfg_str_nav.propagation().search_window = {2u, 2u};
+    cfg_str_nav.propagation().navigation.search_window = {2u, 2u};
     cfg_str_nav.track_generator().theta_steps(100u).phi_steps(100u);
 
     detail::register_checks<straight_line_navigation>(det, names, cfg_str_nav);
@@ -74,7 +74,7 @@ int main(int argc, char **argv) {
     // Comparision of navigation in a constant B-field with helix
     helix_navigation<wire_chamber_t>::config cfg_hel_nav{};
     cfg_hel_nav.name("wire_chamber_helix_navigation");
-    cfg_hel_nav.propagation().search_window = {3u, 3u};
+    cfg_hel_nav.propagation().navigation.search_window = {3u, 3u};
     cfg_hel_nav.track_generator() = cfg_hel_scan.track_generator();
     // TODO: Fails for more helices
     // cfg_hel_nav.track_generator().theta_steps(100u).phi_steps(100u);

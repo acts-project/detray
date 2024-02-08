@@ -156,7 +156,7 @@ class helix_navigation : public test::fixture_base<> {
 
             // Build actor and propagator states
             pathlimit_aborter::state pathlimit_aborter_state{
-                m_cfg.propagation().path_limit};
+                m_cfg.propagation().stepping.path_limit};
             auto actor_states = std::tie(pathlimit_aborter_state);
 
             typename propagator_t::state propagation(track, hom_bfield, m_det);

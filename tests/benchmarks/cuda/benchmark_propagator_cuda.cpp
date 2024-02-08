@@ -52,7 +52,7 @@ static void BM_PROPAGATOR_CPU(benchmark::State &state) {
 
     // Create propagator
     propagation::config<scalar> cfg{};
-    cfg.search_window = {3u, 3u};
+    cfg.navigation.search_window = {3u, 3u};
     propagator_host_type p{cfg};
 
     std::size_t total_tracks = 0;
