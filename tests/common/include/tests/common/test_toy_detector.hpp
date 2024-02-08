@@ -1,6 +1,6 @@
 /** Detray library, part of the ACTS project (R&D line)
  *
- * (c) 2021-2023 CERN for the benefit of the ACTS project
+ * (c) 2021-2024 CERN for the benefit of the ACTS project
  *
  * Mozilla Public License Version 2.0
  */
@@ -165,6 +165,23 @@ inline bool test_toy_detector(
         EXPECT_EQ(materials.template size<material_ids::e_cylinder2_map>(),
                   51u);
         EXPECT_EQ(materials.template size<material_ids::e_disc2_map>(), 52u);
+    }
+
+    // Check the surface source links
+    for (dindex i = 0u; i < toy_det.surfaces().size(); ++i) {
+
+        // The source link was prepared during building as: sf index + 42
+        std::uint64_t source{i + 42u};
+        const auto& ref_sf = toy_det.surface(i);
+
+        // Only sensitive surfaces were given a source link in the toy detector
+        if (ref_sf.is_sensitive()) {
+            const auto& result_sf = toy_det.surface(default_searcher{source});
+
+            EXPECT_EQ(result_sf.index(), i) << result_sf;
+            EXPECT_EQ(ref_sf, result_sf)
+                << "expected: " << ref_sf << ", result: " << result_sf;
+        }
     }
 
     /// Test the surface ranges in the volume
