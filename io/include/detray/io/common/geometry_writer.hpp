@@ -97,7 +97,7 @@ class geometry_writer : public writer_interface<detector_t> {
     static mask_payload serialize(const mask_t& m) {
         mask_payload mask_data;
 
-        mask_data.shape = io::detail::get_shape_id<typename mask_t::shape>();
+        mask_data.shape = io::detail::get_id<typename mask_t::shape>();
 
         mask_data.volume_link = base_type::serialize(m.volume_link());
 
@@ -184,8 +184,8 @@ class geometry_writer : public writer_interface<detector_t> {
             using material_t = typename material_group_t::value_type;
 
             // Find the correct material type index
-            return base_type::serialize(
-                io::detail::get_material_id<material_t>(), index);
+            return base_type::serialize(io::detail::get_id<material_t>(),
+                                        index);
         }
     };
 
@@ -201,7 +201,7 @@ class geometry_writer : public writer_interface<detector_t> {
 
             // Only serialize grids
             if constexpr (detail::is_grid_v<accel_t>) {
-                id = io::detail::get_grid_id<accel_t>();
+                id = io::detail::get_id<accel_t>();
             }
 
             return base_type::serialize(id, index);

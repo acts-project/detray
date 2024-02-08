@@ -70,11 +70,11 @@ inline void from_json(const nlohmann::ordered_json& j,
     g.content = j["content"].get<std::vector<content_t>>();
 }
 
-template <typename content_t>
+template <typename content_t, typename grid_id_t>
 inline void to_json(nlohmann::ordered_json& j,
-                    const grid_payload<content_t>& g) {
-    j["volume_link"] = g.volume_link;
-    j["acc_link"] = g.acc_link;
+                    const grid_payload<content_t, grid_id_t>& g) {
+    j["owner_link"] = g.owner_link;
+    j["grid_link"] = g.grid_link;
 
     nlohmann::ordered_json jaxes;
     for (const auto& a : g.axes) {
@@ -93,11 +93,11 @@ inline void to_json(nlohmann::ordered_json& j,
     }
 }
 
-template <typename content_t>
+template <typename content_t, typename grid_id_t>
 inline void from_json(const nlohmann::ordered_json& j,
-                      grid_payload<content_t>& g) {
-    g.volume_link = j["volume_link"];
-    g.acc_link = j["acc_link"];
+                      grid_payload<content_t, grid_id_t>& g) {
+    g.owner_link = j["owner_link"];
+    g.grid_link = j["grid_link"];
 
     nlohmann::ordered_json jaxes = j["axes"];
     for (auto jax : jaxes) {
@@ -117,25 +117,48 @@ inline void from_json(const nlohmann::ordered_json& j,
     }
 }
 
-template <typename content_t>
+template <typename content_t, typename grid_id_t>
 inline void to_json(nlohmann::ordered_json& j,
-                    const detector_grids_payload<content_t>& d) {
+                    const detector_grids_payload<content_t, grid_id_t>& d) {
     if (not d.grids.empty()) {
+
+        // Collection of volumes with their grid content
         nlohmann::ordered_json jgrids;
-        for (const auto& gr : d.grids) {
-            jgrids.push_back(gr);
+
+        for (const auto& [vol_idx, grs] : d.grids) {
+
+            // Grids and volume they belong to
+            nlohmann::ordered_json jgrid;
+            // Array of grid payloads
+            nlohmann::ordered_json grid_data;
+
+            for (const auto& gr : grs) {
+                grid_data.push_back(gr);
+            }
+
+            jgrid["volume_link"] = vol_idx;
+            jgrid["grid_data"] = grid_data;
+            jgrids.push_back(jgrid);
         }
+
         j["grids"] = jgrids;
     }
 }
 
-template <typename content_t>
+template <typename content_t, typename grid_id_t>
 inline void from_json(const nlohmann::ordered_json& j,
-                      detector_grids_payload<content_t>& d) {
+                      detector_grids_payload<content_t, grid_id_t>& d) {
     if (j.find("grids") != j.end()) {
-        for (auto jgrid : j["grids"]) {
-            grid_payload<content_t> grp = jgrid;
-            d.grids.push_back(std::move(grp));
+
+        for (auto& jgrids : j["grids"]) {
+
+            const std::size_t vol_idx = jgrids["volume_link"];
+
+            for (auto jgrid : jgrids["grid_data"]) {
+
+                grid_payload<content_t, grid_id_t> grp = jgrid;
+                d.grids[vol_idx].push_back(std::move(grp));
+            }
         }
     }
 }

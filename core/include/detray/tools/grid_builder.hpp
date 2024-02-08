@@ -32,10 +32,14 @@ namespace detray {
 template <typename detector_t, typename grid_t,
           typename bin_filler_t = detail::fill_by_pos,
           typename grid_factory_t = grid_factory_type<grid_t>>
-class grid_builder final : public volume_decorator<detector_t> {
+class grid_builder : public volume_decorator<detector_t> {
+
+    using link_id_t = typename detector_t::volume_type::object_id;
 
     public:
     using scalar_type = typename detector_t::scalar_type;
+    using detector_type = detector_t;
+    using value_type = typename detector_type::surface_type;
 
     /// Use the grid builder stand-alone
     DETRAY_HOST
@@ -56,6 +60,17 @@ class grid_builder final : public volume_decorator<detector_t> {
     /// Should the passive surfaces be added to the grid ?
     void set_add_passives(bool is_add_passive = true) {
         m_add_passives = is_add_passive;
+    }
+
+    /// Set the surface category this grid should contain (type id in the
+    /// accelrator link in the volume)
+    void set_type(std::size_t sf_id) {
+        // Exclude zero, it is reserved for the brute force method
+        assert(sf_id > 0u);
+        // Make sure the id fits in the volume accelerator link
+        assert(static_cast<link_id_t>(sf_id) < link_id_t::e_size);
+
+        m_id = static_cast<link_id_t>(sf_id);
     }
 
     /// Delegate init call depending on @param span type
@@ -167,9 +182,8 @@ class grid_builder final : public volume_decorator<detector_t> {
         // Add the grid to the detector and link it to its volume
         constexpr auto gid{detector_t::accel::template get_id<grid_t>()};
         det.accelerator_store().template push_back<gid>(m_grid);
-        vol_ptr->template set_accel_link<
-            detector_t::volume_type::object_id::e_sensitive>(
-            gid, det.accelerator_store().template size<gid>() - 1);
+        vol_ptr->set_link(m_id, gid,
+                          det.accelerator_store().template size<gid>() - 1);
 
         return vol_ptr;
     }
@@ -179,6 +193,7 @@ class grid_builder final : public volume_decorator<detector_t> {
     auto &get() { return m_grid; }
 
     protected:
+    link_id_t m_id{link_id_t::e_sensitive};
     grid_factory_t m_factory{};
     typename grid_t::template type<true> m_grid{};
     bin_filler_t m_bin_filler{};

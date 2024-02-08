@@ -11,8 +11,9 @@
 #include "detray/io/common/detail/file_handle.hpp"
 #include "detray/io/common/detail/utils.hpp"
 #include "detray/io/common/geometry_reader.hpp"
-#include "detray/io/common/grid_reader.hpp"
 #include "detray/io/common/homogeneous_material_reader.hpp"
+#include "detray/io/common/material_map_reader.hpp"
+#include "detray/io/common/surface_grid_reader.hpp"
 #include "detray/io/json/json.hpp"
 #include "detray/io/json/json_serializers.hpp"
 #include "detray/tools/detector_builder.hpp"
@@ -95,12 +96,17 @@ template <typename detector_t>
 using json_homogeneous_material_reader =
     json_reader<detector_t, homogeneous_material_reader>;
 
-/// Reads a homogeneous material descritption from file in json format
+/// Reads the material maps from file in json format
 template <typename detector_t,
-          typename value_t = typename detector_t::surface_type,
+          typename DIM = std::integral_constant<std::size_t, 2>>
+using json_material_map_reader =
+    json_reader<detector_t, material_map_reader, DIM>;
+
+/// Reads the surface grids from file in json format
+template <typename detector_t,
           typename CAP = std::integral_constant<std::size_t, 0>,
           typename DIM = std::integral_constant<std::size_t, 2>>
-using json_grid_reader =
-    json_reader<detector_t, grid_reader, value_t, CAP, DIM>;
+using json_surface_grid_reader =
+    json_reader<detector_t, surface_grid_reader, CAP, DIM>;
 
 }  // namespace detray

@@ -10,8 +10,8 @@
 #include "detray/definitions/indexing.hpp"
 #include "detray/tools/cuboid_portal_generator.hpp"
 #include "detray/tools/detector_builder.hpp"
-#include "detray/tools/material_builder.hpp"
-#include "detray/tools/material_factory.hpp"
+#include "detray/tools/homogeneous_material_builder.hpp"
+#include "detray/tools/homogeneous_material_factory.hpp"
 #include "detray/tools/surface_factory.hpp"
 #include "detray/tools/volume_builder.hpp"
 
@@ -39,15 +39,16 @@ constexpr scalar tol{std::numeric_limits<scalar>::epsilon()};
 }  // anonymous namespace
 
 /// Unittest: Test the construction of a collection of materials
-TEST(detray_tools, material_builder) {
+TEST(detray_tools, homogeneous_material_builder) {
 
     using transform3 = typename detector_t::transform3;
     using material_id = typename detector_t::materials::id;
 
     // Build rectangle surfaces with material slabs
     using rectangle_factory = surface_factory<detector_t, rectangle2D<>>;
-    auto mat_factory = std::make_unique<material_factory<detector_t>>(
-        std::make_unique<rectangle_factory>());
+    auto mat_factory =
+        std::make_unique<homogeneous_material_factory<detector_t>>(
+            std::make_unique<rectangle_factory>());
 
     vecmem::host_memory_resource host_mr;
     detector_t d(host_mr);
@@ -85,7 +86,7 @@ TEST(detray_tools, material_builder) {
 
     EXPECT_EQ(mat_factory->size(), 3u);
 
-    // Test the mayerial data
+    // Test the material data
     EXPECT_NEAR(mat_factory->thickness()[0], 1.f * unit<scalar>::mm, tol);
     EXPECT_NEAR(mat_factory->thickness()[1], 10.f * unit<scalar>::mm, tol);
     EXPECT_NEAR(mat_factory->thickness()[2], 0.1f * unit<scalar>::mm, tol);
@@ -95,7 +96,7 @@ TEST(detray_tools, material_builder) {
 }
 
 /// Integration test: material builder as volume builder decorator
-GTEST_TEST(detray_tools, decorator_material_builder) {
+GTEST_TEST(detray_tools, decorator_homogeneous_material_builder) {
 
     using transform3 = typename detector_t::transform3;
     using mask_id = typename detector_t::masks::id;
@@ -107,7 +108,7 @@ GTEST_TEST(detray_tools, decorator_material_builder) {
     using trapezoid_factory = surface_factory<detector_t, trapezoid2D<>>;
     using cylinder_factory = surface_factory<detector_t, cylinder2D<>>;
 
-    using mat_factory_t = material_factory<detector_t>;
+    using mat_factory_t = homogeneous_material_factory<detector_t>;
 
     vecmem::host_memory_resource host_mr;
     detector_t d(host_mr);
@@ -115,7 +116,8 @@ GTEST_TEST(detray_tools, decorator_material_builder) {
 
     auto vbuilder =
         std::make_unique<volume_builder<detector_t>>(volume_id::e_cylinder);
-    auto mat_builder = material_builder<detector_t>{std::move(vbuilder)};
+    auto mat_builder =
+        homogeneous_material_builder<detector_t>{std::move(vbuilder)};
 
     EXPECT_TRUE(d.volumes().size() == 0);
 
@@ -247,7 +249,7 @@ GTEST_TEST(detray_tools, detector_builder_with_material) {
 
     // Add material
     auto mv_builder =
-        det_builder.template decorate<material_builder<detector_t>>(
+        det_builder.template decorate<homogeneous_material_builder<detector_t>>(
             vbuilder->vol_index());
 
     typename detector_t::point3 t{0.f, 0.f, 20.f};
@@ -257,7 +259,8 @@ GTEST_TEST(detray_tools, detector_builder_with_material) {
     auto trpz_factory = std::make_unique<trapezoid_factory>();
     // Add material to the surface
     auto mat_sf_factory =
-        std::make_shared<material_factory<detector_t>>(std::move(trpz_factory));
+        std::make_shared<homogeneous_material_factory<detector_t>>(
+            std::move(trpz_factory));
 
     mat_sf_factory->push_back({surface_id::e_sensitive,
                                transform3(point3{0.f, 0.f, 1000.f}), vol_idx,
@@ -271,8 +274,9 @@ GTEST_TEST(detray_tools, detector_builder_with_material) {
         std::make_unique<cuboid_portal_generator<detector_t>>(env);
 
     // Add homogeneous material to every portal
-    auto mat_portal_factory = std::make_shared<material_factory<detector_t>>(
-        std::move(portal_generator));
+    auto mat_portal_factory =
+        std::make_shared<homogeneous_material_factory<detector_t>>(
+            std::move(portal_generator));
     mat_portal_factory->add_material(
         material_id::e_slab, {2.f * unit<scalar>::mm, silicon<scalar>()});
     mat_portal_factory->add_material(

@@ -8,7 +8,7 @@
 #pragma once
 
 // Project include(s).
-#include "detray/tools/material_factory.hpp"
+#include "detray/tools/homogeneous_material_factory.hpp"
 #include "detray/tools/volume_builder.hpp"
 #include "detray/tools/volume_builder_interface.hpp"
 
@@ -24,7 +24,7 @@ namespace detray {
 /// Decorator class to a volume builder that adds the material data to the
 /// surfaces while building the volume.
 template <typename detector_t>
-class material_builder final : public volume_decorator<detector_t> {
+class homogeneous_material_builder final : public volume_decorator<detector_t> {
 
     public:
     using material_id = typename detector_t::materials::id;
@@ -32,7 +32,7 @@ class material_builder final : public volume_decorator<detector_t> {
 
     /// @param vol_builder volume builder that should be decorated with material
     DETRAY_HOST
-    material_builder(
+    homogeneous_material_builder(
         std::unique_ptr<volume_builder_interface<detector_t>> vol_builder)
         : volume_decorator<detector_t>(std::move(vol_builder)) {}
 
@@ -49,11 +49,10 @@ class material_builder final : public volume_decorator<detector_t> {
 
         // Add material
         auto mat_factory =
-            std::dynamic_pointer_cast<material_factory<detector_t>>(sf_factory);
+            std::dynamic_pointer_cast<homogeneous_material_factory<detector_t>>(
+                sf_factory);
         if (mat_factory) {
             (*mat_factory)(this->surfaces(), m_materials);
-        } else {
-            throw std::runtime_error("Not a material factory");
         }
     }
     /// @}

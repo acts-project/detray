@@ -137,8 +137,8 @@ TEST(io, json_grid_payload) {
         detray::axis::label::e_r, 2u, std::vector<detray::real_io>{0.f, 2.f}};
 
     detray::grid_payload<> g;
-    g.acc_link = {detray::grid_payload<>::grid_type::polar2_grid, 12u};
-    g.volume_link = {2u};
+    g.grid_link = {detray::grid_payload<>::grid_type::polar2_grid, 12u};
+    g.owner_link = {2u};
     g.axes = {a0, a1};
     g.bins = bins;
 
@@ -147,8 +147,8 @@ TEST(io, json_grid_payload) {
 
     detray::grid_payload<> pg = j["grid"];
 
-    EXPECT_EQ(g.acc_link.type, pg.acc_link.type);
-    EXPECT_EQ(g.acc_link.index, pg.acc_link.index);
+    EXPECT_EQ(g.grid_link.type, pg.grid_link.type);
+    EXPECT_EQ(g.grid_link.index, pg.grid_link.index);
     EXPECT_EQ(g.axes.size(), pg.axes.size());
     EXPECT_EQ(g.bins.size(), pg.bins.size());
 }

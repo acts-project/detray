@@ -8,6 +8,7 @@
 #pragma once
 
 // Project include(s).
+#include "detray/surface_finders/grid/detail/axis.hpp"
 #include "detray/surface_finders/grid/populators.hpp"
 #include "detray/tools/bin_association.hpp"
 
@@ -26,14 +27,17 @@ namespace detray::detail {
 struct fill_by_bin {
 
     /// Single piece of data for a grid bin
-    template <typename grid_t>
+    template <std::size_t DIM, typename value_t>
     struct bin_data {
         /// Bin index on the grid axes
-        typename grid_t::loc_bin_index local_bin_idx;
+        detray::axis::multi_bin<DIM> local_bin_idx;
         /// Single element of the bin content, which can be a collection of grid
         /// values
-        typename grid_t::value_type single_element;
+        value_t single_element;
     };
+
+    template <typename grid_t>
+    using bin_data_type = bin_data<grid_t::dim, typename grid_t::value_type>;
 
     template <typename grid_t, typename volume_t, typename surface_container_t,
               typename mask_container, typename transform_container,
@@ -41,9 +45,10 @@ struct fill_by_bin {
     DETRAY_HOST auto operator()(grid_t &grid, const volume_t &,
                                 const surface_container_t &,
                                 const mask_container &, const context_t,
-                                std::vector<bin_data<grid_t>> &bins) const
+                                std::vector<bin_data_type<grid_t>> &bins) const
         -> void {
-        for (const bin_data<grid_t> &bd : bins) {
+
+        for (const bin_data_type<grid_t> &bd : bins) {
             grid.template populate<attach<>>(bd.local_bin_idx,
                                              bd.single_element);
         }

@@ -1,6 +1,6 @@
 /** Detray library, part of the ACTS project (R&D line)
  *
- * (c) 2023 CERN for the benefit of the ACTS project
+ * (c) 2023-2024 CERN for the benefit of the ACTS project
  *
  * Mozilla Public License Version 2.0
  */
@@ -47,10 +47,10 @@ class surface_grid_writer
 
     /// Serialize the grid collections of a detector @param det into their io
     /// payload
-    static detector_grids_payload<std::size_t> serialize(
+    static detector_grids_payload<std::size_t, io::detail::acc_type> serialize(
         const detector_t& det, const typename detector_t::name_map&) {
 
-        detector_grids_payload<std::size_t> grids_data;
+        detector_grids_payload<std::size_t, io::detail::acc_type> grids_data;
 
         for (const auto& vol_desc : det.volumes()) {
             // Links to all acceleration data structures in the volume
@@ -62,7 +62,9 @@ class surface_grid_writer
                 return vol_desc.to_local_sf_index(sf_desc.index());
             };
 
-            for (dindex i = 0u; i < multi_link.size(); ++i) {
+            // Start a 1, because the first acceleration structure is always
+            // the brute force method
+            for (dindex i = 1u; i < multi_link.size(); ++i) {
                 const auto& acc_link = multi_link[i];
                 // Don't look at empty links
                 if (acc_link.is_invalid()) {
@@ -71,8 +73,8 @@ class surface_grid_writer
 
                 // Generate the payload
                 grid_writer_t::serialize(det.accelerator_store(), acc_link,
-                                         vol_desc.index(), grids_data,
-                                         sf_serializer);
+                                         vol_desc.index(), vol_desc.index(),
+                                         grids_data, sf_serializer);
             }
         }
 

@@ -52,6 +52,51 @@ inline void test_finder(const acc_t& finder, const dindex volume_index,
     }
 }
 
+/// Call for material grid types
+template <typename mat_map_t,
+          std::enable_if_t<std::is_same_v<typename mat_map_t::value_type,
+                                          material_slab<scalar>>,
+                           bool> = true>
+inline void test_mat_map(const mat_map_t& mat_map, const bool is_cyl) {
+
+    // Check if the number of bins is correct
+    if (is_cyl) {
+        EXPECT_EQ(mat_map.nbins(), 400u);
+        EXPECT_EQ(mat_map.size(), 400u);
+
+        auto n_bins = mat_map.axes().nbins_per_axis();
+        EXPECT_EQ(n_bins[0], 20u);
+        EXPECT_EQ(n_bins[1], 20u);
+
+        auto r_axis = mat_map.template get_axis<axis::label::e_rphi>();
+        EXPECT_EQ(r_axis.nbins(), 20u);
+        auto z_axis = mat_map.template get_axis<axis::label::e_cyl_z>();
+        EXPECT_EQ(z_axis.nbins(), 20u);
+
+        for (const auto& mat_slab : mat_map.all()) {
+            EXPECT_TRUE(mat_slab.get_material() ==
+                        toy_det_config{}.mapped_material());
+        }
+    } else {
+        EXPECT_EQ(mat_map.nbins(), 60u);
+        EXPECT_EQ(mat_map.size(), 60u);
+
+        auto n_bins = mat_map.axes().nbins_per_axis();
+        EXPECT_EQ(n_bins[0], 3u);
+        EXPECT_EQ(n_bins[1], 20u);
+
+        auto r_axis = mat_map.template get_axis<axis::label::e_r>();
+        EXPECT_EQ(r_axis.nbins(), 3u);
+        auto z_axis = mat_map.template get_axis<axis::label::e_phi>();
+        EXPECT_EQ(z_axis.nbins(), 20u);
+
+        for (const auto& mat_slab : mat_map.all()) {
+            EXPECT_TRUE(mat_slab.get_material() ==
+                        toy_det_config{}.mapped_material());
+        }
+    }
+}
+
 template <typename bfield_t>
 inline bool test_toy_detector(
     const detector<toy_metadata, bfield_t>& toy_det,
@@ -159,37 +204,51 @@ inline bool test_toy_detector(
     /// @param trf_index index of the transform (trf container) for the portal
     /// @param mask_index type and index of portal mask in respective mask cont
     /// @param volume_links links to next volume contained in the masks
-    auto test_portal_links =
-        [&](const dindex vol_index, decltype(surfaces.begin())&& sf_itr,
-            const darray<dindex, 2>& range, dindex trf_index,
-            mask_link_t&& mask_link, material_link_t&& material_index,
-            const material_slab<scalar>& mat,
-            const dvector<dindex>&& volume_links) {
-            for (dindex pti = range[0]; pti < range[1]; ++pti) {
-                EXPECT_EQ(sf_itr->volume(), vol_index);
-                EXPECT_EQ(sf_itr->id(), surface_id::e_portal);
-                EXPECT_EQ(sf_itr->index(), pti);
-                // The volume index compensates for the number of volume
-                // transforms in the transform store
-                EXPECT_EQ(sf_itr->transform(), trf_index + vol_index + 1);
-                EXPECT_EQ(sf_itr->mask(), mask_link);
-                const auto volume_link =
-                    masks.template visit<volume_link_getter>(sf_itr->mask());
-                EXPECT_EQ(volume_link, volume_links[pti - range[0]]);
-                if (has_material and !has_material_maps) {
-                    EXPECT_EQ(sf_itr->material(), material_index);
-                    EXPECT_EQ(
+    auto test_portal_links = [&](const dindex vol_index,
+                                 decltype(surfaces.begin())&& sf_itr,
+                                 const darray<dindex, 2>& range,
+                                 dindex trf_index, mask_link_t&& mask_link,
+                                 material_link_t&& material_index,
+                                 const material_slab<scalar>& mat,
+                                 const dvector<dindex>&& volume_links) {
+        for (dindex pti = range[0]; pti < range[1]; ++pti) {
+            EXPECT_EQ(sf_itr->volume(), vol_index);
+            EXPECT_EQ(sf_itr->id(), surface_id::e_portal);
+            EXPECT_EQ(sf_itr->index(), pti);
+            // The volume index compensates for the number of volume
+            // transforms in the transform store
+            EXPECT_EQ(sf_itr->transform(), trf_index + vol_index + 1);
+            EXPECT_EQ(sf_itr->mask(), mask_link);
+            const auto volume_link =
+                masks.template visit<volume_link_getter>(sf_itr->mask());
+            EXPECT_EQ(volume_link, volume_links[pti - range[0]]);
+            if (has_material and !has_material_maps) {
+                EXPECT_EQ(sf_itr->material(), material_index);
+                EXPECT_EQ(
+                    materials.template get<
+                        material_ids::e_slab>()[sf_itr->material().index()],
+                    mat);
+            } else if (has_material and has_material_maps) {
+                auto mat_link = sf_itr->material();
+                if (mat_link.id() == material_ids::e_cylinder2_map) {
+                    test_mat_map(
                         materials.template get<
-                            material_ids::e_slab>()[sf_itr->material().index()],
-                        mat);
+                            material_ids::e_cylinder2_map>()[mat_link.index()],
+                        true);
+                } else if (mat_link.id() == material_ids::e_disc2_map) {
+                    test_mat_map(
+                        materials.template get<
+                            material_ids::e_disc2_map>()[mat_link.index()],
+                        false);
                 }
-
-                ++sf_itr;
-                ++trf_index;
-                ++mask_link;
-                ++material_index;
             }
-        };
+
+            ++sf_itr;
+            ++trf_index;
+            ++mask_link;
+            ++material_index;
+        }
+    };
 
     /// Test the links of module surface (alway stay in their volume).
     ///

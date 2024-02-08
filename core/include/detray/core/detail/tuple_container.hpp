@@ -111,6 +111,16 @@ class tuple_container {
         return get_data(std::make_index_sequence<sizeof...(Ts)>{});
     }
 
+    /// Calls a functor with a all elements as parameters.
+    ///
+    /// @returns the functor result.
+    template <typename functor_t, typename... Args>
+    DETRAY_HOST_DEVICE decltype(auto) apply(Args &&... As) const {
+
+        return apply_impl<functor_t>(std::make_index_sequence<sizeof...(Ts)>{},
+                                     std::forward<Args>(As)...);
+    }
+
     /// Visits a tuple element according to its @param idx and calls
     /// @tparam functor_t with the arguments @param As on it.
     ///
@@ -146,6 +156,19 @@ class tuple_container {
     DETRAY_HOST_DEVICE auto unroll_views(tuple_view_t &view,
                                          std::index_sequence<I...> /*seq*/) {
         return detail::make_tuple<tuple_t>(Ts(detail::get<I>(view.m_view))...);
+    }
+
+    /// Variadic unrolling of the tuple that calls a functor on all elements of
+    /// the tuple.
+    ///
+    /// @tparam functor_t functor that will be called on the elements.
+    /// @tparam Args argument types for the functor
+    template <typename functor_t, std::size_t... I, typename... Args>
+    DETRAY_HOST_DEVICE decltype(auto) apply_impl(
+        std::index_sequence<I...> /*seq*/, Args &&... As) const {
+
+        // Call the functor on the tuple elements
+        return functor_t{}(std::forward<Args>(As)..., get<I>()...);
     }
 
     /// Variadic unrolling of the tuple that calls a functor on the element that

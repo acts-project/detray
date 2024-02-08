@@ -29,6 +29,15 @@ namespace detray {
 template <typename scalar_t>
 class material_data {
     public:
+    /// Construct empty data for a given surface
+    ///
+    /// @param sf_idx the index of the surface this material belongs to, needs
+    ///               to be passed only if a special oredering must be observed
+    DETRAY_HOST
+    constexpr material_data(
+        const std::size_t sf_idx = detail::invalid_value<std::size_t>())
+        : m_sf_index{sf_idx}, m_mat{}, m_thickness{} {}
+
     /// Construct from a predefined material
     ///
     /// @param mat predefined material, see
@@ -60,25 +69,68 @@ class material_data {
         const material_state state = material_state::e_solid,
         const std::size_t sf_idx = detail::invalid_value<std::size_t>())
         : m_sf_index{sf_idx},
-          m_mat{material_paramters[0], material_paramters[1],
-                material_paramters[2], material_paramters[3],
-                material_paramters[4], state},
+          m_mat{material<scalar_t>{material_paramters[0], material_paramters[1],
+                                   material_paramters[2], material_paramters[3],
+                                   material_paramters[4], state}},
           m_thickness{thickness} {}
 
     /// @returns tuple based access to the contained material data.
     DETRAY_HOST
     constexpr auto get_data()
-        -> std::tuple<std::size_t &, material<scalar_t> &, scalar_t &> {
+        -> std::tuple<std::size_t &, std::vector<material<scalar_t>> &,
+                      std::vector<scalar_t> &> {
         return std::tie(m_sf_index, m_mat, m_thickness);
     }
 
+    /// Append new material
+    ///
+    /// @param thickness of the material slab/rod
+    /// @param mat predefined material, see
+    ///            'detray/materials/predefined_materials.hpp'
+    DETRAY_HOST
+    void append(const scalar_t thickness, const material<scalar_t> &mat) {
+        m_mat.push_back(mat);
+        m_thickness.push_back(thickness);
+    }
+
+    /// Append new material from @param other @c material_data - move
+    DETRAY_HOST
+    void append(material_data &&other) {
+        m_mat.reserve(m_mat.size() + other.m_mat.size());
+        std::move(other.m_mat.begin(), other.m_mat.end(),
+                  std::back_inserter(m_mat));
+
+        m_thickness.reserve(m_thickness.size() + other.m_thickness.size());
+        std::move(other.m_thickness.begin(), other.m_thickness.end(),
+                  std::back_inserter(m_thickness));
+    }
+
+    /// Append new material
+    ///
+    /// @param thickness of the material slab/rod
+    /// @param material_paramters0 x0 is the radiation length
+    /// @param material_paramters1 l0 is the nuclear interaction length
+    /// @param material_paramters2 ar is the relative atomic mass
+    /// @param material_paramters3 z is the nuclear charge number
+    /// @param material_paramters4 molarRho is the molar density
+    /// @param state of the material (liquid, solid etc.)
+    DETRAY_HOST
+    void append(const scalar_t thickness,
+                const std::vector<scalar_t> &material_paramters,
+                const material_state state = material_state::e_solid) {
+        m_mat.push_back(material<scalar_t>{
+            material_paramters[0], material_paramters[1], material_paramters[2],
+            material_paramters[3], material_paramters[4], state});
+        m_thickness.push_back(thickness);
+    }
+
     private:
-    /// The position of the material in its respective detector collection
+    /// Index of the surface this material belongs to
     std::size_t m_sf_index{detail::invalid_value<std::size_t>()};
     /// The material parametrization
-    material<scalar_t> m_mat{};
+    std::vector<material<scalar_t>> m_mat{};
     /// Thickness/radius of the material slab/rod
-    scalar_t m_thickness{0.f};
+    std::vector<scalar_t> m_thickness{0.f};
 };
 
 /// @brief Factory class for homogeneous material.
@@ -90,7 +142,8 @@ class material_data {
 ///
 /// @tparam detector_t type of detector that contains the material
 template <typename detector_t>
-class material_factory final : public factory_decorator<detector_t> {
+class homogeneous_material_factory final
+    : public factory_decorator<detector_t> {
 
     using mask_id = typename detector_t::masks::id;
     using material_id = typename detector_t::materials::id;
@@ -104,8 +157,9 @@ class material_factory final : public factory_decorator<detector_t> {
     /// Factory with surfaces potentially already filled or empty placeholder
     /// that will not be used.
     DETRAY_HOST
-    material_factory(std::unique_ptr<surface_factory_interface<detector_t>>
-                         sf_factory = std::make_unique<placeholder_factory_t>())
+    homogeneous_material_factory(
+        std::unique_ptr<surface_factory_interface<detector_t>> sf_factory =
+            std::make_unique<placeholder_factory_t>())
         : base_factory(std::move(sf_factory)) {}
 
     /// @returns the number of material instances that will be built by the
@@ -151,8 +205,8 @@ class material_factory final : public factory_decorator<detector_t> {
 
         m_links.push_back(std::make_pair(id, static_cast<dindex>(index)));
         m_indices.push_back(sf_index);
-        m_materials.push_back(mat);
-        m_thickness.push_back(thickness);
+        m_materials.push_back(mat[0]);
+        m_thickness.push_back(thickness[0]);
     }
 
     /// Add all necessary compontents to the factory for multiple material slabs
@@ -169,6 +223,14 @@ class material_factory final : public factory_decorator<detector_t> {
         for (auto &mat_data : mat_data_vec) {
             this->add_material(id, std::move(mat_data));
         }
+    }
+
+    /// Clear old data
+    DETRAY_HOST
+    auto clear() -> void override {
+        m_links.clear();
+        m_materials.clear();
+        m_thickness.clear();
     }
 
     /// @brief Add material to the containers of a volume builder.
@@ -249,7 +311,7 @@ class material_factory final : public factory_decorator<detector_t> {
     }
 
     protected:
-    /// Material links of surfaces (currently only type ids)
+    /// Material links of surfaces
     std::vector<std::pair<material_id, dindex>> m_links{};
     /// Position of the material in the detector material collection
     std::vector<std::size_t> m_indices{};

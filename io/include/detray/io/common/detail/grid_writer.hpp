@@ -56,16 +56,15 @@ class grid_writer : public writer_interface<detector_t> {
     protected:
     /// Serialize a grid @param gr of type @param type and index @param idx
     /// into its io payload, using @param serializer for the bin content
-    template <typename content_t, class grid_t>
-    static grid_payload<content_t> serialize(
-        std::size_t volume_index, io::detail::acc_type type,
-        const std::size_t idx, const grid_t& gr,
-        std::function<content_t(const value_t&)> serializer) {
+    template <typename content_t, typename grid_id_t, class grid_t>
+    static grid_payload<content_t, grid_id_t> serialize(
+        std::size_t owner_index, grid_id_t type, const std::size_t idx,
+        const grid_t& gr, std::function<content_t(const value_t&)> serializer) {
 
-        grid_payload<content_t> grid_data;
+        grid_payload<content_t, grid_id_t> grid_data;
 
-        grid_data.volume_link = base_type::serialize(volume_index);
-        grid_data.acc_link = base_type::serialize(type, idx);
+        grid_data.owner_link = base_type::serialize(owner_index);
+        grid_data.grid_link = base_type::serialize(type, idx);
 
         // Serialize the multi-axis into single axis payloads
         const std::array<axis_payload, grid_t::dim> axes_data =
@@ -151,16 +150,17 @@ class grid_writer : public writer_interface<detector_t> {
     /// @param grid_data the grid payload to be filled
     /// @param serializer callable that can serialize a grid bin entry into its
     /// respective IO payload (of type @tparam content_t)
-    template <typename store_t, typename content_t, typename serializer_t>
-    static void serialize(const store_t& store,
-                          typename store_t::single_link grid_link,
-                          dindex owner_idx,
-                          detector_grids_payload<content_t>& grids_data,
-                          serializer_t serializer) {
+    template <typename store_t, typename content_t, typename grid_id_t,
+              typename serializer_t>
+    static void serialize(
+        const store_t& store, typename store_t::single_link grid_link,
+        dindex vol_idx, dindex owner_idx,
+        detector_grids_payload<content_t, grid_id_t>& grids_data,
+        serializer_t serializer) {
 
         // If the accelerator is a grid, insert the payload
-        store.template visit<get_grid_payload>(grid_link, owner_idx, grids_data,
-                                               serializer);
+        store.template visit<get_grid_payload>(grid_link, vol_idx, owner_idx,
+                                               grids_data, serializer);
     }
 
     private:
@@ -168,21 +168,31 @@ class grid_writer : public writer_interface<detector_t> {
     struct get_grid_payload {
 
         template <typename grid_group_t, typename index_t, typename content_t,
-                  typename serializer_t>
+                  typename grid_id_t, typename serializer_t>
         inline void operator()(
             [[maybe_unused]] const grid_group_t& coll,
             [[maybe_unused]] const index_t& index,
-            [[maybe_unused]] std::size_t link,
-            [[maybe_unused]] detector_grids_payload<content_t>& grids_data,
+            [[maybe_unused]] std::size_t vol_link,
+            [[maybe_unused]] std::size_t owner_link,
+            [[maybe_unused]] detector_grids_payload<content_t, grid_id_t>&
+                grids_data,
             [[maybe_unused]] serializer_t& serializer) const {
 
-            using accel_t = typename grid_group_t::value_type;
+            using coll_value_t = typename grid_group_t::value_type;
 
-            if constexpr (detail::is_grid_v<accel_t>) {
+            if constexpr (detail::is_grid_v<coll_value_t>) {
 
-                grids_data.grids.push_back(serialize<content_t>(
-                    link, io::detail::get_grid_id<accel_t>(), index,
-                    coll[index], serializer));
+                auto gr_pyload = serialize<content_t>(
+                    owner_link, io::detail::get_id<coll_value_t>(), index,
+                    coll[index], serializer);
+
+                auto& grids_map = grids_data.grids;
+                auto search = grids_map.find(vol_link);
+                if (search != grids_map.end()) {
+                    grids_map.at(vol_link).push_back(std::move(gr_pyload));
+                } else {
+                    grids_map[vol_link] = {std::move(gr_pyload)};
+                }
             }
         }
     };

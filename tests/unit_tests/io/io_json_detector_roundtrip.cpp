@@ -12,8 +12,6 @@
 #include "detray/detectors/create_wire_chamber.hpp"
 #include "detray/io/common/detector_reader.hpp"
 #include "detray/io/common/detector_writer.hpp"
-#include "detray/io/json/json_reader.hpp"
-#include "detray/io/json/json_writer.hpp"
 #include "detray/utils/consistency_checker.hpp"
 #include "tests/common/test_toy_detector.hpp"
 
@@ -73,6 +71,66 @@ bool compare_files(const std::string& file_name1, const std::string& file_name2,
     return true;
 }
 
+/// Full IO round trip for a given detector
+/// @returns a detector read back in from the writter files
+template <std::size_t CAP = 0u, typename detector_t>
+auto test_detector_json_io(const detector_t& det,
+                           const typename detector_t::name_map& names,
+                           std::map<std::string, std::string>& file_names,
+                           vecmem::host_memory_resource& host_mr) {
+
+    auto writer_cfg = io::detector_writer_config{}
+                          .format(io::format::json)
+                          .replace_files(true);
+    io::write_detector(det, names, writer_cfg);
+
+    // Read the detector back in
+    io::detector_reader_config reader_cfg{};
+    reader_cfg.do_check(true);
+    for (auto& [_, name] : file_names) {
+        reader_cfg.add_file(name);
+    }
+
+    auto [det2, names2] =
+        io::read_detector<detector_t, CAP>(host_mr, reader_cfg);
+
+    // Write the result to a different set of files
+    writer_cfg.replace_files(false);
+    io::write_detector(det2, names2, writer_cfg);
+
+    // Compare writing round-trip
+    std::string geometry_file{names.at(0u) + "_geometry_2.json"};
+    EXPECT_TRUE(compare_files(file_names["geometry"], geometry_file));
+    std::filesystem::remove(geometry_file);
+
+    // Check a homogeneous material description, if present
+    if (auto search = file_names.find("homogeneous_material");
+        search != file_names.end()) {
+        std::string hom_mat_file{names.at(0u) + "_homogeneous_material_2.json"};
+        EXPECT_TRUE(
+            compare_files(file_names["homogeneous_material"], hom_mat_file));
+        std::filesystem::remove(hom_mat_file);
+    }
+
+    // Check a material map description, if present
+    if (auto search = file_names.find("material_maps");
+        search != file_names.end()) {
+        std::string mat_map_file{names.at(0u) + "_material_maps_2.json"};
+        EXPECT_TRUE(compare_files(file_names["material_maps"], mat_map_file));
+        std::filesystem::remove(mat_map_file);
+    }
+
+    // Check a homogeneous material description, if present
+    if (auto search = file_names.find("surface_grids");
+        search != file_names.end()) {
+        std::string grids_file{names.at(0u) + "_surface_grids_2.json"};
+        EXPECT_TRUE(compare_files(file_names["surface_grids"], grids_file));
+        std::filesystem::remove(grids_file);
+    }
+
+    return std::make_pair(std::move(det2), std::move(names2));
+}
+
 }  // anonymous namespace
 
 /// Test the reading and writing of a telescope detector
@@ -89,46 +147,22 @@ TEST(io, json_telescope_detector_reader) {
 
     // Telescope detector
     vecmem::host_memory_resource host_mr;
-    auto [telescope_det, telescope_names] =
-        create_telescope_detector(host_mr, tel_cfg);
+    auto [tel_det, tel_names] = create_telescope_detector(host_mr, tel_cfg);
 
-    using detector_t = decltype(telescope_det);
+    std::map<std::string, std::string> file_names;
+    file_names["geometry"] = "telescope_detector_geometry.json";
+    file_names["homogeneous_material"] =
+        "telescope_detector_homogeneous_material.json";
 
-    auto writer_cfg = io::detector_writer_config{}
-                          .format(io::format::json)
-                          .write_grids(false)
-                          .replace_files(true);
-    io::write_detector(telescope_det, telescope_names, writer_cfg);
+    auto [det_io, names_io] =
+        test_detector_json_io(tel_det, tel_names, file_names, host_mr);
 
-    // Read the detector back in
-    io::detector_reader_config reader_cfg{};
-    reader_cfg.do_check(true)
-        .add_file("telescope_detector_geometry.json")
-        .add_file("telescope_detector_homogeneous_material.json");
+    const auto& mat_store = det_io.material_store();
+    const auto& slabs =
+        mat_store.get<decltype(tel_det)::materials::id::e_slab>();
 
-    const auto [det, names] =
-        io::read_detector<detector_t>(host_mr, reader_cfg);
-
-    const auto mat_store = det.material_store();
-    const auto slabs = mat_store.get<detector_t::materials::id::e_slab>();
-
-    EXPECT_EQ(det.volumes().size(), 1u);
+    EXPECT_EQ(det_io.volumes().size(), 1u);
     EXPECT_EQ(slabs.size(), positions.size() + 6u);
-
-    // Write the result to a different set of files
-    writer_cfg.replace_files(false);
-    io::write_detector(det, names, writer_cfg);
-
-    // Compare writing round-trip
-    EXPECT_TRUE(compare_files("telescope_detector_geometry.json",
-                              "telescope_detector_geometry_2.json"));
-    EXPECT_TRUE(
-        compare_files("telescope_detector_homogeneous_material.json",
-                      "telescope_detector_homogeneous_material_2.json"));
-
-    // Remove files
-    std::filesystem::remove("telescope_detector_geometry_2.json");
-    std::filesystem::remove("telescope_detector_homogeneous_material_2.json");
 }
 
 /// Test the reading and writing of a toy detector geometry
@@ -184,10 +218,8 @@ TEST(io, json_toy_geometry) {
     detail::check_consistency(comp_det);
 }
 
-/// Test the reading and writing of a toy detector geometry
-TEST(io, json_toy_detector_reader) {
-
-    using detector_t = detector<toy_metadata>;
+/// Test the reading and writing of a toy detector geometry "light"
+TEST(io, json_toy_detector_roundtrip_homogeneous_material) {
 
     // Toy detector
     vecmem::host_memory_resource host_mr;
@@ -195,45 +227,46 @@ TEST(io, json_toy_detector_reader) {
     toy_cfg.use_material_maps(false);
     const auto [toy_det, toy_names] = create_toy_geometry(host_mr, toy_cfg);
 
-    auto writer_cfg = io::detector_writer_config{}
-                          .format(io::format::json)
-                          .replace_files(true);
-    io::write_detector(toy_det, toy_names, writer_cfg);
+    std::map<std::string, std::string> file_names;
+    file_names["geometry"] = "toy_detector_geometry.json";
+    file_names["homogeneous_material"] =
+        "toy_detector_homogeneous_material.json";
+    file_names["surface_grids"] = "toy_detector_surface_grids.json";
 
-    // Read the detector back in
-    io::detector_reader_config reader_cfg{};
-    reader_cfg.do_check(true)
-        .add_file("toy_detector_geometry.json")
-        .add_file("toy_detector_homogeneous_material.json")
-        .add_file("toy_detector_surface_grids.json");
+    auto [det_io, names_io] =
+        test_detector_json_io<1u>(toy_det, toy_names, file_names, host_mr);
 
-    const auto [det, names] =
-        io::read_detector<detector_t, 1u>(host_mr, reader_cfg);
+    // Remove empty files as there are not material maps
+    std::filesystem::remove("toy_detector_material_maps.json");
+    std::filesystem::remove("toy_detector_material_maps_2.json");
 
-    EXPECT_TRUE(test_toy_detector(det, names));
+    EXPECT_TRUE(test_toy_detector(det_io, names_io));
+}
 
-    // Write the result to a different set of files
-    writer_cfg.replace_files(false);
-    io::write_detector(det, names, writer_cfg);
+/// Test the reading and writing of a toy detector geometry
+TEST(io, json_toy_detector_roundtrip_material_maps) {
 
-    // Compare writing round-trip
-    EXPECT_TRUE(compare_files("toy_detector_geometry.json",
-                              "toy_detector_geometry_2.json"));
-    EXPECT_TRUE(compare_files("toy_detector_homogeneous_material.json",
-                              "toy_detector_homogeneous_material_2.json"));
-    EXPECT_TRUE(compare_files("toy_detector_surface_grids.json",
-                              "toy_detector_surface_grids_2.json"));
+    // Toy detector
+    vecmem::host_memory_resource host_mr;
+    toy_det_config toy_cfg{};
+    toy_cfg.use_material_maps(true);
+    const auto [toy_det, toy_names] = create_toy_geometry(host_mr, toy_cfg);
 
-    // Remove files
-    std::filesystem::remove("toy_detector_geometry_2.json");
-    std::filesystem::remove("toy_detector_homogeneous_material_2.json");
-    std::filesystem::remove("toy_detector_surface_grids_2.json");
+    std::map<std::string, std::string> file_names;
+    file_names["geometry"] = "toy_detector_geometry.json";
+    file_names["homogeneous_material"] =
+        "toy_detector_homogeneous_material.json";
+    file_names["material_maps"] = "toy_detector_material_maps.json";
+    file_names["surface_grids"] = "toy_detector_surface_grids.json";
+
+    auto [det_io, names_io] =
+        test_detector_json_io<1u>(toy_det, toy_names, file_names, host_mr);
+
+    EXPECT_TRUE(test_toy_detector(det_io, names_io));
 }
 
 /// Test the reading and writing of a wire chamber
 TEST(io, json_wire_chamber_reader) {
-
-    using detector_t = detector<default_metadata>;
 
     // Wire chamber
     vecmem::host_memory_resource host_mr;
@@ -241,37 +274,18 @@ TEST(io, json_wire_chamber_reader) {
     wire_cfg.use_material_maps(false);
     auto [wire_det, wire_names] = create_wire_chamber(host_mr, wire_cfg);
 
-    auto writer_cfg = io::detector_writer_config{}
-                          .format(io::format::json)
-                          .replace_files(true);
-    io::write_detector(wire_det, wire_names, writer_cfg);
+    std::map<std::string, std::string> file_names;
+    file_names["geometry"] = "wire_chamber_geometry.json";
+    file_names["homogeneous_material"] =
+        "wire_chamber_homogeneous_material.json";
+    file_names["surface_grids"] = "wire_chamber_surface_grids.json";
 
-    // Read the detector back in
-    io::detector_reader_config reader_cfg{};
-    reader_cfg.do_check(true)
-        .add_file("wire_chamber_geometry.json")
-        .add_file("wire_chamber_homogeneous_material.json")
-        .add_file("wire_chamber_surface_grids.json");
+    auto [det_io, names_io] =
+        test_detector_json_io(wire_det, wire_names, file_names, host_mr);
 
-    const auto [det, names] =
-        io::read_detector<detector_t>(host_mr, reader_cfg);
+    // Remove empty files as there are material
+    std::filesystem::remove("wire_chamber_material_maps.json");
+    std::filesystem::remove("wire_chamber_material_maps_2.json");
 
-    EXPECT_EQ(det.volumes().size(), 11u);
-
-    // Write the result to a different set of files
-    writer_cfg.replace_files(false);
-    io::write_detector(det, names, writer_cfg);
-
-    // Compare writing round-trip
-    EXPECT_TRUE(compare_files("wire_chamber_geometry.json",
-                              "wire_chamber_geometry_2.json"));
-    EXPECT_TRUE(compare_files("wire_chamber_homogeneous_material.json",
-                              "wire_chamber_homogeneous_material_2.json"));
-    EXPECT_TRUE(compare_files("wire_chamber_surface_grids.json",
-                              "wire_chamber_surface_grids_2.json"));
-
-    // Remove files
-    std::filesystem::remove("wire_chamber_geometry_2.json");
-    std::filesystem::remove("wire_chamber_homogeneous_material_2.json");
-    std::filesystem::remove("wire_chamber_surface_grids_2.json");
+    EXPECT_EQ(det_io.volumes().size(), 11u);
 }

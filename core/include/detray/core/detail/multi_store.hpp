@@ -326,6 +326,20 @@ class multi_store {
         }
     }
 
+    /// Calls a functor with a every data collection as parameter.
+    ///
+    /// @tparam functor_t functor that will be called on the store.
+    /// @tparam Args argument types for the functor
+    ///
+    /// @param args additional functor arguments
+    ///
+    /// @return the functor output
+    template <typename functor_t, typename... Args>
+    DETRAY_HOST_DEVICE decltype(auto) apply(Args &&... args) const {
+        return m_tuple_container.template apply<functor_t>(
+            std::forward<Args>(args)...);
+    }
+
     /// Calls a functor with a specific data collection (given by ID).
     ///
     /// @tparam functor_t functor that will be called on the group.

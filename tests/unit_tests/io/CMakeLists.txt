@@ -25,9 +25,9 @@ detray_add_test( io_writer
 _run_test_in_dir( io_writer
    "${CMAKE_CURRENT_BINARY_DIR}${CMAKE_FILES_DIRECTORY}/io_writer_test_rundir" )
 
-detray_add_test( io_reader
-    "io_json_detector_reader.cpp"
+detray_add_test( io_roundtrip
+    "io_json_detector_roundtrip.cpp"
     LINK_LIBRARIES GTest::gtest_main vecmem::core detray::core_array
     detray::io_array detray::test detray_tests_common detray::utils_array)
-_run_test_in_dir( io_reader
-   "${CMAKE_CURRENT_BINARY_DIR}${CMAKE_FILES_DIRECTORY}/io_reader_test_rundir" )
+_run_test_in_dir( io_roundtrip
+   "${CMAKE_CURRENT_BINARY_DIR}${CMAKE_FILES_DIRECTORY}/io_roundtrip_test_rundir" )

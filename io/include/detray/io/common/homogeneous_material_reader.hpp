@@ -14,8 +14,8 @@
 #include "detray/io/common/payloads.hpp"
 #include "detray/materials/material.hpp"
 #include "detray/tools/detector_builder.hpp"
-#include "detray/tools/material_builder.hpp"
-#include "detray/tools/material_factory.hpp"
+#include "detray/tools/homogeneous_material_builder.hpp"
+#include "detray/tools/homogeneous_material_factory.hpp"
 
 // System include(s)
 #include <memory>
@@ -23,6 +23,9 @@
 #include <vector>
 
 namespace detray {
+
+template <typename detector_t, typename DIM>
+class material_map_reader;
 
 /// @brief Abstract base class for a homogeneous material reader.
 template <class detector_t>
@@ -33,6 +36,9 @@ class homogeneous_material_reader : public reader_interface<detector_t> {
     /// they are shared with ACTS
     using material_type = io::detail::material_type;
     using scalar_type = typename detector_t::scalar_type;
+
+    friend class material_map_reader<detector_t,
+                                     std::integral_constant<std::size_t, 2>>;
 
     protected:
     /// Tag the reader as "homogeneous material"
@@ -56,12 +62,14 @@ class homogeneous_material_reader : public reader_interface<detector_t> {
         // Deserialize the material volume by volume
         for (const auto& mv_data : det_mat_data.volumes) {
             // Decorate the current volume builder with material
-            auto vm_builder =
-                det_builder.template decorate<material_builder<detector_t>>(
-                    base_type::deserialize(mv_data.volume_link));
+            auto vm_builder = det_builder.template decorate<
+                homogeneous_material_builder<detector_t>>(
+                base_type::deserialize(mv_data.volume_link));
 
             // Add the material data to the factory
-            auto mat_factory = std::make_shared<material_factory<detector_t>>();
+            auto mat_factory =
+                std::make_shared<homogeneous_material_factory<detector_t>>();
+
             for (const auto& slab_data : mv_data.mat_slabs) {
                 assert(slab_data.type == io::detail::material_type::slab);
 
