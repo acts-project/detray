@@ -8,6 +8,7 @@
 #pragma once
 
 // Project include(s)
+#include "detray/coordinates/coordinates.hpp"
 #include "detray/io/frontend/definitions.hpp"
 #include "detray/io/frontend/payloads.hpp"
 #include "detray/masks/annulus2D.hpp"
@@ -25,7 +26,6 @@
 #include "detray/materials/material_slab.hpp"
 #include "detray/utils/tuple_helpers.hpp"
 #include "detray/utils/type_registry.hpp"
-#include "detray/utils/type_traits.hpp"
 
 // System include(s)
 #include <type_traits>
@@ -154,8 +154,8 @@ struct mask_info<io::shape_id::annulus2, detector_t,
 /// Check for a 2D cylinder shape
 template <typename detector_t>
 struct mask_info<io::shape_id::cylinder2, detector_t,
-                 std::enable_if_t<detector_t::masks::template is_defined<mask<
-                                      cylinder2D, std::uint_least16_t>>(),
+                 std::enable_if_t<detector_t::masks::template is_defined<
+                                      mask<cylinder2D, std::uint_least16_t>>(),
                                   void>> {
     using type = cylinder2D;
     static constexpr typename detector_t::masks::id value{
@@ -199,8 +199,8 @@ struct mask_info<io::shape_id::straw_wire, detector_t,
 /// Check for a rectangle shape
 template <typename detector_t>
 struct mask_info<io::shape_id::rectangle2, detector_t,
-                 std::enable_if_t<detector_t::masks::template is_defined<mask<
-                                      rectangle2D, std::uint_least16_t>>(),
+                 std::enable_if_t<detector_t::masks::template is_defined<
+                                      mask<rectangle2D, std::uint_least16_t>>(),
                                   void>> {
     using type = rectangle2D;
     static constexpr typename detector_t::masks::id value{
@@ -254,8 +254,8 @@ struct mask_info<io::shape_id::single3, detector_t,
 /// Check for a trapezoid shape
 template <typename detector_t>
 struct mask_info<io::shape_id::trapezoid2, detector_t,
-                 std::enable_if_t<detector_t::masks::template is_defined<mask<
-                                      trapezoid2D, std::uint_least16_t>>(),
+                 std::enable_if_t<detector_t::masks::template is_defined<
+                                      mask<trapezoid2D, std::uint_least16_t>>(),
                                   void>> {
     using type = trapezoid2D;
     static constexpr typename detector_t::masks::id value{

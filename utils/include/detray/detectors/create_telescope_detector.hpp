@@ -17,6 +17,7 @@
 #include "detray/detectors/telescope_metadata.hpp"
 #include "detray/masks/masks.hpp"
 #include "detray/materials/predefined_materials.hpp"
+#include "detray/navigation/detail/trajectories.hpp"
 #include "detray/utils/consistency_checker.hpp"
 
 // Vecmem include(s)

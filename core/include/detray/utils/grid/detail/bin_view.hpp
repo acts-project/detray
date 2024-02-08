@@ -10,7 +10,7 @@
 // Project include(s)
 #include "detray/definitions/containers.hpp"
 #include "detray/definitions/qualifiers.hpp"
-#include "detray/surface_finders/grid/detail/axis_bounds.hpp"
+#include "detray/utils/grid/detail/axis_bounds.hpp"
 #include "detray/utils/ranges.hpp"
 
 // System include(s)

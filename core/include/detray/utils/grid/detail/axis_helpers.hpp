@@ -10,9 +10,9 @@
 // Project include(s).
 #include "detray/coordinates/coordinates.hpp"
 #include "detray/definitions/grid_axis.hpp"
-#include "detray/surface_finders/grid/detail/axis.hpp"
-#include "detray/surface_finders/grid/detail/axis_binning.hpp"
-#include "detray/surface_finders/grid/detail/axis_bounds.hpp"
+#include "detray/utils/grid/detail/axis.hpp"
+#include "detray/utils/grid/detail/axis_binning.hpp"
+#include "detray/utils/grid/detail/axis_bounds.hpp"
 #include "detray/utils/type_list.hpp"
 
 // System include(s).

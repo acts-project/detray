@@ -8,9 +8,9 @@
 // Project include(s).
 #include "detray/definitions/units.hpp"
 #include "detray/geometry/detail/surface_descriptor.hpp"
-#include "detray/navigation/intersection/helix_intersector.hpp"
 #include "detray/masks/masks.hpp"
 #include "detray/masks/unbounded.hpp"
+#include "detray/navigation/intersection/helix_intersector.hpp"
 #include "detray/test/types.hpp"
 #include "detray/tracks/tracks.hpp"
 #include "detray/utils/axis_rotation.hpp"
@@ -181,10 +181,10 @@ class HelixCovarianceTransportValidation : public ::testing::Test {
 
         // Get the intersection on the next surface
         const intersection_t is = get_intersection(
-            helix_intersector<transform3_type,
-                              typename destination_mask_type::shape>{}(
-                hlx, surface_descriptor<>{}, mask_1, trf_1,
-                this->mask_tolerance));
+            helix_intersector<typename destination_mask_type::shape,
+                              transform3_type>{}(hlx, surface_descriptor<>{},
+                                                 mask_1, trf_1,
+                                                 this->mask_tolerance));
 
         sfis.push_back(is);
 

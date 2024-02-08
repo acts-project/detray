@@ -182,7 +182,7 @@ GTEST_TEST(detray_material, material_rod) {
     const mask<line<>> ln{0u, 1.f * unit<scalar>::mm,
                           std::numeric_limits<scalar>::infinity()};
 
-    auto is = ray_intersector<transform3, line<>>{}(
+    auto is = ray_intersector<line<>, transform3>{}(
         detail::ray<transform3>(trk), surface_descriptor<>{}, ln, tf);
 
     const scalar cos_inc_ang{is.cos_incidence_angle};

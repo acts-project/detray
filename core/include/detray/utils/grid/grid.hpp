@@ -10,12 +10,12 @@
 // Project include(s).
 #include "detray/core/detail/container_views.hpp"
 #include "detray/definitions/qualifiers.hpp"
-#include "detray/surface_finders/grid/detail/axis.hpp"
-#include "detray/surface_finders/grid/detail/axis_helpers.hpp"
-#include "detray/surface_finders/grid/detail/bin_storage.hpp"
-#include "detray/surface_finders/grid/detail/bin_view.hpp"
-#include "detray/surface_finders/grid/populators.hpp"
-#include "detray/surface_finders/grid/serializers.hpp"
+#include "detray/utils/grid/detail/axis.hpp"
+#include "detray/utils/grid/detail/axis_helpers.hpp"
+#include "detray/utils/grid/detail/bin_storage.hpp"
+#include "detray/utils/grid/detail/bin_view.hpp"
+#include "detray/utils/grid/populators.hpp"
+#include "detray/utils/grid/serializers.hpp"
 #include "detray/utils/ranges.hpp"
 
 // VecMem include(s).

@@ -11,7 +11,7 @@
 #include "detray/coordinates/cylindrical2.hpp"
 #include "detray/definitions/math.hpp"
 #include "detray/definitions/qualifiers.hpp"
-#include "detray/navigation/detail/trajectories.hpp"
+#include "detray/navigation/detail/ray.hpp"
 #include "detray/navigation/intersection/intersection.hpp"
 #include "detray/utils/invalid_values.hpp"
 #include "detray/utils/quadratic_equation.hpp"

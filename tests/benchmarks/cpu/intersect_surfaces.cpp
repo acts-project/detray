@@ -10,7 +10,7 @@
 #include "detray/definitions/indexing.hpp"
 #include "detray/geometry/detail/surface_descriptor.hpp"
 #include "detray/masks/masks.hpp"
-#include "detray/navigation/detail/trajectories.hpp"
+#include "detray/navigation/detail/ray.hpp"
 #include "detray/navigation/intersection/ray_concentric_cylinder_intersector.hpp"
 #include "detray/navigation/intersection/ray_intersector.hpp"
 
@@ -56,7 +56,7 @@ void BM_INTERSECT_PLANES(benchmark::State &state) {
         for (const auto ray : ray_generator) {
 
             for (const auto &plane : planes) {
-                auto pi = ray_intersector<test::transform3, rectangle2D>{};
+                auto pi = ray_intersector<rectangle2D, test::transform3>{};
                 auto is = pi(ray, plane, rect, plane.transform());
 
                 benchmark::DoNotOptimize(sfhit);
@@ -129,7 +129,7 @@ void BM_INTERSECT_CYLINDERS(benchmark::State &state) {
         for (const auto ray : ray_generator) {
 
             for (const auto &cylinder : cylinders) {
-                auto ci = ray_intersector<test::transform3, cylinder2D>{};
+                auto ci = ray_intersector<cylinder2D, test::transform3>{};
                 auto inters = ci(ray, plane, cylinder, plane.transform());
 
                 benchmark::DoNotOptimize(sfhit);
@@ -185,7 +185,7 @@ void BM_INTERSECT_PORTAL_CYLINDERS(benchmark::State &state) {
 
             for (const auto &cylinder : cylinders) {
                 auto cpi =
-                    ray_intersector<test::transform3, concentric_cylinder2D>{};
+                    ray_intersector<concentric_cylinder2D, test::transform3>{};
                 auto is = cpi(ray, plane, cylinder, plane.transform());
 
                 benchmark::DoNotOptimize(sfhit);

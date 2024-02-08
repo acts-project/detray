@@ -8,8 +8,8 @@
 #pragma once
 
 // Project include(s)
-#include "detray/surface_finders/grid/detail/axis_helpers.hpp"
-#include "detray/surface_finders/grid/detail/grid_bins.hpp"
-#include "detray/surface_finders/grid/grid.hpp"
-#include "detray/surface_finders/grid/grid_collection.hpp"
+#include "detray/utils/grid/detail/axis_helpers.hpp"
+#include "detray/utils/grid/detail/grid_bins.hpp"
+#include "detray/utils/grid/grid.hpp"
+#include "detray/utils/grid/grid_collection.hpp"
 #include "detray/utils/type_traits.hpp"

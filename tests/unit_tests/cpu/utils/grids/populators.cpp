@@ -6,10 +6,11 @@
  */
 
 // detray core
+#include "detray/utils/grid/populators.hpp"
+
 #include "detray/definitions/indexing.hpp"
-#include "detray/surface_finders/grid/detail/grid_bins.hpp"
-#include "detray/surface_finders/grid/populators.hpp"
 #include "detray/test/types.hpp"
+#include "detray/utils/grid/detail/grid_bins.hpp"
 
 // GTest
 #include <gtest/gtest.h>

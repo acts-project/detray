@@ -9,7 +9,7 @@
 
 // Project include(s)
 #include "detray/detectors/bfield.hpp"
-#include "detray/navigation/detail/trajectories.hpp"
+#include "detray/navigation/detail/helix.hpp"
 #include "detray/navigation/navigator.hpp"
 #include "detray/plugins/svgtools/illustrator.hpp"
 #include "detray/propagator/actor_chain.hpp"

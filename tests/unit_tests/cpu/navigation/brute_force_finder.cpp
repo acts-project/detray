@@ -6,10 +6,10 @@
  */
 
 // Detray include(s)
-#include "detray/surface_finders/brute_force_finder.hpp"
+#include "detray/navigation/accelerators/brute_force_finder.hpp"
 
 #include "detray/detectors/create_toy_geometry.hpp"
-#include "detray/navigation/detail/trajectories.hpp"
+#include "detray/navigation/detail/ray.hpp"
 #include "detray/test/types.hpp"
 #include "detray/test/utils/planes_along_direction.hpp"
 

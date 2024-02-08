@@ -11,7 +11,7 @@
 #include "detray/coordinates/cylindrical2.hpp"
 #include "detray/definitions/math.hpp"
 #include "detray/definitions/qualifiers.hpp"
-#include "detray/navigation/detail/trajectories.hpp"
+#include "detray/navigation/detail/ray.hpp"
 #include "detray/navigation/intersection/intersection.hpp"
 #include "detray/utils/invalid_values.hpp"
 #include "detray/utils/quadratic_equation.hpp"
@@ -21,12 +21,12 @@
 
 namespace detray {
 
-template <typename algebra_t, typename fame_t>
+template <typename frame_t, typename algebra_t>
 struct ray_intersector_impl;
 
 /// A functor to find intersections between a ray and a 2D cylinder mask
 template <typename algebra_t>
-struct ray_intersector_impl<algebra_t, cylindrical2<algebra_t>> {
+struct ray_intersector_impl<cylindrical2<algebra_t>, algebra_t> {
 
     /// linear algebra types
     /// @{

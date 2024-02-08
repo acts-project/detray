@@ -9,7 +9,7 @@
 #include "detray/core/detector.hpp"
 #include "detray/detectors/create_toy_geometry.hpp"
 #include "detray/geometry/surface.hpp"
-#include "detray/navigation/detail/trajectories.hpp"
+#include "detray/navigation/detail/ray.hpp"
 #include "detray/navigation/intersection/ray_intersector.hpp"
 #include "detray/navigation/intersection_kernel.hpp"
 #include "detray/simulation/event_generator/track_generators.hpp"

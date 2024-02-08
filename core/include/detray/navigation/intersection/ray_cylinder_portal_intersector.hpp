@@ -12,7 +12,7 @@
 #include "detray/coordinates/cylindrical2.hpp"
 #include "detray/definitions/math.hpp"
 #include "detray/definitions/qualifiers.hpp"
-#include "detray/navigation/detail/trajectories.hpp"
+#include "detray/navigation/detail/ray.hpp"
 #include "detray/navigation/intersection/intersection.hpp"
 #include "detray/navigation/intersection/ray_cylinder_intersector.hpp"
 #include "detray/utils/quadratic_equation.hpp"
@@ -22,7 +22,7 @@
 
 namespace detray {
 
-template <typename algebra_t, typename fame_t>
+template <typename frame_t, typename algebra_t>
 struct ray_intersector_impl;
 
 /// @brief A functor to find intersections between a straight line and a
@@ -31,8 +31,8 @@ struct ray_intersector_impl;
 /// With the way the navigation works, only the closest one of the two possible
 /// intersection points is needed in the case of a cylinderical portal surface.
 template <typename algebra_t>
-struct ray_intersector_impl<algebra_t, concentric_cylindrical2<algebra_t>>
-    : public ray_intersector_impl<algebra_t, cylindrical2<algebra_t>> {
+struct ray_intersector_impl<concentric_cylindrical2<algebra_t>, algebra_t>
+    : public ray_intersector_impl<cylindrical2<algebra_t>, algebra_t> {
 
     /// linear algebra types
     /// @{

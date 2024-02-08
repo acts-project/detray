@@ -244,7 +244,8 @@ class grid_reader {
                 }
                 // 2D concentric cylinder grid
                 case io::accel_id::concentric_cylinder2_grid: {
-                    return convert<detector_t, concentric_cylindrical2<algebra_t>>(
+                    return convert<detector_t,
+                                   concentric_cylindrical2<algebra_t>>(
                         grid_data, det_builder, bounds, binnings);
                 }
                 // 2D cylinder grid

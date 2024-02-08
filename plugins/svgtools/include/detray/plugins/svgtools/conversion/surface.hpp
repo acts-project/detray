@@ -65,47 +65,12 @@ auto inline surface(const transform_t& transform, const mask_t& m) {
 }
 
 /// @brief Returns the proto surface for 2D cylinders.
-template <typename transform_t>
-auto inline surface(const transform_t& transform, const mask<cylinder2D>& m) {
+template <typename transform_t, typename shape_t,
+          std::enable_if_t<std::is_same_v<shape_t, cylinder2D> ||
+                               std::is_same_v<shape_t, concentric_cylinder2D>,
+                           bool> = true>
+auto inline surface(const transform_t& transform, const mask<shape_t>& m) {
 
-    using shape_t = cylinder2D;
-    using point3_t = typename transform_t::point3;
-    using p_surface_t = actsvg::proto::surface<std::vector<point3_t>>;
-
-    p_surface_t p_surface;
-
-    const auto r = static_cast<actsvg::scalar>(m[shape_t::e_r]);
-    const auto nhz = static_cast<actsvg::scalar>(m[shape_t::e_n_half_z]);
-    const auto phz = static_cast<actsvg::scalar>(m[shape_t::e_p_half_z]);
-    const auto center = transform.translation();
-    const auto z0 = static_cast<actsvg::scalar>(center[2]);
-    auto hz = static_cast<actsvg::scalar>(0.5f * (phz - nhz));
-
-    // ACTS-like cylinder definition: symmetric around translation
-    if (math::abs(nhz - phz) <=
-        std::numeric_limits<actsvg::scalar>::epsilon()) {
-        p_surface._zparameters = {z0, hz};
-
-    } else {
-        // detray-like cylinder definition: asymmetric around translation
-        p_surface._zparameters = {nhz + hz + z0, hz};
-    }
-
-    p_surface._type = p_surface_t::type::e_cylinder;
-    p_surface._radii = {0.f, r};
-    p_surface._transform._tr = {static_cast<actsvg::scalar>(center[0]),
-                                static_cast<actsvg::scalar>(center[1])};
-    set_measures(p_surface, m);
-
-    return p_surface;
-}
-
-/// @brief Returns the proto surface for 2D cylinders.
-template <typename transform_t>
-auto inline surface(const transform_t& transform,
-                    const mask<concentric_cylinder2D>& m) {
-
-    using shape_t = concentric_cylinder2D;
     using point3_t = typename transform_t::point3;
     using p_surface_t = actsvg::proto::surface<std::vector<point3_t>>;
 

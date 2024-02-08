@@ -9,7 +9,7 @@
 
 // Project include(s).
 #include "detray/definitions/qualifiers.hpp"
-#include "detray/surface_finders/grid/grid.hpp"
+#include "detray/utils/grid/grid.hpp"
 
 // VecMem include(s).
 #include <vecmem/memory/memory_resource.hpp>

@@ -10,7 +10,7 @@
 // Project include(s)
 #include "detray/geometry/surface.hpp"
 #include "detray/io/frontend/utils/file_handle.hpp"
-#include "detray/navigation/detail/trajectories.hpp"
+#include "detray/navigation/detail/ray.hpp"
 #include "detray/navigation/volume_graph.hpp"
 #include "detray/plugins/svgtools/illustrator.hpp"
 #include "detray/simulation/event_generator/track_generators.hpp"

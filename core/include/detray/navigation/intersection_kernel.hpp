@@ -57,7 +57,7 @@ struct intersection_initialize {
              detray::ranges::subrange(mask_group, mask_range)) {
 
             if (place_in_collection(
-                    intersector_t<algebra_t, typename mask_t::shape>{}(
+                    intersector_t<typename mask_t::shape, algebra_t>{}(
                         traj, surface, mask, ctf, mask_tolerance, overstep_tol),
                     is_container)) {
                 return;
@@ -134,7 +134,7 @@ struct intersection_update {
         for (const auto &mask :
              detray::ranges::subrange(mask_group, mask_range)) {
 
-            intersector_t<algebra_t, typename mask_t::shape>{}.update(
+            intersector_t<typename mask_t::shape, algebra_t>{}.update(
                 traj, sfi, mask, ctf, mask_tolerance, overstep_tol);
 
             if (sfi.status == intersection::status::e_inside) {

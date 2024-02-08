@@ -20,11 +20,12 @@ namespace detray {
 ///
 /// @note specialized into the concrete intersectors for the different local
 /// geometries in the respective header files
-template <typename algebra_t, typename frame_t>
+template <typename frame_t, typename algebra_t>
 struct ray_intersector_impl {};
 
-template <typename algebra_t, typename shape_t>
-using ray_intersector = ray_intersector_impl<
-    algebra_t, typename shape_t::template local_frame_type<algebra_t>>;
+template <typename shape_t, typename algebra_t>
+using ray_intersector =
+    ray_intersector_impl<typename shape_t::template local_frame_type<algebra_t>,
+                         algebra_t>;
 
 }  // namespace detray

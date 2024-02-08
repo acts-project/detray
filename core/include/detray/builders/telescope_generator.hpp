@@ -15,7 +15,7 @@
 #include "detray/definitions/qualifiers.hpp"
 #include "detray/masks/masks.hpp"
 #include "detray/masks/rectangle2D.hpp"
-#include "detray/navigation/detail/trajectories.hpp"
+#include "detray/navigation/detail/ray.hpp"
 #include "detray/utils/axis_rotation.hpp"
 #include "detray/utils/unit_vectors.hpp"
 

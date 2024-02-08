@@ -16,7 +16,7 @@
 #include "detray/masks/masks.hpp"
 #include "detray/materials/material_rod.hpp"
 #include "detray/materials/material_slab.hpp"
-#include "detray/surface_finders/brute_force_finder.hpp"
+#include "detray/navigation/accelerators/brute_force_finder.hpp"
 
 namespace detray {
 

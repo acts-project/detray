@@ -8,7 +8,7 @@
 // Project include(s)
 #include "detray/geometry/detail/surface_descriptor.hpp"
 #include "detray/masks/masks.hpp"
-#include "detray/navigation/detail/trajectories.hpp"
+#include "detray/navigation/detail/ray.hpp"
 #include "detray/navigation/intersection/ray_concentric_cylinder_intersector.hpp"
 #include "detray/navigation/intersection/ray_intersector.hpp"
 #include "detray/test/types.hpp"
@@ -42,7 +42,7 @@ const scalar hz{10.f};
 GTEST_TEST(detray_intersection, translated_cylinder) {
     // Create a translated cylinder and test untersection
     const transform3_t shifted(vector3{3.f, 2.f, 10.f});
-    ray_intersector<transform3_t, cylinder2D> ci;
+    ray_intersector<cylinder2D, transform3_t> ci;
 
     // Test ray
     const point3 ori = {3.f, 2.f, 5.f};
@@ -90,7 +90,7 @@ GTEST_TEST(detray_intersection, translated_cylinder) {
 // This checks the inclindence angle calculation for a ray-cylinder intersection
 GTEST_TEST(detray_intersection, cylinder_incidence_angle) {
     const transform3_t identity{};
-    ray_intersector<transform3_t, cylinder2D> ci;
+    ray_intersector<cylinder2D, transform3_t> ci;
 
     // Test ray
     const point3 ori = {0.f, 1.f, 0.f};
@@ -121,8 +121,8 @@ GTEST_TEST(detray_intersection, cylinder_portal) {
     mask<cylinder2D, std::uint_least16_t, transform3_t> cylinder{0u, r, -hz,
                                                                  hz};
 
-    ray_intersector<transform3_t, cylinder2D> ci;
-    ray_intersector<transform3_t, concentric_cylinder2D> cpi;
+    ray_intersector<cylinder2D, transform3_t> ci;
+    ray_intersector<concentric_cylinder2D, transform3_t> cpi;
 
     // Intersect
     const auto hits_cylinrical =
@@ -168,7 +168,7 @@ GTEST_TEST(detray_intersection, concentric_cylinders) {
     mask<cylinder2D, std::uint_least16_t, transform3_t> cylinder{0u, r, -hz,
                                                                  hz};
 
-    ray_intersector<transform3_t, cylinder2D> ci;
+    ray_intersector<cylinder2D, transform3_t> ci;
     ray_concentric_cylinder_intersector<transform3_t> cci;
 
     // Intersect

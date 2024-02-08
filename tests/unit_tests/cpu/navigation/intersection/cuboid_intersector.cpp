@@ -6,9 +6,10 @@
  */
 
 // Project include(s)
-#include "detray/navigation/detail/trajectories.hpp"
-#include "detray/navigation/intersection/intersection.hpp"
 #include "detray/navigation/intersection/bounding_box/cuboid_intersector.hpp"
+
+#include "detray/navigation/detail/ray.hpp"
+#include "detray/navigation/intersection/intersection.hpp"
 #include "detray/test/types.hpp"
 #include "detray/utils/bounding_volume.hpp"
 

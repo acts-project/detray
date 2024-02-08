@@ -15,7 +15,7 @@
 #include "detray/coordinates/polar2.hpp"
 #include "detray/definitions/units.hpp"
 #include "detray/masks/detail/vertexing.hpp"
-#include "detray/surface_finders/grid/populators.hpp"
+#include "detray/utils/grid/populators.hpp"
 #include "detray/utils/ranges.hpp"
 
 // System include(s)

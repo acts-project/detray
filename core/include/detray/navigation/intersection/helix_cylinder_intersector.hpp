@@ -13,7 +13,7 @@
 #include "detray/definitions/math.hpp"
 #include "detray/definitions/qualifiers.hpp"
 #include "detray/masks/cylinder2D.hpp"
-#include "detray/navigation/detail/trajectories.hpp"
+#include "detray/navigation/detail/helix.hpp"
 #include "detray/navigation/intersection/intersection.hpp"
 #include "detray/navigation/intersection/ray_cylinder_intersector.hpp"
 #include "detray/utils/invalid_values.hpp"
@@ -24,7 +24,7 @@
 
 namespace detray {
 
-template <typename algebra_t, typename fame_t>
+template <typename frame_t, typename algebra_t>
 struct helix_intersector_impl;
 
 /// @brief Intersection implementation for cylinder surfaces using helical
@@ -34,8 +34,8 @@ struct helix_intersector_impl;
 /// the unbounded surface and then applies the mask.
 /// @note Don't use for low p_t tracks!
 template <typename algebra_t>
-struct helix_intersector_impl<algebra_t, cylindrical2<algebra_t>>
-    : public ray_intersector_impl<algebra_t, cylindrical2<algebra_t>> {
+struct helix_intersector_impl<cylindrical2<algebra_t>, algebra_t>
+    : public ray_intersector_impl<cylindrical2<algebra_t>, algebra_t> {
 
     using transform3_type = algebra_t;
     using scalar_type = typename transform3_type::scalar_type;
@@ -174,7 +174,7 @@ struct helix_intersector_impl<algebra_t, cylindrical2<algebra_t>>
 };
 
 template <typename algebra_t>
-struct helix_intersector_impl<algebra_t, concentric_cylindrical2<algebra_t>>
-    : public helix_intersector_impl<algebra_t, cylindrical2<algebra_t>> {};
+struct helix_intersector_impl<concentric_cylindrical2<algebra_t>, algebra_t>
+    : public helix_intersector_impl<cylindrical2<algebra_t>, algebra_t> {};
 
 }  // namespace detray

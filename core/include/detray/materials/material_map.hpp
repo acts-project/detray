@@ -11,10 +11,10 @@
 #include "detray/builders/grid_factory.hpp"
 #include "detray/definitions/containers.hpp"
 #include "detray/materials/material_slab.hpp"
-#include "detray/surface_finders/grid/detail/axis_helpers.hpp"
-#include "detray/surface_finders/grid/detail/grid_bins.hpp"
-#include "detray/surface_finders/grid/grid.hpp"
-#include "detray/surface_finders/grid/serializers.hpp"
+#include "detray/utils/grid/detail/axis_helpers.hpp"
+#include "detray/utils/grid/detail/grid_bins.hpp"
+#include "detray/utils/grid/grid.hpp"
+#include "detray/utils/grid/serializers.hpp"
 
 namespace detray {
 

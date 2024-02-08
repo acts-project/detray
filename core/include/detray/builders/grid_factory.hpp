@@ -11,12 +11,12 @@
 #include "detray/definitions/containers.hpp"
 #include "detray/definitions/units.hpp"
 #include "detray/masks/masks.hpp"
-#include "detray/surface_finders/grid/detail/axis.hpp"
-#include "detray/surface_finders/grid/detail/axis_helpers.hpp"
-#include "detray/surface_finders/grid/grid.hpp"
-#include "detray/surface_finders/grid/grid_collection.hpp"
-#include "detray/surface_finders/grid/populators.hpp"
-#include "detray/surface_finders/grid/serializers.hpp"
+#include "detray/utils/grid/detail/axis.hpp"
+#include "detray/utils/grid/detail/axis_helpers.hpp"
+#include "detray/utils/grid/grid.hpp"
+#include "detray/utils/grid/grid_collection.hpp"
+#include "detray/utils/grid/populators.hpp"
+#include "detray/utils/grid/serializers.hpp"
 
 // Vecmem include(s)
 #include <vecmem/memory/memory_resource.hpp>

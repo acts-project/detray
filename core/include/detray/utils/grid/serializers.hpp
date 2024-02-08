@@ -8,4 +8,4 @@
 #pragma once
 
 // Project include(s).
-#include "detray/surface_finders/grid/detail/simple_serializer.hpp"
+#include "detray/utils/grid/detail/simple_serializer.hpp"

@@ -12,7 +12,7 @@
 #include "detray/coordinates/polar2.hpp"
 #include "detray/definitions/math.hpp"
 #include "detray/definitions/qualifiers.hpp"
-#include "detray/navigation/detail/trajectories.hpp"
+#include "detray/navigation/detail/ray.hpp"
 #include "detray/navigation/intersection/intersection.hpp"
 
 // System include(s)
@@ -20,12 +20,12 @@
 
 namespace detray {
 
-template <typename algebra_t, typename fame_t>
+template <typename frame_t, typename algebra_t>
 struct ray_intersector_impl;
 
 /// A functor to find intersections between straight line and planar surface
 template <typename algebra_t>
-struct ray_intersector_impl<algebra_t, cartesian2<algebra_t>> {
+struct ray_intersector_impl<cartesian2<algebra_t>, algebra_t> {
 
     /// linear algebra types
     /// @{
@@ -125,7 +125,7 @@ struct ray_intersector_impl<algebra_t, cartesian2<algebra_t>> {
 };
 
 template <typename algebra_t>
-struct ray_intersector_impl<algebra_t, polar2<algebra_t>>
-    : public ray_intersector_impl<algebra_t, cartesian2<algebra_t>> {};
+struct ray_intersector_impl<polar2<algebra_t>, algebra_t>
+    : public ray_intersector_impl<cartesian2<algebra_t>, algebra_t> {};
 
 }  // namespace detray

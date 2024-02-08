@@ -11,7 +11,7 @@
 #include "detray/coordinates/line2.hpp"
 #include "detray/definitions/math.hpp"
 #include "detray/definitions/qualifiers.hpp"
-#include "detray/navigation/detail/trajectories.hpp"
+#include "detray/navigation/detail/ray.hpp"
 #include "detray/navigation/intersection/intersection.hpp"
 
 // System include(s)
@@ -19,12 +19,12 @@
 
 namespace detray {
 
-template <typename algebra_t, typename fame_t>
+template <typename frame_t, typename algebra_t>
 struct ray_intersector_impl;
 
 /// A functor to find intersections between trajectory and line mask
 template <typename algebra_t>
-struct ray_intersector_impl<algebra_t, line2<algebra_t>> {
+struct ray_intersector_impl<line2<algebra_t>, algebra_t> {
 
     using transform3_type = algebra_t;
     using scalar_type = typename transform3_type::scalar_type;

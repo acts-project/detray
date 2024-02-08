@@ -6,14 +6,14 @@
  */
 
 // Detray include(s)
-#include "detray/surface_finders/grid/grid_collection.hpp"
+#include "detray/utils/grid/grid_collection.hpp"
 
 #include "detray/definitions/indexing.hpp"
 #include "detray/masks/cylinder3D.hpp"
-#include "detray/surface_finders/grid/grid.hpp"
-#include "detray/surface_finders/grid/populators.hpp"
-#include "detray/surface_finders/grid/serializers.hpp"
 #include "detray/test/types.hpp"
+#include "detray/utils/grid/grid.hpp"
+#include "detray/utils/grid/populators.hpp"
+#include "detray/utils/grid/serializers.hpp"
 
 // System include(s)
 #include <algorithm>

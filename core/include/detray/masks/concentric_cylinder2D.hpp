@@ -11,8 +11,6 @@
 #include "detray/coordinates/concentric_cylindrical2.hpp"
 #include "detray/definitions/containers.hpp"
 #include "detray/definitions/qualifiers.hpp"
-#include "detray/surface_finders/grid/detail/axis_binning.hpp"
-#include "detray/surface_finders/grid/detail/axis_bounds.hpp"
 
 // System include(s)
 #include <limits>

@@ -6,11 +6,12 @@
  */
 
 // detray core
+#include "detray/utils/grid/serializers.hpp"
+
 #include "detray/definitions/indexing.hpp"
 #include "detray/masks/masks.hpp"
-#include "detray/surface_finders/grid/detail/axis.hpp"
-#include "detray/surface_finders/grid/serializers.hpp"
 #include "detray/test/types.hpp"
+#include "detray/utils/grid/detail/axis.hpp"
 
 // vecmem include(s)
 #include <vecmem/containers/vector.hpp>

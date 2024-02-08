@@ -7,7 +7,7 @@
 
 // Project include(s)
 #include "detray/detectors/create_toy_geometry.hpp"
-#include "detray/navigation/detail/trajectories.hpp"
+#include "detray/navigation/detail/ray.hpp"
 #include "detray/navigation/volume_graph.hpp"
 #include "detray/simulation/event_generator/track_generators.hpp"
 #include "detray/test/utils/hash_tree.hpp"

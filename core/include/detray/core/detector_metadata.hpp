@@ -19,8 +19,8 @@
 #include "detray/materials/material_map.hpp"
 #include "detray/materials/material_rod.hpp"
 #include "detray/materials/material_slab.hpp"
-#include "detray/surface_finders/accelerator_grid.hpp"
-#include "detray/surface_finders/brute_force_finder.hpp"
+#include "detray/navigation/accelerators/brute_force_finder.hpp"
+#include "detray/navigation/accelerators/surface_grid.hpp"
 
 namespace detray {
 

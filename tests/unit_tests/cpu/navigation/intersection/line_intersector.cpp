@@ -8,7 +8,7 @@
 // Project include(s)
 #include "detray/geometry/detail/surface_descriptor.hpp"
 #include "detray/masks/masks.hpp"
-#include "detray/navigation/detail/trajectories.hpp"
+#include "detray/navigation/detail/ray.hpp"
 #include "detray/navigation/intersection/intersection.hpp"
 #include "detray/navigation/intersection/ray_intersector.hpp"
 #include "detray/test/types.hpp"
@@ -30,7 +30,7 @@ using vector3 = test::vector3;
 using point3 = test::point3;
 using point2 = test::point2;
 using intersection_t = intersection2D<surface_descriptor<>, transform3>;
-using line_intersector_type = ray_intersector<transform3, line<>>;
+using line_intersector_type = ray_intersector<line<>, transform3>;
 
 constexpr scalar tol{1e-5f};
 

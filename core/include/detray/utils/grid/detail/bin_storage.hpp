@@ -12,7 +12,7 @@
 #include "detray/core/detail/container_views.hpp"
 #include "detray/definitions/indexing.hpp"
 #include "detray/definitions/qualifiers.hpp"
-#include "detray/surface_finders/grid/detail/grid_bins.hpp"
+#include "detray/utils/grid/detail/grid_bins.hpp"
 #include "detray/utils/ranges.hpp"
 
 namespace detray::detail {

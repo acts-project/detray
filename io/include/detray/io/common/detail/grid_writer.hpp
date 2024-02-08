@@ -12,7 +12,7 @@
 #include "detray/io/common/detail/basic_converter.hpp"
 #include "detray/io/common/detail/type_info.hpp"
 #include "detray/io/frontend/payloads.hpp"
-#include "detray/surface_finders/accelerator_grid.hpp"
+#include "detray/utils/grid/grid.hpp"
 #include "detray/utils/type_list.hpp"
 
 // System include(s)
@@ -55,6 +55,11 @@ class grid_writer {
     static grid_payload<content_t, grid_id_t> convert(
         std::size_t owner_index, grid_id_t type, const std::size_t idx,
         const grid_t& gr, std::function<content_t(const value_t&)> converter) {
+
+        if (type == grid_id_t::unknown) {
+            types::print<types::list<grid_t>>();
+            throw std::invalid_argument("Could not match type to IO type-id");
+        }
 
         grid_payload<content_t, grid_id_t> grid_data;
 

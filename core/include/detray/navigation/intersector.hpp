@@ -8,7 +8,6 @@
 #pragma once
 
 // Project include(s)
-#include "detray/navigation/detail/trajectories.hpp"
 #include "detray/navigation/intersection/helix_intersector.hpp"
 #include "detray/navigation/intersection/ray_intersector.hpp"
 
@@ -17,17 +16,17 @@ namespace detray {
 /// @brief Intersection interface for detector surfaces.
 ///
 /// Composes the different intersector options into a unifyed interface
-template <typename algebra_t, typename shape_t>
+template <typename shape_t, typename algebra_t>
 struct intersector {
 
     using transform3_type = algebra_t;
     using scalar_type = typename transform3_type::scalar_type;
 
     /// How to intersect surfaces with rays
-    using ray_intersector_type = ray_intersector<algebra_t, shape_t>;
+    using ray_intersector_type = ray_intersector<shape_t, algebra_t>;
 
     /// How to intersect surfaces with helices
-    using helix_intersector_type = helix_intersector<algebra_t, shape_t>;
+    using helix_intersector_type = helix_intersector<shape_t, algebra_t>;
 
     /// @returns the intersection(s) between a surface and the ray @param ray
     template <typename surface_descr_t, typename mask_t>

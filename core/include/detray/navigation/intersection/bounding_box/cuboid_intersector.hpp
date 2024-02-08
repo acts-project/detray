@@ -9,7 +9,7 @@
 
 // Project include(s)
 #include "detray/definitions/qualifiers.hpp"
-#include "detray/navigation/detail/trajectories.hpp"
+#include "detray/navigation/detail/ray.hpp"
 
 namespace detray {
 

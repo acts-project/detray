@@ -6,12 +6,13 @@
  */
 
 // detray core
+#include "detray/utils/grid/detail/axis.hpp"
+
 #include "detray/coordinates/coordinates.hpp"
 #include "detray/definitions/indexing.hpp"
-#include "detray/surface_finders/grid/detail/axis.hpp"
-#include "detray/surface_finders/grid/detail/axis_binning.hpp"
-#include "detray/surface_finders/grid/detail/axis_bounds.hpp"
 #include "detray/test/types.hpp"
+#include "detray/utils/grid/detail/axis_binning.hpp"
+#include "detray/utils/grid/detail/axis_bounds.hpp"
 
 // GTest include(s)
 #include <gtest/gtest.h>

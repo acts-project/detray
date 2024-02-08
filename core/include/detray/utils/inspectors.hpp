@@ -9,7 +9,7 @@
 
 // Project include(s)
 #include "detray/geometry/surface.hpp"
-#include "detray/navigation/detail/trajectories.hpp"
+#include "detray/navigation/detail/ray.hpp"
 #include "detray/navigation/navigator.hpp"
 #include "detray/propagator/base_actor.hpp"
 #include "detray/utils/tuple_helpers.hpp"

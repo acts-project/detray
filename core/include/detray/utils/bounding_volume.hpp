@@ -11,7 +11,7 @@
 #include "detray/definitions/qualifiers.hpp"
 #include "detray/definitions/units.hpp"
 #include "detray/masks/masks.hpp"
-#include "detray/navigation/detail/trajectories.hpp"
+#include "detray/navigation/detail/ray.hpp"
 #include "detray/navigation/intersection/bounding_box/cuboid_intersector.hpp"
 #include "detray/navigation/intersection/intersection.hpp"
 

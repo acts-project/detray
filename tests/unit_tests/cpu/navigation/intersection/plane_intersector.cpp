@@ -9,7 +9,7 @@
 #include "detray/geometry/detail/surface_descriptor.hpp"
 #include "detray/masks/masks.hpp"
 #include "detray/masks/unmasked.hpp"
-#include "detray/navigation/detail/trajectories.hpp"
+#include "detray/navigation/detail/ray.hpp"
 #include "detray/navigation/intersection/ray_intersector.hpp"
 #include "detray/test/types.hpp"
 
@@ -40,7 +40,7 @@ GTEST_TEST(detray_intersection, translated_plane_ray) {
     const detail::ray<transform3> r(pos, 0.f, mom, 0.f);
 
     // The same test but bound to local frame
-    ray_intersector<transform3, unmasked> pi;
+    ray_intersector<unmasked, transform3> pi;
     mask<unmasked> unmasked_bound{};
     const auto hit_bound =
         pi(r, surface_descriptor<>{}, unmasked_bound, shifted);
@@ -98,7 +98,7 @@ GTEST_TEST(detray_intersection, plane_incidence_angle) {
 
     const transform3 rotated{t, vector::normalize(z), vector::normalize(x)};
 
-    ray_intersector<transform3, rectangle2D> pi;
+    ray_intersector<rectangle2D, transform3> pi;
 
     // Test ray
     const point3 pos{-1.f, 0.f, 0.f};
