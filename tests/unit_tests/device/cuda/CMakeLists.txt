@@ -14,7 +14,7 @@ enable_language(CUDA)
 include(detray-compiler-options-cuda)
 
 # Independent of algebra-plugin
-detray_add_test( cuda
+detray_add_unit_test( cuda
    "container_cuda_kernel.hpp"
    "container_cuda.cpp"
    "container_cuda_kernel.cu"
@@ -24,7 +24,7 @@ detray_add_test( cuda
    LINK_LIBRARIES GTest::gtest_main vecmem::cuda detray::core )
 
 # The test only works for the array plugin (except for complete populator)
-detray_add_test( cuda_grid2_array
+detray_add_unit_test( cuda_grid2_array
       "grids_grid2_cuda_kernel.hpp"
       "grids_grid2_cuda.cpp"
       "grids_grid2_cuda_kernel.cu"
@@ -41,7 +41,7 @@ endif()
 
 foreach(algebra ${algebras})
    # Unit tests for the selected algebra.
-   detray_add_test(cuda_${algebra}
+   detray_add_unit_test(cuda_${algebra}
       "detector_cuda_kernel.hpp"
       "detector_cuda.cpp"
       "detector_cuda_kernel.cu"
@@ -51,9 +51,6 @@ foreach(algebra ${algebras})
       "navigator_cuda_kernel.hpp"
       "navigator_cuda.cpp"
       "navigator_cuda_kernel.cu"
-      "propagator_cuda_kernel.hpp"
-      "propagator_cuda.cpp"
-      "propagator_cuda_kernel.cu"
       "sf_finders_grid_cuda_kernel.hpp"
       "sf_finders_grid_cuda.cpp"
       "sf_finders_grid_cuda_kernel.cu"
@@ -62,6 +59,6 @@ foreach(algebra ${algebras})
       "transform_store_cuda_kernel.cu"
       LINK_LIBRARIES GTest::gtest_main vecmem::cuda detray::test covfie::cuda
                      detray::core detray::algebra_${algebra} detray::utils )
-   target_compile_definitions(detray_test_cuda_${algebra}
+   target_compile_definitions(detray_unit_test_cuda_${algebra}
       PRIVATE ${algebra}=${algebra})
 endforeach()

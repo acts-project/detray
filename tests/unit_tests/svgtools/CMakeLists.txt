@@ -9,7 +9,7 @@
 include_directories( SYSTEM $<TARGET_PROPERTY:actsvg::meta,INTERFACE_INCLUDE_DIRECTORIES> )
 include_directories( SYSTEM $<TARGET_PROPERTY:actsvg::core,INTERFACE_INCLUDE_DIRECTORIES> )
 
-detray_add_test( svgtools
+detray_add_unit_test( svgtools
    "detectors.cpp"
    "grids.cpp"
    "groups.cpp"
@@ -22,7 +22,7 @@ detray_add_test( svgtools
    LINK_LIBRARIES GTest::gtest_main  detray::test detray::core_array
                   detray::utils actsvg::core actsvg::meta detray::svgtools)
 
-detray_add_test( svgtools_web
+detray_add_unit_test( svgtools_web
    "web.cpp"
    LINK_LIBRARIES GTest::gtest_main detray::test detray::core_array
                   detray::utils actsvg::core actsvg::meta detray::svgtools

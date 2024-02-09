@@ -117,7 +117,7 @@ function( detray_add_test name )
    cmake_parse_arguments( ARG "" "" "LINK_LIBRARIES" ${ARGN} )
 
    # Create the test executable.
-   set( test_exe_name "detray_test_${name}" )
+   set( test_exe_name "detray_${name}" )
    add_executable( ${test_exe_name} ${ARG_UNPARSED_ARGUMENTS} )
    if( ARG_LINK_LIBRARIES )
       target_link_libraries( ${test_exe_name} PRIVATE ${ARG_LINK_LIBRARIES} )
@@ -151,6 +151,26 @@ function( detray_add_test name )
       ENVIRONMENT DETRAY_TEST_DATA_DIR=${PROJECT_SOURCE_DIR}/data/ )
 
 endfunction( detray_add_test )
+
+# Helper function to set up a unit test
+#
+# Usage: See detray_add_test
+#
+function( detray_add_unit_test name )
+
+   detray_add_test(unit_test_${name} ${ARGN})
+
+endfunction( detray_add_unit_test )
+
+# Helper function to set up an integration test
+#
+# Usage: See detray_add_test
+#
+function( detray_add_integration_test name )
+
+   detray_add_test(integration_test_${name} ${ARGN})
+
+endfunction( detray_add_integration_test )
 
 # Helper function for setting up the detray tutorials.
 #
