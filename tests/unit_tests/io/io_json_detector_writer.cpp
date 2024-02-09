@@ -45,7 +45,7 @@ tel_det_config<annulus2D<>> tel_cfg{ann2};
 }  // anonymous namespace
 
 /// Test the writing of a telescope detector geometry to json
-TEST(io, json_telescope_geometry_writer) {
+GTEST_TEST(io, json_telescope_geometry_writer) {
 
     using detector_t = detector<telescope_metadata<annulus2D<>>>;
 
@@ -59,7 +59,7 @@ TEST(io, json_telescope_geometry_writer) {
 }
 
 /// Test the writing of the toy detector material to json
-TEST(io, json_telescope_material_writer) {
+GTEST_TEST(io, json_telescope_material_writer) {
 
     using detector_t = detector<telescope_metadata<annulus2D<>>>;
 
@@ -74,7 +74,7 @@ TEST(io, json_telescope_material_writer) {
 }
 
 /// Test the writing of the toy detector grids to json
-TEST(io, json_toy_material_maps_writer) {
+GTEST_TEST(io, json_toy_material_maps_writer) {
 
     using detector_t = detector<toy_metadata>;
 
@@ -90,7 +90,7 @@ TEST(io, json_toy_material_maps_writer) {
 }
 
 /// Test the writing of the toy detector grids to json
-TEST(io, json_toy_grid_writer) {
+GTEST_TEST(io, json_toy_grid_writer) {
 
     using detector_t = detector<toy_metadata>;
 
@@ -104,7 +104,7 @@ TEST(io, json_toy_grid_writer) {
 }
 
 /// Test the writing of the entire toy detector to json
-TEST(io, json_toy_detector_writer) {
+GTEST_TEST(io, json_toy_detector_writer) {
 
     // Toy detector
     vecmem::host_memory_resource host_mr;
@@ -119,7 +119,7 @@ TEST(io, json_toy_detector_writer) {
 }
 
 /// Test the writing of the entire wire chamber to json
-TEST(io, json_wire_chamber_writer) {
+GTEST_TEST(io, json_wire_chamber_writer) {
 
     // Wire chamber
     vecmem::host_memory_resource host_mr;

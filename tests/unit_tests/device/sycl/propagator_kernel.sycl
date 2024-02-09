@@ -5,8 +5,8 @@
  * Mozilla Public License Version 2.0
  */
 
+#include "detray/test/propagator_test.hpp"
 #include "propagator_sycl_kernel.hpp"
-#include "tests/common/test_base/propagator_test.hpp"
 
 namespace detray {
 

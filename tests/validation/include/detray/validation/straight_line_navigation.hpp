@@ -16,12 +16,12 @@
 #include "detray/propagator/navigator.hpp"
 #include "detray/propagator/propagator.hpp"
 #include "detray/simulation/event_generator/track_generators.hpp"
+#include "detray/test/fixture_base.hpp"
+#include "detray/test/utils/particle_gun.hpp"
 #include "detray/tracks/tracks.hpp"
 #include "detray/utils/inspectors.hpp"
 #include "detray/validation/detail/navigation_check_helper.hpp"
 #include "detray/validation/detail/svg_display.hpp"
-#include "tests/common/test_base/fixture_base.hpp"
-#include "tests/common/tools/particle_gun.hpp"
 
 // System include(s)
 #include <iostream>

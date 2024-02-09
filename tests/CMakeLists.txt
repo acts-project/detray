@@ -12,7 +12,8 @@ include_directories( SYSTEM $<TARGET_PROPERTY:covfie::core,INTERFACE_INCLUDE_DIR
 # Set up a test library, which the "new style" benchmarks and tests could use.
 file( GLOB _detray_test_headers
    RELATIVE "${CMAKE_CURRENT_SOURCE_DIR}"
-   "include/detray/test/*.hpp" )
+   "include/detray/test/*.hpp"
+   "include/detray/test/utils/*.hpp" )
 add_library( detray_test INTERFACE "${_detray_test_headers}" )
 add_library( detray::test ALIAS detray_test )
 target_include_directories( detray_test
@@ -25,7 +26,6 @@ unset( _detray_test_headers )
 if( DETRAY_BENCHMARKS )
    add_subdirectory( benchmarks )
 endif()
-add_subdirectory( common )
 add_subdirectory( detectors )
 add_subdirectory( unit_tests )
 add_subdirectory( validation )

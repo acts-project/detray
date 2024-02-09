@@ -14,12 +14,12 @@
 #include "detray/io/frontend/utils/file_handle.hpp"
 #include "detray/plugins/svgtools/illustrator.hpp"
 #include "detray/simulation/event_generator/track_generators.hpp"
+#include "detray/test/fixture_base.hpp"
 #include "detray/test/types.hpp"
+#include "detray/test/utils/hash_tree.hpp"
+#include "detray/test/utils/particle_gun.hpp"
+#include "detray/test/utils/ray_scan_utils.hpp"
 #include "detray/validation/detail/svg_display.hpp"
-#include "tests/common/test_base/fixture_base.hpp"
-#include "tests/common/tools/hash_tree.hpp"
-#include "tests/common/tools/particle_gun.hpp"
-#include "tests/common/tools/ray_scan_utils.hpp"
 
 // System include(s)
 #include <iostream>

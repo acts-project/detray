@@ -15,7 +15,7 @@
 #include <gtest/gtest.h>
 
 /// This tests the json io for the general file header information
-TEST(io, json_header_payload) {
+GTEST_TEST(io, json_header_payload) {
 
     detray::io::header_payload<bool> h;
     h.common.version = "v0.0.1";
@@ -35,7 +35,7 @@ TEST(io, json_header_payload) {
 }
 
 /// This tests the json io for a single index link
-TEST(io, single_link_payload) {
+GTEST_TEST(io, single_link_payload) {
     detray::io::single_link_payload sl;
     sl.link = 3u;
 
@@ -48,7 +48,7 @@ TEST(io, single_link_payload) {
 }
 
 /// This tests the json io for a transform3
-TEST(io, json_algebra_payload) {
+GTEST_TEST(io, json_algebra_payload) {
 
     detray::io::transform_payload p;
     p.tr = {100.f, 200.f, 300.f};
@@ -64,7 +64,7 @@ TEST(io, json_algebra_payload) {
 }
 
 /// This tests the json io for a grid axis
-TEST(io, json_axis_payload) {
+GTEST_TEST(io, json_axis_payload) {
 
     detray::io::axis_payload ea;
     ea.binning = detray::axis::binning::e_regular;
@@ -105,7 +105,7 @@ TEST(io, json_axis_payload) {
 }
 
 /// This tests the json io for a grid bin
-TEST(io, json_bin_payload) {
+GTEST_TEST(io, json_bin_payload) {
 
     detray::io::grid_bin_payload<> b;
     b.loc_index = std::vector<unsigned int>{1u, 0u, 2u};
@@ -121,7 +121,7 @@ TEST(io, json_bin_payload) {
 }
 
 /// This tests the json io for a grid
-TEST(io, json_grid_payload) {
+GTEST_TEST(io, json_grid_payload) {
 
     std::vector<detray::io::grid_bin_payload<>> bins = {
         {{0u, 1u}, {0u, 2u}}, {{1u, 1u}, {1u, 2u}}, {{2u, 1u}, {2u, 2u}}};
@@ -154,7 +154,7 @@ TEST(io, json_grid_payload) {
 }
 
 /// This tests the json io for a surface mask
-TEST(io, json_mask_payload) {
+GTEST_TEST(io, json_mask_payload) {
 
     detray::io::single_link_payload sl;
     sl.link = 3u;
@@ -175,7 +175,7 @@ TEST(io, json_mask_payload) {
 }
 
 /// This tests the json io for a surface material link
-TEST(io, json_material_link_payload) {
+GTEST_TEST(io, json_material_link_payload) {
 
     detray::io::material_link_payload m;
     m.type = detray::io::material_link_payload::type_id::slab;
@@ -191,7 +191,7 @@ TEST(io, json_material_link_payload) {
 }
 
 /// This tests the json payload for a surface (descriptor + data)
-TEST(io, json_surface_payload) {
+GTEST_TEST(io, json_surface_payload) {
 
     detray::io::surface_payload s;
 
@@ -234,7 +234,7 @@ TEST(io, json_surface_payload) {
 }
 
 /// This tests the json io for a surface material link
-TEST(io, acc_links_payload) {
+GTEST_TEST(io, acc_links_payload) {
 
     detray::io::acc_links_payload l;
     l.type = detray::io::acc_links_payload::type_id::cylinder2_grid;
@@ -251,7 +251,7 @@ TEST(io, acc_links_payload) {
 
 /// This tests the json payload for a volume (descriptor + data (transform,
 /// surfaces)
-TEST(io, json_volume_payload) {
+GTEST_TEST(io, json_volume_payload) {
 
     detray::io::transform_payload t;
     t.tr = {100.f, 200.f, 300.f};
@@ -304,7 +304,7 @@ TEST(io, json_volume_payload) {
 }
 
 /// This tests the json io for a material slab/rod
-TEST(io, json_material_slab_payload) {
+GTEST_TEST(io, json_material_slab_payload) {
 
     detray::io::material_slab_payload m;
     m.type = detray::io::material_slab_payload::mat_type::slab;
@@ -326,7 +326,7 @@ TEST(io, json_material_slab_payload) {
 }
 
 /// This tests the json io for a material slab
-TEST(io, json_detector_payload) {
+GTEST_TEST(io, json_detector_payload) {
 
     detray::io::detector_payload d;
     d.volumes = {detray::io::volume_payload{}, detray::io::volume_payload{}};

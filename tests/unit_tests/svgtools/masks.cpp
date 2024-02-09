@@ -20,11 +20,15 @@
 #include "actsvg/core.hpp"
 #include "actsvg/meta.hpp"
 
+// GTest include(s).
+#include <gtest/gtest.h>
+
 // System include(s)
 #include <array>
 #include <string>
 
-int main(int, char**) {
+GTEST_TEST(svgtools, masks) {
+
     // This tests demonstrate the different masks that can be visualized.
 
     // Create the axes.

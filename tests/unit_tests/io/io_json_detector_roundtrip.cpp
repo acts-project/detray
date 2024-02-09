@@ -1,6 +1,6 @@
 /** Detray library, part of the ACTS project (R&D line)
  *
- * (c) 2023 CERN for the benefit of the ACTS project
+ * (c) 2023-2024 CERN for the benefit of the ACTS project
  *
  * Mozilla Public License Version 2.0
  */
@@ -12,8 +12,8 @@
 #include "detray/detectors/create_wire_chamber.hpp"
 #include "detray/io/frontend/detector_reader.hpp"
 #include "detray/io/frontend/detector_writer.hpp"
+#include "detray/test/toy_detector_test.hpp"
 #include "detray/utils/consistency_checker.hpp"
-#include "tests/common/test_toy_detector.hpp"
 
 // Vecmem include(s)
 #include <vecmem/memory/host_memory_resource.hpp>
@@ -134,7 +134,7 @@ auto test_detector_json_io(const detector_t& det,
 }  // anonymous namespace
 
 /// Test the reading and writing of a telescope detector
-TEST(io, json_telescope_detector_reader) {
+GTEST_TEST(io, json_telescope_detector_reader) {
 
     mask<rectangle2D<>> rec2{0u, 100.f, 100.f};
 
@@ -166,7 +166,7 @@ TEST(io, json_telescope_detector_reader) {
 }
 
 /// Test the reading and writing of a toy detector geometry
-TEST(io, json_toy_geometry) {
+GTEST_TEST(io, json_toy_geometry) {
 
     using detector_t = detector<toy_metadata>;
 
@@ -190,7 +190,7 @@ TEST(io, json_toy_geometry) {
     geo_reader.read(toy_builder, volume_name_map, file_name);
     auto det = toy_builder.build(host_mr);
 
-    EXPECT_TRUE(test_toy_detector(det, volume_name_map));
+    EXPECT_TRUE(toy_detector_test(det, volume_name_map));
 
     // Read the toy detector into the default detector type
     detector_builder<> comp_builder;
@@ -219,7 +219,7 @@ TEST(io, json_toy_geometry) {
 }
 
 /// Test the reading and writing of a toy detector geometry "light"
-TEST(io, json_toy_detector_roundtrip_homogeneous_material) {
+GTEST_TEST(io, json_toy_detector_roundtrip_homogeneous_material) {
 
     // Toy detector
     vecmem::host_memory_resource host_mr;
@@ -240,11 +240,11 @@ TEST(io, json_toy_detector_roundtrip_homogeneous_material) {
     std::filesystem::remove("toy_detector_material_maps.json");
     std::filesystem::remove("toy_detector_material_maps_2.json");
 
-    EXPECT_TRUE(test_toy_detector(det_io, names_io));
+    EXPECT_TRUE(toy_detector_test(det_io, names_io));
 }
 
 /// Test the reading and writing of a toy detector geometry
-TEST(io, json_toy_detector_roundtrip_material_maps) {
+GTEST_TEST(io, json_toy_detector_roundtrip_material_maps) {
 
     // Toy detector
     vecmem::host_memory_resource host_mr;
@@ -262,11 +262,11 @@ TEST(io, json_toy_detector_roundtrip_material_maps) {
     auto [det_io, names_io] =
         test_detector_json_io<1u>(toy_det, toy_names, file_names, host_mr);
 
-    EXPECT_TRUE(test_toy_detector(det_io, names_io));
+    EXPECT_TRUE(toy_detector_test(det_io, names_io));
 }
 
 /// Test the reading and writing of a wire chamber
-TEST(io, json_wire_chamber_reader) {
+GTEST_TEST(io, json_wire_chamber_reader) {
 
     // Wire chamber
     vecmem::host_memory_resource host_mr;

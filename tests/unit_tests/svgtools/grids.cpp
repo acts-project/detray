@@ -14,7 +14,10 @@
 // Vecmem include(s)
 #include <vecmem/memory/host_memory_resource.hpp>
 
-int main(int, char**) {
+// GTest include(s).
+#include <gtest/gtest.h>
+
+GTEST_TEST(svgtools, grids) {
 
     // This test creates the visualization using the illustrator class.
     // However, for full control over the process, it is also possible to use

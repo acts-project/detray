@@ -17,11 +17,14 @@
 // Actsvg include(s)
 #include "actsvg/core.hpp"
 
+// GTest include(s).
+#include <gtest/gtest.h>
+
 // System include(s)
 #include <array>
 #include <string>
 
-int main(int, char**) {
+GTEST_TEST(svgtools, detector) {
 
     actsvg::style::stroke stroke_black = actsvg::style::stroke();
     // x-y axis.

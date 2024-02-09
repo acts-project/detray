@@ -25,16 +25,17 @@ endif()
 
 foreach(algebra ${algebras})
 
-detray_add_executable( ${algebra}_propagator_cuda
-   "benchmark_propagator_cuda.cpp" "benchmark_propagator_cuda_kernel.hpp"
+detray_add_executable( benchmark_cuda_${algebra}
+   "benchmark_propagator_cuda_kernel.hpp"
+   "benchmark_propagator_cuda.cpp"
    "benchmark_propagator_cuda_kernel.cu"
-   LINK_LIBRARIES benchmark::benchmark detray_tests_common detray::algebra_${algebra} vecmem::cuda )
+   LINK_LIBRARIES benchmark::benchmark detray::core detray::test detray::algebra_${algebra} vecmem::cuda detray::utils )
 
-   target_compile_definitions( detray_${algebra}_propagator_cuda
+   target_compile_definitions( detray_benchmark_cuda_${algebra}
       PRIVATE ${algebra}=${algebra} )
 
 if( OpenMP_CXX_FOUND )
-  target_link_libraries( detray_${algebra}_propagator_cuda PRIVATE OpenMP::OpenMP_CXX )
+  target_link_libraries( detray_benchmark_cuda_${algebra} PRIVATE OpenMP::OpenMP_CXX )
 endif()
 
 endforeach()
