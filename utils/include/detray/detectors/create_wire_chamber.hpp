@@ -45,10 +45,8 @@ struct wire_chamber_config {
     /// Number of bins for material maps
     std::array<std::size_t, 2> m_cyl_map_bins{20u, 20u};
     std::array<std::size_t, 2> m_disc_map_bins{3u, 20u};
-    /// Material to be filled into the maps
-    material<scalar> m_material =
-        mixture<scalar, silicon_tml<scalar, std::ratio<9, 10>>,
-                aluminium<scalar, std::ratio<1, 10>>>{};
+    /// Material to be filled into the maps (Default: Empty)
+    material<scalar> m_material = vacuum<scalar>();
     /// Minimal thickness of the material slabs
     scalar m_thickness{1.5f * unit<scalar>::mm};
     /// Generate material along z bins for a cylinder material grid
