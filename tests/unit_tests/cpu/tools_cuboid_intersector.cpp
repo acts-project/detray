@@ -10,7 +10,7 @@
 #include "detray/intersection/detail/trajectories.hpp"
 #include "detray/intersection/intersection.hpp"
 #include "detray/test/types.hpp"
-#include "detray/tools/bounding_volume.hpp"
+#include "detray/utils/bounding_volume.hpp"
 
 // GTest include
 #include <gtest/gtest.h>

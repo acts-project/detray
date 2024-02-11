@@ -8,13 +8,13 @@
 #pragma once
 
 // Project include(s)
+#include "detray/builders/detector_builder.hpp"
+#include "detray/builders/surface_factory.hpp"
+#include "detray/builders/volume_builder.hpp"
 #include "detray/definitions/indexing.hpp"
-#include "detray/io/common/detail/type_traits.hpp"
+#include "detray/io/common/detail/type_info.hpp"
 #include "detray/io/common/io_interface.hpp"
-#include "detray/io/common/payloads.hpp"
-#include "detray/tools/detector_builder.hpp"
-#include "detray/tools/surface_factory.hpp"
-#include "detray/tools/volume_builder.hpp"
+#include "detray/io/frontend/payloads.hpp"
 
 // System include(s)
 #include <algorithm>
@@ -28,15 +28,15 @@ namespace std {
 
 // Specialize std::hash directly to the shape id type
 template <>
-struct hash<detray::io::detail::mask_shape> {
-    auto operator()(detray::io::detail::mask_shape m) const noexcept {
+struct hash<detray::io::shape_id> {
+    auto operator()(detray::io::shape_id m) const noexcept {
         return std::hash<std::size_t>()(static_cast<std::size_t>(m));
     }
 };
 
 }  // namespace std
 
-namespace detray {
+namespace detray::io {
 
 /// @brief Abstract base class for tracking geometry readers
 template <class detector_t>
@@ -48,10 +48,10 @@ class geometry_reader : public reader_interface<detector_t> {
         std::shared_ptr<surface_factory_interface<detector_t>>;
     /// IO shape ids do not need to coincide with the detector mask ids,
     /// they are shared with ACTS
-    using mask_shape = io::detail::mask_shape;
+    using io_shape_id = io::shape_id;
     /// Gets compile-time mask information
-    template <mask_shape shape>
-    using mask_info = detail::mask_info<shape, detector_t>;
+    template <io_shape_id shape>
+    using mask_info = detray::io::detail::mask_info<shape, detector_t>;
 
     protected:
     /// Tag the reader as "geometry"
@@ -82,7 +82,7 @@ class geometry_reader : public reader_interface<detector_t> {
             vbuilder->add_volume_placement(deserialize(vol_data.transform));
 
             // Prepare the surface factories (one per shape and surface type)
-            std::map<mask_shape, sf_factory_ptr_t> pt_factories, sf_factories;
+            std::map<io_shape_id, sf_factory_ptr_t> pt_factories, sf_factories;
 
             // Add the surfaces to the factories
             for (const auto& sf_data : vol_data.surfaces) {
@@ -95,8 +95,8 @@ class geometry_reader : public reader_interface<detector_t> {
                                     : sf_factories};
 
                 // @TODO use portal cylinders until intersectors are fixed
-                auto shape_id{mask_data.shape == mask_shape::cylinder2
-                                  ? mask_shape::portal_cylinder2
+                auto shape_id{mask_data.shape == io_shape_id::cylinder2
+                                  ? io_shape_id::portal_cylinder2
                                   : mask_data.shape};
 
                 // Check if a fitting factory already exists. If not, add it
@@ -104,8 +104,8 @@ class geometry_reader : public reader_interface<detector_t> {
                 const auto key{shape_id};
                 if (auto search = factories.find(key);
                     search == factories.end()) {
-                    factories[key] =
-                        std::move(init_factory<mask_shape::n_shapes>(shape_id));
+                    factories[key] = std::move(
+                        init_factory<io_shape_id::n_shapes>(shape_id));
                 }
 
                 // Add the data to the factory
@@ -162,9 +162,10 @@ class geometry_reader : public reader_interface<detector_t> {
                   sf_data.mask.boundaries.end(),
                   std::back_inserter(mask_boundaries));
 
-        const std::size_t sf_idx{sf_data.index_in_coll.has_value()
-                                     ? *(sf_data.index_in_coll)
-                                     : detail::invalid_value<std::size_t>()};
+        const std::size_t sf_idx{
+            sf_data.index_in_coll.has_value()
+                ? *(sf_data.index_in_coll)
+                : detray::detail::invalid_value<std::size_t>()};
 
         return {sf_data.type,
                 deserialize(sf_data.transform),
@@ -180,8 +181,8 @@ class geometry_reader : public reader_interface<detector_t> {
     /// and its type @param sf_type.
     ///
     /// @return the corresponding surface factory.
-    template <mask_shape I>
-    static sf_factory_ptr_t init_factory(const mask_shape shape_id) {
+    template <io_shape_id I>
+    static sf_factory_ptr_t init_factory(const io_shape_id shape_id) {
 
         // Shape index of surface data found
         if (shape_id == I) {
@@ -197,11 +198,11 @@ class geometry_reader : public reader_interface<detector_t> {
         // Test next shape id
         constexpr int current_id{static_cast<int>(I)};
         if constexpr (current_id > 0) {
-            return init_factory<static_cast<mask_shape>(current_id - 1)>(
+            return init_factory<static_cast<io_shape_id>(current_id - 1)>(
                 shape_id);
         }
         // Test some edge cases
-        if (shape_id == mask_shape::unknown) {
+        if (shape_id == io_shape_id::unknown) {
             throw std::invalid_argument(
                 "Unknown mask shape id in geometry file!");
         } else {
@@ -215,4 +216,4 @@ class geometry_reader : public reader_interface<detector_t> {
     }
 };
 
-}  // namespace detray
+}  // namespace detray::io

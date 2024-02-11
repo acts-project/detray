@@ -8,14 +8,13 @@
 #pragma once
 
 // Project include(s).
+#include "detray/builders/bin_fillers.hpp"
+#include "detray/builders/grid_factory.hpp"
+#include "detray/builders/surface_factory_interface.hpp"
+#include "detray/builders/volume_builder.hpp"
+#include "detray/builders/volume_builder_interface.hpp"
 #include "detray/geometry/detector_volume.hpp"
 #include "detray/geometry/surface.hpp"
-#include "detray/tools/bin_association.hpp"
-#include "detray/tools/bin_fillers.hpp"
-#include "detray/tools/grid_factory.hpp"
-#include "detray/tools/surface_factory_interface.hpp"
-#include "detray/tools/volume_builder.hpp"
-#include "detray/tools/volume_builder_interface.hpp"
 
 // System include(s)
 #include <array>
@@ -30,7 +29,7 @@ namespace detray {
 /// Decorator class to a volume builder that adds a grid as the volumes
 /// geometry accelerator structure.
 template <typename detector_t, typename grid_t,
-          typename bin_filler_t = detail::fill_by_pos,
+          typename bin_filler_t = fill_by_pos,
           typename grid_factory_t = grid_factory_type<grid_t>>
 class grid_builder : public volume_decorator<detector_t> {
 

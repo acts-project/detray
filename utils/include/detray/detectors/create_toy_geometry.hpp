@@ -8,6 +8,8 @@
 #pragma once
 
 // Project include(s)
+#include "detray/builders/grid_builder.hpp"
+#include "detray/builders/volume_builder.hpp"
 #include "detray/core/detector.hpp"
 #include "detray/definitions/math.hpp"
 #include "detray/definitions/units.hpp"
@@ -15,11 +17,9 @@
 #include "detray/detectors/toy_metadata.hpp"
 #include "detray/geometry/detector_volume.hpp"
 #include "detray/geometry/surface.hpp"
-#include "detray/io/common/detail/file_handle.hpp"
+#include "detray/io/frontend/utils/file_handle.hpp"
 #include "detray/materials/mixture.hpp"
 #include "detray/materials/predefined_materials.hpp"
-#include "detray/tools/grid_builder.hpp"
-#include "detray/tools/volume_builder.hpp"
 
 // Vecmem include(s)
 #include <vecmem/memory/memory_resource.hpp>
@@ -251,8 +251,7 @@ inline dindex_range add_cylinder_grid(
     using cyl_grid_t =
         typename detector_t::accelerator_container::template get_type<grid_id>;
     auto gbuilder =
-        grid_builder<detector_t, cyl_grid_t, detray::detail::fill_by_pos>{
-            nullptr};
+        grid_builder<detector_t, cyl_grid_t, detray::fill_by_pos>{nullptr};
 
     // The portals are at the end of the portal range by construction
     auto portal_mask_idx = (det.portals(vol).end() - 4u)->mask().index();
@@ -346,8 +345,7 @@ inline dindex_range add_disc_grid(
     using disc_grid_t =
         typename detector_t::accelerator_container::template get_type<grid_id>;
     auto gbuilder =
-        grid_builder<detector_t, disc_grid_t, detray::detail::fill_by_pos>{
-            nullptr};
+        grid_builder<detector_t, disc_grid_t, detray::fill_by_pos>{nullptr};
 
     // The disc portals are at the end of the portal range by construction
     auto portal_mask_idx = det.portals(vol).back().mask().index();

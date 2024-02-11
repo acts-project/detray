@@ -8,10 +8,10 @@
 #pragma once
 
 // Project include(s)
-#include "detray/io/common/payloads.hpp"
+#include "detray/io/frontend/payloads.hpp"
 #include "detray/io/json/json.hpp"
 
-namespace detray {
+namespace detray::io {
 
 inline void to_json(nlohmann::ordered_json& j, const common_header_payload& h) {
     j["version"] = h.version;
@@ -65,4 +65,4 @@ inline void from_json(const nlohmann::ordered_json& j,
 }
 /// @}
 
-}  // namespace detray
+}  // namespace detray::io

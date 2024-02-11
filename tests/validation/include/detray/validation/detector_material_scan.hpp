@@ -9,7 +9,7 @@
 
 // Project include(s)
 #include "detray/intersection/detail/trajectories.hpp"
-#include "detray/io/common/detail/file_handle.hpp"
+#include "detray/io/frontend/utils/file_handle.hpp"
 #include "detray/simulation/event_generator/track_generators.hpp"
 #include "detray/test/types.hpp"
 #include "tests/common/test_base/fixture_base.hpp"
@@ -79,7 +79,7 @@ class material_scan : public test::fixture_base<> {
 
         // Csv output file
         std::string file_name{m_cfg.name() + "_" + m_names.at(0)};
-        detray::io::detail::file_handle outfile{
+        detray::io::file_handle outfile{
             file_name, ".csv",
             std::ios::out | std::ios::binary | std::ios::trunc};
         *outfile << "eta,phi,mat_sX0,mat_sL0,mat_tX0,mat_tL0" << std::endl;

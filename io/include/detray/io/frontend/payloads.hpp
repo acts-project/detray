@@ -10,7 +10,7 @@
 // Project include(s)
 #include "detray/definitions/geometry.hpp"
 #include "detray/definitions/grid_axis.hpp"
-#include "detray/io/common/detail/definitions.hpp"
+#include "detray/io/frontend/definitions.hpp"
 
 // System include(s)
 #include <array>
@@ -22,7 +22,7 @@
 /// Raw indices (std::size_t) denote links between data components in different
 /// files, while links used in detray detector objects are modelled as e.g.
 /// @c single_link_payload
-namespace detray {
+namespace detray::io {
 
 /// @brief a payload for common information
 struct common_header_payload {
@@ -62,10 +62,10 @@ struct geo_sub_header_payload {
 using geo_header_payload = header_payload<geo_sub_header_payload>;
 
 /// @brief A payload object to link a surface to its material
-using material_link_payload = typed_link_payload<io::detail::material_type>;
+using material_link_payload = typed_link_payload<io::material_id>;
 
 /// @brief A payload object to link a volume to its acceleration data structures
-using acc_links_payload = typed_link_payload<io::detail::acc_type>;
+using acc_links_payload = typed_link_payload<io::accel_id>;
 
 /// @brief A payload for an affine transformation in homogeneous coordinates
 struct transform_payload {
@@ -76,7 +76,7 @@ struct transform_payload {
 
 /// @brief A payload object for surface masks
 struct mask_payload {
-    using mask_shape = io::detail::mask_shape;
+    using mask_shape = io::shape_id;
 
     mask_shape shape{mask_shape::unknown};
     single_link_payload volume_link{};
@@ -92,7 +92,7 @@ struct surface_payload {
     std::uint64_t source{};
     // Write the surface barcode as an additional information
     std::optional<std::uint64_t> barcode{
-        detail::invalid_value<std::uint64_t>()};
+        detray::detail::invalid_value<std::uint64_t>()};
     detray::surface_id type{detray::surface_id::e_sensitive};
 };
 
@@ -129,7 +129,7 @@ struct material_payload {
 
 /// @brief A payload object for a material slab/rod
 struct material_slab_payload {
-    using mat_type = io::detail::material_type;
+    using mat_type = io::material_id;
 
     mat_type type{mat_type::unknown};
     std::optional<std::size_t> index_in_coll;
@@ -183,7 +183,7 @@ struct grid_bin_payload {
 
 /// @brief A payload for a grid definition
 template <typename bin_content_t = std::size_t,
-          typename grid_id_t = io::detail::acc_type>
+          typename grid_id_t = io::accel_id>
 struct grid_payload {
     using grid_type = grid_id_t;
     // Surface or volume index the grids belongs to
@@ -198,7 +198,7 @@ struct grid_payload {
 
 /// @brief A payload for the grid collections of a detector
 template <typename bin_content_t = std::size_t,
-          typename grid_id_t = io::detail::acc_type>
+          typename grid_id_t = io::accel_id>
 struct detector_grids_payload {
     // A collection of grids per index
     std::map<std::size_t, std::vector<grid_payload<bin_content_t, grid_id_t>>>
@@ -210,7 +210,7 @@ struct detector_grids_payload {
 /// @brief A payload for a detector geometry
 struct detector_payload {
     std::vector<volume_payload> volumes = {};
-    std::optional<grid_payload<std::size_t, io::detail::acc_type>> volume_grid;
+    std::optional<grid_payload<std::size_t, io::accel_id>> volume_grid;
 };
 
-}  // namespace detray
+}  // namespace detray::io

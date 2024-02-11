@@ -6,15 +6,15 @@
  */
 
 // Detray include(s)
+#include "detray/builders/grid_builder.hpp"
+#include "detray/builders/surface_factory.hpp"
+#include "detray/builders/volume_builder.hpp"
 #include "detray/core/detector.hpp"
 #include "detray/definitions/indexing.hpp"
 #include "detray/detectors/toy_metadata.hpp"
 #include "detray/intersection/cylinder_portal_intersector.hpp"
 #include "detray/masks/masks.hpp"
 #include "detray/test/types.hpp"
-#include "detray/tools/grid_builder.hpp"
-#include "detray/tools/surface_factory.hpp"
-#include "detray/tools/volume_builder.hpp"
 #include "detray/utils/type_list.hpp"
 
 // Vecmem include(s)
@@ -310,8 +310,7 @@ GTEST_TEST(detray_tools, grid_builder) {
                             simple_serializer, host_container_types, false>;
 
     auto gbuilder =
-        grid_builder<detector_t, cyl_grid_t, detray::detail::bin_associator>{
-            nullptr};
+        grid_builder<detector_t, cyl_grid_t, detray::bin_associator>{nullptr};
 
     // The cylinder portals are at the end of the surface range by construction
     const auto cyl_mask = mask<cylinder2D<>>{0u, 10.f, -500.f, 500.f};

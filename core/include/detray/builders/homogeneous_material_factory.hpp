@@ -8,10 +8,10 @@
 #pragma once
 
 // Project include(s)
+#include "detray/builders/surface_factory.hpp"
 #include "detray/definitions/indexing.hpp"
 #include "detray/masks/unmasked.hpp"
 #include "detray/materials/material.hpp"
-#include "detray/tools/surface_factory.hpp"
 #include "detray/utils/ranges.hpp"
 
 // System include(s)

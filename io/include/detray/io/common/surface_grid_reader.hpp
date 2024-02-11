@@ -8,16 +8,16 @@
 #pragma once
 
 // Project include(s)
+#include "detray/builders/detector_builder.hpp"
+#include "detray/builders/grid_builder.hpp"
 #include "detray/io/common/detail/grid_reader.hpp"
 #include "detray/io/common/io_interface.hpp"
-#include "detray/io/common/payloads.hpp"
-#include "detray/tools/detector_builder.hpp"
-#include "detray/tools/grid_builder.hpp"
+#include "detray/io/frontend/payloads.hpp"
 
 // System include(s)
 #include <string>
 
-namespace detray {
+namespace detray::io {
 
 /// @brief Abstract base class for surface grid readers
 template <class detector_t,
@@ -47,11 +47,10 @@ class surface_grid_reader
         detector_builder<typename detector_t::metadata, volume_builder>
             &det_builder,
         typename detector_t::name_map &,
-        const detector_grids_payload<std::size_t, io::detail::acc_type>
-            &grids_data) {
+        const detector_grids_payload<std::size_t, io::accel_id> &grids_data) {
 
         grid_reader_t::deserialize(det_builder, grids_data);
     }
 };
 
-}  // namespace detray
+}  // namespace detray::io

@@ -8,13 +8,13 @@
 #pragma once
 
 // detray core
+#include "detray/builders/grid_builder.hpp"
 #include "detray/definitions/algebra.hpp"
 #include "detray/masks/masks.hpp"
 #include "detray/surface_finders/grid/grid.hpp"
 #include "detray/surface_finders/grid/grid_collection.hpp"
 #include "detray/surface_finders/grid/populators.hpp"
 #include "detray/surface_finders/grid/serializers.hpp"
-#include "detray/tools/grid_builder.hpp"
 
 namespace {
 

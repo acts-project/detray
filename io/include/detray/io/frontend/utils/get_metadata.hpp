@@ -1,6 +1,6 @@
 /** Detray library, part of the ACTS project (R&D line)
  *
- * (c) 2022-2023 CERN for the benefit of the ACTS project
+ * (c) 2022-2024 CERN for the benefit of the ACTS project
  *
  * Mozilla Public License Version 2.0
  */
@@ -12,28 +12,12 @@
 
 // System include(s).
 #include <ctime>
-#include <filesystem>
 #include <iomanip>
 #include <locale>
 #include <sstream>
 #include <string>
 
-namespace detray::detail {
-
-/// Check if a given file path exists and generate it if not
-inline auto create_path(const std::string& outdir) {
-
-    auto path = std::filesystem::path(outdir);
-
-    if (not std::filesystem::exists(path)) {
-        std::error_code err;
-        if (!std::filesystem::create_directories(path, err)) {
-            throw std::runtime_error(err.message());
-        }
-    }
-
-    return path;
-}
+namespace detray::io::detail {
 
 /// @returns a string that contains the current date and time
 /// @see https://en.cppreference.com/w/cpp/chrono/c/strftime
@@ -52,4 +36,4 @@ inline std::string get_detray_version() {
 
 inline static const std::string minimal_io_version{"detray - 0.52.0"};
 
-}  // namespace detray::detail
+}  // namespace detray::io::detail

@@ -17,7 +17,7 @@
 /// This tests the json io for the general file header information
 TEST(io, json_header_payload) {
 
-    detray::header_payload<bool> h;
+    detray::io::header_payload<bool> h;
     h.common.version = "v0.0.1";
     h.common.detector = "test_detector";
     h.common.tag = "test_file";
@@ -26,7 +26,7 @@ TEST(io, json_header_payload) {
     nlohmann::ordered_json j;
     j["header"] = h;
 
-    detray::header_payload<bool> ph = j["header"];
+    detray::io::header_payload<bool> ph = j["header"];
 
     EXPECT_EQ(h.common.version, ph.common.version);
     EXPECT_EQ(h.common.detector, ph.common.detector);
@@ -36,13 +36,13 @@ TEST(io, json_header_payload) {
 
 /// This tests the json io for a single index link
 TEST(io, single_link_payload) {
-    detray::single_link_payload sl;
+    detray::io::single_link_payload sl;
     sl.link = 3u;
 
     nlohmann::ordered_json j;
     j["single_link"] = sl;
 
-    detray::single_link_payload psl = j["single_link"];
+    detray::io::single_link_payload psl = j["single_link"];
 
     EXPECT_EQ(sl.link, psl.link);
 }
@@ -50,14 +50,14 @@ TEST(io, single_link_payload) {
 /// This tests the json io for a transform3
 TEST(io, json_algebra_payload) {
 
-    detray::transform_payload p;
+    detray::io::transform_payload p;
     p.tr = {100.f, 200.f, 300.f};
     p.rot = {1.f, 0.f, 0.f, 0.f, 1.f, 0.f, 0.f, 0.f, 1.f};
 
     nlohmann::ordered_json j;
     j["transform"] = p;
 
-    detray::transform_payload pt = j["transform"];
+    detray::io::transform_payload pt = j["transform"];
 
     EXPECT_EQ(p.tr, pt.tr);
     EXPECT_EQ(p.rot, pt.rot);
@@ -66,7 +66,7 @@ TEST(io, json_algebra_payload) {
 /// This tests the json io for a grid axis
 TEST(io, json_axis_payload) {
 
-    detray::axis_payload ea;
+    detray::io::axis_payload ea;
     ea.binning = detray::axis::binning::e_regular;
     ea.bounds = detray::axis::bounds::e_circular;
     ea.label = detray::axis::label::e_phi;
@@ -77,7 +77,7 @@ TEST(io, json_axis_payload) {
     nlohmann::ordered_json je;
     je["axis"] = ea;
 
-    detray::axis_payload pea = je["axis"];
+    detray::io::axis_payload pea = je["axis"];
 
     EXPECT_EQ(ea.binning, pea.binning);
     EXPECT_EQ(ea.bounds, pea.bounds);
@@ -85,7 +85,7 @@ TEST(io, json_axis_payload) {
 
     EXPECT_EQ(ea.bins, pea.bins);
 
-    detray::axis_payload va;
+    detray::io::axis_payload va;
     va.binning = detray::axis::binning::e_irregular;
     va.bounds = detray::axis::bounds::e_closed;
     va.label = detray::axis::label::e_r;
@@ -95,7 +95,7 @@ TEST(io, json_axis_payload) {
     nlohmann::ordered_json jv;
     jv["axis"] = va;
 
-    detray::axis_payload pva = jv["axis"];
+    detray::io::axis_payload pva = jv["axis"];
 
     EXPECT_EQ(va.binning, pva.binning);
     EXPECT_EQ(va.bounds, pva.bounds);
@@ -107,14 +107,14 @@ TEST(io, json_axis_payload) {
 /// This tests the json io for a grid bin
 TEST(io, json_bin_payload) {
 
-    detray::grid_bin_payload<> b;
+    detray::io::grid_bin_payload<> b;
     b.loc_index = std::vector<unsigned int>{1u, 0u, 2u};
     b.content = std::vector<std::size_t>{0u, 1u, 2u, 3u};
 
     nlohmann::ordered_json jbin;
     jbin["bin"] = b;
 
-    detray::grid_bin_payload<> pb = jbin["bin"];
+    detray::io::grid_bin_payload<> pb = jbin["bin"];
 
     EXPECT_EQ(b.loc_index.size(), pb.loc_index.size());
     EXPECT_EQ(b.content.size(), pb.content.size());
@@ -123,21 +123,21 @@ TEST(io, json_bin_payload) {
 /// This tests the json io for a grid
 TEST(io, json_grid_payload) {
 
-    std::vector<detray::grid_bin_payload<>> bins = {
+    std::vector<detray::io::grid_bin_payload<>> bins = {
         {{0u, 1u}, {0u, 2u}}, {{1u, 1u}, {1u, 2u}}, {{2u, 1u}, {2u, 2u}}};
 
-    detray::axis_payload a0{
+    detray::io::axis_payload a0{
         detray::axis::binning::e_regular, detray::axis::bounds::e_circular,
         detray::axis::label::e_phi, 3u,
         std::vector<detray::real_io>{-detray::constant<detray::real_io>::pi,
                                      detray::constant<detray::real_io>::pi}};
 
-    detray::axis_payload a1{
+    detray::io::axis_payload a1{
         detray::axis::binning::e_regular, detray::axis::bounds::e_closed,
         detray::axis::label::e_r, 2u, std::vector<detray::real_io>{0.f, 2.f}};
 
-    detray::grid_payload<> g;
-    g.grid_link = {detray::grid_payload<>::grid_type::polar2_grid, 12u};
+    detray::io::grid_payload<> g;
+    g.grid_link = {detray::io::grid_payload<>::grid_type::polar2_grid, 12u};
     g.owner_link = {2u};
     g.axes = {a0, a1};
     g.bins = bins;
@@ -145,7 +145,7 @@ TEST(io, json_grid_payload) {
     nlohmann::ordered_json j;
     j["grid"] = g;
 
-    detray::grid_payload<> pg = j["grid"];
+    detray::io::grid_payload<> pg = j["grid"];
 
     EXPECT_EQ(g.grid_link.type, pg.grid_link.type);
     EXPECT_EQ(g.grid_link.index, pg.grid_link.index);
@@ -156,18 +156,18 @@ TEST(io, json_grid_payload) {
 /// This tests the json io for a surface mask
 TEST(io, json_mask_payload) {
 
-    detray::single_link_payload sl;
+    detray::io::single_link_payload sl;
     sl.link = 3u;
 
-    detray::mask_payload m;
-    m.shape = detray::mask_payload::mask_shape::cylinder3;
+    detray::io::mask_payload m;
+    m.shape = detray::io::mask_payload::mask_shape::cylinder3;
     m.volume_link = sl;
     m.boundaries = {10.f, 100.f};
 
     nlohmann::ordered_json j;
     j["mask"] = m;
 
-    detray::mask_payload pm = j["mask"];
+    detray::io::mask_payload pm = j["mask"];
 
     EXPECT_EQ(m.shape, pm.shape);
     EXPECT_EQ(m.volume_link.link, pm.volume_link.link);
@@ -177,14 +177,14 @@ TEST(io, json_mask_payload) {
 /// This tests the json io for a surface material link
 TEST(io, json_material_link_payload) {
 
-    detray::material_link_payload m;
-    m.type = detray::material_link_payload::type_id::slab;
+    detray::io::material_link_payload m;
+    m.type = detray::io::material_link_payload::type_id::slab;
     m.index = 2u;
 
     nlohmann::ordered_json j;
     j["material"] = m;
 
-    detray::material_link_payload pm = j["material"];
+    detray::io::material_link_payload pm = j["material"];
 
     EXPECT_EQ(m.type, pm.type);
     EXPECT_EQ(m.index, pm.index);
@@ -193,21 +193,21 @@ TEST(io, json_material_link_payload) {
 /// This tests the json payload for a surface (descriptor + data)
 TEST(io, json_surface_payload) {
 
-    detray::surface_payload s;
+    detray::io::surface_payload s;
 
-    detray::transform_payload t;
+    detray::io::transform_payload t;
     t.tr = {100.f, 200.f, 300.f};
     t.rot = {1.f, 0.f, 0.f, 0.f, 1.f, 0.f, 0.f, 0.f, 1.f};
 
-    detray::mask_payload m;
-    detray::single_link_payload sl;
+    detray::io::mask_payload m;
+    detray::io::single_link_payload sl;
     sl.link = 1u;
-    m.shape = detray::mask_payload::mask_shape::trapezoid2;
+    m.shape = detray::io::mask_payload::mask_shape::trapezoid2;
     m.volume_link = sl;
     m.boundaries = {10.f, 20.f, 34.f, 1.4f};
 
-    detray::material_link_payload mat;
-    mat.type = detray::material_link_payload::type_id::slab;
+    detray::io::material_link_payload mat;
+    mat.type = detray::io::material_link_payload::type_id::slab;
     mat.index = 2u;
 
     s.transform = t;
@@ -218,7 +218,7 @@ TEST(io, json_surface_payload) {
     nlohmann::ordered_json j;
     j["surface"] = s;
 
-    detray::surface_payload ps = j["surface"];
+    detray::io::surface_payload ps = j["surface"];
 
     EXPECT_EQ(s.transform.tr, ps.transform.tr);
     EXPECT_EQ(s.transform.rot, ps.transform.rot);
@@ -236,14 +236,14 @@ TEST(io, json_surface_payload) {
 /// This tests the json io for a surface material link
 TEST(io, acc_links_payload) {
 
-    detray::acc_links_payload l;
-    l.type = detray::acc_links_payload::type_id::cylinder2_grid;
+    detray::io::acc_links_payload l;
+    l.type = detray::io::acc_links_payload::type_id::cylinder2_grid;
     l.index = 2u;
 
     nlohmann::ordered_json j;
     j["acc_link"] = l;
 
-    detray::acc_links_payload pl = j["acc_link"];
+    detray::io::acc_links_payload pl = j["acc_link"];
 
     EXPECT_EQ(l.type, pl.type);
     EXPECT_EQ(l.index, pl.index);
@@ -253,26 +253,26 @@ TEST(io, acc_links_payload) {
 /// surfaces)
 TEST(io, json_volume_payload) {
 
-    detray::transform_payload t;
+    detray::io::transform_payload t;
     t.tr = {100.f, 200.f, 300.f};
     t.rot = {1.f, 0.f, 0.f, 0.f, 1.f, 0.f, 0.f, 0.f, 1.f};
 
-    detray::single_link_payload sl;
+    detray::io::single_link_payload sl;
     sl.link = 1u;
 
-    detray::acc_links_payload al;
-    al.type = detray::acc_links_payload::type_id::cylinder2_grid;
+    detray::io::acc_links_payload al;
+    al.type = detray::io::acc_links_payload::type_id::cylinder2_grid;
     al.index = 2u;
 
-    detray::surface_payload s;
+    detray::io::surface_payload s;
 
-    detray::mask_payload m;
-    m.shape = detray::mask_payload::mask_shape::trapezoid2;
+    detray::io::mask_payload m;
+    m.shape = detray::io::mask_payload::mask_shape::trapezoid2;
     m.volume_link = sl;
     m.boundaries = {10.f, 20.f, 34.f, 1.4f};
 
-    detray::material_link_payload mat;
-    mat.type = detray::material_link_payload::type_id::slab;
+    detray::io::material_link_payload mat;
+    mat.type = detray::io::material_link_payload::type_id::slab;
     mat.index = 2u;
 
     s.transform = t;
@@ -280,7 +280,7 @@ TEST(io, json_volume_payload) {
     s.type = detray::surface_id::e_portal;
     s.material = mat;
 
-    detray::volume_payload v;
+    detray::io::volume_payload v;
     v.name = "volume";
     v.type = detray::volume_id::e_cylinder;
     sl.link = 2u;
@@ -292,7 +292,7 @@ TEST(io, json_volume_payload) {
     nlohmann::ordered_json j;
     j["volume"] = v;
 
-    detray::volume_payload pv = j["volume"];
+    detray::io::volume_payload pv = j["volume"];
 
     EXPECT_EQ(v.name, pv.name);
     EXPECT_EQ(v.index.link, pv.index.link);
@@ -306,8 +306,8 @@ TEST(io, json_volume_payload) {
 /// This tests the json io for a material slab/rod
 TEST(io, json_material_slab_payload) {
 
-    detray::material_slab_payload m;
-    m.type = detray::material_slab_payload::mat_type::slab;
+    detray::io::material_slab_payload m;
+    m.type = detray::io::material_slab_payload::mat_type::slab;
     m.index_in_coll = 21u;
     m.surface.link = 5u;
     m.thickness = 1.2f;
@@ -316,7 +316,7 @@ TEST(io, json_material_slab_payload) {
     nlohmann::ordered_json j;
     j["material"] = m;
 
-    detray::material_slab_payload pm = j["material"];
+    detray::io::material_slab_payload pm = j["material"];
 
     EXPECT_EQ(m.type, pm.type);
     EXPECT_EQ(m.index_in_coll, pm.index_in_coll);
@@ -328,13 +328,13 @@ TEST(io, json_material_slab_payload) {
 /// This tests the json io for a material slab
 TEST(io, json_detector_payload) {
 
-    detray::detector_payload d;
-    d.volumes = {detray::volume_payload{}, detray::volume_payload{}};
+    detray::io::detector_payload d;
+    d.volumes = {detray::io::volume_payload{}, detray::io::volume_payload{}};
 
     nlohmann::ordered_json j;
     j["detector"] = d;
 
-    detray::detector_payload pd = j["detector"];
+    detray::io::detector_payload pd = j["detector"];
 
     EXPECT_EQ(d.volumes.size(), pd.volumes.size());
 }

@@ -8,6 +8,7 @@
 #pragma once
 
 // Project include(s)
+#include "detray/builders/volume_builder.hpp"  // @TODO remove
 #include "detray/core/detail/container_buffers.hpp"
 #include "detray/core/detail/container_views.hpp"
 #include "detray/core/detail/surface_lookup.hpp"
@@ -15,8 +16,7 @@
 #include "detray/definitions/containers.hpp"
 #include "detray/definitions/qualifiers.hpp"
 #include "detray/geometry/detail/volume_descriptor.hpp"
-#include "detray/tools/volume_builder.hpp"  // @TODO remove
-#include "detray/utils/ranges.hpp"          // @TODO remove
+#include "detray/utils/ranges.hpp"  // @TODO remove
 
 // Vecmem include(s)
 #include <vecmem/memory/memory_resource.hpp>

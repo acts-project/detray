@@ -8,7 +8,7 @@
 // Project include(s).
 #include "detray/definitions/units.hpp"
 #include "detray/test/types.hpp"
-#include "detray/tools/bounding_volume.hpp"
+#include "detray/utils/bounding_volume.hpp"
 
 // Google test include(s).
 #include <gtest/gtest.h>

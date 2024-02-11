@@ -132,8 +132,8 @@ class straight_line_navigation : public test::fixture_base<> {
                   << std::endl;
 
         std::ios_base::openmode io_mode = std::ios::trunc | std::ios::out;
-        detray::io::detail::file_handle debug_file{"./straight_line_navigation",
-                                                   ".txt", io_mode};
+        detray::io::file_handle debug_file{"./straight_line_navigation.txt",
+                                           io_mode};
 
         for (const auto ray : ray_generator) {
 

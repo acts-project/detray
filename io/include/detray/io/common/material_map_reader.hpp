@@ -8,13 +8,13 @@
 #pragma once
 
 // Project include(s)
-#include "detray/io/common/detail/type_traits.hpp"
+#include "detray/builders/detector_builder.hpp"
+#include "detray/builders/material_map_builder.hpp"
+#include "detray/io/common/detail/type_info.hpp"
 #include "detray/io/common/homogeneous_material_reader.hpp"
 #include "detray/io/common/io_interface.hpp"
-#include "detray/io/common/payloads.hpp"
+#include "detray/io/frontend/payloads.hpp"
 #include "detray/materials/material_slab.hpp"
-#include "detray/tools/detector_builder.hpp"
-#include "detray/tools/material_map_builder.hpp"
 #include "detray/utils/type_list.hpp"
 
 // System include(s)
@@ -22,7 +22,7 @@
 #include <stdexcept>
 #include <vector>
 
-namespace detray {
+namespace detray::io {
 
 /// @brief Abstract base class for material map readers
 template <class detector_t,
@@ -46,8 +46,8 @@ class material_map_reader : public reader_interface<detector_t> {
     using mat_factory_t = material_map_factory<detector_t, bin_index_type>;
     using mat_data_t = typename mat_factory_t::data_type;
     /// Gets compile-time mask information
-    template <io::detail::material_type mat_type>
-    using map_info = detail::mat_map_info<mat_type, detector_t>;
+    template <io::material_id mat_type>
+    using map_info = detray::io::detail::mat_map_info<mat_type, detector_t>;
 
     protected:
     /// Tag the reader as "material_maps"
@@ -59,7 +59,7 @@ class material_map_reader : public reader_interface<detector_t> {
         detector_builder<typename detector_t::metadata, volume_builder>
             &det_builder,
         typename detector_t::name_map &,
-        detector_grids_payload<material_slab_payload, io::detail::material_type>
+        detector_grids_payload<material_slab_payload, io::material_id>
             &&grids_data) {
 
         // Deserialize the material volume by volume
@@ -77,7 +77,7 @@ class material_map_reader : public reader_interface<detector_t> {
             // Deserialize the material grid of each surface
             for (const auto &grid_data : mat_grids) {
 
-                mat_id map_id = deserialize<io::detail::material_type::n_mats>(
+                mat_id map_id = deserialize<io::material_id::n_mats>(
                     grid_data.grid_link.type);
 
                 // Get the number of bins per axis
@@ -123,8 +123,8 @@ class material_map_reader : public reader_interface<detector_t> {
 
     private:
     /// Get the detector material id from the payload material type id
-    template <io::detail::material_type I>
-    static mat_id deserialize(io::detail::material_type type_id) {
+    template <io::material_id I>
+    static mat_id deserialize(io::material_id type_id) {
 
         // Material id of map data found
         if (type_id == I) {
@@ -134,12 +134,12 @@ class material_map_reader : public reader_interface<detector_t> {
         // Test next material type id
         constexpr int current_id{static_cast<int>(I)};
         if constexpr (current_id > 0) {
-            return deserialize<static_cast<io::detail::material_type>(
-                current_id - 1)>(type_id);
+            return deserialize<static_cast<io::material_id>(current_id - 1)>(
+                type_id);
         } else {
             return mat_id::e_none;
         }
     }
 };
 
-}  // namespace detray
+}  // namespace detray::io

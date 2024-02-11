@@ -8,9 +8,9 @@
 #pragma once
 
 // Project include(s)
-#include "detray/io/common/detail/utils.hpp"
-#include "detray/io/common/payloads.hpp"
-#include "detray/tools/detector_builder.hpp"
+#include "detray/builders/detector_builder.hpp"
+#include "detray/io/frontend/payloads.hpp"
+#include "detray/io/frontend/utils/get_metadata.hpp"
 
 // System include(s)
 #include <filesystem>
@@ -18,7 +18,7 @@
 #include <string>
 #include <string_view>
 
-namespace detray {
+namespace detray::io {
 
 /// @brief Abstract base class for detray detector components readers
 template <class detector_t>
@@ -81,10 +81,10 @@ class writer_interface {
                                            const std::string_view tag) {
         common_header_payload header_data;
 
-        header_data.version = detail::get_detray_version();
+        header_data.version = io::detail::get_detray_version();
         header_data.detector = det_name;
         header_data.tag = tag;
-        header_data.date = detail::get_current_date();
+        header_data.date = io::detail::get_current_date();
 
         return header_data;
     }
@@ -114,4 +114,4 @@ class writer_interface {
     std::string m_file_extension;
 };
 
-}  // namespace detray
+}  // namespace detray::io

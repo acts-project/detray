@@ -8,6 +8,7 @@
 #pragma once
 
 // Project include(s)
+#include "detray/builders/surface_factory_interface.hpp"
 #include "detray/core/detail/data_context.hpp"
 #include "detray/definitions/indexing.hpp"
 #include "detray/definitions/qualifiers.hpp"
@@ -15,7 +16,6 @@
 #include "detray/masks/unmasked.hpp"
 #include "detray/materials/material_rod.hpp"
 #include "detray/materials/material_slab.hpp"
-#include "detray/tools/surface_factory_interface.hpp"
 #include "detray/utils/ranges.hpp"
 
 // System include(s)

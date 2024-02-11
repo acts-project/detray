@@ -9,9 +9,10 @@
 
 // Project include(s)
 #include "detray/geometry/surface.hpp"
-#include "detray/io/common/detail/type_traits.hpp"
+#include "detray/io/common/detail/type_info.hpp"
 #include "detray/io/common/io_interface.hpp"
-#include "detray/io/common/payloads.hpp"
+#include "detray/io/frontend/payloads.hpp"
+#include "detray/io/frontend/utils/type_traits.hpp"
 #include "detray/materials/material_rod.hpp"
 #include "detray/materials/material_slab.hpp"
 #include "detray/utils/type_list.hpp"
@@ -20,7 +21,7 @@
 #include <string>
 #include <string_view>
 
-namespace detray {
+namespace detray::io {
 
 template <typename detector_t>
 class material_map_writer;
@@ -55,12 +56,12 @@ class homogeneous_material_writer : public writer_interface<detector_t> {
 
         header_data.sub_header.emplace();
         auto& mat_sub_header = header_data.sub_header.value();
-        if constexpr (detail::has_material_slabs_v<detector_t>) {
+        if constexpr (detray::detail::has_material_slabs_v<detector_t>) {
             mat_sub_header.n_slabs =
                 materials.template size<detector_t::materials::id::e_slab>();
         }
         mat_sub_header.n_rods = 0u;
-        if constexpr (detail::has_material_rods_v<detector_t>) {
+        if constexpr (detray::detail::has_material_rods_v<detector_t>) {
             mat_sub_header.n_rods =
                 materials.template size<detector_t::materials::id::e_rod>();
         }
@@ -93,13 +94,13 @@ class homogeneous_material_writer : public writer_interface<detector_t> {
         mv_data.volume_link = base_type::serialize(vol_desc.index());
 
         // Return early if the stores for homogeneous materials are empty
-        using material_id = typename detector_t::materials::id;
+        using mat_id = typename detector_t::materials::id;
 
         // If this reader is called, the detector has at least material slabs
-        if (det.material_store().template empty<material_id::e_slab>()) {
+        if (det.material_store().template empty<mat_id::e_slab>()) {
             // Check for material rods that are present in e.g. wire chambers
-            if constexpr (detail::has_material_rods_v<detector_t>) {
-                if (det.material_store().template empty<material_id::e_rod>()) {
+            if constexpr (detray::detail::has_material_rods_v<detector_t>) {
+                if (det.material_store().template empty<mat_id::e_rod>()) {
                     return mv_data;
                 }
             } else {
@@ -187,4 +188,4 @@ class homogeneous_material_writer : public writer_interface<detector_t> {
     };
 };
 
-}  // namespace detray
+}  // namespace detray::io

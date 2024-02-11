@@ -9,19 +9,19 @@
 #pragma once
 
 // Project include(s)
+#include "detray/builders/detail/associator.hpp"
 #include "detray/coordinates/cylindrical2.hpp"
 #include "detray/coordinates/polar2.hpp"
 #include "detray/definitions/units.hpp"
 #include "detray/masks/detail/vertexing.hpp"
 #include "detray/surface_finders/grid/populators.hpp"
-#include "detray/tools/associator.hpp"
 #include "detray/utils/ranges.hpp"
 
 // System include(s)
 #include <array>
 #include <vector>
 
-namespace detray {
+namespace detray::detail {
 
 /// Run the bin association of surfaces (via their contour) to a given 2D grid.
 ///
@@ -247,4 +247,4 @@ static inline void bin_association(const context_t & /*context*/,
     }
 }
 
-}  // namespace detray
+}  // namespace detray::detail

@@ -11,12 +11,12 @@
 #include "detray/definitions/indexing.hpp"
 #include "detray/io/common/detail/grid_writer.hpp"
 #include "detray/io/common/io_interface.hpp"
-#include "detray/io/common/payloads.hpp"
+#include "detray/io/frontend/payloads.hpp"
 
 // System include(s)
 #include <string>
 
-namespace detray {
+namespace detray::io {
 
 /// @brief Abstract base class for accelerator grid writers
 template <class detector_t>
@@ -47,10 +47,10 @@ class surface_grid_writer
 
     /// Serialize the grid collections of a detector @param det into their io
     /// payload
-    static detector_grids_payload<std::size_t, io::detail::acc_type> serialize(
+    static detector_grids_payload<std::size_t, io::accel_id> serialize(
         const detector_t& det, const typename detector_t::name_map&) {
 
-        detector_grids_payload<std::size_t, io::detail::acc_type> grids_data;
+        detector_grids_payload<std::size_t, io::accel_id> grids_data;
 
         for (const auto& vol_desc : det.volumes()) {
             // Links to all acceleration data structures in the volume
@@ -82,4 +82,4 @@ class surface_grid_writer
     }
 };
 
-}  // namespace detray
+}  // namespace detray::io

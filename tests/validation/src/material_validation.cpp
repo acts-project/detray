@@ -8,7 +8,7 @@
 // Project include(s)
 #include "detray/core/detector.hpp"
 #include "detray/definitions/units.hpp"
-#include "detray/io/common/detector_reader.hpp"
+#include "detray/io/frontend/detector_reader.hpp"
 #include "detray/validation/detail/register_checks.hpp"
 #include "detray/validation/detector_material_scan.hpp"
 

@@ -8,13 +8,13 @@
 #pragma once
 
 // Project include(s)
+#include "detray/builders/bin_fillers.hpp"
+#include "detray/builders/detector_builder.hpp"
+#include "detray/builders/grid_factory.hpp"
 #include "detray/definitions/indexing.hpp"
-#include "detray/io/common/detail/type_traits.hpp"
+#include "detray/io/common/detail/type_info.hpp"
 #include "detray/io/common/io_interface.hpp"
-#include "detray/io/common/payloads.hpp"
-#include "detray/tools/bin_fillers.hpp"
-#include "detray/tools/detector_builder.hpp"
-#include "detray/tools/grid_factory.hpp"
+#include "detray/io/frontend/payloads.hpp"
 #include "detray/utils/ranges.hpp"
 #include "detray/utils/type_list.hpp"
 
@@ -25,7 +25,7 @@
 #include <type_traits>
 #include <vector>
 
-namespace detray::detail {
+namespace detray::io::detail {
 
 /// @brief Abstract base class for surface grid readers
 ///
@@ -41,14 +41,14 @@ template <class detector_t, typename value_t,
           class grid_builder_t,
           typename CAP = std::integral_constant<std::size_t, 0>,
           typename DIM = std::integral_constant<std::size_t, 2>,
-          typename bin_filler_t = detail::fill_by_pos,
+          typename bin_filler_t = fill_by_pos,
           template <std::size_t> class serializer_t = simple_serializer>
 class grid_reader : public reader_interface<detector_t> {
 
     using base_type = reader_interface<detector_t>;
     /// IO accelerator ids do not need to coincide with the detector ids,
     /// because they are shared with ACTS
-    using acc_type = io::detail::acc_type;
+    using acc_type = io::accel_id;
     using algebra_t = typename detector_t::transform3;
     using scalar_t = typename algebra_t::scalar_type;
 
@@ -216,8 +216,8 @@ class grid_reader : public reader_interface<detector_t> {
             &det_builder) {
 
         // Throw expection if the accelerator link type id is invalid
-        auto print_error = [](io::detail::acc_type grid_link) -> void {
-            if (grid_link == io::detail::acc_type::unknown) {
+        auto print_error = [](io::accel_id grid_link) -> void {
+            if (grid_link == io::accel_id::unknown) {
                 throw std::invalid_argument(
                     "Unknown accelerator id in geometry file!");
             } else {
@@ -237,17 +237,17 @@ class grid_reader : public reader_interface<detector_t> {
         if constexpr (dim == 2) {
             switch (grid_data.second.grid_link.type) {
                 // rectangle, trapezoid, (triangle) grids
-                case io::detail::acc_type::cartesian2_grid: {
+                case io::accel_id::cartesian2_grid: {
                     return deserialize<cartesian2<algebra_t>>(
                         grid_data, det_builder, bounds, binnings);
                 }
                 // ring/disc, annulus grids
-                case io::detail::acc_type::polar2_grid: {
+                case io::accel_id::polar2_grid: {
                     return deserialize<polar2<algebra_t>>(
                         grid_data, det_builder, bounds, binnings);
                 }
                 // 2D cylinder grid
-                case io::detail::acc_type::cylinder2_grid: {
+                case io::accel_id::cylinder2_grid: {
                     return deserialize<cylindrical2<algebra_t>>(
                         grid_data, det_builder, bounds, binnings);
                 }
@@ -259,12 +259,12 @@ class grid_reader : public reader_interface<detector_t> {
         } else if constexpr (dim == 3) {
             switch (grid_data.second.grid_link.type) {
                 // cuboid grid
-                case io::detail::acc_type::cuboid3_grid: {
+                case io::accel_id::cuboid3_grid: {
                     return deserialize<cartesian3<algebra_t>>(
                         grid_data, det_builder, bounds, binnings);
                 }
                 // 3D cylinder grid
-                case io::detail::acc_type::cylinder3_grid: {
+                case io::accel_id::cylinder3_grid: {
                     return deserialize<cylindrical3<algebra_t>>(
                         grid_data, det_builder, bounds, binnings);
                 }
@@ -384,7 +384,8 @@ class grid_reader : public reader_interface<detector_t> {
 
                 // For now assume surfaces ids as the only grid input
                 for (const auto c : bin_data.content) {
-                    if (detail::is_invalid_value(static_cast<dindex>(c))) {
+                    if (detray::detail::is_invalid_value(
+                            static_cast<dindex>(c))) {
                         std::cout << "WARNING: Encountered invalid surface "
                                   << "index in grid (" << err_stream.str()
                                   << ")" << std::endl;
@@ -404,4 +405,4 @@ class grid_reader : public reader_interface<detector_t> {
     }
 };
 
-}  // namespace detray::detail
+}  // namespace detray::io::detail

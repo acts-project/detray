@@ -8,8 +8,8 @@
 // Project include(s)
 #include "detray/core/detector.hpp"
 #include "detray/geometry/volume_graph.hpp"
-#include "detray/io/common/detail/utils.hpp"
-#include "detray/io/common/detector_reader.hpp"
+#include "detray/io/frontend/detector_reader.hpp"
+#include "detray/io/frontend/utils/create_path.hpp"
 #include "detray/plugins/svgtools/illustrator.hpp"
 #include "detray/plugins/svgtools/writer.hpp"
 
@@ -86,7 +86,7 @@ int main(int argc, char** argv) {
     // General options
     std::string outdir{vm.count("outdir") ? vm["outdir"].as<std::string>()
                                           : "./plots/"};
-    auto path = detray::detail::create_path(outdir);
+    auto path = detray::io::create_path(outdir);
 
     // Input files
     if (vm.count("geometry_file")) {
@@ -190,7 +190,7 @@ int main(int argc, char** argv) {
     if (vm.count("write_volume_graph")) {
         detray::volume_graph graph(det);
 
-        detray::io::detail::file_handle stream{
+        detray::io::file_handle stream{
             path / (names.at(0) + "_volume_graph.dot"),
             std::ios::out | std::ios::trunc};
         *stream << graph.to_dot_string();

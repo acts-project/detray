@@ -8,6 +8,7 @@
 #pragma once
 
 // Project include(s)
+#include "detray/builders/local_object_finder.hpp"
 #include "detray/definitions/indexing.hpp"
 #include "detray/geometry/detail/surface_descriptor.hpp"
 #include "detray/grids/axis.hpp"
@@ -15,7 +16,6 @@
 #include "detray/grids/populator.hpp"
 #include "detray/grids/serializer2.hpp"
 #include "detray/masks/rectangle2D.hpp"
-#include "detray/tools/local_object_finder.hpp"
 #include "detray/utils/ranges.hpp"
 
 // Vecmem include(s)

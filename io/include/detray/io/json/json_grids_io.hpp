@@ -9,7 +9,7 @@
 
 // Project include(s).
 #include "detray/definitions/grid_axis.hpp"
-#include "detray/io/common/payloads.hpp"
+#include "detray/io/frontend/payloads.hpp"
 #include "detray/io/json/json.hpp"
 #include "detray/io/json/json_algebra_io.hpp"
 #include "detray/io/json/json_common_io.hpp"
@@ -19,7 +19,7 @@
 #include <optional>
 #include <vector>
 
-namespace detray {
+namespace detray::io {
 
 inline void to_json(nlohmann::ordered_json& j, const grid_header_payload& h) {
     j["common"] = h.common;
@@ -163,4 +163,4 @@ inline void from_json(const nlohmann::ordered_json& j,
     }
 }
 
-}  // namespace detray
+}  // namespace detray::io

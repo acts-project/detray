@@ -8,18 +8,16 @@
 #pragma once
 
 // Project include(s)
-#include "detray/io/common/detail/detector_components_io.hpp"
-#include "detray/io/common/detail/type_traits.hpp"
-#include "detray/io/common/detail/utils.hpp"
+#include "detray/io/frontend/detector_components_io.hpp"
+#include "detray/io/frontend/utils/create_path.hpp"
+#include "detray/io/frontend/utils/type_traits.hpp"
 #include "detray/io/json/json_writer.hpp"
 
 // System include(s)
 #include <filesystem>
 #include <ios>
 
-namespace detray {
-
-namespace io {
+namespace detray::io {
 
 /// @brief config struct for detector writing.
 struct detector_writer_config {
@@ -75,8 +73,6 @@ struct detector_writer_config {
     /// @}
 };
 
-}  // namespace io
-
 namespace detail {
 
 /// From the detector type @tparam detector_t, infer the writers that are needed
@@ -84,7 +80,7 @@ template <class detector_t>
 detail::detector_component_writers<detector_t> assemble_writer(
     const io::detector_writer_config& cfg) {
 
-    detail::detector_component_writers<detector_t> writers;
+    io::detail::detector_component_writers<detector_t> writers;
 
     if (cfg.format() == io::format::json) {
         // Always needed
@@ -93,16 +89,17 @@ detail::detector_component_writers<detector_t> assemble_writer(
         // Find other writers, depending on the detector type
         if (cfg.write_material()) {
             // Simple material
-            if constexpr (detail::has_homogeneous_material_v<detector_t>) {
+            if constexpr (detray::detail::has_homogeneous_material_v<
+                              detector_t>) {
                 writers.template add<json_homogeneous_material_writer>();
             }
             // Material maps
-            if constexpr (detail::has_material_grids_v<detector_t>) {
+            if constexpr (detray::detail::has_material_grids_v<detector_t>) {
                 writers.template add<json_material_map_writer>();
             }
         }
         // Navigation acceleration structures
-        if constexpr (detail::has_surface_grids_v<detector_t>) {
+        if constexpr (detray::detail::has_surface_grids_v<detector_t>) {
             if (cfg.write_grids()) {
                 writers.template add<json_surface_grid_writer>();
             }
@@ -113,8 +110,6 @@ detail::detector_component_writers<detector_t> assemble_writer(
 }
 
 }  // namespace detail
-
-namespace io {
 
 /// @brief Writer function for detray detectors.
 ///
@@ -131,18 +126,16 @@ void write_detector(detector_t& det, const typename detector_t::name_map& names,
     auto mode =
         cfg.replace_files() ? (out_mode | std::ios_base::trunc) : out_mode;
 
-    const auto file_path = detray::detail::create_path(cfg.path());
+    const auto file_path = detray::io::create_path(cfg.path());
 
     if (det.material_store().all_empty()) {
         cfg.write_material(false);
     }
 
     // Get the writer
-    auto writer = detray::detail::assemble_writer<detector_t>(cfg);
+    auto writer = detail::assemble_writer<detector_t>(cfg);
 
     writer.write(det, names, mode, file_path);
 }
 
-}  // namespace io
-
-}  // namespace detray
+}  // namespace detray::io

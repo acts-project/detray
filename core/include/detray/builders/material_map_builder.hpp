@@ -8,12 +8,12 @@
 #pragma once
 
 // Project include(s).
+#include "detray/builders/bin_fillers.hpp"
+#include "detray/builders/grid_factory.hpp"
+#include "detray/builders/material_map_factory.hpp"
+#include "detray/builders/surface_factory_interface.hpp"
+#include "detray/builders/volume_builder_interface.hpp"
 #include "detray/materials/material_map.hpp"
-#include "detray/tools/bin_fillers.hpp"
-#include "detray/tools/grid_factory.hpp"
-#include "detray/tools/material_map_factory.hpp"
-#include "detray/tools/surface_factory_interface.hpp"
-#include "detray/tools/volume_builder_interface.hpp"
 
 // System include(s)
 #include <array>
@@ -49,7 +49,7 @@ class material_map_builder : public volume_decorator<detector_t> {
     using detector_type = detector_t;
     using value_type = material_slab<scalar_type>;
     using bin_data_type =
-        typename detail::fill_by_bin::template bin_data<DIM, value_type>;
+        typename fill_by_bin::template bin_data<DIM, value_type>;
 
     /// @param vol_builder volume builder that should be decorated with material
     /// maps

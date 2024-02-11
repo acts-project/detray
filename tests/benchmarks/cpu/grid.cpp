@@ -6,11 +6,11 @@
  */
 
 // Detray core include(s).
+#include "detray/builders/grid_factory.hpp"
 #include "detray/definitions/containers.hpp"
 #include "detray/definitions/indexing.hpp"
 #include "detray/masks/rectangle2D.hpp"
 #include "detray/surface_finders/accelerator_grid.hpp"
-#include "detray/tools/grid_factory.hpp"
 
 // Detray test include(s).
 #include "detray/test/types.hpp"

@@ -10,7 +10,7 @@
 // Project include(s)
 #include "detray/geometry/surface.hpp"
 #include "detray/intersection/detail/trajectories.hpp"
-#include "detray/io/common/detail/file_handle.hpp"
+#include "detray/io/frontend/utils/file_handle.hpp"
 #include "detray/plugins/svgtools/illustrator.hpp"
 #include "detray/simulation/event_generator/track_generators.hpp"
 #include "detray/test/types.hpp"
@@ -104,7 +104,7 @@ class helix_scan : public test::fixture_base<> {
             uniform_track_generator<free_track_parameters_t>(
                 m_cfg.track_generator());
 
-        detray::io::detail::file_handle outfile{
+        detray::io::file_handle outfile{
             m_cfg.name(), ".csv",
             std::ios::out | std::ios::binary | std::ios::trunc};
 
