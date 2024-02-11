@@ -1,6 +1,6 @@
 /** Detray library, part of the ACTS project (R&D line)
  *
- * (c) 2023 CERN for the benefit of the ACTS project
+ * (c) 2023-2024 CERN for the benefit of the ACTS project
  *
  * Mozilla Public License Version 2.0
  */
@@ -9,8 +9,8 @@
 
 // Project include(s)
 #include "detray/definitions/indexing.hpp"
-#include "detray/io/common/io_interface.hpp"
-#include "detray/io/frontend/definitions.hpp"
+#include "detray/io/common/detail/basic_converter.hpp"
+#include "detray/io/common/detail/type_info.hpp"
 #include "detray/io/frontend/payloads.hpp"
 #include "detray/surface_finders/accelerator_grid.hpp"
 #include "detray/utils/type_list.hpp"
@@ -25,17 +25,11 @@
 
 namespace detray::io::detail {
 
-/// @brief Abstract base class for accelerator grid writers
-template <typename detector_t, typename value_t>
-class grid_writer : public writer_interface<detector_t> {
-
-    using base_type = writer_interface<detector_t>;
+/// @brief Grid writer backend
+class grid_writer {
 
     public:
-    /// Same constructors for this class as for base_type
-    using base_type::base_type;
-
-    /// Serialize the header information into its payload
+    /// Convert the header information into its payload
     template <typename grid_store_t>
     static grid_header_payload write_header(const std::string_view writer_tag,
                                             const grid_store_t& store,
@@ -43,7 +37,8 @@ class grid_writer : public writer_interface<detector_t> {
 
         grid_header_payload header_data;
 
-        header_data.common = base_type::serialize(det_name, writer_tag);
+        header_data.common =
+            detail::basic_converter::convert(det_name, writer_tag);
 
         header_data.sub_header.emplace();
         auto& grid_sub_header = header_data.sub_header.value();
@@ -53,21 +48,22 @@ class grid_writer : public writer_interface<detector_t> {
     }
 
     protected:
-    /// Serialize a grid @param gr of type @param type and index @param idx
-    /// into its io payload, using @param serializer for the bin content
-    template <typename content_t, typename grid_id_t, class grid_t>
-    static grid_payload<content_t, grid_id_t> serialize(
+    /// Convert a grid @param gr of type @param type and index @param idx
+    /// into its io payload, using @param converter for the bin content
+    template <typename content_t, typename value_t, typename grid_id_t,
+              class grid_t>
+    static grid_payload<content_t, grid_id_t> convert(
         std::size_t owner_index, grid_id_t type, const std::size_t idx,
-        const grid_t& gr, std::function<content_t(const value_t&)> serializer) {
+        const grid_t& gr, std::function<content_t(const value_t&)> converter) {
 
         grid_payload<content_t, grid_id_t> grid_data;
 
-        grid_data.owner_link = base_type::serialize(owner_index);
-        grid_data.grid_link = base_type::serialize(type, idx);
+        grid_data.owner_link = detail::basic_converter::convert(owner_index);
+        grid_data.grid_link = detail::basic_converter::convert(type, idx);
 
-        // Serialize the multi-axis into single axis payloads
+        // Convert the multi-axis into single axis payloads
         const std::array<axis_payload, grid_t::dim> axes_data =
-            serialize(gr.axes());
+            convert(gr.axes());
 
         grid_data.axes.resize(axes_data.size());
         std::copy(std::cbegin(axes_data), std::cend(axes_data),
@@ -75,30 +71,30 @@ class grid_writer : public writer_interface<detector_t> {
 
         // Write the surface indices
         for (unsigned int gid = 0u; gid < gr.nbins(); ++gid) {
-            // Get the local bin indices and serialize the bin into its payload
+            // Get the local bin indices and convert the bin into its payload
             grid_bin_payload binp =
-                serialize(gr.deserialize(gid), gr.bin(gid), serializer);
+                convert(gr.deserialize(gid), gr.bin(gid), converter);
             grid_data.bins.push_back(std::move(binp));
         }
 
         return grid_data;
     }
 
-    /// Serialize a multi-axis @param axes into its io payload
+    /// Convert a multi-axis @param axes into its io payload
     template <bool ownership, typename local_frame_t, typename... axis_ts>
-    static auto serialize(
+    static auto convert(
         const axis::multi_axis<ownership, local_frame_t, axis_ts...>& axes) {
 
-        // Serialize every single axis and construct array from their payloads
+        // Convert every single axis and construct array from their payloads
         std::array<axis_payload, sizeof...(axis_ts)> axes_data{
-            serialize(axes.template get_axis<axis_ts>())...};
+            convert(axes.template get_axis<axis_ts>())...};
 
         return axes_data;
     }
 
-    /// Serialize a single axis @param axis into its io payload
+    /// Convert a single axis @param axis into its io payload
     template <typename bounds_t, typename binning_t>
-    static axis_payload serialize(
+    static axis_payload convert(
         const axis::single_axis<bounds_t, binning_t>& axis) {
         axis_payload axis_data;
 
@@ -119,11 +115,12 @@ class grid_writer : public writer_interface<detector_t> {
         return axis_data;
     }
 
-    /// Serialize a multi-bin @param mbin into its io payload
-    template <typename content_t, std::size_t DIM, typename content_range_t>
-    static grid_bin_payload<content_t> serialize(
+    /// Convert a multi-bin @param mbin into its io payload
+    template <typename content_t, typename value_t, std::size_t DIM,
+              typename content_range_t>
+    static grid_bin_payload<content_t> convert(
         const axis::multi_bin<DIM> mbin, const content_range_t& content,
-        std::function<content_t(const value_t&)> serializer) {
+        std::function<content_t(const value_t&)> converter) {
 
         grid_bin_payload<content_t> bin_data;
 
@@ -135,31 +132,31 @@ class grid_writer : public writer_interface<detector_t> {
         // Put all entries of the bin into the payload
         bin_data.content.reserve(content.size());
         for (const auto& entry : content) {
-            bin_data.content.push_back(serializer(entry));
+            bin_data.content.push_back(converter(entry));
         }
 
         return bin_data;
     }
 
-    /// Serialize a grid from a collection into its payload
+    /// Convert a grid from a collection into its payload
     ///
     /// @param store the data store of grids (tuple of grid collections)
     /// @param grid_link type and index of the grid
     /// @param owner_idx inder of the owner of the grid (e.g. volume index)
     /// @param grid_data the grid payload to be filled
-    /// @param serializer callable that can serialize a grid bin entry into its
+    /// @param converter callable that can convert a grid bin entry into its
     /// respective IO payload (of type @tparam content_t)
     template <typename store_t, typename content_t, typename grid_id_t,
-              typename serializer_t>
-    static void serialize(
+              typename converter_t>
+    static void convert(
         const store_t& store, typename store_t::single_link grid_link,
         dindex vol_idx, dindex owner_idx,
         detector_grids_payload<content_t, grid_id_t>& grids_data,
-        serializer_t serializer) {
+        converter_t converter) {
 
         // If the accelerator is a grid, insert the payload
         store.template visit<get_grid_payload>(grid_link, vol_idx, owner_idx,
-                                               grids_data, serializer);
+                                               grids_data, converter);
     }
 
     private:
@@ -167,7 +164,7 @@ class grid_writer : public writer_interface<detector_t> {
     struct get_grid_payload {
 
         template <typename grid_group_t, typename index_t, typename content_t,
-                  typename grid_id_t, typename serializer_t>
+                  typename grid_id_t, typename converter_t>
         inline void operator()(
             [[maybe_unused]] const grid_group_t& coll,
             [[maybe_unused]] const index_t& index,
@@ -175,15 +172,17 @@ class grid_writer : public writer_interface<detector_t> {
             [[maybe_unused]] std::size_t owner_link,
             [[maybe_unused]] detector_grids_payload<content_t, grid_id_t>&
                 grids_data,
-            [[maybe_unused]] serializer_t& serializer) const {
+            [[maybe_unused]] converter_t& converter) const {
 
             using coll_value_t = typename grid_group_t::value_type;
 
             if constexpr (detray::detail::is_grid_v<coll_value_t>) {
 
-                auto gr_pyload = serialize<content_t>(
+                using value_t = typename coll_value_t::value_type;
+
+                auto gr_pyload = convert<content_t, value_t>(
                     owner_link, io::detail::get_id<coll_value_t>(), index,
-                    coll[index], serializer);
+                    coll[index], converter);
 
                 auto& grids_map = grids_data.grids;
                 auto search = grids_map.find(vol_link);

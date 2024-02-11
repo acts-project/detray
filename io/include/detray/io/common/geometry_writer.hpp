@@ -1,6 +1,6 @@
 /** Detray library, part of the ACTS project (R&D line)
  *
- * (c) 2023 CERN for the benefit of the ACTS project
+ * (c) 2023-2024 CERN for the benefit of the ACTS project
  *
  * Mozilla Public License Version 2.0
  */
@@ -10,8 +10,8 @@
 // Project include(s)
 #include "detray/definitions/indexing.hpp"
 #include "detray/geometry/surface.hpp"
-#include "detray/io/common/io_interface.hpp"
-#include "detray/io/frontend/definitions.hpp"
+#include "detray/io/common/detail/basic_converter.hpp"
+#include "detray/io/common/detail/type_info.hpp"
 #include "detray/io/frontend/payloads.hpp"
 #include "detray/masks/masks.hpp"
 
@@ -24,27 +24,20 @@
 
 namespace detray::io {
 
-/// @brief Abstract base class for tracking geometry writers
-template <class detector_t>
-class geometry_writer : public writer_interface<detector_t> {
+/// @brief Tracking geometry writer backend
+class geometry_writer {
 
-    using base_type = writer_interface<detector_t>;
-
-    protected:
+    public:
     /// Tag the writer as "geometry"
     inline static const std::string tag = "geometry";
 
-    public:
-    /// Same constructors for this class as for base_type
-    using base_type::base_type;
-
-    protected:
-    /// Serialize the header information into its payload
+    /// Convert the header information into its payload
+    template <typename detector_t>
     static geo_header_payload write_header(const detector_t& det,
                                            const std::string_view det_name) {
         geo_header_payload header_data;
 
-        header_data.common = base_type::serialize(det_name, tag);
+        header_data.common = detail::basic_converter::convert(det_name, tag);
 
         header_data.sub_header.emplace();
         auto& geo_sub_header = header_data.sub_header.value();
@@ -54,8 +47,9 @@ class geometry_writer : public writer_interface<detector_t> {
         return header_data;
     }
 
-    /// Serialize a detector @param det into its io payload
-    static detector_payload serialize(
+    /// Convert a detector @param det into its io payload
+    template <typename detector_t>
+    static detector_payload convert(
         const detector_t& det, const typename detector_t::name_map& names) {
         detector_payload det_data;
         det_data.volumes.reserve((det.volumes().size()));
@@ -63,18 +57,18 @@ class geometry_writer : public writer_interface<detector_t> {
         for (const auto& vol : det.volumes()) {
             const auto map_itr = names.find(vol.index() + 1u);
             if (map_itr == names.end()) {
-                det_data.volumes.push_back(serialize(vol, det, ""));
+                det_data.volumes.push_back(convert(vol, det, ""));
             } else {
-                det_data.volumes.push_back(
-                    serialize(vol, det, map_itr->second));
+                det_data.volumes.push_back(convert(vol, det, map_itr->second));
             }
         }
 
         return det_data;
     }
 
-    /// Serialize a surface transform @param trf into its io payload
-    static transform_payload serialize(
+    /// Convert a surface transform @param trf into its io payload
+    template <typename detector_t>
+    static transform_payload convert(
         const typename detector_t::transform3& trf) {
         transform_payload trf_data;
 
@@ -89,16 +83,17 @@ class geometry_writer : public writer_interface<detector_t> {
         return trf_data;
     }
 
-    /// Serialize a surface mask @param m into its io payload
+    /// Convert a surface mask @param m into its io payload
     template <typename mask_t,
               std::enable_if_t<!std::is_same_v<typename mask_t::shape, void>,
                                bool> = true>
-    static mask_payload serialize(const mask_t& m) {
+    static mask_payload convert(const mask_t& m) {
         mask_payload mask_data;
 
         mask_data.shape = io::detail::get_id<typename mask_t::shape>();
 
-        mask_data.volume_link = base_type::serialize(m.volume_link());
+        mask_data.volume_link =
+            detail::basic_converter::convert(m.volume_link());
 
         mask_data.boundaries.resize(mask_t::boundaries::e_size);
         std::copy(std::cbegin(m.values()), std::cend(m.values()),
@@ -107,15 +102,16 @@ class geometry_writer : public writer_interface<detector_t> {
         return mask_data;
     }
 
-    /// Serialize a detector surface @param sf into its io payload
-    static surface_payload serialize(const surface<detector_t>& sf,
-                                     std::size_t sf_idx) {
+    /// Convert a detector surface @param sf into its io payload
+    template <typename detector_t>
+    static surface_payload convert(const surface<detector_t>& sf,
+                                   std::size_t sf_idx) {
         surface_payload sf_data;
 
         sf_data.index_in_coll = sf_idx;
         sf_data.type = sf.id();
         sf_data.barcode = sf.barcode().value();
-        sf_data.transform = serialize(sf.transform({}));
+        sf_data.transform = convert<detector_t>(sf.transform({}));
         sf_data.mask = sf.template visit_mask<get_mask_payload>();
         sf_data.material = sf.template visit_material<get_material_payload>();
         sf_data.source = sf.source();
@@ -123,16 +119,17 @@ class geometry_writer : public writer_interface<detector_t> {
         return sf_data;
     }
 
-    /// Serialize a detector portal @param sf into its io payload
-    static volume_payload serialize(
+    /// Convert a detector portal @param sf into its io payload
+    template <typename detector_t>
+    static volume_payload convert(
         const typename detector_t::volume_type& vol_desc, const detector_t& det,
         const std::string& name) {
         volume_payload vol_data;
 
-        vol_data.index = base_type::serialize(vol_desc.index());
+        vol_data.index = detail::basic_converter::convert(vol_desc.index());
         vol_data.name = name;
         vol_data.transform =
-            serialize(det.transform_store()[vol_desc.transform()]);
+            convert<detector_t>(det.transform_store()[vol_desc.transform()]);
         vol_data.type = vol_desc.id();
 
         // Count the surfaces belonging to this volume
@@ -141,7 +138,7 @@ class geometry_writer : public writer_interface<detector_t> {
         for (const auto& sf_desc : det.surfaces()) {
             if (sf_desc.volume() == vol_desc.index()) {
                 vol_data.surfaces.push_back(
-                    serialize(surface{det, sf_desc}, sf_idx++));
+                    convert(surface{det, sf_desc}, sf_idx++));
             }
         }
 
@@ -171,7 +168,7 @@ class geometry_writer : public writer_interface<detector_t> {
         template <typename mask_group_t, typename index_t>
         inline auto operator()(const mask_group_t& mask_group,
                                const index_t& index) const {
-            return geometry_writer<detector_t>::serialize(mask_group[index]);
+            return geometry_writer::convert(mask_group[index]);
         }
     };
 
@@ -183,8 +180,8 @@ class geometry_writer : public writer_interface<detector_t> {
             using material_t = typename material_group_t::value_type;
 
             // Find the correct material type index
-            return base_type::serialize(io::detail::get_id<material_t>(),
-                                        index);
+            return detail::basic_converter::convert(
+                io::detail::get_id<material_t>(), index);
         }
     };
 
@@ -198,12 +195,12 @@ class geometry_writer : public writer_interface<detector_t> {
 
             auto id{acc_links_payload::type_id::unknown};
 
-            // Only serialize grids
+            // Only convert grids
             if constexpr (detray::detail::is_grid_v<accel_t>) {
                 id = io::detail::get_id<accel_t>();
             }
 
-            return base_type::serialize(id, index);
+            return detail::basic_converter::convert(id, index);
         }
     };
 };

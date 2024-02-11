@@ -20,8 +20,6 @@
 
 namespace detray::io {
 
-enum class format { json = 0u };
-
 /// @brief Wrapper around a file stream
 ///
 /// Performs some checks and offers some convenience functionality:

@@ -10,7 +10,6 @@
 // Project include(s)
 #include "detray/definitions/indexing.hpp"
 #include "detray/io/common/detail/grid_writer.hpp"
-#include "detray/io/common/io_interface.hpp"
 #include "detray/io/frontend/payloads.hpp"
 
 // System include(s)
@@ -18,26 +17,21 @@
 
 namespace detray::io {
 
-/// @brief Abstract base class for accelerator grid writers
-template <class detector_t>
-class surface_grid_writer
-    : public detail::grid_writer<detector_t,
-                                 typename detector_t::surface_type> {
+/// @brief Surface grid writer backend
+class surface_grid_writer : public detail::grid_writer {
 
-    using surface_t = typename detector_t::surface_type;
-    using base_type = detail::grid_writer<detector_t, surface_t>;
+    using base_type = detail::grid_writer;
     using grid_writer_t = base_type;
 
-    protected:
+    public:
     /// Tag the writer as "surface_grids"
     inline static const std::string tag = "surface_grids";
 
-    public:
     /// Same constructors for this class as for base_type
     using base_type::base_type;
 
-    protected:
-    /// Serialize the header information into its payload
+    /// Convert the header information into its payload
+    template <typename detector_t>
     static auto write_header(const detector_t& det,
                              const std::string_view det_name) {
 
@@ -45,10 +39,13 @@ class surface_grid_writer
                                            det_name);
     }
 
-    /// Serialize the grid collections of a detector @param det into their io
+    /// Convert the grid collections of a detector @param det into their io
     /// payload
-    static detector_grids_payload<std::size_t, io::accel_id> serialize(
+    template <typename detector_t>
+    static detector_grids_payload<std::size_t, io::accel_id> convert(
         const detector_t& det, const typename detector_t::name_map&) {
+
+        using surface_desc_t = typename detector_t::surface_type;
 
         detector_grids_payload<std::size_t, io::accel_id> grids_data;
 
@@ -56,9 +53,9 @@ class surface_grid_writer
             // Links to all acceleration data structures in the volume
             const auto& multi_link = vol_desc.accel_link();
 
-            // How to serialize the surface descriptors in the grid
-            auto sf_serializer = [&vol_desc = std::as_const(vol_desc)](
-                                     const surface_t& sf_desc) {
+            // How to convert the surface descriptors in the grid
+            auto sf_converter = [&vol_desc = std::as_const(vol_desc)](
+                                    const surface_desc_t& sf_desc) {
                 return vol_desc.to_local_sf_index(sf_desc.index());
             };
 
@@ -72,9 +69,9 @@ class surface_grid_writer
                 }
 
                 // Generate the payload
-                grid_writer_t::serialize(det.accelerator_store(), acc_link,
-                                         vol_desc.index(), vol_desc.index(),
-                                         grids_data, sf_serializer);
+                grid_writer_t::convert(det.accelerator_store(), acc_link,
+                                       vol_desc.index(), vol_desc.index(),
+                                       grids_data, sf_converter);
             }
         }
 
