@@ -8,12 +8,10 @@
 #pragma once
 
 // Project include(s).
+#include "detray/builders/surface_factory_interface.hpp"
+#include "detray/builders/volume_builder_interface.hpp"
 #include "detray/definitions/geometry.hpp"
 #include "detray/geometry/surface.hpp"
-#include "detray/tools/surface_factory_interface.hpp"
-#include "detray/tools/volume_builder_interface.hpp"
-// @TODO: Remove once material map writing becomes available
-#include "detray/surface_finders/accelerator_grid.hpp"
 
 // System include(s)
 #include <memory>

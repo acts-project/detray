@@ -8,29 +8,27 @@
 #pragma once
 
 // Project include(s)
-#include "detray/io/common/detail/file_handle.hpp"
-#include "detray/io/common/detail/utils.hpp"
+#include "detray/builders/detector_builder.hpp"
 #include "detray/io/common/geometry_reader.hpp"
 #include "detray/io/common/homogeneous_material_reader.hpp"
 #include "detray/io/common/material_map_reader.hpp"
 #include "detray/io/common/surface_grid_reader.hpp"
+#include "detray/io/frontend/utils/file_handle.hpp"
 #include "detray/io/json/json.hpp"
 #include "detray/io/json/json_serializers.hpp"
-#include "detray/tools/detector_builder.hpp"
 
 // System include(s)
 #include <ios>
 #include <iostream>
 #include <string>
 
-namespace detray {
+namespace detray::io {
 
 /// @brief Function that reads the common header part of a file
 inline common_header_payload read_json_header(const std::string& file_name) {
 
     // Read json file
-    io::detail::file_handle file{file_name,
-                                 std::ios_base::in | std::ios_base::binary};
+    io::file_handle file{file_name, std::ios_base::in | std::ios_base::binary};
     nlohmann::json in_json;
     *file >> in_json;
 
@@ -40,7 +38,7 @@ inline common_header_payload read_json_header(const std::string& file_name) {
     // Need only the common part here
     const common_header_payload& header = h.common;
 
-    if (header.tag < detail::minimal_io_version) {
+    if (header.tag < io::detail::minimal_io_version) {
         std::cout
             << "WARNING: File was generated with a different detray version"
             << std::endl;
@@ -75,8 +73,8 @@ class json_reader final : public common_reader_t<detector_t, Args...> {
                       const std::string& file_name) override {
 
         // Read json from file
-        io::detail::file_handle file{file_name,
-                                     std::ios_base::in | std::ios_base::binary};
+        io::file_handle file{file_name,
+                             std::ios_base::in | std::ios_base::binary};
 
         // Reads the data from file and returns the corresponding io payloads
         nlohmann::json in_json;
@@ -109,4 +107,4 @@ template <typename detector_t,
 using json_surface_grid_reader =
     json_reader<detector_t, surface_grid_reader, CAP, DIM>;
 
-}  // namespace detray
+}  // namespace detray::io

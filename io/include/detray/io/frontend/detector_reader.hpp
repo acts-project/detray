@@ -8,10 +8,10 @@
 #pragma once
 
 // Project include(s)
-#include "detray/io/common/detail/detector_components_io.hpp"
-#include "detray/io/common/detail/type_traits.hpp"
+#include "detray/builders/detector_builder.hpp"
+#include "detray/io/frontend/detector_components_io.hpp"
+#include "detray/io/frontend/utils/type_traits.hpp"
 #include "detray/io/json/json_reader.hpp"
-#include "detray/tools/detector_builder.hpp"
 #include "detray/utils/consistency_checker.hpp"
 
 // System include(s)
@@ -23,9 +23,7 @@
 #include <utility>
 #include <vector>
 
-namespace detray {
-
-namespace io {
+namespace detray::io {
 
 /// @brief config struct for detector reading.
 struct detector_reader_config {
@@ -55,8 +53,6 @@ struct detector_reader_config {
     /// @}
 };
 
-}  // namespace io
-
 namespace detail {
 
 /// From the list of files that are given as part of the config @param cfg,
@@ -69,7 +65,7 @@ namespace detail {
 template <class detector_t, std::size_t CAP, std::size_t DIM>
 auto assemble_reader(const io::detector_reader_config& cfg) noexcept(false) {
 
-    detail::detector_component_readers<detector_t> readers;
+    io::detail::detector_component_readers<detector_t> readers;
 
     // Read the name of the detector from file
     std::string det_name{""};
@@ -87,7 +83,7 @@ auto assemble_reader(const io::detector_reader_config& cfg) noexcept(false) {
         if (extension == ".json") {
 
             // Peek at the header to determine the kind of reader that is needed
-            common_header_payload header = read_json_header(file_name);
+            auto header = detray::io::read_json_header(file_name);
 
             [[maybe_unused]] auto print_type_warning =
                 [](const std::string& subject) {
@@ -104,20 +100,22 @@ auto assemble_reader(const io::detector_reader_config& cfg) noexcept(false) {
                 readers.template add<json_geometry_reader>(file_name);
 
             } else if (header.tag == "homogeneous_material") {
-                if constexpr (detail::has_homogeneous_material_v<detector_t>) {
+                if constexpr (detray::detail::has_homogeneous_material_v<
+                                  detector_t>) {
                     readers.template add<json_homogeneous_material_reader>(
                         file_name);
                 } else {
                     print_type_warning(header.tag);
                 }
             } else if (header.tag == "material_maps") {
-                if constexpr (detail::has_material_grids_v<detector_t>) {
+                if constexpr (detray::detail::has_material_grids_v<
+                                  detector_t>) {
                     readers.template add<json_material_map_reader>(file_name);
                 } else {
                     print_type_warning(header.tag);
                 }
             } else if (header.tag == "surface_grids") {
-                if constexpr (detail::has_surface_grids_v<detector_t>) {
+                if constexpr (detray::detail::has_surface_grids_v<detector_t>) {
                     readers
                         .template add<json_surface_grid_reader,
                                       std::integral_constant<std::size_t, CAP>,
@@ -141,8 +139,6 @@ auto assemble_reader(const io::detector_reader_config& cfg) noexcept(false) {
 }
 
 }  // namespace detail
-
-namespace io {
 
 /// @brief Reader function for detray detectors.
 ///
@@ -168,7 +164,7 @@ auto read_detector(vecmem::memory_resource& resc,
 
     // Find all required readers
     auto [reader, det_name] =
-        detray::detail::assemble_reader<detector_t, CAP, DIM>(cfg);
+        detail::assemble_reader<detector_t, CAP, DIM>(cfg);
 
     // Read the data
     names.emplace(0u, std::move(det_name));
@@ -186,6 +182,4 @@ auto read_detector(vecmem::memory_resource& resc,
     return std::make_pair(std::move(det), std::move(names));
 }
 
-}  // namespace io
-
-}  // namespace detray
+}  // namespace detray::io

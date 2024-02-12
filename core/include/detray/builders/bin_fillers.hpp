@@ -8,15 +8,15 @@
 #pragma once
 
 // Project include(s).
+#include "detray/builders/detail/bin_association.hpp"
 #include "detray/surface_finders/grid/detail/axis.hpp"
 #include "detray/surface_finders/grid/populators.hpp"
-#include "detray/tools/bin_association.hpp"
 
 // System include(s)
 #include <cassert>
 #include <vector>
 
-namespace detray::detail {
+namespace detray {
 
 /// Fill a surface grid using a local bin index of the grid and a payload.
 ///
@@ -124,4 +124,4 @@ struct bin_associator {
     }
 };
 
-}  // namespace detray::detail
+}  // namespace detray

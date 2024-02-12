@@ -8,7 +8,7 @@
 #pragma once
 
 // Project include(s)
-#include "detray/io/common/detail/file_handle.hpp"
+#include "detray/io/frontend/utils/file_handle.hpp"
 
 // Covfie include(s)
 #include <covfie/core/utility/binary_io.hpp>
@@ -26,8 +26,7 @@ namespace detray::io {
 inline bool check_covfie_file(const std::string& file_name) {
 
     // Open binary file
-    io::detail::file_handle file{file_name,
-                                 std::ios_base::in | std::ios_base::binary};
+    io::file_handle file{file_name, std::ios_base::in | std::ios_base::binary};
 
     // See "covfie/lib/core/utility/binary_io.hpp"
     std::uint32_t hdr = covfie::utility::read_binary<std::uint32_t>(*file);
@@ -45,8 +44,7 @@ inline bfield_t read_bfield(const std::string& file_name) {
     }
 
     // Open binary file
-    io::detail::file_handle file{file_name,
-                                 std::ios_base::in | std::ios_base::binary};
+    io::file_handle file{file_name, std::ios_base::in | std::ios_base::binary};
 
     return bfield_t(*file);
 }

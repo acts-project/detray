@@ -8,11 +8,11 @@
 // Detray include(s)
 #include "detray/surface_finders/grid/grid.hpp"
 
+#include "detray/builders/grid_builder.hpp"
 #include "detray/definitions/indexing.hpp"
 #include "detray/masks/cuboid3D.hpp"
 #include "detray/surface_finders/grid/detail/axis_helpers.hpp"
 #include "detray/test/types.hpp"
-#include "detray/tools/grid_builder.hpp"
 
 // Vecmem include(s)
 #include <vecmem/containers/device_vector.hpp>

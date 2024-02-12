@@ -9,16 +9,16 @@
 
 // Project include(s)
 #include "detray/io/common/detail/grid_writer.hpp"
-#include "detray/io/common/detail/type_traits.hpp"
+#include "detray/io/common/detail/type_info.hpp"
 #include "detray/io/common/homogeneous_material_writer.hpp"
 #include "detray/io/common/io_interface.hpp"
-#include "detray/io/common/payloads.hpp"
+#include "detray/io/frontend/payloads.hpp"
 #include "detray/materials/material_slab.hpp"
 
 // System include(s)
 #include <string>
 
-namespace detray {
+namespace detray::io {
 
 /// @brief Abstract base class for material maps writers
 template <class detector_t>
@@ -53,11 +53,10 @@ class material_map_writer
 
     /// Serialize the material description of a detector @param det into its io
     /// payload
-    static detector_grids_payload<material_slab_payload,
-                                  io::detail::material_type>
+    static detector_grids_payload<material_slab_payload, io::material_id>
     serialize(const detector_t& det, const typename detector_t::name_map&) {
 
-        detector_grids_payload<material_slab_payload, io::detail::material_type>
+        detector_grids_payload<material_slab_payload, io::material_id>
             grids_data;
 
         for (const auto& vol_desc : det.volumes()) {
@@ -96,4 +95,4 @@ class material_map_writer
     }
 };
 
-}  // namespace detray
+}  // namespace detray::io

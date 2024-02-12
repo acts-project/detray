@@ -8,13 +8,13 @@
 #pragma once
 
 // Detray include(s)
+#include "detray/builders/grid_factory.hpp"
 #include "detray/definitions/containers.hpp"
 #include "detray/materials/material_slab.hpp"
 #include "detray/surface_finders/grid/detail/axis_helpers.hpp"
 #include "detray/surface_finders/grid/detail/grid_bins.hpp"
 #include "detray/surface_finders/grid/grid.hpp"
 #include "detray/surface_finders/grid/serializers.hpp"
-#include "detray/tools/grid_factory.hpp"
 
 namespace detray {
 

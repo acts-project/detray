@@ -8,7 +8,7 @@
 #pragma once
 
 // Project include(s)
-#include "detray/io/common/detail/file_handle.hpp"
+#include "detray/io/frontend/utils/file_handle.hpp"
 
 // Actsvg include(s)
 #include "actsvg/core.hpp"
@@ -31,7 +31,7 @@ inline void write_svg(const std::string& path, const container_t& svgs,
     std::ios_base::openmode io_mode =
         replace ? std::ios::out | std::ios::trunc : std::ios::out;
 
-    detray::io::detail::file_handle stream{path, ".svg", io_mode};
+    detray::io::file_handle stream{path, ".svg", io_mode};
     *stream << file;
 }
 

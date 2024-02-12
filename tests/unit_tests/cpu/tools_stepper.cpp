@@ -6,17 +6,17 @@
  */
 
 // detray include(s)
+#include "detray/builders/volume_builder.hpp"
 #include "detray/core/detector.hpp"
 #include "detray/definitions/units.hpp"
 #include "detray/detectors/bfield.hpp"
 #include "detray/geometry/surface.hpp"
 #include "detray/intersection/detail/trajectories.hpp"
-#include "detray/io/common/detail/file_handle.hpp"
+#include "detray/io/frontend/utils/file_handle.hpp"
 #include "detray/propagator/line_stepper.hpp"
 #include "detray/propagator/rk_stepper.hpp"
 #include "detray/simulation/event_generator/track_generators.hpp"
 #include "detray/test/types.hpp"
-#include "detray/tools/volume_builder.hpp"
 #include "detray/tracks/tracks.hpp"
 
 // System include(s)

@@ -14,7 +14,6 @@
 #include "detray/definitions/indexing.hpp"
 #include "detray/geometry/detail/surface_descriptor.hpp"
 #include "detray/intersection/cylinder_portal_intersector.hpp"
-#include "detray/io/common/detail/type_traits.hpp"  // mask_info
 #include "detray/masks/masks.hpp"
 #include "detray/materials/material_map.hpp"
 #include "detray/materials/material_slab.hpp"

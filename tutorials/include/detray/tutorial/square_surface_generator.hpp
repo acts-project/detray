@@ -12,7 +12,7 @@
 #include "detray/definitions/indexing.hpp"
 #include "detray/definitions/qualifiers.hpp"
 #include "detray/definitions/units.hpp"
-#include "detray/tools/surface_factory_interface.hpp"
+#include "detray/builders/surface_factory_interface.hpp"
 
 // Example include(s)
 #include "detray/tutorial/detector_metadata.hpp"

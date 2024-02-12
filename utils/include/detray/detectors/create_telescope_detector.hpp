@@ -8,15 +8,15 @@
 #pragma once
 
 // Project include(s)
+#include "detray/builders/cuboid_portal_generator.hpp"
+#include "detray/builders/detector_builder.hpp"
+#include "detray/builders/homogeneous_material_builder.hpp"
+#include "detray/builders/telescope_generator.hpp"
 #include "detray/core/detector.hpp"
 #include "detray/definitions/units.hpp"
 #include "detray/detectors/telescope_metadata.hpp"
 #include "detray/masks/masks.hpp"
 #include "detray/materials/predefined_materials.hpp"
-#include "detray/tools/cuboid_portal_generator.hpp"
-#include "detray/tools/detector_builder.hpp"
-#include "detray/tools/homogeneous_material_builder.hpp"
-#include "detray/tools/telescope_generator.hpp"
 #include "detray/utils/consistency_checker.hpp"
 
 // Vecmem include(s)

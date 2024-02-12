@@ -13,7 +13,7 @@
 #include "detray/definitions/containers.hpp"
 #include "detray/definitions/indexing.hpp"
 #include "detray/geometry/detail/surface_descriptor.hpp"
-#include "detray/io/common/detail/type_traits.hpp"  // mask_info
+#include "detray/io/common/detail/type_info.hpp"  // mask_info
 #include "detray/masks/masks.hpp"
 #include "detray/materials/material_slab.hpp"
 #include "detray/surface_finders/brute_force_finder.hpp"
@@ -184,7 +184,7 @@ namespace detail {
 
 /// During the IO, check for a 2D square shape
 /*template <typename detector_t>
-struct mask_info<io::detail::mask_shape::square2, detector_t,
+struct mask_info<io::shape_id::square2, detector_t,
                  std::enable_if_t<detector_t::masks::template is_defined<
                                       detray::tutorial::square>(),
                                   void>> {

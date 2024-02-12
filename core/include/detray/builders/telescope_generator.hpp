@@ -8,13 +8,13 @@
 #pragma once
 
 // Project include(s)
+#include "detray/builders/surface_factory_interface.hpp"
 #include "detray/core/detail/data_context.hpp"
 #include "detray/definitions/geometry.hpp"
 #include "detray/definitions/indexing.hpp"
 #include "detray/definitions/qualifiers.hpp"
 #include "detray/masks/masks.hpp"
 #include "detray/masks/rectangle2D.hpp"
-#include "detray/tools/surface_factory_interface.hpp"
 #include "detray/utils/axis_rotation.hpp"
 #include "detray/utils/unit_vectors.hpp"
 

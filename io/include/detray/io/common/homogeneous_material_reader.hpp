@@ -8,21 +8,22 @@
 #pragma once
 
 // Project include(s)
+#include "detray/builders/detector_builder.hpp"
+#include "detray/builders/homogeneous_material_builder.hpp"
+#include "detray/builders/homogeneous_material_factory.hpp"
 #include "detray/definitions/indexing.hpp"
-#include "detray/io/common/detail/type_traits.hpp"
+#include "detray/io/common/detail/type_info.hpp"
 #include "detray/io/common/io_interface.hpp"
-#include "detray/io/common/payloads.hpp"
+#include "detray/io/frontend/payloads.hpp"
+#include "detray/io/frontend/utils/type_traits.hpp"
 #include "detray/materials/material.hpp"
-#include "detray/tools/detector_builder.hpp"
-#include "detray/tools/homogeneous_material_builder.hpp"
-#include "detray/tools/homogeneous_material_factory.hpp"
 
 // System include(s)
 #include <memory>
 #include <string>
 #include <vector>
 
-namespace detray {
+namespace detray::io {
 
 template <typename detector_t, typename DIM>
 class material_map_reader;
@@ -34,7 +35,7 @@ class homogeneous_material_reader : public reader_interface<detector_t> {
     using base_type = reader_interface<detector_t>;
     /// IO material ids do not need to coincide with the detector ids,
     /// they are shared with ACTS
-    using material_type = io::detail::material_type;
+    using material_type = io::material_id;
     using scalar_type = typename detector_t::scalar_type;
 
     friend class material_map_reader<detector_t,
@@ -57,7 +58,7 @@ class homogeneous_material_reader : public reader_interface<detector_t> {
         typename detector_t::name_map& /*name_map*/,
         const detector_homogeneous_material_payload& det_mat_data) {
 
-        using material_id = typename detector_t::materials::id;
+        using mat_id = typename detector_t::materials::id;
 
         // Deserialize the material volume by volume
         for (const auto& mv_data : det_mat_data.volumes) {
@@ -71,27 +72,28 @@ class homogeneous_material_reader : public reader_interface<detector_t> {
                 std::make_shared<homogeneous_material_factory<detector_t>>();
 
             for (const auto& slab_data : mv_data.mat_slabs) {
-                assert(slab_data.type == io::detail::material_type::slab);
+                assert(slab_data.type == io::material_id::slab);
 
-                const auto sf_link{slab_data.index_in_coll.has_value()
-                                       ? slab_data.index_in_coll.value()
-                                       : detail::invalid_value<std::size_t>()};
+                const auto sf_link{
+                    slab_data.index_in_coll.has_value()
+                        ? slab_data.index_in_coll.value()
+                        : detray::detail::invalid_value<std::size_t>()};
 
-                mat_factory->add_material(material_id::e_slab,
+                mat_factory->add_material(mat_id::e_slab,
                                           deserialize(slab_data), sf_link);
             }
-            if constexpr (detail::has_material_rods_v<detector_t>) {
+            if constexpr (detray::detail::has_material_rods_v<detector_t>) {
                 if (mv_data.mat_rods.has_value()) {
                     for (const auto& rod_data : *(mv_data.mat_rods)) {
-                        assert(rod_data.type == io::detail::material_type::rod);
+                        assert(rod_data.type == io::material_id::rod);
 
                         const auto sf_link{
                             rod_data.index_in_coll.has_value()
                                 ? rod_data.index_in_coll.value()
-                                : detail::invalid_value<std::size_t>()};
+                                : detray::detail::invalid_value<std::size_t>()};
 
                         mat_factory->add_material(
-                            material_id::e_rod, deserialize(rod_data), sf_link);
+                            mat_id::e_rod, deserialize(rod_data), sf_link);
                     }
                 }
             }
@@ -125,4 +127,4 @@ class homogeneous_material_reader : public reader_interface<detector_t> {
     }
 };
 
-}  // namespace detray
+}  // namespace detray::io

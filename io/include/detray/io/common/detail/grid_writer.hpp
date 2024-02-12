@@ -9,10 +9,9 @@
 
 // Project include(s)
 #include "detray/definitions/indexing.hpp"
-#include "detray/io/common/detail/definitions.hpp"
-#include "detray/io/common/detail/utils.hpp"
 #include "detray/io/common/io_interface.hpp"
-#include "detray/io/common/payloads.hpp"
+#include "detray/io/frontend/definitions.hpp"
+#include "detray/io/frontend/payloads.hpp"
 #include "detray/surface_finders/accelerator_grid.hpp"
 #include "detray/utils/type_list.hpp"
 
@@ -24,7 +23,7 @@
 #include <type_traits>
 #include <vector>
 
-namespace detray::detail {
+namespace detray::io::detail {
 
 /// @brief Abstract base class for accelerator grid writers
 template <typename detector_t, typename value_t>
@@ -180,7 +179,7 @@ class grid_writer : public writer_interface<detector_t> {
 
             using coll_value_t = typename grid_group_t::value_type;
 
-            if constexpr (detail::is_grid_v<coll_value_t>) {
+            if constexpr (detray::detail::is_grid_v<coll_value_t>) {
 
                 auto gr_pyload = serialize<content_t>(
                     owner_link, io::detail::get_id<coll_value_t>(), index,
@@ -204,7 +203,7 @@ class grid_writer : public writer_interface<detector_t> {
         constexpr auto coll_id{store_t::value_types::to_id(I)};
         using value_type = typename store_t::template get_type<coll_id>;
 
-        if constexpr (detail::is_grid_v<value_type>) {
+        if constexpr (detray::detail::is_grid_v<value_type>) {
             n += store.template size<coll_id>();
         }
 
@@ -215,4 +214,4 @@ class grid_writer : public writer_interface<detector_t> {
     }
 };
 
-}  // namespace detray::detail
+}  // namespace detray::io::detail

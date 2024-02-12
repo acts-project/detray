@@ -8,6 +8,7 @@
 #pragma once
 
 // Project include(s)
+#include "detray/builders/grid_builder.hpp"
 #include "detray/core/detector.hpp"
 #include "detray/core/detector_metadata.hpp"
 #include "detray/definitions/units.hpp"
@@ -15,7 +16,6 @@
 #include "detray/masks/masks.hpp"
 #include "detray/materials/mixture.hpp"
 #include "detray/materials/predefined_materials.hpp"
-#include "detray/tools/grid_builder.hpp"
 #include "detray/utils/axis_rotation.hpp"
 #include "detray/utils/unit_vectors.hpp"
 

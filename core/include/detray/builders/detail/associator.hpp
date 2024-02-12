@@ -16,7 +16,7 @@
 #include <limits>
 #include <vector>
 
-namespace detray {
+namespace detray::detail {
 
 /** Struct that assigns the center of gravity to a rectangular bin */
 struct center_of_gravity_rectangle {
@@ -151,4 +151,4 @@ struct edges_intersect_generic {
     }
 };
 
-}  // namespace detray
+}  // namespace detray::detail

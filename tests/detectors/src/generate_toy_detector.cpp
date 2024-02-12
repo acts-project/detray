@@ -8,7 +8,7 @@
 // Project include(s)
 #include "detray/definitions/units.hpp"
 #include "detray/detectors/create_toy_geometry.hpp"
-#include "detray/io/common/detector_writer.hpp"
+#include "detray/io/frontend/detector_writer.hpp"
 
 // Vecmem include(s)
 #include <vecmem/memory/host_memory_resource.hpp>

@@ -1,6 +1,6 @@
 /** Detray library, part of the ACTS project (R&D line)
  *
- * (c) 2023 CERN for the benefit of the ACTS project
+ * (c) 2023-2024 CERN for the benefit of the ACTS project
  *
  * Mozilla Public License Version 2.0
  */
@@ -28,10 +28,10 @@ namespace detray {
 using real_io = double;
 
 /// The following enums are defined per detector in the detector metadata
-namespace io::detail {
+namespace io {
 
 /// Enumerate the shape primitives globally
-enum class mask_shape : unsigned int {
+enum class shape_id : unsigned int {
     annulus2 = 0u,
     cuboid3 = 1u,
     cylinder2 = 2u,
@@ -49,30 +49,8 @@ enum class mask_shape : unsigned int {
     unknown = n_shapes
 };
 
-/// Infer the IO shape id from the shape type
-template <
-    typename shape_t,
-    std::enable_if_t<std::is_enum_v<typename shape_t::boundaries>, bool> = true>
-constexpr mask_shape get_id() {
-
-    /// Register the mask shapes to the @c mask_shape enum
-    using shape_registry =
-        type_registry<mask_shape, annulus2D<>, cuboid3D<>, cylinder2D<>,
-                      cylinder3D,
-                      cylinder2D<false, cylinder_portal_intersector>,
-                      rectangle2D<>, ring2D<>, trapezoid2D<>, line<true>,
-                      line<false>, single3D<0>, single3D<1>, single3D<2>>;
-
-    // Find the correct shape IO id;
-    if constexpr (shape_registry::is_defined(shape_t{})) {
-        return shape_registry::get_id(shape_t{});
-    } else {
-        return mask_shape::unknown;
-    }
-}
-
 /// Enumerate the different material types
-enum class material_type : unsigned int {
+enum class material_id : unsigned int {
     // Material texture (grid) shapes
     annulus2_map = 0u,
     rectangle2_map = 1u,
@@ -88,55 +66,8 @@ enum class material_type : unsigned int {
     unknown = n_mats
 };
 
-/// Infer the IO material id from the material type - homogeneous material
-template <
-    typename material_t,
-    std::enable_if_t<
-        std::is_base_of_v<detray::detail::homogeneous_material_tag, material_t>,
-        bool> = true>
-constexpr material_type get_id() {
-    using scalar_t = typename material_t::scalar_type;
-
-    /// Register the material types to the @c material_type enum
-    using mat_registry =
-        type_registry<material_type, void, void, void, void, void,
-                      material_slab<scalar_t>, material_rod<scalar_t>>;
-
-    // Find the correct material IO id;
-    if constexpr (mat_registry::is_defined(material_t{})) {
-        return mat_registry::get_id(material_t{});
-    } else {
-        return material_type::unknown;
-    }
-}
-
-/// Infer the IO material id from the material type - material maps
-template <typename material_t,
-          std::enable_if_t<
-              std::is_same_v<typename material_t::value_type,
-                             material_slab<typename material_t::scalar_type>>,
-              bool> = true>
-constexpr material_type get_id() {
-
-    using map_frame_t = typename material_t::local_frame_type;
-    using algebra_t = typename map_frame_t::transform3_type;
-
-    /// Register the material types to the @c material_type enum
-    using mat_registry =
-        type_registry<material_type, polar2<algebra_t>, cartesian2<algebra_t>,
-                      cartesian3<algebra_t>, cylindrical2<algebra_t>,
-                      cylindrical3<algebra_t>, void, void>;
-
-    // Find the correct material IO id;
-    if constexpr (mat_registry::is_defined(map_frame_t{})) {
-        return mat_registry::get_id(map_frame_t{});
-    } else {
-        return material_type::unknown;
-    }
-}
-
 /// Enumerate the different acceleration data structures
-enum class acc_type : unsigned int {
+enum class accel_id : unsigned int {
     brute_force = 0u,      // try all
     cartesian2_grid = 1u,  // rectangle, trapezoid, (triangle) grids
     cuboid3_grid = 2u,     // cuboid grid
@@ -147,22 +78,93 @@ enum class acc_type : unsigned int {
     unknown = n_accel
 };
 
+namespace detail {
+
+/// Infer the IO shape id from the shape type
+template <
+    typename shape_t,
+    std::enable_if_t<std::is_enum_v<typename shape_t::boundaries>, bool> = true>
+constexpr io::shape_id get_id() {
+
+    /// Register the mask shapes to the @c shape_id enum
+    using shape_registry =
+        type_registry<io::shape_id, annulus2D<>, cuboid3D<>, cylinder2D<>,
+                      cylinder3D,
+                      cylinder2D<false, cylinder_portal_intersector>,
+                      rectangle2D<>, ring2D<>, trapezoid2D<>, line<true>,
+                      line<false>, single3D<0>, single3D<1>, single3D<2>>;
+
+    // Find the correct shape IO id;
+    if constexpr (shape_registry::is_defined(shape_t{})) {
+        return shape_registry::get_id(shape_t{});
+    } else {
+        return io::shape_id::unknown;
+    }
+}
+
+/// Infer the IO material id from the material type - homogeneous material
+template <
+    typename material_t,
+    std::enable_if_t<
+        std::is_base_of_v<detray::detail::homogeneous_material_tag, material_t>,
+        bool> = true>
+constexpr io::material_id get_id() {
+    using scalar_t = typename material_t::scalar_type;
+
+    /// Register the material types to the @c material_id enum
+    using mat_registry =
+        type_registry<io::material_id, void, void, void, void, void,
+                      material_slab<scalar_t>, material_rod<scalar_t>>;
+
+    // Find the correct material IO id;
+    if constexpr (mat_registry::is_defined(material_t{})) {
+        return mat_registry::get_id(material_t{});
+    } else {
+        return io::material_id::unknown;
+    }
+}
+
+/// Infer the IO material id from the material type - material maps
+template <typename material_t,
+          std::enable_if_t<
+              std::is_same_v<typename material_t::value_type,
+                             material_slab<typename material_t::scalar_type>>,
+              bool> = true>
+constexpr io::material_id get_id() {
+
+    using map_frame_t = typename material_t::local_frame_type;
+    using algebra_t = typename map_frame_t::transform3_type;
+
+    /// Register the material types to the @c material_id enum
+    using mat_registry =
+        type_registry<io::material_id, polar2<algebra_t>, cartesian2<algebra_t>,
+                      cartesian3<algebra_t>, cylindrical2<algebra_t>,
+                      cylindrical3<algebra_t>, void, void>;
+
+    // Find the correct material IO id;
+    if constexpr (mat_registry::is_defined(map_frame_t{})) {
+        return mat_registry::get_id(map_frame_t{});
+    } else {
+        return io::material_id::unknown;
+    }
+}
+
 /// Infer the grid id from its coordinate system
 template <typename grid_t,
           std::enable_if_t<
               !std::is_same_v<typename grid_t::value_type,
                               material_slab<typename grid_t::scalar_type>>,
               bool> = true>
-constexpr acc_type get_id() {
+constexpr io::accel_id get_id() {
 
     using frame_t = typename grid_t::local_frame_type;
     using algebra_t = typename frame_t::transform3_type;
 
-    /// Register the grid shapes to the @c acc_type enum
+    /// Register the grid shapes to the @c accel_id enum
     /// @note the first type corresponds to a non-grid type in the enum
     /// (brute force)
     using frame_registry =
-        type_registry<acc_type, void, cartesian2<algebra_t>,
+        type_registry<io::accel_id, void, cartesian2<algebra_t>,
                       cartesian3<algebra_t>, polar2<algebra_t>,
                       cylindrical2<algebra_t>, cylindrical3<algebra_t>>;
 
@@ -170,10 +172,12 @@ constexpr acc_type get_id() {
     if constexpr (frame_registry::is_defined(frame_t{})) {
         return frame_registry::get_id(frame_t{});
     } else {
-        return acc_type::unknown;
+        return io::accel_id::unknown;
     }
 }
 
-}  // namespace io::detail
+}  // namespace detail
+
+}  // namespace io
 
 }  // namespace detray

@@ -10,10 +10,9 @@
 // Project include(s)
 #include "detray/definitions/indexing.hpp"
 #include "detray/geometry/surface.hpp"
-#include "detray/io/common/detail/definitions.hpp"
-#include "detray/io/common/detail/utils.hpp"
 #include "detray/io/common/io_interface.hpp"
-#include "detray/io/common/payloads.hpp"
+#include "detray/io/frontend/definitions.hpp"
+#include "detray/io/frontend/payloads.hpp"
 #include "detray/masks/masks.hpp"
 
 // System include(s)
@@ -23,7 +22,7 @@
 #include <string_view>
 #include <vector>
 
-namespace detray {
+namespace detray::io {
 
 /// @brief Abstract base class for tracking geometry writers
 template <class detector_t>
@@ -200,7 +199,7 @@ class geometry_writer : public writer_interface<detector_t> {
             auto id{acc_links_payload::type_id::unknown};
 
             // Only serialize grids
-            if constexpr (detail::is_grid_v<accel_t>) {
+            if constexpr (detray::detail::is_grid_v<accel_t>) {
                 id = io::detail::get_id<accel_t>();
             }
 
@@ -209,4 +208,4 @@ class geometry_writer : public writer_interface<detector_t> {
     };
 };
 
-}  // namespace detray
+}  // namespace detray::io

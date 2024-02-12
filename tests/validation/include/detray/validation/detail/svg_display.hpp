@@ -8,7 +8,7 @@
 #pragma once
 
 // Project include(s)
-#include "detray/io/common/detail/utils.hpp"
+#include "detray/io/frontend/utils/create_path.hpp"
 #include "detray/plugins/svgtools/illustrator.hpp"
 #include "detray/plugins/svgtools/styling/styling.hpp"
 #include "detray/plugins/svgtools/writer.hpp"
@@ -99,7 +99,7 @@ inline void svg_display(
     }
 
     // General options
-    auto path = detray::detail::create_path(outdir);
+    auto path = detray::io::create_path(outdir);
 
     actsvg::style::stroke stroke_black = actsvg::style::stroke();
 

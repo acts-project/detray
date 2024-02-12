@@ -22,8 +22,6 @@ namespace detray::io {
 
 enum class format { json = 0u };
 
-namespace detail {
-
 /// @brief Wrapper around a file stream
 ///
 /// Performs some checks and offers some convenience functionality:
@@ -160,7 +158,5 @@ class file_handle final {
     inline static std::size_t n_files{0u};
     inline static std::size_t n_open_files{0u};
 };
-
-}  // namespace detail
 
 }  // namespace detray::io

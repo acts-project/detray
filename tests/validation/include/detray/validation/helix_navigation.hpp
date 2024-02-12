@@ -141,8 +141,7 @@ class helix_navigation : public test::fixture_base<> {
         std::size_t n_close_miss{0u}, n_fatal{0u};
 
         std::ios_base::openmode io_mode = std::ios::trunc | std::ios::out;
-        detray::io::detail::file_handle debug_file{"./helix_navigation", ".txt",
-                                                   io_mode};
+        detray::io::file_handle debug_file{"./helix_navigation.txt", io_mode};
 
         for (auto track : trk_state_generator) {
 

@@ -8,11 +8,11 @@
 #pragma once
 
 // Project include(s)
-#include "detray/io/common/detail/file_handle.hpp"
 #include "detray/io/common/geometry_writer.hpp"
 #include "detray/io/common/homogeneous_material_writer.hpp"
 #include "detray/io/common/material_map_writer.hpp"
 #include "detray/io/common/surface_grid_writer.hpp"
+#include "detray/io/frontend/utils/file_handle.hpp"
 #include "detray/io/json/json.hpp"
 #include "detray/io/json/json_serializers.hpp"
 
@@ -23,7 +23,7 @@
 #include <stdexcept>
 #include <string>
 
-namespace detray {
+namespace detray::io {
 
 /// @brief Class that adds json functionality to common writer types.
 ///
@@ -65,8 +65,8 @@ class json_writer final : public common_writer_t<detector_t, Args...> {
 
         // Create a new file
         std::string file_stem{det_name + "_" + base_writer::tag};
-        io::detail::file_handle file{file_path / file_stem,
-                                     this->m_file_extension, mode};
+        io::file_handle file{file_path / file_stem, this->m_file_extension,
+                             mode};
 
         // Write some general information
         nlohmann::ordered_json out_json;
@@ -100,4 +100,4 @@ using json_material_map_writer = json_writer<detector_t, material_map_writer>;
 template <typename detector_t>
 using json_surface_grid_writer = json_writer<detector_t, surface_grid_writer>;
 
-}  // namespace detray
+}  // namespace detray::io

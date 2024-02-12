@@ -8,9 +8,9 @@
 #pragma once
 
 // Project include(s)
+#include "detray/builders/detector_builder.hpp"
+#include "detray/builders/volume_builder.hpp"
 #include "detray/io/common/io_interface.hpp"
-#include "detray/tools/detector_builder.hpp"
-#include "detray/tools/volume_builder.hpp"
 
 // System include(s)
 #include <algorithm>
@@ -22,7 +22,7 @@
 #include <type_traits>
 #include <vector>
 
-namespace detray::detail {
+namespace detray::io::detail {
 
 /// @brief A writer for multiple detector components.
 ///
@@ -128,4 +128,4 @@ class detector_component_readers final {
     std::map<std::string, reader_ptr_t> m_readers;
 };
 
-}  // namespace detray::detail
+}  // namespace detray::io::detail

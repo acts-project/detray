@@ -9,7 +9,7 @@
 
 // Project include(s)
 #include "detray/definitions/algebra.hpp"
-#include "detray/io/common/read_bfield.hpp"
+#include "detray/io/covfie/read_bfield.hpp"
 
 // Covfie include(s)
 #include <covfie/core/backend/primitive/constant.hpp>

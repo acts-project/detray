@@ -8,9 +8,9 @@
 #pragma once
 
 // Project include(s).
-#include "detray/tools/homogeneous_material_factory.hpp"
-#include "detray/tools/volume_builder.hpp"
-#include "detray/tools/volume_builder_interface.hpp"
+#include "detray/builders/homogeneous_material_factory.hpp"
+#include "detray/builders/volume_builder.hpp"
+#include "detray/builders/volume_builder_interface.hpp"
 
 // System include(s)
 #include <memory>

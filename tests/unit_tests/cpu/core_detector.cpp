@@ -6,14 +6,14 @@
  */
 
 // Project include(s)
+#include "detray/builders/cuboid_portal_generator.hpp"
+#include "detray/builders/detector_builder.hpp"
+#include "detray/builders/surface_factory.hpp"
+#include "detray/builders/volume_builder.hpp"
 #include "detray/core/detector.hpp"
 #include "detray/definitions/indexing.hpp"
 #include "detray/materials/predefined_materials.hpp"
 #include "detray/test/types.hpp"
-#include "detray/tools/cuboid_portal_generator.hpp"
-#include "detray/tools/detector_builder.hpp"
-#include "detray/tools/surface_factory.hpp"
-#include "detray/tools/volume_builder.hpp"
 
 // Vecmem include(s)
 #include <vecmem/memory/host_memory_resource.hpp>

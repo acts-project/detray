@@ -10,8 +10,8 @@
 #include "detray/detectors/create_telescope_detector.hpp"
 #include "detray/detectors/create_toy_geometry.hpp"
 #include "detray/detectors/create_wire_chamber.hpp"
-#include "detray/io/common/detector_reader.hpp"
-#include "detray/io/common/detector_writer.hpp"
+#include "detray/io/frontend/detector_reader.hpp"
+#include "detray/io/frontend/detector_writer.hpp"
 #include "detray/utils/consistency_checker.hpp"
 #include "tests/common/test_toy_detector.hpp"
 
@@ -33,10 +33,10 @@ namespace {
 /// equality, while skipping the first @param skip lines (header part)
 bool compare_files(const std::string& file_name1, const std::string& file_name2,
                    std::size_t skip = 15u) {
-    auto file1 = io::detail::file_handle(
-        file_name1, std::ios_base::in | std::ios_base::binary);
-    auto file2 = io::detail::file_handle(
-        file_name2, std::ios_base::in | std::ios_base::binary);
+    auto file1 =
+        io::file_handle(file_name1, std::ios_base::in | std::ios_base::binary);
+    auto file2 =
+        io::file_handle(file_name2, std::ios_base::in | std::ios_base::binary);
 
     std::string line1, line2;
 
@@ -177,7 +177,7 @@ TEST(io, json_toy_geometry) {
     auto [toy_det, names] = create_toy_geometry(host_mr, toy_cfg);
 
     // Write the detector
-    json_geometry_writer<detector_t> geo_writer;
+    io::json_geometry_writer<detector_t> geo_writer;
     auto file_name = geo_writer.write(
         toy_det, names, std::ios::out | std::ios::binary | std::ios::trunc);
 
@@ -186,7 +186,7 @@ TEST(io, json_toy_geometry) {
 
     // Read the detector back in
     detector_builder<toy_metadata> toy_builder;
-    json_geometry_reader<detector_t> geo_reader;
+    io::json_geometry_reader<detector_t> geo_reader;
     geo_reader.read(toy_builder, volume_name_map, file_name);
     auto det = toy_builder.build(host_mr);
 
@@ -194,7 +194,7 @@ TEST(io, json_toy_geometry) {
 
     // Read the toy detector into the default detector type
     detector_builder<> comp_builder;
-    json_geometry_reader<detector<>> comp_geo_reader;
+    io::json_geometry_reader<detector<>> comp_geo_reader;
     comp_geo_reader.read(comp_builder, volume_name_map, file_name);
     auto comp_det = comp_builder.build(host_mr);
 
