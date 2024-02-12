@@ -10,8 +10,12 @@
 #include "detray/detectors/create_telescope_detector.hpp"
 #include "detray/detectors/create_toy_geometry.hpp"
 #include "detray/detectors/create_wire_chamber.hpp"
+#include "detray/io/common/geometry_reader.hpp"
+#include "detray/io/common/geometry_writer.hpp"
 #include "detray/io/frontend/detector_reader.hpp"
 #include "detray/io/frontend/detector_writer.hpp"
+#include "detray/io/json/json_reader.hpp"
+#include "detray/io/json/json_writer.hpp"
 #include "detray/test/toy_detector_test.hpp"
 #include "detray/utils/consistency_checker.hpp"
 
@@ -177,7 +181,7 @@ GTEST_TEST(io, json_toy_geometry) {
     auto [toy_det, names] = create_toy_geometry(host_mr, toy_cfg);
 
     // Write the detector
-    io::json_geometry_writer<detector_t> geo_writer;
+    io::json_writer<detector_t, io::geometry_writer> geo_writer;
     auto file_name = geo_writer.write(
         toy_det, names, std::ios::out | std::ios::binary | std::ios::trunc);
 
@@ -186,7 +190,7 @@ GTEST_TEST(io, json_toy_geometry) {
 
     // Read the detector back in
     detector_builder<toy_metadata> toy_builder;
-    io::json_geometry_reader<detector_t> geo_reader;
+    io::json_reader<detector_t, io::geometry_reader> geo_reader;
     geo_reader.read(toy_builder, volume_name_map, file_name);
     auto det = toy_builder.build(host_mr);
 
@@ -194,7 +198,7 @@ GTEST_TEST(io, json_toy_geometry) {
 
     // Read the toy detector into the default detector type
     detector_builder<> comp_builder;
-    io::json_geometry_reader<detector<>> comp_geo_reader;
+    io::json_reader<detector<>, io::geometry_reader> comp_geo_reader;
     comp_geo_reader.read(comp_builder, volume_name_map, file_name);
     auto comp_det = comp_builder.build(host_mr);
 

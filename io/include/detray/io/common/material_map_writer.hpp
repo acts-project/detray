@@ -1,6 +1,6 @@
 /** Detray library, part of the ACTS project (R&D line)
  *
- * (c) 2023 CERN for the benefit of the ACTS project
+ * (c) 2023-2024 CERN for the benefit of the ACTS project
  *
  * Mozilla Public License Version 2.0
  */
@@ -11,7 +11,6 @@
 #include "detray/io/common/detail/grid_writer.hpp"
 #include "detray/io/common/detail/type_info.hpp"
 #include "detray/io/common/homogeneous_material_writer.hpp"
-#include "detray/io/common/io_interface.hpp"
 #include "detray/io/frontend/payloads.hpp"
 #include "detray/materials/material_slab.hpp"
 
@@ -20,41 +19,35 @@
 
 namespace detray::io {
 
-/// @brief Abstract base class for material maps writers
-template <class detector_t>
-class material_map_writer
-    : public detail::grid_writer<
-          detector_t, material_slab<typename detector_t::scalar_type>> {
+/// @brief Material maps writer backend
+class material_map_writer : public detail::grid_writer {
 
-    using scalar_t = typename detector_t::scalar_type;
-    using material_t = material_slab<scalar_t>;
-
-    using base_type =
-        detail::grid_writer<detector_t,
-                            material_slab<typename detector_t::scalar_type>>;
+    using base_type = detail::grid_writer;
     using grid_writer_t = base_type;
-    using mat_writer_t = homogeneous_material_writer<detector_t>;
+    using mat_writer_t = homogeneous_material_writer;
 
-    protected:
+    public:
     /// Tag the writer as "material_map"
     inline static const std::string tag = "material_maps";
 
-    public:
     /// Same constructors for this class as for base_type
     using base_type::base_type;
 
-    protected:
-    /// Serialize the header information into its payload
+    /// Convert the header information into its payload
+    template <class detector_t>
     static auto write_header(const detector_t& det,
                              const std::string_view det_name) {
 
         return grid_writer_t::write_header(tag, det.material_store(), det_name);
     }
 
-    /// Serialize the material description of a detector @param det into its io
+    /// Convert the material description of a detector @param det into its io
     /// payload
+    template <class detector_t>
     static detector_grids_payload<material_slab_payload, io::material_id>
-    serialize(const detector_t& det, const typename detector_t::name_map&) {
+    convert(const detector_t& det, const typename detector_t::name_map&) {
+
+        using material_t = material_slab<typename detector_t::scalar_type>;
 
         detector_grids_payload<material_slab_payload, io::material_id>
             grids_data;
@@ -79,15 +72,15 @@ class material_map_writer
                     continue;
                 }
 
-                // How to serialize a material slab in the grid
-                auto mat_serializer = [&sf_desc](const material_t& mat) {
-                    return mat_writer_t::serialize(mat, sf_desc.index());
+                // How to convert a material slab in the grid
+                auto mat_converter = [&sf_desc](const material_t& mat) {
+                    return mat_writer_t::convert(mat, sf_desc.index());
                 };
 
                 // Generate the payload
-                grid_writer_t::serialize(
+                grid_writer_t::convert(
                     det.material_store(), mat_link, vol_desc.index(),
-                    sf_desc.index() - offset, grids_data, mat_serializer);
+                    sf_desc.index() - offset, grids_data, mat_converter);
             }
         }
 

@@ -9,13 +9,10 @@
 
 // Project include(s)
 #include "detray/builders/detector_builder.hpp"
-#include "detray/io/common/geometry_reader.hpp"
-#include "detray/io/common/homogeneous_material_reader.hpp"
-#include "detray/io/common/material_map_reader.hpp"
-#include "detray/io/common/surface_grid_reader.hpp"
+#include "detray/io/frontend/reader_interface.hpp"
 #include "detray/io/frontend/utils/file_handle.hpp"
 #include "detray/io/json/json.hpp"
-#include "detray/io/json/json_serializers.hpp"
+#include "detray/io/json/json_io.hpp"
 
 // System include(s)
 #include <ios>
@@ -23,29 +20,6 @@
 #include <string>
 
 namespace detray::io {
-
-/// @brief Function that reads the common header part of a file
-inline common_header_payload read_json_header(const std::string& file_name) {
-
-    // Read json file
-    io::file_handle file{file_name, std::ios_base::in | std::ios_base::binary};
-    nlohmann::json in_json;
-    *file >> in_json;
-
-    // Reads the header from file
-    header_payload<> h = in_json["header"];
-
-    // Need only the common part here
-    const common_header_payload& header = h.common;
-
-    if (header.tag < io::detail::minimal_io_version) {
-        std::cout
-            << "WARNING: File was generated with a different detray version"
-            << std::endl;
-    }
-
-    return header;
-}
 
 /// @brief Class that adds json functionality to common reader types.
 ///
@@ -56,15 +30,14 @@ inline common_header_payload read_json_header(const std::string& file_name) {
 ///
 /// @note The resulting reader types will fulfill @c reader_interface through
 /// the common readers they are being extended with
-template <class detector_t, template <typename...> class common_reader_t,
-          typename... Args>
-class json_reader final : public common_reader_t<detector_t, Args...> {
+template <class detector_t, class reader_backend_t>
+class json_reader final : public reader_interface<detector_t> {
 
-    using base_reader = common_reader_t<detector_t, Args...>;
+    using io_backend = reader_backend_t;
 
     public:
     /// Set json file extension
-    json_reader() : base_reader(".json") {}
+    json_reader() : reader_interface<detector_t>(".json") {}
 
     /// Writes the geometry to file with a given name
     virtual void read(detector_builder<typename detector_t::metadata,
@@ -81,30 +54,9 @@ class json_reader final : public common_reader_t<detector_t, Args...> {
         *file >> in_json;
 
         // Add the data from the payload to the detray detector builder
-        base_reader::deserialize(det_builder, name_map, in_json["data"]);
+        io_backend::template convert<detector_t>(det_builder, name_map,
+                                                 in_json["data"]);
     }
 };
-
-/// Reads the tracking geometry from file in json format
-template <typename detector_t>
-using json_geometry_reader = json_reader<detector_t, geometry_reader>;
-
-/// Reads a homogeneous material descritption from file in json format
-template <typename detector_t>
-using json_homogeneous_material_reader =
-    json_reader<detector_t, homogeneous_material_reader>;
-
-/// Reads the material maps from file in json format
-template <typename detector_t,
-          typename DIM = std::integral_constant<std::size_t, 2>>
-using json_material_map_reader =
-    json_reader<detector_t, material_map_reader, DIM>;
-
-/// Reads the surface grids from file in json format
-template <typename detector_t,
-          typename CAP = std::integral_constant<std::size_t, 0>,
-          typename DIM = std::integral_constant<std::size_t, 2>>
-using json_surface_grid_reader =
-    json_reader<detector_t, surface_grid_reader, CAP, DIM>;
 
 }  // namespace detray::io

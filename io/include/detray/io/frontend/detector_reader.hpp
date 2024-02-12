@@ -1,6 +1,6 @@
 /** Detray library, part of the ACTS project (R&D line)
  *
- * (c) 2023 CERN for the benefit of the ACTS project
+ * (c) 2023-2024 CERN for the benefit of the ACTS project
  *
  * Mozilla Public License Version 2.0
  */
@@ -9,9 +9,9 @@
 
 // Project include(s)
 #include "detray/builders/detector_builder.hpp"
-#include "detray/io/frontend/detector_components_io.hpp"
-#include "detray/io/frontend/utils/type_traits.hpp"
-#include "detray/io/json/json_reader.hpp"
+#include "detray/io/frontend/detector_reader_config.hpp"
+#include "detray/io/frontend/implementation/json_readers.hpp"
+#include "detray/io/frontend/utils/detector_components_reader.hpp"
 #include "detray/utils/consistency_checker.hpp"
 
 // System include(s)
@@ -25,125 +25,11 @@
 
 namespace detray::io {
 
-/// @brief config struct for detector reading.
-struct detector_reader_config {
-    /// Input files
-    std::vector<std::string> m_files;
-    /// Run detector consistency check after reading
-    bool m_do_check{true};
-    /// Field vector for an homogenoues b-field
-    std::array<scalar, 3> m_bfield_vec{};
-
-    /// Getters
-    /// @{
-    const std::vector<std::string>& files() const { return m_files; }
-    bool do_check() const { return m_do_check; }
-    /// @}
-
-    /// Setters
-    /// @{
-    detector_reader_config& add_file(const std::string file_name) {
-        m_files.push_back(std::move(file_name));
-        return *this;
-    }
-    detector_reader_config& do_check(const bool check) {
-        m_do_check = check;
-        return *this;
-    }
-    /// @}
-};
-
-namespace detail {
-
-/// From the list of files that are given as part of the config @param cfg,
-/// infer the readers that are needed by peeking into the file headers
-///
-/// @tparam detector_t type of the detector instance: Must match the data that
-///                    is read from file!
-/// @tparam CAP surface grid bin capacity (@TODO make runtime)
-/// @tparam DIM dimension of the surface grids, usually 2D
-template <class detector_t, std::size_t CAP, std::size_t DIM>
-auto assemble_reader(const io::detector_reader_config& cfg) noexcept(false) {
-
-    io::detail::detector_component_readers<detector_t> readers;
-
-    // Read the name of the detector from file
-    std::string det_name{""};
-
-    for (const std::string& file_name : cfg.files()) {
-
-        if (file_name.empty()) {
-            std::cout << "WARNING: Empty file name. Component will not be built"
-                      << std::endl;
-            continue;
-        }
-
-        std::string extension{std::filesystem::path{file_name}.extension()};
-
-        if (extension == ".json") {
-
-            // Peek at the header to determine the kind of reader that is needed
-            auto header = detray::io::read_json_header(file_name);
-
-            [[maybe_unused]] auto print_type_warning =
-                [](const std::string& subject) {
-                    using detector_list_t =
-                        detray::types::list<typename detector_t::metadata>;
-
-                    std::cout << "WARNING: Detector of type ";
-                    types::print<detector_list_t>();
-                    std::cout << "does not support " << subject << std::endl;
-                };
-
-            if (header.tag == "geometry") {
-                det_name = header.detector;
-                readers.template add<json_geometry_reader>(file_name);
-
-            } else if (header.tag == "homogeneous_material") {
-                if constexpr (detray::detail::has_homogeneous_material_v<
-                                  detector_t>) {
-                    readers.template add<json_homogeneous_material_reader>(
-                        file_name);
-                } else {
-                    print_type_warning(header.tag);
-                }
-            } else if (header.tag == "material_maps") {
-                if constexpr (detray::detail::has_material_grids_v<
-                                  detector_t>) {
-                    readers.template add<json_material_map_reader>(file_name);
-                } else {
-                    print_type_warning(header.tag);
-                }
-            } else if (header.tag == "surface_grids") {
-                if constexpr (detray::detail::has_surface_grids_v<detector_t>) {
-                    readers
-                        .template add<json_surface_grid_reader,
-                                      std::integral_constant<std::size_t, CAP>,
-                                      std::integral_constant<std::size_t, DIM>>(
-                            file_name);
-                } else {
-                    print_type_warning(header.tag);
-                }
-            } else {
-                throw std::invalid_argument("Unsupported file tag '" +
-                                            header.tag +
-                                            "' in input file: " + file_name);
-            }
-        } else {
-            throw std::runtime_error("Unsupported file format '" + extension +
-                                     "' for input file: " + file_name);
-        }
-    }
-
-    return std::make_pair(std::move(readers), std::move(det_name));
-}
-
-}  // namespace detail
-
 /// @brief Reader function for detray detectors.
 ///
 /// @tparam detector_t the type of detector to be built
-/// @tparam CAP surface grid bin capacity (@TODO make runtime)
+/// @tparam CAP surface grid bin capacity. If CAP is 0, the grid reader builds
+///             a grid type with dynamic bin capacity
 /// @tparam DIM dimension of the surface grids, usually 2D
 /// @tparam volume_builder_t the type of base volume builder to be used
 ///
@@ -162,13 +48,22 @@ auto read_detector(vecmem::memory_resource& resc,
     detector_builder<typename detector_t::metadata, volume_builder_t>
         det_builder;
 
-    // Find all required readers
-    auto [reader, det_name] =
-        detail::assemble_reader<detector_t, CAP, DIM>(cfg);
+    // Find all required
+    detail::detector_components_reader<detector_t> readers;
+    detail::add_json_readers<CAP, DIM>(readers, cfg.files());
+
+    // Make sure that all files will be read
+    if (readers.size() != cfg.files().size()) {
+        std::cout << "WARNING: Not all files were registered to a reader. "
+                  << "Registered files: ";
+
+        for (const auto& [file_name, reader] : readers.readers_map()) {
+            std::cout << "\t" << file_name << std::endl;
+        }
+    }
 
     // Read the data
-    names.emplace(0u, std::move(det_name));
-    reader.read(det_builder, names);
+    readers.read(det_builder, names);
 
     // Build and return the detector
     auto det = det_builder.build(resc);

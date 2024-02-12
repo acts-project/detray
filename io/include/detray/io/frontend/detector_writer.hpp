@@ -1,6 +1,6 @@
 /** Detray library, part of the ACTS project (R&D line)
  *
- * (c) 2023 CERN for the benefit of the ACTS project
+ * (c) 2023-2024 CERN for the benefit of the ACTS project
  *
  * Mozilla Public License Version 2.0
  */
@@ -8,108 +8,16 @@
 #pragma once
 
 // Project include(s)
-#include "detray/io/frontend/detector_components_io.hpp"
+#include "detray/io/frontend/detector_writer_config.hpp"
+#include "detray/io/frontend/implementation/json_writers.hpp"
 #include "detray/io/frontend/utils/create_path.hpp"
-#include "detray/io/frontend/utils/type_traits.hpp"
-#include "detray/io/json/json_writer.hpp"
+#include "detray/io/frontend/utils/detector_components_writer.hpp"
 
 // System include(s)
 #include <filesystem>
 #include <ios>
 
 namespace detray::io {
-
-/// @brief config struct for detector writing.
-struct detector_writer_config {
-    /// The path to the output files
-    std::string m_path{"./"};
-    /// The output file format
-    detray::io::format m_format = detray::io::format::json;
-    /// Replace files in case they already exists
-    bool m_replace = false;
-    /// Compactify json output, if not json format this flag does nothing
-    bool m_compact_io = false;
-    /// Whether to write the material to file
-    bool m_write_material = true;
-    /// Whether to write the accelerator grids to file
-    bool m_write_grids = true;
-
-    /// Getters
-    /// @{
-    const std::string& path() const { return m_path; }
-    detray::io::format format() const { return m_format; }
-    bool replace_files() const { return m_replace; }
-    bool compactify_json() const { return m_compact_io; }
-    bool write_material() const { return m_write_material; }
-    bool write_grids() const { return m_write_grids; }
-    /// @}
-
-    /// Setters
-    /// @{
-    detector_writer_config& path(std::string p) {
-        m_path = std::move(p);
-        return *this;
-    }
-    detector_writer_config& format(detray::io::format f) {
-        m_format = f;
-        return *this;
-    }
-    detector_writer_config& replace_files(bool flag) {
-        m_replace = flag;
-        return *this;
-    }
-    detector_writer_config& compactify_json(bool flag) {
-        m_compact_io = flag;
-        return *this;
-    }
-    detector_writer_config& write_material(bool flag) {
-        m_write_material = flag;
-        return *this;
-    }
-    detector_writer_config& write_grids(bool flag) {
-        m_write_grids = flag;
-        return *this;
-    }
-    /// @}
-};
-
-namespace detail {
-
-/// From the detector type @tparam detector_t, infer the writers that are needed
-template <class detector_t>
-detail::detector_component_writers<detector_t> assemble_writer(
-    const io::detector_writer_config& cfg) {
-
-    io::detail::detector_component_writers<detector_t> writers;
-
-    if (cfg.format() == io::format::json) {
-        // Always needed
-        writers.template add<json_geometry_writer>();
-
-        // Find other writers, depending on the detector type
-        if (cfg.write_material()) {
-            // Simple material
-            if constexpr (detray::detail::has_homogeneous_material_v<
-                              detector_t>) {
-                writers.template add<json_homogeneous_material_writer>();
-            }
-            // Material maps
-            if constexpr (detray::detail::has_material_grids_v<detector_t>) {
-                writers.template add<json_material_map_writer>();
-            }
-        }
-        // Navigation acceleration structures
-        if constexpr (detray::detail::has_surface_grids_v<detector_t>) {
-            if (cfg.write_grids()) {
-                writers.template add<json_surface_grid_writer>();
-            }
-        }
-    }
-
-    return writers;
-}
-
-}  // namespace detail
 
 /// @brief Writer function for detray detectors.
 ///
@@ -133,7 +41,15 @@ void write_detector(detector_t& det, const typename detector_t::name_map& names,
     }
 
     // Get the writer
-    auto writer = detail::assemble_writer<detector_t>(cfg);
+    io::detail::detector_components_writer<detector_t> writer{};
+    if (cfg.format() == io::format::json) {
+        detail::add_json_writers(writer, cfg);
+    }
+
+    if (cfg.compactify_json()) {
+        std::cout << "WARNING: Compactifying json files is not yet implemented"
+                  << std::endl;
+    }
 
     writer.write(det, names, mode, file_path);
 }

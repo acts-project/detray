@@ -8,13 +8,10 @@
 #pragma once
 
 // Project include(s)
-#include "detray/io/common/geometry_writer.hpp"
-#include "detray/io/common/homogeneous_material_writer.hpp"
-#include "detray/io/common/material_map_writer.hpp"
-#include "detray/io/common/surface_grid_writer.hpp"
 #include "detray/io/frontend/utils/file_handle.hpp"
+#include "detray/io/frontend/writer_interface.hpp"
 #include "detray/io/json/json.hpp"
-#include "detray/io/json/json_serializers.hpp"
+#include "detray/io/json/json_io.hpp"
 
 // System include(s)
 #include <cassert>
@@ -34,15 +31,14 @@ namespace detray::io {
 ///
 /// @note The resulting writer types will fulfill @c writer_interface through
 /// the common writers they are being extended with
-template <class detector_t, template <typename...> class common_writer_t,
-          typename... Args>
-class json_writer final : public common_writer_t<detector_t, Args...> {
+template <class detector_t, class writer_backend_t>
+class json_writer final : public writer_interface<detector_t> {
 
-    using base_writer = common_writer_t<detector_t, Args...>;
+    using io_backend = writer_backend_t;
 
     public:
     /// File gets created with the json file extension
-    json_writer() : base_writer(".json") {}
+    json_writer() : writer_interface<detector_t>(".json") {}
 
     /// Writes the geometry to file with a given name
     virtual std::string write(
@@ -64,17 +60,17 @@ class json_writer final : public common_writer_t<detector_t, Args...> {
         }
 
         // Create a new file
-        std::string file_stem{det_name + "_" + base_writer::tag};
+        std::string file_stem{det_name + "_" + io_backend::tag};
         io::file_handle file{file_path / file_stem, this->m_file_extension,
                              mode};
 
         // Write some general information
         nlohmann::ordered_json out_json;
-        out_json["header"] = base_writer::write_header(det, det_name);
+        out_json["header"] = io_backend::write_header(det, det_name);
 
         // Write the detector data into the json stream by using the
         // conversion functions defined in "detray/io/json/json_io.hpp"
-        out_json["data"] = base_writer::serialize(det, names);
+        out_json["data"] = io_backend::convert(det, names);
 
         // Write to file
         *file << std::setw(4) << out_json << std::endl;
@@ -82,22 +78,5 @@ class json_writer final : public common_writer_t<detector_t, Args...> {
         return file_stem + this->m_file_extension;
     }
 };
-
-/// Write the tracking geometry to file in json format
-template <typename detector_t>
-using json_geometry_writer = json_writer<detector_t, geometry_writer>;
-
-/// Write a simple material description to file in json format
-template <typename detector_t>
-using json_homogeneous_material_writer =
-    json_writer<detector_t, homogeneous_material_writer>;
-
-/// Write a material map description to file in json format
-template <typename detector_t>
-using json_material_map_writer = json_writer<detector_t, material_map_writer>;
-
-/// Write the detector grid collections to file in json format
-template <typename detector_t>
-using json_surface_grid_writer = json_writer<detector_t, surface_grid_writer>;
 
 }  // namespace detray::io

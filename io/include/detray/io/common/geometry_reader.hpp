@@ -1,6 +1,6 @@
 /** Detray library, part of the ACTS project (R&D line)
  *
- * (c) 2023 CERN for the benefit of the ACTS project
+ * (c) 2023-2024 CERN for the benefit of the ACTS project
  *
  * Mozilla Public License Version 2.0
  */
@@ -12,8 +12,8 @@
 #include "detray/builders/surface_factory.hpp"
 #include "detray/builders/volume_builder.hpp"
 #include "detray/definitions/indexing.hpp"
+#include "detray/io/common/detail/basic_converter.hpp"
 #include "detray/io/common/detail/type_info.hpp"
-#include "detray/io/common/io_interface.hpp"
 #include "detray/io/frontend/payloads.hpp"
 
 // System include(s)
@@ -38,38 +38,30 @@ struct hash<detray::io::shape_id> {
 
 namespace detray::io {
 
-/// @brief Abstract base class for tracking geometry readers
-template <class detector_t>
-class geometry_reader : public reader_interface<detector_t> {
+/// @brief Tracking geometry reader backend
+class geometry_reader {
 
-    using base_type = reader_interface<detector_t>;
-    /// Can hold all types of surface fatory needed for the detector
-    using sf_factory_ptr_t =
-        std::shared_ptr<surface_factory_interface<detector_t>>;
     /// IO shape ids do not need to coincide with the detector mask ids,
     /// they are shared with ACTS
     using io_shape_id = io::shape_id;
-    /// Gets compile-time mask information
-    template <io_shape_id shape>
-    using mask_info = detray::io::detail::mask_info<shape, detector_t>;
 
-    protected:
+    public:
     /// Tag the reader as "geometry"
     inline static const std::string tag = "geometry";
 
-    public:
-    /// Same constructors for this class as for base_type
-    using base_type::base_type;
-
-    protected:
-    /// Deserialize a detector @param det from its io payload @param det_data
+    /// Convert a detector @param det from its io payload @param det_data
     /// and add the volume names to @param name_map
-    static void deserialize(detector_builder<typename detector_t::metadata,
-                                             volume_builder>& det_builder,
-                            typename detector_t::name_map& name_map,
-                            const detector_payload& det_data) {
+    template <class detector_t>
+    static void convert(detector_builder<typename detector_t::metadata,
+                                         volume_builder>& det_builder,
+                        typename detector_t::name_map& name_map,
+                        const detector_payload& det_data) {
 
-        // Deserialize the volumes one-by-one
+        // Can hold all types of surface fatory needed for the detector
+        using sf_factory_ptr_t =
+            std::shared_ptr<surface_factory_interface<detector_t>>;
+
+        // Convert the volumes one-by-one
         for (const auto& vol_data : det_data.volumes) {
             // Get a generic volume builder first and decorate it later
             auto vbuilder =
@@ -79,7 +71,8 @@ class geometry_reader : public reader_interface<detector_t> {
             name_map[vbuilder->vol_index() + 1u] = vol_data.name;
 
             // Volume placement
-            vbuilder->add_volume_placement(deserialize(vol_data.transform));
+            vbuilder->add_volume_placement(
+                convert<detector_t>(vol_data.transform));
 
             // Prepare the surface factories (one per shape and surface type)
             std::map<io_shape_id, sf_factory_ptr_t> pt_factories, sf_factories;
@@ -105,11 +98,12 @@ class geometry_reader : public reader_interface<detector_t> {
                 if (auto search = factories.find(key);
                     search == factories.end()) {
                     factories[key] = std::move(
-                        init_factory<io_shape_id::n_shapes>(shape_id));
+                        init_factory<io_shape_id::n_shapes, detector_t>(
+                            shape_id));
                 }
 
                 // Add the data to the factory
-                factories.at(key)->push_back(deserialize(sf_data));
+                factories.at(key)->push_back(convert<detector_t>(sf_data));
             }
 
             // Add all portals and surfaces to the volume
@@ -127,7 +121,8 @@ class geometry_reader : public reader_interface<detector_t> {
     }
 
     /// @returns a surface transform from its io payload @param trf_data
-    static typename detector_t::transform3 deserialize(
+    template <class detector_t>
+    static typename detector_t::transform3 convert(
         const transform_payload& trf_data) {
         using scalar_t = typename detector_t::scalar_type;
         using vector3_t = typename detector_t::vector3;
@@ -150,8 +145,8 @@ class geometry_reader : public reader_interface<detector_t> {
 
     /// @returns surface data for a surface factory from a surface io payload
     /// @param trf_data
-    static surface_data<detector_t> deserialize(
-        const surface_payload& sf_data) {
+    template <class detector_t>
+    static surface_data<detector_t> convert(const surface_payload& sf_data) {
 
         using nav_link_t = typename detector_t::surface_type::navigation_link;
         using scalar_t = typename detector_t::scalar_type;
@@ -168,9 +163,9 @@ class geometry_reader : public reader_interface<detector_t> {
                 : detray::detail::invalid_value<std::size_t>()};
 
         return {sf_data.type,
-                deserialize(sf_data.transform),
+                convert<detector_t>(sf_data.transform),
                 static_cast<nav_link_t>(
-                    base_type::deserialize(sf_data.mask.volume_link)),
+                    detail::basic_converter::convert(sf_data.mask.volume_link)),
                 std::move(mask_boundaries),
                 static_cast<dindex>(sf_idx),
                 sf_data.source};
@@ -181,15 +176,17 @@ class geometry_reader : public reader_interface<detector_t> {
     /// and its type @param sf_type.
     ///
     /// @return the corresponding surface factory.
-    template <io_shape_id I>
-    static sf_factory_ptr_t init_factory(const io_shape_id shape_id) {
+    template <io_shape_id I, typename detector_t>
+    static std::shared_ptr<surface_factory_interface<detector_t>> init_factory(
+        const io_shape_id shape_id) {
+
+        /// Gets compile-time mask information
+        using mask_info_t = detray::io::detail::mask_info<I, detector_t>;
+        // Get the corresponding mask shape type
+        using shape_t = typename mask_info_t::type;
 
         // Shape index of surface data found
         if (shape_id == I) {
-            // Get the corresponding mask shape type
-            using mask_info_t = mask_info<I>;
-            using shape_t = typename mask_info_t::type;
-
             // Test wether this shape exists in detector
             if constexpr (not std::is_same_v<shape_t, void>) {
                 return std::make_shared<surface_factory<detector_t, shape_t>>();
@@ -198,8 +195,8 @@ class geometry_reader : public reader_interface<detector_t> {
         // Test next shape id
         constexpr int current_id{static_cast<int>(I)};
         if constexpr (current_id > 0) {
-            return init_factory<static_cast<io_shape_id>(current_id - 1)>(
-                shape_id);
+            return init_factory<static_cast<io_shape_id>(current_id - 1),
+                                detector_t>(shape_id);
         }
         // Test some edge cases
         if (shape_id == io_shape_id::unknown) {

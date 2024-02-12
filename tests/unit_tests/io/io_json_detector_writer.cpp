@@ -1,6 +1,6 @@
 /** Detray library, part of the ACTS project (R&D line)
  *
- * (c) 2023 CERN for the benefit of the ACTS project
+ * (c) 2023-2024 CERN for the benefit of the ACTS project
  *
  * Mozilla Public License Version 2.0
  */
@@ -11,6 +11,10 @@
 #include "detray/detectors/create_telescope_detector.hpp"
 #include "detray/detectors/create_toy_geometry.hpp"
 #include "detray/detectors/create_wire_chamber.hpp"
+#include "detray/io/common/geometry_writer.hpp"
+#include "detray/io/common/homogeneous_material_writer.hpp"
+#include "detray/io/common/material_map_writer.hpp"
+#include "detray/io/common/surface_grid_writer.hpp"
 #include "detray/io/frontend/detector_writer.hpp"
 #include "detray/io/json/json_writer.hpp"
 
@@ -54,7 +58,7 @@ GTEST_TEST(io, json_telescope_geometry_writer) {
     auto [det, names] =
         create_telescope_detector(host_mr, tel_cfg.positions(positions));
 
-    io::json_geometry_writer<detector_t> geo_writer;
+    io::json_writer<detector_t, io::geometry_writer> geo_writer;
     geo_writer.write(det, names);
 }
 
@@ -69,7 +73,7 @@ GTEST_TEST(io, json_telescope_material_writer) {
     auto [det, names] =
         create_telescope_detector(host_mr, tel_cfg.positions(positions));
 
-    io::json_homogeneous_material_writer<detector_t> mat_writer;
+    io::json_writer<detector_t, io::homogeneous_material_writer> mat_writer;
     mat_writer.write(det, names);
 }
 
@@ -84,7 +88,7 @@ GTEST_TEST(io, json_toy_material_maps_writer) {
     toy_cfg.use_material_maps(true);
     auto [det, names] = create_toy_geometry(host_mr, toy_cfg);
 
-    io::json_material_map_writer<detector_t> map_writer;
+    io::json_writer<detector_t, io::material_map_writer> map_writer;
     map_writer.write(det, names,
                      std::ios::out | std::ios::binary | std::ios::trunc);
 }
@@ -98,7 +102,7 @@ GTEST_TEST(io, json_toy_grid_writer) {
     vecmem::host_memory_resource host_mr;
     auto [det, names] = create_toy_geometry(host_mr);
 
-    io::json_surface_grid_writer<detector_t> grid_writer;
+    io::json_writer<detector_t, io::surface_grid_writer> grid_writer;
     grid_writer.write(det, names,
                       std::ios::out | std::ios::binary | std::ios::trunc);
 }

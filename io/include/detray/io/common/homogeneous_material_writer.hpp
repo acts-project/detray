@@ -1,6 +1,6 @@
 /** Detray library, part of the ACTS project (R&D line)
  *
- * (c) 2023 CERN for the benefit of the ACTS project
+ * (c) 2023-2024 CERN for the benefit of the ACTS project
  *
  * Mozilla Public License Version 2.0
  */
@@ -8,9 +8,10 @@
 #pragma once
 
 // Project include(s)
+#include "detray/geometry/detector_volume.hpp"
 #include "detray/geometry/surface.hpp"
+#include "detray/io/common/detail/basic_converter.hpp"
 #include "detray/io/common/detail/type_info.hpp"
-#include "detray/io/common/io_interface.hpp"
 #include "detray/io/frontend/payloads.hpp"
 #include "detray/io/frontend/utils/type_traits.hpp"
 #include "detray/materials/material_rod.hpp"
@@ -23,34 +24,21 @@
 
 namespace detray::io {
 
-template <typename detector_t>
-class material_map_writer;
+/// @brief Homogeneous material writer backend
+class homogeneous_material_writer {
 
-/// @brief Abstract base class for simple material description writers
-template <class detector_t>
-class homogeneous_material_writer : public writer_interface<detector_t> {
-
-    using base_type = writer_interface<detector_t>;
-    using scalar_t = typename detector_t::scalar_type;
-
-    friend class material_map_writer<detector_t>;
-
-    protected:
+    public:
     /// Tag the writer as "homogeneous_material"
     inline static const std::string tag = "homogeneous_material";
 
-    public:
-    /// Same constructors for this class as for base_type
-    using base_type::base_type;
-
-    protected:
-    /// Serialize the header information into its payload
+    /// Convert the header information into its payload
+    template <class detector_t>
     static homogeneous_material_header_payload write_header(
         const detector_t& det, const std::string_view det_name) {
 
         homogeneous_material_header_payload header_data;
 
-        header_data.common = base_type::serialize(det_name, tag);
+        header_data.common = detail::basic_converter::convert(det_name, tag);
 
         const auto& materials = det.material_store();
 
@@ -69,29 +57,32 @@ class homogeneous_material_writer : public writer_interface<detector_t> {
         return header_data;
     }
 
-    /// Serialize the material description of a detector @param det into its io
+    /// Convert the material description of a detector @param det into its io
     /// payload
-    static detector_homogeneous_material_payload serialize(
+    template <class detector_t>
+    static detector_homogeneous_material_payload convert(
         const detector_t& det, const typename detector_t::name_map&) {
         detector_homogeneous_material_payload dm_data;
         dm_data.volumes.reserve((det.volumes().size()));
 
         for (const auto& vol : det.volumes()) {
-            dm_data.volumes.push_back(serialize(vol, det));
+            dm_data.volumes.push_back(convert(vol, det));
         }
 
         return dm_data;
     }
 
-    /// Serialize the material description of a volume @param vol_desc into its
+    /// Convert the material description of a volume @param vol_desc into its
     /// io payload
-    static material_volume_payload serialize(
+    template <class detector_t>
+    static material_volume_payload convert(
         const typename detector_t::volume_type& vol_desc,
         const detector_t& det) {
         using material_type = material_slab_payload::mat_type;
 
         material_volume_payload mv_data;
-        mv_data.volume_link = base_type::serialize(vol_desc.index());
+        mv_data.volume_link =
+            detail::basic_converter::convert(vol_desc.index());
 
         // Return early if the stores for homogeneous materials are empty
         using mat_id = typename detector_t::materials::id;
@@ -113,7 +104,7 @@ class homogeneous_material_writer : public writer_interface<detector_t> {
         auto vol = detector_volume{det, vol_desc};
         for (const auto& sf_desc : vol.surfaces()) {
 
-            // Serialize material slabs and rods
+            // Convert material slabs and rods
             const auto sf = surface{det, sf_desc};
             material_slab_payload mslp =
                 sf.template visit_material<get_material_payload>(sf_idx);
@@ -135,9 +126,9 @@ class homogeneous_material_writer : public writer_interface<detector_t> {
         return mv_data;
     }
 
-    /// Serialize surface material @param mat into its io payload
-    static material_payload serialize(
-        const material<typename detector_t::scalar_type>& mat) {
+    /// Convert surface material @param mat into its io payload
+    template <class scalar_t>
+    static material_payload convert(const material<scalar_t>& mat) {
         material_payload mat_data;
 
         mat_data.params = {mat.X0(),
@@ -150,16 +141,16 @@ class homogeneous_material_writer : public writer_interface<detector_t> {
         return mat_data;
     }
 
-    /// Serialize a surface material slab @param mat_slab into its io payload
-    template <template <typename> class material_t>
-    static material_slab_payload serialize(const material_t<scalar_t>& mat,
-                                           std::size_t sf_idx) {
+    /// Convert a surface material slab @param mat_slab into its io payload
+    template <template <typename> class material_t, typename scalar_t>
+    static material_slab_payload convert(const material_t<scalar_t>& mat,
+                                         std::size_t sf_idx) {
         material_slab_payload mat_data;
 
         mat_data.type = io::detail::get_id<material_t<scalar_t>>();
-        mat_data.surface = base_type::serialize(sf_idx);
+        mat_data.surface = detail::basic_converter::convert(sf_idx);
         mat_data.thickness = mat.thickness();
-        mat_data.mat = serialize(mat.get_material());
+        mat_data.mat = convert(mat.get_material());
 
         return mat_data;
     }
@@ -172,6 +163,7 @@ class homogeneous_material_writer : public writer_interface<detector_t> {
                                const index_t& index,
                                [[maybe_unused]] std::size_t sf_index) const {
             using material_t = typename material_group_t::value_type;
+            using scalar_t = typename material_t::scalar_type;
 
             constexpr bool is_slab =
                 std::is_same_v<material_t, material_slab<scalar_t>>;
@@ -179,7 +171,7 @@ class homogeneous_material_writer : public writer_interface<detector_t> {
                 std::is_same_v<material_t, material_rod<scalar_t>>;
 
             if constexpr (is_slab or is_rod) {
-                return homogeneous_material_writer<detector_t>::serialize(
+                return homogeneous_material_writer::convert(
                     material_group[index], sf_index);
             } else {
                 return material_slab_payload{};

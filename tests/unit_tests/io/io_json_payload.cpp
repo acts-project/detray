@@ -9,7 +9,7 @@
 #include "detray/definitions/geometry.hpp"
 #include "detray/definitions/grid_axis.hpp"
 #include "detray/definitions/units.hpp"
-#include "detray/io/json/json_serializers.hpp"
+#include "detray/io/json/json_io.hpp"
 
 // GTest include(s)
 #include <gtest/gtest.h>
