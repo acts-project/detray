@@ -8,10 +8,11 @@
 // ROOT include(s).
 #include <TCanvas.h>
 #include <TGraph.h>
-#include <TMultiGraph.h>
+#include <TLatex.h>
 #include <TLegend.h>
 #include <TLegendEntry.h>
 #include <TMath.h>
+#include <TMultiGraph.h>
 #include <TROOT.h>
 #include <TStyle.h>
 
@@ -22,55 +23,22 @@
 #include <array>
 #include <iostream>
 #include <sstream>
+#include <string>
 #include <vector>
 
-bool is_tagged(std::string col_name, const std::string& tag, const char delim) {
-    std::istringstream iss(col_name);
-    std::string str;
-    std::vector<std::string> strings;
+namespace {
+double title_x = 0.16;
+double title_y = 0.8;
+double text_size = 0.045;
+double label_font_size = 0.045;
+double title_font_size = 0.045;
+double marker_size = 1.75;
+double pad_x0 = 0.f;
+double pad_x1 = 1.f;
+double pad_y0 = 0.f;
+double pad_y1 = 1.f;
 
-    while (getline(iss, str, delim)) {
-        strings.push_back(str);
-    }
-
-    if (strings.back() == tag) {
-        return true;
-    }
-    return false;
-}
-
-std::vector<std::string> parse_columns(
-    const std::vector<std::string>& column_names, const std::string& tag,
-    const char delim = '_') {
-
-    std::vector<std::string> ret;
-
-    for (const auto& col : column_names) {
-        if (is_tagged(col, tag, delim)) {
-            ret.push_back(col);
-        }
-    }
-    return ret;
-}
-
-std::array<double, 25u> get_means(ROOT::RDataFrame& rdf) {
-
-    std::array<double, 25u> ret;
-
-    auto col_names = rdf.GetColumnNames();
-
-    // For absolute reltaive residuals
-    auto cols_residual = parse_columns(col_names, "R");
-
-    std::size_t i = 0u;
-
-    for (const auto& col : cols_residual) {
-        const double residual_mean = *rdf.Mean<double>(col);
-        ret[i++] = residual_mean;
-    }
-
-    return ret;
-}
+}  // namespace
 
 std::vector<std::string> create_labels() {
 
@@ -94,9 +62,39 @@ std::vector<std::string> create_labels() {
     return labels;
 }
 
+std::vector<std::string> create_columns(const std::string& tag) {
+    std::vector<std::string> varI = {"dl0", "dl1", "dphi", "dtheta", "dqop"};
+
+    std::vector<std::string> varF = {"dl0", "dl1", "dphi", "dtheta", "dqop"};
+
+    std::vector<std::string> columns;
+
+    for (int i = 0; i < 5; i++) {
+        for (int j = 0; j < 5; j++) {
+            columns.push_back(varF[i] + varI[j] + "_" + tag);
+        }
+    }
+
+    return columns;
+}
+
+std::array<double, 25u> get_means(ROOT::RDataFrame& rdf) {
+
+    std::array<double, 25u> ret;
+
+    auto col_names_R = create_columns("R");
+
+    for (std::size_t i = 0u; i < 25u; i++) {
+        const double residual_mean = *rdf.Mean<double>(col_names_R[i]);
+        ret[i] = residual_mean;
+    }
+
+    return ret;
+}
+
 std::map<std::string, std::vector<double>> get_means(
     const std::vector<std::string> labels, const std::string tag, const int min,
-    const int max) {
+    const int max, std::vector<double>& mean_step_sizes) {
 
     std::map<std::string, std::vector<double>> ret;
 
@@ -111,7 +109,7 @@ std::map<std::string, std::vector<double>> get_means(
 
         std::cout << "Processing file: " << csv_name << std::endl;
 
-        auto rdf = ROOT::RDF::MakeCsvDataFrame(csv_name);
+        auto rdf = ROOT::RDF::FromCSV(csv_name);
 
         const std::array<double, 25u> means = get_means(rdf);
 
@@ -119,8 +117,11 @@ std::map<std::string, std::vector<double>> get_means(
             ret[labels[i]].push_back(TMath::Log10(means[i]));
         }
 
+        mean_step_sizes.push_back(
+            TMath::Log10(*rdf.Mean<double>("average_step_size")));
+
         // Create root file
-        rdf.Snapshot(tag, root_name);
+        rdf.Snapshot(tag.c_str(), root_name.c_str());
 
         num = num + 2;
     }
@@ -145,15 +146,22 @@ void draw_graphs(const std::string header_title,
                  const std::vector<double> x_vec,
                  std::map<std::string, std::vector<double>> means) {
 
+    TPad* gr_pad = new TPad("gr_pad", "gr_pad", 0, 0, 1, 1);
+    gr_pad->Draw();
+    gr_pad->cd();
+    gr_pad->SetLeftMargin(80. / gr_pad->GetWw());
+    gr_pad->SetTopMargin(50. / gr_pad->GetWh());
+    gr_pad->SetBottomMargin(90. / gr_pad->GetWh());
+
     TGraph* gr[25];
     TMultiGraph* mg = new TMultiGraph();
 
     const std::array<int, 5u> marker_styles = {7, 2, 5, 27, 32};
     const std::array<int, 5u> line_styles = {1, 3, 2, 7, 4};
-    const std::array<int, 5u> hues = {kOrange + 1, kPink + 7, kBlue + 2,
-                                      kCyan + 1, kGreen + 1};
+    const std::array<int, 5u> hues = {kOrange + 2, kPink + 5, kBlue + 2,
+                                      kCyan + 2, kGreen + 2};
 
-    auto legend = new TLegend(0.15, 0.595, 0.87, 0.88);
+    auto legend = new TLegend(0.15, 0.63, 0.87, 0.945);
     legend->SetHeader(header_title.c_str());
     legend->SetNColumns(5);
     legend->SetColumnSeparation(-0.2);
@@ -167,19 +175,22 @@ void draw_graphs(const std::string header_title,
         const int m = i % 5;
 
         gr[i]->SetMarkerStyle(marker_styles[n]);
-        gr[i]->SetMarkerSize(1.4);
+        gr[i]->SetMarkerSize(marker_size);
         gr[i]->SetLineStyle(line_styles[m]);
         gr[i]->SetMarkerColor(hues[m]);
+        gr[i]->SetLineColor(hues[m]);
 
         mg->Add(gr[i]);
         legend->AddEntry(gr[i], labels[i].c_str(), "lp");
     }
 
     mg->GetXaxis()->SetTitle("log_{10}(#tau [mm])");
-    mg->GetXaxis()->SetTitleOffset(1.1);
-    mg->GetYaxis()->SetTitle("Mean log_{10}(Absolute, relative residual)");
-    mg->GetYaxis()->SetTitleOffset(1.1);
-    mg->GetYaxis()->SetRangeUser(-9, 9);
+    mg->GetXaxis()->SetLabelOffset(-0.005);
+    mg->GetXaxis()->SetTitleOffset(0.8);
+    mg->GetYaxis()->SetTitle(
+        "log_{10}(Mean of absolute and relative residuals)");
+    mg->GetYaxis()->SetTitleOffset(1.2);
+    mg->GetYaxis()->SetRangeUser(-10, 8);
     mg->Draw("APL");
 
     TLegendEntry* header =
@@ -190,13 +201,52 @@ void draw_graphs(const std::string header_title,
     legend->Draw();
 }
 
+void draw_mean_step_size(const std::string header_title,
+                         const std::vector<double>& x_vec,
+                         const std::vector<double>& means) {
+    TPad* step_pad = new TPad("step_pad", "step_pad", 0, 0, 1, 1);
+    step_pad->Draw();
+    step_pad->cd();
+
+    step_pad->SetLeftMargin(80. / step_pad->GetWw());
+    step_pad->SetBottomMargin(60. / step_pad->GetWh());
+
+    TGraph* gr = new TGraph(x_vec.size(), &x_vec[0], &means[0]);
+
+    gr->SetMarkerStyle(4);
+    gr->GetXaxis()->SetTitle("log_{10}(#tau [mm])");
+    gr->GetYaxis()->SetTitle("log_{10}(Mean of average step sizes [mm])");
+    gr->GetXaxis()->SetLimits(x_vec.front() - 0.5, x_vec.back() + 0.5);
+    gr->GetYaxis()->SetRangeUser(means.front() - 0.2, means.back() + 0.95);
+    gr->GetXaxis()->SetLabelSize(label_font_size);
+    gr->GetYaxis()->SetLabelSize(label_font_size);
+    gr->GetXaxis()->SetTitleSize(title_font_size);
+    gr->GetYaxis()->SetTitleSize(title_font_size);
+    gr->GetXaxis()->SetTitleOffset(1.2);
+    gr->GetYaxis()->SetTitleOffset(1.1);
+
+    gr->Draw();
+
+    TPad* text_pad =
+        new TPad("text_pad", "text_pad", pad_x0, pad_y0, pad_x1, pad_y1);
+    text_pad->SetFillStyle(4000);
+    text_pad->Draw();
+    text_pad->cd();
+
+    TLatex* ttext = new TLatex(title_x, title_y, header_title.c_str());
+    ttext->SetTextFont(22);
+    ttext->SetTextSize(text_size);
+    ttext->Draw();
+}
+
 // ROOT Script for jacboain file reading
 void rk_tolerance_comparison(int min, int max) {
     gStyle->SetOptTitle(0);
     gStyle->SetLegendBorderSize(0);
-    gStyle->SetLegendTextSize(0.023);
+    gStyle->SetLegendTextSize(0.02625);
 
-    const std::array<float, 2> cdim{800, 1400};
+    const std::array<float, 2> cdim1{800, 1350};
+    const std::array<float, 2> cdim2{700, 500};
 
     auto labels = create_labels();
 
@@ -212,12 +262,21 @@ void rk_tolerance_comparison(int min, int max) {
     const std::string rect_pdf = "bound_to_bound_rk_tolerance.pdf";
 
     auto rect_canvas =
-        new TCanvas("rect_canvas", "rect_canvas", cdim[0], cdim[1]);
-    const auto rect_y_means =
-        get_means(labels, "inhom_rect_material", min, max);
+        new TCanvas("rect_canvas", "rect_canvas", cdim1[0], cdim1[1]);
+
+    std::vector<double> rect_mean_step_sizes;
+    const auto rect_y_means = get_means(labels, "inhom_rect_material", min, max,
+                                        rect_mean_step_sizes);
     draw_graphs(rect_header, labels, x_vec, rect_y_means);
 
     rect_canvas->SaveAs(rect_pdf.c_str());
+
+    auto rect_canvas2 =
+        new TCanvas("rect_canvas2", "rect_canvas2", cdim2[0], cdim2[1]);
+    const std::string rect_mean_step_pdf = "bound_to_bound_mean_step_size.pdf";
+
+    draw_mean_step_size(rect_header, x_vec, rect_mean_step_sizes);
+    rect_canvas2->SaveAs(rect_mean_step_pdf.c_str());
 
     /************************
      *  Wire
@@ -230,10 +289,19 @@ void rk_tolerance_comparison(int min, int max) {
     const std::string wire_pdf = "perigee_to_perigee_rk_tolerance.pdf";
 
     auto wire_canvas =
-        new TCanvas("wire_canvas", "wire_canvas", cdim[0], cdim[1]);
-    const auto wire_y_means =
-        get_means(labels, "inhom_wire_material", min, max);
+        new TCanvas("wire_canvas", "wire_canvas", cdim1[0], cdim1[1]);
+    std::vector<double> wire_mean_step_sizes;
+    const auto wire_y_means = get_means(labels, "inhom_wire_material", min, max,
+                                        wire_mean_step_sizes);
     draw_graphs(wire_header, labels, x_vec, wire_y_means);
 
     wire_canvas->SaveAs(wire_pdf.c_str());
+
+    auto wire_canvas2 =
+        new TCanvas("wire_canvas2", "wire_canvas2", cdim2[0], cdim2[1]);
+    const std::string wire_mean_step_pdf =
+        "perigee_to_perigee_mean_step_size.pdf";
+
+    draw_mean_step_size(wire_header, x_vec, wire_mean_step_sizes);
+    wire_canvas2->SaveAs(wire_mean_step_pdf.c_str());
 }

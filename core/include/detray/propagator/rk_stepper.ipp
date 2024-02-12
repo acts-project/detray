@@ -703,7 +703,7 @@ DETRAY_HOST_DEVICE bool detray::rk_stepper<
     while (!try_rk4(stepping._step_size)) {
 
         step_size_scaling = math::min(
-            math::max(0.25f * unit<scalar_type>::mm,
+            math::max(static_cast<scalar>(0.25),
                       math::sqrt(math::sqrt(
                           (cfg.rk_error_tol / math::abs(error_estimate))))),
             static_cast<scalar_type>(4));
