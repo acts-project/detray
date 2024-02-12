@@ -12,7 +12,7 @@
 #include "detray/plugins/svgtools/illustrator.hpp"
 #include "detray/plugins/svgtools/utils/groups.hpp"
 #include "detray/plugins/svgtools/writer.hpp"
-#include "tests/common/tools/particle_gun.hpp"
+#include "detray/test/utils/particle_gun.hpp"
 
 // Vecmem include(s)
 #include <vecmem/memory/host_memory_resource.hpp>
@@ -21,12 +21,15 @@
 #include "actsvg/core.hpp"
 #include "actsvg/web/web_builder.hpp"
 
+// GTest include(s).
+#include <gtest/gtest.h>
+
 // System include(s)
 #include <array>
 #include <filesystem>
 #include <string>
 
-int main(int, char**) {
+GTEST_TEST(svgtools, web) {
 
     // In this test we will create a web page to show the detector geometry and
     // more. We will start by creating the svgs we want to include in the web

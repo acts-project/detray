@@ -11,9 +11,9 @@
 #include "detray/intersection/detail/trajectories.hpp"
 #include "detray/io/frontend/utils/file_handle.hpp"
 #include "detray/simulation/event_generator/track_generators.hpp"
+#include "detray/test/fixture_base.hpp"
 #include "detray/test/types.hpp"
-#include "tests/common/test_base/fixture_base.hpp"
-#include "tests/common/tools/particle_gun.hpp"
+#include "detray/test/utils/particle_gun.hpp"
 
 // System include(s)
 #include <ios>

@@ -29,8 +29,8 @@ __global__ void grid_replace_test_kernel(
     auto y_interval = (axis1.max - axis1.min) / axis1.n_bins;
 
     auto gid = threadIdx.x + threadIdx.y * blockDim.x;
-    auto pt = test::point3<detray::scalar>{axis0.min + gid * x_interval,
-                                           axis1.min + gid * y_interval, 0.5f};
+    auto pt = test::point3{axis0.min + gid * x_interval,
+                           axis1.min + gid * y_interval, 0.5f};
 
     // replace the bin elements
     g2_device.populate(threadIdx.x, threadIdx.y, std::move(pt));
@@ -67,8 +67,8 @@ __global__ void grid_replace_ci_test_kernel(
         axis1.boundaries[threadIdx.y + 1] - axis1.boundaries[threadIdx.y];
 
     auto gid = threadIdx.x + threadIdx.y * blockDim.x;
-    auto pt = test::point3<detray::scalar>{axis0.min + gid * x_interval,
-                                           axis1.min + gid * y_interval, 0.5f};
+    auto pt = test::point3{axis0.min + gid * x_interval,
+                           axis1.min + gid * y_interval, 0.5f};
 
     // replace the bin elements
     g2_device.populate(threadIdx.x, threadIdx.y, std::move(pt));
@@ -96,12 +96,12 @@ void grid_replace_ci_test(grid2_view<host_grid2_replace_ci> grid_view) {
   ---------------------------------------------------------------*/
 
 // cuda kernel for grid_complete_test
-__global__ void grid_complete_kernel(
+/*__global__ void grid_complete_kernel(
     grid2_view<host_grid2_complete> grid_view) {
 
     // Let's try building the grid object
     device_grid2_complete g2_device(
-        grid_view, test::point3<detray::scalar>{0.f, 0.f, 0.f});
+        grid_view, test::point3{0.f, 0.f, 0.f});
 
     const auto& axis0 = g2_device.axis_p0();
     const auto& axis1 = g2_device.axis_p1();
@@ -113,7 +113,7 @@ __global__ void grid_complete_kernel(
 
     for (int i_p = 0; i_p < n_points; i_p++) {
         auto gid = i_p + bin_id * n_points;
-        auto pt = test::point3<detray::scalar>{
+        auto pt = test::point3{
             axis0.min + gid * x_interval, axis1.min + gid * y_interval, 0.5f};
         // printf("%f %f %f \n", pt[0], pt[1], pt[2]);
         g2_device.populate(threadIdx.x, threadIdx.y, std::move(pt));
@@ -135,7 +135,7 @@ void grid_complete_test(grid2_view<host_grid2_complete> grid_view) {
     // cuda error check
     DETRAY_CUDA_ERROR_CHECK(cudaGetLastError());
     DETRAY_CUDA_ERROR_CHECK(cudaDeviceSynchronize());
-}
+}*/
 
 /*---------------------------------------------------------
   read test function for grid with attach populator
@@ -146,8 +146,8 @@ __global__ void grid_attach_read_test_kernel(
     const_grid2_view<host_grid2_attach> grid_view) {
 
     // Let's try building the grid object
-    const const_device_grid2_attach g2_device(
-        grid_view, test::point3<detray::scalar>{0.f, 0.f, 0.f});
+    const const_device_grid2_attach g2_device(grid_view,
+                                              test::point3{0.f, 0.f, 0.f});
 
     auto data = g2_device.bin(threadIdx.x, threadIdx.y);
 
@@ -185,9 +185,9 @@ __global__ void grid_attach_fill_test_kernel(
     device_grid2_attach g2_device(grid_view);
 
     // Fill with 100 points
-    auto pt = test::point3<detray::scalar>{detray::scalar(1.) * threadIdx.x,
-                                           detray::scalar(1.) * threadIdx.x,
-                                           detray::scalar(1.) * threadIdx.x};
+    auto pt = test::point3{detray::scalar(1.) * threadIdx.x,
+                           detray::scalar(1.) * threadIdx.x,
+                           detray::scalar(1.) * threadIdx.x};
     g2_device.populate(blockIdx.x, blockIdx.y, std::move(pt));
 
     __syncthreads();

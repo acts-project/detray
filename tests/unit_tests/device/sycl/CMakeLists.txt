@@ -16,11 +16,12 @@ set(algebras "array")
 
 foreach(algebra ${algebras})
    # Unit tests for the selected algebra.
-   detray_add_test(${algebra}_sycl
-      "propagator.sycl" "propagator_sycl_kernel.hpp"
+   detray_add_test(sycl_${algebra}
+      "propagator_sycl_kernel.hpp"
+      "propagator.sycl"
       "propagator_kernel.sycl"
-      LINK_LIBRARIES GTest::gtest_main vecmem::sycl detray_tests_common
-      detray::algebra_${algebra})
-   target_compile_definitions(detray_test_${algebra}_sycl
+      LINK_LIBRARIES GTest::gtest_main vecmem::sycl detray::test detray::core
+      detray::algebra_${algebra} detray::utils )
+   target_compile_definitions(detray_test_sycl_${algebra}
       PRIVATE ${algebra}=${algebra})
 endforeach()

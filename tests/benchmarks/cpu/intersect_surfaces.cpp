@@ -18,7 +18,7 @@
 #include "detray/simulation/event_generator/track_generators.hpp"
 
 // Detray test include(s).
-#include "detray/test/planes_along_direction.hpp"
+#include "detray/test/utils/planes_along_direction.hpp"
 
 // Google Benchmark include(s)
 #include <benchmark/benchmark.h>

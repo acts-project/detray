@@ -17,11 +17,14 @@
 // Actsvg include(s)
 #include "actsvg/core.hpp"
 
+// GTest include(s).
+#include <gtest/gtest.h>
+
 // System include(s)
 #include <array>
 #include <string>
 
-int main(int, char**) {
+GTEST_TEST(svgtools, volumes) {
 
     // This test creates the visualization using the illustrator class.
     // However, for full control over the process, it is also possible to use

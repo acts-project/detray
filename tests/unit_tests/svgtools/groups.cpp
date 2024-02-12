@@ -19,11 +19,14 @@
 // Actsvg include(s)
 #include "actsvg/core.hpp"
 
+// GTest include(s).
+#include <gtest/gtest.h>
+
 // System include(s)
 #include <array>
 #include <string>
 
-int main(int, char**) {
+GTEST_TEST(svgtools, groups) {
 
     // Axes.
     const auto axes = actsvg::draw::x_y_axes("axes", {-250, 250}, {-250, 250},

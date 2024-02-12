@@ -12,8 +12,8 @@
 #include "detray/plugins/svgtools/illustrator.hpp"
 #include "detray/plugins/svgtools/writer.hpp"
 #include "detray/simulation/event_generator/track_generators.hpp"
+#include "detray/test/utils/particle_gun.hpp"
 #include "detray/tracks/tracks.hpp"
-#include "tests/common/tools/particle_gun.hpp"
 
 // Vecmem include(s)
 #include <vecmem/memory/host_memory_resource.hpp>
@@ -21,11 +21,14 @@
 // Actsvg include(s)
 #include "actsvg/core.hpp"
 
+// GTest include(s).
+#include <gtest/gtest.h>
+
 // System include(s)
 #include <array>
 #include <string>
 
-int main(int, char**) {
+GTEST_TEST(svgtools, intersections) {
 
     // This test creates the visualization using the illustrator class.
     // However, for full control over the process, it is also possible to use

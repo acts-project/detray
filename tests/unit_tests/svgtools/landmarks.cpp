@@ -17,10 +17,13 @@
 // Actsvg include(s)
 #include "actsvg/core.hpp"
 
+// GTest include(s).
+#include <gtest/gtest.h>
+
 // System include(s)
 #include <string>
 
-int main(int, char**) {
+GTEST_TEST(svgtools, landmarks) {
 
     // Axes.
     const auto axes =

@@ -15,10 +15,10 @@
 #include "detray/propagator/propagator.hpp"
 #include "detray/propagator/rk_stepper.hpp"
 #include "detray/simulation/event_generator/track_generators.hpp"
+#include "detray/test/intersection/helix_line_intersector.hpp"
+#include "detray/test/intersection/helix_plane_intersector.hpp"
 #include "detray/utils/inspectors.hpp"
 #include "detray/utils/statistics.hpp"
-#include "tests/common/tools/intersectors/helix_line_intersector.hpp"
-#include "tests/common/tools/intersectors/helix_plane_intersector.hpp"
 
 // Vecmem include(s)
 #include <vecmem/memory/host_memory_resource.hpp>

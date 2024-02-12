@@ -15,7 +15,7 @@ endfunction()
 
 # Set up the I/O tests. Running the reader and writer tests in separate
 # directories, so that they would not interfere with each other.
-detray_add_test( io
+detray_add_test( io_payloads
    "io_json_payload.cpp"
    LINK_LIBRARIES GTest::gtest_main detray::core_array detray::io_array )
 
@@ -28,6 +28,6 @@ _run_test_in_dir( io_writer
 detray_add_test( io_roundtrip
     "io_json_detector_roundtrip.cpp"
     LINK_LIBRARIES GTest::gtest_main vecmem::core detray::core_array
-    detray::io_array detray::test detray_tests_common detray::utils_array)
+    detray::io_array detray::test detray::utils_array)
 _run_test_in_dir( io_roundtrip
    "${CMAKE_CURRENT_BINARY_DIR}${CMAKE_FILES_DIRECTORY}/io_roundtrip_test_rundir" )
