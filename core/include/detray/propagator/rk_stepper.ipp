@@ -544,10 +544,10 @@ detray::rk_stepper<magnetic_field_t, transform3_t, constraint_t, policy_t,
 template <typename magnetic_field_t, typename transform3_t,
           typename constraint_t, typename policy_t, typename inspector_t,
           template <typename, std::size_t> class array_t>
-auto detray::rk_stepper<magnetic_field_t, transform3_t, constraint_t, policy_t,
-                        inspector_t, array_t>::state::dgdqop(const scalar_type
-                                                                 qop) const ->
-    typename transform3_t::scalar_type {
+DETRAY_HOST_DEVICE auto
+detray::rk_stepper<magnetic_field_t, transform3_t, constraint_t, policy_t,
+                   inspector_t, array_t>::state::dgdqop(const scalar_type qop)
+    const -> typename transform3_t::scalar_type {
 
     using scalar_t = typename transform3_t::scalar_type;
 
@@ -569,7 +569,7 @@ auto detray::rk_stepper<magnetic_field_t, transform3_t, constraint_t, policy_t,
 template <typename magnetic_field_t, typename transform3_t,
           typename constraint_t, typename policy_t, typename inspector_t,
           template <typename, std::size_t> class array_t>
-auto detray::rk_stepper<
+DETRAY_HOST_DEVICE auto detray::rk_stepper<
     magnetic_field_t, transform3_t, constraint_t, policy_t, inspector_t,
     array_t>::state::d2qopdsdqop(const scalar_type qop) const ->
     typename transform3_t::scalar_type {
