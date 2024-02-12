@@ -10,8 +10,10 @@
 #include <TCanvas.h>
 #include <TF1.h>
 #include <TFile.h>
+#include <TFitResult.h>
 #include <TH1D.h>
 #include <TLatex.h>
+#include <TLine.h>
 #include <TMath.h>
 #include <TROOT.h>
 #include <TStyle.h>
@@ -21,23 +23,37 @@
 #include <ROOT/RDataFrame.hxx>
 
 // System include(s).
+#include <fstream>
 #include <iomanip>
 #include <iostream>
 #include <sstream>
 #include <vector>
 
 namespace {
-double x_pos = 0.15f;
+double x_pos = 0.16f;
 double title_x = x_pos;
 double title_y = 0.8f;
-double fit_title_x = x_pos;
-double fit_title_y = 0.707f;
+double pull_fit_title_x = x_pos;
+double pull_fit_title_y = 0.69f;
+double pval_fit_title_x = x_pos;
+double pval_fit_title_y = 0.69f;
 double gaus_fit_par_x = x_pos;
-double gaus_fit_par_y = 0.64f;
+double gaus_fit_par_y = 0.6175f;
 double const_fit_par_x = x_pos;
-double const_fit_par_y = 0.658f;
+double const_fit_par_y = 0.638f;
 double tolerance_x = 0.7f;
 double tolerance_y = 0.67f;
+double pull_text_size = 0.045f;
+double pval_text_size = 0.045f;
+double pad_x0 = 0.f;
+double pad_x1 = 1.f;
+double pad_y0 = 0.f;
+double pad_y1 = 1.f;
+double label_font_size = 0.045;
+double title_font_size = 0.045;
+double x_title_offset = 1.05;
+double y_title_offset = 1.05;
+
 }  // namespace
 
 auto get_tree(std::string name) {
@@ -45,7 +61,7 @@ auto get_tree(std::string name) {
     const std::string csv_name = name + ".csv";
     const std::string root_name = name + ".root";
 
-    auto rdf = ROOT::RDF::MakeCsvDataFrame(csv_name);
+    auto rdf = ROOT::RDF::FromCSV(csv_name);
 
     // Create root file
     rdf.Snapshot(name, root_name);
@@ -57,7 +73,7 @@ auto get_tree(std::string name) {
 }
 
 std::pair<std::array<double, 3u>, std::array<double, 3u>> fit_pull(
-    TH1D* h_pull) {
+    TH1D* h_pull, std::array<double, 14u>& arr_pull) {
 
     // Function used for the fit.
     TF1 gaus{"gaus", "gaus", -5.f, 5.f};
@@ -80,6 +96,17 @@ std::pair<std::array<double, 3u>, std::array<double, 3u>> fit_pull(
     error[1] = gaus.GetParError(1);
     error[2] = gaus.GetParError(2);
 
+    arr_pull[0u] = fit_par[0u];
+    arr_pull[1u] = fit_par[1u];
+    arr_pull[2u] = fit_par[2u];
+    arr_pull[3u] = error[0u];
+    arr_pull[4u] = error[1u];
+    arr_pull[5u] = error[2u];
+    arr_pull[6u] = res->Ndf();
+    arr_pull[7u] = res->Chi2();
+    arr_pull[8u] = arr_pull[6u] / arr_pull[7u];
+    arr_pull[9u] = ROOT::Math::chisquared_cdf_c(arr_pull[7u], arr_pull[6u]);
+
     return {par, error};
 }
 
@@ -96,63 +123,65 @@ std::pair<double, double> fit_pval(TH1D* h_pval) {
     return {fit_par[0], error};
 }
 
-void set_yaxis_title(TH1D* h) {
+void set_yaxis_title(TH1D* h, const double text_size) {
     double bin_width = h->GetBinWidth(0u);
     std::string str = std::to_string(bin_width);
     str.erase(str.find_last_not_of('0') + 1, std::string::npos);
     str.erase(str.find_last_not_of('.') + 1, std::string::npos);
     std::string y_axis_title = "Counts / (" + str + ")";
     h->GetYaxis()->SetTitle(y_axis_title.c_str());
-    h->GetYaxis()->SetTitleSize(0.04);
+    h->GetYaxis()->SetTitleSize(text_size);
 }
 
-void set_xaxis_title(TH1D* h) {
+void set_xaxis_title(TH1D* h, const double text_size) {
 
     std::string x_axis_title;
 
     const TString h_name = h->GetName();
 
     if (h_name.Contains("l0")) {
-        x_axis_title = "l_{0} pull";
+        x_axis_title = "l_{0}_{f} pull";
     } else if (h_name.Contains("l1")) {
-        x_axis_title = "l_{1} pull";
+        x_axis_title = "l_{1}_{f} pull";
     } else if (h_name.Contains("phi")) {
-        x_axis_title = "#phi pull";
+        x_axis_title = "#phi_{f} pull";
     } else if (h_name.Contains("theta")) {
-        x_axis_title = "#theta pull";
+        x_axis_title = "#theta_{f} pull";
     } else if (h_name.Contains("qop")) {
-        x_axis_title = "#lambda pull";
+        x_axis_title = "#lambda_{f} pull";
     } else if (h_name.Contains("pval")) {
-        x_axis_title = "p value";
+        x_axis_title = "p-value";
     }
 
     h->GetXaxis()->SetTitle(x_axis_title.c_str());
-    h->GetXaxis()->SetTitleSize(0.04);
+    h->GetXaxis()->SetTitleSize(text_size);
 }
 
-void draw_title(const std::string& text, const double x, const double y) {
+void draw_title(const std::string& text, const double x, const double y,
+                const double text_size) {
 
     TLatex* ttext = new TLatex(x, y, text.c_str());
     ttext->SetTextFont(22);
-    ttext->SetTextSize(0.04);
+    ttext->SetTextSize(text_size);
     ttext->Draw();
 }
 
-void draw_fit_title(const std::string title, const double x, const double y) {
+void draw_fit_title(const std::string title, const double x, const double y,
+                    const double text_size) {
 
     TLatex* ttext = new TLatex(x, y, title.c_str());
     ttext->SetTextFont(22);
-    ttext->SetTextSize(0.04);
+    ttext->SetTextSize(text_size);
     ttext->Draw();
     gPad->cd();
 }
 
 void draw_gaus_fit_par(const std::array<double, 3u>& fit_par,
                        const std::array<double, 3u>& fit_par_error,
-                       const double x, const double y) {
-    TLatex* ttext = new TLatex(x, y, "#splitline{Mean}{Sigma}");
+                       const double x, const double y, const double text_size) {
+    TLatex* ttext = new TLatex(x, y, "#splitline{Mean}{Std Dev}");
     ttext->SetTextFont(132);
-    ttext->SetTextSize(0.04);
+    ttext->SetTextSize(text_size);
     ttext->Draw();
 
     std::stringstream mean_stream;
@@ -162,30 +191,31 @@ void draw_gaus_fit_par(const std::array<double, 3u>& fit_par,
     sigma_stream << std::fixed << std::setprecision(3) << fit_par[2] << " #pm "
                  << fit_par_error[2];
 
-    TLatex* ttext2 = new TLatex(x + 0.1, y,
+    TLatex* ttext2 = new TLatex(x + 0.11, y,
                                 "#splitline{" + TString(mean_stream.str()) +
                                     "}{" + TString(sigma_stream.str()) + "}");
     ttext2->SetTextFont(132);
-    ttext2->SetTextSize(0.04);
+    ttext2->SetTextSize(text_size);
     ttext2->Draw();
 }
 
 void draw_const_fit_par(const double fit_par, const double fit_par_error,
-                        const double x, const double y) {
+                        const double x, const double y,
+                        const double text_size) {
     std::stringstream val_stream;
     val_stream << std::fixed << std::setprecision(3) << fit_par << " #pm "
                << fit_par_error;
 
     TLatex* ttext = new TLatex(x, y, "Value  " + TString(val_stream.str()));
     ttext->SetTextFont(132);
-    ttext->SetTextSize(0.04);
+    ttext->SetTextSize(text_size);
     ttext->Draw();
 }
 
 void draw_tolerance(const double log10_rk_tolerance, const double x,
                     const double y) {
     std::stringstream val_stream;
-    val_stream << "#tau = 10^{" << int(log10_rk_tolerance) << "}";
+    val_stream << "#tau = 10^{" << int(log10_rk_tolerance) << "} mm";
 
     TLatex* ttext = new TLatex(x, y, TString(val_stream.str()));
     ttext->SetTextFont(132);
@@ -194,57 +224,93 @@ void draw_tolerance(const double log10_rk_tolerance, const double x,
 }
 
 void draw_pull(TH1D* h_pull, const std::string& title_text,
-               const double log10_rk_tol) {
+               const double log10_rk_tol, std::array<double, 14u>& arr_pull) {
 
-    auto fit_res = fit_pull(h_pull);
+    TPad* pull_pad =
+        new TPad("pull_pad", "pull_pad", pad_x0, pad_y0, pad_x1, pad_y1);
+    pull_pad->SetLogy();
+    pull_pad->Draw();
+    pull_pad->cd();
+
+    pull_pad->SetLeftMargin(80. / pull_pad->GetWw());
+    pull_pad->SetBottomMargin(60. / pull_pad->GetWh());
+
+    auto fit_res = fit_pull(h_pull, arr_pull);
     auto fit_pars = fit_res.first;
     auto fit_errors = fit_res.second;
 
-    set_xaxis_title(h_pull);
-    set_yaxis_title(h_pull);
-    const double y_axis_max = h_pull->GetEntries() * 10.f;
+    set_xaxis_title(h_pull, pull_text_size);
+    set_yaxis_title(h_pull, pull_text_size);
+    const double y_axis_max = h_pull->GetEntries() * 20.f;
     h_pull->GetYaxis()->SetRangeUser(1.f, y_axis_max);
+    h_pull->GetXaxis()->SetLabelSize(label_font_size);
+    h_pull->GetYaxis()->SetLabelSize(label_font_size);
+    h_pull->GetXaxis()->SetTitleSize(title_font_size);
+    h_pull->GetYaxis()->SetTitleSize(title_font_size);
+    h_pull->GetYaxis()->SetTitleOffset(y_title_offset);
+    h_pull->GetXaxis()->SetTitleOffset(x_title_offset);
     h_pull->GetYaxis()->SetMaxDigits(1);
     h_pull->Draw();
-    TF1* gaus = new TF1(h_pull->GetName(), "gaus", -5, 5);
+    TF1* gaus = new TF1(h_pull->GetName(), "gaus", -5., 5.);
     gaus->SetParameters(fit_pars[0], fit_pars[1], fit_pars[2]);
     gaus->Draw("same");
 
-    TPad* text_pad = new TPad("gaus_text_pad", "gaus_text_pad", 0, 0, 1, 1);
+    TPad* text_pad = new TPad("gaus_text_pad", "gaus_text_pad", pad_x0, pad_y0,
+                              pad_x1, pad_y1);
     text_pad->SetFillStyle(4000);
     text_pad->Draw();
     text_pad->cd();
 
-    draw_title(title_text.c_str(), title_x, title_y);
-    draw_fit_title("Gaussian fit", fit_title_x, fit_title_y);
-    draw_gaus_fit_par(fit_pars, fit_errors, gaus_fit_par_x, gaus_fit_par_y);
+    draw_title(title_text.c_str(), title_x, title_y, pull_text_size);
+    draw_fit_title("Gaussian fit", pull_fit_title_x, pull_fit_title_y,
+                   pull_text_size);
+    draw_gaus_fit_par(fit_pars, fit_errors, gaus_fit_par_x, gaus_fit_par_y,
+                      pull_text_size);
     // draw_tolerance(log10_rk_tol, tolerance_x, tolerance_y);
 }
 
 void draw_pval(TH1D* h_pval, const std::string& title_text,
                const double log10_rk_tol) {
 
+    TPad* pval_pad =
+        new TPad("pval_pad", "pval_pad", pad_x0, pad_y0, pad_x1, pad_y1);
+    pval_pad->Draw();
+    pval_pad->cd();
+
+    pval_pad->SetLeftMargin(80. / pval_pad->GetWw());
+    pval_pad->SetBottomMargin(60. / pval_pad->GetWh());
+
     auto fit_res = fit_pval(h_pval);
     auto fit_par = fit_res.first;
     auto fit_error = fit_res.second;
-    set_xaxis_title(h_pval);
-    set_yaxis_title(h_pval);
+    set_xaxis_title(h_pval, pval_text_size);
+    set_yaxis_title(h_pval, pval_text_size);
     const double y_axis_max = 2.f * fit_par;
     h_pval->GetYaxis()->SetRangeUser(0.f, y_axis_max);
+    h_pval->GetXaxis()->SetLabelSize(label_font_size);
+    h_pval->GetYaxis()->SetLabelSize(label_font_size);
+    h_pval->GetXaxis()->SetTitleSize(title_font_size);
+    h_pval->GetYaxis()->SetTitleSize(title_font_size);
+    h_pval->GetYaxis()->SetTitleOffset(y_title_offset);
+    h_pval->GetXaxis()->SetTitleOffset(x_title_offset);
+    h_pval->GetYaxis()->SetMaxDigits(2);
+    h_pval->GetYaxis()->SetDecimals();
     h_pval->Draw();
-
-    TF1* unif = new TF1(h_pval->GetName(), "[0]", -5, 5);
-    unif->SetParameters(&fit_par);
-    unif->Draw("same");
+    TLine* line = new TLine(0.f, fit_par, 1.f, fit_par);
+    line->SetLineColor(kRed);
+    line->SetLineWidth(2);
+    line->Draw();
 
     TPad* text_pad = new TPad("const_text_pad", "const_text_pad", 0, 0, 1, 1);
     text_pad->SetFillStyle(4000);
     text_pad->Draw();
     text_pad->cd();
 
-    draw_title(title_text.c_str(), title_x, title_y);
-    draw_fit_title("Constant fit", fit_title_x, fit_title_y);
-    draw_const_fit_par(fit_par, fit_error, const_fit_par_x, const_fit_par_y);
+    draw_title(title_text.c_str(), title_x, title_y, pval_text_size);
+    draw_fit_title("Constant fit", pval_fit_title_x, pval_fit_title_y,
+                   pval_text_size);
+    draw_const_fit_par(fit_par, fit_error, const_fit_par_x, const_fit_par_y,
+                       pval_text_size);
     // draw_tolerance(log10_rk_tol, tolerance_x, tolerance_y);
 }
 
@@ -253,7 +319,8 @@ std::string to_pdf(const std::string& name) {
 }
 
 void read_tree(TTree* t, const std::string& tag, const std::string& title) {
-    const std::array<float, 2> cdim{600, 500};
+    const std::array<float, 2> cdim1{700, 500};
+    const std::array<float, 2> cdim2{700, 500};
 
     float pull_min = -5.f;
     float pull_max = 5.f;
@@ -295,7 +362,22 @@ void read_tree(TTree* t, const std::string& tag, const std::string& title) {
                            pull_max);
     TH1D* h_chi2 =
         new TH1D(chi2_name.c_str(), chi2_name.c_str(), n_bins, 0.f, 50.f);
-    TH1D* h_pval = new TH1D(pval_name.c_str(), pval_name.c_str(), 50, 0.f, 1.f);
+    TH1D* h_pval =
+        new TH1D(pval_name.c_str(), pval_name.c_str(), 50, 0.f, 1.0f);
+
+    // N, mean, stddev, N_error, mean_error, stddev_error, ndf, chi2, ndf/chi2,
+    // pval, N_4sigma, N_4sigma_fraction, N_expected_4sigma,
+    // N_4sigma/N_expected_4sigma
+    std::array<double, 14u> finfo_l0;
+    std::array<double, 14u> finfo_l1;
+    std::array<double, 14u> finfo_phi;
+    std::array<double, 14u> finfo_theta;
+    std::array<double, 14u> finfo_qop;
+    finfo_l0[10u] = 0;
+    finfo_l1[10u] = 0;
+    finfo_phi[10u] = 0;
+    finfo_theta[10u] = 0;
+    finfo_qop[10u] = 0;
 
     // Fill the histograms
     for (int i = 0; i < t->GetEntries(); i++) {
@@ -307,46 +389,121 @@ void read_tree(TTree* t, const std::string& tag, const std::string& title) {
         h_qop->Fill(pull_qop);
         h_chi2->Fill(chi2);
         h_pval->Fill(ROOT::Math::chisquared_cdf_c(chi2, 5.f));
+
+        if (abs(pull_l0) > 4) {
+            finfo_l0[10u]++;
+        }
+        if (abs(pull_l1) > 4) {
+            finfo_l1[10u]++;
+        }
+        if (abs(pull_phi) > 4) {
+            finfo_phi[10u]++;
+        }
+        if (abs(pull_theta) > 4) {
+            finfo_theta[10u]++;
+        }
+        if (abs(pull_qop) > 4) {
+            finfo_qop[10u]++;
+        }
     }
 
-    auto c_l0 = new TCanvas(h_l0->GetName(), h_l0->GetName(), cdim[0], cdim[1]);
+    finfo_l0[11u] = double(finfo_l0[10u]) / double(t->GetEntries());
+    finfo_l1[11u] = double(finfo_l1[10u]) / double(t->GetEntries());
+    finfo_phi[11u] = double(finfo_phi[10u]) / double(t->GetEntries());
+    finfo_theta[11u] = double(finfo_theta[10u]) / double(t->GetEntries());
+    finfo_qop[11u] = double(finfo_qop[10u]) / double(t->GetEntries());
+
+    finfo_l0[12u] = t->GetEntries() * 0.000063342484;
+    finfo_l1[12u] = t->GetEntries() * 0.000063342484;
+    finfo_phi[12u] = t->GetEntries() * 0.000063342484;
+    finfo_theta[12u] = t->GetEntries() * 0.000063342484;
+    finfo_qop[12u] = t->GetEntries() * 0.000063342484;
+
+    finfo_l0[13u] = finfo_l0[10u] / finfo_l0[12u];
+    finfo_l1[13u] = finfo_l1[10u] / finfo_l1[12u];
+    finfo_phi[13u] = finfo_phi[10u] / finfo_phi[12u];
+    finfo_theta[13u] = finfo_theta[10u] / finfo_theta[12u];
+    finfo_qop[13u] = finfo_qop[10u] / finfo_qop[12u];
+
+    auto c_l0 =
+        new TCanvas(h_l0->GetName(), h_l0->GetName(), cdim1[0], cdim1[1]);
     c_l0->SetLogy();
-    draw_pull(h_l0, title, log10_rk_tolerance);
+
+    draw_pull(h_l0, title, log10_rk_tolerance, finfo_l0);
 
     c_l0->SaveAs(to_pdf(l0_name).c_str());
 
-    auto c_l1 = new TCanvas(h_l1->GetName(), h_l1->GetName(), cdim[0], cdim[1]);
+    auto c_l1 =
+        new TCanvas(h_l1->GetName(), h_l1->GetName(), cdim1[0], cdim1[1]);
     c_l1->SetLogy();
-    draw_pull(h_l1, title, log10_rk_tolerance);
+    draw_pull(h_l1, title, log10_rk_tolerance, finfo_l1);
     c_l1->SaveAs(to_pdf(l1_name).c_str());
 
     auto c_phi =
-        new TCanvas(h_phi->GetName(), h_phi->GetName(), cdim[0], cdim[1]);
+        new TCanvas(h_phi->GetName(), h_phi->GetName(), cdim1[0], cdim1[1]);
     c_phi->SetLogy();
-    draw_pull(h_phi, title, log10_rk_tolerance);
+    draw_pull(h_phi, title, log10_rk_tolerance, finfo_phi);
     c_phi->SaveAs(to_pdf(phi_name).c_str());
 
     auto c_theta =
-        new TCanvas(h_theta->GetName(), h_theta->GetName(), cdim[0], cdim[1]);
+        new TCanvas(h_theta->GetName(), h_theta->GetName(), cdim1[0], cdim1[1]);
     c_theta->SetLogy();
-    draw_pull(h_theta, title, log10_rk_tolerance);
+
+    draw_pull(h_theta, title, log10_rk_tolerance, finfo_theta);
     c_theta->SaveAs(to_pdf(theta_name).c_str());
 
     auto c_qop =
-        new TCanvas(h_qop->GetName(), h_qop->GetName(), cdim[0], cdim[1]);
+        new TCanvas(h_qop->GetName(), h_qop->GetName(), cdim1[0], cdim1[1]);
     c_qop->SetLogy();
-    draw_pull(h_qop, title, log10_rk_tolerance);
+    draw_pull(h_qop, title, log10_rk_tolerance, finfo_qop);
     c_qop->SaveAs(to_pdf(qop_name).c_str());
 
     auto c_chi2 =
-        new TCanvas(h_chi2->GetName(), h_chi2->GetName(), cdim[0], cdim[1]);
+        new TCanvas(h_chi2->GetName(), h_chi2->GetName(), cdim1[0], cdim1[1]);
     h_chi2->Draw();
     c_chi2->SaveAs(to_pdf(chi2_name).c_str());
 
     auto c_pval =
-        new TCanvas(h_pval->GetName(), h_pval->GetName(), cdim[0], cdim[1]);
+        new TCanvas(h_pval->GetName(), h_pval->GetName(), cdim2[0], cdim2[1]);
     draw_pval(h_pval, title, log10_rk_tolerance);
     c_pval->SaveAs(to_pdf(pval_name).c_str());
+
+    std::ofstream f;
+
+    std::string fname = tag + ".txt";
+    f.open(fname.c_str());
+
+    f << "N, mean, stddev, N_error, mean_error, stddev_error, ndf, chi2, "
+         "ndf/chi2, pval, N_4sigma, N_4sigma_fraction, N_4sigma_expected, "
+         "N_4sigma/N_4sigma_expected";
+    f << std::endl;
+
+    for (const auto& n : finfo_l0) {
+        f << n << ",";
+    }
+    f << std::endl;
+
+    for (const auto& n : finfo_l1) {
+        f << n << ",";
+    }
+    f << std::endl;
+
+    for (const auto& n : finfo_phi) {
+        f << n << ",";
+    }
+    f << std::endl;
+
+    for (const auto& n : finfo_theta) {
+        f << n << ",";
+    }
+    f << std::endl;
+
+    for (const auto& n : finfo_qop) {
+        f << n << ",";
+    }
+    f << std::endl;
+
+    f.close();
 }
 
 // ROOT Script for covariance file reading

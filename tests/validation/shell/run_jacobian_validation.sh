@@ -21,7 +21,16 @@ log10_helix_tol=-3
 # Surface tolerance [log10 in mm]
 log10_on_surface_tol=-3
 
-while getopts "hd:n:t:p:q:i:" arg; do
+# Monte-Carlo seed
+mc_seed=0
+
+# Skip the second phase
+skip_second_phase=false
+
+# Verbose level
+verbose_level=1
+
+while getopts "hd:n:t:p:q:i:s:r:v:" arg; do
     case $arg in
         h)
             echo ""
@@ -34,6 +43,9 @@ while getopts "hd:n:t:p:q:i:" arg; do
             echo "-p <log10(min_rk_error_tolerance_in_mm)>"
             echo "-q <log10(max_rk_error_tolerance_in_mm)>"
             echo "-i <log10(intersection_tolerance_in_mm)>"
+            echo "-s <Monte-Carlo seed>"
+            echo "-r <Skip the second phase>"
+            echo "-v <Verbose level>"
             echo ""
             exit 0
         ;;
@@ -62,6 +74,18 @@ while getopts "hd:n:t:p:q:i:" arg; do
             log10_on_surface_tol=$OPTARG
             echo "log10(intersection_tolerance_in_mm): ${log10_helix_tol}"
         ;;
+        s)
+            mc_seed=$OPTARG
+            echo "Monte-Carlo seed: ${mc_seed}"
+        ;;
+        r)
+            skip_second_phase=$OPTARG
+            echo "Skip the second phase: ${skip_second_phase}"
+        ;;
+        v)
+            verbose_level=$OPTARG
+            echo "Set the verbose level: ${verbose_level}"
+        ;;
     esac
 done
 
@@ -78,20 +102,28 @@ fi
 
 echo "Starting rk toleracne iteration..."
 
+# Remove the old directories
+for (( i=0; i < ${n_threads}; ++i ))
+do
+    rm -rf ${PWD}/thread_${i}
+done
+rm -rf ${PWD}/merged
+
 for (( i=0; i < ${n_threads}; ++i ))
 do
     n_skips=`expr ${i} \* ${n_tracks_per_thread}`
     
     command_rk_tolerance="${dir}/detray_test_jacobian_validation \
-    --output-directory=${i} \
+    --output-directory=thread_${i} \
     --rk-tolerance-iterate-mode=true \
     --n-tracks=${n_tracks_per_thread} \
     --n-skips=${n_skips} \
     --log10-min-rk-tolerance=${log10_min_rk_tol} \
     --log10-max-rk-tolerance=${log10_max_rk_tol} \
     --log10-helix-tolerance=${log10_helix_tol} \
-    --log10-on-surface-tolerance=${log10_on_surface_tol}"
-    
+    --log10-on-surface-tolerance=${log10_on_surface_tol} \
+    --mc-seed=${mc_seed} \
+    --verbose-level=${verbose_level}"
     ${command_rk_tolerance} &
 done
 wait
@@ -102,26 +134,30 @@ echo "Finished rk toleracne iteration"
 # Jacobi validation & Cov transport #
 #####################################
 
-echo "Starting Jacobi validation & Cov transport..."
-
-for (( i=0; i < ${n_threads}; ++i ))
-do
-    n_skips=`expr ${i} \* ${n_tracks_per_thread}`
+if [ "$skip_second_phase" = false ] ; then
     
-    command_jacobi_validation="${dir}/detray_test_jacobian_validation \
-    --output-directory=${i} \
-    --rk-tolerance-iterate-mode=false \
-    --n-tracks=${n_tracks_per_thread} \
-    --n-skips=${n_skips} \
-    --log10-rk-tolerance=${log10_min_rk_tol} \
-    --log10-helix-tolerance=${log10_helix_tol} \
-    --log10-on-surface-tolerance=${log10_on_surface_tol}"
+    echo "Starting Jacobi validation & Cov transport..."
     
-    ${command_jacobi_validation} &
-done
-wait
-
-echo "Finished Jacobi validation & Cov transport"
+    for (( i=0; i < ${n_threads}; ++i ))
+    do
+        n_skips=`expr ${i} \* ${n_tracks_per_thread}`
+        
+        command_jacobi_validation="${dir}/detray_test_jacobian_validation \
+        --output-directory=thread_${i} \
+        --rk-tolerance-iterate-mode=false \
+        --n-tracks=${n_tracks_per_thread} \
+        --n-skips=${n_skips} \
+        --log10-rk-tolerance=${log10_min_rk_tol} \
+        --log10-helix-tolerance=${log10_helix_tol} \
+        --log10-on-surface-tolerance=${log10_on_surface_tol} \
+        --mc-seed=${mc_seed}
+        --verbose-level=${verbose_level}"
+        ${command_jacobi_validation} &
+    done
+    wait
+    
+    echo "Finished Jacobi validation & Cov transport"
+fi
 
 ###################
 # Merge Csv files #
@@ -132,10 +168,17 @@ echo "Starting merging Csv files..."
 file_names=()
 
 # Get the unique file names
-for full_name in ./0/*; do
-    name=$(basename -- "$full_name")
-    file_names+=(${name})
+echo ""
+echo "/// Merged Csv file list ///"
+for full_name in ./thread_0/*; do
+    # Only take csv format files
+    if [[ "$full_name" == *".csv" ]];then
+        name=$(basename -- "$full_name")
+        file_names+=(${name})
+        echo $name
+    fi
 done
+echo ""
 
 output_dir=merged
 mkdir -p ${output_dir}
@@ -145,7 +188,7 @@ do
     arr=()
     for (( i=0; i < ${n_threads}; ++i ))
     do
-        arr+=(${i}/${name})
+        arr+=(thread_${i}/${name})
     done
     awk 'FNR==1 && NR!=1{next;}{print}' ${arr[@]} > ./${output_dir}/${name}
 done
@@ -158,11 +201,18 @@ echo "Finished merging Csv files"
 
 cd ${output_dir}
 
-# Run rk_tolerance_comparision.C
-root -q '../../../../tests/validation/root/rk_tolerance_comparison.C+O('${log10_min_rk_tol}','${log10_max_rk_tol}')'
+if [ "$skip_second_phase" = false ] ; then
+    
+    # Run rk_tolerance_comparision.C
+    root -q '../../../../tests/validation/root/rk_tolerance_comparison.C+O('${log10_min_rk_tol}','${log10_max_rk_tol}')'
+    
+    # Run jacobian_comparison.C
+    root -q -l ../../../../tests/validation/root/jacobian_comparison.C+O
+    
+    # Run covariance_validation.C
+    root -q -l ../../../../tests/validation/root/covariance_validation.C+O
+else 
 
-# Run jacobian_comparison.C
-root -q -l ../../../../tests/validation/root/jacobian_comparison.C+O
-
-# Run covariance_validation.C
-root -q -l ../../../../tests/validation/root/covariance_validation.C+O
+    # Run rk_tolerance_comparision.C
+    root '../../../../tests/validation/root/rk_tolerance_comparison.C+O('${log10_min_rk_tol}','${log10_max_rk_tol}')'
+fi

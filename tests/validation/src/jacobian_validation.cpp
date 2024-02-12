@@ -51,25 +51,71 @@ using matrix_type = typename matrix_operator::template matrix_type<ROWS, COLS>;
 
 namespace {
 
-// Setup
-const vector3 B_z{0.f, 0.f, 1.997f * unit<scalar>::T};
-const std::array<scalar, 5u> h_sizes_rect = {1e-1f, 1e-1f, 2e-2f, 2e-2f, 1e-2f};
-const std::array<scalar, 5u> h_sizes_wire = {1e-1f, 1e-1f, 2e-2f, 2e-2f, 1e-2f};
-const scalar constraint_step_size = 10000.f * unit<scalar>::mm;
+// B-field Setup
+// 1.996 T from averaged Bz strength of ODD field in the region of sqrt(x^2 +
+// y^2) < 500 mm and abs(z) < 500 mm
+const vector3 B_z{0.f, 0.f, 1.996f * unit<scalar>::T};
+
+// Initial delta for numerical differentiaion
+const std::array<scalar, 5u> h_sizes_rect{1e-1f, 1e-1f, 1e-2f, 1e-3f, 1e-2f};
+const std::array<scalar, 5u> h_sizes_wire{1e-1f, 1e-1f, 1e-2f, 1e-3f, 1e-2f};
+
+// Ridders' algorithm setup
+constexpr const unsigned int Nt = 10u;
+const std::array<scalar, 5u> safe{2.0f, 2.0f, 2.0f, 2.0f, 2.0f};
+const std::array<scalar, 5u> con{1.2f, 1.2f, 1.2f, 1.2f, 1.2f};
+constexpr const scalar big = std::numeric_limits<scalar>::max();
 
 std::random_device rd;
-std::mt19937 mt(rd());
+// For detector generation
+std::mt19937_64 mt1(rd());
+// For smearing initial parameter
+std::mt19937_64 mt2(rd());
 
 // Detector length generator
-constexpr const scalar min_length = 100.f * unit<scalar>::mm;
-constexpr const scalar max_length = 700.f * unit<scalar>::mm;
-std::uniform_real_distribution<scalar> rand_length(min_length, max_length);
-// Wiggling the Destination surface
-std::uniform_real_distribution<scalar> rand_tilt(-constant<scalar>::pi / 4.f,
-                                                 constant<scalar>::pi / 4.f);
-constexpr const scalar shift = 10.f * unit<scalar>::mm;
+constexpr const scalar min_detector_length = 50.f * unit<scalar>::mm;
+constexpr const scalar max_detector_length = 500.f * unit<scalar>::mm;
+std::uniform_real_distribution<scalar> rand_length(min_detector_length,
+                                                   max_detector_length);
+
+// Euler angles for the surface rotation
+std::uniform_real_distribution<scalar> rand_alpha(0.f,
+                                                  2.f * constant<scalar>::pi);
+std::uniform_real_distribution<scalar> rand_cosbeta(0.5f, 1.f);
+std::uniform_int_distribution<int> rand_bool(0, 1);
+std::uniform_real_distribution<scalar> rand_gamma(0.f,
+                                                  2.f * constant<scalar>::pi);
+
+// constexpr const scalar shift = 5.f * unit<scalar>::mm;
+//  Shift is disabled at the moment
+constexpr const scalar shift = 0.f * unit<scalar>::mm;
 std::uniform_real_distribution<scalar> rand_shift(-shift, shift);
+
+// surface types
+using rect_type = rectangle2D<>;
+using wire_type = line<true>;
+
 }  // namespace
+
+void wrap_angles(const bound_vector_type& ref_vector,
+                 bound_vector_type& target_vector) {
+
+    const scalar rphi = getter::element(ref_vector, e_bound_phi, 0u);
+    const scalar tphi = getter::element(target_vector, e_bound_phi, 0u);
+    scalar new_tphi = tphi;
+
+    if (rphi >= constant<scalar>::pi_2) {
+        if (tphi < 0.f) {
+            new_tphi += 2.f * constant<scalar>::pi;
+        }
+    } else if (rphi < -constant<scalar>::pi_2) {
+        if (tphi >= 0.f) {
+            new_tphi -= 2.f * constant<scalar>::pi;
+        }
+    }
+
+    getter::element(target_vector, e_bound_phi, 0u) = new_tphi;
+}
 
 scalar get_relative_difference(scalar ref_val, scalar num_val) {
     scalar rel_diff{0.f};
@@ -98,29 +144,50 @@ bound_covariance_type get_random_initial_covariance(const scalar ini_qop) {
     // Random correction factor
     std::uniform_real_distribution<scalar> rand_corr(min_corr, max_corr);
 
-    // Random stddev
-    std::normal_distribution<scalar> rand_l0(0.f, 50.f * unit<scalar>::um);
-    std::normal_distribution<scalar> rand_l1(0.f, 50.f * unit<scalar>::um);
-    std::normal_distribution<scalar> rand_phi(0.f, 1.f * unit<scalar>::mrad);
-    std::normal_distribution<scalar> rand_theta(0.f, 1.f * unit<scalar>::mrad);
+    std::normal_distribution<scalar> rand_l0(0.f * unit<scalar>::um,
+                                             50.f * unit<scalar>::um);
+    std::normal_distribution<scalar> rand_l1(0.f * unit<scalar>::um,
+                                             50.f * unit<scalar>::um);
+    std::normal_distribution<scalar> rand_phi(0.f * unit<scalar>::mrad,
+                                              1.f * unit<scalar>::mrad);
+    std::normal_distribution<scalar> rand_theta(0.f * unit<scalar>::mrad,
+                                                1.f * unit<scalar>::mrad);
     std::normal_distribution<scalar> rand_qop(0.f, 0.01f * ini_qop);
-    std::normal_distribution<scalar> rand_time(0.f, 1.f * unit<scalar>::ns);
+    std::normal_distribution<scalar> rand_time(0.f * unit<scalar>::ns,
+                                               1.f * unit<scalar>::ns);
+
+    /*
+    // Typical stddev range taken from the figures of ATL-PHYS-PUB-2021-024 and
+    // ATLAS-TDR-030
+    std::normal_distribution<scalar> rand_l0(5.f * unit<scalar>::um,
+                                             200.f * unit<scalar>::um);
+    std::normal_distribution<scalar> rand_l1(10.f * unit<scalar>::um,
+                                             4000.f * unit<scalar>::um);
+    std::normal_distribution<scalar> rand_phi(0.05f * unit<scalar>::mrad,
+                                              5.0f * unit<scalar>::mrad);
+    std::normal_distribution<scalar> rand_theta(0.01f * unit<scalar>::mrad,
+                                                2.0f * unit<scalar>::mrad);
+    std::normal_distribution<scalar> rand_qop(0.01f * ini_qop, 0.1f * ini_qop);
+    std::normal_distribution<scalar> rand_time(0.f * unit<scalar>::ns,
+                                               1.f * unit<scalar>::ns);
+    */
 
     std::array<scalar, 6u> stddevs;
-    stddevs[0] = rand_l0(mt);
-    stddevs[1] = rand_l1(mt);
-    stddevs[2] = rand_phi(mt);
-    stddevs[3] = rand_theta(mt);
-    stddevs[4] = rand_qop(mt);
-    stddevs[5] = rand_time(mt);
+    stddevs[0] = rand_l0(mt2);
+    stddevs[1] = rand_l1(mt2);
+    stddevs[2] = rand_phi(mt2);
+    stddevs[3] = rand_theta(mt2);
+    stddevs[4] = rand_qop(mt2);
+    stddevs[5] = rand_time(mt2);
 
     for (unsigned int i = 0u; i < 6u; i++) {
         for (unsigned int j = 0u; j < 6u; j++) {
             if (i == j) {
                 getter::element(ini_cov, i, i) = stddevs[i] * stddevs[i];
-            } else {
+            } else if (i > j) {
                 getter::element(ini_cov, i, j) =
-                    stddevs[i] * stddevs[j] * rand_corr(mt);
+                    stddevs[i] * stddevs[j] * rand_corr(mt2);
+                getter::element(ini_cov, j, i) = getter::element(ini_cov, i, j);
             }
         }
     }
@@ -141,7 +208,7 @@ bound_vector_type get_smeared_bound_vector(const bound_covariance_type& ini_cov,
     std::normal_distribution<scalar> normal_dist(0.f, 1.f);
     for (unsigned int i = 0u; i < 5u; i++) {
         // Smear the value
-        getter::element(k, i, 0) = normal_dist(mt);
+        getter::element(k, i, 0) = normal_dist(mt2);
     }
 
     const bound_vector_type new_vec = ini_vec + L * k;
@@ -149,39 +216,66 @@ bound_vector_type get_smeared_bound_vector(const bound_covariance_type& ini_cov,
     return new_vec;
 }
 
-template <typename detector_t>
-void tilt_surface(detector_t& det, const unsigned int sf_id) {
+template <typename detector_t, typename detector_t::metadata::mask_ids mask_id>
+std::pair<euler_rotation<transform3_type>, std::array<scalar, 3u>> tilt_surface(
+    detector_t& det, const unsigned int sf_id, const vector3& helix_dir) {
 
     const auto& sf = det.surface(sf_id);
     const auto& trf_link = sf.transform();
     auto& trf = det.transform_store()[trf_link];
-    vector3 local_z = trf.z();
 
-    // Rotate z axis
-    auto curvi_u = unit_vectors<vector3>().make_curvilinear_unit_u(local_z);
+    euler_rotation<transform3_type> euler;
+    euler.alpha = rand_alpha(mt1);
 
-    const scalar alpha = rand_tilt(mt);
-    const scalar beta = rand_tilt(mt);
-    axis_rotation<transform3_type> axis_rot_alpha(curvi_u, alpha);
-    local_z = axis_rot_alpha(local_z);
+    if (sf_id == 1u) {
+        const int is_counterclockwise = rand_bool(mt1);
+        auto beta = math::acos(rand_cosbeta(mt1));
+        if (is_counterclockwise == 0) {
+            beta = -beta;
+        }
+        euler.beta = beta;
+        euler.gamma = rand_gamma(mt1);
+    }
 
-    axis_rotation<transform3_type> axis_rot_beta(local_z, beta);
-    const auto local_x = axis_rot_beta(curvi_u);
+    // Helix direction
+    euler.z = helix_dir;
 
-    // Make sure that local x and z axis are orthogonal to each other
-    EXPECT_LE(abs(vector::dot(local_z, local_x)), 1e-6);
+    if constexpr (mask_id == detector_t::masks::id::e_rectangle2) {
+        // ubasis = trf.x() for bound frame
+        euler.x = trf.x();
+    } else if (mask_id == detector_t::masks::id::e_cell_wire) {
+        // ubasis = vxt/|vxt| where v is trf.z() and t is helix_dir
+        EXPECT_NEAR(vector::dot(trf.z(), helix_dir), 0.f, 1e-6f);
+        euler.x = vector::normalize(vector::cross(trf.z(), helix_dir));
+    }
 
+    EXPECT_NEAR(vector::dot(euler.x, euler.z), 0.f, 1e-6f);
+
+    auto [local_x, local_z] = euler();
+
+    if constexpr (mask_id == detector_t::masks::id::e_cell_wire) {
+        // local_z should be the line direction
+        local_z = vector::cross(local_z, local_x);
+    }
+
+    scalar x_shift{0.f};
+    scalar y_shift{0.f};
+    scalar z_shift{0.f};
+
+    if (sf_id == 1u) {
+        x_shift = rand_shift(mt1);
+        y_shift = rand_shift(mt1);
+        z_shift = rand_shift(mt1);
+    }
     // Translation vector
-    const scalar x_shift = rand_shift(mt);
-    const scalar y_shift = rand_shift(mt);
-    const scalar z_shift = rand_shift(mt);
+    vector3 translation = trf.translation();
 
     vector3 displacement({x_shift, y_shift, z_shift});
-    vector3 translation = trf.translation() + displacement;
-
+    translation = trf.translation() + displacement;
     transform3_type new_trf(translation, local_z, local_x, true);
-
     det.transform_store()[trf_link] = new_trf;
+
+    return {euler, {x_shift, y_shift, z_shift}};
 }
 
 template <typename transform3_t>
@@ -196,6 +290,7 @@ struct bound_getter : actor {
 
     struct state {
 
+        scalar m_min_path_length;
         scalar m_path_length;
         bound_track_parameters_type m_param_departure;
         bound_track_parameters_type m_param_destination;
@@ -235,6 +330,10 @@ struct bound_getter : actor {
             propagation._heartbeat &= navigation.exit();
         }
 
+        if (stepping._path_length > actor_state.m_min_path_length) {
+            propagation._navigation.set_no_trust();
+        }
+
         return;
     }
 };
@@ -242,11 +341,12 @@ struct bound_getter : actor {
 /// Numerically integrate the jacobian
 template <typename propagator_t, typename field_t>
 bound_getter<transform3_type>::state evaluate_bound_param(
+    const scalar detector_length,
     const bound_track_parameters<transform3_type>& initial_param,
     const typename propagator_t::detector_type& det, const field_t& field,
     const scalar overstep_tolerance, const scalar on_surface_tolerance,
     const scalar rk_tolerance, const scalar constraint_step,
-    bool use_field_gradient) {
+    bool use_field_gradient, bool do_inspect = false) {
 
     // Propagator is built from the stepper and navigator
     propagation::config<scalar> cfg{};
@@ -260,6 +360,7 @@ bound_getter<transform3_type>::state evaluate_bound_param(
     // Actor states
     parameter_transporter<transform3_type>::state transporter_state{};
     bound_getter<transform3_type>::state bound_getter_state{};
+    bound_getter_state.m_min_path_length = detector_length * 0.75f;
     parameter_resetter<transform3_type>::state resetter_state{};
     auto actor_states =
         std::tie(transporter_state, bound_getter_state, resetter_state);
@@ -268,11 +369,15 @@ bound_getter<transform3_type>::state evaluate_bound_param(
     typename propagator_t::state state(initial_param, field, det);
 
     // Run the propagation for the reference track
+    state.do_debug = do_inspect;
     state._stepping
         .template set_constraint<detray::step::constraint::e_accuracy>(
             constraint_step);
 
     p.propagate(state, actor_states);
+    if (do_inspect) {
+        std::cout << state.debug_stream.str() << std::endl;
+    }
 
     return bound_getter_state;
 }
@@ -281,7 +386,8 @@ template <typename propagator_t, typename field_t>
 typename bound_track_parameters<transform3_type>::vector_type
 get_displaced_bound_vector(
     const bound_track_parameters<transform3_type>& ref_param,
-    const typename propagator_t::detector_type& det, const field_t& field,
+    const typename propagator_t::detector_type& det,
+    const scalar detector_length, const field_t& field,
     const scalar overstep_tolerance, const scalar on_surface_tolerance,
     const scalar rk_tolerance, const scalar constraint_step,
     const unsigned int target_index, const scalar displacement) {
@@ -306,6 +412,7 @@ get_displaced_bound_vector(
     parameter_transporter<transform3_type>::state transporter_state{};
     parameter_resetter<transform3_type>::state resetter_state{};
     bound_getter<transform3_type>::state bound_getter_state{};
+    bound_getter_state.m_min_path_length = detector_length * 0.75f;
 
     auto actor_states =
         std::tie(transporter_state, bound_getter_state, resetter_state);
@@ -315,7 +422,10 @@ get_displaced_bound_vector(
 
     p.propagate(dstate, actor_states);
 
-    const auto new_vec = bound_getter_state.m_param_destination.vector();
+    auto new_vec = bound_getter_state.m_param_destination.vector();
+
+    // phi needs to be wrapped w.r.t. phi of the reference vector
+    wrap_angles(ref_param.vector(), new_vec);
 
     return new_vec;
 }
@@ -324,52 +434,129 @@ get_displaced_bound_vector(
 template <typename propagator_t, typename field_t>
 bound_track_parameters<transform3_type>::covariance_type directly_differentiate(
     const bound_track_parameters<transform3_type>& ref_param,
-    const typename propagator_t::detector_type& det, const field_t& field,
+    const typename propagator_t::detector_type& det,
+    const scalar detector_length, const field_t& field,
     const scalar overstep_tolerance, const scalar on_surface_tolerance,
     const scalar rk_tolerance, const scalar constraint_step,
-    const std::array<scalar, 5u> hs, const scalar avg_step_size) {
+    const std::array<scalar, 5u> hs,
+    [[maybe_unused]] const scalar avg_step_size,
+    std::array<bool, 25>& convergence) {
 
     // Return Jacobian
-    bound_track_parameters<transform3_type>::covariance_type eval_jacobian;
+    bound_track_parameters<transform3_type>::covariance_type
+        differentiated_jacobian;
 
     for (unsigned int i = 0u; i < 5u; i++) {
 
         scalar delta = hs[i];
 
-        if (i == 0 || i == 1) {
-            delta = math::max(avg_step_size * hs[i], 1e-1f * unit<scalar>::mm);
-        } else if (i == 2 || i == 3) {
-            delta = hs[i];
-        } else if (i == 4) {
-            delta = delta * std::abs(ref_param.qop());
+        if (i == e_bound_theta) {
+            const scalar rtheta = ref_param.theta();
+            if (rtheta < constant<scalar>::pi_2) {
+                delta = math::min(delta, rtheta);
+            } else if (rtheta >= constant<scalar>::pi_2) {
+                delta = math::min(delta, constant<scalar>::pi - rtheta);
+            }
         }
 
-        const auto new_vec0 = get_displaced_bound_vector<propagator_t, field_t>(
-            ref_param, det, field, overstep_tolerance, on_surface_tolerance,
-            rk_tolerance, constraint_step, i, 2.f * delta);
-        const auto new_vec1 = get_displaced_bound_vector<propagator_t, field_t>(
-            ref_param, det, field, overstep_tolerance, on_surface_tolerance,
-            rk_tolerance, constraint_step, i, 1.f * delta);
-        const auto new_vec2 = get_displaced_bound_vector<propagator_t, field_t>(
-            ref_param, det, field, overstep_tolerance, on_surface_tolerance,
-            rk_tolerance, constraint_step, i, -1.f * delta);
-        const auto new_vec3 = get_displaced_bound_vector<propagator_t, field_t>(
-            ref_param, det, field, overstep_tolerance, on_surface_tolerance,
-            rk_tolerance, constraint_step, i, -2.f * delta);
+        // Containers for Ridders algorithm
+        // Page 231 of [Numerical Recipes] 3rd edition
+        std::array<std::array<std::array<scalar, Nt>, Nt>, 5u> Arr;
+
+        scalar fac;
+        std::array<scalar, 5u> errt;
+        std::array<scalar, 5u> err{big, big, big, big, big};
+        std::array<bool, 5u> complete{false, false, false, false, false};
+
+        const auto vec1 = get_displaced_bound_vector<propagator_t, field_t>(
+            ref_param, det, detector_length, field, overstep_tolerance,
+            on_surface_tolerance, rk_tolerance, constraint_step, i,
+            1.f * delta);
+        const auto vec2 = get_displaced_bound_vector<propagator_t, field_t>(
+            ref_param, det, detector_length, field, overstep_tolerance,
+            on_surface_tolerance, rk_tolerance, constraint_step, i,
+            -1.f * delta);
 
         for (unsigned int j = 0; j < 5u; j++) {
 
-            const scalar v0 = getter::element(new_vec0, j, 0u);
-            const scalar v1 = getter::element(new_vec1, j, 0u);
-            const scalar v2 = getter::element(new_vec2, j, 0u);
-            const scalar v3 = getter::element(new_vec3, j, 0u);
+            const scalar v1 = getter::element(vec1, j, 0u);
+            const scalar v2 = getter::element(vec2, j, 0u);
 
-            getter::element(eval_jacobian, j, i) =
-                (-v0 + 8.f * v1 - 8.f * v2 + v3) / (12.f * delta);
+            Arr[j][0][0] = (v1 - v2) / (2.f * delta);
         }
+
+        for (unsigned int p = 1u; p < Nt; p++) {
+            delta /= con[i];
+
+            const auto nvec1 =
+                get_displaced_bound_vector<propagator_t, field_t>(
+                    ref_param, det, detector_length, field, overstep_tolerance,
+                    on_surface_tolerance, rk_tolerance, constraint_step, i,
+                    1.f * delta);
+            const auto nvec2 =
+                get_displaced_bound_vector<propagator_t, field_t>(
+                    ref_param, det, detector_length, field, overstep_tolerance,
+                    on_surface_tolerance, rk_tolerance, constraint_step, i,
+                    -1.f * delta);
+
+            for (unsigned int j = 0; j < 5u; j++) {
+
+                const scalar v1 = getter::element(nvec1, j, 0u);
+                const scalar v2 = getter::element(nvec2, j, 0u);
+
+                Arr[j][0][p] = (v1 - v2) / (2.f * delta);
+            }
+
+            const scalar con2 = con[i] * con[i];
+            fac = con2;
+
+            for (unsigned int q = 1; q <= p; q++) {
+
+                for (unsigned int j = 0; j < 5u; j++) {
+                    Arr[j][q][p] =
+                        (Arr[j][q - 1][p] * fac - Arr[j][q - 1][p - 1]) /
+                        (fac - 1.0f);
+                    fac = con2 * fac;
+
+                    errt[j] = math::max(
+                        math::abs(Arr[j][q][p] - Arr[j][q - 1][p]),
+                        math::abs(Arr[j][q][p] - Arr[j][q - 1][p - 1]));
+
+                    if (errt[j] <= err[j] && complete[j] == false) {
+                        err[j] = errt[j];
+                        getter::element(differentiated_jacobian, j, i) =
+                            Arr[j][q][p];
+                    }
+                }
+            }
+
+            for (unsigned int j = 0; j < 5u; j++) {
+                if (math::abs(Arr[j][p][p] - Arr[j][p - 1][p - 1]) >=
+                    safe[i] * err[j]) {
+                    complete[j] = true;
+                }
+            }
+
+            if (std::count(complete.begin(), complete.end(), false) == 0u) {
+                break;
+            }
+        }
+
+        // Row-major
+        for (std::size_t j = 0u; j < 5u; j++) {
+            convergence[i + j * 5] = complete[j];
+        }
+
+        /*
+        if (std::count(complete.begin(), complete.end(), false) > 0u) {
+            std::cout << "The jacobian is not converged!" << std::endl;
+        } else {
+            std::cout << "The jacobian is converged!" << std::endl;
+        }
+        */
     }
 
-    return eval_jacobian;
+    return differentiated_jacobian;
 }
 
 template <typename helix_intersector_t, typename detector_t,
@@ -396,9 +583,14 @@ bound_track_parameters<transform3_type> get_initial_parameter(
         << " log10(Helix tolerance): " << math::log10(helix_tolerance)
         << " Phi: " << getter::phi(vertex.dir())
         << " Theta: " << getter::theta(vertex.dir())
-        << " Mom [GeV/c]: " << vertex.p();
+        << " Mom [GeV/c]: " << vertex.p() << std::endl
+        << sfi;
 
     const auto path_length = sfi.path;
+    // As we don't rotate or shift the initial surface anymore, the path_length
+    // should be 0
+    EXPECT_FLOAT_EQ(static_cast<float>(path_length), 0.f);
+
     const auto pos = hlx(path_length);
     const auto dir = hlx.dir(path_length);
 
@@ -418,11 +610,13 @@ bound_track_parameters<transform3_type> get_initial_parameter(
 template <typename propagator_t, typename field_t>
 void evaluate_jacobian_difference(
     const unsigned int trk_count, typename propagator_t::detector_type& det,
+    const scalar detector_length,
     const bound_track_parameters<transform3_type>& track, const field_t& field,
     const material<scalar> volume_mat, const scalar overstep_tolerance,
     const scalar on_surface_tolerance, const scalar rk_tolerance,
     const scalar constraint_step, const std::array<scalar, 5u>& hs,
-    std::ofstream& file, scalar& ref_rel_diff, bool use_field_gradient = true) {
+    std::ofstream& file, scalar& ref_rel_diff, bool use_field_gradient = true,
+    bool do_inspect = false) {
 
     const auto phi0 = track.phi();
     const auto theta0 = track.theta();
@@ -432,8 +626,9 @@ void evaluate_jacobian_difference(
     det.volumes()[0u].set_material(volume_mat);
 
     auto bound_getter = evaluate_bound_param<propagator_t, field_t>(
-        track, det, field, overstep_tolerance, on_surface_tolerance,
-        rk_tolerance, constraint_step, use_field_gradient);
+        detector_length, track, det, field, overstep_tolerance,
+        on_surface_tolerance, rk_tolerance, constraint_step, use_field_gradient,
+        do_inspect);
 
     const auto reference_param = bound_getter.m_param_departure;
     const auto final_param = bound_getter.m_param_destination;
@@ -455,8 +650,8 @@ void evaluate_jacobian_difference(
         << " Phi: " << reference_param.phi()
         << " Theta: " << reference_param.theta()
         << " Mom [GeV/c]: " << reference_param.p();
-    ASSERT_GE(bound_getter.m_path_length, min_length - 10.f * shift);
-    ASSERT_LE(bound_getter.m_path_length, max_length + 100.f * shift);
+    ASSERT_GE(bound_getter.m_path_length, 0.f);
+    ASSERT_LE(bound_getter.m_path_length, max_detector_length + 100.f);
 
     const auto reference_jacobian = bound_getter.m_jacobi;
 
@@ -471,11 +666,22 @@ void evaluate_jacobian_difference(
          << "," << final_param.phi() << "," << final_param.theta() << ","
          << final_param.qop() << ",";
 
+    std::array<bool, 25u> convergence;
+
     auto differentiated_jacobian =
         directly_differentiate<propagator_t, field_t>(
-            reference_param, det, field, overstep_tolerance,
+            reference_param, det, detector_length, field, overstep_tolerance,
             on_surface_tolerance, rk_tolerance, constraint_step, hs,
-            bound_getter.m_avg_step_size);
+            bound_getter.m_avg_step_size, convergence);
+
+    bool total_convergence =
+        (std::count(convergence.begin(), convergence.end(), false) == 0);
+
+    // Convergence
+    file << total_convergence << ",";
+    for (unsigned int i = 0; i < 25u; i++) {
+        file << convergence[i] << ",";
+    }
 
     // Reference track
     for (unsigned int i = 0; i < 5u; i++) {
@@ -530,6 +736,7 @@ void evaluate_jacobian_difference(
 template <typename propagator_t, typename field_t>
 void evaluate_covariance_transport(
     const unsigned int trk_count, typename propagator_t::detector_type& det,
+    const scalar detector_length,
     const bound_track_parameters<transform3_type>& track, const field_t& field,
     const material<scalar> volume_mat, const scalar overstep_tolerance,
     const scalar on_surface_tolerance, const scalar rk_tolerance,
@@ -548,8 +755,9 @@ void evaluate_covariance_transport(
     track_copy.set_covariance(ini_cov);
 
     auto bound_getter = evaluate_bound_param<propagator_t, field_t>(
-        track_copy, det, field, overstep_tolerance, on_surface_tolerance,
-        rk_tolerance, constraint_step, use_field_gradient);
+        detector_length, track_copy, det, field, overstep_tolerance,
+        on_surface_tolerance, rk_tolerance, constraint_step,
+        use_field_gradient);
 
     const auto reference_param = bound_getter.m_param_departure;
     const auto ini_vec = reference_param.vector();
@@ -574,8 +782,8 @@ void evaluate_covariance_transport(
         << " Phi: " << reference_param.phi()
         << " Theta: " << reference_param.theta()
         << " Mom [GeV/c]: " << reference_param.p();
-    ASSERT_GE(bound_getter.m_path_length, min_length - 10.f * shift);
-    ASSERT_LE(bound_getter.m_path_length, max_length + 10.f * shift);
+    ASSERT_GE(bound_getter.m_path_length, min_detector_length - 10.f * shift);
+    ASSERT_LE(bound_getter.m_path_length, max_detector_length + 10.f * shift);
 
     // Get smeared initial bound vector
     const bound_vector_type smeared_ini_vec =
@@ -586,12 +794,16 @@ void evaluate_covariance_transport(
     smeared_track.set_vector(smeared_ini_vec);
 
     auto smeared_bound_getter = evaluate_bound_param<propagator_t, field_t>(
-        smeared_track, det, field, overstep_tolerance, on_surface_tolerance,
-        rk_tolerance, constraint_step, use_field_gradient);
+        detector_length, smeared_track, det, field, overstep_tolerance,
+        on_surface_tolerance, rk_tolerance, constraint_step,
+        use_field_gradient);
 
     // Get smeared final bound vector
-    const bound_vector_type smeared_fin_vec =
+    bound_vector_type smeared_fin_vec =
         smeared_bound_getter.m_param_destination.vector();
+
+    // phi needs to be wrapped w.r.t. phi of the reference vector
+    wrap_angles(fin_vec, smeared_fin_vec);
 
     // Get pull values
     std::array<scalar, 5u> pulls;
@@ -702,9 +914,11 @@ get_displaced_bound_vector_helix(
 
     const free_track_parameters<transform3_type> new_free_par(pos, 0, dir,
                                                               hlx._qop);
-    const auto new_bound_vec =
-        surface{det, destination_sf}.free_to_bound_vector(
-            {}, new_free_par.vector());
+    auto new_bound_vec = surface{det, destination_sf}.free_to_bound_vector(
+        {}, new_free_par.vector());
+
+    // phi needs to be wrapped w.r.t. phi of the reference vector
+    wrap_angles(dvec, new_bound_vec);
 
     return new_bound_vec;
 }
@@ -789,36 +1003,108 @@ void evaluate_jacobian_difference_helix(
     bound_track_parameters<transform3_type>::covariance_type
         differentiated_jacobian;
 
-    for (unsigned int i = 0; i < 5u; i++) {
+    std::array<bool, 25u> convergence;
 
-        const auto new_vec0 =
-            get_displaced_bound_vector_helix<helix_intersector_t, detector_t,
-                                             mask_id>(
-                track, field, i, 2.f * hs[i], det, helix_tolerance);
-        const auto new_vec1 =
-            get_displaced_bound_vector_helix<helix_intersector_t, detector_t,
-                                             mask_id>(
-                track, field, i, 1.f * hs[i], det, helix_tolerance);
-        const auto new_vec2 =
-            get_displaced_bound_vector_helix<helix_intersector_t, detector_t,
-                                             mask_id>(
-                track, field, i, -1.f * hs[i], det, helix_tolerance);
-        const auto new_vec3 =
-            get_displaced_bound_vector_helix<helix_intersector_t, detector_t,
-                                             mask_id>(
-                track, field, i, -2.f * hs[i], det, helix_tolerance);
+    for (unsigned int i = 0u; i < 5u; i++) {
+
+        scalar delta = hs[i];
+
+        if (i == e_bound_theta) {
+            const scalar rtheta = track.theta();
+            if (rtheta < constant<scalar>::pi_2) {
+                delta = math::min(delta, rtheta);
+            } else if (rtheta >= constant<scalar>::pi_2) {
+                delta = math::min(delta, constant<scalar>::pi - rtheta);
+            }
+        }
+
+        // Containers for Ridders algorithm
+        // Page 231 of [Numerical Recipes] 3rd edition
+        std::array<std::array<std::array<scalar, Nt>, Nt>, 5u> Arr;
+
+        scalar fac;
+        std::array<scalar, 5u> errt;
+        std::array<scalar, 5u> err{big, big, big, big, big};
+        std::array<bool, 5u> complete{false, false, false, false, false};
+
+        const auto vec1 = get_displaced_bound_vector_helix<helix_intersector_t,
+                                                           detector_t, mask_id>(
+            track, field, i, 1.f * delta, det, helix_tolerance);
+        const auto vec2 = get_displaced_bound_vector_helix<helix_intersector_t,
+                                                           detector_t, mask_id>(
+            track, field, i, -1.f * delta, det, helix_tolerance);
 
         for (unsigned int j = 0; j < 5u; j++) {
 
-            const scalar v0 = getter::element(new_vec0, j, 0u);
-            const scalar v1 = getter::element(new_vec1, j, 0u);
-            const scalar v2 = getter::element(new_vec2, j, 0u);
-            const scalar v3 = getter::element(new_vec3, j, 0u);
+            const scalar v1 = getter::element(vec1, j, 0u);
+            const scalar v2 = getter::element(vec2, j, 0u);
 
-            getter::element(differentiated_jacobian, j, i) =
-                (-v0 + 8.f * v1 - 8.f * v2 + v3) / (12.f * hs[i]);
+            Arr[j][0][0] = (v1 - v2) / (2.f * delta);
+        }
+
+        for (unsigned int p = 1u; p < Nt; p++) {
+            delta /= con[i];
+
+            const auto nvec1 =
+                get_displaced_bound_vector_helix<helix_intersector_t,
+                                                 detector_t, mask_id>(
+                    track, field, i, 1.f * delta, det, helix_tolerance);
+            const auto nvec2 =
+                get_displaced_bound_vector_helix<helix_intersector_t,
+                                                 detector_t, mask_id>(
+                    track, field, i, -1.f * delta, det, helix_tolerance);
+
+            for (unsigned int j = 0; j < 5u; j++) {
+
+                const scalar v1 = getter::element(nvec1, j, 0u);
+                const scalar v2 = getter::element(nvec2, j, 0u);
+
+                Arr[j][0][p] = (v1 - v2) / (2.f * delta);
+            }
+
+            const scalar con2 = con[i] * con[i];
+            fac = con2;
+
+            for (unsigned int q = 1; q <= p; q++) {
+
+                for (unsigned int j = 0; j < 5u; j++) {
+                    Arr[j][q][p] =
+                        (Arr[j][q - 1][p] * fac - Arr[j][q - 1][p - 1]) /
+                        (fac - 1.0f);
+                    fac = con2 * fac;
+
+                    errt[j] = math::max(
+                        math::abs(Arr[j][q][p] - Arr[j][q - 1][p]),
+                        math::abs(Arr[j][q][p] - Arr[j][q - 1][p - 1]));
+
+                    if (errt[j] <= err[j] && complete[j] == false) {
+                        err[j] = errt[j];
+                        getter::element(differentiated_jacobian, j, i) =
+                            Arr[j][q][p];
+                    }
+                }
+            }
+
+            for (unsigned int j = 0; j < 5u; j++) {
+
+                if (math::abs(Arr[j][p][p] - Arr[j][p - 1][p - 1]) >=
+                    safe[i] * err[j]) {
+                    complete[j] = true;
+                }
+            }
+
+            if (std::count(complete.begin(), complete.end(), false) == 0u) {
+                break;
+            }
+        }
+
+        for (std::size_t j = 0u; j < 5u; j++) {
+            convergence[i + j * 5] = complete[j];
         }
     }
+
+    bool total_convergence =
+        (std::count(convergence.begin(), convergence.end(), false) == 0);
 
     file << trk_count << ",";
 
@@ -830,6 +1116,12 @@ void evaluate_jacobian_difference_helix(
          << getter::element(bound_vec, e_bound_phi, 0u) << ","
          << getter::element(bound_vec, e_bound_theta, 0u) << ","
          << getter::element(bound_vec, e_bound_qoverp, 0u) << ",";
+
+    // Convergence
+    file << total_convergence << ",";
+    for (unsigned int i = 0; i < 25u; i++) {
+        file << convergence[i] << ",";
+    }
 
     // Reference track
     for (unsigned int i = 0; i < 5u; i++) {
@@ -888,6 +1180,15 @@ void setup_csv_header_jacobian(std::ofstream& file) {
 
     // Final Parameter at the destination surface
     file << "l0_F,l1_F,phi_F,theta_F,qop_F,";
+
+    // Convergence
+    file << "total_convergence,";
+    file << "dl0dl0_C,dl0dl1_C,dl0dphi_C,dl0dtheta_C,dl0dqop_C,";
+    file << "dl1dl0_C,dl1dl1_C,dl1dphi_C,dl1dtheta_C,dl1dqop_C,";
+    file << "dphidl0_C,dphidl1_C,dphidphi_C,dphidtheta_C,dphidqop_C,";
+    file << "dthetadl0_C,dthetadl1_C,dthetadphi_C,dthetadtheta_C,"
+            "dthetadqop_C,";
+    file << "dqopdl0_C,dqopdl1_C,dqopdphi_C,dqopdtheta_C,dqopdqop_C,";
 
     // Evaluation
     file << "dl0dl0_E,dl0dl1_E,dl0dphi_E,dl0dtheta_E,dl0dqop_E,";
@@ -1010,7 +1311,7 @@ int main(int argc, char** argv) {
                        "Set log10(helix_tolerance_in_mm)");
     desc.add_options()("overstep-tolerance-mm",
                        po::value<scalar>()->default_value(-1000.f),
-                       "Set the overstep tolerance in um unit");
+                       "Set the overstep tolerance in mm unit");
     desc.add_options()("log10-on-surface-tolerance-mm",
                        po::value<scalar>()->default_value(-3.f),
                        "Set log10(on_surface_tolerance_in_mm)");
@@ -1051,8 +1352,6 @@ int main(int argc, char** argv) {
     const scalar rk_tol = std::pow(10.f, rk_power) * unit<scalar>::mm;
     const scalar helix_power = vm["log10-helix-tolerance-mm"].as<scalar>();
     const scalar helix_tol = std::pow(10.f, helix_power) * unit<scalar>::mm;
-    const scalar overstep_tol =
-        vm["overstep-tolerance-mm"].as<scalar>() * unit<scalar>::mm;
     const scalar on_surface_power =
         vm["log10-on-surface-tolerance-mm"].as<scalar>() * unit<scalar>::mm;
     const scalar on_surface_tol = math::pow(10.f, on_surface_power);
@@ -1073,7 +1372,7 @@ int main(int argc, char** argv) {
     }
 
     // Set seed for random generator
-    mt.seed(mc_seed);
+    mt1.seed(mc_seed);
 
     // Volume material
     // const material<scalar> volume_mat = detray::silicon<scalar>();
@@ -1158,14 +1457,8 @@ int main(int argc, char** argv) {
     ::testing::InitGoogleTest(&argc, argv);
 
     // Detector types
-    using rectangle_telescope = detector<telescope_metadata<rectangle2D<>>>;
-    using wire_telescope = detector<telescope_metadata<line<true>>>;
-
-    mask<rectangle2D<>> rect{0u, 10000.f * unit<scalar>::mm,
-                             10000.f * unit<scalar>::mm};
-    mask<line<true>> wire{0u, 10000.f * unit<scalar>::mm,
-                          10000.f * unit<scalar>::mm};
-
+    using rectangle_telescope = detector<telescope_metadata<rect_type>>;
+    using wire_telescope = detector<telescope_metadata<wire_type>>;
     using track_type = free_track_parameters<transform3_type>;
 
     // Constant magnetic field type
@@ -1190,6 +1483,7 @@ int main(int argc, char** argv) {
                        std::seed_seq>;
     using trk_generator_t = random_track_generator<track_type, uniform_gen_t>;
     trk_generator_t::configuration trk_gen_cfg{};
+    trk_gen_cfg.seed(mc_seed);
     trk_gen_cfg.n_tracks(n_tracks + n_skips);
     trk_gen_cfg.phi_range(-constant<scalar>::pi, constant<scalar>::pi);
     trk_gen_cfg.theta_range(0.f, constant<scalar>::pi);
@@ -1198,71 +1492,153 @@ int main(int argc, char** argv) {
     trk_gen_cfg.origin_stddev({0.f * unit<scalar>::mm, 0.f * unit<scalar>::mm,
                                0.f * unit<scalar>::mm});
 
-    unsigned int track_count = 0u;
-
     // Vectors for dqopdqop relative difference
     std::vector<std::vector<scalar>> dqopdqop_rel_diffs_rect(log10_tols.size());
     std::vector<std::vector<scalar>> dqopdqop_rel_diffs_wire(log10_tols.size());
 
+    bool do_inspect = false;
+    if (verbose_lvl >= 4) {
+        do_inspect = true;
+    }
+
+    // Navigator types
+    using rect_navigator_t = navigator<rectangle_telescope>;
+    using wire_navigator_t = navigator<wire_telescope>;
+
+    // Stepper types
+    using const_field_stepper_t =
+        rk_stepper<const_bfield_t::view_t, transform3_type, constrained_step<>,
+                   stepper_default_policy>;
+    using inhom_field_stepper_t =
+        rk_stepper<inhom_bfield_t::view_t, transform3_type, constrained_step<>,
+                   stepper_default_policy>;
+
+    // Make four propagators for each case
+    using const_field_rect_propagator_t =
+        propagator<const_field_stepper_t, rect_navigator_t, actor_chain_t>;
+    using inhom_field_rect_propagator_t =
+        propagator<inhom_field_stepper_t, rect_navigator_t, actor_chain_t>;
+
+    using const_field_wire_propagator_t =
+        propagator<const_field_stepper_t, wire_navigator_t, actor_chain_t>;
+    using inhom_field_wire_propagator_t =
+        propagator<inhom_field_stepper_t, wire_navigator_t, actor_chain_t>;
+
+    unsigned int track_count = 0u;
+
     for (const auto track : trk_generator_t{trk_gen_cfg}) {
-
-        // Navigator types
-        using rect_navigator_t = navigator<rectangle_telescope>;
-        using wire_navigator_t = navigator<wire_telescope>;
-
-        // Stepper types
-        using const_field_stepper_t =
-            rk_stepper<const_bfield_t::view_t, transform3_type,
-                       constrained_step<>, stepper_default_policy>;
-        using inhom_field_stepper_t =
-            rk_stepper<inhom_bfield_t::view_t, transform3_type,
-                       constrained_step<>, stepper_default_policy>;
-
-        // Make four propagators for each case
-        using const_field_rect_propagator_t =
-            propagator<const_field_stepper_t, rect_navigator_t, actor_chain_t>;
-        using inhom_field_rect_propagator_t =
-            propagator<inhom_field_stepper_t, rect_navigator_t, actor_chain_t>;
-
-        using const_field_wire_propagator_t =
-            propagator<const_field_stepper_t, wire_navigator_t, actor_chain_t>;
-        using inhom_field_wire_propagator_t =
-            propagator<inhom_field_stepper_t, wire_navigator_t, actor_chain_t>;
+        mt2.seed(track_count);
 
         // Pilot track
         detail::helix<transform3_type> helix_bz(track, &B_z);
 
         // Make a telescope geometry with rectagular surface
-        const scalar detector_length = rand_length(mt);
-        tel_det_config<rectangle2D<>, detail::helix<transform3_type>>
-            rectangle_cfg{rect, helix_bz};
+        const scalar detector_length = rand_length(mt1);
+        const scalar constraint_step_size = detector_length * 1.25f;
+
+        mask<rect_type> rect{0u, detector_length * 1.2f,
+                             detector_length * 1.2f};
+        mask<wire_type> wire{0u, detector_length * 1.2f,
+                             detector_length * 1.2f};
+
+        // Adjust overstep tolerance
+        scalar overstep_tol =
+            vm["overstep-tolerance-mm"].as<scalar>() * unit<scalar>::mm;
+        overstep_tol =
+            -math::min(math::abs(overstep_tol), detector_length * 0.5f);
+
+        tel_det_config<rect_type, detail::helix<transform3_type>> rectangle_cfg{
+            rect, helix_bz};
         rectangle_cfg.m_envelope = 1000.f * unit<scalar>::mm;
         rectangle_cfg.n_surfaces(2u).length(detector_length);
 
         auto [rect_det, rect_names] =
             create_telescope_detector(host_mr, rectangle_cfg);
-        tilt_surface(rect_det, 0u);
-        tilt_surface(rect_det, 1u);
+        const auto [euler_rect_initial, shift_rect_initial] =
+            tilt_surface<decltype(rect_det),
+                         decltype(rect_det)::masks::id::e_rectangle2>(
+                rect_det, 0u, helix_bz.dir(0.f));
+        const auto [euler_rect_final, shift_rect_final] =
+            tilt_surface<decltype(rect_det),
+                         decltype(rect_det)::masks::id::e_rectangle2>(
+                rect_det, 1u, helix_bz.dir(detector_length));
 
         // Make a telescope geometry with wire surface
-        tel_det_config<line<true>, detail::helix<transform3_type>> wire_cfg{
+        tel_det_config<wire_type, detail::helix<transform3_type>> wire_cfg{
             wire, helix_bz};
         wire_cfg.m_envelope = 1000.f * unit<scalar>::mm;
         wire_cfg.n_surfaces(2u).length(detector_length);
 
         auto [wire_det, wire_names] =
             create_telescope_detector(host_mr, wire_cfg);
-        tilt_surface(wire_det, 0u);
-        tilt_surface(wire_det, 1u);
+        const auto [euler_wire_initial, shift_wire_initial] =
+            tilt_surface<decltype(wire_det),
+                         decltype(wire_det)::masks::id::e_cell_wire>(
+                wire_det, 0u, helix_bz.dir(0.f));
+        const auto [euler_wire_final, shift_wire_final] =
+            tilt_surface<decltype(wire_det),
+                         decltype(wire_det)::masks::id::e_cell_wire>(
+                wire_det, 1u, helix_bz.dir(detector_length));
 
+        // This IF block should locate after `tilt_surface()` calls for
+        // debugging purpose
         if (track_count + 1 <= n_skips) {
             track_count++;
             continue;
         }
 
+        if (verbose_lvl >= 1) {
+            track_count++;
+            std::cout << "[Event Property]" << std::endl;
+            std::cout << "Track ID: " << track_count
+                      << "  Number of processed tracks per thread: "
+                      << track_count - n_skips << std::endl;
+        }
+        if (verbose_lvl >= 2) {
+            std::cout << "[Detector Property]" << std::endl;
+            std::cout << "Path length for the final surface: "
+                      << detector_length << std::endl;
+            std::cout << "Rect initial surface rotation: ("
+                      << euler_rect_initial.alpha << " "
+                      << euler_rect_initial.beta << " "
+                      << euler_rect_initial.gamma << ")" << std::endl;
+            std::cout << "Rect initial surface shift: ("
+                      << shift_rect_initial[0u] << " " << shift_rect_initial[1u]
+                      << " " << shift_rect_initial[2u] << ")" << std::endl;
+            std::cout << "Rect final surface rotation: ("
+                      << euler_rect_final.alpha << " " << euler_rect_final.beta
+                      << " " << euler_rect_final.gamma << ")" << std::endl;
+            std::cout << "Rect final surface shift: (" << shift_rect_final[0u]
+                      << " " << shift_rect_final[1u] << " "
+                      << shift_rect_final[2u] << ")" << std::endl;
+            std::cout << "Wire initial surface rotation: ("
+                      << euler_wire_initial.alpha << " "
+                      << euler_wire_initial.beta << " "
+                      << euler_wire_initial.gamma << ")" << std::endl;
+            std::cout << "Wire initial surface shift: ("
+                      << shift_wire_initial[0u] << " " << shift_wire_initial[1u]
+                      << " " << shift_wire_initial[2u] << ")" << std::endl;
+            std::cout << "Wire final surface rotation: ("
+                      << euler_wire_final.alpha << " " << euler_wire_final.beta
+                      << " " << euler_wire_final.gamma << ")" << std::endl;
+            std::cout << "Wire final surface shift: (" << shift_wire_final[0u]
+                      << " " << shift_wire_final[1u] << " "
+                      << shift_wire_final[2u] << ")" << std::endl;
+        }
+        if (verbose_lvl >= 3) {
+            std::cout << "[Track Property]" << std::endl;
+            std::cout << "Phi: " << getter::phi(track.dir()) << std::endl;
+            std::cout << "Theta: " << getter::theta(track.dir()) << std::endl;
+            std::cout << "Mom: " << track.p() << std::endl;
+        }
+
         /**********************************
          * Rectangluar telescope geometry
          **********************************/
+
+        if (verbose_lvl >= 3 && !skip_rect) {
+            std::cout << "Simulating rectangular telescope..." << std::endl;
+        }
 
         // Get initial parameter
         using plane_intersection_t =
@@ -1283,10 +1659,11 @@ int main(int argc, char** argv) {
 
                     // Rectangle Inhomogeneous field with Material
                     evaluate_jacobian_difference<inhom_field_rect_propagator_t>(
-                        track_count, rect_det, rect_bparam, inhom_bfield,
-                        volume_mat, overstep_tol, on_surface_tol,
+                        track_count, rect_det, detector_length, rect_bparam,
+                        inhom_bfield, volume_mat, overstep_tol, on_surface_tol,
                         std::pow(10.f, log10_tols[i]), constraint_step_size,
-                        h_sizes_rect, rect_files[i], ref_rel_diff);
+                        h_sizes_rect, rect_files[i], ref_rel_diff, true,
+                        do_inspect);
 
                     dqopdqop_rel_diffs_rect[i].push_back(ref_rel_diff);
                 }
@@ -1302,10 +1679,10 @@ int main(int argc, char** argv) {
 
                 // Rect Const field
                 evaluate_jacobian_difference<const_field_rect_propagator_t>(
-                    track_count, rect_det, rect_bparam, const_bfield,
-                    vacuum<scalar>(), overstep_tol, on_surface_tol, rk_tol,
-                    constraint_step_size, h_sizes_rect, const_rect_file,
-                    ref_rel_diff);
+                    track_count, rect_det, detector_length, rect_bparam,
+                    const_bfield, vacuum<scalar>(), overstep_tol,
+                    on_surface_tol, rk_tol, constraint_step_size, h_sizes_rect,
+                    const_rect_file, ref_rel_diff);
 
                 /*
                 // Rect Inhomogeneous field with no gradient
@@ -1318,30 +1695,34 @@ int main(int argc, char** argv) {
 
                 // Rect Inhomogeneous field
                 evaluate_jacobian_difference<inhom_field_rect_propagator_t>(
-                    track_count, rect_det, rect_bparam, inhom_bfield,
-                    vacuum<scalar>(), overstep_tol, on_surface_tol, rk_tol,
-                    constraint_step_size, h_sizes_rect, inhom_rect_file,
-                    ref_rel_diff);
+                    track_count, rect_det, detector_length, rect_bparam,
+                    inhom_bfield, vacuum<scalar>(), overstep_tol,
+                    on_surface_tol, rk_tol, constraint_step_size, h_sizes_rect,
+                    inhom_rect_file, ref_rel_diff);
 
                 // Rectangle Inhomogeneous field with Material
                 evaluate_jacobian_difference<inhom_field_rect_propagator_t>(
-                    track_count, rect_det, rect_bparam, inhom_bfield,
-                    volume_mat, overstep_tol, on_surface_tol, rk_tol,
-                    constraint_step_size, h_sizes_rect,
+                    track_count, rect_det, detector_length, rect_bparam,
+                    inhom_bfield, volume_mat, overstep_tol, on_surface_tol,
+                    rk_tol, constraint_step_size, h_sizes_rect,
                     inhom_rect_material_file, ref_rel_diff);
 
                 // Rectangle Inhomogeneous field with Material (Covariance
                 // transport)
                 evaluate_covariance_transport<inhom_field_rect_propagator_t>(
-                    track_count, rect_det, rect_bparam, inhom_bfield,
-                    volume_mat, overstep_tol, on_surface_tol, rk_tol,
-                    constraint_step_size, rect_cov_transport_file);
+                    track_count, rect_det, detector_length, rect_bparam,
+                    inhom_bfield, volume_mat, overstep_tol, on_surface_tol,
+                    rk_tol, constraint_step_size, rect_cov_transport_file);
             }
         }
 
         /**********************************
          * Wire telescope geometry
          **********************************/
+
+        if (verbose_lvl >= 3 && !skip_wire) {
+            std::cout << "Simulating wire telescope..." << std::endl;
+        }
 
         // Get initial parameter
         using line_intersection_t =
@@ -1361,10 +1742,11 @@ int main(int argc, char** argv) {
                 for (std::size_t i = 0u; i < log10_tols.size(); i++) {
                     // Wire Inhomogeneous field with Material
                     evaluate_jacobian_difference<inhom_field_wire_propagator_t>(
-                        track_count, wire_det, wire_bparam, inhom_bfield,
-                        volume_mat, overstep_tol, on_surface_tol,
+                        track_count, wire_det, detector_length, wire_bparam,
+                        inhom_bfield, volume_mat, overstep_tol, on_surface_tol,
                         std::pow(10.f, log10_tols[i]), constraint_step_size,
-                        h_sizes_wire, wire_files[i], ref_rel_diff);
+                        h_sizes_wire, wire_files[i], ref_rel_diff, true,
+                        do_inspect);
 
                     dqopdqop_rel_diffs_wire[i].push_back(ref_rel_diff);
                 }
@@ -1380,10 +1762,10 @@ int main(int argc, char** argv) {
 
                 // Wire Const field
                 evaluate_jacobian_difference<const_field_wire_propagator_t>(
-                    track_count, wire_det, wire_bparam, const_bfield,
-                    vacuum<scalar>(), overstep_tol, on_surface_tol, rk_tol,
-                    constraint_step_size, h_sizes_wire, const_wire_file,
-                    ref_rel_diff);
+                    track_count, wire_det, detector_length, wire_bparam,
+                    const_bfield, vacuum<scalar>(), overstep_tol,
+                    on_surface_tol, rk_tol, constraint_step_size, h_sizes_wire,
+                    const_wire_file, ref_rel_diff);
 
                 /*
                 // Wire Inhomogeneous field with no gradient
@@ -1396,40 +1778,24 @@ int main(int argc, char** argv) {
 
                 // Wire Inhomogeneous field
                 evaluate_jacobian_difference<inhom_field_wire_propagator_t>(
-                    track_count, wire_det, wire_bparam, inhom_bfield,
-                    vacuum<scalar>(), overstep_tol, on_surface_tol, rk_tol,
-                    constraint_step_size, h_sizes_wire, inhom_wire_file,
-                    ref_rel_diff);
+                    track_count, wire_det, detector_length, wire_bparam,
+                    inhom_bfield, vacuum<scalar>(), overstep_tol,
+                    on_surface_tol, rk_tol, constraint_step_size, h_sizes_wire,
+                    inhom_wire_file, ref_rel_diff);
 
                 // Wire Inhomogeneous field with Material
                 evaluate_jacobian_difference<inhom_field_wire_propagator_t>(
-                    track_count, wire_det, wire_bparam, inhom_bfield,
-                    volume_mat, overstep_tol, on_surface_tol, rk_tol,
-                    constraint_step_size, h_sizes_wire,
+                    track_count, wire_det, detector_length, wire_bparam,
+                    inhom_bfield, volume_mat, overstep_tol, on_surface_tol,
+                    rk_tol, constraint_step_size, h_sizes_wire,
                     inhom_wire_material_file, ref_rel_diff);
 
                 // Wire Inhomogeneous field with Material (Covariance transport)
                 evaluate_covariance_transport<inhom_field_wire_propagator_t>(
-                    track_count, wire_det, wire_bparam, inhom_bfield,
-                    volume_mat, overstep_tol, on_surface_tol, rk_tol,
-                    constraint_step_size, wire_cov_transport_file);
+                    track_count, wire_det, detector_length, wire_bparam,
+                    inhom_bfield, volume_mat, overstep_tol, on_surface_tol,
+                    rk_tol, constraint_step_size, wire_cov_transport_file);
             }
-        }
-
-        if (verbose_lvl >= 1) {
-            track_count++;
-            std::cout << "Track ID: " << track_count - 1
-                      << ",  Number of processed tracks per thread: "
-                      << track_count - n_skips << std::endl;
-        }
-        if (verbose_lvl >= 2) {
-            std::cout << "[Detector Property] length: " << detector_length
-                      << std::endl;
-        }
-        if (verbose_lvl >= 3) {
-            std::cout << "[Track Property] phi: " << getter::phi(track.dir())
-                      << "  theta: " << getter::theta(track.dir())
-                      << "  Mom: " << track.p() << std::endl;
         }
     }
 
@@ -1438,9 +1804,9 @@ int main(int argc, char** argv) {
             EXPECT_EQ(dqopdqop_rel_diffs_rect[i].size(), n_tracks);
             EXPECT_EQ(dqopdqop_rel_diffs_wire[i].size(), n_tracks);
 
-            EXPECT_GE(statistics::mean(dqopdqop_rel_diffs_rect[i]), 1e-8f);
+            EXPECT_GE(statistics::mean(dqopdqop_rel_diffs_rect[i]), 1e-10f);
             EXPECT_LE(statistics::mean(dqopdqop_rel_diffs_rect[i]), 1e-2f);
-            EXPECT_GE(statistics::mean(dqopdqop_rel_diffs_wire[i]), 1e-8f);
+            EXPECT_GE(statistics::mean(dqopdqop_rel_diffs_wire[i]), 1e-10f);
             EXPECT_LE(statistics::mean(dqopdqop_rel_diffs_wire[i]), 1e-2f);
         }
     }
