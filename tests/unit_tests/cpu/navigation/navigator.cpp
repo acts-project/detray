@@ -8,7 +8,7 @@
 // Project include(s)
 #include "detray/navigation/navigator.hpp"
 
-#include "detray/definitions/indexing.hpp"
+#include "detray/definitions/detail/indexing.hpp"
 #include "detray/detectors/create_toy_geometry.hpp"
 #include "detray/detectors/create_wire_chamber.hpp"
 #include "detray/navigation/navigator.hpp"

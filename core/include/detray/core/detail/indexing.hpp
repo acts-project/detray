@@ -1,6 +1,6 @@
 /** Detray library, part of the ACTS project (R&D line)
  *
- * (c) 2020-2023 CERN for the benefit of the ACTS project
+ * (c) 2020-2024 CERN for the benefit of the ACTS project
  *
  * Mozilla Public License Version 2.0
  */
@@ -8,9 +8,9 @@
 #pragma once
 
 // Project include(s)
-#include "detray/definitions/containers.hpp"
-#include "detray/definitions/detail/bit_encoder.hpp"
-#include "detray/definitions/qualifiers.hpp"
+#include "detray/definitions/detail/containers.hpp"
+#include "detray/definitions/detail/qualifiers.hpp"
+#include "detray/utils/bit_encoder.hpp"
 #include "detray/utils/invalid_values.hpp"
 
 // System include(s)
@@ -18,11 +18,6 @@
 #include <ostream>
 
 namespace detray {
-
-using dindex = unsigned int;
-inline constexpr dindex dindex_invalid = detail::invalid_value<dindex>();
-using dindex_range = darray<dindex, 2>;
-using dindex_sequence = dvector<dindex>;
 
 template <typename I>
 DETRAY_HOST inline std::ostream& operator<<(std::ostream& os,
@@ -39,12 +34,14 @@ DETRAY_HOST inline std::ostream& operator<<(std::ostream& os,
     return os;
 }
 
+namespace detail {
+
 /// @brief Simple multi-index structure
 ///
 /// @tparam DIM number of indices that are held by this type
 /// @tparam index_t type of indices
-template <typename index_t = dindex, std::size_t DIM = 3u>
-struct dmulti_index {
+template <typename index_t, std::size_t DIM>
+struct multi_index {
     using index_type = index_t;
 
     std::array<index_t, DIM> indices{};
@@ -63,12 +60,12 @@ struct dmulti_index {
 
     /// Equality operator @returns true if all bin indices match.
     DETRAY_HOST_DEVICE
-    auto operator==(const dmulti_index<index_t, DIM>& rhs) const -> bool {
+    auto operator==(const multi_index<index_t, DIM>& rhs) const -> bool {
         return (indices == rhs.indices);
     }
 
     DETRAY_HOST
-    friend std::ostream& operator<<(std::ostream& os, const dmulti_index mi) {
+    friend std::ostream& operator<<(std::ostream& os, const multi_index mi) {
 
         bool writeSeparator = false;
         for (auto i = 0u; i < DIM; ++i) {
@@ -87,17 +84,17 @@ struct dmulti_index {
 /// @tparam id_type Represents the type of object that is being indexed
 /// @tparam index_type The type of indexing needed for the indexed type's
 ///         container (e.g. single index, range, multiindex)
-template <typename id_t = dindex, typename index_t = dindex,
+template <typename id_t, typename index_t,
           typename value_t = std::uint_least32_t, value_t id_mask = 0xf0000000,
           value_t index_mask = ~id_mask>
-struct dtyped_index {
+struct typed_index {
 
     using id_type = id_t;
     using index_type = index_t;
     using encoder = detail::bit_encoder<value_t>;
 
-    dtyped_index() = default;
-    dtyped_index(const id_t id, const index_t idx) {
+    typed_index() = default;
+    typed_index(const id_t id, const index_t idx) {
         encoder::template set_bits<id_mask>(m_value, static_cast<value_t>(id));
         encoder::template set_bits<index_mask>(m_value,
                                                static_cast<value_t>(idx));
@@ -119,14 +116,14 @@ struct dtyped_index {
 
     /// Set the link id.
     DETRAY_HOST_DEVICE
-    constexpr dtyped_index& set_id(id_type id) {
+    constexpr typed_index& set_id(id_type id) {
         encoder::template set_bits<id_mask>(m_value, static_cast<value_t>(id));
         return *this;
     }
 
     /// Set the link index.
     DETRAY_HOST_DEVICE
-    constexpr dtyped_index& set_index(index_type index) {
+    constexpr typed_index& set_index(index_type index) {
         encoder::template set_bits<index_mask>(m_value,
                                                static_cast<value_t>(index));
         return *this;
@@ -135,20 +132,19 @@ struct dtyped_index {
     /// Comparison operators
     /// @{
     DETRAY_HOST_DEVICE
-    friend constexpr bool operator==(dtyped_index lhs,
-                                     dtyped_index rhs) noexcept {
+    friend constexpr bool operator==(typed_index lhs,
+                                     typed_index rhs) noexcept {
         return lhs.m_value == rhs.m_value;
     }
 
     DETRAY_HOST_DEVICE
-    friend constexpr bool operator!=(dtyped_index lhs,
-                                     dtyped_index rhs) noexcept {
+    friend constexpr bool operator!=(typed_index lhs,
+                                     typed_index rhs) noexcept {
         return lhs.m_value != rhs.m_value;
     }
 
     DETRAY_HOST_DEVICE
-    friend constexpr bool operator<(dtyped_index lhs,
-                                    dtyped_index rhs) noexcept {
+    friend constexpr bool operator<(typed_index lhs, typed_index rhs) noexcept {
         return lhs.index() < rhs.index();
     }
     /// @}
@@ -156,53 +152,53 @@ struct dtyped_index {
     /// Arithmetic operators
     /// @{
     DETRAY_HOST_DEVICE
-    dtyped_index operator+(const dtyped_index& rhs) const {
-        return dtyped_index{}
+    typed_index operator+(const typed_index& rhs) const {
+        return typed_index{}
             .set_id(this->id())
             .set_index(this->index() + rhs.index());
     }
 
     DETRAY_HOST_DEVICE
-    dtyped_index operator+(const index_type& index) const {
-        return dtyped_index{}
+    typed_index operator+(const index_type& index) const {
+        return typed_index{}
             .set_id(this->id())
             .set_index(this->index() + index);
     }
 
     DETRAY_HOST_DEVICE
-    dtyped_index operator-(const dtyped_index& rhs) const {
-        return dtyped_index{}
+    typed_index operator-(const typed_index& rhs) const {
+        return typed_index{}
             .set_id(this->id())
             .set_index(this->index() - rhs.index());
     }
 
     DETRAY_HOST_DEVICE
-    dtyped_index operator-(const index_type& index) const {
-        return dtyped_index{}
+    typed_index operator-(const index_type& index) const {
+        return typed_index{}
             .set_id(this->id())
             .set_index(this->index() - index);
     }
 
     DETRAY_HOST_DEVICE
-    dtyped_index& operator+=(const dtyped_index& rhs) {
+    typed_index& operator+=(const typed_index& rhs) {
         set_index(this->index() + rhs.index());
         return *this;
     }
 
     DETRAY_HOST_DEVICE
-    dtyped_index& operator+=(const index_type& index) {
+    typed_index& operator+=(const index_type& index) {
         set_index(this->index() + index);
         return *this;
     }
 
     DETRAY_HOST_DEVICE
-    dtyped_index& operator-=(const dtyped_index& rhs) {
+    typed_index& operator-=(const typed_index& rhs) {
         set_index(this->index() - rhs.index());
         return *this;
     }
 
     DETRAY_HOST_DEVICE
-    dtyped_index& operator-=(const index_type& index) {
+    typed_index& operator-=(const index_type& index) {
         set_index(this->index() + index);
         return *this;
     }
@@ -210,7 +206,7 @@ struct dtyped_index {
 
     /// Only make the prefix operator available
     DETRAY_HOST_DEVICE
-    dtyped_index& operator++() {
+    typed_index& operator++() {
         set_index(this->index() + static_cast<index_type>(1));
         return *this;
     }
@@ -234,7 +230,7 @@ struct dtyped_index {
     }
 
     DETRAY_HOST
-    friend std::ostream& operator<<(std::ostream& os, const dtyped_index ti) {
+    friend std::ostream& operator<<(std::ostream& os, const typed_index ti) {
         if (ti.is_invalid()) {
             return (os << "undefined");
         }
@@ -259,41 +255,33 @@ struct dtyped_index {
     value_t m_value = ~static_cast<value_t>(0);
 };
 
-namespace detail {
-
-/// Stub function to get a single index
-template <std::size_t ID>
-dindex get(dindex idx) noexcept {
-    return idx;
-}
-
-/// Custom get function for the dtyped_index struct. Get the type.
+/// Custom get function for the typed_index struct. Get the type.
 template <std::size_t idx, typename index_type, std::size_t index_size>
 DETRAY_HOST_DEVICE constexpr decltype(auto) get(
-    const dmulti_index<index_type, index_size>& index) noexcept {
+    const multi_index<index_type, index_size>& index) noexcept {
     return index.indices[idx];
 }
 
-/// Custom get function for the dtyped_index struct. Get the type.
+/// Custom get function for the typed_index struct. Get the type.
 template <std::size_t idx, typename index_type, std::size_t index_size>
 DETRAY_HOST_DEVICE constexpr decltype(auto) get(
-    dmulti_index<index_type, index_size>& index) noexcept {
+    multi_index<index_type, index_size>& index) noexcept {
     return index.indices[idx];
 }
 
-/// Custom get function for the dtyped_index struct. Get the type.
+/// Custom get function for the typed_index struct. Get the type.
 template <std::size_t ID, typename id_type, typename index_type,
           std::enable_if_t<ID == 0, bool> = true>
 DETRAY_HOST_DEVICE constexpr decltype(auto) get(
-    const dtyped_index<id_type, index_type>& index) noexcept {
+    const typed_index<id_type, index_type>& index) noexcept {
     return index.id();
 }
 
-/// Custom get function for the dtyped_index struct. Get the index.
+/// Custom get function for the typed_index struct. Get the index.
 template <std::size_t ID, typename id_type, typename index_type,
           std::enable_if_t<ID == 1, bool> = true>
 DETRAY_HOST_DEVICE constexpr decltype(auto) get(
-    const dtyped_index<id_type, index_type>& index) noexcept {
+    const typed_index<id_type, index_type>& index) noexcept {
     return index.index();
 }
 
@@ -301,7 +289,7 @@ DETRAY_HOST_DEVICE constexpr decltype(auto) get(
 template <typename id_t, typename index_t, typename value_t, value_t id_mask,
           value_t index_mask>
 DETRAY_HOST_DEVICE inline constexpr bool is_invalid_value(
-    const dtyped_index<id_t, index_t, value_t, id_mask, index_mask>&
+    const typed_index<id_t, index_t, value_t, id_mask, index_mask>&
         ti) noexcept {
     return ti.is_invalid();
 }

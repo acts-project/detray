@@ -8,8 +8,8 @@
 #pragma once
 
 // Project include(s).
+#include "detray/definitions/detail/qualifiers.hpp"
 #include "detray/definitions/grid_axis.hpp"
-#include "detray/definitions/qualifiers.hpp"
 
 // System include(s).
 #include <cstddef>

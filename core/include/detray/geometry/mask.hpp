@@ -8,19 +8,9 @@
 #pragma once
 
 // Project include(s)
-#include "detray/definitions/indexing.hpp"
-#include "detray/definitions/qualifiers.hpp"
-#include "detray/definitions/track_parametrization.hpp"
-#include "detray/masks/annulus2D.hpp"
-#include "detray/masks/concentric_cylinder2D.hpp"
-#include "detray/masks/cuboid3D.hpp"
-#include "detray/masks/cylinder2D.hpp"
-#include "detray/masks/cylinder3D.hpp"
-#include "detray/masks/line.hpp"
-#include "detray/masks/rectangle2D.hpp"
-#include "detray/masks/ring2D.hpp"
-#include "detray/masks/single3D.hpp"
-#include "detray/masks/trapezoid2D.hpp"
+#include "detray/definitions/detail/indexing.hpp"
+#include "detray/definitions/detail/qualifiers.hpp"
+#include "detray/geometry/shapes/cuboid3D.hpp"
 #include "detray/navigation/intersection/intersection.hpp"
 
 // System include(s)

@@ -8,7 +8,7 @@
 #pragma once
 
 // Project include(s)
-#include "detray/definitions/indexing.hpp"
+#include "detray/definitions/detail/indexing.hpp"
 #include "detray/io/common/detail/grid_writer.hpp"
 #include "detray/io/frontend/payloads.hpp"
 

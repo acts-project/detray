@@ -8,7 +8,8 @@
 // Project include(s)
 #include "detray/definitions/units.hpp"
 #include "detray/geometry/detail/surface_descriptor.hpp"
-#include "detray/masks/masks.hpp"
+#include "detray/geometry/mask.hpp"
+#include "detray/geometry/shapes/line.hpp"
 #include "detray/materials/material.hpp"
 #include "detray/materials/material_rod.hpp"
 #include "detray/materials/material_slab.hpp"

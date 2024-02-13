@@ -8,8 +8,8 @@
 #pragma once
 
 // Project include(s).
-#include "detray/definitions/algebra.hpp"
-#include "detray/definitions/qualifiers.hpp"
+#include "detray/definitions/detail/algebra.hpp"
+#include "detray/definitions/detail/qualifiers.hpp"
 
 // Thrust include(s)
 #include <thrust/pair.h>

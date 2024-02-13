@@ -7,8 +7,9 @@
 
 // Project include(s)
 #include "detray/geometry/detail/surface_descriptor.hpp"
-#include "detray/masks/masks.hpp"
-#include "detray/masks/unmasked.hpp"
+#include "detray/geometry/mask.hpp"
+#include "detray/geometry/shapes/rectangle2D.hpp"
+#include "detray/geometry/shapes/unmasked.hpp"
 #include "detray/navigation/detail/ray.hpp"
 #include "detray/navigation/intersection/ray_intersector.hpp"
 #include "detray/test/types.hpp"

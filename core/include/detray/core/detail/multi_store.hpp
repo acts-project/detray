@@ -12,8 +12,8 @@
 #include "detray/core/detail/container_views.hpp"
 #include "detray/core/detail/data_context.hpp"
 #include "detray/core/detail/tuple_container.hpp"
-#include "detray/definitions/indexing.hpp"
-#include "detray/definitions/qualifiers.hpp"
+#include "detray/definitions/detail/indexing.hpp"
+#include "detray/definitions/detail/qualifiers.hpp"
 #include "detray/utils/type_list.hpp"
 #include "detray/utils/type_registry.hpp"
 

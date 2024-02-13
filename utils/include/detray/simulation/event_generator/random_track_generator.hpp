@@ -8,9 +8,9 @@
 #pragma once
 
 // Project include(s)
-#include "detray/definitions/algebra.hpp"
-#include "detray/definitions/math.hpp"
-#include "detray/definitions/qualifiers.hpp"
+#include "detray/definitions/detail/algebra.hpp"
+#include "detray/definitions/detail/math.hpp"
+#include "detray/definitions/detail/qualifiers.hpp"
 #include "detray/definitions/units.hpp"
 #include "detray/utils/ranges/ranges.hpp"
 

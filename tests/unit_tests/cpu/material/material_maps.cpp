@@ -6,8 +6,9 @@
  */
 
 // Detray include(s)
-#include "detray/definitions/indexing.hpp"
-#include "detray/masks/masks.hpp"
+#include "detray/definitions/detail/indexing.hpp"
+#include "detray/geometry/mask.hpp"
+#include "detray/geometry/shapes.hpp"
 #include "detray/materials/material_map.hpp"
 
 // GTest include(s)

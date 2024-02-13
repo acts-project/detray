@@ -6,7 +6,7 @@
  */
 
 // Project include(s)
-#include "detray/definitions/indexing.hpp"
+#include "detray/definitions/detail/indexing.hpp"
 #include "detray/detectors/create_toy_geometry.hpp"
 #include "detray/geometry/surface.hpp"
 #include "detray/test/types.hpp"

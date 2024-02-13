@@ -8,8 +8,8 @@
 #pragma once
 
 // Project include(s)
-#include "detray/definitions/containers.hpp"
-#include "detray/definitions/qualifiers.hpp"
+#include "detray/definitions/detail/containers.hpp"
+#include "detray/definitions/detail/qualifiers.hpp"
 #include "detray/utils/grid/detail/axis_bounds.hpp"
 #include "detray/utils/ranges.hpp"
 

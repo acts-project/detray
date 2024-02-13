@@ -9,8 +9,8 @@
 
 // Project include(s)
 #include "detray/coordinates/line2.hpp"
-#include "detray/definitions/math.hpp"
-#include "detray/definitions/qualifiers.hpp"
+#include "detray/definitions/detail/math.hpp"
+#include "detray/definitions/detail/qualifiers.hpp"
 #include "detray/navigation/detail/ray.hpp"
 #include "detray/navigation/intersection/intersection.hpp"
 

@@ -6,7 +6,7 @@
  */
 
 // Project include(s)
-#include "detray/definitions/algebra.hpp"
+#include "detray/definitions/detail/algebra.hpp"
 #include "detray/detectors/create_telescope_detector.hpp"
 #include "detray/detectors/create_toy_geometry.hpp"
 #include "detray/detectors/create_wire_chamber.hpp"

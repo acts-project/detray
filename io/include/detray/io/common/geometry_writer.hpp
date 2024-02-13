@@ -8,12 +8,12 @@
 #pragma once
 
 // Project include(s)
-#include "detray/definitions/indexing.hpp"
+#include "detray/definitions/detail/indexing.hpp"
+#include "detray/geometry/mask.hpp"
 #include "detray/geometry/surface.hpp"
 #include "detray/io/common/detail/basic_converter.hpp"
 #include "detray/io/common/detail/type_info.hpp"
 #include "detray/io/frontend/payloads.hpp"
-#include "detray/masks/masks.hpp"
 
 // System include(s)
 #include <algorithm>

@@ -8,9 +8,11 @@
 #pragma once
 
 // Project include(s).
-#include "detray/definitions/qualifiers.hpp"
+#include "detray/definitions/detail/qualifiers.hpp"
 #include "detray/definitions/units.hpp"
-#include "detray/masks/masks.hpp"
+#include "detray/geometry/mask.hpp"
+#include "detray/geometry/shapes/cuboid3D.hpp"
+#include "detray/geometry/shapes/cylinder3D.hpp"
 #include "detray/navigation/detail/ray.hpp"
 #include "detray/navigation/intersection/bounding_box/cuboid_intersector.hpp"
 #include "detray/navigation/intersection/intersection.hpp"

@@ -8,7 +8,7 @@
 // detray core
 #include "detray/utils/ranges.hpp"
 
-#include "detray/definitions/containers.hpp"
+#include "detray/definitions/detail/containers.hpp"
 
 // Vecmem include(s)
 #include "vecmem/containers/device_vector.hpp"

@@ -8,6 +8,8 @@
 #pragma once
 
 // Project include(s)
+#include "detray/geometry/mask.hpp"
+#include "detray/geometry/shapes.hpp"
 #include "detray/geometry/surface.hpp"
 #include "detray/plugins/svgtools/styling/styling.hpp"
 

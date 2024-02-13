@@ -6,9 +6,9 @@
  */
 
 // Detray core include(s).
-#include "detray/masks/masks.hpp"
-
-#include "detray/definitions/indexing.hpp"
+#include "detray/definitions/detail/indexing.hpp"
+#include "detray/geometry/mask.hpp"
+#include "detray/geometry/shapes.hpp"
 #include "detray/navigation/intersection/intersection.hpp"
 
 // Detray test include(s).

@@ -8,8 +8,8 @@
 #pragma once
 
 // Project include(s).
-#include "detray/definitions/indexing.hpp"
-#include "detray/definitions/qualifiers.hpp"
+#include "detray/definitions/detail/indexing.hpp"
+#include "detray/definitions/detail/qualifiers.hpp"
 #include "detray/definitions/track_parametrization.hpp"
 #include "detray/geometry/barcode.hpp"
 #include "detray/tracks/detail/track_helper.hpp"

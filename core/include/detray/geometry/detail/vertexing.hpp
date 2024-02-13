@@ -8,8 +8,8 @@
 #pragma once
 
 // Project include(s)
-#include "detray/definitions/containers.hpp"
-#include "detray/definitions/math.hpp"
+#include "detray/definitions/detail/containers.hpp"
+#include "detray/definitions/detail/math.hpp"
 #include "detray/utils/ranges.hpp"
 
 namespace detray::detail {

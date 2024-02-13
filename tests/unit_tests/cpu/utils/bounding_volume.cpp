@@ -9,6 +9,8 @@
 #include "detray/utils/bounding_volume.hpp"
 
 #include "detray/definitions/units.hpp"
+#include "detray/geometry/mask.hpp"
+#include "detray/geometry/shapes.hpp"
 #include "detray/test/types.hpp"
 
 // Google test include(s).

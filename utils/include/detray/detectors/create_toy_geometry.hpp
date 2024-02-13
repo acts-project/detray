@@ -11,7 +11,7 @@
 #include "detray/builders/grid_builder.hpp"
 #include "detray/builders/volume_builder.hpp"
 #include "detray/core/detector.hpp"
-#include "detray/definitions/math.hpp"
+#include "detray/definitions/detail/math.hpp"
 #include "detray/definitions/units.hpp"
 #include "detray/detectors/detector_helper.hpp"
 #include "detray/detectors/toy_metadata.hpp"

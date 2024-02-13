@@ -5,7 +5,7 @@
  * Mozilla Public License Version 2.0
  */
 
-#include "detray/definitions/cuda_definitions.hpp"
+#include "detray/definitions/detail/cuda_definitions.hpp"
 #include "detray/utils/ranges.hpp"
 #include "transform_store_cuda_kernel.hpp"
 

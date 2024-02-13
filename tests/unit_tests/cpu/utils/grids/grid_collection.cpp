@@ -8,8 +8,8 @@
 // Detray include(s)
 #include "detray/utils/grid/grid_collection.hpp"
 
-#include "detray/definitions/indexing.hpp"
-#include "detray/masks/cylinder3D.hpp"
+#include "detray/definitions/detail/indexing.hpp"
+#include "detray/geometry/shapes/cylinder3D.hpp"
 #include "detray/test/types.hpp"
 #include "detray/utils/grid/grid.hpp"
 #include "detray/utils/grid/populators.hpp"

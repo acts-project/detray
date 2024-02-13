@@ -8,6 +8,8 @@
 // Project include(s)
 #include "detray/definitions/units.hpp"
 #include "detray/detectors/create_telescope_detector.hpp"
+#include "detray/geometry/mask.hpp"
+#include "detray/geometry/shapes.hpp"
 #include "detray/io/frontend/detector_writer.hpp"
 
 // Vecmem include(s)

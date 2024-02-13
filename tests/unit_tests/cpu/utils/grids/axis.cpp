@@ -9,7 +9,7 @@
 #include "detray/utils/grid/detail/axis.hpp"
 
 #include "detray/coordinates/coordinates.hpp"
-#include "detray/definitions/indexing.hpp"
+#include "detray/definitions/detail/indexing.hpp"
 #include "detray/test/types.hpp"
 #include "detray/utils/grid/detail/axis_binning.hpp"
 #include "detray/utils/grid/detail/axis_bounds.hpp"

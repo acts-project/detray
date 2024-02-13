@@ -11,9 +11,9 @@
 #include "detray/builders/surface_factory.hpp"
 #include "detray/builders/volume_builder.hpp"
 #include "detray/core/detector.hpp"
-#include "detray/definitions/indexing.hpp"
+#include "detray/definitions/detail/indexing.hpp"
 #include "detray/detectors/toy_metadata.hpp"
-#include "detray/masks/masks.hpp"
+#include "detray/geometry/mask.hpp"
 #include "detray/test/types.hpp"
 #include "detray/utils/type_list.hpp"
 

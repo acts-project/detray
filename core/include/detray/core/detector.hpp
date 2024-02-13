@@ -13,8 +13,8 @@
 #include "detray/core/detail/container_views.hpp"
 #include "detray/core/detail/surface_lookup.hpp"
 #include "detray/core/detector_metadata.hpp"
-#include "detray/definitions/containers.hpp"
-#include "detray/definitions/qualifiers.hpp"
+#include "detray/definitions/detail/containers.hpp"
+#include "detray/definitions/detail/qualifiers.hpp"
 #include "detray/geometry/detail/volume_descriptor.hpp"
 #include "detray/utils/ranges.hpp"  // @TODO remove
 

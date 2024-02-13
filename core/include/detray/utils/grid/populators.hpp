@@ -9,8 +9,8 @@
 
 // Project include(s).
 #include "detray/definitions/detail/algorithms.hpp"
-#include "detray/definitions/indexing.hpp"
-#include "detray/definitions/qualifiers.hpp"
+#include "detray/definitions/detail/indexing.hpp"
+#include "detray/definitions/detail/qualifiers.hpp"
 #include "detray/utils/invalid_values.hpp"
 
 namespace detray {

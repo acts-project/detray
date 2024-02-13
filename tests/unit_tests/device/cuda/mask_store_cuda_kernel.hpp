@@ -9,8 +9,9 @@
 
 // Project include(s)
 #include "detray/core/detail/multi_store.hpp"
-#include "detray/definitions/algebra.hpp"
-#include "detray/masks/masks.hpp"
+#include "detray/definitions/detail/algebra.hpp"
+#include "detray/geometry/mask.hpp"
+#include "detray/geometry/shapes.hpp"
 #include "vecmem/utils/cuda/copy.hpp"
 
 // Vecmem include(s)

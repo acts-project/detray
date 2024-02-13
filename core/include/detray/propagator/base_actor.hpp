@@ -10,8 +10,8 @@
 #include <type_traits>
 #include <utility>
 
-#include "detray/definitions/containers.hpp"
-#include "detray/definitions/qualifiers.hpp"
+#include "detray/definitions/detail/containers.hpp"
+#include "detray/definitions/detail/qualifiers.hpp"
 #include "detray/utils/tuple_helpers.hpp"
 
 namespace detray {

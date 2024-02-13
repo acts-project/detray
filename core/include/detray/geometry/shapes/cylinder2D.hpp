@@ -8,10 +8,10 @@
 #pragma once
 
 // Project include(s)
-#include "detray/coordinates/polar2.hpp"
-#include "detray/definitions/containers.hpp"
-#include "detray/definitions/math.hpp"
-#include "detray/definitions/qualifiers.hpp"
+#include "detray/coordinates/cylindrical2.hpp"
+#include "detray/coordinates/cylindrical3.hpp"
+#include "detray/definitions/detail/containers.hpp"
+#include "detray/definitions/detail/qualifiers.hpp"
 
 // System include(s)
 #include <limits>
@@ -20,24 +20,24 @@
 
 namespace detray {
 
-/// @brief Geometrical shape of a closed ring.
+/// @brief Geometrical shape of a 2D cylinder.
 ///
-/// It is defined by the two radii bounds[0] and bounds[1],
-/// and can be checked with a tolerance in t[0] and t[1].
-class ring2D {
+/// It is defined by r and the two half lengths rel to the coordinate center.
+class cylinder2D {
     public:
     /// The name for this shape
-    inline static const std::string name = "ring2D";
+    inline static const std::string name = "cylinder2D";
 
     enum boundaries : unsigned int {
-        e_inner_r = 0u,
-        e_outer_r = 1u,
-        e_size = 2u,
+        e_r = 0u,
+        e_n_half_z = 1u,
+        e_p_half_z = 2u,
+        e_size = 3u,
     };
 
     /// Local coordinate frame for boundary checks
     template <typename algebra_t>
-    using local_frame_type = polar2<algebra_t>;
+    using local_frame_type = cylindrical2<algebra_t>;
 
     /// Dimension of the local coordinate system
     static constexpr std::size_t dim{2u};
@@ -46,7 +46,11 @@ class ring2D {
     ///
     /// @note the point is expected to be given in local coordinates by the
     /// caller. For the conversion from global cartesian coordinates, the
-    /// nested @c shape struct can be used.
+    /// nested @c shape struct can be used. The point is assumed to be in
+    /// the cylinder 2D frame (r * phi, z).
+    ///
+    /// @tparam is_rad_check whether the radial bound should be checked in this
+    /// call.
     ///
     /// @param bounds the boundary values for this shape
     /// @param loc_p the point to be checked in the local coordinate system
@@ -60,8 +64,8 @@ class ring2D {
         const bounds_t<scalar_t, kDIM> &bounds, const point_t &loc_p,
         const scalar_t tol = std::numeric_limits<scalar_t>::epsilon()) const {
 
-        return (loc_p[0] + tol >= bounds[e_inner_r] and
-                loc_p[0] <= bounds[e_outer_r] + tol);
+        return (bounds[e_n_half_z] - tol <= loc_p[1] and
+                loc_p[1] <= bounds[e_p_half_z] + tol);
     }
 
     /// @brief Lower and upper point for minimal axis aligned bounding box.
@@ -71,7 +75,7 @@ class ring2D {
     /// @param bounds the boundary values for this shape
     /// @param env dynamic envelope around the shape
     ///
-    /// @returns and array of coordinates that contains the lower point (first
+    /// @returns an array of coordinates that contains the lower point (first
     /// three values) and the upper point (latter three values) .
     template <typename algebra_t,
               template <typename, std::size_t> class bounds_t,
@@ -81,8 +85,9 @@ class ring2D {
         const bounds_t<scalar_t, kDIM> &bounds,
         const scalar_t env = std::numeric_limits<scalar_t>::epsilon()) const {
         assert(env > 0.f);
-        const scalar_t r_bound{env + bounds[e_outer_r]};
-        return {-r_bound, -r_bound, -env, r_bound, r_bound, env};
+        const scalar_t xy_bound{bounds[e_r] + env};
+        return {-xy_bound, -xy_bound, bounds[e_n_half_z] - env,
+                xy_bound,  xy_bound,  bounds[e_p_half_z] + env};
     }
 
     /// @returns the shapes centroid in local cartesian coordinates
@@ -91,14 +96,14 @@ class ring2D {
               typename scalar_t, std::size_t kDIM,
               typename std::enable_if_t<kDIM == e_size, bool> = true>
     DETRAY_HOST_DEVICE typename algebra_t::point3 centroid(
-        const bounds_t<scalar_t, kDIM> &) const {
+        const bounds_t<scalar_t, kDIM> &bounds) const {
 
-        return {0.f, 0.f, 0.f};
+        return {0.f, 0.f, 0.5f * (bounds[e_n_half_z] + bounds[e_p_half_z])};
     }
 
     /// Generate vertices in local cartesian frame
     ///
-    /// @param bounds the boundary values for the stereo annulus
+    /// @param bounds the boundary values for the cylinder
     /// @param n_seg is the number of line segments
     ///
     /// @return a generated list of vertices
@@ -109,7 +114,7 @@ class ring2D {
     DETRAY_HOST dvector<point3_t> vertices(const bounds_t<scalar_t, kDIM> &,
                                            dindex) const {
         throw std::runtime_error(
-            "Vertex generation for rings is not implemented");
+            "Vertex generation for cylinders is not implemented");
         return {};
     }
 
@@ -127,14 +132,15 @@ class ring2D {
 
         constexpr auto tol{10.f * std::numeric_limits<scalar_t>::epsilon()};
 
-        if (math::signbit(bounds[e_inner_r]) or bounds[e_outer_r] < tol) {
-            os << "ERROR: Radius must be in the range [0, numeric_max)"
+        if (bounds[e_r] < tol) {
+            os << "ERROR: Radius must be in the range (0, numeric_max)"
                << std::endl;
             return false;
         }
-        if (bounds[e_inner_r] >= bounds[e_outer_r] or
-            math::abs(bounds[e_inner_r] - bounds[e_outer_r]) < tol) {
-            os << "ERROR: Inner radius must be smaller outer radius.";
+        if (bounds[e_n_half_z] >= bounds[e_p_half_z] or
+            math::abs(bounds[e_n_half_z] - bounds[e_p_half_z]) < tol) {
+            os << "ERROR: Neg. half length must be smaller than pos. half "
+                  "length.";
             return false;
         }
 
