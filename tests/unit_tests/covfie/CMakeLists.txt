@@ -5,6 +5,6 @@
 # Mozilla Public License Version 2.0
 
 # Set up the covfie tests.
-detray_add_test( covfie
+detray_add_unit_test( covfie
    "constant_field.cpp"
    LINK_LIBRARIES GTest::gtest_main covfie::core )

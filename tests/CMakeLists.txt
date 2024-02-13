@@ -13,19 +13,24 @@ include_directories( SYSTEM $<TARGET_PROPERTY:covfie::core,INTERFACE_INCLUDE_DIR
 file( GLOB _detray_test_headers
    RELATIVE "${CMAKE_CURRENT_SOURCE_DIR}"
    "include/detray/test/*.hpp"
-   "include/detray/test/utils/*.hpp" )
+   "include/detray/test/detail/*.hpp" 
+   "include/detray/test/intersection/*.hpp"
+   "include/detray/test/utils/*.hpp")
+
 add_library( detray_test INTERFACE "${_detray_test_headers}" )
 add_library( detray::test ALIAS detray_test )
+
 target_include_directories( detray_test
    INTERFACE "${CMAKE_CURRENT_SOURCE_DIR}/include" )
-target_link_libraries( detray_test INTERFACE
-   vecmem::core detray::core )
+
+target_link_libraries( detray_test INTERFACE vecmem::core detray::core )
+
 unset( _detray_test_headers )
 
 # Include all of the code-holding sub-directories.
 if( DETRAY_BENCHMARKS )
    add_subdirectory( benchmarks )
 endif()
-add_subdirectory( detectors )
+add_subdirectory( integration_tests )
+add_subdirectory( tools )
 add_subdirectory( unit_tests )
-add_subdirectory( validation )

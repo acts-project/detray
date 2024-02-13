@@ -5,7 +5,7 @@
 # Mozilla Public License Version 2.0
 
 # Set up the test(s) that are algebra agnostic.
-detray_add_test( cpu
+detray_add_unit_test( cpu
    "core/containers.cpp"
    "core/typed_index.cpp"
    "geometry/barcode.cpp"
@@ -22,7 +22,7 @@ detray_add_test( cpu
 # Macro setting up the CPU tests for a specific algebra plugin.
 macro( detray_add_cpu_test algebra )
    # Build the test executable.
-   detray_add_test( cpu_${algebra}
+   detray_add_unit_test( cpu_${algebra}
       "builders/detector_builder.cpp"
       "builders/grid_builder.cpp"
       "builders/homogeneous_material_builder.cpp"
@@ -64,15 +64,12 @@ macro( detray_add_cpu_test algebra )
       "masks/unbounded.cpp"
       "masks/unmasked.cpp"
       "material/energy_loss.cpp"
-      "material/material_interaction.cpp"
       "material/material_maps.cpp"
       "material/materials.cpp"
       "material/stopping_power_derivative.cpp"
       "propagator/covariance_transport.cpp"
-      "propagator/guided_navigator.cpp"
       "propagator/line_stepper.cpp"
       "propagator/navigator.cpp"
-      "propagator/propagator.cpp"
       "propagator/rk_stepper.cpp"
       "simulation/landau_sampling.cpp"
       "simulation/particle_gun.cpp"
