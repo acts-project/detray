@@ -130,10 +130,6 @@ class rk_stepper final
         DETRAY_HOST_DEVICE
         inline scalar_type dqopds(const scalar_type qop) const;
 
-        /// Evaulate dg/dqop where g = -stopping_power
-        DETRAY_HOST_DEVICE
-        inline scalar_type dgdqop(const scalar_type qop) const;
-
         /// Evaulate d(d(qop)/ds)dqop
         DETRAY_HOST_DEVICE
         inline scalar_type d2qopdsdqop(const scalar_type qop) const;
