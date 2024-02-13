@@ -13,7 +13,6 @@
 #include "detray/definitions/math.hpp"
 #include "detray/definitions/qualifiers.hpp"
 #include "detray/definitions/units.hpp"
-#include "detray/intersection/plane_intersector.hpp"
 #include "detray/masks/detail/vertexing.hpp"
 
 // System include(s)
@@ -25,9 +24,6 @@ namespace detray {
 
 /// @brief Geometrical shape of a stereo annulus that is used for the itk
 /// strip endcaps.
-///
-/// @tparam intersector_t defines how to intersect the underlying surface
-///         geometry
 ///
 /// The stereo annulus is defined in two different(!) polar coordinate systems
 /// that differ by an origin shift. The boundaries are the inner and outer
@@ -44,7 +40,6 @@ namespace detray {
 /// origin from the beam polar system, two additional conversion parameters are
 /// included (bounds[4], bounds[5]). These are the origin shift in x and y
 /// respectively.
-template <template <typename> class intersector_t = plane_intersector>
 class annulus2D {
     public:
     /// The name for this shape
@@ -65,10 +60,6 @@ class annulus2D {
     /// Local coordinate frame ( focal system )
     template <typename algebra_t>
     using local_frame_type = polar2<algebra_t>;
-
-    /// Underlying surface geometry: planar
-    template <typename intersection_t>
-    using intersector_type = intersector_t<intersection_t>;
 
     /// Dimension of the local coordinate system
     static constexpr std::size_t dim{2u};

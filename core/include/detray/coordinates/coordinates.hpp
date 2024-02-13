@@ -10,6 +10,7 @@
 // Project include(s).
 #include "detray/coordinates/cartesian2.hpp"
 #include "detray/coordinates/cartesian3.hpp"
+#include "detray/coordinates/concentric_cylindrical2.hpp"
 #include "detray/coordinates/cylindrical2.hpp"
 #include "detray/coordinates/cylindrical3.hpp"
 #include "detray/coordinates/line2.hpp"

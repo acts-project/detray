@@ -13,7 +13,6 @@
 #include "detray/core/detector.hpp"
 #include "detray/definitions/indexing.hpp"
 #include "detray/detectors/toy_metadata.hpp"
-#include "detray/intersection/cylinder_portal_intersector.hpp"
 #include "detray/masks/masks.hpp"
 #include "detray/test/types.hpp"
 #include "detray/utils/type_list.hpp"
@@ -54,7 +53,7 @@ GTEST_TEST(detray_tools, grid_factory_static) {
     const scalar maxR{10.f};
     const scalar minPhi{0.f};
     const scalar maxPhi{constant<scalar>::pi};
-    mask<annulus2D<>> ann2{0u, minR, maxR, minPhi, maxPhi, 0.f, 0.f, 0.f};
+    mask<annulus2D> ann2{0u, minR, maxR, minPhi, maxPhi, 0.f, 0.f, 0.f};
 
     // Grid with correctly initialized axes, but empty bin content
     auto ann_gr = gr_factory.new_grid(ann2, {5, 10});
@@ -90,7 +89,7 @@ GTEST_TEST(detray_tools, grid_factory_static) {
                                           4.f,   5.f,  6.f,   9.f};
     const std::vector<scalar> bin_edges_phi{};
 
-    auto cyl_gr = gr_factory.template new_grid<cylinder2D<>>(
+    auto cyl_gr = gr_factory.template new_grid<cylinder2D>(
         {0.f, 2.f * constant<scalar>::pi, bin_edges_z.front(),
          bin_edges_z.back()},
         {10u, bin_edges_z.size() - 1}, {}, {bin_edges_phi, bin_edges_z},
@@ -130,7 +129,7 @@ GTEST_TEST(detray_tools, grid_factory_static) {
     const scalar r{5.f};
     const scalar n_half_z{-10.f};
     const scalar p_half_z{9.f};
-    mask<cylinder2D<>> cyl2{0u, r, n_half_z, p_half_z};
+    mask<cylinder2D> cyl2{0u, r, n_half_z, p_half_z};
 
     auto cyl_gr2 = gr_factory.template new_grid<circular<label::e_rphi>,
                                                 closed<label::e_cyl_z>,
@@ -151,11 +150,11 @@ GTEST_TEST(detray_tools, grid_factory_dynamic) {
     const scalar maxR{10.f};
     const scalar minPhi{0.f};
     const scalar maxPhi{constant<scalar>::pi};
-    mask<annulus2D<>> ann2{0u, minR, maxR, minPhi, maxPhi, 0.f, 0.f, 0.f};
+    mask<annulus2D> ann2{0u, minR, maxR, minPhi, maxPhi, 0.f, 0.f, 0.f};
 
     // Grid with correctly initialized axes and bins, but empty bin content
     using ann_grid_t =
-        typename decltype(gr_factory)::template grid_type<annulus2D<>>;
+        typename decltype(gr_factory)::template grid_type<annulus2D>;
     std::vector<std::pair<typename ann_grid_t::loc_bin_index, dindex>>
         capacities;
 
@@ -228,7 +227,7 @@ GTEST_TEST(detray_tools, grid_factory_dynamic) {
         capacities.emplace_back(mbin, ++capacity);
     }
 
-    auto cyl_gr = gr_factory.template new_grid<cylinder2D<>>(
+    auto cyl_gr = gr_factory.template new_grid<concentric_cylinder2D>(
         {0.f, 2.f * constant<scalar>::pi, bin_edges_z.front(),
          bin_edges_z.back()},
         {10u, bin_edges_z.size() - 1}, capacities, {bin_edges_phi, bin_edges_z},
@@ -292,7 +291,7 @@ GTEST_TEST(detray_tools, grid_factory_dynamic) {
     const scalar r{5.f};
     const scalar n_half_z{-10.f};
     const scalar p_half_z{9.f};
-    mask<cylinder2D<>> cyl2{0u, r, n_half_z, p_half_z};
+    mask<cylinder2D> cyl2{0u, r, n_half_z, p_half_z};
 
     auto cyl_gr2 =
         gr_factory
@@ -306,7 +305,7 @@ GTEST_TEST(detray_tools, grid_factory_dynamic) {
 GTEST_TEST(detray_tools, grid_builder) {
 
     // cylinder grid type of the toy detector
-    using cyl_grid_t = grid<axes<cylinder2D<>>,
+    using cyl_grid_t = grid<axes<concentric_cylinder2D>,
                             bins::static_array<detector_t::surface_type, 1>,
                             simple_serializer, host_container_types, false>;
 
@@ -314,7 +313,7 @@ GTEST_TEST(detray_tools, grid_builder) {
         grid_builder<detector_t, cyl_grid_t, detray::bin_associator>{nullptr};
 
     // The cylinder portals are at the end of the surface range by construction
-    const auto cyl_mask = mask<cylinder2D<>>{0u, 10.f, -500.f, 500.f};
+    const auto cyl_mask = mask<concentric_cylinder2D>{0u, 10.f, -500.f, 500.f};
     std::size_t n_phi_bins{5u}, n_z_bins{4u};
 
     // Build empty grid

@@ -9,7 +9,6 @@
 
 // Project include(s)
 #include "detray/coordinates/coordinates.hpp"
-#include "detray/intersection/cylinder_portal_intersector.hpp"
 #include "detray/io/frontend/definitions.hpp"
 #include "detray/io/frontend/payloads.hpp"
 #include "detray/masks/annulus2D.hpp"
@@ -27,7 +26,6 @@
 #include "detray/materials/material_slab.hpp"
 #include "detray/utils/tuple_helpers.hpp"
 #include "detray/utils/type_registry.hpp"
-#include "detray/utils/type_traits.hpp"
 
 // System include(s)
 #include <type_traits>
@@ -42,11 +40,10 @@ constexpr io::shape_id get_id() {
 
     /// Register the mask shapes to the @c shape_id enum
     using shape_registry =
-        type_registry<io::shape_id, annulus2D<>, cuboid3D<>, cylinder2D<>,
-                      cylinder3D,
-                      cylinder2D<false, cylinder_portal_intersector>,
-                      rectangle2D<>, ring2D<>, trapezoid2D<>, line<true>,
-                      line<false>, single3D<0>, single3D<1>, single3D<2>>;
+        type_registry<io::shape_id, annulus2D, cuboid3D, cylinder2D, cylinder3D,
+                      concentric_cylinder2D, rectangle2D, ring2D, trapezoid2D,
+                      line<true>, line<false>, single3D<0>, single3D<1>,
+                      single3D<2>>;
 
     // Find the correct shape IO id;
     if constexpr (shape_registry::is_defined(shape_t{})) {
@@ -67,7 +64,7 @@ constexpr io::material_id get_id() {
 
     /// Register the material types to the @c material_id enum
     using mat_registry =
-        type_registry<io::material_id, void, void, void, void, void,
+        type_registry<io::material_id, void, void, void, void, void, void,
                       material_slab<scalar_t>, material_rod<scalar_t>>;
 
     // Find the correct material IO id;
@@ -92,8 +89,9 @@ constexpr io::material_id get_id() {
     /// Register the material types to the @c material_id enum
     using mat_registry =
         type_registry<io::material_id, polar2<algebra_t>, cartesian2<algebra_t>,
-                      cartesian3<algebra_t>, cylindrical2<algebra_t>,
-                      cylindrical3<algebra_t>, void, void>;
+                      cartesian3<algebra_t>, concentric_cylindrical2<algebra_t>,
+                      cylindrical2<algebra_t>, cylindrical3<algebra_t>, void,
+                      void>;
 
     // Find the correct material IO id;
     if constexpr (mat_registry::is_defined(map_frame_t{})) {
@@ -120,6 +118,7 @@ constexpr io::accel_id get_id() {
     using frame_registry =
         type_registry<io::accel_id, void, cartesian2<algebra_t>,
                       cartesian3<algebra_t>, polar2<algebra_t>,
+                      concentric_cylindrical2<algebra_t>,
                       cylindrical2<algebra_t>, cylindrical3<algebra_t>>;
 
     // Find the correct grid shape IO id;
@@ -145,9 +144,9 @@ struct mask_info {
 template <typename detector_t>
 struct mask_info<io::shape_id::annulus2, detector_t,
                  std::enable_if_t<detector_t::masks::template is_defined<
-                                      mask<annulus2D<>, std::uint_least16_t>>(),
+                                      mask<annulus2D, std::uint_least16_t>>(),
                                   void>> {
-    using type = annulus2D<>;
+    using type = annulus2D;
     static constexpr
         typename detector_t::masks::id value{detector_t::masks::id::e_annulus2};
 };
@@ -155,10 +154,10 @@ struct mask_info<io::shape_id::annulus2, detector_t,
 /// Check for a 2D cylinder shape
 template <typename detector_t>
 struct mask_info<io::shape_id::cylinder2, detector_t,
-                 std::enable_if_t<detector_t::masks::template is_defined<mask<
-                                      cylinder2D<>, std::uint_least16_t>>(),
+                 std::enable_if_t<detector_t::masks::template is_defined<
+                                      mask<cylinder2D, std::uint_least16_t>>(),
                                   void>> {
-    using type = cylinder2D<>;
+    using type = cylinder2D;
     static constexpr typename detector_t::masks::id value{
         detector_t::masks::id::e_cylinder2};
 };
@@ -168,10 +167,9 @@ template <typename detector_t>
 struct mask_info<
     io::shape_id::portal_cylinder2, detector_t,
     std::enable_if_t<detector_t::masks::template is_defined<
-                         mask<cylinder2D<false, cylinder_portal_intersector>,
-                              std::uint_least16_t>>(),
+                         mask<concentric_cylinder2D, std::uint_least16_t>>(),
                      void>> {
-    using type = cylinder2D<false, cylinder_portal_intersector>;
+    using type = concentric_cylinder2D;
     static constexpr typename detector_t::masks::id value{
         detector_t::masks::id::e_portal_cylinder2};
 };
@@ -201,10 +199,10 @@ struct mask_info<io::shape_id::straw_wire, detector_t,
 /// Check for a rectangle shape
 template <typename detector_t>
 struct mask_info<io::shape_id::rectangle2, detector_t,
-                 std::enable_if_t<detector_t::masks::template is_defined<mask<
-                                      rectangle2D<>, std::uint_least16_t>>(),
+                 std::enable_if_t<detector_t::masks::template is_defined<
+                                      mask<rectangle2D, std::uint_least16_t>>(),
                                   void>> {
-    using type = rectangle2D<>;
+    using type = rectangle2D;
     static constexpr typename detector_t::masks::id value{
         detector_t::masks::id::e_rectangle2};
 };
@@ -213,9 +211,9 @@ struct mask_info<io::shape_id::rectangle2, detector_t,
 template <typename detector_t>
 struct mask_info<io::shape_id::ring2, detector_t,
                  std::enable_if_t<detector_t::masks::template is_defined<
-                                      mask<ring2D<>, std::uint_least16_t>>(),
+                                      mask<ring2D, std::uint_least16_t>>(),
                                   void>> {
-    using type = ring2D<>;
+    using type = ring2D;
     static constexpr typename detector_t::masks::id value{
         detector_t::masks::id::e_portal_ring2};
 };
@@ -256,10 +254,10 @@ struct mask_info<io::shape_id::single3, detector_t,
 /// Check for a trapezoid shape
 template <typename detector_t>
 struct mask_info<io::shape_id::trapezoid2, detector_t,
-                 std::enable_if_t<detector_t::masks::template is_defined<mask<
-                                      trapezoid2D<>, std::uint_least16_t>>(),
+                 std::enable_if_t<detector_t::masks::template is_defined<
+                                      mask<trapezoid2D, std::uint_least16_t>>(),
                                   void>> {
-    using type = trapezoid2D<>;
+    using type = trapezoid2D;
     static constexpr typename detector_t::masks::id value{
         detector_t::masks::id::e_trapezoid2};
 };
@@ -282,9 +280,9 @@ template <typename detector_t>
 struct mat_map_info<
     io::material_id::ring2_map, detector_t,
     std::enable_if_t<detector_t::materials::template is_defined<material_map<
-                         ring2D<>, typename detector_t::scalar_type>>(),
+                         ring2D, typename detector_t::scalar_type>>(),
                      void>> {
-    using type = material_map<ring2D<>, typename detector_t::scalar_type>;
+    using type = material_map<ring2D, typename detector_t::scalar_type>;
     static constexpr typename detector_t::materials::id value{
         detector_t::materials::id::e_disc2_map};
 };
@@ -294,9 +292,9 @@ template <typename detector_t>
 struct mat_map_info<
     io::material_id::rectangle2_map, detector_t,
     std::enable_if_t<detector_t::materials::template is_defined<material_map<
-                         rectangle2D<>, typename detector_t::scalar_type>>(),
+                         rectangle2D, typename detector_t::scalar_type>>(),
                      void>> {
-    using type = material_map<rectangle2D<>, typename detector_t::scalar_type>;
+    using type = material_map<rectangle2D, typename detector_t::scalar_type>;
     static constexpr typename detector_t::materials::id value{
         detector_t::materials::id::e_rectangle2_map};
 };
@@ -306,9 +304,9 @@ template <typename detector_t>
 struct mat_map_info<
     io::material_id::cuboid3_map, detector_t,
     std::enable_if_t<detector_t::materials::template is_defined<material_map<
-                         cuboid3D<>, typename detector_t::scalar_type>>(),
+                         cuboid3D, typename detector_t::scalar_type>>(),
                      void>> {
-    using type = material_map<cuboid3D<>, typename detector_t::scalar_type>;
+    using type = material_map<cuboid3D, typename detector_t::scalar_type>;
     static constexpr typename detector_t::materials::id value{
         detector_t::materials::id::e_cuboid3_map};
 };
@@ -318,11 +316,25 @@ template <typename detector_t>
 struct mat_map_info<
     io::material_id::cylinder2_map, detector_t,
     std::enable_if_t<detector_t::materials::template is_defined<material_map<
-                         cylinder2D<>, typename detector_t::scalar_type>>(),
+                         cylinder2D, typename detector_t::scalar_type>>(),
                      void>> {
-    using type = material_map<cylinder2D<>, typename detector_t::scalar_type>;
+    using type = material_map<cylinder2D, typename detector_t::scalar_type>;
     static constexpr typename detector_t::materials::id value{
         detector_t::materials::id::e_cylinder2_map};
+};
+
+/// Check for a 2D concentric cylindrical material map
+template <typename detector_t>
+struct mat_map_info<
+    io::material_id::concentric_cylinder2_map, detector_t,
+    std::enable_if_t<
+        detector_t::materials::template is_defined<material_map<
+            concentric_cylinder2D, typename detector_t::scalar_type>>(),
+        void>> {
+    using type =
+        material_map<concentric_cylinder2D, typename detector_t::scalar_type>;
+    static constexpr typename detector_t::materials::id value{
+        detector_t::materials::id::e_concentric_cylinder2_map};
 };
 
 /// Check for a 3D cylindrical volume material map

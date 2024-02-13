@@ -1,6 +1,6 @@
 /** Detray library, part of the ACTS project (R&D line)
  *
- * (c) 2023 CERN for the benefit of the ACTS project
+ * (c) 2023-2024 CERN for the benefit of the ACTS project
  *
  * Mozilla Public License Version 2.0
  */
@@ -46,11 +46,11 @@ GTEST_TEST(detray_tools, decorator_homogeneous_material_builder) {
     using mask_id = typename detector_t::masks::id;
     using material_id = typename detector_t::materials::id;
 
-    using pt_cylinder_t = cylinder2D<false, cylinder_portal_intersector>;
+    using pt_cylinder_t = concentric_cylinder2D;
     using pt_cylinder_factory_t = surface_factory<detector_t, pt_cylinder_t>;
-    using rectangle_factory = surface_factory<detector_t, rectangle2D<>>;
-    using trapezoid_factory = surface_factory<detector_t, trapezoid2D<>>;
-    using cylinder_factory = surface_factory<detector_t, cylinder2D<>>;
+    using rectangle_factory = surface_factory<detector_t, rectangle2D>;
+    using trapezoid_factory = surface_factory<detector_t, trapezoid2D>;
+    using cylinder_factory = surface_factory<detector_t, cylinder2D>;
 
     using mat_factory_t = homogeneous_material_factory<detector_t>;
 
@@ -179,7 +179,7 @@ GTEST_TEST(detray_tools, detector_builder_with_material) {
     using material_id = typename detector_t::materials::id;
 
     // Surface factories
-    using trapezoid_factory = surface_factory<detector_t, trapezoid2D<>>;
+    using trapezoid_factory = surface_factory<detector_t, trapezoid2D>;
 
     // detector builder
     detector_builder<default_metadata> det_builder{};

@@ -11,7 +11,6 @@
 #include "detray/coordinates/cartesian2.hpp"
 #include "detray/definitions/containers.hpp"
 #include "detray/definitions/qualifiers.hpp"
-#include "detray/intersection/plane_intersector.hpp"
 
 // System include(s)
 #include <limits>
@@ -31,10 +30,6 @@ class unmasked {
     /// Local coordinate frame for boundary checks
     template <typename algebra_t>
     using local_frame_type = cartesian2<algebra_t>;
-
-    /// Underlying surface geometry: planar
-    template <typename intersection_t>
-    using intersector_type = plane_intersector<intersection_t>;
 
     /// Dimension of the local coordinate system
     static constexpr std::size_t dim{2u};

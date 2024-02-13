@@ -69,11 +69,11 @@ GTEST_TEST(detray_tools, decorator_material_map_builder) {
     using scalar_t = typename detector_t::scalar_type;
     using mask_id = typename detector_t::masks::id;
 
-    using pt_cylinder_t = cylinder2D<false, cylinder_portal_intersector>;
-    using pt_cylinder_factory_t = surface_factory<detector_t, pt_cylinder_t>;
-    using rectangle_factory = surface_factory<detector_t, rectangle2D<>>;
-    using trapezoid_factory = surface_factory<detector_t, trapezoid2D<>>;
-    using cylinder_factory = surface_factory<detector_t, cylinder2D<>>;
+    using pt_cylinder_factory_t =
+        surface_factory<detector_t, concentric_cylinder2D>;
+    using rectangle_factory = surface_factory<detector_t, rectangle2D>;
+    using trapezoid_factory = surface_factory<detector_t, trapezoid2D>;
+    using cylinder_factory = surface_factory<detector_t, cylinder2D>;
 
     using mat_factory_t = material_map_factory<detector_t, bin_index_t>;
 
@@ -128,10 +128,10 @@ GTEST_TEST(detray_tools, decorator_material_map_builder) {
     auto mat_pt_cyl_factory =
         std::make_shared<mat_factory_t>(std::move(pt_cyl_factory));
     scalar_t t{1.f * unit<scalar_t>::mm};
-    add_material_data(mat_pt_cyl_factory, mat_id::e_cylinder2_map, 0u, t,
-                      silicon<scalar_t>());
-    add_material_data(mat_pt_cyl_factory, mat_id::e_cylinder2_map, 1u, t,
-                      silicon<scalar_t>());
+    add_material_data(mat_pt_cyl_factory, mat_id::e_concentric_cylinder2_map,
+                      0u, t, silicon<scalar_t>());
+    add_material_data(mat_pt_cyl_factory, mat_id::e_concentric_cylinder2_map,
+                      1u, t, silicon<scalar_t>());
 
     auto mat_rect_factory =
         std::make_shared<mat_factory_t>(std::move(rect_factory));
@@ -186,18 +186,25 @@ GTEST_TEST(detray_tools, decorator_material_map_builder) {
     EXPECT_EQ(d.material_store().template size<mat_id::e_annulus2_map>(), 0u);
     EXPECT_EQ(d.material_store().template size<mat_id::e_cell_wire_map>(), 0u);
     EXPECT_EQ(d.material_store().template size<mat_id::e_straw_wire_map>(), 0u);
-    EXPECT_EQ(d.material_store().template size<mat_id::e_cylinder2_map>(), 3u);
+    EXPECT_EQ(d.material_store().template size<mat_id::e_cylinder2_map>(), 1u);
+    EXPECT_EQ(
+        d.material_store().template size<mat_id::e_concentric_cylinder2_map>(),
+        2u);
     // Rectangle and trapezoid surfaces have the same grid geometry
     EXPECT_EQ(d.material_store().template size<mat_id::e_rectangle2_map>(), 3u);
     EXPECT_EQ(d.material_store().template size<mat_id::e_trapezoid2_map>(), 3u);
 
     // Check the material links
-    std::size_t cyl_idx{0u}, cart_idx{0u};
+    std::size_t pt_cyl_idx{0u}, cyl_idx{0u}, cart_idx{0u};
     for (auto& sf_desc : d.surfaces()) {
         const auto& mat_link = sf_desc.material();
         switch (mat_link.id()) {
             case mat_id::e_cylinder2_map: {
                 EXPECT_EQ(mat_link.index(), cyl_idx++) << sf_desc;
+                break;
+            }
+            case mat_id::e_concentric_cylinder2_map: {
+                EXPECT_EQ(mat_link.index(), pt_cyl_idx++) << sf_desc;
                 break;
             }
             case mat_id::e_rectangle2_map: {
@@ -220,7 +227,8 @@ GTEST_TEST(detray_tools, decorator_material_map_builder) {
 
     // Check the material map content
     for (auto cyl_mat_grid :
-         d.material_store().template get<mat_id::e_cylinder2_map>()) {
+         d.material_store()
+             .template get<mat_id::e_concentric_cylinder2_map>()) {
 
         EXPECT_EQ(cyl_mat_grid.nbins(), 50u);
         EXPECT_EQ(cyl_mat_grid.size(), 50u);

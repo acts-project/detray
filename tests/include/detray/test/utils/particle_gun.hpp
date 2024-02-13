@@ -1,6 +1,6 @@
 /** Detray library, part of the ACTS project (R&D line)
  *
- * (c) 2022-2023 CERN for the benefit of the ACTS project
+ * (c) 2022-2024 CERN for the benefit of the ACTS project
  *
  * Mozilla Public License Version 2.0
  */
@@ -9,10 +9,9 @@
 
 // Project include(s)
 #include "detray/geometry/surface.hpp"
-#include "detray/intersection/detail/trajectories.hpp"
-#include "detray/intersection/intersection.hpp"
-#include "detray/intersection/intersection_kernel.hpp"
-#include "detray/test/intersection/helix_intersection_kernel.hpp"
+#include "detray/navigation/intersection/intersection.hpp"
+#include "detray/navigation/intersection_kernel.hpp"
+#include "detray/navigation/intersector.hpp"
 #include "detray/utils/ranges.hpp"
 
 // System include(s)
@@ -41,25 +40,21 @@ struct particle_gun {
         typename detector_t::scalar_type mask_tolerance =
             1.f * unit<typename detector_t::scalar_type>::um) {
 
-        using intersection_t = intersection2D<typename detector_t::surface_type,
-                                              typename detector_t::transform3>;
+        using sf_desc_t = typename detector_t::surface_type;
+
+        using intersection_t =
+            intersection2D<sf_desc_t, typename detector_t::transform3>;
 
         std::vector<std::pair<dindex, intersection_t>> intersection_record;
 
-        using helix_type =
-            detail::helix<typename trajectory_t::transform3_type>;
-
-        using intersection_kernel_t =
-            std::conditional_t<std::is_same_v<trajectory_t, helix_type>,
-                               helix_intersection_initialize,
-                               intersection_initialize>;
+        using intersection_kernel_t = intersection_initialize<intersector>;
 
         // Loop over all surfaces in the detector
         const auto &trf_store = detector.transform_store();
 
         std::vector<intersection_t> intersections{};
 
-        for (const auto &sf_desc : detector.surfaces()) {
+        for (const sf_desc_t &sf_desc : detector.surfaces()) {
             // Retrieve candidate(s) from the surface
             const auto sf = surface{detector, sf_desc};
             sf.template visit_mask<intersection_kernel_t>(

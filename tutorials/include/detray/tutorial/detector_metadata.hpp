@@ -16,7 +16,7 @@
 #include "detray/io/common/detail/type_info.hpp"  // mask_info
 #include "detray/masks/masks.hpp"
 #include "detray/materials/material_slab.hpp"
-#include "detray/surface_finders/brute_force_finder.hpp"
+#include "detray/navigation/accelerators/brute_force_finder.hpp"
 
 // Linear algebra types
 #include "detray/tutorial/types.hpp"
@@ -45,10 +45,10 @@ namespace tutorial {
 using nav_link = std::uint_least16_t;
 
 /// The mask types for the detector sensitive/passive surfaces
-using square = mask<square2D<>, nav_link>;
-using trapezoid = mask<trapezoid2D<>, nav_link>;
+using square = mask<square2D, nav_link>;
+using trapezoid = mask<trapezoid2D, nav_link>;
 // Types for portals
-using rectangle = mask<rectangle2D<>, nav_link>;
+using rectangle = mask<rectangle2D, nav_link>;
 
 //
 // Material Description

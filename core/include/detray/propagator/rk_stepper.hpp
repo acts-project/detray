@@ -13,8 +13,8 @@
 #include "detray/materials/interaction.hpp"
 #include "detray/materials/material.hpp"
 #include "detray/materials/predefined_materials.hpp"
+#include "detray/navigation/policies.hpp"
 #include "detray/propagator/base_stepper.hpp"
-#include "detray/propagator/navigation_policies.hpp"
 #include "detray/tracks/tracks.hpp"
 #include "detray/utils/matrix_helper.hpp"
 

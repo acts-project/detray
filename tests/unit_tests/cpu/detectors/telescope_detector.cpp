@@ -11,8 +11,8 @@
 #include "detray/detectors/create_telescope_detector.hpp"
 #include "detray/masks/masks.hpp"
 #include "detray/masks/unbounded.hpp"
+#include "detray/navigation/navigator.hpp"
 #include "detray/propagator/line_stepper.hpp"
-#include "detray/propagator/navigator.hpp"
 #include "detray/propagator/rk_stepper.hpp"
 #include "detray/test/types.hpp"
 #include "detray/tracks/tracks.hpp"
@@ -65,8 +65,8 @@ GTEST_TEST(detray_detectors, telescope_detector) {
     using namespace detray;
 
     // Use rectangle surfaces
-    mask<rectangle2D<>> rectangle{0u, 20.f * unit<scalar>::mm,
-                                  20.f * unit<scalar>::mm};
+    mask<rectangle2D> rectangle{0u, 20.f * unit<scalar>::mm,
+                                20.f * unit<scalar>::mm};
     tel_det_config<> tel_cfg{rectangle};
 
     using const_bfield_bknd_t =

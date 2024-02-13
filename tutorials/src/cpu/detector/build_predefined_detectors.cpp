@@ -9,10 +9,10 @@
 #include "detray/definitions/units.hpp"
 #include "detray/detectors/create_telescope_detector.hpp"
 #include "detray/detectors/create_toy_geometry.hpp"
-#include "detray/geometry/volume_graph.hpp"
-#include "detray/intersection/detail/trajectories.hpp"
 #include "detray/masks/masks.hpp"
 #include "detray/materials/predefined_materials.hpp"
+#include "detray/navigation/detail/trajectories.hpp"
+#include "detray/navigation/volume_graph.hpp"
 #include "detray/tracks/tracks.hpp"
 
 // Example linear algebra plugin: std::array
@@ -75,12 +75,12 @@ int main(int argc, char** argv) {
 
     // Mask with a rectangular shape (20x20 mm)
 
-    detray::mask<detray::rectangle2D<>> rectangle{
+    detray::mask<detray::rectangle2D> rectangle{
         0u, 20.f * detray::unit<detray::scalar>::mm,
         20.f * detray::unit<detray::scalar>::mm};
 
     // Mask with a trapezoid shape
-    using trapezoid_t = detray::mask<detray::trapezoid2D<>>;
+    using trapezoid_t = detray::mask<detray::trapezoid2D>;
 
     constexpr detray::scalar hx_min_y{10.f * detray::unit<detray::scalar>::mm};
     constexpr detray::scalar hx_max_y{30.f * detray::unit<detray::scalar>::mm};
@@ -107,7 +107,7 @@ int main(int argc, char** argv) {
     //         10 rectangle surfaces, 500mm in length, modules evenly spaced,
     //         silicon material (80mm)
     const auto [tel_det1, tel_names1] =
-        detray::create_telescope_detector<detray::rectangle2D<>>(host_mr);
+        detray::create_telescope_detector<detray::rectangle2D>(host_mr);
 
     std::cout << "\nTelescope detector - case 1:\n"
               << "----------------------------\n"

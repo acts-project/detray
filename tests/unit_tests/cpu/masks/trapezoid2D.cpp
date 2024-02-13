@@ -31,12 +31,12 @@ GTEST_TEST(detray_masks, trapezoid2D) {
     constexpr scalar hy{2.f * unit<scalar>::mm};
     constexpr scalar divisor{1.f / (2.f * hy)};
 
-    mask<trapezoid2D<>> t2{0u, hx_miny, hx_maxy, hy, divisor};
+    mask<trapezoid2D> t2{0u, hx_miny, hx_maxy, hy, divisor};
 
-    ASSERT_NEAR(t2[trapezoid2D<>::e_half_length_0], hx_miny, tol);
-    ASSERT_NEAR(t2[trapezoid2D<>::e_half_length_1], hx_maxy, tol);
-    ASSERT_NEAR(t2[trapezoid2D<>::e_half_length_2], hy, tol);
-    ASSERT_NEAR(t2[trapezoid2D<>::e_divisor], divisor, tol);
+    ASSERT_NEAR(t2[trapezoid2D::e_half_length_0], hx_miny, tol);
+    ASSERT_NEAR(t2[trapezoid2D::e_half_length_1], hx_maxy, tol);
+    ASSERT_NEAR(t2[trapezoid2D::e_half_length_2], hy, tol);
+    ASSERT_NEAR(t2[trapezoid2D::e_divisor], divisor, tol);
 
     ASSERT_TRUE(t2.is_inside(p2_in) == intersection::status::e_inside);
     ASSERT_TRUE(t2.is_inside(p2_edge) == intersection::status::e_inside);
@@ -47,12 +47,12 @@ GTEST_TEST(detray_masks, trapezoid2D) {
     // Check bounding box
     constexpr scalar envelope{0.01f};
     const auto loc_bounds = t2.local_min_bounds(envelope);
-    ASSERT_NEAR(loc_bounds[cuboid3D<>::e_min_x], -(hx_maxy + envelope), tol);
-    ASSERT_NEAR(loc_bounds[cuboid3D<>::e_min_y], -(hy + envelope), tol);
-    ASSERT_NEAR(loc_bounds[cuboid3D<>::e_min_z], -envelope, tol);
-    ASSERT_NEAR(loc_bounds[cuboid3D<>::e_max_x], (hx_maxy + envelope), tol);
-    ASSERT_NEAR(loc_bounds[cuboid3D<>::e_max_y], (hy + envelope), tol);
-    ASSERT_NEAR(loc_bounds[cuboid3D<>::e_max_z], envelope, tol);
+    ASSERT_NEAR(loc_bounds[cuboid3D::e_min_x], -(hx_maxy + envelope), tol);
+    ASSERT_NEAR(loc_bounds[cuboid3D::e_min_y], -(hy + envelope), tol);
+    ASSERT_NEAR(loc_bounds[cuboid3D::e_min_z], -envelope, tol);
+    ASSERT_NEAR(loc_bounds[cuboid3D::e_max_x], (hx_maxy + envelope), tol);
+    ASSERT_NEAR(loc_bounds[cuboid3D::e_max_y], (hy + envelope), tol);
+    ASSERT_NEAR(loc_bounds[cuboid3D::e_max_z], envelope, tol);
 
     const auto centroid = t2.centroid();
     ASSERT_NEAR(centroid[0], 0.f, tol);

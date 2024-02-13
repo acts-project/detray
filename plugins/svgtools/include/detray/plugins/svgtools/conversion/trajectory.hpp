@@ -1,6 +1,6 @@
 /** Detray library, part of the ACTS project (R&D line)
  *
- * (c) 2023 CERN for the benefit of the ACTS project
+ * (c) 2023-2024 CERN for the benefit of the ACTS project
  *
  * Mozilla Public License Version 2.0
  */
@@ -8,7 +8,7 @@
 #pragma once
 
 // Project include(s)
-#include "detray/intersection/detail/trajectories.hpp"
+#include "detray/navigation/detail/ray.hpp"
 #include "detray/plugins/svgtools/meta/proto/trajectory.hpp"
 #include "detray/plugins/svgtools/styling/styling.hpp"
 

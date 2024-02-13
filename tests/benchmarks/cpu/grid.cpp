@@ -6,11 +6,12 @@
  */
 
 // Detray core include(s).
+#include "detray/utils/grid/grid.hpp"
+
 #include "detray/builders/grid_factory.hpp"
 #include "detray/definitions/containers.hpp"
 #include "detray/definitions/indexing.hpp"
 #include "detray/masks/rectangle2D.hpp"
-#include "detray/surface_finders/accelerator_grid.hpp"
 
 // Detray test include(s).
 #include "detray/test/types.hpp"
@@ -63,7 +64,7 @@ auto make_regular_grid(vecmem::memory_resource &mr) {
     std::vector<std::size_t> nbins = {25u, 60u};
 
     // Rectangular grid with closed bin bounds and regular binning on all axes
-    return gr_factory.template new_grid<rectangle2D<>>(
+    return gr_factory.template new_grid<rectangle2D>(
         spans, nbins, {}, {},
         types::list<axis::closed<axis::label::e_x>,
                     axis::closed<axis::label::e_y>>{},
@@ -89,7 +90,7 @@ auto make_irregular_grid(vecmem::memory_resource &mr) {
     auto gr_factory = grid_factory<bin_t, simple_serializer>{mr};
 
     // Rectangular grid with closed bin bounds and irregular binning on all axes
-    return gr_factory.template new_grid<rectangle2D<>>(
+    return gr_factory.template new_grid<rectangle2D>(
         {}, {}, {}, boundaries,
         types::list<axis::closed<axis::label::e_x>,
                     axis::closed<axis::label::e_y>>{},

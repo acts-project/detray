@@ -8,8 +8,8 @@
 #pragma once
 
 // Project include(s)
-#include "detray/intersection/detail/trajectories.hpp"
 #include "detray/io/frontend/utils/file_handle.hpp"
+#include "detray/navigation/detail/ray.hpp"
 #include "detray/simulation/event_generator/track_generators.hpp"
 #include "detray/test/fixture_base.hpp"
 #include "detray/test/types.hpp"

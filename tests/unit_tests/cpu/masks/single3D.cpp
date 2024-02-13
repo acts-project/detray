@@ -41,12 +41,12 @@ GTEST_TEST(detray_masks, single3_0) {
     // Check bounding box
     constexpr scalar envelope{0.01f};
     const auto loc_bounds = m1_0.local_min_bounds(envelope);
-    ASSERT_NEAR(loc_bounds[cuboid3D<>::e_min_x], -(h0 + envelope), tol);
-    ASSERT_NEAR(loc_bounds[cuboid3D<>::e_min_y], -envelope, tol);
-    ASSERT_NEAR(loc_bounds[cuboid3D<>::e_min_z], -envelope, tol);
-    ASSERT_NEAR(loc_bounds[cuboid3D<>::e_max_x], (h0 + envelope), tol);
-    ASSERT_NEAR(loc_bounds[cuboid3D<>::e_max_y], envelope, tol);
-    ASSERT_NEAR(loc_bounds[cuboid3D<>::e_max_z], envelope, tol);
+    ASSERT_NEAR(loc_bounds[cuboid3D::e_min_x], -(h0 + envelope), tol);
+    ASSERT_NEAR(loc_bounds[cuboid3D::e_min_y], -envelope, tol);
+    ASSERT_NEAR(loc_bounds[cuboid3D::e_min_z], -envelope, tol);
+    ASSERT_NEAR(loc_bounds[cuboid3D::e_max_x], (h0 + envelope), tol);
+    ASSERT_NEAR(loc_bounds[cuboid3D::e_max_y], envelope, tol);
+    ASSERT_NEAR(loc_bounds[cuboid3D::e_max_z], envelope, tol);
 
     const auto centroid = m1_0.centroid();
     ASSERT_NEAR(centroid[0], 0.f, tol);
@@ -77,12 +77,12 @@ GTEST_TEST(detray_masks, single3_1) {
     // Check bounding box
     constexpr scalar envelope{0.01f};
     const auto loc_bounds = m1_1.local_min_bounds(envelope);
-    ASSERT_NEAR(loc_bounds[cuboid3D<>::e_min_x], -envelope, tol);
-    ASSERT_NEAR(loc_bounds[cuboid3D<>::e_min_y], -(h1 + envelope), tol);
-    ASSERT_NEAR(loc_bounds[cuboid3D<>::e_min_z], -envelope, tol);
-    ASSERT_NEAR(loc_bounds[cuboid3D<>::e_max_x], envelope, tol);
-    ASSERT_NEAR(loc_bounds[cuboid3D<>::e_max_y], (h1 + envelope), tol);
-    ASSERT_NEAR(loc_bounds[cuboid3D<>::e_max_z], envelope, tol);
+    ASSERT_NEAR(loc_bounds[cuboid3D::e_min_x], -envelope, tol);
+    ASSERT_NEAR(loc_bounds[cuboid3D::e_min_y], -(h1 + envelope), tol);
+    ASSERT_NEAR(loc_bounds[cuboid3D::e_min_z], -envelope, tol);
+    ASSERT_NEAR(loc_bounds[cuboid3D::e_max_x], envelope, tol);
+    ASSERT_NEAR(loc_bounds[cuboid3D::e_max_y], (h1 + envelope), tol);
+    ASSERT_NEAR(loc_bounds[cuboid3D::e_max_z], envelope, tol);
 
     const auto centroid = m1_1.centroid();
     ASSERT_NEAR(centroid[0], 0.f, tol);
@@ -113,12 +113,12 @@ GTEST_TEST(detray_masks, single3_2) {
     // Check bounding box
     constexpr scalar envelope{0.01f};
     const auto loc_bounds = m1_2.local_min_bounds(envelope);
-    ASSERT_NEAR(loc_bounds[cuboid3D<>::e_min_x], -envelope, tol);
-    ASSERT_NEAR(loc_bounds[cuboid3D<>::e_min_y], -envelope, tol);
-    ASSERT_NEAR(loc_bounds[cuboid3D<>::e_min_z], -(h2 + envelope), tol);
-    ASSERT_NEAR(loc_bounds[cuboid3D<>::e_max_x], envelope, tol);
-    ASSERT_NEAR(loc_bounds[cuboid3D<>::e_max_y], envelope, tol);
-    ASSERT_NEAR(loc_bounds[cuboid3D<>::e_max_z], (h2 + envelope), tol);
+    ASSERT_NEAR(loc_bounds[cuboid3D::e_min_x], -envelope, tol);
+    ASSERT_NEAR(loc_bounds[cuboid3D::e_min_y], -envelope, tol);
+    ASSERT_NEAR(loc_bounds[cuboid3D::e_min_z], -(h2 + envelope), tol);
+    ASSERT_NEAR(loc_bounds[cuboid3D::e_max_x], envelope, tol);
+    ASSERT_NEAR(loc_bounds[cuboid3D::e_max_y], envelope, tol);
+    ASSERT_NEAR(loc_bounds[cuboid3D::e_max_z], (h2 + envelope), tol);
 
     const auto centroid = m1_2.centroid();
     ASSERT_NEAR(centroid[0], 0.f, tol);

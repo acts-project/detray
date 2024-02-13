@@ -10,11 +10,10 @@
 // Project include(s)
 #include "detray/coordinates/cartesian2.hpp"
 #include "detray/definitions/containers.hpp"
+#include "detray/definitions/math.hpp"
 #include "detray/definitions/qualifiers.hpp"
-#include "detray/intersection/plane_intersector.hpp"
 
 // System include(s)
-#include <cmath>
 #include <limits>
 #include <ostream>
 #include <string>
@@ -23,17 +22,10 @@ namespace detray {
 
 /// @brief Geometrical shape of a trapezoid2D.
 ///
-/// @tparam intersector_t defines how to intersect the underlying surface
-///         geometry
-/// @tparam kMeasDim defines the dimension of the measurement
-/// @tparam kNormalOrder true if the index for measurement parameter follows
-/// the local coordinate system
-///
 /// It is defined by half lengths in local0 coordinate bounds[0] and bounds[1]
 /// at -/+ half length in the local1 coordinate bounds[2]. bounds[3] contains
 /// the precomputed value of 1 / (2 * bounds[2]), which avoids
 /// excessive floating point divisions.
-template <template <typename> class intersector_t = plane_intersector>
 class trapezoid2D {
     public:
     /// The name for this shape
@@ -50,10 +42,6 @@ class trapezoid2D {
     /// Local coordinate frame for boundary checks
     template <typename algebra_t>
     using local_frame_type = cartesian2<algebra_t>;
-
-    /// Underlying surface geometry: planar
-    template <typename intersection_t>
-    using intersector_type = intersector_t<intersection_t>;
 
     /// Dimension of the local coordinate system
     static constexpr std::size_t dim{2u};

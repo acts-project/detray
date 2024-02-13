@@ -140,13 +140,13 @@ auto test_detector_json_io(const detector_t& det,
 /// Test the reading and writing of a telescope detector
 GTEST_TEST(io, json_telescope_detector_reader) {
 
-    mask<rectangle2D<>> rec2{0u, 100.f, 100.f};
+    mask<rectangle2D> rec2{0u, 100.f, 100.f};
 
     // Surface positions
     std::vector<scalar> positions = {1.f,   50.f,  100.f, 150.f, 200.f, 250.f,
                                      300.f, 350.f, 400.f, 450.f, 500.f};
 
-    tel_det_config<rectangle2D<>> tel_cfg{rec2};
+    tel_det_config<rectangle2D> tel_cfg{rec2};
     tel_cfg.positions(positions);
 
     // Telescope detector

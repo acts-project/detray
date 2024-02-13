@@ -17,6 +17,7 @@
 #include "detray/detectors/telescope_metadata.hpp"
 #include "detray/masks/masks.hpp"
 #include "detray/materials/predefined_materials.hpp"
+#include "detray/navigation/detail/trajectories.hpp"
 #include "detray/utils/consistency_checker.hpp"
 
 // Vecmem include(s)
@@ -33,7 +34,7 @@ namespace detray {
 namespace {
 
 /// Configure the toy detector
-template <typename mask_shape_t = rectangle2D<>,
+template <typename mask_shape_t = rectangle2D,
           typename trajectory_t = detail::ray<__plugin::transform3<scalar>>>
 struct tel_det_config {
 
@@ -158,7 +159,7 @@ struct tel_det_config {
 /// @param cfg configuration struct of the telescope detector
 ///
 /// @returns a complete detector object
-template <typename mask_shape_t = rectangle2D<>,
+template <typename mask_shape_t = rectangle2D,
           typename trajectory_t = detail::ray<__plugin::transform3<scalar>>>
 inline auto create_telescope_detector(
     vecmem::memory_resource &resource,

@@ -13,9 +13,6 @@
 #include "detray/definitions/qualifiers.hpp"
 #include "detray/definitions/track_parametrization.hpp"
 
-// System include(s).
-#include <cmath>
-
 namespace detray::detail {
 
 template <typename matrix_operator_t>

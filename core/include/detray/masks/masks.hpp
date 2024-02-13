@@ -1,6 +1,6 @@
 /** Detray library, part of the ACTS project (R&D line)
  *
- * (c) 2021-2023 CERN for the benefit of the ACTS project
+ * (c) 2021-2024 CERN for the benefit of the ACTS project
  *
  * Mozilla Public License Version 2.0
  */
@@ -11,8 +11,8 @@
 #include "detray/definitions/indexing.hpp"
 #include "detray/definitions/qualifiers.hpp"
 #include "detray/definitions/track_parametrization.hpp"
-#include "detray/intersection/intersection.hpp"
 #include "detray/masks/annulus2D.hpp"
+#include "detray/masks/concentric_cylinder2D.hpp"
 #include "detray/masks/cuboid3D.hpp"
 #include "detray/masks/cylinder2D.hpp"
 #include "detray/masks/cylinder3D.hpp"
@@ -21,6 +21,7 @@
 #include "detray/masks/ring2D.hpp"
 #include "detray/masks/single3D.hpp"
 #include "detray/masks/trapezoid2D.hpp"
+#include "detray/navigation/intersection/intersection.hpp"
 
 // System include(s)
 #include <algorithm>
@@ -50,6 +51,7 @@ template <typename shape_t, typename links_t = std::uint_least16_t,
 class mask {
     public:
     using links_type = links_t;
+    using algebra_type = algebra_t;
     using scalar_type = typename algebra_t::scalar_type;
     using shape = shape_t;
     using boundaries = typename shape::boundaries;
@@ -144,13 +146,6 @@ class mask {
         return local_frame_type{}.local_to_global(trf, loc);
     }
 
-    /// @returns the intersection functor for the underlying surface geometry.
-    template <typename intersection_t>
-    DETRAY_HOST_DEVICE inline constexpr auto intersector() const ->
-        typename shape::template intersector_type<intersection_t> {
-        return {};
-    }
-
     /// @brief Mask this shape onto a surface.
     ///
     /// @note the point is expected to be given in global cartesian coordinates
@@ -204,10 +199,10 @@ class mask {
     DETRAY_HOST_DEVICE
     auto local_min_bounds(const scalar_type env =
                               std::numeric_limits<scalar_type>::epsilon()) const
-        -> mask<cuboid3D<>, unsigned int> {
+        -> mask<cuboid3D, unsigned int> {
         const auto bounds =
             _shape.template local_min_bounds<algebra_t>(_values, env);
-        static_assert(bounds.size() == cuboid3D<>::e_size,
+        static_assert(bounds.size() == cuboid3D::e_size,
                       "Shape returns incompatible bounds for bound box");
         return {bounds, std::numeric_limits<unsigned int>::max()};
     }

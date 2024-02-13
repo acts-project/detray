@@ -11,15 +11,13 @@
 #include "detray/geometry/detail/surface_descriptor.hpp"
 #include "detray/masks/masks.hpp"
 #include "detray/masks/unbounded.hpp"
+#include "detray/navigation/detail/ray.hpp"
+#include "detray/navigation/navigator.hpp"
 #include "detray/propagator/actor_chain.hpp"
 #include "detray/propagator/actors/parameter_resetter.hpp"
 #include "detray/propagator/actors/parameter_transporter.hpp"
 #include "detray/propagator/line_stepper.hpp"
-#include "detray/propagator/navigator.hpp"
 #include "detray/propagator/propagator.hpp"
-#include "detray/test/intersection/helix_cylinder_intersector.hpp"
-#include "detray/test/intersection/helix_line_intersector.hpp"
-#include "detray/test/intersection/helix_plane_intersector.hpp"
 #include "detray/test/types.hpp"
 #include "detray/tracks/tracks.hpp"
 #include "detray/utils/axis_rotation.hpp"
@@ -40,11 +38,11 @@ using intersection_t = intersection2D<surface_descriptor<>, transform3>;
 
 // Mask types to be tested
 // @TODO: Remove unbounded tag
-using annulus_type = detray::mask<detray::unbounded<detray::annulus2D<>>>;
-using rectangle_type = detray::mask<detray::rectangle2D<>>;
-using trapezoid_type = detray::mask<detray::trapezoid2D<>>;
-using ring_type = detray::mask<detray::ring2D<>>;
-using cylinder_type = detray::mask<detray::cylinder2D<>>;
+using annulus_type = detray::mask<detray::unbounded<detray::annulus2D>>;
+using rectangle_type = detray::mask<detray::rectangle2D>;
+using trapezoid_type = detray::mask<detray::trapezoid2D>;
+using ring_type = detray::mask<detray::ring2D>;
+using cylinder_type = detray::mask<detray::cylinder2D>;
 using straw_wire_type = detray::mask<detray::line<false>>;
 using cell_wire_type = detray::mask<detray::line<true>>;
 
@@ -58,8 +56,8 @@ GTEST_TEST(detray_propagator, covariance_transport) {
     detail::ray<transform3> traj{{0.f, 0.f, 0.f}, 0.f, {1.f, 0.f, 0.f}, -1.f};
     std::vector<scalar> positions = {0.f, 10.f, 20.f, 30.f, 40.f, 50.f, 60.f};
 
-    tel_det_config<rectangle2D<>> tel_cfg{200.f * unit<scalar>::mm,
-                                          200.f * unit<scalar>::mm};
+    tel_det_config<rectangle2D> tel_cfg{200.f * unit<scalar>::mm,
+                                        200.f * unit<scalar>::mm};
     tel_cfg.positions(positions).pilot_track(traj);
 
     // Build telescope detector with unbounded planes

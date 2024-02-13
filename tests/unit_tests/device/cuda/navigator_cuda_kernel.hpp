@@ -11,8 +11,8 @@
 #include "detray/definitions/algebra.hpp"
 #include "detray/definitions/units.hpp"
 #include "detray/detectors/toy_metadata.hpp"
+#include "detray/navigation/navigator.hpp"
 #include "detray/propagator/line_stepper.hpp"
-#include "detray/propagator/navigator.hpp"
 #include "detray/simulation/event_generator/track_generators.hpp"
 
 using namespace detray;

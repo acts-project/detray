@@ -45,8 +45,8 @@ GTEST_TEST(svgtools, masks) {
     // Visualize a 2D annulus.
     // e_min_r, e_max_r, e_min_phi_rel, e_max_phi_rel, e_average_phi, e_shift_x,
     // e_shift_y
-    detray::mask<detray::annulus2D<>> ann2D{0u,   100.f, 200.f, -0.5f,
-                                            0.5f, 0.f,   4.f,   30.f};
+    detray::mask<detray::annulus2D> ann2D{0u,   100.f, 200.f, -0.5f,
+                                          0.5f, 0.f,   4.f,   30.f};
     const auto ann2D_proto =
         detray::svgtools::conversion::surface(transform, ann2D);
     const auto ann2D_svg = actsvg::display::surface("", ann2D_proto, view);
@@ -54,7 +54,7 @@ GTEST_TEST(svgtools, masks) {
 
     // Visualize a 2D cylinder.
     // e_r, e_n_half_z, e_p_half_z
-    detray::mask<detray::cylinder2D<>> cyl2D{0u, 100.f, -10.f, 10.f};
+    detray::mask<detray::cylinder2D> cyl2D{0u, 100.f, -10.f, 10.f};
     const auto cyl2D_proto =
         detray::svgtools::conversion::surface(transform, cyl2D);
     const auto cyl2D_svg = actsvg::display::surface("", cyl2D_proto, view);
@@ -62,7 +62,7 @@ GTEST_TEST(svgtools, masks) {
 
     // Visualize a 2D rectangle.
     // e_half_x, e_half_y
-    detray::mask<detray::rectangle2D<>> rec2D{0u, 100.f, 100.f};
+    detray::mask<detray::rectangle2D> rec2D{0u, 100.f, 100.f};
     const auto rec2D_proto =
         detray::svgtools::conversion::surface(transform, rec2D);
     const auto rec2D_svg = actsvg::display::surface("", rec2D_proto, view);
@@ -70,7 +70,7 @@ GTEST_TEST(svgtools, masks) {
 
     // Visualize a 2D ring.
     // e_inner_r, e_outer_r
-    detray::mask<detray::ring2D<>> rin2D{0u, 50.f, 100.f};
+    detray::mask<detray::ring2D> rin2D{0u, 50.f, 100.f};
     const auto rin2D_proto =
         detray::svgtools::conversion::surface(transform, rin2D);
     const auto rin2D_svg = actsvg::display::surface("", rin2D_proto, view);
@@ -78,7 +78,7 @@ GTEST_TEST(svgtools, masks) {
 
     // Visualize a 2D trapezoid.
     // e_half_length_0, e_half_length_1, e_half_length_2, e_divisor
-    detray::mask<detray::trapezoid2D<>> tra2D{0u, 100.f, 50.f, 200.f};
+    detray::mask<detray::trapezoid2D> tra2D{0u, 100.f, 50.f, 200.f};
     const auto tra2D_proto =
         detray::svgtools::conversion::surface(transform, tra2D);
     const auto tra2D_svg = actsvg::display::surface("", tra2D_proto, view);

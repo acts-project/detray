@@ -81,8 +81,7 @@ GTEST_TEST(detray_tools, surface_factory) {
     //
     // check sensitive cylinder
     //
-    using sensitive_cylinder_factory =
-        surface_factory<detector_t, cylinder2D<>>;
+    using sensitive_cylinder_factory = surface_factory<detector_t, cylinder2D>;
 
     auto cyl_factory = std::make_shared<sensitive_cylinder_factory>();
 
@@ -126,7 +125,7 @@ GTEST_TEST(detray_tools, surface_factory) {
     //
 
     // annulus
-    using annulus_factory = surface_factory<detector_t, annulus2D<>>;
+    using annulus_factory = surface_factory<detector_t, annulus2D>;
 
     auto ann_factory = std::make_shared<annulus_factory>();
 
@@ -147,7 +146,7 @@ GTEST_TEST(detray_tools, surface_factory) {
     EXPECT_NEAR(ann_comps[6], 1.4f, tol);
 
     // rectangles
-    using rectangle_factory = surface_factory<detector_t, rectangle2D<>>;
+    using rectangle_factory = surface_factory<detector_t, rectangle2D>;
 
     auto rect_factory = std::make_shared<rectangle_factory>();
 
@@ -163,7 +162,7 @@ GTEST_TEST(detray_tools, surface_factory) {
     EXPECT_NEAR(rectgl_comps[1], 8.f, tol);
 
     // ring
-    using disc_factory = surface_factory<detector_t, ring2D<>>;
+    using disc_factory = surface_factory<detector_t, ring2D>;
 
     auto sf_disc_factory = std::make_shared<disc_factory>();
 
@@ -179,7 +178,7 @@ GTEST_TEST(detray_tools, surface_factory) {
     EXPECT_NEAR(ring_comps[1], 5.f, tol);
 
     // trapezoid
-    using trapezoid_factory = surface_factory<detector_t, trapezoid2D<>>;
+    using trapezoid_factory = surface_factory<detector_t, trapezoid2D>;
 
     auto trpz_factory = std::make_shared<trapezoid_factory>();
 

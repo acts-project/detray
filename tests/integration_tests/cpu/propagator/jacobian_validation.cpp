@@ -9,14 +9,13 @@
 #include "detray/definitions/units.hpp"
 #include "detray/detectors/bfield.hpp"
 #include "detray/detectors/create_telescope_detector.hpp"
+#include "detray/navigation/intersection/helix_intersector.hpp"
+#include "detray/navigation/navigator.hpp"
 #include "detray/propagator/actors/parameter_resetter.hpp"
 #include "detray/propagator/actors/parameter_transporter.hpp"
-#include "detray/propagator/navigator.hpp"
 #include "detray/propagator/propagator.hpp"
 #include "detray/propagator/rk_stepper.hpp"
 #include "detray/simulation/event_generator/track_generators.hpp"
-#include "detray/test/intersection/helix_line_intersector.hpp"
-#include "detray/test/intersection/helix_plane_intersector.hpp"
 #include "detray/utils/inspectors.hpp"
 #include "detray/utils/statistics.hpp"
 
@@ -92,7 +91,7 @@ constexpr const scalar shift = 0.f * unit<scalar>::mm;
 std::uniform_real_distribution<scalar> rand_shift(-shift, shift);
 
 // surface types
-using rect_type = rectangle2D<>;
+using rect_type = rectangle2D;
 using wire_type = line<true>;
 
 }  // namespace
@@ -559,8 +558,7 @@ bound_track_parameters<transform3_type>::covariance_type directly_differentiate(
     return differentiated_jacobian;
 }
 
-template <typename helix_intersector_t, typename detector_t,
-          typename detector_t::metadata::mask_ids mask_id>
+template <typename detector_t, typename detector_t::metadata::mask_ids mask_id>
 bound_track_parameters<transform3_type> get_initial_parameter(
     detector_t& det, const free_track_parameters<transform3_type>& vertex,
     const vector3& field, const scalar helix_tolerance) {
@@ -575,7 +573,9 @@ bound_track_parameters<transform3_type> get_initial_parameter(
     const auto& departure_mask =
         det.mask_store().template get<mask_id>().at(mask_link.index());
 
-    helix_intersector_t hlx_is{};
+    using mask_t =
+        typename detector_t::mask_container::template get_type<mask_id>;
+    helix_intersector<typename mask_t::shape, transform3_type> hlx_is{};
     hlx_is.convergence_tolerance = helix_tolerance;
     auto sfi = hlx_is(hlx, departure_sf, departure_mask, departure_trf, 0.f);
     EXPECT_EQ(sfi.status, intersection::status::e_inside)
@@ -881,8 +881,7 @@ void evaluate_covariance_transport(
     file << std::endl;
 }
 
-template <typename helix_intersector_t, typename detector_t,
-          typename detector_t::metadata::mask_ids mask_id>
+template <typename detector_t, typename detector_t::metadata::mask_ids mask_id>
 typename bound_track_parameters<transform3_type>::vector_type
 get_displaced_bound_vector_helix(
     const bound_track_parameters<transform3_type>& track, const vector3& field,
@@ -904,7 +903,9 @@ get_displaced_bound_vector_helix(
         surface{det, departure_sf}.bound_to_free_vector({}, dvec);
     detail::helix<transform3_type> hlx(free_vec, &field);
 
-    helix_intersector_t hlx_is{};
+    using mask_t =
+        typename detector_t::mask_container::template get_type<mask_id>;
+    helix_intersector<typename mask_t::shape, transform3_type> hlx_is{};
     hlx_is.convergence_tolerance = helix_tolerance;
     auto sfi =
         hlx_is(hlx, destination_sf, destination_mask, destination_trf, 0.f);
@@ -923,8 +924,7 @@ get_displaced_bound_vector_helix(
     return new_bound_vec;
 }
 
-template <typename helix_intersector_t, typename detector_t,
-          typename detector_t::metadata::mask_ids mask_id>
+template <typename detector_t, typename detector_t::metadata::mask_ids mask_id>
 void evaluate_jacobian_difference_helix(
     const unsigned int trk_count, detector_t& det,
     const bound_track_parameters<transform3_type>& track, const vector3& field,
@@ -954,7 +954,9 @@ void evaluate_jacobian_difference_helix(
     const auto& destination_mask =
         det.mask_store().template get<mask_id>().at(mask_link.index());
 
-    helix_intersector_t hlx_is{};
+    using mask_t =
+        typename detector_t::mask_container::template get_type<mask_id>;
+    helix_intersector<typename mask_t::shape, transform3_type> hlx_is{};
     hlx_is.convergence_tolerance = helix_tolerance;
 
     auto sfi =
@@ -1027,11 +1029,9 @@ void evaluate_jacobian_difference_helix(
         std::array<scalar, 5u> err{big, big, big, big, big};
         std::array<bool, 5u> complete{false, false, false, false, false};
 
-        const auto vec1 = get_displaced_bound_vector_helix<helix_intersector_t,
-                                                           detector_t, mask_id>(
+        const auto vec1 = get_displaced_bound_vector_helix<detector_t, mask_id>(
             track, field, i, 1.f * delta, det, helix_tolerance);
-        const auto vec2 = get_displaced_bound_vector_helix<helix_intersector_t,
-                                                           detector_t, mask_id>(
+        const auto vec2 = get_displaced_bound_vector_helix<detector_t, mask_id>(
             track, field, i, -1.f * delta, det, helix_tolerance);
 
         for (unsigned int j = 0; j < 5u; j++) {
@@ -1046,12 +1046,10 @@ void evaluate_jacobian_difference_helix(
             delta /= con[i];
 
             const auto nvec1 =
-                get_displaced_bound_vector_helix<helix_intersector_t,
-                                                 detector_t, mask_id>(
+                get_displaced_bound_vector_helix<detector_t, mask_id>(
                     track, field, i, 1.f * delta, det, helix_tolerance);
             const auto nvec2 =
-                get_displaced_bound_vector_helix<helix_intersector_t,
-                                                 detector_t, mask_id>(
+                get_displaced_bound_vector_helix<detector_t, mask_id>(
                     track, field, i, -1.f * delta, det, helix_tolerance);
 
             for (unsigned int j = 0; j < 5u; j++) {
@@ -1641,14 +1639,10 @@ int main(int argc, char** argv) {
         }
 
         // Get initial parameter
-        using plane_intersection_t =
-            intersection2D<typename decltype(rect_det)::surface_type,
-                           transform3_type>;
-
-        const auto rect_bparam = get_initial_parameter<
-            detail::helix_plane_intersector<plane_intersection_t>,
-            decltype(rect_det), decltype(rect_det)::masks::id::e_rectangle2>(
-            rect_det, track, B_z, helix_tol);
+        const auto rect_bparam =
+            get_initial_parameter<decltype(rect_det),
+                                  decltype(rect_det)::masks::id::e_rectangle2>(
+                rect_det, track, B_z, helix_tol);
 
         if (!skip_rect) {
 
@@ -1671,7 +1665,6 @@ int main(int argc, char** argv) {
 
                 // For helix
                 evaluate_jacobian_difference_helix<
-                    detail::helix_plane_intersector<plane_intersection_t>,
                     decltype(rect_det),
                     decltype(rect_det)::masks::id::e_rectangle2>(
                     track_count, rect_det, rect_bparam, B_z, h_sizes_rect,
@@ -1725,14 +1718,10 @@ int main(int argc, char** argv) {
         }
 
         // Get initial parameter
-        using line_intersection_t =
-            intersection2D<typename decltype(wire_det)::surface_type,
-                           transform3_type>;
-
-        const auto wire_bparam = get_initial_parameter<
-            detail::helix_line_intersector<line_intersection_t>,
-            decltype(wire_det), decltype(wire_det)::masks::id::e_cell_wire>(
-            wire_det, track, B_z, helix_tol);
+        const auto wire_bparam =
+            get_initial_parameter<decltype(wire_det),
+                                  decltype(wire_det)::masks::id::e_cell_wire>(
+                wire_det, track, B_z, helix_tol);
 
         if (!skip_wire) {
 
@@ -1754,7 +1743,6 @@ int main(int argc, char** argv) {
 
                 // For helix
                 evaluate_jacobian_difference_helix<
-                    detail::helix_line_intersector<line_intersection_t>,
                     decltype(wire_det),
                     decltype(wire_det)::masks::id::e_cell_wire>(
                     track_count, wire_det, wire_bparam, B_z, h_sizes_wire,

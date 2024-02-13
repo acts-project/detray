@@ -48,12 +48,12 @@ GTEST_TEST(detray_masks, line_radial_cross_sect) {
     // Check bounding box
     constexpr scalar envelope{0.01f};
     const auto loc_bounds = ln.local_min_bounds(envelope);
-    ASSERT_NEAR(loc_bounds[cuboid3D<>::e_min_x], -(cell_size + envelope), tol);
-    ASSERT_NEAR(loc_bounds[cuboid3D<>::e_min_y], -(cell_size + envelope), tol);
-    ASSERT_NEAR(loc_bounds[cuboid3D<>::e_min_z], -(hz + envelope), tol);
-    ASSERT_NEAR(loc_bounds[cuboid3D<>::e_max_x], (cell_size + envelope), tol);
-    ASSERT_NEAR(loc_bounds[cuboid3D<>::e_max_y], (cell_size + envelope), tol);
-    ASSERT_NEAR(loc_bounds[cuboid3D<>::e_max_z], (hz + envelope), tol);
+    ASSERT_NEAR(loc_bounds[cuboid3D::e_min_x], -(cell_size + envelope), tol);
+    ASSERT_NEAR(loc_bounds[cuboid3D::e_min_y], -(cell_size + envelope), tol);
+    ASSERT_NEAR(loc_bounds[cuboid3D::e_min_z], -(hz + envelope), tol);
+    ASSERT_NEAR(loc_bounds[cuboid3D::e_max_x], (cell_size + envelope), tol);
+    ASSERT_NEAR(loc_bounds[cuboid3D::e_max_y], (cell_size + envelope), tol);
+    ASSERT_NEAR(loc_bounds[cuboid3D::e_max_z], (hz + envelope), tol);
 
     const auto centroid = ln.centroid();
     ASSERT_NEAR(centroid[0], 0.f, tol);
@@ -86,12 +86,12 @@ GTEST_TEST(detray_masks, line_square_cross_sect) {
     // Check bounding box
     constexpr scalar envelope{0.01f};
     const auto loc_bounds = ln.local_min_bounds(envelope);
-    ASSERT_NEAR(loc_bounds[cuboid3D<>::e_min_x], -(cell_size + envelope), tol);
-    ASSERT_NEAR(loc_bounds[cuboid3D<>::e_min_y], -(cell_size + envelope), tol);
-    ASSERT_NEAR(loc_bounds[cuboid3D<>::e_min_z], -(hz + envelope), tol);
-    ASSERT_NEAR(loc_bounds[cuboid3D<>::e_max_x], (cell_size + envelope), tol);
-    ASSERT_NEAR(loc_bounds[cuboid3D<>::e_max_y], (cell_size + envelope), tol);
-    ASSERT_NEAR(loc_bounds[cuboid3D<>::e_max_z], (hz + envelope), tol);
+    ASSERT_NEAR(loc_bounds[cuboid3D::e_min_x], -(cell_size + envelope), tol);
+    ASSERT_NEAR(loc_bounds[cuboid3D::e_min_y], -(cell_size + envelope), tol);
+    ASSERT_NEAR(loc_bounds[cuboid3D::e_min_z], -(hz + envelope), tol);
+    ASSERT_NEAR(loc_bounds[cuboid3D::e_max_x], (cell_size + envelope), tol);
+    ASSERT_NEAR(loc_bounds[cuboid3D::e_max_y], (cell_size + envelope), tol);
+    ASSERT_NEAR(loc_bounds[cuboid3D::e_max_z], (hz + envelope), tol);
 
     const auto centroid = ln.centroid();
     ASSERT_NEAR(centroid[0], 0.f, tol);

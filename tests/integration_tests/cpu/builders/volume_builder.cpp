@@ -53,11 +53,11 @@ GTEST_TEST(detray_tools, detector_volume_construction) {
     using portal_cylinder_factory =
         surface_factory<detector_t,
                         typename default_metadata::cylinder_portal::shape>;
-    using annulus_factory = surface_factory<detector_t, annulus2D<>>;
-    using cylinder_factory = surface_factory<detector_t, cylinder2D<>>;
-    using rectangle_factory = surface_factory<detector_t, rectangle2D<>>;
-    using disc_factory = surface_factory<detector_t, ring2D<>>;
-    using trapezoid_factory = surface_factory<detector_t, trapezoid2D<>>;
+    using annulus_factory = surface_factory<detector_t, annulus2D>;
+    using cylinder_factory = surface_factory<detector_t, cylinder2D>;
+    using rectangle_factory = surface_factory<detector_t, rectangle2D>;
+    using disc_factory = surface_factory<detector_t, ring2D>;
+    using trapezoid_factory = surface_factory<detector_t, trapezoid2D>;
 
     // detector
     vecmem::host_memory_resource host_mr;

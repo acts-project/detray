@@ -8,12 +8,12 @@
 #pragma once
 
 // Project include(s)
-#include "detray/intersection/detail/trajectories.hpp"
+#include "detray/navigation/detail/ray.hpp"
+#include "detray/navigation/navigator.hpp"
 #include "detray/plugins/svgtools/illustrator.hpp"
 #include "detray/propagator/actor_chain.hpp"
 #include "detray/propagator/actors/aborters.hpp"
 #include "detray/propagator/line_stepper.hpp"
-#include "detray/propagator/navigator.hpp"
 #include "detray/propagator/propagator.hpp"
 #include "detray/simulation/event_generator/track_generators.hpp"
 #include "detray/test/fixture_base.hpp"

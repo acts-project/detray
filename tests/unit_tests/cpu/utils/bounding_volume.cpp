@@ -39,21 +39,21 @@ GTEST_TEST(detray_tools, bounding_cuboid3D) {
     point_t p2_edge = {1.f, 9.3f, 0.5f};
     point_t p2_out = {1.5f, -9.f, 0.55f};
 
-    mask<cuboid3D<>> c3{0u, -hx, -hy, -hz, hx, hy, hz};
+    mask<cuboid3D> c3{0u, -hx, -hy, -hz, hx, hy, hz};
 
-    axis_aligned_bounding_volume<cuboid3D<>> aabb{c3, 0u, envelope};
+    axis_aligned_bounding_volume<cuboid3D> aabb{c3, 0u, envelope};
 
     // Id of this instance
     ASSERT_EQ(aabb.id(), 0u);
 
     // Test the bounds
     const auto bounds = aabb.bounds();
-    ASSERT_NEAR(bounds[cuboid3D<>::e_min_x], -hx - envelope, tol);
-    ASSERT_NEAR(bounds[cuboid3D<>::e_min_y], -hy - envelope, tol);
-    ASSERT_NEAR(bounds[cuboid3D<>::e_min_z], -hz - envelope, tol);
-    ASSERT_NEAR(bounds[cuboid3D<>::e_max_x], hx + envelope, tol);
-    ASSERT_NEAR(bounds[cuboid3D<>::e_max_y], hy + envelope, tol);
-    ASSERT_NEAR(bounds[cuboid3D<>::e_max_z], hz + envelope, tol);
+    ASSERT_NEAR(bounds[cuboid3D::e_min_x], -hx - envelope, tol);
+    ASSERT_NEAR(bounds[cuboid3D::e_min_y], -hy - envelope, tol);
+    ASSERT_NEAR(bounds[cuboid3D::e_min_z], -hz - envelope, tol);
+    ASSERT_NEAR(bounds[cuboid3D::e_max_x], hx + envelope, tol);
+    ASSERT_NEAR(bounds[cuboid3D::e_max_y], hy + envelope, tol);
+    ASSERT_NEAR(bounds[cuboid3D::e_max_z], hz + envelope, tol);
 
     ASSERT_TRUE(aabb.is_inside(p2_in) == intersection::status::e_inside);
     ASSERT_TRUE(aabb.is_inside(p2_edge) == intersection::status::e_inside);
@@ -110,11 +110,11 @@ GTEST_TEST(detray_tools, annulus2D_aabb) {
     constexpr scalar maxPhi{1.33970f};
     typename transform3_t::point2 offset = {-2.f, 2.f};
 
-    mask<annulus2D<>> ann2{0u,     minR, maxR,      minPhi,
-                           maxPhi, 0.f,  offset[0], offset[1]};
+    mask<annulus2D> ann2{0u,     minR, maxR,      minPhi,
+                         maxPhi, 0.f,  offset[0], offset[1]};
 
     // Construct local aabb around mask
-    axis_aligned_bounding_volume<cuboid3D<>> aabb{ann2, 0u, envelope};
+    axis_aligned_bounding_volume<cuboid3D> aabb{ann2, 0u, envelope};
 
     // rotate around z-axis by 90deg and then translate by 1mm in each direction
     const vector3_t new_x{0.f, -1.f, 0.f};
@@ -123,16 +123,13 @@ GTEST_TEST(detray_tools, annulus2D_aabb) {
     const transform3_t trf{t, new_z, new_x};
 
     const auto glob_aabb = aabb.transform(trf);
-    ASSERT_NEAR(glob_aabb[cuboid3D<>::e_min_x], 2.39186f - envelope + t[0],
+    ASSERT_NEAR(glob_aabb[cuboid3D::e_min_x], 2.39186f - envelope + t[0], tol);
+    ASSERT_NEAR(glob_aabb[cuboid3D::e_min_y], -10.50652f - envelope + t[1],
                 tol);
-    ASSERT_NEAR(glob_aabb[cuboid3D<>::e_min_y], -10.50652f - envelope + t[1],
-                tol);
-    ASSERT_NEAR(glob_aabb[cuboid3D<>::e_min_z], -envelope + t[2], tol);
-    ASSERT_NEAR(glob_aabb[cuboid3D<>::e_max_x], 10.89317f + envelope + t[0],
-                tol);
-    ASSERT_NEAR(glob_aabb[cuboid3D<>::e_max_y], -3.8954f + envelope + t[1],
-                tol);
-    ASSERT_NEAR(glob_aabb[cuboid3D<>::e_max_z], envelope + t[2], tol);
+    ASSERT_NEAR(glob_aabb[cuboid3D::e_min_z], -envelope + t[2], tol);
+    ASSERT_NEAR(glob_aabb[cuboid3D::e_max_x], 10.89317f + envelope + t[0], tol);
+    ASSERT_NEAR(glob_aabb[cuboid3D::e_max_y], -3.8954f + envelope + t[1], tol);
+    ASSERT_NEAR(glob_aabb[cuboid3D::e_max_z], envelope + t[2], tol);
 }
 
 /// This tests the basic functionality of an aabb around a cylinder
@@ -144,10 +141,10 @@ GTEST_TEST(detray_tools, cylinder2D_aabb) {
     constexpr scalar r{3.f * unit<scalar>::mm};
     constexpr scalar hz{4.f * unit<scalar>::mm};
 
-    mask<cylinder2D<>> c{0u, r, -hz, hz};
+    mask<cylinder2D> c{0u, r, -hz, hz};
 
     // Construct local aabb around mask
-    axis_aligned_bounding_volume<cuboid3D<>> aabb{c, 0u, envelope};
+    axis_aligned_bounding_volume<cuboid3D> aabb{c, 0u, envelope};
 
     // rotate around z-axis by 90deg and then translate by 1mm in each direction
     const vector3_t new_x{0.f, -1.f, 0.f};
@@ -156,12 +153,12 @@ GTEST_TEST(detray_tools, cylinder2D_aabb) {
     const transform3_t trf{t, new_z, new_x};
 
     const auto glob_aabb = aabb.transform(trf);
-    ASSERT_NEAR(glob_aabb[cuboid3D<>::e_min_x], -(r + envelope) + t[0], tol);
-    ASSERT_NEAR(glob_aabb[cuboid3D<>::e_min_y], -(r + envelope) + t[1], tol);
-    ASSERT_NEAR(glob_aabb[cuboid3D<>::e_min_z], -(hz + envelope) + t[2], tol);
-    ASSERT_NEAR(glob_aabb[cuboid3D<>::e_max_x], (r + envelope) + t[0], tol);
-    ASSERT_NEAR(glob_aabb[cuboid3D<>::e_max_y], (r + envelope) + t[1], tol);
-    ASSERT_NEAR(glob_aabb[cuboid3D<>::e_max_z], (hz + envelope) + t[2], tol);
+    ASSERT_NEAR(glob_aabb[cuboid3D::e_min_x], -(r + envelope) + t[0], tol);
+    ASSERT_NEAR(glob_aabb[cuboid3D::e_min_y], -(r + envelope) + t[1], tol);
+    ASSERT_NEAR(glob_aabb[cuboid3D::e_min_z], -(hz + envelope) + t[2], tol);
+    ASSERT_NEAR(glob_aabb[cuboid3D::e_max_x], (r + envelope) + t[0], tol);
+    ASSERT_NEAR(glob_aabb[cuboid3D::e_max_y], (r + envelope) + t[1], tol);
+    ASSERT_NEAR(glob_aabb[cuboid3D::e_max_z], (hz + envelope) + t[2], tol);
 }
 
 /// This tests the basic functionality of an aabb around a line
@@ -177,8 +174,8 @@ GTEST_TEST(detray_tools, line2D_aabb) {
     const mask<line<true>> ln_sq{0u, cell_size, hz};
 
     // Construct local aabb around mask
-    axis_aligned_bounding_volume<cuboid3D<>> aabb_r{ln_r, 0u, envelope};
-    axis_aligned_bounding_volume<cuboid3D<>> aabb_sq{ln_sq, 0u, envelope};
+    axis_aligned_bounding_volume<cuboid3D> aabb_r{ln_r, 0u, envelope};
+    axis_aligned_bounding_volume<cuboid3D> aabb_sq{ln_sq, 0u, envelope};
 
     // rotate around z-axis by 90deg and then translate by 1mm in each direction
     const vector3_t new_x{0.f, -1.f, 0.f};
@@ -188,30 +185,29 @@ GTEST_TEST(detray_tools, line2D_aabb) {
 
     // Radial crossection
     const auto glob_aabb_r = aabb_r.transform(trf);
-    ASSERT_NEAR(glob_aabb_r[cuboid3D<>::e_min_x],
-                -(cell_size + envelope) + t[0], tol);
-    ASSERT_NEAR(glob_aabb_r[cuboid3D<>::e_min_y],
-                -(cell_size + envelope) + t[1], tol);
-    ASSERT_NEAR(glob_aabb_r[cuboid3D<>::e_min_z], -(hz + envelope) + t[2], tol);
-    ASSERT_NEAR(glob_aabb_r[cuboid3D<>::e_max_x], (cell_size + envelope) + t[0],
+    ASSERT_NEAR(glob_aabb_r[cuboid3D::e_min_x], -(cell_size + envelope) + t[0],
                 tol);
-    ASSERT_NEAR(glob_aabb_r[cuboid3D<>::e_max_y], (cell_size + envelope) + t[1],
+    ASSERT_NEAR(glob_aabb_r[cuboid3D::e_min_y], -(cell_size + envelope) + t[1],
                 tol);
-    ASSERT_NEAR(glob_aabb_r[cuboid3D<>::e_max_z], (hz + envelope) + t[2], tol);
+    ASSERT_NEAR(glob_aabb_r[cuboid3D::e_min_z], -(hz + envelope) + t[2], tol);
+    ASSERT_NEAR(glob_aabb_r[cuboid3D::e_max_x], (cell_size + envelope) + t[0],
+                tol);
+    ASSERT_NEAR(glob_aabb_r[cuboid3D::e_max_y], (cell_size + envelope) + t[1],
+                tol);
+    ASSERT_NEAR(glob_aabb_r[cuboid3D::e_max_z], (hz + envelope) + t[2], tol);
 
     // Square crossection
     const auto glob_aabb_sq = aabb_sq.transform(trf);
-    ASSERT_NEAR(glob_aabb_sq[cuboid3D<>::e_min_x],
-                -(cell_size + envelope) + t[0], tol);
-    ASSERT_NEAR(glob_aabb_sq[cuboid3D<>::e_min_y],
-                -(cell_size + envelope) + t[1], tol);
-    ASSERT_NEAR(glob_aabb_sq[cuboid3D<>::e_min_z], -(hz + envelope) + t[2],
+    ASSERT_NEAR(glob_aabb_sq[cuboid3D::e_min_x], -(cell_size + envelope) + t[0],
                 tol);
-    ASSERT_NEAR(glob_aabb_sq[cuboid3D<>::e_max_x],
-                (cell_size + envelope) + t[0], tol);
-    ASSERT_NEAR(glob_aabb_sq[cuboid3D<>::e_max_y],
-                (cell_size + envelope) + t[1], tol);
-    ASSERT_NEAR(glob_aabb_sq[cuboid3D<>::e_max_z], (hz + envelope) + t[2], tol);
+    ASSERT_NEAR(glob_aabb_sq[cuboid3D::e_min_y], -(cell_size + envelope) + t[1],
+                tol);
+    ASSERT_NEAR(glob_aabb_sq[cuboid3D::e_min_z], -(hz + envelope) + t[2], tol);
+    ASSERT_NEAR(glob_aabb_sq[cuboid3D::e_max_x], (cell_size + envelope) + t[0],
+                tol);
+    ASSERT_NEAR(glob_aabb_sq[cuboid3D::e_max_y], (cell_size + envelope) + t[1],
+                tol);
+    ASSERT_NEAR(glob_aabb_sq[cuboid3D::e_max_z], (hz + envelope) + t[2], tol);
 }
 
 /// This tests the basic functionality of an aabb around a rectangle
@@ -223,10 +219,10 @@ GTEST_TEST(detray_tools, rectangle2D_aabb) {
     constexpr scalar hx{1.f * unit<scalar>::mm};
     constexpr scalar hy{9.3f * unit<scalar>::mm};
 
-    mask<rectangle2D<>> r2{0u, hx, hy};
+    mask<rectangle2D> r2{0u, hx, hy};
 
     // Construct local aabb around mask
-    axis_aligned_bounding_volume<cuboid3D<>> aabb{r2, 0u, envelope};
+    axis_aligned_bounding_volume<cuboid3D> aabb{r2, 0u, envelope};
 
     // rotate around z-axis by 90deg and then translate by 1mm in each direction
     const vector3_t new_x{0.f, -1.f, 0.f};
@@ -235,12 +231,12 @@ GTEST_TEST(detray_tools, rectangle2D_aabb) {
     const transform3_t trf{t, new_z, new_x};
 
     const auto glob_aabb = aabb.transform(trf);
-    ASSERT_NEAR(glob_aabb[cuboid3D<>::e_min_x], -(hy + envelope) + t[0], tol);
-    ASSERT_NEAR(glob_aabb[cuboid3D<>::e_min_y], -(hx + envelope) + t[1], tol);
-    ASSERT_NEAR(glob_aabb[cuboid3D<>::e_min_z], -(envelope) + t[2], tol);
-    ASSERT_NEAR(glob_aabb[cuboid3D<>::e_max_x], (hy + envelope) + t[0], tol);
-    ASSERT_NEAR(glob_aabb[cuboid3D<>::e_max_y], (hx + envelope) + t[1], tol);
-    ASSERT_NEAR(glob_aabb[cuboid3D<>::e_max_z], (envelope) + t[2], tol);
+    ASSERT_NEAR(glob_aabb[cuboid3D::e_min_x], -(hy + envelope) + t[0], tol);
+    ASSERT_NEAR(glob_aabb[cuboid3D::e_min_y], -(hx + envelope) + t[1], tol);
+    ASSERT_NEAR(glob_aabb[cuboid3D::e_min_z], -(envelope) + t[2], tol);
+    ASSERT_NEAR(glob_aabb[cuboid3D::e_max_x], (hy + envelope) + t[0], tol);
+    ASSERT_NEAR(glob_aabb[cuboid3D::e_max_y], (hx + envelope) + t[1], tol);
+    ASSERT_NEAR(glob_aabb[cuboid3D::e_max_z], (envelope) + t[2], tol);
 }
 
 /// This tests the basic functionality of an aabb around a rectangle
@@ -252,10 +248,10 @@ GTEST_TEST(detray_tools, ring2D_aabb) {
     constexpr scalar inner_r{0.f * unit<scalar>::mm};
     constexpr scalar outer_r{3.5f * unit<scalar>::mm};
 
-    mask<ring2D<>> r2{0u, inner_r, outer_r};
+    mask<ring2D> r2{0u, inner_r, outer_r};
 
     // Construct local aabb around mask
-    axis_aligned_bounding_volume<cuboid3D<>> aabb{r2, 0u, envelope};
+    axis_aligned_bounding_volume<cuboid3D> aabb{r2, 0u, envelope};
 
     // rotate around z-axis by 90deg and then translate by 1mm in each direction
     const vector3_t new_x{0.f, -1.f, 0.f};
@@ -264,16 +260,14 @@ GTEST_TEST(detray_tools, ring2D_aabb) {
     const transform3_t trf{t, new_z, new_x};
 
     const auto glob_aabb = aabb.transform(trf);
-    ASSERT_NEAR(glob_aabb[cuboid3D<>::e_min_x], -(outer_r + envelope) + t[0],
+    ASSERT_NEAR(glob_aabb[cuboid3D::e_min_x], -(outer_r + envelope) + t[0],
                 tol);
-    ASSERT_NEAR(glob_aabb[cuboid3D<>::e_min_y], -(outer_r + envelope) + t[1],
+    ASSERT_NEAR(glob_aabb[cuboid3D::e_min_y], -(outer_r + envelope) + t[1],
                 tol);
-    ASSERT_NEAR(glob_aabb[cuboid3D<>::e_min_z], -(envelope) + t[2], tol);
-    ASSERT_NEAR(glob_aabb[cuboid3D<>::e_max_x], (outer_r + envelope) + t[0],
-                tol);
-    ASSERT_NEAR(glob_aabb[cuboid3D<>::e_max_y], (outer_r + envelope) + t[1],
-                tol);
-    ASSERT_NEAR(glob_aabb[cuboid3D<>::e_max_z], (envelope) + t[2], tol);
+    ASSERT_NEAR(glob_aabb[cuboid3D::e_min_z], -(envelope) + t[2], tol);
+    ASSERT_NEAR(glob_aabb[cuboid3D::e_max_x], (outer_r + envelope) + t[0], tol);
+    ASSERT_NEAR(glob_aabb[cuboid3D::e_max_y], (outer_r + envelope) + t[1], tol);
+    ASSERT_NEAR(glob_aabb[cuboid3D::e_max_z], (envelope) + t[2], tol);
 }
 
 /// This tests the basic functionality of an aabb around a rectangle
@@ -287,10 +281,10 @@ GTEST_TEST(detray_tools, trapezoid2D_aabb) {
     constexpr scalar hy{2.f * unit<scalar>::mm};
     constexpr scalar divisor{1.f / (2.f * hy)};
 
-    mask<trapezoid2D<>> t2{0u, hx_miny, hx_maxy, hy, divisor};
+    mask<trapezoid2D> t2{0u, hx_miny, hx_maxy, hy, divisor};
 
     // Construct local aabb around mask
-    axis_aligned_bounding_volume<cuboid3D<>> aabb{t2, 0u, envelope};
+    axis_aligned_bounding_volume<cuboid3D> aabb{t2, 0u, envelope};
 
     // rotate around z-axis by 90deg and then translate by 1mm in each direction
     const vector3_t new_x{0.f, -1.f, 0.f};
@@ -299,19 +293,18 @@ GTEST_TEST(detray_tools, trapezoid2D_aabb) {
     const transform3_t trf{t, new_z, new_x};
 
     const auto glob_aabb = aabb.transform(trf);
-    ASSERT_NEAR(glob_aabb[cuboid3D<>::e_min_x], -(hy + envelope) + t[0], tol);
-    ASSERT_NEAR(glob_aabb[cuboid3D<>::e_min_y], -(hx_maxy + envelope) + t[1],
+    ASSERT_NEAR(glob_aabb[cuboid3D::e_min_x], -(hy + envelope) + t[0], tol);
+    ASSERT_NEAR(glob_aabb[cuboid3D::e_min_y], -(hx_maxy + envelope) + t[1],
                 tol);
-    ASSERT_NEAR(glob_aabb[cuboid3D<>::e_min_z], -envelope + t[2], tol);
-    ASSERT_NEAR(glob_aabb[cuboid3D<>::e_max_x], (hy + envelope) + t[0], tol);
-    ASSERT_NEAR(glob_aabb[cuboid3D<>::e_max_y], (hx_maxy + envelope) + t[1],
-                tol);
-    ASSERT_NEAR(glob_aabb[cuboid3D<>::e_max_z], envelope + t[2], tol);
+    ASSERT_NEAR(glob_aabb[cuboid3D::e_min_z], -envelope + t[2], tol);
+    ASSERT_NEAR(glob_aabb[cuboid3D::e_max_x], (hy + envelope) + t[0], tol);
+    ASSERT_NEAR(glob_aabb[cuboid3D::e_max_y], (hx_maxy + envelope) + t[1], tol);
+    ASSERT_NEAR(glob_aabb[cuboid3D::e_max_z], envelope + t[2], tol);
 }
 
 /// This tests wrapping a collection of cuboid bounding volumes
 GTEST_TEST(detray_tools, wrap_bounding_cuboid3D) {
-    using box_t = axis_aligned_bounding_volume<cuboid3D<>>;
+    using box_t = axis_aligned_bounding_volume<cuboid3D>;
 
     box_t b1{0u, -1.f, 0.f, -10.f, -0.5f, 1.f, 0.f};
     box_t b2{0u, -2.f, 3.f, 2.f, 2.f, 4.5f, 3.5f};
@@ -327,10 +320,10 @@ GTEST_TEST(detray_tools, wrap_bounding_cuboid3D) {
 
     // Test the bounds
     const auto bounds = aabb.bounds();
-    ASSERT_NEAR(bounds[cuboid3D<>::e_min_x], -2.f - envelope, tol);
-    ASSERT_NEAR(bounds[cuboid3D<>::e_min_y], -0.1f - envelope, tol);
-    ASSERT_NEAR(bounds[cuboid3D<>::e_min_z], -10.f - envelope, tol);
-    ASSERT_NEAR(bounds[cuboid3D<>::e_max_x], 2.f + envelope, tol);
-    ASSERT_NEAR(bounds[cuboid3D<>::e_max_y], 4.5f + envelope, tol);
-    ASSERT_NEAR(bounds[cuboid3D<>::e_max_z], 10.f + envelope, tol);
+    ASSERT_NEAR(bounds[cuboid3D::e_min_x], -2.f - envelope, tol);
+    ASSERT_NEAR(bounds[cuboid3D::e_min_y], -0.1f - envelope, tol);
+    ASSERT_NEAR(bounds[cuboid3D::e_min_z], -10.f - envelope, tol);
+    ASSERT_NEAR(bounds[cuboid3D::e_max_x], 2.f + envelope, tol);
+    ASSERT_NEAR(bounds[cuboid3D::e_max_y], 4.5f + envelope, tol);
+    ASSERT_NEAR(bounds[cuboid3D::e_max_z], 10.f + envelope, tol);
 }

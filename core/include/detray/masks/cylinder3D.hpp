@@ -11,10 +11,8 @@
 #include "detray/coordinates/cylindrical3.hpp"
 #include "detray/definitions/containers.hpp"
 #include "detray/definitions/qualifiers.hpp"
-#include "detray/intersection/cylinder_intersector.hpp"
 
 // System include(s)
-#include <cmath>
 #include <limits>
 #include <ostream>
 #include <string>
@@ -42,10 +40,6 @@ class cylinder3D {
     /// Local coordinate frame for boundary checks
     template <typename algebra_t>
     using local_frame_type = cylindrical3<algebra_t>;
-
-    /// Underlying surface geometry: not a surface.
-    template <typename intersection_t>
-    using intersector_type = void;
 
     /// Dimension of the local coordinate system
     static constexpr std::size_t dim{3u};

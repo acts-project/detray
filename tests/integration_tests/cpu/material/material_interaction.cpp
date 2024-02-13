@@ -16,13 +16,13 @@
 #include "detray/materials/material.hpp"
 #include "detray/materials/material_slab.hpp"
 #include "detray/materials/predefined_materials.hpp"
+#include "detray/navigation/navigator.hpp"
 #include "detray/propagator/actor_chain.hpp"
 #include "detray/propagator/actors/aborters.hpp"
 #include "detray/propagator/actors/parameter_resetter.hpp"
 #include "detray/propagator/actors/parameter_transporter.hpp"
 #include "detray/propagator/actors/pointwise_material_interactor.hpp"
 #include "detray/propagator/line_stepper.hpp"
-#include "detray/propagator/navigator.hpp"
 #include "detray/propagator/propagator.hpp"
 #include "detray/propagator/rk_stepper.hpp"
 #include "detray/simulation/random_scatterer.hpp"
@@ -54,8 +54,8 @@ GTEST_TEST(detray_material, telescope_geometry_energy_loss) {
     const auto mat = silicon_tml<scalar>();
     constexpr scalar thickness{0.17f * unit<scalar>::cm};
 
-    tel_det_config<rectangle2D<>> tel_cfg{20.f * unit<scalar>::mm,
-                                          20.f * unit<scalar>::mm};
+    tel_det_config<rectangle2D> tel_cfg{20.f * unit<scalar>::mm,
+                                        20.f * unit<scalar>::mm};
     tel_cfg.positions(positions)
         .pilot_track(traj)
         .module_material(mat)
@@ -233,8 +233,8 @@ GTEST_TEST(detray_material, telescope_geometry_scattering_angle) {
     const scalar thickness = 100.f * unit<scalar>::cm;
 
     // Create telescope geometry
-    tel_det_config<rectangle2D<>> tel_cfg{2000.f * unit<scalar>::mm,
-                                          2000.f * unit<scalar>::mm};
+    tel_det_config<rectangle2D> tel_cfg{2000.f * unit<scalar>::mm,
+                                        2000.f * unit<scalar>::mm};
     tel_cfg.positions(positions)
         .pilot_track(traj)
         .module_material(mat)
@@ -369,8 +369,8 @@ GTEST_TEST(detray_material, telescope_geometry_volume_material) {
     const auto module_mat = vacuum<scalar>();
 
     // Create telescope geometry
-    tel_det_config<rectangle2D<>> tel_cfg{100000.f * unit<scalar>::mm,
-                                          100000.f * unit<scalar>::mm};
+    tel_det_config<rectangle2D> tel_cfg{100000.f * unit<scalar>::mm,
+                                        100000.f * unit<scalar>::mm};
     tel_cfg.positions(positions).pilot_track(traj).module_material(module_mat);
 
     std::vector<material<scalar>> vol_mats = {

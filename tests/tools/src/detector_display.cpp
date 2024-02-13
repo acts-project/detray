@@ -1,15 +1,15 @@
 /** Detray library, part of the ACTS project (R&D line)
  *
- * (c) 2023 CERN for the benefit of the ACTS project
+ * (c) 2023-2024 CERN for the benefit of the ACTS project
  *
  * Mozilla Public License Version 2.0
  */
 
 // Project include(s)
 #include "detray/core/detector.hpp"
-#include "detray/geometry/volume_graph.hpp"
 #include "detray/io/frontend/detector_reader.hpp"
 #include "detray/io/frontend/utils/create_path.hpp"
+#include "detray/navigation/volume_graph.hpp"
 #include "detray/plugins/svgtools/illustrator.hpp"
 #include "detray/plugins/svgtools/writer.hpp"
 

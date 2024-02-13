@@ -9,7 +9,7 @@
 #include "detray/masks/masks.hpp"
 
 #include "detray/definitions/indexing.hpp"
-#include "detray/intersection/intersection.hpp"
+#include "detray/navigation/intersection/intersection.hpp"
 
 // Detray test include(s).
 #include "detray/test/types.hpp"
@@ -33,7 +33,7 @@ static const test::transform3 trf{};
 // This runs a benchmark on a rectangle2D mask
 void BM_RECTANGLE_2D_MASK(benchmark::State &state) {
 
-    using mask_type = mask<rectangle2D<>>;
+    using mask_type = mask<rectangle2D>;
     constexpr mask_type r(0u, 3.f, 4.f);
 
     constexpr scalar world{10.f};
@@ -85,7 +85,7 @@ BENCHMARK(BM_RECTANGLE_2D_MASK)
 // This runs a benchmark on a trapezoid2D mask
 void BM_TRAPEZOID_2D_MASK(benchmark::State &state) {
 
-    using mask_type = mask<trapezoid2D<>>;
+    using mask_type = mask<trapezoid2D>;
     constexpr mask_type t{0u, 2.f, 3.f, 4.f};
 
     constexpr scalar world{10.f};
@@ -137,7 +137,7 @@ BENCHMARK(BM_TRAPEZOID_2D_MASK)
 // This runs a benchmark on a ring2D mask (as disc)
 void BM_DISC_2D_MASK(benchmark::State &state) {
 
-    using mask_type = mask<ring2D<>>;
+    using mask_type = mask<ring2D>;
     constexpr mask_type r{0u, 0.f, 5.f};
 
     constexpr scalar world{10.f};
@@ -189,7 +189,7 @@ BENCHMARK(BM_DISC_2D_MASK)
 // This runs a benchmark on a ring2D mask
 void BM_RING_2D_MASK(benchmark::State &state) {
 
-    using mask_type = mask<ring2D<>>;
+    using mask_type = mask<ring2D>;
     constexpr mask_type r{0u, 2.f, 5.f};
 
     constexpr scalar world{10.f};
@@ -241,7 +241,7 @@ BENCHMARK(BM_RING_2D_MASK)
 // This runs a benchmark on a cylinder2D mask
 void BM_CYLINDER_2D_MASK(benchmark::State &state) {
 
-    using mask_type = mask<cylinder2D<>>;
+    using mask_type = mask<cylinder2D>;
     constexpr mask_type c{0u, 3.f, 5.f, 0.f};
 
     constexpr scalar world{10.f};
@@ -292,7 +292,7 @@ BENCHMARK(BM_CYLINDER_2D_MASK)
 // This runs a benchmark on an annulus2D mask
 void BM_ANNULUS_2D_MASK(benchmark::State &state) {
 
-    using mask_type = mask<annulus2D<>>;
+    using mask_type = mask<annulus2D>;
     constexpr mask_type ann{0u, 2.5f, 5.f, -0.64299f, 4.13173f, 1.f, 0.5f, 0.f};
 
     constexpr scalar world{10.f};

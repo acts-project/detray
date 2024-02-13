@@ -49,7 +49,7 @@ GTEST_TEST(detray_coordinates, cylindrical2) {
 
     const scalar r{2.f};
     const scalar hz{detail::invalid_value<scalar>()};
-    mask<cylinder2D<>> mask{0u, r, -hz, hz};
+    mask<cylinder2D> mask{0u, r, -hz, hz};
 
     // Global to local transformation
     const point3 local = c2.global_to_local(trf, global1, d);

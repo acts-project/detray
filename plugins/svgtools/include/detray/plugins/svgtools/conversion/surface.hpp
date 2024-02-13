@@ -1,6 +1,6 @@
 /** Detray library, part of the ACTS project (R&D line)
  *
- * (c) 2023 CERN for the benefit of the ACTS project
+ * (c) 2023-2024 CERN for the benefit of the ACTS project
  *
  * Mozilla Public License Version 2.0
  */
@@ -65,12 +65,12 @@ auto inline surface(const transform_t& transform, const mask_t& m) {
 }
 
 /// @brief Returns the proto surface for 2D cylinders.
-template <typename transform_t, bool kRadialCheck,
-          template <typename> class intersector_t>
-auto inline surface(const transform_t& transform,
-                    const mask<cylinder2D<kRadialCheck, intersector_t>>& m) {
+template <typename transform_t, typename shape_t,
+          std::enable_if_t<std::is_same_v<shape_t, cylinder2D> ||
+                               std::is_same_v<shape_t, concentric_cylinder2D>,
+                           bool> = true>
+auto inline surface(const transform_t& transform, const mask<shape_t>& m) {
 
-    using shape_t = cylinder2D<kRadialCheck, intersector_t>;
     using point3_t = typename transform_t::point3;
     using p_surface_t = actsvg::proto::surface<std::vector<point3_t>>;
 
@@ -104,9 +104,9 @@ auto inline surface(const transform_t& transform,
 
 /// @brief Returns the proto surface for 2D rings.
 template <typename transform_t>
-auto surface(const transform_t& transform, const mask<ring2D<>>& m) {
+auto surface(const transform_t& transform, const mask<ring2D>& m) {
 
-    using shape_t = ring2D<>;
+    using shape_t = ring2D;
     using point3_t = typename transform_t::point3;
     using p_surface_t = actsvg::proto::surface<std::vector<point3_t>>;
 
@@ -129,7 +129,7 @@ auto surface(const transform_t& transform, const mask<ring2D<>>& m) {
 
 /// @brief Returns the proto surface for 2D annuli.
 template <typename transform_t>
-auto inline surface(const transform_t& transform, const mask<annulus2D<>>& m) {
+auto inline surface(const transform_t& transform, const mask<annulus2D>& m) {
 
     using point3_t = typename transform_t::point3;
     using p_surface_t = actsvg::proto::surface<std::vector<point3_t>>;
@@ -144,12 +144,11 @@ auto inline surface(const transform_t& transform, const mask<annulus2D<>>& m) {
 }
 
 /// @brief Returns the proto surface for 2D rings.
-template <typename transform_t, bool kSquareCrossSect,
-          template <typename> class intersector_t>
+template <typename transform_t, bool kSquareCrossSect>
 auto surface(const transform_t& transform,
-             const mask<line<kSquareCrossSect, intersector_t>>& m) {
+             const mask<line<kSquareCrossSect>>& m) {
 
-    using shape_t = line<kSquareCrossSect, intersector_t>;
+    using shape_t = line<kSquareCrossSect>;
     using point3_t = typename transform_t::point3;
     using p_surface_t = actsvg::proto::surface<std::vector<point3_t>>;
 

@@ -1,19 +1,21 @@
 /** Detray library, part of the ACTS project (R&D line)
  *
- * (c) 2022-2023 CERN for the benefit of the ACTS project
+ * (c) 2022-2024 CERN for the benefit of the ACTS project
  *
  * Mozilla Public License Version 2.0
  */
 
+// Project include(s)
 #include "detray/simulation/event_generator/track_generators.hpp"
 
-#include <gtest/gtest.h>
-
 #include "detray/definitions/units.hpp"
-#include "detray/intersection/detail/trajectories.hpp"
+#include "detray/navigation/detail/trajectories.hpp"
 #include "detray/test/types.hpp"
 #include "detray/tracks/tracks.hpp"
 #include "detray/utils/statistics.hpp"
+
+// GTest include(s)
+#include <gtest/gtest.h>
 
 using namespace detray;
 using vector3 = test::vector3;

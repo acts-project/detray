@@ -8,15 +8,15 @@
 // Project include(s)
 #include "detray/definitions/units.hpp"
 #include "detray/detectors/create_toy_geometry.hpp"
-#include "detray/intersection/detail/trajectories.hpp"  // ray
+#include "detray/navigation/detail/ray.hpp"
+#include "detray/navigation/navigator.hpp"
 #include "detray/propagator/actor_chain.hpp"
 #include "detray/propagator/line_stepper.hpp"
-#include "detray/propagator/navigator.hpp"
 #include "detray/propagator/propagator.hpp"
 #include "detray/simulation/event_generator/track_generators.hpp"
+#include "detray/test/utils/particle_gun.hpp"
 #include "detray/tracks/tracks.hpp"
 #include "detray/utils/inspectors.hpp"
-#include "detray/test/utils/particle_gun.hpp"
 
 // Example linear algebra plugin: std::array
 #include "detray/tutorial/types.hpp"

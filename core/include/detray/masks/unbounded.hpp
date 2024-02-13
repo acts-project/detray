@@ -35,11 +35,6 @@ class unbounded {
     using local_frame_type =
         typename shape::template local_frame_type<algebra_t>;
 
-    /// Underlying surface geometry
-    template <typename intersection_t>
-    using intersector_type =
-        typename shape::template intersector_type<intersection_t>;
-
     /// Dimension of the local coordinate system
     static constexpr std::size_t dim{shape_t::dim};
 

@@ -1,6 +1,6 @@
 /** Detray library, part of the ACTS project (R&D line)
  *
- * (c) 2020-2023 CERN for the benefit of the ACTS project
+ * (c) 2020-2024 CERN for the benefit of the ACTS project
  *
  * Mozilla Public License Version 2.0
  */
@@ -9,7 +9,9 @@
 #include "detray/core/detector.hpp"
 #include "detray/detectors/create_toy_geometry.hpp"
 #include "detray/geometry/surface.hpp"
-#include "detray/intersection/intersection_kernel.hpp"
+#include "detray/navigation/detail/ray.hpp"
+#include "detray/navigation/intersection/ray_intersector.hpp"
+#include "detray/navigation/intersection_kernel.hpp"
 #include "detray/simulation/event_generator/track_generators.hpp"
 #include "detray/test/types.hpp"
 #include "detray/tracks/tracks.hpp"
@@ -45,6 +47,8 @@ void BM_INTERSECT_ALL(benchmark::State &state) {
     auto [d, names] = create_toy_geometry(host_mr, toy_cfg);
 
     using detector_t = decltype(d);
+    using sf_desc_t = typename detector_t::surface_type;
+
     detector_t::geometry_context geo_context;
 
     const auto &transforms = d.transform_store(geo_context);
@@ -53,8 +57,7 @@ void BM_INTERSECT_ALL(benchmark::State &state) {
     std::size_t missed{0u};
     std::size_t n_surfaces{0u};
     test::point3 origin{0.f, 0.f, 0.f};
-    std::vector<intersection2D<typename detector_t::surface_type,
-                               typename detector_t::transform3>>
+    std::vector<intersection2D<sf_desc_t, typename detector_t::transform3>>
         intersections{};
 
     // Iterate through uniformly distributed momentum directions
@@ -69,10 +72,12 @@ void BM_INTERSECT_ALL(benchmark::State &state) {
         for (const auto track : trk_generator) {
 
             // Loop over all surfaces in detector
-            for (const auto &sf_desc : d.surfaces()) {
+            for (const sf_desc_t &sf_desc : d.surfaces()) {
                 const auto sf = surface{d, sf_desc};
-                sf.template visit_mask<intersection_initialize>(
-                    intersections, detail::ray(track), sf_desc, transforms);
+                sf.template visit_mask<
+                    intersection_initialize<ray_intersector>>(
+                    intersections, detail::ray(track), sf_desc, transforms, 0.f,
+                    0.f);
 
                 ++n_surfaces;
             }

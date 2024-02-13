@@ -8,7 +8,7 @@
 #pragma once
 
 // Project include(s)
-#include "detray/geometry/volume_graph.hpp"
+#include "detray/navigation/volume_graph.hpp"
 #include "detray/test/fixture_base.hpp"
 #include "detray/test/utils/hash_tree.hpp"
 #include "detray/utils/consistency_checker.hpp"

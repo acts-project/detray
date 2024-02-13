@@ -1,6 +1,6 @@
 /** Detray library, part of the ACTS project (R&D line)
  *
- * (c) 2023 CERN for the benefit of the ACTS project
+ * (c) 2023-2024 CERN for the benefit of the ACTS project
  *
  * Mozilla Public License Version 2.0
  */
@@ -13,12 +13,11 @@
 #include "detray/definitions/containers.hpp"
 #include "detray/definitions/indexing.hpp"
 #include "detray/geometry/detail/surface_descriptor.hpp"
-#include "detray/intersection/cylinder_portal_intersector.hpp"
 #include "detray/masks/masks.hpp"
 #include "detray/materials/material_map.hpp"
 #include "detray/materials/material_slab.hpp"
-#include "detray/surface_finders/accelerator_grid.hpp"
-#include "detray/surface_finders/brute_force_finder.hpp"
+#include "detray/navigation/accelerators/brute_force_finder.hpp"
+#include "detray/navigation/accelerators/surface_grid.hpp"
 
 // Linear algebra types
 #include "detray/definitions/algebra.hpp"
@@ -44,12 +43,11 @@ struct itk_metadata {
     //
 
     /// The mask types for the detector sensitive surfaces
-    using annulus = mask<annulus2D<>, nav_link>;
-    using rectangle = mask<rectangle2D<>, nav_link>;
+    using annulus = mask<annulus2D, nav_link>;
+    using rectangle = mask<rectangle2D, nav_link>;
     // Types for portals
-    using cylinder_portal =
-        mask<cylinder2D<false, cylinder_portal_intersector>, nav_link>;
-    using disc_portal = mask<ring2D<>, nav_link>;
+    using cylinder_portal = mask<concentric_cylinder2D, nav_link>;
+    using disc_portal = mask<ring2D, nav_link>;
 
     //
     // Material Description
@@ -61,15 +59,16 @@ struct itk_metadata {
 
     // Cylindrical material map
     template <typename container_t>
-    using cylinder_map_t = material_map<cylinder2D<>, scalar, container_t>;
+    using cylinder_map_t =
+        material_map<concentric_cylinder2D, scalar, container_t>;
 
     // Disc material map
     template <typename container_t>
-    using disc_map_t = material_map<ring2D<>, scalar, container_t>;
+    using disc_map_t = material_map<ring2D, scalar, container_t>;
 
     // Rectangular material map
     template <typename container_t>
-    using rectangular_map_t = material_map<rectangle2D<>, scalar, container_t>;
+    using rectangular_map_t = material_map<rectangle2D, scalar, container_t>;
 
     /// How to store and link transforms. The geometry context allows to resolve
     /// the conditions data for e.g. module alignment
@@ -101,7 +100,7 @@ struct itk_metadata {
     enum class material_ids : std::uint8_t {
         e_disc2_map = 0u,
         e_annulus2_map = 0u,
-        e_cylinder2_map = 1u,
+        e_concentric_cylinder2_map = 1u,
         e_reactangle2_map = 2u,
         e_slab = 3u,  //< keep for the EF-tracking geometry
         e_none = 4u,

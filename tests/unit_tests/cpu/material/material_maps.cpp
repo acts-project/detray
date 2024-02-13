@@ -32,7 +32,7 @@ GTEST_TEST(detray_material, annulus_map) {
     constexpr scalar minPhi{0.74195f};
     constexpr scalar maxPhi{1.33970f};
 
-    mask<annulus2D<>> ann2{0u, minR, maxR, minPhi, maxPhi, 0.f, -2.f, 2.f};
+    mask<annulus2D> ann2{0u, minR, maxR, minPhi, maxPhi, 0.f, -2.f, 2.f};
 
     auto annulus_map = mat_map_factory.new_grid(ann2, {10u, 20u});
 
@@ -75,7 +75,7 @@ GTEST_TEST(detray_material, cylinder_map) {
     constexpr scalar r{3.f * unit<scalar>::mm};
     constexpr scalar hz{4.f * unit<scalar>::mm};
 
-    mask<cylinder2D<>> cyl{0u, r, -hz, hz};
+    mask<cylinder2D> cyl{0u, r, -hz, hz};
 
     auto cylinder_map = mat_map_factory.new_grid(cyl, {10u, 20u});
 
@@ -117,7 +117,7 @@ GTEST_TEST(detray_material, rectangle_map) {
     constexpr scalar hx{1.f * unit<scalar>::mm};
     constexpr scalar hy{9.3f * unit<scalar>::mm};
 
-    mask<rectangle2D<>> r2{0u, hx, hy};
+    mask<rectangle2D> r2{0u, hx, hy};
 
     auto rectangle_map = mat_map_factory.new_grid(r2, {10u, 20u});
 
@@ -159,7 +159,7 @@ GTEST_TEST(detray_material, disc_map) {
     constexpr scalar inner_r{0.f * unit<scalar>::mm};
     constexpr scalar outer_r{3.5f * unit<scalar>::mm};
 
-    mask<ring2D<>> r2{0u, inner_r, outer_r};
+    mask<ring2D> r2{0u, inner_r, outer_r};
 
     auto disc_map = mat_map_factory.new_grid(r2, {10u, 20u});
 
@@ -203,7 +203,7 @@ GTEST_TEST(detray_material, trapezoid_map) {
     constexpr scalar hy{2.f * unit<scalar>::mm};
     constexpr scalar divisor{1.f / (2.f * hy)};
 
-    mask<trapezoid2D<>> t2{0u, hx_miny, hx_maxy, hy, divisor};
+    mask<trapezoid2D> t2{0u, hx_miny, hx_maxy, hy, divisor};
 
     auto trapezoid_map = mat_map_factory.new_grid(t2, {10u, 20u});
 
