@@ -23,37 +23,23 @@ struct interaction {
     using relativistic_quantities =
         detail::relativistic_quantities<scalar_type>;
 
+    // @returns the total stopping power
     DETRAY_HOST_DEVICE scalar_type compute_stopping_power(
         const detray::material<scalar_type>& mat, const int /*pdg*/,
-        const scalar_type m, const scalar_type qOverP,
-        const scalar_type q) const {
+        const relativistic_quantities& rq) const {
 
-        const relativistic_quantities rq(m, qOverP, q);
-        const scalar_t Ne{mat.molar_electron_density()};
-        const scalar_t eps_per_length{rq.compute_epsilon_per_length(Ne)};
-        if (eps_per_length <= 0.f) {
-            return 0.f;
-        }
+        scalar_type stopping_power{0.f};
+        stopping_power += compute_bethe(mat, rq);
+        // In the future, consider sth like this:
+        // stopping_power += compute_brems(mat, pdg, rq);
 
-        const scalar_t I{mat.mean_excitation_energy()};
-        const scalar_t dhalf{rq.compute_delta_half(mat)};
-        const scalar_t u{rq.compute_mass_term(constant<scalar_t>::m_e)};
-        const scalar_t wmax{rq.compute_WMax(m)};
-        // uses RPP2023 eq. 34.5 scaled from mass stopping power to linear
-        // stopping power and multiplied with the material thickness to get a
-        // total energy loss instead of an energy loss per length. the required
-        // modification only change the prefactor which becomes identical to the
-        // prefactor epsilon for the most probable value.
-        const scalar_t running{math::log(u * wmax / (I * I)) -
-                               2.f * (rq.m_beta2 + dhalf)};
-        return eps_per_length * running;
+        return stopping_power;
     }
 
-    DETRAY_HOST_DEVICE scalar_type derive_stopping_power(
-        const detray::material<scalar_type>& mat, const int /*pdg*/,
-        const scalar_type m, const scalar_type qOverP, const scalar_type q) {
+    DETRAY_HOST_DEVICE scalar_type
+    compute_bethe(const detray::material<scalar_type>& mat,
+                  const relativistic_quantities& rq) const {
 
-        const relativistic_quantities rq(m, qOverP, q);
         const scalar_t Ne{mat.molar_electron_density()};
         const scalar_t eps_per_length{rq.compute_epsilon_per_length(Ne)};
         if (eps_per_length <= 0.f) {
@@ -62,46 +48,65 @@ struct interaction {
 
         const scalar_t I{mat.mean_excitation_energy()};
         const scalar_t dhalf{rq.compute_delta_half(mat)};
-        const scalar_t u{rq.compute_mass_term(constant<scalar_t>::m_e)};
-        const scalar_t wmax{rq.compute_WMax(m)};
         // uses RPP2023 eq. 34.5 scaled from mass stopping power to linear
         // stopping power and multiplied with the material thickness to get a
         // total energy loss instead of an energy loss per length. the required
         // modification only change the prefactor which becomes identical to the
         // prefactor epsilon for the most probable value.
-        const scalar_t running{math::log(u * wmax / (I * I)) -
-                               2.f * (rq.m_beta2 + dhalf)};
+        const scalar_type A = rq.compute_bethe_log_term(I);
+        const scalar_t running{A - rq.m_beta2 - dhalf};
+        return 2.f * eps_per_length * running;
+    }
 
-        // Get d(Beta)/d(qop)
-        const scalar_t dBeta_dQop = rq.derive_beta();
+    DETRAY_HOST_DEVICE scalar_type derive_bethe(
+        const detray::material<scalar_type>& mat,
+        const relativistic_quantities& rq, const scalar_type bethe) const {
 
-        // Get d(betagamma)/dqop
-        const scalar_t dbetagamma_dqop = rq.derive_betaGamma();
+        const scalar_t Ne{mat.molar_electron_density()};
+        const scalar_t eps_per_length{rq.compute_epsilon_per_length(Ne)};
+        if (eps_per_length <= 0.f) {
+            return 0.f;
+        }
 
-        // W Max denominator
-        const scalar_t denom = rq.compute_WMax_denominator(m);
+        /*-----------------------------------------------------------------------
+        * Calculation of d(-dE/dx)/dqop
+        *
+        * d(-dE/dx)/dqop = 2/(qop * gamma^2) * (-dE/dx)
+        *                  + 2 * (eps/x) * [dA/dqop - dB/dqop - dC/dqop]
+        *
+        * where
+        * A = 1/2 ln ( 2m_e c^2 beta^2 gamma^2 W_max/ I^2)
+        * B = beta^2
+        * C = delta/2
+        *
+        * dA/dqop = -1 / (2 * qop) * [4 - W_max/ (gamma M c^2) ]
+        * dB/dqop = -2 * beta^2/(qop gamma^2)
+        *
+        * dC/dqop = 1/2*(-2/qop) if (x>x_1)
+        *         = 1/2*(-2/qop + ak/(qop ln10)*(x_1 - x)^(k-1)) if (x_0<x<x_1)
+        *         = 0 if (x<x_0) (for nonconductors)
+        ------------------------------------------------------------------------*/
 
-        // Get d(epsilon)/dqop
-        const scalar_t depsilon_dqop =
-            eps_per_length * dBeta_dQop * (-2.f / rq.m_beta);
+        const scalar_type first_term =
+            2.f / (rq.m_qOverP * rq.m_gamma2) * bethe;
 
-        const scalar_t f1 = 2.f / rq.m_betaGamma * dbetagamma_dqop;
-        const scalar_t f2 = 2.f / rq.m_betaGamma * dbetagamma_dqop -
-                            1.f / denom * rq.derive_WMax_denominator(m);
-        const scalar_t f3 = -4.f * rq.m_beta * dBeta_dQop;
-        const scalar_t f4 = -2.f * rq.derive_delta_half(mat);
-        const scalar_t drunning_dqop = f1 + f2 + f3 + f4;
+        const scalar_type dAdqop = rq.derive_bethe_log_term();
+        const scalar_type dBdqop = rq.derive_beta2();
+        const scalar_type dCdqop = rq.derive_delta_half(mat);
 
-        return depsilon_dqop * running + eps_per_length * drunning_dqop;
+        const scalar_type second_term =
+            2.f * eps_per_length * (dAdqop - dBdqop - dCdqop);
+
+        return first_term + second_term;
     }
 
     DETRAY_HOST_DEVICE scalar_type compute_energy_loss_bethe(
         const scalar_type path_segment,
-        const detray::material<scalar_type>& mat, const int pdg,
-        const scalar_type m, const scalar_type qOverP,
-        const scalar_type q) const {
+        const detray::material<scalar_type>& mat, const scalar_type mass,
+        const scalar_type qop, const scalar_type q) const {
 
-        return path_segment * compute_stopping_power(mat, pdg, m, qOverP, q);
+        relativistic_quantities rq(mass, qop, q);
+        return path_segment * compute_bethe(mat, rq);
     }
 
     DETRAY_HOST_DEVICE scalar_type compute_energy_loss_landau(

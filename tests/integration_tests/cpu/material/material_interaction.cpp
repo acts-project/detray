@@ -146,9 +146,8 @@ GTEST_TEST(detray_material, telescope_geometry_energy_loss) {
     // It is not perfectly precise as the track loses its energy during
     // propagation. However, since the energy loss << the track momentum,
     // the assumption is not very bad
-    const scalar dE{I.compute_energy_loss_bethe(path_segment,
-                                                slab.get_material(), pdg, mass,
-                                                q / iniP, q) *
+    const scalar dE{I.compute_energy_loss_bethe(
+                        path_segment, slab.get_material(), mass, q / iniP, q) *
                     static_cast<scalar>(positions.size())};
 
     // Check if the new energy after propagation is enough close to the
@@ -399,8 +398,8 @@ GTEST_TEST(detray_material, telescope_geometry_volume_material) {
 
         const auto eloss_approx =
             interaction<scalar>().compute_energy_loss_bethe(
-                state._stepping._path_length, mat, state._stepping._pdg, mass,
-                bound_param.qop(), bound_param.charge());
+                state._stepping._path_length, mat, mass, bound_param.qop(),
+                bound_param.charge());
 
         const auto iniE = std::sqrt(iniP * iniP + mass * mass);
         const auto newE = std::sqrt(newP * newP + mass * mass);

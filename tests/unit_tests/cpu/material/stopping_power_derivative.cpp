@@ -16,7 +16,7 @@
 
 using namespace detray;
 
-GTEST_TEST(derivative_test, beta) {
+GTEST_TEST(derivative_test, beta2) {
 
     // mass
     constexpr scalar m{105.7f * unit<scalar>::MeV};
@@ -36,28 +36,31 @@ GTEST_TEST(derivative_test, beta) {
         detail::relativistic_quantities rq1(m, qop + h, q);
         detail::relativistic_quantities rq2(m, qop - h, q);
 
-        const scalar numerical = (rq1.m_beta - rq2.m_beta) / (2.f * h);
+        const scalar numerical = (rq1.m_beta2 - rq2.m_beta2) / (2.f * h);
 
-        const scalar evaluated = rq.derive_beta();
+        const scalar evaluated = rq.derive_beta2();
 
         EXPECT_NEAR(numerical, evaluated, numerical * 0.01);
     }
 }
 
 // Test class for the derivative of bethe stopping power
-class DerivativeOfStoppingPowerValidation
+class DerivativeOfBetheEquationValidation
     : public ::testing::TestWithParam<std::tuple<material<scalar>>> {};
 
-TEST_P(DerivativeOfStoppingPowerValidation, derivative_of_stopping_power) {
+TEST_P(DerivativeOfBetheEquationValidation, derivative_of_stopping_power) {
 
     // Interaction object
-    interaction<scalar> I;
+    interaction<scalar> Interactor;
 
     // Material
     const auto mat = std::get<0>(GetParam());
 
+    // Mean excitation energy
+    const scalar I = mat.mean_excitation_energy();
+
     // muon
-    constexpr int pdg = pdg_particle::eMuon;
+    // constexpr int pdg = pdg_particle::eMuon;
 
     // mass
     constexpr scalar m{105.7f * unit<scalar>::MeV};
@@ -66,26 +69,51 @@ TEST_P(DerivativeOfStoppingPowerValidation, derivative_of_stopping_power) {
     const scalar q = -1.f;
 
     // Displacement for numerical differentiaion
-    const scalar h = 0.0001f;
+    const scalar h = 1e-3f;
 
     // Iterate from 2 GeV to 100 GeV
     for (unsigned int i = 2u; i < 100; i++) {
         const scalar p = static_cast<scalar>(i) * detray::unit<scalar>::GeV;
         const scalar qop = q / p;
 
-        const scalar g1 = I.compute_stopping_power(mat, pdg, m, qop + h, q);
-        const scalar g2 = I.compute_stopping_power(mat, pdg, m, qop - h, q);
+        const detail::relativistic_quantities<scalar> rq(m, qop, q);
+        const detail::relativistic_quantities<scalar> rq1(m, qop + h, q);
+        const detail::relativistic_quantities<scalar> rq2(m, qop - h, q);
 
-        const scalar numerical = (g1 - g2) / (2.f * h);
+        // Log term
+        const scalar log_term1 = rq1.compute_bethe_log_term(I);
+        const scalar log_term2 = rq2.compute_bethe_log_term(I);
 
-        const scalar evaluated = I.derive_stopping_power(mat, pdg, m, qop, q);
+        const scalar numerical_log_term = (log_term1 - log_term2) / (2.f * h);
+        const scalar evaluated_log_term = rq.derive_bethe_log_term();
 
-        EXPECT_NEAR(numerical, evaluated, numerical * 0.01f);
+        EXPECT_NEAR(numerical_log_term, evaluated_log_term,
+                    numerical_log_term * 0.01f);
+
+        // delta half
+        const scalar dhalf1 = rq1.compute_delta_half(mat);
+        const scalar dhalf2 = rq2.compute_delta_half(mat);
+
+        const scalar numerical_dhalf = (dhalf1 - dhalf2) / (2.f * h);
+        const scalar evaluated_dhalf = rq.derive_delta_half(mat);
+
+        EXPECT_NEAR(numerical_dhalf, evaluated_dhalf, numerical_dhalf * 0.01f);
+
+        // Bethe equation
+        const scalar bethe = Interactor.compute_bethe(mat, rq);
+        const scalar bethe1 = Interactor.compute_bethe(mat, rq1);
+        const scalar bethe2 = Interactor.compute_bethe(mat, rq2);
+
+        const scalar numerical_bethe = (bethe1 - bethe2) / (2.f * h);
+
+        const scalar evaluated_bethe = Interactor.derive_bethe(mat, rq, bethe);
+
+        EXPECT_NEAR(numerical_bethe, evaluated_bethe, numerical_bethe * 0.01f);
     }
 }
 
 INSTANTIATE_TEST_SUITE_P(
-    StoppingPowerDerivative, DerivativeOfStoppingPowerValidation,
+    BetheEquationDerivative, DerivativeOfBetheEquationValidation,
     ::testing::Values(hydrogen_gas<scalar>(), helium_gas<scalar>(),
                       isobutane<scalar>(), aluminium<scalar>(),
                       silicon<scalar>(), tungsten<scalar>(), gold<scalar>(),

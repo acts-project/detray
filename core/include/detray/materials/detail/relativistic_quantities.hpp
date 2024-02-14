@@ -37,6 +37,9 @@ struct relativistic_quantities {
     scalar_type m_beta2{0.f};
     scalar_type m_betaGamma{0.f};
     scalar_type m_gamma{0.f};
+    scalar_type m_gamma2{0.f};
+    scalar_type m_mass{0.f};
+    scalar_type m_Wmax{0.f};
 
     DETRAY_HOST_DEVICE
     relativistic_quantities(const scalar_type mass, const scalar_type qOverP,
@@ -59,51 +62,21 @@ struct relativistic_quantities {
         m_betaGamma = pOverM;
         // gamma = sqrt(m² + p²)/m = sqrt(1 + (p/m)²)
         m_gamma = math::sqrt(1.f + pOverM * pOverM);
+        m_gamma2 = m_gamma * m_gamma;
+        m_mass = mass;
+
+        const scalar_type mfrac{constant<scalar_type>::m_e / m_mass};
+
+        // Wmax = 2m_e c^2 beta^2 gamma^2 / (1+2gamma*m_e/M + (m_e/M)^2)
+        m_Wmax =
+            (2.f * constant<scalar_type>::m_e * m_betaGamma * m_betaGamma) /
+            (1.f + 2.f * m_gamma * mfrac + mfrac * mfrac);
     }
 
     /// Compute the 2 * mass * (beta * gamma)² mass term.
     DETRAY_HOST_DEVICE inline constexpr scalar_type compute_mass_term(
         const scalar_type mass) const {
         return 2.f * mass * m_betaGamma * m_betaGamma;
-    }
-
-    /// Compute the maximum energy transfer in a single collision.
-    ///
-    /// Uses RPP2023 eq. 34.4.
-    DETRAY_HOST_DEVICE inline constexpr scalar_type compute_WMax_denominator(
-        const scalar_type mass) const {
-        assert(mass != 0.f);
-        const scalar_type mfrac{constant<scalar_type>::m_e / mass};
-        return 1.f + 2.f * m_gamma * mfrac + mfrac * mfrac;
-    }
-
-    /// Compute the d(WMax_denominator)/d(qop)
-    DETRAY_HOST_DEVICE inline constexpr scalar_type derive_WMax_denominator(
-        const scalar_type mass) const {
-        assert(mass != 0.f);
-        assert(mass != 0.f);
-        const scalar_type mfrac{constant<scalar_type>::m_e / mass};
-
-        return 2.f * mfrac * m_betaGamma * m_gamma * m_gamma *
-               this->derive_beta();
-    }
-
-    /// Compute the maximum energy transfer in a single collision.
-    ///
-    /// Uses RPP2023 eq. 34.4.
-    DETRAY_HOST_DEVICE inline constexpr scalar_type compute_WMax(
-        const scalar_type mass) const {
-        const scalar_type nominator{2.f * constant<scalar_type>::m_e *
-                                    m_betaGamma * m_betaGamma};
-        return nominator / compute_WMax_denominator(mass);
-    }
-
-    // Compute d(WMax)/d(Qop)
-    DETRAY_HOST_DEVICE inline constexpr scalar_type derive_WMax(
-        const scalar_type mass) const {
-        const scalar_type nominator{2.f * constant<scalar_type>::m_e *
-                                    m_betaGamma * m_betaGamma};
-        return nominator / compute_WMax_denominator(mass);
     }
 
     /// Compute epsilon per length where epsilon is defined at RPP2023
@@ -129,6 +102,35 @@ struct relativistic_quantities {
         const scalar_type molarElectronDensity,
         const scalar_type thickness) const {
         return compute_epsilon_per_length(molarElectronDensity) * thickness;
+    }
+
+    // Calculate the bethe_log_term of bethe equation,
+    // where bethe_log_term = 1/2 ln ( 2m_e c^2 beta^2 gamma^2 W_max/ I^2)
+    DETRAY_HOST_DEVICE scalar_type
+    compute_bethe_log_term(const scalar_type I) const {
+        assert(I != 0.f);
+
+        // u = 2 * m_e c^2* beta^2 * gamma^2
+        const scalar_t u{compute_mass_term(constant<scalar_t>::m_e)};
+        const scalar_type A = 0.5f * math::log(u * m_Wmax / (I * I));
+        return A;
+    }
+
+    // Calculate d(bethe_log_term)/dqop
+    // where dA/dqop = - 1 / (2 * qop) * [4 - W_max/ (gamma M c^2) ]
+    DETRAY_HOST_DEVICE scalar_type derive_bethe_log_term() const {
+        assert(m_gamma != 0.f);
+        assert(m_mass != 0.f);
+        const scalar_type dAdqop =
+            -1 / (2 * m_qOverP) * (4 - m_Wmax / (m_gamma * m_mass));
+        return dAdqop;
+    }
+
+    // Retrun d(beta^2)/dqop = - 2beta^2 / (qop * gamma^2)
+    DETRAY_HOST_DEVICE scalar_type derive_beta2() const {
+        assert(m_qOverP != 0.f);
+        assert(m_gamma2 != 0.f);
+        return -2.f * m_beta2 / (m_qOverP * m_gamma2);
     }
 
     /// Compute the density correction factor delta/2.
@@ -190,9 +192,11 @@ struct relativistic_quantities {
     /// Derive the density correction factor delta/2.
     DETRAY_HOST_DEVICE inline scalar_type derive_delta_half(
         const material<scalar_type>& mat) const {
+        assert(m_qOverP != 0.f);
 
         if (!mat.has_density_effect_data()) {
-            return this->derive_betaGamma() / m_betaGamma;
+            // d(ln(betagamma))/dqop = -1/qop
+            return -1.f / m_qOverP;
         } else {
             const auto& density = mat.density_effect_data();
 
@@ -213,39 +217,16 @@ struct relativistic_quantities {
                 // @TODO: Add a branch for conductors (Eq 34.7 of
                 // https://pdg.lbl.gov/2023/reviews/rpp2023-rev-particle-detectors-accel.pdf)
             } else {
-                delta = 2.f / m_betaGamma * this->derive_betaGamma();
-                if (x < x1den)
-                    delta +=
-                        aden * mden * math::pow(x1den - x, mden - 1) *
-                        (-1.f / (m_betaGamma * constant<scalar_type>::ln10)) *
-                        this->derive_betaGamma();
+                delta = -2.f / m_qOverP;
+                if (x < x1den) {
+                    delta += aden * mden /
+                             (m_qOverP * constant<scalar_type>::ln10) *
+                             math::pow(x1den - x, mden - 1);
+                }
             }
 
             return 0.5f * delta;
         }
-    }
-
-    /// Compute derivative of beta w.r.t q/p
-    ///
-    /// Used the relation of [p = gamma * m * v]:
-    /// -> dp/d(beta) = mc*gamma*(1+beta^2*gamma^2)
-    ///
-    /// d(beta)/d(qop) = -beta/[qop * (1+beta^2*gamma^2)]
-    DETRAY_HOST_DEVICE inline constexpr scalar_type derive_beta() const {
-        assert(m_qOverP != 0.f);
-        assert(m_betaGamma != 0.f);
-        return -1.f * m_beta / (m_qOverP * (1.f + m_betaGamma * m_betaGamma));
-    }
-
-    /// Compute derivative of betagamma w.r.t. q/p
-    ///
-    /// d(betagamma)/dqop = d(beta)/dqop * gamma + d(gamma)/dqop * beta
-    ///
-    /// Since d(gamma)/dqop = d(beta)/dqop * gamma * (beta / 1 - beta^2)
-    ///
-    /// d(betagamma)/dqop = gamma^3 * dbeta/dqop
-    DETRAY_HOST_DEVICE inline constexpr scalar_type derive_betaGamma() const {
-        return m_gamma * m_gamma * m_gamma * this->derive_beta();
     }
 };
 

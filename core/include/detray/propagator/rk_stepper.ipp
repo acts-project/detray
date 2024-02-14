@@ -527,8 +527,8 @@ detray::rk_stepper<magnetic_field_t, transform3_t, constraint_t, policy_t,
 
     // Compute stopping power
     const scalar_type stopping_power =
-        interaction<scalar_type>().compute_stopping_power(mat, pdg, mass, qop,
-                                                          q);
+        interaction<scalar_type>().compute_stopping_power(mat, pdg,
+                                                          {mass, qop, q});
 
     // Assert that a momentum is a positive value
     assert(p >= 0.f);
@@ -536,31 +536,6 @@ detray::rk_stepper<magnetic_field_t, transform3_t, constraint_t, policy_t,
     // d(qop)ds, which is equal to (qop) * E * (-dE/ds) / p^2
     // or equal to (qop)^3 * E * (-dE/ds) / q^2
     return qop * qop * qop * E * stopping_power / (q * q);
-}
-
-template <typename magnetic_field_t, typename transform3_t,
-          typename constraint_t, typename policy_t, typename inspector_t,
-          template <typename, std::size_t> class array_t>
-DETRAY_HOST_DEVICE auto
-detray::rk_stepper<magnetic_field_t, transform3_t, constraint_t, policy_t,
-                   inspector_t, array_t>::state::dgdqop(const scalar_type qop)
-    const -> typename transform3_t::scalar_type {
-
-    using scalar_t = typename transform3_t::scalar_type;
-
-    if (this->_mat == vacuum<scalar_t>()) {
-        return 0.f;
-    }
-
-    auto& track = this->_track;
-    const scalar_t q = track.charge();
-
-    // dg/d(qop) = -1 * derivation of stopping power
-    const scalar_t dgdqop =
-        -1.f * interaction<scalar_t>().derive_stopping_power(
-                   this->_mat, this->_pdg, this->_mass, qop, q);
-
-    return dgdqop;
 }
 
 template <typename magnetic_field_t, typename transform3_t,
@@ -589,10 +564,14 @@ DETRAY_HOST_DEVICE auto detray::rk_stepper<
     interaction<scalar_t> I;
 
     // g = dE/ds = -1 * (-dE/ds) = -1 * stopping power
-    const scalar_type g =
-        -1.f * I.compute_stopping_power(this->_mat, this->_pdg, mass, qop, q);
+    const detail::relativistic_quantities<scalar_t> rq(mass, qop, q);
+    // We assume that stopping power ~ mean ionization eloss per pathlength
+    const scalar_type bethe = I.compute_bethe(this->_mat, rq);
+    const scalar_type g = -1.f * bethe;
+
     // dg/d(qop) = -1 * derivation of stopping power
-    const scalar_t dgdqop = this->dgdqop(qop);
+    const scalar_t dgdqop =
+        -1.f * interaction<scalar_t>().derive_bethe(this->_mat, rq, bethe);
 
     // d(qop)/ds = - qop^3 * E * g / q^2
     const scalar_t dqopds = this->dqopds(qop);
