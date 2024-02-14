@@ -40,20 +40,13 @@ struct interaction {
     compute_bethe(const detray::material<scalar_type>& mat,
                   const relativistic_quantities& rq) const {
 
-        const scalar_t Ne{mat.molar_electron_density()};
-        const scalar_t eps_per_length{rq.compute_epsilon_per_length(Ne)};
+        const scalar_t eps_per_length{rq.compute_epsilon_per_length(mat)};
         if (eps_per_length <= 0.f) {
             return 0.f;
         }
 
-        const scalar_t I{mat.mean_excitation_energy()};
         const scalar_t dhalf{rq.compute_delta_half(mat)};
-        // uses RPP2023 eq. 34.5 scaled from mass stopping power to linear
-        // stopping power and multiplied with the material thickness to get a
-        // total energy loss instead of an energy loss per length. the required
-        // modification only change the prefactor which becomes identical to the
-        // prefactor epsilon for the most probable value.
-        const scalar_type A = rq.compute_bethe_log_term(I);
+        const scalar_type A = rq.compute_bethe_log_term(mat);
         const scalar_t running{A - rq.m_beta2 - dhalf};
         return 2.f * eps_per_length * running;
     }
@@ -62,8 +55,8 @@ struct interaction {
         const detray::material<scalar_type>& mat,
         const relativistic_quantities& rq, const scalar_type bethe) const {
 
-        const scalar_t Ne{mat.molar_electron_density()};
-        const scalar_t eps_per_length{rq.compute_epsilon_per_length(Ne)};
+        // (K/2) * (Z/A) * z^2 / beta^2 * density
+        const scalar_t eps_per_length{rq.compute_epsilon_per_length(mat)};
         if (eps_per_length <= 0.f) {
             return 0.f;
         }
@@ -115,9 +108,8 @@ struct interaction {
         const scalar_type q) const {
 
         const scalar_t I{mat.mean_excitation_energy()};
-        const scalar_t Ne{mat.molar_electron_density()};
         const relativistic_quantities rq(m, qOverP, q);
-        const scalar_t eps{rq.compute_epsilon(Ne, path_segment)};
+        const scalar_t eps{rq.compute_epsilon(mat, path_segment)};
 
         if (eps <= 0.f) {
             return 0.f;
@@ -135,11 +127,10 @@ struct interaction {
         const scalar_type path_segment, const material<scalar_type>& mat,
         const int /*pdg*/, const scalar_type m, const scalar_type qOverP,
         const scalar_type q) const {
-        const auto Ne = mat.molar_electron_density();
         const relativistic_quantities rq(m, qOverP, q);
 
         // the Landau-Vavilov fwhm is 4*eps (see RPP2018 fig. 33.7)
-        return 4.f * rq.compute_epsilon(Ne, path_segment);
+        return 4.f * rq.compute_epsilon(mat, path_segment);
     }
 
     DETRAY_HOST_DEVICE scalar_type compute_energy_loss_landau_sigma(

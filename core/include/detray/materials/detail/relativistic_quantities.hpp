@@ -73,41 +73,32 @@ struct relativistic_quantities {
             (1.f + 2.f * m_gamma * mfrac + mfrac * mfrac);
     }
 
-    /// Compute the 2 * mass * (beta * gamma)² mass term.
+    /// @return 2 * mass * (beta * gamma)² mass term.
     DETRAY_HOST_DEVICE inline constexpr scalar_type compute_mass_term(
         const scalar_type mass) const {
         return 2.f * mass * m_betaGamma * m_betaGamma;
     }
 
-    /// Compute epsilon per length where epsilon is defined at RPP2023
-    /// eq. 34.12. Defined as
-    ///
-    ///     (K/2) * (Z/A) * rho * (q²/beta²)
-    ///
-    /// where (Z/A)*rho is the electron density in the material.
+    /// @return [(K/2) * (Z/A) * z^2 / beta^2 * density] in [energy/length]
+    /// @brief defined in 34.12 of 2023 PDG review
     DETRAY_HOST_DEVICE inline constexpr scalar_type compute_epsilon_per_length(
-        const scalar_type molarElectronDensity) const {
-        return 0.5f * K * molarElectronDensity * m_q2OverBeta2;
+        const material<scalar_type>& mat) const {
+        return 0.5f * K * mat.molar_electron_density() * m_q2OverBeta2;
     }
 
-    /// Compute epsilon energy pre-factor for RPP2023 eq. 34.12.
-    ///
-    /// Defined as
-    ///
-    ///     (K/2) * (Z/A) * rho * x * (q²/beta²)
-    ///
-    /// where (Z/A)*rho is the electron density in the material and x is the
-    /// traversed length (thickness) of the material.
+    /// @return  (K/2) * (Z/A) * z^2 / beta^2 * density * path_length
+    /// @brief defined in 34.12 of 2023 PDG review
     DETRAY_HOST_DEVICE inline constexpr scalar_type compute_epsilon(
-        const scalar_type molarElectronDensity,
-        const scalar_type thickness) const {
-        return compute_epsilon_per_length(molarElectronDensity) * thickness;
+        const material<scalar_type>& mat, const scalar_type path_length) const {
+        return compute_epsilon_per_length(mat) * path_length;
     }
 
-    // Calculate the bethe_log_term of bethe equation,
-    // where bethe_log_term = 1/2 ln ( 2m_e c^2 beta^2 gamma^2 W_max/ I^2)
+    /// @return the bethe_log_term of bethe equation,
+    /// @brief bethe_log_term = 1/2 ln ( 2m_e c^2 beta^2 gamma^2 W_max/ I^2)
     DETRAY_HOST_DEVICE scalar_type
-    compute_bethe_log_term(const scalar_type I) const {
+    compute_bethe_log_term(const material<scalar_type>& mat) const {
+        const scalar_type I = mat.mean_excitation_energy();
+
         assert(I != 0.f);
 
         // u = 2 * m_e c^2* beta^2 * gamma^2
@@ -116,8 +107,8 @@ struct relativistic_quantities {
         return A;
     }
 
-    // Calculate d(bethe_log_term)/dqop
-    // where dA/dqop = - 1 / (2 * qop) * [4 - W_max/ (gamma M c^2) ]
+    /// @return d(bethe_log_term)/dqop
+    /// @brief  dA/dqop = - 1 / (2 * qop) * [4 - W_max/ (gamma M c^2) ]
     DETRAY_HOST_DEVICE scalar_type derive_bethe_log_term() const {
         assert(m_gamma != 0.f);
         assert(m_mass != 0.f);
@@ -126,14 +117,14 @@ struct relativistic_quantities {
         return dAdqop;
     }
 
-    // Retrun d(beta^2)/dqop = - 2beta^2 / (qop * gamma^2)
+    /// @return d(beta^2)/dqop = - 2beta^2 / (qop * gamma^2)
     DETRAY_HOST_DEVICE scalar_type derive_beta2() const {
         assert(m_qOverP != 0.f);
         assert(m_gamma2 != 0.f);
         return -2.f * m_beta2 / (m_qOverP * m_gamma2);
     }
 
-    /// Compute the density correction factor delta/2.
+    /// @return the half of density correction factor (delta/2).
     DETRAY_HOST_DEVICE inline scalar_type compute_delta_half(
         const material<scalar_type>& mat) const {
 
@@ -189,7 +180,7 @@ struct relativistic_quantities {
         }
     }
 
-    /// Derive the density correction factor delta/2.
+    /// @return the derivation of the density correction factor delta/2.
     DETRAY_HOST_DEVICE inline scalar_type derive_delta_half(
         const material<scalar_type>& mat) const {
         assert(m_qOverP != 0.f);
