@@ -101,12 +101,14 @@ struct material {
     DETRAY_HOST_DEVICE
     constexpr scalar_type mass_density() const { return m_mass_rho; }
     /// @returns the molar density.
+    /// @brief mass_density / A
     DETRAY_HOST_DEVICE
     constexpr scalar_type molar_density() const { return m_molar_rho; }
     /// @returns the material state.
     DETRAY_HOST_DEVICE
     constexpr material_state state() const { return m_state; }
     /// @returns the molar electron density.
+    /// @brief (Z/A) * mass_density
     DETRAY_HOST_DEVICE
     constexpr scalar_type molar_electron_density() const {
         return m_z * m_molar_rho;
@@ -187,13 +189,13 @@ struct material {
 
     protected:
     DETRAY_HOST_DEVICE
+    /// @return [mass_density / A]
     constexpr scalar_type mass_to_molar_density(double ar, double mass_rho) {
         if (mass_rho == 0.) {
             return 0.f;
         }
 
-        const double molar_mass{ar * unit<double>::u *
-                                constant<double>::avogadro};
+        const double molar_mass{ar * unit<double>::g / unit<double>::mol};
 
         return static_cast<scalar_type>(mass_rho / molar_mass);
     }
