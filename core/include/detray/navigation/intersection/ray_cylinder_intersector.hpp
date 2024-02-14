@@ -8,9 +8,9 @@
 #pragma once
 
 // Project include(s)
-#include "detray/coordinates/cylindrical2.hpp"
 #include "detray/definitions/detail/math.hpp"
 #include "detray/definitions/detail/qualifiers.hpp"
+#include "detray/geometry/coordinates/cylindrical2D.hpp"
 #include "detray/navigation/detail/ray.hpp"
 #include "detray/navigation/intersection/intersection.hpp"
 #include "detray/utils/invalid_values.hpp"
@@ -26,7 +26,7 @@ struct ray_intersector_impl;
 
 /// A functor to find intersections between a ray and a 2D cylinder mask
 template <typename algebra_t>
-struct ray_intersector_impl<cylindrical2<algebra_t>, algebra_t> {
+struct ray_intersector_impl<cylindrical2D<algebra_t>, algebra_t> {
 
     /// linear algebra types
     /// @{

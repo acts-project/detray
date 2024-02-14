@@ -26,7 +26,7 @@ void propagator_test(
     vecmem::data::jagged_vector_view<intersection_t<detector_t>> &,
     vecmem::data::jagged_vector_view<scalar> &,
     vecmem::data::jagged_vector_view<vector3_t> &,
-    vecmem::data::jagged_vector_view<free_matrix> &, sycl::queue_wrapper);
+    vecmem::data::jagged_vector_view<free_matrix_t> &, sycl::queue_wrapper);
 
 /// test function for propagator on the device
 template <typename bfield_bknd_t, typename detector_t>
@@ -38,7 +38,7 @@ inline auto run_propagation_device(
     const vecmem::jagged_vector<vector3_t> &host_positions)
     -> std::tuple<vecmem::jagged_vector<scalar>,
                   vecmem::jagged_vector<vector3_t>,
-                  vecmem::jagged_vector<free_matrix>> {
+                  vecmem::jagged_vector<free_matrix_t>> {
 
     // Helper object for performing memory copies.
     vecmem::copy copy;
@@ -62,7 +62,7 @@ inline auto run_propagation_device(
         capacities, *mr, nullptr, vecmem::data::buffer_type::resizable);
     vecmem::data::jagged_vector_buffer<vector3_t> positions_buffer(
         capacities, *mr, nullptr, vecmem::data::buffer_type::resizable);
-    vecmem::data::jagged_vector_buffer<free_matrix> jac_transports_buffer(
+    vecmem::data::jagged_vector_buffer<free_matrix_t> jac_transports_buffer(
         capacities, *mr, nullptr, vecmem::data::buffer_type::resizable);
 
     copy.setup(path_lengths_buffer);
@@ -76,7 +76,7 @@ inline auto run_propagation_device(
 
     vecmem::jagged_vector<scalar> device_path_lengths(mr);
     vecmem::jagged_vector<vector3_t> device_positions(mr);
-    vecmem::jagged_vector<free_matrix> device_jac_transports(mr);
+    vecmem::jagged_vector<free_matrix_t> device_jac_transports(mr);
 
     copy(path_lengths_buffer, device_path_lengths);
     copy(positions_buffer, device_positions);

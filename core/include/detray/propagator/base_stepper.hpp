@@ -41,27 +41,15 @@ class base_stepper {
     using policy_type = policy_t;
 
     using transform3_type = transform3_t;
+    using scalar_type = typename transform3_type::scalar_type;
     using free_track_parameters_type = free_track_parameters<transform3_t>;
     using bound_track_parameters_type = bound_track_parameters<transform3_t>;
     using matrix_operator = typename transform3_t::matrix_actor;
 
-    using size_type = typename transform3_type::size_type;
-    using scalar_type = typename transform3_type::scalar_type;
-    template <size_type ROWS, size_type COLS>
-    using matrix_type =
-        typename transform3_type::matrix_actor::template matrix_type<ROWS,
-                                                                     COLS>;
-    /// Shorthand vector/matrix types related to bound track parameters.
-    using bound_vector = matrix_type<e_bound_size, 1>;
-    using bound_matrix = matrix_type<e_bound_size, e_bound_size>;
-    /// Mapping from bound track parameters.
-    using bound_to_free_matrix = matrix_type<e_free_size, e_bound_size>;
-    // Shorthand vector/matrix types related to free track parameters.
-    using free_vector = matrix_type<e_free_size, 1>;
-    using free_matrix = matrix_type<e_free_size, e_free_size>;
-    // Mapping from free track parameters.
-    using free_to_bound_matrix = matrix_type<e_bound_size, e_free_size>;
-    using free_to_path_matrix = matrix_type<1, e_free_size>;
+    using free_matrix_type = free_matrix<transform3_type>;
+    using bound_matrix_type = bound_matrix<transform3_type>;
+
+    using bound_to_free_matrix_type = bound_to_free_matrix<transform3_type>;
 
     /// @brief State struct holding the track
     ///
@@ -92,15 +80,15 @@ class base_stepper {
         free_track_parameters_type _track;
 
         /// Full jacobian
-        bound_matrix _full_jacobian =
+        bound_matrix_type _full_jacobian =
             matrix_operator().template identity<e_bound_size, e_bound_size>();
 
         /// jacobian transport matrix
-        free_matrix _jac_transport =
+        free_matrix_type _jac_transport =
             matrix_operator().template identity<e_free_size, e_free_size>();
 
         /// bound-to-free jacobian from departure surface
-        bound_to_free_matrix _jac_to_global =
+        bound_to_free_matrix_type _jac_to_global =
             matrix_operator().template zero<e_free_size, e_bound_size>();
 
         /// bound covariance

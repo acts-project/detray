@@ -8,10 +8,10 @@
 #pragma once
 
 // Project include(s)
-#include "detray/coordinates/cartesian2.hpp"
-#include "detray/coordinates/polar2.hpp"
 #include "detray/definitions/detail/math.hpp"
 #include "detray/definitions/detail/qualifiers.hpp"
+#include "detray/geometry/coordinates/cartesian2D.hpp"
+#include "detray/geometry/coordinates/polar2D.hpp"
 #include "detray/navigation/detail/ray.hpp"
 #include "detray/navigation/intersection/intersection.hpp"
 
@@ -25,7 +25,7 @@ struct ray_intersector_impl;
 
 /// A functor to find intersections between straight line and planar surface
 template <typename algebra_t>
-struct ray_intersector_impl<cartesian2<algebra_t>, algebra_t> {
+struct ray_intersector_impl<cartesian2D<algebra_t>, algebra_t> {
 
     /// linear algebra types
     /// @{
@@ -125,7 +125,7 @@ struct ray_intersector_impl<cartesian2<algebra_t>, algebra_t> {
 };
 
 template <typename algebra_t>
-struct ray_intersector_impl<polar2<algebra_t>, algebra_t>
-    : public ray_intersector_impl<cartesian2<algebra_t>, algebra_t> {};
+struct ray_intersector_impl<polar2D<algebra_t>, algebra_t>
+    : public ray_intersector_impl<cartesian2D<algebra_t>, algebra_t> {};
 
 }  // namespace detray

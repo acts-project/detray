@@ -8,8 +8,9 @@
 // detray core
 #include "detray/utils/grid/detail/axis.hpp"
 
-#include "detray/coordinates/coordinates.hpp"
 #include "detray/definitions/detail/indexing.hpp"
+#include "detray/definitions/units.hpp"
+#include "detray/geometry/coordinates/coordinates.hpp"
 #include "detray/test/types.hpp"
 #include "detray/utils/grid/detail/axis_binning.hpp"
 #include "detray/utils/grid/detail/axis_bounds.hpp"
@@ -30,7 +31,7 @@ using point3 = test::point3;
 // Alias for testing
 template <bool ownership, typename containers>
 using cartesian_3D =
-    multi_axis<ownership, cartesian3<test::transform3>,
+    multi_axis<ownership, cartesian3D<test::transform3>,
                single_axis<closed<label::e_x>, regular<containers, scalar>>,
                single_axis<closed<label::e_y>, regular<containers, scalar>>,
                single_axis<closed<label::e_z>, regular<containers, scalar>>>;

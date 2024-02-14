@@ -6,8 +6,11 @@
  */
 
 // Project include(s).
-#include "detray/coordinates/line2.hpp"
+#include "detray/propagator/detail/jacobian_line.hpp"
 
+#include "detray/geometry/mask.hpp"
+#include "detray/geometry/shapes/line.hpp"
+#include "detray/propagator/detail/jacobian_engine.hpp"
 #include "detray/test/types.hpp"
 #include "detray/tracks/tracks.hpp"
 
@@ -27,7 +30,12 @@ using matrix_type = typename matrix_operator::template matrix_type<ROWS, COLS>;
 
 constexpr scalar isclose{1e-5f};
 
-GTEST_TEST(detray_coordinates, line2_case1) {
+const scalar r{2.f}, hz{50.f};
+mask<line<>> ln{0u, r, hz};
+
+GTEST_TEST(detray_propagator, jacobian_line2D_case1) {
+
+    using jac_engine = detail::jacobian_engine<line2D<transform3>>;
 
     // Preparation work
     vector3 z = {1.f, 1.f, 1.f};
@@ -36,37 +44,19 @@ GTEST_TEST(detray_coordinates, line2_case1) {
     x = vector::normalize(x);
     const point3 t = {0.f, 0.f, 0.f};
     const transform3 trf(t, z, x);
-    const line2<transform3> l2;
     const point3 global1 = {1.f, 1.5f, 0.5f};
     const vector3 mom = {0.f, 1.f, 1.f};
-    const vector3 d = vector::normalize(mom);
     const scalar time{0.1f};
     const scalar charge{-1.f};
-    struct dummy_mask {
-    } mask;
-
-    // Global to local transformation
-    const point3 local = l2.global_to_local(trf, global1, d);
-
-    // Check if the local position is correct
-    ASSERT_NEAR(local[0], -constant<scalar>::inv_sqrt2, isclose);
-    ASSERT_NEAR(local[1], std::sqrt(3.f), isclose);
-
-    // Local to global transformation
-    const point3 global2 = l2.local_to_global(trf, local);
-
-    // Check if the same global position is obtained
-    ASSERT_NEAR(global1[0], global2[0], isclose);
-    ASSERT_NEAR(global1[1], global2[1], isclose);
-    ASSERT_NEAR(global1[2], global2[2], isclose);
 
     // Free track parameter
     const free_track_parameters<transform3> free_params(global1, time, mom,
                                                         charge);
     const auto free_vec1 = free_params.vector();
 
-    const auto bound_vec = l2.free_to_bound_vector(trf, free_vec1);
-    const auto free_vec2 = l2.bound_to_free_vector(trf, mask, bound_vec);
+    const auto bound_vec =
+        detail::free_to_bound_vector<line2D<transform3>>(trf, free_vec1);
+    const auto free_vec2 = detail::bound_to_free_vector(trf, ln, bound_vec);
 
     const matrix_operator m;
 
@@ -86,13 +76,10 @@ GTEST_TEST(detray_coordinates, line2_case1) {
                     isclose);
     }
 
-    // Normal vector
-    const vector3 n = l2.normal(trf);
-    ASSERT_EQ(n, z);
-
     // Test Jacobian transformation
-    const matrix_type<6, 6> J = l2.free_to_bound_jacobian(trf, free_vec1) *
-                                l2.bound_to_free_jacobian(trf, mask, bound_vec);
+    const bound_matrix<transform3> J =
+        jac_engine::free_to_bound_jacobian(trf, free_vec1) *
+        jac_engine::bound_to_free_jacobian(trf, ln, bound_vec);
 
     for (unsigned int i = 0u; i < 6u; i++) {
         for (unsigned int j = 0u; j < 6u; j++) {
@@ -105,7 +92,9 @@ GTEST_TEST(detray_coordinates, line2_case1) {
     }
 }
 
-GTEST_TEST(detray_coordinates, line2_case2) {
+GTEST_TEST(detray_coordinates, jacobian_line2D_case2) {
+
+    using jac_engine = detail::jacobian_engine<line2D<transform3>>;
 
     // Preparation work
     vector3 z = {1.f, 2.f, 3.f};
@@ -114,34 +103,26 @@ GTEST_TEST(detray_coordinates, line2_case2) {
     x = vector::normalize(x);
     const point3 t = {0.f, 0.f, 0.f};
     const transform3 trf(t, z, x);
-    const line2<transform3> l2;
-    const point2 local1 = {1.f, 2.f};
     const vector3 mom = {1.f, 6.f, -2.f};
     const vector3 d = vector::normalize(mom);
     const scalar time{0.1f};
     const scalar charge{-1.f};
-    struct dummy_mask {
-    } mask;
 
-    // local to global transformation
-    const point3 global = l2.bound_local_to_global(trf, mask, local1, d);
+    const point2 bound1 = {1.f, 2.f};
 
-    // global to local transform
-    const point3 local2 = l2.global_to_local(trf, global, d);
-
-    // Check if the same local position is obtained
-    ASSERT_NEAR(local1[0], local2[0], isclose);
-    ASSERT_NEAR(local1[1], local2[1], isclose);
+    const point3 global = detail::bound_to_free_position(trf, ln, bound1, d);
 
     // Free track parameter
     const free_track_parameters<transform3> free_params(global, time, mom,
                                                         charge);
     const auto free_vec = free_params.vector();
-    const auto bound_vec = l2.free_to_bound_vector(trf, free_vec);
+    const auto bound_vec =
+        detail::free_to_bound_vector<line2D<transform3>>(trf, free_vec);
 
     // Test Jacobian transformation
-    const matrix_type<6, 6> J = l2.free_to_bound_jacobian(trf, free_vec) *
-                                l2.bound_to_free_jacobian(trf, mask, bound_vec);
+    const bound_matrix<transform3> J =
+        jac_engine::free_to_bound_jacobian(trf, free_vec) *
+        jac_engine::bound_to_free_jacobian(trf, ln, bound_vec);
 
     const matrix_operator m;
 

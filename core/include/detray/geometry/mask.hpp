@@ -125,7 +125,7 @@ class mask {
     DETRAY_HOST_DEVICE inline auto to_local_frame(
         const transform3_t& trf, const point3_t& glob_p,
         const point3_t& glob_dir = {}) const -> point3_t {
-        return local_frame_type{}.global_to_local(trf, glob_p, glob_dir);
+        return local_frame_type{}.global_to_local_3D(trf, glob_p, glob_dir);
     }
 
     /// @returns the global point for a local position on the surface

@@ -1,6 +1,6 @@
 /** Detray library, part of the ACTS project (R&D line)
  *
- * (c) 2022-2023 CERN for the benefit of the ACTS project
+ * (c) 2022-2024 CERN for the benefit of the ACTS project
  *
  * Mozilla Public License Version 2.0
  */
@@ -12,6 +12,7 @@
 #include "detray/definitions/track_parametrization.hpp"
 #include "detray/geometry/surface.hpp"
 #include "detray/propagator/base_actor.hpp"
+#include "detray/propagator/detail/jacobian_engine.hpp"
 
 namespace detray {
 
@@ -38,60 +39,56 @@ struct parameter_transporter : actor {
         template <size_type ROWS, size_type COLS>
         using matrix_type =
             typename matrix_operator::template matrix_type<ROWS, COLS>;
-        // Shorthand vector/matrix types related to bound track parameters.
-        using bound_vector = matrix_type<e_bound_size, 1>;
-        using bound_matrix = matrix_type<e_bound_size, e_bound_size>;
-        // Mapping from bound track parameters.
-        using bound_to_free_matrix = matrix_type<e_free_size, e_bound_size>;
-        // Shorthand vector/matrix types related to free track parameters.
-        using free_vector = matrix_type<e_free_size, 1>;
-        using free_matrix = matrix_type<e_free_size, e_free_size>;
-        // Mapping from free track parameters.
-        using free_to_bound_matrix = matrix_type<e_bound_size, e_free_size>;
-        using free_to_path_matrix = matrix_type<1, e_free_size>;
-        // Vector in 3D space
-        using vector3 = typename transform3_t::vector3;
 
         /// @}
 
         template <typename mask_group_t, typename index_t,
                   typename propagator_state_t>
         DETRAY_HOST_DEVICE inline void operator()(
-            const mask_group_t& mask_group, const index_t& index,
+            const mask_group_t& /*mask_group*/, const index_t& /*index*/,
             const transform3_type& trf3, propagator_state_t& propagation) {
+
+            using frame_t = typename mask_group_t::value_type::shape::
+                template local_frame_type<transform3_type>;
+
+            using jacobian_engine_t = detail::jacobian_engine<frame_t>;
+
+            using bound_matrix_t = bound_matrix<transform3_type>;
+            using bound_to_free_matrix_t =
+                typename jacobian_engine_t::bound_to_free_matrix_type;
+
+            using free_matrix_t = free_matrix<transform3_type>;
+            using free_to_bound_matrix_t =
+                typename jacobian_engine_t::free_to_bound_matrix_type;
 
             // Stepper and Navigator states
             auto& stepping = propagation._stepping;
-
-            // Mask
-            const auto& mask = mask_group[index];
-            auto local_coordinate = mask.local_frame();
 
             // Free vector
             const auto& free_vec = stepping().vector();
 
             // Convert free to bound vector
             stepping._bound_params.set_vector(
-                local_coordinate.free_to_bound_vector(trf3, free_vec));
+                detail::free_to_bound_vector<frame_t>(trf3, free_vec));
 
             // Free to bound jacobian at the destination surface
-            const free_to_bound_matrix free_to_bound_jacobian =
-                local_coordinate.free_to_bound_jacobian(trf3, free_vec);
+            const free_to_bound_matrix_t free_to_bound_jacobian =
+                jacobian_engine_t::free_to_bound_jacobian(trf3, free_vec);
 
             // Transport jacobian in free coordinate
-            free_matrix& free_transport_jacobian = stepping._jac_transport;
+            free_matrix_t& free_transport_jacobian = stepping._jac_transport;
 
             // Path correction factor
-            free_matrix path_correction = local_coordinate.path_correction(
+            free_matrix_t path_correction = jacobian_engine_t::path_correction(
                 stepping().pos(), stepping().dir(), stepping.dtds(),
                 stepping.dqopds(), trf3);
 
-            const free_matrix correction_term =
+            const free_matrix_t correction_term =
                 matrix_operator()
                     .template identity<e_free_size, e_free_size>() +
                 path_correction;
 
-            bound_matrix new_cov =
+            bound_matrix_t new_cov =
                 matrix_operator().template zero<e_bound_size, e_bound_size>();
 
             if (propagation.param_type() == parameter_type::e_free) {
@@ -107,7 +104,7 @@ struct parameter_transporter : actor {
 
             } else if (propagation.param_type() == parameter_type::e_bound) {
                 // Bound to free jacobian at the departure surface
-                const bound_to_free_matrix& bound_to_free_jacobian =
+                const bound_to_free_matrix_t& bound_to_free_jacobian =
                     stepping._jac_to_global;
 
                 stepping._full_jacobian =

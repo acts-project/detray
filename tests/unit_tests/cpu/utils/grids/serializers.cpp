@@ -8,9 +8,9 @@
 // detray core
 #include "detray/utils/grid/serializers.hpp"
 
-#include "detray/coordinates/cylindrical3.hpp"
-#include "detray/coordinates/polar2.hpp"
 #include "detray/definitions/detail/indexing.hpp"
+#include "detray/geometry/coordinates/cylindrical3D.hpp"
+#include "detray/geometry/coordinates/polar2D.hpp"
 #include "detray/geometry/mask.hpp"
 #include "detray/test/types.hpp"
 #include "detray/utils/grid/detail/axis.hpp"
@@ -33,12 +33,12 @@ namespace {
 
 // polar coordinate system with regular binning on both axes
 using polar_axes = multi_axis<
-    true, polar2<test::transform3>,
+    true, polar2D<test::transform3>,
     single_axis<closed<label::e_r>, regular<host_container_types, scalar>>,
     single_axis<circular<label::e_phi>, regular<host_container_types, scalar>>>;
 // 3-dim cylindrical coordinate system with regular binning
 using cylinder_axes = multi_axis<
-    true, cylindrical3<test::transform3>,
+    true, cylindrical3D<test::transform3>,
     single_axis<closed<label::e_r>, regular<host_container_types, scalar>>,
     single_axis<circular<label::e_phi>, regular<host_container_types, scalar>>,
     single_axis<closed<label::e_z>, regular<host_container_types, scalar>>>;

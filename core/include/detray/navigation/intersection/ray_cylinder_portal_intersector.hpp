@@ -8,10 +8,10 @@
 #pragma once
 
 // Project include(s)
-#include "detray/coordinates/concentric_cylindrical2.hpp"
-#include "detray/coordinates/cylindrical2.hpp"
 #include "detray/definitions/detail/math.hpp"
 #include "detray/definitions/detail/qualifiers.hpp"
+#include "detray/geometry/coordinates/concentric_cylindrical2D.hpp"
+#include "detray/geometry/coordinates/cylindrical2D.hpp"
 #include "detray/navigation/detail/ray.hpp"
 #include "detray/navigation/intersection/intersection.hpp"
 #include "detray/navigation/intersection/ray_cylinder_intersector.hpp"
@@ -31,8 +31,8 @@ struct ray_intersector_impl;
 /// With the way the navigation works, only the closest one of the two possible
 /// intersection points is needed in the case of a cylinderical portal surface.
 template <typename algebra_t>
-struct ray_intersector_impl<concentric_cylindrical2<algebra_t>, algebra_t>
-    : public ray_intersector_impl<cylindrical2<algebra_t>, algebra_t> {
+struct ray_intersector_impl<concentric_cylindrical2D<algebra_t>, algebra_t>
+    : public ray_intersector_impl<cylindrical2D<algebra_t>, algebra_t> {
 
     /// linear algebra types
     /// @{

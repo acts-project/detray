@@ -42,7 +42,7 @@ using vector3_t = typename transform3::vector3;
 using point3_t = typename transform3::point3;
 using matrix_operator = standard_matrix_operator<scalar>;
 using track_t = free_track_parameters<transform3>;
-using free_matrix = typename track_t::covariance_type;
+using free_matrix_t = free_matrix<transform3>;
 
 // Navigator
 template <typename detector_t>
@@ -77,14 +77,14 @@ struct track_inspector : actor {
 
         DETRAY_HOST_DEVICE
         state(vector_t<scalar> path_lengths, vector_t<vector3_t> positions,
-              vector_t<free_matrix> jac_transports)
+              vector_t<free_matrix_t> jac_transports)
             : _path_lengths(path_lengths),
               _positions(positions),
               _jac_transports(jac_transports) {}
 
         vector_t<scalar> _path_lengths;
         vector_t<vector3_t> _positions;
-        vector_t<free_matrix> _jac_transports;
+        vector_t<free_matrix_t> _jac_transports;
     };
 
     template <typename propagator_state_t>
@@ -147,7 +147,7 @@ inline auto run_propagation_host(vecmem::memory_resource *mr,
                                  const vecmem::vector<track_t> &tracks)
     -> std::tuple<vecmem::jagged_vector<scalar>,
                   vecmem::jagged_vector<vector3_t>,
-                  vecmem::jagged_vector<free_matrix>> {
+                  vecmem::jagged_vector<free_matrix_t>> {
 
     // Construct propagator from stepper and navigator
     auto stepr = rk_stepper_t<typename covfie::field<bfield_bknd_t>::view_t>{};
@@ -163,7 +163,7 @@ inline auto run_propagation_host(vecmem::memory_resource *mr,
     // Create vector for track recording
     vecmem::jagged_vector<scalar> host_path_lengths(mr);
     vecmem::jagged_vector<vector3_t> host_positions(mr);
-    vecmem::jagged_vector<free_matrix> host_jac_transports(mr);
+    vecmem::jagged_vector<free_matrix_t> host_jac_transports(mr);
 
     for (const auto &trk : tracks) {
 
@@ -202,8 +202,8 @@ inline void compare_propagation_results(
     const vecmem::jagged_vector<vector3_t> &device_positions,
     const vecmem::jagged_vector<scalar> &host_path_lengths,
     const vecmem::jagged_vector<scalar> &device_path_lengths,
-    const vecmem::jagged_vector<free_matrix> &host_jac_transports,
-    const vecmem::jagged_vector<free_matrix> &device_jac_transports) {
+    const vecmem::jagged_vector<free_matrix_t> &host_jac_transports,
+    const vecmem::jagged_vector<free_matrix_t> &device_jac_transports) {
 
     // Compare the positions and pathlengths
     for (unsigned int i = 0u; i < host_positions.size(); i++) {
@@ -231,8 +231,8 @@ inline void compare_propagation_results(
     for (unsigned int i = 0u; i < host_jac_transports.size(); i++) {
         for (unsigned int j = 0u; j < host_jac_transports[i].size(); j++) {
 
-            const free_matrix &host_J = host_jac_transports[i][j];
-            const free_matrix &device_J = device_jac_transports[i][j];
+            const free_matrix_t &host_J = host_jac_transports[i][j];
+            const free_matrix_t &device_J = device_jac_transports[i][j];
 
             scalar pl = host_path_lengths[i][j];
 

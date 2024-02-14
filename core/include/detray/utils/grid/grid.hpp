@@ -266,7 +266,7 @@ class grid_impl {
     DETRAY_HOST_DEVICE point_type project(const transform_t &trf,
                                           const point3_t &p,
                                           const vector3_t &d) const {
-        return local_frame().project_to_axes(trf, p, d);
+        return local_frame().global_to_local(trf, p, d);
     }
 
     /// Interface for the navigator

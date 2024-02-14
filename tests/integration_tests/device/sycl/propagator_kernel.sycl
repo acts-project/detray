@@ -20,7 +20,7 @@ void propagator_test(
         candidates_data,
     vecmem::data::jagged_vector_view<scalar>& path_lengths_data,
     vecmem::data::jagged_vector_view<vector3_t>& positions_data,
-    vecmem::data::jagged_vector_view<free_matrix>& jac_transports_data,
+    vecmem::data::jagged_vector_view<free_matrix_t>& jac_transports_data,
     detray::sycl::queue_wrapper queue) {
 
     unsigned int localSize = 64;
@@ -54,7 +54,7 @@ void propagator_test(
                     path_lengths_data);
                 vecmem::jagged_device_vector<vector3_t> positions(
                     positions_data);
-                vecmem::jagged_device_vector<free_matrix> jac_transports(
+                vecmem::jagged_device_vector<free_matrix_t> jac_transports(
                     jac_transports_data);
 
                 unsigned int gid = item.get_global_linear_id();
@@ -113,7 +113,7 @@ template void propagator_test<bfield::const_bknd_t,
         intersection_t<detector<toy_metadata, host_container_types>>>&,
     vecmem::data::jagged_vector_view<scalar>&,
     vecmem::data::jagged_vector_view<vector3_t>&,
-    vecmem::data::jagged_vector_view<free_matrix>&,
+    vecmem::data::jagged_vector_view<free_matrix_t>&,
     detray::sycl::queue_wrapper);
 
 /// Explicit instantiation for an inhomogeneous magnetic field
@@ -125,7 +125,7 @@ template void propagator_test<bfield::const_bknd_t,
     vecmem::data::jagged_vector_view<intersection_t<detector<toy_metadata,
    host_container_types>>>&, vecmem::data::jagged_vector_view<scalar>&,
     vecmem::data::jagged_vector_view<vector3_t>&,
-    vecmem::data::jagged_vector_view<free_matrix>&,
+    vecmem::data::jagged_vector_view<free_matrix_t>&,
     detray::sycl::queue_wrapper);*/
 
 }  // namespace detray

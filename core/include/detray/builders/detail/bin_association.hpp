@@ -10,10 +10,10 @@
 
 // Project include(s)
 #include "detray/builders/detail/associator.hpp"
-#include "detray/coordinates/concentric_cylindrical2.hpp"
-#include "detray/coordinates/cylindrical2.hpp"
-#include "detray/coordinates/polar2.hpp"
 #include "detray/definitions/units.hpp"
+#include "detray/geometry/coordinates/concentric_cylindrical2D.hpp"
+#include "detray/geometry/coordinates/cylindrical2D.hpp"
+#include "detray/geometry/coordinates/polar2D.hpp"
 #include "detray/geometry/detail/vertexing.hpp"
 #include "detray/utils/grid/populators.hpp"
 #include "detray/utils/ranges.hpp"
@@ -54,7 +54,7 @@ static inline void bin_association(const context_t & /*context*/,
 
     // Disk type bin association
     if constexpr (std::is_same_v<typename grid_t::local_frame_type,
-                                 polar2<transform_t>>) {
+                                 polar2D<transform_t>>) {
         // Run with two different associators: center of gravity and edge
         // intersection
         center_of_gravity_generic cgs_assoc;
@@ -120,9 +120,10 @@ static inline void bin_association(const context_t & /*context*/,
             }
         }
     } else if constexpr (std::is_same_v<typename grid_t::local_frame_type,
-                                        cylindrical2<transform_t>> ||
-                         std::is_same_v<typename grid_t::local_frame_type,
-                                        concentric_cylindrical2<transform_t>>) {
+                                        cylindrical2D<transform_t>> ||
+                         std::is_same_v<
+                             typename grid_t::local_frame_type,
+                             concentric_cylindrical2D<transform_t>>) {
 
         center_of_gravity_rectangle cgs_assoc;
         edges_intersect_generic edges_assoc;

@@ -234,23 +234,23 @@ class grid_reader {
             switch (grid_data.second.grid_link.type) {
                 // rectangle, trapezoid, (triangle) grids
                 case io::accel_id::cartesian2_grid: {
-                    return convert<detector_t, cartesian2<algebra_t>>(
+                    return convert<detector_t, cartesian2D<algebra_t>>(
                         grid_data, det_builder, bounds, binnings);
                 }
                 // ring/disc, annulus grids
                 case io::accel_id::polar2_grid: {
-                    return convert<detector_t, polar2<algebra_t>>(
+                    return convert<detector_t, polar2D<algebra_t>>(
                         grid_data, det_builder, bounds, binnings);
                 }
                 // 2D concentric cylinder grid
                 case io::accel_id::concentric_cylinder2_grid: {
                     return convert<detector_t,
-                                   concentric_cylindrical2<algebra_t>>(
+                                   concentric_cylindrical2D<algebra_t>>(
                         grid_data, det_builder, bounds, binnings);
                 }
                 // 2D cylinder grid
                 case io::accel_id::cylinder2_grid: {
-                    return convert<detector_t, cylindrical2<algebra_t>>(
+                    return convert<detector_t, cylindrical2D<algebra_t>>(
                         grid_data, det_builder, bounds, binnings);
                 }
                 default: {
@@ -262,12 +262,12 @@ class grid_reader {
             switch (grid_data.second.grid_link.type) {
                 // cuboid grid
                 case io::accel_id::cuboid3_grid: {
-                    return convert<detector_t, cartesian3<algebra_t>>(
+                    return convert<detector_t, cartesian3D<algebra_t>>(
                         grid_data, det_builder, bounds, binnings);
                 }
                 // 3D cylinder grid
                 case io::accel_id::cylinder3_grid: {
-                    return convert<detector_t, cylindrical3<algebra_t>>(
+                    return convert<detector_t, cylindrical3D<algebra_t>>(
                         grid_data, det_builder, bounds, binnings);
                 }
                 default: {

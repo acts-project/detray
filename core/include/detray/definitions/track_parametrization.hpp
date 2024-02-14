@@ -1,6 +1,6 @@
 /** Detray library, part of the ACTS project (R&D line)
  *
- * (c) 2022-2023 CERN for the benefit of the ACTS project
+ * (c) 2022-2024 CERN for the benefit of the ACTS project
  *
  * Mozilla Public License Version 2.0
  */
@@ -61,5 +61,49 @@ enum free_indices : unsigned int {
 
 // Track parameter type
 enum class parameter_type : int { e_free = 0, e_bound = 1 };
+
+/// Vector type for free track parametrization
+template <typename algebra_t>
+using free_vector =
+    typename algebra_t::matrix_actor::template matrix_type<e_free_size, 1>;
+
+/// Covariance matrix type for free track parametrization
+template <typename algebra_t>
+using free_matrix =
+    typename algebra_t::matrix_actor::template matrix_type<e_free_size,
+                                                           e_free_size>;
+
+/// Vector type for bound track parametrization
+template <typename algebra_t>
+using bound_vector =
+    typename algebra_t::matrix_actor::template matrix_type<e_bound_size, 1>;
+
+/// Covariance matrix type for bound track parametrization
+template <typename algebra_t>
+using bound_matrix =
+    typename algebra_t::matrix_actor::template matrix_type<e_bound_size,
+                                                           e_bound_size>;
+
+/// Mapping from bound to free track parameters.
+template <typename algebra_t>
+using bound_to_free_matrix =
+    typename algebra_t::matrix_actor::template matrix_type<e_free_size,
+                                                           e_bound_size>;
+
+/// Mapping from free to bound track parameters.
+template <typename algebra_t>
+using free_to_bound_matrix =
+    typename algebra_t::matrix_actor::template matrix_type<e_bound_size,
+                                                           e_free_size>;
+
+/// Mapping from free to path
+template <typename algebra_t>
+using free_to_path_matrix =
+    typename algebra_t::matrix_actor::template matrix_type<1, e_free_size>;
+
+/// Mapping from path to free
+template <typename algebra_t>
+using path_to_free_matrix =
+    typename algebra_t::matrix_actor::template matrix_type<e_free_size, 1>;
 
 }  // namespace detray

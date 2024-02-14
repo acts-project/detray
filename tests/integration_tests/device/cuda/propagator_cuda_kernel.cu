@@ -19,7 +19,7 @@ __global__ void propagator_test_kernel(
         candidates_data,
     vecmem::data::jagged_vector_view<scalar> path_lengths_data,
     vecmem::data::jagged_vector_view<vector3_t> positions_data,
-    vecmem::data::jagged_vector_view<free_matrix> jac_transports_data) {
+    vecmem::data::jagged_vector_view<free_matrix_t> jac_transports_data) {
 
     int gid = threadIdx.x + blockIdx.x * blockDim.x;
     using detector_device_t =
@@ -35,7 +35,7 @@ __global__ void propagator_test_kernel(
         candidates_data);
     vecmem::jagged_device_vector<scalar> path_lengths(path_lengths_data);
     vecmem::jagged_device_vector<vector3_t> positions(positions_data);
-    vecmem::jagged_device_vector<free_matrix> jac_transports(
+    vecmem::jagged_device_vector<free_matrix_t> jac_transports(
         jac_transports_data);
 
     if (gid >= tracks.size()) {
@@ -87,7 +87,7 @@ void propagator_test(
         candidates_data,
     vecmem::data::jagged_vector_view<scalar>& path_lengths_data,
     vecmem::data::jagged_vector_view<vector3_t>& positions_data,
-    vecmem::data::jagged_vector_view<free_matrix>& jac_transports_data) {
+    vecmem::data::jagged_vector_view<free_matrix_t>& jac_transports_data) {
 
     constexpr int thread_dim = 2 * WARP_SIZE;
     constexpr int block_dim = theta_steps * phi_steps / thread_dim + 1;
@@ -113,7 +113,7 @@ template void propagator_test<bfield::const_bknd_t,
         intersection_t<detector<toy_metadata, host_container_types>>>&,
     vecmem::data::jagged_vector_view<scalar>&,
     vecmem::data::jagged_vector_view<vector3_t>&,
-    vecmem::data::jagged_vector_view<free_matrix>&);
+    vecmem::data::jagged_vector_view<free_matrix_t>&);
 
 /// Explicit instantiation for an inhomogeneous magnetic field
 template void propagator_test<bfield::cuda::inhom_bknd_t,
@@ -125,6 +125,6 @@ template void propagator_test<bfield::cuda::inhom_bknd_t,
         intersection_t<detector<toy_metadata, host_container_types>>>&,
     vecmem::data::jagged_vector_view<scalar>&,
     vecmem::data::jagged_vector_view<vector3_t>&,
-    vecmem::data::jagged_vector_view<free_matrix>&);
+    vecmem::data::jagged_vector_view<free_matrix_t>&);
 
 }  // namespace detray

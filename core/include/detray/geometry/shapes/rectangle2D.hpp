@@ -8,9 +8,10 @@
 #pragma once
 
 // Project include(s)
-#include "detray/coordinates/cartesian2.hpp"
 #include "detray/definitions/detail/containers.hpp"
+#include "detray/definitions/detail/indexing.hpp"
 #include "detray/definitions/detail/qualifiers.hpp"
+#include "detray/geometry/coordinates/cartesian2D.hpp"
 
 // System include(s)
 #include <limits>
@@ -35,7 +36,7 @@ class rectangle2D {
 
     /// Local coordinate frame for boundary checks
     template <typename algebra_t>
-    using local_frame_type = cartesian2<algebra_t>;
+    using local_frame_type = cartesian2D<algebra_t>;
 
     /// Dimension of the local coordinate system
     static constexpr std::size_t dim{2u};

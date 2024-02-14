@@ -8,8 +8,8 @@
 #pragma once
 
 // Project include(s).
-#include "detray/coordinates/coordinates.hpp"
 #include "detray/definitions/grid_axis.hpp"
+#include "detray/geometry/coordinates/coordinates.hpp"
 #include "detray/utils/grid/detail/axis.hpp"
 #include "detray/utils/grid/detail/axis_binning.hpp"
 #include "detray/utils/grid/detail/axis_bounds.hpp"
@@ -76,10 +76,10 @@ template <typename A, axis::bounds e_bounds,
           template <typename, typename> class binning0_t,
           template <typename, typename> class binning1_t,
           template <typename, typename> class binning2_t>
-struct get_axes_types<cartesian2<A>, e_bounds, binning0_t, binning1_t,
+struct get_axes_types<cartesian2D<A>, e_bounds, binning0_t, binning1_t,
                       binning2_t> {
     template <typename algebra_t>
-    using frame = cartesian2<algebra_t>;
+    using frame = cartesian2D<algebra_t>;
 
     static constexpr auto label0{axis::label::e_x};
     static constexpr auto label1{axis::label::e_y};
@@ -95,10 +95,10 @@ template <typename A, axis::bounds e_bounds,
           template <typename, typename> class binning0_t,
           template <typename, typename> class binning1_t,
           template <typename, typename> class binning2_t>
-struct get_axes_types<cartesian3<A>, e_bounds, binning0_t, binning1_t,
+struct get_axes_types<cartesian3D<A>, e_bounds, binning0_t, binning1_t,
                       binning2_t> {
     template <typename algebra_t>
-    using frame = cartesian3<algebra_t>;
+    using frame = cartesian3D<algebra_t>;
 
     static constexpr auto label0{axis::label::e_x};
     static constexpr auto label1{axis::label::e_y};
@@ -117,9 +117,10 @@ template <typename A, axis::bounds e_bounds,
           template <typename, typename> class binning0_t,
           template <typename, typename> class binning1_t,
           template <typename, typename> class binning2_t>
-struct get_axes_types<polar2<A>, e_bounds, binning0_t, binning1_t, binning2_t> {
+struct get_axes_types<polar2D<A>, e_bounds, binning0_t, binning1_t,
+                      binning2_t> {
     template <typename algebra_t>
-    using frame = polar2<algebra_t>;
+    using frame = polar2D<algebra_t>;
 
     static constexpr auto label0{axis::label::e_r};
     static constexpr auto label1{axis::label::e_phi};
@@ -135,10 +136,10 @@ template <typename A, axis::bounds e_bounds,
           template <typename, typename> class binning0_t,
           template <typename, typename> class binning1_t,
           template <typename, typename> class binning2_t>
-struct get_axes_types<cylindrical2<A>, e_bounds, binning0_t, binning1_t,
+struct get_axes_types<cylindrical2D<A>, e_bounds, binning0_t, binning1_t,
                       binning2_t> {
     template <typename algebra_t>
-    using frame = cylindrical2<algebra_t>;
+    using frame = cylindrical2D<algebra_t>;
 
     static constexpr auto label0{axis::label::e_rphi};
     static constexpr auto label1{axis::label::e_cyl_z};
@@ -154,10 +155,10 @@ template <typename A, axis::bounds e_bounds,
           template <typename, typename> class binning0_t,
           template <typename, typename> class binning1_t,
           template <typename, typename> class binning2_t>
-struct get_axes_types<concentric_cylindrical2<A>, e_bounds, binning0_t,
+struct get_axes_types<concentric_cylindrical2D<A>, e_bounds, binning0_t,
                       binning1_t, binning2_t> {
     template <typename algebra_t>
-    using frame = concentric_cylindrical2<algebra_t>;
+    using frame = concentric_cylindrical2D<algebra_t>;
 
     static constexpr auto label0{axis::label::e_rphi};
     static constexpr auto label1{axis::label::e_cyl_z};
@@ -173,10 +174,10 @@ template <typename A, axis::bounds e_bounds,
           template <typename, typename> class binning0_t,
           template <typename, typename> class binning1_t,
           template <typename, typename> class binning2_t>
-struct get_axes_types<cylindrical3<A>, e_bounds, binning0_t, binning1_t,
+struct get_axes_types<cylindrical3D<A>, e_bounds, binning0_t, binning1_t,
                       binning2_t> {
     template <typename algebra_t>
-    using frame = cylindrical3<algebra_t>;
+    using frame = cylindrical3D<algebra_t>;
 
     static constexpr auto label0{axis::label::e_r};
     static constexpr auto label1{axis::label::e_phi};

@@ -8,9 +8,9 @@
 #pragma once
 
 // Project include(s)
-#include "detray/coordinates/line2.hpp"
 #include "detray/definitions/detail/math.hpp"
 #include "detray/definitions/detail/qualifiers.hpp"
+#include "detray/geometry/coordinates/line2D.hpp"
 #include "detray/navigation/detail/ray.hpp"
 #include "detray/navigation/intersection/intersection.hpp"
 
@@ -24,7 +24,7 @@ struct ray_intersector_impl;
 
 /// A functor to find intersections between trajectory and line mask
 template <typename algebra_t>
-struct ray_intersector_impl<line2<algebra_t>, algebra_t> {
+struct ray_intersector_impl<line2D<algebra_t>, algebra_t> {
 
     using transform3_type = algebra_t;
     using scalar_type = typename transform3_type::scalar_type;

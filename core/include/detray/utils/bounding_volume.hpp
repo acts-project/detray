@@ -171,7 +171,7 @@ class axis_aligned_bounding_volume {
         if constexpr (std::is_same_v<shape, cuboid3D>) {
             return trf.point_to_global(loc_min<point3_t>());
         } else if constexpr (std::is_same_v<shape, cylinder3D>) {
-            return cylindrical3<transform3_t>{}.local_to_global(
+            return cylindrical3D<transform3_t>{}.local_to_global(
                 trf, m_mask, loc_min<point3_t>());
         }
 
@@ -193,7 +193,7 @@ class axis_aligned_bounding_volume {
         if constexpr (std::is_same_v<shape, cuboid3D>) {
             return trf.point_to_global(loc_max<point3_t>());
         } else if constexpr (std::is_same_v<shape, cylinder3D>) {
-            return cylindrical3<transform3_t>{}.local_to_global(
+            return cylindrical3D<transform3_t>{}.local_to_global(
                 trf, m_mask, loc_max<point3_t>());
         }
 
