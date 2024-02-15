@@ -9,11 +9,11 @@
 
 // Project include(s)
 #include "detray/coordinates/polar2.hpp"
-#include "detray/definitions/containers.hpp"
-#include "detray/definitions/math.hpp"
-#include "detray/definitions/qualifiers.hpp"
+#include "detray/definitions/detail/containers.hpp"
+#include "detray/definitions/detail/math.hpp"
+#include "detray/definitions/detail/qualifiers.hpp"
 #include "detray/definitions/units.hpp"
-#include "detray/masks/detail/vertexing.hpp"
+#include "detray/geometry/detail/vertexing.hpp"
 
 // System include(s)
 #include <limits>

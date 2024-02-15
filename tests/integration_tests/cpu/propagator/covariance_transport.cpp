@@ -8,8 +8,9 @@
 // Project include(s).
 #include "detray/definitions/units.hpp"
 #include "detray/geometry/detail/surface_descriptor.hpp"
-#include "detray/masks/masks.hpp"
-#include "detray/masks/unbounded.hpp"
+#include "detray/geometry/mask.hpp"
+#include "detray/geometry/shapes.hpp"
+#include "detray/geometry/shapes/unbounded.hpp"
 #include "detray/navigation/intersection/helix_intersector.hpp"
 #include "detray/test/types.hpp"
 #include "detray/tracks/tracks.hpp"

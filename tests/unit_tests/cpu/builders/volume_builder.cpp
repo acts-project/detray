@@ -12,7 +12,9 @@
 #include "detray/builders/detector_builder.hpp"
 #include "detray/builders/surface_factory.hpp"
 #include "detray/core/detector.hpp"
-#include "detray/definitions/indexing.hpp"
+#include "detray/definitions/detail/indexing.hpp"
+#include "detray/geometry/mask.hpp"
+#include "detray/geometry/shapes.hpp"
 #include "detray/test/types.hpp"
 #include "detray/test/utils/prefill_detector.hpp"
 

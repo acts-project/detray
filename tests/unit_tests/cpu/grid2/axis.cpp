@@ -8,7 +8,7 @@
 // Project include(s)
 #include "detray/grids/axis.hpp"
 
-#include "detray/definitions/indexing.hpp"
+#include "detray/definitions/detail/indexing.hpp"
 #include "detray/definitions/units.hpp"
 
 // detray test

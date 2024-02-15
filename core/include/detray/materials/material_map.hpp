@@ -9,7 +9,7 @@
 
 // Detray include(s)
 #include "detray/builders/grid_factory.hpp"
-#include "detray/definitions/containers.hpp"
+#include "detray/definitions/detail/containers.hpp"
 #include "detray/materials/material_slab.hpp"
 #include "detray/utils/grid/detail/axis_helpers.hpp"
 #include "detray/utils/grid/detail/grid_bins.hpp"

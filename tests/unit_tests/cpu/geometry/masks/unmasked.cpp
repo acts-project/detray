@@ -6,9 +6,9 @@
  */
 
 // Project include(s)
-#include "detray/masks/unmasked.hpp"
+#include "detray/geometry/shapes/unmasked.hpp"
 
-#include "detray/masks/masks.hpp"
+#include "detray/geometry/mask.hpp"
 #include "detray/test/types.hpp"
 
 // GTest include

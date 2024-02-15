@@ -1,47 +1,53 @@
 /** Detray library, part of the ACTS project (R&D line)
  *
- * (c) 2020-2024 CERN for the benefit of the ACTS project
+ * (c) 2022-2024 CERN for the benefit of the ACTS project
  *
  * Mozilla Public License Version 2.0
  */
 
 #pragma once
 
-// Project include(s)
-#include "detray/coordinates/cartesian2.hpp"
-#include "detray/definitions/containers.hpp"
-#include "detray/definitions/math.hpp"
-#include "detray/definitions/qualifiers.hpp"
+// Project include(s).
+#include "detray/coordinates/cartesian3.hpp"
+#include "detray/coordinates/line2.hpp"
+#include "detray/definitions/detail/containers.hpp"
+#include "detray/definitions/detail/math.hpp"
+#include "detray/definitions/detail/qualifiers.hpp"
 
 // System include(s)
 #include <limits>
 #include <ostream>
-#include <string>
+#include <type_traits>
 
 namespace detray {
 
-/// @brief Geometrical shape of a trapezoid2D.
+/// @brief Geometrical shape of a line surface.
 ///
-/// It is defined by half lengths in local0 coordinate bounds[0] and bounds[1]
-/// at -/+ half length in the local1 coordinate bounds[2]. bounds[3] contains
-/// the precomputed value of 1 / (2 * bounds[2]), which avoids
-/// excessive floating point divisions.
-class trapezoid2D {
+/// @tparam kSquareCrossSect determines whether the line has a cricular or
+///         square cross section. This also changes the local coord. frame.m
+///
+/// The line can either have a circular or a square cross section. In the first
+/// case bounds[0] refers to the radius, while in the second case it is the
+/// half length of the square. The second boundary bounds[1] is the half length
+/// in z.
+template <bool kSquareCrossSect = false>
+class line {
     public:
     /// The name for this shape
-    inline static const std::string name = "trapezoid2D";
+    inline static const std::string name = "line";
+
+    /// Geometrical cross section of the line
+    static constexpr bool square_cross_sect = kSquareCrossSect;
 
     enum boundaries : unsigned int {
-        e_half_length_0 = 0u,
-        e_half_length_1 = 1u,
-        e_half_length_2 = 2u,
-        e_divisor = 3u,  // 1 / (2 * bounds[e_half_length_2])
-        e_size = 4u,
+        e_cross_section = 0u,
+        e_half_z = 1u,
+        e_size = 2u
     };
 
     /// Local coordinate frame for boundary checks
     template <typename algebra_t>
-    using local_frame_type = cartesian2<algebra_t>;
+    using local_frame_type = line2<algebra_t>;
 
     /// Dimension of the local coordinate system
     static constexpr std::size_t dim{2u};
@@ -50,7 +56,12 @@ class trapezoid2D {
     ///
     /// @note the point is expected to be given in local coordinates by the
     /// caller. For the conversion from global cartesian coordinates, the
-    /// nested @c shape struct can be used.
+    /// nested @c shape struct can be used. In case of the line intersector
+    /// this is the point of closest approach to the line.
+    ///
+    /// @tparam point_t the local point dimension can be 2 for a circular
+    ///         cross section (local cylinder) or 3 for a square cross
+    ///         section (local 3D cartesian).
     ///
     /// @param bounds the boundary values for this shape
     /// @param loc_p the point to be checked in the local coordinate system
@@ -59,17 +70,31 @@ class trapezoid2D {
     /// @return true if the local point lies within the given boundaries.
     template <template <typename, std::size_t> class bounds_t,
               typename scalar_t, std::size_t kDIM, typename point_t,
-              typename std::enable_if_t<kDIM == e_size, bool> = true>
+              typename std::enable_if_t<kDIM == 2u, bool> = true>
     DETRAY_HOST_DEVICE inline bool check_boundaries(
         const bounds_t<scalar_t, kDIM> &bounds, const point_t &loc_p,
         const scalar_t tol = std::numeric_limits<scalar_t>::epsilon()) const {
-        const scalar_t rel_y{(bounds[e_half_length_2] + loc_p[1]) *
-                             bounds[e_divisor]};
-        return (math::abs(loc_p[0]) <= bounds[e_half_length_0] +
-                                           rel_y * (bounds[e_half_length_1] -
-                                                    bounds[e_half_length_0]) +
-                                           tol and
-                math::abs(loc_p[1]) <= bounds[e_half_length_2] + tol);
+
+        // For a square cross section (e.g. a cell of drift chamber), we check
+        // if (1) x and y of the local cart. point is less than the half cell
+        // size and (2) the distance to the point of closest approach on thw
+        // line from the line center is less than the half line length
+        if constexpr (square_cross_sect) {
+            return (math::abs(loc_p[0] * math::cos(loc_p[2])) <=
+                        bounds[e_cross_section] + tol &&
+                    math::abs(loc_p[0] * math::sin(loc_p[2])) <=
+                        bounds[e_cross_section] + tol &&
+                    math::abs(loc_p[1]) <= bounds[e_half_z] + tol);
+
+        }
+        // For a circular cross section (e.g. straw tube), we check if (1) the
+        // radial distance is within the scope and (2) the distance to the point
+        // of closest approach on the line from the line center is less than the
+        // line half length
+        else {
+            return (loc_p[0] <= bounds[e_cross_section] + tol &&
+                    math::abs(loc_p[1]) <= bounds[e_half_z] + tol);
+        }
     }
 
     /// @brief Lower and upper point for minimal axis aligned bounding box.
@@ -89,13 +114,9 @@ class trapezoid2D {
         const bounds_t<scalar_t, kDIM> &bounds,
         const scalar_t env = std::numeric_limits<scalar_t>::epsilon()) const {
         assert(env > 0.f);
-        const scalar_t x_bound{
-            (bounds[e_half_length_0] > bounds[e_half_length_1]
-                 ? bounds[e_half_length_0]
-                 : bounds[e_half_length_1]) +
-            env};
-        const scalar_t y_bound{bounds[e_half_length_2] + env};
-        return {-x_bound, -y_bound, -env, x_bound, y_bound, env};
+        const scalar_t xy_bound{bounds[e_cross_section] + env};
+        const scalar_t z_bound{bounds[e_half_z] + env};
+        return {-xy_bound, -xy_bound, -z_bound, xy_bound, xy_bound, z_bound};
     }
 
     /// @returns the shapes centroid in local cartesian coordinates
@@ -104,22 +125,15 @@ class trapezoid2D {
               typename scalar_t, std::size_t kDIM,
               typename std::enable_if_t<kDIM == e_size, bool> = true>
     DETRAY_HOST_DEVICE typename algebra_t::point3 centroid(
-        const bounds_t<scalar_t, kDIM> &bounds) const {
+        const bounds_t<scalar_t, kDIM> &) const {
 
-        const scalar_t h_2{bounds[e_half_length_2]};
-        const scalar_t a_2{bounds[e_half_length_1]};
-        const scalar_t b_2{bounds[e_half_length_0]};
-
-        const scalar_t y{2.f * h_2 * (2.f * a_2 + b_2) * 1.f /
-                         (3.f * (a_2 + b_2))};
-
-        return {0.f, y - h_2, 0.f};
+        return {0.f, 0.f, 0.f};
     }
 
     /// Generate vertices in local cartesian frame
     ///
-    /// @param bounds the boundary values for the trapezoid
-    /// @param ls is the number of line segments
+    /// @param bounds the boundary values for the line
+    /// @param n_seg is the number of line segments
     ///
     /// @return a generated list of vertices
     template <typename point2_t, typename point3_t,
@@ -128,16 +142,11 @@ class trapezoid2D {
               typename std::enable_if_t<kDIM == e_size, bool> = true>
     DETRAY_HOST dvector<point3_t> vertices(
         const bounds_t<scalar_t, kDIM> &bounds, dindex /*ignored*/) const {
-        // left hand lower corner
-        point3_t lh_lc{-bounds[e_half_length_0], -bounds[e_half_length_2], 0.f};
-        // right hand lower corner
-        point3_t rh_lc{bounds[e_half_length_0], -bounds[e_half_length_2], 0.f};
-        // right hand upper corner
-        point3_t rh_uc{bounds[e_half_length_1], bounds[e_half_length_2], 0.f};
-        // left hand upper corner
-        point3_t lh_uc{-bounds[e_half_length_1], bounds[e_half_length_2], 0.f};
-        // Return the confining vertices
-        return {lh_lc, rh_lc, rh_uc, lh_uc};
+
+        point3_t lc = {0.f, 0.f, -bounds[e_half_z]};
+        point3_t rc = {0.f, 0.f, bounds[e_half_z]};
+
+        return {lc, rc};
     }
 
     /// @brief Check consistency of boundary values.
@@ -154,21 +163,14 @@ class trapezoid2D {
 
         constexpr auto tol{10.f * std::numeric_limits<scalar_t>::epsilon()};
 
-        if (bounds[e_half_length_0] < tol or bounds[e_half_length_1] < tol) {
-            os << "ERROR: Half length in x must be in the range (0, "
-                  "numeric_max)"
+        if (bounds[e_cross_section] < tol) {
+            os << "ERROR: Radius/sides must be in the range (0, numeric_max)"
                << std::endl;
             return false;
         }
-        if (bounds[e_half_length_2] < tol) {
-            os << "ERROR: Half length in y must be in the range (0, "
-                  "numeric_max)"
+        if (bounds[e_half_z] < tol) {
+            os << "ERROR: Half length z must be in the range (0, numeric_max)"
                << std::endl;
-            return false;
-        }
-        const auto div{1.f / (2.f * bounds[e_half_length_2])};
-        if (math::abs(bounds[e_divisor] - div) > tol) {
-            os << "ERROR: Divisor incorrect. Should be: " << div << std::endl;
             return false;
         }
 

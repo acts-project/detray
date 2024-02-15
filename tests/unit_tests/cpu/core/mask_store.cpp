@@ -7,7 +7,8 @@
 
 // Project include(s)
 #include "detray/core/detail/multi_store.hpp"
-#include "detray/masks/masks.hpp"
+#include "detray/geometry/mask.hpp"
+#include "detray/geometry/shapes.hpp"
 #include "detray/test/types.hpp"
 
 // Vecmem include(s)

@@ -9,10 +9,8 @@
 
 // Project include(s)
 #include "detray/coordinates/cartesian2.hpp"
-#include "detray/coordinates/cartesian3.hpp"
-#include "detray/definitions/containers.hpp"
-#include "detray/definitions/math.hpp"
-#include "detray/definitions/qualifiers.hpp"
+#include "detray/definitions/detail/containers.hpp"
+#include "detray/definitions/detail/qualifiers.hpp"
 
 // System include(s)
 #include <limits>
@@ -21,19 +19,17 @@
 
 namespace detray {
 
-/// @brief Underlying geometry for a single parameter bound mask
+/// @brief Geometrical shape of a rectangle2D.
 ///
-/// @tparam kCheckIndex is the index of the local point on which the mask is
-///         applied
-template <unsigned int kCheckIndex = 0u>
-class single3D {
+/// It is defined by half length in local0 coordinates bounds[0] and bounds[1]
+class rectangle2D {
     public:
     /// The name for this shape
-    inline static const std::string name = "single3D";
+    inline static const std::string name = "rectangle2D";
 
     enum boundaries : unsigned int {
-        e_lower = 0u,
-        e_upper = 1u,
+        e_half_x = 0u,
+        e_half_y = 1u,
         e_size = 2u,
     };
 
@@ -42,7 +38,7 @@ class single3D {
     using local_frame_type = cartesian2<algebra_t>;
 
     /// Dimension of the local coordinate system
-    static constexpr std::size_t dim{1u};
+    static constexpr std::size_t dim{2u};
 
     /// @brief Check boundary values for a local point.
     ///
@@ -61,8 +57,8 @@ class single3D {
     DETRAY_HOST_DEVICE inline bool check_boundaries(
         const bounds_t<scalar_t, kDIM> &bounds, const point_t &loc_p,
         const scalar_t tol = std::numeric_limits<scalar_t>::epsilon()) const {
-        return (bounds[e_lower] - tol <= loc_p[kCheckIndex] and
-                loc_p[kCheckIndex] <= bounds[e_upper] + tol);
+        return (math::abs(loc_p[0]) <= bounds[e_half_x] + tol and
+                math::abs(loc_p[1]) <= bounds[e_half_y] + tol);
     }
 
     /// @brief Lower and upper point for minimal axis aligned bounding box.
@@ -72,7 +68,7 @@ class single3D {
     /// @param bounds the boundary values for this shape
     /// @param env dynamic envelope around the shape
     ///
-    /// @returns and array of coordinates that contains the lower point (first
+    /// @returns an array of coordinates that contains the lower point (first
     /// three values) and the upper point (latter three values) .
     template <typename algebra_t,
               template <typename, std::size_t> class bounds_t,
@@ -82,10 +78,9 @@ class single3D {
         const bounds_t<scalar_t, kDIM> &bounds,
         const scalar_t env = std::numeric_limits<scalar_t>::epsilon()) const {
         assert(env > 0.f);
-        darray<scalar_t, 6> o_bounds{-env, -env, -env, env, env, env};
-        o_bounds[kCheckIndex] += bounds[e_lower];
-        o_bounds[3u + kCheckIndex] += bounds[e_upper];
-        return o_bounds;
+        const scalar_t x_bound{bounds[e_half_x] + env};
+        const scalar_t y_bound{bounds[e_half_y] + env};
+        return {-x_bound, -y_bound, -env, x_bound, y_bound, env};
     }
 
     /// @returns the shapes centroid in local cartesian coordinates
@@ -93,20 +88,15 @@ class single3D {
               template <typename, std::size_t> class bounds_t,
               typename scalar_t, std::size_t kDIM,
               typename std::enable_if_t<kDIM == e_size, bool> = true>
-    DETRAY_HOST_DEVICE auto centroid(
-        const bounds_t<scalar_t, kDIM> &bounds) const {
+    DETRAY_HOST_DEVICE typename algebra_t::point3 centroid(
+        const bounds_t<scalar_t, kDIM> &) const {
 
-        using point3_t = typename algebra_t::point3;
-
-        point3_t centr{0.f, 0.f, 0.f};
-        centr[kCheckIndex] = 0.5f * (bounds[e_lower] + bounds[e_upper]);
-
-        return centr;
+        return {0.f, 0.f, 0.f};
     }
 
     /// Generate vertices in local cartesian frame
     ///
-    /// @param bounds the boundary values for the single value
+    /// @param bounds the boundary values for the stereo annulus
     /// @param n_seg is the number of line segments
     ///
     /// @return a generated list of vertices
@@ -114,11 +104,18 @@ class single3D {
               template <typename, std::size_t> class bounds_t,
               typename scalar_t, std::size_t kDIM,
               typename std::enable_if_t<kDIM == e_size, bool> = true>
-    DETRAY_HOST dvector<point3_t> vertices(const bounds_t<scalar_t, kDIM> &,
-                                           dindex) const {
-        throw std::runtime_error(
-            "Vertex generation for single value shapes is not implemented");
-        return {};
+    DETRAY_HOST dvector<point3_t> vertices(
+        const bounds_t<scalar_t, kDIM> &bounds, dindex /*ignored*/) const {
+        // left hand lower corner
+        point3_t lh_lc{-bounds[e_half_x], -bounds[e_half_y], 0.f};
+        // right hand lower corner
+        point3_t rh_lc{bounds[e_half_x], -bounds[e_half_y], 0.f};
+        // right hand upper corner
+        point3_t rh_uc{bounds[e_half_x], bounds[e_half_y], 0.f};
+        // left hand upper corner
+        point3_t lh_uc{-bounds[e_half_x], bounds[e_half_y], 0.f};
+        // Return the confining vertices
+        return {lh_lc, rh_lc, rh_uc, lh_uc};
     }
 
     /// @brief Check consistency of boundary values.
@@ -133,8 +130,11 @@ class single3D {
     DETRAY_HOST constexpr bool check_consistency(
         const bounds_t<scalar_t, kDIM> &bounds, std::ostream &os) const {
 
-        if (bounds[e_upper] < bounds[e_lower]) {
-            os << "ERROR: Upper bounds must be smaller than lower bounds ";
+        constexpr auto tol{10.f * std::numeric_limits<scalar_t>::epsilon()};
+
+        if (bounds[e_half_x] < tol or bounds[e_half_y] < tol) {
+            os << "ERROR: Half lengths must be in the range (0, numeric_max)"
+               << std::endl;
             return false;
         }
 

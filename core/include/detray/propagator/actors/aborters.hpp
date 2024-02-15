@@ -8,7 +8,7 @@
 #pragma once
 
 // Project include(s)
-#include "detray/definitions/qualifiers.hpp"
+#include "detray/definitions/detail/qualifiers.hpp"
 #include "detray/propagator/base_actor.hpp"
 #include "detray/propagator/base_stepper.hpp"
 

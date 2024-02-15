@@ -9,8 +9,8 @@
 
 // Project include(s)
 #include "detray/coordinates/cartesian2.hpp"
-#include "detray/definitions/containers.hpp"
-#include "detray/definitions/qualifiers.hpp"
+#include "detray/definitions/detail/containers.hpp"
+#include "detray/definitions/detail/qualifiers.hpp"
 
 // System include(s)
 #include <limits>

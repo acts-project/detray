@@ -6,7 +6,7 @@
  */
 
 #include "detector_cuda_kernel.hpp"
-#include "detray/definitions/cuda_definitions.hpp"
+#include "detray/definitions/detail/cuda_definitions.hpp"
 
 namespace detray {
 

@@ -8,7 +8,7 @@
 // detray core
 #include "detray/utils/quadratic_equation.hpp"
 
-#include "detray/definitions/algebra.hpp"
+#include "detray/definitions/detail/algebra.hpp"
 #include "detray/utils/tuple_helpers.hpp"
 
 // detray test

@@ -6,7 +6,7 @@
  */
 
 // Project inlcude(s)
-#include "detray/definitions/indexing.hpp"
+#include "detray/definitions/detail/indexing.hpp"
 #include "detray/grids/axis.hpp"
 #include "detray/grids/serializer2.hpp"
 

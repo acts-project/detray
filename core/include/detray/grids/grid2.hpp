@@ -8,7 +8,7 @@
 #pragma once
 
 // Detray include(s).
-#include "detray/definitions/qualifiers.hpp"
+#include "detray/definitions/detail/qualifiers.hpp"
 #include "detray/grids/axis.hpp"
 #include "detray/utils/invalid_values.hpp"
 

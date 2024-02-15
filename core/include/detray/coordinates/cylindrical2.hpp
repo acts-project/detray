@@ -9,8 +9,8 @@
 
 // Project include(s).
 #include "detray/coordinates/coordinate_base.hpp"
-#include "detray/definitions/math.hpp"
-#include "detray/definitions/qualifiers.hpp"
+#include "detray/definitions/detail/math.hpp"
+#include "detray/definitions/detail/qualifiers.hpp"
 #include "detray/tracks/bound_track_parameters.hpp"
 #include "detray/utils/invalid_values.hpp"
 

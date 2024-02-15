@@ -8,9 +8,10 @@
 #pragma once
 
 // Project include(s)
-#include "detray/coordinates/cartesian3.hpp"
-#include "detray/definitions/containers.hpp"
-#include "detray/definitions/qualifiers.hpp"
+#include "detray/coordinates/polar2.hpp"
+#include "detray/definitions/detail/containers.hpp"
+#include "detray/definitions/detail/math.hpp"
+#include "detray/definitions/detail/qualifiers.hpp"
 
 // System include(s)
 #include <limits>
@@ -19,38 +20,33 @@
 
 namespace detray {
 
-/// @brief Geometrical shape of a full 3D cuboid.
+/// @brief Geometrical shape of a closed ring.
 ///
-/// It is defined by 3 min-max length pairs and checks whether a point is
-/// somewhere inside the cuboid. This type is mainly used for aabb description.
-class cuboid3D {
+/// It is defined by the two radii bounds[0] and bounds[1],
+/// and can be checked with a tolerance in t[0] and t[1].
+class ring2D {
     public:
     /// The name for this shape
-    inline static const std::string name = "cuboid3D";
+    inline static const std::string name = "ring2D";
 
     enum boundaries : unsigned int {
-        e_min_x = 0u,
-        e_min_y = 1u,
-        e_min_z = 2u,
-        e_max_x = 3u,
-        e_max_y = 4u,
-        e_max_z = 5u,
-        e_size = 6u,
+        e_inner_r = 0u,
+        e_outer_r = 1u,
+        e_size = 2u,
     };
 
     /// Local coordinate frame for boundary checks
     template <typename algebra_t>
-    using local_frame_type = cartesian3<algebra_t>;
+    using local_frame_type = polar2<algebra_t>;
 
     /// Dimension of the local coordinate system
-    static constexpr std::size_t dim{3u};
+    static constexpr std::size_t dim{2u};
 
     /// @brief Check boundary values for a local point.
     ///
     /// @note the point is expected to be given in local coordinates by the
     /// caller. For the conversion from global cartesian coordinates, the
-    /// nested @c shape struct can be used. The point is assumed to be in
-    /// the a cartesian 3D frame.
+    /// nested @c shape struct can be used.
     ///
     /// @param bounds the boundary values for this shape
     /// @param loc_p the point to be checked in the local coordinate system
@@ -63,12 +59,9 @@ class cuboid3D {
     DETRAY_HOST_DEVICE inline bool check_boundaries(
         const bounds_t<scalar_t, kDIM> &bounds, const point_t &loc_p,
         const scalar_t tol = std::numeric_limits<scalar_t>::epsilon()) const {
-        return (bounds[e_min_x] - tol <= loc_p[0] and
-                bounds[e_min_y] - tol <= loc_p[1] and
-                bounds[e_min_x] - tol <= loc_p[2] and
-                loc_p[0] <= bounds[e_max_x] + tol and
-                loc_p[1] <= bounds[e_max_y] + tol and
-                loc_p[2] <= bounds[e_max_z] + tol);
+
+        return (loc_p[0] + tol >= bounds[e_inner_r] and
+                loc_p[0] <= bounds[e_outer_r] + tol);
     }
 
     /// @brief Lower and upper point for minimal axis aligned bounding box.
@@ -88,12 +81,8 @@ class cuboid3D {
         const bounds_t<scalar_t, kDIM> &bounds,
         const scalar_t env = std::numeric_limits<scalar_t>::epsilon()) const {
         assert(env > 0.f);
-        bounds_t<scalar_t, kDIM> o_bounds{bounds};
-        for (unsigned int i{0}; i < 3u; ++i) {
-            o_bounds[i] -= env;
-            o_bounds[i + 3u] += env;
-        }
-        return o_bounds;
+        const scalar_t r_bound{env + bounds[e_outer_r]};
+        return {-r_bound, -r_bound, -env, r_bound, r_bound, env};
     }
 
     /// @returns the shapes centroid in local cartesian coordinates
@@ -102,17 +91,14 @@ class cuboid3D {
               typename scalar_t, std::size_t kDIM,
               typename std::enable_if_t<kDIM == e_size, bool> = true>
     DETRAY_HOST_DEVICE typename algebra_t::point3 centroid(
-        const bounds_t<scalar_t, kDIM> &bounds) const {
+        const bounds_t<scalar_t, kDIM> &) const {
 
-        return 0.5f *
-               typename algebra_t::point3{bounds[e_min_x] + bounds[e_max_x],
-                                          bounds[e_min_y] + bounds[e_max_y],
-                                          bounds[e_min_z] + bounds[e_max_z]};
+        return {0.f, 0.f, 0.f};
     }
 
     /// Generate vertices in local cartesian frame
     ///
-    /// @param bounds the boundary values for the cuboid
+    /// @param bounds the boundary values for the stereo annulus
     /// @param n_seg is the number of line segments
     ///
     /// @return a generated list of vertices
@@ -123,7 +109,7 @@ class cuboid3D {
     DETRAY_HOST dvector<point3_t> vertices(const bounds_t<scalar_t, kDIM> &,
                                            dindex) const {
         throw std::runtime_error(
-            "Vertex generation for cuboids is not implemented");
+            "Vertex generation for rings is not implemented");
         return {};
     }
 
@@ -141,19 +127,14 @@ class cuboid3D {
 
         constexpr auto tol{10.f * std::numeric_limits<scalar_t>::epsilon()};
 
-        if (bounds[e_min_x] >= bounds[e_max_x] or
-            math::abs(bounds[e_min_x] - bounds[e_max_x]) < tol) {
-            os << "ERROR: Min x must be smaller than max x.";
+        if (math::signbit(bounds[e_inner_r]) or bounds[e_outer_r] < tol) {
+            os << "ERROR: Radius must be in the range [0, numeric_max)"
+               << std::endl;
             return false;
         }
-        if (bounds[e_min_y] >= bounds[e_max_y] or
-            math::abs(bounds[e_min_y] - bounds[e_max_y]) < tol) {
-            os << "ERROR: Min y must be smaller than max y.";
-            return false;
-        }
-        if (bounds[e_min_z] >= bounds[e_max_z] or
-            math::abs(bounds[e_min_z] - bounds[e_max_z]) < tol) {
-            os << "ERROR: Min z must be smaller than max z.";
+        if (bounds[e_inner_r] >= bounds[e_outer_r] or
+            math::abs(bounds[e_inner_r] - bounds[e_outer_r]) < tol) {
+            os << "ERROR: Inner radius must be smaller outer radius.";
             return false;
         }
 

@@ -10,8 +10,9 @@
 // Project include(s)
 #include "detray/definitions/units.hpp"
 #include "detray/geometry/detector_volume.hpp"
+#include "detray/geometry/mask.hpp"
+#include "detray/geometry/shapes.hpp"
 #include "detray/geometry/surface.hpp"
-#include "detray/masks/masks.hpp"
 
 // System include(s)
 #include <cassert>

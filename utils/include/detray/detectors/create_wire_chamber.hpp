@@ -13,7 +13,7 @@
 #include "detray/core/detector_metadata.hpp"
 #include "detray/definitions/units.hpp"
 #include "detray/detectors/detector_helper.hpp"
-#include "detray/masks/masks.hpp"
+#include "detray/geometry/mask.hpp"
 #include "detray/materials/mixture.hpp"
 #include "detray/materials/predefined_materials.hpp"
 #include "detray/utils/axis_rotation.hpp"

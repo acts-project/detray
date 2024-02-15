@@ -9,10 +9,10 @@
 #pragma once
 
 // Project include(s)
-#include "detray/definitions/detail/bit_encoder.hpp"
+#include "detray/definitions/detail/indexing.hpp"
+#include "detray/definitions/detail/qualifiers.hpp"
 #include "detray/definitions/geometry.hpp"
-#include "detray/definitions/indexing.hpp"
-#include "detray/definitions/qualifiers.hpp"
+#include "detray/utils/bit_encoder.hpp"
 
 // System include(s)
 #include <cstdint>

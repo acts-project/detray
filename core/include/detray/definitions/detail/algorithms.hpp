@@ -8,7 +8,7 @@
 #pragma once
 
 // Project include(s)
-#include "detray/definitions/qualifiers.hpp"
+#include "detray/definitions/detail/qualifiers.hpp"
 #include "detray/utils/sort.hpp"
 
 // Thrust include(s)

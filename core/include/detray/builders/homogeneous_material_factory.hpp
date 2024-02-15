@@ -9,8 +9,8 @@
 
 // Project include(s)
 #include "detray/builders/surface_factory.hpp"
-#include "detray/definitions/indexing.hpp"
-#include "detray/masks/unmasked.hpp"
+#include "detray/definitions/detail/indexing.hpp"
+#include "detray/geometry/shapes/unmasked.hpp"
 #include "detray/materials/material.hpp"
 #include "detray/utils/ranges.hpp"
 

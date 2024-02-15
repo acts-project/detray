@@ -6,11 +6,11 @@
  */
 
 // Project include(s)
-#include "detray/definitions/qualifiers.hpp"
+#include "detray/definitions/detail/qualifiers.hpp"
 #include "detray/definitions/units.hpp"
 #include "detray/detectors/create_telescope_detector.hpp"
-#include "detray/masks/masks.hpp"
-#include "detray/masks/unbounded.hpp"
+#include "detray/geometry/mask.hpp"
+#include "detray/geometry/shapes/unbounded.hpp"
 #include "detray/navigation/navigator.hpp"
 #include "detray/propagator/line_stepper.hpp"
 #include "detray/propagator/rk_stepper.hpp"

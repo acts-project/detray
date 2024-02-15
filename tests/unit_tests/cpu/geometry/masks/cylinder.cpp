@@ -7,7 +7,9 @@
 
 // Project include(s)
 #include "detray/definitions/units.hpp"
-#include "detray/masks/masks.hpp"
+#include "detray/geometry/mask.hpp"
+#include "detray/geometry/shapes/cylinder2D.hpp"
+#include "detray/geometry/shapes/cylinder3D.hpp"
 #include "detray/test/types.hpp"
 
 // GTest include

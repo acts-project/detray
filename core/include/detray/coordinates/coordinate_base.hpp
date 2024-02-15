@@ -8,8 +8,8 @@
 #pragma once
 
 // Project include(s).
-#include "detray/definitions/math.hpp"
-#include "detray/definitions/qualifiers.hpp"
+#include "detray/definitions/detail/math.hpp"
+#include "detray/definitions/detail/qualifiers.hpp"
 #include "detray/definitions/track_parametrization.hpp"
 #include "detray/propagator/base_stepper.hpp"
 #include "detray/tracks/bound_track_parameters.hpp"

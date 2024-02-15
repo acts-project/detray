@@ -8,7 +8,7 @@
 // Project include(s)
 #include "detray/core/detector.hpp"
 
-#include "detray/definitions/indexing.hpp"
+#include "detray/definitions/detail/indexing.hpp"
 #include "detray/materials/predefined_materials.hpp"
 #include "detray/test/utils/prefill_detector.hpp"
 

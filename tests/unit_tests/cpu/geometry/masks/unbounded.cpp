@@ -6,10 +6,11 @@
  */
 
 // Project include(s)
-#include "detray/masks/unbounded.hpp"
+#include "detray/geometry/shapes/unbounded.hpp"
 
 #include "detray/definitions/units.hpp"
-#include "detray/masks/masks.hpp"
+#include "detray/geometry/mask.hpp"
+#include "detray/geometry/shapes/rectangle2D.hpp"
 #include "detray/test/types.hpp"
 
 // GTest include(s)

@@ -11,7 +11,7 @@
 #include "detray/builders/bin_fillers.hpp"
 #include "detray/builders/detector_builder.hpp"
 #include "detray/builders/grid_factory.hpp"
-#include "detray/definitions/indexing.hpp"
+#include "detray/definitions/detail/indexing.hpp"
 #include "detray/io/common/detail/basic_converter.hpp"
 #include "detray/io/common/detail/type_info.hpp"
 #include "detray/io/frontend/payloads.hpp"

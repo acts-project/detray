@@ -9,7 +9,7 @@
 
 // Project includes(s)
 #include "detray/core/detail/single_store.hpp"
-#include "detray/definitions/algebra.hpp"
+#include "detray/definitions/detail/algebra.hpp"
 
 // Vecmem include(s)
 #include <vecmem/containers/device_vector.hpp>

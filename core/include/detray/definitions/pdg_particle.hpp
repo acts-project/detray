@@ -13,7 +13,7 @@
 namespace detray {
 
 /// Symbolic values for commonly used PDG particle numbers.
-enum pdg_particle : int32_t {
+enum pdg_particle : std::int32_t {
     eInvalid = 0,
     eElectron = 11,
     eAntiElectron = -eElectron,

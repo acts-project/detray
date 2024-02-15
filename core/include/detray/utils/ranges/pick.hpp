@@ -8,8 +8,8 @@
 #pragma once
 
 // Project include(s)
-#include "detray/definitions/indexing.hpp"
-#include "detray/definitions/qualifiers.hpp"
+#include "detray/definitions/detail/indexing.hpp"
+#include "detray/definitions/detail/qualifiers.hpp"
 #include "detray/utils/ranges/ranges.hpp"
 
 // System include(s)

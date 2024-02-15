@@ -10,8 +10,11 @@
 
 #include "detray/definitions/units.hpp"
 #include "detray/geometry/detail/surface_descriptor.hpp"
-#include "detray/masks/masks.hpp"
-#include "detray/masks/unmasked.hpp"
+#include "detray/geometry/mask.hpp"
+#include "detray/geometry/shapes/concentric_cylinder2D.hpp"
+#include "detray/geometry/shapes/line.hpp"
+#include "detray/geometry/shapes/rectangle2D.hpp"
+#include "detray/geometry/shapes/unmasked.hpp"
 #include "detray/navigation/detail/helix.hpp"
 #include "detray/test/types.hpp"
 #include "detray/tracks/tracks.hpp"

@@ -10,7 +10,7 @@
 #include <type_traits>
 #include <utility>
 
-#include "detray/definitions/qualifiers.hpp"
+#include "detray/definitions/detail/qualifiers.hpp"
 
 namespace detray {
 template <typename... Ts>

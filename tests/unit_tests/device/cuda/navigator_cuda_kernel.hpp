@@ -8,7 +8,7 @@
 #pragma once
 
 // Project include(s)
-#include "detray/definitions/algebra.hpp"
+#include "detray/definitions/detail/algebra.hpp"
 #include "detray/definitions/units.hpp"
 #include "detray/detectors/toy_metadata.hpp"
 #include "detray/navigation/navigator.hpp"

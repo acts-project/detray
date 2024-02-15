@@ -8,8 +8,8 @@
 #pragma once
 
 // Project include(s).
-#include "detray/definitions/macros.hpp"
-#include "detray/definitions/qualifiers.hpp"
+#include "detray/definitions/detail/macros.hpp"
+#include "detray/definitions/detail/qualifiers.hpp"
 #include "detray/navigation/intersection/intersection.hpp"
 #include "detray/navigation/navigator.hpp"
 #include "detray/propagator/actor_chain.hpp"

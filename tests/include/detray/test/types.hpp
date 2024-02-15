@@ -8,7 +8,7 @@
 #pragma once
 
 // Detray core include(s).
-#include "detray/definitions/algebra.hpp"
+#include "detray/definitions/detail/algebra.hpp"
 
 namespace detray::test {
 

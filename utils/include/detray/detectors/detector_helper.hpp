@@ -9,8 +9,8 @@
 
 // Project include(s).
 #include "detray/core/detail/data_context.hpp"
+#include "detray/definitions/detail/indexing.hpp"
 #include "detray/definitions/geometry.hpp"
-#include "detray/definitions/indexing.hpp"
 #include "detray/materials/material_map.hpp"
 #include "detray/materials/material_slab.hpp"
 

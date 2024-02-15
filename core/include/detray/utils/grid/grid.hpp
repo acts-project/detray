@@ -9,7 +9,7 @@
 
 // Project include(s).
 #include "detray/core/detail/container_views.hpp"
-#include "detray/definitions/qualifiers.hpp"
+#include "detray/definitions/detail/qualifiers.hpp"
 #include "detray/utils/grid/detail/axis.hpp"
 #include "detray/utils/grid/detail/axis_helpers.hpp"
 #include "detray/utils/grid/detail/bin_storage.hpp"

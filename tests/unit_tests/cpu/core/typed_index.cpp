@@ -6,7 +6,7 @@
  */
 
 // Project include(s)
-#include "detray/definitions/indexing.hpp"
+#include "detray/definitions/detail/indexing.hpp"
 
 // Google test include(s)
 #include <gtest/gtest.h>

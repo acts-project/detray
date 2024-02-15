@@ -6,8 +6,10 @@
  */
 
 // Project include(s)
+#include "detray/geometry/shapes/single3D.hpp"
+
 #include "detray/definitions/units.hpp"
-#include "detray/masks/masks.hpp"
+#include "detray/geometry/mask.hpp"
 #include "detray/test/types.hpp"
 
 // GTest include

@@ -8,7 +8,8 @@
 // Project include(s).
 #include "detray/coordinates/cylindrical2.hpp"
 
-#include "detray/masks/masks.hpp"
+#include "detray/geometry/mask.hpp"
+#include "detray/geometry/shapes/cylinder2D.hpp"
 #include "detray/test/types.hpp"
 #include "detray/tracks/tracks.hpp"
 

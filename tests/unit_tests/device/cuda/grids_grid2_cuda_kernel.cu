@@ -7,7 +7,7 @@
 
 #include <vecmem/containers/device_vector.hpp>
 
-#include "detray/definitions/cuda_definitions.hpp"
+#include "detray/definitions/detail/cuda_definitions.hpp"
 #include "grids_grid2_cuda_kernel.hpp"
 
 namespace detray {

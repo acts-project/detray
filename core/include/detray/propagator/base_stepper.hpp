@@ -8,7 +8,7 @@
 #pragma once
 
 // Project include(s).
-#include "detray/definitions/qualifiers.hpp"
+#include "detray/definitions/detail/qualifiers.hpp"
 #include "detray/definitions/units.hpp"
 #include "detray/geometry/surface.hpp"
 #include "detray/propagator/actors/parameter_resetter.hpp"

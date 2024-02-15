@@ -7,9 +7,6 @@
 
 #pragma once
 
-// System include(s).
-#include <type_traits>
-
 namespace detray::axis {
 
 /// axis bounds names.

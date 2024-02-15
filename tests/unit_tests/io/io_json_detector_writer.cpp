@@ -6,11 +6,13 @@
  */
 
 // Project include(s)
-#include "detray/definitions/algebra.hpp"
+#include "detray/definitions/detail/algebra.hpp"
 #include "detray/definitions/units.hpp"
 #include "detray/detectors/create_telescope_detector.hpp"
 #include "detray/detectors/create_toy_geometry.hpp"
 #include "detray/detectors/create_wire_chamber.hpp"
+#include "detray/geometry/mask.hpp"
+#include "detray/geometry/shapes/annulus2D.hpp"
 #include "detray/io/common/geometry_writer.hpp"
 #include "detray/io/common/homogeneous_material_writer.hpp"
 #include "detray/io/common/material_map_writer.hpp"

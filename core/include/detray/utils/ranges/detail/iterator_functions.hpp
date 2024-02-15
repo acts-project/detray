@@ -13,7 +13,7 @@
 #endif
 
 // Project include(s)
-#include "detray/definitions/qualifiers.hpp"
+#include "detray/definitions/detail/qualifiers.hpp"
 
 // System include(s)
 #include <cassert>

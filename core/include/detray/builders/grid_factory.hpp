@@ -8,9 +8,10 @@
 #pragma once
 
 // Project include(s).
-#include "detray/definitions/containers.hpp"
+#include "detray/definitions/detail/containers.hpp"
 #include "detray/definitions/units.hpp"
-#include "detray/masks/masks.hpp"
+#include "detray/geometry/mask.hpp"
+#include "detray/geometry/shapes.hpp"
 #include "detray/utils/grid/detail/axis.hpp"
 #include "detray/utils/grid/detail/axis_helpers.hpp"
 #include "detray/utils/grid/grid.hpp"

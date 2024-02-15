@@ -14,7 +14,7 @@
 #include "detray/coordinates/cylindrical2.hpp"
 #include "detray/coordinates/polar2.hpp"
 #include "detray/definitions/units.hpp"
-#include "detray/masks/detail/vertexing.hpp"
+#include "detray/geometry/detail/vertexing.hpp"
 #include "detray/utils/grid/populators.hpp"
 #include "detray/utils/ranges.hpp"
 

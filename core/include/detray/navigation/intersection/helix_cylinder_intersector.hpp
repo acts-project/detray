@@ -10,9 +10,9 @@
 // Project include(s)
 #include "detray/coordinates/concentric_cylindrical2.hpp"
 #include "detray/coordinates/cylindrical2.hpp"
-#include "detray/definitions/math.hpp"
-#include "detray/definitions/qualifiers.hpp"
-#include "detray/masks/cylinder2D.hpp"
+#include "detray/definitions/detail/math.hpp"
+#include "detray/definitions/detail/qualifiers.hpp"
+#include "detray/geometry/shapes/cylinder2D.hpp"
 #include "detray/navigation/detail/helix.hpp"
 #include "detray/navigation/intersection/intersection.hpp"
 #include "detray/navigation/intersection/ray_cylinder_intersector.hpp"

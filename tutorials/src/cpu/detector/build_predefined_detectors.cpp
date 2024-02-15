@@ -9,7 +9,7 @@
 #include "detray/definitions/units.hpp"
 #include "detray/detectors/create_telescope_detector.hpp"
 #include "detray/detectors/create_toy_geometry.hpp"
-#include "detray/masks/masks.hpp"
+#include "detray/geometry/mask.hpp"
 #include "detray/materials/predefined_materials.hpp"
 #include "detray/navigation/detail/trajectories.hpp"
 #include "detray/navigation/volume_graph.hpp"

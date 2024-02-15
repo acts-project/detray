@@ -11,8 +11,8 @@
 #include "detray/core/detail/container_buffers.hpp"
 #include "detray/core/detail/container_views.hpp"
 #include "detray/core/detail/data_context.hpp"
-#include "detray/definitions/indexing.hpp"
-#include "detray/definitions/qualifiers.hpp"
+#include "detray/definitions/detail/indexing.hpp"
+#include "detray/definitions/detail/qualifiers.hpp"
 
 // Vecmem include(s)
 #include <vecmem/memory/memory_resource.hpp>
