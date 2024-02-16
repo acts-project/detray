@@ -28,14 +28,15 @@ namespace detray {
 template <typename magnetic_field_t, typename transform3_t,
           typename constraint_t = unconstrained_step,
           typename policy_t = stepper_rk_policy,
+          typename random_device_t = stepping::void_random_device,
           typename inspector_t = stepping::void_inspector,
           template <typename, std::size_t> class array_t = darray>
 class rk_stepper final
     : public base_stepper<transform3_t, constraint_t, policy_t, inspector_t> {
 
     public:
-    using base_type =
-        base_stepper<transform3_t, constraint_t, policy_t, inspector_t>;
+    using base_type = base_stepper<transform3_t, constraint_t, policy_t,
+                                   random_device_t, inspector_t>;
 
     using transform3_type = transform3_t;
     using scalar_type = typename transform3_type::scalar_type;
@@ -72,17 +73,6 @@ class rk_stepper final
             const magnetic_field_t& mag_field, const detector_t& det)
             : base_type::state(bound_params, det), _magnetic_field(mag_field) {}
 
-/*
-#if defined(__NO_DEVICE__)
-        /// Random generator
-        std::random_device _rd{};
-        std::mt19937_64 _generator{_rd()};
-
-        void set_seed(const uint_fast64_t sd) {
-            _generator.seed(sd);
-        }
-#endif
-*/
         /// stepping data required for RKN4
         struct {
             vector3 b_first{0.f, 0.f, 0.f};

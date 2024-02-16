@@ -13,15 +13,18 @@
 #include "detray/geometry/surface.hpp"
 #include "detray/propagator/actors/parameter_resetter.hpp"
 #include "detray/propagator/constrained_step.hpp"
+#include "detray/propagator/detail/random_device.hpp"
 #include "detray/propagator/stepping_config.hpp"
 #include "detray/tracks/tracks.hpp"
-
-// System include(s).
-#include <random>
 
 namespace detray {
 
 namespace stepping {
+
+/// A void random device that does nothing.
+struct void_random_device {
+    void set_seed(const uint_fast64_t /*sd*/) { return; }
+};
 
 /// A void inpector that does nothing.
 ///
@@ -36,6 +39,7 @@ struct void_inspector {
 
 /// Base stepper implementation
 template <typename transform3_t, typename constraint_t, typename policy_t,
+          typename random_device_t = stepping::void_random_device,
           typename inspector_t = stepping::void_inspector>
 class base_stepper {
 
@@ -140,17 +144,12 @@ class base_stepper {
 
         /// The particle mass
         scalar_type _mass{105.7f * unit<scalar_type>::MeV};
+
         /// The particle pdg
         int _pdg = 13;  // default muon
 
-#if defined(__NO_DEVICE__)
-        /// Random generator
-        std::random_device _rd{};
-        std::mt19937_64 _generator{_rd()};
-        void set_seed(const uint_fast64_t sd) {
-            _generator.seed(sd);
-        }
-#endif
+        /// Random device
+        random_device_t rand_device;
 
         /// Set new step constraint
         template <step::constraint type = step::constraint::e_actor>
@@ -165,9 +164,7 @@ class base_stepper {
 
         /// @returns access to this states step constraints
         DETRAY_HOST_DEVICE
-        inline const constraint_t &constraints() const {
-            return _constraint;
-        }
+        inline const constraint_t &constraints() const { return _constraint; }
 
         /// @returns access to this states step constraints
         DETRAY_HOST_DEVICE
@@ -177,9 +174,7 @@ class base_stepper {
 
         /// @returns the navigation direction
         DETRAY_HOST_DEVICE
-        inline step::direction direction() const {
-            return _direction;
-        }
+        inline step::direction direction() const { return _direction; }
 
         /// Remove [all] constraints
         template <step::constraint type = step::constraint::e_actor>
@@ -189,27 +184,19 @@ class base_stepper {
 
         /// Set next step size
         DETRAY_HOST_DEVICE
-        inline void set_step_size(const scalar step) {
-            _step_size = step;
-        }
+        inline void set_step_size(const scalar step) { _step_size = step; }
 
         /// @returns the current step size of this state.
         DETRAY_HOST_DEVICE
-        inline scalar step_size() const {
-            return _step_size;
-        }
+        inline scalar step_size() const { return _step_size; }
 
         /// @returns this states remaining path length.
         DETRAY_HOST_DEVICE
-        inline scalar path_length() const {
-            return _path_length;
-        }
+        inline scalar path_length() const { return _path_length; }
 
         /// @returns the stepping inspector
         DETRAY_HOST
-        inline constexpr auto &inspector() {
-            return _inspector;
-        }
+        inline constexpr auto &inspector() { return _inspector; }
 
         /// Call the stepping inspector
         DETRAY_HOST_DEVICE

@@ -12,19 +12,21 @@
 #include "detray/definitions/detail/qualifiers.hpp"
 #include "detray/navigation/policies.hpp"
 #include "detray/propagator/base_stepper.hpp"
+#include "detray/propagator/detail/random_device.hpp"
 
 namespace detray {
 
 /// Straight line stepper implementation
 template <typename transform3_t, typename constraint_t = unconstrained_step,
           typename policy_t = stepper_default_policy,
+          typename random_device_t = stepping::void_random_device,
           typename inspector_t = stepping::void_inspector>
 class line_stepper final
     : public base_stepper<transform3_t, constraint_t, policy_t, inspector_t> {
 
     public:
-    using base_type =
-        base_stepper<transform3_t, constraint_t, policy_t, inspector_t>;
+    using base_type = base_stepper<transform3_t, constraint_t, policy_t,
+                                   random_device_t, inspector_t>;
 
     using free_track_parameters_type =
         typename base_type::free_track_parameters_type;

@@ -14,7 +14,7 @@
 #include "detray/geometry/surface.hpp"
 #include "detray/materials/interaction.hpp"
 #include "detray/propagator/base_actor.hpp"
-#include "detray/propagator/scattering_helper.hpp"
+#include "detray/propagator/detail/scattering_helper.hpp"
 #include "detray/tracks/bound_track_parameters.hpp"
 #include "detray/utils/axis_rotation.hpp"
 #include "detray/utils/landau_distribution.hpp"

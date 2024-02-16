@@ -12,12 +12,12 @@
 #include "detray/propagator/actors/random_scatterer.hpp"
 
 template <typename magnetic_field_t, typename transform3_t,
-          typename constraint_t, typename policy_t, typename inspector_t,
-          template <typename, std::size_t> class array_t>
-DETRAY_HOST_DEVICE void detray::rk_stepper<
-    magnetic_field_t, transform3_t, constraint_t, policy_t, inspector_t,
-    array_t>::state::advance_track(const detray::stepping::config<scalar_type>&
-                                       cfg) {
+          typename constraint_t, typename policy_t, typename random_device_t,
+          typename inspector_t, template <typename, std::size_t> class array_t>
+DETRAY_HOST_DEVICE void
+detray::rk_stepper<magnetic_field_t, transform3_t, constraint_t, policy_t,
+                   random_device_t, inspector_t, array_t>::state::
+    advance_track(const detray::stepping::config<scalar_type>& cfg) {
 
     const auto& sd = this->_step_data;
     const scalar_type h{this->_step_size};
@@ -41,18 +41,22 @@ DETRAY_HOST_DEVICE void detray::rk_stepper<
     const auto mat = this->_mat;
     if (!(mat == vacuum<scalar_type>())) {
 
-#if defined(__NO_DEVICE__)
-        // only for simulation
-        if (cfg.do_scattering) {
+        // only for simulation with valid random device
+        if constexpr (!std::is_same<random_device_t,
+                                    stepping::void_random_device>::value) {
 
-            const scalar_type projected_scattering_angle =
-                interaction<scalar_type>().compute_multiple_scattering_theta0(
-                    h / mat.X0(), this->_pdg, this->_mass, qop, track.charge());
+            if (cfg.do_scattering) {
+                const scalar_type projected_scattering_angle =
+                    interaction<scalar_type>()
+                        .compute_multiple_scattering_theta0(
+                            h / mat.X0(), this->_pdg, this->_mass, qop,
+                            track.charge());
 
-            dir = random_scatterer<transform3_t>().scatter(
-                dir, projected_scattering_angle, this->_generator);
+                dir = random_scatterer<transform3_t>().scatter(
+                    dir, projected_scattering_angle,
+                    this->rand_device.generator);
+            }
         }
-#endif
 
         // Reference: Eq (82) of https://doi.org/10.1016/0029-554X(81)90063-X
         qop =
@@ -67,11 +71,11 @@ DETRAY_HOST_DEVICE void detray::rk_stepper<
 }
 
 template <typename magnetic_field_t, typename transform3_t,
-          typename constraint_t, typename policy_t, typename inspector_t,
-          template <typename, std::size_t> class array_t>
+          typename constraint_t, typename policy_t, typename random_device_t,
+          typename inspector_t, template <typename, std::size_t> class array_t>
 DETRAY_HOST_DEVICE void
 detray::rk_stepper<magnetic_field_t, transform3_t, constraint_t, policy_t,
-                   inspector_t, array_t>::state::
+                   random_device_t, inspector_t, array_t>::state::
     advance_jacobian(const detray::stepping::config<scalar_type>& cfg) {
     /// The calculations are based on ATL-SOFT-PUB-2009-002. The update of the
     /// Jacobian matrix is requires only the calculation of eq. 17 and 18.
@@ -414,11 +418,11 @@ detray::rk_stepper<magnetic_field_t, transform3_t, constraint_t, policy_t,
 }
 
 template <typename magnetic_field_t, typename transform3_t,
-          typename constraint_t, typename policy_t, typename inspector_t,
-          template <typename, std::size_t> class array_t>
+          typename constraint_t, typename policy_t, typename random_device_t,
+          typename inspector_t, template <typename, std::size_t> class array_t>
 DETRAY_HOST_DEVICE auto
 detray::rk_stepper<magnetic_field_t, transform3_t, constraint_t, policy_t,
-                   inspector_t, array_t>::state::
+                   random_device_t, inspector_t, array_t>::state::
     evaluate_dqopds(const std::size_t i,
                     const typename transform3_t::scalar_type h,
                     const scalar dqopds_prev,
@@ -453,10 +457,11 @@ detray::rk_stepper<magnetic_field_t, transform3_t, constraint_t, policy_t,
 }
 
 template <typename magnetic_field_t, typename transform3_t,
-          typename constraint_t, typename policy_t, typename inspector_t,
-          template <typename, std::size_t> class array_t>
+          typename constraint_t, typename policy_t, typename random_device_t,
+          typename inspector_t, template <typename, std::size_t> class array_t>
 DETRAY_HOST_DEVICE auto detray::rk_stepper<
-    magnetic_field_t, transform3_t, constraint_t, policy_t, inspector_t,
+    magnetic_field_t, transform3_t, constraint_t, policy_t, random_device_t,
+    inspector_t,
     array_t>::state::evaluate_dtds(const vector3& b_field, const std::size_t i,
                                    const typename transform3_t::scalar_type h,
                                    const vector3& dtds_prev,
@@ -478,11 +483,11 @@ DETRAY_HOST_DEVICE auto detray::rk_stepper<
 }
 
 template <typename magnetic_field_t, typename transform3_t,
-          typename constraint_t, typename policy_t, typename inspector_t,
-          template <typename, std::size_t> class array_t>
+          typename constraint_t, typename policy_t, typename random_device_t,
+          typename inspector_t, template <typename, std::size_t> class array_t>
 DETRAY_HOST_DEVICE auto detray::rk_stepper<
-    magnetic_field_t, transform3_t, constraint_t, policy_t, inspector_t,
-    array_t>::state::evaluate_field_gradient(const vector3& pos)
+    magnetic_field_t, transform3_t, constraint_t, policy_t, random_device_t,
+    inspector_t, array_t>::state::evaluate_field_gradient(const vector3& pos)
     -> matrix_type<3, 3> {
 
     matrix_type<3, 3> dBdr = matrix_operator().template zero<3, 3>();
@@ -520,22 +525,22 @@ DETRAY_HOST_DEVICE auto detray::rk_stepper<
 }
 
 template <typename magnetic_field_t, typename transform3_t,
-          typename constraint_t, typename policy_t, typename inspector_t,
-          template <typename, std::size_t> class array_t>
+          typename constraint_t, typename policy_t, typename random_device_t,
+          typename inspector_t, template <typename, std::size_t> class array_t>
 DETRAY_HOST_DEVICE auto
 detray::rk_stepper<magnetic_field_t, transform3_t, constraint_t, policy_t,
-                   inspector_t, array_t>::state::dqopds() const ->
-    typename transform3_t::scalar_type {
+                   random_device_t, inspector_t, array_t>::state::dqopds() const
+    -> typename transform3_t::scalar_type {
     return this->_step_data.dqopds[3u];
 }
 
 template <typename magnetic_field_t, typename transform3_t,
-          typename constraint_t, typename policy_t, typename inspector_t,
-          template <typename, std::size_t> class array_t>
-DETRAY_HOST_DEVICE auto
-detray::rk_stepper<magnetic_field_t, transform3_t, constraint_t, policy_t,
-                   inspector_t, array_t>::state::dqopds(const scalar_type qop)
-    const -> typename transform3_t::scalar_type {
+          typename constraint_t, typename policy_t, typename random_device_t,
+          typename inspector_t, template <typename, std::size_t> class array_t>
+DETRAY_HOST_DEVICE auto detray::rk_stepper<
+    magnetic_field_t, transform3_t, constraint_t, policy_t, random_device_t,
+    inspector_t, array_t>::state::dqopds(const scalar_type qop) const ->
+    typename transform3_t::scalar_type {
 
     const auto& mat = this->_mat;
 
@@ -564,11 +569,11 @@ detray::rk_stepper<magnetic_field_t, transform3_t, constraint_t, policy_t,
 }
 
 template <typename magnetic_field_t, typename transform3_t,
-          typename constraint_t, typename policy_t, typename inspector_t,
-          template <typename, std::size_t> class array_t>
+          typename constraint_t, typename policy_t, typename random_device_t,
+          typename inspector_t, template <typename, std::size_t> class array_t>
 DETRAY_HOST_DEVICE auto detray::rk_stepper<
-    magnetic_field_t, transform3_t, constraint_t, policy_t, inspector_t,
-    array_t>::state::d2qopdsdqop(const scalar_type qop) const ->
+    magnetic_field_t, transform3_t, constraint_t, policy_t, random_device_t,
+    inspector_t, array_t>::state::d2qopdsdqop(const scalar_type qop) const ->
     typename transform3_t::scalar_type {
 
     using scalar_t = typename transform3_t::scalar_type;
@@ -607,13 +612,14 @@ DETRAY_HOST_DEVICE auto detray::rk_stepper<
 }
 
 template <typename magnetic_field_t, typename transform3_t,
-          typename constraint_t, typename policy_t, typename inspector_t,
-          template <typename, std::size_t> class array_t>
+          typename constraint_t, typename policy_t, typename random_device_t,
+          typename inspector_t, template <typename, std::size_t> class array_t>
 template <typename propagation_state_t>
 DETRAY_HOST_DEVICE bool detray::rk_stepper<
-    magnetic_field_t, transform3_t, constraint_t, policy_t, inspector_t,
-    array_t>::step(propagation_state_t& propagation,
-                   const detray::stepping::config<scalar_type>& cfg) {
+    magnetic_field_t, transform3_t, constraint_t, policy_t, random_device_t,
+    inspector_t, array_t>::step(propagation_state_t& propagation,
+                                const detray::stepping::config<scalar_type>&
+                                    cfg) {
 
     // Get stepper and navigator states
     state& stepping = propagation._stepping;

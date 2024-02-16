@@ -107,9 +107,10 @@ class helix_navigation : public test::fixture_base<> {
         using navigator_t = navigator<detector_t, inspector_t, intersection_t>;
         // Runge-Kutta stepper
         using bfield_t = bfield::const_field_t;
-        using stepper_t = rk_stepper<typename bfield_t::view_t, transform3_t,
-                                     unconstrained_step, stepper_rk_policy,
-                                     stepping::print_inspector>;
+        using stepper_t =
+            rk_stepper<typename bfield_t::view_t, transform3_t,
+                       unconstrained_step, stepper_rk_policy,
+                       stepping::void_random_device, stepping::print_inspector>;
         // Propagator with pathlimit aborter
         using actor_chain_t = actor_chain<dtuple, pathlimit_aborter>;
         using propagator_t = propagator<stepper_t, navigator_t, actor_chain_t>;

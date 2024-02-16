@@ -10,9 +10,9 @@
 #include "detray/materials/material.hpp"
 #include "detray/materials/material_slab.hpp"
 #include "detray/materials/predefined_materials.hpp"
-#include "detray/utils/landau_distribution.hpp"
 #include "detray/propagator/actors/random_scatterer.hpp"
 #include "detray/test/types.hpp"
+#include "detray/utils/landau_distribution.hpp"
 #include "detray/utils/statistics.hpp"
 
 // GTest include(s).
