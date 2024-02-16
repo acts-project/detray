@@ -6,14 +6,18 @@
  */
 
 // Project include(s).
+#include "detray/definitions/detail/macros.hpp"
 #include "detray/geometry/detector_volume.hpp"
+#include "detray/materials/interaction.hpp"
+#include "detray/propagator/actors/random_scatterer.hpp"
 
 template <typename magnetic_field_t, typename transform3_t,
           typename constraint_t, typename policy_t, typename inspector_t,
           template <typename, std::size_t> class array_t>
-DETRAY_HOST_DEVICE void
-detray::rk_stepper<magnetic_field_t, transform3_t, constraint_t, policy_t,
-                   inspector_t, array_t>::state::advance_track() {
+DETRAY_HOST_DEVICE void detray::rk_stepper<
+    magnetic_field_t, transform3_t, constraint_t, policy_t, inspector_t,
+    array_t>::state::advance_track(const detray::stepping::config<scalar_type>&
+                                       cfg) {
 
     const auto& sd = this->_step_data;
     const scalar_type h{this->_step_size};
@@ -34,7 +38,22 @@ detray::rk_stepper<magnetic_field_t, transform3_t, constraint_t, policy_t,
     track.set_dir(dir);
 
     auto qop = track.qop();
-    if (!(this->_mat == vacuum<scalar_type>())) {
+    const auto mat = this->_mat;
+    if (!(mat == vacuum<scalar_type>())) {
+
+#if defined(__NO_DEVICE__)
+        // only for simulation
+        if (cfg.do_scattering) {
+
+            const scalar_type projected_scattering_angle =
+                interaction<scalar_type>().compute_multiple_scattering_theta0(
+                    h / mat.X0(), this->_pdg, this->_mass, qop, track.charge());
+
+            dir = random_scatterer<transform3_t>().scatter(
+                dir, projected_scattering_angle, this->_generator);
+        }
+#endif
+
         // Reference: Eq (82) of https://doi.org/10.1016/0029-554X(81)90063-X
         qop =
             qop + h_6 * (sd.dqopds[0u] + 2.f * (sd.dqopds[1u] + sd.dqopds[2u]) +
@@ -385,6 +404,12 @@ detray::rk_stepper<magnetic_field_t, transform3_t, constraint_t, policy_t,
     matrix_operator().set_block(D, dFdqop, 0u, 7u);
     matrix_operator().set_block(D, dGdqop, 4u, 7u);
 
+    /*
+    // Add the multiple scattering components
+    if (cfg.include_multiple_scattering) {
+    }
+    */
+
     this->_jac_transport = D * this->_jac_transport;
 }
 
@@ -728,7 +753,7 @@ DETRAY_HOST_DEVICE bool detray::rk_stepper<
     }
 
     // Advance track state
-    stepping.advance_track();
+    stepping.advance_track(cfg);
 
     // Advance jacobian transport
     stepping.advance_jacobian(cfg);

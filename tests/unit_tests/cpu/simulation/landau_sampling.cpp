@@ -6,7 +6,7 @@
  */
 
 // Project include(s).
-#include "detray/simulation/landau_distribution.hpp"
+#include "detray/utils/landau_distribution.hpp"
 
 // GTest include(s)
 #include <gtest/gtest.h>

@@ -72,6 +72,17 @@ class rk_stepper final
             const magnetic_field_t& mag_field, const detector_t& det)
             : base_type::state(bound_params, det), _magnetic_field(mag_field) {}
 
+/*
+#if defined(__NO_DEVICE__)
+        /// Random generator
+        std::random_device _rd{};
+        std::mt19937_64 _generator{_rd()};
+
+        void set_seed(const uint_fast64_t sd) {
+            _generator.seed(sd);
+        }
+#endif
+*/
         /// stepping data required for RKN4
         struct {
             vector3 b_first{0.f, 0.f, 0.f};
@@ -95,7 +106,8 @@ class rk_stepper final
 
         /// Update the track state by Runge-Kutta-Nystrom integration.
         DETRAY_HOST_DEVICE
-        inline void advance_track();
+        inline void advance_track(
+            const stepping::config<scalar_type>& cfg = {});
 
         /// Update the jacobian transport from free propagation
         DETRAY_HOST_DEVICE

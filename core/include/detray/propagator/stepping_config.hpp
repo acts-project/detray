@@ -12,6 +12,7 @@
 
 // System include(s).
 #include <limits>
+#include <random>
 
 namespace detray::stepping {
 
@@ -34,6 +35,8 @@ struct config {
     scalar_t path_limit{5.f * unit<scalar_t>::m};
     /// Maximum number of Runge-Kutta step trials
     std::size_t max_rk_updates{10000u};
+    /// Include multiple scattering -> only for simulation
+    bool do_scattering{false};
     /// Use mean energy loss (Bethe)
     /// if false, most probable energy loss (Landau) will be used
     bool use_mean_loss{true};

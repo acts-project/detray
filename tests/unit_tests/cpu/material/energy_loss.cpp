@@ -10,8 +10,8 @@
 #include "detray/materials/material.hpp"
 #include "detray/materials/material_slab.hpp"
 #include "detray/materials/predefined_materials.hpp"
-#include "detray/simulation/landau_distribution.hpp"
-#include "detray/simulation/random_scatterer.hpp"
+#include "detray/utils/landau_distribution.hpp"
+#include "detray/propagator/actors/random_scatterer.hpp"
 #include "detray/test/types.hpp"
 #include "detray/utils/statistics.hpp"
 
