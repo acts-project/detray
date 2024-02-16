@@ -16,6 +16,9 @@ n_tracks_per_thread=1000
 log10_min_rk_tol=-6
 log10_max_rk_tol=2
 
+# log10 rk tolerance for covariance transport
+log10_rk_tol=-4
+
 # Helix intersector tolerance [log10 in mm]
 log10_helix_tol=-3
 # Surface tolerance [log10 in mm]
@@ -30,7 +33,7 @@ skip_second_phase=false
 # Verbose level
 verbose_level=1
 
-while getopts "hd:n:t:p:q:i:s:r:v:" arg; do
+while getopts "hd:n:t:p:q:c:i:s:r:v:" arg; do
     case $arg in
         h)
             echo ""
@@ -42,6 +45,7 @@ while getopts "hd:n:t:p:q:i:s:r:v:" arg; do
             echo "-t <Number of tracks per thread>"
             echo "-p <log10(min_rk_error_tolerance_in_mm)>"
             echo "-q <log10(max_rk_error_tolerance_in_mm)>"
+            echo "-c <log10(rk_error_tolerance_in_mm_for_covariance_transport)>"
             echo "-i <log10(intersection_tolerance_in_mm)>"
             echo "-s <Monte-Carlo seed>"
             echo "-r <Skip the second phase>"
@@ -68,6 +72,10 @@ while getopts "hd:n:t:p:q:i:s:r:v:" arg; do
         q)
             log10_max_rk_tol=$OPTARG
             echo "log10(max_rk_error_tolerance_in_mm): ${log10_max_rk_tol}"
+        ;;
+        c)
+            log10_rk_tol=$OPTARG
+            echo "log10(rk_error_tolerance_in_mm_for_covariance_transport): ${log10_rk_tol}"
         ;;
         i)
             log10_helix_tol=$OPTARG
@@ -147,7 +155,7 @@ if [ "$skip_second_phase" = false ] ; then
         --rk-tolerance-iterate-mode=false \
         --n-tracks=${n_tracks_per_thread} \
         --n-skips=${n_skips} \
-        --log10-rk-tolerance=${log10_min_rk_tol} \
+        --log10-rk-tolerance=${log10_rk_tol} \
         --log10-helix-tolerance=${log10_helix_tol} \
         --log10-on-surface-tolerance=${log10_on_surface_tol} \
         --mc-seed=${mc_seed}
@@ -211,8 +219,8 @@ if [ "$skip_second_phase" = false ] ; then
     
     # Run covariance_validation.C
     root -q -l ../../../tests/validation/root/covariance_validation.C+O
-else 
-
+else
+    
     # Run rk_tolerance_comparision.C
     root '../../../tests/validation/root/rk_tolerance_comparison.C+O('${log10_min_rk_tol}','${log10_max_rk_tol}')'
 fi

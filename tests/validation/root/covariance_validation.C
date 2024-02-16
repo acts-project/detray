@@ -30,6 +30,9 @@
 #include <vector>
 
 namespace {
+double pull_min = -8.;
+double pull_max = 8.;
+double bin_width = 0.1;
 double x_pos = 0.16f;
 double title_x = x_pos;
 double title_y = 0.8f;
@@ -124,8 +127,8 @@ std::pair<double, double> fit_pval(TH1D* h_pval) {
 }
 
 void set_yaxis_title(TH1D* h, const double text_size) {
-    double bin_width = h->GetBinWidth(0u);
-    std::string str = std::to_string(bin_width);
+    double bw = h->GetBinWidth(0u);
+    std::string str = std::to_string(bw);
     str.erase(str.find_last_not_of('0') + 1, std::string::npos);
     str.erase(str.find_last_not_of('.') + 1, std::string::npos);
     std::string y_axis_title = "Counts / (" + str + ")";
@@ -322,9 +325,7 @@ void read_tree(TTree* t, const std::string& tag, const std::string& title) {
     const std::array<float, 2> cdim1{700, 500};
     const std::array<float, 2> cdim2{700, 500};
 
-    float pull_min = -5.f;
-    float pull_max = 5.f;
-    int n_bins = 100;
+    int n_bins = (pull_max - pull_min) / bin_width;
 
     double pull_l0;
     double pull_l1;
