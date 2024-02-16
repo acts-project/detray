@@ -10,3 +10,8 @@
 
 # python files
 **/__pycache__
+
+# root files
+**/*.d
+**/*.so
+**/*C_ACLiC_dict*
