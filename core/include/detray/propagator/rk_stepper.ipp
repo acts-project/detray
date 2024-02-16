@@ -408,12 +408,6 @@ detray::rk_stepper<magnetic_field_t, transform3_t, constraint_t, policy_t,
     matrix_operator().set_block(D, dFdqop, 0u, 7u);
     matrix_operator().set_block(D, dGdqop, 4u, 7u);
 
-    /*
-    // Add the multiple scattering components
-    if (cfg.include_multiple_scattering) {
-    }
-    */
-
     this->_jac_transport = D * this->_jac_transport;
 }
 

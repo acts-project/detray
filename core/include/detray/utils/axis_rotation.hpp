@@ -41,6 +41,8 @@ struct axis_rotation {
 
         scalar_type cos_theta{math::cos(theta)};
 
+        // Rodrigues' rotation_formula
+        // https://en.wikipedia.org/wiki/Rodrigues%27_rotation_formula
         matrix_type<3, 3> I = matrix_operator().template identity<3, 3>();
         matrix_type<3, 3> axis_cross = mat_helper().cross_matrix(U);
         matrix_type<3, 3> axis_outer = mat_helper().outer_product(U, U);
