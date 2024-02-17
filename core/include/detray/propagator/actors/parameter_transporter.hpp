@@ -12,6 +12,7 @@
 #include "detray/definitions/track_parametrization.hpp"
 #include "detray/geometry/surface.hpp"
 #include "detray/propagator/base_actor.hpp"
+#include "detray/propagator/propagation_config.hpp"
 
 namespace detray {
 
@@ -119,11 +120,9 @@ struct parameter_transporter : actor {
                           matrix_operator().transpose(stepping._full_jacobian);
             }
 
-            /*
-            // Update covariance with the multiple scattering
-            stepping.add_multiple_scattering_covariance();
-            */
-           
+            // Add the multiple scattering term
+            new_cov = new_cov + stepping._joint_cov;
+
             // Calculate surface-to-surface covariance transport
             stepping._bound_params.set_covariance(new_cov);
         }

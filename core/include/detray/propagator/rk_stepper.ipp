@@ -70,18 +70,16 @@ detray::rk_stepper<magnetic_field_t, transform3_t, constraint_t, policy_t,
                 // Apply mean probable energy loss instead
                 const scalar_type e_loss_mpv =
                     interaction_type().compute_energy_loss_landau(
-                        this->_path_length_per_surface, mat, this->_pdg,
-                        this->_mass, qop, track.charge());
+                        h, mat, this->_pdg, this->_mass, qop, track.charge());
 
                 const scalar_type e_loss_sigma =
                     interaction_type().compute_energy_loss_landau_sigma(
-                        this->_path_length_per_surface, mat, this->_pdg,
-                        this->_mass, qop, track.charge());
+                        h, mat, this->_pdg, this->_mass, qop, track.charge());
 
                 // Get the new momentum
-                const auto new_mom = attenuate(e_loss_mpv, e_loss_sigma,
-                                               this->mass, track.charge() / qop,
-                                               this->rand_device.generator);
+                const auto new_mom = random_scatterer<transform3_t>().attenuate(
+                    e_loss_mpv, e_loss_sigma, this->mass, track.charge() / qop,
+                    this->rand_device.generator);
 
                 qop = track.charge() / new_mom;
             }
@@ -444,18 +442,85 @@ detray::rk_stepper<magnetic_field_t, transform3_t, constraint_t, policy_t,
 template <typename magnetic_field_t, typename transform3_t,
           typename constraint_t, typename policy_t, typename random_device_t,
           typename inspector_t, template <typename, std::size_t> class array_t>
-DETRAY_HOST_DEVICE void detray::rk_stepper<
-    magnetic_field_t, transform3_t, constraint_t, policy_t, random_device_t,
-    inspector_t, array_t>::state::add_multiple_scattering_covariance() {
+DETRAY_HOST_DEVICE void
+detray::rk_stepper<magnetic_field_t, transform3_t, constraint_t, policy_t,
+                   random_device_t, inspector_t, array_t>::state::
+    add_multiple_scattering_covariance(
+        const detray::stepping::config<scalar_type>& cfg) {
+
+    // Return if there is no material
+    if (this->mat == vacuum<scalar_type>()) {
+        return;
+    }
+
+    // Return if it is for simulation
+    if (cfg.is_simulation) {
+        return;
+    }
 
     // Implement the thick scatterer method of Eq (4.103 - 111) of "Pattern
     // Recognition, Tracking and Vertex Reconstruction in Particle Detectors"
 
     // Variance per unit length of the projected scattering angle
-    // interaction_type().
+    const scalar s1 = interaction_type().compute_multiple_scattering_theta0(
+        1.f / this->mat.X0(), this->_pdg, this->_mass, this->_qop_i,
+        this->_track.charge());
+    const scalar s2 = interaction_type().compute_multiple_scattering_theta0(
+        1.f / this->mat.X0(), this->_pdg, this->_mass, this->_track.qop(),
+        this->_track.charge());
+    const scalar variance = s1 * s2;
 
     // 4X4 Identity matrix
-    const matrix_type<4, 4> E = matrix_operator().template zero<4, 4>();
+    matrix_type<4, 4> E = matrix_operator().template zero<4, 4>();
+
+    const scalar L = this->_path_length_per_surface;
+    const scalar half_L2 = L * L / 2.f;
+    const scalar third_L3 = L * L * L / 3.f;
+
+    // Set E (Eq. 4.107). Note that we flip the index of (0,1) <-> (2,3)
+    getter::element(E, 0, 0) = third_L3;
+    getter::element(E, 1, 1) = third_L3;
+    getter::element(E, 2, 2) = L;
+    getter::element(E, 3, 3) = L;
+    getter::element(E, 0, 2) = half_L2;
+    getter::element(E, 1, 3) = half_L2;
+    getter::element(E, 2, 0) = half_L2;
+    getter::element(E, 3, 1) = half_L2;
+
+    const matrix_type<3, 3> C2G =
+        mat_helper().curvilinear_to_global(this->_track.dir());
+    // Take the bottom-right 2x2 block
+    const matrix_type<2, 2> block =
+        matrix_operator().template block<2, 2>(C2G, 0, 0);
+
+    // Jacobian for (Eq. 4.108).  Note that we flip the index of (0,1) <-> (2,3)
+    matrix_type<4, 4> T = matrix_operator().template identity<4, 4>();
+    matrix_operator().template set_block<2, 2>(T, block, 2, 2);
+
+    E = T * E * matrix_operator().transpose(T);
+
+    // Jacobian d(phi,theta)/d(tx,ty). Note that it is different from
+    // (Eq. 4.109) due to the different coordinate system
+    matrix_type<4, 4> J = matrix_operator().template identity<4, 4>();
+
+    const auto t = this->_track.dir();
+    const scalar_type phi = getter::phi(t);
+    const scalar_type theta = getter::theta(t);
+    const scalar_type sin_phi = math::sin(phi);
+    const scalar_type cos_phi = math::cos(phi);
+    const scalar_type sin_theta = math::sin(theta);
+    const scalar_type cos_theta = math::cos(theta);
+
+    // -sin(phi)/sin(theta)
+    getter::element(J, 2, 2) = -sin_phi / sin_theta;
+    getter::element(J, 2, 3) = -cos_phi / sin_theta;
+    getter::element(J, 3, 2) = -cos_phi * cos_theta;
+    getter::element(J, 3, 3) = -sin_phi * cos_theta;
+
+    E = J * E * matrix_operator().transpose(J);
+
+    // Set the joint covariance
+    matrix_operator().set_block<4, 4>(this->_joint_cov, E, 0, 0);
 }
 
 template <typename magnetic_field_t, typename transform3_t,
@@ -702,16 +767,14 @@ DETRAY_HOST_DEVICE bool detray::rk_stepper<
         sd.b_middle[1] = bvec1[1];
         sd.b_middle[2] = bvec1[2];
 
-        sd.dqopds[1u] =
-            stepping.evaluate_dqopds(1u, half_h, sd.dqopds[0u]);
+        sd.dqopds[1u] = stepping.evaluate_dqopds(1u, half_h, sd.dqopds[0u]);
         sd.dtds[1u] = stepping.evaluate_dtds(sd.b_middle, 1u, half_h,
                                              sd.dtds[0u], sd.qop[1u]);
 
         // Third Runge-Kutta point
         // qop should be recalcuated at every point
         // Reference: Eq (84) of https://doi.org/10.1016/0029-554X(81)90063-X
-        sd.dqopds[2u] =
-            stepping.evaluate_dqopds(2u, half_h, sd.dqopds[1u]);
+        sd.dqopds[2u] = stepping.evaluate_dqopds(2u, half_h, sd.dqopds[1u]);
         sd.dtds[2u] = stepping.evaluate_dtds(sd.b_middle, 2u, half_h,
                                              sd.dtds[1u], sd.qop[2u]);
 

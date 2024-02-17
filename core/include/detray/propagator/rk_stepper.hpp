@@ -107,7 +107,8 @@ class rk_stepper final
 
         /// Update the covariance from multiple scattering
         DETRAY_HOST_DEVICE
-        inline void add_multiple_scattering_covariance();
+        inline void add_multiple_scattering_covariance(
+            const detray::stepping::config<scalar_type>& cfg);
 
         /// evaulate dqopds for a given step size and material
         DETRAY_HOST_DEVICE

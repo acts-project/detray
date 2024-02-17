@@ -51,12 +51,18 @@ struct parameter_resetter : actor {
             // Reset the path length
             stepping._path_length_per_surface = 0;
 
+            // Reset the qop at the surface
+            stepping._qop_i = stepping().qop();
+
             // Reset jacobian coordinate transformation at the current surface
             stepping._jac_to_global = local_coordinate.bound_to_free_jacobian(
                 trf3, mask, stepping._bound_params.vector());
 
             // Reset jacobian transport to identity matrix
             matrix_operator().set_identity(stepping._jac_transport);
+
+            // Reset the joint covariance
+            matrix_operator().set_zero(stepping._joint_cov);
         }
     };
 

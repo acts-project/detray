@@ -76,6 +76,7 @@ class base_stepper {
     struct state {
 
         /// Sets track parameters.
+        /// @TODO: Remove the free track parameter input if possible
         DETRAY_HOST_DEVICE
         state(const free_track_parameters_type &t) : _track(t) {}
 
@@ -93,9 +94,12 @@ class base_stepper {
             sf.template visit_mask<
                 typename parameter_resetter<transform3_t>::kernel>(
                 sf.transform(ctx), *this);
+
+            _qop_i = bound_params.qop();
         }
 
         /// free track parameter
+        /// @TODO: Remove the covariance if possible
         free_track_parameters_type _track;
 
         /// Full jacobian
@@ -112,6 +116,10 @@ class base_stepper {
 
         /// bound covariance
         bound_track_parameters_type _bound_params;
+
+        /// joint covariance (for multiple scattering)
+        bound_matrix _joint_cov =
+            matrix_operator().template zero<e_bound_size, e_bound_size>();
 
         /// @returns track parameters - const access
         DETRAY_HOST_DEVICE
@@ -147,6 +155,9 @@ class base_stepper {
 
         /// The particle pdg
         int _pdg = 13;  // default muon
+
+        /// qop at the initial surface
+        scalar_type _qop_i{0.f};
 
         /// Random device
         random_device_t rand_device;
