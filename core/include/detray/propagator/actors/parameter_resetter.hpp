@@ -49,7 +49,7 @@ struct parameter_resetter : actor {
                 trf3, mask, stepping._bound_params.vector()));
 
             // Reset the path length
-            stepping._s = 0;
+            stepping._path_length_per_surface = 0;
 
             // Reset jacobian coordinate transformation at the current surface
             stepping._jac_to_global = local_coordinate.bound_to_free_jacobian(

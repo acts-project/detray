@@ -45,12 +45,12 @@ detray::rk_stepper<magnetic_field_t, transform3_t, constraint_t, policy_t,
         if constexpr (!std::is_same<random_device_t,
                                     stepping::void_random_device>::value) {
 
-            if (cfg.do_scattering) {
+            // Scatter if it is for the simulation
+            if (cfg.is_simulation) {
                 const scalar_type projected_scattering_angle =
-                    interaction<scalar_type>()
-                        .compute_multiple_scattering_theta0(
-                            h / mat.X0(), this->_pdg, this->_mass, qop,
-                            track.charge());
+                    interaction_type().compute_multiple_scattering_theta0(
+                        h / mat.X0(), this->_pdg, this->_mass, qop,
+                        track.charge());
 
                 dir = random_scatterer<transform3_t>().scatter(
                     dir, projected_scattering_angle,
@@ -59,15 +59,39 @@ detray::rk_stepper<magnetic_field_t, transform3_t, constraint_t, policy_t,
         }
 
         // Reference: Eq (82) of https://doi.org/10.1016/0029-554X(81)90063-X
-        qop =
-            qop + h_6 * (sd.dqopds[0u] + 2.f * (sd.dqopds[1u] + sd.dqopds[2u]) +
+        if (!cfg.is_simulation) {
+            qop = qop +
+                  h_6 * (sd.dqopds[0u] + 2.f * (sd.dqopds[1u] + sd.dqopds[2u]) +
                          sd.dqopds[3u]);
+        } else {
+            // only for simulation with valid random device
+            if constexpr (!std::is_same<random_device_t,
+                                        stepping::void_random_device>::value) {
+                // Apply mean probable energy loss instead
+                const scalar_type e_loss_mpv =
+                    interaction_type().compute_energy_loss_landau(
+                        this->_path_length_per_surface, mat, this->_pdg,
+                        this->_mass, qop, track.charge());
+
+                const scalar_type e_loss_sigma =
+                    interaction_type().compute_energy_loss_landau_sigma(
+                        this->_path_length_per_surface, mat, this->_pdg,
+                        this->_mass, qop, track.charge());
+
+                // Get the new momentum
+                const auto new_mom = attenuate(e_loss_mpv, e_loss_sigma,
+                                               this->mass, track.charge() / qop,
+                                               this->rand_device.generator);
+
+                qop = track.charge() / new_mom;
+            }
+        }
     }
     track.set_qop(qop);
 
     // Update path length
     this->_path_length += h;
-    this->_s += h;
+    this->_path_length_per_surface += h;
 }
 
 template <typename magnetic_field_t, typename transform3_t,
@@ -77,6 +101,12 @@ DETRAY_HOST_DEVICE void
 detray::rk_stepper<magnetic_field_t, transform3_t, constraint_t, policy_t,
                    random_device_t, inspector_t, array_t>::state::
     advance_jacobian(const detray::stepping::config<scalar_type>& cfg) {
+
+    // Immediately exit if it is for simulation
+    if (cfg.is_simulation) {
+        return;
+    }
+
     /// The calculations are based on ATL-SOFT-PUB-2009-002. The update of the
     /// Jacobian matrix is requires only the calculation of eq. 17 and 18.
     /// Since the terms of eq. 18 are currently 0, this matrix is not needed
@@ -414,22 +444,29 @@ detray::rk_stepper<magnetic_field_t, transform3_t, constraint_t, policy_t,
 template <typename magnetic_field_t, typename transform3_t,
           typename constraint_t, typename policy_t, typename random_device_t,
           typename inspector_t, template <typename, std::size_t> class array_t>
-DETRAY_HOST_DEVICE void
-detray::rk_stepper<magnetic_field_t, transform3_t, constraint_t, policy_t,
-                   random_device_t, inspector_t, array_t>::state::
-    add_multiple_scattering_covariance(
-        const detray::stepping::config<scalar_type>& cfg) {}
+DETRAY_HOST_DEVICE void detray::rk_stepper<
+    magnetic_field_t, transform3_t, constraint_t, policy_t, random_device_t,
+    inspector_t, array_t>::state::add_multiple_scattering_covariance() {
+
+    // Implement the thick scatterer method of Eq (4.103 - 111) of "Pattern
+    // Recognition, Tracking and Vertex Reconstruction in Particle Detectors"
+
+    // Variance per unit length of the projected scattering angle
+    // interaction_type().
+
+    // 4X4 Identity matrix
+    const matrix_type<4, 4> E = matrix_operator().template zero<4, 4>();
+}
 
 template <typename magnetic_field_t, typename transform3_t,
           typename constraint_t, typename policy_t, typename random_device_t,
           typename inspector_t, template <typename, std::size_t> class array_t>
-DETRAY_HOST_DEVICE auto
-detray::rk_stepper<magnetic_field_t, transform3_t, constraint_t, policy_t,
-                   random_device_t, inspector_t, array_t>::state::
-    evaluate_dqopds(const std::size_t i,
-                    const typename transform3_t::scalar_type h,
-                    const scalar dqopds_prev,
-                    const detray::stepping::config<scalar_type>& cfg) ->
+DETRAY_HOST_DEVICE auto detray::rk_stepper<
+    magnetic_field_t, transform3_t, constraint_t, policy_t, random_device_t,
+    inspector_t,
+    array_t>::state::evaluate_dqopds(const std::size_t i,
+                                     const typename transform3_t::scalar_type h,
+                                     const scalar dqopds_prev) ->
     typename transform3_t::scalar_type {
 
     const auto& track = this->_track;
@@ -441,20 +478,21 @@ detray::rk_stepper<magnetic_field_t, transform3_t, constraint_t, policy_t,
         return 0.f;
     } else {
 
-        if (cfg.use_mean_loss) {
-            if (i == 0u) {
-                sd.qop[i] = qop;
-            } else {
-
-                // qop_n is calculated recursively like the direction of
-                // evaluate_dtds.
-                //
-                // https://doi.org/10.1016/0029-554X(81)90063-X says:
-                // "For y  we  have  similar  formulae  as  for x, for y' and
-                // \lambda similar  formulae as for  x'"
-                sd.qop[i] = qop + h * dqopds_prev;
-            }
+        if (i == 0u) {
+            sd.qop[i] = qop;
         }
+        // For reconstruction with mean energy loss
+        else {
+
+            // qop_n is calculated recursively like the direction of
+            // evaluate_dtds.
+            //
+            // https://doi.org/10.1016/0029-554X(81)90063-X says:
+            // "For y  we  have  similar  formulae  as  for x, for y' and
+            // \lambda similar  formulae as for  x'"
+            sd.qop[i] = qop + h * dqopds_prev;
+        }
+
         return this->dqopds(sd.qop[i]);
     }
 }
@@ -645,7 +683,7 @@ DETRAY_HOST_DEVICE bool detray::rk_stepper<
 
     // qop should be recalcuated at every point
     // Reference: Eq (84) of https://doi.org/10.1016/0029-554X(81)90063-X
-    sd.dqopds[0u] = stepping.evaluate_dqopds(0u, 0.f, 0.f, cfg);
+    sd.dqopds[0u] = stepping.evaluate_dqopds(0u, 0.f, 0.f);
     sd.dtds[0u] = stepping.evaluate_dtds(sd.b_first, 0u, 0.f,
                                          vector3{0.f, 0.f, 0.f}, sd.qop[0u]);
 
@@ -665,7 +703,7 @@ DETRAY_HOST_DEVICE bool detray::rk_stepper<
         sd.b_middle[2] = bvec1[2];
 
         sd.dqopds[1u] =
-            stepping.evaluate_dqopds(1u, half_h, sd.dqopds[0u], cfg);
+            stepping.evaluate_dqopds(1u, half_h, sd.dqopds[0u]);
         sd.dtds[1u] = stepping.evaluate_dtds(sd.b_middle, 1u, half_h,
                                              sd.dtds[0u], sd.qop[1u]);
 
@@ -673,7 +711,7 @@ DETRAY_HOST_DEVICE bool detray::rk_stepper<
         // qop should be recalcuated at every point
         // Reference: Eq (84) of https://doi.org/10.1016/0029-554X(81)90063-X
         sd.dqopds[2u] =
-            stepping.evaluate_dqopds(2u, half_h, sd.dqopds[1u], cfg);
+            stepping.evaluate_dqopds(2u, half_h, sd.dqopds[1u]);
         sd.dtds[2u] = stepping.evaluate_dtds(sd.b_middle, 2u, half_h,
                                              sd.dtds[1u], sd.qop[2u]);
 
@@ -686,7 +724,7 @@ DETRAY_HOST_DEVICE bool detray::rk_stepper<
         sd.b_last[1] = bvec2[1];
         sd.b_last[2] = bvec2[2];
 
-        sd.dqopds[3u] = stepping.evaluate_dqopds(3u, h, sd.dqopds[2u], cfg);
+        sd.dqopds[3u] = stepping.evaluate_dqopds(3u, h, sd.dqopds[2u]);
         sd.dtds[3u] =
             stepping.evaluate_dtds(sd.b_last, 3u, h, sd.dtds[2u], sd.qop[3u]);
 

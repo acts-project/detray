@@ -58,7 +58,7 @@ class line_stepper final
             track.set_pos(track.pos() + track.dir() * this->_step_size);
 
             this->_path_length += this->_step_size;
-            this->_s += this->_step_size;
+            this->_path_length_per_surface += this->_step_size;
         }
 
         DETRAY_HOST_DEVICE
@@ -79,6 +79,9 @@ class line_stepper final
 
             this->_jac_transport = D * this->_jac_transport;
         }
+
+        DETRAY_HOST_DEVICE
+        inline void add_multiple_scattering_covariance() { return; }
 
         DETRAY_HOST_DEVICE
         inline vector3 dtds() const { return vector3{0.f, 0.f, 0.f}; }

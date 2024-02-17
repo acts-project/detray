@@ -109,7 +109,7 @@ struct next_surface_aborter : actor {
 
         // Abort at the next sensitive surface
         if (navigation.is_on_sensitive() &&
-            stepping._s > abrt_state.min_step_length) {
+            stepping._path_length_per_surface > abrt_state.min_step_length) {
             prop_state._heartbeat &= navigation.abort();
             abrt_state.success = true;
         }

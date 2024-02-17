@@ -54,6 +54,7 @@ class rk_stepper final
     template <size_type ROWS, size_type COLS>
     using matrix_type =
         typename matrix_operator::template matrix_type<ROWS, COLS>;
+    using interaction_type = interaction<scalar_type>;
 
     DETRAY_HOST_DEVICE
     rk_stepper() {}
@@ -106,15 +107,13 @@ class rk_stepper final
 
         /// Update the covariance from multiple scattering
         DETRAY_HOST_DEVICE
-        inline void add_multiple_scattering_covariance(
-            const stepping::config<scalar_type>& cfg = {});
+        inline void add_multiple_scattering_covariance();
 
         /// evaulate dqopds for a given step size and material
         DETRAY_HOST_DEVICE
         inline scalar_type evaluate_dqopds(
             const std::size_t i, const typename transform3_t::scalar_type h,
-            const scalar dqopds_prev,
-            const detray::stepping::config<scalar_type>& cfg);
+            const scalar dqopds_prev);
 
         /// evaulate dtds for runge kutta stepping
         DETRAY_HOST_DEVICE
