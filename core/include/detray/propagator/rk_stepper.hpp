@@ -104,6 +104,11 @@ class rk_stepper final
         inline void advance_jacobian(
             const stepping::config<scalar_type>& cfg = {});
 
+        /// Update the covariance from multiple scattering
+        DETRAY_HOST_DEVICE
+        inline void add_multiple_scattering_covariance(
+            const stepping::config<scalar_type>& cfg = {});
+
         /// evaulate dqopds for a given step size and material
         DETRAY_HOST_DEVICE
         inline scalar_type evaluate_dqopds(

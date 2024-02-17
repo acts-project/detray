@@ -414,6 +414,15 @@ detray::rk_stepper<magnetic_field_t, transform3_t, constraint_t, policy_t,
 template <typename magnetic_field_t, typename transform3_t,
           typename constraint_t, typename policy_t, typename random_device_t,
           typename inspector_t, template <typename, std::size_t> class array_t>
+DETRAY_HOST_DEVICE void
+detray::rk_stepper<magnetic_field_t, transform3_t, constraint_t, policy_t,
+                   random_device_t, inspector_t, array_t>::state::
+    add_multiple_scattering_covariance(
+        const detray::stepping::config<scalar_type>& cfg) {}
+
+template <typename magnetic_field_t, typename transform3_t,
+          typename constraint_t, typename policy_t, typename random_device_t,
+          typename inspector_t, template <typename, std::size_t> class array_t>
 DETRAY_HOST_DEVICE auto
 detray::rk_stepper<magnetic_field_t, transform3_t, constraint_t, policy_t,
                    random_device_t, inspector_t, array_t>::state::

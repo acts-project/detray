@@ -30,8 +30,8 @@
 #include <vector>
 
 namespace {
-double pull_min = -8.;
-double pull_max = 8.;
+double pull_min = -5.;
+double pull_max = 5.;
 double bin_width = 0.1;
 double x_pos = 0.16f;
 double title_x = x_pos;
