@@ -49,6 +49,7 @@ class rk_stepper final
         typename base_type::free_track_parameters_type;
     using bound_track_parameters_type =
         typename base_type::bound_track_parameters_type;
+    using bound_matrix = typename bound_track_parameters_type::covariance_type;
     using magnetic_field_type = magnetic_field_t;
     using size_type = typename matrix_operator::size_ty;
     template <size_type ROWS, size_type COLS>
@@ -106,9 +107,10 @@ class rk_stepper final
             const stepping::config<scalar_type>& cfg = {});
 
         /// Update the covariance from multiple scattering
+        /// @TODO Take stepping::config
         DETRAY_HOST_DEVICE
-        inline void calculate_ms_covariance(
-            const detray::stepping::config<scalar_type>& cfg = {});
+        inline bound_matrix calculate_ms_covariance(
+            bool do_scatter, bool do_covariance_transport) const;
 
         /// evaulate dqopds for a given step size and material
         DETRAY_HOST_DEVICE

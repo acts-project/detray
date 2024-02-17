@@ -14,12 +14,18 @@
 #include "detray/propagator/base_actor.hpp"
 #include "detray/propagator/propagation_config.hpp"
 
+#include <iostream>
+
 namespace detray {
 
 template <typename transform3_t>
 struct parameter_transporter : actor {
 
-    struct state {};
+    struct state {
+        // @TODO remove once we can call stepping config...
+        bool do_scatter = false;
+        bool do_covariance_transport = true;
+    };
 
     /// Mask store visitor
     struct kernel {
@@ -59,7 +65,8 @@ struct parameter_transporter : actor {
                   typename propagator_state_t>
         DETRAY_HOST_DEVICE inline void operator()(
             const mask_group_t& mask_group, const index_t& index,
-            const transform3_type& trf3, propagator_state_t& propagation) {
+            const transform3_type& trf3, propagator_state_t& propagation,
+            state& actor_state) {
 
             // Stepper and Navigator states
             auto& stepping = propagation._stepping;
@@ -120,16 +127,33 @@ struct parameter_transporter : actor {
                           matrix_operator().transpose(stepping._full_jacobian);
             }
 
-            // Add the multiple scattering term
-            new_cov = new_cov + stepping._joint_cov;
+            // Calculate multiple scattering term
+            // @TODO: Take stepping::config instead
+            const auto joint_cov = stepping.calculate_ms_covariance(
+                actor_state.do_scatter, actor_state.do_covariance_transport);
 
+            // Add the multiple scattering term
+            // new_cov = new_cov + stepping._joint_cov;
+            new_cov = new_cov + joint_cov;
+
+            /*
+            std::cout << "Joint Cov" << std::endl;
+            for (int i = 0; i < 6; i++) {
+                for (int j = 0; j < 6; j++) {
+                    std::cout << getter::element(new_cov, i, j) << " ";
+                }
+                std::cout << std::endl;
+            }
+            std::cout << std::endl;
+            */
+           
             // Calculate surface-to-surface covariance transport
             stepping._bound_params.set_covariance(new_cov);
         }
     };
 
     template <typename propagator_state_t>
-    DETRAY_HOST_DEVICE void operator()(state& /*actor_state*/,
+    DETRAY_HOST_DEVICE void operator()(state& actor_state,
                                        propagator_state_t& propagation) const {
         const auto& navigation = propagation._navigation;
 
@@ -145,7 +169,8 @@ struct parameter_transporter : actor {
         // Surface
         const auto sf = navigation.get_surface();
 
-        sf.template visit_mask<kernel>(sf.transform(ctx), propagation);
+        sf.template visit_mask<kernel>(sf.transform(ctx), propagation,
+                                       actor_state);
 
         // Set surface link
         propagation._stepping._bound_params.set_surface_link(sf.barcode());

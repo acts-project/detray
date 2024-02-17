@@ -13,6 +13,7 @@
 #include "detray/navigation/navigator.hpp"
 #include "detray/propagator/actors/parameter_resetter.hpp"
 #include "detray/propagator/actors/parameter_transporter.hpp"
+#include "detray/propagator/detail/random_device.hpp"
 #include "detray/propagator/propagator.hpp"
 #include "detray/propagator/rk_stepper.hpp"
 #include "detray/simulation/event_generator/track_generators.hpp"
@@ -360,7 +361,8 @@ bound_getter<transform3_type>::state evaluate_bound_param(
     propagator_t p(cfg);
 
     // Actor states
-    parameter_transporter<transform3_type>::state transporter_state{};
+    parameter_transporter<transform3_type>::state transporter_state{
+        cfg.stepping.do_scatter, cfg.stepping.do_covariance_transport};
     bound_getter<transform3_type>::state bound_getter_state{};
     bound_getter_state.m_min_path_length = detector_length * 0.75f;
     parameter_resetter<transform3_type>::state resetter_state{};
@@ -414,7 +416,8 @@ get_displaced_bound_vector(
     typename propagator_t::state dstate(dparam, field, det);
 
     // Actor states
-    parameter_transporter<transform3_type>::state transporter_state{};
+    parameter_transporter<transform3_type>::state transporter_state{
+        cfg.stepping.do_scatter, cfg.stepping.do_covariance_transport};
     parameter_resetter<transform3_type>::state resetter_state{};
     bound_getter<transform3_type>::state bound_getter_state{};
     bound_getter_state.m_min_path_length = detector_length * 0.75f;
@@ -1522,10 +1525,10 @@ int main(int argc, char** argv) {
     // Stepper types
     using const_field_stepper_t =
         rk_stepper<const_bfield_t::view_t, transform3_type, constrained_step<>,
-                   stepper_default_policy>;
+                   stepper_default_policy, stepping::default_random_device>;
     using inhom_field_stepper_t =
         rk_stepper<inhom_bfield_t::view_t, transform3_type, constrained_step<>,
-                   stepper_default_policy>;
+                   stepper_default_policy, stepping::default_random_device>;
 
     // Make four propagators for each case
     using const_field_rect_propagator_t =

@@ -32,6 +32,7 @@ class line_stepper final
         typename base_type::free_track_parameters_type;
     using bound_track_parameters_type =
         typename base_type::bound_track_parameters_type;
+    using bound_matrix = typename bound_track_parameters_type::covariance_type;
     using matrix_operator = typename base_type::matrix_operator;
     using size_type = typename matrix_operator::size_ty;
     using vector3 = typename line_stepper::transform3_type::vector3;
@@ -81,7 +82,10 @@ class line_stepper final
         }
 
         DETRAY_HOST_DEVICE
-        inline void calculate_ms_covariance() { return; }
+        inline bound_matrix calculate_ms_covariance(
+            bool /*do_scatter*/, bool /*do_covariance_transport*/) const {
+            return matrix_operator().template zero<6, 6>();
+        }
 
         DETRAY_HOST_DEVICE
         inline vector3 dtds() const { return vector3{0.f, 0.f, 0.f}; }

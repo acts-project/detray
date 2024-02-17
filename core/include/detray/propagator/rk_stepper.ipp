@@ -78,7 +78,7 @@ detray::rk_stepper<magnetic_field_t, transform3_t, constraint_t, policy_t,
 
                 // Get the new momentum
                 const auto new_mom = random_scatterer<transform3_t>().attenuate(
-                    e_loss_mpv, e_loss_sigma, this->mass, track.charge() / qop,
+                    e_loss_mpv, e_loss_sigma, this->_mass, track.charge() / qop,
                     this->rand_device.generator);
 
                 qop = track.charge() / new_mom;
@@ -442,19 +442,24 @@ detray::rk_stepper<magnetic_field_t, transform3_t, constraint_t, policy_t,
 template <typename magnetic_field_t, typename transform3_t,
           typename constraint_t, typename policy_t, typename random_device_t,
           typename inspector_t, template <typename, std::size_t> class array_t>
-DETRAY_HOST_DEVICE void
-detray::rk_stepper<magnetic_field_t, transform3_t, constraint_t, policy_t,
-                   random_device_t, inspector_t, array_t>::state::
-    calculate_ms_covariance(const detray::stepping::config<scalar_type>& cfg) {
+DETRAY_HOST_DEVICE auto detray::rk_stepper<
+    magnetic_field_t, transform3_t, constraint_t, policy_t, random_device_t,
+    inspector_t,
+    array_t>::state::calculate_ms_covariance(bool do_scatter,
+                                             bool do_covariance_transport)
+    const -> bound_matrix {
+
+    // Joint covariance
+    bound_matrix joint_cov = matrix_operator().template zero<6,6>();
 
     // Return if there is no material
     if (this->_mat == vacuum<scalar_type>()) {
-        return;
+        return joint_cov;
     }
 
     // Return if it is for simulation
-    if (cfg.do_scatter || !cfg.do_covariance_transport) {
-        return;
+    if (do_scatter || do_covariance_transport) {
+        return joint_cov;
     }
 
     // Implement the thick scatterer method of Eq (4.103 - 111) of "Pattern
@@ -520,7 +525,9 @@ detray::rk_stepper<magnetic_field_t, transform3_t, constraint_t, policy_t,
     E = J * E * matrix_operator().transpose(J);
 
     // Set the joint covariance
-    matrix_operator().template set_block<4, 4>(this->_joint_cov, E, 0, 0);
+    matrix_operator().template set_block<4, 4>(joint_cov, E, 0, 0);
+
+    return joint_cov;
 }
 
 template <typename magnetic_field_t, typename transform3_t,
@@ -867,9 +874,6 @@ DETRAY_HOST_DEVICE bool detray::rk_stepper<
 
     // Advance jacobian transport
     stepping.advance_jacobian(cfg);
-
-    // Calculate multiple scattering term,
-    stepping.calculate_ms_covariance(cfg);
 
     // Call navigation update policy
     typename rk_stepper::policy_type{}(stepping.policy_state(), propagation);
