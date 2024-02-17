@@ -81,7 +81,7 @@ class line_stepper final
         }
 
         DETRAY_HOST_DEVICE
-        inline void add_multiple_scattering_covariance() { return; }
+        inline void calculate_ms_covariance() { return; }
 
         DETRAY_HOST_DEVICE
         inline vector3 dtds() const { return vector3{0.f, 0.f, 0.f}; }

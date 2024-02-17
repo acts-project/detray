@@ -46,8 +46,11 @@ struct config {
     bool use_eloss_gradient{false};
     /// Use b field gradient in error propagation
     bool use_field_gradient{false};
-    /// Is this for reconstruction or simulatoin
-    bool is_simulation{false};
+
+    /// Do the scattering (for simulation)
+    bool do_scatter{false};
+    /// Do covariance transport (for Reconstruction)
+    bool do_covariance_transport{true};
 };
 
 }  // namespace detray::stepping

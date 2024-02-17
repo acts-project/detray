@@ -46,7 +46,7 @@ detray::rk_stepper<magnetic_field_t, transform3_t, constraint_t, policy_t,
                                     stepping::void_random_device>::value) {
 
             // Scatter if it is for the simulation
-            if (cfg.is_simulation) {
+            if (cfg.do_scatter) {
                 const scalar_type projected_scattering_angle =
                     interaction_type().compute_multiple_scattering_theta0(
                         h / mat.X0(), this->_pdg, this->_mass, qop,
@@ -59,7 +59,7 @@ detray::rk_stepper<magnetic_field_t, transform3_t, constraint_t, policy_t,
         }
 
         // Reference: Eq (82) of https://doi.org/10.1016/0029-554X(81)90063-X
-        if (!cfg.is_simulation) {
+        if (!cfg.do_scatter) {
             qop = qop +
                   h_6 * (sd.dqopds[0u] + 2.f * (sd.dqopds[1u] + sd.dqopds[2u]) +
                          sd.dqopds[3u]);
@@ -101,7 +101,7 @@ detray::rk_stepper<magnetic_field_t, transform3_t, constraint_t, policy_t,
     advance_jacobian(const detray::stepping::config<scalar_type>& cfg) {
 
     // Immediately exit if it is for simulation
-    if (cfg.is_simulation) {
+    if (cfg.do_scatter || !cfg.do_covariance_transport) {
         return;
     }
 
@@ -445,16 +445,15 @@ template <typename magnetic_field_t, typename transform3_t,
 DETRAY_HOST_DEVICE void
 detray::rk_stepper<magnetic_field_t, transform3_t, constraint_t, policy_t,
                    random_device_t, inspector_t, array_t>::state::
-    add_multiple_scattering_covariance(
-        const detray::stepping::config<scalar_type>& cfg) {
+    calculate_ms_covariance(const detray::stepping::config<scalar_type>& cfg) {
 
     // Return if there is no material
-    if (this->mat == vacuum<scalar_type>()) {
+    if (this->_mat == vacuum<scalar_type>()) {
         return;
     }
 
     // Return if it is for simulation
-    if (cfg.is_simulation) {
+    if (cfg.do_scatter || !cfg.do_covariance_transport) {
         return;
     }
 
@@ -463,10 +462,10 @@ detray::rk_stepper<magnetic_field_t, transform3_t, constraint_t, policy_t,
 
     // Variance per unit length of the projected scattering angle
     const scalar s1 = interaction_type().compute_multiple_scattering_theta0(
-        1.f / this->mat.X0(), this->_pdg, this->_mass, this->_qop_i,
+        1.f / this->_mat.X0(), this->_pdg, this->_mass, this->_qop_i,
         this->_track.charge());
     const scalar s2 = interaction_type().compute_multiple_scattering_theta0(
-        1.f / this->mat.X0(), this->_pdg, this->_mass, this->_track.qop(),
+        1.f / this->_mat.X0(), this->_pdg, this->_mass, this->_track.qop(),
         this->_track.charge());
     const scalar variance = s1 * s2;
 
@@ -486,6 +485,7 @@ detray::rk_stepper<magnetic_field_t, transform3_t, constraint_t, policy_t,
     getter::element(E, 1, 3) = half_L2;
     getter::element(E, 2, 0) = half_L2;
     getter::element(E, 3, 1) = half_L2;
+    E = variance * E;
 
     const matrix_type<3, 3> C2G =
         mat_helper().curvilinear_to_global(this->_track.dir());
@@ -520,7 +520,7 @@ detray::rk_stepper<magnetic_field_t, transform3_t, constraint_t, policy_t,
     E = J * E * matrix_operator().transpose(J);
 
     // Set the joint covariance
-    matrix_operator().set_block<4, 4>(this->_joint_cov, E, 0, 0);
+    matrix_operator().template set_block<4, 4>(this->_joint_cov, E, 0, 0);
 }
 
 template <typename magnetic_field_t, typename transform3_t,
@@ -867,6 +867,9 @@ DETRAY_HOST_DEVICE bool detray::rk_stepper<
 
     // Advance jacobian transport
     stepping.advance_jacobian(cfg);
+
+    // Calculate multiple scattering term,
+    stepping.calculate_ms_covariance(cfg);
 
     // Call navigation update policy
     typename rk_stepper::policy_type{}(stepping.policy_state(), propagation);

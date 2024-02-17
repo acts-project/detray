@@ -345,7 +345,8 @@ bound_getter<transform3_type>::state evaluate_bound_param(
     const typename propagator_t::detector_type& det, const field_t& field,
     const scalar overstep_tolerance, const scalar on_surface_tolerance,
     const scalar rk_tolerance, const scalar constraint_step,
-    bool use_field_gradient, bool do_scatter, bool do_inspect = false) {
+    bool use_field_gradient, bool do_scatter, bool do_covariance_transport,
+    bool do_inspect = false) {
 
     // Propagator is built from the stepper and navigator
     propagation::config<scalar> cfg{};
@@ -354,7 +355,8 @@ bound_getter<transform3_type>::state evaluate_bound_param(
     cfg.stepping.rk_error_tol = rk_tolerance;
     cfg.stepping.use_eloss_gradient = true;
     cfg.stepping.use_field_gradient = use_field_gradient;
-    cfg.stepping.is_simulation = do_scatter;
+    cfg.stepping.do_scatter = do_scatter;
+    cfg.stepping.do_covariance_transport = do_covariance_transport;
     propagator_t p(cfg);
 
     // Actor states
@@ -396,6 +398,9 @@ get_displaced_bound_vector(
     cfg.navigation.overstep_tolerance = overstep_tolerance;
     cfg.navigation.on_surface_tolerance = on_surface_tolerance;
     cfg.stepping.rk_error_tol = rk_tolerance;
+    // we don't have to scatering or covariance transport
+    cfg.stepping.do_scatter = false;
+    cfg.stepping.do_covariance_transport = false;
 
     // Propagator is built from the stepper and navigator
     propagator_t p(cfg);
@@ -627,12 +632,14 @@ void evaluate_jacobian_difference(
     det.volumes()[0u].set_material(volume_mat);
 
     const bool do_scatter = true;
+    const bool do_covariance_transport = true;
 
     // No scattering for jacobian comparsion study
+    // But perform covariance transport
     auto bound_getter = evaluate_bound_param<propagator_t, field_t>(
         detector_length, track, det, field, overstep_tolerance,
         on_surface_tolerance, rk_tolerance, constraint_step, use_field_gradient,
-        !do_scatter, do_inspect);
+        !do_scatter, do_covariance_transport, do_inspect);
 
     const auto reference_param = bound_getter.m_param_departure;
     const auto final_param = bound_getter.m_param_destination;
@@ -759,12 +766,13 @@ void evaluate_covariance_transport(
     track_copy.set_covariance(ini_cov);
 
     const bool do_scatter = true;
+    const bool do_covariance_transport = true;
 
-    // Reference track (Without Scattering!)
+    // Reference track (Without Scattering but with covariance transport)
     auto bound_getter = evaluate_bound_param<propagator_t, field_t>(
         detector_length, track_copy, det, field, overstep_tolerance,
         on_surface_tolerance, rk_tolerance, constraint_step, use_field_gradient,
-        !do_scatter);
+        !do_scatter, do_covariance_transport);
 
     const auto reference_param = bound_getter.m_param_departure;
     const auto ini_vec = reference_param.vector();
@@ -800,11 +808,11 @@ void evaluate_covariance_transport(
     auto smeared_track = track_copy;
     smeared_track.set_vector(smeared_ini_vec);
 
-    // Smeared track (With scattering!)
+    // Smeared track (With scattering and no covariance transport)
     auto smeared_bound_getter = evaluate_bound_param<propagator_t, field_t>(
         detector_length, smeared_track, det, field, overstep_tolerance,
         on_surface_tolerance, rk_tolerance, constraint_step, use_field_gradient,
-        do_scatter);
+        do_scatter, !do_covariance_transport);
 
     // Get smeared final bound vector
     bound_vector_type smeared_fin_vec =
