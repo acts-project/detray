@@ -446,11 +446,11 @@ DETRAY_HOST_DEVICE auto detray::rk_stepper<
     magnetic_field_t, transform3_t, constraint_t, policy_t, random_device_t,
     inspector_t,
     array_t>::state::calculate_ms_covariance(bool do_scatter,
-                                             bool do_covariance_transport)
-    const -> bound_matrix {
+                                             bool do_covariance_transport) const
+    -> bound_matrix {
 
     // Joint covariance
-    bound_matrix joint_cov = matrix_operator().template zero<6,6>();
+    bound_matrix joint_cov = matrix_operator().template zero<6, 6>();
 
     // Return if there is no material
     if (this->_mat == vacuum<scalar_type>()) {
@@ -526,6 +526,27 @@ DETRAY_HOST_DEVICE auto detray::rk_stepper<
 
     // Set the joint covariance
     matrix_operator().template set_block<4, 4>(joint_cov, E, 0, 0);
+
+    // Add qop variance
+    scalar_type sigma_qop =
+        interaction_type().compute_energy_loss_landau_sigma_QOverP(
+            L, this->_mat, this->_pdg, this->_mass, this->_track.qop(),
+            this->_track.charge());
+
+    // Flip the sign if the step length is negative
+    scalar_type var_qop = sigma_qop * sigma_qop;
+    if (L < 0) {
+        var_qop = -var_qop;
+    }
+
+    /*
+    scalar_type qop1 = this->_qop_i;
+    scalar_type qop2 = this->_track.qop();
+
+    std::cout << L << " " << sigma_qop << " " << -1/qop1 << " " << -1/qop2 << std::endl;
+    */
+
+    getter::element(joint_cov, e_bound_qoverp, e_bound_qoverp) += var_qop;
 
     return joint_cov;
 }

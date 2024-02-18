@@ -136,7 +136,7 @@ struct parameter_transporter : actor {
             // Add the multiple scattering term
             // new_cov = new_cov + stepping._joint_cov;
             new_cov = new_cov + joint_cov;
-            
+
             /*            
             std::cout << "Joint Cov" << std::endl;
             for (int i = 0; i < 6; i++) {
