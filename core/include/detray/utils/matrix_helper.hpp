@@ -67,6 +67,12 @@ struct matrix_helper {
     }
 
     /// Cross product matrix
+    ///
+    /// For a given vector (v) = (x,y,z), return the following matrix:
+    ///
+    /// [ 0  -z   y ]
+    /// [ z   0  -x ]
+    /// [-y   x   0 ]
     DETRAY_HOST_DEVICE
     inline matrix_type<3, 3> cross_matrix(const vector3& v) const {
         matrix_type<3, 3> ret;
@@ -84,6 +90,8 @@ struct matrix_helper {
     }
 
     /// Outer product operation
+    ///
+    /// @return 3x3 matrix M = v * v^T where v is a 3-elements column matrix
     DETRAY_HOST_DEVICE
     inline matrix_type<3, 3> outer_product(const vector3& v1,
                                            const vector3& v2) const {
@@ -101,6 +109,8 @@ struct matrix_helper {
     }
 
     /// Cholesky decompose
+    ///
+    /// @return the lower triangle matrix (L) that satisfies M = L * L^T
     template <size_type N>
     DETRAY_HOST_DEVICE inline matrix_type<N, N> cholesky_decompose(
         const matrix_type<N, N>& mat) const {
@@ -126,6 +136,93 @@ struct matrix_helper {
         }
 
         return L;
+    }
+
+    /// @return the rotation matrix (R) that converts the local curvilinear
+    /// cartesian to the global cartesian
+    ///
+    /// The local z-axis (w) is defined as the given vector. If we say that u
+    /// and v are the local x and y axis, R is defined as follows:
+    ///
+    ///     [ u₁  v₁  w₁ ]
+    /// R = [ u₂  v₂  w₂ ]
+    ///     [ u₃  v₃  w₃ ]
+    ///
+    /// One way to obtain R is solving Rodrigues' rotation_formula (This is the
+    /// formula implemented in axis_rotation.hpp):
+    ///
+    /// cos_α I + sin_α cross_matrix(k) + (1 - cos_α) * outer_product(k)
+    ///
+    /// k: normalization of (0,0,1) X w
+    /// α: the angle required to rotate (0,0,1) to w around the axis of k
+    /// cross_matrix: function defined above
+    /// outer_product: function defined_above
+    ///
+    ///
+    /// In a nutshell, the rest of R elements is calculated as:
+    ///
+    /// u₁ = (w₁ w₁ w₃ + w₂ w₂) / ( 1 - w₃ w₃ )
+    /// u₂ = -w₁w₂/(1 + w₃)
+    /// u₃ = -w₁
+    /// v₁ = -w₁w₂/(1 + w₃)
+    /// v₂ = (w₁ w₁ + w₂ w₂ w₃) / ( 1 - w₃ w₃ )
+    /// v₃ = -w₂
+    DETRAY_HOST_DEVICE
+    inline matrix_type<3, 3> curvilinear_to_global(const vector3& w) const {
+
+        matrix_type<3, 3> R = matrix_operator().template zero<3, 3>();
+
+        const scalar_type w1w2 = w[0] * w[1];
+
+        // Set u
+        getter::element(R, 0u, 0u) =
+            (w[0] * w[0] * w[2] + w[1] * w[1]) / (1 - w[2] * w[2]);
+        getter::element(R, 1u, 0u) = -w1w2 / (1 + w[2]);
+        getter::element(R, 2u, 0u) = -w[0];
+
+        // Set v
+        getter::element(R, 0u, 1u) = getter::element(R, 1u, 0u);
+        getter::element(R, 1u, 1u) =
+            (w[0] * w[0] + w[1] * w[1] * w[2]) / (1 - w[2] * w[2]);
+        getter::element(R, 2u, 1u) = -w[1];
+
+        // Set w
+        getter::element(R, 0u, 2u) = w[0u];
+        getter::element(R, 1u, 2u) = w[1u];
+        getter::element(R, 2u, 2u) = w[2u];
+
+        return R;
+    }
+
+    /// @return the rotation matrix (R) that converts the global cartesian to
+    /// the local curvilinear cartesian
+    ///
+    /// It is the transpose of curvlinear_to_global
+    DETRAY_HOST_DEVICE
+    inline matrix_type<3, 3> global_to_curvilinear(const vector3& w) {
+
+        matrix_type<3, 3> R = matrix_operator().template zero<3, 3>();
+
+        const scalar_type w1w2 = w[0] * w[1];
+
+        // Set u
+        getter::element(R, 0u, 0u) =
+            (w[0] * w[0] * w[2] + w[1] * w[1]) / (1 - w[2] * w[2]);
+        getter::element(R, 1u, 0u) = -w1w2 / (1 + w[2]);
+        getter::element(R, 2u, 0u) = w[0];
+
+        // Set v
+        getter::element(R, 0u, 1u) = getter::element(R, 1u, 0u);
+        getter::element(R, 1u, 1u) =
+            (w[0] * w[0] + w[1] * w[1] * w[2]) / (1 - w[2] * w[2]);
+        getter::element(R, 2u, 1u) = w[1];
+
+        // Set w
+        getter::element(R, 0u, 2u) = -w[0u];
+        getter::element(R, 1u, 2u) = -w[1u];
+        getter::element(R, 2u, 2u) = w[2u];
+
+        return R;
     }
 };
 

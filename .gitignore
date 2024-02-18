@@ -15,4 +15,4 @@
 **/*.d
 **/*.so
 **/*C_ACLiC_dict*
-**/therad_*
+**/thread_*

@@ -217,7 +217,7 @@ void draw_mean_step_size(const std::string header_title,
     gr->GetXaxis()->SetTitle("log_{10}(#tau [mm])");
     gr->GetYaxis()->SetTitle("log_{10}(Mean of average step sizes [mm])");
     gr->GetXaxis()->SetLimits(x_vec.front() - 0.5, x_vec.back() + 0.5);
-    gr->GetYaxis()->SetRangeUser(means.front() - 0.2, means.back() + 0.95);
+    gr->GetYaxis()->SetRangeUser(means.front() - 0.2, means.back() + 1.00);
     gr->GetXaxis()->SetLabelSize(label_font_size);
     gr->GetYaxis()->SetLabelSize(label_font_size);
     gr->GetXaxis()->SetTitleSize(title_font_size);

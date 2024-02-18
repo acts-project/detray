@@ -12,24 +12,27 @@
 #include "detray/definitions/detail/qualifiers.hpp"
 #include "detray/navigation/policies.hpp"
 #include "detray/propagator/base_stepper.hpp"
+#include "detray/propagator/detail/random_device.hpp"
 
 namespace detray {
 
 /// Straight line stepper implementation
 template <typename transform3_t, typename constraint_t = unconstrained_step,
           typename policy_t = stepper_default_policy,
+          typename random_device_t = stepping::void_random_device,
           typename inspector_t = stepping::void_inspector>
 class line_stepper final
     : public base_stepper<transform3_t, constraint_t, policy_t, inspector_t> {
 
     public:
-    using base_type =
-        base_stepper<transform3_t, constraint_t, policy_t, inspector_t>;
+    using base_type = base_stepper<transform3_t, constraint_t, policy_t,
+                                   random_device_t, inspector_t>;
 
     using free_track_parameters_type =
         typename base_type::free_track_parameters_type;
     using bound_track_parameters_type =
         typename base_type::bound_track_parameters_type;
+    using bound_matrix = typename bound_track_parameters_type::covariance_type;
     using matrix_operator = typename base_type::matrix_operator;
     using size_type = typename matrix_operator::size_ty;
     using vector3 = typename line_stepper::transform3_type::vector3;
@@ -56,7 +59,7 @@ class line_stepper final
             track.set_pos(track.pos() + track.dir() * this->_step_size);
 
             this->_path_length += this->_step_size;
-            this->_s += this->_step_size;
+            this->_path_length_per_surface += this->_step_size;
         }
 
         DETRAY_HOST_DEVICE
@@ -76,6 +79,12 @@ class line_stepper final
             /// moment..
 
             this->_jac_transport = D * this->_jac_transport;
+        }
+
+        DETRAY_HOST_DEVICE
+        inline bound_matrix calculate_ms_covariance(
+            bool /*do_scatter*/, bool /*do_covariance_transport*/) const {
+            return matrix_operator().template zero<6, 6>();
         }
 
         DETRAY_HOST_DEVICE

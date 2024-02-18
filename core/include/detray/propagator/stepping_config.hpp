@@ -12,6 +12,7 @@
 
 // System include(s).
 #include <limits>
+#include <random>
 
 namespace detray::stepping {
 
@@ -34,13 +35,22 @@ struct config {
     scalar_t path_limit{5.f * unit<scalar_t>::m};
     /// Maximum number of Runge-Kutta step trials
     std::size_t max_rk_updates{10000u};
+    /*
+    /// Scatter trajectory for simulation
+    bool do_scattering{false};
     /// Use mean energy loss (Bethe)
     /// if false, most probable energy loss (Landau) will be used
     bool use_mean_loss{true};
+    */
     /// Use eloss gradient in error propagation
     bool use_eloss_gradient{false};
     /// Use b field gradient in error propagation
     bool use_field_gradient{false};
+
+    /// Do the scattering (for simulation)
+    bool do_scatter{false};
+    /// Do covariance transport (for Reconstruction)
+    bool do_covariance_transport{true};
 };
 
 }  // namespace detray::stepping

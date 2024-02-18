@@ -110,7 +110,8 @@ class straight_line_navigation : public test::fixture_base<> {
         //  Line stepper
         using stepper_t =
             line_stepper<transform3_t, unconstrained_step,
-                         stepper_default_policy, stepping::print_inspector>;
+                         stepper_default_policy, stepping::void_random_device,
+                         stepping::print_inspector>;
         // Propagator with pathlimit aborter
         using actor_chain_t = actor_chain<dtuple, pathlimit_aborter>;
         using propagator_t = propagator<stepper_t, navigator_t, actor_chain_t>;

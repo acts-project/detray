@@ -28,14 +28,15 @@ namespace detray {
 template <typename magnetic_field_t, typename transform3_t,
           typename constraint_t = unconstrained_step,
           typename policy_t = stepper_rk_policy,
+          typename random_device_t = stepping::void_random_device,
           typename inspector_t = stepping::void_inspector,
           template <typename, std::size_t> class array_t = darray>
 class rk_stepper final
     : public base_stepper<transform3_t, constraint_t, policy_t, inspector_t> {
 
     public:
-    using base_type =
-        base_stepper<transform3_t, constraint_t, policy_t, inspector_t>;
+    using base_type = base_stepper<transform3_t, constraint_t, policy_t,
+                                   random_device_t, inspector_t>;
 
     using transform3_type = transform3_t;
     using scalar_type = typename transform3_type::scalar_type;
@@ -48,11 +49,13 @@ class rk_stepper final
         typename base_type::free_track_parameters_type;
     using bound_track_parameters_type =
         typename base_type::bound_track_parameters_type;
+    using bound_matrix = typename bound_track_parameters_type::covariance_type;
     using magnetic_field_type = magnetic_field_t;
     using size_type = typename matrix_operator::size_ty;
     template <size_type ROWS, size_type COLS>
     using matrix_type =
         typename matrix_operator::template matrix_type<ROWS, COLS>;
+    using interaction_type = interaction<scalar_type>;
 
     DETRAY_HOST_DEVICE
     rk_stepper() {}
@@ -95,19 +98,25 @@ class rk_stepper final
 
         /// Update the track state by Runge-Kutta-Nystrom integration.
         DETRAY_HOST_DEVICE
-        inline void advance_track();
+        inline void advance_track(
+            const stepping::config<scalar_type>& cfg = {});
 
         /// Update the jacobian transport from free propagation
         DETRAY_HOST_DEVICE
         inline void advance_jacobian(
             const stepping::config<scalar_type>& cfg = {});
 
+        /// Update the covariance from multiple scattering
+        /// @TODO Take stepping::config
+        DETRAY_HOST_DEVICE
+        inline bound_matrix calculate_ms_covariance(
+            bool do_scatter, bool do_covariance_transport) const;
+
         /// evaulate dqopds for a given step size and material
         DETRAY_HOST_DEVICE
         inline scalar_type evaluate_dqopds(
             const std::size_t i, const typename transform3_t::scalar_type h,
-            const scalar dqopds_prev,
-            const detray::stepping::config<scalar_type>& cfg);
+            const scalar dqopds_prev);
 
         /// evaulate dtds for runge kutta stepping
         DETRAY_HOST_DEVICE

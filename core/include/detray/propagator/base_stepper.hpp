@@ -13,12 +13,18 @@
 #include "detray/geometry/surface.hpp"
 #include "detray/propagator/actors/parameter_resetter.hpp"
 #include "detray/propagator/constrained_step.hpp"
+#include "detray/propagator/detail/random_device.hpp"
 #include "detray/propagator/stepping_config.hpp"
 #include "detray/tracks/tracks.hpp"
 
 namespace detray {
 
 namespace stepping {
+
+/// A void random device that does nothing.
+struct void_random_device {
+    void set_seed(const uint_fast64_t /*sd*/) { return; }
+};
 
 /// A void inpector that does nothing.
 ///
@@ -33,6 +39,7 @@ struct void_inspector {
 
 /// Base stepper implementation
 template <typename transform3_t, typename constraint_t, typename policy_t,
+          typename random_device_t = stepping::void_random_device,
           typename inspector_t = stepping::void_inspector>
 class base_stepper {
 
@@ -69,6 +76,7 @@ class base_stepper {
     struct state {
 
         /// Sets track parameters.
+        /// @TODO: Remove the free track parameter input if possible
         DETRAY_HOST_DEVICE
         state(const free_track_parameters_type &t) : _track(t) {}
 
@@ -86,9 +94,12 @@ class base_stepper {
             sf.template visit_mask<
                 typename parameter_resetter<transform3_t>::kernel>(
                 sf.transform(ctx), *this);
+
+            _qop_i = bound_params.qop();
         }
 
         /// free track parameter
+        /// @TODO: Remove the covariance if possible
         free_track_parameters_type _track;
 
         /// Full jacobian
@@ -105,6 +116,10 @@ class base_stepper {
 
         /// bound covariance
         bound_track_parameters_type _bound_params;
+
+        /// joint covariance (for multiple scattering)
+        bound_matrix _joint_cov =
+            matrix_operator().template zero<e_bound_size, e_bound_size>();
 
         /// @returns track parameters - const access
         DETRAY_HOST_DEVICE
@@ -130,15 +145,22 @@ class base_stepper {
 
         /// Track path length from the last surface. It will be reset to 0 when
         /// the track reaches a new surface
-        scalar _s{0.};
+        scalar _path_length_per_surface{0.};
 
         /// Current step size
         scalar _step_size{0.};
 
         /// The particle mass
         scalar_type _mass{105.7f * unit<scalar_type>::MeV};
+
         /// The particle pdg
         int _pdg = 13;  // default muon
+
+        /// qop at the initial surface
+        scalar_type _qop_i{0.f};
+
+        /// Random device
+        random_device_t rand_device;
 
         /// Set new step constraint
         template <step::constraint type = step::constraint::e_actor>

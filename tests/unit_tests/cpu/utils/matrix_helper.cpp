@@ -166,3 +166,46 @@ GTEST_TEST(detray_utils, cholesky_decomposition) {
         }
     }
 }
+
+GTEST_TEST(detray_utils, curvilinear) {
+
+    const vector3 t1 = vector::normalize(vector3{1.f, 2.f, 3.f});
+    const vector3 z{0.f, 0.f, 1.f};
+
+    // Convert the (0,0,1) in local coordinate to global cooridnate
+    const matrix_type<3, 3> R1 =
+        matrix_helper<matrix_operator>().curvilinear_to_global(t1);
+    const vector3 t2 = R1 * z;
+
+    // The converted vector should be eqaul to the local-z axis in global
+    // coordinate
+    EXPECT_NEAR(static_cast<float>(t1[0]), static_cast<float>(t2[0]),
+                tolerance);
+    EXPECT_NEAR(static_cast<float>(t1[1]), static_cast<float>(t2[1]),
+                tolerance);
+    EXPECT_NEAR(static_cast<float>(t1[2]), static_cast<float>(t2[2]),
+                tolerance);
+
+    // Convert the local-z axis in global coordinate to local coordinate
+    const matrix_type<3, 3> R2 =
+        matrix_helper<matrix_operator>().global_to_curvilinear(t1);
+    const vector3 t3 = R2 * t1;
+
+    // The converted vector should be equal to unit z vector
+    EXPECT_NEAR(static_cast<float>(z[0]), static_cast<float>(t3[0]), tolerance);
+    EXPECT_NEAR(static_cast<float>(z[1]), static_cast<float>(t3[1]), tolerance);
+    EXPECT_NEAR(static_cast<float>(z[2]), static_cast<float>(t3[2]), tolerance);
+
+    // Round trip test
+    const matrix_type<3, 3> I = R1 * R2;
+
+    EXPECT_NEAR(static_cast<float>(getter::element(I, 0, 0)), 1.f, tolerance);
+    EXPECT_NEAR(static_cast<float>(getter::element(I, 0, 1)), 0.f, tolerance);
+    EXPECT_NEAR(static_cast<float>(getter::element(I, 0, 2)), 0.f, tolerance);
+    EXPECT_NEAR(static_cast<float>(getter::element(I, 1, 0)), 0.f, tolerance);
+    EXPECT_NEAR(static_cast<float>(getter::element(I, 1, 1)), 1.f, tolerance);
+    EXPECT_NEAR(static_cast<float>(getter::element(I, 1, 2)), 0.f, tolerance);
+    EXPECT_NEAR(static_cast<float>(getter::element(I, 2, 0)), 0.f, tolerance);
+    EXPECT_NEAR(static_cast<float>(getter::element(I, 2, 1)), 0.f, tolerance);
+    EXPECT_NEAR(static_cast<float>(getter::element(I, 2, 2)), 1.f, tolerance);
+}
