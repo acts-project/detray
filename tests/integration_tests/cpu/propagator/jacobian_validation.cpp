@@ -341,7 +341,7 @@ struct bound_getter : actor {
 /// Numerically integrate the jacobian
 template <typename propagator_t, typename field_t>
 bound_getter<transform3_type>::state evaluate_bound_param(
-    const scalar detector_length,
+    const std::size_t mc_seed, const scalar detector_length,
     const bound_track_parameters<transform3_type>& initial_param,
     const typename propagator_t::detector_type& det, const field_t& field,
     const scalar overstep_tolerance, const scalar on_surface_tolerance,
@@ -371,6 +371,7 @@ bound_getter<transform3_type>::state evaluate_bound_param(
 
     // Init propagator states for the reference track
     typename propagator_t::state state(initial_param, field, det);
+    state._stepping.rand_device.set_seed(mc_seed);
 
     // Run the propagation for the reference track
     state.do_debug = do_inspect;
@@ -618,8 +619,8 @@ bound_track_parameters<transform3_type> get_initial_parameter(
 
 template <typename propagator_t, typename field_t>
 void evaluate_jacobian_difference(
-    const unsigned int trk_count, typename propagator_t::detector_type& det,
-    const scalar detector_length,
+    const std::size_t mc_seed, const unsigned int trk_count,
+    typename propagator_t::detector_type& det, const scalar detector_length,
     const bound_track_parameters<transform3_type>& track, const field_t& field,
     const material<scalar> volume_mat, const scalar overstep_tolerance,
     const scalar on_surface_tolerance, const scalar rk_tolerance,
@@ -634,15 +635,15 @@ void evaluate_jacobian_difference(
 
     det.volumes()[0u].set_material(volume_mat);
 
-    const bool do_scatter = true;
+    const bool do_scatter = false;
     const bool do_covariance_transport = true;
 
     // No scattering for jacobian comparsion study
     // But perform covariance transport
     auto bound_getter = evaluate_bound_param<propagator_t, field_t>(
-        detector_length, track, det, field, overstep_tolerance,
+        mc_seed, detector_length, track, det, field, overstep_tolerance,
         on_surface_tolerance, rk_tolerance, constraint_step, use_field_gradient,
-        !do_scatter, do_covariance_transport, do_inspect);
+        do_scatter, do_covariance_transport, do_inspect);
 
     const auto reference_param = bound_getter.m_param_departure;
     const auto final_param = bound_getter.m_param_destination;
@@ -749,6 +750,7 @@ void evaluate_jacobian_difference(
 
 template <typename propagator_t, typename field_t>
 void evaluate_covariance_transport(
+    const bool include_multiple_scattering, const std::size_t mc_seed,
     const unsigned int trk_count, typename propagator_t::detector_type& det,
     const scalar detector_length,
     const bound_track_parameters<transform3_type>& track, const field_t& field,
@@ -768,14 +770,14 @@ void evaluate_covariance_transport(
 
     track_copy.set_covariance(ini_cov);
 
-    const bool do_scatter = true;
-    const bool do_covariance_transport = true;
+    bool do_scatter = false;
+    bool do_covariance_transport = true;
 
     // Reference track (Without Scattering but with covariance transport)
     auto bound_getter = evaluate_bound_param<propagator_t, field_t>(
-        detector_length, track_copy, det, field, overstep_tolerance,
+        mc_seed, detector_length, track_copy, det, field, overstep_tolerance,
         on_surface_tolerance, rk_tolerance, constraint_step, use_field_gradient,
-        !do_scatter, do_covariance_transport);
+        do_scatter, do_covariance_transport);
 
     const auto reference_param = bound_getter.m_param_departure;
     const auto ini_vec = reference_param.vector();
@@ -811,11 +813,18 @@ void evaluate_covariance_transport(
     auto smeared_track = track_copy;
     smeared_track.set_vector(smeared_ini_vec);
 
+    if (include_multiple_scattering) {
+        do_scatter = true;
+    } else {
+        do_scatter = false;
+    }
+    do_covariance_transport = false;
+
     // Smeared track (With scattering and no covariance transport)
     auto smeared_bound_getter = evaluate_bound_param<propagator_t, field_t>(
-        detector_length, smeared_track, det, field, overstep_tolerance,
+        mc_seed, detector_length, smeared_track, det, field, overstep_tolerance,
         on_surface_tolerance, rk_tolerance, constraint_step, use_field_gradient,
-        do_scatter, !do_covariance_transport);
+        do_scatter, do_covariance_transport);
 
     // Get smeared final bound vector
     bound_vector_type smeared_fin_vec =
@@ -1343,6 +1352,9 @@ int main(int argc, char** argv) {
                        "Set log10(max_rk_tolerance_in_mm)");
     desc.add_options()("mc-seed", po::value<std::size_t>()->default_value(0u),
                        "Monte-Carlo seed");
+    desc.add_options()("include-multiple-scattering",
+                       po::value<bool>()->default_value(false),
+                       "Include multiple scattering");
     desc.add_options()("verbose-level", po::value<int>()->default_value(1),
                        "Verbose level");
 
@@ -1379,6 +1391,8 @@ int main(int argc, char** argv) {
     const scalar log10_max_rk_tolerance =
         vm["log10-max-rk-tolerance-mm"].as<scalar>() * unit<scalar>::mm;
     const std::size_t mc_seed = vm["mc-seed"].as<std::size_t>();
+    const bool include_multiple_scattering =
+        vm["include-multiple-scattering"].as<bool>();
     const int verbose_lvl = vm["verbose-level"].as<int>();
 
     std::vector<scalar> log10_tols;
@@ -1672,11 +1686,11 @@ int main(int argc, char** argv) {
 
                     // Rectangle Inhomogeneous field with Material
                     evaluate_jacobian_difference<inhom_field_rect_propagator_t>(
-                        track_count, rect_det, detector_length, rect_bparam,
-                        inhom_bfield, volume_mat, overstep_tol, on_surface_tol,
-                        std::pow(10.f, log10_tols[i]), constraint_step_size,
-                        h_sizes_rect, rect_files[i], ref_rel_diff, true,
-                        do_inspect);
+                        mc_seed, track_count, rect_det, detector_length,
+                        rect_bparam, inhom_bfield, volume_mat, overstep_tol,
+                        on_surface_tol, std::pow(10.f, log10_tols[i]),
+                        constraint_step_size, h_sizes_rect, rect_files[i],
+                        ref_rel_diff, true, do_inspect);
 
                     dqopdqop_rel_diffs_rect[i].push_back(ref_rel_diff);
                 }
@@ -1691,8 +1705,8 @@ int main(int argc, char** argv) {
 
                 // Rect Const field
                 evaluate_jacobian_difference<const_field_rect_propagator_t>(
-                    track_count, rect_det, detector_length, rect_bparam,
-                    const_bfield, vacuum<scalar>(), overstep_tol,
+                    mc_seed, track_count, rect_det, detector_length,
+                    rect_bparam, const_bfield, vacuum<scalar>(), overstep_tol,
                     on_surface_tol, rk_tol, constraint_step_size, h_sizes_rect,
                     const_rect_file, ref_rel_diff);
 
@@ -1707,24 +1721,25 @@ int main(int argc, char** argv) {
 
                 // Rect Inhomogeneous field
                 evaluate_jacobian_difference<inhom_field_rect_propagator_t>(
-                    track_count, rect_det, detector_length, rect_bparam,
-                    inhom_bfield, vacuum<scalar>(), overstep_tol,
+                    mc_seed, track_count, rect_det, detector_length,
+                    rect_bparam, inhom_bfield, vacuum<scalar>(), overstep_tol,
                     on_surface_tol, rk_tol, constraint_step_size, h_sizes_rect,
                     inhom_rect_file, ref_rel_diff);
 
                 // Rectangle Inhomogeneous field with Material
                 evaluate_jacobian_difference<inhom_field_rect_propagator_t>(
-                    track_count, rect_det, detector_length, rect_bparam,
-                    inhom_bfield, volume_mat, overstep_tol, on_surface_tol,
-                    rk_tol, constraint_step_size, h_sizes_rect,
+                    mc_seed, track_count, rect_det, detector_length,
+                    rect_bparam, inhom_bfield, volume_mat, overstep_tol,
+                    on_surface_tol, rk_tol, constraint_step_size, h_sizes_rect,
                     inhom_rect_material_file, ref_rel_diff);
 
                 // Rectangle Inhomogeneous field with Material (Covariance
                 // transport)
                 evaluate_covariance_transport<inhom_field_rect_propagator_t>(
-                    track_count, rect_det, detector_length, rect_bparam,
-                    inhom_bfield, volume_mat, overstep_tol, on_surface_tol,
-                    rk_tol, constraint_step_size, rect_cov_transport_file);
+                    include_multiple_scattering, mc_seed, track_count, rect_det,
+                    detector_length, rect_bparam, inhom_bfield, volume_mat,
+                    overstep_tol, on_surface_tol, rk_tol, constraint_step_size,
+                    rect_cov_transport_file);
             }
         }
 
@@ -1750,11 +1765,11 @@ int main(int argc, char** argv) {
                 for (std::size_t i = 0u; i < log10_tols.size(); i++) {
                     // Wire Inhomogeneous field with Material
                     evaluate_jacobian_difference<inhom_field_wire_propagator_t>(
-                        track_count, wire_det, detector_length, wire_bparam,
-                        inhom_bfield, volume_mat, overstep_tol, on_surface_tol,
-                        std::pow(10.f, log10_tols[i]), constraint_step_size,
-                        h_sizes_wire, wire_files[i], ref_rel_diff, true,
-                        do_inspect);
+                        mc_seed, track_count, wire_det, detector_length,
+                        wire_bparam, inhom_bfield, volume_mat, overstep_tol,
+                        on_surface_tol, std::pow(10.f, log10_tols[i]),
+                        constraint_step_size, h_sizes_wire, wire_files[i],
+                        ref_rel_diff, true, do_inspect);
 
                     dqopdqop_rel_diffs_wire[i].push_back(ref_rel_diff);
                 }
@@ -1769,8 +1784,8 @@ int main(int argc, char** argv) {
 
                 // Wire Const field
                 evaluate_jacobian_difference<const_field_wire_propagator_t>(
-                    track_count, wire_det, detector_length, wire_bparam,
-                    const_bfield, vacuum<scalar>(), overstep_tol,
+                    mc_seed, track_count, wire_det, detector_length,
+                    wire_bparam, const_bfield, vacuum<scalar>(), overstep_tol,
                     on_surface_tol, rk_tol, constraint_step_size, h_sizes_wire,
                     const_wire_file, ref_rel_diff);
 
@@ -1785,23 +1800,24 @@ int main(int argc, char** argv) {
 
                 // Wire Inhomogeneous field
                 evaluate_jacobian_difference<inhom_field_wire_propagator_t>(
-                    track_count, wire_det, detector_length, wire_bparam,
-                    inhom_bfield, vacuum<scalar>(), overstep_tol,
+                    mc_seed, track_count, wire_det, detector_length,
+                    wire_bparam, inhom_bfield, vacuum<scalar>(), overstep_tol,
                     on_surface_tol, rk_tol, constraint_step_size, h_sizes_wire,
                     inhom_wire_file, ref_rel_diff);
 
                 // Wire Inhomogeneous field with Material
                 evaluate_jacobian_difference<inhom_field_wire_propagator_t>(
-                    track_count, wire_det, detector_length, wire_bparam,
-                    inhom_bfield, volume_mat, overstep_tol, on_surface_tol,
-                    rk_tol, constraint_step_size, h_sizes_wire,
+                    mc_seed, track_count, wire_det, detector_length,
+                    wire_bparam, inhom_bfield, volume_mat, overstep_tol,
+                    on_surface_tol, rk_tol, constraint_step_size, h_sizes_wire,
                     inhom_wire_material_file, ref_rel_diff);
 
                 // Wire Inhomogeneous field with Material (Covariance transport)
                 evaluate_covariance_transport<inhom_field_wire_propagator_t>(
-                    track_count, wire_det, detector_length, wire_bparam,
-                    inhom_bfield, volume_mat, overstep_tol, on_surface_tol,
-                    rk_tol, constraint_step_size, wire_cov_transport_file);
+                    include_multiple_scattering, mc_seed, track_count, wire_det,
+                    detector_length, wire_bparam, inhom_bfield, volume_mat,
+                    overstep_tol, on_surface_tol, rk_tol, constraint_step_size,
+                    wire_cov_transport_file);
             }
         }
     }

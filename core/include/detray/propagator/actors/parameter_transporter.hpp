@@ -127,6 +127,7 @@ struct parameter_transporter : actor {
                           matrix_operator().transpose(stepping._full_jacobian);
             }
 
+            //(void)actor_state;
             // Calculate multiple scattering term
             // @TODO: Take stepping::config instead
             const auto joint_cov = stepping.calculate_ms_covariance(
@@ -135,8 +136,8 @@ struct parameter_transporter : actor {
             // Add the multiple scattering term
             // new_cov = new_cov + stepping._joint_cov;
             new_cov = new_cov + joint_cov;
-
-            /*
+            
+            /*            
             std::cout << "Joint Cov" << std::endl;
             for (int i = 0; i < 6; i++) {
                 for (int j = 0; j < 6; j++) {
@@ -146,7 +147,7 @@ struct parameter_transporter : actor {
             }
             std::cout << std::endl;
             */
-           
+
             // Calculate surface-to-surface covariance transport
             stepping._bound_params.set_covariance(new_cov);
         }

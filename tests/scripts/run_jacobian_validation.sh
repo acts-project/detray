@@ -27,6 +27,9 @@ log10_on_surface_tol=-3
 # Monte-Carlo seed
 mc_seed=0
 
+# include multiple scattering
+include_multiple_scattering=false
+
 # Skip the first phase
 skip_first_phase=false
 
@@ -36,7 +39,7 @@ skip_second_phase=false
 # Verbose level
 verbose_level=1
 
-while getopts "hd:n:t:p:q:c:i:s:f:r:v:" arg; do
+while getopts "hd:n:t:p:q:c:i:s:m:f:r:v:" arg; do
     case $arg in
         h)
             echo ""
@@ -51,6 +54,7 @@ while getopts "hd:n:t:p:q:c:i:s:f:r:v:" arg; do
             echo "-c <log10(rk_error_tolerance_in_mm_for_covariance_transport)>"
             echo "-i <log10(intersection_tolerance_in_mm)>"
             echo "-s <Monte-Carlo seed>"
+            echo "-m <Include myltiple scattering>"
             echo "-f <Skip the first phase>"
             echo "-r <Skip the second phase>"
             echo "-v <Verbose level>"
@@ -89,6 +93,10 @@ while getopts "hd:n:t:p:q:c:i:s:f:r:v:" arg; do
         s)
             mc_seed=$OPTARG
             echo "Monte-Carlo seed: ${mc_seed}"
+        ;;
+        m)
+            include_multiple_scattering=$OPTARG
+            echo "Include multiple scattering in the second phase: ${include_multiple_scattering}"
         ;;
         f)
             skip_first_phase=$OPTARG
@@ -141,6 +149,7 @@ if [ "$skip_first_phase" = false ] ; then
         --log10-helix-tolerance=${log10_helix_tol} \
         --log10-on-surface-tolerance=${log10_on_surface_tol} \
         --mc-seed=${mc_seed} \
+        --include-multiple-scattering=${include_multiple_scattering} \
         --verbose-level=${verbose_level}"
         ${command_rk_tolerance} &
     done
@@ -170,7 +179,8 @@ if [ "$skip_second_phase" = false ] ; then
         --log10-rk-tolerance=${log10_rk_tol} \
         --log10-helix-tolerance=${log10_helix_tol} \
         --log10-on-surface-tolerance=${log10_on_surface_tol} \
-        --mc-seed=${mc_seed}
+        --mc-seed=${mc_seed} \
+        --include-multiple-scattering=${include_multiple_scattering} \
         --verbose-level=${verbose_level}"
         ${command_jacobi_validation} &
     done
@@ -235,7 +245,7 @@ if [ "$skip_first_phase" = false ] && [ "$skip_second_phase" = false ]; then
     elif [ "$skip_first_phase" = true ] && [ "$skip_second_phase" = false ]; then
     
     # Run covariance_validation.C
-    root -q -l ../../../tests/validation/root/covariance_validation.C+O
+    root ../../../tests/validation/root/covariance_validation.C+O
     
     elif [ "$skip_first_phase" = false ] && [ "$skip_second_phase" = true ]; then
     
