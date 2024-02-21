@@ -16,6 +16,12 @@ n_tracks_per_thread=1000
 log10_min_rk_tol=-6
 log10_max_rk_tol=2
 
+# log10 rk tolerance for jacobian comparision
+log10_rk_tol_jac=${log10_min_rk_tol}
+
+# log10 rk tolerance for covariance transport
+log10_rk_tol_cov=-4
+
 # Helix intersector tolerance [log10 in mm]
 log10_helix_tol=-3
 # Surface tolerance [log10 in mm]
@@ -24,13 +30,16 @@ log10_on_surface_tol=-3
 # Monte-Carlo seed
 mc_seed=0
 
+# Skip the first phase
+skip_first_phase=false
+
 # Skip the second phase
 skip_second_phase=false
 
 # Verbose level
 verbose_level=1
 
-while getopts "hd:n:t:p:q:i:s:r:v:" arg; do
+while getopts "hd:n:t:c:p:q:i:s:f:r:v:" arg; do
     case $arg in
         h)
             echo ""
@@ -40,10 +49,12 @@ while getopts "hd:n:t:p:q:i:s:r:v:" arg; do
             echo "Optonal arguments"
             echo "-n <Number of threads>"
             echo "-t <Number of tracks per thread>"
+            echo "-c <log10(rk_error_tolerance_in_mm_for_covariance_transport)>"
             echo "-p <log10(min_rk_error_tolerance_in_mm)>"
             echo "-q <log10(max_rk_error_tolerance_in_mm)>"
             echo "-i <log10(intersection_tolerance_in_mm)>"
             echo "-s <Monte-Carlo seed>"
+            echo "-f <Skip the first phase>"
             echo "-r <Skip the second phase>"
             echo "-v <Verbose level>"
             echo ""
@@ -61,8 +72,13 @@ while getopts "hd:n:t:p:q:i:s:r:v:" arg; do
             n_tracks_per_thread=$OPTARG
             echo "Number of tracks per thread: ${n_tracks_per_thread}"
         ;;
+        c)
+            log10_rk_tol_cov=$OPTARG
+            echo "log10(rk_error_tolerance_in_mm_for_covariance_transport): ${log10_rk_tol_cov}"
+        ;;
         p)
             log10_min_rk_tol=$OPTARG
+            log10_rk_tol_jac=${log10_min_rk_tol}
             echo "log10(min_rk_error_tolerance_in_mm): ${log10_min_rk_tol}"
         ;;
         q)
@@ -77,6 +93,10 @@ while getopts "hd:n:t:p:q:i:s:r:v:" arg; do
         s)
             mc_seed=$OPTARG
             echo "Monte-Carlo seed: ${mc_seed}"
+        ;;
+        f)
+            skip_first_phase=$OPTARG
+            echo "Skip the first phase: ${skip_first_phase}"
         ;;
         r)
             skip_second_phase=$OPTARG
@@ -100,35 +120,39 @@ fi
 # RK tolerance iteration #
 ##########################
 
-echo "Starting rk toleracne iteration..."
-
-# Remove the old directories
-for (( i=0; i < ${n_threads}; ++i ))
-do
-    rm -rf ${PWD}/thread_${i}
-done
-rm -rf ${PWD}/merged
-
-for (( i=0; i < ${n_threads}; ++i ))
-do
-    n_skips=`expr ${i} \* ${n_tracks_per_thread}`
+if [ "$skip_first_phase" = false ] ; then
     
-    command_rk_tolerance="${dir}/detray_integration_test_jacobian_validation \
-    --output-directory=thread_${i} \
-    --rk-tolerance-iterate-mode=true \
-    --n-tracks=${n_tracks_per_thread} \
-    --n-skips=${n_skips} \
-    --log10-min-rk-tolerance=${log10_min_rk_tol} \
-    --log10-max-rk-tolerance=${log10_max_rk_tol} \
-    --log10-helix-tolerance=${log10_helix_tol} \
-    --log10-on-surface-tolerance=${log10_on_surface_tol} \
-    --mc-seed=${mc_seed} \
-    --verbose-level=${verbose_level}"
-    ${command_rk_tolerance} &
-done
-wait
-
-echo "Finished rk toleracne iteration"
+    echo "Starting rk toleracne iteration..."
+    
+    # Remove the old directories
+    for (( i=0; i < ${n_threads}; ++i ))
+    do
+        rm -rf ${PWD}/thread_${i}
+    done
+    rm -rf ${PWD}/merged
+    
+    for (( i=0; i < ${n_threads}; ++i ))
+    do
+        n_skips=`expr ${i} \* ${n_tracks_per_thread}`
+        
+        command_rk_tolerance="${dir}/detray_integration_test_jacobian_validation \
+        --output-directory=thread_${i} \
+        --rk-tolerance-iterate-mode=true \
+        --n-tracks=${n_tracks_per_thread} \
+        --n-skips=${n_skips} \
+        --log10-min-rk-tolerance-mm=${log10_min_rk_tol} \
+        --log10-max-rk-tolerance-mm=${log10_max_rk_tol} \
+        --log10-helix-tolerance-mm=${log10_helix_tol} \
+        --log10-on-surface-tolerance-mm=${log10_on_surface_tol} \
+        --mc-seed=${mc_seed} \
+        --verbose-level=${verbose_level}"
+        ${command_rk_tolerance} &
+    done
+    wait
+    
+    echo "Finished rk toleracne iteration"
+    
+fi
 
 #####################################
 # Jacobi validation & Cov transport #
@@ -147,10 +171,11 @@ if [ "$skip_second_phase" = false ] ; then
         --rk-tolerance-iterate-mode=false \
         --n-tracks=${n_tracks_per_thread} \
         --n-skips=${n_skips} \
-        --log10-rk-tolerance=${log10_min_rk_tol} \
-        --log10-helix-tolerance=${log10_helix_tol} \
-        --log10-on-surface-tolerance=${log10_on_surface_tol} \
-        --mc-seed=${mc_seed}
+        --log10-rk-tolerance-jac-mm=${log10_rk_tol_jac} \
+        --log10-rk-tolerance-cov-mm=${log10_rk_tol_cov} \
+        --log10-helix-tolerance-mm=${log10_helix_tol} \
+        --log10-on-surface-tolerance-mm=${log10_on_surface_tol} \
+        --mc-seed=${mc_seed} \
         --verbose-level=${verbose_level}"
         ${command_jacobi_validation} &
     done
@@ -201,7 +226,7 @@ echo "Finished merging Csv files"
 
 cd ${output_dir}
 
-if [ "$skip_second_phase" = false ] ; then
+if [ "$skip_first_phase" = false ] && [ "$skip_second_phase" = false ]; then
     
     # Run rk_tolerance_comparision.C
     root -q '../../../tests/validation/root/rk_tolerance_comparison.C+O('${log10_min_rk_tol}','${log10_max_rk_tol}')'
@@ -211,8 +236,14 @@ if [ "$skip_second_phase" = false ] ; then
     
     # Run covariance_validation.C
     root -q -l ../../../tests/validation/root/covariance_validation.C+O
-else 
-
+    
+    elif [ "$skip_first_phase" = true ] && [ "$skip_second_phase" = false ]; then
+    
+    # Run covariance_validation.C
+    root ../../../tests/validation/root/covariance_validation.C+O
+    
+    elif [ "$skip_first_phase" = false ] && [ "$skip_second_phase" = true ]; then
+    
     # Run rk_tolerance_comparision.C
     root '../../../tests/validation/root/rk_tolerance_comparison.C+O('${log10_min_rk_tol}','${log10_max_rk_tol}')'
 fi

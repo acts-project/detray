@@ -15,4 +15,5 @@
 **/*.d
 **/*.so
 **/*C_ACLiC_dict*
-**/therad_*
+**/thread_*
+**/merged/

@@ -121,7 +121,7 @@ class rk_stepper final
 
         /// Evaluate dtds, where t is the unit tangential direction
         DETRAY_HOST_DEVICE
-        inline vector3 dtds() const { return this->_step_data.dtds[3u]; }
+        inline vector3 dtds() const;
 
         /// Evaulate d(qop)/ds
         DETRAY_HOST_DEVICE
