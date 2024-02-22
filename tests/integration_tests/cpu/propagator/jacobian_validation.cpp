@@ -56,13 +56,14 @@ namespace {
 const vector3 B_z{0.f, 0.f, 1.996f * unit<scalar>::T};
 
 // Initial delta for numerical differentiaion
-const std::array<scalar, 5u> h_sizes_rect{1e-1f, 1e-1f, 1e-2f, 1e-3f, 1e-2f};
-const std::array<scalar, 5u> h_sizes_wire{1e-1f, 1e-1f, 1e-2f, 1e-3f, 1e-2f};
+const std::array<scalar, 5u> h_sizes_rect{1e-1f, 1e-1f, 1e-2f, 1e-3f, 1e-3f};
+const std::array<scalar, 5u> h_sizes_wire{1e-1f, 1e-1f, 1e-2f, 1e-3f, 1e-3f};
 
 // Ridders' algorithm setup
-constexpr const unsigned int Nt = 10u;
+constexpr const unsigned int Nt = 20u;
 const std::array<scalar, 5u> safe{2.0f, 2.0f, 2.0f, 2.0f, 2.0f};
 const std::array<scalar, 5u> con{1.2f, 1.2f, 1.2f, 1.2f, 1.2f};
+constexpr const scalar threshold_factor = 10.f;
 constexpr const scalar big = std::numeric_limits<scalar>::max();
 
 std::random_device rd;
@@ -70,6 +71,10 @@ std::random_device rd;
 std::mt19937_64 mt1(rd());
 // For smearing initial parameter
 std::mt19937_64 mt2(rd());
+
+// Momentum range
+constexpr const scalar min_mom = 1.f * unit<scalar>::GeV;
+constexpr const scalar max_mom = 100.f * unit<scalar>::GeV;
 
 // Detector length generator
 constexpr const scalar min_detector_length = 50.f * unit<scalar>::mm;
@@ -95,6 +100,110 @@ using rect_type = rectangle2D;
 using wire_type = line<true>;
 
 }  // namespace
+
+// Preprocess delta
+void preprocess_delta(const unsigned int i, scalar& delta,
+                      const bound_track_parameters<transform3_type> ref_param) {
+    if (i == e_bound_theta) {
+        const scalar rtheta = ref_param.theta();
+        if (rtheta < constant<scalar>::pi_2) {
+            delta = math::min(delta, rtheta);
+        } else if (rtheta >= constant<scalar>::pi_2) {
+            delta = math::min(delta, constant<scalar>::pi - rtheta);
+        }
+    }
+}
+
+// Containers for Ridders algorithm
+// Page 231 of [Numerical Recipes] 3rd edition
+struct ridders_derivative {
+
+    std::array<std::array<std::array<scalar, Nt>, Nt>, 5u> Arr;
+    std::array<scalar, 5u> fac;
+    std::array<scalar, 5u> errt;
+    std::array<scalar, 5u> err{big, big, big, big, big};
+    std::array<bool, 5u> complete{false, false, false, false, false};
+
+    void initialize(const bound_vector_type& nvec1,
+                    const bound_vector_type& nvec2, const scalar delta) {
+        for (unsigned int j = 0; j < 5u; j++) {
+
+            const scalar v1 = getter::element(nvec1, j, 0u);
+            const scalar v2 = getter::element(nvec2, j, 0u);
+
+            Arr[j][0][0] = (v1 - v2) / (2.f * delta);
+        }
+    }
+
+    void run(const bound_vector_type& nvec1, const bound_vector_type& nvec2,
+             const scalar delta, const unsigned int p, const unsigned int i,
+             bound_covariance_type& differentiated_jacobian) {
+        for (unsigned int j = 0; j < 5u; j++) {
+
+            const scalar v1 = getter::element(nvec1, j, 0u);
+            const scalar v2 = getter::element(nvec2, j, 0u);
+
+            Arr[j][0][p] = (v1 - v2) / (2.f * delta);
+        }
+
+        const scalar con2 = con[i] * con[i];
+        fac[i] = con2;
+
+        for (unsigned int q = 1; q <= p; q++) {
+
+            for (unsigned int j = 0; j < 5u; j++) {
+                Arr[j][q][p] =
+                    (Arr[j][q - 1][p] * fac[i] - Arr[j][q - 1][p - 1]) /
+                    (fac[i] - 1.0f);
+                fac[i] = con2 * fac[i];
+
+                errt[j] =
+                    math::max(math::abs(Arr[j][q][p] - Arr[j][q - 1][p]),
+                              math::abs(Arr[j][q][p] - Arr[j][q - 1][p - 1]));
+
+                const scalar V = getter::element(differentiated_jacobian, j, i);
+
+                if (errt[j] <= err[j]) {
+                    if (complete[j] == false ||
+                        math::abs(Arr[j][q][p]) >
+                            threshold_factor * math::abs(V) ||
+                        V * Arr[j][q][p] < 0.f) {
+
+                        err[j] = errt[j];
+                        getter::element(differentiated_jacobian, j, i) =
+                            Arr[j][q][p];
+                        /*
+                        if (j == e_bound_theta && i == e_bound_loc0) {
+                            std::cout << getter::element(
+                                             differentiated_jacobian, j, i)
+                                      << std::endl;
+                        }
+                        */
+                    }
+                }
+            }
+        }
+
+        for (unsigned int j = 0; j < 5u; j++) {
+            /*
+            if (j == e_bound_theta && i == e_bound_loc0) {
+                std::cout << Arr[j][p][p] << "  " << Arr[j][p - 1][p - 1]
+                          << "  "
+                          << math::abs(Arr[j][p][p] - Arr[j][p - 1][p - 1])
+                          << "  " << safe[i] * err[j] << std::endl;
+            }
+            */
+            if (math::abs(Arr[j][p][p] - Arr[j][p - 1][p - 1]) >=
+                safe[i] * err[j]) {
+                complete[j] = true;
+            }
+        }
+    }
+
+    bool is_complete() {
+        return (std::count(complete.begin(), complete.end(), false) == 0u);
+    }
+};
 
 void wrap_angles(const bound_vector_type& ref_vector,
                  bound_vector_type& target_vector) {
@@ -382,8 +491,7 @@ bound_getter<transform3_type>::state evaluate_bound_param(
 }
 
 template <typename propagator_t, typename field_t>
-typename bound_track_parameters<transform3_type>::vector_type
-get_displaced_bound_vector(
+bound_vector_type get_displaced_bound_vector(
     const bound_track_parameters<transform3_type>& ref_param,
     const typename propagator_t::detector_type& det,
     const scalar detector_length, const field_t& field,
@@ -442,30 +550,12 @@ bound_track_parameters<transform3_type>::covariance_type directly_differentiate(
     std::array<bool, 25>& convergence) {
 
     // Return Jacobian
-    bound_track_parameters<transform3_type>::covariance_type
-        differentiated_jacobian;
+    bound_covariance_type differentiated_jacobian;
 
     for (unsigned int i = 0u; i < 5u; i++) {
 
         scalar delta = hs[i];
-
-        if (i == e_bound_theta) {
-            const scalar rtheta = ref_param.theta();
-            if (rtheta < constant<scalar>::pi_2) {
-                delta = math::min(delta, rtheta);
-            } else if (rtheta >= constant<scalar>::pi_2) {
-                delta = math::min(delta, constant<scalar>::pi - rtheta);
-            }
-        }
-
-        // Containers for Ridders algorithm
-        // Page 231 of [Numerical Recipes] 3rd edition
-        std::array<std::array<std::array<scalar, Nt>, Nt>, 5u> Arr;
-
-        scalar fac;
-        std::array<scalar, 5u> errt;
-        std::array<scalar, 5u> err{big, big, big, big, big};
-        std::array<bool, 5u> complete{false, false, false, false, false};
+        preprocess_delta(i, delta, ref_param);
 
         const auto vec1 = get_displaced_bound_vector<propagator_t, field_t>(
             ref_param, det, detector_length, field, overstep_tolerance,
@@ -476,13 +566,8 @@ bound_track_parameters<transform3_type>::covariance_type directly_differentiate(
             on_surface_tolerance, rk_tolerance, constraint_step, i,
             -1.f * delta);
 
-        for (unsigned int j = 0; j < 5u; j++) {
-
-            const scalar v1 = getter::element(vec1, j, 0u);
-            const scalar v2 = getter::element(vec2, j, 0u);
-
-            Arr[j][0][0] = (v1 - v2) / (2.f * delta);
-        }
+        ridders_derivative ridder;
+        ridder.initialize(vec1, vec2, delta);
 
         for (unsigned int p = 1u; p < Nt; p++) {
             delta /= con[i];
@@ -498,61 +583,17 @@ bound_track_parameters<transform3_type>::covariance_type directly_differentiate(
                     on_surface_tolerance, rk_tolerance, constraint_step, i,
                     -1.f * delta);
 
-            for (unsigned int j = 0; j < 5u; j++) {
+            ridder.run(nvec1, nvec2, delta, p, i, differentiated_jacobian);
 
-                const scalar v1 = getter::element(nvec1, j, 0u);
-                const scalar v2 = getter::element(nvec2, j, 0u);
-
-                Arr[j][0][p] = (v1 - v2) / (2.f * delta);
-            }
-
-            const scalar con2 = con[i] * con[i];
-            fac = con2;
-
-            for (unsigned int q = 1; q <= p; q++) {
-
-                for (unsigned int j = 0; j < 5u; j++) {
-                    Arr[j][q][p] =
-                        (Arr[j][q - 1][p] * fac - Arr[j][q - 1][p - 1]) /
-                        (fac - 1.0f);
-                    fac = con2 * fac;
-
-                    errt[j] = math::max(
-                        math::abs(Arr[j][q][p] - Arr[j][q - 1][p]),
-                        math::abs(Arr[j][q][p] - Arr[j][q - 1][p - 1]));
-
-                    if (errt[j] <= err[j] && complete[j] == false) {
-                        err[j] = errt[j];
-                        getter::element(differentiated_jacobian, j, i) =
-                            Arr[j][q][p];
-                    }
-                }
-            }
-
-            for (unsigned int j = 0; j < 5u; j++) {
-                if (math::abs(Arr[j][p][p] - Arr[j][p - 1][p - 1]) >=
-                    safe[i] * err[j]) {
-                    complete[j] = true;
-                }
-            }
-
-            if (std::count(complete.begin(), complete.end(), false) == 0u) {
+            if (ridder.is_complete()) {
                 break;
             }
         }
 
         // Row-major
         for (std::size_t j = 0u; j < 5u; j++) {
-            convergence[i + j * 5] = complete[j];
+            convergence[i + j * 5] = ridder.complete[j];
         }
-
-        /*
-        if (std::count(complete.begin(), complete.end(), false) > 0u) {
-            std::cout << "The jacobian is not converged!" << std::endl;
-        } else {
-            std::cout << "The jacobian is converged!" << std::endl;
-        }
-        */
     }
 
     return differentiated_jacobian;
@@ -1002,8 +1043,7 @@ void evaluate_jacobian_difference_helix(
      *  Numerical differentiation
      * ****************************/
 
-    bound_track_parameters<transform3_type>::covariance_type
-        differentiated_jacobian;
+    bound_covariance_type differentiated_jacobian;
 
     std::array<bool, 25u> convergence;
 
@@ -1011,36 +1051,15 @@ void evaluate_jacobian_difference_helix(
 
         scalar delta = hs[i];
 
-        if (i == e_bound_theta) {
-            const scalar rtheta = track.theta();
-            if (rtheta < constant<scalar>::pi_2) {
-                delta = math::min(delta, rtheta);
-            } else if (rtheta >= constant<scalar>::pi_2) {
-                delta = math::min(delta, constant<scalar>::pi - rtheta);
-            }
-        }
-
-        // Containers for Ridders algorithm
-        // Page 231 of [Numerical Recipes] 3rd edition
-        std::array<std::array<std::array<scalar, Nt>, Nt>, 5u> Arr;
-
-        scalar fac;
-        std::array<scalar, 5u> errt;
-        std::array<scalar, 5u> err{big, big, big, big, big};
-        std::array<bool, 5u> complete{false, false, false, false, false};
+        preprocess_delta(i, delta, track);
 
         const auto vec1 = get_displaced_bound_vector_helix<detector_t, mask_id>(
             track, field, i, 1.f * delta, det, helix_tolerance);
         const auto vec2 = get_displaced_bound_vector_helix<detector_t, mask_id>(
             track, field, i, -1.f * delta, det, helix_tolerance);
 
-        for (unsigned int j = 0; j < 5u; j++) {
-
-            const scalar v1 = getter::element(vec1, j, 0u);
-            const scalar v2 = getter::element(vec2, j, 0u);
-
-            Arr[j][0][0] = (v1 - v2) / (2.f * delta);
-        }
+        ridders_derivative ridder;
+        ridder.initialize(vec1, vec2, delta);
 
         for (unsigned int p = 1u; p < Nt; p++) {
             delta /= con[i];
@@ -1052,52 +1071,15 @@ void evaluate_jacobian_difference_helix(
                 get_displaced_bound_vector_helix<detector_t, mask_id>(
                     track, field, i, -1.f * delta, det, helix_tolerance);
 
-            for (unsigned int j = 0; j < 5u; j++) {
+            ridder.run(nvec1, nvec2, delta, p, i, differentiated_jacobian);
 
-                const scalar v1 = getter::element(nvec1, j, 0u);
-                const scalar v2 = getter::element(nvec2, j, 0u);
-
-                Arr[j][0][p] = (v1 - v2) / (2.f * delta);
-            }
-
-            const scalar con2 = con[i] * con[i];
-            fac = con2;
-
-            for (unsigned int q = 1; q <= p; q++) {
-
-                for (unsigned int j = 0; j < 5u; j++) {
-                    Arr[j][q][p] =
-                        (Arr[j][q - 1][p] * fac - Arr[j][q - 1][p - 1]) /
-                        (fac - 1.0f);
-                    fac = con2 * fac;
-
-                    errt[j] = math::max(
-                        math::abs(Arr[j][q][p] - Arr[j][q - 1][p]),
-                        math::abs(Arr[j][q][p] - Arr[j][q - 1][p - 1]));
-
-                    if (errt[j] <= err[j] && complete[j] == false) {
-                        err[j] = errt[j];
-                        getter::element(differentiated_jacobian, j, i) =
-                            Arr[j][q][p];
-                    }
-                }
-            }
-
-            for (unsigned int j = 0; j < 5u; j++) {
-
-                if (math::abs(Arr[j][p][p] - Arr[j][p - 1][p - 1]) >=
-                    safe[i] * err[j]) {
-                    complete[j] = true;
-                }
-            }
-
-            if (std::count(complete.begin(), complete.end(), false) == 0u) {
+            if (ridder.is_complete()) {
                 break;
             }
         }
 
         for (std::size_t j = 0u; j < 5u; j++) {
-            convergence[i + j * 5] = complete[j];
+            convergence[i + j * 5] = ridder.complete[j];
         }
     }
 
@@ -1301,9 +1283,12 @@ int main(int argc, char** argv) {
                        "Skip rectangular telescope");
     desc.add_options()("skip-wire", po::value<bool>()->default_value(false),
                        "Skip wire telescope");
-    desc.add_options()("log10-rk-tolerance-mm",
+    desc.add_options()("log10-rk-tolerance-jac-mm",
                        po::value<scalar>()->default_value(-4.f),
-                       "Set log10(rk_tolerance_in_mm)");
+                       "Set log10(rk_tolerance_jac_in_mm)");
+    desc.add_options()("log10-rk-tolerance-cov-mm",
+                       po::value<scalar>()->default_value(-4.f),
+                       "Set log10(rk_tolerance_cov_in_mm)");
     desc.add_options()("log10-helix-tolerance-mm",
                        po::value<scalar>()->default_value(-3.f),
                        "Set log10(helix_tolerance_in_mm)");
@@ -1346,8 +1331,10 @@ int main(int argc, char** argv) {
     std::size_t n_skips = vm["n-skips"].as<std::size_t>();
     const bool skip_rect = vm["skip-rect"].as<bool>();
     const bool skip_wire = vm["skip-wire"].as<bool>();
-    const scalar rk_power = vm["log10-rk-tolerance-mm"].as<scalar>();
-    const scalar rk_tol = std::pow(10.f, rk_power) * unit<scalar>::mm;
+    const scalar rk_power_jac = vm["log10-rk-tolerance-jac-mm"].as<scalar>();
+    const scalar rk_tol_jac = std::pow(10.f, rk_power_jac) * unit<scalar>::mm;
+    const scalar rk_power_cov = vm["log10-rk-tolerance-cov-mm"].as<scalar>();
+    const scalar rk_tol_cov = std::pow(10.f, rk_power_cov) * unit<scalar>::mm;
     const scalar helix_power = vm["log10-helix-tolerance-mm"].as<scalar>();
     const scalar helix_tol = std::pow(10.f, helix_power) * unit<scalar>::mm;
     const scalar on_surface_power =
@@ -1485,7 +1472,7 @@ int main(int argc, char** argv) {
     trk_gen_cfg.n_tracks(n_tracks + n_skips);
     trk_gen_cfg.phi_range(-constant<scalar>::pi, constant<scalar>::pi);
     trk_gen_cfg.theta_range(0.f, constant<scalar>::pi);
-    trk_gen_cfg.mom_range(0.5f * unit<scalar>::GeV, 100.f * unit<scalar>::GeV);
+    trk_gen_cfg.mom_range(min_mom, max_mom);
     trk_gen_cfg.origin({0.f, 0.f, 0.f});
     trk_gen_cfg.origin_stddev({0.f * unit<scalar>::mm, 0.f * unit<scalar>::mm,
                                0.f * unit<scalar>::mm});
@@ -1674,30 +1661,21 @@ int main(int argc, char** argv) {
                 evaluate_jacobian_difference<const_field_rect_propagator_t>(
                     track_count, rect_det, detector_length, rect_bparam,
                     const_bfield, vacuum<scalar>(), overstep_tol,
-                    on_surface_tol, rk_tol, constraint_step_size, h_sizes_rect,
-                    const_rect_file, ref_rel_diff);
-
-                /*
-                // Rect Inhomogeneous field with no gradient
-                evaluate_jacobian_difference<inhom_field_rect_propagator_t>(
-                    track_count, rect_det, rect_bparam, inhom_bfield,
-                    vacuum<scalar>(), overstep_tol, on_surface_tol, rk_tol,
-                    constraint_step_size, h_sizes_rect,
-                    inhom_rect_no_gradient_file, ref_rel_diff, false);
-                */
+                    on_surface_tol, rk_tol_jac, constraint_step_size,
+                    h_sizes_rect, const_rect_file, ref_rel_diff);
 
                 // Rect Inhomogeneous field
                 evaluate_jacobian_difference<inhom_field_rect_propagator_t>(
                     track_count, rect_det, detector_length, rect_bparam,
                     inhom_bfield, vacuum<scalar>(), overstep_tol,
-                    on_surface_tol, rk_tol, constraint_step_size, h_sizes_rect,
-                    inhom_rect_file, ref_rel_diff);
+                    on_surface_tol, rk_tol_jac, constraint_step_size,
+                    h_sizes_rect, inhom_rect_file, ref_rel_diff);
 
                 // Rectangle Inhomogeneous field with Material
                 evaluate_jacobian_difference<inhom_field_rect_propagator_t>(
                     track_count, rect_det, detector_length, rect_bparam,
                     inhom_bfield, volume_mat, overstep_tol, on_surface_tol,
-                    rk_tol, constraint_step_size, h_sizes_rect,
+                    rk_tol_jac, constraint_step_size, h_sizes_rect,
                     inhom_rect_material_file, ref_rel_diff);
 
                 // Rectangle Inhomogeneous field with Material (Covariance
@@ -1705,7 +1683,7 @@ int main(int argc, char** argv) {
                 evaluate_covariance_transport<inhom_field_rect_propagator_t>(
                     track_count, rect_det, detector_length, rect_bparam,
                     inhom_bfield, volume_mat, overstep_tol, on_surface_tol,
-                    rk_tol, constraint_step_size, rect_cov_transport_file);
+                    rk_tol_cov, constraint_step_size, rect_cov_transport_file);
             }
         }
 
@@ -1752,37 +1730,28 @@ int main(int argc, char** argv) {
                 evaluate_jacobian_difference<const_field_wire_propagator_t>(
                     track_count, wire_det, detector_length, wire_bparam,
                     const_bfield, vacuum<scalar>(), overstep_tol,
-                    on_surface_tol, rk_tol, constraint_step_size, h_sizes_wire,
-                    const_wire_file, ref_rel_diff);
-
-                /*
-                // Wire Inhomogeneous field with no gradient
-                evaluate_jacobian_difference<inhom_field_wire_propagator_t>(
-                    track_count, wire_det, wire_bparam, inhom_bfield,
-                    vacuum<scalar>(), overstep_tol, on_surface_tol, rk_tol,
-                    constraint_step_size, h_sizes_wire,
-                    inhom_wire_no_gradient_file, ref_rel_diff, false);
-                */
+                    on_surface_tol, rk_tol_jac, constraint_step_size,
+                    h_sizes_wire, const_wire_file, ref_rel_diff);
 
                 // Wire Inhomogeneous field
                 evaluate_jacobian_difference<inhom_field_wire_propagator_t>(
                     track_count, wire_det, detector_length, wire_bparam,
                     inhom_bfield, vacuum<scalar>(), overstep_tol,
-                    on_surface_tol, rk_tol, constraint_step_size, h_sizes_wire,
-                    inhom_wire_file, ref_rel_diff);
+                    on_surface_tol, rk_tol_jac, constraint_step_size,
+                    h_sizes_wire, inhom_wire_file, ref_rel_diff);
 
                 // Wire Inhomogeneous field with Material
                 evaluate_jacobian_difference<inhom_field_wire_propagator_t>(
                     track_count, wire_det, detector_length, wire_bparam,
                     inhom_bfield, volume_mat, overstep_tol, on_surface_tol,
-                    rk_tol, constraint_step_size, h_sizes_wire,
+                    rk_tol_jac, constraint_step_size, h_sizes_wire,
                     inhom_wire_material_file, ref_rel_diff);
 
                 // Wire Inhomogeneous field with Material (Covariance transport)
                 evaluate_covariance_transport<inhom_field_wire_propagator_t>(
                     track_count, wire_det, detector_length, wire_bparam,
                     inhom_bfield, volume_mat, overstep_tol, on_surface_tol,
-                    rk_tol, constraint_step_size, wire_cov_transport_file);
+                    rk_tol_cov, constraint_step_size, wire_cov_transport_file);
             }
         }
     }

@@ -15,6 +15,7 @@
 #include "detray/utils/ranges.hpp"
 
 // System include(s)
+#include <algorithm>
 #include <cmath>
 #include <type_traits>
 

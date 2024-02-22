@@ -137,9 +137,8 @@ detray::rk_stepper<magnetic_field_t, transform3_t, constraint_t, policy_t,
      *  [ Table for dqop_n/dqop1 ]
      *  dqop1/dqop1 = 1
      *  dqop2/dqop1 = 1 + h/2 * d(dqop1/ds)/dqop1
-     *  dqop3/dqop1 = 1 + h/2 * d(dqop1/ds)/dqop1 + h^2/4 d(d^2qop1/ds^2)/dqop1
-     *  dqop4/dqop1 = 1 + h * d(dqop1/ds)/dqop1 + h^2/2 d(d^2qop1/ds^2)/dqop1
-     *                + h^3/4 d(d^3qop1/ds^3)/dqop1
+     *  dqop3/dqop1 = 1 + h/2 * d(dqop2/ds)/dqop1
+     *  dqop4/dqop1 = 1 + h * d(dqop3/ds)/dqop1
      *
      *  [ Table for dt_n/dqop1 ]
      *  dt1/dqop1 = 0
@@ -176,31 +175,43 @@ detray::rk_stepper<magnetic_field_t, transform3_t, constraint_t, policy_t,
     /*---------------------------------------------------------------------------
      *  d(dqop_n/ds)/dqop1
      *
-     *  [ Table for dqop_n/ds ]
-     *  dqop1/ds = qop1^3 * E * (-dE/ds) / q^2
-     *  dqop2/ds = d(qop1 + h/2 * dqop1/ds)/ds = dqop1/ds + h/2 * d^2(qop1)/ds^2
-     *  dqop3/ds = d(qop1 + h/2 * dqop2/ds)/ds = dqop1/ds + h/2 * d^2(qop2)/ds^2
-     *  dqop4/ds = d(qop1 + h * dqop3/ds)/ds = dqop1/ds + h * d^2(qop3)/ds^2
+     *  Useful equation:
+     *  dqop/ds = qop^3 * E * (-dE/ds) / q^2 = - qop^3 * E g / q^2
+
+     *  [ Table for d(dqop_n/ds)/dqop1 ]
+     *  d(dqop1/ds)/dqop1 = dqop1/ds * (1/qop * (3 - p^2/E^2) + 1/g1 * dg1dqop1
+     *  d(dqop2/ds)/dqop1 = d(dqop2/ds)/dqop2 * (1 + h/2 * d(dqop1/ds)/dqop1)
+     *  d(dqop3/ds)/dqop1 = d(dqop3/ds)/dqop3 * (1 + h/2 * d(dqop2/ds)/dqop1)
+     *  d(dqop4/ds)/dqop1 = d(dqop4/ds)/dqop4 * (1 + h * d(dqop3/ds)/dqop1)
     ---------------------------------------------------------------------------*/
 
     if (!cfg.use_eloss_gradient) {
         getter::element(D, e_free_qoverp, e_free_qoverp) = 1.f;
     } else {
         // Pre-calculate dqop_n/dqop1
-        // Note that terms with d^2/ds^2 or d^3/ds^3 are ignored
         const scalar_type d2qop1dsdqop1 = this->d2qopdsdqop(sd.qop[0u]);
+
         dqopn_dqop[0u] = 1.f;
         dqopn_dqop[1u] = 1.f + half_h * d2qop1dsdqop1;
-        dqopn_dqop[2u] = dqopn_dqop[1u];
-        dqopn_dqop[3u] = 1.f + h * d2qop1dsdqop1;
+
+        const scalar_type d2qop2dsdqop1 =
+            this->d2qopdsdqop(sd.qop[1u]) * (1.f + half_h * d2qop1dsdqop1);
+        dqopn_dqop[2u] = 1.f + half_h * d2qop2dsdqop1;
+
+        const scalar_type d2qop3dsdqop1 =
+            this->d2qopdsdqop(sd.qop[2u]) * (1.f + half_h * d2qop2dsdqop1);
+        dqopn_dqop[3u] = 1.f + h * d2qop3dsdqop1;
+
+        const scalar_type d2qop4dsdqop1 =
+            this->d2qopdsdqop(sd.qop[3u]) * (1.f + h * d2qop3dsdqop1);
 
         /*-----------------------------------------------------------------
          * Calculate the first terms of d(dqop_n/ds)/dqop1
         -------------------------------------------------------------------*/
 
-        // Note that terms with d^2/ds^2 are ignored
         getter::element(D, e_free_qoverp, e_free_qoverp) =
-            1.f + d2qop1dsdqop1 * h;
+            1.f + h_6 * (d2qop1dsdqop1 + 2.f * (d2qop2dsdqop1 + d2qop3dsdqop1) +
+                         d2qop4dsdqop1);
     }
 
     // Calculate in the case of not considering B field gradient
@@ -309,26 +320,26 @@ detray::rk_stepper<magnetic_field_t, transform3_t, constraint_t, policy_t,
             dqopn_dqop[1u] * vector::cross(sd.t[1u], sd.b_middle) +
             sd.qop[1u] * half_h * vector::cross(dkndqop[0u], sd.b_middle);
         dkndqop[1u] =
-            dkndqop[1u] +
+            dkndqop[1u] -
             sd.qop[1u] *
-                vector::cross(sd.t[1u], h2 * 0.125f * dBdr[1u] * dkndqop[0u]);
+                vector::cross(h2 * 0.125f * dBdr[1u] * dkndqop[0u], sd.t[1u]);
 
         // dk3/dqop1
         dkndqop[2u] =
             dqopn_dqop[2u] * vector::cross(sd.t[2u], sd.b_middle) +
             sd.qop[2u] * half_h * vector::cross(dkndqop[1u], sd.b_middle);
         dkndqop[2u] =
-            dkndqop[2u] +
+            dkndqop[2u] -
             sd.qop[2u] *
-                vector::cross(sd.t[2u], h2 * 0.125f * dBdr[2u] * dkndqop[0u]);
+                vector::cross(h2 * 0.125f * dBdr[2u] * dkndqop[0u], sd.t[2u]);
 
         // dk4/dqop1
         dkndqop[3u] = dqopn_dqop[3u] * vector::cross(sd.t[3u], sd.b_last) +
                       sd.qop[3u] * h * vector::cross(dkndqop[2u], sd.b_last);
         dkndqop[3u] =
-            dkndqop[3u] +
+            dkndqop[3u] -
             sd.qop[3u] *
-                vector::cross(sd.t[3u], h2 * 0.5f * dBdr[3u] * dkndqop[2u]);
+                vector::cross(h2 * 0.5f * dBdr[3u] * dkndqop[2u], sd.t[3u]);
 
         /*-----------------------------------------------------------------
          * Calculate all terms of dk_n/dr1
@@ -499,8 +510,36 @@ template <typename magnetic_field_t, typename transform3_t,
           template <typename, std::size_t> class array_t>
 DETRAY_HOST_DEVICE auto
 detray::rk_stepper<magnetic_field_t, transform3_t, constraint_t, policy_t,
+                   inspector_t, array_t>::state::dtds() const -> vector3 {
+
+    // In case there was no step before
+    if (this->_path_length == 0.f) {
+        const vector3 pos = this->_track.pos();
+
+        const auto bvec_tmp = this->_magnetic_field.at(pos[0], pos[1], pos[2]);
+        vector3 bvec;
+        bvec[0u] = bvec_tmp[0u];
+        bvec[1u] = bvec_tmp[1u];
+        bvec[2u] = bvec_tmp[2u];
+
+        return this->_track.qop() * vector::cross(this->_track.dir(), bvec);
+    }
+    return this->_step_data.dtds[3u];
+}
+
+template <typename magnetic_field_t, typename transform3_t,
+          typename constraint_t, typename policy_t, typename inspector_t,
+          template <typename, std::size_t> class array_t>
+DETRAY_HOST_DEVICE auto
+detray::rk_stepper<magnetic_field_t, transform3_t, constraint_t, policy_t,
                    inspector_t, array_t>::state::dqopds() const ->
     typename transform3_t::scalar_type {
+
+    // In case there was no step before
+    if (this->_path_length == 0.f) {
+        return this->dqopds(this->_track.qop());
+    }
+
     return this->_step_data.dqopds[3u];
 }
 
