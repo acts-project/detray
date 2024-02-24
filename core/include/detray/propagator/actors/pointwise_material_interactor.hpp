@@ -35,6 +35,7 @@ struct pointwise_material_interactor : actor {
     struct state {
         using vector3 = __plugin::vector3<scalar>;
 
+        /// @TODO: Consider using the particle information in stepping::config
         /// The particle mass
         scalar_type mass{105.7f * unit<scalar_type>::MeV};
         /// The particle pdg
@@ -87,8 +88,9 @@ struct pointwise_material_interactor : actor {
 
             // Energy Loss
             if (s.do_energy_loss) {
-                s.e_loss = interaction_type().compute_energy_loss_bethe(
-                    path_segment, mat.get_material(), s.mass, qop, charge);
+                s.e_loss = interaction_type().compute_energy_loss_bethe_bloch(
+                    path_segment, mat.get_material(), s.pdg, s.mass, qop,
+                    charge);
             }
 
             // @todo: include the radiative loss (Bremsstrahlung)
