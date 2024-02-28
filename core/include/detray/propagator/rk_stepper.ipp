@@ -195,15 +195,15 @@ detray::rk_stepper<magnetic_field_t, transform3_t, constraint_t, policy_t,
         dqopn_dqop[1u] = 1.f + half_h * d2qop1dsdqop1;
 
         const scalar_type d2qop2dsdqop1 =
-            this->d2qopdsdqop(sd.qop[1u]) * (1.f + half_h * d2qop1dsdqop1);
+            this->d2qopdsdqop(sd.qop[1u]) * dqopn_dqop[1u];
         dqopn_dqop[2u] = 1.f + half_h * d2qop2dsdqop1;
 
         const scalar_type d2qop3dsdqop1 =
-            this->d2qopdsdqop(sd.qop[2u]) * (1.f + half_h * d2qop2dsdqop1);
+            this->d2qopdsdqop(sd.qop[2u]) * dqopn_dqop[2u];
         dqopn_dqop[3u] = 1.f + h * d2qop3dsdqop1;
 
         const scalar_type d2qop4dsdqop1 =
-            this->d2qopdsdqop(sd.qop[3u]) * (1.f + h * d2qop3dsdqop1);
+            this->d2qopdsdqop(sd.qop[3u]) * dqopn_dqop[3u];
 
         /*-----------------------------------------------------------------
          * Calculate the first terms of d(dqop_n/ds)/dqop1
