@@ -96,7 +96,7 @@ struct relativistic_quantities {
     /// @return the bethe_log_term of bethe equation,
     /// @brief bethe_log_term = 1/2 ln ( 2m_e c^2 beta^2 gamma^2 W_max/ I^2)
     DETRAY_HOST_DEVICE scalar_type
-    compute_bethe_log_term(const material<scalar_type>& mat) const {
+    compute_bethe_bloch_log_term(const material<scalar_type>& mat) const {
         const scalar_type I = mat.mean_excitation_energy();
 
         assert(I != 0.f);
@@ -109,7 +109,7 @@ struct relativistic_quantities {
 
     /// @return d(bethe_log_term)/dqop
     /// @brief  dA/dqop = - 1 / (2 * qop) * [4 - W_max/ (gamma M c^2) ]
-    DETRAY_HOST_DEVICE scalar_type derive_bethe_log_term() const {
+    DETRAY_HOST_DEVICE scalar_type derive_bethe_bloch_log_term() const {
         assert(m_gamma != 0.f);
         assert(m_mass != 0.f);
         const scalar_type dAdqop =

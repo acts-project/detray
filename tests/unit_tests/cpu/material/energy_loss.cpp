@@ -47,7 +47,7 @@ TEST_P(EnergyLossBetheValidation, bethe_energy_loss) {
     const scalar path_segment{slab.path_segment(cos_inc_ang)};
 
     // muon
-    // constexpr int pdg = pdg_particle::eMuon;
+    constexpr int pdg = pdg_particle::eMuon;
 
     // mass
     constexpr scalar m{105.7f * unit<scalar>::MeV};
@@ -57,8 +57,8 @@ TEST_P(EnergyLossBetheValidation, bethe_energy_loss) {
 
     // Bethe Stopping power in MeV * cm^2 / g
     const scalar dEdx{
-        I.compute_energy_loss_bethe(path_segment, slab.get_material(), m,
-                                    qOverP, -1.f) /
+        I.compute_energy_loss_bethe_bloch(path_segment, slab.get_material(),
+                                          pdg, m, qOverP, -1.f) /
         path_segment / slab.get_material().mass_density() /
         (unit<scalar>::MeV * unit<scalar>::cm2 / unit<scalar>::g)};
 
@@ -401,8 +401,8 @@ TEST_P(LandauDistributionValidation, landau_distribution) {
     const scalar qOverP{q / p};
 
     // Bethe energy loss
-    const scalar dE{I.compute_energy_loss_bethe(
-        path_segment, slab.get_material(), m, qOverP, q)};
+    const scalar dE{I.compute_energy_loss_bethe_bloch(
+        path_segment, slab.get_material(), pdg, m, qOverP, q)};
 
     // Landau Energy loss
     const scalar mpv{I.compute_energy_loss_landau(

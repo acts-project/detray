@@ -25,20 +25,20 @@ struct interaction {
 
     // @returns the total stopping power
     DETRAY_HOST_DEVICE scalar_type compute_stopping_power(
-        const detray::material<scalar_type>& mat, const int /*pdg*/,
+        const detray::material<scalar_type>& mat, const int pdg,
         const relativistic_quantities& rq) const {
 
         scalar_type stopping_power{0.f};
-        stopping_power += compute_bethe(mat, rq);
+        stopping_power += compute_bethe_bloch(mat, pdg, rq);
         // In the future, consider sth like this:
         // stopping_power += compute_brems(mat, pdg, rq);
 
         return stopping_power;
     }
 
-    DETRAY_HOST_DEVICE scalar_type
-    compute_bethe(const detray::material<scalar_type>& mat,
-                  const relativistic_quantities& rq) const {
+    DETRAY_HOST_DEVICE scalar_type compute_bethe_bloch(
+        const detray::material<scalar_type>& mat, const int /*pdg*/,
+        const relativistic_quantities& rq) const {
 
         const scalar_t eps_per_length{rq.compute_epsilon_per_length(mat)};
         if (eps_per_length <= 0.f) {
@@ -46,13 +46,13 @@ struct interaction {
         }
 
         const scalar_t dhalf{rq.compute_delta_half(mat)};
-        const scalar_type A = rq.compute_bethe_log_term(mat);
+        const scalar_type A = rq.compute_bethe_bloch_log_term(mat);
         const scalar_t running{A - rq.m_beta2 - dhalf};
         return 2.f * eps_per_length * running;
     }
 
-    DETRAY_HOST_DEVICE scalar_type derive_bethe(
-        const detray::material<scalar_type>& mat,
+    DETRAY_HOST_DEVICE scalar_type derive_bethe_bloch(
+        const detray::material<scalar_type>& mat, const int /*pdg*/,
         const relativistic_quantities& rq, const scalar_type bethe) const {
 
         // (K/2) * (Z/A) * z^2 / beta^2 * density
@@ -83,7 +83,7 @@ struct interaction {
         const scalar_type first_term =
             2.f / (rq.m_qOverP * rq.m_gamma2) * bethe;
 
-        const scalar_type dAdqop = rq.derive_bethe_log_term();
+        const scalar_type dAdqop = rq.derive_bethe_bloch_log_term();
         const scalar_type dBdqop = rq.derive_beta2();
         const scalar_type dCdqop = rq.derive_delta_half(mat);
 
@@ -93,13 +93,14 @@ struct interaction {
         return first_term + second_term;
     }
 
-    DETRAY_HOST_DEVICE scalar_type compute_energy_loss_bethe(
+    DETRAY_HOST_DEVICE scalar_type compute_energy_loss_bethe_bloch(
         const scalar_type path_segment,
-        const detray::material<scalar_type>& mat, const scalar_type mass,
-        const scalar_type qop, const scalar_type q) const {
+        const detray::material<scalar_type>& mat, const int pdg,
+        const scalar_type mass, const scalar_type qop,
+        const scalar_type q) const {
 
         relativistic_quantities rq(mass, qop, q);
-        return path_segment * compute_bethe(mat, rq);
+        return path_segment * compute_bethe_bloch(mat, pdg, rq);
     }
 
     DETRAY_HOST_DEVICE scalar_type compute_energy_loss_landau(
