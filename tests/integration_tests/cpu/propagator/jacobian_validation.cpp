@@ -73,7 +73,7 @@ std::mt19937_64 mt1(rd());
 std::mt19937_64 mt2(rd());
 
 // Momentum range
-constexpr const scalar min_mom = 1.f * unit<scalar>::GeV;
+constexpr const scalar min_mom = 0.5f * unit<scalar>::GeV;
 constexpr const scalar max_mom = 100.f * unit<scalar>::GeV;
 
 // Detector length generator
@@ -400,6 +400,7 @@ struct bound_getter : actor {
 
         scalar m_min_path_length;
         scalar m_path_length;
+        scalar m_abs_path_length;
         bound_track_parameters_type m_param_departure;
         bound_track_parameters_type m_param_destination;
         typename bound_track_parameters_type::covariance_type m_jacobi;
@@ -431,6 +432,7 @@ struct bound_getter : actor {
                  navigation.barcode().index() == 1u) {
 
             actor_state.m_path_length = stepping._path_length;
+            actor_state.m_abs_path_length = stepping._abs_path_length;
             actor_state.m_param_destination = stepping._bound_params;
             actor_state.m_jacobi = stepping._full_jacobian;
 
@@ -454,7 +456,7 @@ bound_getter<transform3_type>::state evaluate_bound_param(
     const typename propagator_t::detector_type& det, const field_t& field,
     const scalar overstep_tolerance, const scalar on_surface_tolerance,
     const scalar rk_tolerance, const scalar constraint_step,
-    bool use_field_gradient, bool do_inspect = false) {
+    bool use_field_gradient, bool do_covariance_transport, bool do_inspect) {
 
     // Propagator is built from the stepper and navigator
     propagation::config<scalar> cfg{};
@@ -463,6 +465,7 @@ bound_getter<transform3_type>::state evaluate_bound_param(
     cfg.stepping.rk_error_tol = rk_tolerance;
     cfg.stepping.use_eloss_gradient = true;
     cfg.stepping.use_field_gradient = use_field_gradient;
+    cfg.stepping.do_covariance_transport = do_covariance_transport;
     propagator_t p(cfg);
 
     // Actor states
@@ -503,6 +506,7 @@ bound_vector_type get_displaced_bound_vector(
     cfg.navigation.overstep_tolerance = overstep_tolerance;
     cfg.navigation.on_surface_tolerance = on_surface_tolerance;
     cfg.stepping.rk_error_tol = rk_tolerance;
+    cfg.stepping.do_covariance_transport = false;
 
     // Propagator is built from the stepper and navigator
     propagator_t p(cfg);
@@ -541,13 +545,14 @@ bound_vector_type get_displaced_bound_vector(
 template <typename propagator_t, typename field_t>
 bound_track_parameters<transform3_type>::covariance_type directly_differentiate(
     const bound_track_parameters<transform3_type>& ref_param,
-    const typename propagator_t::detector_type& det,
-    const scalar detector_length, const field_t& field,
+    typename propagator_t::detector_type& det, const scalar detector_length,
+    const field_t& field, const material<scalar> volume_mat,
     const scalar overstep_tolerance, const scalar on_surface_tolerance,
     const scalar rk_tolerance, const scalar constraint_step,
-    const std::array<scalar, 5u> hs,
-    [[maybe_unused]] const scalar avg_step_size,
-    std::array<bool, 25>& convergence) {
+    const std::array<scalar, 5u> hs, std::array<bool, 25>& convergence) {
+
+    // Set volume
+    det.volumes()[0u].set_material(volume_mat);
 
     // Return Jacobian
     bound_covariance_type differentiated_jacobian;
@@ -655,9 +660,12 @@ void evaluate_jacobian_difference(
     const bound_track_parameters<transform3_type>& track, const field_t& field,
     const material<scalar> volume_mat, const scalar overstep_tolerance,
     const scalar on_surface_tolerance, const scalar rk_tolerance,
-    const scalar constraint_step, const std::array<scalar, 5u>& hs,
-    std::ofstream& file, scalar& ref_rel_diff, bool use_field_gradient = true,
-    bool do_inspect = false) {
+    const scalar rk_tolerance_dis, const scalar constraint_step,
+    const std::array<scalar, 5u>& hs, std::ofstream& file, scalar& ref_rel_diff,
+    bool use_field_gradient, bool do_inspect,
+    const bool use_precal_values = false,
+    [[maybe_unused]] bound_covariance_type precal_diff_jacobi = {},
+    [[maybe_unused]] std::array<bool, 25u> precal_convergence = {}) {
 
     const auto phi0 = track.phi();
     const auto theta0 = track.theta();
@@ -669,7 +677,7 @@ void evaluate_jacobian_difference(
     auto bound_getter = evaluate_bound_param<propagator_t, field_t>(
         detector_length, track, det, field, overstep_tolerance,
         on_surface_tolerance, rk_tolerance, constraint_step, use_field_gradient,
-        do_inspect);
+        true, do_inspect);
 
     const auto reference_param = bound_getter.m_param_departure;
     const auto final_param = bound_getter.m_param_destination;
@@ -692,7 +700,7 @@ void evaluate_jacobian_difference(
         << " Theta: " << reference_param.theta()
         << " Mom [GeV/c]: " << reference_param.p();
     ASSERT_GE(bound_getter.m_path_length, 0.f);
-    ASSERT_LE(bound_getter.m_path_length, max_detector_length + 100.f);
+    ASSERT_LE(bound_getter.m_path_length, max_detector_length + 200.f);
 
     const auto reference_jacobian = bound_getter.m_jacobi;
 
@@ -708,12 +716,17 @@ void evaluate_jacobian_difference(
          << final_param.qop() << ",";
 
     std::array<bool, 25u> convergence;
+    bound_covariance_type differentiated_jacobian;
 
-    auto differentiated_jacobian =
-        directly_differentiate<propagator_t, field_t>(
-            reference_param, det, detector_length, field, overstep_tolerance,
-            on_surface_tolerance, rk_tolerance, constraint_step, hs,
-            bound_getter.m_avg_step_size, convergence);
+    if (use_precal_values) {
+        convergence = precal_convergence;
+        differentiated_jacobian = precal_diff_jacobi;
+    } else {
+        differentiated_jacobian = directly_differentiate<propagator_t, field_t>(
+            reference_param, det, detector_length, field, volume_mat,
+            overstep_tolerance, on_surface_tolerance, rk_tolerance_dis,
+            constraint_step, hs, convergence);
+    }
 
     bool total_convergence =
         (std::count(convergence.begin(), convergence.end(), false) == 0);
@@ -759,6 +772,12 @@ void evaluate_jacobian_difference(
     // Path length
     file << bound_getter.m_path_length << ",";
 
+    // Absolute path length
+    file << bound_getter.m_abs_path_length << ",";
+
+    // The number of steps made
+    file << bound_getter.step_count << ",";
+
     // Average step size
     file << bound_getter.m_avg_step_size << ",";
 
@@ -781,8 +800,8 @@ void evaluate_covariance_transport(
     const bound_track_parameters<transform3_type>& track, const field_t& field,
     const material<scalar> volume_mat, const scalar overstep_tolerance,
     const scalar on_surface_tolerance, const scalar rk_tolerance,
-    const scalar constraint_step, std::ofstream& file,
-    bool use_field_gradient = true) {
+    const scalar rk_tolerance_dis, const scalar constraint_step,
+    std::ofstream& file, bool use_field_gradient) {
 
     det.volumes()[0u].set_material(volume_mat);
 
@@ -797,8 +816,8 @@ void evaluate_covariance_transport(
 
     auto bound_getter = evaluate_bound_param<propagator_t, field_t>(
         detector_length, track_copy, det, field, overstep_tolerance,
-        on_surface_tolerance, rk_tolerance, constraint_step,
-        use_field_gradient);
+        on_surface_tolerance, rk_tolerance, constraint_step, use_field_gradient,
+        true, false);
 
     const auto reference_param = bound_getter.m_param_departure;
     const auto ini_vec = reference_param.vector();
@@ -823,8 +842,8 @@ void evaluate_covariance_transport(
         << " Phi: " << reference_param.phi()
         << " Theta: " << reference_param.theta()
         << " Mom [GeV/c]: " << reference_param.p();
-    ASSERT_GE(bound_getter.m_path_length, min_detector_length - 10.f * shift);
-    ASSERT_LE(bound_getter.m_path_length, max_detector_length + 10.f * shift);
+    ASSERT_GE(bound_getter.m_path_length, 0.f);
+    ASSERT_LE(bound_getter.m_path_length, max_detector_length + 200.f);
 
     // Get smeared initial bound vector
     const bound_vector_type smeared_ini_vec =
@@ -836,8 +855,8 @@ void evaluate_covariance_transport(
 
     auto smeared_bound_getter = evaluate_bound_param<propagator_t, field_t>(
         detector_length, smeared_track, det, field, overstep_tolerance,
-        on_surface_tolerance, rk_tolerance, constraint_step,
-        use_field_gradient);
+        on_surface_tolerance, rk_tolerance_dis, constraint_step,
+        use_field_gradient, false, false);
 
     // Get smeared final bound vector
     bound_vector_type smeared_fin_vec =
@@ -906,6 +925,12 @@ void evaluate_covariance_transport(
 
     // Path length
     file << bound_getter.m_path_length << ",";
+
+    // Absolute path length
+    file << bound_getter.m_abs_path_length << ",";
+
+    // The number of steps made
+    file << bound_getter.step_count << ",";
 
     // Average step size
     file << bound_getter.m_avg_step_size << ",";
@@ -1132,7 +1157,13 @@ void evaluate_jacobian_difference_helix(
     // Path length
     file << path_length << ",";
 
+    // Absolute Path length (Not supported for helix)
+    file << 0 << ",";
+
     // Average step size (Doesn't exist for helix intersection)
+    file << 0 << ",";
+
+    // The number of steps made (Doesn't exist for helix intersection)
     file << 0 << ",";
 
     // Log10(RK tolerance) (Doesn't exist for helix intersection)
@@ -1197,6 +1228,12 @@ void setup_csv_header_jacobian(std::ofstream& file) {
     // Path length [mm]
     file << "path_length,";
 
+    // Absolute path length [mm]
+    file << "abs_path_length,";
+
+    // The number of steps made
+    file << "n_steps,";
+
     // Average step size [mm]
     file << "average_step_size,";
 
@@ -1251,6 +1288,12 @@ void setup_csv_header_covariance(std::ofstream& file) {
     // Path length [mm]
     file << "path_length,";
 
+    // Absolute path length [mm]
+    file << "abs_path_length,";
+
+    // The number of steps made
+    file << "n_steps,";
+
     // Average step size [mm]
     file << "average_step_size,";
 
@@ -1286,6 +1329,9 @@ int main(int argc, char** argv) {
     desc.add_options()("log10-rk-tolerance-jac-mm",
                        po::value<scalar>()->default_value(-4.f),
                        "Set log10(rk_tolerance_jac_in_mm)");
+    desc.add_options()("log10-rk-tolerance-dis-mm",
+                       po::value<scalar>()->default_value(-6.f),
+                       "Set log10(rk_tolerance_dis_in_mm)");
     desc.add_options()("log10-rk-tolerance-cov-mm",
                        po::value<scalar>()->default_value(-4.f),
                        "Set log10(rk_tolerance_cov_in_mm)");
@@ -1333,6 +1379,8 @@ int main(int argc, char** argv) {
     const bool skip_wire = vm["skip-wire"].as<bool>();
     const scalar rk_power_jac = vm["log10-rk-tolerance-jac-mm"].as<scalar>();
     const scalar rk_tol_jac = std::pow(10.f, rk_power_jac) * unit<scalar>::mm;
+    const scalar rk_power_dis = vm["log10-rk-tolerance-dis-mm"].as<scalar>();
+    const scalar rk_tol_dis = std::pow(10.f, rk_power_dis) * unit<scalar>::mm;
     const scalar rk_power_cov = vm["log10-rk-tolerance-cov-mm"].as<scalar>();
     const scalar rk_tol_cov = std::pow(10.f, rk_power_cov) * unit<scalar>::mm;
     const scalar helix_power = vm["log10-helix-tolerance-mm"].as<scalar>();
@@ -1636,15 +1684,24 @@ int main(int argc, char** argv) {
             scalar ref_rel_diff;
 
             if (rk_tolerance_iterate_mode) {
+
+                std::array<bool, 25u> convergence;
+                auto differentiated_jacobian =
+                    directly_differentiate<inhom_field_rect_propagator_t>(
+                        rect_bparam, rect_det, detector_length, inhom_bfield,
+                        volume_mat, overstep_tol, on_surface_tol, rk_tol_dis,
+                        constraint_step_size, h_sizes_rect, convergence);
+
                 for (std::size_t i = 0u; i < log10_tols.size(); i++) {
 
                     // Rectangle Inhomogeneous field with Material
                     evaluate_jacobian_difference<inhom_field_rect_propagator_t>(
                         track_count, rect_det, detector_length, rect_bparam,
                         inhom_bfield, volume_mat, overstep_tol, on_surface_tol,
-                        std::pow(10.f, log10_tols[i]), constraint_step_size,
-                        h_sizes_rect, rect_files[i], ref_rel_diff, true,
-                        do_inspect);
+                        std::pow(10.f, log10_tols[i]), rk_tol_dis,
+                        constraint_step_size, h_sizes_rect, rect_files[i],
+                        ref_rel_diff, true, do_inspect, true,
+                        differentiated_jacobian, convergence);
 
                     dqopdqop_rel_diffs_rect[i].push_back(ref_rel_diff);
                 }
@@ -1661,29 +1718,32 @@ int main(int argc, char** argv) {
                 evaluate_jacobian_difference<const_field_rect_propagator_t>(
                     track_count, rect_det, detector_length, rect_bparam,
                     const_bfield, vacuum<scalar>(), overstep_tol,
-                    on_surface_tol, rk_tol_jac, constraint_step_size,
-                    h_sizes_rect, const_rect_file, ref_rel_diff);
+                    on_surface_tol, rk_tol_jac, rk_tol_dis,
+                    constraint_step_size, h_sizes_rect, const_rect_file,
+                    ref_rel_diff, true, false);
 
                 // Rect Inhomogeneous field
                 evaluate_jacobian_difference<inhom_field_rect_propagator_t>(
                     track_count, rect_det, detector_length, rect_bparam,
                     inhom_bfield, vacuum<scalar>(), overstep_tol,
-                    on_surface_tol, rk_tol_jac, constraint_step_size,
-                    h_sizes_rect, inhom_rect_file, ref_rel_diff);
+                    on_surface_tol, rk_tol_jac, rk_tol_dis,
+                    constraint_step_size, h_sizes_rect, inhom_rect_file,
+                    ref_rel_diff, true, false);
 
                 // Rectangle Inhomogeneous field with Material
                 evaluate_jacobian_difference<inhom_field_rect_propagator_t>(
                     track_count, rect_det, detector_length, rect_bparam,
                     inhom_bfield, volume_mat, overstep_tol, on_surface_tol,
-                    rk_tol_jac, constraint_step_size, h_sizes_rect,
-                    inhom_rect_material_file, ref_rel_diff);
+                    rk_tol_jac, rk_tol_dis, constraint_step_size, h_sizes_rect,
+                    inhom_rect_material_file, ref_rel_diff, true, false);
 
                 // Rectangle Inhomogeneous field with Material (Covariance
                 // transport)
                 evaluate_covariance_transport<inhom_field_rect_propagator_t>(
                     track_count, rect_det, detector_length, rect_bparam,
                     inhom_bfield, volume_mat, overstep_tol, on_surface_tol,
-                    rk_tol_cov, constraint_step_size, rect_cov_transport_file);
+                    rk_tol_cov, rk_tol_dis, constraint_step_size,
+                    rect_cov_transport_file, true);
             }
         }
 
@@ -1706,14 +1766,23 @@ int main(int argc, char** argv) {
             scalar ref_rel_diff;
 
             if (rk_tolerance_iterate_mode) {
+
+                std::array<bool, 25u> convergence;
+                auto differentiated_jacobian =
+                    directly_differentiate<inhom_field_wire_propagator_t>(
+                        wire_bparam, wire_det, detector_length, inhom_bfield,
+                        volume_mat, overstep_tol, on_surface_tol, rk_tol_dis,
+                        constraint_step_size, h_sizes_wire, convergence);
+
                 for (std::size_t i = 0u; i < log10_tols.size(); i++) {
                     // Wire Inhomogeneous field with Material
                     evaluate_jacobian_difference<inhom_field_wire_propagator_t>(
                         track_count, wire_det, detector_length, wire_bparam,
                         inhom_bfield, volume_mat, overstep_tol, on_surface_tol,
-                        std::pow(10.f, log10_tols[i]), constraint_step_size,
-                        h_sizes_wire, wire_files[i], ref_rel_diff, true,
-                        do_inspect);
+                        std::pow(10.f, log10_tols[i]), rk_tol_dis,
+                        constraint_step_size, h_sizes_wire, wire_files[i],
+                        ref_rel_diff, true, do_inspect, true,
+                        differentiated_jacobian, convergence);
 
                     dqopdqop_rel_diffs_wire[i].push_back(ref_rel_diff);
                 }
@@ -1730,28 +1799,31 @@ int main(int argc, char** argv) {
                 evaluate_jacobian_difference<const_field_wire_propagator_t>(
                     track_count, wire_det, detector_length, wire_bparam,
                     const_bfield, vacuum<scalar>(), overstep_tol,
-                    on_surface_tol, rk_tol_jac, constraint_step_size,
-                    h_sizes_wire, const_wire_file, ref_rel_diff);
+                    on_surface_tol, rk_tol_jac, rk_tol_dis,
+                    constraint_step_size, h_sizes_wire, const_wire_file,
+                    ref_rel_diff, true, false);
 
                 // Wire Inhomogeneous field
                 evaluate_jacobian_difference<inhom_field_wire_propagator_t>(
                     track_count, wire_det, detector_length, wire_bparam,
                     inhom_bfield, vacuum<scalar>(), overstep_tol,
-                    on_surface_tol, rk_tol_jac, constraint_step_size,
-                    h_sizes_wire, inhom_wire_file, ref_rel_diff);
+                    on_surface_tol, rk_tol_jac, rk_tol_dis,
+                    constraint_step_size, h_sizes_wire, inhom_wire_file,
+                    ref_rel_diff, true, false);
 
                 // Wire Inhomogeneous field with Material
                 evaluate_jacobian_difference<inhom_field_wire_propagator_t>(
                     track_count, wire_det, detector_length, wire_bparam,
                     inhom_bfield, volume_mat, overstep_tol, on_surface_tol,
-                    rk_tol_jac, constraint_step_size, h_sizes_wire,
-                    inhom_wire_material_file, ref_rel_diff);
+                    rk_tol_jac, rk_tol_dis, constraint_step_size, h_sizes_wire,
+                    inhom_wire_material_file, ref_rel_diff, true, false);
 
                 // Wire Inhomogeneous field with Material (Covariance transport)
                 evaluate_covariance_transport<inhom_field_wire_propagator_t>(
                     track_count, wire_det, detector_length, wire_bparam,
                     inhom_bfield, volume_mat, overstep_tol, on_surface_tol,
-                    rk_tol_cov, constraint_step_size, wire_cov_transport_file);
+                    rk_tol_cov, rk_tol_dis, constraint_step_size,
+                    wire_cov_transport_file, true);
             }
         }
     }

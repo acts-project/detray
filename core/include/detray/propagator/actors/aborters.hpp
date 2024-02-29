@@ -49,16 +49,19 @@ struct pathlimit_aborter : actor {
             return;
         }
 
+        const scalar step_limit =
+            abrt_state.path_limit() -
+            math::abs(prop_state._stepping._abs_path_length);
+
         // Check the path limit
-        abrt_state._path_limit -= math::abs(prop_state._stepping.step_size());
-        if (abrt_state.path_limit() <= 0) {
+        if (step_limit <= 0.f) {
             // Stop navigation
             prop_state._heartbeat &= nav_state.abort();
         }
 
         // Don't go over the path limit in the next step
         step_state.template set_constraint<step::constraint::e_aborter>(
-            abrt_state.path_limit());
+            step_limit);
     }
 };
 

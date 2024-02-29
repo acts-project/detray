@@ -128,6 +128,9 @@ class base_stepper {
         /// Track path length
         scalar _path_length{0.};
 
+        /// Absolute path length
+        scalar _abs_path_length{0.};
+
         /// Track path length from the last surface. It will be reset to 0 when
         /// the track reaches a new surface
         scalar _s{0.};
@@ -135,10 +138,16 @@ class base_stepper {
         /// Current step size
         scalar _step_size{0.};
 
+        /// Previous step size (DEBUG purpose only)
+        scalar _prev_step_size{0.};
+
         /// The particle mass
         scalar_type _mass{105.7f * unit<scalar_type>::MeV};
         /// The particle pdg
         int _pdg = 13;  // default muon
+
+        /// is step size just initialized
+        bool _initialized = true;
 
         /// Set new step constraint
         template <step::constraint type = step::constraint::e_actor>

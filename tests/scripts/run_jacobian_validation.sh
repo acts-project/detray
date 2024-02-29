@@ -16,6 +16,9 @@ n_tracks_per_thread=1000
 log10_min_rk_tol=-6
 log10_max_rk_tol=2
 
+# log10 rk tolerance for displaced track
+log10_rk_tol_dis=-6
+
 # log10 rk tolerance for jacobian comparision
 log10_rk_tol_jac=${log10_min_rk_tol}
 
@@ -39,7 +42,7 @@ skip_second_phase=false
 # Verbose level
 verbose_level=1
 
-while getopts "hd:n:t:c:p:q:i:s:f:r:v:" arg; do
+while getopts "hd:n:t:m:c:p:q:i:s:f:r:v:" arg; do
     case $arg in
         h)
             echo ""
@@ -49,6 +52,7 @@ while getopts "hd:n:t:c:p:q:i:s:f:r:v:" arg; do
             echo "Optonal arguments"
             echo "-n <Number of threads>"
             echo "-t <Number of tracks per thread>"
+            echo "-m <log10(rk_error_tolerance_in_mm_for_displaced_tracks)>"
             echo "-c <log10(rk_error_tolerance_in_mm_for_covariance_transport)>"
             echo "-p <log10(min_rk_error_tolerance_in_mm)>"
             echo "-q <log10(max_rk_error_tolerance_in_mm)>"
@@ -71,6 +75,10 @@ while getopts "hd:n:t:c:p:q:i:s:f:r:v:" arg; do
         t)
             n_tracks_per_thread=$OPTARG
             echo "Number of tracks per thread: ${n_tracks_per_thread}"
+        ;;
+        m)
+            log10_rk_tol_dis=$OPTARG
+            echo "log10(rk_error_tolerance_in_mm_for_displaced_tracks): ${log10_rk_tol_dis}"
         ;;
         c)
             log10_rk_tol_cov=$OPTARG
@@ -140,6 +148,7 @@ if [ "$skip_first_phase" = false ] ; then
         --rk-tolerance-iterate-mode=true \
         --n-tracks=${n_tracks_per_thread} \
         --n-skips=${n_skips} \
+        --log10-rk-tolerance-dis-mm=${log10_rk_tol_dis} \
         --log10-min-rk-tolerance-mm=${log10_min_rk_tol} \
         --log10-max-rk-tolerance-mm=${log10_max_rk_tol} \
         --log10-helix-tolerance-mm=${log10_helix_tol} \
@@ -171,6 +180,7 @@ if [ "$skip_second_phase" = false ] ; then
         --rk-tolerance-iterate-mode=false \
         --n-tracks=${n_tracks_per_thread} \
         --n-skips=${n_skips} \
+        --log10-rk-tolerance-dis-mm=${log10_rk_tol_dis} \
         --log10-rk-tolerance-jac-mm=${log10_rk_tol_jac} \
         --log10-rk-tolerance-cov-mm=${log10_rk_tol_cov} \
         --log10-helix-tolerance-mm=${log10_helix_tol} \

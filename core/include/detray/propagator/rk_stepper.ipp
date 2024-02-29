@@ -44,6 +44,7 @@ detray::rk_stepper<magnetic_field_t, transform3_t, constraint_t, policy_t,
 
     // Update path length
     this->_path_length += h;
+    this->_abs_path_length += math::abs(h);
     this->_s += h;
 }
 
@@ -634,6 +635,14 @@ DETRAY_HOST_DEVICE bool detray::rk_stepper<
     auto& magnetic_field = stepping._magnetic_field;
     auto& navigation = propagation._navigation;
 
+    if (stepping._step_size == 0.f) {
+        stepping._step_size = cfg.min_stepsize;
+    } else if (stepping._step_size > 0) {
+        stepping._step_size = math::min(stepping._step_size, navigation());
+    } else {
+        stepping._step_size = math::max(stepping._step_size, navigation());
+    }
+
     auto vol = detector_volume{*navigation.detector(), navigation.volume()};
     stepping._mat = vol.material();
 
@@ -654,7 +663,7 @@ DETRAY_HOST_DEVICE bool detray::rk_stepper<
     sd.dtds[0u] = stepping.evaluate_dtds(sd.b_first, 0u, 0.f,
                                          vector3{0.f, 0.f, 0.f}, sd.qop[0u]);
 
-    const auto try_rk4 = [&](const scalar_type& h) -> bool {
+    const auto estimate_error = [&](const scalar_type& h) -> scalar {
         // State the square and half of the step size
         const scalar_type h2{h * h};
         const scalar_type half_h{h * 0.5f};
@@ -702,50 +711,52 @@ DETRAY_HOST_DEVICE bool detray::rk_stepper<
         const vector3 err_vec =
             one_sixth * h2 *
             (sd.dtds[0u] - sd.dtds[1u] - sd.dtds[2u] + sd.dtds[3u]);
-        error_estimate =
-            math::max(getter::norm(err_vec), static_cast<scalar_type>(1e-20));
+        error_estimate = getter::norm(err_vec);
 
-        return (error_estimate <= cfg.rk_error_tol);
+        return error_estimate;
     };
 
-    // Initial step size estimate
-    stepping.set_step_size(navigation());
+    scalar error{1e20f};
 
-    scalar_type step_size_scaling{1.f};
-    std::size_t n_step_trials{0u};
+    // Whenever navigator::init() is called the step size is set to navigation
+    // path length (navigation()). We need to reduce it down to make error small
+    // enough
+    if (stepping._initialized) {
+        for (unsigned int i_t = 0u; i_t < cfg.max_rk_updates; i_t++) {
 
-    // Adjust initial step size to integration error
-    while (!try_rk4(stepping._step_size)) {
+            error = math::max(estimate_error(stepping._step_size),
+                              static_cast<scalar_type>(1e-20));
 
-        step_size_scaling = math::min(
-            math::max(static_cast<scalar>(0.25),
-                      math::sqrt(math::sqrt(
-                          (cfg.rk_error_tol / math::abs(error_estimate))))),
-            static_cast<scalar_type>(4));
+            // Error is small enough
+            // ---> break and advance track
+            if (error <= cfg.rk_error_tol) {
+                stepping._initialized = false;
+                break;
+            }
+            // Error estimate is too big
+            // ---> Make step size smaller and esimate error again
+            else {
 
-        // Only step size reduction is allowed so that we don't overstep
-        assert(step_size_scaling <= 1.f);
+                scalar step_size_scaling =
+                    math::sqrt(math::sqrt(cfg.rk_error_tol / error));
 
-        stepping._step_size *= step_size_scaling;
+                stepping._step_size *= step_size_scaling;
 
-        // If step size becomes too small the particle remains at the
-        // initial place
-        if (math::abs(stepping._step_size) < math::abs(cfg.min_stepsize)) {
-            // Not moving due to too low momentum needs an aborter
-            return navigation.abort();
+                // Run inspection while the stepsize is getting adjusted
+                stepping.run_inspector(cfg, "Adjust stepsize: ", i_t + 1,
+                                       step_size_scaling);
+            }
         }
+    } else {
+        stepping._initialized = false;
+        error = math::max(estimate_error(stepping._step_size),
+                          static_cast<scalar_type>(1e-20));
+    }
 
-        // If the parameter is off track too much or given step_size is not
-        // appropriate
-        if (n_step_trials > cfg.max_rk_updates) {
-            // Too many trials, have to abort
-            return navigation.abort();
-        }
-        n_step_trials++;
-
-        // Run inspection while the stepsize is getting adjusted
-        stepping.run_inspector(cfg, "Adjust stepsize: ", n_step_trials,
-                               step_size_scaling);
+    assert(stepping._initialized == false);
+    // If the stepper state is still in the initialized state, abort.
+    if (stepping._initialized == true) {
+        return navigation.abort();
     }
 
     // Update navigation direction
@@ -755,7 +766,7 @@ DETRAY_HOST_DEVICE bool detray::rk_stepper<
     stepping.set_direction(step_dir);
 
     // Check constraints
-    if (math::abs(stepping.step_size()) >
+    if (math::abs(stepping._step_size) >
         math::abs(
             stepping.constraints().template size<>(stepping.direction()))) {
 
@@ -770,10 +781,23 @@ DETRAY_HOST_DEVICE bool detray::rk_stepper<
     stepping.advance_track();
 
     // Advance jacobian transport
-    stepping.advance_jacobian(cfg);
+    if (cfg.do_covariance_transport) {
+        stepping.advance_jacobian(cfg);
+    }
 
     // Call navigation update policy
     typename rk_stepper::policy_type{}(stepping.policy_state(), propagation);
+
+    const scalar step_size_scaling = static_cast<scalar>(
+        math::min(math::max(math::sqrt(math::sqrt(cfg.rk_error_tol / error)),
+                            static_cast<scalar>(0.25)),
+                  static_cast<scalar>(4.)));
+
+    // Save the current step size
+    stepping._prev_step_size = stepping._step_size;
+
+    // Update the step size
+    stepping._step_size *= step_size_scaling;
 
     // Run final inspection
     stepping.run_inspector(cfg, "Step complete: ");

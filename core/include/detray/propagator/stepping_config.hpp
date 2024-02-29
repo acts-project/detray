@@ -41,6 +41,8 @@ struct config {
     bool use_eloss_gradient{false};
     /// Use b field gradient in error propagation
     bool use_field_gradient{false};
+    /// Do covariance transport
+    bool do_covariance_transport{true};
 };
 
 }  // namespace detray::stepping

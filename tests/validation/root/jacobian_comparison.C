@@ -153,6 +153,7 @@ TH1D* get_histogram(std::string name, const int n_labels,
     if (!TString(name).Contains("helix")) {
         log10_rk_tol = *rdf.Mean<double>("log10_rk_tolerance");
     }
+
     return histo;
 }
 
@@ -244,7 +245,7 @@ void jacobian_comparison() {
     helix_rect_histo->Draw("hist P same");
     rect_legend->AddEntry(helix_rect_histo, "Helix with a homogeneous field",
                           "p");
-
+    
     rect_legend->Draw();
     draw_text(rect_text);
     rect_canvas->Draw();

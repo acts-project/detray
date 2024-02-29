@@ -259,9 +259,8 @@ TEST_P(PropagatorWithRkStepper, rk4_propagator_const_bfield) {
             << lim_state.debug_stream.str() << std::endl;
         //<< lim_state._navigation.inspector().to_string() << std::endl;
 
-        ASSERT_TRUE(lim_state._stepping.path_length() <
-                    std::abs(path_limit) + tol)
-            << "path length: " << lim_state._stepping.path_length()
+        ASSERT_GE(std::abs(path_limit), lim_state._stepping._abs_path_length)
+            << "Absolute path length: " << lim_state._stepping._abs_path_length
             << ", path limit: " << path_limit << std::endl;
         //<< state._navigation.inspector().to_string() << std::endl;
 

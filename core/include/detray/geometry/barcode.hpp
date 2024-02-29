@@ -158,6 +158,7 @@ class barcode {
             os << names[i] << levels[i];
             writeSeparator = true;
         }
+        os << " ";
         return os;
     }
 };

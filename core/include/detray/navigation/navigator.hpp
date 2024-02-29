@@ -497,11 +497,16 @@ class navigator {
         // No unreachable candidates in cache after local navigation
         navigation.set_last(navigation.candidates().end());
         // Determine overall state of the navigation after updating the cache
-        update_navigation_state(cfg, navigation);
+        update_navigation_state(cfg, propagation);
         // If init was not successful, the propagation setup is broken
         if (navigation.trust_level() != navigation::trust_level::e_full) {
             navigation.m_heartbeat = false;
         }
+
+        auto &stepping = propagation._stepping;
+        stepping._step_size = navigation();
+        stepping._initialized = true;
+
         navigation.run_inspector(cfg, "Init complete: ");
 
         return navigation.m_heartbeat;
@@ -605,7 +610,7 @@ class navigator {
             }
 
             // Update navigation flow on the new candidate information
-            update_navigation_state(cfg, navigation);
+            update_navigation_state(cfg, propagation);
 
             navigation.run_inspector(cfg, "Update complete: high trust: ");
 
@@ -646,7 +651,7 @@ class navigator {
             // Ignore unreachable elements (needed to determine exhaustion)
             navigation.set_last(find_invalid(navigation.candidates()));
             // Update navigation flow on the new candidate information
-            update_navigation_state(cfg, navigation);
+            update_navigation_state(cfg, propagation);
 
             navigation.run_inspector(cfg, "Update complete: fair trust: ");
 
@@ -673,8 +678,13 @@ class navigator {
     ///
     /// @param track the track that belongs to the current propagation state
     /// @param propagation contains the stepper and navigator states
+    template <typename propagator_state_t>
     DETRAY_HOST_DEVICE inline void update_navigation_state(
-        const navigation::config<scalar_type> &cfg, state &navigation) const {
+        const navigation::config<scalar_type> &cfg,
+        propagator_state_t &propagation) const {
+
+        auto &navigation = propagation._navigation;
+        auto &stepping = propagation._stepping;
 
         // Check whether the track reached the current candidate. Might be a
         // portal, in which case the navigation needs to be re-initialized
@@ -686,6 +696,9 @@ class navigator {
             navigation.m_status = (navigation.current()->sf_desc.is_portal())
                                       ? navigation::status::e_on_portal
                                       : navigation::status::e_on_module;
+
+            stepping._step_size = navigation();
+            stepping._initialized = true;
         } else {
             // Otherwise the track is moving towards a surface
             navigation.m_status = navigation::status::e_towards_object;
