@@ -98,17 +98,26 @@ class line_stepper final
         // Get stepper and navigator states
         state& stepping = propagation._stepping;
         auto& navigation = propagation._navigation;
-        // Distance to next surface as fixed step size
-        scalar step_size = navigation();
+
+        if (stepping._step_size == 0.f) {
+            stepping._step_size = navigation();
+        } else if (stepping._step_size > 0) {
+            stepping._step_size = math::min(stepping._step_size, navigation());
+        } else {
+            stepping._step_size = math::max(stepping._step_size, navigation());
+        }
+
+        // Escape the initialized state
+        stepping._initialized = false;
 
         // Update navigation direction
-        const step::direction dir = step_size > 0.f
-                                        ? step::direction::e_forward
-                                        : step::direction::e_backward;
-        stepping.set_direction(dir);
+        const step::direction step_dir = stepping._step_size >= 0.f
+                                             ? step::direction::e_forward
+                                             : step::direction::e_backward;
+        stepping.set_direction(step_dir);
 
         // Check constraints
-        if (math::abs(step_size) >
+        if (math::abs(stepping.step_size()) >
             math::abs(
                 stepping.constraints().template size<>(stepping.direction()))) {
             // Run inspection before step size is cut
@@ -116,8 +125,6 @@ class line_stepper final
 
             stepping.set_step_size(
                 stepping.constraints().template size<>(stepping.direction()));
-        } else {
-            stepping.set_step_size(step_size);
         }
 
         // Update track state

@@ -294,7 +294,7 @@ struct propagator {
         }
 
         propagation.debug_stream << "step_size: " << std::setw(10)
-                                 << stepping._step_size << std::endl;
+                                 << stepping._prev_step_size << std::endl;
 
         propagation.debug_stream << std::setw(10)
                                  << detail::ray<transform3_type>(stepping())

@@ -53,6 +53,8 @@ double label_font_size = 0.045;
 double title_font_size = 0.045;
 double x_title_offset = 1.05;
 double y_title_offset = 1.05;
+double pull_min = -6.f;
+double pull_max = 6.f;
 
 }  // namespace
 
@@ -76,7 +78,7 @@ std::pair<std::array<double, 3u>, std::array<double, 3u>> fit_pull(
     TH1D* h_pull, std::array<double, 14u>& arr_pull) {
 
     // Function used for the fit.
-    TF1 gaus{"gaus", "gaus", -5.f, 5.f};
+    TF1 gaus{"gaus", "gaus", pull_min, pull_max};
     double fit_par[3];
     double fit_par_error[3];
 
@@ -242,7 +244,7 @@ void draw_pull(TH1D* h_pull, const std::string& title_text,
     set_xaxis_title(h_pull, pull_text_size);
     set_yaxis_title(h_pull, pull_text_size);
     const double y_axis_max = h_pull->GetEntries() * 20.f;
-    h_pull->GetYaxis()->SetRangeUser(1.f, y_axis_max);
+    h_pull->GetYaxis()->SetRangeUser(0.5f, y_axis_max);
     h_pull->GetXaxis()->SetLabelSize(label_font_size);
     h_pull->GetYaxis()->SetLabelSize(label_font_size);
     h_pull->GetXaxis()->SetTitleSize(title_font_size);
@@ -251,7 +253,7 @@ void draw_pull(TH1D* h_pull, const std::string& title_text,
     h_pull->GetXaxis()->SetTitleOffset(x_title_offset);
     h_pull->GetYaxis()->SetMaxDigits(1);
     h_pull->Draw();
-    TF1* gaus = new TF1(h_pull->GetName(), "gaus", -5., 5.);
+    TF1* gaus = new TF1(h_pull->GetName(), "gaus", pull_min, pull_max);
     gaus->SetParameters(fit_pars[0], fit_pars[1], fit_pars[2]);
     gaus->Draw("same");
 
@@ -322,8 +324,6 @@ void read_tree(TTree* t, const std::string& tag, const std::string& title) {
     const std::array<float, 2> cdim1{700, 500};
     const std::array<float, 2> cdim2{700, 500};
 
-    float pull_min = -5.f;
-    float pull_max = 5.f;
     int n_bins = 100;
 
     double pull_l0;
@@ -379,6 +379,8 @@ void read_tree(TTree* t, const std::string& tag, const std::string& title) {
     finfo_theta[10u] = 0;
     finfo_qop[10u] = 0;
 
+    unsigned int n_outliers{0u};
+
     // Fill the histograms
     for (int i = 0; i < t->GetEntries(); i++) {
         t->GetEntry(i);
@@ -389,6 +391,14 @@ void read_tree(TTree* t, const std::string& tag, const std::string& title) {
         h_qop->Fill(pull_qop);
         h_chi2->Fill(chi2);
         h_pval->Fill(ROOT::Math::chisquared_cdf_c(chi2, 5.f));
+
+        if ((pull_l0 < pull_min) || (pull_l0 > pull_max) ||
+            (pull_l1 < pull_min) || (pull_l1 > pull_max) ||
+            (pull_phi < pull_min) || (pull_phi > pull_max) ||
+            (pull_theta < pull_min) || (pull_theta > pull_max) ||
+            (pull_qop < pull_min) || (pull_qop > pull_max)) {
+            n_outliers++;
+        }
 
         if (abs(pull_l0) > 4) {
             finfo_l0[10u]++;
@@ -406,6 +416,8 @@ void read_tree(TTree* t, const std::string& tag, const std::string& title) {
             finfo_qop[10u]++;
         }
     }
+
+    std::cout << tag << " n outliers: " << n_outliers << std::endl;
 
     finfo_l0[11u] = double(finfo_l0[10u]) / double(t->GetEntries());
     finfo_l1[11u] = double(finfo_l1[10u]) / double(t->GetEntries());

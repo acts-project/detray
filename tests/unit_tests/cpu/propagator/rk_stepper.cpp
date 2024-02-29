@@ -64,6 +64,10 @@ struct nav_state {
         return m_det.get();
     }
     inline auto volume() -> unsigned int { return 0u; }
+    inline auto set_material(material<scalar> mat) -> void {
+        auto &vols = m_det->volumes();
+        vols[0u].set_material(mat);
+    }
     inline void set_full_trust() {}
     inline void set_high_trust() {}
     inline void set_fair_trust() {}
@@ -139,8 +143,9 @@ GTEST_TEST(detray_propagator, rk_stepper) {
                     0.5f * unit<scalar>::mm, tol);
 
         // Reset step size in the navigation state to a positive value
-        n_state.m_step_size = 1.f * unit<scalar>::mm;
-        cn_state.m_step_size = 1.f * unit<scalar>::mm;
+        propagation._stepping.set_step_size(1.f * unit<scalar>::mm);
+        c_propagation._stepping.set_step_size(1.f * unit<scalar>::mm);
+
         for (unsigned int i_s = 0u; i_s < rk_steps; i_s++) {
             rk_stepper.step(propagation);
             crk_stepper.step(c_propagation);
@@ -238,8 +243,8 @@ TEST(detray_propagator, rk_stepper_inhomogeneous_bfield) {
         ASSERT_NEAR(crk_state.constraints().template size<>(),
                     0.5f * unit<scalar>::mm, tol);
 
-        n_state.m_step_size = 1.f * unit<scalar>::mm;
-        cn_state.m_step_size = 1.f * unit<scalar>::mm;
+        propagation._stepping.set_step_size(1.f * unit<scalar>::mm);
+        c_propagation._stepping.set_step_size(1.f * unit<scalar>::mm);
         for (unsigned int i_s = 0u; i_s < rk_steps; i_s++) {
             rk_stepper.step(propagation);
             crk_stepper.step(c_propagation);
@@ -274,5 +279,66 @@ TEST(detray_propagator, rk_stepper_inhomogeneous_bfield) {
         ASSERT_NEAR(getter::norm(rk_state().pos() - crk_state().pos()) /
                         (2.f * path_length),
                     0.f, tol);
+    }
+}
+
+/// This tests dqop of the Runge-Kutta stepper
+TEST(detray_propagator, qop_derivative) {
+    using namespace step;
+
+    // Constant magnetic field
+    using bfield_t = bfield::const_field_t;
+
+    vector3 B{0.f * unit<scalar>::T, 0.f * unit<scalar>::T,
+              2.f * unit<scalar>::T};
+    const bfield_t hom_bfield = bfield::create_const_field(B);
+
+    // RK stepper
+    rk_stepper_t<bfield_t> rk_stepper;
+    constexpr unsigned int rk_steps = 1000u;
+
+    // Theta phi for track generator
+    const scalar p_mag{10.f * unit<scalar>::GeV};
+    constexpr unsigned int theta_steps = 10u;
+    constexpr unsigned int phi_steps = 10u;
+
+    const scalar ds = 1e-2f * unit<scalar>::mm;
+
+    // Iterate through uniformly distributed momentum directions
+    for (auto track :
+         uniform_track_generator<free_track_parameters<transform3>>(
+             phi_steps, theta_steps, p_mag)) {
+
+        // RK Stepping into forward direction
+        prop_state<rk_stepper_t<bfield_t>::state, nav_state> propagation{
+            rk_stepper_t<bfield_t>::state{track, hom_bfield},
+            nav_state{host_mr}};
+
+        // Retrieve the stepper and navigation state
+        rk_stepper_t<bfield_t>::state &rk_state = propagation._stepping;
+        nav_state &n_state = propagation._navigation;
+
+        // Set material
+        rk_state._mat = detray::cesium_iodide_with_ded<scalar>();
+        n_state.set_material(detray::cesium_iodide_with_ded<scalar>());
+
+        for (unsigned int i_s = 0u; i_s < rk_steps; i_s++) {
+
+            const scalar qop1 = rk_state().qop();
+            const scalar d2qopdsdqop = rk_state.d2qopdsdqop(qop1);
+
+            const scalar dqopds1 = rk_state.dqopds(qop1);
+
+            rk_state.set_step_size(ds);
+            rk_state._initialized = false;
+            rk_stepper.step(propagation);
+
+            const scalar qop2 = rk_state().qop();
+            const scalar dqopds2 = rk_state.dqopds(qop2);
+
+            ASSERT_TRUE(qop1 > qop2);
+            ASSERT_NEAR((qop2 - qop1) / ds, dqopds1, 1e-4);
+            ASSERT_NEAR((dqopds2 - dqopds1) / (qop2 - qop1), d2qopdsdqop, 1e-4);
+        }
     }
 }
