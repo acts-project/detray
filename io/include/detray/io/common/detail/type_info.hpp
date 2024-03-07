@@ -34,7 +34,7 @@ constexpr io::shape_id get_id() {
     using shape_registry =
         type_registry<io::shape_id, annulus2D, cuboid3D, cylinder2D, cylinder3D,
                       concentric_cylinder2D, rectangle2D, ring2D, trapezoid2D,
-                      line<true>, line<false>, single3D<0>, single3D<1>,
+                      wire_cell, straw_tube, single3D<0>, single3D<1>,
                       single3D<2>>;
 
     // Find the correct shape IO id;
@@ -170,9 +170,9 @@ struct mask_info<
 template <typename detector_t>
 struct mask_info<io::shape_id::cell_wire, detector_t,
                  std::enable_if_t<detector_t::masks::template is_defined<
-                                      mask<line<true>, std::uint_least16_t>>(),
+                                      mask<wire_cell, std::uint_least16_t>>(),
                                   void>> {
-    using type = line<true>;
+    using type = wire_cell;
     static constexpr typename detector_t::masks::id value{
         detector_t::masks::id::e_cell_wire};
 };
@@ -181,9 +181,9 @@ struct mask_info<io::shape_id::cell_wire, detector_t,
 template <typename detector_t>
 struct mask_info<io::shape_id::straw_wire, detector_t,
                  std::enable_if_t<detector_t::masks::template is_defined<
-                                      mask<line<false>, std::uint_least16_t>>(),
+                                      mask<straw_tube, std::uint_least16_t>>(),
                                   void>> {
-    using type = line<false>;
+    using type = straw_tube;
     static constexpr typename detector_t::masks::id value{
         detector_t::masks::id::e_straw_wire};
 };

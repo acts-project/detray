@@ -178,4 +178,9 @@ class line {
     }
 };
 
+// Radial crossection, boundary check in polar coordiantes
+using straw_tube = line<false>;
+// Square crossection, boundary check in cartesian coordiantes
+using wire_cell = line<true>;
+
 }  // namespace detray

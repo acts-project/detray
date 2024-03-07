@@ -207,8 +207,8 @@ inline auto create_telescope_detector(
         material_data<scalar>{cfg.mat_thickness(), cfg.module_material()});
 
     using material_id = typename detector_t::materials::id;
-    constexpr bool is_line{std::is_same_v<mask_shape_t, detray::line<true>> ||
-                           std::is_same_v<mask_shape_t, detray::line<false>>};
+    constexpr bool is_line{std::is_same_v<mask_shape_t, detray::wire_cell> ||
+                           std::is_same_v<mask_shape_t, detray::straw_tube>};
     const auto mat_id = is_line ? material_id::e_rod : material_id::e_slab;
 
     auto tel_mat_generator =
