@@ -42,7 +42,7 @@ using detector_t = detector<toy_metadata>;
 }  // anonymous namespace
 
 /// Unittest: Test the construction of a collection of grids
-GTEST_TEST(detray_tools, grid_factory_static) {
+GTEST_TEST(detray_builders, grid_factory_static) {
 
     // Data-owning grid collection
     vecmem::host_memory_resource host_mr;
@@ -139,7 +139,7 @@ GTEST_TEST(detray_tools, grid_factory_static) {
 }
 
 /// Unittest: Test the construction of a collection of grids
-GTEST_TEST(detray_tools, grid_factory_dynamic) {
+GTEST_TEST(detray_builders, grid_factory_dynamic) {
 
     // Data-owning grid collection
     vecmem::host_memory_resource host_mr;
@@ -303,7 +303,7 @@ GTEST_TEST(detray_tools, grid_factory_dynamic) {
 }
 
 /// Unittest: Test the grid builder
-GTEST_TEST(detray_tools, grid_builder) {
+GTEST_TEST(detray_builders, grid_builder) {
 
     // cylinder grid type of the toy detector
     using cyl_grid_t = grid<axes<concentric_cylinder2D>,

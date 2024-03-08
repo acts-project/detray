@@ -19,7 +19,8 @@
 
 namespace detray {
 
-/// @brief Generic, flat shape without boundaries.
+/// @brief Generic shape without boundaries.
+template <std::size_t DIM = 2>
 class unmasked {
     public:
     /// The name for this shape
@@ -32,7 +33,7 @@ class unmasked {
     using local_frame_type = cartesian2<algebra_t>;
 
     /// Dimension of the local coordinate system
-    static constexpr std::size_t dim{2u};
+    static constexpr std::size_t dim{DIM};
 
     /// @brief Check boundary values for a local point.
     ///
@@ -46,6 +47,48 @@ class unmasked {
         const bounds_t& /*bounds*/, const point_t& /*loc_p*/,
         const scalar_t /*tol*/) const {
         return true;
+    }
+
+    /// @brief Measure of the shape: Inf
+    ///
+    /// @param bounds the boundary values for this shape
+    ///
+    /// @returns Inf.
+    template <template <typename, std::size_t> class bounds_t,
+              typename scalar_t, std::size_t kDIM>
+    DETRAY_HOST_DEVICE constexpr scalar_t measure(
+        const bounds_t<scalar_t, kDIM>& bounds) const {
+        if constexpr (dim == 2) {
+            return area(bounds);
+        } else {
+            return volume(bounds);
+        }
+    }
+
+    /// @brief The area of a the shape
+    ///
+    /// @param bounds the boundary values for this shape
+    ///
+    /// @returns the stereo annulus area.
+    template <template <typename, std::size_t> class bounds_t,
+              typename scalar_t, std::size_t kDIM, std::size_t D = dim,
+              std::enable_if_t<D == 2, bool> = true>
+    DETRAY_HOST_DEVICE constexpr scalar_t area(
+        const bounds_t<scalar_t, kDIM>&) const {
+        return std::numeric_limits<scalar_t>::max();
+    }
+
+    /// @brief The volume of a the shape
+    ///
+    /// @param bounds the boundary values for this shape
+    ///
+    /// @returns Inf.
+    template <template <typename, std::size_t> class bounds_t,
+              typename scalar_t, std::size_t kDIM, std::size_t D = dim,
+              std::enable_if_t<D == 3, bool> = true>
+    DETRAY_HOST_DEVICE constexpr scalar_t volume(
+        const bounds_t<scalar_t, kDIM>&) const {
+        return std::numeric_limits<scalar_t>::max();
     }
 
     /// @brief Lower and upper point for minimal axis aligned bounding box.

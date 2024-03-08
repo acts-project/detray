@@ -41,7 +41,7 @@ using detector_t = detector<toy_metadata>;
 }  // anonymous namespace
 
 /// Integration test: grid builder as volume builder decorator
-GTEST_TEST(detray_tools, decorator_grid_builder) {
+GTEST_TEST(detray_builders, decorator_grid_builder) {
 
     using transform3 = typename detector_t::transform3;
     using geo_obj_id = typename detector_t::geo_obj_ids;

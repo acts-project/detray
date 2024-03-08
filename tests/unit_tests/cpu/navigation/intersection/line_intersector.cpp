@@ -31,7 +31,7 @@ using vector3 = test::vector3;
 using point3 = test::point3;
 using point2 = test::point2;
 using intersection_t = intersection2D<surface_descriptor<>, transform3>;
-using line_intersector_type = ray_intersector<straw_tube, transform3>;
+using line_intersector_type = ray_intersector<line_circular, transform3>;
 
 constexpr scalar tol{1e-5f};
 
@@ -50,8 +50,8 @@ GTEST_TEST(detray_intersection, line_intersector_case1) {
                       -1.f);
 
     // Infinite wire with 10 mm radial cell size
-    const mask<straw_tube> ln{0u, 10.f,
-                              std::numeric_limits<scalar>::infinity()};
+    const mask<line_circular> ln{0u, 10.f,
+                                 std::numeric_limits<scalar>::infinity()};
 
     // Test intersect
     std::vector<intersection_t> is(3u);
@@ -107,8 +107,8 @@ GTEST_TEST(detray_intersection, line_intersector_case2) {
 
     // Infinite wire with 10 mm
     // radial cell size
-    const mask<straw_tube> ln{0u, 10.f,
-                              std::numeric_limits<scalar>::infinity()};
+    const mask<line_circular> ln{0u, 10.f,
+                                 std::numeric_limits<scalar>::infinity()};
 
     // Test intersect
     const intersection_t is = line_intersector_type()(
@@ -160,7 +160,7 @@ GTEST_TEST(detray_intersection, line_intersector_square_scope) {
                       -1.f);
 
     // Infinite wire with 1 mm square cell size
-    mask<wire_cell, std::uint_least16_t, transform3> ln{
+    mask<line_square, std::uint_least16_t, transform3> ln{
         0u, 1.f, std::numeric_limits<scalar>::infinity()};
 
     // Test intersect

@@ -63,7 +63,7 @@ auto add_material_data(const material_factory_t& mat_factory, mat_id id,
 }  // anonymous namespace
 
 /// Integration test: material builder as volume builder decorator
-GTEST_TEST(detray_tools, decorator_material_map_builder) {
+GTEST_TEST(detray_builders, decorator_material_map_builder) {
 
     using transform3 = typename detector_t::transform3;
     using scalar_t = typename detector_t::scalar_type;
@@ -184,8 +184,8 @@ GTEST_TEST(detray_tools, decorator_material_map_builder) {
     EXPECT_EQ(d.material_store().template size<mat_id::e_rod>(), 0u);
     EXPECT_EQ(d.material_store().template size<mat_id::e_disc2_map>(), 0u);
     EXPECT_EQ(d.material_store().template size<mat_id::e_annulus2_map>(), 0u);
-    EXPECT_EQ(d.material_store().template size<mat_id::e_cell_wire_map>(), 0u);
-    EXPECT_EQ(d.material_store().template size<mat_id::e_straw_wire_map>(), 0u);
+    EXPECT_EQ(d.material_store().template size<mat_id::e_drift_cell_map>(), 0u);
+    EXPECT_EQ(d.material_store().template size<mat_id::e_straw_tube_map>(), 0u);
     EXPECT_EQ(d.material_store().template size<mat_id::e_cylinder2_map>(), 1u);
     EXPECT_EQ(
         d.material_store().template size<mat_id::e_concentric_cylinder2_map>(),

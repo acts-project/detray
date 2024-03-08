@@ -1,6 +1,6 @@
 /** Detray library, part of the ACTS project (R&D line)
  *
- * (c) 2020-2023 CERN for the benefit of the ACTS project
+ * (c) 2020-2024 CERN for the benefit of the ACTS project
  *
  * Mozilla Public License Version 2.0
  */
@@ -40,6 +40,9 @@ GTEST_TEST(detray_masks, single3_0) {
     // Move outside point inside using a tolerance - take t0 not t1
     ASSERT_TRUE(m1_0.is_inside(p3_out, 0.6f) == intersection::status::e_inside);
 
+    // Check the measure
+    EXPECT_NEAR(m1_0.measure(), 2.f * unit<scalar>::mm2, tol);
+
     // Check bounding box
     constexpr scalar envelope{0.01f};
     const auto loc_bounds = m1_0.local_min_bounds(envelope);
@@ -76,6 +79,9 @@ GTEST_TEST(detray_masks, single3_1) {
     // Move outside point inside using a tolerance - take t1 not t1
     ASSERT_TRUE(m1_1.is_inside(p3_out, 0.6f) == intersection::status::e_inside);
 
+    // Check the measure
+    EXPECT_NEAR(m1_1.measure(), 18.6f * unit<scalar>::mm2, tol);
+
     // Check bounding box
     constexpr scalar envelope{0.01f};
     const auto loc_bounds = m1_1.local_min_bounds(envelope);
@@ -111,6 +117,9 @@ GTEST_TEST(detray_masks, single3_2) {
     ASSERT_TRUE(m1_2.is_inside(p3_out) == intersection::status::e_outside);
     // Move outside point inside using a tolerance - take t1 not t1
     ASSERT_TRUE(m1_2.is_inside(p3_out, 6.1f) == intersection::status::e_inside);
+
+    // Check the measure
+    EXPECT_NEAR(m1_2.measure(), 4.f * unit<scalar>::mm2, tol);
 
     // Check bounding box
     constexpr scalar envelope{0.01f};

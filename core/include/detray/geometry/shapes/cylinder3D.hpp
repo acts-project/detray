@@ -70,6 +70,34 @@ class cylinder3D {
                 loc_p[2] <= bounds[e_max_z] + tol);
     }
 
+    /// @brief Measure of the shape: Volume
+    ///
+    /// @param bounds the boundary values for this shape
+    ///
+    /// @returns the cylinder volume as parto of global space.
+    template <template <typename, std::size_t> class bounds_t,
+              typename scalar_t, std::size_t kDIM,
+              typename std::enable_if_t<kDIM == e_size, bool> = true>
+    DETRAY_HOST_DEVICE constexpr scalar_t measure(
+        const bounds_t<scalar_t, kDIM> &bounds) const {
+        return volume(bounds);
+    }
+
+    /// @brief The volume of a the shape
+    ///
+    /// @param bounds the boundary values for this shape
+    ///
+    /// @returns the cylinder volume.
+    template <template <typename, std::size_t> class bounds_t,
+              typename scalar_t, std::size_t kDIM,
+              typename std::enable_if_t<kDIM == e_size, bool> = true>
+    DETRAY_HOST_DEVICE constexpr scalar_t volume(
+        const bounds_t<scalar_t, kDIM> &bounds) const {
+        return constant<scalar>::pi * (bounds[e_max_z] - bounds[e_min_z]) *
+               (bounds[e_max_r] * bounds[e_max_r] -
+                bounds[e_min_r] * bounds[e_min_r]);
+    }
+
     /// @brief Lower and upper point for minimal axis aligned bounding box.
     ///
     /// Computes the min and max vertices in a local cartesian frame.

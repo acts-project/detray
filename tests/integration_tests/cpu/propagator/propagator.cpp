@@ -361,7 +361,7 @@ TEST_P(PropagatorWithRkStepper, rk4_propagator_inhom_bfield) {
 
 // No step size constraint
 INSTANTIATE_TEST_SUITE_P(
-    PropagationValidation1, PropagatorWithRkStepper,
+    detray_propagator_validation1, PropagatorWithRkStepper,
     ::testing::Values(std::make_tuple(
         -0.05f * unit<scalar>::mm, std::numeric_limits<scalar>::max(),
         __plugin::vector3<scalar>{0.f * unit<scalar>::T, 0.f * unit<scalar>::T,
@@ -369,21 +369,21 @@ INSTANTIATE_TEST_SUITE_P(
 
 // Add some restrictions for more frequent navigation updates in the cases of
 // non-z-aligned B-fields
-INSTANTIATE_TEST_SUITE_P(PropagationValidation2, PropagatorWithRkStepper,
+INSTANTIATE_TEST_SUITE_P(detray_propagator_validation2, PropagatorWithRkStepper,
                          ::testing::Values(std::make_tuple(
                              -800.f * unit<scalar>::um, 40.f * unit<scalar>::mm,
                              __plugin::vector3<scalar>{
                                  0.f * unit<scalar>::T, 1.f * unit<scalar>::T,
                                  1.f * unit<scalar>::T})));
 
-INSTANTIATE_TEST_SUITE_P(PropagationValidation3, PropagatorWithRkStepper,
+INSTANTIATE_TEST_SUITE_P(detray_propagator_validation3, PropagatorWithRkStepper,
                          ::testing::Values(std::make_tuple(
                              -800.f * unit<scalar>::um, 40.f * unit<scalar>::mm,
                              __plugin::vector3<scalar>{
                                  1.f * unit<scalar>::T, 0.f * unit<scalar>::T,
                                  1.f * unit<scalar>::T})));
 
-INSTANTIATE_TEST_SUITE_P(PropagationValidation4, PropagatorWithRkStepper,
+INSTANTIATE_TEST_SUITE_P(detray_propagator_validation4, PropagatorWithRkStepper,
                          ::testing::Values(std::make_tuple(
                              -800.f * unit<scalar>::um, 35.f * unit<scalar>::mm,
                              __plugin::vector3<scalar>{

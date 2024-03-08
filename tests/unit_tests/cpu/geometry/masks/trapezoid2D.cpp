@@ -1,6 +1,6 @@
 /** Detray library, part of the ACTS project (R&D line)
  *
- * (c) 2020-2023 CERN for the benefit of the ACTS project
+ * (c) 2020-2024 CERN for the benefit of the ACTS project
  *
  * Mozilla Public License Version 2.0
  */
@@ -11,6 +11,7 @@
 #include "detray/definitions/units.hpp"
 #include "detray/geometry/mask.hpp"
 #include "detray/test/types.hpp"
+#include "detray/test/utils/ratio_test.hpp"
 
 // GTest include
 #include <gtest/gtest.h>
@@ -44,7 +45,11 @@ GTEST_TEST(detray_masks, trapezoid2D) {
     ASSERT_TRUE(t2.is_inside(p2_edge) == intersection::status::e_inside);
     ASSERT_TRUE(t2.is_inside(p2_out) == intersection::status::e_outside);
     // Move outside point inside using a tolerance
-    ASSERT_TRUE(t2.is_inside(p2_out, 1.) == intersection::status::e_inside);
+
+    // Check area
+    const scalar a{t2.area()};
+    EXPECT_NEAR(a, 16.f * unit<scalar>::mm2, tol);
+    ASSERT_EQ(a, t2.measure());
 
     // Check bounding box
     constexpr scalar envelope{0.01f};
@@ -60,4 +65,35 @@ GTEST_TEST(detray_masks, trapezoid2D) {
     ASSERT_NEAR(centroid[0], 0.f, tol);
     ASSERT_NEAR(centroid[1], 1.f / 3.f, tol);
     ASSERT_NEAR(centroid[2], 0.f, tol);
+}
+
+/// This tests the inside/outside method of the mask
+GTEST_TEST(detray_masks, trapezoid2D_ratio_test) {
+
+    struct mask_check {
+        bool operator()(const test::point3 &p, const mask<trapezoid2D> &tp,
+                        const test::transform3 &trf, const scalar t) {
+
+            const test::point3 loc_p{tp.to_local_frame(trf, p)};
+            return tp.is_inside(loc_p, t) == intersection::status::e_inside;
+        }
+    };
+
+    constexpr mask<trapezoid2D> tp{0u, 2.f, 3.f, 4.f, 1.f / (2.f * 4.f)};
+
+    constexpr scalar t{0.f};
+    const test::transform3 trf{};
+    constexpr scalar size{10.f * unit<scalar>::mm};
+    const auto n_points{static_cast<std::size_t>(std::pow(500, 3))};
+
+    // x- and y-coordinates yield a valid local position on the underlying plane
+    std::vector<test::point3> points =
+        test::generate_regular_points<cuboid3D>(n_points, {size});
+
+    scalar ratio = test::ratio_test<mask_check>(points, tp, trf, t);
+
+    const scalar area{tp.measure()};
+    const scalar world{size * size};
+
+    ASSERT_NEAR(ratio, area / world, 0.004f);
 }

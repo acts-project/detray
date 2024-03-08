@@ -41,7 +41,7 @@ class material_map_factory final : public factory_decorator<detector_t> {
     using index_type = index_t;
 
     using base_factory = factory_decorator<detector_t>;
-    using placeholder_factory_t = surface_factory<detector_t, unmasked>;
+    using placeholder_factory_t = surface_factory<detector_t, unmasked<>>;
 
     public:
     using scalar_type = typename detector_t::scalar_type;

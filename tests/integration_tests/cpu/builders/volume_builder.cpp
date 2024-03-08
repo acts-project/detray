@@ -41,7 +41,7 @@ inline void check_mask(const detector_t& d,
 }  // anonymous namespace
 
 /// Integration test to build a cylinder volume with contained surfaces
-GTEST_TEST(detray_tools, detector_volume_construction) {
+GTEST_TEST(detray_builders, detector_volume_construction) {
 
     using namespace detray;
 

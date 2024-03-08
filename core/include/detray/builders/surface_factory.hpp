@@ -192,7 +192,8 @@ class surface_factory : public surface_factory_interface<detector_t> {
                 // Masks are simply appended, since they are distributed onto
                 // multiple containers, their ordering is different from the
                 // surfaces
-                if constexpr (std::is_same_v<mask_shape_t, unmasked>) {
+                if constexpr (std::is_same_v<mask_shape_t,
+                                             unmasked<mask_shape_t::dim>>) {
                     masks.template emplace_back<mask_id>(
                         empty_context{}, m_volume_link[idx],
                         detail::invalid_value<scalar_t>());

@@ -37,12 +37,13 @@ using rectangle_type = detray::mask<detray::rectangle2D>;
 using trapezoid_type = detray::mask<detray::trapezoid2D>;
 using ring_type = detray::mask<detray::ring2D>;
 using cylinder_type = detray::mask<detray::cylinder2D>;
-using straw_wire_type = detray::mask<detray::straw_tube>;
-using cell_wire_type = detray::mask<detray::wire_cell>;
+using straw_tube_type = detray::mask<detray::line_circular>;
+using drift_cell_type = detray::mask<detray::line_square>;
 
 // Test class for covariance transport
 template <typename T>
-class HelixCovarianceTransportValidation : public ::testing::Test {
+class detray_propagation_HelixCovarianceTransportValidation
+    : public ::testing::Test {
     public:
     // Environment Setup
     const vector3 B{0.f, 0.f, 1.f * unit<scalar>::T};
@@ -75,7 +76,7 @@ class HelixCovarianceTransportValidation : public ::testing::Test {
     using free_matrix = typename local_frame_type::free_matrix;
 
     std::tuple<annulus_type, rectangle_type, trapezoid_type, ring_type,
-               cylinder_type, straw_wire_type, cell_wire_type>
+               cylinder_type, straw_tube_type, drift_cell_type>
         masks = std::make_tuple(
             annulus_type{0u, 7.2f * unit<scalar>::mm, 12.0f * unit<scalar>::mm,
                          0.74195f, 1.33970f, 0.f, -2.f, 2.f},
@@ -86,10 +87,10 @@ class HelixCovarianceTransportValidation : public ::testing::Test {
             ring_type{0u, 0.f, 50.f * unit<scalar>::mm},
             cylinder_type{0u, 0.3f * unit<scalar>::mm,
                           -100.f * unit<scalar>::mm, 100.f * unit<scalar>::mm},
-            straw_wire_type{0u, 50.f * unit<scalar>::mm,
+            straw_tube_type{0u, 50.f * unit<scalar>::mm,
                             100.f * unit<scalar>::mm},
-            cell_wire_type{0u, 50.f * unit<scalar>::mm,
-                           100.f * unit<scalar>::mm});
+            drift_cell_type{0u, 50.f * unit<scalar>::mm,
+                            100.f * unit<scalar>::mm});
 
     // Create transform matrices
     std::vector<transform3_type> create_transforms(
@@ -263,10 +264,12 @@ class HelixCovarianceTransportValidation : public ::testing::Test {
 
 using TestTypes =
     ::testing::Types<annulus_type, rectangle_type, trapezoid_type, ring_type,
-                     cylinder_type, straw_wire_type, cell_wire_type>;
-TYPED_TEST_SUITE(HelixCovarianceTransportValidation, TestTypes, );
+                     cylinder_type, straw_tube_type, drift_cell_type>;
+TYPED_TEST_SUITE(detray_propagation_HelixCovarianceTransportValidation,
+                 TestTypes, );
 
-TYPED_TEST(HelixCovarianceTransportValidation, one_loop_test) {
+TYPED_TEST(detray_propagation_HelixCovarianceTransportValidation,
+           one_loop_test) {
 
     // @NOTE: The test with high energy (>1 GeV) might fail due
     // to the numerical instability

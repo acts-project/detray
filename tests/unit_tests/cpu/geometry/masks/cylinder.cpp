@@ -1,6 +1,6 @@
 /** Detray library, part of the ACTS project (R&D line)
  *
- * (c) 2020-2023 CERN for the benefit of the ACTS project
+ * (c) 2020-2024 CERN for the benefit of the ACTS project
  *
  * Mozilla Public License Version 2.0
  */
@@ -11,6 +11,7 @@
 #include "detray/geometry/shapes/cylinder2D.hpp"
 #include "detray/geometry/shapes/cylinder3D.hpp"
 #include "detray/test/types.hpp"
+#include "detray/test/utils/ratio_test.hpp"
 
 // GTest include
 #include <gtest/gtest.h>
@@ -18,7 +19,7 @@
 using namespace detray;
 using point3_t = test::point3;
 
-constexpr scalar tol{1e-7f};
+constexpr scalar tol{1e-4f};
 
 constexpr scalar r{3.f * unit<scalar>::mm};
 constexpr scalar hz{4.f * unit<scalar>::mm};
@@ -43,6 +44,11 @@ GTEST_TEST(detray_masks, cylinder2D) {
     // Move outside point inside using a tolerance
     ASSERT_TRUE(c.is_inside(p2_out, 0.6f) == intersection::status::e_inside);
 
+    // Check area
+    const scalar a{c.area()};
+    EXPECT_NEAR(a, 150.796447f * unit<scalar>::mm2, tol);
+    ASSERT_EQ(a, c.measure());
+
     // Check bounding box
     constexpr scalar envelope{0.01f};
     const auto loc_bounds = c.local_min_bounds(envelope);
@@ -57,6 +63,39 @@ GTEST_TEST(detray_masks, cylinder2D) {
     ASSERT_NEAR(centroid[0], 0.f, tol);
     ASSERT_NEAR(centroid[1], 0.f, tol);
     ASSERT_NEAR(centroid[2], 0.f, tol);
+}
+
+/// This tests the inside/outside method of the mask
+GTEST_TEST(detray_masks, cylinder2D_ratio_test) {
+
+    struct mask_check {
+        bool operator()(const test::point3 &p, const mask<cylinder2D> &cyl,
+                        const test::transform3 &trf, const scalar t) {
+
+            const test::point3 loc_p{cyl.to_local_frame(trf, p)};
+            return cyl.is_inside(loc_p, t) == intersection::status::e_inside;
+        }
+    };
+
+    constexpr mask<cylinder2D> cyl{0u, r, 0.f, 5.f};
+
+    constexpr scalar t{0.f};
+    const test::transform3 trf{};
+    constexpr scalar size{10.f * unit<scalar>::mm};
+    const auto n_points{static_cast<std::size_t>(std::pow(10000, 2))};
+
+    // Make sure the test point is on the cylinder before calling the
+    // mask(this is normally ensured by the intersector)
+    std::vector<test::point3> points =
+        test::generate_regular_points<cylinder2D>(n_points,
+                                                  {cyl[cylinder2D::e_r], size});
+
+    scalar ratio = test::ratio_test<mask_check>(points, cyl, trf, t);
+
+    const scalar area{cyl.measure()};
+    const scalar world{2.f * constant<scalar>::pi * r * size};
+
+    ASSERT_NEAR(ratio, area / world, 0.02f);
 }
 
 /// This tests the basic functionality of a 3D cylinder
@@ -86,6 +125,11 @@ GTEST_TEST(detray_masks, cylinder3D) {
     // Move outside point inside using a tolerance
     ASSERT_TRUE(c.is_inside(p3_out, 0.6f) == intersection::status::e_inside);
 
+    // Check volume
+    const scalar v{c.volume()};
+    EXPECT_NEAR(v, 226.194671058f * unit<scalar>::mm3, tol);
+    ASSERT_EQ(v, c.measure());
+
     // Check bounding box
     constexpr scalar envelope{0.01f};
     const auto loc_bounds = c.local_min_bounds(envelope);
@@ -100,4 +144,35 @@ GTEST_TEST(detray_masks, cylinder3D) {
     ASSERT_NEAR(centroid[0], 0.f, tol);
     ASSERT_NEAR(centroid[1], 0.f, tol);
     ASSERT_NEAR(centroid[2], 0.f, tol);
+}
+
+/// This tests the inside/outside method of the mask
+GTEST_TEST(detray_masks, cylinder3D_ratio_test) {
+
+    struct mask_check {
+        bool operator()(const test::point3 &p, const mask<cylinder3D> &cyl,
+                        const test::transform3 &trf, const scalar t) {
+
+            const test::point3 loc_p{cyl.to_local_frame(trf, p)};
+            return cyl.is_inside(loc_p, t) == intersection::status::e_inside;
+        }
+    };
+
+    constexpr mask<cylinder3D> cyl{
+        0u, 1.f, -constant<scalar>::pi, 0.f, 3.f, constant<scalar>::pi, 5.f};
+
+    constexpr scalar t{0.f};
+    const test::transform3 trf{};
+    constexpr scalar size{10.f * unit<scalar>::mm};
+    const auto n_points{static_cast<std::size_t>(std::pow(500, 3))};
+
+    std::vector<test::point3> points =
+        test::generate_regular_points<cuboid3D>(n_points, {size});
+
+    scalar ratio = test::ratio_test<mask_check>(points, cyl, trf, t);
+
+    const scalar volume{cyl.measure()};
+    const scalar world{size * size * size};
+
+    ASSERT_NEAR(ratio, volume / world, 0.001f);
 }

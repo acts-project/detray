@@ -72,6 +72,33 @@ class trapezoid2D {
                 math::abs(loc_p[1]) <= bounds[e_half_length_2] + tol);
     }
 
+    /// @brief Measure of the shape: Area
+    ///
+    /// @param bounds the boundary values for this shape
+    ///
+    /// @returns the trapezoid area on the plane
+    template <template <typename, std::size_t> class bounds_t,
+              typename scalar_t, std::size_t kDIM,
+              typename std::enable_if_t<kDIM == e_size, bool> = true>
+    DETRAY_HOST_DEVICE constexpr scalar_t measure(
+        const bounds_t<scalar_t, kDIM> &bounds) const {
+        return area(bounds);
+    }
+
+    /// @brief The area of a the shape
+    ///
+    /// @param bounds the boundary values for this shape
+    ///
+    /// @returns the trapezoid area.
+    template <template <typename, std::size_t> class bounds_t,
+              typename scalar_t, std::size_t kDIM,
+              typename std::enable_if_t<kDIM == e_size, bool> = true>
+    DETRAY_HOST_DEVICE constexpr scalar_t area(
+        const bounds_t<scalar_t, kDIM> &bounds) const {
+        return 2.f * (bounds[e_half_length_0] + bounds[e_half_length_1]) *
+               bounds[e_half_length_2];
+    }
+
     /// @brief Lower and upper point for minimal axis aligned bounding box.
     ///
     /// Computes the min and max vertices in a local cartesian frame.

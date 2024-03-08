@@ -1,6 +1,6 @@
 /** Detray library, part of the ACTS project (R&D line)
  *
- * (c) 2020-2023 CERN for the benefit of the ACTS project
+ * (c) 2020-2024 CERN for the benefit of the ACTS project
  *
  * Mozilla Public License Version 2.0
  */
@@ -11,6 +11,7 @@
 #include "detray/definitions/units.hpp"
 #include "detray/geometry/mask.hpp"
 #include "detray/test/types.hpp"
+#include "detray/test/utils/ratio_test.hpp"
 
 // GTest include
 #include <gtest/gtest.h>
@@ -37,7 +38,7 @@ GTEST_TEST(detray_masks, annulus2D) {
     point_t p2_out3 = {10.f, 10.f, 0.f};
     point_t p2_out4 = {4.f, 10.f, 0.f};
 
-    auto toStripFrame = [&offset](const point_t& xy) -> point_t {
+    auto toStripFrame = [&offset](const point_t &xy) -> point_t {
         auto shifted = xy + offset;
         scalar r{getter::perp(shifted)};
         scalar phi{getter::phi(shifted)};
@@ -70,6 +71,10 @@ GTEST_TEST(detray_masks, annulus2D) {
                 intersection::status::e_inside);
     ASSERT_TRUE(ann2.is_inside(toStripFrame(p2_out4), 0.07f) ==
                 intersection::status::e_inside);
+
+    // Check area: @TODO not implemented, yet
+    scalar a = ann2.area();
+    ASSERT_EQ(a, ann2.measure());
 
     // Check corner positions
     std::array<scalar, 8> c = ann2.get_shape().corners(ann2.values());
@@ -104,9 +109,39 @@ GTEST_TEST(detray_masks, annulus2D) {
     ASSERT_NEAR(loc_bounds[cuboid3D::e_max_y], 10.89317f + envelope, tol);
     ASSERT_NEAR(loc_bounds[cuboid3D::e_max_z], envelope, tol);
 
-    // TODO: Check against visiualization
+    // TODO: Check against visualization
     /*const auto centroid = ann2.centroid();
     ASSERT_NEAR(centroid[0], 0.f, tol);
     ASSERT_NEAR(centroid[1], 0.f, tol);
     ASSERT_NEAR(centroid[2], 0.f, tol);*/
+}
+
+/// This tests the inside/outside method of the mask
+GTEST_TEST(detray_masks, annulus2D_ratio_test) {
+
+    struct mask_check {
+        bool operator()(const test::point3 &p, const mask<annulus2D> &ann,
+                        const test::transform3 &trf, const scalar t) {
+
+            const test::point3 loc_p{ann.to_local_frame(trf, p)};
+            return ann.is_inside(loc_p, t) == intersection::status::e_inside;
+        }
+    };
+
+    constexpr scalar t{0.f};
+
+    constexpr mask<annulus2D> ann{0u,       2.5f, 5.f,  -0.64299f,
+                                  4.13173f, 1.f,  0.5f, 0.f};
+    const test::transform3 trf{};
+
+    constexpr scalar world{10.f * unit<scalar>::mm};
+    const auto n_points{static_cast<std::size_t>(std::pow(500, 3))};
+
+    // x- and y-coordinates yield a valid local position on the underlying plane
+    std::vector<test::point3> points =
+        test::generate_regular_points<cuboid3D>(n_points, {world});
+
+    scalar ratio = test::ratio_test<mask_check>(points, ann, trf, t);
+
+    ASSERT_FALSE(detail::is_invalid_value(ratio));
 }

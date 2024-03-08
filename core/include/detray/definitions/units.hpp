@@ -23,14 +23,24 @@ struct unit {
     static constexpr scalar_t m{static_cast<scalar_t>(1e3)};
     /// @}
 
+    /// Area, native unit mm2
+    /// @{
+    /// mm²
+    static constexpr scalar_t mm2{static_cast<scalar_t>(1.0)};
+    /// cm²
+    static constexpr scalar_t cm2{static_cast<scalar_t>(1e2)};
+    /// m²
+    static constexpr scalar_t m2{static_cast<scalar_t>(1e6)};
+    /// @}
+
     /// Volume, native unit mm3
     /// @{
     /// mm³
     static constexpr scalar_t mm3{static_cast<scalar_t>(1.0)};
-    /// cm²
-    static constexpr scalar_t cm2{static_cast<scalar_t>(1e2)};
     /// cm³
     static constexpr scalar_t cm3{static_cast<scalar_t>(1e3)};
+    /// m³
+    static constexpr scalar_t m3{static_cast<scalar_t>(1e9)};
     /// @}
 
     /// Time, native unit mm{[speed-of-light * time]{mm/s * s}}

@@ -71,6 +71,34 @@ class cuboid3D {
                 loc_p[2] <= bounds[e_max_z] + tol);
     }
 
+    /// @brief Measure of the shape: Volume
+    ///
+    /// @param bounds the boundary values for this shape
+    ///
+    /// @returns the cuboid volume as part of global space.
+    template <template <typename, std::size_t> class bounds_t,
+              typename scalar_t, std::size_t kDIM,
+              typename std::enable_if_t<kDIM == e_size, bool> = true>
+    DETRAY_HOST_DEVICE constexpr scalar_t measure(
+        const bounds_t<scalar_t, kDIM> &bounds) const {
+        return volume(bounds);
+    }
+
+    /// @brief The volume of a the shape
+    ///
+    /// @param bounds the boundary values for this shape
+    ///
+    /// @returns the cuboid volume.
+    template <template <typename, std::size_t> class bounds_t,
+              typename scalar_t, std::size_t kDIM,
+              typename std::enable_if_t<kDIM == e_size, bool> = true>
+    DETRAY_HOST_DEVICE constexpr scalar_t volume(
+        const bounds_t<scalar_t, kDIM> &bounds) const {
+        return (bounds[e_max_x] - bounds[e_min_x]) *
+               (bounds[e_max_y] - bounds[e_min_y]) *
+               (bounds[e_max_z] - bounds[e_min_z]);
+    }
+
     /// @brief Lower and upper point for minimal axis aligned bounding box.
     ///
     /// Computes the min and max vertices in a local cartesian frame.

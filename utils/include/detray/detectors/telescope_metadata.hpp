@@ -32,8 +32,8 @@ struct telescope_metadata {
     /// Mask types (these types are needed for the portals, which are always
     /// there, and to resolve the wire surface material, i.e. slab vs. rod)
     using rectangle = mask<rectangle2D, nav_link>;
-    using straw_wire = mask<straw_tube, nav_link>;
-    using cell_wire = mask<wire_cell, nav_link>;
+    using straw_tube = mask<line_circular, nav_link>;
+    using drift_cell = mask<line_square, nav_link>;
 
     /// Material types
     using rod = material_rod<detray::scalar>;
@@ -50,21 +50,21 @@ struct telescope_metadata {
         e_rectangle2 = 0,
         e_portal_rectangle2 = 0,
         e_annulus2 = 1,
-        e_cell_wire = 1,
         e_cylinder2 = 1,
         e_ring2 = 1,
         e_trapezoid2 = 1,
         e_single1 = 1,
         e_single2 = 1,
         e_single3 = 1,
-        e_straw_wire = 1,
+        e_straw_tube = 1,
+        e_drift_cell = 1,
         e_unbounded_annulus2 = 1,
         e_unbounded_cell2 = 1,
         e_unbounded_cylinder2 = 1,
         e_unbounded_disc2 = 1,
         e_unbounded_rectangle2 = 1,
         e_unbounded_trapezoid2 = 1,
-        e_unbounded_straw2 = 1,
+        e_unbounded_line_circular2 = 1,
         e_unmasked2 = 1,
     };
 
@@ -90,8 +90,8 @@ struct telescope_metadata {
     template <template <typename...> class tuple_t = dtuple,
               typename container_t = host_container_types>
     using material_store = std::conditional_t<
-        std::is_same_v<mask<mask_shape_t, nav_link>, cell_wire> |
-            std::is_same_v<mask<mask_shape_t, nav_link>, straw_wire>,
+        std::is_same_v<mask<mask_shape_t, nav_link>, drift_cell> |
+            std::is_same_v<mask<mask_shape_t, nav_link>, straw_tube>,
         regular_multi_store<material_ids, empty_context, tuple_t,
                             container_t::template vector_type, slab,
                             material<detray::scalar>, rod>,

@@ -86,7 +86,7 @@ GTEST_TEST(svgtools, masks) {
 
     // Visualize a line.
     // e_cross_section, e_half_z
-    detray::mask<detray::straw_tube> lin2D{0u, 10.f, 100.f};
+    detray::mask<detray::line_circular> lin2D{0u, 10.f, 100.f};
     const auto lin2D_proto =
         detray::svgtools::conversion::surface(transform, lin2D);
     const auto lin2D_svg = actsvg::display::surface("", lin2D_proto, view);
