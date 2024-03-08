@@ -39,8 +39,8 @@ struct default_metadata {
     using cylinder = mask<cylinder2D, nav_link>;
     using cylinder_portal = mask<concentric_cylinder2D, nav_link>;
     using disc = mask<ring2D, nav_link>;
-    using straw_wire = mask<line<false>, nav_link>;
-    using cell_wire = mask<line<true>, nav_link>;
+    using straw_wire = mask<straw_tube, nav_link>;
+    using cell_wire = mask<wire_cell, nav_link>;
     using single_1 = mask<single3D<1>, nav_link>;
     using single_2 = mask<single3D<2>, nav_link>;
     // TODO: Can single3 be used instead of cylinder portal type or remove it?
@@ -51,8 +51,8 @@ struct default_metadata {
     using unbounded_annulus = mask<unbounded<annulus2D>, nav_link>;
     using unbounded_cylinder = mask<unbounded<cylinder2D>, nav_link>;
     using unbounded_disc = mask<unbounded<ring2D>, nav_link>;
-    using unbounded_straw = mask<unbounded<line<false>>, nav_link>;
-    using unbounded_cell = mask<unbounded<line<true>>, nav_link>;
+    using unbounded_straw = mask<unbounded<straw_tube>, nav_link>;
+    using unbounded_cell = mask<unbounded<wire_cell>, nav_link>;
     using unmasked_plane = mask<unmasked, nav_link>;
 
     /// Material types

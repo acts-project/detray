@@ -44,8 +44,8 @@ using rectangle_type = detray::mask<detray::rectangle2D>;
 using trapezoid_type = detray::mask<detray::trapezoid2D>;
 using ring_type = detray::mask<detray::ring2D>;
 using cylinder_type = detray::mask<detray::cylinder2D>;
-using straw_wire_type = detray::mask<detray::line<false>>;
-using cell_wire_type = detray::mask<detray::line<true>>;
+using straw_wire_type = detray::mask<detray::straw_tube>;
+using cell_wire_type = detray::mask<detray::wire_cell>;
 
 constexpr scalar tol{1e-6f};
 

@@ -263,7 +263,7 @@ GTEST_TEST(detray_intersection, helix_cylinder_intersector) {
 GTEST_TEST(detray_intersection, helix_line_intersector) {
 
     // Intersector object
-    const helix_intersector<line<>, transform3_t> hli;
+    const helix_intersector<straw_tube, transform3_t> hli;
 
     // Get radius of track
     const scalar R{hlx.radius()};
@@ -276,10 +276,10 @@ GTEST_TEST(detray_intersection, helix_line_intersector) {
     const scalar half_z = std::numeric_limits<scalar>::max();
 
     // Straw wire
-    const mask<line<false>> straw_wire{0u, scope, half_z};
+    const mask<straw_tube> straw_wire{0u, scope, half_z};
 
     // Cell wire
-    const mask<line<true>> cell_wire{0u, scope, half_z};
+    const mask<wire_cell> cell_wire{0u, scope, half_z};
 
     // Offset to shift the translation of transform matrix
     const scalar offset = 1.f * unit<scalar>::cm;

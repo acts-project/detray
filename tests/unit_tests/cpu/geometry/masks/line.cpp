@@ -37,10 +37,10 @@ GTEST_TEST(detray_masks, line_radial_cross_sect) {
     const point_t ln_out1{1.2f, 0.f, 0.f};
     const point_t ln_out2{0.09f, -51.f, 0.f};
 
-    const mask<line<>> ln{0u, cell_size, hz};
+    const mask<straw_tube> ln{0u, cell_size, hz};
 
-    ASSERT_NEAR(ln[line<>::e_cross_section], 1.f * unit<scalar>::mm, tol);
-    ASSERT_NEAR(ln[line<>::e_half_z], 50.f * unit<scalar>::mm, tol);
+    ASSERT_NEAR(ln[straw_tube::e_cross_section], 1.f * unit<scalar>::mm, tol);
+    ASSERT_NEAR(ln[straw_tube::e_half_z], 50.f * unit<scalar>::mm, tol);
 
     ASSERT_TRUE(ln.is_inside(ln_in) == intersection::status::e_inside);
     ASSERT_TRUE(ln.is_inside(ln_edge) == intersection::status::e_inside);
@@ -73,10 +73,10 @@ GTEST_TEST(detray_masks, line_square_cross_sect) {
     const point_t ln_out2{0.09f, -51.f, 0.f};
 
     // 50 mm wire with 1 mm square cell sizes
-    const mask<line<true>> ln{0u, cell_size, hz};
+    const mask<wire_cell> ln{0u, cell_size, hz};
 
-    ASSERT_NEAR(ln[line<>::e_cross_section], 1.f * unit<scalar>::mm, tol);
-    ASSERT_NEAR(ln[line<>::e_half_z], 50.f * unit<scalar>::mm, tol);
+    ASSERT_NEAR(ln[straw_tube::e_cross_section], 1.f * unit<scalar>::mm, tol);
+    ASSERT_NEAR(ln[straw_tube::e_half_z], 50.f * unit<scalar>::mm, tol);
 
     ASSERT_TRUE(ln.is_inside(ln_in) == intersection::status::e_inside);
     ASSERT_TRUE(ln.is_inside(ln_edge, 1e-5f) == intersection::status::e_inside);

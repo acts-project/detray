@@ -213,8 +213,8 @@ struct add_sf_material_map {
         using mask_shape_t = typename coll_t::value_type::shape;
 
         constexpr bool is_line{
-            std::is_same_v<mask_shape_t, detray::line<true>> ||
-            std::is_same_v<mask_shape_t, detray::line<false>>};
+            std::is_same_v<mask_shape_t, detray::wire_cell> ||
+            std::is_same_v<mask_shape_t, detray::straw_tube>};
 
         // No material maps for line surfaces
         if constexpr (!is_line && mask_shape_t::dim == DIM) {

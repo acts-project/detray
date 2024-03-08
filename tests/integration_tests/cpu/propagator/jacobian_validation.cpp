@@ -97,7 +97,7 @@ std::uniform_real_distribution<scalar> rand_shift(-shift, shift);
 
 // surface types
 using rect_type = rectangle2D;
-using wire_type = line<true>;
+using wire_type = wire_cell;
 
 }  // namespace
 

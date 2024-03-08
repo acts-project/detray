@@ -30,8 +30,64 @@ static constexpr unsigned int steps_z3{1000u};
 
 static const test::transform3 trf{};
 
+// Tolerance applied to the mask
+static constexpr scalar tol{0.f};
+
 // This runs a benchmark on a rectangle2D mask
-void BM_RECTANGLE_2D_MASK(benchmark::State &state) {
+void BM_MASK_CUBOID_3D(benchmark::State &state) {
+
+    using mask_type = mask<cuboid3D>;
+    constexpr mask_type cb(0u, 0.f, 0.f, 0.f, 3.f, 4.f, 1.f);
+
+    constexpr scalar world{10.f};
+
+    constexpr scalar sx{world / steps_x3};
+    constexpr scalar sy{world / steps_y3};
+    constexpr scalar sz{world / steps_z3};
+
+    unsigned long inside = 0u;
+    unsigned long outside = 0u;
+
+    for (auto _ : state) {
+        for (unsigned int ix = 0u; ix < steps_x3; ++ix) {
+            scalar x{-0.5f * world + static_cast<scalar>(ix) * sx};
+            for (unsigned int iy = 0u; iy < steps_y3; ++iy) {
+                scalar y{-0.5f * world + static_cast<scalar>(iy) * sy};
+                for (unsigned int iz = 0u; iz < steps_z3; ++iz) {
+                    scalar z{-0.5f * world + static_cast<scalar>(iz) * sz};
+
+                    benchmark::DoNotOptimize(inside);
+                    benchmark::DoNotOptimize(outside);
+                    const point3 loc_p{cb.to_local_frame(trf, {x, y, z})};
+                    if (cb.is_inside(loc_p, tol) ==
+                        intersection::status::e_inside) {
+                        ++inside;
+                    } else {
+                        ++outside;
+                    }
+                }
+            }
+        }
+    }
+
+#ifdef DETRAY_BENCHMARK_PRINTOUTS
+    constexpr scalar volume{cb[3] * cb[4] * cb[5]};
+    constexpr scalar rest{world * world * world - volume};
+    std::cout << "Cuboid : Inside/outside ... " << inside << " / " << outside
+              << " = "
+              << static_cast<scalar>(inside) / static_cast<scalar>(outside)
+              << " (theoretical = " << volume / rest << ") " << std::endl;
+#endif  // DETRAY_BENCHMARK_PRINTOUTS
+}
+
+BENCHMARK(BM_MASK_CUBOID_3D)
+#ifdef DETRAY_BENCHMARK_MULTITHREAD
+    ->ThreadRange(1, benchmark::CPUInfo::Get().num_cpus)
+#endif
+    ->Unit(benchmark::kMillisecond);
+
+// This runs a benchmark on a rectangle2D mask
+void BM_MASK_RECTANGLE_2D(benchmark::State &state) {
 
     using mask_type = mask<rectangle2D>;
     constexpr mask_type r(0u, 3.f, 4.f);
@@ -56,7 +112,8 @@ void BM_RECTANGLE_2D_MASK(benchmark::State &state) {
                     benchmark::DoNotOptimize(inside);
                     benchmark::DoNotOptimize(outside);
                     const point3 loc_p{r.to_local_frame(trf, {x, y, z})};
-                    if (r.is_inside(loc_p) == intersection::status::e_inside) {
+                    if (r.is_inside(loc_p, tol) ==
+                        intersection::status::e_inside) {
                         ++inside;
                     } else {
                         ++outside;
@@ -76,17 +133,17 @@ void BM_RECTANGLE_2D_MASK(benchmark::State &state) {
 #endif  // DETRAY_BENCHMARK_PRINTOUTS
 }
 
-BENCHMARK(BM_RECTANGLE_2D_MASK)
+BENCHMARK(BM_MASK_RECTANGLE_2D)
 #ifdef DETRAY_BENCHMARK_MULTITHREAD
     ->ThreadRange(1, benchmark::CPUInfo::Get().num_cpus)
 #endif
     ->Unit(benchmark::kMillisecond);
 
 // This runs a benchmark on a trapezoid2D mask
-void BM_TRAPEZOID_2D_MASK(benchmark::State &state) {
+void BM_MASK_TRAPEZOID_2D(benchmark::State &state) {
 
     using mask_type = mask<trapezoid2D>;
-    constexpr mask_type t{0u, 2.f, 3.f, 4.f};
+    constexpr mask_type t{0u, 2.f, 3.f, 4.f, 1.f / (2.f * 4.f)};
 
     constexpr scalar world{10.f};
 
@@ -108,7 +165,8 @@ void BM_TRAPEZOID_2D_MASK(benchmark::State &state) {
                     benchmark::DoNotOptimize(inside);
                     benchmark::DoNotOptimize(outside);
                     const point3 loc_p{t.to_local_frame(trf, {x, y, z})};
-                    if (t.is_inside(loc_p) == intersection::status::e_inside) {
+                    if (t.is_inside(loc_p, tol) ==
+                        intersection::status::e_inside) {
                         ++inside;
                     } else {
                         ++outside;
@@ -128,14 +186,14 @@ void BM_TRAPEZOID_2D_MASK(benchmark::State &state) {
 #endif  // DETRAY_BENCHMARK_PRINTOUTS
 }
 
-BENCHMARK(BM_TRAPEZOID_2D_MASK)
+BENCHMARK(BM_MASK_TRAPEZOID_2D)
 #ifdef DETRAY_BENCHMARKS_MULTITHREAD
     ->ThreadRange(1, benchmark::CPUInfo::Get().num_cpus)
 #endif
     ->Unit(benchmark::kMillisecond);
 
 // This runs a benchmark on a ring2D mask (as disc)
-void BM_DISC_2D_MASK(benchmark::State &state) {
+void BM_MASK_DISC_2D(benchmark::State &state) {
 
     using mask_type = mask<ring2D>;
     constexpr mask_type r{0u, 0.f, 5.f};
@@ -160,7 +218,8 @@ void BM_DISC_2D_MASK(benchmark::State &state) {
                     benchmark::DoNotOptimize(inside);
                     benchmark::DoNotOptimize(outside);
                     const point3 loc_p{r.to_local_frame(trf, {x, y, z})};
-                    if (r.is_inside(loc_p) == intersection::status::e_inside) {
+                    if (r.is_inside(loc_p, tol) ==
+                        intersection::status::e_inside) {
                         ++inside;
                     } else {
                         ++outside;
@@ -180,14 +239,14 @@ void BM_DISC_2D_MASK(benchmark::State &state) {
 #endif  // DETRAY_BENCHMARK_PRINTOUTS
 }
 
-BENCHMARK(BM_DISC_2D_MASK)
+BENCHMARK(BM_MASK_DISC_2D)
 #ifdef DETRAY_BENCHMARKS_MULTITHREAD
     ->ThreadRange(1, benchmark::CPUInfo::Get().num_cpus)
 #endif
     ->Unit(benchmark::kMillisecond);
 
 // This runs a benchmark on a ring2D mask
-void BM_RING_2D_MASK(benchmark::State &state) {
+void BM_MASK_RING_2D(benchmark::State &state) {
 
     using mask_type = mask<ring2D>;
     constexpr mask_type r{0u, 2.f, 5.f};
@@ -212,7 +271,8 @@ void BM_RING_2D_MASK(benchmark::State &state) {
                     benchmark::DoNotOptimize(inside);
                     benchmark::DoNotOptimize(outside);
                     const point3 loc_p{r.to_local_frame(trf, {x, y, z})};
-                    if (r.is_inside(loc_p) == intersection::status::e_inside) {
+                    if (r.is_inside(loc_p, tol) ==
+                        intersection::status::e_inside) {
                         ++inside;
                     } else {
                         ++outside;
@@ -232,17 +292,18 @@ void BM_RING_2D_MASK(benchmark::State &state) {
 #endif  // DETRAY_BENCHMARK_PRINTOUTS
 }
 
-BENCHMARK(BM_RING_2D_MASK)
+BENCHMARK(BM_MASK_RING_2D)
 #ifdef DETRAY_BENCHMARKS_MULTITHREAD
     ->ThreadRange(1, benchmark::CPUInfo::Get().num_cpus)
 #endif
     ->Unit(benchmark::kMillisecond);
 
 // This runs a benchmark on a cylinder2D mask
-void BM_CYLINDER_2D_MASK(benchmark::State &state) {
+void BM_MASK_CYLINDER_3D(benchmark::State &state) {
 
-    using mask_type = mask<cylinder2D>;
-    constexpr mask_type c{0u, 3.f, 5.f, 0.f};
+    using mask_type = mask<cylinder3D>;
+    constexpr mask_type c{
+        0u, 1.f, -constant<scalar>::pi, 0.f, 3.f, constant<scalar>::pi, 5.f};
 
     constexpr scalar world{10.f};
 
@@ -264,7 +325,7 @@ void BM_CYLINDER_2D_MASK(benchmark::State &state) {
                     benchmark::DoNotOptimize(inside);
                     benchmark::DoNotOptimize(outside);
                     const point3 loc_p{c.to_local_frame(trf, {x, y, z})};
-                    if (c.is_inside(loc_p, 0.1f) ==
+                    if (c.is_inside(loc_p, tol) ==
                         intersection::status::e_inside) {
                         ++inside;
                     } else {
@@ -276,21 +337,126 @@ void BM_CYLINDER_2D_MASK(benchmark::State &state) {
     }
 
 #ifdef DETRAY_BENCHMARK_PRINTOUTS
-    std::cout << "Cylinder : Inside/outside ..." << inside << " / " << outside
-              << " = "
+    constexpr scalar volume{constant<scalar>::pi * (c[5] - c[2]) *
+                            (c[3] * c[3] - c[0] * c[0])};
+    constexpr scalar rest{world * world * world - volume};
+    std::cout << "Cylinder 3D : Inside/outside ... " << inside << " / "
+              << outside << " = "
               << static_cast<scalar>(inside) / static_cast<scalar>(outside)
-              << std::endl;
+              << " (theoretical = " << volume / rest << ") " << std::endl;
 #endif  // DETRAY_BENCHMARK_PRINTOUTS
 }
 
-BENCHMARK(BM_CYLINDER_2D_MASK)
+BENCHMARK(BM_MASK_CYLINDER_3D)
+#ifdef DETRAY_BENCHMARKS_MULTITHREAD
+    ->ThreadRange(1, benchmark::CPUInfo::Get().num_cpus)
+#endif
+    ->Unit(benchmark::kMillisecond);
+
+// This runs a benchmark on a cylinder2D mask
+void BM_MASK_CYLINDER_2D(benchmark::State &state) {
+
+    using mask_type = mask<cylinder2D>;
+    constexpr mask_type c{0u, 3.f, 0.f, 5.f};
+
+    constexpr scalar world{10.f};
+
+    constexpr scalar sx{world / steps_x3};
+    constexpr scalar sy{world / steps_y3};
+    constexpr scalar sz{world / steps_z3};
+
+    unsigned long inside = 0u;
+    unsigned long outside = 0u;
+
+    for (auto _ : state) {
+        for (unsigned int ix = 0u; ix < steps_x3; ++ix) {
+            scalar x{-0.5f * world + static_cast<scalar>(ix) * sx};
+            for (unsigned int iy = 0u; iy < steps_y3; ++iy) {
+                scalar y{-0.5f * world + static_cast<scalar>(iy) * sy};
+                for (unsigned int iz = 0u; iz < steps_z3; ++iz) {
+                    scalar z{-0.5f * world + static_cast<scalar>(iz) * sz};
+
+                    benchmark::DoNotOptimize(inside);
+                    benchmark::DoNotOptimize(outside);
+                    const point3 loc_p{c.to_local_frame(trf, {x, y, z})};
+                    if (c.is_inside(loc_p, tol) ==
+                        intersection::status::e_inside) {
+                        ++inside;
+                    } else {
+                        ++outside;
+                    }
+                }
+            }
+        }
+    }
+
+#ifdef DETRAY_BENCHMARK_PRINTOUTS
+    std::cout << "Cylinder 2D : Inside/outside ..." << inside << " / "
+              << outside << " = "
+              << static_cast<scalar>(inside) / static_cast<scalar>(outside)
+              << " (theoretical = " << 1.f << ") " << std::endl;
+#endif  // DETRAY_BENCHMARK_PRINTOUTS
+}
+
+BENCHMARK(BM_MASK_CYLINDER_2D)
+#ifdef DETRAY_BENCHMARKS_MULTITHREAD
+    ->ThreadRange(1, benchmark::CPUInfo::Get().num_cpus)
+#endif
+    ->Unit(benchmark::kMillisecond);
+
+// This runs a benchmark on a cylinder2D mask
+void BM_MASK_CONCENTRIC_CYLINDER_2D(benchmark::State &state) {
+
+    using mask_type = mask<concentric_cylinder2D>;
+    constexpr mask_type c{0u, 3.f, 0.f, 5.f};
+
+    constexpr scalar world{10.f};
+
+    constexpr scalar sx{world / steps_x3};
+    constexpr scalar sy{world / steps_y3};
+    constexpr scalar sz{world / steps_z3};
+
+    unsigned long inside = 0u;
+    unsigned long outside = 0u;
+
+    for (auto _ : state) {
+        for (unsigned int ix = 0u; ix < steps_x3; ++ix) {
+            scalar x{-0.5f * world + static_cast<scalar>(ix) * sx};
+            for (unsigned int iy = 0u; iy < steps_y3; ++iy) {
+                scalar y{-0.5f * world + static_cast<scalar>(iy) * sy};
+                for (unsigned int iz = 0u; iz < steps_z3; ++iz) {
+                    scalar z{-0.5f * world + static_cast<scalar>(iz) * sz};
+
+                    benchmark::DoNotOptimize(inside);
+                    benchmark::DoNotOptimize(outside);
+                    const point3 loc_p{c.to_local_frame(trf, {x, y, z})};
+                    if (c.is_inside(loc_p, tol) ==
+                        intersection::status::e_inside) {
+                        ++inside;
+                    } else {
+                        ++outside;
+                    }
+                }
+            }
+        }
+    }
+
+#ifdef DETRAY_BENCHMARK_PRINTOUTS
+    std::cout << "Concnetric Cylinder : Inside/outside ..." << inside << " / "
+              << outside << " = "
+              << static_cast<scalar>(inside) / static_cast<scalar>(outside)
+              << " (theoretical = " << 1.f << ") " << std::endl;
+#endif  // DETRAY_BENCHMARK_PRINTOUTS
+}
+
+BENCHMARK(BM_MASK_CONCENTRIC_CYLINDER_2D)
 #ifdef DETRAY_BENCHMARKS_MULTITHREAD
     ->ThreadRange(1, benchmark::CPUInfo::Get().num_cpus)
 #endif
     ->Unit(benchmark::kMillisecond);
 
 // This runs a benchmark on an annulus2D mask
-void BM_ANNULUS_2D_MASK(benchmark::State &state) {
+void BM_MASK_ANNULUS_2D(benchmark::State &state) {
 
     using mask_type = mask<annulus2D>;
     constexpr mask_type ann{0u, 2.5f, 5.f, -0.64299f, 4.13173f, 1.f, 0.5f, 0.f};
@@ -315,7 +481,7 @@ void BM_ANNULUS_2D_MASK(benchmark::State &state) {
                     benchmark::DoNotOptimize(inside);
                     benchmark::DoNotOptimize(outside);
                     const point3 loc_p{ann.to_local_frame(trf, {x, y, z})};
-                    if (ann.is_inside(loc_p) ==
+                    if (ann.is_inside(loc_p, tol) ==
                         intersection::status::e_inside) {
                         ++inside;
                     } else {
@@ -334,7 +500,113 @@ void BM_ANNULUS_2D_MASK(benchmark::State &state) {
 #endif  // DETRAY_BENCHMARK_PRINTOUTS
 }
 
-BENCHMARK(BM_ANNULUS_2D_MASK)
+BENCHMARK(BM_MASK_ANNULUS_2D)
+#ifdef DETRAY_BENCHMARKS_MULTITHREAD
+    ->ThreadRange(1, benchmark::CPUInfo::Get().num_cpus)
+#endif
+    ->Unit(benchmark::kMillisecond);
+
+// This runs a benchmark on a straw tube mask
+void BM_MASK_STRAW_TUBE(benchmark::State &state) {
+
+    using mask_type = mask<straw_tube>;
+    constexpr mask_type st{0u, 3.f, 5.f};
+
+    constexpr scalar world{10.f};
+
+    constexpr scalar sx{world / steps_x3};
+    constexpr scalar sy{world / steps_y3};
+    constexpr scalar sz{world / steps_z3};
+
+    unsigned long inside = 0u;
+    unsigned long outside = 0u;
+
+    for (auto _ : state) {
+        for (unsigned int ix = 0u; ix < steps_x3; ++ix) {
+            scalar x{-0.5f * world + static_cast<scalar>(ix) * sx};
+            for (unsigned int iy = 0u; iy < steps_y3; ++iy) {
+                scalar y{-0.5f * world + static_cast<scalar>(iy) * sy};
+                for (unsigned int iz = 0u; iz < steps_z3; ++iz) {
+                    scalar z{-0.5f * world + static_cast<scalar>(iz) * sz};
+
+                    benchmark::DoNotOptimize(inside);
+                    benchmark::DoNotOptimize(outside);
+                    const point3 loc_p{st.to_local_frame(trf, {x, y, z})};
+                    if (st.is_inside(loc_p, tol) ==
+                        intersection::status::e_inside) {
+                        ++inside;
+                    } else {
+                        ++outside;
+                    }
+                }
+            }
+        }
+    }
+
+#ifdef DETRAY_BENCHMARK_PRINTOUTS
+    constexpr scalar volume{constant<scalar>::pi * 2.f * st[1] * st[0] * st[0]};
+    constexpr scalar rest{world * world * world - volume};
+    std::cout << "Straw Tube : Inside/outside ... " << inside << " / "
+              << outside << " = "
+              << static_cast<scalar>(inside) / static_cast<scalar>(outside)
+              << " (theoretical = " << volume / rest << ") " << std::endl;
+#endif  // DETRAY_BENCHMARK_PRINTOUTS
+}
+
+BENCHMARK(BM_MASK_STRAW_TUBE)
+#ifdef DETRAY_BENCHMARKS_MULTITHREAD
+    ->ThreadRange(1, benchmark::CPUInfo::Get().num_cpus)
+#endif
+    ->Unit(benchmark::kMillisecond);
+
+// This runs a benchmark on a wire cell mask
+void BM_MASK_WIRE_CELL(benchmark::State &state) {
+
+    using mask_type = mask<wire_cell>;
+    constexpr mask_type wcl{0u, 3.f, 5.f};
+
+    constexpr scalar world{10.f};
+
+    constexpr scalar sx{world / steps_x3};
+    constexpr scalar sy{world / steps_y3};
+    constexpr scalar sz{world / steps_z3};
+
+    unsigned long inside = 0u;
+    unsigned long outside = 0u;
+
+    for (auto _ : state) {
+        for (unsigned int ix = 0u; ix < steps_x3; ++ix) {
+            scalar x{-0.5f * world + static_cast<scalar>(ix) * sx};
+            for (unsigned int iy = 0u; iy < steps_y3; ++iy) {
+                scalar y{-0.5f * world + static_cast<scalar>(iy) * sy};
+                for (unsigned int iz = 0u; iz < steps_z3; ++iz) {
+                    scalar z{-0.5f * world + static_cast<scalar>(iz) * sz};
+
+                    benchmark::DoNotOptimize(inside);
+                    benchmark::DoNotOptimize(outside);
+                    const point3 loc_p{wcl.to_local_frame(trf, {x, y, z})};
+                    if (wcl.is_inside(loc_p, tol) ==
+                        intersection::status::e_inside) {
+                        ++inside;
+                    } else {
+                        ++outside;
+                    }
+                }
+            }
+        }
+    }
+
+#ifdef DETRAY_BENCHMARK_PRINTOUTS
+    constexpr scalar volume{8.f * wcl[1] * wcl[0] * wcl[0]};
+    constexpr scalar rest{world * world * world - volume};
+    std::cout << "Wire Cell : Inside/outside ... " << inside << " / " << outside
+              << " = "
+              << static_cast<scalar>(inside) / static_cast<scalar>(outside)
+              << " (theoretical = " << volume / rest << ") " << std::endl;
+#endif  // DETRAY_BENCHMARK_PRINTOUTS
+}
+
+BENCHMARK(BM_MASK_WIRE_CELL)
 #ifdef DETRAY_BENCHMARKS_MULTITHREAD
     ->ThreadRange(1, benchmark::CPUInfo::Get().num_cpus)
 #endif

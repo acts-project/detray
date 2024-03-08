@@ -180,10 +180,10 @@ GTEST_TEST(detray_material, material_rod) {
     const free_track_parameters<transform3> trk(pos, 0.f, dir, -1.f);
 
     // Infinite wire with 1 mm radial cell size
-    const mask<line<>> ln{0u, 1.f * unit<scalar>::mm,
-                          std::numeric_limits<scalar>::infinity()};
+    const mask<straw_tube> ln{0u, 1.f * unit<scalar>::mm,
+                              std::numeric_limits<scalar>::infinity()};
 
-    auto is = ray_intersector<line<>, transform3>{}(
+    auto is = ray_intersector<straw_tube, transform3>{}(
         detail::ray<transform3>(trk), surface_descriptor<>{}, ln, tf);
 
     const scalar cos_inc_ang{is.cos_incidence_angle};
