@@ -90,7 +90,7 @@ auto test_detector_json_io(const detector_t& det,
 
     // Read the detector back in
     io::detector_reader_config reader_cfg{};
-    reader_cfg.do_check(true);
+    reader_cfg.verbose_check(true);
     for (auto& [_, name] : file_names) {
         reader_cfg.add_file(name);
     }
