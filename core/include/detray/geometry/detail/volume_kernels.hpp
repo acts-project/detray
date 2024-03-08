@@ -1,6 +1,6 @@
 /** Detray library, part of the ACTS project (R&D line)
  *
- * (c) 2023 CERN for the benefit of the ACTS project
+ * (c) 2023-2024 CERN for the benefit of the ACTS project
  *
  * Mozilla Public License Version 2.0
  */
@@ -10,8 +10,33 @@
 // Project include(s)
 #include "detray/definitions/detail/indexing.hpp"
 #include "detray/definitions/detail/qualifiers.hpp"
+#include "detray/materials/detail/material_accessor.hpp"
+#include "detray/materials/material.hpp"
 
 namespace detray::detail {
+
+/// A functor to retrieve the material parameters
+struct get_material_params {
+    template <typename mat_group_t, typename index_t, typename point_t>
+    DETRAY_HOST_DEVICE inline auto operator()(const mat_group_t &mat_group,
+                                              const index_t &idx,
+                                              const point_t &loc_p) const {
+        using material_t = typename mat_group_t::value_type;
+        using scalar_t = typename material_t::scalar_type;
+
+        if constexpr (std::is_same_v<material_t, material<scalar_t>>) {
+            // Homogeneous volume material
+            return &(detail::material_accessor::get(mat_group, idx, loc_p));
+        } else if constexpr (detail::is_volume_material_v<material_t>) {
+            // Volume material maps
+            return &(detail::material_accessor::get(mat_group, idx, loc_p)
+                         .get_material());
+        } else {
+            // Cannot be reached for volumes
+            return static_cast<const material<scalar_t> *>(nullptr);
+        }
+    }
+};
 
 /// A functor to access the surfaces of a volume
 template <typename functor_t>

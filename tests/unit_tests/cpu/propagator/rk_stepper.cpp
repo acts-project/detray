@@ -43,6 +43,7 @@ using crk_stepper_t =
 namespace {
 
 constexpr scalar tol{1e-3f};
+constexpr material<scalar> vol_mat{detray::cesium_iodide_with_ded<scalar>()};
 
 vecmem::host_memory_resource host_mr;
 
@@ -52,9 +53,17 @@ struct nav_state {
     nav_state(vecmem::host_memory_resource &mr)
         : m_step_size{1.f * unit<scalar>::mm},
           m_det{std::make_unique<detray::detector<>>(mr)} {
+
+        using material_id = detray::detector<>::materials::id;
+
         // Empty dummy volume
         volume_builder<detray::detector<>> vbuilder{volume_id::e_cylinder};
         vbuilder.build(*m_det);
+
+        // @TODO: Homogeneous volume material builder
+        m_det->material_store().template push_back<material_id::e_raw_material>(
+            vol_mat);
+        m_det->volumes().back().set_material(material_id::e_raw_material, 0u);
     }
 
     scalar operator()() const { return m_step_size; }
@@ -64,10 +73,6 @@ struct nav_state {
         return m_det.get();
     }
     inline auto volume() -> unsigned int { return 0u; }
-    inline auto set_material(material<scalar> mat) -> void {
-        auto &vols = m_det->volumes();
-        vols[0u].set_material(mat);
-    }
     inline void set_full_trust() {}
     inline void set_high_trust() {}
     inline void set_fair_trust() {}
@@ -316,11 +321,8 @@ TEST(detray_propagator, qop_derivative) {
 
         // Retrieve the stepper and navigation state
         rk_stepper_t<bfield_t>::state &rk_state = propagation._stepping;
-        nav_state &n_state = propagation._navigation;
 
-        // Set material
-        rk_state._mat = detray::cesium_iodide_with_ded<scalar>();
-        n_state.set_material(detray::cesium_iodide_with_ded<scalar>());
+        rk_state._mat = &vol_mat;
 
         for (unsigned int i_s = 0u; i_s < rk_steps; i_s++) {
 

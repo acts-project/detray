@@ -196,27 +196,29 @@ unbounded_cell, unmasked_plane*/>;
         e_cell_wire_map = 5u,
         e_straw_wire_map = 5u,
         // Volume material
-        // e_cuboid3_map = 6u,
-        // e_cylinder3_map = 7u,
+        e_cuboid3_map = 7,
+        e_cylinder3_map = 8u,
         // Homogeneous mapetrial
         e_slab = 4u,
         e_rod = 5u,
-        e_none = 5u,
+        e_raw_material = 6u,
+        e_none = 9u,
     };
 
     /// How to store materials
     template <template <typename...> class tuple_t = dtuple,
               typename container_t = host_container_types>
-    using material_store =
-        multi_store<material_ids, empty_context, tuple_t,
-                    grid_collection<disc_map_t<container_t>>,
-                    grid_collection<concentric_cylinder2_map_t<container_t>>,
-                    grid_collection<cylinder2_map_t<container_t>>,
-                    grid_collection<rectangular_map_t<container_t>>,
-                    /*grid_collection<cuboid_map_t<container_t>>,
-                    grid_collection<cylinder3_map_t<container_t>>,*/
-                    typename container_t::template vector_type<slab>,
-                    typename container_t::template vector_type<rod>>;
+    using material_store = multi_store<
+        material_ids, empty_context, tuple_t,
+        grid_collection<disc_map_t<container_t>>,
+        grid_collection<concentric_cylinder2_map_t<container_t>>,
+        grid_collection<cylinder2_map_t<container_t>>,
+        grid_collection<rectangular_map_t<container_t>>,
+        typename container_t::template vector_type<slab>,
+        typename container_t::template vector_type<rod>,
+        typename container_t::template vector_type<material<detray::scalar>>,
+        grid_collection<cuboid_map_t<container_t>>,
+        grid_collection<cylinder3_map_t<container_t>>>;
 
     /// How to link to the entries in the data stores
     using transform_link = typename transform_store<>::link_type;

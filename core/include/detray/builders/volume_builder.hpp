@@ -45,6 +45,7 @@ class volume_builder : public volume_builder_interface<detector_t> {
         : m_has_accel{false}, m_volume{id} {
 
         m_volume.set_index(idx);
+        m_volume.set_material(volume_type::material_id::e_none, 0u);
 
         // The first acceleration data structure in every volume is a brute
         // force method that will at least contain the portals

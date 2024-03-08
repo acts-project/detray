@@ -1,6 +1,6 @@
 /** Detray library, part of the ACTS project (R&D line)
  *
- * (c) 2023 CERN for the benefit of the ACTS project
+ * (c) 2023-2024 CERN for the benefit of the ACTS project
  *
  * Mozilla Public License Version 2.0
  */
@@ -10,6 +10,7 @@
 // Project include(s)
 #include "detray/geometry/detector_volume.hpp"
 #include "detray/geometry/surface.hpp"
+#include "detray/materials/predefined_materials.hpp"
 #include "detray/utils/ranges.hpp"
 
 // System include(s)
@@ -102,6 +103,98 @@ struct surface_checker {
         // Check if it is the surface we are looking for
         if (ref_descr == check_descr) {
             success = true;
+        }
+    }
+};
+
+/// A functor that checks the material parametrization for a surface/volume
+struct material_checker {
+
+    /// Error message for material consistency check
+    template <typename material_t>
+    void throw_material_error(const std::string &type, const dindex idx,
+                              const material_t &mat) const {
+        std::stringstream err_stream{};
+        err_stream << "Invalid material found in: " << type << " at index "
+                   << idx << ": " << mat;
+
+        throw std::invalid_argument(err_stream.str());
+    }
+
+    /// Test wether a given material map contains invalid material
+    ///
+    /// @param material_coll collection of material grids
+    /// @param idx the specific grid to be checked
+    /// @param id type id of the material grid collection
+    template <typename material_coll_t, typename index_t, typename id_t,
+              std::enable_if_t<detail::is_material_map_v<
+                                   typename material_coll_t::value_type> ||
+                                   detail::is_volume_material_v<
+                                       typename material_coll_t::value_type>,
+                               bool> = true>
+    DETRAY_HOST_DEVICE void operator()(const material_coll_t &material_coll,
+                                       const index_t idx, const id_t id) const {
+
+        const auto mat_map = material_coll[idx];
+
+        // Check wether there are any entries in the bins
+        if (mat_map.size() == 0u) {
+            std::stringstream err_stream{};
+            err_stream << "Empty material grid: " << static_cast<int>(id)
+                       << " at index " << idx;
+
+            throw std::invalid_argument(err_stream.str());
+        } else {
+            for (const auto &bin : mat_map.bins()) {
+                if (bin.size() == 0u) {
+                    std::stringstream err_stream{};
+                    err_stream << "Empty material bin: " << static_cast<int>(id)
+                               << " at index " << idx;
+
+                    throw std::invalid_argument(err_stream.str());
+                }
+            }
+        }
+
+        // Check that every entry in the material map is valid
+        for (const auto &slab : mat_map.all()) {
+            if (!slab) {
+                throw_material_error("material map (type id " +
+                                         std::to_string(static_cast<int>(id)) +
+                                         ")",
+                                     idx, slab);
+            }
+        }
+    }
+
+    /// Test wether a given collection of material contains invalid material
+    ///
+    /// @param material_coll collection of material slabs/rods/raw mat
+    /// @param idx the specific instance to be checked
+    template <typename material_coll_t, typename index_t, typename id_t,
+              std::enable_if_t<detail::is_hom_material_v<
+                                   typename material_coll_t::value_type>,
+                               bool> = true>
+    DETRAY_HOST_DEVICE void operator()(const material_coll_t &material_coll,
+                                       const index_t idx, const id_t) const {
+
+        using material_t = typename material_coll_t::value_type;
+        using scalar_t = typename material_t::scalar_type;
+
+        const material_t &mat = material_coll.at(idx);
+
+        // Homogeneous volume material
+        if constexpr (std::is_same_v<material_t, material<scalar_t>>) {
+
+            if (mat == detray::vacuum<scalar_t>{}) {
+                throw_material_error("homogeneous volume material", idx, mat);
+            }
+
+        } else {
+            // Material slabs and rods
+            if (!mat) {
+                throw_material_error("homogeneous surface material", idx, mat);
+            }
         }
     }
 };
@@ -212,6 +305,12 @@ inline bool check_consistency(const detector_t &det,
 
         // Go through the acceleration data structures and check the surfaces
         vol.template visit_surfaces<detail::surface_checker>(det, vol.index());
+
+        // Check the volume material, if present
+        if (vol.has_material()) {
+            vol.template visit_material<detail::material_checker>(
+                vol_desc.material().id());
+        }
     }
 
     // Check the surfaces in the detector's surface lookup
@@ -246,6 +345,12 @@ inline bool check_consistency(const detector_t &det,
                        << "volume's navigation acceleration data structures:\n"
                        << "Surface: " << sf;
             throw std::invalid_argument(err_stream.str());
+        }
+
+        // Check the surface material, if present
+        if (sf.has_material()) {
+            sf.template visit_material<detail::material_checker>(
+                sf_desc.material().id());
         }
     }
 

@@ -49,7 +49,8 @@ enum class material_id : unsigned int {
     // Homogeneous materials
     slab = 6u,
     rod = 7u,
-    n_mats = 8u,
+    raw_material = 8u,
+    n_mats = 9u,
     unknown = n_mats
 };
 

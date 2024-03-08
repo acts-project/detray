@@ -166,7 +166,7 @@ GTEST_TEST(io, json_telescope_detector_reader) {
         mat_store.get<decltype(tel_det)::materials::id::e_slab>();
 
     EXPECT_EQ(det_io.volumes().size(), 1u);
-    EXPECT_EQ(slabs.size(), positions.size() + 6u);
+    EXPECT_EQ(slabs.size(), positions.size());
 }
 
 /// Test the reading and writing of a toy detector geometry

@@ -206,6 +206,8 @@ struct detector_helper {
 
         auto &cyl_volume = det.new_volume(
             volume_id::e_cylinder, {detector_t::accel::id::e_default, 0u});
+        cyl_volume.set_material(detector_t::volume_type::material_id::e_none,
+                                0u);
 
         // volume placement
         cyl_volume.set_transform(det.transform_store().size());
@@ -307,12 +309,15 @@ struct detector_helper {
             sf.material() = material_link_type{
                 map_id, materials.template size<map_id>() - 1u};
         } else {
-            materials.template emplace_back<material_id::e_slab>(
-                {}, cfg.mapped_material(), cfg.thickness());
+            const auto &mat = cfg.mapped_material();
+            if (!(mat == vacuum<scalar>())) {
+                materials.template emplace_back<material_id::e_slab>(
+                    {}, mat, cfg.thickness());
 
-            sf.material() = material_link_type{
-                material_id::e_slab,
-                materials.template size<material_id::e_slab>() - 1u};
+                sf.material() = material_link_type{
+                    material_id::e_slab,
+                    materials.template size<material_id::e_slab>() - 1u};
+            }
         }
     }
 };

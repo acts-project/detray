@@ -80,9 +80,10 @@ struct telescope_metadata {
 
     /// Material type ids
     enum class material_ids : std::uint8_t {
-        e_slab = 0,
-        e_rod = 1,
-        e_none = 2,
+        e_slab = 0u,
+        e_raw_material = 1u,  //< used for homogeneous volume material
+        e_rod = 2u,
+        e_none = 3u,
     };
 
     /// How to store materials
@@ -92,9 +93,11 @@ struct telescope_metadata {
         std::is_same_v<mask<mask_shape_t, nav_link>, cell_wire> |
             std::is_same_v<mask<mask_shape_t, nav_link>, straw_wire>,
         regular_multi_store<material_ids, empty_context, tuple_t,
-                            container_t::template vector_type, slab, rod>,
+                            container_t::template vector_type, slab,
+                            material<detray::scalar>, rod>,
         regular_multi_store<material_ids, empty_context, tuple_t,
-                            container_t::template vector_type, slab>>;
+                            container_t::template vector_type, slab,
+                            material<detray::scalar>>>;
 
     /// How to link to the entries in the data stores
     using transform_link = typename transform_store<>::link_type;

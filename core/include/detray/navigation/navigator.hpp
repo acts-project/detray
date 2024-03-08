@@ -328,8 +328,8 @@ class navigator {
 
         /// Helper method to check the track has encountered material
         DETRAY_HOST_DEVICE
-        inline auto encountered_material() const -> bool {
-            return (is_on_module() or is_on_portal()) and
+        inline auto encountered_sf_material() const -> bool {
+            return (is_on_module() || is_on_portal()) &&
                    (current()->sf_desc.material().id() !=
                     detector_t::materials::id::e_none);
         }

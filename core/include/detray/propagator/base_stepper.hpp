@@ -143,6 +143,7 @@ class base_stepper {
 
         /// The particle mass
         scalar_type _mass{105.7f * unit<scalar_type>::MeV};
+
         /// The particle pdg
         int _pdg = 13;  // default muon
 

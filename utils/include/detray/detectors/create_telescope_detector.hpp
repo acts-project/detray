@@ -169,6 +169,7 @@ inline auto create_telescope_detector(
     using builder_t =
         detector_builder<telescope_metadata<mask_shape_t>, volume_builder>;
     using detector_t = typename builder_t::detector_type;
+    using material_id = typename detector_t::materials::id;
 
     builder_t det_builder;
 
@@ -202,33 +203,34 @@ inline auto create_telescope_detector(
     assert((tel_generator->size() < 20u) &&
            "Due to WIP, please choose less than 20 surfaces for now");
 
-    std::vector<material_data<scalar>> sf_materials(
-        tel_generator->size(),
-        material_data<scalar>{cfg.mat_thickness(), cfg.module_material()});
+    std::shared_ptr<surface_factory_interface<detector_t>> module_generator;
 
-    using material_id = typename detector_t::materials::id;
-    constexpr bool is_line{std::is_same_v<mask_shape_t, detray::wire_cell> ||
-                           std::is_same_v<mask_shape_t, detray::straw_tube>};
-    const auto mat_id = is_line ? material_id::e_rod : material_id::e_slab;
+    const auto &module_mat = cfg.module_material();
+    if (!(module_mat == detray::vacuum<scalar>{})) {
+        std::vector<material_data<scalar>> sf_materials(
+            tel_generator->size(),
+            material_data<scalar>{cfg.mat_thickness(), module_mat});
 
-    auto tel_mat_generator =
-        std::make_shared<homogeneous_material_factory<detector_t>>(
-            std::move(tel_generator));
-    tel_mat_generator->add_material(mat_id, std::move(sf_materials));
+        constexpr bool is_line{
+            std::is_same_v<mask_shape_t, detray::wire_cell> ||
+            std::is_same_v<mask_shape_t, detray::straw_tube>};
+        const auto mat_id = is_line ? material_id::e_rod : material_id::e_slab;
+
+        auto tel_mat_generator =
+            std::make_shared<homogeneous_material_factory<detector_t>>(
+                std::move(tel_generator));
+        tel_mat_generator->add_material(mat_id, std::move(sf_materials));
+
+        module_generator = std::move(tel_mat_generator);
+    } else {
+        module_generator = std::move(tel_generator);
+    }
 
     // Add a portal box around the cuboid volume
     auto portal_generator =
-        std::make_shared<homogeneous_material_factory<detector_t>>(
-            std::make_unique<cuboid_portal_generator<detector_t>>(
-                cfg.envelope()));
+        std::make_shared<cuboid_portal_generator<detector_t>>(cfg.envelope());
 
-    // @TODO: Put no material instead of 'vacuum'
-    std::vector<material_data<scalar>> pt_materials(
-        portal_generator->size(), material_data<scalar>{0.f, vacuum<scalar>{}});
-    portal_generator->add_material(detector_t::materials::id::e_slab,
-                                   std::move(pt_materials));
-
-    vm_builder->add_surfaces(tel_mat_generator);
+    vm_builder->add_surfaces(module_generator);
     vm_builder->add_surfaces(portal_generator);
 
     det_builder.set_volume_finder(resource);
@@ -238,7 +240,12 @@ inline auto create_telescope_detector(
     auto det = det_builder.build(resource);
 
     // Set the volume material
-    det.volumes()[0u].set_material(cfg.volume_material());
+    if (!(cfg.volume_material() == detray::vacuum<scalar>{})) {
+        // @TODO: Homogeneous volume material builder
+        det.material_store().template push_back<material_id::e_raw_material>(
+            cfg.volume_material());
+        det.volumes().back().set_material(material_id::e_raw_material, 0u);
+    }
 
     if (cfg.do_check()) {
         detray::detail::check_consistency(det);

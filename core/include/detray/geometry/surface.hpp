@@ -1,7 +1,7 @@
 
 /** Detray library, part of the ACTS project (R&D line)
  *
- * (c) 2023 CERN for the benefit of the ACTS project
+ * (c) 2023-2024 CERN for the benefit of the ACTS project
  *
  * Mozilla Public License Version 2.0
  */
@@ -14,6 +14,7 @@
 #include "detray/definitions/geometry.hpp"
 #include "detray/geometry/barcode.hpp"
 #include "detray/geometry/detail/surface_kernels.hpp"
+#include "detray/materials/material.hpp"
 
 // System include(s)
 #include <ostream>
@@ -134,6 +135,14 @@ class surface {
         return barcode().id() == surface_id::e_passive;
     }
 
+    /// @returns true if the surface carries material.
+    DETRAY_HOST_DEVICE
+    constexpr auto has_material() const -> bool {
+        return m_desc.material().id() !=
+               static_cast<typename descr_t::material_link::id_type>(
+                   detector_t::materials::id::e_none);
+    }
+
     /// @returns the mask volume link
     DETRAY_HOST_DEVICE
     constexpr auto volume_link() const {
@@ -189,6 +198,12 @@ class surface {
                                                 const point_t &p) const
         -> scalar_type {
         return vector::dot(dir, normal(ctx, p));
+    }
+
+    /// @returns the material parameters at the local position @param loc_p
+    DETRAY_HOST_DEVICE constexpr material<scalar_type> material_parameters(
+        const point2 &loc_p) const {
+        return visit_material<typename kernels::get_material_params>(loc_p);
     }
 
     /// @returns the bound (2D) position to the global point @param global for
@@ -311,7 +326,7 @@ class surface {
 
     /// Call a functor on the surfaces material with additional arguments.
     ///
-    /// @tparam functor_t the prescription to be applied to the mask
+    /// @tparam functor_t the prescription to be applied to the material
     /// @tparam Args      types of additional arguments to the functor
     template <typename functor_t, typename... Args>
     DETRAY_HOST_DEVICE constexpr auto visit_material(Args &&... args) const {
@@ -358,9 +373,8 @@ class surface {
         }
         // Only check, if there is material in the detector
         if (not m_detector.material_store().all_empty()) {
-            if (m_desc.material().id() != detector_t::materials::id::e_none and
-                m_desc.material().is_invalid_index()) {
-                os << "ERROR: Surface does not have valid material:\n"
+            if (has_material() && m_desc.material().is_invalid_index()) {
+                os << "ERROR: Surface does not have valid material link:\n"
                    << *this << std::endl;
                 return false;
             }

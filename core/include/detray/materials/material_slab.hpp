@@ -20,7 +20,7 @@ namespace detray {
 
 // Slab structure to be mapped on the mask (plane, cylinder)
 template <typename scalar_t>
-struct material_slab : public detail::homogeneous_material_tag {
+struct material_slab {
     using scalar_type = scalar_t;
     using material_type = material<scalar_t>;
 
@@ -49,8 +49,10 @@ struct material_slab : public detail::homogeneous_material_tag {
     DETRAY_HOST_DEVICE
     constexpr explicit operator bool() const {
         if (m_thickness <= std::numeric_limits<scalar_type>::epsilon() ||
-            m_material == vacuum<scalar_type>() || m_material.Z() == 0.f ||
-            m_material.mass_density() == 0.f) {
+            m_thickness == std::numeric_limits<scalar_type>::max() ||
+            m_material == vacuum<scalar_type>() ||
+            m_material.mass_density() == 0.f ||
+            m_material.molar_density() == 0.f) {
             return false;
         }
         return true;
@@ -110,5 +112,14 @@ struct material_slab : public detail::homogeneous_material_tag {
     scalar_type m_thickness_in_X0 = std::numeric_limits<scalar>::epsilon();
     scalar_type m_thickness_in_L0 = std::numeric_limits<scalar>::epsilon();
 };
+
+namespace detail {
+
+// Used directly for homogeneous surface material
+template <class scalar_t>
+struct is_hom_material<material_slab<scalar_t>, void> : public std::true_type {
+};
+
+}  // namespace detail
 
 }  // namespace detray

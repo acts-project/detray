@@ -40,6 +40,7 @@ class detector_volume {
 
     /// Scalar type
     using scalar_type = typename detector_t::scalar_type;
+    using point3 = typename detector_t::point3;
 
     /// Volume descriptor type
     using descr_t = typename detector_t::volume_type;
@@ -91,10 +92,18 @@ class detector_volume {
         return transform().translation();
     }
 
-    /// @returns the material of the volume
+    /// @returns the material parameters at the local position @param loc_p
+    DETRAY_HOST_DEVICE constexpr auto material_parameters(
+        const point3 &loc_p) const -> const detray::material<scalar_type> * {
+        return visit_material<typename detail::get_material_params>(loc_p);
+    }
+
+    /// @returns true if the volume carries material.
     DETRAY_HOST_DEVICE
-    constexpr auto material() const -> const material<scalar_type> & {
-        return m_desc.material();
+    constexpr auto has_material() const -> bool {
+        return m_desc.material().id() !=
+               static_cast<typename descr_t::material_link::id_type>(
+                   detector_t::materials::id::e_none);
     }
 
     /// @returns an iterator pair for the requested type of surfaces.
@@ -142,6 +151,18 @@ class detector_volume {
         const track_t &track, const config_t &cfg, Args &&... args) const {
         visit_surfaces_impl<detail::neighborhood_getter<functor_t>>(
             m_detector, m_desc, track, cfg, std::forward<Args>(args)...);
+    }
+
+    /// Call a functor on the volume material with additional arguments.
+    ///
+    /// @tparam functor_t the prescription to be applied to the material
+    /// @tparam Args      types of additional arguments to the functor
+    template <typename functor_t, typename... Args>
+    DETRAY_HOST_DEVICE constexpr auto visit_material(Args &&... args) const {
+        const auto &materials = m_detector.material_store();
+
+        return materials.template visit<functor_t>(m_desc.material(),
+                                                   std::forward<Args>(args)...);
     }
 
     /// @returns the maximum number of surface candidates during a neighborhood
@@ -204,6 +225,14 @@ class detector_volume {
             os << "ERROR: Volume transform index out of bounds in volume:\n"
                << *this << std::endl;
             return false;
+        }
+        // Only check, if there is material in the detector
+        if (!m_detector.material_store().all_empty()) {
+            if (has_material() && m_desc.material().is_invalid_index()) {
+                os << "ERROR: Volume does not have valid material link:\n"
+                   << *this << std::endl;
+                return false;
+            }
         }
         const auto &acc_link = m_desc.accel_link();
         if (detail::is_invalid_value(acc_link[0])) {
@@ -285,6 +314,7 @@ class detector_volume {
         os << " | trf.: " << v.m_desc.transform();
         os << " | acc link: " << v.m_desc.accel_link();
         os << " | sf link: " << v.m_desc.sf_link();
+        os << " | mat link: " << v.m_desc.material();
 
         return os;
     }

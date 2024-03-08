@@ -29,7 +29,7 @@ namespace detray {
 // Vacuum
 DETRAY_DECLARE_MATERIAL(vacuum, std::numeric_limits<scalar>::max(),
                         std::numeric_limits<scalar>::max(), 0.f, 0.f, 0.f,
-                        material_state::e_gas);
+                        material_state::e_unknown);
 
 // H₂ (1): Hydrogen Gas
 DETRAY_DECLARE_MATERIAL(hydrogen_gas, 7.526E3f * unit<scalar>::m,

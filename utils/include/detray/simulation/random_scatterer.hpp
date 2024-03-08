@@ -72,79 +72,69 @@ struct random_scatterer : actor {
         using scalar_type = typename interaction_type::scalar_type;
         using state = typename random_scatterer::state;
 
-        template <typename material_group_t, typename index_t>
+        template <typename mat_group_t, typename index_t>
         DETRAY_HOST_DEVICE inline bool operator()(
-            const material_group_t& material_group, const index_t& mat_index,
-            state& s,
-            const bound_track_parameters<transform3_type>& bound_params,
-            const scalar_type cos_inc_angle, const scalar_type approach) const {
+            [[maybe_unused]] const mat_group_t& material_group,
+            [[maybe_unused]] const index_t& mat_index,
+            [[maybe_unused]] state& s,
+            [[maybe_unused]] const bound_track_parameters<transform3_type>&
+                bound_params,
+            [[maybe_unused]] const scalar_type cos_inc_angle,
+            [[maybe_unused]] const scalar_type approach) const {
 
-            const scalar qop = bound_params.qop();
-            const scalar charge = bound_params.charge();
+            using material_t = typename mat_group_t::value_type;
 
-            const auto& mat = this->get_material(material_group, mat_index,
-                                                 bound_params.bound_local());
+            if constexpr ((detail::is_hom_material_v<material_t> &&
+                           !std::is_same_v<material_t,
+                                           material<scalar_type>>) ||
+                          detail::is_material_map_v<material_t>) {
 
-            if (not mat) {
+                const scalar qop = bound_params.qop();
+                const scalar charge = bound_params.charge();
+
+                const auto mat = detail::material_accessor::get(
+                    material_group, mat_index, bound_params.bound_local());
+
+                // return early in case of zero thickness
+                if (mat.thickness() <=
+                    std::numeric_limits<scalar_type>::epsilon()) {
+                    return false;
+                }
+
+                const scalar_type path_segment{
+                    mat.path_segment(cos_inc_angle, approach)};
+
+                // Energy Loss
+                if (s.do_energy_loss) {
+                    s.e_loss_mpv =
+                        interaction_type().compute_energy_loss_landau(
+                            path_segment, mat.get_material(), s.pdg, s.mass,
+                            qop, charge);
+
+                    s.e_loss_sigma =
+                        interaction_type().compute_energy_loss_landau_sigma(
+                            path_segment, mat.get_material(), s.pdg, s.mass,
+                            qop, charge);
+                }
+
+                // Scattering angle
+                if (s.do_multiple_scattering) {
+                    // @todo: use momentum before or after energy loss in
+                    // backward mode?
+                    s.projected_scattering_angle =
+                        interaction_type().compute_multiple_scattering_theta0(
+                            mat.path_segment_in_X0(cos_inc_angle, approach),
+                            s.pdg, s.mass, qop, charge);
+                }
+
+                return true;
+            } else {
+                // For non-pointwise material interactions, do nothing
                 return false;
             }
-
-            const scalar_type path_segment{
-                mat.path_segment(cos_inc_angle, approach)};
-
-            // Energy Loss
-            if (s.do_energy_loss) {
-                s.e_loss_mpv = interaction_type().compute_energy_loss_landau(
-                    path_segment, mat.get_material(), s.pdg, s.mass, qop,
-                    charge);
-
-                s.e_loss_sigma =
-                    interaction_type().compute_energy_loss_landau_sigma(
-                        path_segment, mat.get_material(), s.pdg, s.mass, qop,
-                        charge);
-            }
-
-            // Scattering angle
-            if (s.do_multiple_scattering) {
-                // @todo: use momentum before or after energy loss in
-                // backward mode?
-                s.projected_scattering_angle =
-                    interaction_type().compute_multiple_scattering_theta0(
-                        mat.path_segment_in_X0(cos_inc_angle, approach), s.pdg,
-                        s.mass, qop, charge);
-            }
-
-            return true;
-        }
-
-        private:
-        /// Access to material slabs or rods in a homogeneous material
-        /// description
-        template <class material_coll_t, class point_t,
-                  std::enable_if_t<not detail::is_grid_v<
-                                       typename material_coll_t::value_type>,
-                                   bool> = true>
-        inline constexpr decltype(auto) get_material(
-            const material_coll_t& material_coll, const dindex idx,
-            const point_t&) const noexcept {
-            return material_coll[idx];
-        }
-
-        /// Access to material slabs in a material map
-        template <class material_coll_t, class point_t,
-                  std::enable_if_t<
-                      detail::is_grid_v<typename material_coll_t::value_type>,
-                      bool> = true>
-        inline constexpr decltype(auto) get_material(
-            const material_coll_t& material_coll, const dindex idx,
-            const point_t& loc_point) const noexcept {
-
-            // Find the material slab (only one entry per bin)
-            return *(material_coll[idx].search(loc_point));
         }
     };
 
-    /// Observes a material interactor state @param interactor_state
     template <typename propagator_state_t>
     DETRAY_HOST inline void operator()(state& simulator_state,
                                        propagator_state_t& prop_state) const {

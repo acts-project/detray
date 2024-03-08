@@ -6,6 +6,8 @@
  */
 
 // Project include(s).
+#include <iostream>
+
 #include "detray/geometry/detector_volume.hpp"
 
 template <typename magnetic_field_t, typename transform3_t,
@@ -34,7 +36,7 @@ detray::rk_stepper<magnetic_field_t, transform3_t, constraint_t, policy_t,
     track.set_dir(dir);
 
     auto qop = track.qop();
-    if (!(this->_mat == vacuum<scalar_type>())) {
+    if (!(this->_mat == nullptr)) {
         // Reference: Eq (82) of https://doi.org/10.1016/0029-554X(81)90063-X
         qop =
             qop + h_6 * (sd.dqopds[0u] + 2.f * (sd.dqopds[1u] + sd.dqopds[2u]) +
@@ -416,7 +418,7 @@ detray::rk_stepper<magnetic_field_t, transform3_t, constraint_t, policy_t,
     const scalar_type qop = track.qop();
     auto& sd = this->_step_data;
 
-    if (this->_mat == detray::vacuum<scalar_type>()) {
+    if (this->_mat == nullptr) {
         sd.qop[i] = qop;
         return 0.f;
     } else {
@@ -469,7 +471,7 @@ template <typename magnetic_field_t, typename transform3_t,
           template <typename, std::size_t> class array_t>
 DETRAY_HOST_DEVICE auto detray::rk_stepper<
     magnetic_field_t, transform3_t, constraint_t, policy_t, inspector_t,
-    array_t>::state::evaluate_field_gradient(const vector3& pos)
+    array_t>::state::evaluate_field_gradient(const point3& pos)
     -> matrix_type<3, 3> {
 
     matrix_type<3, 3> dBdr = matrix_operator().template zero<3, 3>();
@@ -478,7 +480,7 @@ DETRAY_HOST_DEVICE auto detray::rk_stepper<
 
     for (unsigned int i = 0; i < 3; i++) {
 
-        vector3 dpos1 = pos;
+        point3 dpos1 = pos;
         dpos1[i] += delta;
         const auto bvec1_tmp =
             this->_magnetic_field.at(dpos1[0], dpos1[1], dpos1[2]);
@@ -487,7 +489,7 @@ DETRAY_HOST_DEVICE auto detray::rk_stepper<
         bvec1[1u] = bvec1_tmp[1u];
         bvec1[2u] = bvec1_tmp[2u];
 
-        vector3 dpos2 = pos;
+        point3 dpos2 = pos;
         dpos2[i] -= delta;
         const auto bvec2_tmp =
             this->_magnetic_field.at(dpos2[0], dpos2[1], dpos2[2]);
@@ -515,7 +517,7 @@ detray::rk_stepper<magnetic_field_t, transform3_t, constraint_t, policy_t,
 
     // In case there was no step before
     if (this->_path_length == 0.f) {
-        const vector3 pos = this->_track.pos();
+        const point3 pos = this->_track.pos();
 
         const auto bvec_tmp = this->_magnetic_field.at(pos[0], pos[1], pos[2]);
         vector3 bvec;
@@ -552,10 +554,10 @@ detray::rk_stepper<magnetic_field_t, transform3_t, constraint_t, policy_t,
                    inspector_t, array_t>::state::dqopds(const scalar_type qop)
     const -> typename transform3_t::scalar_type {
 
-    const auto& mat = this->_mat;
+    const auto& mat = *(this->_mat);
 
     // d(qop)ds is zero for empty space
-    if (mat == detray::vacuum<scalar_type>()) {
+    if (this->_mat == nullptr) {
         return 0.f;
     }
 
@@ -588,7 +590,7 @@ DETRAY_HOST_DEVICE auto detray::rk_stepper<
 
     using scalar_t = typename transform3_t::scalar_type;
 
-    if (this->_mat == vacuum<scalar_t>()) {
+    if (this->_mat == nullptr) {
         return 0.f;
     }
 
@@ -606,12 +608,13 @@ DETRAY_HOST_DEVICE auto detray::rk_stepper<
     // g = dE/ds = -1 * (-dE/ds) = -1 * stopping power
     const detail::relativistic_quantities<scalar_t> rq(mass, qop, q);
     // We assume that stopping power ~ mean ionization eloss per pathlength
-    const scalar_type bethe = I.compute_bethe_bloch(this->_mat, this->_pdg, rq);
+    const scalar_type bethe =
+        I.compute_bethe_bloch(*(this->_mat), this->_pdg, rq);
     const scalar_type g = -1.f * bethe;
 
     // dg/d(qop) = -1 * derivation of stopping power
     const scalar_t dgdqop = -1.f * interaction<scalar_t>().derive_bethe_bloch(
-                                       this->_mat, this->_pdg, rq, bethe);
+                                       *(this->_mat), this->_pdg, rq, bethe);
 
     // d(qop)/ds = - qop^3 * E * g / q^2
     const scalar_t dqopds = this->dqopds(qop);
@@ -643,15 +646,20 @@ DETRAY_HOST_DEVICE bool detray::rk_stepper<
         stepping._step_size = math::max(stepping._step_size, navigation());
     }
 
+    const point3 pos = stepping().pos();
+
     auto vol = detector_volume{*navigation.detector(), navigation.volume()};
-    stepping._mat = vol.material();
+    if (vol.has_material()) {
+        stepping._mat = vol.material_parameters(pos);
+    } else {
+        stepping._mat = nullptr;
+    }
 
     auto& sd = stepping._step_data;
 
     scalar_type error_estimate{0.f};
 
     // First Runge-Kutta point
-    const vector3 pos = stepping().pos();
     const auto bvec = magnetic_field.at(pos[0], pos[1], pos[2]);
     sd.b_first[0] = bvec[0];
     sd.b_first[1] = bvec[1];
@@ -671,8 +679,7 @@ DETRAY_HOST_DEVICE bool detray::rk_stepper<
         // Second Runge-Kutta point
         // qop should be recalcuated at every point
         // Eq (84) of https://doi.org/10.1016/0029-554X(81)90063-X
-        const vector3 pos1 =
-            pos + half_h * sd.t[0u] + h2 * 0.125f * sd.dtds[0u];
+        const point3 pos1 = pos + half_h * sd.t[0u] + h2 * 0.125f * sd.dtds[0u];
         const auto bvec1 = magnetic_field.at(pos1[0], pos1[1], pos1[2]);
         sd.b_middle[0] = bvec1[0];
         sd.b_middle[1] = bvec1[1];
@@ -694,7 +701,7 @@ DETRAY_HOST_DEVICE bool detray::rk_stepper<
         // Last Runge-Kutta point
         // qop should be recalcuated at every point
         // Eq (84) of https://doi.org/10.1016/0029-554X(81)90063-X
-        const vector3 pos2 = pos + h * sd.t[0u] + h2 * 0.5f * sd.dtds[2u];
+        const point3 pos2 = pos + h * sd.t[0u] + h2 * 0.5f * sd.dtds[2u];
         const auto bvec2 = magnetic_field.at(pos2[0], pos2[1], pos2[2]);
         sd.b_last[0] = bvec2[0];
         sd.b_last[1] = bvec2[1];

@@ -9,6 +9,7 @@
 
 // Project include(s)
 #include "detray/io/frontend/utils/file_handle.hpp"
+#include "detray/materials/detail/material_accessor.hpp"
 #include "detray/navigation/detail/ray.hpp"
 #include "detray/simulation/event_generator/track_generators.hpp"
 #include "detray/test/fixture_base.hpp"
@@ -116,9 +117,15 @@ class material_scan : public test::fixture_base<> {
 
                 const auto sf = surface{m_det, record.second.sf_desc};
 
+                if (!sf.has_material()) {
+                    continue;
+                }
+
+                const auto &p = record.second.local;
                 const auto [seg, t, mx0, ml0] =
                     sf.template visit_material<get_material_params>(
-                        record.second.local, record.second.cos_incidence_angle);
+                        point2_t{p[0], p[1]},
+                        record.second.cos_incidence_angle);
 
                 if (mx0 > 0.f) {
                     mat_sX0 += seg / mx0;
@@ -155,45 +162,34 @@ class material_scan : public test::fixture_base<> {
     /// intersection
     struct get_material_params {
 
-        /// Access to material slabs or rods in a homogeneous material
-        /// description
-        template <class material_coll_t, class point_t,
-                  std::enable_if_t<not detail::is_grid_v<
-                                       typename material_coll_t::value_type>,
-                                   bool> = true>
-        inline constexpr decltype(auto) get_material(
-            const material_coll_t &material_coll, const dindex idx,
-            const point_t &) const noexcept {
-            return material_coll[idx];
-        }
+        template <typename mat_group_t, typename index_t>
+        inline auto operator()(
+            [[maybe_unused]] const mat_group_t &mat_group,
+            [[maybe_unused]] const index_t &index,
+            [[maybe_unused]] const point2_t &loc,
+            [[maybe_unused]] const scalar_t cos_inc_angle) const {
 
-        /// Access to material slabs in a material map
-        template <class material_coll_t, class point_t,
-                  std::enable_if_t<
-                      detail::is_grid_v<typename material_coll_t::value_type>,
-                      bool> = true>
-        inline constexpr decltype(auto) get_material(
-            const material_coll_t &material_coll, const dindex idx,
-            const point_t &loc_point) const noexcept {
+            using material_t = typename mat_group_t::value_type;
 
-            // Find the material slab (only one entry per bin)
-            return *(material_coll[idx].search(
-                point2_t{loc_point[0], loc_point[1]}));
-        }
+            // Access homogeneous surface material or material maps
+            if constexpr ((detail::is_hom_material_v<material_t> &&
+                           !std::is_same_v<material_t, material<scalar_t>>) ||
+                          detail::is_material_map_v<material_t>) {
 
-        template <typename mat_group_t, typename index_t, typename point_t>
-        inline auto operator()(const mat_group_t &mat_group,
-                               const index_t &index, const point_t &loc,
-                               const scalar_t cos_inc_angle) const {
+                // Slab or rod
+                const auto mat =
+                    detail::material_accessor::get(mat_group, index, loc);
 
-            const auto slab = get_material(mat_group, index, loc);
+                const scalar_t seg{mat.path_segment(cos_inc_angle, loc[0])};
+                const scalar_t t{mat.thickness()};
+                const scalar_t mat_X0{mat.get_material().X0()};
+                const scalar_t mat_L0{mat.get_material().L0()};
 
-            const scalar_t seg{slab.path_segment(cos_inc_angle, loc[0])};
-            const scalar_t t{slab.thickness()};
-            const scalar_t mat_X0{slab.get_material().X0()};
-            const scalar_t mat_L0{slab.get_material().L0()};
-
-            return std::tuple(seg, t, mat_X0, mat_L0);
+                return std::tuple(seg, t, mat_X0, mat_L0);
+            } else {
+                constexpr auto inv{detail::invalid_value<scalar_t>()};
+                return std::tuple(inv, inv, inv, inv);
+            }
         }
     };
 

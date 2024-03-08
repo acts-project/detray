@@ -1,6 +1,6 @@
 /** Detray library, part of the ACTS project (R&D line)
  *
- * (c) 2021-2023 CERN for the benefit of the ACTS project
+ * (c) 2021-2024 CERN for the benefit of the ACTS project
  *
  * Mozilla Public License Version 2.0
  */
@@ -11,8 +11,6 @@
 #include "detray/definitions/detail/indexing.hpp"
 #include "detray/definitions/detail/qualifiers.hpp"
 #include "detray/definitions/geometry.hpp"
-#include "detray/materials/material.hpp"
-#include "detray/materials/predefined_materials.hpp"
 
 namespace detray {
 
@@ -30,7 +28,8 @@ namespace detray {
 ///         container' and are called per volume in the navigator during local
 ///         navigation.
 template <typename ID, typename scalar_t,
-          typename link_t = dtyped_index<dindex, dindex>>
+          typename acc_link_t = dtyped_index<dindex, dindex>,
+          typename mat_link_t = dtyped_index<dindex, dindex>>
 class volume_descriptor {
 
     public:
@@ -44,13 +43,17 @@ class volume_descriptor {
     /// How to access objects (e.g. sensitives/passives/portals) in this
     /// volume. Keeps one accelerator structure link per object type (by ID):
     ///
-    /// link_t : id and index of the accelerator structure in the detector's
+    /// acc_link_t : id and index of the accelerator structure in the detector's
     ///          surface store.
     ///
     /// E.g. a 'portal' can be found under @c ID::e_portal in this link,
     /// and will then receive link to the @c brute_force_finder that holds the
     /// portals (the accelerator structure's id and index).
-    using accel_link_type = dmulti_index<link_t, ID::e_size>;
+    using accel_link_type = dmulti_index<acc_link_t, ID::e_size>;
+
+    /// How to link to the volume material, if any
+    using material_link = mat_link_t;
+    using material_id = typename material_link::id_type;
 
     /// Default constructor builds an ~infinitely long cylinder
     constexpr volume_descriptor() = default;
@@ -80,17 +83,6 @@ class volume_descriptor {
     DETRAY_HOST
     constexpr auto set_transform(const dindex trf_idx) -> void {
         m_transform = trf_idx;
-    }
-
-    /// @returns the volume material
-    DETRAY_HOST_DEVICE
-    constexpr auto material() const -> const detray::material<scalar_t>& {
-        return m_vol_mat;
-    }
-
-    DETRAY_HOST
-    constexpr auto set_material(const detray::material<scalar_t>& mat) -> void {
-        m_vol_mat = mat;
     }
 
     /// @returns surface link for all object types - const
@@ -213,6 +205,27 @@ class volume_descriptor {
         detail::get<1>(rg) += static_cast<dindex>(shift);
     }
 
+    /// @returns the volume material link
+    DETRAY_HOST_DEVICE
+    constexpr auto material() const -> const material_link& {
+        return m_mat_link;
+    }
+
+    /// Set the volume material link to @param mat_link
+    DETRAY_HOST
+    constexpr auto set_material(const material_link& mat_link) -> void {
+        m_mat_link = mat_link;
+    }
+
+    /// Set the volume material link using the given material type id
+    /// @param mat_id and index of the material instance @param mat_idx
+    DETRAY_HOST
+    constexpr auto set_material(const material_id mat_id, const dindex mat_idx)
+        -> void {
+        m_mat_link = {mat_id,
+                      static_cast<typename material_link::index_type>(mat_idx)};
+    }
+
     /// @returns link to all acceleration data structures - const access
     DETRAY_HOST_DEVICE constexpr auto accel_link() const
         -> const accel_link_type& {
@@ -221,13 +234,13 @@ class volume_descriptor {
 
     /// @returns acc data structure link for a specific type of object - const
     template <ID obj_id>
-    DETRAY_HOST_DEVICE constexpr auto accel_link() const -> const link_t& {
+    DETRAY_HOST_DEVICE constexpr auto accel_link() const -> const acc_link_t& {
         return detail::get<obj_id>(m_accel_links);
     }
 
     /// Set surface finder link from @param link
     template <ID obj_id>
-    DETRAY_HOST constexpr auto set_accel_link(const link_t link) -> void {
+    DETRAY_HOST constexpr auto set_accel_link(const acc_link_t link) -> void {
         detail::get<obj_id>(m_accel_links) = link;
     }
 
@@ -235,19 +248,18 @@ class volume_descriptor {
     /// structure (e.g. type and index of a grid in the accelerator store)
     template <ID obj_id>
     DETRAY_HOST constexpr auto set_accel_link(
-        const typename link_t::id_type id,
-        const typename link_t::index_type index) -> void {
-        detail::get<obj_id>(m_accel_links) = link_t{id, index};
+        const typename acc_link_t::id_type id,
+        const typename acc_link_t::index_type index) -> void {
+        detail::get<obj_id>(m_accel_links) = acc_link_t{id, index};
     }
 
     /// Set link for a type of surfaces ( @param obj_id ) from @param id
     /// and @param index of the acceleration data structure (e.g. type and
     /// index of a grid in the accelerator store)
-    DETRAY_HOST constexpr auto set_link(const ID obj_id,
-                                        const typename link_t::id_type accel_id,
-                                        const typename link_t::index_type index)
-        -> void {
-        m_accel_links[obj_id] = link_t{accel_id, index};
+    DETRAY_HOST constexpr auto set_link(
+        const ID obj_id, const typename acc_link_t::id_type accel_id,
+        const typename acc_link_t::index_type index) -> void {
+        m_accel_links[obj_id] = acc_link_t{accel_id, index};
     }
 
     /// Equality operator
@@ -272,11 +284,11 @@ class volume_descriptor {
     /// Index range for every object type
     sf_link_type m_sf_links{};
 
+    /// Volume material link
+    material_link m_mat_link = {};
+
     /// Links for every object type to an acceleration data structure
     accel_link_type m_accel_links{};
-
-    /// Volume material
-    detray::material<scalar_t> m_vol_mat = detray::vacuum<scalar_t>();
 };
 
 }  // namespace detray
