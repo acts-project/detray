@@ -47,6 +47,8 @@ class material_map_factory final : public factory_decorator<detector_t> {
     using scalar_type = typename detector_t::scalar_type;
     using data_type = material_data<scalar_type>;
 
+    using base_factory::operator();
+
     /// Factory with surfaces potentially already filled or empty placeholder
     /// that will not be used.
     DETRAY_HOST

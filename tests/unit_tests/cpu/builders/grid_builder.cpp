@@ -91,8 +91,8 @@ GTEST_TEST(detray_tools, grid_factory_static) {
     const std::vector<scalar> bin_edges_phi{};
 
     auto cyl_gr = gr_factory.template new_grid<cylinder2D>(
-        {0.f, 2.f * constant<scalar>::pi, bin_edges_z.front(),
-         bin_edges_z.back()},
+        std::vector<scalar>{0.f, 2.f * constant<scalar>::pi,
+                            bin_edges_z.front(), bin_edges_z.back()},
         {10u, bin_edges_z.size() - 1}, {}, {bin_edges_phi, bin_edges_z},
         types::list<circular<label::e_rphi>, closed<label::e_cyl_z>>{},
         types::list<regular<>, irregular<>>{});
@@ -229,8 +229,8 @@ GTEST_TEST(detray_tools, grid_factory_dynamic) {
     }
 
     auto cyl_gr = gr_factory.template new_grid<concentric_cylinder2D>(
-        {0.f, 2.f * constant<scalar>::pi, bin_edges_z.front(),
-         bin_edges_z.back()},
+        std::vector<scalar>{0.f, 2.f * constant<scalar>::pi,
+                            bin_edges_z.front(), bin_edges_z.back()},
         {10u, bin_edges_z.size() - 1}, capacities, {bin_edges_phi, bin_edges_z},
         types::list<circular<label::e_rphi>, closed<label::e_cyl_z>>{},
         types::list<regular<>, irregular<>>{});
