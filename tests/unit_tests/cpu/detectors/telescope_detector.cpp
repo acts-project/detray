@@ -55,6 +55,8 @@ struct prop_state {
     scalar mask_tolerance() const { return 15.f * unit<scalar>::um; }
 };
 
+static constexpr bool verbose_check = true;
+
 }  // anonymous namespace
 
 }  // namespace detray
@@ -117,7 +119,7 @@ GTEST_TEST(detray_detectors, telescope_detector) {
     EXPECT_EQ(z_tel_names1.at(1u), "telescope_world_0");
 
     // Check general consistency of the detector
-    detail::check_consistency(z_tel_det1);
+    detail::check_consistency(z_tel_det1, verbose_check);
 
     // Build the same telescope detector with rectangular planes and given
     // length/number of surfaces
@@ -126,7 +128,7 @@ GTEST_TEST(detray_detectors, telescope_detector) {
         create_telescope_detector(host_mr, tel_cfg);
 
     // Check general consistency of the detector
-    detail::check_consistency(z_tel_det2);
+    detail::check_consistency(z_tel_det2, verbose_check);
 
     // Compare
     for (std::size_t i{0u}; i < z_tel_det1.surfaces().size(); ++i) {
@@ -150,7 +152,7 @@ GTEST_TEST(detray_detectors, telescope_detector) {
         create_telescope_detector(host_mr, tel_cfg.pilot_track(x_track));
 
     // Check general consistency of the detector
-    detail::check_consistency(x_tel_det);
+    detail::check_consistency(x_tel_det, verbose_check);
 
     //
     // test propagation in all telescope detector instances
@@ -252,7 +254,7 @@ GTEST_TEST(detray_detectors, telescope_detector) {
         create_telescope_detector(host_mr, htel_cfg);
 
     // Check general consistency of the detector
-    detail::check_consistency(tel_detector);
+    detail::check_consistency(tel_detector, verbose_check);
 
     // make at least sure it is navigatable
     navigator<decltype(tel_detector), inspector_t> tel_navigator;

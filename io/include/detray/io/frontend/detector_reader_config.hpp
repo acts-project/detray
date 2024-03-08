@@ -20,11 +20,14 @@ struct detector_reader_config {
     std::vector<std::string> m_files;
     /// Run detector consistency check after reading
     bool m_do_check{true};
+    /// Verbosity of the detector consistency check
+    bool m_verbose{false};
 
     /// Getters
     /// @{
     const std::vector<std::string>& files() const { return m_files; }
     bool do_check() const { return m_do_check; }
+    bool verbose_check() const { return m_verbose; }
     /// @}
 
     /// Setters
@@ -35,6 +38,13 @@ struct detector_reader_config {
     }
     detector_reader_config& do_check(const bool check) {
         m_do_check = check;
+        return *this;
+    }
+    detector_reader_config& verbose_check(const bool verbose) {
+        if (verbose && !m_do_check) {
+            m_do_check = true;
+        }
+        m_verbose = verbose;
         return *this;
     }
     /// @}

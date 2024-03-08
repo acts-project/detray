@@ -111,7 +111,7 @@ struct surface_checker {
 /// In case the default metadata is used, the unused containers are allowed to
 /// be empty.
 template <typename detector_t>
-inline void check_empty(const detector_t &det) {
+inline void check_empty(const detector_t &det, const bool verbose) {
 
     // Check if there is at least one portal in the detector
     auto find_portals = [&det]() -> bool {
@@ -158,15 +158,10 @@ inline void check_empty(const detector_t &det) {
 
     // Warnings
 
-    // Check for empty mask collections
-    detail::report_empty(
-        det.mask_store(), "mask store",
-        std::make_index_sequence<detector_t::masks::n_types>{});
-
     // Check the material description
     if (det.material_store().all_empty()) {
         std::cout << "WARNING: No material in detector" << std::endl;
-    } else {
+    } else if (verbose) {
         // Check for empty material collections
         detail::report_empty(
             det.material_store(), "material store",
@@ -174,9 +169,16 @@ inline void check_empty(const detector_t &det) {
     }
 
     // Check for empty acceleration data structure collections (e.g. grids)
-    detail::report_empty(
-        det.accelerator_store(), "acceleration data structures store",
-        std::make_index_sequence<detector_t::accel::n_types>{});
+    if (verbose) {
+        // Check for empty mask collections
+        detail::report_empty(
+            det.mask_store(), "mask store",
+            std::make_index_sequence<detector_t::masks::n_types>{});
+
+        detail::report_empty(
+            det.accelerator_store(), "acceleration data structures store",
+            std::make_index_sequence<detector_t::accel::n_types>{});
+    }
 
     // Check volume search data structure
     if (not find_volumes(det.volume_search_grid())) {
@@ -186,8 +188,9 @@ inline void check_empty(const detector_t &det) {
 
 /// @brief Checks the internal consistency of a detector
 template <typename detector_t>
-inline bool check_consistency(const detector_t &det) {
-    check_empty(det);
+inline bool check_consistency(const detector_t &det,
+                              const bool verbose = false) {
+    check_empty(det, verbose);
 
     std::stringstream err_stream{};
     // Check the volumes
