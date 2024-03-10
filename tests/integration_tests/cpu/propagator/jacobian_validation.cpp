@@ -703,7 +703,7 @@ void evaluate_jacobian_difference(
         << " Phi: " << reference_param.phi()
         << " Theta: " << reference_param.theta()
         << " Mom [GeV/c]: " << reference_param.p();
-    ASSERT_GE(bound_getter.m_path_length, 0.f);
+    ASSERT_GE(bound_getter.m_path_length, 0.5f * detector_length);
     ASSERT_LE(bound_getter.m_path_length, max_detector_length + 200.f);
 
     const auto reference_jacobian = bound_getter.m_jacobi;
@@ -792,7 +792,10 @@ void evaluate_jacobian_difference(
     file << math::log10(on_surface_tolerance) << ",";
 
     // Overstep tolerance
-    file << overstep_tolerance;
+    file << overstep_tolerance << ",";
+
+    // Detector length
+    file << detector_length;
 
     file << std::endl;
 }
@@ -846,7 +849,7 @@ void evaluate_covariance_transport(
         << " Phi: " << reference_param.phi()
         << " Theta: " << reference_param.theta()
         << " Mom [GeV/c]: " << reference_param.p();
-    ASSERT_GE(bound_getter.m_path_length, 0.f);
+    ASSERT_GE(bound_getter.m_path_length, 0.5f * detector_length);
     ASSERT_LE(bound_getter.m_path_length, max_detector_length + 200.f);
 
     // Get smeared initial bound vector
@@ -946,7 +949,10 @@ void evaluate_covariance_transport(
     file << math::log10(on_surface_tolerance) << ",";
 
     // Overstep tolerance
-    file << overstep_tolerance;
+    file << overstep_tolerance << ",";
+
+    // Detector length
+    file << detector_length;
 
     file << std::endl;
 }
@@ -1248,7 +1254,10 @@ void setup_csv_header_jacobian(std::ofstream& file) {
     file << "log10_intersection_tolerance,";
 
     // Overstep tolerance [mm]
-    file << "overstep_tolerance";
+    file << "overstep_tolerance,";
+
+    // Detector length [mm]
+    file << "detector_length";
 
     file << std::endl;
 }
@@ -1308,7 +1317,10 @@ void setup_csv_header_covariance(std::ofstream& file) {
     file << "log10_intersection_tolerance,";
 
     // Overstep tolerance [mm]
-    file << "overstep_tolerance";
+    file << "overstep_tolerance,";
+
+    // Detector length [mm]
+    file << "detector_length";
 
     file << std::endl;
 }
@@ -1573,10 +1585,10 @@ int main(int argc, char** argv) {
         const scalar detector_length = rand_length(mt1);
         const scalar constraint_step_size = detector_length * 1.25f;
 
-        mask<rect_type> rect{0u, detector_length * 1.2f,
-                             detector_length * 1.2f};
-        mask<wire_type> wire{0u, detector_length * 1.2f,
-                             detector_length * 1.2f};
+        mask<rect_type> rect{0u, detector_length * 1.0f,
+                             detector_length * 1.0f};
+        mask<wire_type> wire{0u, detector_length * 1.0f,
+                             detector_length * 1.0f};
 
         // Adjust overstep tolerance
         scalar overstep_tol =
