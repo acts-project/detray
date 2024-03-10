@@ -7,6 +7,7 @@
 
 // ROOT include(s).
 #include <TCanvas.h>
+#include <TGaxis.h>
 #include <TGraph.h>
 #include <TLatex.h>
 #include <TLegend.h>
@@ -27,17 +28,32 @@
 #include <vector>
 
 namespace {
-double title_x = 0.16;
-double title_y = 0.8;
-double text_size = 0.045;
-double label_font_size = 0.045;
-double title_font_size = 0.045;
-double marker_size = 1.75;
+double step_title_x = 0.18;
+double step_title_y = 0.83;
+double step_ygap = -0.05;
+
+double rk_title_x = -15.7;
+double rk_title_y = 12.8;
+double rk_ygap = -0.8;
+double rk_header_text_size = 0.05;
+double rk_geom_text_size = 0.035;
+double step_header_text_size = 0.0595;
+double step_geom_text_size = 0.0416667;
+double label_font_size_step = 0.055;
+double title_font_size_step = 0.055;
+double label_font_size_rk_tol = 0.05;
+double title_font_size_rk_tol = 0.05;
+int title_font = 132;
+int label_font = 12;
+int legend_font = 132;
+double marker_size = 1.9;
 double pad_x0 = 0.f;
 double pad_x1 = 1.f;
 double pad_y0 = 0.f;
 double pad_y1 = 1.f;
-
+double ymin = -2;
+double ymax = 4.;
+std::array<double, 4u> ldim{0.183406, 0.505113, 0.919, 0.950661};
 }  // namespace
 
 std::vector<std::string> create_labels() {
@@ -60,6 +76,19 @@ std::vector<std::string> create_labels() {
     }
 
     return labels;
+}
+
+void draw_text(double x1, double y1, double y_delta, double s1, double s2,
+               std::string t1, std::string t2) {
+    TLatex* ttext1 = new TLatex(x1, y1, t1.c_str());
+    TLatex* ttext2 = new TLatex(x1, y1 + y_delta, t2.c_str());
+    ttext1->SetTextFont(22);
+    ttext1->SetTextSize(s1);
+    ttext2->SetTextFont(132);
+    ttext2->SetTextSize(s2);
+
+    ttext1->Draw();
+    ttext2->Draw();
 }
 
 std::vector<std::string> create_columns(const std::string& tag) {
@@ -141,7 +170,7 @@ std::vector<double> get_x_vector(const int min, const int max) {
     return ret;
 }
 
-void draw_graphs(const std::string header_title,
+void draw_graphs(const std::string header_title, const std::string geom_title,
                  const std::vector<std::string> labels,
                  const std::vector<double> x_vec,
                  std::map<std::string, std::vector<double>> means) {
@@ -149,9 +178,9 @@ void draw_graphs(const std::string header_title,
     TPad* gr_pad = new TPad("gr_pad", "gr_pad", 0, 0, 1, 1);
     gr_pad->Draw();
     gr_pad->cd();
-    gr_pad->SetLeftMargin(80. / gr_pad->GetWw());
+    gr_pad->SetLeftMargin(122. / gr_pad->GetWw());
     gr_pad->SetTopMargin(50. / gr_pad->GetWh());
-    gr_pad->SetBottomMargin(90. / gr_pad->GetWh());
+    gr_pad->SetBottomMargin(110. / gr_pad->GetWh());
 
     TGraph* gr[25];
     TMultiGraph* mg = new TMultiGraph();
@@ -161,12 +190,15 @@ void draw_graphs(const std::string header_title,
     const std::array<int, 5u> hues = {kOrange + 2, kPink + 5, kBlue + 2,
                                       kCyan + 2, kGreen + 2};
 
-    auto legend = new TLegend(0.15, 0.63, 0.87, 0.945);
-    legend->SetHeader(header_title.c_str());
+    auto legend = new TLegend(ldim[0u], ldim[1u], ldim[2u], ldim[3u]);
+
+    // legend->SetHeader(header_title.c_str());
+    legend->SetHeader("");
     legend->SetNColumns(5);
-    legend->SetColumnSeparation(-0.2);
+    legend->SetColumnSeparation(-0.3);
     legend->SetFillStyle(0);
-    legend->SetMargin(0.6);
+    legend->SetMargin(0.55);
+    legend->SetTextFont(legend_font);
 
     for (int i = 0; i < 25; i++) {
         gr[i] = new TGraph(x_vec.size(), &x_vec[0], &means[labels[i]][0]);
@@ -184,48 +216,103 @@ void draw_graphs(const std::string header_title,
         legend->AddEntry(gr[i], labels[i].c_str(), "lp");
     }
 
-    mg->GetXaxis()->SetTitle("log_{10}(#tau [mm])");
+    mg->GetXaxis()->SetTitle("log_{10}(#font[12]{#tau} [mm])");
     mg->GetXaxis()->SetLabelOffset(-0.005);
-    mg->GetXaxis()->SetTitleOffset(0.8);
-    mg->GetYaxis()->SetTitle(
-        "log_{10}(Mean of absolute and relative residuals)");
-    mg->GetYaxis()->SetTitleOffset(1.2);
-    mg->GetYaxis()->SetRangeUser(-10, 8);
-    mg->Draw("APL");
+    mg->GetXaxis()->SetTitleOffset(0.81);
+    mg->GetXaxis()->SetTitleSize(title_font_size_rk_tol);
+    mg->GetXaxis()->SetLabelSize(label_font_size_rk_tol);
+    mg->GetXaxis()->CenterTitle(true);
+    mg->GetYaxis()->CenterTitle(true);
+
+    std::cout << "Vec size: " << x_vec.size() << std::endl;
+    mg->GetYaxis()->SetTitle("log_{10}(Mean of #font[12]{#Omega_{R}})");
+    mg->GetYaxis()->SetTitleOffset(1.48);
+    mg->GetYaxis()->SetTitleSize(title_font_size_rk_tol);
+    mg->GetYaxis()->SetLabelSize(label_font_size_rk_tol);
+    mg->GetYaxis()->SetRangeUser(-10, 14);
+    mg->GetYaxis()->SetNdivisions(406, kFALSE);
+    mg->GetYaxis()->SetLabelOffset(0.01);
+    mg->GetYaxis()->SetTitleFont(title_font);
+    mg->GetXaxis()->SetTitleFont(title_font);
+
+    if (x_vec.size() > 10) {
+        mg->GetXaxis()->SetLimits(x_vec.front() - 1, x_vec.back() + 1);
+        mg->GetXaxis()->SetLabelSize(0);
+        mg->GetXaxis()->SetTickLength(0);
+
+        mg->Draw("APL");
+
+        auto ga = new TGaxis(x_vec.front(), -10, x_vec.back(), -10,
+                             x_vec.front(), x_vec.back(), 405, "N");
+        ga->SetLabelFont(42);
+        ga->SetLabelSize(label_font_size_rk_tol);
+        ga->SetLabelOffset(-0.0075);
+        ga->Draw();
+
+    } else {
+
+        mg->Draw("APL");
+    }
 
     TLegendEntry* header =
         (TLegendEntry*)legend->GetListOfPrimitives()->First();
     header->SetTextFont(22);
-    header->SetTextSize(.03);
+    header->SetTextSize(.033);
 
     legend->Draw();
+    draw_text(rk_title_x, rk_title_y, rk_ygap, rk_header_text_size,
+              rk_geom_text_size, header_title, geom_title);
 }
 
 void draw_mean_step_size(const std::string header_title,
+                         const std::string geom_title,
                          const std::vector<double>& x_vec,
                          const std::vector<double>& means) {
     TPad* step_pad = new TPad("step_pad", "step_pad", 0, 0, 1, 1);
     step_pad->Draw();
     step_pad->cd();
 
-    step_pad->SetLeftMargin(80. / step_pad->GetWw());
-    step_pad->SetBottomMargin(60. / step_pad->GetWh());
+    step_pad->SetLeftMargin(93. / step_pad->GetWw());
+    step_pad->SetBottomMargin(84. / step_pad->GetWh());
+    step_pad->SetTopMargin(50. / step_pad->GetWh());
 
     TGraph* gr = new TGraph(x_vec.size(), &x_vec[0], &means[0]);
 
     gr->SetMarkerStyle(4);
-    gr->GetXaxis()->SetTitle("log_{10}(#tau [mm])");
-    gr->GetYaxis()->SetTitle("log_{10}(Mean of average step sizes [mm])");
+    gr->SetMarkerSize(1.2);
+    gr->GetXaxis()->SetTitle("log_{10}(#font[12]{#tau} [mm])");
+    gr->GetYaxis()->SetTitle("log_{10}(Mean of avg. step size [mm])");
     gr->GetXaxis()->SetLimits(x_vec.front() - 0.5, x_vec.back() + 0.5);
-    gr->GetYaxis()->SetRangeUser(means.front() - 0.2, means.back() + 1.00);
-    gr->GetXaxis()->SetLabelSize(label_font_size);
-    gr->GetYaxis()->SetLabelSize(label_font_size);
-    gr->GetXaxis()->SetTitleSize(title_font_size);
-    gr->GetYaxis()->SetTitleSize(title_font_size);
-    gr->GetXaxis()->SetTitleOffset(1.2);
-    gr->GetYaxis()->SetTitleOffset(1.1);
+    gr->GetYaxis()->SetRangeUser(ymin, ymax);
+    gr->GetYaxis()->SetNdivisions(505);
+    gr->GetXaxis()->SetLabelSize(label_font_size_step);
+    gr->GetYaxis()->SetLabelSize(label_font_size_step);
+    gr->GetXaxis()->SetTitleSize(title_font_size_step);
+    gr->GetYaxis()->SetTitleSize(title_font_size_step);
+    gr->GetXaxis()->SetTitleOffset(1.22);
+    gr->GetYaxis()->SetTitleOffset(1.15);
+    gr->GetYaxis()->SetLabelOffset(0.01);
+    gr->GetYaxis()->SetTitleFont(title_font);
+    gr->GetXaxis()->SetTitleFont(title_font);
+    gr->GetXaxis()->CenterTitle(true);
+    gr->GetYaxis()->CenterTitle(true);
 
-    gr->Draw();
+    if (x_vec.size() > 10) {
+        gr->GetXaxis()->SetLimits(x_vec.front() - 1, x_vec.back() + 1);
+        gr->GetXaxis()->SetLabelSize(0);
+        gr->GetXaxis()->SetTickLength(0);
+
+        gr->Draw("APL");
+
+        auto ga = new TGaxis(x_vec.front(), ymin, x_vec.back(), ymin,
+                             x_vec.front(), x_vec.back(), 405, "N");
+        ga->SetLabelFont(42);
+        ga->SetLabelSize(label_font_size_step);
+        ga->Draw();
+
+    } else {
+        gr->Draw();
+    }
 
     TPad* text_pad =
         new TPad("text_pad", "text_pad", pad_x0, pad_y0, pad_x1, pad_y1);
@@ -233,32 +320,32 @@ void draw_mean_step_size(const std::string header_title,
     text_pad->Draw();
     text_pad->cd();
 
-    TLatex* ttext = new TLatex(title_x, title_y, header_title.c_str());
-    ttext->SetTextFont(22);
-    ttext->SetTextSize(text_size);
-    ttext->Draw();
+    draw_text(step_title_x, step_title_y, step_ygap, step_header_text_size,
+              step_geom_text_size, header_title, geom_title);
 }
 
 // ROOT Script for jacboain file reading
 void rk_tolerance_comparison(int min, int max) {
     gStyle->SetOptTitle(0);
     gStyle->SetLegendBorderSize(0);
-    gStyle->SetLegendTextSize(0.02625);
+    gStyle->SetLegendTextSize(0.037);
 
-    const std::array<float, 2> cdim1{800, 1350};
-    const std::array<float, 2> cdim2{700, 500};
+    const std::array<float, 2> cdim1{800, 1300};
+    const std::array<float, 2> cdim2{700, 600};
 
     auto labels = create_labels();
 
     const auto x_vec = get_x_vector(min, max);
 
+    const std::string rect_header = "Bound-to-bound transport";
+    const std::string wire_header = "Perigee-to-perigee transport";
+    const std::string geom_header =
+        "RKN with an inhomogeneous field and a material";
+
     /************************
      *  Rectangular
      * **********************/
 
-    const std::string rect_header =
-        "#splitline{Bound-to-bound transport,}{RKN with an inhomogeneous field "
-        "and a material}";
     const std::string rect_pdf = "bound_to_bound_rk_tolerance.pdf";
 
     auto rect_canvas =
@@ -267,7 +354,7 @@ void rk_tolerance_comparison(int min, int max) {
     std::vector<double> rect_mean_step_sizes;
     const auto rect_y_means = get_means(labels, "inhom_rect_material", min, max,
                                         rect_mean_step_sizes);
-    draw_graphs(rect_header, labels, x_vec, rect_y_means);
+    draw_graphs(rect_header, geom_header, labels, x_vec, rect_y_means);
 
     rect_canvas->SaveAs(rect_pdf.c_str());
 
@@ -275,17 +362,13 @@ void rk_tolerance_comparison(int min, int max) {
         new TCanvas("rect_canvas2", "rect_canvas2", cdim2[0], cdim2[1]);
     const std::string rect_mean_step_pdf = "bound_to_bound_mean_step_size.pdf";
 
-    draw_mean_step_size(rect_header, x_vec, rect_mean_step_sizes);
+    draw_mean_step_size(rect_header, geom_header, x_vec, rect_mean_step_sizes);
     rect_canvas2->SaveAs(rect_mean_step_pdf.c_str());
 
     /************************
      *  Wire
      * **********************/
 
-    const std::string wire_header =
-        "#splitline{Perigee-to-perigee transport,}{RKN with an inhomogeneous "
-        "field "
-        "and a material}";
     const std::string wire_pdf = "perigee_to_perigee_rk_tolerance.pdf";
 
     auto wire_canvas =
@@ -293,7 +376,7 @@ void rk_tolerance_comparison(int min, int max) {
     std::vector<double> wire_mean_step_sizes;
     const auto wire_y_means = get_means(labels, "inhom_wire_material", min, max,
                                         wire_mean_step_sizes);
-    draw_graphs(wire_header, labels, x_vec, wire_y_means);
+    draw_graphs(wire_header, geom_header, labels, x_vec, wire_y_means);
 
     wire_canvas->SaveAs(wire_pdf.c_str());
 
@@ -302,6 +385,6 @@ void rk_tolerance_comparison(int min, int max) {
     const std::string wire_mean_step_pdf =
         "perigee_to_perigee_mean_step_size.pdf";
 
-    draw_mean_step_size(wire_header, x_vec, wire_mean_step_sizes);
+    draw_mean_step_size(wire_header, geom_header, x_vec, wire_mean_step_sizes);
     wire_canvas2->SaveAs(wire_mean_step_pdf.c_str());
 }

@@ -9,6 +9,8 @@
 #include <TCanvas.h>
 #include <TLatex.h>
 #include <TLegend.h>
+#include <TLegendEntry.h>
+#include <TLine.h>
 #include <TMath.h>
 #include <TPaveLabel.h>
 #include <TROOT.h>
@@ -24,9 +26,21 @@
 #include <vector>
 
 namespace {
-double label_font_size = 0.0435;
-double title_font_size = 0.042;
+double labelx_font_size = 0.06;
+double labely_font_size = 0.06;
+double title_font_size = 0.06;
+double title_offset = 0.65;
 double marker_size = 1.3875;
+double legend_margin = 0.105;
+int title_font = 132;
+int label_font = 132;
+int legend_font = 132;
+double legend_font_size = 0.050;
+double y_min = -14;
+double y_max = 10;
+double header_size = 0.05;
+std::array<float, 4> ldim{0.508347, 0.605, 0.942404, 0.882353};
+
 }  // namespace
 
 std::vector<std::string> create_labels() {
@@ -119,6 +133,23 @@ void fill_histo(TH1D* hist, const std::array<double, 25u>& means,
     hist->SetMarkerStyle(marker_style);
 }
 
+void draw_lines() {
+    for (int i = 1; i < 25; i++) {
+        if (i % 5 == 0) {
+            TLine* line = new TLine(i, y_min, i, y_max);
+            line->SetLineColor(kBlack);
+            line->SetLineWidth(1);
+            line->Draw();
+        } else {
+            TLine* line = new TLine(i, y_min, i, y_max);
+            line->SetLineColor(kBlack);
+            line->SetLineWidth(1);
+            line->SetLineStyle(3);
+            line->Draw();
+        }
+    }
+}
+
 TH1D* get_histogram(std::string name, const int n_labels,
                     const int marker_style, double& log10_rk_tol) {
 
@@ -133,13 +164,16 @@ TH1D* get_histogram(std::string name, const int n_labels,
     auto rdf = ROOT::RDF::FromCSV(csv_name);
     auto rdf_means = get_means(rdf);
     TH1D* histo = new TH1D(histo_name.c_str(), histo_name.c_str(), 3, 0, 3);
-    histo->GetYaxis()->SetRangeUser(-14., 0.);
-    histo->GetYaxis()->SetTitle(
-        "log_{10}(Mean of absolute and relative residuals)");
-    histo->GetYaxis()->SetTitleOffset(0.75);
+    histo->GetYaxis()->SetRangeUser(y_min, y_max);
+    histo->GetYaxis()->SetTitle("log_{10}(Mean of #font[12]{#Omega_{R}})");
+    histo->GetYaxis()->SetTitleOffset(0.68);
+    histo->GetYaxis()->SetNdivisions(406, kFALSE);
     histo->GetYaxis()->SetTitleSize(title_font_size);
-    histo->GetYaxis()->SetLabelSize(label_font_size);
-    histo->GetXaxis()->SetLabelSize(label_font_size);
+    histo->GetYaxis()->SetTitleFont(title_font);
+    histo->GetYaxis()->SetLabelSize(labely_font_size);
+    histo->GetXaxis()->SetLabelSize(labelx_font_size);
+    histo->GetXaxis()->SetLabelFont(label_font);
+    histo->GetYaxis()->CenterTitle(true);
 
     fill_histo(histo, rdf_means, labels, n_labels, marker_style);
 
@@ -162,31 +196,48 @@ void draw_pad(const std::string& pad_name) {
     apad->Draw();
     apad->cd();
 
-    apad->SetLeftMargin(80. / apad->GetWw());
-    apad->SetRightMargin(80. / apad->GetWw());
-    apad->SetGridx();
+    apad->SetLeftMargin(100. / apad->GetWw());
+    apad->SetRightMargin(60. / apad->GetWw());
+    apad->SetBottomMargin(60. / apad->GetWh());
 }
 
 void draw_text(const std::string& text) {
 
-    const float x1 = 1.2f;
-    const float y1 = -1.8f;
+    const float x1 = 1.23;
+    const float y1 = 6.05;
 
     TLatex* ttext = new TLatex(0.f, 0.f, text.c_str());
     ttext->SetTextFont(132);
-    ttext->SetTextSize(1.5);
+    ttext->SetTextSize(3.5);
 
     UInt_t w;
     UInt_t h;
     ttext->GetBoundingBox(w, h);
 
     TPaveLabel* plabel =
-        new TPaveLabel(x1, y1, x1 + float(w) / gPad->GetWw(),
-                       y1 + float(h) / gPad->GetWh(), text.c_str());
+        new TPaveLabel(x1, y1, x1 + float(w) / gPad->GetWw() * 0.62,
+                       y1 + float(h) / gPad->GetWh() * 1.15, text.c_str());
 
     plabel->SetTextFont(132);
     plabel->SetFillColor(kWhite);
     plabel->Draw();
+}
+
+void draw_text2() {
+
+    const double y = 7.5;
+
+    TLatex* ttext1 = new TLatex(
+        15.2, y, "#splitline{Measurable with}{an inhomgeneous field}");
+    TLatex* ttext2 =
+        new TLatex(20.2, y, "#splitline{Measurable with}{a material}");
+    ttext1->SetTextFont(132);
+    ttext1->SetTextSize(0.045);
+    ttext2->SetTextFont(132);
+    ttext2->SetTextSize(0.045);
+
+    ttext1->Draw();
+    ttext2->Draw();
 }
 
 // ROOT Script for jacboain file reading
@@ -194,13 +245,10 @@ void jacobian_comparison() {
 
     gStyle->SetOptTitle(0);
     const std::array<float, 2> cdim{1200, 500};
-    const std::array<float, 4> ldim{0.591, 0.14, 0.889, 0.32};
     const std::array<int, 4> markers{kOpenCross, kOpenTriangleUp, kOpenSquare,
                                      kOpenCircle};
     const std::array<int, 4> hues{kOrange + 8, kMagenta + 1, kAzure,
                                   kGreen + 2};
-    const std::string rect_text = "Bound-to-bound transport";
-    const std::string wire_text = "Perigee-to-perigee transport";
     const std::string rect_pdf = "bound_to_bound_jacobian_comparison.pdf";
     const std::string wire_pdf = "perigee_to_perigee_jacobian_comparison.pdf";
 
@@ -217,11 +265,15 @@ void jacobian_comparison() {
     draw_pad("rect_pad");
 
     auto rect_legend = new TLegend(ldim[0], ldim[1], ldim[2], ldim[3]);
-    rect_legend->SetMargin(0.2);
+    rect_legend->SetMargin(legend_margin);
+    rect_legend->SetTextFont(legend_font);
+    rect_legend->SetTextSize(legend_font_size);
+    rect_legend->SetBorderSize(4);
 
+    std::string rect_text = "Bound-to-bound transport";
     auto inhom_rect_material_histo = get_histogram(
         "inhom_rect_material", 25, markers[0u], log10_rk_tolerance_rect);
-    // rect_legend->SetHeader(get_legend_header(log10_rk_tolerance_rect));
+    // rect_legend->SetHeader("Bound-to-bound transport");
     inhom_rect_material_histo->SetMarkerColor(hues[0u]);
     inhom_rect_material_histo->Draw("hist P ");
     rect_legend->AddEntry(inhom_rect_material_histo,
@@ -245,7 +297,16 @@ void jacobian_comparison() {
     helix_rect_histo->Draw("hist P same");
     rect_legend->AddEntry(helix_rect_histo, "Helix with a homogeneous field",
                           "p");
-    
+
+    /*
+    TLegendEntry* rect_header =
+        (TLegendEntry*)rect_legend->GetListOfPrimitives()->First();
+    rect_header->SetTextFont(22);
+    rect_header->SetTextSize(header_size);
+    */
+
+    draw_lines();
+    // draw_text2();
     rect_legend->Draw();
     draw_text(rect_text);
     rect_canvas->Draw();
@@ -261,11 +322,15 @@ void jacobian_comparison() {
     draw_pad("wire_pad");
 
     auto wire_legend = new TLegend(ldim[0], ldim[1], ldim[2], ldim[3]);
-    wire_legend->SetMargin(0.2);
+    wire_legend->SetMargin(legend_margin);
+    wire_legend->SetTextFont(legend_font);
+    wire_legend->SetTextSize(legend_font_size);
+    wire_legend->SetBorderSize(4);
 
+    std::string wire_text = "Perigee-to-perigee transport";
     auto inhom_wire_material_histo = get_histogram(
         "inhom_wire_material", 25, markers[0u], log10_rk_tolerance_wire);
-    // wire_legend->SetHeader(get_legend_header(log10_rk_tolerance_wire));
+    // wire_legend->SetHeader("Perigee-to-perigee transport");
     inhom_wire_material_histo->SetMarkerColor(hues[0u]);
     inhom_wire_material_histo->Draw("hist P ");
     wire_legend->AddEntry(inhom_wire_material_histo,
@@ -290,6 +355,15 @@ void jacobian_comparison() {
     wire_legend->AddEntry(helix_wire_histo, "Helix with a homogeneous field",
                           "p");
 
+    /*
+    TLegendEntry* wire_header =
+        (TLegendEntry*)wire_legend->GetListOfPrimitives()->First();
+    wire_header->SetTextFont(22);
+    wire_header->SetTextSize(header_size);
+    */
+
+    draw_lines();
+    // draw_text2();
     wire_legend->Draw();
     draw_text(wire_text);
     wire_canvas->Draw();

@@ -56,11 +56,11 @@ namespace {
 const vector3 B_z{0.f, 0.f, 1.996f * unit<scalar>::T};
 
 // Initial delta for numerical differentiaion
-const std::array<scalar, 5u> h_sizes_rect{1e-1f, 1e-1f, 1e-2f, 1e-3f, 1e-3f};
-const std::array<scalar, 5u> h_sizes_wire{1e-1f, 1e-1f, 1e-2f, 1e-3f, 1e-3f};
+const std::array<scalar, 5u> h_sizes_rect{2e0f, 2e0f, 1e-2f, 1e-3f, 1e-3f};
+const std::array<scalar, 5u> h_sizes_wire{1e0f, 1e0f, 1e-2f, 1e-3f, 1e-3f};
 
 // Ridders' algorithm setup
-constexpr const unsigned int Nt = 20u;
+constexpr const unsigned int Nt = 50u;
 const std::array<scalar, 5u> safe{2.0f, 2.0f, 2.0f, 2.0f, 2.0f};
 const std::array<scalar, 5u> con{1.2f, 1.2f, 1.2f, 1.2f, 1.2f};
 constexpr const scalar threshold_factor = 10.f;
@@ -173,10 +173,11 @@ struct ridders_derivative {
                         getter::element(differentiated_jacobian, j, i) =
                             Arr[j][q][p];
                         /*
+                        // Please leave this for debug
                         if (j == e_bound_theta && i == e_bound_loc0) {
                             std::cout << getter::element(
                                              differentiated_jacobian, j, i)
-                                      << std::endl;
+                                      << "  " << complete[j] << std::endl;
                         }
                         */
                     }
@@ -186,9 +187,11 @@ struct ridders_derivative {
 
         for (unsigned int j = 0; j < 5u; j++) {
             /*
+            // Please leave this for debug
             if (j == e_bound_theta && i == e_bound_loc0) {
-                std::cout << Arr[j][p][p] << "  " << Arr[j][p - 1][p - 1]
-                          << "  "
+                std::cout << getter::element(differentiated_jacobian, j, i)
+                          << "  " << Arr[j][p][p] << "  "
+                          << Arr[j][p - 1][p - 1] << "  "
                           << math::abs(Arr[j][p][p] - Arr[j][p - 1][p - 1])
                           << "  " << safe[i] * err[j] << std::endl;
             }
@@ -419,8 +422,9 @@ struct bound_getter : actor {
 
         const scalar N = static_cast<scalar>(actor_state.step_count);
 
-        actor_state.m_avg_step_size =
-            ((N - 1.f) * actor_state.m_avg_step_size + stepping._step_size) / N;
+        actor_state.m_avg_step_size = ((N - 1.f) * actor_state.m_avg_step_size +
+                                       stepping._prev_step_size) /
+                                      N;
 
         if (navigation.is_on_module() && navigation.barcode().index() == 0u) {
 
