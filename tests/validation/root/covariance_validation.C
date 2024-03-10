@@ -30,29 +30,36 @@
 #include <vector>
 
 namespace {
-double x_pos = 0.16f;
+double x_pos = 0.205f;
 double title_x = x_pos;
-double title_y = 0.8f;
+double title_y = 0.825f;
+double y_gap = -0.05;
+double header_text_size = 0.0595;
+double geom_text_size = 0.0416667;
+
 double pull_fit_title_x = x_pos;
-double pull_fit_title_y = 0.69f;
+double pull_fit_title_y = 0.692f;
 double pval_fit_title_x = x_pos;
-double pval_fit_title_y = 0.69f;
+double pval_fit_title_y = 0.692f;
 double gaus_fit_par_x = x_pos;
-double gaus_fit_par_y = 0.6175f;
+double gaus_fit_par_y = pull_fit_title_y - 0.064;
 double const_fit_par_x = x_pos;
-double const_fit_par_y = 0.638f;
+double const_fit_par_y = pval_fit_title_y - 0.0449;
 double tolerance_x = 0.7f;
 double tolerance_y = 0.67f;
-double pull_text_size = 0.045f;
-double pval_text_size = 0.045f;
+double pull_text_size = 0.0416667;
+double pval_text_size = 0.0416667;
 double pad_x0 = 0.f;
 double pad_x1 = 1.f;
 double pad_y0 = 0.f;
 double pad_y1 = 1.f;
-double label_font_size = 0.045;
-double title_font_size = 0.045;
-double x_title_offset = 1.05;
-double y_title_offset = 1.05;
+double label_font_size = 0.06;
+double titleX_font_size = 0.06;
+double titleY_font_size = 0.06;
+double x_title_offset = 1.3;
+double y_title_offset = 1.4;
+double x_label_offset = 0.01;
+double y_label_offset = 0.01;
 double pull_min = -6.f;
 double pull_max = 6.f;
 
@@ -72,6 +79,19 @@ auto get_tree(std::string name) {
     auto t = (TTree*)f->Get(name.c_str());
 
     return t;
+}
+
+void draw_text(double x1, double y1, double y_delta, double s1, double s2,
+               std::string t1, std::string t2) {
+    TLatex* ttext1 = new TLatex(x1, y1, t1.c_str());
+    TLatex* ttext2 = new TLatex(x1, y1 + y_delta, t2.c_str());
+    ttext1->SetTextFont(22);
+    ttext1->SetTextSize(s1);
+    ttext2->SetTextFont(132);
+    ttext2->SetTextSize(s2);
+
+    ttext1->Draw();
+    ttext2->Draw();
 }
 
 std::pair<std::array<double, 3u>, std::array<double, 3u>> fit_pull(
@@ -142,15 +162,15 @@ void set_xaxis_title(TH1D* h, const double text_size) {
     const TString h_name = h->GetName();
 
     if (h_name.Contains("l0")) {
-        x_axis_title = "l_{0}_{f} pull";
+        x_axis_title = "#font[12]{PL}(l_{0f})";
     } else if (h_name.Contains("l1")) {
-        x_axis_title = "l_{1}_{f} pull";
+        x_axis_title = "#font[12]{PL}(l_{1f})";
     } else if (h_name.Contains("phi")) {
-        x_axis_title = "#phi_{f} pull";
+        x_axis_title = "#font[12]{PL}(#phi_{f})";
     } else if (h_name.Contains("theta")) {
-        x_axis_title = "#theta_{f} pull";
+        x_axis_title = "#font[12]{PL}(#theta_{f})";
     } else if (h_name.Contains("qop")) {
-        x_axis_title = "#lambda_{f} pull";
+        x_axis_title = "#font[12]{PL}(#lambda_{f})";
     } else if (h_name.Contains("pval")) {
         x_axis_title = "p-value";
     }
@@ -159,6 +179,7 @@ void set_xaxis_title(TH1D* h, const double text_size) {
     h->GetXaxis()->SetTitleSize(text_size);
 }
 
+/*
 void draw_title(const std::string& text, const double x, const double y,
                 const double text_size) {
 
@@ -167,6 +188,7 @@ void draw_title(const std::string& text, const double x, const double y,
     ttext->SetTextSize(text_size);
     ttext->Draw();
 }
+*/
 
 void draw_fit_title(const std::string title, const double x, const double y,
                     const double text_size) {
@@ -225,8 +247,9 @@ void draw_tolerance(const double log10_rk_tolerance, const double x,
     ttext->Draw();
 }
 
-void draw_pull(TH1D* h_pull, const std::string& title_text,
-               const double log10_rk_tol, std::array<double, 14u>& arr_pull) {
+void draw_pull(TH1D* h_pull, const std::string& header_text,
+               const std::string& geom_text, const double log10_rk_tol,
+               std::array<double, 14u>& arr_pull) {
 
     TPad* pull_pad =
         new TPad("pull_pad", "pull_pad", pad_x0, pad_y0, pad_x1, pad_y1);
@@ -234,8 +257,8 @@ void draw_pull(TH1D* h_pull, const std::string& title_text,
     pull_pad->Draw();
     pull_pad->cd();
 
-    pull_pad->SetLeftMargin(80. / pull_pad->GetWw());
-    pull_pad->SetBottomMargin(60. / pull_pad->GetWh());
+    pull_pad->SetLeftMargin(115. / pull_pad->GetWw());
+    pull_pad->SetBottomMargin(95. / pull_pad->GetWh());
 
     auto fit_res = fit_pull(h_pull, arr_pull);
     auto fit_pars = fit_res.first;
@@ -243,15 +266,22 @@ void draw_pull(TH1D* h_pull, const std::string& title_text,
 
     set_xaxis_title(h_pull, pull_text_size);
     set_yaxis_title(h_pull, pull_text_size);
-    const double y_axis_max = h_pull->GetEntries() * 20.f;
+    const double y_axis_max = h_pull->GetEntries() * 50.;
     h_pull->GetYaxis()->SetRangeUser(0.5f, y_axis_max);
     h_pull->GetXaxis()->SetLabelSize(label_font_size);
     h_pull->GetYaxis()->SetLabelSize(label_font_size);
-    h_pull->GetXaxis()->SetTitleSize(title_font_size);
-    h_pull->GetYaxis()->SetTitleSize(title_font_size);
+    h_pull->GetXaxis()->SetTitleSize(titleX_font_size);
+    h_pull->GetYaxis()->SetTitleSize(titleY_font_size);
     h_pull->GetYaxis()->SetTitleOffset(y_title_offset);
     h_pull->GetXaxis()->SetTitleOffset(x_title_offset);
+    h_pull->GetXaxis()->SetLabelOffset(x_label_offset);
+    h_pull->GetYaxis()->SetLabelOffset(y_label_offset);
+    h_pull->GetYaxis()->SetNdivisions(504);
     h_pull->GetYaxis()->SetMaxDigits(1);
+    h_pull->GetXaxis()->CenterTitle(true);
+    h_pull->GetYaxis()->CenterTitle(true);
+    h_pull->GetXaxis()->SetTitleFont(132);
+    h_pull->GetYaxis()->SetTitleFont(132);
     h_pull->Draw();
     TF1* gaus = new TF1(h_pull->GetName(), "gaus", pull_min, pull_max);
     gaus->SetParameters(fit_pars[0], fit_pars[1], fit_pars[2]);
@@ -263,7 +293,8 @@ void draw_pull(TH1D* h_pull, const std::string& title_text,
     text_pad->Draw();
     text_pad->cd();
 
-    draw_title(title_text.c_str(), title_x, title_y, pull_text_size);
+    draw_text(title_x, title_y, y_gap, header_text_size, geom_text_size,
+              header_text.c_str(), geom_text.c_str());
     draw_fit_title("Gaussian fit", pull_fit_title_x, pull_fit_title_y,
                    pull_text_size);
     draw_gaus_fit_par(fit_pars, fit_errors, gaus_fit_par_x, gaus_fit_par_y,
@@ -271,32 +302,41 @@ void draw_pull(TH1D* h_pull, const std::string& title_text,
     // draw_tolerance(log10_rk_tol, tolerance_x, tolerance_y);
 }
 
-void draw_pval(TH1D* h_pval, const std::string& title_text,
-               const double log10_rk_tol) {
+void draw_pval(TH1D* h_pval, const std::string& header_text,
+               const std::string& geom_text, const double log10_rk_tol) {
 
     TPad* pval_pad =
         new TPad("pval_pad", "pval_pad", pad_x0, pad_y0, pad_x1, pad_y1);
     pval_pad->Draw();
     pval_pad->cd();
 
-    pval_pad->SetLeftMargin(80. / pval_pad->GetWw());
-    pval_pad->SetBottomMargin(60. / pval_pad->GetWh());
+    pval_pad->SetLeftMargin(115. / pval_pad->GetWw());
+    pval_pad->SetBottomMargin(95. / pval_pad->GetWh());
 
     auto fit_res = fit_pval(h_pval);
     auto fit_par = fit_res.first;
     auto fit_error = fit_res.second;
     set_xaxis_title(h_pval, pval_text_size);
     set_yaxis_title(h_pval, pval_text_size);
-    const double y_axis_max = 2.f * fit_par;
+    const double y_axis_max = 2. * h_pval->GetEntries() / h_pval->GetNbinsX();
     h_pval->GetYaxis()->SetRangeUser(0.f, y_axis_max);
     h_pval->GetXaxis()->SetLabelSize(label_font_size);
     h_pval->GetYaxis()->SetLabelSize(label_font_size);
-    h_pval->GetXaxis()->SetTitleSize(title_font_size);
-    h_pval->GetYaxis()->SetTitleSize(title_font_size);
+    h_pval->GetXaxis()->SetTitleSize(titleX_font_size);
+    h_pval->GetYaxis()->SetTitleSize(titleY_font_size);
     h_pval->GetYaxis()->SetTitleOffset(y_title_offset);
     h_pval->GetXaxis()->SetTitleOffset(x_title_offset);
+    h_pval->GetYaxis()->SetLabelOffset(y_label_offset);
+    h_pval->GetXaxis()->SetLabelOffset(x_label_offset);
+    h_pval->GetXaxis()->SetNdivisions(505);
     h_pval->GetYaxis()->SetMaxDigits(2);
+    h_pval->GetYaxis()->SetNdivisions(505);
     h_pval->GetYaxis()->SetDecimals();
+    h_pval->GetXaxis()->CenterTitle(true);
+    h_pval->GetYaxis()->CenterTitle(true);
+    h_pval->GetXaxis()->SetTitleFont(132);
+    h_pval->GetYaxis()->SetTitleFont(132);
+
     h_pval->Draw();
     TLine* line = new TLine(0.f, fit_par, 1.f, fit_par);
     line->SetLineColor(kRed);
@@ -308,7 +348,8 @@ void draw_pval(TH1D* h_pval, const std::string& title_text,
     text_pad->Draw();
     text_pad->cd();
 
-    draw_title(title_text.c_str(), title_x, title_y, pval_text_size);
+    draw_text(title_x, title_y, y_gap, header_text_size, geom_text_size,
+              header_text.c_str(), geom_text.c_str());
     draw_fit_title("Constant fit", pval_fit_title_x, pval_fit_title_y,
                    pval_text_size);
     draw_const_fit_par(fit_par, fit_error, const_fit_par_x, const_fit_par_y,
@@ -320,11 +361,12 @@ std::string to_pdf(const std::string& name) {
     return name + ".pdf";
 }
 
-void read_tree(TTree* t, const std::string& tag, const std::string& title) {
-    const std::array<float, 2> cdim1{700, 500};
-    const std::array<float, 2> cdim2{700, 500};
+void read_tree(TTree* t, const std::string& tag,
+               const std::string& header_title, const std::string& geom_title) {
+    const std::array<float, 2> cdim1{700, 600};
+    const std::array<float, 2> cdim2{700, 600};
 
-    int n_bins = 100;
+    int n_bins = (pull_max - pull_min) / 0.1;
 
     double pull_l0;
     double pull_l1;
@@ -361,7 +403,7 @@ void read_tree(TTree* t, const std::string& tag, const std::string& title) {
     TH1D* h_qop = new TH1D(qop_name.c_str(), qop_name.c_str(), n_bins, pull_min,
                            pull_max);
     TH1D* h_chi2 =
-        new TH1D(chi2_name.c_str(), chi2_name.c_str(), n_bins, 0.f, 50.f);
+        new TH1D(chi2_name.c_str(), chi2_name.c_str(), 50, 0.f, 50.f);
     TH1D* h_pval =
         new TH1D(pval_name.c_str(), pval_name.c_str(), 50, 0.f, 1.0f);
 
@@ -441,33 +483,34 @@ void read_tree(TTree* t, const std::string& tag, const std::string& title) {
         new TCanvas(h_l0->GetName(), h_l0->GetName(), cdim1[0], cdim1[1]);
     c_l0->SetLogy();
 
-    draw_pull(h_l0, title, log10_rk_tolerance, finfo_l0);
+    draw_pull(h_l0, header_title, geom_title, log10_rk_tolerance, finfo_l0);
 
     c_l0->SaveAs(to_pdf(l0_name).c_str());
 
     auto c_l1 =
         new TCanvas(h_l1->GetName(), h_l1->GetName(), cdim1[0], cdim1[1]);
     c_l1->SetLogy();
-    draw_pull(h_l1, title, log10_rk_tolerance, finfo_l1);
+    draw_pull(h_l1, header_title, geom_title, log10_rk_tolerance, finfo_l1);
     c_l1->SaveAs(to_pdf(l1_name).c_str());
 
     auto c_phi =
         new TCanvas(h_phi->GetName(), h_phi->GetName(), cdim1[0], cdim1[1]);
     c_phi->SetLogy();
-    draw_pull(h_phi, title, log10_rk_tolerance, finfo_phi);
+    draw_pull(h_phi, header_title, geom_title, log10_rk_tolerance, finfo_phi);
     c_phi->SaveAs(to_pdf(phi_name).c_str());
 
     auto c_theta =
         new TCanvas(h_theta->GetName(), h_theta->GetName(), cdim1[0], cdim1[1]);
     c_theta->SetLogy();
 
-    draw_pull(h_theta, title, log10_rk_tolerance, finfo_theta);
+    draw_pull(h_theta, header_title, geom_title, log10_rk_tolerance,
+              finfo_theta);
     c_theta->SaveAs(to_pdf(theta_name).c_str());
 
     auto c_qop =
         new TCanvas(h_qop->GetName(), h_qop->GetName(), cdim1[0], cdim1[1]);
     c_qop->SetLogy();
-    draw_pull(h_qop, title, log10_rk_tolerance, finfo_qop);
+    draw_pull(h_qop, header_title, geom_title, log10_rk_tolerance, finfo_qop);
     c_qop->SaveAs(to_pdf(qop_name).c_str());
 
     auto c_chi2 =
@@ -477,7 +520,7 @@ void read_tree(TTree* t, const std::string& tag, const std::string& title) {
 
     auto c_pval =
         new TCanvas(h_pval->GetName(), h_pval->GetName(), cdim2[0], cdim2[1]);
-    draw_pval(h_pval, title, log10_rk_tolerance);
+    draw_pval(h_pval, header_title, geom_title, log10_rk_tolerance);
     c_pval->SaveAs(to_pdf(pval_name).c_str());
 
     std::ofstream f;
@@ -524,16 +567,18 @@ void covariance_validation() {
     gStyle->SetOptTitle(0);
     gStyle->SetOptStat(0);
 
+    const std::string rect_title = "Bound-to-bound transport";
+    const std::string wire_title = "Perigee-to-perigee transport";
+    const std::string geom_title =
+        "RKN with an inhomogeneous field and a material";
+
     /************************
      *  Rectangular
      * **********************/
 
     std::string rect_name = "rect_cov_transport";
     auto rect_tree = get_tree(rect_name);
-    const std::string rect_title =
-        "#splitline{Bound-to-bound transport,}{RKN with an inhomogeneous "
-        "field and a material}";
-    read_tree(rect_tree, "bound_to_bound", rect_title);
+    read_tree(rect_tree, "bound_to_bound", rect_title, geom_title);
 
     /************************
      *  Wire
@@ -541,8 +586,5 @@ void covariance_validation() {
 
     std::string wire_name = "wire_cov_transport";
     auto wire_tree = get_tree(wire_name);
-    const std::string wire_title =
-        "#splitline{Perigee-to-perigee transport,}{RKN with an inhomogeneous "
-        "field and a material}";
-    read_tree(wire_tree, "perigee_to_perigee", wire_title);
+    read_tree(wire_tree, "perigee_to_perigee", wire_title, geom_title);
 }
