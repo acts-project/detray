@@ -57,7 +57,7 @@ const vector3 B_z{0.f, 0.f, 1.996f * unit<scalar>::T};
 
 // Initial delta for numerical differentiaion
 const std::array<scalar, 5u> h_sizes_rect{2e0f, 2e0f, 1e-2f, 1e-3f, 1e-3f};
-const std::array<scalar, 5u> h_sizes_wire{1e0f, 1e0f, 1e-2f, 1e-3f, 1e-3f};
+const std::array<scalar, 5u> h_sizes_wire{2e0f, 2e0f, 1e-2f, 1e-3f, 1e-3f};
 
 // Ridders' algorithm setup
 constexpr const unsigned int Nt = 50u;
@@ -81,11 +81,15 @@ constexpr const scalar min_detector_length = 50.f * unit<scalar>::mm;
 constexpr const scalar max_detector_length = 500.f * unit<scalar>::mm;
 std::uniform_real_distribution<scalar> rand_length(min_detector_length,
                                                    max_detector_length);
+constexpr const scalar envelope_size = 2000.f * unit<scalar>::mm;
+
+// Mask size scaler
+constexpr const scalar mask_scaler = 1.5f;
 
 // Euler angles for the surface rotation
 std::uniform_real_distribution<scalar> rand_alpha(0.f,
                                                   2.f * constant<scalar>::pi);
-std::uniform_real_distribution<scalar> rand_cosbeta(0.5f, 1.f);
+std::uniform_real_distribution<scalar> rand_cosbeta(0.5, 1.f);
 std::uniform_int_distribution<int> rand_bool(0, 1);
 std::uniform_real_distribution<scalar> rand_gamma(0.f,
                                                   2.f * constant<scalar>::pi);
@@ -174,7 +178,7 @@ struct ridders_derivative {
                             Arr[j][q][p];
                         /*
                         // Please leave this for debug
-                        if (j == e_bound_theta && i == e_bound_loc0) {
+                        if (j == e_bound_loc0 && i == e_bound_loc1) {
                             std::cout << getter::element(
                                              differentiated_jacobian, j, i)
                                       << "  " << complete[j] << std::endl;
@@ -188,7 +192,7 @@ struct ridders_derivative {
         for (unsigned int j = 0; j < 5u; j++) {
             /*
             // Please leave this for debug
-            if (j == e_bound_theta && i == e_bound_loc0) {
+            if (j == e_bound_loc0 && i == e_bound_loc1) {
                 std::cout << getter::element(differentiated_jacobian, j, i)
                           << "  " << Arr[j][p][p] << "  "
                           << Arr[j][p - 1][p - 1] << "  "
@@ -329,23 +333,19 @@ bound_vector_type get_smeared_bound_vector(const bound_covariance_type& ini_cov,
 
 template <typename detector_t, typename detector_t::metadata::mask_ids mask_id>
 std::pair<euler_rotation<transform3_type>, std::array<scalar, 3u>> tilt_surface(
-    detector_t& det, const unsigned int sf_id, const vector3& helix_dir) {
+    detector_t& det, const unsigned int sf_id, const vector3& helix_dir,
+    const scalar alpha, const scalar beta, const scalar gamma) {
 
     const auto& sf = det.surface(sf_id);
     const auto& trf_link = sf.transform();
     auto& trf = det.transform_store()[trf_link];
 
     euler_rotation<transform3_type> euler;
-    euler.alpha = rand_alpha(mt1);
+    euler.alpha = alpha;
 
     if (sf_id == 1u) {
-        const int is_counterclockwise = rand_bool(mt1);
-        auto beta = math::acos(rand_cosbeta(mt1));
-        if (is_counterclockwise == 0) {
-            beta = -beta;
-        }
         euler.beta = beta;
-        euler.gamma = rand_gamma(mt1);
+        euler.gamma = gamma;
     }
 
     // Helix direction
@@ -409,6 +409,7 @@ struct bound_getter : actor {
         typename bound_track_parameters_type::covariance_type m_jacobi;
         scalar m_avg_step_size{0.f};
         std::size_t step_count{0u};
+        std::size_t track_ID{0u};
     };
 
     template <typename propagator_state_t>
@@ -425,6 +426,21 @@ struct bound_getter : actor {
         actor_state.m_avg_step_size = ((N - 1.f) * actor_state.m_avg_step_size +
                                        stepping._prev_step_size) /
                                       N;
+
+        // Warning for too many step counts
+        if (actor_state.step_count > 1000000) {
+            std::cout << "Too many step counts!" << std::endl;
+            std::cout << "Track ID: " << actor_state.track_ID << std::endl;
+            std::cout << "Path length: " << actor_state.m_path_length
+                      << std::endl;
+            std::cout << "PhiI: " << actor_state.m_param_departure.phi()
+                      << std::endl;
+            std::cout << "ThetaI: " << actor_state.m_param_departure.theta()
+                      << std::endl;
+            std::cout << "QopI: " << actor_state.m_param_departure.qop()
+                      << std::endl;
+            propagation._heartbeat &= navigation.exit();
+        }
 
         if (navigation.is_on_module() && navigation.barcode().index() == 0u) {
 
@@ -455,7 +471,7 @@ struct bound_getter : actor {
 /// Numerically integrate the jacobian
 template <typename propagator_t, typename field_t>
 bound_getter<transform3_type>::state evaluate_bound_param(
-    const scalar detector_length,
+    const std::size_t trk_count, const scalar detector_length,
     const bound_track_parameters<transform3_type>& initial_param,
     const typename propagator_t::detector_type& det, const field_t& field,
     const scalar overstep_tolerance, const scalar on_surface_tolerance,
@@ -475,6 +491,7 @@ bound_getter<transform3_type>::state evaluate_bound_param(
     // Actor states
     parameter_transporter<transform3_type>::state transporter_state{};
     bound_getter<transform3_type>::state bound_getter_state{};
+    bound_getter_state.track_ID = trk_count;
     bound_getter_state.m_min_path_length = detector_length * 0.75f;
     parameter_resetter<transform3_type>::state resetter_state{};
     auto actor_states =
@@ -499,6 +516,7 @@ bound_getter<transform3_type>::state evaluate_bound_param(
 
 template <typename propagator_t, typename field_t>
 bound_vector_type get_displaced_bound_vector(
+    const std::size_t trk_count,
     const bound_track_parameters<transform3_type>& ref_param,
     const typename propagator_t::detector_type& det,
     const scalar detector_length, const field_t& field,
@@ -527,6 +545,7 @@ bound_vector_type get_displaced_bound_vector(
     parameter_transporter<transform3_type>::state transporter_state{};
     parameter_resetter<transform3_type>::state resetter_state{};
     bound_getter<transform3_type>::state bound_getter_state{};
+    bound_getter_state.track_ID = trk_count;
     bound_getter_state.m_min_path_length = detector_length * 0.75f;
 
     auto actor_states =
@@ -548,6 +567,7 @@ bound_vector_type get_displaced_bound_vector(
 /// Numerically evaluate the jacobian
 template <typename propagator_t, typename field_t>
 bound_track_parameters<transform3_type>::covariance_type directly_differentiate(
+    const std::size_t trk_count,
     const bound_track_parameters<transform3_type>& ref_param,
     typename propagator_t::detector_type& det, const scalar detector_length,
     const field_t& field, const material<scalar> volume_mat,
@@ -567,13 +587,13 @@ bound_track_parameters<transform3_type>::covariance_type directly_differentiate(
         preprocess_delta(i, delta, ref_param);
 
         const auto vec1 = get_displaced_bound_vector<propagator_t, field_t>(
-            ref_param, det, detector_length, field, overstep_tolerance,
-            on_surface_tolerance, rk_tolerance, constraint_step, i,
-            1.f * delta);
+            trk_count, ref_param, det, detector_length, field,
+            overstep_tolerance, on_surface_tolerance, rk_tolerance,
+            constraint_step, i, 1.f * delta);
         const auto vec2 = get_displaced_bound_vector<propagator_t, field_t>(
-            ref_param, det, detector_length, field, overstep_tolerance,
-            on_surface_tolerance, rk_tolerance, constraint_step, i,
-            -1.f * delta);
+            trk_count, ref_param, det, detector_length, field,
+            overstep_tolerance, on_surface_tolerance, rk_tolerance,
+            constraint_step, i, -1.f * delta);
 
         ridders_derivative ridder;
         ridder.initialize(vec1, vec2, delta);
@@ -583,14 +603,14 @@ bound_track_parameters<transform3_type>::covariance_type directly_differentiate(
 
             const auto nvec1 =
                 get_displaced_bound_vector<propagator_t, field_t>(
-                    ref_param, det, detector_length, field, overstep_tolerance,
-                    on_surface_tolerance, rk_tolerance, constraint_step, i,
-                    1.f * delta);
+                    trk_count, ref_param, det, detector_length, field,
+                    overstep_tolerance, on_surface_tolerance, rk_tolerance,
+                    constraint_step, i, 1.f * delta);
             const auto nvec2 =
                 get_displaced_bound_vector<propagator_t, field_t>(
-                    ref_param, det, detector_length, field, overstep_tolerance,
-                    on_surface_tolerance, rk_tolerance, constraint_step, i,
-                    -1.f * delta);
+                    trk_count, ref_param, det, detector_length, field,
+                    overstep_tolerance, on_surface_tolerance, rk_tolerance,
+                    constraint_step, i, -1.f * delta);
 
             ridder.run(nvec1, nvec2, delta, p, i, differentiated_jacobian);
 
@@ -659,7 +679,7 @@ bound_track_parameters<transform3_type> get_initial_parameter(
 
 template <typename propagator_t, typename field_t>
 void evaluate_jacobian_difference(
-    const unsigned int trk_count, typename propagator_t::detector_type& det,
+    const std::size_t trk_count, typename propagator_t::detector_type& det,
     const scalar detector_length,
     const bound_track_parameters<transform3_type>& track, const field_t& field,
     const material<scalar> volume_mat, const scalar overstep_tolerance,
@@ -679,7 +699,7 @@ void evaluate_jacobian_difference(
     det.volumes()[0u].set_material(volume_mat);
 
     auto bound_getter = evaluate_bound_param<propagator_t, field_t>(
-        detector_length, track, det, field, overstep_tolerance,
+        trk_count, detector_length, track, det, field, overstep_tolerance,
         on_surface_tolerance, rk_tolerance, constraint_step, use_field_gradient,
         true, do_inspect);
 
@@ -703,8 +723,11 @@ void evaluate_jacobian_difference(
         << " Phi: " << reference_param.phi()
         << " Theta: " << reference_param.theta()
         << " Mom [GeV/c]: " << reference_param.p();
+    ASSERT_TRUE(detector_length > 0.f);
     ASSERT_GE(bound_getter.m_path_length, 0.5f * detector_length);
+    ASSERT_LE(bound_getter.m_path_length, 1.5f * detector_length);
     ASSERT_LE(bound_getter.m_path_length, max_detector_length + 200.f);
+    ASSERT_GE(bound_getter.m_abs_path_length, bound_getter.m_path_length);
 
     const auto reference_jacobian = bound_getter.m_jacobi;
 
@@ -727,7 +750,7 @@ void evaluate_jacobian_difference(
         differentiated_jacobian = precal_diff_jacobi;
     } else {
         differentiated_jacobian = directly_differentiate<propagator_t, field_t>(
-            reference_param, det, detector_length, field, volume_mat,
+            trk_count, reference_param, det, detector_length, field, volume_mat,
             overstep_tolerance, on_surface_tolerance, rk_tolerance_dis,
             constraint_step, hs, convergence);
     }
@@ -802,7 +825,7 @@ void evaluate_jacobian_difference(
 
 template <typename propagator_t, typename field_t>
 void evaluate_covariance_transport(
-    const unsigned int trk_count, typename propagator_t::detector_type& det,
+    const std::size_t trk_count, typename propagator_t::detector_type& det,
     const scalar detector_length,
     const bound_track_parameters<transform3_type>& track, const field_t& field,
     const material<scalar> volume_mat, const scalar overstep_tolerance,
@@ -822,7 +845,7 @@ void evaluate_covariance_transport(
     track_copy.set_covariance(ini_cov);
 
     auto bound_getter = evaluate_bound_param<propagator_t, field_t>(
-        detector_length, track_copy, det, field, overstep_tolerance,
+        trk_count, detector_length, track_copy, det, field, overstep_tolerance,
         on_surface_tolerance, rk_tolerance, constraint_step, use_field_gradient,
         true, false);
 
@@ -849,8 +872,11 @@ void evaluate_covariance_transport(
         << " Phi: " << reference_param.phi()
         << " Theta: " << reference_param.theta()
         << " Mom [GeV/c]: " << reference_param.p();
+    ASSERT_TRUE(detector_length > 0.f);
     ASSERT_GE(bound_getter.m_path_length, 0.5f * detector_length);
+    ASSERT_LE(bound_getter.m_path_length, 1.5f * detector_length);
     ASSERT_LE(bound_getter.m_path_length, max_detector_length + 200.f);
+    ASSERT_GE(bound_getter.m_abs_path_length, bound_getter.m_path_length);
 
     // Get smeared initial bound vector
     const bound_vector_type smeared_ini_vec =
@@ -861,9 +887,9 @@ void evaluate_covariance_transport(
     smeared_track.set_vector(smeared_ini_vec);
 
     auto smeared_bound_getter = evaluate_bound_param<propagator_t, field_t>(
-        detector_length, smeared_track, det, field, overstep_tolerance,
-        on_surface_tolerance, rk_tolerance_dis, constraint_step,
-        use_field_gradient, false, false);
+        trk_count, detector_length, smeared_track, det, field,
+        overstep_tolerance, on_surface_tolerance, rk_tolerance_dis,
+        constraint_step, use_field_gradient, false, false);
 
     // Get smeared final bound vector
     bound_vector_type smeared_fin_vec =
@@ -1002,7 +1028,7 @@ get_displaced_bound_vector_helix(
 
 template <typename detector_t, typename detector_t::metadata::mask_ids mask_id>
 void evaluate_jacobian_difference_helix(
-    const unsigned int trk_count, detector_t& det,
+    const std::size_t trk_count, detector_t& det, const scalar detector_length,
     const bound_track_parameters<transform3_type>& track, const vector3& field,
     const std::array<scalar, 5u> hs, std::ofstream& file,
     const scalar helix_tolerance) {
@@ -1183,7 +1209,10 @@ void evaluate_jacobian_difference_helix(
     file << math::log10(helix_tolerance) << ",";
 
     // Overstep tolerance (Doesn't exist for helix intersection)
-    file << 0;
+    file << 0 << ",";
+
+    // Detector length
+    file << detector_length;
 
     file << std::endl;
 }
@@ -1573,7 +1602,7 @@ int main(int argc, char** argv) {
     using inhom_field_wire_propagator_t =
         propagator<inhom_field_stepper_t, wire_navigator_t, actor_chain_t>;
 
-    unsigned int track_count = 0u;
+    std::size_t track_count = 0u;
 
     for (const auto track : trk_generator_t{trk_gen_cfg}) {
         mt2.seed(track_count);
@@ -1585,10 +1614,10 @@ int main(int argc, char** argv) {
         const scalar detector_length = rand_length(mt1);
         const scalar constraint_step_size = detector_length * 1.25f;
 
-        mask<rect_type> rect{0u, detector_length * 1.0f,
-                             detector_length * 1.0f};
-        mask<wire_type> wire{0u, detector_length * 1.0f,
-                             detector_length * 1.0f};
+        mask<rect_type> rect{0u, detector_length * mask_scaler,
+                             detector_length * mask_scaler};
+        mask<wire_type> wire{0u, detector_length * mask_scaler,
+                             detector_length * mask_scaler};
 
         // Adjust overstep tolerance
         scalar overstep_tol =
@@ -1598,24 +1627,33 @@ int main(int argc, char** argv) {
 
         tel_det_config<rect_type, detail::helix<transform3_type>> rectangle_cfg{
             rect, helix_bz};
-        rectangle_cfg.m_envelope = 1000.f * unit<scalar>::mm;
+        rectangle_cfg.m_envelope = envelope_size;
         rectangle_cfg.n_surfaces(2u).length(detector_length);
+
+        auto alphaI = rand_alpha(mt1);
+        auto alphaF = rand_alpha(mt1);
+        auto betaF = math::acos(rand_cosbeta(mt1));
+        if (rand_bool(mt1) == 0) {
+            betaF = -betaF;
+        }
+        auto gammaF = rand_gamma(mt1);
 
         auto [rect_det, rect_names] =
             create_telescope_detector(host_mr, rectangle_cfg);
         const auto [euler_rect_initial, shift_rect_initial] =
             tilt_surface<decltype(rect_det),
                          decltype(rect_det)::masks::id::e_rectangle2>(
-                rect_det, 0u, helix_bz.dir(0.f));
+                rect_det, 0u, helix_bz.dir(0.f), alphaI, 0.f, 0.f);
         const auto [euler_rect_final, shift_rect_final] =
             tilt_surface<decltype(rect_det),
                          decltype(rect_det)::masks::id::e_rectangle2>(
-                rect_det, 1u, helix_bz.dir(detector_length));
+                rect_det, 1u, helix_bz.dir(detector_length), alphaF, betaF,
+                gammaF);
 
         // Make a telescope geometry with wire surface
         tel_det_config<wire_type, detail::helix<transform3_type>> wire_cfg{
             wire, helix_bz};
-        wire_cfg.m_envelope = 1000.f * unit<scalar>::mm;
+        wire_cfg.m_envelope = envelope_size;
         wire_cfg.n_surfaces(2u).length(detector_length);
 
         auto [wire_det, wire_names] =
@@ -1623,11 +1661,12 @@ int main(int argc, char** argv) {
         const auto [euler_wire_initial, shift_wire_initial] =
             tilt_surface<decltype(wire_det),
                          decltype(wire_det)::masks::id::e_cell_wire>(
-                wire_det, 0u, helix_bz.dir(0.f));
+                wire_det, 0u, helix_bz.dir(0.f), alphaI, 0.f, 0.f);
         const auto [euler_wire_final, shift_wire_final] =
             tilt_surface<decltype(wire_det),
                          decltype(wire_det)::masks::id::e_cell_wire>(
-                wire_det, 1u, helix_bz.dir(detector_length));
+                wire_det, 1u, helix_bz.dir(detector_length), alphaF, betaF,
+                gammaF);
 
         // This IF block should locate after `tilt_surface()` calls for
         // debugging purpose
@@ -1636,8 +1675,9 @@ int main(int argc, char** argv) {
             continue;
         }
 
+        track_count++;
+
         if (verbose_lvl >= 1) {
-            track_count++;
             std::cout << "[Event Property]" << std::endl;
             std::cout << "Track ID: " << track_count
                       << "  Number of processed tracks per thread: "
@@ -1704,9 +1744,10 @@ int main(int argc, char** argv) {
                 std::array<bool, 25u> convergence;
                 auto differentiated_jacobian =
                     directly_differentiate<inhom_field_rect_propagator_t>(
-                        rect_bparam, rect_det, detector_length, inhom_bfield,
-                        volume_mat, overstep_tol, on_surface_tol, rk_tol_dis,
-                        constraint_step_size, h_sizes_rect, convergence);
+                        track_count, rect_bparam, rect_det, detector_length,
+                        inhom_bfield, volume_mat, overstep_tol, on_surface_tol,
+                        rk_tol_dis, constraint_step_size, h_sizes_rect,
+                        convergence);
 
                 for (std::size_t i = 0u; i < log10_tols.size(); i++) {
 
@@ -1727,8 +1768,8 @@ int main(int argc, char** argv) {
                 evaluate_jacobian_difference_helix<
                     decltype(rect_det),
                     decltype(rect_det)::masks::id::e_rectangle2>(
-                    track_count, rect_det, rect_bparam, B_z, h_sizes_rect,
-                    helix_rect_file, helix_tol);
+                    track_count, rect_det, detector_length, rect_bparam, B_z,
+                    h_sizes_rect, helix_rect_file, helix_tol);
 
                 // Rect Const field
                 evaluate_jacobian_difference<const_field_rect_propagator_t>(
@@ -1786,9 +1827,10 @@ int main(int argc, char** argv) {
                 std::array<bool, 25u> convergence;
                 auto differentiated_jacobian =
                     directly_differentiate<inhom_field_wire_propagator_t>(
-                        wire_bparam, wire_det, detector_length, inhom_bfield,
-                        volume_mat, overstep_tol, on_surface_tol, rk_tol_dis,
-                        constraint_step_size, h_sizes_wire, convergence);
+                        track_count, wire_bparam, wire_det, detector_length,
+                        inhom_bfield, volume_mat, overstep_tol, on_surface_tol,
+                        rk_tol_dis, constraint_step_size, h_sizes_wire,
+                        convergence);
 
                 for (std::size_t i = 0u; i < log10_tols.size(); i++) {
                     // Wire Inhomogeneous field with Material
@@ -1808,8 +1850,8 @@ int main(int argc, char** argv) {
                 evaluate_jacobian_difference_helix<
                     decltype(wire_det),
                     decltype(wire_det)::masks::id::e_cell_wire>(
-                    track_count, wire_det, wire_bparam, B_z, h_sizes_wire,
-                    helix_wire_file, helix_tol);
+                    track_count, wire_det, detector_length, wire_bparam, B_z,
+                    h_sizes_wire, helix_wire_file, helix_tol);
 
                 // Wire Const field
                 evaluate_jacobian_difference<const_field_wire_propagator_t>(
