@@ -46,12 +46,12 @@ GTEST_TEST(svgtools, groups) {
     // Visualisation of a group of surfaces.
     const std::array surface_group_indices{1u, 100u, 10u, 200u};
 
-    const auto svg_surface_group_xy =
+    const auto [svg_surface_group_xy, mat_group_xy] =
         il.draw_surfaces(surface_group_indices, xy);
     detray::svgtools::write_svg("test_svgtools_surface_group_xy",
                                 {axes, svg_surface_group_xy});
 
-    const auto svg_surface_group_zr =
+    const auto [svg_surface_group_zr, mat_group_zr] =
         il.draw_surfaces(surface_group_indices, zr);
     detray::svgtools::write_svg("test_svgtools_surface_group_zr.svg",
                                 {axes, svg_surface_group_zr});

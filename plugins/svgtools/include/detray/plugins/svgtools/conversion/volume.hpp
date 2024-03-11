@@ -1,6 +1,6 @@
 /** Detray library, part of the ACTS project (R&D line)
  *
- * (c) 2023 CERN for the benefit of the ACTS project
+ * (c) 2023-2024 CERN for the benefit of the ACTS project
  *
  * Mozilla Public License Version 2.0
  */
@@ -10,9 +10,9 @@
 // Project include(s)
 #include "detray/geometry/detector_volume.hpp"
 #include "detray/geometry/surface.hpp"
-#include "detray/plugins/svgtools/conversion/grid.hpp"
 #include "detray/plugins/svgtools/conversion/portal.hpp"
 #include "detray/plugins/svgtools/conversion/surface.hpp"
+#include "detray/plugins/svgtools/conversion/surface_grid.hpp"
 #include "detray/plugins/svgtools/styling/styling.hpp"
 
 // Actsvg include(s)
@@ -48,7 +48,7 @@ auto volume(const typename detector_t::geometry_context& context,
             const styling::volume_style& style =
                 styling::tableau_colorblind::volume_style,
             bool hide_portals = false, bool hide_passives = false,
-            bool hide_grids = false,
+            bool hide_grids = false, bool hide_material = true,
             const std::array<dindex, 2>& search_window = {2u, 2u}) {
 
     using point3_container_t = std::vector<typename detector_t::point3_type>;
@@ -60,7 +60,7 @@ auto volume(const typename detector_t::geometry_context& context,
     std::vector<actsvg::proto::surface<point3_container_t>> p_sensitves;
 
     // Convert grid, if present
-    auto [p_grid, grid_type] = svgtools::conversion::grid(
+    auto [p_grid, grid_type] = svgtools::conversion::surface_grid(
         detector, p_volume._index, view, style._grid_style);
 
     for (const auto& desc : d_volume.surfaces()) {
@@ -70,16 +70,20 @@ auto volume(const typename detector_t::geometry_context& context,
         if (sf.is_portal()) {
             if (!hide_portals) {
                 auto p_portal = svgtools::conversion::portal(
-                    context, detector, sf, style._portal_style, false);
+                    context, detector, sf, view, style._portal_style, false,
+                    hide_material);
 
                 p_volume._portals.push_back(p_portal);
             }
         } else if (!(sf.is_passive() && hide_passives)) {
 
-            // Regular volume display
+            const auto& sf_style = sf.is_sensitive()
+                                       ? style._sensitive_surface_style
+                                       : style._passive_surface_style;
+
             auto& p_surface =
                 p_volume._v_surfaces.emplace_back(svgtools::conversion::surface(
-                    context, sf, style._surface_style));
+                    context, detector, sf, view, sf_style, hide_material));
 
             std::string sf_info{"* index " + std::to_string(sf.index())};
 

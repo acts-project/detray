@@ -1,6 +1,6 @@
 /** Detray library, part of the ACTS project (R&D line)
  *
- * (c) 2023 CERN for the benefit of the ACTS project
+ * (c) 2023-2024 CERN for the benefit of the ACTS project
  *
  * Mozilla Public License Version 2.0
  */
@@ -15,6 +15,7 @@
 #include "detray/plugins/svgtools/conversion/intersection.hpp"
 #include "detray/plugins/svgtools/conversion/landmark.hpp"
 #include "detray/plugins/svgtools/conversion/surface.hpp"
+#include "detray/plugins/svgtools/conversion/surface_material.hpp"
 #include "detray/plugins/svgtools/conversion/trajectory.hpp"
 #include "detray/plugins/svgtools/conversion/volume.hpp"
 #include "detray/plugins/svgtools/meta/display/geometry.hpp"
@@ -23,6 +24,7 @@
 #include "detray/plugins/svgtools/meta/proto/eta_lines.hpp"
 #include "detray/plugins/svgtools/styling/styling.hpp"
 #include "detray/plugins/svgtools/utils/groups.hpp"
+#include "detray/utils/ranges.hpp"
 
 // Actsvg include(s)
 #include "actsvg/meta.hpp"
@@ -30,6 +32,7 @@
 // System include(s)
 #include <array>
 #include <optional>
+#include <stdexcept>
 #include <vector>
 
 namespace detray::svgtools {
@@ -76,8 +79,10 @@ class illustrator {
     void show_info(bool toggle = true) { _show_info = toggle; }
     /// Toggle eta lines in detector rz-view
     void hide_eta_lines(bool toggle = true) { _hide_eta_lines = toggle; }
-    /// Toggle info boxes
+    /// Toggle surface grids
     void hide_grids(bool toggle = true) { _hide_grids = toggle; }
+    /// Toggle surface material
+    void hide_material(bool toggle = true) { _hide_material = toggle; }
     /// Toggle portal surfaces
     void hide_portals(bool toggle = true) { _hide_portals = toggle; }
     /// Toggle passive surfaces
@@ -101,23 +106,38 @@ class illustrator {
 
         const auto surface = detray::surface{_detector, index};
 
-        actsvg::svg::object ret;
+        actsvg::svg::object ret, material;
         const auto& style = _style._detector_style._volume_style;
 
         if (surface.is_portal()) {
             auto p_portal = svgtools::conversion::portal(
-                gctx, _detector, surface, style._portal_style, false);
+                gctx, _detector, surface, view, style._portal_style, false,
+                _hide_material);
 
             // Draw the portal directly
             std::string id = p_portal._name + "_" + svg_id(view);
             ret = actsvg::display::portal(std::move(id), p_portal, view);
+
+            if (!_hide_material) {
+                material = actsvg::display::surface_material(
+                    id + "_material_map", p_portal._surface._material);
+            }
         } else {
+            const auto& sf_style = surface.is_sensitive()
+                                       ? style._sensitive_surface_style
+                                       : style._passive_surface_style;
+
             auto p_surface = svgtools::conversion::surface(
-                gctx, surface, style._surface_style);
+                gctx, _detector, surface, view, sf_style, _hide_material);
 
             // Draw the surface directly
             std::string id = p_surface._name + "_" + svg_id(view);
             ret = actsvg::display::surface(std::move(id), p_surface, view);
+
+            if (!_hide_material) {
+                material = actsvg::display::surface_material(
+                    id + "_material_map", p_surface._material);
+            }
         }
         // Add an optional info box
         if (_show_info) {
@@ -130,7 +150,7 @@ class illustrator {
             ret.add_object(info_box);
         }
 
-        return ret;
+        return std::tuple{ret, material};
     }
 
     /// @brief Converts a multiple of detray surfaces of the detector to an svg.
@@ -149,8 +169,100 @@ class illustrator {
         auto ret = svgtools::utils::group(_name_map.at(0) + "_surfaces_" +
                                           svg_id(view));
 
-        for (const dindex index : indices) {
-            ret.add_object(draw_surface(index, view, gctx));
+        auto material = svgtools::utils::group(_name_map.at(0) + "_material_" +
+                                               svg_id(view));
+
+        for (const auto [i, index] : detray::views::enumerate(indices)) {
+            auto [sf_svg, mat_svg] = draw_surface(index, view, gctx);
+
+            ret.add_object(sf_svg);
+
+            // Material is optional
+            if (mat_svg.is_defined()) {
+                // Only add one gradient box
+                if (i == 0) {
+                    material.add_object(mat_svg);
+                } else {
+                    material.add_object(mat_svg._sub_objects[0]);
+                }
+            }
+        }
+
+        return std::tuple{ret, material};
+    }
+
+    /// @brief Converts the material map of a single detray surface to an svg.
+    ///
+    /// @param index the index of the surface in the detector.
+    /// @param view the display view.
+    /// @param gctx the geometry context.
+    ///
+    /// @returns @c actsvg::svg::object of the surface's material map.
+    template <typename view_t>
+    inline auto draw_surface_material(const dindex index,
+                                      const view_t& view) const {
+
+        const auto surface = detray::surface{_detector, index};
+
+        if (_hide_material) {
+            return actsvg::svg::object{};
+        }
+
+        const styling::surface_material_style* mat_style{nullptr};
+        const auto& vol_style = _style._detector_style._volume_style;
+        switch (surface.id()) {
+            case surface_id::e_portal: {
+                mat_style =
+                    &vol_style._portal_style._surface_style._material_style;
+                break;
+            }
+            case surface_id::e_sensitive: {
+                mat_style = &vol_style._sensitive_surface_style._material_style;
+                break;
+            }
+            case surface_id::e_passive: {
+                mat_style = &vol_style._passive_surface_style._material_style;
+                break;
+            }
+            case surface_id::e_unknown: {
+                throw std::runtime_error(
+                    "Encountered surface of unknown type.");
+                break;
+            }
+        };
+
+        auto p_material = svgtools::conversion::surface_material(
+            _detector, surface, view, *mat_style);
+
+        std::string id = _name_map.at(0) + "_material_map_" +
+                         std::to_string(surface.index()) + svg_id(view);
+
+        return actsvg::display::surface_material(std::move(id), p_material);
+    }
+
+    /// @brief Converts the material of multiple detray surfaces to an svg.
+    ///
+    /// @param indices the collection of surface indices in the detector to
+    /// convert.
+    /// @param view the display view.
+    ///
+    /// @returns @c actsvg::svg::object of the surface's material maps.
+    template <typename range_t, typename view_t>
+    inline auto draw_surface_materials(const range_t& indices,
+                                       const view_t& view) const {
+
+        auto ret = svgtools::utils::group(_name_map.at(0) +
+                                          "_surface_materials_" + svg_id(view));
+
+        for (const auto [i, index] : detray::views::enumerate(indices)) {
+            auto mat_svg = draw_surface_material(index, view);
+
+            // Only add one gradient box
+            if (i == 0) {
+                ret.add_object(mat_svg);
+            } else {
+                ret.add_object(mat_svg._sub_objects[0]);
+            }
         }
 
         return ret;
@@ -173,7 +285,7 @@ class illustrator {
         auto [p_volume, gr_type] = svgtools::conversion::volume(
             gctx, _detector, d_volume, view,
             _style._detector_style._volume_style, _hide_portals, _hide_passives,
-            _hide_grids, _search_window);
+            _hide_grids, _hide_material, _search_window);
 
         // Draw the basic volume
         p_volume._name = d_volume.name(_name_map);
@@ -480,6 +592,7 @@ class illustrator {
     bool _show_info = true;
     bool _hide_eta_lines = false;
     bool _hide_grids = false;
+    bool _hide_material = true;
     bool _hide_portals = false;
     bool _hide_passives = false;
     std::array<dindex, 2> _search_window = {2u, 2u};
