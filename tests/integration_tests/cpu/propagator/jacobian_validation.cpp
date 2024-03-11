@@ -61,7 +61,7 @@ const std::array<scalar, 5u> h_sizes_wire{2e0f, 2e0f, 1e-2f, 1e-3f, 1e-3f};
 
 // Ridders' algorithm setup
 constexpr const unsigned int Nt = 50u;
-const std::array<scalar, 5u> safe{2.0f, 2.0f, 2.0f, 2.0f, 2.0f};
+const std::array<scalar, 5u> safe{3.0f, 3.0f, 2.0f, 2.0f, 2.0f};
 const std::array<scalar, 5u> con{1.2f, 1.2f, 1.2f, 1.2f, 1.2f};
 constexpr const scalar threshold_factor = 10.f;
 constexpr const scalar big = std::numeric_limits<scalar>::max();
@@ -178,10 +178,12 @@ struct ridders_derivative {
                             Arr[j][q][p];
                         /*
                         // Please leave this for debug
-                        if (j == e_bound_loc0 && i == e_bound_loc1) {
+                        if (j == e_bound_phi && i == e_bound_loc1) {
                             std::cout << getter::element(
                                              differentiated_jacobian, j, i)
-                                      << "  " << complete[j] << std::endl;
+                                      << "  " << math::abs(Arr[j][q][p]) << "  "
+                                      << threshold_factor * math::abs(V) << "  "
+                                      << std::endl;
                         }
                         */
                     }
@@ -192,7 +194,7 @@ struct ridders_derivative {
         for (unsigned int j = 0; j < 5u; j++) {
             /*
             // Please leave this for debug
-            if (j == e_bound_loc0 && i == e_bound_loc1) {
+            if (j == e_bound_phi && i == e_bound_loc1) {
                 std::cout << getter::element(differentiated_jacobian, j, i)
                           << "  " << Arr[j][p][p] << "  "
                           << Arr[j][p - 1][p - 1] << "  "
