@@ -46,6 +46,7 @@ int main(int argc, char** argv) {
     desc.add_options()("help", "produce help message")(
         "outdir", po::value<std::string>(), "Output directory for plots")(
         "geometry_file", po::value<std::string>(), "Geometry input file")(
+        "material_file", po::value<std::string>(), "Material input file")(
         "grid_file", po::value<std::string>(), "Surface grid input file")(
         "context", po::value<dindex>(), "Number of the geometry context")(
         "search_window", po::value<std::vector<dindex>>(&window)->multitoken(),
@@ -56,6 +57,7 @@ int main(int argc, char** argv) {
         "List of surfaces that should be displayed")(
         "hide_portals", "Hide portal surfaces")("hide_passives",
                                                 "Hide passive surfaces")(
+        "hide_material", "Don't draw surface material")(
         "hide_eta_lines", "Hide eta lines")("show_info", "Show info boxes")(
         "write_volume_graph", "Writes the volume graph to file");
 
@@ -94,6 +96,9 @@ int main(int argc, char** argv) {
     if (vm.count("grid_file")) {
         reader_cfg.add_file(vm["grid_file"].as<std::string>());
     }
+    if (vm.count("material_file")) {
+        reader_cfg.add_file(vm["material_file"].as<std::string>());
+    }
 
     // The geometry context to be displayed
     detector_t::geometry_context gctx;
@@ -124,17 +129,24 @@ int main(int argc, char** argv) {
     il.hide_eta_lines(vm.count("hide_eta_lines"));
     il.hide_portals(vm.count("hide_portals"));
     il.hide_passives(vm.count("hide_passives"));
+    il.hide_material(!vm.count("material_file") || vm.count("hide_material"));
     il.hide_grids(!vm.count("grid_file"));
     il.search_window({window[0], window[1]});
 
     actsvg::style::stroke stroke_black = actsvg::style::stroke();
+    actsvg::style::font axis_font = actsvg::style::font();
+    axis_font._size = 35u;
 
     // x-y axis.
     auto xy_axis = actsvg::draw::x_y_axes("axes", {-1100, 1100}, {-1100, 1100},
-                                          stroke_black, "x", "y");
+                                          stroke_black, "x", "y", axis_font);
     // z-r axis.
     auto zr_axis = actsvg::draw::x_y_axes("axes", {-3100, 3100}, {-5, 1100},
-                                          stroke_black, "z", "r");
+                                          stroke_black, "z", "r", axis_font);
+    // z-phi axis.
+    auto zphi_axis =
+        actsvg::draw::x_y_axes("axes", {-3100, 3100}, {-1000, 1000},
+                               stroke_black, "z", "phi", axis_font);
 
     // Creating the views.
     const actsvg::views::x_y xy;
@@ -162,11 +174,24 @@ int main(int argc, char** argv) {
 
     // Display the surfaces
     if (not surfaces.empty()) {
-        const auto sf_xy_svg = il.draw_surfaces(surfaces, xy, gctx);
+        const auto [sf_xy_svg, mat_xy_svg] =
+            il.draw_surfaces(surfaces, xy, gctx);
         detray::svgtools::write_svg(path / sf_xy_svg._id, {xy_axis, sf_xy_svg});
+        detray::svgtools::write_svg(path / mat_xy_svg._id,
+                                    {xy_axis, mat_xy_svg});
 
-        const auto sf_zr_svg = il.draw_surfaces(surfaces, zr, gctx);
+        [[maybe_unused]] const auto [sf_zr_svg, mat_zr_svg] =
+            il.draw_surfaces(surfaces, zr, gctx);
         detray::svgtools::write_svg(path / sf_zr_svg._id, {zr_axis, sf_zr_svg});
+        /*detray::svgtools::write_svg(path / mat_zr_svg._id,
+                                    {zr_axis, mat_zr_svg});*/
+
+        [[maybe_unused]] const auto [sf_zphi_svg, mat_zphi_svg] =
+            il.draw_surfaces(surfaces, zphi, gctx);
+        /*detray::svgtools::write_svg(path / sf_zphi_svg._id,
+                                    {zphi_axis, sf_zphi_svg});*/
+        detray::svgtools::write_svg(path / mat_zphi_svg._id,
+                                    {zphi_axis, mat_zphi_svg});
     }
 
     // If nothing was specified, display the whole detector

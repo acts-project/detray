@@ -16,6 +16,7 @@ detray_add_unit_test( svgtools
    "intersections.cpp"
    "landmarks.cpp"
    "masks.cpp"
+   "material.cpp"
    "surfaces.cpp"
    "trajectories.cpp"
    "volumes.cpp"
