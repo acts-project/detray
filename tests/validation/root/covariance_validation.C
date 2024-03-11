@@ -30,17 +30,17 @@
 #include <vector>
 
 namespace {
-double x_pos = 0.205f;
+double x_pos = 0.215f;
 double title_x = x_pos;
-double title_y = 0.825f;
+double title_y = 0.813f;
 double y_gap = -0.05;
 double header_text_size = 0.0595;
 double geom_text_size = 0.0416667;
 
 double pull_fit_title_x = x_pos;
-double pull_fit_title_y = 0.692f;
+double pull_fit_title_y = 0.69f;
 double pval_fit_title_x = x_pos;
-double pval_fit_title_y = 0.692f;
+double pval_fit_title_y = 0.69f;
 double gaus_fit_par_x = x_pos;
 double gaus_fit_par_y = pull_fit_title_y - 0.064;
 double const_fit_par_x = x_pos;
