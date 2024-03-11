@@ -53,9 +53,11 @@ GTEST_TEST(svgtools, surfaces) {
     for (detray::dindex i : indices) {
         std::string name = "test_svgtools_surface" + std::to_string(i);
         // Visualization of surface/portal i:
-        const auto svg_xy = il.draw_surface(i, xy);
+        const auto [svg_xy, mat_xy] = il.draw_surface(i, xy);
         detray::svgtools::write_svg(name + "_xy", {axes, svg_xy});
-        const auto svg_zr = il.draw_surface(i, zr);
+        detray::svgtools::write_svg(name + "mat_xy", {axes, mat_xy});
+        const auto [svg_zr, mat_zr] = il.draw_surface(i, zr);
         detray::svgtools::write_svg(name + "_zr", {axes, svg_zr});
+        detray::svgtools::write_svg(name + "mat_zr", {axes, mat_zr});
     }
 }

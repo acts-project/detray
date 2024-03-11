@@ -19,7 +19,7 @@ message( STATUS "Building actsvg as part of the Detray project" )
 # Declare where to get Actsvg from.
 set( DETRAY_ACTSVG_GIT_REPOSITORY "https://github.com/acts-project/actsvg.git"
    CACHE STRING "Git repository to take actsvg from" )
-set( DETRAY_ACTSVG_GIT_TAG "v0.4.40" CACHE STRING "Version of actsvg to build" )
+set( DETRAY_ACTSVG_GIT_TAG "v0.4.42" CACHE STRING "Version of actsvg to build" )
 mark_as_advanced( DETRAY_ACTSVG_GIT_REPOSITORY DETRAY_ACTSVG_GIT_TAG )
 FetchContent_Declare( actsvg
    GIT_REPOSITORY "${DETRAY_ACTSVG_GIT_REPOSITORY}"

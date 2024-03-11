@@ -19,6 +19,7 @@
 #include "actsvg/core/style.hpp"
 #include "actsvg/proto/detector.hpp"
 #include "actsvg/proto/grid.hpp"
+#include "actsvg/proto/material.hpp"
 #include "actsvg/proto/portal.hpp"
 #include "actsvg/proto/surface.hpp"
 #include "actsvg/proto/volume.hpp"
@@ -30,20 +31,45 @@
 
 namespace detray::svgtools::styling {
 
+/// Style applied to an actsvg proto grid
+struct grid_style {
+    actsvg::style::color _stroke_color;
+    actsvg::scalar _stroke_width;
+};
+
+/// Style applied to an actsvg proto surface_material
+struct surface_material_style {
+    actsvg::point2 _info_pos;
+    // unsigned int _info_font_size;
+
+    actsvg::point2 _gradient_pos;
+    std::array<actsvg::scalar, 2u> _gradient_box;
+    actsvg::style::color _gradient_stroke_color;
+    actsvg::scalar _gradient_stroke_width;
+    // unsigned int _gradient_font_size;
+    std::vector<actsvg::style::color> _gradient_color_scale;
+    unsigned int _gradient_n_stops;
+
+    grid_style _grid_style;
+};
+
 /// Style applied to an actsvg proto surface
 struct surface_style {
 
     surface_style(actsvg::style::color fill_color =
                       colors::tableau_colorblind10::red_tones(0.4f).front(),
-                  actsvg::scalar stroke_width = 0.4f)
-        : _fill_color{fill_color}, _stroke_width{stroke_width} {
+                  actsvg::scalar stroke_width = 0.4f,
+                  surface_material_style mat_style = {})
+        : _fill_color{fill_color},
+          _stroke_width{stroke_width},
+          _material_style{mat_style} {
 
         _stroke_color = fill_color;
         _highlight_rgb = colors::macaroni_and_cheese;
         _highlights = {};
         _highlight_stroke_rgb = _highlight_rgb;
         _highlight_stroke_width = stroke_width;
-        _font_size = 14u;
+        _font_size = 22u;
         _n_segments = 72u;
     }
     // Fill color
@@ -62,6 +88,8 @@ struct surface_style {
     unsigned int _font_size;
     // Granularity of vertex approximation of arcs
     unsigned int _n_segments;
+
+    surface_material_style _material_style;
 };
 
 /// Style applied to an actsvg proto portal link
@@ -75,15 +103,10 @@ struct portal_style {
     link_style _link_style;
 };
 
-/// Style applied to an actsvg proto grid
-struct grid_style {
-    actsvg::style::color _stroke_color;
-    actsvg::scalar _stroke_width;
-};
-
 /// Style applied to an actsvg proto volume
 struct volume_style {
-    surface_style _surface_style;
+    surface_style _sensitive_surface_style;
+    surface_style _passive_surface_style;
     portal_style _portal_style;
     grid_style _grid_style;
 };
@@ -100,6 +123,7 @@ struct eta_lines_style {
     actsvg::style::color _fill_color_half;
     actsvg::scalar _stroke_width_main;
     actsvg::scalar _stroke_width_half;
+    unsigned int _font_size;
 };
 
 /// Style applied to a proto landmark
@@ -129,11 +153,24 @@ struct style {
 /// The default styling
 namespace svg_default {
 
+// Material style
+const styling::surface_material_style material_style{
+    {-1000.f, 1000.f},
+    {1000.f, -200.f},
+    {20.f, 400.f},
+    {colors::black, 1.f},
+    1.f,
+    colors::gradient::rainbow_scale,
+    4u,
+    {{colors::black, 1.f}, 0.4f}};
+
 // Surface styles
-const styling::surface_style surface_style{colors::blue_theme(0.5f).front(),
-                                           3.f};
+const styling::surface_style surface_style_sensitive{
+    colors::blue_theme(0.5f).front(), 3.f, material_style};
+const styling::surface_style surface_style_passive{
+    {colors::dark_grey, 0.8f}, 3.f, material_style};
 const styling::surface_style surface_style_portal{
-    colors::red_theme(0.5f).front(), 3.f};
+    colors::red_theme(0.5f).front(), 3.f, material_style};
 
 // Portal style
 const styling::link_style link_style{1.2f};
@@ -141,15 +178,15 @@ const styling::portal_style portal_style{surface_style_portal, link_style};
 
 // Volume style
 const styling::grid_style grid_style{colors::red_theme(1.f).front(), 1.f};
-const styling::volume_style volume_style{surface_style, portal_style,
-                                         grid_style};
+const styling::volume_style volume_style{
+    surface_style_sensitive, surface_style_passive, portal_style, grid_style};
 
 // Detector style
 const styling::detector_style detector_style{volume_style, grid_style};
 
 // Eta lines style
 const styling::eta_lines_style eta_lines_style{
-    {colors::black, 1.f}, {colors::black, 1.f}, 1.f, 1.f};
+    {colors::black, 1.f}, {colors::black, 1.f}, 1.f, 1.f, 30u};
 
 // Intersection points and track state style
 const styling::landmark_style intersection_style{
@@ -169,13 +206,26 @@ const styling::style style{detector_style, eta_lines_style, trajectory_style,
 /// Styling that matches data plotting
 namespace tableau_colorblind {
 
+// Surface material style
+const styling::surface_material_style material_style{
+    {-1000.f, 1000.f},
+    {1000.f, -200.f},
+    {20.f, 400.f},
+    {colors::black, 1.f},
+    1.f,
+    colors::gradient::viridis_scale,
+    20u,
+    {{colors::black, 1.f}, 0.4f}};
+
 // Surface styles
 const styling::surface_style surface_style_passive{
-    colors::tableau_colorblind10::grey_tones(0.8f).front(), 1.f};
+    colors::tableau_colorblind10::grey_tones(0.8f).front(), 1.f,
+    material_style};
 const styling::surface_style surface_style_portal{
-    colors::tableau_colorblind10::blue_tones(0.2f).front(), 1.5f};
+    colors::tableau_colorblind10::blue_tones(0.2f).front(), 1.5f,
+    material_style};
 const styling::surface_style surface_style_sensitive{
-    colors::tableau_colorblind10::red_tones(0.3f).front(), 1.f};
+    colors::tableau_colorblind10::red_tones(0.3f).front(), 1.f, material_style};
 
 // Portal style
 const styling::portal_style portal_style{surface_style_portal,
@@ -183,8 +233,8 @@ const styling::portal_style portal_style{surface_style_portal,
 
 // Volume style
 const styling::grid_style grid_style{{colors::red, 1.f}, 0.6f};
-const styling::volume_style volume_style{surface_style_sensitive, portal_style,
-                                         grid_style};
+const styling::volume_style volume_style{
+    surface_style_sensitive, surface_style_passive, portal_style, grid_style};
 
 // Detector style
 const styling::detector_style detector_style{volume_style, grid_style};
@@ -240,12 +290,35 @@ inline void apply_style(actsvg::proto::grid& p_grid,
     // p_grid._stroke._dasharray = {4};
 }
 
+/// @brief Sets the style of the surface proto material.
+inline void apply_style(actsvg::proto::surface_material& p_material,
+                        const surface_material_style& styling) {
+
+    p_material._info_pos = styling._info_pos;
+
+    p_material._gradient_pos = styling._gradient_pos;
+    p_material._gradient_box = styling._gradient_box;
+    p_material._gradient_stroke._sc = styling._gradient_stroke_color;
+    p_material._gradient_stroke._width = styling._gradient_stroke_width;
+    p_material._gradient_font._size = 22u;
+    p_material._gradient._stops = colors::gradient::generate_stops(
+        styling._gradient_color_scale, styling._gradient_n_stops);
+
+    apply_style(p_material._grid, styling._grid_style);
+}
+
 /// @brief Sets the style of the proto volume.
 template <typename point3_container_t>
 inline void apply_style(actsvg::proto::volume<point3_container_t>& p_volume,
                         const volume_style& styling) {
+    using proto_sf_t = actsvg::proto::surface<point3_container_t>;
+
     for (auto& p_surface : p_volume._v_surfaces) {
-        apply_style(p_surface, styling._surface_style);
+        const auto& sf_style =
+            (p_surface._sf_type == proto_sf_t::sf_type::e_sensitive)
+                ? styling._sensitive_surface_style
+                : styling._passive_surface_style;
+        apply_style(p_surface, sf_style);
     }
     for (auto& p_portals : p_volume._portals) {
         apply_style(p_portals, styling._portal_style);
@@ -271,6 +344,7 @@ inline void apply_style(meta::proto::eta_lines& p_eta_lines,
     p_eta_lines._stroke_half = actsvg::style::stroke(
         styling._fill_color_half, styling._stroke_width_half);
     p_eta_lines._stroke_half._dasharray = {2, 2};
+    p_eta_lines._label_font._size = styling._font_size;
 }
 
 /// @brief Sets the style of the proto landmark.
