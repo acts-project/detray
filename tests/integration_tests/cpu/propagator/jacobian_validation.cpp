@@ -56,12 +56,12 @@ namespace {
 const vector3 B_z{0.f, 0.f, 1.996f * unit<scalar>::T};
 
 // Initial delta for numerical differentiaion
-const std::array<scalar, 5u> h_sizes_rect{2e0f, 2e0f, 1e-2f, 1e-3f, 1e-3f};
-const std::array<scalar, 5u> h_sizes_wire{2e0f, 2e0f, 1e-2f, 1e-3f, 1e-3f};
+const std::array<scalar, 5u> h_sizes_rect{2e0f, 2e0f, 2e-2f, 1e-3f, 1e-3f};
+const std::array<scalar, 5u> h_sizes_wire{2e0f, 2e0f, 2e-2f, 1e-3f, 1e-3f};
 
 // Ridders' algorithm setup
 constexpr const unsigned int Nt = 50u;
-const std::array<scalar, 5u> safe{3.0f, 3.0f, 2.0f, 2.0f, 2.0f};
+const std::array<scalar, 5u> safe{3.0f, 3.0f, 3.0f, 3.0f, 3.0f};
 const std::array<scalar, 5u> con{1.2f, 1.2f, 1.2f, 1.2f, 1.2f};
 constexpr const scalar threshold_factor = 10.f;
 constexpr const scalar big = std::numeric_limits<scalar>::max();
@@ -89,15 +89,15 @@ constexpr const scalar mask_scaler = 1.5f;
 // Euler angles for the surface rotation
 std::uniform_real_distribution<scalar> rand_alpha(0.f,
                                                   2.f * constant<scalar>::pi);
-std::uniform_real_distribution<scalar> rand_cosbeta(0.5, 1.f);
+std::uniform_real_distribution<scalar> rand_cosbeta(constant<scalar>::inv_sqrt2,
+                                                    1.f);
 std::uniform_int_distribution<int> rand_bool(0, 1);
 std::uniform_real_distribution<scalar> rand_gamma(0.f,
                                                   2.f * constant<scalar>::pi);
 
 // constexpr const scalar shift = 5.f * unit<scalar>::mm;
-//  Shift is disabled at the moment
+// @NOTE: Shift is disabled at the moment
 constexpr const scalar shift = 0.f * unit<scalar>::mm;
-std::uniform_real_distribution<scalar> rand_shift(-shift, shift);
 
 // surface types
 using rect_type = rectangle2D;
@@ -178,7 +178,7 @@ struct ridders_derivative {
                             Arr[j][q][p];
                         /*
                         // Please leave this for debug
-                        if (j == e_bound_phi && i == e_bound_loc1) {
+                        if (j == e_bound_theta && i == e_bound_phi) {
                             std::cout << getter::element(
                                              differentiated_jacobian, j, i)
                                       << "  " << math::abs(Arr[j][q][p]) << "  "
@@ -194,7 +194,7 @@ struct ridders_derivative {
         for (unsigned int j = 0; j < 5u; j++) {
             /*
             // Please leave this for debug
-            if (j == e_bound_phi && i == e_bound_loc1) {
+            if (j == e_bound_theta && i == e_bound_phi) {
                 std::cout << getter::element(differentiated_jacobian, j, i)
                           << "  " << Arr[j][p][p] << "  "
                           << Arr[j][p - 1][p - 1] << "  "
@@ -371,15 +371,11 @@ std::pair<euler_rotation<transform3_type>, std::array<scalar, 3u>> tilt_surface(
         local_z = vector::cross(local_z, local_x);
     }
 
+    // At the moment, we do not shift the surfaces
     scalar x_shift{0.f};
     scalar y_shift{0.f};
     scalar z_shift{0.f};
 
-    if (sf_id == 1u) {
-        x_shift = rand_shift(mt1);
-        y_shift = rand_shift(mt1);
-        z_shift = rand_shift(mt1);
-    }
     // Translation vector
     vector3 translation = trf.translation();
 

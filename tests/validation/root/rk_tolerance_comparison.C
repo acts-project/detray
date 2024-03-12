@@ -32,7 +32,7 @@ double step_title_x = 0.184;
 double step_title_y = 0.83;
 double step_ygap = -0.05;
 
-double rk_title_x = -15.55;
+double rk_title_x = -15.6;
 double rk_title_y = 12.8;
 double rk_ygap = -0.75;
 double rk_header_text_size = 0.05;
