@@ -28,13 +28,13 @@
 #include <vector>
 
 namespace {
-double step_title_x = 0.18;
+double step_title_x = 0.184;
 double step_title_y = 0.83;
 double step_ygap = -0.05;
 
-double rk_title_x = -15.7;
+double rk_title_x = -15.55;
 double rk_title_y = 12.8;
-double rk_ygap = -0.8;
+double rk_ygap = -0.75;
 double rk_header_text_size = 0.05;
 double rk_geom_text_size = 0.035;
 double step_header_text_size = 0.0595;
@@ -53,7 +53,7 @@ double pad_y0 = 0.f;
 double pad_y1 = 1.f;
 double ymin = -2;
 double ymax = 4.;
-std::array<double, 4u> ldim{0.183406, 0.505113, 0.919, 0.950661};
+std::array<double, 4u> ldim{0.183406, 0.507056, 0.919, 0.952621};
 }  // namespace
 
 std::vector<std::string> create_labels() {
