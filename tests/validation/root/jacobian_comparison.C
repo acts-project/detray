@@ -27,6 +27,7 @@
 
 namespace {
 double labelx_font_size = 0.06;
+double labelx_offset = 0.006;
 double labely_font_size = 0.06;
 double title_font_size = 0.06;
 double title_offset = 0.65;
@@ -172,6 +173,7 @@ TH1D* get_histogram(std::string name, const int n_labels,
     histo->GetYaxis()->SetTitleFont(title_font);
     histo->GetYaxis()->SetLabelSize(labely_font_size);
     histo->GetXaxis()->SetLabelSize(labelx_font_size);
+    histo->GetXaxis()->SetLabelOffset(labelx_offset);
     histo->GetXaxis()->SetLabelFont(label_font);
     histo->GetYaxis()->CenterTitle(true);
 
