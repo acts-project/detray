@@ -95,10 +95,6 @@ std::uniform_int_distribution<int> rand_bool(0, 1);
 std::uniform_real_distribution<scalar> rand_gamma(0.f,
                                                   2.f * constant<scalar>::pi);
 
-// constexpr const scalar shift = 5.f * unit<scalar>::mm;
-// @NOTE: Shift is disabled at the moment
-constexpr const scalar shift = 0.f * unit<scalar>::mm;
-
 // surface types
 using rect_type = rectangle2D;
 using wire_type = wire_cell;
