@@ -28,32 +28,35 @@
 #include <vector>
 
 namespace {
-double step_title_x = 0.184;
-double step_title_y = 0.83;
+double step_title_x_offset = 1.4;
+double step_title_x = 0.175;
+double step_title_y = 0.835;
 double step_ygap = -0.05;
-
-double rk_title_x = -15.6;
-double rk_title_y = 12.8;
-double rk_ygap = -0.75;
-double rk_header_text_size = 0.05;
+double x_label_offset = 0.015;
+double y_label_offset = 0.015;
+double rk_title_x_offset = 0.9;
+double rk_title_x = -15.57;
+double rk_title_y = 13.765;
+double rk_ygap = -0.8;
+double rk_header_text_size = 0.046;
 double rk_geom_text_size = 0.035;
-double step_header_text_size = 0.0595;
+double step_header_text_size = 0.055;
 double step_geom_text_size = 0.0416667;
 double label_font_size_step = 0.055;
 double title_font_size_step = 0.055;
-double label_font_size_rk_tol = 0.05;
-double title_font_size_rk_tol = 0.05;
+double label_font_size_rk_tol = 0.046;
+double title_font_size_rk_tol = 0.046;
 int title_font = 132;
-int label_font = 12;
+int label_font = 132;
 int legend_font = 132;
 double marker_size = 1.9;
-double pad_x0 = 0.f;
+double pad_x0 = 0.005f;
 double pad_x1 = 1.f;
-double pad_y0 = 0.f;
+double pad_y0 = 0.005f;
 double pad_y1 = 1.f;
 double ymin = -2;
 double ymax = 4.;
-std::array<double, 4u> ldim{0.183406, 0.507056, 0.919, 0.952621};
+std::array<double, 4u> ldim{0.189233, 0.509404, 0.917293, 0.954545};
 }  // namespace
 
 std::vector<std::string> create_labels() {
@@ -175,12 +178,12 @@ void draw_graphs(const std::string header_title, const std::string geom_title,
                  const std::vector<double> x_vec,
                  std::map<std::string, std::vector<double>> means) {
 
-    TPad* gr_pad = new TPad("gr_pad", "gr_pad", 0, 0, 1, 1);
+    TPad* gr_pad = new TPad("gr_pad", "gr_pad", 0, 0,1,1);
     gr_pad->Draw();
     gr_pad->cd();
     gr_pad->SetLeftMargin(122. / gr_pad->GetWw());
     gr_pad->SetTopMargin(50. / gr_pad->GetWh());
-    gr_pad->SetBottomMargin(110. / gr_pad->GetWh());
+    gr_pad->SetBottomMargin(120. / gr_pad->GetWh());
 
     TGraph* gr[25];
     TMultiGraph* mg = new TMultiGraph();
@@ -218,22 +221,30 @@ void draw_graphs(const std::string header_title, const std::string geom_title,
 
     mg->GetXaxis()->SetTitle("log_{10}(#font[12]{#tau} [mm])");
     mg->GetXaxis()->SetLabelOffset(-0.005);
-    mg->GetXaxis()->SetTitleOffset(0.81);
+    mg->GetXaxis()->SetTitleOffset(rk_title_x_offset);
     mg->GetXaxis()->SetTitleSize(title_font_size_rk_tol);
     mg->GetXaxis()->SetLabelSize(label_font_size_rk_tol);
     mg->GetXaxis()->CenterTitle(true);
     mg->GetYaxis()->CenterTitle(true);
+
+    double yaxis_min = -10;
+    double yaxis_max = 14;
+    double yaxis_margin = 1.;
 
     std::cout << "Vec size: " << x_vec.size() << std::endl;
     mg->GetYaxis()->SetTitle("log_{10}(Mean of #font[12]{#Omega_{R}})");
     mg->GetYaxis()->SetTitleOffset(1.48);
     mg->GetYaxis()->SetTitleSize(title_font_size_rk_tol);
     mg->GetYaxis()->SetLabelSize(label_font_size_rk_tol);
-    mg->GetYaxis()->SetRangeUser(-10, 14);
+    mg->GetYaxis()->SetRangeUser(yaxis_min - yaxis_margin,
+                                 yaxis_max + yaxis_margin);
     mg->GetYaxis()->SetNdivisions(406, kFALSE);
     mg->GetYaxis()->SetLabelOffset(0.01);
     mg->GetYaxis()->SetTitleFont(title_font);
     mg->GetXaxis()->SetTitleFont(title_font);
+
+    mg->GetYaxis()->SetLabelSize(0);
+    mg->GetYaxis()->SetTickLength(0);
 
     if (x_vec.size() > 10) {
         mg->GetXaxis()->SetLimits(x_vec.front() - 1, x_vec.back() + 1);
@@ -242,17 +253,23 @@ void draw_graphs(const std::string header_title, const std::string geom_title,
 
         mg->Draw("APL");
 
-        auto ga = new TGaxis(x_vec.front(), -10, x_vec.back(), -10,
+        auto ga = new TGaxis(x_vec.front(), yaxis_min - yaxis_margin,
+                             x_vec.back(), yaxis_min - yaxis_margin,
                              x_vec.front(), x_vec.back(), 405, "N");
-        ga->SetLabelFont(42);
+        ga->SetLabelFont(label_font);
         ga->SetLabelSize(label_font_size_rk_tol);
-        ga->SetLabelOffset(-0.0075);
+        ga->SetLabelOffset(-0.0065);
         ga->Draw();
-
     } else {
-
         mg->Draw("APL");
     }
+
+    auto ga_y = new TGaxis(x_vec.front() - 1, yaxis_min, x_vec.front() - 1,
+                           yaxis_max, yaxis_min, yaxis_max, 406, "N");
+    ga_y->SetLabelFont(label_font);
+    ga_y->SetLabelOffset(0.02);
+    ga_y->SetLabelSize(label_font_size_rk_tol);
+    ga_y->Draw();
 
     TLegendEntry* header =
         (TLegendEntry*)legend->GetListOfPrimitives()->First();
@@ -268,12 +285,13 @@ void draw_mean_step_size(const std::string header_title,
                          const std::string geom_title,
                          const std::vector<double>& x_vec,
                          const std::vector<double>& means) {
-    TPad* step_pad = new TPad("step_pad", "step_pad", 0, 0, 1, 1);
+    TPad* step_pad =
+        new TPad("step_pad", "step_pad", pad_x0, pad_y0, pad_x1, pad_y1);
     step_pad->Draw();
     step_pad->cd();
 
     step_pad->SetLeftMargin(93. / step_pad->GetWw());
-    step_pad->SetBottomMargin(84. / step_pad->GetWh());
+    step_pad->SetBottomMargin(90. / step_pad->GetWh());
     step_pad->SetTopMargin(50. / step_pad->GetWh());
 
     TGraph* gr = new TGraph(x_vec.size(), &x_vec[0], &means[0]);
@@ -289,13 +307,16 @@ void draw_mean_step_size(const std::string header_title,
     gr->GetYaxis()->SetLabelSize(label_font_size_step);
     gr->GetXaxis()->SetTitleSize(title_font_size_step);
     gr->GetYaxis()->SetTitleSize(title_font_size_step);
-    gr->GetXaxis()->SetTitleOffset(1.22);
+    gr->GetXaxis()->SetTitleOffset(step_title_x_offset);
     gr->GetYaxis()->SetTitleOffset(1.15);
-    gr->GetYaxis()->SetLabelOffset(0.01);
+    gr->GetYaxis()->SetLabelOffset(y_label_offset);
     gr->GetYaxis()->SetTitleFont(title_font);
     gr->GetXaxis()->SetTitleFont(title_font);
+    gr->GetXaxis()->SetLabelOffset(x_label_offset);
     gr->GetXaxis()->CenterTitle(true);
     gr->GetYaxis()->CenterTitle(true);
+    gr->GetXaxis()->SetLabelFont(label_font);
+    gr->GetYaxis()->SetLabelFont(label_font);
 
     if (x_vec.size() > 10) {
         gr->GetXaxis()->SetLimits(x_vec.front() - 1, x_vec.back() + 1);
@@ -306,8 +327,9 @@ void draw_mean_step_size(const std::string header_title,
 
         auto ga = new TGaxis(x_vec.front(), ymin, x_vec.back(), ymin,
                              x_vec.front(), x_vec.back(), 405, "N");
-        ga->SetLabelFont(42);
+        ga->SetLabelFont(label_font);
         ga->SetLabelSize(label_font_size_step);
+        ga->SetLabelOffset(x_label_offset);
         ga->Draw();
 
     } else {
