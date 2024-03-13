@@ -56,18 +56,18 @@ double pad_y0 = 0.005f;
 double pad_y1 = 1.f;
 double ymin = -2;
 double ymax = 4.;
-std::array<double, 4u> ldim{0.189233, 0.509404, 0.917293, 0.954545};
+std::array<double, 4u> ldim{0.189233, 0.509404, 0.907268, 0.954545};
 }  // namespace
 
 std::vector<std::string> create_labels() {
 
     std::vector<std::string> varI = {
-        "{#partiall_{0i}}", "{#partiall_{1i}}", "{#partial#phi_{i}}",
-        "{#partial#theta_{i}}", "{#partial#lambda_{i}}"};
+        "{#partiall_{0I}}", "{#partiall_{1I}}", "{#partial#phi_{I}}",
+        "{#partial#theta_{I}}", "{#partial#lambda_{I}}"};
 
     std::vector<std::string> varF = {
-        "{#partiall_{0f}}", "{#partiall_{1f}}", "{#partial#phi_{f}}",
-        "{#partial#theta_{f}}", "{#partial#lambda_{f}}"};
+        "{#partiall_{0F}}", "{#partiall_{1F}}", "{#partial#phi_{F}}",
+        "{#partial#theta_{F}}", "{#partial#lambda_{F}}"};
 
     std::vector<std::string> labels;
 
@@ -178,7 +178,7 @@ void draw_graphs(const std::string header_title, const std::string geom_title,
                  const std::vector<double> x_vec,
                  std::map<std::string, std::vector<double>> means) {
 
-    TPad* gr_pad = new TPad("gr_pad", "gr_pad", 0, 0,1,1);
+    TPad* gr_pad = new TPad("gr_pad", "gr_pad", 0, 0, 1, 1);
     gr_pad->Draw();
     gr_pad->cd();
     gr_pad->SetLeftMargin(122. / gr_pad->GetWw());

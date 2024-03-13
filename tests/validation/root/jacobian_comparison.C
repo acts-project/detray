@@ -44,22 +44,22 @@ double y_max = 10;
 double y_margin = 1;
 double header_size = 0.05;
 std::array<float, 4> ldim{0.508347, 0.607863, 0.942404, 0.885081};
-double pad_x0=0.00;
-double pad_x1=1;
-double pad_y0=0.00;
-double pad_y1=1;
+double pad_x0 = 0.00;
+double pad_x1 = 1;
+double pad_y0 = 0.00;
+double pad_y1 = 1;
 
 }  // namespace
 
 std::vector<std::string> create_labels() {
 
     std::vector<std::string> varI = {
-        "{#partiall_{0i}}", "{#partiall_{1i}}", "{#partial#phi_{i}}",
-        "{#partial#theta_{i}}", "{#partial#lambda_{i}}"};
+        "{#partiall_{0I}}", "{#partiall_{1I}}", "{#partial#phi_{I}}",
+        "{#partial#theta_{I}}", "{#partial#lambda_{I}}"};
 
     std::vector<std::string> varF = {
-        "{#partiall_{0f}}", "{#partiall_{1f}}", "{#partial#phi_{f}}",
-        "{#partial#theta_{f}}", "{#partial#lambda_{f}}"};
+        "{#partiall_{0F}}", "{#partiall_{1F}}", "{#partial#phi_{F}}",
+        "{#partial#theta_{F}}", "{#partial#lambda_{F}}"};
 
     std::vector<std::string> labels;
 
@@ -212,7 +212,8 @@ TH1D* get_histogram(std::string name, const int n_labels,
 }
 
 void draw_pad(const std::string& pad_name) {
-    TPad* apad = new TPad(pad_name.c_str(), pad_name.c_str(), pad_x0, pad_y0, pad_x1, pad_y1);
+    TPad* apad = new TPad(pad_name.c_str(), pad_name.c_str(), pad_x0, pad_y0,
+                          pad_x1, pad_y1);
     apad->Draw();
     apad->cd();
 
