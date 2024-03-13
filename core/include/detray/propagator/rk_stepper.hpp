@@ -91,7 +91,7 @@ class rk_stepper final
         const magnetic_field_t _magnetic_field;
 
         /// Material that track is passing through. Usually a volume material
-        detray::material<scalar_type> _mat = detray::vacuum<scalar_type>();
+        const detray::material<scalar_type>* _mat{nullptr};
 
         /// Update the track state by Runge-Kutta-Nystrom integration.
         DETRAY_HOST_DEVICE
@@ -117,7 +117,7 @@ class rk_stepper final
                                      const scalar_type qop);
 
         DETRAY_HOST_DEVICE
-        inline matrix_type<3, 3> evaluate_field_gradient(const vector3& pos);
+        inline matrix_type<3, 3> evaluate_field_gradient(const point3& pos);
 
         /// Evaluate dtds, where t is the unit tangential direction
         DETRAY_HOST_DEVICE

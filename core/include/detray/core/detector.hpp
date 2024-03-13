@@ -110,7 +110,8 @@ class detector {
 
     /// Volume type
     using geo_obj_ids = typename metadata::geo_objects;
-    using volume_type = volume_descriptor<geo_obj_ids, scalar_type, accel_link>;
+    using volume_type =
+        volume_descriptor<geo_obj_ids, scalar_type, accel_link, material_link>;
     using volume_container = vector_type<volume_type>;
 
     /// Volume finder definition: Make volume index available from track

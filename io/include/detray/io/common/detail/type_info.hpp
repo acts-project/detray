@@ -18,6 +18,7 @@
 #include "detray/materials/material_slab.hpp"
 #include "detray/utils/tuple_helpers.hpp"
 #include "detray/utils/type_registry.hpp"
+#include "detray/utils/type_traits.hpp"
 
 // System include(s)
 #include <type_traits>
@@ -46,18 +47,17 @@ constexpr io::shape_id get_id() {
 }
 
 /// Infer the IO material id from the material type - homogeneous material
-template <
-    typename material_t,
-    std::enable_if_t<
-        std::is_base_of_v<detray::detail::homogeneous_material_tag, material_t>,
-        bool> = true>
+template <typename material_t,
+          std::enable_if_t<detray::detail::is_hom_material_v<material_t>,
+                           bool> = true>
 constexpr io::material_id get_id() {
     using scalar_t = typename material_t::scalar_type;
 
     /// Register the material types to the @c material_id enum
     using mat_registry =
         type_registry<io::material_id, void, void, void, void, void, void,
-                      material_slab<scalar_t>, material_rod<scalar_t>>;
+                      material_slab<scalar_t>, material_rod<scalar_t>,
+                      material<scalar_t>>;
 
     // Find the correct material IO id;
     if constexpr (mat_registry::is_defined(material_t{})) {
@@ -69,10 +69,9 @@ constexpr io::material_id get_id() {
 
 /// Infer the IO material id from the material type - material maps
 template <typename material_t,
-          std::enable_if_t<
-              std::is_same_v<typename material_t::value_type,
-                             material_slab<typename material_t::scalar_type>>,
-              bool> = true>
+          std::enable_if_t<detray::detail::is_material_map_v<material_t> ||
+                               detray::detail::is_volume_material_v<material_t>,
+                           bool> = true>
 constexpr io::material_id get_id() {
 
     using map_frame_t = typename material_t::local_frame_type;
@@ -94,11 +93,9 @@ constexpr io::material_id get_id() {
 }
 
 /// Infer the grid id from its coordinate system
-template <typename grid_t,
-          std::enable_if_t<
-              !std::is_same_v<typename grid_t::value_type,
-                              material_slab<typename grid_t::scalar_type>>,
-              bool> = true>
+template <
+    typename grid_t,
+    std::enable_if_t<detray::detail::is_surface_grid_v<grid_t>, bool> = true>
 constexpr io::accel_id get_id() {
 
     using frame_t = typename grid_t::local_frame_type;

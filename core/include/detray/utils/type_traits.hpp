@@ -136,4 +136,28 @@ struct is_grid : public std::false_type {};
 template <typename T>
 inline constexpr bool is_grid_v = is_grid<T>::value;
 
+template <class accelerator_t, typename = void>
+struct is_surface_grid : public std::false_type {};
+
+template <typename T>
+inline constexpr bool is_surface_grid_v = is_surface_grid<T>::value;
+
+template <class material_t, typename = void>
+struct is_hom_material : public std::false_type {};
+
+template <typename T>
+inline constexpr bool is_hom_material_v = is_hom_material<T>::value;
+
+template <class material_t, typename = void>
+struct is_material_map : public std::false_type {};
+
+template <typename T>
+inline constexpr bool is_material_map_v = is_material_map<T>::value;
+
+template <class material_t, typename = void>
+struct is_volume_material : public std::false_type {};
+
+template <typename T>
+inline constexpr bool is_volume_material_v = is_volume_material<T>::value;
+
 }  // namespace detray::detail

@@ -13,19 +13,13 @@
 #include "detray/definitions/units.hpp"
 #include "detray/materials/detail/density_effect_data.hpp"
 #include "detray/utils/invalid_values.hpp"
+#include "detray/utils/type_traits.hpp"
 
 // System include(s)
 #include <ratio>
 #include <sstream>
 
 namespace detray {
-
-namespace detail {
-
-/// Tag a class as 'homogeneous material', i.e. a material slab or rod.
-struct homogeneous_material_tag {};
-
-}  // namespace detail
 
 /// Material State
 enum class material_state {
@@ -149,6 +143,10 @@ struct material {
     DETRAY_HOST
     std::string to_string() const {
         std::stringstream strm;
+        /*if (0.f < m_ar) {
+            strm << "vacuum";
+            return strm.str();
+        }*/
         strm << "material: ";
         strm << " X0: " << m_x0;
         strm << " | L0: " << m_l0;
@@ -211,6 +209,14 @@ struct material {
     detail::density_effect_data<scalar_type> m_density = {};
     bool m_has_density_effect_data = false;
 };
+
+namespace detail {
+
+// Pick the raw material type up for homogeneous volume material
+template <typename scalar_t>
+struct is_hom_material<material<scalar_t>, void> : public std::true_type {};
+
+}  // namespace detail
 
 // Macro for declaring the predefined materials (w/o Density effect data)
 #define DETRAY_DECLARE_MATERIAL(MATERIAL_NAME, X0, L0, Ar, Z, Rho, State)   \

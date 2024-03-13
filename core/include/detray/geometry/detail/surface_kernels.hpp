@@ -1,6 +1,6 @@
 /** Detray library, part of the ACTS project (R&D line)
  *
- * (c) 2023 CERN for the benefit of the ACTS project
+ * (c) 2023-2024 CERN for the benefit of the ACTS project
  *
  * Mozilla Public License Version 2.0
  */
@@ -10,6 +10,7 @@
 // Project include(s)
 #include "detray/definitions/detail/indexing.hpp"
 #include "detray/definitions/detail/qualifiers.hpp"
+#include "detray/materials/detail/material_accessor.hpp"
 #include "detray/tracks/tracks.hpp"
 
 // System include(s)
@@ -37,16 +38,6 @@ struct surface_kernels {
         typename matrix_operator::template matrix_type<ROWS, COLS>;
     using free_matrix = matrix_type<e_free_size, e_free_size>;
 
-    /// A functor to retrieve the masks volume link
-    struct get_volume_link {
-        template <typename mask_group_t, typename index_t>
-        DETRAY_HOST_DEVICE inline auto operator()(
-            const mask_group_t& mask_group, const index_t& index) const {
-
-            return mask_group[index].volume_link();
-        }
-    };
-
     /// A functor to retrieve the masks shape name
     struct get_shape_name {
         template <typename mask_group_t, typename index_t>
@@ -65,6 +56,28 @@ struct surface_kernels {
             std::ostream& os) const {
 
             return mask_group.at(index).self_check(os);
+        }
+    };
+
+    /// A functor to retrieve the masks volume link
+    struct get_volume_link {
+        template <typename mask_group_t, typename index_t>
+        DETRAY_HOST_DEVICE inline auto operator()(
+            const mask_group_t& mask_group, const index_t& index) const {
+
+            return mask_group[index].volume_link();
+        }
+    };
+
+    /// A functor to retrieve the material parameters
+    struct get_material_params {
+        template <typename mat_group_t, typename index_t>
+        DETRAY_HOST_DEVICE inline auto operator()(const mat_group_t& mat_group,
+                                                  const index_t& idx,
+                                                  const point2& loc_p) const {
+
+            return detail::material_accessor::get(mat_group, idx, loc_p)
+                .get_maerial();
         }
     };
 

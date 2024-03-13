@@ -21,7 +21,7 @@ namespace detray {
 
 // Rod structure to be mapped on the line mask
 template <typename scalar_t>
-struct material_rod : public detail::homogeneous_material_tag {
+struct material_rod {
     using scalar_type = scalar_t;
     using material_type = material<scalar_t>;
 
@@ -115,5 +115,13 @@ struct material_rod : public detail::homogeneous_material_tag {
     scalar_type m_radius_in_X0 = std::numeric_limits<scalar>::epsilon();
     scalar_type m_radius_in_L0 = std::numeric_limits<scalar>::epsilon();
 };
+
+namespace detail {
+
+// Used directly for homogeneous line-surface material
+template <typename scalar_t>
+struct is_hom_material<material_rod<scalar_t>, void> : public std::true_type {};
+
+}  // namespace detail
 
 }  // namespace detray

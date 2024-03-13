@@ -1,6 +1,6 @@
 /** Detray library, part of the ACTS project (R&D line)
  *
- * (c) 2022-2023 CERN for the benefit of the ACTS project
+ * (c) 2022-2024 CERN for the benefit of the ACTS project
  *
  * Mozilla Public License Version 2.0
  */
@@ -11,10 +11,12 @@
 #include "detray/definitions/detail/qualifiers.hpp"
 #include "detray/definitions/track_parametrization.hpp"
 #include "detray/geometry/surface.hpp"
+#include "detray/materials/detail/material_accessor.hpp"
 #include "detray/materials/interaction.hpp"
 #include "detray/propagator/base_actor.hpp"
 #include "detray/tracks/bound_track_parameters.hpp"
 #include "detray/utils/ranges.hpp"
+#include "detray/utils/type_traits.hpp"
 
 namespace detray {
 
@@ -65,79 +67,71 @@ struct pointwise_material_interactor : actor {
         using scalar_type = typename interaction_type::scalar_type;
         using state = typename pointwise_material_interactor::state;
 
-        template <typename material_group_t, typename index_t>
+        template <typename mat_group_t, typename index_t>
         DETRAY_HOST_DEVICE inline bool operator()(
-            const material_group_t &material_group, const index_t &mat_index,
-            state &s,
-            const bound_track_parameters<transform3_type> &bound_params,
-            const scalar_type cos_inc_angle, const scalar_type approach) const {
+            [[maybe_unused]] const mat_group_t &material_group,
+            [[maybe_unused]] const index_t &mat_index,
+            [[maybe_unused]] state &s,
+            [[maybe_unused]] const bound_track_parameters<transform3_type>
+                &bound_params,
+            [[maybe_unused]] const scalar_type cos_inc_angle,
+            [[maybe_unused]] const scalar_type approach) const {
 
-            const auto &mat = this->get_material(material_group, mat_index,
-                                                 bound_params.bound_local());
+            using material_t = typename mat_group_t::value_type;
+            using scalar_t = typename material_t::scalar_type;
 
-            // return early in case of vacuum or zero thickness
-            if (not mat) {
+            // Filter material types for which to do "pointwise" interactions
+            if constexpr ((detail::is_hom_material_v<material_t> &&
+                           !std::is_same_v<material_t, material<scalar_t>>) ||
+                          detail::is_material_map_v<material_t>) {
+
+                const auto mat = detail::material_accessor::get(
+                    material_group, mat_index, bound_params.bound_local());
+
+                // return early in case of zero thickness
+                if (mat.thickness() <=
+                    std::numeric_limits<scalar_t>::epsilon()) {
+                    return false;
+                }
+
+                const scalar qop = bound_params.qop();
+                const scalar charge = bound_params.charge();
+
+                const scalar_type path_segment{
+                    mat.path_segment(cos_inc_angle, approach)};
+
+                // Energy Loss
+                if (s.do_energy_loss) {
+                    s.e_loss =
+                        interaction_type().compute_energy_loss_bethe_bloch(
+                            path_segment, mat.get_material(), s.pdg, s.mass,
+                            qop, charge);
+                }
+
+                // @todo: include the radiative loss (Bremsstrahlung)
+                if (s.do_energy_loss && s.do_covariance_transport) {
+                    s.sigma_qop = interaction_type()
+                                      .compute_energy_loss_landau_sigma_QOverP(
+                                          path_segment, mat.get_material(),
+                                          s.pdg, s.mass, qop, charge);
+                }
+
+                // Covariance update
+                if (s.do_multiple_scattering) {
+                    // @todo: use momentum before or after energy loss in
+                    // backward mode?
+                    s.projected_scattering_angle =
+                        interaction_type().compute_multiple_scattering_theta0(
+                            mat.path_segment_in_X0(cos_inc_angle, approach),
+                            s.pdg, s.mass, qop, charge);
+                }
+
+                return true;
+
+            } else {
+                // For non-pointwise material interactions, do nothing
                 return false;
             }
-
-            const scalar qop = bound_params.qop();
-            const scalar charge = bound_params.charge();
-
-            const scalar_type path_segment{
-                mat.path_segment(cos_inc_angle, approach)};
-
-            // Energy Loss
-            if (s.do_energy_loss) {
-                s.e_loss = interaction_type().compute_energy_loss_bethe_bloch(
-                    path_segment, mat.get_material(), s.pdg, s.mass, qop,
-                    charge);
-            }
-
-            // @todo: include the radiative loss (Bremsstrahlung)
-            if (s.do_energy_loss && s.do_covariance_transport) {
-                s.sigma_qop =
-                    interaction_type().compute_energy_loss_landau_sigma_QOverP(
-                        path_segment, mat.get_material(), s.pdg, s.mass, qop,
-                        charge);
-            }
-
-            // Covariance update
-            if (s.do_multiple_scattering) {
-                // @todo: use momentum before or after energy loss in
-                // backward mode?
-                s.projected_scattering_angle =
-                    interaction_type().compute_multiple_scattering_theta0(
-                        mat.path_segment_in_X0(cos_inc_angle, approach), s.pdg,
-                        s.mass, qop, charge);
-            }
-
-            return true;
-        }
-
-        private:
-        /// Access to material slabs or rods in a homogeneous material
-        /// description
-        template <class material_coll_t, class point_t,
-                  std::enable_if_t<not detail::is_grid_v<
-                                       typename material_coll_t::value_type>,
-                                   bool> = true>
-        inline constexpr decltype(auto) get_material(
-            const material_coll_t &material_coll, const dindex idx,
-            const point_t &) const noexcept {
-            return material_coll[idx];
-        }
-
-        /// Access to material slabs in a material map
-        template <class material_coll_t, class point_t,
-                  std::enable_if_t<
-                      detail::is_grid_v<typename material_coll_t::value_type>,
-                      bool> = true>
-        inline constexpr decltype(auto) get_material(
-            const material_coll_t &material_coll, const dindex idx,
-            const point_t &loc_point) const noexcept {
-
-            // Find the material slab (only one entry per bin)
-            return *(material_coll[idx].search(loc_point));
         }
     };
 
@@ -150,7 +144,7 @@ struct pointwise_material_interactor : actor {
         const auto &navigation = prop_state._navigation;
 
         // Do material interaction when the track is on material surface
-        if (navigation.encountered_material()) {
+        if (navigation.encountered_sf_material()) {
 
             auto &stepping = prop_state._stepping;
 

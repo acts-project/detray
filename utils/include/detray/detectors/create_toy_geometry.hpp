@@ -612,6 +612,7 @@ inline void add_beampipe(
     typename detector_t::transform_container transforms(resource);
 
     auto &beampipe = det.new_volume(volume_id::e_cylinder);
+    beampipe.set_material(detector_t::volume_type::material_id::e_none, 0u);
     const auto beampipe_idx = beampipe.index();
     names[beampipe_idx + 1u] = "beampipe_" + std::to_string(beampipe_idx);
     beampipe.set_transform(det.transform_store().size());
@@ -752,6 +753,8 @@ inline void add_endcap_barrel_connection(
     auto &connector_gap = det.new_volume(
         volume_id::e_cylinder,
         {detector_t::accel::id::e_default, detail::invalid_value<dindex>()});
+    connector_gap.set_material(detector_t::volume_type::material_id::e_none,
+                               0u);
     dindex connector_gap_idx{det.volumes().back().index()};
     names[connector_gap_idx + 1u] =
         "connector_gap_" + std::to_string(connector_gap_idx);
