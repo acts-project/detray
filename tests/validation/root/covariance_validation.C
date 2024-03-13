@@ -30,11 +30,11 @@
 #include <vector>
 
 namespace {
-double x_pos = 0.215f;
+double x_pos = 0.205f;
 double title_x = x_pos;
-double title_y = 0.82f;
+double title_y = 0.8197f;
 double y_gap = -0.05;
-double header_text_size = 0.0595;
+double header_text_size = 0.055;
 double geom_text_size = 0.0416667;
 
 double pull_fit_title_x = x_pos;
@@ -49,19 +49,20 @@ double tolerance_x = 0.7f;
 double tolerance_y = 0.67f;
 double pull_text_size = 0.0416667;
 double pval_text_size = 0.0416667;
-double pad_x0 = 0.f;
+double pad_x0 = 0.00f;
 double pad_x1 = 1.f;
-double pad_y0 = 0.f;
+double pad_y0 = 0.00f;
 double pad_y1 = 1.f;
-double label_font_size = 0.06;
-double titleX_font_size = 0.06;
-double titleY_font_size = 0.06;
-double x_title_offset = 1.3;
-double y_title_offset = 1.4;
-double x_label_offset = 0.01;
-double y_label_offset = 0.01;
-double pull_min = -6.f;
-double pull_max = 6.f;
+int label_font = 132;
+double label_font_size = 0.055;
+double titleX_font_size = 0.055;
+double titleY_font_size = 0.055;
+double x_title_offset = 1.25;
+double y_title_offset = 1.34;
+double x_label_offset = 0.015;
+double y_label_offset = 0.015;
+double pull_min = -6.5f;
+double pull_max = 6.5f;
 
 }  // namespace
 
@@ -162,15 +163,15 @@ void set_xaxis_title(TH1D* h, const double text_size) {
     const TString h_name = h->GetName();
 
     if (h_name.Contains("l0")) {
-        x_axis_title = "#font[12]{PL}(l_{0f})";
+        x_axis_title = "#font[12]{PL}(l_{0F})";
     } else if (h_name.Contains("l1")) {
-        x_axis_title = "#font[12]{PL}(l_{1f})";
+        x_axis_title = "#font[12]{PL}(l_{1F})";
     } else if (h_name.Contains("phi")) {
-        x_axis_title = "#font[12]{PL}(#phi_{f})";
+        x_axis_title = "#font[12]{PL}(#phi_{F})";
     } else if (h_name.Contains("theta")) {
-        x_axis_title = "#font[12]{PL}(#theta_{f})";
+        x_axis_title = "#font[12]{PL}(#theta_{F})";
     } else if (h_name.Contains("qop")) {
-        x_axis_title = "#font[12]{PL}(#lambda_{f})";
+        x_axis_title = "#font[12]{PL}(#lambda_{F})";
     } else if (h_name.Contains("pval")) {
         x_axis_title = "p-value";
     }
@@ -257,7 +258,7 @@ void draw_pull(TH1D* h_pull, const std::string& header_text,
     pull_pad->Draw();
     pull_pad->cd();
 
-    pull_pad->SetLeftMargin(115. / pull_pad->GetWw());
+    pull_pad->SetLeftMargin(110. / pull_pad->GetWw());
     pull_pad->SetBottomMargin(95. / pull_pad->GetWh());
 
     auto fit_res = fit_pull(h_pull, arr_pull);
@@ -268,12 +269,14 @@ void draw_pull(TH1D* h_pull, const std::string& header_text,
     set_yaxis_title(h_pull, pull_text_size);
     const double y_axis_max = h_pull->GetEntries() * 50.;
     h_pull->GetYaxis()->SetRangeUser(0.5f, y_axis_max);
+    h_pull->GetXaxis()->SetLabelFont(label_font);
+    h_pull->GetYaxis()->SetLabelFont(label_font);
     h_pull->GetXaxis()->SetLabelSize(label_font_size);
     h_pull->GetYaxis()->SetLabelSize(label_font_size);
     h_pull->GetXaxis()->SetTitleSize(titleX_font_size);
     h_pull->GetYaxis()->SetTitleSize(titleY_font_size);
     h_pull->GetYaxis()->SetTitleOffset(y_title_offset);
-    h_pull->GetXaxis()->SetTitleOffset(x_title_offset);
+    h_pull->GetXaxis()->SetTitleOffset(x_title_offset + 0.1);
     h_pull->GetXaxis()->SetLabelOffset(x_label_offset);
     h_pull->GetYaxis()->SetLabelOffset(y_label_offset);
     h_pull->GetYaxis()->SetNdivisions(504);
@@ -310,7 +313,7 @@ void draw_pval(TH1D* h_pval, const std::string& header_text,
     pval_pad->Draw();
     pval_pad->cd();
 
-    pval_pad->SetLeftMargin(115. / pval_pad->GetWw());
+    pval_pad->SetLeftMargin(110. / pval_pad->GetWw());
     pval_pad->SetBottomMargin(95. / pval_pad->GetWh());
 
     auto fit_res = fit_pval(h_pval);
@@ -320,6 +323,8 @@ void draw_pval(TH1D* h_pval, const std::string& header_text,
     set_yaxis_title(h_pval, pval_text_size);
     const double y_axis_max = 2. * h_pval->GetEntries() / h_pval->GetNbinsX();
     h_pval->GetYaxis()->SetRangeUser(0.f, y_axis_max);
+    h_pval->GetXaxis()->SetLabelFont(label_font);
+    h_pval->GetYaxis()->SetLabelFont(label_font);
     h_pval->GetXaxis()->SetLabelSize(label_font_size);
     h_pval->GetYaxis()->SetLabelSize(label_font_size);
     h_pval->GetXaxis()->SetTitleSize(titleX_font_size);

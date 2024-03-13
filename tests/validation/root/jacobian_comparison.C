@@ -7,6 +7,7 @@
 
 // ROOT include(s).
 #include <TCanvas.h>
+#include <TGaxis.h>
 #include <TLatex.h>
 #include <TLegend.h>
 #include <TLegendEntry.h>
@@ -26,11 +27,12 @@
 #include <vector>
 
 namespace {
-double labelx_font_size = 0.06;
-double labelx_offset = 0.006;
-double labely_font_size = 0.06;
-double title_font_size = 0.06;
-double title_offset = 0.65;
+double labelx_font_size = 0.055;
+double labelx_offset = 0.0065;
+double labely_font_size = 0.055;
+double labely_offset = 0.01;
+double title_font_size = 0.055;
+double title_offset = 0.71;
 double marker_size = 1.3875;
 double legend_margin = 0.105;
 int title_font = 132;
@@ -39,20 +41,25 @@ int legend_font = 132;
 double legend_font_size = 0.050;
 double y_min = -14;
 double y_max = 10;
+double y_margin = 1;
 double header_size = 0.05;
-std::array<float, 4> ldim{0.508347, 0.605, 0.942404, 0.882353};
+std::array<float, 4> ldim{0.508347, 0.607863, 0.942404, 0.885081};
+double pad_x0 = 0.00;
+double pad_x1 = 1;
+double pad_y0 = 0.00;
+double pad_y1 = 1;
 
 }  // namespace
 
 std::vector<std::string> create_labels() {
 
     std::vector<std::string> varI = {
-        "{#partiall_{0i}}", "{#partiall_{1i}}", "{#partial#phi_{i}}",
-        "{#partial#theta_{i}}", "{#partial#lambda_{i}}"};
+        "{#partiall_{0I}}", "{#partiall_{1I}}", "{#partial#phi_{I}}",
+        "{#partial#theta_{I}}", "{#partial#lambda_{I}}"};
 
     std::vector<std::string> varF = {
-        "{#partiall_{0f}}", "{#partiall_{1f}}", "{#partial#phi_{f}}",
-        "{#partial#theta_{f}}", "{#partial#lambda_{f}}"};
+        "{#partiall_{0F}}", "{#partiall_{1F}}", "{#partial#phi_{F}}",
+        "{#partial#theta_{F}}", "{#partial#lambda_{F}}"};
 
     std::vector<std::string> labels;
 
@@ -137,12 +144,12 @@ void fill_histo(TH1D* hist, const std::array<double, 25u>& means,
 void draw_lines() {
     for (int i = 1; i < 25; i++) {
         if (i % 5 == 0) {
-            TLine* line = new TLine(i, y_min, i, y_max);
+            TLine* line = new TLine(i, y_min - y_margin, i, y_max + y_margin);
             line->SetLineColor(kBlack);
             line->SetLineWidth(1);
             line->Draw();
         } else {
-            TLine* line = new TLine(i, y_min, i, y_max);
+            TLine* line = new TLine(i, y_min - y_margin, i, y_max + y_margin);
             line->SetLineColor(kBlack);
             line->SetLineWidth(1);
             line->SetLineStyle(3);
@@ -165,17 +172,28 @@ TH1D* get_histogram(std::string name, const int n_labels,
     auto rdf = ROOT::RDF::FromCSV(csv_name);
     auto rdf_means = get_means(rdf);
     TH1D* histo = new TH1D(histo_name.c_str(), histo_name.c_str(), 3, 0, 3);
-    histo->GetYaxis()->SetRangeUser(y_min, y_max);
+    histo->GetYaxis()->SetRangeUser(y_min - y_margin, y_max + y_margin);
+    histo->GetYaxis()->SetLabelSize(0);
+    histo->GetYaxis()->SetTickLength(0);
+
     histo->GetYaxis()->SetTitle("log_{10}(Mean of #font[12]{#Omega_{R}})");
     histo->GetYaxis()->SetTitleOffset(0.68);
-    histo->GetYaxis()->SetNdivisions(406, kFALSE);
     histo->GetYaxis()->SetTitleSize(title_font_size);
     histo->GetYaxis()->SetTitleFont(title_font);
-    histo->GetYaxis()->SetLabelSize(labely_font_size);
+    histo->GetYaxis()->SetTitleOffset(title_offset);
     histo->GetXaxis()->SetLabelSize(labelx_font_size);
     histo->GetXaxis()->SetLabelOffset(labelx_offset);
     histo->GetXaxis()->SetLabelFont(label_font);
     histo->GetYaxis()->CenterTitle(true);
+
+    if (TString(name).Contains("helix")) {
+        auto ga_y = new TGaxis(0, y_min, 0, y_max, y_min, y_max, 406, "N");
+        ga_y->SetLabelFont(42);
+        ga_y->SetLabelOffset(labely_offset);
+        ga_y->SetLabelSize(labely_font_size);
+        ga_y->SetLabelFont(label_font);
+        ga_y->Draw();
+    }
 
     fill_histo(histo, rdf_means, labels, n_labels, marker_style);
 
@@ -194,11 +212,12 @@ TH1D* get_histogram(std::string name, const int n_labels,
 }
 
 void draw_pad(const std::string& pad_name) {
-    TPad* apad = new TPad(pad_name.c_str(), pad_name.c_str(), 0, 0, 1, 1);
+    TPad* apad = new TPad(pad_name.c_str(), pad_name.c_str(), pad_x0, pad_y0,
+                          pad_x1, pad_y1);
     apad->Draw();
     apad->cd();
 
-    apad->SetLeftMargin(100. / apad->GetWw());
+    apad->SetLeftMargin(105. / apad->GetWw());
     apad->SetRightMargin(60. / apad->GetWw());
     apad->SetBottomMargin(60. / apad->GetWh());
 }
@@ -206,11 +225,11 @@ void draw_pad(const std::string& pad_name) {
 void draw_text(const std::string& text) {
 
     const float x1 = 1.23;
-    const float y1 = 6.05;
+    const float y1 = 7.58642;
 
     TLatex* ttext = new TLatex(0.f, 0.f, text.c_str());
     ttext->SetTextFont(132);
-    ttext->SetTextSize(3.5);
+    ttext->SetTextSize(3.);
 
     UInt_t w;
     UInt_t h;
