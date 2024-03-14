@@ -34,16 +34,16 @@ double labely_offset = 0.01;
 double title_font_size = 0.055;
 double title_offset = 0.71;
 double marker_size = 1.3875;
-double legend_margin = 0.105;
+double legend_margin = 0.115;
 int title_font = 132;
 int label_font = 132;
 int legend_font = 132;
-double legend_font_size = 0.050;
-double y_min = -14;
+double legend_font_size = 0.045;
+double y_min = -15;
 double y_max = 10;
-double y_margin = 1;
+double y_margin = 0;
 double header_size = 0.05;
-std::array<float, 4> ldim{0.508347, 0.607863, 0.942404, 0.885081};
+std::array<float, 4> ldim{0.545075, 0.621849, 0.942404, 0.881048};
 double pad_x0 = 0.00;
 double pad_x1 = 1;
 double pad_y0 = 0.00;
@@ -187,7 +187,7 @@ TH1D* get_histogram(std::string name, const int n_labels,
     histo->GetYaxis()->CenterTitle(true);
 
     if (TString(name).Contains("helix")) {
-        auto ga_y = new TGaxis(0, y_min, 0, y_max, y_min, y_max, 406, "N");
+        auto ga_y = new TGaxis(0, y_min, 0, y_max, y_min, y_max, 505, "N");
         ga_y->SetLabelFont(42);
         ga_y->SetLabelOffset(labely_offset);
         ga_y->SetLabelSize(labely_font_size);
@@ -224,8 +224,8 @@ void draw_pad(const std::string& pad_name) {
 
 void draw_text(const std::string& text) {
 
-    const float x1 = 1.23;
-    const float y1 = 7.58642;
+    const float x1 = 1.23427;
+    const float y1 = 6.511;
 
     TLatex* ttext = new TLatex(0.f, 0.f, text.c_str());
     ttext->SetTextFont(132);

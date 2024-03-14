@@ -36,8 +36,8 @@ double x_label_offset = 0.015;
 double x_margin = 1;
 double y_label_offset = 0.015;
 double rk_title_x_offset = 0.9;
-double rk_title_offset_fraction = 0.0216;
-double rk_title_y = 13.765;
+double rk_title_offset_fraction = 0.0218;
+double rk_title_y = 14.69;
 double rk_ygap = -0.8;
 double rk_header_text_size = 0.046;
 double rk_geom_text_size = 0.035;
@@ -57,7 +57,7 @@ double pad_y0 = 0.005f;
 double pad_y1 = 1.f;
 double ymin = -2;
 double ymax = 4.;
-std::array<double, 4u> ldim{0.189233, 0.510081, 0.907268, 0.954545};
+std::array<double, 4u> ldim{0.20985, 0.533, 0.87997, 0.939};
 }  // namespace
 
 std::vector<std::string> create_labels() {
@@ -229,7 +229,7 @@ void draw_graphs(const std::string header_title, const std::string geom_title,
     mg->GetYaxis()->CenterTitle(true);
 
     double yaxis_min = -10;
-    double yaxis_max = 14;
+    double yaxis_max = 15;
     double yaxis_margin = 1.;
 
     std::cout << "Vec size: " << x_vec.size() << std::endl;
@@ -266,7 +266,7 @@ void draw_graphs(const std::string header_title, const std::string geom_title,
         mg->GetYaxis()->SetLabelSize(0);
         mg->GetYaxis()->SetTickLength(0);
         auto ga_y = new TGaxis(x_min, yaxis_min, x_min, yaxis_max, yaxis_min,
-                               yaxis_max, 406, "N");
+                               yaxis_max, 505, "N");
         ga_y->SetLabelFont(label_font);
         ga_y->SetLabelOffset(0.02);
         ga_y->SetLabelSize(label_font_size_rk_tol);
@@ -358,7 +358,7 @@ void draw_mean_step_size(const std::string header_title,
 void rk_tolerance_comparison(int min, int max) {
     gStyle->SetOptTitle(0);
     gStyle->SetLegendBorderSize(0);
-    gStyle->SetLegendTextSize(0.037);
+    gStyle->SetLegendTextSize(0.0333);
 
     const std::array<float, 2> cdim1{800, 1300};
     const std::array<float, 2> cdim2{700, 600};
