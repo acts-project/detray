@@ -59,6 +59,7 @@ double titleX_font_size = 0.055;
 double titleY_font_size = 0.055;
 double x_title_offset = 1.25;
 double y_title_offset = 1.34;
+double y_title_offset_pval = 0.9;
 double x_label_offset = 0.015;
 double y_label_offset = 0.015;
 double pull_min = -6.5f;
@@ -329,7 +330,7 @@ void draw_pval(TH1D* h_pval, const std::string& header_text,
     h_pval->GetYaxis()->SetLabelSize(label_font_size);
     h_pval->GetXaxis()->SetTitleSize(titleX_font_size);
     h_pval->GetYaxis()->SetTitleSize(titleY_font_size);
-    h_pval->GetYaxis()->SetTitleOffset(y_title_offset);
+    h_pval->GetYaxis()->SetTitleOffset(y_title_offset_pval);
     h_pval->GetXaxis()->SetTitleOffset(x_title_offset);
     h_pval->GetYaxis()->SetLabelOffset(y_label_offset);
     h_pval->GetXaxis()->SetLabelOffset(x_label_offset);
