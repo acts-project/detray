@@ -56,14 +56,13 @@ namespace {
 const vector3 B_z{0.f, 0.f, 1.996f * unit<scalar>::T};
 
 // Initial delta for numerical differentiaion
-const std::array<scalar, 5u> h_sizes_rect{2e0f, 2e0f, 2e-2f, 1e-3f, 1e-3f};
-const std::array<scalar, 5u> h_sizes_wire{2e0f, 2e0f, 2e-2f, 1e-3f, 1e-3f};
+const std::array<scalar, 5u> h_sizes_rect{3e0f, 3e0f, 2e-2f, 1e-3f, 1e-3f};
+const std::array<scalar, 5u> h_sizes_wire{3e0f, 3e0f, 2e-2f, 1e-3f, 1e-3f};
 
 // Ridders' algorithm setup
 constexpr const unsigned int Nt = 50u;
-const std::array<scalar, 5u> safe{3.0f, 3.0f, 3.0f, 3.0f, 3.0f};
+const std::array<scalar, 5u> safe{5.0f, 5.0f, 5.0f, 5.0f, 5.0f};
 const std::array<scalar, 5u> con{1.2f, 1.2f, 1.2f, 1.2f, 1.2f};
-constexpr const scalar threshold_factor = 10.f;
 constexpr const scalar big = std::numeric_limits<scalar>::max();
 
 std::random_device rd;
@@ -161,24 +160,18 @@ struct ridders_derivative {
                     math::max(math::abs(Arr[j][q][p] - Arr[j][q - 1][p]),
                               math::abs(Arr[j][q][p] - Arr[j][q - 1][p - 1]));
 
-                const scalar V = getter::element(differentiated_jacobian, j, i);
-
                 if (errt[j] <= err[j]) {
-                    if (complete[j] == false ||
-                        math::abs(Arr[j][q][p]) >
-                            threshold_factor * math::abs(V) ||
-                        V * Arr[j][q][p] < 0.f) {
 
+                    if (complete[j] == false) {
                         err[j] = errt[j];
                         getter::element(differentiated_jacobian, j, i) =
                             Arr[j][q][p];
                         /*
                         // Please leave this for debug
-                        if (j == e_bound_theta && i == e_bound_phi) {
+                        if (j == e_bound_theta && i == e_bound_loc1) {
                             std::cout << getter::element(
                                              differentiated_jacobian, j, i)
-                                      << "  " << math::abs(Arr[j][q][p]) << "  "
-                                      << threshold_factor * math::abs(V) << "  "
+                                      << "  " << math::abs(Arr[j][q][p])
                                       << std::endl;
                         }
                         */
@@ -190,7 +183,7 @@ struct ridders_derivative {
         for (unsigned int j = 0; j < 5u; j++) {
             /*
             // Please leave this for debug
-            if (j == e_bound_theta && i == e_bound_phi) {
+            if (j == e_bound_theta && i == e_bound_loc1) {
                 std::cout << getter::element(differentiated_jacobian, j, i)
                           << "  " << Arr[j][p][p] << "  "
                           << Arr[j][p - 1][p - 1] << "  "
