@@ -25,9 +25,9 @@ namespace detray {
 /// @brief Mask a region on a surface and link it to a volume.
 ///
 /// The class uses a lightweight 'shape' that defines the local geometry of a
-/// surface (local coordinates/axes, the intersection algorithm, as well as how
-/// to check boundaries on that surface). A simple example for such a surface
-/// shape implementation is @c rectangle2D .
+/// surface (local coordinates and how to check boundaries on local point that
+/// lies on the surface). A simple example is @c rectangle2D , can be used to
+/// mask a rectangle on an underlying plane.
 /// This class can then be instantiated as a concrete mask that holds the
 /// boundary values, as well as the link to a particular volume, which is
 /// needed during geometry navigation.
@@ -55,18 +55,21 @@ class mask {
     /// Default constructor
     constexpr mask() = default;
 
-    /// Constructor from single mask boundary values
+    /// Constructor from single mask boundary values @param args and
+    /// volume link @param link
     template <typename... Args>
     DETRAY_HOST_DEVICE explicit constexpr mask(const links_type& link,
                                                Args&&... args)
         : _values({{std::forward<Args>(args)...}}), _volume_link(link) {}
 
-    /// Constructor from mask boundary array
+    /// Constructor from mask boundary array @param values and
+    /// volume link @param link
     DETRAY_HOST_DEVICE
     constexpr mask(const mask_values& values, const links_type& link)
         : _values{values}, _volume_link{link} {}
 
-    /// Constructor from mask boundary vector
+    /// Constructor from mask boundary vector @param values and
+    /// volume link @param link
     DETRAY_HOST mask(const std::vector<scalar_type>& values,
                      const links_type& link)
         : _volume_link(link) {
@@ -89,15 +92,14 @@ class mask {
     ///
     /// @param rhs is the mask to be compared
     ///
-    /// checks identity within epsilon and @returns a boolean if the values and
-    /// links are equal.
+    /// @returns a boolean if the values and links are equal.
     DETRAY_HOST_DEVICE
     bool operator==(
         const mask<shape_t, links_t, algebra_t, array_t>& rhs) const {
         return (_values == rhs._values && _volume_link == rhs._volume_link);
     }
 
-    /// Access operator - non-const
+    /// Subscript operator - non-const
     ///
     /// @returns the reference to the member variable
     DETRAY_HOST_DEVICE
@@ -105,7 +107,7 @@ class mask {
         return _values[value_index];
     }
 
-    /// Access operator - const
+    /// Subscript operator - const
     ///
     /// @returns a copy of the member variable
     DETRAY_HOST_DEVICE
@@ -114,12 +116,11 @@ class mask {
         return _values[value_index];
     }
 
-    /// @returns the boundary values
+    /// @returns the mask shape
     DETRAY_HOST_DEVICE
     inline constexpr auto get_shape() const -> const shape& { return _shape; }
 
-    /// @returns the functor that projects a global cartesian point onto
-    /// the local geometric coordinate system.
+    /// @returns the global point projected onto the surface
     template <typename transform3_t>
     DETRAY_HOST_DEVICE inline auto to_local_frame(
         const transform3_t& trf, const point3_t& glob_p,
@@ -127,8 +128,7 @@ class mask {
         return local_frame_type{}.global_to_local(trf, glob_p, glob_dir);
     }
 
-    /// @returns the functor that projects a local point to the global
-    /// coordinate system
+    /// @returns the global point for a local position on the surface
     template <typename transform3_t>
     DETRAY_HOST_DEVICE inline auto to_global_frame(const transform3_t& trf,
                                                    const point3_t& loc) const
@@ -138,9 +138,12 @@ class mask {
 
     /// @brief Mask this shape onto a surface.
     ///
-    /// @note the point is expected to be given in global cartesian coordinates
-    /// by the caller. For the projection from global to local coordinates, the
-    /// shape type is used.
+    /// @note the point is expected to be given in local coordinates and to lie
+    /// on the underlying surface geometry.
+    /// For the projection from global to local coordinates, the method
+    /// @c to_local_frame() can be used.
+    /// To check that a point lies on the surface, use the corresponding
+    /// intersector.
     ///
     /// @param loc_p the point to be checked in the local polar focal system
     /// @param tol dynamic tolerance determined by caller
@@ -173,6 +176,24 @@ class mask {
     /// @returns the volume link - non-const access
     DETRAY_HOST_DEVICE
     auto volume_link() -> links_type& { return _volume_link; }
+
+    /// @returns the masks measure (area or volume covered by boundary check
+    /// on local positions)
+    DETRAY_HOST_DEVICE constexpr auto measure() const -> scalar_type {
+        return _shape.measure(_values);
+    }
+
+    /// @returns the area the mask defines on the local geometry (2D)
+    template <typename S = shape_t, std::enable_if_t<S::dim == 2, bool> = true>
+    DETRAY_HOST_DEVICE constexpr auto area() const -> scalar_type {
+        return _shape.area(_values);
+    }
+
+    /// @returns the area the mask defines on the local geometry (3D)
+    template <typename S = shape_t, std::enable_if_t<S::dim == 3, bool> = true>
+    DETRAY_HOST_DEVICE constexpr auto volume() const -> scalar_type {
+        return _shape.volume(_values);
+    }
 
     /// @returns the masks centroid in local cartesian coordinates
     DETRAY_HOST_DEVICE auto centroid() const {

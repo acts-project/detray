@@ -151,8 +151,8 @@ class telescope_generator final : public surface_factory_interface<detector_t> {
             // Local z axis is the global normal vector
             vector3_t m_local_z = algebra::vector::normalize(mod_placement.dir);
 
-            if constexpr (std::is_same_v<mask_shape_t, detray::wire_cell> ||
-                          std::is_same_v<mask_shape_t, detray::straw_tube>) {
+            if constexpr (std::is_same_v<mask_shape_t, detray::line_square> ||
+                          std::is_same_v<mask_shape_t, detray::line_circular>) {
 
                 // For a telescope with wires, rotate z axis 90
                 // degree around vector on x-y plane

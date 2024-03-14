@@ -92,8 +92,47 @@ class line {
         // of closest approach on the line from the line center is less than the
         // line half length
         else {
-            return (loc_p[0] <= bounds[e_cross_section] + tol &&
+            return (math::abs(loc_p[0]) <= bounds[e_cross_section] + tol &&
                     math::abs(loc_p[1]) <= bounds[e_half_z] + tol);
+        }
+    }
+
+    /// @brief Measure of the shape: Volume
+    ///
+    /// @param bounds the boundary values for this shape
+    ///
+    /// @returns the line volume.
+    template <template <typename, std::size_t> class bounds_t,
+              typename scalar_t, std::size_t kDIM,
+              typename std::enable_if_t<kDIM == e_size, bool> = true>
+    DETRAY_HOST_DEVICE constexpr scalar_t measure(
+        const bounds_t<scalar_t, kDIM> &bounds) const {
+
+        if constexpr (square_cross_sect) {
+            return 8.f * bounds[e_half_z] * bounds[e_cross_section] *
+                   bounds[e_cross_section];
+        } else {
+            return constant<scalar>::pi * 2.f * bounds[e_half_z] *
+                   bounds[e_cross_section] * bounds[e_cross_section];
+        }
+    }
+
+    /// @brief The area of a the shape
+    ///
+    /// @param bounds the boundary values for this shape
+    ///
+    /// @returns the stereo annulus area.
+    template <template <typename, std::size_t> class bounds_t,
+              typename scalar_t, std::size_t kDIM,
+              typename std::enable_if_t<kDIM == e_size, bool> = true>
+    DETRAY_HOST_DEVICE constexpr scalar_t area(
+        const bounds_t<scalar_t, kDIM> &bounds) const {
+
+        if constexpr (square_cross_sect) {
+            return 16.f * bounds[e_half_z] * bounds[e_cross_section];
+        } else {
+            return 4.f * constant<scalar_t>::pi * bounds[e_cross_section] *
+                   bounds[e_half_z];
         }
     }
 
@@ -179,8 +218,8 @@ class line {
 };
 
 // Radial crossection, boundary check in polar coordiantes
-using straw_tube = line<false>;
+using line_circular = line<false>;
 // Square crossection, boundary check in cartesian coordiantes
-using wire_cell = line<true>;
+using line_square = line<true>;
 
 }  // namespace detray

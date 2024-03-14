@@ -41,8 +41,8 @@ GTEST_TEST(detray_intersection, translated_plane_ray) {
     const detail::ray<transform3> r(pos, 0.f, mom, 0.f);
 
     // The same test but bound to local frame
-    ray_intersector<unmasked, transform3> pi;
-    mask<unmasked> unmasked_bound{};
+    ray_intersector<unmasked<2>, transform3> pi;
+    mask<unmasked<2>> unmasked_bound{};
     const auto hit_bound =
         pi(r, surface_descriptor<>{}, unmasked_bound, shifted);
 

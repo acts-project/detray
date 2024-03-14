@@ -64,6 +64,34 @@ class ring2D {
                 loc_p[0] <= bounds[e_outer_r] + tol);
     }
 
+    /// @brief Measure of the shape: Area
+    ///
+    /// @param bounds the boundary values for this shape
+    ///
+    /// @returns the ring area on the plane
+    template <template <typename, std::size_t> class bounds_t,
+              typename scalar_t, std::size_t kDIM,
+              typename std::enable_if_t<kDIM == e_size, bool> = true>
+    DETRAY_HOST_DEVICE constexpr scalar_t measure(
+        const bounds_t<scalar_t, kDIM> &bounds) const {
+        return area(bounds);
+    }
+
+    /// @brief The area of a the shape
+    ///
+    /// @param bounds the boundary values for this shape
+    ///
+    /// @returns the ring area.
+    template <template <typename, std::size_t> class bounds_t,
+              typename scalar_t, std::size_t kDIM,
+              typename std::enable_if_t<kDIM == e_size, bool> = true>
+    DETRAY_HOST_DEVICE constexpr scalar_t area(
+        const bounds_t<scalar_t, kDIM> &bounds) const {
+        return (bounds[e_outer_r] * bounds[e_outer_r] -
+                bounds[e_inner_r] * bounds[e_inner_r]) *
+               constant<scalar>::pi;
+    }
+
     /// @brief Lower and upper point for minimal axis aligned bounding box.
     ///
     /// Computes the min and max vertices in a local cartesian frame.

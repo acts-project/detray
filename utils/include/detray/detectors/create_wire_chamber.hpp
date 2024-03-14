@@ -116,7 +116,7 @@ inline auto create_wire_chamber(vecmem::memory_resource &resource,
     using material_id = typename detector_t::surface_type::material_id;
     using mask_link_type = typename detector_t::surface_type::mask_link;
     using material_link_type = typename detector_t::surface_type::material_link;
-    constexpr auto wire_id = mask_id::e_cell_wire;
+    constexpr auto wire_id = mask_id::e_drift_cell;
     constexpr auto rod_id = material_id::e_rod;
     constexpr auto leaving_world{detail::invalid_value<nav_link_t>()};
 

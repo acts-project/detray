@@ -33,7 +33,7 @@ constexpr detray::scalar tol{1e-7f};
 }  // anonymous namespace
 
 /// This tests the functionality of a surface factory
-GTEST_TEST(detray_tools, surface_factory) {
+GTEST_TEST(detray_builders, surface_factory) {
 
     using namespace detray;
 
@@ -199,7 +199,7 @@ GTEST_TEST(detray_tools, surface_factory) {
 }
 
 /// This tests the initialization of a detector volume using a volume builder
-GTEST_TEST(detray_tools, volume_builder) {
+GTEST_TEST(detray_builders, volume_builder) {
 
     using namespace detray;
 

@@ -172,8 +172,8 @@ GTEST_TEST(detray_tools, line2D_aabb) {
     constexpr scalar cell_size{1.f * unit<scalar>::mm};
     constexpr scalar hz{50.f * unit<scalar>::mm};
 
-    const mask<straw_tube> ln_r{0u, cell_size, hz};
-    const mask<wire_cell> ln_sq{0u, cell_size, hz};
+    const mask<line_circular> ln_r{0u, cell_size, hz};
+    const mask<line_square> ln_sq{0u, cell_size, hz};
 
     // Construct local aabb around mask
     axis_aligned_bounding_volume<cuboid3D> aabb_r{ln_r, 0u, envelope};

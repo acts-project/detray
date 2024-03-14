@@ -29,7 +29,7 @@ using point2 = detray::test::point2;
 }  // anonymous namespace
 
 /// Integration test to build a cylinder volume with contained surfaces
-GTEST_TEST(detray_tools, detector_builder) {
+GTEST_TEST(detray_builders, detector_builder) {
     using namespace detray;
 
     using detector_t = detector<>;

@@ -22,7 +22,7 @@ using namespace detray;
 
 // Test class for covariance transport
 template <typename T>
-class LandauSamplingValidation : public ::testing::Test {
+class detray_simulation_LandauSamplingValidation : public ::testing::Test {
     public:
     using scalar_type = T;
 
@@ -47,9 +47,9 @@ class LandauSamplingValidation : public ::testing::Test {
 
 // Test for float and double types
 using TestTypes = ::testing::Types<float, double>;
-TYPED_TEST_SUITE(LandauSamplingValidation, TestTypes, );
+TYPED_TEST_SUITE(detray_simulation_LandauSamplingValidation, TestTypes, );
 
-TYPED_TEST(LandauSamplingValidation, landau_sampling) {
+TYPED_TEST(detray_simulation_LandauSamplingValidation, landau_sampling) {
 
     // Random generator
     std::random_device rd{};

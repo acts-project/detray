@@ -507,9 +507,9 @@ BENCHMARK(BM_MASK_ANNULUS_2D)
     ->Unit(benchmark::kMillisecond);
 
 // This runs a benchmark on a straw tube mask
-void BM_MASK_STRAW_TUBE(benchmark::State &state) {
+void BM_MASK_LINE_CIRCULAR(benchmark::State &state) {
 
-    using mask_type = mask<straw_tube>;
+    using mask_type = mask<line_circular>;
     constexpr mask_type st{0u, 3.f, 5.f};
 
     constexpr scalar world{10.f};
@@ -553,17 +553,17 @@ void BM_MASK_STRAW_TUBE(benchmark::State &state) {
 #endif  // DETRAY_BENCHMARK_PRINTOUTS
 }
 
-BENCHMARK(BM_MASK_STRAW_TUBE)
+BENCHMARK(BM_MASK_LINE_CIRCULAR)
 #ifdef DETRAY_BENCHMARKS_MULTITHREAD
     ->ThreadRange(1, benchmark::CPUInfo::Get().num_cpus)
 #endif
     ->Unit(benchmark::kMillisecond);
 
 // This runs a benchmark on a wire cell mask
-void BM_MASK_WIRE_CELL(benchmark::State &state) {
+void BM_MASK_LINE_SQUARE(benchmark::State &state) {
 
-    using mask_type = mask<wire_cell>;
-    constexpr mask_type wcl{0u, 3.f, 5.f};
+    using mask_type = mask<line_square>;
+    constexpr mask_type dcl{0u, 3.f, 5.f};
 
     constexpr scalar world{10.f};
 
@@ -584,8 +584,8 @@ void BM_MASK_WIRE_CELL(benchmark::State &state) {
 
                     benchmark::DoNotOptimize(inside);
                     benchmark::DoNotOptimize(outside);
-                    const point3 loc_p{wcl.to_local_frame(trf, {x, y, z})};
-                    if (wcl.is_inside(loc_p, tol) ==
+                    const point3 loc_p{dcl.to_local_frame(trf, {x, y, z})};
+                    if (dcl.is_inside(loc_p, tol) ==
                         intersection::status::e_inside) {
                         ++inside;
                     } else {
@@ -597,16 +597,16 @@ void BM_MASK_WIRE_CELL(benchmark::State &state) {
     }
 
 #ifdef DETRAY_BENCHMARK_PRINTOUTS
-    constexpr scalar volume{8.f * wcl[1] * wcl[0] * wcl[0]};
+    constexpr scalar volume{8.f * dcl[1] * dcl[0] * dcl[0]};
     constexpr scalar rest{world * world * world - volume};
-    std::cout << "Wire Cell : Inside/outside ... " << inside << " / " << outside
-              << " = "
+    std::cout << "Drift Chamber Cell : Inside/outside ... " << inside << " / "
+              << outside << " = "
               << static_cast<scalar>(inside) / static_cast<scalar>(outside)
               << " (theoretical = " << volume / rest << ") " << std::endl;
 #endif  // DETRAY_BENCHMARK_PRINTOUTS
 }
 
-BENCHMARK(BM_MASK_WIRE_CELL)
+BENCHMARK(BM_MASK_LINE_SQUARE)
 #ifdef DETRAY_BENCHMARKS_MULTITHREAD
     ->ThreadRange(1, benchmark::CPUInfo::Get().num_cpus)
 #endif

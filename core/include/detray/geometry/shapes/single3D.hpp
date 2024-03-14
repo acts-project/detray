@@ -65,6 +65,32 @@ class single3D {
                 loc_p[kCheckIndex] <= bounds[e_upper] + tol);
     }
 
+    /// @brief Measure of the shape: Range
+    ///
+    /// @param bounds the boundary values for this shape
+    ///
+    /// @returns the range.
+    template <template <typename, std::size_t> class bounds_t,
+              typename scalar_t, std::size_t kDIM,
+              typename std::enable_if_t<kDIM == e_size, bool> = true>
+    DETRAY_HOST_DEVICE constexpr scalar_t measure(
+        const bounds_t<scalar_t, kDIM> &bounds) const {
+        return area(bounds);
+    }
+
+    /// @brief The area of a the shape
+    ///
+    /// @param bounds the boundary values for this shape
+    ///
+    /// @returns the range.
+    template <template <typename, std::size_t> class bounds_t,
+              typename scalar_t, std::size_t kDIM,
+              typename std::enable_if_t<kDIM == e_size, bool> = true>
+    DETRAY_HOST_DEVICE constexpr scalar_t area(
+        const bounds_t<scalar_t, kDIM> &bounds) const {
+        return math::abs(bounds[e_upper] - bounds[e_lower]);
+    }
+
     /// @brief Lower and upper point for minimal axis aligned bounding box.
     ///
     /// Computes the min and max vertices in a local cartesian frame.

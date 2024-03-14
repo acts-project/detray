@@ -96,7 +96,7 @@ std::uniform_real_distribution<scalar> rand_gamma(0.f,
 
 // surface types
 using rect_type = rectangle2D;
-using wire_type = wire_cell;
+using wire_type = line_square;
 
 }  // namespace
 
@@ -345,7 +345,7 @@ std::pair<euler_rotation<transform3_type>, std::array<scalar, 3u>> tilt_surface(
     if constexpr (mask_id == detector_t::masks::id::e_rectangle2) {
         // ubasis = trf.x() for bound frame
         euler.x = trf.x();
-    } else if (mask_id == detector_t::masks::id::e_cell_wire) {
+    } else if (mask_id == detector_t::masks::id::e_drift_cell) {
         // ubasis = vxt/|vxt| where v is trf.z() and t is helix_dir
         EXPECT_NEAR(vector::dot(trf.z(), helix_dir), 0.f, 1e-6f);
         euler.x = vector::normalize(vector::cross(trf.z(), helix_dir));
@@ -355,7 +355,7 @@ std::pair<euler_rotation<transform3_type>, std::array<scalar, 3u>> tilt_surface(
 
     auto [local_x, local_z] = euler();
 
-    if constexpr (mask_id == detector_t::masks::id::e_cell_wire) {
+    if constexpr (mask_id == detector_t::masks::id::e_drift_cell) {
         // local_z should be the line direction
         local_z = vector::cross(local_z, local_x);
     }
@@ -1661,11 +1661,11 @@ int main(int argc, char** argv) {
             create_telescope_detector(host_mr, wire_cfg);
         const auto [euler_wire_initial, shift_wire_initial] =
             tilt_surface<decltype(wire_det),
-                         decltype(wire_det)::masks::id::e_cell_wire>(
+                         decltype(wire_det)::masks::id::e_drift_cell>(
                 wire_det, 0u, helix_bz.dir(0.f), alphaI, 0.f, 0.f);
         const auto [euler_wire_final, shift_wire_final] =
             tilt_surface<decltype(wire_det),
-                         decltype(wire_det)::masks::id::e_cell_wire>(
+                         decltype(wire_det)::masks::id::e_drift_cell>(
                 wire_det, 1u, helix_bz.dir(detector_length), alphaF, betaF,
                 gammaF);
 
@@ -1675,11 +1675,11 @@ int main(int argc, char** argv) {
             create_telescope_detector(host_mr, wire_cfg);
         [[maybe_unused]] const auto [euler_wire_initial2, shift_wire_initial2] =
             tilt_surface<decltype(wire_det_w_mat),
-                         decltype(wire_det_w_mat)::masks::id::e_cell_wire>(
+                         decltype(wire_det_w_mat)::masks::id::e_drift_cell>(
                 wire_det_w_mat, 0u, helix_bz.dir(0.f), alphaI, 0.f, 0.f);
         [[maybe_unused]] const auto [euler_wire_final2, shift_wire_final2] =
             tilt_surface<decltype(wire_det_w_mat),
-                         decltype(wire_det_w_mat)::masks::id::e_cell_wire>(
+                         decltype(wire_det_w_mat)::masks::id::e_drift_cell>(
                 wire_det_w_mat, 1u, helix_bz.dir(detector_length), alphaF,
                 betaF, gammaF);
 
@@ -1828,7 +1828,7 @@ int main(int argc, char** argv) {
         // Get initial parameter
         const auto wire_bparam =
             get_initial_parameter<decltype(wire_det),
-                                  decltype(wire_det)::masks::id::e_cell_wire>(
+                                  decltype(wire_det)::masks::id::e_drift_cell>(
                 wire_det, track, B_z, helix_tol);
 
         if (!skip_wire) {
@@ -1862,7 +1862,7 @@ int main(int argc, char** argv) {
                 // For helix
                 evaluate_jacobian_difference_helix<
                     decltype(wire_det),
-                    decltype(wire_det)::masks::id::e_cell_wire>(
+                    decltype(wire_det)::masks::id::e_drift_cell>(
                     track_count, wire_det, detector_length, wire_bparam, B_z,
                     h_sizes_wire, helix_wire_file, helix_tol);
 

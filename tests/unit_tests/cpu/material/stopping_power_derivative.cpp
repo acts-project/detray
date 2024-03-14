@@ -16,7 +16,7 @@
 
 using namespace detray;
 
-GTEST_TEST(derivative_test, beta2) {
+GTEST_TEST(detray_material, derivative_test_beta2) {
 
     // mass
     constexpr scalar m{105.7f * unit<scalar>::MeV};
@@ -111,7 +111,8 @@ TEST_P(DerivativeOfBetheEquationValidation, derivative_of_stopping_power) {
 }
 
 INSTANTIATE_TEST_SUITE_P(
-    BetheEquationDerivative, DerivativeOfBetheEquationValidation,
+    detray_material_BetheEquationDerivative,
+    DerivativeOfBetheEquationValidation,
     ::testing::Values(hydrogen_gas<scalar>(), helium_gas<scalar>(),
                       isobutane<scalar>(), aluminium<scalar>(),
                       silicon<scalar>(), tungsten<scalar>(), gold<scalar>(),

@@ -39,8 +39,8 @@ struct default_metadata {
     using cylinder = mask<cylinder2D, nav_link>;
     using cylinder_portal = mask<concentric_cylinder2D, nav_link>;
     using disc = mask<ring2D, nav_link>;
-    using straw_wire = mask<straw_tube, nav_link>;
-    using cell_wire = mask<wire_cell, nav_link>;
+    using straw_tube = mask<line_circular, nav_link>;
+    using drift_cell = mask<line_square, nav_link>;
     using single_1 = mask<single3D<1>, nav_link>;
     using single_2 = mask<single3D<2>, nav_link>;
     // TODO: Can single3 be used instead of cylinder portal type or remove it?
@@ -51,9 +51,9 @@ struct default_metadata {
     using unbounded_annulus = mask<unbounded<annulus2D>, nav_link>;
     using unbounded_cylinder = mask<unbounded<cylinder2D>, nav_link>;
     using unbounded_disc = mask<unbounded<ring2D>, nav_link>;
-    using unbounded_straw = mask<unbounded<straw_tube>, nav_link>;
-    using unbounded_cell = mask<unbounded<wire_cell>, nav_link>;
-    using unmasked_plane = mask<unmasked, nav_link>;
+    using unbounded_straw_tube = mask<unbounded<line_circular>, nav_link>;
+    using unbounded_drift_cell = mask<unbounded<line_square>, nav_link>;
+    using unmasked_plane = mask<unmasked<>, nav_link>;
 
     /// Material types
     using slab = material_slab<detray::scalar>;
@@ -156,8 +156,8 @@ struct default_metadata {
         e_portal_cylinder2 = 4,
         e_ring2 = 5,
         e_portal_ring2 = 5,
-        e_straw_wire = 6,
-        e_cell_wire = 7,
+        e_straw_tube = 6,
+        e_drift_cell = 7,
         /*e_single1 = 8,
         e_single2 = 9,
         e_single3 = 10,
@@ -166,7 +166,7 @@ struct default_metadata {
         e_unbounded_annulus2 = 13,
         e_unbounded_cylinder2 = 14,
         e_unbounded_disc2 = 15,
-        e_unbounded_straw2 = 16,
+        e_unbounded_line_circular2 = 16,
         e_unbounded_cell2 = 17,
         e_unmasked2 = 18,*/
     };
@@ -177,10 +177,9 @@ struct default_metadata {
     using mask_store = regular_multi_store<mask_ids, empty_context, tuple_t,
                                            vector_t, rectangle, trapezoid,
                                            annulus, cylinder, cylinder_portal,
-                                           disc, straw_wire,
-                                           cell_wire /*,
+                                           disc, straw_tube, drift_cell /*,
 single_1, single_2, single_3, unbounded_rectangle, unbounded_trapezoid,
-unbounded_annulus, unbounded_cylinder, unbounded_disc, unbounded_straw,
+unbounded_annulus, unbounded_cylinder, unbounded_disc, unbounded_straw_tube,
 unbounded_cell, unmasked_plane*/>;
 
     /// Give your material types a name (needs to be consecutive and has to
@@ -193,8 +192,8 @@ unbounded_cell, unmasked_plane*/>;
         e_rectangle2_map = 3u,
         e_trapezoid2_map = 3u,
         e_annulus2_map = 0u,
-        e_cell_wire_map = 5u,
-        e_straw_wire_map = 5u,
+        e_drift_cell_map = 5u,
+        e_straw_tube_map = 5u,
         // Volume material
         e_cuboid3_map = 7,
         e_cylinder3_map = 8u,

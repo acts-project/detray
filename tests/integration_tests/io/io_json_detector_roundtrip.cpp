@@ -216,8 +216,8 @@ GTEST_TEST(io, json_toy_geometry) {
     EXPECT_EQ(masks.template size<mask_id::e_portal_cylinder2>(), 52u);
     EXPECT_EQ(masks.template size<mask_id::e_ring2>(), 52u);
     EXPECT_EQ(masks.template size<mask_id::e_portal_ring2>(), 52u);
-    EXPECT_EQ(masks.template size<mask_id::e_straw_wire>(), 0u);
-    EXPECT_EQ(masks.template size<mask_id::e_cell_wire>(), 0u);
+    EXPECT_EQ(masks.template size<mask_id::e_straw_tube>(), 0u);
+    EXPECT_EQ(masks.template size<mask_id::e_drift_cell>(), 0u);
 
     detail::check_consistency(comp_det);
 }

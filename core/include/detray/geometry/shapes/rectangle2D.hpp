@@ -61,6 +61,32 @@ class rectangle2D {
                 math::abs(loc_p[1]) <= bounds[e_half_y] + tol);
     }
 
+    /// @brief Measure of the shape: Area
+    ///
+    /// @param bounds the boundary values for this shape
+    ///
+    /// @returns the rectangle area on the plane
+    template <template <typename, std::size_t> class bounds_t,
+              typename scalar_t, std::size_t kDIM,
+              typename std::enable_if_t<kDIM == e_size, bool> = true>
+    DETRAY_HOST_DEVICE constexpr scalar_t measure(
+        const bounds_t<scalar_t, kDIM> &bounds) const {
+        return area(bounds);
+    }
+
+    /// @brief The area of a the shape
+    ///
+    /// @param bounds the boundary values for this shape
+    ///
+    /// @returns the rectangle area.
+    template <template <typename, std::size_t> class bounds_t,
+              typename scalar_t, std::size_t kDIM,
+              typename std::enable_if_t<kDIM == e_size, bool> = true>
+    DETRAY_HOST_DEVICE constexpr scalar_t area(
+        const bounds_t<scalar_t, kDIM> &bounds) const {
+        return 4.f * bounds[e_half_x] * bounds[e_half_y];
+    }
+
     /// @brief Lower and upper point for minimal axis aligned bounding box.
     ///
     /// Computes the min and max vertices in a local cartesian frame.

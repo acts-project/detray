@@ -22,7 +22,7 @@
 #include <map>
 
 // This tests the linking of a geometry by loading it into a graph structure
-GTEST_TEST(detray_geometry, volume_graph) {
+GTEST_TEST(detray_navigation, volume_graph) {
     using namespace detray;
 
     vecmem::host_memory_resource host_mr;

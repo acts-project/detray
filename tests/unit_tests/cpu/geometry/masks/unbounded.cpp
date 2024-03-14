@@ -1,6 +1,6 @@
 /** Detray library, part of the ACTS project (R&D line)
  *
- * (c) 2023 CERN for the benefit of the ACTS project
+ * (c) 2023-2024 CERN for the benefit of the ACTS project
  *
  * Mozilla Public License Version 2.0
  */
@@ -62,6 +62,11 @@ GTEST_TEST(detray_masks, unbounded) {
     ASSERT_NEAR(loc_bounds[cuboid3D::e_max_x], (h + envelope), tol);
     ASSERT_NEAR(loc_bounds[cuboid3D::e_max_y], (h + envelope), tol);
     ASSERT_NEAR(loc_bounds[cuboid3D::e_max_z], envelope, tol);
+
+    // Check area
+    const scalar a{u.area()};
+    EXPECT_NEAR(a, std::numeric_limits<scalar>::max(), tol);
+    ASSERT_EQ(a, u.measure());
 
     const auto centroid = u.centroid();
     ASSERT_NEAR(centroid[0], 0.f, tol);

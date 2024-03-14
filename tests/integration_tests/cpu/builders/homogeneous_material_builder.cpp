@@ -40,7 +40,7 @@ constexpr scalar tol{std::numeric_limits<scalar>::epsilon()};
 }  // anonymous namespace
 
 /// Integration test: material builder as volume builder decorator
-GTEST_TEST(detray_tools, decorator_homogeneous_material_builder) {
+GTEST_TEST(detray_builders, decorator_homogeneous_material_builder) {
 
     using transform3 = typename detector_t::transform3;
     using mask_id = typename detector_t::masks::id;
@@ -171,7 +171,7 @@ GTEST_TEST(detray_tools, decorator_homogeneous_material_builder) {
 }
 
 /// Integration test to build an empty cuboid volume with material
-GTEST_TEST(detray_tools, detector_builder_with_material) {
+GTEST_TEST(detray_builders, detector_builder_with_material) {
     using namespace detray;
 
     using transform3 = typename detector_t::transform3;

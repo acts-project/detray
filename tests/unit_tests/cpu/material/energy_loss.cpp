@@ -69,178 +69,178 @@ TEST_P(EnergyLossBetheValidation, bethe_energy_loss) {
 }
 
 INSTANTIATE_TEST_SUITE_P(
-    Bethe_0p1GeV_H2Liquid, EnergyLossBetheValidation,
+    detray_material_Bethe_0p1GeV_H2Liquid, EnergyLossBetheValidation,
     ::testing::Values(std::make_tuple(hydrogen_liquid<scalar>(),
                                       0.1003f * unit<scalar>::GeV, 6.539f)));
 
 INSTANTIATE_TEST_SUITE_P(
-    Bethe_1GeV_H2Liquid, EnergyLossBetheValidation,
+    detray_material_Bethe_1GeV_H2Liquid, EnergyLossBetheValidation,
     ::testing::Values(std::make_tuple(hydrogen_liquid<scalar>(),
                                       1.101f * unit<scalar>::GeV, 4.182f)));
 
 INSTANTIATE_TEST_SUITE_P(
-    Bethe_10GeV_H2Liquid, EnergyLossBetheValidation,
+    detray_material_Bethe_10GeV_H2Liquid, EnergyLossBetheValidation,
     ::testing::Values(std::make_tuple(hydrogen_liquid<scalar>(),
                                       10.11f * unit<scalar>::GeV, 4.777f)));
 
 INSTANTIATE_TEST_SUITE_P(
-    Bethe_100GeV_H2Liquid, EnergyLossBetheValidation,
+    detray_material_Bethe_100GeV_H2Liquid, EnergyLossBetheValidation,
     ::testing::Values(std::make_tuple(hydrogen_liquid<scalar>(),
                                       100.1f * unit<scalar>::GeV, 5.305f)));
 
 INSTANTIATE_TEST_SUITE_P(
-    Bethe_0p1GeV_HeGas, EnergyLossBetheValidation,
+    detray_material_Bethe_0p1GeV_HeGas, EnergyLossBetheValidation,
     ::testing::Values(std::make_tuple(helium_gas<scalar>(),
                                       0.1003f * unit<scalar>::GeV, 3.082f)));
 
 /*
 //@ NOTE: Test fails with He Gas and 10 GeV muons (18 % difference)
 INSTANTIATE_TEST_SUITE_P(
-    Bethe_1GeV_HeGas, EnergyLossBetheValidation,
+    detray_material_Bethe_1GeV_HeGas, EnergyLossBetheValidation,
     ::testing::Values(std::make_tuple(helium_gas<scalar>(),
                                       1.101f * unit<scalar>::GeV, 2.133f)));
 */
 
 INSTANTIATE_TEST_SUITE_P(
-    Bethe_10GeV_HeGas, EnergyLossBetheValidation,
+    detray_material_Bethe_10GeV_HeGas, EnergyLossBetheValidation,
     ::testing::Values(std::make_tuple(helium_gas<scalar>(),
                                       10.11f * unit<scalar>::GeV, 2.768f)));
 
 INSTANTIATE_TEST_SUITE_P(
-    Bethe_100GeV_HeGas, EnergyLossBetheValidation,
+    detray_material_Bethe_100GeV_HeGas, EnergyLossBetheValidation,
     ::testing::Values(std::make_tuple(helium_gas<scalar>(),
                                       100.1f * unit<scalar>::GeV, 3.188f)));
 
 INSTANTIATE_TEST_SUITE_P(
-    Bethe_0p1GeV_Al, EnergyLossBetheValidation,
+    detray_material_Bethe_0p1GeV_Al, EnergyLossBetheValidation,
     ::testing::Values(std::make_tuple(aluminium<scalar>(),
                                       0.1003f * unit<scalar>::GeV, 2.533f)));
 
 INSTANTIATE_TEST_SUITE_P(
-    Bethe_1GeV_Al, EnergyLossBetheValidation,
+    detray_material_Bethe_1GeV_Al, EnergyLossBetheValidation,
     ::testing::Values(std::make_tuple(aluminium<scalar>(),
                                       1.101f * unit<scalar>::GeV, 1.744f)));
 
 INSTANTIATE_TEST_SUITE_P(
-    Bethe_10GeV_Al, EnergyLossBetheValidation,
+    detray_material_Bethe_10GeV_Al, EnergyLossBetheValidation,
     ::testing::Values(std::make_tuple(aluminium<scalar>(),
                                       10.11f * unit<scalar>::GeV, 2.097f)));
 
 INSTANTIATE_TEST_SUITE_P(
-    Bethe_100GeV_Al, EnergyLossBetheValidation,
+    detray_material_Bethe_100GeV_Al, EnergyLossBetheValidation,
     ::testing::Values(std::make_tuple(aluminium<scalar>(),
                                       100.1f * unit<scalar>::GeV, 2.360f)));
 
 INSTANTIATE_TEST_SUITE_P(
-    Bethe_0p1GeV_Si, EnergyLossBetheValidation,
+    detray_material_Bethe_0p1GeV_Si, EnergyLossBetheValidation,
     ::testing::Values(std::make_tuple(silicon<scalar>(),
                                       0.1003f * unit<scalar>::GeV, 2.608f)));
 
 INSTANTIATE_TEST_SUITE_P(
-    Bethe_1GeV_Si, EnergyLossBetheValidation,
+    detray_material_Bethe_1GeV_Si, EnergyLossBetheValidation,
     ::testing::Values(std::make_tuple(silicon<scalar>(),
                                       1.101f * unit<scalar>::GeV, 1.803f)));
 
 INSTANTIATE_TEST_SUITE_P(
-    Bethe_10GeV_Si, EnergyLossBetheValidation,
+    detray_material_Bethe_10GeV_Si, EnergyLossBetheValidation,
     ::testing::Values(std::make_tuple(silicon<scalar>(),
                                       10.11f * unit<scalar>::GeV, 2.177f)));
 
 INSTANTIATE_TEST_SUITE_P(
-    Bethe_100GeV_Si, EnergyLossBetheValidation,
+    detray_material_Bethe_100GeV_Si, EnergyLossBetheValidation,
     ::testing::Values(std::make_tuple(silicon<scalar>(),
                                       100.1f * unit<scalar>::GeV, 2.451f)));
 
 INSTANTIATE_TEST_SUITE_P(
-    Bethe_0p1GeV_Si_with_DED, EnergyLossBetheValidation,
+    detray_material_Bethe_0p1GeV_Si_with_DED, EnergyLossBetheValidation,
     ::testing::Values(std::make_tuple(silicon_with_ded<scalar>(),
                                       0.1003f * unit<scalar>::GeV, 2.608f)));
 
 INSTANTIATE_TEST_SUITE_P(
-    Bethe_1GeV_Si_with_DED, EnergyLossBetheValidation,
+    detray_material_Bethe_1GeV_Si_with_DED, EnergyLossBetheValidation,
     ::testing::Values(std::make_tuple(silicon_with_ded<scalar>(),
                                       1.101f * unit<scalar>::GeV, 1.803f)));
 
 INSTANTIATE_TEST_SUITE_P(
-    Bethe_10GeV_Si_with_DED, EnergyLossBetheValidation,
+    detray_material_Bethe_10GeV_Si_with_DED, EnergyLossBetheValidation,
     ::testing::Values(std::make_tuple(silicon_with_ded<scalar>(),
                                       10.11f * unit<scalar>::GeV, 2.177f)));
 
 INSTANTIATE_TEST_SUITE_P(
-    Bethe_100GeV_Si_with_DED, EnergyLossBetheValidation,
+    detray_material_Bethe_100GeV_Si_with_DED, EnergyLossBetheValidation,
     ::testing::Values(std::make_tuple(silicon_with_ded<scalar>(),
                                       100.1f * unit<scalar>::GeV, 2.451f)));
 
 INSTANTIATE_TEST_SUITE_P(
-    Bethe_0p1GeV_ArLiquid, EnergyLossBetheValidation,
+    detray_material_Bethe_0p1GeV_ArLiquid, EnergyLossBetheValidation,
     ::testing::Values(std::make_tuple(argon_liquid<scalar>(),
                                       0.1003f * unit<scalar>::GeV, 2.34f)));
 
 /*
 ~6% discrepancy
 INSTANTIATE_TEST_SUITE_P(
-    Bethe_1GeV_ArLiquid, EnergyLossBetheValidation,
+    detray_material_Bethe_1GeV_ArLiquid, EnergyLossBetheValidation,
     ::testing::Values(std::make_tuple(argon_liquid<scalar>(),
                                       1.101f * unit<scalar>::GeV, 1.644f)));
 */
 
 INSTANTIATE_TEST_SUITE_P(
-    Bethe_10GeV_ArLiquid, EnergyLossBetheValidation,
+    detray_material_Bethe_10GeV_ArLiquid, EnergyLossBetheValidation,
     ::testing::Values(std::make_tuple(argon_liquid<scalar>(),
                                       10.11f * unit<scalar>::GeV, 2.003f)));
 
 INSTANTIATE_TEST_SUITE_P(
-    Bethe_100GeV_ArLiquid, EnergyLossBetheValidation,
+    detray_material_Bethe_100GeV_ArLiquid, EnergyLossBetheValidation,
     ::testing::Values(std::make_tuple(argon_liquid<scalar>(),
                                       100.1f * unit<scalar>::GeV, 2.258f)));
 
 INSTANTIATE_TEST_SUITE_P(
-    Bethe_0p1GeV_Fe, EnergyLossBetheValidation,
+    detray_material_Bethe_0p1GeV_Fe, EnergyLossBetheValidation,
     ::testing::Values(std::make_tuple(iron<scalar>(),
                                       0.1003f * unit<scalar>::GeV, 2.274f)));
 
 /*
 // ~6% discrepancy
 INSTANTIATE_TEST_SUITE_P(
-    Bethe_1GeV_Fe, EnergyLossBetheValidation,
+    detray_material_Bethe_1GeV_Fe, EnergyLossBetheValidation,
     ::testing::Values(std::make_tuple(iron<scalar>(),
                                       1.101f * unit<scalar>::GeV, 1.581f)));
 */
 
 INSTANTIATE_TEST_SUITE_P(
-    Bethe_10GeV_Fe, EnergyLossBetheValidation,
+    detray_material_Bethe_10GeV_Fe, EnergyLossBetheValidation,
     ::testing::Values(std::make_tuple(iron<scalar>(),
                                       10.11f * unit<scalar>::GeV, 1.942f)));
 
 INSTANTIATE_TEST_SUITE_P(
-    Bethe_100GeV_Fe, EnergyLossBetheValidation,
+    detray_material_Bethe_100GeV_Fe, EnergyLossBetheValidation,
     ::testing::Values(std::make_tuple(iron<scalar>(),
                                       100.1f * unit<scalar>::GeV, 2.207f)));
 
 INSTANTIATE_TEST_SUITE_P(
-    Bethe_0p1GeV_Fe_with_DED, EnergyLossBetheValidation,
+    detray_material_Bethe_0p1GeV_Fe_with_DED, EnergyLossBetheValidation,
     ::testing::Values(std::make_tuple(iron_with_ded<scalar>(),
                                       0.1003f * unit<scalar>::GeV, 2.274f)));
 
 INSTANTIATE_TEST_SUITE_P(
-    Bethe_1GeV_Fe_with_DED, EnergyLossBetheValidation,
+    detray_material_Bethe_1GeV_Fe_with_DED, EnergyLossBetheValidation,
     ::testing::Values(std::make_tuple(iron_with_ded<scalar>(),
                                       1.101f * unit<scalar>::GeV, 1.581f)));
 
 INSTANTIATE_TEST_SUITE_P(
-    Bethe_10GeV_Fe_with_DED, EnergyLossBetheValidation,
+    detray_material_Bethe_10GeV_Fe_with_DED, EnergyLossBetheValidation,
     ::testing::Values(std::make_tuple(iron_with_ded<scalar>(),
                                       10.11f * unit<scalar>::GeV, 1.942f)));
 
 INSTANTIATE_TEST_SUITE_P(
-    Bethe_100GeV_Fe_with_DED, EnergyLossBetheValidation,
+    detray_material_Bethe_100GeV_Fe_with_DED, EnergyLossBetheValidation,
     ::testing::Values(std::make_tuple(iron_with_ded<scalar>(),
                                       100.1f * unit<scalar>::GeV, 2.207f)));
 
 /*
 // ~10% discrepancy
 INSTANTIATE_TEST_SUITE_P(
-    Bethe_0p1GeV_CsI, EnergyLossBetheValidation,
+    detray_material_Bethe_0p1GeV_CsI, EnergyLossBetheValidation,
     ::testing::Values(std::make_tuple(cesium_iodide<scalar>(),
                                       0.1003f * unit<scalar>::GeV, 1.869f)));
 */
@@ -248,38 +248,38 @@ INSTANTIATE_TEST_SUITE_P(
 /*
 // ~10% discrepancy
 INSTANTIATE_TEST_SUITE_P(
-    Bethe_1GeV_CsI, EnergyLossBetheValidation,
+    detray_material_Bethe_1GeV_CsI, EnergyLossBetheValidation,
     ::testing::Values(std::make_tuple(cesium_iodide<scalar>(),
                                       1.101f * unit<scalar>::GeV, 1.391f)));
 */
 
 INSTANTIATE_TEST_SUITE_P(
-    Bethe_10GeV_CsI, EnergyLossBetheValidation,
+    detray_material_Bethe_10GeV_CsI, EnergyLossBetheValidation,
     ::testing::Values(std::make_tuple(cesium_iodide<scalar>(),
                                       10.11f * unit<scalar>::GeV, 1.755f)));
 
 INSTANTIATE_TEST_SUITE_P(
-    Bethe_100GeV_CsI, EnergyLossBetheValidation,
+    detray_material_Bethe_100GeV_CsI, EnergyLossBetheValidation,
     ::testing::Values(std::make_tuple(cesium_iodide<scalar>(),
                                       100.1f * unit<scalar>::GeV, 2.012f)));
 
 INSTANTIATE_TEST_SUITE_P(
-    Bethe_0p1GeV_CsI_with_DED, EnergyLossBetheValidation,
+    detray_material_Bethe_0p1GeV_CsI_with_DED, EnergyLossBetheValidation,
     ::testing::Values(std::make_tuple(cesium_iodide_with_ded<scalar>(),
                                       0.1003f * unit<scalar>::GeV, 1.869f)));
 
 INSTANTIATE_TEST_SUITE_P(
-    Bethe_1GeV_CsI_with_DED, EnergyLossBetheValidation,
+    detray_material_Bethe_1GeV_CsI_with_DED, EnergyLossBetheValidation,
     ::testing::Values(std::make_tuple(cesium_iodide_with_ded<scalar>(),
                                       1.101f * unit<scalar>::GeV, 1.391f)));
 
 INSTANTIATE_TEST_SUITE_P(
-    Bethe_10GeV_CsI_with_DED, EnergyLossBetheValidation,
+    detray_material_Bethe_10GeV_CsI_with_DED, EnergyLossBetheValidation,
     ::testing::Values(std::make_tuple(cesium_iodide_with_ded<scalar>(),
                                       10.11f * unit<scalar>::GeV, 1.755f)));
 
 INSTANTIATE_TEST_SUITE_P(
-    Bethe_100GeV_CsI_with_DED, EnergyLossBetheValidation,
+    detray_material_Bethe_100GeV_CsI_with_DED, EnergyLossBetheValidation,
     ::testing::Values(std::make_tuple(cesium_iodide_with_ded<scalar>(),
                                       100.1f * unit<scalar>::GeV, 2.012f)));
 
@@ -348,10 +348,11 @@ TEST_P(EnergyLossLandauValidation, landau_energy_loss) {
 }
 
 // Expected output from Fig 33.7 in RPP2018
-INSTANTIATE_TEST_SUITE_P(Landau_10GeV_Silicon, EnergyLossLandauValidation,
-                         ::testing::Values(std::make_tuple(
-                             silicon<scalar>(), 10.f * unit<scalar>::GeV,
-                             0.525f, 0.13f)));
+INSTANTIATE_TEST_SUITE_P(
+    detray_material_Landau_10GeV_Silicon, EnergyLossLandauValidation,
+    ::testing::Values(std::make_tuple(silicon<scalar>(),
+                                      10.f * unit<scalar>::GeV, 0.525f,
+                                      0.13f)));
 
 // Input tuple: < energy >
 class LandauDistributionValidation
@@ -454,7 +455,7 @@ TEST_P(LandauDistributionValidation, landau_distribution) {
 }
 
 INSTANTIATE_TEST_SUITE_P(
-    Landau, LandauDistributionValidation,
+    detray_material_Landau, LandauDistributionValidation,
     ::testing::Values(std::make_tuple(1.f * unit<scalar>::GeV),
                       std::make_tuple(10.f * unit<scalar>::GeV),
                       std::make_tuple(100.f * unit<scalar>::GeV)));

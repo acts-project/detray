@@ -63,7 +63,7 @@ auto add_material_data(const material_factory_t& mat_factory, mat_id id,
 }  // anonymous namespace
 
 /// Unittest: Test the construction of a collection of material maps
-TEST(detray_tools, material_map_builder) {
+TEST(detray_builders, material_map_builder) {
 
     using transform3 = typename detector_t::transform3;
     using scalar_t = typename detector_t::scalar_type;

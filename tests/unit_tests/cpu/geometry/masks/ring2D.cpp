@@ -1,6 +1,6 @@
 /** Detray library, part of the ACTS project (R&D line)
  *
- * (c) 2020-2023 CERN for the benefit of the ACTS project
+ * (c) 2020-2024 CERN for the benefit of the ACTS project
  *
  * Mozilla Public License Version 2.0
  */
@@ -11,6 +11,7 @@
 #include "detray/definitions/units.hpp"
 #include "detray/geometry/mask.hpp"
 #include "detray/test/types.hpp"
+#include "detray/test/utils/ratio_test.hpp"
 
 // GTest include
 #include <gtest/gtest.h>
@@ -18,7 +19,7 @@
 using namespace detray;
 using point3_t = test::point3;
 
-constexpr scalar tol{1e-7f};
+constexpr scalar tol{1e-5f};
 
 /// This tests the basic functionality of a ring
 GTEST_TEST(detray_masks, ring2D) {
@@ -43,6 +44,11 @@ GTEST_TEST(detray_masks, ring2D) {
     ASSERT_TRUE(r2.is_inside(p2_pl_out, 1.2f) ==
                 intersection::status::e_inside);
 
+    // Check area
+    const scalar a{r2.area()};
+    EXPECT_NEAR(a, 38.4845100065f * unit<scalar>::mm2, tol);
+    ASSERT_EQ(a, r2.measure());
+
     // Check bounding box
     constexpr scalar envelope{0.01f};
     const auto loc_bounds = r2.local_min_bounds(envelope);
@@ -57,4 +63,35 @@ GTEST_TEST(detray_masks, ring2D) {
     ASSERT_NEAR(centroid[0], 0.f, tol);
     ASSERT_NEAR(centroid[1], 0.f, tol);
     ASSERT_NEAR(centroid[2], 0.f, tol);
+}
+
+/// This tests the inside/outside method of the mask
+GTEST_TEST(detray_masks, ring2D_ratio_test) {
+
+    struct mask_check {
+        bool operator()(const test::point3 &p, const mask<ring2D> &r,
+                        const test::transform3 &trf, const scalar t) {
+
+            const test::point3 loc_p{r.to_local_frame(trf, p)};
+            return r.is_inside(loc_p, t) == intersection::status::e_inside;
+        }
+    };
+
+    constexpr mask<ring2D> r{0u, 2.f, 5.f};
+
+    constexpr scalar t{0.f};
+    const test::transform3 trf{};
+    constexpr scalar size{10.f * unit<scalar>::mm};
+    const auto n_points{static_cast<std::size_t>(std::pow(500, 3))};
+
+    // x- and y-coordinates yield a valid local position on the underlying plane
+    std::vector<test::point3> points =
+        test::generate_regular_points<cuboid3D>(n_points, {size});
+
+    scalar ratio = test::ratio_test<mask_check>(points, r, trf, t);
+
+    const scalar area{r.measure()};
+    const scalar world{size * size};
+
+    ASSERT_NEAR(ratio, area / world, 0.001f);
 }

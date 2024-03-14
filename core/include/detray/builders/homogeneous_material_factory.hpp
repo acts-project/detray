@@ -149,7 +149,7 @@ class homogeneous_material_factory final
     using material_id = typename detector_t::materials::id;
 
     using base_factory = factory_decorator<detector_t>;
-    using placeholder_factory_t = surface_factory<detector_t, unmasked>;
+    using placeholder_factory_t = surface_factory<detector_t, unmasked<>>;
 
     public:
     using scalar_type = typename detector_t::scalar_type;

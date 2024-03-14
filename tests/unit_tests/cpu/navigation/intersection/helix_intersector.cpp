@@ -77,8 +77,8 @@ GTEST_TEST(detray_intersection, helix_plane_intersector_no_bfield) {
     const detail::helix<transform3_t> h({pos, 0.f, mom, -1.f}, &B_0);
 
     // The same test but bound to local frame
-    helix_intersector<unmasked, transform3_t> pi;
-    mask<unmasked> unmasked_bound{};
+    helix_intersector<unmasked<2>, transform3_t> pi;
+    mask<unmasked<2>> unmasked_bound{};
     const auto hit_bound =
         pi(h, surface_descriptor<>{}, unmasked_bound, shifted);
 
@@ -263,7 +263,7 @@ GTEST_TEST(detray_intersection, helix_cylinder_intersector) {
 GTEST_TEST(detray_intersection, helix_line_intersector) {
 
     // Intersector object
-    const helix_intersector<straw_tube, transform3_t> hli;
+    const helix_intersector<line_circular, transform3_t> hli;
 
     // Get radius of track
     const scalar R{hlx.radius()};
@@ -276,10 +276,10 @@ GTEST_TEST(detray_intersection, helix_line_intersector) {
     const scalar half_z = std::numeric_limits<scalar>::max();
 
     // Straw wire
-    const mask<straw_tube> straw_wire{0u, scope, half_z};
+    const mask<line_circular> straw_tube{0u, scope, half_z};
 
     // Cell wire
-    const mask<wire_cell> cell_wire{0u, scope, half_z};
+    const mask<line_square> drift_cell{0u, scope, half_z};
 
     // Offset to shift the translation of transform matrix
     const scalar offset = 1.f * unit<scalar>::cm;
@@ -298,7 +298,7 @@ GTEST_TEST(detray_intersection, helix_line_intersector) {
     const transform3_t trf_fw(trl_fw, z_axis, hlx.dir(s0));
 
     // Get the intersection on the next surface
-    auto is = hli(hlx, surface_descriptor<>{}, straw_wire, trf_fw, tol);
+    auto is = hli(hlx, surface_descriptor<>{}, straw_tube, trf_fw, tol);
 
     EXPECT_NEAR(is.path, s0, tol);
     // track (helix) is at the left side w.r.t wire
@@ -308,7 +308,7 @@ GTEST_TEST(detray_intersection, helix_line_intersector) {
     EXPECT_EQ(is.direction, intersection::direction::e_along);
 
     // Get the intersection on the next surface
-    is = hli(hlx, surface_descriptor<>{}, cell_wire, trf_fw, tol);
+    is = hli(hlx, surface_descriptor<>{}, drift_cell, trf_fw, tol);
 
     EXPECT_NEAR(is.path, s0, tol);
     // track (helix) is at the left side w.r.t wire
@@ -331,7 +331,7 @@ GTEST_TEST(detray_intersection, helix_line_intersector) {
     const transform3_t trf_bw(trl_bw, z_axis, hlx.dir(-s0));
 
     // Get the intersection on the next surface
-    is = hli(hlx, surface_descriptor<>{}, straw_wire, trf_bw, tol);
+    is = hli(hlx, surface_descriptor<>{}, straw_tube, trf_bw, tol);
 
     EXPECT_NEAR(is.path, -s0, tol);
     // track (helix) is at the right side w.r.t wire
@@ -341,7 +341,7 @@ GTEST_TEST(detray_intersection, helix_line_intersector) {
     EXPECT_EQ(is.direction, intersection::direction::e_opposite);
 
     // Get the intersection on the next surface
-    is = hli(hlx, surface_descriptor<>{}, cell_wire, trf_bw, tol);
+    is = hli(hlx, surface_descriptor<>{}, drift_cell, trf_bw, tol);
 
     EXPECT_NEAR(is.path, -s0, tol);
     // track (helix) is at the right side w.r.t wire

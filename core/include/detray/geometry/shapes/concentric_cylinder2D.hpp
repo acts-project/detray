@@ -67,6 +67,33 @@ class concentric_cylinder2D {
                 loc_p[1] <= bounds[e_p_half_z] + tol);
     }
 
+    /// @brief Measure of the shape: Area
+    ///
+    /// @param bounds the boundary values for this shape
+    ///
+    /// @returns the cylinder area on the cylinder of radius r.
+    template <template <typename, std::size_t> class bounds_t,
+              typename scalar_t, std::size_t kDIM,
+              typename std::enable_if_t<kDIM == e_size, bool> = true>
+    DETRAY_HOST_DEVICE constexpr scalar_t measure(
+        const bounds_t<scalar_t, kDIM> &bounds) const {
+        return area(bounds);
+    }
+
+    /// @brief The area of a the shape
+    ///
+    /// @param bounds the boundary values for this shape
+    ///
+    /// @returns the cylinder area.
+    template <template <typename, std::size_t> class bounds_t,
+              typename scalar_t, std::size_t kDIM,
+              typename std::enable_if_t<kDIM == e_size, bool> = true>
+    DETRAY_HOST_DEVICE constexpr scalar_t area(
+        const bounds_t<scalar_t, kDIM> &bounds) const {
+        return 2.f * constant<scalar_t>::pi * bounds[e_r] *
+               (bounds[e_p_half_z] - bounds[e_n_half_z]);
+    }
+
     /// @brief Lower and upper point for minimal axis aligned bounding box.
     ///
     /// Computes the min and max vertices in a local cartesian frame.

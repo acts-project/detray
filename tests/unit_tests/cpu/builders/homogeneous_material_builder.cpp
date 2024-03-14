@@ -40,7 +40,7 @@ constexpr scalar tol{std::numeric_limits<scalar>::epsilon()};
 }  // anonymous namespace
 
 /// Unittest: Test the construction of a collection of materials
-TEST(detray_tools, homogeneous_material_builder) {
+TEST(detray_builders, homogeneous_material_builder) {
 
     using transform3 = typename detector_t::transform3;
     using material_id = typename detector_t::materials::id;
