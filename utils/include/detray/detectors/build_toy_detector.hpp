@@ -8,15 +8,20 @@
 #pragma once
 
 // Project include(s)
+#include "detray/builders/cylinder_portal_generator.hpp"
+#include "detray/builders/detail/portal_accessor.hpp"
 #include "detray/builders/detector_builder.hpp"
 #include "detray/builders/grid_builder.hpp"
+#include "detray/builders/surface_factory.hpp"
 #include "detray/builders/volume_builder.hpp"
 #include "detray/core/detector.hpp"
+#include "detray/definitions/detail/indexing.hpp"
 #include "detray/definitions/units.hpp"
 #include "detray/detectors/detector_helper.hpp"
 #include "detray/detectors/factories/barrel_generator.hpp"
 #include "detray/detectors/toy_metadata.hpp"
 #include "detray/geometry/detector_volume.hpp"
+#include "detray/geometry/shapes/concentric_cylinder2D.hpp"
 #include "detray/geometry/surface.hpp"
 #include "detray/materials/mixture.hpp"
 #include "detray/materials/predefined_materials.hpp"
@@ -186,14 +191,73 @@ struct toy_config {
     /// @}
 };
 
+namespace detail {
+
+/// Add the cylinder and disc portals for a volume from explicit parameters
+///
+/// @param v_builder the volume builder to add the portals to
+/// @param names name map for volumes of the detector under construction
+/// @param inner_r inner volume radius
+/// @param outer_r outer volume radius
+/// @param h_z half length of the cylinder
+/// @param link_north portal volume link of the outer cylinder
+/// @param link_south portal volume link of the inner cylinder
+/// @param link_east portal volume link of the left disc
+/// @param link_west portal volume link of the right disc
+template <typename detector_t, typename scalar_t>
+void add_gap_portals(volume_builder_interface<detector_t> *v_builder,
+                     typename detector_t::name_map &names,
+                     const scalar_t inner_r, const scalar_t outer_r,
+                     const scalar_t h_z, const dindex link_north,
+                     const dindex link_south, const dindex link_east,
+                     const dindex link_west) {
+
+    using transform3_t = typename detector_t::transform3;
+    using point3_t = typename detector_t::point3;
+    using nav_link_t = typename detector_t::surface_type::navigation_link;
+
+    const transform3_t identity{};
+    const dindex vol_idx{v_builder->vol_index()};
+
+    using cyl_factory_t = surface_factory<detector_t, concentric_cylinder2D>;
+    using disc_factory_t = surface_factory<detector_t, ring2D>;
+
+    auto pt_cyl_factory = std::make_shared<cyl_factory_t>();
+    auto pt_disc_factory = std::make_shared<disc_factory_t>();
+
+    // Inner cylinder portal
+    pt_cyl_factory->push_back({surface_id::e_portal, identity,
+                               static_cast<nav_link_t>(link_south),
+                               std::vector<scalar_t>{inner_r, -h_z, h_z}});
+    // Outer cylinder portal
+    pt_cyl_factory->push_back({surface_id::e_portal, identity,
+                               static_cast<nav_link_t>(link_north),
+                               std::vector<scalar_t>{outer_r, -h_z, h_z}});
+
+    // Left disc portal
+    pt_disc_factory->push_back({surface_id::e_portal,
+                                transform3_t{point3_t{0.f, 0.f, -h_z}},
+                                static_cast<nav_link_t>(link_east),
+                                std::vector<scalar_t>{inner_r, outer_r}});
+    // Right disc portal
+    pt_disc_factory->push_back({surface_id::e_portal,
+                                transform3_t{point3_t{0.f, 0.f, h_z}},
+                                static_cast<nav_link_t>(link_west),
+                                std::vector<scalar_t>{inner_r, outer_r}});
+
+    v_builder->add_surfaces(pt_cyl_factory);
+    v_builder->add_surfaces(pt_disc_factory);
+
+    names[vol_idx + 1u] = "gap_" + std::to_string(vol_idx);
+}
+
 /// Helper method for creating the barrel section.
 ///
 /// @param det_builder detector builder the barrel section should be added to
 /// @param gctx geometry context
 /// @param cfg config for the toy detector
+/// @param names name map for volumes of the detector under construction
 /// @param beampipe_idx index of the beampipe outermost volume
-/// @param n_layers the number of layers that should be built
-/// @param factory_cfg config struct for module creation
 template <typename detector_builder_t, typename scalar_t>
 inline void add_barrel_detector(
     detector_builder_t &det_builder,
@@ -203,54 +267,79 @@ inline void add_barrel_detector(
     dindex beampipe_idx) {
 
     using detector_t = typename detector_builder_t::detector_type;
+    using transform3_t = typename detector_t::transform3;
+    using nav_link_t = typename detector_t::surface_type::navigation_link;
 
-    // Generate volume sizes in r, including gap volumes
-    const auto &layer_sizes = cfg.barrel_layer_sizes();
-    std::vector<std::pair<scalar_t, scalar_t>> vol_sizes{
-        {layer_sizes[1].first, layer_sizes[1].second}};
+    constexpr auto end_of_world{detail::invalid_value<nav_link_t>()};
+    const transform3_t identity{};
 
-    for (unsigned int i = 2u; i < cfg.n_brl_layers() + 1u; ++i) {
-        vol_sizes.emplace_back(layer_sizes[i].first,
-                               layer_sizes[i - 1u].second);
-        vol_sizes.emplace_back(layer_sizes[i].first, layer_sizes[i].second);
-    }
+    const scalar h_z{cfg.barrel_config().half_length()};
+    // Set the inner radius of the first gat to the radius of the beampipe vol.
+    scalar_t gap_inner_r{cfg.barrel_layer_radii().at(0)};
+
+    typename cylinder_portal_generator<detector_t>::boundaries vol_bounds{};
 
     // Alternate barrel module layers and gap volumes
     bool is_gap = true;
-    for (unsigned int i = 0u; i < 2u * cfg.n_brl_layers() - 1u; ++i) {
+    for (unsigned int i = 0u; i < 2u * cfg.n_brl_layers(); ++i) {
 
         // New volume
         auto v_builder = det_builder.new_volume(volume_id::e_cylinder);
         const dindex vol_idx{v_builder->vol_index()};
+        // The barrel volumes are centered at the origin
+        v_builder->add_volume_placement(identity);
+
+        auto link_north{vol_idx + 1u};
+        auto link_south{vol_idx - 1u};
+        auto link_east{end_of_world};
+        auto link_west{end_of_world};
 
         // Every second layer is a gap volume
         is_gap = !is_gap;
         if (is_gap) {
 
-            /*det_helper.create_cyl_volume(cfg, det, resource, ctx,
-                                         vol_sizes[i].first,
-                                         vol_sizes[i].second, -brl_half_z,
-                                         brl_half_z, volume_links_vec[i]);*/
+            // The first time a gap is built, it needs to link to the beampipe
+            link_south = (i == 2u) ? beampipe_idx : link_south;
 
-            names[vol_idx + 1u] = "gap_" + std::to_string(vol_idx);
+            detail::add_gap_portals(v_builder, names, gap_inner_r,
+                                    vol_bounds.inner_radius, h_z, link_north,
+                                    link_south, link_east, link_west);
+
+            // Set the inner radius for the next gap volume
+            gap_inner_r = vol_bounds.outer_radius;
+
         } else {
             // Configure the module factory for this layer
-            unsigned int j = (i + 2u) / 2u;
-            const auto &barrel_binning = cfg.barrel_layer_binning().at(j);
-
             auto &barrel_cfg = cfg.barrel_config();
-            barrel_cfg.binning(barrel_binning.first, barrel_binning.second);
+
+            const unsigned int j{(i + 2u) / 2u};
+            barrel_cfg.binning(cfg.barrel_layer_binning().at(j));
             barrel_cfg.radius(cfg.barrel_layer_radii().at(j));
 
-            auto mod_factory =
+            // Add a layer of module surfaces
+            auto module_factory =
                 std::make_shared<barrel_generator<detector_t, rectangle2D>>(
                     barrel_cfg);
-            /*det_helper.create_cyl_volume(cfg, det, resource, ctx,
-                                         vol_sizes[i].first,
-                                         vol_sizes[i].second, -brl_half_z,
-                                         brl_half_z, volume_links_vec[i]);*/
 
-            v_builder->add_surfaces(mod_factory);
+            // Configure the portal factory
+            cylinder_portal_config<scalar_t> portal_cfg{};
+            portal_cfg.autofit(true).fixed_half_length(h_z);
+            // Link the volume portals to its neighbors
+            portal_cfg.link_north(link_north).link_south(link_south);
+            portal_cfg.link_east(link_east).link_west(link_west);
+
+            // Add cylinder and disc portals
+            auto portal_factory =
+                std::make_shared<cylinder_portal_generator<detector_t>>(
+                    portal_cfg);
+
+            v_builder->add_surfaces(module_factory);
+            v_builder->add_surfaces(portal_factory);
+
+            // Set the new current boundaries, to cunstruct the next gap
+            vol_bounds = portal_factory->volume_boundaries();
+            std::cout << "layer: " << vol_bounds.inner_radius << ", "
+                      << vol_bounds.outer_radius << std::endl;
 
             names[vol_idx + 1u] = "barrel_" + std::to_string(vol_idx);
 
@@ -258,7 +347,18 @@ inline void add_barrel_detector(
             //     ctx, resource, det.volumes().back(), det, m_factory);
         }
     }
+
+    // Add a final gap volume to get to the full barrel radius
+    auto v_builder = det_builder.new_volume(volume_id::e_cylinder);
+    const dindex vol_idx{v_builder->vol_index()};
+    v_builder->add_volume_placement(identity);
+
+    detail::add_gap_portals(v_builder, names, vol_bounds.outer_radius,
+                            180.f * unit<scalar_t>::mm, h_z, vol_idx - 1u,
+                            end_of_world, end_of_world, end_of_world);
 }
+
+}  // namespace detail
 
 /// Builds a detray geometry that contains the innermost tml layers. The number
 /// of barrel and endcap layers can be chosen, but all barrel layers should be
@@ -313,7 +413,8 @@ inline auto build_toy_detector(vecmem::memory_resource &resource,
 
         const dindex beampipe_idx{0u};
 
-        add_barrel_detector(det_builder, gctx, cfg, name_map, beampipe_idx);
+        detail::add_barrel_detector(det_builder, gctx, cfg, name_map,
+                                    beampipe_idx);
     }
 
     // Build and return the detector

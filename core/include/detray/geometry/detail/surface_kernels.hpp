@@ -69,6 +69,17 @@ struct surface_kernels {
         }
     };
 
+    /// A functor to retrieve a the mask boundaries, determined by @param i
+    struct get_mask_value {
+        template <typename mask_group_t, typename index_t>
+        DETRAY_HOST_DEVICE inline auto operator()(
+            const mask_group_t& mask_group, const index_t& index,
+            std::size_t i) const {
+
+            return mask_group[index][i];
+        }
+    };
+
     /// A functor to retrieve the material parameters
     struct get_material_params {
         template <typename mat_group_t, typename index_t>

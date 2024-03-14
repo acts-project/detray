@@ -76,6 +76,11 @@ struct barrel_generator_config {
         m_binning = {n_phi, n_z};
         return *this;
     }
+    constexpr barrel_generator_config &binning(
+        const std::pair<unsigned int, const unsigned int> &binning) {
+        m_binning = binning;
+        return *this;
+    }
     /// @}
 
     /// Getters
@@ -139,7 +144,7 @@ class barrel_generator final : public surface_factory_interface<detector_t> {
                     typename detector_t::surface_lookup_container &surfaces,
                     typename detector_t::transform_container &transforms,
                     typename detector_t::mask_container &masks,
-                    typename detector_t::geometry_context ctx = {}) const
+                    typename detector_t::geometry_context ctx = {})
         -> dindex_range override {
 
         using surface_t = typename detector_t::surface_type;
@@ -174,6 +179,7 @@ class barrel_generator final : public surface_factory_interface<detector_t> {
                                 static_cast<scalar_t>(n_phi_bins)};
         const scalar_t min_phi{-constant<scalar_t>::pi + 0.5f * phi_step};
 
+        // @TODO: Only work for rectangles
         const scalar_t z_start{
             -0.5f * static_cast<scalar_t>(n_z_bins - 1u) *
             (2.f * m_cfg.module_bounds().at(1) - m_cfg.z_overlap())};
@@ -213,10 +219,6 @@ class barrel_generator final : public surface_factory_interface<detector_t> {
                                 surface_id::e_sensitive},
                                invalid_src_link);
 
-            // Add the mask
-            masks.template emplace_back<mask_id>(
-                empty_context{}, m_cfg.module_bounds(), mask_volume_link);
-
             // Build the transform
             // The local phi
             const scalar_t mod_phi{algebra::getter::phi(mod_center)};
@@ -231,6 +233,10 @@ class barrel_generator final : public surface_factory_interface<detector_t> {
             // Create the module transform
             transforms.emplace_back(ctx, mod_center, mod_local_z, mod_local_x);
         }
+
+        // Add the mask
+        masks.template emplace_back<mask_id>(
+            empty_context{}, m_cfg.module_bounds(), mask_volume_link);
 
         return {surfaces_offset, static_cast<dindex>(surfaces.size())};
     }

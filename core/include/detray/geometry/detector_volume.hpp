@@ -62,6 +62,10 @@ class detector_volume {
     constexpr detector_volume(const detector_t &det, const dindex vol_idx)
         : detector_volume(det, det.volume(vol_idx)) {}
 
+    /// @returns access to the underlying detector
+    DETRAY_HOST_DEVICE
+    auto detector() const -> const detector_t & { return m_detector; }
+
     /// Equality operator
     ///
     /// @param rhs is the right hand side to be compared to
@@ -125,14 +129,14 @@ class detector_volume {
             m_desc.template sf_link<surface_id::e_portal>()};
     }
 
-    /// Apply a functor to all surfaces in the volume.
+    /// Apply a functor to all surfaces in the volume's acceleration structures
     ///
     /// @tparam functor_t the prescription to be applied to the surfaces
     /// @tparam Args      types of additional arguments to the functor
     template <typename functor_t,
               int I = static_cast<int>(descr_t::object_id::e_size) - 1,
               typename... Args>
-    DETRAY_HOST_DEVICE constexpr void visit_surfaces(Args &&... args) const {
+    DETRAY_HOST_DEVICE constexpr void visit_surfaces(Args &&...args) const {
         visit_surfaces_impl<detail::surface_getter<functor_t>>(
             std::forward<Args>(args)...);
     }
@@ -147,8 +151,9 @@ class detector_volume {
     template <typename functor_t,
               int I = static_cast<int>(descr_t::object_id::e_size) - 1,
               typename track_t, typename config_t, typename... Args>
-    DETRAY_HOST_DEVICE constexpr void visit_neighborhood(
-        const track_t &track, const config_t &cfg, Args &&... args) const {
+    DETRAY_HOST_DEVICE constexpr void visit_neighborhood(const track_t &track,
+                                                         const config_t &cfg,
+                                                         Args &&...args) const {
         visit_surfaces_impl<detail::neighborhood_getter<functor_t>>(
             m_detector, m_desc, track, cfg, std::forward<Args>(args)...);
     }
@@ -158,7 +163,7 @@ class detector_volume {
     /// @tparam functor_t the prescription to be applied to the material
     /// @tparam Args      types of additional arguments to the functor
     template <typename functor_t, typename... Args>
-    DETRAY_HOST_DEVICE constexpr auto visit_material(Args &&... args) const {
+    DETRAY_HOST_DEVICE constexpr auto visit_material(Args &&...args) const {
         const auto &materials = m_detector.material_store();
 
         return materials.template visit<functor_t>(m_desc.material(),
@@ -328,7 +333,7 @@ class detector_volume {
               int I = static_cast<int>(descr_t::object_id::e_size) - 1,
               typename... Args>
     DETRAY_HOST_DEVICE constexpr void visit_surfaces_impl(
-        Args &&... args) const {
+        Args &&...args) const {
         // Get the acceleration data structures for this volume
         const auto &link{m_desc.template accel_link<
             static_cast<typename descr_t::object_id>(I)>()};

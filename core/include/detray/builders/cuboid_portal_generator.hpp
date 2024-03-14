@@ -82,7 +82,7 @@ class cuboid_portal_generator final
                     typename detector_t::surface_lookup_container &surfaces,
                     typename detector_t::transform_container &transforms,
                     typename detector_t::mask_container &masks,
-                    typename detector_t::geometry_context ctx = {}) const
+                    typename detector_t::geometry_context ctx = {})
         -> dindex_range override {
 
         using point3_t = typename detector_t::point3;
