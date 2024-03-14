@@ -1,6 +1,6 @@
 /** Detray library, part of the ACTS project (R&D line)
  *
- * (c) 2022-2023 CERN for the benefit of the ACTS project
+ * (c) 2022-2024 CERN for the benefit of the ACTS project
  *
  * Mozilla Public License Version 2.0
  */
@@ -70,6 +70,8 @@ class multi_store {
 
     /// Empty container
     constexpr multi_store() = default;
+    /// Move constructor
+    constexpr multi_store(multi_store &&) = default;
 
     // Delegate constructors to tuple container, which handles the memory
 
@@ -100,6 +102,9 @@ class multi_store {
         std::enable_if_t<detail::is_device_view_v<tuple_view_t>, bool> = true>
     DETRAY_HOST_DEVICE multi_store(tuple_view_t &view)
         : m_tuple_container(view) {}
+
+    /// Move assignment operator
+    multi_store &operator=(multi_store &&) = default;
 
     /// @returns a pointer to the underlying tuple container - const
     DETRAY_HOST_DEVICE
