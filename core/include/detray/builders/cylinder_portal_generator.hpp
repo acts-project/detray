@@ -132,7 +132,7 @@ class cylinder_portal_generator final
             upper_z{0.f};
     };
 
-    /// Use @param env as portal envelope
+    /// Construct from configuration @param cfg
     DETRAY_HOST
     cylinder_portal_generator(const cylinder_portal_config<scalar_t> cfg)
         : m_cfg{cfg} {}
@@ -258,9 +258,9 @@ class cylinder_portal_generator final
 
         using surface_type = typename detector_t::surface_type;
         using mask_id = typename detector_t::masks::id;
-        using mask_link_type = typename surface_type::mask_link;
+        using mask_link_t = typename surface_type::mask_link;
         using material_id = typename detector_t::materials::id;
-        using material_link_type = typename surface_type::material_link;
+        using material_link_t = typename surface_type::material_link;
 
         constexpr auto invalid_src_link{detail::invalid_value<std::uint64_t>()};
 
@@ -276,10 +276,12 @@ class cylinder_portal_generator final
             empty_context{}, vol_link, r, min_z, max_z);
 
         // Add surface links
-        mask_link_type mask_link{
+        mask_link_t mask_link{
             mask_id::e_portal_cylinder2,
             masks.template size<mask_id::e_portal_cylinder2>() - 1u};
-        material_link_type material_link{material_id::e_none, dindex_invalid};
+        material_link_t material_link{
+            material_id::e_none,
+            detail::invalid_value<typename material_link_t::index_type>()};
 
         surfaces.push_back(
             {static_cast<dindex>(transforms.size(ctx) - 1u), mask_link,
@@ -298,9 +300,9 @@ class cylinder_portal_generator final
 
         using surface_type = typename detector_t::surface_type;
         using mask_id = typename detector_t::masks::id;
-        using mask_link_type = typename surface_type::mask_link;
+        using mask_link_t = typename surface_type::mask_link;
         using material_id = typename detector_t::materials::id;
-        using material_link_type = typename surface_type::material_link;
+        using material_link_t = typename surface_type::material_link;
 
         constexpr auto invalid_src_link{detail::invalid_value<std::uint64_t>()};
 
@@ -316,10 +318,12 @@ class cylinder_portal_generator final
             empty_context{}, vol_link, min_r, max_r);
 
         // Add surface links
-        mask_link_type mask_link{
+        mask_link_t mask_link{
             mask_id::e_portal_ring2,
             masks.template size<mask_id::e_portal_ring2>() - 1u};
-        material_link_type material_link{material_id::e_none, dindex_invalid};
+        material_link_t material_link{
+            material_id::e_none,
+            detail::invalid_value<typename material_link_t::index_type>()};
 
         surfaces.push_back(
             {static_cast<dindex>(transforms.size(ctx) - 1u), mask_link,

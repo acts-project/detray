@@ -261,7 +261,9 @@ class endcap_generator final : public surface_factory_interface<detector_t> {
             for (const point3_t &mod_position : module_positions) {
                 // Module mask
                 mask_link_t mask_link{mask_id, masks.template size<mask_id>()};
-                material_link_t material_link{no_material, 0u};
+                material_link_t material_link{
+                    no_material, detail::invalid_value<
+                                     typename material_link_t::index_type>()};
 
                 // Surface descriptor
                 surfaces.push_back(
