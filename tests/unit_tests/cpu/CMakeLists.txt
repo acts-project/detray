@@ -39,6 +39,7 @@ macro( detray_add_cpu_test algebra )
       "core/transform_store.cpp"
       "detectors/telescope_detector.cpp"
       "detectors/toy_detector.cpp"
+      "detectors/toy_detector_new.cpp"
       "detectors/wire_chamber.cpp"
       "geometry/masks/annulus2D.cpp"
       "geometry/masks/cylinder.cpp"

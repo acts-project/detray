@@ -8,6 +8,7 @@
 // Project include(s)
 #include "detray/definitions/detail/algebra.hpp"
 #include "detray/definitions/units.hpp"
+#include "detray/detectors/build_toy_detector.hpp"
 #include "detray/detectors/create_telescope_detector.hpp"
 #include "detray/detectors/create_toy_geometry.hpp"
 #include "detray/detectors/create_wire_chamber.hpp"
@@ -117,6 +118,21 @@ GTEST_TEST(io, json_toy_detector_writer) {
     toy_det_config toy_cfg{};
     toy_cfg.use_material_maps(true);
     const auto [det, names] = create_toy_geometry(host_mr, toy_cfg);
+
+    auto writer_cfg = io::detector_writer_config{}
+                          .format(io::format::json)
+                          .replace_files(true);
+    io::write_detector(det, names, writer_cfg);
+}
+
+/// Test the writing of the entire toy detector to json
+GTEST_TEST(io, json_toy_detector_writer_new) {
+
+    // Toy detector
+    vecmem::host_memory_resource host_mr;
+    toy_config<scalar> toy_cfg{};
+    toy_cfg.use_material_maps(true).do_check(false);
+    const auto [det, names] = build_toy_detector(host_mr, toy_cfg);
 
     auto writer_cfg = io::detector_writer_config{}
                           .format(io::format::json)

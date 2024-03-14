@@ -11,9 +11,9 @@
 #include "detray/builders/cuboid_portal_generator.hpp"
 #include "detray/builders/detector_builder.hpp"
 #include "detray/builders/homogeneous_material_builder.hpp"
-#include "detray/builders/telescope_generator.hpp"
 #include "detray/core/detector.hpp"
 #include "detray/definitions/units.hpp"
+#include "detray/detectors/factories/telescope_generator.hpp"
 #include "detray/detectors/telescope_metadata.hpp"
 #include "detray/geometry/mask.hpp"
 #include "detray/materials/predefined_materials.hpp"
@@ -52,7 +52,7 @@ struct tel_det_config {
     template <
         typename... Args,
         std::enable_if_t<(std::is_same_v<Args, scalar> || ...), bool> = true>
-    tel_det_config(Args &&... args) : m_mask(0u, std::forward<Args>(args)...) {}
+    tel_det_config(Args &&...args) : m_mask(0u, std::forward<Args>(args)...) {}
 
     /// Mask of the test surfaces
     mask<mask_shape_t> m_mask;
