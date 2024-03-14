@@ -62,7 +62,7 @@ class volume_builder : public volume_builder_interface<detector_t> {
 
     /// @returns the volume index in the detector volume container
     DETRAY_HOST
-    auto vol_index() -> dindex override { return m_volume.index(); }
+    auto vol_index() const -> dindex override { return m_volume.index(); }
 
     /// Toggles whether sensitive surfaces are added to the brute force method
     DETRAY_HOST

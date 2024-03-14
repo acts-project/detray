@@ -1,6 +1,6 @@
 /** Detray library, part of the ACTS project (R&D line)
  *
- * (c) 2022-2023 CERN for the benefit of the ACTS project
+ * (c) 2022-2024 CERN for the benefit of the ACTS project
  *
  * Mozilla Public License Version 2.0
  */
@@ -11,6 +11,7 @@
 #include "detray/builders/cuboid_portal_generator.hpp"
 #include "detray/builders/detector_builder.hpp"
 #include "detray/builders/homogeneous_material_builder.hpp"
+#include "detray/builders/homogeneous_volume_material_builder.hpp"
 #include "detray/core/detector.hpp"
 #include "detray/definitions/units.hpp"
 #include "detray/detectors/factories/telescope_generator.hpp"
@@ -161,7 +162,7 @@ struct tel_det_config {
 /// @returns a complete detector object
 template <typename mask_shape_t = rectangle2D,
           typename trajectory_t = detail::ray<__plugin::transform3<scalar>>>
-inline auto create_telescope_detector(
+inline auto build_telescope_detector(
     vecmem::memory_resource &resource,
     const tel_det_config<mask_shape_t, trajectory_t> &cfg = {
         20.f * unit<scalar>::mm, 20.f * unit<scalar>::mm}) {
@@ -171,81 +172,96 @@ inline auto create_telescope_detector(
     using detector_t = typename builder_t::detector_type;
     using material_id = typename detector_t::materials::id;
 
-    builder_t det_builder;
-
     // Detector and volume names
     typename detector_t::name_map name_map = {{0u, "telescope_detector"},
                                               {1u, "telescope_world_0"}};
 
-    // Create an empty cuboid volume with homogeneous material description
-    auto v_builder = det_builder.new_volume(volume_id::e_cuboid);
-    const dindex vol_idx{v_builder->vol_index()};
-    auto vm_builder =
-        det_builder.template decorate<homogeneous_material_builder<detector_t>>(
-            vol_idx);
+    builder_t det_builder;
 
-    // Identity transform
-    vm_builder->add_volume_placement();
+    // Create an empty cuboid volume
+    auto v_builder = det_builder.new_volume(volume_id::e_cuboid);
+
+    // Identity transform (volume is centered at origin)
+    v_builder->add_volume_placement();
 
     // Add module surfaces to volume
     using telescope_factory =
         telescope_generator<detector_t, mask_shape_t, trajectory_t>;
-    auto tel_generator =
-        cfg.positions().empty()
-            ? std::make_unique<telescope_factory>(
-                  cfg.length(), cfg.n_surfaces(), cfg.module_mask().values(),
-                  cfg.pilot_track())
-            : std::make_unique<telescope_factory>(cfg.positions(),
-                                                  cfg.module_mask().values(),
-                                                  cfg.pilot_track());
+    std::unique_ptr<surface_factory_interface<detector_t>> tel_generator;
+
+    if (cfg.positions().empty()) {
+        // Automatically position the modules along pilot track
+        tel_generator = std::make_unique<telescope_factory>(
+            cfg.length(), cfg.n_surfaces(), cfg.module_mask().values(),
+            cfg.pilot_track());
+    } else {
+        // Put the modules in the requested poritions along pilot track
+        tel_generator = std::make_unique<telescope_factory>(
+            cfg.positions(), cfg.module_mask().values(), cfg.pilot_track());
+    }
 
     // @todo: Temporal restriction due to missing local navigation
     assert((tel_generator->size() < 20u) &&
            "Due to WIP, please choose less than 20 surfaces for now");
 
+    // Add homogeneous material description if a valid material was configured
+    volume_builder_interface<detector_t> *vm_builder{v_builder};
     std::shared_ptr<surface_factory_interface<detector_t>> module_generator;
 
-    const auto &module_mat = cfg.module_material();
-    if (!(module_mat == detray::vacuum<scalar>{})) {
-        std::vector<material_data<scalar>> sf_materials(
-            tel_generator->size(),
-            material_data<scalar>{cfg.mat_thickness(), module_mat});
+    if (cfg.module_material() != detray::vacuum<scalar>{}) {
 
-        constexpr bool is_line{
-            std::is_same_v<mask_shape_t, detray::line_square> ||
-            std::is_same_v<mask_shape_t, detray::line_circular>};
-        const auto mat_id = is_line ? material_id::e_rod : material_id::e_slab;
+        // Decorate the builders with homogeneous material
+        vm_builder =
+            det_builder
+                .template decorate<homogeneous_material_builder<detector_t>>(
+                    v_builder);
 
         auto tel_mat_generator =
             std::make_shared<homogeneous_material_factory<detector_t>>(
                 std::move(tel_generator));
+
+        // Generate the material
+        std::vector<material_data<scalar>> sf_materials(
+            tel_mat_generator->size(),
+            material_data<scalar>{cfg.mat_thickness(), cfg.module_material()});
+
+        constexpr bool is_line{
+            std::is_same_v<mask_shape_t, detray::line_square> ||
+            std::is_same_v<mask_shape_t, detray::line_circular>};
+        constexpr auto mat_id{is_line ? material_id::e_rod
+                                      : material_id::e_slab};
+
+        // Add the material to the surface factory
         tel_mat_generator->add_material(mat_id, std::move(sf_materials));
 
         module_generator = std::move(tel_mat_generator);
+
     } else {
         module_generator = std::move(tel_generator);
     }
 
-    // Add a portal box around the cuboid volume
+    // Add a bounding box of portals to the cuboid volume
     auto portal_generator =
         std::make_shared<cuboid_portal_generator<detector_t>>(cfg.envelope());
 
     vm_builder->add_surfaces(module_generator);
+    // (!) The portals must be added after the modules to fit them correctly
     vm_builder->add_surfaces(portal_generator);
 
     det_builder.set_volume_finder(resource);
-    det_builder.volume_finder().push_back(std::vector<dindex>{vol_idx});
+    det_builder.volume_finder().push_back(
+        std::vector<dindex>{vm_builder->vol_index()});
+
+    // If requested, add homogeneous volume material
+    if (cfg.volume_material() != detray::vacuum<scalar>{}) {
+        auto full_v_builder = det_builder.template decorate<
+            homogeneous_volume_material_builder<detector_t>>(vm_builder);
+
+        full_v_builder->set_material(cfg.volume_material());
+    }
 
     // Build and return the detector
     auto det = det_builder.build(resource);
-
-    // Set the volume material
-    if (!(cfg.volume_material() == detray::vacuum<scalar>{})) {
-        // @TODO: Homogeneous volume material builder
-        det.material_store().template push_back<material_id::e_raw_material>(
-            cfg.volume_material());
-        det.volumes().back().set_material(material_id::e_raw_material, 0u);
-    }
 
     if (cfg.do_check()) {
         detray::detail::check_consistency(det);

@@ -8,8 +8,8 @@
 // Project include(s)
 #include "detray/definitions/detail/algebra.hpp"
 #include "detray/definitions/units.hpp"
+#include "detray/detectors/build_telescope_detector.hpp"
 #include "detray/detectors/build_toy_detector.hpp"
-#include "detray/detectors/create_telescope_detector.hpp"
 #include "detray/detectors/create_toy_geometry.hpp"
 #include "detray/detectors/create_wire_chamber.hpp"
 #include "detray/geometry/mask.hpp"
@@ -59,7 +59,7 @@ GTEST_TEST(io, json_telescope_geometry_writer) {
     // Telescope detector
     vecmem::host_memory_resource host_mr;
     auto [det, names] =
-        create_telescope_detector(host_mr, tel_cfg.positions(positions));
+        build_telescope_detector(host_mr, tel_cfg.positions(positions));
 
     io::json_writer<detector_t, io::geometry_writer> geo_writer;
     geo_writer.write(det, names);
@@ -74,7 +74,7 @@ GTEST_TEST(io, json_telescope_material_writer) {
     vecmem::host_memory_resource host_mr;
 
     auto [det, names] =
-        create_telescope_detector(host_mr, tel_cfg.positions(positions));
+        build_telescope_detector(host_mr, tel_cfg.positions(positions));
 
     io::json_writer<detector_t, io::homogeneous_material_writer> mat_writer;
     mat_writer.write(det, names);

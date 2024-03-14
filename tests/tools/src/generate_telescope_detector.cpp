@@ -7,7 +7,7 @@
 
 // Project include(s)
 #include "detray/definitions/units.hpp"
-#include "detray/detectors/create_telescope_detector.hpp"
+#include "detray/detectors/build_telescope_detector.hpp"
 #include "detray/geometry/mask.hpp"
 #include "detray/geometry/shapes.hpp"
 #include "detray/io/frontend/detector_writer.hpp"
@@ -53,7 +53,7 @@ void write_telecope(const po::variables_map &vm,
 
     // Build the detector
     vecmem::host_memory_resource host_mr;
-    auto [tel_det, tel_names] = create_telescope_detector(host_mr, tel_cfg);
+    auto [tel_det, tel_names] = build_telescope_detector(host_mr, tel_cfg);
 
     // Write to file
     detray::io::write_detector(tel_det, tel_names, writer_cfg);

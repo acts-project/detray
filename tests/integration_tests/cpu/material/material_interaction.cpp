@@ -9,7 +9,7 @@
 #include "detray/definitions/pdg_particle.hpp"
 #include "detray/definitions/units.hpp"
 #include "detray/detectors/bfield.hpp"
-#include "detray/detectors/create_telescope_detector.hpp"
+#include "detray/detectors/build_telescope_detector.hpp"
 #include "detray/geometry/mask.hpp"
 #include "detray/geometry/shapes/unbounded.hpp"
 #include "detray/materials/interaction.hpp"
@@ -61,7 +61,7 @@ GTEST_TEST(detray_material, telescope_geometry_energy_loss) {
         .module_material(mat)
         .mat_thickness(thickness);
 
-    const auto [det, names] = create_telescope_detector(host_mr, tel_cfg);
+    const auto [det, names] = build_telescope_detector(host_mr, tel_cfg);
 
     using navigator_t = navigator<decltype(det)>;
     using stepper_t = line_stepper<transform3>;
@@ -240,7 +240,7 @@ GTEST_TEST(detray_material, telescope_geometry_scattering_angle) {
         .module_material(mat)
         .mat_thickness(thickness);
 
-    const auto [det, names] = create_telescope_detector(host_mr, tel_cfg);
+    const auto [det, names] = build_telescope_detector(host_mr, tel_cfg);
 
     using navigator_t = navigator<decltype(det)>;
     using stepper_t = line_stepper<transform3>;
@@ -379,7 +379,7 @@ GTEST_TEST(detray_material, telescope_geometry_volume_material) {
 
     for (const auto& mat : vol_mats) {
         tel_cfg.volume_material(mat);
-        const auto [det, names] = create_telescope_detector(host_mr, tel_cfg);
+        const auto [det, names] = build_telescope_detector(host_mr, tel_cfg);
 
         using navigator_t = navigator<decltype(det)>;
         using propagator_t = propagator<stepper_t, navigator_t, actor_chain_t>;

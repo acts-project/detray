@@ -8,7 +8,7 @@
 // Project include(s)
 #include "detray/definitions/units.hpp"
 #include "detray/detectors/bfield.hpp"
-#include "detray/detectors/create_telescope_detector.hpp"
+#include "detray/detectors/build_telescope_detector.hpp"
 #include "detray/navigation/intersection/helix_intersector.hpp"
 #include "detray/navigation/navigator.hpp"
 #include "detray/propagator/actors/parameter_resetter.hpp"
@@ -1657,8 +1657,9 @@ int main(int argc, char** argv) {
         }
         auto gammaF = rand_gamma(mt1);
 
+        // Without volume material
         auto [rect_det, rect_names] =
-            create_telescope_detector(host_mr, rectangle_cfg);
+            build_telescope_detector(host_mr, rectangle_cfg);
         const auto [euler_rect_initial, shift_rect_initial] =
             tilt_surface<decltype(rect_det),
                          decltype(rect_det)::masks::id::e_rectangle2>(
@@ -1672,7 +1673,7 @@ int main(int argc, char** argv) {
         // With volume material
         rectangle_cfg.volume_material(volume_mat);
         auto [rect_det_w_mat, rect_names2] =
-            create_telescope_detector(host_mr, rectangle_cfg);
+            build_telescope_detector(host_mr, rectangle_cfg);
         [[maybe_unused]] const auto [euler_rect_initial2, shift_rect_initial2] =
             tilt_surface<decltype(rect_det_w_mat),
                          decltype(rect_det_w_mat)::masks::id::e_rectangle2>(
@@ -1693,7 +1694,7 @@ int main(int argc, char** argv) {
 
         // Without volume material
         auto [wire_det, wire_names] =
-            create_telescope_detector(host_mr, wire_cfg);
+            build_telescope_detector(host_mr, wire_cfg);
         const auto [euler_wire_initial, shift_wire_initial] =
             tilt_surface<decltype(wire_det),
                          decltype(wire_det)::masks::id::e_drift_cell>(
@@ -1707,7 +1708,7 @@ int main(int argc, char** argv) {
         // With volume material
         wire_cfg.volume_material(volume_mat);
         auto [wire_det_w_mat, wire_names2] =
-            create_telescope_detector(host_mr, wire_cfg);
+            build_telescope_detector(host_mr, wire_cfg);
         [[maybe_unused]] const auto [euler_wire_initial2, shift_wire_initial2] =
             tilt_surface<decltype(wire_det_w_mat),
                          decltype(wire_det_w_mat)::masks::id::e_drift_cell>(

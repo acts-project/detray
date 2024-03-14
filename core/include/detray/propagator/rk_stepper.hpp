@@ -93,6 +93,13 @@ class rk_stepper final
         /// Material that track is passing through. Usually a volume material
         const detray::material<scalar_type>* _mat{nullptr};
 
+        /// Access the current volume material
+        DETRAY_HOST_DEVICE
+        const auto& volume_material() const {
+            assert(_mat != nullptr);
+            return *_mat;
+        }
+
         /// Update the track state by Runge-Kutta-Nystrom integration.
         DETRAY_HOST_DEVICE
         inline void advance_track();
