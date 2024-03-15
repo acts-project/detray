@@ -132,7 +132,7 @@ class barrel_generator final : public surface_factory_interface<detector_t> {
     }
     /// @}
 
-    /// Create a surface telescope.
+    /// Create a pixel tracker barrel layer.
     ///
     /// @param volume the volume the portals need to be added to.
     /// @param surfaces the surface collection to wrap and to add the portals to
