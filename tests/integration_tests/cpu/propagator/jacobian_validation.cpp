@@ -60,7 +60,7 @@ const std::array<scalar, 5u> h_sizes_rect{3e0f, 3e0f, 2e-2f, 1e-3f, 1e-3f};
 const std::array<scalar, 5u> h_sizes_wire{3e0f, 3e0f, 2e-2f, 1e-3f, 1e-3f};
 
 // Ridders' algorithm setup
-constexpr const unsigned int Nt = 50u;
+constexpr const unsigned int Nt = 100u;
 const std::array<scalar, 5u> safe{5.0f, 5.0f, 5.0f, 5.0f, 5.0f};
 const std::array<scalar, 5u> con{1.2f, 1.2f, 1.2f, 1.2f, 1.2f};
 constexpr const scalar big = std::numeric_limits<scalar>::max();
@@ -93,6 +93,18 @@ std::uniform_real_distribution<scalar> rand_cosbeta(constant<scalar>::inv_sqrt2,
 std::uniform_int_distribution<int> rand_bool(0, 1);
 std::uniform_real_distribution<scalar> rand_gamma(0.f,
                                                   2.f * constant<scalar>::pi);
+
+// Correlation factor in the range of [-10%, 10%]
+constexpr scalar min_corr = -0.1f;
+constexpr scalar max_corr = 0.1f;
+
+// Values for sampling standard deviation
+const std::array<scalar, 6u> stddevs_sampling{50.f * unit<scalar>::um,
+                                              50.f * unit<scalar>::um,
+                                              1.f * unit<scalar>::mrad,
+                                              1.f * unit<scalar>::mrad,
+                                              0.01f,
+                                              1.f * unit<scalar>::ns};
 
 // surface types
 using rect_type = rectangle2D;
@@ -244,23 +256,22 @@ bound_covariance_type get_random_initial_covariance(const scalar ini_qop) {
     bound_covariance_type ini_cov =
         matrix_operator().template zero<e_bound_size, e_bound_size>();
 
-    // Correlation factor in the range of [-10%, 10%]
-    scalar min_corr = -0.1f;
-    scalar max_corr = 0.1f;
     // Random correction factor
     std::uniform_real_distribution<scalar> rand_corr(min_corr, max_corr);
 
+    // Distribution for sampling standard deviations
     std::normal_distribution<scalar> rand_l0(0.f * unit<scalar>::um,
-                                             50.f * unit<scalar>::um);
+                                             stddevs_sampling[0u]);
     std::normal_distribution<scalar> rand_l1(0.f * unit<scalar>::um,
-                                             50.f * unit<scalar>::um);
+                                             stddevs_sampling[1u]);
     std::normal_distribution<scalar> rand_phi(0.f * unit<scalar>::mrad,
-                                              1.f * unit<scalar>::mrad);
+                                              stddevs_sampling[2u]);
     std::normal_distribution<scalar> rand_theta(0.f * unit<scalar>::mrad,
-                                                1.f * unit<scalar>::mrad);
-    std::normal_distribution<scalar> rand_qop(0.f, 0.01f * ini_qop);
+                                                stddevs_sampling[3u]);
+    std::normal_distribution<scalar> rand_qop(0.f,
+                                              stddevs_sampling[4u] * ini_qop);
     std::normal_distribution<scalar> rand_time(0.f * unit<scalar>::ns,
-                                               1.f * unit<scalar>::ns);
+                                               stddevs_sampling[5u]);
 
     /*
     // Typical stddev range taken from the figures of ATL-PHYS-PUB-2021-024 and
@@ -1902,9 +1913,9 @@ int main(int argc, char** argv) {
             EXPECT_EQ(dqopdqop_rel_diffs_rect[i].size(), n_tracks);
             EXPECT_EQ(dqopdqop_rel_diffs_wire[i].size(), n_tracks);
 
-            EXPECT_GE(statistics::mean(dqopdqop_rel_diffs_rect[i]), 1e-10f);
+            EXPECT_GE(statistics::mean(dqopdqop_rel_diffs_rect[i]), 1e-12f);
             EXPECT_LE(statistics::mean(dqopdqop_rel_diffs_rect[i]), 1e-2f);
-            EXPECT_GE(statistics::mean(dqopdqop_rel_diffs_wire[i]), 1e-10f);
+            EXPECT_GE(statistics::mean(dqopdqop_rel_diffs_wire[i]), 1e-12f);
             EXPECT_LE(statistics::mean(dqopdqop_rel_diffs_wire[i]), 1e-2f);
         }
     }

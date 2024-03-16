@@ -50,7 +50,6 @@ double title_font_size_rk_tol = 0.046;
 int title_font = 132;
 int label_font = 132;
 int legend_font = 132;
-double marker_size = 1.9;
 double pad_x0 = 0.005f;
 double pad_x1 = 1.f;
 double pad_y0 = 0.005f;
@@ -189,7 +188,9 @@ void draw_graphs(const std::string header_title, const std::string geom_title,
     TGraph* gr[25];
     TMultiGraph* mg = new TMultiGraph();
 
-    const std::array<int, 5u> marker_styles = {7, 2, 5, 27, 32};
+    const std::array<int, 5u> marker_styles = {7, 2, 5, 27, 25};
+    const std::array<double, 5u> marker_sizes = {2.135, 2.135, 2.135, 2.135,
+                                                 1.49};
     const std::array<int, 5u> line_styles = {1, 3, 2, 7, 4};
     const std::array<int, 5u> hues = {kOrange + 2, kPink + 5, kBlue + 2,
                                       kCyan + 2, kGreen + 2};
@@ -211,7 +212,7 @@ void draw_graphs(const std::string header_title, const std::string geom_title,
         const int m = i % 5;
 
         gr[i]->SetMarkerStyle(marker_styles[n]);
-        gr[i]->SetMarkerSize(marker_size);
+        gr[i]->SetMarkerSize(marker_sizes[n]);
         gr[i]->SetLineStyle(line_styles[m]);
         gr[i]->SetMarkerColor(hues[m]);
         gr[i]->SetLineColor(hues[m]);
@@ -247,6 +248,10 @@ void draw_graphs(const std::string header_title, const std::string geom_title,
     double x_max = x_vec.back();
 
     if (x_vec.size() > 10) {
+        if (x_vec.size() == 13) {
+            x_margin = 2;
+        }
+
         x_min = x_min - x_margin;
         x_max = x_max + x_margin;
         mg->GetXaxis()->SetLimits(x_min, x_max);
@@ -255,13 +260,23 @@ void draw_graphs(const std::string header_title, const std::string geom_title,
 
         mg->Draw("APL");
 
-        auto ga = new TGaxis(x_vec.front(), yaxis_min - yaxis_margin,
-                             x_vec.back(), yaxis_min - yaxis_margin,
-                             x_vec.front(), x_vec.back(), 405, "N");
-        ga->SetLabelFont(label_font);
-        ga->SetLabelSize(label_font_size_rk_tol);
-        ga->SetLabelOffset(-0.0065);
-        ga->Draw();
+        if (x_vec.size() == 11) {
+            auto ga = new TGaxis(x_vec.front(), yaxis_min - yaxis_margin,
+                                 x_vec.back(), yaxis_min - yaxis_margin,
+                                 x_vec.front(), x_vec.back(), 405, "N");
+            ga->SetLabelFont(label_font);
+            ga->SetLabelSize(label_font_size_rk_tol);
+            ga->SetLabelOffset(-0.0065);
+            ga->Draw();
+        } else if (x_vec.size() == 13) {
+            auto ga = new TGaxis(x_vec.front(), yaxis_min - yaxis_margin,
+                                 x_vec.back(), yaxis_min - yaxis_margin,
+                                 x_vec.front(), x_vec.back(), 304, "N");
+            ga->SetLabelFont(label_font);
+            ga->SetLabelSize(label_font_size_rk_tol);
+            ga->SetLabelOffset(-0.0065);
+            ga->Draw();
+        }
 
         mg->GetYaxis()->SetLabelSize(0);
         mg->GetYaxis()->SetTickLength(0);
@@ -283,6 +298,10 @@ void draw_graphs(const std::string header_title, const std::string geom_title,
 
     double rk_title_deltaX =
         (x_vec.back() - x_vec.front()) * rk_title_offset_fraction;
+
+    if (x_vec.size() == 13) {
+        rk_title_deltaX = -0.2;
+    }
 
     legend->Draw();
     draw_text(rk_title_deltaX + x_vec.front(), rk_title_y, rk_ygap,
@@ -309,6 +328,11 @@ void draw_mean_step_size(const std::string header_title,
     gr->GetXaxis()->SetTitle("log_{10}(#font[12]{#tau} [mm])");
     gr->GetYaxis()->SetTitle("log_{10}(Mean of avg. step size [mm])");
     gr->GetXaxis()->SetLimits(x_vec.front() - 0.5, x_vec.back() + 0.5);
+
+    if (x_vec.size() == 13) {
+        ymin = -4;
+    }
+
     gr->GetYaxis()->SetRangeUser(ymin, ymax);
     gr->GetYaxis()->SetNdivisions(505);
     gr->GetXaxis()->SetLabelSize(label_font_size_step);
@@ -327,18 +351,32 @@ void draw_mean_step_size(const std::string header_title,
     gr->GetYaxis()->SetLabelFont(label_font);
 
     if (x_vec.size() > 10) {
-        gr->GetXaxis()->SetLimits(x_vec.front() - 1, x_vec.back() + 1);
+        if (x_vec.size() == 13) {
+            x_margin = 2;
+        }
+
+        gr->GetXaxis()->SetLimits(x_vec.front() - x_margin,
+                                  x_vec.back() + x_margin);
         gr->GetXaxis()->SetLabelSize(0);
         gr->GetXaxis()->SetTickLength(0);
 
         gr->Draw("APL");
 
-        auto ga = new TGaxis(x_vec.front(), ymin, x_vec.back(), ymin,
-                             x_vec.front(), x_vec.back(), 405, "N");
-        ga->SetLabelFont(label_font);
-        ga->SetLabelSize(label_font_size_step);
-        ga->SetLabelOffset(x_label_offset);
-        ga->Draw();
+        if (x_vec.size() == 11) {
+            auto ga = new TGaxis(x_vec.front(), ymin, x_vec.back(), ymin,
+                                 x_vec.front(), x_vec.back(), 405, "N");
+            ga->SetLabelFont(label_font);
+            ga->SetLabelSize(label_font_size_step);
+            ga->SetLabelOffset(x_label_offset);
+            ga->Draw();
+        } else if (x_vec.size() == 13) {
+            auto ga = new TGaxis(x_vec.front(), ymin, x_vec.back(), ymin,
+                                 x_vec.front(), x_vec.back(), 304, "N");
+            ga->SetLabelFont(label_font);
+            ga->SetLabelSize(label_font_size_step);
+            ga->SetLabelOffset(x_label_offset);
+            ga->Draw();
+        }
 
     } else {
         gr->Draw();
