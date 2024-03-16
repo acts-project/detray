@@ -43,7 +43,7 @@ double y_min = -15;
 double y_max = 10;
 double y_margin = 0;
 double header_size = 0.05;
-std::array<float, 4> ldim{0.545075, 0.621849, 0.942404, 0.881048};
+std::array<float, 4> ldim{0.54424, 0.621849, 0.942404, 0.880252};
 double pad_x0 = 0.00;
 double pad_x1 = 1;
 double pad_y0 = 0.00;
@@ -171,6 +171,14 @@ TH1D* get_histogram(std::string name, const int n_labels,
 
     auto rdf = ROOT::RDF::FromCSV(csv_name);
     auto rdf_means = get_means(rdf);
+
+    // Count the number of non-convergence event
+    auto conv_success = rdf.Filter("total_convergence == 1").Count();
+    auto conv_failure = rdf.Filter("total_convergence == 0").Count();
+
+    std::cout << "Convergence events: " << *conv_success << std::endl;
+    std::cout << "Non-convergence events: " << *conv_failure << std::endl;
+
     TH1D* histo = new TH1D(histo_name.c_str(), histo_name.c_str(), 3, 0, 3);
     histo->GetYaxis()->SetRangeUser(y_min - y_margin, y_max + y_margin);
     histo->GetYaxis()->SetLabelSize(0);
@@ -225,7 +233,7 @@ void draw_pad(const std::string& pad_name) {
 void draw_text(const std::string& text) {
 
     const float x1 = 1.23427;
-    const float y1 = 6.511;
+    const float y1 = 6.44408;
 
     TLatex* ttext = new TLatex(0.f, 0.f, text.c_str());
     ttext->SetTextFont(132);
@@ -266,7 +274,7 @@ void jacobian_comparison() {
 
     gStyle->SetOptTitle(0);
     const std::array<float, 2> cdim{1200, 500};
-    const std::array<int, 4> markers{kOpenCross, kOpenTriangleUp, kOpenSquare,
+    const std::array<int, 4> markers{kOpenCross, kOpenSquare, kOpenTriangleUp,
                                      kOpenCircle};
     const std::array<int, 4> hues{kOrange + 8, kMagenta + 1, kAzure,
                                   kGreen + 2};
