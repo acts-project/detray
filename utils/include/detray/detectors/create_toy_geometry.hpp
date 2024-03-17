@@ -36,11 +36,6 @@ namespace detray {
 
 namespace {
 
-using transform3_t = __plugin::transform3<detray::scalar>;
-using point3 = __plugin::point3<detray::scalar>;
-using vector3 = __plugin::vector3<detray::scalar>;
-using point2 = __plugin::point2<detray::scalar>;
-
 /// Configure the toy detector
 struct toy_det_config {
     /// No. of barrel layers the detector should be built with
@@ -160,7 +155,8 @@ inline void create_barrel_modules(context_t &ctx, volume_type &vol,
     unsigned int n_phi_bins = cfg.m_binning.first;
     unsigned int n_z_bins = cfg.m_binning.second;
     // module positions
-    detray::dvector<point3> m_centers;
+    detray::dvector<typename transform_container_t::value_type::point3>
+        m_centers;
     m_centers.reserve(n_phi_bins * n_z_bins);
 
     // prep work
@@ -184,7 +180,7 @@ inline void create_barrel_modules(context_t &ctx, volume_type &vol,
             // calculate the current phi value
             scalar m_phi{min_phi + static_cast<scalar>(phiBin) * phi_step};
             m_centers.push_back(
-                point3{m_r * math::cos(m_phi), m_r * math::sin(m_phi), m_z});
+                {m_r * math::cos(m_phi), m_r * math::sin(m_phi), m_z});
         }
     }
 
@@ -210,11 +206,13 @@ inline void create_barrel_modules(context_t &ctx, volume_type &vol,
         // The local phi
         scalar m_phi{algebra::getter::phi(m_center)};
         // Local z axis is the normal vector
-        vector3 m_local_z{math::cos(m_phi + cfg.m_tilt_phi),
-                          math::sin(m_phi + cfg.m_tilt_phi), 0.f};
+        typename transform_container_t::value_type::vector3 m_local_z{
+            math::cos(m_phi + cfg.m_tilt_phi),
+            math::sin(m_phi + cfg.m_tilt_phi), 0.f};
         // Local x axis the normal to local y,z
-        vector3 m_local_x{-math::sin(m_phi + cfg.m_tilt_phi),
-                          math::cos(m_phi + cfg.m_tilt_phi), 0.f};
+        typename transform_container_t::value_type::vector3 m_local_x{
+            -math::sin(m_phi + cfg.m_tilt_phi),
+            math::cos(m_phi + cfg.m_tilt_phi), 0.f};
 
         // Create the module transform
         transforms.emplace_back(ctx, m_center, m_local_z, m_local_x);
@@ -412,7 +410,7 @@ inline auto module_positions_ring(scalar z, scalar radius, scalar phi_stagger,
                                   scalar phi_sub_stagger,
                                   unsigned int n_phi_bins) {
     // create and fill the positions
-    std::vector<vector3> r_positions;
+    std::vector<__plugin::vector3<scalar>> r_positions;
     r_positions.reserve(n_phi_bins);
 
     // prep work
@@ -438,8 +436,8 @@ inline auto module_positions_ring(scalar z, scalar radius, scalar phi_stagger,
         scalar phi{min_phi + static_cast<scalar>(iphi) * phi_step};
         // main z position depending on phi bin
         scalar rz{iphi % 2u ? z - 0.5f * phi_stagger : z + 0.5f * phi_stagger};
-        r_positions.push_back(vector3{radius * math::cos(phi),
-                                      radius * math::sin(phi), rz + rzs});
+        r_positions.push_back(
+            {radius * math::cos(phi), radius * math::sin(phi), rz + rzs});
     }
     return r_positions;
 }
@@ -528,7 +526,7 @@ inline void create_endcap_modules(context_t &ctx, volume_type &vol,
         scalar ps_stagger{
             cfg.m_phi_sub_stagger.size() ? cfg.m_phi_sub_stagger[ir] : 0.f};
 
-        std::vector<point3> r_postitions =
+        auto r_postitions =
             module_positions_ring(rz, radii[ir], cfg.m_phi_stagger[ir],
                                   ps_stagger, cfg.disc_binning[ir]);
 
@@ -556,13 +554,16 @@ inline void create_endcap_modules(context_t &ctx, volume_type &vol,
             // the module transform from the position
             scalar m_phi{algebra::getter::phi(m_position)};
             // the center position of the modules
-            point3 m_center{m_position};
+            auto m_center{m_position};
             m_center[2] *= static_cast<scalar>(cfg.side);
             // the rotation matrix of the module
-            vector3 m_local_y{math::cos(m_phi), math::sin(m_phi), 0.f};
+            typename transform_container_t::value_type::vector3 m_local_y{
+                math::cos(m_phi), math::sin(m_phi), 0.f};
             // take different axis to have the same readout direction
-            vector3 m_local_z{0.f, 0.f, static_cast<scalar>(cfg.side)};
-            vector3 m_local_x = algebra::vector::cross(m_local_y, m_local_z);
+            typename transform_container_t::value_type::vector3 m_local_z{
+                0.f, 0.f, static_cast<scalar>(cfg.side)};
+            typename transform_container_t::value_type::vector3 m_local_x =
+                algebra::vector::cross(m_local_y, m_local_z);
 
             // Create the module transform
             transforms.emplace_back(ctx, m_center, m_local_z, m_local_x);
@@ -600,7 +601,7 @@ inline void add_beampipe(
     constexpr auto leaving_world{detail::invalid_value<nav_link_t>()};
     constexpr auto cyl_id = detector_t::masks::id::e_portal_cylinder2;
 
-    const detail::detector_helper<transform3_t> det_helper{};
+    const detail::detector_helper<typename detector_t::transform3> det_helper{};
 
     scalar max_z{n_edc_layers == 0u ? brl_half_z
                                     : edc_lay_sizes[n_edc_layers - 1u].second};
@@ -643,19 +644,21 @@ inline void add_beampipe(
         cfg.use_material_maps() ? det.material_store() : materials;
     for (int i = static_cast<int>(vol_sizes.size()) - 1; i >= 0; --i) {
         volume_link = ++link;
-        auto [neg_cyl, neg_cyl_mask] = det_helper.add_cylinder_surface<cyl_id>(
-            beampipe_idx, ctx, surfaces, masks, transforms, edc_inner_r,
-            -vol_sizes[static_cast<unsigned int>(i)].second,
-            -vol_sizes[static_cast<unsigned int>(i)].first, volume_link);
+        auto [neg_cyl, neg_cyl_mask] =
+            det_helper.template add_cylinder_surface<cyl_id>(
+                beampipe_idx, ctx, surfaces, masks, transforms, edc_inner_r,
+                -vol_sizes[static_cast<unsigned int>(i)].second,
+                -vol_sizes[static_cast<unsigned int>(i)].first, volume_link);
 
         det_helper.create_material(cfg, neg_cyl, neg_cyl_mask, material_coll);
     }
 
     // barrel portals
     volume_link = n_brl_layers <= 0u ? leaving_world : link + 1u;
-    auto [barr_cyl, barr_cyl_mask] = det_helper.add_cylinder_surface<cyl_id>(
-        beampipe_idx, ctx, surfaces, masks, transforms, edc_inner_r,
-        -brl_half_z, brl_half_z, volume_link);
+    auto [barr_cyl, barr_cyl_mask] =
+        det_helper.template add_cylinder_surface<cyl_id>(
+            beampipe_idx, ctx, surfaces, masks, transforms, edc_inner_r,
+            -brl_half_z, brl_half_z, volume_link);
 
     det_helper.create_material(cfg, barr_cyl, barr_cyl_mask, material_coll);
 
@@ -663,9 +666,10 @@ inline void add_beampipe(
     link += 7u;
     for (unsigned int i = 0u; i < vol_sizes.size(); ++i) {
         volume_link = ++link;
-        auto [pos_cyl, pos_cyl_mask] = det_helper.add_cylinder_surface<cyl_id>(
-            beampipe_idx, ctx, surfaces, masks, transforms, edc_inner_r,
-            vol_sizes[i].second, vol_sizes[i].first, volume_link);
+        auto [pos_cyl, pos_cyl_mask] =
+            det_helper.template add_cylinder_surface<cyl_id>(
+                beampipe_idx, ctx, surfaces, masks, transforms, edc_inner_r,
+                vol_sizes[i].second, vol_sizes[i].first, volume_link);
 
         det_helper.create_material(cfg, pos_cyl, pos_cyl_mask, material_coll);
     }
@@ -684,9 +688,10 @@ inline void add_beampipe(
 
     // This is the beampipe surface
     auto [bp, bp_mask] =
-        det_helper.add_cylinder_surface<detector_t::masks::id::e_cylinder2>(
-            beampipe_idx, ctx, surfaces, masks, transforms, beampipe_r, min_z,
-            max_z, beampipe_idx);
+        det_helper
+            .template add_cylinder_surface<detector_t::masks::id::e_cylinder2>(
+                beampipe_idx, ctx, surfaces, masks, transforms, beampipe_r,
+                min_z, max_z, beampipe_idx);
 
     materials.template emplace_back<material_id::e_slab>(
         {}, beryllium_tml<scalar>(), 0.8f * unit<scalar>::mm);
@@ -737,7 +742,7 @@ inline void add_endcap_barrel_connection(
     constexpr auto leaving_world{detail::invalid_value<nav_link_t>()};
     constexpr auto cyl_id = detector_t::masks::id::e_portal_cylinder2;
 
-    const detail::detector_helper<transform3_t> det_helper{};
+    const detail::detector_helper<typename detector_t::transform3> det_helper{};
 
     const scalar sign{static_cast<scalar>(side)};
     const scalar min_z{math::min(sign * gap_lower_z, sign * gap_upper_z)};
@@ -760,25 +765,27 @@ inline void add_endcap_barrel_connection(
         "connector_gap_" + std::to_string(connector_gap_idx);
     connector_gap.set_transform(det.transform_store().size());
     // translation of the connector gap
-    point3 t{0.f, 0.f, 0.5f * (max_z + min_z)};
+    typename detector_t::point3 t{0.f, 0.f, 0.5f * (max_z + min_z)};
     det.transform_store().emplace_back(ctx, t);
 
     dindex volume_link{beampipe_idx};
     auto &material_coll =
         cfg.use_material_maps() ? det.material_store() : materials;
-    auto [inner_cyl, inner_cyl_mask] = det_helper.add_cylinder_surface<cyl_id>(
-        connector_gap_idx, ctx, surfaces, masks, transforms, edc_inner_r, min_z,
-        max_z, volume_link);
+    auto [inner_cyl, inner_cyl_mask] =
+        det_helper.template add_cylinder_surface<cyl_id>(
+            connector_gap_idx, ctx, surfaces, masks, transforms, edc_inner_r,
+            min_z, max_z, volume_link);
     det_helper.create_material(cfg, inner_cyl, inner_cyl_mask, material_coll);
 
     volume_link = leaving_world;
-    auto [outer_cyl, outer_cyl_mask] = det_helper.add_cylinder_surface<cyl_id>(
-        connector_gap_idx, ctx, surfaces, masks, transforms, edc_outer_r, min_z,
-        max_z, volume_link);
+    auto [outer_cyl, outer_cyl_mask] =
+        det_helper.template add_cylinder_surface<cyl_id>(
+            connector_gap_idx, ctx, surfaces, masks, transforms, edc_outer_r,
+            min_z, max_z, volume_link);
     det_helper.create_material(cfg, outer_cyl, outer_cyl_mask, material_coll);
 
     volume_link = edc_vol_idx;
-    auto [inner_disc, inner_disc_mask] = det_helper.add_disc_surface(
+    auto [inner_disc, inner_disc_mask] = det_helper.template add_disc_surface(
         connector_gap_idx, ctx, surfaces, masks, transforms, edc_inner_r,
         edc_outer_r, edc_disc_z, volume_link);
     det_helper.create_material(cfg, inner_disc, inner_disc_mask, material_coll);
@@ -834,7 +841,7 @@ inline void add_endcap_detector(
     using nav_link_t = typename detector_t::surface_type::navigation_link;
     constexpr auto leaving_world{detail::invalid_value<nav_link_t>()};
 
-    const detail::detector_helper<transform3_t> det_helper{};
+    const detail::detector_helper<typename detector_t::transform3> det_helper{};
 
     // Generate consecutive linking between volumes (all volume_links for every
     // vol.)
@@ -949,7 +956,7 @@ inline void add_barrel_detector(
     using nav_link_t = typename detector_t::surface_type::navigation_link;
     constexpr auto leaving_world{detail::invalid_value<nav_link_t>()};
 
-    const detail::detector_helper<transform3_t> det_helper{};
+    const detail::detector_helper<typename detector_t::transform3> det_helper{};
 
     // Generate consecutive linking between volumes
     dindex first_vol_idx = det.volumes().back().index();

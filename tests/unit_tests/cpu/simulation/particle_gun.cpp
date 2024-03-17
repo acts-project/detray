@@ -24,6 +24,7 @@
 using namespace detray;
 
 using transform3_type = test::transform3;
+using vector3 = test::vector3;
 
 constexpr const scalar tol{1e-3f};
 
