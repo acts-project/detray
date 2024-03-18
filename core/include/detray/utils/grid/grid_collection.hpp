@@ -169,6 +169,25 @@ class grid_collection<
           m_bin_edge_offsets(detail::get<2>(view.m_view)),
           m_bin_edges(detail::get<3>(view.m_view)) {}
 
+    /// Move constructor
+    DETRAY_HOST_DEVICE grid_collection(grid_collection &&other) noexcept
+        : m_bin_offsets(std::move(other.m_bin_offsets)),
+          m_bins(std::move(other.m_bins)),
+          m_bin_edge_offsets(std::move(other.m_bin_edge_offsets)),
+          m_bin_edges(std::move(other.m_bin_edges)) {}
+
+    /// Move assignment
+    DETRAY_HOST_DEVICE grid_collection &operator=(
+        grid_collection &&other) noexcept {
+        if (this != &other) {
+            m_bin_offsets = std::move(other.m_bin_offsets);
+            m_bins = std::move(other.m_bins);
+            m_bin_edge_offsets = std::move(other.m_bin_edge_offsets);
+            m_bin_edges = std::move(other.m_bin_edges);
+        }
+        return *this;
+    }
+
     /// @returns the number of grids in the collection - const
     DETRAY_HOST_DEVICE
     constexpr auto size() const noexcept -> dindex {

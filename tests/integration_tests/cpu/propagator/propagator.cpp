@@ -35,6 +35,8 @@
 
 using namespace detray;
 using transform3 = test::transform3;
+using point3 = test::point3;
+using vector3 = test::vector3;
 
 namespace {
 

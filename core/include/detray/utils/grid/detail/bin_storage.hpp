@@ -46,6 +46,15 @@ class bin_storage : public detray::ranges::view_interface<
 
     /// Default constructor
     bin_storage() = default;
+    /// Copy constructor
+    bin_storage(const bin_storage&) = default;
+    /// Move constructor
+    bin_storage(bin_storage&&) = default;
+
+    /// Copy assignment
+    bin_storage& operator=(const bin_storage&) = default;
+    /// Move assignment
+    bin_storage& operator=(bin_storage&&) = default;
 
     /// Construct containers using a memory resources
     template <bool owner = is_owning, std::enable_if_t<owner, bool> = true>
@@ -137,6 +146,9 @@ struct dynamic_bin_container {
         : bins{resource}, entries{resource} {}
     dynamic_bin_container(const dynamic_bin_container& other) = default;
     dynamic_bin_container(dynamic_bin_container&& other) = default;
+
+    dynamic_bin_container& operator=(const dynamic_bin_container&) = default;
+    dynamic_bin_container& operator=(dynamic_bin_container&&) = default;
 
     /// Device-side construction from a vecmem based view type
     template <typename view_t,
@@ -311,6 +323,10 @@ class bin_storage<is_owning, detray::bins::dynamic_array<entry_t>, containers>
 
     /// Default constructor
     bin_storage() = default;
+    /// Copy constructor
+    bin_storage(const bin_storage&) = default;
+    /// Move constructor
+    bin_storage(bin_storage&&) = default;
 
     /// Construct containers using a memory resources
     template <bool owner = is_owning, std::enable_if_t<owner, bool> = true>
@@ -340,6 +356,11 @@ class bin_storage<is_owning, detray::bins::dynamic_array<entry_t>, containers>
     DETRAY_HOST_DEVICE bin_storage(const view_t& view)
         : m_bin_data(detray::detail::get<0>(view.m_view)),
           m_entry_data(detray::detail::get<1>(view.m_view)) {}
+
+    /// Copy assignment
+    bin_storage& operator=(const bin_storage&) = default;
+    /// Move assignment
+    bin_storage& operator=(bin_storage&&) = default;
 
     const bin_range_t& bin_data() const { return m_bin_data; }
     const entry_range_t& entry_data() const { return m_entry_data; }

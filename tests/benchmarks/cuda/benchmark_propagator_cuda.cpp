@@ -1,6 +1,6 @@
 /** Detray library, part of the ACTS project (R&D line)
  *
- * (c) 2022-2023 CERN for the benefit of the ACTS project
+ * (c) 2022-2024 CERN for the benefit of the ACTS project
  *
  * Mozilla Public License Version 2.0
  */
@@ -9,6 +9,7 @@
 #include "benchmark_propagator_cuda_kernel.hpp"
 #include "detray/detectors/create_toy_geometry.hpp"
 #include "detray/simulation/event_generator/track_generators.hpp"
+#include "detray/test/types.hpp"
 
 // Vecmem include(s)
 #include <vecmem/memory/binary_page_memory_resource.hpp>
@@ -47,7 +48,7 @@ static void BM_PROPAGATOR_CPU(benchmark::State &state) {
 
     // Create the toy geometry and bfield
     auto [det, names] = create_toy_geometry(host_mr, toy_cfg);
-    vector3 B{0.f, 0.f, 2.f * unit<scalar>::T};
+    test::vector3 B{0.f, 0.f, 2.f * unit<scalar>::T};
     auto bfield = bfield::create_const_field(B);
 
     // Create propagator
@@ -102,7 +103,7 @@ static void BM_PROPAGATOR_CUDA(benchmark::State &state) {
 
     // Create the toy geometry
     auto [det, names] = create_toy_geometry(bp_mng_mr, toy_cfg);
-    vector3 B{0.f, 0.f, 2.f * unit<scalar>::T};
+    test::vector3 B{0.f, 0.f, 2.f * unit<scalar>::T};
     auto bfield = bfield::create_const_field(B);
 
     // Get detector data
