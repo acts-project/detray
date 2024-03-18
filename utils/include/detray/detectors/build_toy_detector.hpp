@@ -9,7 +9,6 @@
 
 // Project include(s)
 #include "detray/builders/cylinder_portal_generator.hpp"
-#include "detray/builders/detail/portal_accessor.hpp"
 #include "detray/builders/detector_builder.hpp"
 #include "detray/builders/grid_builder.hpp"
 #include "detray/builders/surface_factory.hpp"
@@ -22,7 +21,6 @@
 #include "detray/detectors/factories/endcap_generator.hpp"
 #include "detray/detectors/toy_metadata.hpp"
 #include "detray/geometry/detector_volume.hpp"
-#include "detray/geometry/shapes/concentric_cylinder2D.hpp"
 #include "detray/geometry/surface.hpp"
 #include "detray/materials/mixture.hpp"
 #include "detray/materials/predefined_materials.hpp"
@@ -56,7 +54,8 @@ struct toy_config {
             .z_overlap(2.f * unit<scalar_t>::mm /*5.f*/);
 
         // Endcap module creator
-        m_endcap_factory_cfg.outer_radius(m_outer_radius)
+        m_endcap_factory_cfg.inner_radius(m_beampipe_volume_radius)
+            .outer_radius(m_outer_radius)
             .module_bounds(
                 {{3.f * unit<scalar_t>::mm, 9.5f * unit<scalar_t>::mm,
                   39.f * unit<scalar_t>::mm},
@@ -78,6 +77,8 @@ struct toy_config {
     scalar_t m_outer_radius{180.f * unit<scalar_t>::mm};
     // Radius of the innermost volume that contains the beampipe
     scalar_t m_beampipe_volume_radius{25.f * unit<scalar_t>::mm};
+    // Envelope around the modules used by the cylinder portal generator
+    scalar_t m_portal_envelope{0.5f * unit<scalar_t>::mm};
     /// Put material maps on portals or use homogenous material on modules
     bool m_use_material_maps{false};
     /// Number of bins for material maps
@@ -130,6 +131,10 @@ struct toy_config {
         m_n_edc_layers = n;
         return *this;
     }
+    constexpr toy_config &envelope(const scalar_t env) {
+        m_portal_envelope = env;
+        return *this;
+    }
     constexpr toy_config &use_material_maps(const bool b) {
         m_use_material_maps = b;
         return *this;
@@ -164,6 +169,7 @@ struct toy_config {
     constexpr unsigned int n_brl_layers() const { return m_n_brl_layers; }
     constexpr unsigned int n_edc_layers() const { return m_n_edc_layers; }
     constexpr const auto &outer_radius() const { return m_outer_radius; }
+    constexpr scalar_t envelope() const { return m_portal_envelope; }
     constexpr scalar_t beampipe_vol_radius() const {
         return m_beampipe_volume_radius;
     }
@@ -274,6 +280,73 @@ void add_gap_portals(volume_builder_interface<detector_t> *v_builder,
     names[vol_idx + 1u] = "gap_" + std::to_string(vol_idx);
 }
 
+/// Helper method for creating the barrel surface grids.
+///
+/// @param det_builder detector builder the barrel section should be added to
+/// @param cfg config for the toy detector
+/// @param vol_index index of the volume to which the grid should be added
+template <typename detector_builder_t>
+inline auto add_cylinder_grid(
+    detector_builder_t &det_builder,
+    toy_config<typename detector_builder_t::detector_type::scalar_type> &cfg,
+    const dindex vol_index) {
+
+    using detector_t = typename detector_builder_t::detector_type;
+    using scalar_t = typename detector_t::scalar_type;
+
+    constexpr auto grid_id = detector_t::accel::id::e_cylinder2_grid;
+
+    using cyl_grid_t =
+        typename detector_t::accelerator_container::template get_type<grid_id>;
+    using grid_builder_t =
+        grid_builder<detector_t, cyl_grid_t, detray::fill_by_pos>;
+
+    const auto &barrel_cfg{cfg.barrel_config()};
+    const scalar_t h_z{barrel_cfg.half_length()};
+
+    auto v_builder = det_builder.template decorate<grid_builder_t>(vol_index);
+    auto vgr_builder = dynamic_cast<grid_builder_t *>(v_builder);
+
+    vgr_builder->set_type(detector_t::geo_obj_ids::e_sensitive);
+    vgr_builder->init_grid(
+        {-constant<scalar_t>::pi, constant<scalar_t>::pi, -h_z, h_z},
+        {barrel_cfg.binning().first, barrel_cfg.binning().second});
+}
+
+/// Helper method for creating the endcap surface grids.
+///
+/// @param det_builder detector builder the barrel section should be added to
+/// @param cfg config for the toy detector
+/// @param vol_index index of the volume to which the grid should be added
+template <typename detector_builder_t>
+inline auto add_disc_grid(
+    detector_builder_t &det_builder,
+    toy_config<typename detector_builder_t::detector_type::scalar_type> &cfg,
+    const dindex vol_index) {
+
+    using detector_t = typename detector_builder_t::detector_type;
+    using scalar_t = typename detector_t::scalar_type;
+
+    constexpr auto grid_id = detector_t::accel::id::e_disc_grid;
+
+    using disc_grid_t =
+        typename detector_t::accelerator_container::template get_type<grid_id>;
+    using grid_builder_t =
+        grid_builder<detector_t, disc_grid_t, detray::fill_by_pos>;
+
+    const auto &endcap_cfg{cfg.endcap_config()};
+    const scalar_t inner_r{cfg.beampipe_vol_radius()};
+    const scalar_t outer_r{cfg.outer_radius()};
+
+    auto v_builder = det_builder.template decorate<grid_builder_t>(vol_index);
+    auto vgr_builder = dynamic_cast<grid_builder_t *>(v_builder);
+
+    vgr_builder->set_type(detector_t::geo_obj_ids::e_sensitive);
+    vgr_builder->init_grid(
+        {inner_r, outer_r, -constant<scalar_t>::pi, constant<scalar_t>::pi},
+        {endcap_cfg.binning().size(), endcap_cfg.binning().back()});
+}
+
 /// Helper method for creating the barrel section.
 ///
 /// @param det_builder detector builder the barrel section should be added to
@@ -314,8 +387,6 @@ inline auto add_barrel_detector(
                                             2u * cfg.n_edc_layers() + 1u);
     }
 
-    std::cout << link_east << ", " << link_west << std::endl;
-
     const scalar_t h_z{cfg.barrel_config().half_length()};
     // Set the inner radius of the first gap to the radius of the beampipe vol.
     scalar_t gap_inner_r{cfg.beampipe_vol_radius()};
@@ -349,17 +420,16 @@ inline auto add_barrel_detector(
             volume_sizes.push_back(
                 {vol_idx, {gap_inner_r, vol_bounds.inner_radius}});
 
-            std::cout << "Index (Gap): " << vol_idx << ", link north "
-                      << link_north << ", link south " << link_south
-                      << std::endl;
-
             // Set the inner gap radius for the next gap volume
             gap_inner_r = vol_bounds.outer_radius;
 
             names[vol_idx + 1u] = "gap_" + std::to_string(vol_idx);
 
         } else {
-            auto link_north{std::min(vol_idx + 3, 2 * cfg.n_brl_layers() + 1)};
+            // Limit to maximum valid link
+            auto link_north{
+                std::min(vol_idx + 3,
+                         2 * cfg.n_edc_layers() + 2 * cfg.n_brl_layers() + 1)};
             auto link_south{vol_idx + 1};
 
             // Configure the module factory for this layer
@@ -372,7 +442,7 @@ inline auto add_barrel_detector(
             // Configure the portal factory
             cylinder_portal_config<scalar_t> portal_cfg{};
 
-            portal_cfg
+            portal_cfg.envelope(cfg.envelope())
                 .fixed_half_length(h_z)
                 // Link the volume portals to its neighbors
                 .link_north(link_north)
@@ -398,14 +468,10 @@ inline auto add_barrel_detector(
             volume_sizes.push_back(
                 {vol_idx, {vol_bounds.inner_radius, vol_bounds.outer_radius}});
 
-            std::cout << "Index (Layer): " << vol_idx << ", link north "
-                      << link_north << ", link south " << link_south
-                      << std::endl;
-
             names[vol_idx + 1u] = "barrel_" + std::to_string(vol_idx);
 
-            // dindex_range sf_range = add_cylinder_grid(
-            //     ctx, resource, det.volumes().back(), det, m_factory);
+            // Add a cylinder grid to every barrel module layer
+            add_cylinder_grid(det_builder, cfg, vol_idx);
         }
     }
 
@@ -419,8 +485,8 @@ inline auto add_barrel_detector(
                             end_of_world, vol_idx - 2u, link_east, link_west);
     volume_sizes.push_back(
         {vol_idx, {vol_bounds.outer_radius, cfg.outer_radius()}});
-    std::cout << "Index: " << vol_idx << ", link north " << end_of_world
-              << ", link south " << vol_idx - 2u << std::endl;
+
+    names[vol_idx + 1u] = "gap_" + std::to_string(vol_idx);
 
     return volume_sizes;
 }
@@ -470,7 +536,7 @@ inline auto add_endcap_detector(
 
     // Alternate endcap module layers and gap volumes
     bool is_gap = true;
-    for (int i = 0; i < 2 * static_cast<int>(cfg.n_edc_layers()); ++i) {
+    for (dindex i = 0u; i < 2u * cfg.n_edc_layers(); ++i) {
 
         // New volume
         auto v_builder = det_builder.new_volume(volume_id::e_cylinder);
@@ -478,7 +544,7 @@ inline auto add_endcap_detector(
 
         // Don't build the first gap here, as this will be done in a separate
         // step once all portals of the barrel are constructed
-        if (i == 1) {
+        if (i == 1u) {
             const scalar_t gap_west_z{sign *
                                       std::min(std::abs(vol_bounds.upper_z),
                                                std::abs(vol_bounds.lower_z))};
@@ -489,7 +555,7 @@ inline auto add_endcap_detector(
             gap_east_z = sign * std::max(std::abs(vol_bounds.upper_z),
                                          std::abs(vol_bounds.lower_z));
 
-            names[vol_idx + 1u] = "gap_" + std::to_string(vol_idx);
+            names[vol_idx + 1u] = "connector_gap_" + std::to_string(vol_idx);
 
             is_gap = !is_gap;
             continue;
@@ -498,8 +564,10 @@ inline auto add_endcap_detector(
         // Every second layer is a gap volume
         is_gap = !is_gap;
         if (is_gap) {
-            auto link_east{vol_idx + cfg.endcap_config().side() - 2u};
-            auto link_west{vol_idx - cfg.endcap_config().side() - 2u};
+            auto link_east{static_cast<dindex>(static_cast<int>(vol_idx) +
+                                               cfg.endcap_config().side() - 2)};
+            auto link_west{static_cast<dindex>(static_cast<int>(vol_idx) -
+                                               cfg.endcap_config().side() - 2)};
 
             const scalar_t gap_west_z{sign *
                                       std::min(std::abs(vol_bounds.upper_z),
@@ -522,23 +590,23 @@ inline auto add_endcap_detector(
             names[vol_idx + 1u] = "gap_" + std::to_string(vol_idx);
 
         } else {
-            const int j{i / 2};
+            const dindex j{i / 2u};
 
-            auto link_east{vol_idx + cfg.endcap_config().side() + 2u};
-            auto link_west{vol_idx - cfg.endcap_config().side() + 2u};
+            auto link_east{static_cast<dindex>(static_cast<int>(vol_idx) +
+                                               cfg.endcap_config().side() + 2)};
+            auto link_west{static_cast<dindex>(static_cast<int>(vol_idx) -
+                                               cfg.endcap_config().side() + 2)};
 
             // The first endacp layer needs to link to the connector gap
             // The last endcap layer needs to exit the detector
             if (sign < 0) {
                 link_east = (i == 0u) ? connector_link : link_east;
-                link_west = (j == static_cast<int>(cfg.n_edc_layers()) - 1)
-                                ? end_of_world
-                                : link_west;
+                link_west =
+                    (j == cfg.n_edc_layers() - 1u) ? end_of_world : link_west;
             } else {
                 link_west = (i == 0u) ? connector_link : link_west;
-                link_east = (j == static_cast<int>(cfg.n_edc_layers()) - 1)
-                                ? end_of_world
-                                : link_east;
+                link_east =
+                    (j == cfg.n_edc_layers() - 1u) ? end_of_world : link_east;
             }
 
             // Position the volume at the respective endcap layer position
@@ -556,7 +624,8 @@ inline auto add_endcap_detector(
             // Configure the portal factory
             cylinder_portal_config<scalar_t> portal_cfg{};
 
-            portal_cfg.fixed_inner_radius(inner_radius)
+            portal_cfg.envelope(cfg.envelope())
+                .fixed_inner_radius(inner_radius)
                 .fixed_outer_radius(outer_radius)
                 // Link the volume portals to their neighbors
                 .link_north(link_north)
@@ -584,8 +653,8 @@ inline auto add_endcap_detector(
 
             names[vol_idx + 1u] = "endcap_" + std::to_string(vol_idx);
 
-            // dindex_range sf_range = add_disc_grid(
-            //     ctx, resource, det.volumes().back(), det, m_factory);
+            // Add a disc grid to every endcap module layer
+            add_disc_grid(det_builder, cfg, vol_idx);
         }
     }
     return volume_sizes;
@@ -728,7 +797,7 @@ inline void add_beampipe_portals(
 
     // Cylinder portal that leads into the barrel section
     dindex first_barrel_idx{
-        cfg.n_edc_layers() == 0u ? end_of_world : 2u * cfg.n_edc_layers() + 1u};
+        cfg.n_edc_layers() == 0u ? end_of_world : 2u * cfg.n_edc_layers() + 2u};
     pt_cyl_factory->push_back(
         {surface_id::e_portal, transform3_t{},
          static_cast<nav_link_t>(first_barrel_idx),
@@ -870,9 +939,6 @@ inline auto build_toy_detector(vecmem::memory_resource &resource,
 
     beampipe_builder->add_surfaces(pt_cyl_factory);
 
-    // Add the beampipe volume portals for the barrel section
-    detail::add_beampipe_portals(beampipe_builder, cfg);
-
     // Build the negative endcap
     vol_extent_container_t neg_edc_vol_extents;
     if (cfg.n_edc_layers() > 0u) {
@@ -891,6 +957,9 @@ inline auto build_toy_detector(vecmem::memory_resource &resource,
 
         brl_vol_extents = detail::add_barrel_detector(det_builder, gctx, cfg,
                                                       name_map, beampipe_idx);
+
+        // Add the beampipe volume portals for the barrel section
+        detail::add_beampipe_portals(beampipe_builder, cfg);
     }
     // Build the positive endcap
     vol_extent_container_t pos_edc_vol_extents;

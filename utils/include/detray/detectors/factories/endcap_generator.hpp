@@ -19,6 +19,7 @@
 
 // System include(s)
 #include <cassert>
+#include <iostream>
 #include <limits>
 
 namespace detray {
@@ -33,7 +34,7 @@ struct endcap_generator_config {
     /// Center position (|z|)
     scalar_t m_center_z{0.f};
     /// Inner layer radius
-    scalar_t m_inner_radius{27.f * unit<scalar_t>::mm};
+    scalar_t m_inner_radius{25.f * unit<scalar_t>::mm};
     /// Outer layer radius
     scalar_t m_outer_radius{180.f * unit<scalar_t>::mm};
     /// Boundary values for the module masks (per ring)
@@ -216,10 +217,10 @@ class endcap_generator final : public surface_factory_interface<detector_t> {
             // Calculate the overlap (equal pay)
             scalar_t r_overlap{
                 (tot_length - delta_r) /
-                static_cast<scalar_t>(m_cfg.module_bounds().size() - 1u)};
+                static_cast<scalar_t>(m_cfg.module_bounds().size())};
 
             // Fill the radii and gaps
-            scalar_t prev_r{m_cfg.inner_radius()};
+            scalar_t prev_r{m_cfg.inner_radius() + r_overlap};
             scalar_t prev_hl{0.f};
             scalar_t prev_ol{0.f};
 
@@ -229,7 +230,7 @@ class endcap_generator final : public surface_factory_interface<detector_t> {
                 // Calculate the radius
                 radii.push_back(prev_r + prev_hl - prev_ol + mod_hlength);
                 prev_r = radii.back();
-                prev_ol = r_overlap;
+                prev_ol = 2.f * r_overlap;
                 prev_hl = mod_hlength;
             }
         }

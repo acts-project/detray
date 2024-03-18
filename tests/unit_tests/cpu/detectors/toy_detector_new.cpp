@@ -7,6 +7,7 @@
 
 // Project include(s)
 #include "detray/detectors/build_toy_detector.hpp"
+#include "detray/test/toy_detector_test_new.hpp"
 #include "detray/test/types.hpp"
 
 // VecMem include(s).
@@ -23,13 +24,13 @@ GTEST_TEST(detray_detectors, toy_detector_new) {
     vecmem::host_memory_resource host_mr;
 
     toy_config<scalar> toy_cfg{};
-    toy_cfg.use_material_maps(false);
+    toy_cfg.use_material_maps(false).do_check(true);
     const auto [toy_det, names] = build_toy_detector(host_mr, toy_cfg);
 
-    /*EXPECT_TRUE(toy_detector_test(toy_det, names));
+    EXPECT_TRUE(toy_detector_test_new(toy_det, names));
 
-    toy_cfg.use_material_maps(true);
-    const auto [toy_det2, names2] = create_toy_geometry(host_mr, toy_cfg);
+    /*toy_cfg.use_material_maps(true);
+    const auto [toy_det2, names2] = build_toy_detector(host_mr, toy_cfg);
 
-    EXPECT_TRUE(toy_detector_test(toy_det2, names2));*/
+    EXPECT_TRUE(toy_detector_test_new(toy_det2, names2));*/
 }

@@ -62,6 +62,13 @@ detray_add_integration_test(toy_detector
                             detray::test detray::io detray::utils
                             detray::core_array detray::svgtools)
 
+
+detray_add_integration_test(toy_detector_new
+                            "detectors/toy_detector_navigation_new.cpp"
+                            LINK_LIBRARIES GTest::gtest GTest::gtest_main
+                            detray::test detray::io detray::utils
+                            detray::core_array detray::svgtools)
+
 set_tests_properties(detray_integration_test_toy_detector PROPERTIES DEPENDS
    "detray_unit_test_cpu;detray_unit_test_cpu_array;detray_unit_test_svgtools")
 
