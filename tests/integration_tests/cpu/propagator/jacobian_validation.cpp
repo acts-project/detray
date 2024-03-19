@@ -571,7 +571,8 @@ bound_track_parameters<transform3_type>::covariance_type directly_differentiate(
     const scalar detector_length, const field_t& field,
     const scalar overstep_tolerance, const scalar on_surface_tolerance,
     const scalar rk_tolerance, const scalar constraint_step,
-    const std::array<scalar, 5u> hs, std::array<unsigned int, 5u>& ridders_N,
+    const std::array<scalar, 5u> hs,
+    std::array<unsigned int, 5u>& num_iterations,
     std::array<bool, 25>& convergence) {
 
     // Return Jacobian
@@ -611,7 +612,7 @@ bound_track_parameters<transform3_type>::covariance_type directly_differentiate(
             ridder.run(nvec1, nvec2, delta, p, i, differentiated_jacobian);
 
             if (ridder.is_complete()) {
-                ridders_N[i] = p;
+                num_iterations[i] = p;
                 break;
             }
         }
@@ -686,7 +687,7 @@ void evaluate_jacobian_difference(
     std::ofstream& file, scalar& ref_rel_diff, bool use_field_gradient,
     bool do_inspect, const bool use_precal_values = false,
     [[maybe_unused]] bound_covariance_type precal_diff_jacobi = {},
-    [[maybe_unused]] std::array<unsigned int, 5u> precal_ridders_N = {},
+    [[maybe_unused]] std::array<unsigned int, 5u> precal_num_iterations = {},
     [[maybe_unused]] std::array<bool, 25u> precal_convergence = {}) {
 
     const auto phi0 = track.phi();
@@ -739,18 +740,18 @@ void evaluate_jacobian_difference(
          << final_param.qop() << ",";
 
     bound_covariance_type differentiated_jacobian;
-    std::array<unsigned int, 5u> ridders_N;
+    std::array<unsigned int, 5u> num_iterations;
     std::array<bool, 25u> convergence;
 
     if (use_precal_values) {
         differentiated_jacobian = precal_diff_jacobi;
-        ridders_N = precal_ridders_N;
+        num_iterations = precal_num_iterations;
         convergence = precal_convergence;
     } else {
         differentiated_jacobian = directly_differentiate<propagator_t, field_t>(
             trk_count, reference_param, det, detector_length, field,
             overstep_tolerance, on_surface_tolerance, rk_tolerance_dis,
-            constraint_step, hs, ridders_N, convergence);
+            constraint_step, hs, num_iterations, convergence);
     }
 
     bool total_convergence =
@@ -758,7 +759,7 @@ void evaluate_jacobian_difference(
 
     // Ridders number of iterations
     for (unsigned int i = 0; i < 5u; i++) {
-        file << ridders_N[i] << ",";
+        file << num_iterations[i] << ",";
     }
 
     // Convergence
@@ -1108,7 +1109,7 @@ void evaluate_jacobian_difference_helix(
      * ****************************/
 
     bound_covariance_type differentiated_jacobian;
-    std::array<unsigned int, 5u> ridders_N;
+    std::array<unsigned int, 5u> num_iterations;
     std::array<bool, 25u> convergence;
 
     for (unsigned int i = 0u; i < 5u; i++) {
@@ -1138,7 +1139,7 @@ void evaluate_jacobian_difference_helix(
             ridder.run(nvec1, nvec2, delta, p, i, differentiated_jacobian);
 
             if (ridder.is_complete()) {
-                ridders_N[i] = p;
+                num_iterations[i] = p;
                 break;
             }
         }
@@ -1164,7 +1165,7 @@ void evaluate_jacobian_difference_helix(
 
     // Ridders number of iterations
     for (unsigned int i = 0; i < 5u; i++) {
-        file << ridders_N[i] << ",";
+        file << num_iterations[i] << ",";
     }
 
     // Convergence
@@ -1790,14 +1791,14 @@ int main(int argc, char** argv) {
 
             if (rk_tolerance_iterate_mode) {
 
-                std::array<unsigned int, 5u> ridders_N;
+                std::array<unsigned int, 5u> num_iterations;
                 std::array<bool, 25u> convergence;
                 auto differentiated_jacobian =
                     directly_differentiate<inhom_field_rect_propagator_t>(
                         track_count, rect_bparam, rect_det_w_mat,
                         detector_length, inhom_bfield, overstep_tol,
                         on_surface_tol, rk_tol_dis, constraint_step_size,
-                        h_sizes_rect, ridders_N, convergence);
+                        h_sizes_rect, num_iterations, convergence);
 
                 for (std::size_t i = 0u; i < log10_tols.size(); i++) {
 
@@ -1808,7 +1809,7 @@ int main(int argc, char** argv) {
                         std::pow(10.f, log10_tols[i]), rk_tol_dis,
                         constraint_step_size, h_sizes_rect, rect_files[i],
                         ref_rel_diff, true, do_inspect, true,
-                        differentiated_jacobian, ridders_N, convergence);
+                        differentiated_jacobian, num_iterations, convergence);
 
                     dqopdqop_rel_diffs_rect[i].push_back(ref_rel_diff);
                 }
@@ -1872,14 +1873,14 @@ int main(int argc, char** argv) {
 
             if (rk_tolerance_iterate_mode) {
 
-                std::array<unsigned int, 5u> ridders_N;
+                std::array<unsigned int, 5u> num_iterations;
                 std::array<bool, 25u> convergence;
                 auto differentiated_jacobian =
                     directly_differentiate<inhom_field_wire_propagator_t>(
                         track_count, wire_bparam, wire_det_w_mat,
                         detector_length, inhom_bfield, overstep_tol,
                         on_surface_tol, rk_tol_dis, constraint_step_size,
-                        h_sizes_wire, ridders_N, convergence);
+                        h_sizes_wire, num_iterations, convergence);
 
                 for (std::size_t i = 0u; i < log10_tols.size(); i++) {
                     // Wire Inhomogeneous field with Material
@@ -1889,7 +1890,7 @@ int main(int argc, char** argv) {
                         std::pow(10.f, log10_tols[i]), rk_tol_dis,
                         constraint_step_size, h_sizes_wire, wire_files[i],
                         ref_rel_diff, true, do_inspect, true,
-                        differentiated_jacobian, ridders_N, convergence);
+                        differentiated_jacobian, num_iterations, convergence);
 
                     dqopdqop_rel_diffs_wire[i].push_back(ref_rel_diff);
                 }
