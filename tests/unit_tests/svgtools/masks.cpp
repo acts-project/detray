@@ -7,7 +7,7 @@
 
 // Project include(s)
 #include "detray/core/detector.hpp"
-#include "detray/detectors/create_toy_geometry.hpp"
+#include "detray/detectors/build_toy_detector.hpp"
 #include "detray/geometry/mask.hpp"
 #include "detray/geometry/shapes.hpp"
 #include "detray/plugins/svgtools/conversion/surface.hpp"

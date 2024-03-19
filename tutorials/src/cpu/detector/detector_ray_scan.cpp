@@ -6,7 +6,7 @@
  */
 
 // Project include(s)
-#include "detray/detectors/create_toy_geometry.hpp"
+#include "detray/detectors/build_toy_detector.hpp"
 #include "detray/navigation/detail/ray.hpp"
 #include "detray/navigation/volume_graph.hpp"
 #include "detray/simulation/event_generator/track_generators.hpp"
@@ -39,7 +39,7 @@ int main() {
 
     // Build the geometry
     vecmem::host_memory_resource host_mr;
-    const auto [det, names] = detray::create_toy_geometry(host_mr);
+    const auto [det, names] = detray::build_toy_detector(host_mr);
 
     // The invalid link value for the toy detector
     using nav_link_t = typename decltype(det)::surface_type::navigation_link;

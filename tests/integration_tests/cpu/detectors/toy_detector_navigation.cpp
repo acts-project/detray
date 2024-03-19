@@ -1,13 +1,13 @@
 /** Detray library, part of the ACTS project (R&D line)
  *
- * (c) 2023 CERN for the benefit of the ACTS project
+ * (c) 2024 CERN for the benefit of the ACTS project
  *
  * Mozilla Public License Version 2.0
  */
 
 // Project include(s)
 #include "detray/definitions/units.hpp"
-#include "detray/detectors/create_toy_geometry.hpp"
+#include "detray/detectors/build_toy_detector.hpp"
 #include "detray/test/detail/register_checks.hpp"
 #include "detray/test/detector_consistency.hpp"
 #include "detray/test/detector_helix_scan.hpp"
@@ -28,18 +28,18 @@ int main(int argc, char **argv) {
     // Filter out the google test flags
     ::testing::InitGoogleTest(&argc, argv);
 
-    //
-    // Toy detector configuration
-    //
-    toy_det_config toy_cfg{};
-    toy_cfg.n_brl_layers(4u).n_edc_layers(7u);
-
     using toy_detector_t = detector<toy_metadata>;
     using scalar_t = typename toy_detector_t::scalar_type;
 
+    //
+    // Toy detector configuration
+    //
+    toy_det_config<scalar_t> toy_cfg{};
+    toy_cfg.n_brl_layers(4u).n_edc_layers(7u);
+
     // Build the geometry
     vecmem::host_memory_resource host_mr;
-    auto [toy_det, toy_names] = create_toy_geometry(host_mr, toy_cfg);
+    auto [toy_det, toy_names] = build_toy_detector(host_mr, toy_cfg);
 
     // General data consistency of the detector
     consistency_check<toy_detector_t>::config cfg_cons{};
@@ -77,10 +77,7 @@ int main(int argc, char **argv) {
     cfg_hel_nav.name("toy_detector_helix_navigation");
     cfg_hel_nav.propagation().navigation.search_window = {3u, 3u};
     cfg_hel_nav.track_generator() = cfg_hel_scan.track_generator();
-    // TODO: Fails due to mask tolerances for more helices, regardless of edc
-    // configuration/precision
-    // cfg_hel_nav.track_generator().theta_steps(100u).phi_steps(100u);
-    cfg_hel_nav.track_generator().theta_steps(50u).phi_steps(50u);
+    cfg_hel_nav.track_generator().theta_steps(100u).phi_steps(100u);
 
     detail::register_checks<helix_navigation>(toy_det, toy_names, cfg_hel_nav);
 

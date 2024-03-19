@@ -216,7 +216,7 @@ GTEST_TEST(detray_builders, decorator_material_map_builder) {
                 EXPECT_TRUE(sf_desc.index() == 3u)
                     << "No material on: " << sf_desc;
                 EXPECT_TRUE(mat_link.id() == mat_id::e_none) << sf_desc;
-                // EXPECT_TRUE(mat_link.index() == 0) << sf_desc;
+                EXPECT_TRUE(mat_link.index() == 0) << sf_desc;
                 break;
             }
             default: {

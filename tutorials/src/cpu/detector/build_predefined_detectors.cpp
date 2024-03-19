@@ -8,7 +8,7 @@
 // Project include(s)
 #include "detray/definitions/units.hpp"
 #include "detray/detectors/build_telescope_detector.hpp"
-#include "detray/detectors/create_toy_geometry.hpp"
+#include "detray/detectors/build_toy_detector.hpp"
 #include "detray/geometry/mask.hpp"
 #include "detray/materials/predefined_materials.hpp"
 #include "detray/navigation/detail/trajectories.hpp"
@@ -40,7 +40,7 @@ int main(int argc, char** argv) {
     //
     // Toy detector
     //
-    detray::toy_det_config toy_cfg{};
+    detray::toy_det_config<detray::scalar> toy_cfg{};
     // Number of barrel layers (0 - 4)
     toy_cfg.n_brl_layers(4u);
     // Number of endcap layers on either side (0 - 7)
@@ -57,7 +57,7 @@ int main(int argc, char** argv) {
     }
 
     // Fill the detector
-    const auto [toy_det, names] = detray::create_toy_geometry(host_mr, toy_cfg);
+    const auto [toy_det, names] = detray::build_toy_detector(host_mr, toy_cfg);
 
     // Print the volume graph of the toy detector
     std::cout << "\nToy detector:\n"

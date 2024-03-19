@@ -8,7 +8,7 @@
 // Project include(s)
 #include "propagation.hpp"
 
-#include "detray/detectors/create_toy_geometry.hpp"
+#include "detray/detectors/build_toy_detector.hpp"
 #include "detray/simulation/event_generator/track_generators.hpp"
 
 // Vecmem include(s)
@@ -27,7 +27,7 @@ int main() {
     auto bfield = detray::bfield::create_inhom_field();
 
     // Create the toy geometry
-    auto [det, names] = detray::create_toy_geometry(mng_mr);
+    auto [det, names] = detray::build_toy_detector(mng_mr);
 
     // Create the vector of initial track parameters
     vecmem::vector<detray::free_track_parameters<detray::tutorial::transform3>>

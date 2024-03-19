@@ -6,7 +6,7 @@
  */
 
 // Project include(s).
-#include "detray/detectors/create_toy_geometry.hpp"
+#include "detray/detectors/build_toy_detector.hpp"
 #include "detray/test/types.hpp"
 
 // VecMem include(s).
@@ -30,9 +30,9 @@ void BM_FIND_VOLUMES(benchmark::State &state) {
 
     // Detector configuration
     vecmem::host_memory_resource host_mr;
-    toy_det_config toy_cfg{};
+    toy_det_config<scalar> toy_cfg{};
     toy_cfg.n_edc_layers(7u);
-    auto [d, names] = create_toy_geometry(host_mr, toy_cfg);
+    auto [d, names] = build_toy_detector(host_mr, toy_cfg);
 
     static const unsigned int itest = 10000u;
 

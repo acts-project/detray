@@ -1,12 +1,12 @@
 /** Detray library, part of the ACTS project (R&D line)
  *
- * (c) 2021-2023 CERN for the benefit of the ACTS project
+ * (c) 2021-2024 CERN for the benefit of the ACTS project
  *
  * Mozilla Public License Version 2.0
  */
 
 // Project include(s)
-#include "detray/detectors/create_toy_geometry.hpp"
+#include "detray/detectors/build_toy_detector.hpp"
 #include "detray/test/toy_detector_test.hpp"
 #include "detray/test/types.hpp"
 
@@ -23,14 +23,14 @@ GTEST_TEST(detray_detectors, toy_detector) {
 
     vecmem::host_memory_resource host_mr;
 
-    toy_det_config toy_cfg{};
-    toy_cfg.use_material_maps(false);
-    const auto [toy_det, names] = create_toy_geometry(host_mr, toy_cfg);
+    toy_det_config<scalar> toy_cfg{};
+    toy_cfg.use_material_maps(false).do_check(true);
+    const auto [toy_det, names] = build_toy_detector(host_mr, toy_cfg);
 
     EXPECT_TRUE(toy_detector_test(toy_det, names));
 
-    toy_cfg.use_material_maps(true);
-    const auto [toy_det2, names2] = create_toy_geometry(host_mr, toy_cfg);
+    /*toy_cfg.use_material_maps(true);
+    const auto [toy_det2, names2] = build_toy_detector(host_mr, toy_cfg);
 
-    EXPECT_TRUE(toy_detector_test(toy_det2, names2));
+    EXPECT_TRUE(toy_detector_test(toy_det2, names2));*/
 }

@@ -279,9 +279,7 @@ class cylinder_portal_generator final
         mask_link_t mask_link{
             mask_id::e_portal_cylinder2,
             masks.template size<mask_id::e_portal_cylinder2>() - 1u};
-        material_link_t material_link{
-            material_id::e_none,
-            detail::invalid_value<typename material_link_t::index_type>()};
+        material_link_t material_link{material_id::e_none, 0u};
 
         surfaces.push_back(
             {static_cast<dindex>(transforms.size(ctx) - 1u), mask_link,
@@ -321,9 +319,7 @@ class cylinder_portal_generator final
         mask_link_t mask_link{
             mask_id::e_portal_ring2,
             masks.template size<mask_id::e_portal_ring2>() - 1u};
-        material_link_t material_link{
-            material_id::e_none,
-            detail::invalid_value<typename material_link_t::index_type>()};
+        material_link_t material_link{material_id::e_none, 0u};
 
         surfaces.push_back(
             {static_cast<dindex>(transforms.size(ctx) - 1u), mask_link,

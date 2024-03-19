@@ -7,7 +7,7 @@
 
 // Project include(s)
 #include "benchmark_propagator_cuda_kernel.hpp"
-#include "detray/detectors/create_toy_geometry.hpp"
+#include "detray/detectors/build_toy_detector.hpp"
 #include "detray/simulation/event_generator/track_generators.hpp"
 #include "detray/test/types.hpp"
 
@@ -29,7 +29,7 @@ vecmem::cuda::device_memory_resource dev_mr;
 vecmem::binary_page_memory_resource bp_mng_mr(mng_mr);
 
 // detector configuration
-toy_det_config toy_cfg{4u, 7u};
+auto toy_cfg = toy_det_config<scalar>{}.n_brl_layers(4u).n_edc_layers(7u);
 
 void fill_tracks(vecmem::vector<free_track_parameters<transform3>> &tracks,
                  const std::size_t theta_steps, const std::size_t phi_steps) {
@@ -47,7 +47,7 @@ template <propagate_option opt>
 static void BM_PROPAGATOR_CPU(benchmark::State &state) {
 
     // Create the toy geometry and bfield
-    auto [det, names] = create_toy_geometry(host_mr, toy_cfg);
+    auto [det, names] = build_toy_detector(host_mr, toy_cfg);
     test::vector3 B{0.f, 0.f, 2.f * unit<scalar>::T};
     auto bfield = bfield::create_const_field(B);
 
@@ -102,7 +102,7 @@ template <propagate_option opt>
 static void BM_PROPAGATOR_CUDA(benchmark::State &state) {
 
     // Create the toy geometry
-    auto [det, names] = create_toy_geometry(bp_mng_mr, toy_cfg);
+    auto [det, names] = build_toy_detector(bp_mng_mr, toy_cfg);
     test::vector3 B{0.f, 0.f, 2.f * unit<scalar>::T};
     auto bfield = bfield::create_const_field(B);
 

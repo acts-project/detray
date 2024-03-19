@@ -10,7 +10,6 @@
 #include "detray/definitions/units.hpp"
 #include "detray/detectors/build_telescope_detector.hpp"
 #include "detray/detectors/build_toy_detector.hpp"
-#include "detray/detectors/create_toy_geometry.hpp"
 #include "detray/detectors/create_wire_chamber.hpp"
 #include "detray/geometry/mask.hpp"
 #include "detray/geometry/shapes/annulus2D.hpp"
@@ -87,9 +86,9 @@ GTEST_TEST(io, json_toy_material_maps_writer) {
 
     // Toy detector
     vecmem::host_memory_resource host_mr;
-    toy_det_config toy_cfg{};
+    toy_det_config<scalar> toy_cfg{};
     toy_cfg.use_material_maps(true);
-    auto [det, names] = create_toy_geometry(host_mr, toy_cfg);
+    auto [det, names] = build_toy_detector(host_mr, toy_cfg);
 
     io::json_writer<detector_t, io::material_map_writer> map_writer;
     map_writer.write(det, names,
@@ -103,7 +102,7 @@ GTEST_TEST(io, json_toy_grid_writer) {
 
     // Toy detector
     vecmem::host_memory_resource host_mr;
-    auto [det, names] = create_toy_geometry(host_mr);
+    auto [det, names] = build_toy_detector(host_mr);
 
     io::json_writer<detector_t, io::surface_grid_writer> grid_writer;
     grid_writer.write(det, names,
@@ -115,23 +114,8 @@ GTEST_TEST(io, json_toy_detector_writer) {
 
     // Toy detector
     vecmem::host_memory_resource host_mr;
-    toy_det_config toy_cfg{};
+    toy_det_config<scalar> toy_cfg{};
     toy_cfg.use_material_maps(true);
-    const auto [det, names] = create_toy_geometry(host_mr, toy_cfg);
-
-    auto writer_cfg = io::detector_writer_config{}
-                          .format(io::format::json)
-                          .replace_files(true);
-    io::write_detector(det, names, writer_cfg);
-}
-
-/// Test the writing of the entire toy detector to json
-GTEST_TEST(io, json_toy_detector_writer_new) {
-
-    // Toy detector
-    vecmem::host_memory_resource host_mr;
-    toy_config<scalar> toy_cfg{};
-    toy_cfg.use_material_maps(false);
     const auto [det, names] = build_toy_detector(host_mr, toy_cfg);
 
     auto writer_cfg = io::detector_writer_config{}

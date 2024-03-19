@@ -7,7 +7,7 @@
 
 // Project include(s)
 #include "detray/definitions/units.hpp"
-#include "detray/detectors/create_toy_geometry.hpp"
+#include "detray/detectors/build_toy_detector.hpp"
 #include "detray/geometry/detail/volume_descriptor.hpp"
 #include "detray/test/types.hpp"
 
@@ -79,7 +79,7 @@ GTEST_TEST(detray_geometry, detector_volume) {
     constexpr auto tol{std::numeric_limits<scalar>::epsilon()};
 
     vecmem::host_memory_resource host_mr;
-    const auto [toy_det, names] = create_toy_geometry(host_mr);
+    const auto [toy_det, names] = build_toy_detector(host_mr);
 
     //
     // Volume 7 is a barrrel layer with sensitive surfaces
@@ -101,7 +101,7 @@ GTEST_TEST(detray_geometry, detector_volume) {
     for (const auto& sf : vol7.surfaces()) {
         sf_indices.push_back(sf.index());
     }
-    auto seq = detray::views::iota(370u, 598u);
+    auto seq = detray::views::iota(372u, 600u);
     EXPECT_TRUE(std::equal(sf_indices.begin(), sf_indices.end(), seq.begin()));
 
     // Access to portals
@@ -109,7 +109,7 @@ GTEST_TEST(detray_geometry, detector_volume) {
     for (const auto& pt : vol7.portals()) {
         sf_indices.push_back(pt.index());
     }
-    seq = detray::views::iota(370u, 374u);
+    seq = detray::views::iota(596u, 600u);
     EXPECT_TRUE(std::equal(sf_indices.begin(), sf_indices.end(), seq.begin()));
 
     // Access to sensitive surfaces
@@ -117,7 +117,7 @@ GTEST_TEST(detray_geometry, detector_volume) {
     for (const auto& sens : vol7.template surfaces<surface_id::e_sensitive>()) {
         sf_indices.push_back(sens.index());
     }
-    seq = detray::views::iota(374u, 598u);
+    seq = detray::views::iota(372u, 596u);
     EXPECT_TRUE(std::equal(sf_indices.begin(), sf_indices.end(), seq.begin()));
     //
     // Volume 5 is negative endcap layer with sensitive surfaces
@@ -130,7 +130,7 @@ GTEST_TEST(detray_geometry, detector_volume) {
     t = vol5.center();
     ASSERT_NEAR(t[0], 0.f, tol);
     ASSERT_NEAR(t[1], 0.f, tol);
-    ASSERT_NEAR(t[2], -600.f, tol);
+    ASSERT_NEAR(t[2], -820.f, tol);
     ASSERT_EQ(vol5.surfaces().size(), 112u);
 
     // Access to all surfaces
@@ -138,7 +138,7 @@ GTEST_TEST(detray_geometry, detector_volume) {
     for (const auto& sf : vol5.surfaces()) {
         sf_indices.push_back(sf.index());
     }
-    seq = detray::views::iota(248u, 360u);
+    seq = detray::views::iota(256u, 368u);
     EXPECT_TRUE(std::equal(sf_indices.begin(), sf_indices.end(), seq.begin()));
 
     // Access to portals
@@ -146,7 +146,7 @@ GTEST_TEST(detray_geometry, detector_volume) {
     for (const auto& pt : vol5.portals()) {
         sf_indices.push_back(pt.index());
     }
-    seq = detray::views::iota(248u, 252u);
+    seq = detray::views::iota(364u, 368u);
     EXPECT_TRUE(std::equal(sf_indices.begin(), sf_indices.end(), seq.begin()));
 
     // Access to sensitive surfaces
@@ -154,34 +154,34 @@ GTEST_TEST(detray_geometry, detector_volume) {
     for (const auto& sens : vol5.template surfaces<surface_id::e_sensitive>()) {
         sf_indices.push_back(sens.index());
     }
-    seq = detray::views::iota(252u, 360u);
+    seq = detray::views::iota(256u, 364u);
     EXPECT_TRUE(std::equal(sf_indices.begin(), sf_indices.end(), seq.begin()));
 
     //
-    // Volume 14 is the positive connector gap
+    // Volume 17 is the positive connector gap
     //
-    const auto vol14 = detector_volume{toy_det, 14u};
+    const auto vol17 = detector_volume{toy_det, 17u};
 
-    ASSERT_EQ(vol14.id(), volume_id::e_cylinder) << vol14 << std::endl;
-    ASSERT_EQ(vol14.index(), 14u) << vol14 << std::endl;
-    ASSERT_EQ(vol14.name(names), "connector_gap_14") << vol14 << std::endl;
-    t = vol14.center();
+    ASSERT_EQ(vol17.id(), volume_id::e_cylinder) << vol17 << std::endl;
+    ASSERT_EQ(vol17.index(), 17u) << vol17 << std::endl;
+    ASSERT_EQ(vol17.name(names), "connector_gap_17") << vol17 << std::endl;
+    t = vol17.center();
     ASSERT_NEAR(t[0], 0.f, tol);
     ASSERT_NEAR(t[1], 0.f, tol);
-    ASSERT_NEAR(t[2], 547.5f, tol);
-    ASSERT_EQ(vol14.surfaces().size(), 10u);
+    ASSERT_NEAR(t[2], 547.75f, tol);
+    ASSERT_EQ(vol17.surfaces().size(), 12u);
 
     // Access to all surfaces
     sf_indices.clear();
-    for (const auto& sf : vol14.surfaces()) {
+    for (const auto& sf : vol17.surfaces()) {
         sf_indices.push_back(sf.index());
     }
-    seq = detray::views::iota(2890u, 2900u);
+    seq = detray::views::iota(3012u, 3024u);
     EXPECT_TRUE(std::equal(sf_indices.begin(), sf_indices.end(), seq.begin()));
 
     // Access to portals
     sf_indices.clear();
-    for (const auto& pt : vol14.portals()) {
+    for (const auto& pt : vol17.portals()) {
         sf_indices.push_back(pt.index());
     }
     EXPECT_TRUE(std::equal(sf_indices.begin(), sf_indices.end(), seq.begin()));
@@ -189,7 +189,7 @@ GTEST_TEST(detray_geometry, detector_volume) {
     // Access to sensitive surfaces: None in gap volume
     sf_indices.clear();
     for (const auto& sens :
-         vol14.template surfaces<surface_id::e_sensitive>()) {
+         vol17.template surfaces<surface_id::e_sensitive>()) {
         sf_indices.push_back(sens.index());
     }
     EXPECT_TRUE(sf_indices.empty());

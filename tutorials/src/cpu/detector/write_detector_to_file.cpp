@@ -6,7 +6,7 @@
  */
 
 // Project include(s)
-#include "detray/detectors/create_toy_geometry.hpp"
+#include "detray/detectors/build_toy_detector.hpp"
 #include "detray/io/frontend/detector_writer.hpp"
 
 // Example linear algebra plugin: std::array
@@ -20,7 +20,7 @@ int main() {
 
     // First, create an example detector in in host memory to be written to disk
     vecmem::host_memory_resource host_mr;
-    const auto [det, names] = detray::create_toy_geometry(host_mr);
+    const auto [det, names] = detray::build_toy_detector(host_mr);
 
     // Configuration for the writer:
     //     - use json format

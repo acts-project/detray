@@ -9,7 +9,7 @@
 #include "detray/navigation/navigator.hpp"
 
 #include "detray/definitions/detail/indexing.hpp"
-#include "detray/detectors/create_toy_geometry.hpp"
+#include "detray/detectors/build_toy_detector.hpp"
 #include "detray/detectors/create_wire_chamber.hpp"
 #include "detray/navigation/navigator.hpp"
 #include "detray/propagator/line_stepper.hpp"
@@ -120,7 +120,7 @@ GTEST_TEST(detray_navigation, navigator_toy_geometry) {
     /// Tolerance for tests
     constexpr double tol{0.01};
 
-    auto [toy_det, names] = create_toy_geometry(host_mr);
+    auto [toy_det, names] = build_toy_detector(host_mr);
 
     using detector_t = decltype(toy_det);
     using inspector_t = navigation::print_inspector;
@@ -164,7 +164,7 @@ GTEST_TEST(detray_navigation, navigator_toy_geometry) {
     // The status is towards beampipe
     // Two candidates: beampipe and portal
     // First candidate is the beampipe
-    check_towards_surface<navigator_t>(navigation, 0u, 2u, 15u);
+    check_towards_surface<navigator_t>(navigation, 0u, 2u, 0u);
     // Distance to beampipe surface
     ASSERT_NEAR(navigation(), 19.f, tol);
 
@@ -182,19 +182,19 @@ GTEST_TEST(detray_navigation, navigator_toy_geometry) {
     // Trust level is restored
     ASSERT_EQ(navigation.trust_level(), trust_level::e_full);
     // The status remains: towards surface
-    check_towards_surface<navigator_t>(navigation, 0u, 2u, 15u);
+    check_towards_surface<navigator_t>(navigation, 0u, 2u, 0u);
     // Distance to beampipe is now halved
     ASSERT_NEAR(navigation(), 9.5f, tol);
 
     // Let's immediately update, nothing should change, as there is full trust
     ASSERT_TRUE(nav.update(propagation, cfg));
-    check_towards_surface<navigator_t>(navigation, 0u, 2u, 15u);
+    check_towards_surface<navigator_t>(navigation, 0u, 2u, 0u);
     ASSERT_NEAR(navigation(), 9.5f, tol);
 
     // Now step onto the beampipe (idx 0)
-    check_step(nav, stepper, propagation, 0u, 1u, 15u, 6u);
+    check_step(nav, stepper, propagation, 0u, 1u, 0u, 8u);
     // New target: Distance to the beampipe volume cylinder portal
-    ASSERT_NEAR(navigation(), 8.f, tol);
+    ASSERT_NEAR(navigation(), 6.f, tol);
 
     // Step onto portal 7 in volume 0
     stepper.step(propagation);
@@ -209,25 +209,33 @@ GTEST_TEST(detray_navigation, navigator_toy_geometry) {
     //
 
     // Last volume before we leave world
-    dindex last_vol_id = 13u;
+    dindex last_vol_id = 15u;
 
     // maps volume id to the sequence of surfaces that the navigator encounters
-    std::map<dindex, std::vector<dindex>> sf_sequences;
+    std::vector<std::pair<dindex, std::vector<dindex>>> sf_sequences;
 
-    // layer 1
-    sf_sequences[7] = {370u, 495u, 479u, 496u, 480u, 371u};
     // gap 1
-    sf_sequences[8] = {598u, 599u};
-    // layer 2
-    sf_sequences[9] = {602u, 849u, 817u, 850u, 818u, 603u};
+    sf_sequences.emplace_back(8u, std::vector<dindex>{600u, 601u});
+    // layer 1
+    sf_sequences.emplace_back(
+        7u, std::vector<dindex>{596u, 493u, 477u, 494u, 478u, 597u});
     // gap 2
-    sf_sequences[10] = {1054u, 1055u};
-    // layer 3
-    sf_sequences[11] = {1058u, 1458u, 1406u, 1059u};
+    sf_sequences.emplace_back(10u, std::vector<dindex>{1056u, 1057u});
+    // layer 2
+    sf_sequences.emplace_back(
+        9u, std::vector<dindex>{1052u, 847u, 815u, 848u, 816u, 1053u});
     // gap 3
-    sf_sequences[12] = {1790u, 1791u};
+    sf_sequences.emplace_back(12u, std::vector<dindex>{1792u, 1793u});
+    // layer 3
+    sf_sequences.emplace_back(11u,
+                              std::vector<dindex>{1788u, 1456u, 1404u, 1789u});
+    // gap 4
+    sf_sequences.emplace_back(14u, std::vector<dindex>{2892u, 2893u});
     // layer 4
-    sf_sequences[last_vol_id] = {1794u, 2392u, 2314u, 1795u};
+    sf_sequences.emplace_back(13u,
+                              std::vector<dindex>{2888u, 2390u, 2312u, 2889u});
+    // gap 5
+    sf_sequences.emplace_back(last_vol_id, std::vector<dindex>{2896u, 2897u});
 
     // Every iteration steps through one barrel layer
     for (const auto &[vol_id, sf_seq] : sf_sequences) {

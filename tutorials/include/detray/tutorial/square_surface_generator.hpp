@@ -94,9 +94,7 @@ class square_surface_generator final
 
             // Add surface with all links set (relative to the given containers)
             mask_link_t mask_link{mask_id, masks.template size<mask_id>() - 1u};
-            material_link_t material_link{
-                no_material,
-                detail::invalid_value<typename material_link_t::index_type>()};
+            material_link_t material_link{no_material, 0u};
             surfaces.push_back(
                 {transforms.size(ctx) - 1u, mask_link, material_link,
                  volume.index(), surface_id::e_sensitive},

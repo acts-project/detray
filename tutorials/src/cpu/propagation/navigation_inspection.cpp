@@ -7,7 +7,7 @@
 
 // Project include(s)
 #include "detray/definitions/units.hpp"
-#include "detray/detectors/create_toy_geometry.hpp"
+#include "detray/detectors/build_toy_detector.hpp"
 #include "detray/navigation/detail/ray.hpp"
 #include "detray/navigation/navigator.hpp"
 #include "detray/propagator/actor_chain.hpp"
@@ -62,7 +62,7 @@ int main() {
 
     vecmem::host_memory_resource host_mr;
 
-    const auto [det, names] = detray::create_toy_geometry(host_mr);
+    const auto [det, names] = detray::build_toy_detector(host_mr);
 
     // Build the propagator
     propagator_t prop{};

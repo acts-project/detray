@@ -7,7 +7,7 @@
 
 // Project include(s)
 #include "detray/definitions/detail/indexing.hpp"
-#include "detray/detectors/create_toy_geometry.hpp"
+#include "detray/detectors/build_toy_detector.hpp"
 #include "detray/geometry/surface.hpp"
 #include "detray/test/types.hpp"
 
@@ -90,17 +90,17 @@ GTEST_TEST(detray_geometry, surface) {
     using vector3_t = surface<detector_t>::vector3;
 
     vecmem::host_memory_resource host_mr;
-    const auto [toy_det, names] = create_toy_geometry(host_mr);
+    const auto [toy_det, names] = build_toy_detector(host_mr);
 
     auto ctx = typename detector_t::geometry_context{};
 
-    const auto disc_descr = toy_det.surfaces()[13u];
+    const auto disc_descr = toy_det.surfaces()[1u];
     const auto disc = surface{toy_det, disc_descr};
 
     // IDs
     ASSERT_EQ(disc.barcode(), disc_descr.barcode());
     ASSERT_EQ(disc.volume(), 0u);
-    ASSERT_EQ(disc.index(), 13u);
+    ASSERT_EQ(disc.index(), 1u);
     ASSERT_EQ(disc.id(), surface_id::e_portal);
     ASSERT_EQ(disc.shape_id(), detector_t::masks::id::e_portal_ring2);
     ASSERT_FALSE(disc.is_sensitive());
@@ -109,7 +109,7 @@ GTEST_TEST(detray_geometry, surface) {
 
     // Transformation matrix
     const auto disc_translation =
-        vector3_t{0.f, 0.f, -825.f};  // beampipe portal
+        vector3_t{0.f, 0.f, -824.5f};  // beampipe portal
     ASSERT_EQ(disc.transform(ctx).translation(), disc_translation);
     ASSERT_EQ(disc.center(ctx), disc_translation);
 

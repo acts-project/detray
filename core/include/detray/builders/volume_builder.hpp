@@ -30,8 +30,6 @@ struct mask_index_update;
 template <typename detector_t>
 class volume_builder : public volume_builder_interface<detector_t> {
 
-    using material_link_t = typename detector_t::surface_type::material_link;
-
     public:
     using scalar_type = typename detector_t::scalar_type;
     using volume_type = typename detector_t::volume_type;
@@ -45,9 +43,7 @@ class volume_builder : public volume_builder_interface<detector_t> {
         : m_has_accel{false}, m_volume{id} {
 
         m_volume.set_index(idx);
-        m_volume.set_material(
-            volume_type::material_id::e_none,
-            detail::invalid_value<typename material_link_t::index_type>());
+        m_volume.set_material(volume_type::material_id::e_none, 0u);
 
         // The first acceleration data structure in every volume is a brute
         // force method that will at least contain the portals

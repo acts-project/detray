@@ -7,7 +7,7 @@
 
 // Project include(s)
 #include "detector_cuda_kernel.hpp"
-#include "detray/detectors/create_toy_geometry.hpp"
+#include "detray/detectors/build_toy_detector.hpp"
 
 // Vecmem include(s)
 #include <vecmem/memory/cuda/device_memory_resource.hpp>
@@ -29,7 +29,7 @@ TEST(detector_cuda, detector) {
     vecmem::cuda::managed_memory_resource mng_mr;
 
     // create toy geometry
-    auto [toy_det, names] = create_toy_geometry(mng_mr);
+    auto [toy_det, names] = build_toy_detector(mng_mr);
 
     auto ctx0 = typename detector_host_t::geometry_context();
 
@@ -43,10 +43,11 @@ TEST(detector_cuda, detector) {
     auto& rectangles_host = masks_host.get<rectangle_id>();
 
     // copied outpus from device side
-    vecmem::vector<volume_t> volumes_device(volumes_host.size(), &mng_mr);
-    vecmem::vector<surface_t> surfaces_device(surfaces_host.size(), &mng_mr);
-    vecmem::vector<transform3_t> transforms_device(transforms_host.size(),
-                                                   &mng_mr);
+    vecmem::vector<det_volume_t> volumes_device(volumes_host.size(), &mng_mr);
+    vecmem::vector<det_surface_t> surfaces_device(surfaces_host.size(),
+                                                  &mng_mr);
+    vecmem::vector<transform_t> transforms_device(transforms_host.size(),
+                                                  &mng_mr);
     vecmem::vector<rectangle_t> rectangles_device(rectangles_host.size(),
                                                   &mng_mr);
     vecmem::vector<disc_t> discs_device(discs_host.size(), &mng_mr);

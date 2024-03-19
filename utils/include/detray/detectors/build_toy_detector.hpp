@@ -43,10 +43,10 @@ namespace detray {
 
 /// Configure the toy detector
 template <typename scalar_t>
-struct toy_config {
+struct toy_det_config {
 
     /// Default toy detector configuration
-    toy_config() {
+    toy_det_config() {
         // Barrel module creator
         m_barrel_factory_cfg.half_length(500.f * unit<scalar_t>::mm)
             .module_bounds(
@@ -137,52 +137,52 @@ struct toy_config {
 
     /// Setters
     /// @{
-    constexpr toy_config &n_brl_layers(const unsigned int n) {
+    constexpr toy_det_config &n_brl_layers(const unsigned int n) {
         m_n_brl_layers = n;
         return *this;
     }
-    constexpr toy_config &n_edc_layers(const unsigned int n) {
+    constexpr toy_det_config &n_edc_layers(const unsigned int n) {
         m_n_edc_layers = n;
         return *this;
     }
-    constexpr toy_config &envelope(const scalar_t env) {
+    constexpr toy_det_config &envelope(const scalar_t env) {
         m_portal_envelope = env;
         return *this;
     }
-    constexpr toy_config &use_material_maps(const bool b) {
+    constexpr toy_det_config &use_material_maps(const bool b) {
         m_use_material_maps = b;
         return *this;
     }
-    constexpr toy_config &cyl_map_bins(const std::size_t n_phi,
-                                       const std::size_t n_z) {
+    constexpr toy_det_config &cyl_map_bins(const std::size_t n_phi,
+                                           const std::size_t n_z) {
         m_cyl_map_bins = {n_phi, n_z};
         return *this;
     }
-    constexpr toy_config &disc_map_bins(const std::size_t n_r,
-                                        const std::size_t n_phi) {
+    constexpr toy_det_config &disc_map_bins(const std::size_t n_r,
+                                            const std::size_t n_phi) {
         m_disc_map_bins = {n_r, n_phi};
         return *this;
     }
-    constexpr toy_config &thickness(const scalar_t t) {
+    constexpr toy_det_config &thickness(const scalar_t t) {
         assert(t > 0.f);
         m_thickness = t;
         return *this;
     }
-    constexpr toy_config &beampipe_mat_thickness(const scalar_t t) {
+    constexpr toy_det_config &beampipe_mat_thickness(const scalar_t t) {
         assert(t > 0.f);
         m_beampipe_mat_thickness = t;
         return *this;
     }
-    constexpr toy_config &module_mat_thickness(const scalar_t t) {
+    constexpr toy_det_config &module_mat_thickness(const scalar_t t) {
         assert(t > 0.f);
         m_module_mat_thickness = t;
         return *this;
     }
-    constexpr toy_config &mapped_material(const material<scalar_t> &mat) {
+    constexpr toy_det_config &mapped_material(const material<scalar_t> &mat) {
         m_mapped_material = mat;
         return *this;
     }
-    constexpr toy_config &do_check(const bool check) {
+    constexpr toy_det_config &do_check(const bool check) {
         m_do_check = check;
         return *this;
     }
@@ -324,7 +324,7 @@ template <typename detector_builder_t, typename detector_t>
 std::tuple<volume_builder_interface<detector_t> *,
            std::shared_ptr<surface_factory_interface<detector_t>>>
 decorate_material(
-    const toy_config<typename detector_t::scalar_type> &cfg,
+    const toy_det_config<typename detector_t::scalar_type> &cfg,
     detector_builder_t &det_builder,
     volume_builder_interface<detector_t> *v_builder,
     std::unique_ptr<
@@ -363,7 +363,8 @@ decorate_material(
 template <typename detector_builder_t>
 inline void add_cylinder_grid(
     detector_builder_t &det_builder,
-    toy_config<typename detector_builder_t::detector_type::scalar_type> &cfg,
+    toy_det_config<typename detector_builder_t::detector_type::scalar_type>
+        &cfg,
     const dindex vol_index) {
 
     using detector_t = typename detector_builder_t::detector_type;
@@ -396,7 +397,8 @@ inline void add_cylinder_grid(
 template <typename detector_builder_t>
 inline void add_disc_grid(
     detector_builder_t &det_builder,
-    toy_config<typename detector_builder_t::detector_type::scalar_type> &cfg,
+    toy_det_config<typename detector_builder_t::detector_type::scalar_type>
+        &cfg,
     const dindex vol_index) {
 
     using detector_t = typename detector_builder_t::detector_type;
@@ -435,7 +437,8 @@ template <typename detector_builder_t>
 inline auto add_barrel_detector(
     detector_builder_t &det_builder,
     typename detector_builder_t::detector_type::geometry_context &gctx,
-    toy_config<typename detector_builder_t::detector_type::scalar_type> &cfg,
+    toy_det_config<typename detector_builder_t::detector_type::scalar_type>
+        &cfg,
     typename detector_builder_t::detector_type::name_map &names,
     dindex beampipe_idx) {
 
@@ -587,7 +590,8 @@ template <typename detector_builder_t>
 inline auto add_endcap_detector(
     detector_builder_t &det_builder,
     typename detector_builder_t::detector_type::geometry_context &gctx,
-    toy_config<typename detector_builder_t::detector_type::scalar_type> &cfg,
+    toy_det_config<typename detector_builder_t::detector_type::scalar_type>
+        &cfg,
     typename detector_builder_t::detector_type::name_map &names,
     dindex beampipe_idx) {
 
@@ -761,7 +765,8 @@ inline auto add_endcap_detector(
 template <typename detector_builder_t, typename vol_extent_data_t>
 inline void add_connector_portals(
     detector_builder_t &det_builder,
-    toy_config<typename detector_builder_t::detector_type::scalar_type> &cfg,
+    toy_det_config<typename detector_builder_t::detector_type::scalar_type>
+        &cfg,
     const dindex beampipe_idx, const vol_extent_data_t edc_vol_extents,
     const vol_extent_data_t &brl_vol_extents) {
 
@@ -848,7 +853,7 @@ inline void add_connector_portals(
 template <typename detector_t>
 inline void add_beampipe_portals(
     volume_builder_interface<detector_t> *beampipe_builder,
-    toy_config<typename detector_t::scalar_type> &cfg) {
+    toy_det_config<typename detector_t::scalar_type> &cfg) {
 
     using scalar_t = typename detector_t::scalar_type;
     using transform3_t = typename detector_t::transform3;
@@ -909,7 +914,7 @@ inline void add_beampipe_portals(
 template <typename detector_t, typename scalar_t, typename layer_size_cont_t>
 inline void add_beampipe_portals(
     volume_builder_interface<detector_t> *beampipe_builder,
-    toy_config<scalar_t> &cfg, const layer_size_cont_t &edc_lay_sizes) {
+    toy_det_config<scalar_t> &cfg, const layer_size_cont_t &edc_lay_sizes) {
 
     using transform3_t = typename detector_t::transform3;
     using point3_t = typename detector_t::point3;
@@ -969,9 +974,9 @@ inline void add_beampipe_portals(
 /// @param cfg toy detector configuration
 ///
 /// @returns a complete detector object
-template <typename scalar_t>
+template <typename scalar_t = detray::scalar>
 inline auto build_toy_detector(vecmem::memory_resource &resource,
-                               toy_config<scalar_t> &cfg = {}) {
+                               toy_det_config<scalar_t> cfg = {}) {
 
     using builder_t = detector_builder<toy_metadata, volume_builder>;
     using detector_t = typename builder_t::detector_type;
@@ -1006,7 +1011,7 @@ inline auto build_toy_detector(vecmem::memory_resource &resource,
     builder_t det_builder;
 
     // Detector and volume names
-    typename detector_t::name_map name_map = {{0u, "toy_detector_new"}};
+    typename detector_t::name_map name_map = {{0u, "toy_detector"}};
     // Geometry context object
     typename detector_t::geometry_context gctx{};
 

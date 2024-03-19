@@ -7,7 +7,7 @@
 
 // Project include(s)
 #include "detray/definitions/units.hpp"
-#include "detray/detectors/create_toy_geometry.hpp"
+#include "detray/detectors/build_toy_detector.hpp"
 #include "detray/io/frontend/detector_writer.hpp"
 
 // Vecmem include(s)
@@ -49,7 +49,7 @@ int main(int argc, char **argv) {
     }
 
     // Configuration
-    detray::toy_det_config toy_cfg{};
+    detray::toy_det_config<detray::scalar> toy_cfg{};
     detray::io::detector_writer_config writer_cfg{};
     writer_cfg.format(detray::io::format::json).replace_files(false);
 
@@ -67,7 +67,7 @@ int main(int argc, char **argv) {
 
     // Build the geometry
     vecmem::host_memory_resource host_mr;
-    auto [toy_det, toy_names] = create_toy_geometry(host_mr, toy_cfg);
+    auto [toy_det, toy_names] = build_toy_detector(host_mr, toy_cfg);
 
     // Write to file
     detray::io::write_detector(toy_det, toy_names, writer_cfg);
