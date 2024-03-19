@@ -63,13 +63,22 @@ class detector_builder {
     /// Decorate a volume builder at position @param volume_idx with more
     /// functionality
     template <class builder_t>
-    DETRAY_HOST auto decorate(dindex volume_idx)
-        -> volume_builder_interface<detector_type>* {
+    DETRAY_HOST auto decorate(dindex volume_idx) -> builder_t* {
 
         m_volumes[volume_idx] =
             std::make_unique<builder_t>(std::move(m_volumes[volume_idx]));
 
-        return m_volumes[volume_idx].get();
+        // Always works, we set it as this type in the line above
+        return dynamic_cast<builder_t*>(m_volumes[volume_idx].get());
+    }
+
+    /// Decorate a volume builder @param v_builder with more functionality
+    template <class builder_t>
+    DETRAY_HOST auto decorate(
+        const volume_builder_interface<detector_type>* v_builder)
+        -> builder_t* {
+
+        return decorate<builder_t>(v_builder->vol_index());
     }
 
     /// Access a particular volume builder by volume index @param volume_idx

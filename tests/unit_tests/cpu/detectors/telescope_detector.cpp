@@ -8,7 +8,7 @@
 // Project include(s)
 #include "detray/definitions/detail/qualifiers.hpp"
 #include "detray/definitions/units.hpp"
-#include "detray/detectors/create_telescope_detector.hpp"
+#include "detray/detectors/build_telescope_detector.hpp"
 #include "detray/geometry/mask.hpp"
 #include "detray/geometry/shapes/unbounded.hpp"
 #include "detray/navigation/navigator.hpp"
@@ -105,7 +105,7 @@ GTEST_TEST(detray_detectors, telescope_detector) {
                                      300.f, 350.f, 400.f, 450.f, 500.f};
     // Build telescope detector with unbounded planes
     const auto [z_tel_det1, z_tel_names1] =
-        create_telescope_detector(host_mr, tel_cfg.positions(positions));
+        build_telescope_detector(host_mr, tel_cfg.positions(positions));
 
     // Some general checks
     const auto vol0 = detector_volume{z_tel_det1, 0u};
@@ -125,7 +125,7 @@ GTEST_TEST(detray_detectors, telescope_detector) {
     // length/number of surfaces
     tel_cfg.positions({}).n_surfaces(11u).length(500.f * unit<scalar>::mm);
     const auto [z_tel_det2, z_tel_names2] =
-        create_telescope_detector(host_mr, tel_cfg);
+        build_telescope_detector(host_mr, tel_cfg);
 
     // Check general consistency of the detector
     detail::check_consistency(z_tel_det2, verbose_check);
@@ -149,7 +149,7 @@ GTEST_TEST(detray_detectors, telescope_detector) {
                                     -1.f);
 
     const auto [x_tel_det, x_tel_names] =
-        create_telescope_detector(host_mr, tel_cfg.pilot_track(x_track));
+        build_telescope_detector(host_mr, tel_cfg.pilot_track(x_track));
 
     // Check general consistency of the detector
     detail::check_consistency(x_tel_det, verbose_check);
@@ -251,7 +251,7 @@ GTEST_TEST(detray_detectors, telescope_detector) {
     tel_det_config htel_cfg{rectangle, helix_bz};
     htel_cfg.n_surfaces(11u).length(500.f * unit<scalar>::mm);
     const auto [tel_detector, tel_names] =
-        create_telescope_detector(host_mr, htel_cfg);
+        build_telescope_detector(host_mr, htel_cfg);
 
     // Check general consistency of the detector
     detail::check_consistency(tel_detector, verbose_check);

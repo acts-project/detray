@@ -79,6 +79,14 @@ struct material {
                 m_z == rhs.Z());
     }
 
+    /// Equality operator
+    ///
+    /// @param rhs is the right hand side to be compared to
+    DETRAY_HOST_DEVICE
+    constexpr bool operator!=(const material<scalar_t> &rhs) const {
+        return !(*this == rhs);
+    }
+
     /// @returns the radition length. Infinity in case of vacuum.
     DETRAY_HOST_DEVICE
     constexpr scalar_type X0() const { return m_x0; }
@@ -143,10 +151,10 @@ struct material {
     DETRAY_HOST
     std::string to_string() const {
         std::stringstream strm;
-        /*if (0.f < m_ar) {
+        if (m_ar <= 0.f) {
             strm << "vacuum";
             return strm.str();
-        }*/
+        }
         strm << "material: ";
         strm << " X0: " << m_x0;
         strm << " | L0: " << m_l0;

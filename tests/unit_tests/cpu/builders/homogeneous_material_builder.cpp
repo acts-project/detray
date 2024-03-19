@@ -9,7 +9,6 @@
 #include "detray/builders/homogeneous_material_builder.hpp"
 
 #include "detray/builders/cuboid_portal_generator.hpp"
-#include "detray/builders/detector_builder.hpp"
 #include "detray/builders/homogeneous_material_factory.hpp"
 #include "detray/builders/surface_factory.hpp"
 #include "detray/builders/volume_builder.hpp"

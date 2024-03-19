@@ -31,6 +31,7 @@ macro( detray_add_cpu_test algebra )
       "coordinates/polar2.cpp"
       "builders/detector_builder.cpp"
       "builders/grid_builder.cpp"
+      "builders/homogeneous_volume_material_builder.cpp"
       "builders/homogeneous_material_builder.cpp"
       "builders/material_map_builder.cpp"
       "builders/volume_builder.cpp"
