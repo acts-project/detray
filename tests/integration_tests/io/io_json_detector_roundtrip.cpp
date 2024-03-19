@@ -7,7 +7,7 @@
 
 // Project include(s)
 #include "detray/definitions/detail/algebra.hpp"
-#include "detray/detectors/create_telescope_detector.hpp"
+#include "detray/detectors/build_telescope_detector.hpp"
 #include "detray/detectors/create_toy_geometry.hpp"
 #include "detray/detectors/create_wire_chamber.hpp"
 #include "detray/io/common/geometry_reader.hpp"
@@ -151,7 +151,7 @@ GTEST_TEST(io, json_telescope_detector_reader) {
 
     // Telescope detector
     vecmem::host_memory_resource host_mr;
-    auto [tel_det, tel_names] = create_telescope_detector(host_mr, tel_cfg);
+    auto [tel_det, tel_names] = build_telescope_detector(host_mr, tel_cfg);
 
     std::map<std::string, std::string> file_names;
     file_names["geometry"] = "telescope_detector_geometry.json";

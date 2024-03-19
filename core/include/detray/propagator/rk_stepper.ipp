@@ -554,12 +554,12 @@ detray::rk_stepper<magnetic_field_t, transform3_t, constraint_t, policy_t,
                    inspector_t, array_t>::state::dqopds(const scalar_type qop)
     const -> typename transform3_t::scalar_type {
 
-    const auto& mat = *(this->_mat);
-
     // d(qop)ds is zero for empty space
     if (this->_mat == nullptr) {
         return 0.f;
     }
+
+    const auto& mat = this->volume_material();
 
     const auto pdg = this->_pdg;
     const scalar_type q = this->_track.charge();
@@ -594,6 +594,7 @@ DETRAY_HOST_DEVICE auto detray::rk_stepper<
         return 0.f;
     }
 
+    const auto& mat = this->volume_material();
     auto& track = this->_track;
     const scalar_t q = track.charge();
     const scalar_t p = q / qop;
@@ -608,13 +609,12 @@ DETRAY_HOST_DEVICE auto detray::rk_stepper<
     // g = dE/ds = -1 * (-dE/ds) = -1 * stopping power
     const detail::relativistic_quantities<scalar_t> rq(mass, qop, q);
     // We assume that stopping power ~ mean ionization eloss per pathlength
-    const scalar_type bethe =
-        I.compute_bethe_bloch(*(this->_mat), this->_pdg, rq);
+    const scalar_type bethe = I.compute_bethe_bloch(mat, this->_pdg, rq);
     const scalar_type g = -1.f * bethe;
 
     // dg/d(qop) = -1 * derivation of stopping power
     const scalar_t dgdqop = -1.f * interaction<scalar_t>().derive_bethe_bloch(
-                                       *(this->_mat), this->_pdg, rq, bethe);
+                                       mat, this->_pdg, rq, bethe);
 
     // d(qop)/ds = - qop^3 * E * g / q^2
     const scalar_t dqopds = this->dqopds(qop);

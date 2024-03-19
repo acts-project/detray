@@ -7,7 +7,7 @@
 
 // Project include(s)
 #include "detray/definitions/units.hpp"
-#include "detray/detectors/create_telescope_detector.hpp"
+#include "detray/detectors/build_telescope_detector.hpp"
 #include "detray/detectors/create_toy_geometry.hpp"
 #include "detray/geometry/mask.hpp"
 #include "detray/materials/predefined_materials.hpp"
@@ -107,7 +107,7 @@ int main(int argc, char** argv) {
     //         10 rectangle surfaces, 500mm in length, modules evenly spaced,
     //         silicon material (80mm)
     const auto [tel_det1, tel_names1] =
-        detray::create_telescope_detector<detray::rectangle2D>(host_mr);
+        detray::build_telescope_detector<detray::rectangle2D>(host_mr);
 
     std::cout << "\nTelescope detector - case 1:\n"
               << "----------------------------\n"
@@ -120,7 +120,7 @@ int main(int argc, char** argv) {
     trp_cfg.n_surfaces(15).length(2000.f * detray::unit<detray::scalar>::mm);
 
     const auto [tel_det2, tel_names2] =
-        detray::create_telescope_detector(host_mr, trp_cfg);
+        detray::build_telescope_detector(host_mr, trp_cfg);
 
     std::cout << "\nTelescope detector - case 2:\n"
               << "----------------------------\n"
@@ -139,7 +139,7 @@ int main(int argc, char** argv) {
     rct_cfg.positions(positions).pilot_track(x_track);
 
     const auto [tel_det3, tel_names3] =
-        create_telescope_detector(host_mr, rct_cfg);
+        build_telescope_detector(host_mr, rct_cfg);
 
     std::cout << "\nTelescope detector - case 3:\n"
               << "----------------------------\n"
@@ -164,7 +164,7 @@ int main(int argc, char** argv) {
     htrp_cfg.positions(positions);
 
     const auto [tel_det4, tel_names4] =
-        detray::create_telescope_detector(host_mr, htrp_cfg);
+        detray::build_telescope_detector(host_mr, htrp_cfg);
 
     std::cout << "\nTelescope detector - case 4:\n"
               << "----------------------------\n"

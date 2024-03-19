@@ -7,7 +7,7 @@
 
 // Project include(s)
 #include "detray/definitions/units.hpp"
-#include "detray/detectors/create_telescope_detector.hpp"
+#include "detray/detectors/build_telescope_detector.hpp"
 #include "detray/test/detail/register_checks.hpp"
 #include "detray/test/detector_consistency.hpp"
 #include "detray/test/detector_helix_scan.hpp"
@@ -41,7 +41,7 @@ int main(int argc, char **argv) {
     vecmem::host_memory_resource host_mr;
 
     const auto [tel_det, tel_names] =
-        create_telescope_detector(host_mr, tel_cfg);
+        build_telescope_detector(host_mr, tel_cfg);
 
     // General data consistency of the detector
     consistency_check<tel_detector_t>::config cfg_cons{};

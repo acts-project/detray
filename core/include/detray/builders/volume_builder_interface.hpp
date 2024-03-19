@@ -38,7 +38,7 @@ class volume_builder_interface {
     /// @returns the global index for the volume
     /// @note the correct index is only available after calling @c init_vol
     DETRAY_HOST
-    virtual auto vol_index() -> dindex = 0;
+    virtual auto vol_index() const -> dindex = 0;
 
     /// Toggles whether sensitive surfaces are added to the brute force method
     DETRAY_HOST
@@ -125,7 +125,7 @@ class volume_decorator : public volume_builder_interface<detector_t> {
     }
 
     DETRAY_HOST
-    auto vol_index() -> dindex override { return m_builder->vol_index(); }
+    auto vol_index() const -> dindex override { return m_builder->vol_index(); }
 
     DETRAY_HOST
     void has_accel(bool toggle) override { m_builder->has_accel(toggle); };

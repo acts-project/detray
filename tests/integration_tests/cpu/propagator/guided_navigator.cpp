@@ -7,7 +7,7 @@
 
 #include "detray/definitions/units.hpp"
 #include "detray/detectors/bfield.hpp"
-#include "detray/detectors/create_telescope_detector.hpp"
+#include "detray/detectors/build_telescope_detector.hpp"
 #include "detray/geometry/mask.hpp"
 #include "detray/geometry/shapes/unbounded.hpp"
 #include "detray/navigation/navigator.hpp"
@@ -46,7 +46,7 @@ GTEST_TEST(detray_navigation, guided_navigator) {
     tel_cfg.positions(positions).envelope(0.2f * unit<scalar>::mm);
 
     const auto [telescope_det, names] =
-        create_telescope_detector(host_mr, tel_cfg);
+        build_telescope_detector(host_mr, tel_cfg);
 
     // Inspectors are optional, of course
     using detector_t = decltype(telescope_det);
