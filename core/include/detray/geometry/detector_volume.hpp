@@ -62,6 +62,10 @@ class detector_volume {
     constexpr detector_volume(const detector_t &det, const dindex vol_idx)
         : detector_volume(det, det.volume(vol_idx)) {}
 
+    /// @returns access to the underlying detector
+    DETRAY_HOST_DEVICE
+    auto detector() const -> const detector_t & { return m_detector; }
+
     /// Equality operator
     ///
     /// @param rhs is the right hand side to be compared to
@@ -125,7 +129,7 @@ class detector_volume {
             m_desc.template sf_link<surface_id::e_portal>()};
     }
 
-    /// Apply a functor to all surfaces in the volume.
+    /// Apply a functor to all surfaces in the volume's acceleration structures
     ///
     /// @tparam functor_t the prescription to be applied to the surfaces
     /// @tparam Args      types of additional arguments to the functor

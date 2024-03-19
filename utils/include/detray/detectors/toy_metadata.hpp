@@ -123,9 +123,9 @@ struct toy_metadata {
 
     /// Portals and passives in the brute froce search, sensitives in the grids
     enum geo_objects : std::uint8_t {
-        e_sensitive = 1,
         e_portal = 0,
         e_passive = 0,
+        e_sensitive = 1,
         e_size = 2,
         e_all = e_size,
     };

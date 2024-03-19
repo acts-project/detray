@@ -82,7 +82,7 @@ class cuboid_portal_generator final
                     typename detector_t::surface_lookup_container &surfaces,
                     typename detector_t::transform_container &transforms,
                     typename detector_t::mask_container &masks,
-                    typename detector_t::geometry_context ctx = {}) const
+                    typename detector_t::geometry_context ctx = {})
         -> dindex_range override {
 
         using point3_t = typename detector_t::point3;
@@ -102,9 +102,6 @@ class cuboid_portal_generator final
         // Need surfaces to wrap
         std::size_t n_surfaces{surfaces.size()};
         assert(n_surfaces != 0u);
-        // Make sure data is consistent
-        assert(n_surfaces == transforms.size() and
-               n_surfaces == masks.total_size());
 
         // The surfaces container is prefilled with other surfaces
         dindex surfaces_offset = static_cast<dindex>(n_surfaces);

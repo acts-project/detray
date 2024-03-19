@@ -161,6 +161,12 @@ class surface {
         return m_detector.transform_store().at(m_desc.transform(), ctx);
     }
 
+    /// @returns a boundary value of the surface, according to @param index
+    DETRAY_HOST_DEVICE
+    constexpr scalar_type boundary(std::size_t index) const {
+        return visit_mask<typename kernels::get_mask_value>(index);
+    }
+
     /// @returns the centroid of the surface mask in local cartesian coordinates
     DETRAY_HOST_DEVICE
     constexpr auto centroid() const -> const point3 {

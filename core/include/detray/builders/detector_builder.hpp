@@ -55,6 +55,11 @@ class detector_builder {
         return m_volumes.back().get();
     }
 
+    /// @returns the number of volumes currently registered in the builder
+    DETRAY_HOST auto n_volumes() const -> dindex {
+        return static_cast<dindex>(m_volumes.size());
+    }
+
     /// Decorate a volume builder at position @param volume_idx with more
     /// functionality
     template <class builder_t>

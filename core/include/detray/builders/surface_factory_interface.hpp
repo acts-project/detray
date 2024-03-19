@@ -116,8 +116,7 @@ class surface_factory_interface {
         typename detector_t::surface_lookup_container &surfaces,
         typename detector_t::transform_container &transforms,
         typename detector_t::mask_container &masks,
-        typename detector_t::geometry_context ctx = {}) const
-        -> dindex_range = 0;
+        typename detector_t::geometry_context ctx = {}) -> dindex_range = 0;
 
     protected:
     /// Insert a value in a container at a specific index
@@ -185,7 +184,7 @@ class factory_decorator : public surface_factory_interface<detector_t> {
                     typename detector_t::surface_lookup_container &surfaces,
                     typename detector_t::transform_container &transforms,
                     typename detector_t::mask_container &masks,
-                    typename detector_t::geometry_context ctx = {}) const
+                    typename detector_t::geometry_context ctx = {})
         -> dindex_range override {
         return (*m_factory)(volume, surfaces, transforms, masks, ctx);
     }

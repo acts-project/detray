@@ -64,12 +64,18 @@ class grid_builder : public volume_decorator<detector_t> {
     /// Set the surface category this grid should contain (type id in the
     /// accelrator link in the volume)
     void set_type(std::size_t sf_id) {
-        // Exclude zero, it is reserved for the brute force method
-        assert(sf_id > 0u);
-        // Make sure the id fits in the volume accelerator link
-        assert(static_cast<link_id_t>(sf_id) < link_id_t::e_size);
+        set_type(static_cast<link_id_t>(sf_id));
+    }
 
-        m_id = static_cast<link_id_t>(sf_id);
+    /// Set the surface category this grid should contain (type id in the
+    /// accelrator link in the volume)
+    void set_type(link_id_t sf_id) {
+        // Exclude zero, it is reserved for the brute force method
+        assert(static_cast<int>(sf_id) > 0);
+        // Make sure the id fits in the volume accelerator link
+        assert(sf_id < link_id_t::e_size);
+
+        m_id = sf_id;
     }
 
     /// Delegate init call depending on @param span type
