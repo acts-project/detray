@@ -160,7 +160,7 @@ class telescope_generator final : public surface_factory_interface<detector_t> {
                     unit_vectors<vector3_t>().make_curvilinear_unit_u(
                         m_local_z);
                 axis_rotation<transform3_t> axis_rot(
-                    curvi_u, constant<scalar>::pi / 2.f);
+                    curvi_u, -constant<scalar>::pi / 2.f);
                 m_local_z = axis_rot(m_local_z);
             }
 
