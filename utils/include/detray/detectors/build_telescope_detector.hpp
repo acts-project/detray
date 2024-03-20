@@ -114,7 +114,7 @@ struct tel_det_config {
         return *this;
     }
     constexpr tel_det_config &mat_thickness(const scalar t) {
-        assert(t > 0.f && "Material thickness must be greater than zero");
+        assert(t >= 0.f && "Material thickness must be non-negative");
         m_material_config.thickness(t);
         return *this;
     }

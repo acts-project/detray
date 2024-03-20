@@ -677,7 +677,8 @@ bound_track_parameters<transform3_type> get_initial_parameter(
 
 template <typename propagator_t, typename field_t>
 void evaluate_jacobian_difference(
-    const std::size_t trk_count,
+    const std::size_t trk_count, const std::array<scalar, 3u>& euler_angles_I,
+    const std::array<scalar, 3u>& euler_angles_F,
     const typename propagator_t::detector_type& det,
     const scalar detector_length,
     const bound_track_parameters<transform3_type>& track, const field_t& field,
@@ -729,6 +730,11 @@ void evaluate_jacobian_difference(
     const auto reference_jacobian = bound_getter.m_jacobi;
 
     file << trk_count << ",";
+
+    file << euler_angles_I[0u] << "," << euler_angles_I[1u] << ","
+         << euler_angles_I[2u] << ",";
+    file << euler_angles_F[0u] << "," << euler_angles_F[1u] << ","
+         << euler_angles_F[2u] << ",";
 
     file << reference_param.bound_local()[0] << ","
          << reference_param.bound_local()[1] << "," << reference_param.phi()
@@ -829,7 +835,8 @@ void evaluate_jacobian_difference(
 
 template <typename propagator_t, typename field_t>
 void evaluate_covariance_transport(
-    const std::size_t trk_count,
+    const std::size_t trk_count, const std::array<scalar, 3u>& euler_angles_I,
+    const std::array<scalar, 3u>& euler_angles_F,
     const typename propagator_t::detector_type& det,
     const scalar detector_length,
     const bound_track_parameters<transform3_type>& track, const field_t& field,
@@ -916,6 +923,11 @@ void evaluate_covariance_transport(
     const scalar chi2_val = getter::element(chi2, 0u, 0u);
 
     file << trk_count << ",";
+
+    file << euler_angles_I[0u] << "," << euler_angles_I[1u] << ","
+         << euler_angles_I[2u] << ",";
+    file << euler_angles_F[0u] << "," << euler_angles_F[1u] << ","
+         << euler_angles_F[2u] << ",";
 
     // File writing
     file << getter::element(ini_vec, e_bound_loc0, 0u) << ","
@@ -1031,7 +1043,8 @@ get_displaced_bound_vector_helix(
 
 template <typename detector_t, typename detector_t::metadata::mask_ids mask_id>
 void evaluate_jacobian_difference_helix(
-    const std::size_t trk_count, const detector_t& det,
+    const std::size_t trk_count, const std::array<scalar, 3u> euler_angles_I,
+    const std::array<scalar, 3u> euler_angles_F, const detector_t& det,
     const scalar detector_length,
     const bound_track_parameters<transform3_type>& track, const vector3& field,
     const std::array<scalar, 5u> hs, std::ofstream& file,
@@ -1154,6 +1167,11 @@ void evaluate_jacobian_difference_helix(
 
     file << trk_count << ",";
 
+    file << euler_angles_I[0u] << "," << euler_angles_I[1u] << ","
+         << euler_angles_I[2u] << ",";
+    file << euler_angles_F[0u] << "," << euler_angles_F[1u] << ","
+         << euler_angles_F[2u] << ",";
+
     file << track.bound_local()[0] << "," << track.bound_local()[1] << ","
          << track.phi() << "," << track.theta() << "," << track.qop() << ",";
 
@@ -1235,6 +1253,10 @@ void setup_csv_header_jacobian(std::ofstream& file) {
     // Track ID
     file << "track_ID,";
 
+    // Euler angles
+    file << "alpha_I,beta_I,gamma_I,";
+    file << "alpha_F,beta_F,gamma_F,";
+
     // Initial Parameter at the departure surface
     file << "l0_I,l1_I,phi_I,theta_I,qop_I,";
 
@@ -1315,6 +1337,10 @@ void setup_csv_header_covariance(std::ofstream& file) {
 
     // Track ID
     file << "track_ID,";
+
+    // Euler angles
+    file << "alpha_I,beta_I,gamma_I,";
+    file << "alpha_F,beta_F,gamma_F,";
 
     // Initial parameters (vector + covariance) of reference track
     file << "l0_I,l1_I,phi_I,theta_I,qop_I,";
@@ -1645,9 +1671,12 @@ int main(int argc, char** argv) {
         tel_det_config<rect_type, detail::helix<transform3_type>> rectangle_cfg{
             rect, helix_bz};
         rectangle_cfg.envelope(envelope_size);
-        rectangle_cfg.n_surfaces(2u)
-            .length(detector_length)
-            .volume_material(vacuum<scalar>{});
+        rectangle_cfg.module_material(vacuum<scalar>{});
+        rectangle_cfg.mat_thickness(0.f);
+        rectangle_cfg.n_surfaces(2u);
+        rectangle_cfg.length(detector_length);
+        rectangle_cfg.volume_material(vacuum<scalar>{});
+        rectangle_cfg.do_check(false);
 
         auto alphaI = rand_alpha(mt1);
         auto alphaF = rand_alpha(mt1);
@@ -1656,6 +1685,9 @@ int main(int argc, char** argv) {
             betaF = -betaF;
         }
         auto gammaF = rand_gamma(mt1);
+
+        std::array<scalar, 3u> euler_angles_I{alphaI, 0.f, 0.f};
+        std::array<scalar, 3u> euler_angles_F{alphaF, betaF, gammaF};
 
         // Without volume material
         auto [rect_det, rect_names] =
@@ -1688,9 +1720,12 @@ int main(int argc, char** argv) {
         tel_det_config<wire_type, detail::helix<transform3_type>> wire_cfg{
             wire, helix_bz};
         wire_cfg.envelope(envelope_size);
-        wire_cfg.n_surfaces(2u)
-            .length(detector_length)
-            .volume_material(vacuum<scalar>{});
+        wire_cfg.module_material(vacuum<scalar>{});
+        wire_cfg.mat_thickness(0.f);
+        wire_cfg.n_surfaces(2u);
+        wire_cfg.length(detector_length);
+        wire_cfg.volume_material(vacuum<scalar>{});
+        wire_cfg.do_check(false);
 
         // Without volume material
         auto [wire_det, wire_names] =
@@ -1805,8 +1840,9 @@ int main(int argc, char** argv) {
 
                     // Rectangle Inhomogeneous field with Material
                     evaluate_jacobian_difference<inhom_field_rect_propagator_t>(
-                        track_count, rect_det_w_mat, detector_length,
-                        rect_bparam, inhom_bfield, overstep_tol, on_surface_tol,
+                        track_count, euler_angles_I, euler_angles_F,
+                        rect_det_w_mat, detector_length, rect_bparam,
+                        inhom_bfield, overstep_tol, on_surface_tol,
                         std::pow(10.f, log10_tols[i]), rk_tol_dis,
                         constraint_step_size, h_sizes_rect, rect_files[i],
                         ref_rel_diff, true, do_inspect, true,
@@ -1820,37 +1856,41 @@ int main(int argc, char** argv) {
                 evaluate_jacobian_difference_helix<
                     decltype(rect_det),
                     decltype(rect_det)::masks::id::e_rectangle2>(
-                    track_count, rect_det, detector_length, rect_bparam, B_z,
-                    h_sizes_rect, helix_rect_file, helix_tol);
+                    track_count, euler_angles_I, euler_angles_F, rect_det,
+                    detector_length, rect_bparam, B_z, h_sizes_rect,
+                    helix_rect_file, helix_tol);
 
                 // Rect Const field
                 evaluate_jacobian_difference<const_field_rect_propagator_t>(
-                    track_count, rect_det, detector_length, rect_bparam,
-                    const_bfield, overstep_tol, on_surface_tol, rk_tol_jac,
-                    rk_tol_dis, constraint_step_size, h_sizes_rect,
-                    const_rect_file, ref_rel_diff, true, false);
+                    track_count, euler_angles_I, euler_angles_F, rect_det,
+                    detector_length, rect_bparam, const_bfield, overstep_tol,
+                    on_surface_tol, rk_tol_jac, rk_tol_dis,
+                    constraint_step_size, h_sizes_rect, const_rect_file,
+                    ref_rel_diff, true, false);
 
                 // Rect Inhomogeneous field
                 evaluate_jacobian_difference<inhom_field_rect_propagator_t>(
-                    track_count, rect_det, detector_length, rect_bparam,
-                    inhom_bfield, overstep_tol, on_surface_tol, rk_tol_jac,
-                    rk_tol_dis, constraint_step_size, h_sizes_rect,
-                    inhom_rect_file, ref_rel_diff, true, false);
+                    track_count, euler_angles_I, euler_angles_F, rect_det,
+                    detector_length, rect_bparam, inhom_bfield, overstep_tol,
+                    on_surface_tol, rk_tol_jac, rk_tol_dis,
+                    constraint_step_size, h_sizes_rect, inhom_rect_file,
+                    ref_rel_diff, true, false);
 
                 // Rectangle Inhomogeneous field with Material
                 evaluate_jacobian_difference<inhom_field_rect_propagator_t>(
-                    track_count, rect_det_w_mat, detector_length, rect_bparam,
-                    inhom_bfield, overstep_tol, on_surface_tol, rk_tol_jac,
-                    rk_tol_dis, constraint_step_size, h_sizes_rect,
+                    track_count, euler_angles_I, euler_angles_F, rect_det_w_mat,
+                    detector_length, rect_bparam, inhom_bfield, overstep_tol,
+                    on_surface_tol, rk_tol_jac, rk_tol_dis,
+                    constraint_step_size, h_sizes_rect,
                     inhom_rect_material_file, ref_rel_diff, true, false);
 
                 // Rectangle Inhomogeneous field with Material (Covariance
                 // transport)
                 evaluate_covariance_transport<inhom_field_rect_propagator_t>(
-                    track_count, rect_det_w_mat, detector_length, rect_bparam,
-                    inhom_bfield, overstep_tol, on_surface_tol, rk_tol_cov,
-                    rk_tol_dis, constraint_step_size, rect_cov_transport_file,
-                    true);
+                    track_count, euler_angles_I, euler_angles_F, rect_det_w_mat,
+                    detector_length, rect_bparam, inhom_bfield, overstep_tol,
+                    on_surface_tol, rk_tol_cov, rk_tol_dis,
+                    constraint_step_size, rect_cov_transport_file, true);
             }
         }
 
@@ -1886,8 +1926,9 @@ int main(int argc, char** argv) {
                 for (std::size_t i = 0u; i < log10_tols.size(); i++) {
                     // Wire Inhomogeneous field with Material
                     evaluate_jacobian_difference<inhom_field_wire_propagator_t>(
-                        track_count, wire_det_w_mat, detector_length,
-                        wire_bparam, inhom_bfield, overstep_tol, on_surface_tol,
+                        track_count, euler_angles_I, euler_angles_F,
+                        wire_det_w_mat, detector_length, wire_bparam,
+                        inhom_bfield, overstep_tol, on_surface_tol,
                         std::pow(10.f, log10_tols[i]), rk_tol_dis,
                         constraint_step_size, h_sizes_wire, wire_files[i],
                         ref_rel_diff, true, do_inspect, true,
@@ -1901,36 +1942,40 @@ int main(int argc, char** argv) {
                 evaluate_jacobian_difference_helix<
                     decltype(wire_det),
                     decltype(wire_det)::masks::id::e_drift_cell>(
-                    track_count, wire_det, detector_length, wire_bparam, B_z,
-                    h_sizes_wire, helix_wire_file, helix_tol);
+                    track_count, euler_angles_I, euler_angles_F, wire_det,
+                    detector_length, wire_bparam, B_z, h_sizes_wire,
+                    helix_wire_file, helix_tol);
 
                 // Wire Const field
                 evaluate_jacobian_difference<const_field_wire_propagator_t>(
-                    track_count, wire_det, detector_length, wire_bparam,
-                    const_bfield, overstep_tol, on_surface_tol, rk_tol_jac,
-                    rk_tol_dis, constraint_step_size, h_sizes_wire,
-                    const_wire_file, ref_rel_diff, true, false);
+                    track_count, euler_angles_I, euler_angles_F, wire_det,
+                    detector_length, wire_bparam, const_bfield, overstep_tol,
+                    on_surface_tol, rk_tol_jac, rk_tol_dis,
+                    constraint_step_size, h_sizes_wire, const_wire_file,
+                    ref_rel_diff, true, false);
 
                 // Wire Inhomogeneous field
                 evaluate_jacobian_difference<inhom_field_wire_propagator_t>(
-                    track_count, wire_det, detector_length, wire_bparam,
-                    inhom_bfield, overstep_tol, on_surface_tol, rk_tol_jac,
-                    rk_tol_dis, constraint_step_size, h_sizes_wire,
-                    inhom_wire_file, ref_rel_diff, true, false);
+                    track_count, euler_angles_I, euler_angles_F, wire_det,
+                    detector_length, wire_bparam, inhom_bfield, overstep_tol,
+                    on_surface_tol, rk_tol_jac, rk_tol_dis,
+                    constraint_step_size, h_sizes_wire, inhom_wire_file,
+                    ref_rel_diff, true, false);
 
                 // Wire Inhomogeneous field with Material
                 evaluate_jacobian_difference<inhom_field_wire_propagator_t>(
-                    track_count, wire_det_w_mat, detector_length, wire_bparam,
-                    inhom_bfield, overstep_tol, on_surface_tol, rk_tol_jac,
-                    rk_tol_dis, constraint_step_size, h_sizes_wire,
+                    track_count, euler_angles_I, euler_angles_F, wire_det_w_mat,
+                    detector_length, wire_bparam, inhom_bfield, overstep_tol,
+                    on_surface_tol, rk_tol_jac, rk_tol_dis,
+                    constraint_step_size, h_sizes_wire,
                     inhom_wire_material_file, ref_rel_diff, true, false);
 
                 // Wire Inhomogeneous field with Material (Covariance transport)
                 evaluate_covariance_transport<inhom_field_wire_propagator_t>(
-                    track_count, wire_det_w_mat, detector_length, wire_bparam,
-                    inhom_bfield, overstep_tol, on_surface_tol, rk_tol_cov,
-                    rk_tol_dis, constraint_step_size, wire_cov_transport_file,
-                    true);
+                    track_count, euler_angles_I, euler_angles_F, wire_det_w_mat,
+                    detector_length, wire_bparam, inhom_bfield, overstep_tol,
+                    on_surface_tol, rk_tol_cov, rk_tol_dis,
+                    constraint_step_size, wire_cov_transport_file, true);
             }
         }
     }
