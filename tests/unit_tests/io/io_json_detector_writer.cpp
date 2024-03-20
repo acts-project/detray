@@ -131,7 +131,7 @@ GTEST_TEST(io, json_toy_detector_writer_new) {
     // Toy detector
     vecmem::host_memory_resource host_mr;
     toy_config<scalar> toy_cfg{};
-    toy_cfg.n_brl_layers(4u).n_edc_layers(7u).use_material_maps(true);
+    toy_cfg.use_material_maps(false);
     const auto [det, names] = build_toy_detector(host_mr, toy_cfg);
 
     auto writer_cfg = io::detector_writer_config{}

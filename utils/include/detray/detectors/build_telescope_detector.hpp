@@ -11,6 +11,7 @@
 #include "detray/builders/cuboid_portal_generator.hpp"
 #include "detray/builders/detector_builder.hpp"
 #include "detray/builders/homogeneous_material_builder.hpp"
+#include "detray/builders/homogeneous_material_generator.hpp"
 #include "detray/builders/homogeneous_volume_material_builder.hpp"
 #include "detray/core/detector.hpp"
 #include "detray/definitions/units.hpp"
@@ -43,17 +44,24 @@ struct tel_det_config {
 
     /// Construct from existing mask
     tel_det_config(const mask<mask_shape_t> &m, const trajectory_t &t = {})
-        : m_mask(m), m_trajectory(t) {}
+        : m_mask(m), m_trajectory(t) {
+        // Configure the material generation
+        m_material_config.sensitive_material(silicon_tml<scalar>())
+            .passive_material(vacuum<scalar>())
+            .portal_material(vacuum<scalar>())
+            .thickness(80.f * unit<scalar>::um);
+    }
 
     /// Construct from from mask parameter vector
     tel_det_config(std::vector<scalar> params, const trajectory_t &t = {})
-        : m_mask(std::move(params), 0u), m_trajectory(t) {}
+        : tel_det_config(mask<mask_shape_t>{std::move(params), 0u}, t) {}
 
     /// Construct from mask parameters (except volume link, which is not needed)
     template <
         typename... Args,
         std::enable_if_t<(std::is_same_v<Args, scalar> || ...), bool> = true>
-    tel_det_config(Args &&... args) : m_mask(0u, std::forward<Args>(args)...) {}
+    tel_det_config(Args &&... args)
+        : tel_det_config(mask<mask_shape_t>{0u, std::forward<Args>(args)...}) {}
 
     /// Mask of the test surfaces
     mask<mask_shape_t> m_mask;
@@ -63,12 +71,10 @@ struct tel_det_config {
     scalar m_length{500.f * unit<scalar>::mm};
     /// Concrete positions where to place the surfaces along the pilot track
     std::vector<scalar> m_positions{};
-    /// Material for the test surfaces
-    material<scalar> m_material = silicon_tml<scalar>();
+    /// Configuration for the homogeneous material generator
+    hom_material_config<scalar> m_material_config{};
     /// Material for volume
     material<scalar> m_volume_material = vacuum<scalar>();
-    /// Thickness of the material
-    scalar m_thickness{80.f * unit<scalar>::um};
     /// Pilot track along which to place the surfaces
     trajectory_t m_trajectory{};
     /// Safety envelope between the test surfaces and the portals
@@ -100,7 +106,7 @@ struct tel_det_config {
         return *this;
     }
     constexpr tel_det_config &module_material(const material<scalar> &mat) {
-        m_material = mat;
+        m_material_config.sensitive_material(mat);
         return *this;
     }
     constexpr tel_det_config &volume_material(const material<scalar> &mat) {
@@ -109,7 +115,7 @@ struct tel_det_config {
     }
     constexpr tel_det_config &mat_thickness(const scalar t) {
         assert(t > 0.f && "Material thickness must be greater than zero");
-        m_thickness = t;
+        m_material_config.thickness(t);
         return *this;
     }
     constexpr tel_det_config &pilot_track(const trajectory_t &traj) {
@@ -133,13 +139,17 @@ struct tel_det_config {
     constexpr unsigned int n_surfaces() const { return m_n_surfaces; }
     constexpr scalar length() const { return m_length; }
     const std::vector<scalar> &positions() const { return m_positions; }
+    constexpr const auto &material_config() const { return m_material_config; }
+    constexpr auto &material_config() { return m_material_config; }
     constexpr const material<scalar> &module_material() const {
-        return m_material;
+        return m_material_config.sensitive_material();
     }
     constexpr const material<scalar> &volume_material() const {
         return m_volume_material;
     }
-    constexpr scalar mat_thickness() const { return m_thickness; }
+    constexpr scalar mat_thickness() const {
+        return m_material_config.thickness();
+    }
     const trajectory_t &pilot_track() const { return m_trajectory; }
     constexpr scalar envelope() const { return m_envelope; }
     bool do_check() const { return m_do_check; }
@@ -170,7 +180,6 @@ inline auto build_telescope_detector(
     using builder_t =
         detector_builder<telescope_metadata<mask_shape_t>, volume_builder>;
     using detector_t = typename builder_t::detector_type;
-    using material_id = typename detector_t::materials::id;
 
     // Detector and volume names
     typename detector_t::name_map name_map = {{0u, "telescope_detector"},
@@ -217,22 +226,8 @@ inline auto build_telescope_detector(
                     v_builder);
 
         auto tel_mat_generator =
-            std::make_shared<homogeneous_material_factory<detector_t>>(
-                std::move(tel_generator));
-
-        // Generate the material
-        std::vector<material_data<scalar>> sf_materials(
-            tel_mat_generator->size(),
-            material_data<scalar>{cfg.mat_thickness(), cfg.module_material()});
-
-        constexpr bool is_line{
-            std::is_same_v<mask_shape_t, detray::line_square> ||
-            std::is_same_v<mask_shape_t, detray::line_circular>};
-        constexpr auto mat_id{is_line ? material_id::e_rod
-                                      : material_id::e_slab};
-
-        // Add the material to the surface factory
-        tel_mat_generator->add_material(mat_id, std::move(sf_materials));
+            std::make_shared<homogeneous_material_generator<detector_t>>(
+                std::move(tel_generator), cfg.material_config());
 
         module_generator = std::move(tel_mat_generator);
 

@@ -134,10 +134,12 @@ inline bool toy_detector_test_new(
     auto beampipe_mat = material_slab<scalar_t>(beryllium_tml<scalar_t>(),
                                                 0.8f * unit<scalar_t>::mm);
     auto pixel_mat = material_slab<scalar_t>(silicon_tml<scalar_t>(),
-                                             0.15f * unit<scalar_t>::mm);
+                                             1.5f * unit<scalar_t>::mm);
 
     // Link to outer world (leaving detector)
     constexpr auto leaving_world{detail::invalid_value<nav_link_t>()};
+    constexpr auto inv_link{
+        detail::invalid_value<typename material_link_t::index_type>()};
     const bool has_grids =
         (accel.template size<accel_ids::e_cylinder2_grid>() != 0u) ||
         (accel.template size<accel_ids::e_disc_grid>() != 0u);
@@ -160,7 +162,7 @@ inline bool toy_detector_test_new(
         EXPECT_EQ(accel.template size<accel_ids::e_disc_grid>(), 6);
     }
     if (has_material and !has_material_maps) {
-        EXPECT_EQ(materials.template size<material_ids::e_slab>(), 3244u);
+        EXPECT_EQ(materials.template size<material_ids::e_slab>(), 3141u);
     } else if (has_material and has_material_maps) {
         EXPECT_EQ(materials.template size<material_ids::e_slab>(), 3141u);
         EXPECT_EQ(
@@ -243,10 +245,12 @@ inline bool toy_detector_test_new(
             EXPECT_EQ(volume_link, volume_links[pti - range[0]]);
             if (has_material and !has_material_maps) {
                 EXPECT_EQ(sf_itr->material(), material_index);
-                EXPECT_EQ(
-                    materials.template get<
-                        material_ids::e_slab>()[sf_itr->material().index()],
-                    mat);
+                if (sf_itr->material().id() != material_ids::e_none) {
+                    EXPECT_EQ(
+                        materials.template get<
+                            material_ids::e_slab>()[sf_itr->material().index()],
+                        mat);
+                }
             } else if (has_material and has_material_maps) {
                 auto mat_link = sf_itr->material();
                 if (mat_link.id() == material_ids::e_concentric_cylinder2_map) {
@@ -266,7 +270,9 @@ inline bool toy_detector_test_new(
             ++sf_itr;
             ++trf_index;
             ++mask_link;
-            ++material_index;
+            if (sf_itr->material().id() != material_ids::e_none) {
+                ++material_index;
+            }
         }
     };
 
@@ -297,7 +303,7 @@ inline bool toy_detector_test_new(
                 const auto volume_link =
                     masks.template visit<volume_link_getter>(sf_itr->mask());
                 EXPECT_EQ(volume_link, volume_links[0]);
-                if (has_material and !has_material_maps) {
+                if (has_material && !has_material_maps) {
                     EXPECT_EQ(sf_itr->material(), material_index);
                     EXPECT_EQ(
                         materials.template get<
@@ -375,7 +381,7 @@ inline bool toy_detector_test_new(
     // Check links of beampipe itself
     darray<dindex, 2> range = {0u, 1u};
     test_module_links(vol_itr->index(), surfaces.begin(), range, range[0],
-                      {mask_ids::e_cylinder2, 0u}, {material_ids::e_slab, 15u},
+                      {mask_ids::e_cylinder2, 0u}, {material_ids::e_slab, 0u},
                       beampipe_mat, {vol_itr->index()});
 
     // Check links of portals
@@ -384,26 +390,28 @@ inline bool toy_detector_test_new(
     test_portal_links(vol_itr->index(),
                       surfaces.begin() + static_cast<std::ptrdiff_t>(range[0]),
                       range, range[0], {mask_ids::e_portal_ring2, 0u},
-                      {material_ids::e_slab, 0u}, portal_mat, {leaving_world});
+                      {material_ids::e_none, inv_link}, portal_mat,
+                      {leaving_world});
     // cylinder portals (neg. endcap including inner barrel gap layer no. 8)
     range = {2u, 9u};
     test_portal_links(vol_itr->index(),
                       surfaces.begin() + static_cast<std::ptrdiff_t>(range[0]),
                       range, range[0], {mask_ids::e_portal_cylinder2, 1u},
-                      {material_ids::e_slab, 0u}, portal_mat,
+                      {material_ids::e_none, inv_link}, portal_mat,
                       {1u, 2u, 3u, 4u, 5u, 6u, 8u});
     // right disc portal
     range = {9u, 10u};
     test_portal_links(vol_itr->index(),
                       surfaces.begin() + static_cast<std::ptrdiff_t>(range[0]),
                       range, range[0], {mask_ids::e_portal_ring2, 1u},
-                      {material_ids::e_slab, 13u}, portal_mat, {leaving_world});
+                      {material_ids::e_none, inv_link}, portal_mat,
+                      {leaving_world});
     // cylinder portals (pos. endcap)
     range = {10u, 16u};
     test_portal_links(vol_itr->index(),
                       surfaces.begin() + static_cast<std::ptrdiff_t>(range[0]),
                       range, range[0], {mask_ids::e_portal_cylinder2, 8u},
-                      {material_ids::e_slab, 7u}, portal_mat,
+                      {material_ids::e_none, inv_link}, portal_mat,
                       {16u, 17u, 18u, 19u, 20u, 21u});
 
     // Check link of surfaces in surface finder
@@ -430,14 +438,14 @@ inline bool toy_detector_test_new(
     test_module_links(vol_itr->index(),
                       surfaces.begin() + static_cast<std::ptrdiff_t>(range[0]),
                       range, range[0], {mask_ids::e_trapezoid2, 0u},
-                      {material_ids::e_slab, 20u}, pixel_mat,
-                      {vol_itr->index()}, true);
+                      {material_ids::e_slab, 1u}, pixel_mat, {vol_itr->index()},
+                      true);
     // One mask for the outer ring
     range = {56u, 124u};
     test_module_links(vol_itr->index(),
                       surfaces.begin() + static_cast<std::ptrdiff_t>(range[0]),
                       range, range[0], {mask_ids::e_trapezoid2, 1u},
-                      {material_ids::e_slab, 20u}, pixel_mat,
+                      {material_ids::e_slab, 41u}, pixel_mat,
                       {vol_itr->index()}, true);
 
     // Check links of portals
@@ -446,14 +454,14 @@ inline bool toy_detector_test_new(
     test_portal_links(vol_itr->index(),
                       surfaces.begin() + static_cast<std::ptrdiff_t>(range[0]),
                       range, range[0], {mask_ids::e_portal_cylinder2, 14u},
-                      {material_ids::e_slab, 16u}, portal_mat,
+                      {material_ids::e_none, inv_link}, portal_mat,
                       {0u, leaving_world});
     // disc portals
     range = {126u, 128u};
     test_portal_links(vol_itr->index(),
                       surfaces.begin() + static_cast<std::ptrdiff_t>(range[0]),
                       range, range[0], {mask_ids::e_portal_ring2, 2u},
-                      {material_ids::e_slab, 18u}, portal_mat, {4u, 2u});
+                      {material_ids::e_none, inv_link}, portal_mat, {4u, 2u});
 
     // Check link of surfaces in surface finder
     test_accel(vol_itr, accel, {124u, 128u}, {16u, 124u});
@@ -479,14 +487,14 @@ inline bool toy_detector_test_new(
     test_portal_links(vol_itr->index(),
                       surfaces.begin() + static_cast<std::ptrdiff_t>(range[0]),
                       range, range[0], {mask_ids::e_portal_ring2, 4u},
-                      {material_ids::e_slab, 130u}, portal_mat,
+                      {material_ids::e_none, inv_link}, portal_mat,
                       {7u, 8u, 9u, 10u, 11u, 12u, 13u, 14u, 15u, 1u});
     // disc portals
     range = {138u, 140u};
     test_portal_links(vol_itr->index(),
                       surfaces.begin() + static_cast<std::ptrdiff_t>(range[0]),
                       range, range[0], {mask_ids::e_portal_cylinder2, 16u},
-                      {material_ids::e_slab, 128u}, portal_mat,
+                      {material_ids::e_none, inv_link}, portal_mat,
                       {0u, leaving_world});
 
     // Check link of surfaces in surface finder
@@ -513,14 +521,14 @@ inline bool toy_detector_test_new(
     test_module_links(vol_itr->index(),
                       surfaces.begin() + static_cast<std::ptrdiff_t>(range[0]),
                       range, range[0], {mask_ids::e_trapezoid2, 2u},
-                      {material_ids::e_slab, 20u}, pixel_mat,
+                      {material_ids::e_slab, 109u}, pixel_mat,
                       {vol_itr->index()}, true);
     // One mask for the outer ring
     range = {180u, 248u};
     test_module_links(vol_itr->index(),
                       surfaces.begin() + static_cast<std::ptrdiff_t>(range[0]),
                       range, range[0], {mask_ids::e_trapezoid2, 3u},
-                      {material_ids::e_slab, 20u}, pixel_mat,
+                      {material_ids::e_slab, 149u}, pixel_mat,
                       {vol_itr->index()}, true);
 
     // Check links of portals
@@ -529,14 +537,14 @@ inline bool toy_detector_test_new(
     test_portal_links(vol_itr->index(),
                       surfaces.begin() + static_cast<std::ptrdiff_t>(range[0]),
                       range, range[0], {mask_ids::e_portal_cylinder2, 18u},
-                      {material_ids::e_slab, 16u}, portal_mat,
+                      {material_ids::e_none, inv_link}, portal_mat,
                       {0u, leaving_world});
     // disc portals
     range = {250u, 252u};
     test_portal_links(vol_itr->index(),
                       surfaces.begin() + static_cast<std::ptrdiff_t>(range[0]),
                       range, range[0], {mask_ids::e_portal_ring2, 14u},
-                      {material_ids::e_slab, 18u}, portal_mat, {6u, 4u});
+                      {material_ids::e_none, inv_link}, portal_mat, {6u, 4u});
 
     // Check link of surfaces in surface finder
     test_accel(vol_itr, accel, {248u, 252u}, {140u, 248u});
@@ -562,14 +570,14 @@ inline bool toy_detector_test_new(
     test_portal_links(vol_itr->index(),
                       surfaces.begin() + static_cast<std::ptrdiff_t>(range[0]),
                       range, range[0], {mask_ids::e_portal_cylinder2, 20u},
-                      {material_ids::e_slab, 128u}, portal_mat,
+                      {material_ids::e_none, inv_link}, portal_mat,
                       {0u, leaving_world});
     // disc portals
     range = {254u, 256u};
     test_portal_links(vol_itr->index(),
                       surfaces.begin() + static_cast<std::ptrdiff_t>(range[0]),
                       range, range[0], {mask_ids::e_portal_ring2, 16u},
-                      {material_ids::e_slab, 130u}, portal_mat, {3u, 1u});
+                      {material_ids::e_none, inv_link}, portal_mat, {3u, 1u});
 
     // Check link of surfaces in surface finder
     test_accel(vol_itr, accel, {252u, 256u});
@@ -595,14 +603,14 @@ inline bool toy_detector_test_new(
     test_module_links(vol_itr->index(),
                       surfaces.begin() + static_cast<std::ptrdiff_t>(range[0]),
                       range, range[0], {mask_ids::e_trapezoid2, 4u},
-                      {material_ids::e_slab, 20u}, pixel_mat,
+                      {material_ids::e_slab, 217u}, pixel_mat,
                       {vol_itr->index()}, true);
     // One mask for the outer ring
     range = {296u, 364u};
     test_module_links(vol_itr->index(),
                       surfaces.begin() + static_cast<std::ptrdiff_t>(range[0]),
                       range, range[0], {mask_ids::e_trapezoid2, 5u},
-                      {material_ids::e_slab, 20u}, pixel_mat,
+                      {material_ids::e_slab, 257u}, pixel_mat,
                       {vol_itr->index()}, true);
 
     // Check links of portals
@@ -611,14 +619,14 @@ inline bool toy_detector_test_new(
     test_portal_links(vol_itr->index(),
                       surfaces.begin() + static_cast<std::ptrdiff_t>(range[0]),
                       range, range[0], {mask_ids::e_portal_cylinder2, 22u},
-                      {material_ids::e_slab, 16u}, portal_mat,
+                      {material_ids::e_none, inv_link}, portal_mat,
                       {0u, leaving_world});
     // disc portals
     range = {366u, 368u};
     test_portal_links(vol_itr->index(),
                       surfaces.begin() + static_cast<std::ptrdiff_t>(range[0]),
                       range, range[0], {mask_ids::e_portal_ring2, 18u},
-                      {material_ids::e_slab, 18u}, portal_mat,
+                      {material_ids::e_none, inv_link}, portal_mat,
                       {leaving_world, 6u});
 
     // Check link of surfaces in surface finder
@@ -645,14 +653,14 @@ inline bool toy_detector_test_new(
     test_portal_links(vol_itr->index(),
                       surfaces.begin() + static_cast<std::ptrdiff_t>(range[0]),
                       range, range[0], {mask_ids::e_portal_cylinder2, 24u},
-                      {material_ids::e_slab, 128u}, portal_mat,
+                      {material_ids::e_none, inv_link}, portal_mat,
                       {0u, leaving_world});
     // disc portals
     range = {370u, 372u};
     test_portal_links(vol_itr->index(),
                       surfaces.begin() + static_cast<std::ptrdiff_t>(range[0]),
                       range, range[0], {mask_ids::e_portal_ring2, 20u},
-                      {material_ids::e_slab, 130u}, portal_mat, {5u, 3u});
+                      {material_ids::e_none, inv_link}, portal_mat, {5u, 3u});
 
     // Check link of surfaces in surface finder
     test_accel(vol_itr, accel, {368u, 372u});
@@ -681,7 +689,7 @@ inline bool toy_detector_test_new(
     test_module_links(vol_itr->index(),
                       surfaces.begin() + static_cast<std::ptrdiff_t>(range[0]),
                       range, range[0], {mask_ids::e_rectangle2, 0u},
-                      {material_ids::e_slab, 374u}, pixel_mat,
+                      {material_ids::e_slab, 325u}, pixel_mat,
                       {vol_itr->index()}, true);
 
     // Check links of portals
@@ -690,14 +698,14 @@ inline bool toy_detector_test_new(
     test_portal_links(vol_itr->index(),
                       surfaces.begin() + static_cast<std::ptrdiff_t>(range[0]),
                       range, range[0], {mask_ids::e_portal_cylinder2, 26u},
-                      {material_ids::e_slab, 370u}, portal_mat, {8u, 10u});
+                      {material_ids::e_none, inv_link}, portal_mat, {8u, 10u});
 
     // disc portals
     range = {598u, 600u};
     test_portal_links(vol_itr->index(),
                       surfaces.begin() + static_cast<std::ptrdiff_t>(range[0]),
                       range, range[0], {mask_ids::e_portal_ring2, 22u},
-                      {material_ids::e_slab, 372u}, portal_mat, {2u, 17u});
+                      {material_ids::e_none, inv_link}, portal_mat, {2u, 17u});
 
     // Check link of surfaces in surface finder
     test_accel(vol_itr, accel, {596u, 600u}, {372u, 596u});
@@ -723,13 +731,13 @@ inline bool toy_detector_test_new(
     test_portal_links(vol_itr->index(),
                       surfaces.begin() + static_cast<std::ptrdiff_t>(range[0]),
                       range, range[0], {mask_ids::e_portal_cylinder2, 28u},
-                      {material_ids::e_slab, 128u}, portal_mat, {0u, 7u});
+                      {material_ids::e_none, inv_link}, portal_mat, {0u, 7u});
     // disc portals
     range = {602u, 604u};
     test_portal_links(vol_itr->index(),
                       surfaces.begin() + static_cast<std::ptrdiff_t>(range[0]),
                       range, range[0], {mask_ids::e_portal_ring2, 24u},
-                      {material_ids::e_slab, 130u}, portal_mat, {2u, 17u});
+                      {material_ids::e_none, inv_link}, portal_mat, {2u, 17u});
 
     // Check link of surfaces in surface finder
     test_accel(vol_itr, accel, {600u, 604u});
@@ -754,7 +762,7 @@ inline bool toy_detector_test_new(
     test_module_links(vol_itr->index(),
                       surfaces.begin() + static_cast<std::ptrdiff_t>(range[0]),
                       range, range[0], {mask_ids::e_rectangle2, 1u},
-                      {material_ids::e_slab, 374u}, pixel_mat,
+                      {material_ids::e_slab, 549u}, pixel_mat,
                       {vol_itr->index()}, true);
 
     // Check links of portals
@@ -763,14 +771,14 @@ inline bool toy_detector_test_new(
     test_portal_links(vol_itr->index(),
                       surfaces.begin() + static_cast<std::ptrdiff_t>(range[0]),
                       range, range[0], {mask_ids::e_portal_cylinder2, 30u},
-                      {material_ids::e_slab, 370u}, portal_mat, {10u, 12u});
+                      {material_ids::e_none, inv_link}, portal_mat, {10u, 12u});
 
     // disc portals
     range = {1054u, 1056u};
     test_portal_links(vol_itr->index(),
                       surfaces.begin() + static_cast<std::ptrdiff_t>(range[0]),
                       range, range[0], {mask_ids::e_portal_ring2, 26u},
-                      {material_ids::e_slab, 372u}, portal_mat, {2u, 17u});
+                      {material_ids::e_none, inv_link}, portal_mat, {2u, 17u});
 
     // Check link of surfaces in surface finder
     test_accel(vol_itr, accel, {1052u, 1056u}, {604u, 1052u});
@@ -796,13 +804,13 @@ inline bool toy_detector_test_new(
     test_portal_links(vol_itr->index(),
                       surfaces.begin() + static_cast<std::ptrdiff_t>(range[0]),
                       range, range[0], {mask_ids::e_portal_cylinder2, 32u},
-                      {material_ids::e_slab, 128u}, portal_mat, {7u, 9u});
+                      {material_ids::e_none, inv_link}, portal_mat, {7u, 9u});
     // disc portals
     range = {1058u, 1060u};
     test_portal_links(vol_itr->index(),
                       surfaces.begin() + static_cast<std::ptrdiff_t>(range[0]),
                       range, range[0], {mask_ids::e_portal_ring2, 28u},
-                      {material_ids::e_slab, 130u}, portal_mat, {2u, 17u});
+                      {material_ids::e_none, inv_link}, portal_mat, {2u, 17u});
 
     // Check link of surfaces in surface finder
     test_accel(vol_itr, accel, {1056u, 1060u});
@@ -827,7 +835,7 @@ inline bool toy_detector_test_new(
     test_module_links(vol_itr->index(),
                       surfaces.begin() + static_cast<std::ptrdiff_t>(range[0]),
                       range, range[0], {mask_ids::e_rectangle2, 2u},
-                      {material_ids::e_slab, 374u}, pixel_mat,
+                      {material_ids::e_slab, 997u}, pixel_mat,
                       {vol_itr->index()}, true);
 
     // Check links of portals
@@ -836,14 +844,14 @@ inline bool toy_detector_test_new(
     test_portal_links(vol_itr->index(),
                       surfaces.begin() + static_cast<std::ptrdiff_t>(range[0]),
                       range, range[0], {mask_ids::e_portal_cylinder2, 34u},
-                      {material_ids::e_slab, 370u}, portal_mat, {12u, 14u});
+                      {material_ids::e_none, inv_link}, portal_mat, {12u, 14u});
 
     // disc portals
     range = {1790u, 1792u};
     test_portal_links(vol_itr->index(),
                       surfaces.begin() + static_cast<std::ptrdiff_t>(range[0]),
                       range, range[0], {mask_ids::e_portal_ring2, 30u},
-                      {material_ids::e_slab, 372u}, portal_mat, {2u, 17u});
+                      {material_ids::e_none, inv_link}, portal_mat, {2u, 17u});
 
     // Check link of surfaces in surface finder
     test_accel(vol_itr, accel, {1788u, 1792u}, {1060u, 1788u});
@@ -869,13 +877,13 @@ inline bool toy_detector_test_new(
     test_portal_links(vol_itr->index(),
                       surfaces.begin() + static_cast<std::ptrdiff_t>(range[0]),
                       range, range[0], {mask_ids::e_portal_cylinder2, 36u},
-                      {material_ids::e_slab, 128u}, portal_mat, {9u, 11u});
+                      {material_ids::e_none, inv_link}, portal_mat, {9u, 11u});
     // disc portals
     range = {1794u, 1796u};
     test_portal_links(vol_itr->index(),
                       surfaces.begin() + static_cast<std::ptrdiff_t>(range[0]),
                       range, range[0], {mask_ids::e_portal_ring2, 32u},
-                      {material_ids::e_slab, 130u}, portal_mat, {2u, 17u});
+                      {material_ids::e_none, inv_link}, portal_mat, {2u, 17u});
 
     // Check link of surfaces in surface finder
     test_accel(vol_itr, accel, {1792u, 1796u});
@@ -900,7 +908,7 @@ inline bool toy_detector_test_new(
     test_module_links(vol_itr->index(),
                       surfaces.begin() + static_cast<std::ptrdiff_t>(range[0]),
                       range, range[0], {mask_ids::e_rectangle2, 3u},
-                      {material_ids::e_slab, 374u}, pixel_mat,
+                      {material_ids::e_slab, 1725u}, pixel_mat,
                       {vol_itr->index()}, true);
 
     // Check links of portals
@@ -909,14 +917,14 @@ inline bool toy_detector_test_new(
     test_portal_links(vol_itr->index(),
                       surfaces.begin() + static_cast<std::ptrdiff_t>(range[0]),
                       range, range[0], {mask_ids::e_portal_cylinder2, 38u},
-                      {material_ids::e_slab, 370u}, portal_mat, {14u, 15u});
+                      {material_ids::e_none, inv_link}, portal_mat, {14u, 15u});
 
     // disc portals
     range = {2890u, 2892u};
     test_portal_links(vol_itr->index(),
                       surfaces.begin() + static_cast<std::ptrdiff_t>(range[0]),
                       range, range[0], {mask_ids::e_portal_ring2, 34u},
-                      {material_ids::e_slab, 372u}, portal_mat, {2u, 17u});
+                      {material_ids::e_none, inv_link}, portal_mat, {2u, 17u});
 
     // Check link of surfaces in surface finder
     test_accel(vol_itr, accel, {2888u, 2892u}, {1796u, 2888u});
@@ -942,13 +950,13 @@ inline bool toy_detector_test_new(
     test_portal_links(vol_itr->index(),
                       surfaces.begin() + static_cast<std::ptrdiff_t>(range[0]),
                       range, range[0], {mask_ids::e_portal_cylinder2, 40u},
-                      {material_ids::e_slab, 128u}, portal_mat, {11u, 13u});
+                      {material_ids::e_none, inv_link}, portal_mat, {11u, 13u});
     // disc portals
     range = {2894u, 2896u};
     test_portal_links(vol_itr->index(),
                       surfaces.begin() + static_cast<std::ptrdiff_t>(range[0]),
                       range, range[0], {mask_ids::e_portal_ring2, 36u},
-                      {material_ids::e_slab, 130u}, portal_mat, {2u, 17u});
+                      {material_ids::e_none, inv_link}, portal_mat, {2u, 17u});
 
     // Check link of surfaces in surface finder
     test_accel(vol_itr, accel, {2892u, 2896u});
@@ -974,14 +982,14 @@ inline bool toy_detector_test_new(
     test_portal_links(vol_itr->index(),
                       surfaces.begin() + static_cast<std::ptrdiff_t>(range[0]),
                       range, range[0], {mask_ids::e_portal_cylinder2, 42u},
-                      {material_ids::e_slab, 128u}, portal_mat,
+                      {material_ids::e_none, inv_link}, portal_mat,
                       {13u, leaving_world});
     // disc portals
     range = {2898u, 2900u};
     test_portal_links(vol_itr->index(),
                       surfaces.begin() + static_cast<std::ptrdiff_t>(range[0]),
                       range, range[0], {mask_ids::e_portal_ring2, 38u},
-                      {material_ids::e_slab, 130u}, portal_mat, {2u, 17u});
+                      {material_ids::e_none, inv_link}, portal_mat, {2u, 17u});
 
     // Check link of surfaces in surface finder
     test_accel(vol_itr, accel, {2896u, 2900u});
@@ -1011,14 +1019,14 @@ inline bool toy_detector_test_new(
     test_module_links(vol_itr->index(),
                       surfaces.begin() + static_cast<std::ptrdiff_t>(range[0]),
                       range, range[0], {mask_ids::e_trapezoid2, 6u},
-                      {material_ids::e_slab, 20u}, pixel_mat,
+                      {material_ids::e_slab, 2817u}, pixel_mat,
                       {vol_itr->index()}, true);
     // One mask for the outer ring
     range = {2940u, 3008u};
     test_module_links(vol_itr->index(),
                       surfaces.begin() + static_cast<std::ptrdiff_t>(range[0]),
                       range, range[0], {mask_ids::e_trapezoid2, 7u},
-                      {material_ids::e_slab, 20u}, pixel_mat,
+                      {material_ids::e_slab, 2857u}, pixel_mat,
                       {vol_itr->index()}, true);
 
     // Check links of portals
@@ -1027,14 +1035,14 @@ inline bool toy_detector_test_new(
     test_portal_links(vol_itr->index(),
                       surfaces.begin() + static_cast<std::ptrdiff_t>(range[0]),
                       range, range[0], {mask_ids::e_portal_cylinder2, 44u},
-                      {material_ids::e_slab, 16u}, portal_mat,
+                      {material_ids::e_none, inv_link}, portal_mat,
                       {0u, leaving_world});
     // disc portals
     range = {3010u, 3012u};
     test_portal_links(vol_itr->index(),
                       surfaces.begin() + static_cast<std::ptrdiff_t>(range[0]),
                       range, range[0], {mask_ids::e_portal_ring2, 40u},
-                      {material_ids::e_slab, 18u}, portal_mat, {17u, 19u});
+                      {material_ids::e_none, inv_link}, portal_mat, {17u, 19u});
 
     // Check link of surfaces in surface finder
     test_accel(vol_itr, accel, {3008u, 3012u}, {2900u, 3008u});
@@ -1060,14 +1068,14 @@ inline bool toy_detector_test_new(
     test_portal_links(vol_itr->index(),
                       surfaces.begin() + static_cast<std::ptrdiff_t>(range[0]),
                       range, range[0], {mask_ids::e_portal_ring2, 42u},
-                      {material_ids::e_slab, 130u}, portal_mat,
+                      {material_ids::e_none, inv_link}, portal_mat,
                       {7u, 8u, 9u, 10u, 11u, 12u, 13u, 14u, 15u, 16u});
     // disc portals
     range = {3022u, 3024u};
     test_portal_links(vol_itr->index(),
                       surfaces.begin() + static_cast<std::ptrdiff_t>(range[0]),
                       range, range[0], {mask_ids::e_portal_cylinder2, 46u},
-                      {material_ids::e_slab, 128u}, portal_mat,
+                      {material_ids::e_none, inv_link}, portal_mat,
                       {0u, leaving_world});
 
     // Check link of surfaces in surface finder
@@ -1094,14 +1102,14 @@ inline bool toy_detector_test_new(
     test_module_links(vol_itr->index(),
                       surfaces.begin() + static_cast<std::ptrdiff_t>(range[0]),
                       range, range[0], {mask_ids::e_trapezoid2, 8u},
-                      {material_ids::e_slab, 20u}, pixel_mat,
+                      {material_ids::e_slab, 2925u}, pixel_mat,
                       {vol_itr->index()}, true);
     // One mask for the outer ring
     range = {3064u, 3132u};
     test_module_links(vol_itr->index(),
                       surfaces.begin() + static_cast<std::ptrdiff_t>(range[0]),
                       range, range[0], {mask_ids::e_trapezoid2, 9u},
-                      {material_ids::e_slab, 20u}, pixel_mat,
+                      {material_ids::e_slab, 2965u}, pixel_mat,
                       {vol_itr->index()}, true);
 
     // Check links of portals
@@ -1110,14 +1118,14 @@ inline bool toy_detector_test_new(
     test_portal_links(vol_itr->index(),
                       surfaces.begin() + static_cast<std::ptrdiff_t>(range[0]),
                       range, range[0], {mask_ids::e_portal_cylinder2, 48u},
-                      {material_ids::e_slab, 16u}, portal_mat,
+                      {material_ids::e_none, inv_link}, portal_mat,
                       {0u, leaving_world});
     // disc portals
     range = {3134u, 3136u};
     test_portal_links(vol_itr->index(),
                       surfaces.begin() + static_cast<std::ptrdiff_t>(range[0]),
                       range, range[0], {mask_ids::e_portal_ring2, 52u},
-                      {material_ids::e_slab, 18u}, portal_mat, {19u, 21u});
+                      {material_ids::e_none, inv_link}, portal_mat, {19u, 21u});
 
     // Check link of surfaces in surface finder
     test_accel(vol_itr, accel, {3132u, 3136u}, {3024u, 3132u});
@@ -1143,14 +1151,14 @@ inline bool toy_detector_test_new(
     test_portal_links(vol_itr->index(),
                       surfaces.begin() + static_cast<std::ptrdiff_t>(range[0]),
                       range, range[0], {mask_ids::e_portal_cylinder2, 50u},
-                      {material_ids::e_slab, 128u}, portal_mat,
+                      {material_ids::e_none, inv_link}, portal_mat,
                       {0u, leaving_world});
     // disc portals
     range = {3138u, 3140u};
     test_portal_links(vol_itr->index(),
                       surfaces.begin() + static_cast<std::ptrdiff_t>(range[0]),
                       range, range[0], {mask_ids::e_portal_ring2, 54u},
-                      {material_ids::e_slab, 130u}, portal_mat, {16u, 18u});
+                      {material_ids::e_none, inv_link}, portal_mat, {16u, 18u});
 
     // Check link of surfaces in surface finder
     test_accel(vol_itr, accel, {3136u, 3140u});
@@ -1176,14 +1184,14 @@ inline bool toy_detector_test_new(
     test_module_links(vol_itr->index(),
                       surfaces.begin() + static_cast<std::ptrdiff_t>(range[0]),
                       range, range[0], {mask_ids::e_trapezoid2, 10u},
-                      {material_ids::e_slab, 20u}, pixel_mat,
+                      {material_ids::e_slab, 3033u}, pixel_mat,
                       {vol_itr->index()}, true);
     // One mask for the outer ring
     range = {3180u, 3248u};
     test_module_links(vol_itr->index(),
                       surfaces.begin() + static_cast<std::ptrdiff_t>(range[0]),
                       range, range[0], {mask_ids::e_trapezoid2, 11u},
-                      {material_ids::e_slab, 20u}, pixel_mat,
+                      {material_ids::e_slab, 3073u}, pixel_mat,
                       {vol_itr->index()}, true);
 
     // Check links of portals
@@ -1192,14 +1200,14 @@ inline bool toy_detector_test_new(
     test_portal_links(vol_itr->index(),
                       surfaces.begin() + static_cast<std::ptrdiff_t>(range[0]),
                       range, range[0], {mask_ids::e_portal_cylinder2, 52u},
-                      {material_ids::e_slab, 16u}, portal_mat,
+                      {material_ids::e_none, inv_link}, portal_mat,
                       {0u, leaving_world});
     // disc portals
     range = {3250u, 3252u};
     test_portal_links(vol_itr->index(),
                       surfaces.begin() + static_cast<std::ptrdiff_t>(range[0]),
                       range, range[0], {mask_ids::e_portal_ring2, 56u},
-                      {material_ids::e_slab, 18u}, portal_mat,
+                      {material_ids::e_none, inv_link}, portal_mat,
                       {21u, leaving_world});
 
     // Check link of surfaces in surface finder
@@ -1226,14 +1234,14 @@ inline bool toy_detector_test_new(
     test_portal_links(vol_itr->index(),
                       surfaces.begin() + static_cast<std::ptrdiff_t>(range[0]),
                       range, range[0], {mask_ids::e_portal_cylinder2, 54u},
-                      {material_ids::e_slab, 128u}, portal_mat,
+                      {material_ids::e_none, inv_link}, portal_mat,
                       {0u, leaving_world});
     // disc portals
     range = {3254u, 3256u};
     test_portal_links(vol_itr->index(),
                       surfaces.begin() + static_cast<std::ptrdiff_t>(range[0]),
                       range, range[0], {mask_ids::e_portal_ring2, 58u},
-                      {material_ids::e_slab, 130u}, portal_mat, {18u, 20u});
+                      {material_ids::e_none, inv_link}, portal_mat, {18u, 20u});
 
     // Check link of surfaces in surface finder
     test_accel(vol_itr, accel, {3252u, 3256u});

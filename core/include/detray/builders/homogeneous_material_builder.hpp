@@ -1,6 +1,6 @@
 /** Detray library, part of the ACTS project (R&D line)
  *
- * (c) 2022-2023 CERN for the benefit of the ACTS project
+ * (c) 2022-2024 CERN for the benefit of the ACTS project
  *
  * Mozilla Public License Version 2.0
  */
@@ -9,6 +9,7 @@
 
 // Project include(s).
 #include "detray/builders/homogeneous_material_factory.hpp"
+#include "detray/builders/homogeneous_material_generator.hpp"
 #include "detray/builders/volume_builder.hpp"
 #include "detray/builders/volume_builder_interface.hpp"
 
@@ -53,6 +54,13 @@ class homogeneous_material_builder final : public volume_decorator<detector_t> {
                 sf_factory);
         if (mat_factory) {
             (*mat_factory)(this->surfaces(), m_materials);
+            return;
+        }
+        auto mat_generator = std::dynamic_pointer_cast<
+            homogeneous_material_generator<detector_t>>(sf_factory);
+        if (mat_generator) {
+            (*mat_generator)(this->surfaces(), m_materials);
+            return;
         }
     }
     /// @}
