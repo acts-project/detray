@@ -26,14 +26,17 @@ int main(int argc, char **argv) {
 
     desc.add_options()("help", "produce help message")(
         "outdir", po::value<std::string>(), "Output directory for files")(
-        "write_volume_graph", "writes the volume graph to file")(
+        "write_volume_graph", "Writes the volume graph to file")(
         "compactify_json", "not implemented")(
-        "write_material", "toggle material output")("write_grids",
-                                                    "toggle grid output")(
+        "write_material", "Toggle material output")("write_grids",
+                                                    "Toggle grid output")(
         "barrel_layers", po::value<unsigned int>()->default_value(4u),
-        "number of barrel layers [0-4]")(
+        "Number of barrel layers [0-4]")(
         "endcap_layers", po::value<unsigned int>()->default_value(3u),
-        "number of endcap layers on either side [0-7]");
+        "Number of endcap layers on either side [0-7]")(
+        "homogeneous_material",
+        "Generate homogeneous material description (default)")(
+        "material_maps", "Generate material maps");
 
     po::variables_map vm;
     po::store(parse_command_line(argc, argv, desc,
@@ -51,7 +54,7 @@ int main(int argc, char **argv) {
     // Configuration
     detray::toy_det_config<detray::scalar> toy_cfg{};
     detray::io::detector_writer_config writer_cfg{};
-    writer_cfg.format(detray::io::format::json).replace_files(false);
+    writer_cfg.format(detray::io::format::json).replace_files(true);
 
     // General options
     std::string outdir{vm.count("outdir") ? vm["outdir"].as<std::string>()
@@ -64,6 +67,20 @@ int main(int argc, char **argv) {
     // Toy detector options
     toy_cfg.n_brl_layers(vm["barrel_layers"].as<unsigned int>());
     toy_cfg.n_edc_layers(vm["endcap_layers"].as<unsigned int>());
+
+    if (vm.count("homogeneous_material") && vm.count("material_maps")) {
+        std::cout << "Please specify only one material description"
+                  << std::endl;
+        return EXIT_FAILURE;
+    }
+    if (vm.count("homogeneous_material")) {
+        toy_cfg.use_material_maps(false);
+        writer_cfg.write_material(true);
+    }
+    if (vm.count("material_maps")) {
+        toy_cfg.use_material_maps(true);
+        writer_cfg.write_material(true);
+    }
 
     // Build the geometry
     vecmem::host_memory_resource host_mr;

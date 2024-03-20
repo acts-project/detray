@@ -103,13 +103,15 @@ def L0_vs_eta_phi(df, detector, plotFactory,  out_format =  "pdf"):
 def X0_vs_eta(df, detector, plotFactory,  out_format =  "pdf"):
 
     # Histogram bin edges
-    xBinning, _ = get_n_bins(df)
+    xBinning, yBinning = get_n_bins(df)
     lgd_ops = plotting.get_legend_options()
     lgd_ops._replace(loc = 'upper center')
 
+    phi_normalization = len(yBinning) - 1
+
     hist_data = plotFactory.hist1D(
                             x      = df['eta'],
-                            w      = df['mat_tX0'],
+                            w      = df['mat_tX0'] / phi_normalization,
                             normalize = False,
                             label  = rf'{detector}',
                             xLabel = r'$\eta$',
@@ -122,7 +124,7 @@ def X0_vs_eta(df, detector, plotFactory,  out_format =  "pdf"):
 
     hist_data = plotFactory.hist1D(
                             x      = df['eta'],
-                            w      = df['mat_sX0'],
+                            w      = df['mat_sX0'] / phi_normalization,
                             normalize = False,
                             label  = rf'{detector}',
                             xLabel = r'$\eta$',
@@ -138,13 +140,15 @@ def X0_vs_eta(df, detector, plotFactory,  out_format =  "pdf"):
 def L0_vs_eta(df, detector, plotFactory,  out_format =  "pdf"):
 
     # Histogram bin edges
-    xBinning, _ = get_n_bins(df)
+    xBinning, yBinning = get_n_bins(df)
     lgd_ops = plotting.get_legend_options()
     lgd_ops._replace(loc = 'upper center')
 
+    phi_normalization = len(yBinning) - 1
+
     hist_data = plotFactory.hist1D(
                             x      = df['eta'],
-                            w      = df['mat_tL0'],
+                            w      = df['mat_tL0'] / phi_normalization,
                             normalize = False,
                             label  = rf'{detector}',
                             xLabel = r'$\eta$',
@@ -157,7 +161,7 @@ def L0_vs_eta(df, detector, plotFactory,  out_format =  "pdf"):
 
     hist_data = plotFactory.hist1D(
                             x      = df['eta'],
-                            w      = df['mat_sL0'],
+                            w      = df['mat_sL0'] / phi_normalization,
                             normalize = False,
                             label  = rf'{detector}',
                             xLabel = r'$\eta$',

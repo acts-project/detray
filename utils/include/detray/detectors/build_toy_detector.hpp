@@ -13,12 +13,13 @@
 #include "detray/builders/grid_builder.hpp"
 #include "detray/builders/homogeneous_material_builder.hpp"
 #include "detray/builders/homogeneous_material_generator.hpp"
+#include "detray/builders/material_map_builder.hpp"
+#include "detray/builders/material_map_generator.hpp"
 #include "detray/builders/surface_factory.hpp"
 #include "detray/builders/volume_builder.hpp"
 #include "detray/core/detector.hpp"
 #include "detray/definitions/detail/indexing.hpp"
 #include "detray/definitions/units.hpp"
-#include "detray/detectors/detector_helper.hpp"
 #include "detray/detectors/factories/barrel_generator.hpp"
 #include "detray/detectors/factories/endcap_generator.hpp"
 #include "detray/detectors/toy_metadata.hpp"
@@ -75,6 +76,37 @@ struct toy_det_config {
             .passive_material(beryllium_tml<scalar_t>())  // < beampipe
             .portal_material(vacuum<scalar_t>())
             .thickness(1.5f * unit<scalar_t>::mm);
+
+        // Configure the material map generation
+        m_beampipe_map_cfg.n_bins = {20u, 20u};
+        m_beampipe_map_cfg.axis_index = 1u;
+        m_beampipe_map_cfg.mapped_material = beryllium_tml<scalar_t>();
+        // m_beampipe_map_cfg.thickness = 0.08f * unit<scalar_t>::um;
+        m_beampipe_map_cfg.thickness = 0.f * unit<scalar_t>::um;
+        // Don't scale the generation of the material thickness
+        m_beampipe_map_cfg.scalor = 0.f;
+        m_beampipe_map_cfg.mat_generator =
+            detray::detail::generate_cyl_mat<scalar_t>;
+
+        m_disc_map_cfg.n_bins = {3u, 20u};
+        m_disc_map_cfg.axis_index = 0u;
+        m_disc_map_cfg.mapped_material =
+            mixture<scalar_t, silicon_tml<scalar_t, std::ratio<9, 10>>,
+                    aluminium<scalar_t, std::ratio<1, 10>>>{};
+        m_disc_map_cfg.thickness = 1.5f * unit<scalar_t>::mm;
+        m_disc_map_cfg.scalor = 0.0001f;
+        m_disc_map_cfg.mat_generator =
+            detray::detail::generate_disc_mat<scalar_t>;
+
+        m_cyl_map_cfg.n_bins = {20u, 20u};
+        m_cyl_map_cfg.axis_index = 1u;
+        m_cyl_map_cfg.mapped_material =
+            mixture<scalar_t, silicon_tml<scalar_t, std::ratio<9, 10>>,
+                    aluminium<scalar_t, std::ratio<1, 10>>>{};
+        m_cyl_map_cfg.thickness = 5.f * unit<scalar_t>::mm;
+        m_cyl_map_cfg.scalor = 0.000001f;
+        m_cyl_map_cfg.mat_generator =
+            detray::detail::generate_cyl_mat<scalar_t>;
     }
 
     /// No. of barrel layers the detector should be built with
@@ -91,29 +123,16 @@ struct toy_det_config {
     hom_material_config<scalar_t> m_material_config{};
     /// Put material maps on portals or use homogenous material on modules
     bool m_use_material_maps{false};
-    /// Number of bins for material maps
-    std::array<std::size_t, 2> m_cyl_map_bins{20u, 20u};
-    std::array<std::size_t, 2> m_disc_map_bins{3u, 20u};
-    /// Material to be filled into the maps
-    material<scalar_t> m_mapped_material{
-        mixture<scalar_t, silicon_tml<scalar_t, std::ratio<9, 10>>,
-                aluminium<scalar_t, std::ratio<1, 10>>>{}};
-    /// Minimal thickness of the material slabs in the material maps
-    scalar_t m_thickness{0.15f * unit<scalar_t>::mm};
+    /// Configuration for the material map generator (beampipe)
+    typename material_map_config<scalar_t>::map_config m_beampipe_map_cfg{};
+    /// Configuration for the material map generator (disc)
+    typename material_map_config<scalar_t>::map_config m_disc_map_cfg{};
+    /// Configuration for the material map generator (cylinder)
+    typename material_map_config<scalar_t>::map_config m_cyl_map_cfg{};
     /// Thickness of the beampipe material
     scalar_t m_beampipe_mat_thickness{0.8f * unit<scalar_t>::mm};
     /// Thickness of the material slabs in the homogeneous material description
     scalar_t m_module_mat_thickness{1.5f * unit<scalar_t>::mm};
-    /// Generate material along z bins for a cylinder material grid
-    std::function<std::vector<material_slab<scalar_t>>(
-        const std::array<scalar_t, 2u> &, const std::size_t, material<scalar_t>,
-        const scalar_t)>
-        m_cyl_mat_generator{detray::detail::generate_cyl_mat};
-    /// Generate material along r bins for a disc material grid
-    std::function<std::vector<material_slab<scalar_t>>(
-        const std::array<scalar_t, 2u> &, const std::size_t, material<scalar_t>,
-        const scalar_t)>
-        m_disc_mat_generator{detray::detail::generate_disc_mat};
     /// Radii at which to place the barrel module layers (including beampipe)
     std::vector<scalar_t> m_barrel_layer_radii = {
         19.f * unit<scalar_t>::mm, 32.f * unit<scalar_t>::mm,
@@ -155,17 +174,18 @@ struct toy_det_config {
     }
     constexpr toy_det_config &cyl_map_bins(const std::size_t n_phi,
                                            const std::size_t n_z) {
-        m_cyl_map_bins = {n_phi, n_z};
+        m_cyl_map_cfg.n_bins = {n_phi, n_z};
         return *this;
     }
     constexpr toy_det_config &disc_map_bins(const std::size_t n_r,
                                             const std::size_t n_phi) {
-        m_disc_map_bins = {n_r, n_phi};
+        m_disc_map_cfg.n_bins = {n_r, n_phi};
         return *this;
     }
-    constexpr toy_det_config &thickness(const scalar_t t) {
+    constexpr toy_det_config &material_map_min_thickness(const scalar_t t) {
         assert(t > 0.f);
-        m_thickness = t;
+        m_cyl_map_cfg.thickness = t;
+        m_disc_map_cfg.thickness = t;
         return *this;
     }
     constexpr toy_det_config &beampipe_mat_thickness(const scalar_t t) {
@@ -179,7 +199,8 @@ struct toy_det_config {
         return *this;
     }
     constexpr toy_det_config &mapped_material(const material<scalar_t> &mat) {
-        m_mapped_material = mat;
+        m_cyl_map_cfg.mapped_material = mat;
+        m_disc_map_cfg.mapped_material = mat;
         return *this;
     }
     constexpr toy_det_config &do_check(const bool check) {
@@ -200,23 +221,35 @@ struct toy_det_config {
     constexpr auto &material_config() { return m_material_config; }
     constexpr const auto &material_config() const { return m_material_config; }
     constexpr bool use_material_maps() const { return m_use_material_maps; }
+    constexpr auto &beampipe_material_map() { return m_beampipe_map_cfg; }
+    constexpr const auto &beampipe_material_map() const {
+        return m_beampipe_map_cfg;
+    }
+    constexpr const auto &cyl_material_map() const { return m_cyl_map_cfg; }
+    constexpr auto &cyl_material_map() { return m_cyl_map_cfg; }
+    constexpr const auto &disc_material_map() const { return m_disc_map_cfg; }
+    constexpr auto &disc_material_map() { return m_disc_map_cfg; }
     constexpr const std::array<std::size_t, 2> &cyl_map_bins() const {
-        return m_cyl_map_bins;
+        return m_cyl_map_cfg.n_bins;
     }
     constexpr const std::array<std::size_t, 2> &disc_map_bins() const {
-        return m_disc_map_bins;
+        return m_disc_map_cfg.n_bins;
     }
-    constexpr scalar_t thickness() const { return m_thickness; }
+    constexpr scalar_t material_map_min_thickness() const {
+        assert(m_cyl_map_cfg.thickness == m_disc_map_cfg.thickness);
+        return m_cyl_map_cfg.thickness;
+    }
     constexpr scalar_t beampipe_mat_thickness() const {
         return m_beampipe_mat_thickness;
     }
     constexpr scalar_t module_mat_thickness() const {
         return m_module_mat_thickness;
     }
-    auto barrel_mat_generator() const { return m_cyl_mat_generator; }
-    auto edc_mat_generator() const { return m_disc_mat_generator; }
+    auto barrel_mat_generator() const { return m_cyl_map_cfg.mat_generator; }
+    auto edc_mat_generator() const { return m_disc_map_cfg.mat_generator; }
     constexpr material<scalar_t> mapped_material() const {
-        return m_mapped_material;
+        assert(m_cyl_map_cfg.mapped_material == m_disc_map_cfg.mapped_material);
+        return m_cyl_map_cfg.mapped_material;
     }
     constexpr const auto &barrel_layer_radii() const {
         return m_barrel_layer_radii;
@@ -245,6 +278,105 @@ struct extent2D {
     scalar_t lower, upper;
 };
 
+/// Helper method to decorate a volume builder with material
+///
+/// @param cfg config for the toy detector
+/// @param det_builder detector builder the volume belongs to
+/// @param v_builder the builder of the volume that should be decorated
+///
+/// @returns the decorated volume builder and surface factory
+template <typename detector_builder_t, typename detector_t, typename config_t>
+volume_builder_interface<detector_t> *decorate_material(
+    config_t &cfg, detector_builder_t &det_builder,
+    volume_builder_interface<detector_t> *v_builder) {
+
+    static_assert(
+        std::is_same_v<detector_t, typename detector_builder_t::detector_type>,
+        "Detector builder and volume builder/surface factory have different "
+        "detector type");
+
+    volume_builder_interface<detector_t> *vm_builder{v_builder};
+
+    // Decorate the builder with material
+    if (cfg.use_material_maps()) {
+        // Build the volume with material maps
+        vm_builder =
+            det_builder.template decorate<material_map_builder<detector_t>>(
+                v_builder);
+    } else {
+        // Build the volume with a homogeneous material description
+        vm_builder =
+            det_builder
+                .template decorate<homogeneous_material_builder<detector_t>>(
+                    v_builder);
+    }
+
+    return vm_builder;
+}
+
+/// Helper method to decorate a surface factory with material
+///
+/// @param cfg config for the toy detector
+/// @param sf_factory surface factory that should be decorated with material
+/// @param is_module_factory should homogeneous material be added to surfaces
+///                          of this factory (assumes no material maps are used)
+///
+/// @returns the decorated volume builder and surface factory
+template <typename detector_t>
+std::shared_ptr<surface_factory_interface<detector_t>> decorate_material(
+    toy_det_config<typename detector_t::scalar_type> &cfg,
+    std::unique_ptr<surface_factory_interface<detector_t>> sf_factory,
+    bool is_module_factory = false) {
+
+    using scalar_t = typename detector_t::scalar_type;
+    using mask_id = typename detector_t::masks::id;
+    using material_id = typename detector_t::materials::id;
+
+    // Decorate the surfaces with material
+    if (cfg.use_material_maps()) {
+        // How to generate the specific material map for every surface
+        material_map_config<scalar_t> material_map_config{};
+
+        // Add the complete configuration for the beampipe map generation
+        cfg.beampipe_material_map().map_id =
+            static_cast<dindex>(material_id::e_concentric_cylinder2_map);
+        material_map_config.set_map_config(mask_id::e_portal_cylinder2,
+                                           surface_id::e_passive,
+                                           cfg.beampipe_material_map());
+
+        // Add the complete configuration for disc map generation
+        cfg.disc_material_map().map_id =
+            static_cast<dindex>(material_id::e_disc2_map);
+        material_map_config.set_map_config(mask_id::e_portal_ring2,
+                                           surface_id::e_portal,
+                                           cfg.disc_material_map());
+
+        // Add the complete configuration for cylinder map generation
+        cfg.cyl_material_map().map_id =
+            static_cast<dindex>(material_id::e_concentric_cylinder2_map);
+        material_map_config.set_map_config(mask_id::e_portal_cylinder2,
+                                           surface_id::e_portal,
+                                           cfg.cyl_material_map());
+
+        auto mat_generator =
+            std::make_shared<material_map_generator<detector_t>>(
+                std::move(sf_factory), material_map_config);
+
+        return mat_generator;
+
+    } else if (!cfg.use_material_maps() && is_module_factory) {
+        // How to generate the specific material for every surface
+        auto mat_generator =
+            std::make_shared<homogeneous_material_generator<detector_t>>(
+                std::move(sf_factory), cfg.material_config());
+
+        return mat_generator;
+    } else {
+        // If no material should be added, return the factory as is
+        return sf_factory;
+    }
+}
+
 /// Add the cylinder and disc portals for a volume from explicit parameters
 ///
 /// @param v_builder the volume builder to add the portals to
@@ -258,14 +390,14 @@ struct extent2D {
 /// @param link_east portal volume link of the left disc
 /// @param link_west portal volume link of the right disc
 template <typename detector_t>
-void add_gap_portals(volume_builder_interface<detector_t> *v_builder,
-                     typename detector_t::name_map &names,
-                     const typename detector_t::scalar_type lower_z,
-                     const typename detector_t::scalar_type upper_z,
-                     const typename detector_t::scalar_type inner_r,
-                     const typename detector_t::scalar_type outer_r,
-                     const dindex link_north, const dindex link_south,
-                     const dindex link_east, const dindex link_west) {
+void add_cylinder_portals(volume_builder_interface<detector_t> *v_builder,
+                          typename detector_t::name_map &names,
+                          const typename detector_t::scalar_type lower_z,
+                          const typename detector_t::scalar_type upper_z,
+                          const typename detector_t::scalar_type inner_r,
+                          const typename detector_t::scalar_type outer_r,
+                          const dindex link_north, const dindex link_south,
+                          const dindex link_east, const dindex link_west) {
 
     using transform3_t = typename detector_t::transform3_type;
     using scalar_t = typename detector_t::scalar_type;
@@ -310,49 +442,6 @@ void add_gap_portals(volume_builder_interface<detector_t> *v_builder,
     v_builder->add_surfaces(pt_disc_factory);
 
     names[vol_idx + 1u] = "gap_" + std::to_string(vol_idx);
-}
-
-/// Helper method to decorate a volume builder and surface factory with material
-///
-/// @param cfg config for the toy detector
-/// @param det_builder detector builder the volume belongs to
-/// @param v_builder the builder of the volume that should be decorated
-/// @param sf_factory surface factory that should be decorated with material
-///
-/// @returns the decorated volume builder and surface factory
-template <typename detector_builder_t, typename detector_t>
-std::tuple<volume_builder_interface<detector_t> *,
-           std::shared_ptr<surface_factory_interface<detector_t>>>
-decorate_material(
-    const toy_det_config<typename detector_t::scalar_type> &cfg,
-    detector_builder_t &det_builder,
-    volume_builder_interface<detector_t> *v_builder,
-    std::unique_ptr<
-        surface_factory_interface<typename detector_builder_t::detector_type>>
-        sf_factory = nullptr) {
-
-    static_assert(
-        std::is_same_v<detector_t, typename detector_builder_t::detector_type>,
-        "Detector builder and volume builder/surface factory have different "
-        "detector type");
-
-    // Decorate the builders with homogeneous material
-    if (!cfg.use_material_maps()) {
-        // Build the volume with a homogeneous material description
-        auto vm_builder =
-            det_builder
-                .template decorate<homogeneous_material_builder<detector_t>>(
-                    v_builder);
-        // How to generate the specific material for every surface
-        auto mat_generator =
-            std::make_shared<homogeneous_material_generator<detector_t>>(
-                std::move(sf_factory), cfg.material_config());
-
-        return std::make_tuple(vm_builder, std::move(mat_generator));
-    } else {
-        // @TODO Add material maps builder here soon
-        return std::make_tuple(v_builder, std::move(sf_factory));
-    }
 }
 
 /// Helper method for creating the barrel surface grids.
@@ -424,6 +513,42 @@ inline void add_disc_grid(
         {endcap_cfg.binning().size(), endcap_cfg.binning().back()});
 }
 
+/// Helper method to retrieve the volume extent from a potentially decorated
+/// cylinder portal factory
+///
+/// @param[in] cfg config for the toy detector
+/// @param[in] sf_factory (material) factory to get the cylinder extent from
+/// @param[out] vol_bounds boundary struct
+template <typename detector_t>
+inline void get_volume_extent(
+    toy_det_config<typename detector_t::scalar_type> &cfg,
+    std::shared_ptr<surface_factory_interface<detector_t>> sf_factory,
+    typename cylinder_portal_generator<detector_t>::boundaries &vol_bounds) {
+
+    // Get the volume extent from the cylinder factory
+    const cylinder_portal_generator<detector_t> *cyl_factory{nullptr};
+    if (cfg.use_material_maps()) {
+        // Retrieve the underlying portal factory
+        auto decorator =
+            std::dynamic_pointer_cast<factory_decorator<detector_t>>(
+                sf_factory);
+        cyl_factory =
+            dynamic_cast<const cylinder_portal_generator<detector_t> *>(
+                decorator->get_factory());
+    } else {
+        // No material was decorated
+        cyl_factory =
+            dynamic_cast<const cylinder_portal_generator<detector_t> *>(
+                sf_factory.get());
+    }
+    if (!cyl_factory) {
+        throw std::bad_cast();
+    }
+
+    // Set the new current boundaries, to construct the next gap
+    vol_bounds = cyl_factory->volume_boundaries();
+}
+
 /// Helper method for creating the barrel section.
 ///
 /// @param det_builder detector builder the barrel section should be added to
@@ -479,10 +604,11 @@ inline auto add_barrel_detector(
 
         // New volume
         auto v_builder = det_builder.new_volume(volume_id::e_cylinder);
-        const dindex vol_idx{v_builder->vol_index()};
+        auto vm_builder = decorate_material(cfg, det_builder, v_builder);
+        const dindex vol_idx{vm_builder->vol_index()};
 
         // The barrel volumes are centered at the origin
-        v_builder->add_volume_placement(identity);
+        vm_builder->add_volume_placement(identity);
 
         // Every second layer is a gap volume
         is_gap = !is_gap;
@@ -494,9 +620,10 @@ inline auto add_barrel_detector(
             // The first time a gap is built, it needs to link to the beampipe
             link_south = (i == 1u) ? beampipe_idx : link_south;
 
-            detail::add_gap_portals(v_builder, names, -h_z, h_z, gap_inner_r,
-                                    vol_bounds.inner_radius, link_north,
-                                    link_south, link_east, link_west);
+            detail::add_cylinder_portals(vm_builder, names, -h_z, h_z,
+                                         gap_inner_r, vol_bounds.inner_radius,
+                                         link_north, link_south, link_east,
+                                         link_west);
             volume_sizes.push_back(
                 {vol_idx, {gap_inner_r, vol_bounds.inner_radius}});
 
@@ -533,24 +660,25 @@ inline auto add_barrel_detector(
             // Configure the material
             cfg.material_config().thickness(cfg.module_mat_thickness());
 
-            // Add a layer of module surfaces
-            auto module_factory =
+            // Add a layer of module surfaces (may have material)
+            auto module_mat_factory = decorate_material<detector_t>(
+                cfg,
                 std::make_unique<barrel_generator<detector_t, rectangle2D>>(
-                    barrel_cfg);
+                    barrel_cfg),
+                true);
 
-            // Add cylinder and disc portals
-            auto portal_factory =
-                std::make_shared<cylinder_portal_generator<detector_t>>(
-                    portal_cfg);
-
-            auto [vm_builder, module_mat_factory] = decorate_material(
-                cfg, det_builder, v_builder, std::move(module_factory));
+            // Add cylinder and disc portals (may have material, depending on
+            // whether material maps are being used or not)
+            auto portal_mat_factory = decorate_material<detector_t>(
+                cfg, std::make_unique<cylinder_portal_generator<detector_t>>(
+                         portal_cfg));
 
             vm_builder->add_surfaces(module_mat_factory, gctx);
-            vm_builder->add_surfaces(portal_factory);
+            vm_builder->add_surfaces(portal_mat_factory);
 
-            // Set the new current boundaries, to construct the next gap
-            vol_bounds = portal_factory->volume_boundaries();
+            // Fill the volume extent into 'vol_bounds'
+            get_volume_extent(cfg, portal_mat_factory, vol_bounds);
+
             volume_sizes.push_back(
                 {vol_idx, {vol_bounds.inner_radius, vol_bounds.outer_radius}});
 
@@ -566,9 +694,9 @@ inline auto add_barrel_detector(
     const dindex vol_idx{v_builder->vol_index()};
     v_builder->add_volume_placement(identity);
 
-    detail::add_gap_portals(v_builder, names, -h_z, h_z,
-                            vol_bounds.outer_radius, cfg.outer_radius(),
-                            end_of_world, vol_idx - 2u, link_east, link_west);
+    detail::add_cylinder_portals(
+        v_builder, names, -h_z, h_z, vol_bounds.outer_radius,
+        cfg.outer_radius(), end_of_world, vol_idx - 2u, link_east, link_west);
     volume_sizes.push_back(
         {vol_idx, {vol_bounds.outer_radius, cfg.outer_radius()}});
 
@@ -629,7 +757,8 @@ inline auto add_endcap_detector(
 
         // New volume
         auto v_builder = det_builder.new_volume(volume_id::e_cylinder);
-        const dindex vol_idx{v_builder->vol_index()};
+        auto vm_builder = decorate_material(cfg, det_builder, v_builder);
+        const dindex vol_idx{vm_builder->vol_index()};
 
         // Don't build the first gap here, as this will be done in a separate
         // step once all portals of the barrel are constructed
@@ -664,11 +793,11 @@ inline auto add_endcap_detector(
 
             const point3_t gap_center{0.f, 0.f,
                                       0.5f * (gap_east_z + gap_west_z)};
-            v_builder->add_volume_placement({gap_center});
+            vm_builder->add_volume_placement({gap_center});
 
-            detail::add_gap_portals(v_builder, names, gap_west_z, gap_east_z,
-                                    inner_radius, outer_radius, link_north,
-                                    link_south, link_east, link_west);
+            detail::add_cylinder_portals(
+                vm_builder, names, gap_west_z, gap_east_z, inner_radius,
+                outer_radius, link_north, link_south, link_east, link_west);
 
             volume_sizes.push_back({vol_idx, {gap_east_z, gap_west_z}});
 
@@ -701,7 +830,7 @@ inline auto add_endcap_detector(
             // Position the volume at the respective endcap layer position
             const scalar_t center_z{sign * cfg.endcap_layer_positions().at(j)};
             const point3_t vol_center{0.f, 0.f, center_z};
-            v_builder->add_volume_placement({vol_center});
+            vm_builder->add_volume_placement({vol_center});
 
             // Configure the module factory for this layer
             auto &endcap_cfg = cfg.endcap_config();
@@ -724,25 +853,33 @@ inline auto add_endcap_detector(
 
             // Configure the material
             cfg.material_config().thickness(cfg.module_mat_thickness());
+            // Use different material thickness for cylinder portals in endcaps
+            const scalar_t t{cfg.cyl_material_map().thickness};
+            cfg.cyl_material_map().thickness = 0.15f * unit<scalar_t>::mm;
 
-            // Add a layer of module surfaces
-            auto module_factory =
+            // Add a layer of module surfaces (mat have material)
+            auto module_mat_factory = decorate_material<detector_t>(
+                cfg,
                 std::make_unique<endcap_generator<detector_t, trapezoid2D>>(
-                    endcap_cfg);
+                    endcap_cfg),
+                true);
 
-            // Add cylinder and disc portals
-            auto portal_factory =
-                std::make_shared<cylinder_portal_generator<detector_t>>(
-                    portal_cfg);
+            // Add cylinder and disc portals (may have material, depending on
+            // whether material maps are being used or not)
+            auto portal_mat_factory = decorate_material<detector_t>(
+                cfg, std::make_unique<cylinder_portal_generator<detector_t>>(
+                         portal_cfg));
 
-            auto [vm_builder, module_mat_factory] = decorate_material(
-                cfg, det_builder, v_builder, std::move(module_factory));
+            // Reset cylinder material thickness
+            cfg.cyl_material_map().thickness = t;
 
             vm_builder->add_surfaces(module_mat_factory, gctx);
-            vm_builder->add_surfaces(portal_factory);
+            vm_builder->add_surfaces(portal_mat_factory);
+
+            // Fill the volume extent into 'vol_bounds'
+            get_volume_extent(cfg, portal_mat_factory, vol_bounds);
 
             // Set the new current boundaries to construct the next gap
-            vol_bounds = portal_factory->volume_boundaries();
             volume_sizes.push_back(
                 {vol_idx, {vol_bounds.lower_z, vol_bounds.upper_z}});
 
@@ -1017,26 +1154,28 @@ inline auto build_toy_detector(vecmem::memory_resource &resource,
 
     // Add the volume that contains the beampipe
     cfg.material_config().thickness(cfg.beampipe_mat_thickness());
-    auto [beampipe_builder, pt_cyl_factory] = detail::decorate_material(
-        cfg, det_builder, det_builder.new_volume(volume_id::e_cylinder),
-        std::make_unique<cyl_factory_t>());
+    auto beampipe_builder = detail::decorate_material(
+        cfg, det_builder, det_builder.new_volume(volume_id::e_cylinder));
 
     const dindex beampipe_idx{beampipe_builder->vol_index()};
     beampipe_builder->add_volume_placement(transform3_t{});
     name_map[beampipe_idx + 1u] = "beampipe_" + std::to_string(beampipe_idx);
 
     // Add the beampipe as a passive material surface
+    auto beampipe_factory = detail::decorate_material<detector_t>(
+        cfg, std::make_unique<cyl_factory_t>(), true);
+
     scalar_t max_z{cfg.n_edc_layers() == 0u ? cfg.barrel_config().half_length()
                                             : cfg.endcap_layer_positions().at(
                                                   cfg.n_edc_layers() - 1u)};
     scalar_t min_z{-max_z};
 
-    pt_cyl_factory->push_back(
+    beampipe_factory->push_back(
         {surface_id::e_passive, transform3_t{},
          static_cast<nav_link_t>(beampipe_idx),
          std::vector<scalar_t>{cfg.barrel_layer_radii().at(0), min_z, max_z}});
 
-    beampipe_builder->add_surfaces(pt_cyl_factory);
+    beampipe_builder->add_surfaces(beampipe_factory);
 
     // Build the negative endcap
     vol_extent_container_t neg_edc_vol_extents;

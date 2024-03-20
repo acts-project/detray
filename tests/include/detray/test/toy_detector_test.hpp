@@ -75,7 +75,8 @@ inline void test_mat_map(const mat_map_t& mat_map, const bool is_cyl) {
 
         for (const auto& mat_slab : mat_map.all()) {
             EXPECT_TRUE(mat_slab.get_material() ==
-                        toy_det_config<scalar>{}.mapped_material());
+                            toy_det_config<scalar>{}.mapped_material() ||
+                        mat_slab.get_material() == beryllium_tml<scalar_t>{});
         }
     } else {
         EXPECT_EQ(mat_map.nbins(), 60u);
@@ -143,7 +144,7 @@ inline bool toy_detector_test(
     const bool has_grids =
         (accel.template size<accel_ids::e_cylinder2_grid>() != 0u) ||
         (accel.template size<accel_ids::e_disc_grid>() != 0u);
-    const bool has_material =
+    const bool has_hom_material =
         (materials.template size<material_ids::e_slab>() != 0);
     const bool has_material_maps =
         (materials.template size<material_ids::e_disc2_map>() != 0);
@@ -161,14 +162,15 @@ inline bool toy_detector_test(
         EXPECT_EQ(accel.template size<accel_ids::e_cylinder2_grid>(), 4);
         EXPECT_EQ(accel.template size<accel_ids::e_disc_grid>(), 6);
     }
-    if (has_material and !has_material_maps) {
+    if (has_hom_material) {
+        EXPECT_FALSE(has_material_maps);
         EXPECT_EQ(materials.template size<material_ids::e_slab>(), 3141u);
-    } else if (has_material and has_material_maps) {
-        EXPECT_EQ(materials.template size<material_ids::e_slab>(), 3141u);
+    } else if (has_material_maps) {
+        EXPECT_FALSE(has_hom_material);
         EXPECT_EQ(
             materials.template size<material_ids::e_concentric_cylinder2_map>(),
-            51u);
-        EXPECT_EQ(materials.template size<material_ids::e_disc2_map>(), 52u);
+            21u);
+        EXPECT_EQ(materials.template size<material_ids::e_disc2_map>(), 20u);
     }
 
     // Check the surface source links
@@ -243,7 +245,7 @@ inline bool toy_detector_test(
             const auto volume_link =
                 masks.template visit<volume_link_getter>(sf_itr->mask());
             EXPECT_EQ(volume_link, volume_links[pti - range[0]]);
-            if (has_material and !has_material_maps) {
+            if (has_hom_material) {
                 EXPECT_EQ(sf_itr->material(), material_index);
                 if (sf_itr->material().id() != material_ids::e_none) {
                     EXPECT_EQ(
@@ -251,7 +253,7 @@ inline bool toy_detector_test(
                             material_ids::e_slab>()[sf_itr->material().index()],
                         mat);
                 }
-            } else if (has_material and has_material_maps) {
+            } else if (has_material_maps) {
                 auto mat_link = sf_itr->material();
                 if (mat_link.id() == material_ids::e_concentric_cylinder2_map) {
                     test_mat_map<scalar_t>(
@@ -265,6 +267,8 @@ inline bool toy_detector_test(
                             material_ids::e_disc2_map>()[mat_link.index()],
                         false);
                 }
+            } else {
+                EXPECT_EQ(sf_itr->material().id(), material_ids::e_none);
             }
 
             ++sf_itr;
@@ -303,13 +307,27 @@ inline bool toy_detector_test(
                 const auto volume_link =
                     masks.template visit<volume_link_getter>(sf_itr->mask());
                 EXPECT_EQ(volume_link, volume_links[0]);
-                if (has_material && !has_material_maps) {
+                if (has_hom_material) {
                     EXPECT_EQ(sf_itr->material(), material_index);
                     EXPECT_EQ(
                         materials.template get<
                             material_ids::e_slab>()[sf_itr->material().index()],
                         mat)
                         << sf_itr->material();
+                } else if (has_material_maps &&
+                           (sf_itr->id() == surface_id::e_passive)) {
+                    // beampipe
+                    auto mat_link = sf_itr->material();
+                    EXPECT_EQ(mat_link.id(),
+                              material_ids::e_concentric_cylinder2_map);
+
+                    test_mat_map<scalar_t>(
+                        materials.template get<
+                            material_ids::e_concentric_cylinder2_map>()
+                            [mat_link.index()],
+                        true);
+                } else {
+                    EXPECT_EQ(sf_itr->material().id(), material_ids::e_none);
                 }
 
                 ++sf_itr;

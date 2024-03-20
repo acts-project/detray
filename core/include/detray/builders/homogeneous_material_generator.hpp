@@ -15,6 +15,7 @@
 #include "detray/materials/predefined_materials.hpp"
 
 // System include(s)
+#include <sstream>
 #include <stdexcept>
 
 namespace detray {
@@ -102,12 +103,12 @@ class homogeneous_material_generator final
                     typename detector_t::geometry_context ctx = {})
         -> dindex_range override {
 
-        auto [sf_offset, n_surfaces] =
+        auto [lower, upper] =
             (*this->m_factory)(volume, surfaces, transforms, masks, ctx);
 
-        m_surface_range = {sf_offset, sf_offset + n_surfaces};
+        m_surface_range = {lower, upper};
 
-        return {sf_offset, n_surfaces};
+        return {lower, upper};
     }
 
     /// Create material slabs or rods for all surfaces that the undelying
@@ -123,6 +124,8 @@ class homogeneous_material_generator final
 
         using material_id = typename detector_t::materials::id;
         using link_t = typename detector_t::surface_type::material_link;
+
+        assert(surfaces.size() >= (m_surface_range[1] - m_surface_range[0]));
 
         // Add the material to the surfaces that the data links against
         for (auto &sf : detray::ranges::subrange(surfaces, m_surface_range)) {
@@ -148,9 +151,12 @@ class homogeneous_material_generator final
                     break;
                 }
                 case surface_id::e_unknown: {
+                    std::stringstream err_stream{};
+                    err_stream << sf << std::endl;
                     throw std::runtime_error(
                         "Encountered surface of unknown type during material "
-                        "generation");
+                        "generation: " +
+                        err_stream.str());
                     break;
                 }
             };
