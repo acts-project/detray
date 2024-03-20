@@ -33,22 +33,23 @@ namespace {
 double x_pos = 0.205f;
 double title_x = x_pos;
 double title_y = 0.8197f;
-double y_gap = -0.05;
+double y_gap = -0.0505;
 double header_text_size = 0.055;
-double geom_text_size = 0.0416667;
+double geom_text_size = 0.0434028;
 
 double pull_fit_title_x = x_pos;
-double pull_fit_title_y = 0.701f;
+double pull_fit_title_y = 0.700f;
 double pval_fit_title_x = x_pos;
-double pval_fit_title_y = 0.701f;
+double pval_fit_title_y = 0.700f;
 double gaus_fit_par_x = x_pos;
-double gaus_fit_par_y = pull_fit_title_y - 0.064;
+double number_offset = 0.125;
+double gaus_fit_par_y = pull_fit_title_y - 0.065;
 double const_fit_par_x = x_pos;
-double const_fit_par_y = pval_fit_title_y - 0.0449;
+double const_fit_par_y = pval_fit_title_y - 0.0459;
 double tolerance_x = 0.7f;
 double tolerance_y = 0.67f;
-double pull_text_size = 0.0416667;
-double pval_text_size = 0.0416667;
+double pull_text_size = 0.0434028;
+double pval_text_size = 0.0434028;
 double pad_x0 = 0.00f;
 double pad_x1 = 1.f;
 double pad_y0 = 0.00f;
@@ -217,7 +218,7 @@ void draw_gaus_fit_par(const std::array<double, 3u>& fit_par,
     sigma_stream << std::fixed << std::setprecision(3) << fit_par[2] << " #pm "
                  << fit_par_error[2];
 
-    TLatex* ttext2 = new TLatex(x + 0.11, y,
+    TLatex* ttext2 = new TLatex(x + number_offset, y,
                                 "#splitline{" + TString(mean_stream.str()) +
                                     "}{" + TString(sigma_stream.str()) + "}");
     ttext2->SetTextFont(132);
@@ -575,8 +576,7 @@ void covariance_validation() {
 
     const std::string rect_title = "Bound-to-bound transport";
     const std::string wire_title = "Perigee-to-perigee transport";
-    const std::string geom_title =
-        "RKN with an inhomogeneous field and a material";
+    const std::string geom_title = "RKN with the ODD magnetic field and CsI";
 
     /************************
      *  Rectangular
