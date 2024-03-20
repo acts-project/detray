@@ -9,7 +9,7 @@
 #include "detray/test/utils/particle_gun.hpp"
 
 #include "detray/definitions/units.hpp"
-#include "detray/detectors/create_toy_geometry.hpp"
+#include "detray/detectors/build_toy_detector.hpp"
 #include "detray/navigation/detail/trajectories.hpp"
 #include "detray/simulation/event_generator/track_generators.hpp"
 #include "detray/test/types.hpp"
@@ -38,7 +38,7 @@ GTEST_TEST(detray_simulation, particle_gun) {
 
     // Build the geometry
     vecmem::host_memory_resource host_mr;
-    auto [toy_det, names] = create_toy_geometry(host_mr);
+    auto [toy_det, names] = build_toy_detector(host_mr);
 
     unsigned int theta_steps{50u};
     unsigned int phi_steps{50u};

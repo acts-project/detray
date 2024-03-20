@@ -6,15 +6,14 @@
  */
 
 // Project include(s)
+#include "detray/builders/cuboid_portal_generator.hpp"
+#include "detray/builders/surface_factory.hpp"
+#include "detray/builders/volume_builder.hpp"
 #include "detray/core/detector.hpp"
 #include "detray/definitions/geometry.hpp"
 #include "detray/definitions/units.hpp"
-#include "detray/detectors/create_toy_geometry.hpp"
+#include "detray/detectors/build_toy_detector.hpp"
 #include "detray/io/frontend/detector_writer.hpp"
-#include "detray/builders/cuboid_portal_generator.hpp"
-#include "detray/builders/surface_factory.hpp"
-
-#include "detray/builders/volume_builder.hpp"
 
 // Example include(s)
 #include "detray/tutorial/detector_metadata.hpp"

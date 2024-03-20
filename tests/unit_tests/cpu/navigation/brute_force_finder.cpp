@@ -8,7 +8,7 @@
 // Detray include(s)
 #include "detray/navigation/accelerators/brute_force_finder.hpp"
 
-#include "detray/detectors/create_toy_geometry.hpp"
+#include "detray/detectors/build_toy_detector.hpp"
 #include "detray/navigation/detail/ray.hpp"
 #include "detray/test/types.hpp"
 #include "detray/test/utils/planes_along_direction.hpp"
@@ -95,7 +95,7 @@ GTEST_TEST(detray_navigation, brute_force_collection) {
 /// navigation
 GTEST_TEST(detray_navigation, brute_force_search) {
 
-    const auto [det, names] = create_toy_geometry(host_mr);
+    const auto [det, names] = build_toy_detector(host_mr);
 
     using detector_t = decltype(det);
 

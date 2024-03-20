@@ -7,7 +7,7 @@
 
 // Project include(s)
 #include "detray/core/detector.hpp"
-#include "detray/detectors/create_toy_geometry.hpp"
+#include "detray/detectors/build_toy_detector.hpp"
 #include "detray/navigation/detail/ray.hpp"
 #include "detray/plugins/svgtools/illustrator.hpp"
 #include "detray/plugins/svgtools/writer.hpp"
@@ -46,7 +46,7 @@ GTEST_TEST(svgtools, intersections) {
 
     // Creating the detector and geomentry context.
     vecmem::host_memory_resource host_mr;
-    const auto [det, names] = detray::create_toy_geometry(host_mr);
+    const auto [det, names] = detray::build_toy_detector(host_mr);
     using detector_t = decltype(det);
 
     using transform3_t = typename detector_t::transform3;

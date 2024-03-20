@@ -10,7 +10,7 @@
 
 #include "detray/definitions/units.hpp"
 #include "detray/detectors/bfield.hpp"
-#include "detray/detectors/create_toy_geometry.hpp"
+#include "detray/detectors/build_toy_detector.hpp"
 #include "detray/geometry/surface.hpp"
 #include "detray/navigation/detail/trajectories.hpp"
 #include "detray/navigation/navigator.hpp"
@@ -122,9 +122,9 @@ struct helix_inspector : actor {
 GTEST_TEST(detray_propagator, propagator_line_stepper) {
 
     vecmem::host_memory_resource host_mr;
-    toy_det_config toy_cfg{};
+    toy_det_config<scalar> toy_cfg{};
     toy_cfg.use_material_maps(false);
-    const auto [d, names] = create_toy_geometry(host_mr, toy_cfg);
+    const auto [d, names] = build_toy_detector(host_mr, toy_cfg);
 
     using navigator_t = navigator<decltype(d), navigation::print_inspector>;
     using stepper_t = line_stepper<transform3>;
@@ -166,7 +166,10 @@ class PropagatorWithRkStepper
     protected:
     /// Detector configuration
     vecmem::host_memory_resource host_mr;
-    toy_det_config toy_cfg{4u, 7u};
+
+    /// Toy detector configuration
+    toy_det_config<scalar> toy_cfg =
+        toy_det_config<scalar>{}.n_brl_layers(4u).n_edc_layers(7u);
 
     /// Track generator configuration
     generator_t::configuration trk_gen_cfg{};
@@ -202,7 +205,7 @@ TEST_P(PropagatorWithRkStepper, rk4_propagator_const_bfield) {
     // Build detector
     toy_cfg.use_material_maps(false);
     toy_cfg.mapped_material(detray::vacuum<scalar>());
-    const auto [det, names] = create_toy_geometry(host_mr, toy_cfg);
+    const auto [det, names] = build_toy_detector(host_mr, toy_cfg);
 
     const bfield_t bfield = bfield::create_const_field(std::get<2>(GetParam()));
 
@@ -303,7 +306,7 @@ TEST_P(PropagatorWithRkStepper, rk4_propagator_inhom_bfield) {
 
     // Build detector and magnetic field
     toy_cfg.use_material_maps(false);
-    const auto [det, names] = create_toy_geometry(host_mr, toy_cfg);
+    const auto [det, names] = build_toy_detector(host_mr, toy_cfg);
     const bfield_t bfield = bfield::create_inhom_field();
 
     // Propagator is built from the stepper and navigator

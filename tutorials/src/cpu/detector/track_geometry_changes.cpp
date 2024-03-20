@@ -6,7 +6,7 @@
  */
 
 // Project include(s)
-#include "detray/detectors/create_toy_geometry.hpp"
+#include "detray/detectors/build_toy_detector.hpp"
 #include "detray/navigation/volume_graph.hpp"
 #include "detray/test/utils/hash_tree.hpp"
 
@@ -33,7 +33,7 @@ int main() {
 
     // Get an example detector
     vecmem::host_memory_resource host_mr;
-    const auto [det, names] = detray::create_toy_geometry(host_mr);
+    const auto [det, names] = detray::build_toy_detector(host_mr);
 
     // Build the graph and get its adjacency matrix
     detray::volume_graph graph(det);

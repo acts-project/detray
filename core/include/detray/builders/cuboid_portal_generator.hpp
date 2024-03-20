@@ -111,9 +111,7 @@ class cuboid_portal_generator final
 
         // The material will be added in a later step
         constexpr auto no_material = surface_t::material_id::e_none;
-        material_link_t material_link{
-            no_material,
-            detail::invalid_value<typename material_link_t::index_type>()};
+        material_link_t material_link{no_material, 0u};
 
         // Max distance in case of infinite bounds
         constexpr scalar max_shift{0.01f * std::numeric_limits<scalar>::max()};

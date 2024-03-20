@@ -7,7 +7,7 @@
 
 // Project include(s)
 #include "detray/detectors/bfield.hpp"
-#include "detray/detectors/create_toy_geometry.hpp"
+#include "detray/detectors/build_toy_detector.hpp"
 #include "propagator_cuda_kernel.hpp"
 
 // Vecmem include(s)
@@ -33,7 +33,7 @@ TEST_P(CudaPropConstBFieldMng, propagator) {
     auto field = bfield::create_const_field(B);
 
     // Create the toy geometry
-    auto [det, names] = create_toy_geometry(mng_mr);
+    auto [det, names] = build_toy_detector(mng_mr);
 
     run_propagation_test<bfield::const_bknd_t>(
         &mng_mr, det, detray::get_data(det), std::move(field));
@@ -55,7 +55,7 @@ TEST_P(CudaPropConstBFieldCpy, propagator) {
     auto field = bfield::create_const_field(B);
 
     // Create the toy geometry
-    auto [det, names] = create_toy_geometry(host_mr);
+    auto [det, names] = build_toy_detector(host_mr);
 
     auto det_buff = detray::get_buffer(det, dev_mr, cuda_cpy);
 
@@ -117,7 +117,7 @@ TEST(CudaPropagatorValidation10, inhomogeneous_bfield_cpy) {
     auto field = bfield::create_inhom_field();
 
     // Create the toy geometry with inhomogeneous bfield from file
-    auto [det, names] = create_toy_geometry(host_mr);
+    auto [det, names] = build_toy_detector(host_mr);
 
     auto det_buff = detray::get_buffer(det, dev_mr, cuda_cpy);
 

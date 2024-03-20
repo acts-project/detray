@@ -8,7 +8,7 @@
 // Project inlcude(s)
 #include "detray/navigation/volume_graph.hpp"
 
-#include "detray/detectors/create_toy_geometry.hpp"
+#include "detray/detectors/build_toy_detector.hpp"
 #include "detray/test/types.hpp"
 
 // Vecmem include(s)
@@ -27,10 +27,10 @@ GTEST_TEST(detray_navigation, volume_graph) {
 
     vecmem::host_memory_resource host_mr;
 
-    toy_det_config toy_cfg{};
+    toy_det_config<scalar> toy_cfg{};
     toy_cfg.n_edc_layers(1u);
 
-    auto [det, names] = create_toy_geometry(host_mr, toy_cfg);
+    auto [det, names] = build_toy_detector(host_mr, toy_cfg);
 
     using detector_t = decltype(det);
 
@@ -54,33 +54,37 @@ GTEST_TEST(detray_navigation, volume_graph) {
     const auto &adj_mat = graph.adjacency_matrix();
 
     // toy geometry 1 endcap layer, 4 barrel layers, including gap layers
-    dvector<dindex> adj_mat_truth = {// beampipe
-                                     1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 1, 1, 2,
-                                     // endcap layer 1
-                                     1, 108, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2,
-                                     // connector layer
-                                     1, 1, 0, 1, 1, 1, 1, 1, 1, 1, 0, 0, 1,
-                                     // barrel layer 1
-                                     1, 0, 1, 224, 1, 0, 0, 0, 0, 0, 1, 0, 0,
-                                     // barrel gap 1
-                                     0, 0, 1, 1, 0, 1, 0, 0, 0, 0, 1, 0, 0,
-                                     // barrel layer 2
-                                     0, 0, 1, 0, 1, 448, 1, 0, 0, 0, 1, 0, 0,
-                                     // barrel gap 2
-                                     0, 0, 1, 0, 0, 1, 0, 1, 0, 0, 1, 0, 0,
-                                     // barrel layer 3
-                                     0, 0, 1, 0, 0, 0, 1, 728, 1, 0, 1, 0, 0,
-                                     // barrel gap 3
-                                     0, 0, 1, 0, 0, 0, 0, 1, 0, 1, 1, 0, 0,
-                                     // barrel layer 4
-                                     0, 0, 1, 0, 0, 0, 0, 0, 1, 1092, 1, 0, 1,
-                                     // connector layer
-                                     1, 0, 0, 1, 1, 1, 1, 1, 1, 1, 0, 1, 1,
-                                     // endcap laer 2
-                                     1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 108, 2,
-                                     // world volume
-                                     0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
+    dvector<dindex> adj_truth = {// beampipe
+                                 1, 1, 1, 0, 1, 0, 0, 0, 0, 0, 0, 0, 1, 1, 2,
+                                 // endcap layer 1
+                                 1, 108, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2,
+                                 // connector layer
+                                 1, 1, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 1,
+                                 // barrel layer 1
+                                 0, 0, 1, 224, 1, 0, 1, 0, 0, 0, 0, 0, 0, 1, 0,
+                                 // barrel gap 1
+                                 1, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0,
+                                 // barrel layer 2
+                                 0, 0, 1, 0, 0, 448, 1, 0, 1, 0, 0, 0, 0, 1, 0,
+                                 // barrel gap 2
+                                 0, 0, 1, 1, 0, 1, 0, 0, 0, 0, 0, 0, 0, 1, 0,
+                                 // barrel layer 3
+                                 0, 0, 1, 0, 0, 0, 0, 728, 1, 0, 1, 0, 0, 1, 0,
+                                 // barrel gap 3
+                                 0, 0, 1, 0, 0, 1, 0, 1, 0, 0, 0, 0, 0, 1, 0,
+                                 // barrel layer 4
+                                 0, 0, 1, 0, 0, 0, 0, 0, 0, 1092, 1, 1, 0, 1, 0,
+                                 // barrel gap 4
+                                 0, 0, 1, 0, 0, 0, 0, 1, 0, 1, 0, 0, 0, 1, 0,
+                                 // barrel gap 5
+                                 0, 0, 1, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 1, 1,
+                                 // endcap layer 2
+                                 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 108, 1, 2,
+                                 // connector layer
+                                 1, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 1,
+                                 // world volume
+                                 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
 
     // Check this with graph
-    ASSERT_TRUE(adj_mat == adj_mat_truth);
+    ASSERT_TRUE(adj_mat == adj_truth);
 }

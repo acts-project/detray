@@ -7,7 +7,7 @@
 
 // Project include(s)
 #include "detray/core/detector.hpp"
-#include "detray/detectors/create_toy_geometry.hpp"
+#include "detray/detectors/build_toy_detector.hpp"
 #include "detray/geometry/surface.hpp"
 #include "detray/navigation/detail/ray.hpp"
 #include "detray/navigation/intersection/ray_intersector.hpp"
@@ -42,9 +42,9 @@ void BM_INTERSECT_ALL(benchmark::State &state) {
 
     // Detector configuration
     vecmem::host_memory_resource host_mr;
-    toy_det_config toy_cfg{};
+    toy_det_config<scalar> toy_cfg{};
     toy_cfg.n_edc_layers(7u);
-    auto [d, names] = create_toy_geometry(host_mr, toy_cfg);
+    auto [d, names] = build_toy_detector(host_mr, toy_cfg);
 
     using detector_t = decltype(d);
     using sf_desc_t = typename detector_t::surface_type;

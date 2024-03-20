@@ -6,7 +6,7 @@
  */
 
 // Project include(s)
-#include "detray/detectors/create_toy_geometry.hpp"
+#include "detray/detectors/build_toy_detector.hpp"
 #include "navigator_cuda_kernel.hpp"
 
 // vecmem include(s)
@@ -27,7 +27,7 @@ TEST(navigator_cuda, navigator) {
     vecmem::cuda::device_memory_resource dev_mr;
 
     // Create detector
-    auto [det, names] = create_toy_geometry(mng_mr);
+    auto [det, names] = build_toy_detector(mng_mr);
 
     // Create navigator
     navigator_host_t nav;
