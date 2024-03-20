@@ -31,18 +31,18 @@ namespace {
 double step_title_x_offset = 1.4;
 double step_title_x = 0.175;
 double step_title_y = 0.835;
-double step_ygap = -0.05;
+double step_ygap = -0.0505;
 double x_label_offset = 0.015;
 double x_margin = 1;
 double y_label_offset = 0.015;
 double rk_title_x_offset = 0.9;
 double rk_title_offset_fraction = 0.0218;
 double rk_title_y = 14.69;
-double rk_ygap = -0.8;
+double rk_ygap = -0.83;
 double rk_header_text_size = 0.046;
-double rk_geom_text_size = 0.035;
+double rk_geom_text_size = 0.0362903;
 double step_header_text_size = 0.055;
-double step_geom_text_size = 0.0416667;
+double step_geom_text_size = 0.0434028;
 double label_font_size_step = 0.055;
 double title_font_size_step = 0.055;
 double label_font_size_rk_tol = 0.046;
@@ -407,8 +407,7 @@ void rk_tolerance_comparison(int min, int max) {
 
     const std::string rect_header = "Bound-to-bound transport";
     const std::string wire_header = "Perigee-to-perigee transport";
-    const std::string geom_header =
-        "RKN with an inhomogeneous field and a material";
+    const std::string geom_header = "RKN with the ODD magnetic field and CsI";
 
     /************************
      *  Rectangular

@@ -1496,8 +1496,6 @@ int main(int argc, char** argv) {
     mt1.seed(mc_seed);
 
     // Volume material
-    // const material<scalar> volume_mat = detray::silicon<scalar>();
-    // const material<scalar> volume_mat = detray::iron_with_ded<scalar>();
     const material<scalar> volume_mat =
         detray::cesium_iodide_with_ded<scalar>();
 

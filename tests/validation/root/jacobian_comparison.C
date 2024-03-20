@@ -34,7 +34,7 @@ double labely_offset = 0.01;
 double title_font_size = 0.055;
 double title_offset = 0.71;
 double marker_size = 1.3875;
-double legend_margin = 0.115;
+double legend_margin = 0.12;
 int title_font = 132;
 int label_font = 132;
 int legend_font = 132;
@@ -43,7 +43,7 @@ double y_min = -15;
 double y_max = 10;
 double y_margin = 0;
 double header_size = 0.05;
-std::array<float, 4> ldim{0.54424, 0.621849, 0.942404, 0.880252};
+std::array<float, 4> ldim{0.587646, 0.62395, 0.942404, 0.880252};
 double pad_x0 = 0.00;
 double pad_x1 = 1;
 double pad_y0 = 0.00;
@@ -299,33 +299,35 @@ void jacobian_comparison() {
     rect_legend->SetTextSize(legend_font_size);
     rect_legend->SetBorderSize(4);
 
+    const std::string RKN_ODD_CsI = "RKN with the ODD magnetic field and CsI";
+    const std::string RKN_ODD = "RKN with the ODD magnetic field";
+    const std::string RKN_homogeneous =
+        "RKN with the homogeneous magnetic field";
+    const std::string Helix_homogeneous =
+        "Helix with the homogeneous magnetic field";
+
     std::string rect_text = "Bound-to-bound transport";
     auto inhom_rect_material_histo = get_histogram(
         "inhom_rect_material", 25, markers[0u], log10_rk_tolerance_rect);
     // rect_legend->SetHeader("Bound-to-bound transport");
     inhom_rect_material_histo->SetMarkerColor(hues[0u]);
     inhom_rect_material_histo->Draw("hist P ");
-    rect_legend->AddEntry(inhom_rect_material_histo,
-                          "RKN with an inhomogeneous field and a material",
-                          "p");
+    rect_legend->AddEntry(inhom_rect_material_histo, RKN_ODD_CsI.c_str(), "p");
 
     auto inhom_rect_histo = get_histogram("inhom_rect", 20, markers[1u], dummy);
     inhom_rect_histo->SetMarkerColor(hues[1u]);
     inhom_rect_histo->Draw("hist P same");
-    rect_legend->AddEntry(inhom_rect_histo, "RKN with an inhomogeneous field",
-                          "p");
+    rect_legend->AddEntry(inhom_rect_histo, RKN_ODD.c_str(), "p");
 
     auto const_rect_histo = get_histogram("const_rect", 15, markers[2u], dummy);
     const_rect_histo->SetMarkerColor(hues[2u]);
     const_rect_histo->Draw("hist P same");
-    rect_legend->AddEntry(const_rect_histo, "RKN with a homogeneous field",
-                          "p");
+    rect_legend->AddEntry(const_rect_histo, RKN_homogeneous.c_str(), "p");
 
     auto helix_rect_histo = get_histogram("helix_rect", 15, markers[3u], dummy);
     helix_rect_histo->SetMarkerColor(hues[3u]);
     helix_rect_histo->Draw("hist P same");
-    rect_legend->AddEntry(helix_rect_histo, "Helix with a homogeneous field",
-                          "p");
+    rect_legend->AddEntry(helix_rect_histo, Helix_homogeneous.c_str(), "p");
 
     /*
     TLegendEntry* rect_header =
@@ -362,27 +364,22 @@ void jacobian_comparison() {
     // wire_legend->SetHeader("Perigee-to-perigee transport");
     inhom_wire_material_histo->SetMarkerColor(hues[0u]);
     inhom_wire_material_histo->Draw("hist P ");
-    wire_legend->AddEntry(inhom_wire_material_histo,
-                          "RKN with an inhomogeneous field and a material",
-                          "p");
+    wire_legend->AddEntry(inhom_wire_material_histo, RKN_ODD_CsI.c_str(), "p");
 
     auto inhom_wire_histo = get_histogram("inhom_wire", 20, markers[1u], dummy);
     inhom_wire_histo->SetMarkerColor(hues[1u]);
     inhom_wire_histo->Draw("hist P same");
-    wire_legend->AddEntry(inhom_wire_histo, "RKN with an inhomogeneous field",
-                          "p");
+    wire_legend->AddEntry(inhom_wire_histo, RKN_ODD.c_str(), "p");
 
     auto const_wire_histo = get_histogram("const_wire", 15, markers[2u], dummy);
     const_wire_histo->SetMarkerColor(hues[2u]);
     const_wire_histo->Draw("hist P same");
-    wire_legend->AddEntry(const_wire_histo, "RKN with a homogeneous field",
-                          "p");
+    wire_legend->AddEntry(const_wire_histo, RKN_homogeneous.c_str(), "p");
 
     auto helix_wire_histo = get_histogram("helix_wire", 15, markers[3u], dummy);
     helix_wire_histo->SetMarkerColor(hues[3u]);
     helix_wire_histo->Draw("hist P same");
-    wire_legend->AddEntry(helix_wire_histo, "Helix with a homogeneous field",
-                          "p");
+    wire_legend->AddEntry(helix_wire_histo, Helix_homogeneous.c_str(), "p");
 
     /*
     TLegendEntry* wire_header =
