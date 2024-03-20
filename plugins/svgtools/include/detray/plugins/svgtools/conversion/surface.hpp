@@ -11,6 +11,7 @@
 #include "detray/geometry/mask.hpp"
 #include "detray/geometry/shapes.hpp"
 #include "detray/geometry/surface.hpp"
+#include "detray/plugins/svgtools/conversion/surface_material.hpp"
 #include "detray/plugins/svgtools/styling/styling.hpp"
 
 // Actsvg include(s)
@@ -203,17 +204,30 @@ struct surface_converter {
 /// cylinders etc (not implemented yet).
 ///
 /// @returns An actsvg proto surface representing the surface.
-template <typename detector_t>
+template <typename detector_t, typename view_t>
 auto surface(const typename detector_t::geometry_context& context,
-             const detray::surface<detector_t>& d_surface,
+             const detector_t& detector,
+             const detray::surface<detector_t>& d_surface, const view_t& view,
              const styling::surface_style& style =
-                 styling::tableau_colorblind::surface_style_sensitive) {
+                 styling::tableau_colorblind::surface_style_sensitive,
+             bool hide_material = false) {
 
     auto p_surface = d_surface.template visit_mask<surface_converter>(
         d_surface.transform(context));
 
     p_surface._name = "surface_" + std::to_string(d_surface.index());
+
+    using proto_surface_t = decltype(p_surface);
+    p_surface._sf_type = d_surface.is_sensitive()
+                             ? proto_surface_t::sf_type::e_sensitive
+                             : proto_surface_t::sf_type::e_passive;
+
     svgtools::styling::apply_style(p_surface, style);
+
+    if (!hide_material) {
+        p_surface._material = svgtools::conversion::surface_material(
+            detector, d_surface, view, style._material_style);
+    }
 
     return p_surface;
 }
