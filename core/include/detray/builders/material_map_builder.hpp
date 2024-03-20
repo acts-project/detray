@@ -11,6 +11,7 @@
 #include "detray/builders/bin_fillers.hpp"
 #include "detray/builders/grid_factory.hpp"
 #include "detray/builders/material_map_factory.hpp"
+#include "detray/builders/material_map_generator.hpp"
 #include "detray/builders/surface_factory_interface.hpp"
 #include "detray/builders/volume_builder_interface.hpp"
 #include "detray/geometry/surface.hpp"
@@ -87,6 +88,14 @@ class material_map_builder : public volume_decorator<detector_t> {
             material_map_factory<detector_t, axis::multi_bin<DIM>>>(sf_factory);
         if (mat_factory) {
             (*mat_factory)(this->surfaces(), m_bin_data, m_n_bins);
+        }
+        auto mat_generator =
+            std::dynamic_pointer_cast<material_map_generator<detector_t>>(
+                sf_factory);
+        if (mat_generator) {
+            (*mat_generator)(this->surfaces(), this->masks(), m_bin_data,
+                             m_n_bins);
+            return;
         }
     }
     /// @}

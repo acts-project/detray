@@ -114,6 +114,8 @@ GTEST_TEST(detray_navigation, navigator_toy_geometry) {
     using namespace detray;
     using namespace detray::navigation;
     using transform3 = test::transform3;
+    using point3 = test::point3;
+    using vector3 = test::vector3;
 
     vecmem::host_memory_resource host_mr;
 
@@ -284,6 +286,8 @@ GTEST_TEST(detray_navigation, navigator_wire_chamber) {
     using namespace detray;
     using namespace detray::navigation;
     using transform3 = test::transform3;
+    using point3 = test::point3;
+    using vector3 = test::vector3;
 
     vecmem::host_memory_resource host_mr;
 
