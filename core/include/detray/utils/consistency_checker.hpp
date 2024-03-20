@@ -253,7 +253,7 @@ inline void check_empty(const detector_t &det, const bool verbose) {
 
     // Check the material description
     if (det.material_store().all_empty()) {
-        std::cout << "WARNING: No material in detector" << std::endl;
+        std::cout << "INFO: No material in detector" << std::endl;
     } else if (verbose) {
         // Check for empty material collections
         detail::report_empty(

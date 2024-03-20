@@ -80,7 +80,7 @@ struct tel_det_config {
     /// Safety envelope between the test surfaces and the portals
     scalar m_envelope{0.1f * unit<scalar>::mm};
     /// Run detector consistency check after reading
-    bool m_do_check{true};
+    bool m_do_check{false};
 
     /// Setters
     /// @{
@@ -204,7 +204,7 @@ inline auto build_telescope_detector(
             cfg.length(), cfg.n_surfaces(), cfg.module_mask().values(),
             cfg.pilot_track());
     } else {
-        // Put the modules in the requested poritions along pilot track
+        // Put the modules in the requested positions along pilot track
         tel_generator = std::make_unique<telescope_factory>(
             cfg.positions(), cfg.module_mask().values(), cfg.pilot_track());
     }

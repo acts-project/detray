@@ -133,7 +133,7 @@ struct toy_config {
     /// Config for the module generation (endcaps)
     endcap_generator_config<scalar_t> m_endcap_factory_cfg{};
     /// Run detector consistency check after reading
-    bool m_do_check{true};
+    bool m_do_check{false};
 
     /// Setters
     /// @{
