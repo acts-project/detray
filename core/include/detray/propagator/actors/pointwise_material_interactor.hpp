@@ -22,17 +22,14 @@ namespace detray {
 
 template <typename transform3_t>
 struct pointwise_material_interactor : actor {
+
     using transform3_type = transform3_t;
     using matrix_operator = typename transform3_t::matrix_actor;
     using scalar_type = typename matrix_operator::scalar_type;
-    using size_type = typename matrix_operator::size_ty;
-    template <size_type ROWS, size_type COLS>
-    using matrix_type =
-        typename matrix_operator::template matrix_type<ROWS, COLS>;
     using interaction_type = interaction<scalar_type>;
     using vector3 = typename transform3_t::vector3;
-    using bound_vector = matrix_type<e_bound_size, 1u>;
-    using bound_matrix = matrix_type<e_bound_size, e_bound_size>;
+    using bound_vector_type = bound_vector<transform3_type>;
+    using bound_matrix_type = bound_matrix<transform3_type>;
 
     struct state {
         using vector3 = __plugin::vector3<scalar>;
@@ -211,7 +208,7 @@ struct pointwise_material_interactor : actor {
     /// @param[in]  e_loss energy loss
     /// @param[in]  sign navigation direction
     DETRAY_HOST_DEVICE
-    inline void update_qop(bound_vector &vector, const scalar_type p,
+    inline void update_qop(bound_vector_type &vector, const scalar_type p,
                            const scalar_type q, const scalar_type m,
                            const scalar_type e_loss, const int sign) const {
         // Get new Energy
@@ -235,7 +232,7 @@ struct pointwise_material_interactor : actor {
     /// @param[in]  sigma_qop variance of q over p
     /// @param[in]  sign navigation direction
     DETRAY_HOST_DEVICE inline void update_qop_variance(
-        bound_matrix &covariance, const scalar_type sigma_qop,
+        bound_matrix_type &covariance, const scalar_type sigma_qop,
         const int sign) const {
 
         const scalar_type variance_qop{sigma_qop * sigma_qop};
@@ -251,7 +248,7 @@ struct pointwise_material_interactor : actor {
     /// @param[in]  projected_scattering_angle projected scattering angle
     /// @param[in]  sign navigation direction
     DETRAY_HOST_DEVICE inline void update_angle_variance(
-        bound_matrix &covariance, const vector3 &dir,
+        bound_matrix_type &covariance, const vector3 &dir,
         const scalar_type projected_scattering_angle, const int sign) const {
 
         // variance of projected scattering angle

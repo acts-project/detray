@@ -8,10 +8,10 @@
 #pragma once
 
 // Project include(s)
-#include "detray/coordinates/cartesian2.hpp"
-#include "detray/coordinates/polar2.hpp"
 #include "detray/definitions/detail/math.hpp"
 #include "detray/definitions/detail/qualifiers.hpp"
+#include "detray/geometry/coordinates/cartesian2D.hpp"
+#include "detray/geometry/coordinates/polar2D.hpp"
 #include "detray/navigation/detail/helix.hpp"
 #include "detray/navigation/intersection/intersection.hpp"
 
@@ -29,7 +29,7 @@ struct helix_intersector_impl;
 /// The algorithm uses the Newton-Raphson method to find an intersection on
 /// the unbounded surface and then applies the mask.
 template <typename algebra_t>
-struct helix_intersector_impl<cartesian2<algebra_t>, algebra_t> {
+struct helix_intersector_impl<cartesian2D<algebra_t>, algebra_t> {
 
     using transform3_type = algebra_t;
     using scalar_type = typename transform3_type::scalar_type;
@@ -119,7 +119,7 @@ struct helix_intersector_impl<cartesian2<algebra_t>, algebra_t> {
 };
 
 template <typename algebra_t>
-struct helix_intersector_impl<polar2<algebra_t>, algebra_t>
-    : public helix_intersector_impl<cartesian2<algebra_t>, algebra_t> {};
+struct helix_intersector_impl<polar2D<algebra_t>, algebra_t>
+    : public helix_intersector_impl<cartesian2D<algebra_t>, algebra_t> {};
 
 }  // namespace detray

@@ -6,10 +6,11 @@
  */
 
 // Project include(s).
-#include "detray/coordinates/cylindrical2.hpp"
+#include "detray/propagator/detail/jacobian_cylindrical.hpp"
 
 #include "detray/geometry/mask.hpp"
 #include "detray/geometry/shapes/cylinder2D.hpp"
+#include "detray/propagator/detail/jacobian_engine.hpp"
 #include "detray/test/types.hpp"
 #include "detray/tracks/tracks.hpp"
 
@@ -21,7 +22,6 @@
 
 using namespace detray;
 
-using point2 = test::point2;
 using point3 = test::point3;
 using vector3 = test::vector3;
 using transform3 = test::transform3;
@@ -32,48 +32,34 @@ using matrix_type = typename matrix_operator::template matrix_type<ROWS, COLS>;
 
 constexpr scalar isclose{1e-5f};
 
-// This test cylindrical2 coordinate
-GTEST_TEST(detray_coordinates, cylindrical2) {
+// This test cylindrical2D coordinate
+GTEST_TEST(detray_propagator, jacobian_cylindrical2D) {
+
+    using jac_engine = detail::jacobian_engine<cylindrical2D<transform3>>;
 
     // Preparation work
     const vector3 z = {0.f, 0.f, 1.f};
     const vector3 x = {1.f, 0.f, 0.f};
     const point3 t = {2.f, 3.f, 4.f};
     const transform3 trf(t, z, x);
-    const cylindrical2<transform3> c2;
     // Global position on surface
     const point3 global1 = {3.4142136f, 4.4142136f, 9.f};
     const vector3 mom = {1.f, 2.f, 3.f};
-    const vector3 d = vector::normalize(mom);
     const scalar time{0.1f};
     const scalar charge{-1.f};
 
     const scalar r{2.f};
     const scalar hz{detail::invalid_value<scalar>()};
-    mask<cylinder2D> mask{0u, r, -hz, hz};
-
-    // Global to local transformation
-    const point3 local = c2.global_to_local(trf, global1, d);
-
-    // Check if the local position is correct
-    ASSERT_NEAR(local[0], r * constant<scalar>::pi_4, isclose);
-    ASSERT_NEAR(local[1], 5.f, isclose);
-
-    // Local to global transformation
-    const point3 global2 = c2.local_to_global(trf, local);
-
-    // Check if the same global position is obtained
-    ASSERT_NEAR(global1[0], global2[0], isclose);
-    ASSERT_NEAR(global1[1], global2[1], isclose);
-    ASSERT_NEAR(global1[2], global2[2], isclose);
+    mask<cylinder2D> cyl{0u, r, -hz, hz};
 
     // Free track parameter
     const free_track_parameters<transform3> free_params(global1, time, mom,
                                                         charge);
     const auto free_vec1 = free_params.vector();
 
-    const auto bound_vec = c2.free_to_bound_vector(trf, free_vec1);
-    const auto free_vec2 = c2.bound_to_free_vector(trf, mask, bound_vec);
+    const auto bound_vec =
+        detail::free_to_bound_vector<cylindrical2D<transform3>>(trf, free_vec1);
+    const auto free_vec2 = detail::bound_to_free_vector(trf, cyl, bound_vec);
 
     const matrix_operator m;
 
@@ -94,15 +80,10 @@ GTEST_TEST(detray_coordinates, cylindrical2) {
                     isclose);
     }
 
-    // Normal vector
-    const vector3 n = c2.normal(trf, local);
-    ASSERT_NEAR(n[0], constant<scalar>::inv_sqrt2, isclose);
-    ASSERT_NEAR(n[1], constant<scalar>::inv_sqrt2, isclose);
-    ASSERT_NEAR(n[2], 0.f, isclose);
-
     // Test Jacobian transformation
-    const matrix_type<6, 6> J = c2.free_to_bound_jacobian(trf, free_vec1) *
-                                c2.bound_to_free_jacobian(trf, mask, bound_vec);
+    const bound_matrix<transform3> J =
+        jac_engine::free_to_bound_jacobian(trf, free_vec1) *
+        jac_engine::bound_to_free_jacobian(trf, cyl, bound_vec);
 
     for (unsigned int i = 0u; i < 6u; i++) {
         for (unsigned int j = 0u; j < 6u; j++) {

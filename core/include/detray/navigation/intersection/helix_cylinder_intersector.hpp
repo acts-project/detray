@@ -8,10 +8,10 @@
 #pragma once
 
 // Project include(s)
-#include "detray/coordinates/concentric_cylindrical2.hpp"
-#include "detray/coordinates/cylindrical2.hpp"
 #include "detray/definitions/detail/math.hpp"
 #include "detray/definitions/detail/qualifiers.hpp"
+#include "detray/geometry/coordinates/concentric_cylindrical2D.hpp"
+#include "detray/geometry/coordinates/cylindrical2D.hpp"
 #include "detray/geometry/shapes/cylinder2D.hpp"
 #include "detray/navigation/detail/helix.hpp"
 #include "detray/navigation/intersection/intersection.hpp"
@@ -34,8 +34,8 @@ struct helix_intersector_impl;
 /// the unbounded surface and then applies the mask.
 /// @note Don't use for low p_t tracks!
 template <typename algebra_t>
-struct helix_intersector_impl<cylindrical2<algebra_t>, algebra_t>
-    : public ray_intersector_impl<cylindrical2<algebra_t>, algebra_t> {
+struct helix_intersector_impl<cylindrical2D<algebra_t>, algebra_t>
+    : public ray_intersector_impl<cylindrical2D<algebra_t>, algebra_t> {
 
     using transform3_type = algebra_t;
     using scalar_type = typename transform3_type::scalar_type;
@@ -174,7 +174,7 @@ struct helix_intersector_impl<cylindrical2<algebra_t>, algebra_t>
 };
 
 template <typename algebra_t>
-struct helix_intersector_impl<concentric_cylindrical2<algebra_t>, algebra_t>
-    : public helix_intersector_impl<cylindrical2<algebra_t>, algebra_t> {};
+struct helix_intersector_impl<concentric_cylindrical2D<algebra_t>, algebra_t>
+    : public helix_intersector_impl<cylindrical2D<algebra_t>, algebra_t> {};
 
 }  // namespace detray

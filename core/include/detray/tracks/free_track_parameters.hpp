@@ -1,6 +1,6 @@
-/** Algebra plugins library, part of the ACTS project
+/** Detray library, part of the ACTS project (R&D line)
  *
- * (c) 2022-2023 CERN for the benefit of the ACTS project
+ * (c) 2022-2024 CERN for the benefit of the ACTS project
  *
  * Mozilla Public License Version 2.0
  */
@@ -23,19 +23,14 @@ struct free_track_parameters {
 
     using transform3_type = transform3_t;
     using matrix_operator = typename transform3_type::matrix_actor;
-    using size_type = typename transform3_type::size_type;
     using scalar_type = typename transform3_type::scalar_type;
-    template <size_type ROWS, size_type COLS>
-    using matrix_type =
-        typename transform3_type::matrix_actor::template matrix_type<ROWS,
-                                                                     COLS>;
     using vector3 = typename transform3_type::vector3;
     using point3 = typename transform3_type::point3;
     using point2 = typename transform3_type::point2;
 
     // Shorthand vector/matrix types related to free track parameters.
-    using vector_type = matrix_type<e_free_size, 1>;
-    using covariance_type = matrix_type<e_free_size, e_free_size>;
+    using vector_type = free_vector<transform3_t>;
+    using covariance_type = free_matrix<transform3_t>;
 
     // Track helper
     using track_helper = detail::track_helper<matrix_operator>;

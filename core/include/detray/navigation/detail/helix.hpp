@@ -43,7 +43,7 @@ class helix {
     template <size_type ROWS, size_type COLS>
     using matrix_type =
         typename matrix_operator::template matrix_type<ROWS, COLS>;
-    using free_matrix = matrix_type<e_free_size, e_free_size>;
+    using free_matrix_t = free_matrix<transform3_type>;
     using mat_helper = matrix_helper<matrix_operator>;
 
     // Track helper
@@ -178,9 +178,9 @@ class helix {
 
     /// @returns the transport jacobian after propagating the path length of s
     DETRAY_HOST_DEVICE
-    free_matrix jacobian(const scalar_type s) const {
+    free_matrix_t jacobian(const scalar_type s) const {
 
-        free_matrix ret =
+        free_matrix_t ret =
             matrix_operator().template zero<e_free_size, e_free_size>();
 
         const matrix_type<3, 3> I33 =

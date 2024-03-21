@@ -409,9 +409,8 @@ class grid_factory {
     ///                     last bin), otherwise ignored.
     template <
         typename grid_frame_t, typename... bound_ts, typename... binning_ts,
-        std::enable_if_t<
-            std::is_object_v<typename grid_frame_t::rotation_matrix>, bool> =
-            true>
+        std::enable_if_t<std::is_object_v<typename grid_frame_t::loc_point>,
+                         bool> = true>
     auto new_grid(
         const std::vector<scalar_type> spans,
         const std::vector<std::size_t> n_bins,

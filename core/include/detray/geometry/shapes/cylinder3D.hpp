@@ -8,9 +8,11 @@
 #pragma once
 
 // Project include(s)
-#include "detray/coordinates/cylindrical3.hpp"
 #include "detray/definitions/detail/containers.hpp"
+#include "detray/definitions/detail/indexing.hpp"
 #include "detray/definitions/detail/qualifiers.hpp"
+#include "detray/definitions/units.hpp"
+#include "detray/geometry/coordinates/cylindrical3D.hpp"
 
 // System include(s)
 #include <limits>
@@ -39,7 +41,7 @@ class cylinder3D {
 
     /// Local coordinate frame for boundary checks
     template <typename algebra_t>
-    using local_frame_type = cylindrical3<algebra_t>;
+    using local_frame_type = cylindrical3D<algebra_t>;
 
     /// Dimension of the local coordinate system
     static constexpr std::size_t dim{3u};

@@ -8,7 +8,7 @@
 #pragma once
 
 // Project include(s)
-#include "detray/coordinates/coordinates.hpp"
+#include "detray/geometry/coordinates/coordinates.hpp"
 #include "detray/geometry/mask.hpp"
 #include "detray/geometry/shapes.hpp"
 #include "detray/io/frontend/definitions.hpp"
@@ -78,11 +78,10 @@ constexpr io::material_id get_id() {
     using algebra_t = typename map_frame_t::transform3_type;
 
     /// Register the material types to the @c material_id enum
-    using mat_registry =
-        type_registry<io::material_id, polar2<algebra_t>, cartesian2<algebra_t>,
-                      cartesian3<algebra_t>, concentric_cylindrical2<algebra_t>,
-                      cylindrical2<algebra_t>, cylindrical3<algebra_t>, void,
-                      void>;
+    using mat_registry = type_registry<
+        io::material_id, polar2D<algebra_t>, cartesian2D<algebra_t>,
+        cartesian3D<algebra_t>, concentric_cylindrical2D<algebra_t>,
+        cylindrical2D<algebra_t>, cylindrical3D<algebra_t>, void, void>;
 
     // Find the correct material IO id;
     if constexpr (mat_registry::is_defined(map_frame_t{})) {
@@ -105,10 +104,10 @@ constexpr io::accel_id get_id() {
     /// @note the first type corresponds to a non-grid type in the enum
     /// (brute force)
     using frame_registry =
-        type_registry<io::accel_id, void, cartesian2<algebra_t>,
-                      cartesian3<algebra_t>, polar2<algebra_t>,
-                      concentric_cylindrical2<algebra_t>,
-                      cylindrical2<algebra_t>, cylindrical3<algebra_t>>;
+        type_registry<io::accel_id, void, cartesian2D<algebra_t>,
+                      cartesian3D<algebra_t>, polar2D<algebra_t>,
+                      concentric_cylindrical2D<algebra_t>,
+                      cylindrical2D<algebra_t>, cylindrical3D<algebra_t>>;
 
     // Find the correct grid shape IO id;
     if constexpr (frame_registry::is_defined(frame_t{})) {

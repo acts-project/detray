@@ -26,7 +26,7 @@ using namespace detray;
 
 // Three-dimensional definitions
 using transform3 = test::transform3;
-using cartesian = cartesian2<transform3>;
+using cartesian = cartesian2D<transform3>;
 using vector3 = test::vector3;
 using point3 = test::point3;
 using point2 = test::point2;
