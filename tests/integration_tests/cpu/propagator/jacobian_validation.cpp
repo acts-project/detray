@@ -273,22 +273,6 @@ bound_covariance_type get_random_initial_covariance(const scalar ini_qop) {
     std::normal_distribution<scalar> rand_time(0.f * unit<scalar>::ns,
                                                stddevs_sampling[5u]);
 
-    /*
-    // Typical stddev range taken from the figures of ATL-PHYS-PUB-2021-024 and
-    // ATLAS-TDR-030
-    std::normal_distribution<scalar> rand_l0(5.f * unit<scalar>::um,
-                                             200.f * unit<scalar>::um);
-    std::normal_distribution<scalar> rand_l1(10.f * unit<scalar>::um,
-                                             4000.f * unit<scalar>::um);
-    std::normal_distribution<scalar> rand_phi(0.05f * unit<scalar>::mrad,
-                                              5.0f * unit<scalar>::mrad);
-    std::normal_distribution<scalar> rand_theta(0.01f * unit<scalar>::mrad,
-                                                2.0f * unit<scalar>::mrad);
-    std::normal_distribution<scalar> rand_qop(0.01f * ini_qop, 0.1f * ini_qop);
-    std::normal_distribution<scalar> rand_time(0.f * unit<scalar>::ns,
-                                               1.f * unit<scalar>::ns);
-    */
-
     std::array<scalar, 6u> stddevs;
     stddevs[0] = rand_l0(mt2);
     stddevs[1] = rand_l1(mt2);
