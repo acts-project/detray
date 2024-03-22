@@ -125,7 +125,7 @@ class material_data {
     }
 
     private:
-    /// Index of the surface this material belongs to
+    /// Volume local index of the surface this material belongs to
     std::size_t m_sf_index{detail::invalid_value<std::size_t>()};
     /// The material parametrization
     std::vector<material<scalar_t>> m_mat{};

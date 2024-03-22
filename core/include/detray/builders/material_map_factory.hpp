@@ -155,7 +155,7 @@ class material_map_factory final : public factory_decorator<detector_t> {
         for (auto &[i, materials] : m_materials) {
             const auto sf_idx{static_cast<dindex>(i)};
 
-            // Copy the bin indices to the builder
+            // Copy the number of bins to the builder
             assert(m_n_bins.at(sf_idx).size() == N);
             n_bins[sf_idx] = {};
             std::copy_n(m_n_bins.at(sf_idx).begin(), N,

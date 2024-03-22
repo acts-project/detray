@@ -29,8 +29,8 @@ GTEST_TEST(detray_detectors, toy_detector) {
 
     EXPECT_TRUE(toy_detector_test(toy_det, names));
 
-    /*toy_cfg.use_material_maps(true);
+    toy_cfg.use_material_maps(true);
     const auto [toy_det2, names2] = build_toy_detector(host_mr, toy_cfg);
 
-    EXPECT_TRUE(toy_detector_test(toy_det2, names2));*/
+    EXPECT_TRUE(toy_detector_test(toy_det2, names2));
 }

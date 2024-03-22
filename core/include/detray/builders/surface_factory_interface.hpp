@@ -161,6 +161,12 @@ class factory_decorator : public surface_factory_interface<detector_t> {
         std::unique_ptr<surface_factory_interface<detector_t>> factory)
         : m_factory(std::move(factory)) {}
 
+    /// @returns access to the underlying factory
+    DETRAY_HOST
+    const surface_factory_interface<detector_t> *get_factory() const {
+        return m_factory.get();
+    }
+
     /// Overwrite interface functions using callbacks to the base factory
     /// @{
     DETRAY_HOST

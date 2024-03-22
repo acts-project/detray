@@ -252,9 +252,8 @@ GTEST_TEST(io, json_toy_detector_roundtrip_homogeneous_material) {
 /// Test the reading and writing of a toy detector geometry
 GTEST_TEST(io, json_toy_detector_roundtrip_material_maps) {
 
-    // @TODO Implement material maps
     // Toy detector
-    /*vecmem::host_memory_resource host_mr;
+    vecmem::host_memory_resource host_mr;
     toy_det_config<scalar> toy_cfg{};
     toy_cfg.use_material_maps(true);
     const auto [toy_det, toy_names] = build_toy_detector(host_mr, toy_cfg);
@@ -267,7 +266,7 @@ GTEST_TEST(io, json_toy_detector_roundtrip_material_maps) {
     file_names["surface_grids"] = "toy_detector_surface_grids.json";
 
     auto [det_io, names_io] =
-        test_detector_json_io<1u>(toy_det, toy_names, file_names, host_mr);*/
+        test_detector_json_io<1u>(toy_det, toy_names, file_names, host_mr);
 
     // @TODO: Will only work again after IO can perform data deduplication
     // EXPECT_TRUE(toy_detector_test(det_io, names_io));
@@ -279,7 +278,6 @@ GTEST_TEST(io, json_wire_chamber_reader) {
     // Wire chamber
     vecmem::host_memory_resource host_mr;
     wire_chamber_config wire_cfg{};
-    wire_cfg.use_material_maps(false);
     auto [wire_det, wire_names] = create_wire_chamber(host_mr, wire_cfg);
 
     std::map<std::string, std::string> file_names;

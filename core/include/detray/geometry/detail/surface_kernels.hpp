@@ -26,6 +26,7 @@ template <typename algebra_t>
 struct surface_kernels {
 
     using transform3 = algebra_t;
+    using scalar_type = typename algebra_t::scalar_type;
     using point2 = typename algebra_t::point2;
     using point3 = typename algebra_t::point3;
     using vector3 = typename algebra_t::vector3;
@@ -64,7 +65,7 @@ struct surface_kernels {
         }
     };
 
-    /// A functor to retrieve a the mask boundaries, determined by @param i
+    /// A functor to retrieve a mask boundary, determined by @param i
     struct get_mask_value {
         template <typename mask_group_t, typename index_t>
         DETRAY_HOST_DEVICE inline auto operator()(
@@ -72,6 +73,21 @@ struct surface_kernels {
             std::size_t i) const {
 
             return mask_group[index][i];
+        }
+    };
+
+    /// A functor to retrieve the mask boundaries (host only)
+    struct get_mask_values {
+        template <typename mask_group_t, typename index_t>
+        DETRAY_HOST inline auto operator()(const mask_group_t& mask_group,
+                                           const index_t& index) const {
+
+            std::vector<scalar_type> values{};
+            for (const scalar_type v : mask_group[index].values()) {
+                values.push_back(v);
+            }
+
+            return values;
         }
     };
 
