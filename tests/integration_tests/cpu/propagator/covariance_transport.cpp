@@ -26,10 +26,11 @@
 using namespace detray;
 
 // Algebra types
-using matrix_operator = standard_matrix_operator<scalar>;
+using scalar_type = test::scalar;
+using matrix_operator = test::matrix_operator;
 using transform3 = test::transform3;
-using vector3 = typename transform3::vector3;
-using intersection_t = intersection2D<surface_descriptor<>, transform3>;
+using vector3 = test::vector3;
+using intersection_t = intersection2D<surface_descriptor<>, test::algebra>;
 
 // Mask types to be tested
 // @TODO: Remove unbounded tag
@@ -61,18 +62,16 @@ class detray_propagation_HelixCovarianceTransportValidation
     using first_mask_type = rectangle_type;
     using first_local_frame_type = typename first_mask_type::local_frame_type;
 
-    // Transform3 type
-    using transform3_type = typename local_frame_type::transform3_type;
-    // Scalar type
-    using scalar_type = typename transform3_type::scalar_type;
+    // Algebra type
+    using algebra_type = typename local_frame_type::algebra_type;
 
     // Vector and matrix types
-    using bound_vector_t = bound_vector<transform3_type>;
-    using bound_matrix_t = bound_matrix<transform3_type>;
-    using bound_to_free_matrix_t = bound_to_free_matrix<transform3_type>;
+    using bound_vector_t = bound_vector<algebra_type>;
+    using bound_matrix_t = bound_matrix<algebra_type>;
+    using bound_to_free_matrix_t = bound_to_free_matrix<algebra_type>;
 
-    using free_matrix_t = free_matrix<transform3_type>;
-    using free_to_bound_matrix_t = free_to_bound_matrix<transform3_type>;
+    using free_matrix_t = free_matrix<algebra_type>;
+    using free_to_bound_matrix_t = free_to_bound_matrix<algebra_type>;
 
     std::tuple<annulus_type, rectangle_type, trapezoid_type, ring_type,
                cylinder_type, straw_tube_type, drift_cell_type>
@@ -92,14 +91,14 @@ class detray_propagation_HelixCovarianceTransportValidation
                             100.f * unit<scalar>::mm});
 
     // Create transform matrices
-    std::vector<transform3_type> create_transforms(
-        detail::helix<transform3>& reference_helix,
+    std::vector<transform3> create_transforms(
+        detail::helix<algebra_type>& reference_helix,
         const std::size_t n_planes) {
 
         std::vector<transform3> trfs;
 
         // Step size between two neighbor planes
-        const scalar_type S{2.f * constant<scalar>::pi /
+        const scalar_type S{2.f * constant<scalar_type>::pi /
                             std::abs(reference_helix._K)};
         const scalar_type step_size = S / static_cast<scalar_type>(n_planes);
 
@@ -114,14 +113,15 @@ class detray_propagation_HelixCovarianceTransportValidation
             vector3 v = vector::cross(z_axis, w);
 
             if (i > 0u &&
-                (std::is_same_v<local_frame_type, cylindrical2D<transform3>> ||
-                 std::is_same_v<local_frame_type, line2D<transform3>>)) {
+                (std::is_same_v<local_frame_type,
+                                cylindrical2D<algebra_type>> ||
+                 std::is_same_v<local_frame_type, line2D<algebra_type>>)) {
 
                 const vector3 r_axis = vector::cross(w, z_axis);
 
                 // Rotate for cylinder and wire
-                axis_rotation<transform3> axis_rot(r_axis,
-                                                   constant<scalar>::pi / 2.f);
+                axis_rotation<algebra_type> axis_rot(
+                    r_axis, constant<scalar_type>::pi / 2.f);
 
                 // Test masks are rotated
                 w = axis_rot(w);
@@ -138,7 +138,7 @@ class detray_propagation_HelixCovarianceTransportValidation
                 // @note why does this offset (in y-direction) fail the test???
                 // const vector3 offset{0.f, 10.f * unit<scalar>::mm, 10.f *
                 // unit<scalar>::mm};
-                const vector3 offset{0.f, 0.f, 10.f * unit<scalar>::mm};
+                const vector3 offset{0.f, 0.f, 10.f * unit<scalar_type>::mm};
                 trl = trl + offset;
             }
 
@@ -151,9 +151,9 @@ class detray_propagation_HelixCovarianceTransportValidation
 
     // Error propagation
     template <typename departure_mask_type, typename destination_mask_type>
-    bound_track_parameters<transform3_type> propagate(
-        const bound_track_parameters<transform3>& bound_params,
-        const transform3_type& trf_0, const transform3_type& trf_1,
+    bound_track_parameters<algebra_type> propagate(
+        const bound_track_parameters<algebra_type>& bound_params,
+        const transform3& trf_0, const transform3& trf_1,
         const departure_mask_type& mask_0, const destination_mask_type& mask_1,
         scalar_type& total_path_length, std::vector<intersection_t>& sfis) {
 
@@ -174,11 +174,11 @@ class detray_propagation_HelixCovarianceTransportValidation
             detail::bound_to_free_vector(trf_0, mask_0, bound_vec_0);
 
         // Free track at the departure surface
-        free_track_parameters<transform3> free_trk_0;
+        free_track_parameters<algebra_type> free_trk_0;
         free_trk_0.set_vector(free_vec_0);
 
         // Helix from the departure surface
-        detail::helix<transform3> hlx(free_trk_0, &B);
+        detail::helix<algebra_type> hlx(free_trk_0, &B);
 
         // Bound-to-free jacobian at the departure surface
         const bound_to_free_matrix_t bound_to_free_jacobi =
@@ -188,9 +188,9 @@ class detray_propagation_HelixCovarianceTransportValidation
         // Get the intersection on the next surface
         const intersection_t is = get_intersection(
             helix_intersector<typename destination_mask_type::shape,
-                              transform3_type>{}(hlx, surface_descriptor<>{},
-                                                 mask_1, trf_1,
-                                                 this->mask_tolerance));
+                              algebra_type>{}(hlx, surface_descriptor<>{},
+                                              mask_1, trf_1,
+                                              this->mask_tolerance));
 
         sfis.push_back(is);
 
@@ -216,7 +216,7 @@ class detray_propagation_HelixCovarianceTransportValidation
         const scalar dqopds = 0.f;
 
         // Free track at the destination surface
-        free_track_parameters<transform3> free_trk_1;
+        free_track_parameters<algebra_type> free_trk_1;
         free_trk_1.set_pos(r);
         free_trk_1.set_dir(t);
         free_trk_1.set_qop(free_trk_0.qop());
@@ -251,7 +251,7 @@ class detray_propagation_HelixCovarianceTransportValidation
             full_jacobi * bound_cov_0 *
             matrix_operator().transpose(full_jacobi);
 
-        bound_track_parameters<transform3> ret;
+        bound_track_parameters<algebra_type> ret;
         ret.set_vector(bound_vec_1);
         ret.set_covariance(bound_cov_1);
 
@@ -277,12 +277,14 @@ TYPED_TEST_SUITE(detray_propagation_HelixCovarianceTransportValidation,
 TYPED_TEST(detray_propagation_HelixCovarianceTransportValidation,
            one_loop_test) {
 
+    using algebra_t = test::algebra;
+
     // @NOTE: The test with high energy (>1 GeV) might fail due
     // to the numerical instability
-    free_track_parameters<transform3> free_trk(
-        {0.f, 0.f, 0.f}, 0.f, {0.1f * unit<scalar>::GeV, 0.f, 0.f}, -1.f);
+    free_track_parameters<algebra_t> free_trk(
+        {0.f, 0.f, 0.f}, 0.f, {0.1f * unit<scalar_type>::GeV, 0.f, 0.f}, -1.f);
 
-    detail::helix<transform3> reference_helix(free_trk, &this->B);
+    detail::helix<algebra_t> reference_helix(free_trk, &this->B);
 
     const std::size_t n_planes = 10u;
     std::vector<transform3> trfs =
@@ -290,12 +292,12 @@ TYPED_TEST(detray_propagation_HelixCovarianceTransportValidation,
     ASSERT_EQ(trfs.size(), 10u);
 
     // Set the initial bound vector
-    bound_vector<transform3> bound_vec_0 = detail::free_to_bound_vector<
+    bound_vector<algebra_t> bound_vec_0 = detail::free_to_bound_vector<
         typename TestFixture::first_local_frame_type>(trfs[0],
                                                       free_trk.vector());
 
     // Set the initial bound covariance
-    typename bound_track_parameters<transform3>::covariance_type bound_cov_0 =
+    typename bound_track_parameters<algebra_t>::covariance_type bound_cov_0 =
         matrix_operator().template zero<e_bound_size, e_bound_size>();
     getter::element(bound_cov_0, e_bound_loc0, e_bound_loc0) = 1.f;
     getter::element(bound_cov_0, e_bound_loc1, e_bound_loc1) = 1.f;
@@ -306,7 +308,7 @@ TYPED_TEST(detray_propagation_HelixCovarianceTransportValidation,
     getter::element(bound_cov_0, e_bound_time, e_bound_time) = 0.f;
 
     // Set bound track parameters
-    bound_track_parameters<transform3> bound_params;
+    bound_track_parameters<algebra_t> bound_params;
     bound_params.set_vector(bound_vec_0);
     bound_params.set_covariance(bound_cov_0);
 
@@ -316,7 +318,7 @@ TYPED_TEST(detray_propagation_HelixCovarianceTransportValidation,
         std::get<typename TestFixture::mask_type>(this->masks);
 
     // Total path length, just for testing purpose
-    scalar total_path_length = 0.f;
+    scalar_type total_path_length = 0.f;
 
     // Intersections for testing purporse
     std::vector<intersection_t> sfis;
@@ -345,7 +347,7 @@ TYPED_TEST(detray_propagation_HelixCovarianceTransportValidation,
     // Check if the total path length is the expected value
     ASSERT_TRUE(total_path_length > 1e-3);
     ASSERT_NEAR(total_path_length,
-                2.f * constant<scalar>::pi / std::abs(reference_helix._K),
+                2.f * constant<scalar_type>::pi / std::abs(reference_helix._K),
                 this->tolerance);
 
     ASSERT_EQ(sfis.size(), n_planes);

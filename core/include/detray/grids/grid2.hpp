@@ -53,7 +53,6 @@ class grid2 {
     using axis_p1_type = axis_p1_t<array_t, vector_t>;
     using bare_value = typename populator_type::bare_value;
     using serialized_storage = typename populator_type::serialized_storage;
-    using point2 = __plugin::point2<detray::scalar>;
 
     template <typename neighbor_t>
     using neighborhood = array_t<array_t<neighbor_t, 2>, 2>;
@@ -210,8 +209,9 @@ class grid2 {
      *
      * @return the const reference to the value in this bin
      **/
-    DETRAY_HOST_DEVICE
-    typename serialized_storage::const_reference bin(const point2 &p2) const {
+    template <typename point2_t>
+    DETRAY_HOST_DEVICE typename serialized_storage::const_reference bin(
+        const point2_t &p2) const {
         return _data_serialized[_serializer.template serialize<axis_p0_type,
                                                                axis_p1_type>(
             _axis_p0, _axis_p1, _axis_p0.bin(p2[0]), _axis_p1.bin(p2[1]))];
@@ -223,8 +223,9 @@ class grid2 {
      *
      * @return the const reference to the value in this bin
      **/
-    DETRAY_HOST_DEVICE
-    typename serialized_storage::reference bin(const point2 &p2) {
+    template <typename point2_t>
+    DETRAY_HOST_DEVICE typename serialized_storage::reference bin(
+        const point2_t &p2) {
         return _data_serialized[_serializer.template serialize<axis_p0_type,
                                                                axis_p1_type>(
             _axis_p0, _axis_p1, _axis_p0.bin(p2[0]), _axis_p1.bin(p2[1]))];
@@ -242,9 +243,9 @@ class grid2 {
      *
      * @return the sequence of values
      **/
-    template <typename neighbor_t>
+    template <typename neighbor_t, typename point2_t>
     DETRAY_HOST_DEVICE vector_t<typename populator_type::bare_value> zone_t(
-        const point2 &p2, const neighborhood<neighbor_t> &nhood,
+        const point2_t &p2, const neighborhood<neighbor_t> &nhood,
         bool sort) const {
         auto zone0 = _axis_p0.zone(p2[0], nhood[0]);
         auto zone1 = _axis_p1.zone(p2[1], nhood[1]);
@@ -299,9 +300,9 @@ class grid2 {
      *
      * @return the sequence of values
      **/
-    DETRAY_HOST_DEVICE
-    vector_t<typename populator_type::bare_value> zone(
-        const point2 &p2, const neighborhood<dindex> &nhood = hermit2,
+    template <typename point2_t>
+    DETRAY_HOST_DEVICE vector_t<typename populator_type::bare_value> zone(
+        const point2_t &p2, const neighborhood<dindex> &nhood = hermit2,
         bool sort = false) const {
         return zone_t<dindex>(p2, nhood, sort);
     }
@@ -317,9 +318,9 @@ class grid2 {
      *
      * @return the sequence of values
      **/
-    DETRAY_HOST_DEVICE
-    vector_t<typename populator_type::bare_value> zone(
-        const point2 &p2, const neighborhood<scalar> &nhood,
+    template <typename point2_t>
+    DETRAY_HOST_DEVICE vector_t<typename populator_type::bare_value> zone(
+        const point2_t &p2, const neighborhood<scalar> &nhood,
         bool sort = false) const {
         return zone_t<scalar>(p2, nhood, sort);
     }

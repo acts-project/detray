@@ -28,16 +28,15 @@ struct ray_concentric_cylinder_intersector {
 
     /// linear algebra types
     /// @{
-    using transform3_type = algebra_t;
-    using scalar_type = typename transform3_type::scalar_type;
-    using point3 = typename transform3_type::point3;
-    using point2 = typename transform3_type::point2;
-    using vector3 = typename transform3_type::vector3;
+    using scalar_type = dscalar<algebra_t>;
+    using point3_type = dpoint3D<algebra_t>;
+    using vector3_type = dvector3D<algebra_t>;
+    using transform3_type = dtransform3D<algebra_t>;
     /// @}
 
     template <typename surface_descr_t>
     using intersection_type = intersection2D<surface_descr_t, algebra_t>;
-    using ray_type = detail::ray<transform3_type>;
+    using ray_type = detail::ray<algebra_t>;
 
     /// Operator function to find intersections between ray and concentric
     /// cylinder mask
@@ -63,10 +62,10 @@ struct ray_concentric_cylinder_intersector {
 
         const scalar_type r{mask[mask_t::shape::e_r]};
         // Two points on the line, these are in the cylinder frame
-        const point3 &ro = ray.pos();
-        const vector3 &rd = ray.dir();
-        const point3 &l0 = ro;
-        const point3 l1 = ro + rd;
+        const point3_type &ro = ray.pos();
+        const vector3_type &rd = ray.dir();
+        const point3_type &l0 = ro;
+        const point3_type l1 = ro + rd;
 
         // swap coorinates x/y for numerical stability
         const bool swap_x_y = math::abs(rd[0]) < 1e-3f;
@@ -81,7 +80,7 @@ struct ray_concentric_cylinder_intersector {
 
         if (qe.solutions() > 0) {
             const scalar_type overstep_tolerance{overstep_tol};
-            std::array<point3, 2> candidates;
+            std::array<point3_type, 2> candidates;
             std::array<scalar_type, 2> t01 = {0.f, 0.f};
 
             candidates[0][_x] = qe.smaller();
@@ -104,7 +103,7 @@ struct ray_concentric_cylinder_intersector {
                            : 0u);
             if (t01[0] > overstep_tolerance or t01[1] > overstep_tolerance) {
 
-                const point3 p3 = candidates[cindex];
+                const point3_type p3 = candidates[cindex];
                 const scalar_type phi{getter::phi(p3)};
                 is.local = {r * phi, p3[2], r};
 
@@ -123,8 +122,8 @@ struct ray_concentric_cylinder_intersector {
                     is.volume_link = mask.volume_link();
 
                     // Get incidence angle
-                    const vector3 normal = {math::cos(phi), math::sin(phi),
-                                            0.f};
+                    const vector3_type normal = {math::cos(phi), math::sin(phi),
+                                                 0.f};
                     is.cos_incidence_angle = vector::dot(rd, normal);
                 }
             }

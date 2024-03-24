@@ -102,14 +102,14 @@ template <typename detector_t, typename mask_shape_t = rectangle2D>
 class barrel_generator final : public surface_factory_interface<detector_t> {
 
     using scalar_t = typename detector_t::scalar_type;
-    using transform3_t = typename detector_t::transform3;
-    using point3_t = typename detector_t::point3;
-    using vector3_t = typename detector_t::vector3;
+    using transform3_t = typename detector_t::transform3_type;
+    using point3_t = typename detector_t::point3_type;
+    using vector3_t = typename detector_t::vector3_type;
 
     public:
     /// Build a barrel layer according to the parameters given in @param cfg
     DETRAY_HOST
-    barrel_generator(const barrel_generator_config<scalar_t> &cfg)
+    explicit barrel_generator(const barrel_generator_config<scalar_t> &cfg)
         : m_cfg{cfg} {}
 
     /// @returns the number of surfaces this factory will produce

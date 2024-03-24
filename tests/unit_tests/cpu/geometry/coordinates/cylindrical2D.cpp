@@ -39,7 +39,7 @@ GTEST_TEST(detray_coordinates, cylindrical2D) {
     const vector3 d = vector::normalize(mom);
     const scalar r{2.f};
 
-    const cylindrical2D<transform3> c2;
+    const cylindrical2D<test::algebra> c2;
 
     // Global to local transformation
     const point3 local = c2.global_to_local_3D(trf, global1, d);

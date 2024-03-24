@@ -27,18 +27,18 @@
 #include <gtest/gtest.h>
 
 using namespace detray;
-using vector2 = test::vector2;
+
+using algebra_t = test::algebra;
 using vector3 = test::vector3;
 using point3 = test::point3;
-using transform3 = test::transform3;
-using matrix_operator = standard_matrix_operator<scalar>;
+using matrix_operator = test::matrix_operator;
 
 /// Runge-Kutta stepper
 template <typename bfield_t>
-using rk_stepper_t = rk_stepper<typename bfield_t::view_t, transform3>;
+using rk_stepper_t = rk_stepper<typename bfield_t::view_t, algebra_t>;
 template <typename bfield_t>
 using crk_stepper_t =
-    rk_stepper<typename bfield_t::view_t, transform3, constrained_step<>>;
+    rk_stepper<typename bfield_t::view_t, algebra_t, constrained_step<>>;
 
 namespace {
 
@@ -117,8 +117,7 @@ GTEST_TEST(detray_propagator, rk_stepper) {
     constexpr unsigned int phi_steps = 100u;
 
     // Iterate through uniformly distributed momentum directions
-    for (auto track :
-         uniform_track_generator<free_track_parameters<transform3>>(
+    for (auto track : uniform_track_generator<free_track_parameters<algebra_t>>(
              phi_steps, theta_steps, p_mag)) {
         // Generate track state used for propagation with constrained step size
         free_track_parameters c_track(track);
@@ -223,8 +222,7 @@ TEST(detray_propagator, rk_stepper_inhomogeneous_bfield) {
     constexpr unsigned int phi_steps = 100u;
 
     // Iterate through uniformly distributed momentum directions
-    for (auto track :
-         uniform_track_generator<free_track_parameters<transform3>>(
+    for (auto track : uniform_track_generator<free_track_parameters<algebra_t>>(
              phi_steps, theta_steps, p_mag)) {
         // Generate track state used for propagation with constrained step size
         free_track_parameters c_track(track);
@@ -310,8 +308,7 @@ TEST(detray_propagator, qop_derivative) {
     const scalar ds = 1e-2f * unit<scalar>::mm;
 
     // Iterate through uniformly distributed momentum directions
-    for (auto track :
-         uniform_track_generator<free_track_parameters<transform3>>(
+    for (auto track : uniform_track_generator<free_track_parameters<algebra_t>>(
              phi_steps, theta_steps, p_mag)) {
 
         // RK Stepping into forward direction

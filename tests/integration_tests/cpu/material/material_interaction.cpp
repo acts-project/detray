@@ -38,8 +38,8 @@
 
 using namespace detray;
 
-using transform3 = test::transform3;
-using matrix_operator = typename transform3::matrix_actor;
+using algebra_t = test::algebra;
+using matrix_operator = test::matrix_operator;
 
 // Material interaction test with telescope Geometry
 GTEST_TEST(detray_material, telescope_geometry_energy_loss) {
@@ -47,7 +47,7 @@ GTEST_TEST(detray_material, telescope_geometry_energy_loss) {
     vecmem::host_memory_resource host_mr;
 
     // Build in x-direction from given module positions
-    detail::ray<transform3> traj{{0.f, 0.f, 0.f}, 0.f, {1.f, 0.f, 0.f}, -1.f};
+    detail::ray<algebra_t> traj{{0.f, 0.f, 0.f}, 0.f, {1.f, 0.f, 0.f}, -1.f};
     std::vector<scalar> positions = {0.f,   50.f,  100.f, 150.f, 200.f, 250.f,
                                      300.f, 350.f, 400.f, 450.f, 500.f};
 
@@ -64,12 +64,11 @@ GTEST_TEST(detray_material, telescope_geometry_energy_loss) {
     const auto [det, names] = build_telescope_detector(host_mr, tel_cfg);
 
     using navigator_t = navigator<decltype(det)>;
-    using stepper_t = line_stepper<transform3>;
-    using interactor_t = pointwise_material_interactor<transform3>;
+    using stepper_t = line_stepper<algebra_t>;
+    using interactor_t = pointwise_material_interactor<algebra_t>;
     using actor_chain_t =
-        actor_chain<dtuple, pathlimit_aborter,
-                    parameter_transporter<transform3>, interactor_t,
-                    parameter_resetter<transform3>>;
+        actor_chain<dtuple, pathlimit_aborter, parameter_transporter<algebra_t>,
+                    interactor_t, parameter_resetter<algebra_t>>;
     using propagator_t = propagator<stepper_t, navigator_t, actor_chain_t>;
 
     // Propagator is built from the stepper and navigator
@@ -78,24 +77,24 @@ GTEST_TEST(detray_material, telescope_geometry_energy_loss) {
     constexpr scalar q{-1.f};
     constexpr scalar iniP{10.f * unit<scalar>::GeV};
 
-    typename bound_track_parameters<transform3>::vector_type bound_vector;
+    typename bound_track_parameters<algebra_t>::vector_type bound_vector;
     getter::element(bound_vector, e_bound_loc0, 0) = 0.f;
     getter::element(bound_vector, e_bound_loc1, 0) = 0.f;
     getter::element(bound_vector, e_bound_phi, 0) = 0.f;
     getter::element(bound_vector, e_bound_theta, 0) = constant<scalar>::pi_2;
     getter::element(bound_vector, e_bound_qoverp, 0) = q / iniP;
     getter::element(bound_vector, e_bound_time, 0) = 0.f;
-    typename bound_track_parameters<transform3>::covariance_type bound_cov =
+    typename bound_track_parameters<algebra_t>::covariance_type bound_cov =
         matrix_operator().template zero<e_bound_size, e_bound_size>();
 
     // bound track parameter at first physical plane
-    const bound_track_parameters<transform3> bound_param(
+    const bound_track_parameters<algebra_t> bound_param(
         geometry::barcode{}.set_index(0u), bound_vector, bound_cov);
 
     pathlimit_aborter::state aborter_state{};
-    parameter_transporter<transform3>::state bound_updater{};
+    parameter_transporter<algebra_t>::state bound_updater{};
     interactor_t::state interactor_state{};
-    parameter_resetter<transform3>::state parameter_resetter_state{};
+    parameter_resetter<algebra_t>::state parameter_resetter_state{};
 
     // Create actor states tuples
     auto actor_states = std::tie(aborter_state, bound_updater, interactor_state,
@@ -168,13 +167,13 @@ GTEST_TEST(detray_material, telescope_geometry_energy_loss) {
      *********************************/
 
     using alt_actor_chain_t =
-        actor_chain<dtuple, pathlimit_aborter,
-                    parameter_transporter<transform3>, next_surface_aborter,
-                    interactor_t, parameter_resetter<transform3>>;
+        actor_chain<dtuple, pathlimit_aborter, parameter_transporter<algebra_t>,
+                    next_surface_aborter, interactor_t,
+                    parameter_resetter<algebra_t>>;
     using alt_propagator_t =
         propagator<stepper_t, navigator_t, alt_actor_chain_t>;
 
-    bound_track_parameters<transform3> alt_bound_param(
+    bound_track_parameters<algebra_t> alt_bound_param(
         geometry::barcode{}.set_index(0u), bound_vector, bound_cov);
 
     scalar altE(0);
@@ -222,7 +221,7 @@ GTEST_TEST(detray_material, telescope_geometry_scattering_angle) {
     vecmem::host_memory_resource host_mr;
 
     // Build in x-direction from given module positions
-    detail::ray<transform3> traj{{0.f, 0.f, 0.f}, 0.f, {1.f, 0.f, 0.f}, -1.f};
+    detail::ray<algebra_t> traj{{0.f, 0.f, 0.f}, 0.f, {1.f, 0.f, 0.f}, -1.f};
     std::vector<scalar> positions = {0.f};
 
     // To make sure that someone won't put more planes than one by accident
@@ -243,12 +242,11 @@ GTEST_TEST(detray_material, telescope_geometry_scattering_angle) {
     const auto [det, names] = build_telescope_detector(host_mr, tel_cfg);
 
     using navigator_t = navigator<decltype(det)>;
-    using stepper_t = line_stepper<transform3>;
-    using simulator_t = random_scatterer<transform3>;
+    using stepper_t = line_stepper<algebra_t>;
+    using simulator_t = random_scatterer<algebra_t>;
     using actor_chain_t =
-        actor_chain<dtuple, pathlimit_aborter,
-                    parameter_transporter<transform3>, simulator_t,
-                    parameter_resetter<transform3>>;
+        actor_chain<dtuple, pathlimit_aborter, parameter_transporter<algebra_t>,
+                    simulator_t, parameter_resetter<algebra_t>>;
     using propagator_t = propagator<stepper_t, navigator_t, actor_chain_t>;
 
     // Propagator is built from the stepper and navigator
@@ -258,16 +256,16 @@ GTEST_TEST(detray_material, telescope_geometry_scattering_angle) {
     constexpr scalar iniP{10.f * unit<scalar>::GeV};
 
     // Initial track parameters directing x-axis
-    typename bound_track_parameters<transform3>::vector_type bound_vector =
+    typename bound_track_parameters<algebra_t>::vector_type bound_vector =
         matrix_operator().template zero<e_bound_size, 1>();
     getter::element(bound_vector, e_bound_theta, 0) = constant<scalar>::pi_2;
     getter::element(bound_vector, e_bound_qoverp, 0) = q / iniP;
 
-    typename bound_track_parameters<transform3>::covariance_type bound_cov =
+    typename bound_track_parameters<algebra_t>::covariance_type bound_cov =
         matrix_operator().template zero<e_bound_size, e_bound_size>();
 
     // bound track parameter
-    const bound_track_parameters<transform3> bound_param(
+    const bound_track_parameters<algebra_t> bound_param(
         geometry::barcode{}.set_index(0u), bound_vector, bound_cov);
 
     std::size_t n_samples{100000u};
@@ -277,11 +275,11 @@ GTEST_TEST(detray_material, telescope_geometry_scattering_angle) {
     for (std::size_t i = 0u; i < n_samples; i++) {
 
         pathlimit_aborter::state aborter_state{};
-        parameter_transporter<transform3>::state bound_updater{};
+        parameter_transporter<algebra_t>::state bound_updater{};
         // Seed = sample id
         simulator_t::state simulator_state{i};
         simulator_state.do_energy_loss = false;
-        parameter_resetter<transform3>::state parameter_resetter_state{};
+        parameter_resetter<algebra_t>::state parameter_resetter_state{};
 
         // Create actor states tuples
         auto actor_states = std::tie(aborter_state, bound_updater,
@@ -298,7 +296,7 @@ GTEST_TEST(detray_material, telescope_geometry_scattering_angle) {
 
         // Updated phi and theta variance
         if (i == 0u) {
-            pointwise_material_interactor<transform3>{}.update_angle_variance(
+            pointwise_material_interactor<algebra_t>{}.update_angle_variance(
                 bound_cov, traj.dir(),
                 simulator_state.projected_scattering_angle, 1);
         }
@@ -333,9 +331,9 @@ GTEST_TEST(detray_material, telescope_geometry_volume_material) {
 
     // Propagator types
     using bfield_t = bfield::const_field_t;
-    using stepper_t = rk_stepper<bfield_t::view_t, transform3>;
+    using stepper_t = rk_stepper<bfield_t::view_t, algebra_t>;
     using actor_chain_t = actor_chain<dtuple, pathlimit_aborter>;
-    using vector3 = typename transform3::vector3;
+    using vector3 = test::vector3;
 
     // Bfield setup
     vector3 B_z{0.f, 0.f, 2.f * unit<scalar>::T};
@@ -344,25 +342,25 @@ GTEST_TEST(detray_material, telescope_geometry_volume_material) {
     // Track setup
     constexpr scalar q{-1.f};
     constexpr scalar iniP{10.f * unit<scalar>::GeV};
-    typename bound_track_parameters<transform3>::vector_type bound_vector;
+    typename bound_track_parameters<algebra_t>::vector_type bound_vector;
     getter::element(bound_vector, e_bound_loc0, 0) = 0.f;
     getter::element(bound_vector, e_bound_loc1, 0) = 0.f;
     getter::element(bound_vector, e_bound_phi, 0) = 0.f;
     getter::element(bound_vector, e_bound_theta, 0) = constant<scalar>::pi_2;
     getter::element(bound_vector, e_bound_qoverp, 0) = q / iniP;
     getter::element(bound_vector, e_bound_time, 0) = 0.f;
-    typename bound_track_parameters<transform3>::covariance_type bound_cov =
+    typename bound_track_parameters<algebra_t>::covariance_type bound_cov =
         matrix_operator().template zero<e_bound_size, e_bound_size>();
 
     // bound track parameter at first physical plane
-    const bound_track_parameters<transform3> bound_param(
+    const bound_track_parameters<algebra_t> bound_param(
         geometry::barcode{}.set_index(0u), bound_vector, bound_cov);
 
     // Create actor states tuples
     const scalar path_limit = 100 * unit<scalar>::mm;
 
     // Build in x-direction from given module positions
-    detail::ray<transform3> traj{{0.f, 0.f, 0.f}, 0.f, {1.f, 0.f, 0.f}, -1.f};
+    detail::ray<algebra_t> traj{{0.f, 0.f, 0.f}, 0.f, {1.f, 0.f, 0.f}, -1.f};
     std::vector<scalar> positions = {0.f, 10000.f * unit<scalar>::mm};
 
     // NO material at modules

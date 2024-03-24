@@ -38,7 +38,7 @@ GTEST_TEST(detray_builders, surface_factory) {
     using namespace detray;
 
     using detector_t = detector<>;
-    using transform3 = typename detector_t::transform3;
+    using transform3 = typename detector_t::transform3_type;
 
     //
     // check portal cylinder

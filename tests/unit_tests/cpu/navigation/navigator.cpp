@@ -13,9 +13,11 @@
 #include "detray/detectors/create_wire_chamber.hpp"
 #include "detray/navigation/navigator.hpp"
 #include "detray/propagator/line_stepper.hpp"
-#include "detray/test/types.hpp"
 #include "detray/tracks/tracks.hpp"
 #include "detray/utils/inspectors.hpp"
+
+// Test include(s)
+#include "detray/test/types.hpp"
 
 // VecMem include(s).
 #include <vecmem/memory/host_memory_resource.hpp>
@@ -113,7 +115,10 @@ inline void check_step(navigator_t &nav, stepper_t &stepper,
 GTEST_TEST(detray_navigation, navigator_toy_geometry) {
     using namespace detray;
     using namespace detray::navigation;
-    using transform3 = test::transform3;
+
+    using algebra_t = test::algebra;
+    using point3 = test::point3;
+    using vector3 = test::vector3;
 
     vecmem::host_memory_resource host_mr;
 
@@ -126,12 +131,12 @@ GTEST_TEST(detray_navigation, navigator_toy_geometry) {
     using inspector_t = navigation::print_inspector;
     using navigator_t = navigator<detector_t, inspector_t>;
     using constraint_t = constrained_step<>;
-    using stepper_t = line_stepper<transform3, constraint_t>;
+    using stepper_t = line_stepper<algebra_t, constraint_t>;
 
     // test track
     point3 pos{0.f, 0.f, 0.f};
     vector3 mom{1.f, 1.f, 0.f};
-    free_track_parameters<transform3> traj(pos, 0.f, mom, -1.f);
+    free_track_parameters<algebra_t> traj(pos, 0.f, mom, -1.f);
 
     stepper_t stepper;
     navigator_t nav;
@@ -283,7 +288,10 @@ GTEST_TEST(detray_navigation, navigator_wire_chamber) {
 
     using namespace detray;
     using namespace detray::navigation;
-    using transform3 = test::transform3;
+
+    using algebra_t = test::algebra;
+    using point3 = test::point3;
+    using vector3 = test::vector3;
 
     vecmem::host_memory_resource host_mr;
 
@@ -297,12 +305,12 @@ GTEST_TEST(detray_navigation, navigator_wire_chamber) {
     using inspector_t = navigation::print_inspector;
     using navigator_t = navigator<detector_t, inspector_t>;
     using constraint_t = constrained_step<>;
-    using stepper_t = line_stepper<transform3, constraint_t>;
+    using stepper_t = line_stepper<algebra_t, constraint_t>;
 
     // test track
     point3 pos{0.f, 0.f, 0.f};
     vector3 mom{0.f, 1.f, 0.f};
-    free_track_parameters<transform3> traj(pos, 0.f, mom, -1.f);
+    free_track_parameters<algebra_t> traj(pos, 0.f, mom, -1.f);
 
     stepper_t stepper;
     navigator_t nav;

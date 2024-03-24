@@ -122,10 +122,10 @@ class geometry_reader {
 
     /// @returns a surface transform from its io payload @param trf_data
     template <class detector_t>
-    static typename detector_t::transform3 convert(
+    static typename detector_t::transform3_type convert(
         const transform_payload& trf_data) {
         using scalar_t = typename detector_t::scalar_type;
-        using vector3_t = typename detector_t::vector3;
+        using vector3_t = typename detector_t::vector3_type;
 
         vector3_t t{static_cast<scalar_t>(trf_data.tr[0]),
                     static_cast<scalar_t>(trf_data.tr[1]),
@@ -140,7 +140,7 @@ class geometry_reader {
                     static_cast<scalar_t>(trf_data.rot[7]),
                     static_cast<scalar_t>(trf_data.rot[8])};
 
-        return typename detector_t::transform3{t, x, y, z};
+        return typename detector_t::transform3_type{t, x, y, z};
     }
 
     /// @returns surface data for a surface factory from a surface io payload

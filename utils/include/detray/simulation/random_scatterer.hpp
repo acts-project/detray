@@ -26,13 +26,13 @@
 
 namespace detray {
 
-template <typename transform3_t>
+template <typename algebra_t>
 struct random_scatterer : actor {
 
-    using transform3_type = transform3_t;
-    using matrix_operator = typename transform3_type::matrix_actor;
-    using scalar_type = typename transform3_type::scalar_type;
-    using vector3 = typename transform3_type::vector3;
+    using scalar_type = dscalar<algebra_t>;
+    using vector3_type = dvector3D<algebra_t>;
+    using transform3_type = dtransform3D<algebra_t>;
+    using matrix_operator = dmatrix_operator<algebra_t>;
     using interaction_type = interaction<scalar_type>;
 
     struct state {
@@ -69,7 +69,6 @@ struct random_scatterer : actor {
     /// Material store visitor
     struct kernel {
 
-        using scalar_type = typename interaction_type::scalar_type;
         using state = typename random_scatterer::state;
 
         template <typename mat_group_t, typename index_t>
@@ -77,7 +76,7 @@ struct random_scatterer : actor {
             [[maybe_unused]] const mat_group_t& material_group,
             [[maybe_unused]] const index_t& mat_index,
             [[maybe_unused]] state& s,
-            [[maybe_unused]] const bound_track_parameters<transform3_type>&
+            [[maybe_unused]] const bound_track_parameters<algebra_t>&
                 bound_params,
             [[maybe_unused]] const scalar_type cos_inc_angle,
             [[maybe_unused]] const scalar_type approach) const {
@@ -212,16 +211,15 @@ struct random_scatterer : actor {
     /// @param generator random generator
     /// @returns the new direction from random scattering
     template <typename generator_t>
-    DETRAY_HOST inline vector3 scatter(
-        const vector3& dir, const scalar_type projected_scattering_angle,
+    DETRAY_HOST inline vector3_type scatter(
+        const vector3_type& dir, const scalar_type projected_scattering_angle,
         generator_t& generator) const {
 
         // Scattering angle = sqrt(2) * projected_scattering_angle
         const auto scattering_angle =
             constant<scalar_type>::sqrt2 * projected_scattering_angle;
 
-        return scattering_helper<transform3_type>()(dir, scattering_angle,
-                                                    generator);
+        return scattering_helper<algebra_t>()(dir, scattering_angle, generator);
     }
 };
 

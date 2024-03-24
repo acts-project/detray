@@ -40,14 +40,14 @@ struct interaction {
         const detray::material<scalar_type>& mat, const int /*pdg*/,
         const relativistic_quantities& rq) const {
 
-        const scalar_t eps_per_length{rq.compute_epsilon_per_length(mat)};
+        const scalar_type eps_per_length{rq.compute_epsilon_per_length(mat)};
         if (eps_per_length <= 0.f) {
             return 0.f;
         }
 
-        const scalar_t dhalf{rq.compute_delta_half(mat)};
+        const scalar_type dhalf{rq.compute_delta_half(mat)};
         const scalar_type A = rq.compute_bethe_bloch_log_term(mat);
-        const scalar_t running{A - rq.m_beta2 - dhalf};
+        const scalar_type running{A - rq.m_beta2 - dhalf};
         return 2.f * eps_per_length * running;
     }
 
@@ -56,7 +56,7 @@ struct interaction {
         const relativistic_quantities& rq, const scalar_type bethe) const {
 
         // (K/2) * (Z/A) * z^2 / beta^2 * density
-        const scalar_t eps_per_length{rq.compute_epsilon_per_length(mat)};
+        const scalar_type eps_per_length{rq.compute_epsilon_per_length(mat)};
         if (eps_per_length <= 0.f) {
             return 0.f;
         }
@@ -108,19 +108,19 @@ struct interaction {
         const int /*pdg*/, const scalar_type m, const scalar_type qOverP,
         const scalar_type q) const {
 
-        const scalar_t I{mat.mean_excitation_energy()};
+        const scalar_type I{mat.mean_excitation_energy()};
         const relativistic_quantities rq(m, qOverP, q);
-        const scalar_t eps{rq.compute_epsilon(mat, path_segment)};
+        const scalar_type eps{rq.compute_epsilon(mat, path_segment)};
 
         if (eps <= 0.f) {
             return 0.f;
         }
 
-        const scalar_t dhalf{rq.compute_delta_half(mat)};
-        const scalar_t t{rq.compute_mass_term(constant<scalar_t>::m_e)};
+        const scalar_type dhalf{rq.compute_delta_half(mat)};
+        const scalar_type t{rq.compute_mass_term(constant<scalar_type>::m_e)};
         // uses RPP2018 eq. 33.11
-        const scalar_t running{math::log(t / I) + math::log(eps / I) + 0.2f -
-                               rq.m_beta2 - 2.f * dhalf};
+        const scalar_type running{math::log(t / I) + math::log(eps / I) + 0.2f -
+                                  rq.m_beta2 - 2.f * dhalf};
         return eps * running;
     }
 
@@ -139,8 +139,8 @@ struct interaction {
         const int pdg, const scalar_type m, const scalar_type qOverP,
         const scalar_type q) const {
 
-        const scalar_t fwhm{compute_energy_loss_landau_fwhm(path_segment, mat,
-                                                            pdg, m, qOverP, q)};
+        const scalar_type fwhm{compute_energy_loss_landau_fwhm(
+            path_segment, mat, pdg, m, qOverP, q)};
 
         return convert_landau_fwhm_to_gaussian_sigma(fwhm);
     }
@@ -151,7 +151,7 @@ struct interaction {
         const scalar_type m, const scalar_type qOverP,
         const scalar_type q) const {
 
-        const scalar_t sigmaE{compute_energy_loss_landau_sigma(
+        const scalar_type sigmaE{compute_energy_loss_landau_sigma(
             path_segment, mat, pdg, m, qOverP, q)};
 
         //  var(q/p) = (d(q/p)/dE)² * var(E)
@@ -161,7 +161,7 @@ struct interaction {
         //           = -q/p² E/p = -(q/p)² * 1/(q*beta) = -(q/p)² * (q/beta)
         //           / q² = (1/p)^4 * (q/beta)² * var(E)
         // do not need to care about the sign since it is only used squared
-        const scalar_t pInv{qOverP / q};
+        const scalar_type pInv{qOverP / q};
 
         const relativistic_quantities rq(m, qOverP, q);
 

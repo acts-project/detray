@@ -253,7 +253,7 @@ void connect_cylindrical_volumes(
             // Fill in the left side portals
             if (not portals_info.empty()) {
                 // The portal transfrom is given from the left
-                __plugin::vector3<scalar_t> _translation{
+                typename detector_t::vector3_type _translation{
                     0., 0., volume_bounds[bound_index]};
 
                 // Get the mask context group and fill it

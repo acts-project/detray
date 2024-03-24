@@ -31,21 +31,22 @@ using plane_mask_link_t = dtyped_index<plane_mask_ids, dindex>;
 using plane_material_link_t = dtyped_index<plane_material_ids, dindex>;
 
 /// This method creates a number (distances.size()) planes along a direction
-dvector<
-    surface_descriptor<plane_mask_link_t, plane_material_link_t, transform3>>
-planes_along_direction(const dvector<scalar> &distances, vector3 direction) {
+dvector<surface_descriptor<plane_mask_link_t, plane_material_link_t,
+                           test::transform3>>
+planes_along_direction(const dvector<test::scalar> &distances,
+                       test::vector3 direction) {
 
     // Rotation matrix
-    vector3 z = direction;
-    vector3 x = vector::normalize(vector3{0.f, -z[2], z[1]});
+    test::vector3 z = direction;
+    test::vector3 x = vector::normalize(test::vector3{0.f, -z[2], z[1]});
 
     dvector<surface_descriptor<plane_mask_link_t, plane_material_link_t,
-                               transform3>>
+                               test::transform3>>
         surfaces;
     surfaces.reserve(distances.size());
     for (const auto [idx, d] : detray::views::enumerate(distances)) {
-        vector3 t = d * direction;
-        transform3 trf(t, z, x);
+        test::vector3 t = d * direction;
+        test::transform3 trf(t, z, x);
         plane_mask_link_t mask_link{plane_mask_ids::e_plane_rectangle2, idx};
         plane_material_link_t material_link{plane_material_ids::e_plane_slab,
                                             0u};

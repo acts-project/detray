@@ -36,10 +36,10 @@ GTEST_TEST(svgtools, masks) {
                                              actsvg::style::stroke());
 
     using toy_detector_t = detray::detector<detray::toy_metadata>;
-    using transform_t = typename toy_detector_t::transform3;
+    using transform_t = typename toy_detector_t::transform3_type;
 
     const typename transform_t::vector3 tr{50.f, 100.f, 0.f};
-    const typename toy_detector_t::transform3 transform(tr);
+    const typename toy_detector_t::transform3_type transform(tr);
     const actsvg::views::x_y view{};
 
     // Visualize a 2D annulus.

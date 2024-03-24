@@ -31,8 +31,8 @@ namespace detray {
 template <typename detector_t>
 class helix_scan : public test::fixture_base<> {
 
-    using transform3_t = typename detector_t::transform3;
-    using free_track_parameters_t = free_track_parameters<transform3_t>;
+    using algebra_t = typename detector_t::algebra_type;
+    using free_track_parameters_t = free_track_parameters<algebra_t>;
 
     public:
     using fixture_type = test::fixture_base<>;

@@ -65,9 +65,10 @@ using mask_link_t = typename mask_container_t::single_link;
 using material_link_t = dtyped_index<material_ids, dindex>;
 
 using transform_container_t = single_store<test::transform3>;
-using transform3_t = typename transform_container_t::value_type;
-using vector3 = typename transform3_t::vector3;
-using point3 = typename transform3_t::point3;
+
+using algebra_t = test::algebra;
+using vector3 = test::vector3;
+using point3 = test::point3;
 using transform_link_t = dindex;
 
 /// The Surface definition:
@@ -130,7 +131,7 @@ GTEST_TEST(detray_intersection, intersection_kernel_ray) {
 
     const point3 pos{0.f, 0.f, 0.f};
     const vector3 mom{0.01f, 0.01f, 10.f};
-    const free_track_parameters<transform3_t> track(pos, 0.f, mom, -1.f);
+    const free_track_parameters<algebra_t> track(pos, 0.f, mom, -1.f);
 
     // Validation data
     const point3 expected_rectangle{0.01f, 0.01f, 10.f};
@@ -145,7 +146,7 @@ GTEST_TEST(detray_intersection, intersection_kernel_ray) {
         expected_cylinder1, expected_cylinder2, expected_cylinder_pt};
 
     // Initialize kernel
-    std::vector<intersection2D<surface_t, transform3_t>> sfi_init;
+    std::vector<intersection2D<surface_t, algebra_t>> sfi_init;
 
     for (const auto &surface : surfaces) {
         mask_store.visit<intersection_initialize<ray_intersector>>(
@@ -188,7 +189,7 @@ GTEST_TEST(detray_intersection, intersection_kernel_ray) {
     // @fixme: The intersection update kernel does not work for non-portal
     // cylinders, since it assigns the closest intersection to both
     // solutions
-    /*std::vector<intersection2D_point<surface_t, transform3_t>> sfi_update;
+    /*std::vector<intersection2D_point<surface_t, algebra_t>> sfi_update;
     sfi_update.resize(5);
 
     for (const auto [idx, surface] : detray::views::enumerate(surfaces)) {
@@ -256,7 +257,7 @@ GTEST_TEST(detray_intersection, intersection_kernel_helix) {
     const vector3 mom{0.01f, 0.01f, 10.f};
     const vector3 B{0.f * unit<scalar>::T, 0.f * unit<scalar>::T,
                     tol * unit<scalar>::T};
-    const detail::helix<transform3_t> h({pos, 0.f, mom, -1.f}, &B);
+    const detail::helix<algebra_t> h({pos, 0.f, mom, -1.f}, &B);
 
     // Validation data
     const point3 expected_rectangle{0.01f, 0.01f, 10.f};
@@ -264,7 +265,7 @@ GTEST_TEST(detray_intersection, intersection_kernel_helix) {
     const point3 expected_annulus{0.03f, 0.03f, 30.f};
     const std::vector<point3> expected_points = {
         expected_rectangle, expected_trapezoid, expected_annulus};
-    std::vector<intersection2D<surface_t, transform3_t>> sfi_helix{};
+    std::vector<intersection2D<surface_t, algebra_t>> sfi_helix{};
 
     // Try the intersections - with automated dispatching via the kernel
     for (const auto [sf_idx, surface] : detray::views::enumerate(surfaces)) {

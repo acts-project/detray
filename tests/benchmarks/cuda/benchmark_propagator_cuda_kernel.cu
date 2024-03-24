@@ -13,15 +13,14 @@ namespace detray {
 __global__ void __launch_bounds__(256, 4) propagator_benchmark_kernel(
     typename detector_host_type::view_type det_data,
     covfie::field_view<bfield::const_bknd_t> field_data,
-    vecmem::data::vector_view<free_track_parameters<transform3>> tracks_data,
+    vecmem::data::vector_view<free_track_parameters<algebra_t>> tracks_data,
     vecmem::data::jagged_vector_view<intersection_t> candidates_data,
     const propagate_option opt) {
 
     int gid = threadIdx.x + blockIdx.x * blockDim.x;
 
     detector_device_type det(det_data);
-    vecmem::device_vector<free_track_parameters<transform3>> tracks(
-        tracks_data);
+    vecmem::device_vector<free_track_parameters<algebra_t>> tracks(tracks_data);
     vecmem::jagged_device_vector<intersection_t> candidates(candidates_data);
 
     if (gid >= tracks.size()) {
@@ -33,9 +32,9 @@ __global__ void __launch_bounds__(256, 4) propagator_benchmark_kernel(
     cfg.navigation.search_window = {3u, 3u};
     propagator_device_type p{cfg};
 
-    parameter_transporter<transform3>::state transporter_state{};
-    pointwise_material_interactor<transform3>::state interactor_state{};
-    parameter_resetter<transform3>::state resetter_state{};
+    parameter_transporter<algebra_t>::state transporter_state{};
+    pointwise_material_interactor<algebra_t>::state interactor_state{};
+    parameter_resetter<algebra_t>::state resetter_state{};
 
     // Create the actor states
     auto actor_states =
@@ -55,7 +54,7 @@ __global__ void __launch_bounds__(256, 4) propagator_benchmark_kernel(
 void propagator_benchmark(
     typename detector_host_type::view_type det_data,
     covfie::field_view<bfield::const_bknd_t> field_data,
-    vecmem::data::vector_view<free_track_parameters<transform3>>& tracks_data,
+    vecmem::data::vector_view<free_track_parameters<algebra_t>>& tracks_data,
     vecmem::data::jagged_vector_view<intersection_t>& candidates_data,
     const propagate_option opt) {
 

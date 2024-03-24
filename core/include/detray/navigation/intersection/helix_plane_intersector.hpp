@@ -31,14 +31,14 @@ struct helix_intersector_impl;
 template <typename algebra_t>
 struct helix_intersector_impl<cartesian2D<algebra_t>, algebra_t> {
 
-    using transform3_type = algebra_t;
-    using scalar_type = typename transform3_type::scalar_type;
-    using point3 = typename transform3_type::point3;
-    using vector3 = typename transform3_type::vector3;
+    using scalar_type = dscalar<algebra_t>;
+    using point3_type = dpoint3D<algebra_t>;
+    using vector3_type = dvector3D<algebra_t>;
+    using transform3_type = dtransform3D<algebra_t>;
 
     template <typename surface_descr_t>
     using intersection_type = intersection2D<surface_descr_t, algebra_t>;
-    using helix_type = detail::helix<transform3_type>;
+    using helix_type = detail::helix<algebra_t>;
 
     /// Operator function to find intersections between helix and planar mask
     ///
@@ -67,9 +67,9 @@ struct helix_intersector_impl<cartesian2D<algebra_t>, algebra_t> {
         // Get the surface info
         const auto &sm = trf.matrix();
         // Surface normal
-        const vector3 sn = getter::vector<3>(sm, 0u, 2u);
+        const vector3_type sn = getter::vector<3>(sm, 0u, 2u);
         // Surface translation
-        const point3 st = getter::vector<3>(sm, 0u, 3u);
+        const point3_type st = getter::vector<3>(sm, 0u, 3u);
 
         // Starting point on the helix for the Newton iteration
         scalar_type s{

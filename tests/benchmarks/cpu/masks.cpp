@@ -22,7 +22,7 @@
 
 // Use the detray:: namespace implicitly.
 using namespace detray;
-using point3 = __plugin::point3<scalar>;
+using point3 = test::point3;
 
 static constexpr unsigned int steps_x3{1000u};
 static constexpr unsigned int steps_y3{1000u};

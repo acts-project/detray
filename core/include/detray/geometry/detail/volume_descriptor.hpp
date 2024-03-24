@@ -27,8 +27,7 @@ namespace detray {
 ///         and device. The surface finders reside in an 'unrollable tuple
 ///         container' and are called per volume in the navigator during local
 ///         navigation.
-template <typename ID, typename scalar_t,
-          typename acc_link_t = dtyped_index<dindex, dindex>,
+template <typename ID, typename acc_link_t = dtyped_index<dindex, dindex>,
           typename mat_link_t = dtyped_index<dindex, dindex>>
 class volume_descriptor {
 

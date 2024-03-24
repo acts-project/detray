@@ -40,7 +40,7 @@ class surface_data {
     ///            to be passed only if a special ordering should be observed
     DETRAY_HOST
     surface_data(
-        const surface_id type, const typename detector_t::transform3 &trf,
+        const surface_id type, const typename detector_t::transform3_type &trf,
         navigation_link volume_link,
         const std::vector<typename detector_t::scalar_type> &mask_boundaries,
         const dindex idx = dindex_invalid,
@@ -58,7 +58,7 @@ class surface_data {
         -> std::tuple<surface_id &, navigation_link &, dindex &,
                       std::uint64_t &,
                       std::vector<typename detector_t::scalar_type> &,
-                      typename detector_t::transform3 &> {
+                      typename detector_t::transform3_type &> {
         return std::tie(m_type, m_volume_link, m_index, m_source, m_boundaries,
                         m_transform);
     }
@@ -76,7 +76,7 @@ class surface_data {
     /// Vector of mask boundary values
     std::vector<typename detector_t::scalar_type> m_boundaries;
     /// The surface placement
-    typename detector_t::transform3 m_transform;
+    typename detector_t::transform3_type m_transform;
 };
 
 /// @brief How to generate surfaces with their corresponding masks and
