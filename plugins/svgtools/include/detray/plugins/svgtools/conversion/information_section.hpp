@@ -39,7 +39,7 @@ inline auto information_section(
     const typename detector_t::geometry_context& context,
     const detray::surface<detector_t>& d_surface) {
 
-    using point3_t = typename detector_t::point3;
+    using point3_t = typename detector_t::point3_type;
 
     svgtools::meta::proto::information_section<point3_t> is;
     is._title = d_surface.is_portal() ? "Portal" : "Surface";

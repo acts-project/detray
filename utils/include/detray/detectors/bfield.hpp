@@ -44,8 +44,8 @@ using inhom_bknd_nn_t = covfie::backend::affine<
 using inhom_field_t = covfie::field<inhom_bknd_t>;
 
 /// @returns a constant covfie field constructed from the field vector @param B
-inline const_field_t create_const_field(
-    const __plugin::vector3<detray::scalar> &B) {
+template <typename vector3_t>
+inline const_field_t create_const_field(const vector3_t &B) {
     return const_field_t{covfie::make_parameter_pack(
         const_bknd_t::configuration_t{B[0], B[1], B[2]})};
 }

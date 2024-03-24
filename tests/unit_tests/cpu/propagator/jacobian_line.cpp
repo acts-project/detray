@@ -19,14 +19,14 @@
 
 using namespace detray;
 
+using algebra_t = test::algebra;
 using point2 = test::point2;
 using point3 = test::point3;
 using vector3 = test::vector3;
 using transform3 = test::transform3;
-using matrix_operator = typename transform3::matrix_actor;
-using size_type = typename matrix_operator::size_ty;
-template <size_type ROWS, size_type COLS>
-using matrix_type = typename matrix_operator::template matrix_type<ROWS, COLS>;
+using matrix_operator = test::matrix_operator;
+template <std::size_t ROWS, std::size_t COLS>
+using matrix_type = test::matrix<ROWS, COLS>;
 
 constexpr scalar isclose{1e-5f};
 
@@ -35,7 +35,7 @@ mask<line<>> ln{0u, r, hz};
 
 GTEST_TEST(detray_propagator, jacobian_line2D_case1) {
 
-    using jac_engine = detail::jacobian_engine<line2D<transform3>>;
+    using jac_engine = detail::jacobian_engine<line2D<algebra_t>>;
 
     // Preparation work
     vector3 z = {1.f, 1.f, 1.f};
@@ -50,12 +50,12 @@ GTEST_TEST(detray_propagator, jacobian_line2D_case1) {
     const scalar charge{-1.f};
 
     // Free track parameter
-    const free_track_parameters<transform3> free_params(global1, time, mom,
-                                                        charge);
+    const free_track_parameters<algebra_t> free_params(global1, time, mom,
+                                                       charge);
     const auto free_vec1 = free_params.vector();
 
     const auto bound_vec =
-        detail::free_to_bound_vector<line2D<transform3>>(trf, free_vec1);
+        detail::free_to_bound_vector<line2D<algebra_t>>(trf, free_vec1);
     const auto free_vec2 = detail::bound_to_free_vector(trf, ln, bound_vec);
 
     const matrix_operator m;
@@ -77,7 +77,7 @@ GTEST_TEST(detray_propagator, jacobian_line2D_case1) {
     }
 
     // Test Jacobian transformation
-    const bound_matrix<transform3> J =
+    const bound_matrix<algebra_t> J =
         jac_engine::free_to_bound_jacobian(trf, free_vec1) *
         jac_engine::bound_to_free_jacobian(trf, ln, bound_vec);
 
@@ -94,7 +94,7 @@ GTEST_TEST(detray_propagator, jacobian_line2D_case1) {
 
 GTEST_TEST(detray_coordinates, jacobian_line2D_case2) {
 
-    using jac_engine = detail::jacobian_engine<line2D<transform3>>;
+    using jac_engine = detail::jacobian_engine<line2D<algebra_t>>;
 
     // Preparation work
     vector3 z = {1.f, 2.f, 3.f};
@@ -113,14 +113,14 @@ GTEST_TEST(detray_coordinates, jacobian_line2D_case2) {
     const point3 global = detail::bound_to_free_position(trf, ln, bound1, d);
 
     // Free track parameter
-    const free_track_parameters<transform3> free_params(global, time, mom,
-                                                        charge);
+    const free_track_parameters<algebra_t> free_params(global, time, mom,
+                                                       charge);
     const auto free_vec = free_params.vector();
     const auto bound_vec =
-        detail::free_to_bound_vector<line2D<transform3>>(trf, free_vec);
+        detail::free_to_bound_vector<line2D<algebra_t>>(trf, free_vec);
 
     // Test Jacobian transformation
-    const bound_matrix<transform3> J =
+    const bound_matrix<algebra_t> J =
         jac_engine::free_to_bound_jacobian(trf, free_vec) *
         jac_engine::bound_to_free_jacobian(trf, ln, bound_vec);
 

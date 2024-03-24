@@ -132,7 +132,7 @@ int main(int argc, char** argv) {
     //         silicon material (80mm)
 
     // Pilot trajectory in x-direction
-    detray::detail::ray<detray::tutorial::transform3> x_track{
+    detray::detail::ray<detray::tutorial::algebra_t> x_track{
         {0.f, 0.f, 0.f}, 0.f, {1.f, 0.f, 0.f}, -1.f};
 
     detray::tel_det_config rct_cfg{rectangle};
@@ -151,11 +151,11 @@ int main(int argc, char** argv) {
     //         silicon material (80mm)
 
     // Pilot track in x-direction
-    detray::free_track_parameters<detray::tutorial::transform3> y_track{
+    detray::free_track_parameters<detray::tutorial::algebra_t> y_track{
         {0.f, 0.f, 0.f}, 0.f, {1.f, 0.f, 0.f}, -1.f};
 
     // Helix in a constant B-field 1T in z-direction
-    using helix_t = detray::detail::helix<detray::tutorial::transform3>;
+    using helix_t = detray::detail::helix<detray::tutorial::algebra_t>;
     detray::tutorial::vector3 B_z{0.f, 0.f,
                                   1.f * detray::unit<detray::scalar>::T};
     helix_t helix(y_track, &B_z);

@@ -29,13 +29,14 @@ namespace detray {
 ///
 /// @tparam detector_t the type of detector the volume belongs to.
 template <typename detector_t, typename mask_shape_t = rectangle2D,
-          typename trajectory_t = detail::ray<typename detector_t::transform3>>
+          typename trajectory_t =
+              detail::ray<typename detector_t::algebra_type>>
 class telescope_generator final : public surface_factory_interface<detector_t> {
 
     using scalar_t = typename detector_t::scalar_type;
-    using transform3_t = typename detector_t::transform3;
-    using point3_t = typename detector_t::point3;
-    using vector3_t = typename detector_t::vector3;
+    using algebra_t = typename detector_t::algebra_type;
+    using point3_t = typename detector_t::point3_type;
+    using vector3_t = typename detector_t::vector3_type;
 
     public:
     /// Build a surface at with extent given in @param boundaries at every
@@ -157,8 +158,8 @@ class telescope_generator final : public surface_factory_interface<detector_t> {
                 auto curvi_u =
                     unit_vectors<vector3_t>().make_curvilinear_unit_u(
                         m_local_z);
-                axis_rotation<transform3_t> axis_rot(
-                    curvi_u, -constant<scalar>::pi / 2.f);
+                axis_rotation<algebra_t> axis_rot(
+                    curvi_u, -constant<scalar_t>::pi / 2.f);
                 m_local_z = axis_rot(m_local_z);
             }
 

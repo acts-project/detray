@@ -19,7 +19,7 @@ __global__ void propagation_kernel(
     typename detray::tutorial::detector_host_t::view_type det_data,
     typename detray::tutorial::device_field_t::view_t field_data,
     const vecmem::data::vector_view<
-        detray::free_track_parameters<detray::tutorial::transform3>>
+        detray::free_track_parameters<detray::tutorial::algebra_t>>
         tracks_data,
     vecmem::data::jagged_vector_view<detray::tutorial::intersection_t>
         candidates_data) {
@@ -28,7 +28,7 @@ __global__ void propagation_kernel(
 
     // Setup device-side track collection
     vecmem::device_vector<
-        detray::free_track_parameters<detray::tutorial::transform3>>
+        detray::free_track_parameters<detray::tutorial::algebra_t>>
         tracks(tracks_data);
 
     if (gid >= tracks.size()) {
@@ -48,11 +48,11 @@ __global__ void propagation_kernel(
 
     // Create actor states
     detray::pathlimit_aborter::state aborter_state{path_limit};
-    detray::parameter_transporter<detray::tutorial::transform3>::state
+    detray::parameter_transporter<detray::tutorial::algebra_t>::state
         transporter_state{};
-    detray::pointwise_material_interactor<detray::tutorial::transform3>::state
+    detray::pointwise_material_interactor<detray::tutorial::algebra_t>::state
         interactor_state{};
-    detray::parameter_resetter<detray::tutorial::transform3>::state
+    detray::parameter_resetter<detray::tutorial::algebra_t>::state
         resetter_state{};
 
     auto actor_states = detray::tie(aborter_state, transporter_state,
@@ -70,7 +70,7 @@ void propagation(
     typename detray::tutorial::detector_host_t::view_type det_data,
     typename detray::tutorial::device_field_t::view_t field_data,
     const vecmem::data::vector_view<
-        detray::free_track_parameters<detray::tutorial::transform3>>
+        detray::free_track_parameters<detray::tutorial::algebra_t>>
         tracks_data,
     vecmem::data::jagged_vector_view<detray::tutorial::intersection_t>
         candidates_data) {

@@ -31,17 +31,17 @@ namespace detail {
 enum grid_type : std::uint8_t { e_barrel = 0, e_endcap = 1, e_unknown = 2 };
 
 /// @returns the actsvg grid type and edge values for a detray 2D cylinder grid.
-template <typename grid_t, typename view_t,
-          std::enable_if_t<
-              std::is_same_v<
-                  typename grid_t::local_frame_type,
-                  detray::concentric_cylindrical2D<
-                      typename grid_t::local_frame_type::transform3_type>> ||
-                  std::is_same_v<
-                      typename grid_t::local_frame_type,
-                      detray::cylindrical2D<
-                          typename grid_t::local_frame_type::transform3_type>>,
-              bool> = true>
+template <
+    typename grid_t, typename view_t,
+    std::enable_if_t<
+        std::is_same_v<typename grid_t::local_frame_type,
+                       detray::concentric_cylindrical2D<
+                           typename grid_t::local_frame_type::algebra_type>> ||
+            std::is_same_v<
+                typename grid_t::local_frame_type,
+                detray::cylindrical2D<
+                    typename grid_t::local_frame_type::algebra_type>>,
+        bool> = true>
 inline auto grid_type_and_edges(const grid_t& grid, const view_t&) {
 
     using scalar_t = typename grid_t::local_frame_type::scalar_type;
@@ -74,9 +74,9 @@ inline auto grid_type_and_edges(const grid_t& grid, const view_t&) {
 template <
     typename grid_t, typename view_t,
     std::enable_if_t<
-        std::is_same_v<typename grid_t::local_frame_type,
-                       detray::polar2D<
-                           typename grid_t::local_frame_type::transform3_type>>,
+        std::is_same_v<
+            typename grid_t::local_frame_type,
+            detray::polar2D<typename grid_t::local_frame_type::algebra_type>>,
         bool> = true>
 inline auto grid_type_and_edges(const grid_t& grid, const view_t&) {
 
@@ -130,10 +130,9 @@ struct bin_association_getter {
 
         if constexpr (detray::detail::is_grid_v<accel_t>) {
 
-            using transform3_t =
-                typename accel_t::local_frame_type::transform3_type;
-            using scalar_t = typename transform3_t::scalar_type;
-            using point2_t = typename transform3_t::point2;
+            using algebra_t = typename accel_t::local_frame_type::algebra_type;
+            using scalar_t = dscalar<algebra_t>;
+            using point2_t = dpoint2D<algebra_t>;
 
             // The sheet display only works for 2-dimensional grids
             if constexpr (accel_t::dim != 2u) {
@@ -157,7 +156,7 @@ struct bin_association_getter {
             // loop over
             constexpr bool is_cyl{
                 std::is_same_v<typename accel_t::local_frame_type,
-                               detray::cylindrical2D<transform3_t>>};
+                               detray::cylindrical2D<algebra_t>>};
             if constexpr (is_cyl) {
                 edges0.swap(edges1);
             }

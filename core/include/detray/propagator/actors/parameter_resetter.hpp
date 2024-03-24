@@ -16,10 +16,10 @@
 
 namespace detray {
 
-template <typename transform3_t>
+template <typename algebra_t>
 struct parameter_resetter : actor {
 
-    using scalar_type = typename transform3_t::scalar_type;
+    using scalar_type = dscalar<algebra_t>;
 
     struct state {};
 
@@ -27,13 +27,14 @@ struct parameter_resetter : actor {
     struct kernel {
 
         // Matrix actor
-        using matrix_operator = typename transform3_t::matrix_actor;
+        using transform3_type = dtransform3D<algebra_t>;
+        using matrix_operator = dmatrix_operator<algebra_t>;
 
         template <typename mask_group_t, typename index_t,
                   typename stepper_state_t>
         DETRAY_HOST_DEVICE inline void operator()(
             const mask_group_t& mask_group, const index_t& index,
-            const transform3_t& trf3, stepper_state_t& stepping) const {
+            const transform3_type& trf3, stepper_state_t& stepping) const {
 
             // Note: How is it possible with "range"???
             const auto& mask = mask_group[index];

@@ -37,15 +37,14 @@ template <typename algebra_t>
 struct helix_intersector_impl<cylindrical2D<algebra_t>, algebra_t>
     : public ray_intersector_impl<cylindrical2D<algebra_t>, algebra_t> {
 
-    using transform3_type = algebra_t;
-    using scalar_type = typename transform3_type::scalar_type;
-    using point2 = typename transform3_type::point2;
-    using point3 = typename transform3_type::point3;
-    using vector3 = typename transform3_type::vector3;
+    using scalar_type = dscalar<algebra_t>;
+    using point3_type = dpoint3D<algebra_t>;
+    using vector3_type = dvector3D<algebra_t>;
+    using transform3_type = dtransform3D<algebra_t>;
 
     template <typename surface_descr_t>
     using intersection_type = intersection2D<surface_descr_t, algebra_t>;
-    using helix_type = detail::helix<transform3_type>;
+    using helix_type = detail::helix<algebra_t>;
 
     /// Operator function to find intersections between helix and cylinder mask
     ///
@@ -74,9 +73,9 @@ struct helix_intersector_impl<cylindrical2D<algebra_t>, algebra_t>
         // Get the surface placement
         const auto &sm = trf.matrix();
         // Cylinder z axis
-        const vector3 sz = getter::vector<3>(sm, 0u, 2u);
+        const vector3_type sz = getter::vector<3>(sm, 0u, 2u);
         // Cylinder centre
-        const point3 sc = getter::vector<3>(sm, 0u, 3u);
+        const point3_type sc = getter::vector<3>(sm, 0u, 3u);
 
         // Starting point on the helix for the Newton iteration
         // The mask is a cylinder -> it provides its radius as the first value
@@ -96,7 +95,7 @@ struct helix_intersector_impl<cylindrical2D<algebra_t>, algebra_t>
         // try to guess good starting path by calculating the intersection path
         // of the helix tangential with the cylinder. This only has a chance
         // of working for tracks with reasonably high p_T !
-        detail::ray<transform3_type> t{h.pos(), h.time(), h_dir, h.qop()};
+        detail::ray<algebra_t> t{h.pos(), h.time(), h_dir, h.qop()};
         const auto qe = this->solve_intersection(t, mask, trf);
 
         // Note: the default path length might be smaller than either solution
@@ -130,7 +129,7 @@ struct helix_intersector_impl<cylindrical2D<algebra_t>, algebra_t>
                    n_tries < max_n_tries) {
 
                 // f'(s) = 2 * ( (h.pos(s) - sc) x sz) * (h.dir(s) x sz) )
-                const vector3 crp = vector::cross(h.pos(s) - sc, sz);
+                const vector3_type crp = vector::cross(h.pos(s) - sc, sz);
                 const scalar_type denom{
                     2.f * vector::dot(crp, vector::cross(h.dir(s), sz))};
 

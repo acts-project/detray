@@ -37,8 +37,8 @@ template <typename detector_t>
 class straight_line_navigation : public test::fixture_base<> {
 
     using scalar_t = typename detector_t::scalar_type;
-    using transform3_t = typename detector_t::transform3;
-    using ray_t = detail::ray<transform3_t>;
+    using algebra_t = typename detector_t::algebra_type;
+    using ray_t = detail::ray<algebra_t>;
 
     public:
     using fixture_type = test::fixture_base<>;
@@ -88,10 +88,10 @@ class straight_line_navigation : public test::fixture_base<> {
         using namespace navigation;
 
         // Straight line navigation
-        using free_track_parameters_t = free_track_parameters<transform3_t>;
+        using free_track_parameters_t = free_track_parameters<algebra_t>;
         /// Type that holds the intersection information
         using intersection_t =
-            intersection2D<typename detector_t::surface_type, transform3_t>;
+            intersection2D<typename detector_t::surface_type, algebra_t>;
 
         /// Inspector that records all encountered surfaces
         using object_tracer_t =
@@ -109,8 +109,8 @@ class straight_line_navigation : public test::fixture_base<> {
         using navigator_t = navigator<detector_t, inspector_t>;
         //  Line stepper
         using stepper_t =
-            line_stepper<transform3_t, unconstrained_step,
-                         stepper_default_policy, stepping::print_inspector>;
+            line_stepper<algebra_t, unconstrained_step, stepper_default_policy,
+                         stepping::print_inspector>;
         // Propagator with pathlimit aborter
         using actor_chain_t = actor_chain<dtuple, pathlimit_aborter>;
         using propagator_t = propagator<stepper_t, navigator_t, actor_chain_t>;

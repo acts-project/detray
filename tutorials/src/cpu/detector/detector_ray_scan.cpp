@@ -35,7 +35,7 @@ constexpr std::size_t root_hash = 3244;
 int main() {
 
     // Can also be performed with helices
-    using ray_t = detray::detail::ray<detray::tutorial::transform3>;
+    using ray_t = detray::detail::ray<detray::tutorial::algebra_t>;
 
     // Build the geometry
     vecmem::host_memory_resource host_mr;

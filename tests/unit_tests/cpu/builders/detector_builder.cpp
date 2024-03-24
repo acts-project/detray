@@ -33,7 +33,7 @@ GTEST_TEST(detray_builders, detector_builder) {
     using namespace detray;
 
     using detector_t = detector<>;
-    using transform3 = typename detector_t::transform3;
+    using transform3 = typename detector_t::transform3_type;
     using mask_id = typename detector_t::masks::id;
 
     // Surface factories
@@ -49,7 +49,7 @@ GTEST_TEST(detray_builders, detector_builder) {
     //
     auto vbuilder = det_builder.new_volume(volume_id::e_cylinder);
 
-    typename detector_t::point3 t{0.f, 0.f, 0.f};
+    typename detector_t::point3_type t{0.f, 0.f, 0.f};
     vbuilder->add_volume_placement(t);
 
     // initial checks
@@ -80,7 +80,7 @@ GTEST_TEST(detray_builders, detector_builder) {
     auto vbuilder2 = det_builder.new_volume(volume_id::e_cuboid);
 
     // volume builder
-    t = typename detector_t::point3{0.f, 0.f, 20.f};
+    t = typename detector_t::point3_type{0.f, 0.f, 20.f};
     vbuilder2->add_volume_placement(t);
 
     // Add a portal box around the cuboid volume with a min distance of 'env'
@@ -110,10 +110,10 @@ GTEST_TEST(detray_builders, detector_builder) {
     EXPECT_EQ(vol1.index(), 1u);
 
     // Check the volume placements for both volumes
-    typename detector_t::transform3 identity{};
+    typename detector_t::transform3_type identity{};
     EXPECT_TRUE(vol0.transform() == identity);
     EXPECT_TRUE(d.transform_store()[0u] == identity);
-    typename detector_t::transform3 trf{t};
+    typename detector_t::transform3_type trf{t};
     EXPECT_TRUE(vol1.transform() == trf);
     EXPECT_TRUE(d.transform_store()[4u] == trf);
 

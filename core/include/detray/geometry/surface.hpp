@@ -35,19 +35,19 @@ class surface {
     /// Surface descriptor type
     using descr_t = typename detector_t::surface_type;
 
-    using kernels = detail::surface_kernels<typename detector_t::transform3>;
+    using kernels = detail::surface_kernels<typename detector_t::algebra_type>;
     /// Vector type for track parameters in global coordinates
     using free_vector_type = typename kernels::free_vector_type;
     /// Vector type for track parameters in local (bound) coordinates
     using bound_vector_type = typename kernels::bound_vector_type;
 
     public:
-    using algebra = typename detector_t::transform3;
-    using scalar_type = typename detector_t::scalar_type;
-    using transform3 = algebra;
-    using point2 = typename algebra::point2;
-    using point3 = typename algebra::point3;
-    using vector3 = typename algebra::point3;
+    using algebra_type = typename detector_t::algebra_type;
+    using scalar_type = dscalar<algebra_type>;
+    using point2_type = dpoint2D<algebra_type>;
+    using point3_type = dpoint3D<algebra_type>;
+    using vector3_type = dvector3D<algebra_type>;
+    using transform3_type = dtransform3D<algebra_type>;
     using context = typename detector_t::geometry_context;
 
     /// Not allowed: always needs a detector and a descriptor.
@@ -157,7 +157,8 @@ class surface {
 
     /// @returns the coordinate transform matrix of the surface
     DETRAY_HOST_DEVICE
-    constexpr auto transform(const context &ctx) const -> const transform3 & {
+    constexpr auto transform(const context &ctx) const
+        -> const transform3_type & {
         return m_detector.transform_store().at(m_desc.transform(), ctx);
     }
 
@@ -169,7 +170,7 @@ class surface {
 
     /// @returns the centroid of the surface mask in local cartesian coordinates
     DETRAY_HOST_DEVICE
-    constexpr auto centroid() const -> const point3 {
+    constexpr auto centroid() const -> const point3_type {
         return visit_mask<typename kernels::centroid>();
     }
 
@@ -177,30 +178,30 @@ class surface {
     /// @note for shapes like the annulus this is not synonymous to the controid
     /// but the focal point of the strip system instead
     DETRAY_HOST_DEVICE
-    constexpr auto center(const context &ctx) const -> const point3 {
+    constexpr auto center(const context &ctx) const -> const point3_type {
         return transform(ctx).translation();
     }
 
     /// @returns the surface normal in global coordinates at a given bound/local
     /// position @param p
-    template <typename point_t = point2,
-              std::enable_if_t<std::is_same_v<point_t, point3> or
-                                   std::is_same_v<point_t, point2>,
+    template <typename point_t = point2_type,
+              std::enable_if_t<std::is_same_v<point_t, point3_type> or
+                                   std::is_same_v<point_t, point2_type>,
                                bool> = true>
     DETRAY_HOST_DEVICE constexpr auto normal(const context &ctx,
                                              const point_t &p) const
-        -> const vector3 {
+        -> const vector3_type {
         return visit_mask<typename kernels::normal>(transform(ctx), p);
     }
 
     /// @returns the cosine of the incidence angle given a local/bound position
     /// @param p and a global direction @param dir
-    template <typename point_t = point2,
-              std::enable_if_t<std::is_same_v<point_t, point3> or
-                                   std::is_same_v<point_t, point2>,
+    template <typename point_t = point2_type,
+              std::enable_if_t<std::is_same_v<point_t, point3_type> or
+                                   std::is_same_v<point_t, point2_type>,
                                bool> = true>
     DETRAY_HOST_DEVICE constexpr auto cos_angle(const context &ctx,
-                                                const vector3 &dir,
+                                                const vector3_type &dir,
                                                 const point_t &p) const
         -> scalar_type {
         return vector::dot(dir, normal(ctx, p));
@@ -208,15 +209,16 @@ class surface {
 
     /// @returns the material parameters at the local position @param loc_p
     DETRAY_HOST_DEVICE constexpr material<scalar_type> material_parameters(
-        const point2 &loc_p) const {
+        const point2_type &loc_p) const {
         return visit_material<typename kernels::get_material_params>(loc_p);
     }
 
     /// @returns the bound (2D) position to the global point @param global for
     /// a given geometry context @param ctx and track direction @param dir
     DETRAY_HOST_DEVICE
-    constexpr point2 global_to_bound(const context &ctx, const point3 &global,
-                                     const vector3 &dir) const {
+    constexpr point2_type global_to_bound(const context &ctx,
+                                          const point3_type &global,
+                                          const vector3_type &dir) const {
         return visit_mask<typename kernels::global_to_bound>(transform(ctx),
                                                              global, dir);
     }
@@ -224,24 +226,27 @@ class surface {
     /// @returns the local position to the global point @param global for
     /// a given geometry context @param ctx and track direction @param dir
     DETRAY_HOST_DEVICE
-    constexpr point3 global_to_local(const context &ctx, const point3 &global,
-                                     const vector3 &dir) const {
+    constexpr point3_type global_to_local(const context &ctx,
+                                          const point3_type &global,
+                                          const vector3_type &dir) const {
         return visit_mask<typename kernels::global_to_local>(transform(ctx),
                                                              global, dir);
     }
 
     /// @returns the global position to the given local position @param local
     /// for a given geometry context @param ctx
-    DETRAY_HOST_DEVICE constexpr point3 local_to_global(
-        const context &ctx, const point3 &local, const vector3 &dir) const {
+    DETRAY_HOST_DEVICE constexpr point3_type local_to_global(
+        const context &ctx, const point3_type &local,
+        const vector3_type &dir) const {
         return visit_mask<typename kernels::local_to_global>(transform(ctx),
                                                              local, dir);
     }
 
     /// @returns the global position to the given bound position @param bound
     /// for a given geometry context @param ctx
-    DETRAY_HOST_DEVICE constexpr point3 bound_to_global(
-        const context &ctx, const point2 &bound, const vector3 &dir) const {
+    DETRAY_HOST_DEVICE constexpr point3_type bound_to_global(
+        const context &ctx, const point2_type &bound,
+        const vector3_type &dir) const {
         return visit_mask<typename kernels::local_to_global>(transform(ctx),
                                                              bound, dir);
     }
@@ -282,9 +287,10 @@ class surface {
 
     /// @returns the path correction term
     DETRAY_HOST_DEVICE
-    constexpr auto path_correction(const context &ctx, const vector3 &pos,
-                                   const vector3 &dir, const vector3 &dtds,
-                                   const scalar dqopds) const {
+    constexpr auto path_correction(const context &ctx, const vector3_type &pos,
+                                   const vector3_type &dir,
+                                   const vector3_type &dtds,
+                                   const scalar_type dqopds) const {
         return visit_mask<typename kernels::path_correction>(
             transform(ctx), pos, dir, dtds, dqopds);
     }

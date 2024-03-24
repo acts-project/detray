@@ -13,14 +13,15 @@
 /// @c detray/plugins/algebra/
 
 // Detray core include(s).
+#include "detray/definitions/detail/algebra.hpp"
 #include "detray/plugins/algebra/array_definitions.hpp"
 
 namespace detray::tutorial {
 
-using transform3 = algebra::array::transform3<detray::scalar>;
-using point2 = algebra::array::point2<detray::scalar>;
-using point3 = algebra::array::point3<detray::scalar>;
-using vector2 = algebra::array::vector2<detray::scalar>;
-using vector3 = algebra::array::vector3<detray::scalar>;
+using algebra_t = detray::cmath<detray::scalar>;
+using transform3 = detray::dtransform3D<algebra_t>;
+using point2 = detray::dpoint2D<algebra_t>;
+using point3 = detray::dpoint3D<algebra_t>;
+using vector3 = detray::dvector3D<algebra_t>;
 
 }  // namespace detray::tutorial

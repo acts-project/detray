@@ -29,8 +29,8 @@ template <typename detector_t>
 class cuboid_portal_generator final
     : public surface_factory_interface<detector_t> {
 
-    using scalar_t = typename detector_t::scalar_type;
-    using transform3_t = typename detector_t::transform3;
+    using scalar_type = typename detector_t::scalar_type;
+    using transform3_type = typename detector_t::transform3_type;
 
     /// A functor to construct global bounding boxes around masks
     struct bounding_box_creator {
@@ -40,7 +40,7 @@ class cuboid_portal_generator final
         template <typename mask_group_t, typename index_t>
         DETRAY_HOST_DEVICE inline void operator()(
             const mask_group_t &mask_group, const index_t &index,
-            const scalar_t envelope, const transform3_t &trf,
+            const scalar_type envelope, const transform3_type &trf,
             std::vector<aabb_t> &boxes) const {
             // Local minimum bounding box
             aabb_t box{mask_group.at(index), boxes.size(), envelope};
@@ -52,7 +52,7 @@ class cuboid_portal_generator final
     public:
     /// Use @param env as portal envelope
     DETRAY_HOST
-    cuboid_portal_generator(const scalar_t env) : m_envelope{env} {}
+    explicit cuboid_portal_generator(const scalar_type env) : m_envelope{env} {}
 
     /// @returns the number of rectangle portals this factory will produce
     DETRAY_HOST
@@ -85,8 +85,8 @@ class cuboid_portal_generator final
                     typename detector_t::geometry_context ctx = {})
         -> dindex_range override {
 
-        using point3_t = typename detector_t::point3;
-        using vector3_t = typename detector_t::vector3;
+        using point3_t = typename detector_t::point3_type;
+        using vector3_t = typename detector_t::vector3_type;
 
         using surface_t = typename detector_t::surface_type;
         using nav_link_t = typename surface_t::navigation_link;
@@ -114,7 +114,8 @@ class cuboid_portal_generator final
         material_link_t material_link{no_material, 0u};
 
         // Max distance in case of infinite bounds
-        constexpr scalar max_shift{0.01f * std::numeric_limits<scalar>::max()};
+        constexpr scalar_type max_shift{
+            0.01f * std::numeric_limits<scalar_type>::max()};
 
         // The bounding boxes around the module surfaces
         std::vector<aabb_t> boxes;
@@ -137,9 +138,9 @@ class cuboid_portal_generator final
 
         // Get the half lengths for the rectangle sides and translation
         const point3_t h_lengths = 0.5f * (box_max - box_min);
-        const scalar h_x{math::abs(h_lengths[0])};
-        const scalar h_y{math::abs(h_lengths[1])};
-        const scalar h_z{math::abs(h_lengths[2])};
+        const scalar_type h_x{math::abs(h_lengths[0])};
+        const scalar_type h_y{math::abs(h_lengths[1])};
+        const scalar_type h_z{math::abs(h_lengths[2])};
 
         // Volume links for the portal descriptors and the masks
         const dindex volume_idx{volume.index()};
@@ -225,7 +226,7 @@ class cuboid_portal_generator final
 
     private:
     /// Portal envelope (min distance between portals and volume surfaces)
-    scalar_t m_envelope;
+    scalar_type m_envelope;
 };
 
 }  // namespace detray

@@ -39,7 +39,7 @@ GTEST_TEST(svgtools, landmarks) {
     const auto [det, names] = detray::build_toy_detector(host_mr);
     using detector_t = decltype(det);
 
-    using point = typename detector_t::point3;
+    using point = typename detector_t::point3_type;
 
     // Creating the illustrator class.
     const detray::svgtools::illustrator il{det, names};

@@ -44,7 +44,7 @@ struct particle_gun {
         using sf_desc_t = typename detector_t::surface_type;
 
         using intersection_t =
-            intersection2D<sf_desc_t, typename detector_t::transform3>;
+            intersection2D<sf_desc_t, typename detector_t::algebra_type>;
 
         std::vector<std::pair<dindex, intersection_t>> intersection_record;
 

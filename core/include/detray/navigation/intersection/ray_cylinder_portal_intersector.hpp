@@ -36,16 +36,15 @@ struct ray_intersector_impl<concentric_cylindrical2D<algebra_t>, algebra_t>
 
     /// linear algebra types
     /// @{
-    using transform3_type = algebra_t;
-    using scalar_type = typename transform3_type::scalar_type;
-    using point3 = typename transform3_type::point3;
-    using point2 = typename transform3_type::point2;
-    using vector3 = typename transform3_type::vector3;
+    using scalar_type = dscalar<algebra_t>;
+    using point3_type = dpoint3D<algebra_t>;
+    using vector3_type = dvector3D<algebra_t>;
+    using transform3_type = dtransform3D<algebra_t>;
     /// @}
 
     template <typename surface_descr_t>
     using intersection_type = intersection2D<surface_descr_t, algebra_t>;
-    using ray_type = detail::ray<transform3_type>;
+    using ray_type = detail::ray<algebra_t>;
 
     /// Operator function to find intersections between ray and cylinder mask
     ///

@@ -76,7 +76,7 @@ class surface_factory : public surface_factory_interface<detector_t> {
     /// @returns the transforms currently held by the factory
     DETRAY_HOST
     auto transforms() const
-        -> const std::vector<typename detector_t::transform3> & {
+        -> const std::vector<typename detector_t::transform3_type> & {
         return m_transforms;
     }
 
@@ -246,7 +246,7 @@ class surface_factory : public surface_factory_interface<detector_t> {
     /// Mask boundaries of surfaces
     std::vector<std::vector<scalar_t>> m_bounds{};
     /// Transforms of surfaces
-    std::vector<typename detector_t::transform3> m_transforms{};
+    std::vector<typename detector_t::transform3_type> m_transforms{};
 };
 
 }  // namespace detray

@@ -24,15 +24,6 @@
 
 namespace detray {
 
-namespace {
-
-using transform3_t = __plugin::transform3<detray::scalar>;
-using point3 = __plugin::point3<detray::scalar>;
-using vector3 = __plugin::vector3<detray::scalar>;
-using point2 = __plugin::point2<detray::scalar>;
-
-}  // namespace
-
 struct wire_chamber_config {
 
     /// Number of layers
@@ -111,6 +102,10 @@ inline auto create_wire_chamber(vecmem::memory_resource &resource,
     // Detector type
     using detector_t = detector<default_metadata, host_container_types>;
 
+    using algebra_t = detector_t::algebra_type;
+    using point3 = detector_t::point3_type;
+    using vector3 = detector_t::vector3_type;
+
     using nav_link_t = typename detector_t::surface_type::navigation_link;
     using mask_id = typename detector_t::surface_type::mask_id;
     using material_id = typename detector_t::surface_type::material_id;
@@ -138,7 +133,7 @@ inline auto create_wire_chamber(vecmem::memory_resource &resource,
     typename detector_t::geometry_context ctx0{};
 
     // Beam collision volume
-    detail::detector_helper<transform3_t>().create_cyl_volume(
+    detail::detector_helper<algebra_t>().create_cyl_volume(
         cfg, det, resource, ctx0, 0.f, inner_cyl_rad, -cyl_half_z, cyl_half_z,
         {leaving_world, 1u, leaving_world, leaving_world});
 
@@ -155,12 +150,12 @@ inline auto create_wire_chamber(vecmem::memory_resource &resource,
             inner_cyl_rad + static_cast<scalar>(i_lay + 1) * cell_size * 2.f;
 
         if (i_lay < n_layers - 1) {
-            detail::detector_helper<transform3_t>().create_cyl_volume(
+            detail::detector_helper<algebra_t>().create_cyl_volume(
                 cfg, det, resource, ctx0, inner_layer_rad, outer_layer_rad,
                 -cyl_half_z, cyl_half_z,
                 {i_lay, i_lay + 2, leaving_world, leaving_world});
         } else {
-            detail::detector_helper<transform3_t>().create_cyl_volume(
+            detail::detector_helper<algebra_t>().create_cyl_volume(
                 cfg, det, resource, ctx0, inner_layer_rad, outer_layer_rad,
                 -cyl_half_z, cyl_half_z,
                 {i_lay, leaving_world, leaving_world, leaving_world});
@@ -220,8 +215,8 @@ inline auto create_wire_chamber(vecmem::memory_resource &resource,
             vector3 z_axis{0.f, 0.f, 1.f};
             vector3 r_axis = vector::normalize(m_center);
             const scalar sign = (i_lay % 2 == 0) ? 1 : -1;
-            z_axis = axis_rotation<transform3_t>(r_axis,
-                                                 sign * stereo_angle)(z_axis);
+            z_axis =
+                axis_rotation<algebra_t>(r_axis, sign * stereo_angle)(z_axis);
             vector3 x_axis =
                 unit_vectors<vector3>().make_curvilinear_unit_u(z_axis);
             transforms.emplace_back(ctx0, m_center, z_axis, x_axis);

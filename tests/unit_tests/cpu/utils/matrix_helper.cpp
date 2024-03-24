@@ -16,10 +16,9 @@
 using namespace detray;
 using transform3 = test::transform3;
 using vector3 = typename transform3::vector3;
-using matrix_operator = standard_matrix_operator<scalar>;
-using size_type = typename matrix_operator::size_ty;
-template <size_type ROWS, size_type COLS>
-using matrix_type = typename matrix_operator::template matrix_type<ROWS, COLS>;
+using matrix_operator = test::matrix_operator;
+template <std::size_t ROWS, std::size_t COLS>
+using matrix_type = test::matrix<ROWS, COLS>;
 
 constexpr scalar tolerance = 1e-6f;
 

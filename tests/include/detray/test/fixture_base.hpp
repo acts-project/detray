@@ -1,6 +1,6 @@
 /** Detray library, part of the ACTS project (R&D line)
  *
- * (c) 2023 CERN for the benefit of the ACTS project
+ * (c) 2023-2024 CERN for the benefit of the ACTS project
  *
  * Mozilla Public License Version 2.0
  */
@@ -11,6 +11,9 @@
 #include "detray/definitions/detail/algebra.hpp"
 #include "detray/definitions/units.hpp"
 #include "detray/propagator/propagator.hpp"
+
+// Test include(s)
+#include "detray/test/types.hpp"
 
 // GTest include(s)
 #include <gtest/gtest.h>
@@ -26,13 +29,14 @@ namespace detray::test {
 template <typename scope = ::testing::Test>
 class fixture_base : public scope {
     public:
-    /// Useful typedefs
+    /// Linear algebra typedefs
     /// @{
+    using algebra_t = ALGEBRA_PLUGIN<test::scalar>;
     using scalar = detray::scalar;
-    using point2 = __plugin::point2<scalar>;
-    using point3 = __plugin::point3<scalar>;
-    using vector3 = __plugin::vector3<scalar>;
-    using transform3 = __plugin::transform3<detray::scalar>;
+    using point2 = test::point2;
+    using point3 = test::point3;
+    using vector3 = test::vector3;
+    using transform3 = test::transform3;
     /// @}
 
     /// Local configuration type

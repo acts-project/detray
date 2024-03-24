@@ -8,6 +8,7 @@
 #pragma once
 
 // Project include(s).
+#include "detray/definitions/detail/algebra.hpp"
 #include "detray/definitions/detail/qualifiers.hpp"
 #include "detray/definitions/track_parametrization.hpp"
 #include "detray/geometry/coordinates/cartesian2D.hpp"
@@ -24,19 +25,17 @@ struct jacobian<cartesian2D<algebra_t>> {
     /// @{
     using coordinate_frame = cartesian2D<algebra_t>;
 
-    using transform3_type = algebra_t;
-    using scalar_type = typename algebra_t::scalar_type;
-    using point3 = typename algebra_t::point3;
-    using vector3 = typename algebra_t::vector3;
+    using algebra_type = algebra_t;
+    using transform3_type = dtransform3D<algebra_t>;
+    using scalar_type = dscalar<algebra_t>;
+    using point3_type = dpoint3D<algebra_t>;
+    using vector3_type = dvector3D<algebra_t>;
 
     // Matrix operator
-    using matrix_operator = typename algebra_t::matrix_actor;
-    // Matrix size type
-    using size_type = typename algebra_t::size_type;
+    using matrix_operator = dmatrix_operator<algebra_t>;
     // 2D matrix type
-    template <size_type ROWS, size_type COLS>
-    using matrix_type =
-        typename matrix_operator::template matrix_type<ROWS, COLS>;
+    template <std::size_t ROWS, std::size_t COLS>
+    using matrix_type = dmatrix<algebra_t, ROWS, COLS>;
     // Rotation Matrix
     using rotation_matrix = matrix_type<3, 3>;
 
@@ -47,21 +46,21 @@ struct jacobian<cartesian2D<algebra_t>> {
 
     DETRAY_HOST_DEVICE
     static inline auto reference_frame(const transform3_type &trf3,
-                                       const point3 & /*pos*/,
-                                       const vector3 & /*dir*/) {
+                                       const point3_type & /*pos*/,
+                                       const vector3_type & /*dir*/) {
         return trf3.rotation();
     }
 
     DETRAY_HOST_DEVICE static inline free_to_path_matrix_type path_derivative(
-        const transform3_type &trf3, const point3 & /*pos*/, const vector3 &dir,
-        const vector3 & /*dtds*/) {
+        const transform3_type &trf3, const point3_type & /*pos*/,
+        const vector3_type &dir, const vector3_type & /*dtds*/) {
 
         free_to_path_matrix_type derivative =
             matrix_operator().template zero<1u, e_free_size>();
 
-        const vector3 normal = coordinate_frame::normal(trf3);
+        const vector3_type normal = coordinate_frame::normal(trf3);
 
-        const vector3 pos_term = -1.f / vector::dot(normal, dir) * normal;
+        const vector3_type pos_term = -1.f / vector::dot(normal, dir) * normal;
 
         matrix_operator().element(derivative, 0u, e_free_pos0) = pos_term[0];
         matrix_operator().element(derivative, 0u, e_free_pos1) = pos_term[1];
@@ -73,7 +72,8 @@ struct jacobian<cartesian2D<algebra_t>> {
     DETRAY_HOST_DEVICE
     static inline void set_bound_pos_to_free_pos_derivative(
         bound_to_free_matrix_type &bound_to_free_jacobian,
-        const transform3_type &trf3, const point3 &pos, const vector3 &dir) {
+        const transform3_type &trf3, const point3_type &pos,
+        const vector3_type &dir) {
 
         const rotation_matrix frame = reference_frame(trf3, pos, dir);
 
@@ -89,7 +89,8 @@ struct jacobian<cartesian2D<algebra_t>> {
     DETRAY_HOST_DEVICE
     static inline void set_free_pos_to_bound_pos_derivative(
         free_to_bound_matrix_type &free_to_bound_jacobian,
-        const transform3_type &trf3, const point3 &pos, const vector3 &dir) {
+        const transform3_type &trf3, const point3_type &pos,
+        const vector3_type &dir) {
 
         const rotation_matrix frame = reference_frame(trf3, pos, dir);
         const rotation_matrix frameT = matrix_operator().transpose(frame);
@@ -106,8 +107,8 @@ struct jacobian<cartesian2D<algebra_t>> {
     DETRAY_HOST_DEVICE
     static inline void set_bound_angle_to_free_pos_derivative(
         bound_to_free_matrix_type & /*bound_to_free_jacobian*/,
-        const transform3_type & /*trf3*/, const point3 & /*pos*/,
-        const vector3 & /*dir*/) {
+        const transform3_type & /*trf3*/, const point3_type & /*pos*/,
+        const vector3_type & /*dir*/) {
         // Do nothing
     }
 };

@@ -37,10 +37,8 @@ namespace {
 
 /// Configure the toy detector
 template <typename mask_shape_t = rectangle2D,
-          typename trajectory_t = detail::ray<__plugin::transform3<scalar>>>
+          typename trajectory_t = detail::ray<ALGEBRA_PLUGIN<detray::scalar>>>
 struct tel_det_config {
-
-    using vector3 = __plugin::vector3<detray::scalar>;
 
     /// Construct from existing mask
     tel_det_config(const mask<mask_shape_t> &m, const trajectory_t &t = {})
@@ -171,7 +169,7 @@ struct tel_det_config {
 ///
 /// @returns a complete detector object
 template <typename mask_shape_t = rectangle2D,
-          typename trajectory_t = detail::ray<__plugin::transform3<scalar>>>
+          typename trajectory_t = detail::ray<ALGEBRA_PLUGIN<detray::scalar>>>
 inline auto build_telescope_detector(
     vecmem::memory_resource &resource,
     const tel_det_config<mask_shape_t, trajectory_t> &cfg = {

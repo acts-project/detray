@@ -87,44 +87,44 @@ TEST_P(SyclPropConstBFieldCpy, propagator) {
 }
 
 INSTANTIATE_TEST_SUITE_P(SyclPropagatorValidation1, SyclPropConstBFieldMng,
-                         ::testing::Values(vector3_t{0. * unit<scalar>::T,
-                                                     0. * unit<scalar>::T,
-                                                     2. * unit<scalar>::T}));
+                         ::testing::Values(vector3_t{0. * unit<scalar_t>::T,
+                                                     0. * unit<scalar_t>::T,
+                                                     2. * unit<scalar_t>::T}));
 
 INSTANTIATE_TEST_SUITE_P(SyclPropagatorValidation2, SyclPropConstBFieldMng,
-                         ::testing::Values(vector3_t{0. * unit<scalar>::T,
-                                                     1. * unit<scalar>::T,
-                                                     1. * unit<scalar>::T}));
+                         ::testing::Values(vector3_t{0. * unit<scalar_t>::T,
+                                                     1. * unit<scalar_t>::T,
+                                                     1. * unit<scalar_t>::T}));
 
 INSTANTIATE_TEST_SUITE_P(SyclPropagatorValidation3, SyclPropConstBFieldMng,
-                         ::testing::Values(vector3_t{1. * unit<scalar>::T,
-                                                     0. * unit<scalar>::T,
-                                                     1. * unit<scalar>::T}));
+                         ::testing::Values(vector3_t{1. * unit<scalar_t>::T,
+                                                     0. * unit<scalar_t>::T,
+                                                     1. * unit<scalar_t>::T}));
 
 INSTANTIATE_TEST_SUITE_P(SyclPropagatorValidation4, SyclPropConstBFieldMng,
-                         ::testing::Values(vector3_t{1. * unit<scalar>::T,
-                                                     1. * unit<scalar>::T,
-                                                     1. * unit<scalar>::T}));
+                         ::testing::Values(vector3_t{1. * unit<scalar_t>::T,
+                                                     1. * unit<scalar_t>::T,
+                                                     1. * unit<scalar_t>::T}));
 
 INSTANTIATE_TEST_SUITE_P(SyclPropagatorValidation5, SyclPropConstBFieldCpy,
-                         ::testing::Values(vector3_t{0. * unit<scalar>::T,
-                                                     0. * unit<scalar>::T,
-                                                     2. * unit<scalar>::T}));
+                         ::testing::Values(vector3_t{0. * unit<scalar_t>::T,
+                                                     0. * unit<scalar_t>::T,
+                                                     2. * unit<scalar_t>::T}));
 
 INSTANTIATE_TEST_SUITE_P(SyclPropagatorValidation6, SyclPropConstBFieldCpy,
-                         ::testing::Values(vector3_t{0. * unit<scalar>::T,
-                                                     1. * unit<scalar>::T,
-                                                     1. * unit<scalar>::T}));
+                         ::testing::Values(vector3_t{0. * unit<scalar_t>::T,
+                                                     1. * unit<scalar_t>::T,
+                                                     1. * unit<scalar_t>::T}));
 
 INSTANTIATE_TEST_SUITE_P(SyclPropagatorValidation7, SyclPropConstBFieldCpy,
-                         ::testing::Values(vector3_t{1. * unit<scalar>::T,
-                                                     0. * unit<scalar>::T,
-                                                     1. * unit<scalar>::T}));
+                         ::testing::Values(vector3_t{1. * unit<scalar_t>::T,
+                                                     0. * unit<scalar_t>::T,
+                                                     1. * unit<scalar_t>::T}));
 
 INSTANTIATE_TEST_SUITE_P(SyclPropagatorValidation8, SyclPropConstBFieldCpy,
-                         ::testing::Values(vector3_t{1. * unit<scalar>::T,
-                                                     1. * unit<scalar>::T,
-                                                     1. * unit<scalar>::T}));
+                         ::testing::Values(vector3_t{1. * unit<scalar_t>::T,
+                                                     1. * unit<scalar_t>::T,
+                                                     1. * unit<scalar_t>::T}));
 
 /// This tests the device propagation in an inhomogenepus magnetic field
 /*

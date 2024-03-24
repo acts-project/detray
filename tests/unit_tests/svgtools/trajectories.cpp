@@ -57,13 +57,13 @@ GTEST_TEST(svgtools, trajectories) {
         il.draw_volumes(std::vector{7u, 9u, 11u, 13u}, view);
 
     // Creating a ray.
-    using transform3_t = typename detector_t::transform3;
-    using vector3 = typename detector_t::vector3;
+    using algebra_t = typename detector_t::algebra_type;
+    using vector3 = typename detector_t::vector3_type;
 
-    const typename detector_t::point3 ori{0.f, 0.f, 80.f};
-    const typename detector_t::point3 dir{0, 1.f, 1.f};
+    const typename detector_t::point3_type ori{0.f, 0.f, 80.f};
+    const typename detector_t::point3_type dir{0, 1.f, 1.f};
 
-    const detray::detail::ray<transform3_t> ray(ori, 0.f, dir, 0.f);
+    const detray::detail::ray<algebra_t> ray(ori, 0.f, dir, 0.f);
     const auto ray_ir = detray::particle_gun::shoot_particle(det, ray);
 
     // Draw the trajectory.
@@ -83,7 +83,7 @@ GTEST_TEST(svgtools, trajectories) {
               0.f * detray::unit<detray::scalar>::T,
               1.f * detray::unit<detray::scalar>::T};
 
-    const detray::detail::helix<transform3_t> helix(ori, 0.f, dir, -8.f, &B);
+    const detray::detail::helix<algebra_t> helix(ori, 0.f, dir, -8.f, &B);
     const auto helix_ir = detray::particle_gun::shoot_particle(det, helix);
 
     // Draw the trajectory.
