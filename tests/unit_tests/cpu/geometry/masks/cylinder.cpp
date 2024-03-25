@@ -38,11 +38,11 @@ GTEST_TEST(detray_masks, cylinder2D) {
     ASSERT_NEAR(c[cylinder2D::e_n_half_z], -hz, tol);
     ASSERT_NEAR(c[cylinder2D::e_p_half_z], hz, tol);
 
-    ASSERT_TRUE(c.is_inside(p2_in) == intersection::status::e_inside);
-    ASSERT_TRUE(c.is_inside(p2_edge) == intersection::status::e_inside);
-    ASSERT_TRUE(c.is_inside(p2_out) == intersection::status::e_outside);
+    ASSERT_TRUE(c.is_inside(p2_in));
+    ASSERT_TRUE(c.is_inside(p2_edge));
+    ASSERT_FALSE(c.is_inside(p2_out));
     // Move outside point inside using a tolerance
-    ASSERT_TRUE(c.is_inside(p2_out, 0.6f) == intersection::status::e_inside);
+    ASSERT_TRUE(c.is_inside(p2_out, 0.6f));
 
     // Check area
     const scalar a{c.area()};
@@ -73,7 +73,7 @@ GTEST_TEST(detray_masks, cylinder2D_ratio_test) {
                         const test::transform3 &trf, const scalar t) {
 
             const test::point3 loc_p{cyl.to_local_frame(trf, p)};
-            return cyl.is_inside(loc_p, t) == intersection::status::e_inside;
+            return cyl.is_inside(loc_p, t);
         }
     };
 
@@ -118,12 +118,12 @@ GTEST_TEST(detray_masks, cylinder3D) {
     ASSERT_NEAR(c[cylinder3D::e_min_z], -hz, tol);
     ASSERT_NEAR(c[cylinder3D::e_max_z], hz, tol);
 
-    ASSERT_TRUE(c.is_inside(p3_in) == intersection::status::e_inside);
-    ASSERT_TRUE(c.is_inside(p3_edge) == intersection::status::e_inside);
-    ASSERT_TRUE(c.is_inside(p3_out) == intersection::status::e_outside);
-    ASSERT_TRUE(c.is_inside(p3_off) == intersection::status::e_outside);
+    ASSERT_TRUE(c.is_inside(p3_in));
+    ASSERT_TRUE(c.is_inside(p3_edge));
+    ASSERT_FALSE(c.is_inside(p3_out));
+    ASSERT_FALSE(c.is_inside(p3_off));
     // Move outside point inside using a tolerance
-    ASSERT_TRUE(c.is_inside(p3_out, 0.6f) == intersection::status::e_inside);
+    ASSERT_TRUE(c.is_inside(p3_out, 0.6f));
 
     // Check volume
     const scalar v{c.volume()};
@@ -154,7 +154,7 @@ GTEST_TEST(detray_masks, cylinder3D_ratio_test) {
                         const test::transform3 &trf, const scalar t) {
 
             const test::point3 loc_p{cyl.to_local_frame(trf, p)};
-            return cyl.is_inside(loc_p, t) == intersection::status::e_inside;
+            return cyl.is_inside(loc_p, t);
         }
     };
 

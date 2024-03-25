@@ -46,7 +46,7 @@ class unbounded {
     ///
     /// @return always true
     template <typename bounds_t, typename point_t, typename scalar_t>
-    DETRAY_HOST_DEVICE inline constexpr bool check_boundaries(
+    DETRAY_HOST_DEVICE inline constexpr auto check_boundaries(
         const bounds_t& /*bounds*/, const point_t& /*loc_p*/,
         const scalar_t /*tol*/) const {
         return true;

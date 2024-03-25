@@ -58,7 +58,7 @@ class single3D {
     template <template <typename, std::size_t> class bounds_t,
               typename scalar_t, std::size_t kDIM, typename point_t,
               typename std::enable_if_t<kDIM == e_size, bool> = true>
-    DETRAY_HOST_DEVICE inline bool check_boundaries(
+    DETRAY_HOST_DEVICE inline auto check_boundaries(
         const bounds_t<scalar_t, kDIM> &bounds, const point_t &loc_p,
         const scalar_t tol = std::numeric_limits<scalar_t>::epsilon()) const {
         return (bounds[e_lower] - tol <= loc_p[kCheckIndex] and
