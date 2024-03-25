@@ -16,8 +16,9 @@
 namespace detray {
 
 /// Straight line stepper implementation
-template <typename algebra_t, typename constraint_t = unconstrained_step,
-          typename policy_t = stepper_default_policy,
+template <typename algebra_t,
+          typename constraint_t = unconstrained_step<dscalar<algebra_t>>,
+          typename policy_t = stepper_default_policy<dscalar<algebra_t>>,
           typename inspector_t = stepping::void_inspector>
 class line_stepper final
     : public base_stepper<algebra_t, constraint_t, policy_t, inspector_t> {

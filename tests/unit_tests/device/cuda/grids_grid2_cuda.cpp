@@ -32,9 +32,9 @@ TEST(grids_cuda, grid2_replace_populator) {
     axis2::regular<> yaxis{6u, 0.f, 6.f, mng_mr};
 
     auto x_interval =
-        (xaxis.max - xaxis.min) / static_cast<detray::scalar>(xaxis.n_bins);
+        (xaxis.max - xaxis.min) / static_cast<scalar>(xaxis.n_bins);
     auto y_interval =
-        (yaxis.max - yaxis.min) / static_cast<detray::scalar>(yaxis.n_bins);
+        (yaxis.max - yaxis.min) / static_cast<scalar>(yaxis.n_bins);
 
     // declare host grid
     host_grid2_replace g2(std::move(xaxis), std::move(yaxis), mng_mr,
@@ -59,7 +59,7 @@ TEST(grids_cuda, grid2_replace_populator) {
     // post-check
     for (unsigned int i_x = 0u; i_x < xaxis.bins(); i_x++) {
         for (unsigned int i_y = 0u; i_y < yaxis.bins(); i_y++) {
-            auto bin_id = static_cast<detray::scalar>(i_x + i_y * xaxis.bins());
+            auto bin_id = static_cast<scalar>(i_x + i_y * xaxis.bins());
             const auto& data = g2.bin(i_x, i_y);
 
             test::point3 tp({xaxis.min + bin_id * x_interval,
@@ -79,7 +79,7 @@ TEST(grids_cuda, grid2_replace_populator_ci) {
     axis2::irregular<> iaxis{{1.f, 3.f, 9.f, 27.f, 81.f}, mng_mr};
 
     auto x_interval =
-        (caxis.max - caxis.min) / static_cast<detray::scalar>(caxis.n_bins);
+        (caxis.max - caxis.min) / static_cast<scalar>(caxis.n_bins);
 
     // declare host grid
     host_grid2_replace_ci g2(std::move(caxis), std::move(iaxis), mng_mr,
@@ -105,7 +105,7 @@ TEST(grids_cuda, grid2_replace_populator_ci) {
     for (unsigned int i_x = 0u; i_x < caxis.bins(); i_x++) {
         for (unsigned int i_y = 0u; i_y < iaxis.bins(); i_y++) {
             auto y_interval = iaxis.boundaries[i_y + 1] - iaxis.boundaries[i_y];
-            auto bin_id = static_cast<detray::scalar>(i_x + i_y * caxis.bins());
+            auto bin_id = static_cast<scalar>(i_x + i_y * caxis.bins());
 
             const auto& data = g2.bin(i_x, i_y);
 
@@ -150,9 +150,9 @@ TEST(grids_cuda, grid2_complete_populator) {
     grid_complete_test(g2_data);
 
     auto x_interval =
-        (xaxis.max - xaxis.min) / static_cast<detray::scalar>(xaxis.n_bins);
+        (xaxis.max - xaxis.min) / static_cast<scalar>(xaxis.n_bins);
     auto y_interval =
-        (yaxis.max - yaxis.min) / static_cast<detray::scalar>(yaxis.n_bins);
+        (yaxis.max - yaxis.min) / static_cast<scalar>(yaxis.n_bins);
 
     // post-check
     for (unsigned int i_y = 0u; i_y < yaxis.bins(); i_y++) {
@@ -164,8 +164,7 @@ TEST(grids_cuda, grid2_complete_populator) {
                 auto& pt = data[i_p];
 
                 auto bin_id = i_x + i_y * xaxis.bins();
-                auto gid =
-                    static_cast<detray::scalar>(i_p + bin_id * data.size());
+                auto gid = static_cast<scalar>(i_p + bin_id * data.size());
 
                 test::point3 tp({xaxis.min + gid * x_interval,
                                  yaxis.min + gid * y_interval, 0.5f});
@@ -185,9 +184,9 @@ TEST(grids_cuda, grid2_attach_populator) {
     axis2::regular<> yaxis{2u, 0.f, 6.f, mng_mr};
 
     auto x_interval =
-        (xaxis.max - xaxis.min) / static_cast<detray::scalar>(xaxis.n_bins);
+        (xaxis.max - xaxis.min) / static_cast<scalar>(xaxis.n_bins);
     auto y_interval =
-        (yaxis.max - yaxis.min) / static_cast<detray::scalar>(yaxis.n_bins);
+        (yaxis.max - yaxis.min) / static_cast<scalar>(yaxis.n_bins);
 
     host_grid2_attach g2(xaxis, yaxis, mng_mr, test::point3{0.f, 0.f, 0.f});
 
@@ -197,7 +196,7 @@ TEST(grids_cuda, grid2_attach_populator) {
             for (unsigned int i_p = 0u; i_p < 100u; i_p++) {
 
                 auto bin_id = i_x + i_y * xaxis.bins();
-                auto gid = static_cast<detray::scalar>(i_p + bin_id * 100u);
+                auto gid = static_cast<scalar>(i_p + bin_id * 100u);
 
                 test::point3 tp({xaxis.min + gid * x_interval,
                                  yaxis.min + gid * y_interval, 0.5f});

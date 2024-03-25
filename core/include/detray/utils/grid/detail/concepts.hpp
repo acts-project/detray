@@ -78,6 +78,7 @@ concept grid = viewable<G>&& bufferable<G>&& requires(const G g) {
     typename G::glob_bin_index;
     typename G::loc_bin_index;
     typename G::local_frame_type;
+    typename G::algebra_type;
     typename G::point_type;
 
     G::is_owning;

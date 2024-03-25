@@ -19,22 +19,24 @@
 #include <gtest/gtest.h>
 
 using namespace detray;
-using point3_t = test::point3;
+
+using test_algebra = test::algebra;
+using scalar = test::scalar;
+using point3 = test::point3;
 
 constexpr scalar tol{1e-5f};
 
 /// This tests the basic functionality of a ring
 GTEST_TEST(detray_masks, ring2D) {
-    using point_t = point3_t;
 
-    point_t p2_pl_in = {0.5f, -2.f, 0.f};
-    point_t p2_pl_edge = {0.f, 3.5f, 0.f};
-    point_t p2_pl_out = {3.6f, 5.f, 0.f};
+    point3 p2_pl_in = {0.5f, -2.f, 0.f};
+    point3 p2_pl_edge = {0.f, 3.5f, 0.f};
+    point3 p2_pl_out = {3.6f, 5.f, 0.f};
 
     constexpr scalar inner_r{0.f * unit<scalar>::mm};
     constexpr scalar outer_r{3.5f * unit<scalar>::mm};
 
-    mask<ring2D> r2{0u, inner_r, outer_r};
+    mask<ring2D, test_algebra> r2{0u, inner_r, outer_r};
 
     ASSERT_NEAR(r2[ring2D::e_inner_r], 0.f, tol);
     ASSERT_NEAR(r2[ring2D::e_outer_r], 3.5f, tol);
@@ -70,15 +72,15 @@ GTEST_TEST(detray_masks, ring2D) {
 GTEST_TEST(detray_masks, ring2D_ratio_test) {
 
     struct mask_check {
-        bool operator()(const test::point3 &p, const mask<ring2D> &r,
+        bool operator()(const point3 &p, const mask<ring2D, test_algebra> &r,
                         const test::transform3 &trf, const scalar t) {
 
-            const test::point3 loc_p{r.to_local_frame(trf, p)};
+            const point3 loc_p{r.to_local_frame(trf, p)};
             return r.is_inside(loc_p, t);
         }
     };
 
-    constexpr mask<ring2D> r{0u, 2.f, 5.f};
+    constexpr mask<ring2D, test_algebra> r{0u, 2.f, 5.f};
 
     constexpr scalar t{0.f};
     const test::transform3 trf{};
@@ -86,7 +88,7 @@ GTEST_TEST(detray_masks, ring2D_ratio_test) {
     const auto n_points{static_cast<std::size_t>(std::pow(500, 3))};
 
     // x- and y-coordinates yield a valid local position on the underlying plane
-    std::vector<test::point3> points =
+    std::vector<point3> points =
         test::generate_regular_points<cuboid3D>(n_points, {size});
 
     scalar ratio = test::ratio_test<mask_check>(points, r, trf, t);

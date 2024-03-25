@@ -23,24 +23,25 @@ namespace detray {
 
 /// Defines a telescope detector type with only rectangle portals and one
 /// additional kind of contained module surfaces (@tparam mask_shape_t)
-template <typename mask_shape_t = rectangle2D>
+template <typename algebra_t, typename mask_shape_t = rectangle2D>
 struct telescope_metadata {
 
     /// Define the algebra type for the geometry and navigation
-    using algebra_type = ALGEBRA_PLUGIN<detray::scalar>;
+    using algebra_type = algebra_t;
+    using scalar_t = dscalar<algebra_type>;
 
     /// Mask to (next) volume link: next volume(s)
     using nav_link = std::uint_least16_t;
 
     /// Mask types (these types are needed for the portals, which are always
     /// there, and to resolve the wire surface material, i.e. slab vs. rod)
-    using rectangle = mask<rectangle2D, nav_link>;
-    using straw_tube = mask<line_circular, nav_link>;
-    using drift_cell = mask<line_square, nav_link>;
+    using rectangle = mask<rectangle2D, algebra_type, nav_link>;
+    using straw_tube = mask<line_circular, algebra_type, nav_link>;
+    using drift_cell = mask<line_square, algebra_type, nav_link>;
 
     /// Material types
-    using rod = material_rod<detray::scalar>;
-    using slab = material_slab<detray::scalar>;
+    using rod = material_rod<scalar_t>;
+    using slab = material_slab<scalar_t>;
 
     /// How to store coordinate transform matrices
     template <template <typename...> class vector_t = dvector>
@@ -75,11 +76,12 @@ struct telescope_metadata {
     template <template <typename...> class tuple_t = dtuple,
               template <typename...> class vector_t = dvector>
     using mask_store = std::conditional_t<
-        std::is_same_v<mask<mask_shape_t, nav_link>, rectangle>,
+        std::is_same_v<mask<mask_shape_t, algebra_type, nav_link>, rectangle>,
         regular_multi_store<mask_ids, empty_context, tuple_t, vector_t,
                             rectangle>,
         regular_multi_store<mask_ids, empty_context, tuple_t, vector_t,
-                            rectangle, mask<mask_shape_t, nav_link>>>;
+                            rectangle,
+                            mask<mask_shape_t, algebra_type, nav_link>>>;
 
     /// Material type ids
     enum class material_ids : std::uint_least8_t {
@@ -93,14 +95,15 @@ struct telescope_metadata {
     template <template <typename...> class tuple_t = dtuple,
               typename container_t = host_container_types>
     using material_store = std::conditional_t<
-        std::is_same_v<mask<mask_shape_t, nav_link>, drift_cell> |
-            std::is_same_v<mask<mask_shape_t, nav_link>, straw_tube>,
+        std::is_same_v<mask<mask_shape_t, algebra_type, nav_link>, drift_cell> |
+            std::is_same_v<mask<mask_shape_t, algebra_type, nav_link>,
+                           straw_tube>,
         regular_multi_store<material_ids, empty_context, tuple_t,
                             container_t::template vector_type, slab,
-                            material<detray::scalar>, rod>,
+                            material<scalar_t>, rod>,
         regular_multi_store<material_ids, empty_context, tuple_t,
                             container_t::template vector_type, slab,
-                            material<detray::scalar>>>;
+                            material<scalar_t>>>;
 
     /// How to link to the entries in the data stores
     using transform_link = typename transform_store<>::link_type;

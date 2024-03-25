@@ -34,9 +34,11 @@ using namespace detray;
 
 namespace {
 
+using scalar = test::scalar;
 using point3 = test::point3;
 
-using detector_t = detector<>;
+using metadata_t = test::default_metadata;
+using detector_t = detector<metadata_t>;
 
 constexpr scalar tol{std::numeric_limits<scalar>::epsilon()};
 
@@ -185,7 +187,7 @@ GTEST_TEST(detray_builders, detector_builder_with_material) {
     using trapezoid_factory = surface_factory<detector_t, trapezoid2D>;
 
     // detector builder
-    detector_builder<default_metadata> det_builder{};
+    detector_builder<typename detector_t::metadata> det_builder{};
     auto geo_ctx = typename detector_t::geometry_context{};
 
     // Vanilla volume builder
@@ -218,7 +220,7 @@ GTEST_TEST(detray_builders, detector_builder_with_material) {
                                  {1.f * unit<scalar>::mm, silicon<scalar>()});
 
     // Add a portal box around the cuboid volume with a min distance of 'env'
-    constexpr auto env{0.1f * unit<detray::scalar>::mm};
+    constexpr auto env{0.1f * unit<scalar>::mm};
     auto portal_generator =
         std::make_unique<cuboid_portal_generator<detector_t>>(env);
 

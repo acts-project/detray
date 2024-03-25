@@ -16,6 +16,7 @@
 // Detray test include(s)
 #include "detray/test/utils/detectors/build_toy_detector.hpp"
 #include "detray/test/utils/simulation/event_generator/track_generators.hpp"
+#include "detray/test/utils/types.hpp"
 #include "detray/test/validation/detector_scanner.hpp"
 #include "detray/test/validation/svg_display.hpp"
 #include "detray/tracks/tracks.hpp"
@@ -51,10 +52,11 @@ GTEST_TEST(svgtools, intersections) {
 
     // Creating the detector and geomentry context.
     vecmem::host_memory_resource host_mr;
-    const auto [det, names] = detray::build_toy_detector(host_mr);
+    const auto [det, names] =
+        detray::build_toy_detector<detray::test::algebra>(host_mr);
 
     using detector_t = decltype(det);
-    using algebra_t = typename detector_t::algebra_type;
+    using test_algebra = typename detector_t::algebra_type;
 
     detector_t::geometry_context gctx{};
 
@@ -66,7 +68,7 @@ GTEST_TEST(svgtools, intersections) {
 
     // Creating the rays.
     using generator_t =
-        detray::uniform_track_generator<detray::detail::ray<algebra_t>>;
+        detray::uniform_track_generator<detray::detail::ray<test_algebra>>;
     auto trk_gen_cfg = generator_t::configuration{};
     trk_gen_cfg.origin({0.f, 0.f, 100.f}).phi_steps(10u).theta_steps(10u);
 

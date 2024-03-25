@@ -10,15 +10,10 @@
 // Algebra-Plugins include
 #include "algebra/vc_aos.hpp"
 
-#define ALGEBRA_PLUGIN detray::vc_aos
-
 namespace detray {
 
-// Define scalar type
-using scalar = DETRAY_CUSTOM_SCALARTYPE;
-
 /// The plugin definition
-template <typename scalar_t = DETRAY_CUSTOM_SCALARTYPE>
+template <typename scalar_t>
 using vc_aos = algebra::plugin::vc_aos<scalar_t>;
 
 namespace getter {

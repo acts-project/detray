@@ -13,6 +13,9 @@
 #include "detray/geometry/mask.hpp"
 #include "detray/geometry/shapes.hpp"
 
+// Detray test include(s)
+#include "detray/test/utils/types.hpp"
+
 // Vecmem include(s)
 #include <vecmem/containers/data/jagged_vector_buffer.hpp>
 #include <vecmem/containers/device_vector.hpp>
@@ -21,17 +24,17 @@
 
 namespace detray {
 
-using algebra_t = ALGEBRA_PLUGIN<detray::scalar>;
-using point3 = detray::dpoint3D<algebra_t>;
-using transform3 = detray::dtransform3D<algebra_t>;
+using test_algebra = test::algebra;
+using point3 = dpoint3D<test_algebra>;
+using transform3 = dtransform3D<test_algebra>;
 const int n_points = 1000;
 
-using annulus = mask<annulus2D>;
-using cylinder = mask<cylinder2D>;
-using rectangle = mask<rectangle2D>;
-using ring = mask<ring2D>;
-using single = mask<single3D<>>;
-using trapezoid = mask<trapezoid2D>;
+using annulus = mask<annulus2D, test_algebra>;
+using cylinder = mask<cylinder2D, test_algebra>;
+using rectangle = mask<rectangle2D, test_algebra>;
+using ring = mask<ring2D, test_algebra>;
+using single = mask<single3D<>, test_algebra>;
+using trapezoid = mask<trapezoid2D, test_algebra>;
 
 /// Enumerate different mask types for convenience
 enum class mask_ids : unsigned int {

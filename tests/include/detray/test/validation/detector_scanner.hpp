@@ -209,7 +209,7 @@ inline auto write_tracks(
     const std::vector<std::vector<intersection_record<detector_t>>>
         &intersection_traces) {
 
-    using scalar_t = typename detector_t::scalar_type;
+    using scalar_t = dscalar<typename detector_t::algebra_type>;
     using record_t = intersection_record<detector_t>;
     using track_param_t = typename record_t::track_parameter_type;
 

@@ -29,7 +29,7 @@ class square_surface_generator final
 
     public:
     using detector_t = detector<tutorial::my_metadata>;
-    using scalar_t = typename detector_t::scalar_type;
+    using scalar_t = dscalar<typename detector_t::algebra_type>;
 
     /// Generate @param n square surfaces with half length @param hl .
     DETRAY_HOST

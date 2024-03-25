@@ -36,15 +36,18 @@ int main(int argc, char **argv) {
     //
     vecmem::host_memory_resource host_mr;
 
-    using wire_chamber_t = detector<>;
-    using scalar_t = typename wire_chamber_t::scalar_type;
+    using metadata_t = test::default_metadata;
+    using wire_chamber_t = detector<metadata_t>;
+    using test_algebra = metadata_t::algebra_type;
+    using scalar = dscalar<test_algebra>;
 
-    wire_chamber_config<> wire_chamber_cfg{};
+    wire_chamber_config<scalar> wire_chamber_cfg{};
     wire_chamber_cfg.half_z(500.f * unit<scalar>::mm);
 
     std::cout << wire_chamber_cfg << std::endl;
 
-    auto [det, names] = build_wire_chamber(host_mr, wire_chamber_cfg);
+    auto [det, names] =
+        build_wire_chamber<test_algebra>(host_mr, wire_chamber_cfg);
 
     auto white_board = std::make_shared<test::whiteboard>();
 
@@ -81,13 +84,13 @@ int main(int argc, char **argv) {
     cfg_hel_scan.name("wire_chamber_helix_scan");
     cfg_hel_scan.whiteboard(white_board);
     // Let the Newton algorithm dynamically choose tol. based on approx. error
-    cfg_hel_scan.mask_tolerance({detray::detail::invalid_value<scalar_t>(),
-                                 detray::detail::invalid_value<scalar_t>()});
+    cfg_hel_scan.mask_tolerance({detray::detail::invalid_value<scalar>(),
+                                 detray::detail::invalid_value<scalar>()});
     cfg_hel_scan.track_generator().n_tracks(10000u);
     cfg_hel_scan.track_generator().randomize_charge(true);
     cfg_hel_scan.track_generator().eta_range(-1.f, 1.f);
     // TODO: Fails for smaller momenta
-    cfg_hel_scan.track_generator().p_T(4.f * unit<scalar_t>::GeV);
+    cfg_hel_scan.track_generator().p_T(4.f * unit<scalar>::GeV);
 
     detail::register_checks<test::helix_scan>(det, names, cfg_hel_scan);
 
@@ -115,7 +118,7 @@ int main(int argc, char **argv) {
     mat_val_cfg.name("wire_chamber_material_validaiton");
     mat_val_cfg.whiteboard(white_board);
     // Reduce tolerance for single precision tests
-    if constexpr (std::is_same_v<scalar_t, float>) {
+    if constexpr (std::is_same_v<scalar, float>) {
         mat_val_cfg.relative_error(130.f);
     }
     mat_val_cfg.propagation() = cfg_str_nav.propagation();

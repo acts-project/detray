@@ -20,6 +20,7 @@
 #include "detray/test/utils/inspectors.hpp"
 #include "detray/test/utils/simulation/event_generator/track_generators.hpp"
 #include "detray/test/utils/statistics.hpp"
+#include "detray/test/utils/types.hpp"
 
 // Vecmem include(s)
 #include <vecmem/memory/host_memory_resource.hpp>
@@ -41,15 +42,16 @@ namespace po = boost::program_options;
 using namespace detray;
 
 // Type declarations
-using algebra_type = ALGEBRA_PLUGIN<detray::scalar>;
-using transform3_type = dtransform3D<algebra_type>;
-using vector3 = dvector3D<algebra_type>;
+using test_algebra = test::algebra;
+using scalar = dscalar<test_algebra>;
+using vector3 = dvector3D<test_algebra>;
+using transform3_type = dtransform3D<test_algebra>;
 using bound_param_vector_type =
-    bound_track_parameters<algebra_type>::parameter_vector_type;
+    bound_track_parameters<test_algebra>::parameter_vector_type;
 using bound_covariance_type =
-    bound_track_parameters<algebra_type>::covariance_type;
+    bound_track_parameters<test_algebra>::covariance_type;
 template <std::size_t ROWS, std::size_t COLS>
-using matrix_type = dmatrix<algebra_type, ROWS, COLS>;
+using matrix_type = dmatrix<test_algebra, ROWS, COLS>;
 
 namespace {
 
@@ -120,7 +122,7 @@ using wire_type = line_square;
 
 // Preprocess delta
 void preprocess_delta(const unsigned int i, scalar& delta,
-                      const bound_track_parameters<algebra_type> ref_param) {
+                      const bound_track_parameters<test_algebra> ref_param) {
     if (i == e_bound_theta) {
         const scalar rtheta = ref_param.theta();
         if (rtheta < constant<scalar>::pi_2) {
@@ -298,11 +300,11 @@ bound_covariance_type get_random_initial_covariance(const scalar ini_qop) {
 auto get_smeared_bound_vector(const bound_covariance_type& ini_cov,
                               const bound_param_vector_type& ini_vec) {
 
-    using bound_vector_type = bound_vector<algebra_type>;
+    using bound_vector_type = bound_vector<test_algebra>;
 
     // Do the Cholesky Decomposition
     const bound_covariance_type L =
-        matrix_helper<algebra_type>().cholesky_decompose(ini_cov);
+        matrix_helper<test_algebra>().cholesky_decompose(ini_cov);
 
     // Vecor with random elements from a normal distribution
     auto k = matrix::zero<bound_vector_type>();
@@ -318,7 +320,7 @@ auto get_smeared_bound_vector(const bound_covariance_type& ini_cov,
 }
 
 template <typename detector_t, typename detector_t::metadata::mask_ids mask_id>
-std::pair<euler_rotation<algebra_type>, std::array<scalar, 3u>> tilt_surface(
+std::pair<euler_rotation<test_algebra>, std::array<scalar, 3u>> tilt_surface(
     detector_t& det, const unsigned int sf_id, const vector3& helix_dir,
     const scalar alpha, const scalar beta, const scalar gamma) {
 
@@ -326,7 +328,7 @@ std::pair<euler_rotation<algebra_type>, std::array<scalar, 3u>> tilt_surface(
     const auto& trf_link = sf.transform();
     auto& trf = det.transform_store().at(trf_link);
 
-    euler_rotation<algebra_type> euler;
+    euler_rotation<test_algebra> euler;
     euler.alpha = alpha;
 
     if (sf_id == 1u) {
@@ -375,8 +377,7 @@ std::pair<euler_rotation<algebra_type>, std::array<scalar, 3u>> tilt_surface(
 template <typename algebra_t>
 struct bound_getter : actor {
 
-    // scalar_type
-    using scalar_type = dscalar<algebra_t>;
+    // Track types
     using bound_track_parameters_type = bound_track_parameters<algebra_t>;
     using free_track_parameters_type = free_track_parameters<algebra_t>;
 
@@ -452,9 +453,9 @@ struct bound_getter : actor {
 
 /// Numerically integrate the jacobian
 template <typename propagator_t, typename field_t>
-bound_getter<algebra_type>::state evaluate_bound_param(
+bound_getter<test_algebra>::state evaluate_bound_param(
     const std::size_t trk_count, const scalar detector_length,
-    const bound_track_parameters<algebra_type>& initial_param,
+    const bound_track_parameters<test_algebra>& initial_param,
     const typename propagator_t::detector_type& det, const field_t& field,
     const scalar overstep_tolerance, const scalar path_tolerance,
     const scalar rk_tolerance, const scalar constraint_step,
@@ -471,11 +472,11 @@ bound_getter<algebra_type>::state evaluate_bound_param(
     propagator_t p(cfg);
 
     // Actor states
-    parameter_transporter<algebra_type>::state transporter_state{};
-    bound_getter<algebra_type>::state bound_getter_state{};
+    parameter_transporter<test_algebra>::state transporter_state{};
+    bound_getter<test_algebra>::state bound_getter_state{};
     bound_getter_state.track_ID = trk_count;
     bound_getter_state.m_min_path_length = detector_length * 0.75f;
-    parameter_resetter<algebra_type>::state resetter_state{};
+    parameter_resetter<test_algebra>::state resetter_state{};
     auto actor_states =
         detray::tie(transporter_state, bound_getter_state, resetter_state);
 
@@ -500,7 +501,7 @@ bound_getter<algebra_type>::state evaluate_bound_param(
 template <typename propagator_t, typename field_t>
 bound_param_vector_type get_displaced_bound_vector(
     const std::size_t trk_count,
-    const bound_track_parameters<algebra_type>& ref_param,
+    const bound_track_parameters<test_algebra>& ref_param,
     const typename propagator_t::detector_type& det,
     const scalar detector_length, const field_t& field,
     const scalar overstep_tolerance, const scalar path_tolerance,
@@ -516,15 +517,15 @@ bound_param_vector_type get_displaced_bound_vector(
     // Propagator is built from the stepper and navigator
     propagator_t p(cfg);
 
-    bound_track_parameters<algebra_type> dparam = ref_param;
+    bound_track_parameters<test_algebra> dparam = ref_param;
     dparam[target_index] += displacement;
 
     typename propagator_t::state dstate(dparam, field, det);
 
     // Actor states
-    parameter_transporter<algebra_type>::state transporter_state{};
-    parameter_resetter<algebra_type>::state resetter_state{};
-    bound_getter<algebra_type>::state bound_getter_state{};
+    parameter_transporter<test_algebra>::state transporter_state{};
+    parameter_resetter<test_algebra>::state resetter_state{};
+    bound_getter<test_algebra>::state bound_getter_state{};
     bound_getter_state.track_ID = trk_count;
     bound_getter_state.m_min_path_length = detector_length * 0.75f;
 
@@ -547,9 +548,9 @@ bound_param_vector_type get_displaced_bound_vector(
 
 /// Numerically evaluate the jacobian
 template <typename propagator_t, typename field_t>
-bound_track_parameters<algebra_type>::covariance_type directly_differentiate(
+bound_track_parameters<test_algebra>::covariance_type directly_differentiate(
     const std::size_t trk_count,
-    const bound_track_parameters<algebra_type>& ref_param,
+    const bound_track_parameters<test_algebra>& ref_param,
     const typename propagator_t::detector_type& det,
     const scalar detector_length, const field_t& field,
     const scalar overstep_tolerance, const scalar path_tolerance,
@@ -610,12 +611,12 @@ bound_track_parameters<algebra_type>::covariance_type directly_differentiate(
 }
 
 template <typename detector_t, typename detector_t::metadata::mask_ids mask_id>
-bound_track_parameters<algebra_type> get_initial_parameter(
-    const detector_t& det, const free_track_parameters<algebra_type>& vertex,
+bound_track_parameters<test_algebra> get_initial_parameter(
+    const detector_t& det, const free_track_parameters<test_algebra>& vertex,
     const vector3& field, const scalar helix_tolerance) {
 
     // Helix from the vertex
-    detail::helix<algebra_type> hlx(vertex, &field);
+    detail::helix<test_algebra> hlx(vertex, &field);
 
     const auto& departure_sf = det.surface(0u);
     const auto& trf_link = departure_sf.transform();
@@ -626,7 +627,7 @@ bound_track_parameters<algebra_type> get_initial_parameter(
 
     using mask_t =
         typename detector_t::mask_container::template get_type<mask_id>;
-    helix_intersector<typename mask_t::shape, algebra_type> hlx_is{};
+    helix_intersector<typename mask_t::shape, test_algebra> hlx_is{};
     hlx_is.run_rtsafe = false;
     hlx_is.convergence_tolerance = helix_tolerance;
     auto sfi = hlx_is(hlx, departure_sf, departure_mask, departure_trf, 0.f);
@@ -646,12 +647,12 @@ bound_track_parameters<algebra_type> get_initial_parameter(
     const auto pos = hlx(path_length);
     const auto dir = hlx.dir(path_length);
 
-    const free_track_parameters<algebra_type> free_par(pos, 0, dir, hlx._qop);
+    const free_track_parameters<test_algebra> free_par(pos, 0, dir, hlx._qop);
 
     const auto bound_vec =
         tracking_surface{det, departure_sf}.free_to_bound_vector({}, free_par);
 
-    bound_track_parameters<algebra_type> ret;
+    bound_track_parameters<test_algebra> ret;
     ret.set_surface_link(geometry::barcode{0u});
     ret.set_parameter_vector(bound_vec);
 
@@ -664,7 +665,7 @@ void evaluate_jacobian_difference(
     const std::array<scalar, 3u>& euler_angles_F,
     const typename propagator_t::detector_type& det,
     const scalar detector_length,
-    const bound_track_parameters<algebra_type>& track, const field_t& field,
+    const bound_track_parameters<test_algebra>& track, const field_t& field,
     const scalar overstep_tolerance, const scalar path_tolerance,
     const scalar rk_tolerance, const scalar rk_tolerance_dis,
     const scalar constraint_step, const std::array<scalar, 5u>& hs,
@@ -821,7 +822,7 @@ void evaluate_covariance_transport(
     const std::array<scalar, 3u>& euler_angles_F,
     const typename propagator_t::detector_type& det,
     const scalar detector_length,
-    const bound_track_parameters<algebra_type>& track, const field_t& field,
+    const bound_track_parameters<test_algebra>& track, const field_t& field,
     const scalar overstep_tolerance, const scalar path_tolerance,
     const scalar rk_tolerance, const scalar rk_tolerance_dis,
     const scalar constraint_step, std::ofstream& file,
@@ -891,7 +892,7 @@ void evaluate_covariance_transport(
     // Get pull values
     std::array<scalar, 5u> pulls;
 
-    bound_vector<algebra_type> diff{};
+    bound_vector<test_algebra> diff{};
     for (unsigned int i = 0u; i < 5u; i++) {
         getter::element(diff, i, 0u) = smeared_fin_vec[i] - final_param[i];
         pulls[i] = getter::element(diff, i, 0u) /
@@ -976,7 +977,7 @@ void evaluate_covariance_transport(
 
 template <typename detector_t, typename detector_t::metadata::mask_ids mask_id>
 bound_param_vector_type get_displaced_bound_vector_helix(
-    const bound_track_parameters<algebra_type>& track, const vector3& field,
+    const bound_track_parameters<test_algebra>& track, const vector3& field,
     unsigned int target_index, scalar displacement, const detector_t& det,
     const scalar helix_tolerance) {
 
@@ -993,11 +994,11 @@ bound_param_vector_type get_displaced_bound_vector_helix(
     dvec[target_index] += displacement;
     const auto free_vec =
         tracking_surface{det, departure_sf}.bound_to_free_vector({}, dvec);
-    detail::helix<algebra_type> hlx(free_vec, &field);
+    detail::helix<test_algebra> hlx(free_vec, &field);
 
     using mask_t =
         typename detector_t::mask_container::template get_type<mask_id>;
-    helix_intersector<typename mask_t::shape, algebra_type> hlx_is{};
+    helix_intersector<typename mask_t::shape, test_algebra> hlx_is{};
     hlx_is.run_rtsafe = false;
     hlx_is.convergence_tolerance = helix_tolerance;
     auto sfi =
@@ -1006,7 +1007,7 @@ bound_param_vector_type get_displaced_bound_vector_helix(
     const auto pos = hlx(path_length);
     const auto dir = hlx.dir(path_length);
 
-    const free_track_parameters<algebra_type> new_free_par(pos, 0, dir,
+    const free_track_parameters<test_algebra> new_free_par(pos, 0, dir,
                                                            hlx._qop);
     auto new_bound_vec =
         tracking_surface{det, destination_sf}.free_to_bound_vector(
@@ -1023,7 +1024,7 @@ void evaluate_jacobian_difference_helix(
     const std::size_t trk_count, const std::array<scalar, 3u> euler_angles_I,
     const std::array<scalar, 3u> euler_angles_F, const detector_t& det,
     const scalar detector_length,
-    const bound_track_parameters<algebra_type>& track, const vector3& field,
+    const bound_track_parameters<test_algebra>& track, const vector3& field,
     const std::array<scalar, 5u> hs, std::ofstream& file,
     const scalar helix_tolerance) {
 
@@ -1042,7 +1043,7 @@ void evaluate_jacobian_difference_helix(
         tracking_surface{det, departure_sf}.bound_to_free_vector({}, track);
 
     // Helix from the departure surface
-    detail::helix<algebra_type> hlx(free_vec, &field);
+    detail::helix<test_algebra> hlx(free_vec, &field);
 
     const auto& destination_sf = det.surface(1u);
     const auto& trf_link = destination_sf.transform();
@@ -1053,7 +1054,7 @@ void evaluate_jacobian_difference_helix(
 
     using mask_t =
         typename detector_t::mask_container::template get_type<mask_id>;
-    helix_intersector<typename mask_t::shape, algebra_type> hlx_is{};
+    helix_intersector<typename mask_t::shape, test_algebra> hlx_is{};
     hlx_is.run_rtsafe = false;
     hlx_is.convergence_tolerance = helix_tolerance;
 
@@ -1077,11 +1078,11 @@ void evaluate_jacobian_difference_helix(
 
     // Get correction term
     const auto correction_term =
-        matrix::identity<free_matrix<algebra_type>>() +
+        matrix::identity<free_matrix<test_algebra>>() +
         tracking_surface{det, destination_sf}.path_correction(
             {}, pos, dir, qop * vector::cross(dir, field), 0.f);
 
-    const free_track_parameters<algebra_type> free_par(pos, 0.f, dir, qop);
+    const free_track_parameters<test_algebra> free_par(pos, 0.f, dir, qop);
 
     // Get free to bound Jacobi
     const auto free_to_bound_jacobi =
@@ -1553,24 +1554,26 @@ int main(int argc, char** argv) {
     ::testing::InitGoogleTest(&argc, argv);
 
     // Detector types
-    using rectangle_telescope = detector<telescope_metadata<rect_type>>;
-    using wire_telescope = detector<telescope_metadata<wire_type>>;
-    using track_type = free_track_parameters<algebra_type>;
+    using rectangle_telescope =
+        detector<telescope_metadata<test_algebra, rect_type>>;
+    using wire_telescope =
+        detector<telescope_metadata<test_algebra, wire_type>>;
+    using track_type = free_track_parameters<test_algebra>;
 
     // Constant magnetic field type
-    using const_bfield_t = bfield::const_field_t;
+    using const_bfield_t = bfield::const_field_t<scalar>;
 
     // Magnetic field map using nearest neightbor interpolation
-    using inhom_bfield_t = bfield::inhom_field_t;
+    using inhom_bfield_t = bfield::inhom_field_t<scalar>;
 
-    const const_bfield_t const_bfield = bfield::create_const_field(B_z);
-    const inhom_bfield_t inhom_bfield = bfield::create_inhom_field();
+    const const_bfield_t const_bfield = bfield::create_const_field<scalar>(B_z);
+    const inhom_bfield_t inhom_bfield = bfield::create_inhom_field<scalar>();
 
     // Actor chain type
     using actor_chain_t =
-        actor_chain<dtuple, parameter_transporter<algebra_type>,
-                    bound_getter<algebra_type>,
-                    parameter_resetter<algebra_type>>;
+        actor_chain<dtuple, parameter_transporter<test_algebra>,
+                    bound_getter<test_algebra>,
+                    parameter_resetter<test_algebra>>;
 
     // Iterate over reference (pilot) tracks for a rectangular telescope
     // geometry and Jacobian calculation
@@ -1602,11 +1605,11 @@ int main(int argc, char** argv) {
 
     // Stepper types
     using const_field_stepper_t =
-        rk_stepper<const_bfield_t::view_t, algebra_type, constrained_step<>,
-                   stepper_default_policy>;
+        rk_stepper<const_bfield_t::view_t, test_algebra,
+                   constrained_step<scalar>, stepper_default_policy<scalar>>;
     using inhom_field_stepper_t =
-        rk_stepper<inhom_bfield_t::view_t, algebra_type, constrained_step<>,
-                   stepper_default_policy>;
+        rk_stepper<inhom_bfield_t::view_t, test_algebra,
+                   constrained_step<scalar>, stepper_default_policy<scalar>>;
 
     // Make four propagators for each case
     using const_field_rect_propagator_t =
@@ -1625,16 +1628,16 @@ int main(int argc, char** argv) {
         mt2.seed(track_count);
 
         // Pilot track
-        detail::helix<algebra_type> helix_bz(track, &B_z);
+        detail::helix<test_algebra> helix_bz(track, &B_z);
 
         // Make a telescope geometry with rectagular surface
         const scalar detector_length = rand_length(mt1);
         const scalar constraint_step_size = detector_length * 1.25f;
 
-        mask<rect_type> rect{0u, detector_length * mask_scaler,
-                             detector_length * mask_scaler};
-        mask<wire_type> wire{0u, detector_length * mask_scaler,
-                             detector_length * mask_scaler};
+        mask<rect_type, test_algebra> rect{0u, detector_length * mask_scaler,
+                                           detector_length * mask_scaler};
+        mask<wire_type, test_algebra> wire{0u, detector_length * mask_scaler,
+                                           detector_length * mask_scaler};
 
         // Adjust overstep tolerance
         scalar overstep_tol =
@@ -1642,7 +1645,7 @@ int main(int argc, char** argv) {
         overstep_tol =
             -math::min(math::fabs(overstep_tol), detector_length * 0.5f);
 
-        tel_det_config<rect_type, detail::helix<algebra_type>> rectangle_cfg{
+        tel_det_config<test_algebra, rect_type, detail::helix> rectangle_cfg{
             rect, helix_bz};
         rectangle_cfg.envelope(envelope_size);
         rectangle_cfg.module_material(vacuum<scalar>{});
@@ -1665,7 +1668,7 @@ int main(int argc, char** argv) {
 
         // Without volume material
         auto [rect_det, rect_names] =
-            build_telescope_detector(host_mr, rectangle_cfg);
+            build_telescope_detector<test_algebra>(host_mr, rectangle_cfg);
         const auto [euler_rect_initial, shift_rect_initial] =
             tilt_surface<decltype(rect_det),
                          decltype(rect_det)::masks::id::e_rectangle2>(
@@ -1679,7 +1682,7 @@ int main(int argc, char** argv) {
         // With volume material
         rectangle_cfg.volume_material(volume_mat);
         auto [rect_det_w_mat, rect_names2] =
-            build_telescope_detector(host_mr, rectangle_cfg);
+            build_telescope_detector<test_algebra>(host_mr, rectangle_cfg);
         [[maybe_unused]] const auto [euler_rect_initial2, shift_rect_initial2] =
             tilt_surface<decltype(rect_det_w_mat),
                          decltype(rect_det_w_mat)::masks::id::e_rectangle2>(
@@ -1691,7 +1694,7 @@ int main(int argc, char** argv) {
                 betaF, gammaF);
 
         // Make a telescope geometry with wire surface
-        tel_det_config<wire_type, detail::helix<algebra_type>> wire_cfg{
+        tel_det_config<test_algebra, wire_type, detail::helix> wire_cfg{
             wire, helix_bz};
         wire_cfg.envelope(envelope_size);
         wire_cfg.module_material(vacuum<scalar>{});
@@ -1703,7 +1706,7 @@ int main(int argc, char** argv) {
 
         // Without volume material
         auto [wire_det, wire_names] =
-            build_telescope_detector(host_mr, wire_cfg);
+            build_telescope_detector<test_algebra>(host_mr, wire_cfg);
         const auto [euler_wire_initial, shift_wire_initial] =
             tilt_surface<decltype(wire_det),
                          decltype(wire_det)::masks::id::e_drift_cell>(
@@ -1717,7 +1720,7 @@ int main(int argc, char** argv) {
         // With volume material
         wire_cfg.volume_material(volume_mat);
         auto [wire_det_w_mat, wire_names2] =
-            build_telescope_detector(host_mr, wire_cfg);
+            build_telescope_detector<test_algebra>(host_mr, wire_cfg);
         [[maybe_unused]] const auto [euler_wire_initial2, shift_wire_initial2] =
             tilt_surface<decltype(wire_det_w_mat),
                          decltype(wire_det_w_mat)::masks::id::e_drift_cell>(
