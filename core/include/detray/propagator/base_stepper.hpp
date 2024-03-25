@@ -43,7 +43,7 @@ class base_stepper {
 
     public:
     using scalar_type = dscalar<algebra_t>;
-    using matrix_operator = dmatrix_operator<algebra_t>;
+
     using free_track_parameters_type = free_track_parameters<algebra_t>;
     using bound_track_parameters_type = bound_track_parameters<algebra_t>;
     using free_matrix_type = free_matrix<algebra_t>;
@@ -69,8 +69,7 @@ class base_stepper {
 
             // A dummy covariance - should not be used
             m_bound_params.set_covariance(
-                matrix_operator()
-                    .template identity<e_bound_size, e_bound_size>());
+                matrix::identity<bound_matrix_type>());
 
             // An invalid barcode - should not be used
             m_bound_params.set_surface_link(geometry::barcode{});
@@ -196,7 +195,7 @@ class base_stepper {
         /// Reset transport Jacbian.
         DETRAY_HOST_DEVICE
         inline void reset_transport_jacobian() {
-            matrix_operator().set_identity(m_jac_transport);
+            m_jac_transport = matrix::identity<free_matrix_type>();
         }
 
         /// @returns access to this states navigation policy state
@@ -228,12 +227,11 @@ class base_stepper {
 
         private:
         /// Jacobian transport matrix
-        free_matrix_type m_jac_transport =
-            matrix_operator().template identity<e_free_size, e_free_size>();
+        free_matrix_type m_jac_transport = matrix::identity<free_matrix_type>();
 
         /// Full jacobian
         bound_matrix_type m_full_jacobian =
-            matrix_operator().template identity<e_bound_size, e_bound_size>();
+            matrix::identity<bound_matrix_type>();
 
         /// Bound covariance
         bound_track_parameters_type m_bound_params;

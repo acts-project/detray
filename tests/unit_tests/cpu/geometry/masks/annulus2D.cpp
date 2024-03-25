@@ -42,8 +42,8 @@ GTEST_TEST(detray_masks, annulus2D) {
 
     auto toStripFrame = [&offset](const point_t &xy) -> point_t {
         auto shifted = xy + offset;
-        scalar r{getter::perp(shifted)};
-        scalar phi{getter::phi(shifted)};
+        scalar r{vector::perp(shifted)};
+        scalar phi{vector::phi(shifted)};
         return point_t{r, phi, 0.f};
     };
 

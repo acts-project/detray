@@ -35,14 +35,14 @@ GTEST_TEST(detray_utils, curvilinear_frame) {
 
     const auto bound_vec = cf.m_bound_vec;
 
-    const auto phi = getter::phi(mom);
-    const auto theta = getter::theta(mom);
+    const auto phi = vector::phi(mom);
+    const auto theta = vector::theta(mom);
 
     EXPECT_NEAR(bound_vec.bound_local()[e_bound_loc0], 0.f, tolerance);
     EXPECT_NEAR(bound_vec.bound_local()[e_bound_loc1], 0.f, tolerance);
     EXPECT_NEAR(bound_vec.phi(), phi, tolerance);
     EXPECT_NEAR(bound_vec.theta(), theta, tolerance);
-    EXPECT_NEAR(bound_vec.qop(), charge / getter::norm(mom), tolerance);
+    EXPECT_NEAR(bound_vec.qop(), charge / vector::norm(mom), tolerance);
 
     const auto unit_p = vector::normalize(mom);
     const auto trf_x = cf.m_trf.x();

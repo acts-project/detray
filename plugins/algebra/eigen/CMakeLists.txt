@@ -21,7 +21,7 @@ detray_add_library( detray_algebra_eigen algebra_eigen
 )
 target_link_libraries(
     detray_algebra_eigen
-    INTERFACE algebra::eigen_eigen vecmem::core
+    INTERFACE algebra::utils algebra::eigen_eigen vecmem::core
 )
 target_compile_definitions(
     detray_algebra_eigen

@@ -10,70 +10,57 @@
 // Algebra-Plugins include
 #include "algebra/array_cmath.hpp"
 
-#define ALGEBRA_PLUGIN detray::cmath
+#define ALGEBRA_PLUGIN detray::array
 
 namespace detray {
 
 // Define scalar type
 using scalar = DETRAY_CUSTOM_SCALARTYPE;
 
-/// Define affine transformation types
-/// @{
-template <typename V = DETRAY_CUSTOM_SCALARTYPE>
-struct cmath {
-    /// Define scalar type
-    using value_type = V;
+/// The plugin definition
+template <typename scalar_t = DETRAY_CUSTOM_SCALARTYPE>
+using array = algebra::plugin::array<scalar_t>;
 
-    template <typename T>
-    using simd = T;
-
-    using boolean = bool;
-    using scalar = value_type;
-    using transform3D = algebra::array::transform3<value_type>;
-    using point2D = algebra::array::point2<value_type>;
-    using point3D = algebra::array::point3<value_type>;
-    using vector3D = algebra::array::vector3<value_type>;
-
-    // Define matrix/vector operator
-    using matrix_operator = algebra::matrix::actor<
-        value_type, algebra::matrix::determinant::preset0<value_type>,
-        algebra::matrix::inverse::preset0<value_type>>;
-};
-/// @}
-
-// Define namespace(s)
-namespace matrix = algebra::matrix;
-
-namespace vector {
-
-using algebra::cmath::cross;
-using algebra::cmath::dot;
-using algebra::cmath::normalize;
-
-}  // namespace vector
+using algebra::cmath::operator*;
+using algebra::cmath::operator-;
+using algebra::cmath::operator+;
 
 namespace getter {
 
+using algebra::cmath::storage::block;
+using algebra::cmath::storage::element;
+using algebra::cmath::storage::set_block;
+using algebra::cmath::storage::vector;
+
+}  // namespace getter
+
+namespace vector {
+
+// array specific implementations
+using algebra::cmath::dot;
+using algebra::cmath::normalize;
+
+// generic implementations
+using algebra::cmath::cross;
 using algebra::cmath::eta;
 using algebra::cmath::norm;
 using algebra::cmath::perp;
 using algebra::cmath::phi;
 using algebra::cmath::theta;
 
-using algebra::cmath::element;
+}  // namespace vector
 
-/// Function extracting a slice from a matrix
-template <std::size_t SIZE, std::size_t ROWS, std::size_t COLS,
-          typename scalar_t>
-ALGEBRA_HOST_DEVICE inline auto vector(
-    const algebra::array::matrix_type<scalar_t, ROWS, COLS>& m, std::size_t row,
-    std::size_t col) {
+namespace matrix {
 
-    return algebra::cmath::vector_getter<
-        std::size_t, algebra::array::storage_type, scalar_t, SIZE>()(m, row,
-                                                                     col);
-}
+using algebra::cmath::identity;
+using algebra::cmath::set_identity;
+using algebra::cmath::set_zero;
+using algebra::cmath::zero;
 
-}  // namespace getter
+using algebra::cmath::determinant;
+using algebra::cmath::inverse;
+using algebra::cmath::transpose;
+
+}  // namespace matrix
 
 }  // namespace detray

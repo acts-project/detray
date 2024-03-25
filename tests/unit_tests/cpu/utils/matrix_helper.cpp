@@ -15,16 +15,15 @@
 #include <gtest/gtest.h>
 
 using namespace detray;
+using algebra_t = test::algebra;
 using transform3 = test::transform3;
 using vector3 = typename transform3::vector3;
-using matrix_operator = test::matrix_operator;
-template <std::size_t ROWS, std::size_t COLS>
-using matrix_type = test::matrix<ROWS, COLS>;
+using matrix3_type = test::matrix<3, 3>;
 
 constexpr scalar tolerance = 1e-6f;
 
 GTEST_TEST(detray_utils, column_wise_cross) {
-    auto P = matrix_operator().template zero<3, 3>();
+    auto P = matrix::zero<matrix3_type>();
 
     getter::element(P, 0u, 0u) = 0.f;
     getter::element(P, 0u, 1u) = 1.f;
@@ -38,7 +37,7 @@ GTEST_TEST(detray_utils, column_wise_cross) {
 
     const vector3 u{1.f, 2.f, 3.f};
 
-    const auto Q = matrix_helper<matrix_operator>().column_wise_cross(P, u);
+    const auto Q = matrix_helper<algebra_t>().column_wise_cross(P, u);
 
     EXPECT_NEAR(getter::element(Q, 0u, 0u), -3.f, tolerance);
     EXPECT_NEAR(getter::element(Q, 1u, 0u), 6.f, tolerance);
@@ -53,7 +52,7 @@ GTEST_TEST(detray_utils, column_wise_cross) {
 
 GTEST_TEST(detray_utils, column_wise_multiply) {
 
-    auto P = matrix_operator().template zero<3, 3>();
+    auto P = matrix::zero<matrix3_type>();
 
     getter::element(P, 0u, 0u) = 0.f;
     getter::element(P, 0u, 1u) = 1.f;
@@ -67,7 +66,7 @@ GTEST_TEST(detray_utils, column_wise_multiply) {
 
     const vector3 u{1.f, 2.f, 3.f};
 
-    const auto Q = matrix_helper<matrix_operator>().column_wise_multiply(P, u);
+    const auto Q = matrix_helper<algebra_t>().column_wise_multiply(P, u);
 
     EXPECT_NEAR(getter::element(Q, 0u, 0u), 0.f, tolerance);
     EXPECT_NEAR(getter::element(Q, 0u, 1u), 1.f, tolerance);
@@ -85,8 +84,8 @@ GTEST_TEST(detray_utils, cross_matrix) {
     const vector3 u{1.f, 2.f, 3.f};
     const vector3 v{3.f, 4.f, 5.f};
 
-    const auto u_cross = matrix_helper<matrix_operator>().cross_matrix(u);
-    const auto v_cross = matrix_helper<matrix_operator>().cross_matrix(v);
+    const auto u_cross = matrix_helper<algebra_t>().cross_matrix(u);
+    const auto v_cross = matrix_helper<algebra_t>().cross_matrix(v);
 
     EXPECT_NEAR(getter::element(u_cross, 0u, 0u), 0.f, tolerance);
     EXPECT_NEAR(getter::element(u_cross, 0u, 1u), -3.f, tolerance);
@@ -100,7 +99,7 @@ GTEST_TEST(detray_utils, cross_matrix) {
 
     // [u]_cross * v = [v]_cross^T * u
     const vector3 u_cross_v = u_cross * v;
-    const vector3 v_cross_u = matrix_operator().transpose(v_cross) * u;
+    const vector3 v_cross_u = matrix::transpose(v_cross) * u;
 
     EXPECT_NEAR(u_cross_v[0], -2.f, tolerance);
     EXPECT_NEAR(u_cross_v[1], 4.f, tolerance);
@@ -115,7 +114,7 @@ GTEST_TEST(detray_utils, outer_product) {
     const vector3 u{1.f, 2.f, 3.f};
     const vector3 v{3.f, 4.f, 5.f};
 
-    const auto m33 = matrix_helper<matrix_operator>().outer_product(u, v);
+    const auto m33 = matrix_helper<algebra_t>().outer_product(u, v);
 
     EXPECT_NEAR(getter::element(m33, 0u, 0u), 3.f, tolerance);
     EXPECT_NEAR(getter::element(m33, 0u, 1u), 4.f, tolerance);
@@ -131,7 +130,7 @@ GTEST_TEST(detray_utils, outer_product) {
 GTEST_TEST(detray_utils, cholesky_decomposition) {
 
     // Define A
-    matrix_type<3, 3> A = matrix_operator().template zero<3, 3>();
+    auto A = matrix::zero<matrix3_type>();
     getter::element(A, 0u, 0u) = 4.f;
     getter::element(A, 0u, 1u) = 12.f;
     getter::element(A, 0u, 2u) = -16.f;
@@ -143,8 +142,7 @@ GTEST_TEST(detray_utils, cholesky_decomposition) {
     getter::element(A, 2u, 2u) = 98.f;
 
     // Get L that satisfies A = L * L^T and check if it is the expected value
-    const matrix_type<3, 3> L =
-        matrix_helper<matrix_operator>().cholesky_decompose(A);
+    const matrix3_type L = matrix_helper<algebra_t>().cholesky_decompose(A);
 
     EXPECT_FLOAT_EQ(static_cast<float>(getter::element(L, 0u, 0u)), 2.f);
     EXPECT_FLOAT_EQ(static_cast<float>(getter::element(L, 0u, 1u)), 0.f);
@@ -157,7 +155,7 @@ GTEST_TEST(detray_utils, cholesky_decomposition) {
     EXPECT_FLOAT_EQ(static_cast<float>(getter::element(L, 2u, 2u)), 3.f);
 
     // Compare A and L * L^T
-    const matrix_type<3, 3> B = L * matrix_operator().transpose(L);
+    const matrix3_type B = L * matrix::transpose(L);
 
     for (unsigned int i = 0u; i < 3u; i++) {
         for (unsigned int j = 0u; j < 3u; j++) {

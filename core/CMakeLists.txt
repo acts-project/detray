@@ -1,6 +1,6 @@
 # Detray library, part of the ACTS project (R&D line)
 #
-# (c) 2021-2023 CERN for the benefit of the ACTS project
+# (c) 2021-2024 CERN for the benefit of the ACTS project
 #
 # Mozilla Public License Version 2.0
 
@@ -11,21 +11,23 @@ message(STATUS "Building 'detray::core' component")
 file(
     GLOB _detray_core_public_headers
     RELATIVE "${CMAKE_CURRENT_SOURCE_DIR}"
-    "include/detray/coordinates/*.hpp"
+    "include/detray/builders/*.hpp"
     "include/detray/core/*.hpp"
     "include/detray/definitions/*.hpp"
+    "include/detray/geometry/coordinates/*.hpp"
+    "include/detray/geometry/shapes/*.hpp"
     "include/detray/geometry/*.hpp"
     "include/detray/grids/*.hpp"
-    "include/detray/intersection/bounding_box/*.hpp"
-    "include/detray/intersection/*.hpp"
-    "include/detray/masks/*.hpp"
     "include/detray/materials/*.hpp"
+    "include/detray/navigation/accelerators/*.hpp"
+    "include/detray/navigation/intersection/bounding_box/*.hpp"
+    "include/detray/navigation/intersection/soa/*.hpp"
+    "include/detray/navigation/intersection/*.hpp"
+    "include/detray/navigation/*.hpp"
     "include/detray/propagator/actors/*.hpp"
     "include/detray/propagator/*.hpp"
-    "include/detray/surface_finders/grid/*.hpp"
-    "include/detray/surface_finders/*.hpp"
-    "include/detray/tools/*.hpp"
     "include/detray/tracks/*.hpp"
+    "include/detray/utils/grid/*.hpp"
     "include/detray/utils/ranges/*.hpp"
     "include/detray/utils/*.hpp"
 )

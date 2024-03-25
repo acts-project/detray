@@ -51,7 +51,7 @@ struct line2D {
         // Left: 1
         const scalar_type sign = vector::dot(r, t - p) > 0.f ? -1.f : 1.f;
 
-        return {sign * getter::perp(local3), local3[2], getter::phi(local3)};
+        return {sign * vector::perp(local3), local3[2], vector::phi(local3)};
     }
 
     /// This method transforms a point from a global cartesian 3D frame to a

@@ -9,7 +9,6 @@
 
 // Project include(s)
 #include "detray/definitions/detail/algebra.hpp"
-#include "detray/definitions/detail/boolean.hpp"
 #include "detray/definitions/detail/indexing.hpp"
 #include "detray/definitions/detail/math.hpp"
 #include "detray/definitions/detail/qualifiers.hpp"

@@ -48,7 +48,6 @@ using bound_param_vector_type =
     bound_track_parameters<algebra_type>::parameter_vector_type;
 using bound_covariance_type =
     bound_track_parameters<algebra_type>::covariance_type;
-using matrix_operator = dmatrix_operator<algebra_type>;
 template <std::size_t ROWS, std::size_t COLS>
 using matrix_type = dmatrix<algebra_type, ROWS, COLS>;
 
@@ -252,8 +251,7 @@ scalar get_relative_difference(scalar ref_val, scalar num_val) {
 bound_covariance_type get_random_initial_covariance(const scalar ini_qop) {
 
     // Initial covariance matrix for smearing
-    bound_covariance_type ini_cov =
-        matrix_operator().template zero<e_bound_size, e_bound_size>();
+    auto ini_cov = matrix::zero<bound_covariance_type>();
 
     // Random correction factor
     std::uniform_real_distribution<scalar> rand_corr(min_corr, max_corr);
@@ -304,10 +302,10 @@ auto get_smeared_bound_vector(const bound_covariance_type& ini_cov,
 
     // Do the Cholesky Decomposition
     const bound_covariance_type L =
-        matrix_helper<matrix_operator>().cholesky_decompose(ini_cov);
+        matrix_helper<algebra_type>().cholesky_decompose(ini_cov);
 
     // Vecor with random elements from a normal distribution
-    bound_vector_type k = matrix_operator().template zero<e_bound_size, 1u>();
+    auto k = matrix::zero<bound_vector_type>();
     std::normal_distribution<scalar> normal_dist(0.f, 1.f);
     for (unsigned int i = 0u; i < 5u; i++) {
         // Smear the value
@@ -635,8 +633,8 @@ bound_track_parameters<algebra_type> get_initial_parameter(
     EXPECT_TRUE(sfi.status)
         << " Initial surface not found" << std::endl
         << " log10(Helix tolerance): " << math::log10(helix_tolerance)
-        << " Phi: " << getter::phi(vertex.dir())
-        << " Theta: " << getter::theta(vertex.dir())
+        << " Phi: " << vector::phi(vertex.dir())
+        << " Theta: " << vector::theta(vertex.dir())
         << " Mom [GeV/c]: " << vertex.p(ptc.charge()) << std::endl
         << sfi;
 
@@ -901,8 +899,8 @@ void evaluate_covariance_transport(
     }
 
     // Get Chi2
-    const matrix_type<1u, 1u> chi2 = matrix_operator().transpose(diff) *
-                                     matrix_operator().inverse(fin_cov) * diff;
+    const matrix_type<1u, 1u> chi2 =
+        matrix::transpose(diff) * matrix::inverse(fin_cov) * diff;
     const scalar chi2_val = getter::element(chi2, 0u, 0u);
 
     file << trk_count << ",";
@@ -1079,7 +1077,7 @@ void evaluate_jacobian_difference_helix(
 
     // Get correction term
     const auto correction_term =
-        matrix_operator().template identity<e_free_size, e_free_size>() +
+        matrix::identity<free_matrix<algebra_type>>() +
         tracking_surface{det, destination_sf}.path_correction(
             {}, pos, dir, qop * vector::cross(dir, field), 0.f);
 
@@ -1778,8 +1776,8 @@ int main(int argc, char** argv) {
         }
         if (verbose_lvl >= 3) {
             std::cout << "[Track Property]" << std::endl;
-            std::cout << "Phi: " << getter::phi(track.dir()) << std::endl;
-            std::cout << "Theta: " << getter::theta(track.dir()) << std::endl;
+            std::cout << "Phi: " << vector::phi(track.dir()) << std::endl;
+            std::cout << "Theta: " << vector::theta(track.dir()) << std::endl;
             std::cout << "Mom: " << track.p(ptc.charge()) << std::endl;
         }
 

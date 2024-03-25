@@ -1,6 +1,6 @@
 /** Detray library, part of the ACTS project (R&D line)
  *
- * (c) 2023 CERN for the benefit of the ACTS project
+ * (c) 2023-2024 CERN for the benefit of the ACTS project
  *
  * Mozilla Public License Version 2.0
  */
@@ -18,10 +18,11 @@
 
 namespace detray::tutorial {
 
-using algebra_t = detray::cmath<detray::scalar>;
-using transform3 = detray::dtransform3D<algebra_t>;
+using algebra_t = detray::array<DETRAY_CUSTOM_SCALARTYPE>;
+using scalar = dscalar<algebra_t>;
 using point2 = detray::dpoint2D<algebra_t>;
 using point3 = detray::dpoint3D<algebra_t>;
 using vector3 = detray::dvector3D<algebra_t>;
+using transform3 = detray::dtransform3D<algebra_t>;
 
 }  // namespace detray::tutorial

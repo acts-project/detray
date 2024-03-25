@@ -36,7 +36,6 @@ using namespace detray;
 using algebra_t = test::algebra;
 using point2 = test::point2;
 using vector3 = test::vector3;
-using matrix_operator = test::matrix_operator;
 
 // Test class for the backward propagation
 // Input tuple: < std::vector<plane positions>, tolerance >
@@ -84,8 +83,8 @@ TEST_P(BackwardPropagation, backward_propagation) {
     bound_vector.set_qop(ptc.charge() / (1.f * unit<test::scalar>::GeV));
 
     // Bound covariance
-    typename bound_track_parameters<algebra_t>::covariance_type bound_cov =
-        matrix_operator().template identity<e_bound_size, e_bound_size>();
+    auto bound_cov = matrix::identity<
+        typename bound_track_parameters<algebra_t>::covariance_type>();
 
     // Bound track parameter
     const bound_track_parameters<algebra_t> bound_param0(
@@ -149,8 +148,8 @@ TEST_P(BackwardPropagation, backward_propagation) {
 
     // Check vector
     for (unsigned int i = 0u; i < e_bound_size; i++) {
-        EXPECT_NEAR(matrix_operator().element(bound_vec0, i, 0),
-                    matrix_operator().element(bound_vec2, i, 0), tol);
+        EXPECT_NEAR(getter::element(bound_vec0, i, 0),
+                    getter::element(bound_vec2, i, 0), tol);
     }
 
     const auto bound_cov0 = bound_param0.covariance();
@@ -160,8 +159,10 @@ TEST_P(BackwardPropagation, backward_propagation) {
     // Check covaraince
     for (unsigned int i = 0u; i < e_bound_size; i++) {
         for (unsigned int j = 0u; j < e_bound_size; j++) {
-            EXPECT_NEAR(matrix_operator().element(bound_cov0, i, j),
-                        matrix_operator().element(bound_cov2, i, j), tol);
+            EXPECT_NEAR(getter::element(bound_cov0, i, j),
+                        getter::element(bound_cov2, i, j), tol)
+                << "i: " << i << "\nj: " << j << "\n"
+                << bound_param2;
         }
     }
 

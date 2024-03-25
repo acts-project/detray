@@ -20,7 +20,9 @@ using algebra_t = test::algebra;
 using point2 = test::point2;
 using vector3 = test::vector3;
 using point3 = test::point3;
-using matrix_operator = test::matrix_operator;
+
+using covariance_t =
+    typename bound_track_parameters<algebra_t>::covariance_type;
 
 constexpr scalar tol{1e-5f};
 
@@ -40,8 +42,7 @@ GTEST_TEST(detray_tracks, bound_track_parameters) {
     bound_parameters_vector<algebra_t> bound_vec1{bound_local, phi, theta, qop,
                                                   t};
 
-    typename bound_track_parameters<algebra_t>::covariance_type bound_cov1 =
-        matrix_operator().template zero<e_bound_size, e_bound_size>();
+    auto bound_cov1 = matrix::zero<covariance_t>();
 
     bound_track_parameters<algebra_t> bound_param1(
         geometry::barcode{}.set_index(sf_idx1), bound_vec1, bound_cov1);
@@ -65,8 +66,7 @@ GTEST_TEST(detray_tracks, bound_track_parameters) {
     bound_parameters_vector<algebra_t> bound_vec2{bound_local, phi, theta, qop,
                                                   t};
 
-    typename bound_track_parameters<algebra_t>::covariance_type bound_cov2 =
-        matrix_operator().template zero<e_bound_size, e_bound_size>();
+    auto bound_cov2 = matrix::zero<covariance_t>();
 
     bound_track_parameters<algebra_t> bound_param2(
         geometry::barcode{}.set_index(sf_idx2), bound_vec2, bound_cov2);

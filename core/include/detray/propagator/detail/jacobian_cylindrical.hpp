@@ -31,11 +31,10 @@ struct jacobian<cylindrical2D<algebra_t>> {
     using point3_type = dpoint3D<algebra_t>;
     using vector3_type = dvector3D<algebra_t>;
 
-    // Matrix operator
-    using matrix_operator = dmatrix_operator<algebra_t>;
     // Rotation Matrix
+    template <std::size_t ROWS, std::size_t COLS>
+    using matrix_type = dmatrix<algebra_t, ROWS, COLS>;
     using rotation_matrix = dmatrix<algebra_t, 3, 3>;
-
     using bound_to_free_matrix_type = bound_to_free_matrix<algebra_t>;
     using free_to_bound_matrix_type = free_to_bound_matrix<algebra_t>;
     using free_to_path_matrix_type = free_to_path_matrix<algebra_t>;
@@ -45,11 +44,10 @@ struct jacobian<cylindrical2D<algebra_t>> {
                                                   const point3_type &pos,
                                                   const vector3_type &dir) {
 
-        rotation_matrix rot = matrix_operator().template zero<3, 3>();
+        rotation_matrix rot = matrix::zero<rotation_matrix>();
 
         // y axis of the new frame is the z axis of cylindrical coordinate
-        const auto new_yaxis =
-            matrix_operator().template block<3, 1>(trf3.matrix(), 0u, 2u);
+        const vector3_type new_yaxis = trf3.z();
 
         // z axis of the new frame is the vector normal to the cylinder surface
         const point3_type local =
@@ -59,13 +57,13 @@ struct jacobian<cylindrical2D<algebra_t>> {
         // x axis
         const vector3_type new_xaxis = vector::cross(new_yaxis, new_zaxis);
 
-        matrix_operator().element(rot, 0u, 0u) = new_xaxis[0];
-        matrix_operator().element(rot, 1u, 0u) = new_xaxis[1];
-        matrix_operator().element(rot, 2u, 0u) = new_xaxis[2];
-        matrix_operator().template set_block<3, 1>(rot, new_yaxis, 0u, 1u);
-        matrix_operator().element(rot, 0u, 2u) = new_zaxis[0];
-        matrix_operator().element(rot, 1u, 2u) = new_zaxis[1];
-        matrix_operator().element(rot, 2u, 2u) = new_zaxis[2];
+        getter::element(rot, 0u, 0u) = new_xaxis[0];
+        getter::element(rot, 1u, 0u) = new_xaxis[1];
+        getter::element(rot, 2u, 0u) = new_xaxis[2];
+        getter::set_block(rot, new_yaxis, 0u, 1u);
+        getter::element(rot, 0u, 2u) = new_zaxis[0];
+        getter::element(rot, 1u, 2u) = new_zaxis[1];
+        getter::element(rot, 2u, 2u) = new_zaxis[2];
 
         return rot;
     }
@@ -75,17 +73,18 @@ struct jacobian<cylindrical2D<algebra_t>> {
         const vector3_type &dir, const vector3_type & /*dtds*/) {
 
         free_to_path_matrix_type derivative =
-            matrix_operator().template zero<1u, e_free_size>();
+            matrix::zero<free_to_path_matrix_type>();
 
         const point3_type local =
             coordinate_frame::global_to_local_3D(trf3, pos, dir);
         const vector3_type normal = coordinate_frame::normal(trf3, local);
 
-        const vector3_type pos_term = -1.f / vector::dot(normal, dir) * normal;
+        const vector3_type pos_term =
+            (-1.f / vector::dot(normal, dir)) * normal;
 
-        matrix_operator().element(derivative, 0u, e_free_pos0) = pos_term[0];
-        matrix_operator().element(derivative, 0u, e_free_pos1) = pos_term[1];
-        matrix_operator().element(derivative, 0u, e_free_pos2) = pos_term[2];
+        getter::element(derivative, 0u, e_free_pos0) = pos_term[0];
+        getter::element(derivative, 0u, e_free_pos1) = pos_term[1];
+        getter::element(derivative, 0u, e_free_pos2) = pos_term[2];
 
         return derivative;
     }
@@ -96,15 +95,15 @@ struct jacobian<cylindrical2D<algebra_t>> {
         const transform3_type &trf3, const point3_type &pos,
         const vector3_type &dir) {
 
-        const auto frame = reference_frame(trf3, pos, dir);
+        const rotation_matrix frame = reference_frame(trf3, pos, dir);
 
         // Get d(x,y,z)/d(loc0, loc1)
-        const auto bound_pos_to_free_pos_derivative =
-            matrix_operator().template block<3, 2>(frame, 0u, 0u);
+        const matrix_type<3, 2> bound_pos_to_free_pos_derivative =
+            getter::block<3, 2>(frame, 0u, 0u);
 
-        matrix_operator().set_block(bound_to_free_jacobian,
-                                    bound_pos_to_free_pos_derivative,
-                                    e_free_pos0, e_bound_loc0);
+        getter::set_block(bound_to_free_jacobian,
+                          bound_pos_to_free_pos_derivative, e_free_pos0,
+                          e_bound_loc0);
     }
 
     DETRAY_HOST_DEVICE
@@ -113,16 +112,16 @@ struct jacobian<cylindrical2D<algebra_t>> {
         const transform3_type &trf3, const point3_type &pos,
         const vector3_type &dir) {
 
-        const auto frame = reference_frame(trf3, pos, dir);
-        const auto frameT = matrix_operator().transpose(frame);
+        const rotation_matrix frame = reference_frame(trf3, pos, dir);
+        const rotation_matrix frameT = matrix::transpose(frame);
 
         // Get d(loc0, loc1)/d(x,y,z)
-        const auto free_pos_to_bound_pos_derivative =
-            matrix_operator().template block<2, 3>(frameT, 0u, 0u);
+        const matrix_type<2, 3> free_pos_to_bound_pos_derivative =
+            getter::block<2, 3>(frameT, 0u, 0u);
 
-        matrix_operator().set_block(free_to_bound_jacobian,
-                                    free_pos_to_bound_pos_derivative,
-                                    e_bound_loc0, e_free_pos0);
+        getter::set_block(free_to_bound_jacobian,
+                          free_pos_to_bound_pos_derivative, e_bound_loc0,
+                          e_free_pos0);
     }
 
     DETRAY_HOST_DEVICE

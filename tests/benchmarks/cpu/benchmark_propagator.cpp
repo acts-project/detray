@@ -106,8 +106,8 @@ void fill_tracks(vecmem::vector<free_track_parameters<algebra_t>> &tracks,
         // Sort by theta angle
         const auto traj_comp = [](const auto &lhs, const auto &rhs) {
             constexpr auto pi_2{constant<scalar_t>::pi_2};
-            return math::fabs(pi_2 - getter::theta(lhs.dir())) <
-                   math::fabs(pi_2 - getter::theta(rhs.dir()));
+            return math::fabs(pi_2 - vector::theta(lhs.dir())) <
+                   math::fabs(pi_2 - vector::theta(rhs.dir()));
         };
 
         std::ranges::sort(tracks, traj_comp);

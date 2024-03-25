@@ -8,7 +8,6 @@
 #pragma once
 
 // Project include(s)
-#include "detray/definitions/detail/boolean.hpp"
 #include "detray/definitions/detail/math.hpp"
 #include "detray/definitions/detail/qualifiers.hpp"
 #include "detray/geometry/coordinates/cartesian2D.hpp"
@@ -25,7 +24,7 @@ template <typename frame_t, typename algebra_t, bool do_debug>
 struct ray_intersector_impl;
 
 /// A functor to find intersections between straight line and planar surface
-template <concepts::soa_algebra algebra_t, bool do_debug>
+template <algebra::concepts::soa algebra_t, bool do_debug>
 struct ray_intersector_impl<cartesian2D<algebra_t>, algebra_t, do_debug> {
 
     /// Linear algebra types
@@ -64,9 +63,8 @@ struct ray_intersector_impl<cartesian2D<algebra_t>, algebra_t, do_debug> {
         intersection_type<surface_descr_t> is;
 
         // Retrieve the surface normal & translation (context resolved)
-        const auto &sm = trf.matrix();
-        const vector3_type sn = sm.z;
-        const vector3_type st = trf.translation();
+        const vector3_type &sn = trf.z();
+        const vector3_type &st = trf.translation();
 
         // Broadcast ray data
         const auto &pos = ray.pos();
@@ -135,7 +133,7 @@ struct ray_intersector_impl<cartesian2D<algebra_t>, algebra_t, do_debug> {
     }
 };
 
-template <concepts::soa_algebra algebra_t, bool do_debug>
+template <algebra::concepts::soa algebra_t, bool do_debug>
 struct ray_intersector_impl<polar2D<algebra_t>, algebra_t, do_debug>
     : public ray_intersector_impl<cartesian2D<algebra_t>, algebra_t, do_debug> {
 };

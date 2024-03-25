@@ -21,7 +21,7 @@ detray_add_library( detray_algebra_smatrix algebra_smatrix
 )
 target_link_libraries(
     detray_algebra_smatrix
-    INTERFACE algebra::smatrix_smatrix vecmem::core
+    INTERFACE algebra::utils algebra::smatrix_smatrix vecmem::core
 )
 target_compile_definitions(
     detray_algebra_smatrix

@@ -8,9 +8,9 @@
 #pragma once
 
 // Project include(s)
-#include "detray/definitions/detail/boolean.hpp"
 #include "detray/definitions/detail/math.hpp"
 #include "detray/definitions/detail/qualifiers.hpp"
+#include "detray/definitions/units.hpp"
 #include "detray/geometry/coordinates/cylindrical2D.hpp"
 #include "detray/navigation/detail/ray.hpp"
 #include "detray/navigation/intersection/intersection.hpp"
@@ -25,7 +25,7 @@ template <typename frame_t, typename algebra_t, bool do_debug>
 struct ray_intersector_impl;
 
 /// A functor to find intersections between straight line and planar surface
-template <concepts::soa_algebra algebra_t, bool do_debug>
+template <algebra::concepts::soa algebra_t, bool do_debug>
 struct ray_intersector_impl<cylindrical2D<algebra_t>, algebra_t, do_debug> {
 
     /// Linear algebra types
@@ -125,9 +125,9 @@ struct ray_intersector_impl<cylindrical2D<algebra_t>, algebra_t, do_debug> {
     DETRAY_HOST_DEVICE inline auto solve_intersection(
         const detail::ray<other_algebra_t> &ray, const mask_t &mask,
         const transform3_type &trf) const {
-        const auto &m = trf.matrix();
-        const vector3_type sz = getter::vector<3>(m, 0u, 2u);
-        const vector3_type sc = getter::vector<3>(m, 0u, 3u);
+
+        const vector3_type &sz = trf.z();
+        const point3_type &sc = trf.translation();
 
         const scalar_type r = mask[mask_t::shape::e_r];
 

@@ -41,8 +41,8 @@ GTEST_TEST(detray_intersection, helix_trajectory) {
     // magnetic field
     const vector3 B{0.f, 0.f, 1.f * unit<scalar>::T};
 
-    const scalar p_mag{getter::norm(mom)};
-    const scalar B_mag{getter::norm(B)};
+    const scalar p_mag{vector::norm(mom)};
+    const scalar B_mag{vector::norm(B)};
     const scalar pz_along{vector::dot(mom, vector::normalize(B))};
     const scalar pt{std::sqrt(p_mag * p_mag - pz_along * pz_along)};
 
@@ -224,7 +224,7 @@ GTEST_TEST(detray_intersection, helix_direction_stability) {
 
     for (int i = 0; i < 100; i++) {
         const auto d = hlx.dir(scalar(i) * 10.f);
-        ASSERT_FLOAT_EQ(static_cast<float>(getter::theta(d)),
-                        static_cast<float>(getter::theta(mom)));
+        ASSERT_FLOAT_EQ(static_cast<float>(vector::theta(d)),
+                        static_cast<float>(vector::theta(mom)));
     }
 }

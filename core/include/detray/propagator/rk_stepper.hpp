@@ -1,6 +1,6 @@
 /** Detray library, part of the ACTS project (R&D line)
  *
- * (c) 2022-2023 CERN for the benefit of the ACTS project
+ * (c) 2022-2024 CERN for the benefit of the ACTS project
  *
  * Mozilla Public License Version 2.0
  */
@@ -10,12 +10,9 @@
 // Project include(s).
 #include "detray/definitions/detail/qualifiers.hpp"
 #include "detray/definitions/units.hpp"
-#include "detray/materials/interaction.hpp"
-#include "detray/materials/predefined_materials.hpp"
 #include "detray/navigation/policies.hpp"
 #include "detray/propagator/base_stepper.hpp"
 #include "detray/tracks/tracks.hpp"
-#include "detray/utils/matrix_helper.hpp"
 
 namespace detray {
 
@@ -40,7 +37,6 @@ class rk_stepper final
     using point3_type = dpoint3D<algebra_t>;
     using vector3_type = dvector3D<algebra_t>;
     using transform3_type = dtransform3D<algebra_t>;
-    using matrix_operator = dmatrix_operator<algebra_t>;
     using free_track_parameters_type =
         typename base_type::free_track_parameters_type;
     using bound_track_parameters_type =

@@ -10,7 +10,7 @@ detray_add_library( detray_algebra_array algebra_array
 )
 target_link_libraries(
     detray_algebra_array
-    INTERFACE algebra::array_cmath vecmem::core
+    INTERFACE algebra::utils algebra::array_cmath vecmem::core
 )
 target_compile_definitions(
     detray_algebra_array

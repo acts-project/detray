@@ -395,8 +395,8 @@ auto write_dist_to_boundary(
                 gctx, missed_sfi.local, track.dir(missed_sfi.path));
 
             *dist_file << i << "," << sf.volume() << ", " << vol.name(names)
-                       << "," << getter::phi(glob_pos) << ", "
-                       << getter::eta(glob_pos) << "," << missed_sfi.path
+                       << "," << vector::phi(glob_pos) << ", "
+                       << vector::eta(glob_pos) << "," << missed_sfi.path
                        << ", " << dist << ", " << std::boolalpha
                        << sf.is_inside(missed_sfi.local, 0.f) << ", "
                        << static_cast<int>(sf.shape_id()) << std::endl;

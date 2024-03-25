@@ -58,8 +58,6 @@ struct helix_inspector : actor {
         scalar path_from_surface{0.f};
     };
 
-    using matrix_operator = test::matrix_operator;
-
     /// Check that the stepper remains on the right helical track for its pos.
     template <typename propagator_state_t>
     DETRAY_HOST_DEVICE void operator()(
@@ -107,16 +105,16 @@ struct helix_inspector : actor {
         const point3 relative_error{1.f / inspector_state.path_from_surface *
                                     (stepping().pos() - true_pos)};
 
-        ASSERT_NEAR(getter::norm(relative_error), 0.f, tol);
+        ASSERT_NEAR(vector::norm(relative_error), 0.f, tol);
 
         auto true_J = hlx.jacobian(inspector_state.path_from_surface);
 
         for (unsigned int i = 0u; i < e_free_size; i++) {
             for (unsigned int j = 0u; j < e_free_size; j++) {
-                ASSERT_NEAR(matrix_operator().element(
-                                stepping.transport_jacobian(), i, j),
-                            matrix_operator().element(true_J, i, j),
-                            inspector_state.path_from_surface * tol * 10.f);
+                ASSERT_NEAR(
+                    getter::element(stepping.transport_jacobian(), i, j),
+                    getter::element(true_J, i, j),
+                    inspector_state.path_from_surface * tol * 10.f);
             }
         }
         // Reset path from surface

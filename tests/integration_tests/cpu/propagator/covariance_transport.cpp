@@ -27,7 +27,6 @@ using namespace detray;
 
 // Algebra types
 using scalar_type = test::scalar;
-using matrix_operator = test::matrix_operator;
 using transform3 = test::transform3;
 using vector3 = test::vector3;
 using intersection_t =
@@ -127,7 +126,7 @@ class detray_propagation_HelixCovarianceTransportValidation
 
                 // Test masks are rotated
                 w = axis_rot(w);
-                EXPECT_NEAR(getter::norm(r_axis), 1.f, tolerance);
+                EXPECT_NEAR(vector::norm(r_axis), 1.f, tolerance);
 
                 v = vector::cross(r_axis, w);
 
@@ -137,7 +136,7 @@ class detray_propagation_HelixCovarianceTransportValidation
                 */
             } else {
 
-                // @note why does this offset (in y-direction) fail the test???
+                // @TODO why does this offset (in y-direction) fail the test???
                 // const vector3 offset{0.f, 10.f * unit<scalar>::mm, 10.f *
                 // unit<scalar>::mm};
                 const vector3 offset{0.f, 0.f, 10.f * unit<scalar_type>::mm};
@@ -227,8 +226,7 @@ class detray_propagation_HelixCovarianceTransportValidation
 
         // Correction term for the path variation
         const free_matrix_t correction_term =
-            matrix_operator().template identity<e_free_size, e_free_size>() +
-            path_correction;
+            matrix::identity<free_matrix_t>() + path_correction;
 
         // Free-to-bound jacobian at the destination surface
         const free_to_bound_matrix_t free_to_bound_jacobi =
@@ -246,8 +244,7 @@ class detray_propagation_HelixCovarianceTransportValidation
 
         // Update the covariance at the destination surface
         const bound_matrix_t bound_cov_1 =
-            full_jacobi * bound_cov_0 *
-            matrix_operator().transpose(full_jacobi);
+            full_jacobi * bound_cov_0 * matrix::transpose(full_jacobi);
 
         bound_track_parameters<algebra_type> ret;
         ret.set_parameter_vector(bound_vec_1);
@@ -295,8 +292,8 @@ TYPED_TEST(detray_propagation_HelixCovarianceTransportValidation,
             typename TestFixture::first_local_frame_type>(trfs[0], free_trk);
 
     // Set the initial bound covariance
-    typename bound_track_parameters<algebra_t>::covariance_type bound_cov_0 =
-        matrix_operator().template zero<e_bound_size, e_bound_size>();
+    auto bound_cov_0 = matrix::zero<
+        typename bound_track_parameters<algebra_t>::covariance_type>();
     getter::element(bound_cov_0, e_bound_loc0, e_bound_loc0) = 1.f;
     getter::element(bound_cov_0, e_bound_loc1, e_bound_loc1) = 1.f;
     getter::element(bound_cov_0, e_bound_phi, e_bound_phi) = 1.f;
@@ -356,16 +353,19 @@ TYPED_TEST(detray_propagation_HelixCovarianceTransportValidation,
 
     // Check if the same vector is obtained after one loop
     for (unsigned int i = 0u; i < e_bound_size; i++) {
-        EXPECT_NEAR(bound_vec_0[i], bound_params[i], this->tolerance);
+        EXPECT_NEAR(bound_vec_0[i], bound_params[i], this->tolerance)
+            << "i: " << i << "\n"
+            << bound_params;
     }
 
     // Check if the same covariance is obtained after one loop
     for (unsigned int i = 0u; i < e_bound_size; i++) {
         for (unsigned int j = 0u; j < e_bound_size; j++) {
-            EXPECT_NEAR(
-                matrix_operator().element(bound_cov_0, i, j),
-                matrix_operator().element(bound_params.covariance(), i, j),
-                this->tolerance);
+            EXPECT_NEAR(getter::element(bound_cov_0, i, j),
+                        getter::element(bound_params.covariance(), i, j),
+                        this->tolerance)
+                << "i: " << i << "\nj: " << j << "\n"
+                << bound_params;
         }
     }
 }

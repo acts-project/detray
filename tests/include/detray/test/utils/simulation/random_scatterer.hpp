@@ -36,7 +36,6 @@ struct random_scatterer : actor {
     using scalar_type = dscalar<algebra_t>;
     using vector3_type = dvector3D<algebra_t>;
     using transform3_type = dtransform3D<algebra_t>;
-    using matrix_operator = dmatrix_operator<algebra_t>;
     using interaction_type = interaction<scalar_type>;
 
     struct state {
@@ -170,8 +169,8 @@ struct random_scatterer : actor {
                                      simulator_state.generator);
 
         // Update Phi and Theta
-        stepping.bound_params().set_phi(getter::phi(new_dir));
-        stepping.bound_params().set_theta(getter::theta(new_dir));
+        stepping.bound_params().set_phi(vector::phi(new_dir));
+        stepping.bound_params().set_theta(vector::theta(new_dir));
 
         // Flag renavigation of the current candidate
         prop_state._navigation.set_high_trust();

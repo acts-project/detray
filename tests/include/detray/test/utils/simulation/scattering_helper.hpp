@@ -24,7 +24,6 @@ struct scattering_helper {
     public:
     using scalar_type = dscalar<algebra_t>;
     using vector3_type = dvector3D<algebra_t>;
-    using matrix_operator = dmatrix_operator<algebra_t>;
 
     /// @brief Operator to scatter the direction with scattering angle
     ///

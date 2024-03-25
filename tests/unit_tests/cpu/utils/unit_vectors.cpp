@@ -29,8 +29,8 @@ GTEST_TEST(detray_utils, curvilinear_unit_vectors) {
     auto u = uv[0];
     auto v = uv[1];
 
-    EXPECT_NEAR(u[0], -3.f / getter::perp(w), tolerance);
-    EXPECT_NEAR(u[1], 2.f / getter::perp(w), tolerance);
+    EXPECT_NEAR(u[0], -3.f / vector::perp(w), tolerance);
+    EXPECT_NEAR(u[1], 2.f / vector::perp(w), tolerance);
     EXPECT_NEAR(u[2], 0.f, tolerance);
 
     const auto test_v = vector::normalize(vector::cross(w, u));

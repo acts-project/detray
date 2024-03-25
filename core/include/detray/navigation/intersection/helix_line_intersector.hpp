@@ -10,6 +10,7 @@
 // Project include(s)
 #include "detray/definitions/detail/math.hpp"
 #include "detray/definitions/detail/qualifiers.hpp"
+#include "detray/definitions/units.hpp"
 #include "detray/geometry/coordinates/line2D.hpp"
 #include "detray/navigation/detail/helix.hpp"
 #include "detray/navigation/intersection/intersection.hpp"
@@ -28,7 +29,7 @@ struct helix_intersector_impl;
 ///
 /// The algorithm uses the Newton-Raphson method to find an intersection on
 /// the unbounded surface and then applies the mask.
-template <concepts::aos_algebra algebra_t>
+template <algebra::concepts::aos algebra_t>
 struct helix_intersector_impl<line2D<algebra_t>, algebra_t> {
 
     using scalar_type = dscalar<algebra_t>;

@@ -228,7 +228,7 @@ GTEST_TEST(detray_intersection, helix_cylinder_intersector) {
     const vector3 pos_near = hlx.pos(is[0].path);
     const vector3 loc_near = pos_near - trl;
     const scalar phi_near = std::acos(
-        vector::dot(w, loc_near) / (getter::norm(w) * getter::norm(loc_near)));
+        vector::dot(w, loc_near) / (vector::norm(w) * vector::norm(loc_near)));
 
     EXPECT_TRUE(is[0].status);
     // Not precise due to helix curvature
@@ -244,7 +244,7 @@ GTEST_TEST(detray_intersection, helix_cylinder_intersector) {
     const vector3 pos_far = hlx.pos(is[1].path);
     const vector3 loc_far = pos_far - trl;
     const scalar phi_far = std::acos(vector::dot(w, loc_far) /
-                                     (getter::norm(w) * getter::norm(loc_far)));
+                                     (vector::norm(w) * vector::norm(loc_far)));
 
     EXPECT_TRUE(is[1].status);
     // Not precise due to helix curvature

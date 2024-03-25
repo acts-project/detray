@@ -255,11 +255,11 @@ GTEST_TEST(detray_detectors, telescope_detector) {
                 stepping_x.path_length(),
             0.f, tol);
         // The track positions in z should match exactly
-        EXPECT_NEAR(getter::norm(stepping_z1().pos() - stepping_z2().pos()) /
-                        getter::norm(stepping_z1().pos()),
+        EXPECT_NEAR(vector::norm(stepping_z1().pos() - stepping_z2().pos()) /
+                        vector::norm(stepping_z1().pos()),
                     0.f, tol);
-        EXPECT_NEAR(getter::norm(stepping_z1().dir() - stepping_z2().dir()) /
-                        getter::norm(stepping_z1().dir()),
+        EXPECT_NEAR(vector::norm(stepping_z1().dir() - stepping_z2().dir()) /
+                        vector::norm(stepping_z1().dir()),
                     0.f, tol);
     }
 

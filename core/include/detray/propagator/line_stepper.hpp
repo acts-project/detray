@@ -34,7 +34,6 @@ class line_stepper final
         typename base_type::free_track_parameters_type;
     using bound_track_parameters_type =
         typename base_type::bound_track_parameters_type;
-    using matrix_operator = typename base_type::matrix_operator;
     template <std::size_t ROWS, std::size_t COLS>
     using matrix_type = dmatrix<algebra_t, ROWS, COLS>;
 
@@ -60,13 +59,12 @@ class line_stepper final
 
             // The step transport matrix in global coordinates
             free_matrix<algebra_t> D =
-                matrix_operator().template identity<e_free_size, e_free_size>();
+                matrix::identity<free_matrix<algebra_t>>();
 
             // d(x,y,z)/d(n_x,n_y,n_z)
             matrix_type<3, 3> dxdn =
-                this->step_size() * matrix_operator().template identity<3, 3>();
-            matrix_operator().template set_block<3, 3>(D, dxdn, e_free_pos0,
-                                                       e_free_dir0);
+                this->step_size() * matrix::identity<matrix_type<3, 3>>();
+            getter::set_block(D, dxdn, e_free_pos0, e_free_dir0);
 
             /// NOTE: Let's skip the element for d(time)/d(qoverp) for the
             /// moment..

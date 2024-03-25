@@ -21,7 +21,7 @@ detray_add_library( detray_algebra_vc_aos algebra_vc_aos
 )
 target_link_libraries(
     detray_algebra_vc_aos
-    INTERFACE algebra::vc_cmath vecmem::core
+    INTERFACE algebra::utils algebra::vc_aos vecmem::core
 )
 target_compile_definitions(
     detray_algebra_vc_aos

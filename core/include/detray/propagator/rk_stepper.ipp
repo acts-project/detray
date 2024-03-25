@@ -7,6 +7,9 @@
 
 // Project include(s).
 #include "detray/geometry/tracking_volume.hpp"
+#include "detray/materials/interaction.hpp"
+#include "detray/materials/predefined_materials.hpp"
+#include "detray/utils/matrix_helper.hpp"
 
 template <typename magnetic_field_t, typename algebra_t, typename constraint_t,
           typename policy_t, typename inspector_t>
@@ -76,7 +79,7 @@ DETRAY_HOST_DEVICE inline void detray::rk_stepper<
 
     // Set transport matrix (D) and update Jacobian transport
     //( JacTransport = D * JacTransport )
-    auto D = matrix_operator().template identity<e_free_size, e_free_size>();
+    auto D = matrix::identity<free_matrix<algebra_t>>();
 
     const scalar_type h{this->step_size()};
     auto& track = (*this)();
@@ -87,7 +90,7 @@ DETRAY_HOST_DEVICE inline void detray::rk_stepper<
     const scalar_type h_6{h * (1.f / 6.f)};
 
     // 3X3 Identity matrix
-    const matrix_type<3, 3> I33 = matrix_operator().template identity<3, 3>();
+    const auto I33 = matrix::identity<matrix_type<3, 3>>();
 
     // Initialize derivatives
     std::array<matrix_type<3u, 3u>, 4u> dkndt{I33, I33, I33, I33};
@@ -217,7 +220,7 @@ DETRAY_HOST_DEVICE inline void detray::rk_stepper<
     /*-----------------------------------------------------------------
      * Calculate the first terms of dk_n/dt1
     -------------------------------------------------------------------*/
-    using mat_helper = matrix_helper<matrix_operator>;
+    using mat_helper = matrix_helper<algebra_t>;
     // dk1/dt1
     dkndt[0u] =
         sd.qop[0u] * mat_helper().column_wise_cross(dkndt[0u], sd.b_first);
@@ -302,31 +305,31 @@ DETRAY_HOST_DEVICE inline void detray::rk_stepper<
                             dBdr_fin * (I33 + h2 * 0.5f * dkndr[2u]), sd.t[3u]);
 
         // Set dF/dr1 and dG/dr1
-        auto dFdr = matrix_operator().template identity<3, 3>();
-        auto dGdr = matrix_operator().template identity<3, 3>();
+        auto dFdr = matrix::identity<matrix_type<3, 3>>();
+        auto dGdr = matrix::identity<matrix_type<3, 3>>();
         dFdr = dFdr + h * h_6 * (dkndr[0u] + dkndr[1u] + dkndr[2u]);
         dGdr = h_6 * (dkndr[0u] + 2.f * (dkndr[1u] + dkndr[2u]) + dkndr[3u]);
 
-        matrix_operator().set_block(D, dFdr, 0u, 0u);
-        matrix_operator().set_block(D, dGdr, 4u, 0u);
+        getter::set_block(D, dFdr, 0u, 0u);
+        getter::set_block(D, dGdr, 4u, 0u);
     }
 
     // Set dF/dt1 and dG/dt1
-    auto dFdt = matrix_operator().template identity<3, 3>();
-    auto dGdt = matrix_operator().template identity<3, 3>();
+    auto dFdt = matrix::identity<matrix_type<3, 3>>();
+    auto dGdt = matrix::identity<matrix_type<3, 3>>();
     dFdt = dFdt + h_6 * (dkndt[0u] + dkndt[1u] + dkndt[2u]);
     dFdt = h * dFdt;
     dGdt = dGdt + h_6 * (dkndt[0u] + 2.f * (dkndt[1u] + dkndt[2u]) + dkndt[3u]);
 
-    matrix_operator().set_block(D, dFdt, 0u, 4u);
-    matrix_operator().set_block(D, dGdt, 4u, 4u);
+    getter::set_block(D, dFdt, 0u, 4u);
+    getter::set_block(D, dGdt, 4u, 4u);
 
     // Set dF/dqop1 and dG/dqop1
     vector3_type dFdqop = h * h_6 * (dkndqop[0u] + dkndqop[1u] + dkndqop[2u]);
     vector3_type dGdqop =
         h_6 * (dkndqop[0u] + 2.f * (dkndqop[1u] + dkndqop[2u]) + dkndqop[3u]);
-    matrix_operator().set_block(D, dFdqop, 0u, 7u);
-    matrix_operator().set_block(D, dGdqop, 4u, 7u);
+    getter::set_block(D, dFdqop, 0u, 7u);
+    getter::set_block(D, dGdqop, 4u, 7u);
 
     this->set_transport_jacobian(D * this->transport_jacobian());
 }
@@ -374,7 +377,8 @@ DETRAY_HOST_DEVICE inline auto detray::rk_stepper<
     const auto dir = track.dir();
 
     // Eq (84) of https://doi.org/10.1016/0029-554X(81)90063-X
-    vector3_type t{(i == 0u) ? dir : dir + h * dtds_prev};
+    vector3_type t{(i == 0u) ? dir
+                             : static_cast<vector3_type>(dir + h * dtds_prev)};
 
     // dtds = qop * (t X B) from Lorentz force
     return detray::make_pair(vector3_type{qop * vector::cross(t, b_field)}, t);
@@ -387,7 +391,7 @@ DETRAY_HOST_DEVICE inline auto detray::rk_stepper<
     inspector_t>::state::evaluate_field_gradient(const point3_type& pos)
     -> matrix_type<3, 3> {
 
-    matrix_type<3, 3> dBdr = matrix_operator().template zero<3, 3>();
+    auto dBdr = matrix::zero<matrix_type<3, 3>>();
 
     constexpr auto delta{1e-1f * unit<scalar_type>::mm};
 
@@ -622,7 +626,7 @@ DETRAY_HOST_DEVICE inline bool detray::rk_stepper<
             one_sixth * h2 *
             (sd.dtds[0u] - sd.dtds[1u] - sd.dtds[2u] + sd.dtds[3u]);
 
-        return getter::norm(err_vec);
+        return vector::norm(err_vec);
     };
 
     /// Calculate the scale factor for the stepsize adjustment using the error

@@ -12,7 +12,9 @@
 #include "detray/definitions/detail/indexing.hpp"
 #include "detray/definitions/detail/qualifiers.hpp"
 #include "detray/materials/material.hpp"
+#include "detray/materials/material_rod.hpp"
 #include "detray/materials/predefined_materials.hpp"
+#include "detray/utils/ranges.hpp"
 
 // System include(s)
 #include <sstream>

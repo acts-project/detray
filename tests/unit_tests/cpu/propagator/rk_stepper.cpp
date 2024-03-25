@@ -35,7 +35,6 @@ using algebra_t = test::algebra;
 using scalar_t = test::scalar;
 using vector3 = test::vector3;
 using point3 = test::point3;
-using matrix_operator = test::matrix_operator;
 
 /// Runge-Kutta stepper
 template <typename bfield_t>
@@ -109,7 +108,7 @@ GTEST_TEST(detray_propagator, rk_stepper) {
         // Get relative error by dividing error with path length
         ASSERT_TRUE(rk_state.path_length() > 0.f);
         ASSERT_NEAR(rk_state.path_length(), crk_state.path_length(), tol);
-        ASSERT_NEAR(getter::norm(rk_state().pos() - crk_state().pos()) /
+        ASSERT_NEAR(vector::norm(rk_state().pos() - crk_state().pos()) /
                         rk_state.path_length(),
                     0.f, tol);
 
@@ -120,7 +119,7 @@ GTEST_TEST(detray_propagator, rk_stepper) {
                                             (forward_pos - helix_pos)};
 
         // Make sure that relative error is smaller than the tolerance
-        EXPECT_NEAR(getter::norm(forward_relative_error), 0.f, tol);
+        EXPECT_NEAR(vector::norm(forward_relative_error), 0.f, tol);
 
         // Roll the same track back to the origin
         // Use the same path length, since there is no overstepping
@@ -138,10 +137,10 @@ GTEST_TEST(detray_propagator, rk_stepper) {
         const point3 backward_relative_error{1.f / (2.f * path_length) *
                                              (rk_state().pos())};
         // Make sure that relative error is smaller than the tolerance
-        EXPECT_NEAR(getter::norm(backward_relative_error), 0.f, tol);
+        EXPECT_NEAR(vector::norm(backward_relative_error), 0.f, tol);
 
         // The constrained stepper should be at the same position now
-        ASSERT_NEAR(getter::norm(rk_state().pos() - crk_state().pos()) /
+        ASSERT_NEAR(vector::norm(rk_state().pos() - crk_state().pos()) /
                         (2.f * path_length),
                     0.f, tol);
     }
@@ -210,10 +209,10 @@ TEST(detray_propagator, rk_stepper_inhomogeneous_bfield) {
         const point3 backward_relative_error{1.f / (2.f * path_length) *
                                              (rk_state().pos())};
         // Make sure that relative error is smaller than the tolerance
-        EXPECT_NEAR(getter::norm(backward_relative_error), 0.f, tol);
+        EXPECT_NEAR(vector::norm(backward_relative_error), 0.f, tol);
 
         // The constrained stepper should be at the same position now
-        ASSERT_NEAR(getter::norm(rk_state().pos() - crk_state().pos()) /
+        ASSERT_NEAR(vector::norm(rk_state().pos() - crk_state().pos()) /
                         (2.f * path_length),
                     0.f, tol);
     }

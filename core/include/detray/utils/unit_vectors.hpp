@@ -35,7 +35,7 @@ struct unit_vectors {
         unit_u[0] = -dir[1];
         unit_u[1] = dir[0];
 
-        const auto scale = getter::norm(unit_u);
+        const auto scale = vector::norm(unit_u);
 
         // if the absolute scale is tiny, the initial direction vector is
         // aligned with the z-axis. the ZxT product is ill-defined since any

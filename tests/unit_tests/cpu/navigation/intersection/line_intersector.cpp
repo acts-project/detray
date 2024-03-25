@@ -69,7 +69,8 @@ GTEST_TEST(detray_intersection, line_intersector_case1) {
     EXPECT_EQ(is[0].path, 1.f);
 
     const auto global0 = ln.to_global_frame(tf, is[0].local);
-    EXPECT_EQ(global0, point3({1.f, 0.f, 0.f}));
+    point3 x{1.f, 0.f, 0.f};
+    EXPECT_EQ(global0, x);
     EXPECT_EQ(is[0].local[0], -1.f);  // right
     EXPECT_EQ(is[0].local[1], 0.f);
 

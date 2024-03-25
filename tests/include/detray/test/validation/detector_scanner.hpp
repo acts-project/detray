@@ -35,13 +35,13 @@ struct intersection_record {
         intersection2D<typename detector_t::surface_type, algebra_t, true>;
 
     /// The charge associated with the track parameters
-    scalar_t charge;
+    scalar_t charge{};
     /// Current global track parameters
-    track_parameter_type track_param;
+    track_parameter_type track_param{};
     /// Index of the volume the intersection was found in
-    dindex vol_idx;
+    dindex vol_idx{};
     /// The intersection result, including the surface descriptor
-    intersection_type intersection;
+    intersection_type intersection{};
 };
 
 /// @brief struct that holds functionality to shoot a parametrized particle
@@ -64,14 +64,12 @@ struct brute_force_scan {
                                1.f *
                                unit<typename detector_t::scalar_type>::GeV) {
 
-        using algebra_t = typename detector_t::scalar_type;
+        using algebra_t = typename detector_t::algebra_type;
         using scalar_t = dscalar<algebra_t>;
         using sf_desc_t = typename detector_t::surface_type;
         using nav_link_t = typename detector_t::surface_type::navigation_link;
 
-        using intersection_t =
-            intersection2D<sf_desc_t, typename detector_t::algebra_type, true>;
-
+        using intersection_t = intersection2D<sf_desc_t, algebra_t, true>;
         using intersection_kernel_t = intersection_initialize<intersector>;
 
         intersection_trace_type<detector_t> intersection_trace;
@@ -158,6 +156,7 @@ inline auto run(const typename detector_t::geometry_context gctx,
     auto sort_path = [&](const record_t &a, const record_t &b) -> bool {
         return (a.intersection < b.intersection);
     };
+
     std::ranges::stable_sort(intersection_record, sort_path);
 
     // Make sure the intersection record terminates at world portals

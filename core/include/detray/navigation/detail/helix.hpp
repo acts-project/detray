@@ -36,7 +36,6 @@ class helix {
     using point3_type = dpoint3D<algebra_t>;
     using vector3_type = dvector3D<algebra_t>;
     using transform3_type = dtransform3D<algebra_t>;
-    using matrix_operator = dmatrix_operator<algebra_t>;
 
     /// Free track parameters
     using free_track_parameters_type = free_track_parameters<algebra_t>;
@@ -45,7 +44,7 @@ class helix {
     template <std::size_t ROWS, std::size_t COLS>
     using matrix_type = dmatrix<algebra_t, ROWS, COLS>;
     using free_matrix_t = free_matrix<algebra_t>;
-    using mat_helper = matrix_helper<matrix_operator>;
+    using mat_helper = matrix_helper<algebra_t>;
 
     DETRAY_HOST_DEVICE
     helix() = delete;
@@ -66,7 +65,7 @@ class helix {
         // Normalized B field
         _h0 = vector::normalize(*_mag_field);
 
-        assert((math::fabs(getter::norm(_t0) - 1.f) < 1e-5f) &&
+        assert((math::fabs(vector::norm(_t0) - 1.f) < 1e-5f) &&
                "The helix direction must be normalized");
 
         // Momentum
@@ -77,13 +76,13 @@ class helix {
         _n0 = vector::normalize(vector::cross(_h0, _t0));
 
         // Magnitude of _h0 X _t0
-        _alpha = getter::norm(vector::cross(_h0, _t0));
+        _alpha = vector::norm(vector::cross(_h0, _t0));
 
         // Dot product of _h0 X _t0
         _delta = vector::dot(_h0, _t0);
 
         // B field strength
-        _B = getter::norm(*_mag_field);
+        _B = vector::norm(*_mag_field);
 
         // Path length scaler
         _K = -_qop * _B;
@@ -95,14 +94,14 @@ class helix {
         vector3_type pT = mom - pz * _h0;
 
         // R [mm] =  pT [GeV] / B [T] in natrual unit
-        _R = getter::norm(pT) / _B;
+        _R = vector::norm(pT) / _B;
 
         // Handle the case of pT ~ 0
-        if (getter::norm(pT) < 1e-6f) {
+        if (vector::norm(pT) < 1e-6f) {
             _vz_over_vt = detail::invalid_value<scalar_type>();
         } else {
             // Get vz over vt in new coordinate
-            _vz_over_vt = pz / getter::norm(pT);
+            _vz_over_vt = pz / vector::norm(pT);
         }
     }
 
@@ -174,12 +173,10 @@ class helix {
     DETRAY_HOST_DEVICE
     free_matrix_t jacobian(const scalar_type s) const {
 
-        free_matrix_t ret =
-            matrix_operator().template zero<e_free_size, e_free_size>();
+        free_matrix_t ret = matrix::zero<free_matrix_t>();
 
-        const matrix_type<3, 3> I33 =
-            matrix_operator().template identity<3, 3>();
-        const matrix_type<3, 3> Z33 = matrix_operator().template zero<3, 3>();
+        const matrix_type<3, 3> I33 = matrix::identity<matrix_type<3, 3>>();
+        const matrix_type<3, 3> Z33 = matrix::zero<matrix_type<3, 3>>();
 
         // Notations
         // r = position
@@ -188,11 +185,11 @@ class helix {
 
         // Get drdr
         auto drdr = I33;
-        matrix_operator().set_block(ret, drdr, e_free_pos0, e_free_pos0);
+        getter::set_block(ret, drdr, e_free_pos0, e_free_pos0);
 
         // Get dtdr
         auto dtdr = Z33;
-        matrix_operator().set_block(ret, dtdr, e_free_dir0, e_free_pos0);
+        getter::set_block(ret, dtdr, e_free_dir0, e_free_pos0);
 
         // Get drdt
         auto drdt = Z33;
@@ -201,11 +198,11 @@ class helix {
         const scalar cos_ks = math::cos(_K * s);
         drdt = drdt + sin_ks / _K * I33;
 
-        matrix_type<3, 1> H0 = matrix_operator().template zero<3, 1>();
+        matrix_type<3, 1> H0 = matrix::zero<matrix_type<3, 1>>();
         getter::element(H0, 0u, 0u) = _h0[0u];
         getter::element(H0, 1u, 0u) = _h0[1u];
         getter::element(H0, 2u, 0u) = _h0[2u];
-        const matrix_type<1, 3> H0_T = matrix_operator().transpose(H0);
+        const matrix_type<1, 3> H0_T = matrix::transpose(H0);
         const matrix_type<3, 3> H0H0_T = H0 * H0_T;
 
         drdt = drdt + (_K * s - sin_ks) / _K * H0H0_T;
@@ -213,7 +210,7 @@ class helix {
         drdt = drdt +
                (cos_ks - 1.f) / _K * mat_helper().column_wise_cross(I33, _h0);
 
-        matrix_operator().set_block(ret, drdt, e_free_pos0, e_free_dir0);
+        getter::set_block(ret, drdt, e_free_pos0, e_free_dir0);
 
         // Get dtdt
         auto dtdt = Z33;
@@ -221,24 +218,24 @@ class helix {
         dtdt = dtdt + (1 - cos_ks) * H0H0_T;
         dtdt = dtdt - sin_ks * mat_helper().column_wise_cross(I33, _h0);
 
-        matrix_operator().set_block(ret, dtdt, e_free_dir0, e_free_dir0);
+        getter::set_block(ret, dtdt, e_free_dir0, e_free_dir0);
 
         // Get drdl
         vector3_type drdl =
             1.f / _qop * (s * this->dir(s) + _pos - this->pos(s));
 
-        matrix_operator().set_block(ret, drdl, e_free_pos0, e_free_qoverp);
+        getter::set_block(ret, drdl, e_free_pos0, e_free_qoverp);
 
         // Get dtdl
         vector3_type dtdl =
             -_B * s *
             (sin_ks * (H0H0_T - I33) * _t0 + cos_ks * vector::cross(_h0, _t0));
 
-        matrix_operator().set_block(ret, dtdl, e_free_dir0, e_free_qoverp);
+        getter::set_block(ret, dtdl, e_free_dir0, e_free_qoverp);
 
         // 3x3 and 7x7 element is 1 (Maybe?)
-        matrix_operator().element(ret, e_free_time, e_free_time) = 1.f;
-        matrix_operator().element(ret, e_free_qoverp, e_free_qoverp) = 1.f;
+        getter::element(ret, e_free_time, e_free_time) = 1.f;
+        getter::element(ret, e_free_qoverp, e_free_qoverp) = 1.f;
 
         return ret;
     }

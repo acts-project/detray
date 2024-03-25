@@ -9,6 +9,7 @@
 
 // detray definitions
 #include "detray/definitions/detail/algebra.hpp"
+#include "detray/definitions/detail/math.hpp"
 #include "detray/definitions/detail/qualifiers.hpp"
 #include "detray/propagator/base_actor.hpp"
 

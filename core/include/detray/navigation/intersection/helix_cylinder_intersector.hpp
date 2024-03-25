@@ -10,6 +10,7 @@
 // Project include(s)
 #include "detray/definitions/detail/math.hpp"
 #include "detray/definitions/detail/qualifiers.hpp"
+#include "detray/definitions/units.hpp"
 #include "detray/geometry/coordinates/concentric_cylindrical2D.hpp"
 #include "detray/geometry/coordinates/cylindrical2D.hpp"
 #include "detray/geometry/shapes/cylinder2D.hpp"
@@ -33,7 +34,7 @@ struct helix_intersector_impl;
 /// The algorithm uses the Newton-Raphson method to find an intersection on
 /// the unbounded surface and then applies the mask.
 /// @note Don't use for low p_t tracks!
-template <concepts::aos_algebra algebra_t>
+template <algebra::concepts::aos algebra_t>
 struct helix_intersector_impl<cylindrical2D<algebra_t>, algebra_t>
     : public ray_intersector_impl<cylindrical2D<algebra_t>, algebra_t, true> {
 
@@ -90,7 +91,7 @@ struct helix_intersector_impl<cylindrical2D<algebra_t>, algebra_t>
             const auto h_dir = h.dir(0.f);
             // Default starting path length for the Newton iteration (assumes
             // concentric cylinder)
-            const scalar_type default_s{r * getter::perp(h_dir)};
+            const scalar_type default_s{r * vector::perp(h_dir)};
 
             // Initial helix path length parameter
             std::array<scalar_type, 2> paths{default_s, default_s};
@@ -202,7 +203,7 @@ struct helix_intersector_impl<cylindrical2D<algebra_t>, algebra_t>
             const auto h_dir = h.dir(0.5f * r);
             // Default starting path length for the Newton iteration (assumes
             // concentric cylinder)
-            const scalar_type default_s{r * getter::perp(h_dir)};
+            const scalar_type default_s{r * vector::perp(h_dir)};
 
             // Initial helix path length parameter
             std::array<scalar_type, 2> paths{default_s, default_s};

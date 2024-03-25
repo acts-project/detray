@@ -31,7 +31,7 @@ struct ray_intersector_impl;
 ///
 /// With the way the navigation works, only the closest one of the two possible
 /// intersection points is needed in the case of a cylinderical portal surface.
-template <concepts::aos_algebra algebra_t, bool do_debug>
+template <algebra::concepts::aos algebra_t, bool do_debug>
 struct ray_intersector_impl<concentric_cylindrical2D<algebra_t>, algebra_t,
                             do_debug>
     : public ray_intersector_impl<cylindrical2D<algebra_t>, algebra_t,

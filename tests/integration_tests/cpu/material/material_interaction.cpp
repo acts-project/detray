@@ -41,7 +41,8 @@
 using namespace detray;
 
 using algebra_t = test::algebra;
-using matrix_operator = test::matrix_operator;
+using covariance_t =
+    typename bound_track_parameters<algebra_t>::covariance_type;
 
 // Test is done for muon
 namespace {
@@ -83,16 +84,14 @@ GTEST_TEST(detray_material, telescope_geometry_energy_loss) {
     prop_cfg.navigation.overstep_tolerance = -100.f * unit<float>::um;
     propagator_t p{prop_cfg};
 
-    constexpr scalar q{-1.f};
     constexpr scalar iniP{10.f * unit<scalar>::GeV};
 
     // Bound vector
     bound_parameters_vector<algebra_t> bound_vector{};
     bound_vector.set_theta(constant<scalar>::pi_2);
-    bound_vector.set_qop(q / iniP);
+    bound_vector.set_qop(ptc.charge() / iniP);
 
-    typename bound_track_parameters<algebra_t>::covariance_type bound_cov =
-        matrix_operator().template zero<e_bound_size, e_bound_size>();
+    auto bound_cov = matrix::zero<covariance_t>();
 
     // bound track parameter at first physical plane
     const bound_track_parameters<algebra_t> bound_param(
@@ -128,8 +127,8 @@ GTEST_TEST(detray_material, telescope_geometry_energy_loss) {
 
     // New qop variance
     const scalar new_var_qop{
-        matrix_operator().element(state._stepping.bound_params().covariance(),
-                                  e_bound_qoverp, e_bound_qoverp)};
+        getter::element(state._stepping.bound_params().covariance(),
+                        e_bound_qoverp, e_bound_qoverp)};
 
     // Interaction object
     interaction<scalar> I;
@@ -214,8 +213,7 @@ GTEST_TEST(detray_material, telescope_geometry_scattering_angle) {
     bound_vector.set_theta(constant<scalar>::pi_2);
     bound_vector.set_qop(q / iniP);
 
-    typename bound_track_parameters<algebra_t>::covariance_type bound_cov =
-        matrix_operator().template zero<e_bound_size, e_bound_size>();
+    auto bound_cov = matrix::zero<covariance_t>();
 
     // bound track parameter
     const bound_track_parameters<algebra_t> bound_param(
@@ -300,8 +298,7 @@ GTEST_TEST(detray_material, telescope_geometry_volume_material) {
     bound_vector.set_theta(constant<scalar>::pi_2);
     bound_vector.set_qop(q / iniP);
 
-    typename bound_track_parameters<algebra_t>::covariance_type bound_cov =
-        matrix_operator().template zero<e_bound_size, e_bound_size>();
+    auto bound_cov = matrix::zero<covariance_t>();
 
     // bound track parameter at first physical plane
     const bound_track_parameters<algebra_t> bound_param(
