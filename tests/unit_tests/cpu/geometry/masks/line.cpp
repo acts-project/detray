@@ -19,7 +19,10 @@
 #include <gtest/gtest.h>
 
 using namespace detray;
-using point3_t = test::point3;
+
+using test_algebra = test::algebra;
+using scalar = test::scalar;
+using point3 = test::point3;
 
 namespace {
 
@@ -33,14 +36,13 @@ constexpr scalar hz{50.f * unit<scalar>::mm};
 
 /// This tests the basic functionality of a line with a radial cross section
 GTEST_TEST(detray_masks, line_circular) {
-    using point_t = point3_t;
 
-    const point_t ln_in{0.09f, 0.5f, 0.f};
-    const point_t ln_edge{1.f, 50.f, 0.f};
-    const point_t ln_out1{1.2f, 0.f, 0.f};
-    const point_t ln_out2{0.09f, -51.f, 0.f};
+    const point3 ln_in{0.09f, 0.5f, 0.f};
+    const point3 ln_edge{1.f, 50.f, 0.f};
+    const point3 ln_out1{1.2f, 0.f, 0.f};
+    const point3 ln_out2{0.09f, -51.f, 0.f};
 
-    const mask<line_circular> ln{0u, cell_size, hz};
+    const mask<line_circular, test_algebra> ln{0u, cell_size, hz};
 
     ASSERT_NEAR(ln[line_circular::e_cross_section], 1.f * unit<scalar>::mm,
                 tol);
@@ -75,16 +77,17 @@ GTEST_TEST(detray_masks, line_circular) {
 GTEST_TEST(detray_masks, line_circular_ratio_test) {
 
     struct mask_check {
-        bool operator()(const test::point3 &p, const mask<line_circular> &st,
+        bool operator()(const point3 &p,
+                        const mask<line_circular, test_algebra> &st,
                         const test::transform3 &trf, const test::vector3 &dir,
                         const scalar t) {
 
-            const test::point3 loc_p{st.to_local_frame(trf, p, dir)};
+            const point3 loc_p{st.to_local_frame(trf, p, dir)};
             return st.is_inside(loc_p, t);
         }
     };
 
-    constexpr mask<line_circular> st{0u, 3.f, 5.f};
+    constexpr mask<line_circular, test_algebra> st{0u, 3.f, 5.f};
 
     constexpr scalar t{0.f};
     const test::transform3 trf{};
@@ -94,7 +97,7 @@ GTEST_TEST(detray_masks, line_circular_ratio_test) {
     constexpr scalar size{10.f * unit<scalar>::mm};
     const auto n_points{static_cast<std::size_t>(std::pow(500, 3))};
 
-    std::vector<test::point3> points =
+    std::vector<point3> points =
         test::generate_regular_points<cuboid3D>(n_points, {size});
 
     scalar ratio = test::ratio_test<mask_check>(points, st, trf, dir, t);
@@ -107,15 +110,14 @@ GTEST_TEST(detray_masks, line_circular_ratio_test) {
 
 /// This tests the basic functionality of a line with a square cross section
 GTEST_TEST(detray_masks, line_square) {
-    using point_t = point3_t;
 
-    const point_t ln_in{1.1f, 0.9f, constant<scalar>::pi_4};
-    const point_t ln_edge{1.f, 1.f, 0.f};
-    const point_t ln_out1{1.1f, 0.f, 0.f};
-    const point_t ln_out2{0.09f, -51.f, 0.f};
+    const point3 ln_in{1.1f, 0.9f, constant<scalar>::pi_4};
+    const point3 ln_edge{1.f, 1.f, 0.f};
+    const point3 ln_out1{1.1f, 0.f, 0.f};
+    const point3 ln_out2{0.09f, -51.f, 0.f};
 
     // 50 mm wire with 1 mm square cell sizes
-    const mask<line_square> ln{0u, cell_size, hz};
+    const mask<line_square, test_algebra> ln{0u, cell_size, hz};
 
     ASSERT_NEAR(ln[line_circular::e_cross_section], 1.f * unit<scalar>::mm,
                 tol);
@@ -151,16 +153,17 @@ GTEST_TEST(detray_masks, line_square) {
 GTEST_TEST(detray_masks, line_square_ratio_test) {
 
     struct mask_check {
-        bool operator()(const test::point3 &p, const mask<line_square> &dcl,
+        bool operator()(const point3 &p,
+                        const mask<line_square, test_algebra> &dcl,
                         const test::transform3 &trf, const test::vector3 &dir,
                         const scalar t) {
 
-            const test::point3 loc_p{dcl.to_local_frame(trf, p, dir)};
+            const point3 loc_p{dcl.to_local_frame(trf, p, dir)};
             return dcl.is_inside(loc_p, t);
         }
     };
 
-    constexpr mask<line_square> dcl{0u, 3.f, 5.f};
+    constexpr mask<line_square, test_algebra> dcl{0u, 3.f, 5.f};
 
     constexpr scalar t{0.f};
     const test::transform3 trf{};
@@ -170,7 +173,7 @@ GTEST_TEST(detray_masks, line_square_ratio_test) {
     constexpr scalar size{10.f * unit<scalar>::mm};
     const auto n_points{static_cast<std::size_t>(std::pow(500, 3))};
 
-    std::vector<test::point3> points =
+    std::vector<point3> points =
         test::generate_regular_points<cuboid3D>(n_points, {size});
 
     scalar ratio = test::ratio_test<mask_check>(points, dcl, trf, dir, t);

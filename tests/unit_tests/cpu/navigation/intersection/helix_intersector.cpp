@@ -33,12 +33,13 @@ using namespace detray;
 namespace {
 
 // Three-dimensional definitions
-using algebra_t = test::algebra;
+using test_algebra = test::algebra;
 using transform3_t = test::transform3;
 using vector3 = test::vector3;
 using point3 = test::point3;
-using helix_t = detray::detail::helix<algebra_t>;
-using intersection_t = intersection2D<surface_descriptor<>, algebra_t, true>;
+using scalar = test::scalar;
+using helix_t = detray::detail::helix<test_algebra>;
+using intersection_t = intersection2D<surface_descriptor<>, test_algebra, true>;
 
 constexpr auto not_defined{detail::invalid_value<scalar>()};
 constexpr scalar tol{1e-4f};
@@ -47,7 +48,7 @@ constexpr scalar tol{1e-4f};
 const vector3 z_axis{0.f, 0.f, 1.f};
 
 // Track defined on origin point
-const free_track_parameters<algebra_t> free_trk(
+const free_track_parameters<test_algebra> free_trk(
     {0.f, 0.f, 0.f}, 0.f, {0.1f * unit<scalar>::GeV, 0.f, 0.f}, -1.f);
 
 // Magnetic field
@@ -77,11 +78,11 @@ GTEST_TEST(detray_intersection, helix_plane_intersector_no_bfield) {
     // Test helix
     const point3 pos{2.f, 1.f, 0.f};
     const vector3 mom{0.f, 0.f, 1.f};
-    const detail::helix<algebra_t> h({pos, 0.f, mom, -1.f}, &B_0);
+    const detail::helix<test_algebra> h({pos, 0.f, mom, -1.f}, &B_0);
 
     // The same test but bound to local frame
-    helix_intersector<unmasked<2>, algebra_t> pi;
-    mask<unmasked<2>> unmasked_bound{};
+    helix_intersector<unmasked<2>, test_algebra> pi;
+    mask<unmasked<2>, test_algebra> unmasked_bound{};
     const auto hit_bound =
         pi(h, surface_descriptor<>{}, unmasked_bound, shifted, tol);
 
@@ -97,7 +98,7 @@ GTEST_TEST(detray_intersection, helix_plane_intersector_no_bfield) {
     ASSERT_NEAR(hit_bound.local[1], -1.f, tol);
 
     // The same test but bound to local frame & masked - inside
-    mask<rectangle2D> rect_for_inside{0u, 3.f, 3.f};
+    mask<rectangle2D, test_algebra> rect_for_inside{0u, 3.f, 3.f};
     const auto hit_bound_inside =
         pi(h, surface_descriptor<>{}, rect_for_inside, shifted, tol);
     ASSERT_TRUE(hit_bound_inside.status);
@@ -112,7 +113,7 @@ GTEST_TEST(detray_intersection, helix_plane_intersector_no_bfield) {
     ASSERT_NEAR(hit_bound_inside.local[1], -1.f, tol);
 
     // The same test but bound to local frame & masked - outside
-    mask<rectangle2D> rect_for_outside{0u, 0.5f, 3.5f};
+    mask<rectangle2D, test_algebra> rect_for_outside{0u, 0.5f, 3.5f};
     const auto hit_bound_outside =
         pi(h, surface_descriptor<>{}, rect_for_outside, shifted, tol);
     ASSERT_FALSE(hit_bound_outside.status);
@@ -137,10 +138,10 @@ GTEST_TEST(detray_intersection, helix_plane_intersector) {
     const transform3_t trf(trl, w, v);
 
     // Rectangle surface
-    const mask<rectangle2D> rectangle{0u, 10.f * unit<scalar>::cm,
-                                      10.f * unit<scalar>::cm};
+    const mask<rectangle2D, test_algebra> rectangle{0u, 10.f * unit<scalar>::cm,
+                                                    10.f * unit<scalar>::cm};
 
-    const helix_intersector<rectangle2D, algebra_t> hpi;
+    const helix_intersector<rectangle2D, test_algebra> hpi;
 
     // Get the intersection on the next surface
     const auto is = hpi(hlx, surface_descriptor<>{}, rectangle, trf, tol);
@@ -165,7 +166,7 @@ GTEST_TEST(detray_intersection, helix_cylinder_intersector_no_bfield) {
 
     // Create a translated cylinder and test untersection
     const transform3_t shifted(vector3{3.f, 2.f, 10.f});
-    helix_intersector<cylinder2D, algebra_t> hi;
+    helix_intersector<cylinder2D, test_algebra> hi;
 
     // Test helix
     const point3 pos{3.f, 2.f, 5.f};
@@ -174,7 +175,8 @@ GTEST_TEST(detray_intersection, helix_cylinder_intersector_no_bfield) {
                     &B_0);
 
     // Intersect
-    mask<cylinder2D, std::uint_least16_t, algebra_t> cylinder{0u, r, -hz, hz};
+    mask<cylinder2D, test_algebra, std::uint_least16_t> cylinder{0u, r, -hz,
+                                                                 hz};
     const auto hits_bound =
         hi(h, surface_descriptor<>{}, cylinder, shifted, tol);
 
@@ -217,9 +219,9 @@ GTEST_TEST(detray_intersection, helix_cylinder_intersector) {
     // Cylinder surface (5 cm radius)
     const scalar r{4.f * unit<scalar>::cm};
     const scalar hz{10.f * unit<scalar>::cm};
-    const mask<cylinder2D> cylinder{0u, r, -hz, hz};
+    const mask<cylinder2D, test_algebra> cylinder{0u, r, -hz, hz};
 
-    const helix_intersector<cylinder2D, algebra_t> hci;
+    const helix_intersector<cylinder2D, test_algebra> hci;
 
     // Get the intersection on the next surface
     const auto is = hci(hlx, surface_descriptor<>{}, cylinder, trf, tol);
@@ -266,7 +268,7 @@ GTEST_TEST(detray_intersection,
 
     // Create a translated cylinder and test untersection
     const transform3_t identity{};
-    helix_intersector<concentric_cylinder2D, algebra_t> c_hi;
+    helix_intersector<concentric_cylinder2D, test_algebra> c_hi;
 
     // Test helix
     const point3 pos{0.f, 0.f, -5.f};
@@ -275,7 +277,7 @@ GTEST_TEST(detray_intersection,
                     &B_0);
 
     // Intersect
-    mask<concentric_cylinder2D, std::uint_least16_t, algebra_t> cylinder{
+    mask<concentric_cylinder2D, test_algebra, std::uint_least16_t> cylinder{
         0u, r, -hz, hz};
     const auto hits_bound =
         c_hi(h, surface_descriptor<>{}, cylinder, identity, tol);
@@ -316,7 +318,7 @@ GTEST_TEST(detray_intersection,
 GTEST_TEST(detray_intersection, helix_line_intersector) {
 
     // Intersector object
-    const helix_intersector<line_circular, algebra_t> hli;
+    const helix_intersector<line_circular, test_algebra> hli;
 
     // Get radius of track
     const scalar R{hlx.radius()};
@@ -329,10 +331,10 @@ GTEST_TEST(detray_intersection, helix_line_intersector) {
     const scalar half_z = std::numeric_limits<scalar>::max();
 
     // Straw wire
-    const mask<line_circular> straw_tube{0u, scope, half_z};
+    const mask<line_circular, test_algebra> straw_tube{0u, scope, half_z};
 
     // Cell wire
-    const mask<line_square> drift_cell{0u, scope, half_z};
+    const mask<line_square, test_algebra> drift_cell{0u, scope, half_z};
 
     // Offset to shift the translation of transform matrix
     const scalar offset = 1.f * unit<scalar>::cm;

@@ -27,6 +27,9 @@
 using namespace detray;
 using namespace detray::axis;
 
+using test_algebra = test::algebra;
+using scalar = test::scalar;
+
 namespace {
 
 // non-owning multi-axis: Takes external containers
@@ -54,8 +57,9 @@ struct bin_content_sequence {
 GTEST_TEST(detray_grid, grid_collection) {
 
     // Non-owning grid type with array<dindex, 3> as bin content
-    using grid_t = grid<axes<cylinder3D>, bins::static_array<dindex, 3>,
-                        simple_serializer, host_container_types, is_n_owning>;
+    using grid_t =
+        grid<test_algebra, axes<cylinder3D>, bins::static_array<dindex, 3>,
+             simple_serializer, host_container_types, is_n_owning>;
 
     // Build test data
     grid_t::bin_container_type bin_data{};
@@ -100,7 +104,7 @@ GTEST_TEST(detray_grid, grid_collection) {
     EXPECT_EQ(r_axis.nbins(), 1u);
     auto phi_axis = single_grid.get_axis<label::e_phi>();
     EXPECT_EQ(phi_axis.nbins(), 3u);
-    using z_axis_t = single_axis<closed<label::e_z>, regular<>>;
+    using z_axis_t = single_axis<closed<label::e_z>, regular<scalar>>;
     auto z_axis = single_grid.get_axis<z_axis_t>();
     EXPECT_EQ(z_axis.nbins(), 8u);
 
@@ -142,8 +146,9 @@ GTEST_TEST(detray_grid, grid_collection) {
 GTEST_TEST(detray_grid, grid_collection_dynamic_bin) {
 
     // Non-owning grid type with vector<dindex> as bin content
-    using grid_t = grid<axes<cylinder3D>, bins::dynamic_array<dindex>,
-                        simple_serializer, host_container_types, is_n_owning>;
+    using grid_t =
+        grid<test_algebra, axes<cylinder3D>, bins::dynamic_array<dindex>,
+             simple_serializer, host_container_types, is_n_owning>;
 
     // Build test data
     grid_t::bin_container_type bin_data{};
@@ -223,7 +228,7 @@ GTEST_TEST(detray_grid, grid_collection_dynamic_bin) {
     EXPECT_EQ(r_axis.nbins(), 1u);
     auto phi_axis = single_grid.get_axis<label::e_phi>();
     EXPECT_EQ(phi_axis.nbins(), 3u);
-    using z_axis_t = single_axis<closed<label::e_z>, regular<>>;
+    using z_axis_t = single_axis<closed<label::e_z>, regular<scalar>>;
     auto z_axis = single_grid.get_axis<z_axis_t>();
     EXPECT_EQ(z_axis.nbins(), 8u);
 

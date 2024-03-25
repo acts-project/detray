@@ -25,7 +25,8 @@
 
 using namespace detray;
 
-using algebra_t = test::algebra;
+using test_algebra = test::algebra;
+using scalar = test::scalar;
 using vector3 = test::vector3;
 
 constexpr const scalar tol{1e-7f};
@@ -40,7 +41,7 @@ GTEST_TEST(detray_simulation, detector_scanner) {
 
     // Build the geometry
     vecmem::host_memory_resource host_mr;
-    auto [toy_det, names] = build_toy_detector(host_mr);
+    auto [toy_det, names] = build_toy_detector<test_algebra>(host_mr);
 
     unsigned int theta_steps{50u};
     unsigned int phi_steps{50u};
@@ -48,15 +49,16 @@ GTEST_TEST(detray_simulation, detector_scanner) {
     // Record ray tracing
     using detector_t = decltype(toy_det);
     using intersection_trace_t = typename detray::ray_scan<
-        algebra_t>::template intersection_trace_type<detector_t>;
+        test_algebra>::template intersection_trace_type<detector_t>;
 
     detector_t::geometry_context gctx{};
 
     std::vector<intersection_trace_t> expected;
 
     //  Iterate through uniformly distributed momentum directions with ray
-    for (const auto test_ray : uniform_track_generator<detail::ray<algebra_t>>(
-             phi_steps, theta_steps)) {
+    for (const auto test_ray :
+         uniform_track_generator<detail::ray<test_algebra>>(phi_steps,
+                                                            theta_steps)) {
 
         // Record all intersections and objects along the ray
         const auto intersection_record =
@@ -68,7 +70,7 @@ GTEST_TEST(detray_simulation, detector_scanner) {
     // Iterate through uniformly distributed momentum directions with helix
     std::size_t n_tracks{0u};
     for (const auto track :
-         uniform_track_generator<free_track_parameters<algebra_t>>(
+         uniform_track_generator<free_track_parameters<test_algebra>>(
              phi_steps, theta_steps)) {
         const detail::helix test_helix(track, &B);
 

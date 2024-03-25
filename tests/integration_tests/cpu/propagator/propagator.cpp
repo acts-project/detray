@@ -37,15 +37,15 @@
 
 using namespace detray;
 
-using algebra_t = test::algebra;
-using scalar_t = test::scalar;
+using test_algebra = test::algebra;
+using scalar = test::scalar;
 using point3 = test::point3;
 using vector3 = test::vector3;
 
 namespace {
 
-constexpr scalar_t tol{1e-3f};
-constexpr scalar_t path_limit{5.f * unit<scalar_t>::cm};
+constexpr scalar tol{1e-3f};
+constexpr scalar path_limit{5.f * unit<scalar>::cm};
 constexpr std::size_t cache_size{navigation::default_cache_size};
 
 /// Compare helical track positions for stepper
@@ -89,7 +89,7 @@ struct helix_inspector : actor {
         const auto sf = tracking_surface{
             navigation.detector(), stepping.bound_params().surface_link()};
 
-        const free_track_parameters<algebra_t> free_params =
+        const free_track_parameters<test_algebra> free_params =
             sf.bound_to_free_vector(ctx, stepping.bound_params());
 
         const auto last_pos = free_params.pos();
@@ -98,7 +98,7 @@ struct helix_inspector : actor {
             stepping.field().at(last_pos[0], last_pos[1], last_pos[2]);
         const vector3 b{bvec[0], bvec[1], bvec[2]};
 
-        detail::helix<algebra_t> hlx(free_params, &b);
+        detail::helix<test_algebra> hlx(free_params, &b);
 
         const auto true_pos = hlx(inspector_state.path_from_surface);
 
@@ -131,18 +131,18 @@ struct helix_inspector : actor {
 GTEST_TEST(detray_propagator, propagator_line_stepper) {
 
     vecmem::host_memory_resource host_mr;
-    toy_det_config toy_cfg{};
+    toy_det_config<scalar> toy_cfg{};
     toy_cfg.use_material_maps(false);
-    const auto [d, names] = build_toy_detector(host_mr, toy_cfg);
+    const auto [d, names] = build_toy_detector<test_algebra>(host_mr, toy_cfg);
 
     using navigator_t =
         navigator<decltype(d), cache_size, navigation::print_inspector>;
-    using stepper_t = line_stepper<algebra_t>;
+    using stepper_t = line_stepper<test_algebra>;
     using propagator_t = propagator<stepper_t, navigator_t, actor_chain<>>;
 
     const point3 pos{0.f, 0.f, 0.f};
     const vector3 mom{1.f, 1.f, 0.f};
-    free_track_parameters<algebra_t> track(pos, 0.f, mom, -1.f);
+    free_track_parameters<test_algebra> track(pos, 0.f, mom, -1.f);
 
     propagation::config prop_cfg{};
     propagator_t p{prop_cfg};
@@ -154,13 +154,12 @@ GTEST_TEST(detray_propagator, propagator_line_stepper) {
 }
 
 /// Fixture for Runge-Kutta Propagation
-class PropagatorWithRkStepper
-    : public ::testing::TestWithParam<
-          std::tuple<scalar_t, scalar_t, test::vector3>> {
+class PropagatorWithRkStepper : public ::testing::TestWithParam<
+                                    std::tuple<scalar, scalar, test::vector3>> {
 
     public:
     using generator_t =
-        uniform_track_generator<free_track_parameters<algebra_t>>;
+        uniform_track_generator<free_track_parameters<test_algebra>>;
 
     /// Set the test environment up
     virtual void SetUp() {
@@ -168,7 +167,7 @@ class PropagatorWithRkStepper
         step_constr = std::get<1>(GetParam());
 
         trk_gen_cfg.phi_steps(50u).theta_steps(50u);
-        trk_gen_cfg.p_tot(10.f * unit<scalar_t>::GeV);
+        trk_gen_cfg.p_tot(10.f * unit<scalar>::GeV);
     }
 
     /// Clean up
@@ -180,47 +179,50 @@ class PropagatorWithRkStepper
     vecmem::host_memory_resource host_mr;
 
     /// Toy detector configuration
-    toy_det_config toy_cfg = toy_det_config{}.n_brl_layers(4u).n_edc_layers(7u);
+    toy_det_config<scalar> toy_cfg =
+        toy_det_config<scalar>{}.n_brl_layers(4u).n_edc_layers(7u);
 
     /// Track generator configuration
     generator_t::configuration trk_gen_cfg{};
 
     /// Stepper configuration
-    scalar_t overstep_tol;
-    scalar_t step_constr;
+    scalar overstep_tol;
+    scalar step_constr;
 };
 
 /// Test propagation in a constant magnetic field using a Runge-Kutta stepper
 TEST_P(PropagatorWithRkStepper, rk4_propagator_const_bfield) {
 
     // Constant magnetic field type
-    using bfield_t = bfield::const_field_t;
+    using bfield_t = bfield::const_field_t<scalar>;
 
     // Toy detector
-    using detector_t = detector<toy_metadata>;
+    using detector_t = detector<test::toy_metadata>;
 
     // Runge-Kutta propagation
     using navigator_t =
         navigator<detector_t, cache_size, navigation::print_inspector>;
-    using track_t = free_track_parameters<algebra_t>;
-    using constraints_t = constrained_step<>;
-    using policy_t = stepper_rk_policy;
+    using track_t = free_track_parameters<test_algebra>;
+    using constraints_t = constrained_step<scalar>;
+    using policy_t = stepper_rk_policy<scalar>;
     using stepper_t =
-        rk_stepper<bfield_t::view_t, algebra_t, constraints_t, policy_t>;
+        rk_stepper<bfield_t::view_t, test_algebra, constraints_t, policy_t>;
     // Include helix actor to check track position/covariance
     using actor_chain_t =
-        actor_chain<dtuple, helix_inspector, pathlimit_aborter,
-                    parameter_transporter<algebra_t>,
-                    pointwise_material_interactor<algebra_t>,
-                    parameter_resetter<algebra_t>>;
+        actor_chain<dtuple, helix_inspector, pathlimit_aborter<scalar>,
+                    parameter_transporter<test_algebra>,
+                    pointwise_material_interactor<test_algebra>,
+                    parameter_resetter<test_algebra>>;
     using propagator_t = propagator<stepper_t, navigator_t, actor_chain_t>;
 
     // Build detector
     toy_cfg.use_material_maps(false);
-    toy_cfg.mapped_material(detray::vacuum<scalar_t>());
-    const auto [det, names] = build_toy_detector(host_mr, toy_cfg);
+    toy_cfg.mapped_material(detray::vacuum<scalar>());
+    const auto [det, names] =
+        build_toy_detector<test_algebra>(host_mr, toy_cfg);
 
-    const bfield_t bfield = bfield::create_const_field(std::get<2>(GetParam()));
+    const bfield_t bfield =
+        bfield::create_const_field<scalar>(std::get<2>(GetParam()));
 
     // Propagator is built from the stepper and navigator
     propagation::config cfg{};
@@ -243,7 +245,7 @@ TEST_P(PropagatorWithRkStepper, rk4_propagator_const_bfield) {
 
         // Make sure the lim state is being terminated
         auto& pathlimit_aborter_state =
-            detail::get<pathlimit_aborter::state>(actor_states_lim);
+            detail::get<pathlimit_aborter<scalar>::state>(actor_states_lim);
         pathlimit_aborter_state.set_path_limit(path_limit);
 
         // Init propagator states
@@ -302,30 +304,32 @@ TEST_P(PropagatorWithRkStepper, rk4_propagator_const_bfield) {
 TEST_P(PropagatorWithRkStepper, rk4_propagator_inhom_bfield) {
 
     // Magnetic field map using nearest neightbor interpolation
-    using bfield_t = bfield::inhom_field_t;
+    using bfield_t = bfield::inhom_field_t<scalar>;
 
     // Toy detector
-    using detector_t = detector<toy_metadata>;
+    using detector_t = detector<test::toy_metadata>;
 
     // Runge-Kutta propagation
     using navigator_t =
         navigator<detector_t, cache_size, navigation::print_inspector>;
-    using track_t = free_track_parameters<algebra_t>;
-    using constraints_t = constrained_step<>;
-    using policy_t = stepper_rk_policy;
+    using track_t = free_track_parameters<test_algebra>;
+    using constraints_t = constrained_step<scalar>;
+    using policy_t = stepper_rk_policy<scalar>;
     using stepper_t =
-        rk_stepper<bfield_t::view_t, algebra_t, constraints_t, policy_t>;
+        rk_stepper<bfield_t::view_t, test_algebra, constraints_t, policy_t>;
     // Include helix actor to check track position/covariance
     using actor_chain_t =
-        actor_chain<dtuple, pathlimit_aborter, parameter_transporter<algebra_t>,
-                    pointwise_material_interactor<algebra_t>,
-                    parameter_resetter<algebra_t>>;
+        actor_chain<dtuple, pathlimit_aborter<scalar>,
+                    parameter_transporter<test_algebra>,
+                    pointwise_material_interactor<test_algebra>,
+                    parameter_resetter<test_algebra>>;
     using propagator_t = propagator<stepper_t, navigator_t, actor_chain_t>;
 
     // Build detector and magnetic field
     toy_cfg.use_material_maps(false);
-    const auto [det, names] = build_toy_detector(host_mr, toy_cfg);
-    const bfield_t bfield = bfield::create_inhom_field();
+    const auto [det, names] =
+        build_toy_detector<test_algebra>(host_mr, toy_cfg);
+    const bfield_t bfield = bfield::create_inhom_field<scalar>();
 
     // Propagator is built from the stepper and navigator
     propagation::config cfg{};
@@ -339,11 +343,11 @@ TEST_P(PropagatorWithRkStepper, rk4_propagator_inhom_bfield) {
         track_t lim_track(track);
 
         // Build actor states: the helix inspector can be shared
-        pathlimit_aborter::state unlimted_aborter_state{};
-        pathlimit_aborter::state pathlimit_aborter_state{path_limit};
-        parameter_transporter<algebra_t>::state transporter_state{};
-        pointwise_material_interactor<algebra_t>::state interactor_state{};
-        parameter_resetter<algebra_t>::state resetter_state{};
+        pathlimit_aborter<scalar>::state unlimted_aborter_state{};
+        pathlimit_aborter<scalar>::state pathlimit_aborter_state{path_limit};
+        parameter_transporter<test_algebra>::state transporter_state{};
+        pointwise_material_interactor<test_algebra>::state interactor_state{};
+        parameter_resetter<test_algebra>::state resetter_state{};
 
         // Create actor states tuples
         auto actor_states =
@@ -387,34 +391,34 @@ TEST_P(PropagatorWithRkStepper, rk4_propagator_inhom_bfield) {
 // No step size constraint
 INSTANTIATE_TEST_SUITE_P(
     detray_propagator_validation1, PropagatorWithRkStepper,
-    ::testing::Values(std::make_tuple(-100.f * unit<scalar_t>::um,
-                                      std::numeric_limits<scalar_t>::max(),
-                                      vector3{0.f * unit<scalar_t>::T,
-                                              0.f * unit<scalar_t>::T,
-                                              2.f * unit<scalar_t>::T})));
+    ::testing::Values(std::make_tuple(-100.f * unit<scalar>::um,
+                                      std::numeric_limits<scalar>::max(),
+                                      vector3{0.f * unit<scalar>::T,
+                                              0.f * unit<scalar>::T,
+                                              2.f * unit<scalar>::T})));
 
 // Add some restrictions for more frequent navigation updates in the cases of
 // non-z-aligned B-fields
 INSTANTIATE_TEST_SUITE_P(
     detray_propagator_validation2, PropagatorWithRkStepper,
-    ::testing::Values(std::make_tuple(-400.f * unit<scalar_t>::um,
-                                      std::numeric_limits<scalar_t>::max(),
-                                      vector3{0.f * unit<scalar_t>::T,
-                                              1.f * unit<scalar_t>::T,
-                                              1.f * unit<scalar_t>::T})));
+    ::testing::Values(std::make_tuple(-400.f * unit<scalar>::um,
+                                      std::numeric_limits<scalar>::max(),
+                                      vector3{0.f * unit<scalar>::T,
+                                              1.f * unit<scalar>::T,
+                                              1.f * unit<scalar>::T})));
 
 INSTANTIATE_TEST_SUITE_P(
     detray_propagator_validation3, PropagatorWithRkStepper,
-    ::testing::Values(std::make_tuple(-400.f * unit<scalar_t>::um,
-                                      std::numeric_limits<scalar_t>::max(),
-                                      vector3{1.f * unit<scalar_t>::T,
-                                              0.f * unit<scalar_t>::T,
-                                              1.f * unit<scalar_t>::T})));
+    ::testing::Values(std::make_tuple(-400.f * unit<scalar>::um,
+                                      std::numeric_limits<scalar>::max(),
+                                      vector3{1.f * unit<scalar>::T,
+                                              0.f * unit<scalar>::T,
+                                              1.f * unit<scalar>::T})));
 
 INSTANTIATE_TEST_SUITE_P(
     detray_propagator_validation4, PropagatorWithRkStepper,
-    ::testing::Values(std::make_tuple(-600.f * unit<scalar_t>::um,
-                                      std::numeric_limits<scalar_t>::max(),
-                                      vector3{1.f * unit<scalar_t>::T,
-                                              1.f * unit<scalar_t>::T,
-                                              1.f * unit<scalar_t>::T})));
+    ::testing::Values(std::make_tuple(-600.f * unit<scalar>::um,
+                                      std::numeric_limits<scalar>::max(),
+                                      vector3{1.f * unit<scalar>::T,
+                                              1.f * unit<scalar>::T,
+                                              1.f * unit<scalar>::T})));

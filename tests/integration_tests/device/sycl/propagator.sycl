@@ -32,7 +32,7 @@ auto handle_async_error = [](::sycl::exception_list elist) {
     }
 };
 class SyclPropConstBFieldMng : public ::testing::TestWithParam<
-                                   std::tuple<scalar_t, scalar_t, vector3_t>> {
+                                   std::tuple<scalar, scalar, vector3>> {
 };
 
 TEST_P(SyclPropConstBFieldMng, propagator) {
@@ -48,7 +48,7 @@ TEST_P(SyclPropConstBFieldMng, propagator) {
     // Test configuration
     propagator_test_config cfg{};
     cfg.track_generator.phi_steps(20u).theta_steps(20u);
-    cfg.track_generator.p_tot(10.f * unit<scalar_t>::GeV);
+    cfg.track_generator.p_tot(10.f * unit<scalar>::GeV);
     cfg.track_generator.eta_range(-3.f, 3.f);
     cfg.propagation.navigation.search_window = {3u, 3u};
     // Configuration for non-z-aligned B-fields
@@ -56,20 +56,20 @@ TEST_P(SyclPropConstBFieldMng, propagator) {
     cfg.propagation.stepping.step_constraint = std::get<1>(GetParam());
 
     // Set the magnetic field
-    const vector3_t B = std::get<2>(GetParam());
-    auto field = bfield::create_const_field(B);
+    const vector3 B = std::get<2>(GetParam());
+    auto field = bfield::create_const_field<scalar>(B);
 
     // Create the toy geometry
-    auto [det, names] = build_toy_detector(shared_mr);
+    auto [det, names] = build_toy_detector<test_algebra>(shared_mr);
 
     auto det_view = detray::get_data(det);
 
-    run_propagation_test<bfield::const_bknd_t>(&shared_mr, &q, det, cfg,
-                                               det_view, field);
+    run_propagation_test<bfield::const_bknd_t<scalar>>(&shared_mr, &q, det,
+                                                         cfg, det_view, field);
 }
 
 class SyclPropConstBFieldCpy : public ::testing::TestWithParam<
-                                   std::tuple<scalar_t, scalar_t, vector3_t>> {
+                                   std::tuple<scalar, scalar, vector3>> {
 };
 
 TEST_P(SyclPropConstBFieldCpy, propagator) {
@@ -90,7 +90,7 @@ TEST_P(SyclPropConstBFieldCpy, propagator) {
     // Test configuration
     propagator_test_config cfg{};
     cfg.track_generator.phi_steps(20u).theta_steps(20u);
-    cfg.track_generator.p_tot(10.f * unit<scalar_t>::GeV);
+    cfg.track_generator.p_tot(10.f * unit<scalar>::GeV);
     cfg.track_generator.eta_range(-3.f, 3.f);
     cfg.propagation.navigation.search_window = {3u, 3u};
     // Configuration for non-z-aligned B-fields
@@ -98,81 +98,81 @@ TEST_P(SyclPropConstBFieldCpy, propagator) {
     cfg.propagation.stepping.step_constraint = std::get<1>(GetParam());
 
     // Set the magnetic field
-    const vector3_t B = std::get<2>(GetParam());
-    auto field = bfield::create_const_field(B);
+    const vector3 B = std::get<2>(GetParam());
+    auto field = bfield::create_const_field<scalar>(B);
 
     // Create the toy geometry
-    auto [det, names] = build_toy_detector(host_mr);
+    auto [det, names] = build_toy_detector<test_algebra>(host_mr);
 
     auto det_buff = detray::get_buffer(det, dev_mr, sycl_cpy);
 
-    run_propagation_test<bfield::const_bknd_t>(
+    run_propagation_test<bfield::const_bknd_t<scalar>>(
         &shared_mr, &q, det, cfg, detray::get_data(det_buff), field);
 }
 
 INSTANTIATE_TEST_SUITE_P(
     SyclPropagatorValidation1, SyclPropConstBFieldMng,
-    ::testing::Values(std::make_tuple(-100.f * unit<scalar_t>::um,
-                                      std::numeric_limits<scalar_t>::max(),
-                                      vector3_t{0.f * unit<scalar_t>::T,
-                                                0.f * unit<scalar_t>::T,
-                                                2.f * unit<scalar_t>::T})));
+    ::testing::Values(std::make_tuple(-100.f * unit<scalar>::um,
+                                      std::numeric_limits<scalar>::max(),
+                                      vector3{0.f * unit<scalar>::T,
+                                                0.f * unit<scalar>::T,
+                                                2.f * unit<scalar>::T})));
 
 INSTANTIATE_TEST_SUITE_P(
     SyclPropagatorValidation2, SyclPropConstBFieldMng,
-    ::testing::Values(std::make_tuple(-800.f * unit<scalar_t>::um,
-                                      5.f * unit<scalar_t>::mm,
-                                      vector3_t{0.f * unit<scalar_t>::T,
-                                                1.f * unit<scalar_t>::T,
-                                                1.f * unit<scalar_t>::T})));
+    ::testing::Values(std::make_tuple(-800.f * unit<scalar>::um,
+                                      5.f * unit<scalar>::mm,
+                                      vector3{0.f * unit<scalar>::T,
+                                                1.f * unit<scalar>::T,
+                                                1.f * unit<scalar>::T})));
 
 INSTANTIATE_TEST_SUITE_P(
     SyclPropagatorValidation3, SyclPropConstBFieldMng,
-    ::testing::Values(std::make_tuple(-800.f * unit<scalar_t>::um,
-                                      5.f * unit<scalar_t>::mm,
-                                      vector3_t{1.f * unit<scalar_t>::T,
-                                                0.f * unit<scalar_t>::T,
-                                                1.f * unit<scalar_t>::T})));
+    ::testing::Values(std::make_tuple(-800.f * unit<scalar>::um,
+                                      5.f * unit<scalar>::mm,
+                                      vector3{1.f * unit<scalar>::T,
+                                                0.f * unit<scalar>::T,
+                                                1.f * unit<scalar>::T})));
 
 INSTANTIATE_TEST_SUITE_P(
     SyclPropagatorValidation4, SyclPropConstBFieldMng,
-    ::testing::Values(std::make_tuple(-800.f * unit<scalar_t>::um,
-                                      1.f * unit<scalar_t>::mm,
-                                      vector3_t{1.f * unit<scalar_t>::T,
-                                                1.f * unit<scalar_t>::T,
-                                                1.f * unit<scalar_t>::T})));
+    ::testing::Values(std::make_tuple(-800.f * unit<scalar>::um,
+                                      1.f * unit<scalar>::mm,
+                                      vector3{1.f * unit<scalar>::T,
+                                                1.f * unit<scalar>::T,
+                                                1.f * unit<scalar>::T})));
 
 INSTANTIATE_TEST_SUITE_P(
     SyclPropagatorValidation5, SyclPropConstBFieldCpy,
-    ::testing::Values(std::make_tuple(-100.f * unit<scalar_t>::um,
-                                      std::numeric_limits<scalar_t>::max(),
-                                      vector3_t{0.f * unit<scalar_t>::T,
-                                                0.f * unit<scalar_t>::T,
-                                                2.f * unit<scalar_t>::T})));
+    ::testing::Values(std::make_tuple(-100.f * unit<scalar>::um,
+                                      std::numeric_limits<scalar>::max(),
+                                      vector3{0.f * unit<scalar>::T,
+                                                0.f * unit<scalar>::T,
+                                                2.f * unit<scalar>::T})));
 
 INSTANTIATE_TEST_SUITE_P(
     SyclPropagatorValidation6, SyclPropConstBFieldCpy,
-    ::testing::Values(std::make_tuple(-800.f * unit<scalar_t>::um,
-                                      5.f * unit<scalar_t>::mm,
-                                      vector3_t{0.f * unit<scalar_t>::T,
-                                                1.f * unit<scalar_t>::T,
-                                                1.f * unit<scalar_t>::T})));
+    ::testing::Values(std::make_tuple(-800.f * unit<scalar>::um,
+                                      5.f * unit<scalar>::mm,
+                                      vector3{0.f * unit<scalar>::T,
+                                                1.f * unit<scalar>::T,
+                                                1.f * unit<scalar>::T})));
 
 INSTANTIATE_TEST_SUITE_P(
     SyclPropagatorValidation7, SyclPropConstBFieldCpy,
-    ::testing::Values(std::make_tuple(-800.f * unit<scalar_t>::um,
-                                      5.f * unit<scalar_t>::mm,
-                                      vector3_t{1.f * unit<scalar_t>::T,
-                                                0.f * unit<scalar_t>::T,
-                                                1.f * unit<scalar_t>::T})));
+    ::testing::Values(std::make_tuple(-800.f * unit<scalar>::um,
+                                      5.f * unit<scalar>::mm,
+                                      vector3{1.f * unit<scalar>::T,
+                                                0.f * unit<scalar>::T,
+                                                1.f * unit<scalar>::T})));
 
 INSTANTIATE_TEST_SUITE_P(
     SyclPropagatorValidation8, SyclPropConstBFieldCpy,
-    ::testing::Values(std::make_tuple(-800.f * unit<scalar_t>::um,
-                                      1.f * unit<scalar_t>::mm,
-                                      vector3_t{1.f * unit<scalar_t>::T,
-                                                1.f * unit<scalar_t>::T,
-                                                1.f * unit<scalar_t>::T})));
+    ::testing::Values(std::make_tuple(-800.f * unit<scalar>::um,
+                                      1.f * unit<scalar>::mm,
+                                      vector3{1.f * unit<scalar>::T,
+                                                1.f * unit<scalar>::T,
+                                                1.f * unit<scalar>::T})));
 
 /// This tests the device propagation in an inhomogenepus magnetic field
 /*
@@ -193,12 +193,12 @@ TEST(SyclPropagatorValidation10, inhomogeneous_bfield_cpy) {
     // Test configuration
     propagator_test_config cfg{};
     cfg.track_generator.phi_steps(10u).theta_steps(10u);
-    cfg.track_generator.p_tot(10.f * unit<scalar_t>::GeV);
+    cfg.track_generator.p_tot(10.f * unit<scalar>::GeV);
     cfg.track_generator.eta_range(-3.f, 3.f);
     cfg.propagation.navigation.search_window = {3u, 3u};
 
     // Create the toy geometry with inhomogeneous bfield from file
-    auto [det, names] = build_toy_detector<bfield::inhom_bknd_t>(
+    auto [det, names] = build_toy_detector<test_algebra, bfield::inhom_bknd_t>(
         shared_mr, toy_cfg);
 
     auto det_buff = detray::get_buffer<bfield::sycl::inhom_bknd_t>(det,

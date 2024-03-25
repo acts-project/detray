@@ -22,6 +22,8 @@
 
 using namespace detray;
 
+using scalar = test::scalar;
+
 namespace {
 
 /// Define mask types
@@ -38,21 +40,22 @@ constexpr scalar tol{std::numeric_limits<scalar>::epsilon()};
 
 }  // namespace
 
-using algebra_t = test::algebra;
-using scalar_t = dscalar<algebra_t>;
+using test_algebra = test::algebra;
+using scalar_t = dscalar<test_algebra>;
 using point2 = test::point2;
 using vector3 = test::vector3;
 using point3 = test::point3;
 
 using mask_link_t = dtyped_index<mask_ids, dindex>;
 using material_link_t = dtyped_index<material_ids, dindex>;
-using surface_t = surface_descriptor<mask_link_t, material_link_t, algebra_t>;
+using surface_t =
+    surface_descriptor<mask_link_t, material_link_t, test_algebra>;
 
 // This tests the construction of a intresection
 GTEST_TEST(detray_intersection, intersection2D) {
 
-    using intersection_t = intersection2D<surface_t, algebra_t, true>;
-    using nominal_inters_t = intersection2D<surface_t, algebra_t, false>;
+    using intersection_t = intersection2D<surface_t, test_algebra, true>;
+    using nominal_inters_t = intersection2D<surface_t, test_algebra, false>;
 
     // Check memory layout of intersection struct
     static_assert(offsetof(nominal_inters_t, sf_desc) == 0);

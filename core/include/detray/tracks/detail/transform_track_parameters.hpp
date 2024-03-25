@@ -26,7 +26,6 @@ DETRAY_HOST_DEVICE inline auto free_to_bound_vector(
     const free_parameters_vector<typename local_frame_t::algebra_type>&
         free_vec) {
 
-    // Matrix operator
     using algebra_t = typename local_frame_t::algebra_type;
 
     const auto pos = free_vec.pos();
@@ -51,12 +50,10 @@ DETRAY_HOST_DEVICE inline auto bound_to_free_vector(
     const dtransform3D<typename mask_t::algebra_type>& trf3, const mask_t& mask,
     const bound_parameters_vector<typename mask_t::algebra_type>& bound_vec) {
 
-    // Matrix operator
     using algebra_t = typename mask_t::algebra_type;
     using local_frame_t = typename mask_t::local_frame;
 
     const auto bound_local = bound_vec.bound_local();
-
     const auto dir = bound_vec.dir();
 
     const auto pos =
