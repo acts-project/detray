@@ -49,9 +49,8 @@ struct axes {
 };
 
 /// Helper trait to resolve the type of a @c multi_axis from a shape
-template <typename axes_t, bool is_owning = true,
-          typename containers = host_container_types,
-          typename algebra_t = ALGEBRA_PLUGIN<detray::scalar>>
+template <typename axes_t, typename algebra_t, bool is_owning = true,
+          typename containers = host_container_types>
 using coordinate_axes = typename axis::detail::get_coordinate_axes_type<
     axes_t, is_owning, containers, algebra_t>::type;
 
@@ -86,8 +85,8 @@ struct get_axes_types<cartesian2D<A>, e_bounds, binning0_t, binning1_t,
 
     using bounds = detray::types::list<bounds_t<e_bounds, label0>,
                                        bounds_t<e_bounds, label1>>;
-    template <typename C, typename S>
-    using binning = detray::types::list<binning0_t<C, S>, binning1_t<C, S>>;
+    template <typename S, typename C>
+    using binning = detray::types::list<binning0_t<S, C>, binning1_t<S, C>>;
 };
 
 /// Behaviour of the three local axes (linear in x, y, z)
@@ -107,9 +106,9 @@ struct get_axes_types<cartesian3D<A>, e_bounds, binning0_t, binning1_t,
     using bounds = detray::types::list<bounds_t<e_bounds, label0>,
                                        bounds_t<e_bounds, label1>,
                                        bounds_t<e_bounds, label2>>;
-    template <typename C, typename S>
-    using binning = detray::types::list<binning0_t<C, S>, binning1_t<C, S>,
-                                        binning2_t<C, S>>;
+    template <typename S, typename C>
+    using binning = detray::types::list<binning0_t<S, C>, binning1_t<S, C>,
+                                        binning2_t<S, C>>;
 };
 
 /// Behaviour of the two local axes (linear in r, circular in phi)
@@ -127,8 +126,8 @@ struct get_axes_types<polar2D<A>, e_bounds, binning0_t, binning1_t,
 
     using bounds =
         detray::types::list<bounds_t<e_bounds, label0>, axis::circular<label1>>;
-    template <typename C, typename S>
-    using binning = detray::types::list<binning0_t<C, S>, binning1_t<C, S>>;
+    template <typename S, typename C>
+    using binning = detray::types::list<binning0_t<S, C>, binning1_t<S, C>>;
 };
 
 /// Behaviour of the two local axes (circular in r-phi, linear in z)
@@ -146,8 +145,8 @@ struct get_axes_types<cylindrical2D<A>, e_bounds, binning0_t, binning1_t,
 
     using bounds =
         detray::types::list<axis::circular<label0>, bounds_t<e_bounds, label1>>;
-    template <typename C, typename S>
-    using binning = detray::types::list<binning0_t<C, S>, binning1_t<C, S>>;
+    template <typename S, typename C>
+    using binning = detray::types::list<binning0_t<S, C>, binning1_t<S, C>>;
 };
 
 /// Behaviour of the two local axes (circular in r-phi, linear in z)
@@ -165,8 +164,8 @@ struct get_axes_types<concentric_cylindrical2D<A>, e_bounds, binning0_t,
 
     using bounds =
         detray::types::list<axis::circular<label0>, bounds_t<e_bounds, label1>>;
-    template <typename C, typename S>
-    using binning = detray::types::list<binning0_t<C, S>, binning1_t<C, S>>;
+    template <typename S, typename C>
+    using binning = detray::types::list<binning0_t<S, C>, binning1_t<S, C>>;
 };
 
 /// Behaviour of the two local axes (linear in r, circular in phi, linear in z)
@@ -186,9 +185,9 @@ struct get_axes_types<cylindrical3D<A>, e_bounds, binning0_t, binning1_t,
     using bounds =
         detray::types::list<bounds_t<e_bounds, label0>, axis::circular<label1>,
                             bounds_t<e_bounds, label2>>;
-    template <typename C, typename S>
-    using binning = detray::types::list<binning0_t<C, S>, binning1_t<C, S>,
-                                        binning2_t<C, S>>;
+    template <typename S, typename C>
+    using binning = detray::types::list<binning0_t<S, C>, binning1_t<S, C>,
+                                        binning2_t<S, C>>;
 };
 
 /// Construct a @c multi_axis type from a given axes-shape
@@ -203,7 +202,7 @@ requires std::is_same_v<typename axes_t::bounds,
         typename axes_t::template type<algebra_t>::template frame<algebra_t>,
         typename axes_t::template type<algebra_t>::bounds,
         typename axes_t::template type<algebra_t>::template binning<
-            containers, dscalar<algebra_t>>>::type;
+            dscalar<algebra_t>, containers>>::type;
 };
 
 /// Don't do anything if the type is already a @c multi_axis

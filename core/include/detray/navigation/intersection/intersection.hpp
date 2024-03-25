@@ -30,8 +30,8 @@ struct intersection2D {};
 template <typename surface_descr_t, typename algebra_t>
 struct intersection2D<surface_descr_t, algebra_t, false> {
 
-    using T = typename algebra_t::value_type;
     using algebra_type = algebra_t;
+    using T = dvalue<algebra_t>;
     using bool_t = dbool<algebra_t>;
     using scalar_type = dscalar<algebra_t>;
     using point2_type = dpoint2D<algebra_t>;

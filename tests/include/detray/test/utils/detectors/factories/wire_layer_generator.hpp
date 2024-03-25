@@ -28,7 +28,7 @@ namespace detray {
 template <typename scalar_t>
 struct wire_layer_generator_config {
     /// Half length of the layer (z)
-    scalar_t m_half_z{1000.f * unit<scalar>::mm};
+    scalar_t m_half_z{1000.f * unit<scalar_t>::mm};
     /// Cell size/radius
     scalar_t m_cell_size{10.f * unit<scalar_t>::mm};
     /// Stereo angle between wires
@@ -74,10 +74,11 @@ template <typename detector_t, typename mask_shape_t = line_square>
 class wire_layer_generator final
     : public surface_factory_interface<detector_t> {
 
-    using scalar_t = typename detector_t::scalar_type;
-    using transform3_t = typename detector_t::transform3_type;
-    using point3_t = typename detector_t::point3_type;
-    using vector3_t = typename detector_t::vector3_type;
+    using algebra_t = typename detector_t::algebra_type;
+    using scalar_t = dscalar<algebra_t>;
+    using transform3_t = dtransform3D<algebra_t>;
+    using point3_t = dpoint3D<algebra_t>;
+    using vector3_t = dvector3D<algebra_t>;
 
     public:
     /// Build a wire chamber/straw tube layer according to the parameters given
@@ -125,7 +126,6 @@ class wire_layer_generator final
                     typename detector_t::geometry_context ctx = {})
         -> dindex_range override {
 
-        using algebra_t = typename detector_t::algebra_type;
         using surface_t = typename detector_t::surface_type;
         using nav_link_t = typename surface_t::navigation_link;
         using mask_link_t = typename surface_t::mask_link;
@@ -139,7 +139,7 @@ class wire_layer_generator final
 
         // The type id of the surface mask shape (drift cell or straw tube)
         constexpr auto mask_id{detector_t::mask_container::template get_id<
-            mask<mask_shape_t>>::value};
+            mask<mask_shape_t, algebra_t>>::value};
         // Modules link back to mother volume in navigation
         const auto mask_volume_link{static_cast<nav_link_t>(volume_idx)};
 

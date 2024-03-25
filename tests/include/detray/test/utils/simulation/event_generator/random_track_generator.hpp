@@ -39,19 +39,23 @@ namespace detray {
 /// generator, which must not be invalidated during the iteration.
 /// @note the random numbers are clamped to fit the phi/theta ranges. This can
 /// effect distribution mean etc.
-template <typename track_t, typename generator_t = detail::random_numbers<>>
+template <typename track_t,
+          typename generator_t =
+              detail::random_numbers<dscalar<typename track_t::algebra_type>>>
 class random_track_generator
     : public detray::ranges::view_interface<
           random_track_generator<track_t, generator_t>> {
 
-    using point3 = typename track_t::point3_type;
-    using vector3 = typename track_t::vector3_type;
+    using algebra_t = typename track_t::algebra_type;
+    using scalar_t = dscalar<algebra_t>;
+    using point3_t = dpoint3D<algebra_t>;
+    using vector3_t = dvector3D<algebra_t>;
 
     public:
     using track_type = track_t;
 
     /// Configure how tracks are generated
-    using configuration = random_track_generator_config;
+    using configuration = random_track_generator_config<scalar_t>;
 
     private:
     /// @brief Nested iterator type that generates track states.
@@ -104,24 +108,24 @@ class random_track_generator
             const auto& ori = m_cfg.origin();
             const auto& ori_stddev = m_cfg.origin_stddev();
 
-            const point3 vtx =
+            const point3_t vtx =
                 m_cfg.do_vertex_smearing()
-                    ? point3{m_rnd_numbers->normal(ori[0], ori_stddev[0]),
-                             m_rnd_numbers->normal(ori[1], ori_stddev[1]),
-                             m_rnd_numbers->normal(ori[2], ori_stddev[2])}
-                    : point3{ori[0], ori[1], ori[2]};
+                    ? point3_t{m_rnd_numbers->normal(ori[0], ori_stddev[0]),
+                               m_rnd_numbers->normal(ori[1], ori_stddev[1]),
+                               m_rnd_numbers->normal(ori[2], ori_stddev[2])}
+                    : point3_t{ori[0], ori[1], ori[2]};
 
-            scalar p_mag{(*m_rnd_numbers)(m_cfg.mom_range())};
-            scalar phi{(*m_rnd_numbers)(m_cfg.phi_range())};
-            scalar theta{(*m_rnd_numbers)(m_cfg.theta_range())};
-            scalar sin_theta{math::sin(theta)};
+            scalar_t p_mag{(*m_rnd_numbers)(m_cfg.mom_range())};
+            scalar_t phi{(*m_rnd_numbers)(m_cfg.phi_range())};
+            scalar_t theta{(*m_rnd_numbers)(m_cfg.theta_range())};
+            scalar_t sin_theta{math::sin(theta)};
 
             // Momentum direction from angles
-            vector3 mom{math::cos(phi) * sin_theta, math::sin(phi) * sin_theta,
-                        math::cos(theta)};
+            vector3_t mom{math::cos(phi) * sin_theta,
+                          math::sin(phi) * sin_theta, math::cos(theta)};
 
-            sin_theta = (sin_theta == scalar{0.f})
-                            ? std::numeric_limits<scalar>::epsilon()
+            sin_theta = (sin_theta == scalar_t{0.f})
+                            ? std::numeric_limits<scalar_t>::epsilon()
                             : sin_theta;
 
             mom = (m_cfg.is_pT() ? 1.f / sin_theta : 1.f) * p_mag *
@@ -129,7 +133,7 @@ class random_track_generator
 
             // Randomly flip the charge sign
             std::array<double, 2> signs{1., -1.};
-            const auto sign{static_cast<scalar>(
+            const auto sign{static_cast<scalar_t>(
                 signs[m_cfg.randomize_charge() ? m_rnd_numbers->coin_toss()
                                                : 0u])};
 
@@ -170,9 +174,9 @@ class random_track_generator
     DETRAY_HOST_DEVICE
     random_track_generator(
         std::size_t n_tracks,
-        std::array<scalar, 2> mom_range = {1.f * unit<scalar>::GeV,
-                                           1.f * unit<scalar>::GeV},
-        scalar charge = -1.f * unit<scalar>::e)
+        std::array<scalar_t, 2> mom_range = {1.f * unit<scalar_t>::GeV,
+                                             1.f * unit<scalar_t>::GeV},
+        scalar_t charge = -1.f * unit<scalar_t>::e)
         : m_gen{std::make_shared<generator_t>()}, m_cfg{} {
         m_cfg.n_tracks(n_tracks);
         m_cfg.mom_range(mom_range);

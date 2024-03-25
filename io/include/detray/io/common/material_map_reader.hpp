@@ -48,7 +48,7 @@ class material_map_reader {
                         detector_grids_payload<material_slab_payload,
                                                io::material_id> &&grids_data) {
 
-        using scalar_t = typename detector_t::scalar_type;
+        using scalar_t = dscalar<typename detector_t::algebra_type>;
         using mat_factory_t = material_map_factory<detector_t, bin_index_type>;
         using mat_data_t = typename mat_factory_t::data_type;
         using mat_id = typename detector_t::materials::id;

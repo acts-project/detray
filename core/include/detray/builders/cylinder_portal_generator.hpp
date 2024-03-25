@@ -110,15 +110,16 @@ template <typename detector_t>
 class cylinder_portal_generator final
     : public surface_factory_interface<detector_t> {
 
-    using scalar_t = typename detector_t::scalar_type;
-    using point3_t = typename detector_t::point3_type;
-    using vector3_t = typename detector_t::vector3_type;
-    using transform3_t = typename detector_t::transform3_type;
+    using algebra_t = typename detector_t::algebra_type;
+    using scalar_t = dscalar<algebra_t>;
+    using point3_t = dpoint3D<algebra_t>;
+    using vector3_t = dvector3D<algebra_t>;
+    using transform3_t = dtransform3D<algebra_t>;
 
     /// A functor to construct global bounding boxes around masks
     struct bounding_box_creator {
 
-        using aabb_t = axis_aligned_bounding_volume<cuboid3D>;
+        using aabb_t = axis_aligned_bounding_volume<cuboid3D, algebra_t>;
 
         template <typename mask_group_t, typename index_t>
         DETRAY_HOST_DEVICE inline void operator()(
@@ -182,7 +183,7 @@ class cylinder_portal_generator final
                     typename detector_t::geometry_context ctx = {})
         -> dindex_range override {
 
-        using aabb_t = axis_aligned_bounding_volume<cuboid3D>;
+        using aabb_t = axis_aligned_bounding_volume<cuboid3D, algebra_t>;
 
         // Only build portals for cylinder volumes
         assert(volume.id() == volume_id::e_cylinder);
@@ -227,9 +228,9 @@ class cylinder_portal_generator final
 
             // Get the half lengths for the cylinder height and disc translation
             const point3_t h_lengths = 0.5f * (box_max - box_min);
-            const scalar h_x{math::fabs(h_lengths[0])};
-            const scalar h_y{math::fabs(h_lengths[1])};
-            const scalar h_z{math::fabs(h_lengths[2])};
+            const scalar_t h_x{math::fabs(h_lengths[0])};
+            const scalar_t h_y{math::fabs(h_lengths[1])};
+            const scalar_t h_z{math::fabs(h_lengths[2])};
 
             const scalar_t outer_r_min{math::max(h_x, h_y)};
             const scalar_t mean_radius{get_mean_radius(surfaces, transforms)};

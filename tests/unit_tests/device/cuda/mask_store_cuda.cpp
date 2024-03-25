@@ -59,7 +59,7 @@ TEST(mask_store_cuda, mask_store) {
 
     std::random_device rd;
     std::mt19937_64 gen(rd());
-    std::uniform_real_distribution<dscalar<algebra_t>> dist(0.f, 9.9f);
+    std::uniform_real_distribution<dscalar<test_algebra>> dist(0.f, 9.9f);
     for (unsigned int i = 0u; i < n_points; i++) {
         point3 rand_point3 = {dist(gen), dist(gen), dist(gen)};
         input_point3[i] = rand_point3;

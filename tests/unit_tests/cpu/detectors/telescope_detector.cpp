@@ -40,8 +40,9 @@ namespace detray {
 
 namespace {
 
+using test_algebra = test::algebra;
+using scalar = test::scalar;
 using vector3 = test::vector3;
-using algebra_t = test::algebra;
 
 // dummy propagator state
 template <typename stepping_t, typename navigation_t>
@@ -73,16 +74,16 @@ GTEST_TEST(detray_detectors, telescope_detector) {
     using namespace detray;
 
     // Use rectangle surfaces
-    mask<rectangle2D> rectangle{0u, 20.f * unit<scalar>::mm,
-                                20.f * unit<scalar>::mm};
-    tel_det_config<> tel_cfg{rectangle};
+    mask<rectangle2D, test_algebra> rectangle{0u, 20.f * unit<scalar>::mm,
+                                              20.f * unit<scalar>::mm};
+    tel_det_config<test_algebra> tel_cfg{rectangle};
 
     using const_bfield_bknd_t =
         covfie::backend::constant<covfie::vector::vector_d<scalar, 3>,
                                   covfie::vector::vector_d<scalar, 3>>;
     using b_field_t = covfie::field<const_bfield_bknd_t>;
 
-    using rk_stepper_t = rk_stepper<b_field_t::view_t, algebra_t>;
+    using rk_stepper_t = rk_stepper<b_field_t::view_t, test_algebra>;
     using inspector_t = navigation::print_inspector;
     constexpr std::size_t cache_size{navigation::default_cache_size};
 
@@ -112,7 +113,8 @@ GTEST_TEST(detray_detectors, telescope_detector) {
                                      300.f, 350.f, 400.f, 450.f, 500.f};
     // Build telescope detector with unbounded planes
     const auto [z_tel_det1, z_tel_names1] =
-        build_telescope_detector(host_mr, tel_cfg.positions(positions));
+        build_telescope_detector<test_algebra>(host_mr,
+                                               tel_cfg.positions(positions));
 
     // Some general checks
     const auto vol0 = tracking_volume{z_tel_det1, 0u};
@@ -132,7 +134,7 @@ GTEST_TEST(detray_detectors, telescope_detector) {
     // length/number of surfaces
     tel_cfg.positions({}).n_surfaces(11u).length(500.f * unit<scalar>::mm);
     const auto [z_tel_det2, z_tel_names2] =
-        build_telescope_detector(host_mr, tel_cfg);
+        build_telescope_detector<test_algebra>(host_mr, tel_cfg);
 
     // Check general consistency of the detector
     detail::check_consistency(z_tel_det2, verbose_check, z_tel_names2);
@@ -152,10 +154,12 @@ GTEST_TEST(detray_detectors, telescope_detector) {
     //
 
     // Same telescope, but in x direction and created from custom stepper
-    detail::ray<algebra_t> x_track({0.f, 0.f, 0.f}, 0.f, {1.f, 0.f, 0.f}, -1.f);
+    detail::ray<test_algebra> x_track({0.f, 0.f, 0.f}, 0.f, {1.f, 0.f, 0.f},
+                                      -1.f);
 
     const auto [x_tel_det, x_tel_names] =
-        build_telescope_detector(host_mr, tel_cfg.pilot_track(x_track));
+        build_telescope_detector<test_algebra>(host_mr,
+                                               tel_cfg.pilot_track(x_track));
 
     // Check general consistency of the detector
     detail::check_consistency(x_tel_det, verbose_check, x_tel_names);
@@ -167,10 +171,10 @@ GTEST_TEST(detray_detectors, telescope_detector) {
     // Telescope navigation should be symmetric in x and z
     vector3 pos = {0.f, 0.f, 0.f};
     vector3 mom = {0.f, 0.f, 1.f};
-    free_track_parameters<algebra_t> test_track_z1(pos, 0.f, mom, -1.f);
-    free_track_parameters<algebra_t> test_track_z2(pos, 0.f, mom, -1.f);
+    free_track_parameters<test_algebra> test_track_z1(pos, 0.f, mom, -1.f);
+    free_track_parameters<test_algebra> test_track_z2(pos, 0.f, mom, -1.f);
     mom = {1.f, 0.f, 0.f};
-    free_track_parameters<algebra_t> test_track_x(pos, 0.f, mom, -1.f);
+    free_track_parameters<test_algebra> test_track_x(pos, 0.f, mom, -1.f);
 
     // navigators
     navigator<decltype(z_tel_det1), cache_size, inspector_t> navigator_z1;
@@ -277,14 +281,14 @@ GTEST_TEST(detray_detectors, telescope_detector) {
     pos = {0.f, 0.f, 0.f};
     mom = {0.f, 1.f, 0.f};
 
-    auto pilot_track = free_track_parameters<algebra_t>(pos, 0.f, mom, -1.f);
+    auto pilot_track = free_track_parameters<test_algebra>(pos, 0.f, mom, -1.f);
 
-    detail::helix<algebra_t> helix_bz(pilot_track, &B_z);
+    detail::helix<test_algebra> helix_bz(pilot_track, &B_z);
 
     tel_det_config htel_cfg{rectangle, helix_bz};
     htel_cfg.n_surfaces(11u).length(500.f * unit<scalar>::mm);
     const auto [tel_detector, tel_names] =
-        build_telescope_detector(host_mr, htel_cfg);
+        build_telescope_detector<test_algebra>(host_mr, htel_cfg);
 
     // Check general consistency of the detector
     detail::check_consistency(tel_detector, verbose_check, tel_names);

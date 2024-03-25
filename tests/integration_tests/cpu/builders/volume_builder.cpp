@@ -27,6 +27,7 @@
 
 namespace {
 
+using scalar = detray::test::scalar;
 using point3 = detray::test::point3;
 
 /// Check volume links for a collection of masks in a given detector
@@ -48,7 +49,8 @@ GTEST_TEST(detray_builders, tracking_volume_construction) {
 
     using namespace detray;
 
-    using detector_t = detector<>;
+    using metadata_t = test::default_metadata;
+    using detector_t = detector<metadata_t>;
     using transform3 = typename detector_t::transform3_type;
     using geo_obj_id = typename detector_t::geo_obj_ids;
     using mask_id = typename detector_t::masks::id;
@@ -57,7 +59,7 @@ GTEST_TEST(detray_builders, tracking_volume_construction) {
     // Surface factories
     using portal_cylinder_factory =
         surface_factory<detector_t,
-                        typename default_metadata::cylinder_portal::shape>;
+                        typename detector_t::metadata::cylinder_portal::shape>;
     using annulus_factory = surface_factory<detector_t, annulus2D>;
     using cylinder_factory = surface_factory<detector_t, cylinder2D>;
     using rectangle_factory = surface_factory<detector_t, rectangle2D>;

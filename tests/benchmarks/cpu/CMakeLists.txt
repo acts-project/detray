@@ -83,6 +83,11 @@ if(DETRAY_VC_SOA_PLUGIN)
            detray::test_utils
         )
 
+        target_compile_options(
+            detray_benchmark_cpu_vc_soa_vs_${algebra}
+            PRIVATE "-march=native"
+        )
+
         # Add Vc specific flags
         target_compile_options(
             detray_benchmark_cpu_vc_soa_vs_${algebra}
@@ -106,4 +111,6 @@ if(DETRAY_VC_SOA_PLUGIN)
     endmacro()
 
     detray_add_soa_benchmark( array )
+    # detray_add_soa_benchmark( eigen )
+    # detray_add_soa_benchmark( vc_aos )
 endif()

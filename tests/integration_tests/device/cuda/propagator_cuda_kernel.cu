@@ -17,8 +17,9 @@ template <typename bfield_bknd_t, typename detector_t>
 __global__ void propagator_test_kernel(
     typename detector_t::view_type det_data, const propagation::config cfg,
     covfie::field_view<bfield_bknd_t> field_data,
-    vecmem::data::vector_view<track_t> tracks_data,
-    vecmem::data::jagged_vector_view<detail::step_data<algebra_t>> steps_data) {
+    vecmem::data::vector_view<test_track> tracks_data,
+    vecmem::data::jagged_vector_view<detail::step_data<test_algebra>>
+        steps_data) {
 
     int gid = threadIdx.x + blockIdx.x * blockDim.x;
     using detector_device_t =
@@ -29,8 +30,8 @@ __global__ void propagator_test_kernel(
                   "Host and device detector views do not match");
 
     detector_device_t det(det_data);
-    vecmem::device_vector<track_t> tracks(tracks_data);
-    vecmem::jagged_device_vector<detail::step_data<algebra_t>> steps(
+    vecmem::device_vector<test_track> tracks(tracks_data);
+    vecmem::jagged_device_vector<detail::step_data<test_algebra>> steps(
         steps_data);
 
     if (gid >= tracks.size()) {
@@ -49,10 +50,10 @@ __global__ void propagator_test_kernel(
     // Create actor states
     step_tracer_device_t::state tracer_state(steps.at(gid));
     tracer_state.collect_only_on_surface(true);
-    pathlimit_aborter::state aborter_state{cfg.stepping.path_limit};
-    parameter_transporter<algebra_t>::state transporter_state{};
-    pointwise_material_interactor<algebra_t>::state interactor_state{};
-    parameter_resetter<algebra_t>::state resetter_state{};
+    pathlimit_aborter_t::state aborter_state{cfg.stepping.path_limit};
+    parameter_transporter<test_algebra>::state transporter_state{};
+    pointwise_material_interactor<test_algebra>::state interactor_state{};
+    parameter_resetter<test_algebra>::state resetter_state{};
 
     // Create the actor states
     auto actor_states =
@@ -73,8 +74,9 @@ template <typename bfield_bknd_t, typename detector_t>
 void propagator_test(
     typename detector_t::view_type det_view, const propagation::config& cfg,
     covfie::field_view<bfield_bknd_t> field_data,
-    vecmem::data::vector_view<track_t>& tracks_data,
-    vecmem::data::jagged_vector_view<detail::step_data<algebra_t>>& step_data) {
+    vecmem::data::vector_view<test_track>& tracks_data,
+    vecmem::data::jagged_vector_view<detail::step_data<test_algebra>>&
+        step_data) {
 
     constexpr int thread_dim = 2 * WARP_SIZE;
     int block_dim = tracks_data.size() / thread_dim + 1;
@@ -90,19 +92,22 @@ void propagator_test(
 }
 
 /// Explicit instantiation for a constant magnetic field
-template void propagator_test<bfield::const_bknd_t,
-                              detector<toy_metadata, host_container_types>>(
-    detector<toy_metadata, host_container_types>::view_type,
-    const propagation::config&, covfie::field_view<bfield::const_bknd_t>,
-    vecmem::data::vector_view<track_t>&,
-    vecmem::data::jagged_vector_view<detail::step_data<algebra_t>>&);
+template void
+propagator_test<bfield::const_bknd_t<dscalar<test_algebra>>,
+                detector<toy_metadata<test_algebra>, host_container_types>>(
+    detector<toy_metadata<test_algebra>, host_container_types>::view_type,
+    const propagation::config&,
+    covfie::field_view<bfield::const_bknd_t<dscalar<test_algebra>>>,
+    vecmem::data::vector_view<test_track>&,
+    vecmem::data::jagged_vector_view<detail::step_data<test_algebra>>&);
 
 /// Explicit instantiation for an inhomogeneous magnetic field
-template void propagator_test<bfield::cuda::inhom_bknd_t,
-                              detector<toy_metadata, host_container_types>>(
-    detector<toy_metadata, host_container_types>::view_type,
+template void
+propagator_test<bfield::cuda::inhom_bknd_t,
+                detector<toy_metadata<test_algebra>, host_container_types>>(
+    detector<toy_metadata<test_algebra>, host_container_types>::view_type,
     const propagation::config&, covfie::field_view<bfield::cuda::inhom_bknd_t>,
-    vecmem::data::vector_view<track_t>&,
-    vecmem::data::jagged_vector_view<detail::step_data<algebra_t>>&);
+    vecmem::data::vector_view<test_track>&,
+    vecmem::data::jagged_vector_view<detail::step_data<test_algebra>>&);
 
 }  // namespace detray

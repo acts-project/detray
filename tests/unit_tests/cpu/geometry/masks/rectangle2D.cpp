@@ -19,7 +19,10 @@
 #include <gtest/gtest.h>
 
 using namespace detray;
-using point3_t = test::point3;
+
+using test_algebra = test::algebra;
+using scalar = test::scalar;
+using point3 = test::point3;
 
 constexpr scalar tol{1e-7f};
 
@@ -29,13 +32,12 @@ constexpr scalar hz{0.5f * unit<scalar>::mm};
 
 /// This tests the basic functionality of a rectangle
 GTEST_TEST(detray_masks, rectangle2D) {
-    using point_t = point3_t;
 
-    point_t p2_in = {0.5f, -9.f, 0.f};
-    point_t p2_edge = {1.f, 9.3f, 0.f};
-    point_t p2_out = {1.5f, -9.f, 0.f};
+    point3 p2_in = {0.5f, -9.f, 0.f};
+    point3 p2_edge = {1.f, 9.3f, 0.f};
+    point3 p2_out = {1.5f, -9.f, 0.f};
 
-    mask<rectangle2D> r2{0u, hx, hy};
+    mask<rectangle2D, test_algebra> r2{0u, hx, hy};
 
     ASSERT_NEAR(r2[rectangle2D::e_half_x], hx, tol);
     ASSERT_NEAR(r2[rectangle2D::e_half_y], hy, tol);
@@ -71,15 +73,16 @@ GTEST_TEST(detray_masks, rectangle2D) {
 GTEST_TEST(detray_masks, rectangle2D_ratio_test) {
 
     struct mask_check {
-        bool operator()(const test::point3 &p, const mask<rectangle2D> &r,
+        bool operator()(const point3 &p,
+                        const mask<rectangle2D, test_algebra> &r,
                         const test::transform3 &trf, const scalar t) {
 
-            const test::point3 loc_p{r.to_local_frame(trf, p)};
+            const point3 loc_p{r.to_local_frame(trf, p)};
             return r.is_inside(loc_p, t);
         }
     };
 
-    constexpr mask<rectangle2D> r{0u, 3.f, 4.f};
+    constexpr mask<rectangle2D, test_algebra> r{0u, 3.f, 4.f};
 
     constexpr scalar t{0.f};
     const test::transform3 trf{};
@@ -87,7 +90,7 @@ GTEST_TEST(detray_masks, rectangle2D_ratio_test) {
     const auto n_points{static_cast<std::size_t>(std::pow(500, 3))};
 
     // x- and y-coordinates yield a valid local position on the underlying plane
-    std::vector<test::point3> points =
+    std::vector<point3> points =
         test::generate_regular_points<cuboid3D>(n_points, {size});
 
     scalar ratio = test::ratio_test<mask_check>(points, r, trf, t);
@@ -100,13 +103,12 @@ GTEST_TEST(detray_masks, rectangle2D_ratio_test) {
 
 /// This tests the basic functionality of a cuboid3D
 GTEST_TEST(detray_masks, cuboid3D) {
-    using point_t = point3_t;
 
-    point_t p2_in = {0.5f, 8.0f, -0.4f};
-    point_t p2_edge = {1.f, 9.3f, 0.5f};
-    point_t p2_out = {1.5f, -9.f, 0.55f};
+    point3 p2_in = {0.5f, 8.0f, -0.4f};
+    point3 p2_edge = {1.f, 9.3f, 0.5f};
+    point3 p2_out = {1.5f, -9.f, 0.55f};
 
-    mask<cuboid3D> c3{0u, -hx, -hy, -hz, hx, hy, hz};
+    mask<cuboid3D, test_algebra> c3{0u, -hx, -hy, -hz, hx, hy, hz};
 
     ASSERT_NEAR(c3[cuboid3D::e_min_x], -hx, tol);
     ASSERT_NEAR(c3[cuboid3D::e_min_y], -hy, tol);
@@ -141,22 +143,22 @@ GTEST_TEST(detray_masks, cuboid3D) {
 GTEST_TEST(detray_masks, cuboid3D_ratio_test) {
 
     struct mask_check {
-        bool operator()(const test::point3 &p, const mask<cuboid3D> &cb,
+        bool operator()(const point3 &p, const mask<cuboid3D, test_algebra> &cb,
                         const test::transform3 &trf, const scalar t) {
 
-            const test::point3 loc_p{cb.to_local_frame(trf, p)};
+            const point3 loc_p{cb.to_local_frame(trf, p)};
             return cb.is_inside(loc_p, t);
         }
     };
 
-    constexpr mask<cuboid3D> cb{0u, 0.f, 0.f, 0.f, 3.f, 4.f, 1.f};
+    constexpr mask<cuboid3D, test_algebra> cb{0u, 0.f, 0.f, 0.f, 3.f, 4.f, 1.f};
 
     constexpr scalar t{0.f};
     const test::transform3 trf{};
     constexpr scalar size{10.f * unit<scalar>::mm};
     const auto n_points{static_cast<std::size_t>(std::pow(500, 3))};
 
-    std::vector<test::point3> points =
+    std::vector<point3> points =
         test::generate_regular_points<cuboid3D>(n_points, {size});
 
     scalar ratio = test::ratio_test<mask_check>(points, cb, trf, t);

@@ -69,12 +69,12 @@ auto inline surface(const transform_t& transform, const mask_t& m) {
 }
 
 /// @brief Returns the proto surface for 2D cylinders.
-template <typename transform_t, typename shape_t>
+template <typename transform_t, typename shape_t, typename algebra_t>
     requires std::is_same_v<shape_t, cylinder2D> ||
     std::is_same_v<shape_t, concentric_cylinder2D> auto inline surface(
-        const transform_t& transform, const mask<shape_t>& m) {
+        const transform_t& transform, const mask<shape_t, algebra_t>& m) {
 
-    using point3_t = typename mask<shape_t>::point3_type;
+    using point3_t = typename mask<shape_t, algebra_t>::point3_type;
     using p_surface_t = actsvg::proto::surface<std::vector<point3_t>>;
 
     p_surface_t p_surface;
@@ -106,11 +106,11 @@ template <typename transform_t, typename shape_t>
 }
 
 /// @brief Returns the proto surface for 2D rings.
-template <typename transform_t>
-auto surface(const transform_t& transform, const mask<ring2D>& m) {
+template <typename transform_t, typename algebra_t>
+auto surface(const transform_t& transform, const mask<ring2D, algebra_t>& m) {
 
     using shape_t = ring2D;
-    using point3_t = typename mask<ring2D>::point3_type;
+    using point3_t = typename mask<ring2D, algebra_t>::point3_type;
     using p_surface_t = actsvg::proto::surface<std::vector<point3_t>>;
 
     p_surface_t p_surface;
@@ -131,10 +131,11 @@ auto surface(const transform_t& transform, const mask<ring2D>& m) {
 }
 
 /// @brief Returns the proto surface for 2D annuli.
-template <typename transform_t>
-auto inline surface(const transform_t& transform, const mask<annulus2D>& m) {
+template <typename transform_t, typename algebra_t>
+auto inline surface(const transform_t& transform,
+                    const mask<annulus2D, algebra_t>& m) {
 
-    using point3_t = typename mask<annulus2D>::point3_type;
+    using point3_t = typename mask<annulus2D, algebra_t>::point3_type;
     using p_surface_t = actsvg::proto::surface<std::vector<point3_t>>;
 
     p_surface_t p_surface;
@@ -147,12 +148,12 @@ auto inline surface(const transform_t& transform, const mask<annulus2D>& m) {
 }
 
 /// @brief Returns the proto surface for 2D rings.
-template <typename transform_t, bool kSquareCrossSect>
+template <typename transform_t, bool kSquareCrossSect, typename algebra_t>
 auto surface(const transform_t& transform,
-             const mask<line<kSquareCrossSect>>& m) {
+             const mask<line<kSquareCrossSect>, algebra_t>& m) {
 
     using shape_t = line<kSquareCrossSect>;
-    using point3_t = typename mask<shape_t>::point3_type;
+    using point3_t = typename mask<shape_t, algebra_t>::point3_type;
     using p_surface_t = actsvg::proto::surface<std::vector<point3_t>>;
 
     p_surface_t p_surface;
