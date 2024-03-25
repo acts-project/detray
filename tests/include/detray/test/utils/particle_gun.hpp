@@ -64,7 +64,7 @@ struct particle_gun {
 
             // Candidate is invalid if it lies in the opposite direction
             for (auto &sfi : intersections) {
-                if (sfi.direction == intersection::direction::e_along) {
+                if (sfi.direction) {
                     sfi.sf_desc = sf_desc;
                     // Volume the candidate belongs to
                     intersection_record.emplace_back(sf.volume(), sfi);

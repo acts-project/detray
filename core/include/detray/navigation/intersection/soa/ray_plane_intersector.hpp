@@ -1,6 +1,6 @@
 /** Detray library, part of the ACTS project (R&D line)
  *
- * (c) 2022-2024 CERN for the benefit of the ACTS project
+ * (c) 2024 CERN for the benefit of the ACTS project
  *
  * Mozilla Public License Version 2.0
  */
@@ -8,6 +8,7 @@
 #pragma once
 
 // Project include(s)
+#include "detray/definitions/detail/boolean.hpp"
 #include "detray/definitions/detail/math.hpp"
 #include "detray/definitions/detail/qualifiers.hpp"
 #include "detray/geometry/coordinates/cartesian2D.hpp"
@@ -25,9 +26,9 @@ struct ray_intersector_impl;
 
 /// A functor to find intersections between straight line and planar surface
 template <typename algebra_t>
-struct ray_intersector_impl<cartesian2D<algebra_t>, algebra_t, false> {
+struct ray_intersector_impl<cartesian2D<algebra_t>, algebra_t, true> {
 
-    /// linear algebra types
+    /// Linear algebra types
     /// @{
     using scalar_type = dscalar<algebra_t>;
     using point3_type = dpoint3D<algebra_t>;
@@ -37,62 +38,69 @@ struct ray_intersector_impl<cartesian2D<algebra_t>, algebra_t, false> {
 
     template <typename surface_descr_t>
     using intersection_type = intersection2D<surface_descr_t, algebra_t>;
-    using ray_type = detail::ray<algebra_t>;
 
     /// Operator function to find intersections between ray and planar mask
     ///
     /// @tparam mask_t is the input mask type
-    /// @tparam surface_descr_t is the type of surface handle
+    /// @tparam surface_t is the type of surface handle
     ///
     /// @param ray is the input ray trajectory
     /// @param sf the surface handle the mask is associated with
     /// @param mask is the input mask that defines the surface extent
     /// @param trf is the surface placement transform
     /// @param mask_tolerance is the tolerance for mask edges
-    /// @param overstep_tol negative cutoff for the path
     ///
     /// @return the intersection
-    template <typename surface_descr_t, typename mask_t>
+    template <typename surface_descr_t, typename mask_t,
+              typename other_algebra_t>
     DETRAY_HOST_DEVICE inline intersection_type<surface_descr_t> operator()(
-        const ray_type &ray, const surface_descr_t &sf, const mask_t &mask,
-        const transform3_type &trf, const scalar_type mask_tolerance = 0.f,
+        const detail::ray<other_algebra_t> &ray, const surface_descr_t &sf,
+        const mask_t &mask, const transform3_type &trf,
+        const scalar_type mask_tolerance = 0.f,
         const scalar_type overstep_tol = 0.f) const {
 
         intersection_type<surface_descr_t> is;
 
         // Retrieve the surface normal & translation (context resolved)
         const auto &sm = trf.matrix();
-        const vector3_type sn = getter::vector<3>(sm, 0u, 2u);
-        const vector3_type st = getter::vector<3>(sm, 0u, 3u);
+        // const vector3 sn = getter::vector<3>(sm, 0u, 2u);
+        const vector3_type sn = sm.z;
+        const vector3_type st = trf.translation();
 
-        // Intersection code
-        const point3_type &ro = ray.pos();
-        const vector3_type &rd = ray.dir();
+        // Broadcast ray data
+        const auto &pos = ray.pos();
+        const auto &dir = ray.dir();
+        const vector3_type ro{pos[0], pos[1], pos[2]};
+        const vector3_type rd{dir[0], dir[1], dir[2]};
+
         const scalar_type denom = vector::dot(rd, sn);
-        // this is dangerous
-        if (denom != 0.f) {
-            is.path = vector::dot(sn, st - ro) / denom;
+        const vector3_type diff = st - ro;
+        is.path = vector::dot(sn, diff) / denom;
 
-            // Intersection is valid for navigation - continue
-            if (is.path >= overstep_tol) {
+        // Check if we divided by zero
+        const auto check_sum = is.path.sum();
+        if (!std::isnan(check_sum) and !std::isinf(check_sum)) {
 
-                const point3_type p3 = ro + is.path * rd;
-                is.local = mask.to_local_frame(trf, p3, ray.dir());
-                is.status = mask.is_inside(is.local, mask_tolerance);
+            const point3_type p3 = ro + is.path * rd;
+            is.local = mask.to_local_frame(trf, p3, rd);
+            is.status = mask.is_inside(is.local, mask_tolerance);
 
-                // prepare some additional information in case the intersection
-                // is valid
-                if (is.status) {
-                    is.sf_desc = sf;
-                    is.direction = !detail::signbit(is.path);
-                    is.volume_link = mask.volume_link();
-
-                    // Get incidene angle
-                    is.cos_incidence_angle = math::abs(denom);
-                }
+            // Early return, if no intersection was found
+            if (detray::detail::none_of(is.status)) {
+                return is;
             }
+
+            is.sf_desc = sf;
+            is.direction = !math::signbit(is.path);
+            is.volume_link = mask.volume_link();
+
+            // Get incidene angle
+            is.cos_incidence_angle = math::abs(denom);
+
+            // Mask the values where the overstepping tolerance was not met
+            is.status &= (is.path >= overstep_tol);
         } else {
-            is.status = false;
+            is.status = decltype(is.status)(false);
         }
 
         return is;
@@ -108,12 +116,12 @@ struct ray_intersector_impl<cartesian2D<algebra_t>, algebra_t, false> {
     /// @param mask is the input mask that defines the surface extent
     /// @param trf is the surface placement transform
     /// @param mask_tolerance is the tolerance for mask edges
-    /// @param overstep_tol negative cutoff for the path
-    template <typename surface_descr_t, typename mask_t>
+    template <typename surface_descr_t, typename mask_t,
+              typename other_algebra_t>
     DETRAY_HOST_DEVICE inline void update(
-        const ray_type &ray, intersection_type<surface_descr_t> &sfi,
-        const mask_t &mask, const transform3_type &trf,
-        const scalar_type mask_tolerance = 0.f,
+        const detail::ray<other_algebra_t> &ray,
+        intersection_type<surface_descr_t> &sfi, const mask_t &mask,
+        const transform3_type &trf, const scalar_type mask_tolerance = 0.f,
         const scalar_type overstep_tol = 0.f) const {
         sfi = this->operator()(ray, sfi.sf_desc, mask, trf, mask_tolerance,
                                overstep_tol);
@@ -121,7 +129,7 @@ struct ray_intersector_impl<cartesian2D<algebra_t>, algebra_t, false> {
 };
 
 template <typename algebra_t>
-struct ray_intersector_impl<polar2D<algebra_t>, algebra_t, false>
-    : public ray_intersector_impl<cartesian2D<algebra_t>, algebra_t, false> {};
+struct ray_intersector_impl<polar2D<algebra_t>, algebra_t, true>
+    : public ray_intersector_impl<cartesian2D<algebra_t>, algebra_t, true> {};
 
 }  // namespace detray

@@ -68,13 +68,13 @@ struct intersection_initialize {
     private:
     template <typename is_container_t>
     DETRAY_HOST_DEVICE bool place_in_collection(
-        typename is_container_t::value_type &&sfi,
+        const typename is_container_t::value_type &sfi,
         is_container_t &intersections) const {
-        bool is_inside = (sfi.status == intersection::status::e_inside);
-        if (is_inside) {
+
+        if (sfi.status) {
             intersections.push_back(sfi);
         }
-        return is_inside;
+        return sfi.status;
     }
 
     template <typename is_container_t>
@@ -83,11 +83,10 @@ struct intersection_initialize {
         is_container_t &intersections) const {
         bool is_valid = false;
         for (auto &sfi : solutions) {
-            bool is_inside = (sfi.status == intersection::status::e_inside);
-            if (is_inside) {
+            if (sfi.status) {
                 intersections.push_back(sfi);
             }
-            is_valid |= is_inside;
+            is_valid |= sfi.status;
         }
         return is_valid;
     }
@@ -138,7 +137,7 @@ struct intersection_update {
             intersector_t<typename mask_t::shape, algebra_t>{}.update(
                 traj, sfi, mask, ctf, mask_tolerance, overstep_tol);
 
-            if (sfi.status == intersection::status::e_inside) {
+            if (sfi.status) {
                 return true;
             }
         }

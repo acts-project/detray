@@ -72,7 +72,7 @@ class line {
     template <template <typename, std::size_t> class bounds_t,
               typename scalar_t, std::size_t kDIM, typename point_t,
               typename std::enable_if_t<kDIM == 2u, bool> = true>
-    DETRAY_HOST_DEVICE inline bool check_boundaries(
+    DETRAY_HOST_DEVICE inline auto check_boundaries(
         const bounds_t<scalar_t, kDIM> &bounds, const point_t &loc_p,
         const scalar_t tol = std::numeric_limits<scalar_t>::epsilon()) const {
 
@@ -82,19 +82,18 @@ class line {
         // line from the line center is less than the half line length
         if constexpr (square_cross_sect) {
             return (math::abs(loc_p[0] * math::cos(loc_p[2])) <=
-                        bounds[e_cross_section] + tol &&
+                        (bounds[e_cross_section] + tol) &&
                     math::abs(loc_p[0] * math::sin(loc_p[2])) <=
-                        bounds[e_cross_section] + tol &&
-                    math::abs(loc_p[1]) <= bounds[e_half_z] + tol);
-
+                        (bounds[e_cross_section] + tol) &&
+                    math::abs(loc_p[1]) <= (bounds[e_half_z] + tol));
         }
         // For a circular cross section (e.g. straw tube), we check if (1) the
         // radial distance is within the scope and (2) the distance to the point
         // of closest approach on the line from the line center is less than the
         // line half length
         else {
-            return (math::abs(loc_p[0]) <= bounds[e_cross_section] + tol &&
-                    math::abs(loc_p[1]) <= bounds[e_half_z] + tol);
+            return (math::abs(loc_p[0]) <= (bounds[e_cross_section] + tol) &&
+                    math::abs(loc_p[1]) <= (bounds[e_half_z] + tol));
         }
     }
 

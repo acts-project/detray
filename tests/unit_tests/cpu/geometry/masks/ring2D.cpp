@@ -37,12 +37,11 @@ GTEST_TEST(detray_masks, ring2D) {
     ASSERT_NEAR(r2[ring2D::e_inner_r], 0.f, tol);
     ASSERT_NEAR(r2[ring2D::e_outer_r], 3.5f, tol);
 
-    ASSERT_TRUE(r2.is_inside(p2_pl_in) == intersection::status::e_inside);
-    ASSERT_TRUE(r2.is_inside(p2_pl_edge) == intersection::status::e_inside);
-    ASSERT_TRUE(r2.is_inside(p2_pl_out) == intersection::status::e_outside);
+    ASSERT_TRUE(r2.is_inside(p2_pl_in));
+    ASSERT_TRUE(r2.is_inside(p2_pl_edge));
+    ASSERT_FALSE(r2.is_inside(p2_pl_out));
     // Move outside point inside using a tolerance
-    ASSERT_TRUE(r2.is_inside(p2_pl_out, 1.2f) ==
-                intersection::status::e_inside);
+    ASSERT_TRUE(r2.is_inside(p2_pl_out, 1.2f));
 
     // Check area
     const scalar a{r2.area()};
@@ -73,7 +72,7 @@ GTEST_TEST(detray_masks, ring2D_ratio_test) {
                         const test::transform3 &trf, const scalar t) {
 
             const test::point3 loc_p{r.to_local_frame(trf, p)};
-            return r.is_inside(loc_p, t) == intersection::status::e_inside;
+            return r.is_inside(loc_p, t);
         }
     };
 

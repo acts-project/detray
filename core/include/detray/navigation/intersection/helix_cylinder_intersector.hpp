@@ -35,7 +35,7 @@ struct helix_intersector_impl;
 /// @note Don't use for low p_t tracks!
 template <typename algebra_t>
 struct helix_intersector_impl<cylindrical2D<algebra_t>, algebra_t>
-    : public ray_intersector_impl<cylindrical2D<algebra_t>, algebra_t> {
+    : public ray_intersector_impl<cylindrical2D<algebra_t>, algebra_t, false> {
 
     using scalar_type = dscalar<algebra_t>;
     using point3_type = dpoint3D<algebra_t>;
@@ -156,11 +156,9 @@ struct helix_intersector_impl<cylindrical2D<algebra_t>, algebra_t>
             is.status = mask.is_inside(is.local, mask_tolerance);
 
             // Compute some additional information if the intersection is valid
-            if (is.status == intersection::status::e_inside) {
+            if (is.status) {
                 is.sf_desc = sf_desc;
-                is.direction = math::signbit(s)
-                                   ? intersection::direction::e_opposite
-                                   : intersection::direction::e_along;
+                is.direction = !math::signbit(s);
                 is.volume_link = mask.volume_link();
             }
         }
