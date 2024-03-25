@@ -136,7 +136,7 @@ auto surface_grid(const detector_t& detector, const dindex index,
                   const styling::grid_style& style =
                       styling::tableau_colorblind::grid_style) {
 
-    using scalar_t = typename detector_t::scalar_type;
+    using scalar_t = dscalar<typename detector_t::algebra_type>;
     using geo_object_ids = typename detector_t::geo_obj_ids;
 
     const auto vol_desc = detector.volume(index);

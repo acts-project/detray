@@ -51,7 +51,7 @@ template <typename detector_t>
 inline auto read_intersection2D(const std::string &file_name) {
 
     using algebra_t = typename detector_t::algebra_type;
-    using scalar_t = typename detector_t::scalar_type;
+    using scalar_t = dscalar<algebra_t>;
     using surface_t = typename detector_t::surface_type;
     using nav_link_t = typename surface_t::navigation_link;
     using mask_link_t = typename surface_t::mask_link;

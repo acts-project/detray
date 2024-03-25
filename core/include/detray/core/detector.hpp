@@ -16,7 +16,6 @@
 #include "detray/core/detail/container_buffers.hpp"
 #include "detray/core/detail/container_views.hpp"
 #include "detray/core/detail/surface_lookup.hpp"
-#include "detray/core/detector_metadata.hpp"
 #include "detray/definitions/detail/algebra.hpp"
 #include "detray/definitions/detail/containers.hpp"
 #include "detray/definitions/detail/qualifiers.hpp"
@@ -53,8 +52,7 @@ void set_transform(detector_t &det, const transform3_t &trf, unsigned int i) {
 ///
 /// @tparam metadata helper that defines collection and link types centrally
 /// @tparam container_t type collection of the underlying containers
-template <typename metadata_t = default_metadata,
-          typename container_t = host_container_types>
+template <typename metadata_t, typename container_t = host_container_types>
 class detector {
 
     // Allow the building of the detector containers

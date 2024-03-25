@@ -18,7 +18,8 @@
 #include <gtest/gtest.h>
 
 using namespace detray;
-using algebra_t = test::algebra;
+
+using scalar = test::scalar;
 
 // Test class for energy loss with Bremsstrahlung
 // Input tuple: < material, particle type, kinetic energy, expected output >

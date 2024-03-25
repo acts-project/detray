@@ -28,8 +28,7 @@ using bin_range = std::array<int, 2>;
 ///
 /// The binning on the input parameter space is regular and therefore only needs
 /// the span and the number of bins to match a value to a bin.
-template <typename dcontainers = host_container_types,
-          typename scalar_t = scalar>
+template <typename scalar_t, typename dcontainers = host_container_types>
 struct regular {
 
     // Extract container types
@@ -189,8 +188,7 @@ struct regular {
 ///
 /// @note The bin search makes this type comparatively expensive. Only use when
 /// absolutely needed.
-template <typename dcontainers = host_container_types,
-          typename scalar_t = scalar>
+template <typename scalar_t, typename dcontainers = host_container_types>
 struct irregular {
 
     // Extract container types

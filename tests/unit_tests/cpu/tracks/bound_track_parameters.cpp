@@ -16,13 +16,14 @@
 
 using namespace detray;
 
-using algebra_t = test::algebra;
+using test_algebra = test::algebra;
+using scalar = test::scalar;
 using point2 = test::point2;
 using vector3 = test::vector3;
 using point3 = test::point3;
 
 using covariance_t =
-    typename bound_track_parameters<algebra_t>::covariance_type;
+    typename bound_track_parameters<test_algebra>::covariance_type;
 
 constexpr scalar tol{1e-5f};
 
@@ -39,12 +40,12 @@ GTEST_TEST(detray_tracks, bound_track_parameters) {
     scalar t{0.1f};
 
     // first track
-    bound_parameters_vector<algebra_t> bound_vec1{bound_local, phi, theta, qop,
-                                                  t};
+    bound_parameters_vector<test_algebra> bound_vec1{bound_local, phi, theta,
+                                                     qop, t};
 
     auto bound_cov1 = matrix::zero<covariance_t>();
 
-    bound_track_parameters<algebra_t> bound_param1(
+    bound_track_parameters<test_algebra> bound_param1(
         geometry::barcode{}.set_index(sf_idx1), bound_vec1, bound_cov1);
     EXPECT_NEAR(bound_param1.pT(charge),
                 1.f / std::abs(bound_vec1.qop()) * std::sin(bound_vec1.theta()),
@@ -63,14 +64,14 @@ GTEST_TEST(detray_tracks, bound_track_parameters) {
     qop = -1.f;
     t = 0.f;
 
-    bound_parameters_vector<algebra_t> bound_vec2{bound_local, phi, theta, qop,
-                                                  t};
+    bound_parameters_vector<test_algebra> bound_vec2{bound_local, phi, theta,
+                                                     qop, t};
 
     auto bound_cov2 = matrix::zero<covariance_t>();
 
-    bound_track_parameters<algebra_t> bound_param2(
+    bound_track_parameters<test_algebra> bound_param2(
         geometry::barcode{}.set_index(sf_idx2), bound_vec2, bound_cov2);
-    bound_track_parameters<algebra_t> bound_param3(
+    bound_track_parameters<test_algebra> bound_param3(
         geometry::barcode{}.set_index(sf_idx2), bound_vec2, bound_cov2);
 
     /// Check the elements

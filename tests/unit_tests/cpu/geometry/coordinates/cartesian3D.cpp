@@ -18,9 +18,12 @@
 
 using namespace detray;
 
+using test_algebra = test::algebra;
+using scalar = test::scalar;
 using point3 = test::point3;
 using vector3 = test::vector3;
 using transform3 = test::transform3;
+
 const scalar isclose{1e-5f};
 
 // This test cartesian3D coordinate
@@ -35,7 +38,7 @@ GTEST_TEST(detray_coordinates, cartesian3D) {
     const vector3 mom = {1.f, 2.f, 3.f};
     const vector3 d = vector::normalize(mom);
 
-    const cartesian3D<test::algebra> c3;
+    const cartesian3D<test_algebra> c3;
 
     // Global to local transformation
     const point3 local = c3.global_to_local_3D(trf, global1, d);

@@ -22,6 +22,8 @@ using namespace detray;
 
 namespace {
 
+using test_algebra = test::algebra;
+using scalar = test::scalar;
 using vector3 = test::vector3;
 using point3 = test::point3;
 
@@ -43,11 +45,12 @@ GTEST_TEST(detray_intersection, cuboid_aabb_intersector) {
     // Test ray
     const point3 pos{2.f, 1.f, 0.f};
     const vector3 mom{0.f, 0.f, 1.f};
-    const detail::ray<test::algebra> r(pos, 0.f, mom, 0.f);
+    const detail::ray<test_algebra> r(pos, 0.f, mom, 0.f);
 
     // The bounding box
-    mask<cuboid3D> c3{0u, x_min, y_min, z_min, x_max, y_max, z_max};
-    axis_aligned_bounding_volume<cuboid3D> aabb{c3, 0u, envelope};
+    mask<cuboid3D, test_algebra> c3{0u,    x_min, y_min, z_min,
+                                    x_max, y_max, z_max};
+    axis_aligned_bounding_volume<cuboid3D, test_algebra> aabb{c3, 0u, envelope};
 
     ASSERT_TRUE(aabb.intersect(r));
 }

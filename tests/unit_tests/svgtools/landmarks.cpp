@@ -14,6 +14,7 @@
 
 // Detray test include(s)
 #include "detray/test/utils/detectors/build_toy_detector.hpp"
+#include "detray/test/utils/types.hpp"
 
 // Vecmem include(s)
 #include <vecmem/memory/host_memory_resource.hpp>
@@ -40,7 +41,8 @@ GTEST_TEST(svgtools, landmarks) {
 
     // Creating the detector and geomentry context.
     vecmem::host_memory_resource host_mr;
-    const auto [det, names] = detray::build_toy_detector(host_mr);
+    const auto [det, names] =
+        detray::build_toy_detector<detray::test::algebra>(host_mr);
     using detector_t = decltype(det);
 
     using point = typename detector_t::point3_type;

@@ -33,7 +33,7 @@ template <typename detector_t>
 class volume_builder : public volume_builder_interface<detector_t> {
 
     public:
-    using scalar_type = typename detector_t::scalar_type;
+    using scalar_t = dscalar<typename detector_t::algebra_type>;
     using volume_type = typename detector_t::volume_type;
     using geo_obj_ids = typename detector_t::geo_obj_ids;
 
