@@ -15,6 +15,9 @@
 #include "detray/core/detector.hpp"
 #include "detray/definitions/detail/indexing.hpp"
 
+// Test include(s)
+#include "detray/test/types.hpp"
+
 // Vecmem include(s)
 #include <vecmem/memory/host_memory_resource.hpp>
 
@@ -30,7 +33,7 @@ using namespace detray;
 
 namespace {
 
-using point3 = __plugin::point3<scalar>;
+using point3 = test::point3;
 
 using detector_t = detector<>;
 
@@ -41,7 +44,7 @@ constexpr scalar tol{std::numeric_limits<scalar>::epsilon()};
 /// Unittest: Test the construction of a collection of materials
 TEST(detray_builders, homogeneous_material_builder) {
 
-    using transform3 = typename detector_t::transform3;
+    using transform3 = typename detector_t::transform3_type;
     using material_id = typename detector_t::materials::id;
 
     // Build rectangle surfaces with material slabs

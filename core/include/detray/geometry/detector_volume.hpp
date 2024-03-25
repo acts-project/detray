@@ -40,7 +40,7 @@ class detector_volume {
 
     /// Scalar type
     using scalar_type = typename detector_t::scalar_type;
-    using point3 = typename detector_t::point3;
+    using point3_type = typename detector_t::point3_type;
 
     /// Volume descriptor type
     using descr_t = typename detector_t::volume_type;
@@ -86,19 +86,20 @@ class detector_volume {
     /// volume in the detector geometry.
     DETRAY_HOST_DEVICE
     constexpr auto transform() const -> const
-        typename detector_t::transform3 & {
+        typename detector_t::transform3_type & {
         return m_detector.transform_store()[m_desc.transform()];
     }
 
     /// @returns the center point of the volume.
     DETRAY_HOST_DEVICE
-    constexpr auto center() const -> typename detector_t::point3 {
+    constexpr auto center() const -> point3_type {
         return transform().translation();
     }
 
     /// @returns the material parameters at the local position @param loc_p
     DETRAY_HOST_DEVICE constexpr auto material_parameters(
-        const point3 &loc_p) const -> const detray::material<scalar_type> * {
+        const point3_type &loc_p) const
+        -> const detray::material<scalar_type> * {
         return visit_material<typename detail::get_material_params>(loc_p);
     }
 

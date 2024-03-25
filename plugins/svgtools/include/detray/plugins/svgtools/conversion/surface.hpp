@@ -25,7 +25,8 @@ namespace detray::svgtools::conversion {
 /// @brief Sets the measures of the proto surface to be the same as the mask.
 template <typename mask_t>
 inline void set_measures(
-    actsvg::proto::surface<std::vector<typename mask_t::point3_t>>& p_surface,
+    actsvg::proto::surface<std::vector<typename mask_t::point3_type>>&
+        p_surface,
     const mask_t& m) {
 
     auto cast_scalar = [](const typename mask_t::scalar_type& v) {
@@ -55,7 +56,7 @@ inline void set_vertices(
 template <typename transform_t, typename mask_t>
 auto inline surface(const transform_t& transform, const mask_t& m) {
 
-    using point3_t = typename transform_t::point3;
+    using point3_t = typename mask_t::point3_type;
     using p_surface_t = actsvg::proto::surface<std::vector<point3_t>>;
 
     p_surface_t p_surface;
@@ -73,7 +74,7 @@ template <typename transform_t, typename shape_t,
                            bool> = true>
 auto inline surface(const transform_t& transform, const mask<shape_t>& m) {
 
-    using point3_t = typename transform_t::point3;
+    using point3_t = typename mask<shape_t>::point3_type;
     using p_surface_t = actsvg::proto::surface<std::vector<point3_t>>;
 
     p_surface_t p_surface;
@@ -109,7 +110,7 @@ template <typename transform_t>
 auto surface(const transform_t& transform, const mask<ring2D>& m) {
 
     using shape_t = ring2D;
-    using point3_t = typename transform_t::point3;
+    using point3_t = typename mask<ring2D>::point3_type;
     using p_surface_t = actsvg::proto::surface<std::vector<point3_t>>;
 
     p_surface_t p_surface;
@@ -133,7 +134,7 @@ auto surface(const transform_t& transform, const mask<ring2D>& m) {
 template <typename transform_t>
 auto inline surface(const transform_t& transform, const mask<annulus2D>& m) {
 
-    using point3_t = typename transform_t::point3;
+    using point3_t = typename mask<annulus2D>::point3_type;
     using p_surface_t = actsvg::proto::surface<std::vector<point3_t>>;
 
     p_surface_t p_surface;
@@ -147,11 +148,10 @@ auto inline surface(const transform_t& transform, const mask<annulus2D>& m) {
 
 /// @brief Returns the proto surface for 2D rings.
 template <typename transform_t, bool kSquareCrossSect>
-auto surface(const transform_t& transform,
-             const mask<line<kSquareCrossSect>>& m) {
+auto surface(const transform_t& transform, const mask<line_square>& m) {
 
-    using shape_t = line<kSquareCrossSect>;
-    using point3_t = typename transform_t::point3;
+    using shape_t = line_square;
+    using point3_t = typename mask<line_square>::point3_type;
     using p_surface_t = actsvg::proto::surface<std::vector<point3_t>>;
 
     p_surface_t p_surface;
@@ -176,7 +176,7 @@ auto surface(const transform_t& transform,
 /// section.
 template <typename mask_t>
 auto inline surface(const mask_t& m) {
-    using transform_t = typename mask_t::local_frame_type::transform3_type;
+    using transform_t = dtransform3D<typename mask_t::algebra_type>;
     return detray::svgtools::conversion::surface(transform_t{}, m);
 }
 

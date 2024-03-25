@@ -122,7 +122,7 @@ class single3D {
     DETRAY_HOST_DEVICE auto centroid(
         const bounds_t<scalar_t, kDIM> &bounds) const {
 
-        using point3_t = typename algebra_t::point3;
+        using point3_t = dpoint3D<algebra_t>;
 
         point3_t centr{0.f, 0.f, 0.f};
         centr[kCheckIndex] = 0.5f * (bounds[e_lower] + bounds[e_upper]);

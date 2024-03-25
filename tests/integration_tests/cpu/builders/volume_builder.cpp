@@ -46,7 +46,7 @@ GTEST_TEST(detray_builders, detector_volume_construction) {
     using namespace detray;
 
     using detector_t = detector<>;
-    using transform3 = typename detector_t::transform3;
+    using transform3 = typename detector_t::transform3_type;
     using geo_obj_id = typename detector_t::geo_obj_ids;
     using mask_id = typename detector_t::masks::id;
     using accel_id = typename detector_t::accel::id;
@@ -78,7 +78,7 @@ GTEST_TEST(detray_builders, detector_volume_construction) {
 
     // volume builder
     volume_builder<detector_t> vbuilder{volume_id::e_cylinder};
-    typename detector_t::point3 t{0.f, 0.f, 20.f};
+    typename detector_t::point3_type t{0.f, 0.f, 20.f};
     vbuilder.add_volume_placement(t);
 
     //
@@ -204,7 +204,7 @@ GTEST_TEST(detray_builders, detector_volume_construction) {
     EXPECT_EQ(vol.id(), volume_id::e_cylinder);
 
     // Check the volume placement
-    typename detector_t::transform3 trf{t};
+    typename detector_t::transform3_type trf{t};
     EXPECT_TRUE(d.transform_store()[first_trf] == trf);
 
     // Check the acceleration data structure link

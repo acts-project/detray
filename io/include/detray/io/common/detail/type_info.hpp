@@ -75,7 +75,7 @@ template <typename material_t,
 constexpr io::material_id get_id() {
 
     using map_frame_t = typename material_t::local_frame_type;
-    using algebra_t = typename map_frame_t::transform3_type;
+    using algebra_t = typename map_frame_t::algebra_type;
 
     /// Register the material types to the @c material_id enum
     using mat_registry = type_registry<
@@ -98,7 +98,7 @@ template <
 constexpr io::accel_id get_id() {
 
     using frame_t = typename grid_t::local_frame_type;
-    using algebra_t = typename frame_t::transform3_type;
+    using algebra_t = typename frame_t::algebra_type;
 
     /// Register the grid shapes to the @c accel_id enum
     /// @note the first type corresponds to a non-grid type in the enum

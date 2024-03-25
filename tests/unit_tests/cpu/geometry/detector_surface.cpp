@@ -85,9 +85,9 @@ GTEST_TEST(detray_geometry, surface) {
 
     using detector_t = detector<toy_metadata>;
 
-    using point2_t = surface<detector_t>::point2;
-    using point3_t = surface<detector_t>::point3;
-    using vector3_t = surface<detector_t>::vector3;
+    using point2_t = surface<detector_t>::point2_type;
+    using point3_t = surface<detector_t>::point3_type;
+    using vector3_t = surface<detector_t>::vector3_type;
 
     vecmem::host_memory_resource host_mr;
     const auto [toy_det, names] = build_toy_detector(host_mr);

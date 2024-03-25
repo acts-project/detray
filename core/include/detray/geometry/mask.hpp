@@ -36,21 +36,22 @@ namespace detray {
 /// @tparam links_t the type of link into the volume container
 ///                 (e.g. single index vs range)
 template <typename shape_t, typename links_t = std::uint_least16_t,
-          typename algebra_t = __plugin::transform3<detray::scalar>,
+          typename algebra_t = ALGEBRA_PLUGIN<detray::scalar>,
           template <typename, std::size_t> class array_t = darray>
 class mask {
     public:
     using links_type = links_t;
     using algebra_type = algebra_t;
-    using scalar_type = typename algebra_t::scalar_type;
+    using scalar_type = dscalar<algebra_t>;
     using shape = shape_t;
     using boundaries = typename shape::boundaries;
     using mask_values = array_t<scalar_type, boundaries::e_size>;
     using local_frame_type =
         typename shape::template local_frame_type<algebra_t>;
     // Linear algebra types
-    using point3_t = typename algebra_t::point3;
-    using point2_t = typename algebra_t::point2;
+    using point2_type = dpoint2D<algebra_t>;
+    using point3_type = dpoint3D<algebra_t>;
+    using vector3_type = dvector3D<algebra_t>;
 
     /// Default constructor
     constexpr mask() = default;
@@ -121,18 +122,18 @@ class mask {
     inline constexpr auto get_shape() const -> const shape& { return _shape; }
 
     /// @returns the global point projected onto the surface
-    template <typename transform3_t>
+    template <typename transform3D_t>
     DETRAY_HOST_DEVICE inline auto to_local_frame(
-        const transform3_t& trf, const point3_t& glob_p,
-        const point3_t& glob_dir = {}) const -> point3_t {
+        const transform3D_t& trf, const point3_type& glob_p,
+        const point3_type& glob_dir = {}) const -> point3_type {
         return local_frame_type{}.global_to_local_3D(trf, glob_p, glob_dir);
     }
 
     /// @returns the global point for a local position on the surface
-    template <typename transform3_t>
-    DETRAY_HOST_DEVICE inline auto to_global_frame(const transform3_t& trf,
-                                                   const point3_t& loc) const
-        -> point3_t {
+    template <typename transform3D_t>
+    DETRAY_HOST_DEVICE inline auto to_global_frame(const transform3D_t& trf,
+                                                   const point3_type& loc) const
+        -> point3_type {
         return local_frame_type{}.local_to_global(trf, loc);
     }
 
@@ -151,7 +152,7 @@ class mask {
     /// @return an intersection status e_inside / e_outside
     DETRAY_HOST_DEVICE
     inline auto is_inside(
-        const point3_t& loc_p,
+        const point3_type& loc_p,
         const scalar_type t = std::numeric_limits<scalar_type>::epsilon()) const
         -> intersection::status {
 
@@ -226,8 +227,9 @@ class mask {
     ///
     /// @returns a vector of vertices.
     DETRAY_HOST
-    auto vertices(const dindex n_seg) const -> dvector<point3_t> {
-        return _shape.template vertices<point2_t, point3_t>(_values, n_seg);
+    auto vertices(const dindex n_seg) const -> dvector<point3_type> {
+        return _shape.template vertices<point2_type, point3_type>(_values,
+                                                                  n_seg);
     }
 
     /// @returns true if the mask boundary values are consistent

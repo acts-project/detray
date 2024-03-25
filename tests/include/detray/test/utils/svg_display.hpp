@@ -24,10 +24,10 @@ namespace detray::detail {
 
 /// Find the unique volume indices that the trajectory crossed
 /// - intersection record
-template <typename surface_t, typename transform3_t>
+template <typename surface_t, typename algebra_t>
 std::unordered_set<dindex> get_volume_indices(
     const std::vector<
-        std::pair<dindex, detray::intersection2D<surface_t, transform3_t>>>
+        std::pair<dindex, detray::intersection2D<surface_t, algebra_t>>>
         &intersection_record) {
 
     std::unordered_set<dindex> volumes{};
@@ -41,9 +41,9 @@ std::unordered_set<dindex> get_volume_indices(
 
 /// Find the unique volume indices that the trajectory crossed
 /// - intersection collection
-template <typename surface_t, typename transform3_t>
+template <typename surface_t, typename algebra_t>
 std::unordered_set<dindex> get_volume_indices(
-    const dvector<detray::intersection2D<surface_t, transform3_t>>
+    const dvector<detray::intersection2D<surface_t, algebra_t>>
         &intersections) {
 
     std::unordered_set<dindex> volumes{};

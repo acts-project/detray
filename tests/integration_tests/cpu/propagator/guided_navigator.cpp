@@ -30,9 +30,11 @@
 GTEST_TEST(detray_navigation, guided_navigator) {
     using namespace detray;
     using namespace navigation;
-    using transform3_t = test::transform3;
-    using point3 = typename transform3_t::point3;
-    using vector3 = typename transform3_t::vector3;
+
+    using algebra_t = test::algebra;
+    using scalar_t = test::scalar;
+    using point3 = test::point3;
+    using vector3 = test::vector3;
 
     vecmem::host_memory_resource host_mr;
 
@@ -41,9 +43,9 @@ GTEST_TEST(detray_navigation, guided_navigator) {
                                            60.f, 70.f, 80.f, 90.f, 100.f};
 
     // Build telescope detector with unbounded rectangles
-    tel_det_config<unbounded<rectangle2D>> tel_cfg{20.f * unit<scalar>::mm,
-                                                   20.f * unit<scalar>::mm};
-    tel_cfg.positions(positions).envelope(0.2f * unit<scalar>::mm);
+    tel_det_config<unbounded<rectangle2D>> tel_cfg{20.f * unit<scalar_t>::mm,
+                                                   20.f * unit<scalar_t>::mm};
+    tel_cfg.positions(positions).envelope(0.2f * unit<scalar_t>::mm);
 
     const auto [telescope_det, names] =
         build_telescope_detector(host_mr, tel_cfg);
@@ -51,14 +53,14 @@ GTEST_TEST(detray_navigation, guided_navigator) {
     // Inspectors are optional, of course
     using detector_t = decltype(telescope_det);
     using intersection_t =
-        intersection2D<typename detector_t::surface_type, transform3_t>;
+        intersection2D<typename detector_t::surface_type, algebra_t>;
     using object_tracer_t =
         object_tracer<intersection_t, dvector, status::e_on_portal,
                       status::e_on_module>;
     using inspector_t = aggregate_inspector<object_tracer_t, print_inspector>;
     using b_field_t = bfield::const_field_t;
     using runge_kutta_stepper =
-        rk_stepper<b_field_t::view_t, transform3_t, unconstrained_step,
+        rk_stepper<b_field_t::view_t, algebra_t, unconstrained_step,
                    guided_navigation>;
     using guided_navigator = navigator<detector_t, inspector_t>;
     using actor_chain_t = actor_chain<dtuple, pathlimit_aborter>;
@@ -68,12 +70,12 @@ GTEST_TEST(detray_navigation, guided_navigator) {
     // track must point into the direction of the telescope
     const point3 pos{0.f, 0.f, 0.f};
     const vector3 mom{0.f, 0.f, 1.f};
-    free_track_parameters<transform3_t> track(pos, 0.f, mom, -1.f);
-    const vector3 B{0.f, 0.f, 1.f * unit<scalar>::T};
+    free_track_parameters<algebra_t> track(pos, 0.f, mom, -1.f);
+    const vector3 B{0.f, 0.f, 1.f * unit<scalar_t>::T};
     const b_field_t b_field = bfield::create_const_field(B);
 
     // Actors
-    pathlimit_aborter::state pathlimit{200.f * unit<scalar>::cm};
+    pathlimit_aborter::state pathlimit{200.f * unit<scalar_t>::cm};
 
     // Propagator
     propagator_t p{};

@@ -108,8 +108,8 @@ GTEST_TEST(detray_navigation, brute_force_search) {
     const auto vol = detector_volume{det, test_vol_idx};
 
     // track in x-direction
-    detail::ray<typename detector_t::transform3> trk({0.f, 0.f, 0.f}, 0.f,
-                                                     {1.f, 0.f, 0.f}, -1.f);
+    detail::ray<typename detector_t::algebra_type> trk({0.f, 0.f, 0.f}, 0.f,
+                                                       {1.f, 0.f, 0.f}, -1.f);
 
     vol.template visit_neighborhood<neighbor_visit_test>(trk, navigation_cfg{},
                                                          test_vol_idx);

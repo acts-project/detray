@@ -8,6 +8,7 @@
 #pragma once
 
 // Project include(s).
+#include "detray/definitions/detail/algebra.hpp"
 #include "detray/definitions/detail/math.hpp"
 #include "detray/definitions/detail/qualifiers.hpp"
 #include "detray/definitions/track_parametrization.hpp"
@@ -32,26 +33,27 @@ struct jacobian_engine {
     using frame_type = frame_t;
     using jacobian_t = jacobian<frame_t>;
 
-    using algebra_t = typename frame_t::transform3_type;
-    using transform3_type = algebra_t;
-    using scalar_type = typename algebra_t::scalar_type;
-    using vector3 = typename algebra_t::vector3;
+    using algebra_type = typename frame_t::algebra_type;
+    using transform3_type = dtransform3D<algebra_type>;
+    using scalar_type = dscalar<algebra_type>;
+    using point3_type = dpoint3D<algebra_type>;
+    using vector3_type = dvector3D<algebra_type>;
 
     // Matrix operator
-    using matrix_operator = typename algebra_t::matrix_actor;
+    using matrix_operator = dmatrix_operator<algebra_type>;
     // Track helper
     using track_helper = detail::track_helper<matrix_operator>;
 
-    using bound_to_free_matrix_type = bound_to_free_matrix<algebra_t>;
-    using free_to_bound_matrix_type = free_to_bound_matrix<algebra_t>;
-    using free_to_path_matrix_type = free_to_path_matrix<algebra_t>;
-    using path_to_free_matrix_type = path_to_free_matrix<algebra_t>;
+    using bound_to_free_matrix_type = bound_to_free_matrix<algebra_type>;
+    using free_to_bound_matrix_type = free_to_bound_matrix<algebra_type>;
+    using free_to_path_matrix_type = free_to_path_matrix<algebra_type>;
+    using path_to_free_matrix_type = path_to_free_matrix<algebra_type>;
     /// @}
 
     template <typename mask_t>
     DETRAY_HOST_DEVICE static inline bound_to_free_matrix_type
     bound_to_free_jacobian(const transform3_type& trf3, const mask_t& mask,
-                           const bound_vector<algebra_t>& bound_vec) {
+                           const bound_vector<algebra_type>& bound_vec) {
 
         // Declare jacobian for bound to free coordinate transform
         bound_to_free_matrix_type jac_to_global =
@@ -69,11 +71,11 @@ struct jacobian_engine {
         const scalar_type sin_phi{math::sin(phi)};
 
         // Global position and direction
-        const free_vector<algebra_t> free_vec =
+        const free_vector<algebra_type> free_vec =
             bound_to_free_vector(trf3, mask, bound_vec);
 
-        const vector3 pos = track_helper().pos(free_vec);
-        const vector3 dir = track_helper().dir(free_vec);
+        const vector3_type pos = track_helper().pos(free_vec);
+        const vector3_type dir = track_helper().dir(free_vec);
 
         // Set d(x,y,z)/d(loc0, loc1)
         jacobian_t::set_bound_pos_to_free_pos_derivative(jac_to_global, trf3,
@@ -106,15 +108,16 @@ struct jacobian_engine {
 
     DETRAY_HOST_DEVICE
     static inline free_to_bound_matrix_type free_to_bound_jacobian(
-        const transform3_type& trf3, const free_vector<algebra_t>& free_vec) {
+        const transform3_type& trf3,
+        const free_vector<algebra_type>& free_vec) {
 
         // Declare jacobian for bound to free coordinate transform
         free_to_bound_matrix_type jac_to_local =
             matrix_operator().template zero<e_bound_size, e_free_size>();
 
         // Global position and direction
-        const vector3 pos = track_helper().pos(free_vec);
-        const vector3 dir = track_helper().dir(free_vec);
+        const vector3_type pos = track_helper().pos(free_vec);
+        const vector3_type dir = track_helper().dir(free_vec);
 
         const scalar_type theta{getter::theta(dir)};
         const scalar_type phi{getter::phi(dir)};
@@ -152,9 +155,10 @@ struct jacobian_engine {
         return jac_to_local;
     }
 
-    DETRAY_HOST_DEVICE static inline free_matrix<algebra_t> path_correction(
-        const vector3& pos, const vector3& dir, const vector3& dtds,
-        const scalar dqopds, const transform3_type& trf3) {
+    DETRAY_HOST_DEVICE static inline free_matrix<algebra_type> path_correction(
+        const vector3_type& pos, const vector3_type& dir,
+        const vector3_type& dtds, const scalar dqopds,
+        const transform3_type& trf3) {
 
         free_to_path_matrix_type path_derivative =
             jacobian_t::path_derivative(trf3, pos, dir, dtds);

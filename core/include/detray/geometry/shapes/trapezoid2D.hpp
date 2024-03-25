@@ -131,7 +131,7 @@ class trapezoid2D {
               template <typename, std::size_t> class bounds_t,
               typename scalar_t, std::size_t kDIM,
               typename std::enable_if_t<kDIM == e_size, bool> = true>
-    DETRAY_HOST_DEVICE typename algebra_t::point3 centroid(
+    DETRAY_HOST_DEVICE dpoint3D<algebra_t> centroid(
         const bounds_t<scalar_t, kDIM> &bounds) const {
 
         const scalar_t h_2{bounds[e_half_length_2]};

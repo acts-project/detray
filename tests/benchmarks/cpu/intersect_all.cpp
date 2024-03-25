@@ -32,7 +32,7 @@
 using namespace detray;
 
 using trk_generator_t =
-    uniform_track_generator<free_track_parameters<test::transform3>>;
+    uniform_track_generator<free_track_parameters<test::algebra>>;
 
 constexpr unsigned int theta_steps{100u};
 constexpr unsigned int phi_steps{100u};
@@ -42,7 +42,7 @@ void BM_INTERSECT_ALL(benchmark::State &state) {
 
     // Detector configuration
     vecmem::host_memory_resource host_mr;
-    toy_det_config<scalar> toy_cfg{};
+    toy_det_config<test::scalar> toy_cfg{};
     toy_cfg.n_edc_layers(7u);
     auto [d, names] = build_toy_detector(host_mr, toy_cfg);
 
@@ -57,7 +57,7 @@ void BM_INTERSECT_ALL(benchmark::State &state) {
     std::size_t missed{0u};
     std::size_t n_surfaces{0u};
     test::point3 origin{0.f, 0.f, 0.f};
-    std::vector<intersection2D<sf_desc_t, typename detector_t::transform3>>
+    std::vector<intersection2D<sf_desc_t, typename detector_t::algebra_type>>
         intersections{};
 
     // Iterate through uniformly distributed momentum directions

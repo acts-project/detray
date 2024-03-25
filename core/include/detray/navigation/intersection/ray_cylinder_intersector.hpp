@@ -30,16 +30,15 @@ struct ray_intersector_impl<cylindrical2D<algebra_t>, algebra_t> {
 
     /// linear algebra types
     /// @{
-    using transform3_type = algebra_t;
-    using scalar_type = typename transform3_type::scalar_type;
-    using point3 = typename transform3_type::point3;
-    using point2 = typename transform3_type::point2;
-    using vector3 = typename transform3_type::vector3;
+    using scalar_type = dscalar<algebra_t>;
+    using point3_type = dpoint3D<algebra_t>;
+    using vector3_type = dvector3D<algebra_t>;
+    using transform3_type = dtransform3D<algebra_t>;
     /// @}
 
     template <typename surface_descr_t>
     using intersection_type = intersection2D<surface_descr_t, algebra_t>;
-    using ray_type = detail::ray<transform3_type>;
+    using ray_type = detail::ray<algebra_t>;
 
     /// Operator function to find intersections between a ray and a 2D cylinder
     ///
@@ -131,11 +130,11 @@ struct ray_intersector_impl<cylindrical2D<algebra_t>, algebra_t> {
                        const transform3_type &trf) const {
         const scalar_type r{mask[mask_t::shape::e_r]};
         const auto &m = trf.matrix();
-        const vector3 sz = getter::vector<3>(m, 0u, 2u);
-        const vector3 sc = getter::vector<3>(m, 0u, 3u);
+        const vector3_type sz = getter::vector<3>(m, 0u, 2u);
+        const vector3_type sc = getter::vector<3>(m, 0u, 3u);
 
-        const point3 &ro = ray.pos();
-        const vector3 &rd = ray.dir();
+        const point3_type &ro = ray.pos();
+        const vector3_type &rd = ray.dir();
 
         const auto pc_cross_sz = vector::cross(ro - sc, sz);
         const auto rd_cross_sz = vector::cross(rd, sz);
@@ -164,11 +163,11 @@ struct ray_intersector_impl<cylindrical2D<algebra_t>, algebra_t> {
         // Construct the candidate only when needed
         if (path >= overstep_tol) {
 
-            const point3 &ro = ray.pos();
-            const vector3 &rd = ray.dir();
+            const point3_type &ro = ray.pos();
+            const vector3_type &rd = ray.dir();
 
             is.path = path;
-            const point3 p3 = ro + is.path * rd;
+            const point3_type p3 = ro + is.path * rd;
 
             is.local = mask.to_local_frame(trf, p3);
             is.status = mask.is_inside(is.local, mask_tolerance);
@@ -183,7 +182,8 @@ struct ray_intersector_impl<cylindrical2D<algebra_t>, algebra_t> {
 
                 // Get incidence angle
                 const scalar_type phi{is.local[0] / is.local[2]};
-                const vector3 normal = {math::cos(phi), math::sin(phi), 0.f};
+                const vector3_type normal = {math::cos(phi), math::sin(phi),
+                                             0.f};
                 is.cos_incidence_angle = vector::dot(rd, normal);
             }
         } else {

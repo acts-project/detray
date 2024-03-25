@@ -18,7 +18,7 @@ void propagator_test(
     vecmem::data::vector_view<track_t>& tracks_data,
     vecmem::data::jagged_vector_view<intersection_t<detector_t>>&
         candidates_data,
-    vecmem::data::jagged_vector_view<scalar>& path_lengths_data,
+    vecmem::data::jagged_vector_view<scalar_t>& path_lengths_data,
     vecmem::data::jagged_vector_view<vector3_t>& positions_data,
     vecmem::data::jagged_vector_view<free_matrix_t>& jac_transports_data,
     detray::sycl::queue_wrapper queue) {
@@ -50,7 +50,7 @@ void propagator_test(
                 vecmem::device_vector<track_t> tracks(tracks_data);
                 vecmem::jagged_device_vector<intersection_t<detector_t>>
                     candidates(candidates_data);
-                vecmem::jagged_device_vector<scalar> path_lengths(
+                vecmem::jagged_device_vector<scalar_t> path_lengths(
                     path_lengths_data);
                 vecmem::jagged_device_vector<vector3_t> positions(
                     positions_data);
@@ -70,7 +70,7 @@ void propagator_test(
                 using propagator_device_t =
                     propagator<decltype(stepr), decltype(nav),
                                actor_chain_device_t>;
-                propagation::config<scalar> cfg{};
+                propagation::config<scalar_t> cfg{};
                 cfg.navigation.search_window = {3u, 3u};
                 cfg.stepping.rk_error_tol = rk_tolerance;
                 propagator_device_t p{cfg};
@@ -80,10 +80,10 @@ void propagator_test(
                                                      positions.at(gid),
                                                      jac_transports.at(gid));
                 pathlimit_aborter::state aborter_state{path_limit};
-                parameter_transporter<transform3>::state transporter_state{};
-                pointwise_material_interactor<transform3>::state
+                parameter_transporter<algebra_t>::state transporter_state{};
+                pointwise_material_interactor<algebra_t>::state
                     interactor_state{};
-                parameter_resetter<transform3>::state resetter_state{};
+                parameter_resetter<algebra_t>::state resetter_state{};
 
                 // Create the actor states
                 auto actor_states =
@@ -111,7 +111,7 @@ template void propagator_test<bfield::const_bknd_t,
     vecmem::data::vector_view<track_t>&,
     vecmem::data::jagged_vector_view<
         intersection_t<detector<toy_metadata, host_container_types>>>&,
-    vecmem::data::jagged_vector_view<scalar>&,
+    vecmem::data::jagged_vector_view<scalar_t>&,
     vecmem::data::jagged_vector_view<vector3_t>&,
     vecmem::data::jagged_vector_view<free_matrix_t>&,
     detray::sycl::queue_wrapper);
@@ -123,7 +123,7 @@ template void propagator_test<bfield::const_bknd_t,
     covfie::field_view<bfield::sycl::inhom_bknd_t>,
     vecmem::data::vector_view<track_t>&,
     vecmem::data::jagged_vector_view<intersection_t<detector<toy_metadata,
-   host_container_types>>>&, vecmem::data::jagged_vector_view<scalar>&,
+   host_container_types>>>&, vecmem::data::jagged_vector_view<scalar_t>&,
     vecmem::data::jagged_vector_view<vector3_t>&,
     vecmem::data::jagged_vector_view<free_matrix_t>&,
     detray::sycl::queue_wrapper);*/

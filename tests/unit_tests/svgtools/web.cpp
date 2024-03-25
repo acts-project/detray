@@ -47,8 +47,8 @@ GTEST_TEST(svgtools, web) {
     const auto [det, names] = detray::build_toy_detector(host_mr);
     using detector_t = decltype(det);
 
-    using transform3_t = typename detector_t::transform3;
-    using vector3 = typename detector_t::vector3;
+    using algebra_t = typename detector_t::algebra_type;
+    using vector3 = typename detector_t::vector3_type;
 
     // Creating the svg generator for the detector.
     const detray::svgtools::illustrator il{det, names};
@@ -71,8 +71,8 @@ GTEST_TEST(svgtools, web) {
     for (const auto qop : std::vector{-4, -8, -16}) {
         std::string name = "Helix_qop_" + std::to_string(qop) + ")";
 
-        const typename detector_t::point3 ori{0.f, 0.f, 80.f};
-        const typename detector_t::point3 dir{0.f, 1.f, 1.f};
+        const typename detector_t::point3_type ori{0.f, 0.f, 80.f};
+        const typename detector_t::point3_type dir{0.f, 1.f, 1.f};
 
         // Create the helix trajectory.
         // Constant magnetic field
@@ -80,7 +80,7 @@ GTEST_TEST(svgtools, web) {
                   0.f * detray::unit<detray::scalar>::T,
                   1.f * detray::unit<detray::scalar>::T};
 
-        const detray::detail::helix<transform3_t> helix(
+        const detray::detail::helix<algebra_t> helix(
             ori, 0.f, dir, static_cast<float>(qop), &B);
         const auto helix_ir = detray::particle_gun::shoot_particle(det, helix);
 

@@ -104,9 +104,9 @@ class cylinder_portal_generator final
     : public surface_factory_interface<detector_t> {
 
     using scalar_t = typename detector_t::scalar_type;
-    using point3_t = typename detector_t::point3;
-    using vector3_t = typename detector_t::vector3;
-    using transform3_t = typename detector_t::transform3;
+    using point3_t = typename detector_t::point3_type;
+    using vector3_t = typename detector_t::vector3_type;
+    using transform3_t = typename detector_t::transform3_type;
 
     /// A functor to construct global bounding boxes around masks
     struct bounding_box_creator {
@@ -134,7 +134,8 @@ class cylinder_portal_generator final
 
     /// Construct from configuration @param cfg
     DETRAY_HOST
-    cylinder_portal_generator(const cylinder_portal_config<scalar_t> cfg)
+    explicit cylinder_portal_generator(
+        const cylinder_portal_config<scalar_t> cfg)
         : m_cfg{cfg} {}
 
     /// @returns the number of portals this factory will produce

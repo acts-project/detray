@@ -30,14 +30,14 @@ struct helix_intersector_impl;
 template <typename algebra_t>
 struct helix_intersector_impl<line2D<algebra_t>, algebra_t> {
 
-    using transform3_type = algebra_t;
-    using scalar_type = typename transform3_type::scalar_type;
-    using point3 = typename transform3_type::point3;
-    using vector3 = typename transform3_type::vector3;
+    using scalar_type = dscalar<algebra_t>;
+    using point3_type = dpoint3D<algebra_t>;
+    using vector3_type = dvector3D<algebra_t>;
+    using transform3_type = dtransform3D<algebra_t>;
 
     template <typename surface_descr_t>
     using intersection_type = intersection2D<surface_descr_t, algebra_t>;
-    using helix_type = detail::helix<transform3_type>;
+    using helix_type = detail::helix<algebra_t>;
 
     /// Operator function to find intersections between helix and line mask
     ///
@@ -63,16 +63,16 @@ struct helix_intersector_impl<line2D<algebra_t>, algebra_t> {
         constexpr std::size_t max_n_tries{1000u};
 
         // line axis direction
-        const vector3 l = getter::vector<3>(trf.matrix(), 0u, 2u);
+        const vector3_type l = getter::vector<3>(trf.matrix(), 0u, 2u);
 
         // line center
-        const point3 c = trf.translation();
+        const point3_type c = trf.translation();
 
         // initial track direction
-        const vector3 t0 = h.dir(0.f);
+        const vector3_type t0 = h.dir(0.f);
 
         // initial track position
-        const point3 r0 = h.pos(0.f);
+        const point3_type r0 = h.pos(0.f);
 
         // Projection of line to track direction
         const scalar_type lt0{vector::dot(l, t0)};
@@ -88,7 +88,7 @@ struct helix_intersector_impl<line2D<algebra_t>, algebra_t> {
         }
 
         // vector from track position to line center
-        const vector3 D = c - r0;
+        const vector3_type D = c - r0;
 
         // D projection on line direction
         const scalar_type P{vector::dot(D, l)};
@@ -108,25 +108,25 @@ struct helix_intersector_impl<line2D<algebra_t>, algebra_t> {
                n_tries < max_n_tries) {
 
             // track direction
-            const vector3 t = h.dir(s);
+            const vector3_type t = h.dir(s);
 
             // track position
-            const point3 r = h.pos(s);
+            const point3_type r = h.pos(s);
 
             // Projection of (track position - center) to the line
             const scalar_type A = vector::dot(r - c, l);
 
             // Vector orthogonal to the line and passing the track position
             // w = r - (c + ((r - c) * l)l)
-            const vector3 w = r - (c + A * l);
+            const vector3_type w = r - (c + A * l);
 
             // f(s) = t * w = 0
             const scalar_type f = vector::dot(t, w);
 
             // dtds = d^2r/ds^2 = qop * (t X b_field)
-            const vector3 dtds = h.qop() * vector::cross(t, *h._mag_field);
+            const vector3_type dtds = h.qop() * vector::cross(t, *h._mag_field);
             // dwds = t - (t * l)l
-            const vector3 dwds = t - vector::dot(t, l) * l;
+            const vector3_type dwds = t - vector::dot(t, l) * l;
 
             // f'(s) = dtds * w + t * dwds
             const scalar_type dfds =
@@ -148,7 +148,7 @@ struct helix_intersector_impl<line2D<algebra_t>, algebra_t> {
         sfi.path = s;
         sfi.local = mask.to_local_frame(trf, h.pos(s), h.dir(s));
 
-        const point3 local = mask.to_local_frame(trf, h.pos(s), h.dir(s));
+        const point3_type local = mask.to_local_frame(trf, h.pos(s), h.dir(s));
         sfi.status = mask.is_inside(local, mask_tolerance);
 
         // Compute some additional information if the intersection is valid

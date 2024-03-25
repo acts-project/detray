@@ -26,10 +26,10 @@ struct ray_intersector_impl;
 template <typename algebra_t>
 struct ray_intersector_impl<line2D<algebra_t>, algebra_t> {
 
-    using transform3_type = algebra_t;
-    using scalar_type = typename transform3_type::scalar_type;
-    using point3 = typename transform3_type::point3;
-    using vector3 = typename transform3_type::vector3;
+    using scalar_type = dscalar<algebra_t>;
+    using point3_type = dpoint3D<algebra_t>;
+    using vector3_type = dvector3D<algebra_t>;
+    using transform3_type = dtransform3D<algebra_t>;
 
     template <typename surface_descr_t>
     using intersection_type = intersection2D<surface_descr_t, algebra_t>;
@@ -57,16 +57,16 @@ struct ray_intersector_impl<line2D<algebra_t>, algebra_t> {
         intersection_type<surface_descr_t> is;
 
         // line direction
-        const vector3 _z = getter::vector<3>(trf.matrix(), 0u, 2u);
+        const vector3_type _z = getter::vector<3>(trf.matrix(), 0u, 2u);
 
         // line center
-        const point3 _t = trf.translation();
+        const point3_type _t = trf.translation();
 
         // track direction
-        const vector3 _d = ray.dir();
+        const vector3_type _d = ray.dir();
 
         // track position
-        const point3 _p = ray.pos();
+        const point3_type _p = ray.pos();
 
         // Projection of line to track direction
         const scalar_type zd{vector::dot(_z, _d)};
@@ -96,7 +96,7 @@ struct ray_intersector_impl<line2D<algebra_t>, algebra_t> {
         if (is.path >= overstep_tol) {
 
             // point of closest approach on the track
-            const point3 m = _p + _d * A;
+            const point3_type m = _p + _d * A;
 
             is.local = mask.to_local_frame(trf, m, _d);
 

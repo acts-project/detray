@@ -34,7 +34,7 @@ struct track_helper {
     /// 3-element "vector" type
     using vector3 = array_type<3>;
     /// Point in 3D space
-    using point3 = vector3;
+    using point3_type = vector3;
     /// Point in 2D space
     using point2 = array_type<2>;
 
@@ -43,14 +43,14 @@ struct track_helper {
     using free_vector = matrix_type<e_free_size, 1>;
 
     DETRAY_HOST_DEVICE
-    inline point3 pos(const free_vector& free_vec) const {
+    inline point3_type pos(const free_vector& free_vec) const {
         return {matrix_operator().element(free_vec, e_free_pos0, 0u),
                 matrix_operator().element(free_vec, e_free_pos1, 0u),
                 matrix_operator().element(free_vec, e_free_pos2, 0u)};
     }
 
     DETRAY_HOST_DEVICE
-    inline void set_pos(free_vector& free_vec, const point3& pos) {
+    inline void set_pos(free_vector& free_vec, const point3_type& pos) {
         matrix_operator().element(free_vec, e_free_pos0, 0u) = pos[0];
         matrix_operator().element(free_vec, e_free_pos1, 0u) = pos[1];
         matrix_operator().element(free_vec, e_free_pos2, 0u) = pos[2];

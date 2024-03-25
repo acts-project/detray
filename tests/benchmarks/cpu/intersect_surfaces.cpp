@@ -27,13 +27,13 @@
 // Use the detray:: namespace implicitly.
 using namespace detray;
 
-using ray_generator_t = uniform_track_generator<detail::ray<test::transform3>>;
+using ray_generator_t = uniform_track_generator<detail::ray<test::algebra>>;
 
 static const unsigned int theta_steps = 100u;
 static const unsigned int phi_steps = 100u;
 
-static const dvector<scalar> dists = {1.f, 2.f, 3.f, 4.f, 5.f,
-                                      6.f, 7.f, 8.f, 9.f, 10.f};
+static const dvector<test::scalar> dists = {1.f, 2.f, 3.f, 4.f, 5.f,
+                                            6.f, 7.f, 8.f, 9.f, 10.f};
 
 /// This benchmark runs intersection with the planar intersector
 void BM_INTERSECT_PLANES(benchmark::State &state) {
@@ -57,7 +57,7 @@ void BM_INTERSECT_PLANES(benchmark::State &state) {
         for (const auto ray : ray_generator) {
 
             for (const auto &plane : planes) {
-                auto pi = ray_intersector<rectangle2D, test::transform3>{};
+                auto pi = ray_intersector<rectangle2D, test::algebra>{};
                 auto is = pi(ray, plane, rect, plane.transform());
 
                 benchmark::DoNotOptimize(sfhit);
@@ -98,7 +98,7 @@ using material_link_t = dtyped_index<material_ids, dindex>;
 
 using plane_surface =
     surface_descriptor<mask_link_t, material_link_t, test::transform3>;
-using intersection_t = intersection2D<plane_surface, test::transform3>;
+using intersection_t = intersection2D<plane_surface, test::algebra>;
 
 /// This benchmark runs intersection with the cylinder intersector
 void BM_INTERSECT_CYLINDERS(benchmark::State &state) {
@@ -109,7 +109,7 @@ void BM_INTERSECT_CYLINDERS(benchmark::State &state) {
     unsigned int sfmiss = 0u;
     dvector<cylinder_mask> cylinders;
 
-    for (scalar r : dists) {
+    for (test::scalar r : dists) {
         cylinders.push_back(cylinder_mask{0u, r, -10.f, 10.f});
     }
 
@@ -130,7 +130,7 @@ void BM_INTERSECT_CYLINDERS(benchmark::State &state) {
         for (const auto ray : ray_generator) {
 
             for (const auto &cylinder : cylinders) {
-                auto ci = ray_intersector<cylinder2D, test::transform3>{};
+                auto ci = ray_intersector<cylinder2D, test::algebra>{};
                 auto inters = ci(ray, plane, cylinder, plane.transform());
 
                 benchmark::DoNotOptimize(sfhit);
@@ -164,7 +164,7 @@ void BM_INTERSECT_PORTAL_CYLINDERS(benchmark::State &state) {
     unsigned int sfmiss = 0u;
     dvector<cylinder_mask> cylinders;
 
-    for (scalar r : dists) {
+    for (test::scalar r : dists) {
         cylinders.push_back(cylinder_mask{0u, r, -10.f, 10.f});
     }
 
@@ -186,7 +186,7 @@ void BM_INTERSECT_PORTAL_CYLINDERS(benchmark::State &state) {
 
             for (const auto &cylinder : cylinders) {
                 auto cpi =
-                    ray_intersector<concentric_cylinder2D, test::transform3>{};
+                    ray_intersector<concentric_cylinder2D, test::algebra>{};
                 auto is = cpi(ray, plane, cylinder, plane.transform());
 
                 benchmark::DoNotOptimize(sfhit);
@@ -216,7 +216,7 @@ void BM_INTERSECT_CONCETRIC_CYLINDERS(benchmark::State &state) {
     using cylinder_mask = mask<concentric_cylinder2D>;
 
     dvector<cylinder_mask> cylinders;
-    for (scalar r : dists) {
+    for (test::scalar r : dists) {
         cylinders.push_back(cylinder_mask(0u, r, -10.f, 10.f));
     }
 
@@ -235,8 +235,7 @@ void BM_INTERSECT_CONCETRIC_CYLINDERS(benchmark::State &state) {
         for (const auto ray : ray_generator) {
 
             for (const auto &cylinder : cylinders) {
-                auto cci =
-                    ray_concentric_cylinder_intersector<test::transform3>{};
+                auto cci = ray_concentric_cylinder_intersector<test::algebra>{};
                 auto is = cci(ray, plane, cylinder, plane.transform());
 
                 benchmark::DoNotOptimize(sfhit);
