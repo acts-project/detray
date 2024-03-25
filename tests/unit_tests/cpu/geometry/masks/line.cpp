@@ -44,10 +44,10 @@ GTEST_TEST(detray_masks, line_circular) {
                 tol);
     ASSERT_NEAR(ln[line_circular::e_half_z], 50.f * unit<scalar>::mm, tol);
 
-    ASSERT_TRUE(ln.is_inside(ln_in) == intersection::status::e_inside);
-    ASSERT_TRUE(ln.is_inside(ln_edge) == intersection::status::e_inside);
-    ASSERT_TRUE(ln.is_inside(ln_out1) == intersection::status::e_outside);
-    ASSERT_TRUE(ln.is_inside(ln_out2) == intersection::status::e_outside);
+    ASSERT_TRUE(ln.is_inside(ln_in));
+    ASSERT_TRUE(ln.is_inside(ln_edge));
+    ASSERT_FALSE(ln.is_inside(ln_out1));
+    ASSERT_FALSE(ln.is_inside(ln_out2));
 
     // Check area and measure
     EXPECT_NEAR(ln.area(), 628.318531f * unit<scalar>::mm2, tol);
@@ -78,7 +78,7 @@ GTEST_TEST(detray_masks, line_circular_ratio_test) {
                         const scalar t) {
 
             const test::point3 loc_p{st.to_local_frame(trf, p, dir)};
-            return st.is_inside(loc_p, t) == intersection::status::e_inside;
+            return st.is_inside(loc_p, t);
         }
     };
 
@@ -119,12 +119,11 @@ GTEST_TEST(detray_masks, line_square) {
                 tol);
     ASSERT_NEAR(ln[line_circular::e_half_z], 50.f * unit<scalar>::mm, tol);
 
-    ASSERT_TRUE(ln.is_inside(ln_in) == intersection::status::e_inside);
-    ASSERT_TRUE(ln.is_inside(ln_edge, 1e-5f) == intersection::status::e_inside);
-    ASSERT_TRUE(ln.is_inside(ln_edge, -1e-5f) ==
-                intersection::status::e_outside);
-    ASSERT_TRUE(ln.is_inside(ln_out1) == intersection::status::e_outside);
-    ASSERT_TRUE(ln.is_inside(ln_out2) == intersection::status::e_outside);
+    ASSERT_TRUE(ln.is_inside(ln_in));
+    ASSERT_TRUE(ln.is_inside(ln_edge, 1e-5f));
+    ASSERT_FALSE(ln.is_inside(ln_edge, -1e-5f));
+    ASSERT_FALSE(ln.is_inside(ln_out1));
+    ASSERT_FALSE(ln.is_inside(ln_out2));
 
     // Check area and measure
     EXPECT_NEAR(ln.area(), 800.f * unit<scalar>::mm2, tol);
@@ -155,7 +154,7 @@ GTEST_TEST(detray_masks, line_square_ratio_test) {
                         const scalar t) {
 
             const test::point3 loc_p{dcl.to_local_frame(trf, p, dir)};
-            return dcl.is_inside(loc_p, t) == intersection::status::e_inside;
+            return dcl.is_inside(loc_p, t);
         }
     };
 

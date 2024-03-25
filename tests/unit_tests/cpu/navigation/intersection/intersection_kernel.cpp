@@ -157,7 +157,7 @@ GTEST_TEST(detray_intersection, intersection_kernel_ray) {
     // Also check intersections
     for (std::size_t i = 0u; i < expected_points.size(); ++i) {
 
-        EXPECT_EQ(sfi_init[i].direction, intersection::direction::e_along);
+        EXPECT_TRUE(sfi_init[i].direction);
         EXPECT_EQ(sfi_init[i].volume_link, 0u);
 
         vector3 global;
@@ -199,9 +199,9 @@ GTEST_TEST(detray_intersection, intersection_kernel_ray) {
             surface.mask(), detail::ray(track), sfi_update[idx],
             transform_store);
 
-        if(sfi_update[idx].status != intersection::status::e_inside) {
-    continue; } ASSERT_EQ(sfi_update[idx].direction,
-    intersection::direction::e_along) << " at surface " << sfi_update[idx]
+        if(!sfi_update[idx].status) {
+    continue; } ASSERT_TRUE(sfi_update[idx].direction) << " at surface " <<
+    sfi_update[idx]
     << ", " << sfi_init[idx]; ASSERT_EQ(sfi_update[idx].volume_link, 0u);
         ASSERT_NEAR(sfi_update[idx].p3[0], expected_points[idx][0],
     is_close)

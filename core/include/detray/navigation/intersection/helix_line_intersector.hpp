@@ -89,7 +89,7 @@ struct helix_intersector_impl<line2D<algebra_t>, algebra_t> {
         // @NOTE We might not have to call this which is meant to be for ray
         // intersection...
         if (denom < 1e-5f) {
-            sfi.status = intersection::status::e_missed;
+            sfi.status = false;
             return sfi;
         }
 
@@ -166,11 +166,9 @@ struct helix_intersector_impl<line2D<algebra_t>, algebra_t> {
         sfi.status = mask.is_inside(sfi.local, tol);
 
         // Compute some additional information if the intersection is valid
-        if (sfi.status == intersection::status::e_inside) {
+        if (sfi.status) {
             sfi.sf_desc = sf_desc;
-            sfi.direction = math::signbit(s)
-                                ? intersection::direction::e_opposite
-                                : intersection::direction::e_along;
+            sfi.direction = !math::signbit(s);
             sfi.volume_link = mask.volume_link();
         }
 

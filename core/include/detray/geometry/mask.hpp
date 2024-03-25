@@ -153,12 +153,10 @@ class mask {
     DETRAY_HOST_DEVICE
     inline auto is_inside(
         const point3_type& loc_p,
-        const scalar_type t = std::numeric_limits<scalar_type>::epsilon()) const
-        -> intersection::status {
+        const scalar_type t =
+            std::numeric_limits<scalar_type>::epsilon()) const {
 
-        return _shape.check_boundaries(_values, loc_p, t)
-                   ? intersection::status::e_inside
-                   : intersection::status::e_outside;
+        return _shape.check_boundaries(_values, loc_p, t);
     }
 
     /// @returns return local frame object (used in geometrical checks)

@@ -88,7 +88,7 @@ struct brute_force_scan {
 
             // Candidate is invalid if it lies in the opposite direction
             for (auto &sfi : intersections) {
-                if (sfi.direction == intersection::direction::e_along) {
+                if (sfi.direction) {
                     sfi.sf_desc = sf_desc;
                     // Record the intersection
                     intersection_trace.push_back(
