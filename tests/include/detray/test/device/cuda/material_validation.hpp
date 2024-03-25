@@ -59,9 +59,9 @@ struct run_material_validation {
             free_track_parameters<typename detector_t::algebra_type>> &tracks,
         const std::vector<std::size_t> &capacities) {
 
-        using scalar_t = typename detector_t::scalar_type;
-        using track_t =
-            free_track_parameters<typename detector_t::algebra_type>;
+        using algebra_t = typename detector_t::algebra_type;
+        using scalar_t = dscalar<algebra_t>;
+        using track_t = free_track_parameters<algebra_t>;
         using material_record_t = material_validator::material_record<scalar_t>;
         using material_params_t = material_validator::material_params<scalar_t>;
 

@@ -241,18 +241,19 @@ inline auto record_material(
     // Propagator with pathlimit aborter
     using material_tracer_t =
         material_validator::material_tracer<scalar_t, vecmem::vector>;
-    using actor_chain_t =
-        actor_chain<dtuple, pathlimit_aborter, parameter_transporter<algebra_t>,
-                    parameter_resetter<algebra_t>,
-                    pointwise_material_interactor<algebra_t>,
-                    material_tracer_t>;
+    using pathlimit_aborter_t = pathlimit_aborter<scalar_t>;
+    using actor_chain_t = actor_chain<
+        dtuple, pathlimit_aborter_t, parameter_transporter<algebra_t>,
+        parameter_resetter<algebra_t>, pointwise_material_interactor<algebra_t>,
+        material_tracer_t>;
     using propagator_t = propagator<stepper_t, navigator_t, actor_chain_t>;
 
     // Propagator
     propagator_t prop{cfg};
 
     // Build actor and propagator states
-    pathlimit_aborter::state pathlimit_aborter_state{cfg.stepping.path_limit};
+    typename pathlimit_aborter_t::state pathlimit_aborter_state{
+        cfg.stepping.path_limit};
     typename parameter_transporter<algebra_t>::state transporter_state{};
     typename parameter_resetter<algebra_t>::state resetter_state{};
     typename pointwise_material_interactor<algebra_t>::state interactor_state{};

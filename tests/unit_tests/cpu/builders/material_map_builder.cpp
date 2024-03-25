@@ -35,9 +35,11 @@ using namespace detray;
 
 namespace {
 
+using scalar = test::scalar;
 using point3 = test::point3;
 
-using detector_t = detector<>;
+using metadata_t = test::default_metadata;
+using detector_t = detector<metadata_t>;
 using mat_id = typename detector_t::materials::id;
 using bin_index_t = axis::multi_bin<2u>;
 
@@ -69,8 +71,8 @@ auto add_material_data(const material_factory_t& mat_factory, mat_id id,
 /// Unittest: Test the construction of a collection of material maps
 TEST(detray_builders, material_map_factory) {
 
-    using transform3 = typename detector_t::transform3_type;
-    using scalar_t = typename detector_t::scalar_type;
+    using algebra_t = typename detector_t::algebra_type;
+    using transform3 = dtransform3D<algebra_t>;
 
     // Build rectangle surfaces with material slabs
     using rectangle_factory = surface_factory<detector_t, rectangle2D>;
@@ -87,14 +89,14 @@ TEST(detray_builders, material_map_factory) {
                             transform3(point3{0.f, 0.f, -1.f}), 1u,
                             std::vector<scalar>{10.f, 8.f}});
 
-    scalar_t t{1.f * unit<scalar_t>::mm};
+    scalar t{1.f * unit<scalar>::mm};
     add_material_data(mat_factory, mat_id::e_rectangle2_map, 0u, t,
-                      silicon<scalar_t>());
+                      silicon<scalar>());
 
     mat_factory->push_back({surface_id::e_sensitive,
                             transform3(point3{0.f, 0.f, 1.f}), 1u,
                             std::vector<scalar>{20.f, 16.f}});
-    t = 2.f * unit<scalar_t>::mm;
+    t = 2.f * unit<scalar>::mm;
     add_material_data(mat_factory, mat_id::e_rectangle2_map, 1u, t,
                       tungsten<scalar>());
 
@@ -102,7 +104,7 @@ TEST(detray_builders, material_map_factory) {
     mat_factory->push_back({surface_id::e_sensitive,
                             transform3(point3{0.f, 0.f, 1.f}), 1u,
                             std::vector<scalar>{20.f, 16.f}});
-    t = 3.f * unit<scalar_t>::mm;
+    t = 3.f * unit<scalar>::mm;
     add_material_data(
         mat_factory, mat_id::e_rectangle2_map, 2u, t,
         {3.344f * unit<scalar>::mm, 101.6f * unit<scalar>::mm, 196.97f, 79,

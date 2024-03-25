@@ -17,6 +17,7 @@
 #include "detray/options/parse_options.hpp"
 #include "detray/options/wire_chamber_options.hpp"
 #include "detray/test/utils/detectors/build_wire_chamber.hpp"
+#include "detray/test/utils/types.hpp"
 
 // Vecmem include(s)
 #include <vecmem/memory/host_memory_resource.hpp>
@@ -30,18 +31,19 @@ namespace po = boost::program_options;
 namespace detray::detail {
 
 /// Build and write the wire chamber according to command line options
-template <typename wire_shape_t>
+template <typename scalar_t, typename wire_shape_t>
 void write_wire_chamber(int argc, char **argv,
                         boost::program_options::options_description &desc,
                         vecmem::memory_resource *host_mr,
                         detray::io::detector_writer_config &writer_cfg) {
 
-    detray::wire_chamber_config<wire_shape_t> wire_cfg{};
+    detray::wire_chamber_config<scalar_t, wire_shape_t> wire_cfg{};
 
     po::variables_map vm_wire =
         detray::options::parse_options(desc, argc, argv, wire_cfg);
 
-    auto [wire_chamber, names] = build_wire_chamber(*host_mr, wire_cfg);
+    auto [wire_chamber, names] =
+        build_wire_chamber<test::algebra>(*host_mr, wire_cfg);
     detray::io::write_detector(wire_chamber, names, writer_cfg);
 }
 
@@ -83,10 +85,10 @@ int main(int argc, char **argv) {
     // Build the geometry
     vecmem::host_memory_resource host_mr;
     if (vm.count("straw_tubes")) {
-        detail::write_wire_chamber<detray::line_circular>(argc, argv, desc,
-                                                          &host_mr, writer_cfg);
+        detail::write_wire_chamber<detray::test::scalar, detray::line_circular>(
+            argc, argv, desc, &host_mr, writer_cfg);
     } else {
-        detail::write_wire_chamber<detray::line_square>(argc, argv, desc,
-                                                        &host_mr, writer_cfg);
+        detail::write_wire_chamber<detray::test::scalar, detray::line_square>(
+            argc, argv, desc, &host_mr, writer_cfg);
     }
 }

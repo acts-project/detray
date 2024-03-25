@@ -31,12 +31,14 @@
 /// of the encountered surfaces (using the navigation inspectors)
 int main() {
     // Toy detector
-    using toy_detector_t = detray::detector<detray::toy_metadata>;
+    using metadata_t = detray::tutorial::toy_metadata;
+    using toy_detector_t = detray::detector<metadata_t>;
+    using algebra_t = typename toy_detector_t::algebra_type;
 
     /// Type that holds the intersection information
     using intersection_t =
-        detray::intersection2D<typename toy_detector_t::surface_type,
-                               detray::tutorial::algebra_t, true>;
+        detray::intersection2D<typename toy_detector_t::surface_type, algebra_t,
+                               true>;
 
     /// Inspector that records all encountered surfaces
     using object_tracer_t = detray::navigation::object_tracer<
@@ -58,14 +60,14 @@ int main() {
     using navigator_t = detray::navigator<toy_detector_t, cache_size,
                                           inspector_t, intersection_t>;
     // Line stepper
-    using stepper_t = detray::line_stepper<detray::tutorial::algebra_t>;
+    using stepper_t = detray::line_stepper<algebra_t>;
     // Propagator with empty actor chain
     using propagator_t =
         detray::propagator<stepper_t, navigator_t, detray::actor_chain<>>;
 
     vecmem::host_memory_resource host_mr;
 
-    const auto [det, names] = detray::build_toy_detector(host_mr);
+    const auto [det, names] = detray::build_toy_detector<algebra_t>(host_mr);
 
     typename toy_detector_t::geometry_context gctx{};
 
@@ -75,7 +77,7 @@ int main() {
 
     // Track generation config
     // Trivial example: Single track escapes through beampipe
-    using ray_type = detray::detail::ray<detray::tutorial::algebra_t>;
+    using ray_type = detray::detail::ray<algebra_t>;
     constexpr std::size_t theta_steps{1};
     constexpr std::size_t phi_steps{1};
 
@@ -89,8 +91,8 @@ int main() {
 
         // Now follow that ray with the same track and check, if we find
         // the same volumes and distances along the way
-        detray::free_track_parameters<detray::tutorial::algebra_t> track(
-            ray.pos(), 0.f, ray.dir(), -1.f);
+        detray::free_track_parameters<algebra_t> track(ray.pos(), 0.f,
+                                                       ray.dir(), -1.f);
         propagator_t::state propagation(track, det, prop_cfg.context);
 
         // Run the actual propagation

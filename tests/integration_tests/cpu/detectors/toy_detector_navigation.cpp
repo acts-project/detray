@@ -17,6 +17,7 @@
 #include "detray/test/cpu/material_validation.hpp"
 #include "detray/test/cpu/navigation_validation.hpp"
 #include "detray/test/utils/detectors/build_toy_detector.hpp"
+#include "detray/test/utils/types.hpp"
 
 // Vecmem include(s)
 #include <vecmem/memory/host_memory_resource.hpp>
@@ -31,13 +32,14 @@ int main(int argc, char **argv) {
     // Filter out the google test flags
     ::testing::InitGoogleTest(&argc, argv);
 
-    using toy_detector_t = detector<toy_metadata>;
-    using scalar_t = typename toy_detector_t::scalar_type;
+    using toy_detector_t = detector<test::toy_metadata>;
+    using test_algebra = toy_detector_t::algebra_type;
+    using scalar = dscalar<test_algebra>;
 
     //
     // Toy detector configuration
     //
-    toy_det_config toy_cfg{};
+    toy_det_config<scalar> toy_cfg{};
     toy_cfg.n_brl_layers(4u).n_edc_layers(7u);
     toy_cfg.use_material_maps(true);
 
@@ -45,7 +47,8 @@ int main(int argc, char **argv) {
 
     // Build the geometry
     vecmem::host_memory_resource host_mr;
-    auto [toy_det, toy_names] = build_toy_detector(host_mr, toy_cfg);
+    auto [toy_det, toy_names] =
+        build_toy_detector<test_algebra>(host_mr, toy_cfg);
 
     auto white_board = std::make_shared<test::whiteboard>();
 
@@ -81,12 +84,12 @@ int main(int argc, char **argv) {
     cfg_hel_scan.name("toy_detector_helix_scan");
     cfg_hel_scan.whiteboard(white_board);
     // Let the Newton algorithm dynamically choose tol. based on approx. error
-    cfg_hel_scan.mask_tolerance({detray::detail::invalid_value<scalar_t>(),
-                                 detray::detail::invalid_value<scalar_t>()});
+    cfg_hel_scan.mask_tolerance({detray::detail::invalid_value<scalar>(),
+                                 detray::detail::invalid_value<scalar>()});
     cfg_hel_scan.track_generator().n_tracks(10000u);
     cfg_hel_scan.track_generator().randomize_charge(true);
     cfg_hel_scan.track_generator().eta_range(-4.f, 4.f);
-    cfg_hel_scan.track_generator().p_T(1.f * unit<scalar_t>::GeV);
+    cfg_hel_scan.track_generator().p_T(1.f * unit<scalar>::GeV);
 
     detail::register_checks<test::helix_scan>(toy_det, toy_names, cfg_hel_scan);
 
@@ -115,7 +118,7 @@ int main(int argc, char **argv) {
     mat_val_cfg.name("toy_detector_material_validaiton");
     mat_val_cfg.whiteboard(white_board);
     // Reduce tolerance for single precision tests
-    if constexpr (std::is_same_v<scalar_t, float>) {
+    if constexpr (std::is_same_v<scalar, float>) {
         mat_val_cfg.relative_error(1.5e-6f);
     }
     mat_val_cfg.propagation() = cfg_str_nav.propagation();
@@ -130,7 +133,7 @@ int main(int argc, char **argv) {
     std::cout << toy_cfg << std::endl;
 
     auto [toy_det_hom_mat, toy_names_hom_mat] =
-        build_toy_detector(host_mr, toy_cfg);
+        build_toy_detector<test_algebra>(host_mr, toy_cfg);
     toy_names_hom_mat.at(0) += "_hom_material";
 
     // Check that the detector was built correctly

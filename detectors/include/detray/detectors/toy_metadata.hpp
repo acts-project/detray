@@ -26,44 +26,48 @@
 namespace detray {
 
 /// Defines the data types needed for the toy detector
+template <typename algebra_t>
 struct toy_metadata {
 
     /// Define the algebra type for the geometry and navigation
-    using algebra_type = ALGEBRA_PLUGIN<detray::scalar>;
+    using algebra_type = algebra_t;
+    using scalar_t = dscalar<algebra_type>;
 
     /// Mask to (next) volume link: next volume(s)
     using nav_link = std::uint_least16_t;
 
     /// Mask types
-    using rectangle = mask<rectangle2D, nav_link>;
-    using trapezoid = mask<trapezoid2D, nav_link>;
-    // using cylinder = mask<cylinder2D, nav_link>;  // beampipe
-    using cylinder_portal = mask<concentric_cylinder2D, nav_link>;
-    using disc_portal = mask<ring2D, nav_link>;
+    using rectangle = mask<rectangle2D, algebra_type, nav_link>;
+    using trapezoid = mask<trapezoid2D, algebra_type, nav_link>;
+    // using cylinder = mask<cylinder2D, algebra_type, nav_link>;  // beampipe
+    using cylinder_portal = mask<concentric_cylinder2D, algebra_type, nav_link>;
+    using disc_portal = mask<ring2D, algebra_type, nav_link>;
 
     /// Material types
-    using slab = material_slab<detray::scalar>;
+    using slab = material_slab<scalar_t>;
 
     // Cylindrical material grid
     template <typename container_t>
     using cylinder_map_t =
-        material_map<concentric_cylinder2D, scalar, container_t>;
+        material_map<algebra_type, concentric_cylinder2D, container_t>;
 
     // Disc material grid
     template <typename container_t>
-    using disc_map_t = material_map<ring2D, scalar, container_t>;
+    using disc_map_t = material_map<algebra_type, ring2D, container_t>;
 
     // Rectangular material grid
     template <typename container_t>
-    using rectangular_map_t = material_map<rectangle2D, scalar, container_t>;
+    using rectangular_map_t =
+        material_map<algebra_type, rectangle2D, container_t>;
 
     /// Surface grid types (regular, open binning)
     /// @{
 
     // Surface grid definition: bin-content: std::array<sf_descriptor, 1>
     template <typename axes_t, typename bin_entry_t, typename container_t>
-    using surface_grid_t = grid<axes_t, bins::static_array<bin_entry_t, 1>,
-                                simple_serializer, container_t, false>;
+    using surface_grid_t =
+        grid<algebra_type, axes_t, bins::static_array<bin_entry_t, 1>,
+             simple_serializer, container_t, false>;
 
     // cylindrical grid for the barrel layers
     template <typename bin_entry_t, typename container_t>
@@ -157,7 +161,8 @@ struct toy_metadata {
     /// Volume search grid
     template <typename container_t = host_container_types>
     using volume_finder =
-        grid<axes<cylinder3D, axis::bounds::e_open, axis::irregular,
+        grid<algebra_type,
+             axes<cylinder3D, axis::bounds::e_open, axis::irregular,
                   axis::regular, axis::irregular>,
              bins::single<dindex>, simple_serializer, container_t>;
 };

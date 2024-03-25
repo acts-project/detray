@@ -10,15 +10,10 @@
 // Algebra-Plugins include
 #include "algebra/eigen_eigen.hpp"
 
-#define ALGEBRA_PLUGIN detray::eigen
-
 namespace detray {
 
-// Define scalar type
-using scalar = DETRAY_CUSTOM_SCALARTYPE;
-
 /// The plugin definition
-template <typename scalar_t = DETRAY_CUSTOM_SCALARTYPE>
+template <typename scalar_t>
 using eigen = algebra::plugin::eigen<scalar_t>;
 
 namespace getter {

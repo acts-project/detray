@@ -22,6 +22,7 @@
 #include "detray/test/cpu/detector_consistency.hpp"
 #include "detray/test/cpu/detector_scan.hpp"
 #include "detray/test/cpu/navigation_validation.hpp"
+#include "detray/test/utils/types.hpp"
 
 // Vecmem include(s)
 #include <vecmem/memory/host_memory_resource.hpp>
@@ -44,8 +45,9 @@ using namespace detray;
 int main(int argc, char** argv) {
 
     // Use the most general type to be able to read in all detector files
-    using detector_t = detray::detector<>;
-    using scalar_t = typename detector_t::scalar_type;
+    using metadata_t = test::default_metadata;
+    using detector_t = detector<metadata_t>;
+    using scalar = dscalar<typename detector_t::algebra_type>;
 
     // Filter out the google test flags
     ::testing::InitGoogleTest(&argc, argv);
@@ -105,8 +107,8 @@ int main(int argc, char** argv) {
     hel_scan_cfg.name(det_name + "_helix_scan");
     hel_scan_cfg.whiteboard(white_board);
     // Let the Newton algorithm dynamically choose tol. based on approx. error
-    hel_scan_cfg.mask_tolerance({detray::detail::invalid_value<scalar_t>(),
-                                 detray::detail::invalid_value<scalar_t>()});
+    hel_scan_cfg.mask_tolerance({detray::detail::invalid_value<scalar>(),
+                                 detray::detail::invalid_value<scalar>()});
     hel_scan_cfg.intersection_file(file_prefix + "_helix_scan_intersections");
     hel_scan_cfg.track_param_file(file_prefix + "_helix_scan_track_parameters");
 

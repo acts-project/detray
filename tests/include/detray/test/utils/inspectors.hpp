@@ -13,6 +13,7 @@
 #endif
 
 // Project include(s)
+#include "detray/definitions/detail/math.hpp"
 #include "detray/geometry/tracking_surface.hpp"
 #include "detray/navigation/detail/ray.hpp"
 #include "detray/navigation/navigation_config.hpp"
@@ -333,7 +334,8 @@ struct print_inspector {
         }
 
         debug_stream << "distance to next\t\t";
-        if (math::fabs(state()) < static_cast<scalar>(cfg.path_tolerance)) {
+        if (math::fabs(state()) <
+            static_cast<decltype(math::fabs(state()))>(cfg.path_tolerance)) {
             debug_stream << "on obj (within tol)" << std::endl;
         } else {
             debug_stream << state() << std::endl;
@@ -433,17 +435,15 @@ struct print_inspector {
 
         debug_stream << "Pos:\t[r = " << math::hypot(pos[0], pos[1])
                      << ", z = " << pos[2] << "]" << std::endl;
-        debug_stream << "Tangent:\t"
-                     << detail::ray<ALGEBRA_PLUGIN<detray::scalar>>(state())
-                     << std::endl;
+        debug_stream << "Tangent:\t" << detail::ray(state()) << std::endl;
         debug_stream << std::endl;
     }
 
     /// Inspector interface. Gathers detailed information during stepping
-    template <typename state_type>
+    template <typename state_type, typename scalar_t>
     void operator()(const state_type &state, const stepping::config &,
                     const char *message, const std::size_t n_trials,
-                    const scalar step_scalor) {
+                    const scalar_t step_scalor) {
         std::string msg(message);
         std::string tabs = "\t\t\t\t";
 

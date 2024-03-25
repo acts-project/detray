@@ -128,7 +128,7 @@ class cylinder3D {
     template <typename scalar_t>
     DETRAY_HOST_DEVICE constexpr scalar_t volume(
         const bounds_type<scalar_t> &bounds) const {
-        return constant<scalar>::pi * (bounds[e_max_z] - bounds[e_min_z]) *
+        return constant<scalar_t>::pi * (bounds[e_max_z] - bounds[e_min_z]) *
                (bounds[e_max_r] * bounds[e_max_r] -
                 bounds[e_min_r] * bounds[e_min_r]);
     }

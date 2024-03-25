@@ -124,8 +124,9 @@ class geometry_reader {
     template <class detector_t>
     static typename detector_t::transform3_type convert(
         const transform_payload& trf_data) {
-        using scalar_t = typename detector_t::scalar_type;
-        using vector3_t = typename detector_t::vector3_type;
+        using algebra_t = typename detector_t::algebra_type;
+        using scalar_t = dscalar<algebra_t>;
+        using vector3_t = dvector3D<algebra_t>;
 
         vector3_t t{static_cast<scalar_t>(trf_data.tr[0]),
                     static_cast<scalar_t>(trf_data.tr[1]),
@@ -140,7 +141,7 @@ class geometry_reader {
                     static_cast<scalar_t>(trf_data.rot[7]),
                     static_cast<scalar_t>(trf_data.rot[8])};
 
-        return typename detector_t::transform3_type{t, x, y, z};
+        return dtransform3D<algebra_t>{t, x, y, z};
     }
 
     /// @returns surface data for a surface factory from a surface io payload
@@ -149,7 +150,7 @@ class geometry_reader {
     static surface_data<detector_t> convert(const surface_payload& sf_data) {
 
         using nav_link_t = typename detector_t::surface_type::navigation_link;
-        using scalar_t = typename detector_t::scalar_type;
+        using scalar_t = dscalar<typename detector_t::algebra_type>;
 
         // Transcribe mask boundaries onto correct vector type
         std::vector<scalar_t> mask_boundaries;

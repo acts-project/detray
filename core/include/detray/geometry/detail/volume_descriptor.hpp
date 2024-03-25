@@ -23,7 +23,7 @@ namespace detray {
 /// that is stored in the detector data stores.
 ///
 /// @tparam ID enum of object types contained in the volume
-///         (@see @c detector_metadata ).
+///         (@see @c default_metadata ).
 /// @tparam link_t the type of link to the volumes surfaces finder(s)
 ///         (accelerator structure, e.g. a grid). The surface finder types
 ///         cannot be given directly, since the containers differ between host

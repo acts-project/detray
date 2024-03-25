@@ -40,9 +40,10 @@
 
 using namespace detray;
 
-using algebra_t = test::algebra;
+using test_algebra = test::algebra;
+using scalar = test::scalar;
 using covariance_t =
-    typename bound_track_parameters<algebra_t>::covariance_type;
+    typename bound_track_parameters<test_algebra>::covariance_type;
 
 // Test is done for muon
 namespace {
@@ -55,28 +56,31 @@ GTEST_TEST(detray_material, telescope_geometry_energy_loss) {
     vecmem::host_memory_resource host_mr;
 
     // Build in x-direction from given module positions
-    detail::ray<algebra_t> traj{{0.f, 0.f, 0.f}, 0.f, {1.f, 0.f, 0.f}, -1.f};
+    detail::ray<test_algebra> traj{{0.f, 0.f, 0.f}, 0.f, {1.f, 0.f, 0.f}, -1.f};
     std::vector<scalar> positions = {0.f,   50.f,  100.f, 150.f, 200.f, 250.f,
                                      300.f, 350.f, 400.f, 450.f, 500.f};
 
     const auto mat = silicon_tml<scalar>();
     constexpr scalar thickness{0.17f * unit<scalar>::cm};
 
-    tel_det_config<rectangle2D> tel_cfg{20.f * unit<scalar>::mm,
-                                        20.f * unit<scalar>::mm};
+    tel_det_config<test_algebra, rectangle2D> tel_cfg{20.f * unit<scalar>::mm,
+                                                      20.f * unit<scalar>::mm};
     tel_cfg.positions(positions)
         .pilot_track(traj)
         .module_material(mat)
         .mat_thickness(thickness);
 
-    const auto [det, names] = build_telescope_detector(host_mr, tel_cfg);
+    const auto [det, names] =
+        build_telescope_detector<test_algebra>(host_mr, tel_cfg);
 
     using navigator_t = navigator<decltype(det)>;
-    using stepper_t = line_stepper<algebra_t>;
-    using interactor_t = pointwise_material_interactor<algebra_t>;
+    using stepper_t = line_stepper<test_algebra>;
+    using interactor_t = pointwise_material_interactor<test_algebra>;
+    using pathlimit_aborter_t = pathlimit_aborter<scalar>;
     using actor_chain_t =
-        actor_chain<dtuple, pathlimit_aborter, parameter_transporter<algebra_t>,
-                    interactor_t, parameter_resetter<algebra_t>>;
+        actor_chain<dtuple, pathlimit_aborter_t,
+                    parameter_transporter<test_algebra>, interactor_t,
+                    parameter_resetter<test_algebra>>;
     using propagator_t = propagator<stepper_t, navigator_t, actor_chain_t>;
 
     // Propagator is built from the stepper and navigator
@@ -87,20 +91,20 @@ GTEST_TEST(detray_material, telescope_geometry_energy_loss) {
     constexpr scalar iniP{10.f * unit<scalar>::GeV};
 
     // Bound vector
-    bound_parameters_vector<algebra_t> bound_vector{};
+    bound_parameters_vector<test_algebra> bound_vector{};
     bound_vector.set_theta(constant<scalar>::pi_2);
     bound_vector.set_qop(ptc.charge() / iniP);
 
     auto bound_cov = matrix::zero<covariance_t>();
 
     // bound track parameter at first physical plane
-    const bound_track_parameters<algebra_t> bound_param(
+    const bound_track_parameters<test_algebra> bound_param(
         geometry::barcode{}.set_index(0u), bound_vector, bound_cov);
 
-    pathlimit_aborter::state aborter_state{};
-    parameter_transporter<algebra_t>::state bound_updater{};
+    pathlimit_aborter_t::state aborter_state{};
+    parameter_transporter<test_algebra>::state bound_updater{};
     interactor_t::state interactor_state{};
-    parameter_resetter<algebra_t>::state parameter_resetter_state{};
+    parameter_resetter<test_algebra>::state parameter_resetter_state{};
 
     // Create actor states tuples
     auto actor_states = detray::tie(aborter_state, bound_updater,
@@ -172,7 +176,7 @@ GTEST_TEST(detray_material, telescope_geometry_scattering_angle) {
     vecmem::host_memory_resource host_mr;
 
     // Build in x-direction from given module positions
-    detail::ray<algebra_t> traj{{0.f, 0.f, 0.f}, 0.f, {1.f, 0.f, 0.f}, -1.f};
+    detail::ray<test_algebra> traj{{0.f, 0.f, 0.f}, 0.f, {1.f, 0.f, 0.f}, -1.f};
     std::vector<scalar> positions = {0.f};
 
     // To make sure that someone won't put more planes than one by accident
@@ -183,21 +187,24 @@ GTEST_TEST(detray_material, telescope_geometry_scattering_angle) {
     const scalar thickness = 100.f * unit<scalar>::cm;
 
     // Create telescope geometry
-    tel_det_config<rectangle2D> tel_cfg{2000.f * unit<scalar>::mm,
-                                        2000.f * unit<scalar>::mm};
+    tel_det_config<test_algebra, rectangle2D> tel_cfg{
+        2000.f * unit<scalar>::mm, 2000.f * unit<scalar>::mm};
     tel_cfg.positions(positions)
         .pilot_track(traj)
         .module_material(mat)
         .mat_thickness(thickness);
 
-    const auto [det, names] = build_telescope_detector(host_mr, tel_cfg);
+    const auto [det, names] =
+        build_telescope_detector<test_algebra>(host_mr, tel_cfg);
 
     using navigator_t = navigator<decltype(det)>;
-    using stepper_t = line_stepper<algebra_t>;
-    using simulator_t = random_scatterer<algebra_t>;
+    using stepper_t = line_stepper<test_algebra>;
+    using simulator_t = random_scatterer<test_algebra>;
+    using pathlimit_aborter_t = pathlimit_aborter<scalar>;
     using actor_chain_t =
-        actor_chain<dtuple, pathlimit_aborter, parameter_transporter<algebra_t>,
-                    simulator_t, parameter_resetter<algebra_t>>;
+        actor_chain<dtuple, pathlimit_aborter_t,
+                    parameter_transporter<test_algebra>, simulator_t,
+                    parameter_resetter<test_algebra>>;
     using propagator_t = propagator<stepper_t, navigator_t, actor_chain_t>;
 
     // Propagator is built from the stepper and navigator
@@ -209,14 +216,14 @@ GTEST_TEST(detray_material, telescope_geometry_scattering_angle) {
     constexpr scalar iniP{10.f * unit<scalar>::GeV};
 
     // Initial track parameters directing x-axis
-    bound_parameters_vector<algebra_t> bound_vector{};
+    bound_parameters_vector<test_algebra> bound_vector{};
     bound_vector.set_theta(constant<scalar>::pi_2);
     bound_vector.set_qop(q / iniP);
 
     auto bound_cov = matrix::zero<covariance_t>();
 
     // bound track parameter
-    const bound_track_parameters<algebra_t> bound_param(
+    const bound_track_parameters<test_algebra> bound_param(
         geometry::barcode{}.set_index(0u), bound_vector, bound_cov);
 
     std::size_t n_samples{100000u};
@@ -225,12 +232,12 @@ GTEST_TEST(detray_material, telescope_geometry_scattering_angle) {
 
     for (std::size_t i = 0u; i < n_samples; i++) {
 
-        pathlimit_aborter::state aborter_state{};
-        parameter_transporter<algebra_t>::state bound_updater{};
+        pathlimit_aborter_t::state aborter_state{};
+        parameter_transporter<test_algebra>::state bound_updater{};
         // Seed = sample id
         simulator_t::state simulator_state{i};
         simulator_state.do_energy_loss = false;
-        parameter_resetter<algebra_t>::state parameter_resetter_state{};
+        parameter_resetter<test_algebra>::state parameter_resetter_state{};
 
         // Create actor states tuples
         auto actor_states =
@@ -248,7 +255,7 @@ GTEST_TEST(detray_material, telescope_geometry_scattering_angle) {
 
         // Updated phi and theta variance
         if (i == 0u) {
-            pointwise_material_interactor<algebra_t>{}.update_angle_variance(
+            pointwise_material_interactor<test_algebra>{}.update_angle_variance(
                 bound_cov, traj.dir(),
                 simulator_state.projected_scattering_angle);
         }
@@ -281,42 +288,43 @@ GTEST_TEST(detray_material, telescope_geometry_volume_material) {
     vecmem::host_memory_resource host_mr;
 
     // Propagator types
-    using bfield_t = bfield::const_field_t;
-    using stepper_t = rk_stepper<bfield_t::view_t, algebra_t>;
-    using actor_chain_t = actor_chain<dtuple, pathlimit_aborter>;
+    using bfield_t = bfield::const_field_t<scalar>;
+    using stepper_t = rk_stepper<bfield_t::view_t, test_algebra>;
+    using pathlimit_aborter_t = pathlimit_aborter<scalar>;
+    using actor_chain_t = actor_chain<dtuple, pathlimit_aborter_t>;
     using vector3 = test::vector3;
 
     // Bfield setup
     vector3 B_z{0.f, 0.f, 2.f * unit<scalar>::T};
-    const bfield_t const_bfield = bfield::create_const_field(B_z);
+    const bfield_t const_bfield = bfield::create_const_field<scalar>(B_z);
 
     // Track setup
     constexpr scalar q{-1.f};
     constexpr scalar iniP{10.f * unit<scalar>::GeV};
 
-    bound_parameters_vector<algebra_t> bound_vector{};
+    bound_parameters_vector<test_algebra> bound_vector{};
     bound_vector.set_theta(constant<scalar>::pi_2);
     bound_vector.set_qop(q / iniP);
 
     auto bound_cov = matrix::zero<covariance_t>();
 
     // bound track parameter at first physical plane
-    const bound_track_parameters<algebra_t> bound_param(
+    const bound_track_parameters<test_algebra> bound_param(
         geometry::barcode{}.set_index(0u), bound_vector, bound_cov);
 
     // Create actor states tuples
     const scalar path_limit = 100 * unit<scalar>::mm;
 
     // Build in x-direction from given module positions
-    detail::ray<algebra_t> traj{{0.f, 0.f, 0.f}, 0.f, {1.f, 0.f, 0.f}, -1.f};
+    detail::ray<test_algebra> traj{{0.f, 0.f, 0.f}, 0.f, {1.f, 0.f, 0.f}, -1.f};
     std::vector<scalar> positions = {0.f, 10000.f * unit<scalar>::mm};
 
     // NO material at modules
     const auto module_mat = vacuum<scalar>();
 
     // Create telescope geometry
-    tel_det_config<rectangle2D> tel_cfg{100000.f * unit<scalar>::mm,
-                                        100000.f * unit<scalar>::mm};
+    tel_det_config<test_algebra, rectangle2D> tel_cfg{
+        100000.f * unit<scalar>::mm, 100000.f * unit<scalar>::mm};
     tel_cfg.positions(positions).pilot_track(traj).module_material(module_mat);
 
     std::vector<material<scalar>> vol_mats = {
@@ -325,7 +333,8 @@ GTEST_TEST(detray_material, telescope_geometry_volume_material) {
 
     for (const auto& mat : vol_mats) {
         tel_cfg.volume_material(mat);
-        const auto [det, names] = build_telescope_detector(host_mr, tel_cfg);
+        const auto [det, names] =
+            build_telescope_detector<test_algebra>(host_mr, tel_cfg);
 
         using navigator_t = navigator<decltype(det)>;
         using propagator_t = propagator<stepper_t, navigator_t, actor_chain_t>;
@@ -337,7 +346,7 @@ GTEST_TEST(detray_material, telescope_geometry_volume_material) {
 
         propagator_t::state state(bound_param, const_bfield, det);
 
-        pathlimit_aborter::state abrt_state{path_limit};
+        pathlimit_aborter_t::state abrt_state{path_limit};
         auto actor_states = detray::tie(abrt_state);
 
         p.propagate(state, actor_states);

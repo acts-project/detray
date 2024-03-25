@@ -148,7 +148,7 @@ struct material_map_config {
 template <typename detector_t>
 class material_map_generator final : public factory_decorator<detector_t> {
 
-    using scalar_t = typename detector_t::scalar_type;
+    using scalar_t = dscalar<typename detector_t::algebra_type>;
 
     public:
     /// Construct from configuration @param cfg

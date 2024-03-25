@@ -69,8 +69,8 @@ inline auto run_navigation_validation(
     const std::vector<std::vector<intersection_record_t>>
         &truth_intersection_traces) {
 
+    using scalar_t = dscalar<typename detector_t::algebra_type>;
     using intersection_t = typename intersection_record_t::intersection_type;
-    using scalar_t = typename detector_t::scalar_type;
     using material_record_t = material_validator::material_record<scalar_t>;
     using material_params_t = material_validator::material_params<scalar_t>;
 
@@ -146,9 +146,9 @@ inline auto run_navigation_validation(
 template <typename detector_t, template <typename> class scan_type>
 class navigation_validation : public test::fixture_base<> {
 
-    using scalar_t = typename detector_t::scalar_type;
     using algebra_t = typename detector_t::algebra_type;
-    using vector3_t = typename detector_t::vector3_type;
+    using scalar_t = dscalar<algebra_t>;
+    using vector3_t = dvector3D<algebra_t>;
     using free_track_parameters_t = free_track_parameters<algebra_t>;
     using trajectory_type = typename scan_type<algebra_t>::trajectory_type;
     using intersection_trace_t = typename scan_type<
@@ -220,10 +220,10 @@ class navigation_validation : public test::fixture_base<> {
         using namespace navigation;
 
         // Runge-Kutta stepper
-        using hom_bfield_t = bfield::const_field_t;
+        using hom_bfield_t = bfield::const_field_t<scalar_t>;
         using bfield_view_t =
             std::conditional_t<k_use_rays, navigation_validator::empty_bfield,
-                               hom_bfield_t::view_t>;
+                               typename hom_bfield_t::view_t>;
         using bfield_t =
             std::conditional_t<k_use_rays, navigation_validator::empty_bfield,
                                hom_bfield_t>;
@@ -232,7 +232,7 @@ class navigation_validation : public test::fixture_base<> {
 
         bfield_t b_field{};
         if constexpr (!k_use_rays) {
-            b_field = bfield::create_const_field(m_cfg.B_vector());
+            b_field = bfield::create_const_field<scalar_t>(m_cfg.B_vector());
         }
 
         // Fetch the truth data

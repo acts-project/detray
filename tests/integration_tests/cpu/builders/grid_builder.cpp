@@ -12,7 +12,6 @@
 #include "detray/builders/volume_builder.hpp"
 #include "detray/core/detector.hpp"
 #include "detray/definitions/detail/indexing.hpp"
-#include "detray/detectors/toy_metadata.hpp"
 #include "detray/geometry/mask.hpp"
 #include "detray/test/utils/types.hpp"
 
@@ -33,25 +32,27 @@ using namespace detray::axis;
 
 namespace {
 
+using scalar = test::scalar;
 using point3 = test::point3;
 using vector3 = test::vector3;
 
 test::transform3 Identity{};
 
-using detector_t = detector<toy_metadata>;
+using detector_t = detector<test::toy_metadata>;
 
 }  // anonymous namespace
 
 /// Integration test: grid builder as volume builder decorator
 GTEST_TEST(detray_builders, decorator_grid_builder) {
 
-    using transform3 = typename detector_t::transform3_type;
+    using algebra_t = typename detector_t::algebra_type;
+    using transform3 = dtransform3D<algebra_t>;
     using geo_obj_id = typename detector_t::geo_obj_ids;
     using acc_ids = typename detector_t::accel::id;
     using mask_id = typename detector_t::masks::id;
 
     // cylinder grid type of the toy detector
-    using cyl_grid_t = grid<axes<concentric_cylinder2D>,
+    using cyl_grid_t = grid<algebra_t, axes<concentric_cylinder2D>,
                             bins::static_array<detector_t::surface_type, 1>,
                             simple_serializer, host_container_types, false>;
 
@@ -75,7 +76,8 @@ GTEST_TEST(detray_builders, decorator_grid_builder) {
     // gbuilder.set_add_surfaces();
 
     // The cylinder portals are at the end of the surface range by construction
-    const auto cyl_mask = mask<concentric_cylinder2D>{0u, 10.f, -500.f, 500.f};
+    const auto cyl_mask =
+        mask<concentric_cylinder2D, algebra_t>{0u, 10.f, -500.f, 500.f};
     std::size_t n_phi_bins{5u};
     std::size_t n_z_bins{4u};
 
@@ -148,7 +150,7 @@ GTEST_TEST(detray_builders, decorator_grid_builder) {
     EXPECT_EQ(vol.id(), volume_id::e_cylinder);
 
     // only the portals are referenced through the volume
-    typename toy_metadata::object_link_type sf_range{};
+    test::toy_metadata::object_link_type sf_range{};
     sf_range[0] = {acc_ids::e_default, 0u};
     sf_range[1] = {acc_ids::e_cylinder2_grid, 0u};
 

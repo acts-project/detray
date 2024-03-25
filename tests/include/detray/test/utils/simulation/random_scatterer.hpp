@@ -83,7 +83,7 @@ struct random_scatterer : actor {
 
             if constexpr (concepts::surface_material<material_t>) {
 
-                const scalar qop = bound_params.qop();
+                const scalar_type qop = bound_params.qop();
 
                 const auto mat = detail::material_accessor::get(
                     material_group, mat_index, bound_params.bound_local());

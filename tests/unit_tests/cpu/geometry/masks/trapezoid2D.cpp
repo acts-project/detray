@@ -19,24 +19,26 @@
 #include <gtest/gtest.h>
 
 using namespace detray;
-using point3_t = test::point3;
+
+using test_algebra = test::algebra;
+using scalar = test::scalar;
+using point3 = test::point3;
 
 constexpr scalar tol{1e-7f};
 
 /// This tests the basic functionality of a trapezoid
 GTEST_TEST(detray_masks, trapezoid2D) {
-    using point_t = point3_t;
 
-    point_t p2_in = {1.f, -0.5f, 0.f};
-    point_t p2_edge = {2.5f, 1.f, 0.f};
-    point_t p2_out = {3.f, 1.5f, 0.f};
+    point3 p2_in = {1.f, -0.5f, 0.f};
+    point3 p2_edge = {2.5f, 1.f, 0.f};
+    point3 p2_out = {3.f, 1.5f, 0.f};
 
     constexpr scalar hx_miny{1.f * unit<scalar>::mm};
     constexpr scalar hx_maxy{3.f * unit<scalar>::mm};
     constexpr scalar hy{2.f * unit<scalar>::mm};
     constexpr scalar divisor{1.f / (2.f * hy)};
 
-    mask<trapezoid2D> t2{0u, hx_miny, hx_maxy, hy, divisor};
+    mask<trapezoid2D, test_algebra> t2{0u, hx_miny, hx_maxy, hy, divisor};
 
     ASSERT_NEAR(t2[trapezoid2D::e_half_length_0], hx_miny, tol);
     ASSERT_NEAR(t2[trapezoid2D::e_half_length_1], hx_maxy, tol);
@@ -73,15 +75,17 @@ GTEST_TEST(detray_masks, trapezoid2D) {
 GTEST_TEST(detray_masks, trapezoid2D_ratio_test) {
 
     struct mask_check {
-        bool operator()(const test::point3 &p, const mask<trapezoid2D> &tp,
+        bool operator()(const point3 &p,
+                        const mask<trapezoid2D, test_algebra> &tp,
                         const test::transform3 &trf, const scalar t) {
 
-            const test::point3 loc_p{tp.to_local_frame(trf, p)};
+            const point3 loc_p{tp.to_local_frame(trf, p)};
             return tp.is_inside(loc_p, t);
         }
     };
 
-    constexpr mask<trapezoid2D> tp{0u, 2.f, 3.f, 4.f, 1.f / (2.f * 4.f)};
+    constexpr mask<trapezoid2D, test_algebra> tp{0u, 2.f, 3.f, 4.f,
+                                                 1.f / (2.f * 4.f)};
 
     constexpr scalar t{0.f};
     const test::transform3 trf{};
@@ -89,7 +93,7 @@ GTEST_TEST(detray_masks, trapezoid2D_ratio_test) {
     const auto n_points{static_cast<std::size_t>(std::pow(500, 3))};
 
     // x- and y-coordinates yield a valid local position on the underlying plane
-    std::vector<test::point3> points =
+    std::vector<point3> points =
         test::generate_regular_points<cuboid3D>(n_points, {size});
 
     scalar ratio = test::ratio_test<mask_check>(points, tp, trf, t);

@@ -20,14 +20,17 @@
 
 /// Prepare the data and move it to device
 int main() {
+
     // VecMem memory resource(s)
     vecmem::cuda::managed_memory_resource mng_mr;
 
     // Create the host bfield
-    auto bfield = detray::bfield::create_inhom_field();
+    auto bfield =
+        detray::bfield::create_inhom_field<detray::tutorial::scalar>();
 
     // Create the toy geometry
-    auto [det, names] = detray::build_toy_detector(mng_mr);
+    auto [det, names] =
+        detray::build_toy_detector<detray::tutorial::algebra_t>(mng_mr);
 
     // Create the vector of initial track parameters
     vecmem::vector<detray::free_track_parameters<detray::tutorial::algebra_t>>
@@ -37,7 +40,8 @@ int main() {
     constexpr unsigned int theta_steps{10u};
     constexpr unsigned int phi_steps{10u};
     // Set momentum of tracks
-    const detray::scalar p_mag{10.f * detray::unit<detray::scalar>::GeV};
+    const detray::tutorial::scalar p_mag{
+        10.f * detray::unit<detray::tutorial::scalar>::GeV};
 
     // Genrate the tracks
     for (auto track : detray::uniform_track_generator<

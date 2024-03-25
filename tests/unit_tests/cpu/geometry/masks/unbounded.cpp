@@ -23,8 +23,11 @@
 #include <type_traits>
 
 using namespace detray;
-using point3_t = test::point3;
-using transform3_t = test::transform3;
+
+using test_algebra = test::algebra;
+using scalar = test::scalar;
+using point3 = test::point3;
+using transform3 = test::transform3;
 
 constexpr scalar tol{1e-7f};
 
@@ -36,7 +39,7 @@ GTEST_TEST(detray_masks, unbounded) {
 
     constexpr scalar h{20.f * unit<scalar>::mm};
 
-    mask<unbounded_t> u{0u, h, h};
+    mask<unbounded_t, test_algebra> u{0u, h, h};
 
     // Test local typedefs
     static_assert(std::is_same_v<unbounded_t::shape, shape_t>,
@@ -44,8 +47,8 @@ GTEST_TEST(detray_masks, unbounded) {
     static_assert(std::is_same_v<unbounded_t::boundaries, shape_t::boundaries>,
                   "incorrect boundaries");
     static_assert(
-        std::is_same_v<unbounded_t::template local_frame_type<transform3_t>,
-                       shape_t::template local_frame_type<transform3_t>>,
+        std::is_same_v<unbounded_t::template local_frame_type<transform3>,
+                       shape_t::template local_frame_type<transform3>>,
         "incorrect local frame");
 
     // Test static members
@@ -53,7 +56,8 @@ GTEST_TEST(detray_masks, unbounded) {
                 std::string("unbounded rectangle2D"));
 
     // Test boundary check
-    typename mask<unbounded_t>::point3_type p2 = {0.5f, -9.f, 0.f};
+    typename mask<unbounded_t, test_algebra>::point3_type p2 = {0.5f, -9.f,
+                                                                0.f};
     ASSERT_TRUE(u.is_inside(p2, 0.f));
 
     // Check bounding box

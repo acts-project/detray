@@ -122,10 +122,13 @@ struct bin_associator {
                                 const transform_container &transforms,
                                 const mask_container &masks,
                                 const context_t ctx, Args &&...) const -> void {
+
+        using scalar_t = dscalar<typename grid_t::algebra_type>;
+
         // Fill the surfaces into the grid by matching their contour onto the
         // grid bins
-        bin_association(ctx, surfaces, transforms, masks, grid, {0.1f, 0.1f},
-                        false);
+        bin_association(ctx, surfaces, transforms, masks, grid,
+                        std::array<scalar_t, 2>{0.1f, 0.1f}, false);
     }
 };
 

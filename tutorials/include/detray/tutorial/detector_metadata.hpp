@@ -45,17 +45,17 @@ namespace tutorial {
 using nav_link = std::uint_least16_t;
 
 /// The mask types for the detector sensitive/passive surfaces
-using square = mask<square2D, nav_link>;
-using trapezoid = mask<trapezoid2D, nav_link>;
+using square = mask<square2D, detray::tutorial::algebra_t, nav_link>;
+using trapezoid = mask<trapezoid2D, detray::tutorial::algebra_t, nav_link>;
 // Types for portals
-using rectangle = mask<rectangle2D, nav_link>;
+using rectangle = mask<rectangle2D, detray::tutorial::algebra_t, nav_link>;
 
 //
 // Material Description
 //
 
 /// The material types to be mapped onto the surfaces: Here homogeneous material
-using slab = material_slab<detray::scalar>;
+using slab = material_slab<scalar>;
 
 //
 // Detector
@@ -150,7 +150,8 @@ struct my_metadata {
     /// given position. Here: Uniform grid with a 3D cylindrical shape
     template <typename container_t = host_container_types>
     using volume_finder =
-        grid<axes<cylinder3D, axis::bounds::e_open, axis::irregular,
+        grid<algebra_type,
+             axes<cylinder3D, axis::bounds::e_open, axis::irregular,
                   axis::regular, axis::irregular>,
              bins::single<dindex>, simple_serializer, container_t>;
 };

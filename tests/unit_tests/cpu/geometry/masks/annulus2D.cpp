@@ -8,6 +8,7 @@
 // Project include(s)
 #include "detray/geometry/shapes/annulus2D.hpp"
 
+#include "detray/definitions/detail/math.hpp"
 #include "detray/definitions/units.hpp"
 #include "detray/geometry/mask.hpp"
 
@@ -19,36 +20,38 @@
 #include <gtest/gtest.h>
 
 using namespace detray;
-using point3_t = test::point3;
+
+using test_algebra = test::algebra;
+using scalar = test::scalar;
+using point3 = test::point3;
 
 constexpr scalar tol{1e-5f};
 
 /// This tests the basic functionality of a stereo annulus
 GTEST_TEST(detray_masks, annulus2D) {
-    using point_t = point3_t;
 
     constexpr scalar minR{7.2f * unit<scalar>::mm};
     constexpr scalar maxR{12.0f * unit<scalar>::mm};
     constexpr scalar minPhi{0.74195f};
     constexpr scalar maxPhi{1.33970f};
-    point_t offset = {-2.f, 2.f, 0.f};
+    point3 offset = {-2.f, 2.f, 0.f};
 
     // points in cartesian module frame
-    point_t p2_in = {7.f, 7.f, 0.f};
-    point_t p2_out1 = {5.f, 5.f, 0.f};
-    point_t p2_out2 = {10.f, 3.f, 0.f};
-    point_t p2_out3 = {10.f, 10.f, 0.f};
-    point_t p2_out4 = {4.f, 10.f, 0.f};
+    point3 p2_in = {7.f, 7.f, 0.f};
+    point3 p2_out1 = {5.f, 5.f, 0.f};
+    point3 p2_out2 = {10.f, 3.f, 0.f};
+    point3 p2_out3 = {10.f, 10.f, 0.f};
+    point3 p2_out4 = {4.f, 10.f, 0.f};
 
-    auto toStripFrame = [&offset](const point_t &xy) -> point_t {
+    auto toStripFrame = [&offset](const point3 &xy) -> point3 {
         auto shifted = xy + offset;
         scalar r{vector::perp(shifted)};
         scalar phi{vector::phi(shifted)};
-        return point_t{r, phi, 0.f};
+        return point3{r, phi, 0.f};
     };
 
-    mask<annulus2D> ann2{0u,     minR, maxR,      minPhi,
-                         maxPhi, 0.f,  offset[0], offset[1]};
+    mask<annulus2D, test_algebra> ann2{0u,     minR, maxR,      minPhi,
+                                       maxPhi, 0.f,  offset[0], offset[1]};
 
     ASSERT_NEAR(ann2[annulus2D::e_min_r], 7.2f, tol);
     ASSERT_NEAR(ann2[annulus2D::e_max_r], 12.0f, tol);
@@ -127,25 +130,26 @@ GTEST_TEST(detray_masks, annulus2D) {
 GTEST_TEST(detray_masks, annulus2D_ratio_test) {
 
     struct mask_check {
-        bool operator()(const test::point3 &p, const mask<annulus2D> &ann,
+        bool operator()(const point3 &p,
+                        const mask<annulus2D, test_algebra> &ann,
                         const test::transform3 &trf, const scalar t) {
 
-            const test::point3 loc_p{ann.to_local_frame(trf, p)};
+            const point3 loc_p{ann.to_local_frame(trf, p)};
             return ann.is_inside(loc_p, t);
         }
     };
 
     constexpr scalar t{0.f};
 
-    constexpr mask<annulus2D> ann{0u,       2.5f, 5.f,  -0.64299f,
-                                  4.13173f, 1.f,  0.5f, 0.f};
+    constexpr mask<annulus2D, test_algebra> ann{0u,       2.5f, 5.f,  -0.64299f,
+                                                4.13173f, 1.f,  0.5f, 0.f};
     const test::transform3 trf{};
 
     constexpr scalar world{10.f * unit<scalar>::mm};
     const auto n_points{static_cast<std::size_t>(std::pow(500, 3))};
 
     // x- and y-coordinates yield a valid local position on the underlying plane
-    std::vector<test::point3> points =
+    std::vector<point3> points =
         test::generate_regular_points<cuboid3D>(n_points, {world});
 
     scalar ratio = test::ratio_test<mask_check>(points, ann, trf, t);

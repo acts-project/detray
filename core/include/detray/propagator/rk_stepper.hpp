@@ -22,8 +22,8 @@ namespace detray {
 /// @tparam track_t the type of track that is being advanced by the stepper
 /// @tparam constraint_ the type of constraints on the stepper
 template <typename magnetic_field_t, typename algebra_t,
-          typename constraint_t = unconstrained_step,
-          typename policy_t = stepper_rk_policy,
+          typename constraint_t = unconstrained_step<dscalar<algebra_t>>,
+          typename policy_t = stepper_rk_policy<dscalar<algebra_t>>,
           typename inspector_t = stepping::void_inspector>
 class rk_stepper final
     : public base_stepper<algebra_t, constraint_t, policy_t, inspector_t> {

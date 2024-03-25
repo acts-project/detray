@@ -103,7 +103,7 @@ TEST(grids_cuda, grid3_replace_populator) {
 
                 const auto& bin = g3.bin(gbin);
 
-                const detray::scalar gbin_f{static_cast<detray::scalar>(gbin)};
+                const scalar gbin_f{static_cast<scalar>(gbin)};
                 const point3 tp{axis_x.min() + gbin_f * axis_x.bin_width(),
                                 axis_y.min() + gbin_f * axis_y.bin_width(),
                                 axis_z.min() + gbin_f * axis_z.bin_width()};
@@ -165,7 +165,7 @@ TEST(grids_cuda, grid2_replace_populator_ci) {
             const dindex gbin = g2.serialize({i_r, i_phi});
             const auto& bin = g2.bin(gbin);
 
-            const detray::scalar gbin_f{static_cast<detray::scalar>(gbin)};
+            const scalar gbin_f{static_cast<scalar>(gbin)};
             const point3 tp{axis_r.min() + gbin_f * axis_r.bin_width(i_r),
                             axis_phi.min() + gbin_f * axis_phi.bin_width(),
                             0.5f};
@@ -232,7 +232,7 @@ TEST(grids_cuda, grid2_complete_populator) {
             const auto& bin = g2.bin(gbin);
 
             // Other point with which the bin has been completed
-            const detray::scalar gbin_f{static_cast<detray::scalar>(gbin)};
+            const scalar gbin_f{static_cast<scalar>(gbin)};
             const point3 tp{axis_r.min() + gbin_f * width_r,
                             axis_phi.min() + gbin_f * width_phi, 0.5};
 
@@ -310,7 +310,7 @@ TEST(grids_cuda, grid2_attach_populator) {
             const auto& bin = g2.bin(gbin);
 
             // Other point with which the bin has been completed
-            const detray::scalar gbin_f{static_cast<detray::scalar>(gbin)};
+            const scalar gbin_f{static_cast<scalar>(gbin)};
             const point3 tp{axis_r.min() + gbin_f * width_r,
                             axis_phi.min() + gbin_f * width_phi, 0.5};
 
@@ -420,7 +420,7 @@ TEST(grids_cuda, grid2_dynamic_attach_populator) {
             const auto& bin = g2.bin(gbin);
 
             // Other point with which the bin has been completed
-            const detray::scalar gbin_f{static_cast<detray::scalar>(gbin)};
+            const scalar gbin_f{static_cast<scalar>(gbin)};
             const point3 tp{axis_r.min() + gbin_f * width_r,
                             axis_phi.min() + gbin_f * width_phi, 0.5};
 

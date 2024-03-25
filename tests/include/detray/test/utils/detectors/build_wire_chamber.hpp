@@ -14,9 +14,9 @@
 #include "detray/builders/homogeneous_material_builder.hpp"
 #include "detray/builders/homogeneous_material_generator.hpp"
 #include "detray/core/detector.hpp"
-#include "detray/core/detector_metadata.hpp"
 #include "detray/definitions/detail/indexing.hpp"
 #include "detray/definitions/units.hpp"
+#include "detray/detectors/default_metadata.hpp"
 #include "detray/geometry/shapes/line.hpp"
 #include "detray/materials/predefined_materials.hpp"
 #include "detray/utils/consistency_checker.hpp"
@@ -30,23 +30,23 @@
 namespace detray {
 
 /// Configuration for building a wire chamber detector
-template <typename wire_shape_t = line_square>
+template <typename scalar_t, typename wire_shape_t = line_square>
 struct wire_chamber_config {
 
     /// Number of layers
     unsigned int m_n_layers{10u};
     /// The inner radius of the first layer
-    scalar m_first_layer_inner_rad{500.f * unit<scalar>::mm};
+    scalar_t m_first_layer_inner_rad{500.f * unit<scalar_t>::mm};
     /// Half z of cylinder chamber
-    scalar m_half_z{1000.f * unit<scalar>::mm};
+    scalar_t m_half_z{1000.f * unit<scalar_t>::mm};
     /// Radius of the material rods
-    scalar m_mat_radius{15.f * unit<scalar>::um};
+    scalar_t m_mat_radius{15.f * unit<scalar_t>::um};
     /// Type of material for the material rods
-    material<scalar> m_wire_mat{tungsten<scalar>()};
+    material<scalar_t> m_wire_mat{tungsten<scalar_t>()};
     /// Config for the wire generation (barrel)
-    wire_layer_generator_config<scalar> m_wire_factory_cfg{};
+    wire_layer_generator_config<scalar_t> m_wire_factory_cfg{};
     /// Configuration for the homogeneous material generator
-    hom_material_config<scalar> m_material_config{};
+    hom_material_config<scalar_t> m_material_config{};
     /// Do a full detector consistency check after building
     bool m_do_check{true};
 
@@ -56,27 +56,27 @@ struct wire_chamber_config {
         m_n_layers = n;
         return *this;
     }
-    constexpr wire_chamber_config &first_layer_inner_radius(const scalar r) {
+    constexpr wire_chamber_config &first_layer_inner_radius(const scalar_t r) {
         m_first_layer_inner_rad = r;
         return *this;
     }
-    constexpr wire_chamber_config &half_z(const scalar hz) {
+    constexpr wire_chamber_config &half_z(const scalar_t hz) {
         m_half_z = hz;
         return *this;
     }
-    constexpr wire_chamber_config &cell_size(const scalar c) {
+    constexpr wire_chamber_config &cell_size(const scalar_t c) {
         m_wire_factory_cfg.cell_size(c);
         return *this;
     }
-    constexpr wire_chamber_config &stereo_angle(const scalar s) {
+    constexpr wire_chamber_config &stereo_angle(const scalar_t s) {
         m_wire_factory_cfg.stereo_angle(s);
         return *this;
     }
-    constexpr wire_chamber_config &mat_radius(const scalar r) {
+    constexpr wire_chamber_config &mat_radius(const scalar_t r) {
         m_mat_radius = r;
         return *this;
     }
-    constexpr wire_chamber_config &wire_material(const material<scalar> &m) {
+    constexpr wire_chamber_config &wire_material(const material<scalar_t> &m) {
         m_wire_mat = m;
         return *this;
     }
@@ -89,24 +89,25 @@ struct wire_chamber_config {
     /// Getters
     /// @{
     constexpr unsigned int n_layers() const { return m_n_layers; }
-    constexpr scalar first_layer_inner_radius() const {
+    constexpr scalar_t first_layer_inner_radius() const {
         return m_first_layer_inner_rad;
     }
-    constexpr scalar half_z() const { return m_half_z; }
-    constexpr scalar cell_size() const {
+    constexpr scalar_t half_z() const { return m_half_z; }
+    constexpr scalar_t cell_size() const {
         return m_wire_factory_cfg.cell_size();
     }
-    constexpr scalar stereo_angle() const {
+    constexpr scalar_t stereo_angle() const {
         return m_wire_factory_cfg.stereo_angle();
     }
-    constexpr scalar mat_radius() const { return m_mat_radius; }
-    constexpr const material<scalar> &wire_material() const {
+    constexpr scalar_t mat_radius() const { return m_mat_radius; }
+    constexpr const material<scalar_t> &wire_material() const {
         return m_wire_mat;
     }
-    constexpr wire_layer_generator_config<scalar> &layer_config() {
+    constexpr wire_layer_generator_config<scalar_t> &layer_config() {
         return m_wire_factory_cfg;
     }
-    constexpr const wire_layer_generator_config<scalar> &layer_config() const {
+    constexpr const wire_layer_generator_config<scalar_t> &layer_config()
+        const {
         return m_wire_factory_cfg;
     }
     constexpr auto &material_config() { return m_material_config; }
@@ -141,13 +142,15 @@ struct wire_chamber_config {
 
 };  // wire chamber config
 
-template <typename wire_shape_t>
-inline auto build_wire_chamber(vecmem::memory_resource &resource,
-                               wire_chamber_config<wire_shape_t> &cfg) {
+template <typename algebra_t, typename wire_shape_t>
+inline auto build_wire_chamber(
+    vecmem::memory_resource &resource,
+    wire_chamber_config<dscalar<algebra_t>, wire_shape_t> &cfg) {
 
-    using builder_t = detector_builder<default_metadata, volume_builder>;
+    using builder_t =
+        detector_builder<default_metadata<algebra_t>, volume_builder>;
     using detector_t = typename builder_t::detector_type;
-    using scalar_t = typename detector_t::scalar_type;
+    using scalar_t = dscalar<typename detector_t::algebra_type>;
 
     // Wire chamber detector builder
     builder_t det_builder;

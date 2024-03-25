@@ -147,18 +147,22 @@ auto test_detector_json_io(
 /// Test the reading and writing of a telescope detector
 GTEST_TEST(io, json_telescope_detector_reader) {
 
-    mask<rectangle2D> rec2{0u, 100.f, 100.f};
+    using test_algebra = test::algebra;
+    using scalar = test::scalar;
+
+    mask<rectangle2D, test_algebra> rec2{0u, 100.f, 100.f};
 
     // Surface positions
     std::vector<scalar> positions = {1.f,   50.f,  100.f, 150.f, 200.f, 250.f,
                                      300.f, 350.f, 400.f, 450.f, 500.f};
 
-    tel_det_config<rectangle2D> tel_cfg{rec2};
+    tel_det_config tel_cfg{rec2};
     tel_cfg.positions(positions);
 
     // Telescope detector
     vecmem::host_memory_resource host_mr;
-    auto [tel_det, tel_names] = build_telescope_detector(host_mr, tel_cfg);
+    auto [tel_det, tel_names] =
+        build_telescope_detector<test_algebra>(host_mr, tel_cfg);
 
     std::map<std::string, std::string, std::less<>> file_names;
     file_names["geometry"] = "telescope_detector_geometry.json";
@@ -179,13 +183,16 @@ GTEST_TEST(io, json_telescope_detector_reader) {
 /// Test the reading and writing of a toy detector geometry
 GTEST_TEST(io, json_toy_geometry) {
 
-    using detector_t = detector<toy_metadata>;
+    using metadata_t = test::toy_metadata;
+    using test_algebra = metadata_t::algebra_type;
+    using detector_t = detector<metadata_t>;
+    using scalar = test::scalar;
 
     // Toy detector
     vecmem::host_memory_resource host_mr;
-    toy_det_config toy_cfg{};
+    toy_det_config<scalar> toy_cfg{};
     toy_cfg.use_material_maps(false);
-    auto [toy_det, names] = build_toy_detector(host_mr, toy_cfg);
+    auto [toy_det, names] = build_toy_detector<test_algebra>(host_mr, toy_cfg);
 
     // Write the detector
     io::json_writer<detector_t, io::geometry_writer> geo_writer;
@@ -196,7 +203,7 @@ GTEST_TEST(io, json_toy_geometry) {
     typename detector_t::name_map volume_name_map = {{0u, "toy_detector"}};
 
     // Read the detector back in
-    detector_builder<toy_metadata> toy_builder;
+    detector_builder<metadata_t> toy_builder;
     io::json_reader<detector_t, io::geometry_reader> geo_reader;
     geo_reader.read(toy_builder, volume_name_map, file_name);
     auto det = toy_builder.build(host_mr);
@@ -205,12 +212,14 @@ GTEST_TEST(io, json_toy_geometry) {
     // EXPECT_TRUE(toy_detector_test(det, volume_name_map));
 
     // Read the toy detector into the default detector type
-    detector_builder<> comp_builder;
-    io::json_reader<detector<>, io::geometry_reader> comp_geo_reader;
+    using default_metadata_t = test::default_metadata;
+    detector_builder<default_metadata_t> comp_builder;
+    io::json_reader<detector<default_metadata_t>, io::geometry_reader>
+        comp_geo_reader;
     comp_geo_reader.read(comp_builder, volume_name_map, file_name);
     auto comp_det = comp_builder.build(host_mr);
 
-    using mask_id = detector<>::masks::id;
+    using mask_id = detector<default_metadata_t>::masks::id;
     const auto& masks = comp_det.mask_store();
 
     EXPECT_EQ(comp_det.volumes().size(), 22u);
@@ -233,11 +242,15 @@ GTEST_TEST(io, json_toy_geometry) {
 /// Test the reading and writing of a toy detector geometry "light"
 GTEST_TEST(io, json_toy_detector_roundtrip_homogeneous_material) {
 
+    using test_algebra = test::algebra;
+    using scalar = test::scalar;
+
     // Toy detector
     vecmem::host_memory_resource host_mr;
-    toy_det_config toy_cfg{};
+    toy_det_config<scalar> toy_cfg{};
     toy_cfg.use_material_maps(false);
-    const auto [toy_det, toy_names] = build_toy_detector(host_mr, toy_cfg);
+    const auto [toy_det, toy_names] =
+        build_toy_detector<test_algebra>(host_mr, toy_cfg);
 
     std::map<std::string, std::string, std::less<>> file_names;
     file_names["geometry"] = "toy_detector_geometry.json";
@@ -259,11 +272,15 @@ GTEST_TEST(io, json_toy_detector_roundtrip_homogeneous_material) {
 /// Test the reading and writing of a toy detector geometry
 GTEST_TEST(io, json_toy_detector_roundtrip_material_maps) {
 
+    using test_algebra = test::algebra;
+    using scalar = test::scalar;
+
     // Toy detector
     vecmem::host_memory_resource host_mr;
-    toy_det_config toy_cfg{};
+    toy_det_config<scalar> toy_cfg{};
     toy_cfg.use_material_maps(true);
-    const auto [toy_det, toy_names] = build_toy_detector(host_mr, toy_cfg);
+    const auto [toy_det, toy_names] =
+        build_toy_detector<test_algebra>(host_mr, toy_cfg);
 
     std::map<std::string, std::string, std::less<>> file_names;
     file_names["geometry"] = "toy_detector_geometry.json";
@@ -282,10 +299,14 @@ GTEST_TEST(io, json_toy_detector_roundtrip_material_maps) {
 /// Test the reading and writing of a wire chamber
 GTEST_TEST(io, json_wire_chamber_reader) {
 
+    using test_algebra = test::algebra;
+    using scalar = test::scalar;
+
     // Wire chamber
     vecmem::host_memory_resource host_mr;
-    wire_chamber_config<> wire_cfg{};
-    auto [wire_det, wire_names] = build_wire_chamber(host_mr, wire_cfg);
+    wire_chamber_config<scalar> wire_cfg{};
+    auto [wire_det, wire_names] =
+        build_wire_chamber<test_algebra>(host_mr, wire_cfg);
 
     std::map<std::string, std::string, std::less<>> file_names;
     file_names["geometry"] = "wire_chamber_geometry.json";

@@ -16,11 +16,12 @@
 
 using namespace detray;
 
-using algebra_t = test::algebra;
+using test_algebra = test::algebra;
+using scalar = test::scalar;
 using vector3 = test::vector3;
 using point3 = test::point3;
 
-using free_vector_t = typename free_track_parameters<algebra_t>::vector_type;
+using free_vector_t = typename free_track_parameters<test_algebra>::vector_type;
 
 constexpr scalar tol{1e-5f};
 
@@ -44,7 +45,7 @@ GTEST_TEST(detray_tracks, free_track_parameters) {
     getter::element(free_vec, e_free_qoverp, 0u) = charge / vector::norm(mom);
 
     // first constructor
-    free_track_parameters<algebra_t> free_param1(free_vec);
+    free_track_parameters<test_algebra> free_param1(free_vec);
     EXPECT_NEAR(free_param1.pos()[0], pos[0], tol);
     EXPECT_NEAR(free_param1.pos()[1], pos[1], tol);
     EXPECT_NEAR(free_param1.pos()[2], pos[2], tol);
@@ -67,7 +68,7 @@ GTEST_TEST(detray_tracks, free_track_parameters) {
                 free_param1.p(charge) * free_param1.dir()[2], tol);
 
     // second constructor
-    free_track_parameters<algebra_t> free_param2(pos, time, mom, charge);
+    free_track_parameters<test_algebra> free_param2(pos, time, mom, charge);
     EXPECT_NEAR(free_param2.pos()[0], pos[0], tol);
     EXPECT_NEAR(free_param2.pos()[1], pos[1], tol);
     EXPECT_NEAR(free_param2.pos()[2], pos[2], tol);

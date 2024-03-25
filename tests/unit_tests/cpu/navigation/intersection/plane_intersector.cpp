@@ -26,9 +26,10 @@
 using namespace detray;
 
 // Three-dimensional definitions
-using algebra_t = test::algebra;
+using test_algebra = test::algebra;
 using vector3 = test::vector3;
 using point3 = test::point3;
+using scalar = test::scalar;
 using transform3 = test::transform3;
 
 constexpr scalar tol{std::numeric_limits<scalar>::epsilon()};
@@ -41,11 +42,11 @@ GTEST_TEST(detray_intersection, translated_plane_ray) {
     // Test ray
     const point3 pos{2.f, 1.f, 0.f};
     const vector3 mom{0.f, 0.f, 1.f};
-    const detail::ray<algebra_t> r(pos, 0.f, mom, 0.f);
+    const detail::ray<test_algebra> r(pos, 0.f, mom, 0.f);
 
     // The same test but bound to local frame
-    ray_intersector<unmasked<2>, algebra_t, true> pi;
-    mask<unmasked<2>> unmasked_bound{};
+    ray_intersector<unmasked<2>, test_algebra, true> pi;
+    mask<unmasked<2>, test_algebra> unmasked_bound{};
     const auto hit_bound =
         pi(r, surface_descriptor<>{}, unmasked_bound, shifted);
 
@@ -61,7 +62,7 @@ GTEST_TEST(detray_intersection, translated_plane_ray) {
     ASSERT_NEAR(hit_bound.local[1], -1.f, tol);
 
     // The same test but bound to local frame & masked - inside
-    mask<rectangle2D> rect_for_inside{0u, 3.f, 3.f};
+    mask<rectangle2D, test_algebra> rect_for_inside{0u, 3.f, 3.f};
     const auto hit_bound_inside =
         pi(r, surface_descriptor<>{}, rect_for_inside, shifted, tol);
     ASSERT_TRUE(hit_bound_inside.status);
@@ -76,7 +77,7 @@ GTEST_TEST(detray_intersection, translated_plane_ray) {
     ASSERT_NEAR(hit_bound_inside.local[1], -1.f, tol);
 
     // The same test but bound to local frame & masked - outside
-    mask<rectangle2D> rect_for_outside{0u, 0.5f, 3.5f};
+    mask<rectangle2D, test_algebra> rect_for_outside{0u, 0.5f, 3.5f};
     const auto hit_bound_outside =
         pi(r, surface_descriptor<>{}, rect_for_outside, shifted, tol);
     ASSERT_FALSE(hit_bound_outside.status);

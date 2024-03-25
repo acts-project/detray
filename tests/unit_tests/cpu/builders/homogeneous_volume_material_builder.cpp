@@ -12,6 +12,9 @@
 #include "detray/definitions/detail/indexing.hpp"
 #include "detray/materials/predefined_materials.hpp"
 
+// Detray test include(s)
+#include "detray/test/utils/types.hpp"
+
 // Vecmem include(s)
 #include <vecmem/memory/host_memory_resource.hpp>
 
@@ -25,10 +28,13 @@
 
 using namespace detray;
 
+using scalar = detray::test::scalar;
+
 /// Unittest: Test the construction of a collection of materials
 TEST(detray_tools, homogeneous_volume_material_builder) {
 
-    using detector_t = detector<>;
+    using metadata_t = test::default_metadata;
+    using detector_t = detector<metadata_t>;
 
     constexpr auto material_id{detector_t::materials::id::e_raw_material};
 

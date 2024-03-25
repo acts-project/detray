@@ -108,9 +108,9 @@ struct material_slab {
 
     private:
     material_type m_material = {};
-    scalar_type m_thickness = std::numeric_limits<scalar>::epsilon();
-    scalar_type m_thickness_in_X0 = std::numeric_limits<scalar>::epsilon();
-    scalar_type m_thickness_in_L0 = std::numeric_limits<scalar>::epsilon();
+    scalar_type m_thickness = std::numeric_limits<scalar_type>::epsilon();
+    scalar_type m_thickness_in_X0 = std::numeric_limits<scalar_type>::epsilon();
+    scalar_type m_thickness_in_L0 = std::numeric_limits<scalar_type>::epsilon();
 };
 
 }  // namespace detray

@@ -28,6 +28,7 @@ namespace {
 vecmem::host_memory_resource host_mr;
 
 // Algebra definitions
+using scalar = test::scalar;
 using vector3 = test::vector3;
 
 /// A functor that performs some tests on a neighborhood of surfaces in a volume
@@ -100,7 +101,7 @@ GTEST_TEST(detray_navigation, brute_force_collection) {
 /// navigation
 GTEST_TEST(detray_navigation, brute_force_search) {
 
-    const auto [det, names] = build_toy_detector(host_mr);
+    const auto [det, names] = build_toy_detector<test::algebra>(host_mr);
 
     using detector_t = decltype(det);
     using context_t = detector_t::geometry_context;
