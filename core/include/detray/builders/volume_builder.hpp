@@ -109,24 +109,26 @@ class volume_builder : public volume_builder_interface<detector_t> {
     /// Adds a placement transform @param trf for the volume
     DETRAY_HOST
     void add_volume_placement(
-        const typename detector_t::transform3& trf = {}) override {
+        const typename detector_t::transform3_type& trf = {}) override {
         m_trf = trf;
     }
 
     /// Constructs a placement transform with identity rotation and translation
     /// @param t for the volume
     DETRAY_HOST
-    void add_volume_placement(const typename detector_t::point3& t) override {
-        m_trf = typename detector_t::transform3{t};
+    void add_volume_placement(
+        const typename detector_t::point3_type& t) override {
+        m_trf = typename detector_t::transform3_type{t};
     }
 
     /// Constructs a placement transform from axes @param x and @param z
     /// and the translation @param t for the volume
     DETRAY_HOST
-    void add_volume_placement(const typename detector_t::point3& t,
-                              const typename detector_t::vector3& x,
-                              const typename detector_t::vector3& z) override {
-        m_trf = typename detector_t::transform3{t, z, x, true};
+    void add_volume_placement(
+        const typename detector_t::point3_type& t,
+        const typename detector_t::vector3_type& x,
+        const typename detector_t::vector3_type& z) override {
+        m_trf = typename detector_t::transform3_type{t, z, x, true};
     }
 
     /// Add data for (a) new surface(s) to the builder
@@ -270,7 +272,7 @@ class volume_builder : public volume_builder_interface<detector_t> {
     /// Volume descriptor of the volume under construction
     typename detector_t::volume_type m_volume{};
     /// Placement of the volume under construction
-    typename detector_t::transform3 m_trf{};
+    typename detector_t::transform3_type m_trf{};
 
     /// Data of contained surfaces
     /// @{

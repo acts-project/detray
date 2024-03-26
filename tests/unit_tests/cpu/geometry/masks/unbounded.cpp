@@ -50,8 +50,8 @@ GTEST_TEST(detray_masks, unbounded) {
     EXPECT_TRUE(unbounded_t::name == "unbounded rectangle2D");
 
     // Test boundary check
-    typename mask<unbounded_t>::point3_t p2 = {0.5f, -9.f, 0.f};
-    ASSERT_TRUE(u.is_inside(p2, 0.f) == intersection::status::e_inside);
+    typename mask<unbounded_t>::point3_type p2 = {0.5f, -9.f, 0.f};
+    ASSERT_TRUE(u.is_inside(p2, 0.f));
 
     // Check bounding box
     constexpr scalar envelope{0.01f};

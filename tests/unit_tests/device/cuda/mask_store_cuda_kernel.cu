@@ -15,15 +15,14 @@ namespace detray {
 __global__ void mask_test_kernel(
     typename host_store_type::view_type store_data,
     vecmem::data::vector_view<point3> input_point3_data,
-    vecmem::data::jagged_vector_view<intersection::status> output_data) {
+    vecmem::data::jagged_vector_view<int> output_data) {
 
     /** get mask store **/
     device_store_type store(store_data);
 
     /** get mask objects **/
     vecmem::device_vector<point3> input_point3(input_point3_data);
-    vecmem::jagged_device_vector<intersection::status> output_device(
-        output_data);
+    vecmem::jagged_device_vector<int> output_device(output_data);
 
     const auto& rectangle_mask = store.get<e_rectangle2>()[0];
     const auto& trapezoid_mask = store.get<e_trapezoid2>()[0];
@@ -41,10 +40,9 @@ __global__ void mask_test_kernel(
     }
 }
 
-void mask_test(
-    typename host_store_type::view_type store_data,
-    vecmem::data::vector_view<point3> input_point3_data,
-    vecmem::data::jagged_vector_view<intersection::status> output_data) {
+void mask_test(typename host_store_type::view_type store_data,
+               vecmem::data::vector_view<point3> input_point3_data,
+               vecmem::data::jagged_vector_view<int> output_data) {
 
     int block_dim = 1;
     int thread_dim = 1;

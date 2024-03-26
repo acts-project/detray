@@ -22,9 +22,9 @@
 
 using namespace detray;
 
-using point2 = __plugin::point2<scalar>;
-using point3 = __plugin::point3<scalar>;
-using transform3 = __plugin::transform3<scalar>;
+using algebra_t = ALGEBRA_PLUGIN<detray::scalar>;
+using point3 = dpoint3D<algebra_t>;
+using transform3 = dtransform3D<algebra_t>;
 const int n_points = 1000;
 
 namespace detray {
@@ -56,9 +56,8 @@ using device_store_type =
                         rectangle, trapezoid, ring, cylinder, single, annulus>;
 
 /// test function for mask store
-void mask_test(
-    typename host_store_type::view_type store_data,
-    vecmem::data::vector_view<point3> input_point3_data,
-    vecmem::data::jagged_vector_view<intersection::status> output_data);
+void mask_test(typename host_store_type::view_type store_data,
+               vecmem::data::vector_view<point3> input_point3_data,
+               vecmem::data::jagged_vector_view<int> output_data);
 
 }  // namespace detray

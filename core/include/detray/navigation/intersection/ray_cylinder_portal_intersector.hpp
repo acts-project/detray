@@ -22,7 +22,7 @@
 
 namespace detray {
 
-template <typename frame_t, typename algebra_t>
+template <typename frame_t, typename algebra_t, bool is_soa>
 struct ray_intersector_impl;
 
 /// @brief A functor to find intersections between a straight line and a
@@ -31,21 +31,21 @@ struct ray_intersector_impl;
 /// With the way the navigation works, only the closest one of the two possible
 /// intersection points is needed in the case of a cylinderical portal surface.
 template <typename algebra_t>
-struct ray_intersector_impl<concentric_cylindrical2D<algebra_t>, algebra_t>
-    : public ray_intersector_impl<cylindrical2D<algebra_t>, algebra_t> {
+struct ray_intersector_impl<concentric_cylindrical2D<algebra_t>, algebra_t,
+                            false>
+    : public ray_intersector_impl<cylindrical2D<algebra_t>, algebra_t, false> {
 
     /// linear algebra types
     /// @{
-    using transform3_type = algebra_t;
-    using scalar_type = typename transform3_type::scalar_type;
-    using point3 = typename transform3_type::point3;
-    using point2 = typename transform3_type::point2;
-    using vector3 = typename transform3_type::vector3;
+    using scalar_type = dscalar<algebra_t>;
+    using point3_type = dpoint3D<algebra_t>;
+    using vector3_type = dvector3D<algebra_t>;
+    using transform3_type = dtransform3D<algebra_t>;
     /// @}
 
     template <typename surface_descr_t>
     using intersection_type = intersection2D<surface_descr_t, algebra_t>;
-    using ray_type = detail::ray<transform3_type>;
+    using ray_type = detail::ray<algebra_t>;
 
     /// Operator function to find intersections between ray and cylinder mask
     ///
@@ -82,7 +82,7 @@ struct ray_intersector_impl<concentric_cylindrical2D<algebra_t>, algebra_t>
                 ray, mask, trf, t, mask_tolerance, overstep_tol);
             is.sf_desc = sf;
         } else {
-            is.status = intersection::status::e_missed;
+            is.status = false;
         }
 
         return is;

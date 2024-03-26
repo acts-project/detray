@@ -39,16 +39,15 @@ inline auto trajectory(const std::vector<point3_t>& points,
 /// @param style the style settings
 ///
 /// @returns The proto trajectory of a parametrized trajectory
-template <template <typename> class trajectory_t, typename transform3_t>
-inline auto trajectory(
-    const trajectory_t<transform3_t>& traj,
-    const styling::trajectory_style& style =
-        styling::svg_default::trajectory_style,
-    const typename transform3_t::scalar_type path_length = 500.f,
-    const typename transform3_t::scalar_type step_size = 1.f) {
+template <template <typename> class trajectory_t, typename algebra_t>
+inline auto trajectory(const trajectory_t<algebra_t>& traj,
+                       const styling::trajectory_style& style =
+                           styling::svg_default::trajectory_style,
+                       const dscalar<algebra_t> path_length = 500.f,
+                       const dscalar<algebra_t> step_size = 1.f) {
 
-    const typename transform3_t::scalar_type S0 = 0.f;
-    std::vector<typename transform3_t::point3> points;
+    const dscalar<algebra_t> S0 = 0.f;
+    std::vector<dpoint3D<algebra_t>> points;
     for (auto s = S0; s < path_length; s += step_size) {
         points.push_back(traj.pos(s));
     }
@@ -61,16 +60,15 @@ inline auto trajectory(
 /// @param style the style settings
 ///
 /// @returns The proto trajectory of a ray.
-template <typename transform3_t>
-inline auto trajectory(
-    const detray::detail::ray<transform3_t>& traj,
-    const styling::trajectory_style& style =
-        styling::svg_default::trajectory_style,
-    const typename transform3_t::scalar_type path_length = 500.f) {
+template <typename algebra_t>
+inline auto trajectory(const detray::detail::ray<algebra_t>& traj,
+                       const styling::trajectory_style& style =
+                           styling::svg_default::trajectory_style,
+                       const dscalar<algebra_t> path_length = 500.f) {
 
-    const typename transform3_t::scalar_type S0 = 0.f;
-    std::vector<typename transform3_t::point3> points = {traj.pos(S0),
-                                                         traj.pos(path_length)};
+    const dscalar<algebra_t> S0 = 0.f;
+    std::vector<dpoint3D<algebra_t>> points = {traj.pos(S0),
+                                               traj.pos(path_length)};
 
     return trajectory(points, style);
 }

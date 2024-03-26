@@ -16,16 +16,11 @@
 #include "detray/utils/grid/populators.hpp"
 #include "detray/utils/grid/serializers.hpp"
 
-namespace {
+namespace detray {
 
 // type definitions
-using size_type = __plugin::size_type;
-using vector3 = __plugin::vector3<detray::scalar>;
-using point3 = __plugin::point3<detray::scalar>;
-
-}  // namespace
-
-namespace detray {
+using algebra_t = ALGEBRA_PLUGIN<detray::scalar>;
+using point3 = detray::dpoint3D<algebra_t>;
 
 using namespace axis;
 

@@ -26,6 +26,9 @@ namespace detray {
 template <typename mask_shape_t = rectangle2D>
 struct telescope_metadata {
 
+    /// Define the algebra type for the geometry and navigation
+    using algebra_type = ALGEBRA_PLUGIN<detray::scalar>;
+
     /// Mask to (next) volume link: next volume(s)
     using nav_link = std::uint_least16_t;
 
@@ -41,8 +44,8 @@ struct telescope_metadata {
 
     /// How to store coordinate transform matrices
     template <template <typename...> class vector_t = dvector>
-    using transform_store = single_store<__plugin::transform3<detray::scalar>,
-                                         vector_t, geometry_context>;
+    using transform_store =
+        single_store<dtransform3D<algebra_type>, vector_t, geometry_context>;
 
     /// Rectangles are always needed as portals (but the yhave the same type as
     /// module rectangles). Only one additional mask shape is allowed

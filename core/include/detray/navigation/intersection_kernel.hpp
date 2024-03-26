@@ -47,8 +47,8 @@ struct intersection_initialize {
         const scalar_t mask_tolerance = 0.f,
         const scalar_t overstep_tol = 0.f) const {
 
-        using algebra_t = typename transform_container_t::value_type;
         using mask_t = typename mask_group_t::value_type;
+        using algebra_t = typename mask_t::algebra_type;
 
         const auto &ctf = contextual_transforms[surface.transform()];
 
@@ -68,13 +68,13 @@ struct intersection_initialize {
     private:
     template <typename is_container_t>
     DETRAY_HOST_DEVICE bool place_in_collection(
-        typename is_container_t::value_type &&sfi,
+        const typename is_container_t::value_type &sfi,
         is_container_t &intersections) const {
-        bool is_inside = (sfi.status == intersection::status::e_inside);
-        if (is_inside) {
+
+        if (sfi.status) {
             intersections.push_back(sfi);
         }
-        return is_inside;
+        return sfi.status;
     }
 
     template <typename is_container_t>
@@ -83,11 +83,10 @@ struct intersection_initialize {
         is_container_t &intersections) const {
         bool is_valid = false;
         for (auto &sfi : solutions) {
-            bool is_inside = (sfi.status == intersection::status::e_inside);
-            if (is_inside) {
+            if (sfi.status) {
                 intersections.push_back(sfi);
             }
-            is_valid |= is_inside;
+            is_valid |= sfi.status;
         }
         return is_valid;
     }
@@ -117,16 +116,17 @@ struct intersection_update {
     ///
     /// @return the intersection
     template <typename mask_group_t, typename mask_range_t, typename traj_t,
-              typename intersection_t, typename transform_container_t>
+              typename intersection_t, typename transform_container_t,
+              typename scalar_t>
     DETRAY_HOST_DEVICE inline bool operator()(
         const mask_group_t &mask_group, const mask_range_t &mask_range,
         const traj_t &traj, intersection_t &sfi,
         const transform_container_t &contextual_transforms,
-        const scalar mask_tolerance = 0.f,
-        const scalar overstep_tol = 0.f) const {
+        const scalar_t mask_tolerance = 0.f,
+        const scalar_t overstep_tol = 0.f) const {
 
-        using algebra_t = typename transform_container_t::value_type;
         using mask_t = typename mask_group_t::value_type;
+        using algebra_t = typename mask_t::algebra_type;
 
         const auto &ctf = contextual_transforms[sfi.sf_desc.transform()];
 
@@ -137,7 +137,7 @@ struct intersection_update {
             intersector_t<typename mask_t::shape, algebra_t>{}.update(
                 traj, sfi, mask, ctf, mask_tolerance, overstep_tol);
 
-            if (sfi.status == intersection::status::e_inside) {
+            if (sfi.status) {
                 return true;
             }
         }

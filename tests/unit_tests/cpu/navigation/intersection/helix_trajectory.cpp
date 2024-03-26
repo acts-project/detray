@@ -24,9 +24,9 @@ constexpr const scalar tol{1e-5f};
 // This tests the base functionality of the Helix Gun
 GTEST_TEST(detray_intersection, helix_trajectory) {
 
+    using algebra_t = test::algebra;
     using vector3 = test::vector3;
     using point3 = test::point3;
-    using transform3_type = test::transform3;
 
     const point3 pos{0.f, 0.f, 0.f};
     const scalar time{0.f};
@@ -34,7 +34,7 @@ GTEST_TEST(detray_intersection, helix_trajectory) {
     const scalar q{-1.f * unit<scalar>::e};
 
     // vertex
-    free_track_parameters<transform3_type> vertex(pos, time, mom, q);
+    free_track_parameters<algebra_t> vertex(pos, time, mom, q);
 
     // magnetic field
     const vector3 B{0.f, 0.f, 1.f * unit<scalar>::T};
@@ -108,7 +108,7 @@ GTEST_TEST(detray_intersection, helix_trajectory) {
      * Same test with oppsite charge
      *********************************/
 
-    free_track_parameters<transform3_type> vertex2(pos, time, mom, -q);
+    free_track_parameters<algebra_t> vertex2(pos, time, mom, -q);
 
     // helix trajectory
     detail::helix helix_traj2(vertex2, &B);
@@ -166,9 +166,9 @@ GTEST_TEST(detray_intersection, helix_trajectory) {
 
 GTEST_TEST(detray_intersection, helix_trajectory_small_pT) {
 
+    using algebra_t = test::algebra;
     using vector3 = test::vector3;
     using point3 = test::point3;
-    using transform3_type = test::transform3;
 
     const point3 pos{0.f, 0.f, 0.f};
     const scalar time{0.f};
@@ -176,7 +176,7 @@ GTEST_TEST(detray_intersection, helix_trajectory_small_pT) {
     const scalar q{-1. * unit<scalar>::e};
 
     // vertex
-    free_track_parameters<transform3_type> vertex(pos, time, mom, q);
+    free_track_parameters<algebra_t> vertex(pos, time, mom, q);
 
     // magnetic field
     const vector3 B{0.f, 0.f, 1.f * unit<scalar>::T};
@@ -198,9 +198,9 @@ GTEST_TEST(detray_intersection, helix_trajectory_small_pT) {
 
 GTEST_TEST(detray_intersection, helix_direction_stability) {
 
+    using algebra_t = test::algebra;
     using vector3 = test::vector3;
     using point3 = test::point3;
-    using transform3_type = test::transform3;
 
     // magnetic field
     const vector3 B{0.f, 0.f, 1.f * unit<scalar>::T};
@@ -212,7 +212,7 @@ GTEST_TEST(detray_intersection, helix_direction_stability) {
     const scalar q{-1.f * unit<scalar>::e};
 
     // vertex
-    free_track_parameters<transform3_type> vertex(pos, time, mom, q);
+    free_track_parameters<algebra_t> vertex(pos, time, mom, q);
 
     // helix trajectory
     detail::helix hlx(vertex, &B);

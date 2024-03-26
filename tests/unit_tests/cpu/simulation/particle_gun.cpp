@@ -23,7 +23,7 @@
 
 using namespace detray;
 
-using transform3_type = test::transform3;
+using algebra_t = test::algebra;
 using vector3 = test::vector3;
 
 constexpr const scalar tol{1e-3f};
@@ -45,13 +45,13 @@ GTEST_TEST(detray_simulation, particle_gun) {
 
     // Record ray tracing
     using detector_t = decltype(toy_det);
-    using intersection_t = intersection2D<typename detector_t::surface_type,
-                                          typename detector_t::transform3>;
+    using algebra_type = typename detector_t::algebra_type;
+    using intersection_t =
+        intersection2D<typename detector_t::surface_type, algebra_type>;
     std::vector<std::vector<std::pair<dindex, intersection_t>>> expected;
     //  Iterate through uniformly distributed momentum directions with ray
-    for (const auto test_ray :
-         uniform_track_generator<detail::ray<transform3_type>>(phi_steps,
-                                                               theta_steps)) {
+    for (const auto test_ray : uniform_track_generator<detail::ray<algebra_t>>(
+             phi_steps, theta_steps)) {
 
         // Record all intersections and objects along the ray
         const auto intersection_record =
@@ -63,7 +63,7 @@ GTEST_TEST(detray_simulation, particle_gun) {
     // Iterate through uniformly distributed momentum directions with helix
     std::size_t n_tracks{0u};
     for (const auto track :
-         uniform_track_generator<free_track_parameters<transform3_type>>(
+         uniform_track_generator<free_track_parameters<algebra_t>>(
              phi_steps, theta_steps)) {
         const detail::helix test_helix(track, &B);
 

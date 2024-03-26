@@ -16,6 +16,9 @@
 #include "detray/core/detector.hpp"
 #include "detray/definitions/detail/indexing.hpp"
 
+// Test include(s)
+#include "detray/test/types.hpp"
+
 // Vecmem include(s)
 #include <vecmem/memory/host_memory_resource.hpp>
 
@@ -31,7 +34,7 @@ using namespace detray;
 
 namespace {
 
-using point3 = __plugin::point3<scalar>;
+using point3 = test::point3;
 
 using detector_t = detector<>;
 
@@ -42,7 +45,7 @@ constexpr scalar tol{std::numeric_limits<scalar>::epsilon()};
 /// Integration test: material builder as volume builder decorator
 GTEST_TEST(detray_builders, decorator_homogeneous_material_builder) {
 
-    using transform3 = typename detector_t::transform3;
+    using transform3 = typename detector_t::transform3_type;
     using mask_id = typename detector_t::masks::id;
     using material_id = typename detector_t::materials::id;
 
@@ -174,7 +177,7 @@ GTEST_TEST(detray_builders, decorator_homogeneous_material_builder) {
 GTEST_TEST(detray_builders, detector_builder_with_material) {
     using namespace detray;
 
-    using transform3 = typename detector_t::transform3;
+    using transform3 = typename detector_t::transform3_type;
     using mask_id = typename detector_t::masks::id;
     using material_id = typename detector_t::materials::id;
 
@@ -196,7 +199,7 @@ GTEST_TEST(detray_builders, detector_builder_with_material) {
         det_builder.template decorate<homogeneous_material_builder<detector_t>>(
             vbuilder->vol_index());
 
-    typename detector_t::point3 t{0.f, 0.f, 20.f};
+    typename detector_t::point3_type t{0.f, 0.f, 20.f};
     mv_builder->add_volume_placement(t);
 
     // Add a senstive surface
@@ -250,7 +253,7 @@ GTEST_TEST(detray_builders, detector_builder_with_material) {
     EXPECT_EQ(vol.index(), 0u);
 
     // Check the volume placement
-    typename detector_t::transform3 trf{t};
+    typename detector_t::transform3_type trf{t};
     EXPECT_TRUE(vol.transform() == trf);
     EXPECT_TRUE(d.transform_store()[0u] == trf);
 

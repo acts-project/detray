@@ -8,6 +8,7 @@
 #pragma once
 
 // Project include(s).
+#include "detray/definitions/detail/algebra.hpp"
 #include "detray/definitions/detail/qualifiers.hpp"
 #include "detray/definitions/track_parametrization.hpp"
 #include "detray/geometry/coordinates/line2D.hpp"
@@ -23,16 +24,16 @@ struct jacobian<line2D<algebra_t>> {
     /// @{
     using coordinate_frame = line2D<algebra_t>;
 
-    using transform3_type = algebra_t;
-    using scalar_type = typename algebra_t::scalar_type;
-    using point3 = typename algebra_t::point3;
-    using vector3 = typename algebra_t::vector3;
+    using algebra_type = algebra_t;
+    using transform3_type = dtransform3D<algebra_t>;
+    using scalar_type = dscalar<algebra_t>;
+    using point3_type = dpoint3D<algebra_t>;
+    using vector3_type = dvector3D<algebra_t>;
 
     // Matrix operator
-    using matrix_operator = typename algebra_t::matrix_actor;
+    using matrix_operator = dmatrix_operator<algebra_t>;
     // Rotation Matrix
-    using rotation_matrix =
-        typename matrix_operator::template matrix_type<3, 3>;
+    using rotation_matrix = dmatrix<algebra_t, 3, 3>;
 
     using bound_to_free_matrix_type = bound_to_free_matrix<algebra_t>;
     using free_to_bound_matrix_type = free_to_bound_matrix<algebra_t>;
@@ -41,8 +42,8 @@ struct jacobian<line2D<algebra_t>> {
 
     DETRAY_HOST_DEVICE
     static inline rotation_matrix reference_frame(const transform3_type &trf3,
-                                                  const point3 & /*pos*/,
-                                                  const vector3 &dir) {
+                                                  const point3_type & /*pos*/,
+                                                  const vector3_type &dir) {
 
         rotation_matrix rot = matrix_operator().template zero<3, 3>();
 
@@ -68,18 +69,19 @@ struct jacobian<line2D<algebra_t>> {
     }
 
     DETRAY_HOST_DEVICE static inline free_to_path_matrix_type path_derivative(
-        const transform3_type &trf3, const point3 &pos, const vector3 &dir,
-        const vector3 &dtds) {
+        const transform3_type &trf3, const point3_type &pos,
+        const vector3_type &dir, const vector3_type &dtds) {
 
         free_to_path_matrix_type derivative =
             matrix_operator().template zero<1u, e_free_size>();
 
         // The vector between position and center
-        const point3 center = trf3.translation();
-        const vector3 pc = pos - center;
+        const point3_type center = trf3.translation();
+        const vector3_type pc = pos - center;
 
         // The local frame z axis
-        const vector3 local_zaxis = getter::vector<3>(trf3.matrix(), 0u, 2u);
+        const vector3_type local_zaxis =
+            getter::vector<3>(trf3.matrix(), 0u, 2u);
 
         // The local z coordinate
         const scalar_type pz = vector::dot(pc, local_zaxis);
@@ -88,13 +90,13 @@ struct jacobian<line2D<algebra_t>> {
         const scalar_type dz = vector::dot(local_zaxis, dir);
 
         // local x axis component of pc:
-        const vector3 pc_x = pc - pz * local_zaxis;
+        const vector3_type pc_x = pc - pz * local_zaxis;
 
         const scalar_type norm =
             -1.f / (1.f - dz * dz + vector::dot(pc_x, dtds));
 
-        const vector3 pos_term = norm * (dir - dz * local_zaxis);
-        const vector3 dir_term = norm * pc_x;
+        const vector3_type pos_term = norm * (dir - dz * local_zaxis);
+        const vector3_type dir_term = norm * pc_x;
 
         matrix_operator().element(derivative, 0u, e_free_pos0) = pos_term[0];
         matrix_operator().element(derivative, 0u, e_free_pos1) = pos_term[1];
@@ -109,7 +111,8 @@ struct jacobian<line2D<algebra_t>> {
     DETRAY_HOST_DEVICE
     static inline void set_bound_pos_to_free_pos_derivative(
         bound_to_free_matrix_type &bound_to_free_jacobian,
-        const transform3_type &trf3, const point3 &pos, const vector3 &dir) {
+        const transform3_type &trf3, const point3_type &pos,
+        const vector3_type &dir) {
 
         const auto frame = reference_frame(trf3, pos, dir);
 
@@ -125,7 +128,8 @@ struct jacobian<line2D<algebra_t>> {
     DETRAY_HOST_DEVICE
     static inline void set_free_pos_to_bound_pos_derivative(
         free_to_bound_matrix_type &free_to_bound_jacobian,
-        const transform3_type &trf3, const point3 &pos, const vector3 &dir) {
+        const transform3_type &trf3, const point3_type &pos,
+        const vector3_type &dir) {
 
         const auto frame = reference_frame(trf3, pos, dir);
         const auto frameT = matrix_operator().transpose(frame);
@@ -142,7 +146,8 @@ struct jacobian<line2D<algebra_t>> {
     DETRAY_HOST_DEVICE
     static inline void set_bound_angle_to_free_pos_derivative(
         bound_to_free_matrix_type &bound_to_free_jacobian,
-        const transform3_type &trf3, const point3 &pos, const vector3 &dir) {
+        const transform3_type &trf3, const point3_type &pos,
+        const vector3_type &dir) {
 
         // local2
         const auto local2 = coordinate_frame::global_to_local(trf3, pos, dir);
@@ -178,12 +183,12 @@ struct jacobian<line2D<algebra_t>> {
 
         const scalar_type C{ipdn * local2[0]};
         // and correct for the x axis components
-        vector3 phi_to_free_pos_derivative =
+        vector3_type phi_to_free_pos_derivative =
             y_cross_dNdPhi - new_xaxis * vector::dot(new_xaxis, y_cross_dNdPhi);
 
         phi_to_free_pos_derivative = C * phi_to_free_pos_derivative;
 
-        vector3 theta_to_free_pos_derivative =
+        vector3_type theta_to_free_pos_derivative =
             y_cross_dNdTheta -
             new_xaxis * vector::dot(new_xaxis, y_cross_dNdTheta);
 

@@ -44,7 +44,7 @@ struct particle_gun {
         using sf_desc_t = typename detector_t::surface_type;
 
         using intersection_t =
-            intersection2D<sf_desc_t, typename detector_t::transform3>;
+            intersection2D<sf_desc_t, typename detector_t::algebra_type>;
 
         std::vector<std::pair<dindex, intersection_t>> intersection_record;
 
@@ -64,7 +64,7 @@ struct particle_gun {
 
             // Candidate is invalid if it lies in the opposite direction
             for (auto &sfi : intersections) {
-                if (sfi.direction == intersection::direction::e_along) {
+                if (sfi.direction) {
                     sfi.sf_desc = sf_desc;
                     // Volume the candidate belongs to
                     intersection_record.emplace_back(sf.volume(), sfi);

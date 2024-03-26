@@ -23,10 +23,10 @@ inline auto link(const typename detector_t::geometry_context& context,
                  const detector_t& detector,
                  const detray::surface<detector_t>& d_portal) {
 
-    using point3_container_t = std::vector<typename detector_t::point3>;
+    using point3_container_t = std::vector<typename detector_t::point3_type>;
     using p_link_t = typename actsvg::proto::portal<point3_container_t>::link;
 
-    typename detector_t::vector3 dir{};
+    typename detector_t::vector3_type dir{};
 
     // Length of link arrow is currently hardcoded.
     constexpr double link_length = 4.;

@@ -30,7 +30,7 @@ int main() {
     auto [det, names] = detray::build_toy_detector(mng_mr);
 
     // Create the vector of initial track parameters
-    vecmem::vector<detray::free_track_parameters<detray::tutorial::transform3>>
+    vecmem::vector<detray::free_track_parameters<detray::tutorial::algebra_t>>
         tracks(&mng_mr);
 
     // Track directions to be generated
@@ -41,7 +41,7 @@ int main() {
 
     // Genrate the tracks
     for (auto track : detray::uniform_track_generator<
-             detray::free_track_parameters<detray::tutorial::transform3>>(
+             detray::free_track_parameters<detray::tutorial::algebra_t>>(
              phi_steps, theta_steps, p_mag)) {
         // Put it into vector of tracks
         tracks.push_back(track);

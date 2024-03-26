@@ -13,6 +13,7 @@
 #include "detray/core/detail/container_views.hpp"
 #include "detray/core/detail/surface_lookup.hpp"
 #include "detray/core/detector_metadata.hpp"
+#include "detray/definitions/detail/algebra.hpp"
 #include "detray/definitions/detail/containers.hpp"
 #include "detray/definitions/detail/qualifiers.hpp"
 #include "detray/geometry/detail/volume_descriptor.hpp"
@@ -49,13 +50,16 @@ class detector {
     friend class volume_builder<detector<metadata_t, container_t>>;
 
     public:
-    /// Algebra types
-    /// @TODO: algebra plugin as a template parameter
-    using scalar_type = scalar;
+    /// Main definition of geometry types
+    using metadata = metadata_t;
 
-    using point3 = __plugin::point3<scalar_type>;
-    using vector3 = __plugin::vector3<scalar_type>;
-    using point2 = __plugin::point2<scalar_type>;
+    /// Algebra types
+    using algebra_type = typename metadata::algebra_type;
+    using scalar_type = dscalar<algebra_type>;
+    using point2_type = dpoint2D<algebra_type>;
+    using point3_type = dpoint3D<algebra_type>;
+    using vector3_type = dvector3D<algebra_type>;
+    using transform3_type = dtransform3D<algebra_type>;
 
     /// Raw container types
     template <typename T, std::size_t N>
@@ -71,9 +75,6 @@ class detector {
     /// In case the detector needs to be printed
     using name_map = std::map<dindex, std::string>;
 
-    /// Main definition of geometry types
-    using metadata = metadata_t;
-
     /// The surface takes a mask (defines the local coordinates and the surface
     /// extent), its material, a link to an element in the transform container
     /// to define its placement and a source link to the object it represents.
@@ -85,7 +86,6 @@ class detector {
     /// the geo context (e.g. for alignment)
     using transform_container =
         typename metadata::template transform_store<vector_type>;
-    using transform3 = typename transform_container::value_type;
     using transform_link = typename transform_container::link_type;
     using geometry_context = typename transform_container::context_type;
 
@@ -111,7 +111,7 @@ class detector {
     /// Volume type
     using geo_obj_ids = typename metadata::geo_objects;
     using volume_type =
-        volume_descriptor<geo_obj_ids, scalar_type, accel_link, material_link>;
+        volume_descriptor<geo_obj_ids, accel_link, material_link>;
     using volume_container = vector_type<volume_type>;
 
     /// Volume finder definition: Make volume index available from track
@@ -212,9 +212,9 @@ class detector {
 
     /// @return the volume by global cartesian @param position - const access
     DETRAY_HOST_DEVICE
-    inline const auto &volume(const point3 &p) const {
+    inline const auto &volume(const point3_type &p) const {
         // The 3D cylindrical volume search grid is concentric
-        const transform3 identity{};
+        const transform3_type identity{};
         const auto loc_pos =
             _volume_finder.project(identity, p, identity.translation());
 

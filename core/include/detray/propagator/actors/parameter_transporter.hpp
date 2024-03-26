@@ -16,7 +16,7 @@
 
 namespace detray {
 
-template <typename transform3_t>
+template <typename algebra_t>
 struct parameter_transporter : actor {
 
     struct state {};
@@ -28,17 +28,14 @@ struct parameter_transporter : actor {
         /// @{
 
         // Transformation matching this struct
-        using transform3_type = transform3_t;
+        using transform3_type = dtransform3D<algebra_t>;
         // scalar_type
-        using scalar_type = typename transform3_type::scalar_type;
-        // size type
-        using size_type = typename transform3_type::size_type;
+        using scalar_type = dscalar<algebra_t>;
         // Matrix actor
-        using matrix_operator = typename transform3_t::matrix_actor;
+        using matrix_operator = dmatrix_operator<algebra_t>;
         // 2D matrix type
-        template <size_type ROWS, size_type COLS>
-        using matrix_type =
-            typename matrix_operator::template matrix_type<ROWS, COLS>;
+        template <std::size_t ROWS, std::size_t COLS>
+        using matrix_type = dmatrix<algebra_t, ROWS, COLS>;
 
         /// @}
 
@@ -49,15 +46,15 @@ struct parameter_transporter : actor {
             const transform3_type& trf3, propagator_state_t& propagation) {
 
             using frame_t = typename mask_group_t::value_type::shape::
-                template local_frame_type<transform3_type>;
+                template local_frame_type<algebra_t>;
 
             using jacobian_engine_t = detail::jacobian_engine<frame_t>;
 
-            using bound_matrix_t = bound_matrix<transform3_type>;
+            using bound_matrix_t = bound_matrix<algebra_t>;
             using bound_to_free_matrix_t =
                 typename jacobian_engine_t::bound_to_free_matrix_type;
 
-            using free_matrix_t = free_matrix<transform3_type>;
+            using free_matrix_t = free_matrix<algebra_t>;
             using free_to_bound_matrix_t =
                 typename jacobian_engine_t::free_to_bound_matrix_type;
 

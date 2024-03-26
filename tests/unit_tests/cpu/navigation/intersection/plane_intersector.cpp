@@ -24,6 +24,7 @@
 using namespace detray;
 
 // Three-dimensional definitions
+using algebra_t = test::algebra;
 using vector3 = test::vector3;
 using point3 = test::point3;
 using transform3 = test::transform3;
@@ -38,15 +39,15 @@ GTEST_TEST(detray_intersection, translated_plane_ray) {
     // Test ray
     const point3 pos{2.f, 1.f, 0.f};
     const vector3 mom{0.f, 0.f, 1.f};
-    const detail::ray<transform3> r(pos, 0.f, mom, 0.f);
+    const detail::ray<algebra_t> r(pos, 0.f, mom, 0.f);
 
     // The same test but bound to local frame
-    ray_intersector<unmasked<2>, transform3> pi;
+    ray_intersector<unmasked<2>, algebra_t> pi;
     mask<unmasked<2>> unmasked_bound{};
     const auto hit_bound =
         pi(r, surface_descriptor<>{}, unmasked_bound, shifted);
 
-    ASSERT_TRUE(hit_bound.status == intersection::status::e_inside);
+    ASSERT_TRUE(hit_bound.status);
     // Global intersection information - unchanged
     const auto global0 =
         unmasked_bound.to_global_frame(shifted, hit_bound.local);
@@ -63,7 +64,7 @@ GTEST_TEST(detray_intersection, translated_plane_ray) {
     mask<rectangle2D> rect_for_inside{0u, 3.f, 3.f};
     const auto hit_bound_inside =
         pi(r, surface_descriptor<>{}, rect_for_inside, shifted);
-    ASSERT_TRUE(hit_bound_inside.status == intersection::status::e_inside);
+    ASSERT_TRUE(hit_bound_inside.status);
     // Global intersection information - unchanged
     const auto global1 =
         rect_for_inside.to_global_frame(shifted, hit_bound_inside.local);
@@ -78,7 +79,7 @@ GTEST_TEST(detray_intersection, translated_plane_ray) {
     mask<rectangle2D> rect_for_outside{0u, 0.5f, 3.5f};
     const auto hit_bound_outside =
         pi(r, surface_descriptor<>{}, rect_for_outside, shifted);
-    ASSERT_TRUE(hit_bound_outside.status == intersection::status::e_outside);
+    ASSERT_FALSE(hit_bound_outside.status);
     // Global intersection information - not written out anymore
     const auto global2 =
         rect_for_outside.to_global_frame(shifted, hit_bound_outside.local);
@@ -99,12 +100,12 @@ GTEST_TEST(detray_intersection, plane_incidence_angle) {
 
     const transform3 rotated{t, vector::normalize(z), vector::normalize(x)};
 
-    ray_intersector<rectangle2D, transform3> pi;
+    ray_intersector<rectangle2D, algebra_t> pi;
 
     // Test ray
     const point3 pos{-1.f, 0.f, 0.f};
     const vector3 mom{1.f, 0.f, 0.f};
-    const detail::ray<transform3> r(pos, 0.f, mom, 0.f);
+    const detail::ray<algebra_t> r(pos, 0.f, mom, 0.f);
 
     // The same test but bound to local frame & masked - inside
     mask<rectangle2D> rect{0u, 3.f, 3.f};

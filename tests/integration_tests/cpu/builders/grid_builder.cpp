@@ -43,7 +43,7 @@ using detector_t = detector<toy_metadata>;
 /// Integration test: grid builder as volume builder decorator
 GTEST_TEST(detray_builders, decorator_grid_builder) {
 
-    using transform3 = typename detector_t::transform3;
+    using transform3 = typename detector_t::transform3_type;
     using geo_obj_id = typename detector_t::geo_obj_ids;
     using acc_ids = typename detector_t::accel::id;
     using mask_id = typename detector_t::masks::id;

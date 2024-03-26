@@ -232,7 +232,7 @@ struct print_inspector {
         debug_stream << "Pos:\t[r = " << math::hypot(pos[0], pos[1])
                      << ", z = " << pos[2] << "]" << std::endl;
         debug_stream << "Tangent:\t"
-                     << detail::ray<__plugin::transform3<scalar>>(state())
+                     << detail::ray<ALGEBRA_PLUGIN<detray::scalar>>(state())
                      << std::endl;
         debug_stream << std::endl;
     }

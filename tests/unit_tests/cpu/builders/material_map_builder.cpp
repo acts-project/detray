@@ -17,6 +17,9 @@
 #include "detray/definitions/detail/indexing.hpp"
 #include "detray/utils/ranges.hpp"
 
+// Test include(s)
+#include "detray/test/types.hpp"
+
 // Vecmem include(s)
 #include <vecmem/memory/host_memory_resource.hpp>
 
@@ -32,7 +35,7 @@ using namespace detray;
 
 namespace {
 
-using point3 = __plugin::point3<scalar>;
+using point3 = test::point3;
 
 using detector_t = detector<>;
 using mat_id = typename detector_t::materials::id;
@@ -65,7 +68,7 @@ auto add_material_data(const material_factory_t& mat_factory, mat_id id,
 /// Unittest: Test the construction of a collection of material maps
 TEST(detray_builders, material_map_builder) {
 
-    using transform3 = typename detector_t::transform3;
+    using transform3 = typename detector_t::transform3_type;
     using scalar_t = typename detector_t::scalar_type;
 
     // Build rectangle surfaces with material slabs

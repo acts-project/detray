@@ -16,26 +16,27 @@
 namespace detray {
 
 /// Straight line stepper implementation
-template <typename transform3_t, typename constraint_t = unconstrained_step,
+template <typename algebra_t, typename constraint_t = unconstrained_step,
           typename policy_t = stepper_default_policy,
           typename inspector_t = stepping::void_inspector>
 class line_stepper final
-    : public base_stepper<transform3_t, constraint_t, policy_t, inspector_t> {
+    : public base_stepper<algebra_t, constraint_t, policy_t, inspector_t> {
 
     public:
     using base_type =
-        base_stepper<transform3_t, constraint_t, policy_t, inspector_t>;
+        base_stepper<algebra_t, constraint_t, policy_t, inspector_t>;
 
+    using algebra_type = algebra_t;
+    using scalar_type = dscalar<algebra_t>;
+    using vector3_type = dvector3D<algebra_t>;
+    using transform3_type = dtransform3D<algebra_t>;
     using free_track_parameters_type =
         typename base_type::free_track_parameters_type;
     using bound_track_parameters_type =
         typename base_type::bound_track_parameters_type;
     using matrix_operator = typename base_type::matrix_operator;
-    using size_type = typename matrix_operator::size_ty;
-    using vector3 = typename line_stepper::transform3_type::vector3;
-    template <size_type ROWS, size_type COLS>
-    using matrix_type =
-        typename matrix_operator::template matrix_type<ROWS, COLS>;
+    template <std::size_t ROWS, std::size_t COLS>
+    using matrix_type = dmatrix<algebra_t, ROWS, COLS>;
 
     struct state : public base_type::state {
         static constexpr const stepping::id id = stepping::id::e_linear;
@@ -63,7 +64,7 @@ class line_stepper final
         inline void advance_jacobian() {
 
             // The step transport matrix in global coordinates
-            matrix_type<e_free_size, e_free_size> D =
+            free_matrix<algebra_t> D =
                 matrix_operator().template identity<e_free_size, e_free_size>();
 
             // d(x,y,z)/d(n_x,n_y,n_z)
@@ -79,10 +80,10 @@ class line_stepper final
         }
 
         DETRAY_HOST_DEVICE
-        inline vector3 dtds() const { return vector3{0.f, 0.f, 0.f}; }
+        inline vector3_type dtds() const { return {0.f, 0.f, 0.f}; }
 
         DETRAY_HOST_DEVICE
-        inline scalar dqopds() const { return 0.f; }
+        inline scalar_type dqopds() const { return 0.f; }
     };
 
     /// Take a step, regulared by a constrained step

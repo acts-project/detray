@@ -410,7 +410,7 @@ inline auto module_positions_ring(scalar z, scalar radius, scalar phi_stagger,
                                   scalar phi_sub_stagger,
                                   unsigned int n_phi_bins) {
     // create and fill the positions
-    std::vector<__plugin::vector3<scalar>> r_positions;
+    std::vector<dvector3D<ALGEBRA_PLUGIN<detray::scalar>>> r_positions;
     r_positions.reserve(n_phi_bins);
 
     // prep work
@@ -601,7 +601,8 @@ inline void add_beampipe(
     constexpr auto leaving_world{detail::invalid_value<nav_link_t>()};
     constexpr auto cyl_id = detector_t::masks::id::e_portal_cylinder2;
 
-    const detail::detector_helper<typename detector_t::transform3> det_helper{};
+    const detail::detector_helper<typename detector_t::algebra_type>
+        det_helper{};
 
     scalar max_z{n_edc_layers == 0u ? brl_half_z
                                     : edc_lay_sizes[n_edc_layers - 1u].second};
@@ -742,7 +743,8 @@ inline void add_endcap_barrel_connection(
     constexpr auto leaving_world{detail::invalid_value<nav_link_t>()};
     constexpr auto cyl_id = detector_t::masks::id::e_portal_cylinder2;
 
-    const detail::detector_helper<typename detector_t::transform3> det_helper{};
+    const detail::detector_helper<typename detector_t::algebra_type>
+        det_helper{};
 
     const scalar sign{static_cast<scalar>(side)};
     const scalar min_z{math::min(sign * gap_lower_z, sign * gap_upper_z)};
@@ -765,7 +767,7 @@ inline void add_endcap_barrel_connection(
         "connector_gap_" + std::to_string(connector_gap_idx);
     connector_gap.set_transform(det.transform_store().size());
     // translation of the connector gap
-    typename detector_t::point3 t{0.f, 0.f, 0.5f * (max_z + min_z)};
+    typename detector_t::point3_type t{0.f, 0.f, 0.5f * (max_z + min_z)};
     det.transform_store().emplace_back(ctx, t);
 
     dindex volume_link{beampipe_idx};
@@ -841,7 +843,8 @@ inline void add_endcap_detector(
     using nav_link_t = typename detector_t::surface_type::navigation_link;
     constexpr auto leaving_world{detail::invalid_value<nav_link_t>()};
 
-    const detail::detector_helper<typename detector_t::transform3> det_helper{};
+    const detail::detector_helper<typename detector_t::algebra_type>
+        det_helper{};
 
     // Generate consecutive linking between volumes (all volume_links for every
     // vol.)
@@ -956,7 +959,8 @@ inline void add_barrel_detector(
     using nav_link_t = typename detector_t::surface_type::navigation_link;
     constexpr auto leaving_world{detail::invalid_value<nav_link_t>()};
 
-    const detail::detector_helper<typename detector_t::transform3> det_helper{};
+    const detail::detector_helper<typename detector_t::algebra_type>
+        det_helper{};
 
     // Generate consecutive linking between volumes
     dindex first_vol_idx = det.volumes().back().index();

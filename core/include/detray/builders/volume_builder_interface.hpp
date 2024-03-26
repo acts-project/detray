@@ -64,20 +64,21 @@ class volume_builder_interface {
     /// @brief Add the transform for the volume placement - copy
     DETRAY_HOST
     virtual void add_volume_placement(
-        const typename detector_t::transform3 &trf = {}) = 0;
+        const typename detector_t::transform3_type &trf = {}) = 0;
 
     /// @brief Add the transform for the volume placement from the translation
     /// @param t. The rotation will be the identity matrix.
     DETRAY_HOST
-    virtual void add_volume_placement(const typename detector_t::point3 &t) = 0;
+    virtual void add_volume_placement(
+        const typename detector_t::point3_type &t) = 0;
 
     /// @brief Add the transform for the volume placement from the translation
     /// @param t , the new x- and z-axis (@param x, @param z).
     DETRAY_HOST
     virtual void add_volume_placement(
-        const typename detector_t::point3 &t,
-        const typename detector_t::vector3 &x,
-        const typename detector_t::vector3 &z) = 0;
+        const typename detector_t::point3_type &t,
+        const typename detector_t::vector3_type &x,
+        const typename detector_t::vector3_type &z) = 0;
 
     /// @brief Add surfaces to the volume
     /// @returns the index range of the sensitives in the temporary surface
@@ -142,19 +143,21 @@ class volume_decorator : public volume_builder_interface<detector_t> {
 
     DETRAY_HOST
     void add_volume_placement(
-        const typename detector_t::transform3 &trf = {}) override {
+        const typename detector_t::transform3_type &trf = {}) override {
         return m_builder->add_volume_placement(trf);
     }
 
     DETRAY_HOST
-    void add_volume_placement(const typename detector_t::point3 &t) override {
+    void add_volume_placement(
+        const typename detector_t::point3_type &t) override {
         return m_builder->add_volume_placement(t);
     }
 
     DETRAY_HOST
-    void add_volume_placement(const typename detector_t::point3 &t,
-                              const typename detector_t::vector3 &x,
-                              const typename detector_t::vector3 &z) override {
+    void add_volume_placement(
+        const typename detector_t::point3_type &t,
+        const typename detector_t::vector3_type &x,
+        const typename detector_t::vector3_type &z) override {
         return m_builder->add_volume_placement(t, x, z);
     }
 

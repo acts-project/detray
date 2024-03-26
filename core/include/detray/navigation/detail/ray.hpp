@@ -19,19 +19,20 @@
 namespace detray::detail {
 
 /// @brief describes a straight-line trajectory
-template <typename transform3_t>
+template <typename algebra_t>
 class ray {
     public:
-    using transform3_type = transform3_t;
-    using scalar_type = typename transform3_type::scalar_type;
-    using vector3 = typename transform3_type::vector3;
-    using point3 = typename transform3_type::point3;
+    using algebra_type = algebra_t;
+    using scalar_type = dscalar<algebra_type>;
+    using point3_type = dpoint3D<algebra_type>;
+    using vector3_type = dvector3D<algebra_type>;
+    using transform3_type = dtransform3D<algebra_type>;
 
-    using free_track_parameters_type = free_track_parameters<transform3_type>;
+    using free_track_parameters_type = free_track_parameters<algebra_t>;
     using free_vector_type = typename free_track_parameters_type::vector_type;
 
     // Track helper
-    using matrix_operator = typename transform3_t::matrix_actor;
+    using matrix_operator = dmatrix_operator<algebra_t>;
     using track_helper = detail::track_helper<matrix_operator>;
 
     ray() = default;
@@ -40,8 +41,8 @@ class ray {
     ///
     /// @param pos the track position
     /// @param dir the track momentum direction
-    DETRAY_HOST_DEVICE ray(const point3 &pos, const scalar_type /*time*/,
-                           const vector3 &dir, const scalar_type /*qop*/)
+    DETRAY_HOST_DEVICE ray(const point3_type &pos, const scalar_type /*time*/,
+                           const vector3_type &dir, const scalar_type /*qop*/)
         : _pos{pos}, _dir{dir} {}
 
     /// Parametrized constructor that complies with track interface
@@ -58,27 +59,27 @@ class ray {
         : ray(track.vector()) {}
 
     /// @returns position on the ray (compatible with tracks/intersectors)
-    DETRAY_HOST_DEVICE point3 pos() const { return _pos; }
+    DETRAY_HOST_DEVICE point3_type pos() const { return _pos; }
 
     /// @returns position on the ray paramterized by path length
-    DETRAY_HOST_DEVICE point3 pos(const scalar_type s) const {
+    DETRAY_HOST_DEVICE point3_type pos(const scalar_type s) const {
         // Direction is always normalized in the constructor
         return _pos + s * _dir;
     }
 
     /// @param position new position on the ray
-    DETRAY_HOST_DEVICE void set_pos(point3 pos) { _pos = pos; }
+    DETRAY_HOST_DEVICE void set_pos(point3_type pos) { _pos = pos; }
 
     /// @returns direction of the ray (compatible with tracks/intersectors)
-    DETRAY_HOST_DEVICE vector3 dir() const { return _dir; }
+    DETRAY_HOST_DEVICE vector3_type dir() const { return _dir; }
 
     /// @returns direction of the ray paramterized by path length
-    DETRAY_HOST_DEVICE vector3 dir(const scalar_type /*s*/) const {
+    DETRAY_HOST_DEVICE vector3_type dir(const scalar_type /*s*/) const {
         return this->dir();
     }
 
     /// @param dir new direction of the ray
-    DETRAY_HOST_DEVICE void set_dir(vector3 dir) { _dir = dir; }
+    DETRAY_HOST_DEVICE void set_dir(vector3_type dir) { _dir = dir; }
 
     /// Print
     DETRAY_HOST
@@ -94,9 +95,9 @@ class ray {
 
     private:
     /// origin of ray
-    point3 _pos{0.f, 0.f, 0.f};
+    point3_type _pos{0.f, 0.f, 0.f};
     /// direction of ray
-    vector3 _dir{0.f, 0.f, 1.f};
+    vector3_type _dir{0.f, 0.f, 1.f};
 };
 
 }  // namespace detray::detail

@@ -14,7 +14,6 @@
 #include "detray/utils/ranges.hpp"
 
 using namespace detray;
-using namespace __plugin;
 
 namespace detray {
 
@@ -24,7 +23,7 @@ using detector_device_t = detector<toy_metadata, device_container_types>;
 
 using det_volume_t = typename detector_host_t::volume_type;
 using det_surface_t = typename detector_host_t::surface_type;
-using transform_t = typename detector_host_t::transform3;
+using transform_t = typename detector_host_t::transform3_type;
 using mask_defs = typename detector_host_t::masks;
 
 constexpr auto rectangle_id = mask_defs::id::e_rectangle2;
