@@ -8,8 +8,8 @@
 #pragma once
 
 // Project include(s)
+#include "detray/io/frontend/detail/io_metadata.hpp"
 #include "detray/io/frontend/payloads.hpp"
-#include "detray/io/frontend/utils/io_metadata.hpp"
 
 // System include(s)
 #include <string_view>

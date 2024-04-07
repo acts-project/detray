@@ -9,11 +9,13 @@
 
 // Project include(s)
 #include "detray/geometry/surface.hpp"
+#include "detray/io/csv/intersection2D.hpp"
+#include "detray/io/csv/track_parameters.hpp"
 #include "detray/navigation/detail/trajectories.hpp"
 #include "detray/navigation/intersection/intersection.hpp"
 #include "detray/navigation/intersection_kernel.hpp"
 #include "detray/navigation/intersector.hpp"
-#include "detray/utils/ranges.hpp"
+#include "detray/tracks/free_track_parameters.hpp"
 
 // System include(s)
 #include <algorithm>
@@ -27,8 +29,11 @@ struct intersection_record {
     using intersection_type = intersection2D<typename detector_t::surface_type,
                                              typename detector_t::algebra_type>;
 
+    using track_parameter_type =
+        free_track_parameters<typename detector_t::algebra_type>;
+
     /// Current global track parameters
-    free_track_parameters<typename detector_t::algebra_type> track_param;
+    track_parameter_type track_param;
     /// Index of the volume the intersection was found in
     dindex vol_idx;
     /// The intersection result
@@ -67,7 +72,7 @@ struct brute_force_scan {
         const auto &trf_store = detector.transform_store();
 
         std::vector<intersection_t> intersections{};
-        intersections.reserve(10000u);
+        intersections.reserve(100u);
 
         // Loop over all surfaces in the detector
         for (const sf_desc_t &sf_desc : detector.surfaces()) {
@@ -156,6 +161,100 @@ inline auto run(const detector_t &detector, const trajectory_t &traj,
     }
 
     return intersection_record;
+}
+
+/// Write the @param intersection_traces to file
+template <typename detector_t>
+inline auto write(
+    const std::string &intersection_file_name,
+    const std::string &track_param_file_name,
+    const std::vector<std::vector<intersection_record<detector_t>>>
+        &intersection_traces) {
+
+    using record_t = intersection_record<detector_t>;
+    using intersection_t = typename record_t::intersection_type;
+    using track_param_t = typename record_t::track_parameter_type;
+
+    std::vector<std::vector<intersection_t>> intersections{};
+    std::vector<std::vector<track_param_t>> track_params{};
+
+    // Split data
+    for (const auto &trace : intersection_traces) {
+
+        intersections.push_back({});
+        track_params.push_back({});
+
+        intersections.back().reserve(trace.size());
+        track_params.back().reserve(trace.size());
+
+        for (const auto &record : trace) {
+            // Ray/Helix scan should have been finished successfully
+            assert(record.intersection.volume_link == record.vol_idx);
+
+            intersections.back().push_back(record.intersection);
+            track_params.back().push_back(record.track_param);
+        }
+    }
+
+    // Write to file
+    io::csv::write_intersection2D(intersection_file_name, intersections);
+    io::csv::write_free_track_params(track_param_file_name, track_params);
+}
+
+/// Read the @param intersection_record from file
+template <typename detector_t>
+inline auto read(const std::string &intersection_file_name,
+                 const std::string &track_param_file_name,
+                 std::vector<std::vector<intersection_record<detector_t>>>
+                     &intersection_traces) {
+
+    // Read from file
+    auto intersections_per_track =
+        io::csv::read_intersection2D<detector_t>(intersection_file_name);
+    auto track_params_per_track =
+        io::csv::read_free_track_params<detector_t>(track_param_file_name);
+
+    if (intersections_per_track.size() != track_params_per_track.size()) {
+        throw std::invalid_argument(
+            "Detector scanner: intersection and track parameters collections "
+            "have different size");
+    }
+
+    // Interleave data
+    for (dindex trk_idx = 0u; trk_idx < intersections_per_track.size();
+         ++trk_idx) {
+        const auto &intersections = intersections_per_track[trk_idx];
+        const auto &track_params = track_params_per_track[trk_idx];
+
+        // Check track id
+        if (intersections.size() != track_params.size()) {
+            throw std::invalid_argument(
+                "Detector scanner: Found different number of intersections and "
+                "track parameters for track no." +
+                std::to_string(trk_idx));
+        }
+
+        // Check for empty input traces
+        if (intersections.empty()) {
+            throw std::invalid_argument(
+                "Detector scanner: Found empty trace no." +
+                std::to_string(trk_idx));
+        }
+
+        // Add new trace
+        if (intersection_traces.size() <= trk_idx) {
+            intersection_traces.push_back({});
+        }
+
+        // Add records to trace
+        for (dindex i = 0u; i < intersections.size(); ++i) {
+
+            intersection_traces[trk_idx].push_back(
+                intersection_record<detector_t>{
+                    track_params[i], intersections[i].sf_desc.volume(),
+                    intersections[i]});
+        }
+    }
 }
 
 }  // namespace detector_scanner

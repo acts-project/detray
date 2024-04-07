@@ -157,7 +157,7 @@ class straight_line_navigation : public test::fixture_base<> {
 
         std::size_t n_test_tracks{
             std::min(m_cfg.n_tracks(), ray_scan_traces.size())};
-        std::cout << "INFO: Running straight line navigation check on: "
+        std::cout << "\nINFO: Running straight line navigation check on: "
                   << m_names.at(0) << "...\n"
                   << std::endl;
 

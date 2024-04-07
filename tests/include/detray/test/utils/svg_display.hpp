@@ -8,7 +8,7 @@
 #pragma once
 
 // Project include(s)
-#include "detray/io/frontend/utils/create_path.hpp"
+#include "detray/io/utils/create_path.hpp"
 #include "detray/plugins/svgtools/illustrator.hpp"
 #include "detray/plugins/svgtools/styling/styling.hpp"
 #include "detray/plugins/svgtools/writer.hpp"

@@ -160,7 +160,7 @@ class helix_navigation : public test::fixture_base<> {
 
         std::size_t n_test_tracks{
             std::min(m_cfg.n_tracks(), helix_scan_traces.size())};
-        std::cout << "INFO: Running helix navigation check on: "
+        std::cout << "\nINFO: Running helix navigation check on: "
                   << m_names.at(0) << "...\n"
                   << std::endl;
 
@@ -170,7 +170,7 @@ class helix_navigation : public test::fixture_base<> {
         std::ios_base::openmode io_mode = std::ios::trunc | std::ios::out;
         detray::io::file_handle debug_file{"./helix_navigation.txt", io_mode};
 
-        for (auto intersection_trace : helix_scan_traces) {
+        for (const auto &intersection_trace : helix_scan_traces) {
 
             if (n_tracks >= m_cfg.n_tracks()) {
                 break;

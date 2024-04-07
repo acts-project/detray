@@ -14,8 +14,8 @@
 #include "detray/definitions/detail/indexing.hpp"
 #include "detray/io/common/detail/basic_converter.hpp"
 #include "detray/io/common/detail/type_info.hpp"
+#include "detray/io/frontend/detail/type_traits.hpp"
 #include "detray/io/frontend/payloads.hpp"
-#include "detray/io/frontend/utils/type_traits.hpp"
 #include "detray/materials/material.hpp"
 
 // System include(s)

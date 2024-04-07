@@ -217,8 +217,15 @@ int main(int argc, char **argv) {
     // Create the whiteboard for data transfer between the steps
     auto white_board = std::make_shared<test::whiteboard>();
     ray_scan_cfg.whiteboard(white_board);
+    ray_scan_cfg.intersection_file(names.at(0) + "_ray_scan_intersections.csv");
+    ray_scan_cfg.track_param_file(names.at(0) +
+                                  "_ray_scan_track_parameters.csv");
     str_nav_cfg.whiteboard(white_board);
     hel_scan_cfg.whiteboard(white_board);
+    ray_scan_cfg.intersection_file(names.at(0) +
+                                   "_helix_scan_intersections.csv");
+    ray_scan_cfg.track_param_file(names.at(0) +
+                                  "_helix_scan_track_parameters.csv");
     hel_nav_cfg.whiteboard(white_board);
 
     // General data consistency of the detector

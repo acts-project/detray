@@ -55,7 +55,6 @@ int main(int argc, char **argv) {
     test::ray_scan<tel_detector_t>::config cfg_ray_scan{};
     cfg_ray_scan.name("telescope_detector_ray_scan");
     cfg_ray_scan.whiteboard(white_board);
-    cfg_ray_scan.write_intersections(true);
     cfg_ray_scan.track_generator().n_tracks(10000u);
     cfg_ray_scan.track_generator().origin({0.f, 0.f, -0.05f});
     cfg_ray_scan.track_generator().theta_range(constant<scalar_t>::pi_4,

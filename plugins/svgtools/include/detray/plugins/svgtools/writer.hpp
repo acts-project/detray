@@ -8,7 +8,7 @@
 #pragma once
 
 // Project include(s)
-#include "detray/io/frontend/utils/file_handle.hpp"
+#include "detray/io/utils/file_handle.hpp"
 
 // Actsvg include(s)
 #include "actsvg/core.hpp"

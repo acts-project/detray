@@ -7,6 +7,7 @@
 # Set the common C++ flags.
 include( detray-compiler-options-cpp )
 include_directories( SYSTEM $<TARGET_PROPERTY:covfie::core,INTERFACE_INCLUDE_DIRECTORIES> )
+include_directories( SYSTEM $<TARGET_PROPERTY:dfelibs::dfelibs,INTERFACE_INCLUDE_DIRECTORIES> )
 
 # Set up a test library, which the "new style" benchmarks and tests could use.
 file( GLOB _detray_test_headers
@@ -22,7 +23,7 @@ add_library( detray::test ALIAS detray_test )
 target_include_directories( detray_test
    INTERFACE "${CMAKE_CURRENT_SOURCE_DIR}/include" )
 
-target_link_libraries( detray_test INTERFACE vecmem::core detray::core )
+target_link_libraries( detray_test INTERFACE vecmem::core detray::core detray::csv_io )
 
 unset( _detray_test_headers )
 

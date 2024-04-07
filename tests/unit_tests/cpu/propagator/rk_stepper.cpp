@@ -13,7 +13,7 @@
 #include "detray/definitions/units.hpp"
 #include "detray/detectors/bfield.hpp"
 #include "detray/geometry/surface.hpp"
-#include "detray/io/frontend/utils/file_handle.hpp"
+#include "detray/io/utils/file_handle.hpp"
 #include "detray/navigation/detail/trajectories.hpp"
 #include "detray/propagator/line_stepper.hpp"
 #include "detray/simulation/event_generator/track_generators.hpp"
