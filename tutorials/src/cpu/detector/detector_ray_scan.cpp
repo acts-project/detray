@@ -10,9 +10,9 @@
 #include "detray/navigation/detail/ray.hpp"
 #include "detray/navigation/volume_graph.hpp"
 #include "detray/simulation/event_generator/track_generators.hpp"
+#include "detray/test/utils/detector_scanner.hpp"
 #include "detray/test/utils/hash_tree.hpp"
-#include "detray/test/utils/particle_gun.hpp"
-#include "detray/test/utils/ray_scan_utils.hpp"
+#include "detray/test/utils/scan_utils.hpp"
 
 // Example linear algebra plugin: std::array
 #include "detray/tutorial/types.hpp"
@@ -69,22 +69,23 @@ int main() {
 
         // Record all intersections and surfaces along the ray
         const auto intersection_record =
-            detray::particle_gun::shoot_particle(det, ray);
+            detray::detector_scanner::run<detray::ray_scan>(det, ray);
 
         // Create a trace of the volume indices that were encountered
         // and check that portal intersections are connected
         auto [portal_trace, surface_trace, err_code] =
-            detray::trace_intersections<leaving_world>(intersection_record,
-                                                       start_index);
+            detray::detector_scanner::trace_intersections<leaving_world>(
+                intersection_record, start_index);
         success &= err_code;
 
         // Is the succession of volumes consistent ?
-        success &= detray::check_connectivity<leaving_world>(portal_trace);
+        success &= detray::detector_scanner::check_connectivity<leaving_world>(
+            portal_trace);
 
         // Build an adjacency matrix from this trace that can be checked against
         // the geometry hash (see 'track_geometry_changes')
-        detray::build_adjacency<leaving_world>(portal_trace, surface_trace,
-                                               adj_mat_scan, obj_hashes);
+        detray::detector_scanner::build_adjacency<leaving_world>(
+            portal_trace, surface_trace, adj_mat_scan, obj_hashes);
     }
 
     // Check result

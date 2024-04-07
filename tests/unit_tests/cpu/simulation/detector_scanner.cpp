@@ -6,7 +6,7 @@
  */
 
 // Project include(s).
-#include "detray/test/utils/particle_gun.hpp"
+#include "detray/test/utils/detector_scanner.hpp"
 
 #include "detray/definitions/units.hpp"
 #include "detray/detectors/build_toy_detector.hpp"
@@ -30,7 +30,7 @@ constexpr const scalar tol{1e-3f};
 
 /// Brute force test: Intersect toy geometry and compare between ray and helix
 /// without B-field
-GTEST_TEST(detray_simulation, particle_gun) {
+GTEST_TEST(detray_simulation, detector_scanner) {
 
     // Simulate straight line track
     const vector3 B{0.f * unit<scalar>::T, 0.f * unit<scalar>::T,
@@ -45,17 +45,18 @@ GTEST_TEST(detray_simulation, particle_gun) {
 
     // Record ray tracing
     using detector_t = decltype(toy_det);
-    using algebra_type = typename detector_t::algebra_type;
-    using intersection_t =
-        intersection2D<typename detector_t::surface_type, algebra_type>;
-    std::vector<std::vector<std::pair<dindex, intersection_t>>> expected;
+    using intersection_trace_t = typename detray::ray_scan<
+        algebra_t>::template intersection_trace_type<detector_t>;
+
+    std::vector<intersection_trace_t> expected;
+
     //  Iterate through uniformly distributed momentum directions with ray
     for (const auto test_ray : uniform_track_generator<detail::ray<algebra_t>>(
              phi_steps, theta_steps)) {
 
         // Record all intersections and objects along the ray
         const auto intersection_record =
-            particle_gun::shoot_particle(toy_det, test_ray);
+            detector_scanner::run<ray_scan>(toy_det, test_ray);
 
         expected.push_back(intersection_record);
     }
@@ -69,7 +70,7 @@ GTEST_TEST(detray_simulation, particle_gun) {
 
         // Record all intersections and objects along the ray
         const auto intersection_trace =
-            particle_gun::shoot_particle(toy_det, test_helix);
+            detector_scanner::run<helix_scan>(toy_det, test_helix);
 
         // Should have encountered the same number of tracks (vulnerable to
         // floating point errors)
@@ -77,19 +78,21 @@ GTEST_TEST(detray_simulation, particle_gun) {
 
         // Check every single recorded intersection
         for (std::size_t i = 0u; i < intersection_trace.size(); ++i) {
-            if (expected[n_tracks][i].first != intersection_trace[i].first) {
+            if (expected[n_tracks][i].vol_idx !=
+                intersection_trace[i].vol_idx) {
                 // Intersection record at portal bound might be flipped
                 // (the portals overlap completely)
-                if (expected[n_tracks][i].first ==
-                        intersection_trace[i + 1u].first and
-                    expected[n_tracks][i + 1u].first ==
-                        intersection_trace[i].first) {
+                if (expected[n_tracks][i].vol_idx ==
+                        intersection_trace[i + 1u].vol_idx and
+                    expected[n_tracks][i + 1u].vol_idx ==
+                        intersection_trace[i].vol_idx) {
                     // Have already checked the next record
                     ++i;
                     continue;
                 }
             }
-            EXPECT_EQ(expected[n_tracks][i].first, intersection_trace[i].first);
+            EXPECT_EQ(expected[n_tracks][i].vol_idx,
+                      intersection_trace[i].vol_idx);
         }
 
         ++n_tracks;

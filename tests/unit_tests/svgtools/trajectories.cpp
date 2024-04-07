@@ -13,7 +13,7 @@
 #include "detray/detectors/build_toy_detector.hpp"
 #include "detray/plugins/svgtools/illustrator.hpp"
 #include "detray/plugins/svgtools/writer.hpp"
-#include "detray/test/utils/particle_gun.hpp"
+#include "detray/test/utils/detector_scanner.hpp"
 
 // Vecmem include(s)
 #include <vecmem/memory/host_memory_resource.hpp>
@@ -64,7 +64,8 @@ GTEST_TEST(svgtools, trajectories) {
     const typename detector_t::point3_type dir{0, 1.f, 1.f};
 
     const detray::detail::ray<algebra_t> ray(ori, 0.f, dir, 0.f);
-    const auto ray_ir = detray::particle_gun::shoot_particle(det, ray);
+    const auto ray_ir =
+        detray::detector_scanner::run<detray::ray_scan>(det, ray);
 
     // Draw the trajectory.
     const auto svg_ray = il.draw_trajectory("trajectory", ray, 500.f, view);
@@ -84,7 +85,8 @@ GTEST_TEST(svgtools, trajectories) {
               1.f * detray::unit<detray::scalar>::T};
 
     const detray::detail::helix<algebra_t> helix(ori, 0.f, dir, -8.f, &B);
-    const auto helix_ir = detray::particle_gun::shoot_particle(det, helix);
+    const auto helix_ir =
+        detray::detector_scanner::run<detray::helix_scan>(det, helix);
 
     // Draw the trajectory.
     const auto svg_helix = il.draw_trajectory("trajectory", helix, 500.f, view);

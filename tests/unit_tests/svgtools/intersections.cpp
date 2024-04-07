@@ -12,7 +12,7 @@
 #include "detray/plugins/svgtools/illustrator.hpp"
 #include "detray/plugins/svgtools/writer.hpp"
 #include "detray/simulation/event_generator/track_generators.hpp"
-#include "detray/test/utils/particle_gun.hpp"
+#include "detray/test/utils/detector_scanner.hpp"
 #include "detray/tracks/tracks.hpp"
 
 // Vecmem include(s)
@@ -69,7 +69,7 @@ GTEST_TEST(svgtools, intersections) {
 
         // Record all intersections and objects along the ray
         const auto intersection_record =
-            detray::particle_gun::shoot_particle(det, test_ray);
+            detray::detector_scanner::run<detray::ray_scan>(det, test_ray);
 
         const std::string name =
             "test_svgtools_intersection_record" + std::to_string(index);

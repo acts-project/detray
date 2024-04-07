@@ -85,11 +85,11 @@ int main(int argc, char **argv) {
     // Configs to be filled
     detray::io::detector_reader_config reader_cfg{};
     reader_cfg.do_check(false);  // < Don't run consistency check twice
-    detray::consistency_check<detector_t>::config con_chk_cfg{};
-    detray::ray_scan<detector_t>::config ray_scan_cfg{};
-    detray::helix_scan<detector_t>::config hel_scan_cfg{};
-    detray::straight_line_navigation<detector_t>::config str_nav_cfg{};
-    detray::helix_navigation<detector_t>::config hel_nav_cfg{};
+    detray::test::consistency_check<detector_t>::config con_chk_cfg{};
+    detray::test::ray_scan<detector_t>::config ray_scan_cfg{};
+    detray::test::helix_scan<detector_t>::config hel_scan_cfg{};
+    detray::test::straight_line_navigation<detector_t>::config str_nav_cfg{};
+    detray::test::helix_navigation<detector_t>::config hel_nav_cfg{};
 
     // General options
     if (vm.count("write_volume_graph")) {
@@ -122,21 +122,21 @@ int main(int argc, char **argv) {
         const std::size_t phi_steps{vm["phi_steps"].as<std::size_t>()};
 
         ray_scan_cfg.track_generator().phi_steps(phi_steps);
-        hel_nav_cfg.track_generator().phi_steps(phi_steps);
+        hel_scan_cfg.track_generator().phi_steps(phi_steps);
     }
     if (vm.count("theta_steps")) {
         const std::size_t theta_steps{vm["theta_steps"].as<std::size_t>()};
 
         ray_scan_cfg.track_generator().theta_steps(theta_steps);
-        hel_nav_cfg.track_generator().theta_steps(theta_steps);
+        hel_scan_cfg.track_generator().theta_steps(theta_steps);
     }
     if (vm.count("theta_range")) {
         const auto theta_range = vm["theta_range"].as<std::vector<scalar_t>>();
         if (theta_range.size() == 2u) {
             ray_scan_cfg.track_generator().theta_range(theta_range[0],
                                                        theta_range[1]);
-            hel_nav_cfg.track_generator().theta_range(theta_range[0],
-                                                      theta_range[1]);
+            hel_scan_cfg.track_generator().theta_range(theta_range[0],
+                                                       theta_range[1]);
         } else {
             throw std::invalid_argument("Theta range needs two arguments");
         }
@@ -146,7 +146,7 @@ int main(int argc, char **argv) {
         if (origin.size() == 3u) {
             ray_scan_cfg.track_generator().origin(
                 {origin[0], origin[1], origin[2]});
-            hel_nav_cfg.track_generator().origin(
+            hel_scan_cfg.track_generator().origin(
                 {origin[0], origin[1], origin[2]});
         } else {
             throw std::invalid_argument(
@@ -156,11 +156,11 @@ int main(int argc, char **argv) {
     if (vm.count("p_tot")) {
         const scalar_t p_mag{vm["p_tot"].as<scalar_t>()};
 
-        hel_nav_cfg.track_generator().p_tot(p_mag * unit<scalar_t>::GeV);
+        hel_scan_cfg.track_generator().p_tot(p_mag * unit<scalar_t>::GeV);
     } else if (vm.count("p_T")) {
         const scalar_t p_T{vm["p_T"].as<scalar_t>()};
 
-        hel_nav_cfg.track_generator().p_T(p_T * unit<scalar_t>::GeV);
+        hel_scan_cfg.track_generator().p_T(p_T * unit<scalar_t>::GeV);
     }
 
     // Navigation
@@ -184,37 +184,34 @@ int main(int argc, char **argv) {
             overstep_tol * unit<scalar_t>::um;
     }
 
-    // Ray scan and straight line navigation check use the same generator type
-    str_nav_cfg.track_generator() = ray_scan_cfg.track_generator();
-    hel_scan_cfg.track_generator() = hel_nav_cfg.track_generator();
-
     vecmem::host_memory_resource host_mr;
 
     const auto [det, names] =
         detray::io::read_detector<detector_t>(host_mr, reader_cfg);
 
     // General data consistency of the detector
-    detray::detail::register_checks<detray::consistency_check>(det, names,
-                                                               con_chk_cfg);
+    detray::detail::register_checks<detray::test::consistency_check>(
+        det, names, con_chk_cfg);
 
     // Navigation link consistency, discovered by ray intersection
     ray_scan_cfg.name("ray_scan_" + names.at(0));
-    detray::detail::register_checks<detray::ray_scan>(det, names, ray_scan_cfg);
+    detray::detail::register_checks<detray::test::ray_scan>(det, names,
+                                                            ray_scan_cfg);
 
     // Navigation link consistency, discovered by helix intersection
     hel_scan_cfg.name("helix_scan_" + names.at(0));
-    detray::detail::register_checks<detray::helix_scan>(det, names,
-                                                        hel_scan_cfg);
+    detray::detail::register_checks<detray::test::helix_scan>(det, names,
+                                                              hel_scan_cfg);
 
     // Comparision of straight line navigation with ray scan
     str_nav_cfg.name("straight_line_navigation_" + names.at(0));
-    detray::detail::register_checks<detray::straight_line_navigation>(
+    detray::detail::register_checks<detray::test::straight_line_navigation>(
         det, names, str_nav_cfg);
 
     // Comparision of navigation in a constant B-field with helix
     hel_nav_cfg.name("helix_navigation_" + names.at(0));
-    detray::detail::register_checks<detray::helix_navigation>(det, names,
-                                                              hel_nav_cfg);
+    detray::detail::register_checks<detray::test::helix_navigation>(
+        det, names, hel_nav_cfg);
 
     // Run the checks
     return RUN_ALL_TESTS();

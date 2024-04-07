@@ -24,16 +24,14 @@ namespace detray::detail {
 
 /// Find the unique volume indices that the trajectory crossed
 /// - intersection record
-template <typename surface_t, typename algebra_t>
+template <typename record_t>
 std::unordered_set<dindex> get_volume_indices(
-    const std::vector<
-        std::pair<dindex, detray::intersection2D<surface_t, algebra_t>>>
-        &intersection_record) {
+    const std::vector<record_t> &intersection_record) {
 
     std::unordered_set<dindex> volumes{};
     volumes.reserve(intersection_record.size());
     for (const auto &single_ir : intersection_record) {
-        volumes.insert(single_ir.first);
+        volumes.insert(single_ir.vol_idx);
     }
 
     return volumes;
@@ -56,14 +54,14 @@ std::unordered_set<dindex> get_volume_indices(
 }
 
 /// @returns the svg of the intersections (truth and track) and the trajectory
-template <typename detector_t, typename intersection_t, class traj_t,
-          typename view_t>
+template <typename detector_t, typename record_t, class traj_t, typename view_t>
 auto draw_intersection_and_traj_svg(
     const typename detector_t::geometry_context gctx,
     detray::svgtools::illustrator<detector_t> &il,
-    const std::vector<std::pair<dindex, intersection_t>> &intersections_truth,
-    const traj_t &traj, const std::string &traj_name,
-    const dvector<intersection_t> &intersections, const view_t &view) {
+    const std::vector<record_t> &intersections_truth, const traj_t &traj,
+    const std::string &traj_name,
+    const dvector<typename record_t::intersection_type> &intersections,
+    const view_t &view) {
 
     auto svg_traj = il.draw_intersections(
         "truth_intersections", intersections_truth, traj.dir(), view, gctx);
@@ -71,24 +69,25 @@ auto draw_intersection_and_traj_svg(
     if (not intersections.empty()) {
         svg_traj.add_object(il.draw_intersections_and_trajectory(
             traj_name, intersections, traj, view,
-            intersections_truth.back().second.path, gctx));
+            intersections_truth.back().intersection.path, gctx));
     } else {
         svg_traj.add_object(il.draw_trajectory(
-            traj_name, traj, intersections_truth.back().second.path, view));
+            traj_name, traj, intersections_truth.back().intersection.path,
+            view));
     }
 
     return svg_traj;
 }
 
 /// Display the geometry, intersection and track data via @c svgtools
-template <typename detector_t, typename intersection_t, class traj_t>
+template <typename detector_t, typename record_t, class traj_t>
 inline void svg_display(
     const typename detector_t::geometry_context gctx,
     detray::svgtools::illustrator<detector_t> &il,
-    const std::vector<std::pair<dindex, intersection_t>> &intersections_truth,
-    const traj_t &traj, const std::string &traj_name,
+    const std::vector<record_t> &intersections_truth, const traj_t &traj,
+    const std::string &traj_name,
     const std::string &outfile = "detector_display",
-    const dvector<intersection_t> &intersections = {},
+    const dvector<typename record_t::intersection_type> &intersections = {},
     const std::string &outdir = "./plots/") {
 
     // Gather all volumes that need to be displayed

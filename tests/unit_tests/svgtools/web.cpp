@@ -12,7 +12,7 @@
 #include "detray/plugins/svgtools/illustrator.hpp"
 #include "detray/plugins/svgtools/utils/groups.hpp"
 #include "detray/plugins/svgtools/writer.hpp"
-#include "detray/test/utils/particle_gun.hpp"
+#include "detray/test/utils/detector_scanner.hpp"
 
 // Vecmem include(s)
 #include <vecmem/memory/host_memory_resource.hpp>
@@ -82,7 +82,8 @@ GTEST_TEST(svgtools, web) {
 
         const detray::detail::helix<algebra_t> helix(
             ori, 0.f, dir, static_cast<float>(qop), &B);
-        const auto helix_ir = detray::particle_gun::shoot_particle(det, helix);
+        const auto helix_ir =
+            detray::detector_scanner::run<detray::helix_scan>(det, helix);
 
         // Draw the helix trajectory.
         const auto svg_helix =

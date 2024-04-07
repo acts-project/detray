@@ -14,7 +14,7 @@
 #include "detray/simulation/event_generator/track_generators.hpp"
 #include "detray/test/fixture_base.hpp"
 #include "detray/test/types.hpp"
-#include "detray/test/utils/particle_gun.hpp"
+#include "detray/test/utils/detector_scanner.hpp"
 
 // System include(s)
 #include <ios>
@@ -94,7 +94,7 @@ class material_scan : public test::fixture_base<> {
 
             // Record all intersections and surfaces along the ray
             const auto intersection_record =
-                particle_gun::shoot_particle(m_det, ray);
+                detector_scanner::run<ray_scan>(m_det, ray);
 
             if (intersection_record.empty()) {
                 std::cout << "ERROR: Intersection trace empty for ray "
@@ -115,17 +115,17 @@ class material_scan : public test::fixture_base<> {
             // Record material for this ray
             for (const auto &record : intersection_record) {
 
-                const auto sf = surface{m_det, record.second.sf_desc};
+                const auto sf = surface{m_det, record.intersection.sf_desc};
 
                 if (!sf.has_material()) {
                     continue;
                 }
 
-                const auto &p = record.second.local;
+                const auto &p = record.intersection.local;
                 const auto [seg, t, mx0, ml0] =
                     sf.template visit_material<get_material_params>(
                         point2_t{p[0], p[1]},
-                        record.second.cos_incidence_angle);
+                        record.intersection.cos_incidence_angle);
 
                 if (mx0 > 0.f) {
                     mat_sX0 += seg / mx0;
