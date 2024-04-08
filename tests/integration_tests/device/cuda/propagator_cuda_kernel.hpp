@@ -107,7 +107,7 @@ inline auto run_propagation_test(vecmem::memory_resource *mr, detector_t &det,
                                  covfie::field<host_bfield_bknd_t> &&field) {
 
     // Create the vector of initial track parameterizations
-    auto tracks_host = generate_tracks(mr);
+    auto tracks_host = generate_tracks<>(mr);
     vecmem::vector<track_t> tracks_device(tracks_host, mr);
 
     // Host propagation

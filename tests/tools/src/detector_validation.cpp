@@ -52,12 +52,12 @@ int main(int argc, char **argv) {
         "geometry_file", po::value<std::string>(), "geometry input file")(
         "grid_file", po::value<std::string>(), "Surface grid input file")(
         "material_file", po::value<std::string>(), "material input file")(
-        "phi_steps", po::value<std::size_t>()->default_value(50u),
-        "# phi steps for particle gun")(
-        "theta_steps", po::value<std::size_t>()->default_value(50u),
-        "# theta steps for particle gun")(
+        "n_tracks", po::value<std::size_t>()->default_value(50u),
+        "# of tracks for particle gun")(
         "theta_range", po::value<std::vector<scalar_t>>()->multitoken(),
         "min, max range of theta values for particle gun")(
+        "eta_range", po::value<std::vector<scalar_t>>()->multitoken(),
+        "min, max range of eta values for particle gun")(
         "origin", po::value<std::vector<scalar_t>>()->multitoken(),
         "coordintates for particle gun origin position")(
         "p_tot", po::value<scalar_t>()->default_value(10.f),
@@ -118,19 +118,42 @@ int main(int argc, char **argv) {
     }
 
     // Particle gun
-    if (vm.count("phi_steps")) {
-        const std::size_t phi_steps{vm["phi_steps"].as<std::size_t>()};
+    if (vm.count("n_tracks")) {
+        const std::size_t n_tracks{vm["n_tracks"].as<std::size_t>()};
 
-        ray_scan_cfg.track_generator().phi_steps(phi_steps);
-        hel_scan_cfg.track_generator().phi_steps(phi_steps);
-    }
-    if (vm.count("theta_steps")) {
-        const std::size_t theta_steps{vm["theta_steps"].as<std::size_t>()};
+        ray_scan_cfg.track_generator().n_tracks(n_tracks);
+        hel_scan_cfg.track_generator().n_tracks(n_tracks);
 
-        ray_scan_cfg.track_generator().theta_steps(theta_steps);
-        hel_scan_cfg.track_generator().theta_steps(theta_steps);
+        if (vm.count("phi_steps") || vm.count("theta_steps")) {
+            throw std::invalid_argument(
+                "'n_tracks' and angular step size cannot be set at the same "
+                "time");
+        }
     }
-    if (vm.count("theta_range")) {
+    if (vm.count("eta_range")) {
+        const auto eta_range = vm["eta_range"].as<std::vector<scalar_t>>();
+        if (eta_range.size() == 2u) {
+            scalar_t min_theta{2.f * std::atan(std::exp(-eta_range[0]))};
+            scalar_t max_theta{2.f * std::atan(std::exp(-eta_range[1]))};
+
+            // Wrap around
+            if (min_theta > max_theta) {
+                scalar_t tmp{min_theta};
+                min_theta = max_theta;
+                max_theta = tmp;
+            }
+
+            ray_scan_cfg.track_generator().theta_range(min_theta, max_theta);
+            hel_scan_cfg.track_generator().theta_range(min_theta, max_theta);
+        } else {
+            throw std::invalid_argument("Eta range needs two arguments");
+        }
+        if (vm.count("theta_range")) {
+            throw std::invalid_argument(
+                "Eta range and theta range cannot be specified at the same "
+                "time");
+        }
+    } else if (vm.count("theta_range")) {
         const auto theta_range = vm["theta_range"].as<std::vector<scalar_t>>();
         if (theta_range.size() == 2u) {
             ray_scan_cfg.track_generator().theta_range(theta_range[0],

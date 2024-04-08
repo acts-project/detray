@@ -53,8 +53,7 @@ int main(int argc, char **argv) {
     test::ray_scan<toy_detector_t>::config cfg_ray_scan{};
     cfg_ray_scan.name("toy_detector_ray_scan");
     cfg_ray_scan.whiteboard(white_board);
-    // Number of rays in theta and phi
-    cfg_ray_scan.track_generator().theta_steps(100u).phi_steps(100u);
+    cfg_ray_scan.track_generator().n_tracks(10000u);
 
     detail::register_checks<test::ray_scan>(toy_det, toy_names, cfg_ray_scan);
 
@@ -62,8 +61,8 @@ int main(int argc, char **argv) {
     test::helix_scan<toy_detector_t>::config cfg_hel_scan{};
     cfg_hel_scan.name("toy_detector_helix_scan");
     cfg_hel_scan.whiteboard(white_board);
-    cfg_hel_scan.track_generator().p_tot(10.f * unit<scalar_t>::GeV);
-    cfg_hel_scan.track_generator().theta_steps(100u).phi_steps(100u);
+    cfg_hel_scan.track_generator().n_tracks(10000u);
+    cfg_hel_scan.track_generator().p_T(10.f * unit<scalar_t>::GeV);
 
     detail::register_checks<test::helix_scan>(toy_det, toy_names, cfg_hel_scan);
 

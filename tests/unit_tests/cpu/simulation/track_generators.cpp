@@ -219,8 +219,7 @@ GTEST_TEST(detray_simulation, random_track_generator_uniform) {
 
     // Use deterministic random number generator for testing
     using uniform_gen_t =
-        random_numbers<scalar_t, std::uniform_real_distribution<scalar_t>,
-                       std::seed_seq>;
+        random_numbers<scalar_t, std::uniform_real_distribution<scalar_t>>;
     using trk_generator_t =
         random_track_generator<free_track_parameters<algebra_t>, uniform_gen_t>;
 
@@ -234,6 +233,7 @@ GTEST_TEST(detray_simulation, random_track_generator_uniform) {
     // Other params
     trk_generator_t::configuration trk_gen_cfg{};
     trk_gen_cfg.n_tracks(n_gen_tracks);
+    trk_gen_cfg.seed(42u);
     trk_gen_cfg.phi_range(-0.9f * constant<scalar_t>::pi,
                           0.8f * constant<scalar_t>::pi);
     trk_gen_cfg.mom_range(1.f * unit<scalar_t>::GeV, 2.f * unit<scalar_t>::GeV);
@@ -299,8 +299,7 @@ GTEST_TEST(detray_simulation, random_track_generator_normal) {
 
     // Use deterministic random number generator for testing
     using normal_gen_t =
-        random_numbers<scalar_t, std::normal_distribution<scalar_t>,
-                       std::seed_seq>;
+        random_numbers<scalar_t, std::normal_distribution<scalar_t>>;
     using trk_generator_t =
         random_track_generator<free_track_parameters<algebra_t>, normal_gen_t>;
 
@@ -314,6 +313,7 @@ GTEST_TEST(detray_simulation, random_track_generator_normal) {
     // Other params
     trk_generator_t::configuration trk_gen_cfg{};
     trk_gen_cfg.n_tracks(n_gen_tracks);
+    trk_gen_cfg.seed(42u);
     trk_gen_cfg.phi_range(-0.9f * constant<scalar_t>::pi,
                           0.8f * constant<scalar_t>::pi);
     trk_gen_cfg.mom_range(1.f * unit<scalar_t>::GeV, 2.f * unit<scalar_t>::GeV);

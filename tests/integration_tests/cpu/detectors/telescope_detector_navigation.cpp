@@ -55,7 +55,7 @@ int main(int argc, char **argv) {
     test::ray_scan<tel_detector_t>::config cfg_ray_scan{};
     cfg_ray_scan.name("telescope_detector_ray_scan");
     cfg_ray_scan.whiteboard(white_board);
-    cfg_ray_scan.track_generator().theta_steps(100u).phi_steps(100u);
+    cfg_ray_scan.track_generator().n_tracks(10000u);
     cfg_ray_scan.track_generator().origin({0.f, 0.f, -0.05f});
     cfg_ray_scan.track_generator().theta_range(constant<scalar_t>::pi_4,
                                                constant<scalar_t>::pi_2);
@@ -66,9 +66,10 @@ int main(int argc, char **argv) {
     test::helix_scan<tel_detector_t>::config cfg_hel_scan{};
     cfg_hel_scan.name("telescope_detector_helix_scan");
     cfg_hel_scan.whiteboard(white_board);
-    cfg_hel_scan.track_generator().p_tot(10.f * unit<scalar_t>::GeV);
+    cfg_hel_scan.track_generator().n_tracks(10000u);
+    ;
+    cfg_hel_scan.track_generator().p_T(10.f * unit<scalar_t>::GeV);
     cfg_hel_scan.track_generator().origin({0.f, 0.f, -0.05f});
-    cfg_hel_scan.track_generator().theta_steps(100u).phi_steps(100u);
     cfg_hel_scan.track_generator().theta_range(constant<scalar_t>::pi_4,
                                                constant<scalar_t>::pi_2);
     detail::register_checks<test::helix_scan>(tel_det, tel_names, cfg_hel_scan);

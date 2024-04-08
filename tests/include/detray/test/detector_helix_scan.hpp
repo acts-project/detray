@@ -33,16 +33,22 @@ template <typename detector_t>
 class helix_scan : public test::fixture_base<> {
 
     using algebra_t = typename detector_t::algebra_type;
+    using scalar_t = dscalar<algebra_t>;
     using free_track_parameters_t = free_track_parameters<algebra_t>;
     using intersection_trace_t = typename detray::helix_scan<
         algebra_t>::template intersection_trace_type<detector_t>;
+    // using track_generator_t =
+    // uniform_track_generator<free_track_parameters_t>;
+    using uniform_gen_t =
+        random_numbers<scalar_t, std::uniform_real_distribution<scalar_t>>;
+    using track_generator_t =
+        random_track_generator<free_track_parameters_t, uniform_gen_t>;
 
     public:
     using fixture_type = test::fixture_base<>;
 
     struct config : public fixture_type::configuration {
-        using trk_gen_config_t = typename uniform_track_generator<
-            free_track_parameters_t>::configuration;
+        using trk_gen_config_t = typename track_generator_t::configuration;
 
         std::string m_name{"helix_scan"};
         // Save results for later use in downstream tests
@@ -98,7 +104,6 @@ class helix_scan : public test::fixture_base<> {
 
     /// Run the helix scan
     void TestBody() override {
-        using scalar_t = typename detector_t::scalar_type;
         using nav_link_t = typename detector_t::surface_type::navigation_link;
 
         constexpr auto leaving_world{detail::invalid_value<nav_link_t>()};
@@ -114,9 +119,7 @@ class helix_scan : public test::fixture_base<> {
 
         // Iterate through uniformly distributed momentum directions
         std::size_t n_tracks{0u};
-        auto trk_state_generator =
-            uniform_track_generator<free_track_parameters_t>(
-                m_cfg.track_generator());
+        auto trk_state_generator = track_generator_t(m_cfg.track_generator());
 
         detray::io::file_handle outfile{
             m_cfg.name(), ".csv",

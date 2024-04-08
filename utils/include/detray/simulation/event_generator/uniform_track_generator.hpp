@@ -38,6 +38,8 @@ class uniform_track_generator
     using vector3 = typename track_t::vector3_type;
 
     public:
+    using track_type = track_t;
+
     /// Configure how tracks are generated
     struct configuration {
         /// Ensure sensible values at the theta bounds, even in single precision

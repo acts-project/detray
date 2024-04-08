@@ -98,6 +98,7 @@ struct brute_force_scan {
         start_intersection.sf_desc = first_record.intersection.sf_desc;
         start_intersection.sf_desc.set_id(surface_id::e_passive);
         start_intersection.path = 0.f;
+        start_intersection.local = {};
         start_intersection.volume_link =
             static_cast<nav_link_t>(first_record.vol_idx);
 

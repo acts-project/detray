@@ -53,8 +53,7 @@ int main(int argc, char **argv) {
     test::ray_scan<wire_chamber_t>::config cfg_ray_scan{};
     cfg_ray_scan.name("wire_chamber_ray_scan");
     cfg_ray_scan.whiteboard(white_board);
-    // Number of rays in theta and phi
-    cfg_ray_scan.track_generator().theta_steps(100u).phi_steps(100u);
+    cfg_ray_scan.track_generator().n_tracks(10000u);
 
     detail::register_checks<test::ray_scan>(det, names, cfg_ray_scan);
 
@@ -62,8 +61,8 @@ int main(int argc, char **argv) {
     test::helix_scan<wire_chamber_t>::config cfg_hel_scan{};
     cfg_hel_scan.name("wire_chamber_helix_scan");
     cfg_hel_scan.whiteboard(white_board);
-    cfg_hel_scan.track_generator().p_tot(10.f * unit<scalar_t>::GeV);
-    cfg_hel_scan.track_generator().theta_steps(100u).phi_steps(100u);
+    cfg_hel_scan.track_generator().n_tracks(10000u);
+    cfg_hel_scan.track_generator().p_T(100.f * unit<scalar_t>::GeV);
 
     detail::register_checks<test::helix_scan>(det, names, cfg_hel_scan);
 
@@ -82,7 +81,7 @@ int main(int argc, char **argv) {
     cfg_hel_nav.whiteboard(white_board);
     cfg_hel_nav.propagation().navigation.search_window = {3u, 3u};
     // TODO: Fails for more helices
-    cfg_hel_nav.n_tracks(625);
+    cfg_hel_nav.n_tracks(625u);
 
     detail::register_checks<test::helix_navigation>(det, names, cfg_hel_nav);
 

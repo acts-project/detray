@@ -161,7 +161,7 @@ class helix_navigation : public test::fixture_base<> {
                   << std::endl;
 
         /// Error statistic
-        std::size_t n_close_miss{0u}, n_fatal{0u};
+        std::size_t n_miss{0u}, n_fatal{0u};
 
         std::ios_base::openmode io_mode = std::ios::trunc | std::ios::out;
         detray::io::file_handle debug_file{"./helix_navigation.txt", io_mode};
@@ -231,7 +231,7 @@ class helix_navigation : public test::fixture_base<> {
                     ++n_fatal;
                 } else {
                     // @TODO: Check mask boundaries
-                    ++n_close_miss;
+                    ++n_miss;
                 }
             }
 
@@ -241,11 +241,10 @@ class helix_navigation : public test::fixture_base<> {
             ++n_tracks;
         }
 
-        if (n_close_miss > 0u || n_fatal > 0u) {
+        if (n_miss > 0u || n_fatal > 0u) {
             std::cout << "-----------------------------------"
                       << "Error Statistic:\n\n"
-                      << "\n total: " << n_tracks
-                      << "\n (close misses: " << n_close_miss
+                      << "\n total: " << n_tracks << "\n (misses: " << n_miss
                       << ", fatal failures: " << n_fatal << ")\n"
                       << "-----------------------------------\n"
                       << std::endl;
