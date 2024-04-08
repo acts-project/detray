@@ -24,26 +24,24 @@ namespace detray::detail {
 /// Helix class for the analytical solution of track propagation in
 /// homogeneous B field. This Follows the notation of Eq (4.7) in
 /// DOI:10.1007/978-3-030-65771-0
-template <typename transform3_t>
+template <typename algebra_t>
 class helix {
     public:
-    using transform3_type = transform3_t;
-    using scalar_type = typename transform3_type::scalar_type;
-    using matrix_operator = typename transform3_type::matrix_actor;
-    using vector3 = typename transform3_type::vector3;
-    using point3 = typename transform3_type::point3;
+    using algebra_type = algebra_t;
+    using scalar_type = dscalar<algebra_t>;
+    using point3_type = dpoint3D<algebra_t>;
+    using vector3_type = dvector3D<algebra_t>;
+    using transform3_type = dtransform3D<algebra_t>;
+    using matrix_operator = dmatrix_operator<algebra_t>;
 
     /// Free track parameters
-    using free_track_parameters_type = free_track_parameters<transform3_t>;
+    using free_track_parameters_type = free_track_parameters<algebra_t>;
     using free_vector_type = typename free_track_parameters_type::vector_type;
 
-    /// Size type
-    using size_type = typename transform3_type::size_type;
     /// 2D Matrix type
-    template <size_type ROWS, size_type COLS>
-    using matrix_type =
-        typename matrix_operator::template matrix_type<ROWS, COLS>;
-    using free_matrix_t = free_matrix<transform3_type>;
+    template <std::size_t ROWS, std::size_t COLS>
+    using matrix_type = dmatrix<algebra_t, ROWS, COLS>;
+    using free_matrix_t = free_matrix<algebra_t>;
     using mat_helper = matrix_helper<matrix_operator>;
 
     // Track helper
@@ -60,8 +58,9 @@ class helix {
     /// @param q the charge of the particle
     /// @param mag_field the magnetic field vector
     DETRAY_HOST_DEVICE
-    helix(const point3 &pos, const scalar_type time, const vector3 &dir,
-          const scalar_type qop, vector3 const *const mag_field)
+    helix(const point3_type &pos, const scalar_type time,
+          const vector3_type &dir, const scalar_type qop,
+          vector3_type const *const mag_field)
         : _pos(pos), _time(time), _qop(qop), _mag_field(mag_field) {
 
         // Normalized B field
@@ -71,7 +70,7 @@ class helix {
         _t0 = dir;
 
         // Momentum
-        const vector3 mom =
+        const vector3_type mom =
             1.f / static_cast<scalar_type>(math::abs(qop)) * dir;
 
         // Normalized _h0 X _t0
@@ -93,7 +92,7 @@ class helix {
         scalar_type pz = vector::dot(mom, _h0);
 
         // Get transverse momentum perpendicular to B field
-        vector3 pT = mom - pz * _h0;
+        vector3_type pT = mom - pz * _h0;
 
         // R [mm] =  pT [GeV] / B [T] in natrual unit
         _R = getter::norm(pT) / _B;
@@ -108,14 +107,14 @@ class helix {
     }
 
     DETRAY_HOST_DEVICE
-    helix(const free_vector_type &free_vec, vector3 const *const mag_field)
+    helix(const free_vector_type &free_vec, vector3_type const *const mag_field)
         : helix(track_helper().pos(free_vec), track_helper().time(free_vec),
                 track_helper().dir(free_vec), track_helper().qop(free_vec),
                 mag_field) {}
 
     DETRAY_HOST_DEVICE
     helix(const free_track_parameters_type &track,
-          vector3 const *const mag_field)
+          vector3_type const *const mag_field)
         : helix(track.vector(), mag_field) {}
 
     /// @returns the radius of helix
@@ -124,18 +123,18 @@ class helix {
 
     /// @returns the position after propagating the path length of s
     DETRAY_HOST_DEVICE
-    point3 operator()(const scalar_type s) const { return this->pos(s); }
+    point3_type operator()(const scalar_type s) const { return this->pos(s); }
 
     /// @returns the position after propagating the path length of s
     DETRAY_HOST_DEVICE
-    point3 pos(const scalar_type s) const {
+    point3_type pos(const scalar_type s) const {
 
         // Handle the case of pT ~ 0
         if (_vz_over_vt == detail::invalid_value<scalar_type>()) {
             return _pos + s * _h0;
         }
 
-        point3 ret = _pos;
+        point3_type ret = _pos;
         ret = ret + _delta / _K * (_K * s - math::sin(_K * s)) * _h0;
         ret = ret + math::sin(_K * s) / _K * _t0;
         ret = ret + _alpha / _K * (1.f - math::cos(_K * s)) * _n0;
@@ -144,18 +143,18 @@ class helix {
     }
 
     DETRAY_HOST_DEVICE
-    point3 pos() const { return _pos; }
+    point3_type pos() const { return _pos; }
 
     /// @returns the tangential vector after propagating the path length of s
     DETRAY_HOST_DEVICE
-    vector3 dir(const scalar_type s) const {
+    vector3_type dir(const scalar_type s) const {
 
         // Handle the case of pT ~ 0
         if (_vz_over_vt == detail::invalid_value<scalar_type>()) {
             return _t0;
         }
 
-        vector3 ret{0.f, 0.f, 0.f};
+        vector3_type ret{0.f, 0.f, 0.f};
 
         ret = ret + _delta * (1 - math::cos(_K * s)) * _h0;
         ret = ret + math::cos(_K * s) * _t0;
@@ -165,7 +164,7 @@ class helix {
     }
 
     DETRAY_HOST_DEVICE
-    point3 dir() const { return _t0; }
+    point3_type dir() const { return _t0; }
 
     DETRAY_HOST_DEVICE
     scalar_type time() const { return _time; }
@@ -230,12 +229,13 @@ class helix {
         matrix_operator().set_block(ret, dtdt, e_free_dir0, e_free_dir0);
 
         // Get drdl
-        vector3 drdl = 1.f / _qop * (s * this->dir(s) + _pos - this->pos(s));
+        vector3_type drdl =
+            1.f / _qop * (s * this->dir(s) + _pos - this->pos(s));
 
         matrix_operator().set_block(ret, drdl, e_free_pos0, e_free_qoverp);
 
         // Get dtdl
-        vector3 dtdl =
+        vector3_type dtdl =
             -_B * s *
             (sin_ks * (H0H0_T - I33) * _t0 + cos_ks * vector::cross(_h0, _t0));
 
@@ -261,7 +261,7 @@ class helix {
     }
 
     /// origin
-    point3 _pos;
+    point3_type _pos;
 
     /// time
     scalar_type _time;
@@ -270,19 +270,19 @@ class helix {
     scalar_type _qop;
 
     /// B field
-    vector3 const *_mag_field;
+    vector3_type const *_mag_field;
 
     /// B field strength
     scalar _B;
 
     /// Normalized b field
-    vector3 _h0;
+    vector3_type _h0;
 
     /// Normalized tangent vector
-    vector3 _t0;
+    vector3_type _t0;
 
     /// Normalized _h0 X _t0
-    vector3 _n0;
+    vector3_type _n0;
 
     /// Magnitude of _h0 X _t0
     scalar_type _alpha;

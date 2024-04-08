@@ -18,21 +18,22 @@ namespace detray {
 template <typename algebra_t>
 struct cylindrical2D {
 
-    using transform3_type = algebra_t;
-    using scalar_type = typename algebra_t::scalar_type;
-    using point2 = typename algebra_t::point2;
-    using point3 = typename algebra_t::point3;
-    using vector3 = typename algebra_t::vector3;
+    using algebra_type = algebra_t;
+    using scalar_type = dscalar<algebra_t>;
+    using point2_type = dpoint2D<algebra_t>;
+    using point3_type = dpoint3D<algebra_t>;
+    using vector3_type = dvector3D<algebra_t>;
+    using transform3_type = dtransform3D<algebra_t>;
 
     /// Local point type in 2D cylindrical coordinates
-    using loc_point = point2;
+    using loc_point = point2_type;
 
     /// This method transforms a point from a global cartesian 3D frame to a
     /// local 3D cylindrical point
     DETRAY_HOST_DEVICE
-    static inline point3 global_to_local_3D(const transform3_type &trf,
-                                            const point3 &p,
-                                            const vector3 & /*dir*/) {
+    static inline point3_type global_to_local_3D(const transform3_type &trf,
+                                                 const point3_type &p,
+                                                 const vector3_type & /*dir*/) {
         const auto local3 = trf.point_to_local(p);
         const scalar_type r{getter::perp(local3)};
 
@@ -43,8 +44,8 @@ struct cylindrical2D {
     /// local 2D cylindrical point
     DETRAY_HOST_DEVICE
     static inline loc_point global_to_local(const transform3_type &trf,
-                                            const point3 &p,
-                                            const vector3 & /*dir*/) {
+                                            const point3_type &p,
+                                            const vector3_type & /*dir*/) {
         const auto local3 = trf.point_to_local(p);
 
         return {getter::perp(local3) * getter::phi(local3), local3[2]};
@@ -52,8 +53,8 @@ struct cylindrical2D {
 
     /// This method transform from a local 3D cylindrical point to a point in
     /// the global cartesian 3D frame
-    DETRAY_HOST_DEVICE static inline point3 local_to_global(
-        const transform3_type &trf, const point3 &p) {
+    DETRAY_HOST_DEVICE static inline point3_type local_to_global(
+        const transform3_type &trf, const point3_type &p) {
 
         const scalar_type r{p[2]};
         const scalar_type phi{p[0] / r};
@@ -61,15 +62,15 @@ struct cylindrical2D {
         const scalar_type y{r * math::sin(phi)};
         const scalar_type z{p[1]};
 
-        return trf.point_to_global(point3{x, y, z});
+        return trf.point_to_global(point3_type{x, y, z});
     }
 
     /// This method transform from a local 2D cylindrical point to a point in
     /// the global cartesian 3D frame
     template <typename mask_t>
-    DETRAY_HOST_DEVICE static inline point3 local_to_global(
+    DETRAY_HOST_DEVICE static inline point3_type local_to_global(
         const transform3_type &trf, const mask_t &mask, const loc_point &p,
-        const vector3 & /*dir*/) {
+        const vector3_type & /*dir*/) {
 
         return cylindrical2D<algebra_t>::local_to_global(
             trf, {p[0], p[1], mask[mask_t::shape::e_r]});
@@ -77,11 +78,10 @@ struct cylindrical2D {
 
     /// @returns the normal vector in global coordinates
     template <typename mask_t>
-    DETRAY_HOST_DEVICE static inline vector3 normal(const transform3_type &trf,
-                                                    const point2 &p,
-                                                    const mask_t &mask) {
+    DETRAY_HOST_DEVICE static inline vector3_type normal(
+        const transform3_type &trf, const point2_type &p, const mask_t &mask) {
         const scalar_type phi{p[0] / mask[mask_t::shape::e_r]};
-        const vector3 local_normal{math::cos(phi), math::sin(phi), 0.f};
+        const vector3_type local_normal{math::cos(phi), math::sin(phi), 0.f};
 
         // normal vector in global coordinate
         return trf.vector_to_global(local_normal);
@@ -89,10 +89,10 @@ struct cylindrical2D {
 
     /// @returns the normal vector in global coordinates given a local position
     /// @param p
-    DETRAY_HOST_DEVICE static inline vector3 normal(const transform3_type &trf,
-                                                    const point3 &p) {
+    DETRAY_HOST_DEVICE static inline vector3_type normal(
+        const transform3_type &trf, const point3_type &p) {
         const scalar_type phi{p[0] / p[2]};
-        const vector3 local_normal{math::cos(phi), math::sin(phi), 0.f};
+        const vector3_type local_normal{math::cos(phi), math::sin(phi), 0.f};
 
         // normal vector in global coordinate
         return trf.vector_to_global(local_normal);

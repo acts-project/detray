@@ -8,6 +8,7 @@
 #pragma once
 
 // Project include(s).
+#include "detray/definitions/detail/algebra.hpp"
 #include "detray/definitions/detail/indexing.hpp"
 #include "detray/definitions/detail/qualifiers.hpp"
 #include "detray/definitions/track_parametrization.hpp"
@@ -16,22 +17,20 @@
 
 namespace detray {
 
-template <typename transform3_t>
+template <typename algebra_t>
 struct bound_track_parameters {
 
     /// @name Type definitions for the struct
     /// @{
-
-    using transform3_type = transform3_t;
-    using matrix_operator = typename transform3_type::matrix_actor;
-    using scalar_type = typename transform3_type::scalar_type;
-    using vector3 = typename transform3_type::vector3;
-    using point3 = typename transform3_type::point3;
-    using point2 = typename transform3_type::point2;
+    using algebra_type = algebra_t;
+    using scalar_type = dscalar<algebra_t>;
+    using point2_type = dpoint2D<algebra_t>;
+    using vector3_type = dvector3D<algebra_t>;
+    using matrix_operator = dmatrix_operator<algebra_t>;
 
     // Shorthand vector/matrix types related to bound track parameters.
-    using vector_type = bound_vector<transform3_t>;
-    using covariance_type = bound_matrix<transform3_t>;
+    using vector_type = bound_vector<algebra_t>;
+    using covariance_type = bound_matrix<algebra_t>;
 
     // Track helper
     using track_helper = detail::track_helper<matrix_operator>;
@@ -108,7 +107,9 @@ struct bound_track_parameters {
     void set_covariance(const covariance_type& c) { m_covariance = c; }
 
     DETRAY_HOST_DEVICE
-    point2 bound_local() const { return track_helper().bound_local(m_vector); }
+    point2_type bound_local() const {
+        return track_helper().bound_local(m_vector);
+    }
 
     DETRAY_HOST_DEVICE
     scalar_type phi() const {
@@ -121,7 +122,7 @@ struct bound_track_parameters {
     }
 
     DETRAY_HOST_DEVICE
-    vector3 dir() const { return track_helper().dir(m_vector); }
+    vector3_type dir() const { return track_helper().dir(m_vector); }
 
     DETRAY_HOST_DEVICE
     scalar_type time() const { return track_helper().time(m_vector); }
@@ -147,7 +148,7 @@ struct bound_track_parameters {
     scalar_type p() const { return track_helper().p(m_vector); }
 
     DETRAY_HOST_DEVICE
-    vector3 mom() const { return track_helper().mom(m_vector); }
+    vector3_type mom() const { return track_helper().mom(m_vector); }
 
     DETRAY_HOST_DEVICE
     scalar_type pT() const {

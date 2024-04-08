@@ -32,10 +32,10 @@
 using namespace detray;
 
 // Algebra types
-using matrix_operator = standard_matrix_operator<scalar>;
-using transform3 = test::transform3;
-using vector3 = typename transform3::vector3;
-using intersection_t = intersection2D<surface_descriptor<>, transform3>;
+using algebra_t = test::algebra;
+using vector3 = test::vector3;
+using matrix_operator = test::matrix_operator;
+using intersection_t = intersection2D<surface_descriptor<>, algebra_t>;
 
 // Mask types to be tested
 // @TODO: Remove unbounded tag
@@ -54,7 +54,7 @@ GTEST_TEST(detray_propagator, covariance_transport) {
     vecmem::host_memory_resource host_mr;
 
     // Build in x-direction from given module positions
-    detail::ray<transform3> traj{{0.f, 0.f, 0.f}, 0.f, {1.f, 0.f, 0.f}, -1.f};
+    detail::ray<algebra_t> traj{{0.f, 0.f, 0.f}, 0.f, {1.f, 0.f, 0.f}, -1.f};
     std::vector<scalar> positions = {0.f, 10.f, 20.f, 30.f, 40.f, 50.f, 60.f};
 
     tel_det_config<rectangle2D> tel_cfg{200.f * unit<scalar>::mm,
@@ -65,14 +65,14 @@ GTEST_TEST(detray_propagator, covariance_transport) {
     const auto [det, names] = build_telescope_detector(host_mr, tel_cfg);
 
     using navigator_t = navigator<decltype(det)>;
-    using cline_stepper_t = line_stepper<transform3>;
-    using actor_chain_t = actor_chain<dtuple, parameter_transporter<transform3>,
-                                      parameter_resetter<transform3>>;
+    using cline_stepper_t = line_stepper<algebra_t>;
+    using actor_chain_t = actor_chain<dtuple, parameter_transporter<algebra_t>,
+                                      parameter_resetter<algebra_t>>;
     using propagator_t =
         propagator<cline_stepper_t, navigator_t, actor_chain_t>;
 
     // Bound vector
-    typename bound_track_parameters<transform3>::vector_type bound_vector;
+    typename bound_track_parameters<algebra_t>::vector_type bound_vector;
     getter::element(bound_vector, e_bound_loc0, 0u) = 0.f;
     getter::element(bound_vector, e_bound_loc1, 0u) = 0.f;
     getter::element(bound_vector, e_bound_phi, 0u) = 0.f;
@@ -81,7 +81,7 @@ GTEST_TEST(detray_propagator, covariance_transport) {
     getter::element(bound_vector, e_bound_time, 0u) = 0.f;
 
     // Bound covariance
-    typename bound_track_parameters<transform3>::covariance_type bound_cov =
+    typename bound_track_parameters<algebra_t>::covariance_type bound_cov =
         matrix_operator().template identity<e_bound_size, e_bound_size>();
 
     // Note: Set angle error as ZERO, to constrain the loc0 and loc1 divergence
@@ -89,12 +89,12 @@ GTEST_TEST(detray_propagator, covariance_transport) {
     getter::element(bound_cov, e_bound_theta, e_bound_theta) = 0.f;
 
     // Bound track parameter
-    const bound_track_parameters<transform3> bound_param0(
+    const bound_track_parameters<algebra_t> bound_param0(
         geometry::barcode{}.set_index(0u), bound_vector, bound_cov);
 
     // Actors
-    parameter_transporter<transform3>::state bound_updater{};
-    parameter_resetter<transform3>::state rst{};
+    parameter_transporter<algebra_t>::state bound_updater{};
+    parameter_resetter<algebra_t>::state rst{};
 
     propagator_t p{};
     propagator_t::state propagation(bound_param0, det);

@@ -20,19 +20,19 @@
 
 namespace detray {
 
-template <typename transform3_t>
+template <typename algebra_t>
 struct pointwise_material_interactor : actor {
 
-    using transform3_type = transform3_t;
-    using matrix_operator = typename transform3_t::matrix_actor;
-    using scalar_type = typename matrix_operator::scalar_type;
+    using algebra_type = algebra_t;
+    using scalar_type = dscalar<algebra_t>;
+    using vector3_type = dvector3D<algebra_t>;
+    using transform3_type = dtransform3D<algebra_t>;
+    using matrix_operator = dmatrix_operator<algebra_t>;
     using interaction_type = interaction<scalar_type>;
-    using vector3 = typename transform3_t::vector3;
-    using bound_vector_type = bound_vector<transform3_type>;
-    using bound_matrix_type = bound_matrix<transform3_type>;
+    using bound_vector_type = bound_vector<algebra_t>;
+    using bound_matrix_type = bound_matrix<algebra_t>;
 
     struct state {
-        using vector3 = __plugin::vector3<scalar>;
 
         /// @TODO: Consider using the particle information in stepping::config
         /// The particle mass
@@ -61,7 +61,6 @@ struct pointwise_material_interactor : actor {
     /// Material store visitor
     struct kernel {
 
-        using scalar_type = typename interaction_type::scalar_type;
         using state = typename pointwise_material_interactor::state;
 
         template <typename mat_group_t, typename index_t>
@@ -69,17 +68,17 @@ struct pointwise_material_interactor : actor {
             [[maybe_unused]] const mat_group_t &material_group,
             [[maybe_unused]] const index_t &mat_index,
             [[maybe_unused]] state &s,
-            [[maybe_unused]] const bound_track_parameters<transform3_type>
+            [[maybe_unused]] const bound_track_parameters<algebra_t>
                 &bound_params,
             [[maybe_unused]] const scalar_type cos_inc_angle,
             [[maybe_unused]] const scalar_type approach) const {
 
             using material_t = typename mat_group_t::value_type;
-            using scalar_t = typename material_t::scalar_type;
 
             // Filter material types for which to do "pointwise" interactions
             if constexpr ((detail::is_hom_material_v<material_t> &&
-                           !std::is_same_v<material_t, material<scalar_t>>) ||
+                           !std::is_same_v<material_t,
+                                           material<scalar_type>>) ||
                           detail::is_material_map_v<material_t>) {
 
                 const auto mat = detail::material_accessor::get(
@@ -87,12 +86,12 @@ struct pointwise_material_interactor : actor {
 
                 // return early in case of zero thickness
                 if (mat.thickness() <=
-                    std::numeric_limits<scalar_t>::epsilon()) {
+                    std::numeric_limits<scalar_type>::epsilon()) {
                     return false;
                 }
 
-                const scalar qop = bound_params.qop();
-                const scalar charge = bound_params.charge();
+                const scalar_type qop = bound_params.qop();
+                const scalar_type charge = bound_params.charge();
 
                 const scalar_type path_segment{
                     mat.path_segment(cos_inc_angle, approach)};
@@ -160,7 +159,7 @@ struct pointwise_material_interactor : actor {
     /// @param[in]  sf the surface
     template <typename surface_t>
     DETRAY_HOST_DEVICE inline void update(
-        bound_track_parameters<transform3_type> &bound_params,
+        bound_track_parameters<algebra_t> &bound_params,
         state &interactor_state, const int nav_dir, const surface_t &sf,
         const scalar_type cos_inc_angle) const {
 
@@ -248,7 +247,7 @@ struct pointwise_material_interactor : actor {
     /// @param[in]  projected_scattering_angle projected scattering angle
     /// @param[in]  sign navigation direction
     DETRAY_HOST_DEVICE inline void update_angle_variance(
-        bound_matrix_type &covariance, const vector3 &dir,
+        bound_matrix_type &covariance, const vector3_type &dir,
         const scalar_type projected_scattering_angle, const int sign) const {
 
         // variance of projected scattering angle

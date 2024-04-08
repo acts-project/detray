@@ -25,21 +25,21 @@
 
 using namespace detray;
 
-using transform3 = __plugin::transform3<scalar>;
+using algebra_t = ALGEBRA_PLUGIN<detray::scalar>;
 
 using detector_host_type = detector<toy_metadata, host_container_types>;
 using detector_device_type = detector<toy_metadata, device_container_types>;
 
 using intersection_t =
-    intersection2D<typename detector_device_type::surface_type, transform3>;
+    intersection2D<typename detector_device_type::surface_type, algebra_t>;
 
 using navigator_host_type = navigator<detector_host_type>;
 using navigator_device_type = navigator<detector_device_type>;
 using field_type = bfield::const_field_t;
-using rk_stepper_type = rk_stepper<field_type::view_t, transform3>;
-using actor_chain_t = actor_chain<tuple, parameter_transporter<transform3>,
-                                  pointwise_material_interactor<transform3>,
-                                  parameter_resetter<transform3>>;
+using rk_stepper_type = rk_stepper<field_type::view_t, algebra_t>;
+using actor_chain_t = actor_chain<tuple, parameter_transporter<algebra_t>,
+                                  pointwise_material_interactor<algebra_t>,
+                                  parameter_resetter<algebra_t>>;
 using propagator_host_type =
     propagator<rk_stepper_type, navigator_host_type, actor_chain_t>;
 using propagator_device_type =
@@ -56,7 +56,7 @@ namespace detray {
 void propagator_benchmark(
     typename detector_host_type::view_type det_data,
     typename field_type::view_t field_data,
-    vecmem::data::vector_view<free_track_parameters<transform3>>& tracks_data,
+    vecmem::data::vector_view<free_track_parameters<algebra_t>>& tracks_data,
     vecmem::data::jagged_vector_view<intersection_t>& candidates_data,
     const propagate_option opt);
 

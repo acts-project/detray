@@ -47,8 +47,8 @@ struct intersection_initialize {
         const scalar_t mask_tolerance = 0.f,
         const scalar_t overstep_tol = 0.f) const {
 
-        using algebra_t = typename transform_container_t::value_type;
         using mask_t = typename mask_group_t::value_type;
+        using algebra_t = typename mask_t::algebra_type;
 
         const auto &ctf = contextual_transforms[surface.transform()];
 
@@ -117,16 +117,17 @@ struct intersection_update {
     ///
     /// @return the intersection
     template <typename mask_group_t, typename mask_range_t, typename traj_t,
-              typename intersection_t, typename transform_container_t>
+              typename intersection_t, typename transform_container_t,
+              typename scalar_t>
     DETRAY_HOST_DEVICE inline bool operator()(
         const mask_group_t &mask_group, const mask_range_t &mask_range,
         const traj_t &traj, intersection_t &sfi,
         const transform_container_t &contextual_transforms,
-        const scalar mask_tolerance = 0.f,
-        const scalar overstep_tol = 0.f) const {
+        const scalar_t mask_tolerance = 0.f,
+        const scalar_t overstep_tol = 0.f) const {
 
-        using algebra_t = typename transform_container_t::value_type;
         using mask_t = typename mask_group_t::value_type;
+        using algebra_t = typename mask_t::algebra_type;
 
         const auto &ctf = contextual_transforms[sfi.sf_desc.transform()];
 

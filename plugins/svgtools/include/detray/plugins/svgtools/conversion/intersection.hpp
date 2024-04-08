@@ -20,12 +20,12 @@ namespace detray::svgtools::conversion {
 template <typename detector_t, typename intersection_t>
 inline auto intersection(const detector_t& detector,
                          const dvector<intersection_t>& intersections,
-                         const typename detector_t::vector3& dir = {},
+                         const typename detector_t::vector3_type& dir = {},
                          const typename detector_t::geometry_context& gctx = {},
                          const styling::landmark_style& style =
                              styling::svg_default::intersection_style) {
 
-    using point3_t = typename detector_t::point3;
+    using point3_t = typename detector_t::point3_type;
     using p_intersection_t = svgtools::meta::proto::intersection<point3_t>;
     p_intersection_t p_ir;
 

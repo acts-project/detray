@@ -64,8 +64,8 @@ inline std::string print_adj(const dvector<dindex> &adjacency_matrix) {
 template <typename detector_t>
 class ray_scan : public test::fixture_base<> {
 
-    using transform3_t = typename detector_t::transform3;
-    using ray_t = detail::ray<transform3_t>;
+    using algebra_t = typename detector_t::algebra_type;
+    using ray_t = detail::ray<algebra_t>;
 
     public:
     using fixture_type = test::fixture_base<>;

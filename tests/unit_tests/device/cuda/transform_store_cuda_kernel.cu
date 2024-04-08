@@ -12,15 +12,15 @@
 namespace detray {
 
 __global__ void transform_test_kernel(
-    vecmem::data::vector_view<point3<detray::scalar>> input_data,
+    vecmem::data::vector_view<detray::point3> input_data,
     typename host_transform_store_t::view_type store_data,
-    vecmem::data::vector_view<point3<detray::scalar>> output_data) {
+    vecmem::data::vector_view<detray::point3> output_data) {
 
     typename device_transform_store_t::context_type ctx0;
     device_transform_store_t store(store_data);
 
-    vecmem::device_vector<point3<detray::scalar>> input(input_data);
-    vecmem::device_vector<point3<detray::scalar>> output(output_data);
+    vecmem::device_vector<detray::point3> input(input_data);
+    vecmem::device_vector<detray::point3> output(output_data);
 
     auto range = detray::ranges::subrange(store.get(ctx0),
                                           dindex_range{0u, store.size(ctx0)});
@@ -28,11 +28,10 @@ __global__ void transform_test_kernel(
         range[threadIdx.x].point_to_global(input[threadIdx.x]);
 }
 
-void transform_test(
-    vecmem::data::vector_view<point3<detray::scalar>> input_data,
-    typename host_transform_store_t::view_type store_data,
-    vecmem::data::vector_view<point3<detray::scalar>> output_data,
-    std::size_t n_transforms) {
+void transform_test(vecmem::data::vector_view<detray::point3> input_data,
+                    typename host_transform_store_t::view_type store_data,
+                    vecmem::data::vector_view<detray::point3> output_data,
+                    std::size_t n_transforms) {
 
     int block_dim = 1;
     int thread_dim(n_transforms);

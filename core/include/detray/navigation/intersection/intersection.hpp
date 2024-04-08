@@ -44,22 +44,22 @@ enum class status : std::uint_least8_t {
 ///
 /// @tparam surface_descr_t is the type of surface descriptor
 template <typename surface_descr_t,
-          typename algebra_t = __plugin::transform3<detray::scalar>>
+          typename algebra_t = ALGEBRA_PLUGIN<detray::scalar>>
 struct intersection2D {
 
-    using transform3_type = algebra_t;
-    using scalar_type = typename algebra_t::scalar_type;
-    using point3 = typename algebra_t::point3;
-    using point2 = typename algebra_t::point2;
+    using algebra_type = algebra_t;
+    using scalar_type = dscalar<algebra_t>;
+    using point3_type = dpoint3D<algebra_t>;
+    using transform3_type = dtransform3D<algebra_t>;
     using nav_link_type = typename surface_descr_t::navigation_link;
 
     /// Descriptor of the surface this intersection belongs to
     surface_descr_t sf_desc;
 
     /// Local position of the intersection on the surface
-    point3 local{detail::invalid_value<scalar_type>(),
-                 detail::invalid_value<scalar_type>(),
-                 detail::invalid_value<scalar_type>()};
+    point3_type local{detail::invalid_value<scalar_type>(),
+                      detail::invalid_value<scalar_type>(),
+                      detail::invalid_value<scalar_type>()};
 
     /// Distance between track and candidate
     scalar_type path{detail::invalid_value<scalar_type>()};

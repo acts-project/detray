@@ -29,10 +29,10 @@ namespace detray {
 template <typename detector_t>
 class material_scan : public test::fixture_base<> {
 
-    using transform3_t = typename detector_t::transform3;
-    using point2_t = typename detector_t::point2;
+    using algebra_t = typename detector_t::algebra_type;
+    using point2_t = typename detector_t::point2_type;
     using scalar_t = typename detector_t::scalar_type;
-    using ray_t = detail::ray<transform3_t>;
+    using ray_t = detail::ray<algebra_t>;
 
     public:
     using fixture_type = test::fixture_base<>;

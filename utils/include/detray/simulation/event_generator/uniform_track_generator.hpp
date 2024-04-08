@@ -33,10 +33,11 @@ namespace detray {
 template <typename track_t>
 class uniform_track_generator
     : public detray::ranges::view_interface<uniform_track_generator<track_t>> {
-    public:
-    using point3 = typename track_t::point3;
-    using vector3 = typename track_t::vector3;
 
+    using point3 = typename track_t::point3_type;
+    using vector3 = typename track_t::vector3_type;
+
+    public:
     /// Configure how tracks are generated
     struct configuration {
         /// Ensure sensible values at the theta bounds, even in single precision

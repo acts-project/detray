@@ -31,7 +31,7 @@ using point3 = test::point3;
 // Alias for testing
 template <bool ownership, typename containers>
 using cartesian_3D =
-    multi_axis<ownership, cartesian3D<test::transform3>,
+    multi_axis<ownership, cartesian3D<test::algebra>,
                single_axis<closed<label::e_x>, regular<containers, scalar>>,
                single_axis<closed<label::e_y>, regular<containers, scalar>>,
                single_axis<closed<label::e_z>, regular<containers, scalar>>>;

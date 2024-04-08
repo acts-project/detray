@@ -173,7 +173,7 @@ class annulus2D {
         const bounds_t<scalar_t, kDIM> &bounds,
         const scalar_t env = std::numeric_limits<scalar_t>::epsilon()) const {
 
-        using point_t = typename algebra_t::point2;
+        using point_t = dpoint2D<algebra_t>;
 
         assert(env > 0.f);
 
@@ -272,7 +272,7 @@ class annulus2D {
               template <typename, std::size_t> class bounds_t,
               typename scalar_t, std::size_t kDIM,
               typename std::enable_if_t<kDIM == e_size, bool> = true>
-    DETRAY_HOST_DEVICE typename algebra_t::point3 centroid(
+    DETRAY_HOST_DEVICE dpoint3D<algebra_t> centroid(
         const bounds_t<scalar_t, kDIM> &bounds) const {
 
         // Strip polar system
@@ -282,8 +282,7 @@ class annulus2D {
         const scalar_t r{0.25f * (crns[0] + crns[2] + crns[4] + crns[6])};
         const scalar_t phi{bounds[e_average_phi]};
 
-        return r *
-               typename algebra_t::point3{math::cos(phi), math::sin(phi), 0.f};
+        return r * dpoint3D<algebra_t>{math::cos(phi), math::sin(phi), 0.f};
     }
 
     /// Generate vertices in local cartesian frame

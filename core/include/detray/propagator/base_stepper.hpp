@@ -32,7 +32,7 @@ struct void_inspector {
 }  // namespace stepping
 
 /// Base stepper implementation
-template <typename transform3_t, typename constraint_t, typename policy_t,
+template <typename algebra_t, typename constraint_t, typename policy_t,
           typename inspector_t = stepping::void_inspector>
 class base_stepper {
 
@@ -40,16 +40,17 @@ class base_stepper {
     using inspector_type = inspector_t;
     using policy_type = policy_t;
 
-    using transform3_type = transform3_t;
-    using scalar_type = typename transform3_type::scalar_type;
-    using free_track_parameters_type = free_track_parameters<transform3_t>;
-    using bound_track_parameters_type = bound_track_parameters<transform3_t>;
-    using matrix_operator = typename transform3_t::matrix_actor;
+    using scalar_type = dscalar<algebra_t>;
+    using transform3_type = dtransform3D<algebra_t>;
 
-    using free_matrix_type = free_matrix<transform3_type>;
-    using bound_matrix_type = bound_matrix<transform3_type>;
+    using matrix_operator = dmatrix_operator<algebra_t>;
 
-    using bound_to_free_matrix_type = bound_to_free_matrix<transform3_type>;
+    using free_track_parameters_type = free_track_parameters<algebra_t>;
+    using bound_track_parameters_type = bound_track_parameters<algebra_t>;
+
+    using free_matrix_type = free_matrix<algebra_t>;
+    using bound_matrix_type = bound_matrix<algebra_t>;
+    using bound_to_free_matrix_type = bound_to_free_matrix<algebra_t>;
 
     /// @brief State struct holding the track
     ///
@@ -72,7 +73,7 @@ class base_stepper {
 
             const typename detector_t::geometry_context ctx{};
             sf.template visit_mask<
-                typename parameter_resetter<transform3_t>::kernel>(
+                typename parameter_resetter<algebra_t>::kernel>(
                 sf.transform(ctx), *this);
         }
 
@@ -114,20 +115,20 @@ class base_stepper {
         inspector_type _inspector;
 
         /// Track path length
-        scalar _path_length{0.};
+        scalar_type _path_length{0.f};
 
         /// Absolute path length
-        scalar _abs_path_length{0.};
+        scalar_type _abs_path_length{0.f};
 
         /// Track path length from the last surface. It will be reset to 0 when
         /// the track reaches a new surface
-        scalar _s{0.};
+        scalar_type _s{0.f};
 
         /// Current step size
-        scalar _step_size{0.};
+        scalar_type _step_size{0.f};
 
         /// Previous step size (DEBUG purpose only)
-        scalar _prev_step_size{0.};
+        scalar_type _prev_step_size{0.f};
 
         /// The particle mass
         scalar_type _mass{105.7f * unit<scalar_type>::MeV};
@@ -140,7 +141,7 @@ class base_stepper {
 
         /// Set new step constraint
         template <step::constraint type = step::constraint::e_actor>
-        DETRAY_HOST_DEVICE inline void set_constraint(scalar step_size) {
+        DETRAY_HOST_DEVICE inline void set_constraint(scalar_type step_size) {
             _constraint.template set<type>(step_size);
         }
 
@@ -171,15 +172,15 @@ class base_stepper {
 
         /// Set next step size
         DETRAY_HOST_DEVICE
-        inline void set_step_size(const scalar step) { _step_size = step; }
+        inline void set_step_size(const scalar_type step) { _step_size = step; }
 
         /// @returns the current step size of this state.
         DETRAY_HOST_DEVICE
-        inline scalar step_size() const { return _step_size; }
+        inline scalar_type step_size() const { return _step_size; }
 
         /// @returns this states remaining path length.
         DETRAY_HOST_DEVICE
-        inline scalar path_length() const { return _path_length; }
+        inline scalar_type path_length() const { return _path_length; }
 
         /// @returns the stepping inspector
         DETRAY_HOST

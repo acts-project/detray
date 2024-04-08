@@ -69,7 +69,7 @@ class geometry_writer {
     /// Convert a surface transform @param trf into its io payload
     template <typename detector_t>
     static transform_payload convert(
-        const typename detector_t::transform3& trf) {
+        const typename detector_t::transform3_type& trf) {
         transform_payload trf_data;
 
         const auto& t = trf.translation();

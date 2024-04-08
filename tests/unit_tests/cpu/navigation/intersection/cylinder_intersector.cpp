@@ -27,10 +27,11 @@ using namespace detray;
 namespace {
 
 // Three-dimensional definitions
+using algebra_t = test::algebra;
 using transform3_t = test::transform3;
 using vector3 = test::vector3;
 using point3 = test::point3;
-using ray_t = detray::detail::ray<transform3_t>;
+using ray_t = detray::detail::ray<algebra_t>;
 
 constexpr scalar not_defined = std::numeric_limits<scalar>::max();
 constexpr scalar tol{1e-5f};
@@ -44,7 +45,7 @@ const scalar hz{10.f};
 GTEST_TEST(detray_intersection, translated_cylinder) {
     // Create a translated cylinder and test untersection
     const transform3_t shifted(vector3{3.f, 2.f, 10.f});
-    ray_intersector<cylinder2D, transform3_t> ci;
+    ray_intersector<cylinder2D, algebra_t> ci;
 
     // Test ray
     const point3 ori = {3.f, 2.f, 5.f};
@@ -52,8 +53,7 @@ GTEST_TEST(detray_intersection, translated_cylinder) {
     ray_t ray(ori, 0.f, dir, 0.f);
 
     // Intersect:
-    mask<cylinder2D, std::uint_least16_t, transform3_t> cylinder{0u, r, -hz,
-                                                                 hz};
+    mask<cylinder2D, std::uint_least16_t, algebra_t> cylinder{0u, r, -hz, hz};
     const auto hits_bound =
         ci(ray, surface_descriptor<>{}, cylinder, shifted, tol, -not_defined);
 
@@ -92,7 +92,7 @@ GTEST_TEST(detray_intersection, translated_cylinder) {
 // This checks the inclindence angle calculation for a ray-cylinder intersection
 GTEST_TEST(detray_intersection, cylinder_incidence_angle) {
     const transform3_t identity{};
-    ray_intersector<cylinder2D, transform3_t> ci;
+    ray_intersector<cylinder2D, algebra_t> ci;
 
     // Test ray
     const point3 ori = {0.f, 1.f, 0.f};
@@ -101,8 +101,7 @@ GTEST_TEST(detray_intersection, cylinder_incidence_angle) {
 
     // Intersect: Set an infinite overstep tolerance, so that no solution is
     // optimized away
-    mask<cylinder2D, std::uint_least16_t, transform3_t> cylinder{0u, r, -hz,
-                                                                 hz};
+    mask<cylinder2D, std::uint_least16_t, algebra_t> cylinder{0u, r, -hz, hz};
     const auto hits_bound =
         ci(ray, surface_descriptor<>{}, cylinder, identity, tol, -not_defined);
 
@@ -120,11 +119,10 @@ GTEST_TEST(detray_intersection, cylinder_portal) {
 
     // Create a concentric cylinder and test intersection
     const transform3_t identity{};
-    mask<cylinder2D, std::uint_least16_t, transform3_t> cylinder{0u, r, -hz,
-                                                                 hz};
+    mask<cylinder2D, std::uint_least16_t, algebra_t> cylinder{0u, r, -hz, hz};
 
-    ray_intersector<cylinder2D, transform3_t> ci;
-    ray_intersector<concentric_cylinder2D, transform3_t> cpi;
+    ray_intersector<cylinder2D, algebra_t> ci;
+    ray_intersector<concentric_cylinder2D, algebra_t> cpi;
 
     // Intersect
     const auto hits_cylinrical =
@@ -167,11 +165,10 @@ GTEST_TEST(detray_intersection, concentric_cylinders) {
 
     // Create a concentric cylinder and test intersection
     const transform3_t identity{};
-    mask<cylinder2D, std::uint_least16_t, transform3_t> cylinder{0u, r, -hz,
-                                                                 hz};
+    mask<cylinder2D, std::uint_least16_t, algebra_t> cylinder{0u, r, -hz, hz};
 
-    ray_intersector<cylinder2D, transform3_t> ci;
-    ray_concentric_cylinder_intersector<transform3_t> cci;
+    ray_intersector<cylinder2D, algebra_t> ci;
+    ray_concentric_cylinder_intersector<algebra_t> cci;
 
     // Intersect
     const auto hits_cylinrical =

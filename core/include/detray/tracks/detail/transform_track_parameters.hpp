@@ -21,35 +21,38 @@ namespace detray::detail {
 template <typename transform3_t, typename mask_t>
 DETRAY_HOST_DEVICE inline auto bound_to_free_position(
     const transform3_t& trf, const mask_t& mask,
-    const typename transform3_t::point2& p,
-    const typename transform3_t::vector3& dir) {
+    const typename mask_t::point2_type& p,
+    const typename mask_t::vector3_type& dir) {
 
-    using local_frame_t =
-        typename mask_t::shape::template local_frame_type<transform3_t>;
+    using local_frame_t = typename mask_t::local_frame_type;
 
     return local_frame_t::local_to_global(trf, mask, p, dir);
 }
 
 /// This method transforms from a global 3D cartesian position to a 2D bound
 /// position in the given local coordinate frame
-template <typename local_frame_t, typename transform3_t>
+template <typename local_frame_t>
 DETRAY_HOST_DEVICE inline auto free_to_bound_position(
-    const transform3_t& trf, const typename transform3_t::point3& p,
-    const typename transform3_t::vector3& dir) {
+    const dtransform3D<typename local_frame_t::algebra_type>& trf,
+    const dpoint3D<typename local_frame_t::algebra_type>& p,
+    const dvector3D<typename local_frame_t::algebra_type>& dir) {
 
-    static_assert(std::is_same_v<typename local_frame_t::loc_point,
-                                 typename transform3_t::point2>,
-                  "Cannot define a bound position on this shape");
+    static_assert(
+        std::is_same_v<typename local_frame_t::loc_point,
+                       dpoint2D<typename local_frame_t::algebra_type>>,
+        "Cannot define a bound position on this shape");
 
     return local_frame_t::global_to_local(trf, p, dir);
 }
 
-template <typename local_frame_t, typename transform3_t>
-DETRAY_HOST_DEVICE inline bound_vector<transform3_t> free_to_bound_vector(
-    const transform3_t& trf3, const free_vector<transform3_t>& free_vec) {
+template <typename local_frame_t>
+DETRAY_HOST_DEVICE inline auto free_to_bound_vector(
+    const dtransform3D<typename local_frame_t::algebra_type>& trf3,
+    const free_vector<typename local_frame_t::algebra_type>& free_vec) {
 
     // Matrix operator
-    using matrix_operator = typename transform3_t::matrix_actor;
+    using algebra_t = typename local_frame_t::algebra_type;
+    using matrix_operator = dmatrix_operator<algebra_t>;
     // Track helper
     using track_helper = detail::track_helper<matrix_operator>;
 
@@ -59,7 +62,7 @@ DETRAY_HOST_DEVICE inline bound_vector<transform3_t> free_to_bound_vector(
     const auto bound_local =
         free_to_bound_position<local_frame_t>(trf3, pos, dir);
 
-    bound_vector<transform3_t> bound_vec;
+    bound_vector<algebra_t> bound_vec;
     matrix_operator().element(bound_vec, e_bound_loc0, 0u) = bound_local[0];
     matrix_operator().element(bound_vec, e_bound_loc1, 0u) = bound_local[1];
     // The angles are defined in the global frame!
@@ -74,13 +77,14 @@ DETRAY_HOST_DEVICE inline bound_vector<transform3_t> free_to_bound_vector(
     return bound_vec;
 }
 
-template <typename transform3_t, typename mask_t>
-DETRAY_HOST_DEVICE inline free_vector<transform3_t> bound_to_free_vector(
-    const transform3_t& trf3, const mask_t& mask,
-    const bound_vector<transform3_t>& bound_vec) {
+template <typename mask_t>
+DETRAY_HOST_DEVICE inline auto bound_to_free_vector(
+    const dtransform3D<typename mask_t::algebra_type>& trf3, const mask_t& mask,
+    const bound_vector<typename mask_t::algebra_type>& bound_vec) {
 
     // Matrix operator
-    using matrix_operator = typename transform3_t::matrix_actor;
+    using algebra_t = typename mask_t::algebra_type;
+    using matrix_operator = dmatrix_operator<algebra_t>;
     // Track helper
     using track_helper = detail::track_helper<matrix_operator>;
 
@@ -90,7 +94,7 @@ DETRAY_HOST_DEVICE inline free_vector<transform3_t> bound_to_free_vector(
 
     const auto pos = bound_to_free_position(trf3, mask, bound_local, dir);
 
-    free_vector<transform3_t> free_vec;
+    free_vector<algebra_t> free_vec;
     matrix_operator().element(free_vec, e_free_pos0, 0u) = pos[0];
     matrix_operator().element(free_vec, e_free_pos1, 0u) = pos[1];
     matrix_operator().element(free_vec, e_free_pos2, 0u) = pos[2];

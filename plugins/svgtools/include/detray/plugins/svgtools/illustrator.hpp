@@ -49,7 +49,7 @@ namespace detray::svgtools {
 template <typename detector_t>
 class illustrator {
 
-    using point3 = typename detector_t::point3;
+    using point3 = typename detector_t::point3_type;
     using point3_container = std::vector<point3>;
 
     public:
@@ -321,7 +321,7 @@ class illustrator {
         const std::string& prefix,
         const std::vector<std::pair<detray::dindex, intersection_t>>&
             intersection_record,
-        const typename detector_t::vector3 dir, const view_t& view,
+        const typename detector_t::vector3_type dir, const view_t& view,
         const typename detector_t::geometry_context& gctx = {}) const {
 
         dvector<intersection_t> intersections{};
@@ -346,7 +346,7 @@ class illustrator {
     template <typename view_t, typename intersection_t>
     inline auto draw_intersections(
         const std::string& prefix, const dvector<intersection_t>& intersections,
-        const typename detector_t::vector3 dir, const view_t& view,
+        const typename detector_t::vector3_type dir, const view_t& view,
         const typename detector_t::geometry_context& gctx = {}) const {
 
         auto p_ir = svgtools::conversion::intersection(
@@ -364,10 +364,10 @@ class illustrator {
     ///
     /// @return @c actsvg::svg::object of the trajectory.
     template <typename view_t, template <typename> class trajectory_t,
-              typename transform3_t>
+              typename algebra_t>
     inline auto draw_trajectory(const std::string& prefix,
-                                const trajectory_t<transform3_t>& trajectory,
-                                const typename transform3_t::scalar_type path,
+                                const trajectory_t<algebra_t>& trajectory,
+                                const dscalar<algebra_t> path,
                                 const view_t& view) const {
         auto p_trajectory = svgtools::conversion::trajectory(
             trajectory, _style._trajectory_style, path);

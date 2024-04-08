@@ -35,7 +35,7 @@ auto detector(const typename detector_t::geometry_context& context,
               bool hide_portals = false, bool hide_passives = false,
               bool hide_grids = false) {
 
-    using point3_container_t = std::vector<typename detector_t::point3>;
+    using point3_container_t = std::vector<typename detector_t::point3_type>;
     actsvg::proto::detector<point3_container_t> p_detector;
 
     for (const auto& vol_desc : detector.volumes()) {

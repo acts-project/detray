@@ -28,9 +28,6 @@
 
 namespace detray {
 
-// linear algebra types
-using transform3 = __plugin::transform3<detray::scalar>;
-
 //
 // Detector
 //
@@ -38,6 +35,9 @@ using transform3 = __plugin::transform3<detray::scalar>;
 /// Defines a detector that contains squares, trapezoids and a bounding portal
 /// box.
 struct itk_metadata {
+
+    /// Define the algebra type for the geometry and navigation
+    using algebra_type = ALGEBRA_PLUGIN<detray::scalar>;
 
     /// Portal link type between volumes
     using nav_link = std::uint_least16_t;
@@ -78,7 +78,7 @@ struct itk_metadata {
     /// the conditions data for e.g. module alignment
     template <template <typename...> class vector_t = dvector>
     using transform_store =
-        single_store<transform3, vector_t, geometry_context>;
+        single_store<dtransform3D<algebra_type>, vector_t, geometry_context>;
 
     /// Assign the mask types to the mask tuple container entries. It may be a
     /// good idea to have the most common types in the first tuple entries, in

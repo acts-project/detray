@@ -8,6 +8,7 @@
 #pragma once
 
 // Project include(s).
+#include "detray/definitions/detail/algebra.hpp"
 #include "detray/definitions/detail/qualifiers.hpp"
 #include "detray/definitions/units.hpp"
 #include "detray/utils/axis_rotation.hpp"
@@ -21,9 +22,9 @@ namespace detray {
 template <typename algebra_t>
 struct scattering_helper {
     public:
-    using matrix_operator = typename algebra_t::matrix_actor;
-    using vector3 = typename algebra_t::vector3;
-    using scalar_type = typename algebra_t::scalar_type;
+    using scalar_type = dscalar<algebra_t>;
+    using vector3_type = dvector3D<algebra_t>;
+    using matrix_operator = dmatrix_operator<algebra_t>;
 
     /// @brief Operator to scatter the direction with scattering angle
     ///
@@ -32,9 +33,9 @@ struct scattering_helper {
     /// @param generator random generator
     /// @returns the new direction from random scattering
     template <typename generator_t>
-    DETRAY_HOST inline vector3 operator()(const vector3& dir,
-                                          const scalar_type angle,
-                                          generator_t& generator) const {
+    DETRAY_HOST inline vector3_type operator()(const vector3_type& dir,
+                                               const scalar_type angle,
+                                               generator_t& generator) const {
 
         // Generate theta and phi for random scattering
         const scalar_type r_theta{
@@ -43,9 +44,10 @@ struct scattering_helper {
             -constant<scalar_type>::pi, constant<scalar_type>::pi)(generator)};
 
         // xaxis of curvilinear plane
-        const vector3 u = unit_vectors<vector3>().make_curvilinear_unit_u(dir);
+        const vector3_type u =
+            unit_vectors<vector3_type>().make_curvilinear_unit_u(dir);
 
-        vector3 new_dir = axis_rotation<algebra_t>(u, r_theta)(dir);
+        vector3_type new_dir = axis_rotation<algebra_t>(u, r_theta)(dir);
         return axis_rotation<algebra_t>(dir, r_phi)(new_dir);
     }
 };

@@ -267,9 +267,9 @@ void add_gap_portals(volume_builder_interface<detector_t> *v_builder,
                      const dindex link_north, const dindex link_south,
                      const dindex link_east, const dindex link_west) {
 
-    using transform3_t = typename detector_t::transform3;
+    using transform3_t = typename detector_t::transform3_type;
     using scalar_t = typename detector_t::scalar_type;
-    using point3_t = typename detector_t::point3;
+    using point3_t = typename detector_t::point3_type;
     using nav_link_t = typename detector_t::surface_type::navigation_link;
 
     const transform3_t identity{};
@@ -444,7 +444,7 @@ inline auto add_barrel_detector(
 
     using detector_t = typename detector_builder_t::detector_type;
     using scalar_t = typename detector_t::scalar_type;
-    using transform3_t = typename detector_t::transform3;
+    using transform3_t = typename detector_t::transform3_type;
     using nav_link_t = typename detector_t::surface_type::navigation_link;
 
     // Register the sizes in z per volume index
@@ -597,7 +597,7 @@ inline auto add_endcap_detector(
 
     using detector_t = typename detector_builder_t::detector_type;
     using scalar_t = typename detector_t::scalar_type;
-    using point3_t = typename detector_t::point3;
+    using point3_t = typename detector_t::point3_type;
     using nav_link_t = typename detector_t::surface_type::navigation_link;
 
     std::vector<std::pair<dindex, extent2D<scalar_t>>> volume_sizes{};
@@ -771,9 +771,9 @@ inline void add_connector_portals(
     const vol_extent_data_t &brl_vol_extents) {
 
     using detector_t = typename detector_builder_t::detector_type;
-    using transform3_t = typename detector_t::transform3;
+    using transform3_t = typename detector_t::transform3_type;
     using scalar_t = typename detector_t::scalar_type;
-    using point3_t = typename detector_t::point3;
+    using point3_t = typename detector_t::point3_type;
     using nav_link_t = typename detector_t::surface_type::navigation_link;
 
     using cyl_factory_t = surface_factory<detector_t, concentric_cylinder2D>;
@@ -856,8 +856,8 @@ inline void add_beampipe_portals(
     toy_det_config<typename detector_t::scalar_type> &cfg) {
 
     using scalar_t = typename detector_t::scalar_type;
-    using transform3_t = typename detector_t::transform3;
-    using point3_t = typename detector_t::point3;
+    using transform3_t = typename detector_t::transform3_type;
+    using point3_t = typename detector_t::point3_type;
     using nav_link_t = typename detector_t::surface_type::navigation_link;
 
     using cyl_factory_t = surface_factory<detector_t, concentric_cylinder2D>;
@@ -916,8 +916,8 @@ inline void add_beampipe_portals(
     volume_builder_interface<detector_t> *beampipe_builder,
     toy_det_config<scalar_t> &cfg, const layer_size_cont_t &edc_lay_sizes) {
 
-    using transform3_t = typename detector_t::transform3;
-    using point3_t = typename detector_t::point3;
+    using transform3_t = typename detector_t::transform3_type;
+    using point3_t = typename detector_t::point3_type;
     using nav_link_t = typename detector_t::surface_type::navigation_link;
 
     using cyl_factory_t = surface_factory<detector_t, concentric_cylinder2D>;
@@ -980,7 +980,7 @@ inline auto build_toy_detector(vecmem::memory_resource &resource,
 
     using builder_t = detector_builder<toy_metadata, volume_builder>;
     using detector_t = typename builder_t::detector_type;
-    using transform3_t = typename detector_t::transform3;
+    using transform3_t = typename detector_t::transform3_type;
     using nav_link_t = typename detector_t::surface_type::navigation_link;
     using cyl_factory_t = surface_factory<detector_t, concentric_cylinder2D>;
     using vol_extent_container_t =

@@ -19,8 +19,9 @@ namespace detray {
 template <typename shape_t, typename algebra_t>
 struct intersector {
 
-    using transform3_type = algebra_t;
-    using scalar_type = typename transform3_type::scalar_type;
+    using algebra_type = algebra_t;
+    using scalar_type = dscalar<algebra_t>;
+    using transform3_type = dtransform3D<algebra_t>;
 
     /// How to intersect surfaces with rays
     using ray_intersector_type = ray_intersector<shape_t, algebra_t>;

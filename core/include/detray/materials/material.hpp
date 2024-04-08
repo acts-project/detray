@@ -74,7 +74,7 @@ struct material {
     ///
     /// @param rhs is the right hand side to be compared to
     DETRAY_HOST_DEVICE
-    constexpr bool operator==(const material<scalar_t> &rhs) const {
+    constexpr bool operator==(const material<scalar_type> &rhs) const {
         return (m_x0 == rhs.X0() && m_l0 == rhs.L0() && m_ar == rhs.Ar() &&
                 m_z == rhs.Z());
     }
@@ -83,7 +83,7 @@ struct material {
     ///
     /// @param rhs is the right hand side to be compared to
     DETRAY_HOST_DEVICE
-    constexpr bool operator!=(const material<scalar_t> &rhs) const {
+    constexpr bool operator!=(const material<scalar_type> &rhs) const {
         return !(*this == rhs);
     }
 

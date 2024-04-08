@@ -38,7 +38,7 @@ namespace detray {
 namespace {
 
 using vector3 = test::vector3;
-using transform3 = test::transform3;
+using algebra_t = test::algebra;
 
 // dummy propagator state
 template <typename stepping_t, typename navigation_t>
@@ -76,7 +76,7 @@ GTEST_TEST(detray_detectors, telescope_detector) {
                                   covfie::vector::vector_d<scalar, 3>>;
     using b_field_t = covfie::field<const_bfield_bknd_t>;
 
-    using rk_stepper_t = rk_stepper<b_field_t::view_t, transform3>;
+    using rk_stepper_t = rk_stepper<b_field_t::view_t, algebra_t>;
     using inspector_t = navigation::print_inspector;
 
     // Test tolerance
@@ -145,8 +145,7 @@ GTEST_TEST(detray_detectors, telescope_detector) {
     //
 
     // Same telescope, but in x direction and created from custom stepper
-    detail::ray<transform3> x_track({0.f, 0.f, 0.f}, 0.f, {1.f, 0.f, 0.f},
-                                    -1.f);
+    detail::ray<algebra_t> x_track({0.f, 0.f, 0.f}, 0.f, {1.f, 0.f, 0.f}, -1.f);
 
     const auto [x_tel_det, x_tel_names] =
         build_telescope_detector(host_mr, tel_cfg.pilot_track(x_track));
@@ -161,10 +160,10 @@ GTEST_TEST(detray_detectors, telescope_detector) {
     // Telescope navigation should be symmetric in x and z
     vector3 pos = {0.f, 0.f, 0.f};
     vector3 mom = {0.f, 0.f, 1.f};
-    free_track_parameters<transform3> test_track_z1(pos, 0.f, mom, -1.f);
-    free_track_parameters<transform3> test_track_z2(pos, 0.f, mom, -1.f);
+    free_track_parameters<algebra_t> test_track_z1(pos, 0.f, mom, -1.f);
+    free_track_parameters<algebra_t> test_track_z2(pos, 0.f, mom, -1.f);
     mom = {1.f, 0.f, 0.f};
-    free_track_parameters<transform3> test_track_x(pos, 0.f, mom, -1.f);
+    free_track_parameters<algebra_t> test_track_x(pos, 0.f, mom, -1.f);
 
     // navigators
     navigator<decltype(z_tel_det1), inspector_t> navigator_z1;
@@ -244,9 +243,9 @@ GTEST_TEST(detray_detectors, telescope_detector) {
     pos = {0.f, 0.f, 0.f};
     mom = {0.f, 1.f, 0.f};
 
-    auto pilot_track = free_track_parameters<transform3>(pos, 0.f, mom, -1.f);
+    auto pilot_track = free_track_parameters<algebra_t>(pos, 0.f, mom, -1.f);
 
-    detail::helix<transform3> helix_bz(pilot_track, &B_z);
+    detail::helix<algebra_t> helix_bz(pilot_track, &B_z);
 
     tel_det_config htel_cfg{rectangle, helix_bz};
     htel_cfg.n_surfaces(11u).length(500.f * unit<scalar>::mm);

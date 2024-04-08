@@ -22,7 +22,7 @@
 #include <random>
 
 using namespace detray;
-using transform3 = test::transform3;
+using algebra_t = test::algebra;
 
 // Test class for MUON energy loss with Bethe function
 // Input tuple: < material / energy / expected output from
@@ -438,7 +438,7 @@ TEST_P(LandauDistributionValidation, landau_distribution) {
     std::vector<scalar> energies;
 
     for (std::size_t i = 0u; i < n_samples; i++) {
-        const scalar new_p = random_scatterer<transform3>().attenuate(
+        const scalar new_p = random_scatterer<algebra_t>().attenuate(
             mpv, sigma, m, p, generator);
         ASSERT_TRUE(new_p < p);
 

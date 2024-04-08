@@ -37,12 +37,13 @@
 namespace detray {
 
 // These types are identical in host and device code for all bfield types
-using transform3 = __plugin::transform3<detray::scalar>;
-using vector3_t = typename transform3::vector3;
-using point3_t = typename transform3::point3;
-using matrix_operator = standard_matrix_operator<scalar>;
-using track_t = free_track_parameters<transform3>;
-using free_matrix_t = free_matrix<transform3>;
+using algebra_t = ALGEBRA_PLUGIN<detray::scalar>;
+using scalar_t = dscalar<algebra_t>;
+using vector3_t = dvector3D<algebra_t>;
+using point3_t = dpoint3D<algebra_t>;
+using matrix_operator = dmatrix_operator<algebra_t>;
+using track_t = free_track_parameters<algebra_t>;
+using free_matrix_t = free_matrix<algebra_t>;
 
 // Navigator
 template <typename detector_t>
@@ -53,17 +54,17 @@ using intersection_t = typename navigator_t<detector_t>::intersection_type;
 // Stepper
 using constraints_t = constrained_step<>;
 template <typename bfield_view_t>
-using rk_stepper_t = rk_stepper<bfield_view_t, transform3, constraints_t>;
+using rk_stepper_t = rk_stepper<bfield_view_t, algebra_t, constraints_t>;
 
 // Geomery navigation configurations
 constexpr unsigned int theta_steps{10u};
 constexpr unsigned int phi_steps{10u};
 
-constexpr scalar rk_tolerance{1e-4f};
-constexpr scalar overstep_tolerance{-3.f * unit<scalar>::um};
-constexpr scalar constrainted_step_size{2.f * unit<scalar>::mm};
-constexpr scalar is_close{1e-4f};
-constexpr scalar path_limit{2.f * unit<scalar>::m};
+constexpr scalar_t rk_tolerance{1e-4f};
+constexpr scalar_t overstep_tolerance{-3.f * unit<scalar_t>::um};
+constexpr scalar_t constrainted_step_size{2.f * unit<scalar_t>::mm};
+constexpr scalar_t is_close{1e-4f};
+constexpr scalar_t path_limit{2.f * unit<scalar_t>::m};
 
 template <template <typename...> class vector_t>
 struct track_inspector : actor {
@@ -110,14 +111,14 @@ using inspector_host_t = track_inspector<vecmem::vector>;
 using inspector_device_t = track_inspector<vecmem::device_vector>;
 using actor_chain_host_t =
     actor_chain<tuple, inspector_host_t, pathlimit_aborter,
-                parameter_transporter<transform3>,
-                pointwise_material_interactor<transform3>,
-                parameter_resetter<transform3>>;
+                parameter_transporter<algebra_t>,
+                pointwise_material_interactor<algebra_t>,
+                parameter_resetter<algebra_t>>;
 using actor_chain_device_t =
     actor_chain<tuple, inspector_device_t, pathlimit_aborter,
-                parameter_transporter<transform3>,
-                pointwise_material_interactor<transform3>,
-                parameter_resetter<transform3>>;
+                parameter_transporter<algebra_t>,
+                pointwise_material_interactor<algebra_t>,
+                parameter_resetter<algebra_t>>;
 
 /// Precompute the tracks
 inline vecmem::vector<track_t> generate_tracks(
@@ -145,7 +146,7 @@ inline auto run_propagation_host(vecmem::memory_resource *mr,
                                  const host_detector_t &det,
                                  covfie::field<bfield_bknd_t> &field,
                                  const vecmem::vector<track_t> &tracks)
-    -> std::tuple<vecmem::jagged_vector<scalar>,
+    -> std::tuple<vecmem::jagged_vector<scalar_t>,
                   vecmem::jagged_vector<vector3_t>,
                   vecmem::jagged_vector<free_matrix_t>> {
 
@@ -155,13 +156,13 @@ inline auto run_propagation_host(vecmem::memory_resource *mr,
 
     using propagator_host_t =
         propagator<decltype(stepr), decltype(nav), actor_chain_host_t>;
-    propagation::config<scalar> cfg{};
+    propagation::config<scalar_t> cfg{};
     cfg.navigation.search_window = {3u, 3u};
     cfg.stepping.rk_error_tol = rk_tolerance;
     propagator_host_t p{cfg};
 
     // Create vector for track recording
-    vecmem::jagged_vector<scalar> host_path_lengths(mr);
+    vecmem::jagged_vector<scalar_t> host_path_lengths(mr);
     vecmem::jagged_vector<vector3_t> host_positions(mr);
     vecmem::jagged_vector<free_matrix_t> host_jac_transports(mr);
 
@@ -170,9 +171,9 @@ inline auto run_propagation_host(vecmem::memory_resource *mr,
         // Create the propagator state
         inspector_host_t::state insp_state{*mr};
         pathlimit_aborter::state pathlimit_state{path_limit};
-        parameter_transporter<transform3>::state transporter_state{};
-        pointwise_material_interactor<transform3>::state interactor_state{};
-        parameter_resetter<transform3>::state resetter_state{};
+        parameter_transporter<algebra_t>::state transporter_state{};
+        pointwise_material_interactor<algebra_t>::state interactor_state{};
+        parameter_resetter<algebra_t>::state resetter_state{};
         auto actor_states =
             detray::tie(insp_state, pathlimit_state, transporter_state,
                         interactor_state, resetter_state);
@@ -200,8 +201,8 @@ inline auto run_propagation_host(vecmem::memory_resource *mr,
 inline void compare_propagation_results(
     const vecmem::jagged_vector<vector3_t> &host_positions,
     const vecmem::jagged_vector<vector3_t> &device_positions,
-    const vecmem::jagged_vector<scalar> &host_path_lengths,
-    const vecmem::jagged_vector<scalar> &device_path_lengths,
+    const vecmem::jagged_vector<scalar_t> &host_path_lengths,
+    const vecmem::jagged_vector<scalar_t> &device_path_lengths,
     const vecmem::jagged_vector<free_matrix_t> &host_jac_transports,
     const vecmem::jagged_vector<free_matrix_t> &device_jac_transports) {
 
@@ -211,8 +212,8 @@ inline void compare_propagation_results(
 
         for (unsigned int j = 0u; j < host_positions[i].size(); j++) {
 
-            scalar host_pl = host_path_lengths[i][j];
-            scalar device_pl = device_path_lengths[i][j];
+            scalar_t host_pl = host_path_lengths[i][j];
+            scalar_t device_pl = device_path_lengths[i][j];
 
             ASSERT_EQ(host_positions[i].size(), device_positions[i].size());
             ASSERT_NEAR(host_pl, device_pl, host_pl * is_close);
@@ -234,15 +235,15 @@ inline void compare_propagation_results(
             const free_matrix_t &host_J = host_jac_transports[i][j];
             const free_matrix_t &device_J = device_jac_transports[i][j];
 
-            scalar pl = host_path_lengths[i][j];
+            scalar_t pl = host_path_lengths[i][j];
 
             for (std::size_t row = 0u; row < e_free_size; row++) {
                 for (std::size_t col = 0u; col < e_free_size; col++) {
 
-                    scalar host_val =
+                    scalar_t host_val =
                         matrix_operator().element(host_J, row, col);
 
-                    scalar device_val =
+                    scalar_t device_val =
                         matrix_operator().element(device_J, row, col);
 
                     ASSERT_NEAR((host_val - device_val) / pl, 0.f, is_close);
