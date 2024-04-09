@@ -50,7 +50,7 @@ class helix_navigation : public test::fixture_base<> {
         std::string m_name{"helix_navigation"};
         // Access to truth data
         std::shared_ptr<test::whiteboard> m_white_board;
-        // The number of test tracks to run
+        // The maximal number of test tracks to run
         std::size_t m_n_tracks{detray::detail::invalid_value<std::size_t>()};
         // Visualization style to be applied to the svgs
         detray::svgtools::styling::style m_style =
@@ -74,6 +74,10 @@ class helix_navigation : public test::fixture_base<> {
             return *this;
         }
         config &whiteboard(std::shared_ptr<test::whiteboard> w_board) {
+            if (!w_board) {
+                throw std::invalid_argument(
+                    "Helix navigation: No valid whiteboard instance");
+            }
             m_white_board = std::move(w_board);
             return *this;
         }
@@ -175,7 +179,7 @@ class helix_navigation : public test::fixture_base<> {
             // Retrieve the test helix
             const auto &start = intersection_trace.front();
 
-            // Follow the test ray with the same track and check, if we find
+            // Follow the test helix with the same track and check, if we find
             // the same volumes and distances along the way
             free_track_parameters_t track(start.track_param);
             detail::helix<algebra_t> helix(track, &B);

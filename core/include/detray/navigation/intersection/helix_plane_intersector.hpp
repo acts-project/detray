@@ -56,8 +56,14 @@ struct helix_intersector_impl<cartesian2D<algebra_t>, algebra_t> {
     template <typename surface_descr_t, typename mask_t>
     DETRAY_HOST_DEVICE inline intersection_type<surface_descr_t> operator()(
         const helix_type &h, const surface_descr_t &sf_desc, const mask_t &mask,
-        const transform3_type &trf, const scalar_type mask_tolerance = 0.f,
+        const transform3_type &trf,
+        const std::array<scalar_type, 2u> mask_tolerance =
+            {detail::invalid_value<scalar_type>(),
+             detail::invalid_value<scalar_type>()},
         const scalar_type = 0.f) const {
+
+        assert((mask_tolerance[0] == mask_tolerance[1]) &&
+               "Helix intersectors use only one mask tolerance value");
 
         intersection_type<surface_descr_t> sfi;
 
@@ -100,7 +106,18 @@ struct helix_intersector_impl<cartesian2D<algebra_t>, algebra_t> {
         // Build intersection struct from helix parameters
         sfi.path = s;
         sfi.local = mask.to_local_frame(trf, h.pos(s), h.dir(s));
-        sfi.status = mask.is_inside(sfi.local, mask_tolerance);
+        sfi.cos_incidence_angle =
+            vector::dot(mask.local_frame().normal(trf, sfi.local), h.dir(s));
+
+        scalar_type tol{mask_tolerance[1]};
+        if (detail::is_invalid_value(tol)) {
+            // Due to floating point errors this can be negative if cos ~ 1
+            const scalar_type sin_inc2{math::abs(
+                1.f - sfi.cos_incidence_angle * sfi.cos_incidence_angle)};
+
+            tol = math::abs((s - s_prev) * math::sqrt(sin_inc2));
+        }
+        sfi.status = mask.is_inside(sfi.local, tol);
 
         // Compute some additional information if the intersection is valid
         if (sfi.status == intersection::status::e_inside) {
@@ -115,7 +132,7 @@ struct helix_intersector_impl<cartesian2D<algebra_t>, algebra_t> {
     }
 
     /// Tolerance for convergence
-    scalar_type convergence_tolerance{1e-3f};
+    scalar_type convergence_tolerance{1.f * unit<scalar_type>::um};
 };
 
 template <typename algebra_t>

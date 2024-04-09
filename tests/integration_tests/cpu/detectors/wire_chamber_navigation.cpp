@@ -62,26 +62,27 @@ int main(int argc, char **argv) {
     cfg_hel_scan.name("wire_chamber_helix_scan");
     cfg_hel_scan.whiteboard(white_board);
     cfg_hel_scan.track_generator().n_tracks(10000u);
-    cfg_hel_scan.track_generator().p_T(100.f * unit<scalar_t>::GeV);
+    // TODO: Fails for smaller momenta
+    cfg_hel_scan.track_generator().p_T(3.f * unit<scalar_t>::GeV);
 
     detail::register_checks<test::helix_scan>(det, names, cfg_hel_scan);
 
-    // Comparision of straight line navigation with ray scan
+    // Comparison of straight line navigation with ray scan
     test::straight_line_navigation<wire_chamber_t>::config cfg_str_nav{};
     cfg_str_nav.name("wire_chamber_straight_line_navigation");
     cfg_str_nav.whiteboard(white_board);
     cfg_str_nav.propagation().navigation.search_window = {2u, 2u};
+    cfg_str_nav.propagation().navigation.mask_tolerance =
+        cfg_ray_scan.mask_tolerance();
 
     detail::register_checks<test::straight_line_navigation>(det, names,
                                                             cfg_str_nav);
 
-    // Comparision of navigation in a constant B-field with helix
+    // Comparison of navigation in a constant B-field with helix
     test::helix_navigation<wire_chamber_t>::config cfg_hel_nav{};
     cfg_hel_nav.name("wire_chamber_helix_navigation");
     cfg_hel_nav.whiteboard(white_board);
     cfg_hel_nav.propagation().navigation.search_window = {3u, 3u};
-    // TODO: Fails for more helices
-    cfg_hel_nav.n_tracks(625u);
 
     detail::register_checks<test::helix_navigation>(det, names, cfg_hel_nav);
 

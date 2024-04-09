@@ -37,8 +37,6 @@ class helix_scan : public test::fixture_base<> {
     using free_track_parameters_t = free_track_parameters<algebra_t>;
     using intersection_trace_t = typename detray::helix_scan<
         algebra_t>::template intersection_trace_type<detector_t>;
-    // using track_generator_t =
-    // uniform_track_generator<free_track_parameters_t>;
     using uniform_gen_t =
         random_numbers<scalar_t, std::uniform_real_distribution<scalar_t>>;
     using track_generator_t =
@@ -53,8 +51,13 @@ class helix_scan : public test::fixture_base<> {
         std::string m_name{"helix_scan"};
         // Save results for later use in downstream tests
         std::shared_ptr<test::whiteboard> m_white_board;
-        bool m_write_inters{false};
+        // Mask tolerance for the Newton intersectors
+        std::array<scalar_t, 2> m_mask_tol{detail::invalid_value<scalar_t>(),
+                                           detail::invalid_value<scalar_t>()};
+        // Track generator configuration
         trk_gen_config_t m_trk_gen_cfg{};
+        // Dump intersection positions to file
+        bool m_write_inters{false};
         // Visualization style to be applied to the svgs
         detray::svgtools::styling::style m_style =
             detray::svgtools::styling::tableau_colorblind::style;
@@ -62,15 +65,16 @@ class helix_scan : public test::fixture_base<> {
         /// Getters
         /// @{
         const std::string &name() const { return m_name; }
+        std::array<scalar_t, 2> mask_tolerance() const { return m_mask_tol; }
         std::shared_ptr<test::whiteboard> whiteboard() { return m_white_board; }
         std::shared_ptr<test::whiteboard> whiteboard() const {
             return m_white_board;
         }
-        bool write_intersections() const { return m_write_inters; }
         trk_gen_config_t &track_generator() { return m_trk_gen_cfg; }
         const trk_gen_config_t &track_generator() const {
             return m_trk_gen_cfg;
         }
+        bool write_intersections() const { return m_write_inters; }
         const auto &svg_style() const { return m_style; }
         /// @}
 
@@ -81,7 +85,15 @@ class helix_scan : public test::fixture_base<> {
             return *this;
         }
         config &whiteboard(std::shared_ptr<test::whiteboard> w_board) {
+            if (!w_board) {
+                throw std::invalid_argument(
+                    "Helix scan: No valid whiteboard instance");
+            }
             m_white_board = std::move(w_board);
+            return *this;
+        }
+        config &mask_tolerance(const std::array<scalar_t, 2> tol) {
+            m_mask_tol = tol;
             return *this;
         }
         config &write_intersections(const bool do_write) {
@@ -98,8 +110,9 @@ class helix_scan : public test::fixture_base<> {
         : m_det{det}, m_names{names} {
         m_cfg.name(cfg.name());
         m_cfg.whiteboard(cfg.whiteboard());
-        m_cfg.write_intersections(cfg.write_intersections());
+        m_cfg.mask_tolerance(cfg.mask_tolerance());
         m_cfg.track_generator() = cfg.track_generator();
+        m_cfg.write_intersections(cfg.write_intersections());
     }
 
     /// Run the helix scan
@@ -141,7 +154,7 @@ class helix_scan : public test::fixture_base<> {
             // encounters
             const auto intersection_record =
                 detector_scanner::run<detray::helix_scan>(
-                    m_det, helix, 15.f * unit<scalar_t>::um, trk.p());
+                    m_det, helix, m_cfg.mask_tolerance(), trk.p());
 
             // Csv output
             if (m_cfg.write_intersections()) {

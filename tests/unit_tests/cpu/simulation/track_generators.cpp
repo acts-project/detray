@@ -54,7 +54,7 @@ GTEST_TEST(detray_simulation, uniform_track_generator) {
             // intialize a track
             vector3 mom{std::cos(phi) * std::sin(theta),
                         std::sin(phi) * std::sin(theta), std::cos(theta)};
-            vector::normalize(mom);
+            mom = vector::normalize(mom);
             free_track_parameters<algebra_t> traj({0.f, 0.f, 0.f}, 0.f, mom,
                                                   -1.f);
 
@@ -148,7 +148,7 @@ GTEST_TEST(detray_simulation, uniform_track_generator_eta) {
             // intialize a track
             vector3 mom{std::cos(phi) * std::sin(theta),
                         std::sin(phi) * std::sin(theta), std::cos(theta)};
-            vector::normalize(mom);
+            mom = vector::normalize(mom);
             free_track_parameters<algebra_t> traj({0.f, 0.f, 0.f}, 0.f, mom,
                                                   -1.f);
 

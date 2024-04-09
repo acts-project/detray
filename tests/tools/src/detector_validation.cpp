@@ -1,6 +1,6 @@
 /** Detray library, part of the ACTS project (R&D line)
  *
- * (c) 2023 CERN for the benefit of the ACTS project
+ * (c) 2023-2024 CERN for the benefit of the ACTS project
  *
  * Mozilla Public License Version 2.0
  */
@@ -10,6 +10,7 @@
 #include "detray/definitions/units.hpp"
 #include "detray/io/frontend/detector_reader.hpp"
 #include "detray/test/detail/register_checks.hpp"
+#include "detray/test/detail/whiteboard.hpp"
 #include "detray/test/detector_consistency.hpp"
 #include "detray/test/detector_helix_scan.hpp"
 #include "detray/test/detector_ray_scan.hpp"
@@ -176,14 +177,15 @@ int main(int argc, char **argv) {
                 "Particle gun origin needs three arguments");
         }
     }
-    if (vm.count("p_tot")) {
-        const scalar_t p_mag{vm["p_tot"].as<scalar_t>()};
-
-        hel_scan_cfg.track_generator().p_tot(p_mag * unit<scalar_t>::GeV);
-    } else if (vm.count("p_T")) {
+    if (vm.count("p_T")) {
         const scalar_t p_T{vm["p_T"].as<scalar_t>()};
 
         hel_scan_cfg.track_generator().p_T(p_T * unit<scalar_t>::GeV);
+    }
+    if (!vm["p_tot"].defaulted()) {
+        const scalar_t p_mag{vm["p_tot"].as<scalar_t>()};
+
+        hel_scan_cfg.track_generator().p_tot(p_mag * unit<scalar_t>::GeV);
     }
 
     // Navigation
@@ -212,27 +214,37 @@ int main(int argc, char **argv) {
     const auto [det, names] =
         detray::io::read_detector<detector_t>(host_mr, reader_cfg);
 
+    // Create the whiteboard for data transfer between the steps
+    auto white_board = std::make_shared<test::whiteboard>();
+    ray_scan_cfg.whiteboard(white_board);
+    str_nav_cfg.whiteboard(white_board);
+    hel_scan_cfg.whiteboard(white_board);
+    hel_nav_cfg.whiteboard(white_board);
+
     // General data consistency of the detector
     detray::detail::register_checks<detray::test::consistency_check>(
         det, names, con_chk_cfg);
 
     // Navigation link consistency, discovered by ray intersection
-    ray_scan_cfg.name("ray_scan_" + names.at(0));
+    ray_scan_cfg.name(names.at(0) + "_ray_scan");
     detray::detail::register_checks<detray::test::ray_scan>(det, names,
                                                             ray_scan_cfg);
 
     // Navigation link consistency, discovered by helix intersection
-    hel_scan_cfg.name("helix_scan_" + names.at(0));
+    hel_scan_cfg.name(names.at(0) + "_helix_scan");
     detray::detail::register_checks<detray::test::helix_scan>(det, names,
                                                               hel_scan_cfg);
 
     // Comparision of straight line navigation with ray scan
-    str_nav_cfg.name("straight_line_navigation_" + names.at(0));
+    str_nav_cfg.name(names.at(0) + "_straight_line_navigation");
+    // Ensure that the same mask tolerance is used
+    str_nav_cfg.propagation().navigation.mask_tolerance =
+        ray_scan_cfg.mask_tolerance();
     detray::detail::register_checks<detray::test::straight_line_navigation>(
         det, names, str_nav_cfg);
 
     // Comparision of navigation in a constant B-field with helix
-    hel_nav_cfg.name("helix_navigation_" + names.at(0));
+    hel_nav_cfg.name(names.at(0) + "_helix_navigation");
     detray::detail::register_checks<detray::test::helix_navigation>(
         det, names, hel_nav_cfg);
 

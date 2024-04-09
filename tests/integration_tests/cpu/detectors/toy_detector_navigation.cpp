@@ -62,24 +62,28 @@ int main(int argc, char **argv) {
     cfg_hel_scan.name("toy_detector_helix_scan");
     cfg_hel_scan.whiteboard(white_board);
     cfg_hel_scan.track_generator().n_tracks(10000u);
-    cfg_hel_scan.track_generator().p_T(10.f * unit<scalar_t>::GeV);
+    cfg_hel_scan.track_generator().p_T(1.f * unit<scalar_t>::GeV);
 
     detail::register_checks<test::helix_scan>(toy_det, toy_names, cfg_hel_scan);
 
-    // Comparision of straight line navigation with ray scan
+    // Comparison of straight line navigation with ray scan
     test::straight_line_navigation<toy_detector_t>::config cfg_str_nav{};
     cfg_str_nav.name("toy_detector_straight_line_navigation");
     cfg_str_nav.whiteboard(white_board);
     cfg_str_nav.propagation().navigation.search_window = {3u, 3u};
+    cfg_str_nav.propagation().navigation.mask_tolerance =
+        cfg_ray_scan.mask_tolerance();
 
     detail::register_checks<test::straight_line_navigation>(toy_det, toy_names,
                                                             cfg_str_nav);
 
-    // Comparision of navigation in a constant B-field with helix
+    // Comparison of navigation in a constant B-field with helix
     test::helix_navigation<toy_detector_t>::config cfg_hel_nav{};
     cfg_hel_nav.name("toy_detector_helix_navigation");
     cfg_hel_nav.whiteboard(white_board);
     cfg_hel_nav.propagation().navigation.search_window = {3u, 3u};
+    // For one surface the toy detector seems to need a stricter tolerance
+    cfg_hel_nav.propagation().navigation.mask_tolerance[0] = 1e-5f;
 
     detail::register_checks<test::helix_navigation>(toy_det, toy_names,
                                                     cfg_hel_nav);

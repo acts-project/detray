@@ -57,11 +57,11 @@ GTEST_TEST(detray_intersection, line_intersector_case1) {
     // Test intersect
     std::vector<intersection_t> is(3u);
     is[0] = line_intersector_type()(detail::ray(trks[0]),
-                                    surface_descriptor<>{}, ln, tf);
+                                    surface_descriptor<>{}, ln, tf, {tol, tol});
     is[1] = line_intersector_type()(detail::ray(trks[1]),
-                                    surface_descriptor<>{}, ln, tf);
+                                    surface_descriptor<>{}, ln, tf, {tol, tol});
     is[2] = line_intersector_type()(detail::ray(trks[2]),
-                                    surface_descriptor<>{}, ln, tf);
+                                    surface_descriptor<>{}, ln, tf, {tol, tol});
 
     EXPECT_EQ(is[0].status, intersection::status::e_inside);
     EXPECT_EQ(is[0].path, 1.f);
@@ -112,8 +112,9 @@ GTEST_TEST(detray_intersection, line_intersector_case2) {
                                  std::numeric_limits<scalar>::infinity()};
 
     // Test intersect
-    const intersection_t is = line_intersector_type()(
-        detail::ray<algebra_t>(trk), surface_descriptor<>{}, ln, tf);
+    const intersection_t is =
+        line_intersector_type()(detail::ray<algebra_t>(trk),
+                                surface_descriptor<>{}, ln, tf, {tol, tol});
 
     EXPECT_EQ(is.status, intersection::status::e_inside);
     EXPECT_NEAR(is.path, 2.f, tol);
@@ -169,7 +170,7 @@ GTEST_TEST(detray_intersection, line_intersector_square_scope) {
     for (const auto& trk : trks) {
         is.push_back(line_intersector_type()(detail::ray<algebra_t>(trk),
                                              surface_descriptor<>{}, ln, tf,
-                                             1e-5f));
+                                             {tol, tol}));
     }
 
     EXPECT_EQ(is[0].status, intersection::status::e_inside);

@@ -1,6 +1,6 @@
 /** Detray library, part of the ACTS project (R&D line)
  *
- * (c) 2023 CERN for the benefit of the ACTS project
+ * (c) 2024 CERN for the benefit of the ACTS project
  *
  * Mozilla Public License Version 2.0
  */
@@ -8,16 +8,15 @@
 #pragma once
 
 // System include(s)
+#include <any>
 #include <cstddef>
 #include <memory>
 #include <ostream>
 #include <stdexcept>
 #include <string>
-#include <string_view>
 #include <type_traits>
 #include <unordered_map>
 #include <utility>
-#include <vector>
 
 namespace detray::test {
 
@@ -86,4 +85,5 @@ inline const T& detray::test::whiteboard::get(const std::string& name) const
 inline bool detray::test::whiteboard::exists(const std::string& name) const {
     return m_store.find(name) != m_store.end();
 }
+
 }  // namespace detray::test

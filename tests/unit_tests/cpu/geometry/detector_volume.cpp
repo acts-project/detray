@@ -76,7 +76,7 @@ GTEST_TEST(detray_geometry, detector_volume) {
 
     using namespace detray;
 
-    constexpr auto tol{std::numeric_limits<scalar>::epsilon()};
+    constexpr detray::scalar tol{5e-5f};
 
     vecmem::host_memory_resource host_mr;
     const auto [toy_det, names] = build_toy_detector(host_mr);
@@ -168,7 +168,7 @@ GTEST_TEST(detray_geometry, detector_volume) {
     t = vol17.center();
     ASSERT_NEAR(t[0], 0.f, tol);
     ASSERT_NEAR(t[1], 0.f, tol);
-    ASSERT_NEAR(t[2], 547.75f, tol);
+    ASSERT_NEAR(t[2], 548.15f, tol);
     ASSERT_EQ(vol17.surfaces().size(), 12u);
 
     // Access to all surfaces

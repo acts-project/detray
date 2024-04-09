@@ -627,7 +627,8 @@ bound_track_parameters<algebra_type> get_initial_parameter(
         typename detector_t::mask_container::template get_type<mask_id>;
     helix_intersector<typename mask_t::shape, algebra_type> hlx_is{};
     hlx_is.convergence_tolerance = helix_tolerance;
-    auto sfi = hlx_is(hlx, departure_sf, departure_mask, departure_trf, 0.f);
+    auto sfi =
+        hlx_is(hlx, departure_sf, departure_mask, departure_trf, {0.f, 0.f});
     EXPECT_EQ(sfi.status, intersection::status::e_inside)
         << " Initial surface not found" << std::endl
         << " log10(Helix tolerance): " << math::log10(helix_tolerance)
@@ -1005,8 +1006,8 @@ get_displaced_bound_vector_helix(
         typename detector_t::mask_container::template get_type<mask_id>;
     helix_intersector<typename mask_t::shape, algebra_type> hlx_is{};
     hlx_is.convergence_tolerance = helix_tolerance;
-    auto sfi =
-        hlx_is(hlx, destination_sf, destination_mask, destination_trf, 0.f);
+    auto sfi = hlx_is(hlx, destination_sf, destination_mask, destination_trf,
+                      {0.f, 0.f});
     const auto path_length = sfi.path;
     const auto pos = hlx(path_length);
     const auto dir = hlx.dir(path_length);
@@ -1059,8 +1060,8 @@ void evaluate_jacobian_difference_helix(
     helix_intersector<typename mask_t::shape, algebra_type> hlx_is{};
     hlx_is.convergence_tolerance = helix_tolerance;
 
-    auto sfi =
-        hlx_is(hlx, destination_sf, destination_mask, destination_trf, 0.f);
+    auto sfi = hlx_is(hlx, destination_sf, destination_mask, destination_trf,
+                      {0.f, 0.f});
 
     EXPECT_EQ(sfi.status, intersection::status::e_inside)
         << " Final surface not found" << std::endl

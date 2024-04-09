@@ -17,8 +17,6 @@
 
 // System include(s)
 #include <algorithm>
-#include <cmath>
-#include <iostream>
 #include <type_traits>
 
 namespace detray {
@@ -37,7 +35,7 @@ struct intersection_record {
     intersection_type intersection;
 };
 
-/// @brief struct that holds functionality to shoot a parametrzed particle
+/// @brief struct that holds functionality to shoot a parametrized particle
 /// trajectory through a detector.
 ///
 /// Records intersections with every detector surface along the trajectory.
@@ -48,13 +46,14 @@ struct brute_force_scan {
     using intersection_trace_type = std::vector<intersection_record<D>>;
 
     template <typename detector_t>
-    inline auto operator()(const detector_t &detector, const trajectory_t &traj,
-                           typename detector_t::scalar_type mask_tolerance =
-                               1.f * unit<typename detector_t::scalar_type>::um,
-                           const typename detector_t::scalar_type p =
-                               1.f *
-                               unit<typename detector_t::scalar_type>::GeV) {
+    inline auto operator()(
+        const detector_t &detector, const trajectory_t &traj,
+        const std::array<typename detector_t::scalar_type, 2> mask_tolerance =
+            {0.f, 0.f * unit<typename detector_t::scalar_type>::um},
+        const typename detector_t::scalar_type p =
+            1.f * unit<typename detector_t::scalar_type>::GeV) {
 
+        using scalar_t = typename detector_t::scalar_type;
         using sf_desc_t = typename detector_t::surface_type;
         using nav_link_t = typename detector_t::surface_type::navigation_link;
 
@@ -65,17 +64,19 @@ struct brute_force_scan {
 
         intersection_trace_type<detector_t> intersection_trace;
 
-        // Loop over all surfaces in the detector
         const auto &trf_store = detector.transform_store();
 
         std::vector<intersection_t> intersections{};
+        intersections.reserve(10000u);
 
+        // Loop over all surfaces in the detector
         for (const sf_desc_t &sf_desc : detector.surfaces()) {
             // Retrieve candidate(s) from the surface
             const auto sf = surface{detector, sf_desc};
             sf.template visit_mask<intersection_kernel_t>(
                 intersections, traj, sf_desc, trf_store,
-                sf.is_portal() ? 0.f : mask_tolerance);
+                sf.is_portal() ? std::array<scalar_t, 2>{0.f, 0.f}
+                               : mask_tolerance);
 
             // Candidate is invalid if it lies in the opposite direction
             for (auto &sfi : intersections) {
@@ -98,7 +99,7 @@ struct brute_force_scan {
         start_intersection.sf_desc = first_record.intersection.sf_desc;
         start_intersection.sf_desc.set_id(surface_id::e_passive);
         start_intersection.path = 0.f;
-        start_intersection.local = {};
+        start_intersection.local = {0.f, 0.f, 0.f};
         start_intersection.volume_link =
             static_cast<nav_link_t>(first_record.vol_idx);
 
@@ -124,7 +125,7 @@ namespace detector_scanner {
 template <template <typename> class scan_type, typename detector_t,
           typename trajectory_t, typename... Args>
 inline auto run(const detector_t &detector, const trajectory_t &traj,
-                Args &&...args) {
+                Args &&... args) {
 
     using algebra_t = typename detector_t::algebra_type;
 
@@ -143,8 +144,8 @@ inline auto run(const detector_t &detector, const trajectory_t &traj,
     // Make sure the intersection record terminates at world portals
     auto is_world_exit = [](const record_t &r) {
         return r.intersection.volume_link ==
-               detray::detail::invalid_value<
-                   decltype(r.intersection.volume_link)>();
+               detray::detail::invalid_value<decltype(
+                   r.intersection.volume_link)>();
     };
 
     if (auto it = std::find_if(intersection_record.begin(),

@@ -105,15 +105,14 @@ def __main__():
 #----------------------------------------------------------------prepare data
 
     # Get detector name
-    if ray_scan_file.find('ray_scan_') != -1:
-        detector_name = ray_scan_file.removeprefix('ray_scan_')
+    if ray_scan_file.find('_ray_scan') != -1:
+        detector_name = ray_scan_file.removesuffix('_ray_scan.csv')
         scan_type = "ray"
-    elif ray_scan_file.find('helix_scan_') != -1:
-        detector_name = ray_scan_file.removeprefix('helix_scan_')
+    elif ray_scan_file.find('_helix_scan') != -1:
+        detector_name = ray_scan_file.removesuffix('_helix_scan.csv')
         scan_type = "helix"
     else:
-        logging.error('Input filename needs to contain \'ray_scan\' prefix')
-    detector_name = detector_name.removesuffix('.csv')
+        logging.error('Input filename needs to contain \'ray_scan\' suffix')
     detector_name = detector_name.replace('_', ' ')
 
     df = pd.read_csv(ray_scan_file)

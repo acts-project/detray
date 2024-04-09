@@ -24,6 +24,7 @@
 
 // System include(s)
 #include <iostream>
+#include <limits>
 #include <sstream>
 #include <string>
 
@@ -70,7 +71,6 @@ class ray_scan : public test::fixture_base<> {
     using ray_t = detail::ray<algebra_t>;
     using intersection_trace_t = typename detray::ray_scan<
         algebra_t>::template intersection_trace_type<detector_t>;
-    // using track_generator_t = uniform_track_generator<ray_t>;
     using uniform_gen_t =
         random_numbers<scalar_t, std::uniform_real_distribution<scalar_t>>;
     using track_generator_t = random_track_generator<ray_t, uniform_gen_t>;
@@ -84,10 +84,14 @@ class ray_scan : public test::fixture_base<> {
         std::string m_name{"ray_scan"};
         // Save results for later use in downstream tests
         std::shared_ptr<test::whiteboard> m_white_board;
-        // Write intersection points for plotting
-        bool m_write_inters{false};
+        // Mask tolerance for the intersectors
+        std::array<scalar_t, 2> m_mask_tol{
+            std::numeric_limits<scalar_t>::epsilon(),
+            std::numeric_limits<scalar_t>::epsilon()};
         // Configuration of the ray generator
         trk_gen_config_t m_trk_gen_cfg{};
+        // Write intersection points for plotting
+        bool m_write_inters{false};
         // Visualization style to be applied to the svgs
         detray::svgtools::styling::style m_style =
             detray::svgtools::styling::tableau_colorblind::style;
@@ -95,6 +99,7 @@ class ray_scan : public test::fixture_base<> {
         /// Getters
         /// @{
         const std::string &name() const { return m_name; }
+        std::array<scalar_t, 2> mask_tolerance() const { return m_mask_tol; }
         std::shared_ptr<test::whiteboard> whiteboard() { return m_white_board; }
         std::shared_ptr<test::whiteboard> whiteboard() const {
             return m_white_board;
@@ -113,7 +118,15 @@ class ray_scan : public test::fixture_base<> {
             m_name = n;
             return *this;
         }
+        config &mask_tolerance(const std::array<scalar_t, 2> tol) {
+            m_mask_tol = tol;
+            return *this;
+        }
         config &whiteboard(std::shared_ptr<test::whiteboard> w_board) {
+            if (!w_board) {
+                throw std::invalid_argument(
+                    "Ray scan: No valid whiteboard instance");
+            }
             m_white_board = std::move(w_board);
             return *this;
         }
@@ -131,8 +144,9 @@ class ray_scan : public test::fixture_base<> {
         : m_det{det}, m_names{names} {
         m_cfg.name(cfg.name());
         m_cfg.whiteboard(cfg.whiteboard());
-        m_cfg.write_intersections(cfg.write_intersections());
+        m_cfg.mask_tolerance(cfg.mask_tolerance());
         m_cfg.track_generator() = cfg.track_generator();
+        m_cfg.write_intersections(cfg.write_intersections());
     }
 
     /// Run the ray scan
@@ -172,8 +186,8 @@ class ray_scan : public test::fixture_base<> {
 
             // Record all intersections and surfaces along the ray
             const auto intersection_record =
-                detector_scanner::run<detray::ray_scan>(
-                    m_det, ray, 15.f * unit<scalar_t>::um);
+                detector_scanner::run<detray::ray_scan>(m_det, ray,
+                                                        m_cfg.mask_tolerance());
 
             // Csv output
             if (m_cfg.write_intersections()) {

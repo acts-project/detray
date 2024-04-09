@@ -188,9 +188,9 @@ class detray_propagation_HelixCovarianceTransportValidation
         // Get the intersection on the next surface
         const intersection_t is = get_intersection(
             helix_intersector<typename destination_mask_type::shape,
-                              algebra_type>{}(hlx, surface_descriptor<>{},
-                                              mask_1, trf_1,
-                                              this->mask_tolerance));
+                              algebra_type>{}(
+                hlx, surface_descriptor<>{}, mask_1, trf_1,
+                {this->mask_tolerance, this->mask_tolerance}));
 
         sfis.push_back(is);
 

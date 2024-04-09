@@ -55,10 +55,15 @@ int main(int argc, char **argv) {
     test::ray_scan<tel_detector_t>::config cfg_ray_scan{};
     cfg_ray_scan.name("telescope_detector_ray_scan");
     cfg_ray_scan.whiteboard(white_board);
+    cfg_ray_scan.write_intersections(true);
     cfg_ray_scan.track_generator().n_tracks(10000u);
     cfg_ray_scan.track_generator().origin({0.f, 0.f, -0.05f});
     cfg_ray_scan.track_generator().theta_range(constant<scalar_t>::pi_4,
                                                constant<scalar_t>::pi_2);
+    // Better momentum range fails because of bug in the object tracer
+    /*cfg_ray_scan.track_generator().theta_range(0.f,
+                                               0.25f *
+       constant<scalar_t>::pi_4);*/
 
     detail::register_checks<test::ray_scan>(tel_det, tel_names, cfg_ray_scan);
 
@@ -67,22 +72,25 @@ int main(int argc, char **argv) {
     cfg_hel_scan.name("telescope_detector_helix_scan");
     cfg_hel_scan.whiteboard(white_board);
     cfg_hel_scan.track_generator().n_tracks(10000u);
-    ;
-    cfg_hel_scan.track_generator().p_T(10.f * unit<scalar_t>::GeV);
+    cfg_hel_scan.track_generator().p_tot(10.f * unit<scalar_t>::GeV);
     cfg_hel_scan.track_generator().origin({0.f, 0.f, -0.05f});
     cfg_hel_scan.track_generator().theta_range(constant<scalar_t>::pi_4,
                                                constant<scalar_t>::pi_2);
+    /*cfg_hel_scan.track_generator().theta_range(0.f,
+                                               constant<scalar_t>::pi_4);*/
     detail::register_checks<test::helix_scan>(tel_det, tel_names, cfg_hel_scan);
 
-    // Comparision of straight line navigation with ray scan
+    // Comparison of straight line navigation with ray scan
     test::straight_line_navigation<tel_detector_t>::config cfg_str_nav{};
     cfg_str_nav.name("telescope_detector_straight_line_navigation");
     cfg_str_nav.whiteboard(white_board);
+    cfg_str_nav.propagation().navigation.mask_tolerance =
+        cfg_ray_scan.mask_tolerance();
 
     detail::register_checks<test::straight_line_navigation>(tel_det, tel_names,
                                                             cfg_str_nav);
 
-    // Comparision of navigation in a constant B-field with helix
+    // Comparison of navigation in a constant B-field with helix
     test::helix_navigation<tel_detector_t>::config cfg_hel_nav{};
     cfg_hel_nav.name("telescope_detector_helix_navigation");
     cfg_hel_nav.whiteboard(white_board);

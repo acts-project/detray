@@ -62,8 +62,13 @@ struct helix_intersector_impl<cylindrical2D<algebra_t>, algebra_t>
     DETRAY_HOST_DEVICE inline std::array<intersection_type<surface_descr_t>, 2>
     operator()(const helix_type &h, const surface_descr_t &sf_desc,
                const mask_t &mask, const transform3_type &trf,
-               const scalar_type mask_tolerance = 0.f,
+               const std::array<scalar_type, 2u> mask_tolerance =
+                   {detail::invalid_value<scalar_type>(),
+                    detail::invalid_value<scalar_type>()},
                const scalar_type = 0.f) const {
+
+        assert((mask_tolerance[0] == mask_tolerance[1]) &&
+               "Helix intersectors use only one mask tolerance value");
 
         std::array<intersection_type<surface_descr_t>, 2> ret;
 
@@ -117,7 +122,7 @@ struct helix_intersector_impl<cylindrical2D<algebra_t>, algebra_t>
         for (unsigned int i = 0u; i < n_runs; ++i) {
 
             scalar_type &s = paths[i];
-            intersection_type<surface_descr_t> &is = ret[i];
+            intersection_type<surface_descr_t> &sfi = ret[i];
 
             // Path length in the previous iteration step
             scalar_type s_prev{0.f};
@@ -150,18 +155,29 @@ struct helix_intersector_impl<cylindrical2D<algebra_t>, algebra_t>
             }
 
             // Build intersection struct from helix parameters
-            is.path = s;
+            sfi.path = s;
             const auto p3 = h.pos(s);
-            is.local = mask.to_local_frame(trf, p3);
-            is.status = mask.is_inside(is.local, mask_tolerance);
+            sfi.local = mask.to_local_frame(trf, p3);
+            sfi.cos_incidence_angle = vector::dot(
+                mask.local_frame().normal(trf, sfi.local), h.dir(s));
+
+            scalar_type tol{mask_tolerance[1]};
+            if (detail::is_invalid_value(tol)) {
+                // Due to floating point errors this can be negative if cos ~ 1
+                const scalar_type sin_inc2{math::abs(
+                    1.f - sfi.cos_incidence_angle * sfi.cos_incidence_angle)};
+
+                tol = math::abs((s - s_prev) * math::sqrt(sin_inc2));
+            }
+            sfi.status = mask.is_inside(sfi.local, tol);
 
             // Compute some additional information if the intersection is valid
-            if (is.status == intersection::status::e_inside) {
-                is.sf_desc = sf_desc;
-                is.direction = math::signbit(s)
-                                   ? intersection::direction::e_opposite
-                                   : intersection::direction::e_along;
-                is.volume_link = mask.volume_link();
+            if (sfi.status == intersection::status::e_inside) {
+                sfi.sf_desc = sf_desc;
+                sfi.direction = math::signbit(s)
+                                    ? intersection::direction::e_opposite
+                                    : intersection::direction::e_along;
+                sfi.volume_link = mask.volume_link();
             }
         }
 
@@ -169,7 +185,7 @@ struct helix_intersector_impl<cylindrical2D<algebra_t>, algebra_t>
     }
 
     /// Tolerance for convergence
-    scalar_type convergence_tolerance{1e-3f};
+    scalar_type convergence_tolerance{1.f * unit<scalar_type>::um};
 };
 
 template <typename algebra_t>

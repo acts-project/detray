@@ -29,18 +29,24 @@ struct random_numbers {
 
     using distribution_type = distribution_t;
     using engine_type = engine_t;
+    using seed_type = typename engine_t::result_type;
 
     std::seed_seq m_seeds;
     engine_t m_engine;
 
-    /// Random seed for increased entropy. Different random numbers each time
+    /// Default seed
     DETRAY_HOST
     random_numbers()
-        : m_seeds(random_numbers::get_random_seeds()), m_engine{m_seeds} {}
+        : m_seeds{random_numbers::default_seed()}, m_engine{m_seeds} {}
 
-    /// Deterministic seed @param s for reproducible results
+    /// Different seed @param s for every instance
     DETRAY_HOST
-    random_numbers(std::size_t s) : m_seeds{s}, m_engine{m_seeds} {}
+    random_numbers(seed_type s) : m_seeds{s}, m_engine{m_seeds} {}
+
+    /// More entropy in seeds from collection @param s
+    DETRAY_HOST
+    random_numbers(const std::vector<seed_type>& s)
+        : m_seeds{s.begin(), s.end()}, m_engine{m_seeds} {}
 
     /// Copy constructor
     DETRAY_HOST
@@ -76,33 +82,8 @@ struct random_numbers {
         return std::normal_distribution<scalar_t>(mean, stddev)(m_engine);
     }
 
-    /// Get proper random seeds for RNG to completely initialize its state
-    DETRAY_HOST
-    static auto get_random_seeds() {
-        std::random_device rd{};
-        if constexpr (std::is_same_v<engine_t, std::mt19937> ||
-                      std::is_same_v<engine_t, std::mt19937_64>) {
-            // Mersenne Twister 19937 needs 624(312) 32(64)-bit seeds to fully
-            // initialize its state
-            std::array<typename engine_t::result_type, engine_t::state_size>
-                seeds;
-            std::generate_n(seeds.begin(), seeds.size(), std::ref(rd));
-            return std::seed_seq{seeds.begin(), seeds.end()};
-        } else {
-            return std::seed_seq{rd()};
-        }
-    }
-
     /// Get the default seed of the engine
-    static constexpr auto default_seed() {
-
-        if constexpr (std::is_same_v<engine_t, std::mt19937> ||
-                      std::is_same_v<engine_t, std::mt19937_64>) {
-            return engine_t::default_seed;
-        } else {
-            return 42u;
-        }
-    }
+    static constexpr seed_type default_seed() { return engine_t::default_seed; }
 };
 
 /// @brief Generates track states with random momentum directions.
@@ -131,6 +112,8 @@ class random_track_generator
 
     /// Configure how tracks are generated
     struct configuration {
+        using seed_t = typename generator_t::seed_type;
+
         /// Ensure sensible values at the theta bounds, even in single precision
         static constexpr scalar epsilon{1e-2f};
 
@@ -138,8 +121,7 @@ class random_track_generator
         bool m_do_vtx_smearing = true;
 
         /// Monte-Carlo seed
-        std::size_t m_seed{
-            static_cast<std::size_t>(generator_t::default_seed())};
+        seed_t m_seed{generator_t::default_seed()};
 
         /// How many tracks will be generated
         std::size_t m_n_tracks{10u};
@@ -164,12 +146,8 @@ class random_track_generator
 
         /// Setters
         /// @{
-        DETRAY_HOST_DEVICE configuration& seed(const std::size_t s) {
+        DETRAY_HOST_DEVICE configuration& seed(const seed_t s) {
             m_seed = s;
-            return *this;
-        }
-        DETRAY_HOST_DEVICE configuration& do_random_seeding() {
-            m_seed = detail::invalid_value<std::size_t>();
             return *this;
         }
         DETRAY_HOST_DEVICE configuration& do_vertex_smearing(bool b) {
@@ -182,8 +160,12 @@ class random_track_generator
             return *this;
         }
         DETRAY_HOST_DEVICE configuration& phi_range(scalar low, scalar high) {
-            assert(low <= high);
-            m_phi_range = {low, high};
+            auto min_phi{
+                std::clamp(low, -constant<scalar>::pi, constant<scalar>::pi)};
+            auto max_phi{
+                std::clamp(high, -constant<scalar>::pi, constant<scalar>::pi)};
+            assert(min_phi <= max_phi);
+            m_phi_range = {min_phi, max_phi};
             return *this;
         }
         DETRAY_HOST_DEVICE configuration& theta_range(scalar low, scalar high) {
@@ -237,7 +219,7 @@ class random_track_generator
 
         /// Getters
         /// @{
-        DETRAY_HOST_DEVICE constexpr std::size_t seed() const { return m_seed; }
+        DETRAY_HOST_DEVICE constexpr seed_t seed() const { return m_seed; }
         DETRAY_HOST_DEVICE constexpr bool do_vertex_smearing() const {
             return m_do_vtx_smearing;
         }
@@ -332,9 +314,8 @@ class random_track_generator
             vector3 mom{math::cos(phi) * sin_theta, math::sin(phi) * sin_theta,
                         math::cos(theta)};
             // Magnitude of momentum
-            vector::normalize(mom);
-
-            mom = (m_cfg.is_pT() ? 1.f / sin_theta : 1.f) * p_mag * mom;
+            mom = (m_cfg.is_pT() ? 1.f / sin_theta : 1.f) * p_mag *
+                  vector::normalize(mom);
 
             return track_t{vtx, m_cfg.time(), mom, m_cfg.charge()};
         }
@@ -361,9 +342,7 @@ class random_track_generator
     /// Construct from external configuration
     DETRAY_HOST_DEVICE
     constexpr random_track_generator(const configuration& cfg)
-        : m_gen{detail::is_invalid_value(cfg.seed()) ? generator_t()
-                                                     : generator_t(cfg.seed())},
-          m_cfg(cfg) {}
+        : m_gen{generator_t(cfg.seed())}, m_cfg(cfg) {}
 
     /// Paramtetrized constructor for quick construction of simple tasks
     ///

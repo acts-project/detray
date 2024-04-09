@@ -7,6 +7,7 @@
 
 // Project include(s)
 #include "detray/core/detector.hpp"
+#include "detray/definitions/units.hpp"
 #include "detray/detectors/build_toy_detector.hpp"
 #include "detray/geometry/surface.hpp"
 #include "detray/navigation/detail/ray.hpp"
@@ -47,6 +48,7 @@ void BM_INTERSECT_ALL(benchmark::State &state) {
     auto [d, names] = build_toy_detector(host_mr, toy_cfg);
 
     using detector_t = decltype(d);
+    using scalar_t = typename detector_t::scalar_type;
     using sf_desc_t = typename detector_t::surface_type;
 
     detector_t::geometry_context geo_context;
@@ -76,8 +78,10 @@ void BM_INTERSECT_ALL(benchmark::State &state) {
                 const auto sf = surface{d, sf_desc};
                 sf.template visit_mask<
                     intersection_initialize<ray_intersector>>(
-                    intersections, detail::ray(track), sf_desc, transforms, 0.f,
-                    0.f);
+                    intersections, detail::ray(track), sf_desc, transforms,
+                    std::array<scalar_t, 2>{1.f * unit<scalar_t>::um,
+                                            1.f * unit<scalar_t>::mm},
+                    scalar_t{0.f});
 
                 ++n_surfaces;
             }

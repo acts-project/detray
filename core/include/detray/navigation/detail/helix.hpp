@@ -67,7 +67,7 @@ class helix {
         _h0 = vector::normalize(*_mag_field);
 
         // Normalized tangent vector
-        _t0 = dir;
+        _t0 = vector::normalize(dir);
 
         // Momentum
         const vector3_type mom =
