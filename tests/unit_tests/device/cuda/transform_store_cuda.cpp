@@ -58,7 +58,7 @@ TEST(transform_store_cuda, transform_store) {
     point3 z3{1.f, 2.f, 3.f};
     point3 x3{0.f, 0.f, 0.f};
     transform3 tf3{t3, z3, x3};
-    static_store.emplace_back(ctx0, std::move(t3));
+    static_store.emplace_back(ctx0, std::move(tf3));
     ASSERT_EQ(static_store.size(ctx0), 4u);
 
     static_store.emplace_back(ctx0);
