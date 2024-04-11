@@ -45,6 +45,7 @@ void fill_tracks(vecmem::vector<free_track_parameters<transform3>> &tracks,
 
 template <propagate_option opt>
 static void BM_PROPAGATOR_CPU(benchmark::State &state) {
+    toy_cfg.do_check(false);
 
     // Create the toy geometry and bfield
     auto [det, names] = build_toy_detector(host_mr, toy_cfg);
@@ -100,6 +101,7 @@ static void BM_PROPAGATOR_CPU(benchmark::State &state) {
 
 template <propagate_option opt>
 static void BM_PROPAGATOR_CUDA(benchmark::State &state) {
+    toy_cfg.do_check(false);
 
     // Create the toy geometry
     auto [det, names] = build_toy_detector(bp_mng_mr, toy_cfg);
