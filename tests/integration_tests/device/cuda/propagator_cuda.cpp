@@ -64,44 +64,44 @@ TEST_P(CudaPropConstBFieldCpy, propagator) {
 }
 
 INSTANTIATE_TEST_SUITE_P(CudaPropagatorValidation1, CudaPropConstBFieldMng,
-                         ::testing::Values(vector3_t{0. * unit<scalar>::T,
-                                                     0. * unit<scalar>::T,
-                                                     2. * unit<scalar>::T}));
+                         ::testing::Values(vector3_t{0. * unit<scalar_t>::T,
+                                                     0. * unit<scalar_t>::T,
+                                                     2. * unit<scalar_t>::T}));
 
 INSTANTIATE_TEST_SUITE_P(CudaPropagatorValidation2, CudaPropConstBFieldMng,
-                         ::testing::Values(vector3_t{0. * unit<scalar>::T,
-                                                     1. * unit<scalar>::T,
-                                                     1. * unit<scalar>::T}));
+                         ::testing::Values(vector3_t{0. * unit<scalar_t>::T,
+                                                     1. * unit<scalar_t>::T,
+                                                     1. * unit<scalar_t>::T}));
 
 INSTANTIATE_TEST_SUITE_P(CudaPropagatorValidation3, CudaPropConstBFieldMng,
-                         ::testing::Values(vector3_t{1. * unit<scalar>::T,
-                                                     0. * unit<scalar>::T,
-                                                     1. * unit<scalar>::T}));
+                         ::testing::Values(vector3_t{1. * unit<scalar_t>::T,
+                                                     0. * unit<scalar_t>::T,
+                                                     1. * unit<scalar_t>::T}));
 
 INSTANTIATE_TEST_SUITE_P(CudaPropagatorValidation4, CudaPropConstBFieldMng,
-                         ::testing::Values(vector3_t{1. * unit<scalar>::T,
-                                                     1. * unit<scalar>::T,
-                                                     1. * unit<scalar>::T}));
+                         ::testing::Values(vector3_t{1. * unit<scalar_t>::T,
+                                                     1. * unit<scalar_t>::T,
+                                                     1. * unit<scalar_t>::T}));
 
 INSTANTIATE_TEST_SUITE_P(CudaPropagatorValidation5, CudaPropConstBFieldCpy,
-                         ::testing::Values(vector3_t{0. * unit<scalar>::T,
-                                                     0. * unit<scalar>::T,
-                                                     2. * unit<scalar>::T}));
+                         ::testing::Values(vector3_t{0. * unit<scalar_t>::T,
+                                                     0. * unit<scalar_t>::T,
+                                                     2. * unit<scalar_t>::T}));
 
 INSTANTIATE_TEST_SUITE_P(CudaPropagatorValidation6, CudaPropConstBFieldCpy,
-                         ::testing::Values(vector3_t{0. * unit<scalar>::T,
-                                                     1. * unit<scalar>::T,
-                                                     1. * unit<scalar>::T}));
+                         ::testing::Values(vector3_t{0. * unit<scalar_t>::T,
+                                                     1. * unit<scalar_t>::T,
+                                                     1. * unit<scalar_t>::T}));
 
 INSTANTIATE_TEST_SUITE_P(CudaPropagatorValidation7, CudaPropConstBFieldCpy,
-                         ::testing::Values(vector3_t{1. * unit<scalar>::T,
-                                                     0. * unit<scalar>::T,
-                                                     1. * unit<scalar>::T}));
+                         ::testing::Values(vector3_t{1. * unit<scalar_t>::T,
+                                                     0. * unit<scalar_t>::T,
+                                                     1. * unit<scalar_t>::T}));
 
 INSTANTIATE_TEST_SUITE_P(CudaPropagatorValidation8, CudaPropConstBFieldCpy,
-                         ::testing::Values(vector3_t{1. * unit<scalar>::T,
-                                                     1. * unit<scalar>::T,
-                                                     1. * unit<scalar>::T}));
+                         ::testing::Values(vector3_t{1. * unit<scalar_t>::T,
+                                                     1. * unit<scalar_t>::T,
+                                                     1. * unit<scalar_t>::T}));
 
 /// This tests the device propagation in an inhomogenepus magnetic field
 TEST(CudaPropagatorValidation10, inhomogeneous_bfield_cpy) {

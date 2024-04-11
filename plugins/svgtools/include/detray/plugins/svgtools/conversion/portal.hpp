@@ -31,7 +31,7 @@ auto portal(const typename detector_t::geometry_context& context,
 
     assert(d_portal.is_portal());
 
-    using point3_container_t = std::vector<typename detector_t::point3>;
+    using point3_container_t = std::vector<typename detector_t::point3_type>;
     using p_portal_t = actsvg::proto::portal<point3_container_t>;
 
     p_portal_t p_portal;

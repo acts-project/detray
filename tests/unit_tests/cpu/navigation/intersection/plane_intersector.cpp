@@ -24,6 +24,7 @@
 using namespace detray;
 
 // Three-dimensional definitions
+using algebra_t = test::algebra;
 using vector3 = test::vector3;
 using point3 = test::point3;
 using transform3 = test::transform3;
@@ -38,10 +39,10 @@ GTEST_TEST(detray_intersection, translated_plane_ray) {
     // Test ray
     const point3 pos{2.f, 1.f, 0.f};
     const vector3 mom{0.f, 0.f, 1.f};
-    const detail::ray<transform3> r(pos, 0.f, mom, 0.f);
+    const detail::ray<algebra_t> r(pos, 0.f, mom, 0.f);
 
     // The same test but bound to local frame
-    ray_intersector<unmasked<2>, transform3> pi;
+    ray_intersector<unmasked<2>, algebra_t> pi;
     mask<unmasked<2>> unmasked_bound{};
     const auto hit_bound =
         pi(r, surface_descriptor<>{}, unmasked_bound, shifted);
@@ -99,12 +100,12 @@ GTEST_TEST(detray_intersection, plane_incidence_angle) {
 
     const transform3 rotated{t, vector::normalize(z), vector::normalize(x)};
 
-    ray_intersector<rectangle2D, transform3> pi;
+    ray_intersector<rectangle2D, algebra_t> pi;
 
     // Test ray
     const point3 pos{-1.f, 0.f, 0.f};
     const vector3 mom{1.f, 0.f, 0.f};
-    const detail::ray<transform3> r(pos, 0.f, mom, 0.f);
+    const detail::ray<algebra_t> r(pos, 0.f, mom, 0.f);
 
     // The same test but bound to local frame & masked - inside
     mask<rectangle2D> rect{0u, 3.f, 3.f};

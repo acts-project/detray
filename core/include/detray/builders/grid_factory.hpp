@@ -37,7 +37,7 @@ namespace detray {
 /// @tparam algebra_t the matrix/vector/point types to use
 /// @tparam container_t the container types to use
 template <typename bin_t, template <std::size_t> class serializer_t,
-          typename algebra_t = __plugin::transform3<detray::scalar>>
+          typename algebra_t = ALGEBRA_PLUGIN<detray::scalar>>
 class grid_factory {
 
     public:
@@ -50,7 +50,7 @@ class grid_factory {
     template <typename grid_shape_t>
     using loc_bin_index = typename grid_type<grid_shape_t>::loc_bin_index;
 
-    using scalar_type = typename algebra_t::scalar_type;
+    using scalar_type = dscalar<algebra_t>;
     template <typename T>
     using vector_type = host_container_types::template vector_type<T>;
     using algebra_type = algebra_t;
@@ -672,8 +672,7 @@ auto grid_factory<bin_t, serializer_t, algebra_t>::to_string(
 }
 
 // Infer a grid factory type from an already completely assembled grid type
-template <typename grid_t,
-          typename algebra_t = __plugin::transform3<detray::scalar>>
+template <typename grid_t, typename algebra_t = ALGEBRA_PLUGIN<detray::scalar>>
 using grid_factory_type =
     grid_factory<typename grid_t::bin_type,
                  simple_serializer /*grid_t::template serializer_type*/,

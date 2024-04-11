@@ -32,7 +32,7 @@ void write_telecope(const po::variables_map &vm,
 
     using detector_t = detector<telescope_metadata<mask_shape_t>>;
     using scalar_t = typename detector_t::scalar_type;
-    using transform3_t = typename detector_t::transform3;
+    using algebra_t = typename detector_t::algebra_type;
 
     detray::tel_det_config<mask_shape_t> tel_cfg{mask_params};
 
@@ -41,7 +41,7 @@ void write_telecope(const po::variables_map &vm,
     tel_cfg.mat_thickness(vm["thickness"].as<scalar_t>());
 
     std::string direction{vm["direction"].as<std::string>()};
-    detray::detail::ray<transform3_t> r{};
+    detray::detail::ray<algebra_t> r{};
     if (direction == "x") {
         r.set_dir({1.f, 0.f, 0.f});
     } else if (direction == "y") {

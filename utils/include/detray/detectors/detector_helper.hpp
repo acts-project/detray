@@ -55,8 +55,8 @@ inline std::vector<material_slab<scalar>> generate_disc_mat(
 template <typename algebra_t>
 struct detector_helper {
 
-    using scalar_t = typename algebra_t::scalar_type;
-    using point3 = typename algebra_t::point3;
+    using scalar_type = dscalar<algebra_t>;
+    using point3_type = dpoint3D<algebra_t>;
 
     /** Function that adds a cylinder portal.
      *
@@ -75,23 +75,21 @@ struct detector_helper {
     template <auto cyl_id, typename context_t, typename surface_container_t,
               typename mask_container_t, typename transform_container_t,
               typename volume_links>
-    inline auto add_cylinder_surface(const dindex volume_idx, context_t &ctx,
-                                     surface_container_t &surfaces,
-                                     mask_container_t &masks,
-                                     transform_container_t &transforms,
-                                     const scalar_t r, const scalar_t lower_z,
-                                     const scalar_t upper_z,
-                                     const volume_links volume_link) const {
+    inline auto add_cylinder_surface(
+        const dindex volume_idx, context_t &ctx, surface_container_t &surfaces,
+        mask_container_t &masks, transform_container_t &transforms,
+        const scalar_type r, const scalar_type lower_z,
+        const scalar_type upper_z, const volume_links volume_link) const {
         using surface_type = typename surface_container_t::value_type;
         using mask_link_type = typename surface_type::mask_link;
         using material_id = typename surface_type::material_id;
         using material_link_type = typename surface_type::material_link;
 
-        const scalar_t min_z{math::min(lower_z, upper_z)};
-        const scalar_t max_z{math::max(lower_z, upper_z)};
+        const scalar_type min_z{math::min(lower_z, upper_z)};
+        const scalar_type max_z{math::max(lower_z, upper_z)};
 
         // translation
-        point3 tsl{0.f, 0.f, 0.f};
+        point3_type tsl{0.f, 0.f, 0.f};
 
         // add transform and masks
         transforms.emplace_back(ctx, tsl);
@@ -133,8 +131,8 @@ struct detector_helper {
                                  surface_container_t &surfaces,
                                  mask_container_t &masks,
                                  transform_container_t &transforms,
-                                 const scalar_t inner_r, const scalar_t outer_r,
-                                 const scalar_t z,
+                                 const scalar_type inner_r,
+                                 const scalar_type outer_r, const scalar_type z,
                                  const volume_links volume_link) const {
         using surface_type = typename surface_container_t::value_type;
         using mask_id = typename surface_type::mask_id;
@@ -144,11 +142,11 @@ struct detector_helper {
 
         constexpr auto disc_id = mask_id::e_portal_ring2;
 
-        const scalar_t min_r{math::min(inner_r, outer_r)};
-        const scalar_t max_r{math::max(inner_r, outer_r)};
+        const scalar_type min_r{math::min(inner_r, outer_r)};
+        const scalar_type max_r{math::max(inner_r, outer_r)};
 
         // translation
-        point3 tsl{0.f, 0.f, z};
+        point3_type tsl{0.f, 0.f, z};
 
         // add transform and mask
         transforms.emplace_back(ctx, tsl);
@@ -188,15 +186,16 @@ struct detector_helper {
     void create_cyl_volume(const config_t &cfg, detector_t &det,
                            vecmem::memory_resource &resource,
                            typename detector_t::geometry_context &ctx,
-                           const scalar_t lay_inner_r,
-                           const scalar_t lay_outer_r, const scalar_t lay_neg_z,
-                           const scalar_t lay_pos_z,
+                           const scalar_type lay_inner_r,
+                           const scalar_type lay_outer_r,
+                           const scalar_type lay_neg_z,
+                           const scalar_type lay_pos_z,
                            const std::vector<dindex> &volume_links) const {
         // volume bounds
-        const scalar_t inner_r{math::min(lay_inner_r, lay_outer_r)};
-        const scalar_t outer_r{math::max(lay_inner_r, lay_outer_r)};
-        const scalar_t lower_z{math::min(lay_neg_z, lay_pos_z)};
-        const scalar_t upper_z{math::max(lay_neg_z, lay_pos_z)};
+        const scalar_type inner_r{math::min(lay_inner_r, lay_outer_r)};
+        const scalar_type outer_r{math::max(lay_inner_r, lay_outer_r)};
+        const scalar_type lower_z{math::min(lay_neg_z, lay_pos_z)};
+        const scalar_type upper_z{math::max(lay_neg_z, lay_pos_z)};
 
         // Add module surfaces to volume
         typename detector_t::surface_container surfaces(&resource);
@@ -212,7 +211,7 @@ struct detector_helper {
         // volume placement
         cyl_volume.set_transform(det.transform_store().size());
         // translation of the cylinder
-        point3 t{0.f, 0.f, 0.5f * (upper_z + lower_z)};
+        point3_type t{0.f, 0.f, 0.5f * (upper_z + lower_z)};
         det.transform_store().emplace_back(ctx, t);
 
         // negative and positive, inner and outer portal surface
@@ -266,7 +265,7 @@ struct detector_helper {
         using material_link_type = typename surface_desc_t::material_link;
 
         if (cfg.use_material_maps()) {
-            material_grid_factory<scalar_t> mat_map_factory{};
+            material_grid_factory<scalar_type> mat_map_factory{};
 
             constexpr auto is_disc_map{
                 std::is_same_v<typename mask_t::shape, ring2D>};
@@ -310,7 +309,7 @@ struct detector_helper {
                 map_id, materials.template size<map_id>() - 1u};
         } else {
             const auto &mat = cfg.mapped_material();
-            if (!(mat == vacuum<scalar>())) {
+            if (!(mat == vacuum<scalar_type>())) {
                 materials.template emplace_back<material_id::e_slab>(
                     {}, mat, cfg.thickness());
 

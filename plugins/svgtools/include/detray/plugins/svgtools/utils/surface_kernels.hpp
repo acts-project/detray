@@ -105,7 +105,7 @@ struct link_start_getter {
 
         using shape_t = detray::ring2D;
         using mask_t = detray::mask<shape_t>;
-        using point3_t = typename mask_t::point3_t;
+        using point3_t = typename mask_t::point3_type;
         using scalar_t = typename mask_t::scalar_type;
 
         const scalar_t r{0.5f *
@@ -122,7 +122,7 @@ struct link_start_getter {
 
         using shape_t = detray::annulus2D;
         using mask_t = detray::mask<shape_t>;
-        using point3_t = typename mask_t::point3_t;
+        using point3_t = typename mask_t::point3_type;
         using scalar_t = typename mask_t::scalar_type;
 
         const scalar_t r{(mask[shape_t::e_min_r] + mask[shape_t::e_max_r]) /
@@ -141,7 +141,7 @@ struct link_start_getter {
     auto inline link_start(const detray::mask<shape_t>& mask,
                            const transform_t& transform) const {
         using mask_t = detray::mask<shape_t>;
-        using point3_t = typename mask_t::point3_t;
+        using point3_t = typename mask_t::point3_type;
         using scalar_t = typename mask_t::scalar_type;
 
         const scalar_t r{mask[shape_t::e_r]};
@@ -159,7 +159,7 @@ struct link_start_getter {
 
         using shape_t = detray::cylinder3D;
         using mask_t = detray::mask<shape_t>;
-        using point3_t = typename mask_t::point3_t;
+        using point3_t = typename mask_t::point3_type;
         using scalar_t = typename mask_t::scalar_type;
 
         const scalar_t r{0.5f *

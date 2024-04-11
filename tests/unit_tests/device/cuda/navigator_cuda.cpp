@@ -31,19 +31,18 @@ TEST(navigator_cuda, navigator) {
 
     // Create navigator
     navigator_host_t nav;
-    navigation::config<scalar> cfg{};
+    navigation::config<scalar_t> cfg{};
     cfg.search_window = {1u, 1u};
 
     // Create the vector of initial track parameters
-    vecmem::vector<free_track_parameters<transform3>> tracks_host(&mng_mr);
-    vecmem::vector<free_track_parameters<transform3>> tracks_device(&mng_mr);
+    vecmem::vector<free_track_parameters<algebra_t>> tracks_host(&mng_mr);
+    vecmem::vector<free_track_parameters<algebra_t>> tracks_device(&mng_mr);
 
     // Magnitude of total momentum of tracks
-    const scalar p_mag{10.f * unit<scalar>::GeV};
+    const scalar_t p_mag{10.f * unit<scalar_t>::GeV};
 
     // Iterate through uniformly distributed momentum directions
-    for (auto track :
-         uniform_track_generator<free_track_parameters<transform3>>(
+    for (auto track : uniform_track_generator<free_track_parameters<algebra_t>>(
              phi_steps, theta_steps, p_mag)) {
         tracks_host.push_back(track);
         tracks_device.push_back(track);

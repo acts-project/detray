@@ -29,11 +29,10 @@ struct ray_intersector_impl<cartesian2D<algebra_t>, algebra_t> {
 
     /// linear algebra types
     /// @{
-    using transform3_type = algebra_t;
-    using scalar_type = typename algebra_t::scalar_type;
-    using point3 = typename algebra_t::point3;
-    using point2 = typename algebra_t::point2;
-    using vector3 = typename algebra_t::vector3;
+    using scalar_type = dscalar<algebra_t>;
+    using point3_type = dpoint3D<algebra_t>;
+    using vector3_type = dvector3D<algebra_t>;
+    using transform3_type = dtransform3D<algebra_t>;
     /// @}
 
     template <typename surface_descr_t>
@@ -63,12 +62,12 @@ struct ray_intersector_impl<cartesian2D<algebra_t>, algebra_t> {
 
         // Retrieve the surface normal & translation (context resolved)
         const auto &sm = trf.matrix();
-        const vector3 sn = getter::vector<3>(sm, 0u, 2u);
-        const vector3 st = getter::vector<3>(sm, 0u, 3u);
+        const vector3_type sn = getter::vector<3>(sm, 0u, 2u);
+        const vector3_type st = getter::vector<3>(sm, 0u, 3u);
 
         // Intersection code
-        const point3 &ro = ray.pos();
-        const vector3 &rd = ray.dir();
+        const point3_type &ro = ray.pos();
+        const vector3_type &rd = ray.dir();
         const scalar_type denom = vector::dot(rd, sn);
         // this is dangerous
         if (denom != 0.f) {
@@ -77,7 +76,7 @@ struct ray_intersector_impl<cartesian2D<algebra_t>, algebra_t> {
             // Intersection is valid for navigation - continue
             if (is.path >= overstep_tol) {
 
-                const point3 p3 = ro + is.path * rd;
+                const point3_type p3 = ro + is.path * rd;
                 is.local = mask.to_local_frame(trf, p3, ray.dir());
                 is.status = mask.is_inside(is.local, mask_tolerance);
 

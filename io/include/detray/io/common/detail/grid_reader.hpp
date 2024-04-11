@@ -209,7 +209,7 @@ class grid_reader {
         detector_builder<typename detector_t::metadata, volume_builder>
             &det_builder) {
 
-        using algebra_t = typename detector_t::transform3;
+        using algebra_t = typename detector_t::algebra_type;
 
         // Throw expection if the accelerator link type id is invalid
         auto print_error = [](io::accel_id grid_link) -> void {

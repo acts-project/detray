@@ -25,10 +25,11 @@ namespace detray::detail {
 template <typename algebra_t>
 struct surface_kernels {
 
-    using transform3 = algebra_t;
-    using point2 = typename algebra_t::point2;
-    using point3 = typename algebra_t::point3;
-    using vector3 = typename algebra_t::vector3;
+    using algebra_type = algebra_t;
+    using point2_type = dpoint2D<algebra_t>;
+    using point3_type = dpoint3D<algebra_t>;
+    using vector3_type = dvector3D<algebra_t>;
+    using transform3_type = dtransform3D<algebra_t>;
     using free_vector_type = free_vector<algebra_t>;
     using bound_vector_type = bound_vector<algebra_t>;
     using free_matrix_type = free_matrix<algebra_t>;
@@ -78,9 +79,9 @@ struct surface_kernels {
     /// A functor to retrieve the material parameters
     struct get_material_params {
         template <typename mat_group_t, typename index_t>
-        DETRAY_HOST_DEVICE inline auto operator()(const mat_group_t& mat_group,
-                                                  const index_t& idx,
-                                                  const point2& loc_p) const {
+        DETRAY_HOST_DEVICE inline auto operator()(
+            const mat_group_t& mat_group, const index_t& idx,
+            const point2_type& loc_p) const {
 
             return detail::material_accessor::get(mat_group, idx, loc_p)
                 .get_maerial();
@@ -90,9 +91,9 @@ struct surface_kernels {
     /// A functor get the surface normal at a given local/bound position
     struct normal {
         template <typename mask_group_t, typename index_t>
-        DETRAY_HOST_DEVICE inline point3 operator()(
+        DETRAY_HOST_DEVICE inline point3_type operator()(
             const mask_group_t& mask_group, const index_t& index,
-            const transform3& trf3, const point2& bound) const {
+            const transform3_type& trf3, const point2_type& bound) const {
 
             const auto& m = mask_group[index];
 
@@ -100,9 +101,9 @@ struct surface_kernels {
         }
 
         template <typename mask_group_t, typename index_t>
-        DETRAY_HOST_DEVICE inline point3 operator()(
+        DETRAY_HOST_DEVICE inline point3_type operator()(
             const mask_group_t& mask_group, const index_t& index,
-            const transform3& trf3, const point3& local) const {
+            const transform3_type& trf3, const point3_type& local) const {
 
             return mask_group[index].local_frame().normal(trf3, local);
         }
@@ -111,7 +112,7 @@ struct surface_kernels {
     /// A functor get the mask centroid in local cartesian coordinates
     struct centroid {
         template <typename mask_group_t, typename index_t>
-        DETRAY_HOST_DEVICE inline point3 operator()(
+        DETRAY_HOST_DEVICE inline point3_type operator()(
             const mask_group_t& mask_group, const index_t& index) const {
 
             return mask_group[index].centroid();
@@ -121,12 +122,12 @@ struct surface_kernels {
     /// A functor to perform global to local bound transformation
     struct global_to_bound {
         template <typename mask_group_t, typename index_t>
-        DETRAY_HOST_DEVICE inline point2 operator()(
+        DETRAY_HOST_DEVICE inline point2_type operator()(
             const mask_group_t& mask_group, const index_t& index,
-            const transform3& trf3, const point3& global,
-            const vector3& dir) const {
+            const transform3_type& trf3, const point3_type& global,
+            const vector3_type& dir) const {
 
-            const point3 local =
+            const point3_type local =
                 mask_group[index].to_local_frame(trf3, global, dir);
 
             return {local[0], local[1]};
@@ -136,10 +137,10 @@ struct surface_kernels {
     /// A functor to perform global to local transformation
     struct global_to_local {
         template <typename mask_group_t, typename index_t>
-        DETRAY_HOST_DEVICE inline point3 operator()(
+        DETRAY_HOST_DEVICE inline point3_type operator()(
             const mask_group_t& mask_group, const index_t& index,
-            const transform3& trf3, const point3& global,
-            const vector3& dir) const {
+            const transform3_type& trf3, const point3_type& global,
+            const vector3_type& dir) const {
 
             return mask_group[index].to_local_frame(trf3, global, dir);
         }
@@ -149,10 +150,10 @@ struct surface_kernels {
     struct local_to_global {
 
         template <typename mask_group_t, typename index_t>
-        DETRAY_HOST_DEVICE inline point3 operator()(
+        DETRAY_HOST_DEVICE inline point3_type operator()(
             const mask_group_t& mask_group, const index_t& index,
-            const transform3& trf3, const point2& bound,
-            const vector3& dir) const {
+            const transform3_type& trf3, const point2_type& bound,
+            const vector3_type& dir) const {
 
             const auto& m = mask_group[index];
 
@@ -161,9 +162,10 @@ struct surface_kernels {
         }
 
         template <typename mask_group_t, typename index_t>
-        DETRAY_HOST_DEVICE inline point3 operator()(
+        DETRAY_HOST_DEVICE inline point3_type operator()(
             const mask_group_t& mask_group, const index_t& index,
-            const transform3& trf3, const point3& local, const vector3&) const {
+            const transform3_type& trf3, const point3_type& local,
+            const vector3_type&) const {
 
             return mask_group[index].to_global_frame(trf3, local);
         }
@@ -177,7 +179,8 @@ struct surface_kernels {
         template <typename mask_group_t, typename index_t>
         DETRAY_HOST_DEVICE inline bound_vector_type operator()(
             const mask_group_t& /*mask_group*/, const index_t& /*index*/,
-            const transform3& trf3, const free_vector_type& free_vec) const {
+            const transform3_type& trf3,
+            const free_vector_type& free_vec) const {
 
             using frame_t = typename mask_group_t::value_type::local_frame_type;
 
@@ -191,7 +194,8 @@ struct surface_kernels {
         template <typename mask_group_t, typename index_t>
         DETRAY_HOST_DEVICE inline free_vector_type operator()(
             const mask_group_t& mask_group, const index_t& index,
-            const transform3& trf3, const bound_vector_type& bound_vec) const {
+            const transform3_type& trf3,
+            const bound_vector_type& bound_vec) const {
 
             return detail::bound_to_free_vector(trf3, mask_group[index],
                                                 bound_vec);
@@ -204,7 +208,8 @@ struct surface_kernels {
         template <typename mask_group_t, typename index_t>
         DETRAY_HOST_DEVICE inline auto operator()(
             const mask_group_t& /*mask_group*/, const index_t& /*index*/,
-            const transform3& trf3, const free_vector_type& free_vec) const {
+            const transform3_type& trf3,
+            const free_vector_type& free_vec) const {
 
             using frame_t = typename mask_group_t::value_type::local_frame_type;
 
@@ -219,7 +224,8 @@ struct surface_kernels {
         template <typename mask_group_t, typename index_t>
         DETRAY_HOST_DEVICE inline auto operator()(
             const mask_group_t& mask_group, const index_t& index,
-            const transform3& trf3, const bound_vector_type& bound_vec) const {
+            const transform3_type& trf3,
+            const bound_vector_type& bound_vec) const {
 
             using frame_t = typename mask_group_t::value_type::local_frame_type;
 
@@ -231,11 +237,12 @@ struct surface_kernels {
     /// A functor to get the path correction
     struct path_correction {
 
-        template <typename mask_group_t, typename index_t>
+        template <typename mask_group_t, typename index_t, typename scalar_t>
         DETRAY_HOST_DEVICE inline free_matrix_type operator()(
             const mask_group_t& /*mask_group*/, const index_t& /*index*/,
-            const transform3& trf3, const vector3& pos, const vector3& dir,
-            const vector3& dtds, const scalar dqopds) const {
+            const transform3_type& trf3, const vector3_type& pos,
+            const vector3_type& dir, const vector3_type& dtds,
+            const scalar_t dqopds) const {
 
             using frame_t = typename mask_group_t::value_type::local_frame_type;
 

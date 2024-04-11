@@ -51,7 +51,7 @@ auto volume(const typename detector_t::geometry_context& context,
             bool hide_grids = false,
             const std::array<dindex, 2>& search_window = {2u, 2u}) {
 
-    using point3_container_t = std::vector<typename detector_t::point3>;
+    using point3_container_t = std::vector<typename detector_t::point3_type>;
 
     actsvg::proto::volume<point3_container_t> p_volume;
     p_volume._index = d_volume.index();

@@ -15,19 +15,21 @@
 #include <vecmem/containers/device_vector.hpp>
 
 using namespace detray;
-using namespace __plugin;
 
 namespace detray {
 
-using host_transform_store_t =
-    single_store<__plugin::transform3<detray::scalar>, vecmem::vector>;
+using algebra_t = ALGEBRA_PLUGIN<detray::scalar>;
+using point3 = dpoint3D<algebra_t>;
+using transform3 = dtransform3D<algebra_t>;
+
+using host_transform_store_t = single_store<transform3, vecmem::vector>;
 
 using device_transform_store_t =
-    single_store<__plugin::transform3<detray::scalar>, vecmem::device_vector>;
+    single_store<transform3, vecmem::device_vector>;
 
-void transform_test(
-    vecmem::data::vector_view<point3<detray::scalar> > input_data,
-    typename host_transform_store_t::view_type store_data,
-    vecmem::data::vector_view<point3<detray::scalar> > output_data,
-    std::size_t n_transforms);
+void transform_test(vecmem::data::vector_view<point3> input_data,
+                    typename host_transform_store_t::view_type store_data,
+                    vecmem::data::vector_view<point3> output_data,
+                    std::size_t n_transforms);
+
 }  // namespace detray

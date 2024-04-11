@@ -65,6 +65,9 @@ using slab = material_slab<detray::scalar>;
 /// box.
 struct my_metadata {
 
+    /// Define the algebra type for the geometry and navigation
+    using algebra_type = detray::tutorial::algebra_t;
+
     /// How to index the constituent objects in a volume
     /// If they share the same index value here, they will be added into the
     /// same acceleration data structure in every respective volume

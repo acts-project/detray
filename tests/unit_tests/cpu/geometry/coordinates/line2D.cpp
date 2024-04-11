@@ -36,7 +36,7 @@ GTEST_TEST(detray_coordinates, line2D_case1) {
     const vector3 mom = {0.f, 1.f, 1.f};
     const vector3 d = vector::normalize(mom);
 
-    const line2D<transform3> l2;
+    const line2D<test::algebra> l2;
 
     // Global to local transformation
     const point3 local = l2.global_to_local_3D(trf, global1, d);
@@ -67,7 +67,7 @@ GTEST_TEST(detray_coordinates, line2D_case2) {
     x = vector::normalize(x);
     const point3 t = {0.f, 0.f, 0.f};
     const transform3 trf(t, z, x);
-    const line2D<transform3> l2;
+    const line2D<test::algebra> l2;
     const point2 local1 = {1.f, 2.f};
     const vector3 mom = {1.f, 6.f, -2.f};
     const vector3 d = vector::normalize(mom);

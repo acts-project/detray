@@ -36,7 +36,7 @@ int main() {
     /// Type that holds the intersection information
     using intersection_t =
         detray::intersection2D<typename toy_detector_t::surface_type,
-                               detray::tutorial::transform3>;
+                               detray::tutorial::algebra_t>;
 
     /// Inspector that records all encountered surfaces
     using object_tracer_t = detray::navigation::object_tracer<
@@ -55,7 +55,7 @@ int main() {
     // Navigation with inspection
     using navigator_t = detray::navigator<toy_detector_t, inspector_t>;
     // Line stepper
-    using stepper_t = detray::line_stepper<detray::tutorial::transform3>;
+    using stepper_t = detray::line_stepper<detray::tutorial::algebra_t>;
     // Propagator with empty actor chain
     using propagator_t =
         detray::propagator<stepper_t, navigator_t, detray::actor_chain<>>;
@@ -69,7 +69,7 @@ int main() {
 
     // Track generation config
     // Trivial example: Single track escapes through beampipe
-    using ray_type = detray::detail::ray<detray::tutorial::transform3>;
+    using ray_type = detray::detail::ray<detray::tutorial::algebra_t>;
     constexpr std::size_t theta_steps{1};
     constexpr std::size_t phi_steps{1};
 
@@ -83,7 +83,7 @@ int main() {
 
         // Now follow that ray with the same track and check, if we find
         // the same volumes and distances along the way
-        detray::free_track_parameters<detray::tutorial::transform3> track(
+        detray::free_track_parameters<detray::tutorial::algebra_t> track(
             ray.pos(), 0.f, ray.dir(), -1.f);
         propagator_t::state propagation(track, det);
 

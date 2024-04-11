@@ -35,8 +35,8 @@ struct propagator {
     using intersection_type = typename navigator_type::intersection_type;
     using detector_type = typename navigator_type::detector_type;
     using actor_chain_type = actor_chain_t;
-    using transform3_type = typename stepper_t::transform3_type;
-    using scalar_type = typename transform3_type::scalar_type;
+    using algebra_type = typename stepper_t::algebra_type;
+    using scalar_type = dscalar<algebra_type>;
     using free_track_parameters_type =
         typename stepper_t::free_track_parameters_type;
     using bound_track_parameters_type =
@@ -297,7 +297,7 @@ struct propagator {
                                  << stepping._prev_step_size << std::endl;
 
         propagation.debug_stream << std::setw(10)
-                                 << detail::ray<transform3_type>(stepping())
+                                 << detail::ray<algebra_type>(stepping())
                                  << std::endl;
     }
 };

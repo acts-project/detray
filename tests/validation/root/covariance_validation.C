@@ -182,17 +182,6 @@ void set_xaxis_title(TH1D* h, const double text_size) {
     h->GetXaxis()->SetTitleSize(text_size);
 }
 
-/*
-void draw_title(const std::string& text, const double x, const double y,
-                const double text_size) {
-
-    TLatex* ttext = new TLatex(x, y, text.c_str());
-    ttext->SetTextFont(22);
-    ttext->SetTextSize(text_size);
-    ttext->Draw();
-}
-*/
-
 void draw_fit_title(const std::string title, const double x, const double y,
                     const double text_size) {
 

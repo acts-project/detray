@@ -51,7 +51,7 @@ struct axes {
 /// Helper trait to resolve the type of a @c multi_axis from a shape
 template <typename axes_t, bool is_owning = true,
           typename containers = host_container_types,
-          typename algebra_t = __plugin::transform3<detray::scalar>>
+          typename algebra_t = ALGEBRA_PLUGIN<detray::scalar>>
 using coordinate_axes = typename axis::detail::get_coordinate_axes_type<
     axes_t, is_owning, containers, algebra_t>::type;
 
@@ -207,7 +207,7 @@ struct get_coordinate_axes_type<
         typename axes_t::template type<algebra_t>::template frame<algebra_t>,
         typename axes_t::template type<algebra_t>::bounds,
         typename axes_t::template type<algebra_t>::template binning<
-            containers, typename algebra_t::scalar_type>>::type;
+            containers, dscalar<algebra_t>>>::type;
 };
 
 /// Don't do anything if the type is already a @c multi_axis

@@ -31,13 +31,13 @@ vecmem::binary_page_memory_resource bp_mng_mr(mng_mr);
 // detector configuration
 auto toy_cfg = toy_det_config<scalar>{}.n_brl_layers(4u).n_edc_layers(7u);
 
-void fill_tracks(vecmem::vector<free_track_parameters<transform3>> &tracks,
+void fill_tracks(vecmem::vector<free_track_parameters<algebra_t>> &tracks,
                  const std::size_t theta_steps, const std::size_t phi_steps) {
     // Set momentum of tracks
     const scalar mom_mag{10.f * unit<scalar>::GeV};
 
     // Iterate through uniformly distributed momentum directions
-    for (auto traj : uniform_track_generator<free_track_parameters<transform3>>(
+    for (auto traj : uniform_track_generator<free_track_parameters<algebra_t>>(
              phi_steps, theta_steps, mom_mag)) {
         tracks.push_back(traj);
     }
@@ -65,7 +65,7 @@ static void BM_PROPAGATOR_CPU(benchmark::State &state) {
         state.PauseTiming();
 
         // Get tracks
-        vecmem::vector<free_track_parameters<transform3>> tracks(&host_mr);
+        vecmem::vector<free_track_parameters<algebra_t>> tracks(&host_mr);
         fill_tracks(tracks, static_cast<std::size_t>(state.range(0)),
                     static_cast<std::size_t>(state.range(0)));
 
@@ -76,9 +76,9 @@ static void BM_PROPAGATOR_CPU(benchmark::State &state) {
 #pragma omp parallel for
         for (auto &track : tracks) {
 
-            parameter_transporter<transform3>::state transporter_state{};
-            pointwise_material_interactor<transform3>::state interactor_state{};
-            parameter_resetter<transform3>::state resetter_state{};
+            parameter_transporter<algebra_t>::state transporter_state{};
+            pointwise_material_interactor<algebra_t>::state interactor_state{};
+            parameter_resetter<algebra_t>::state resetter_state{};
 
             auto actor_states =
                 tie(transporter_state, interactor_state, resetter_state);
@@ -121,7 +121,7 @@ static void BM_PROPAGATOR_CUDA(benchmark::State &state) {
         state.PauseTiming();
 
         // Get tracks
-        vecmem::vector<free_track_parameters<transform3>> tracks(&bp_mng_mr);
+        vecmem::vector<free_track_parameters<algebra_t>> tracks(&bp_mng_mr);
         fill_tracks(tracks, static_cast<std::size_t>(state.range(0)),
                     static_cast<std::size_t>(state.range(0)));
 

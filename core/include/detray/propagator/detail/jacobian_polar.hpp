@@ -8,6 +8,7 @@
 #pragma once
 
 // Project include(s).
+#include "detray/definitions/detail/algebra.hpp"
 #include "detray/definitions/detail/math.hpp"
 #include "detray/definitions/detail/qualifiers.hpp"
 #include "detray/definitions/track_parametrization.hpp"
@@ -24,20 +25,18 @@ struct jacobian<polar2D<algebra_t>> {
     /// @{
     using coordinate_frame = polar2D<algebra_t>;
 
-    using transform3_type = algebra_t;
-    using scalar_type = typename algebra_t::scalar_type;
-    using point2 = typename algebra_t::point2;
-    using point3 = typename algebra_t::point3;
-    using vector3 = typename algebra_t::vector3;
+    using algebra_type = algebra_t;
+    using transform3_type = dtransform3D<algebra_t>;
+    using scalar_type = dscalar<algebra_t>;
+    using point2_type = dpoint2D<algebra_t>;
+    using point3_type = dpoint3D<algebra_t>;
+    using vector3_type = dvector3D<algebra_t>;
 
     // Matrix operator
-    using matrix_operator = typename algebra_t::matrix_actor;
-    // Matrix size type
-    using size_type = typename algebra_t::size_type;
+    using matrix_operator = dmatrix_operator<algebra_t>;
     // 2D matrix type
-    template <size_type ROWS, size_type COLS>
-    using matrix_type =
-        typename matrix_operator::template matrix_type<ROWS, COLS>;
+    template <std::size_t ROWS, std::size_t COLS>
+    using matrix_type = dmatrix<algebra_t, ROWS, COLS>;
     // Rotation Matrix
     using rotation_matrix = matrix_type<3, 3>;
 
@@ -47,22 +46,22 @@ struct jacobian<polar2D<algebra_t>> {
     /// @}
 
     DETRAY_HOST_DEVICE
-    static inline rotation_matrix reference_frame(const transform3_type &trf3,
-                                                  const point3 & /*pos*/,
-                                                  const vector3 & /*dir*/) {
+    static inline rotation_matrix reference_frame(
+        const transform3_type &trf3, const point3_type & /*pos*/,
+        const vector3_type & /*dir*/) {
         return trf3.rotation();
     }
 
     DETRAY_HOST_DEVICE static inline free_to_path_matrix_type path_derivative(
-        const transform3_type &trf3, const point3 & /*pos*/, const vector3 &dir,
-        const vector3 & /*dtds*/) {
+        const transform3_type &trf3, const point3_type & /*pos*/,
+        const vector3_type &dir, const vector3_type & /*dtds*/) {
 
         free_to_path_matrix_type derivative =
             matrix_operator().template zero<1u, e_free_size>();
 
-        const vector3 normal = coordinate_frame::normal(trf3);
+        const vector3_type normal = coordinate_frame::normal(trf3);
 
-        const vector3 pos_term = -1.f / vector::dot(normal, dir) * normal;
+        const vector3_type pos_term = -1.f / vector::dot(normal, dir) * normal;
 
         matrix_operator().element(derivative, 0u, e_free_pos0) = pos_term[0];
         matrix_operator().element(derivative, 0u, e_free_pos1) = pos_term[1];
@@ -74,12 +73,14 @@ struct jacobian<polar2D<algebra_t>> {
     DETRAY_HOST_DEVICE
     static inline void set_bound_pos_to_free_pos_derivative(
         bound_to_free_matrix_type &bound_to_free_jacobian,
-        const transform3_type &trf3, const point3 &pos, const vector3 &dir) {
+        const transform3_type &trf3, const point3_type &pos,
+        const vector3_type &dir) {
 
         matrix_type<3, 2> bound_pos_to_free_pos_derivative =
             matrix_operator().template zero<3, 2>();
 
-        const point2 local = coordinate_frame::global_to_local(trf3, pos, dir);
+        const point2_type local =
+            coordinate_frame::global_to_local(trf3, pos, dir);
         const scalar_type lrad{local[0]};
         const scalar_type lphi{local[1]};
 
@@ -113,12 +114,14 @@ struct jacobian<polar2D<algebra_t>> {
     DETRAY_HOST_DEVICE
     static inline void set_free_pos_to_bound_pos_derivative(
         free_to_bound_matrix_type &free_to_bound_jacobian,
-        const transform3_type &trf3, const point3 &pos, const vector3 &dir) {
+        const transform3_type &trf3, const point3_type &pos,
+        const vector3_type &dir) {
 
         matrix_type<2, 3> free_pos_to_bound_pos_derivative =
             matrix_operator().template zero<2, 3>();
 
-        const point2 local = coordinate_frame::global_to_local(trf3, pos, dir);
+        const point2_type local =
+            coordinate_frame::global_to_local(trf3, pos, dir);
 
         const scalar_type lrad{local[0]};
         const scalar_type lphi{local[1]};
@@ -154,8 +157,8 @@ struct jacobian<polar2D<algebra_t>> {
     DETRAY_HOST_DEVICE
     static inline void set_bound_angle_to_free_pos_derivative(
         bound_to_free_matrix_type & /*bound_to_free_jacobian*/,
-        const transform3_type & /*trf3*/, const point3 & /*pos*/,
-        const vector3 & /*dir*/) {
+        const transform3_type & /*trf3*/, const point3_type & /*pos*/,
+        const vector3_type & /*dir*/) {
         // Do nothing
     }
 };

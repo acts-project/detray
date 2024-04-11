@@ -53,14 +53,14 @@ using host_field_t = covfie::field<detray::bfield::inhom_bknd_t>;
 using device_field_t =
     covfie::field<detray::tutorial::bfield::cuda::inhom_bknd_t>;
 using stepper_t =
-    rk_stepper<device_field_t::view_t, detray::tutorial::transform3>;
+    rk_stepper<device_field_t::view_t, detray::tutorial::algebra_t>;
 
 // Actors
 using actor_chain_t =
     actor_chain<tuple, pathlimit_aborter,
-                parameter_transporter<detray::tutorial::transform3>,
-                pointwise_material_interactor<detray::tutorial::transform3>,
-                parameter_resetter<detray::tutorial::transform3>>;
+                parameter_transporter<detray::tutorial::algebra_t>,
+                pointwise_material_interactor<detray::tutorial::algebra_t>,
+                parameter_resetter<detray::tutorial::algebra_t>>;
 
 // Propagator
 using propagator_t = propagator<stepper_t, navigator_t, actor_chain_t>;
@@ -70,7 +70,7 @@ void propagation(
     typename detector_host_t::view_type det_data,
     typename device_field_t::view_t field_data,
     const vecmem::data::vector_view<
-        free_track_parameters<detray::tutorial::transform3>>
+        free_track_parameters<detray::tutorial::algebra_t>>
         tracks_data,
     vecmem::data::jagged_vector_view<intersection_t> candidates_data);
 

@@ -49,7 +49,7 @@ GTEST_TEST(svgtools, intersections) {
     const auto [det, names] = detray::build_toy_detector(host_mr);
     using detector_t = decltype(det);
 
-    using transform3_t = typename detector_t::transform3;
+    using algebra_t = typename detector_t::algebra_type;
 
     // Creating the illustrator.
     const detray::svgtools::illustrator il{det, names};
@@ -59,7 +59,7 @@ GTEST_TEST(svgtools, intersections) {
 
     // Creating the rays.
     using generator_t =
-        detray::uniform_track_generator<detray::detail::ray<transform3_t>>;
+        detray::uniform_track_generator<detray::detail::ray<algebra_t>>;
     auto trk_gen_cfg = generator_t::configuration{};
     trk_gen_cfg.origin({0.f, 0.f, 100.f}).phi_steps(10u).theta_steps(10u);
 

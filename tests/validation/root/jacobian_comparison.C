@@ -43,7 +43,7 @@ double y_min = -15;
 double y_max = 10;
 double y_margin = 0;
 double header_size = 0.05;
-std::array<float, 4> ldim{0.587646, 0.62395, 0.942404, 0.880252};
+std::array<float, 4> ldim{0.59015, 0.62395, 0.942404, 0.880252};
 double pad_x0 = 0.00;
 double pad_x1 = 1;
 double pad_y0 = 0.00;
@@ -252,23 +252,6 @@ void draw_text(const std::string& text) {
     plabel->Draw();
 }
 
-void draw_text2() {
-
-    const double y = 7.5;
-
-    TLatex* ttext1 = new TLatex(
-        15.2, y, "#splitline{Measurable with}{an inhomgeneous field}");
-    TLatex* ttext2 =
-        new TLatex(20.2, y, "#splitline{Measurable with}{a material}");
-    ttext1->SetTextFont(132);
-    ttext1->SetTextSize(0.045);
-    ttext2->SetTextFont(132);
-    ttext2->SetTextSize(0.045);
-
-    ttext1->Draw();
-    ttext2->Draw();
-}
-
 // ROOT Script for jacboain file reading
 void jacobian_comparison() {
 
@@ -329,15 +312,7 @@ void jacobian_comparison() {
     helix_rect_histo->Draw("hist P same");
     rect_legend->AddEntry(helix_rect_histo, Helix_homogeneous.c_str(), "p");
 
-    /*
-    TLegendEntry* rect_header =
-        (TLegendEntry*)rect_legend->GetListOfPrimitives()->First();
-    rect_header->SetTextFont(22);
-    rect_header->SetTextSize(header_size);
-    */
-
     draw_lines();
-    // draw_text2();
     rect_legend->Draw();
     draw_text(rect_text);
     rect_canvas->Draw();
@@ -381,15 +356,7 @@ void jacobian_comparison() {
     helix_wire_histo->Draw("hist P same");
     wire_legend->AddEntry(helix_wire_histo, Helix_homogeneous.c_str(), "p");
 
-    /*
-    TLegendEntry* wire_header =
-        (TLegendEntry*)wire_legend->GetListOfPrimitives()->First();
-    wire_header->SetTextFont(22);
-    wire_header->SetTextSize(header_size);
-    */
-
     draw_lines();
-    // draw_text2();
     wire_legend->Draw();
     draw_text(wire_text);
     wire_canvas->Draw();

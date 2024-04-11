@@ -8,6 +8,7 @@
 #include <gtest/gtest.h>
 
 // Project include(s)
+#include "detray/definitions/detail/algebra.hpp"
 #include "detray/utils/ranges.hpp"
 #include "transform_store_cuda_kernel.hpp"
 
@@ -17,8 +18,9 @@
 
 TEST(transform_store_cuda, transform_store) {
 
-    using point3 = __plugin::point3<detray::scalar>;
-    using transform3 = __plugin::transform3<detray::scalar>;
+    using algebra_t = ALGEBRA_PLUGIN<detray::scalar>;
+    using point3 = detray::dpoint3D<algebra_t>;
+    using transform3 = detray::dtransform3D<algebra_t>;
 
     // memory resource
     vecmem::cuda::managed_memory_resource mng_mr;

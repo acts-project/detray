@@ -18,7 +18,7 @@ template <typename detector_t>
 void prefill_detector(detector_t& d,
                       typename detector_t::geometry_context ctx) {
     using scalar_t = typename detector_t::scalar_type;
-    using point3 = typename detector_t::point3;
+    using point3 = typename detector_t::point3_type;
     using mask_id = typename detector_t::masks::id;
     using material_id = typename detector_t::materials::id;
     using surface_t = typename detector_t::surface_type;

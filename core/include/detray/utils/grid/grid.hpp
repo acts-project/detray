@@ -378,7 +378,7 @@ class grid_impl {
 template <typename axes_t, typename bin_t,
           template <std::size_t> class serializer_t = simple_serializer,
           typename containers = host_container_types, bool ownership = true,
-          typename algebra_t = __plugin::transform3<detray::scalar>>
+          typename algebra_t = ALGEBRA_PLUGIN<detray::scalar>>
 using grid =
     grid_impl<coordinate_axes<axes_t, ownership, containers, algebra_t>, bin_t,
               simple_serializer>;

@@ -83,9 +83,10 @@ class square_surface_generator final
         for (unsigned int i = 0u; i < m_n_squares; ++i) {
 
             // Surface placement: no rotation, just translation
-            typename detector_t::point3 translation{0.f, 0.f, z_translation};
+            typename detector_t::point3_type translation{0.f, 0.f,
+                                                         z_translation};
             z_translation += 10.f * unit<scalar_t>::mm;
-            typename detector_t::transform3 trf{translation};
+            typename detector_t::transform3_type trf{translation};
             transforms.push_back(trf, ctx);
 
             // Construct the mask

@@ -17,7 +17,7 @@ __global__ void propagator_test_kernel(
     vecmem::data::vector_view<track_t> tracks_data,
     vecmem::data::jagged_vector_view<intersection_t<detector_t>>
         candidates_data,
-    vecmem::data::jagged_vector_view<scalar> path_lengths_data,
+    vecmem::data::jagged_vector_view<scalar_t> path_lengths_data,
     vecmem::data::jagged_vector_view<vector3_t> positions_data,
     vecmem::data::jagged_vector_view<free_matrix_t> jac_transports_data) {
 
@@ -58,9 +58,9 @@ __global__ void propagator_test_kernel(
     inspector_device_t::state insp_state(
         path_lengths.at(gid), positions.at(gid), jac_transports.at(gid));
     pathlimit_aborter::state aborter_state{path_limit};
-    parameter_transporter<transform3>::state transporter_state{};
-    pointwise_material_interactor<transform3>::state interactor_state{};
-    parameter_resetter<transform3>::state resetter_state{};
+    parameter_transporter<algebra_t>::state transporter_state{};
+    pointwise_material_interactor<algebra_t>::state interactor_state{};
+    parameter_resetter<algebra_t>::state resetter_state{};
 
     // Create the actor states
     auto actor_states =
@@ -85,7 +85,7 @@ void propagator_test(
     vecmem::data::vector_view<track_t>& tracks_data,
     vecmem::data::jagged_vector_view<intersection_t<detector_t>>&
         candidates_data,
-    vecmem::data::jagged_vector_view<scalar>& path_lengths_data,
+    vecmem::data::jagged_vector_view<scalar_t>& path_lengths_data,
     vecmem::data::jagged_vector_view<vector3_t>& positions_data,
     vecmem::data::jagged_vector_view<free_matrix_t>& jac_transports_data) {
 
@@ -111,7 +111,7 @@ template void propagator_test<bfield::const_bknd_t,
     vecmem::data::vector_view<track_t>&,
     vecmem::data::jagged_vector_view<
         intersection_t<detector<toy_metadata, host_container_types>>>&,
-    vecmem::data::jagged_vector_view<scalar>&,
+    vecmem::data::jagged_vector_view<scalar_t>&,
     vecmem::data::jagged_vector_view<vector3_t>&,
     vecmem::data::jagged_vector_view<free_matrix_t>&);
 
@@ -123,7 +123,7 @@ template void propagator_test<bfield::cuda::inhom_bknd_t,
     vecmem::data::vector_view<track_t>&,
     vecmem::data::jagged_vector_view<
         intersection_t<detector<toy_metadata, host_container_types>>>&,
-    vecmem::data::jagged_vector_view<scalar>&,
+    vecmem::data::jagged_vector_view<scalar_t>&,
     vecmem::data::jagged_vector_view<vector3_t>&,
     vecmem::data::jagged_vector_view<free_matrix_t>&);
 

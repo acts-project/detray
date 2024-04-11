@@ -10,6 +10,7 @@
 // Project include(s)
 #include "detray/core/detail/multi_store.hpp"
 #include "detray/core/detail/single_store.hpp"
+#include "detray/definitions/detail/algebra.hpp"
 #include "detray/definitions/detail/containers.hpp"
 #include "detray/definitions/detail/indexing.hpp"
 #include "detray/geometry/detail/surface_descriptor.hpp"
@@ -27,6 +28,9 @@ namespace detray {
 
 /// Assembles the detector type. This metatdata contains all available types
 struct default_metadata {
+
+    /// Define the algebra type for the geometry and navigation
+    using algebra_type = ALGEBRA_PLUGIN<detray::scalar>;
 
     /// Mask-to-(next)-volume link (potentially switchable for SoA)
     using nav_link = std::uint_least16_t;
@@ -142,8 +146,8 @@ struct default_metadata {
 
     /// How to store coordinate transform matrices
     template <template <typename...> class vector_t = dvector>
-    using transform_store = single_store<__plugin::transform3<detray::scalar>,
-                                         vector_t, geometry_context>;
+    using transform_store =
+        single_store<dtransform3D<algebra_type>, vector_t, geometry_context>;
 
     /// Give your mask types a name (needs to be consecutive and has to match
     /// the types position in the mask store!)

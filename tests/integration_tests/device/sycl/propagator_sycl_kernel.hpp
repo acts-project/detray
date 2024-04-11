@@ -24,7 +24,7 @@ void propagator_test(
     typename detector_t::view_type, covfie::field_view<bfield_bknd_t>,
     vecmem::data::vector_view<track_t> &,
     vecmem::data::jagged_vector_view<intersection_t<detector_t>> &,
-    vecmem::data::jagged_vector_view<scalar> &,
+    vecmem::data::jagged_vector_view<scalar_t> &,
     vecmem::data::jagged_vector_view<vector3_t> &,
     vecmem::data::jagged_vector_view<free_matrix_t> &, sycl::queue_wrapper);
 
@@ -36,7 +36,7 @@ inline auto run_propagation_device(
     covfie::field_view<bfield_bknd_t> field_data, sycl::queue_wrapper queue,
     dvector<track_t> &tracks,
     const vecmem::jagged_vector<vector3_t> &host_positions)
-    -> std::tuple<vecmem::jagged_vector<scalar>,
+    -> std::tuple<vecmem::jagged_vector<scalar_t>,
                   vecmem::jagged_vector<vector3_t>,
                   vecmem::jagged_vector<free_matrix_t>> {
 
@@ -74,7 +74,7 @@ inline auto run_propagation_device(
         det_view, field_data, tracks_data, candidates_buffer,
         path_lengths_buffer, positions_buffer, jac_transports_buffer, queue);
 
-    vecmem::jagged_vector<scalar> device_path_lengths(mr);
+    vecmem::jagged_vector<scalar_t> device_path_lengths(mr);
     vecmem::jagged_vector<vector3_t> device_positions(mr);
     vecmem::jagged_vector<free_matrix_t> device_jac_transports(mr);
 
