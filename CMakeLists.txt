@@ -1,6 +1,6 @@
 # Detray library, part of the ACTS project (R&D line)
 #
-# (c) 2021-2023 CERN for the benefit of the ACTS project
+# (c) 2021-2024 CERN for the benefit of the ACTS project
 #
 # Mozilla Public License Version 2.0
 
@@ -62,6 +62,8 @@ cmake_dependent_option( DETRAY_BENCHMARKS "Enable benchmark tests" TRUE
    "DETRAY_BUILD_TESTING" OFF )
 option( DETRAY_BUILD_TUTORIALS "Build the tutorial executables of Detray"
    ON )
+option( DETRAY_FAIL_ON_WARNINGS
+   "Make the build fail on compiler/linker warnings" FALSE )
 
 # Clean up.
 unset( DETRAY_BUILD_CUDA_DEFAULT )
