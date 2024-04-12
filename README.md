@@ -44,7 +44,8 @@ export DETRAY_BFIELD_FILE="${PWD}/odd-bfield_v0_9_0.cvf"
 | DETRAY_CUSTOM_SCALARTYPE | Floating point precision | double |
 | DETRAY_EIGEN_PLUGIN | Build Eigen math plugin | ON |
 | DETRAY_SMATRIX_PLUGIN | Build ROOT/SMatrix math plugin | OFF |
-| DETRAY_VC_PLUGIN | Build Vc based math plugin | ON |
+| DETRAY_VC_AOS_PLUGIN | Build Vc based math plugin (AoS) | ON |
+| DETRAY_VC_SOA_PLUGIN | Build Vc based math plugin (SoA) | OFF |
 | DETRAY_SVG_DISPLAY | Build ActSVG display module | OFF |
 
 ## Benchmark Monitoring

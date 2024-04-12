@@ -18,7 +18,7 @@ message(STATUS "Building Algebra Plugins as part of the Detray project")
 
 # Declare where to get Algebra Plugins from.
 set( DETRAY_ALGEBRA_PLUGINS_SOURCE
-   "GIT_REPOSITORY;https://github.com/niermann999/algebra-plugins;GIT_TAG;feat-vectorized-transf"
+   "GIT_REPOSITORY;https://github.com/niermann999/algebra-plugins;GIT_TAG;ref-VcAos-plugin"
    CACHE STRING "Source for Algebra Plugins, when built as part of this project" )
 mark_as_advanced(DETRAY_ALGEBRA_PLUGINS_SOURCE)
 

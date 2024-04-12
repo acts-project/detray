@@ -9,8 +9,7 @@
 #pragma once
 
 // Algebra-Plugins include
-#include "algebra/math/vc_soa.hpp"
-#include "algebra/storage/vc_soa.hpp"
+#include "algebra/vc_soa.hpp"
 
 #define IS_SOA 1
 
@@ -38,7 +37,7 @@ struct vc_soa {
     /// Linear Algebra type definitions
     /// @{
     using scalar = simd<value_type>;
-    using transform3D = algebra::vc_soa::math::transform3<value_type>;
+    using transform3D = algebra::vc_soa::transform3<value_type>;
     using point2D = algebra::vc_soa::point2<value_type>;
     using point3D = algebra::vc_soa::point3<value_type>;
     using vector3D = algebra::vc_soa::vector3<value_type>;
@@ -66,7 +65,7 @@ using algebra::vc_soa::math::theta;
 /// @c algebra::vc::transform3<float>
 template <std::size_t SIZE, std::enable_if_t<SIZE <= 4, bool> = true>
 ALGEBRA_HOST_DEVICE inline auto vector(
-    const algebra::vc_soa::math::transform3<float>::matrix44& m,
+    const algebra::vc_soa::transform3<float>::matrix44& m,
     [[maybe_unused]] std::size_t row, std::size_t col) {
 
     assert(row == 0);
@@ -89,7 +88,7 @@ ALGEBRA_HOST_DEVICE inline auto vector(
 /// @c algebra::vc::transform3<double>
 template <std::size_t SIZE, std::enable_if_t<SIZE <= 4, bool> = true>
 ALGEBRA_HOST_DEVICE inline auto vector(
-    const algebra::vc_soa::math::transform3<double>::matrix44& m,
+    const algebra::vc_soa::transform3<double>::matrix44& m,
     [[maybe_unused]] std::size_t row, std::size_t col) {
 
     assert(row == 0);
