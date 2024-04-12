@@ -66,7 +66,7 @@ class concentric_cylinder2D {
         const bounds_t<scalar_t, kDIM> &bounds, const point_t &loc_p,
         const scalar_t tol = std::numeric_limits<scalar_t>::epsilon()) const {
 
-        return (bounds[e_n_half_z] - tol <= loc_p[1] and
+        return (bounds[e_n_half_z] - tol <= loc_p[1] &&
                 loc_p[1] <= bounds[e_p_half_z] + tol);
     }
 

@@ -67,9 +67,8 @@ struct ray_intersector_impl<cartesian2D<algebra_t>, algebra_t, false> {
         intersection_type<surface_descr_t> is;
 
         // Retrieve the surface normal & translation (context resolved)
-        const auto &sm = trf.matrix();
-        const vector3_type sn = getter::vector<3>(sm, 0u, 2u);
-        const vector3_type st = getter::vector<3>(sm, 0u, 3u);
+        const vector3_type &sn = trf.z();
+        const vector3_type &st = trf.translation();
 
         // Intersection code
         const point3_type &ro = ray.pos();
@@ -83,7 +82,7 @@ struct ray_intersector_impl<cartesian2D<algebra_t>, algebra_t, false> {
             if (is.path >= overstep_tol) {
 
                 const point3_type p3 = ro + is.path * rd;
-                is.local = mask.to_local_frame(trf, p3, ray.dir());
+                is.local = mask.to_local_frame(trf, p3, rd);
                 // Tolerance: per mille of the distance
                 is.status = mask.is_inside(
                     is.local,
