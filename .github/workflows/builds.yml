@@ -37,10 +37,9 @@ jobs:
     - uses: actions/checkout@v2
     # Run the CMake configuration.
     - name: Configure
-      run: cmake -DCMAKE_BUILD_TYPE=${{ matrix.BUILD_TYPE }}
-                 -DDETRAY_EIGEN_PLUGIN=ON
-                 -DDETRAY_VC_PLUGIN=ON
-                 -DDETRAY_BUILD_CUDA=FALSE 
+      run: cmake --preset default-fp64
+                 -DCMAKE_BUILD_TYPE=${{ matrix.BUILD_TYPE }}
+                 -DDETRAY_FAIL_ON_WARNINGS=ON
                  -S ${{ github.workspace }} -B build
                  -G "${{ matrix.PLATFORM.GENERATOR }}"
     # Perform the build.
@@ -86,7 +85,7 @@ jobs:
     - name: Configure
       run: |
         source ${GITHUB_WORKSPACE}/.github/ci_setup.sh ${{ matrix.PLATFORM.NAME }}
-        cmake -DCMAKE_BUILD_TYPE=${{ matrix.BUILD_TYPE }} -DDETRAY_CUSTOM_SCALARTYPE=${{ matrix.SCALAR_TYPE }} ${{ matrix.PLATFORM.OPTIONS }} -S ${GITHUB_WORKSPACE} -B build
+        cmake -DDETRAY_FAIL_ON_WARNINGS=ON -DCMAKE_BUILD_TYPE=${{ matrix.BUILD_TYPE }} -DDETRAY_CUSTOM_SCALARTYPE=${{ matrix.SCALAR_TYPE }} ${{ matrix.PLATFORM.OPTIONS }} -S ${GITHUB_WORKSPACE} -B build
     # Perform the build.
     - name: Build
       run: |
@@ -139,7 +138,7 @@ jobs:
     - name: Configure
       run: |
         source ${GITHUB_WORKSPACE}/.github/ci_setup.sh ${{ matrix.PLATFORM.NAME }}
-        cmake -DCMAKE_BUILD_TYPE=${{ matrix.BUILD_TYPE }} -DDETRAY_CUSTOM_SCALARTYPE=${{ matrix.SCALAR_TYPE }} ${{ matrix.PLATFORM.OPTIONS }} -S ${GITHUB_WORKSPACE} -B build
+        cmake -DDETRAY_FAIL_ON_WARNINGS=ON -DCMAKE_BUILD_TYPE=${{ matrix.BUILD_TYPE }} -DDETRAY_CUSTOM_SCALARTYPE=${{ matrix.SCALAR_TYPE }} ${{ matrix.PLATFORM.OPTIONS }} -S ${GITHUB_WORKSPACE} -B build
     # Perform the build.
     - name: Build
       run: |

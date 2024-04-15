@@ -1,6 +1,6 @@
 # Detray library, part of the ACTS project (R&D line)
 #
-# (c) 2021-2023 CERN for the benefit of the ACTS project
+# (c) 2021-2024 CERN for the benefit of the ACTS project
 #
 # Mozilla Public License Version 2.0
 
@@ -30,12 +30,14 @@ if(("${CMAKE_CXX_COMPILER_ID}" MATCHES "GNU") OR
    detray_add_flag(CMAKE_CXX_FLAGS "-Wextra")
    detray_add_flag(CMAKE_CXX_FLAGS "-Wshadow")
    detray_add_flag(CMAKE_CXX_FLAGS "-Wunused-local-typedefs")
-
-   # More rigorous tests for the Debug builds.
-   detray_add_flag(CMAKE_CXX_FLAGS_DEBUG "-Werror")
-   detray_add_flag(CMAKE_CXX_FLAGS_DEBUG "-pedantic")
+   detray_add_flag(CMAKE_CXX_FLAGS "-pedantic")
    # No implicit single to double conversions from floating point literals
-   detray_add_flag(CMAKE_CXX_FLAGS_DEBUG "-Wconversion")
+   detray_add_flag(CMAKE_CXX_FLAGS "-Wconversion")
+
+   # Fail on warnings, if asked for that behaviour.
+   if(DETRAY_FAIL_ON_WARNINGS)
+      detray_add_flag(CMAKE_CXX_FLAGS "-Werror")
+   endif()
 
 elseif("${CMAKE_CXX_COMPILER_ID}" MATCHES "MSVC")
    # Basic flags for all build modes.
@@ -43,6 +45,8 @@ elseif("${CMAKE_CXX_COMPILER_ID}" MATCHES "MSVC")
       "${CMAKE_CXX_FLAGS}")
    detray_add_flag(CMAKE_CXX_FLAGS "/W4")
 
-   # More rigorous tests for the Debug builds.
-   detray_add_flag(CMAKE_CXX_FLAGS_DEBUG "/WX")
+   # Fail on warnings, if asked for that behaviour.
+   if(DETRAY_FAIL_ON_WARNINGS)
+      detray_add_flag(CMAKE_CXX_FLAGS "/WX")
+   endif()
 endif()

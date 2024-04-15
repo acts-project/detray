@@ -1,6 +1,6 @@
 # Detray library, part of the ACTS project (R&D line)
 #
-# (c) 2021-2022 CERN for the benefit of the ACTS project
+# (c) 2021-2024 CERN for the benefit of the ACTS project
 #
 # Mozilla Public License Version 2.0
 
@@ -35,7 +35,12 @@ endif()
 # build.
 detray_add_flag( CMAKE_CUDA_FLAGS_DEBUG "-G" )
 
-# More rigorous tests for the Debug builds.
-if( "${CUDAToolkit_VERSION}" VERSION_GREATER_EQUAL "10.2" )
-   detray_add_flag( CMAKE_CUDA_FLAGS_DEBUG "-Werror all-warnings" )
+# Fail on warnings, if asked for that behaviour.
+if( DETRAY_FAIL_ON_WARNINGS )
+   if( ( "${CUDAToolkit_VERSION}" VERSION_GREATER_EQUAL "10.2" ) AND
+       ( "${CMAKE_CUDA_COMPILER_ID}" MATCHES "NVIDIA" ) )
+      detray_add_flag( CMAKE_CUDA_FLAGS "-Werror all-warnings" )
+   elseif( "${CMAKE_CUDA_COMPILER_ID}" MATCHES "Clang" )
+      detray_add_flag( CMAKE_CUDA_FLAGS "-Werror" )
+   endif()
 endif()

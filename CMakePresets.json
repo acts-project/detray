@@ -1,0 +1,59 @@
+{
+   "version" : 3,
+   "configurePresets": [
+      {
+         "name" : "base",
+         "displayName" : "Base Developer Configuration",
+         "warnings": {
+            "deprecated": true
+         },
+         "cacheVariables": {
+            "CMAKE_BUILD_TYPE" : "RelWithDebInfo"
+         }
+      },
+      {
+         "name" : "default-fp64",
+         "displayName" : "FP64 Developer Configuration",
+         "inherits" : [ "base" ],
+         "cacheVariables" : {
+            "DETRAY_CUSTOM_SCALARTYPE" : "double"
+         }
+      },
+      {
+         "name" : "default-fp32",
+         "displayName" : "FP32 Developer Configuration",
+         "inherits" : [ "base" ],
+         "cacheVariables" : {
+            "DETRAY_CUSTOM_SCALARTYPE" : "float"
+         }
+      },
+      {
+         "name" : "cuda",
+         "displayName" : "CUDA Developer Configuration",
+         "inherits" : [ "default-fp32" ],
+         "cacheVariables" : {
+            "DETRAY_BUILD_CUDA"     : "TRUE",
+            "DETRAY_VC_PLUGIN"      : "FALSE",
+            "DETRAY_SMATRIX_PLUGIN" : "FALSE"
+         }
+      },
+      {
+         "name" : "sycl",
+         "displayName" : "SYCL Developer Configuration",
+         "inherits" : [ "default-fp32" ],
+         "cacheVariables" : {
+            "DETRAY_BUILD_SYCL"     : "TRUE",
+            "DETRAY_VC_PLUGIN"      : "FALSE",
+            "DETRAY_SMATRIX_PLUGIN" : "FALSE"
+         }
+      },
+      {
+         "name" : "smatrix",
+         "displayName" : "SMatrix Developer Configuration",
+         "inherits" : [ "default-fp64" ],
+         "cacheVariables" : {
+            "DETRAY_SMATRIX_PLUGIN" : "TRUE"
+         }
+      }
+   ]
+}
