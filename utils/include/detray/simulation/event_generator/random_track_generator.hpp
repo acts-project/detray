@@ -126,7 +126,7 @@ class random_track_generator
         /// How many tracks will be generated
         std::size_t m_n_tracks{10u};
 
-        /// Range for phi and theta
+        /// Range for phi [-pi, pi] and theta ]0, pi[
         std::array<scalar, 2> m_phi_range{-constant<scalar>::pi,
                                           constant<scalar>::pi};
         std::array<scalar, 2> m_theta_range{epsilon,
@@ -159,11 +159,12 @@ class random_track_generator
             m_n_tracks = n;
             return *this;
         }
-        DETRAY_HOST_DEVICE configuration& phi_range(scalar low, scalar high) {
-            auto min_phi{
-                std::clamp(low, -constant<scalar>::pi, constant<scalar>::pi)};
-            auto max_phi{
-                std::clamp(high, -constant<scalar>::pi, constant<scalar>::pi)};
+        DETRAY_HOST_DEVICE configuration& phi_range(const scalar low,
+                                                    const scalar high) {
+            auto min_phi{low == 0.f ? 0.f
+                                    : std::fmod(low, constant<scalar>::pi)};
+            auto max_phi{high == 0.f ? 0.f
+                                     : std::fmod(high, constant<scalar>::pi)};
             assert(min_phi <= max_phi);
             m_phi_range = {min_phi, max_phi};
             return *this;

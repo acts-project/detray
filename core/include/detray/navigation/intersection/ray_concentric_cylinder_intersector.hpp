@@ -137,6 +137,16 @@ struct ray_concentric_cylinder_intersector {
         return is;
     }
 
+    /// Interface to use fixed mask tolerance
+    template <typename surface_descr_t, typename mask_t>
+    DETRAY_HOST_DEVICE inline intersection_type<surface_descr_t> operator()(
+        const ray_type &ray, const surface_descr_t &sf, const mask_t &mask,
+        const transform3_type &trf, const scalar_type mask_tolerance,
+        const scalar_type overstep_tol = 0.f) const {
+        return this->operator()(ray, sf, mask, trf, {mask_tolerance, 0.f},
+                                overstep_tol);
+    }
+
     /// Operator function to find intersections between a ray and a 2D cylinder
     ///
     /// @tparam mask_t is the input mask type

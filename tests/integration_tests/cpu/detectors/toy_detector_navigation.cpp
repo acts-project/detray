@@ -71,8 +71,9 @@ int main(int argc, char **argv) {
     cfg_str_nav.name("toy_detector_straight_line_navigation");
     cfg_str_nav.whiteboard(white_board);
     cfg_str_nav.propagation().navigation.search_window = {3u, 3u};
-    cfg_str_nav.propagation().navigation.mask_tolerance =
-        cfg_ray_scan.mask_tolerance();
+    auto mask_tolerance = cfg_ray_scan.mask_tolerance();
+    cfg_str_nav.propagation().navigation.min_mask_tolerance = mask_tolerance[0];
+    cfg_str_nav.propagation().navigation.max_mask_tolerance = mask_tolerance[1];
 
     detail::register_checks<test::straight_line_navigation>(toy_det, toy_names,
                                                             cfg_str_nav);
@@ -83,7 +84,7 @@ int main(int argc, char **argv) {
     cfg_hel_nav.whiteboard(white_board);
     cfg_hel_nav.propagation().navigation.search_window = {3u, 3u};
     // For one surface the toy detector seems to need a stricter tolerance
-    cfg_hel_nav.propagation().navigation.mask_tolerance[0] = 1e-5f;
+    cfg_hel_nav.propagation().navigation.min_mask_tolerance = 1e-5f;
 
     detail::register_checks<test::helix_navigation>(toy_det, toy_names,
                                                     cfg_hel_nav);

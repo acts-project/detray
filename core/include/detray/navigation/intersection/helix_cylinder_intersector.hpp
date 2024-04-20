@@ -184,6 +184,17 @@ struct helix_intersector_impl<cylindrical2D<algebra_t>, algebra_t>
         return ret;
     }
 
+    /// Interface to use fixed mask tolerance
+    template <typename surface_descr_t, typename mask_t>
+    DETRAY_HOST_DEVICE inline std::array<intersection_type<surface_descr_t>, 2>
+    operator()(const helix_type &h, const surface_descr_t &sf_desc,
+               const mask_t &mask, const transform3_type &trf,
+               const scalar_type mask_tolerance,
+               const scalar_type = 0.f) const {
+        return this->operator()(h, sf_desc, mask, trf, {mask_tolerance, 0.f},
+                                0.f);
+    }
+
     /// Tolerance for convergence
     scalar_type convergence_tolerance{1.f * unit<scalar_type>::um};
 };

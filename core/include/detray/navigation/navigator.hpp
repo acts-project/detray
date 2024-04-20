@@ -490,7 +490,9 @@ class navigator {
         // Search for neighboring surfaces and fill candidates into cache
         volume.template visit_neighborhood<candidate_search>(
             track, cfg, *det, track, navigation.candidates(),
-            cfg.mask_tolerance, cfg.overstep_tolerance);
+            std::array<scalar_type, 2u>{cfg.min_mask_tolerance,
+                                        cfg.max_mask_tolerance},
+            cfg.overstep_tolerance);
 
         // Sort all candidates and pick the closest one
         detail::sequential_sort(navigation.candidates().begin(),
@@ -742,7 +744,8 @@ class navigator {
         return sf.template visit_mask<intersection_update<ray_intersector>>(
             detail::ray(track), candidate, det->transform_store(),
             sf.is_portal() ? std::array<scalar_type, 2>{0.f, 0.f}
-                           : cfg.mask_tolerance,
+                           : std::array<scalar_type, 2>{cfg.min_mask_tolerance,
+                                                        cfg.max_mask_tolerance},
             cfg.overstep_tolerance);
     }
 

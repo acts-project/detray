@@ -81,7 +81,7 @@ GTEST_TEST(detray_intersection, helix_plane_intersector_no_bfield) {
     helix_intersector<unmasked<2>, algebra_t> pi;
     mask<unmasked<2>> unmasked_bound{};
     const auto hit_bound =
-        pi(h, surface_descriptor<>{}, unmasked_bound, shifted);
+        pi(h, surface_descriptor<>{}, unmasked_bound, shifted, tol);
 
     ASSERT_TRUE(hit_bound.status == intersection::status::e_inside);
     // Global intersection information - unchanged
@@ -99,7 +99,7 @@ GTEST_TEST(detray_intersection, helix_plane_intersector_no_bfield) {
     // The same test but bound to local frame & masked - inside
     mask<rectangle2D> rect_for_inside{0u, 3.f, 3.f};
     const auto hit_bound_inside =
-        pi(h, surface_descriptor<>{}, rect_for_inside, shifted);
+        pi(h, surface_descriptor<>{}, rect_for_inside, shifted, tol);
     ASSERT_TRUE(hit_bound_inside.status == intersection::status::e_inside);
     // Global intersection information - unchanged
     const auto global1 =
@@ -114,7 +114,7 @@ GTEST_TEST(detray_intersection, helix_plane_intersector_no_bfield) {
     // The same test but bound to local frame & masked - outside
     mask<rectangle2D> rect_for_outside{0u, 0.5f, 3.5f};
     const auto hit_bound_outside =
-        pi(h, surface_descriptor<>{}, rect_for_outside, shifted);
+        pi(h, surface_descriptor<>{}, rect_for_outside, shifted, tol);
     ASSERT_TRUE(hit_bound_outside.status == intersection::status::e_outside);
     const auto global2 =
         rect_for_outside.to_global_frame(shifted, hit_bound_outside.local);
@@ -143,7 +143,7 @@ GTEST_TEST(detray_intersection, helix_plane_intersector) {
     const helix_intersector<rectangle2D, algebra_t> hpi;
 
     // Get the intersection on the next surface
-    const auto is = hpi(hlx, surface_descriptor<>{}, rectangle, trf);
+    const auto is = hpi(hlx, surface_descriptor<>{}, rectangle, trf, tol);
 
     // Check the values
     EXPECT_TRUE(is.status == intersection::status::e_inside);
@@ -177,7 +177,8 @@ GTEST_TEST(detray_intersection, helix_cylinder_intersector_no_bfield) {
     // Intersect
     mask<concentric_cylinder2D, std::uint_least16_t, algebra_t> cylinder{
         0u, r, -hz, hz};
-    const auto hits_bound = hi(h, surface_descriptor<>{}, cylinder, shifted);
+    const auto hits_bound =
+        hi(h, surface_descriptor<>{}, cylinder, shifted, tol);
 
     // No magnetic field, so the solutions must be the same as for a ray
 
@@ -225,7 +226,7 @@ GTEST_TEST(detray_intersection, helix_cylinder_intersector) {
     const helix_intersector<cylinder2D, algebra_t> hci;
 
     // Get the intersection on the next surface
-    const auto is = hci(hlx, surface_descriptor<>{}, cylinder, trf);
+    const auto is = hci(hlx, surface_descriptor<>{}, cylinder, trf, tol);
 
     // First solution
     const vector3 pos_near = hlx.pos(is[0].path);
@@ -301,7 +302,7 @@ GTEST_TEST(detray_intersection, helix_line_intersector) {
     const transform3_t trf_fw(trl_fw, z_axis, hlx.dir(s0));
 
     // Get the intersection on the next surface
-    auto is = hli(hlx, surface_descriptor<>{}, straw_tube, trf_fw);
+    auto is = hli(hlx, surface_descriptor<>{}, straw_tube, trf_fw, tol);
 
     EXPECT_NEAR(is.path, s0, tol);
     // track (helix) is at the left side w.r.t wire
@@ -312,7 +313,7 @@ GTEST_TEST(detray_intersection, helix_line_intersector) {
     EXPECT_NEAR(is.cos_incidence_angle, 0.f, tol);
 
     // Get the intersection on the next surface
-    is = hli(hlx, surface_descriptor<>{}, drift_cell, trf_fw);
+    is = hli(hlx, surface_descriptor<>{}, drift_cell, trf_fw, tol);
 
     EXPECT_NEAR(is.path, s0, tol);
     // track (helix) is at the left side w.r.t wire
@@ -336,7 +337,7 @@ GTEST_TEST(detray_intersection, helix_line_intersector) {
     const transform3_t trf_bw(trl_bw, z_axis, hlx.dir(-s0));
 
     // Get the intersection on the next surface
-    is = hli(hlx, surface_descriptor<>{}, straw_tube, trf_bw);
+    is = hli(hlx, surface_descriptor<>{}, straw_tube, trf_bw, tol);
 
     EXPECT_NEAR(is.path, -s0, tol);
     // track (helix) is at the right side w.r.t wire
@@ -347,7 +348,7 @@ GTEST_TEST(detray_intersection, helix_line_intersector) {
     EXPECT_NEAR(is.cos_incidence_angle, 0.f, tol);
 
     // Get the intersection on the next surface
-    is = hli(hlx, surface_descriptor<>{}, drift_cell, trf_bw);
+    is = hli(hlx, surface_descriptor<>{}, drift_cell, trf_bw, tol);
 
     EXPECT_NEAR(is.path, -s0, tol);
     // track (helix) is at the right side w.r.t wire

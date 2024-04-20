@@ -54,8 +54,8 @@ GTEST_TEST(detray_intersection, translated_cylinder) {
 
     // Intersect:
     mask<cylinder2D, std::uint_least16_t, algebra_t> cylinder{0u, r, -hz, hz};
-    const auto hits_bound = ci(ray, surface_descriptor<>{}, cylinder, shifted,
-                               {tol, tol}, -not_defined);
+    const auto hits_bound =
+        ci(ray, surface_descriptor<>{}, cylinder, shifted, tol, -not_defined);
 
     // first intersection lies behind the track
     EXPECT_TRUE(hits_bound[0].status == intersection::status::e_inside);
@@ -102,8 +102,8 @@ GTEST_TEST(detray_intersection, cylinder_incidence_angle) {
     // Intersect: Set an infinite overstep tolerance, so that no solution is
     // optimized away
     mask<cylinder2D, std::uint_least16_t, algebra_t> cylinder{0u, r, -hz, hz};
-    const auto hits_bound = ci(ray, surface_descriptor<>{}, cylinder, identity,
-                               {tol, tol}, -not_defined);
+    const auto hits_bound =
+        ci(ray, surface_descriptor<>{}, cylinder, identity, tol, -not_defined);
 
     ASSERT_NEAR(hits_bound[0].cos_incidence_angle, -std::sqrt(15.f) / 4.f, tol);
     ASSERT_NEAR(hits_bound[1].cos_incidence_angle, std::sqrt(15.f) / 4.f, tol);
@@ -126,9 +126,9 @@ GTEST_TEST(detray_intersection, cylinder_portal) {
 
     // Intersect
     const auto hits_cylinrical =
-        ci(ray, surface_descriptor<>{}, cylinder, identity, {tol, tol});
+        ci(ray, surface_descriptor<>{}, cylinder, identity, tol);
     const auto hit_cocylindrical =
-        cpi(ray, surface_descriptor<>{}, cylinder, identity, {tol, tol});
+        cpi(ray, surface_descriptor<>{}, cylinder, identity, tol);
 
     ASSERT_TRUE(hits_cylinrical[1].status == intersection::status::e_inside);
     ASSERT_TRUE(hit_cocylindrical.status == intersection::status::e_inside);
@@ -172,9 +172,9 @@ GTEST_TEST(detray_intersection, concentric_cylinders) {
 
     // Intersect
     const auto hits_cylinrical =
-        ci(ray, surface_descriptor<>{}, cylinder, identity, {tol, tol});
+        ci(ray, surface_descriptor<>{}, cylinder, identity, tol);
     const auto hit_cocylindrical =
-        cci(ray, surface_descriptor<>{}, cylinder, identity, {tol, tol});
+        cci(ray, surface_descriptor<>{}, cylinder, identity, tol);
 
     ASSERT_TRUE(hits_cylinrical[1].status == intersection::status::e_inside);
     ASSERT_TRUE(hit_cocylindrical.status == intersection::status::e_inside);

@@ -84,8 +84,9 @@ int main(int argc, char **argv) {
     test::straight_line_navigation<tel_detector_t>::config cfg_str_nav{};
     cfg_str_nav.name("telescope_detector_straight_line_navigation");
     cfg_str_nav.whiteboard(white_board);
-    cfg_str_nav.propagation().navigation.mask_tolerance =
-        cfg_ray_scan.mask_tolerance();
+    auto mask_tolerance = cfg_ray_scan.mask_tolerance();
+    cfg_str_nav.propagation().navigation.min_mask_tolerance = mask_tolerance[0];
+    cfg_str_nav.propagation().navigation.max_mask_tolerance = mask_tolerance[1];
 
     detail::register_checks<test::straight_line_navigation>(tel_det, tel_names,
                                                             cfg_str_nav);

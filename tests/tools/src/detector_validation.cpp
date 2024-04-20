@@ -238,8 +238,9 @@ int main(int argc, char **argv) {
     // Comparision of straight line navigation with ray scan
     str_nav_cfg.name(names.at(0) + "_straight_line_navigation");
     // Ensure that the same mask tolerance is used
-    str_nav_cfg.propagation().navigation.mask_tolerance =
-        ray_scan_cfg.mask_tolerance();
+    auto mask_tolerance = ray_scan_cfg.mask_tolerance();
+    str_nav_cfg.propagation().navigation.min_mask_tolerance = mask_tolerance[0];
+    str_nav_cfg.propagation().navigation.max_mask_tolerance = mask_tolerance[1];
     detray::detail::register_checks<detray::test::straight_line_navigation>(
         det, names, str_nav_cfg);
 
