@@ -21,7 +21,7 @@ namespace detray {
 /// Launch the propagation test kernel
 template <typename bfield_bknd_t, typename detector_t>
 void propagator_test(
-    typename detector_t::view_type, const propagation::config<scalar_t> &,
+    typename detector_t::view_type, const propagation::config &,
     covfie::field_view<bfield_bknd_t>, vecmem::data::vector_view<track_t> &,
     vecmem::data::jagged_vector_view<intersection_t<detector_t>> &,
     vecmem::data::jagged_vector_view<scalar_t> &,
@@ -32,8 +32,7 @@ void propagator_test(
 template <typename bfield_bknd_t, typename detector_t>
 inline auto run_propagation_device(
     vecmem::memory_resource *mr, detector_t &det,
-    const propagation::config<scalar_t> &cfg,
-    typename detector_t::view_type det_view,
+    const propagation::config &cfg, typename detector_t::view_type det_view,
     covfie::field_view<bfield_bknd_t> field_data, sycl::queue_wrapper queue,
     dvector<track_t> &tracks,
     const vecmem::jagged_vector<point3_t> &host_positions)

@@ -53,12 +53,11 @@ struct brute_force_scan {
 
     template <typename detector_t>
     inline auto operator()(const typename detector_t::geometry_context,
-                           const detector_t &detector, const trajectory_t &traj,
-                           const std::array<typename detector_t::scalar_type, 2>
-                               mask_tolerance = {0.f, 0.f},
-                           const typename detector_t::scalar_type p =
-                               1.f *
-                               unit<typename detector_t::scalar_type>::GeV) {
+        const detector_t &detector, const trajectory_t &traj,
+        const std::array<float, 2> mask_tolerance = {0.f,
+                                                     0.f * unit<float>::um},
+        const typename detector_t::scalar_type p =
+            1.f * unit<typename detector_t::scalar_type>::GeV) {
 
         using scalar_t = typename detector_t::scalar_type;
         using sf_desc_t = typename detector_t::surface_type;
@@ -82,8 +81,8 @@ struct brute_force_scan {
             const auto sf = surface{detector, sf_desc};
             sf.template visit_mask<intersection_kernel_t>(
                 intersections, traj, sf_desc, trf_store,
-                sf.is_portal() ? std::array<scalar_t, 2>{0.f, 0.f}
-                               : std::array<scalar_t, 2>{mask_tolerance[0],
+                sf.is_portal() ? std::array<float, 2>{0.f, 0.f}
+                               : std::array<float, 2>{mask_tolerance[0],
                                                          mask_tolerance[1]});
 
             // Candidate is invalid if it lies in the opposite direction
@@ -154,8 +153,8 @@ inline auto run(const typename detector_t::geometry_context gctx,
     // Make sure the intersection record terminates at world portals
     auto is_world_exit = [](const record_t &r) {
         return r.intersection.volume_link ==
-               detray::detail::invalid_value<decltype(
-                   r.intersection.volume_link)>();
+               detray::detail::invalid_value<
+                   decltype(r.intersection.volume_link)>();
     };
 
     if (auto it = std::find_if(intersection_record.begin(),

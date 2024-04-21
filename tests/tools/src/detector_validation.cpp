@@ -36,7 +36,6 @@ int main(int argc, char** argv) {
 
     // Use the most general type to be able to read in all detector files
     using detector_t = detray::detector<>;
-    using scalar_t = detector_t::scalar_type;
 
     // Filter out the google test flags
     ::testing::InitGoogleTest(&argc, argv);
@@ -53,19 +52,19 @@ int main(int argc, char** argv) {
         "material_file", po::value<std::string>(), "material input file")(
         "n_tracks", po::value<std::size_t>()->default_value(50u),
         "# of tracks for particle gun")(
-        "theta_range", po::value<std::vector<scalar_t>>()->multitoken(),
+        "theta_range", po::value<std::vector<float>>()->multitoken(),
         "min, max range of theta values for particle gun")(
-        "eta_range", po::value<std::vector<scalar_t>>()->multitoken(),
+        "eta_range", po::value<std::vector<float>>()->multitoken(),
         "min, max range of eta values for particle gun")(
-        "origin", po::value<std::vector<scalar_t>>()->multitoken(),
+        "origin", po::value<std::vector<float>>()->multitoken(),
         "coordintates for particle gun origin position")(
-        "p_tot", po::value<scalar_t>()->default_value(10.f),
+        "p_tot", po::value<float>()->default_value(10.f),
         "total momentum of the test particle [GeV]")(
-        "p_T", po::value<scalar_t>()->default_value(10.f),
+        "p_T", po::value<float>()->default_value(10.f),
         "transverse momentum of the test particle [GeV]")(
         "search_window", po::value<std::vector<dindex>>(&window)->multitoken(),
         "search window size for the grid")(
-        "overstep_tol", po::value<scalar_t>()->default_value(-100.f),
+        "overstep_tol", po::value<float>()->default_value(-100.f),
         "overstepping tolerance [um] NOTE: Must be negative!");
 
     po::variables_map vm;
@@ -130,14 +129,14 @@ int main(int argc, char** argv) {
         }
     }
     if (vm.count("eta_range")) {
-        const auto eta_range = vm["eta_range"].as<std::vector<scalar_t>>();
+        const auto eta_range = vm["eta_range"].as<std::vector<float>>();
         if (eta_range.size() == 2u) {
-            scalar_t min_theta{2.f * std::atan(std::exp(-eta_range[0]))};
-            scalar_t max_theta{2.f * std::atan(std::exp(-eta_range[1]))};
+            float min_theta{2.f * std::atan(std::exp(-eta_range[0]))};
+            float max_theta{2.f * std::atan(std::exp(-eta_range[1]))};
 
             // Wrap around
             if (min_theta > max_theta) {
-                scalar_t tmp{min_theta};
+                float tmp{min_theta};
                 min_theta = max_theta;
                 max_theta = tmp;
             }
@@ -153,7 +152,7 @@ int main(int argc, char** argv) {
                 "time");
         }
     } else if (vm.count("theta_range")) {
-        const auto theta_range = vm["theta_range"].as<std::vector<scalar_t>>();
+        const auto theta_range = vm["theta_range"].as<std::vector<float>>();
         if (theta_range.size() == 2u) {
             ray_scan_cfg.track_generator().theta_range(theta_range[0],
                                                        theta_range[1]);
@@ -164,7 +163,7 @@ int main(int argc, char** argv) {
         }
     }
     if (vm.count("origin")) {
-        const auto origin = vm["origin"].as<std::vector<scalar_t>>();
+        const auto origin = vm["origin"].as<std::vector<float>>();
         if (origin.size() == 3u) {
             ray_scan_cfg.track_generator().origin(
                 {origin[0], origin[1], origin[2]});
@@ -176,14 +175,14 @@ int main(int argc, char** argv) {
         }
     }
     if (vm.count("p_T")) {
-        const scalar_t p_T{vm["p_T"].as<scalar_t>()};
+        const float p_T{vm["p_T"].as<float>()};
 
-        hel_scan_cfg.track_generator().p_T(p_T * unit<scalar_t>::GeV);
+        hel_scan_cfg.track_generator().p_T(p_T * unit<float>::GeV);
     }
     if (!vm["p_tot"].defaulted()) {
-        const scalar_t p_mag{vm["p_tot"].as<scalar_t>()};
+        const float p_mag{vm["p_tot"].as<float>()};
 
-        hel_scan_cfg.track_generator().p_tot(p_mag * unit<scalar_t>::GeV);
+        hel_scan_cfg.track_generator().p_tot(p_mag * unit<float>::GeV);
     }
 
     // Navigation
@@ -201,10 +200,10 @@ int main(int argc, char** argv) {
     }
 
     if (vm.count("overstep_tol")) {
-        const scalar_t overstep_tol{vm["overstep_tol"].as<scalar_t>()};
+        const float overstep_tol{vm["overstep_tol"].as<float>()};
 
         hel_nav_cfg.propagation().navigation.overstep_tolerance =
-            overstep_tol * unit<scalar_t>::um;
+            overstep_tol * unit<float>::um;
     }
 
     vecmem::host_memory_resource host_mr;

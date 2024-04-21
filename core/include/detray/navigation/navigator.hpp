@@ -128,16 +128,15 @@ class navigator {
             const typename detector_type::surface_type &sf_descr,
             const detector_type &det, const track_t &track,
             vector_type<intersection_type> &candidates,
-            const std::array<scalar_type, 2> mask_tol,
-            const scalar_type overstep_tol) const {
+            const std::array<float, 2> mask_tol,
+            const float overstep_tol) const {
 
             const auto sf = surface{det, sf_descr};
 
             sf.template visit_mask<intersection_initialize<ray_intersector>>(
                 candidates, detail::ray(track), sf_descr, det.transform_store(),
-                sf.is_portal() ? std::array<scalar_type, 2>{0.f, 0.f}
-                               : mask_tol,
-                overstep_tol);
+                sf.is_portal() ? std::array<scalar_t, 2>{0.f, 0.f} : mask_tol,
+                static_cast<scalar_t>(overstep_tol));
         }
     };
 
@@ -412,7 +411,7 @@ class navigator {
         /// Helper method to check if a candidate lies on a surface - const
         DETRAY_HOST_DEVICE inline auto is_on_object(
             const intersection_type &candidate,
-            const navigation::config<scalar_type> &cfg) const -> bool {
+            const navigation::config &cfg) const -> bool {
             return (math::fabs(candidate.path) < cfg.on_surface_tolerance);
         }
 
@@ -449,7 +448,7 @@ class navigator {
         /// Call the navigation inspector
         DETRAY_HOST_DEVICE
         inline void run_inspector(
-            [[maybe_unused]] const navigation::config<scalar_type> &cfg,
+            [[maybe_unused]] const navigation::config &cfg,
             [[maybe_unused]] const point3_type &track_pos,
             [[maybe_unused]] const vector3_type &track_dir,
             [[maybe_unused]] const char *message) {
@@ -504,7 +503,7 @@ class navigator {
     template <typename propagator_state_t>
     DETRAY_HOST_DEVICE inline bool init(
         propagator_state_t &propagation,
-        const navigation::config<scalar_type> &cfg = {}) const {
+        const navigation::config &cfg = {}) const {
 
         state &navigation = propagation._navigation;
         const auto det = navigation.detector();
@@ -522,9 +521,9 @@ class navigator {
         // Search for neighboring surfaces and fill candidates into cache
         volume.template visit_neighborhood<candidate_search>(
             track, cfg, *det, track, navigation.candidates(),
-            std::array<scalar_type, 2u>{cfg.min_mask_tolerance,
-                                        cfg.max_mask_tolerance},
-            cfg.overstep_tolerance);
+            std::array<scalar_t, 2u>{cfg.min_mask_tolerance,
+                                  cfg.max_mask_tolerance},
+            static_cast<scalar_t>(cfg.overstep_tolerance));
 
         // Sort all candidates and pick the closest one
         detail::sequential_sort(navigation.candidates().begin(),
@@ -566,7 +565,7 @@ class navigator {
     template <typename propagator_state_t>
     DETRAY_HOST_DEVICE inline bool update(
         propagator_state_t &propagation,
-        const navigation::config<scalar_type> &cfg = {}) const {
+        const navigation::config &cfg = {}) const {
 
         state &navigation = propagation._navigation;
 
@@ -624,8 +623,7 @@ class navigator {
     /// @param propagation contains the stepper and navigator states
     template <typename propagator_state_t>
     DETRAY_HOST_DEVICE inline void update_kernel(
-        propagator_state_t &propagation,
-        const navigation::config<scalar_type> &cfg) const {
+        propagator_state_t &propagation, const navigation::config &cfg) const {
 
         state &navigation = propagation._navigation;
         const auto det = navigation.detector();
@@ -725,8 +723,7 @@ class navigator {
     /// @param propagation contains the stepper and navigator states
     template <typename propagator_state_t>
     DETRAY_HOST_DEVICE inline void update_navigation_state(
-        const navigation::config<scalar_type> &cfg,
-        propagator_state_t &propagation) const {
+        const navigation::config &cfg, propagator_state_t &propagation) const {
 
         auto &navigation = propagation._navigation;
         auto &stepping = propagation._stepping;
@@ -772,8 +769,7 @@ class navigator {
     template <typename track_t>
     DETRAY_HOST_DEVICE inline bool update_candidate(
         intersection_type &candidate, const track_t &track,
-        const detector_type *det,
-        const navigation::config<scalar_type> &cfg) const {
+        const detector_type *det, const navigation::config &cfg) const {
 
         if (candidate.sf_desc.barcode().is_invalid()) {
             return false;
@@ -784,10 +780,10 @@ class navigator {
         // Check whether this candidate is reachable by the track
         return sf.template visit_mask<intersection_update<ray_intersector>>(
             detail::ray(track), candidate, det->transform_store(),
-            sf.is_portal() ? std::array<scalar_type, 2>{0.f, 0.f}
-                           : std::array<scalar_type, 2>{cfg.min_mask_tolerance,
-                                                        cfg.max_mask_tolerance},
-            cfg.overstep_tolerance);
+            sf.is_portal() ? std::array<scalar_t, 2>{0.f, 0.f}
+                           : std::array<scalar_t, 2>{cfg.min_mask_tolerance,
+                                                  cfg.max_mask_tolerance},
+            static_cast<scalar_t>(cfg.overstep_tolerance));
     }
 
     /// Helper to evict all unreachable/invalid candidates from the cache:

@@ -52,7 +52,7 @@ struct aggregate_inspector {
     template <unsigned int current_id = 0, typename state_type,
               typename scalar_t, typename point3_t, typename vector3_t>
     DETRAY_HOST_DEVICE auto operator()(state_type &state,
-                                       const navigation::config<scalar_t> &cfg,
+                                       const navigation::config &cfg,
                                        const point3_t &pos,
                                        const vector3_t &dir,
                                        const char *message) {
@@ -131,7 +131,7 @@ struct object_tracer {
     template <typename state_type, typename scalar_t, typename point3_t,
               typename vector3_t>
     DETRAY_HOST_DEVICE auto operator()(state_type &state,
-                                       const navigation::config<scalar_t> &,
+                                       const navigation::config &,
                                        const point3_t &pos,
                                        const vector3_t &dir,
                                        const char * /*message*/) {
@@ -166,7 +166,7 @@ struct print_inspector {
     template <typename state_type, typename scalar_t, typename point3_t,
               typename vector3_t>
     auto operator()(const state_type &state,
-                    const navigation::config<scalar_t> &cfg,
+                    const navigation::config &cfg,
                     const point3_t &track_pos, const vector3_t &track_dir,
                     const char *message) {
         std::string msg(message);
@@ -236,7 +236,7 @@ struct print_inspector {
         }
 
         debug_stream << "distance to next\t\t";
-        if (math::abs(state()) < cfg.on_surface_tolerance) {
+        if (math::abs(state()) < static_cast<scalar>(cfg.path_tolerance)) {
             debug_stream << "on obj (within tol)" << std::endl;
         } else {
             debug_stream << state() << std::endl;
@@ -275,8 +275,8 @@ struct print_inspector {
     std::stringstream debug_stream{};
 
     /// Inspector interface. Gathers detailed information during stepping
-    template <typename state_type, typename scalar_t>
-    void operator()(const state_type &state, const stepping::config<scalar_t> &,
+    template <typename state_type>
+    void operator()(const state_type &state, const stepping::config &,
                     const char *message) {
         std::string msg(message);
         std::string tabs = "\t\t\t\t";
@@ -310,8 +310,8 @@ struct print_inspector {
     }
 
     /// Inspector interface. Gathers detailed information during stepping
-    template <typename state_type, typename scalar_t>
-    void operator()(const state_type &state, const stepping::config<scalar_t> &,
+    template <typename state_type>
+    void operator()(const state_type &state, const stepping::config &,
                     const char *message, const std::size_t n_trials,
                     const scalar step_scalor) {
         std::string msg(message);

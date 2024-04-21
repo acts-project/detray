@@ -64,7 +64,7 @@ int main(int argc, char **argv) {
                                  detray::detail::invalid_value<scalar_t>()});
     cfg_hel_scan.track_generator().n_tracks(10000u);
     cfg_hel_scan.track_generator().eta_range(-4.f, 4.f);
-    cfg_hel_scan.track_generator().p_T(1.f * unit<scalar_t>::GeV);
+    cfg_hel_scan.track_generator().p_T(1.f * unit<float>::GeV);
 
     detail::register_checks<test::helix_scan>(toy_det, toy_names, cfg_hel_scan);
 

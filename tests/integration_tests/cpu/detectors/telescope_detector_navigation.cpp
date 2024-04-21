@@ -55,12 +55,12 @@ int main(int argc, char **argv) {
     cfg_ray_scan.whiteboard(white_board);
     cfg_ray_scan.track_generator().n_tracks(10000u);
     cfg_ray_scan.track_generator().origin({0.f, 0.f, -0.05f});
-    cfg_ray_scan.track_generator().theta_range(constant<scalar_t>::pi_4,
-                                               constant<scalar_t>::pi_2);
+    cfg_ray_scan.track_generator().theta_range(constant<float>::pi_4,
+                                               constant<scafloatlar_t>::pi_2);
     // Better momentum range fails because of bug in the object tracer
     /*cfg_ray_scan.track_generator().theta_range(0.f,
                                                0.25f *
-       constant<scalar_t>::pi_4);*/
+       constant<float>::pi_4);*/
 
     detail::register_checks<test::ray_scan>(tel_det, tel_names, cfg_ray_scan);
 
@@ -72,12 +72,12 @@ int main(int argc, char **argv) {
     cfg_hel_scan.mask_tolerance({detray::detail::invalid_value<scalar_t>(),
                                  detray::detail::invalid_value<scalar_t>()});
     cfg_hel_scan.track_generator().n_tracks(10000u);
-    cfg_hel_scan.track_generator().p_tot(10.f * unit<scalar_t>::GeV);
+    cfg_hel_scan.track_generator().p_tot(10.f * unit<float>::GeV);
     cfg_hel_scan.track_generator().origin({0.f, 0.f, -0.05f});
-    cfg_hel_scan.track_generator().theta_range(constant<scalar_t>::pi_4,
-                                               constant<scalar_t>::pi_2);
+    cfg_hel_scan.track_generator().theta_range(constant<float>::pi_4,
+                                               constant<float>::pi_2);
     /*cfg_hel_scan.track_generator().theta_range(0.f,
-                                               constant<scalar_t>::pi_4);*/
+                                               constant<float>::pi_4);*/
     detail::register_checks<test::helix_scan>(tel_det, tel_names, cfg_hel_scan);
 
     // Comparison of straight line navigation with ray scan

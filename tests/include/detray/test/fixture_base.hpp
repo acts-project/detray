@@ -44,21 +44,21 @@ class fixture_base : public scope {
         /// General testing
         /// @{
         /// Tolerance to compare two floating point values
-        scalar m_tolerance{std::numeric_limits<scalar>::epsilon()};
+        float m_tolerance{std::numeric_limits<float>::epsilon()};
         /// Shorthand for infinity
-        scalar inf{std::numeric_limits<scalar>::infinity()};
+        float inf{std::numeric_limits<float>::infinity()};
         /// Shorthand for the floating point epsilon
-        scalar epsilon{std::numeric_limits<scalar>::epsilon()};
+        float epsilon{std::numeric_limits<float>::epsilon()};
         /// @}
 
         /// Propagation
         /// @{
-        propagation::config<scalar> m_prop_cfg{};
+        propagation::config m_prop_cfg{};
         /// @}
 
         /// Setters
         /// @{
-        configuration& tol(scalar t) {
+        configuration& tol(float t) {
             m_tolerance = t;
             return *this;
         }
@@ -66,11 +66,9 @@ class fixture_base : public scope {
 
         /// Getters
         /// @{
-        scalar tol() const { return m_tolerance; }
-        propagation::config<scalar>& propagation() { return m_prop_cfg; }
-        const propagation::config<scalar>& propagation() const {
-            return m_prop_cfg;
-        }
+        float tol() const { return m_tolerance; }
+        propagation::config& propagation() { return m_prop_cfg; }
+        const propagation::config& propagation() const { return m_prop_cfg; }
         /// @}
 
         /// Print configuration
@@ -101,7 +99,7 @@ class fixture_base : public scope {
     std::string name() const { return "detray_test"; };
 
     protected:
-    scalar tolerance{}, inf{}, epsilon{}, path_limit{}, overstep_tolerance{},
+    float tolerance{}, inf{}, epsilon{}, path_limit{}, overstep_tolerance{},
         step_constraint{};
 
     static void SetUpTestSuite() {}

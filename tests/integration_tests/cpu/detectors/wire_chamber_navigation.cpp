@@ -65,7 +65,7 @@ int main(int argc, char **argv) {
     cfg_hel_scan.track_generator().n_tracks(10000u);
     cfg_hel_scan.track_generator().eta_range(-1.f, 1.f);
     // TODO: Fails for smaller momenta
-    cfg_hel_scan.track_generator().p_T(5.f * unit<scalar_t>::GeV);
+    cfg_hel_scan.track_generator().p_T(5.f * unit<float>::GeV);
 
     detail::register_checks<test::helix_scan>(det, names, cfg_hel_scan);
 

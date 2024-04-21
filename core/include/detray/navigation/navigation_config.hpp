@@ -9,7 +9,11 @@
 
 // Project include(s)
 #include "detray/definitions/detail/indexing.hpp"
+#include "detray/definitions/detail/qualifiers.hpp"
 #include "detray/definitions/units.hpp"
+
+// System include(s)
+#include <ostream>
 
 namespace detray::navigation {
 
@@ -22,22 +26,39 @@ enum class trust_level {
 };
 
 /// Navigation configuration
-template <typename scalar_t>
 struct config {
-    /// Maximal absolute path distance for a track to be considered 'on surface'
-    scalar_t on_surface_tolerance{1.f * unit<scalar_t>::um};
     /// Tolerance on the mask 'is_inside' check:
     /// @{
     /// Minimal tolerance: ~ position uncertainty on surface
-    scalar_t min_mask_tolerance{1e-5f * unit<scalar_t>::mm};
+    float min_mask_tolerance{1e-5f * unit<float>::mm};
     /// Maximal tolerance: loose tolerance when still far away from surface
-    scalar_t max_mask_tolerance{1.f * unit<scalar_t>::mm};
+    float max_mask_tolerance{1.f * unit<float>::mm};
     ///@}
+    /// Maximal absolute path distance for a track to be considered 'on surface'
+    float path_tolerance{1.f * unit<float>::um};
     /// How far behind the track position to look for candidates
-    scalar_t overstep_tolerance{-100.f * unit<scalar_t>::um};
+    float overstep_tolerance{-100.f * unit<float>::um};
     /// Search window size for grid based acceleration structures
     /// (0, 0): only look at current bin
     std::array<dindex, 2> search_window = {0u, 0u};
 };
+
+/// Print the navigation configuration
+DETRAY_HOST
+inline std::ostream& operator<<(std::ostream& out,
+                                const detray::navigation::config& cfg) {
+    out << "  Minimal mask tolerance: "
+        << cfg.min_mask_tolerance / detray::unit<float>::mm << " [mm]\n"
+        << "  Maximal mask tolerance: "
+        << cfg.max_mask_tolerance / detray::unit<float>::mm << " [mm]\n"
+        << "  Path tolerance        : "
+        << cfg.path_tolerance / detray::unit<float>::um << " [um]\n"
+        << "  Overstep tolerance    : "
+        << cfg.overstep_tolerance / detray::unit<float>::um << " [um]\n"
+        << "  Search window         : " << cfg.search_window[0] << " x "
+        << cfg.search_window[1] << "\n";
+
+    return out;
+}
 
 }  // namespace detray::navigation

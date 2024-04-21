@@ -212,8 +212,8 @@ TEST_P(PropagatorWithRkStepper, rk4_propagator_const_bfield) {
     const bfield_t bfield = bfield::create_const_field(std::get<2>(GetParam()));
 
     // Propagator is built from the stepper and navigator
-    propagation::config<scalar_t> cfg{};
-    cfg.navigation.overstep_tolerance = overstep_tol;
+    propagation::config cfg{};
+    cfg.navigation.overstep_tolerance = static_cast<float>(overstep_tol);
     propagator_t p{cfg};
 
     // Iterate through uniformly distributed momentum directions
@@ -312,8 +312,8 @@ TEST_P(PropagatorWithRkStepper, rk4_propagator_inhom_bfield) {
     const bfield_t bfield = bfield::create_inhom_field();
 
     // Propagator is built from the stepper and navigator
-    propagation::config<scalar_t> cfg{};
-    cfg.navigation.overstep_tolerance = overstep_tol;
+    propagation::config cfg{};
+    cfg.navigation.overstep_tolerance = static_cast<float>(overstep_tol);
     propagator_t p{cfg};
 
     // Iterate through uniformly distributed momentum directions
