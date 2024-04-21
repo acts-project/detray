@@ -14,7 +14,7 @@
 #include "detray/propagator/line_stepper.hpp"
 #include "detray/propagator/propagator.hpp"
 #include "detray/simulation/event_generator/track_generators.hpp"
-#include "detray/test/utils/detector_scanner.hpp"
+#include "detray/test/common/utils/detector_scanner.hpp"
 #include "detray/tracks/tracks.hpp"
 #include "detray/utils/inspectors.hpp"
 

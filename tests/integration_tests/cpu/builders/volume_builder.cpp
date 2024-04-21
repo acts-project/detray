@@ -14,8 +14,8 @@
 #include "detray/definitions/detail/indexing.hpp"
 #include "detray/geometry/mask.hpp"
 #include "detray/geometry/shapes.hpp"
-#include "detray/test/types.hpp"
-#include "detray/test/utils/prefill_detector.hpp"
+#include "detray/test/common/types.hpp"
+#include "detray/test/common/utils/prefill_detector.hpp"
 
 // Vecmem include(s)
 #include <vecmem/memory/host_memory_resource.hpp>

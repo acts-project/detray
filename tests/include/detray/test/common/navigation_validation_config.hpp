@@ -9,9 +9,9 @@
 
 // Project include(s)
 #include "detray/plugins/svgtools/styling/styling.hpp"
-#include "detray/test/detail/whiteboard.hpp"
-#include "detray/test/fixture_base.hpp"
-#include "detray/test/types.hpp"
+#include "detray/test/common/detail/whiteboard.hpp"
+#include "detray/test/common/fixture_base.hpp"
+#include "detray/test/common/types.hpp"
 
 // System include(s)
 #include <limits>
@@ -32,8 +32,8 @@ struct navigation_validation_config
     /// Access to truth data
     std::shared_ptr<test::whiteboard> m_white_board;
     /// Name of the input file, containing the complete ray scan traces
-    std::string m_intersection_file{""};
-    std::string m_track_param_file{""};
+    std::string m_intersection_file{"truth_intersections.csv"};
+    std::string m_track_param_file{"truth_trk_parameters.csv"};
     /// The maximal number of test tracks to run
     std::size_t m_n_tracks{detray::detail::invalid_value<std::size_t>()};
     /// B-field vector for helix

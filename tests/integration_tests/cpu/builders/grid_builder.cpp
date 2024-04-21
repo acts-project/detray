@@ -14,7 +14,7 @@
 #include "detray/definitions/detail/indexing.hpp"
 #include "detray/detectors/toy_metadata.hpp"
 #include "detray/geometry/mask.hpp"
-#include "detray/test/types.hpp"
+#include "detray/test/common/types.hpp"
 #include "detray/utils/type_list.hpp"
 
 // Vecmem include(s)

@@ -40,20 +40,6 @@ int main(int argc, char **argv) {
     po::variables_map vm =
         detray::options::parse_options(desc, argc, argv, toy_cfg, writer_cfg);
 
-    if (vm.count("homogeneous_material") && vm.count("material_maps")) {
-        std::cout << "Please specify only one material description"
-                  << std::endl;
-        return EXIT_FAILURE;
-    }
-    if (vm.count("homogeneous_material")) {
-        toy_cfg.use_material_maps(false);
-        writer_cfg.write_material(true);
-    }
-    if (vm.count("material_maps")) {
-        toy_cfg.use_material_maps(true);
-        writer_cfg.write_material(true);
-    }
-
     // Build the geometry
     vecmem::host_memory_resource host_mr;
     auto [toy_det, toy_names] = build_toy_detector(host_mr, toy_cfg);

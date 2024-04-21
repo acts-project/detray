@@ -17,7 +17,7 @@ macro( detray_add_cpu_test algebra )
       "propagator/guided_navigator.cpp"
       "propagator/propagator.cpp"
       LINK_LIBRARIES GTest::gtest GTest::gtest_main detray::core_${algebra}
-                     detray::test covfie::core vecmem::core detray::utils)
+                     detray::test_common covfie::core vecmem::core detray::utils)
 
    # Run integration tests only after unit tests passed
    set_tests_properties(detray_integration_test_cpu_${algebra} PROPERTIES DEPENDS
@@ -42,15 +42,11 @@ if( DETRAY_VC_PLUGIN )
    detray_add_cpu_test( vc )
 endif()
 
-# Silence actsvg internal warnings
-include_directories( SYSTEM $<TARGET_PROPERTY:actsvg::meta,INTERFACE_INCLUDE_DIRECTORIES> )
-include_directories( SYSTEM $<TARGET_PROPERTY:actsvg::core,INTERFACE_INCLUDE_DIRECTORIES> )
-
 # Detector navigation tests
 detray_add_integration_test(telescope_detector
                             "detectors/telescope_detector_navigation.cpp"
                             LINK_LIBRARIES GTest::gtest GTest::gtest_main
-                            detray::test detray::io detray::utils
+                            detray::test_common detray::io detray::utils
                             detray::core_array )
 
 set_tests_properties(detray_integration_test_telescope_detector PROPERTIES DEPENDS
@@ -59,7 +55,7 @@ set_tests_properties(detray_integration_test_telescope_detector PROPERTIES DEPEN
 detray_add_integration_test(toy_detector
                             "detectors/toy_detector_navigation.cpp"
                             LINK_LIBRARIES GTest::gtest GTest::gtest_main
-                            detray::test detray::io detray::utils
+                            detray::test_common detray::io detray::utils
                             detray::core_array )
 
 set_tests_properties(detray_integration_test_toy_detector PROPERTIES DEPENDS
@@ -68,7 +64,7 @@ set_tests_properties(detray_integration_test_toy_detector PROPERTIES DEPENDS
 detray_add_integration_test(wire_chamber
                             "detectors/wire_chamber_navigation.cpp"
                             LINK_LIBRARIES GTest::gtest GTest::gtest_main
-                            detray::test detray::io detray::utils
+                            detray::test_common detray::io detray::utils
                             detray::core_array )
 
 set_tests_properties(detray_integration_test_wire_chamber PROPERTIES DEPENDS
@@ -81,7 +77,7 @@ find_dependency( Boost COMPONENTS program_options )
 detray_add_integration_test(jacobian_validation
                             "propagator/jacobian_validation.cpp"
                             LINK_LIBRARIES GTest::gtest GTest::gtest_main 
-                            Boost::program_options detray::test
+                            Boost::program_options detray::test_common
                             detray::core_array detray::utils)
 
 set_tests_properties(detray_integration_test_jacobian_validation PROPERTIES DEPENDS

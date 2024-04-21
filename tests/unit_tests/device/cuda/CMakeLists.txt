@@ -28,7 +28,7 @@ detray_add_unit_test( cuda_grid2_array
       "grids_grid2_cuda_kernel.hpp"
       "grids_grid2_cuda.cpp"
       "grids_grid2_cuda_kernel.cu"
-   LINK_LIBRARIES GTest::gtest_main detray::test vecmem::cuda 
+   LINK_LIBRARIES GTest::gtest_main detray::test_common vecmem::cuda 
                   detray::core_array )
 
 # make unit tests for multiple algebras
@@ -57,7 +57,7 @@ foreach(algebra ${algebras})
       "transform_store_cuda_kernel.hpp"
       "transform_store_cuda.cpp"
       "transform_store_cuda_kernel.cu"
-      LINK_LIBRARIES GTest::gtest_main vecmem::cuda detray::test covfie::cuda
+      LINK_LIBRARIES GTest::gtest_main vecmem::cuda detray::test_common covfie::cuda
                      detray::core detray::algebra_${algebra} detray::utils )
    target_compile_definitions(detray_unit_test_cuda_${algebra}
       PRIVATE ${algebra}=${algebra})

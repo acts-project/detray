@@ -9,7 +9,7 @@
 #include "detray/core/detail/multi_store.hpp"
 #include "detray/geometry/mask.hpp"
 #include "detray/geometry/shapes.hpp"
-#include "detray/test/types.hpp"
+#include "detray/test/common/types.hpp"
 
 // Vecmem include(s)
 #include <vecmem/memory/host_memory_resource.hpp>

@@ -13,7 +13,7 @@
 #include "detray/propagator/propagator.hpp"
 
 // Test include(s)
-#include "detray/test/types.hpp"
+#include "detray/test/common/types.hpp"
 
 // GTest include(s)
 #include <gtest/gtest.h>

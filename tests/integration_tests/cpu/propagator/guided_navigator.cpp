@@ -16,7 +16,7 @@
 #include "detray/propagator/actors/aborters.hpp"
 #include "detray/propagator/propagator.hpp"
 #include "detray/propagator/rk_stepper.hpp"
-#include "detray/test/types.hpp"
+#include "detray/test/common/types.hpp"
 #include "detray/tracks/tracks.hpp"
 #include "detray/utils/inspectors.hpp"
 

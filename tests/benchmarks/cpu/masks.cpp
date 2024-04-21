@@ -12,7 +12,7 @@
 #include "detray/navigation/intersection/intersection.hpp"
 
 // Detray test include(s).
-#include "detray/test/types.hpp"
+#include "detray/test/common/types.hpp"
 
 // Google benchmark include(s).
 #include <benchmark/benchmark.h>

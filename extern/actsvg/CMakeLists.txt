@@ -30,3 +30,13 @@ set(ACTSVG_BUILD_WEB ON CACHE BOOL "Build the web plugin of ACTSVG")
 
 # Now set up its build.
 FetchContent_MakeAvailable( actsvg )
+
+# Treat the actvg headers as "system headers", to avoid getting warnings from
+# them.
+get_target_property( _incDirs actsvg_core INTERFACE_INCLUDE_DIRECTORIES )
+target_include_directories( actsvg_core SYSTEM INTERFACE ${_incDirs} )
+unset( _incDirs )
+
+get_target_property( _incDirs actsvg_meta INTERFACE_INCLUDE_DIRECTORIES )
+target_include_directories( actsvg_meta SYSTEM INTERFACE ${_incDirs} )
+unset( _incDirs )

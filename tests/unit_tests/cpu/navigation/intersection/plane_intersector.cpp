@@ -12,7 +12,7 @@
 #include "detray/geometry/shapes/unmasked.hpp"
 #include "detray/navigation/detail/ray.hpp"
 #include "detray/navigation/intersection/ray_intersector.hpp"
-#include "detray/test/types.hpp"
+#include "detray/test/common/types.hpp"
 
 // GTest include(s)
 #include <gtest/gtest.h>

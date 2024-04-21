@@ -27,5 +27,5 @@ foreach(file ${source_files})
    detray_add_tutorial( ${file_name}
       ${file}
       LINK_LIBRARIES detray::core_array covfie::core vecmem::core detray::io 
-                     detray::tutorial detray::test detray::utils)
+                     detray::tutorial detray::test_common detray::utils)
 endforeach()

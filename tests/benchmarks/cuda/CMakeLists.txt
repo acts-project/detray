@@ -29,7 +29,7 @@ detray_add_executable( benchmark_cuda_${algebra}
    "benchmark_propagator_cuda_kernel.hpp"
    "benchmark_propagator_cuda.cpp"
    "benchmark_propagator_cuda_kernel.cu"
-   LINK_LIBRARIES benchmark::benchmark detray::core detray::test detray::algebra_${algebra} vecmem::cuda detray::utils )
+   LINK_LIBRARIES benchmark::benchmark detray::core detray::test_common detray::algebra_${algebra} vecmem::cuda detray::utils )
 
    target_compile_definitions( detray_benchmark_cuda_${algebra}
       PRIVATE ${algebra}=${algebra} )

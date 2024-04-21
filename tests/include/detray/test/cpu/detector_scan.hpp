@@ -13,12 +13,12 @@
 #include "detray/navigation/detail/ray.hpp"
 #include "detray/navigation/volume_graph.hpp"
 #include "detray/simulation/event_generator/track_generators.hpp"
-#include "detray/test/detail/whiteboard.hpp"
-#include "detray/test/detector_scan_config.hpp"
-#include "detray/test/fixture_base.hpp"
-#include "detray/test/types.hpp"
-#include "detray/test/utils/detector_scan_utils.hpp"
-#include "detray/test/utils/detector_scanner.hpp"
+#include "detray/test/common/detail/whiteboard.hpp"
+#include "detray/test/common/detector_scan_config.hpp"
+#include "detray/test/common/fixture_base.hpp"
+#include "detray/test/common/types.hpp"
+#include "detray/test/common/utils/detector_scan_utils.hpp"
+#include "detray/test/common/utils/detector_scanner.hpp"
 
 // System include(s)
 #include <iostream>
@@ -161,8 +161,11 @@ class detector_scan : public test::fixture_base<> {
         const std::size_t n_helices{trk_state_generator.size()};
         intersection_traces.reserve(n_helices);
 
-        if (io::file_exists(m_cfg.intersection_file()) &&
-            io::file_exists(m_cfg.track_param_file())) {
+        const bool data_files_exist{
+            io::file_exists(m_cfg.intersection_file()) &&
+            io::file_exists(m_cfg.track_param_file())};
+
+        if (data_files_exist) {
 
             std::cout << "INFO: Reading data from file..." << std::endl;
 
@@ -191,9 +194,9 @@ class detector_scan : public test::fixture_base<> {
         // Save the results
 
         // Csv output
-        if (m_cfg.write_intersections()) {
-            detector_scanner::write(m_cfg.name() + "_intersections.csv",
-                                    m_cfg.name() + "_track_parameters.csv",
+        if (!data_files_exist && m_cfg.write_intersections()) {
+            detector_scanner::write(m_cfg.intersection_file(),
+                                    m_cfg.track_param_file(),
                                     intersection_traces);
             std::cout << "  ->Wrote  " << intersection_traces.size()
                       << " intersection traces to file" << std::endl;

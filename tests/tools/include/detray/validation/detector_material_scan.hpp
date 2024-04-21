@@ -12,9 +12,9 @@
 #include "detray/materials/detail/material_accessor.hpp"
 #include "detray/navigation/detail/ray.hpp"
 #include "detray/simulation/event_generator/track_generators.hpp"
-#include "detray/test/fixture_base.hpp"
-#include "detray/test/types.hpp"
-#include "detray/test/utils/detector_scanner.hpp"
+#include "detray/test/common/fixture_base.hpp"
+#include "detray/test/common/types.hpp"
+#include "detray/test/common/utils/detector_scanner.hpp"
 
 // System include(s)
 #include <ios>

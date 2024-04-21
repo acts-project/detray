@@ -9,7 +9,7 @@
 #include "detray/geometry/shapes/unmasked.hpp"
 
 #include "detray/geometry/mask.hpp"
-#include "detray/test/types.hpp"
+#include "detray/test/common/types.hpp"
 
 // GTest include
 #include <gtest/gtest.h>

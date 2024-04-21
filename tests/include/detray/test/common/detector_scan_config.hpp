@@ -9,9 +9,9 @@
 
 // Project include(s)
 #include "detray/plugins/svgtools/styling/styling.hpp"
-#include "detray/test/detail/whiteboard.hpp"
-#include "detray/test/fixture_base.hpp"
-#include "detray/test/types.hpp"
+#include "detray/test/common/detail/whiteboard.hpp"
+#include "detray/test/common/fixture_base.hpp"
+#include "detray/test/common/types.hpp"
 
 // System include(s)
 #include <limits>
@@ -33,8 +33,8 @@ struct detector_scan_config : public test::fixture_base<>::configuration {
     /// Save results for later use in downstream tests
     std::shared_ptr<test::whiteboard> m_white_board;
     /// Name of the input file, containing the complete ray scan traces
-    std::string m_intersection_file{""};
-    std::string m_track_param_file{""};
+    std::string m_intersection_file{"truth_intersections.csv"};
+    std::string m_track_param_file{"truth_trk_parameters.csv"};
     /// Mask tolerance for the intersectors
     std::array<scalar_type, 2> m_mask_tol{
         std::numeric_limits<float>::epsilon(),

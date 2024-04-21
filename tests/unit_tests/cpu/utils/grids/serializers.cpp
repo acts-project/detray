@@ -12,7 +12,7 @@
 #include "detray/geometry/coordinates/cylindrical3D.hpp"
 #include "detray/geometry/coordinates/polar2D.hpp"
 #include "detray/geometry/mask.hpp"
-#include "detray/test/types.hpp"
+#include "detray/test/common/types.hpp"
 #include "detray/utils/grid/detail/axis.hpp"
 
 // vecmem include(s)

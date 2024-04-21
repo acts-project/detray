@@ -13,11 +13,11 @@
 #include "detray/navigation/detail/ray.hpp"
 #include "detray/propagator/line_stepper.hpp"
 #include "detray/propagator/rk_stepper.hpp"
-#include "detray/test/fixture_base.hpp"
-#include "detray/test/navigation_validation_config.hpp"
-#include "detray/test/utils/detector_scan_utils.hpp"
-#include "detray/test/utils/detector_scanner.hpp"
-#include "detray/test/utils/navigation_validation_utils.hpp"
+#include "detray/test/common/fixture_base.hpp"
+#include "detray/test/common/navigation_validation_config.hpp"
+#include "detray/test/common/utils/detector_scan_utils.hpp"
+#include "detray/test/common/utils/detector_scanner.hpp"
+#include "detray/test/common/utils/navigation_validation_utils.hpp"
 #include "detray/tracks/tracks.hpp"
 #include "detray/utils/inspectors.hpp"
 
@@ -91,7 +91,9 @@ inline auto run_navigation_validation(
     // Buffer for the intersections recorded by the navigator
     std::vector<std::size_t> capacities;
     for (const auto &trace : truth_intersection_traces) {
-        capacities.push_back(trace.size());
+        // Increase the capacity, in case the navigator finds more surfaces
+        // than the truth intersections (usually just one)
+        capacities.push_back(trace.size() + 10u);
     }
 
     vecmem::data::jagged_vector_buffer<

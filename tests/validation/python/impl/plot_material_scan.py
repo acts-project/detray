@@ -4,8 +4,6 @@
 #
 # Mozilla Public License Version 2.0
 
-from . import plotting
-
 # python includes
 import numpy as np
 import math

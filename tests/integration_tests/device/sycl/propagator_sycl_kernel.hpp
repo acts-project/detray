@@ -10,7 +10,7 @@
 // Project include(s)
 #include "detray/detectors/bfield.hpp"
 #include "detray/detectors/toy_metadata.hpp"
-#include "detray/test/propagator_test.hpp"
+#include "detray/test/device/propagator_test.hpp"
 #include "queue_wrapper.hpp"
 
 // Vecmem include(s)

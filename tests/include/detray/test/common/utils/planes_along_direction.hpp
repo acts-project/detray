@@ -14,7 +14,7 @@
 #include "detray/utils/ranges.hpp"
 
 // Detray tests include(s).
-#include "detray/test/types.hpp"
+#include "detray/test/common/types.hpp"
 
 namespace detray::test {
 

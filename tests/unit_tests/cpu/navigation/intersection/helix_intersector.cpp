@@ -16,7 +16,7 @@
 #include "detray/geometry/shapes/rectangle2D.hpp"
 #include "detray/geometry/shapes/unmasked.hpp"
 #include "detray/navigation/detail/helix.hpp"
-#include "detray/test/types.hpp"
+#include "detray/test/common/types.hpp"
 #include "detray/tracks/tracks.hpp"
 
 // Google Test include(s).

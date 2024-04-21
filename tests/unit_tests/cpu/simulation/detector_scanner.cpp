@@ -6,13 +6,13 @@
  */
 
 // Project include(s).
-#include "detray/test/utils/detector_scanner.hpp"
+#include "detray/test/common/utils/detector_scanner.hpp"
 
 #include "detray/definitions/units.hpp"
 #include "detray/detectors/build_toy_detector.hpp"
 #include "detray/navigation/detail/trajectories.hpp"
 #include "detray/simulation/event_generator/track_generators.hpp"
-#include "detray/test/types.hpp"
+#include "detray/test/common/types.hpp"
 #include "detray/tracks/tracks.hpp"
 
 // VecMem include(s).

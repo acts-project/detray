@@ -78,7 +78,7 @@ class pyplot_factory():
                lgd_ops   = get_legend_options()):
 
         # Create fresh plot
-        fig = plt.figure(figsize = (8, 6))
+        fig = plt.figure(figsize = (8, 6), layout='constrained')
         ax = fig.add_subplot(1, 1, 1)
 
         # Do calculations on data in the range of the histogram
@@ -160,7 +160,7 @@ class pyplot_factory():
                 showStats = True):
 
         # Create fresh plot
-        fig = plt.figure(figsize = (8, 6))
+        fig = plt.figure(figsize = (8, 6), layout='constrained')
         ax = fig.add_subplot(1, 1, 1)
 
         # Do calculations on data in the range of the histogram
@@ -226,7 +226,7 @@ class pyplot_factory():
                 showStats = lambda x, _: f"{len(x)} entries", 
                 lgd_ops   = get_legend_options()):
 
-        fig = plt.figure(figsize = figsize)
+        fig = plt.figure(figsize = figsize, layout='constrained')
         ax = fig.add_subplot(1, 1, 1)
 
         # Create empty plot with blank marker containing the extra label

@@ -7,7 +7,7 @@
 
 // Project include(s).
 #include "detray/detectors/build_toy_detector.hpp"
-#include "detray/test/types.hpp"
+#include "detray/test/common/types.hpp"
 
 // VecMem include(s).
 #include <vecmem/memory/host_memory_resource.hpp>

@@ -12,7 +12,7 @@
 #include "detray/builders/surface_factory.hpp"
 #include "detray/core/detector.hpp"
 #include "detray/definitions/detail/indexing.hpp"
-#include "detray/test/types.hpp"
+#include "detray/test/common/types.hpp"
 
 // Vecmem include(s)
 #include <vecmem/memory/host_memory_resource.hpp>

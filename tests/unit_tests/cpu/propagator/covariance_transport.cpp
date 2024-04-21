@@ -19,7 +19,7 @@
 #include "detray/propagator/actors/parameter_transporter.hpp"
 #include "detray/propagator/line_stepper.hpp"
 #include "detray/propagator/propagator.hpp"
-#include "detray/test/types.hpp"
+#include "detray/test/common/types.hpp"
 #include "detray/tracks/tracks.hpp"
 #include "detray/utils/axis_rotation.hpp"
 

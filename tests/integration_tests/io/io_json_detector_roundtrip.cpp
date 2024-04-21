@@ -16,7 +16,7 @@
 #include "detray/io/frontend/detector_writer.hpp"
 #include "detray/io/json/json_reader.hpp"
 #include "detray/io/json/json_writer.hpp"
-#include "detray/test/toy_detector_test.hpp"
+#include "detray/test/cpu/toy_detector_test.hpp"
 #include "detray/utils/consistency_checker.hpp"
 
 // Vecmem include(s)

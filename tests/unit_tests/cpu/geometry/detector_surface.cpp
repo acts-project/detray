@@ -9,7 +9,7 @@
 #include "detray/definitions/detail/indexing.hpp"
 #include "detray/detectors/build_toy_detector.hpp"
 #include "detray/geometry/surface.hpp"
-#include "detray/test/types.hpp"
+#include "detray/test/common/types.hpp"
 
 // Vecmem include(s)
 #include <vecmem/memory/host_memory_resource.hpp>

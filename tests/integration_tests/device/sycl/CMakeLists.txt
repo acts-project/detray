@@ -20,8 +20,8 @@ foreach(algebra ${algebras})
       "propagator_sycl_kernel.hpp"
       "propagator.sycl"
       "propagator_kernel.sycl"
-      LINK_LIBRARIES GTest::gtest_main vecmem::sycl detray::test detray::core
-      detray::algebra_${algebra} detray::utils )
+      LINK_LIBRARIES GTest::gtest_main vecmem::sycl detray::test_device
+      detray::core detray::algebra_${algebra} detray::utils )
    target_compile_definitions(detray_integration_test_sycl_${algebra}
       PRIVATE ${algebra}=${algebra})
 endforeach()

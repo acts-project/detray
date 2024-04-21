@@ -10,8 +10,8 @@
 #include "detray/geometry/mask.hpp"
 #include "detray/geometry/shapes/cylinder2D.hpp"
 #include "detray/geometry/shapes/cylinder3D.hpp"
-#include "detray/test/types.hpp"
-#include "detray/test/utils/ratio_test.hpp"
+#include "detray/test/common/types.hpp"
+#include "detray/test/common/utils/ratio_test.hpp"
 
 // GTest include
 #include <gtest/gtest.h>

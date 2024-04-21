@@ -15,7 +15,7 @@
 #include "detray/grids/serializer2.hpp"
 
 // detray test
-#include "detray/test/types.hpp"
+#include "detray/test/common/types.hpp"
 
 namespace detray {
 

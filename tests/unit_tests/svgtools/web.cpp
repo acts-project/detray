@@ -12,8 +12,8 @@
 #include "detray/plugins/svgtools/illustrator.hpp"
 #include "detray/plugins/svgtools/utils/groups.hpp"
 #include "detray/plugins/svgtools/writer.hpp"
-#include "detray/test/utils/detector_scanner.hpp"
-#include "detray/test/utils/svg_display.hpp"
+#include "detray/test/common/utils/detector_scanner.hpp"
+#include "detray/test/common/utils/svg_display.hpp"
 
 // Vecmem include(s)
 #include <vecmem/memory/host_memory_resource.hpp>

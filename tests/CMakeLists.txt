@@ -12,18 +12,17 @@ include_directories( SYSTEM $<TARGET_PROPERTY:dfelibs::dfelibs,INTERFACE_INCLUDE
 # Set up a test library, which the "new style" benchmarks and tests could use.
 file( GLOB _detray_test_headers
    RELATIVE "${CMAKE_CURRENT_SOURCE_DIR}"
-   "include/detray/test/*.hpp"
-   "include/detray/test/detail/*.hpp" 
-   "include/detray/test/intersection/*.hpp"
-   "include/detray/test/utils/*.hpp")
+   "include/detray/test/common/*.hpp"
+   "include/detray/test/common/detail/*.hpp"
+   "include/detray/test/common/utils/*.hpp")
 
-add_library( detray_test INTERFACE "${_detray_test_headers}" )
-add_library( detray::test ALIAS detray_test )
+add_library( detray_test_common INTERFACE "${_detray_test_headers}" )
+add_library( detray::test_common ALIAS detray_test_common )
 
-target_include_directories( detray_test
+target_include_directories( detray_test_common
    INTERFACE "${CMAKE_CURRENT_SOURCE_DIR}/include" )
 
-target_link_libraries( detray_test INTERFACE vecmem::core detray::core detray::csv_io detray::svgtools )
+target_link_libraries( detray_test_common INTERFACE GTest::gtest vecmem::core detray::core detray::csv_io detray::svgtools )
 
 unset( _detray_test_headers )
 
@@ -31,6 +30,7 @@ unset( _detray_test_headers )
 if( DETRAY_BENCHMARKS )
    add_subdirectory( benchmarks )
 endif()
+add_subdirectory( include/detray/test/device )
 add_subdirectory( integration_tests )
 add_subdirectory( tools )
 add_subdirectory( unit_tests )

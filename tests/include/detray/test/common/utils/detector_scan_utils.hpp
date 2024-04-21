@@ -9,7 +9,7 @@
 
 // Project include(s)
 #include "detray/plugins/svgtools/illustrator.hpp"
-#include "detray/test/utils/svg_display.hpp"
+#include "detray/test/common/utils/svg_display.hpp"
 #include "detray/utils/ranges.hpp"
 
 // System include(s)

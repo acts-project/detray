@@ -16,7 +16,7 @@
 #include "detray/definitions/detail/indexing.hpp"
 
 // Test include(s)
-#include "detray/test/types.hpp"
+#include "detray/test/common/types.hpp"
 
 // Vecmem include(s)
 #include <vecmem/memory/host_memory_resource.hpp>
