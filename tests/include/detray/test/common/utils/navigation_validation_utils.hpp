@@ -12,6 +12,7 @@
 #include "detray/propagator/actor_chain.hpp"
 #include "detray/propagator/actors/aborters.hpp"
 #include "detray/propagator/propagator.hpp"
+#include "detray/tracks/free_track_parameters.hpp"
 #include "detray/utils/inspectors.hpp"
 
 // System include(s)
@@ -171,6 +172,30 @@ bool compare_traces(const truth_trace_t &truth_trace,
     }
 
     return true;
+}
+
+/// Write the track positions of a trace @param intersection_traces to a csv
+/// file to the path @param track_param_file_name
+template <typename record_t>
+auto write_tracks(const std::string &track_param_file_name,
+                  const dvector<dvector<record_t>> &intersection_traces) {
+    using track_param_t =
+        free_track_parameters<typename record_t::algebra_type>;
+
+    std::vector<std::vector<track_param_t>> track_params{};
+
+    for (const auto &trace : intersection_traces) {
+
+        track_params.push_back({});
+        track_params.back().reserve(trace.size());
+
+        for (const auto &record : trace) {
+            track_params.back().push_back({record.pos, 0.f, record.dir, -1.f});
+        }
+    }
+
+    // Write to file
+    io::csv::write_free_track_params(track_param_file_name, track_params);
 }
 
 /// Calculate and print the navigation efficiency

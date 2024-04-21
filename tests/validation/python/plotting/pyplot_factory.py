@@ -98,12 +98,13 @@ class pyplot_factory():
         scale = 1./len(x) if normalize else 1.
 
         # Fill data
-        data, bins, hist = ax.hist(x, weights = w,
-                                   range = (xMin, xMax),
-                                   bins = bins,
-                                   label=f"{label}  ({len(x)} entries)",
-                                   histtype  ='stepfilled',
-                                   density = normalize,
+        data, bins, hist = ax.hist(x,
+                                   weights   = w,
+                                   range     = (xMin, xMax),
+                                   bins      = bins,
+                                   label     = f"{label}  ({len(x)} entries)",
+                                   histtype  = 'stepfilled',
+                                   density   = normalize,
                                    facecolor = mcolors.to_rgba(color, alpha),
                                    edgecolor = color)
 
@@ -219,7 +220,7 @@ class pyplot_factory():
 
 
     """ Create a 2D scatter plot """
-    def scatter(self, x, y, 
+    def scatter(self, x, y,
                 xLabel = "", yLabel = "", title = "", label = "",
                 color  = 'tab:blue', alpha = 1,
                 figsize   = (8, 6), 
@@ -254,9 +255,11 @@ class pyplot_factory():
     def highlight_region(self, plotData, x, y, color, label = ""):
 
         if label == "":
-            plotData.ax.scatter(x, y, c = color, s = 0.1)
+            plotData.ax.scatter(x, y, c = color, alpha = 1, s = 0.1,
+                                rasterized=True)
         else:
-            plotData.ax.scatter(x, y, c = color, s = 0.1, label=label)
+            plotData.ax.scatter(x, y, c = color, alpha = 1, s = 0.1,
+                                label=label, rasterized=True)
 
             # Update legend
             lgd = plotData.lgd
@@ -269,13 +272,13 @@ class pyplot_factory():
 
     """ Safe a plot to disk """
     def write_plot(self, plot_data, name = "plot", file_format = "svg",
-                   outPrefix = ""):
+                   outPrefix = "", dpi = 450):
         if (outPrefix == ""):
             fileName = self.outputPrefix + name + "." + file_format
         else:
             fileName = outPrefix + name + "." + file_format
 
-        plot_data.fig.savefig(fileName, dpi=150)
+        plot_data.fig.savefig(fileName, dpi=dpi)
         plt.close(plot_data.fig)
 
 

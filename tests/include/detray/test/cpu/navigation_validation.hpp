@@ -62,6 +62,9 @@ class navigation_validation : public test::fixture_base<> {
         using namespace detray;
         using namespace navigation;
 
+        using intersection_t =
+            typename intersection_trace_t::value_type::intersection_type;
+
         // Runge-Kutta stepper
         using hom_bfield_t = bfield::const_field_t;
         using bfield_t =
@@ -90,6 +93,7 @@ class navigation_validation : public test::fixture_base<> {
         /// Collect some statistics
         std::size_t n_tracks{0u}, n_miss{0u}, n_fatal{0u};
 
+        std::cout << "\nINFO: Fetching data from white board..." << std::endl;
         if (!m_cfg.whiteboard()->exists(truth_data_name)) {
             throw std::runtime_error(
                 "White board is empty! Please run detector scan first");
@@ -107,6 +111,9 @@ class navigation_validation : public test::fixture_base<> {
         std::ios_base::openmode io_mode = std::ios::trunc | std::ios::out;
         detray::io::file_handle debug_file{"./navigation_validation.txt",
                                            io_mode};
+
+        dvector<dvector<navigation::detail::candidate_record<intersection_t>>>
+            recorded_traces{};
 
         for (const auto &intersection_trace : intersection_traces) {
 
@@ -157,6 +164,8 @@ class navigation_validation : public test::fixture_base<> {
                     n_test_tracks, obj_tracer.object_trace);
             }
 
+            recorded_traces.push_back(std::move(obj_tracer.object_trace));
+
             EXPECT_TRUE(success);
 
             ++n_tracks;
@@ -164,6 +173,14 @@ class navigation_validation : public test::fixture_base<> {
 
         // Calculate and display the result
         navigation_validator::print_efficiency(n_tracks, n_miss, n_fatal);
+
+        // Print track positions for plotting
+        std::string prefix{k_use_rays ? "ray_" : "helix_"};
+        const auto data_path{
+            std::filesystem::path{m_cfg.track_param_file()}.parent_path() /
+            (prefix + "navigation_track_pos.csv")};
+
+        navigation_validator::write_tracks(data_path.string(), recorded_traces);
     }
 
     private:

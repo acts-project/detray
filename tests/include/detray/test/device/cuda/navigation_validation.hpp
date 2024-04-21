@@ -156,7 +156,8 @@ class navigation_validation : public test::fixture_base<> {
                                        : det_name + "_helix_scan_for_cuda";
 
         // Pin the data onto the whiteboard
-        if (io::file_exists(m_cfg.intersection_file()) &&
+        if (!m_cfg.whiteboard()->exists(m_truth_data_name) &&
+            io::file_exists(m_cfg.intersection_file()) &&
             io::file_exists(m_cfg.track_param_file())) {
 
             // Name clash: Choose alternative name
@@ -166,7 +167,7 @@ class navigation_validation : public test::fixture_base<> {
 
             std::vector<intersection_trace_t> intersection_traces;
 
-            std::cout << "INFO: Reading data from file..." << std::endl;
+            std::cout << "\nINFO: Reading data from file..." << std::endl;
 
             // Fill the intersection traces from file
             detray::detector_scanner::read(m_cfg.intersection_file(),
@@ -175,12 +176,12 @@ class navigation_validation : public test::fixture_base<> {
 
             m_cfg.whiteboard()->add(m_truth_data_name,
                                     std::move(intersection_traces));
+        } else if (m_cfg.whiteboard()->exists(m_truth_data_name)) {
+            std::cout << "\nINFO: Fetching data from white board..."
+                      << std::endl;
         } else {
-            // File names were configured, but not found
-            if (!m_cfg.intersection_file().empty() ||
-                !m_cfg.track_param_file().empty()) {
-                std::cout << "WARNING: Data files do not exist" << std::endl;
-            }
+            throw std::invalid_argument(
+                "Navigation validation: Could not find data files");
         }
 
         // Check that data is ready
@@ -275,6 +276,15 @@ class navigation_validation : public test::fixture_base<> {
 
         // Calculate and display the result
         navigation_validator::print_efficiency(n_tracks, n_miss, n_fatal);
+
+        // Print track positions for plotting
+        std::string prefix{k_use_rays ? "ray_" : "helix_"};
+        const auto data_path{
+            std::filesystem::path{m_cfg.track_param_file()}.parent_path() /
+            (prefix + "navigation_track_pos_cuda.csv")};
+
+        navigation_validator::write_tracks(data_path.string(),
+                                           recorded_intersections);
     }
 
     private:
@@ -310,9 +320,10 @@ class navigation_validation : public test::fixture_base<> {
 
 template <typename detector_t>
 using straight_line_navigation =
-    navigation_validation<detector_t, detray::ray_scan>;
+    detray::cuda::navigation_validation<detector_t, detray::ray_scan>;
 
 template <typename detector_t>
-using helix_navigation = navigation_validation<detector_t, detray::helix_scan>;
+using helix_navigation =
+    detray::cuda::navigation_validation<detector_t, detray::helix_scan>;
 
 }  // namespace detray::cuda

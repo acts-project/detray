@@ -106,12 +106,17 @@ int main(int argc, char** argv) {
 
     // Comparison of straight line navigation with ray scan
     str_nav_cfg.name(det_name + "_straight_line_navigation_cuda");
+    // Number of tracks to check
+    str_nav_cfg.n_tracks(ray_scan_cfg.track_generator().n_tracks());
     // Ensure that the same mask tolerance is used
     auto mask_tolerance = ray_scan_cfg.mask_tolerance();
     str_nav_cfg.propagation().navigation.min_mask_tolerance =
         static_cast<float>(mask_tolerance[0]);
     str_nav_cfg.propagation().navigation.max_mask_tolerance =
         static_cast<float>(mask_tolerance[1]);
+    str_nav_cfg.intersection_file(ray_scan_cfg.intersection_file());
+    str_nav_cfg.track_param_file(ray_scan_cfg.track_param_file());
+
     detray::detail::register_checks<detray::cuda::straight_line_navigation>(
         det, names, str_nav_cfg);
 
@@ -121,6 +126,11 @@ int main(int argc, char** argv) {
 
     // Comparison of navigation in a constant B-field with helix
     hel_nav_cfg.name(det_name + "_helix_navigation_cuda");
+    // Number of tracks to check
+    hel_nav_cfg.n_tracks(hel_scan_cfg.track_generator().n_tracks());
+    hel_nav_cfg.intersection_file(hel_scan_cfg.intersection_file());
+    hel_nav_cfg.track_param_file(hel_scan_cfg.track_param_file());
+
     detray::detail::register_checks<detray::cuda::helix_navigation>(
         det, names, hel_nav_cfg);
 
