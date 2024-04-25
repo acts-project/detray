@@ -17,7 +17,7 @@
 #include <iostream>
 #include <string>
 
-namespace detray {
+namespace detray::test {
 
 /// @brief Test class that runs the consistency check on a given detector.
 ///
@@ -93,4 +93,4 @@ class consistency_check : public detray::test::fixture_base<> {
     const typename detector_t::name_map &m_names;
 };
 
-}  // namespace detray
+}  // namespace detray::test

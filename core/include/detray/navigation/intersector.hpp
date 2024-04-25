@@ -34,7 +34,8 @@ struct intersector {
     DETRAY_HOST_DEVICE inline decltype(auto) operator()(
         const detail::ray<algebra_t> &ray, const surface_descr_t &sf,
         const mask_t &mask, const transform3_type &trf,
-        const scalar_type mask_tolerance = 0.f,
+        const std::array<scalar_type, 2u> mask_tolerance =
+            {0.f, 1.f * unit<scalar_type>::mm},
         const scalar_type overstep_tol = 0.f) const {
 
         return ray_intersector_type{}(ray, sf, mask, trf, mask_tolerance,
@@ -46,7 +47,9 @@ struct intersector {
     DETRAY_HOST_DEVICE inline decltype(auto) operator()(
         const detail::helix<algebra_t> &h, const surface_descr_t &sf,
         const mask_t &mask, const transform3_type &trf,
-        const scalar_type mask_tolerance = 0.f, const scalar_type = 0.f) const {
+        const std::array<scalar_type, 2u> mask_tolerance =
+            {0.f, 1.f * unit<scalar_type>::mm},
+        const scalar_type = 0.f) const {
 
         return helix_intersector_type{}(h, sf, mask, trf, mask_tolerance);
     }

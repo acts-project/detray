@@ -29,7 +29,8 @@ vecmem::cuda::device_memory_resource dev_mr;
 vecmem::binary_page_memory_resource bp_mng_mr(mng_mr);
 
 // detector configuration
-auto toy_cfg = toy_det_config<scalar>{}.n_brl_layers(4u).n_edc_layers(7u);
+auto toy_cfg =
+    toy_det_config<scalar>{}.n_brl_layers(4u).n_edc_layers(7u).do_check(false);
 
 void fill_tracks(vecmem::vector<free_track_parameters<algebra_t>> &tracks,
                  const std::size_t theta_steps, const std::size_t phi_steps) {
@@ -45,7 +46,6 @@ void fill_tracks(vecmem::vector<free_track_parameters<algebra_t>> &tracks,
 
 template <propagate_option opt>
 static void BM_PROPAGATOR_CPU(benchmark::State &state) {
-    toy_cfg.do_check(false);
 
     // Create the toy geometry and bfield
     auto [det, names] = build_toy_detector(host_mr, toy_cfg);
@@ -101,7 +101,6 @@ static void BM_PROPAGATOR_CPU(benchmark::State &state) {
 
 template <propagate_option opt>
 static void BM_PROPAGATOR_CUDA(benchmark::State &state) {
-    toy_cfg.do_check(false);
 
     // Create the toy geometry
     auto [det, names] = build_toy_detector(bp_mng_mr, toy_cfg);

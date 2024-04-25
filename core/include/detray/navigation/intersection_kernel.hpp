@@ -9,6 +9,7 @@
 
 // Project include(s)
 #include "detray/definitions/detail/qualifiers.hpp"
+#include "detray/definitions/units.hpp"
 #include "detray/navigation/intersection/intersection.hpp"
 #include "detray/utils/ranges.hpp"
 
@@ -44,7 +45,8 @@ struct intersection_initialize {
         is_container_t &is_container, const traj_t &traj,
         const surface_t &surface,
         const transform_container_t &contextual_transforms,
-        const scalar_t mask_tolerance = 0.f,
+        const std::array<scalar_t, 2u> &mask_tolerance =
+            {0.f, 1.f * unit<scalar_t>::mm},
         const scalar_t overstep_tol = 0.f) const {
 
         using mask_t = typename mask_group_t::value_type;
@@ -72,6 +74,8 @@ struct intersection_initialize {
         is_container_t &intersections) const {
         bool is_inside = (sfi.status == intersection::status::e_inside);
         if (is_inside) {
+            assert(intersections.size() < intersections.capacity() &&
+                   "Navigation cache size too small");
             intersections.push_back(sfi);
         }
         return is_inside;
@@ -85,6 +89,8 @@ struct intersection_initialize {
         for (auto &sfi : solutions) {
             bool is_inside = (sfi.status == intersection::status::e_inside);
             if (is_inside) {
+                assert(intersections.size() < intersections.capacity() &&
+                       "Navigation cache size too small");
                 intersections.push_back(sfi);
             }
             is_valid |= is_inside;
@@ -123,7 +129,8 @@ struct intersection_update {
         const mask_group_t &mask_group, const mask_range_t &mask_range,
         const traj_t &traj, intersection_t &sfi,
         const transform_container_t &contextual_transforms,
-        const scalar_t mask_tolerance = 0.f,
+        const std::array<scalar_t, 2u> &mask_tolerance =
+            {0.f, 1.f * unit<scalar_t>::mm},
         const scalar_t overstep_tol = 0.f) const {
 
         using mask_t = typename mask_group_t::value_type;

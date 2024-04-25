@@ -1,6 +1,6 @@
 /** Detray library, part of the ACTS project (R&D line)
  *
- * (c) 2023 CERN for the benefit of the ACTS project
+ * (c) 2023-2024 CERN for the benefit of the ACTS project
  *
  * Mozilla Public License Version 2.0
  */
@@ -13,17 +13,18 @@
 #include "detray/navigation/detail/helix.hpp"
 #include "detray/plugins/svgtools/illustrator.hpp"
 #include "detray/simulation/event_generator/track_generators.hpp"
+#include "detray/test/detail/whiteboard.hpp"
 #include "detray/test/fixture_base.hpp"
 #include "detray/test/types.hpp"
-#include "detray/test/utils/particle_gun.hpp"
-#include "detray/test/utils/ray_scan_utils.hpp"
+#include "detray/test/utils/detector_scanner.hpp"
+#include "detray/test/utils/scan_utils.hpp"
 #include "detray/test/utils/svg_display.hpp"
 
 // System include(s)
 #include <iostream>
 #include <string>
 
-namespace detray {
+namespace detray::test {
 
 /// @brief Test class that runs the helix scan on a given detector.
 ///
@@ -32,18 +33,31 @@ template <typename detector_t>
 class helix_scan : public test::fixture_base<> {
 
     using algebra_t = typename detector_t::algebra_type;
+    using scalar_t = dscalar<algebra_t>;
     using free_track_parameters_t = free_track_parameters<algebra_t>;
+    using intersection_trace_t = typename detray::helix_scan<
+        algebra_t>::template intersection_trace_type<detector_t>;
+    using uniform_gen_t =
+        random_numbers<scalar_t, std::uniform_real_distribution<scalar_t>>;
+    using track_generator_t =
+        random_track_generator<free_track_parameters_t, uniform_gen_t>;
 
     public:
     using fixture_type = test::fixture_base<>;
 
     struct config : public fixture_type::configuration {
-        using trk_gen_config_t = typename uniform_track_generator<
-            free_track_parameters_t>::configuration;
+        using trk_gen_config_t = typename track_generator_t::configuration;
 
         std::string m_name{"helix_scan"};
-        bool m_write_inters{false};
+        // Save results for later use in downstream tests
+        std::shared_ptr<test::whiteboard> m_white_board;
+        // Mask tolerance for the Newton intersectors
+        std::array<scalar_t, 2> m_mask_tol{detail::invalid_value<scalar_t>(),
+                                           detail::invalid_value<scalar_t>()};
+        // Track generator configuration
         trk_gen_config_t m_trk_gen_cfg{};
+        // Dump intersection positions to file
+        bool m_write_inters{false};
         // Visualization style to be applied to the svgs
         detray::svgtools::styling::style m_style =
             detray::svgtools::styling::tableau_colorblind::style;
@@ -51,11 +65,16 @@ class helix_scan : public test::fixture_base<> {
         /// Getters
         /// @{
         const std::string &name() const { return m_name; }
-        bool write_intersections() const { return m_write_inters; }
+        std::array<scalar_t, 2> mask_tolerance() const { return m_mask_tol; }
+        std::shared_ptr<test::whiteboard> whiteboard() { return m_white_board; }
+        std::shared_ptr<test::whiteboard> whiteboard() const {
+            return m_white_board;
+        }
         trk_gen_config_t &track_generator() { return m_trk_gen_cfg; }
         const trk_gen_config_t &track_generator() const {
             return m_trk_gen_cfg;
         }
+        bool write_intersections() const { return m_write_inters; }
         const auto &svg_style() const { return m_style; }
         /// @}
 
@@ -63,6 +82,18 @@ class helix_scan : public test::fixture_base<> {
         /// @{
         config &name(const std::string n) {
             m_name = n;
+            return *this;
+        }
+        config &whiteboard(std::shared_ptr<test::whiteboard> w_board) {
+            if (!w_board) {
+                throw std::invalid_argument(
+                    "Helix scan: No valid whiteboard instance");
+            }
+            m_white_board = std::move(w_board);
+            return *this;
+        }
+        config &mask_tolerance(const std::array<scalar_t, 2> tol) {
+            m_mask_tol = tol;
             return *this;
         }
         config &write_intersections(const bool do_write) {
@@ -78,13 +109,14 @@ class helix_scan : public test::fixture_base<> {
                         const config_t &cfg = {})
         : m_det{det}, m_names{names} {
         m_cfg.name(cfg.name());
-        m_cfg.write_intersections(cfg.write_intersections());
+        m_cfg.whiteboard(cfg.whiteboard());
+        m_cfg.mask_tolerance(cfg.mask_tolerance());
         m_cfg.track_generator() = cfg.track_generator();
+        m_cfg.write_intersections(cfg.write_intersections());
     }
 
     /// Run the helix scan
     void TestBody() override {
-        using scalar_t = typename detector_t::scalar_type;
         using nav_link_t = typename detector_t::surface_type::navigation_link;
 
         constexpr auto leaving_world{detail::invalid_value<nav_link_t>()};
@@ -100,9 +132,7 @@ class helix_scan : public test::fixture_base<> {
 
         // Iterate through uniformly distributed momentum directions
         std::size_t n_tracks{0u};
-        auto trk_state_generator =
-            uniform_track_generator<free_track_parameters_t>(
-                m_cfg.track_generator());
+        auto trk_state_generator = track_generator_t(m_cfg.track_generator());
 
         detray::io::file_handle outfile{
             m_cfg.name(), ".csv",
@@ -112,8 +142,7 @@ class helix_scan : public test::fixture_base<> {
             *outfile << "index,type,x,y,z," << std::endl;
         }
 
-        std::cout << "INFO: Running helix scan on: " << m_names.at(0) << "\n("
-                  << trk_state_generator.size() << " helices) ...\n"
+        std::cout << "INFO: Running helix scan on: " << m_names.at(0) << "...\n"
                   << std::endl;
 
         for (auto trk : trk_state_generator) {
@@ -123,13 +152,14 @@ class helix_scan : public test::fixture_base<> {
 
             // Shoot helix through the detector and record all surfaces it
             // encounters
-            const auto intersection_record = particle_gun::shoot_particle(
-                m_det, helix, 14.9f * unit<scalar_t>::um);
+            const auto intersection_record =
+                detector_scanner::run<detray::helix_scan>(
+                    m_det, helix, m_cfg.mask_tolerance(), trk.p());
 
             // Csv output
             if (m_cfg.write_intersections()) {
                 for (const auto &single_ir : intersection_record) {
-                    const auto &intersection = single_ir.second;
+                    const auto &intersection = single_ir.intersection;
                     const auto sf =
                         detray::surface{m_det, intersection.sf_desc};
                     auto glob_pos = sf.local_to_global(gctx, intersection.local,
@@ -145,11 +175,12 @@ class helix_scan : public test::fixture_base<> {
             // Create a trace of the volume indices that were encountered
             // and check that portal intersections are connected
             auto [portal_trace, surface_trace, err_code] =
-                trace_intersections<leaving_world>(intersection_record,
-                                                   start_index);
+                detector_scanner::trace_intersections<leaving_world>(
+                    intersection_record, start_index);
 
             // Is the succession of volumes consistent ?
-            err_code &= check_connectivity<leaving_world>(portal_trace);
+            err_code &= detector_scanner::check_connectivity<leaving_world>(
+                portal_trace);
 
             // Display the detector, track and intersections for debugging
             if (not err_code) {
@@ -171,8 +202,19 @@ class helix_scan : public test::fixture_base<> {
                                   << trk_state_generator.size() << "\n"
                                   << helix;
 
+            m_intersection_traces.push_back(std::move(intersection_record));
+
             ++n_tracks;
         }
+        std::cout << "-----------------------------------\n"
+                  << "Tested " << n_tracks << " helices: OK\n\n"
+                  << "Adding " << m_intersection_traces.size()
+                  << " helix traces to store\n"
+                  << "-----------------------------------\n"
+                  << std::endl;
+
+        // Save the results
+        m_cfg.whiteboard()->add("helix_scan", std::move(m_intersection_traces));
     }
 
     private:
@@ -182,6 +224,8 @@ class helix_scan : public test::fixture_base<> {
     const detector_t &m_det;
     /// Volume names
     const typename detector_t::name_map &m_names;
+    /// Record the scan for later use
+    std::vector<intersection_trace_t> m_intersection_traces;
 };
 
-}  // namespace detray
+}  // namespace detray::test

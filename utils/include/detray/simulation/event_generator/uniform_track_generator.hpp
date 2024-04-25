@@ -38,6 +38,8 @@ class uniform_track_generator
     using vector3 = typename track_t::vector3_type;
 
     public:
+    using track_type = track_t;
+
     /// Configure how tracks are generated
     struct configuration {
         /// Ensure sensible values at the theta bounds, even in single precision
@@ -74,8 +76,12 @@ class uniform_track_generator
         /// Setters
         /// @{
         DETRAY_HOST_DEVICE configuration& phi_range(scalar low, scalar high) {
-            assert(low <= high);
-            m_phi_range = {low, high};
+            auto min_phi{
+                std::clamp(low, -constant<scalar>::pi, constant<scalar>::pi)};
+            auto max_phi{
+                std::clamp(high, -constant<scalar>::pi, constant<scalar>::pi)};
+            assert(min_phi <= max_phi);
+            m_phi_range = {min_phi, max_phi};
             return *this;
         }
         DETRAY_HOST_DEVICE configuration& theta_range(scalar low, scalar high) {
@@ -266,9 +272,8 @@ class uniform_track_generator
             vector3 p{math::cos(m_phi) * sin_theta,
                       math::sin(m_phi) * sin_theta, math::cos(m_theta)};
             // Magnitude of momentum
-            vector::normalize(p);
-
-            p = (m_cfg.is_pT() ? 1.f / sin_theta : 1.f) * m_cfg.m_p_mag * p;
+            p = (m_cfg.is_pT() ? 1.f / sin_theta : 1.f) * m_cfg.m_p_mag *
+                vector::normalize(p);
 
             return track_t{m_cfg.origin(), m_cfg.time(), p, m_cfg.charge()};
         }

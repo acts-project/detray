@@ -14,7 +14,7 @@
 #include "detray/simulation/event_generator/track_generators.hpp"
 #include "detray/test/fixture_base.hpp"
 #include "detray/test/types.hpp"
-#include "detray/test/utils/particle_gun.hpp"
+#include "detray/test/utils/detector_scanner.hpp"
 
 // System include(s)
 #include <ios>
@@ -33,13 +33,13 @@ class material_scan : public test::fixture_base<> {
     using point2_t = typename detector_t::point2_type;
     using scalar_t = typename detector_t::scalar_type;
     using ray_t = detail::ray<algebra_t>;
+    using track_generator_t = uniform_track_generator<ray_t>;
 
     public:
     using fixture_type = test::fixture_base<>;
 
     struct config : public fixture_type::configuration {
-        using trk_gen_config_t =
-            typename uniform_track_generator<ray_t>::configuration;
+        using trk_gen_config_t = typename track_generator_t::configuration;
 
         std::string m_name{"material_scan"};
         trk_gen_config_t m_trk_gen_cfg{};
@@ -75,8 +75,7 @@ class material_scan : public test::fixture_base<> {
     void TestBody() override {
 
         std::size_t n_tracks{0u};
-        auto ray_generator =
-            uniform_track_generator<ray_t>(m_cfg.track_generator());
+        auto ray_generator = track_generator_t(m_cfg.track_generator());
 
         // Csv output file
         std::string file_name{m_cfg.name() + "_" + m_names.at(0)};
@@ -94,7 +93,7 @@ class material_scan : public test::fixture_base<> {
 
             // Record all intersections and surfaces along the ray
             const auto intersection_record =
-                particle_gun::shoot_particle(m_det, ray);
+                detector_scanner::run<ray_scan>(m_det, ray);
 
             if (intersection_record.empty()) {
                 std::cout << "ERROR: Intersection trace empty for ray "
@@ -115,17 +114,17 @@ class material_scan : public test::fixture_base<> {
             // Record material for this ray
             for (const auto &record : intersection_record) {
 
-                const auto sf = surface{m_det, record.second.sf_desc};
+                const auto sf = surface{m_det, record.intersection.sf_desc};
 
                 if (!sf.has_material()) {
                     continue;
                 }
 
-                const auto &p = record.second.local;
+                const auto &p = record.intersection.local;
                 const auto [seg, t, mx0, ml0] =
                     sf.template visit_material<get_material_params>(
                         point2_t{p[0], p[1]},
-                        record.second.cos_incidence_angle);
+                        record.intersection.cos_incidence_angle);
 
                 if (mx0 > 0.f) {
                     mat_sX0 += seg / mx0;

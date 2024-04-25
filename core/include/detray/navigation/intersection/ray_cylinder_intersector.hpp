@@ -57,7 +57,8 @@ struct ray_intersector_impl<cylindrical2D<algebra_t>, algebra_t> {
     DETRAY_HOST_DEVICE inline std::array<intersection_type<surface_descr_t>, 2>
     operator()(const ray_type &ray, const surface_descr_t &sf,
                const mask_t &mask, const transform3_type &trf,
-               const scalar_type mask_tolerance = 0.f,
+               const std::array<scalar_type, 2u> mask_tolerance =
+                   {0.f, 100.f * unit<scalar_type>::um},
                const scalar_type overstep_tol = 0.f) const {
 
         // One or both of these solutions might be invalid
@@ -89,6 +90,17 @@ struct ray_intersector_impl<cylindrical2D<algebra_t>, algebra_t> {
         return ret;
     }
 
+    /// Interface to use fixed mask tolerance
+    template <typename surface_descr_t, typename mask_t>
+    DETRAY_HOST_DEVICE inline std::array<intersection_type<surface_descr_t>, 2>
+    operator()(const ray_type &ray, const surface_descr_t &sf,
+               const mask_t &mask, const transform3_type &trf,
+               const scalar_type mask_tolerance,
+               const scalar_type overstep_tol = 0.f) const {
+        return this->operator()(ray, sf, mask, trf, {mask_tolerance, 0.f},
+                                overstep_tol);
+    }
+
     /// Operator function to find intersections between a ray and a 2D cylinder
     ///
     /// @tparam mask_t is the input mask type
@@ -103,7 +115,8 @@ struct ray_intersector_impl<cylindrical2D<algebra_t>, algebra_t> {
     DETRAY_HOST_DEVICE inline void update(
         const ray_type &ray, intersection_type<surface_descr_t> &sfi,
         const mask_t &mask, const transform3_type &trf,
-        const scalar_type mask_tolerance = 0.f,
+        const std::array<scalar_type, 2u> mask_tolerance =
+            {0.f, 1.f * unit<scalar_type>::mm},
         const scalar_type overstep_tol = 0.f) const {
 
         // One or both of these solutions might be invalid
@@ -155,8 +168,12 @@ struct ray_intersector_impl<cylindrical2D<algebra_t>, algebra_t> {
     DETRAY_HOST_DEVICE inline intersection_type<surface_descr_t>
     build_candidate(const ray_type &ray, mask_t &mask,
                     const transform3_type &trf, const scalar_type path,
-                    const scalar_type mask_tolerance = 0.f,
-                    const scalar_type overstep_tol = 0.f) const {
+                    const std::array<scalar_type, 2u> mask_tolerance,
+                    const scalar_type overstep_tol) const {
+
+        assert((mask_tolerance[0] <= mask_tolerance[1]) &&
+               "Minimal mask tolerance needs to be smaller or equal maximal "
+               "mask tolerance");
 
         intersection_type<surface_descr_t> is;
 
@@ -170,7 +187,11 @@ struct ray_intersector_impl<cylindrical2D<algebra_t>, algebra_t> {
             const point3_type p3 = ro + is.path * rd;
 
             is.local = mask.to_local_frame(trf, p3);
-            is.status = mask.is_inside(is.local, mask_tolerance);
+            // Tolerance: per mille of the distance
+            is.status = mask.is_inside(
+                is.local, math::max(mask_tolerance[0],
+                                    math::min(mask_tolerance[1],
+                                              1e-3f * math::abs(is.path))));
 
             // prepare some additional information in case the intersection
             // is valid

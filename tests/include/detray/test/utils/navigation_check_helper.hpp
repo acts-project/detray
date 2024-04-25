@@ -28,8 +28,8 @@ bool compare_traces(const inters_trace_t &intersection_trace,
         debug_stream << "-------Intersection ( " << intr_idx << " )\n";
         if (intr_idx < intersection_trace.size()) {
             debug_stream << "\nparticle gun: "
-                         << intersection_trace[intr_idx].second
-                         << ", vol id: " << intersection_trace[intr_idx].first
+                         << intersection_trace[intr_idx].intersection
+                         << ", vol id: " << intersection_trace[intr_idx].vol_idx
                          << std::endl;
         } else {
             debug_stream << "\nparticle gun: -" << std::endl;
@@ -47,14 +47,15 @@ bool compare_traces(const inters_trace_t &intersection_trace,
     for (std::size_t i = 0u; i < min_entries; ++i) {
 
         const auto &nav_inters = obj_tracer[i].sf_desc.barcode();
-        const auto &ray_inters = intersection_trace[i].second.sf_desc.barcode();
+        const auto &ray_inters =
+            intersection_trace[i].intersection.sf_desc.barcode();
 
         const bool found_same_surfaces{nav_inters == ray_inters};
 
         if (not found_same_surfaces) {
             const auto &next_nav_inters = obj_tracer[i + 1u].sf_desc.barcode();
             const auto &next_ray_inters =
-                intersection_trace[i + 1u].second.sf_desc.barcode();
+                intersection_trace[i + 1u].intersection.sf_desc.barcode();
 
             // Intersection record at portal bound might be flipped
             // (the portals overlap completely)

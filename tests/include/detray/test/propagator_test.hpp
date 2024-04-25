@@ -32,6 +32,7 @@
 #include <gtest/gtest.h>
 
 // System include(s)
+#include <stdexcept>
 #include <tuple>
 
 namespace detray {
@@ -56,15 +57,17 @@ using constraints_t = constrained_step<>;
 template <typename bfield_view_t>
 using rk_stepper_t = rk_stepper<bfield_view_t, algebra_t, constraints_t>;
 
-// Geomery navigation configurations
-constexpr unsigned int theta_steps{10u};
-constexpr unsigned int phi_steps{10u};
+// Track generator
+using generator_t = uniform_track_generator<track_t>;
 
-constexpr scalar_t rk_tolerance{1e-4f};
-constexpr scalar_t overstep_tolerance{-3.f * unit<scalar_t>::um};
-constexpr scalar_t constrainted_step_size{2.f * unit<scalar_t>::mm};
+/// Test tolerance
 constexpr scalar_t is_close{1e-4f};
-constexpr scalar_t path_limit{2.f * unit<scalar_t>::m};
+
+/// Test configuration
+struct propagator_test_config {
+    generator_t::configuration track_generator;
+    propagation::config<scalar_t> propagation;
+};
 
 template <template <typename...> class vector_t>
 struct track_inspector : actor {
@@ -77,14 +80,14 @@ struct track_inspector : actor {
               _jac_transports(&resource) {}
 
         DETRAY_HOST_DEVICE
-        state(vector_t<scalar> path_lengths, vector_t<vector3_t> positions,
+        state(vector_t<scalar> path_lengths, vector_t<point3_t> positions,
               vector_t<free_matrix_t> jac_transports)
             : _path_lengths(path_lengths),
               _positions(positions),
               _jac_transports(jac_transports) {}
 
         vector_t<scalar> _path_lengths;
-        vector_t<vector3_t> _positions;
+        vector_t<point3_t> _positions;
         vector_t<free_matrix_t> _jac_transports;
     };
 
@@ -121,18 +124,16 @@ using actor_chain_device_t =
                 parameter_resetter<algebra_t>>;
 
 /// Precompute the tracks
-inline vecmem::vector<track_t> generate_tracks(
-    vecmem::memory_resource *mr, const unsigned int ts = theta_steps,
-    const unsigned int ps = phi_steps) {
+template <typename track_generator_t = uniform_track_generator<track_t>>
+inline auto generate_tracks(
+    vecmem::memory_resource *mr,
+    const typename track_generator_t::configuration &cfg = {}) {
 
     // Track collection
-    vecmem::vector<track_t> tracks(mr);
-
-    // Set momentum of tracks
-    const scalar p_mag{10.f * unit<scalar>::GeV};
+    vecmem::vector<typename track_generator_t::track_type> tracks(mr);
 
     // Iterate through uniformly distributed momentum directions
-    for (auto track : uniform_track_generator<track_t>(ps, ts, p_mag)) {
+    for (auto track : track_generator_t{cfg}) {
         // Put it into vector of trajectories
         tracks.push_back(track);
     }
@@ -144,10 +145,11 @@ inline vecmem::vector<track_t> generate_tracks(
 template <typename bfield_bknd_t, typename host_detector_t>
 inline auto run_propagation_host(vecmem::memory_resource *mr,
                                  const host_detector_t &det,
+                                 const propagation::config<scalar_t> &cfg,
                                  covfie::field<bfield_bknd_t> &field,
                                  const vecmem::vector<track_t> &tracks)
     -> std::tuple<vecmem::jagged_vector<scalar_t>,
-                  vecmem::jagged_vector<vector3_t>,
+                  vecmem::jagged_vector<point3_t>,
                   vecmem::jagged_vector<free_matrix_t>> {
 
     // Construct propagator from stepper and navigator
@@ -156,21 +158,18 @@ inline auto run_propagation_host(vecmem::memory_resource *mr,
 
     using propagator_host_t =
         propagator<decltype(stepr), decltype(nav), actor_chain_host_t>;
-    propagation::config<scalar_t> cfg{};
-    cfg.navigation.search_window = {3u, 3u};
-    cfg.stepping.rk_error_tol = rk_tolerance;
     propagator_host_t p{cfg};
 
     // Create vector for track recording
     vecmem::jagged_vector<scalar_t> host_path_lengths(mr);
-    vecmem::jagged_vector<vector3_t> host_positions(mr);
+    vecmem::jagged_vector<point3_t> host_positions(mr);
     vecmem::jagged_vector<free_matrix_t> host_jac_transports(mr);
 
     for (const auto &trk : tracks) {
 
         // Create the propagator state
         inspector_host_t::state insp_state{*mr};
-        pathlimit_aborter::state pathlimit_state{path_limit};
+        pathlimit_aborter::state pathlimit_state{cfg.stepping.path_limit};
         parameter_transporter<algebra_t>::state transporter_state{};
         pointwise_material_interactor<algebra_t>::state interactor_state{};
         parameter_resetter<algebra_t>::state resetter_state{};
@@ -181,10 +180,12 @@ inline auto run_propagation_host(vecmem::memory_resource *mr,
         typename propagator_host_t::state state(trk, field, det);
 
         state._stepping.template set_constraint<step::constraint::e_accuracy>(
-            constrainted_step_size);
+            cfg.stepping.step_constraint);
 
         // Run propagation
-        p.propagate(state, actor_states);
+        if (!p.propagate(state, actor_states)) {
+            throw std::runtime_error("Host propagation failed");
+        }
 
         // Record the step information
         host_path_lengths.push_back(insp_state._path_lengths);
@@ -199,8 +200,8 @@ inline auto run_propagation_host(vecmem::memory_resource *mr,
 
 /// Compare the results between host and device propagation
 inline void compare_propagation_results(
-    const vecmem::jagged_vector<vector3_t> &host_positions,
-    const vecmem::jagged_vector<vector3_t> &device_positions,
+    const vecmem::jagged_vector<point3_t> &host_positions,
+    const vecmem::jagged_vector<point3_t> &device_positions,
     const vecmem::jagged_vector<scalar_t> &host_path_lengths,
     const vecmem::jagged_vector<scalar_t> &device_path_lengths,
     const vecmem::jagged_vector<free_matrix_t> &host_jac_transports,
@@ -218,8 +219,8 @@ inline void compare_propagation_results(
             ASSERT_EQ(host_positions[i].size(), device_positions[i].size());
             ASSERT_NEAR(host_pl, device_pl, host_pl * is_close);
 
-            const vector3_t &host_pos = host_positions[i][j];
-            const vector3_t &device_pos = device_positions[i][j];
+            const point3_t &host_pos = host_positions[i][j];
+            const point3_t &device_pos = device_positions[i][j];
 
             auto relative_error =
                 static_cast<point3_t>(1. / host_pl * (host_pos - device_pos));

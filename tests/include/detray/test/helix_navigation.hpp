@@ -18,8 +18,8 @@
 #include "detray/propagator/rk_stepper.hpp"
 #include "detray/simulation/event_generator/track_generators.hpp"
 #include "detray/test/fixture_base.hpp"
+#include "detray/test/utils/detector_scanner.hpp"
 #include "detray/test/utils/navigation_check_helper.hpp"
-#include "detray/test/utils/particle_gun.hpp"
 #include "detray/test/utils/svg_display.hpp"
 #include "detray/tracks/tracks.hpp"
 #include "detray/utils/inspectors.hpp"
@@ -28,7 +28,7 @@
 #include <iostream>
 #include <string>
 
-namespace detray {
+namespace detray::test {
 
 /// @brief Test class that runs the helix navigation check on a given detector.
 ///
@@ -39,16 +39,19 @@ class helix_navigation : public test::fixture_base<> {
     using scalar_t = typename detector_t::scalar_type;
     using algebra_t = typename detector_t::algebra_type;
     using free_track_parameters_t = free_track_parameters<algebra_t>;
+    using intersection_trace_t = typename detray::helix_scan<
+        algebra_t>::template intersection_trace_type<detector_t>;
 
     public:
     using fixture_type = test::fixture_base<>;
 
     struct config : public fixture_type::configuration {
-        using trk_gen_config_t = typename uniform_track_generator<
-            free_track_parameters_t>::configuration;
 
         std::string m_name{"helix_navigation"};
-        trk_gen_config_t m_trk_gen_cfg{};
+        // Access to truth data
+        std::shared_ptr<test::whiteboard> m_white_board;
+        // The maximal number of test tracks to run
+        std::size_t m_n_tracks{detray::detail::invalid_value<std::size_t>()};
         // Visualization style to be applied to the svgs
         detray::svgtools::styling::style m_style =
             detray::svgtools::styling::tableau_colorblind::style;
@@ -56,10 +59,11 @@ class helix_navigation : public test::fixture_base<> {
         /// Getters
         /// @{
         const std::string &name() const { return m_name; }
-        trk_gen_config_t &track_generator() { return m_trk_gen_cfg; }
-        const trk_gen_config_t &track_generator() const {
-            return m_trk_gen_cfg;
+        std::shared_ptr<test::whiteboard> whiteboard() { return m_white_board; }
+        std::shared_ptr<test::whiteboard> whiteboard() const {
+            return m_white_board;
         }
+        std::size_t n_tracks() const { return m_n_tracks; }
         const auto &svg_style() const { return m_style; }
         /// @}
 
@@ -67,6 +71,18 @@ class helix_navigation : public test::fixture_base<> {
         /// @{
         config &name(const std::string n) {
             m_name = n;
+            return *this;
+        }
+        config &whiteboard(std::shared_ptr<test::whiteboard> w_board) {
+            if (!w_board) {
+                throw std::invalid_argument(
+                    "Helix navigation: No valid whiteboard instance");
+            }
+            m_white_board = std::move(w_board);
+            return *this;
+        }
+        config &n_tracks(std::size_t n) {
+            m_n_tracks = n;
             return *this;
         }
         /// @}
@@ -78,8 +94,14 @@ class helix_navigation : public test::fixture_base<> {
                               const config_t &cfg = {})
         : m_det{det}, m_names{names} {
         m_cfg.name(cfg.name());
-        m_cfg.track_generator() = cfg.track_generator();
+        m_cfg.whiteboard(cfg.whiteboard());
+        m_cfg.n_tracks(cfg.n_tracks());
         m_cfg.propagation() = cfg.propagation();
+
+        if (!m_cfg.whiteboard()) {
+            throw std::invalid_argument(
+                "No white board was passed to helix navigation test");
+        }
     }
 
     /// Run the check
@@ -128,30 +150,39 @@ class helix_navigation : public test::fixture_base<> {
 
         // Iterate through uniformly distributed momentum directions
         std::size_t n_tracks{0u};
-        auto trk_state_generator =
-            uniform_track_generator<free_track_parameters_t>(
-                m_cfg.track_generator());
+        if (!m_cfg.whiteboard()->exists("helix_scan")) {
+            throw std::runtime_error(
+                "White board is empty! Please run helix scan first");
+        }
+        const auto &helix_scan_traces =
+            m_cfg.whiteboard()->template get<std::vector<intersection_trace_t>>(
+                "helix_scan");
 
+        std::size_t n_test_tracks{
+            std::min(m_cfg.n_tracks(), helix_scan_traces.size())};
         std::cout << "INFO: Running helix navigation check on: "
-                  << m_names.at(0) << "\n(" << trk_state_generator.size()
-                  << " helices) ...\n"
+                  << m_names.at(0) << "...\n"
                   << std::endl;
 
         /// Error statistic
-        std::size_t n_close_miss{0u}, n_fatal{0u};
+        std::size_t n_miss{0u}, n_fatal{0u};
 
         std::ios_base::openmode io_mode = std::ios::trunc | std::ios::out;
         detray::io::file_handle debug_file{"./helix_navigation.txt", io_mode};
 
-        for (auto track : trk_state_generator) {
+        for (auto intersection_trace : helix_scan_traces) {
 
-            // Get ground truth helix from track
-            detail::helix helix(track, &B);
+            if (n_tracks >= m_cfg.n_tracks()) {
+                break;
+            }
 
-            // Shoot helix through the detector and record all surfaces it
-            // encounters
-            const auto intersection_trace = particle_gun::shoot_particle(
-                m_det, helix, 15.f * unit<scalar_t>::um);
+            // Retrieve the test helix
+            const auto &start = intersection_trace.front();
+
+            // Follow the test helix with the same track and check, if we find
+            // the same volumes and distances along the way
+            free_track_parameters_t track(start.track_param);
+            detail::helix<algebra_t> helix(track, &B);
 
             // Build actor and propagator states
             pathlimit_aborter::state pathlimit_aborter_state{
@@ -172,9 +203,14 @@ class helix_navigation : public test::fixture_base<> {
             bool success = prop.propagate(propagation, actor_states);
 
             if (success) {
-                success &= detail::compare_traces(intersection_trace,
-                                                  obj_tracer, helix, n_tracks,
-                                                  trk_state_generator.size());
+                // The navigator does not record the initial track position,
+                // add it as a dummy record
+                obj_tracer.object_trace.insert(
+                    obj_tracer.object_trace.begin(),
+                    intersection_trace.front().intersection);
+                success &=
+                    detail::compare_traces(intersection_trace, obj_tracer,
+                                           helix, n_tracks, n_test_tracks);
             }
             if (not success) {
                 // Write debug info to file
@@ -199,22 +235,26 @@ class helix_navigation : public test::fixture_base<> {
                     ++n_fatal;
                 } else {
                     // @TODO: Check mask boundaries
-                    ++n_close_miss;
+                    ++n_miss;
                 }
             }
 
-            EXPECT_TRUE(success)
-                << "\nFailed on helix " << n_tracks << "/"
-                << trk_state_generator.size() << ": " << helix << "\n\n";
+            EXPECT_TRUE(success) << "\nFailed on helix " << n_tracks << "/"
+                                 << n_test_tracks << ": " << helix << "\n\n";
 
             ++n_tracks;
         }
 
-        if (n_close_miss > 0u || n_fatal > 0u) {
+        if (n_miss > 0u || n_fatal > 0u) {
             std::cout << "-----------------------------------"
                       << "Error Statistic:\n\n"
-                      << "\n (close misses: " << n_close_miss
+                      << "\n total: " << n_tracks << "\n (misses: " << n_miss
                       << ", fatal failures: " << n_fatal << ")\n"
+                      << "-----------------------------------\n"
+                      << std::endl;
+        } else {
+            std::cout << "-----------------------------------\n"
+                      << "Tested " << n_tracks << " helices: OK\n"
                       << "-----------------------------------\n"
                       << std::endl;
         }
@@ -227,6 +267,8 @@ class helix_navigation : public test::fixture_base<> {
     const detector_t &m_det;
     /// Volume names
     const typename detector_t::name_map &m_names;
+    /// Truth intersections to compare against
+    std::vector<intersection_trace_t> m_intersection_traces;
 };
 
-}  // namespace detray
+}  // namespace detray::test

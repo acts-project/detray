@@ -14,7 +14,7 @@
 #include "detray/propagator/line_stepper.hpp"
 #include "detray/propagator/propagator.hpp"
 #include "detray/simulation/event_generator/track_generators.hpp"
-#include "detray/test/utils/particle_gun.hpp"
+#include "detray/test/utils/detector_scanner.hpp"
 #include "detray/tracks/tracks.hpp"
 #include "detray/utils/inspectors.hpp"
 
@@ -79,7 +79,7 @@ int main() {
 
         // Shoot ray through the detector and record all surface intersections
         const auto intersection_trace =
-            detray::particle_gun::shoot_particle(det, ray);
+            detray::detector_scanner::run<detray::ray_scan>(det, ray);
 
         // Now follow that ray with the same track and check, if we find
         // the same volumes and distances along the way
@@ -104,8 +104,8 @@ int main() {
             debug_stream << "-------Intersection trace\n"
                          << "ray gun: "
                          << "found in vol: "
-                         << intersection_trace[intr_idx].first << ",\n\t"
-                         << intersection_trace[intr_idx].second;
+                         << intersection_trace[intr_idx].vol_idx << ",\n\t"
+                         << intersection_trace[intr_idx].intersection;
             debug_stream << "\nnavig.:\t" << obj_tracer[intr_idx];
         }
         std::cout << debug_stream.str() << std::endl;

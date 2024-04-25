@@ -24,13 +24,19 @@ enum class trust_level {
 /// Navigation configuration
 template <typename scalar_t>
 struct config {
-    /// Tolerance on the masks 'is_inside' check
-    scalar_t mask_tolerance{15.f * unit<scalar_t>::um};
     /// Maximal absolute path distance for a track to be considered 'on surface'
     scalar_t on_surface_tolerance{1.f * unit<scalar_t>::um};
+    /// Tolerance on the mask 'is_inside' check:
+    /// @{
+    /// Minimal tolerance: ~ position uncertainty on surface
+    scalar_t min_mask_tolerance{1e-5f * unit<scalar_t>::mm};
+    /// Maximal tolerance: loose tolerance when still far away from surface
+    scalar_t max_mask_tolerance{1.f * unit<scalar_t>::mm};
+    ///@}
     /// How far behind the track position to look for candidates
     scalar_t overstep_tolerance{-100.f * unit<scalar_t>::um};
     /// Search window size for grid based acceleration structures
+    /// (0, 0): only look at current bin
     std::array<dindex, 2> search_window = {0u, 0u};
 };
 

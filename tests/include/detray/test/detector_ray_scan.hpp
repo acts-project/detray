@@ -1,6 +1,6 @@
 /** Detray library, part of the ACTS project (R&D line)
  *
- * (c) 2023 CERN for the benefit of the ACTS project
+ * (c) 2023-2024 CERN for the benefit of the ACTS project
  *
  * Mozilla Public License Version 2.0
  */
@@ -14,19 +14,21 @@
 #include "detray/navigation/volume_graph.hpp"
 #include "detray/plugins/svgtools/illustrator.hpp"
 #include "detray/simulation/event_generator/track_generators.hpp"
+#include "detray/test/detail/whiteboard.hpp"
 #include "detray/test/fixture_base.hpp"
 #include "detray/test/types.hpp"
+#include "detray/test/utils/detector_scanner.hpp"
 #include "detray/test/utils/hash_tree.hpp"
-#include "detray/test/utils/particle_gun.hpp"
-#include "detray/test/utils/ray_scan_utils.hpp"
+#include "detray/test/utils/scan_utils.hpp"
 #include "detray/test/utils/svg_display.hpp"
 
 // System include(s)
 #include <iostream>
+#include <limits>
 #include <sstream>
 #include <string>
 
-namespace detray {
+namespace detray::test {
 
 /// Print and adjacency list
 inline std::string print_adj(const dvector<dindex> &adjacency_matrix) {
@@ -65,20 +67,31 @@ template <typename detector_t>
 class ray_scan : public test::fixture_base<> {
 
     using algebra_t = typename detector_t::algebra_type;
+    using scalar_t = dscalar<algebra_t>;
     using ray_t = detail::ray<algebra_t>;
+    using intersection_trace_t = typename detray::ray_scan<
+        algebra_t>::template intersection_trace_type<detector_t>;
+    using uniform_gen_t =
+        random_numbers<scalar_t, std::uniform_real_distribution<scalar_t>>;
+    using track_generator_t = random_track_generator<ray_t, uniform_gen_t>;
 
     public:
     using fixture_type = test::fixture_base<>;
 
     struct config : public fixture_type::configuration {
-        using trk_gen_config_t =
-            typename uniform_track_generator<ray_t>::configuration;
+        using trk_gen_config_t = typename track_generator_t::configuration;
 
         std::string m_name{"ray_scan"};
-        // Write intersection points for plotting
-        bool m_write_inters{false};
+        // Save results for later use in downstream tests
+        std::shared_ptr<test::whiteboard> m_white_board;
+        // Mask tolerance for the intersectors
+        std::array<scalar_t, 2> m_mask_tol{
+            std::numeric_limits<scalar_t>::epsilon(),
+            std::numeric_limits<scalar_t>::epsilon()};
         // Configuration of the ray generator
         trk_gen_config_t m_trk_gen_cfg{};
+        // Write intersection points for plotting
+        bool m_write_inters{false};
         // Visualization style to be applied to the svgs
         detray::svgtools::styling::style m_style =
             detray::svgtools::styling::tableau_colorblind::style;
@@ -86,6 +99,11 @@ class ray_scan : public test::fixture_base<> {
         /// Getters
         /// @{
         const std::string &name() const { return m_name; }
+        std::array<scalar_t, 2> mask_tolerance() const { return m_mask_tol; }
+        std::shared_ptr<test::whiteboard> whiteboard() { return m_white_board; }
+        std::shared_ptr<test::whiteboard> whiteboard() const {
+            return m_white_board;
+        }
         bool write_intersections() const { return m_write_inters; }
         trk_gen_config_t &track_generator() { return m_trk_gen_cfg; }
         const trk_gen_config_t &track_generator() const {
@@ -98,6 +116,18 @@ class ray_scan : public test::fixture_base<> {
         /// @{
         config &name(const std::string n) {
             m_name = n;
+            return *this;
+        }
+        config &mask_tolerance(const std::array<scalar_t, 2> tol) {
+            m_mask_tol = tol;
+            return *this;
+        }
+        config &whiteboard(std::shared_ptr<test::whiteboard> w_board) {
+            if (!w_board) {
+                throw std::invalid_argument(
+                    "Ray scan: No valid whiteboard instance");
+            }
+            m_white_board = std::move(w_board);
             return *this;
         }
         config &write_intersections(const bool do_write) {
@@ -113,8 +143,10 @@ class ray_scan : public test::fixture_base<> {
                       const config_t &cfg = {})
         : m_det{det}, m_names{names} {
         m_cfg.name(cfg.name());
-        m_cfg.write_intersections(cfg.write_intersections());
+        m_cfg.whiteboard(cfg.whiteboard());
+        m_cfg.mask_tolerance(cfg.mask_tolerance());
         m_cfg.track_generator() = cfg.track_generator();
+        m_cfg.write_intersections(cfg.write_intersections());
     }
 
     /// Run the ray scan
@@ -136,8 +168,7 @@ class ray_scan : public test::fixture_base<> {
         dindex start_index{0u};
 
         std::size_t n_tracks{0u};
-        auto ray_generator =
-            uniform_track_generator<ray_t>(m_cfg.track_generator());
+        auto ray_generator = track_generator_t(m_cfg.track_generator());
 
         // Csv output file
         detray::io::file_handle outfile{
@@ -148,20 +179,20 @@ class ray_scan : public test::fixture_base<> {
             *outfile << "index,type,x,y,z," << std::endl;
         }
 
-        std::cout << "INFO: Running ray scan on: " << m_names.at(0) << "\n("
-                  << ray_generator.size() << " rays) ...\n"
+        std::cout << "INFO: Running ray scan on: " << m_names.at(0) << "...\n"
                   << std::endl;
 
         for (const auto &ray : ray_generator) {
 
             // Record all intersections and surfaces along the ray
             const auto intersection_record =
-                particle_gun::shoot_particle(m_det, ray);
+                detector_scanner::run<detray::ray_scan>(m_det, ray,
+                                                        m_cfg.mask_tolerance());
 
             // Csv output
             if (m_cfg.write_intersections()) {
                 for (const auto &single_ir : intersection_record) {
-                    const auto &intersection = single_ir.second;
+                    const auto &intersection = single_ir.intersection;
                     const auto sf =
                         detray::surface{m_det, intersection.sf_desc};
                     auto glob_pos =
@@ -177,11 +208,12 @@ class ray_scan : public test::fixture_base<> {
             // Create a trace of the volume indices that were encountered
             // and check that portal intersections are connected
             auto [portal_trace, surface_trace, err_code] =
-                trace_intersections<leaving_world>(intersection_record,
-                                                   start_index);
+                detector_scanner::trace_intersections<leaving_world>(
+                    intersection_record, start_index);
 
             // Is the succession of volumes consistent ?
-            err_code &= check_connectivity<leaving_world>(portal_trace);
+            err_code &= detector_scanner::check_connectivity<leaving_world>(
+                portal_trace);
 
             // Display the detector, track and intersections for debugging
             if (not err_code) {
@@ -204,11 +236,22 @@ class ray_scan : public test::fixture_base<> {
 
             // Build an adjacency matrix from this trace that can be checked
             // against the geometry hash (see 'track_geometry_changes')
-            build_adjacency<leaving_world>(portal_trace, surface_trace,
-                                           adj_mat_scan, obj_hashes);
+            detector_scanner::build_adjacency<leaving_world>(
+                portal_trace, surface_trace, adj_mat_scan, obj_hashes);
+
+            m_intersection_traces.push_back(std::move(intersection_record));
 
             ++n_tracks;
         }
+        std::cout << "-----------------------------------\n"
+                  << "Tested " << n_tracks << " rays: OK\n\n"
+                  << "Adding " << m_intersection_traces.size()
+                  << " ray traces to store\n"
+                  << "-----------------------------------\n"
+                  << std::endl;
+
+        // Save the results
+        m_cfg.whiteboard()->add("ray_scan", std::move(m_intersection_traces));
 
         // Check that the links that were discovered by the scan match the
         // volume graph
@@ -231,6 +274,8 @@ class ray_scan : public test::fixture_base<> {
     const detector_t &m_det;
     /// Volume names
     const typename detector_t::name_map &m_names;
+    /// Record the scan for later use
+    std::vector<intersection_trace_t> m_intersection_traces;
 };
 
-}  // namespace detray
+}  // namespace detray::test

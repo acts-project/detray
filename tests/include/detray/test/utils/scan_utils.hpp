@@ -1,6 +1,6 @@
 /** Detray library, part of the ACTS project (R&D line)
  *
- * (c) 2021-2023 CERN for the benefit of the ACTS project
+ * (c) 2021-2024 CERN for the benefit of the ACTS project
  *
  * Mozilla Public License Version 2.0
  */
@@ -22,7 +22,7 @@
 #include <utility>
 #include <vector>
 
-namespace detray {
+namespace detray::detector_scanner {
 
 /// Check if a set of volume indices from portal intersections from a path
 /// (works even if the pairs are not sorted). That the volume links of the
@@ -203,22 +203,26 @@ inline auto trace_intersections(const record_container &intersection_records,
 
         /// getter
         /// @{
-        inline auto surface_idx() const { return entry.second.sf_desc.index(); }
-        inline auto surface_volume_idx() const {
-            return entry.second.sf_desc.volume();
+        inline auto surface_idx() const {
+            return entry.intersection.sf_desc.index();
         }
-        inline auto &inters() const { return entry.second; }
-        inline auto &volume_idx() const { return entry.first; }
-        inline auto &volume_link() const { return entry.second.volume_link; }
-        inline auto &dist() const { return entry.second.path; }
+        inline auto surface_volume_idx() const {
+            return entry.intersection.sf_desc.volume();
+        }
+        inline auto &inters() const { return entry.intersection; }
+        inline auto &volume_idx() const { return entry.vol_idx; }
+        inline auto &volume_link() const {
+            return entry.intersection.volume_link;
+        }
+        inline auto &dist() const { return entry.intersection.path; }
         inline bool is_portal() const {
-            return entry.second.sf_desc.is_portal();
+            return entry.intersection.sf_desc.is_portal();
         }
         inline bool is_sensitive() const {
-            return entry.second.sf_desc.is_sensitive();
+            return entry.intersection.sf_desc.is_sensitive();
         }
         inline bool is_passive() const {
-            return entry.second.sf_desc.is_passive();
+            return entry.intersection.sf_desc.is_passive();
         }
         /// @}
     };
@@ -532,4 +536,4 @@ inline auto build_adjacency(const portal_trace_type &portal_trace,
     return adj_matrix;
 }
 
-}  // namespace detray
+}  // namespace detray::detector_scanner

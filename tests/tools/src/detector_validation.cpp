@@ -1,6 +1,6 @@
 /** Detray library, part of the ACTS project (R&D line)
  *
- * (c) 2023 CERN for the benefit of the ACTS project
+ * (c) 2023-2024 CERN for the benefit of the ACTS project
  *
  * Mozilla Public License Version 2.0
  */
@@ -10,6 +10,7 @@
 #include "detray/definitions/units.hpp"
 #include "detray/io/frontend/detector_reader.hpp"
 #include "detray/test/detail/register_checks.hpp"
+#include "detray/test/detail/whiteboard.hpp"
 #include "detray/test/detector_consistency.hpp"
 #include "detray/test/detector_helix_scan.hpp"
 #include "detray/test/detector_ray_scan.hpp"
@@ -52,12 +53,12 @@ int main(int argc, char **argv) {
         "geometry_file", po::value<std::string>(), "geometry input file")(
         "grid_file", po::value<std::string>(), "Surface grid input file")(
         "material_file", po::value<std::string>(), "material input file")(
-        "phi_steps", po::value<std::size_t>()->default_value(50u),
-        "# phi steps for particle gun")(
-        "theta_steps", po::value<std::size_t>()->default_value(50u),
-        "# theta steps for particle gun")(
+        "n_tracks", po::value<std::size_t>()->default_value(50u),
+        "# of tracks for particle gun")(
         "theta_range", po::value<std::vector<scalar_t>>()->multitoken(),
         "min, max range of theta values for particle gun")(
+        "eta_range", po::value<std::vector<scalar_t>>()->multitoken(),
+        "min, max range of eta values for particle gun")(
         "origin", po::value<std::vector<scalar_t>>()->multitoken(),
         "coordintates for particle gun origin position")(
         "p_tot", po::value<scalar_t>()->default_value(10.f),
@@ -85,11 +86,11 @@ int main(int argc, char **argv) {
     // Configs to be filled
     detray::io::detector_reader_config reader_cfg{};
     reader_cfg.do_check(false);  // < Don't run consistency check twice
-    detray::consistency_check<detector_t>::config con_chk_cfg{};
-    detray::ray_scan<detector_t>::config ray_scan_cfg{};
-    detray::helix_scan<detector_t>::config hel_scan_cfg{};
-    detray::straight_line_navigation<detector_t>::config str_nav_cfg{};
-    detray::helix_navigation<detector_t>::config hel_nav_cfg{};
+    detray::test::consistency_check<detector_t>::config con_chk_cfg{};
+    detray::test::ray_scan<detector_t>::config ray_scan_cfg{};
+    detray::test::helix_scan<detector_t>::config hel_scan_cfg{};
+    detray::test::straight_line_navigation<detector_t>::config str_nav_cfg{};
+    detray::test::helix_navigation<detector_t>::config hel_nav_cfg{};
 
     // General options
     if (vm.count("write_volume_graph")) {
@@ -118,25 +119,48 @@ int main(int argc, char **argv) {
     }
 
     // Particle gun
-    if (vm.count("phi_steps")) {
-        const std::size_t phi_steps{vm["phi_steps"].as<std::size_t>()};
+    if (vm.count("n_tracks")) {
+        const std::size_t n_tracks{vm["n_tracks"].as<std::size_t>()};
 
-        ray_scan_cfg.track_generator().phi_steps(phi_steps);
-        hel_nav_cfg.track_generator().phi_steps(phi_steps);
-    }
-    if (vm.count("theta_steps")) {
-        const std::size_t theta_steps{vm["theta_steps"].as<std::size_t>()};
+        ray_scan_cfg.track_generator().n_tracks(n_tracks);
+        hel_scan_cfg.track_generator().n_tracks(n_tracks);
 
-        ray_scan_cfg.track_generator().theta_steps(theta_steps);
-        hel_nav_cfg.track_generator().theta_steps(theta_steps);
+        if (vm.count("phi_steps") || vm.count("theta_steps")) {
+            throw std::invalid_argument(
+                "'n_tracks' and angular step size cannot be set at the same "
+                "time");
+        }
     }
-    if (vm.count("theta_range")) {
+    if (vm.count("eta_range")) {
+        const auto eta_range = vm["eta_range"].as<std::vector<scalar_t>>();
+        if (eta_range.size() == 2u) {
+            scalar_t min_theta{2.f * std::atan(std::exp(-eta_range[0]))};
+            scalar_t max_theta{2.f * std::atan(std::exp(-eta_range[1]))};
+
+            // Wrap around
+            if (min_theta > max_theta) {
+                scalar_t tmp{min_theta};
+                min_theta = max_theta;
+                max_theta = tmp;
+            }
+
+            ray_scan_cfg.track_generator().theta_range(min_theta, max_theta);
+            hel_scan_cfg.track_generator().theta_range(min_theta, max_theta);
+        } else {
+            throw std::invalid_argument("Eta range needs two arguments");
+        }
+        if (vm.count("theta_range")) {
+            throw std::invalid_argument(
+                "Eta range and theta range cannot be specified at the same "
+                "time");
+        }
+    } else if (vm.count("theta_range")) {
         const auto theta_range = vm["theta_range"].as<std::vector<scalar_t>>();
         if (theta_range.size() == 2u) {
             ray_scan_cfg.track_generator().theta_range(theta_range[0],
                                                        theta_range[1]);
-            hel_nav_cfg.track_generator().theta_range(theta_range[0],
-                                                      theta_range[1]);
+            hel_scan_cfg.track_generator().theta_range(theta_range[0],
+                                                       theta_range[1]);
         } else {
             throw std::invalid_argument("Theta range needs two arguments");
         }
@@ -146,21 +170,22 @@ int main(int argc, char **argv) {
         if (origin.size() == 3u) {
             ray_scan_cfg.track_generator().origin(
                 {origin[0], origin[1], origin[2]});
-            hel_nav_cfg.track_generator().origin(
+            hel_scan_cfg.track_generator().origin(
                 {origin[0], origin[1], origin[2]});
         } else {
             throw std::invalid_argument(
                 "Particle gun origin needs three arguments");
         }
     }
-    if (vm.count("p_tot")) {
-        const scalar_t p_mag{vm["p_tot"].as<scalar_t>()};
-
-        hel_nav_cfg.track_generator().p_tot(p_mag * unit<scalar_t>::GeV);
-    } else if (vm.count("p_T")) {
+    if (vm.count("p_T")) {
         const scalar_t p_T{vm["p_T"].as<scalar_t>()};
 
-        hel_nav_cfg.track_generator().p_T(p_T * unit<scalar_t>::GeV);
+        hel_scan_cfg.track_generator().p_T(p_T * unit<scalar_t>::GeV);
+    }
+    if (!vm["p_tot"].defaulted()) {
+        const scalar_t p_mag{vm["p_tot"].as<scalar_t>()};
+
+        hel_scan_cfg.track_generator().p_tot(p_mag * unit<scalar_t>::GeV);
     }
 
     // Navigation
@@ -184,37 +209,45 @@ int main(int argc, char **argv) {
             overstep_tol * unit<scalar_t>::um;
     }
 
-    // Ray scan and straight line navigation check use the same generator type
-    str_nav_cfg.track_generator() = ray_scan_cfg.track_generator();
-    hel_scan_cfg.track_generator() = hel_nav_cfg.track_generator();
-
     vecmem::host_memory_resource host_mr;
 
     const auto [det, names] =
         detray::io::read_detector<detector_t>(host_mr, reader_cfg);
 
+    // Create the whiteboard for data transfer between the steps
+    auto white_board = std::make_shared<test::whiteboard>();
+    ray_scan_cfg.whiteboard(white_board);
+    str_nav_cfg.whiteboard(white_board);
+    hel_scan_cfg.whiteboard(white_board);
+    hel_nav_cfg.whiteboard(white_board);
+
     // General data consistency of the detector
-    detray::detail::register_checks<detray::consistency_check>(det, names,
-                                                               con_chk_cfg);
+    detray::detail::register_checks<detray::test::consistency_check>(
+        det, names, con_chk_cfg);
 
     // Navigation link consistency, discovered by ray intersection
-    ray_scan_cfg.name("ray_scan_" + names.at(0));
-    detray::detail::register_checks<detray::ray_scan>(det, names, ray_scan_cfg);
+    ray_scan_cfg.name(names.at(0) + "_ray_scan");
+    detray::detail::register_checks<detray::test::ray_scan>(det, names,
+                                                            ray_scan_cfg);
 
     // Navigation link consistency, discovered by helix intersection
-    hel_scan_cfg.name("helix_scan_" + names.at(0));
-    detray::detail::register_checks<detray::helix_scan>(det, names,
-                                                        hel_scan_cfg);
+    hel_scan_cfg.name(names.at(0) + "_helix_scan");
+    detray::detail::register_checks<detray::test::helix_scan>(det, names,
+                                                              hel_scan_cfg);
 
     // Comparision of straight line navigation with ray scan
-    str_nav_cfg.name("straight_line_navigation_" + names.at(0));
-    detray::detail::register_checks<detray::straight_line_navigation>(
+    str_nav_cfg.name(names.at(0) + "_straight_line_navigation");
+    // Ensure that the same mask tolerance is used
+    auto mask_tolerance = ray_scan_cfg.mask_tolerance();
+    str_nav_cfg.propagation().navigation.min_mask_tolerance = mask_tolerance[0];
+    str_nav_cfg.propagation().navigation.max_mask_tolerance = mask_tolerance[1];
+    detray::detail::register_checks<detray::test::straight_line_navigation>(
         det, names, str_nav_cfg);
 
     // Comparision of navigation in a constant B-field with helix
-    hel_nav_cfg.name("helix_navigation_" + names.at(0));
-    detray::detail::register_checks<detray::helix_navigation>(det, names,
-                                                              hel_nav_cfg);
+    hel_nav_cfg.name(names.at(0) + "_helix_navigation");
+    detray::detail::register_checks<detray::test::helix_navigation>(
+        det, names, hel_nav_cfg);
 
     // Run the checks
     return RUN_ALL_TESTS();

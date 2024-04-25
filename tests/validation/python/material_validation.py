@@ -86,7 +86,7 @@ def __main__():
         sys.exit(1)
 
     if not args.output_format in ["svg", "png", "pdf"]:
-        logging.error(f"Unknown output file format: {out_format}")
+        logging.error(f"Unknown output file format: {args.output_format}")
         sys.exit(1)
 
     mat_scan_file = args.input

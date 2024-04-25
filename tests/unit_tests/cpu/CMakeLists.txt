@@ -78,7 +78,7 @@ macro( detray_add_cpu_test algebra )
       "propagator/line_stepper.cpp"
       "propagator/rk_stepper.cpp"
       "simulation/landau_sampling.cpp"
-      "simulation/particle_gun.cpp"
+      "simulation/detector_scanner.cpp"
       "simulation/scattering.cpp"
       "simulation/track_generators.cpp"
       "tracks/bound_track_parameters.cpp"

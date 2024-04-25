@@ -316,19 +316,18 @@ class illustrator {
     /// @param gctx the geometry context.
     ///
     /// @return @c actsvg::svg::object of the intersectio record.
-    template <typename view_t, typename intersection_t>
+    template <typename view_t, typename record_t>
     inline auto draw_intersections(
         const std::string& prefix,
-        const std::vector<std::pair<detray::dindex, intersection_t>>&
-            intersection_record,
+        const std::vector<record_t>& intersection_record,
         const typename detector_t::vector3_type dir, const view_t& view,
         const typename detector_t::geometry_context& gctx = {}) const {
 
-        dvector<intersection_t> intersections{};
+        dvector<typename record_t::intersection_type> intersections{};
         intersections.reserve(intersection_record.size());
 
         for (auto& ir : intersection_record) {
-            intersections.push_back(ir.second);
+            intersections.push_back(ir.intersection);
         }
 
         return draw_intersections(prefix, intersections, dir, view, gctx);

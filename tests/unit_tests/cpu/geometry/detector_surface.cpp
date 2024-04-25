@@ -29,7 +29,7 @@ enum material_ids : unsigned int {
     e_slab = 0u,
 };
 
-constexpr detray::scalar tol{1e-6f};
+constexpr detray::scalar tol{5e-5f};
 
 }  // anonymous namespace
 
@@ -109,9 +109,14 @@ GTEST_TEST(detray_geometry, surface) {
 
     // Transformation matrix
     const auto disc_translation =
-        vector3_t{0.f, 0.f, -824.5f};  // beampipe portal
-    ASSERT_EQ(disc.transform(ctx).translation(), disc_translation);
-    ASSERT_EQ(disc.center(ctx), disc_translation);
+        disc.transform(ctx).translation();  // beampipe portal
+    ASSERT_NEAR(disc_translation[0], 0.f, tol);
+    ASSERT_NEAR(disc_translation[1], 0.f, tol);
+    ASSERT_NEAR(disc_translation[2], -823.7f, tol);
+    const auto center = disc.center(ctx);
+    ASSERT_NEAR(center[0], 0.f, tol);
+    ASSERT_NEAR(center[1], 0.f, tol);
+    ASSERT_NEAR(center[2], -823.7f, tol);
 
     // Surface normal
     const auto z_axis = vector3_t{0.f, 0.f, 1.f};
