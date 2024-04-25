@@ -196,6 +196,7 @@ class surface {
 
     /// @returns the cosine of the incidence angle given a local/bound position
     /// @param p and a global direction @param dir
+    /// @note The direction has to be normalized
     template <typename point_t = point2_type,
               std::enable_if_t<std::is_same_v<point_t, point3_type> or
                                    std::is_same_v<point_t, point2_type>,
@@ -204,7 +205,7 @@ class surface {
                                                 const vector3_type &dir,
                                                 const point_t &p) const
         -> scalar_type {
-        return vector::dot(dir, normal(ctx, p));
+        return math::abs(vector::dot(dir, normal(ctx, p)));
     }
 
     /// @returns the material parameters at the local position @param loc_p

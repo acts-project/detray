@@ -53,7 +53,6 @@ GTEST_TEST(detray_intersection, intersection2D) {
     intersection_t i0 = {surface_t{},
                          point3{0.2f, 0.4f, 0.f},
                          2.f,
-                         1.f,
                          1u,
                          intersection::status::e_outside,
                          intersection::direction::e_along};
@@ -62,7 +61,6 @@ GTEST_TEST(detray_intersection, intersection2D) {
         surface_t{},
         point3{0.2f, 0.4f, 0.f},
         1.7f,
-        -1.f,
         0u,
         intersection::status::e_inside,
         intersection::direction::e_opposite,

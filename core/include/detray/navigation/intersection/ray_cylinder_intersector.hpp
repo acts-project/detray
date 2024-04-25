@@ -193,19 +193,12 @@ struct ray_intersector_impl<cylindrical2D<algebra_t>, algebra_t> {
                                     math::min(mask_tolerance[1],
                                               1e-3f * math::abs(is.path))));
 
-            // prepare some additional information in case the intersection
-            // is valid
+            // Compute some additional information if the intersection is valid
             if (is.status == intersection::status::e_inside) {
                 is.direction = detail::signbit(is.path)
                                    ? intersection::direction::e_opposite
                                    : intersection::direction::e_along;
                 is.volume_link = mask.volume_link();
-
-                // Get incidence angle
-                const scalar_type phi{is.local[0] / is.local[2]};
-                const vector3_type normal = {math::cos(phi), math::sin(phi),
-                                             0.f};
-                is.cos_incidence_angle = vector::dot(rd, normal);
             }
         } else {
             is.status = intersection::status::e_missed;
