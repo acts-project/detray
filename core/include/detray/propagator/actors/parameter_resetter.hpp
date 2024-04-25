@@ -66,7 +66,8 @@ struct parameter_resetter : actor {
         auto& stepping = propagation._stepping;
 
         // Do covariance transport when the track is on surface
-        if (not navigation.is_on_module()) {
+        if (!(navigation.is_on_sensitive() ||
+              navigation.encountered_sf_material())) {
             return;
         }
 

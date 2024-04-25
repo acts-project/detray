@@ -156,7 +156,9 @@ struct bin_association_getter {
             // loop over
             constexpr bool is_cyl{
                 std::is_same_v<typename accel_t::local_frame_type,
-                               detray::cylindrical2D<algebra_t>>};
+                               detray::cylindrical2D<algebra_t>> ||
+                std::is_same_v<typename accel_t::local_frame_type,
+                               detray::concentric_cylindrical2D<algebra_t>>};
             if constexpr (is_cyl) {
                 edges0.swap(edges1);
             }
