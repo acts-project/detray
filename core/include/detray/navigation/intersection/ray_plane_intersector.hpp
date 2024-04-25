@@ -87,17 +87,9 @@ struct ray_intersector_impl<cartesian2D<algebra_t>, algebra_t, false> {
                                         math::min(mask_tolerance[1],
                                                   mask_tol_scalor *
                                                       math::fabs(is.path))));
-
-                // prepare some additional information in case the intersection
-                // is valid
-                if (is.status) {
-                    is.sf_desc = sf;
-                    is.direction = !detail::signbit(is.path);
-                    is.volume_link = mask.volume_link();
-
-                    // Get incidene angle
-                    is.cos_incidence_angle = math::fabs(denom);
-                }
+                is.sf_desc = sf;
+                is.direction = !detail::signbit(is.path);
+                is.volume_link = mask.volume_link();
             }
         } else {
             is.status = false;

@@ -108,17 +108,9 @@ struct ray_intersector_impl<line2D<algebra_t>, algebra_t, false> {
                 math::max(mask_tolerance[0],
                           math::min(mask_tolerance[1],
                                     mask_tol_scalor * math::fabs(is.path))));
-
-            // prepare some additional information in case the intersection
-            // is valid
-            if (is.status) {
-                is.sf_desc = sf;
-                is.direction = !detail::signbit(is.path);
-                is.volume_link = mask.volume_link();
-
-                // Get incidence angle
-                is.cos_incidence_angle = math::fabs(zd);
-            }
+            is.sf_desc = sf;
+            is.direction = !detail::signbit(is.path);
+            is.volume_link = mask.volume_link();
         }
         return is;
     }

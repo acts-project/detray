@@ -71,7 +71,6 @@ GTEST_TEST(detray_intersection, translated_cylinder) {
     // p2[0] = r * phi : 180deg in the opposite direction with r = 4
     EXPECT_NEAR(hits_bound[0].local[0], 4.f * constant<scalar>::pi, tol);
     EXPECT_NEAR(hits_bound[0].local[1], -5., tol);
-    EXPECT_NEAR(hits_bound[0].cos_incidence_angle, -1.f, tol);
 
     // second intersection lies in front of the track
     EXPECT_TRUE(hits_bound[1].status);
@@ -86,27 +85,6 @@ GTEST_TEST(detray_intersection, translated_cylinder) {
                 hits_bound[1].local[1] != not_defined);
     EXPECT_NEAR(hits_bound[1].local[0], 0.f, tol);
     EXPECT_NEAR(hits_bound[1].local[1], -5.f, tol);
-    EXPECT_NEAR(hits_bound[1].cos_incidence_angle, 1.f, tol);
-}
-
-// This checks the inclindence angle calculation for a ray-cylinder intersection
-GTEST_TEST(detray_intersection, cylinder_incidence_angle) {
-    const transform3_t identity{};
-    ray_intersector<cylinder2D, algebra_t> ci;
-
-    // Test ray
-    const point3 ori = {0.f, 1.f, 0.f};
-    const point3 dir = {1.f, 0.f, 0.f};
-    ray_t ray(ori, 0.f, dir, 0.f);
-
-    // Intersect: Set an infinite overstep tolerance, so that no solution is
-    // optimized away
-    mask<cylinder2D, std::uint_least16_t, algebra_t> cylinder{0u, r, -hz, hz};
-    const auto hits_bound =
-        ci(ray, surface_descriptor<>{}, cylinder, identity, tol, -not_defined);
-
-    ASSERT_NEAR(hits_bound[0].cos_incidence_angle, -std::sqrt(15.f) / 4.f, tol);
-    ASSERT_NEAR(hits_bound[1].cos_incidence_angle, std::sqrt(15.f) / 4.f, tol);
 }
 
 // This checks the solution of a ray-cylinder portal intersection against

@@ -36,14 +36,13 @@ struct intersection2D {
     double l0 = 0.;
     double l1 = 0.;
     double path = 0.;
-    double cos_theta = 0.;
     unsigned int volume_link = 0u;
     int direction = 0;
     int status = 0;
 
     DFE_NAMEDTUPLE(intersection2D, track_id, identifier, type, transform_index,
                    mask_id, mask_index, material_id, material_index, l0, l1,
-                   path, cos_theta, volume_link, direction, status);
+                   path, volume_link, direction, status);
 };
 
 /// Read intersections from csv file
@@ -90,8 +89,6 @@ inline auto read_intersection2D(const std::string &file_name) {
         inters.local = {static_cast<scalar_t>(inters_data.l0),
                         static_cast<scalar_t>(inters_data.l1), 0.f};
         inters.path = static_cast<scalar_t>(inters_data.path);
-        inters.cos_incidence_angle =
-            static_cast<scalar_t>(inters_data.cos_theta);
         inters.volume_link = static_cast<nav_link_t>(inters_data.volume_link);
         inters.direction = static_cast<bool>(inters_data.direction);
         inters.status = static_cast<bool>(inters_data.status);
@@ -153,7 +150,6 @@ inline void write_intersection2D(
             inters_data.l0 = inters.local[0];
             inters_data.l1 = inters.local[1];
             inters_data.path = inters.path;
-            inters_data.cos_theta = inters.cos_incidence_angle;
             inters_data.volume_link = inters.volume_link;
             inters_data.direction = static_cast<int>(inters.direction);
             inters_data.status = static_cast<int>(inters.status);

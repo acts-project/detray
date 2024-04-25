@@ -188,7 +188,8 @@ GTEST_TEST(detray_material, material_rod) {
     auto is = ray_intersector<line_circular, algebra_t>{}(
         detail::ray<algebra_t>(trk), surface_descriptor<>{}, ln, tf);
 
-    const scalar_t cos_inc_ang{is.cos_incidence_angle};
+    const scalar_t cos_inc_ang{std::abs(vector::dot(
+        line2D<algebra_t>::normal(tf, is.local), vector::normalize(dir)))};
     const scalar_t approach{is.local[0]};
 
     EXPECT_NEAR(rod.path_segment(cos_inc_ang, approach),

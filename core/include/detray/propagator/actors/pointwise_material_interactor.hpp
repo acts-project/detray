@@ -132,6 +132,10 @@ struct pointwise_material_interactor : actor {
     DETRAY_HOST_DEVICE inline void operator()(
         state &interactor_state, propagator_state_t &prop_state) const {
 
+        // @Todo: Make context part of propagation state
+        using detector_type = typename propagator_state_t::detector_type;
+        using geo_context_type = typename detector_type::geometry_context;
+
         interactor_state.reset();
 
         const auto &navigation = prop_state._navigation;
@@ -141,10 +145,10 @@ struct pointwise_material_interactor : actor {
 
             auto &stepping = prop_state._stepping;
 
-            this->update(stepping._bound_params, interactor_state,
+            this->update(geo_context_type{}, stepping._bound_params,
+                         interactor_state,
                          static_cast<int>(navigation.direction()),
-                         navigation.get_surface(),
-                         navigation.current()->cos_incidence_angle);
+                         navigation.get_surface());
         }
     }
 
@@ -154,16 +158,17 @@ struct pointwise_material_interactor : actor {
     /// @param[out] interactor_state actor state
     /// @param[in]  nav_dir navigation direction
     /// @param[in]  sf the surface
-    template <typename surface_t>
+    template <typename context_t, typename surface_t>
     DETRAY_HOST_DEVICE inline void update(
-        bound_track_parameters<algebra_t> &bound_params,
-        state &interactor_state, const int nav_dir, const surface_t &sf,
-        const scalar_type cos_inc_angle) const {
+        const context_t gctx, bound_track_parameters<algebra_t> &bound_params,
+        state &interactor_state, const int nav_dir, const surface_t &sf) const {
 
         // Closest approach of the track to a line surface. Otherwise this is
         // ignored.
         const auto approach{
             matrix_operator().element(bound_params.vector(), e_bound_loc0, 0)};
+        const scalar_type cos_inc_angle{
+            sf.cos_angle(gctx, bound_params.dir(), bound_params.bound_local())};
 
         const bool succeed = sf.template visit_material<kernel>(
             interactor_state, bound_params, cos_inc_angle, approach);
