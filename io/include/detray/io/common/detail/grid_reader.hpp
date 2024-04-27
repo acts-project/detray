@@ -314,6 +314,12 @@ class grid_reader {
         std::stringstream err_stream;
         err_stream << "Volume " << volume_idx << ": ";
 
+        if (!det_builder.has_volume(volume_idx)) {
+            err_stream << "Cannot build grid for volume "
+                       << "(volume not registered in detector builder)";
+            throw std::invalid_argument(err_stream.str());
+        }
+
         // The compiler will instantiate this function for all possible types of
         // grids: Only proceed, if the grid type is known by the detector
         if constexpr (detector_t::accel::template is_defined<grid_t>() ||

@@ -54,6 +54,15 @@ class material_map_reader {
 
         // Convert the material volume by volume
         for (const auto &[vol_idx, mat_grids] : grids_data.grids) {
+
+            if (!det_builder.has_volume(vol_idx)) {
+                std::stringstream err_stream;
+                err_stream << "Volume " << vol_idx << ": "
+                           << "Cannot build material map for volume "
+                           << "(volume not registered in detector builder)";
+                throw std::invalid_argument(err_stream.str());
+            }
+
             // Decorate the current volume builder with material maps
             auto vm_builder =
                 det_builder

@@ -39,9 +39,6 @@ class detector_builder {
     public:
     using detector_type = detector<metadata, host_container_types>;
 
-    /// Empty detector builder
-    detector_builder() = default;
-
     /// Add a new volume builder that will build a volume of the shape given by
     /// @param id
     template <typename... Args>
@@ -58,6 +55,12 @@ class detector_builder {
     /// @returns the number of volumes currently registered in the builder
     DETRAY_HOST auto n_volumes() const -> dindex {
         return static_cast<dindex>(m_volumes.size());
+    }
+
+    /// @returns 'true' if there is a volume builder registered for
+    /// the volume with index @param volume_idx
+    DETRAY_HOST bool has_volume(const std::size_t volume_idx) const {
+        return volume_idx < m_volumes.size();
     }
 
     /// Decorate a volume builder at position @param volume_idx with more
