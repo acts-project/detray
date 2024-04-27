@@ -26,7 +26,7 @@ using namespace detray;
 using algebra_t = test::algebra;
 using vector3 = test::vector3;
 
-constexpr const scalar tol{1e-3f};
+constexpr const scalar tol{1e-7f};
 
 /// Brute force test: Intersect toy geometry and compare between ray and helix
 /// without B-field
@@ -74,10 +74,13 @@ GTEST_TEST(detray_simulation, detector_scanner) {
 
         // Should have encountered the same number of tracks (vulnerable to
         // floating point errors)
-        EXPECT_EQ(expected[n_tracks].size(), intersection_trace.size());
+        EXPECT_EQ(expected[n_tracks].size(), intersection_trace.size())
+            << test_helix;
 
         // Check every single recorded intersection
-        for (std::size_t i = 0u; i < intersection_trace.size(); ++i) {
+        for (std::size_t i = 0u;
+             i < std::min(expected[n_tracks].size(), intersection_trace.size());
+             ++i) {
             if (expected[n_tracks][i].vol_idx !=
                 intersection_trace[i].vol_idx) {
                 // Intersection record at portal bound might be flipped

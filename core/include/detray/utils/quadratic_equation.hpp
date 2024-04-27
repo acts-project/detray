@@ -39,8 +39,12 @@ class quadratic_equation {
         const scalar_t tolerance = std::numeric_limits<scalar_t>::epsilon()) {
         // linear case
         if (math::abs(a) <= tolerance) {
-            m_solutions = 1;
-            m_values[0] = -c / b;
+            if (math::abs(b) <= tolerance) {
+                m_solutions = 0;
+            } else {
+                m_solutions = 1;
+                m_values[0] = -c / b;
+            }
         } else {
             const scalar_t discriminant{b * b - 4.f * a * c};
             // If there is more than one solution, then a != 0 and q != 0

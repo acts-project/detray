@@ -17,6 +17,7 @@
 // System include(s)
 #include <algorithm>
 #include <array>
+#include <limits>
 #include <random>
 
 namespace detray {
@@ -64,14 +65,12 @@ struct random_numbers {
         if constexpr (std::is_same_v<
                           distribution_t,
                           std::uniform_real_distribution<scalar_t>>) {
-
             return distribution_t(min, max)(m_engine);
 
             // Normal
         } else if constexpr (std::is_same_v<
                                  distribution_t,
                                  std::normal_distribution<scalar_t>>) {
-
             scalar_t mu{min + 0.5f * (max - min)};
             return distribution_t(mu, 0.5f / 3.0f * (max - min))(m_engine);
         }
@@ -112,10 +111,8 @@ class random_track_generator
 
     /// Configure how tracks are generated
     struct configuration {
-        using seed_t = typename generator_t::seed_type;
 
-        /// Ensure sensible values at the theta bounds, even in single precision
-        static constexpr scalar epsilon{1e-2f};
+        using seed_t = typename generator_t::seed_type;
 
         /// Gaussian vertex smearing
         bool m_do_vtx_smearing = true;
@@ -126,11 +123,10 @@ class random_track_generator
         /// How many tracks will be generated
         std::size_t m_n_tracks{10u};
 
-        /// Range for phi [-pi, pi] and theta ]0, pi[
+        /// Range for phi [-pi, pi) and theta [0, pi)
         std::array<scalar, 2> m_phi_range{-constant<scalar>::pi,
                                           constant<scalar>::pi};
-        std::array<scalar, 2> m_theta_range{epsilon,
-                                            constant<scalar>::pi - epsilon};
+        std::array<scalar, 2> m_theta_range{0.f, constant<scalar>::pi};
 
         /// Momentum range
         std::array<scalar, 2> m_mom_range{1.f * unit<scalar>::GeV,
@@ -161,35 +157,78 @@ class random_track_generator
         }
         DETRAY_HOST_DEVICE configuration& phi_range(const scalar low,
                                                     const scalar high) {
-            auto min_phi{low == 0.f ? 0.f
-                                    : std::fmod(low, constant<scalar>::pi)};
-            auto max_phi{high == 0.f ? 0.f
-                                     : std::fmod(high, constant<scalar>::pi)};
+            auto min_phi{
+                std::clamp(low, -constant<scalar>::pi, constant<scalar>::pi)};
+            auto max_phi{
+                std::clamp(high, -constant<scalar>::pi, constant<scalar>::pi)};
+
             assert(min_phi <= max_phi);
+
             m_phi_range = {min_phi, max_phi};
             return *this;
         }
+        template <typename scalar_t>
+        DETRAY_HOST_DEVICE configuration& phi_range(std::array<scalar_t, 2> r) {
+            phi_range(static_cast<scalar>(r[0]), static_cast<scalar>(r[1]));
+            return *this;
+        }
         DETRAY_HOST_DEVICE configuration& theta_range(scalar low, scalar high) {
-            auto min_theta{
-                std::clamp(low, epsilon, constant<scalar>::pi - epsilon)};
-            auto max_theta{
-                std::clamp(high, epsilon, constant<scalar>::pi - epsilon)};
+            auto min_theta{std::clamp(low, scalar{0.f}, constant<scalar>::pi)};
+            auto max_theta{std::clamp(high, scalar{0.f}, constant<scalar>::pi)};
 
             assert(min_theta <= max_theta);
 
             m_theta_range = {min_theta, max_theta};
             return *this;
         }
+        template <typename scalar_t>
+        DETRAY_HOST_DEVICE configuration& theta_range(
+            std::array<scalar_t, 2> r) {
+            theta_range(static_cast<scalar>(r[0]), static_cast<scalar>(r[1]));
+            return *this;
+        }
+        DETRAY_HOST_DEVICE configuration& eta_range(scalar low, scalar high) {
+            // This value is more or less random
+            constexpr auto num_max{0.001f * std::numeric_limits<scalar>::max()};
+            auto min_eta{low > -num_max ? low : -num_max};
+            auto max_eta{high < num_max ? high : num_max};
+
+            assert(min_eta <= max_eta);
+
+            auto get_theta = [](const scalar eta) {
+                return 2.f * math::atan(math::exp(-eta));
+            };
+
+            theta_range(get_theta(max_eta), get_theta(min_eta));
+            return *this;
+        }
+        template <typename scalar_t>
+        DETRAY_HOST_DEVICE configuration& eta_range(std::array<scalar_t, 2> r) {
+            eta_range(static_cast<scalar>(r[0]), static_cast<scalar>(r[1]));
+            return *this;
+        }
         DETRAY_HOST_DEVICE configuration& mom_range(scalar low, scalar high) {
             m_is_pT = false;
+            assert(low >= 0.f);
             assert(low <= high);
             m_mom_range = {low, high};
             return *this;
         }
+        template <typename scalar_t>
+        DETRAY_HOST_DEVICE configuration& mom_range(std::array<scalar_t, 2> r) {
+            mom_range(static_cast<scalar>(r[0]), static_cast<scalar>(r[1]));
+            return *this;
+        }
         DETRAY_HOST_DEVICE configuration& pT_range(scalar low, scalar high) {
             m_is_pT = true;
+            assert(low >= 0.f);
             assert(low <= high);
             m_mom_range = {low, high};
+            return *this;
+        }
+        template <typename scalar_t>
+        DETRAY_HOST_DEVICE configuration& pT_range(std::array<scalar_t, 2> r) {
+            pT_range(static_cast<scalar>(r[0]), static_cast<scalar>(r[1]));
             return *this;
         }
         DETRAY_HOST_DEVICE configuration& p_tot(scalar p) {
@@ -209,6 +248,7 @@ class random_track_generator
             return *this;
         }
         DETRAY_HOST_DEVICE configuration& time(scalar t) {
+            assert(t >= 0.f);
             m_time = t;
             return *this;
         }
@@ -300,21 +340,19 @@ class random_track_generator
                                                   m_cfg.origin_stddev()[2])}
                     : m_cfg.origin();
 
-            const std::array<scalar, 2>& phi_rng = m_cfg.phi_range();
-            const std::array<scalar, 2>& theta_rng = m_cfg.theta_range();
-            const std::array<scalar, 2>& mom_rng = m_cfg.mom_range();
-            scalar p_mag{math::max(m_rnd_numbers({mom_rng[0], mom_rng[1]}),
-                                   scalar{0.f})};
-            scalar phi{std::clamp(m_rnd_numbers({phi_rng[0], phi_rng[1]}),
-                                  phi_rng[0], phi_rng[1])};
-            scalar theta{std::clamp(m_rnd_numbers({theta_rng[0], theta_rng[1]}),
-                                    theta_rng[0], theta_rng[1])};
-            const scalar sin_theta{math::sin(theta)};
+            scalar p_mag{m_rnd_numbers(m_cfg.mom_range())};
+            scalar phi{m_rnd_numbers(m_cfg.phi_range())};
+            scalar theta{m_rnd_numbers(m_cfg.theta_range())};
+            scalar sin_theta{math::sin(theta)};
 
             // Momentum direction from angles
             vector3 mom{math::cos(phi) * sin_theta, math::sin(phi) * sin_theta,
                         math::cos(theta)};
-            // Magnitude of momentum
+
+            sin_theta = (sin_theta == scalar{0.f})
+                            ? std::numeric_limits<scalar>::epsilon()
+                            : sin_theta;
+
             mom = (m_cfg.is_pT() ? 1.f / sin_theta : 1.f) * p_mag *
                   vector::normalize(mom);
 

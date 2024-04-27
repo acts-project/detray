@@ -54,7 +54,7 @@ class helix {
     ///
     /// @param pos the the origin of the helix
     /// @param time the time parameter
-    /// @param dir the initial direction for the helix
+    /// @param dir the initial normalized direction for the helix
     /// @param q the charge of the particle
     /// @param mag_field the magnetic field vector
     DETRAY_HOST_DEVICE
@@ -67,11 +67,14 @@ class helix {
         _h0 = vector::normalize(*_mag_field);
 
         // Normalized tangent vector
-        _t0 = vector::normalize(dir);
+        _t0 = dir;
+
+        assert((math::abs(getter::norm(_t0) - 1.f) < 1e-5f) &&
+               "The helix direction must be normalized");
 
         // Momentum
         const vector3_type mom =
-            1.f / static_cast<scalar_type>(math::abs(qop)) * dir;
+            1.f / static_cast<scalar_type>(math::abs(qop)) * _t0;
 
         // Normalized _h0 X _t0
         _n0 = vector::normalize(vector::cross(_h0, _t0));

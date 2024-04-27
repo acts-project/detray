@@ -17,6 +17,7 @@
 // System include(s)
 #include <algorithm>
 #include <cmath>
+#include <limits>
 
 namespace detray {
 
@@ -26,7 +27,7 @@ namespace detray {
 /// It generates the track instances on the fly according to given parameters
 /// and with the momentum direction determined by phi and theta angles, which
 /// are advanced as the iteration proceeds. The angle space spans
-/// theta ]0, pi[ x phi [-pi, pi], while the step sizes (and with them
+/// theta [0, pi) x phi [-pi, pi), while the step sizes (and with them
 /// the number of generated tracks) are configurable.
 ///
 /// @tparam track_t the type of track parametrization that should be used.
@@ -42,14 +43,13 @@ class uniform_track_generator
 
     /// Configure how tracks are generated
     struct configuration {
-        /// Ensure sensible values at the theta bounds, even in single precision
-        static constexpr scalar epsilon{1e-2f};
+        /// Ensure same angle space as random track generator
+        static constexpr scalar k_max_pi{
+            constant<scalar>::pi - std::numeric_limits<scalar>::epsilon()};
 
-        /// Range for theta and phi
-        std::array<scalar, 2> m_phi_range{-constant<scalar>::pi,
-                                          constant<scalar>::pi};
-        std::array<scalar, 2> m_theta_range{epsilon,
-                                            constant<scalar>::pi - epsilon};
+        /// Range for phi [-pi, pi) and theta [0, pi)
+        std::array<scalar, 2> m_phi_range{-constant<scalar>::pi, k_max_pi};
+        std::array<scalar, 2> m_theta_range{0.f, k_max_pi};
         std::array<scalar, 2> m_eta_range{-5.f, 5.f};
 
         /// Angular step size
@@ -76,24 +76,33 @@ class uniform_track_generator
         /// Setters
         /// @{
         DETRAY_HOST_DEVICE configuration& phi_range(scalar low, scalar high) {
-            auto min_phi{
-                std::clamp(low, -constant<scalar>::pi, constant<scalar>::pi)};
-            auto max_phi{
-                std::clamp(high, -constant<scalar>::pi, constant<scalar>::pi)};
+            auto min_phi{std::clamp(low, -constant<scalar>::pi, k_max_pi)};
+            auto max_phi{std::clamp(high, -constant<scalar>::pi, k_max_pi)};
+
             assert(min_phi <= max_phi);
+
             m_phi_range = {min_phi, max_phi};
             return *this;
         }
+        template <typename scalar_t>
+        DETRAY_HOST_DEVICE configuration& phi_range(std::array<scalar_t, 2> r) {
+            phi_range(static_cast<scalar>(r[0]), static_cast<scalar>(r[1]));
+            return *this;
+        }
         DETRAY_HOST_DEVICE configuration& theta_range(scalar low, scalar high) {
-            auto min_theta{
-                std::clamp(low, epsilon, constant<scalar>::pi - epsilon)};
-            auto max_theta{
-                std::clamp(high, epsilon, constant<scalar>::pi - epsilon)};
+            auto min_theta{std::clamp(low, scalar{0.f}, k_max_pi)};
+            auto max_theta{std::clamp(high, scalar{0.f}, k_max_pi)};
 
             assert(min_theta <= max_theta);
 
             m_theta_range = {min_theta, max_theta};
             m_uniform_eta = false;
+            return *this;
+        }
+        template <typename scalar_t>
+        DETRAY_HOST_DEVICE configuration& theta_range(
+            std::array<scalar_t, 2> r) {
+            theta_range(static_cast<scalar>(r[0]), static_cast<scalar>(r[1]));
             return *this;
         }
         DETRAY_HOST_DEVICE configuration& eta_range(scalar low, scalar high) {
@@ -106,6 +115,11 @@ class uniform_track_generator
 
             m_eta_range = {min_eta, max_eta};
             m_uniform_eta = true;
+            return *this;
+        }
+        template <typename scalar_t>
+        DETRAY_HOST_DEVICE configuration& eta_range(std::array<scalar_t, 2> r) {
+            eta_range(static_cast<scalar>(r[0]), static_cast<scalar>(r[1]));
             return *this;
         }
         DETRAY_HOST_DEVICE configuration& phi_steps(std::size_t n) {
@@ -134,11 +148,13 @@ class uniform_track_generator
             return *this;
         }
         DETRAY_HOST_DEVICE configuration& p_tot(scalar p) {
+            assert(p > 0.f);
             m_is_pT = false;
             m_p_mag = p;
             return *this;
         }
         DETRAY_HOST_DEVICE configuration& p_T(scalar p) {
+            assert(p > 0.f);
             m_is_pT = true;
             m_p_mag = p;
             return *this;
@@ -266,12 +282,16 @@ class uniform_track_generator
         DETRAY_HOST_DEVICE
         track_t operator*() const {
 
-            const scalar sin_theta{math::sin(m_theta)};
+            scalar sin_theta{math::sin(m_theta)};
 
             // Momentum direction from angles
             vector3 p{math::cos(m_phi) * sin_theta,
                       math::sin(m_phi) * sin_theta, math::cos(m_theta)};
+
             // Magnitude of momentum
+            sin_theta = (sin_theta == scalar{0.f})
+                            ? std::numeric_limits<scalar>::epsilon()
+                            : sin_theta;
             p = (m_cfg.is_pT() ? 1.f / sin_theta : 1.f) * m_cfg.m_p_mag *
                 vector::normalize(p);
 
@@ -288,7 +308,7 @@ class uniform_track_generator
 
         /// Phi and theta angles of momentum direction
         scalar m_phi{-constant<scalar>::pi};
-        scalar m_theta{configuration::epsilon};
+        scalar m_theta{0.f};
 
         /// Iteration indices
         std::size_t i_phi{0u};

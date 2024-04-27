@@ -209,7 +209,8 @@ class grid2 {
      *
      * @return the const reference to the value in this bin
      **/
-    template <typename point2_t>
+    template <typename point2_t,
+              std::enable_if_t<!std::is_scalar_v<point2_t>, bool> = true>
     DETRAY_HOST_DEVICE typename serialized_storage::const_reference bin(
         const point2_t &p2) const {
         return _data_serialized[_serializer.template serialize<axis_p0_type,
@@ -223,7 +224,8 @@ class grid2 {
      *
      * @return the const reference to the value in this bin
      **/
-    template <typename point2_t>
+    template <typename point2_t,
+              std::enable_if_t<!std::is_scalar_v<point2_t>, bool> = true>
     DETRAY_HOST_DEVICE typename serialized_storage::reference bin(
         const point2_t &p2) {
         return _data_serialized[_serializer.template serialize<axis_p0_type,

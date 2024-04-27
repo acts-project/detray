@@ -101,6 +101,7 @@ struct intersection2D {
                                     const intersection2D &is) {
         out_stream << "dist:" << is.path
                    << "\tsurface: " << is.sf_desc.barcode()
+                   << ", type: " << static_cast<int>(is.sf_desc.mask().id())
                    << ", links to vol:" << is.volume_link << ")"
                    << ", loc [" << is.local[0] << ", " << is.local[1] << ", "
                    << is.local[2] << "], ";
