@@ -1,6 +1,6 @@
 /** Detray library, part of the ACTS project (R&D line)
  *
- * (c) 2023 CERN for the benefit of the ACTS project
+ * (c) 2023-2024 CERN for the benefit of the ACTS project
  *
  * Mozilla Public License Version 2.0
  */
@@ -19,6 +19,30 @@
 
 namespace detray::test {
 
+struct consistency_check_config
+    : public detray::test::fixture_base<>::configuration {
+    std::string m_name{"detector_consistency"};
+    bool m_write_graph{false};
+
+    /// Getters
+    /// @{
+    const std::string &name() const { return m_name; }
+    bool write_graph() const { return m_write_graph; }
+    /// @}
+
+    /// Setters
+    /// @{
+    consistency_check_config &name(const std::string n) {
+        m_name = n;
+        return *this;
+    }
+    consistency_check_config &write_graph(const bool do_write) {
+        m_write_graph = do_write;
+        return *this;
+    }
+    /// @}
+};
+
 /// @brief Test class that runs the consistency check on a given detector.
 ///
 /// @note The lifetime of the detector needs to be guaranteed.
@@ -26,35 +50,14 @@ template <typename detector_t>
 class consistency_check : public detray::test::fixture_base<> {
     public:
     using fixture_type = detray::test::fixture_base<>;
-
-    struct config : public fixture_type::configuration {
-        std::string m_name{"detector_consistency"};
-        bool m_write_graph{false};
-
-        /// Getters
-        /// @{
-        const std::string &name() const { return m_name; }
-        bool write_graph() const { return m_write_graph; }
-        /// @}
-
-        /// Setters
-        /// @{
-        config &name(const std::string n) {
-            m_name = n;
-            return *this;
-        }
-        config &write_graph(const bool do_write) {
-            m_write_graph = do_write;
-            return *this;
-        }
-        /// @}
-    };
+    using config = consistency_check_config;
 
     template <typename config_t>
-    explicit consistency_check(const detector_t &det,
-                               const typename detector_t::name_map &names,
-                               const config_t &cfg = {})
-        : m_cfg{cfg}, m_det{det}, m_names{names} {}
+    explicit consistency_check(
+        const detector_t &det, const typename detector_t::name_map &names,
+        const config_t &cfg = {},
+        const typename detector_t::geometry_context gctx = {})
+        : m_cfg{cfg}, m_gctx{gctx}, m_det{det}, m_names{names} {}
 
     /// Run the consistency check
     void TestBody() override {
@@ -87,6 +90,8 @@ class consistency_check : public detray::test::fixture_base<> {
     private:
     /// The configuration of this test
     const config m_cfg;
+    /// The geometry context to check
+    typename detector_t::geometry_context m_gctx{};
     /// The detector to be checked
     const detector_t &m_det;
     /// Volume names

@@ -64,6 +64,8 @@ int main() {
 
     const auto [det, names] = detray::build_toy_detector(host_mr);
 
+    typename toy_detector_t::geometry_context gctx{};
+
     // Build the propagator
     propagator_t prop{};
 
@@ -79,7 +81,7 @@ int main() {
 
         // Shoot ray through the detector and record all surface intersections
         const auto intersection_trace =
-            detray::detector_scanner::run<detray::ray_scan>(det, ray);
+            detray::detector_scanner::run<detray::ray_scan>(gctx, det, ray);
 
         // Now follow that ray with the same track and check, if we find
         // the same volumes and distances along the way

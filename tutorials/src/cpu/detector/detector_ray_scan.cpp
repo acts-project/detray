@@ -79,7 +79,7 @@ int main() {
 
         // Record all intersections and surfaces along the ray
         const auto intersection_trace =
-            detray::detector_scanner::run<detray::ray_scan>(det, ray);
+            detray::detector_scanner::run<detray::ray_scan>(gctx, det, ray);
 
         bool check_result = detray::detector_scanner::check_trace<detector_t>(
             intersection_trace, start_index, adj_mat_scan, obj_hashes);

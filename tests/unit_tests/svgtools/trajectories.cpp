@@ -49,6 +49,8 @@ GTEST_TEST(svgtools, trajectories) {
     const auto [det, names] = detray::build_toy_detector(host_mr);
     using detector_t = decltype(det);
 
+    detector_t::geometry_context gctx{};
+
     // Creating the illustrator.
     const detray::svgtools::illustrator il{det, names};
 
@@ -65,7 +67,7 @@ GTEST_TEST(svgtools, trajectories) {
 
     const detray::detail::ray<algebra_t> ray(ori, 0.f, dir, 0.f);
     const auto ray_ir =
-        detray::detector_scanner::run<detray::ray_scan>(det, ray);
+        detray::detector_scanner::run<detray::ray_scan>(gctx, det, ray);
 
     // Draw the trajectory.
     const auto svg_ray = il.draw_trajectory("trajectory", ray, 500.f, view);
@@ -86,7 +88,7 @@ GTEST_TEST(svgtools, trajectories) {
 
     const detray::detail::helix<algebra_t> helix(ori, 0.f, dir, -8.f, &B);
     const auto helix_ir =
-        detray::detector_scanner::run<detray::helix_scan>(det, helix);
+        detray::detector_scanner::run<detray::helix_scan>(gctx, det, helix);
 
     // Draw the trajectory.
     const auto svg_helix = il.draw_trajectory("trajectory", helix, 500.f, view);

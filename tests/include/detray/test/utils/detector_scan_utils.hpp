@@ -566,10 +566,12 @@ inline bool check_trace(const std::vector<record_t> &intersection_trace,
     err_code &=
         detector_scanner::check_connectivity<leaving_world>(portal_trace);
 
-    // Build an adjacency matrix from this trace that can be checked
-    // against the geometry hash (see 'track_geometry_changes')
-    detector_scanner::build_adjacency<leaving_world>(
-        portal_trace, surface_trace, adj_mat_scan, obj_hashes);
+    if (!adj_mat_scan.empty()) {
+        // Build an adjacency matrix from this trace that can be checked
+        // against the geometry hash (see 'track_geometry_changes')
+        detector_scanner::build_adjacency<leaving_world>(
+            portal_trace, surface_trace, adj_mat_scan, obj_hashes);
+    }
 
     return err_code;
 }
@@ -586,15 +588,14 @@ inline bool check_trace(const std::vector<record_t> &intersection_trace,
 /// @param i_track index of the test track
 /// @param n_track total number of test tracks
 template <typename detector_t, typename trajectory_t, typename record_t>
-inline void display_error(const typename detector_t::geometry_context gctx,
-                          const detector_t &det,
-                          const typename detector_t::name_map vol_names,
-                          const std::string &test_name,
-                          const trajectory_t &test_track,
-                          const std::vector<record_t> &intersection_trace,
-                          const detray::svgtools::styling::style &svg_style,
-                          const std::size_t i_track,
-                          const std::size_t n_tracks) {
+inline void display_error(
+    const typename detector_t::geometry_context gctx, const detector_t &det,
+    const typename detector_t::name_map vol_names, const std::string &test_name,
+    const trajectory_t &test_track,
+    const std::vector<record_t> &intersection_trace,
+    const detray::svgtools::styling::style &svg_style,
+    const std::size_t i_track, const std::size_t n_tracks,
+    const dvector<typename record_t::intersection_type> &intersections = {}) {
 
     // Creating the svg generator for the detector.
     detray::svgtools::illustrator il{det, vol_names, svg_style};
@@ -614,7 +615,7 @@ inline void display_error(const typename detector_t::geometry_context gctx,
     }
 
     detail::svg_display(gctx, il, intersection_trace, test_track, track_type,
-                        test_name);
+                        test_name, intersections);
 
     std::cout << "\nFailed on " << track_type << ": " << i_track << "/"
               << n_tracks << "\n"

@@ -11,10 +11,8 @@
 #include "detray/test/detail/register_checks.hpp"
 #include "detray/test/detail/whiteboard.hpp"
 #include "detray/test/detector_consistency.hpp"
-#include "detray/test/detector_helix_scan.hpp"
-#include "detray/test/detector_ray_scan.hpp"
-#include "detray/test/helix_navigation.hpp"
-#include "detray/test/straight_line_navigation.hpp"
+#include "detray/test/detector_scan.hpp"
+#include "detray/test/navigation_validation.hpp"
 
 // Vecmem include(s)
 #include <vecmem/memory/host_memory_resource.hpp>
@@ -61,6 +59,9 @@ int main(int argc, char **argv) {
     test::helix_scan<wire_chamber_t>::config cfg_hel_scan{};
     cfg_hel_scan.name("wire_chamber_helix_scan");
     cfg_hel_scan.whiteboard(white_board);
+    // Let the Newton algorithm dynamically choose tol. based on approx. error
+    cfg_hel_scan.mask_tolerance({detray::detail::invalid_value<scalar_t>(),
+                                 detray::detail::invalid_value<scalar_t>()});
     cfg_hel_scan.track_generator().n_tracks(10000u);
     cfg_hel_scan.track_generator().eta_range(-1.f, 1.f);
     // TODO: Fails for smaller momenta

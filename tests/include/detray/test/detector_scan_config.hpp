@@ -23,22 +23,30 @@ namespace detray::test {
 /// @brief Configuration for a detector scan test.
 template <typename track_generator_t>
 struct detector_scan_config : public test::fixture_base<>::configuration {
+    using base_type = test::fixture_base<>;
+    using scalar_type = typename base_type::scalar;
+    using vector3_type = typename base_type::vector3;
     using trk_gen_config_t = typename track_generator_t::configuration;
 
+    /// Name of the test
     std::string m_name{"detector_scan"};
-    // Save results for later use in downstream tests
+    /// Save results for later use in downstream tests
     std::shared_ptr<test::whiteboard> m_white_board;
-    // Name of the input file, containing the complete ray scan traces
+    /// Name of the input file, containing the complete ray scan traces
     std::string m_intersection_file{""};
     std::string m_track_param_file{""};
-    // Mask tolerance for the intersectors
-    std::array<float, 2> m_mask_tol{std::numeric_limits<float>::epsilon(),
-                                    std::numeric_limits<float>::epsilon()};
-    // Configuration of the ray generator
+    /// Mask tolerance for the intersectors
+    std::array<scalar_type, 2> m_mask_tol{
+        std::numeric_limits<scalar_type>::epsilon(),
+        std::numeric_limits<scalar_type>::epsilon()};
+    /// B-field vector for helix
+    vector3_type m_B{0.f * unit<scalar_type>::T, 0.f * unit<scalar_type>::T,
+                     2.f * unit<scalar_type>::T};
+    /// Configuration of the ray generator
     trk_gen_config_t m_trk_gen_cfg{};
-    // Write intersection points for plotting
+    /// Write intersection points for plotting
     bool m_write_inters{false};
-    // Visualization style to be applied to the svgs
+    /// Visualization style to be applied to the svgs
     detray::svgtools::styling::style m_style =
         detray::svgtools::styling::tableau_colorblind::style;
 
@@ -47,7 +55,8 @@ struct detector_scan_config : public test::fixture_base<>::configuration {
     const std::string &name() const { return m_name; }
     const std::string &intersection_file() const { return m_intersection_file; }
     const std::string &track_param_file() const { return m_track_param_file; }
-    std::array<float, 2> mask_tolerance() const { return m_mask_tol; }
+    std::array<scalar_type, 2> mask_tolerance() const { return m_mask_tol; }
+    const vector3_type &B_vector() { return m_B; }
     std::shared_ptr<test::whiteboard> whiteboard() { return m_white_board; }
     std::shared_ptr<test::whiteboard> whiteboard() const {
         return m_white_board;
@@ -72,8 +81,17 @@ struct detector_scan_config : public test::fixture_base<>::configuration {
         m_track_param_file = std::move(f);
         return *this;
     }
-    detector_scan_config &mask_tolerance(const std::array<float, 2> tol) {
+    detector_scan_config &mask_tolerance(const std::array<scalar_type, 2> tol) {
         m_mask_tol = tol;
+        return *this;
+    }
+    detector_scan_config &B_vector(const vector3_type &B) {
+        m_B = B;
+        return *this;
+    }
+    detector_scan_config &B_vector(const scalar_type B0, const scalar_type B1,
+                                   const scalar_type B2) {
+        m_B = vector3_type{B0, B1, B2};
         return *this;
     }
     detector_scan_config &whiteboard(

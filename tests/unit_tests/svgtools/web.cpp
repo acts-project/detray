@@ -50,6 +50,8 @@ GTEST_TEST(svgtools, web) {
     using algebra_t = typename detector_t::algebra_type;
     using vector3 = typename detector_t::vector3_type;
 
+    detector_t::geometry_context gctx{};
+
     // Creating the svg generator for the detector.
     const detray::svgtools::illustrator il{det, names};
 
@@ -81,9 +83,10 @@ GTEST_TEST(svgtools, web) {
                   1.f * detray::unit<detray::scalar>::T};
 
         const detray::detail::helix<algebra_t> helix(
-            ori, 0.f, dir, static_cast<float>(qop), &B);
+            ori, 0.f, detray::vector::normalize(dir), static_cast<float>(qop),
+            &B);
         const auto helix_ir =
-            detray::detector_scanner::run<detray::helix_scan>(det, helix);
+            detray::detector_scanner::run<detray::helix_scan>(gctx, det, helix);
 
         // Draw the helix trajectory.
         const auto svg_helix =
