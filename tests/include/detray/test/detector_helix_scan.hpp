@@ -11,14 +11,14 @@
 #include "detray/geometry/surface.hpp"
 #include "detray/io/utils/create_path.hpp"
 #include "detray/navigation/detail/helix.hpp"
-#include "detray/plugins/svgtools/illustrator.hpp"
+#include "detray/navigation/volume_graph.hpp"
 #include "detray/simulation/event_generator/track_generators.hpp"
 #include "detray/test/detail/whiteboard.hpp"
+#include "detray/test/detector_scan_config.hpp"
 #include "detray/test/fixture_base.hpp"
 #include "detray/test/types.hpp"
+#include "detray/test/utils/detector_scan_utils.hpp"
 #include "detray/test/utils/detector_scanner.hpp"
-#include "detray/test/utils/scan_utils.hpp"
-#include "detray/test/utils/svg_display.hpp"
 
 // System include(s)
 #include <iostream>
@@ -44,81 +44,7 @@ class helix_scan : public test::fixture_base<> {
 
     public:
     using fixture_type = test::fixture_base<>;
-
-    struct config : public fixture_type::configuration {
-        using trk_gen_config_t = typename track_generator_t::configuration;
-
-        std::string m_name{"helix_scan"};
-        // Save results for later use in downstream tests
-        std::shared_ptr<test::whiteboard> m_white_board;
-        // Name of the input file, containing the complete helix scan traces
-        std::string m_intersection_file{""};
-        std::string m_track_param_file{""};
-        // Mask tolerance for the Newton intersectors
-        std::array<scalar_t, 2> m_mask_tol{detail::invalid_value<scalar_t>(),
-                                           detail::invalid_value<scalar_t>()};
-        // Track generator configuration
-        trk_gen_config_t m_trk_gen_cfg{};
-        // Dump intersection positions to file
-        bool m_write_inters{false};
-        // Visualization style to be applied to the svgs
-        detray::svgtools::styling::style m_style =
-            detray::svgtools::styling::tableau_colorblind::style;
-
-        /// Getters
-        /// @{
-        const std::string &name() const { return m_name; }
-        const std::string &intersection_file() const {
-            return m_intersection_file;
-        }
-        const std::string &track_param_file() const {
-            return m_track_param_file;
-        }
-        std::array<scalar_t, 2> mask_tolerance() const { return m_mask_tol; }
-        std::shared_ptr<test::whiteboard> whiteboard() { return m_white_board; }
-        std::shared_ptr<test::whiteboard> whiteboard() const {
-            return m_white_board;
-        }
-        trk_gen_config_t &track_generator() { return m_trk_gen_cfg; }
-        const trk_gen_config_t &track_generator() const {
-            return m_trk_gen_cfg;
-        }
-        bool write_intersections() const { return m_write_inters; }
-        const auto &svg_style() const { return m_style; }
-        /// @}
-
-        /// Setters
-        /// @{
-        config &name(const std::string n) {
-            m_name = n;
-            return *this;
-        }
-        config &intersection_file(const std::string f) {
-            m_intersection_file = std::move(f);
-            return *this;
-        }
-        config &track_param_file(const std::string f) {
-            m_track_param_file = std::move(f);
-            return *this;
-        }
-        config &whiteboard(std::shared_ptr<test::whiteboard> w_board) {
-            if (!w_board) {
-                throw std::invalid_argument(
-                    "Helix scan: No valid whiteboard instance");
-            }
-            m_white_board = std::move(w_board);
-            return *this;
-        }
-        config &mask_tolerance(const std::array<scalar_t, 2> tol) {
-            m_mask_tol = tol;
-            return *this;
-        }
-        config &write_intersections(const bool do_write) {
-            m_write_inters = do_write;
-            return *this;
-        }
-        /// @}
-    };
+    using config = detector_scan_config<track_generator_t>;
 
     template <typename config_t>
     explicit helix_scan(const detector_t &det,
@@ -136,10 +62,15 @@ class helix_scan : public test::fixture_base<> {
 
     /// Run the helix scan
     void TestBody() override {
-        using nav_link_t = typename detector_t::surface_type::navigation_link;
 
-        constexpr auto leaving_world{detail::invalid_value<nav_link_t>()};
-        typename detector_t::geometry_context gctx{};
+        // Get the volume adjaceny matrix from the detector
+        volume_graph graph(m_det);
+        const auto &adj_mat = graph.adjacency_matrix();
+
+        // Fill adjacency matrix from ray scan and compare
+        dvector<dindex> adj_mat_scan(adj_mat.size(), 0);
+        // Keep track of the objects that have already been seen per volume
+        std::unordered_set<dindex> obj_hashes = {};
 
         // Index of the volume that the helix origin lies in
         dindex start_index{0u};
@@ -195,38 +126,22 @@ class helix_scan : public test::fixture_base<> {
                    "Invalid intersection trace");
 
             // Retrieve the test helix
-            auto track(intersection_trace.front().track_param);
+            const auto &track = intersection_trace.front().track_param;
             detail::helix<algebra_t> helix(track, &B);
 
-            // Create a trace of the volume indices that were encountered
-            // and check that portal intersections are connected
-            auto [portal_trace, surface_trace, err_code] =
-                detector_scanner::trace_intersections<leaving_world>(
-                    intersection_trace, start_index);
-
-            // Is the succession of volumes consistent ?
-            err_code &= detector_scanner::check_connectivity<leaving_world>(
-                portal_trace);
+            // Run consistency checks on the trace
+            bool success = detector_scanner::check_trace<detector_t>(
+                intersection_trace, start_index, adj_mat_scan, obj_hashes);
 
             // Display the detector, track and intersections for debugging
-            if (not err_code) {
-
-                // Creating the svg generator for the detector.
-                detray::svgtools::illustrator il{m_det, m_names,
-                                                 m_cfg.svg_style()};
-                il.show_info(true);
-                il.hide_eta_lines(true);
-                il.hide_portals(false);
-                il.hide_passives(false);
-
-                detail::svg_display(gctx, il, intersection_trace, helix,
-                                    "helix", m_cfg.name());
+            if (not success) {
+                detector_scanner::display_error(
+                    m_gctx, m_det, m_names, m_cfg.name(), helix,
+                    intersection_trace, m_cfg.svg_style(), n_tracks,
+                    trk_state_generator.size());
             }
 
-            // Is the succession of volumes consistent ?
-            ASSERT_TRUE(err_code) << "\nFailed on helix " << n_tracks << "/"
-                                  << trk_state_generator.size() << "\n"
-                                  << helix;
+            ASSERT_TRUE(success);
 
             ++n_tracks;
         }
@@ -255,6 +170,8 @@ class helix_scan : public test::fixture_base<> {
     private:
     /// The configuration of this test
     config m_cfg;
+    /// The geometry context to scan
+    typename detector_t::geometry_context m_gctx{};
     /// The detector to be checked
     const detector_t &m_det;
     /// Volume names

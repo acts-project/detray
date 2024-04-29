@@ -1,6 +1,6 @@
 /** Detray library, part of the ACTS project (R&D line)
  *
- * (c) 2023 CERN for the benefit of the ACTS project
+ * (c) 2023-2024 CERN for the benefit of the ACTS project
  *
  * Mozilla Public License Version 2.0
  */
@@ -10,9 +10,9 @@
 #include "detray/navigation/detail/ray.hpp"
 #include "detray/navigation/volume_graph.hpp"
 #include "detray/simulation/event_generator/track_generators.hpp"
+#include "detray/test/utils/detector_scan_utils.hpp"
 #include "detray/test/utils/detector_scanner.hpp"
 #include "detray/test/utils/hash_tree.hpp"
-#include "detray/test/utils/scan_utils.hpp"
 
 // Example linear algebra plugin: std::array
 #include "detray/tutorial/types.hpp"
@@ -24,14 +24,14 @@
 #include <iostream>
 
 // Hash of the "correct" geometry
-constexpr std::size_t root_hash = 3244;
+constexpr std::size_t root_hash = 11359580520962287982ul;
 
 /// Check a given detecor for consistent linking by shooting rays/helices and
 /// recording every intersection with the geometry. This intersection record
 /// can then be checked for matching portals at the volume boundary surfaces
 /// ( @c trace_intersections ) and checked for a consistent 'path' from volume
 /// to volume ( @c check_consistency ). See also documentation in
-/// 'tests/common/tools/ray_scan_utils.hpp'.
+/// 'tests/common/tools/ray_detector_scan_utils.hpp'.
 int main() {
 
     // Can also be performed with helices
@@ -41,9 +41,13 @@ int main() {
     vecmem::host_memory_resource host_mr;
     const auto [det, names] = detray::build_toy_detector(host_mr);
 
-    // The invalid link value for the toy detector
-    using nav_link_t = typename decltype(det)::surface_type::navigation_link;
-    constexpr auto leaving_world{detray::detail::invalid_value<nav_link_t>()};
+    // The current geometry context
+    using detector_t = decltype(det);
+    const detector_t::geometry_context gctx{};
+
+    // Visualization style to be applied to the svgs
+    detray::svgtools::styling::style svg_style =
+        detray::svgtools::styling::tableau_colorblind::style;
 
     // Get the volume adjaceny matrix from ray scan
     detray::volume_graph graph(det);
@@ -55,37 +59,39 @@ int main() {
 
     // Index of the volume that the ray origin lies in
     detray::dindex start_index{0u};
+    std::size_t n_rays{0u};
 
-    // Generate a number of rays
-    auto ray_generator = detray::uniform_track_generator<ray_t>{};
-    ray_generator.config().theta_steps(100u).phi_steps(100u);
+    // Generate a number of random rays
+    using generator_t =
+        detray::random_numbers<detray::scalar,
+                               std::uniform_real_distribution<detray::scalar>>;
+    auto ray_generator = detray::random_track_generator<ray_t, generator_t>{};
+    ray_generator.config().n_tracks(10000).p_T(
+        1.f * detray::unit<detray::scalar>::GeV);
 
     // Run the check
-    std::cout << "\nScanning detector (" << ray_generator.size()
+    std::cout << "\nScanning " << names.at(0) << " (" << ray_generator.size()
               << " rays) ...\n"
               << std::endl;
+
     bool success = true;
     for (const auto ray : ray_generator) {
 
         // Record all intersections and surfaces along the ray
-        const auto intersection_record =
+        const auto intersection_trace =
             detray::detector_scanner::run<detray::ray_scan>(det, ray);
 
-        // Create a trace of the volume indices that were encountered
-        // and check that portal intersections are connected
-        auto [portal_trace, surface_trace, err_code] =
-            detray::detector_scanner::trace_intersections<leaving_world>(
-                intersection_record, start_index);
-        success &= err_code;
+        bool check_result = detray::detector_scanner::check_trace<detector_t>(
+            intersection_trace, start_index, adj_mat_scan, obj_hashes);
 
-        // Is the succession of volumes consistent ?
-        success &= detray::detector_scanner::check_connectivity<leaving_world>(
-            portal_trace);
+        if (!check_result) {
+            detray::detector_scanner::display_error(
+                gctx, det, names, "ray_scan_tutorial", ray, intersection_trace,
+                svg_style, n_rays, ray_generator.size());
+        }
+        success &= check_result;
 
-        // Build an adjacency matrix from this trace that can be checked against
-        // the geometry hash (see 'track_geometry_changes')
-        detray::detector_scanner::build_adjacency<leaving_world>(
-            portal_trace, surface_trace, adj_mat_scan, obj_hashes);
+        ++n_rays;
     }
 
     // Check result
