@@ -117,8 +117,15 @@ struct helix_intersector_impl<cylindrical2D<algebra_t>, algebra_t>
 
         // Obtain both possible solutions by looping over the (different)
         // starting positions
-        unsigned int n_runs =
-            math::abs(paths[0] - paths[1]) < convergence_tolerance ? 1u : 2u;
+        unsigned int n_runs = static_cast<unsigned int>(qe.solutions());
+
+        // Even if the ray is parallel to the cylinder, the helix might still
+        // hit it
+        if (qe.solutions() == 0) {
+            n_runs = 2u;
+            paths[0] = r;
+            paths[1] = -r;
+        }
         for (unsigned int i = 0u; i < n_runs; ++i) {
 
             scalar_type &s = paths[i];

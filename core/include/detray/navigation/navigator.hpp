@@ -610,33 +610,34 @@ class navigator {
             // Update next candidate: If not reachable, 'high trust' is broken
             if (not update_candidate(*navigation.next(), track, det, cfg)) {
                 navigation.m_status = navigation::status::e_unknown;
-                navigation.set_no_trust();
-                return;
+                navigation.set_fair_trust();
+            } else {
+
+                // Update navigation flow on the new candidate information
+                update_navigation_state(cfg, propagation);
+
+                navigation.run_inspector(cfg, "Update complete: high trust: ");
+
+                // The work is done if: the track has not reached a surface yet
+                // or trust is gone (portal was reached or the cache is broken).
+                if (navigation.status() ==
+                        navigation::status::e_towards_object or
+                    navigation.trust_level() ==
+                        navigation::trust_level::e_no_trust) {
+                    return;
+                }
+
+                // Else: Track is on module.
+                // Ready the next candidate after the current module
+                if (update_candidate(*navigation.next(), track, det, cfg)) {
+                    return;
+                }
+
+                // If next candidate is not reachable, don't 'return', but
+                // escalate the trust level.
+                // This will run into the fair trust case below.
+                navigation.set_fair_trust();
             }
-
-            // Update navigation flow on the new candidate information
-            update_navigation_state(cfg, propagation);
-
-            navigation.run_inspector(cfg, "Update complete: high trust: ");
-
-            // The work is done if: the track has not reached a surface yet or
-            // trust is gone (portal was reached or the cache is broken).
-            if (navigation.status() == navigation::status::e_towards_object or
-                navigation.trust_level() ==
-                    navigation::trust_level::e_no_trust) {
-                return;
-            }
-
-            // Else: Track is on module.
-            // Ready the next candidate after the current module
-            if (update_candidate(*navigation.next(), track, det, cfg)) {
-                return;
-            }
-
-            // If next candidate is not reachable, don't 'return', but
-            // escalate the trust level.
-            // This will run into the fair trust case below.
-            navigation.set_fair_trust();
         }
 
         // Re-evaluate all currently available candidates and sort again
@@ -660,7 +661,9 @@ class navigator {
 
             navigation.run_inspector(cfg, "Update complete: fair trust: ");
 
-            return;
+            if (!navigation.is_exhausted()) {
+                return;
+            }
         }
 
         // Actor flagged cache as broken (other cases of 'no trust' are

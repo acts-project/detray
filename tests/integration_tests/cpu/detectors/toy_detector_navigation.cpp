@@ -62,6 +62,7 @@ int main(int argc, char **argv) {
     cfg_hel_scan.name("toy_detector_helix_scan");
     cfg_hel_scan.whiteboard(white_board);
     cfg_hel_scan.track_generator().n_tracks(10000u);
+    cfg_hel_scan.track_generator().eta_range(-4.f, 4.f);
     cfg_hel_scan.track_generator().p_T(1.f * unit<scalar_t>::GeV);
 
     detail::register_checks<test::helix_scan>(toy_det, toy_names, cfg_hel_scan);
@@ -83,8 +84,6 @@ int main(int argc, char **argv) {
     cfg_hel_nav.name("toy_detector_helix_navigation");
     cfg_hel_nav.whiteboard(white_board);
     cfg_hel_nav.propagation().navigation.search_window = {3u, 3u};
-    // For one surface the toy detector seems to need a stricter tolerance
-    cfg_hel_nav.propagation().navigation.min_mask_tolerance = 1e-5f;
 
     detail::register_checks<test::helix_navigation>(toy_det, toy_names,
                                                     cfg_hel_nav);

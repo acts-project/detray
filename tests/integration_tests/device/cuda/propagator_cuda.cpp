@@ -35,6 +35,7 @@ TEST_P(CudaPropConstBFieldMng, propagator) {
     propagator_test_config cfg{};
     cfg.track_generator.phi_steps(20).theta_steps(20);
     cfg.track_generator.p_tot(10.f * unit<scalar_t>::GeV);
+    cfg.track_generator.eta_range(-3.f, 3.f);
     cfg.propagation.navigation.search_window = {3u, 3u};
     // Configuration for non-z-aligned B-fields
     cfg.propagation.navigation.overstep_tolerance = std::get<0>(GetParam());
@@ -69,6 +70,7 @@ TEST_P(CudaPropConstBFieldCpy, propagator) {
     propagator_test_config cfg{};
     cfg.track_generator.phi_steps(20u).theta_steps(20u);
     cfg.track_generator.p_tot(10.f * unit<scalar_t>::GeV);
+    cfg.track_generator.eta_range(-3.f, 3.f);
     cfg.propagation.navigation.search_window = {3u, 3u};
     // Configuration for non-z-aligned B-fields
     cfg.propagation.navigation.overstep_tolerance = std::get<0>(GetParam());

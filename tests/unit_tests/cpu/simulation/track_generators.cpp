@@ -29,26 +29,24 @@ GTEST_TEST(detray_simulation, uniform_track_generator) {
         uniform_track_generator<free_track_parameters<algebra_t>>;
 
     constexpr const scalar_t tol{1e-5f};
-    constexpr const scalar_t epsilon{generator_t::configuration::epsilon};
+    constexpr const scalar_t max_pi{generator_t::configuration::k_max_pi};
 
     constexpr std::size_t phi_steps{50u};
     constexpr std::size_t theta_steps{50u};
 
     std::array<vector3, phi_steps * theta_steps> momenta{};
 
-    // Loop over theta values ]0,pi[
+    // Loop over theta values [0,pi)
     for (std::size_t itheta{0u}; itheta < theta_steps; ++itheta) {
-        const scalar_t theta{epsilon +
-                             static_cast<scalar_t>(itheta) *
-                                 (constant<scalar_t>::pi - 2.f * epsilon) /
-                                 static_cast<scalar_t>(theta_steps - 1u)};
+        const scalar_t theta{static_cast<scalar_t>(itheta) * max_pi /
+                             static_cast<scalar_t>(theta_steps - 1u)};
 
-        // Loop over phi values [-pi, pi]
+        // Loop over phi values [-pi, pi)
         for (std::size_t iphi{0u}; iphi < phi_steps; ++iphi) {
             // The direction
             const scalar_t phi{-constant<scalar_t>::pi +
                                static_cast<scalar_t>(iphi) *
-                                   (2.f * constant<scalar_t>::pi) /
+                                   (constant<scalar_t>::pi + max_pi) /
                                    static_cast<scalar_t>(phi_steps)};
 
             // intialize a track
@@ -125,6 +123,7 @@ GTEST_TEST(detray_simulation, uniform_track_generator_eta) {
         uniform_track_generator<free_track_parameters<algebra_t>>;
 
     constexpr const scalar_t tol{1e-5f};
+    constexpr const scalar_t max_pi{generator_t::configuration::k_max_pi};
 
     constexpr std::size_t phi_steps{50u};
     constexpr std::size_t eta_steps{50u};
@@ -137,12 +136,12 @@ GTEST_TEST(detray_simulation, uniform_track_generator_eta) {
                                       static_cast<scalar_t>(eta_steps - 1u)};
         const scalar_t theta{2.f * std::atan(std::exp(-eta))};
 
-        // Loop over phi values [-pi, pi]
+        // Loop over phi values [-pi, pi)
         for (std::size_t iphi{0u}; iphi < phi_steps; ++iphi) {
             // The direction
             const scalar_t phi{-constant<scalar_t>::pi +
                                static_cast<scalar_t>(iphi) *
-                                   (2.f * constant<scalar_t>::pi) /
+                                   (constant<scalar_t>::pi + max_pi) /
                                    static_cast<scalar_t>(phi_steps)};
 
             // intialize a track
@@ -224,7 +223,7 @@ GTEST_TEST(detray_simulation, random_track_generator_uniform) {
         random_track_generator<free_track_parameters<algebra_t>, uniform_gen_t>;
 
     // Tolerance depends on sample size
-    constexpr scalar_t tol{0.05f};
+    constexpr scalar_t tol{0.02f};
 
     // Track counter
     std::size_t n_tracks{0u};
@@ -236,6 +235,7 @@ GTEST_TEST(detray_simulation, random_track_generator_uniform) {
     trk_gen_cfg.seed(42u);
     trk_gen_cfg.phi_range(-0.9f * constant<scalar_t>::pi,
                           0.8f * constant<scalar_t>::pi);
+    trk_gen_cfg.eta_range(-4.f, 4.f);
     trk_gen_cfg.mom_range(1.f * unit<scalar_t>::GeV, 2.f * unit<scalar_t>::GeV);
     trk_gen_cfg.origin_stddev({0.1f * unit<scalar_t>::mm,
                                0.f * unit<scalar_t>::mm,
@@ -268,6 +268,8 @@ GTEST_TEST(detray_simulation, random_track_generator_uniform) {
     const auto& ori_stddev = trk_gen_cfg.origin_stddev();
     const auto& phi_range = trk_gen_cfg.phi_range();
     const auto& theta_range = trk_gen_cfg.theta_range();
+    ASSERT_NEAR(theta_range[0], 0.0366f, tol);
+    ASSERT_NEAR(theta_range[1], 3.105f, tol);
     const auto& mom_range = trk_gen_cfg.mom_range();
 
     // Mean
@@ -304,7 +306,7 @@ GTEST_TEST(detray_simulation, random_track_generator_normal) {
         random_track_generator<free_track_parameters<algebra_t>, normal_gen_t>;
 
     // Tolerance depends on sample size
-    constexpr scalar_t tol{0.05f};
+    constexpr scalar_t tol{0.02f};
 
     // Track counter
     std::size_t n_tracks{0u};
@@ -316,6 +318,7 @@ GTEST_TEST(detray_simulation, random_track_generator_normal) {
     trk_gen_cfg.seed(42u);
     trk_gen_cfg.phi_range(-0.9f * constant<scalar_t>::pi,
                           0.8f * constant<scalar_t>::pi);
+    trk_gen_cfg.eta_range(-4.f, 4.f);
     trk_gen_cfg.mom_range(1.f * unit<scalar_t>::GeV, 2.f * unit<scalar_t>::GeV);
     trk_gen_cfg.origin({0.f, 0.f, 0.f});
     trk_gen_cfg.origin_stddev({0.1f * unit<scalar_t>::mm,
@@ -349,6 +352,8 @@ GTEST_TEST(detray_simulation, random_track_generator_normal) {
     const auto& ori_stddev = trk_gen_cfg.origin_stddev();
     const auto& phi_range = trk_gen_cfg.phi_range();
     const auto& theta_range = trk_gen_cfg.theta_range();
+    ASSERT_NEAR(theta_range[0], 0.0366f, tol);
+    ASSERT_NEAR(theta_range[1], 3.105f, tol);
     const auto& mom_range = trk_gen_cfg.mom_range();
 
     // Mean
