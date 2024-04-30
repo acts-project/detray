@@ -8,10 +8,10 @@
 #pragma once
 
 // Project include(s)
-#include "detray/io/frontend/utils/file_handle.hpp"
 #include "detray/io/frontend/writer_interface.hpp"
 #include "detray/io/json/json.hpp"
 #include "detray/io/json/json_io.hpp"
+#include "detray/io/utils/file_handle.hpp"
 
 // System include(s)
 #include <cassert>

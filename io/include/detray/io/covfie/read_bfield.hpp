@@ -8,7 +8,7 @@
 #pragma once
 
 // Project include(s)
-#include "detray/io/frontend/utils/file_handle.hpp"
+#include "detray/io/utils/file_handle.hpp"
 
 // Covfie include(s)
 #include <covfie/core/utility/binary_io.hpp>

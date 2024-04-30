@@ -12,9 +12,9 @@
 #include "detray/io/common/homogeneous_material_writer.hpp"
 #include "detray/io/common/material_map_writer.hpp"
 #include "detray/io/common/surface_grid_writer.hpp"
+#include "detray/io/frontend/detail/detector_components_writer.hpp"
+#include "detray/io/frontend/detail/type_traits.hpp"
 #include "detray/io/frontend/detector_writer_config.hpp"
-#include "detray/io/frontend/utils/detector_components_writer.hpp"
-#include "detray/io/frontend/utils/type_traits.hpp"
 #include "detray/io/json/json_writer.hpp"
 
 namespace detray::io {

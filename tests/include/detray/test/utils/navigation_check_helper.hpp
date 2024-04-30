@@ -27,10 +27,11 @@ bool compare_traces(const inters_trace_t &intersection_trace,
     for (std::size_t intr_idx = 0u; intr_idx < max_entries; ++intr_idx) {
         debug_stream << "-------Intersection ( " << intr_idx << " )\n";
         if (intr_idx < intersection_trace.size()) {
-            debug_stream << "\nparticle gun: "
-                         << intersection_trace[intr_idx].intersection
-                         << ", vol id: " << intersection_trace[intr_idx].vol_idx
-                         << std::endl;
+            debug_stream
+                << "\nparticle gun: "
+                << intersection_trace[intr_idx].intersection << ", vol id: "
+                << intersection_trace[intr_idx].intersection.sf_desc.volume()
+                << std::endl;
         } else {
             debug_stream << "\nparticle gun: -" << std::endl;
         }

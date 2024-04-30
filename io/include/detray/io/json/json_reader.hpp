@@ -10,9 +10,9 @@
 // Project include(s)
 #include "detray/builders/detector_builder.hpp"
 #include "detray/io/frontend/reader_interface.hpp"
-#include "detray/io/frontend/utils/file_handle.hpp"
 #include "detray/io/json/json.hpp"
 #include "detray/io/json/json_io.hpp"
+#include "detray/io/utils/file_handle.hpp"
 
 // System include(s)
 #include <ios>

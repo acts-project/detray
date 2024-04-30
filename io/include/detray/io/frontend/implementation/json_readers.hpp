@@ -12,10 +12,10 @@
 #include "detray/io/common/homogeneous_material_reader.hpp"
 #include "detray/io/common/material_map_reader.hpp"
 #include "detray/io/common/surface_grid_reader.hpp"
+#include "detray/io/frontend/detail/detector_components_reader.hpp"
+#include "detray/io/frontend/detail/io_metadata.hpp"
+#include "detray/io/frontend/detail/type_traits.hpp"
 #include "detray/io/frontend/payloads.hpp"
-#include "detray/io/frontend/utils/detector_components_reader.hpp"
-#include "detray/io/frontend/utils/io_metadata.hpp"
-#include "detray/io/frontend/utils/type_traits.hpp"
 #include "detray/io/json/json_reader.hpp"
 
 // System include(s)

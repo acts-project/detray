@@ -15,6 +15,6 @@ target_include_directories( detray_tools
    INTERFACE "${CMAKE_CURRENT_SOURCE_DIR}/include" )
 
 target_link_libraries( detray_tools
-   INTERFACE vecmem::core detray::test detray::io detray::core_array )
+   INTERFACE vecmem::core detray::test detray::io detray::csv_io detray::core_array )
 
 add_subdirectory( src )

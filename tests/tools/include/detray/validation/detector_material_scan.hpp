@@ -8,7 +8,7 @@
 #pragma once
 
 // Project include(s)
-#include "detray/io/frontend/utils/file_handle.hpp"
+#include "detray/io/utils/file_handle.hpp"
 #include "detray/materials/detail/material_accessor.hpp"
 #include "detray/navigation/detail/ray.hpp"
 #include "detray/simulation/event_generator/track_generators.hpp"

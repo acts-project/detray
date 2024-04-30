@@ -9,7 +9,7 @@
 
 // Project include(s)
 #include "detray/geometry/surface.hpp"
-#include "detray/io/frontend/utils/file_handle.hpp"
+#include "detray/io/utils/create_path.hpp"
 #include "detray/navigation/detail/ray.hpp"
 #include "detray/navigation/volume_graph.hpp"
 #include "detray/plugins/svgtools/illustrator.hpp"
@@ -84,6 +84,9 @@ class ray_scan : public test::fixture_base<> {
         std::string m_name{"ray_scan"};
         // Save results for later use in downstream tests
         std::shared_ptr<test::whiteboard> m_white_board;
+        // Name of the input file, containing the complete ray scan traces
+        std::string m_intersection_file{""};
+        std::string m_track_param_file{""};
         // Mask tolerance for the intersectors
         std::array<scalar_t, 2> m_mask_tol{
             std::numeric_limits<scalar_t>::epsilon(),
@@ -99,6 +102,12 @@ class ray_scan : public test::fixture_base<> {
         /// Getters
         /// @{
         const std::string &name() const { return m_name; }
+        const std::string &intersection_file() const {
+            return m_intersection_file;
+        }
+        const std::string &track_param_file() const {
+            return m_track_param_file;
+        }
         std::array<scalar_t, 2> mask_tolerance() const { return m_mask_tol; }
         std::shared_ptr<test::whiteboard> whiteboard() { return m_white_board; }
         std::shared_ptr<test::whiteboard> whiteboard() const {
@@ -116,6 +125,14 @@ class ray_scan : public test::fixture_base<> {
         /// @{
         config &name(const std::string n) {
             m_name = n;
+            return *this;
+        }
+        config &intersection_file(const std::string f) {
+            m_intersection_file = std::move(f);
+            return *this;
+        }
+        config &track_param_file(const std::string f) {
+            m_track_param_file = std::move(f);
             return *this;
         }
         config &mask_tolerance(const std::array<scalar_t, 2> tol) {
@@ -143,6 +160,8 @@ class ray_scan : public test::fixture_base<> {
                       const config_t &cfg = {})
         : m_det{det}, m_names{names} {
         m_cfg.name(cfg.name());
+        m_cfg.intersection_file(cfg.intersection_file());
+        m_cfg.track_param_file(cfg.track_param_file());
         m_cfg.whiteboard(cfg.whiteboard());
         m_cfg.mask_tolerance(cfg.mask_tolerance());
         m_cfg.track_generator() = cfg.track_generator();
@@ -167,49 +186,58 @@ class ray_scan : public test::fixture_base<> {
         // Index of the volume that the ray origin lies in
         dindex start_index{0u};
 
+        // Count the number of rays
         std::size_t n_tracks{0u};
+
         auto ray_generator = track_generator_t(m_cfg.track_generator());
+        m_intersection_traces.reserve(ray_generator.size());
 
-        // Csv output file
-        detray::io::file_handle outfile{
-            m_cfg.name(), ".csv",
-            std::ios::out | std::ios::binary | std::ios::trunc};
-
-        if (m_cfg.write_intersections()) {
-            *outfile << "index,type,x,y,z," << std::endl;
-        }
-
-        std::cout << "INFO: Running ray scan on: " << m_names.at(0) << "...\n"
+        std::cout << "\nINFO: Running ray scan on: " << m_names.at(0) << "\n"
                   << std::endl;
 
-        for (const auto &ray : ray_generator) {
+        if (io::file_exists(m_cfg.intersection_file()) &&
+            io::file_exists(m_cfg.track_param_file())) {
 
-            // Record all intersections and surfaces along the ray
-            const auto intersection_record =
-                detector_scanner::run<detray::ray_scan>(m_det, ray,
-                                                        m_cfg.mask_tolerance());
+            std::cout << "INFO: Reading data from file...\n" << std::endl;
 
-            // Csv output
-            if (m_cfg.write_intersections()) {
-                for (const auto &single_ir : intersection_record) {
-                    const auto &intersection = single_ir.intersection;
-                    const auto sf =
-                        detray::surface{m_det, intersection.sf_desc};
-                    auto glob_pos =
-                        sf.local_to_global(gctx, intersection.local, ray.dir());
-                    *outfile
-                        << n_tracks << ","
-                        << static_cast<int>(intersection.sf_desc.barcode().id())
-                        << "," << glob_pos[0] << "," << glob_pos[1] << ","
-                        << glob_pos[2] << "," << std::endl;
-                }
+            // Fill the intersection traces from file
+            detector_scanner::read(m_cfg.intersection_file(),
+                                   m_cfg.track_param_file(),
+                                   m_intersection_traces);
+        } else {
+
+            std::cout << "INFO: Generating trace data...\n" << std::endl;
+
+            for (const auto &ray : ray_generator) {
+
+                // Record all intersections and surfaces along the ray
+                auto intersection_trace =
+                    detector_scanner::run<detray::ray_scan>(
+                        m_det, ray, m_cfg.mask_tolerance());
+
+                ASSERT_FALSE(intersection_trace.empty()) << ray;
+
+                m_intersection_traces.push_back(std::move(intersection_trace));
             }
+        }
+
+        std::cout << "INFO: Checking trace data...\n" << std::endl;
+
+        // Iterate through the scan data and perfrom checks
+        for (const auto &intersection_trace : m_intersection_traces) {
+
+            assert((intersection_trace.size() > 0) &&
+                   "Invalid intersection trace");
+
+            // Retrieve the test ray
+            auto track(intersection_trace.front().track_param);
+            detail::ray<algebra_t> ray(track);
 
             // Create a trace of the volume indices that were encountered
             // and check that portal intersections are connected
             auto [portal_trace, surface_trace, err_code] =
                 detector_scanner::trace_intersections<leaving_world>(
-                    intersection_record, start_index);
+                    intersection_trace, start_index);
 
             // Is the succession of volumes consistent ?
             err_code &= detector_scanner::check_connectivity<leaving_world>(
@@ -226,7 +254,7 @@ class ray_scan : public test::fixture_base<> {
                 il.hide_portals(false);
                 il.hide_passives(false);
 
-                detail::svg_display(gctx, il, intersection_record, ray, "ray",
+                detail::svg_display(gctx, il, intersection_trace, ray, "ray",
                                     m_cfg.name());
             }
 
@@ -239,19 +267,29 @@ class ray_scan : public test::fixture_base<> {
             detector_scanner::build_adjacency<leaving_world>(
                 portal_trace, surface_trace, adj_mat_scan, obj_hashes);
 
-            m_intersection_traces.push_back(std::move(intersection_record));
-
             ++n_tracks;
         }
         std::cout << "-----------------------------------\n"
                   << "Tested " << n_tracks << " rays: OK\n\n"
                   << "Adding " << m_intersection_traces.size()
-                  << " ray traces to store\n"
-                  << "-----------------------------------\n"
-                  << std::endl;
+                  << " ray traces to store\n";
 
         // Save the results
+
+        // Csv output
+        if (m_cfg.write_intersections()) {
+            detector_scanner::write(m_cfg.name() + "_intersections.csv",
+                                    m_cfg.name() + "_track_parameters.csv",
+                                    m_intersection_traces);
+
+            std::cout << "\nWrote  " << m_intersection_traces.size()
+                      << " ray traces to file\n";
+        }
+
+        // Move the data to the whiteboard
         m_cfg.whiteboard()->add("ray_scan", std::move(m_intersection_traces));
+
+        std::cout << "-----------------------------------\n" << std::endl;
 
         // Check that the links that were discovered by the scan match the
         // volume graph

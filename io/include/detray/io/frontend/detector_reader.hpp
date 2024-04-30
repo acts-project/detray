@@ -9,9 +9,9 @@
 
 // Project include(s)
 #include "detray/builders/detector_builder.hpp"
+#include "detray/io/frontend/detail/detector_components_reader.hpp"
 #include "detray/io/frontend/detector_reader_config.hpp"
 #include "detray/io/frontend/implementation/json_readers.hpp"
-#include "detray/io/frontend/utils/detector_components_reader.hpp"
 #include "detray/utils/consistency_checker.hpp"
 
 // System include(s)

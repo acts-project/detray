@@ -17,7 +17,7 @@
 #include "detray/detectors/toy_metadata.hpp"
 #include "detray/geometry/detector_volume.hpp"
 #include "detray/geometry/surface.hpp"
-#include "detray/io/frontend/utils/file_handle.hpp"
+#include "detray/io/utils/file_handle.hpp"
 #include "detray/materials/mixture.hpp"
 #include "detray/materials/predefined_materials.hpp"
 

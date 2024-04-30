@@ -7,19 +7,26 @@
 # Let the user know what's happening.
 message(STATUS "Building 'detray::io' component")
 
+# Set up the I/O utils library.
+file( GLOB _detray_io_utils_public_headers
+   RELATIVE "${CMAKE_CURRENT_SOURCE_DIR}"
+   "include/detray/io/utils/*.hpp" )
+detray_add_library( detray_io_utils io_utils
+   ${_detray_io_utils_public_headers} )
+
 # Set up the core I/O library.
 file( GLOB _detray_io_public_headers
    RELATIVE "${CMAKE_CURRENT_SOURCE_DIR}"
    "include/detray/io/common/*.hpp"
    "include/detray/io/covfie/*.hpp"
-   "include/detray/io/csv/*.hpp"
    "include/detray/io/frontend/*.hpp"
-   "include/detray/io/frontend/utils/*.hpp"
+   "include/detray/io/frontend/detail/*.hpp"
+   "include/detray/io/frontend/implementation/*.hpp"
    "include/detray/io/json/*.hpp" )
 detray_add_library( detray_io io
    ${_detray_io_public_headers} )
 target_link_libraries( detray_io INTERFACE
-   nlohmann_json::nlohmann_json vecmem::core covfie::core detray::core )
+   nlohmann_json::nlohmann_json vecmem::core covfie::core detray::core detray::io_utils )
 
 # Set up libraries using particular algebra plugins.
 detray_add_library( detray_io_array io_array )
@@ -44,8 +51,19 @@ if( DETRAY_VC_PLUGIN )
       INTERFACE detray::io detray::algebra_vc )
 endif()
 
+# Set up the csv data I/O library.
+file( GLOB _detray_csv_io_public_headers
+   RELATIVE "${CMAKE_CURRENT_SOURCE_DIR}"
+   "include/detray/io/csv/*.hpp" )
+detray_add_library( detray_csv_io csv_io
+   ${_detray_csv_io_public_headers} )
+target_link_libraries( detray_csv_io INTERFACE dfelibs::dfelibs detray::io_utils )
+
 # Test the public headers of the detray I/O libraries.
 if( BUILD_TESTING AND DETRAY_BUILD_TESTING )
+   string( REPLACE "include/" "" _detray_io_utils_public_headers
+      "${_detray_io_utils_public_headers}" )
+
    string( REPLACE "include/" "" _detray_io_public_headers
       "${_detray_io_public_headers}" )
    detray_test_public_headers( detray_io_array
@@ -62,6 +80,9 @@ if( BUILD_TESTING AND DETRAY_BUILD_TESTING )
       detray_test_public_headers( detray_io_vc
          ${_detray_io_public_headers} )
    endif()
+
+   string( REPLACE "include/" "" _detray_csv_io_public_headers
+      "${_detray_csv_io_public_headers}" )
 endif()
 
 # Clean up.

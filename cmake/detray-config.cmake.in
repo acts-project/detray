@@ -29,7 +29,7 @@ find_dependency( vecmem )
 find_dependency( dfelibs )
 find_dependency( nlohmann_json )
 if( DETRAY_DISPLAY )
-   find_dependency( Matplot++ )
+   find_dependency( actsvg )
 endif()
 
 # Set up the detray::Thrust target.

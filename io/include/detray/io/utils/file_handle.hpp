@@ -1,11 +1,14 @@
 /** Detray library, part of the ACTS project (R&D line)
  *
- * (c) 2023 CERN for the benefit of the ACTS project
+ * (c) 2023-2024 CERN for the benefit of the ACTS project
  *
  * Mozilla Public License Version 2.0
  */
 
 #pragma once
+
+// Project include(s)
+#include "detray/io/utils/create_path.hpp"
 
 // System include(s)
 #include <cassert>
@@ -62,20 +65,10 @@ class file_handle final {
             file_stem =
                 name.empty() ? "detray_" + std::to_string(n_files) : name;
 
-            std::filesystem::path file_path{file_stem + extension};
-            std::size_t n_trials{2u};
-            while (std::filesystem::exists(file_path)) {
-                file_stem = get_alternate_file_stem(file_stem, n_trials);
-                file_path = std::filesystem::path{file_stem + extension};
-                ++n_trials;
+            // Does the file stem need to be adjusted (in case the file exists)?
+            std::string full_name = io::alt_file_name(file_stem + extension);
+            file_stem = std::filesystem::path{full_name}.stem();
 
-                // The maximum here is arbitrary
-                if (n_trials >= 10000u) {
-                    throw std::runtime_error(
-                        "Too many versions of file exist: " + file_stem +
-                        extension);
-                }
-            }
             // Pure input mode: Check if file name makes sense and file exists
         } else if ((mode == std::ios_base::in) or
                    (mode == (std::ios_base::in | std::ios_base::binary))) {
@@ -119,7 +112,12 @@ class file_handle final {
         if (m_stream.bad()) {
             std::cout << "ERROR: Could not read from/write to file";
         }
-        m_stream.close();
+        try {
+            m_stream.close();
+        } catch (std::fstream::failure& err) {
+            std::cout << "ERROR: Could not properly close file:\n"
+                      << err.what() << std::endl;
+        }
         --n_open_files;
     }
 
@@ -127,28 +125,6 @@ class file_handle final {
     std::fstream& operator*() { return m_stream; }
 
     private:
-    /// @returns alternate file stem upon collision
-    std::string get_alternate_file_stem(std::string& stem,
-                                        const std::size_t n) {
-        const std::string delim{"_"};
-
-        // File stem already comes with a number, simply update it
-        if (n > 2u) {
-            std::size_t pos{stem.rfind(delim)};
-            if (pos == std::string::npos or (pos + 1 == stem.size())) {
-                throw std::runtime_error("Malformed file name");
-            }
-
-            // Leave the delimeter where it is and replace the file number
-            ++pos;
-            stem.replace(pos, stem.size() - pos, std::to_string(n));
-
-            return stem;
-        }
-
-        return stem + delim + std::to_string(n);
-    }
-
     /// Output file handle
     std::fstream m_stream;
 

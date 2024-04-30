@@ -8,10 +8,10 @@
 #pragma once
 
 // Project include(s)
+#include "detray/io/frontend/detail/detector_components_writer.hpp"
 #include "detray/io/frontend/detector_writer_config.hpp"
 #include "detray/io/frontend/implementation/json_writers.hpp"
-#include "detray/io/frontend/utils/create_path.hpp"
-#include "detray/io/frontend/utils/detector_components_writer.hpp"
+#include "detray/io/utils/create_path.hpp"
 
 // System include(s)
 #include <filesystem>
