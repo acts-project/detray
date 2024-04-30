@@ -50,10 +50,21 @@ class homogeneous_material_reader {
 
         // Convert the material volume by volume
         for (const auto& mv_data : det_mat_data.volumes) {
+
+            const auto vol_idx{
+                detail::basic_converter::convert(mv_data.volume_link)};
+
+            if (!det_builder.has_volume(vol_idx)) {
+                std::stringstream err_stream;
+                err_stream << "Volume " << vol_idx << ": "
+                           << "Cannot build homogeneous material for volume "
+                           << "(volume not registered in detector builder)";
+                throw std::invalid_argument(err_stream.str());
+            }
+
             // Decorate the current volume builder with material
             auto vm_builder = det_builder.template decorate<
-                homogeneous_material_builder<detector_t>>(
-                detail::basic_converter::convert(mv_data.volume_link));
+                homogeneous_material_builder<detector_t>>(vol_idx);
 
             // Add the material data to the factory
             auto mat_factory =
