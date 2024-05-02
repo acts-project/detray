@@ -98,7 +98,7 @@ GTEST_TEST(detray_navigation, guided_navigator) {
     EXPECT_EQ(obj_tracer.object_trace.size(), sf_sequence.size())
         << debug_printer.to_string();
     for (std::size_t i = 0u; i < sf_sequence.size(); ++i) {
-        const auto &candidate = obj_tracer.object_trace[i];
+        const auto &candidate = obj_tracer[i].intersection;
         auto bcd = geometry::barcode{};
         bcd.set_volume(0u).set_index(sf_sequence[i]);
         bcd.set_id((i == 11u) ? surface_id::e_portal : surface_id::e_sensitive);

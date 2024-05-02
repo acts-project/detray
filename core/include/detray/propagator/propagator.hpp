@@ -105,6 +105,26 @@ struct propagator {
               _stepping(param, magnetic_field, det),
               _navigation(det, std::move(candidates)) {}
 
+        /// Construct the propagation state from the navigator state view
+        DETRAY_HOST_DEVICE state(
+            const free_track_parameters_type &param, const detector_type &det,
+            std::size_t track_index,
+            typename navigator_type::state::view_type nav_view)
+            : m_param_type(parameter_type::e_bound),
+              _stepping(param),
+              _navigation(det, track_index, nav_view) {}
+
+        /// Construct the propagation state from the navigator state view
+        template <typename field_t>
+        DETRAY_HOST_DEVICE state(
+            const free_track_parameters_type &param,
+            const field_t &magnetic_field, const detector_type &det,
+            std::size_t track_index,
+            typename navigator_type::state::view_type nav_view)
+            : m_param_type(parameter_type::e_bound),
+              _stepping(param, magnetic_field),
+              _navigation(det, track_index, nav_view) {}
+
         DETRAY_HOST_DEVICE
         parameter_type param_type() const { return m_param_type; }
 
@@ -136,7 +156,7 @@ struct propagator {
     ///
     /// @return propagation success.
     template <typename state_t, typename actor_states_t = actor_chain<>::state>
-    DETRAY_HOST_DEVICE bool propagate(state_t &propagation,
+    DETRAY_HOST_DEVICE bool propagate(state_t &&propagation,
                                       actor_states_t &&actor_states = {}) {
 
         // Initialize the navigation

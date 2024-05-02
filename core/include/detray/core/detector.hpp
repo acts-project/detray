@@ -198,6 +198,9 @@ class detector {
           _volume_finder(detray::detail::get<6>(det_data.m_view)) {}
     /// @}
 
+    /// @returns a string that contains the detector name
+    const std::string &name(const name_map &names) const { return names.at(0); }
+
     /// @return the sub-volumes of the detector - const access
     DETRAY_HOST_DEVICE
     inline auto volumes() const -> const vector_type<volume_type> & {

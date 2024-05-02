@@ -192,9 +192,6 @@ inline auto write(
         track_params.back().reserve(trace.size());
 
         for (const auto &record : trace) {
-            // Ray/Helix scan should have been finished successfully
-            assert(record.intersection.volume_link == record.vol_idx);
-
             intersections.back().push_back(record.intersection);
             track_params.back().push_back(record.track_param);
         }

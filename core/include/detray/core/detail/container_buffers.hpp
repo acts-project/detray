@@ -67,7 +67,7 @@ struct dmulti_buffer_helper<true, buffer_ts...> : public dbase_buffer {
     /// Tie multiple buffers together
     DETRAY_HOST
     explicit dmulti_buffer_helper(buffer_ts&&... buffers)
-        : m_buffer(std::forward<buffer_ts>(buffers)...) {}
+        : m_buffer(std::move(buffers)...) {}
 };
 
 /// Helper trait to determine if a type can be interpreted as a (composite)
@@ -160,12 +160,17 @@ using dmulti_buffer = detray::detail::dmulti_buffer_helper<
 
 /// @brief Get the buffer representation of a vecmem vector - non-const
 template <class T>
-dvector_buffer<T> get_buffer(
+auto get_buffer(
     const dvector_view<T>& vec_view, vecmem::memory_resource& mr,
     vecmem::copy& cpy, detray::copy cpy_type = detray::copy::sync,
     vecmem::data::buffer_type buff_type = vecmem::data::buffer_type::fixed_size
     /*, stream*/) {
-    dvector_buffer<T> buff{vec_view.size(), mr, buff_type};
+
+    // In case the view references a const object, return a non-const buffer
+    using ret_buffer_t = dvector_buffer<std::remove_cv_t<T>>;
+
+    ret_buffer_t buff{vec_view.size(), mr, buff_type};
+
     // TODO: Move this to detray copy util, which bundles vecmem copy object and
     // stream handle and gets this switch case right automatically
     switch (cpy_type) {
@@ -241,7 +246,7 @@ typename T::buffer_type get_buffer(T& bufferable, vecmem::memory_resource& mr,
 
 /// @brief Get the buffer representation of a vecmem vector - non-const
 template <class T>
-dvector_buffer<T> get_buffer(
+dvector_buffer<std::remove_cv_t<T>> get_buffer(
     dvector<T>& vec, vecmem::memory_resource& mr, vecmem::copy& cpy,
     detray::copy cpy_type = detray::copy::sync,
     vecmem::data::buffer_type buff_type = vecmem::data::buffer_type::fixed_size
@@ -259,9 +264,19 @@ dvector_view<T> get_data(dvector_buffer<T>& buff) {
     return vecmem::get_data(buff);
 }
 
+/// Get the vecmem view type of a vector buffer - const
+template <class T>
+dvector_view<const T> get_data(const dvector_buffer<T>& buff) {
+    return vecmem::get_data(buff);
+}
+
 /// @brief Get the view ( @c dmulti_view ) of a @c dmulti_buffer
 template <class... Ts>
 auto get_data(dmulti_buffer<Ts...>& multi_buff);  // Forward declaration
+
+/// @brief Get the view ( @c dmulti_view ) of a @c dmulti_buffer - const
+template <class... Ts>
+auto get_data(const dmulti_buffer<Ts...>& multi_buff);  // Forward declaration
 
 /// @brief Unroll the composite buffer type
 ///
@@ -281,8 +296,26 @@ auto get_data(dmulti_buffer<Ts...>& multi_buff, std::index_sequence<I...>) {
         detray::get_data(detail::get<I>(multi_buff.m_buffer))...};
 }
 
+/// @brief Unroll the composite buffer type - const
+template <class... Ts, std::size_t... I>
+auto get_data(const dmulti_buffer<Ts...>& multi_buff,
+              std::index_sequence<I...>) {
+    // Evaluate recursive view type (reverse of 'get_buffer(dmulti_view)')
+    using result_view_t =
+        dmulti_view<decltype(detray::get_data(std::declval<const Ts&>()))...>;
+
+    return result_view_t{
+        detray::get_data(detail::get<I>(multi_buff.m_buffer))...};
+}
+
 template <class... Ts>
 auto get_data(dmulti_buffer<Ts...>& multi_buff) {
+    return detray::get_data(multi_buff,
+                            std::make_index_sequence<sizeof...(Ts)>{});
+}
+
+template <class... Ts>
+auto get_data(const dmulti_buffer<Ts...>& multi_buff) {
     return detray::get_data(multi_buff,
                             std::make_index_sequence<sizeof...(Ts)>{});
 }

@@ -91,31 +91,30 @@ inline auto record_propagation(
 }
 
 /// Compare the recorded intersection trace to the truth trace
-template <typename truth_trace_t, typename inters_trace_t, typename traj_t>
-bool compare_traces(const truth_trace_t &intersection_trace,
-                    const inters_trace_t &obj_tracer, const traj_t &traj,
+template <typename truth_trace_t, typename recorded_trace_t, typename traj_t>
+bool compare_traces(const truth_trace_t &truth_trace,
+                    const recorded_trace_t &recorded_trace, const traj_t &traj,
                     std::size_t trk_no, std::size_t total_n_trks) {
 
     std::stringstream debug_stream;
-    std::size_t n_inters_nav{obj_tracer.object_trace.size()};
-    std::size_t max_entries{math::max(n_inters_nav, intersection_trace.size())};
-    std::size_t min_entries{math::min(n_inters_nav, intersection_trace.size())};
+    std::size_t n_inters_nav{recorded_trace.size()};
+    std::size_t max_entries{math::max(n_inters_nav, truth_trace.size())};
+    std::size_t min_entries{math::min(n_inters_nav, truth_trace.size())};
 
     // Fill the debug stream with the information from both traces
     for (std::size_t intr_idx = 0u; intr_idx < max_entries; ++intr_idx) {
         debug_stream << "-------Intersection ( " << intr_idx << " )\n";
-        if (intr_idx < intersection_trace.size()) {
-            debug_stream
-                << "\nparticle gun: "
-                << intersection_trace[intr_idx].intersection << ", vol id: "
-                << intersection_trace[intr_idx].intersection.sf_desc.volume()
-                << std::endl;
+        if (intr_idx < truth_trace.size()) {
+            debug_stream << "\nparticle gun: "
+                         << truth_trace[intr_idx].intersection << ", vol id: "
+                         << truth_trace[intr_idx].intersection.sf_desc.volume()
+                         << std::endl;
         } else {
             debug_stream << "\nparticle gun: -" << std::endl;
         }
-        if (intr_idx < obj_tracer.object_trace.size()) {
-            debug_stream << "\nnavigator:    " << obj_tracer[intr_idx]
-                         << std::endl
+        if (intr_idx < recorded_trace.size()) {
+            debug_stream << "\nnavigator:    "
+                         << recorded_trace[intr_idx].intersection << std::endl
                          << std::endl;
         } else {
             debug_stream << "\nnavigator: -\n" << std::endl;
@@ -125,16 +124,17 @@ bool compare_traces(const truth_trace_t &intersection_trace,
     // Check every single recorded intersection
     for (std::size_t i = 0u; i < min_entries; ++i) {
 
-        const auto &nav_inters = obj_tracer[i].sf_desc.barcode();
-        const auto &ray_inters =
-            intersection_trace[i].intersection.sf_desc.barcode();
+        const auto &nav_inters =
+            recorded_trace[i].intersection.sf_desc.barcode();
+        const auto &ray_inters = truth_trace[i].intersection.sf_desc.barcode();
 
         const bool found_same_surfaces{nav_inters == ray_inters};
 
         if (not found_same_surfaces) {
-            const auto &next_nav_inters = obj_tracer[i + 1u].sf_desc.barcode();
+            const auto &next_nav_inters =
+                recorded_trace[i + 1u].intersection.sf_desc.barcode();
             const auto &next_ray_inters =
-                intersection_trace[i + 1u].intersection.sf_desc.barcode();
+                truth_trace[i + 1u].intersection.sf_desc.barcode();
 
             // Intersection record at portal bound might be flipped
             // (the portals overlap completely)
@@ -162,7 +162,7 @@ bool compare_traces(const truth_trace_t &intersection_trace,
     }
 
     // Do a final check on the trace sizes
-    const bool is_size{n_inters_nav == intersection_trace.size()};
+    const bool is_size{n_inters_nav == truth_trace.size()};
     EXPECT_TRUE(is_size) << "ERROR: Intersection traces found different number "
                             "of surfaces! Please check the last elements\n"
                          << debug_stream.str();
@@ -175,8 +175,8 @@ bool compare_traces(const truth_trace_t &intersection_trace,
 
 /// Calculate and print the navigation efficiency
 /// @NOTE: WIP
-auto print_efficiency(std::size_t n_tracks, std::size_t n_miss,
-                      std::size_t n_fatal) {
+inline auto print_efficiency(std::size_t n_tracks, std::size_t n_miss,
+                             std::size_t n_fatal) {
 
     if (n_miss > 0u || n_fatal > 0u) {
         std::cout << "-----------------------------------"
@@ -187,7 +187,7 @@ auto print_efficiency(std::size_t n_tracks, std::size_t n_miss,
                   << std::endl;
     } else {
         std::cout << "-----------------------------------\n"
-                  << "Tested " << n_tracks << " helices: OK\n"
+                  << "Tested " << n_tracks << " tracks: OK\n"
                   << "-----------------------------------\n"
                   << std::endl;
     }

@@ -65,7 +65,7 @@ auto volume(const typename detector_t::geometry_context& context,
 
     for (const auto& desc : d_volume.surfaces()) {
 
-        const auto sf = detray::surface{detector, desc};
+        const auto sf = detray::surface<detector_t>{detector, desc};
 
         if (sf.is_portal()) {
             if (!hide_portals) {

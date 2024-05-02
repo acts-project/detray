@@ -583,19 +583,21 @@ inline bool check_trace(const std::vector<record_t> &intersection_trace,
 /// @param vol_names the volume name map of the detector
 /// @param test_name the name of the test for which to print the error
 /// @param test_track trajectory that was used for the scan (ray or helix)
-/// @param intersection_trace the intersection records along the test track
+/// @param truth_trace the intersection records along the test track
 /// @param svg_style svgtools style for the detector display
 /// @param i_track index of the test track
 /// @param n_track total number of test tracks
-template <typename detector_t, typename trajectory_t, typename record_t>
-inline void display_error(
-    const typename detector_t::geometry_context gctx, const detector_t &det,
-    const typename detector_t::name_map vol_names, const std::string &test_name,
-    const trajectory_t &test_track,
-    const std::vector<record_t> &intersection_trace,
-    const detray::svgtools::styling::style &svg_style,
-    const std::size_t i_track, const std::size_t n_tracks,
-    const dvector<typename record_t::intersection_type> &intersections = {}) {
+template <typename detector_t, typename trajectory_t, typename truth_trace_t,
+          typename recorded_trace_t>
+inline void display_error(const typename detector_t::geometry_context gctx,
+                          const detector_t &det,
+                          const typename detector_t::name_map vol_names,
+                          const std::string &test_name,
+                          const trajectory_t &test_track,
+                          const truth_trace_t &truth_trace,
+                          const detray::svgtools::styling::style &svg_style,
+                          const std::size_t i_track, const std::size_t n_tracks,
+                          const recorded_trace_t &recorded_trace = {}) {
 
     // Creating the svg generator for the detector.
     detray::svgtools::illustrator il{det, vol_names, svg_style};
@@ -614,8 +616,9 @@ inline void display_error(
         track_type = "helix";
     }
 
-    detail::svg_display(gctx, il, intersection_trace, test_track, track_type,
-                        test_name, intersections);
+    detail::svg_display(gctx, il, truth_trace, test_track,
+                        track_type + "_" + std::to_string(i_track), test_name,
+                        recorded_trace);
 
     std::cout << "\nFailed on " << track_type << ": " << i_track << "/"
               << n_tracks << "\n"

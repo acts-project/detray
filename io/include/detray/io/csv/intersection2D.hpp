@@ -40,9 +40,8 @@ struct intersection2D {
     int status = 0;
 
     DFE_NAMEDTUPLE(intersection2D, track_id, identifier, transform_index,
-                   mask_id, mask_index, material_id, material_id,
-                   material_index, l0, l1, path, cos_theta, volume_link,
-                   direction, status);
+                   mask_id, mask_index, material_id, material_index, l0, l1,
+                   path, cos_theta, volume_link, direction, status);
 };
 
 /// Read intersections from csv file

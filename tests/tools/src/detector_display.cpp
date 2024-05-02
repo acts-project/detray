@@ -210,7 +210,7 @@ int main(int argc, char** argv) {
         detray::volume_graph graph(det);
 
         detray::io::file_handle stream{
-            path / (names.at(0) + "_volume_graph.dot"),
+            path / (det.name(names) + "_volume_graph.dot"),
             std::ios::out | std::ios::trunc};
         *stream << graph.to_dot_string();
     }

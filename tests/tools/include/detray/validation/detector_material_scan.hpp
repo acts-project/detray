@@ -77,13 +77,13 @@ class material_scan : public test::fixture_base<> {
         auto ray_generator = track_generator_t(m_cfg.track_generator());
 
         // Csv output file
-        std::string file_name{m_cfg.name() + "_" + m_names.at(0)};
+        std::string file_name{m_cfg.name() + "_" + m_det.name(m_names)};
         detray::io::file_handle outfile{
             file_name, ".csv",
             std::ios::out | std::ios::binary | std::ios::trunc};
         *outfile << "eta,phi,mat_sX0,mat_sL0,mat_tX0,mat_tL0" << std::endl;
 
-        std::cout << "INFO: Running material scan on: " << m_names.at(0)
+        std::cout << "INFO: Running material scan on: " << m_det.name(m_names)
                   << "\n(" << ray_generator.size() << " rays) ...\n"
                   << std::endl;
 

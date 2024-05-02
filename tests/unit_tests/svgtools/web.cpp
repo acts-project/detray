@@ -13,6 +13,7 @@
 #include "detray/plugins/svgtools/utils/groups.hpp"
 #include "detray/plugins/svgtools/writer.hpp"
 #include "detray/test/utils/detector_scanner.hpp"
+#include "detray/test/utils/svg_display.hpp"
 
 // Vecmem include(s)
 #include <vecmem/memory/host_memory_resource.hpp>
@@ -93,8 +94,10 @@ GTEST_TEST(svgtools, web) {
             il.draw_trajectory(name + "_trajectory", helix, view);
 
         // Draw the intersection record.
+        auto helix_intersections =
+            detray::detail::transcribe_intersections(helix_ir);
         const auto svg_helix_ir = il.draw_intersections(
-            name + "_record", helix_ir, helix.dir(), view);
+            name + "_record", helix_intersections, helix.dir(), view);
 
         // We one the trajectory and intersection record to be considered as one
         // svg. Thus we group them together before adding the group to the svg

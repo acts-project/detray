@@ -56,9 +56,13 @@ struct dmulti_view_helper<true, view_ts...> : public dbase_view {
     dmulti_view_helper() = default;
 
     /// Tie multiple views together
-    DETRAY_HOST
+    DETRAY_HOST_DEVICE
     explicit dmulti_view_helper(view_ts&&... views)
-        : m_view(std::forward<view_ts>(views)...) {}
+        : m_view(std::move(views)...) {}
+
+    /// Tie multiple views together
+    DETRAY_HOST_DEVICE
+    explicit dmulti_view_helper(view_ts&... views) : m_view(views...) {}
 };
 
 /// Helper trait to determine if a type can be interpreted as a (composite)
@@ -153,6 +157,10 @@ template <typename T, typename A>
 dvector_view<const T> get_data(const std::vector<T, A>& vec) {
     return vecmem::get_data(vec);
 }
+
+/// Specialized view for @c vecmem::jagged_vector containers
+template <typename T>
+using djagged_vector_view = vecmem::data::jagged_vector_view<T>;
 
 /// Specialization of 'is view' for @c vecmem::data::vector_view containers
 template <typename T>

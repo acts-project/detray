@@ -11,6 +11,7 @@
 #include "detray/geometry/surface.hpp"
 #include "detray/io/utils/create_path.hpp"
 #include "detray/navigation/detail/ray.hpp"
+#include "detray/navigation/volume_graph.hpp"
 #include "detray/simulation/event_generator/track_generators.hpp"
 #include "detray/test/detail/whiteboard.hpp"
 #include "detray/test/detector_scan_config.hpp"
@@ -72,7 +73,7 @@ class detector_scan : public test::fixture_base<> {
         // Index of the volume that the test trajectory origin lies in
         dindex start_index{0u};
 
-        std::cout << "\nINFO: Running scan on: " << m_names.at(0) << "\n"
+        std::cout << "\nINFO: Running scan on: " << m_det.name(m_names) << "\n"
                   << std::endl;
 
         // Fill detector scan data to white board
@@ -92,8 +93,8 @@ class detector_scan : public test::fixture_base<> {
                    "Invalid intersection trace");
 
             // Retrieve the test trajectory
-            const auto &track = intersection_trace.front().track_param;
-            trajectory_type test_traj = get_parametrized_trajectory(track);
+            const auto &trck_param = intersection_trace.front().track_param;
+            trajectory_type test_traj = get_parametrized_trajectory(trck_param);
 
             // Run consistency checks on the trace
             bool success = detector_scanner::check_trace<detector_t>(
@@ -103,7 +104,8 @@ class detector_scan : public test::fixture_base<> {
             if (not success) {
                 detector_scanner::display_error(
                     m_gctx, m_det, m_names, m_cfg.name(), test_traj,
-                    intersection_trace, m_cfg.svg_style(), n_tracks, n_helices);
+                    intersection_trace, m_cfg.svg_style(), n_tracks, n_helices,
+                    intersection_trace_t{});
             }
 
             ASSERT_TRUE(success);

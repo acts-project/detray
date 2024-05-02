@@ -31,32 +31,79 @@ namespace detray {
 template <typename... Inspectors>
 struct aggregate_inspector {
 
+    using view_type = dmulti_view<detail::get_view_t<Inspectors>...>;
+    using const_view_type =
+        dmulti_view<detail::get_view_t<const Inspectors>...>;
+
     using inspector_tuple_t = std::tuple<Inspectors...>;
     inspector_tuple_t _inspectors{};
 
+    /// Default constructor
+    aggregate_inspector() = default;
+
+    /// Construct from the inspector @param view type. Mainly used device-side.
+    template <typename view_t,
+              std::enable_if_t<detail::is_device_view_v<view_t>, bool> = true>
+    DETRAY_HOST_DEVICE explicit aggregate_inspector(view_t &view)
+        : _inspectors(unroll_views(
+              view, std::make_index_sequence<sizeof...(Inspectors)>{})) {}
+
     /// Inspector interface
     template <unsigned int current_id = 0, typename state_type,
-              typename scalar_t>
-    auto operator()(state_type &state, const navigation::config<scalar_t> &cfg,
-                    const char *message) {
+              typename scalar_t, typename point3_t, typename vector3_t>
+    DETRAY_HOST_DEVICE auto operator()(state_type &state,
+                                       const navigation::config<scalar_t> &cfg,
+                                       const point3_t &pos,
+                                       const vector3_t &dir,
+                                       const char *message) {
         // Call inspector
-        std::get<current_id>(_inspectors)(state, cfg, message);
+        std::get<current_id>(_inspectors)(state, cfg, pos, dir, message);
 
         // Next inspector
         if constexpr (current_id <
                       std::tuple_size<inspector_tuple_t>::value - 1) {
-            return operator()<current_id + 1>(state, cfg, message);
+            return operator()<current_id + 1>(state, cfg, pos, dir, message);
         }
     }
 
     /// @returns a specific inspector
     template <typename inspector_t>
-    decltype(auto) get() {
+    DETRAY_HOST_DEVICE constexpr decltype(auto) get() {
         return std::get<inspector_t>(_inspectors);
+    }
+
+    /// @returns a tuple constructed from the inspector @param view s.
+    template <typename view_t, std::size_t... I,
+              std::enable_if_t<detail::is_device_view_v<view_t>, bool> = true>
+    DETRAY_HOST_DEVICE constexpr auto unroll_views(
+        view_t &view, std::index_sequence<I...> /*seq*/) {
+        return detail::make_tuple<std::tuple>(
+            Inspectors(detail::get<I>(view.m_view))...);
     }
 };
 
 namespace navigation {
+
+namespace detail {
+
+/// Record of a surface intersection along a track
+template <typename intersetion_t>
+struct candidate_record {
+
+    using algebra_type = typename intersetion_t::algebra_type;
+    using point3_type = dpoint3D<algebra_type>;
+    using vector3_type = dvector3D<algebra_type>;
+    using intersection_type = intersetion_t;
+
+    /// Current global track position
+    point3_type pos;
+    /// Current global track direction
+    vector3_type dir;
+    /// The intersection result
+    intersetion_t intersection;
+};
+
+}  // namespace detail
 
 /// A navigation inspector that relays information about the encountered
 /// objects whenever the navigator reaches one or more status flags
@@ -64,27 +111,46 @@ template <typename candidate_t, template <typename...> class vector_t = dvector,
           status... navigation_status>
 struct object_tracer {
 
+    using candidate_record_t = detail::candidate_record<candidate_t>;
+
+    using view_type = dvector_view<candidate_record_t>;
+    using const_view_type = dvector_view<const candidate_record_t>;
+
+    /// Default constructor
+    object_tracer() = default;
+
+    /// Device-side construction from a vecmem based view type
+    DETRAY_HOST_DEVICE explicit object_tracer(
+        dvector_view<candidate_record_t> &view)
+        : object_trace(view) {}
+
     // record all object id the navigator encounters
-    vector_t<candidate_t> object_trace = {};
+    vector_t<candidate_record_t> object_trace;
 
     /// Inspector interface
-    template <typename state_type, typename scalar_t>
-    auto operator()(state_type &state, const navigation::config<scalar_t> &,
-                    const char * /*message*/) {
+    template <typename state_type, typename scalar_t, typename point3_t,
+              typename vector3_t>
+    DETRAY_HOST_DEVICE auto operator()(state_type &state,
+                                       const navigation::config<scalar_t> &,
+                                       const point3_t &pos,
+                                       const vector3_t &dir,
+                                       const char * /*message*/) {
 
         // Record the candidate of an encountered object
-        if ((is_status(state.status(), navigation_status) or ...)) {
-            object_trace.push_back(std::move(*(state.current())));
+        if ((is_status(state.status(), navigation_status) || ...)) {
+            object_trace.push_back({pos, dir, *(state.current())});
         }
     }
 
     /// @returns a specific candidate from the trace
-    const candidate_t &operator[](std::size_t i) const {
+    DETRAY_HOST_DEVICE
+    constexpr const candidate_record_t &operator[](std::size_t i) const {
         return object_trace[i];
     }
 
     /// Compares a navigation status with the tracers references
-    bool is_status(const status &nav_stat, const status &ref_stat) {
+    DETRAY_HOST_DEVICE
+    constexpr bool is_status(const status &nav_stat, const status &ref_stat) {
         return (nav_stat == ref_stat);
     }
 };
@@ -97,9 +163,11 @@ struct print_inspector {
     std::stringstream debug_stream{};
 
     /// Inspector interface. Gathers detailed information during navigation
-    template <typename state_type, typename scalar_t>
+    template <typename state_type, typename scalar_t, typename point3_t,
+              typename vector3_t>
     auto operator()(const state_type &state,
                     const navigation::config<scalar_t> &cfg,
+                    const point3_t &track_pos, const vector3_t &track_dir,
                     const char *message) {
         std::string msg(message);
         std::string tabs = "\t\t\t\t";
@@ -107,6 +175,10 @@ struct print_inspector {
         debug_stream << msg << std::endl;
 
         debug_stream << "Volume" << tabs << state.volume() << std::endl;
+        debug_stream << "Track pos: " << track_pos[0] << ", " << track_pos[1]
+                     << ", " << track_pos[2] << ", dir: " << track_dir[0]
+                     << ", " << track_dir[1] << ", " << track_dir[2]
+                     << std::endl;
         debug_stream << "No. reachable\t\t\t" << state.n_candidates()
                      << std::endl;
 
@@ -117,7 +189,7 @@ struct print_inspector {
             const auto &local = sf_cand.local;
             const auto pos =
                 surface{*state.detector(), sf_cand.sf_desc}.local_to_global(
-                    geo_ctx_t{}, local, {});
+                    geo_ctx_t{}, local, track_dir);
 
             debug_stream << sf_cand;
             debug_stream << ", glob: [r:" << getter::perp(pos)

@@ -1,6 +1,6 @@
 /** Detray library, part of the ACTS project (R&D line)
  *
- * (c) 2023 CERN for the benefit of the ACTS project
+ * (c) 2023-2024 CERN for the benefit of the ACTS project
  *
  * Mozilla Public License Version 2.0
  */
@@ -14,7 +14,6 @@
 #include "actsvg/display/geometry.hpp"
 
 // System include(s)
-#include <string>
 #include <tuple>
 
 namespace detray::svgtools::meta::display {
@@ -25,9 +24,10 @@ inline auto eta_lines(const std::string& id,
 
     return actsvg::display::eta_lines(
         id, el._z, el._r,
-        {std::tuple(el._values_main, el._stroke_main, el._show_label,
-                    el._label_font),
-         std::tuple(el._values_half, el._stroke_half, false, el._label_font)});
+        {std::make_tuple(el._values_main, el._stroke_main, el._show_label,
+                         el._label_font),
+         std::make_tuple(el._values_half, el._stroke_half, false,
+                         el._label_font)});
 }
 
 }  // namespace detray::svgtools::meta::display

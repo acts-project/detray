@@ -32,7 +32,7 @@
 namespace po = boost::program_options;
 using namespace detray;
 
-int main(int argc, char **argv) {
+int main(int argc, char** argv) {
 
     // Use the most general type to be able to read in all detector files
     using detector_t = detray::detector<>;
@@ -211,23 +211,22 @@ int main(int argc, char **argv) {
 
     const auto [det, names] =
         detray::io::read_detector<detector_t>(host_mr, reader_cfg);
+    const std::string& det_name = det.name(names);
 
     // Create the whiteboard for data transfer between the steps
     auto white_board = std::make_shared<test::whiteboard>();
-    ray_scan_cfg.name(names.at(0) + "_ray_scan");
+    ray_scan_cfg.name(det_name + "_ray_scan");
     ray_scan_cfg.whiteboard(white_board);
-    ray_scan_cfg.intersection_file(names.at(0) + "_ray_scan_intersections.csv");
-    ray_scan_cfg.track_param_file(names.at(0) +
-                                  "_ray_scan_track_parameters.csv");
+    ray_scan_cfg.intersection_file(det_name + "_ray_scan_intersections.csv");
+    ray_scan_cfg.track_param_file(det_name + "_ray_scan_track_parameters.csv");
 
-    hel_scan_cfg.name(names.at(0) + "_helix_scan");
+    hel_scan_cfg.name(det_name + "_helix_scan");
     hel_scan_cfg.whiteboard(white_board);
     // Let the Newton algorithm dynamically choose tol. based on approx. error
     hel_scan_cfg.mask_tolerance({detray::detail::invalid_value<scalar_t>(),
                                  detray::detail::invalid_value<scalar_t>()});
-    hel_scan_cfg.intersection_file(names.at(0) +
-                                   "_helix_scan_intersections.csv");
-    hel_scan_cfg.track_param_file(names.at(0) +
+    hel_scan_cfg.intersection_file(det_name + "_helix_scan_intersections.csv");
+    hel_scan_cfg.track_param_file(det_name +
                                   "_helix_scan_track_parameters.csv");
 
     str_nav_cfg.whiteboard(white_board);
@@ -238,17 +237,17 @@ int main(int argc, char **argv) {
         det, names, con_chk_cfg);
 
     // Navigation link consistency, discovered by ray intersection
-    ray_scan_cfg.name(names.at(0) + "_ray_scan");
+    ray_scan_cfg.name(det_name + "_ray_scan");
     detray::detail::register_checks<detray::test::ray_scan>(det, names,
                                                             ray_scan_cfg);
 
     // Navigation link consistency, discovered by helix intersection
-    hel_scan_cfg.name(names.at(0) + "_helix_scan");
+    hel_scan_cfg.name(det_name + "_helix_scan");
     detray::detail::register_checks<detray::test::helix_scan>(det, names,
                                                               hel_scan_cfg);
 
     // Comparision of straight line navigation with ray scan
-    str_nav_cfg.name(names.at(0) + "_straight_line_navigation");
+    str_nav_cfg.name(det_name + "_straight_line_navigation");
     // Ensure that the same mask tolerance is used
     auto mask_tolerance = ray_scan_cfg.mask_tolerance();
     str_nav_cfg.propagation().navigation.min_mask_tolerance = mask_tolerance[0];
@@ -257,7 +256,7 @@ int main(int argc, char **argv) {
         det, names, str_nav_cfg);
 
     // Comparision of navigation in a constant B-field with helix
-    hel_nav_cfg.name(names.at(0) + "_helix_navigation");
+    hel_nav_cfg.name(det_name + "_helix_navigation");
     detray::detail::register_checks<detray::test::helix_navigation>(
         det, names, hel_nav_cfg);
 

@@ -173,7 +173,7 @@ class detector_volume {
     /// @returns the maximum number of surface candidates during a neighborhood
     /// lookup
     // TODO: Remove
-    template <int I = static_cast<int>(descr_t::object_id::e_size) - 1>
+    template <int I = static_cast<int>(detector_t::accel::n_types) - 1>
     DETRAY_HOST_DEVICE constexpr auto n_max_candidates(
         unsigned int n = 0u) const -> unsigned int {
         // Get the index of the surface collection with type index 'I'

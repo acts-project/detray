@@ -108,7 +108,7 @@ int main() {
                          << "found in vol: "
                          << intersection_trace[intr_idx].vol_idx << ",\n\t"
                          << intersection_trace[intr_idx].intersection;
-            debug_stream << "\nnavig.:\t" << obj_tracer[intr_idx];
+            debug_stream << "\nnavig.:\t" << obj_tracer[intr_idx].intersection;
         }
         std::cout << debug_stream.str() << std::endl;
 

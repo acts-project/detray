@@ -70,8 +70,8 @@ int main() {
         1.f * detray::unit<detray::scalar>::GeV);
 
     // Run the check
-    std::cout << "\nScanning " << names.at(0) << " (" << ray_generator.size()
-              << " rays) ...\n"
+    std::cout << "\nScanning " << det.name(names) << " ("
+              << ray_generator.size() << " rays) ...\n"
               << std::endl;
 
     bool success = true;
@@ -85,9 +85,13 @@ int main() {
             intersection_trace, start_index, adj_mat_scan, obj_hashes);
 
         if (!check_result) {
+            // Empty navigation trace
+            using intersection_trace_t = decltype(intersection_trace);
+
             detray::detector_scanner::display_error(
                 gctx, det, names, "ray_scan_tutorial", ray, intersection_trace,
-                svg_style, n_rays, ray_generator.size());
+                svg_style, n_rays, ray_generator.size(),
+                intersection_trace_t{});
         }
         success &= check_result;
 

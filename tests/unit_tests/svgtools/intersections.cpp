@@ -13,6 +13,7 @@
 #include "detray/plugins/svgtools/writer.hpp"
 #include "detray/simulation/event_generator/track_generators.hpp"
 #include "detray/test/utils/detector_scanner.hpp"
+#include "detray/test/utils/svg_display.hpp"
 #include "detray/tracks/tracks.hpp"
 
 // Vecmem include(s)
@@ -78,8 +79,10 @@ GTEST_TEST(svgtools, intersections) {
             "test_svgtools_intersection_record" + std::to_string(index);
 
         // Drawing the intersections.
-        const auto svg_ir = il.draw_intersections(name, intersection_record,
-                                                  test_ray.dir(), view);
+        auto intersections =
+            detray::detail::transcribe_intersections(intersection_record);
+        const auto svg_ir =
+            il.draw_intersections(name, intersections, test_ray.dir(), view);
 
         detray::svgtools::write_svg(name, {axes, svg_det, svg_ir});
 
