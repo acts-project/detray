@@ -111,18 +111,13 @@ struct ray_intersector_impl<line2D<algebra_t>, algebra_t> {
                                     math::min(mask_tolerance[1],
                                               1e-3f * math::abs(is.path))));
 
-            // prepare some additional information in case the intersection
-            // is valid
+            // Compute some additional information if the intersection is valid
             if (is.status == intersection::status::e_inside) {
                 is.sf_desc = sf;
-
                 is.direction = detail::signbit(is.path)
                                    ? intersection::direction::e_opposite
                                    : intersection::direction::e_along;
                 is.volume_link = mask.volume_link();
-
-                // Get incidence angle
-                is.cos_incidence_angle = math::abs(zd);
             }
         }
         return is;

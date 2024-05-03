@@ -119,12 +119,11 @@ class material_scan : public test::fixture_base<> {
                 if (!sf.has_material()) {
                     continue;
                 }
-
+                const typename detector_t::geometry_context gctx{};
                 const auto &p = record.intersection.local;
                 const auto [seg, t, mx0, ml0] =
                     sf.template visit_material<get_material_params>(
-                        point2_t{p[0], p[1]},
-                        record.intersection.cos_incidence_angle);
+                        point2_t{p[0], p[1]}, sf.cos_angle(gctx, ray.dir(), p));
 
                 if (mx0 > 0.f) {
                     mat_sX0 += seg / mx0;

@@ -138,6 +138,10 @@ struct random_scatterer : actor {
     DETRAY_HOST inline void operator()(state& simulator_state,
                                        propagator_state_t& prop_state) const {
 
+        // @Todo: Make context part of propagation state
+        using detector_type = typename propagator_state_t::detector_type;
+        using geo_context_type = typename detector_type::geometry_context;
+
         auto& navigation = prop_state._navigation;
 
         if (not navigation.is_on_module()) {
@@ -148,9 +152,12 @@ struct random_scatterer : actor {
         auto& bound_params = stepping._bound_params;
         const auto& is = *navigation.current();
         const auto sf = navigation.get_surface();
+        const scalar_type cos_inc_angle{
+            sf.cos_angle(geo_context_type{}, bound_params.dir(),
+                         bound_params.bound_local())};
 
         sf.template visit_material<kernel>(simulator_state, bound_params,
-                                           is.cos_incidence_angle, is.local[0]);
+                                           cos_inc_angle, is.local[0]);
 
         // Get the new momentum
         const auto new_mom = attenuate(

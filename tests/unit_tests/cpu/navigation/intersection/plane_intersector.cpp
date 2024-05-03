@@ -57,8 +57,6 @@ GTEST_TEST(detray_intersection, translated_plane_ray) {
     // Local intersection information
     ASSERT_NEAR(hit_bound.local[0], -1.f, tol);
     ASSERT_NEAR(hit_bound.local[1], -1.f, tol);
-    // Incidence angle
-    ASSERT_NEAR(hit_bound.cos_incidence_angle, 1.f, tol);
 
     // The same test but bound to local frame & masked - inside
     mask<rectangle2D> rect_for_inside{0u, 3.f, 3.f};
@@ -89,28 +87,4 @@ GTEST_TEST(detray_intersection, translated_plane_ray) {
     // Local intersection infoimation - unchanged
     ASSERT_NEAR(hit_bound_outside.local[0], -1.f, tol);
     ASSERT_NEAR(hit_bound_outside.local[1], -1.f, tol);
-}
-
-// This defines the local frame test suite
-GTEST_TEST(detray_intersection, plane_incidence_angle) {
-    // tf3 with rotated axis
-    const vector3 x{1.f, 0.f, -1.f};
-    const vector3 z{1.f, 0.f, 1.f};
-    const vector3 t{0.f, 0.f, 0.f};
-
-    const transform3 rotated{t, vector::normalize(z), vector::normalize(x)};
-
-    ray_intersector<rectangle2D, algebra_t> pi;
-
-    // Test ray
-    const point3 pos{-1.f, 0.f, 0.f};
-    const vector3 mom{1.f, 0.f, 0.f};
-    const detail::ray<algebra_t> r(pos, 0.f, mom, 0.f);
-
-    // The same test but bound to local frame & masked - inside
-    mask<rectangle2D> rect{0u, 3.f, 3.f};
-
-    const auto is = pi(r, surface_descriptor<>{}, rect, rotated, tol);
-
-    ASSERT_NEAR(is.cos_incidence_angle, std::cos(constant<scalar>::pi_4), tol);
 }
