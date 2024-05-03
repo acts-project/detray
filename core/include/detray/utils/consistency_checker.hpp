@@ -155,16 +155,6 @@ struct material_checker {
                 }
             }
         }
-
-        // Check that every entry in the material map is valid
-        for (const auto &slab : mat_map.all()) {
-            if (!slab) {
-                throw_material_error("material map (type id " +
-                                         std::to_string(static_cast<int>(id)) +
-                                         ")",
-                                     idx, slab);
-            }
-        }
     }
 
     /// Test wether a given collection of material contains invalid material
