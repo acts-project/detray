@@ -12,6 +12,7 @@
 
 // System include(s)
 #include <array>
+#include <stdexcept>
 #include <vector>
 
 namespace detray::svgtools::styling::colors {
@@ -59,6 +60,113 @@ inline constexpr std::array aquamarine1{188, 255, 219};
 inline constexpr std::array aquamarine2{141, 255, 205};
 inline constexpr std::array emerald{104, 216, 155};
 inline constexpr std::array shamrock_green{79, 157, 105};
+
+// Yellow/orange tones
+inline constexpr std::array yellow{0, 255, 0};
+
+namespace gradient {
+
+inline std::vector<actsvg::style::color> rainbow_scale{
+    actsvg::style::color{{255, 0, 0}, 1.f},
+    actsvg::style::color{{255, 51, 0}, 1.f},
+    actsvg::style::color{{255, 102, 0}, 1.f},
+    actsvg::style::color{{255, 153, 0}, 1.f},
+    actsvg::style::color{{255, 204, 0}, 1.f},
+    actsvg::style::color{{255, 255, 0}, 1.f},
+    actsvg::style::color{{204, 255, 0}, 1.f},
+    actsvg::style::color{{153, 255, 0}, 1.f},
+    actsvg::style::color{{102, 255, 0}, 1.f},
+    actsvg::style::color{{51, 255, 0}, 1.f},
+    actsvg::style::color{{0, 255, 0}, 1.f},
+    actsvg::style::color{{0, 255, 51}, 1.f},
+    actsvg::style::color{{0, 255, 102}, 1.f},
+    actsvg::style::color{{0, 255, 153}, 1.f},
+    actsvg::style::color{{0, 255, 204}, 1.f},
+    actsvg::style::color{{0, 255, 255}, 1.f},
+    actsvg::style::color{{0, 204, 255}, 1.f},
+    actsvg::style::color{{0, 153, 255}, 1.f},
+    actsvg::style::color{{0, 102, 255}, 1.f},
+    actsvg::style::color{{0, 51, 255}, 1.f}};
+
+inline std::vector<actsvg::style::color> viridis_scale{
+    actsvg::style::color{{253, 231, 37}, 1.f},
+    actsvg::style::color{{221, 227, 24}, 1.f},
+    actsvg::style::color{{186, 222, 40}, 1.f},
+    actsvg::style::color{{149, 216, 64}, 1.f},
+    actsvg::style::color{{117, 208, 84}, 1.f},
+    actsvg::style::color{{86, 198, 103}, 1.f},
+    actsvg::style::color{{61, 188, 116}, 1.f},
+    actsvg::style::color{{41, 175, 127}, 1.f},
+    actsvg::style::color{{32, 163, 134}, 1.f},
+    actsvg::style::color{{31, 150, 139}, 1.f},
+    actsvg::style::color{{35, 138, 141}, 1.f},
+    actsvg::style::color{{40, 125, 142}, 1.f},
+    actsvg::style::color{{45, 113, 142}, 1.f},
+    actsvg::style::color{{51, 99, 141}, 1.f},
+    actsvg::style::color{{57, 85, 140}, 1.f},
+    actsvg::style::color{{64, 70, 136}, 1.f},
+    actsvg::style::color{{69, 55, 129}, 1.f},
+    actsvg::style::color{{72, 37, 118}, 1.f},
+    actsvg::style::color{{72, 20, 103}, 1.f},
+    actsvg::style::color{{68, 1, 84}, 1.f}};
+
+inline std::vector<actsvg::style::color> plasma_scale{
+    actsvg::style::color{{240, 249, 33}, 1.f},
+    actsvg::style::color{{247, 226, 37}, 1.f},
+    actsvg::style::color{{252, 205, 37}, 1.f},
+    actsvg::style::color{{254, 183, 45}, 1.f},
+    actsvg::style::color{{252, 163, 56}, 1.f},
+    actsvg::style::color{{247, 144, 68}, 1.f},
+    actsvg::style::color{{240, 127, 79}, 1.f},
+    actsvg::style::color{{231, 110, 91}, 1.f},
+    actsvg::style::color{{221, 94, 102}, 1.f},
+    actsvg::style::color{{209, 78, 114}, 1.f},
+    actsvg::style::color{{197, 64, 126}, 1.f},
+    actsvg::style::color{{182, 48, 139}, 1.f},
+    actsvg::style::color{{167, 33, 151}, 1.f},
+    actsvg::style::color{{149, 17, 161}, 1.f},
+    actsvg::style::color{{131, 5, 167}, 1.f},
+    actsvg::style::color{{110, 0, 168}, 1.f},
+    actsvg::style::color{{89, 1, 165}, 1.f},
+    actsvg::style::color{{67, 3, 158}, 1.f},
+    actsvg::style::color{{44, 5, 148}, 1.f},
+    actsvg::style::color{{13, 8, 135}, 1.f},
+};
+
+/// Generate stops for actsvg gradients
+inline std::vector<actsvg::style::gradient::stop> generate_stops(
+    const std::vector<actsvg::style::color> &scale, unsigned int n_stops) {
+
+    if (n_stops > scale.size()) {
+        throw std::invalid_argument(
+            "Too many gradient stops for given color scale! Color scale has "
+            "only " +
+            std::to_string(scale.size()) + " entries.");
+    }
+
+    std::vector<actsvg::style::gradient::stop> stops{};
+    stops.reserve(n_stops);
+
+    // Choose a color from the scale
+    std::size_t color_step{static_cast<std::size_t>(scale.size() / n_stops)};
+    std::size_t i_color{0u};
+
+    // Find the gradient percentage for the color
+    float grad_step{1.f / static_cast<float>(n_stops - 1u)};
+    float grad{0.f};
+
+    for (std::size_t i = 0u; i < n_stops; ++i) {
+
+        stops.push_back(actsvg::style::gradient::stop{grad, scale[i_color]});
+
+        i_color += color_step;
+        grad += grad_step;
+    }
+
+    return stops;
+}
+
+}  // namespace gradient
 
 inline std::vector<actsvg::style::color> black_theme(
     const actsvg::scalar opacity) {
