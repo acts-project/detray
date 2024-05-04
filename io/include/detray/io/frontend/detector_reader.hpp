@@ -70,7 +70,7 @@ auto read_detector(vecmem::memory_resource& resc,
 
     if (cfg.do_check()) {
         // This will throw an exception in case of inconsistencies
-        detray::detail::check_consistency(det, cfg.verbose_check());
+        detray::detail::check_consistency(det, cfg.verbose_check(), names);
         std::cout << "Detector check: OK" << std::endl;
     }
 
