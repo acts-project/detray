@@ -12,10 +12,8 @@
 #include "detray/test/detail/register_checks.hpp"
 #include "detray/test/detail/whiteboard.hpp"
 #include "detray/test/detector_consistency.hpp"
-#include "detray/test/detector_helix_scan.hpp"
-#include "detray/test/detector_ray_scan.hpp"
-#include "detray/test/helix_navigation.hpp"
-#include "detray/test/straight_line_navigation.hpp"
+#include "detray/test/detector_scan.hpp"
+#include "detray/test/navigation_validation.hpp"
 
 // Vecmem include(s)
 #include <vecmem/memory/host_memory_resource.hpp>
@@ -216,16 +214,23 @@ int main(int argc, char **argv) {
 
     // Create the whiteboard for data transfer between the steps
     auto white_board = std::make_shared<test::whiteboard>();
+    ray_scan_cfg.name(names.at(0) + "_ray_scan");
     ray_scan_cfg.whiteboard(white_board);
     ray_scan_cfg.intersection_file(names.at(0) + "_ray_scan_intersections.csv");
     ray_scan_cfg.track_param_file(names.at(0) +
                                   "_ray_scan_track_parameters.csv");
-    str_nav_cfg.whiteboard(white_board);
+
+    hel_scan_cfg.name(names.at(0) + "_helix_scan");
     hel_scan_cfg.whiteboard(white_board);
-    ray_scan_cfg.intersection_file(names.at(0) +
+    // Let the Newton algorithm dynamically choose tol. based on approx. error
+    hel_scan_cfg.mask_tolerance({detray::detail::invalid_value<scalar_t>(),
+                                 detray::detail::invalid_value<scalar_t>()});
+    hel_scan_cfg.intersection_file(names.at(0) +
                                    "_helix_scan_intersections.csv");
-    ray_scan_cfg.track_param_file(names.at(0) +
+    hel_scan_cfg.track_param_file(names.at(0) +
                                   "_helix_scan_track_parameters.csv");
+
+    str_nav_cfg.whiteboard(white_board);
     hel_nav_cfg.whiteboard(white_board);
 
     // General data consistency of the detector

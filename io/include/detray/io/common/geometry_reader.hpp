@@ -157,13 +157,31 @@ class geometry_reader {
                   sf_data.mask.boundaries.end(),
                   std::back_inserter(mask_boundaries));
 
+        // If the concentric cylinder is shifted in z, discard the shift
+        // and put it in the mask boundaries instead. Everything else
+        // will be ignored
+        // @TODO: Remove this for cylinders again once 2 solution intersection
+        // work
+        auto trf = convert<detector_t>(sf_data.transform);
+        if (sf_data.mask.shape == io_shape_id::portal_cylinder2 ||
+            sf_data.mask.shape == io_shape_id::cylinder2) {
+
+            const auto z_shift{static_cast<scalar_t>(trf.translation()[2])};
+
+            mask_boundaries[concentric_cylinder2D::e_n_half_z] += z_shift;
+            mask_boundaries[concentric_cylinder2D::e_p_half_z] += z_shift;
+
+            // Set the transform to identity afterwards
+            trf = decltype(trf){};
+        }
+
         const std::size_t sf_idx{
             sf_data.index_in_coll.has_value()
                 ? *(sf_data.index_in_coll)
                 : detray::detail::invalid_value<std::size_t>()};
 
         return {sf_data.type,
-                convert<detector_t>(sf_data.transform),
+                trf,
                 static_cast<nav_link_t>(
                     detail::basic_converter::convert(sf_data.mask.volume_link)),
                 std::move(mask_boundaries),

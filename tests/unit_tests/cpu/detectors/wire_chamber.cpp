@@ -25,5 +25,5 @@ GTEST_TEST(detray_detectors, wire_chamber) {
         create_wire_chamber(host_mr, wire_chamber_config{});
 
     // Check general consistency of the detector
-    detail::check_consistency(wire_det, true);
+    detail::check_consistency(wire_det, true, names);
 }

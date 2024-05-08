@@ -49,14 +49,16 @@ struct brute_force_scan {
 
     template <typename D>
     using intersection_trace_type = std::vector<intersection_record<D>>;
+    using trajectory_type = trajectory_t;
 
     template <typename detector_t>
-    inline auto operator()(
-        const detector_t &detector, const trajectory_t &traj,
-        const std::array<typename detector_t::scalar_type, 2> mask_tolerance =
-            {0.f, 0.f * unit<typename detector_t::scalar_type>::um},
-        const typename detector_t::scalar_type p =
-            1.f * unit<typename detector_t::scalar_type>::GeV) {
+    inline auto operator()(const typename detector_t::geometry_context,
+                           const detector_t &detector, const trajectory_t &traj,
+                           const std::array<typename detector_t::scalar_type, 2>
+                               mask_tolerance = {0.f, 0.f},
+                           const typename detector_t::scalar_type p =
+                               1.f *
+                               unit<typename detector_t::scalar_type>::GeV) {
 
         using scalar_t = typename detector_t::scalar_type;
         using sf_desc_t = typename detector_t::surface_type;
@@ -81,7 +83,8 @@ struct brute_force_scan {
             sf.template visit_mask<intersection_kernel_t>(
                 intersections, traj, sf_desc, trf_store,
                 sf.is_portal() ? std::array<scalar_t, 2>{0.f, 0.f}
-                               : mask_tolerance);
+                               : std::array<scalar_t, 2>{mask_tolerance[0],
+                                                         mask_tolerance[1]});
 
             // Candidate is invalid if it lies in the opposite direction
             for (auto &sfi : intersections) {
@@ -129,13 +132,14 @@ namespace detector_scanner {
 
 template <template <typename> class scan_type, typename detector_t,
           typename trajectory_t, typename... Args>
-inline auto run(const detector_t &detector, const trajectory_t &traj,
+inline auto run(const typename detector_t::geometry_context gctx,
+                const detector_t &detector, const trajectory_t &traj,
                 Args &&... args) {
 
     using algebra_t = typename detector_t::algebra_type;
 
-    auto intersection_record =
-        scan_type<algebra_t>{}(detector, traj, std::forward<Args>(args)...);
+    auto intersection_record = scan_type<algebra_t>{}(
+        gctx, detector, traj, std::forward<Args>(args)...);
 
     using record_t = typename decltype(intersection_record)::value_type;
 

@@ -62,17 +62,16 @@ class material_scan : public test::fixture_base<> {
         /// @}
     };
 
-    template <typename config_t>
-    explicit material_scan(const detector_t &det,
-                           const typename detector_t::name_map &names,
-                           const config_t &cfg = {})
-        : m_det{det}, m_names{names} {
-        m_cfg.name(cfg.name());
-        m_cfg.track_generator() = cfg.track_generator();
-    }
+    explicit material_scan(
+        const detector_t &det, const typename detector_t::name_map &names,
+        const config &cfg = {},
+        const typename detector_t::geometry_context &gctx = {})
+        : m_cfg{cfg}, m_gctx{gctx}, m_det{det}, m_names{names} {}
 
     /// Run the ray scan
     void TestBody() override {
+
+        const typename detector_t::geometry_context gctx{};
 
         std::size_t n_tracks{0u};
         auto ray_generator = track_generator_t(m_cfg.track_generator());
@@ -93,7 +92,7 @@ class material_scan : public test::fixture_base<> {
 
             // Record all intersections and surfaces along the ray
             const auto intersection_record =
-                detector_scanner::run<ray_scan>(m_det, ray);
+                detector_scanner::run<ray_scan>(m_gctx, m_det, ray);
 
             if (intersection_record.empty()) {
                 std::cout << "ERROR: Intersection trace empty for ray "
@@ -123,8 +122,7 @@ class material_scan : public test::fixture_base<> {
                 const auto &p = record.intersection.local;
                 const auto [seg, t, mx0, ml0] =
                     sf.template visit_material<get_material_params>(
-                        point2_t{p[0], p[1]},
-                        record.intersection.cos_incidence_angle);
+                        point2_t{p[0], p[1]}, sf.cos_angle(gctx, ray.dir(), p));
 
                 if (mx0 > 0.f) {
                     mat_sX0 += seg / mx0;
@@ -170,6 +168,8 @@ class material_scan : public test::fixture_base<> {
 
             using material_t = typename mat_group_t::value_type;
 
+            constexpr auto inv{detail::invalid_value<scalar_t>()};
+
             // Access homogeneous surface material or material maps
             if constexpr ((detail::is_hom_material_v<material_t> &&
                            !std::is_same_v<material_t, material<scalar_t>>) ||
@@ -179,6 +179,13 @@ class material_scan : public test::fixture_base<> {
                 const auto mat =
                     detail::material_accessor::get(mat_group, index, loc);
 
+                // Empty material can occur in material maps, skip it
+                if (!mat) {
+                    // Set the pathlength and thickness to zero so that they
+                    // are not counted
+                    return std::tuple(scalar_t{0}, scalar_t{0}, inv, inv);
+                }
+
                 const scalar_t seg{mat.path_segment(cos_inc_angle, loc[0])};
                 const scalar_t t{mat.thickness()};
                 const scalar_t mat_X0{mat.get_material().X0()};
@@ -186,7 +193,6 @@ class material_scan : public test::fixture_base<> {
 
                 return std::tuple(seg, t, mat_X0, mat_L0);
             } else {
-                constexpr auto inv{detail::invalid_value<scalar_t>()};
                 return std::tuple(inv, inv, inv, inv);
             }
         }
@@ -194,6 +200,8 @@ class material_scan : public test::fixture_base<> {
 
     /// The configuration of this test
     config m_cfg;
+    /// The geometry context to scan
+    typename detector_t::geometry_context m_gctx{};
     /// The detector to be checked
     const detector_t &m_det;
     /// Volume names

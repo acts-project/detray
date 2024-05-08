@@ -48,6 +48,8 @@ GTEST_TEST(detray_simulation, detector_scanner) {
     using intersection_trace_t = typename detray::ray_scan<
         algebra_t>::template intersection_trace_type<detector_t>;
 
+    detector_t::geometry_context gctx{};
+
     std::vector<intersection_trace_t> expected;
 
     //  Iterate through uniformly distributed momentum directions with ray
@@ -56,7 +58,7 @@ GTEST_TEST(detray_simulation, detector_scanner) {
 
         // Record all intersections and objects along the ray
         const auto intersection_record =
-            detector_scanner::run<ray_scan>(toy_det, test_ray);
+            detector_scanner::run<ray_scan>(gctx, toy_det, test_ray);
 
         expected.push_back(intersection_record);
     }
@@ -70,7 +72,7 @@ GTEST_TEST(detray_simulation, detector_scanner) {
 
         // Record all intersections and objects along the ray
         const auto intersection_trace =
-            detector_scanner::run<helix_scan>(toy_det, test_helix);
+            detector_scanner::run<helix_scan>(gctx, toy_det, test_helix);
 
         // Should have encountered the same number of tracks (vulnerable to
         // floating point errors)
