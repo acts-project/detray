@@ -20,7 +20,7 @@
 #include <iostream>
 
 // Hash of the "correct" geometry
-constexpr std::size_t root_hash = 3244;
+constexpr std::size_t root_hash = 3458765454686814475ul;
 
 ///
 /// Work in progress (!)

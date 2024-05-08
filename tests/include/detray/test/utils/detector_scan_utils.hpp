@@ -7,6 +7,10 @@
 
 #pragma once
 
+// Project include(s)
+#include "detray/plugins/svgtools/illustrator.hpp"
+#include "detray/test/utils/svg_display.hpp"
+
 // System include(s)
 #include <algorithm>
 #include <cmath>
@@ -534,6 +538,118 @@ inline auto build_adjacency(const portal_trace_type &portal_trace,
     }
 
     return adj_matrix;
+}
+
+/// Run all checks on an intersection trace.
+///
+/// @param[in] intersection_trace the intersection records along the track
+/// @param[in] start_index the index of the intended start volume
+/// @param[out] adj_mat_scan adjacency matrix to be filled for the detector
+/// @param[out] obj_hashes objects in a volume that were already visisted
+///
+/// @return true if the checks were successfull
+template <typename detector_t, typename record_t>
+inline bool check_trace(const std::vector<record_t> &intersection_trace,
+                        const dindex start_index, dvector<dindex> &adj_mat_scan,
+                        std::unordered_set<dindex> &obj_hashes) {
+
+    using nav_link_t = typename detector_t::surface_type::navigation_link;
+    static constexpr auto leaving_world{detail::invalid_value<nav_link_t>()};
+
+    // Create a trace of the volume indices that were encountered
+    // and check that portal intersections are connected
+    auto [portal_trace, surface_trace, err_code] =
+        detector_scanner::trace_intersections<leaving_world>(intersection_trace,
+                                                             start_index);
+
+    // Is the succession of volumes consistent ?
+    err_code &=
+        detector_scanner::check_connectivity<leaving_world>(portal_trace);
+
+    if (!adj_mat_scan.empty()) {
+        // Build an adjacency matrix from this trace that can be checked
+        // against the geometry hash (see 'track_geometry_changes')
+        detector_scanner::build_adjacency<leaving_world>(
+            portal_trace, surface_trace, adj_mat_scan, obj_hashes);
+    }
+
+    return err_code;
+}
+
+/// Print the failed intersection trace as svg (dumped to files)
+///
+/// @param gctx current geometry context
+/// @param det the detector object
+/// @param vol_names the volume name map of the detector
+/// @param test_name the name of the test for which to print the error
+/// @param test_track trajectory that was used for the scan (ray or helix)
+/// @param intersection_trace the intersection records along the test track
+/// @param svg_style svgtools style for the detector display
+/// @param i_track index of the test track
+/// @param n_track total number of test tracks
+template <typename detector_t, typename trajectory_t, typename record_t>
+inline void display_error(
+    const typename detector_t::geometry_context gctx, const detector_t &det,
+    const typename detector_t::name_map vol_names, const std::string &test_name,
+    const trajectory_t &test_track,
+    const std::vector<record_t> &intersection_trace,
+    const detray::svgtools::styling::style &svg_style,
+    const std::size_t i_track, const std::size_t n_tracks,
+    const dvector<typename record_t::intersection_type> &intersections = {}) {
+
+    // Creating the svg generator for the detector.
+    detray::svgtools::illustrator il{det, vol_names, svg_style};
+    il.show_info(true);
+    il.hide_eta_lines(true);
+    il.hide_portals(false);
+    il.hide_passives(false);
+
+    std::string track_type{};
+    static constexpr auto is_ray{
+        std::is_same_v<trajectory_t,
+                       detray::detail::ray<typename detector_t::algebra_type>>};
+    if constexpr (is_ray) {
+        track_type = "ray";
+    } else {
+        track_type = "helix";
+    }
+
+    detail::svg_display(gctx, il, intersection_trace, test_track, track_type,
+                        test_name, intersections);
+
+    std::cout << "\nFailed on " << track_type << ": " << i_track << "/"
+              << n_tracks << "\n"
+              << test_track;
+}
+
+/// Print and adjacency list
+inline std::string print_adj(const dvector<dindex> &adjacency_matrix) {
+
+    std::size_t dim = static_cast<dindex>(math::sqrt(adjacency_matrix.size()));
+    std::stringstream out_stream{};
+
+    for (std::size_t i = 0u; i < dim - 1; ++i) {
+        out_stream << "[>>] Node with index " << i << std::endl;
+        out_stream << " -> edges: " << std::endl;
+        for (std::size_t j = 0u; j < dim; ++j) {
+            const auto degr = adjacency_matrix[dim * i + j];
+            if (degr == 0) {
+                continue;
+            }
+            std::string n_occur =
+                degr > 1 ? "\t\t\t\t(" + std::to_string(degr) + "x)" : "";
+
+            // Edge that leads out of the detector world
+            if (j == dim - 1 and degr != 0) {
+                out_stream << "    -> leaving world " + n_occur << std::endl;
+            } else {
+                out_stream << "    -> " << std::to_string(j) + "\t" + n_occur
+                           << std::endl;
+            }
+        }
+    }
+
+    return out_stream.str();
 }
 
 }  // namespace detray::detector_scanner

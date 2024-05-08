@@ -62,14 +62,11 @@ class material_scan : public test::fixture_base<> {
         /// @}
     };
 
-    template <typename config_t>
-    explicit material_scan(const detector_t &det,
-                           const typename detector_t::name_map &names,
-                           const config_t &cfg = {})
-        : m_det{det}, m_names{names} {
-        m_cfg.name(cfg.name());
-        m_cfg.track_generator() = cfg.track_generator();
-    }
+    explicit material_scan(
+        const detector_t &det, const typename detector_t::name_map &names,
+        const config &cfg = {},
+        const typename detector_t::geometry_context &gctx = {})
+        : m_cfg{cfg}, m_gctx{gctx}, m_det{det}, m_names{names} {}
 
     /// Run the ray scan
     void TestBody() override {
@@ -95,7 +92,7 @@ class material_scan : public test::fixture_base<> {
 
             // Record all intersections and surfaces along the ray
             const auto intersection_record =
-                detector_scanner::run<ray_scan>(m_det, ray);
+                detector_scanner::run<ray_scan>(m_gctx, m_det, ray);
 
             if (intersection_record.empty()) {
                 std::cout << "ERROR: Intersection trace empty for ray "
@@ -203,6 +200,8 @@ class material_scan : public test::fixture_base<> {
 
     /// The configuration of this test
     config m_cfg;
+    /// The geometry context to scan
+    typename detector_t::geometry_context m_gctx{};
     /// The detector to be checked
     const detector_t &m_det;
     /// Volume names

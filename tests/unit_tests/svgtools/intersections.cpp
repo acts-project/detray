@@ -47,9 +47,11 @@ GTEST_TEST(svgtools, intersections) {
     // Creating the detector and geomentry context.
     vecmem::host_memory_resource host_mr;
     const auto [det, names] = detray::build_toy_detector(host_mr);
-    using detector_t = decltype(det);
 
+    using detector_t = decltype(det);
     using algebra_t = typename detector_t::algebra_type;
+
+    detector_t::geometry_context gctx{};
 
     // Creating the illustrator.
     const detray::svgtools::illustrator il{det, names};
@@ -69,7 +71,8 @@ GTEST_TEST(svgtools, intersections) {
 
         // Record all intersections and objects along the ray
         const auto intersection_record =
-            detray::detector_scanner::run<detray::ray_scan>(det, test_ray);
+            detray::detector_scanner::run<detray::ray_scan>(gctx, det,
+                                                            test_ray);
 
         const std::string name =
             "test_svgtools_intersection_record" + std::to_string(index);

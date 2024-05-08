@@ -219,6 +219,7 @@ GTEST_TEST(detray_intersection, helix_direction_stability) {
 
     for (int i = 0; i < 100; i++) {
         const auto d = hlx.dir(scalar(i) * 10.f);
-        ASSERT_FLOAT_EQ(float(getter::theta(d)), float(getter::theta(mom)));
+        ASSERT_FLOAT_EQ(static_cast<float>(getter::theta(d)),
+                        static_cast<float>(getter::theta(mom)));
     }
 }

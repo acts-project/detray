@@ -11,10 +11,8 @@
 #include "detray/test/detail/register_checks.hpp"
 #include "detray/test/detail/whiteboard.hpp"
 #include "detray/test/detector_consistency.hpp"
-#include "detray/test/detector_helix_scan.hpp"
-#include "detray/test/detector_ray_scan.hpp"
-#include "detray/test/helix_navigation.hpp"
-#include "detray/test/straight_line_navigation.hpp"
+#include "detray/test/detector_scan.hpp"
+#include "detray/test/navigation_validation.hpp"
 
 // Vecmem include(s)
 #include <vecmem/memory/host_memory_resource.hpp>
@@ -70,6 +68,9 @@ int main(int argc, char **argv) {
     test::helix_scan<tel_detector_t>::config cfg_hel_scan{};
     cfg_hel_scan.name("telescope_detector_helix_scan");
     cfg_hel_scan.whiteboard(white_board);
+    // Let the Newton algorithm dynamically choose tol. based on approx. error
+    cfg_hel_scan.mask_tolerance({detray::detail::invalid_value<scalar_t>(),
+                                 detray::detail::invalid_value<scalar_t>()});
     cfg_hel_scan.track_generator().n_tracks(10000u);
     cfg_hel_scan.track_generator().p_tot(10.f * unit<scalar_t>::GeV);
     cfg_hel_scan.track_generator().origin({0.f, 0.f, -0.05f});
