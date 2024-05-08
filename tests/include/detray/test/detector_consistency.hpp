@@ -65,7 +65,7 @@ class consistency_check : public detray::test::fixture_base<> {
         // Build the graph
         volume_graph graph(m_det);
 
-        ASSERT_TRUE(detail::check_consistency(m_det, true))
+        ASSERT_TRUE(detail::check_consistency(m_det, true, m_names))
             << graph.to_string();
 
         if (m_cfg.write_graph()) {

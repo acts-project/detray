@@ -257,7 +257,8 @@ inline auto build_telescope_detector(
     auto det = det_builder.build(resource);
 
     if (cfg.do_check()) {
-        detray::detail::check_consistency(det);
+        const bool verbose_check{false};
+        detray::detail::check_consistency(det, verbose_check, name_map);
     }
 
     return std::make_pair(std::move(det), std::move(name_map));

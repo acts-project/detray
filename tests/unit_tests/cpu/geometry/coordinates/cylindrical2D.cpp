@@ -9,6 +9,7 @@
 #include "detray/geometry/coordinates/cylindrical2D.hpp"
 
 #include "detray/definitions/units.hpp"
+#include "detray/geometry/coordinates/concentric_cylindrical2D.hpp"
 #include "detray/test/types.hpp"
 
 // GTest include(s).
@@ -20,6 +21,7 @@
 using namespace detray;
 
 using point3 = test::point3;
+using point2 = test::point2;
 using vector3 = test::vector3;
 using transform3 = test::transform3;
 
@@ -58,6 +60,42 @@ GTEST_TEST(detray_coordinates, cylindrical2D) {
 
     // Normal vector
     const vector3 n = c2.normal(trf, local);
+    ASSERT_NEAR(n[0], constant<scalar>::inv_sqrt2, isclose);
+    ASSERT_NEAR(n[1], constant<scalar>::inv_sqrt2, isclose);
+    ASSERT_NEAR(n[2], 0.f, isclose);
+}
+
+// This test concentric cylindrical2D coordinate
+GTEST_TEST(detray_coordinates, concentric_cylindrical2D) {
+
+    const transform3 trf{};
+    // Global position on surface
+    const point3 global1 = {constant<scalar>::sqrt2, constant<scalar>::sqrt2,
+                            9.f};
+    const scalar r{2.f};
+
+    const concentric_cylindrical2D<test::algebra> c2;
+
+    // Global to local transformation
+    const point3 local3 = c2.global_to_local_3D(trf, global1, {});
+    const point2 local2 = c2.global_to_local(trf, global1, {});
+
+    // Check if the local position is correct
+    ASSERT_NEAR(local3[0], constant<scalar>::pi_4, isclose);
+    ASSERT_NEAR(local3[1], 9.f, isclose);
+    ASSERT_NEAR(local3[2], r, isclose);
+    ASSERT_NEAR(local2[0], constant<scalar>::pi_4, isclose);
+    ASSERT_NEAR(local2[1], 9.f, isclose);
+
+    // Local to global transformation
+    const point3 global2 = c2.local_to_global(trf, local3);
+    // Check if the same global position is obtained
+    ASSERT_NEAR(global1[0], global2[0], isclose);
+    ASSERT_NEAR(global1[1], global2[1], isclose);
+    ASSERT_NEAR(global1[2], global2[2], isclose);
+
+    // Normal vector
+    const vector3 n = c2.normal(trf, local3);
     ASSERT_NEAR(n[0], constant<scalar>::inv_sqrt2, isclose);
     ASSERT_NEAR(n[1], constant<scalar>::inv_sqrt2, isclose);
     ASSERT_NEAR(n[2], 0.f, isclose);

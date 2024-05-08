@@ -118,7 +118,7 @@ inline bool toy_detector_test(
     EXPECT_EQ(names.at(0u), "toy_detector");
 
     // Test general consistency
-    detail::check_consistency(toy_det, true);
+    detail::check_consistency(toy_det, true, names);
 
     geo_context_t ctx{};
     auto& volumes = toy_det.volumes();
