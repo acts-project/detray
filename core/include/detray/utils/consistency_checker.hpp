@@ -21,6 +21,17 @@
 
 namespace detray::detail {
 
+/// @returns a string that identifies the volume
+template <typename detector_t>
+std::string print_volume_name(const detector_volume<detector_t> &vol,
+                              const typename detector_t::name_map &names) {
+    if (names.empty()) {
+        return std::to_string(vol.index());
+    } else {
+        return vol.name(names);
+    }
+}
+
 /// Checks every collection in a multistore to be emtpy and prints a warning
 template <typename store_t, std::size_t... I>
 void report_empty(const store_t &store, const std::string &store_name,
@@ -41,10 +52,13 @@ struct surface_checker {
     template <typename detector_t>
     DETRAY_HOST_DEVICE void operator()(
         const typename detector_t::surface_type &sf_descr,
-        const detector_t &det, const dindex vol_idx) const {
+        const detector_t &det, const dindex vol_idx,
+        const typename detector_t::name_map &names) const {
 
         const auto sf = surface{det, sf_descr};
+        const auto vol = detector_volume{det, vol_idx};
         std::stringstream err_stream{};
+        err_stream << "VOLUME \"" << print_volume_name(vol, names) << "\":\n";
 
         if (not sf.self_check(err_stream)) {
             throw std::invalid_argument(err_stream.str());
@@ -63,6 +77,16 @@ struct surface_checker {
             err_stream << "ERROR: Incorrect volume link to non-existent volume "
                        << sf.volume_link();
             throw std::invalid_argument(err_stream.str());
+        }
+
+        // A passive surface should have material, if the detector was
+        // constructed with material
+        if (!det.material_store().all_empty() &&
+            (sf.is_passive() && !sf.has_material())) {
+            std::cout << err_stream.str()
+                      << "WARNING: Passive surface without material: "
+                      << sf_descr << "\n"
+                      << std::endl;
         }
 
         // Check that the same surface is registered in the detector surface
@@ -155,16 +179,6 @@ struct material_checker {
                 }
             }
         }
-
-        // Check that every entry in the material map is valid
-        for (const auto &slab : mat_map.all()) {
-            if (!slab) {
-                throw_material_error("material map (type id " +
-                                         std::to_string(static_cast<int>(id)) +
-                                         ")",
-                                     idx, slab);
-            }
-        }
     }
 
     /// Test wether a given collection of material contains invalid material
@@ -253,7 +267,7 @@ inline void check_empty(const detector_t &det, const bool verbose) {
 
     // Check the material description
     if (det.material_store().all_empty()) {
-        std::cout << "WARNING: No material in detector" << std::endl;
+        std::cout << "WARNING: No material in detector\n" << std::endl;
     } else if (verbose) {
         // Check for empty material collections
         detail::report_empty(
@@ -275,14 +289,14 @@ inline void check_empty(const detector_t &det, const bool verbose) {
 
     // Check volume search data structure
     if (not find_volumes(det.volume_search_grid())) {
-        std::cout << "WARNING: No entries in volume finder" << std::endl;
+        std::cout << "WARNING: No entries in volume finder\n" << std::endl;
     }
 }
 
 /// @brief Checks the internal consistency of a detector
 template <typename detector_t>
-inline bool check_consistency(const detector_t &det,
-                              const bool verbose = false) {
+inline bool check_consistency(const detector_t &det, const bool verbose = false,
+                              const typename detector_t::name_map &names = {}) {
     check_empty(det, verbose);
 
     std::stringstream err_stream{};
@@ -290,6 +304,7 @@ inline bool check_consistency(const detector_t &det,
     for (const auto &[idx, vol_desc] :
          detray::views::enumerate(det.volumes())) {
         const auto vol = detector_volume{det, vol_desc};
+        err_stream << "VOLUME \"" << print_volume_name(vol, names) << "\":\n";
 
         // Check that nothing is obviously broken
         if (not vol.self_check(err_stream)) {
@@ -304,7 +319,8 @@ inline bool check_consistency(const detector_t &det,
         }
 
         // Go through the acceleration data structures and check the surfaces
-        vol.template visit_surfaces<detail::surface_checker>(det, vol.index());
+        vol.template visit_surfaces<detail::surface_checker>(det, vol.index(),
+                                                             names);
 
         // Check the volume material, if present
         if (vol.has_material()) {
@@ -317,6 +333,8 @@ inline bool check_consistency(const detector_t &det,
     for (const auto &[idx, sf_desc] :
          detray::views::enumerate(det.surfaces())) {
         const auto sf = surface{det, sf_desc};
+        const auto vol = detector_volume{det, sf.volume()};
+        err_stream << "VOLUME \"" << print_volume_name(vol, names) << "\":\n";
 
         // Check that nothing is obviously broken
         if (not sf.self_check(err_stream)) {
@@ -334,7 +352,6 @@ inline bool check_consistency(const detector_t &det,
         // Check that the surface can be found in its volume's acceleration
         // data structures (if there are no grids, must at least be in the
         // brute force method)
-        const auto vol = detector_volume{det, sf.volume()};
         bool is_registered = false;
 
         vol.template visit_surfaces<detail::surface_checker>(

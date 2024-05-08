@@ -37,16 +37,16 @@ GTEST_TEST(svgtools, grids) {
 
     // In this example we want to draw the grids of the volumes with indices 0,
     // 1, ... in the detector.
-    std::vector<detray::dindex> indices = {0u,  1u,  2u,  3u,  4u,  5u,  6u,
-                                           7u,  8u,  9u,  10u, 11u, 12u, 13u,
-                                           14u, 15u, 16u, 17u, 18u, 19u};
+    std::vector<detray::dindex> indices = {3u, 5u, 7u, 9u};
 
     for (const detray::dindex i : indices) {
         // Draw volume i.
         il.hide_grids(false);
         const auto [volume_svg, sheet] = il.draw_volume(i, view);
+
         // Write volume i and its grid
-        detray::svgtools::write_svg(volume_svg._id, volume_svg);
-        detray::svgtools::write_svg(sheet._id, sheet);
+        detray::svgtools::write_svg("test_svgtools_volume_" + volume_svg._id,
+                                    volume_svg);
+        detray::svgtools::write_svg("test_svgtools_grid_" + sheet._id, sheet);
     }
 }

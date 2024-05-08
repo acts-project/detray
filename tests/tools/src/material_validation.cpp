@@ -32,6 +32,9 @@ int main(int argc, char **argv) {
     using detector_t = detray::detector<>;
     using scalar_t = detector_t::scalar_type;
 
+    // Filter out the google test flags
+    ::testing::InitGoogleTest(&argc, argv);
+
     // Options parsing
     po::options_description desc("\ndetray material validation options");
 

@@ -95,9 +95,8 @@ GTEST_TEST(detray_intersection, intersection_kernel_ray) {
     transform_store.emplace_back(static_context, vector3{0.f, 0.f, 50.f},
                                  vector3{1.f, 0.f, 0.f},
                                  vector3{0.f, 0.f, -1.f});
-    transform_store.emplace_back(static_context, vector3{0.f, 0.f, 100.f},
-                                 vector3{1.f, 0.f, 0.f},
-                                 vector3{0.f, 0.f, -1.f});
+    // Identity transform for concentric cylinder
+    transform_store.emplace_back(static_context, vector3{0.f, 0.f, 0.f});
 
     // The masks & their store
     mask_container_t mask_store(host_mr);
@@ -106,7 +105,7 @@ GTEST_TEST(detray_intersection, intersection_kernel_ray) {
     const trapezoid_t trap{0u, 10.f, 20.f, 30.f};
     const annulus_t annl{0u, 15.f, 55.f, 0.75f, 1.95f, 0.f, 2.f, -2.f};
     const cylinder_t cyl{0u, 5.f, -10.f, 10.f};
-    const cylinder_portal_t cyl_portal{0u, 4.f, -10.f, 10.f};
+    const cylinder_portal_t cyl_portal{0u, 1.f, 0.f, 1000.f};
 
     mask_store.template push_back<e_rectangle2>(rect, empty_context{});
     mask_store.template push_back<e_trapezoid2>(trap, empty_context{});
@@ -140,7 +139,7 @@ GTEST_TEST(detray_intersection, intersection_kernel_ray) {
     const point3 expected_annulus{0.03f, 0.03f, 30.f};
     const point3 expected_cylinder1{0.045f, 0.045f, 45.0f};
     const point3 expected_cylinder2{0.055f, 0.055f, 55.0f};
-    const point3 expected_cylinder_pt{0.096001f, 0.096001f, 96.001f};
+    const point3 expected_cylinder_pt{0.7071068f, 0.7071068f, 707.1068f};
 
     const std::vector<point3> expected_points = {
         expected_rectangle, expected_trapezoid, expected_annulus,

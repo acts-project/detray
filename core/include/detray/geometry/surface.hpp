@@ -139,8 +139,9 @@ class surface {
     DETRAY_HOST_DEVICE
     constexpr auto has_material() const -> bool {
         return m_desc.material().id() !=
-               static_cast<typename descr_t::material_link::id_type>(
-                   detector_t::materials::id::e_none);
+                   static_cast<typename descr_t::material_link::id_type>(
+                       detector_t::materials::id::e_none) &&
+               !m_desc.material().is_invalid();
     }
 
     /// @returns the mask volume link
@@ -204,7 +205,7 @@ class surface {
                                                 const vector3_type &dir,
                                                 const point_t &p) const
         -> scalar_type {
-        return vector::dot(dir, normal(ctx, p));
+        return math::abs(vector::dot(dir, normal(ctx, p)));
     }
 
     /// @returns the material parameters at the local position @param loc_p
