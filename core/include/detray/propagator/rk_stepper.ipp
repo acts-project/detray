@@ -753,7 +753,6 @@ DETRAY_HOST_DEVICE bool detray::rk_stepper<
                           static_cast<scalar_type>(1e-20));
     }
 
-    assert(stepping._initialized == false);
     // If the stepper state is still in the initialized state, abort.
     if (stepping._initialized == true) {
         return navigation.abort();
