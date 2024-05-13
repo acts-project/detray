@@ -79,16 +79,23 @@ class detector_scan : public test::fixture_base<> {
         // Fill detector scan data to white board
         const std::size_t n_helices = fill_scan_data();
 
-        const auto &detector_scan_traces =
+        auto &detector_scan_traces =
             m_cfg.whiteboard()->template get<std::vector<intersection_trace_t>>(
                 m_cfg.name());
+
+        std::ios_base::openmode io_mode = std::ios::trunc | std::ios::out;
+        detray::io::file_handle debug_file{"./detector_scan.txt", io_mode};
 
         std::cout << "\nINFO: Checking trace data...\n" << std::endl;
 
         // Iterate through the scan data and perfrom checks
         std::size_t n_tracks{0u};
-        for (const auto &intersection_trace : detector_scan_traces) {
+        for (int i = static_cast<int>(detector_scan_traces.size()) - 1; i >= 0;
+             --i) {
 
+            const auto j{static_cast<std::size_t>(i)};
+
+            const auto &intersection_trace = detector_scan_traces[j];
             assert((intersection_trace.size() > 0) &&
                    "Invalid intersection trace");
 
@@ -108,9 +115,19 @@ class detector_scan : public test::fixture_base<> {
                     intersection_trace_t{});
             }
 
-            ASSERT_TRUE(success);
+            EXPECT_TRUE(success);
 
-            ++n_tracks;
+            // Remove faulty trace for the following steps
+            if (!success) {
+                *debug_file
+                    << detector_scanner::print_trace(intersection_trace, j);
+
+                std::cout << "WARNING: Skipped faulty trace no. " << j
+                          << std::endl;
+                detector_scan_traces.erase(detector_scan_traces.begin() + i);
+            } else {
+                ++n_tracks;
+            }
         }
         std::cout << "------------------------------------\n"
                   << "Tested " << n_tracks << " tracks: OK\n"

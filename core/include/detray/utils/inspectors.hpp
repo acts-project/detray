@@ -175,9 +175,9 @@ struct print_inspector {
         debug_stream << msg << std::endl;
 
         debug_stream << "Volume" << tabs << state.volume() << std::endl;
-        debug_stream << "Track pos: " << track_pos[0] << ", " << track_pos[1]
-                     << ", " << track_pos[2] << ", dir: " << track_dir[0]
-                     << ", " << track_dir[1] << ", " << track_dir[2]
+        debug_stream << "Track pos: [r:" << getter::perp(track_pos)
+                     << ", z:" << track_pos[2] << "], dir: [" << track_dir[0]
+                     << ", " << track_dir[1] << ", " << track_dir[2] << "]"
                      << std::endl;
         debug_stream << "No. reachable\t\t\t" << state.n_candidates()
                      << std::endl;

@@ -79,4 +79,13 @@ struct neighborhood_getter {
     }
 };
 
+/// Query the maximal number of candidates from the acceleration
+struct n_candidates_getter {
+    template <typename accel_group_t, typename accel_index_t>
+    DETRAY_HOST_DEVICE inline auto operator()(const accel_group_t &group,
+                                              const accel_index_t index) const {
+        return group[index].n_max_candidates();
+    }
+};
+
 }  // namespace detray::detail

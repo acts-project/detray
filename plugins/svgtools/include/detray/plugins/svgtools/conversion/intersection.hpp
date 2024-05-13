@@ -30,9 +30,15 @@ inline auto intersection(const detector_t& detector,
     p_intersection_t p_ir;
 
     for (const auto& intr : intersections) {
+
         const detray::surface<detector_t> sf{detector, intr.sf_desc};
+        if (sf.barcode().is_invalid()) {
+            continue;
+        }
+
         const auto position = sf.local_to_global(gctx, intr.local, dir);
         const auto p_lm = svgtools::conversion::landmark(position, style);
+
         p_ir._landmarks.push_back(p_lm);
     }
 

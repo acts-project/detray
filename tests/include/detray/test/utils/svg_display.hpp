@@ -90,7 +90,7 @@ auto draw_intersection_and_traj_svg(
 
     // Draw the truth intersections
     auto svg_traj = il.draw_intersections("truth_trace", truth_intersections,
-                                          traj.dir(), view, gctx);
+                                          traj.dir(0.f), view, gctx);
 
     // Draw an approximation of the trajectory with the recorded intersections
     if (not recorded_intersections.empty()) {

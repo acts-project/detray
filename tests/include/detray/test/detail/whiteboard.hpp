@@ -55,6 +55,10 @@ class whiteboard {
     template <typename T>
     const T& get(const std::string& name) const;
 
+    /// Get access to a stored object - non-const
+    template <typename T>
+    T& get(const std::string& name);
+
     private:
     /// Backend storage
     std::unordered_map<std::string, std::any> m_store;
@@ -80,6 +84,17 @@ inline const T& detray::test::whiteboard::get(const std::string& name) const
     }
     // Try to retrieve the value as the requested type
     return std::any_cast<const T&>(it->second);
+}
+
+template <typename T>
+inline T& detray::test::whiteboard::get(const std::string& name) noexcept(
+    false) {
+    auto it = m_store.find(name);
+    if (it == m_store.end()) {
+        throw std::out_of_range("Object '" + name + "' does not exists");
+    }
+    // Try to retrieve the value as the requested type
+    return std::any_cast<T&>(it->second);
 }
 
 inline bool detray::test::whiteboard::exists(const std::string& name) const {

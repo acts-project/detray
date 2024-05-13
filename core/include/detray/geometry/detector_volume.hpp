@@ -173,12 +173,11 @@ class detector_volume {
     /// @returns the maximum number of surface candidates during a neighborhood
     /// lookup
     // TODO: Remove
-    template <int I = static_cast<int>(detector_t::accel::n_types) - 1>
+    template <int I = static_cast<int>(descr_t::object_id::e_size) - 1>
     DETRAY_HOST_DEVICE constexpr auto n_max_candidates(
         unsigned int n = 0u) const -> unsigned int {
+
         // Get the index of the surface collection with type index 'I'
-        constexpr auto sf_col_id{
-            static_cast<typename detector_t::accel::id>(I)};
         const auto &link{m_desc.template accel_link<
             static_cast<typename descr_t::object_id>(I)>()};
 
@@ -187,8 +186,7 @@ class detector_volume {
         if (not link.is_invalid()) {
             const unsigned int n_max{
                 m_detector.accelerator_store()
-                    .template get<sf_col_id>()[detail::get<1>(link)]
-                    .n_max_candidates()};
+                    .template visit<detail::n_candidates_getter>(link)};
             // @todo: Remove when local navigation becomes available !!!!
             n += n_max > 20u ? 20u : n_max;
         }

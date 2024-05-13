@@ -93,7 +93,7 @@ int main(int argc, char** argv) {
     // General options
     if (vm.count("write_volume_graph")) {
         con_chk_cfg.write_graph(true);
-        throw std::invalid_argument("Writing of voume graph not implemented");
+        throw std::invalid_argument("Writing of volume graph not implemented");
     }
     if (vm.count("write_scan_data")) {
         ray_scan_cfg.write_intersections(true);
@@ -241,11 +241,6 @@ int main(int argc, char** argv) {
     detray::detail::register_checks<detray::test::ray_scan>(det, names,
                                                             ray_scan_cfg);
 
-    // Navigation link consistency, discovered by helix intersection
-    hel_scan_cfg.name(det_name + "_helix_scan");
-    detray::detail::register_checks<detray::test::helix_scan>(det, names,
-                                                              hel_scan_cfg);
-
     // Comparision of straight line navigation with ray scan
     str_nav_cfg.name(det_name + "_straight_line_navigation");
     // Ensure that the same mask tolerance is used
@@ -254,6 +249,11 @@ int main(int argc, char** argv) {
     str_nav_cfg.propagation().navigation.max_mask_tolerance = mask_tolerance[1];
     detray::detail::register_checks<detray::test::straight_line_navigation>(
         det, names, str_nav_cfg);
+
+    // Navigation link consistency, discovered by helix intersection
+    hel_scan_cfg.name(det_name + "_helix_scan");
+    detray::detail::register_checks<detray::test::helix_scan>(det, names,
+                                                              hel_scan_cfg);
 
     // Comparision of navigation in a constant B-field with helix
     hel_nav_cfg.name(det_name + "_helix_navigation");
