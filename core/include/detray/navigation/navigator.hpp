@@ -696,7 +696,8 @@ class navigator {
 
         // Check whether the track reached the current candidate. Might be a
         // portal, in which case the navigation needs to be re-initialized
-        if (navigation.is_on_object(*navigation.next(), cfg)) {
+        if (!navigation.is_exhausted() &&
+            navigation.is_on_object(*navigation.next(), cfg)) {
             // Set the next object that we want to reach (this function is only
             // called once the cache has been updated to a full trust state).
             // Might lead to exhausted cache.
