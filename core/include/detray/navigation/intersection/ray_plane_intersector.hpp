@@ -86,9 +86,10 @@ struct ray_intersector_impl<cartesian2D<algebra_t>, algebra_t> {
                 is.local = mask.to_local_frame(trf, p3, ray.dir());
                 // Tolerance: per mille of the distance
                 is.status = mask.is_inside(
-                    is.local, math::max(mask_tolerance[0],
-                                        math::min(mask_tolerance[1],
-                                                  1e-3f * math::abs(is.path))));
+                    is.local,
+                    math::max(mask_tolerance[0],
+                              math::min(mask_tolerance[1],
+                                        1e-3f * math::fabs(is.path))));
 
                 // prepare some additional information in case the intersection
                 // is valid
@@ -101,7 +102,7 @@ struct ray_intersector_impl<cartesian2D<algebra_t>, algebra_t> {
                     is.volume_link = mask.volume_link();
 
                     // Get incidene angle
-                    is.cos_incidence_angle = math::abs(denom);
+                    is.cos_incidence_angle = math::fabs(denom);
                 }
             }
         } else {

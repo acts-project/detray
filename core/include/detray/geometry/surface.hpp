@@ -10,6 +10,7 @@
 
 // Project include(s)
 #include "detray/definitions/detail/indexing.hpp"
+#include "detray/definitions/detail/math.hpp"
 #include "detray/definitions/detail/qualifiers.hpp"
 #include "detray/definitions/geometry.hpp"
 #include "detray/geometry/barcode.hpp"
@@ -205,7 +206,7 @@ class surface {
                                                 const vector3_type &dir,
                                                 const point_t &p) const
         -> scalar_type {
-        return math::abs(vector::dot(dir, normal(ctx, p)));
+        return math::fabs(vector::dot(dir, normal(ctx, p)));
     }
 
     /// @returns the material parameters at the local position @param loc_p

@@ -66,11 +66,11 @@ class trapezoid2D {
         const scalar_t tol = std::numeric_limits<scalar_t>::epsilon()) const {
         const scalar_t rel_y{(bounds[e_half_length_2] + loc_p[1]) *
                              bounds[e_divisor]};
-        return (math::abs(loc_p[0]) <= bounds[e_half_length_0] +
-                                           rel_y * (bounds[e_half_length_1] -
-                                                    bounds[e_half_length_0]) +
-                                           tol and
-                math::abs(loc_p[1]) <= bounds[e_half_length_2] + tol);
+        return (math::fabs(loc_p[0]) <= bounds[e_half_length_0] +
+                                            rel_y * (bounds[e_half_length_1] -
+                                                     bounds[e_half_length_0]) +
+                                            tol and
+                math::fabs(loc_p[1]) <= bounds[e_half_length_2] + tol);
     }
 
     /// @brief Measure of the shape: Area
@@ -195,7 +195,7 @@ class trapezoid2D {
             return false;
         }
         const auto div{1.f / (2.f * bounds[e_half_length_2])};
-        if (math::abs(bounds[e_divisor] - div) > tol) {
+        if (math::fabs(bounds[e_divisor] - div) > tol) {
             os << "ERROR: Divisor incorrect. Should be: " << div << std::endl;
             return false;
         }

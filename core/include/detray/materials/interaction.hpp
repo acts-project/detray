@@ -1,6 +1,6 @@
 /** Detray library, part of the ACTS project (R&D line)
  *
- * (c) 2022-2023 CERN for the benefit of the ACTS project
+ * (c) 2022-2024 CERN for the benefit of the ACTS project
  *
  * Mozilla Public License Version 2.0
  */
@@ -173,7 +173,7 @@ struct interaction {
         const scalar_type qOverP, const scalar_type q) const {
 
         // 1/p = q/(pq) = (q/p)/q
-        const scalar_type momentumInv{math::abs(qOverP / q)};
+        const scalar_type momentumInv{math::fabs(qOverP / q)};
         // q²/beta²; a smart compiler should be able to remove the unused
         // computations
         const relativistic_quantities rq(m, qOverP, q);

@@ -1,6 +1,6 @@
 /** Detray library, part of the ACTS project (R&D line)
  *
- * (c) 2023 CERN for the benefit of the ACTS project
+ * (c) 2023-2024 CERN for the benefit of the ACTS project
  *
  * Mozilla Public License Version 2.0
  */
@@ -11,6 +11,7 @@
 #include "detray/builders/surface_factory_interface.hpp"
 #include "detray/core/detail/data_context.hpp"
 #include "detray/definitions/detail/indexing.hpp"
+#include "detray/definitions/detail/math.hpp"
 #include "detray/definitions/detail/qualifiers.hpp"
 #include "detray/definitions/geometry.hpp"
 #include "detray/geometry/shapes/cuboid3D.hpp"
@@ -138,9 +139,9 @@ class cuboid_portal_generator final
 
         // Get the half lengths for the rectangle sides and translation
         const point3_t h_lengths = 0.5f * (box_max - box_min);
-        const scalar_type h_x{math::abs(h_lengths[0])};
-        const scalar_type h_y{math::abs(h_lengths[1])};
-        const scalar_type h_z{math::abs(h_lengths[2])};
+        const scalar_type h_x{math::fabs(h_lengths[0])};
+        const scalar_type h_y{math::fabs(h_lengths[1])};
+        const scalar_type h_z{math::fabs(h_lengths[2])};
 
         // Volume links for the portal descriptors and the masks
         const dindex volume_idx{volume.index()};

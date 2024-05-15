@@ -1,6 +1,6 @@
 /** Detray library, part of the ACTS project (R&D line)
  *
- * (c) 2022-2023 CERN for the benefit of the ACTS project
+ * (c) 2022-2024 CERN for the benefit of the ACTS project
  *
  * Mozilla Public License Version 2.0
  */
@@ -71,7 +71,7 @@ struct material_rod {
     DETRAY_HOST_DEVICE constexpr scalar_type path_segment(
         const scalar_type cos_inc_angle, const scalar_type approach) const {
         // Assume that is.local[0] is radial distance of line intersector
-        if (math::abs(approach) > m_radius) {
+        if (math::fabs(approach) > m_radius) {
             return 0.f;
         }
 

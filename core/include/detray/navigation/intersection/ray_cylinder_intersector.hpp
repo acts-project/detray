@@ -1,6 +1,6 @@
 /** Detray library, part of the ACTS project (R&D line)
  *
- * (c) 2022-2023 CERN for the benefit of the ACTS project
+ * (c) 2022-2024 CERN for the benefit of the ACTS project
  *
  * Mozilla Public License Version 2.0
  */
@@ -191,7 +191,7 @@ struct ray_intersector_impl<cylindrical2D<algebra_t>, algebra_t> {
             is.status = mask.is_inside(
                 is.local, math::max(mask_tolerance[0],
                                     math::min(mask_tolerance[1],
-                                              1e-3f * math::abs(is.path))));
+                                              1e-3f * math::fabs(is.path))));
 
             // prepare some additional information in case the intersection
             // is valid

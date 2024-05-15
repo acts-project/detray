@@ -109,7 +109,7 @@ struct ray_intersector_impl<line2D<algebra_t>, algebra_t> {
             is.status = mask.is_inside(
                 is.local, math::max(mask_tolerance[0],
                                     math::min(mask_tolerance[1],
-                                              1e-3f * math::abs(is.path))));
+                                              1e-3f * math::fabs(is.path))));
 
             // prepare some additional information in case the intersection
             // is valid
@@ -122,7 +122,7 @@ struct ray_intersector_impl<line2D<algebra_t>, algebra_t> {
                 is.volume_link = mask.volume_link();
 
                 // Get incidence angle
-                is.cos_incidence_angle = math::abs(zd);
+                is.cos_incidence_angle = math::fabs(zd);
             }
         }
         return is;
