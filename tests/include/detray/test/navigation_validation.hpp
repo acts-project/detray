@@ -82,11 +82,14 @@ class navigation_validation : public test::fixture_base<> {
             b_field = bfield::create_const_field(m_cfg.B_vector());
         }
 
-        // Iterate through uniformly distributed momentum directions
-        const std::string truth_data_name{k_use_rays
-                                              ? m_names.at(0) + "_ray_scan"
-                                              : m_names.at(0) + "_helix_scan"};
-        std::size_t n_tracks{0u};
+        // Use ray or helix
+        const std::string det_name{m_det.name(m_names)};
+        const std::string truth_data_name{
+            k_use_rays ? det_name + "_ray_scan" : det_name + "_helix_scan"};
+
+        /// Collect some statistics
+        std::size_t n_tracks{0u}, n_miss{0u}, n_fatal{0u};
+
         if (!m_cfg.whiteboard()->exists(truth_data_name)) {
             throw std::runtime_error(
                 "White board is empty! Please run detector scan first");
@@ -97,12 +100,9 @@ class navigation_validation : public test::fixture_base<> {
 
         std::size_t n_test_tracks{
             std::min(m_cfg.n_tracks(), intersection_traces.size())};
-        std::cout << "\nINFO: Running navigation validation on: "
-                  << m_names.at(0) << "...\n"
+        std::cout << "\nINFO: Running navigation validation on: " << det_name
+                  << "...\n"
                   << std::endl;
-
-        /// Error statistic
-        std::size_t n_miss{0u}, n_fatal{0u};
 
         std::ios_base::openmode io_mode = std::ios::trunc | std::ios::out;
         detray::io::file_handle debug_file{"./navigation_validation.txt",
@@ -117,23 +117,24 @@ class navigation_validation : public test::fixture_base<> {
             // Follow the test trajectory with a track and check, if we find
             // the same volumes and distances along the way
             const auto &start = intersection_trace.front();
-            free_track_parameters_t trck(start.track_param);
-            trajectory_type test_traj = get_parametrized_trajectory(trck);
+            const auto &track = start.track_param;
+            trajectory_type test_traj = get_parametrized_trajectory(track);
 
             // Run the propagation
             auto [success, obj_tracer, nav_printer, step_printer] =
                 navigation_validator::record_propagation<stepper_t>(
-                    m_gctx, m_det, m_cfg.propagation(), trck, b_field);
+                    m_gctx, m_det, m_cfg.propagation(), track, b_field);
 
             if (success) {
                 // The navigator does not record the initial track position,
                 // add it as a dummy record
-                obj_tracer.object_trace.insert(obj_tracer.object_trace.begin(),
-                                               start.intersection);
+                obj_tracer.object_trace.insert(
+                    obj_tracer.object_trace.begin(),
+                    {track.pos(), track.dir(), start.intersection});
 
                 success &= navigation_validator::compare_traces(
-                    intersection_trace, obj_tracer, test_traj, n_tracks,
-                    n_test_tracks);
+                    intersection_trace, obj_tracer.object_trace, test_traj,
+                    n_tracks, n_test_tracks);
 
                 if (not success) {
                     // Count mismatches

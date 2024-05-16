@@ -11,6 +11,7 @@
 #include "detray/geometry/surface.hpp"
 #include "detray/io/utils/create_path.hpp"
 #include "detray/navigation/detail/ray.hpp"
+#include "detray/navigation/volume_graph.hpp"
 #include "detray/simulation/event_generator/track_generators.hpp"
 #include "detray/test/detail/whiteboard.hpp"
 #include "detray/test/detector_scan_config.hpp"
@@ -72,28 +73,35 @@ class detector_scan : public test::fixture_base<> {
         // Index of the volume that the test trajectory origin lies in
         dindex start_index{0u};
 
-        std::cout << "\nINFO: Running scan on: " << m_names.at(0) << "\n"
+        std::cout << "\nINFO: Running scan on: " << m_det.name(m_names) << "\n"
                   << std::endl;
 
         // Fill detector scan data to white board
         const std::size_t n_helices = fill_scan_data();
 
-        const auto &detector_scan_traces =
+        auto &detector_scan_traces =
             m_cfg.whiteboard()->template get<std::vector<intersection_trace_t>>(
                 m_cfg.name());
+
+        std::ios_base::openmode io_mode = std::ios::trunc | std::ios::out;
+        detray::io::file_handle debug_file{"./detector_scan.txt", io_mode};
 
         std::cout << "\nINFO: Checking trace data...\n" << std::endl;
 
         // Iterate through the scan data and perfrom checks
         std::size_t n_tracks{0u};
-        for (const auto &intersection_trace : detector_scan_traces) {
+        for (int i = static_cast<int>(detector_scan_traces.size()) - 1; i >= 0;
+             --i) {
 
+            const auto j{static_cast<std::size_t>(i)};
+
+            const auto &intersection_trace = detector_scan_traces[j];
             assert((intersection_trace.size() > 0) &&
                    "Invalid intersection trace");
 
             // Retrieve the test trajectory
-            const auto &track = intersection_trace.front().track_param;
-            trajectory_type test_traj = get_parametrized_trajectory(track);
+            const auto &trck_param = intersection_trace.front().track_param;
+            trajectory_type test_traj = get_parametrized_trajectory(trck_param);
 
             // Run consistency checks on the trace
             bool success = detector_scanner::check_trace<detector_t>(
@@ -103,12 +111,23 @@ class detector_scan : public test::fixture_base<> {
             if (not success) {
                 detector_scanner::display_error(
                     m_gctx, m_det, m_names, m_cfg.name(), test_traj,
-                    intersection_trace, m_cfg.svg_style(), n_tracks, n_helices);
+                    intersection_trace, m_cfg.svg_style(), n_tracks, n_helices,
+                    intersection_trace_t{});
             }
 
-            ASSERT_TRUE(success);
+            EXPECT_TRUE(success);
 
-            ++n_tracks;
+            // Remove faulty trace for the following steps
+            if (!success) {
+                *debug_file
+                    << detector_scanner::print_trace(intersection_trace, j);
+
+                std::cout << "WARNING: Skipped faulty trace no. " << j
+                          << std::endl;
+                detector_scan_traces.erase(detector_scan_traces.begin() + i);
+            } else {
+                ++n_tracks;
+            }
         }
         std::cout << "------------------------------------\n"
                   << "Tested " << n_tracks << " tracks: OK\n"

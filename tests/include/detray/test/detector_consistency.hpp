@@ -61,8 +61,8 @@ class consistency_check : public detray::test::fixture_base<> {
 
     /// Run the consistency check
     void TestBody() override {
-        std::cout << "INFO: Running consistency check on: " << m_names.at(0)
-                  << std::endl
+        std::cout << "INFO: Running consistency check on: "
+                  << m_det.name(m_names) << std::endl
                   << std::endl;
 
         // Build the graph

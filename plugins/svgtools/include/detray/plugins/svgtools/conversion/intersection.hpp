@@ -19,7 +19,7 @@ namespace detray::svgtools::conversion {
 /// @returns The proto intersection of a detray intersection.
 template <typename detector_t, typename intersection_t>
 inline auto intersection(const detector_t& detector,
-                         const dvector<intersection_t>& intersections,
+                         const std::vector<intersection_t>& intersections,
                          const typename detector_t::vector3_type& dir = {},
                          const typename detector_t::geometry_context& gctx = {},
                          const styling::landmark_style& style =
@@ -30,9 +30,15 @@ inline auto intersection(const detector_t& detector,
     p_intersection_t p_ir;
 
     for (const auto& intr : intersections) {
-        const detray::surface surface{detector, intr.sf_desc};
-        const auto position = surface.local_to_global(gctx, intr.local, dir);
+
+        const detray::surface<detector_t> sf{detector, intr.sf_desc};
+        if (sf.barcode().is_invalid()) {
+            continue;
+        }
+
+        const auto position = sf.local_to_global(gctx, intr.local, dir);
         const auto p_lm = svgtools::conversion::landmark(position, style);
+
         p_ir._landmarks.push_back(p_lm);
     }
 

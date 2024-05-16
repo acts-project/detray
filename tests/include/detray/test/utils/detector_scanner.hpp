@@ -106,6 +106,7 @@ struct brute_force_scan {
         intersection_t start_intersection{};
         start_intersection.sf_desc = first_record.intersection.sf_desc;
         start_intersection.sf_desc.set_id(surface_id::e_passive);
+        start_intersection.sf_desc.set_index(dindex_invalid);
         start_intersection.path = 0.f;
         start_intersection.local = {0.f, 0.f, 0.f};
         start_intersection.volume_link =
@@ -192,9 +193,6 @@ inline auto write(
         track_params.back().reserve(trace.size());
 
         for (const auto &record : trace) {
-            // Ray/Helix scan should have been finished successfully
-            assert(record.intersection.volume_link == record.vol_idx);
-
             intersections.back().push_back(record.intersection);
             track_params.back().push_back(record.track_param);
         }

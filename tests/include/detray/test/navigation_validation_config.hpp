@@ -31,6 +31,9 @@ struct navigation_validation_config
     std::string m_name{"navigation_validation"};
     /// Access to truth data
     std::shared_ptr<test::whiteboard> m_white_board;
+    /// Name of the input file, containing the complete ray scan traces
+    std::string m_intersection_file{""};
+    std::string m_track_param_file{""};
     /// The maximal number of test tracks to run
     std::size_t m_n_tracks{detray::detail::invalid_value<std::size_t>()};
     /// B-field vector for helix
@@ -47,6 +50,8 @@ struct navigation_validation_config
     std::shared_ptr<test::whiteboard> whiteboard() const {
         return m_white_board;
     }
+    const std::string &intersection_file() const { return m_intersection_file; }
+    const std::string &track_param_file() const { return m_track_param_file; }
     std::size_t n_tracks() const { return m_n_tracks; }
     const vector3_type &B_vector() { return m_B; }
     const auto &svg_style() const { return m_style; }
@@ -65,6 +70,14 @@ struct navigation_validation_config
                 "Helix navigation: No valid whiteboard instance");
         }
         m_white_board = std::move(w_board);
+        return *this;
+    }
+    navigation_validation_config &intersection_file(const std::string f) {
+        m_intersection_file = std::move(f);
+        return *this;
+    }
+    navigation_validation_config &track_param_file(const std::string f) {
+        m_track_param_file = std::move(f);
         return *this;
     }
     navigation_validation_config &n_tracks(std::size_t n) {

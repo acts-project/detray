@@ -91,6 +91,8 @@ class illustrator {
     void search_window(std::array<dindex, 2> window) {
         _search_window = window;
     }
+    /// @returns the detector name
+    const std::string& det_name() const { return _detector.name(_name_map); }
 
     /// @brief Converts a single detray surface of the detector to an svg.
     ///
@@ -104,7 +106,7 @@ class illustrator {
         const dindex index, const view_t& view,
         const typename detector_t::geometry_context& gctx = {}) const {
 
-        const auto surface = detray::surface{_detector, index};
+        const auto surface = detray::surface<detector_t>{_detector, index};
 
         actsvg::svg::object ret, material;
         const auto& style = _style._detector_style._volume_style;
@@ -166,11 +168,11 @@ class illustrator {
         const range_t& indices, const view_t& view,
         const typename detector_t::geometry_context& gctx = {}) const {
 
-        auto ret = svgtools::utils::group(_name_map.at(0) + "_surfaces_" +
-                                          svg_id(view));
+        auto ret =
+            svgtools::utils::group(det_name() + "_surfaces_" + svg_id(view));
 
-        auto material = svgtools::utils::group(_name_map.at(0) + "_material_" +
-                                               svg_id(view));
+        auto material =
+            svgtools::utils::group(det_name() + "_material_" + svg_id(view));
 
         for (const auto [i, index] : detray::views::enumerate(indices)) {
             auto [sf_svg, mat_svg] = draw_surface(index, view, gctx);
@@ -202,7 +204,7 @@ class illustrator {
     inline auto draw_surface_material(const dindex index,
                                       const view_t& view) const {
 
-        const auto surface = detray::surface{_detector, index};
+        const auto surface = detray::surface<detector_t>{_detector, index};
 
         if (_hide_material) {
             return actsvg::svg::object{};
@@ -234,7 +236,7 @@ class illustrator {
         auto p_material = svgtools::conversion::surface_material(
             _detector, surface, view, *mat_style);
 
-        std::string id = _name_map.at(0) + "_material_map_" +
+        std::string id = det_name() + "_material_map_" +
                          std::to_string(surface.index()) + svg_id(view);
 
         return actsvg::display::surface_material(std::move(id), p_material);
@@ -251,8 +253,8 @@ class illustrator {
     inline auto draw_surface_materials(const range_t& indices,
                                        const view_t& view) const {
 
-        auto ret = svgtools::utils::group(_name_map.at(0) +
-                                          "_surface_materials_" + svg_id(view));
+        auto ret = svgtools::utils::group(det_name() + "_surface_materials_" +
+                                          svg_id(view));
 
         for (const auto [i, index] : detray::views::enumerate(indices)) {
             auto mat_svg = draw_surface_material(index, view);
@@ -312,14 +314,14 @@ class illustrator {
             // Display the surfaces connected to the grid: in zphi-view for
             // barrel, and xy-view for endcaps
         } else if (gr_type == conversion::detail::grid_type::e_barrel) {
-            p_volume._name = _name_map.at(0) + "_" + p_volume._name;
+            p_volume._name = det_name() + "_" + p_volume._name;
             sheet = actsvg::display::barrel_sheet(
                 p_volume._name + "_sheet_zphi", p_volume, {800, 800},
                 display_mode);
         }
         if constexpr (std::is_same_v<view_t, actsvg::views::x_y>) {
             if (gr_type == conversion::detail::grid_type::e_endcap) {
-                p_volume._name = _name_map.at(0) + "_" + p_volume._name;
+                p_volume._name = det_name() + "_" + p_volume._name;
                 sheet = actsvg::display::endcap_sheet(
                     p_volume._name + "_sheet_xy", p_volume, {800, 800},
                     display_mode);
@@ -343,8 +345,8 @@ class illustrator {
         const typename detector_t::geometry_context& gctx = {}) const {
 
         // Overlay the volume svgs
-        auto vol_group = svgtools::utils::group(_name_map.at(0) + "_volumes_" +
-                                                svg_id(view));
+        auto vol_group =
+            svgtools::utils::group(det_name() + "_volumes_" + svg_id(view));
         // The surface[grid] sheets per volume
         std::vector<actsvg::svg::object> sheets;
 
@@ -377,7 +379,7 @@ class illustrator {
             gctx, _detector, view, _style._detector_style, _hide_portals,
             _hide_passives, _hide_grids);
 
-        std::string id = _name_map.at(0) + "_" + svg_id(view);
+        std::string id = det_name() + "_" + svg_id(view);
 
         auto det_svg =
             actsvg::display::detector(std::move(id), p_detector, view);
@@ -419,32 +421,6 @@ class illustrator {
                                                  p_landmark, view);
     }
 
-    /// @brief Converts an intersection record to an svg.
-    ///
-    /// @param prefix the id of the svg object.
-    /// @param intersection_record the intersection record.
-    /// @param dir the direction of the trajectory.
-    /// @param view the display view.
-    /// @param gctx the geometry context.
-    ///
-    /// @return @c actsvg::svg::object of the intersectio record.
-    template <typename view_t, typename record_t>
-    inline auto draw_intersections(
-        const std::string& prefix,
-        const std::vector<record_t>& intersection_record,
-        const typename detector_t::vector3_type dir, const view_t& view,
-        const typename detector_t::geometry_context& gctx = {}) const {
-
-        dvector<typename record_t::intersection_type> intersections{};
-        intersections.reserve(intersection_record.size());
-
-        for (auto& ir : intersection_record) {
-            intersections.push_back(ir.intersection);
-        }
-
-        return draw_intersections(prefix, intersections, dir, view, gctx);
-    }
-
     /// @brief Converts a collection of intersections to an svg.
     ///
     /// @param prefix the id of the svg object.
@@ -456,7 +432,8 @@ class illustrator {
     /// @return @c actsvg::svg::object of the intersectio record.
     template <typename view_t, typename intersection_t>
     inline auto draw_intersections(
-        const std::string& prefix, const dvector<intersection_t>& intersections,
+        const std::string& prefix,
+        const std::vector<intersection_t>& intersections,
         const typename detector_t::vector3_type dir, const view_t& view,
         const typename detector_t::geometry_context& gctx = {}) const {
 
@@ -506,35 +483,6 @@ class illustrator {
                                                    p_trajectory, view);
     }
 
-    /// @brief Converts a trajectory and its intersection record to an svg with
-    /// a related coloring.
-    ///
-    /// @param prefix the id of the svg object.
-    /// @param trajectory the trajectory (eg. ray or helix).
-    /// @param intersection_record the intersection record.
-    /// @param view the display view.
-    /// @param gctx the geometry context.
-    ///
-    /// @return @c actsvg::svg::object of the trajectory and intersection
-    /// record.
-    template <typename view_t, class trajectory_t, class intersection_t>
-    inline auto draw_intersections_and_trajectory(
-        const std::string& prefix,
-        const std::vector<std::pair<detray::dindex, intersection_t>>&
-            intersection_record,
-        const trajectory_t& trajectory, const view_t& view,
-        const typename detector_t::geometry_context& gctx = {}) const {
-
-        dvector<intersection_t> intersections{};
-        intersections.reserve(intersection_record.size());
-        for (auto& ir : intersection_record) {
-            intersections.push_back(ir.second);
-        }
-
-        return draw_intersections_and_trajectory(prefix, intersections,
-                                                 trajectory, view, gctx);
-    }
-
     /// @brief Converts a trajectory and its intersections to an svg with a
     /// related coloring.
     ///
@@ -548,7 +496,8 @@ class illustrator {
     /// @return @c actsvg::svg::object of the trajectory and intersections
     template <typename view_t, class trajectory_t, typename intersection_t>
     inline auto draw_intersections_and_trajectory(
-        const std::string& prefix, const dvector<intersection_t>& intersections,
+        const std::string& prefix,
+        const std::vector<intersection_t>& intersections,
         const trajectory_t& trajectory, const view_t& view,
         typename detector_t::scalar_type max_path = 500.f,
         const typename detector_t::geometry_context& gctx = {}) const {
@@ -559,6 +508,7 @@ class illustrator {
 
         if (not intersections.empty()) {
 
+            // Draw intersections with landmark style
             auto p_ir = svgtools::conversion::intersection(
                 _detector, intersections, trajectory.dir(0.f), gctx,
                 _style._landmark_style);

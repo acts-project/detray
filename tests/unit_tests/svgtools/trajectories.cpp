@@ -14,6 +14,7 @@
 #include "detray/plugins/svgtools/illustrator.hpp"
 #include "detray/plugins/svgtools/writer.hpp"
 #include "detray/test/utils/detector_scanner.hpp"
+#include "detray/test/utils/svg_display.hpp"
 
 // Vecmem include(s)
 #include <vecmem/memory/host_memory_resource.hpp>
@@ -73,8 +74,9 @@ GTEST_TEST(svgtools, trajectories) {
     const auto svg_ray = il.draw_trajectory("trajectory", ray, 500.f, view);
 
     // Draw the intersections.
+    auto ray_intersections = detray::detail::transcribe_intersections(ray_ir);
     const auto svg_ray_ir =
-        il.draw_intersections("record", ray_ir, ray.dir(), view);
+        il.draw_intersections("record", ray_intersections, ray.dir(), view);
 
     detray::svgtools::write_svg("test_svgtools_ray",
                                 {svg_volumes, svg_ray, svg_ray_ir});
@@ -94,8 +96,10 @@ GTEST_TEST(svgtools, trajectories) {
     const auto svg_helix = il.draw_trajectory("trajectory", helix, 500.f, view);
 
     // Draw the intersections.
+    auto helix_intersections =
+        detray::detail::transcribe_intersections(helix_ir);
     const auto svg_helix_ir =
-        il.draw_intersections("record", helix_ir, helix.dir(), view);
+        il.draw_intersections("record", helix_intersections, helix.dir(), view);
 
     detray::svgtools::write_svg("test_svgtools_helix",
                                 {svg_volumes, svg_helix, svg_helix_ir});

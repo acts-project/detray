@@ -10,6 +10,7 @@
 // Project include(s)
 #include "detray/plugins/svgtools/illustrator.hpp"
 #include "detray/test/utils/svg_display.hpp"
+#include "detray/utils/ranges.hpp"
 
 // System include(s)
 #include <algorithm>
@@ -157,6 +158,16 @@ inline bool check_connectivity(
             << "Didn't leave world or unconnected elements left in trace:"
             << "\n\nValid connections that were found:" << std::endl;
         err_stream << record_stream.str();
+
+        err_stream << "\nPairs left to match:" << std::endl;
+        for (std::size_t j = static_cast<std::size_t>(i); j < trace.size();
+             ++j) {
+            auto first_vol = std::get<1>(trace[j].first);
+            auto second_vol = std::get<1>(trace[j].second);
+
+            err_stream << "(" << first_vol << ", " << second_vol << ")"
+                       << std::endl;
+        }
 
         print_err(err_stream);
 
@@ -583,19 +594,21 @@ inline bool check_trace(const std::vector<record_t> &intersection_trace,
 /// @param vol_names the volume name map of the detector
 /// @param test_name the name of the test for which to print the error
 /// @param test_track trajectory that was used for the scan (ray or helix)
-/// @param intersection_trace the intersection records along the test track
+/// @param truth_trace the intersection records along the test track
 /// @param svg_style svgtools style for the detector display
 /// @param i_track index of the test track
 /// @param n_track total number of test tracks
-template <typename detector_t, typename trajectory_t, typename record_t>
-inline void display_error(
-    const typename detector_t::geometry_context gctx, const detector_t &det,
-    const typename detector_t::name_map vol_names, const std::string &test_name,
-    const trajectory_t &test_track,
-    const std::vector<record_t> &intersection_trace,
-    const detray::svgtools::styling::style &svg_style,
-    const std::size_t i_track, const std::size_t n_tracks,
-    const dvector<typename record_t::intersection_type> &intersections = {}) {
+template <typename detector_t, typename trajectory_t, typename truth_trace_t,
+          typename recorded_trace_t>
+inline void display_error(const typename detector_t::geometry_context gctx,
+                          const detector_t &det,
+                          const typename detector_t::name_map vol_names,
+                          const std::string &test_name,
+                          const trajectory_t &test_track,
+                          const truth_trace_t &truth_trace,
+                          const detray::svgtools::styling::style &svg_style,
+                          const std::size_t i_track, const std::size_t n_tracks,
+                          const recorded_trace_t &recorded_trace = {}) {
 
     // Creating the svg generator for the detector.
     detray::svgtools::illustrator il{det, vol_names, svg_style};
@@ -614,15 +627,42 @@ inline void display_error(
         track_type = "helix";
     }
 
-    detail::svg_display(gctx, il, intersection_trace, test_track, track_type,
-                        test_name, intersections);
+    detail::svg_display(gctx, il, truth_trace, test_track,
+                        track_type + "_" + std::to_string(i_track), test_name,
+                        recorded_trace);
 
     std::cout << "\nFailed on " << track_type << ": " << i_track << "/"
               << n_tracks << "\n"
               << test_track;
 }
 
-/// Print and adjacency list
+/// Print an intersection trace
+template <typename truth_trace_t>
+inline std::string print_trace(const truth_trace_t &truth_trace,
+                               std::size_t n) {
+
+    std::stringstream out_stream{};
+    out_stream << "TRACE NO. " << n << std::endl;
+
+    for (const auto &[idx, record] : detray::views::enumerate(truth_trace)) {
+        out_stream << "\nRecord " << idx << std::endl;
+
+        out_stream << " -> volume " << record.vol_idx << std::endl;
+
+        const auto pos = record.track_param.pos();
+        const auto dir = record.track_param.dir();
+        out_stream << " -> track pos: [" << pos[0] << ", " << pos[1] << ", "
+                   << pos[2] << std::endl;
+        out_stream << " -> track dir: [" << dir[0] << ", " << dir[1] << ", "
+                   << dir[2] << std::endl;
+
+        out_stream << " -> intersection " << record.intersection << std::endl;
+    }
+
+    return out_stream.str();
+}
+
+/// Print an adjacency list
 inline std::string print_adj(const dvector<dindex> &adjacency_matrix) {
 
     std::size_t dim = static_cast<dindex>(math::sqrt(adjacency_matrix.size()));

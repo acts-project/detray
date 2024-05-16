@@ -49,6 +49,18 @@ enum class status {
 ///
 /// Inspectors can be plugged in to understand the current navigation state.
 struct void_inspector {
+
+    struct void_view : public detail::dbase_view {};
+
+    using view_type = void_view;
+    using const_view_type = const void_view;
+
+    void_inspector() = default;
+
+    DETRAY_HOST_DEVICE
+    constexpr void_inspector(void_view & /*ignored*/) { /*Do nothing*/
+    }
+
     template <typename state_t>
     DETRAY_HOST_DEVICE void operator()(const state_t & /*ignored*/,
                                        const char * /*ignored*/) {}
@@ -97,6 +109,8 @@ class navigator {
     using inspector_type = inspector_t;
     using detector_type = detector_t;
     using scalar_type = typename detector_t::scalar_type;
+    using point3_type = typename detector_t::point3_type;
+    using vector3_type = typename detector_t::vector3_type;
     using volume_type = typename detector_t::volume_type;
     template <typename T>
     using vector_type = typename detector_t::template vector_type<T>;
@@ -150,6 +164,12 @@ class navigator {
         public:
         using detector_type = navigator::detector_type;
 
+        using view_type = dmulti_view<djagged_vector_view<intersection_type>,
+                                      detail::get_view_t<inspector_t>>;
+        using const_view_type =
+            dmulti_view<djagged_vector_view<const intersection_type>,
+                        detail::get_view_t<const inspector_t>>;
+
         /// Default constructor
         state() = default;
 
@@ -160,10 +180,20 @@ class navigator {
         state(const detector_type &det, vecmem::memory_resource &resource)
             : m_detector(&det), m_candidates(&resource) {}
 
-        /// Constructor from candidates vector_view
+        /// Constructor from candidates vector
         DETRAY_HOST_DEVICE state(const detector_type &det,
                                  vector_type<intersection_type> candidates)
             : m_detector(&det), m_candidates(candidates) {}
+
+        /// Constructor from candidates vector_view
+        template <
+            typename view_t,
+            std::enable_if_t<detail::is_device_view_v<view_t>, bool> = true>
+        DETRAY_HOST_DEVICE state(const detector_type &det,
+                                 std::size_t track_idx, view_t view)
+            : m_detector(&det),
+              m_candidates(detail::get<0>(view.m_view).ptr()[track_idx]),
+              m_inspector(detail::get<1>(view.m_view)) {}
 
         /// @return start position of valid candidate range.
         DETRAY_HOST_DEVICE
@@ -360,7 +390,7 @@ class navigator {
             m_heartbeat = false;
             // Don't do anything if aborted
             m_trust_level = navigation::trust_level::e_full;
-            run_inspector({}, "Aborted: ");
+            run_inspector({}, {}, {}, "Aborted: ");
             return m_heartbeat;
         }
 
@@ -373,7 +403,7 @@ class navigator {
             m_status = navigation::status::e_on_target;
             m_heartbeat = false;
             m_trust_level = navigation::trust_level::e_full;
-            run_inspector({}, "Exited: ");
+            run_inspector({}, {}, {}, "Exited: ");
             this->clear();
             return m_heartbeat;
         }
@@ -420,10 +450,12 @@ class navigator {
         DETRAY_HOST_DEVICE
         inline void run_inspector(
             [[maybe_unused]] const navigation::config<scalar_type> &cfg,
+            [[maybe_unused]] const point3_type &track_pos,
+            [[maybe_unused]] const vector3_type &track_dir,
             [[maybe_unused]] const char *message) {
             if constexpr (not std::is_same_v<inspector_t,
                                              navigation::void_inspector>) {
-                m_inspector(*this, cfg, message);
+                m_inspector(*this, cfg, track_pos, track_dir, message);
             }
         }
 
@@ -512,7 +544,8 @@ class navigator {
         stepping._step_size = navigation();
         stepping._initialized = true;
 
-        navigation.run_inspector(cfg, "Init complete: ");
+        navigation.run_inspector(cfg, track.pos(), track.dir(),
+                                 "Init complete: ");
 
         return navigation.m_heartbeat;
     }
@@ -556,7 +589,9 @@ class navigator {
                 return navigation.m_heartbeat;
             }
             // Run inspection when needed (keep for debugging)
-            // navigation.run_inspector(cfg, "Volume switch: ");
+            // const auto &track = propagation._stepping();
+            // navigation.run_inspector(cfg, track.pos(), track.dir(), "Volume
+            // switch: ");
 
             init(propagation, cfg);
 
@@ -616,7 +651,8 @@ class navigator {
                 // Update navigation flow on the new candidate information
                 update_navigation_state(cfg, propagation);
 
-                navigation.run_inspector(cfg, "Update complete: high trust: ");
+                navigation.run_inspector(cfg, track.pos(), track.dir(),
+                                         "Update complete: high trust: ");
 
                 // The work is done if: the track has not reached a surface yet
                 // or trust is gone (portal was reached or the cache is broken).
@@ -659,7 +695,8 @@ class navigator {
             // Update navigation flow on the new candidate information
             update_navigation_state(cfg, propagation);
 
-            navigation.run_inspector(cfg, "Update complete: fair trust: ");
+            navigation.run_inspector(cfg, track.pos(), track.dir(),
+                                     "Update complete: fair trust: ");
 
             if (!navigation.is_exhausted()) {
                 return;

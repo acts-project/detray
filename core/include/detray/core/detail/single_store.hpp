@@ -198,7 +198,7 @@ class single_store {
     template <typename U>
     DETRAY_HOST constexpr auto push_back(
         U &&arg, const context_type & /*ctx*/ = {}) noexcept(false) -> void {
-        m_container.push_back(std::move(arg));
+        m_container.push_back(std::forward<U>(arg));
     }
 
     /// Add a new element to the collection in place
