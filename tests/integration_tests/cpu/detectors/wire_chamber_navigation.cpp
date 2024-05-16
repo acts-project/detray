@@ -51,6 +51,7 @@ int main(int argc, char **argv) {
     test::ray_scan<wire_chamber_t>::config cfg_ray_scan{};
     cfg_ray_scan.name("wire_chamber_ray_scan");
     cfg_ray_scan.whiteboard(white_board);
+    cfg_ray_scan.track_generator().seed(42u);
     cfg_ray_scan.track_generator().n_tracks(10000u);
 
     detail::register_checks<test::ray_scan>(det, names, cfg_ray_scan);
@@ -65,7 +66,7 @@ int main(int argc, char **argv) {
     cfg_hel_scan.track_generator().n_tracks(10000u);
     cfg_hel_scan.track_generator().eta_range(-1.f, 1.f);
     // TODO: Fails for smaller momenta
-    cfg_hel_scan.track_generator().p_T(5.f * unit<float>::GeV);
+    cfg_hel_scan.track_generator().p_T(5.f * unit<scalar_t>::GeV);
 
     detail::register_checks<test::helix_scan>(det, names, cfg_hel_scan);
 
@@ -75,8 +76,10 @@ int main(int argc, char **argv) {
     cfg_str_nav.whiteboard(white_board);
     cfg_str_nav.propagation().navigation.search_window = {3u, 3u};
     auto mask_tolerance = cfg_ray_scan.mask_tolerance();
-    cfg_str_nav.propagation().navigation.min_mask_tolerance = mask_tolerance[0];
-    cfg_str_nav.propagation().navigation.max_mask_tolerance = mask_tolerance[1];
+    cfg_str_nav.propagation().navigation.min_mask_tolerance =
+        static_cast<float>(mask_tolerance[0]);
+    cfg_str_nav.propagation().navigation.max_mask_tolerance =
+        static_cast<float>(mask_tolerance[1]);
 
     detail::register_checks<test::straight_line_navigation>(det, names,
                                                             cfg_str_nav);
@@ -85,6 +88,7 @@ int main(int argc, char **argv) {
     test::helix_navigation<wire_chamber_t>::config cfg_hel_nav{};
     cfg_hel_nav.name("wire_chamber_helix_navigation");
     cfg_hel_nav.whiteboard(white_board);
+    cfg_hel_nav.propagation().navigation.min_mask_tolerance *= 0.9f;
     cfg_hel_nav.propagation().navigation.search_window = {3u, 3u};
 
     detail::register_checks<test::helix_navigation>(det, names, cfg_hel_nav);

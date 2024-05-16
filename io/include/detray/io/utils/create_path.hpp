@@ -24,6 +24,7 @@ inline bool file_exists(const std::string& outdir) {
 /// @returns an alternative file name by counting up, if file exists
 inline std::string alt_file_name(const std::string& name) {
     auto path = std::filesystem::path(name);
+    auto parent_path = path.parent_path();
     std::string stem = path.stem();
     std::string extension = path.extension();
 
@@ -52,7 +53,7 @@ inline std::string alt_file_name(const std::string& name) {
     std::size_t n_trials{2u};
     while (std::filesystem::exists(path)) {
         stem = get_alternate_file_stem(stem, n_trials);
-        path = std::filesystem::path{stem + extension};
+        path = parent_path / std::filesystem::path{stem + extension};
         ++n_trials;
 
         // The maximum here is arbitrary
@@ -62,7 +63,8 @@ inline std::string alt_file_name(const std::string& name) {
         }
     }
 
-    return stem + extension;
+    path = parent_path / std::filesystem::path{stem + extension};
+    return path.string();
 }
 
 /// Check if a given file path exists and generate it if not
@@ -70,9 +72,9 @@ inline auto create_path(const std::string& outdir) {
 
     auto path = std::filesystem::path(outdir);
 
-    if (not std::filesystem::exists(path)) {
-        std::error_code err;
-        if (!std::filesystem::create_directories(path, err)) {
+    if (!std::filesystem::exists(path)) {
+        if (std::error_code err;
+            !std::filesystem::create_directories(path, err)) {
             throw std::runtime_error(err.message());
         }
     }

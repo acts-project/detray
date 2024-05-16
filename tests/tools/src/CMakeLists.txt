@@ -15,17 +15,17 @@ include_directories( SYSTEM $<TARGET_PROPERTY:actsvg::core,INTERFACE_INCLUDE_DIR
 # Generate test detectors
 detray_add_executable(generate_toy_detector
                       "generate_toy_detector.cpp"
-                      LINK_LIBRARIES Boost::program_options
+                      LINK_LIBRARIES Boost::program_options detray::tools
                       detray::io detray::utils detray::core_array)
 
 detray_add_executable(generate_wire_chamber
                       "generate_wire_chamber.cpp"
-                      LINK_LIBRARIES Boost::program_options
+                      LINK_LIBRARIES Boost::program_options detray::tools
                       detray::io detray::utils detray::core_array)
 
 detray_add_executable(generate_telescope_detector
                       "generate_telescope_detector.cpp"
-                      LINK_LIBRARIES Boost::program_options
+                      LINK_LIBRARIES Boost::program_options detray::tools
                       detray::io detray::utils detray::core_array)
 
 # Build the visualization executable.

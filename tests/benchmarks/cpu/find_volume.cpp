@@ -30,7 +30,7 @@ void BM_FIND_VOLUMES(benchmark::State &state) {
 
     // Detector configuration
     vecmem::host_memory_resource host_mr;
-    toy_det_config<scalar> toy_cfg{};
+    toy_det_config toy_cfg{};
     toy_cfg.n_edc_layers(7u);
     auto [d, names] = build_toy_detector(host_mr, toy_cfg);
 

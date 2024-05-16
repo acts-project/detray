@@ -23,7 +23,7 @@ GTEST_TEST(detray_detectors, toy_detector) {
 
     vecmem::host_memory_resource host_mr;
 
-    toy_det_config<scalar> toy_cfg{};
+    toy_det_config toy_cfg{};
     toy_cfg.use_material_maps(false).do_check(true);
     const auto [toy_det, names] = build_toy_detector(host_mr, toy_cfg);
 

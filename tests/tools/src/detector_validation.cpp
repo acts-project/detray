@@ -9,6 +9,10 @@
 #include "detray/core/detector.hpp"
 #include "detray/definitions/units.hpp"
 #include "detray/io/frontend/detector_reader.hpp"
+#include "detray/options/detector_io_options.hpp"
+#include "detray/options/parse_options.hpp"
+#include "detray/options/propagation_options.hpp"
+#include "detray/options/track_generator_options.hpp"
 #include "detray/test/detail/register_checks.hpp"
 #include "detray/test/detail/whiteboard.hpp"
 #include "detray/test/detector_consistency.hpp"
@@ -36,49 +40,16 @@ int main(int argc, char** argv) {
 
     // Use the most general type to be able to read in all detector files
     using detector_t = detray::detector<>;
+    using scalar_t = typename detector_t::scalar_type;
 
     // Filter out the google test flags
     ::testing::InitGoogleTest(&argc, argv);
 
-    // Options parsing
+    // Specific options for this test
     po::options_description desc("\ndetray detector validation options");
 
-    std::vector<dindex> window;
-    desc.add_options()("help", "produce help message")(
-        "write_volume_graph", "writes the volume graph to file")(
-        "write_scan_data", "writes the ray/helix scan intersections to file")(
-        "geometry_file", po::value<std::string>(), "geometry input file")(
-        "grid_file", po::value<std::string>(), "Surface grid input file")(
-        "material_file", po::value<std::string>(), "material input file")(
-        "n_tracks", po::value<std::size_t>()->default_value(50u),
-        "# of tracks for particle gun")(
-        "theta_range", po::value<std::vector<float>>()->multitoken(),
-        "min, max range of theta values for particle gun")(
-        "eta_range", po::value<std::vector<float>>()->multitoken(),
-        "min, max range of eta values for particle gun")(
-        "origin", po::value<std::vector<float>>()->multitoken(),
-        "coordintates for particle gun origin position")(
-        "p_tot", po::value<float>()->default_value(10.f),
-        "total momentum of the test particle [GeV]")(
-        "p_T", po::value<float>()->default_value(10.f),
-        "transverse momentum of the test particle [GeV]")(
-        "search_window", po::value<std::vector<dindex>>(&window)->multitoken(),
-        "search window size for the grid")(
-        "overstep_tol", po::value<float>()->default_value(-100.f),
-        "overstepping tolerance [um] NOTE: Must be negative!");
-
-    po::variables_map vm;
-    po::store(parse_command_line(argc, argv, desc,
-                                 po::command_line_style::unix_style ^
-                                     po::command_line_style::allow_short),
-              vm);
-    po::notify(vm);
-
-    // Help message
-    if (vm.count("help")) {
-        std::cout << desc << std::endl;
-        return EXIT_FAILURE;
-    }
+    desc.add_options()("write_volume_graph", "Write the volume graph to file")(
+        "write_scan_data", "Write the ray/helix scan data to file");
 
     // Configs to be filled
     detray::io::detector_reader_config reader_cfg{};
@@ -88,6 +59,10 @@ int main(int argc, char** argv) {
     detray::test::helix_scan<detector_t>::config hel_scan_cfg{};
     detray::test::straight_line_navigation<detector_t>::config str_nav_cfg{};
     detray::test::helix_navigation<detector_t>::config hel_nav_cfg{};
+
+    po::variables_map vm = detray::options::parse_options(
+        desc, argc, argv, reader_cfg, hel_scan_cfg.track_generator(),
+        hel_nav_cfg.propagation());
 
     // General options
     if (vm.count("write_volume_graph")) {
@@ -99,112 +74,9 @@ int main(int argc, char** argv) {
         hel_scan_cfg.write_intersections(true);
     }
 
-    // Input files
-    if (vm.count("geometry_file")) {
-        reader_cfg.add_file(vm["geometry_file"].as<std::string>());
-    } else {
-        std::stringstream err_stream{};
-        err_stream << "Please specify a geometry input file!\n\n" << desc;
-
-        throw std::invalid_argument(err_stream.str());
-    }
-    if (vm.count("material_file")) {
-        reader_cfg.add_file(vm["material_file"].as<std::string>());
-    }
-    if (vm.count("grid_file")) {
-        reader_cfg.add_file(vm["grid_file"].as<std::string>());
-    }
-
-    // Particle gun
-    if (vm.count("n_tracks")) {
-        const std::size_t n_tracks{vm["n_tracks"].as<std::size_t>()};
-
-        ray_scan_cfg.track_generator().n_tracks(n_tracks);
-        hel_scan_cfg.track_generator().n_tracks(n_tracks);
-
-        if (vm.count("phi_steps") || vm.count("theta_steps")) {
-            throw std::invalid_argument(
-                "'n_tracks' and angular step size cannot be set at the same "
-                "time");
-        }
-    }
-    if (vm.count("eta_range")) {
-        const auto eta_range = vm["eta_range"].as<std::vector<float>>();
-        if (eta_range.size() == 2u) {
-            float min_theta{2.f * std::atan(std::exp(-eta_range[0]))};
-            float max_theta{2.f * std::atan(std::exp(-eta_range[1]))};
-
-            // Wrap around
-            if (min_theta > max_theta) {
-                float tmp{min_theta};
-                min_theta = max_theta;
-                max_theta = tmp;
-            }
-
-            ray_scan_cfg.track_generator().theta_range(min_theta, max_theta);
-            hel_scan_cfg.track_generator().theta_range(min_theta, max_theta);
-        } else {
-            throw std::invalid_argument("Eta range needs two arguments");
-        }
-        if (vm.count("theta_range")) {
-            throw std::invalid_argument(
-                "Eta range and theta range cannot be specified at the same "
-                "time");
-        }
-    } else if (vm.count("theta_range")) {
-        const auto theta_range = vm["theta_range"].as<std::vector<float>>();
-        if (theta_range.size() == 2u) {
-            ray_scan_cfg.track_generator().theta_range(theta_range[0],
-                                                       theta_range[1]);
-            hel_scan_cfg.track_generator().theta_range(theta_range[0],
-                                                       theta_range[1]);
-        } else {
-            throw std::invalid_argument("Theta range needs two arguments");
-        }
-    }
-    if (vm.count("origin")) {
-        const auto origin = vm["origin"].as<std::vector<float>>();
-        if (origin.size() == 3u) {
-            ray_scan_cfg.track_generator().origin(
-                {origin[0], origin[1], origin[2]});
-            hel_scan_cfg.track_generator().origin(
-                {origin[0], origin[1], origin[2]});
-        } else {
-            throw std::invalid_argument(
-                "Particle gun origin needs three arguments");
-        }
-    }
-    if (vm.count("p_T")) {
-        const float p_T{vm["p_T"].as<float>()};
-
-        hel_scan_cfg.track_generator().p_T(p_T * unit<float>::GeV);
-    }
-    if (!vm["p_tot"].defaulted()) {
-        const float p_mag{vm["p_tot"].as<float>()};
-
-        hel_scan_cfg.track_generator().p_tot(p_mag * unit<float>::GeV);
-    }
-
-    // Navigation
-    // Grid neighborhood size
-    if (vm.count("search_window")) {
-        if (window.size() != 2u) {
-            throw std::invalid_argument(
-                "Incorrect surface grid search window. Please provide two "
-                "integer distances.");
-        }
-        str_nav_cfg.propagation().navigation.search_window = {window[0],
-                                                              window[1]};
-        hel_nav_cfg.propagation().navigation.search_window = {window[0],
-                                                              window[1]};
-    }
-
-    if (vm.count("overstep_tol")) {
-        const float overstep_tol{vm["overstep_tol"].as<float>()};
-
-        hel_nav_cfg.propagation().navigation.overstep_tolerance =
-            overstep_tol * unit<float>::um;
-    }
+    // For now: Copy the options to the other tests
+    ray_scan_cfg.track_generator() = hel_scan_cfg.track_generator();
+    str_nav_cfg.propagation() = hel_nav_cfg.propagation();
 
     vecmem::host_memory_resource host_mr;
 
@@ -244,8 +116,10 @@ int main(int argc, char** argv) {
     str_nav_cfg.name(det_name + "_straight_line_navigation");
     // Ensure that the same mask tolerance is used
     auto mask_tolerance = ray_scan_cfg.mask_tolerance();
-    str_nav_cfg.propagation().navigation.min_mask_tolerance = mask_tolerance[0];
-    str_nav_cfg.propagation().navigation.max_mask_tolerance = mask_tolerance[1];
+    str_nav_cfg.propagation().navigation.min_mask_tolerance =
+        static_cast<float>(mask_tolerance[0]);
+    str_nav_cfg.propagation().navigation.max_mask_tolerance =
+        static_cast<float>(mask_tolerance[1]);
     detray::detail::register_checks<detray::test::straight_line_navigation>(
         det, names, str_nav_cfg);
 

@@ -28,9 +28,9 @@ DETRAY_HOST
 inline std::ostream& operator<<(std::ostream& out,
                                 const detray::propagation::config& cfg) {
     out << "Navigation\n"
-        << " -------------------\n"
+        << "----------------------------\n"
         << cfg.navigation << "\nParameter Transport\n"
-        << " -------------------\n"
+        << "----------------------------\n"
         << cfg.stepping << "\n";
 
     return out;

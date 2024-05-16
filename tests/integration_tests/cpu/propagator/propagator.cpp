@@ -124,7 +124,7 @@ struct helix_inspector : actor {
 GTEST_TEST(detray_propagator, propagator_line_stepper) {
 
     vecmem::host_memory_resource host_mr;
-    toy_det_config<scalar_t> toy_cfg{};
+    toy_det_config toy_cfg{};
     toy_cfg.use_material_maps(false);
     const auto [d, names] = build_toy_detector(host_mr, toy_cfg);
 
@@ -170,8 +170,7 @@ class PropagatorWithRkStepper
     vecmem::host_memory_resource host_mr;
 
     /// Toy detector configuration
-    toy_det_config<scalar_t> toy_cfg =
-        toy_det_config<scalar_t>{}.n_brl_layers(4u).n_edc_layers(7u);
+    toy_det_config toy_cfg = toy_det_config{}.n_brl_layers(4u).n_edc_layers(7u);
 
     /// Track generator configuration
     generator_t::configuration trk_gen_cfg{};

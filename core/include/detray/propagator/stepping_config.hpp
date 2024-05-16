@@ -50,24 +50,26 @@ struct config {
 DETRAY_HOST
 inline std::ostream& operator<<(std::ostream& out,
                                 const detray::stepping::config& cfg) {
-    out << "  Minimum Stepsize     : "
+    out << "  Min. Stepsize         : "
         << cfg.min_stepsize / detray::unit<float>::mm << " [mm]\n"
-        << "  Runge-Kutta tolerance: "
+        << "  Runge-Kutta tolerance : "
         << cfg.rk_error_tol / detray::unit<float>::mm << " [mm]\n"
-        << "  Maximum #step updates: " << cfg.max_rk_updates << "\n"
-        << "  Stepsize  constraint : "
+        << "  Max. step updates     : " << cfg.max_rk_updates << "\n"
+        << "  Stepsize  constraint  : "
         << cfg.step_constraint / detray::unit<float>::mm << " [mm]\n"
-        << "  Path limit           : "
+        << "  Path limit            : "
         << cfg.path_limit / detray::unit<float>::m << " [m]\n"
-        << std::boolalpha << "  Use Bethe energy loss: " << cfg.use_mean_loss
+        << std::boolalpha << "  Use Bethe energy loss : " << cfg.use_mean_loss
         << "\n"
-        << "  Do cov. transport    : " << cfg.do_covariance_transport << "\n";
+        << "  Do cov. transport     : " << cfg.do_covariance_transport << "\n";
 
     if (cfg.do_covariance_transport) {
         out << std::boolalpha
-            << "  Use eloss gradient   : " << cfg.use_eloss_gradient << "\n"
-            << "  Use B-field gradient : " << cfg.use_field_gradient << "\n";
+            << "  Use eloss gradient    : " << cfg.use_eloss_gradient << "\n"
+            << "  Use B-field gradient  : " << cfg.use_field_gradient << "\n";
     }
+    // Reset state
+    out << std::noboolalpha;
 
     return out;
 }

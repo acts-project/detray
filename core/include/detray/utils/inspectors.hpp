@@ -50,7 +50,7 @@ struct aggregate_inspector {
 
     /// Inspector interface
     template <unsigned int current_id = 0, typename state_type,
-              typename scalar_t, typename point3_t, typename vector3_t>
+              typename point3_t, typename vector3_t>
     DETRAY_HOST_DEVICE auto operator()(state_type &state,
                                        const navigation::config &cfg,
                                        const point3_t &pos,
@@ -128,8 +128,7 @@ struct object_tracer {
     vector_t<candidate_record_t> object_trace;
 
     /// Inspector interface
-    template <typename state_type, typename scalar_t, typename point3_t,
-              typename vector3_t>
+    template <typename state_type, typename point3_t, typename vector3_t>
     DETRAY_HOST_DEVICE auto operator()(state_type &state,
                                        const navigation::config &,
                                        const point3_t &pos,
@@ -163,10 +162,8 @@ struct print_inspector {
     std::stringstream debug_stream{};
 
     /// Inspector interface. Gathers detailed information during navigation
-    template <typename state_type, typename scalar_t, typename point3_t,
-              typename vector3_t>
-    auto operator()(const state_type &state,
-                    const navigation::config &cfg,
+    template <typename state_type, typename point3_t, typename vector3_t>
+    auto operator()(const state_type &state, const navigation::config &cfg,
                     const point3_t &track_pos, const vector3_t &track_dir,
                     const char *message) {
         std::string msg(message);

@@ -141,7 +141,7 @@ GTEST_TEST(detray_navigation, navigator_toy_geometry) {
     stepper_t stepper;
     navigator_t nav;
     navigation::config cfg{};
-    cfg.path_tolerance = 1.f * unit<scalar>::um;
+    cfg.path_tolerance = 1.f * unit<float>::um;
     cfg.search_window = {3u, 3u};
 
     prop_state<stepper_t::state, navigator_t::state> propagation{
@@ -315,7 +315,7 @@ GTEST_TEST(detray_navigation, navigator_wire_chamber) {
     stepper_t stepper;
     navigator_t nav;
     navigation::config cfg{};
-    cfg.path_tolerance = 1.f * unit<scalar>::um;
+    cfg.path_tolerance = 1.f * unit<float>::um;
     cfg.search_window = {3u, 3u};
 
     prop_state<stepper_t::state, navigator_t::state> propagation{

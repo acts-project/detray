@@ -460,9 +460,9 @@ bound_getter<algebra_type>::state evaluate_bound_param(
 
     // Propagator is built from the stepper and navigator
     propagation::config cfg{};
-    cfg.navigation.overstep_tolerance = overstep_tolerance;
-    cfg.navigation.path_tolerance = path_tolerance;
-    cfg.stepping.rk_error_tol = rk_tolerance;
+    cfg.navigation.overstep_tolerance = static_cast<float>(overstep_tolerance);
+    cfg.navigation.path_tolerance = static_cast<float>(path_tolerance);
+    cfg.stepping.rk_error_tol = static_cast<float>(rk_tolerance);
     cfg.stepping.use_eloss_gradient = true;
     cfg.stepping.use_field_gradient = use_field_gradient;
     cfg.stepping.do_covariance_transport = do_covariance_transport;
@@ -484,7 +484,7 @@ bound_getter<algebra_type>::state evaluate_bound_param(
     state.do_debug = do_inspect;
     state._stepping
         .template set_constraint<detray::step::constraint::e_accuracy>(
-            constraint_step);
+            static_cast<float>(constraint_step));
 
     p.propagate(state, actor_states);
     if (do_inspect) {
@@ -505,9 +505,9 @@ bound_vector_type get_displaced_bound_vector(
     const unsigned int target_index, const scalar displacement) {
 
     propagation::config cfg{};
-    cfg.navigation.overstep_tolerance = overstep_tolerance;
-    cfg.navigation.path_tolerance = path_tolerance;
-    cfg.stepping.rk_error_tol = rk_tolerance;
+    cfg.navigation.overstep_tolerance = static_cast<float>(overstep_tolerance);
+    cfg.navigation.path_tolerance = static_cast<float>(path_tolerance);
+    cfg.stepping.rk_error_tol = static_cast<float>(rk_tolerance);
     cfg.stepping.do_covariance_transport = false;
 
     // Propagator is built from the stepper and navigator

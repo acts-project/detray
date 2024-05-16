@@ -47,9 +47,9 @@ struct config {
 DETRAY_HOST
 inline std::ostream& operator<<(std::ostream& out,
                                 const detray::navigation::config& cfg) {
-    out << "  Minimal mask tolerance: "
+    out << "  Min. mask tolerance   : "
         << cfg.min_mask_tolerance / detray::unit<float>::mm << " [mm]\n"
-        << "  Maximal mask tolerance: "
+        << "  Max. mask tolerance   : "
         << cfg.max_mask_tolerance / detray::unit<float>::mm << " [mm]\n"
         << "  Path tolerance        : "
         << cfg.path_tolerance / detray::unit<float>::um << " [um]\n"

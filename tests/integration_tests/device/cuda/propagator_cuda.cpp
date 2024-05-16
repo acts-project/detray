@@ -21,9 +21,8 @@
 
 using namespace detray;
 
-class CudaPropConstBFieldMng : public ::testing::TestWithParam<
-                                   std::tuple<scalar_t, scalar_t, vector3_t>> {
-};
+class CudaPropConstBFieldMng
+    : public ::testing::TestWithParam<std::tuple<float, float, vector3_t>> {};
 
 /// Propagation test using unified memory
 TEST_P(CudaPropConstBFieldMng, propagator) {
@@ -52,9 +51,8 @@ TEST_P(CudaPropConstBFieldMng, propagator) {
         &mng_mr, det, cfg, detray::get_data(det), std::move(field));
 }
 
-class CudaPropConstBFieldCpy : public ::testing::TestWithParam<
-                                   std::tuple<scalar_t, scalar_t, vector3_t>> {
-};
+class CudaPropConstBFieldCpy
+    : public ::testing::TestWithParam<std::tuple<float, float, vector3_t>> {};
 
 /// Propagation test using vecmem copy
 TEST_P(CudaPropConstBFieldCpy, propagator) {
@@ -91,67 +89,61 @@ TEST_P(CudaPropConstBFieldCpy, propagator) {
 
 INSTANTIATE_TEST_SUITE_P(
     CudaPropagatorValidation1, CudaPropConstBFieldMng,
-    ::testing::Values(std::make_tuple(-100.f * unit<scalar_t>::um,
-                                      std::numeric_limits<scalar_t>::max(),
+    ::testing::Values(std::make_tuple(-100.f * unit<float>::um,
+                                      std::numeric_limits<float>::max(),
                                       vector3_t{0.f * unit<scalar_t>::T,
                                                 0.f * unit<scalar_t>::T,
                                                 2.f * unit<scalar_t>::T})));
 
-INSTANTIATE_TEST_SUITE_P(
-    CudaPropagatorValidation2, CudaPropConstBFieldMng,
-    ::testing::Values(std::make_tuple(-800.f * unit<scalar_t>::um,
-                                      5.f * unit<scalar_t>::mm,
-                                      vector3_t{0.f * unit<scalar_t>::T,
-                                                1.f * unit<scalar_t>::T,
-                                                1.f * unit<scalar_t>::T})));
+INSTANTIATE_TEST_SUITE_P(CudaPropagatorValidation2, CudaPropConstBFieldMng,
+                         ::testing::Values(std::make_tuple(
+                             -800.f * unit<float>::um, 5.f * unit<float>::mm,
+                             vector3_t{0.f * unit<scalar_t>::T,
+                                       1.f * unit<scalar_t>::T,
+                                       1.f * unit<scalar_t>::T})));
 
-INSTANTIATE_TEST_SUITE_P(
-    CudaPropagatorValidation3, CudaPropConstBFieldMng,
-    ::testing::Values(std::make_tuple(-800.f * unit<scalar_t>::um,
-                                      5.f * unit<scalar_t>::mm,
-                                      vector3_t{1.f * unit<scalar_t>::T,
-                                                0.f * unit<scalar_t>::T,
-                                                1.f * unit<scalar_t>::T})));
+INSTANTIATE_TEST_SUITE_P(CudaPropagatorValidation3, CudaPropConstBFieldMng,
+                         ::testing::Values(std::make_tuple(
+                             -800.f * unit<float>::um, 5.f * unit<float>::mm,
+                             vector3_t{1.f * unit<scalar_t>::T,
+                                       0.f * unit<scalar_t>::T,
+                                       1.f * unit<scalar_t>::T})));
 
-INSTANTIATE_TEST_SUITE_P(
-    CudaPropagatorValidation4, CudaPropConstBFieldMng,
-    ::testing::Values(std::make_tuple(-800.f * unit<scalar_t>::um,
-                                      1.f * unit<scalar_t>::mm,
-                                      vector3_t{1.f * unit<scalar_t>::T,
-                                                1.f * unit<scalar_t>::T,
-                                                1.f * unit<scalar_t>::T})));
+INSTANTIATE_TEST_SUITE_P(CudaPropagatorValidation4, CudaPropConstBFieldMng,
+                         ::testing::Values(std::make_tuple(
+                             -800.f * unit<float>::um, 1.f * unit<float>::mm,
+                             vector3_t{1.f * unit<scalar_t>::T,
+                                       1.f * unit<scalar_t>::T,
+                                       1.f * unit<scalar_t>::T})));
 
 INSTANTIATE_TEST_SUITE_P(
     CudaPropagatorValidation5, CudaPropConstBFieldCpy,
-    ::testing::Values(std::make_tuple(-100.f * unit<scalar_t>::um,
-                                      std::numeric_limits<scalar_t>::max(),
+    ::testing::Values(std::make_tuple(-100.f * unit<float>::um,
+                                      std::numeric_limits<float>::max(),
                                       vector3_t{0.f * unit<scalar_t>::T,
                                                 0.f * unit<scalar_t>::T,
                                                 2.f * unit<scalar_t>::T})));
 
-INSTANTIATE_TEST_SUITE_P(
-    CudaPropagatorValidation6, CudaPropConstBFieldCpy,
-    ::testing::Values(std::make_tuple(-800.f * unit<scalar_t>::um,
-                                      5.f * unit<scalar_t>::mm,
-                                      vector3_t{0.f * unit<scalar_t>::T,
-                                                1.f * unit<scalar_t>::T,
-                                                1.f * unit<scalar_t>::T})));
+INSTANTIATE_TEST_SUITE_P(CudaPropagatorValidation6, CudaPropConstBFieldCpy,
+                         ::testing::Values(std::make_tuple(
+                             -800.f * unit<float>::um, 5.f * unit<float>::mm,
+                             vector3_t{0.f * unit<scalar_t>::T,
+                                       1.f * unit<scalar_t>::T,
+                                       1.f * unit<scalar_t>::T})));
 
-INSTANTIATE_TEST_SUITE_P(
-    CudaPropagatorValidation7, CudaPropConstBFieldCpy,
-    ::testing::Values(std::make_tuple(-800.f * unit<scalar_t>::um,
-                                      5.f * unit<scalar_t>::mm,
-                                      vector3_t{1.f * unit<scalar_t>::T,
-                                                0.f * unit<scalar_t>::T,
-                                                1.f * unit<scalar_t>::T})));
+INSTANTIATE_TEST_SUITE_P(CudaPropagatorValidation7, CudaPropConstBFieldCpy,
+                         ::testing::Values(std::make_tuple(
+                             -800.f * unit<float>::um, 5.f * unit<float>::mm,
+                             vector3_t{1.f * unit<scalar_t>::T,
+                                       0.f * unit<scalar_t>::T,
+                                       1.f * unit<scalar_t>::T})));
 
-INSTANTIATE_TEST_SUITE_P(
-    CudaPropagatorValidation8, CudaPropConstBFieldCpy,
-    ::testing::Values(std::make_tuple(-800.f * unit<scalar_t>::um,
-                                      1.f * unit<scalar_t>::mm,
-                                      vector3_t{1.f * unit<scalar_t>::T,
-                                                1.f * unit<scalar_t>::T,
-                                                1.f * unit<scalar_t>::T})));
+INSTANTIATE_TEST_SUITE_P(CudaPropagatorValidation8, CudaPropConstBFieldCpy,
+                         ::testing::Values(std::make_tuple(
+                             -800.f * unit<float>::um, 1.f * unit<float>::mm,
+                             vector3_t{1.f * unit<scalar_t>::T,
+                                       1.f * unit<scalar_t>::T,
+                                       1.f * unit<scalar_t>::T})));
 
 /// This tests the device propagation in an inhomogenepus magnetic field
 TEST(CudaPropagatorValidation9, inhomogeneous_bfield_cpy) {

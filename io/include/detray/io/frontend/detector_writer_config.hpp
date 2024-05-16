@@ -11,6 +11,7 @@
 #include "detray/io/frontend/definitions.hpp"
 
 // System include(s)
+#include <ostream>
 #include <string>
 
 namespace detray::io {
@@ -26,9 +27,9 @@ struct detector_writer_config {
     /// Compactify json output, if not json format this flag does nothing
     bool m_compact_io = false;
     /// Whether to write the material to file
-    bool m_write_material = true;
+    bool m_write_material = false;
     /// Whether to write the accelerator grids to file
-    bool m_write_grids = true;
+    bool m_write_grids = false;
 
     /// Getters
     /// @{
@@ -68,5 +69,24 @@ struct detector_writer_config {
     }
     /// @}
 };
+
+/// Print the detector writer configuration
+inline std::ostream& operator<<(std::ostream& out,
+                                const detector_writer_config& cfg) {
+    out << "\nDetector writer\n"
+        << "----------------------------\n"
+        << "  Path                  : " << cfg.path() << "\n"
+        << "  Write grids           : " << std::boolalpha << cfg.write_grids()
+        << "\n"
+        << "  Write material        : " << cfg.write_material() << "\n";
+
+    if (cfg.format() == detray::io::format::json) {
+        out << "  Compactify json       : " << cfg.compactify_json() << "\n";
+    }
+    // Reset state
+    out << std::noboolalpha;
+
+    return out;
+}
 
 }  // namespace detray::io

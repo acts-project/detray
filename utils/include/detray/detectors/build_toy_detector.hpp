@@ -43,70 +43,65 @@
 namespace detray {
 
 /// Configure the toy detector
-template <typename scalar_t>
 struct toy_det_config {
 
     /// Default toy detector configuration
     toy_det_config() {
         // Barrel module creator
-        m_barrel_factory_cfg.half_length(500.f * unit<scalar_t>::mm)
-            .module_bounds(
-                {8.4f * unit<scalar_t>::mm, 36.f * unit<scalar_t>::mm})
+        m_barrel_factory_cfg.half_length(500.f * unit<scalar>::mm)
+            .module_bounds({8.4f * unit<scalar>::mm, 36.f * unit<scalar>::mm})
             .tilt_phi(0.14f /*0.145*/)
-            .radial_stagger(0.5f * unit<scalar_t>::mm /*2.f*/)
-            .z_overlap(2.f * unit<scalar_t>::mm /*5.f*/);
+            .radial_stagger(0.5f * unit<scalar>::mm /*2.f*/)
+            .z_overlap(2.f * unit<scalar>::mm /*5.f*/);
 
         // Endcap module creator
         m_endcap_factory_cfg.inner_radius(m_beampipe_volume_radius)
             .outer_radius(m_outer_radius)
-            .module_bounds(
-                {{3.f * unit<scalar_t>::mm, 9.5f * unit<scalar_t>::mm,
-                  39.f * unit<scalar_t>::mm},
-                 {6.f * unit<scalar_t>::mm, 10.f * unit<scalar_t>::mm,
-                  39.f * unit<scalar_t>::mm}})
-            .ring_stagger(2.f * unit<scalar_t>::mm)
-            .phi_stagger({4.f * unit<scalar_t>::mm, 4.f * unit<scalar_t>::mm})
-            .phi_sub_stagger(
-                {0.5f * unit<scalar_t>::mm, 0.5f * unit<scalar_t>::mm})
+            .module_bounds({{3.f * unit<scalar>::mm, 9.5f * unit<scalar>::mm,
+                             39.f * unit<scalar>::mm},
+                            {6.f * unit<scalar>::mm, 10.f * unit<scalar>::mm,
+                             39.f * unit<scalar>::mm}})
+            .ring_stagger(2.f * unit<scalar>::mm)
+            .phi_stagger({4.f * unit<scalar>::mm, 4.f * unit<scalar>::mm})
+            .phi_sub_stagger({0.5f * unit<scalar>::mm, 0.5f * unit<scalar>::mm})
             .module_tilt({0.f, 0.f})
             .binning({40u, 68u});
 
         // Configure the material generation
-        m_material_config.sensitive_material(silicon_tml<scalar_t>())
-            .passive_material(beryllium_tml<scalar_t>())  // < beampipe
-            .portal_material(vacuum<scalar_t>())
-            .thickness(1.5f * unit<scalar_t>::mm);
+        m_material_config.sensitive_material(silicon_tml<scalar>())
+            .passive_material(beryllium_tml<scalar>())  // < beampipe
+            .portal_material(vacuum<scalar>())
+            .thickness(1.5f * unit<scalar>::mm);
 
         // Configure the material map generation
         m_beampipe_map_cfg.n_bins = {20u, 20u};
         m_beampipe_map_cfg.axis_index = 1u;
-        m_beampipe_map_cfg.mapped_material = beryllium_tml<scalar_t>();
-        // m_beampipe_map_cfg.thickness = 0.08f * unit<scalar_t>::um;
-        m_beampipe_map_cfg.thickness = 0.f * unit<scalar_t>::um;
+        m_beampipe_map_cfg.mapped_material = beryllium_tml<scalar>();
+        // m_beampipe_map_cfg.thickness = 0.08f * unit<scalar>::um;
+        m_beampipe_map_cfg.thickness = 0.f * unit<scalar>::um;
         // Don't scale the generation of the material thickness
         m_beampipe_map_cfg.scalor = 0.f;
         m_beampipe_map_cfg.mat_generator =
-            detray::detail::generate_cyl_mat<scalar_t>;
+            detray::detail::generate_cyl_mat<scalar>;
 
         m_disc_map_cfg.n_bins = {3u, 20u};
         m_disc_map_cfg.axis_index = 0u;
         m_disc_map_cfg.mapped_material =
-            mixture<scalar_t, silicon_tml<scalar_t, std::ratio<9, 10>>,
-                    aluminium<scalar_t, std::ratio<1, 10>>>{};
-        m_disc_map_cfg.thickness = 1.5f * unit<scalar_t>::mm;
+            mixture<scalar, silicon_tml<scalar, std::ratio<9, 10>>,
+                    aluminium<scalar, std::ratio<1, 10>>>{};
+        m_disc_map_cfg.thickness = 1.5f * unit<scalar>::mm;
         m_disc_map_cfg.scalor = 0.0001f;
         m_disc_map_cfg.mat_generator =
-            detray::detail::generate_disc_mat<scalar_t>;
+            detray::detail::generate_disc_mat<scalar>;
 
         m_cyl_map_cfg.n_bins = {20u, 20u};
         m_cyl_map_cfg.axis_index = 1u;
         m_cyl_map_cfg.mapped_material =
-            mixture<scalar_t, silicon_tml<scalar_t, std::ratio<9, 10>>,
-                    aluminium<scalar_t, std::ratio<1, 10>>>{};
-        m_cyl_map_cfg.thickness = 5.f * unit<scalar_t>::mm;
+            mixture<scalar, silicon_tml<scalar, std::ratio<9, 10>>,
+                    aluminium<scalar, std::ratio<1, 10>>>{};
+        m_cyl_map_cfg.thickness = 5.f * unit<scalar>::mm;
         m_cyl_map_cfg.scalor = 0.000001f;
-        m_cyl_map_cfg.mat_generator =
-            detray::detail::generate_cyl_mat<scalar_t>;
+        m_cyl_map_cfg.mat_generator = detray::detail::generate_cyl_mat<scalar>;
     }
 
     /// No. of barrel layers the detector should be built with
@@ -114,43 +109,43 @@ struct toy_det_config {
     /// No. of endcap layers (on either side) the detector should be built with
     unsigned int m_n_edc_layers{3u};
     /// Total outer radius of the pixel subdetector
-    scalar_t m_outer_radius{180.f * unit<scalar_t>::mm};
+    scalar m_outer_radius{180.f * unit<scalar>::mm};
     // Radius of the innermost volume that contains the beampipe
-    scalar_t m_beampipe_volume_radius{25.f * unit<scalar_t>::mm};
+    scalar m_beampipe_volume_radius{25.f * unit<scalar>::mm};
     // Envelope around the modules used by the cylinder portal generator
-    scalar_t m_portal_envelope{0.1f * unit<scalar_t>::mm};
+    scalar m_portal_envelope{0.1f * unit<scalar>::mm};
     /// Configuration for the homogeneous material generator
-    hom_material_config<scalar_t> m_material_config{};
+    hom_material_config<scalar> m_material_config{};
     /// Put material maps on portals or use homogenous material on modules
     bool m_use_material_maps{false};
     /// Configuration for the material map generator (beampipe)
-    typename material_map_config<scalar_t>::map_config m_beampipe_map_cfg{};
+    typename material_map_config<scalar>::map_config m_beampipe_map_cfg{};
     /// Configuration for the material map generator (disc)
-    typename material_map_config<scalar_t>::map_config m_disc_map_cfg{};
+    typename material_map_config<scalar>::map_config m_disc_map_cfg{};
     /// Configuration for the material map generator (cylinder)
-    typename material_map_config<scalar_t>::map_config m_cyl_map_cfg{};
+    typename material_map_config<scalar>::map_config m_cyl_map_cfg{};
     /// Thickness of the beampipe material
-    scalar_t m_beampipe_mat_thickness{0.8f * unit<scalar_t>::mm};
+    scalar m_beampipe_mat_thickness{0.8f * unit<scalar>::mm};
     /// Thickness of the material slabs in the homogeneous material description
-    scalar_t m_module_mat_thickness{1.5f * unit<scalar_t>::mm};
+    scalar m_module_mat_thickness{1.5f * unit<scalar>::mm};
     /// Radii at which to place the barrel module layers (including beampipe)
-    std::vector<scalar_t> m_barrel_layer_radii = {
-        19.f * unit<scalar_t>::mm, 32.f * unit<scalar_t>::mm,
-        72.f * unit<scalar_t>::mm, 116.f * unit<scalar_t>::mm,
-        172.f * unit<scalar_t>::mm};
+    std::vector<scalar> m_barrel_layer_radii = {
+        19.f * unit<scalar>::mm, 32.f * unit<scalar>::mm,
+        72.f * unit<scalar>::mm, 116.f * unit<scalar>::mm,
+        172.f * unit<scalar>::mm};
     /// Number of modules in phi and z for the barrel
     std::vector<std::pair<unsigned int, unsigned int>> m_barrel_binning = {
         {0u, 0u}, {16u, 14u}, {32u, 14u}, {52u, 14u}, {78u, 14u}};
     /// Positions at which to place the endcap module layers on either side
-    std::vector<scalar_t> m_endcap_layer_positions = {
-        600.f * unit<scalar_t>::mm,  700.f * unit<scalar_t>::mm,
-        820.f * unit<scalar_t>::mm,  960.f * unit<scalar_t>::mm,
-        1100.f * unit<scalar_t>::mm, 1300.f * unit<scalar_t>::mm,
-        1500.f * unit<scalar_t>::mm};
+    std::vector<scalar> m_endcap_layer_positions = {
+        600.f * unit<scalar>::mm,  700.f * unit<scalar>::mm,
+        820.f * unit<scalar>::mm,  960.f * unit<scalar>::mm,
+        1100.f * unit<scalar>::mm, 1300.f * unit<scalar>::mm,
+        1500.f * unit<scalar>::mm};
     /// Config for the module generation (barrel)
-    barrel_generator_config<scalar_t> m_barrel_factory_cfg{};
+    barrel_generator_config<scalar> m_barrel_factory_cfg{};
     /// Config for the module generation (endcaps)
-    endcap_generator_config<scalar_t> m_endcap_factory_cfg{};
+    endcap_generator_config<scalar> m_endcap_factory_cfg{};
     /// Run detector consistency check after reading
     bool m_do_check{true};
 
@@ -164,7 +159,7 @@ struct toy_det_config {
         m_n_edc_layers = n;
         return *this;
     }
-    constexpr toy_det_config &envelope(const scalar_t env) {
+    constexpr toy_det_config &envelope(const scalar env) {
         m_portal_envelope = env;
         return *this;
     }
@@ -182,23 +177,23 @@ struct toy_det_config {
         m_disc_map_cfg.n_bins = {n_r, n_phi};
         return *this;
     }
-    constexpr toy_det_config &material_map_min_thickness(const scalar_t t) {
+    constexpr toy_det_config &material_map_min_thickness(const scalar t) {
         assert(t > 0.f);
         m_cyl_map_cfg.thickness = t;
         m_disc_map_cfg.thickness = t;
         return *this;
     }
-    constexpr toy_det_config &beampipe_mat_thickness(const scalar_t t) {
+    constexpr toy_det_config &beampipe_mat_thickness(const scalar t) {
         assert(t > 0.f);
         m_beampipe_mat_thickness = t;
         return *this;
     }
-    constexpr toy_det_config &module_mat_thickness(const scalar_t t) {
+    constexpr toy_det_config &module_mat_thickness(const scalar t) {
         assert(t > 0.f);
         m_module_mat_thickness = t;
         return *this;
     }
-    constexpr toy_det_config &mapped_material(const material<scalar_t> &mat) {
+    constexpr toy_det_config &mapped_material(const material<scalar> &mat) {
         m_cyl_map_cfg.mapped_material = mat;
         m_disc_map_cfg.mapped_material = mat;
         return *this;
@@ -214,8 +209,8 @@ struct toy_det_config {
     constexpr unsigned int n_brl_layers() const { return m_n_brl_layers; }
     constexpr unsigned int n_edc_layers() const { return m_n_edc_layers; }
     constexpr const auto &outer_radius() const { return m_outer_radius; }
-    constexpr scalar_t envelope() const { return m_portal_envelope; }
-    constexpr scalar_t beampipe_vol_radius() const {
+    constexpr scalar envelope() const { return m_portal_envelope; }
+    constexpr scalar beampipe_vol_radius() const {
         return m_beampipe_volume_radius;
     }
     constexpr auto &material_config() { return m_material_config; }
@@ -235,19 +230,19 @@ struct toy_det_config {
     constexpr const std::array<std::size_t, 2> &disc_map_bins() const {
         return m_disc_map_cfg.n_bins;
     }
-    constexpr scalar_t material_map_min_thickness() const {
+    constexpr scalar material_map_min_thickness() const {
         assert(m_cyl_map_cfg.thickness == m_disc_map_cfg.thickness);
         return m_cyl_map_cfg.thickness;
     }
-    constexpr scalar_t beampipe_mat_thickness() const {
+    constexpr scalar beampipe_mat_thickness() const {
         return m_beampipe_mat_thickness;
     }
-    constexpr scalar_t module_mat_thickness() const {
+    constexpr scalar module_mat_thickness() const {
         return m_module_mat_thickness;
     }
     auto barrel_mat_generator() const { return m_cyl_map_cfg.mat_generator; }
     auto edc_mat_generator() const { return m_disc_map_cfg.mat_generator; }
-    constexpr material<scalar_t> mapped_material() const {
+    constexpr material<scalar> mapped_material() const {
         assert(m_cyl_map_cfg.mapped_material == m_disc_map_cfg.mapped_material);
         return m_cyl_map_cfg.mapped_material;
     }
@@ -260,15 +255,49 @@ struct toy_det_config {
     constexpr const auto &barrel_layer_binning() const {
         return m_barrel_binning;
     }
-    constexpr barrel_generator_config<scalar_t> &barrel_config() {
+    constexpr barrel_generator_config<scalar> &barrel_config() {
         return m_barrel_factory_cfg;
     }
-    constexpr endcap_generator_config<scalar_t> &endcap_config() {
+    constexpr endcap_generator_config<scalar> &endcap_config() {
         return m_endcap_factory_cfg;
     }
     constexpr bool do_check() const { return m_do_check; }
     /// @}
 };
+
+/// Print the toy detector configuration
+inline std::ostream &operator<<(std::ostream &out, const toy_det_config &cfg) {
+    out << "\nToy Detector\n"
+        << "----------------------------\n"
+        << "  No. barrel layers     : " << cfg.n_brl_layers() << "\n"
+        << "  No. endcap layers     : " << cfg.n_edc_layers() << "\n"
+        << "  Portal envelope       : " << cfg.envelope() << " [mm]\n";
+
+    if (cfg.use_material_maps()) {
+        const auto &cyl_map_bins = cfg.cyl_map_bins();
+        const auto &disc_map_bins = cfg.disc_map_bins();
+
+        out << "  Material maps \n"
+            << "    -> cyl. map bins    : (phi: " << cyl_map_bins[0]
+            << ", z: " << cyl_map_bins[1] << ")\n"
+            << "    -> disc map bins    : (r: " << disc_map_bins[0]
+            << ", phi: " << disc_map_bins[1] << ")\n"
+            << "    -> cyl. min. thickness: "
+            << cfg.cyl_material_map().thickness / detray::unit<float>::mm
+            << " [mm]\n"
+            << "    -> disc min. thickness: "
+            << cfg.disc_material_map().thickness / detray::unit<float>::mm
+            << " [mm]\n"
+            << "    -> Material         : " << cfg.mapped_material() << "\n";
+    } else {
+        out << "  Homogeneous material \n"
+            << "    -> Thickness        : "
+            << cfg.module_mat_thickness() / detray::unit<float>::mm << " [mm]\n"
+            << "    -> Material         : " << silicon_tml<scalar>() << "\n";
+    }
+
+    return out;
+}
 
 namespace detail {
 
@@ -324,7 +353,7 @@ volume_builder_interface<detector_t> *decorate_material(
 /// @returns the decorated volume builder and surface factory
 template <typename detector_t>
 std::shared_ptr<surface_factory_interface<detector_t>> decorate_material(
-    toy_det_config<typename detector_t::scalar_type> &cfg,
+    toy_det_config &cfg,
     std::unique_ptr<surface_factory_interface<detector_t>> sf_factory,
     bool is_module_factory = false) {
 
@@ -450,11 +479,8 @@ void add_cylinder_portals(volume_builder_interface<detector_t> *v_builder,
 /// @param cfg config for the toy detector
 /// @param vol_index index of the volume to which the grid should be added
 template <typename detector_builder_t>
-inline void add_cylinder_grid(
-    detector_builder_t &det_builder,
-    toy_det_config<typename detector_builder_t::detector_type::scalar_type>
-        &cfg,
-    const dindex vol_index) {
+inline void add_cylinder_grid(detector_builder_t &det_builder,
+                              toy_det_config &cfg, const dindex vol_index) {
 
     using detector_t = typename detector_builder_t::detector_type;
     using scalar_t = typename detector_t::scalar_type;
@@ -484,11 +510,8 @@ inline void add_cylinder_grid(
 /// @param cfg config for the toy detector
 /// @param vol_index index of the volume to which the grid should be added
 template <typename detector_builder_t>
-inline void add_disc_grid(
-    detector_builder_t &det_builder,
-    toy_det_config<typename detector_builder_t::detector_type::scalar_type>
-        &cfg,
-    const dindex vol_index) {
+inline void add_disc_grid(detector_builder_t &det_builder, toy_det_config &cfg,
+                          const dindex vol_index) {
 
     using detector_t = typename detector_builder_t::detector_type;
     using scalar_t = typename detector_t::scalar_type;
@@ -521,7 +544,7 @@ inline void add_disc_grid(
 /// @param[out] vol_bounds boundary struct
 template <typename detector_t>
 inline void get_volume_extent(
-    toy_det_config<typename detector_t::scalar_type> &cfg,
+    toy_det_config &cfg,
     std::shared_ptr<surface_factory_interface<detector_t>> sf_factory,
     typename cylinder_portal_generator<detector_t>::boundaries &vol_bounds) {
 
@@ -562,8 +585,7 @@ template <typename detector_builder_t>
 inline auto add_barrel_detector(
     detector_builder_t &det_builder,
     typename detector_builder_t::detector_type::geometry_context &gctx,
-    toy_det_config<typename detector_builder_t::detector_type::scalar_type>
-        &cfg,
+    toy_det_config &cfg,
     typename detector_builder_t::detector_type::name_map &names,
     dindex beampipe_idx) {
 
@@ -718,8 +740,7 @@ template <typename detector_builder_t>
 inline auto add_endcap_detector(
     detector_builder_t &det_builder,
     typename detector_builder_t::detector_type::geometry_context &gctx,
-    toy_det_config<typename detector_builder_t::detector_type::scalar_type>
-        &cfg,
+    toy_det_config &cfg,
     typename detector_builder_t::detector_type::name_map &names,
     dindex beampipe_idx) {
 
@@ -900,12 +921,11 @@ inline auto add_endcap_detector(
 /// @param neg_edc_lay_sizes indices and z-extent of the endcap volumes of one
 ///                          detector side (positive or negative)
 template <typename detector_builder_t, typename vol_extent_data_t>
-inline void add_connector_portals(
-    detector_builder_t &det_builder,
-    toy_det_config<typename detector_builder_t::detector_type::scalar_type>
-        &cfg,
-    const dindex beampipe_idx, const vol_extent_data_t edc_vol_extents,
-    const vol_extent_data_t &brl_vol_extents) {
+inline void add_connector_portals(detector_builder_t &det_builder,
+                                  toy_det_config &cfg,
+                                  const dindex beampipe_idx,
+                                  const vol_extent_data_t edc_vol_extents,
+                                  const vol_extent_data_t &brl_vol_extents) {
 
     using detector_t = typename detector_builder_t::detector_type;
     using transform3_t = typename detector_t::transform3_type;
@@ -990,7 +1010,7 @@ inline void add_connector_portals(
 template <typename detector_t>
 inline void add_beampipe_portals(
     volume_builder_interface<detector_t> *beampipe_builder,
-    toy_det_config<typename detector_t::scalar_type> &cfg) {
+    toy_det_config &cfg) {
 
     using scalar_t = typename detector_t::scalar_type;
     using transform3_t = typename detector_t::transform3_type;
@@ -1048,11 +1068,12 @@ inline void add_beampipe_portals(
 /// @param cfg config for the toy detector
 /// @param neg_edc_lay_sizes indices and z-extent of the endcap volumes of one
 ///                          detector side (positive or negative)
-template <typename detector_t, typename scalar_t, typename layer_size_cont_t>
+template <typename detector_t, typename layer_size_cont_t>
 inline void add_beampipe_portals(
-    volume_builder_interface<detector_t> *beampipe_builder,
-    toy_det_config<scalar_t> &cfg, const layer_size_cont_t &edc_lay_sizes) {
+    volume_builder_interface<detector_t> *beampipe_builder, toy_det_config &cfg,
+    const layer_size_cont_t &edc_lay_sizes) {
 
+    using scalar_t = typename detector_t::scalar_type;
     using transform3_t = typename detector_t::transform3_type;
     using point3_t = typename detector_t::point3_type;
     using nav_link_t = typename detector_t::surface_type::navigation_link;
@@ -1113,7 +1134,7 @@ inline void add_beampipe_portals(
 /// @returns a complete detector object
 template <typename scalar_t = detray::scalar>
 inline auto build_toy_detector(vecmem::memory_resource &resource,
-                               toy_det_config<scalar_t> cfg = {}) {
+                               toy_det_config cfg = {}) {
 
     using builder_t = detector_builder<toy_metadata, volume_builder>;
     using detector_t = typename builder_t::detector_type;

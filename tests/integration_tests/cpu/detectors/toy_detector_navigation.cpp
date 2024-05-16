@@ -33,7 +33,7 @@ int main(int argc, char **argv) {
     //
     // Toy detector configuration
     //
-    toy_det_config<scalar_t> toy_cfg{};
+    toy_det_config toy_cfg{};
     toy_cfg.n_brl_layers(4u).n_edc_layers(7u);
 
     // Build the geometry
@@ -64,7 +64,7 @@ int main(int argc, char **argv) {
                                  detray::detail::invalid_value<scalar_t>()});
     cfg_hel_scan.track_generator().n_tracks(10000u);
     cfg_hel_scan.track_generator().eta_range(-4.f, 4.f);
-    cfg_hel_scan.track_generator().p_T(1.f * unit<float>::GeV);
+    cfg_hel_scan.track_generator().p_T(1.f * unit<scalar_t>::GeV);
 
     detail::register_checks<test::helix_scan>(toy_det, toy_names, cfg_hel_scan);
 
@@ -74,8 +74,10 @@ int main(int argc, char **argv) {
     cfg_str_nav.whiteboard(white_board);
     cfg_str_nav.propagation().navigation.search_window = {3u, 3u};
     auto mask_tolerance = cfg_ray_scan.mask_tolerance();
-    cfg_str_nav.propagation().navigation.min_mask_tolerance = mask_tolerance[0];
-    cfg_str_nav.propagation().navigation.max_mask_tolerance = mask_tolerance[1];
+    cfg_str_nav.propagation().navigation.min_mask_tolerance =
+        static_cast<float>(mask_tolerance[0]);
+    cfg_str_nav.propagation().navigation.max_mask_tolerance =
+        static_cast<float>(mask_tolerance[1]);
 
     detail::register_checks<test::straight_line_navigation>(toy_det, toy_names,
                                                             cfg_str_nav);

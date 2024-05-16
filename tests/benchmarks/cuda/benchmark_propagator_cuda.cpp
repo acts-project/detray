@@ -30,7 +30,7 @@ vecmem::binary_page_memory_resource bp_mng_mr(mng_mr);
 
 // detector configuration
 auto toy_cfg =
-    toy_det_config<scalar>{}.n_brl_layers(4u).n_edc_layers(7u).do_check(false);
+    toy_det_config{}.n_brl_layers(4u).n_edc_layers(7u).do_check(false);
 
 void fill_tracks(vecmem::vector<free_track_parameters<algebra_t>> &tracks,
                  const std::size_t theta_steps, const std::size_t phi_steps) {

@@ -75,7 +75,7 @@ inline void test_mat_map(const mat_map_t& mat_map, const bool is_cyl) {
 
         for (const auto& mat_slab : mat_map.all()) {
             EXPECT_TRUE(mat_slab.get_material() ==
-                            toy_det_config<scalar>{}.mapped_material() ||
+                            toy_det_config{}.mapped_material() ||
                         mat_slab.get_material() == beryllium_tml<scalar_t>{});
         }
     } else {
@@ -93,7 +93,7 @@ inline void test_mat_map(const mat_map_t& mat_map, const bool is_cyl) {
 
         for (const auto& mat_slab : mat_map.all()) {
             EXPECT_TRUE(mat_slab.get_material() ==
-                        toy_det_config<scalar>{}.mapped_material());
+                        toy_det_config{}.mapped_material());
         }
     }
 }
@@ -130,9 +130,8 @@ inline bool toy_detector_test(
     auto& materials = toy_det.material_store();
 
     // Materials
-    auto portal_mat =
-        material_slab<scalar_t>(toy_det_config<scalar_t>{}.mapped_material(),
-                                1.5f * unit<scalar_t>::mm);
+    auto portal_mat = material_slab<scalar_t>(
+        toy_det_config{}.mapped_material(), 1.5f * unit<scalar_t>::mm);
     auto beampipe_mat = material_slab<scalar_t>(beryllium_tml<scalar_t>(),
                                                 0.8f * unit<scalar_t>::mm);
     auto pixel_mat = material_slab<scalar_t>(silicon_tml<scalar_t>(),
