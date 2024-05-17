@@ -46,7 +46,7 @@ detray::rk_stepper<magnetic_field_t, algebra_t, constraint_t, policy_t,
 
     // Update path length
     this->_path_length += h;
-    this->_abs_path_length += math::abs(h);
+    this->_abs_path_length += math::fabs(h);
     this->_s += h;
 }
 
@@ -765,8 +765,8 @@ DETRAY_HOST_DEVICE bool detray::rk_stepper<
     stepping.set_direction(step_dir);
 
     // Check constraints
-    if (math::abs(stepping._step_size) >
-        math::abs(
+    if (math::fabs(stepping._step_size) >
+        math::fabs(
             stepping.constraints().template size<>(stepping.direction()))) {
 
         // Run inspection before step size is cut

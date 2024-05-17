@@ -10,6 +10,7 @@
 // Project include(s)
 #include "detray/definitions/detail/containers.hpp"
 #include "detray/definitions/detail/indexing.hpp"
+#include "detray/definitions/detail/math.hpp"
 #include "detray/definitions/detail/qualifiers.hpp"
 #include "detray/geometry/coordinates/cartesian3D.hpp"
 
@@ -170,17 +171,17 @@ class cuboid3D {
         constexpr auto tol{10.f * std::numeric_limits<scalar_t>::epsilon()};
 
         if (bounds[e_min_x] >= bounds[e_max_x] or
-            math::abs(bounds[e_min_x] - bounds[e_max_x]) < tol) {
+            math::fabs(bounds[e_min_x] - bounds[e_max_x]) < tol) {
             os << "ERROR: Min x must be smaller than max x.";
             return false;
         }
         if (bounds[e_min_y] >= bounds[e_max_y] or
-            math::abs(bounds[e_min_y] - bounds[e_max_y]) < tol) {
+            math::fabs(bounds[e_min_y] - bounds[e_max_y]) < tol) {
             os << "ERROR: Min y must be smaller than max y.";
             return false;
         }
         if (bounds[e_min_z] >= bounds[e_max_z] or
-            math::abs(bounds[e_min_z] - bounds[e_max_z]) < tol) {
+            math::fabs(bounds[e_min_z] - bounds[e_max_z]) < tol) {
             os << "ERROR: Min z must be smaller than max z.";
             return false;
         }

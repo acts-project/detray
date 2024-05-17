@@ -163,7 +163,7 @@ class ring2D {
             return false;
         }
         if (bounds[e_inner_r] >= bounds[e_outer_r] or
-            math::abs(bounds[e_inner_r] - bounds[e_outer_r]) < tol) {
+            math::fabs(bounds[e_inner_r] - bounds[e_outer_r]) < tol) {
             os << "ERROR: Inner radius must be smaller outer radius.";
             return false;
         }

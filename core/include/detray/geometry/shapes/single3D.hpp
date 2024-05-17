@@ -88,7 +88,7 @@ class single3D {
               typename std::enable_if_t<kDIM == e_size, bool> = true>
     DETRAY_HOST_DEVICE constexpr scalar_t area(
         const bounds_t<scalar_t, kDIM> &bounds) const {
-        return math::abs(bounds[e_upper] - bounds[e_lower]);
+        return math::fabs(bounds[e_upper] - bounds[e_lower]);
     }
 
     /// @brief Lower and upper point for minimal axis aligned bounding box.

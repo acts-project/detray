@@ -39,7 +39,11 @@ template <typename T,
 DETRAY_HOST_DEVICE inline constexpr bool is_invalid_value(
     const T value) noexcept {
     if constexpr (std::is_signed_v<T>) {
-        return (math::abs(value) == detail::invalid_value<T>());
+        if constexpr (std::is_floating_point_v<T>) {
+            return (math::fabs(value) == detail::invalid_value<T>());
+        } else {
+            return (math::abs(value) == detail::invalid_value<T>());
+        }
     } else {
         return (value == detail::invalid_value<T>());
     }

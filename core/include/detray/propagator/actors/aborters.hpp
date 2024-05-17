@@ -1,6 +1,6 @@
 /** Detray library, part of the ACTS project (R&D line)
  *
- * (c) 2022-2023 CERN for the benefit of the ACTS project
+ * (c) 2022-2024 CERN for the benefit of the ACTS project
  *
  * Mozilla Public License Version 2.0
  */
@@ -51,7 +51,7 @@ struct pathlimit_aborter : actor {
 
         const scalar step_limit =
             abrt_state.path_limit() -
-            math::abs(prop_state._stepping._abs_path_length);
+            math::fabs(prop_state._stepping._abs_path_length);
 
         // Check the path limit
         if (step_limit <= 0.f) {

@@ -1,6 +1,6 @@
 /** Detray library, part of the ACTS project (R&D line)
  *
- * (c) 2020-2023 CERN for the benefit of the ACTS project
+ * (c) 2020-2024 CERN for the benefit of the ACTS project
  *
  * Mozilla Public License Version 2.0
  */
@@ -79,19 +79,19 @@ struct intersection2D {
     /// @param rhs is the right hand side intersection for comparison
     DETRAY_HOST_DEVICE
     bool operator<(const intersection2D &rhs) const {
-        return (math::abs(path) < math::abs(rhs.path));
+        return (math::fabs(path) < math::fabs(rhs.path));
     }
 
     /// @param rhs is the left hand side intersection for comparison
     DETRAY_HOST_DEVICE
     bool operator>(const intersection2D &rhs) const {
-        return (math::abs(path) > math::abs(rhs.path));
+        return (math::fabs(path) > math::fabs(rhs.path));
     }
 
     /// @param rhs is the left hand side intersection for comparison
     DETRAY_HOST_DEVICE
     bool operator==(const intersection2D &rhs) const {
-        return math::abs(path - rhs.path) <
+        return math::fabs(path - rhs.path) <
                std::numeric_limits<float>::epsilon();
     }
 

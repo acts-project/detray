@@ -10,6 +10,7 @@
 // Project include(s)
 #include "detray/definitions/detail/containers.hpp"
 #include "detray/definitions/detail/indexing.hpp"
+#include "detray/definitions/detail/math.hpp"
 #include "detray/definitions/detail/qualifiers.hpp"
 #include "detray/definitions/units.hpp"
 #include "detray/geometry/coordinates/cylindrical3D.hpp"
@@ -173,12 +174,12 @@ class cylinder3D {
             return false;
         }
         if (bounds[e_min_r] >= bounds[e_max_r] or
-            math::abs(bounds[e_min_r] - bounds[e_max_r]) < tol) {
+            math::fabs(bounds[e_min_r] - bounds[e_max_r]) < tol) {
             os << "ERROR: Min Radius must be smaller than max Radius.";
             return false;
         }
         if (bounds[e_min_z] >= bounds[e_max_z] or
-            math::abs(bounds[e_min_z] - bounds[e_max_z]) < tol) {
+            math::fabs(bounds[e_min_z] - bounds[e_max_z]) < tol) {
             os << "ERROR: Min z must be smaller than max z.";
             return false;
         }

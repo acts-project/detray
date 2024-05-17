@@ -53,7 +53,7 @@ struct relativistic_quantities {
         m_q2OverBeta2 = q * q + (mass * qOverP) * (mass * qOverP);
         // 1/p = q/(qp) = (q/p)/q
         const scalar_type mOverP{
-            mass * ((q == 0.f) ? math::abs(qOverP / q) : math::abs(qOverP))};
+            mass * ((q == 0.f) ? math::fabs(qOverP / q) : math::fabs(qOverP))};
         const scalar_type pOverM{1.f / mOverP};
         // beta² = p²/E² = p²/(m² + p²) = 1/(1 + (m/p)²)
         m_beta2 = 1.f / (1.f + mOverP * mOverP);

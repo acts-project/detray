@@ -392,7 +392,7 @@ class annulus2D {
             return false;
         }
         if (bounds[e_min_r] >= bounds[e_max_r] or
-            math::abs(bounds[e_min_r] - bounds[e_max_r]) < tol) {
+            math::fabs(bounds[e_min_r] - bounds[e_max_r]) < tol) {
             os << "ERROR: Min radius must be smaller than max radius.";
             return false;
         }
@@ -406,7 +406,7 @@ class annulus2D {
             return false;
         }
         if (bounds[e_min_phi_rel] >= bounds[e_max_phi_rel] or
-            math::abs(bounds[e_min_phi_rel] - bounds[e_max_phi_rel]) < tol) {
+            math::fabs(bounds[e_min_phi_rel] - bounds[e_max_phi_rel]) < tol) {
             os << "ERROR: Min relative angle must be smaller than max relative "
                   "angle.";
             return false;

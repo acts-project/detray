@@ -1,6 +1,6 @@
 /** Detray library, part of the ACTS project (R&D line)
  *
- * (c) 2020-2023 CERN for the benefit of the ACTS project
+ * (c) 2020-2024 CERN for the benefit of the ACTS project
  *
  * Mozilla Public License Version 2.0
  */
@@ -38,8 +38,8 @@ class quadratic_equation {
         const scalar_t a, const scalar_t b, const scalar_t c,
         const scalar_t tolerance = std::numeric_limits<scalar_t>::epsilon()) {
         // linear case
-        if (math::abs(a) <= tolerance) {
-            if (math::abs(b) <= tolerance) {
+        if (math::fabs(a) <= tolerance) {
+            if (math::fabs(b) <= tolerance) {
                 m_solutions = 0;
             } else {
                 m_solutions = 1;

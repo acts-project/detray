@@ -10,6 +10,7 @@
 // Project include(s)
 #include "detray/definitions/detail/containers.hpp"
 #include "detray/definitions/detail/indexing.hpp"
+#include "detray/definitions/detail/math.hpp"
 #include "detray/definitions/detail/qualifiers.hpp"
 #include "detray/definitions/units.hpp"
 #include "detray/geometry/coordinates/concentric_cylindrical2D.hpp"
@@ -166,7 +167,7 @@ class concentric_cylinder2D {
             return false;
         }
         if (bounds[e_n_half_z] >= bounds[e_p_half_z] or
-            math::abs(bounds[e_n_half_z] - bounds[e_p_half_z]) < tol) {
+            math::fabs(bounds[e_n_half_z] - bounds[e_p_half_z]) < tol) {
             os << "ERROR: Neg. half length must be smaller than pos. half "
                   "length.";
             return false;

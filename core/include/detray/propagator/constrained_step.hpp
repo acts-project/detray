@@ -1,6 +1,6 @@
 /** Detray library, part of the ACTS project (R&D line)
  *
- * (c) 2022 CERN for the benefit of the ACTS project
+ * (c) 2022-2024 CERN for the benefit of the ACTS project
  *
  * Mozilla Public License Version 2.0
  */
@@ -74,7 +74,7 @@ struct constrained_step {
         std::enable_if_t<not(type == step::constraint::e_all), bool> = true>
     DETRAY_HOST_DEVICE void set(const scalar step_size) {
         _constraints[type] =
-            math::min(_constraints[type], math::abs(step_size));
+            math::min(_constraints[type], math::fabs(step_size));
     }
 
     /// @returns the current step size constraint for a given type or overall
