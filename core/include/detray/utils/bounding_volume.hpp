@@ -296,10 +296,9 @@ class axis_aligned_bounding_volume {
     /// in the coordinate frame that is spanned by the box axes.
     DETRAY_HOST_DEVICE
     template <typename point_t>
-    constexpr auto is_inside(
+    constexpr bool is_inside(
         const point_t& loc_p,
-        const scalar_t t = std::numeric_limits<scalar_t>::epsilon()) const
-        -> intersection::status {
+        const scalar_t t = std::numeric_limits<scalar_t>::epsilon()) const {
         return m_mask.is_inside(loc_p, t);
     }
 
@@ -317,20 +316,18 @@ class axis_aligned_bounding_volume {
     /// @TODO: Overlapping aabbs
     /*DETRAY_HOST_DEVICE
     template<typename algebra_t>
-    constexpr auto intersect(
+    constexpr bool intersect(
         const axis_aligned_bounding_volume &aabb,
-        const scalar_t t = std::numeric_limits<scalar_t>::epsilon()) const
-        -> intersection::status {
+        const scalar_t t = std::numeric_limits<scalar_t>::epsilon()) const {
         return m_mask.is_overlap(aabb.bounds());
     }*/
 
     /// @TODO: Frustum intersection
     /*DETRAY_HOST_DEVICE
     template<typename algebra_t>
-    constexpr auto intersect(
+    constexpr bool intersect(
         const detail::frustum<algebra_t> frustum,
-        const scalar_t t = std::numeric_limits<scalar_t>::epsilon()) const
-        -> intersection::status {
+        const scalar_t t = std::numeric_limits<scalar_t>::epsilon()) const {
         ....
     }*/
 

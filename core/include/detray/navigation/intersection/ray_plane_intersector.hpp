@@ -20,12 +20,12 @@
 
 namespace detray {
 
-template <typename frame_t, typename algebra_t>
+template <typename frame_t, typename algebra_t, bool is_soa>
 struct ray_intersector_impl;
 
 /// A functor to find intersections between straight line and planar surface
 template <typename algebra_t>
-struct ray_intersector_impl<cartesian2D<algebra_t>, algebra_t> {
+struct ray_intersector_impl<cartesian2D<algebra_t>, algebra_t, false> {
 
     /// linear algebra types
     /// @{
@@ -67,9 +67,8 @@ struct ray_intersector_impl<cartesian2D<algebra_t>, algebra_t> {
         intersection_type<surface_descr_t> is;
 
         // Retrieve the surface normal & translation (context resolved)
-        const auto &sm = trf.matrix();
-        const vector3_type sn = getter::vector<3>(sm, 0u, 2u);
-        const vector3_type st = getter::vector<3>(sm, 0u, 3u);
+        const vector3_type &sn = trf.z();
+        const vector3_type &st = trf.translation();
 
         // Intersection code
         const point3_type &ro = ray.pos();
@@ -83,7 +82,7 @@ struct ray_intersector_impl<cartesian2D<algebra_t>, algebra_t> {
             if (is.path >= overstep_tol) {
 
                 const point3_type p3 = ro + is.path * rd;
-                is.local = mask.to_local_frame(trf, p3, ray.dir());
+                is.local = mask.to_local_frame(trf, p3, rd);
                 // Tolerance: per mille of the distance
                 is.status = mask.is_inside(
                     is.local,
@@ -93,12 +92,9 @@ struct ray_intersector_impl<cartesian2D<algebra_t>, algebra_t> {
 
                 // prepare some additional information in case the intersection
                 // is valid
-                if (is.status == intersection::status::e_inside) {
+                if (is.status) {
                     is.sf_desc = sf;
-
-                    is.direction = detail::signbit(is.path)
-                                       ? intersection::direction::e_opposite
-                                       : intersection::direction::e_along;
+                    is.direction = !detail::signbit(is.path);
                     is.volume_link = mask.volume_link();
 
                     // Get incidene angle
@@ -106,7 +102,7 @@ struct ray_intersector_impl<cartesian2D<algebra_t>, algebra_t> {
                 }
             }
         } else {
-            is.status = intersection::status::e_missed;
+            is.status = false;
         }
 
         return is;
@@ -146,7 +142,7 @@ struct ray_intersector_impl<cartesian2D<algebra_t>, algebra_t> {
 };
 
 template <typename algebra_t>
-struct ray_intersector_impl<polar2D<algebra_t>, algebra_t>
-    : public ray_intersector_impl<cartesian2D<algebra_t>, algebra_t> {};
+struct ray_intersector_impl<polar2D<algebra_t>, algebra_t, false>
+    : public ray_intersector_impl<cartesian2D<algebra_t>, algebra_t, false> {};
 
 }  // namespace detray

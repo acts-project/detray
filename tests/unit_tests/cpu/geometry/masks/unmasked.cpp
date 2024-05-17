@@ -25,7 +25,7 @@ GTEST_TEST(detray_masks, unmasked) {
 
     mask<unmasked<>> u{};
 
-    ASSERT_TRUE(u.is_inside(p2, 0.f) == intersection::status::e_inside);
+    ASSERT_TRUE(u.is_inside(p2, 0.f));
 
     // Check bounding box
     constexpr scalar envelope{0.01f};

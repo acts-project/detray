@@ -1,6 +1,6 @@
 # Detray library, part of the ACTS project (R&D line)
 #
-# (c) 2023 CERN for the benefit of the ACTS project
+# (c) 2023-2024 CERN for the benefit of the ACTS project
 #
 # Mozilla Public License Version 2.0
 
@@ -48,7 +48,31 @@ if( DETRAY_SMATRIX_PLUGIN )
    detray_add_cpu_benchmark( smatrix )
 endif()
 
-# Build the Vc benchmark executable.
-if( DETRAY_VC_PLUGIN )
-   detray_add_cpu_benchmark( vc )
+# Build the Vc benchmark executable (defunct at the moment)
+#if( DETRAY_VC_AOS_PLUGIN )
+#   detray_add_cpu_benchmark( vc_aos )
+#endif()
+
+if( DETRAY_VC_SOA_PLUGIN )
+
+   macro( detray_add_soa_benchmark algebra )
+      # Build the benchmark executable.
+      detray_add_executable( benchmark_soa_${algebra}
+         "intersectors.cpp"
+         LINK_LIBRARIES benchmark::benchmark benchmark::benchmark_main vecmem::core detray::core_vc_soa detray::core_vc_aos detray::core_${algebra} detray::test 
+         detray::utils_${algebra} )
+
+      # Set the benchmark specific compilation options.
+      if( DETRAY_BENCHMARKS_MULTITHREAD )
+         target_compile_definitions( detray_benchmark_soa_${algebra} PRIVATE
+            DETRAY_BENCHMARKS_MULTITHREAD )
+      endif()
+      if( DETRAY_BENCHMARK_PRINTOUTS )
+         target_compile_definitions( detray_benchmark_soa_${algebra} PRIVATE
+            DETRAY_BENCHMARK_PRINTOUTS )
+      endif()
+
+   endmacro()
+
+   detray_add_soa_benchmark( array )
 endif()

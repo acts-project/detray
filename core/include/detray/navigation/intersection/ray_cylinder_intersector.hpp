@@ -21,14 +21,14 @@
 
 namespace detray {
 
-template <typename frame_t, typename algebra_t>
+template <typename frame_t, typename algebra_t, bool is_soa>
 struct ray_intersector_impl;
 
 /// A functor to find intersections between a ray and a 2D cylinder mask
 template <typename algebra_t>
-struct ray_intersector_impl<cylindrical2D<algebra_t>, algebra_t> {
+struct ray_intersector_impl<cylindrical2D<algebra_t>, algebra_t, false> {
 
-    /// linear algebra types
+    /// Linear algebra types
     /// @{
     using scalar_type = dscalar<algebra_t>;
     using point3_type = dpoint3D<algebra_t>;
@@ -80,8 +80,8 @@ struct ray_intersector_impl<cylindrical2D<algebra_t>, algebra_t> {
                 ret[0].sf_desc = sf;
                 break;
             case 0:
-                ret[0].status = intersection::status::e_missed;
-                ret[1].status = intersection::status::e_missed;
+                ret[0].status = false;
+                ret[1].status = false;
         };
 
         // Even if there are two geometrically valid solutions, the smaller one
@@ -128,7 +128,7 @@ struct ray_intersector_impl<cylindrical2D<algebra_t>, algebra_t> {
                     ray, mask, trf, qe.smaller(), mask_tolerance, overstep_tol);
                 break;
             case 0:
-                sfi.status = intersection::status::e_missed;
+                sfi.status = false;
         };
     }
 
@@ -142,9 +142,8 @@ struct ray_intersector_impl<cylindrical2D<algebra_t>, algebra_t> {
     solve_intersection(const ray_type &ray, const mask_t &mask,
                        const transform3_type &trf) const {
         const scalar_type r{mask[mask_t::shape::e_r]};
-        const auto &m = trf.matrix();
-        const vector3_type sz = getter::vector<3>(m, 0u, 2u);
-        const vector3_type sc = getter::vector<3>(m, 0u, 3u);
+        const vector3_type &sz = trf.z();
+        const vector3_type &sc = trf.translation();
 
         const point3_type &ro = ray.pos();
         const vector3_type &rd = ray.dir();
@@ -195,10 +194,8 @@ struct ray_intersector_impl<cylindrical2D<algebra_t>, algebra_t> {
 
             // prepare some additional information in case the intersection
             // is valid
-            if (is.status == intersection::status::e_inside) {
-                is.direction = detail::signbit(is.path)
-                                   ? intersection::direction::e_opposite
-                                   : intersection::direction::e_along;
+            if (is.status) {
+                is.direction = !detail::signbit(is.path);
                 is.volume_link = mask.volume_link();
 
                 // Get incidence angle
@@ -207,7 +204,7 @@ struct ray_intersector_impl<cylindrical2D<algebra_t>, algebra_t> {
                 is.cos_incidence_angle = vector::dot(rd, normal);
             }
         } else {
-            is.status = intersection::status::e_missed;
+            is.status = false;
         }
 
         return is;

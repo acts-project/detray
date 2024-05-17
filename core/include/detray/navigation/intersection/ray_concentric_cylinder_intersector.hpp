@@ -120,11 +120,9 @@ struct ray_concentric_cylinder_intersector {
 
                 // prepare some additional information in case the intersection
                 // is valid
-                if (is.status == intersection::status::e_inside) {
+                if (is.status) {
                     is.sf_desc = sf;
-                    is.direction = detail::signbit(is.path)
-                                       ? intersection::direction::e_opposite
-                                       : intersection::direction::e_along;
+                    is.direction = !detail::signbit(is.path);
                     is.volume_link = mask.volume_link();
 
                     // Get incidence angle

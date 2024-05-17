@@ -27,7 +27,7 @@ The following cache variables are available to influence which parts of the
 project would be built:
 
 - `DETRAY_EIGEN_PLUGIN` (`ON` by default), `DETRAY_SMATRIX_PLUGIN`
-  (`OFF` by default), `DETRAY_VC_PLUGIN` (`ON` by default): Boolean
+  (`OFF` by default), `DETRAY_VC_AOS_PLUGIN` (`ON` by default): Boolean
   flags turning the build of [Eigen](https://eigen.tuxfamily.org),
   [SMatrix](https://root.cern/doc/master/group__SMatrixGroup.html) and
   [Vc](https://github.com/VcDevel/Vc) using code on or off.
