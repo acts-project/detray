@@ -7,7 +7,7 @@
 
 // Project include(s)
 #include "detray/core/detector.hpp"
-#include "detray/detectors/create_toy_geometry.hpp"
+#include "detray/detectors/build_toy_detector.hpp"
 #include "detray/plugins/svgtools/illustrator.hpp"
 #include "detray/plugins/svgtools/writer.hpp"
 
@@ -39,16 +39,16 @@ GTEST_TEST(svgtools, material) {
 
     // Creating the detector and geomentry context.
     vecmem::host_memory_resource host_mr;
-    detray::toy_det_config toy_cfg{};
+    detray::toy_det_config<detray::scalar> toy_cfg{};
     toy_cfg.use_material_maps(true).cyl_map_bins(20, 20).disc_map_bins(5, 20);
-    const auto [det, names] = detray::create_toy_geometry(host_mr, toy_cfg);
+    const auto [det, names] = detray::build_toy_detector(host_mr, toy_cfg);
 
     // Creating the svg generator for the detector.
     detray::svgtools::illustrator il{det, names};
     il.hide_material(false);
 
     // Indexes of the surfaces in the detector to be visualized.
-    std::array indices{370u, 371u, 372u, 373u};
+    std::array indices{0u, 364u, 365u, 596u, 597u, 3010u, 3011u};
 
     auto& portal_mat_style = il.style()
                                  ._detector_style._volume_style._portal_style
@@ -61,8 +61,6 @@ GTEST_TEST(svgtools, material) {
         // Visualization of material map of portal i:
         const auto svg_xy = il.draw_surface_material(i, xy);
         detray::svgtools::write_svg(name + "_xy", {axes, svg_xy});
-        const auto svg_zr = il.draw_surface_material(i, zr);
-        detray::svgtools::write_svg(name + "_zr", {axes, svg_zr});
         const auto svg_zphi = il.draw_surface_material(i, zphi);
         detray::svgtools::write_svg(name + "_zphi", {axes, svg_zphi});
     }
@@ -71,13 +69,9 @@ GTEST_TEST(svgtools, material) {
     portal_mat_style._gradient_color_scale =
         detray::svgtools::styling::colors::gradient::plasma_scale;
 
-    std::vector indices2{362u, 363u, 364u, 365u, 366u, 367u, 368u, 369u};
+    std::vector indices2{598u, 599u, 1054u, 1055u, 1790u, 1791u, 2890u, 2891u};
     std::string name = "test_svgtools_disc_materials";
 
     const auto svg_xy = il.draw_surface_materials(indices2, xy);
     detray::svgtools::write_svg(name + "_xy", {axes, svg_xy});
-    const auto svg_zr = il.draw_surface_materials(indices2, zr);
-    detray::svgtools::write_svg(name + "_zr", {axes, svg_zr});
-    const auto svg_zphi = il.draw_surface_materials(indices2, zphi);
-    detray::svgtools::write_svg(name + "_zphi", {axes, svg_zphi});
 }

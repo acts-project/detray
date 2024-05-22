@@ -408,7 +408,8 @@ class surface {
             }
         } else if (vol_link != volume()) {
             os << "ERROR: Passive/sensitive surface does not link to mother "
-                  "volume:\n"
+                  "volume:"
+               << "Mask volume link : " << vol_link << "\n"
                << *this << std::endl;
             return false;
         }

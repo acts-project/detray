@@ -154,7 +154,7 @@ class cylinder_portal_generator final
     }
 
     /// @brief Access the volume boundaries after fitting
-    const boundaries &volume_boundaries() { return m_boundaries; }
+    const boundaries &volume_boundaries() const { return m_boundaries; }
 
     /// Create minimum aabbs around all surfaces that are passed and then
     /// construct cylinder and disc portals using the measures of the global
