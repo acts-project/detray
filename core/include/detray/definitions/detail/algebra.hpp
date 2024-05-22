@@ -15,6 +15,8 @@
 #include "detray/plugins/algebra/smatrix_definitions.hpp"
 #elif DETRAY_ALGEBRA_VC
 #include "detray/plugins/algebra/vc_array_definitions.hpp"
+#elif DETRAY_ALGEBRA_VC_SOA
+#include "detray/plugins/algebra/vc_soa_definitions.hpp"
 #else
 #error "No algebra plugin selected! Please link to one of the algebra plugins."
 #endif
@@ -111,5 +113,22 @@ using dsize_type = typename detail::get_matrix<A>::size_type;
 
 template <typename A, std::size_t R, std::size_t C>
 using dmatrix = typename detail::get_matrix<A>::template matrix<R, C>;
+
+namespace detail {
+
+/// Check if an algebra has soa layout
+/// @{
+template <typename A, typename = void>
+struct is_soa : public std::false_type {};
+
+template <typename A>
+struct is_soa<A, std::enable_if_t<!std::is_arithmetic_v<dscalar<A>>, void>>
+    : public std::true_type {};
+
+template <typename A>
+inline constexpr bool is_soa_v = is_soa<A>::value;
+/// @}
+
+}  // namespace detail
 
 }  // namespace detray

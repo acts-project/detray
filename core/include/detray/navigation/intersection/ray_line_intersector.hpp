@@ -19,12 +19,12 @@
 
 namespace detray {
 
-template <typename frame_t, typename algebra_t>
+template <typename frame_t, typename algebra_t, bool is_soa>
 struct ray_intersector_impl;
 
 /// A functor to find intersections between trajectory and line mask
 template <typename algebra_t>
-struct ray_intersector_impl<line2D<algebra_t>, algebra_t> {
+struct ray_intersector_impl<line2D<algebra_t>, algebra_t, false> {
 
     using scalar_type = dscalar<algebra_t>;
     using point3_type = dpoint3D<algebra_t>;
@@ -81,7 +81,7 @@ struct ray_intersector_impl<line2D<algebra_t>, algebra_t> {
 
         // Case for wire is parallel to track
         if (denom < 1e-5f) {
-            is.status = intersection::status::e_missed;
+            is.status = false;
             return is;
         }
 
@@ -113,12 +113,9 @@ struct ray_intersector_impl<line2D<algebra_t>, algebra_t> {
 
             // prepare some additional information in case the intersection
             // is valid
-            if (is.status == intersection::status::e_inside) {
+            if (is.status) {
                 is.sf_desc = sf;
-
-                is.direction = detail::signbit(is.path)
-                                   ? intersection::direction::e_opposite
-                                   : intersection::direction::e_along;
+                is.direction = !detail::signbit(is.path);
                 is.volume_link = mask.volume_link();
 
                 // Get incidence angle

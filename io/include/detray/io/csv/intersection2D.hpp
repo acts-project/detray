@@ -91,9 +91,8 @@ inline auto read_intersection2D(const std::string &file_name) {
         inters.cos_incidence_angle =
             static_cast<scalar_t>(inters_data.cos_theta);
         inters.volume_link = static_cast<nav_link_t>(inters_data.volume_link);
-        inters.direction =
-            static_cast<intersection::direction>(inters_data.direction);
-        inters.status = static_cast<intersection::status>(inters_data.status);
+        inters.direction = static_cast<bool>(inters_data.direction);
+        inters.status = static_cast<bool>(inters_data.status);
 
         // Add to collection
         intersections_per_track[trk_index].push_back(inters);
