@@ -38,11 +38,11 @@ GTEST_TEST(detray_masks, rectangle2D) {
     ASSERT_NEAR(r2[rectangle2D::e_half_x], hx, tol);
     ASSERT_NEAR(r2[rectangle2D::e_half_y], hy, tol);
 
-    ASSERT_TRUE(r2.is_inside(p2_in) == intersection::status::e_inside);
-    ASSERT_TRUE(r2.is_inside(p2_edge) == intersection::status::e_inside);
-    ASSERT_TRUE(r2.is_inside(p2_out) == intersection::status::e_outside);
+    ASSERT_TRUE(r2.is_inside(p2_in));
+    ASSERT_TRUE(r2.is_inside(p2_edge));
+    ASSERT_FALSE(r2.is_inside(p2_out));
     // Move outside point inside using a tolerance
-    ASSERT_TRUE(r2.is_inside(p2_out, 1.f) == intersection::status::e_inside);
+    ASSERT_TRUE(r2.is_inside(p2_out, 1.f));
 
     // Check area
     const scalar a{r2.area()};
@@ -73,7 +73,7 @@ GTEST_TEST(detray_masks, rectangle2D_ratio_test) {
                         const test::transform3 &trf, const scalar t) {
 
             const test::point3 loc_p{r.to_local_frame(trf, p)};
-            return r.is_inside(loc_p, t) == intersection::status::e_inside;
+            return r.is_inside(loc_p, t);
         }
     };
 
@@ -113,11 +113,11 @@ GTEST_TEST(detray_masks, cuboid3D) {
     ASSERT_NEAR(c3[cuboid3D::e_max_y], hy, tol);
     ASSERT_NEAR(c3[cuboid3D::e_max_z], hz, tol);
 
-    ASSERT_TRUE(c3.is_inside(p2_in) == intersection::status::e_inside);
-    ASSERT_TRUE(c3.is_inside(p2_edge) == intersection::status::e_inside);
-    ASSERT_TRUE(c3.is_inside(p2_out) == intersection::status::e_outside);
+    ASSERT_TRUE(c3.is_inside(p2_in));
+    ASSERT_TRUE(c3.is_inside(p2_edge));
+    ASSERT_FALSE(c3.is_inside(p2_out));
     // Move outside point inside using a tolerance
-    ASSERT_TRUE(c3.is_inside(p2_out, 1.f) == intersection::status::e_inside);
+    ASSERT_TRUE(c3.is_inside(p2_out, 1.f));
 
     // Check volume
     const scalar v{c3.volume()};
@@ -143,7 +143,7 @@ GTEST_TEST(detray_masks, cuboid3D_ratio_test) {
                         const test::transform3 &trf, const scalar t) {
 
             const test::point3 loc_p{cb.to_local_frame(trf, p)};
-            return cb.is_inside(loc_p, t) == intersection::status::e_inside;
+            return cb.is_inside(loc_p, t);
         }
     };
 

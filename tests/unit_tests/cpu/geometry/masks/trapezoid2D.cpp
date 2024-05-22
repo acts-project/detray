@@ -41,9 +41,9 @@ GTEST_TEST(detray_masks, trapezoid2D) {
     ASSERT_NEAR(t2[trapezoid2D::e_half_length_2], hy, tol);
     ASSERT_NEAR(t2[trapezoid2D::e_divisor], divisor, tol);
 
-    ASSERT_TRUE(t2.is_inside(p2_in) == intersection::status::e_inside);
-    ASSERT_TRUE(t2.is_inside(p2_edge) == intersection::status::e_inside);
-    ASSERT_TRUE(t2.is_inside(p2_out) == intersection::status::e_outside);
+    ASSERT_TRUE(t2.is_inside(p2_in));
+    ASSERT_TRUE(t2.is_inside(p2_edge));
+    ASSERT_FALSE(t2.is_inside(p2_out));
     // Move outside point inside using a tolerance
 
     // Check area
@@ -75,7 +75,7 @@ GTEST_TEST(detray_masks, trapezoid2D_ratio_test) {
                         const test::transform3 &trf, const scalar t) {
 
             const test::point3 loc_p{tp.to_local_frame(trf, p)};
-            return tp.is_inside(loc_p, t) == intersection::status::e_inside;
+            return tp.is_inside(loc_p, t);
         }
     };
 

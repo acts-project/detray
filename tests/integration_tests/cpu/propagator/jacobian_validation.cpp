@@ -628,7 +628,7 @@ bound_track_parameters<algebra_type> get_initial_parameter(
     helix_intersector<typename mask_t::shape, algebra_type> hlx_is{};
     hlx_is.convergence_tolerance = helix_tolerance;
     auto sfi = hlx_is(hlx, departure_sf, departure_mask, departure_trf, 0.f);
-    EXPECT_EQ(sfi.status, intersection::status::e_inside)
+    EXPECT_TRUE(sfi.status)
         << " Initial surface not found" << std::endl
         << " log10(Helix tolerance): " << math::log10(helix_tolerance)
         << " Phi: " << getter::phi(vertex.dir())
@@ -1062,7 +1062,7 @@ void evaluate_jacobian_difference_helix(
     auto sfi =
         hlx_is(hlx, destination_sf, destination_mask, destination_trf, 0.f);
 
-    EXPECT_EQ(sfi.status, intersection::status::e_inside)
+    EXPECT_TRUE(sfi.status)
         << " Final surface not found" << std::endl
         << " log10(Helix tolerance): " << math::log10(helix_tolerance)
         << " Phi: " << track.phi() << " Theta: " << track.theta()

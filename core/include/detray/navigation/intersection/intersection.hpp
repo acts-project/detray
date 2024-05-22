@@ -9,6 +9,7 @@
 
 // Project include(s)
 #include "detray/definitions/detail/algebra.hpp"
+#include "detray/definitions/detail/boolean.hpp"
 #include "detray/definitions/detail/indexing.hpp"
 #include "detray/definitions/detail/math.hpp"
 #include "detray/definitions/detail/qualifiers.hpp"
@@ -21,79 +22,65 @@
 
 namespace detray {
 
-namespace intersection {
-
-/// Intersection direction with respect to the normal of the surface
-enum class direction : std::uint_least8_t {
-    e_undefined = 0u,  //!< the undefined direction at intersection
-    e_opposite = 1u,   //!< opposite the surface normal at the intersection
-    e_along = 2u       //!< along the surface normal at the intersection
-};
-
-/// Intersection status: outside, missed, inside, hit ( w/o maks status)
-enum class status : std::uint_least8_t {
-    e_outside = 0u,    //!< surface hit but outside
-    e_missed = 1u,     //!< surface missed
-    e_undefined = 2u,  //!< surface hit but status not checked
-    e_inside = 3u      //!< surface hit and inside confirmed
-};
-
-}  // namespace intersection
-
 /// @brief This class holds the intersection information.
 ///
 /// @tparam surface_descr_t is the type of surface descriptor
-template <typename surface_descr_t,
-          typename algebra_t = ALGEBRA_PLUGIN<detray::scalar>>
+template <typename surface_descr_t, typename algebra_t>
 struct intersection2D {
 
+    using T = typename algebra_t::value_type;
     using algebra_type = algebra_t;
+    using bool_t = dbool<algebra_t>;
     using scalar_type = dscalar<algebra_t>;
+    using point2_type = dpoint2D<algebra_t>;
     using point3_type = dpoint3D<algebra_t>;
+    using vector3_type = dvector3D<algebra_t>;
     using transform3_type = dtransform3D<algebra_t>;
-    using nav_link_type = typename surface_descr_t::navigation_link;
+    using nav_link_t = typename surface_descr_t::navigation_link;
 
     /// Descriptor of the surface this intersection belongs to
-    surface_descr_t sf_desc;
+    surface_descr_t sf_desc{};
 
     /// Local position of the intersection on the surface
-    point3_type local{detail::invalid_value<scalar_type>(),
-                      detail::invalid_value<scalar_type>(),
-                      detail::invalid_value<scalar_type>()};
+    point3_type local{detail::invalid_value<T>(), detail::invalid_value<T>(),
+                      detail::invalid_value<T>()};
 
     /// Distance between track and candidate
-    scalar_type path{detail::invalid_value<scalar_type>()};
+    scalar_type path = detail::invalid_value<T>();
 
-    /// cosine of incidence angle
-    scalar_type cos_incidence_angle{detail::invalid_value<scalar_type>()};
+    /// Cosine of incidence angle
+    scalar_type cos_incidence_angle = detail::invalid_value<T>();
 
     /// Navigation information (next volume to go to)
-    nav_link_type volume_link{detail::invalid_value<nav_link_type>()};
+    nav_link_t volume_link{detail::invalid_value<nav_link_t>()};
 
-    /// Result of the intersection
-    intersection::status status{intersection::status::e_undefined};
+    /// Result of the intersection (true = inside, false = outside)
+    bool_t status{false};
 
-    /// Direction of the intersection with respect to the track
-    intersection::direction direction{intersection::direction::e_undefined};
+    /// Direction of the intersection with respect to the track (true = along,
+    /// false = opposite)
+    bool_t direction{true};
 
     /// @param rhs is the right hand side intersection for comparison
     DETRAY_HOST_DEVICE
-    bool operator<(const intersection2D &rhs) const {
+    bool_t operator<(const intersection2D &rhs) const {
         return (math::fabs(path) < math::fabs(rhs.path));
     }
 
     /// @param rhs is the left hand side intersection for comparison
     DETRAY_HOST_DEVICE
-    bool operator>(const intersection2D &rhs) const {
+    bool_t operator>(const intersection2D &rhs) const {
         return (math::fabs(path) > math::fabs(rhs.path));
     }
 
     /// @param rhs is the left hand side intersection for comparison
     DETRAY_HOST_DEVICE
-    bool operator==(const intersection2D &rhs) const {
-        return math::fabs(path - rhs.path) <
-               std::numeric_limits<float>::epsilon();
+    bool_t operator==(const intersection2D &rhs) const {
+        return math::fabs(path - rhs.path) < std::numeric_limits<T>::epsilon();
     }
+
+    DETRAY_HOST_DEVICE
+    constexpr bool is_inside() const { return detail::any_of(this->status); }
 
     /// Transform to a string for output debugging
     DETRAY_HOST
@@ -106,32 +93,17 @@ struct intersection2D {
                    << ", loc [" << is.local[0] << ", " << is.local[1] << ", "
                    << is.local[2] << "], ";
 
-        switch (is.status) {
-            case intersection::status::e_outside:
-                out_stream << "status: outside";
-                break;
-            case intersection::status::e_missed:
-                out_stream << "status: missed";
-                break;
-            case intersection::status::e_undefined:
-                out_stream << "status: undefined";
-                break;
-            case intersection::status::e_inside:
-                out_stream << "status: inside";
-                break;
-        };
-        switch (is.direction) {
-            case intersection::direction::e_undefined:
-                out_stream << ", direction: undefined";
-                break;
-            case intersection::direction::e_opposite:
-                out_stream << ", direction: opposite";
-                break;
-            case intersection::direction::e_along:
-                out_stream << ", direction: along";
-                break;
-        };
+        if constexpr (std::is_scalar_v<bool_t>) {
+            out_stream << (is.status ? ", status: inside"
+                                     : ", status: outside");
+            out_stream << (is.direction ? ", status: along"
+                                        : ", status: opposite");
+        } else {
+            out_stream << ", status: " << is.status;
+            out_stream << ", direction: " << is.direction;
+        }
 
+        out_stream << std::endl;
         return out_stream;
     }
 };
