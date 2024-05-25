@@ -83,8 +83,7 @@ struct brute_force_scan {
             sf.template visit_mask<intersection_kernel_t>(
                 intersections, traj, sf_desc, trf_store,
                 sf.is_portal() ? std::array<scalar_t, 2>{0.f, 0.f}
-                               : std::array<scalar_t, 2>{mask_tolerance[0],
-                                                         mask_tolerance[1]});
+                               : mask_tolerance);
 
             // Candidate is invalid if it lies in the opposite direction
             for (auto &sfi : intersections) {

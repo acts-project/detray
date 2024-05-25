@@ -8,16 +8,32 @@
 #pragma once
 
 // Project include(s).
+#include "detray/definitions/detail/qualifiers.hpp"
 #include "detray/navigation/navigation_config.hpp"
 #include "detray/propagator/stepping_config.hpp"
+
+// System inlcudes
+#include <ostream>
 
 namespace detray::propagation {
 
 /// Configuration of the propagation
-template <typename scalar_t>
 struct config {
-    navigation::config<scalar_t> navigation{};
-    stepping::config<scalar_t> stepping{};
+    navigation::config navigation{};
+    stepping::config stepping{};
 };
+
+/// Print the propagation configuration
+DETRAY_HOST
+inline std::ostream& operator<<(std::ostream& out,
+                                const detray::propagation::config& cfg) {
+    out << "Navigation\n"
+        << "----------------------------\n"
+        << cfg.navigation << "\nParameter Transport\n"
+        << "----------------------------\n"
+        << cfg.stepping << "\n";
+
+    return out;
+}
 
 }  // namespace detray::propagation

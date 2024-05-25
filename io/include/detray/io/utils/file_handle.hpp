@@ -55,55 +55,56 @@ class file_handle final {
                 std::ios_base::openmode mode = std::ios_base::in |
                                                std::ios_base::out) {
         // File name
-        std::string file_stem{name};
+        std::string file_name{name};
 
         // Pure output mode without replacement of file: Check if name is taken
         // and modify it if necessary
-        if (mode == std::ios_base::out or
+        if (mode == std::ios_base::out ||
             (mode == (std::ios_base::out | std::ios_base::binary))) {
             // Default name for output
-            file_stem =
-                name.empty() ? "detray_" + std::to_string(n_files) : name;
+            file_name = name.empty() ? "./detray_" + std::to_string(n_files)
+                                     : file_name;
 
             // Does the file stem need to be adjusted (in case the file exists)?
-            std::string full_name = io::alt_file_name(file_stem + extension);
-            file_stem = std::filesystem::path{full_name}.stem();
+            std::string new_name = io::alt_file_name(file_name + extension);
+            auto new_path = std::filesystem::path{new_name};
+            file_name = new_path.parent_path() / new_path.stem();
 
             // Pure input mode: Check if file name makes sense and file exists
-        } else if ((mode == std::ios_base::in) or
+        } else if ((mode == std::ios_base::in) ||
                    (mode == (std::ios_base::in | std::ios_base::binary))) {
-            if (file_stem.empty()) {
+            if (file_name.empty()) {
                 throw std::invalid_argument("File name empty");
             }
 
-            std::filesystem::path file_path{file_stem + extension};
+            std::filesystem::path file_path{file_name + extension};
             if (not std::filesystem::exists(file_path)) {
                 throw std::invalid_argument(
-                    "Could not open file: File does not exist: " + file_stem +
+                    "Could not open file: File does not exist: " + file_name +
                     extension);
             }
-        } else if (file_stem.empty()) {
+        } else if (file_name.empty()) {
             std::cout << "WARNING: Empty file name" << std::endl;
         }
 
         // Count the new file
-        const std::string file_name{file_stem + extension};
+        const std::string file_path{file_name + extension};
         ++n_files;
         ++n_open_files;
         if (n_files >= std::numeric_limits<std::uint_least16_t>::max()) {
             throw std::runtime_error(
-                "Could not open file: Too many files written: " + file_name);
+                "Could not open file: Too many files written: " + file_path);
         } else if (n_open_files >= 1000u) {
             throw std::runtime_error(
                 "Could not open file: Too many files currently open: " +
-                file_name);
+                file_path);
         }
 
         // Open file
-        m_stream.open(file_name, mode);
+        m_stream.open(file_path, mode);
 
         if (!m_stream.is_open()) {
-            throw std::runtime_error("Could not open file: " + file_name);
+            throw std::runtime_error("Could not open file: " + file_path);
         }
     }
 

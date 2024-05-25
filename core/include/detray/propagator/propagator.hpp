@@ -42,7 +42,7 @@ struct propagator {
     using bound_track_parameters_type =
         typename stepper_t::bound_track_parameters_type;
 
-    propagation::config<scalar_type> m_cfg;
+    propagation::config m_cfg;
 
     stepper_t m_stepper;
     navigator_t m_navigator;
@@ -55,7 +55,7 @@ struct propagator {
 
     /// Construct from a propagator configuration
     DETRAY_HOST_DEVICE
-    propagator(propagation::config<scalar_type> cfg = {})
+    propagator(propagation::config cfg = {})
         : m_cfg{cfg}, m_stepper{}, m_navigator{} {}
 
     /// Propagation that state aggregates a stepping and a navigation state. It

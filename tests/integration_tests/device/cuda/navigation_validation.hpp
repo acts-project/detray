@@ -41,8 +41,7 @@ namespace detray::cuda {
 template <typename bfield_t, typename detector_t,
           typename intersection_record_t>
 void navigation_validation_device(
-    typename detector_t::view_type det_view,
-    const propagation::config<typename detector_t::scalar_type> &cfg,
+    typename detector_t::view_type det_view, const propagation::config &cfg,
     bfield_t field_data,
     vecmem::data::jagged_vector_view<
         typename intersection_record_t::intersection_type>
@@ -58,9 +57,7 @@ template <typename bfield_t, typename detector_t,
           typename intersection_record_t>
 inline auto run_navigation_validation(
     vecmem::memory_resource *host_mr, vecmem::memory_resource *dev_mr,
-    const detector_t &det,
-    const propagation::config<typename detector_t::scalar_type> &cfg,
-    bfield_t field_data,
+    const detector_t &det, const propagation::config &cfg, bfield_t field_data,
     const std::vector<std::vector<intersection_record_t>>
         &truth_intersection_traces)
     -> vecmem::jagged_vector<navigation::detail::candidate_record<

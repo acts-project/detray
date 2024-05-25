@@ -412,8 +412,8 @@ class navigator {
         /// Helper method to check if a candidate lies on a surface - const
         DETRAY_HOST_DEVICE inline auto is_on_object(
             const intersection_type &candidate,
-            const navigation::config<scalar_type> &cfg) const -> bool {
-            return (math::fabs(candidate.path) < cfg.on_surface_tolerance);
+            const navigation::config &cfg) const -> bool {
+            return (math::fabs(candidate.path) < cfg.path_tolerance);
         }
 
         /// @returns next object that we want to reach (current target)
@@ -449,7 +449,7 @@ class navigator {
         /// Call the navigation inspector
         DETRAY_HOST_DEVICE
         inline void run_inspector(
-            [[maybe_unused]] const navigation::config<scalar_type> &cfg,
+            [[maybe_unused]] const navigation::config &cfg,
             [[maybe_unused]] const point3_type &track_pos,
             [[maybe_unused]] const vector3_type &track_dir,
             [[maybe_unused]] const char *message) {
@@ -504,7 +504,7 @@ class navigator {
     template <typename propagator_state_t>
     DETRAY_HOST_DEVICE inline bool init(
         propagator_state_t &propagation,
-        const navigation::config<scalar_type> &cfg = {}) const {
+        const navigation::config &cfg = {}) const {
 
         state &navigation = propagation._navigation;
         const auto det = navigation.detector();
@@ -524,7 +524,7 @@ class navigator {
             track, cfg, *det, track, navigation.candidates(),
             std::array<scalar_type, 2u>{cfg.min_mask_tolerance,
                                         cfg.max_mask_tolerance},
-            cfg.overstep_tolerance);
+            static_cast<scalar_type>(cfg.overstep_tolerance));
 
         // Sort all candidates and pick the closest one
         detail::sequential_sort(navigation.candidates().begin(),
@@ -566,7 +566,7 @@ class navigator {
     template <typename propagator_state_t>
     DETRAY_HOST_DEVICE inline bool update(
         propagator_state_t &propagation,
-        const navigation::config<scalar_type> &cfg = {}) const {
+        const navigation::config &cfg = {}) const {
 
         state &navigation = propagation._navigation;
 
@@ -624,8 +624,7 @@ class navigator {
     /// @param propagation contains the stepper and navigator states
     template <typename propagator_state_t>
     DETRAY_HOST_DEVICE inline void update_kernel(
-        propagator_state_t &propagation,
-        const navigation::config<scalar_type> &cfg) const {
+        propagator_state_t &propagation, const navigation::config &cfg) const {
 
         state &navigation = propagation._navigation;
         const auto det = navigation.detector();
@@ -725,8 +724,7 @@ class navigator {
     /// @param propagation contains the stepper and navigator states
     template <typename propagator_state_t>
     DETRAY_HOST_DEVICE inline void update_navigation_state(
-        const navigation::config<scalar_type> &cfg,
-        propagator_state_t &propagation) const {
+        const navigation::config &cfg, propagator_state_t &propagation) const {
 
         auto &navigation = propagation._navigation;
         auto &stepping = propagation._stepping;
@@ -772,8 +770,7 @@ class navigator {
     template <typename track_t>
     DETRAY_HOST_DEVICE inline bool update_candidate(
         intersection_type &candidate, const track_t &track,
-        const detector_type *det,
-        const navigation::config<scalar_type> &cfg) const {
+        const detector_type *det, const navigation::config &cfg) const {
 
         if (candidate.sf_desc.barcode().is_invalid()) {
             return false;
@@ -787,7 +784,7 @@ class navigator {
             sf.is_portal() ? std::array<scalar_type, 2>{0.f, 0.f}
                            : std::array<scalar_type, 2>{cfg.min_mask_tolerance,
                                                         cfg.max_mask_tolerance},
-            cfg.overstep_tolerance);
+            static_cast<scalar_type>(cfg.overstep_tolerance));
     }
 
     /// Helper to evict all unreachable/invalid candidates from the cache:

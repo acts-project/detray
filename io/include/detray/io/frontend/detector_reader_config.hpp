@@ -9,6 +9,7 @@
 
 // System include(s)
 #include <array>
+#include <ostream>
 #include <string>
 #include <vector>
 
@@ -49,5 +50,19 @@ struct detector_reader_config {
     }
     /// @}
 };
+
+/// Print the detector reader configuration
+inline std::ostream& operator<<(std::ostream& out,
+                                const detector_reader_config& cfg) {
+
+    out << "\nDetector reader\n"
+        << "----------------------------\n"
+        << "  Detector files:       : \n";
+    for (const auto& file_name : cfg.files()) {
+        out << "    -> " << file_name << "\n";
+    }
+
+    return out;
+}
 
 }  // namespace detray::io

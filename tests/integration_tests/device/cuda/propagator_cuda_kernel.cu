@@ -12,8 +12,7 @@ namespace detray {
 
 template <typename bfield_bknd_t, typename detector_t>
 __global__ void propagator_test_kernel(
-    typename detector_t::view_type det_data,
-    const propagation::config<scalar_t> cfg,
+    typename detector_t::view_type det_data, const propagation::config cfg,
     covfie::field_view<bfield_bknd_t> field_data,
     vecmem::data::vector_view<track_t> tracks_data,
     vecmem::data::jagged_vector_view<intersection_t<detector_t>>
@@ -78,8 +77,7 @@ __global__ void propagator_test_kernel(
 /// Launch the device kernel
 template <typename bfield_bknd_t, typename detector_t>
 void propagator_test(
-    typename detector_t::view_type det_view,
-    const propagation::config<scalar_t>& cfg,
+    typename detector_t::view_type det_view, const propagation::config& cfg,
     covfie::field_view<bfield_bknd_t> field_data,
     vecmem::data::vector_view<track_t>& tracks_data,
     vecmem::data::jagged_vector_view<intersection_t<detector_t>>&
@@ -106,8 +104,7 @@ void propagator_test(
 template void propagator_test<bfield::const_bknd_t,
                               detector<toy_metadata, host_container_types>>(
     detector<toy_metadata, host_container_types>::view_type,
-    const propagation::config<scalar_t>&,
-    covfie::field_view<bfield::const_bknd_t>,
+    const propagation::config&, covfie::field_view<bfield::const_bknd_t>,
     vecmem::data::vector_view<track_t>&,
     vecmem::data::jagged_vector_view<
         intersection_t<detector<toy_metadata, host_container_types>>>&,
@@ -119,8 +116,7 @@ template void propagator_test<bfield::const_bknd_t,
 template void propagator_test<bfield::cuda::inhom_bknd_t,
                               detector<toy_metadata, host_container_types>>(
     detector<toy_metadata, host_container_types>::view_type,
-    const propagation::config<scalar_t>&,
-    covfie::field_view<bfield::cuda::inhom_bknd_t>,
+    const propagation::config&, covfie::field_view<bfield::cuda::inhom_bknd_t>,
     vecmem::data::vector_view<track_t>&,
     vecmem::data::jagged_vector_view<
         intersection_t<detector<toy_metadata, host_container_types>>>&,

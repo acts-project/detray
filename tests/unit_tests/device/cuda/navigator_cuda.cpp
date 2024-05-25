@@ -31,7 +31,7 @@ TEST(navigator_cuda, navigator) {
 
     // Create navigator
     navigator_host_t nav;
-    navigation::config<scalar_t> cfg{};
+    navigation::config cfg{};
     cfg.search_window = {1u, 1u};
 
     // Create the vector of initial track parameters

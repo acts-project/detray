@@ -10,6 +10,8 @@
 #include "detray/io/frontend/detector_reader.hpp"
 #include "detray/io/utils/create_path.hpp"
 #include "detray/navigation/volume_graph.hpp"
+#include "detray/options/detector_io_options.hpp"
+#include "detray/options/parse_options.hpp"
 #include "detray/plugins/svgtools/illustrator.hpp"
 #include "detray/plugins/svgtools/writer.hpp"
 
@@ -39,15 +41,12 @@ int main(int argc, char** argv) {
     // Visualization style to be applied to the svgs
     auto style = detray::svgtools::styling::tableau_colorblind::style;
 
-    // Options parsing
+    // Specific options for this test
     po::options_description desc("\ndetray detector validation options");
 
     std::vector<dindex> volumes, surfaces, window;
-    desc.add_options()("help", "produce help message")(
-        "outdir", po::value<std::string>(), "Output directory for plots")(
-        "geometry_file", po::value<std::string>(), "Geometry input file")(
-        "material_file", po::value<std::string>(), "Material input file")(
-        "grid_file", po::value<std::string>(), "Surface grid input file")(
+    desc.add_options()("outdir", po::value<std::string>(),
+                       "Output directory for plots")(
         "context", po::value<dindex>(), "Number of the geometry context")(
         "search_window", po::value<std::vector<dindex>>(&window)->multitoken(),
         "Size of the grid surface search window")(
@@ -61,44 +60,18 @@ int main(int argc, char** argv) {
         "hide_eta_lines", "Hide eta lines")("show_info", "Show info boxes")(
         "write_volume_graph", "Writes the volume graph to file");
 
-    po::variables_map vm;
-    po::store(parse_command_line(argc, argv, desc,
-                                 po::command_line_style::unix_style ^
-                                     po::command_line_style::allow_short),
-              vm);
-    po::notify(vm);
-
     // Configs to be filled
     detray::io::detector_reader_config reader_cfg{};
     // Also display incorrect geometries for debugging
     reader_cfg.do_check(false);
 
-    // Help message
-    if (vm.count("help")) {
-        std::cout << desc << std::endl;
-        return EXIT_FAILURE;
-    }
+    po::variables_map vm =
+        detray::options::parse_options(desc, argc, argv, reader_cfg);
 
     // General options
     std::string outdir{vm.count("outdir") ? vm["outdir"].as<std::string>()
                                           : "./plots/"};
     auto path = detray::io::create_path(outdir);
-
-    // Input files
-    if (vm.count("geometry_file")) {
-        reader_cfg.add_file(vm["geometry_file"].as<std::string>());
-    } else {
-        std::stringstream err_stream{};
-        err_stream << "Please specify a geometry input file!\n\n" << desc;
-
-        throw std::invalid_argument(err_stream.str());
-    }
-    if (vm.count("grid_file")) {
-        reader_cfg.add_file(vm["grid_file"].as<std::string>());
-    }
-    if (vm.count("material_file")) {
-        reader_cfg.add_file(vm["material_file"].as<std::string>());
-    }
 
     // The geometry context to be displayed
     detector_t::geometry_context gctx;

@@ -104,14 +104,14 @@ class rk_stepper final
 
         /// Update the jacobian transport from free propagation
         DETRAY_HOST_DEVICE
-        inline void advance_jacobian(
-            const stepping::config<scalar_type>& cfg = {});
+        inline void advance_jacobian(const stepping::config& cfg = {});
 
         /// evaulate dqopds for a given step size and material
         DETRAY_HOST_DEVICE
-        inline scalar_type evaluate_dqopds(
-            const std::size_t i, const scalar_type h, const scalar dqopds_prev,
-            const detray::stepping::config<scalar_type>& cfg);
+        inline scalar_type evaluate_dqopds(const std::size_t i,
+                                           const scalar_type h,
+                                           const scalar_type dqopds_prev,
+                                           const detray::stepping::config& cfg);
 
         /// evaulate dtds for runge kutta stepping
         DETRAY_HOST_DEVICE
@@ -143,7 +143,7 @@ class rk_stepper final
         /// Call the stepping inspector
         template <typename... Args>
         DETRAY_HOST_DEVICE inline void run_inspector(
-            [[maybe_unused]] const stepping::config<scalar_type>& cfg,
+            [[maybe_unused]] const stepping::config& cfg,
             [[maybe_unused]] const char* message,
             [[maybe_unused]] Args&&... args) {
             if constexpr (not std::is_same_v<inspector_t,
@@ -159,7 +159,7 @@ class rk_stepper final
     /// @return returning the heartbeat, indicating if the stepping is alive
     template <typename propagation_state_t>
     DETRAY_HOST_DEVICE bool step(propagation_state_t& propagation,
-                                 const stepping::config<scalar_type>& cfg = {});
+                                 const stepping::config& cfg = {});
 };
 
 }  // namespace detray

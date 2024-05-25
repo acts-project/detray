@@ -27,7 +27,7 @@ GTEST_TEST(detray_navigation, volume_graph) {
 
     vecmem::host_memory_resource host_mr;
 
-    toy_det_config<scalar> toy_cfg{};
+    toy_det_config toy_cfg{};
     toy_cfg.n_edc_layers(1u);
 
     auto [det, names] = build_toy_detector(host_mr, toy_cfg);

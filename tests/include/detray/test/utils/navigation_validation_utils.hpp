@@ -29,7 +29,7 @@ template <typename stepper_t, typename detector_t,
           typename bfield_t = empty_bfield>
 inline auto record_propagation(
     const typename detector_t::geometry_context, const detector_t &det,
-    const propagation::config<typename detector_t::scalar_type> &cfg,
+    const propagation::config &cfg,
     const free_track_parameters<typename detector_t::algebra_type> &track,
     const bfield_t &bfield = {}) {
 
