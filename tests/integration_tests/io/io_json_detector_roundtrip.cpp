@@ -85,7 +85,9 @@ auto test_detector_json_io(const detector_t& det,
 
     auto writer_cfg = io::detector_writer_config{}
                           .format(io::format::json)
-                          .replace_files(true);
+                          .replace_files(true)
+                          .write_grids(true)
+                          .write_material(true);
     io::write_detector(det, names, writer_cfg);
 
     // Read the detector back in
@@ -176,7 +178,7 @@ GTEST_TEST(io, json_toy_geometry) {
 
     // Toy detector
     vecmem::host_memory_resource host_mr;
-    toy_det_config<scalar> toy_cfg{};
+    toy_det_config toy_cfg{};
     toy_cfg.use_material_maps(false);
     auto [toy_det, names] = build_toy_detector(host_mr, toy_cfg);
 
@@ -228,7 +230,7 @@ GTEST_TEST(io, json_toy_detector_roundtrip_homogeneous_material) {
 
     // Toy detector
     vecmem::host_memory_resource host_mr;
-    toy_det_config<scalar> toy_cfg{};
+    toy_det_config toy_cfg{};
     toy_cfg.use_material_maps(false);
     const auto [toy_det, toy_names] = build_toy_detector(host_mr, toy_cfg);
 
@@ -254,7 +256,7 @@ GTEST_TEST(io, json_toy_detector_roundtrip_material_maps) {
 
     // Toy detector
     vecmem::host_memory_resource host_mr;
-    toy_det_config<scalar> toy_cfg{};
+    toy_det_config toy_cfg{};
     toy_cfg.use_material_maps(true);
     const auto [toy_det, toy_names] = build_toy_detector(host_mr, toy_cfg);
 

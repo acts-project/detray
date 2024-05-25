@@ -66,7 +66,7 @@ constexpr scalar_t is_close{1e-4f};
 /// Test configuration
 struct propagator_test_config {
     generator_t::configuration track_generator;
-    propagation::config<scalar_t> propagation;
+    propagation::config propagation;
 };
 
 template <template <typename...> class vector_t>
@@ -145,7 +145,7 @@ inline auto generate_tracks(
 template <typename bfield_bknd_t, typename host_detector_t>
 inline auto run_propagation_host(vecmem::memory_resource *mr,
                                  const host_detector_t &det,
-                                 const propagation::config<scalar_t> &cfg,
+                                 const propagation::config &cfg,
                                  covfie::field<bfield_bknd_t> &field,
                                  const vecmem::vector<track_t> &tracks)
     -> std::tuple<vecmem::jagged_vector<scalar_t>,

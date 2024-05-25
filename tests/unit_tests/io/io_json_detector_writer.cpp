@@ -86,7 +86,7 @@ GTEST_TEST(io, json_toy_material_maps_writer) {
 
     // Toy detector
     vecmem::host_memory_resource host_mr;
-    toy_det_config<scalar> toy_cfg{};
+    toy_det_config toy_cfg{};
     toy_cfg.use_material_maps(true);
     auto [det, names] = build_toy_detector(host_mr, toy_cfg);
 
@@ -114,7 +114,7 @@ GTEST_TEST(io, json_toy_detector_writer) {
 
     // Toy detector
     vecmem::host_memory_resource host_mr;
-    toy_det_config<scalar> toy_cfg{};
+    toy_det_config toy_cfg{};
     toy_cfg.use_material_maps(true);
     const auto [det, names] = build_toy_detector(host_mr, toy_cfg);
 

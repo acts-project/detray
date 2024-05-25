@@ -11,6 +11,8 @@
 #include "detray/geometry/mask.hpp"
 #include "detray/geometry/shapes.hpp"
 #include "detray/io/frontend/detector_writer.hpp"
+#include "detray/options/detector_io_options.hpp"
+#include "detray/options/parse_options.hpp"
 
 // Vecmem include(s)
 #include <vecmem/memory/host_memory_resource.hpp>
@@ -71,14 +73,8 @@ int main(int argc, char **argv) {
     std::vector<scalar_t> mask_params{
         20.f * unit<scalar_t>::mm,
         20.f * unit<scalar_t>::mm};  // < default values for rectangles
-    desc.add_options()("help", "produce help message")(
-        "outdir", po::value<std::string>(), "Output directory for files")(
-        "write_volume_graph", "writes the volume graph to file")(
-        "compactify_json", "not implemented")(
-        "write_material", "toggle material output")("write_grids",
-                                                    "toggle grid output")(
-        "modules", po::value<unsigned int>()->default_value(10u),
-        "number of modules in telescope [1-20]")(
+    desc.add_options()("modules", po::value<unsigned int>()->default_value(10u),
+                       "number of modules in telescope [1-20]")(
         "type", po::value<std::string>()->default_value("rectangle"),
         "type of the telescope modules [rectangle, trapezoid, annulus, ring, "
         "cylinder]")(
@@ -93,30 +89,15 @@ int main(int argc, char **argv) {
         "direction", po::value<std::string>()->default_value("z"),
         "direction of the telescope in global frame [x, y, z]");
 
-    po::variables_map vm;
-    po::store(parse_command_line(argc, argv, desc,
-                                 po::command_line_style::unix_style ^
-                                     po::command_line_style::allow_short),
-              vm);
-    po::notify(vm);
-
-    // Help message
-    if (vm.count("help")) {
-        std::cout << desc << std::endl;
-        return EXIT_FAILURE;
-    }
-
     // Configuration
     detray::io::detector_writer_config writer_cfg{};
     writer_cfg.format(detray::io::format::json).replace_files(false);
+    // Default output path
+    writer_cfg.path("./telescope_detector/");
 
-    // General options
-    std::string outdir{vm.count("outdir") ? vm["outdir"].as<std::string>()
-                                          : "./telescope_detector/"};
-    writer_cfg.path(std::move(outdir));
-    writer_cfg.compactify_json(vm.count("compactify_json"));
-    writer_cfg.write_material(vm.count("write_material"));
-    writer_cfg.write_grids(vm.count("write_grids"));
+    // Parse options
+    po::variables_map vm =
+        detray::options::parse_options(desc, argc, argv, writer_cfg);
 
     // Build the geometry
     std::string type{vm["type"].as<std::string>()};

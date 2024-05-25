@@ -124,7 +124,7 @@ struct helix_inspector : actor {
 GTEST_TEST(detray_propagator, propagator_line_stepper) {
 
     vecmem::host_memory_resource host_mr;
-    toy_det_config<scalar_t> toy_cfg{};
+    toy_det_config toy_cfg{};
     toy_cfg.use_material_maps(false);
     const auto [d, names] = build_toy_detector(host_mr, toy_cfg);
 
@@ -170,8 +170,7 @@ class PropagatorWithRkStepper
     vecmem::host_memory_resource host_mr;
 
     /// Toy detector configuration
-    toy_det_config<scalar_t> toy_cfg =
-        toy_det_config<scalar_t>{}.n_brl_layers(4u).n_edc_layers(7u);
+    toy_det_config toy_cfg = toy_det_config{}.n_brl_layers(4u).n_edc_layers(7u);
 
     /// Track generator configuration
     generator_t::configuration trk_gen_cfg{};
@@ -212,8 +211,8 @@ TEST_P(PropagatorWithRkStepper, rk4_propagator_const_bfield) {
     const bfield_t bfield = bfield::create_const_field(std::get<2>(GetParam()));
 
     // Propagator is built from the stepper and navigator
-    propagation::config<scalar_t> cfg{};
-    cfg.navigation.overstep_tolerance = overstep_tol;
+    propagation::config cfg{};
+    cfg.navigation.overstep_tolerance = static_cast<float>(overstep_tol);
     propagator_t p{cfg};
 
     // Iterate through uniformly distributed momentum directions
@@ -312,8 +311,8 @@ TEST_P(PropagatorWithRkStepper, rk4_propagator_inhom_bfield) {
     const bfield_t bfield = bfield::create_inhom_field();
 
     // Propagator is built from the stepper and navigator
-    propagation::config<scalar_t> cfg{};
-    cfg.navigation.overstep_tolerance = overstep_tol;
+    propagation::config cfg{};
+    cfg.navigation.overstep_tolerance = static_cast<float>(overstep_tol);
     propagator_t p{cfg};
 
     // Iterate through uniformly distributed momentum directions

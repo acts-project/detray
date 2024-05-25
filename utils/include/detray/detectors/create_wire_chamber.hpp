@@ -243,6 +243,17 @@ void create_cyl_volume(const config_t & /*cfg*/, detector_t &det,
 
 }  // namespace detail
 
+/// Print the wire chamber configuration
+inline std::ostream &operator<<(std::ostream &out,
+                                const wire_chamber_config &cfg) {
+    out << "\nWire Chamber\n"
+        << "----------------------------\n"
+        << "  No. layers            : " << cfg.n_layers() << "\n"
+        << "  Half length z         : " << cfg.half_z() << " [mm]\n";
+
+    return out;
+}
+
 inline auto create_wire_chamber(vecmem::memory_resource &resource,
                                 const wire_chamber_config &cfg) {
 

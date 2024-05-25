@@ -188,9 +188,8 @@ class base_stepper {
 
         /// Call the stepping inspector
         DETRAY_HOST_DEVICE
-        inline void run_inspector(
-            [[maybe_unused]] const stepping::config<scalar_type> &cfg,
-            [[maybe_unused]] const char *message) {
+        inline void run_inspector([[maybe_unused]] const stepping::config &cfg,
+                                  [[maybe_unused]] const char *message) {
             if constexpr (not std::is_same_v<inspector_t,
                                              stepping::void_inspector>) {
                 _inspector(*this, cfg, message);

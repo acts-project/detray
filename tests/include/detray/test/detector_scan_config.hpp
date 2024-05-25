@@ -37,8 +37,8 @@ struct detector_scan_config : public test::fixture_base<>::configuration {
     std::string m_track_param_file{""};
     /// Mask tolerance for the intersectors
     std::array<scalar_type, 2> m_mask_tol{
-        std::numeric_limits<scalar_type>::epsilon(),
-        std::numeric_limits<scalar_type>::epsilon()};
+        std::numeric_limits<float>::epsilon(),
+        std::numeric_limits<float>::epsilon()};
     /// B-field vector for helix
     vector3_type m_B{0.f * unit<scalar_type>::T, 0.f * unit<scalar_type>::T,
                      2.f * unit<scalar_type>::T};

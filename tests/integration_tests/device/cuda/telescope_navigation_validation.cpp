@@ -67,8 +67,10 @@ int main(int argc, char **argv) {
     cfg_str_nav.name("telescope_detector_straight_line_navigation_cuda");
     cfg_str_nav.whiteboard(white_board);
     auto mask_tolerance = cfg_ray_scan.mask_tolerance();
-    cfg_str_nav.propagation().navigation.min_mask_tolerance = mask_tolerance[0];
-    cfg_str_nav.propagation().navigation.max_mask_tolerance = mask_tolerance[1];
+    cfg_str_nav.propagation().navigation.min_mask_tolerance =
+        static_cast<float>(mask_tolerance[0]);
+    cfg_str_nav.propagation().navigation.max_mask_tolerance =
+        static_cast<float>(mask_tolerance[1]);
 
     detail::register_checks<detray::cuda::straight_line_navigation>(
         tel_det, tel_names, cfg_str_nav);

@@ -454,15 +454,15 @@ bound_getter<algebra_type>::state evaluate_bound_param(
     const std::size_t trk_count, const scalar detector_length,
     const bound_track_parameters<algebra_type>& initial_param,
     const typename propagator_t::detector_type& det, const field_t& field,
-    const scalar overstep_tolerance, const scalar on_surface_tolerance,
+    const scalar overstep_tolerance, const scalar path_tolerance,
     const scalar rk_tolerance, const scalar constraint_step,
     bool use_field_gradient, bool do_covariance_transport, bool do_inspect) {
 
     // Propagator is built from the stepper and navigator
-    propagation::config<scalar> cfg{};
-    cfg.navigation.overstep_tolerance = overstep_tolerance;
-    cfg.navigation.on_surface_tolerance = on_surface_tolerance;
-    cfg.stepping.rk_error_tol = rk_tolerance;
+    propagation::config cfg{};
+    cfg.navigation.overstep_tolerance = static_cast<float>(overstep_tolerance);
+    cfg.navigation.path_tolerance = static_cast<float>(path_tolerance);
+    cfg.stepping.rk_error_tol = static_cast<float>(rk_tolerance);
     cfg.stepping.use_eloss_gradient = true;
     cfg.stepping.use_field_gradient = use_field_gradient;
     cfg.stepping.do_covariance_transport = do_covariance_transport;
@@ -484,7 +484,7 @@ bound_getter<algebra_type>::state evaluate_bound_param(
     state.do_debug = do_inspect;
     state._stepping
         .template set_constraint<detray::step::constraint::e_accuracy>(
-            constraint_step);
+            static_cast<float>(constraint_step));
 
     p.propagate(state, actor_states);
     if (do_inspect) {
@@ -500,14 +500,14 @@ bound_vector_type get_displaced_bound_vector(
     const bound_track_parameters<algebra_type>& ref_param,
     const typename propagator_t::detector_type& det,
     const scalar detector_length, const field_t& field,
-    const scalar overstep_tolerance, const scalar on_surface_tolerance,
+    const scalar overstep_tolerance, const scalar path_tolerance,
     const scalar rk_tolerance, const scalar constraint_step,
     const unsigned int target_index, const scalar displacement) {
 
-    propagation::config<scalar> cfg{};
-    cfg.navigation.overstep_tolerance = overstep_tolerance;
-    cfg.navigation.on_surface_tolerance = on_surface_tolerance;
-    cfg.stepping.rk_error_tol = rk_tolerance;
+    propagation::config cfg{};
+    cfg.navigation.overstep_tolerance = static_cast<float>(overstep_tolerance);
+    cfg.navigation.path_tolerance = static_cast<float>(path_tolerance);
+    cfg.stepping.rk_error_tol = static_cast<float>(rk_tolerance);
     cfg.stepping.do_covariance_transport = false;
 
     // Propagator is built from the stepper and navigator
@@ -551,7 +551,7 @@ bound_track_parameters<algebra_type>::covariance_type directly_differentiate(
     const bound_track_parameters<algebra_type>& ref_param,
     const typename propagator_t::detector_type& det,
     const scalar detector_length, const field_t& field,
-    const scalar overstep_tolerance, const scalar on_surface_tolerance,
+    const scalar overstep_tolerance, const scalar path_tolerance,
     const scalar rk_tolerance, const scalar constraint_step,
     const std::array<scalar, 5u> hs,
     std::array<unsigned int, 5u>& num_iterations,
@@ -567,12 +567,12 @@ bound_track_parameters<algebra_type>::covariance_type directly_differentiate(
 
         const auto vec1 = get_displaced_bound_vector<propagator_t, field_t>(
             trk_count, ref_param, det, detector_length, field,
-            overstep_tolerance, on_surface_tolerance, rk_tolerance,
-            constraint_step, i, 1.f * delta);
+            overstep_tolerance, path_tolerance, rk_tolerance, constraint_step,
+            i, 1.f * delta);
         const auto vec2 = get_displaced_bound_vector<propagator_t, field_t>(
             trk_count, ref_param, det, detector_length, field,
-            overstep_tolerance, on_surface_tolerance, rk_tolerance,
-            constraint_step, i, -1.f * delta);
+            overstep_tolerance, path_tolerance, rk_tolerance, constraint_step,
+            i, -1.f * delta);
 
         ridders_derivative ridder;
         ridder.initialize(vec1, vec2, delta);
@@ -583,12 +583,12 @@ bound_track_parameters<algebra_type>::covariance_type directly_differentiate(
             const auto nvec1 =
                 get_displaced_bound_vector<propagator_t, field_t>(
                     trk_count, ref_param, det, detector_length, field,
-                    overstep_tolerance, on_surface_tolerance, rk_tolerance,
+                    overstep_tolerance, path_tolerance, rk_tolerance,
                     constraint_step, i, 1.f * delta);
             const auto nvec2 =
                 get_displaced_bound_vector<propagator_t, field_t>(
                     trk_count, ref_param, det, detector_length, field,
-                    overstep_tolerance, on_surface_tolerance, rk_tolerance,
+                    overstep_tolerance, path_tolerance, rk_tolerance,
                     constraint_step, i, -1.f * delta);
 
             ridder.run(nvec1, nvec2, delta, p, i, differentiated_jacobian);
@@ -663,7 +663,7 @@ void evaluate_jacobian_difference(
     const typename propagator_t::detector_type& det,
     const scalar detector_length,
     const bound_track_parameters<algebra_type>& track, const field_t& field,
-    const scalar overstep_tolerance, const scalar on_surface_tolerance,
+    const scalar overstep_tolerance, const scalar path_tolerance,
     const scalar rk_tolerance, const scalar rk_tolerance_dis,
     const scalar constraint_step, const std::array<scalar, 5u>& hs,
     std::ofstream& file, scalar& ref_rel_diff, bool use_field_gradient,
@@ -679,8 +679,8 @@ void evaluate_jacobian_difference(
 
     auto bound_getter = evaluate_bound_param<propagator_t, field_t>(
         trk_count, detector_length, track, det, field, overstep_tolerance,
-        on_surface_tolerance, rk_tolerance, constraint_step, use_field_gradient,
-        true, do_inspect);
+        path_tolerance, rk_tolerance, constraint_step, use_field_gradient, true,
+        do_inspect);
 
     const auto reference_param = bound_getter.m_param_departure;
     const auto final_param = bound_getter.m_param_destination;
@@ -737,7 +737,7 @@ void evaluate_jacobian_difference(
     } else {
         differentiated_jacobian = directly_differentiate<propagator_t, field_t>(
             trk_count, reference_param, det, detector_length, field,
-            overstep_tolerance, on_surface_tolerance, rk_tolerance_dis,
+            overstep_tolerance, path_tolerance, rk_tolerance_dis,
             constraint_step, hs, num_iterations, convergence);
     }
 
@@ -803,7 +803,7 @@ void evaluate_jacobian_difference(
     file << math::log10(rk_tolerance) << ",";
 
     // Log10(on surface tolerance)
-    file << math::log10(on_surface_tolerance) << ",";
+    file << math::log10(path_tolerance) << ",";
 
     // Overstep tolerance
     file << overstep_tolerance << ",";
@@ -821,7 +821,7 @@ void evaluate_covariance_transport(
     const typename propagator_t::detector_type& det,
     const scalar detector_length,
     const bound_track_parameters<algebra_type>& track, const field_t& field,
-    const scalar overstep_tolerance, const scalar on_surface_tolerance,
+    const scalar overstep_tolerance, const scalar path_tolerance,
     const scalar rk_tolerance, const scalar rk_tolerance_dis,
     const scalar constraint_step, std::ofstream& file,
     bool use_field_gradient) {
@@ -837,8 +837,8 @@ void evaluate_covariance_transport(
 
     auto bound_getter = evaluate_bound_param<propagator_t, field_t>(
         trk_count, detector_length, track_copy, det, field, overstep_tolerance,
-        on_surface_tolerance, rk_tolerance, constraint_step, use_field_gradient,
-        true, false);
+        path_tolerance, rk_tolerance, constraint_step, use_field_gradient, true,
+        false);
 
     const auto reference_param = bound_getter.m_param_departure;
     const auto ini_vec = reference_param.vector();
@@ -879,8 +879,8 @@ void evaluate_covariance_transport(
 
     auto smeared_bound_getter = evaluate_bound_param<propagator_t, field_t>(
         trk_count, detector_length, smeared_track, det, field,
-        overstep_tolerance, on_surface_tolerance, rk_tolerance_dis,
-        constraint_step, use_field_gradient, false, false);
+        overstep_tolerance, path_tolerance, rk_tolerance_dis, constraint_step,
+        use_field_gradient, false, false);
 
     // Get smeared final bound vector
     bound_vector_type smeared_fin_vec =
@@ -968,7 +968,7 @@ void evaluate_covariance_transport(
     file << math::log10(rk_tolerance) << ",";
 
     // Log10(on surface tolerance)
-    file << math::log10(on_surface_tolerance) << ",";
+    file << math::log10(path_tolerance) << ",";
 
     // Overstep tolerance
     file << overstep_tolerance << ",";
@@ -1412,7 +1412,7 @@ int main(int argc, char** argv) {
                        "Set the overstep tolerance in mm unit");
     desc.add_options()("log10-on-surface-tolerance-mm",
                        po::value<scalar>()->default_value(-3.f),
-                       "Set log10(on_surface_tolerance_in_mm)");
+                       "Set log10(path_tolerance_in_mm)");
     desc.add_options()("rk-tolerance-iterate-mode",
                        po::value<bool>()->default_value(true),
                        "Iterate over the rk tolerances");

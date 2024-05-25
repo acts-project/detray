@@ -39,7 +39,7 @@ GTEST_TEST(svgtools, material) {
 
     // Creating the detector and geomentry context.
     vecmem::host_memory_resource host_mr;
-    detray::toy_det_config<detray::scalar> toy_cfg{};
+    detray::toy_det_config toy_cfg{};
     toy_cfg.use_material_maps(true).cyl_map_bins(20, 20).disc_map_bins(5, 20);
     const auto [det, names] = detray::build_toy_detector(host_mr, toy_cfg);
 

@@ -40,7 +40,7 @@ int main(int argc, char** argv) {
     //
     // Toy detector
     //
-    detray::toy_det_config<detray::scalar> toy_cfg{};
+    detray::toy_det_config toy_cfg{};
     // Number of barrel layers (0 - 4)
     toy_cfg.n_brl_layers(4u);
     // Number of endcap layers on either side (0 - 7)

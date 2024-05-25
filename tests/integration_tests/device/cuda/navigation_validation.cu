@@ -15,8 +15,7 @@ namespace detray::cuda {
 template <typename bfield_t, typename detector_t,
           typename intersection_record_t>
 __global__ void navigation_validation_kernel(
-    typename detector_t::view_type det_data,
-    const propagation::config<typename detector_t::scalar_type> cfg,
+    typename detector_t::view_type det_data, const propagation::config cfg,
     bfield_t field_data,
     vecmem::data::jagged_vector_view<
         typename intersection_record_t::intersection_type>
@@ -117,8 +116,7 @@ __global__ void navigation_validation_kernel(
 template <typename bfield_t, typename detector_t,
           typename intersection_record_t>
 void navigation_validation_device(
-    typename detector_t::view_type det_view,
-    const propagation::config<typename detector_t::scalar_type> &cfg,
+    typename detector_t::view_type det_view, const propagation::config &cfg,
     bfield_t field_data,
     vecmem::data::jagged_vector_view<
         typename intersection_record_t::intersection_type>
@@ -149,8 +147,7 @@ void navigation_validation_device(
     template void navigation_validation_device<                                \
         covfie::field_view<bfield::const_bknd_t>, detector<METADATA>,          \
         detray::intersection_record<detector<METADATA>>>(                      \
-        typename detector<METADATA>::view_type,                                \
-        const propagation::config<typename detector<METADATA>::scalar_type> &, \
+        typename detector<METADATA>::view_type, const propagation::config &,   \
         covfie::field_view<bfield::const_bknd_t>,                              \
         vecmem::data::jagged_vector_view<typename detray::intersection_record< \
             detector<METADATA>>::intersection_type> &,                         \
@@ -163,8 +160,7 @@ void navigation_validation_device(
     template void navigation_validation_device<                                \
         detray::navigation_validator::empty_bfield, detector<METADATA>,        \
         detray::intersection_record<detector<METADATA>>>(                      \
-        typename detector<METADATA>::view_type,                                \
-        const propagation::config<typename detector<METADATA>::scalar_type> &, \
+        typename detector<METADATA>::view_type, const propagation::config &,   \
         detray::navigation_validator::empty_bfield,                            \
         vecmem::data::jagged_vector_view<typename detray::intersection_record< \
             detector<METADATA>>::intersection_type> &,                         \

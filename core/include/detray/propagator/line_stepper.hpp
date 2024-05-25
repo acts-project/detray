@@ -95,7 +95,7 @@ class line_stepper final
     /// @return returning the heartbeat, indicating if the stepping is alive
     template <typename propagation_state_t>
     DETRAY_HOST_DEVICE bool step(propagation_state_t& propagation,
-                                 const stepping::config<scalar>& cfg = {}) {
+                                 const stepping::config& cfg = {}) {
         // Get stepper and navigator states
         state& stepping = propagation._stepping;
         auto& navigation = propagation._navigation;
