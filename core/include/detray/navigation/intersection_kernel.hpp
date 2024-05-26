@@ -47,6 +47,7 @@ struct intersection_initialize {
         const transform_container_t &contextual_transforms,
         const std::array<scalar_t, 2u> &mask_tolerance =
             {0.f, 1.f * unit<scalar_t>::mm},
+        const scalar_t mask_tol_scalor = 0.f,
         const scalar_t overstep_tol = 0.f) const {
 
         using mask_t = typename mask_group_t::value_type;
@@ -60,7 +61,8 @@ struct intersection_initialize {
 
             if (place_in_collection(
                     intersector_t<typename mask_t::shape, algebra_t>{}(
-                        traj, surface, mask, ctf, mask_tolerance, overstep_tol),
+                        traj, surface, mask, ctf, mask_tolerance,
+                        mask_tol_scalor, overstep_tol),
                     is_container)) {
                 return;
             };
@@ -130,6 +132,7 @@ struct intersection_update {
         const transform_container_t &contextual_transforms,
         const std::array<scalar_t, 2u> &mask_tolerance =
             {0.f, 1.f * unit<scalar_t>::mm},
+        const scalar_t mask_tol_scalor = 0.f,
         const scalar_t overstep_tol = 0.f) const {
 
         using mask_t = typename mask_group_t::value_type;
@@ -142,7 +145,8 @@ struct intersection_update {
              detray::ranges::subrange(mask_group, mask_range)) {
 
             intersector_t<typename mask_t::shape, algebra_t>{}.update(
-                traj, sfi, mask, ctf, mask_tolerance, overstep_tol);
+                traj, sfi, mask, ctf, mask_tolerance, mask_tol_scalor,
+                overstep_tol);
 
             if (sfi.status) {
                 return true;

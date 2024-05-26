@@ -36,10 +36,11 @@ struct intersector {
         const mask_t &mask, const transform3_type &trf,
         const std::array<scalar_type, 2u> mask_tolerance =
             {0.f, 1.f * unit<scalar_type>::mm},
+        const scalar_type mask_tol_scalor = 0.f,
         const scalar_type overstep_tol = 0.f) const {
 
         return ray_intersector_type{}(ray, sf, mask, trf, mask_tolerance,
-                                      overstep_tol);
+                                      mask_tol_scalor, overstep_tol);
     }
 
     /// @returns the intersection(s) between a surface and the helix @param h
@@ -49,7 +50,7 @@ struct intersector {
         const mask_t &mask, const transform3_type &trf,
         const std::array<scalar_type, 2u> mask_tolerance =
             {0.f, 1.f * unit<scalar_type>::mm},
-        const scalar_type = 0.f) const {
+        const scalar_type = 0.f, const scalar_type = 0.f) const {
 
         return helix_intersector_type{}(h, sf, mask, trf, mask_tolerance);
     }

@@ -58,6 +58,7 @@ struct ray_concentric_cylinder_intersector {
         const transform3_type & /*trf*/,
         const std::array<scalar_type, 2u> mask_tolerance =
             {0.f, 1.f * unit<scalar_type>::mm},
+        const scalar_type mask_tol_scalor = 0.f,
         const scalar_type overstep_tol = 0.f) const {
 
         intersection_type<surface_descr_t> is;
@@ -114,9 +115,10 @@ struct ray_concentric_cylinder_intersector {
                 // for the r-check
                 // Tolerance: per mille of the distance
                 is.status = mask.is_inside(
-                    is.local, math::max(mask_tolerance[0],
-                                        math::min(mask_tolerance[1],
-                                                  1e-3f * math::abs(is.path))));
+                    is.local,
+                    math::max(mask_tolerance[0],
+                              math::min(mask_tolerance[1],
+                                        mask_tol_scalor * math::abs(is.path))));
 
                 // prepare some additional information in case the intersection
                 // is valid
@@ -141,7 +143,7 @@ struct ray_concentric_cylinder_intersector {
         const ray_type &ray, const surface_descr_t &sf, const mask_t &mask,
         const transform3_type &trf, const scalar_type mask_tolerance,
         const scalar_type overstep_tol = 0.f) const {
-        return this->operator()(ray, sf, mask, trf, {mask_tolerance, 0.f},
+        return this->operator()(ray, sf, mask, trf, {mask_tolerance, 0.f}, 0.f,
                                 overstep_tol);
     }
 
@@ -162,9 +164,10 @@ struct ray_concentric_cylinder_intersector {
         const mask_t &mask, const transform3_type &trf,
         const std::array<scalar_type, 2u> &mask_tolerance =
             {0.f, 1.f * unit<scalar_type>::mm},
+        const scalar_type mask_tol_scalor = 0.f,
         const scalar_type overstep_tol = 0.f) const {
         sfi = this->operator()(ray, sfi.sf_desc, mask, trf, mask_tolerance,
-                               overstep_tol)[0];
+                               mask_tol_scalor, overstep_tol)[0];
     }
 };
 

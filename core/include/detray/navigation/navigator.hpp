@@ -129,6 +129,7 @@ class navigator {
             const detector_type &det, const track_t &track,
             vector_type<intersection_type> &candidates,
             const std::array<scalar_type, 2> mask_tol,
+            const scalar_type mask_tol_scalor,
             const scalar_type overstep_tol) const {
 
             const auto sf = surface{det, sf_descr};
@@ -137,7 +138,7 @@ class navigator {
                 candidates, detail::ray(track), sf_descr, det.transform_store(),
                 sf.is_portal() ? std::array<scalar_type, 2>{0.f, 0.f}
                                : mask_tol,
-                overstep_tol);
+                mask_tol_scalor, overstep_tol);
         }
     };
 
@@ -524,6 +525,7 @@ class navigator {
             track, cfg, *det, track, navigation.candidates(),
             std::array<scalar_type, 2u>{cfg.min_mask_tolerance,
                                         cfg.max_mask_tolerance},
+            static_cast<scalar_type>(cfg.mask_tolerance_scalor),
             static_cast<scalar_type>(cfg.overstep_tolerance));
 
         // Sort all candidates and pick the closest one
@@ -784,6 +786,7 @@ class navigator {
             sf.is_portal() ? std::array<scalar_type, 2>{0.f, 0.f}
                            : std::array<scalar_type, 2>{cfg.min_mask_tolerance,
                                                         cfg.max_mask_tolerance},
+            static_cast<scalar_type>(cfg.mask_tolerance_scalor),
             static_cast<scalar_type>(cfg.overstep_tolerance));
     }
 
