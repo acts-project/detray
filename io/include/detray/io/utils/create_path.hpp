@@ -71,6 +71,7 @@ inline std::string alt_file_name(const std::string& name) {
 inline auto create_path(const std::string& outdir) {
 
     auto path = std::filesystem::path(outdir);
+    path = std::filesystem::is_directory(path) ? path : path.parent_path();
 
     if (!std::filesystem::exists(path)) {
         if (std::error_code err;

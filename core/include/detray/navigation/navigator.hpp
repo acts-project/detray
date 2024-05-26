@@ -198,11 +198,15 @@ class navigator {
 
         /// @return start position of valid candidate range.
         DETRAY_HOST_DEVICE
-        constexpr auto begin() -> candidate_itr_t { return m_next; }
+        constexpr auto begin() -> candidate_itr_t {
+            return (is_on_module() || is_on_portal()) ? m_next - 1 : m_next;
+        }
 
         /// @return start position of the valid candidate range - const
         DETRAY_HOST_DEVICE
-        constexpr auto begin() const -> const_candidate_itr_t { return m_next; }
+        constexpr auto begin() const -> const_candidate_itr_t {
+            return (is_on_module() || is_on_portal()) ? current() : next();
+        }
 
         /// @return sentinel of the valid candidate range.
         DETRAY_HOST_DEVICE
@@ -243,15 +247,11 @@ class navigator {
 
         /// @returns next object that we want to reach (current target) - const
         DETRAY_HOST_DEVICE
-        inline auto next() const -> const const_candidate_itr_t & {
-            return m_next;
-        }
+        inline auto next() const -> const_candidate_itr_t { return m_next; }
 
         /// @returns last valid candidate (by position in the cache) - const
         DETRAY_HOST_DEVICE
-        inline auto last() const -> const const_candidate_itr_t & {
-            return m_last;
-        }
+        inline auto last() const -> const_candidate_itr_t { return m_last; }
 
         /// @returns the navigation inspector
         DETRAY_HOST
@@ -418,6 +418,7 @@ class navigator {
         }
 
         /// @returns next object that we want to reach (current target)
+        /// @note must be lvalue to update the iterator position correctly
         DETRAY_HOST_DEVICE
         inline auto next() -> candidate_itr_t & { return m_next; }
 

@@ -108,6 +108,9 @@ inline void write_free_track_params(
     std::string trk_file_name{file_name};
     if (io::file_exists(file_name)) {
         trk_file_name = io::alt_file_name(file_name);
+    } else {
+        // Make sure the output directories exit
+        io::create_path(trk_file_name);
     }
 
     dfe::NamedTupleCsvWriter<io::csv::free_track_parameters> track_param_writer(
