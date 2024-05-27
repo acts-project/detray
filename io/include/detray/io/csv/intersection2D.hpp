@@ -18,6 +18,7 @@
 
 // System include(s).
 #include <cstdint>
+#include <filesystem>
 
 namespace detray::io::csv {
 
@@ -120,7 +121,7 @@ inline void write_intersection2D(
         inters_file_name = io::alt_file_name(file_name);
     } else {
         // Make sure the output directories exit
-        io::create_path(inters_file_name);
+        io::create_path(std::filesystem::path{inters_file_name}.parent_path());
     }
 
     dfe::NamedTupleCsvWriter<io::csv::intersection2D> inters_writer(
