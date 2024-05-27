@@ -16,6 +16,9 @@
 #include <dfe/dfe_io_dsv.hpp>
 #include <dfe/dfe_namedtuple.hpp>
 
+// System include(s)
+#include <filesystem>
+
 namespace detray::io::csv {
 
 /// Type to read the data of free track parameters
@@ -110,7 +113,7 @@ inline void write_free_track_params(
         trk_file_name = io::alt_file_name(file_name);
     } else {
         // Make sure the output directories exit
-        io::create_path(trk_file_name);
+        io::create_path(std::filesystem::path{trk_file_name}.parent_path());
     }
 
     dfe::NamedTupleCsvWriter<io::csv::free_track_parameters> track_param_writer(
