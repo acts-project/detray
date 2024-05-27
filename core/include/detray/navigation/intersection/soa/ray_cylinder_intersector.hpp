@@ -57,19 +57,22 @@ struct ray_intersector_impl<cylindrical2D<algebra_t>, algebra_t, true> {
     operator()(const detail::ray<other_algebra_t> &ray,
                const surface_descr_t &sf, const mask_t &mask,
                const transform3_type &trf,
-               const scalar_type mask_tolerance = 0.f,
+               const std::array<scalar_type, 2u> &mask_tolerance = {0.f, 1.f},
+               const scalar_type mask_tol_scalor = 0.f,
                const scalar_type overstep_tol = 0.f) const {
 
         // One or both of these solutions might be invalid
         const auto qe = solve_intersection(ray, mask, trf);
 
         std::array<intersection_type<surface_descr_t>, 2> ret;
-        ret[1] = build_candidate<surface_descr_t>(ray, mask, trf, qe.larger(),
-                                                  mask_tolerance, overstep_tol);
+        ret[1] = build_candidate<surface_descr_t>(
+            ray, mask, trf, qe.larger(), mask_tolerance, mask_tol_scalor,
+            overstep_tol);
         ret[1].sf_desc = sf;
 
-        ret[0] = build_candidate<surface_descr_t>(ray, mask, trf, qe.smaller(),
-                                                  mask_tolerance, overstep_tol);
+        ret[0] = build_candidate<surface_descr_t>(
+            ray, mask, trf, qe.smaller(), mask_tolerance, mask_tol_scalor,
+            overstep_tol);
         ret[0].sf_desc = sf;
 
         // Even if there are two geometrically valid solutions, the smaller one
@@ -92,7 +95,9 @@ struct ray_intersector_impl<cylindrical2D<algebra_t>, algebra_t, true> {
     DETRAY_HOST_DEVICE inline void update(
         const detail::ray<other_algebra_t> &ray,
         intersection_type<surface_descr_t> &sfi, const mask_t &mask,
-        const transform3_type &trf, const scalar_type mask_tolerance = 0.f,
+        const transform3_type &trf,
+        const std::array<scalar_type, 2u> &mask_tolerance = {0.f, 1.f},
+        const scalar_type mask_tol_scalor = 0.f,
         const scalar_type overstep_tol = 0.f) const {
 
         // One or both of these solutions might be invalid
@@ -106,7 +111,8 @@ struct ray_intersector_impl<cylindrical2D<algebra_t>, algebra_t, true> {
         }
 
         sfi = build_candidate<surface_descr_t>(ray, mask, trf, qe.smaller(),
-                                               mask_tolerance, overstep_tol);
+                                               mask_tolerance, mask_tol_scalor,
+                                               overstep_tol);
     }
 
     protected:
@@ -150,7 +156,9 @@ struct ray_intersector_impl<cylindrical2D<algebra_t>, algebra_t, true> {
     DETRAY_HOST_DEVICE inline intersection_type<surface_descr_t>
     build_candidate(const detail::ray<other_algebra_t> &ray, const mask_t &mask,
                     const transform3_type &trf, const scalar_type path,
-                    const scalar_type mask_tolerance = 0.f,
+                    const std::array<scalar_type, 2u> &mask_tolerance =
+                        {0.f, 1.f * unit<scalar_type>::mm},
+                    const scalar_type mask_tol_scalor = 0.f,
                     const scalar_type overstep_tol = 0.f) const {
 
         intersection_type<surface_descr_t> is;
@@ -164,7 +172,11 @@ struct ray_intersector_impl<cylindrical2D<algebra_t>, algebra_t, true> {
         const point3_type p3 = ro + is.path * rd;
 
         is.local = mask.to_local_frame(trf, p3);
-        is.status = mask.is_inside(is.local, mask_tolerance);
+        is.status = mask.is_inside(
+            is.local,
+            math::max(mask_tolerance[0],
+                      math::min(mask_tolerance[1],
+                                mask_tol_scalor * math::fabs(is.path))));
 
         is.direction = !math::signbit(is.path);
         is.volume_link = mask.volume_link();

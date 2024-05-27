@@ -26,6 +26,7 @@ struct intersection2D {
 
     unsigned int track_id = 0;
     std::uint64_t identifier = 0ul;
+    unsigned int type = 0u;
     unsigned int transform_index = 0u;
     unsigned int mask_id = 0u;
     unsigned int mask_index = 0u;
@@ -39,7 +40,7 @@ struct intersection2D {
     int direction = 0;
     int status = 0;
 
-    DFE_NAMEDTUPLE(intersection2D, track_id, identifier, transform_index,
+    DFE_NAMEDTUPLE(intersection2D, track_id, identifier, type, transform_index,
                    mask_id, mask_index, material_id, material_index, l0, l1,
                    path, cos_theta, volume_link, direction, status);
 };
@@ -117,6 +118,9 @@ inline void write_intersection2D(
     std::string inters_file_name{file_name};
     if (io::file_exists(file_name)) {
         inters_file_name = io::alt_file_name(file_name);
+    } else {
+        // Make sure the output directories exit
+        io::create_path(inters_file_name);
     }
 
     dfe::NamedTupleCsvWriter<io::csv::intersection2D> inters_writer(
@@ -135,6 +139,8 @@ inline void write_intersection2D(
 
             inters_data.track_id = track_idx;
             inters_data.identifier = inters.sf_desc.barcode().value();
+            inters_data.type =
+                static_cast<unsigned int>(inters.sf_desc.barcode().id());
             inters_data.transform_index = inters.sf_desc.transform();
             inters_data.mask_id =
                 static_cast<unsigned int>(inters.sf_desc.mask().id());

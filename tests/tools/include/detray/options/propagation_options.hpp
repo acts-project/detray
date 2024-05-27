@@ -38,6 +38,10 @@ void add_options<detray::navigation::config>(
         boost::program_options::value<float>()->default_value(
             cfg.max_mask_tolerance),
         "Maximum mask tolerance [mm]")(
+        "mask_tolerance_scalor",
+        boost::program_options::value<float>()->default_value(
+            cfg.mask_tolerance_scalor),
+        "Mask tolerance scaling")(
         "overstep_tolerance",
         boost::program_options::value<float>()->default_value(
             cfg.overstep_tolerance),
@@ -113,6 +117,12 @@ void configure_options<detray::navigation::config>(
         assert(mask_tol >= 0.f);
 
         cfg.max_mask_tolerance = mask_tol * unit<float>::mm;
+    }
+    if (!vm["mask_tolerance_scalor"].defaulted()) {
+        const float mask_tol_scalor{vm["mask_tolerance_scalor"].as<float>()};
+        assert(mask_tol_scalor >= 0.f);
+
+        cfg.mask_tolerance_scalor = mask_tol_scalor;
     }
     if (!vm["overstep_tolerance"].defaulted()) {
         const float overstep_tol{vm["overstep_tolerance"].as<float>()};

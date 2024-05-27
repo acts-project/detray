@@ -273,7 +273,7 @@ GTEST_TEST(detray_intersection, intersection_kernel_helix) {
     for (const auto [sf_idx, surface] : detray::views::enumerate(surfaces)) {
         mask_store.visit<intersection_initialize<helix_intersector>>(
             surface.mask(), sfi_helix, h, surface, transform_store,
-            std::array<scalar_t, 2>{0.f, 0.f}, scalar_t{0.f});
+            std::array<scalar_t, 2>{0.f, 0.f}, scalar_t{0.f}, scalar_t{0.f});
 
         vector3 global;
 

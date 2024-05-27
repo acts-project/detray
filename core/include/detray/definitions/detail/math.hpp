@@ -113,6 +113,18 @@ inline decltype(auto) copysign(T &&mag, S &&sgn) {
 
 template <typename T,
           std::enable_if_t<Vc::Traits::is_simd_vector<T>::value, bool> = true>
+inline decltype(auto) min(T &&vec) {
+    return Vc::min(std::forward<T>(vec));
+}
+
+template <typename T,
+          std::enable_if_t<Vc::Traits::is_simd_vector<T>::value, bool> = true>
+inline decltype(auto) max(T &&vec) {
+    return Vc::max(std::forward<T>(vec));
+}
+
+template <typename T,
+          std::enable_if_t<Vc::Traits::is_simd_vector<T>::value, bool> = true>
 inline decltype(auto) signbit(T &&vec) {
     return Vc::isnegative(std::forward<T>(vec));
 }

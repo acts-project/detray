@@ -59,6 +59,7 @@ struct ray_intersector_impl<cylindrical2D<algebra_t>, algebra_t, false> {
                const mask_t &mask, const transform3_type &trf,
                const std::array<scalar_type, 2u> mask_tolerance =
                    {0.f, 100.f * unit<scalar_type>::um},
+               const scalar_type mask_tol_scalor = 0.f,
                const scalar_type overstep_tol = 0.f) const {
 
         // One or both of these solutions might be invalid
@@ -68,7 +69,8 @@ struct ray_intersector_impl<cylindrical2D<algebra_t>, algebra_t, false> {
         switch (qe.solutions()) {
             case 2:
                 ret[1] = build_candidate<surface_descr_t>(
-                    ray, mask, trf, qe.larger(), mask_tolerance, overstep_tol);
+                    ray, mask, trf, qe.larger(), mask_tolerance,
+                    mask_tol_scalor, overstep_tol);
                 ret[1].sf_desc = sf;
                 // If there are two solutions, reuse the case for a single
                 // solution to setup the intersection with the smaller path
@@ -76,7 +78,8 @@ struct ray_intersector_impl<cylindrical2D<algebra_t>, algebra_t, false> {
                 [[fallthrough]];
             case 1:
                 ret[0] = build_candidate<surface_descr_t>(
-                    ray, mask, trf, qe.smaller(), mask_tolerance, overstep_tol);
+                    ray, mask, trf, qe.smaller(), mask_tolerance,
+                    mask_tol_scalor, overstep_tol);
                 ret[0].sf_desc = sf;
                 break;
             case 0:
@@ -97,7 +100,7 @@ struct ray_intersector_impl<cylindrical2D<algebra_t>, algebra_t, false> {
                const mask_t &mask, const transform3_type &trf,
                const scalar_type mask_tolerance,
                const scalar_type overstep_tol = 0.f) const {
-        return this->operator()(ray, sf, mask, trf, {mask_tolerance, 0.f},
+        return this->operator()(ray, sf, mask, trf, {mask_tolerance, 0.f}, 0.f,
                                 overstep_tol);
     }
 
@@ -117,6 +120,7 @@ struct ray_intersector_impl<cylindrical2D<algebra_t>, algebra_t, false> {
         const mask_t &mask, const transform3_type &trf,
         const std::array<scalar_type, 2u> mask_tolerance =
             {0.f, 1.f * unit<scalar_type>::mm},
+        const scalar_type mask_tol_scalor = 0.f,
         const scalar_type overstep_tol = 0.f) const {
 
         // One or both of these solutions might be invalid
@@ -125,7 +129,8 @@ struct ray_intersector_impl<cylindrical2D<algebra_t>, algebra_t, false> {
         switch (qe.solutions()) {
             case 1:
                 sfi = build_candidate<surface_descr_t>(
-                    ray, mask, trf, qe.smaller(), mask_tolerance, overstep_tol);
+                    ray, mask, trf, qe.smaller(), mask_tolerance,
+                    mask_tol_scalor, overstep_tol);
                 break;
             case 0:
                 sfi.status = false;
@@ -169,6 +174,7 @@ struct ray_intersector_impl<cylindrical2D<algebra_t>, algebra_t, false> {
     build_candidate(const ray_type &ray, mask_t &mask,
                     const transform3_type &trf, const scalar_type path,
                     const std::array<scalar_type, 2u> mask_tolerance,
+                    const scalar_type mask_tol_scalor,
                     const scalar_type overstep_tol) const {
 
         assert((mask_tolerance[0] <= mask_tolerance[1]) &&
@@ -189,9 +195,10 @@ struct ray_intersector_impl<cylindrical2D<algebra_t>, algebra_t, false> {
             is.local = mask.to_local_frame(trf, p3);
             // Tolerance: per mille of the distance
             is.status = mask.is_inside(
-                is.local, math::max(mask_tolerance[0],
-                                    math::min(mask_tolerance[1],
-                                              1e-3f * math::fabs(is.path))));
+                is.local,
+                math::max(mask_tolerance[0],
+                          math::min(mask_tolerance[1],
+                                    mask_tol_scalor * math::fabs(is.path))));
 
             // prepare some additional information in case the intersection
             // is valid

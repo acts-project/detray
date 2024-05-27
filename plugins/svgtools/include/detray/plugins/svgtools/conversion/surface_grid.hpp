@@ -160,11 +160,13 @@ auto surface_grid(const detector_t& detector, const dindex index,
         }
     }
 
-    scalar_t inner_r = *std::min_element(radii.begin(), radii.end());
-    scalar_t outer_r = *std::max_element(radii.begin(), radii.end());
+    scalar_t cyl_ref_radius{0.f};
+    if (!radii.empty()) {
+        scalar_t inner_r = *std::min_element(radii.begin(), radii.end());
+        scalar_t outer_r = *std::max_element(radii.begin(), radii.end());
 
-    scalar_t cyl_ref_radius =
-        0.5f * static_cast<actsvg::scalar>(inner_r + outer_r);
+        cyl_ref_radius = 0.5f * static_cast<actsvg::scalar>(inner_r + outer_r);
+    }
 
     return svgtools::conversion::grid(detector.accelerator_store(), link, view,
                                       cyl_ref_radius, style);

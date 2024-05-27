@@ -129,6 +129,7 @@ class navigator {
             const detector_type &det, const track_t &track,
             vector_type<intersection_type> &candidates,
             const std::array<scalar_type, 2> mask_tol,
+            const scalar_type mask_tol_scalor,
             const scalar_type overstep_tol) const {
 
             const auto sf = surface{det, sf_descr};
@@ -137,7 +138,7 @@ class navigator {
                 candidates, detail::ray(track), sf_descr, det.transform_store(),
                 sf.is_portal() ? std::array<scalar_type, 2>{0.f, 0.f}
                                : mask_tol,
-                overstep_tol);
+                mask_tol_scalor, overstep_tol);
         }
     };
 
@@ -197,11 +198,15 @@ class navigator {
 
         /// @return start position of valid candidate range.
         DETRAY_HOST_DEVICE
-        constexpr auto begin() -> candidate_itr_t { return m_next; }
+        constexpr auto begin() -> candidate_itr_t {
+            return (is_on_module() || is_on_portal()) ? m_next - 1 : m_next;
+        }
 
         /// @return start position of the valid candidate range - const
         DETRAY_HOST_DEVICE
-        constexpr auto begin() const -> const_candidate_itr_t { return m_next; }
+        constexpr auto begin() const -> const_candidate_itr_t {
+            return (is_on_module() || is_on_portal()) ? current() : next();
+        }
 
         /// @return sentinel of the valid candidate range.
         DETRAY_HOST_DEVICE
@@ -242,15 +247,11 @@ class navigator {
 
         /// @returns next object that we want to reach (current target) - const
         DETRAY_HOST_DEVICE
-        inline auto next() const -> const const_candidate_itr_t & {
-            return m_next;
-        }
+        inline auto next() const -> const_candidate_itr_t { return m_next; }
 
         /// @returns last valid candidate (by position in the cache) - const
         DETRAY_HOST_DEVICE
-        inline auto last() const -> const const_candidate_itr_t & {
-            return m_last;
-        }
+        inline auto last() const -> const_candidate_itr_t { return m_last; }
 
         /// @returns the navigation inspector
         DETRAY_HOST
@@ -417,6 +418,7 @@ class navigator {
         }
 
         /// @returns next object that we want to reach (current target)
+        /// @note must be lvalue to update the iterator position correctly
         DETRAY_HOST_DEVICE
         inline auto next() -> candidate_itr_t & { return m_next; }
 
@@ -524,6 +526,7 @@ class navigator {
             track, cfg, *det, track, navigation.candidates(),
             std::array<scalar_type, 2u>{cfg.min_mask_tolerance,
                                         cfg.max_mask_tolerance},
+            static_cast<scalar_type>(cfg.mask_tolerance_scalor),
             static_cast<scalar_type>(cfg.overstep_tolerance));
 
         // Sort all candidates and pick the closest one
@@ -784,6 +787,7 @@ class navigator {
             sf.is_portal() ? std::array<scalar_type, 2>{0.f, 0.f}
                            : std::array<scalar_type, 2>{cfg.min_mask_tolerance,
                                                         cfg.max_mask_tolerance},
+            static_cast<scalar_type>(cfg.mask_tolerance_scalor),
             static_cast<scalar_type>(cfg.overstep_tolerance));
     }
 

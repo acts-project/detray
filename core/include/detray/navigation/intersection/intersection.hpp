@@ -76,7 +76,8 @@ struct intersection2D {
     /// @param rhs is the left hand side intersection for comparison
     DETRAY_HOST_DEVICE
     bool_t operator==(const intersection2D &rhs) const {
-        return math::fabs(path - rhs.path) < std::numeric_limits<T>::epsilon();
+        return math::fabs(path - rhs.path) <
+               std::numeric_limits<float>::epsilon();
     }
 
     DETRAY_HOST_DEVICE

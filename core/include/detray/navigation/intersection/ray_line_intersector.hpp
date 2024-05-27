@@ -54,6 +54,7 @@ struct ray_intersector_impl<line2D<algebra_t>, algebra_t, false> {
         const transform3_type &trf,
         const std::array<scalar_type, 2u> mask_tolerance =
             {0.f, 1.f * unit<scalar_type>::mm},
+        const scalar_type mask_tol_scalor = 0.f,
         const scalar_type overstep_tol = 0.f) const {
 
         assert((mask_tolerance[0] <= mask_tolerance[1]) &&
@@ -107,9 +108,10 @@ struct ray_intersector_impl<line2D<algebra_t>, algebra_t, false> {
             is.local = mask.to_local_frame(trf, m, _d);
             // Tolerance: per mille of the distance
             is.status = mask.is_inside(
-                is.local, math::max(mask_tolerance[0],
-                                    math::min(mask_tolerance[1],
-                                              1e-3f * math::fabs(is.path))));
+                is.local,
+                math::max(mask_tolerance[0],
+                          math::min(mask_tolerance[1],
+                                    mask_tol_scalor * math::fabs(is.path))));
 
             // prepare some additional information in case the intersection
             // is valid
@@ -131,7 +133,7 @@ struct ray_intersector_impl<line2D<algebra_t>, algebra_t, false> {
         const ray_type &ray, const surface_descr_t &sf, const mask_t &mask,
         const transform3_type &trf, const scalar_type mask_tolerance,
         const scalar_type overstep_tol = 0.f) const {
-        return this->operator()(ray, sf, mask, trf, {mask_tolerance, 0.f},
+        return this->operator()(ray, sf, mask, trf, {mask_tolerance, 0.f}, 0.f,
                                 overstep_tol);
     }
 
@@ -151,10 +153,11 @@ struct ray_intersector_impl<line2D<algebra_t>, algebra_t, false> {
         const mask_t &mask, const transform3_type &trf,
         const std::array<scalar_type, 2u> &mask_tolerance =
             {0.f, 1.f * unit<scalar_type>::mm},
+        const scalar_type mask_tol_scalor = 0.f,
         const scalar_type overstep_tol = 0.f) const {
 
         sfi = this->operator()(ray, sfi.sf_desc, mask, trf, mask_tolerance,
-                               overstep_tol);
+                               mask_tol_scalor, overstep_tol);
     }
 };
 

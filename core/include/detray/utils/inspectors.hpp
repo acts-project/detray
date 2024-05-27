@@ -19,6 +19,7 @@
 
 // System include(s)
 #include <iomanip>
+#include <limits>
 #include <sstream>
 #include <string>
 #include <tuple>
@@ -91,6 +92,7 @@ template <typename intersetion_t>
 struct candidate_record {
 
     using algebra_type = typename intersetion_t::algebra_type;
+    using scalar_type = dscalar<algebra_type>;
     using point3_type = dpoint3D<algebra_type>;
     using vector3_type = dvector3D<algebra_type>;
     using intersection_type = intersetion_t;
@@ -112,6 +114,7 @@ template <typename candidate_t, template <typename...> class vector_t = dvector,
 struct object_tracer {
 
     using candidate_record_t = detail::candidate_record<candidate_t>;
+    using scalar_t = typename candidate_record_t::scalar_type;
 
     using view_type = dvector_view<candidate_record_t>;
     using const_view_type = dvector_view<const candidate_record_t>;
@@ -126,10 +129,15 @@ struct object_tracer {
 
     // record all object id the navigator encounters
     vector_t<candidate_record_t> object_trace;
+    dindex current_vol{dindex_invalid};
+    const scalar_t inv_pos{detray::detail::invalid_value<scalar_t>()};
+    typename candidate_record_t::point3_type last_pos = {inv_pos, inv_pos,
+                                                         inv_pos};
+    typename candidate_record_t::vector3_type last_dir = {0.f, 0.f, 0.f};
 
     /// Inspector interface
     template <typename state_type, typename point3_t, typename vector3_t>
-    DETRAY_HOST_DEVICE auto operator()(state_type &state,
+    DETRAY_HOST_DEVICE auto operator()(const state_type &state,
                                        const navigation::config &,
                                        const point3_t &pos,
                                        const vector3_t &dir,
@@ -137,7 +145,17 @@ struct object_tracer {
 
         // Record the candidate of an encountered object
         if ((is_status(state.status(), navigation_status) || ...)) {
-            object_trace.push_back({pos, dir, *(state.current())});
+            // Reached a new position: log it
+            // Also log volume switches that happen without position update
+            if ((getter::norm(last_pos - pos) >=
+                 10.f * std::numeric_limits<scalar_t>::epsilon()) ||
+                (state.is_on_portal() && current_vol != state.volume())) {
+
+                object_trace.push_back({pos, dir, *(state.current())});
+                last_pos = pos;
+                last_dir = dir;
+                current_vol = state.volume();
+            }
         }
     }
 
