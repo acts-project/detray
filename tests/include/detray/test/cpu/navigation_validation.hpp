@@ -112,8 +112,10 @@ class navigation_validation : public test::fixture_base<> {
         detray::io::file_handle debug_file{"./navigation_validation.txt",
                                            io_mode};
 
+        // Keep a record of track positions and material along the track
         dvector<dvector<navigation::detail::candidate_record<intersection_t>>>
             recorded_traces{};
+        dvector<material_validator::material_record<scalar_t>> mat_records{};
 
         for (const auto &intersection_trace : intersection_traces) {
 
@@ -128,7 +130,7 @@ class navigation_validation : public test::fixture_base<> {
             trajectory_type test_traj = get_parametrized_trajectory(track);
 
             // Run the propagation
-            auto [success, obj_tracer, nav_printer, step_printer] =
+            auto [success, obj_tracer, mat_trace, nav_printer, step_printer] =
                 navigation_validator::record_propagation<stepper_t>(
                     m_gctx, m_det, m_cfg.propagation(), track, b_field);
 
@@ -165,6 +167,7 @@ class navigation_validation : public test::fixture_base<> {
             }
 
             recorded_traces.push_back(std::move(obj_tracer.object_trace));
+            mat_records.push_back(mat_trace);
 
             EXPECT_TRUE(success);
 
@@ -177,10 +180,12 @@ class navigation_validation : public test::fixture_base<> {
         // Print track positions for plotting
         std::string prefix{k_use_rays ? "ray_" : "helix_"};
         const auto data_path{
-            std::filesystem::path{m_cfg.track_param_file()}.parent_path() /
-            (prefix + "navigation_track_pos.csv")};
+            std::filesystem::path{m_cfg.track_param_file()}.parent_path()};
+        const auto trk_path{data_path / (prefix + "navigation_track_pos.csv")};
+        const auto math_path{data_path / (prefix + "accumulated_material.csv")};
 
-        navigation_validator::write_tracks(data_path.string(), recorded_traces);
+        navigation_validator::write_tracks(trk_path.string(), recorded_traces);
+        material_validator::write_material(math_path.string(), mat_records);
     }
 
     private:

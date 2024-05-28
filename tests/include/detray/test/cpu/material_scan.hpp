@@ -9,12 +9,12 @@
 
 // Project include(s)
 #include "detray/io/utils/file_handle.hpp"
-#include "detray/materials/detail/material_accessor.hpp"
 #include "detray/navigation/detail/ray.hpp"
 #include "detray/simulation/event_generator/track_generators.hpp"
 #include "detray/test/common/fixture_base.hpp"
 #include "detray/test/common/types.hpp"
 #include "detray/test/common/utils/detector_scanner.hpp"
+#include "detray/test/common/utils/material_validation_utils.hpp"
 
 // System include(s)
 #include <ios>
@@ -71,23 +71,21 @@ class material_scan : public test::fixture_base<> {
     /// Run the ray scan
     void TestBody() override {
 
+        using material_record_t = material_validator::material_record<scalar_t>;
+
         const typename detector_t::geometry_context gctx{};
 
         std::size_t n_tracks{0u};
         auto ray_generator = track_generator_t(m_cfg.track_generator());
 
-        // Csv output file
-        std::string file_name{m_cfg.name() + "_" + m_det.name(m_names)};
-        detray::io::file_handle outfile{
-            file_name, ".csv",
-            std::ios::out | std::ios::binary | std::ios::trunc};
-        *outfile << "eta,phi,mat_sX0,mat_sL0,mat_tX0,mat_tL0" << std::endl;
-
         std::cout << "INFO: Running material scan on: " << m_det.name(m_names)
                   << "\n(" << ray_generator.size() << " rays) ...\n"
                   << std::endl;
 
-        scalar_t eta{}, phi{}, mat_sX0{}, mat_sL0{}, mat_tX0{}, mat_tL0{};
+        // Trace material per ray
+        dvector<material_record_t> material_records{};
+        material_records.reserve(ray_generator.size());
+
         for (const auto ray : ray_generator) {
 
             // Record all intersections and surfaces along the ray
@@ -101,14 +99,10 @@ class material_scan : public test::fixture_base<> {
                 break;
             }
 
-            eta = getter::eta(ray.dir());
-            phi = getter::phi(ray.dir());
-            // Total accumulated path length in X0 and L0, respectively
-            mat_sX0 = 0.f;
-            mat_sL0 = 0.f;
-            // Total accumulated material thickness in X0 and L0, respectively
-            mat_tX0 = 0.f;
-            mat_tL0 = 0.f;
+            // New material record
+            material_record_t mat_record{};
+            mat_record.eta = getter::eta(ray.dir());
+            mat_record.phi = getter::phi(ray.dir());
 
             // Record material for this ray
             for (const auto &record : intersection_record) {
@@ -120,84 +114,45 @@ class material_scan : public test::fixture_base<> {
                 }
 
                 const auto &p = record.intersection.local;
-                const auto [seg, t, mx0, ml0] =
-                    sf.template visit_material<get_material_params>(
-                        point2_t{p[0], p[1]}, sf.cos_angle(gctx, ray.dir(), p));
+                const auto [seg, t, mx0, ml0] = sf.template visit_material<
+                    material_validator::get_material_params>(
+                    point2_t{p[0], p[1]}, sf.cos_angle(gctx, ray.dir(), p));
 
                 if (mx0 > 0.f) {
-                    mat_sX0 += seg / mx0;
-                    mat_tX0 += t / mx0;
+                    mat_record.sX0 += seg / mx0;
+                    mat_record.tX0 += t / mx0;
                 } else {
                     std::cout << "WARNING: Encountered invalid X_0: " << mx0
                               << "\nOn surface: " << sf << std::endl;
                 }
                 if (ml0 > 0.f) {
-                    mat_sL0 += seg / ml0;
-                    mat_tL0 += t / ml0;
+                    mat_record.sL0 += seg / ml0;
+                    mat_record.tL0 += t / ml0;
                 } else {
                     std::cout << "WARNING: Encountered invalid L_0: " << ml0
                               << "\nOn surface: " << sf << std::endl;
                 }
             }
 
-            if (mat_sX0 == 0.f or mat_sL0 == 0.f or mat_tX0 == 0.f or
-                mat_tL0 == 0.f) {
+            if (mat_record.sX0 == 0.f or mat_record.sL0 == 0.f or
+                mat_record.tX0 == 0.f or mat_record.tL0 == 0.f) {
                 std::cout << "WARNING: No material recorded for ray "
                           << n_tracks << "/" << ray_generator.size() << ": "
                           << ray << std::endl;
             }
 
-            *outfile << eta << "," << phi << "," << mat_sX0 << "," << mat_sL0
-                     << "," << mat_tX0 << "," << mat_tL0 << std::endl;
+            material_records.push_back(mat_record);
 
             ++n_tracks;
         }
+
+        // Write everything to csv file
+        std::string file_name{m_cfg.name() + "_" + m_det.name(m_names) +
+                              ".csv"};
+        material_validator::write_material(file_name, material_records);
     }
 
     private:
-    /// @brief Functor to retrieve the material parameters of a given
-    /// intersection
-    struct get_material_params {
-
-        template <typename mat_group_t, typename index_t>
-        inline auto operator()(
-            [[maybe_unused]] const mat_group_t &mat_group,
-            [[maybe_unused]] const index_t &index,
-            [[maybe_unused]] const point2_t &loc,
-            [[maybe_unused]] const scalar_t cos_inc_angle) const {
-
-            using material_t = typename mat_group_t::value_type;
-
-            constexpr auto inv{detail::invalid_value<scalar_t>()};
-
-            // Access homogeneous surface material or material maps
-            if constexpr ((detail::is_hom_material_v<material_t> &&
-                           !std::is_same_v<material_t, material<scalar_t>>) ||
-                          detail::is_material_map_v<material_t>) {
-
-                // Slab or rod
-                const auto mat =
-                    detail::material_accessor::get(mat_group, index, loc);
-
-                // Empty material can occur in material maps, skip it
-                if (!mat) {
-                    // Set the pathlength and thickness to zero so that they
-                    // are not counted
-                    return std::tuple(scalar_t{0}, scalar_t{0}, inv, inv);
-                }
-
-                const scalar_t seg{mat.path_segment(cos_inc_angle, loc[0])};
-                const scalar_t t{mat.thickness()};
-                const scalar_t mat_X0{mat.get_material().X0()};
-                const scalar_t mat_L0{mat.get_material().L0()};
-
-                return std::tuple(seg, t, mat_X0, mat_L0);
-            } else {
-                return std::tuple(inv, inv, inv, inv);
-            }
-        }
-    };
-
     /// The configuration of this test
     config m_cfg;
     /// The geometry context to scan

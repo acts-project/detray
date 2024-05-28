@@ -12,6 +12,7 @@
 #include "detray/propagator/actor_chain.hpp"
 #include "detray/propagator/actors/aborters.hpp"
 #include "detray/propagator/propagator.hpp"
+#include "detray/test/common/utils/material_validation_utils.hpp"
 #include "detray/tracks/free_track_parameters.hpp"
 #include "detray/utils/inspectors.hpp"
 
@@ -35,6 +36,7 @@ inline auto record_propagation(
     const bfield_t &bfield = {}) {
 
     using algebra_t = typename detector_t::algebra_type;
+    using scalar_t = dscalar<algebra_t>;
 
     /// Type that holds the intersection information
     using intersection_t =
@@ -56,7 +58,9 @@ inline auto record_propagation(
     using navigator_t = navigator<detector_t, inspector_t, intersection_t>;
 
     // Propagator with pathlimit aborter
-    using actor_chain_t = actor_chain<dtuple, pathlimit_aborter>;
+    using material_tracer_t = material_validator::material_tracer<scalar_t>;
+    using actor_chain_t =
+        actor_chain<dtuple, pathlimit_aborter, material_tracer_t>;
     using propagator_t = propagator<stepper_t, navigator_t, actor_chain_t>;
 
     // Propagator
@@ -64,7 +68,8 @@ inline auto record_propagation(
 
     // Build actor and propagator states
     pathlimit_aborter::state pathlimit_aborter_state{cfg.stepping.path_limit};
-    auto actor_states = std::tie(pathlimit_aborter_state);
+    typename material_tracer_t::state mat_tracer_state{};
+    auto actor_states = std::tie(pathlimit_aborter_state, mat_tracer_state);
 
     std::unique_ptr<typename propagator_t::state> propagation{nullptr};
     if constexpr (std::is_same_v<bfield_t, empty_bfield>) {
@@ -88,6 +93,7 @@ inline auto record_propagation(
     bool success = prop.propagate(*propagation, actor_states);
 
     return std::make_tuple(success, std::move(obj_tracer),
+                           std::move(mat_tracer_state.mat_record),
                            std::move(nav_printer), std::move(step_printer));
 }
 
