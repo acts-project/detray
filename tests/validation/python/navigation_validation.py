@@ -97,6 +97,9 @@ def __main__():
     if args.grid_file:
         args_list = args_list + ["--grid_file", args.grid_file]
 
+    if args.material_file:
+        args_list = args_list + ["--material_file", args.material_file]
+
     # Run the host validation and produce the truth data
     logging.debug("Running CPU validation")
     subprocess.run([cpu_validation, "--write_scan_data"] + args_list)

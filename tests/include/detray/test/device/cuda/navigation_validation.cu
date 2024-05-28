@@ -24,11 +24,15 @@ __global__ void navigation_validation_kernel(
         truth_intersection_traces_view,
     vecmem::data::jagged_vector_view<navigation::detail::candidate_record<
         typename intersection_record_t::intersection_type>>
-        recorded_intersections_view) {
+        recorded_intersections_view,
+    vecmem::data::vector_view<
+        material_validator::material_record<typename detector_t::scalar_type>>
+        mat_records_view) {
 
     using detector_device_t =
         detector<typename detector_t::metadata, device_container_types>;
     using algebra_t = typename detector_device_t::algebra_type;
+    using scalar_t = dscalar<algebra_t>;
 
     static_assert(std::is_same_v<typename detector_t::view_type,
                                  typename detector_device_t::view_type>,
@@ -53,7 +57,9 @@ __global__ void navigation_validation_kernel(
     using navigator_t = navigator<detector_device_t, object_tracer_t>;
 
     // Propagator with pathlimit aborter
-    using actor_chain_t = actor_chain<tuple, pathlimit_aborter>;
+    using material_tracer_t = material_validator::material_tracer<scalar_t>;
+    using actor_chain_t =
+        actor_chain<tuple, pathlimit_aborter, material_tracer_t>;
     using propagator_t = propagator<stepper_t, navigator_t, actor_chain_t>;
 
     detector_device_t det(det_data);
@@ -65,11 +71,17 @@ __global__ void navigation_validation_kernel(
     vecmem::jagged_device_vector<
         navigation::detail::candidate_record<intersection_t>>
         recorded_intersections(recorded_intersections_view);
+    vecmem::device_vector<typename material_tracer_t::material_record_type>
+        mat_records(mat_records_view);
+
+    // TODO: Critical section!
+    mat_records.resize(truth_intersection_traces.size());
 
     // Check the memory setup
     assert(truth_intersection_traces.size() ==
            recorded_intersections_view.size());
     assert(truth_intersection_traces.size() == navigation_cache.size());
+    assert(truth_intersection_traces.size() == mat_records.size());
     for (unsigned int i = 0u; i < navigation_cache.size(); ++i) {
         assert(navigation_cache.at(i).capacity() > 0);
     }
@@ -83,7 +95,8 @@ __global__ void navigation_validation_kernel(
 
     // Create the actor states
     pathlimit_aborter::state aborter_state{cfg.stepping.path_limit};
-    auto actor_states = ::detray::tie(aborter_state);
+    typename material_tracer_t::state mat_tracer_state{};
+    auto actor_states = ::detray::tie(aborter_state, mat_tracer_state);
 
     // Get the initial track parameters
     const auto &track = truth_intersection_traces[trk_id].front().track_param;
@@ -113,6 +126,9 @@ __global__ void navigation_validation_kernel(
                             recorded_intersections_view.ptr()[trk_id]}),
                     actor_states);
     }
+
+    // Record the accumulated material
+    mat_records.at(trk_id) = mat_tracer_state.mat_record;
 }
 
 /// Launch the device kernel
@@ -128,7 +144,10 @@ void navigation_validation_device(
         &truth_intersection_traces_view,
     vecmem::data::jagged_vector_view<navigation::detail::candidate_record<
         typename intersection_record_t::intersection_type>>
-        &recorded_intersections_view) {
+        &recorded_intersections_view,
+    vecmem::data::vector_view<
+        material_validator::material_record<typename detector_t::scalar_type>>
+        &mat_records_view) {
 
     constexpr int thread_dim = 2 * WARP_SIZE;
     int block_dim = truth_intersection_traces_view.size() / thread_dim + 1;
@@ -137,7 +156,8 @@ void navigation_validation_device(
     navigation_validation_kernel<bfield_t, detector_t, intersection_record_t>
         <<<block_dim, thread_dim>>>(
             det_view, cfg, field_data, navigation_cache_view,
-            truth_intersection_traces_view, recorded_intersections_view);
+            truth_intersection_traces_view, recorded_intersections_view,
+            mat_records_view);
 
     // cuda error check
     DETRAY_CUDA_ERROR_CHECK(cudaGetLastError());
@@ -158,7 +178,9 @@ void navigation_validation_device(
             const detray::intersection_record<detector<METADATA>>> &,          \
         vecmem::data::jagged_vector_view<navigation::detail::candidate_record< \
             typename detray::intersection_record<                              \
-                detector<METADATA>>::intersection_type>> &);                   \
+                detector<METADATA>>::intersection_type>> &,                    \
+        vecmem::data::vector_view<material_validator::material_record<         \
+            typename detector<METADATA>::scalar_type>> &);                     \
                                                                                \
     template void navigation_validation_device<                                \
         detray::navigation_validator::empty_bfield, detector<METADATA>,        \
@@ -171,7 +193,9 @@ void navigation_validation_device(
             const detray::intersection_record<detector<METADATA>>> &,          \
         vecmem::data::jagged_vector_view<navigation::detail::candidate_record< \
             typename detray::intersection_record<                              \
-                detector<METADATA>>::intersection_type>> &);
+                detector<METADATA>>::intersection_type>> &,                    \
+        vecmem::data::vector_view<material_validator::material_record<         \
+            typename detector<METADATA>::scalar_type>> &);
 
 DECLARE_NAVIGATION_VALIDATION(default_metadata)
 DECLARE_NAVIGATION_VALIDATION(toy_metadata)

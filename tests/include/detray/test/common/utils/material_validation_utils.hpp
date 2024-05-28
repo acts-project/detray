@@ -42,7 +42,7 @@ struct get_material_params {
 
     template <typename mat_group_t, typename index_t, typename point2_t,
               typename scalar_t>
-    inline auto operator()(
+    DETRAY_HOST_DEVICE inline auto operator()(
         [[maybe_unused]] const mat_group_t &mat_group,
         [[maybe_unused]] const index_t &index,
         [[maybe_unused]] const point2_t &loc,
@@ -88,6 +88,8 @@ struct get_material_params {
 template <typename scalar_t>
 struct material_tracer : detray::actor {
 
+    using material_record_type = material_record<scalar_t>;
+
     struct state {
         material_record<scalar_t> mat_record{};
     };
@@ -109,10 +111,11 @@ struct material_tracer : detray::actor {
         // Current surface
         const auto sf = navigation.get_surface();
 
-        // Bound position of track on current surface
-        auto &bound_params = prop_state._stepping._bound_params;
-        const auto loc_pos = bound_params.bound_local();
-        const auto glob_dir = bound_params.dir();
+        // Track direction and bound position on current surface
+        const auto &track_param = prop_state._stepping();
+        const auto glob_dir = track_param.dir();
+        const auto loc_pos =
+            sf.global_to_bound(gctx, track_param.pos(), glob_dir);
 
         // Fetch the material parameters and pathlength through the material
         const auto [seg, t, mx0, ml0] =

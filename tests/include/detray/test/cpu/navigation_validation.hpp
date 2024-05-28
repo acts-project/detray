@@ -15,6 +15,7 @@
 #include "detray/test/common/fixture_base.hpp"
 #include "detray/test/common/navigation_validation_config.hpp"
 #include "detray/test/common/utils/detector_scan_utils.hpp"
+#include "detray/test/common/utils/material_validation_utils.hpp"
 #include "detray/test/common/utils/navigation_validation_utils.hpp"
 #include "detray/tracks/tracks.hpp"
 
