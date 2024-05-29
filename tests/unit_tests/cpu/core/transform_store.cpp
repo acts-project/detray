@@ -8,7 +8,7 @@
 #include <gtest/gtest.h>
 
 #include "detray/core/detail/single_store.hpp"
-#include "detray/test/types.hpp"
+#include "detray/test/common/types.hpp"
 
 // This tests the construction of a static transform store
 GTEST_TEST(detray_core, static_transform_store) {

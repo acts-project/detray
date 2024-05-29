@@ -1,10 +1,11 @@
 # Detray library, part of the ACTS project (R&D line)
 #
-# (c) 2023 CERN for the benefit of the ACTS project
+# (c) 2023-2024 CERN for the benefit of the ACTS project
 #
 # Mozilla Public License Version 2.0
 
-from . import plotting
+# detray includes
+import plotting
 
 # python includes
 import numpy as np
@@ -12,7 +13,7 @@ import numpy as np
 """ Plot the intersection points of the detector with the rays - xy view """
 def intersection_points_xy(opts, df, detector, scan_type, plotFactory,  out_format = "png"):
 
-    n_rays = np.max(df['index']) + 1
+    n_rays = np.max(df['track_id']) + 1
     tracks = "rays" if scan_type == "ray" else "helices"
 
     # Reduce data to the requested z-range (50mm tolerance)
@@ -24,9 +25,9 @@ def intersection_points_xy(opts, df, detector, scan_type, plotFactory,  out_form
     passive_range = lambda data: ((data['z'] > min_z) & (data['z'] < max_z) & (data['type'] == 2))
 
     senstive_x, senstive_y = plotting.filter_data(
-                                                data      = df,
-                                                filter    = sensitive_range,
-                                                variables = ['x', 'y'])
+                                         data      = df,
+                                         filter    = sensitive_range,
+                                         variables = ['x', 'y'])
 
     # Plot the xy coordinates of the filtered intersections points
     lgd_ops = plotting.legend_options('upper center', 4, 0.4, 0.005)
@@ -44,9 +45,9 @@ def intersection_points_xy(opts, df, detector, scan_type, plotFactory,  out_form
     # Portal surfaces
     if not opts.hide_portals:
         portal_x, portal_y = plotting.filter_data(
-                                                data      = df,
-                                                filter    = portal_range,
-                                                variables = ['x', 'y'])
+                                         data      = df,
+                                         filter    = portal_range,
+                                         variables = ['x', 'y'])
 
         plotFactory.highlight_region(hist_data, portal_x, portal_y, 'C0',      \
                                      "portals")
@@ -54,16 +55,16 @@ def intersection_points_xy(opts, df, detector, scan_type, plotFactory,  out_form
     # Passive surfaces
     if not opts.hide_passives:
         passive_x, passive_y = plotting.filter_data(
-                                                data      = df,
-                                                filter    = passive_range,
-                                                variables = ['x', 'y'])
+                                           data      = df,
+                                           filter    = passive_range,
+                                           variables = ['x', 'y'])
 
         plotFactory.highlight_region(hist_data, passive_x, passive_y, 'C2',    \
                                      "passives")
 
     # Refine legend
-    hist_data.lgd.legendHandles[0].set_visible(False)
-    for handle in hist_data.lgd.legendHandles[1:]:
+    hist_data.lgd.legend_handles[0].set_visible(False)
+    for handle in hist_data.lgd.legend_handles[1:]:
         handle.set_sizes([40])
 
     # For this plot, move the legend ouside
@@ -81,7 +82,7 @@ def intersection_points_xy(opts, df, detector, scan_type, plotFactory,  out_form
 """ Plot the intersection points of the detector with the rays - rz view """
 def intersection_points_rz(opts, df, detector, scan_type, plotFactory,  out_format = "png"):
 
-    n_rays = np.max(df['index']) + 1
+    n_rays = np.max(df['track_id']) + 1
     tracks =  "rays" if scan_type == "ray" else "helices"
 
     # Reduce data to the requested z-range
@@ -110,9 +111,9 @@ def intersection_points_rz(opts, df, detector, scan_type, plotFactory,  out_form
     # Portal surfaces
     if not opts.hide_portals:
         portal_x, portal_y, portal_z = plotting.filter_data(
-                                                    data      = df,
-                                                    filter    = portal_range,
-                                                    variables = ['x', 'y', 'z'])
+                                                   data      = df,
+                                                   filter    = portal_range,
+                                                   variables = ['x', 'y', 'z'])
 
         plotFactory.highlight_region(hist_data, portal_z,                      \
                                      np.hypot(portal_x, portal_y),             \
@@ -130,8 +131,8 @@ def intersection_points_rz(opts, df, detector, scan_type, plotFactory,  out_form
                                     'C2', "passives")
 
     # Refine legend
-    hist_data.lgd.legendHandles[0].set_visible(False)
-    for handle in hist_data.lgd.legendHandles[1:]:
+    hist_data.lgd.legend_handles[0].set_visible(False)
+    for handle in hist_data.lgd.legend_handles[1:]:
         handle.set_sizes([40])
 
     # For this plot, move the legend ouside

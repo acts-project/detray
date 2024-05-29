@@ -17,7 +17,7 @@ detray_add_unit_test( cpu
    "utils/tuple_helpers.cpp"
    "utils/type_list.cpp"
    "utils/sort.cpp"
-   LINK_LIBRARIES GTest::gtest GTest::gtest_main detray::test detray::core )
+   LINK_LIBRARIES GTest::gtest GTest::gtest_main detray::test_common detray::core )
 
 # Macro setting up the CPU tests for a specific algebra plugin.
 macro( detray_add_cpu_test algebra )
@@ -94,7 +94,7 @@ macro( detray_add_cpu_test algebra )
       "utils/quadratic_equation.cpp"
       "utils/unit_vectors.cpp"
       LINK_LIBRARIES GTest::gtest GTest::gtest_main detray::core_${algebra}
-                     detray::test covfie::core vecmem::core detray::io
+                     detray::test_common covfie::core vecmem::core detray::io
                      detray::utils)
 endmacro()
 

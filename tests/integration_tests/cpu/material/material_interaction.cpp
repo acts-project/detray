@@ -26,7 +26,7 @@
 #include "detray/propagator/propagator.hpp"
 #include "detray/propagator/rk_stepper.hpp"
 #include "detray/simulation/random_scatterer.hpp"
-#include "detray/test/types.hpp"
+#include "detray/test/common/types.hpp"
 #include "detray/utils/inspectors.hpp"
 #include "detray/utils/statistics.hpp"
 

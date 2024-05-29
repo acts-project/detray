@@ -12,10 +12,10 @@
 #include "detray/navigation/detail/ray.hpp"
 #include "detray/propagator/line_stepper.hpp"
 #include "detray/propagator/rk_stepper.hpp"
-#include "detray/test/fixture_base.hpp"
-#include "detray/test/navigation_validation_config.hpp"
-#include "detray/test/utils/detector_scan_utils.hpp"
-#include "detray/test/utils/navigation_validation_utils.hpp"
+#include "detray/test/common/fixture_base.hpp"
+#include "detray/test/common/navigation_validation_config.hpp"
+#include "detray/test/common/utils/detector_scan_utils.hpp"
+#include "detray/test/common/utils/navigation_validation_utils.hpp"
 #include "detray/tracks/tracks.hpp"
 
 // System include(s)

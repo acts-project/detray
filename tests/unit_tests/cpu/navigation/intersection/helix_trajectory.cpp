@@ -8,7 +8,7 @@
 // Project include(s)
 #include "detray/definitions/units.hpp"
 #include "detray/navigation/detail/helix.hpp"
-#include "detray/test/types.hpp"
+#include "detray/test/common/types.hpp"
 #include "detray/tracks/tracks.hpp"
 
 // GTest include(s)

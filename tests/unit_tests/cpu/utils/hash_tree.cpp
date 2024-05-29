@@ -6,7 +6,7 @@
  */
 
 // detray test
-#include "detray/test/utils/hash_tree.hpp"
+#include "detray/test/common/utils/hash_tree.hpp"
 
 // GTest include(s)
 #include <gtest/gtest.h>

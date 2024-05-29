@@ -12,7 +12,7 @@
 #include "detray/materials/predefined_materials.hpp"
 #include "detray/simulation/landau_distribution.hpp"
 #include "detray/simulation/random_scatterer.hpp"
-#include "detray/test/types.hpp"
+#include "detray/test/common/types.hpp"
 #include "detray/utils/statistics.hpp"
 
 // GTest include(s).

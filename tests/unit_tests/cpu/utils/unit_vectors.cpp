@@ -8,7 +8,7 @@
 // Project include(s)
 #include "detray/utils/unit_vectors.hpp"
 
-#include "detray/test/types.hpp"
+#include "detray/test/common/types.hpp"
 
 // Google Test include(s)
 #include <gtest/gtest.h>

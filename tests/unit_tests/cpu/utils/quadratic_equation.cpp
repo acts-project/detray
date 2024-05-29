@@ -12,7 +12,7 @@
 #include "detray/utils/tuple_helpers.hpp"
 
 // detray test
-#include "detray/test/types.hpp"
+#include "detray/test/common/types.hpp"
 
 // GTest include(s)
 #include <gtest/gtest.h>

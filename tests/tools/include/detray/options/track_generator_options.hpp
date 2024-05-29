@@ -44,11 +44,11 @@ void add_options<uniform_track_generator_config>(
         "Coordintates for particle gun origin position [mm]")(
         "p_tot",
         boost::program_options::value<float>()->default_value(
-            static_cast<float>(cfg.m_p_mag)),
+            static_cast<float>(cfg.m_p_mag) / unit<float>::GeV),
         "Total momentum of the test particle [GeV]")(
         "p_T",
         boost::program_options::value<float>()->default_value(
-            static_cast<float>(cfg.m_p_mag)),
+            static_cast<float>(cfg.m_p_mag) / unit<float>::GeV),
         "Transverse momentum of the test particle [GeV]");
 }
 
@@ -114,11 +114,11 @@ void add_options<random_track_generator_config>(
         "Coordintates for particle gun origin position")(
         "p_tot",
         boost::program_options::value<float>()->default_value(
-            static_cast<float>(cfg.mom_range()[0])),
+            static_cast<float>(cfg.mom_range()[0]) / unit<float>::GeV),
         "Total momentum of the test particle [GeV]")(
         "p_T",
         boost::program_options::value<float>()->default_value(
-            static_cast<float>(cfg.mom_range()[0])),
+            static_cast<float>(cfg.mom_range()[0]) / unit<float>::GeV),
         "Transverse momentum of the test particle [GeV]");
 }
 

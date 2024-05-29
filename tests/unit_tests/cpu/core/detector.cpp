@@ -10,7 +10,7 @@
 
 #include "detray/definitions/detail/indexing.hpp"
 #include "detray/materials/predefined_materials.hpp"
-#include "detray/test/utils/prefill_detector.hpp"
+#include "detray/test/common/utils/prefill_detector.hpp"
 
 // Vecmem include(s)
 #include <vecmem/memory/host_memory_resource.hpp>

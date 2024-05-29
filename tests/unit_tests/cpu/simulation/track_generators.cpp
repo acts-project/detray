@@ -10,7 +10,7 @@
 
 #include "detray/definitions/units.hpp"
 #include "detray/navigation/detail/trajectories.hpp"
-#include "detray/test/types.hpp"
+#include "detray/test/common/types.hpp"
 #include "detray/tracks/tracks.hpp"
 #include "detray/utils/statistics.hpp"
 

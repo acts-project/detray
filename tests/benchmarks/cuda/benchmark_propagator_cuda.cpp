@@ -9,7 +9,7 @@
 #include "benchmark_propagator_cuda_kernel.hpp"
 #include "detray/detectors/build_toy_detector.hpp"
 #include "detray/simulation/event_generator/track_generators.hpp"
-#include "detray/test/types.hpp"
+#include "detray/test/common/types.hpp"
 
 // Vecmem include(s)
 #include <vecmem/memory/binary_page_memory_resource.hpp>

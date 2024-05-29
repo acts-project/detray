@@ -32,11 +32,11 @@ void add_options<detray::navigation::config>(
         "Search window size for the grid")(
         "min_mask_tolerance",
         boost::program_options::value<float>()->default_value(
-            cfg.min_mask_tolerance),
+            cfg.min_mask_tolerance / unit<float>::mm),
         "Minimum mask tolerance [mm]")(
         "max_mask_tolerance",
         boost::program_options::value<float>()->default_value(
-            cfg.max_mask_tolerance),
+            cfg.max_mask_tolerance / unit<float>::mm),
         "Maximum mask tolerance [mm]")(
         "mask_tolerance_scalor",
         boost::program_options::value<float>()->default_value(
@@ -44,11 +44,11 @@ void add_options<detray::navigation::config>(
         "Mask tolerance scaling")(
         "overstep_tolerance",
         boost::program_options::value<float>()->default_value(
-            cfg.overstep_tolerance),
+            cfg.overstep_tolerance / unit<float>::um),
         "Overstepping tolerance [um] NOTE: Must be negative!")(
         "path_tolerance",
         boost::program_options::value<float>()->default_value(
-            cfg.path_tolerance),
+            cfg.path_tolerance / unit<float>::um),
         "Tol. to decide when a track is on surface [um]");
 }
 
@@ -58,19 +58,21 @@ void add_options<detray::stepping::config>(
     boost::program_options::options_description &desc,
     const detray::stepping::config &cfg) {
 
-    desc.add_options()(
-        "minimum_stepsize",
-        boost::program_options::value<float>()->default_value(cfg.min_stepsize),
-        "Minimum step size [mm]")(
+    desc.add_options()("minimum_stepsize",
+                       boost::program_options::value<float>()->default_value(
+                           cfg.min_stepsize / unit<float>::mm),
+                       "Minimum step size [mm]")(
         "step_contraint",
         boost::program_options::value<float>()->default_value(
-            cfg.step_constraint),
+            cfg.step_constraint / unit<float>::mm),
         "Maximum step size [mm]")(
         "rk-tolerance",
-        boost::program_options::value<float>()->default_value(cfg.rk_error_tol),
+        boost::program_options::value<float>()->default_value(cfg.rk_error_tol /
+                                                              unit<float>::mm),
         "The Runge-Kutta intergration error tolerance [mm]")(
         "path_limit",
-        boost::program_options::value<float>()->default_value(cfg.path_limit),
+        boost::program_options::value<float>()->default_value(cfg.path_limit /
+                                                              unit<float>::m),
         "Maximum path length for a track [m]")("mean_energy_loss",
                                                "Use Bethe energy loss")(
         "covariance_transport", "Run the covariance transport")(

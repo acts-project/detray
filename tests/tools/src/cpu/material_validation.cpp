@@ -12,7 +12,7 @@
 #include "detray/options/detector_io_options.hpp"
 #include "detray/options/parse_options.hpp"
 #include "detray/options/track_generator_options.hpp"
-#include "detray/test/detail/register_checks.hpp"
+#include "detray/test/common/detail/register_checks.hpp"
 #include "detray/validation/detector_material_scan.hpp"
 
 // Vecmem include(s)

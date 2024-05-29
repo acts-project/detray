@@ -9,7 +9,7 @@
 #include "detray/definitions/units.hpp"
 #include "detray/detectors/build_toy_detector.hpp"
 #include "detray/geometry/detail/volume_descriptor.hpp"
-#include "detray/test/types.hpp"
+#include "detray/test/common/types.hpp"
 
 // GTest include(s)
 #include <gtest/gtest.h>

@@ -1,96 +1,35 @@
 # Detray library, part of the ACTS project (R&D line)
 #
-# (c) 2023 CERN for the benefit of the ACTS project
+# (c) 2023-2024 CERN for the benefit of the ACTS project
 #
 # Mozilla Public License Version 2.0
 
 # detray includes
-from validation import plot_material_scan as mat_plotter
-from validation import plt_factory
+from impl import plot_material_scan as mat_plotter
+from plotting import pyplot_factory as plt_factory
+from options import common_options, plotting_options
+from options import parse_common_options, parse_plotting_options
 
 # python includes
 import argparse
-import logging
 import pandas as pd
-import os
-import sys
-from datetime import datetime
 
 
 def __main__():
 
 #----------------------------------------------------------------arg parsing
 
-    parser = argparse.ArgumentParser(description = "Detray Material Validation")
-    parser.add_argument("--debug", "-d",
-                        help=("Enables debug output"), 
-                        action="store_true")
-    parser.add_argument("--logfile",
-                        help=("Write log in file"), 
-                        default = "", type=str)
-    parser.add_argument("--input", "-i",
-                        help=("Input material scan data file."),
-                        default = "", type=str)
-    parser.add_argument("--outdir", "-o",
-                        help=("Output directory for plots."),
-                        default = "./material_plots/", type=str)
-    parser.add_argument("--output_format", "-of",
-                        help=("Format of the plot files (svg|png|pdf)."),
-                        default = "png", type=str)
+    descr = "Detray Material Validation"
+
+    common_parser = common_options(descr)
+    plotting_parser = plotting_options()
+
+    parser = argparse.ArgumentParser(description = descr, parents=[common_parser, plotting_parser])
 
     args = parser.parse_args()
 
-#---------------------------------------------------------------------config
-
-    # Check output path
-    if not os.path.isdir(args.outdir):
-        os.mkdir(args.outdir, 0o755)
-    outdir = args.outdir
-
-    # Set log level
-    logLevel = logging.INFO
-    if args.debug:
-        logLevel = logging.DEBUG
-
-    # Check logfile path
-    if args.logfile != "":
-        logDirName  = os.path.dirname(args.logfile)
-
-        if logDirName != "" and not os.path.isdir(logDirName):
-            os.mkdir(logDirName, 0o755)
-
-        if not os.path.isfile(args.logfile):
-            with open(args.logfile, 'x'): pass
-
-        # Write log in logfile
-        logging.basicConfig(filename=args.logfile, 
-                            format=("%(levelname)s (%(module)s):"
-                                    " %(message)s"), level=logLevel)
-    else:
-        # Write log to terminal
-        logging.basicConfig(format=("%(levelname)s (%(module)s):"
-                                    " %(message)s"), level=logLevel)
-
-    logging.info("\n--------------------------------------------------------\n"
-                 "Running material validation "+\
-                 str(datetime.now().strftime("%d/%m/%Y %H:%M"))+\
-                 "\n--------------------------------------------------------\n")
-
-    # Check input data files from material scan
-    if args.input == "":
-        logging.error(f"Please specify an input data file!")
-        sys.exit(1)
-
-    if not os.path.isfile(args.input):
-        logging.error(f"Data file does not exist! ({args.input})")
-        sys.exit(1)
-
-    if not args.output_format in ["svg", "png", "pdf"]:
-        logging.error(f"Unknown output file format: {args.output_format}")
-        sys.exit(1)
-
-    mat_scan_file = args.input
-    out_format = args.output_format
+    logging = parse_common_options(args, descr)
+    input_dir, out_dir, out_format = parse_plotting_options(args, logging)
 
 #----------------------------------------------------------------prepare data
 

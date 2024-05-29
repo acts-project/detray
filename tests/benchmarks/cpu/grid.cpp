@@ -14,7 +14,7 @@
 #include "detray/geometry/shapes/rectangle2D.hpp"
 
 // Detray test include(s).
-#include "detray/test/types.hpp"
+#include "detray/test/common/types.hpp"
 
 // VecMem include(s).
 #include <vecmem/memory/host_memory_resource.hpp>

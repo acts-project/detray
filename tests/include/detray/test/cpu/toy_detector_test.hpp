@@ -8,7 +8,7 @@
 #pragma once
 
 // Project include(s)
-#include "detray/test/types.hpp"
+#include "detray/test/common/types.hpp"
 #include "detray/utils/consistency_checker.hpp"
 
 // GTest include(s)

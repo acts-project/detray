@@ -13,7 +13,7 @@
 #include "detray/geometry/shapes/unbounded.hpp"
 #include "detray/navigation/intersection/helix_intersector.hpp"
 #include "detray/propagator/detail/jacobian_engine.hpp"
-#include "detray/test/types.hpp"
+#include "detray/test/common/types.hpp"
 #include "detray/tracks/tracks.hpp"
 #include "detray/utils/axis_rotation.hpp"
 

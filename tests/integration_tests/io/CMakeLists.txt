@@ -16,7 +16,7 @@ endfunction()
 detray_add_integration_test( io_roundtrip
     "io_json_detector_roundtrip.cpp"
     LINK_LIBRARIES GTest::gtest_main vecmem::core detray::core_array
-    detray::io_array detray::test detray::utils_array)
+    detray::io_array detray::test_common detray::utils_array)
 
 # Run integration tests only after unit tests passed
 set_tests_properties(detray_integration_test_io_roundtrip PROPERTIES DEPENDS

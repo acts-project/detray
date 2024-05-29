@@ -12,8 +12,8 @@
 #include "detray/plugins/svgtools/illustrator.hpp"
 #include "detray/plugins/svgtools/writer.hpp"
 #include "detray/simulation/event_generator/track_generators.hpp"
-#include "detray/test/utils/detector_scanner.hpp"
-#include "detray/test/utils/svg_display.hpp"
+#include "detray/test/common/utils/detector_scanner.hpp"
+#include "detray/test/common/utils/svg_display.hpp"
 #include "detray/tracks/tracks.hpp"
 
 // Vecmem include(s)

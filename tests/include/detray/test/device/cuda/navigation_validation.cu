@@ -32,7 +32,7 @@ __global__ void navigation_validation_kernel(
 
     static_assert(std::is_same_v<typename detector_t::view_type,
                                  typename detector_device_t::view_type>,
-                  "Host and device detector views do not match");
+                  "Host and device detector view types do not match");
 
     using hom_bfield_view_t = bfield::const_field_t::view_t;
     using rk_stepper_t = rk_stepper<hom_bfield_view_t, algebra_t>;

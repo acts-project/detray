@@ -5,10 +5,6 @@
 # Mozilla Public License Version 2.0
 
 # Set up the core tests.
-
-include_directories( SYSTEM $<TARGET_PROPERTY:actsvg::meta,INTERFACE_INCLUDE_DIRECTORIES> )
-include_directories( SYSTEM $<TARGET_PROPERTY:actsvg::core,INTERFACE_INCLUDE_DIRECTORIES> )
-
 detray_add_unit_test( svgtools
    "detectors.cpp"
    "grids.cpp"
@@ -20,11 +16,11 @@ detray_add_unit_test( svgtools
    "surfaces.cpp"
    "trajectories.cpp"
    "volumes.cpp"
-   LINK_LIBRARIES GTest::gtest_main  detray::test detray::core_array
+   LINK_LIBRARIES GTest::gtest_main  detray::test_common detray::core_array
                   detray::utils actsvg::core actsvg::meta detray::svgtools)
 
 detray_add_unit_test( svgtools_web
    "web.cpp"
-   LINK_LIBRARIES GTest::gtest_main detray::test detray::core_array
+   LINK_LIBRARIES GTest::gtest_main detray::test_common detray::core_array
                   detray::utils actsvg::core actsvg::meta detray::svgtools
                   actsvg::web)

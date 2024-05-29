@@ -10,7 +10,7 @@
 
 #include "detray/definitions/units.hpp"
 #include "detray/geometry/coordinates/concentric_cylindrical2D.hpp"
-#include "detray/test/types.hpp"
+#include "detray/test/common/types.hpp"
 
 // GTest include(s).
 #include <gtest/gtest.h>

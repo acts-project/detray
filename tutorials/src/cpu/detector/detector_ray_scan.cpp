@@ -10,9 +10,9 @@
 #include "detray/navigation/detail/ray.hpp"
 #include "detray/navigation/volume_graph.hpp"
 #include "detray/simulation/event_generator/track_generators.hpp"
-#include "detray/test/utils/detector_scan_utils.hpp"
-#include "detray/test/utils/detector_scanner.hpp"
-#include "detray/test/utils/hash_tree.hpp"
+#include "detray/test/common/utils/detector_scan_utils.hpp"
+#include "detray/test/common/utils/detector_scanner.hpp"
+#include "detray/test/common/utils/hash_tree.hpp"
 
 // Example linear algebra plugin: std::array
 #include "detray/tutorial/types.hpp"
