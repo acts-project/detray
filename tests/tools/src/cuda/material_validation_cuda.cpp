@@ -1,13 +1,11 @@
 /** Detray library, part of the ACTS project (R&D line)
  *
- * (c) 2023-2024 CERN for the benefit of the ACTS project
+ * (c) 2024 CERN for the benefit of the ACTS project
  *
  * Mozilla Public License Version 2.0
  */
 
 // Project include(s)
-#include "detray/test/cpu/material_validation.hpp"
-
 #include "detray/core/detector.hpp"
 #include "detray/definitions/units.hpp"
 #include "detray/io/frontend/detector_reader.hpp"
@@ -17,8 +15,10 @@
 #include "detray/options/track_generator_options.hpp"
 #include "detray/test/common/detail/register_checks.hpp"
 #include "detray/test/cpu/material_scan.hpp"
+#include "detray/test/device/cuda/material_validation.hpp"
 
 // Vecmem include(s)
+#include <vecmem/memory/cuda/device_memory_resource.hpp>
 #include <vecmem/memory/host_memory_resource.hpp>
 
 // GTest include(s)
@@ -44,7 +44,7 @@ int main(int argc, char **argv) {
     ::testing::InitGoogleTest(&argc, argv);
 
     // Specific options for this test
-    po::options_description desc("\ndetray material validation options");
+    po::options_description desc("\ndetray CUDA material validation options");
 
     desc.add_options()(
         "tol", boost::program_options::value<float>()->default_value(1e-4f),
@@ -64,6 +64,8 @@ int main(int argc, char **argv) {
         mat_val_cfg.tol(vm["tol"].as<float>());
     }
 
+    /// Vecmem memory resource for the device allocations
+    vecmem::cuda::device_memory_resource dev_mr{};
     vecmem::host_memory_resource host_mr;
 
     const auto [det, names] =
@@ -79,8 +81,9 @@ int main(int argc, char **argv) {
 
     // Now trace the material during navigation and compare
     mat_val_cfg.whiteboard(white_board);
+    mat_val_cfg.device_mr(&dev_mr);
 
-    detail::register_checks<detray::test::material_validation>(det, names,
+    detail::register_checks<detray::cuda::material_validation>(det, names,
                                                                mat_val_cfg);
 
     // Run the checks

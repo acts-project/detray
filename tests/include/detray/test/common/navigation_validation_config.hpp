@@ -67,7 +67,7 @@ struct navigation_validation_config
         std::shared_ptr<test::whiteboard> w_board) {
         if (!w_board) {
             throw std::invalid_argument(
-                "Helix navigation: No valid whiteboard instance");
+                "Navigation validation: No valid whiteboard instance");
         }
         m_white_board = std::move(w_board);
         return *this;

@@ -64,6 +64,7 @@ struct propagator {
 
         using detector_type = typename navigator_t::detector_type;
         using navigator_state_type = typename navigator_t::state;
+        using actor_chain_type = actor_chain_t;
         using scalar_type = typename navigator_t::scalar_type;
 
         /// Construct the propagation state.

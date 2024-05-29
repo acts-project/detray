@@ -117,7 +117,7 @@ inline auto run_navigation_validation(
 
     vecmem::data::vector_buffer<material_record_t> mat_records_buffer(
         static_cast<unsigned int>(truth_intersection_traces_view.size()),
-        *dev_mr, vecmem::data::buffer_type::resizable);
+        *dev_mr, vecmem::data::buffer_type::fixed_size);
     cuda_cpy.setup(mat_records_buffer);
     auto mat_records_view = vecmem::get_data(mat_records_buffer);
 
@@ -306,12 +306,12 @@ class navigation_validation : public test::fixture_base<> {
             std::filesystem::path{m_cfg.track_param_file()}.parent_path()};
         const auto trk_path{data_path /
                             (prefix + "navigation_track_pos_cuda.csv")};
-        const auto math_path{data_path /
-                             (prefix + "accumulated_material_cuda.csv")};
+        const auto mat_path{data_path /
+                            (prefix + "accumulated_material_cuda.csv")};
 
         navigation_validator::write_tracks(trk_path.string(),
                                            recorded_intersections);
-        material_validator::write_material(math_path.string(), mat_records);
+        material_validator::write_material(mat_path.string(), mat_records);
     }
 
     private:

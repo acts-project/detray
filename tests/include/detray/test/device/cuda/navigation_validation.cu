@@ -74,14 +74,10 @@ __global__ void navigation_validation_kernel(
     vecmem::device_vector<typename material_tracer_t::material_record_type>
         mat_records(mat_records_view);
 
-    // TODO: Critical section!
-    mat_records.resize(truth_intersection_traces.size());
-
     // Check the memory setup
     assert(truth_intersection_traces.size() ==
            recorded_intersections_view.size());
     assert(truth_intersection_traces.size() == navigation_cache.size());
-    assert(truth_intersection_traces.size() == mat_records.size());
     for (unsigned int i = 0u; i < navigation_cache.size(); ++i) {
         assert(navigation_cache.at(i).capacity() > 0);
     }
@@ -128,6 +124,7 @@ __global__ void navigation_validation_kernel(
     }
 
     // Record the accumulated material
+    assert(truth_intersection_traces.size() == mat_records.size());
     mat_records.at(trk_id) = mat_tracer_state.mat_record;
 }
 

@@ -11,6 +11,8 @@
 #include "detray/test/common/detail/register_checks.hpp"
 #include "detray/test/common/detail/whiteboard.hpp"
 #include "detray/test/cpu/detector_scan.hpp"
+#include "detray/test/cpu/material_scan.hpp"
+#include "detray/test/device/cuda/material_validation.hpp"
 #include "detray/test/device/cuda/navigation_validation.hpp"
 
 // Vecmem include(s)
@@ -36,6 +38,9 @@ int main(int argc, char **argv) {
     using toy_detector_t = detector<toy_metadata>;
     using scalar_t = typename toy_detector_t::scalar_type;
 
+    /// Vecmem memory resource for the device allocations
+    vecmem::cuda::device_memory_resource dev_mr{};
+
     //
     // Toy detector configuration
     //
@@ -60,10 +65,6 @@ int main(int argc, char **argv) {
     detray::cuda::straight_line_navigation<toy_detector_t>::config
         cfg_str_nav{};
     cfg_str_nav.name("toy_detector_straight_line_navigation_cuda");
-    /*cfg_str_nav.intersection_file(toy_det.name(toy_names) +
-                                  "_ray_scan_intersections.csv");
-    cfg_str_nav.track_param_file(toy_det.name(toy_names) +
-                                 "_ray_scan_track_parameters.csv");*/
     cfg_str_nav.whiteboard(white_board);
     cfg_str_nav.propagation().navigation.search_window = {3u, 3u};
     auto mask_tolerance = cfg_ray_scan.mask_tolerance();
@@ -91,15 +92,50 @@ int main(int argc, char **argv) {
     // Comparison of navigation in a constant B-field with helix
     detray::cuda::helix_navigation<toy_detector_t>::config cfg_hel_nav{};
     cfg_hel_nav.name("toy_detector_helix_navigation_cuda");
-    /*cfg_hel_nav.intersection_file(toy_det.name(toy_names) +
-                                  "_helix_scan_intersections.csv");
-    cfg_hel_nav.track_param_file(toy_det.name(toy_names) +
-                                 "_helix_scan_track_parameters.csv");*/
     cfg_hel_nav.whiteboard(white_board);
     cfg_hel_nav.propagation().navigation.search_window = {3u, 3u};
 
     detail::register_checks<detray::cuda::helix_navigation>(toy_det, toy_names,
                                                             cfg_hel_nav);
+
+    // Run the material validation - Material Maps
+    test::material_scan<toy_detector_t>::config mat_scan_cfg{};
+    mat_scan_cfg.name("toy_detector_material_scan_for_cuda");
+    mat_scan_cfg.whiteboard(white_board);
+    mat_scan_cfg.track_generator().uniform_eta(true).eta_range(-4.f, 4.f);
+    mat_scan_cfg.track_generator().phi_steps(10).eta_steps(100);
+
+    // Record the material using a ray scan
+    detail::register_checks<test::material_scan>(toy_det, toy_names,
+                                                 mat_scan_cfg);
+
+    // Now trace the material during navigation and compare
+    detray::cuda::material_validation<toy_detector_t>::config mat_val_cfg{};
+    mat_val_cfg.name("toy_detector_material_validaiton_cuda");
+    mat_val_cfg.whiteboard(white_board);
+    mat_val_cfg.device_mr(&dev_mr);
+    mat_val_cfg.tol(1e-6f);  // < Reduce tolerance for single precision tests
+    mat_val_cfg.propagation() = cfg_str_nav.propagation();
+
+    /*detail::register_checks<detray::cuda::material_validation>(toy_det,
+       toy_names, mat_val_cfg);*/
+
+    // Run the material validation - Homogeneous material
+    toy_cfg.use_material_maps(false);
+
+    auto [toy_det_hom_mat, toy_names_hom_mat] =
+        build_toy_detector(host_mr, toy_cfg);
+    toy_names_hom_mat.at(0) += "_hom_material";
+
+    // Record the material using a ray scan
+    mat_scan_cfg.name("toy_detector_hom_material_scan_for_cuda");
+    detail::register_checks<test::material_scan>(
+        toy_det_hom_mat, toy_names_hom_mat, mat_scan_cfg);
+
+    // Now trace the material during navigation and compare
+    mat_val_cfg.name("toy_detector_hom_material_validaiton_cuda");
+    detail::register_checks<detray::cuda::material_validation>(
+        toy_det_hom_mat, toy_names_hom_mat, mat_val_cfg);
 
     // Run the checks
     return RUN_ALL_TESTS();

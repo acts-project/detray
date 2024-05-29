@@ -222,7 +222,7 @@ inline std::ostream& operator<<(std::ostream& out,
     if (cfg.uniform_eta()) {
         const auto& eta_range = cfg.eta_range();
         out << "  Eta range             : [" << eta_range[0] << ", "
-            << eta_range[1] << "] [rad]\n";
+            << eta_range[1] << "]\n";
     } else {
         const auto& theta_range = cfg.theta_range();
         out << "  Theta range           : ["

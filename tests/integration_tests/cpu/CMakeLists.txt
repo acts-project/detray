@@ -46,7 +46,7 @@ endif()
 detray_add_integration_test(telescope_detector
                             "detectors/telescope_detector_navigation.cpp"
                             LINK_LIBRARIES GTest::gtest GTest::gtest_main
-                            detray::test_common detray::io detray::utils
+                            detray::test_cpu detray::io detray::utils
                             detray::core_array )
 
 set_tests_properties(detray_integration_test_telescope_detector PROPERTIES DEPENDS
@@ -55,7 +55,7 @@ set_tests_properties(detray_integration_test_telescope_detector PROPERTIES DEPEN
 detray_add_integration_test(toy_detector
                             "detectors/toy_detector_navigation.cpp"
                             LINK_LIBRARIES GTest::gtest GTest::gtest_main
-                            detray::test_common detray::io detray::utils
+                            detray::test_cpu detray::io detray::utils
                             detray::core_array )
 
 set_tests_properties(detray_integration_test_toy_detector PROPERTIES DEPENDS
@@ -64,7 +64,7 @@ set_tests_properties(detray_integration_test_toy_detector PROPERTIES DEPENDS
 detray_add_integration_test(wire_chamber
                             "detectors/wire_chamber_navigation.cpp"
                             LINK_LIBRARIES GTest::gtest GTest::gtest_main
-                            detray::test_common detray::io detray::utils
+                            detray::test_cpu detray::io detray::utils
                             detray::core_array )
 
 set_tests_properties(detray_integration_test_wire_chamber PROPERTIES DEPENDS

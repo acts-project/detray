@@ -98,7 +98,7 @@ struct detector_scan_config : public test::fixture_base<>::configuration {
         std::shared_ptr<test::whiteboard> w_board) {
         if (!w_board) {
             throw std::invalid_argument(
-                "Ray scan: No valid whiteboard instance");
+                "Detector scan: No valid whiteboard instance");
         }
         m_white_board = std::move(w_board);
         return *this;

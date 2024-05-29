@@ -11,6 +11,7 @@
 #include "detray/io/utils/file_handle.hpp"
 #include "detray/navigation/detail/ray.hpp"
 #include "detray/simulation/event_generator/track_generators.hpp"
+#include "detray/test/common/detail/whiteboard.hpp"
 #include "detray/test/common/fixture_base.hpp"
 #include "detray/test/common/types.hpp"
 #include "detray/test/common/utils/detector_scanner.hpp"
@@ -21,7 +22,7 @@
 #include <iostream>
 #include <string>
 
-namespace detray {
+namespace detray::test {
 
 /// @brief Test class that runs the material ray scan on a given detector.
 ///
@@ -42,6 +43,8 @@ class material_scan : public test::fixture_base<> {
         using trk_gen_config_t = typename track_generator_t::configuration;
 
         std::string m_name{"material_scan"};
+        /// Save results for later use in downstream tests
+        std::shared_ptr<test::whiteboard> m_white_board;
         trk_gen_config_t m_trk_gen_cfg{};
 
         /// Getters
@@ -51,12 +54,24 @@ class material_scan : public test::fixture_base<> {
         const trk_gen_config_t &track_generator() const {
             return m_trk_gen_cfg;
         }
+        std::shared_ptr<test::whiteboard> whiteboard() { return m_white_board; }
+        std::shared_ptr<test::whiteboard> whiteboard() const {
+            return m_white_board;
+        }
         /// @}
 
         /// Setters
         /// @{
         config &name(const std::string n) {
             m_name = n;
+            return *this;
+        }
+        config &whiteboard(std::shared_ptr<test::whiteboard> w_board) {
+            if (!w_board) {
+                throw std::invalid_argument(
+                    "Material scan: Not a valid whiteboard instance");
+            }
+            m_white_board = std::move(w_board);
             return *this;
         }
         /// @}
@@ -66,14 +81,18 @@ class material_scan : public test::fixture_base<> {
         const detector_t &det, const typename detector_t::name_map &names,
         const config &cfg = {},
         const typename detector_t::geometry_context &gctx = {})
-        : m_cfg{cfg}, m_gctx{gctx}, m_det{det}, m_names{names} {}
+        : m_cfg{cfg}, m_gctx{gctx}, m_det{det}, m_names{names} {
+
+        if (!m_cfg.whiteboard()) {
+            throw std::invalid_argument("No white board was passed to " +
+                                        m_cfg.name() + " test");
+        }
+    }
 
     /// Run the ray scan
     void TestBody() override {
 
         using material_record_t = material_validator::material_record<scalar_t>;
-
-        const typename detector_t::geometry_context gctx{};
 
         std::size_t n_tracks{0u};
         auto ray_generator = track_generator_t(m_cfg.track_generator());
@@ -83,14 +102,17 @@ class material_scan : public test::fixture_base<> {
                   << std::endl;
 
         // Trace material per ray
-        dvector<material_record_t> material_records{};
-        material_records.reserve(ray_generator.size());
+        dvector<free_track_parameters<algebra_t>> tracks{};
+        tracks.reserve(ray_generator.size());
+
+        dvector<material_record_t> mat_records{};
+        mat_records.reserve(ray_generator.size());
 
         for (const auto ray : ray_generator) {
 
             // Record all intersections and surfaces along the ray
             const auto intersection_record =
-                detector_scanner::run<ray_scan>(m_gctx, m_det, ray);
+                detector_scanner::run<detray::ray_scan>(m_gctx, m_det, ray);
 
             if (intersection_record.empty()) {
                 std::cout << "ERROR: Intersection trace empty for ray "
@@ -99,13 +121,27 @@ class material_scan : public test::fixture_base<> {
                 break;
             }
 
+            // Record track parameters
+            tracks.push_back({ray.pos(), 0.f, ray.dir(), -1.f});
+
             // New material record
             material_record_t mat_record{};
             mat_record.eta = getter::eta(ray.dir());
             mat_record.phi = getter::phi(ray.dir());
 
             // Record material for this ray
-            for (const auto &record : intersection_record) {
+            for (const auto &[i, record] :
+                 detray::views::enumerate(intersection_record)) {
+
+                // Prevent double counting of material on adjacent portals
+                if (i >= 1 &&
+                    intersection_record[i - 1].intersection ==
+                        record.intersection &&
+                    intersection_record[i - 1]
+                        .intersection.sf_desc.is_portal() &&
+                    record.intersection.sf_desc.is_portal()) {
+                    continue;
+                }
 
                 const auto sf = surface{m_det, record.intersection.sf_desc};
 
@@ -114,9 +150,14 @@ class material_scan : public test::fixture_base<> {
                 }
 
                 const auto &p = record.intersection.local;
-                const auto [seg, t, mx0, ml0] = sf.template visit_material<
+                const auto mat_params = sf.template visit_material<
                     material_validator::get_material_params>(
-                    point2_t{p[0], p[1]}, sf.cos_angle(gctx, ray.dir(), p));
+                    point2_t{p[0], p[1]}, sf.cos_angle(m_gctx, ray.dir(), p));
+
+                const scalar_t seg{mat_params.path};
+                const scalar_t t{mat_params.thickness};
+                const scalar_t mx0{mat_params.mat_X0};
+                const scalar_t ml0{mat_params.mat_L0};
 
                 if (mx0 > 0.f) {
                     mat_record.sX0 += seg / mx0;
@@ -134,22 +175,31 @@ class material_scan : public test::fixture_base<> {
                 }
             }
 
-            if (mat_record.sX0 == 0.f or mat_record.sL0 == 0.f or
-                mat_record.tX0 == 0.f or mat_record.tL0 == 0.f) {
+            if (mat_record.sX0 == 0.f || mat_record.sL0 == 0.f ||
+                mat_record.tX0 == 0.f || mat_record.tL0 == 0.f) {
                 std::cout << "WARNING: No material recorded for ray "
                           << n_tracks << "/" << ray_generator.size() << ": "
                           << ray << std::endl;
             }
 
-            material_records.push_back(mat_record);
+            mat_records.push_back(mat_record);
 
             ++n_tracks;
         }
 
-        // Write everything to csv file
-        std::string file_name{m_cfg.name() + "_" + m_det.name(m_names) +
-                              ".csv"};
-        material_validator::write_material(file_name, material_records);
+        std::cout << "-----------------------------------\n"
+                  << "Tested " << n_tracks << " tracks\n"
+                  << "-----------------------------------\n"
+                  << std::endl;
+
+        // Write recorded material to csv file
+        std::string coll_name{"material_scan_" + m_det.name(m_names)};
+        material_validator::write_material(coll_name + ".csv", mat_records);
+
+        // Pin data to whiteboard
+        m_cfg.whiteboard()->add(coll_name, std::move(mat_records));
+        m_cfg.whiteboard()->add("material_scan_tracks_" + m_det.name(m_names),
+                                std::move(tracks));
     }
 
     private:
@@ -163,4 +213,4 @@ class material_scan : public test::fixture_base<> {
     const typename detector_t::name_map &m_names;
 };
 
-}  // namespace detray
+}  // namespace detray::test
