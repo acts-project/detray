@@ -5,7 +5,9 @@
 # Mozilla Public License Version 2.0
 
 # detray imports
-from impl import read_navigation_data, plot_navigation_data
+from impl import read_scan_data, read_navigation_data
+from impl import plot_intersection_points_xy, plot_intersection_points_rz
+from impl import compare_track_pos_xy, compare_track_pos_rz, plot_track_pos_dist, plot_track_pos_res
 from options import (common_options, detector_io_options,
                      track_generator_options, propagation_options,
                      plotting_options)
@@ -112,6 +114,8 @@ def __main__():
 
 #------------------------------------------------------------------------plot
 
+    logging.info("Generating data plots...")
+
     # Check the data path (should have been created when running the validation)
     if not os.path.isdir(datadir):
         logging.error(f"Data directory was not found! ({args.datadir})")
@@ -119,11 +123,93 @@ def __main__():
 
     plot_factory = plt_factory(out_dir, logging)
 
-    det_name, ray_scan_df, helix_scan_df = read_navigation_data(datadir,logging)
-
     # Plot the truth data
-    plot_navigation_data(args, det_name, plot_factory, ray_scan_df, "ray", out_format)
-    plot_navigation_data(args, det_name, plot_factory, helix_scan_df, "helix", out_format)
+    det_name, ray_scan_df, helix_scan_df = read_scan_data(datadir, logging)
+
+    plot_intersection_points_xy(args, ray_scan_df, det_name, "ray",
+                                plot_factory, out_format)
+    plot_intersection_points_rz(args, ray_scan_df, det_name, "ray",
+                                plot_factory, out_format)
+    plot_intersection_points_xy(args, helix_scan_df, det_name, "helix",
+                                plot_factory, out_format)
+    plot_intersection_points_rz(args, helix_scan_df, det_name, "helix",
+                                plot_factory, out_format)
+
+    # Plot the recorded data
+    ray_nav_df, ray_nav_cuda_df, helix_nav_df, helix_nav_cuda_df = read_navigation_data(datadir, args.cuda, logging)
+
+    # Plot vs truth
+    # xy
+    compare_track_pos_xy(args, det_name, "ray", plot_factory, out_format,
+                         ray_scan_df, "truth", 'r',
+                         ray_nav_df, "navigator (CPU)", 'darkgrey')
+    compare_track_pos_xy(args, det_name, "helix", plot_factory, out_format,
+                         helix_scan_df, "truth", 'r',
+                         helix_nav_df, "navigator (CPU)", 'darkgrey')
+    # rz
+    compare_track_pos_rz(args, det_name, "ray", plot_factory, out_format,
+                         ray_scan_df, "truth", 'r',
+                         ray_nav_df, "navigator (CPU)", 'darkgrey')
+    compare_track_pos_rz(args, det_name, "helix", plot_factory, out_format,
+                         helix_scan_df, "truth", 'r',
+                         helix_nav_df, "navigator (CPU)", 'darkgrey')
+
+    if args.cuda:
+        # Truth vs. Device - xy
+        compare_track_pos_xy(args, det_name, "ray", plot_factory, out_format,
+                             ray_scan_df, "truth", 'r',
+                             ray_nav_cuda_df, "navigator (CUDA)", 'darkgrey')
+        compare_track_pos_xy(args, det_name, "helix", plot_factory, out_format,
+                             helix_scan_df, "truth", 'r',
+                             helix_nav_cuda_df, "navigator (CUDA)", 'darkgrey')
+        # Host vs. Device - xy
+        compare_track_pos_xy(args, det_name, "ray", plot_factory, out_format,
+                             ray_nav_df, "navigator (CPU)", 'r',
+                             ray_nav_cuda_df, "navigator (CUDA)", 'darkgrey')
+        compare_track_pos_xy(args, det_name, "helix", plot_factory, out_format,
+                             helix_nav_df, "navigator (CPU)", 'r',
+                             helix_nav_cuda_df, "navigator (CUDA)", 'darkgrey')
+        # Truth vs. Device - rz
+        compare_track_pos_rz(args, det_name, "ray", plot_factory, out_format,
+                             ray_scan_df, "truth", 'r',
+                             ray_nav_cuda_df, "navigator (CUDA)", 'darkgrey')
+        compare_track_pos_rz(args, det_name, "helix", plot_factory, out_format,
+                             helix_scan_df, "truth", 'r',
+                             helix_nav_cuda_df, "navigator (CUDA)", 'darkgrey')
+        # Host vs. Device - rz
+        compare_track_pos_rz(args, det_name, "ray", plot_factory, out_format,
+                             ray_nav_df, "navigator (CPU)", 'r',
+                             ray_nav_cuda_df, "navigator (CUDA)", 'darkgrey')
+        compare_track_pos_rz(args, det_name, "helix", plot_factory, out_format,
+                             helix_nav_df, "navigator (CPU)", 'r',
+                             helix_nav_cuda_df, "navigator (CUDA)", 'darkgrey')
+        # Residuals
+        plot_track_pos_dist(args, det_name, "helix", plot_factory, out_format,
+                            helix_nav_df, "navigator (CPU)",
+                            helix_nav_cuda_df, "navigator (CUDA)")
+        plot_track_pos_dist(args, det_name, "ray", plot_factory, out_format,
+                            ray_nav_df, "navigator (CPU)",
+                            ray_nav_cuda_df, "navigator (CUDA)")
+
+        plot_track_pos_res(args, det_name, "helix", plot_factory, out_format,
+                           helix_nav_df, "navigator (CPU)",
+                           helix_nav_cuda_df, "navigator (CUDA)", 'x')
+        plot_track_pos_res(args, det_name, "helix", plot_factory, out_format,
+                           helix_nav_df, "navigator (CPU)",
+                           helix_nav_cuda_df, "navigator (CUDA)", 'y')
+        plot_track_pos_res(args, det_name, "helix", plot_factory, out_format,
+                           helix_nav_df, "navigator (CPU)",
+                           helix_nav_cuda_df, "navigator (CUDA)", 'z')
+
+        plot_track_pos_res(args, det_name, "ray", plot_factory, out_format,
+                           ray_nav_df, "navigator (CPU)",
+                           ray_nav_cuda_df, "navigator (CUDA)", 'x')
+        plot_track_pos_res(args, det_name, "ray", plot_factory, out_format,
+                           ray_nav_df, "navigator (CPU)",
+                           ray_nav_cuda_df, "navigator (CUDA)", 'y')
+        plot_track_pos_res(args, det_name, "ray", plot_factory, out_format,
+                           ray_nav_df, "navigator (CPU)",
+                           ray_nav_cuda_df, "navigator (CUDA)", 'z')
 
 #-------------------------------------------------------------------------------
 

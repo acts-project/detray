@@ -159,6 +159,9 @@ struct uniform_track_generator_config {
 
     /// Getters
     /// @{
+    DETRAY_HOST_DEVICE constexpr std::size_t n_tracks() const {
+        return phi_steps() * theta_steps();
+    }
     DETRAY_HOST_DEVICE constexpr std::array<scalar, 2> phi_range() const {
         return m_phi_range;
     }
@@ -193,12 +196,11 @@ inline std::ostream& operator<<(std::ostream& out,
                                 const uniform_track_generator_config& cfg) {
     const auto& ori = cfg.origin();
     const auto& phi_range = cfg.phi_range();
-    const std::size_t n_tracks{cfg.phi_steps() * cfg.theta_steps()};
 
     // General
     out << "\nUnform track generator\n"
         << "----------------------------\n"
-        << "  No. tracks            : " << n_tracks << "\n"
+        << "  No. tracks            : " << cfg.n_tracks() << "\n"
         << "    -> phi steps        : " << cfg.phi_steps() << "\n"
         << "    -> theta/eta steps  : " << cfg.theta_steps() << "\n"
         << "  Charge                : "

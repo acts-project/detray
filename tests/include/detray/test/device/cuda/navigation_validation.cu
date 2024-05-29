@@ -90,9 +90,12 @@ __global__ void navigation_validation_kernel(
 
     // Save the initial intersection, since it is not recorded by the
     // object tracer
+    assert(recorded_intersections.at(trk_id).empty());
     recorded_intersections.at(trk_id).push_back(
         {track.pos(), track.dir(),
          truth_intersection_traces[trk_id].front().intersection});
+    // Did the insertion of an element work?
+    assert(recorded_intersections.at(trk_id).size() == 1);
 
     // Run propagation
     if constexpr (is_no_bfield) {

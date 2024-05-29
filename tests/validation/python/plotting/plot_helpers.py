@@ -5,6 +5,7 @@
 # Mozilla Public License Version 2.0
 
 from collections import namedtuple
+import numpy as np
 
 #-------------------------------------------------------------------------------
 # Common helpers for plotting measurement data
@@ -17,13 +18,13 @@ def filter_data(data, filter = lambda df: [], variables = []):
     # Get global data
     if len(filter(data)) == 0:
         for var in variables:
-            dataColl.append(data[var].to_numpy())
+            dataColl.append(data[var].to_numpy(dtype = np.double))
 
     # Filtered data
     else:
         filtered = data.loc[filter]
         for var in variables:
-            dataColl.append(filtered[var].to_numpy())
+            dataColl.append(filtered[var].to_numpy(dtype = np.double))
 
     return tuple(dataColl)
 
