@@ -88,7 +88,8 @@ GTEST_TEST(svgtools, trajectories) {
               0.f * detray::unit<detray::scalar>::T,
               1.f * detray::unit<detray::scalar>::T};
 
-    const detray::detail::helix<algebra_t> helix(ori, 0.f, dir, -8.f, &B);
+    const detray::detail::helix<algebra_t> helix(
+        ori, 0.f, detray::vector::normalize(dir), -8.f, &B);
     const auto helix_ir =
         detray::detector_scanner::run<detray::helix_scan>(gctx, det, helix);
 

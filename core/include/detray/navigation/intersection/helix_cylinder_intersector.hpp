@@ -196,8 +196,8 @@ struct helix_intersector_impl<cylindrical2D<algebra_t>, algebra_t>
                const mask_t &mask, const transform3_type &trf,
                const scalar_type mask_tolerance, const scalar_type = 0.f,
                const scalar_type = 0.f) const {
-        return this->operator()(h, sf_desc, mask, trf, {mask_tolerance, 0.f},
-                                0.f);
+        return this->operator()(h, sf_desc, mask, trf,
+                                {mask_tolerance, mask_tolerance}, 0.f);
     }
 
     /// Tolerance for convergence
