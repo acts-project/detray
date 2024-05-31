@@ -11,48 +11,19 @@ import plotting
 import numpy as np
 import pandas as pd
 import os
+import math
 
+""" Read track position data """
+def read_track_data(file, logging):
+    if file:
+        # Preserve floating point precision
+        df = pd.read_csv(file, float_precision='round_trip')
+        logging.debug(df)
+    else:
+        logging.warning("Could not find navigation data file: " + file)
+        df = pd.DataFrame({})
 
-""" Read the recorded track positions from files and prepare data frames """
-def read_navigation_data(inputdir, read_cuda, logging):
-
-    # Input data directory
-    data_dir = os.fsencode(inputdir)
-
-    ray_data_file = ray_data_cuda_file = ""
-    helix_data_file = helix_data_cuda_file = ""
-
-    # Find the data files by naming convention
-    for file in os.listdir(data_dir):
-        filename = os.fsdecode(file)
-
-        if read_cuda and filename.find('ray_navigation_track_pos_cuda.') != -1:
-            ray_data_cuda_file = inputdir + "/" + filename
-        elif filename.find('ray_navigation_track_pos.') != -1:
-            ray_data_file = inputdir + "/" + filename
-        elif read_cuda and filename.find('helix_navigation_track_pos_cuda.') != -1:
-            helix_data_cuda_file = inputdir + "/" + filename
-        elif filename.find('helix_navigation_track_pos.') != -1:
-            helix_data_file = inputdir + "/" + filename
-
-    # Read navigation data
-    def read_data(file):
-        if file:
-            # Preserve floating point precision
-            df = pd.read_csv(file, float_precision='round_trip')
-            logging.debug(df)
-        else:
-            logging.warning("Could not find navigation data file: " + file)
-            df = pd.DataFrame({})
-
-        return df
-
-    ray_df = read_data(ray_data_file)
-    ray_cuda_df = read_data(ray_data_cuda_file)
-    helix_df = read_data(helix_data_file)
-    helix_cuda_df = read_data(helix_data_cuda_file)
-
-    return ray_df, ray_cuda_df, helix_df, helix_cuda_df
+    return df
 
 
 """ Plot the track positions of two data sources - rz view """
@@ -186,9 +157,22 @@ def plot_track_pos_dist(opts, detector, scan_type, plotFactory, out_format,
                    np.square(df1['y'] - df2['y']) +
                    np.square(df1['z'] - df2['z']))
 
+    dist_outlier = math.sqrt(3 * opts.outlier**2)
+
+    # Remove outliers
+    filter_dist = np.absolute(dist) < dist_outlier 
+    filtered_dist = dist[filter_dist]
+
+    if not np.all(filter_dist == True):
+        print(f"\nRemoved outliers (dist):")
+        for i, d in enumerate(dist):
+            if math.fabs(d) > dist_outlier:
+                track_id = (df1['track_id'].to_numpy())[i]
+                print(f"track {track_id}: {d}")
+
     # Plot the xy coordinates of the filtered intersections points
     lgd_ops = plotting.legend_options('upper right', 4, 0.8, 0.005)
-    hist_data = plotFactory.hist1D(x       = dist,
+    hist_data = plotFactory.hist1D(x       = filtered_dist,
                                    bins    = 100,
                                    xLabel  = r'$d\,\mathrm{[mm]}$',
                                    setLog  = True,
@@ -217,13 +201,33 @@ def plot_track_pos_res(opts, detector, scan_type, plotFactory, out_format,
 
     res = df1[var] - df2[var]
 
+    # Remove outliers
+    filter_res = np.absolute(res) < opts.outlier 
+    filtered_res = res[filter_res]
+
+    if not np.all(filter_res == True):
+        print(f"\nRemoved outliers ({var}):")
+        for i, r in enumerate(res):
+            if math.fabs(r) > opts.outlier:
+                track_id = (df1['track_id'].to_numpy())[i]
+                print(f"track {track_id}: {df1[var][i]} - {df2[var][i]} = {r}")
+
+
     # Plot the xy coordinates of the filtered intersections points
     lgd_ops = plotting.legend_options('upper right', 4, 0.8, 0.005)
-    hist_data = plotFactory.hist1D(x       = res,
+    hist_data = plotFactory.hist1D(x       = filtered_res,
                                    bins    = 100,
                                    xLabel  = r'$\mathrm{res}' + rf'\,{var}' + r'\,\mathrm{[mm]}$',
-                                   setLog  = True,
+                                   setLog  = False,
                                    lgd_ops = lgd_ops)
+
+
+    mu, sig = plotFactory.fit_gaussian(hist_data)
+    if mu is None or sig is None:
+        print(rf"WARNING: fit failed (res ({tracks}): {label1} - {label2} )")
+
+    # Move the legend ouside plo
+    hist_data.lgd.set_bbox_to_anchor((1.02, 1.281))
 
     # Adjust spacing in box
     hist_data.lgd.legend_handles[0].set_visible(False)
@@ -234,6 +238,7 @@ def plot_track_pos_res(opts, detector, scan_type, plotFactory, out_format,
     detector_name = detector.replace(' ', '_')
     l1 = label1.replace(' ', '_').replace("(", "").replace(")", "")
     l2 = label2.replace(' ', '_').replace("(", "").replace(")", "")
+
     plotFactory.write_plot(hist_data,
                            f"{detector_name}_{scan_type}_res_{var}_{l1}_{l2}",
                            out_format)

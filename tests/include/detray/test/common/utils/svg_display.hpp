@@ -156,7 +156,8 @@ inline void svg_display(const typename detector_t::geometry_context gctx,
         path / (outfile + "_" + vol_zr_svg._id + "_" + traj_name),
         {zr_axis, vol_zr_svg, svg_traj});
 
-    std::cout << "INFO: Wrote debugging data in: " << path << "\n" << std::endl;
+    std::cout << "INFO: Wrote svgs for debugging in: " << path << "\n"
+              << std::endl;
 }
 
 }  // namespace detray::detail

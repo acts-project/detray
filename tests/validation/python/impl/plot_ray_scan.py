@@ -12,60 +12,22 @@ import numpy as np
 import pandas as pd
 import os
 
+
 """ Read the detector scan data from files and prepare data frames """
-def read_scan_data(inputdir, logging):
-
-    # Input data directory
-    data_dir = os.fsencode(inputdir)
-
-    detector_name = "default_detector"
-    ray_scan_intersections_file = ray_scan_track_param_file = ""
-    helix_scan_intersections_file = helix_scan_track_param_file = ""
-
-    # Find the data files by naming convention
-    for file in os.listdir(data_dir):
-        filename = os.fsdecode(file)
-
-        if filename.find('_ray_scan_intersections') != -1:
-            ray_scan_intersections_file = inputdir + "/" + filename
-            file_name = os.path.basename(ray_scan_intersections_file)
-            detector_name = file_name.removesuffix('_ray_scan_intersections.csv')
-        elif filename.find('_ray_scan_track_parameters') != -1:
-            ray_scan_track_param_file = inputdir + "/" + filename
-        elif filename.find('_helix_scan_intersections') != -1:
-            helix_scan_intersections_file = inputdir + "/" + filename
-            file_name = os.path.basename(helix_scan_intersections_file)
-            detector_name = file_name.removesuffix('_helix_scan_intersections.csv')
-        elif filename.find('_helix_scan_track_parameters') != -1:
-            helix_scan_track_param_file = inputdir + "/" + filename
-
-    detector_name = detector_name.replace('_', ' ')
-
-    # Read scan data
-    def read_data(intersection_file, track_param_file):
-        if intersection_file:
-            inters_df = pd.read_csv(intersection_file,
+def read_ray_scan_data(intersection_file, track_param_file, logging):
+    if intersection_file:
+        inters_df = pd.read_csv(intersection_file,
+                                float_precision='round_trip')
+        trk_param_df = pd.read_csv(track_param_file,
                                     float_precision='round_trip')
-            trk_param_df = pd.read_csv(track_param_file,
-                                       float_precision='round_trip')
-            scan_df = pd.concat([inters_df, trk_param_df], axis=1)
+        scan_df = pd.concat([inters_df, trk_param_df], axis=1)
 
-            logging.debug(scan_df)
-        else:
-            logging.warning("Could not find scan data: " + intersection_file)
-            scan_df = pd.DataFrame({})
+        logging.debug(scan_df)
+    else:
+        logging.warning("Could not find ray scan data: " + intersection_file)
+        scan_df = pd.DataFrame({})
 
-        return scan_df
-
-    # Read ray scan data
-    ray_scan_df = read_data(ray_scan_intersections_file,
-                            ray_scan_track_param_file)
-
-    # Read helix scan data
-    helix_scan_df = read_data(helix_scan_intersections_file,
-                            helix_scan_track_param_file)
-
-    return detector_name, ray_scan_df, helix_scan_df
+    return scan_df
 
 
 """ Plot the intersection points of the detector with the rays - xy view """
@@ -203,3 +165,13 @@ def plot_intersection_points_rz(opts, df, detector, scan_type, plotFactory,  out
 
     detector_name = detector.replace(' ', '_')
     plotFactory.write_plot(hist_data, f"{detector_name}_{scan_type}_scan_rz",  out_format)
+
+
+""" Plot the data gathered during the navigaiton validation """
+def plot_detector_scan_data(args, det_name, plot_factory, data_type, df, name, out_format = "png"):
+
+    # Plot truth scan
+    plot_intersection_points_xy(args, df, det_name,
+                                name, plot_factory, out_format)
+    plot_intersection_points_rz(args, df, det_name,
+                                name, plot_factory, out_format)

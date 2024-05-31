@@ -35,7 +35,7 @@ class navigation_validation : public test::fixture_base<> {
     using algebra_t = typename detector_t::algebra_type;
     using free_track_parameters_t = free_track_parameters<algebra_t>;
     using trajectory_type = typename scan_type<algebra_t>::trajectory_type;
-    using intersection_trace_t = typename scan_type<
+    using truth_trace_t = typename scan_type<
         algebra_t>::template intersection_trace_type<detector_t>;
 
     /// Switch between rays and helices
@@ -64,7 +64,7 @@ class navigation_validation : public test::fixture_base<> {
         using namespace navigation;
 
         using intersection_t =
-            typename intersection_trace_t::value_type::intersection_type;
+            typename truth_trace_t::value_type::intersection_type;
 
         // Runge-Kutta stepper
         using hom_bfield_t = bfield::const_field_t;
@@ -92,33 +92,34 @@ class navigation_validation : public test::fixture_base<> {
             k_use_rays ? det_name + "_ray_scan" : det_name + "_helix_scan"};
 
         /// Collect some statistics
-        std::size_t n_tracks{0u}, n_miss{0u}, n_fatal{0u};
+        std::size_t n_tracks{0u}, n_surfaces{0u}, n_miss_nav{0u},
+            n_miss_truth{0u}, n_matching_error{0u}, n_fatal{0u};
 
         std::cout << "\nINFO: Fetching data from white board..." << std::endl;
         if (!m_cfg.whiteboard()->exists(truth_data_name)) {
             throw std::runtime_error(
                 "White board is empty! Please run detector scan first");
         }
-        const auto &intersection_traces =
-            m_cfg.whiteboard()->template get<std::vector<intersection_trace_t>>(
+        auto &truth_traces =
+            m_cfg.whiteboard()->template get<std::vector<truth_trace_t>>(
                 truth_data_name);
 
         std::size_t n_test_tracks{
-            std::min(m_cfg.n_tracks(), intersection_traces.size())};
+            std::min(m_cfg.n_tracks(), truth_traces.size())};
         std::cout << "\nINFO: Running navigation validation on: " << det_name
                   << "...\n"
                   << std::endl;
 
         std::ios_base::openmode io_mode = std::ios::trunc | std::ios::out;
-        detray::io::file_handle debug_file{"./navigation_validation.txt",
-                                           io_mode};
+        const std::string debug_file_name{"./navigation_validation.txt"};
+        detray::io::file_handle debug_file{debug_file_name, io_mode};
 
         // Keep a record of track positions and material along the track
         dvector<dvector<navigation::detail::candidate_record<intersection_t>>>
             recorded_traces{};
         dvector<material_validator::material_record<scalar_t>> mat_records{};
 
-        for (const auto &intersection_trace : intersection_traces) {
+        for (auto &truth_trace : truth_traces) {
 
             if (n_tracks >= m_cfg.n_tracks()) {
                 break;
@@ -126,7 +127,7 @@ class navigation_validation : public test::fixture_base<> {
 
             // Follow the test trajectory with a track and check, if we find
             // the same volumes and distances along the way
-            const auto &start = intersection_trace.front();
+            const auto &start = truth_trace.front();
             const auto &track = start.track_param;
             trajectory_type test_traj = get_parametrized_trajectory(track);
 
@@ -142,14 +143,23 @@ class navigation_validation : public test::fixture_base<> {
                     obj_tracer.object_trace.begin(),
                     {track.pos(), track.dir(), start.intersection});
 
-                success &= navigation_validator::compare_traces(
-                    intersection_trace, obj_tracer.object_trace, test_traj,
-                    n_tracks, n_test_tracks);
+                auto [result, n_missed_nav, n_missed_truth, n_error,
+                      missed_inters] =
+                    navigation_validator::compare_traces(
+                        truth_trace, obj_tracer.object_trace, test_traj,
+                        n_tracks, n_test_tracks, &(*debug_file));
 
-                if (not success) {
-                    // Count mismatches
-                    ++n_miss;
+                for (const auto &sfi : missed_inters) {
+                    [[maybe_unused]] const auto sf =
+                        surface{m_det, sfi.sf_desc.barcode()};
                 }
+
+                // Update statistics
+                success &= result;
+                n_miss_nav += n_missed_nav;
+                n_miss_truth += n_missed_truth;
+                n_matching_error += n_error;
+
             } else {
                 // Propagation did not succeed
                 ++n_fatal;
@@ -163,30 +173,47 @@ class navigation_validation : public test::fixture_base<> {
 
                 detector_scanner::display_error(
                     m_gctx, m_det, m_names, m_cfg.name(), test_traj,
-                    intersection_trace, m_cfg.svg_style(), n_tracks,
-                    n_test_tracks, obj_tracer.object_trace);
+                    truth_trace, m_cfg.svg_style(), n_tracks, n_test_tracks,
+                    obj_tracer.object_trace);
             }
 
             recorded_traces.push_back(std::move(obj_tracer.object_trace));
             mat_records.push_back(mat_trace);
 
-            EXPECT_TRUE(success);
+            EXPECT_TRUE(success) << "INFO: Wrote navigation debugging data in: "
+                                 << debug_file_name;
 
             ++n_tracks;
+
+            ASSERT_EQ(truth_trace.size(), recorded_traces.back().size());
+            n_surfaces += truth_trace.size();
         }
 
         // Calculate and display the result
-        navigation_validator::print_efficiency(n_tracks, n_miss, n_fatal);
+        navigation_validator::print_efficiency(n_tracks, n_surfaces, n_miss_nav,
+                                               n_miss_truth, n_fatal,
+                                               n_matching_error);
 
         // Print track positions for plotting
         std::string prefix{k_use_rays ? "ray_" : "helix_"};
         const auto data_path{
             std::filesystem::path{m_cfg.track_param_file()}.parent_path()};
-        const auto trk_path{data_path / (prefix + "navigation_track_pos.csv")};
-        const auto math_path{data_path / (prefix + "accumulated_material.csv")};
+        const auto truth_trk_path{data_path /
+                                  (prefix + "truth_track_params.csv")};
+        const auto trk_path{data_path /
+                            (prefix + "navigation_track_params.csv")};
+        const auto mat_path{data_path / (prefix + "accumulated_material.csv")};
 
+        detector_scanner::write_tracks(truth_trk_path.string(), truth_traces);
         navigation_validator::write_tracks(trk_path.string(), recorded_traces);
-        material_validator::write_material(math_path.string(), mat_records);
+        material_validator::write_material(mat_path.string(), mat_records);
+
+        std::cout << "INFO: Wrote truth track states in: " << truth_trk_path
+                  << std::endl;
+        std::cout << "INFO: Wrote recorded track states in: " << trk_path
+                  << std::endl;
+        std::cout << "INFO: Wrote accumulated material in: " << mat_path
+                  << std::endl;
     }
 
     private:
