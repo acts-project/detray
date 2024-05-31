@@ -12,6 +12,8 @@
 #include "detray/test/common/detail/whiteboard.hpp"
 #include "detray/test/cpu/detector_consistency.hpp"
 #include "detray/test/cpu/detector_scan.hpp"
+#include "detray/test/cpu/material_scan.hpp"
+#include "detray/test/cpu/material_validation.hpp"
 #include "detray/test/cpu/navigation_validation.hpp"
 
 // Vecmem include(s)
@@ -35,6 +37,9 @@ int main(int argc, char **argv) {
     //
     toy_det_config toy_cfg{};
     toy_cfg.n_brl_layers(4u).n_edc_layers(7u);
+    toy_cfg.use_material_maps(true);
+
+    std::cout << toy_cfg << std::endl;
 
     // Build the geometry
     vecmem::host_memory_resource host_mr;
@@ -90,6 +95,52 @@ int main(int argc, char **argv) {
 
     detail::register_checks<test::helix_navigation>(toy_det, toy_names,
                                                     cfg_hel_nav);
+
+    // Run the material validation - Material Maps
+    test::material_scan<toy_detector_t>::config mat_scan_cfg{};
+    mat_scan_cfg.name("toy_detector_material_scan");
+    mat_scan_cfg.whiteboard(white_board);
+    mat_scan_cfg.track_generator().uniform_eta(true).eta_range(-4.f, 4.f);
+    mat_scan_cfg.track_generator().phi_steps(100).eta_steps(100);
+
+    // Record the material using a ray scan
+    detail::register_checks<test::material_scan>(toy_det, toy_names,
+                                                 mat_scan_cfg);
+
+    // Now trace the material during navigation and compare
+    test::material_validation<toy_detector_t>::config mat_val_cfg{};
+    mat_val_cfg.name("toy_detector_material_validaiton");
+    mat_val_cfg.whiteboard(white_board);
+    mat_val_cfg.tol(1e-6f);  // < Reduce tolerance for single precision tests
+    mat_val_cfg.propagation() = cfg_str_nav.propagation();
+
+    // @TODO: Put material maps on all portals
+    /*detail::register_checks<test::material_validation>(toy_det, toy_names,
+                                                            mat_val_cfg);*/
+
+    // Run the material validation - Homogeneous material
+    toy_cfg.use_material_maps(false);
+
+    std::cout << toy_cfg << std::endl;
+
+    auto [toy_det_hom_mat, toy_names_hom_mat] =
+        build_toy_detector(host_mr, toy_cfg);
+    toy_names_hom_mat.at(0) += "_hom_material";
+
+    // Check that the detector was built correctly
+    detail::register_checks<test::consistency_check>(
+        toy_det_hom_mat, toy_names_hom_mat,
+        cfg_cons.name("toy_detector_consistency_hom_mat"));
+
+    // Record the material using a ray scan
+    mat_scan_cfg.name("toy_detector_hom_material_scan");
+    detail::register_checks<test::material_scan>(
+        toy_det_hom_mat, toy_names_hom_mat, mat_scan_cfg);
+
+    // Now trace the material during navigation and compare
+    mat_val_cfg.name("toy_detector_hom_material_validaiton");
+    detail::register_checks<test::material_validation>(
+        toy_det_hom_mat, toy_names_hom_mat, mat_val_cfg);
 
     // Run the checks
     return RUN_ALL_TESTS();

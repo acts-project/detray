@@ -17,6 +17,7 @@
 #include "detray/test/common/navigation_validation_config.hpp"
 #include "detray/test/common/utils/detector_scan_utils.hpp"
 #include "detray/test/common/utils/detector_scanner.hpp"
+#include "detray/test/common/utils/material_validation_utils.hpp"
 #include "detray/test/common/utils/navigation_validation_utils.hpp"
 #include "detray/tracks/tracks.hpp"
 #include "detray/utils/inspectors.hpp"
@@ -26,6 +27,9 @@
 #include <vecmem/memory/host_memory_resource.hpp>
 #include <vecmem/memory/memory_resource.hpp>
 #include <vecmem/utils/cuda/copy.hpp>
+
+// System include(s)
+#include <tuple>
 
 namespace detray::cuda {
 
@@ -50,7 +54,10 @@ void navigation_validation_device(
         &truth_intersection_traces_view,
     vecmem::data::jagged_vector_view<navigation::detail::candidate_record<
         typename intersection_record_t::intersection_type>>
-        &recorded_intersections_view);
+        &recorded_intersections_view,
+    vecmem::data::vector_view<
+        material_validator::material_record<typename detector_t::scalar_type>>
+        &mat_records_view);
 
 /// Prepare data for device navigation run
 template <typename bfield_t, typename detector_t,
@@ -60,10 +67,14 @@ inline auto run_navigation_validation(
     const detector_t &det, const propagation::config &cfg, bfield_t field_data,
     const std::vector<std::vector<intersection_record_t>>
         &truth_intersection_traces)
-    -> vecmem::jagged_vector<navigation::detail::candidate_record<
-        typename intersection_record_t::intersection_type>> {
+    -> std::tuple<vecmem::jagged_vector<navigation::detail::candidate_record<
+                      typename intersection_record_t::intersection_type>>,
+                  vecmem::vector<material_validator::material_record<
+                      typename detector_t::scalar_type>>> {
 
     using intersection_t = typename intersection_record_t::intersection_type;
+    using scalar_t = typename detector_t::scalar_type;
+    using material_record_t = material_validator::material_record<scalar_t>;
 
     // Helper object for performing memory copies (to CUDA devices)
     vecmem::cuda::copy cuda_cpy;
@@ -104,17 +115,28 @@ inline auto run_navigation_validation(
     auto recorded_intersections_view =
         vecmem::get_data(recorded_intersections_buffer);
 
+    vecmem::data::vector_buffer<material_record_t> mat_records_buffer(
+        static_cast<unsigned int>(truth_intersection_traces_view.size()),
+        *dev_mr, vecmem::data::buffer_type::fixed_size);
+    cuda_cpy.setup(mat_records_buffer);
+    auto mat_records_view = vecmem::get_data(mat_records_buffer);
+
     // Run the navigation validation test on device
     navigation_validation_device<bfield_t, detector_t, intersection_record_t>(
         det_view, cfg, field_data, navigation_cache_buffer,
-        truth_intersection_traces_view, recorded_intersections_view);
+        truth_intersection_traces_view, recorded_intersections_view,
+        mat_records_view);
 
-    // Get the result back to the host and pass it on to the checking
+    // Get the results back to the host and pass them on to the checking
     vecmem::jagged_vector<navigation::detail::candidate_record<intersection_t>>
         recorded_intersections(host_mr);
     cuda_cpy(recorded_intersections_buffer, recorded_intersections);
 
-    return recorded_intersections;
+    vecmem::vector<material_record_t> mat_records(host_mr);
+    cuda_cpy(mat_records_buffer, mat_records);
+
+    return std::make_tuple(std::move(recorded_intersections),
+                           std::move(mat_records));
 }
 
 /// @brief Test class that runs the navigation validation for a given detector
@@ -222,9 +244,10 @@ class navigation_validation : public test::fixture_base<> {
                   << std::endl;
 
         // Run the propagation on device and record the navigation data
-        auto recorded_intersections = run_navigation_validation<bfield_view_t>(
-            &m_host_mr, &m_dev_mr, m_det, m_cfg.propagation(), b_field,
-            truth_intersection_traces);
+        auto [recorded_intersections, mat_records] =
+            run_navigation_validation<bfield_view_t>(
+                &m_host_mr, &m_dev_mr, m_det, m_cfg.propagation(), b_field,
+                truth_intersection_traces);
 
         // Collect some statistics
         std::size_t n_tracks{0u}, n_miss{0u}, n_fatal{0u};
@@ -280,11 +303,15 @@ class navigation_validation : public test::fixture_base<> {
         // Print track positions for plotting
         std::string prefix{k_use_rays ? "ray_" : "helix_"};
         const auto data_path{
-            std::filesystem::path{m_cfg.track_param_file()}.parent_path() /
-            (prefix + "navigation_track_pos_cuda.csv")};
+            std::filesystem::path{m_cfg.track_param_file()}.parent_path()};
+        const auto trk_path{data_path /
+                            (prefix + "navigation_track_pos_cuda.csv")};
+        const auto mat_path{data_path /
+                            (prefix + "accumulated_material_cuda.csv")};
 
-        navigation_validator::write_tracks(data_path.string(),
+        navigation_validator::write_tracks(trk_path.string(),
                                            recorded_intersections);
+        material_validator::write_material(mat_path.string(), mat_records);
     }
 
     private:

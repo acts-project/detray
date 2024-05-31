@@ -6,13 +6,13 @@
 
 # detray includes
 from impl import plot_material_scan as mat_plotter
+from impl import read_material_data
 from plotting import pyplot_factory as plt_factory
 from options import common_options, plotting_options
 from options import parse_common_options, parse_plotting_options
 
 # python includes
 import argparse
-import pandas as pd
 
 
 def __main__():
@@ -31,18 +31,11 @@ def __main__():
     logging = parse_common_options(args, descr)
     input_dir, out_dir, out_format = parse_plotting_options(args, logging)
 
-#----------------------------------------------------------------prepare data
+#------------------------------------------------------------------------plot
 
-    # Get detector name
-    detector_name = mat_scan_file.removeprefix('material_scan_')
-    detector_name = detector_name.removesuffix('.csv')
-    detector_name = detector_name.replace('_', ' ')
+    detector_name, df = read_material_data(input_dir, logging)
 
-    df = pd.read_csv(mat_scan_file)
-
-    plot_factory = plt_factory(outdir + "material_", logging)
-
-#------------------------------------------------------------------------run
+    plot_factory = plt_factory(out_dir + "material_", logging)
 
     # The histograms are not re-weighted (if the rays are not evenly distributed
     # the material in some bins might be artificially high)!

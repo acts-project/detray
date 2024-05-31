@@ -141,4 +141,37 @@ make_tuple(value_types&&... args) {
         std::forward<value_types>(args)...};
 }
 /// @}
+
+/// Check if the tuple contains a type
+/// @see
+/// https://stackoverflow.com/questions/25958259/how-do-i-find-out-if-a-tuple-contains-a-type
+/// @{
+template <typename T, typename tuple_t>
+struct has_type;
+
+// std::tuple
+template <typename T>
+struct has_type<T, std::tuple<>> : std::false_type {};
+
+template <typename T, typename U, typename... Ts>
+struct has_type<T, std::tuple<U, Ts...>> : has_type<T, std::tuple<Ts...>> {};
+
+template <typename T, typename... Ts>
+struct has_type<T, std::tuple<T, Ts...>> : std::true_type {};
+
+// detray::tuple
+template <typename T>
+struct has_type<T, detray::tuple<>> : std::false_type {};
+
+template <typename T, typename U, typename... Ts>
+struct has_type<T, detray::tuple<U, Ts...>>
+    : has_type<T, detray::tuple<Ts...>> {};
+
+template <typename T, typename... Ts>
+struct has_type<T, detray::tuple<T, Ts...>> : std::true_type {};
+
+template <typename T, class tuple_t>
+inline constexpr bool has_type_v = has_type<T, tuple_t>::value;
+///@}
+
 }  // namespace detray::detail

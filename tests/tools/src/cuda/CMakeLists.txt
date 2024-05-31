@@ -16,3 +16,9 @@ detray_add_executable(detector_validation_cuda
                       "detector_validation_cuda.cpp"
                       LINK_LIBRARIES GTest::gtest GTest::gtest_main
                       Boost::program_options detray::test_cuda detray::tools )
+
+# Build the material cuda validation executable.
+detray_add_executable(material_validation_cuda
+                      "material_validation_cuda.cpp"
+                      LINK_LIBRARIES GTest::gtest GTest::gtest_main
+                      Boost::program_options detray::test_cuda detray::tools )

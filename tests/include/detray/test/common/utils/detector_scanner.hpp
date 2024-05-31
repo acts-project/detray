@@ -106,6 +106,8 @@ struct brute_force_scan {
         start_intersection.sf_desc = first_record.intersection.sf_desc;
         start_intersection.sf_desc.set_id(surface_id::e_passive);
         start_intersection.sf_desc.set_index(dindex_invalid);
+        start_intersection.sf_desc.material().set_id(
+            detector_t::materials::id::e_none);
         start_intersection.path = 0.f;
         start_intersection.local = {0.f, 0.f, 0.f};
         start_intersection.volume_link =

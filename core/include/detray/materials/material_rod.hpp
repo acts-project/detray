@@ -37,14 +37,14 @@ struct material_rod {
     ///
     /// @param rhs is the right hand side to be compared to
     DETRAY_HOST_DEVICE
-    constexpr bool operator==(const material_rod<scalar_t>& rhs) const {
+    constexpr bool operator==(const material_rod<scalar_type>& rhs) const {
         return (m_material == rhs.get_material() && m_radius == rhs.radius());
     }
 
     /// Boolean operator
     DETRAY_HOST_DEVICE
     constexpr operator bool() const {
-        if (m_radius <= std::numeric_limits<scalar>::epsilon() ||
+        if (m_radius <= std::numeric_limits<scalar_type>::epsilon() ||
             m_material == vacuum<scalar_type>() || m_material.Z() == 0 ||
             m_material.mass_density() == 0) {
             return false;
@@ -111,9 +111,9 @@ struct material_rod {
 
     private:
     material_type m_material = {};
-    scalar_type m_radius = std::numeric_limits<scalar>::epsilon();
-    scalar_type m_radius_in_X0 = std::numeric_limits<scalar>::epsilon();
-    scalar_type m_radius_in_L0 = std::numeric_limits<scalar>::epsilon();
+    scalar_type m_radius = std::numeric_limits<scalar_type>::epsilon();
+    scalar_type m_radius_in_X0 = std::numeric_limits<scalar_type>::epsilon();
+    scalar_type m_radius_in_L0 = std::numeric_limits<scalar_type>::epsilon();
 };
 
 namespace detail {

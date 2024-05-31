@@ -1,12 +1,43 @@
 # Detray library, part of the ACTS project (R&D line)
 #
-# (c) 2023 CERN for the benefit of the ACTS project
+# (c) 2023-2024 CERN for the benefit of the ACTS project
 #
 # Mozilla Public License Version 2.0
 
+# detray includes
+import plotting
+
 # python includes
-import numpy as np
 import math
+import numpy as np
+import os
+import pandas as pd
+
+
+""" Read the material scan data from file and prepare data frame """
+def read_material_data(inputdir, logging):
+
+    # Input data directory
+    data_dir = os.fsencode(inputdir)
+
+    detector_name = "default_detector"
+    material_scan_file = ""
+
+    # Find the data files by naming convention
+    for file in os.listdir(data_dir):
+        filename = os.fsdecode(file)
+
+        if filename.find('material_scan_') != -1:
+            material_scan_file = inputdir + "/" + filename
+            file_name = os.path.basename(material_scan_file)
+            detector_name = file_name.removeprefix('material_scan_ ')
+            detector_name = detector_name.removesuffix('.csv')
+
+    detector_name = detector_name.replace('_', ' ')
+
+    df = pd.read_csv(material_scan_file)
+
+    return detector_name, df
 
 
 """ Calculate edges of bins to plot the mateiral data """
@@ -118,6 +149,9 @@ def X0_vs_eta(df, detector, plotFactory,  out_format =  "pdf"):
                             showStats = False,
                             lgd_ops = lgd_ops)
 
+    # Move the legend ouside plo
+    hist_data.lgd.set_bbox_to_anchor((0.825, 1.15))
+
     plotFactory.write_plot(hist_data, "t_X0",  out_format)
 
     hist_data = plotFactory.hist1D(
@@ -130,6 +164,9 @@ def X0_vs_eta(df, detector, plotFactory,  out_format =  "pdf"):
                             bins = xBinning,
                             showStats = False,
                             lgd_ops = lgd_ops)
+
+    # Move the legend ouside plo
+    hist_data.lgd.set_bbox_to_anchor((0.825, 1.15))
 
     plotFactory.write_plot(hist_data, "s_X0",  out_format)
 
@@ -155,6 +192,9 @@ def L0_vs_eta(df, detector, plotFactory,  out_format =  "pdf"):
                             showStats = False,
                             lgd_ops = lgd_ops)
 
+    # Move the legend ouside plo
+    hist_data.lgd.set_bbox_to_anchor((0.825, 1.15))
+
     plotFactory.write_plot(hist_data, "t_L0",  out_format)
 
     hist_data = plotFactory.hist1D(
@@ -167,5 +207,8 @@ def L0_vs_eta(df, detector, plotFactory,  out_format =  "pdf"):
                             bins = xBinning,
                             showStats = False,
                             lgd_ops = lgd_ops)
+
+    # Move the legend ouside plo
+    hist_data.lgd.set_bbox_to_anchor((0.825, 1.15))
 
     plotFactory.write_plot(hist_data, "s_L0",  out_format)

@@ -12,6 +12,8 @@
 #include "detray/test/common/detail/whiteboard.hpp"
 #include "detray/test/cpu/detector_consistency.hpp"
 #include "detray/test/cpu/detector_scan.hpp"
+#include "detray/test/cpu/material_scan.hpp"
+#include "detray/test/cpu/material_validation.hpp"
 #include "detray/test/cpu/navigation_validation.hpp"
 
 // Vecmem include(s)
@@ -37,6 +39,8 @@ int main(int argc, char **argv) {
 
     wire_chamber_config wire_chamber_cfg{};
     wire_chamber_cfg.half_z(500.f * unit<scalar>::mm);
+
+    std::cout << wire_chamber_cfg << std::endl;
 
     auto [det, names] = create_wire_chamber(host_mr, wire_chamber_cfg);
 
@@ -92,6 +96,25 @@ int main(int argc, char **argv) {
     cfg_hel_nav.propagation().navigation.search_window = {3u, 3u};
 
     detail::register_checks<test::helix_navigation>(det, names, cfg_hel_nav);
+
+    // Run the material validation
+    test::material_scan<wire_chamber_t>::config mat_scan_cfg{};
+    mat_scan_cfg.name("wire_chamber_material_scan");
+    mat_scan_cfg.whiteboard(white_board);
+    mat_scan_cfg.track_generator().uniform_eta(true).eta_range(-1.f, 1.f);
+    mat_scan_cfg.track_generator().phi_steps(100).eta_steps(100);
+
+    // Record the material using a ray scan
+    detail::register_checks<test::material_scan>(det, names, mat_scan_cfg);
+
+    // Now trace the material during navigation and compare
+    test::material_validation<wire_chamber_t>::config mat_val_cfg{};
+    mat_val_cfg.name("wire_chamber_material_validaiton");
+    mat_val_cfg.whiteboard(white_board);
+    mat_val_cfg.tol(5e-3f);  // < Reduce tolerance for single precision tests
+    mat_val_cfg.propagation() = cfg_str_nav.propagation();
+
+    detail::register_checks<test::material_validation>(det, names, mat_val_cfg);
 
     // Run the checks
     return RUN_ALL_TESTS();
