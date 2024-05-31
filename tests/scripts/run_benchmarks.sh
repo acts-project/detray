@@ -43,7 +43,11 @@ cat benchmark_${LASTCOMMIT}.csv
 
 echo "===> Install components for benchmark analysis ..."
 
-pip3 install matplotlib==3.7.1 numpy==1.24.2 pandas==1.5.3
+if python3 -c 'import sys; sys.exit(not (sys.version_info.major > 3 or (sys.version_info.major == 3 and sys.version_info.minor >= 9)))' ; then
+    pip3 install matplotlib==3.7.1 numpy==1.26.4 pandas==1.5.3
+else
+    pip3 install matplotlib==3.7.1 numpy==1.24.2 pandas==1.5.3
+fi
 
 echo "===> Download benchmark history ..."
 
