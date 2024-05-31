@@ -118,7 +118,7 @@ class annulus2D {
         const scalar_t minR_tol = bounds[e_min_r] - tol;
         const scalar_t maxR_tol = bounds[e_max_r] + tol;
 
-        assert(!detail::any_of(minR_tol >= scalar_t(0.f)));
+        assert(detail::all_of(minR_tol >= scalar_t(0.f)));
 
         return ((r_mod2 >= (minR_tol * minR_tol)) &&
                 (r_mod2 <= (maxR_tol * maxR_tol))) &&
