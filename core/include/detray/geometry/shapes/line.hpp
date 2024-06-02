@@ -46,12 +46,48 @@ class line {
         e_size = 2u
     };
 
+    /// Container definition for the shape boundary values
+    template <typename scalar_t>
+    using bounds_type = darray<scalar_t, boundaries::e_size>;
+
     /// Local coordinate frame for boundary checks
     template <typename algebra_t>
     using local_frame_type = line2D<algebra_t>;
 
     /// Dimension of the local coordinate system
     static constexpr std::size_t dim{2u};
+
+    /// @brief Find the minimum distance to any boundary.
+    ///
+    /// @note the point is expected to be given in local coordinates by the
+    /// caller.
+    ///
+    /// @param bounds the boundary values for this shape
+    /// @param loc_p the point to be checked in the local coordinate system
+    ///
+    /// @return the minimum distance.
+    template <typename scalar_t, typename point_t>
+    DETRAY_HOST_DEVICE inline scalar_t min_dist_to_boundary(
+        const bounds_type<scalar_t> &bounds, const point_t &loc_p) const {
+
+        if constexpr (square_cross_sect) {
+            const scalar_t dist_x =
+                math::fabs(math::fabs(loc_p[0] * math::cos(loc_p[2])) -
+                           bounds[e_cross_section]);
+            const scalar_t dist_y =
+                math::fabs(math::fabs(loc_p[0] * math::cos(loc_p[2])) -
+                           bounds[e_cross_section]);
+            const scalar_t dist_z =
+                math::fabs(math::fabs(loc_p[1]) - bounds[e_half_z]);
+
+            return math::min(math::min(dist_x, dist_y), dist_z);
+
+        } else {
+            return math::min(
+                math::fabs(math::fabs(loc_p[0]) - bounds[e_cross_section]),
+                math::fabs(math::fabs(loc_p[1]) - bounds[e_half_z]));
+        }
+    }
 
     /// @brief Check boundary values for a local point.
     ///
@@ -69,11 +105,9 @@ class line {
     /// @param tol dynamic tolerance determined by caller
     ///
     /// @return true if the local point lies within the given boundaries.
-    template <template <typename, std::size_t> class bounds_t,
-              typename scalar_t, std::size_t kDIM, typename point_t,
-              typename std::enable_if_t<kDIM == 2u, bool> = true>
+    template <typename scalar_t, typename point_t>
     DETRAY_HOST_DEVICE inline auto check_boundaries(
-        const bounds_t<scalar_t, kDIM> &bounds, const point_t &loc_p,
+        const bounds_type<scalar_t> &bounds, const point_t &loc_p,
         const scalar_t tol = std::numeric_limits<scalar_t>::epsilon()) const {
 
         // For a square cross section (e.g. a cell of drift chamber), we check
@@ -103,11 +137,9 @@ class line {
     /// @param bounds the boundary values for this shape
     ///
     /// @returns the line volume.
-    template <template <typename, std::size_t> class bounds_t,
-              typename scalar_t, std::size_t kDIM,
-              typename std::enable_if_t<kDIM == e_size, bool> = true>
+    template <typename scalar_t>
     DETRAY_HOST_DEVICE constexpr scalar_t measure(
-        const bounds_t<scalar_t, kDIM> &bounds) const {
+        const bounds_type<scalar_t> &bounds) const {
 
         if constexpr (square_cross_sect) {
             return 8.f * bounds[e_half_z] * bounds[e_cross_section] *
@@ -123,11 +155,9 @@ class line {
     /// @param bounds the boundary values for this shape
     ///
     /// @returns the stereo annulus area.
-    template <template <typename, std::size_t> class bounds_t,
-              typename scalar_t, std::size_t kDIM,
-              typename std::enable_if_t<kDIM == e_size, bool> = true>
+    template <typename scalar_t>
     DETRAY_HOST_DEVICE constexpr scalar_t area(
-        const bounds_t<scalar_t, kDIM> &bounds) const {
+        const bounds_type<scalar_t> &bounds) const {
 
         if constexpr (square_cross_sect) {
             return 16.f * bounds[e_half_z] * bounds[e_cross_section];
@@ -146,26 +176,25 @@ class line {
     ///
     /// @returns and array of coordinates that contains the lower point (first
     /// three values) and the upper point (latter three values) .
-    template <typename algebra_t,
-              template <typename, std::size_t> class bounds_t,
-              typename scalar_t, std::size_t kDIM,
-              typename std::enable_if_t<kDIM == e_size, bool> = true>
-    DETRAY_HOST_DEVICE inline darray<scalar_t, 6> local_min_bounds(
-        const bounds_t<scalar_t, kDIM> &bounds,
-        const scalar_t env = std::numeric_limits<scalar_t>::epsilon()) const {
+    template <typename algebra_t>
+    DETRAY_HOST_DEVICE inline darray<dscalar<algebra_t>, 6> local_min_bounds(
+        const bounds_type<dscalar<algebra_t>> &bounds,
+        const dscalar<algebra_t> env =
+            std::numeric_limits<dscalar<algebra_t>>::epsilon()) const {
+
+        using scalar_t = dscalar<algebra_t>;
+
         assert(env > 0.f);
         const scalar_t xy_bound{bounds[e_cross_section] + env};
         const scalar_t z_bound{bounds[e_half_z] + env};
+
         return {-xy_bound, -xy_bound, -z_bound, xy_bound, xy_bound, z_bound};
     }
 
     /// @returns the shapes centroid in local cartesian coordinates
-    template <typename algebra_t,
-              template <typename, std::size_t> class bounds_t,
-              typename scalar_t, std::size_t kDIM,
-              typename std::enable_if_t<kDIM == e_size, bool> = true>
+    template <typename algebra_t>
     DETRAY_HOST_DEVICE dpoint3D<algebra_t> centroid(
-        const bounds_t<scalar_t, kDIM> &) const {
+        const bounds_type<dscalar<algebra_t>> &) const {
 
         return {0.f, 0.f, 0.f};
     }
@@ -176,12 +205,12 @@ class line {
     /// @param n_seg is the number of line segments
     ///
     /// @return a generated list of vertices
-    template <typename point2_t, typename point3_t,
-              template <typename, std::size_t> class bounds_t,
-              typename scalar_t, std::size_t kDIM,
-              typename std::enable_if_t<kDIM == e_size, bool> = true>
-    DETRAY_HOST dvector<point3_t> vertices(
-        const bounds_t<scalar_t, kDIM> &bounds, dindex /*ignored*/) const {
+    template <typename algebra_t>
+    DETRAY_HOST dvector<dpoint3D<algebra_t>> vertices(
+        const bounds_type<dscalar<algebra_t>> &bounds,
+        dindex /*ignored*/) const {
+
+        using point3_t = dpoint3D<algebra_t>;
 
         point3_t lc = {0.f, 0.f, -bounds[e_half_z]};
         point3_t rc = {0.f, 0.f, bounds[e_half_z]};
@@ -195,11 +224,9 @@ class line {
     /// @param os output stream for error messages
     ///
     /// @return true if the bounds are consistent.
-    template <template <typename, std::size_t> class bounds_t,
-              typename scalar_t, std::size_t kDIM,
-              typename std::enable_if_t<kDIM == e_size, bool> = true>
+    template <typename scalar_t>
     DETRAY_HOST constexpr bool check_consistency(
-        const bounds_t<scalar_t, kDIM> &bounds, std::ostream &os) const {
+        const bounds_type<scalar_t> &bounds, std::ostream &os) const {
 
         constexpr auto tol{10.f * std::numeric_limits<scalar_t>::epsilon()};
 

@@ -35,8 +35,8 @@ GTEST_TEST(detray_masks, cylinder2D) {
     mask<cylinder2D> c{0u, r, -hz, hz};
 
     ASSERT_NEAR(c[cylinder2D::e_r], r, tol);
-    ASSERT_NEAR(c[cylinder2D::e_n_half_z], -hz, tol);
-    ASSERT_NEAR(c[cylinder2D::e_p_half_z], hz, tol);
+    ASSERT_NEAR(c[cylinder2D::e_lower_z], -hz, tol);
+    ASSERT_NEAR(c[cylinder2D::e_upper_z], hz, tol);
 
     ASSERT_TRUE(c.is_inside(p2_in));
     ASSERT_TRUE(c.is_inside(p2_edge));

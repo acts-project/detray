@@ -53,7 +53,7 @@ GTEST_TEST(svgtools, masks) {
     detray::svgtools::write_svg("test_svgtools_annulus2D", {axes, ann2D_svg});
 
     // Visualize a 2D cylinder.
-    // e_r, e_n_half_z, e_p_half_z
+    // e_r, e_lower_z, e_upper_z
     detray::mask<detray::cylinder2D> cyl2D{0u, 100.f, -10.f, 10.f};
     const auto cyl2D_proto =
         detray::svgtools::conversion::surface(transform, cyl2D);

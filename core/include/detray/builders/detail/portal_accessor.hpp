@@ -42,8 +42,8 @@ auto get_cylinder_portals(const detector_volume<detector_t> &vol) {
 
         if (name == "cylinder2D" || name == "concentric_cylinder2D") {
             radii[pt_desc] = pt.boundary(cylinder2D::e_r);
-            z_pos[pt_desc] = pt.boundary(cylinder2D::e_n_half_z);
-            z_pos[pt_desc] = pt.boundary(cylinder2D::e_p_half_z);
+            z_pos[pt_desc] = pt.boundary(cylinder2D::e_lower_z);
+            z_pos[pt_desc] = pt.boundary(cylinder2D::e_upper_z);
         } else {
             radii[pt_desc] = pt.boundary(ring2D::e_inner_r);
             radii[pt_desc] = pt.boundary(ring2D::e_outer_r);

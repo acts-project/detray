@@ -38,8 +38,8 @@ inline std::vector<material_slab<scalar_t>> generate_cyl_mat(
     ts.reserve(nbins);
 
     // Make sure the cylinder bounds are centered around zero
-    const scalar_t length{math::fabs(bounds[cylinder2D::e_p_half_z] -
-                                     bounds[cylinder2D::e_n_half_z])};
+    const scalar_t length{math::fabs(bounds[cylinder2D::e_upper_z] -
+                                     bounds[cylinder2D::e_lower_z])};
     scalar_t z{-0.5f * length};
     const scalar_t z_step{length / static_cast<scalar_t>(nbins - 1u)};
     for (std::size_t n = 0u; n < nbins; ++n) {

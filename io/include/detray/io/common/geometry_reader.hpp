@@ -168,8 +168,8 @@ class geometry_reader {
 
             const auto z_shift{static_cast<scalar_t>(trf.translation()[2])};
 
-            mask_boundaries[concentric_cylinder2D::e_n_half_z] += z_shift;
-            mask_boundaries[concentric_cylinder2D::e_p_half_z] += z_shift;
+            mask_boundaries[concentric_cylinder2D::e_lower_z] += z_shift;
+            mask_boundaries[concentric_cylinder2D::e_upper_z] += z_shift;
 
             // Set the transform to identity afterwards
             trf = decltype(trf){};

@@ -8,6 +8,7 @@
 #pragma once
 
 // Project include(s)
+#include "detray/definitions/detail/algebra.hpp"
 #include "detray/definitions/detail/containers.hpp"
 #include "detray/definitions/detail/indexing.hpp"
 #include "detray/definitions/detail/qualifiers.hpp"
@@ -27,6 +28,10 @@ class unbounded {
     using shape = shape_t;
     using boundaries = typename shape::boundaries;
 
+    /// Container definition for the shape boundary values
+    template <typename scalar_t>
+    using bounds_type = darray<scalar_t, boundaries::e_size>;
+
     /// The name for this shape
     inline static const std::string name = "unbounded " + shape::name;
 
@@ -37,6 +42,22 @@ class unbounded {
 
     /// Dimension of the local coordinate system
     static constexpr std::size_t dim{shape_t::dim};
+
+    /// @brief Find the minimum distance to any boundary.
+    ///
+    /// @note the point is expected to be given in local coordinates by the
+    /// caller.
+    ///
+    /// @param bounds the boundary values for this shape
+    /// @param loc_p the point to be checked in the local coordinate system
+    ///
+    /// @return the minimum distance.
+    template <typename scalar_t, typename point_t>
+    DETRAY_HOST_DEVICE inline scalar_t min_dist_to_boundary(
+        const bounds_type<scalar_t>& /*bounds*/,
+        const point_t& /*loc_p*/) const {
+        return std::numeric_limits<scalar_t>::max();
+    }
 
     /// @brief Check boundary values for a local point.
     ///
@@ -57,10 +78,9 @@ class unbounded {
     /// @param bounds the boundary values for this shape
     ///
     /// @returns Inf.
-    template <template <typename, std::size_t> class bounds_t,
-              typename scalar_t, std::size_t kDIM>
+    template <typename scalar_t>
     DETRAY_HOST_DEVICE constexpr scalar_t measure(
-        const bounds_t<scalar_t, kDIM>& bounds) const {
+        const bounds_type<scalar_t>& bounds) const {
         if constexpr (dim == 2) {
             return area(bounds);
         } else {
@@ -73,11 +93,9 @@ class unbounded {
     /// @param bounds the boundary values for this shape
     ///
     /// @returns Inf.
-    template <template <typename, std::size_t> class bounds_t,
-              typename scalar_t, std::size_t kDIM, std::size_t D = dim,
-              std::enable_if_t<D == 2, bool> = true>
+    template <typename scalar_t>
     DETRAY_HOST_DEVICE constexpr scalar_t area(
-        const bounds_t<scalar_t, kDIM>&) const {
+        const bounds_type<scalar_t>&) const {
         return std::numeric_limits<scalar_t>::max();
     }
 
@@ -86,11 +104,9 @@ class unbounded {
     /// @param bounds the boundary values for this shape
     ///
     /// @returns Inf.
-    template <template <typename, std::size_t> class bounds_t,
-              typename scalar_t, std::size_t kDIM, std::size_t D = dim,
-              std::enable_if_t<D == 3, bool> = true>
+    template <typename scalar_t>
     DETRAY_HOST_DEVICE constexpr scalar_t volume(
-        const bounds_t<scalar_t, kDIM>&) const {
+        const bounds_type<scalar_t>&) const {
         return std::numeric_limits<scalar_t>::max();
     }
 
@@ -109,23 +125,18 @@ class unbounded {
     ///
     /// @returns and array of coordinates that contains the lower point (first
     /// three values) and the upper point (latter three values).
-    template <
-        typename algebra_t, template <typename, std::size_t> class bounds_t,
-        typename scalar_t, std::size_t kDIM,
-        typename std::enable_if_t<kDIM == boundaries::e_size, bool> = true>
-    DETRAY_HOST_DEVICE constexpr darray<scalar_t, 6> local_min_bounds(
-        const bounds_t<scalar_t, kDIM>& bounds,
-        const scalar_t env = std::numeric_limits<scalar_t>::epsilon()) const {
+    template <typename algebra_t>
+    DETRAY_HOST_DEVICE inline darray<dscalar<algebra_t>, 6> local_min_bounds(
+        const bounds_type<dscalar<algebra_t>>& bounds,
+        const dscalar<algebra_t> env =
+            std::numeric_limits<dscalar<algebra_t>>::epsilon()) const {
         return shape{}.template local_min_bounds<algebra_t>(bounds, env);
     }
 
     /// @returns the shapes centroid in local cartesian coordinates
-    template <
-        typename algebra_t, template <typename, std::size_t> class bounds_t,
-        typename scalar_t, std::size_t kDIM,
-        typename std::enable_if_t<kDIM == boundaries::e_size, bool> = true>
+    template <typename algebra_t>
     DETRAY_HOST_DEVICE auto centroid(
-        const bounds_t<scalar_t, kDIM>& bounds) const {
+        const bounds_type<dscalar<algebra_t>>& bounds) const {
         return shape{}.template centroid<algebra_t>(bounds);
     }
 
@@ -135,14 +146,10 @@ class unbounded {
     /// @param ls is the number of line segments
     ///
     /// @return a generated list of vertices
-    template <
-        typename point2_t, typename point3_t,
-        template <typename, std::size_t> class bounds_t, typename scalar_t,
-        std::size_t kDIM,
-        typename std::enable_if_t<kDIM == boundaries::e_size, bool> = true>
-    DETRAY_HOST dvector<point3_t> vertices(
-        const bounds_t<scalar_t, kDIM>& bounds, dindex n_seg) const {
-        return shape{}.template vertices<point2_t, point3_t>(bounds, n_seg);
+    template <typename algebra_t>
+    DETRAY_HOST dvector<dpoint3D<algebra_t>> vertices(
+        const bounds_type<dscalar<algebra_t>>& bounds, dindex n_seg) const {
+        return shape{}.template vertices<algebra_t>(bounds, n_seg);
     }
 
     /// @brief Check consistency of boundary values.
@@ -151,13 +158,9 @@ class unbounded {
     /// @param os output stream for error messages
     ///
     /// @return true if the bounds are consistent.
-    template <
-        template <typename, std::size_t> class bounds_t, typename scalar_t,
-        std::size_t kDIM,
-        typename std::enable_if_t<kDIM == boundaries::e_size, bool> = true>
+    template <typename scalar_t>
     DETRAY_HOST constexpr bool check_consistency(
-        const bounds_t<scalar_t, kDIM>& /*bounds*/,
-        std::ostream& /*os*/) const {
+        const bounds_type<scalar_t>& /*bounds*/, std::ostream& /*os*/) const {
         return true;
     }
 };

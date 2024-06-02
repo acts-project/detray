@@ -113,11 +113,12 @@ inline auto read_intersection2D(const std::string &file_name) {
 template <typename intersection_t>
 inline void write_intersection2D(
     const std::string &file_name,
-    const std::vector<std::vector<intersection_t>> &intersections_per_track) {
+    const std::vector<std::vector<intersection_t>> &intersections_per_track,
+    const bool replace = true) {
 
     // Don't write over existing data
     std::string inters_file_name{file_name};
-    if (io::file_exists(file_name)) {
+    if (!replace && io::file_exists(file_name)) {
         inters_file_name = io::alt_file_name(file_name);
     } else {
         // Make sure the output directories exit

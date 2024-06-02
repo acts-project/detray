@@ -5,7 +5,7 @@
 # Mozilla Public License Version 2.0
 
 # detray imports
-from impl import read_truth_data, read_navigation_data, plot_navigation_data
+from impl import read_scan_data, read_navigation_data, plot_navigation_data
 from impl import plot_track_params
 from impl import plot_detector_scan_data, plot_track_pos_dist, plot_track_pos_res
 from options import (common_options, detector_io_options,
@@ -20,6 +20,7 @@ import argparse
 import os
 import subprocess
 import sys
+import json
 
 
 def __main__():
@@ -124,6 +125,12 @@ def __main__():
 
     logging.info("Generating data plots...\n")
 
+    geo_file = open(args.geometry_file)
+    json_geo = json.loads(geo_file.read())
+
+    det_name = json_geo['header']['common']['detector']
+    logging.debug("Detector: " + det_name)
+
     # Check the data path (should have been created when running the validation)
     if not os.path.isdir(datadir):
         logging.error(f"Data directory was not found! ({args.datadir})")
@@ -132,7 +139,7 @@ def __main__():
     plot_factory = plt_factory(out_dir, logging)
 
     # Read the truth data
-    det_name, ray_scan_df, helix_scan_df = read_truth_data(datadir, logging)
+    ray_scan_df, helix_scan_df = read_scan_data(datadir, det_name, logging)
 
     plot_detector_scan_data(args, det_name, plot_factory, "ray", ray_scan_df, "ray_scan", out_format)
     plot_detector_scan_data(args, det_name, plot_factory, "helix", helix_scan_df, "helix_scan", out_format)
@@ -147,7 +154,8 @@ def __main__():
                       ray_intial_trk_df)
 
     # Read the recorded data
-    ray_nav_df, ray_truth_df, ray_nav_cuda_df, helix_nav_df, helix_truth_df, helix_nav_cuda_df = read_navigation_data(datadir, args.cuda, logging)
+    ray_nav_df, ray_truth_df, ray_nav_cuda_df, helix_nav_df, helix_truth_df, helix_nav_cuda_df = read_navigation_data(datadir, det_name, args.cuda,
+                                             logging)
 
     # Plot
     plot_navigation_data(args, det_name, plot_factory, "ray", ray_truth_df, "truth", ray_nav_df, "navigation (CPU)", out_format)
