@@ -177,10 +177,6 @@ struct ray_intersector_impl<cylindrical2D<algebra_t>, algebra_t, false> {
                     const scalar_type mask_tol_scalor,
                     const scalar_type overstep_tol) const {
 
-        assert((mask_tolerance[0] <= mask_tolerance[1]) &&
-               "Minimal mask tolerance needs to be smaller or equal maximal "
-               "mask tolerance");
-
         intersection_type<surface_descr_t> is;
 
         // Construct the candidate only when needed

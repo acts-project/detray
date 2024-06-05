@@ -61,10 +61,6 @@ struct ray_intersector_impl<cartesian2D<algebra_t>, algebra_t, false> {
         const scalar_type mask_tol_scalor = 0.f,
         const scalar_type overstep_tol = 0.f) const {
 
-        assert((mask_tolerance[0] <= mask_tolerance[1]) &&
-               "Minimal mask tolerance needs to be smaller or equal maximal "
-               "mask tolerance");
-
         intersection_type<surface_descr_t> is;
 
         // Retrieve the surface normal & translation (context resolved)
