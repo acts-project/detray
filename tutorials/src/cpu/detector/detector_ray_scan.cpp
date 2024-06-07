@@ -62,9 +62,8 @@ int main() {
     std::size_t n_rays{0u};
 
     // Generate a number of random rays
-    using generator_t =
-        detray::random_numbers<detray::scalar,
-                               std::uniform_real_distribution<detray::scalar>>;
+    using generator_t = detray::detail::random_numbers<
+        detray::scalar, std::uniform_real_distribution<detray::scalar>>;
     auto ray_generator = detray::random_track_generator<ray_t, generator_t>{};
     ray_generator.config().n_tracks(10000).p_T(
         1.f * detray::unit<detray::scalar>::GeV);

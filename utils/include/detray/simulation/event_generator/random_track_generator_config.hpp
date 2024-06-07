@@ -12,6 +12,7 @@
 #include "detray/definitions/detail/math.hpp"
 #include "detray/definitions/detail/qualifiers.hpp"
 #include "detray/definitions/units.hpp"
+#include "detray/simulation/event_generator/random_numbers.hpp"
 
 // System include(s)
 #include <algorithm>
@@ -22,69 +23,6 @@
 
 namespace detray {
 
-/// Wrapper for CPU random number generatrion for the @c random_track_generator
-template <typename scalar_t = scalar,
-          typename distribution_t = std::uniform_real_distribution<scalar_t>,
-          typename engine_t = std::mt19937_64>
-struct random_numbers {
-
-    using distribution_type = distribution_t;
-    using engine_type = engine_t;
-    using seed_type = typename engine_t::result_type;
-
-    std::seed_seq m_seeds;
-    engine_t m_engine;
-
-    /// Default seed
-    DETRAY_HOST
-    random_numbers()
-        : m_seeds{random_numbers::default_seed()}, m_engine{m_seeds} {}
-
-    /// Different seed @param s for every instance
-    DETRAY_HOST
-    random_numbers(seed_type s) : m_seeds{s}, m_engine{m_seeds} {}
-
-    /// More entropy in seeds from collection @param s
-    DETRAY_HOST
-    random_numbers(const std::vector<seed_type>& s)
-        : m_seeds{s.begin(), s.end()}, m_engine{m_seeds} {}
-
-    /// Copy constructor
-    DETRAY_HOST
-    random_numbers(random_numbers&& other)
-        : m_engine(std::move(other.m_engine)) {}
-
-    /// Generate random numbers in a given range
-    DETRAY_HOST auto operator()(const std::array<scalar_t, 2> range = {
-                                    -std::numeric_limits<scalar_t>::max(),
-                                    std::numeric_limits<scalar_t>::max()}) {
-        const scalar_t min{range[0]}, max{range[1]};
-        assert(min <= max);
-
-        // Uniform
-        if constexpr (std::is_same_v<
-                          distribution_t,
-                          std::uniform_real_distribution<scalar_t>>) {
-            return distribution_t(min, max)(m_engine);
-
-            // Normal
-        } else if constexpr (std::is_same_v<
-                                 distribution_t,
-                                 std::normal_distribution<scalar_t>>) {
-            scalar_t mu{min + 0.5f * (max - min)};
-            return distribution_t(mu, 0.5f / 3.0f * (max - min))(m_engine);
-        }
-    }
-
-    /// Explicit normal distribution around a @param mean and @param stddev
-    DETRAY_HOST auto normal(const scalar_t mean, const scalar_t stddev) {
-        return std::normal_distribution<scalar_t>(mean, stddev)(m_engine);
-    }
-
-    /// Get the default seed of the engine
-    static constexpr seed_type default_seed() { return engine_t::default_seed; }
-};
-
 /// Configuration for the random track generator
 struct random_track_generator_config {
 
@@ -94,7 +32,7 @@ struct random_track_generator_config {
     bool m_do_vtx_smearing = false;
 
     /// Monte-Carlo seed
-    seed_t m_seed{random_numbers<>::default_seed()};
+    seed_t m_seed{detail::random_numbers<>::default_seed()};
 
     /// How many tracks will be generated
     std::size_t m_n_tracks{10u};
@@ -113,6 +51,9 @@ struct random_track_generator_config {
     /// Track origin
     std::array<scalar, 3> m_origin{0.f, 0.f, 0.f},
         m_origin_stddev{0.f, 0.f, 0.f};
+
+    /// Randomly flip the charge sign?
+    bool m_randomize_charge{false};
 
     /// Time parameter and charge of the track
     scalar m_time{0.f * unit<scalar>::us}, m_charge{-1.f * unit<scalar>::e};
@@ -237,6 +178,11 @@ struct random_track_generator_config {
         m_origin_stddev = {stddev[0], stddev[1], stddev[2]};
         return *this;
     }
+    DETRAY_HOST_DEVICE
+    random_track_generator_config& randomize_charge(bool rc) {
+        m_randomize_charge = rc;
+        return *this;
+    }
     DETRAY_HOST_DEVICE random_track_generator_config& time(scalar t) {
         assert(t >= 0.f);
         m_time = t;
@@ -274,6 +220,9 @@ struct random_track_generator_config {
         return m_origin_stddev;
     }
     DETRAY_HOST_DEVICE constexpr bool is_pT() const { return m_is_pT; }
+    DETRAY_HOST_DEVICE constexpr bool randomize_charge() const {
+        return m_randomize_charge;
+    }
     DETRAY_HOST_DEVICE constexpr scalar time() const { return m_time; }
     DETRAY_HOST_DEVICE constexpr scalar charge() const { return m_charge; }
     /// @}
@@ -293,7 +242,9 @@ inline std::ostream& operator<<(std::ostream& out,
         << "----------------------------\n"
         << "  No. tracks            : " << cfg.n_tracks() << "\n"
         << "  Charge                : "
-        << cfg.charge() / detray::unit<scalar>::e << " [e]\n";
+        << cfg.charge() / detray::unit<scalar>::e << " [e]\n"
+        << "  Rand. charge          : " << std::boolalpha
+        << cfg.randomize_charge() << std::noboolalpha << "\n";
 
     // Momentum and direction
     if (cfg.is_pT()) {

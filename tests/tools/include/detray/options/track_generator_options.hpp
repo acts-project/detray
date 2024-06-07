@@ -39,6 +39,7 @@ void add_options<uniform_track_generator_config>(
         "eta_range",
         boost::program_options::value<std::vector<float>>()->multitoken(),
         "Min, Max range of eta values for particle gun")(
+        "randomize_charge", "Randomly flip charge sign per track")(
         "origin",
         boost::program_options::value<std::vector<float>>()->multitoken(),
         "Coordintates for particle gun origin position [mm]")(
@@ -60,6 +61,7 @@ void configure_options<uniform_track_generator_config>(
 
     cfg.phi_steps(vm["phi_steps"].as<std::size_t>());
     cfg.eta_steps(vm["eta_steps"].as<std::size_t>());
+    cfg.randomize_charge(vm.count("randomize_charge"));
 
     if (vm.count("eta_range")) {
         const auto eta_range = vm["eta_range"].as<std::vector<float>>();
@@ -109,6 +111,7 @@ void add_options<random_track_generator_config>(
         "eta_range",
         boost::program_options::value<std::vector<float>>()->multitoken(),
         "Min, Max range of eta values for particle gun")(
+        "randomize_charge", "Randomly flip charge sign per track")(
         "origin",
         boost::program_options::value<std::vector<float>>()->multitoken(),
         "Coordintates for particle gun origin position")(
@@ -129,6 +132,8 @@ void configure_options<random_track_generator_config>(
     random_track_generator_config &cfg) {
 
     cfg.n_tracks(vm["n_tracks"].as<std::size_t>());
+    cfg.randomize_charge(vm.count("randomize_charge"));
+
     if (vm.count("eta_range") && vm.count("theta_range")) {
         throw std::invalid_argument(
             "Eta range and theta range cannot be specified at the same time");

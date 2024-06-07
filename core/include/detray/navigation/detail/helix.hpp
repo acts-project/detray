@@ -175,6 +175,12 @@ class helix {
     DETRAY_HOST_DEVICE
     scalar_type qop() const { return _qop; }
 
+    /// @return charge of helix
+    DETRAY_HOST_DEVICE
+    constexpr scalar_type charge() const {
+        return math::signbit(qop()) ? -1.f : 1.f;
+    }
+
     DETRAY_HOST_DEVICE
     auto b_field() const { return _mag_field; }
 

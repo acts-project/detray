@@ -36,7 +36,7 @@ namespace detray {
 /// generator, which must not be invalidated during the iteration.
 /// @note the random numbers are clamped to fit the phi/theta ranges. This can
 /// effect distribution mean etc.
-template <typename track_t, typename generator_t = random_numbers<>>
+template <typename track_t, typename generator_t = detail::random_numbers<>>
 class random_track_generator
     : public detray::ranges::view_interface<
           random_track_generator<track_t, generator_t>> {
@@ -115,7 +115,13 @@ class random_track_generator
             mom = (m_cfg.is_pT() ? 1.f / sin_theta : 1.f) * p_mag *
                   vector::normalize(mom);
 
-            return track_t{vtx, m_cfg.time(), mom, m_cfg.charge()};
+            // Randomly flip the charge sign
+            std::array<double, 2> signs{1., -1.};
+            const auto sign{static_cast<scalar>(
+                signs[m_cfg.randomize_charge() ? m_rnd_numbers.coin_toss()
+                                               : 0u])};
+
+            return track_t{vtx, m_cfg.time(), mom, sign * m_cfg.charge()};
         }
 
         /// Random number generator

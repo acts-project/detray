@@ -86,6 +86,7 @@ def __main__():
     args_list = ["--data_dir", datadir,
                  "--geometry_file", args.geometry_file,
                  "--n_tracks", str(args.n_tracks),
+                 "--randomize_charge", str(args.randomize_charge),
                  "--p_T", str(args.transverse_momentum),
                  "--eta_range", str(args.eta_range[0]), str(args.eta_range[1]),
                  "--min_mask_tolerance", str(args.min_mask_tol),
