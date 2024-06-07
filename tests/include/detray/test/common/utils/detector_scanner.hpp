@@ -171,36 +171,54 @@ inline auto run(const typename detector_t::geometry_context gctx,
 
 /// Write the @param intersection_traces to file
 template <typename detector_t>
-inline auto write(
+inline auto write_intersections(
     const std::string &intersection_file_name,
-    const std::string &track_param_file_name,
     const std::vector<std::vector<intersection_record<detector_t>>>
         &intersection_traces) {
 
     using record_t = intersection_record<detector_t>;
     using intersection_t = typename record_t::intersection_type;
-    using track_param_t = typename record_t::track_parameter_type;
 
     std::vector<std::vector<intersection_t>> intersections{};
-    std::vector<std::vector<track_param_t>> track_params{};
 
     // Split data
     for (const auto &trace : intersection_traces) {
 
         intersections.push_back({});
-        track_params.push_back({});
-
         intersections.back().reserve(trace.size());
-        track_params.back().reserve(trace.size());
 
         for (const auto &record : trace) {
             intersections.back().push_back(record.intersection);
-            track_params.back().push_back(record.track_param);
         }
     }
 
     // Write to file
     io::csv::write_intersection2D(intersection_file_name, intersections);
+}
+
+/// Write the @param intersection_traces to file
+template <typename detector_t>
+inline auto write_tracks(
+    const std::string &track_param_file_name,
+    const std::vector<std::vector<intersection_record<detector_t>>>
+        &intersection_traces) {
+
+    using record_t = intersection_record<detector_t>;
+    using track_param_t = typename record_t::track_parameter_type;
+
+    std::vector<std::vector<track_param_t>> track_params{};
+
+    // Split data
+    for (const auto &trace : intersection_traces) {
+        track_params.push_back({});
+        track_params.back().reserve(trace.size());
+
+        for (const auto &record : trace) {
+            track_params.back().push_back(record.track_param);
+        }
+    }
+
+    // Write to file
     io::csv::write_free_track_params(track_param_file_name, track_params);
 }
 

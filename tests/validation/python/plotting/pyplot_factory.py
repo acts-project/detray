@@ -12,16 +12,24 @@ import numpy as np
 # python based plotting
 import matplotlib.pyplot as plt
 import matplotlib.colors as mcolors
+from matplotlib.ticker import ScalarFormatter
 
 import matplotlib.style as style
 style.use('tableau-colorblind10')
 #style.use('seaborn-colorblind')
 
+#plt.rcParams['axes.formatter.limits'] = (-2,2)
+#plt.rcParams['axes.formatter.use_mathtext'] =  True
 plt.rcParams.update({
     'text.usetex': True,
     'font.size': 20,
     'font.family': 'serif',
 })
+
+# See: https://stackoverflow.com/questions/42142144/displaying-first-decimal-digit-in-scientific-notation-in-matplotlib
+class ScalarFormatterForceFormat(ScalarFormatter):
+    def _set_format(self):
+        self.format = "%1.1f"
 
 #-------------------------------------------------------------------------------
 # Global identifiers
@@ -52,6 +60,8 @@ class pyplot_factory():
         self.logger = logger
         self.atlas_badge = atlas_badge
         self.badge_scale = 1.1
+        self.axis_formatter = ScalarFormatterForceFormat()
+        self.axis_formatter.set_powerlimits((-2,2))
 
 
     """ Add legend to a plot. Labbels must be defined. """
@@ -80,6 +90,8 @@ class pyplot_factory():
         # Create fresh plot
         fig = plt.figure(figsize = (8, 6), layout='constrained')
         ax = fig.add_subplot(1, 1, 1)
+        ax.xaxis.set_major_formatter(self.axis_formatter)
+        ax.yaxis.set_major_formatter(self.axis_formatter)
 
         # Do calculations on data in the range of the histogram
         if not xMin is None and not xMax is None:
@@ -268,6 +280,56 @@ class pyplot_factory():
             lgd._init_legend_box(handles, labels)
             lgd._set_loc(lgd._loc)
             lgd.set_title(lgd.get_title().get_text())
+
+
+    """ Fit a Gaussian to a 1D distribution and plot in the same figure. """
+    def fit_gaussian(self, dist):
+
+        # Calculate bin centers from bin edges
+        bins = dist.bins
+        if bins is None:
+            # If fit failed, return empty result
+            return None, None
+
+        bin_centers = [(b1 + b2) / 2 for b1, b2 in zip(bins, bins[1:])]
+
+        # Gaussian distribution with all fit parameters
+        def gaussian(x, a, mean, sigma):
+            return a / (math.sqrt(2*math.pi)*sigma)                            \
+                   * np.exp(-((x - mean)**2 / (2 * sigma**2)))
+
+        # Gaussian fit
+        try:
+            from scipy.optimize import curve_fit
+        except ImportError:
+            print("WARNING: Could not find scipy: Skipping fit")
+        else:
+            try:
+                popt, pcov = curve_fit(gaussian, bin_centers, dist.data, [1000, 0, 0.1])
+            except RuntimeError:
+                # If fit failed, return empty result
+                return None, None
+
+            # If the fitting was successful, plot the curve
+            mu  = float(f"{popt[1]:.2e}") # < formatting the sig. digits
+            sig = float(f"{popt[2]:.2e}")
+            newline = '\n'
+            fit = dist.ax.plot(bin_centers, gaussian(bin_centers, *popt),
+                        label = rf'gaussian fit{newline}$\mu$ = {mu:.2e}' +    \
+                                rf'{newline}$\sigma$ = {abs(sig):.2e}',        \
+                        color = 'tab:orange')
+
+            # Update legend
+            lgd = dist.lgd
+            handles, labels = lgd.axes.get_legend_handles_labels()
+            lgd._legend_box = None
+            lgd._init_legend_box(handles, labels)
+            lgd._set_loc(lgd._loc)
+            lgd.set_title(lgd.get_title().get_text())
+
+            return popt[1], abs(popt[2])
+
+        return None, None
 
 
     """ Safe a plot to disk """

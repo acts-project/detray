@@ -195,9 +195,11 @@ class detector_scan : public test::fixture_base<> {
 
         // Csv output
         if (!data_files_exist && m_cfg.write_intersections()) {
-            detector_scanner::write(m_cfg.intersection_file(),
-                                    m_cfg.track_param_file(),
-                                    intersection_traces);
+            detector_scanner::write_tracks(m_cfg.track_param_file(),
+                                           intersection_traces);
+            detector_scanner::write_intersections(m_cfg.intersection_file(),
+                                                  intersection_traces);
+
             std::cout << "  ->Wrote  " << intersection_traces.size()
                       << " intersection traces to file" << std::endl;
         }
