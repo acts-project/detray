@@ -18,8 +18,6 @@ import matplotlib.style as style
 style.use('tableau-colorblind10')
 #style.use('seaborn-colorblind')
 
-#plt.rcParams['axes.formatter.limits'] = (-2,2)
-#plt.rcParams['axes.formatter.use_mathtext'] =  True
 plt.rcParams.update({
     'text.usetex': True,
     'font.size': 20,
@@ -29,7 +27,7 @@ plt.rcParams.update({
 # See: https://stackoverflow.com/questions/42142144/displaying-first-decimal-digit-in-scientific-notation-in-matplotlib
 class ScalarFormatterForceFormat(ScalarFormatter):
     def _set_format(self):
-        self.format = "%1.1f"
+        self.format = "%3.1f"
 
 #-------------------------------------------------------------------------------
 # Global identifiers
@@ -85,13 +83,19 @@ class pyplot_factory():
                normalize = False,
                showError = False,
                showStats = True,
-               lgd_ops   = get_legend_options()):
+               lgd_ops   = get_legend_options(),
+               ax_formatter = None):
 
         # Create fresh plot
         fig = plt.figure(figsize = (8, 6), layout='constrained')
         ax = fig.add_subplot(1, 1, 1)
-        ax.xaxis.set_major_formatter(self.axis_formatter)
-        ax.yaxis.set_major_formatter(self.axis_formatter)
+
+        if ax_formatter is None:
+            ax.xaxis.set_major_formatter(self.axis_formatter)
+            ax.yaxis.set_major_formatter(self.axis_formatter)
+
+
+        ax.xaxis.set_major_formatter(ScalarFormatter(useOffset=False))
 
         # Do calculations on data in the range of the histogram
         if not xMin is None and not xMax is None:
@@ -122,16 +126,17 @@ class pyplot_factory():
 
         # Add some additional information
         if showStats:
-            mean = np.mean(x, axis=0)
-            rms  = np.sqrt(np.mean(np.square(x)))
+            mean  = np.mean(x, axis=0)
+            #rms  = np.sqrt(np.mean(np.square(x)))
+            stdev = np.std(x, axis=0)
 
             # Create empty plot with blank marker containing the extra label
             newline = '\n'
-            ax.plot([], [], ' ', label= rf'mean = {mean:.2e}'
-                                        rf'{newline}RMS  = {rms:.2e}')
+            ax.plot([], [], ' ', label= rf'mean   = {mean:.2e}'
+                                        rf'{newline}stddev  = {stdev:.2e}')
         else:
-            mean = None
-            rms = None
+            mean  = None
+            stdev = None
 
         # Refine plot
         ax.set_title(title)
@@ -141,6 +146,12 @@ class pyplot_factory():
 
         # Add legend
         lgd = self.add_legend(ax, lgd_ops)
+
+        # Adjust spacing in box
+        lgd.legend_handles[0].set_visible(False)
+        for vpack in lgd._legend_handle_box.get_children():
+            for hpack in vpack.get_children():
+                hpack.get_children()[0].set_width(0)
 
         # Calculate the bin error
         binCenters = 0.5 * (bins[1:] + bins[:-1])
@@ -156,7 +167,7 @@ class pyplot_factory():
         if setLog:
             ax.set_yscale('log')
 
-        return plt_data(fig, ax, lgd, data, bins, mean, rms, errors)
+        return plt_data(fig, ax, lgd, data, bins, mean, stdev, errors)
 
 
     """
@@ -305,7 +316,12 @@ class pyplot_factory():
             print("WARNING: Could not find scipy: Skipping fit")
         else:
             try:
-                popt, pcov = curve_fit(gaussian, bin_centers, dist.data, [1000, 0, 0.1])
+                # Initial estimators
+                mean  = np.mean(bin_centers, axis=0)
+                sigma = np.std(bin_centers, axis=0)
+                a     = np.max(dist.data) * (math.sqrt(2*math.pi)*sigma)
+
+                popt, pcov = curve_fit(gaussian, bin_centers, dist.data, p0 = [a, mean, sigma])
             except RuntimeError:
                 # If fit failed, return empty result
                 return None, None
@@ -314,7 +330,14 @@ class pyplot_factory():
             mu  = float(f"{popt[1]:.2e}") # < formatting the sig. digits
             sig = float(f"{popt[2]:.2e}")
             newline = '\n'
-            fit = dist.ax.plot(bin_centers, gaussian(bin_centers, *popt),
+
+            # Generate points for the curve
+            min_val = min(bin_centers)
+            max_val = max(bin_centers)
+            step = (max_val - min_val)/1000
+            x = [v for v in np.arange(min_val, max_val + step, step)]
+
+            fit = dist.ax.plot(x, gaussian(x, *popt),
                         label = rf'gaussian fit{newline}$\mu$ = {mu:.2e}' +    \
                                 rf'{newline}$\sigma$ = {abs(sig):.2e}',        \
                         color = 'tab:orange')

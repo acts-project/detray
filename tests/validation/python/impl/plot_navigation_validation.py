@@ -5,7 +5,7 @@
 # Mozilla Public License Version 2.0
 
 from .plot_ray_scan import read_ray_scan_data, plot_intersection_points_xy, plot_intersection_points_rz
-from .plot_track_positions import read_track_data, compare_track_pos_xy, compare_track_pos_rz, plot_track_pos_dist, plot_track_pos_res
+from .plot_track_params import read_track_data, compare_track_pos_xy, compare_track_pos_rz, plot_track_pos_dist, plot_track_pos_res
 
 # python includes
 import pandas as pd
