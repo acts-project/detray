@@ -8,7 +8,7 @@
 from impl import read_truth_data, read_navigation_data, plot_navigation_data
 from impl import plot_detector_scan_data, plot_track_pos_dist, plot_track_pos_res
 from options import (common_options, detector_io_options,
-                     track_generator_options, propagation_options,
+                     random_track_generator_options, propagation_options,
                      plotting_options)
 from options import (parse_common_options, parse_detector_io_options, 
                      parse_plotting_options)
@@ -30,7 +30,7 @@ def __main__():
     # Define options
     parent_parsers = [common_options(descr),
                       detector_io_options(),
-                      track_generator_options(),
+                      random_track_generator_options(),
                       propagation_options(),
                       plotting_options()]
 
@@ -63,6 +63,7 @@ def __main__():
 
     # Parse options
     args = parser.parse_args()
+
     logging = parse_common_options(args, descr)
     parse_detector_io_options(args, logging)
     in_dir, out_dir, out_format = parse_plotting_options(args, logging)

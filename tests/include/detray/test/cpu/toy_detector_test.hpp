@@ -168,8 +168,8 @@ inline bool toy_detector_test(
         EXPECT_FALSE(has_hom_material);
         EXPECT_EQ(
             materials.template size<material_ids::e_concentric_cylinder2_map>(),
-            21u);
-        EXPECT_EQ(materials.template size<material_ids::e_disc2_map>(), 20u);
+            54u);
+        EXPECT_EQ(materials.template size<material_ids::e_disc2_map>(), 58u);
     }
 
     // Check the surface source links
