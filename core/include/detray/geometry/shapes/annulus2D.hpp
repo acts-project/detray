@@ -15,6 +15,7 @@
 #include "detray/definitions/detail/qualifiers.hpp"
 #include "detray/definitions/units.hpp"
 #include "detray/geometry/coordinates/polar2D.hpp"
+#include "detray/geometry/detail/shape_utils.hpp"
 #include "detray/geometry/detail/vertexing.hpp"
 
 // System include(s)
@@ -100,8 +101,10 @@ class annulus2D {
         const scalar_t phi_strp = loc_p[1] - bounds[e_average_phi];
 
         // Check phi boundaries, which are well def. in focal frame
-        const auto phi_check = !((phi_strp < (bounds[e_min_phi_rel] - tol)) or
-                                 (phi_strp > (bounds[e_max_phi_rel] + tol)));
+        const scalar_t phi_tol = detail::phi_tolerance(tol, loc_p[0]);
+        const auto phi_check =
+            !((phi_strp < (bounds[e_min_phi_rel] - phi_tol)) or
+              (phi_strp > (bounds[e_max_phi_rel] + phi_tol)));
 
         // Now go to beam frame to check r boundaries. Use the origin
         // shift in polar coordinates for that

@@ -63,7 +63,7 @@ GTEST_TEST(detray_masks, annulus2D) {
     ASSERT_FALSE(ann2.is_inside(toStripFrame(p2_out4)));
     // Move outside point inside using a tolerance
     ASSERT_TRUE(ann2.is_inside(toStripFrame(p2_out1), 1.3f));
-    ASSERT_TRUE(ann2.is_inside(toStripFrame(p2_out4), 0.07f));
+    ASSERT_TRUE(ann2.is_inside(toStripFrame(p2_out4), 0.9f));
 
     // Check area: @TODO not implemented, yet
     scalar a = ann2.area();
