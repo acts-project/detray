@@ -11,7 +11,7 @@ import argparse
 #-------------------------------------------------------------------------------
 
 """ Parent parser that contains propagation options """
-def track_generator_options():
+def random_track_generator_options():
 
     parser = argparse.ArgumentParser(add_help=False)
 
@@ -27,5 +27,28 @@ def track_generator_options():
                         default = [-4, 4], type=float)
 
     return parser
+
+
+""" Parent parser that contains propagation options """
+def uniform_track_generator_options():
+
+    parser = argparse.ArgumentParser(add_help=False)
+
+    # Navigation options
+    parser.add_argument("--phi_steps", "-n_phi",
+                        help=("Number steps in phi"),
+                        default = 50, type=int)
+    parser.add_argument("--eta_steps", "-n_eta",
+                        help=("Number steps in eta"),
+                        default = 50, type=int)
+    parser.add_argument("--transverse-momentum", "-p_T",
+                        help=("Transverse momentum of the test particle [GeV]"),
+                        default = 10, type=float)
+    parser.add_argument("--eta_range", "-eta", nargs=2,
+                        help=("Eta range of generated tracks"),
+                        default = [-4, 4], type=float)
+
+    return parser
+
 
 #-------------------------------------------------------------------------------

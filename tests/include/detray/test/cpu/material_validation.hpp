@@ -89,8 +89,8 @@ class material_validation_impl : public test::fixture_base<> {
         }
 
         // Name of the material scan data collection
-        m_scan_data_name = "material_scan_" + m_det.name(m_names);
-        m_track_data_name = "material_scan_tracks_" + m_det.name(m_names);
+        m_scan_data_name = m_det.name(m_names) + "_material_scan";
+        m_track_data_name = m_det.name(m_names) + "_material_scan_tracks";
 
         // Check that data is available in memory
         if (!m_cfg.whiteboard()->exists(m_scan_data_name)) {
@@ -159,8 +159,8 @@ class material_validation_impl : public test::fixture_base<> {
 
         // Print accumulated material per track
         std::filesystem::path mat_path{m_cfg.material_file()};
-        auto file_name{material_validator_t::name + "_" +
-                       mat_path.stem().string() + "_" + m_det.name(m_names) +
+        auto file_name{m_det.name(m_names) + "_" + material_validator_t::name +
+                       "_" + mat_path.stem().string() +
                        mat_path.extension().string()};
 
         material_validator::write_material(mat_path.replace_filename(file_name),
