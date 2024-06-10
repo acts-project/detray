@@ -14,6 +14,7 @@
 #include "detray/definitions/detail/qualifiers.hpp"
 #include "detray/definitions/units.hpp"
 #include "detray/geometry/coordinates/cylindrical3D.hpp"
+#include "detray/geometry/detail/shape_utils.hpp"
 
 // System include(s)
 #include <limits>
@@ -65,11 +66,14 @@ class cylinder3D {
     DETRAY_HOST_DEVICE inline auto check_boundaries(
         const bounds_t<scalar_t, kDIM> &bounds, const point_t &loc_p,
         const scalar_t tol = std::numeric_limits<scalar_t>::epsilon()) const {
+
+        const scalar_t phi_tol = detail::phi_tolerance(tol, loc_p[0]);
+
         return ((bounds[e_min_r] - tol) <= loc_p[0] &&
-                (bounds[e_min_phi] - tol) <= loc_p[1] &&
+                (bounds[e_min_phi] - phi_tol) <= loc_p[1] &&
                 (bounds[e_min_z] - tol) <= loc_p[2] &&
                 loc_p[0] <= (bounds[e_max_r] + tol) &&
-                loc_p[1] <= (bounds[e_max_phi] + tol) &&
+                loc_p[1] <= (bounds[e_max_phi] + phi_tol) &&
                 loc_p[2] <= (bounds[e_max_z] + tol));
     }
 
