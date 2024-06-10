@@ -127,6 +127,14 @@ struct material_tracer : detray::actor {
 
         const auto &navigation = prop_state._navigation;
 
+        // Record the initial track direction
+        vector3_t glob_dir = prop_state._stepping().dir();
+        if (detray::detail::is_invalid_value(tracer.mat_record.eta) &&
+            detray::detail::is_invalid_value(tracer.mat_record.phi)) {
+            tracer.mat_record.eta = getter::eta(glob_dir);
+            tracer.mat_record.phi = getter::phi(glob_dir);
+        }
+
         // Only count material if navigator encountered it
         if (!navigation.encountered_sf_material()) {
             return;
@@ -139,7 +147,6 @@ struct material_tracer : detray::actor {
         const auto sf = navigation.get_surface();
 
         // Track direction and bound position on current surface
-        vector3_t glob_dir{};
         point2_t loc_pos{};
 
         // Get the local track position from the bound track parameters,
@@ -149,7 +156,6 @@ struct material_tracer : detray::actor {
                           typename propagator_state_t::actor_chain_type::
                               state>) {
             const auto &track_param = prop_state._stepping._bound_params;
-            glob_dir = track_param.dir();
             loc_pos = track_param.bound_local();
         } else {
             const auto &track_param = prop_state._stepping();
@@ -167,14 +173,6 @@ struct material_tracer : detray::actor {
         const scalar_t ml0{mat_params.mat_L0};
 
         // Fill the material record
-
-        // Record the initial track direction
-        if (detray::detail::is_invalid_value(tracer.mat_record.eta) &&
-            detray::detail::is_invalid_value(tracer.mat_record.phi)) {
-            tracer.mat_record.eta = getter::eta(glob_dir);
-            tracer.mat_record.phi = getter::phi(glob_dir);
-        }
-
         if (mx0 > 0.f) {
             tracer.mat_record.sX0 += seg / mx0;
             tracer.mat_record.tX0 += t / mx0;

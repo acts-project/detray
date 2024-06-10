@@ -15,29 +15,32 @@ import pandas as pd
 
 
 """ Read the material scan data from file and prepare data frame """
-def read_material_data(inputdir, logging):
+def read_material_data(inputdir, logging, det_name, read_cuda):
 
     # Input data directory
     data_dir = os.fsencode(inputdir)
 
     detector_name = "default_detector"
-    material_scan_file = ""
+    material_scan_file = cpu_material_trace_file = cuda_material_trace_file = ""
 
     # Find the data files by naming convention
     for file in os.listdir(data_dir):
         filename = os.fsdecode(file)
 
-        if filename.find('material_scan_') != -1:
+        if filename.find(det_name + '_material_scan') != -1:
             material_scan_file = inputdir + "/" + filename
-            file_name = os.path.basename(material_scan_file)
-            detector_name = file_name.removeprefix('material_scan_ ')
-            detector_name = detector_name.removesuffix('.csv')
+        elif filename.find(det_name + '_cpu_navigation_material_trace') != -1:
+            cpu_material_trace_file = inputdir + "/" + filename
+        elif read_cuda and filename.find(det_name + '_cuda_navigation_material_trace') != -1:
+            cuda_material_trace_file = inputdir + "/" + filename
 
-    detector_name = detector_name.replace('_', ' ')
+    df_scan = pd.read_csv(material_scan_file)
+    df_cpu_trace = pd.read_csv(cpu_material_trace_file)
+    df_cuda_trace = pd.DataFrame({})
+    if read_cuda:
+        df_cuda_trace = pd.read_csv(cuda_material_trace_file)
 
-    df = pd.read_csv(material_scan_file)
-
-    return detector_name, df
+    return df_scan, df_cpu_trace, df_cuda_trace
 
 
 """ Calculate edges of bins to plot the mateiral data """
@@ -59,7 +62,7 @@ def get_n_bins(df):
 
 
 """ Plot the material thickenss vs phi and eta in units of X_0 """
-def X0_vs_eta_phi(df, detector, plotFactory,  out_format =  "pdf"):
+def X0_vs_eta_phi(df, label, detector, plotFactory,  out_format =  "pdf"):
 
     # Histogram bin edges
     xBinning, yBinning = get_n_bins(df)
@@ -76,7 +79,7 @@ def X0_vs_eta_phi(df, detector, plotFactory,  out_format =  "pdf"):
                             xBins = xBinning, yBins = yBinning,
                             showStats = False)
 
-    plotFactory.write_plot(hist_data, "t_X0_map",  out_format)
+    plotFactory.write_plot(hist_data, detector + "_" + label + "_t_X0_map",  out_format)
 
     # Plot path length through material of the respective ray in units of X_0
     hist_data = plotFactory.hist2D(
@@ -90,11 +93,11 @@ def X0_vs_eta_phi(df, detector, plotFactory,  out_format =  "pdf"):
                             xBins = xBinning, yBins = yBinning,
                             showStats = False)
 
-    plotFactory.write_plot(hist_data, "s_X0_map",  out_format)
+    plotFactory.write_plot(hist_data, detector + "_" + label + "_s_X0_map",  out_format)
 
 
 """ Plot the material thickenss vs phi and eta in units of L_0 """
-def L0_vs_eta_phi(df, detector, plotFactory,  out_format =  "pdf"):
+def L0_vs_eta_phi(df, label, detector, plotFactory,  out_format =  "pdf"):
 
     # Histogram bin edges
     xBinning, yBinning = get_n_bins(df)
@@ -111,7 +114,7 @@ def L0_vs_eta_phi(df, detector, plotFactory,  out_format =  "pdf"):
                             xBins = xBinning, yBins = yBinning,
                             showStats = False)
 
-    plotFactory.write_plot(hist_data, "t_L0_map",  out_format)
+    plotFactory.write_plot(hist_data, detector + "_" + label + "_t_L0_map",  out_format)
 
     # Plot path length through material of the respective ray in units of L_0
     hist_data = plotFactory.hist2D(
@@ -125,11 +128,11 @@ def L0_vs_eta_phi(df, detector, plotFactory,  out_format =  "pdf"):
                             xBins = xBinning, yBins = yBinning,
                             showStats = False)
 
-    plotFactory.write_plot(hist_data, "s_L0_map",  out_format)
+    plotFactory.write_plot(hist_data, detector + "_" + label + "_s_L0_map",  out_format)
 
 
 """ Plot the material thickness in units of X_0 vs eta """
-def X0_vs_eta(df, detector, plotFactory,  out_format =  "pdf"):
+def X0_vs_eta(df, label, detector, plotFactory,  out_format =  "pdf"):
 
     # Histogram bin edges
     xBinning, yBinning = get_n_bins(df)
@@ -152,7 +155,7 @@ def X0_vs_eta(df, detector, plotFactory,  out_format =  "pdf"):
     # Move the legend ouside plo
     hist_data.lgd.set_bbox_to_anchor((0.825, 1.15))
 
-    plotFactory.write_plot(hist_data, "t_X0",  out_format)
+    plotFactory.write_plot(hist_data, detector + "_" + label + "_t_X0",  out_format)
 
     hist_data = plotFactory.hist1D(
                             x      = df['eta'],
@@ -168,11 +171,11 @@ def X0_vs_eta(df, detector, plotFactory,  out_format =  "pdf"):
     # Move the legend ouside plo
     hist_data.lgd.set_bbox_to_anchor((0.825, 1.15))
 
-    plotFactory.write_plot(hist_data, "s_X0",  out_format)
+    plotFactory.write_plot(hist_data, detector + "_" + label + "_s_X0",  out_format)
 
 
 """ Plot the material thickness in units of L_0 vs eta """
-def L0_vs_eta(df, detector, plotFactory,  out_format =  "pdf"):
+def L0_vs_eta(df, label, detector, plotFactory,  out_format =  "pdf"):
 
     # Histogram bin edges
     xBinning, yBinning = get_n_bins(df)
@@ -195,7 +198,7 @@ def L0_vs_eta(df, detector, plotFactory,  out_format =  "pdf"):
     # Move the legend ouside plo
     hist_data.lgd.set_bbox_to_anchor((0.825, 1.15))
 
-    plotFactory.write_plot(hist_data, "t_L0",  out_format)
+    plotFactory.write_plot(hist_data, detector + "_" + label + "_t_L0",  out_format)
 
     hist_data = plotFactory.hist1D(
                             x      = df['eta'],
@@ -211,4 +214,4 @@ def L0_vs_eta(df, detector, plotFactory,  out_format =  "pdf"):
     # Move the legend ouside plo
     hist_data.lgd.set_bbox_to_anchor((0.825, 1.15))
 
-    plotFactory.write_plot(hist_data, "s_L0",  out_format)
+    plotFactory.write_plot(hist_data, detector + "_" + label + "_s_L0",  out_format)

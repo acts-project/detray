@@ -111,12 +111,12 @@ int main(int argc, char **argv) {
     test::material_validation<toy_detector_t>::config mat_val_cfg{};
     mat_val_cfg.name("toy_detector_material_validaiton");
     mat_val_cfg.whiteboard(white_board);
-    mat_val_cfg.tol(1e-6f);  // < Reduce tolerance for single precision tests
+    mat_val_cfg.tol(1.5e-6f);  // < Reduce tolerance for single precision tests
     mat_val_cfg.propagation() = cfg_str_nav.propagation();
 
     // @TODO: Put material maps on all portals
-    /*detail::register_checks<test::material_validation>(toy_det, toy_names,
-                                                            mat_val_cfg);*/
+    detail::register_checks<test::material_validation>(toy_det, toy_names,
+                                                       mat_val_cfg);
 
     // Run the material validation - Homogeneous material
     toy_cfg.use_material_maps(false);

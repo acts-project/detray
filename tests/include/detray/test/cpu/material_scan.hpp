@@ -92,6 +92,7 @@ class material_scan : public test::fixture_base<> {
     /// Run the ray scan
     void TestBody() override {
 
+        using nav_link_t = typename detector_t::surface_type::navigation_link;
         using material_record_t = material_validator::material_record<scalar_t>;
 
         std::size_t n_tracks{0u};
@@ -134,12 +135,14 @@ class material_scan : public test::fixture_base<> {
                  detray::views::enumerate(intersection_record)) {
 
                 // Prevent double counting of material on adjacent portals
-                if (i >= 1 &&
-                    intersection_record[i - 1].intersection ==
-                        record.intersection &&
-                    intersection_record[i - 1]
-                        .intersection.sf_desc.is_portal() &&
-                    record.intersection.sf_desc.is_portal()) {
+                if ((i < intersection_record.size() + 1) &&
+                    (((intersection_record[i + 1].intersection ==
+                       record.intersection) &&
+                      intersection_record[i + 1]
+                          .intersection.sf_desc.is_portal() &&
+                      record.intersection.sf_desc.is_portal()) ||
+                     (record.intersection.volume_link ==
+                      detail::invalid_value<nav_link_t>()))) {
                     continue;
                 }
 
@@ -193,12 +196,12 @@ class material_scan : public test::fixture_base<> {
                   << std::endl;
 
         // Write recorded material to csv file
-        std::string coll_name{"material_scan_" + m_det.name(m_names)};
+        std::string coll_name{m_det.name(m_names) + "_material_scan"};
         material_validator::write_material(coll_name + ".csv", mat_records);
 
         // Pin data to whiteboard
         m_cfg.whiteboard()->add(coll_name, std::move(mat_records));
-        m_cfg.whiteboard()->add("material_scan_tracks_" + m_det.name(m_names),
+        m_cfg.whiteboard()->add(m_det.name(m_names) + "_material_scan_tracks",
                                 std::move(tracks));
     }
 

@@ -77,8 +77,7 @@ struct toy_det_config {
         m_beampipe_map_cfg.n_bins = {20u, 20u};
         m_beampipe_map_cfg.axis_index = 1u;
         m_beampipe_map_cfg.mapped_material = beryllium_tml<scalar>();
-        // m_beampipe_map_cfg.thickness = 0.08f * unit<scalar>::um;
-        m_beampipe_map_cfg.thickness = 0.f * unit<scalar>::um;
+        m_beampipe_map_cfg.thickness = 0.8f * unit<scalar>::mm;
         // Don't scale the generation of the material thickness
         m_beampipe_map_cfg.scalor = 0.f;
         m_beampipe_map_cfg.mat_generator =
@@ -89,8 +88,8 @@ struct toy_det_config {
         m_disc_map_cfg.mapped_material =
             mixture<scalar, silicon_tml<scalar, std::ratio<9, 10>>,
                     aluminium<scalar, std::ratio<1, 10>>>{};
-        m_disc_map_cfg.thickness = 1.5f * unit<scalar>::mm;
-        m_disc_map_cfg.scalor = 0.0001f;
+        m_disc_map_cfg.thickness = 1.f * unit<scalar>::mm;
+        m_disc_map_cfg.scalor = 1e-6f;
         m_disc_map_cfg.mat_generator =
             detray::detail::generate_disc_mat<scalar>;
 
@@ -100,7 +99,7 @@ struct toy_det_config {
             mixture<scalar, silicon_tml<scalar, std::ratio<9, 10>>,
                     aluminium<scalar, std::ratio<1, 10>>>{};
         m_cyl_map_cfg.thickness = 5.f * unit<scalar>::mm;
-        m_cyl_map_cfg.scalor = 0.000001f;
+        m_cyl_map_cfg.scalor = 1e-8f;
         m_cyl_map_cfg.mat_generator = detray::detail::generate_cyl_mat<scalar>;
     }
 
@@ -410,6 +409,7 @@ std::shared_ptr<surface_factory_interface<detector_t>> decorate_material(
 ///
 /// @param v_builder the volume builder to add the portals to
 /// @param names name map for volumes of the detector under construction
+/// @param cfg config for the toy detector
 /// @param vol_z half length of the cylinder
 /// @param h_z half length of the cylinder
 /// @param inner_r inner volume radius
@@ -418,9 +418,11 @@ std::shared_ptr<surface_factory_interface<detector_t>> decorate_material(
 /// @param link_south portal volume link of the inner cylinder
 /// @param link_east portal volume link of the left disc
 /// @param link_west portal volume link of the right disc
+/// @param add_material decorate material maps to portals
 template <typename detector_t>
 void add_cylinder_portals(volume_builder_interface<detector_t> *v_builder,
                           typename detector_t::name_map &names,
+                          toy_det_config &cfg,
                           const typename detector_t::scalar_type lower_z,
                           const typename detector_t::scalar_type upper_z,
                           const typename detector_t::scalar_type inner_r,
@@ -441,11 +443,22 @@ void add_cylinder_portals(volume_builder_interface<detector_t> *v_builder,
     scalar_t min_z{math::min(lower_z, upper_z)};
     scalar_t max_z{math::max(lower_z, upper_z)};
 
+    using factory_interface_t = surface_factory_interface<detector_t>;
     using cyl_factory_t = surface_factory<detector_t, concentric_cylinder2D>;
     using disc_factory_t = surface_factory<detector_t, ring2D>;
 
-    auto pt_cyl_factory = std::make_shared<cyl_factory_t>();
-    auto pt_disc_factory = std::make_shared<disc_factory_t>();
+    std::shared_ptr<factory_interface_t> pt_cyl_factory{nullptr};
+    std::shared_ptr<factory_interface_t> pt_disc_factory{nullptr};
+
+    if (cfg.use_material_maps()) {
+        pt_cyl_factory = decorate_material<detector_t>(
+            cfg, std::make_unique<cyl_factory_t>());
+        pt_disc_factory = decorate_material<detector_t>(
+            cfg, std::make_unique<disc_factory_t>());
+    } else {
+        pt_cyl_factory = std::make_shared<cyl_factory_t>();
+        pt_disc_factory = std::make_shared<disc_factory_t>();
+    }
 
     // Inner cylinder portal
     pt_cyl_factory->push_back({surface_id::e_portal, identity,
@@ -642,7 +655,7 @@ inline auto add_barrel_detector(
             // The first time a gap is built, it needs to link to the beampipe
             link_south = (i == 1u) ? beampipe_idx : link_south;
 
-            detail::add_cylinder_portals(vm_builder, names, -h_z, h_z,
+            detail::add_cylinder_portals(vm_builder, names, cfg, -h_z, h_z,
                                          gap_inner_r, vol_bounds.inner_radius,
                                          link_north, link_south, link_east,
                                          link_west);
@@ -717,7 +730,7 @@ inline auto add_barrel_detector(
     v_builder->add_volume_placement(identity);
 
     detail::add_cylinder_portals(
-        v_builder, names, -h_z, h_z, vol_bounds.outer_radius,
+        v_builder, names, cfg, -h_z, h_z, vol_bounds.outer_radius,
         cfg.outer_radius(), end_of_world, vol_idx - 2u, link_east, link_west);
     volume_sizes.push_back(
         {vol_idx, {vol_bounds.outer_radius, cfg.outer_radius()}});
@@ -817,7 +830,7 @@ inline auto add_endcap_detector(
             vm_builder->add_volume_placement({gap_center});
 
             detail::add_cylinder_portals(
-                vm_builder, names, gap_west_z, gap_east_z, inner_radius,
+                vm_builder, names, cfg, gap_west_z, gap_east_z, inner_radius,
                 outer_radius, link_north, link_south, link_east, link_west);
 
             volume_sizes.push_back({vol_idx, {gap_east_z, gap_west_z}});
@@ -933,11 +946,22 @@ inline void add_connector_portals(detector_builder_t &det_builder,
     using point3_t = typename detector_t::point3_type;
     using nav_link_t = typename detector_t::surface_type::navigation_link;
 
+    using factory_interface_t = surface_factory_interface<detector_t>;
     using cyl_factory_t = surface_factory<detector_t, concentric_cylinder2D>;
     using disc_factory_t = surface_factory<detector_t, ring2D>;
 
-    auto pt_cyl_factory = std::make_shared<cyl_factory_t>();
-    auto pt_disc_factory = std::make_shared<disc_factory_t>();
+    std::shared_ptr<factory_interface_t> pt_cyl_factory{nullptr};
+    std::shared_ptr<factory_interface_t> pt_disc_factory{nullptr};
+
+    if (cfg.use_material_maps()) {
+        pt_cyl_factory = decorate_material<detector_t>(
+            cfg, std::make_unique<cyl_factory_t>());
+        pt_disc_factory = decorate_material<detector_t>(
+            cfg, std::make_unique<disc_factory_t>());
+    } else {
+        pt_cyl_factory = std::make_shared<cyl_factory_t>();
+        pt_disc_factory = std::make_shared<disc_factory_t>();
+    }
 
     // Mask volume link for portals that exit the detector
     constexpr auto end_of_world{detail::invalid_value<nav_link_t>()};
@@ -1017,10 +1041,18 @@ inline void add_beampipe_portals(
     using point3_t = typename detector_t::point3_type;
     using nav_link_t = typename detector_t::surface_type::navigation_link;
 
+    using factory_interface_t = surface_factory_interface<detector_t>;
     using cyl_factory_t = surface_factory<detector_t, concentric_cylinder2D>;
     using disc_factory_t = surface_factory<detector_t, ring2D>;
 
-    auto pt_cyl_factory = std::make_shared<cyl_factory_t>();
+    std::shared_ptr<factory_interface_t> pt_cyl_factory{nullptr};
+
+    if (cfg.use_material_maps()) {
+        pt_cyl_factory = decorate_material<detector_t>(
+            cfg, std::make_unique<cyl_factory_t>());
+    } else {
+        pt_cyl_factory = std::make_shared<cyl_factory_t>();
+    }
 
     // Mask volume link for portals that exit the detector
     constexpr auto end_of_world{detail::invalid_value<nav_link_t>()};
@@ -1033,7 +1065,13 @@ inline void add_beampipe_portals(
     // of the barrel section
     if (cfg.n_edc_layers() == 0u) {
 
-        auto pt_disc_factory = std::make_shared<disc_factory_t>();
+        std::shared_ptr<factory_interface_t> pt_disc_factory{nullptr};
+        if (cfg.use_material_maps()) {
+            pt_disc_factory = decorate_material<detector_t>(
+                cfg, std::make_unique<disc_factory_t>());
+        } else {
+            pt_disc_factory = std::make_shared<disc_factory_t>();
+        }
 
         // Lower dics portal
         pt_disc_factory->push_back(
@@ -1050,7 +1088,7 @@ inline void add_beampipe_portals(
 
     // Cylinder portal that leads into the barrel section
     dindex first_barrel_idx{
-        cfg.n_edc_layers() == 0u ? end_of_world : 2u * cfg.n_edc_layers() + 2u};
+        cfg.n_brl_layers() == 0u ? end_of_world : 2u * cfg.n_edc_layers() + 2u};
     pt_cyl_factory->push_back(
         {surface_id::e_portal, transform3_t{},
          static_cast<nav_link_t>(first_barrel_idx),
@@ -1078,6 +1116,7 @@ inline void add_beampipe_portals(
     using point3_t = typename detector_t::point3_type;
     using nav_link_t = typename detector_t::surface_type::navigation_link;
 
+    using factory_interface_t = surface_factory_interface<detector_t>;
     using cyl_factory_t = surface_factory<detector_t, concentric_cylinder2D>;
     using disc_factory_t = surface_factory<detector_t, ring2D>;
 
@@ -1086,8 +1125,18 @@ inline void add_beampipe_portals(
     // For which endcap side should the portals be constructed?
     const scalar_t side{std::copysign(1.f, edc_lay_sizes.front().second.lower)};
 
-    auto pt_cyl_factory = std::make_shared<cyl_factory_t>();
-    auto pt_disc_factory = std::make_shared<disc_factory_t>();
+    std::shared_ptr<factory_interface_t> pt_cyl_factory{nullptr};
+    std::shared_ptr<factory_interface_t> pt_disc_factory{nullptr};
+
+    if (cfg.use_material_maps()) {
+        pt_cyl_factory = decorate_material<detector_t>(
+            cfg, std::make_unique<cyl_factory_t>());
+        pt_disc_factory = decorate_material<detector_t>(
+            cfg, std::make_unique<disc_factory_t>());
+    } else {
+        pt_cyl_factory = std::make_shared<cyl_factory_t>();
+        pt_disc_factory = std::make_shared<disc_factory_t>();
+    }
 
     const scalar_t inner_r{0.f};
     const scalar_t outer_r{cfg.beampipe_vol_radius()};
@@ -1216,10 +1265,10 @@ inline auto build_toy_detector(vecmem::memory_resource &resource,
 
         brl_vol_extents = detail::add_barrel_detector(det_builder, gctx, cfg,
                                                       name_map, beampipe_idx);
-
-        // Add the beampipe volume portals for the barrel section
-        detail::add_beampipe_portals(beampipe_builder, cfg);
     }
+    // Add the beampipe volume portals for the barrel section
+    detail::add_beampipe_portals(beampipe_builder, cfg);
+
     // Build the positive endcap
     vol_extent_container_t pos_edc_vol_extents;
     if (cfg.n_edc_layers() > 0u) {

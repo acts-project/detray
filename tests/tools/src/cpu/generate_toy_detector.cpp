@@ -40,6 +40,10 @@ int main(int argc, char **argv) {
     po::variables_map vm =
         detray::options::parse_options(desc, argc, argv, toy_cfg, writer_cfg);
 
+    // Make sure material is written to file, if it was requested
+    writer_cfg.write_material(vm.count("homogeneous_material") ||
+                              vm.count("material_maps"));
+
     // Build the geometry
     vecmem::host_memory_resource host_mr;
     auto [toy_det, toy_names] = build_toy_detector(host_mr, toy_cfg);
