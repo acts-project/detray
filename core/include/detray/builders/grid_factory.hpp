@@ -104,7 +104,7 @@ class grid_factory {
 
         auto b_values = grid_bounds.values();
         // Overwrite the mask values if axis spans are provided
-        if (axis_spans[0].size() > 1) {
+        if (!axis_spans[0].empty()) {
             b_values[boundary::e_min_r] = axis_spans[0][0];
             b_values[boundary::e_max_r] = axis_spans[0][1];
         }
