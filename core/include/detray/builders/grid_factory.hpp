@@ -36,6 +36,11 @@ namespace detray {
 /// @tparam serialzier_t  type of the serializer to the storage represenations
 /// @tparam algebra_t the matrix/vector/point types to use
 /// @tparam container_t the container types to use
+///
+/// throughout:
+/// @note that bin_edges is only used for variable binning
+/// @note that if non-zero axis_spans are provided the values of the
+/// mask is overwritten
 template <typename bin_t, template <std::size_t> class serializer_t,
           typename algebra_t = ALGEBRA_PLUGIN<detray::scalar>>
 class grid_factory {
@@ -76,12 +81,14 @@ class grid_factory {
         typename phi_binning = axis::regular<host_container_types, scalar_type>,
         std::enable_if_t<std::is_enum_v<decltype(r_bounds::label)>, bool> =
             true>
-    auto new_grid(const mask<annulus2D> &grid_bounds,
-                  const std::array<std::size_t, 2UL> n_bins,
-                  const std::vector<std::pair<loc_bin_index<annulus2D>, dindex>>
-                      &bin_capacities = {},
-                  const std::array<std::vector<scalar_type>, 2UL> &bin_edges = {
-                      {}}) const {
+    auto new_grid(
+        const mask<annulus2D> &grid_bounds,
+        const std::array<std::size_t, 2UL> n_bins,
+        const std::vector<std::pair<loc_bin_index<annulus2D>, dindex>>
+            &bin_capacities = {},
+        const std::array<std::vector<scalar_type>, 2UL> &bin_edges = {{}},
+        const std::array<std::vector<scalar_type>, 2UL> &axis_spans = {
+            {}}) const {
 
         static_assert(
             std::is_same_v<phi_bounds, axis::circular<>>,
@@ -96,13 +103,23 @@ class grid_factory {
         constexpr auto e_phi_axis = static_cast<dindex>(axes_t::label1);
 
         auto b_values = grid_bounds.values();
+        // Overwrite the mask values if axis spans are provided
+        if (axis_spans[0].size() > 1) {
+            b_values[boundary::e_min_r] = axis_spans[0][0];
+            b_values[boundary::e_max_r] = axis_spans[0][1];
+        }
+        scalar_type min_phi = b_values[boundary::e_average_phi] -
+                              b_values[boundary::e_min_phi_rel];
+        scalar_type max_phi = b_values[boundary::e_average_phi] +
+                              b_values[boundary::e_max_phi_rel];
+        if (axis_spans[1].size() > 1) {
+            min_phi = axis_spans[1][0];
+            max_phi = axis_spans[1][1];
+        }
 
         return new_grid<local_frame>(
-            {b_values[boundary::e_min_r], b_values[boundary::e_max_r],
-             b_values[boundary::e_average_phi] -
-                 b_values[boundary::e_min_phi_rel],
-             b_values[boundary::e_average_phi] +
-                 b_values[boundary::e_max_phi_rel]},
+            {b_values[boundary::e_min_r], b_values[boundary::e_max_r], min_phi,
+             max_phi},
             {n_bins[e_r_axis], n_bins[e_phi_axis]}, bin_capacities,
             {bin_edges[e_r_axis], bin_edges[e_phi_axis]},
             types::list<r_bounds, phi_bounds>{},
@@ -121,12 +138,14 @@ class grid_factory {
         typename z_binning = axis::regular<host_container_types, scalar_type>,
         std::enable_if_t<std::is_enum_v<decltype(x_bounds::label)>, bool> =
             true>
-    auto new_grid(const mask<cuboid3D> &grid_bounds,
-                  const std::array<std::size_t, 3UL> n_bins,
-                  const std::vector<std::pair<loc_bin_index<cuboid3D>, dindex>>
-                      &bin_capacities = {},
-                  const std::array<std::vector<scalar_type>, 3UL> &bin_edges = {
-                      {}}) const {
+    auto new_grid(
+        const mask<cuboid3D> &grid_bounds,
+        const std::array<std::size_t, 3UL> n_bins,
+        const std::vector<std::pair<loc_bin_index<cuboid3D>, dindex>>
+            &bin_capacities = {},
+        const std::array<std::vector<scalar_type>, 3UL> &bin_edges = {{}},
+        const std::array<std::vector<scalar_type>, 3UL> &axis_spans = {
+            {}}) const {
         // Axes boundaries and local indices
         using boundary = cuboid3D::boundaries;
         using axes_t = axes<cuboid3D>::template type<algebra_t>;
@@ -136,7 +155,20 @@ class grid_factory {
         constexpr auto e_y_axis = static_cast<dindex>(axes_t::label1);
         constexpr auto e_z_axis = static_cast<dindex>(axes_t::label2);
 
+        // Overwrite the mask values if axis spans are provided
         auto b_values = grid_bounds.values();
+        if (axis_spans[0].size() > 1) {
+            b_values[boundary::e_min_x] = axis_spans[0][0];
+            b_values[boundary::e_max_x] = axis_spans[0][1];
+        }
+        if (axis_spans[1].size() > 1) {
+            b_values[boundary::e_min_y] = axis_spans[1][0];
+            b_values[boundary::e_max_y] = axis_spans[1][1];
+        }
+        if (axis_spans[2].size() > 1) {
+            b_values[boundary::e_min_z] = axis_spans[2][0];
+            b_values[boundary::e_max_z] = axis_spans[2][1];
+        }
 
         return new_grid<local_frame>(
             {b_values[boundary::e_min_x], b_values[boundary::e_max_x],
@@ -165,7 +197,8 @@ class grid_factory {
         const std::array<std::size_t, 2UL> n_bins,
         const std::vector<std::pair<loc_bin_index<cylinder2D>, dindex>>
             &bin_capacities = {},
-        const std::array<std::vector<scalar_type>, 2UL> &bin_edges = {
+        const std::array<std::vector<scalar_type>, 2UL> &bin_edges = {{}},
+        const std::array<std::vector<scalar_type>, 2UL> &axis_spans = {
             {}}) const {
 
         static_assert(
@@ -181,6 +214,16 @@ class grid_factory {
         constexpr auto e_z_axis = static_cast<dindex>(axes_t::label1);
 
         auto b_values = grid_bounds.values();
+        scalar_type min_phi = -constant<scalar_type>::pi;
+        scalar_type max_phi = constant<scalar_type>::pi;
+        if (axis_spans[0].size() > 1) {
+            min_phi = axis_spans[0][0];
+            max_phi = axis_spans[0][1];
+        }
+        if (axis_spans[1].size() > 1) {
+            b_values[boundary::e_n_half_z] = axis_spans[1][0];
+            b_values[boundary::e_p_half_z] = axis_spans[1][1];
+        }
 
         return new_grid<local_frame>(
             {-constant<scalar_type>::pi, constant<scalar_type>::pi,
@@ -202,13 +245,14 @@ class grid_factory {
         typename z_binning = axis::regular<host_container_types, scalar_type>,
         std::enable_if_t<std::is_enum_v<decltype(rphi_bounds::label)>, bool> =
             true>
-    auto new_grid(const mask<concentric_cylinder2D> &grid_bounds,
-                  const std::array<std::size_t, 2UL> n_bins,
-                  const std::vector<
-                      std::pair<loc_bin_index<concentric_cylinder2D>, dindex>>
-                      &bin_capacities = {},
-                  const std::array<std::vector<scalar_type>, 2UL> &bin_edges = {
-                      {}}) const {
+    auto new_grid(
+        const mask<concentric_cylinder2D> &grid_bounds,
+        const std::array<std::size_t, 2UL> n_bins,
+        const std::vector<std::pair<loc_bin_index<concentric_cylinder2D>,
+                                    dindex>> &bin_capacities = {},
+        const std::array<std::vector<scalar_type>, 2UL> &bin_edges = {{}},
+        const std::array<std::vector<scalar_type>, 2UL> &axis_spans = {
+            {}}) const {
 
         static_assert(
             std::is_same_v<rphi_bounds, axis::circular<axis::label::e_rphi>>,
@@ -223,10 +267,20 @@ class grid_factory {
         constexpr auto e_z_axis = static_cast<dindex>(axes_t::label1);
 
         auto b_values = grid_bounds.values();
+        scalar_type min_phi = -constant<scalar_type>::pi;
+        scalar_type max_phi = constant<scalar_type>::pi;
+        if (axis_spans[0].size() > 1) {
+            min_phi = axis_spans[0][0];
+            max_phi = axis_spans[0][1];
+        }
+        if (axis_spans[1].size() > 1) {            
+            b_values[boundary::e_n_half_z] = axis_spans[1][0];
+            b_values[boundary::e_p_half_z] = axis_spans[1][1];
+        }
 
         return new_grid<local_frame>(
-            {-constant<scalar_type>::pi, constant<scalar_type>::pi,
-             b_values[boundary::e_n_half_z], b_values[boundary::e_p_half_z]},
+            {min_phi, max_phi, b_values[boundary::e_n_half_z],
+             b_values[boundary::e_p_half_z]},
             {n_bins[e_rphi_axis], n_bins[e_z_axis]}, bin_capacities,
             {bin_edges[e_rphi_axis], bin_edges[e_z_axis]},
             types::list<rphi_bounds, z_bounds>{},
@@ -250,7 +304,8 @@ class grid_factory {
         const std::array<std::size_t, 3UL> n_bins,
         const std::vector<std::pair<loc_bin_index<cylinder3D>, dindex>>
             &bin_capacities = {},
-        const std::array<std::vector<scalar_type>, 3UL> &bin_edges = {
+        const std::array<std::vector<scalar_type>, 3UL> &bin_edges = {{}},
+        const std::array<std::vector<scalar_type>, 3UL> &axis_spans = {
             {}}) const {
 
         static_assert(
@@ -267,11 +322,26 @@ class grid_factory {
         constexpr auto e_z_axis = static_cast<dindex>(axes_t::label2);
 
         auto b_values = grid_bounds.values();
+        // Overwrite the mask values if axis spans are provided
+        if (axis_spans[0].size() > 1) {
+            b_values[boundary::e_min_r] = axis_spans[0][0];
+            b_values[boundary::e_max_r] = axis_spans[0][1];
+        }
+        scalar_type min_phi = -constant<scalar_type>::pi;
+        scalar_type max_phi = constant<scalar_type>::pi;
+        if (axis_spans[1].size() > 1) {
+            min_phi = axis_spans[1][0];
+            max_phi = axis_spans[1][1];
+        }
+        if (axis_spans[2].size() > 1) {
+            b_values[boundary::e_min_z] = axis_spans[2][0];
+            b_values[boundary::e_max_z] = axis_spans[2][1];
+        }
 
         return new_grid<local_frame>(
-            {b_values[boundary::e_min_r], b_values[boundary::e_max_r],
-             b_values[boundary::e_min_phi], b_values[boundary::e_max_phi],
-             -b_values[boundary::e_min_z], b_values[boundary::e_max_z]},
+            {b_values[boundary::e_min_r], b_values[boundary::e_max_r], min_phi,
+             max_phi, -b_values[boundary::e_min_z],
+             b_values[boundary::e_max_z]},
             {n_bins[e_r_axis], n_bins[e_phi_axis], n_bins[e_z_axis]},
             bin_capacities,
             {bin_edges[e_r_axis], bin_edges[e_phi_axis], bin_edges[e_z_axis]},
@@ -289,12 +359,14 @@ class grid_factory {
         typename phi_binning = axis::regular<host_container_types, scalar_type>,
         std::enable_if_t<std::is_enum_v<decltype(r_bounds::label)>, bool> =
             true>
-    auto new_grid(const mask<ring2D> &grid_bounds,
-                  const std::array<std::size_t, 2UL> n_bins,
-                  const std::vector<std::pair<loc_bin_index<ring2D>, dindex>>
-                      &bin_capacities = {},
-                  const std::array<std::vector<scalar_type>, 2UL> &bin_edges = {
-                      {}}) const {
+    auto new_grid(
+        const mask<ring2D> &grid_bounds,
+        const std::array<std::size_t, 2UL> n_bins,
+        const std::vector<std::pair<loc_bin_index<ring2D>, dindex>>
+            &bin_capacities = {},
+        const std::array<std::vector<scalar_type>, 2UL> &bin_edges = {{}},
+        const std::array<std::vector<scalar_type>, 2UL> &axis_spans = {
+            {}}) const {
 
         static_assert(std::is_same_v<phi_bounds, axis::circular<>>,
                       "Phi axis bounds need to be circular for ring shape");
@@ -308,10 +380,21 @@ class grid_factory {
         constexpr auto e_phi_axis = static_cast<dindex>(axes_t::label1);
 
         auto b_values = grid_bounds.values();
+        // Overwrite the mask values if axis spans are provided
+        if (axis_spans[0].size() > 1) {
+            b_values[boundary::e_inner_r] = axis_spans[0][0];
+            b_values[boundary::e_outer_r] = axis_spans[0][1];
+        }
+        scalar_type min_phi = -constant<scalar_type>::pi;
+        scalar_type max_phi = constant<scalar_type>::pi;
+        if (axis_spans[1].size() > 1) {
+            min_phi = axis_spans[1][0];
+            max_phi = axis_spans[1][1];
+        }
 
         return new_grid<local_frame>(
             {b_values[boundary::e_inner_r], b_values[boundary::e_outer_r],
-             -constant<scalar_type>::pi, constant<scalar_type>::pi},
+             min_phi, max_phi},
             {n_bins[e_r_axis], n_bins[e_phi_axis]}, bin_capacities,
             {bin_edges[e_r_axis], bin_edges[e_phi_axis]},
             types::list<r_bounds, phi_bounds>{},
@@ -333,7 +416,8 @@ class grid_factory {
         const std::array<std::size_t, 2UL> n_bins,
         const std::vector<std::pair<loc_bin_index<rectangle2D>, dindex>>
             &bin_capacities = {},
-        const std::array<std::vector<scalar_type>, 2UL> &bin_edges = {
+        const std::array<std::vector<scalar_type>, 2UL> &bin_edges = {{}},
+        const std::array<std::vector<scalar_type>, 2UL> &axis_spans = {
             {}}) const {
         // Axes boundaries and local indices
         using boundary = rectangle2D::boundaries;
@@ -344,6 +428,13 @@ class grid_factory {
         constexpr auto e_y_axis = static_cast<dindex>(axes_t::label1);
 
         auto b_values = grid_bounds.values();
+        // Overwrite the mask values if axis spans are provided
+        if (axis_spans[0].size() > 1) {
+            b_values[boundary::e_half_x] = axis_spans[0][1];
+        }
+        if (axis_spans[1].size() > 1) {
+            b_values[boundary::e_half_y] = axis_spans[1][1];
+        }
 
         return new_grid<local_frame>(
             {-b_values[boundary::e_half_x], b_values[boundary::e_half_x],
@@ -369,7 +460,8 @@ class grid_factory {
         const std::array<std::size_t, 2UL> n_bins,
         const std::vector<std::pair<loc_bin_index<trapezoid2D>, dindex>>
             &bin_capacities = {},
-        const std::array<std::vector<scalar_type>, 2UL> &bin_edges = {
+        const std::array<std::vector<scalar_type>, 2UL> &bin_edges = {{}},
+        const std::array<std::vector<scalar_type>, 2UL> &axis_spans = {
             {}}) const {
         // Axes boundaries and local indices
         using boundary = trapezoid2D::boundaries;
@@ -380,6 +472,13 @@ class grid_factory {
         constexpr auto e_y_axis = static_cast<dindex>(axes_t::label1);
 
         auto b_values = grid_bounds.values();
+        // Overwrite the mask values if axis spans are provided
+        if (axis_spans[0].size() > 1) {
+            b_values[boundary::e_half_length_1] = axis_spans[0][1];
+        }
+        if (axis_spans[1].size() > 1) {
+            b_values[boundary::e_half_length_2] = axis_spans[1][1];
+        }
 
         return new_grid<local_frame>({-b_values[boundary::e_half_length_1],
                                       b_values[boundary::e_half_length_1],

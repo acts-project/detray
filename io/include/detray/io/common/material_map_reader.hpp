@@ -85,6 +85,13 @@ class material_map_reader {
                     n_bins.push_back(axis_data.bins);
                 }
 
+                // Get the axis spans
+                std::vector<std::vector<scalar_t>> axis_spans = {};
+                for (const auto &axis_data : grid_data.axes) {
+                    axis_spans.push_back(
+                        {axis_data.edges.front(), axis_data.edges.back()});
+                }
+
                 // Get the local bin indices and the material parametrization
                 std::vector<bin_index_type> loc_bins{};
                 mat_data_t mat_data{
@@ -111,9 +118,9 @@ class material_map_reader {
                     }
                 }
 
-                mat_factory->add_material(map_id, std::move(mat_data),
-                                          std::move(n_bins),
-                                          std::move(loc_bins));
+                mat_factory->add_material(
+                    map_id, std::move(mat_data), std::move(n_bins),
+                    std::move(axis_spans), std::move(loc_bins));
             }
 
             // Add the material maps to the volume
