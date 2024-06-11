@@ -26,6 +26,132 @@ def read_track_data(file, logging):
     return df
 
 
+""" Plot the distributions of track parameter data """
+def plot_track_params(opts, detector, track_type, plotFactory, out_format,
+                      df):
+
+    from matplotlib.ticker import ScalarFormatter
+
+    detector_name = detector.replace(' ', '_')
+    n_tracks = len(df['track_id'])
+    tracks =  "rays" if track_type == "ray" else "helices"
+
+    # Plot the charge
+    lgd_ops = plotting.legend_options('upper right', 4, 0.8, 0.005)
+    q_hist_data = plotFactory.hist1D(x       = df['q'],
+                                     bins    = 4,
+                                     xLabel  = r'$q\,\mathrm{[e]}$',
+                                     lgd_ops = lgd_ops,
+                                     ax_formatter = ScalarFormatter())
+
+    plotFactory.write_plot(q_hist_data,
+                           f"{detector_name}_{track_type}_charge_dist",
+                           out_format)
+
+    # Plot the total momentum
+    p = np.sqrt(np.square(df['px']) +  np.square(df['py']) + 
+                np.square(df['pz']))
+
+    lgd_ops = plotting.legend_options('upper right', 4, 0.8, 0.005)
+    p_hist_data = plotFactory.hist1D(x       = p,
+                                     bins    = int(n_tracks / 10),
+                                     xLabel  = r'$p_{tot}\,\mathrm{[GeV]}$',
+                                     lgd_ops = lgd_ops,
+                                     ax_formatter = ScalarFormatter())
+
+    plotFactory.write_plot(p_hist_data,
+                           f"{detector_name}_{track_type}_p_dist",
+                           out_format)
+
+    # Plot the transverse momentum
+    pT = np.sqrt(np.square(df['px']) + np.square(df['py']))
+
+    lgd_ops = plotting.legend_options('upper right', 4, 0.8, 0.005)
+    pT_hist_data = plotFactory.hist1D(x      = pT,
+                                      bins    = int(n_tracks / 10),
+                                      xLabel  = r'$p_{T}\,\mathrm{[GeV]}$',
+                                      lgd_ops = lgd_ops,
+                                      ax_formatter = ScalarFormatter())
+
+    plotFactory.write_plot(pT_hist_data,
+                           f"{detector_name}_{track_type}_pT_dist",
+                           out_format)
+
+    # Plot the x-origin
+    lgd_ops = plotting.legend_options('upper right', 4, 0.8, 0.005)
+    x_hist_data = plotFactory.hist1D(x      = df['x'],
+                                      bins    = int(n_tracks / 10),
+                                      xLabel  = r'$x\,\mathrm{[mm]}$',
+                                      lgd_ops = lgd_ops,
+                                      ax_formatter = ScalarFormatter())
+
+    plotFactory.write_plot(x_hist_data,
+                           f"{detector_name}_{track_type}_x_origin",
+                           out_format)
+
+    # Plot the y-origin
+    lgd_ops = plotting.legend_options('upper right', 4, 0.8, 0.005)
+    y_hist_data = plotFactory.hist1D(x      = df['y'],
+                                      bins    = int(n_tracks / 10),
+                                      xLabel  = r'$y\,\mathrm{[mm]}$',
+                                      lgd_ops = lgd_ops,
+                                      ax_formatter = ScalarFormatter())
+
+    plotFactory.write_plot(y_hist_data,
+                           f"{detector_name}_{track_type}_y_origin",
+                           out_format)
+    # Plot the z-origin
+    lgd_ops = plotting.legend_options('upper right', 4, 0.8, 0.005)
+    z_hist_data = plotFactory.hist1D(x      = df['z'],
+                                      bins    = int(n_tracks / 10),
+                                      xLabel  = r'$z\,\mathrm{[mm]}$',
+                                      lgd_ops = lgd_ops,
+                                      ax_formatter = ScalarFormatter())
+
+    plotFactory.write_plot(z_hist_data,
+                           f"{detector_name}_{track_type}_z_origin",
+                           out_format)
+
+    # Plot the phi angle of the track direction
+    phi = np.arctan2(df['py'], df['px'])
+    lgd_ops = plotting.legend_options('upper right', 4, 0.8, 0.005)
+    dir_phi_hist_data = plotFactory.hist1D(x      = phi,
+                                        bins    = int(n_tracks / 10),
+                                        xLabel  = r'$\varphi\,\mathrm{[rad]}$',
+                                        lgd_ops = lgd_ops,
+                                        ax_formatter = ScalarFormatter())
+
+    plotFactory.write_plot(dir_phi_hist_data,
+                           f"{detector_name}_{track_type}_dir_phi",
+                           out_format)
+
+    # Plot the theta value of the track direction
+    theta = np.arctan2(pT, df['pz'])
+    lgd_ops = plotting.legend_options('upper right', 4, 0.8, 0.005)
+    dir_theta_hist_data = plotFactory.hist1D(x      = theta,
+                                             bins    = int(n_tracks / 10),
+                                             xLabel  = r'$\theta\,\mathrm{[rad]}$',
+                                             lgd_ops = lgd_ops,
+                                             ax_formatter = ScalarFormatter())
+
+    plotFactory.write_plot(dir_theta_hist_data,
+                           f"{detector_name}_{track_type}_dir_theta",
+                           out_format)
+
+    # Plot the eta value of the track direction
+    eta = np.arctanh(df['pz'] / p)
+    lgd_ops = plotting.legend_options('upper right', 4, 0.8, 0.005)
+    dir_eta_hist_data = plotFactory.hist1D(x       = eta,
+                                           bins    = int(n_tracks / 10),
+                                           xLabel  = r'$\eta$',
+                                           lgd_ops = lgd_ops,
+                                           ax_formatter = ScalarFormatter())
+
+    plotFactory.write_plot(dir_eta_hist_data,
+                           f"{detector_name}_{track_type}_dir_eta",
+                           out_format)
+
+
 """ Plot the track positions of two data sources - rz view """
 def compare_track_pos_xy(opts, detector, scan_type, plotFactory, out_format,
                          df1, label1, color1, df2, label2, color2):
@@ -150,7 +276,7 @@ def compare_track_pos_rz(opts, detector, scan_type, plotFactory, out_format,
 def plot_track_pos_dist(opts, detector, scan_type, plotFactory, out_format,
                         df1, label1, df2, label2):
 
-    n_rays = np.max(df1['track_id']) + 1
+    n_tracks = np.max(df1['track_id']) + 1
     tracks =  "rays" if scan_type == "ray" else "helices"
 
     dist = np.sqrt(np.square(df1['x'] - df2['x']) +
@@ -173,7 +299,7 @@ def plot_track_pos_dist(opts, detector, scan_type, plotFactory, out_format,
     # Plot the xy coordinates of the filtered intersections points
     lgd_ops = plotting.legend_options('upper right', 4, 0.8, 0.005)
     hist_data = plotFactory.hist1D(x       = filtered_dist,
-                                   bins    = 100,
+                                   bins    = int(n_tracks / 10),
                                    xLabel  = r'$d\,\mathrm{[mm]}$',
                                    setLog  = True,
                                    lgd_ops = lgd_ops)
@@ -196,7 +322,7 @@ def plot_track_pos_dist(opts, detector, scan_type, plotFactory, out_format,
 def plot_track_pos_res(opts, detector, scan_type, plotFactory, out_format,
                        df1, label1, df2, label2, var):
 
-    n_rays = np.max(df1['track_id']) + 1
+    n_tracks = np.max(df1['track_id']) + 1
     tracks =  "rays" if scan_type == "ray" else "helices"
 
     res = df1[var] - df2[var]
@@ -216,7 +342,7 @@ def plot_track_pos_res(opts, detector, scan_type, plotFactory, out_format,
     # Plot the xy coordinates of the filtered intersections points
     lgd_ops = plotting.legend_options('upper right', 4, 0.8, 0.005)
     hist_data = plotFactory.hist1D(x       = filtered_res,
-                                   bins    = 100,
+                                   bins    = int(n_tracks / 10),
                                    xLabel  = r'$\mathrm{res}' + rf'\,{var}' + r'\,\mathrm{[mm]}$',
                                    setLog  = False,
                                    lgd_ops = lgd_ops)

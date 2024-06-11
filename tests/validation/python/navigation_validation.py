@@ -6,6 +6,7 @@
 
 # detray imports
 from impl import read_truth_data, read_navigation_data, plot_navigation_data
+from impl import plot_track_params
 from impl import plot_detector_scan_data, plot_track_pos_dist, plot_track_pos_res
 from options import (common_options, detector_io_options,
                      random_track_generator_options, propagation_options,
@@ -86,6 +87,7 @@ def __main__():
     args_list = ["--data_dir", datadir,
                  "--geometry_file", args.geometry_file,
                  "--n_tracks", str(args.n_tracks),
+                 "--randomize_charge", str(args.randomize_charge),
                  "--p_T", str(args.transverse_momentum),
                  "--eta_range", str(args.eta_range[0]), str(args.eta_range[1]),
                  "--min_mask_tolerance", str(args.min_mask_tol),
@@ -134,6 +136,15 @@ def __main__():
 
     plot_detector_scan_data(args, det_name, plot_factory, "ray", ray_scan_df, "ray_scan", out_format)
     plot_detector_scan_data(args, det_name, plot_factory, "helix", helix_scan_df, "helix_scan", out_format)
+
+    # Plot distributions of track parameter values
+    # Only take initial track parameters from generator
+    ray_intial_trk_df = ray_scan_df.drop_duplicates(subset=['track_id'])
+    helix_intial_trk_df = helix_scan_df.drop_duplicates(subset=['track_id'])
+    plot_track_params(args, det_name, "helix", plot_factory, out_format,
+                      helix_intial_trk_df)
+    plot_track_params(args, det_name, "ray", plot_factory, out_format,
+                      ray_intial_trk_df)
 
     # Read the recorded data
     ray_nav_df, ray_truth_df, ray_nav_cuda_df, helix_nav_df, helix_truth_df, helix_nav_cuda_df = read_navigation_data(datadir, args.cuda, logging)

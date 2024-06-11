@@ -27,9 +27,9 @@ struct detector_writer_config {
     /// Compactify json output, if not json format this flag does nothing
     bool m_compact_io = false;
     /// Whether to write the material to file
-    bool m_write_material = false;
+    bool m_write_material = true;
     /// Whether to write the accelerator grids to file
-    bool m_write_grids = false;
+    bool m_write_grids = true;
 
     /// Getters
     /// @{

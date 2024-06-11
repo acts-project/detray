@@ -81,6 +81,10 @@ class ray {
     /// @param dir new direction of the ray
     DETRAY_HOST_DEVICE void set_dir(vector3_type dir) { _dir = dir; }
 
+    /// @return charge 1
+    DETRAY_HOST_DEVICE
+    constexpr scalar_type charge() const { return 1.f; }
+
     /// Print
     DETRAY_HOST
     friend std::ostream &operator<<(std::ostream &os, const ray &r) {
