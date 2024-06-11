@@ -78,8 +78,16 @@ struct helix_intersector_impl<cartesian2D<algebra_t>, algebra_t> {
         const point3_type st = getter::vector<3>(sm, 0u, 3u);
 
         // Starting point on the helix for the Newton iteration
-        scalar_type s{
-            getter::norm(trf.point_to_global(mask.centroid()) - h.pos(0.f))};
+        const vector3_type dist{trf.point_to_global(mask.centroid()) -
+                                h.pos(0.f)};
+        scalar_type denom{vector::dot(sn, h.dir(0.f))};
+
+        scalar_type s;
+        if (denom == 0.f) {
+            s = getter::norm(dist);
+        }
+        s = math::abs(vector::dot(sn, dist) / denom);
+
         scalar_type s_prev{0.f};
 
         // f(s) = sn * (h.pos(s) - st) == 0
@@ -88,7 +96,7 @@ struct helix_intersector_impl<cartesian2D<algebra_t>, algebra_t> {
         while (math::abs(s - s_prev) > convergence_tolerance and
                n_tries < max_n_tries) {
             // f'(s) = sn * h.dir(s)
-            const scalar_type denom{vector::dot(sn, h.dir(s))};
+            denom = vector::dot(sn, h.dir(s));
             // No intersection can be found if dividing by zero
             if (denom == 0.f) {
                 return sfi;
