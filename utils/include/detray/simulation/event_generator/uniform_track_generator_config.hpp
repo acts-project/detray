@@ -11,6 +11,7 @@
 #include "detray/definitions/detail/algebra.hpp"
 #include "detray/definitions/detail/qualifiers.hpp"
 #include "detray/definitions/units.hpp"
+#include "detray/simulation/event_generator/random_numbers.hpp"
 
 // System include(s)
 #include <algorithm>
@@ -22,6 +23,12 @@ namespace detray {
 
 /// Configuration for the uniform track generator
 struct uniform_track_generator_config {
+
+    using seed_t = std::uint64_t;
+
+    /// Monte-Carlo seed
+    seed_t m_seed{detail::random_numbers<>::default_seed()};
+
     /// Ensure same angle space as random track generator
     static constexpr scalar k_max_pi{constant<scalar>::pi -
                                      std::numeric_limits<scalar>::epsilon()};
@@ -48,12 +55,19 @@ struct uniform_track_generator_config {
     /// Whether to interpret the momentum @c m_p_mag as p_T
     bool m_is_pT{false};
 
+    /// Randomly flip the charge sign?
+    bool m_randomize_charge{false};
+
     /// Time parameter and charge of the track
     scalar m_time{0.f * unit<scalar>::us};
     scalar m_charge{-1.f * unit<scalar>::e};
 
     /// Setters
     /// @{
+    DETRAY_HOST_DEVICE uniform_track_generator_config& seed(const seed_t s) {
+        m_seed = s;
+        return *this;
+    }
     DETRAY_HOST_DEVICE uniform_track_generator_config& phi_range(scalar low,
                                                                  scalar high) {
         auto min_phi{std::clamp(low, -constant<scalar>::pi, k_max_pi)};
@@ -147,6 +161,11 @@ struct uniform_track_generator_config {
         m_p_mag = p;
         return *this;
     }
+    DETRAY_HOST_DEVICE
+    uniform_track_generator_config& randomize_charge(bool rc) {
+        m_randomize_charge = rc;
+        return *this;
+    }
     DETRAY_HOST_DEVICE uniform_track_generator_config& time(scalar t) {
         m_time = t;
         return *this;
@@ -159,6 +178,7 @@ struct uniform_track_generator_config {
 
     /// Getters
     /// @{
+    DETRAY_HOST_DEVICE constexpr seed_t seed() const { return m_seed; }
     DETRAY_HOST_DEVICE constexpr std::size_t n_tracks() const {
         return phi_steps() * theta_steps();
     }
@@ -185,6 +205,9 @@ struct uniform_track_generator_config {
     }
     DETRAY_HOST_DEVICE constexpr const auto& origin() const { return m_origin; }
     DETRAY_HOST_DEVICE constexpr bool is_pT() const { return m_is_pT; }
+    DETRAY_HOST_DEVICE constexpr bool randomize_charge() const {
+        return m_randomize_charge;
+    }
     DETRAY_HOST_DEVICE constexpr scalar time() const { return m_time; }
     DETRAY_HOST_DEVICE constexpr scalar charge() const { return m_charge; }
     /// @}
@@ -204,7 +227,9 @@ inline std::ostream& operator<<(std::ostream& out,
         << "    -> phi steps        : " << cfg.phi_steps() << "\n"
         << "    -> theta/eta steps  : " << cfg.theta_steps() << "\n"
         << "  Charge                : "
-        << cfg.charge() / detray::unit<scalar>::e << " [e]\n";
+        << cfg.charge() / detray::unit<scalar>::e << " [e]\n"
+        << "  Rand. charge          : " << std::boolalpha
+        << cfg.randomize_charge() << std::noboolalpha << "\n";
 
     // Momentum
     if (cfg.is_pT()) {

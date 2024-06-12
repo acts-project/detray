@@ -40,7 +40,8 @@ class detector_scan : public test::fixture_base<> {
         algebra_t>::template intersection_trace_type<detector_t>;
     using trajectory_type = typename scan_type<algebra_t>::trajectory_type;
     using uniform_gen_t =
-        random_numbers<scalar_t, std::uniform_real_distribution<scalar_t>>;
+        detail::random_numbers<scalar_t,
+                               std::uniform_real_distribution<scalar_t>>;
     using track_generator_t =
         random_track_generator<free_track_parameters_t, uniform_gen_t>;
 
@@ -83,8 +84,12 @@ class detector_scan : public test::fixture_base<> {
             m_cfg.whiteboard()->template get<std::vector<intersection_trace_t>>(
                 m_cfg.name());
 
+        const std::string det_name{m_det.name(m_names)};
+        const std::string prefix{k_use_rays ? det_name + "_ray_"
+                                            : det_name + "_helix_"};
         std::ios_base::openmode io_mode = std::ios::trunc | std::ios::out;
-        detray::io::file_handle debug_file{"./detector_scan.txt", io_mode};
+        detray::io::file_handle debug_file{prefix + "_detector_scan.txt",
+                                           io_mode};
 
         std::cout << "\nINFO: Checking trace data...\n" << std::endl;
 

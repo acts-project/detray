@@ -105,11 +105,12 @@ inline auto read_free_track_params(const std::string &file_name) {
 template <typename track_t>
 inline void write_free_track_params(
     const std::string &file_name,
-    const std::vector<std::vector<track_t>> &track_params_per_track) {
+    const std::vector<std::vector<track_t>> &track_params_per_track,
+    const bool replace = true) {
 
     // Don't write over existing data
     std::string trk_file_name{file_name};
-    if (io::file_exists(file_name)) {
+    if (!replace && io::file_exists(file_name)) {
         trk_file_name = io::alt_file_name(file_name);
     } else {
         // Make sure the output directories exit

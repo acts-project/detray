@@ -5,7 +5,7 @@
 # Mozilla Public License Version 2.0
 
 from .plot_ray_scan import read_ray_scan_data, plot_intersection_points_xy, plot_intersection_points_rz
-from .plot_track_positions import read_track_data, compare_track_pos_xy, compare_track_pos_rz, plot_track_pos_dist, plot_track_pos_res
+from .plot_track_params import read_track_data, compare_track_pos_xy, compare_track_pos_rz, plot_track_pos_dist, plot_track_pos_res
 
 # python includes
 import pandas as pd
@@ -13,7 +13,7 @@ import os
 
 
 """ Read the detector scan data from files and prepare data frames """
-def read_truth_data(inputdir, logging):
+def read_scan_data(inputdir, det_name, logging):
 
     # Input data directory
     data_dir = os.fsencode(inputdir)
@@ -26,20 +26,16 @@ def read_truth_data(inputdir, logging):
     for file in os.listdir(data_dir):
         filename = os.fsdecode(file)
 
-        if filename.find('_ray_scan_intersections') != -1:
+        if filename.find(det_name + '_ray_scan_intersections') != -1:
             ray_scan_intersections_file = inputdir + "/" + filename
             file_name = os.path.basename(ray_scan_intersections_file)
-            detector_name, sep, suffix = file_name.partition('_ray_scan_intersections')
-        elif filename.find('_ray_scan_track_parameters') != -1:
+        elif filename.find(det_name + '_ray_scan_track_parameters') != -1:
             ray_scan_track_param_file = inputdir + "/" + filename
-        elif filename.find('_helix_scan_intersections') != -1:
+        elif filename.find(det_name + '_helix_scan_intersections') != -1:
             helix_scan_intersections_file = inputdir + "/" + filename
             file_name = os.path.basename(helix_scan_intersections_file)
-            detector_name, sep, suffix = file_name.partition('_helix_scan_intersections')
-        elif filename.find('_helix_scan_track_parameters') != -1:
+        elif filename.find(det_name + '_helix_scan_track_parameters') != -1:
             helix_scan_track_param_file = inputdir + "/" + filename
-
-    detector_name = detector_name.replace('_', ' ')
 
     # Read ray scan data
     ray_scan_df = read_ray_scan_data(ray_scan_intersections_file,
@@ -49,11 +45,11 @@ def read_truth_data(inputdir, logging):
     helix_scan_df = read_ray_scan_data(helix_scan_intersections_file,
                                        helix_scan_track_param_file, logging)
 
-    return detector_name, ray_scan_df, helix_scan_df
+    return ray_scan_df, helix_scan_df
 
 
 """ Read the recorded track positions from files and prepare data frames """
-def read_navigation_data(inputdir, read_cuda, logging):
+def read_navigation_data(inputdir, det_name, read_cuda, logging):
 
     # Input data directory
     data_dir = os.fsencode(inputdir)
@@ -65,17 +61,17 @@ def read_navigation_data(inputdir, read_cuda, logging):
     for file in os.listdir(data_dir):
         filename = os.fsdecode(file)
 
-        if read_cuda and filename.find('ray_navigation_track_params_cuda') != -1:
+        if read_cuda and filename.find(det_name + '_ray_navigation_track_params_cuda') != -1:
             ray_data_cuda_file = inputdir + "/" + filename
-        elif filename.find('ray_navigation_track_params') != -1:
+        elif filename.find(det_name + '_ray_navigation_track_params') != -1:
             ray_data_file = inputdir + "/" + filename
-        elif filename.find('ray_truth_track_params') != -1:
+        elif filename.find(det_name + '_ray_truth_track_params') != -1:
             ray_truth_file = inputdir + "/" + filename
-        elif read_cuda and filename.find('helix_navigation_track_params_cuda') != -1:
+        elif read_cuda and filename.find(det_name + '_helix_navigation_track_params_cuda') != -1:
             helix_data_cuda_file = inputdir + "/" + filename
-        elif filename.find('helix_navigation_track_params') != -1:
+        elif filename.find(det_name + '_helix_navigation_track_params') != -1:
             helix_data_file = inputdir + "/" + filename
-        elif filename.find('helix_truth_track_params') != -1:
+        elif filename.find(det_name + '_helix_truth_track_params') != -1:
             helix_truth_file = inputdir + "/" + filename
 
     ray_df = read_track_data(ray_data_file, logging)

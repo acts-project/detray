@@ -65,6 +65,22 @@ GTEST_TEST(detray_masks, annulus2D) {
     ASSERT_TRUE(ann2.is_inside(toStripFrame(p2_out1), 1.3f));
     ASSERT_TRUE(ann2.is_inside(toStripFrame(p2_out4), 0.9f));
 
+    ASSERT_NEAR(ann2.get_shape().min_dist_to_boundary(ann2.values(),
+                                                      toStripFrame(p2_in)),
+                2.1005f, tol);
+    ASSERT_NEAR(ann2.get_shape().min_dist_to_boundary(ann2.values(),
+                                                      toStripFrame(p2_out1)),
+                0.128932f, tol);
+    ASSERT_NEAR(ann2.get_shape().min_dist_to_boundary(ann2.values(),
+                                                      toStripFrame(p2_out2)),
+                1.55969f, tol);
+    ASSERT_NEAR(ann2.get_shape().min_dist_to_boundary(ann2.values(),
+                                                      toStripFrame(p2_out3)),
+                2.14214f, tol);
+    ASSERT_NEAR(ann2.get_shape().min_dist_to_boundary(ann2.values(),
+                                                      toStripFrame(p2_out4)),
+                0.80214f, tol);
+
     // Check area: @TODO not implemented, yet
     scalar a = ann2.area();
     ASSERT_EQ(a, ann2.measure());

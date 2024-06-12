@@ -92,7 +92,7 @@ struct brute_force_scan {
                     // Record the intersection
                     intersection_trace.push_back(
                         {{traj.pos(sfi.path), 0.f, p * traj.dir(sfi.path),
-                          -1.f},
+                          traj.charge()},
                          sf.volume(),
                          sfi});
                 }
@@ -113,11 +113,12 @@ struct brute_force_scan {
         start_intersection.volume_link =
             static_cast<nav_link_t>(first_record.vol_idx);
 
-        intersection_trace.insert(intersection_trace.begin(),
-                                  intersection_record<detector_t>{
-                                      {traj.pos(), 0.f, p * traj.dir(), -1.f},
-                                      first_record.vol_idx,
-                                      start_intersection});
+        intersection_trace.insert(
+            intersection_trace.begin(),
+            intersection_record<detector_t>{
+                {traj.pos(), 0.f, p * traj.dir(), traj.charge()},
+                first_record.vol_idx,
+                start_intersection});
 
         return intersection_trace;
     }

@@ -148,6 +148,7 @@ class navigation_validation : public test::fixture_base<> {
 
     using scalar_t = typename detector_t::scalar_type;
     using algebra_t = typename detector_t::algebra_type;
+    using vector3_t = typename detector_t::vector3_type;
     using free_track_parameters_t = free_track_parameters<algebra_t>;
     using trajectory_type = typename scan_type<algebra_t>::trajectory_type;
     using intersection_trace_t = typename scan_type<
@@ -226,6 +227,8 @@ class navigation_validation : public test::fixture_base<> {
         using bfield_t =
             std::conditional_t<k_use_rays, navigation_validator::empty_bfield,
                                hom_bfield_t>;
+        using intersection_t =
+            typename intersection_trace_t::value_type::intersection_type;
 
         bfield_t b_field{};
         if constexpr (!k_use_rays) {
@@ -243,8 +246,13 @@ class navigation_validation : public test::fixture_base<> {
                   << m_det.name(m_names) << "...\n"
                   << std::endl;
 
+        const std::string det_name{m_det.name(m_names)};
+        const std::string prefix{k_use_rays ? det_name + "_ray_"
+                                            : det_name + "_helix_"};
+
         std::ios_base::openmode io_mode = std::ios::trunc | std::ios::out;
-        const std::string debug_file_name{"./navigation_validation_cuda.txt"};
+        const std::string debug_file_name{prefix +
+                                          "navigation_validation_cuda.txt"};
         detray::io::file_handle debug_file{debug_file_name, io_mode};
 
         // Run the propagation on device and record the navigation data
@@ -257,7 +265,8 @@ class navigation_validation : public test::fixture_base<> {
         std::size_t n_tracks{0u}, n_surfaces{0u}, n_miss_nav{0u},
             n_miss_truth{0u}, n_matching_error{0u}, n_fatal{0u};
 
-        std::vector<dindex> missed_sf_idx{};
+        std::vector<std::pair<trajectory_type, std::vector<intersection_t>>>
+            missed_intersections{};
 
         EXPECT_EQ(recorded_intersections.size(),
                   truth_intersection_traces.size());
@@ -279,6 +288,10 @@ class navigation_validation : public test::fixture_base<> {
             if (truth_trace.size() == 1) {
                 // Propagation did not succeed
                 success = false;
+                std::vector<intersection_t> missed_inters{};
+                missed_intersections.push_back(
+                    std::make_pair(test_traj, missed_inters));
+
                 ++n_fatal;
             } else {
                 // Compare truth and recorded data elementwise
@@ -288,10 +301,8 @@ class navigation_validation : public test::fixture_base<> {
                         truth_trace, recorded_trace, test_traj, n_tracks,
                         n_test_tracks, &(*debug_file));
 
-                for (const auto &sfi : missed_inters) {
-                    [[maybe_unused]] const auto sf =
-                        surface{m_det, sfi.sf_desc.barcode()};
-                }
+                missed_intersections.push_back(
+                    std::make_pair(test_traj, std::move(missed_inters)));
 
                 // Update statistics
                 success &= result;
@@ -322,7 +333,6 @@ class navigation_validation : public test::fixture_base<> {
                                                n_matching_error);
 
         // Print track positions for plotting
-        std::string prefix{k_use_rays ? "ray_" : "helix_"};
         const auto data_path{
             std::filesystem::path{m_cfg.track_param_file()}.parent_path()};
         const auto truth_trk_path{data_path /
@@ -331,12 +341,22 @@ class navigation_validation : public test::fixture_base<> {
                             (prefix + "navigation_track_params_cuda.csv")};
         const auto mat_path{data_path /
                             (prefix + "accumulated_material_cuda.csv")};
+        const auto missed_path{
+            data_path / (prefix + "missed_intersections_dists_cuda.csv")};
 
+        // Write the distance of the missed intersection local position
+        // to the surface boundaries to file for plotting
+        navigation_validator::write_dist_to_boundary(
+            m_det, m_names, missed_path.string(), missed_intersections);
         detector_scanner::write_tracks(truth_trk_path.string(),
                                        truth_intersection_traces);
         navigation_validator::write_tracks(trk_path.string(),
                                            recorded_intersections);
         material_validator::write_material(mat_path.string(), mat_records);
+
+        std::cout
+            << "INFO: Wrote distance to boundary of missed intersections to: "
+            << missed_path << std::endl;
         std::cout << "INFO: Wrote track states in: " << trk_path << std::endl;
         std::cout << "INFO: Wrote accumulated material in: " << mat_path
                   << std::endl;

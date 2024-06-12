@@ -45,6 +45,18 @@ struct surface_kernels {
         }
     };
 
+    /// A functor that checks if a local point @param loc_p is within the
+    /// surface mask with tolerance @param tol
+    struct is_inside {
+        template <typename mask_group_t, typename index_t>
+        DETRAY_HOST_DEVICE inline bool operator()(
+            const mask_group_t& mask_group, const index_t& index,
+            const point3_type& loc_p, const scalar_type tol) const {
+
+            return mask_group[index].is_inside(loc_p, tol);
+        }
+    };
+
     /// A functor to run the mask self check. Puts error messages into @param os
     struct mask_self_check {
         template <typename mask_group_t, typename index_t>
@@ -277,6 +289,18 @@ struct surface_kernels {
                 std::numeric_limits<scalar_t>::epsilon()) const {
 
             return mask_group[index].local_min_bounds(env);
+        }
+    };
+
+    /// A functor to get the minimum distance to any surface boundary.
+    struct min_dist_to_boundary {
+
+        template <typename mask_group_t, typename index_t, typename point_t>
+        DETRAY_HOST_DEVICE inline auto operator()(
+            const mask_group_t& mask_group, const index_t& index,
+            const point_t& loc_p) const {
+
+            return mask_group[index].min_dist_to_boundary(loc_p);
         }
     };
 

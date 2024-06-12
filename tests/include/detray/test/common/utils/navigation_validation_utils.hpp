@@ -8,6 +8,7 @@
 #pragma once
 
 // Project include(s)
+#include "detray/io/utils/file_handle.hpp"
 #include "detray/navigation/navigator.hpp"
 #include "detray/propagator/actor_chain.hpp"
 #include "detray/propagator/actors/aborters.hpp"
@@ -211,7 +212,7 @@ auto compare_traces(truth_trace_t &truth_trace,
                                           nav_record_t{});
                     ++n;
                 }
-                n_missed_nav = +n;
+                n_missed_nav += n;
 
                 matching_stream << "\nERROR: Navigator missed " << n
                                 << " surface(s) at: " << i << "/" << max_entries
@@ -298,7 +299,7 @@ auto compare_traces(truth_trace_t &truth_trace,
                   << n_missed_truth << "\n"
                   << std::endl;
     }
-    // Fatal error occured during matching - abort the test
+    // Unknown error occured during matching
     EXPECT_TRUE(n_errors == 0u)
         << "ERROR: Errors during matching: " << n_errors;
 
@@ -341,6 +342,47 @@ auto write_tracks(const std::string &track_param_file_name,
 
     // Write to file
     io::csv::write_free_track_params(track_param_file_name, track_params);
+}
+
+/// Write the distance between the intersection and the surface boundaries in
+/// @param missed_intersections to a csv file at the path @param file_name
+template <typename detector_t, typename track_t, typename intersection_t>
+auto write_dist_to_boundary(
+    const detector_t &det, const typename detector_t::name_map &names,
+    const std::string &file_name,
+    const std::vector<std::pair<track_t, std::vector<intersection_t>>>
+        &missed_intersections) {
+
+    typename detector_t::geometry_context gctx{};
+
+    // Write to csv file
+    std::ios_base::openmode io_mode = std::ios::trunc | std::ios::out;
+    detray::io::file_handle dist_file{file_name, io_mode};
+    *dist_file
+        << "track_id,volume_id,volume_name,phi,eta,dist,inside_wo_tol,sf_type"
+        << std::endl;
+
+    for (const auto &[i, entry] :
+         detray::views::enumerate(missed_intersections)) {
+        const auto &missed_inters_vec = entry.second;
+
+        for (const auto &missed_sfi : missed_inters_vec) {
+
+            const auto &track = entry.first;
+            const auto sf = surface{det, missed_sfi.sf_desc.barcode()};
+            const auto vol = detector_volume{det, sf.volume()};
+
+            const auto dist = sf.min_dist_to_boundary(missed_sfi.local);
+            const auto glob_pos = sf.local_to_global(
+                gctx, missed_sfi.local, track.dir(missed_sfi.path));
+
+            *dist_file << i << "," << sf.volume() << ", " << vol.name(names)
+                       << "," << getter::phi(glob_pos) << ", "
+                       << getter::eta(glob_pos) << "," << dist << ", "
+                       << std::boolalpha << sf.is_inside(missed_sfi.local, 0.f)
+                       << ", " << static_cast<int>(sf.shape_id()) << std::endl;
+        }
+    }
 }
 
 /// Calculate and print the navigation efficiency

@@ -32,9 +32,10 @@ namespace detray {
 /// the number of generated tracks) are configurable.
 ///
 /// @tparam track_t the type of track parametrization that should be used.
-template <typename track_t>
+template <typename track_t, typename generator_t = detail::random_numbers<>>
 class uniform_track_generator
-    : public detray::ranges::view_interface<uniform_track_generator<track_t>> {
+    : public detray::ranges::view_interface<
+          uniform_track_generator<track_t, generator_t>> {
 
     using point3 = typename track_t::point3_type;
     using vector3 = typename track_t::vector3_type;
@@ -58,9 +59,10 @@ class uniform_track_generator
         constexpr iterator() = default;
 
         DETRAY_HOST_DEVICE
-        constexpr iterator(configuration cfg, std::size_t iph = 1u,
-                           std::size_t ith = 0u)
-            : m_cfg{cfg},
+        constexpr iterator(generator_t& rand_gen, configuration cfg,
+                           std::size_t iph = 1u, std::size_t ith = 0u)
+            : m_rnd_numbers{rand_gen},
+              m_cfg{cfg},
               m_phi_step_size{(cfg.phi_range()[1] - cfg.phi_range()[0]) /
                               static_cast<scalar>(cfg.phi_steps())},
               m_theta_step_size{(cfg.theta_range()[1] - cfg.theta_range()[0]) /
@@ -141,9 +143,20 @@ class uniform_track_generator
 
             const auto& ori = m_cfg.origin();
 
-            return track_t{
-                {ori[0], ori[1], ori[2]}, m_cfg.time(), p, m_cfg.charge()};
+            // Randomly flip the charge sign
+            std::array<double, 2> signs{1., -1.};
+            const auto sign{static_cast<scalar>(
+                signs[m_cfg.randomize_charge() ? m_rnd_numbers.coin_toss()
+                                               : 0u])};
+
+            return track_t{{ori[0], ori[1], ori[2]},
+                           m_cfg.time(),
+                           p,
+                           sign * m_cfg.charge()};
         }
+
+        /// Random number generator
+        generator_t& m_rnd_numbers;
 
         /// Current configuration
         configuration m_cfg{};
@@ -169,6 +182,7 @@ class uniform_track_generator
         }
     };
 
+    generator_t m_gen;
     configuration m_cfg{};
 
     public:
@@ -179,7 +193,8 @@ class uniform_track_generator
 
     /// Construct from external configuration @param cfg
     DETRAY_HOST_DEVICE
-    constexpr uniform_track_generator(configuration cfg) : m_cfg{cfg} {}
+    constexpr uniform_track_generator(configuration cfg)
+        : m_gen{generator_t(cfg.seed())}, m_cfg{cfg} {}
 
     /// Paramtetrized constructor for quick construction of simple tasks
     ///
@@ -195,7 +210,7 @@ class uniform_track_generator
                             scalar p_mag = 1.f * unit<scalar>::GeV,
                             bool uniform_eta = false,
                             scalar charge = -1.f * unit<scalar>::e)
-        : m_cfg{} {
+        : m_gen{}, m_cfg{} {
         m_cfg.phi_steps(n_phi).theta_steps(n_theta);
         m_cfg.uniform_eta(uniform_eta);
         m_cfg.p_tot(p_mag);
@@ -205,7 +220,7 @@ class uniform_track_generator
     /// Move constructor
     DETRAY_HOST_DEVICE
     uniform_track_generator(uniform_track_generator&& other)
-        : m_cfg(std::move(other.m_cfg)) {}
+        : m_gen(std::move(other.m_gen)), m_cfg(std::move(other.m_cfg)) {}
 
     /// Copy assignment operator
     DETRAY_HOST_DEVICE
@@ -222,14 +237,14 @@ class uniform_track_generator
     /// @returns the generator in initial state: Default values reflect the
     /// first phi angle iteration.
     DETRAY_HOST_DEVICE
-    constexpr auto begin() const noexcept -> iterator {
-        return {m_cfg, 1u, 0u};
+    constexpr auto begin() noexcept -> iterator {
+        return {m_gen, m_cfg, 1u, 0u};
     }
 
     /// @returns the generator in end state
     DETRAY_HOST_DEVICE
-    constexpr auto end() const noexcept -> iterator {
-        return {m_cfg, 1u, m_cfg.theta_steps()};
+    constexpr auto end() noexcept -> iterator {
+        return {m_gen, m_cfg, 1u, m_cfg.theta_steps()};
     }
 
     /// @returns the number of tracks that will be generated

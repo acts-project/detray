@@ -41,12 +41,46 @@ class cylinder3D {
         e_size = 6u,
     };
 
+    /// Container definition for the shape boundary values
+    template <typename scalar_t>
+    using bounds_type = darray<scalar_t, boundaries::e_size>;
+
     /// Local coordinate frame for boundary checks
     template <typename algebra_t>
     using local_frame_type = cylindrical3D<algebra_t>;
 
     /// Dimension of the local coordinate system
     static constexpr std::size_t dim{3u};
+
+    /// @brief Find the minimum distance to any boundary.
+    ///
+    /// @note the point is expected to be given in local coordinates by the
+    /// caller.
+    ///
+    /// @param bounds the boundary values for this shape
+    /// @param loc_p the point to be checked in the local coordinate system
+    ///
+    /// @return the minimum distance.
+    template <typename scalar_t, typename point_t>
+    DETRAY_HOST_DEVICE inline scalar_t min_dist_to_boundary(
+        const bounds_type<scalar_t> &bounds, const point_t &loc_p) const {
+
+        const scalar_t min_r_dist =
+            math::min(math::fabs(loc_p[0] - bounds[e_min_r]),
+                      math::fabs(bounds[e_max_r] - loc_p[0]));
+        const scalar_t min_phi_dist =
+            math::min(math::fabs(loc_p[1] - bounds[e_min_phi]),
+                      math::fabs(bounds[e_max_phi] - loc_p[1]));
+        const scalar_t min_z_dist =
+            math::min(math::fabs(loc_p[2] - bounds[e_min_z]),
+                      math::fabs(bounds[e_max_z] - loc_p[2]));
+
+        // Use the chord for the phi distance
+        return math::min(
+            math::min(min_r_dist,
+                      2.f * loc_p[0] * math::sin(0.5f * min_phi_dist)),
+            min_z_dist);
+    }
 
     /// @brief Check boundary values for a local point.
     ///
@@ -60,11 +94,9 @@ class cylinder3D {
     /// @param tol dynamic tolerance determined by caller
     ///
     /// @return true if the local point lies within the given boundaries.
-    template <template <typename, std::size_t> class bounds_t,
-              typename scalar_t, std::size_t kDIM, typename point_t,
-              typename std::enable_if_t<kDIM == e_size, bool> = true>
+    template <typename scalar_t, typename point_t>
     DETRAY_HOST_DEVICE inline auto check_boundaries(
-        const bounds_t<scalar_t, kDIM> &bounds, const point_t &loc_p,
+        const bounds_type<scalar_t> &bounds, const point_t &loc_p,
         const scalar_t tol = std::numeric_limits<scalar_t>::epsilon()) const {
 
         const scalar_t phi_tol = detail::phi_tolerance(tol, loc_p[0]);
@@ -82,11 +114,9 @@ class cylinder3D {
     /// @param bounds the boundary values for this shape
     ///
     /// @returns the cylinder volume as parto of global space.
-    template <template <typename, std::size_t> class bounds_t,
-              typename scalar_t, std::size_t kDIM,
-              typename std::enable_if_t<kDIM == e_size, bool> = true>
+    template <typename scalar_t>
     DETRAY_HOST_DEVICE constexpr scalar_t measure(
-        const bounds_t<scalar_t, kDIM> &bounds) const {
+        const bounds_type<scalar_t> &bounds) const {
         return volume(bounds);
     }
 
@@ -95,11 +125,9 @@ class cylinder3D {
     /// @param bounds the boundary values for this shape
     ///
     /// @returns the cylinder volume.
-    template <template <typename, std::size_t> class bounds_t,
-              typename scalar_t, std::size_t kDIM,
-              typename std::enable_if_t<kDIM == e_size, bool> = true>
+    template <typename scalar_t>
     DETRAY_HOST_DEVICE constexpr scalar_t volume(
-        const bounds_t<scalar_t, kDIM> &bounds) const {
+        const bounds_type<scalar_t> &bounds) const {
         return constant<scalar>::pi * (bounds[e_max_z] - bounds[e_min_z]) *
                (bounds[e_max_r] * bounds[e_max_r] -
                 bounds[e_min_r] * bounds[e_min_r]);
@@ -115,26 +143,22 @@ class cylinder3D {
     /// @returns and array of coordinates that contains the lower point (first
     /// three values) and the upper point (latter three values).
     // @todo: Look at phi - range for a better fit
-    template <typename algebra_t,
-              template <typename, std::size_t> class bounds_t,
-              typename scalar_t, std::size_t kDIM,
-              typename std::enable_if_t<kDIM == e_size, bool> = true>
-    DETRAY_HOST_DEVICE inline darray<scalar_t, 6> local_min_bounds(
-        const bounds_t<scalar_t, kDIM> &bounds,
-        const scalar_t env = std::numeric_limits<scalar_t>::epsilon()) const {
+    template <typename algebra_t>
+    DETRAY_HOST_DEVICE inline darray<dscalar<algebra_t>, 6> local_min_bounds(
+        const bounds_type<dscalar<algebra_t>> &bounds,
+        const dscalar<algebra_t> env =
+            std::numeric_limits<dscalar<algebra_t>>::epsilon()) const {
+
         assert(env > 0.f);
-        const scalar_t r_bound{bounds[e_max_r] + env};
+        const dscalar<algebra_t> r_bound{bounds[e_max_r] + env};
         return {-r_bound, -r_bound, bounds[e_min_z] - env,
                 r_bound,  r_bound,  bounds[e_max_z] + env};
     }
 
     /// @returns the shapes centroid in local cartesian coordinates
-    template <typename algebra_t,
-              template <typename, std::size_t> class bounds_t,
-              typename scalar_t, std::size_t kDIM,
-              typename std::enable_if_t<kDIM == e_size, bool> = true>
+    template <typename algebra_t>
     DETRAY_HOST_DEVICE dpoint3D<algebra_t> centroid(
-        const bounds_t<scalar_t, kDIM> &bounds) const {
+        const bounds_type<dscalar<algebra_t>> &bounds) const {
 
         return 0.5f *
                dpoint3D<algebra_t>{0.f, (bounds[e_min_phi] + bounds[e_max_phi]),
@@ -147,12 +171,9 @@ class cylinder3D {
     /// @param n_seg is the number of line segments
     ///
     /// @return a generated list of vertices
-    template <typename point2_t, typename point3_t,
-              template <typename, std::size_t> class bounds_t,
-              typename scalar_t, std::size_t kDIM,
-              typename std::enable_if_t<kDIM == e_size, bool> = true>
-    DETRAY_HOST dvector<point3_t> vertices(const bounds_t<scalar_t, kDIM> &,
-                                           dindex) const {
+    template <typename algebra_t>
+    DETRAY_HOST dvector<dpoint3D<algebra_t>> vertices(
+        const bounds_type<dscalar<algebra_t>> &, dindex) const {
         throw std::runtime_error(
             "Vertex generation for 3D cylinders is not implemented");
         return {};
@@ -164,11 +185,9 @@ class cylinder3D {
     /// @param os output stream for error messages
     ///
     /// @return true if the bounds are consistent.
-    template <template <typename, std::size_t> class bounds_t,
-              typename scalar_t, std::size_t kDIM,
-              typename std::enable_if_t<kDIM == e_size, bool> = true>
+    template <typename scalar_t>
     DETRAY_HOST constexpr bool check_consistency(
-        const bounds_t<scalar_t, kDIM> &bounds, std::ostream &os) const {
+        const bounds_type<scalar_t> &bounds, std::ostream &os) const {
 
         constexpr auto tol{10.f * std::numeric_limits<scalar_t>::epsilon()};
 
