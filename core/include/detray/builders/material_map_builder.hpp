@@ -124,11 +124,18 @@ class material_map_builder : public volume_decorator<detector_t> {
             }
 
             // Construct and append the material map for a given surface shape
+            std::array<std::vector<scalar_type>, DIM> axis_spans{};
+            auto axis_spans_itr = m_axis_spans.find(sf_idx - 1u);
+            if (axis_spans_itr != m_axis_spans.end()) {
+                axis_spans = axis_spans_itr->second;
+            }
+
+            // Construct and append the material map for a given surface shape
             auto sf = surface{det, sf_desc};
             [[maybe_unused]] auto [mat_id, mat_idx] = sf.template visit_mask<
                 detail::add_sf_material_map<materials_t>>(
                 m_factory, m_bin_data.at(sf_idx - 1u), m_n_bins.at(sf_idx - 1u),
-                m_axis_spans.at(sf_idx - 1u), det.material_store());
+                axis_spans, det.material_store());
 
             // Make sure the linking was precomputed correctly
             assert(mat_id == sf_desc.material().id());
