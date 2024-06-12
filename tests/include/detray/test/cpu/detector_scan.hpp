@@ -84,8 +84,12 @@ class detector_scan : public test::fixture_base<> {
             m_cfg.whiteboard()->template get<std::vector<intersection_trace_t>>(
                 m_cfg.name());
 
+        const std::string det_name{m_det.name(m_names)};
+        const std::string prefix{k_use_rays ? det_name + "_ray_"
+                                            : det_name + "_helix_"};
         std::ios_base::openmode io_mode = std::ios::trunc | std::ios::out;
-        detray::io::file_handle debug_file{"./detector_scan.txt", io_mode};
+        detray::io::file_handle debug_file{prefix + "_detector_scan.txt",
+                                           io_mode};
 
         std::cout << "\nINFO: Checking trace data...\n" << std::endl;
 

@@ -164,6 +164,16 @@ class surface {
         return m_detector.transform_store().at(m_desc.transform(), ctx);
     }
 
+    /// @returns the mask volume link
+    template <typename point_t = point2_type,
+              std::enable_if_t<std::is_same_v<point_t, point3_type> or
+                                   std::is_same_v<point_t, point2_type>,
+                               bool> = true>
+    DETRAY_HOST_DEVICE constexpr bool is_inside(const point_t &loc_p,
+                                                const scalar_type tol) const {
+        return visit_mask<typename kernels::is_inside>(loc_p, tol);
+    }
+
     /// @returns a boundary value of the surface, according to @param index
     DETRAY_HOST_DEVICE
     constexpr scalar_type boundary(std::size_t index) const {
@@ -314,6 +324,15 @@ class surface {
             vertices[i] = transform(ctx).point_to_global(vertices[i]);
         }
         return vertices;
+    }
+
+    /// @returns the vertices in local frame with @param n_seg the number of
+    /// segments used along acrs
+    /// @note the point has to be inside the surface mask
+    template <typename point_t>
+    DETRAY_HOST constexpr auto min_dist_to_boundary(
+        const point_t &loc_p) const {
+        return visit_mask<typename kernels::min_dist_to_boundary>(loc_p);
     }
 
     /// @brief Lower and upper point for minimal axis aligned bounding box.

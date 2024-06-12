@@ -184,7 +184,7 @@ class grid_factory {
 
         return new_grid<local_frame>(
             {-constant<scalar_type>::pi, constant<scalar_type>::pi,
-             b_values[boundary::e_n_half_z], b_values[boundary::e_p_half_z]},
+             b_values[boundary::e_lower_z], b_values[boundary::e_upper_z]},
             {n_bins[e_rphi_axis], n_bins[e_z_axis]}, bin_capacities,
             {bin_edges[e_rphi_axis], bin_edges[e_z_axis]},
             types::list<rphi_bounds, z_bounds>{},
@@ -226,7 +226,7 @@ class grid_factory {
 
         return new_grid<local_frame>(
             {-constant<scalar_type>::pi, constant<scalar_type>::pi,
-             b_values[boundary::e_n_half_z], b_values[boundary::e_p_half_z]},
+             b_values[boundary::e_lower_z], b_values[boundary::e_upper_z]},
             {n_bins[e_rphi_axis], n_bins[e_z_axis]}, bin_capacities,
             {bin_edges[e_rphi_axis], bin_edges[e_z_axis]},
             types::list<rphi_bounds, z_bounds>{},

@@ -81,8 +81,8 @@ auto inline surface(const transform_t& transform, const mask<shape_t>& m) {
     p_surface_t p_surface;
 
     const auto r = static_cast<actsvg::scalar>(m[shape_t::e_r]);
-    const auto nhz = static_cast<actsvg::scalar>(m[shape_t::e_n_half_z]);
-    const auto phz = static_cast<actsvg::scalar>(m[shape_t::e_p_half_z]);
+    const auto nhz = static_cast<actsvg::scalar>(m[shape_t::e_lower_z]);
+    const auto phz = static_cast<actsvg::scalar>(m[shape_t::e_upper_z]);
     const auto center = transform.translation();
     const auto z0 = static_cast<actsvg::scalar>(center[2]);
     auto hz = static_cast<actsvg::scalar>(0.5f * (phz - nhz));

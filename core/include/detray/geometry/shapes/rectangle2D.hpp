@@ -34,12 +34,33 @@ class rectangle2D {
         e_size = 2u,
     };
 
+    /// Container definition for the shape boundary values
+    template <typename scalar_t>
+    using bounds_type = darray<scalar_t, boundaries::e_size>;
+
     /// Local coordinate frame for boundary checks
     template <typename algebra_t>
     using local_frame_type = cartesian2D<algebra_t>;
 
     /// Dimension of the local coordinate system
     static constexpr std::size_t dim{2u};
+
+    /// @brief Find the minimum distance to any boundary.
+    ///
+    /// @note the point is expected to be given in local coordinates by the
+    /// caller.
+    ///
+    /// @param bounds the boundary values for this shape
+    /// @param loc_p the point to be checked in the local coordinate system
+    ///
+    /// @return the minimum distance.
+    template <typename scalar_t, typename point_t>
+    DETRAY_HOST_DEVICE inline scalar_t min_dist_to_boundary(
+        const bounds_type<scalar_t> &bounds, const point_t &loc_p) const {
+
+        return math::min(math::fabs(math::fabs(loc_p[0]) - bounds[e_half_x]),
+                         math::fabs(math::fabs(loc_p[1]) - bounds[e_half_y]));
+    }
 
     /// @brief Check boundary values for a local point.
     ///
@@ -52,11 +73,9 @@ class rectangle2D {
     /// @param tol dynamic tolerance determined by caller
     ///
     /// @return true if the local point lies within the given boundaries.
-    template <template <typename, std::size_t> class bounds_t,
-              typename scalar_t, std::size_t kDIM, typename point_t,
-              typename std::enable_if_t<kDIM == e_size, bool> = true>
+    template <typename scalar_t, typename point_t>
     DETRAY_HOST_DEVICE inline auto check_boundaries(
-        const bounds_t<scalar_t, kDIM> &bounds, const point_t &loc_p,
+        const bounds_type<scalar_t> &bounds, const point_t &loc_p,
         const scalar_t tol = std::numeric_limits<scalar_t>::epsilon()) const {
         return (math::fabs(loc_p[0]) <= (bounds[e_half_x] + tol) &&
                 math::fabs(loc_p[1]) <= (bounds[e_half_y] + tol));
@@ -67,11 +86,9 @@ class rectangle2D {
     /// @param bounds the boundary values for this shape
     ///
     /// @returns the rectangle area on the plane
-    template <template <typename, std::size_t> class bounds_t,
-              typename scalar_t, std::size_t kDIM,
-              typename std::enable_if_t<kDIM == e_size, bool> = true>
+    template <typename scalar_t>
     DETRAY_HOST_DEVICE constexpr scalar_t measure(
-        const bounds_t<scalar_t, kDIM> &bounds) const {
+        const bounds_type<scalar_t> &bounds) const {
         return area(bounds);
     }
 
@@ -80,11 +97,9 @@ class rectangle2D {
     /// @param bounds the boundary values for this shape
     ///
     /// @returns the rectangle area.
-    template <template <typename, std::size_t> class bounds_t,
-              typename scalar_t, std::size_t kDIM,
-              typename std::enable_if_t<kDIM == e_size, bool> = true>
+    template <typename scalar_t>
     DETRAY_HOST_DEVICE constexpr scalar_t area(
-        const bounds_t<scalar_t, kDIM> &bounds) const {
+        const bounds_type<scalar_t> &bounds) const {
         return 4.f * bounds[e_half_x] * bounds[e_half_y];
     }
 
@@ -97,13 +112,13 @@ class rectangle2D {
     ///
     /// @returns an array of coordinates that contains the lower point (first
     /// three values) and the upper point (latter three values) .
-    template <typename algebra_t,
-              template <typename, std::size_t> class bounds_t,
-              typename scalar_t, std::size_t kDIM,
-              typename std::enable_if_t<kDIM == e_size, bool> = true>
-    DETRAY_HOST_DEVICE inline darray<scalar_t, 6> local_min_bounds(
-        const bounds_t<scalar_t, kDIM> &bounds,
-        const scalar_t env = std::numeric_limits<scalar_t>::epsilon()) const {
+    template <typename algebra_t>
+    DETRAY_HOST_DEVICE inline darray<dscalar<algebra_t>, 6> local_min_bounds(
+        const bounds_type<dscalar<algebra_t>> &bounds,
+        const dscalar<algebra_t> env =
+            std::numeric_limits<dscalar<algebra_t>>::epsilon()) const {
+        using scalar_t = dscalar<algebra_t>;
+
         assert(env > 0.f);
         const scalar_t x_bound{bounds[e_half_x] + env};
         const scalar_t y_bound{bounds[e_half_y] + env};
@@ -111,12 +126,9 @@ class rectangle2D {
     }
 
     /// @returns the shapes centroid in local cartesian coordinates
-    template <typename algebra_t,
-              template <typename, std::size_t> class bounds_t,
-              typename scalar_t, std::size_t kDIM,
-              typename std::enable_if_t<kDIM == e_size, bool> = true>
+    template <typename algebra_t>
     DETRAY_HOST_DEVICE dpoint3D<algebra_t> centroid(
-        const bounds_t<scalar_t, kDIM> &) const {
+        const bounds_type<dscalar<algebra_t>> &) const {
 
         return {0.f, 0.f, 0.f};
     }
@@ -127,12 +139,13 @@ class rectangle2D {
     /// @param n_seg is the number of line segments
     ///
     /// @return a generated list of vertices
-    template <typename point2_t, typename point3_t,
-              template <typename, std::size_t> class bounds_t,
-              typename scalar_t, std::size_t kDIM,
-              typename std::enable_if_t<kDIM == e_size, bool> = true>
-    DETRAY_HOST dvector<point3_t> vertices(
-        const bounds_t<scalar_t, kDIM> &bounds, dindex /*ignored*/) const {
+    template <typename algebra_t>
+    DETRAY_HOST dvector<dpoint3D<algebra_t>> vertices(
+        const bounds_type<dscalar<algebra_t>> &bounds,
+        dindex /*ignored*/) const {
+
+        using point3_t = dpoint3D<algebra_t>;
+
         // left hand lower corner
         point3_t lh_lc{-bounds[e_half_x], -bounds[e_half_y], 0.f};
         // right hand lower corner
@@ -141,6 +154,7 @@ class rectangle2D {
         point3_t rh_uc{bounds[e_half_x], bounds[e_half_y], 0.f};
         // left hand upper corner
         point3_t lh_uc{-bounds[e_half_x], bounds[e_half_y], 0.f};
+
         // Return the confining vertices
         return {lh_lc, rh_lc, rh_uc, lh_uc};
     }
@@ -151,11 +165,9 @@ class rectangle2D {
     /// @param os output stream for error messages
     ///
     /// @return true if the bounds are consistent.
-    template <template <typename, std::size_t> class bounds_t,
-              typename scalar_t, std::size_t kDIM,
-              typename std::enable_if_t<kDIM == e_size, bool> = true>
+    template <typename scalar_t>
     DETRAY_HOST constexpr bool check_consistency(
-        const bounds_t<scalar_t, kDIM> &bounds, std::ostream &os) const {
+        const bounds_type<scalar_t> &bounds, std::ostream &os) const {
 
         constexpr auto tol{10.f * std::numeric_limits<scalar_t>::epsilon()};
 

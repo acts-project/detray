@@ -36,18 +36,19 @@ namespace detray {
 /// @tparam links_t the type of link into the volume container
 ///                 (e.g. single index vs range)
 template <typename shape_t, typename links_t = std::uint_least16_t,
-          typename algebra_t = ALGEBRA_PLUGIN<detray::scalar>,
-          template <typename, std::size_t> class array_t = darray>
+          typename algebra_t = ALGEBRA_PLUGIN<detray::scalar>>
 class mask {
     public:
-    using links_type = links_t;
     using algebra_type = algebra_t;
     using scalar_type = dscalar<algebra_t>;
+
+    using links_type = links_t;
     using shape = shape_t;
     using boundaries = typename shape::boundaries;
-    using mask_values = array_t<scalar_type, boundaries::e_size>;
+    using mask_values = typename shape::template bounds_type<scalar_type>;
     using local_frame_type =
         typename shape::template local_frame_type<algebra_t>;
+
     // Linear algebra types
     using point2_type = dpoint2D<algebra_t>;
     using point3_type = dpoint3D<algebra_t>;
@@ -84,7 +85,7 @@ class mask {
     /// @param rhs is the right hand side object
     DETRAY_HOST
     auto operator=(const mask_values& rhs)
-        -> mask<shape_t, links_t, algebra_t, array_t>& {
+        -> mask<shape_t, links_t, algebra_t>& {
         _values = rhs;
         return (*this);
     }
@@ -95,8 +96,7 @@ class mask {
     ///
     /// @returns a boolean if the values and links are equal.
     DETRAY_HOST_DEVICE
-    bool operator==(
-        const mask<shape_t, links_t, algebra_t, array_t>& rhs) const {
+    bool operator==(const mask<shape_t, links_t, algebra_t>& rhs) const {
         return (_values == rhs._values && _volume_link == rhs._volume_link);
     }
 
@@ -146,7 +146,7 @@ class mask {
     /// To check that a point lies on the surface, use the corresponding
     /// intersector.
     ///
-    /// @param loc_p the point to be checked in the local polar focal system
+    /// @param loc_p the point to be checked in the local system
     /// @param tol dynamic tolerance determined by caller
     ///
     /// @return an intersection status e_inside / e_outside
@@ -199,6 +199,16 @@ class mask {
         return _shape.template centroid<algebra_t>(_values);
     }
 
+    /// @brief Find the minimum distance to any boundary.
+    ///
+    /// @param loc_p the point to be checked in the local system
+    ///
+    /// @returns the minimum distance.
+    DETRAY_HOST_DEVICE
+    auto min_dist_to_boundary(const point3_type& loc_p) const -> scalar_type {
+        return _shape.min_dist_to_boundary(_values, loc_p);
+    }
+
     /// @brief Lower and upper point for minimum axis aligned bounding box.
     ///
     /// Computes the min and max vertices in a local 3 dim cartesian frame.
@@ -226,8 +236,7 @@ class mask {
     /// @returns a vector of vertices.
     DETRAY_HOST
     auto vertices(const dindex n_seg) const -> dvector<point3_type> {
-        return _shape.template vertices<point2_type, point3_type>(_values,
-                                                                  n_seg);
+        return _shape.template vertices<algebra_t>(_values, n_seg);
     }
 
     /// @returns true if the mask boundary values are consistent
