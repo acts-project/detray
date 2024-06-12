@@ -89,7 +89,8 @@ class material_map_reader {
                 std::vector<std::vector<scalar_t>> axis_spans = {};
                 for (const auto &axis_data : grid_data.axes) {
                     axis_spans.push_back(
-                        {axis_data.edges.front(), axis_data.edges.back()});
+                        {static_cast<scalar_t>(axis_data.edges.front()),
+                         static_cast<scalar_t>(axis_data.edges.back())});
                 }
 
                 // Get the local bin indices and the material parametrization
