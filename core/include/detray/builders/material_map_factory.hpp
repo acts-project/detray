@@ -167,10 +167,14 @@ class material_map_factory final : public factory_decorator<detector_t> {
             std::copy_n(m_n_bins.at(sf_idx).begin(), N,
                         n_bins.at(sf_idx).begin());
 
-            // Copy the axis spans to the builder
-            axis_spans[sf_idx] = {};
-            std::copy_n(m_axis_spans.at(sf_idx).begin(), N,
-                        axis_spans.at(sf_idx).begin());
+            // Copy the axis spans to the builder (if present)
+            axis_spans[sf_idx] = std::array<std::vector<scalar_type>, N>{};
+            for (std::size_t in = 0; in < N; ++in) {
+                if (m_axis_spans.at(sf_idx).size() > in) {
+                    axis_spans.at(sf_idx).at(in) =
+                        m_axis_spans.at(sf_idx).at(in);
+                }
+            }
 
             // Combine the material slab with its local bin index
             for (const auto [j, mat] : detray::views::enumerate(materials)) {
