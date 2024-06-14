@@ -87,7 +87,8 @@ class material_map_builder : public volume_decorator<detector_t> {
         auto mat_factory = std::dynamic_pointer_cast<
             material_map_factory<detector_t, axis::multi_bin<DIM>>>(sf_factory);
         if (mat_factory) {
-            (*mat_factory)(this->surfaces(), m_bin_data, m_n_bins);
+            (*mat_factory)(this->surfaces(), m_bin_data, m_n_bins,
+                           m_axis_spans);
         }
         auto mat_generator =
             std::dynamic_pointer_cast<material_map_generator<detector_t>>(
@@ -123,11 +124,18 @@ class material_map_builder : public volume_decorator<detector_t> {
             }
 
             // Construct and append the material map for a given surface shape
+            std::array<std::vector<scalar_type>, DIM> axis_spans{};
+            auto axis_spans_itr = m_axis_spans.find(sf_idx - 1u);
+            if (axis_spans_itr != m_axis_spans.end()) {
+                axis_spans = axis_spans_itr->second;
+            }
+
+            // Construct and append the material map for a given surface shape
             auto sf = surface{det, sf_desc};
             [[maybe_unused]] auto [mat_id, mat_idx] = sf.template visit_mask<
                 detail::add_sf_material_map<materials_t>>(
                 m_factory, m_bin_data.at(sf_idx - 1u), m_n_bins.at(sf_idx - 1u),
-                det.material_store());
+                axis_spans, det.material_store());
 
             // Make sure the linking was precomputed correctly
             assert(mat_id == sf_desc.material().id());
@@ -189,6 +197,8 @@ class material_map_builder : public volume_decorator<detector_t> {
     std::map<dindex, std::vector<bin_data_type>> m_bin_data;
     /// Number of bins for the material grid axes
     std::map<dindex, std::array<std::size_t, DIM>> m_n_bins{};
+    /// The Axis spans for the material grid axes
+    std::map<dindex, std::array<std::vector<scalar_type>, DIM>> m_axis_spans{};
     /// Helper to generate empty grids
     mat_map_factory_t m_factory{};
 };
@@ -211,13 +221,16 @@ template <typename materials_t>
 struct add_sf_material_map {
 
     template <typename coll_t, typename index_t, typename mat_factory_t,
-              typename bin_data_t, std::size_t DIM, typename material_store_t>
+              typename bin_data_t, std::size_t DIM, typename material_store_t,
+              typename scalar_t>
     DETRAY_HOST inline std::pair<typename materials_t::id, dindex> operator()(
         [[maybe_unused]] const coll_t& coll,
         [[maybe_unused]] const index_t& index,
         [[maybe_unused]] const mat_factory_t& mat_factory,
         [[maybe_unused]] std::vector<bin_data_t>& bin_data,
         [[maybe_unused]] const std::array<std::size_t, DIM>& n_bins,
+        [[maybe_unused]] const std::array<std::vector<scalar_t>, DIM>&
+            axis_spans,
         [[maybe_unused]] material_store_t& mat_store) const {
 
         using mask_shape_t = typename coll_t::value_type::shape;
@@ -230,7 +243,8 @@ struct add_sf_material_map {
         if constexpr (!is_line && mask_shape_t::dim == DIM) {
             // Map a grid onto the surface mask
             const auto& sf_mask = coll[index];
-            auto mat_grid = mat_factory.new_grid(sf_mask, n_bins);
+            auto mat_grid =
+                mat_factory.new_grid(sf_mask, n_bins, {}, {}, axis_spans);
 
             // The detector only knows the non-owning grid types
             using non_owning_t =

@@ -50,6 +50,7 @@ auto add_material_data(const material_factory_t& mat_factory, mat_id id,
     typename material_factory_t::element_type::data_type mat_data{sf_index};
     std::vector<bin_index_t> m_bins{};
     std::vector<std::size_t> n_bins{5u, 10u};
+    std::vector<std::vector<scalar_t>> axis_spans = {};
 
     // Add material for every bin
     for (auto [i, j] : detray::views::cartesian_product{
@@ -60,7 +61,7 @@ auto add_material_data(const material_factory_t& mat_factory, mat_id id,
     }
 
     mat_factory->add_material(id, std::move(mat_data), std::move(n_bins),
-                              std::move(m_bins));
+                              std::move(axis_spans), std::move(m_bins));
 }
 
 }  // anonymous namespace

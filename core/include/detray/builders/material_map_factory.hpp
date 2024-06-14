@@ -66,6 +66,7 @@ class material_map_factory final : public factory_decorator<detector_t> {
 
         // Need exactly one material per surface
         assert(m_n_bins.size() == n_surfaces);
+        assert(m_axis_spans.size() == n_surfaces);
         assert(m_materials.size() == n_surfaces);
         assert(m_thickness.size() == n_surfaces);
 
@@ -98,17 +99,20 @@ class material_map_factory final : public factory_decorator<detector_t> {
     ///
     /// @param id the identifier for thr type of material map
     /// @param n_bins the number of bins for the material grid axes
+    /// @param axis_spans the axis ranges for the material grid axes
     /// @param mat_data contains the material data
     /// @param indices local bin indices in the same order as the material data
     DETRAY_HOST
     void add_material(material_id id, data_type &&mat_data,
                       std::vector<std::size_t> &&n_bins,
+                      std::vector<std::vector<scalar_type>> &&axis_spans,
                       std::vector<index_type> &&indices) {
 
         auto [sf_index, mat, thickness] = mat_data.get_data();
 
         m_links[sf_index] = std::make_pair(id, std::move(indices));
         m_n_bins[sf_index] = std::move(n_bins);
+        m_axis_spans[sf_index] = std::move(axis_spans);
         m_materials[sf_index] = std::move(mat);
         m_thickness[sf_index] = std::move(thickness);
     }
@@ -118,6 +122,7 @@ class material_map_factory final : public factory_decorator<detector_t> {
     auto clear() -> void override {
         m_links.clear();
         m_n_bins.clear();
+        m_axis_spans.clear();
         m_materials.clear();
         m_thickness.clear();
     }
@@ -139,7 +144,8 @@ class material_map_factory final : public factory_decorator<detector_t> {
     DETRAY_HOST auto operator()(
         typename detector_t::surface_lookup_container &surfaces,
         std::map<dindex, std::vector<bin_data_t>> &material_map,
-        std::map<dindex, std::array<std::size_t, N>> &n_bins) {
+        std::map<dindex, std::array<std::size_t, N>> &n_bins,
+        std::map<dindex, std::array<std::vector<scalar_type>, N>> &axis_spans) {
 
         using link_t = typename detector_t::surface_type::material_link;
 
@@ -160,6 +166,15 @@ class material_map_factory final : public factory_decorator<detector_t> {
             n_bins[sf_idx] = {};
             std::copy_n(m_n_bins.at(sf_idx).begin(), N,
                         n_bins.at(sf_idx).begin());
+
+            // Copy the axis spans to the builder (if present)
+            axis_spans[sf_idx] = std::array<std::vector<scalar_type>, N>{};
+            for (std::size_t in = 0; in < N; ++in) {
+                if (m_axis_spans.at(sf_idx).size() > in) {
+                    axis_spans.at(sf_idx).at(in) =
+                        m_axis_spans.at(sf_idx).at(in);
+                }
+            }
 
             // Combine the material slab with its local bin index
             for (const auto [j, mat] : detray::views::enumerate(materials)) {
@@ -189,6 +204,8 @@ class material_map_factory final : public factory_decorator<detector_t> {
         m_links{};
     /// Number of bins for the material grid axes
     std::map<std::size_t, std::vector<std::size_t>> m_n_bins{};
+    /// Axis ranges for the material grid axes
+    std::map<std::size_t, std::vector<std::vector<scalar_type>>> m_axis_spans{};
     /// Material thickness per surface
     std::map<std::size_t, std::vector<scalar_type>> m_thickness{};
     /// The pre-computed material to be wrapped in a slab per surface material
