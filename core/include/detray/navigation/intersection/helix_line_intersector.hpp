@@ -15,6 +15,7 @@
 #include "detray/navigation/intersection/intersection.hpp"
 
 // System include(s)
+#include <iostream>
 #include <type_traits>
 
 namespace detray {
@@ -89,6 +90,9 @@ struct helix_intersector_impl<line2D<algebra_t>, algebra_t> {
         // @NOTE We might not have to call this which is meant to be for ray
         // intersection...
         if (denom < 1e-5f) {
+            std::cout
+                << "ERROR: Helix line intersector encountered invalid value!"
+                << std::endl;
             sfi.status = false;
             return sfi;
         }
@@ -147,6 +151,8 @@ struct helix_intersector_impl<line2D<algebra_t>, algebra_t> {
 
         // No intersection found within max number of trials
         if (n_tries == max_n_tries) {
+            std::cout << "ERROR: Helix line intersector did not converge after "
+                      << n_tries << " steps!" << std::endl;
             return sfi;
         }
 

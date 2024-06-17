@@ -19,6 +19,7 @@
 #include "detray/utils/invalid_values.hpp"
 
 // System include(s)
+#include <iostream>
 #include <limits>
 #include <type_traits>
 
@@ -147,6 +148,9 @@ struct helix_intersector_impl<cylindrical2D<algebra_t>, algebra_t>
 
                 // No intersection can be found if dividing by zero
                 if (denom == 0.f) {
+                    std::cout << "ERROR: Helix cylinder intersector "
+                                 "encountered invalid value!"
+                              << std::endl;
                     return ret;
                 }
 
@@ -158,6 +162,9 @@ struct helix_intersector_impl<cylindrical2D<algebra_t>, algebra_t>
             }
             // No intersection found within max number of trials
             if (n_tries == max_n_tries) {
+                std::cout << "ERROR: Helix cylinder intersector did not "
+                             "converge after "
+                          << n_tries << " steps!" << std::endl;
                 return ret;
             }
 

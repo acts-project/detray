@@ -93,6 +93,7 @@ def __main__():
                  "--eta_range", str(args.eta_range[0]), str(args.eta_range[1]),
                  "--min_mask_tolerance", str(args.min_mask_tol),
                  "--max_mask_tolerance", str(args.max_mask_tol),
+                 "--mask_tolerance_scalor", str(args.mask_tol_scalor),
                  "--overstep_tolerance", str(args.overstep_tol),
                  "--path_tolerance", str(args.path_tol),
                  "--rk-tolerance", str(args.rk_error_tol),
