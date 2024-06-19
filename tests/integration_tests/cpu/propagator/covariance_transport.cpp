@@ -191,6 +191,8 @@ class detray_propagation_HelixCovarianceTransportValidation
                               algebra_type>{}(hlx, surface_descriptor<>{},
                                               mask_1, trf_1,
                                               this->mask_tolerance));
+        // Check for successfull intersection
+        EXPECT_TRUE(is.status) << is;
 
         sfis.push_back(is);
 

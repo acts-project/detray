@@ -18,7 +18,6 @@
 
 // System include(s)
 #include <iostream>
-#include <tuple>
 #include <type_traits>
 
 namespace detray {
@@ -73,175 +72,46 @@ struct helix_intersector_impl<cartesian2D<algebra_t>, algebra_t> {
         // Guard against inifinite loops
         constexpr std::size_t max_n_tries{1000u};
         // Early exit, if the intersection is too far away
-        constexpr auto max_path{50.f * unit<scalar_type>::m};
+        constexpr auto max_path{5.f * unit<scalar_type>::m};
 
-        // Get the surface info
-        const auto &sm = trf.matrix();
         // Surface normal
-        const vector3_type sn = getter::vector<3>(sm, 0u, 2u);
+        const vector3_type sn = trf.z();
         // Surface translation
-        const point3_type st = getter::vector<3>(sm, 0u, 3u);
+        const point3_type st = trf.translation();
 
         // Starting point on the helix for the Newton iteration
         const vector3_type dist{trf.point_to_global(mask.centroid()) -
                                 h.pos(0.f)};
         scalar_type denom{vector::dot(sn, h.dir(0.5f * getter::norm(dist)))};
-        scalar_type s;
+        scalar_type s_ini;
         if (denom == 0.f) {
 #ifdef DEBUG
             std::cout
                 << "WARNING: Helix plane intersector encountered invalid value!"
                 << std::endl;
 #endif
-            s = getter::norm(dist);
+            s_ini = getter::norm(dist);
         } else {
-            s = vector::dot(sn, dist) / denom;
+            s_ini = vector::dot(sn, dist) / denom;
         }
 
-        // f(s) = sn * (h.pos(s) - st) == 0
-        auto f = [&](const scalar_type x) {
-            return vector::dot(sn, (h.pos(x) - st));
+        /// Evaluate the function and its derivative at the point @param x
+        auto plane_inters_func = [&h, &st, &sn](const scalar_type x) {
+            // f(s) = sn * (h.pos(s) - st) == 0
+            const scalar_type f_s{vector::dot(sn, (h.pos(x) - st))};
+            // f'(s) = sn * h.dir(s)
+            const scalar_type df_s{vector::dot(sn, h.dir(x))};
+
+            return std::make_tuple(f_s, df_s);
         };
 
-        // f'(s) = sn * h.dir(s)
-        auto df = [&](const scalar_type x) {
-            return vector::dot(sn, h.dir(x));
-        };
+        // Run the root finding algorithm
+        const auto [s, ds] =
+            newton_raphson_safe(plane_inters_func, s_ini, convergence_tolerance,
+                                max_n_tries, max_path);
 
-        auto evaluate_f = [&](const scalar_type x) {
-            return std::make_tuple(f(x), df(x));
-        };
-
-        // Try to bracket a root
-
-        // Initial bracket
-        scalar_type a{0.9f * s};
-        scalar_type b{1.1f * s};
-        const std::array<scalar_type, 2> br = bracket(a, b, f);
-
-        // Check bracket
-        scalar_type f_a{f(br[0])};
-        scalar_type f_b{f(br[1])};
-        bool is_bracketed{std::signbit(f_a * f_b)};
-        // Root is not in the detector
-        bool bracket_outside_detector{
-            s > max_path && ((br[0] < -max_path && br[1] < -max_path) ||
-                             (br[0] > max_path && br[1] > max_path))};
-        if (bracket_outside_detector) {
-#ifdef DEBUG
-            std::cout << "ERROR: Root outside maximum search area" << std::endl;
-#endif
-            return sfi;
-        }
-
-        // Run iteration only if root was not already found
-        scalar_type s_prev{s};
-        if (f_a != 0.f && f_b != 0.f) {
-
-            // Update initial guess on the root after bracketing
-            bool is_lower_a{f_a < 0.f};
-            a = br[is_lower_a ? 0u : 1u];
-            b = br[is_lower_a ? 1u : 0u];
-            s = std::clamp(s, br[0], br[1]);
-            // std::cout << a << ", " << b << std::endl;
-
-            // Run the iteration on s
-            s_prev = 0.f;
-            std::size_t n_tries{0u};
-
-            // f(s) = sn * (h.pos(s) - st)
-            auto [f_s, df_s] = evaluate_f(s);
-            while (math::fabs(s - s_prev) > convergence_tolerance &&
-                   n_tries < max_n_tries) {
-
-                // Does Newton step escape bracket?
-                const scalar_type s_newton{s - f_s / df_s};
-                const bool bracket_escape{
-                    std::signbit((s_newton - a) * (b - s_newton))};
-                // Is the convergence of Newton too slow (possibly oscillating)?
-                const bool slow_convergence{
-                    math::fabs(2.f * f_s) >
-                    math::fabs(math::fabs(s_prev - s) * df_s)};
-
-                // Run bisection if Newton-Raphson would be poor
-                if (is_bracketed &&
-                    (bracket_escape || slow_convergence || df_s == 0.f)) {
-                    // Test the function sign in the middle of the interval
-                    s_prev = s;
-                    s = 0.5f * (a + b);
-                    // std::cout << s << " Bisection" << std::endl;
-                } else {
-                    // No intersection can be found if dividing by zero
-                    if (!is_bracketed && df_s == 0.f) {
-                        return sfi;
-                    }
-
-                    // x_n+1 = x_n - f(s) / f'(s)
-                    s_prev = s;
-                    s = s_newton;
-                    // std::cout << s << " Newton" << std::endl;
-                }
-
-                // Going out of the detector
-                if (math::fabs(s) > max_path && math::fabs(s_prev) > max_path) {
-#ifdef DEBUG
-                    std::cout << "WARNING: Helix plane intersector: Root "
-                                 "finding diverges: s = "
-                              << s << std::endl;
-#endif
-                    return sfi;
-                }
-
-                // Update function and bracket
-                std::tie(f_s, df_s) = evaluate_f(s);
-                if (std::signbit(f_s)) {
-                    a = s;
-                } else {
-                    b = s;
-                }
-
-                ++n_tries;
-            }
-            // No intersection found within max number of trials
-            if (n_tries == max_n_tries) {
-                // Should have found the root
-                if (is_bracketed) {
-                    std::cout << "ERROR: Helix plane intersector did not "
-                                 "converge to root in ["
-                              << a << ", " << b << "]" << std::endl;
-                }
-#ifdef DEBUG
-                std::cout << "WARNING: Helix plane intersector did not "
-                             "converge after "
-                          << n_tries << " steps!" << std::endl;
-#endif
-                return sfi;
-            }
-        }
-        // std::cout << "Converged" << std::endl;
-
-        // Build intersection struct from helix parameters
-        sfi.path = s;
-        sfi.local = mask.to_local_frame(trf, h.pos(s), h.dir(s));
-        sfi.cos_incidence_angle =
-            vector::dot(mask.local_frame().normal(trf, sfi.local), h.dir(s));
-
-        scalar_type tol{mask_tolerance[1]};
-        if (detail::is_invalid_value(tol)) {
-            // Due to floating point errors this can be negative if cos ~ 1
-            const scalar_type sin_inc2{math::abs(
-                1.f - sfi.cos_incidence_angle * sfi.cos_incidence_angle)};
-
-            tol = math::abs((s - s_prev) * math::sqrt(sin_inc2));
-        }
-        sfi.status = mask.is_inside(sfi.local, tol);
-
-        // Compute some additional information if the intersection is valid
-        if (sfi.status) {
-            sfi.sf_desc = sf_desc;
-            sfi.direction = !math::signbit(s);
-            sfi.volume_link = mask.volume_link();
-        }
+        // Build intersection struct from the root
+        build_intersection(h, sfi, s, ds, sf_desc, mask, trf, mask_tolerance);
 
         return sfi;
     }
