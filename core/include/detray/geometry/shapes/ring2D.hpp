@@ -18,7 +18,7 @@
 // System include(s)
 #include <limits>
 #include <ostream>
-#include <string>
+#include <string_view>
 
 namespace detray {
 
@@ -29,7 +29,7 @@ namespace detray {
 class ring2D {
     public:
     /// The name for this shape
-    inline static const std::string name = "ring2D";
+    static constexpr std::string_view name = "ring2D";
 
     enum boundaries : unsigned int {
         e_inner_r = 0u,

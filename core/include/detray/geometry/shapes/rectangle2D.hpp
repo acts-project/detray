@@ -16,7 +16,7 @@
 // System include(s)
 #include <limits>
 #include <ostream>
-#include <string>
+#include <string_view>
 
 namespace detray {
 
@@ -26,7 +26,7 @@ namespace detray {
 class rectangle2D {
     public:
     /// The name for this shape
-    inline static const std::string name = "rectangle2D";
+    static constexpr std::string_view name = "rectangle2D";
 
     enum boundaries : unsigned int {
         e_half_x = 0u,

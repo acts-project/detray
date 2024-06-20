@@ -18,7 +18,7 @@
 // System include(s)
 #include <limits>
 #include <ostream>
-#include <string>
+#include <string_view>
 
 namespace detray {
 
@@ -28,7 +28,7 @@ namespace detray {
 class concentric_cylinder2D {
     public:
     /// The name for this shape
-    inline static const std::string name = "concentric_cylinder2D";
+    static constexpr std::string_view name = "concentric_cylinder2D";
 
     enum boundaries : unsigned int {
         e_r = 0u,

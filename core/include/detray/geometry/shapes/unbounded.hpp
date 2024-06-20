@@ -12,12 +12,14 @@
 #include "detray/definitions/detail/containers.hpp"
 #include "detray/definitions/detail/indexing.hpp"
 #include "detray/definitions/detail/qualifiers.hpp"
+#include "detray/utils/string_view_concat.hpp"
 
 // System include(s)
 #include <array>
 #include <limits>
 #include <ostream>
 #include <string>
+#include <string_view>
 
 namespace detray {
 
@@ -32,8 +34,11 @@ class unbounded {
     template <typename scalar_t>
     using bounds_type = darray<scalar_t, boundaries::e_size>;
 
+    /// Convenience member to construct the name
+    static constexpr std::string_view name_prefix = "unbounded ";
+
     /// The name for this shape
-    inline static const std::string name = "unbounded " + shape::name;
+    static constexpr string_view_concat2 name{name_prefix, shape::name};
 
     /// Local coordinate frame for boundary checks
     template <typename algebra_t>

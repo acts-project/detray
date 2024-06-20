@@ -13,7 +13,7 @@
 
 // System include(s)
 #include <limits>
-#include <string>
+#include <string_view>
 
 namespace detray::tutorial {
 
@@ -24,7 +24,7 @@ namespace detray::tutorial {
 class square2D {
     public:
     /// The name for this shape
-    inline static const std::string name = "square2D";
+    static constexpr std::string_view name = "square2D";
 
     enum boundaries : unsigned int {
         e_half_length = 0,  // < boundary value: the half length of the square

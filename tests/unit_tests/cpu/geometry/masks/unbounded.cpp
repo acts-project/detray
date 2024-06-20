@@ -47,7 +47,8 @@ GTEST_TEST(detray_masks, unbounded) {
         "incorrect local frame");
 
     // Test static members
-    EXPECT_TRUE(unbounded_t::name == "unbounded rectangle2D");
+    EXPECT_TRUE(std::string(unbounded_t::name) ==
+                std::string("unbounded rectangle2D"));
 
     // Test boundary check
     typename mask<unbounded_t>::point3_type p2 = {0.5f, -9.f, 0.f};

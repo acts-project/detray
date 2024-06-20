@@ -19,7 +19,6 @@
 #include "detray/utils/type_list.hpp"
 
 // System include(s)
-#include <string>
 #include <string_view>
 
 namespace detray::io {
@@ -29,7 +28,7 @@ class homogeneous_material_writer {
 
     public:
     /// Tag the writer as "homogeneous_material"
-    inline static const std::string tag = "homogeneous_material";
+    static constexpr std::string_view tag = "homogeneous_material";
 
     /// Convert the header information into its payload
     template <class detector_t>
