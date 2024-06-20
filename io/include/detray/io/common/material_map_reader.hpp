@@ -20,6 +20,7 @@
 // System include(s)
 #include <memory>
 #include <stdexcept>
+#include <string_view>
 #include <vector>
 
 namespace detray::io {
@@ -36,7 +37,7 @@ class material_map_reader {
     using bin_index_type = axis::multi_bin<dim>;
 
     /// Tag the reader as "material_maps"
-    inline static const std::string tag = "material_maps";
+    static constexpr std::string_view tag = "material_maps";
 
     /// Convert the material grids @param grids_data from their IO
     /// payload

@@ -15,7 +15,7 @@
 #include "detray/materials/material_slab.hpp"
 
 // System include(s)
-#include <string>
+#include <string_view>
 
 namespace detray::io {
 
@@ -28,7 +28,7 @@ class material_map_writer : public detail::grid_writer {
 
     public:
     /// Tag the writer as "material_map"
-    inline static const std::string tag = "material_maps";
+    static constexpr std::string_view tag = "material_maps";
 
     /// Same constructors for this class as for base_type
     using base_type::base_type;

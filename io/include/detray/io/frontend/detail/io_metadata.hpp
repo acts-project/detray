@@ -18,6 +18,7 @@
 #include <locale>
 #include <sstream>
 #include <string>
+#include <string_view>
 
 namespace detray::io::detail {
 
@@ -46,6 +47,6 @@ inline std::string get_detray_version() {
     return "detray - " + std::string(detray::version);
 }
 
-inline static const std::string minimal_io_version{"detray - 0.52.0"};
+static constexpr std::string_view minimal_io_version = "detray - 0.52.0";
 
 }  // namespace detray::io::detail

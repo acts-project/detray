@@ -17,7 +17,7 @@
 // System include(s)
 #include <limits>
 #include <ostream>
-#include <string>
+#include <string_view>
 
 namespace detray {
 
@@ -28,7 +28,7 @@ namespace detray {
 class cuboid3D {
     public:
     /// The name for this shape
-    inline static const std::string name = "cuboid3D";
+    static constexpr std::string_view name = "cuboid3D";
 
     enum boundaries : unsigned int {
         e_min_x = 0u,

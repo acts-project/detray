@@ -14,7 +14,7 @@
 #include "detray/io/frontend/payloads.hpp"
 
 // System include(s)
-#include <string>
+#include <string_view>
 
 namespace detray::io {
 
@@ -31,7 +31,7 @@ class surface_grid_reader
 
     public:
     /// Tag the reader as "surface_grids"
-    inline static const std::string tag = "surface_grids";
+    static constexpr std::string_view tag = "surface_grids";
 
     /// Same constructors for this class as for base_type
     using base_type::base_type;

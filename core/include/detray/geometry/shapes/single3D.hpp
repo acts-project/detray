@@ -17,7 +17,7 @@
 // System include(s)
 #include <limits>
 #include <ostream>
-#include <string>
+#include <string_view>
 
 namespace detray {
 
@@ -29,7 +29,7 @@ template <unsigned int kCheckIndex = 0u>
 class single3D {
     public:
     /// The name for this shape
-    inline static const std::string name = "single3D";
+    static constexpr std::string_view name = "single3D";
 
     enum boundaries : unsigned int {
         e_lower = 0u,

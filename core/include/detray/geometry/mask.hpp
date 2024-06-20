@@ -18,6 +18,7 @@
 #include <cassert>
 #include <ostream>
 #include <sstream>
+#include <string>
 #include <vector>
 
 namespace detray {
@@ -256,7 +257,7 @@ class mask {
     DETRAY_HOST
     auto to_string() const -> std::string {
         std::stringstream ss;
-        ss << shape::name;
+        ss << std::string(shape::name);
         for (const auto& v : _values) {
             ss << ", " << v;
         }

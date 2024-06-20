@@ -165,7 +165,7 @@ class surface_factory : public surface_factory_interface<detector_t> {
 
             throw std::invalid_argument(
                 "ERROR: Cannot match shape type to mask ID: Found " +
-                mask_shape_t::name + " at mask id " +
+                std::string(mask_shape_t::name) + " at mask id " +
                 std::to_string(static_cast<std::size_t>(mask_id)));
 
         } else {

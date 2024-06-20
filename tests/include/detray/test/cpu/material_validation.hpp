@@ -22,13 +22,14 @@
 #include <iostream>
 #include <stdexcept>
 #include <string>
+#include <string_view>
 
 namespace detray::test {
 
 /// Run the material validation on the host
 struct run_material_validation {
 
-    inline static const std::string name{"cpu"};
+    static constexpr std::string_view name{"cpu"};
 
     template <typename detector_t>
     auto operator()(
@@ -159,8 +160,9 @@ class material_validation_impl : public test::fixture_base<> {
 
         // Print accumulated material per track
         std::filesystem::path mat_path{m_cfg.material_file()};
-        auto file_name{m_det.name(m_names) + "_" + material_validator_t::name +
-                       "_" + mat_path.stem().string() +
+        auto file_name{m_det.name(m_names) + "_" +
+                       std::string(material_validator_t::name) + "_" +
+                       mat_path.stem().string() +
                        mat_path.extension().string()};
 
         material_validator::write_material(mat_path.replace_filename(file_name),
