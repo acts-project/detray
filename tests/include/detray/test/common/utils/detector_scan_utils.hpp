@@ -86,8 +86,9 @@ inline bool check_connectivity(
 
     // If the intersection trace comes from the ray gun/trace intersections
     // function it should be sorted, which is the stronger constraint
-    using records_iterator_t = decltype(trace.begin());
-    using index_t = typename records_iterator_t::difference_type;
+    using vector_t = decltype(trace);
+    using records_iterator_t = typename vector_t::iterator;
+    using index_t = typename vector_t::difference_type;
     std::function<records_iterator_t(index_t)> get_connected_record;
     if constexpr (check_sorted_trace) {
         // Get the next record
