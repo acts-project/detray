@@ -27,33 +27,6 @@ namespace {
 
 /// Generate and write a telescope detector, given the commandline variables
 /// and a configuration for the detector writer @param writer_cfg
-template <typename mask_shape_t, typename value_t, typename trajectory_t>
-void write_telecope(const po::variables_map &vm,
-                    io::detector_writer_config &writer_cfg,
-                    std::vector<value_t> &mask_params,
-                    const trajectory_t &traj) {
-
-    using detector_t = detector<telescope_metadata<mask_shape_t>>;
-    using scalar_t = typename detector_t::scalar_type;
-
-    detray::tel_det_config<mask_shape_t, trajectory_t> tel_cfg{mask_params,
-                                                               traj};
-
-    tel_cfg.n_surfaces(vm["modules"].as<unsigned int>());
-    tel_cfg.length(vm["length"].as<scalar_t>());
-    tel_cfg.mat_thickness(vm["thickness"].as<scalar_t>());
-    tel_cfg.envelope(vm["envelope"].as<scalar_t>());
-
-    // Build the detector
-    vecmem::host_memory_resource host_mr;
-    auto [tel_det, tel_names] = build_telescope_detector(host_mr, tel_cfg);
-
-    // Write to file
-    detray::io::write_detector(tel_det, tel_names, writer_cfg);
-}
-
-/// Generate and write a telescope detector, given the commandline variables
-/// and a configuration for the detector writer @param writer_cfg
 template <typename mask_shape_t, typename value_t>
 void write_telecope(const po::variables_map &vm,
                     io::detector_writer_config &writer_cfg,
@@ -62,41 +35,30 @@ void write_telecope(const po::variables_map &vm,
     using detector_t = detector<telescope_metadata<mask_shape_t>>;
     using scalar_t = typename detector_t::scalar_type;
     using algebra_t = typename detector_t::algebra_type;
-    using vector3_t = dvector3D<algebra_t>;
 
-    // Construct the pilot track
+    detray::tel_det_config<mask_shape_t> tel_cfg{mask_params};
+
+    tel_cfg.n_surfaces(vm["modules"].as<unsigned int>());
+    tel_cfg.length(vm["length"].as<scalar_t>());
+    tel_cfg.mat_thickness(vm["thickness"].as<scalar_t>());
+
     std::string direction{vm["direction"].as<std::string>()};
-    vector3_t dir;
+    detray::detail::ray<algebra_t> r{};
     if (direction == "x") {
-        dir = {1.f, 0.f, 0.f};
+        r.set_dir({1.f, 0.f, 0.f});
     } else if (direction == "y") {
-        dir = {{0.f, 1.f, 0.f}};
+        r.set_dir({0.f, 1.f, 0.f});
     } else if (direction == "z") {
-        dir = {0.f, 0.f, 1.f};
+        r.set_dir({0.f, 0.f, 1.f});
     }
+    tel_cfg.pilot_track(r);
 
-    if (!vm.count("b_field")) {
-        detray::detail::ray<algebra_t> r{};
-        r.set_dir(dir);
+    // Build the detector
+    vecmem::host_memory_resource host_mr;
+    auto [tel_det, tel_names] = build_telescope_detector(host_mr, tel_cfg);
 
-        write_telecope<mask_shape_t>(vm, writer_cfg, mask_params, r);
-    } else {
-        const auto b_field = vm["b_field"].as<std::vector<scalar_t>>();
-        if (b_field.size() == 3u) {
-            vector3_t B{b_field[0] * unit<scalar_t>::T,
-                        b_field[1] * unit<scalar_t>::T,
-                        b_field[2] * unit<scalar_t>::T};
-
-            const auto p{vm["p"].as<scalar_t>() * unit<scalar_t>::GeV};
-            detray::detail::helix<algebra_t> h{
-                {0.f, 0.f, 0.f}, 0.f, dir, 1.f / p, &B};
-
-            write_telecope<mask_shape_t>(vm, writer_cfg, mask_params, h);
-        } else {
-            throw std::invalid_argument(
-                "B-field vector has to have three entries");
-        }
-    }
+    // Write to file
+    detray::io::write_detector(tel_det, tel_names, writer_cfg);
 }
 
 }  // anonymous namespace
@@ -124,16 +86,8 @@ int main(int argc, char **argv) {
         "thickness",
         po::value<scalar_t>()->default_value(1.f * unit<scalar_t>::mm),
         "thickness of the module silicon material")(
-        "envelope",
-        po::value<scalar_t>()->default_value(100.f * unit<scalar_t>::um),
-        "minimal distance between sensitive surfaces and portals")(
         "direction", po::value<std::string>()->default_value("z"),
-        "direction of the telescope in global frame [x, y, z]")(
-        "b_field",
-        boost::program_options::value<std::vector<scalar_t>>()->multitoken(),
-        "B field vector for a pilot helix [T]")(
-        "p", po::value<scalar_t>()->default_value(10.f * unit<scalar_t>::GeV),
-        "Total momentum of the pilot track [GeV]");
+        "direction of the telescope in global frame [x, y, z]");
 
     // Configuration
     detray::io::detector_writer_config writer_cfg{};

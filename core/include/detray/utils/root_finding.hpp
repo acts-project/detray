@@ -27,18 +27,20 @@ namespace detray {
 
 /// @brief Try to find a bracket around a root
 ///
-/// @param a lower initial boundary
-/// @param b upper initial boundary
-/// @param f function for which to find the root
-/// @param k scale factor with which to widen the bracket at every step
+/// @param [in] a lower initial boundary
+/// @param [in] b upper initial boundary
+/// @param [in] f function for which to find the root
+/// @param [out] bracket bracket around the root
+/// @param [in] k scale factor with which to widen the bracket at every step
 ///
 /// @see Numerical Recepies pp. 445
 ///
-/// @return bracket around root
+/// @return whether a bracket was found
 template <typename scalar_t, typename function_t>
-DETRAY_HOST_DEVICE inline std::array<scalar_t, 2> expand_bracket(
-    const scalar_t a, const scalar_t b, function_t &f,
-    const scalar_t k = 0.1f) {
+DETRAY_HOST_DEVICE inline bool expand_bracket(const scalar_t a,
+                                              const scalar_t b, function_t &f,
+                                              std::array<scalar_t, 2> &bracket,
+                                              const scalar_t k = 1.f) {
 
     if (a == b) {
         throw std::invalid_argument(
@@ -62,7 +64,8 @@ DETRAY_HOST_DEVICE inline std::array<scalar_t, 2> expand_bracket(
 #ifdef DEBUG
             std::cout << "WARNING: Could not bracket a root" << std::endl;
 #endif
-            return {a, b};
+            bracket = {a, b};
+            return false;
         }
         scalar_t d{k * (upper - lower)};
         // Make interval larger in the direction where the function is smaller
@@ -76,7 +79,8 @@ DETRAY_HOST_DEVICE inline std::array<scalar_t, 2> expand_bracket(
         ++n_tries;
     }
 
-    return {lower, upper};
+    bracket = {lower, upper};
+    return true;
 }
 
 /// @brief Find a root using the Newton-Raphson and Bisection algorithms
@@ -106,60 +110,70 @@ DETRAY_HOST_DEVICE inline std::pair<scalar_t, scalar_t> newton_raphson_safe(
     };
 
     // Initial bracket
-    scalar_t a{s == 0.f ? -0.01f : 0.99f * s};
-    scalar_t b{s == 0.f ? 0.01f : 1.09f * s};
-    const std::array<scalar_t, 2> br = expand_bracket(a, b, f);
-
-    // Check bracket
-    [[maybe_unused]] auto [f_a, df_a] = evaluate_func(br[0]);
-    [[maybe_unused]] auto [f_b, df_b] = evaluate_func(br[1]);
-    bool is_bracketed{math::signbit(f_a * f_b)};
-
-    // Root is not within the maximal pathlength
-    bool bracket_outside_tol{s > max_path &&
-                             ((br[0] < -max_path && br[1] < -max_path) ||
-                              (br[0] > max_path && br[1] > max_path))};
-    if (bracket_outside_tol) {
-#ifdef DEBUG
-        std::cout << "INFO: Root outside maximum search area - skipping"
-                  << std::endl;
-#endif
-        return std::make_pair(inv, inv);
-    }
-
-    // Root already found?
-    if (math::fabs(f_a) < convergence_tolerance) {
-        return std::make_pair(a, epsilon);
-    }
-    if (math::fabs(f_b) < convergence_tolerance) {
-        return std::make_pair(b, epsilon);
-    }
+    scalar_t a{math::fabs(s) == 0.f ? -0.1f : 0.9f * s};
+    scalar_t b{math::fabs(s) == 0.f ? 0.1f : 1.1f * s};
+    std::array<scalar_t, 2> br{};
+    bool is_bracketed = expand_bracket(a, b, f, br);
 
     // Update initial guess on the root after bracketing
-    // Did the original guess already contain the root?
-    s = math::fabs(b - a) < math::fabs(br[1] - br[0]) ? 0.5f * (br[1] - br[0])
-                                                      : s;
-    // Make 'a' the boundary for the negative function value -> easier to update
-    bool is_lower_a{f_a < 0.f};
-    a = br[is_lower_a ? 0u : 1u];
-    b = br[is_lower_a ? 1u : 0u];
+    s = is_bracketed ? 0.5f * (br[1] + br[0]) : s;
+
+    if (is_bracketed) {
+        // Check bracket
+        [[maybe_unused]] auto [f_a, df_a] = evaluate_func(br[0]);
+        [[maybe_unused]] auto [f_b, df_b] = evaluate_func(br[1]);
+
+        assert(math::signbit(f_a * f_b) && "Incorrect bracket around root");
+
+        // Root is not within the maximal pathlength
+        bool bracket_outside_tol{s > max_path &&
+                                 ((br[0] < -max_path && br[1] < -max_path) ||
+                                  (br[0] > max_path && br[1] > max_path))};
+        if (bracket_outside_tol) {
+#ifdef DEBUG
+            std::cout << "INFO: Root outside maximum search area - skipping"
+                      << std::endl;
+#endif
+            return std::make_pair(inv, inv);
+        }
+
+        // Root already found?
+        if (math::fabs(f_a) < convergence_tolerance) {
+            return std::make_pair(a, epsilon);
+        }
+        if (math::fabs(f_b) < convergence_tolerance) {
+            return std::make_pair(b, epsilon);
+        }
+
+        // Make 'a' the boundary for the negative function value -> easier to
+        // update
+        bool is_lower_a{math::signbit(f_a)};
+        a = br[is_lower_a ? 0u : 1u];
+        b = br[is_lower_a ? 1u : 0u];
+    }
 
     // Run the iteration on s
     scalar_t s_prev{0.f};
     std::size_t n_tries{0u};
     auto [f_s, df_s] = evaluate_func(s);
+    if (math::fabs(f_s) < convergence_tolerance) {
+        return std::make_pair(s, epsilon);
+    }
+    if (math::signbit(f_s)) {
+        a = s;
+    } else {
+        b = s;
+    }
 
     while (math::fabs(s - s_prev) > convergence_tolerance) {
 
-        // Allow more Newton steps for faster convergence
-
         // Does Newton step escape bracket?
-        /*bool bracket_escape{true};
+        bool bracket_escape{true};
         scalar_t s_newton{0.f};
         if (math::fabs(df_s) != 0.f) {
             s_newton = s - f_s / df_s;
             bracket_escape = math::signbit((s_newton - a) * (b - s_newton));
-        }*/
+        }
 
         // This criterion from Numerical Recipes seems to work, but why?
         /*const bool slow_convergence{math::fabs(2.f * f_s) >
@@ -167,24 +181,25 @@ DETRAY_HOST_DEVICE inline std::pair<scalar_t, scalar_t> newton_raphson_safe(
 
         // Take a bisection step if it converges faster than Newton
         // |f(next_newton_s)| > |f(next_bisection_s)|
-        /*bool slow_convergence{true};
-        // If not converged far enough, take bisection step
-        if (math::fabs(s - s_prev) < 0.1f * unit<scalar_t>::mm) {
-            const scalar_t ds_bisection{0.5f * (a + b) - s};
-            slow_convergence = (2.f * math::fabs(f_s) > math::fabs(df_s *
-        ds_bisection + f_s));
-        }*/
+        bool slow_convergence{true};
+        // The criterion is only well defined if the step lengths are small
+        const scalar_t ds_bisection{0.5f * (a + b) - s};
+        if (is_bracketed &&
+            (math::fabs(ds_bisection) < 10.f * unit<scalar_t>::mm)) {
+            slow_convergence =
+                (2.f * math::fabs(f_s) > math::fabs(df_s * ds_bisection + f_s));
+        }
 
         s_prev = s;
 
         // Run bisection if Newton-Raphson would be poor
-        if (is_bracketed/* &&
-            (bracket_escape || slow_convergence || df_s == 0.f)*/) {
+        if (is_bracketed &&
+            (bracket_escape || slow_convergence || math::fabs(df_s) == 0.f)) {
             // Test the function sign in the middle of the interval
             s = 0.5f * (a + b);
         } else {
             // No intersection can be found if dividing by zero
-            if (!is_bracketed && df_s == 0.f) {
+            if (!is_bracketed && math::fabs(df_s) == 0.f) {
                 std::cout << "WARNING: Encountered invalid derivative "
                           << std::endl;
 
@@ -235,8 +250,7 @@ DETRAY_HOST_DEVICE inline std::pair<scalar_t, scalar_t> newton_raphson_safe(
             return std::make_pair(inv, inv);
         }
     }
-
-    // Final pathlengt to root
+    //  Final pathlengt to root and latest step size
     return std::make_pair(s, math::fabs(s - s_prev));
 }
 

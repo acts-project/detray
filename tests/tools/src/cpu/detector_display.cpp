@@ -108,27 +108,17 @@ int main(int argc, char** argv) {
 
     actsvg::style::stroke stroke_black = actsvg::style::stroke();
     actsvg::style::font axis_font = actsvg::style::font();
-    axis_font._size = 20u;
+    axis_font._size = 35u;
 
     // x-y axis.
-    /*auto xy_axis = actsvg::draw::x_y_axes("axes", {-1100, 1100}, {-1100,
-    1100}, stroke_black, "x", "y", axis_font);
+    auto xy_axis = actsvg::draw::x_y_axes("axes", {-1100, 1100}, {-1100, 1100},
+                                          stroke_black, "x", "y", axis_font);
     // z-r axis.
     auto zr_axis = actsvg::draw::x_y_axes("axes", {-3100, 3100}, {-5, 1100},
                                           stroke_black, "z", "r", axis_font);
     // z-phi axis.
     auto zphi_axis =
         actsvg::draw::x_y_axes("axes", {-3100, 3100}, {-1000, 1000},
-                               stroke_black, "z", "phi", axis_font);*/
-
-    auto xy_axis = actsvg::draw::x_y_axes("axes", {-200, 200}, {-200, 200},
-                                          stroke_black, "x", "y", axis_font);
-    // z-r axis.
-    auto zr_axis = actsvg::draw::x_y_axes("axes", {-1000, 1000}, {-5, 1100},
-                                          stroke_black, "z", "r", axis_font);
-    // z-phi axis.
-    auto zphi_axis =
-        actsvg::draw::x_y_axes("axes", {-1000, 1000}, {-1000, 1000},
                                stroke_black, "z", "phi", axis_font);
 
     // Creating the views.

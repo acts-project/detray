@@ -17,7 +17,6 @@
 #include "detray/utils/root_finding.hpp"
 
 // System include(s)
-#include <iostream>
 #include <type_traits>
 
 namespace detray {
@@ -69,11 +68,6 @@ struct helix_intersector_impl<cartesian2D<algebra_t>, algebra_t> {
 
         intersection_type<surface_descr_t> sfi;
 
-        // Guard against inifinite loops
-        constexpr std::size_t max_n_tries{1000u};
-        // Early exit, if the intersection is too far away
-        constexpr auto max_path{5.f * unit<scalar_type>::m};
-
         // Surface normal
         const vector3_type sn = trf.z();
         // Surface translation
@@ -85,11 +79,6 @@ struct helix_intersector_impl<cartesian2D<algebra_t>, algebra_t> {
         scalar_type denom{vector::dot(sn, h.dir(0.5f * getter::norm(dist)))};
         scalar_type s_ini;
         if (denom == 0.f) {
-#ifdef DEBUG
-            std::cout
-                << "WARNING: Helix plane intersector encountered invalid value!"
-                << std::endl;
-#endif
             s_ini = getter::norm(dist);
         } else {
             s_ini = vector::dot(sn, dist) / denom;
@@ -128,6 +117,10 @@ struct helix_intersector_impl<cartesian2D<algebra_t>, algebra_t> {
 
     /// Tolerance for convergence
     scalar_type convergence_tolerance{1.f * unit<scalar_type>::um};
+    // Guard against inifinite loops
+    std::size_t max_n_tries{1000u};
+    // Early exit, if the intersection is too far away
+    scalar_type max_path{5.f * unit<scalar_type>::m};
 };
 
 template <typename algebra_t>

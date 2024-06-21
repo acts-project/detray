@@ -19,7 +19,6 @@
 #include "detray/utils/invalid_values.hpp"
 
 // System include(s)
-#include <iostream>
 #include <limits>
 #include <type_traits>
 
@@ -72,11 +71,6 @@ struct helix_intersector_impl<cylindrical2D<algebra_t>, algebra_t>
                "Helix intersectors use only one mask tolerance value");
 
         std::array<intersection_type<surface_descr_t>, 2> ret;
-
-        // Guard against inifinite loops
-        constexpr std::size_t max_n_tries{1000u};
-        // Early exit, if the intersection is too far away
-        constexpr auto max_path{5.f * unit<scalar_type>::m};
 
         // Cylinder z axis
         const vector3_type sz = trf.z();
@@ -172,6 +166,10 @@ struct helix_intersector_impl<cylindrical2D<algebra_t>, algebra_t>
 
     /// Tolerance for convergence
     scalar_type convergence_tolerance{1.f * unit<scalar_type>::um};
+    // Guard against inifinite loops
+    std::size_t max_n_tries{1000u};
+    // Early exit, if the intersection is too far away
+    scalar_type max_path{5.f * unit<scalar_type>::m};
 };
 
 template <typename algebra_t>

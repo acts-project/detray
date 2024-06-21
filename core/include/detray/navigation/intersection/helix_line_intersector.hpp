@@ -66,11 +66,6 @@ struct helix_intersector_impl<line2D<algebra_t>, algebra_t> {
 
         intersection_type<surface_descr_t> sfi;
 
-        // Guard against inifinite loops
-        constexpr std::size_t max_n_tries{1000u};
-        // Early exit, if the intersection is too far away
-        constexpr auto max_path{5.f * unit<scalar_type>::m};
-
         // line axis direction
         const vector3_type l = getter::vector<3>(trf.matrix(), 0u, 2u);
 
@@ -166,6 +161,10 @@ struct helix_intersector_impl<line2D<algebra_t>, algebra_t> {
 
     /// Tolerance for convergence
     scalar_type convergence_tolerance{1.f * unit<scalar_type>::um};
+    // Guard against inifinite loops
+    std::size_t max_n_tries{1000u};
+    // Early exit, if the intersection is too far away
+    scalar_type max_path{5.f * unit<scalar_type>::m};
 };
 
 }  // namespace detray
