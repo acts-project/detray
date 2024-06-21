@@ -53,6 +53,9 @@ GTEST_TEST(detray_intersection, helix_trajectory) {
     scalar R{helix_traj.radius()};
     EXPECT_NEAR(R, pt / B_mag, tol);
 
+    // (1 T of b_z, 1 GeV/c of p_T) ==> 3.33564095 m of radius
+    EXPECT_NEAR(R, 3.33564095f * unit<scalar>::m, 10.f * tol);
+
     // Path length for one loop
     scalar S = 2.f * p_mag / B_mag * constant<scalar>::pi;
 
