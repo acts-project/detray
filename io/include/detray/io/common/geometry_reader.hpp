@@ -20,7 +20,7 @@
 #include <algorithm>
 #include <cassert>
 #include <map>
-#include <string>
+#include <string_view>
 #include <utility>
 #include <vector>
 
@@ -47,7 +47,7 @@ class geometry_reader {
 
     public:
     /// Tag the reader as "geometry"
-    inline static const std::string tag = "geometry";
+    static constexpr std::string_view tag = "geometry";
 
     /// Convert a detector @param det from its io payload @param det_data
     /// and add the volume names to @param name_map

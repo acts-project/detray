@@ -17,7 +17,7 @@
 // System include(s)
 #include <limits>
 #include <ostream>
-#include <string>
+#include <string_view>
 
 namespace detray {
 
@@ -26,7 +26,7 @@ template <std::size_t DIM = 2>
 class unmasked {
     public:
     /// The name for this shape
-    inline static const std::string name = "unmasked";
+    static constexpr std::string_view name = "unmasked";
 
     enum boundaries : unsigned int { e_size = 1u };
 

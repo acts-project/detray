@@ -29,7 +29,7 @@ class geometry_writer {
 
     public:
     /// Tag the writer as "geometry"
-    inline static const std::string tag = "geometry";
+    static constexpr std::string_view tag = "geometry";
 
     /// Convert the header information into its payload
     template <typename detector_t>

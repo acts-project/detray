@@ -20,7 +20,7 @@
 
 // System include(s)
 #include <memory>
-#include <string>
+#include <string_view>
 #include <vector>
 
 namespace detray::io {
@@ -34,7 +34,7 @@ class homogeneous_material_reader {
 
     public:
     /// Tag the reader as "homogeneous material"
-    inline static const std::string tag = "homogeneous_material";
+    static constexpr std::string_view tag = "homogeneous_material";
 
     /// Convert the detector material @param det_mat_data from its IO
     /// payload

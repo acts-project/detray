@@ -18,6 +18,7 @@
 // System include(s)
 #include <limits>
 #include <ostream>
+#include <string_view>
 #include <type_traits>
 
 namespace detray {
@@ -35,7 +36,7 @@ template <bool kSquareCrossSect = false>
 class line {
     public:
     /// The name for this shape
-    inline static const std::string name = "line";
+    static constexpr std::string_view name = "line";
 
     /// Geometrical cross section of the line
     static constexpr bool square_cross_sect = kSquareCrossSect;

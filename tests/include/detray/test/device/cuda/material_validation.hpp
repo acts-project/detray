@@ -21,6 +21,9 @@
 #include <vecmem/memory/memory_resource.hpp>
 #include <vecmem/utils/cuda/copy.hpp>
 
+// System include
+#include <string_view>
+
 namespace detray::cuda {
 
 /// Launch the material validation kernel
@@ -43,7 +46,7 @@ void material_validation_device(
 /// Prepare data for device material trace run
 struct run_material_validation {
 
-    inline static const std::string name{"cuda"};
+    static constexpr std::string_view name = "cuda";
 
     template <typename detector_t>
     auto operator()(
