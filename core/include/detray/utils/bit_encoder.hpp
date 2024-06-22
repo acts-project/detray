@@ -35,7 +35,7 @@ class bit_encoder {
     template <value_t... masks>
     DETRAY_HOST_DEVICE static constexpr bool is_invalid(value_t v) noexcept {
         // All bits set to one in the range of a given mask defined as invalid
-        return (((v & masks) == masks) | ...);
+        return (((v & masks) == masks) || ...);
     }
 
     /// @returns the masked bits from the encoded value as value of the same
