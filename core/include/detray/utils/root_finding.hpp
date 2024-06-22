@@ -61,7 +61,7 @@ DETRAY_HOST_DEVICE inline bool expand_bracket(const scalar_t a,
         // No interval could be found to bracket the root
         // Might be correct, if there is not root
         if ((n_tries == 1000u) || !std::isfinite(f_l) || !std::isfinite(f_u)) {
-#ifdef DEBUG
+#ifndef NDEBUG
             std::cout << "WARNING: Could not bracket a root" << std::endl;
 #endif
             bracket = {a, b};
@@ -88,6 +88,7 @@ DETRAY_HOST_DEVICE inline bool expand_bracket(const scalar_t a,
 /// @param s initial guess for the root
 /// @param evaluate_func evaluate the function and its derivative
 /// @param max_path don't consider root if it is too far away
+/// @param run_rtsafe whether to run pure Newton
 ///
 /// @see Numerical Recepies pp. 445
 ///
@@ -130,7 +131,7 @@ DETRAY_HOST_DEVICE inline std::pair<scalar_t, scalar_t> newton_raphson_safe(
                                  ((br[0] < -max_path && br[1] < -max_path) ||
                                   (br[0] > max_path && br[1] > max_path))};
         if (bracket_outside_tol) {
-#ifdef DEBUG
+#ifndef NDEBUG
             std::cout << "INFO: Root outside maximum search area - skipping"
                       << std::endl;
 #endif
@@ -221,7 +222,7 @@ DETRAY_HOST_DEVICE inline std::pair<scalar_t, scalar_t> newton_raphson_safe(
         if (math::fabs(s) > max_path && math::fabs(s_prev) > max_path &&
             ((a < -max_path && b < -max_path) ||
              (a > max_path && b > max_path))) {
-#ifdef DEBUG
+#ifndef NDEBUG
             std::cout << "WARNING: Root finding left the search space"
                       << std::endl;
 #endif
@@ -240,7 +241,7 @@ DETRAY_HOST_DEVICE inline std::pair<scalar_t, scalar_t> newton_raphson_safe(
                     std::to_string(s) + " in [" + std::to_string(a) + ", " +
                     std::to_string(b) + "]");
             } else {
-#ifdef DEBUG
+#ifndef NDEBUG
                 std::cout << "WARNING: Helix intersector did not "
                              "converge after "
                           << n_tries << " steps unbracketed search"

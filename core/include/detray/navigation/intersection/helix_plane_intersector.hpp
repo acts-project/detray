@@ -68,41 +68,111 @@ struct helix_intersector_impl<cartesian2D<algebra_t>, algebra_t> {
 
         intersection_type<surface_descr_t> sfi;
 
-        // Surface normal
-        const vector3_type sn = trf.z();
-        // Surface translation
-        const point3_type st = trf.translation();
+        if (!run_rtsafe) {
+            // Get the surface info
+            const auto &sm = trf.matrix();
+            // Surface normal
+            const vector3_type sn = getter::vector<3>(sm, 0u, 2u);
+            // Surface translation
+            const point3_type st = getter::vector<3>(sm, 0u, 3u);
 
-        // Starting point on the helix for the Newton iteration
-        const vector3_type dist{trf.point_to_global(mask.centroid()) -
-                                h.pos(0.f)};
-        scalar_type denom{vector::dot(sn, h.dir(0.5f * getter::norm(dist)))};
-        scalar_type s_ini;
-        if (denom == 0.f) {
-            s_ini = getter::norm(dist);
-        } else {
-            s_ini = vector::dot(sn, dist) / denom;
-        }
+            // Starting point on the helix for the Newton iteration
+            const vector3_type dist{trf.point_to_global(mask.centroid()) -
+                                    h.pos(0.f)};
+            scalar_type denom{vector::dot(sn, h.dir(0.f))};
 
-        /// Evaluate the function and its derivative at the point @param x
-        auto plane_inters_func = [&h, &st, &sn](const scalar_type x) {
+            scalar_type s;
+            if (denom == 0.f) {
+                s = getter::norm(dist);
+            }
+            s = math::abs(vector::dot(sn, dist) / denom);
+
+            scalar_type s_prev{0.f};
+
             // f(s) = sn * (h.pos(s) - st) == 0
-            const scalar_type f_s{vector::dot(sn, (h.pos(x) - st))};
-            // f'(s) = sn * h.dir(s)
-            const scalar_type df_s{vector::dot(sn, h.dir(x))};
+            // Run the iteration on s
+            std::size_t n_tries{0u};
+            while (math::abs(s - s_prev) > convergence_tolerance and
+                   n_tries < max_n_tries) {
+                // f'(s) = sn * h.dir(s)
+                denom = vector::dot(sn, h.dir(s));
+                // No intersection can be found if dividing by zero
+                if (denom == 0.f) {
+                    return sfi;
+                }
+                // x_n+1 = x_n - f(s) / f'(s)
+                s_prev = s;
+                s -= vector::dot(sn, h.pos(s) - st) / denom;
+                ++n_tries;
+            }
+            // No intersection found within max number of trials
+            if (n_tries == max_n_tries) {
+                return sfi;
+            }
 
-            return std::make_tuple(f_s, df_s);
-        };
+            // Build intersection struct from helix parameters
+            sfi.path = s;
+            sfi.local = mask.to_local_frame(trf, h.pos(s), h.dir(s));
+            sfi.cos_incidence_angle = vector::dot(
+                mask.local_frame().normal(trf, sfi.local), h.dir(s));
 
-        // Run the root finding algorithm
-        const auto [s, ds] =
-            newton_raphson_safe(plane_inters_func, s_ini, convergence_tolerance,
-                                max_n_tries, max_path);
+            scalar_type tol{mask_tolerance[1]};
+            if (detail::is_invalid_value(tol)) {
+                // Due to floating point errors this can be negative if cos ~ 1
+                const scalar_type sin_inc2{math::abs(
+                    1.f - sfi.cos_incidence_angle * sfi.cos_incidence_angle)};
 
-        // Build intersection struct from the root
-        build_intersection(h, sfi, s, ds, sf_desc, mask, trf, mask_tolerance);
+                tol = math::abs((s - s_prev) * math::sqrt(sin_inc2));
+            }
+            sfi.status = mask.is_inside(sfi.local, tol);
 
-        return sfi;
+            // Compute some additional information if the intersection is valid
+            if (sfi.status) {
+                sfi.sf_desc = sf_desc;
+                sfi.direction = !math::signbit(s);
+                sfi.volume_link = mask.volume_link();
+            }
+
+            return sfi;
+        } else {
+            // Surface normal
+            const vector3_type sn = trf.z();
+            // Surface translation
+            const point3_type st = trf.translation();
+
+            // Starting point on the helix for the Newton iteration
+            const vector3_type dist{trf.point_to_global(mask.centroid()) -
+                                    h.pos(0.f)};
+            scalar_type denom{
+                vector::dot(sn, h.dir(0.5f * getter::norm(dist)))};
+            scalar_type s_ini;
+            if (denom == 0.f) {
+                s_ini = getter::norm(dist);
+            } else {
+                s_ini = vector::dot(sn, dist) / denom;
+            }
+
+            /// Evaluate the function and its derivative at the point @param x
+            auto plane_inters_func = [&h, &st, &sn](const scalar_type x) {
+                // f(s) = sn * (h.pos(s) - st) == 0
+                const scalar_type f_s{vector::dot(sn, (h.pos(x) - st))};
+                // f'(s) = sn * h.dir(s)
+                const scalar_type df_s{vector::dot(sn, h.dir(x))};
+
+                return std::make_tuple(f_s, df_s);
+            };
+
+            // Run the root finding algorithm
+            const auto [s, ds] = newton_raphson_safe(plane_inters_func, s_ini,
+                                                     convergence_tolerance,
+                                                     max_n_tries, max_path);
+
+            // Build intersection struct from the root
+            build_intersection(h, sfi, s, ds, sf_desc, mask, trf,
+                               mask_tolerance);
+
+            return sfi;
+        }
     }
 
     /// Interface to use fixed mask tolerance
@@ -121,6 +191,8 @@ struct helix_intersector_impl<cartesian2D<algebra_t>, algebra_t> {
     std::size_t max_n_tries{1000u};
     // Early exit, if the intersection is too far away
     scalar_type max_path{5.f * unit<scalar_type>::m};
+    // Complement the Newton algorithm with Bisection steps
+    bool run_rtsafe{true};
 };
 
 template <typename algebra_t>
