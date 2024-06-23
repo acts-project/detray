@@ -26,6 +26,7 @@ inline auto intersection(const detector_t& detector,
                              styling::svg_default::intersection_style) {
 
     using point3_t = typename detector_t::point3_type;
+    using point2_t = typename detector_t::point2_type;
     using p_intersection_t = svgtools::meta::proto::intersection<point3_t>;
     p_intersection_t p_ir;
 
@@ -36,7 +37,8 @@ inline auto intersection(const detector_t& detector,
             continue;
         }
 
-        const auto position = sf.local_to_global(gctx, intr.local, dir);
+        const point2_t bound{intr.local[0], intr.local[1]};
+        const auto position = sf.bound_to_global(gctx, bound, dir);
         const auto p_lm = svgtools::conversion::landmark(position, style);
 
         p_ir._landmarks.push_back(p_lm);

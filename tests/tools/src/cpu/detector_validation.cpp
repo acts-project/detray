@@ -94,19 +94,16 @@ int main(int argc, char** argv) {
     const std::string file_prefix{data_dir + "/" + det_name};
     ray_scan_cfg.name(det_name + "_ray_scan");
     ray_scan_cfg.whiteboard(white_board);
-    ray_scan_cfg.intersection_file(file_prefix + "_ray_scan_intersections.csv");
-    ray_scan_cfg.track_param_file(file_prefix +
-                                  "_ray_scan_track_parameters.csv");
+    ray_scan_cfg.intersection_file(file_prefix + "_ray_scan_intersections");
+    ray_scan_cfg.track_param_file(file_prefix + "_ray_scan_track_parameters");
 
     hel_scan_cfg.name(det_name + "_helix_scan");
     hel_scan_cfg.whiteboard(white_board);
     // Let the Newton algorithm dynamically choose tol. based on approx. error
     hel_scan_cfg.mask_tolerance({detray::detail::invalid_value<scalar_t>(),
                                  detray::detail::invalid_value<scalar_t>()});
-    hel_scan_cfg.intersection_file(file_prefix +
-                                   "_helix_scan_intersections.csv");
-    hel_scan_cfg.track_param_file(file_prefix +
-                                  "_helix_scan_track_parameters.csv");
+    hel_scan_cfg.intersection_file(file_prefix + "_helix_scan_intersections");
+    hel_scan_cfg.track_param_file(file_prefix + "_helix_scan_track_parameters");
 
     str_nav_cfg.whiteboard(white_board);
     hel_nav_cfg.whiteboard(white_board);

@@ -20,7 +20,7 @@ style.use('tableau-colorblind10')
 
 plt.rcParams.update({
     'text.usetex': True,
-    'font.size': 20,
+    'font.size': 25,
     'font.family': 'serif',
 })
 
@@ -66,6 +66,7 @@ class pyplot_factory():
     def add_legend(self, ax, options = get_legend_options()):
         return ax.legend(loc           = options.loc,
                          ncol          = options.ncol,
+                         borderpad     = 0.3,
                          columnspacing = options.colspacing,
                          handletextpad = options.handletextpad)
 
@@ -75,7 +76,7 @@ class pyplot_factory():
     dividing the bin count by the total number of observations. The error is 
     calculated as the square root of the bin content.
     """
-    def hist1D(self, x, w = None,
+    def hist1D(self, x, errors = None, w = None,
                xLabel = 'x', yLabel = '', title = "",  label = "",
                xMin   = None, xMax  = None, bins = 1,
                color  = 'tab:blue', alpha = 0.75,
@@ -83,11 +84,14 @@ class pyplot_factory():
                normalize = False,
                showError = False,
                showStats = True,
+               uOutlier  = -1,
+               oOutlier  = -1,
+               figsize   = (8, 8),
                lgd_ops   = get_legend_options(),
                ax_formatter = None):
 
         # Create fresh plot
-        fig = plt.figure(figsize = (8, 6), layout='constrained')
+        fig = plt.figure(figsize = (8.5, 8.5), layout='constrained')
         ax = fig.add_subplot(1, 1, 1)
 
         if ax_formatter is None:
@@ -105,6 +109,13 @@ class pyplot_factory():
             xMin = np.min(x)
             xMax = np.max(x)
 
+        # Display number of entries in under- and overflow bins
+        underflow = len(np.argwhere(x < xMin))
+        overflow  = len(np.argwhere(x > xMax))
+        if uOutlier >= 0 or oOutlier >= 0:
+            underflow = underflow + uOutlier
+            overflow  = overflow + oOutlier
+
         # Nothing left to do
         if len(x) == 0:
             self.logger.debug(rf" create hist: empty data {label}")
@@ -113,12 +124,18 @@ class pyplot_factory():
         # Histogram normalization
         scale = 1./len(x) if normalize else 1.
 
+        # Format the 'newline'
+        newline = '\n'
+        label_str = f'{label}  ({len(x)} entries)' +                           \
+                    f'{newline} underflow: {underflow}' +                      \
+                    f'{newline} overflow:  {overflow}'
+
         # Fill data
         data, bins, hist = ax.hist(x,
                                    weights   = w,
                                    range     = (xMin, xMax),
                                    bins      = bins,
-                                   label     = f"{label}  ({len(x)} entries)",
+                                   label     = label_str,
                                    histtype  = 'stepfilled',
                                    density   = normalize,
                                    facecolor = mcolors.to_rgba(color, alpha),
@@ -131,8 +148,8 @@ class pyplot_factory():
             stdev = np.std(x, axis=0)
 
             # Create empty plot with blank marker containing the extra label
-            newline = '\n'
-            ax.plot([], [], ' ', label= rf'mean   = {mean:.2e}'
+            ax.plot([], [], ' ', label= rf'data:'
+                                        rf'{newline}mean    = {mean:.2e}'
                                         rf'{newline}stddev  = {stdev:.2e}')
         else:
             mean  = None
@@ -149,16 +166,18 @@ class pyplot_factory():
 
         # Adjust spacing in box
         lgd.legend_handles[0].set_visible(False)
+        if showStats:
+            lgd.legend_handles[1].set_visible(False)
         for vpack in lgd._legend_handle_box.get_children():
             for hpack in vpack.get_children():
                 hpack.get_children()[0].set_width(0)
 
         # Calculate the bin error
         binCenters = 0.5 * (bins[1:] + bins[:-1])
-        errors     = np.sqrt(scale * data)
+        err        = np.sqrt(scale * data) if errors is None else errors
         if showError:
             ax.errorbar(binCenters, data,
-                        yerr      = errors,
+                        yerr      = err,
                         fmt       = '.',
                         linestyle = '',
                         linewidth = 0.4,
@@ -183,10 +202,11 @@ class pyplot_factory():
                 color  = 'tab:blue', alpha = 0.75,
                 setLog    = False,
                 showError = False,
-                showStats = True):
+                showStats = True,
+                figsize   = (8, 6)):
 
         # Create fresh plot
-        fig = plt.figure(figsize = (8, 6), layout='constrained')
+        fig = plt.figure(figsize = figsize, layout='constrained')
         ax = fig.add_subplot(1, 1, 1)
 
         # Do calculations on data in the range of the histogram
@@ -304,6 +324,16 @@ class pyplot_factory():
             lgd._set_loc(lgd._loc)
             lgd.set_title(lgd.get_title().get_text())
 
+        # Refine legend
+        lgd.legend_handles[0].set_visible(False)
+        for handle in lgd.legend_handles[1:]:
+            handle.set_sizes([40])
+
+        # Adjust spacing in box
+        for vpack in lgd._legend_handle_box.get_children()[:1]:
+            for hpack in vpack.get_children():
+                hpack.get_children()[0].set_width(0)
+
 
     """ Fit a Gaussian to a 1D distribution and plot in the same figure. """
     def fit_gaussian(self, dist):
@@ -350,7 +380,7 @@ class pyplot_factory():
             x = [v for v in np.arange(min_val, max_val + step, step)]
 
             fit = dist.ax.plot(x, gaussian(x, *popt),
-                        label = rf'gaussian fit{newline}$\mu$ = {mu:.2e}' +    \
+                        label = rf'gaussian fit:{newline}$\mu$ = {mu:.2e}' +   \
                                 rf'{newline}$\sigma$ = {abs(sig):.2e}',        \
                         color = 'tab:orange')
 
@@ -361,6 +391,12 @@ class pyplot_factory():
             lgd._init_legend_box(handles, labels)
             lgd._set_loc(lgd._loc)
             lgd.set_title(lgd.get_title().get_text())
+
+            # Adjust spacing in box
+            lgd.legend_handles[0].set_visible(False)
+            for vpack in lgd._legend_handle_box.get_children()[:-1]:
+                for hpack in vpack.get_children():
+                    hpack.get_children()[0].set_width(0)
 
             return popt[1], abs(popt[2])
 

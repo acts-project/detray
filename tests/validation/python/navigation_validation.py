@@ -140,7 +140,7 @@ def __main__():
     plot_factory = plt_factory(out_dir, logging)
 
     # Read the truth data
-    ray_scan_df, helix_scan_df = read_scan_data(datadir, det_name, logging)
+    ray_scan_df, helix_scan_df = read_scan_data(datadir, det_name, str(args.transverse_momentum), logging)
 
     plot_detector_scan_data(args, det_name, plot_factory, "ray", ray_scan_df, "ray_scan", out_format)
     plot_detector_scan_data(args, det_name, plot_factory, "helix", helix_scan_df, "helix_scan", out_format)
@@ -155,7 +155,7 @@ def __main__():
                       ray_intial_trk_df)
 
     # Read the recorded data
-    ray_nav_df, ray_truth_df, ray_nav_cuda_df, helix_nav_df, helix_truth_df, helix_nav_cuda_df = read_navigation_data(datadir, det_name, args.cuda,
+    ray_nav_df, ray_truth_df, ray_nav_cuda_df, helix_nav_df, helix_truth_df, helix_nav_cuda_df = read_navigation_data(datadir, det_name, str(args.transverse_momentum), args.cuda,
                                              logging)
 
     # Plot

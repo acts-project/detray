@@ -271,6 +271,8 @@ class navigation_validation : public test::fixture_base<> {
         EXPECT_EQ(recorded_intersections.size(),
                   truth_intersection_traces.size());
 
+        scalar_t min_pT{std::numeric_limits<scalar_t>::max()};
+        scalar_t max_pT{-std::numeric_limits<scalar_t>::max()};
         for (std::size_t i = 0u; i < truth_intersection_traces.size(); ++i) {
             auto &truth_trace = truth_intersection_traces[i];
             auto &recorded_trace = recorded_intersections[i];
@@ -282,6 +284,8 @@ class navigation_validation : public test::fixture_base<> {
             // Get the original test trajectory (ray or helix)
             const auto &trck_param = truth_trace.front().track_param;
             trajectory_type test_traj = get_parametrized_trajectory(trck_param);
+            min_pT = std::min(min_pT, trck_param.pT());
+            max_pT = std::max(max_pT, trck_param.pT());
 
             // Recorded only the start position, which added by default
             bool success{true};
@@ -333,16 +337,22 @@ class navigation_validation : public test::fixture_base<> {
                                                n_matching_error);
 
         // Print track positions for plotting
+        std::string mometum_str{std::to_string(min_pT) + "_" +
+                                std::to_string(max_pT)};
+
         const auto data_path{
             std::filesystem::path{m_cfg.track_param_file()}.parent_path()};
-        const auto truth_trk_path{data_path /
-                                  (prefix + "truth_track_params_cuda.csv")};
+        const auto truth_trk_path{
+            data_path /
+            (prefix + "truth_track_params_cuda_" + mometum_str + "GeV.csv")};
         const auto trk_path{data_path /
-                            (prefix + "navigation_track_params_cuda.csv")};
-        const auto mat_path{data_path /
-                            (prefix + "accumulated_material_cuda.csv")};
-        const auto missed_path{
-            data_path / (prefix + "missed_intersections_dists_cuda.csv")};
+                            (prefix + "navigation_track_params_cuda_" +
+                             mometum_str + "GeV.csv")};
+        const auto mat_path{data_path / (prefix + "accumulated_material_cuda_" +
+                                         mometum_str + "GeV.csv")};
+        const auto missed_path{data_path /
+                               (prefix + "missed_intersections_dists_cuda_" +
+                                mometum_str + "GeV.csv")};
 
         // Write the distance of the missed intersection local position
         // to the surface boundaries to file for plotting
