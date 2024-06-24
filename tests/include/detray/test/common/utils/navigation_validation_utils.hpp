@@ -358,9 +358,9 @@ auto write_dist_to_boundary(
     // Write to csv file
     std::ios_base::openmode io_mode = std::ios::trunc | std::ios::out;
     detray::io::file_handle dist_file{file_name, io_mode};
-    *dist_file
-        << "track_id,volume_id,volume_name,phi,eta,dist,inside_wo_tol,sf_type"
-        << std::endl;
+    *dist_file << "track_id,volume_id,volume_name,phi,eta,path,dist,inside_wo_"
+                  "tol,sf_type"
+               << std::endl;
 
     for (const auto &[i, entry] :
          detray::views::enumerate(missed_intersections)) {
@@ -378,9 +378,10 @@ auto write_dist_to_boundary(
 
             *dist_file << i << "," << sf.volume() << ", " << vol.name(names)
                        << "," << getter::phi(glob_pos) << ", "
-                       << getter::eta(glob_pos) << "," << dist << ", "
-                       << std::boolalpha << sf.is_inside(missed_sfi.local, 0.f)
-                       << ", " << static_cast<int>(sf.shape_id()) << std::endl;
+                       << getter::eta(glob_pos) << "," << missed_sfi.path
+                       << ", " << dist << ", " << std::boolalpha
+                       << sf.is_inside(missed_sfi.local, 0.f) << ", "
+                       << static_cast<int>(sf.shape_id()) << std::endl;
         }
     }
 }

@@ -161,7 +161,9 @@ class pyplot_factory():
                         yerr      = errors,
                         fmt       = '.',
                         linestyle = '',
-                        color     = color)
+                        linewidth = 0.4,
+                        color     = 'black',
+                        capsize   = 2.5)
 
         # Plot log scale
         if setLog:
@@ -270,6 +272,16 @@ class pyplot_factory():
 
         # Add legend
         lgd = self.add_legend(ax, lgd_ops)
+
+        # Refine legend
+        lgd.legend_handles[0].set_visible(False)
+        for handle in lgd.legend_handles[1:]:
+            handle.set_sizes([40])
+
+        # Adjust spacing in box
+        for vpack in lgd._legend_handle_box.get_children()[:1]:
+            for hpack in vpack.get_children():
+                hpack.get_children()[0].set_width(0)
 
         return plt_data(fig, ax, lgd, scatter, None, None, None, None)
 

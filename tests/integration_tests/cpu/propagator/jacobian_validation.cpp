@@ -626,6 +626,7 @@ bound_track_parameters<algebra_type> get_initial_parameter(
     using mask_t =
         typename detector_t::mask_container::template get_type<mask_id>;
     helix_intersector<typename mask_t::shape, algebra_type> hlx_is{};
+    hlx_is.run_rtsafe = false;
     hlx_is.convergence_tolerance = helix_tolerance;
     auto sfi = hlx_is(hlx, departure_sf, departure_mask, departure_trf, 0.f);
     EXPECT_TRUE(sfi.status)
@@ -1004,6 +1005,7 @@ get_displaced_bound_vector_helix(
     using mask_t =
         typename detector_t::mask_container::template get_type<mask_id>;
     helix_intersector<typename mask_t::shape, algebra_type> hlx_is{};
+    hlx_is.run_rtsafe = false;
     hlx_is.convergence_tolerance = helix_tolerance;
     auto sfi =
         hlx_is(hlx, destination_sf, destination_mask, destination_trf, 0.f);
@@ -1057,6 +1059,7 @@ void evaluate_jacobian_difference_helix(
     using mask_t =
         typename detector_t::mask_container::template get_type<mask_id>;
     helix_intersector<typename mask_t::shape, algebra_type> hlx_is{};
+    hlx_is.run_rtsafe = false;
     hlx_is.convergence_tolerance = helix_tolerance;
 
     auto sfi =
