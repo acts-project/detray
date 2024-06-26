@@ -10,10 +10,10 @@
 // Project include(s).
 #include "detray/definitions/detail/algebra.hpp"
 #include "detray/definitions/detail/qualifiers.hpp"
-#include "detray/geometry/detector_volume.hpp"
 #include "detray/geometry/shapes/cylinder2D.hpp"
 #include "detray/geometry/shapes/ring2D.hpp"
-#include "detray/geometry/surface.hpp"
+#include "detray/geometry/tracking_surface.hpp"
+#include "detray/geometry/tracking_volume.hpp"
 
 // System include(s).
 #include <vector>
@@ -25,7 +25,7 @@ namespace detray::detail {
 /// The portals are returned as vectors in the order [inner, outer, lower,
 /// upper]
 template <typename detector_t>
-auto get_cylinder_portals(const detector_volume<detector_t> &vol) {
+auto get_cylinder_portals(const tracking_volume<detector_t> &vol) {
 
     using scalar_t = typename detector_t::scalar_type;
 
@@ -37,7 +37,7 @@ auto get_cylinder_portals(const detector_volume<detector_t> &vol) {
 
     // Loop over all portals
     for (const auto &pt_desc : vol.portals()) {
-        auto pt = surface{vol.detector(), pt_desc};
+        auto pt = tracking_surface{vol.detector(), pt_desc};
         const std::string name = pt.shape_name();
 
         if (name == "cylinder2D" || name == "concentric_cylinder2D") {

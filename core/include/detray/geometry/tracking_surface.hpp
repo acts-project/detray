@@ -31,7 +31,7 @@ namespace detray {
 /// that contains the indices into the detector data containers for the
 /// specific surface instance.
 template <typename detector_t>  // @TODO: This needs a concept
-class surface {
+class tracking_surface {
 
     /// Surface descriptor type
     using descr_t = typename detector_t::surface_type;
@@ -52,37 +52,40 @@ class surface {
     using context = typename detector_t::geometry_context;
 
     /// Not allowed: always needs a detector and a descriptor.
-    surface() = delete;
+    tracking_surface() = delete;
 
     /// Constructor from detector @param det and surface descriptor
     /// @param desc from that detector.
     DETRAY_HOST_DEVICE
-    constexpr surface(const detector_t &det, const descr_t &desc)
+    constexpr tracking_surface(const detector_t &det, const descr_t &desc)
         : m_detector{det}, m_desc{desc} {}
 
     /// Constructor from detector @param det and barcode @param bcd in
     /// that detector.
     DETRAY_HOST_DEVICE
-    constexpr surface(const detector_t &det, const geometry::barcode bcd)
-        : surface(det, det.surface(bcd)) {}
+    constexpr tracking_surface(const detector_t &det,
+                               const geometry::barcode bcd)
+        : tracking_surface(det, det.surface(bcd)) {}
 
     /// Constructor from detector @param det and surface index @param sf_idx
     DETRAY_HOST_DEVICE
-    constexpr surface(const detector_t &det, const dindex sf_idx)
-        : surface(det, det.surface(sf_idx)) {}
+    constexpr tracking_surface(const detector_t &det, const dindex sf_idx)
+        : tracking_surface(det, det.surface(sf_idx)) {}
 
     /// Conversion to surface interface around constant detector type
     template <typename detector_type = detector_t,
               std::enable_if_t<!std::is_const_v<detector_type>, bool> = true>
-    DETRAY_HOST_DEVICE constexpr operator surface<const detector_type>() const {
-        return surface<const detector_type>{this->m_detector, this->m_desc};
+    DETRAY_HOST_DEVICE constexpr
+    operator tracking_surface<const detector_type>() const {
+        return tracking_surface<const detector_type>{this->m_detector,
+                                                     this->m_desc};
     }
 
     /// Equality operator
     ///
     /// @param rhs is the right hand side to be compared to
     DETRAY_HOST_DEVICE
-    constexpr auto operator==(const surface &rhs) const -> bool {
+    constexpr auto operator==(const tracking_surface &rhs) const -> bool {
         return (&m_detector == &(rhs.m_detector) and m_desc == rhs.m_desc);
     }
 
@@ -438,7 +441,8 @@ class surface {
 
     /// @returns a string stream that prints the surface details
     DETRAY_HOST
-    friend std::ostream &operator<<(std::ostream &os, const surface &sf) {
+    friend std::ostream &operator<<(std::ostream &os,
+                                    const tracking_surface &sf) {
         os << sf.m_desc;
         return os;
     }
@@ -451,11 +455,11 @@ class surface {
 };
 
 template <typename detector_t, typename descr_t>
-DETRAY_HOST_DEVICE surface(const detector_t &, const descr_t &)
-    ->surface<detector_t>;
+DETRAY_HOST_DEVICE tracking_surface(const detector_t &, const descr_t &)
+    ->tracking_surface<detector_t>;
 
 template <typename detector_t>
-DETRAY_HOST_DEVICE surface(const detector_t &, const geometry::barcode)
-    ->surface<detector_t>;
+DETRAY_HOST_DEVICE tracking_surface(const detector_t &, const geometry::barcode)
+    ->tracking_surface<detector_t>;
 
 }  // namespace detray

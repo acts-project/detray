@@ -557,7 +557,7 @@ class detector {
         n_candidates.reserve(_volumes.size());
         for (const auto &vol : _volumes) {
             n_candidates.push_back(
-                detector_volume{*this, vol}.n_max_candidates());
+                tracking_volume{*this, vol}.n_max_candidates());
         }
         return *std::max_element(n_candidates.begin(), n_candidates.end());
     }

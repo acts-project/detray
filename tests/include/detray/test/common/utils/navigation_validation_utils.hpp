@@ -369,8 +369,8 @@ auto write_dist_to_boundary(
         for (const auto &missed_sfi : missed_inters_vec) {
 
             const auto &track = entry.first;
-            const auto sf = surface{det, missed_sfi.sf_desc.barcode()};
-            const auto vol = detector_volume{det, sf.volume()};
+            const auto sf = tracking_surface{det, missed_sfi.sf_desc.barcode()};
+            const auto vol = tracking_volume{det, sf.volume()};
 
             const auto dist = sf.min_dist_to_boundary(missed_sfi.local);
             const auto glob_pos = sf.local_to_global(

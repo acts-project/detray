@@ -6,9 +6,10 @@
  */
 
 // Project include(s)
+#include "detray/geometry/tracking_surface.hpp"
+
 #include "detray/definitions/detail/indexing.hpp"
 #include "detray/detectors/build_toy_detector.hpp"
-#include "detray/geometry/surface.hpp"
 #include "detray/test/common/types.hpp"
 
 // Vecmem include(s)
@@ -85,9 +86,9 @@ GTEST_TEST(detray_geometry, surface) {
 
     using detector_t = detector<toy_metadata>;
 
-    using point2_t = surface<detector_t>::point2_type;
-    using point3_t = surface<detector_t>::point3_type;
-    using vector3_t = surface<detector_t>::vector3_type;
+    using point2_t = tracking_surface<detector_t>::point2_type;
+    using point3_t = tracking_surface<detector_t>::point3_type;
+    using vector3_t = tracking_surface<detector_t>::vector3_type;
 
     vecmem::host_memory_resource host_mr;
     const auto [toy_det, names] = build_toy_detector(host_mr);
@@ -95,7 +96,7 @@ GTEST_TEST(detray_geometry, surface) {
     auto ctx = typename detector_t::geometry_context{};
 
     const auto disc_descr = toy_det.surfaces()[1u];
-    const auto disc = surface{toy_det, disc_descr};
+    const auto disc = tracking_surface{toy_det, disc_descr};
 
     // IDs
     ASSERT_EQ(disc.barcode(), disc_descr.barcode());

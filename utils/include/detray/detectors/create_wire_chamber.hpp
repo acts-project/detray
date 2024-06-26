@@ -393,7 +393,7 @@ inline auto create_wire_chamber(vecmem::memory_resource &resource,
             assert(sf_desc.volume() < det.volumes().size());
 
             // Update the surface links accroding to number of data in detector
-            const auto sf = surface{det, sf_desc};
+            const auto sf = tracking_surface{det, sf_desc};
             sf.template visit_mask<detail::mask_index_update>(sf_desc);
             sf.template visit_material<detail::material_index_update>(sf_desc);
             sf_desc.update_transform(trf_offset);
@@ -423,7 +423,7 @@ inline auto create_wire_chamber(vecmem::memory_resource &resource,
         auto gbuilder = grid_builder<detector_t, cyl_grid_t>{};
 
         // The portal portals are at the end of the portal range by construction
-        auto vol = detector_volume{det, vol_desc};
+        auto vol = tracking_volume{det, vol_desc};
         auto portal_mask_idx = (vol.portals().end() - 4)->mask().index();
         const auto &inner_cyl_mask =
             det.mask_store().template get<cyl_id>().at(portal_mask_idx);

@@ -8,8 +8,8 @@
 #pragma once
 
 // Project include(s)
-#include "detray/geometry/detector_volume.hpp"
-#include "detray/geometry/surface.hpp"
+#include "detray/geometry/tracking_surface.hpp"
+#include "detray/geometry/tracking_volume.hpp"
 #include "detray/materials/predefined_materials.hpp"
 #include "detray/utils/ranges.hpp"
 
@@ -23,7 +23,7 @@ namespace detray::detail {
 
 /// @returns a string that identifies the volume
 template <typename detector_t>
-std::string print_volume_name(const detector_volume<detector_t> &vol,
+std::string print_volume_name(const tracking_volume<detector_t> &vol,
                               const typename detector_t::name_map &names) {
     if (names.empty()) {
         return std::to_string(vol.index());
@@ -55,8 +55,8 @@ struct surface_checker {
         const detector_t &det, const dindex vol_idx,
         const typename detector_t::name_map &names) const {
 
-        const auto sf = surface{det, sf_descr};
-        const auto vol = detector_volume{det, vol_idx};
+        const auto sf = tracking_surface{det, sf_descr};
+        const auto vol = tracking_volume{det, vol_idx};
         std::stringstream err_stream{};
         err_stream << "VOLUME \"" << print_volume_name(vol, names) << "\":\n";
 
@@ -91,7 +91,8 @@ struct surface_checker {
 
         // Check that the same surface is registered in the detector surface
         // lookup
-        const auto sf_from_lkp = surface{det, det.surface(sf.barcode())};
+        const auto sf_from_lkp =
+            tracking_surface{det, det.surface(sf.barcode())};
         if (not(sf_from_lkp == sf)) {
             err_stream << "ERROR: Surfaces in volume and detector lookups "
                        << "differ:\n In volume acceleration data structure: "
@@ -119,7 +120,7 @@ struct surface_checker {
         if (ref_descr.volume() != check_descr.volume()) {
             std::stringstream err_stream{};
             err_stream << "Incorrect volume index on surface: "
-                       << surface{det, check_descr};
+                       << tracking_surface{det, check_descr};
 
             throw std::invalid_argument(err_stream.str());
         }
@@ -303,7 +304,7 @@ inline bool check_consistency(const detector_t &det, const bool verbose = false,
     // Check the volumes
     for (const auto &[idx, vol_desc] :
          detray::views::enumerate(det.volumes())) {
-        const auto vol = detector_volume{det, vol_desc};
+        const auto vol = tracking_volume{det, vol_desc};
         err_stream << "VOLUME \"" << print_volume_name(vol, names) << "\":\n";
 
         // Check that nothing is obviously broken
@@ -332,8 +333,8 @@ inline bool check_consistency(const detector_t &det, const bool verbose = false,
     // Check the surfaces in the detector's surface lookup
     for (const auto &[idx, sf_desc] :
          detray::views::enumerate(det.surfaces())) {
-        const auto sf = surface{det, sf_desc};
-        const auto vol = detector_volume{det, sf.volume()};
+        const auto sf = tracking_surface{det, sf_desc};
+        const auto vol = tracking_volume{det, sf.volume()};
         err_stream << "VOLUME \"" << print_volume_name(vol, names) << "\":\n";
 
         // Check that nothing is obviously broken

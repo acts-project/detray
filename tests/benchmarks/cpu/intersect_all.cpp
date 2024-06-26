@@ -9,7 +9,7 @@
 #include "detray/core/detector.hpp"
 #include "detray/definitions/units.hpp"
 #include "detray/detectors/build_toy_detector.hpp"
-#include "detray/geometry/surface.hpp"
+#include "detray/geometry/tracking_surface.hpp"
 #include "detray/navigation/detail/ray.hpp"
 #include "detray/navigation/intersection/ray_intersector.hpp"
 #include "detray/navigation/intersection_kernel.hpp"
@@ -75,7 +75,7 @@ void BM_INTERSECT_ALL(benchmark::State &state) {
 
             // Loop over all surfaces in detector
             for (const sf_desc_t &sf_desc : d.surfaces()) {
-                const auto sf = surface{d, sf_desc};
+                const auto sf = tracking_surface{d, sf_desc};
                 sf.template visit_mask<
                     intersection_initialize<ray_intersector>>(
                     intersections, detail::ray(track), sf_desc, transforms,

@@ -8,7 +8,7 @@
 #pragma once
 
 // Project include(s)
-#include "detray/geometry/detector_volume.hpp"
+#include "detray/geometry/tracking_volume.hpp"
 #include "detray/plugins/svgtools/conversion/volume.hpp"
 #include "detray/plugins/svgtools/styling/styling.hpp"
 
@@ -40,7 +40,7 @@ auto detector(const typename detector_t::geometry_context& context,
 
     for (const auto& vol_desc : detector.volumes()) {
         auto [p_volume, gr_type] = svgtools::conversion::volume(
-            context, detector, detector_volume{detector, vol_desc}, view,
+            context, detector, tracking_volume{detector, vol_desc}, view,
             style._volume_style, hide_portals, hide_passives, hide_grids);
 
         p_detector._volumes.push_back(p_volume);

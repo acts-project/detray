@@ -8,8 +8,8 @@
 #pragma once
 
 // Project include(s)
-#include "detray/geometry/detector_volume.hpp"
-#include "detray/geometry/surface.hpp"
+#include "detray/geometry/tracking_surface.hpp"
+#include "detray/geometry/tracking_volume.hpp"
 #include "detray/io/common/detail/basic_converter.hpp"
 #include "detray/io/common/detail/type_info.hpp"
 #include "detray/io/frontend/detail/type_traits.hpp"
@@ -100,11 +100,11 @@ class homogeneous_material_writer {
 
         // Find all surfaces that belong to the volume and count them
         std::size_t sf_idx{0u}, slab_idx{0u}, rod_idx{0u};
-        auto vol = detector_volume{det, vol_desc};
+        auto vol = tracking_volume{det, vol_desc};
         for (const auto& sf_desc : vol.surfaces()) {
 
             // Convert material slabs and rods
-            const auto sf = surface{det, sf_desc};
+            const auto sf = tracking_surface{det, sf_desc};
             material_slab_payload mslp =
                 sf.template visit_material<get_material_payload>(sf_idx);
 

@@ -14,7 +14,7 @@
 #include "detray/builders/material_map_generator.hpp"
 #include "detray/builders/surface_factory_interface.hpp"
 #include "detray/builders/volume_builder_interface.hpp"
-#include "detray/geometry/surface.hpp"
+#include "detray/geometry/tracking_surface.hpp"
 #include "detray/materials/material_map.hpp"
 
 // System include(s)
@@ -116,7 +116,7 @@ class material_map_builder : public volume_decorator<detector_t> {
 
         // Build the material grid for every surface that has material
         dindex sf_idx = 0u;
-        auto vol = detector_volume{det, this->vol_index()};
+        auto vol = tracking_volume{det, this->vol_index()};
         for (const auto& sf_desc : vol.surfaces()) {
 
             if (!surface_has_map(sf_idx++)) {
@@ -131,7 +131,7 @@ class material_map_builder : public volume_decorator<detector_t> {
             }
 
             // Construct and append the material map for a given surface shape
-            auto sf = surface{det, sf_desc};
+            auto sf = tracking_surface{det, sf_desc};
             [[maybe_unused]] auto [mat_id, mat_idx] = sf.template visit_mask<
                 detail::add_sf_material_map<materials_t>>(
                 m_factory, m_bin_data.at(sf_idx - 1u), m_n_bins.at(sf_idx - 1u),

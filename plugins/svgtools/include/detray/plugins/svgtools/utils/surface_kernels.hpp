@@ -9,10 +9,10 @@
 
 // Project include(s)
 #include "detray/definitions/units.hpp"
-#include "detray/geometry/detector_volume.hpp"
 #include "detray/geometry/mask.hpp"
 #include "detray/geometry/shapes.hpp"
-#include "detray/geometry/surface.hpp"
+#include "detray/geometry/tracking_surface.hpp"
+#include "detray/geometry/tracking_volume.hpp"
 
 // System include(s)
 #include <cassert>
@@ -193,7 +193,7 @@ struct link_end_getter {
     DETRAY_HOST inline auto operator()(
         const mask_group_t& mask_group, const index_t& index,
         const detector_t& detector,
-        const detray::detector_volume<detector_t>& volume,
+        const detray::tracking_volume<detector_t>& volume,
         const point3_t& surface_point, const vector3_t& surface_normal,
         const scalar_t& link_length) const {
 
@@ -208,7 +208,7 @@ struct link_end_getter {
     template <typename detector_t, typename mask_t, typename point3_t,
               typename vector3_t>
     inline auto link_dir(const mask_t& /*mask*/, const detector_t& /*detector*/,
-                         const detray::detector_volume<detector_t>& volume,
+                         const detray::tracking_volume<detector_t>& volume,
                          const point3_t& surface_point,
                          const vector3_t& surface_normal) const {
         const auto dir = volume.center() - surface_point;
@@ -229,12 +229,12 @@ struct link_end_getter {
                          bool> = true>
     inline auto link_dir(const detray::mask<shape_t>& mask,
                          const detector_t& detector,
-                         const detray::detector_volume<detector_t>& volume,
+                         const detray::tracking_volume<detector_t>& volume,
                          const point3_t& /*surface_point*/,
                          const vector3_t& surface_normal) const {
         for (const auto& desc : volume.portals()) {
 
-            const detray::surface surface{detector, desc};
+            const detray::tracking_surface surface{detector, desc};
 
             if (auto r = surface.template visit_mask<outer_radius_getter>()) {
                 if (*r > mask[shape_t::e_r]) {

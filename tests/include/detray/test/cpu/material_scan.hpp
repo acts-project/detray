@@ -146,7 +146,8 @@ class material_scan : public test::fixture_base<> {
                     continue;
                 }
 
-                const auto sf = surface{m_det, record.intersection.sf_desc};
+                const auto sf =
+                    tracking_surface{m_det, record.intersection.sf_desc};
 
                 if (!sf.has_material()) {
                     continue;

@@ -11,7 +11,7 @@
 #include "detray/definitions/detail/qualifiers.hpp"
 #include "detray/definitions/track_parametrization.hpp"
 #include "detray/definitions/units.hpp"
-#include "detray/geometry/surface.hpp"
+#include "detray/geometry/tracking_surface.hpp"
 #include "detray/materials/interaction.hpp"
 #include "detray/propagator/base_actor.hpp"
 #include "detray/simulation/landau_distribution.hpp"
