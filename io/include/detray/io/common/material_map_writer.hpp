@@ -58,7 +58,7 @@ class material_map_writer : public detail::grid_writer {
             dindex offset{dindex_invalid};
 
             /// Check if a surface has a metrial map
-            auto vol = detector_volume{det, vol_desc};
+            auto vol = tracking_volume{det, vol_desc};
             for (const auto& sf_desc : vol.surfaces()) {
 
                 if (sf_desc.index() < offset) {

@@ -99,8 +99,8 @@ GTEST_TEST(detray_builders, detector_builder) {
     //
     vecmem::host_memory_resource host_mr;
     const detector_t d = det_builder.build(host_mr);
-    const auto& vol0 = detector_volume{d, 0u};
-    const auto& vol1 = detector_volume{d, 1u};
+    const auto& vol0 = tracking_volume{d, 0u};
+    const auto& vol1 = tracking_volume{d, 1u};
 
     // check the results
     EXPECT_EQ(d.volumes().size(), 2u);

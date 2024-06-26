@@ -245,7 +245,7 @@ GTEST_TEST(detray_builders, detector_builder_with_material) {
     //
     vecmem::host_memory_resource host_mr;
     const detector_t d = det_builder.build(host_mr);
-    const auto vol = detector_volume{d, 0u};
+    const auto vol = tracking_volume{d, 0u};
 
     // check the results
     EXPECT_EQ(d.volumes().size(), 1u);

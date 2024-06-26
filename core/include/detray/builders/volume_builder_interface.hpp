@@ -8,7 +8,7 @@
 #pragma once
 
 // Project include(s).
-#include "detray/geometry/detector_volume.hpp"
+#include "detray/geometry/tracking_volume.hpp"
 
 // System include(s)
 #include <memory>

@@ -13,8 +13,8 @@
 #include "detray/builders/surface_factory_interface.hpp"
 #include "detray/builders/volume_builder.hpp"
 #include "detray/builders/volume_builder_interface.hpp"
-#include "detray/geometry/detector_volume.hpp"
-#include "detray/geometry/surface.hpp"
+#include "detray/geometry/tracking_surface.hpp"
+#include "detray/geometry/tracking_volume.hpp"
 
 // System include(s)
 #include <array>
@@ -147,7 +147,7 @@ class grid_builder : public volume_decorator<detector_t> {
             volume_decorator<detector_t>::build(det, ctx);
 
         // Find the surfaces that should be filled into the grid
-        const auto vol = detector_volume{det, vol_ptr->index()};
+        const auto vol = tracking_volume{det, vol_ptr->index()};
 
         // Grid has not been filled previously, fill it automatically
         if (m_grid.size() == 0u) {
@@ -162,7 +162,7 @@ class grid_builder : public volume_decorator<detector_t> {
             }
 
             this->fill_grid(
-                detector_volume{det,
+                tracking_volume{det,
                                 volume_decorator<detector_t>::operator()()},
                 surfaces, det.transform_store(), det.mask_store(), ctx);
         } else {

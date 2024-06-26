@@ -145,7 +145,7 @@ auto surface_grid(const detector_t& detector, const dindex index,
 
     // Get the the radii of the volume portal surfaces
     std::vector<scalar_t> radii{};
-    const auto vol = detector_volume{detector, vol_desc};
+    const auto vol = tracking_volume{detector, vol_desc};
 
     // Passive surfaces could be in the brute force finder, but no
     // sensitive surfaces, since the volume has a grid. Their radii are,
@@ -181,7 +181,7 @@ auto surface_grid(const detector_t& detector, const dindex index,
 /// @returns a vector of surface indices per neighborhood
 template <typename detector_t>
 std::vector<std::vector<std::size_t>> get_bin_association(
-    const detector_t& det, const detray::detector_volume<detector_t>& vol,
+    const detector_t& det, const detray::tracking_volume<detector_t>& vol,
     const std::array<dindex, 2>& search_window = {2u, 2u}) {
 
     using geo_object_ids = typename detector_t::geo_obj_ids;
