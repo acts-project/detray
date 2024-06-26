@@ -124,6 +124,8 @@ class navigation_validation : public test::fixture_base<> {
         std::vector<std::pair<trajectory_type, std::vector<intersection_t>>>
             missed_intersections{};
 
+        scalar_t min_pT{std::numeric_limits<scalar_t>::max()};
+        scalar_t max_pT{-std::numeric_limits<scalar_t>::max()};
         for (auto &truth_trace : truth_traces) {
 
             if (n_tracks >= m_cfg.n_tracks()) {
@@ -135,6 +137,8 @@ class navigation_validation : public test::fixture_base<> {
             const auto &start = truth_trace.front();
             const auto &track = start.track_param;
             trajectory_type test_traj = get_parametrized_trajectory(track);
+            min_pT = std::min(min_pT, track.pT());
+            max_pT = std::max(max_pT, track.pT());
 
             // Run the propagation
             auto [success, obj_tracer, mat_trace, nav_printer, step_printer] =
@@ -202,15 +206,20 @@ class navigation_validation : public test::fixture_base<> {
                                                n_matching_error);
 
         // Print track positions for plotting
+        std::string mometum_str{std::to_string(min_pT) + "_" +
+                                std::to_string(max_pT)};
+
         const auto data_path{
             std::filesystem::path{m_cfg.track_param_file()}.parent_path()};
-        const auto truth_trk_path{data_path /
-                                  (prefix + "truth_track_params.csv")};
-        const auto trk_path{data_path /
-                            (prefix + "navigation_track_params.csv")};
-        const auto mat_path{data_path / (prefix + "accumulated_material.csv")};
-        const auto missed_path{data_path /
-                               (prefix + "missed_intersections_dists.csv")};
+        const auto truth_trk_path{data_path / (prefix + "truth_track_params_" +
+                                               mometum_str + "GeV.csv")};
+        const auto trk_path{data_path / (prefix + "navigation_track_params_" +
+                                         mometum_str + "GeV.csv")};
+        const auto mat_path{data_path / (prefix + "accumulated_material_" +
+                                         mometum_str + "GeV.csv")};
+        const auto missed_path{
+            data_path /
+            (prefix + "missed_intersections_dists_" + mometum_str + "GeV.csv")};
 
         // Write the distance of the missed intersection local position
         // to the surface boundaries to file for plotting

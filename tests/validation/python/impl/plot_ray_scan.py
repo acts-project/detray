@@ -52,7 +52,7 @@ def plot_intersection_points_xy(opts, df, detector, scan_type, plotFactory,  out
     # Plot the xy coordinates of the filtered intersections points
     lgd_ops = plotting.legend_options('upper center', 4, 0.4, 0.005)
     hist_data = plotFactory.scatter(
-                            figsize = (8, 8),
+                            figsize = (10, 10),
                             x       = senstive_x,
                             y       = senstive_y,
                             xLabel  = r'$x\,\mathrm{[mm]}$',
@@ -82,13 +82,16 @@ def plot_intersection_points_xy(opts, df, detector, scan_type, plotFactory,  out
         plotFactory.highlight_region(hist_data, passive_x, passive_y, 'C2',    \
                                      "passives")
 
+    # Set aspect ratio
+    hist_data.ax.set_aspect('equal')
+
     # Refine legend
     hist_data.lgd.legend_handles[0].set_visible(False)
     for handle in hist_data.lgd.legend_handles[1:]:
         handle.set_sizes([40])
 
     # For this plot, move the legend ouside
-    hist_data.lgd.set_bbox_to_anchor((0.5, 1.11))
+    hist_data.lgd.set_bbox_to_anchor((0.5, 1.095))
 
     # Adjust spacing in box
     for vpack in hist_data.lgd._legend_handle_box.get_children()[:1]:
@@ -153,10 +156,10 @@ def plot_intersection_points_rz(opts, df, detector, scan_type, plotFactory,  out
     # Refine legend
     hist_data.lgd.legend_handles[0].set_visible(False)
     for handle in hist_data.lgd.legend_handles[1:]:
-        handle.set_sizes([40])
+        handle.set_sizes([45])
 
     # For this plot, move the legend ouside
-    hist_data.lgd.set_bbox_to_anchor((0.5, 1.15))
+    hist_data.lgd.set_bbox_to_anchor((0.5, 1.165))
 
     # Adjust spacing in box
     for vpack in hist_data.lgd._legend_handle_box.get_children()[:1]:
@@ -172,6 +175,6 @@ def plot_detector_scan_data(args, det_name, plot_factory, data_type, df, name, o
 
     # Plot truth scan
     plot_intersection_points_xy(args, df, det_name,
-                                name, plot_factory, out_format)
+                                data_type, plot_factory, out_format)
     plot_intersection_points_rz(args, df, det_name,
-                                name, plot_factory, out_format)
+                                data_type, plot_factory, out_format)

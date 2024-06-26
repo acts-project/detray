@@ -439,6 +439,8 @@ class illustrator {
 
         auto p_ir = svgtools::conversion::intersection(
             _detector, intersections, dir, gctx, _style._intersection_style);
+        // The first intersection sits in the origin by convention
+        p_ir._landmarks.front()._position = {0.f, 0.f, 0.f};
 
         return svgtools::meta::display::intersection(prefix, p_ir, view);
     }
@@ -512,6 +514,8 @@ class illustrator {
             auto p_ir = svgtools::conversion::intersection(
                 _detector, intersections, trajectory.dir(0.f), gctx,
                 _style._landmark_style);
+            // The first intersection sits in the origin by convention
+            p_ir._landmarks.front()._position = {0.f, 0.f, 0.f};
 
             ret.add_object(svgtools::meta::display::intersection(
                 prefix + "_record", p_ir, view));

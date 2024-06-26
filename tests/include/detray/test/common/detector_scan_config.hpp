@@ -33,8 +33,8 @@ struct detector_scan_config : public test::fixture_base<>::configuration {
     /// Save results for later use in downstream tests
     std::shared_ptr<test::whiteboard> m_white_board;
     /// Name of the input file, containing the complete ray scan traces
-    std::string m_intersection_file{"truth_intersections.csv"};
-    std::string m_track_param_file{"truth_trk_parameters.csv"};
+    std::string m_intersection_file{"truth_intersections"};
+    std::string m_track_param_file{"truth_trk_parameters"};
     /// Mask tolerance for the intersectors
     std::array<scalar_type, 2> m_mask_tol{
         std::numeric_limits<float>::epsilon(),

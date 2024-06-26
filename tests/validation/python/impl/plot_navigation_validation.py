@@ -13,7 +13,7 @@ import os
 
 
 """ Read the detector scan data from files and prepare data frames """
-def read_scan_data(inputdir, det_name, logging):
+def read_scan_data(inputdir, det_name, momentum, logging):
 
     # Input data directory
     data_dir = os.fsencode(inputdir)
@@ -26,15 +26,15 @@ def read_scan_data(inputdir, det_name, logging):
     for file in os.listdir(data_dir):
         filename = os.fsdecode(file)
 
-        if filename.find(det_name + '_ray_scan_intersections') != -1:
+        if filename.find(det_name + '_ray_scan_intersections_' + momentum) != -1:
             ray_scan_intersections_file = inputdir + "/" + filename
             file_name = os.path.basename(ray_scan_intersections_file)
-        elif filename.find(det_name + '_ray_scan_track_parameters') != -1:
+        elif filename.find(det_name + '_ray_scan_track_parameters_' + momentum) != -1:
             ray_scan_track_param_file = inputdir + "/" + filename
-        elif filename.find(det_name + '_helix_scan_intersections') != -1:
+        elif filename.find(det_name + '_helix_scan_intersections_' + momentum) != -1:
             helix_scan_intersections_file = inputdir + "/" + filename
             file_name = os.path.basename(helix_scan_intersections_file)
-        elif filename.find(det_name + '_helix_scan_track_parameters') != -1:
+        elif filename.find(det_name + '_helix_scan_track_parameters_' + momentum) != -1:
             helix_scan_track_param_file = inputdir + "/" + filename
 
     # Read ray scan data
@@ -49,7 +49,7 @@ def read_scan_data(inputdir, det_name, logging):
 
 
 """ Read the recorded track positions from files and prepare data frames """
-def read_navigation_data(inputdir, det_name, read_cuda, logging):
+def read_navigation_data(inputdir, det_name, momentum, read_cuda, logging):
 
     # Input data directory
     data_dir = os.fsencode(inputdir)
@@ -61,17 +61,17 @@ def read_navigation_data(inputdir, det_name, read_cuda, logging):
     for file in os.listdir(data_dir):
         filename = os.fsdecode(file)
 
-        if read_cuda and filename.find(det_name + '_ray_navigation_track_params_cuda') != -1:
+        if read_cuda and filename.find(det_name + '_ray_navigation_track_params_cuda_' + momentum) != -1:
             ray_data_cuda_file = inputdir + "/" + filename
-        elif filename.find(det_name + '_ray_navigation_track_params') != -1:
+        elif filename.find(det_name + '_ray_navigation_track_params_' + momentum) != -1:
             ray_data_file = inputdir + "/" + filename
-        elif filename.find(det_name + '_ray_truth_track_params') != -1:
+        elif filename.find(det_name + '_ray_truth_track_params_' + momentum) != -1:
             ray_truth_file = inputdir + "/" + filename
-        elif read_cuda and filename.find(det_name + '_helix_navigation_track_params_cuda') != -1:
+        elif read_cuda and filename.find(det_name + '_helix_navigation_track_params_cuda_' + momentum) != -1:
             helix_data_cuda_file = inputdir + "/" + filename
-        elif filename.find(det_name + '_helix_navigation_track_params') != -1:
+        elif filename.find(det_name + '_helix_navigation_track_params_' + momentum) != -1:
             helix_data_file = inputdir + "/" + filename
-        elif filename.find(det_name + '_helix_truth_track_params') != -1:
+        elif filename.find(det_name + '_helix_truth_track_params_' + momentum) != -1:
             helix_truth_file = inputdir + "/" + filename
 
     ray_df = read_track_data(ray_data_file, logging)
