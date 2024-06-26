@@ -38,6 +38,8 @@ struct material_validation_config : public test::fixture_base<>::configuration {
     std::string m_material_file{"navigation_material_trace.csv"};
     /// The maximal number of test tracks to run
     std::size_t m_n_tracks{detray::detail::invalid_value<std::size_t>()};
+    /// Allowed relative discrepancy between truth and navigation material
+    scalar_type m_rel_error{0.001f};
 
     /// Getters
     /// @{
@@ -49,6 +51,7 @@ struct material_validation_config : public test::fixture_base<>::configuration {
     }
     const std::string &material_file() const { return m_material_file; }
     std::size_t n_tracks() const { return m_n_tracks; }
+    scalar_type relative_error() const { return m_rel_error; }
     /// @}
 
     /// Setters
@@ -76,6 +79,11 @@ struct material_validation_config : public test::fixture_base<>::configuration {
     }
     material_validation_config &n_tracks(std::size_t n) {
         m_n_tracks = n;
+        return *this;
+    }
+    material_validation_config &relative_error(scalar_type re) {
+        assert(re > 0.f);
+        m_rel_error = re;
         return *this;
     }
     /// @}

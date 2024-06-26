@@ -45,6 +45,7 @@ def plot_track_params(opts, detector, track_type, plotFactory, out_format,
                                      bins    = 4,
                                      xLabel  = r'$q\,\mathrm{[e]}$',
                                      lgd_ops = lgd_ops,
+                                     figsize  = (8.5, 8.5),
                                      ax_formatter = ScalarFormatter())
 
     # For this plot, move the legend ouside
@@ -64,6 +65,7 @@ def plot_track_params(opts, detector, track_type, plotFactory, out_format,
                                      xLabel  = r'$p_{tot}\,\mathrm{[GeV]}$',
                                      lgd_ops = lgd_ops,
                                      setLog  = True,
+                                     figsize  = (8.5, 8.5),
                                      ax_formatter = ScalarFormatter())
 
     p_hist_data.lgd.set_bbox_to_anchor((box_anchor_x, box_anchor_y))
@@ -80,6 +82,7 @@ def plot_track_params(opts, detector, track_type, plotFactory, out_format,
                                       bins    = 100,
                                       xLabel  = r'$p_{T}\,\mathrm{[GeV]}$',
                                       lgd_ops = lgd_ops,
+                                      figsize  = (8.5, 8.5),
                                       ax_formatter = ScalarFormatter())
 
     pT_hist_data.lgd.set_bbox_to_anchor((box_anchor_x, box_anchor_y))
@@ -94,6 +97,7 @@ def plot_track_params(opts, detector, track_type, plotFactory, out_format,
                                      bins    = 100,
                                      xLabel  = r'$x\,\mathrm{[mm]}$',
                                      lgd_ops = lgd_ops,
+                                     figsize  = (8.5, 8.5),
                                      ax_formatter = ScalarFormatter())
 
     x_hist_data.lgd.set_bbox_to_anchor((box_anchor_x, box_anchor_y))
@@ -108,6 +112,7 @@ def plot_track_params(opts, detector, track_type, plotFactory, out_format,
                                      bins    = 100,
                                      xLabel  = r'$y\,\mathrm{[mm]}$',
                                      lgd_ops = lgd_ops,
+                                     figsize  = (8.5, 8.5),
                                      ax_formatter = ScalarFormatter())
 
     y_hist_data.lgd.set_bbox_to_anchor((box_anchor_x, box_anchor_y))
@@ -121,6 +126,7 @@ def plot_track_params(opts, detector, track_type, plotFactory, out_format,
                                      bins    = 100,
                                      xLabel  = r'$z\,\mathrm{[mm]}$',
                                      lgd_ops = lgd_ops,
+                                     figsize  = (8.5, 8.5),
                                      ax_formatter = ScalarFormatter())
 
     z_hist_data.lgd.set_bbox_to_anchor((box_anchor_x, box_anchor_y))
@@ -136,6 +142,7 @@ def plot_track_params(opts, detector, track_type, plotFactory, out_format,
                                         bins    = 100,
                                         xLabel  = r'$\varphi\,\mathrm{[rad]}$',
                                         lgd_ops = lgd_ops,
+                                        figsize  = (8.5, 8.5),
                                         ax_formatter = ScalarFormatter())
 
     dir_phi_hist_data.lgd.set_bbox_to_anchor((box_anchor_x, box_anchor_y))
@@ -151,6 +158,7 @@ def plot_track_params(opts, detector, track_type, plotFactory, out_format,
                                              bins    = 100,
                                              xLabel  = r'$\theta\,\mathrm{[rad]}$',
                                              lgd_ops = lgd_ops,
+                                             figsize  = (8.5, 8.5),
                                              ax_formatter = ScalarFormatter())
 
     dir_theta_hist_data.lgd.set_bbox_to_anchor((box_anchor_x, box_anchor_y))
@@ -166,6 +174,7 @@ def plot_track_params(opts, detector, track_type, plotFactory, out_format,
                                            bins    = 100,
                                            xLabel  = r'$\eta$',
                                            lgd_ops = lgd_ops,
+                                           figsize  = (8.5, 8.5),
                                            ax_formatter = ScalarFormatter())
 
     dir_eta_hist_data.lgd.set_bbox_to_anchor((box_anchor_x, box_anchor_y))
@@ -308,6 +317,7 @@ def plot_track_pos_dist(opts, detector, scan_type, plotFactory, out_format,
                                    bins    = 100,
                                    xLabel  = r'$d\,\mathrm{[mm]}$',
                                    setLog  = True,
+                                   figsize  = (8.5, 8.5),
                                    lgd_ops = lgd_ops)
 
     hist_data.lgd.set_bbox_to_anchor((box_anchor_x, box_anchor_y))
@@ -328,7 +338,7 @@ def plot_track_pos_res(opts, detector, scan_type, plotFactory, out_format,
     tracks =  "rays" if scan_type == "ray" else "helices"
     # Where to place the legend box
     box_anchor_x = 1.02
-    box_anchor_y = 1.285
+    box_anchor_y = 1.28
 
     res = df1[var] - df2[var]
 

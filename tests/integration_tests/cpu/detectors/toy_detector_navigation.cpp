@@ -112,7 +112,10 @@ int main(int argc, char **argv) {
     test::material_validation<toy_detector_t>::config mat_val_cfg{};
     mat_val_cfg.name("toy_detector_material_validaiton");
     mat_val_cfg.whiteboard(white_board);
-    mat_val_cfg.tol(1.5e-6f);  // < Reduce tolerance for single precision tests
+    // Reduce tolerance for single precision tests
+    if constexpr (std::is_same_v<scalar_t, float>) {
+        mat_val_cfg.relative_error(1.5e-6f);
+    }
     mat_val_cfg.propagation() = cfg_str_nav.propagation();
 
     // @TODO: Put material maps on all portals
