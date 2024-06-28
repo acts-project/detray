@@ -103,7 +103,7 @@ int main(int argc, char **argv) {
     mat_scan_cfg.name("toy_detector_material_scan_for_cuda");
     mat_scan_cfg.whiteboard(white_board);
     mat_scan_cfg.track_generator().uniform_eta(true).eta_range(-4.f, 4.f);
-    mat_scan_cfg.track_generator().phi_steps(10).eta_steps(100);
+    mat_scan_cfg.track_generator().phi_steps(100).eta_steps(100);
 
     // Record the material using a ray scan
     detail::register_checks<test::material_scan>(toy_det, toy_names,
@@ -117,8 +117,8 @@ int main(int argc, char **argv) {
     mat_val_cfg.tol(1e-6f);  // < Reduce tolerance for single precision tests
     mat_val_cfg.propagation() = cfg_str_nav.propagation();
 
-    /*detail::register_checks<detray::cuda::material_validation>(toy_det,
-       toy_names, mat_val_cfg);*/
+    detail::register_checks<detray::cuda::material_validation>(
+        toy_det, toy_names, mat_val_cfg);
 
     // Run the material validation - Homogeneous material
     toy_cfg.use_material_maps(false);
