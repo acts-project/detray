@@ -112,7 +112,7 @@ struct surface_kernels {
             const point2_type& loc_p) const {
 
             return detail::material_accessor::get(mat_group, idx, loc_p)
-                .get_maerial();
+                .get_material();
         }
     };
 
