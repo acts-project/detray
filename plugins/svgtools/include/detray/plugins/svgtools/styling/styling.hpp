@@ -44,6 +44,8 @@ struct surface_material_style {
 
     actsvg::point2 _gradient_pos;
     std::array<actsvg::scalar, 2u> _gradient_box;
+    actsvg::style::font _gradient_font;
+    actsvg::style::label _gradient_label;
     actsvg::style::color _gradient_stroke_color;
     actsvg::scalar _gradient_stroke_width;
     // unsigned int _gradient_font_size;
@@ -70,6 +72,8 @@ struct surface_style {
         _highlight_stroke_rgb = _highlight_rgb;
         _highlight_stroke_width = stroke_width;
         _font_size = 22u;
+        _material_style._gradient_font._size = 26u;
+        _material_style._gradient_label._font._size = 26u;
         _n_segments = 72u;
     }
     // Fill color
@@ -158,6 +162,9 @@ const styling::surface_material_style material_style{
     {-1000.f, 1000.f},
     {1000.f, -200.f},
     {20.f, 400.f},
+    actsvg::style::font{},
+    actsvg::style::label{"t/X0", actsvg::style::label::horizontal::right,
+                         actsvg::style::label::vertical::top},
     {colors::black, 1.f},
     1.f,
     colors::gradient::rainbow_scale,
@@ -211,6 +218,9 @@ const styling::surface_material_style material_style{
     {-1000.f, 1000.f},
     {1000.f, -200.f},
     {20.f, 400.f},
+    actsvg::style::font{},
+    actsvg::style::label{"t/X0", actsvg::style::label::horizontal::right,
+                         actsvg::style::label::vertical::top},
     {colors::black, 1.f},
     1.f,
     colors::gradient::viridis_scale,
@@ -298,9 +308,10 @@ inline void apply_style(actsvg::proto::surface_material& p_material,
 
     p_material._gradient_pos = styling._gradient_pos;
     p_material._gradient_box = styling._gradient_box;
+    p_material._gradient_font = styling._gradient_font;
+    p_material._gradient_label = styling._gradient_label;
     p_material._gradient_stroke._sc = styling._gradient_stroke_color;
     p_material._gradient_stroke._width = styling._gradient_stroke_width;
-    p_material._gradient_font._size = 22u;
     p_material._gradient._stops = colors::gradient::generate_stops(
         styling._gradient_color_scale, styling._gradient_n_stops);
 
