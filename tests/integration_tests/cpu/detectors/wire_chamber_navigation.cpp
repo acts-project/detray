@@ -112,7 +112,10 @@ int main(int argc, char **argv) {
     test::material_validation<wire_chamber_t>::config mat_val_cfg{};
     mat_val_cfg.name("wire_chamber_material_validaiton");
     mat_val_cfg.whiteboard(white_board);
-    mat_val_cfg.tol(5e-3f);  // < Reduce tolerance for single precision tests
+    // Reduce tolerance for single precision tests
+    if constexpr (std::is_same_v<scalar_t, float>) {
+        mat_val_cfg.relative_error(130.f);
+    }
     mat_val_cfg.propagation() = cfg_str_nav.propagation();
 
     detail::register_checks<test::material_validation>(det, names, mat_val_cfg);

@@ -142,8 +142,8 @@ def __main__():
     # Read the truth data
     ray_scan_df, helix_scan_df = read_scan_data(datadir, det_name, str(args.transverse_momentum), logging)
 
-    plot_detector_scan_data(args, det_name, plot_factory, "ray", ray_scan_df, "ray_scan", out_format)
-    plot_detector_scan_data(args, det_name, plot_factory, "helix", helix_scan_df, "helix_scan", out_format)
+    plot_detector_scan_data(args, det_name, plot_factory, "ray", ray_scan_df, "ray_scan", "png")
+    plot_detector_scan_data(args, det_name, plot_factory, "helix", helix_scan_df, "helix_scan", "png")
 
     # Plot distributions of track parameter values
     # Only take initial track parameters from generator

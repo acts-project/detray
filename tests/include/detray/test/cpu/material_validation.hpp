@@ -20,6 +20,7 @@
 
 // System include(s)
 #include <iostream>
+#include <limits>
 #include <stdexcept>
 #include <string>
 #include <string_view>
@@ -132,6 +133,7 @@ class material_validation_impl : public test::fixture_base<> {
 
         // Collect some statistics
         std::size_t n_tracks{0u};
+        const scalar_t rel_error{m_cfg.relative_error()};
         for (std::size_t i = 0u; i < mat_records.size(); ++i) {
 
             if (n_tracks >= m_cfg.n_tracks()) {
@@ -141,14 +143,36 @@ class material_validation_impl : public test::fixture_base<> {
             const auto &truth_mat = truth_mat_records[i];
             const auto &recorded_mat = mat_records[i];
 
-            EXPECT_NEAR(truth_mat.sX0, recorded_mat.sX0, m_cfg.tol())
-                << "Track " << n_tracks << " (X0 / path)";
-            EXPECT_NEAR(truth_mat.tX0, recorded_mat.tX0, m_cfg.tol())
-                << "Track " << n_tracks << " (X0 / thickness)";
-            EXPECT_NEAR(truth_mat.sL0, recorded_mat.sL0, m_cfg.tol())
-                << "Track " << n_tracks << " (L0 / path)";
-            EXPECT_NEAR(truth_mat.tL0, recorded_mat.tL0, m_cfg.tol())
-                << "Track " << n_tracks << " (L0 / thickness)";
+            auto get_rel_error = [](const scalar_t truth, const scalar_t rec) {
+                constexpr scalar_t e{std::numeric_limits<scalar_t>::epsilon()};
+
+                if (truth <= e && rec <= e) {
+                    // No material for this ray => valid
+                    return scalar_t{0.f};
+                } else if (truth <= e) {
+                    // Material found where none should be
+                    return detail::invalid_value<scalar_t>();
+                } else {
+                    return math::fabs(truth - rec) / truth;
+                }
+            };
+
+            EXPECT_TRUE(get_rel_error(truth_mat.sX0, recorded_mat.sX0) <
+                        rel_error)
+                << "Track " << n_tracks << " (X0 / path): Truth "
+                << truth_mat.sX0 << ", Nav. " << recorded_mat.sX0;
+            EXPECT_TRUE(get_rel_error(truth_mat.tX0, recorded_mat.tX0) <
+                        rel_error)
+                << "Track " << n_tracks << " (X0 / thickness): Truth "
+                << truth_mat.tX0 << ", Nav. " << recorded_mat.tX0;
+            EXPECT_TRUE(get_rel_error(truth_mat.sL0, recorded_mat.sL0) <
+                        rel_error)
+                << "Track " << n_tracks << " (L0 / path): Truth "
+                << truth_mat.sL0 << ", Nav. " << recorded_mat.sL0;
+            EXPECT_TRUE(get_rel_error(truth_mat.tL0, recorded_mat.tL0) <
+                        rel_error)
+                << "Track " << n_tracks << " (L0 / thickness): Truth "
+                << truth_mat.tL0 << ", Nav. " << recorded_mat.tL0;
 
             ++n_tracks;
         }

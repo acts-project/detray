@@ -91,11 +91,11 @@ def read_navigation_data(inputdir, det_name, momentum, read_cuda, logging):
 def plot_navigation_data(args, det_name, plot_factory, data_type, df_truth, truth_name, df_ref, ref_name, out_format = "png"):
 
     # xy
-    compare_track_pos_xy(args, det_name, data_type, plot_factory, out_format,
+    compare_track_pos_xy(args, det_name, data_type, plot_factory, "png",
                          df_truth, truth_name, 'r',
                          df_ref, ref_name, 'darkgrey')
     # rz
-    compare_track_pos_rz(args, det_name, data_type, plot_factory, out_format,
+    compare_track_pos_rz(args, det_name, data_type, plot_factory, "png",
                          df_truth, truth_name, 'r',
                          df_ref, ref_name, 'darkgrey')
 

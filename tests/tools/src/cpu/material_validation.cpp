@@ -47,8 +47,8 @@ int main(int argc, char **argv) {
     po::options_description desc("\ndetray material validation options");
 
     desc.add_options()(
-        "tol", boost::program_options::value<float>()->default_value(1e-4f),
-        "Tolerance for comparing the material traces");
+        "tol", boost::program_options::value<float>()->default_value(1.f),
+        "Tolerance for comparing the material traces [%]");
 
     // Configs to be filled
     detray::io::detector_reader_config reader_cfg{};
@@ -61,7 +61,7 @@ int main(int argc, char **argv) {
 
     // General options
     if (vm.count("tol")) {
-        mat_val_cfg.tol(vm["tol"].as<float>());
+        mat_val_cfg.relative_error(vm["tol"].as<float>() / 100.f);
     }
 
     vecmem::host_memory_resource host_mr;

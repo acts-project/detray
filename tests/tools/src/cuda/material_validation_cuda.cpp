@@ -47,8 +47,8 @@ int main(int argc, char **argv) {
     po::options_description desc("\ndetray CUDA material validation options");
 
     desc.add_options()(
-        "tol", boost::program_options::value<float>()->default_value(1e-4f),
-        "Tolerance for comparing the material traces");
+        "tol", boost::program_options::value<float>()->default_value(1.f),
+        "Tolerance for comparing the material traces [%]");
 
     // Configs to be filled
     detray::io::detector_reader_config reader_cfg{};
@@ -61,7 +61,7 @@ int main(int argc, char **argv) {
 
     // General options
     if (vm.count("tol")) {
-        mat_val_cfg.tol(vm["tol"].as<float>());
+        mat_val_cfg.relative_error(vm["tol"].as<float>() / 100.f);
     }
 
     /// Vecmem memory resource for the device allocations
@@ -74,12 +74,14 @@ int main(int argc, char **argv) {
     auto white_board = std::make_shared<test::whiteboard>();
 
     // Print the detector's material as recorded by a ray scan
+    mat_val_cfg.name("material_validation_for_cuda");
     mat_scan_cfg.whiteboard(white_board);
     mat_scan_cfg.track_generator().uniform_eta(true);
     detray::detail::register_checks<test::material_scan>(det, names,
                                                          mat_scan_cfg);
 
     // Now trace the material during navigation and compare
+    mat_val_cfg.name("material_validation_cuda");
     mat_val_cfg.whiteboard(white_board);
     mat_val_cfg.device_mr(&dev_mr);
 

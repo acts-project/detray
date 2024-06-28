@@ -13,6 +13,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 import matplotlib.colors as mcolors
 from matplotlib.ticker import ScalarFormatter
+from mpl_toolkits.axes_grid1 import make_axes_locatable
 
 import matplotlib.style as style
 style.use('tableau-colorblind10')
@@ -88,10 +89,11 @@ class pyplot_factory():
                oOutlier  = -1,
                figsize   = (8, 8),
                lgd_ops   = get_legend_options(),
+               layout    = 'constrained',
                ax_formatter = None):
 
         # Create fresh plot
-        fig = plt.figure(figsize = (8.5, 8.5), layout='constrained')
+        fig = plt.figure(figsize = figsize, layout=layout)
         ax = fig.add_subplot(1, 1, 1)
 
         if ax_formatter is None:
@@ -126,9 +128,12 @@ class pyplot_factory():
 
         # Format the 'newline'
         newline = '\n'
-        label_str = f'{label}  ({len(x)} entries)' +                           \
-                    f'{newline} underflow: {underflow}' +                      \
-                    f'{newline} overflow:  {overflow}'
+
+        # Name of the datat collection
+        label_str = f'{label} ({len(x)} entries)'
+        if uOutlier >= 0 or oOutlier >= 0:
+            label_str = label_str + f'{newline} underflow: {underflow}' +      \
+                        f'{newline} overflow:  {overflow}'
 
         # Fill data
         data, bins, hist = ax.hist(x,
@@ -175,7 +180,7 @@ class pyplot_factory():
         # Calculate the bin error
         binCenters = 0.5 * (bins[1:] + bins[:-1])
         err        = np.sqrt(scale * data) if errors is None else errors
-        if showError:
+        if showError or not errors is None:
             ax.errorbar(binCenters, data,
                         yerr      = err,
                         fmt       = '.',
@@ -188,7 +193,146 @@ class pyplot_factory():
         if setLog:
             ax.set_yscale('log')
 
-        return plt_data(fig, ax, lgd, data, bins, mean, stdev, errors)
+        return plt_data(fig, ax, lgd, data, bins, mean, stdev, err)
+
+
+    """ Add new data to an existing plot """
+    def add_plot(self, oldHist, x, errors = None, w = None,
+                 label = "",
+                 color = 'tab:orange',
+                 alpha = 0.75,
+                 normalize = False,
+                 showError = False):
+
+        # do calculations on data in the range of the histogram
+        xMin = np.min(oldHist.bins)
+        xMax = np.max(oldHist.bins)
+
+        x = x[np.where(x >= xMin)]
+        x = x[np.where(x <= xMax)]
+
+        # Nothing left to do
+        if len(x) == 0 or oldHist.data is None:
+            self.logger.debug(rf" add hist: empty data {label}")
+            return oldHist
+
+        # Add new data to old hist axis
+        scale = 1./len(x) if normalize else 1.
+        data, bins, hist = oldHist.ax.hist(x = x, bins = oldHist.bins,
+                                   label = f"{label} ({len(x)} entries)",
+                                   weights   = w,
+                                   histtype  ='stepfilled',
+                                   facecolor = mcolors.to_rgba(color, alpha),
+                                   edgecolor = color)
+
+        # Update legend
+        lgd = oldHist.lgd
+        handles, labels = lgd.axes.get_legend_handles_labels()
+        lgd._legend_box = None
+        lgd._init_legend_box(handles, labels)
+        lgd._set_loc(lgd._loc)
+        lgd.set_title(lgd.get_title().get_text())
+
+        # Calculate the bin error
+        binCenters = 0.5 * (bins[1:] + bins[:-1])
+        err        = np.sqrt(scale * data) if errors is None else errors
+        if showError or not errors is None:
+            oldHist.ax.errorbar(binCenters, data,
+                                yerr      = err,
+                                fmt       = '.',
+                                linestyle = '',
+                                linewidth = 0.4,
+                                color     = 'black',
+                                capsize   = 2.5)
+
+        return plt_data(oldHist.fig, oldHist.ax, oldHist.lgd, data, bins, None,\
+                        None, err)
+
+
+    """
+    Plot the ratio of two histograms. The data is assumed to be uncorrelated.
+    """
+    def add_ratio(self, nom, denom, label,
+                  nBins      = 20,
+                  color      = 'tab:red',
+                  setLog     = False,
+                  showErrors = False):
+
+        # Resize figure
+        nom.fig.set_figheight(7)
+        nom.fig.set_figwidth(8)
+
+        if nom.bins is None or denom.bins is None:
+            return plt_data(nom.fig, nom.ax, None, None, None, None, None, None)
+
+        if len(nom.bins) != len(denom.bins):
+            return plt_data(nom.fig, nom.ax, None, None, None, None, None, None)
+
+        # Remove ticks/labels that are already visible on the ratio plot
+        old_x_label = nom.ax.xaxis.get_label().get_text()
+        nom.ax.tick_params(axis        = 'x',
+                           which       = 'both',
+                           bottom      = True,
+                           top         = False,
+                           labelbottom = False)
+        nom.ax.set_xlabel("")
+
+        # Don't print a warning when dividing by zero
+        with np.errstate(divide='ignore'), np.errstate(invalid='ignore'):
+            # Filter out nan results from division by zero
+            ratio = np.nan_to_num(nom.data/denom.data, nan = 0, posinf = 0)
+
+            # Calculate errors by Gaussian propagation
+            binCenters     = 0.5 * (nom.bins[1:] + nom.bins[:-1])
+            n_data, d_data = (nom.data, denom.data)
+
+            # Gaussian approximation for large number of events in bin
+            # Note: Should be Clopper-Pearson
+            n_err, d_err   = (nom.errors, denom.errors)
+            errors = np.nan_to_num(np.sqrt(np.square(n_err / d_data)           \
+                        + np.square(n_data * d_err / np.square(d_data))),      \
+                        nan = 0, posinf = 0)
+
+        # create new axes on the bottom of the current axes
+        # The first argument of the new_vertical(new_horizontal) method is
+        # the height (width) of the axes to be created in inches.
+        divider = make_axes_locatable(nom.ax)
+        ratio_plot = divider.append_axes("bottom", 1.2,
+                                         pad    = 0.2,
+                                         sharex = nom.ax)
+        if showErrors:
+            ratio_plot.errorbar(binCenters, ratio,
+                                yerr  = errors,
+                                label = label,
+                                color = color,
+                                fmt   = '.')
+        else:
+            ratio_plot.plot(binCenters, ratio,
+                            label     = label,
+                            color     = color,
+                            marker    = '.',
+                            linestyle = '',)
+        # Refine plot
+        ratio_plot.set_xlabel(old_x_label)
+        ratio_plot.set_ylabel("ratio")
+        ratio_plot.grid(True, alpha = 0.25)
+        # Plot log scale
+        if setLog:
+            ratio_plot.set_yscale('log')
+
+        # Add a horizontal blue line at y = 1.
+        ratio_plot.axline((nom.bins[0], 1), (nom.bins[-1], 1), 
+                          linewidth = 1, 
+                          color     ='b')
+
+        # Add legend
+        #lgd = self.add_legend(ratio_plot)
+        # Move the legend
+        #lgd.set_bbox_to_anchor((box_anchor_x, box_anchor_y))
+        nom.fig.set_size_inches((9, 9))
+
+        return plt_data(nom.fig, ratio_plot, None, None, None, None, None,
+                        errors)
 
 
     """
