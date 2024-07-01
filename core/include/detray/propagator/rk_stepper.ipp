@@ -6,8 +6,6 @@
  */
 
 // Project include(s).
-#include <iostream>
-
 #include "detray/geometry/tracking_volume.hpp"
 
 template <typename magnetic_field_t, typename algebra_t, typename constraint_t,
