@@ -165,15 +165,15 @@ void set_xaxis_title(TH1D* h, const double text_size) {
     const TString h_name = h->GetName();
 
     if (h_name.Contains("l0")) {
-        x_axis_title = "#font[12]{PL}(l_{0F})";
+        x_axis_title = "PL(l_{0F})";
     } else if (h_name.Contains("l1")) {
-        x_axis_title = "#font[12]{PL}(l_{1F})";
+        x_axis_title = "PL(l_{1F})";
     } else if (h_name.Contains("phi")) {
-        x_axis_title = "#font[12]{PL}(#phi_{F})";
+        x_axis_title = "PL(#phi_{F})";
     } else if (h_name.Contains("theta")) {
-        x_axis_title = "#font[12]{PL}(#theta_{F})";
+        x_axis_title = "PL(#theta_{F})";
     } else if (h_name.Contains("qop")) {
-        x_axis_title = "#font[12]{PL}(#lambda_{F})";
+        x_axis_title = "PL(#lambda_{F})";
     } else if (h_name.Contains("pval")) {
         x_axis_title = "p-value";
     }
