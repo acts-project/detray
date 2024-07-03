@@ -78,7 +78,7 @@ auto get_tree(std::string name) {
     // Create root file
     rdf.Snapshot(name, root_name);
 
-    auto f = TFile::Open(root_name.c_str(), "read");
+    auto f = TFile::Open(root_name.c_str(), "update");
     auto t = (TTree*)f->Get(name.c_str());
 
     return t;
@@ -371,6 +371,7 @@ void read_tree(TTree* t, const std::string& tag,
     double pull_qop;
     double chi2;
     double log10_rk_tolerance;
+    double p_value;
 
     t->SetBranchAddress("pull_l0", &pull_l0);
     t->SetBranchAddress("pull_l1", &pull_l1);
@@ -379,6 +380,7 @@ void read_tree(TTree* t, const std::string& tag,
     t->SetBranchAddress("pull_qop", &pull_qop);
     t->SetBranchAddress("chi2", &chi2);
     t->SetBranchAddress("log10_rk_tolerance", &log10_rk_tolerance);
+    auto b_pval = t->Branch("p_value", &p_value, "p_value/D");
 
     std::string l0_name = tag + "_pull_l0";
     std::string l1_name = tag + "_pull_l1";
@@ -428,7 +430,9 @@ void read_tree(TTree* t, const std::string& tag,
         h_theta->Fill(pull_theta);
         h_qop->Fill(pull_qop);
         h_chi2->Fill(chi2);
-        h_pval->Fill(ROOT::Math::chisquared_cdf_c(chi2, 5.f));
+        p_value = ROOT::Math::chisquared_cdf_c(chi2, 5.f);
+        h_pval->Fill(p_value);
+        b_pval->Fill();
 
         if ((pull_l0 < pull_min) || (pull_l0 > pull_max) ||
             (pull_l1 < pull_min) || (pull_l1 > pull_max) ||
@@ -454,6 +458,8 @@ void read_tree(TTree* t, const std::string& tag,
             finfo_qop[10u]++;
         }
     }
+
+    t->Write("", TObject::kOverwrite);
 
     std::cout << tag << " n outliers: " << n_outliers << std::endl;
 
