@@ -48,6 +48,8 @@ double x_title_offset = 1.75;
 double y_title_offset = 1.34;
 double x_label_offset = 0.015;
 double y_label_offset = 0.015;
+int fill_style = 1001;
+double color_alpha = 0.5;
 
 const std::array<float, 2> cdim{700, 600};
 double maximum = 1e6;
@@ -131,8 +133,8 @@ void draw_histogram(const std::string root_name, const int num) {
         "[mm^{-1}] )");
     dthetadl0_hist->SetMaximum(maximum);
     dthetadl0_hist->SetLineColor(kOrange + 3);
-    dthetadl0_hist->SetFillColor(kOrange + 2);
-    dthetadl0_hist->SetFillStyle(3001);
+    dthetadl0_hist->SetFillStyle(fill_style);
+    dthetadl0_hist->SetFillColorAlpha(kOrange + 2, color_alpha);
 
     draw_text(x_pos1, y_pos1, y_pos2, header_text_size, geom_text_size,
               rect_title.c_str(), geom_title.c_str());
@@ -163,8 +165,8 @@ void draw_histogram(const std::string root_name, const int num) {
         "#left|#frac{#partial#lambda_{F}}{#partial#lambda_{I}}#right| )");
     dqopdqop_hist->SetMaximum(maximum);
     dqopdqop_hist->SetLineColor(kGreen + 3);
-    dqopdqop_hist->SetFillColor(kGreen + 2);
-    dqopdqop_hist->SetFillStyle(3001);
+    dqopdqop_hist->SetFillStyle(fill_style);
+    dqopdqop_hist->SetFillColorAlpha(kGreen + 2, color_alpha);
 
     draw_text(x_pos2, y_pos1, y_pos2, header_text_size, geom_text_size,
               rect_title.c_str(), geom_title.c_str());
