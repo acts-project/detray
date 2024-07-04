@@ -287,8 +287,9 @@ bound_covariance_type get_random_initial_covariance(const scalar ini_qop) {
             if (i == j) {
                 getter::element(ini_cov, i, i) = stddevs[i] * stddevs[i];
             } else if (i > j) {
-                getter::element(ini_cov, i, j) =
-                    stddevs[i] * stddevs[j] * rand_corr(mt2);
+                getter::element(ini_cov, i, j) = std::abs(stddevs[i]) *
+                                                 std::abs(stddevs[j]) *
+                                                 rand_corr(mt2);
                 getter::element(ini_cov, j, i) = getter::element(ini_cov, i, j);
             }
         }
