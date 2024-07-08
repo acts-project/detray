@@ -11,6 +11,7 @@
 #include "detray/definitions/detail/indexing.hpp"
 #include "detray/definitions/detail/qualifiers.hpp"
 #include "detray/materials/detail/material_accessor.hpp"
+#include "detray/materials/material.hpp"
 #include "detray/propagator/detail/jacobian_engine.hpp"
 #include "detray/tracks/detail/transform_track_parameters.hpp"
 #include "detray/tracks/tracks.hpp"
@@ -111,8 +112,16 @@ struct surface_kernels {
             const mat_group_t& mat_group, const index_t& idx,
             const point2_type& loc_p) const {
 
-            return detail::material_accessor::get(mat_group, idx, loc_p)
-                .get_material();
+            using material_t = typename mat_group_t::value_type;
+
+            if constexpr (detail::is_surface_material_v<material_t>) {
+                return &(detail::material_accessor::get(mat_group, idx, loc_p)
+                             .get_material());
+            } else {
+                using scalar_t = typename material_t::scalar_type;
+                // Volume material (cannot be reached from a surface)
+                return static_cast<const material<scalar_t>*>(nullptr);
+            }
         }
     };
 

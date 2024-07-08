@@ -75,9 +75,7 @@ struct get_material_params {
         constexpr auto inv{detail::invalid_value<scalar_t>()};
 
         // Access homogeneous surface material or material maps
-        if constexpr ((detail::is_hom_material_v<material_t> &&
-                       !std::is_same_v<material_t, material<scalar_t>>) ||
-                      detail::is_material_map_v<material_t>) {
+        if constexpr (detail::is_surface_material_v<material_t>) {
 
             // Slab or rod
             const auto mat =

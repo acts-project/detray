@@ -22,16 +22,19 @@ struct get_material_params {
                                               const index_t &idx,
                                               const point_t &loc_p) const {
         using material_t = typename mat_group_t::value_type;
-        using scalar_t = typename material_t::scalar_type;
 
-        if constexpr (std::is_same_v<material_t, material<scalar_t>>) {
-            // Homogeneous volume material
-            return &(detail::material_accessor::get(mat_group, idx, loc_p));
-        } else if constexpr (detail::is_volume_material_v<material_t>) {
-            // Volume material maps
-            return &(detail::material_accessor::get(mat_group, idx, loc_p)
-                         .get_material());
+        if constexpr (detail::is_volume_material_v<material_t>) {
+
+            if constexpr (detail::is_hom_material_v<material_t>) {
+                // Homogeneous volume material
+                return &(detail::material_accessor::get(mat_group, idx, loc_p));
+            } else {
+                // Volume material maps
+                return &(detail::material_accessor::get(mat_group, idx, loc_p)
+                             .get_material());
+            }
         } else {
+            using scalar_t = typename material_t::scalar_type;
             // Cannot be reached for volumes
             return static_cast<const material<scalar_t> *>(nullptr);
         }

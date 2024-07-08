@@ -122,6 +122,11 @@ namespace detail {
 template <typename scalar_t>
 struct is_hom_material<material_rod<scalar_t>, void> : public std::true_type {};
 
+// Pick the material rod type up for homogeneous surface material
+template <typename scalar_t>
+struct is_surface_material<material_rod<scalar_t>, void>
+    : public std::true_type {};
+
 }  // namespace detail
 
 }  // namespace detray

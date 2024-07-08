@@ -222,9 +222,10 @@ class tracking_surface {
         return math::fabs(vector::dot(dir, normal(ctx, p)));
     }
 
-    /// @returns the material parameters at the local position @param loc_p
-    DETRAY_HOST_DEVICE constexpr material<scalar_type> material_parameters(
-        const point2_type &loc_p) const {
+    /// @returns a pointer to the material parameters at the local position
+    /// @param loc_p
+    DETRAY_HOST_DEVICE constexpr const material<scalar_type>
+        *material_parameters(const point2_type &loc_p) const {
         return visit_material<typename kernels::get_material_params>(loc_p);
     }
 
