@@ -111,12 +111,8 @@ struct ray_intersector_impl<line2D<algebra_t>, algebra_t, true> {
         }
 
         is.sf_desc = sf;
-
         is.direction = math::signbit(is.path);
         is.volume_link = mask.volume_link();
-
-        // Get incidence angle
-        is.cos_incidence_angle = math::abs(zd);
 
         // Mask the values where the overstepping tolerance was not met
         is.status &= (is.path >= overstep_tol);
