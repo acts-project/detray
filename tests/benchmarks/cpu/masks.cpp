@@ -5,6 +5,11 @@
  * Mozilla Public License Version 2.0
  */
 
+// TODO: Remove this when gcc fixes their false positives.
+#if defined(__GNUC__) && !defined(__clang__)
+#pragma GCC diagnostic warning "-Wmaybe-uninitialized"
+#endif
+
 // Detray core include(s).
 #include "detray/definitions/detail/indexing.hpp"
 #include "detray/geometry/mask.hpp"

@@ -7,6 +7,11 @@
 
 #pragma once
 
+// TODO: Remove this when gcc fixes their false positives.
+#if defined(__GNUC__) && !defined(__clang__)
+#pragma GCC diagnostic warning "-Wfree-nonheap-object"
+#endif
+
 // Project include(s)
 #include "detray/utils/ranges.hpp"
 

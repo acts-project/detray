@@ -56,13 +56,18 @@ jobs:
         SCALAR_TYPE: ["float", "double"]
         PLATFORM:
           - NAME: "HOST"
+            CXX_STANDARD: "17"
             CONTAINER: "ghcr.io/acts-project/ubuntu2004:v43"
             OPTIONS: -DDETRAY_EIGEN_PLUGIN=ON -DDETRAY_SMATRIX_PLUGIN=ON -DDETRAY_VC_PLUGIN=ON
+          - NAME: "HOST"
+            CXX_STANDARD: "20"
+            CONTAINER: "ghcr.io/acts-project/ubuntu2404:48"
+            OPTIONS: -DDETRAY_EIGEN_PLUGIN=ON -DDETRAY_SMATRIX_PLUGIN=OFF -DDETRAY_VC_PLUGIN=ON
 
     # The system to run on.
     runs-on: ubuntu-latest
     container: ${{ matrix.PLATFORM.CONTAINER }}
-    name: "host-container (${{ matrix.PLATFORM.NAME }})"
+    name: "host-container (${{ matrix.PLATFORM.NAME }}, C++${{ matrix.PLATFORM.CXX_STANDARD }})"
 
     # Use BASH as the shell from the image.
     defaults:
@@ -85,7 +90,14 @@ jobs:
     - name: Configure
       run: |
         source ${GITHUB_WORKSPACE}/.github/ci_setup.sh ${{ matrix.PLATFORM.NAME }}
-        cmake -DDETRAY_FAIL_ON_WARNINGS=ON -DCMAKE_BUILD_TYPE=${{ matrix.BUILD_TYPE }} -DDETRAY_CUSTOM_SCALARTYPE=${{ matrix.SCALAR_TYPE }} ${{ matrix.PLATFORM.OPTIONS }} -S ${GITHUB_WORKSPACE} -B build
+        cmake \
+          -DCMAKE_CXX_STANDARD=${{ matrix.PLATFORM.CXX_STANDARD }} \
+          -DDETRAY_FAIL_ON_WARNINGS=ON \
+          -DCMAKE_BUILD_TYPE=${{ matrix.BUILD_TYPE }} \
+          -DDETRAY_CUSTOM_SCALARTYPE=${{ matrix.SCALAR_TYPE }} \
+          ${{ matrix.PLATFORM.OPTIONS }} \
+          -S ${GITHUB_WORKSPACE} \
+          -B build
     # Perform the build.
     - name: Build
       run: |
@@ -114,16 +126,22 @@ jobs:
         SCALAR_TYPE: ["float", "double"]
         PLATFORM:
           - NAME: "CUDA"
+            CXX_STANDARD: "17"
             CONTAINER: "ghcr.io/acts-project/ubuntu2004_cuda:v30"
             OPTIONS: -DDETRAY_EIGEN_PLUGIN=ON -DDETRAY_SMATRIX_PLUGIN=ON -DDETRAY_VC_PLUGIN=ON
+          - NAME: "CUDA"
+            CXX_STANDARD: "20"
+            CONTAINER: "ghcr.io/acts-project/ubuntu2204_cuda:48"
+            OPTIONS: -DDETRAY_EIGEN_PLUGIN=ON -DDETRAY_SMATRIX_PLUGIN=OFF -DDETRAY_VC_PLUGIN=ON
           - NAME: "SYCL"
+            CXX_STANDARD: "17"
             CONTAINER: "ghcr.io/acts-project/ubuntu2004_oneapi:v30"
             OPTIONS: -DDETRAY_BUILD_CUDA=OFF -DDETRAY_BUILD_SYCL=ON -DDETRAY_EIGEN_PLUGIN=ON -DDETRAY_SMATRIX_PLUGIN=ON -DDETRAY_VC_PLUGIN=ON
 
     # The system to run on.
     runs-on: ubuntu-latest
     container: ${{ matrix.PLATFORM.CONTAINER }}
-    name: "device-container (${{ matrix.PLATFORM.NAME }})"
+    name: "device-container (${{ matrix.PLATFORM.NAME }}, C++${{ matrix.PLATFORM.CXX_STANDARD }})"
 
     # Use BASH as the shell from the image.
     defaults:
@@ -138,7 +156,16 @@ jobs:
     - name: Configure
       run: |
         source ${GITHUB_WORKSPACE}/.github/ci_setup.sh ${{ matrix.PLATFORM.NAME }}
-        cmake -DDETRAY_FAIL_ON_WARNINGS=ON -DCMAKE_BUILD_TYPE=${{ matrix.BUILD_TYPE }} -DDETRAY_CUSTOM_SCALARTYPE=${{ matrix.SCALAR_TYPE }} ${{ matrix.PLATFORM.OPTIONS }} -S ${GITHUB_WORKSPACE} -B build
+        cmake \
+          -DCMAKE_CXX_STANDARD=${{ matrix.PLATFORM.CXX_STANDARD }} \
+          -DCMAKE_CUDA_STANDARD=${{ matrix.PLATFORM.CXX_STANDARD }} \
+          -DCMAKE_SYCL_STANDARD=${{ matrix.PLATFORM.CXX_STANDARD }} \
+          -DDETRAY_FAIL_ON_WARNINGS=ON \
+          -DCMAKE_BUILD_TYPE=${{ matrix.BUILD_TYPE }} \
+          -DDETRAY_CUSTOM_SCALARTYPE=${{ matrix.SCALAR_TYPE }} \
+          ${{ matrix.PLATFORM.OPTIONS }} \
+          -S ${GITHUB_WORKSPACE} \
+          -B build
     # Perform the build.
     - name: Build
       run: |
