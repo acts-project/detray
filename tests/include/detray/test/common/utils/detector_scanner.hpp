@@ -8,7 +8,7 @@
 #pragma once
 
 // Project include(s)
-#include "detray/geometry/surface.hpp"
+#include "detray/geometry/tracking_surface.hpp"
 #include "detray/io/csv/intersection2D.hpp"
 #include "detray/io/csv/track_parameters.hpp"
 #include "detray/navigation/detail/trajectories.hpp"
@@ -79,7 +79,7 @@ struct brute_force_scan {
         // Loop over all surfaces in the detector
         for (const sf_desc_t &sf_desc : detector.surfaces()) {
             // Retrieve candidate(s) from the surface
-            const auto sf = surface{detector, sf_desc};
+            const auto sf = tracking_surface{detector, sf_desc};
             sf.template visit_mask<intersection_kernel_t>(
                 intersections, traj, sf_desc, trf_store,
                 sf.is_portal() ? std::array<scalar_t, 2>{0.f, 0.f}

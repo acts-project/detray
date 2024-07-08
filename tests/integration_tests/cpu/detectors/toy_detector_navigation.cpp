@@ -60,19 +60,6 @@ int main(int argc, char **argv) {
 
     detail::register_checks<test::ray_scan>(toy_det, toy_names, cfg_ray_scan);
 
-    // Navigation link consistency, discovered by helix intersection
-    test::helix_scan<toy_detector_t>::config cfg_hel_scan{};
-    cfg_hel_scan.name("toy_detector_helix_scan");
-    cfg_hel_scan.whiteboard(white_board);
-    // Let the Newton algorithm dynamically choose tol. based on approx. error
-    cfg_hel_scan.mask_tolerance({detray::detail::invalid_value<scalar_t>(),
-                                 detray::detail::invalid_value<scalar_t>()});
-    cfg_hel_scan.track_generator().n_tracks(10000u);
-    cfg_hel_scan.track_generator().eta_range(-4.f, 4.f);
-    cfg_hel_scan.track_generator().p_T(1.f * unit<scalar_t>::GeV);
-
-    detail::register_checks<test::helix_scan>(toy_det, toy_names, cfg_hel_scan);
-
     // Comparison of straight line navigation with ray scan
     test::straight_line_navigation<toy_detector_t>::config cfg_str_nav{};
     cfg_str_nav.name("toy_detector_straight_line_navigation");
@@ -86,6 +73,20 @@ int main(int argc, char **argv) {
 
     detail::register_checks<test::straight_line_navigation>(toy_det, toy_names,
                                                             cfg_str_nav);
+
+    // Navigation link consistency, discovered by helix intersection
+    test::helix_scan<toy_detector_t>::config cfg_hel_scan{};
+    cfg_hel_scan.name("toy_detector_helix_scan");
+    cfg_hel_scan.whiteboard(white_board);
+    // Let the Newton algorithm dynamically choose tol. based on approx. error
+    cfg_hel_scan.mask_tolerance({detray::detail::invalid_value<scalar_t>(),
+                                 detray::detail::invalid_value<scalar_t>()});
+    cfg_hel_scan.track_generator().n_tracks(10000u);
+    cfg_hel_scan.track_generator().randomize_charge(true);
+    cfg_hel_scan.track_generator().eta_range(-4.f, 4.f);
+    cfg_hel_scan.track_generator().p_T(1.f * unit<scalar_t>::GeV);
+
+    detail::register_checks<test::helix_scan>(toy_det, toy_names, cfg_hel_scan);
 
     // Comparison of navigation in a constant B-field with helix
     test::helix_navigation<toy_detector_t>::config cfg_hel_nav{};
@@ -111,7 +112,10 @@ int main(int argc, char **argv) {
     test::material_validation<toy_detector_t>::config mat_val_cfg{};
     mat_val_cfg.name("toy_detector_material_validaiton");
     mat_val_cfg.whiteboard(white_board);
-    mat_val_cfg.tol(1.5e-6f);  // < Reduce tolerance for single precision tests
+    // Reduce tolerance for single precision tests
+    if constexpr (std::is_same_v<scalar_t, float>) {
+        mat_val_cfg.relative_error(1.5e-6f);
+    }
     mat_val_cfg.propagation() = cfg_str_nav.propagation();
 
     // @TODO: Put material maps on all portals

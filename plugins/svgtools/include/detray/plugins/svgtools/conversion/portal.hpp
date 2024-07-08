@@ -8,7 +8,7 @@
 #pragma once
 
 // Project include(s)
-#include "detray/geometry/surface.hpp"
+#include "detray/geometry/tracking_surface.hpp"
 #include "detray/plugins/svgtools/conversion/link.hpp"
 #include "detray/plugins/svgtools/conversion/surface.hpp"
 #include "detray/plugins/svgtools/styling/styling.hpp"
@@ -24,7 +24,8 @@ namespace detray::svgtools::conversion {
 template <typename detector_t, typename view_t>
 auto portal(const typename detector_t::geometry_context& context,
             const detector_t& detector,
-            const detray::surface<detector_t>& d_portal, const view_t& view,
+            const detray::tracking_surface<detector_t>& d_portal,
+            const view_t& view,
             const styling::portal_style& style =
                 styling::tableau_colorblind::portal_style,
             bool hide_links = false, bool hide_material = false) {

@@ -8,7 +8,7 @@
 #pragma once
 
 // Project include(s)
-#include "detray/geometry/surface.hpp"
+#include "detray/geometry/tracking_surface.hpp"
 #include "detray/plugins/svgtools/meta/proto/information_section.hpp"
 
 // Actsvg include(s)
@@ -37,7 +37,7 @@ inline std::string point_to_string(point3_t point) {
 template <typename detector_t>
 inline auto information_section(
     const typename detector_t::geometry_context& context,
-    const detray::surface<detector_t>& d_surface) {
+    const detray::tracking_surface<detector_t>& d_surface) {
 
     using point3_t = typename detector_t::point3_type;
 

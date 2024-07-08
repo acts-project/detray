@@ -13,7 +13,7 @@
 #endif
 
 // Project include(s)
-#include "detray/geometry/surface.hpp"
+#include "detray/geometry/tracking_surface.hpp"
 #include "detray/navigation/detail/ray.hpp"
 #include "detray/navigation/navigation_config.hpp"
 #include "detray/navigation/navigator.hpp"
@@ -208,8 +208,8 @@ struct print_inspector {
         for (const auto &sf_cand : state.candidates()) {
             const auto &local = sf_cand.local;
             const auto pos =
-                surface{*state.detector(), sf_cand.sf_desc}.local_to_global(
-                    geo_ctx_t{}, local, track_dir);
+                tracking_surface{*state.detector(), sf_cand.sf_desc}
+                    .local_to_global(geo_ctx_t{}, local, track_dir);
 
             debug_stream << sf_cand;
             debug_stream << ", glob: [r:" << getter::perp(pos)

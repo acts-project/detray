@@ -6,9 +6,7 @@
  */
 
 // Project include(s).
-#include <iostream>
-
-#include "detray/geometry/detector_volume.hpp"
+#include "detray/geometry/tracking_volume.hpp"
 
 template <typename magnetic_field_t, typename algebra_t, typename constraint_t,
           typename policy_t, typename inspector_t,
@@ -640,7 +638,7 @@ DETRAY_HOST_DEVICE bool detray::rk_stepper<
 
     const point3_type pos = stepping().pos();
 
-    auto vol = detector_volume{*navigation.detector(), navigation.volume()};
+    auto vol = tracking_volume{*navigation.detector(), navigation.volume()};
     if (vol.has_material()) {
         stepping._mat = vol.material_parameters(pos);
     } else {

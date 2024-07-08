@@ -8,7 +8,7 @@
 #pragma once
 
 // Project include(s)
-#include "detray/geometry/surface.hpp"
+#include "detray/geometry/tracking_surface.hpp"
 #include "detray/plugins/svgtools/utils/surface_kernels.hpp"
 #include "detray/utils/invalid_values.hpp"
 
@@ -20,7 +20,8 @@ namespace detray::svgtools::utils {
 
 /// @brief Checks if the detray surface has a volume link.
 template <typename detector_t>
-inline auto is_not_world_portal(const detray::surface<detector_t>& d_portal) {
+inline auto is_not_world_portal(
+    const detray::tracking_surface<detector_t>& d_portal) {
     const auto d_link_idx = d_portal.template visit_mask<link_getter>();
     return !detail::is_invalid_value(d_link_idx);
 }
@@ -28,11 +29,12 @@ inline auto is_not_world_portal(const detray::surface<detector_t>& d_portal) {
 /// @note expects that the detray surface has a volume link.
 /// @returns the volume link of the detray surface.
 template <typename detector_t>
-inline auto get_linked_volume(const detector_t& detector,
-                              const detray::surface<detector_t>& d_portal) {
+inline auto get_linked_volume(
+    const detector_t& detector,
+    const detray::tracking_surface<detector_t>& d_portal) {
     assert(is_not_world_portal(d_portal));
     const auto d_link_idx = d_portal.template visit_mask<link_getter>();
-    return detector_volume{detector, d_link_idx};
+    return tracking_volume{detector, d_link_idx};
 }
 
 /// @brief Calculates the start and end point of the link.
@@ -41,7 +43,7 @@ inline auto get_linked_volume(const detector_t& detector,
 template <typename detector_t>
 inline auto link_points(const typename detector_t::geometry_context& context,
                         const detector_t& detector,
-                        const detray::surface<detector_t>& d_portal,
+                        const detray::tracking_surface<detector_t>& d_portal,
                         typename detector_t::vector3_type dir,
                         const double link_length) {
     assert(is_not_world_portal(d_portal));

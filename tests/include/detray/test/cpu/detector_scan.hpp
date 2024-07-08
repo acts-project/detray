@@ -8,7 +8,7 @@
 #pragma once
 
 // Project include(s)
-#include "detray/geometry/surface.hpp"
+#include "detray/geometry/tracking_surface.hpp"
 #include "detray/io/utils/create_path.hpp"
 #include "detray/navigation/detail/ray.hpp"
 #include "detray/navigation/volume_graph.hpp"
@@ -166,18 +166,26 @@ class detector_scan : public test::fixture_base<> {
         const std::size_t n_helices{trk_state_generator.size()};
         intersection_traces.reserve(n_helices);
 
-        const bool data_files_exist{
-            io::file_exists(m_cfg.intersection_file()) &&
-            io::file_exists(m_cfg.track_param_file())};
+        const auto pT_range = m_cfg.track_generator().mom_range();
+        std::string mometum_str{std::to_string(pT_range[0]) + "_" +
+                                std::to_string(pT_range[1])};
+
+        std::string track_param_file_name{m_cfg.track_param_file() + "_" +
+                                          mometum_str + "GeV.csv"};
+
+        std::string intersection_file_name{m_cfg.intersection_file() + "_" +
+                                           mometum_str + "GeV.csv"};
+
+        const bool data_files_exist{io::file_exists(intersection_file_name) &&
+                                    io::file_exists(track_param_file_name)};
 
         if (data_files_exist) {
 
             std::cout << "INFO: Reading data from file..." << std::endl;
 
             // Fill the intersection traces from file
-            detector_scanner::read(m_cfg.intersection_file(),
-                                   m_cfg.track_param_file(),
-                                   intersection_traces);
+            detector_scanner::read(intersection_file_name,
+                                   track_param_file_name, intersection_traces);
         } else {
 
             std::cout << "INFO: Generating trace data..." << std::endl;
@@ -200,9 +208,9 @@ class detector_scan : public test::fixture_base<> {
 
         // Csv output
         if (!data_files_exist && m_cfg.write_intersections()) {
-            detector_scanner::write_tracks(m_cfg.track_param_file(),
+            detector_scanner::write_tracks(track_param_file_name,
                                            intersection_traces);
-            detector_scanner::write_intersections(m_cfg.intersection_file(),
+            detector_scanner::write_intersections(intersection_file_name,
                                                   intersection_traces);
 
             std::cout << "  ->Wrote  " << intersection_traces.size()

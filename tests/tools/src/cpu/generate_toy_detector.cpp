@@ -42,7 +42,8 @@ int main(int argc, char **argv) {
 
     // Make sure material is written to file, if it was requested
     writer_cfg.write_material(vm.count("homogeneous_material") ||
-                              vm.count("material_maps"));
+                              vm.count("material_maps") ||
+                              vm.count("write_material"));
 
     // Build the geometry
     vecmem::host_memory_resource host_mr;

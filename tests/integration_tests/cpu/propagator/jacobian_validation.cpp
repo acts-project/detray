@@ -56,13 +56,13 @@ namespace {
 const vector3 B_z{0.f, 0.f, 1.996f * unit<scalar>::T};
 
 // Initial delta for numerical differentiaion
-const std::array<scalar, 5u> h_sizes_rect{3e0f, 3e0f, 2e-2f, 1e-3f, 1e-3f};
-const std::array<scalar, 5u> h_sizes_wire{3e0f, 3e0f, 2e-2f, 1e-3f, 1e-3f};
+const std::array<scalar, 5u> h_sizes_rect{1e0f, 1e0f, 2e-2f, 1e-3f, 1e-3f};
+const std::array<scalar, 5u> h_sizes_wire{1e0f, 1e0f, 2e-2f, 1e-3f, 1e-3f};
 
 // Ridders' algorithm setup
 constexpr const unsigned int Nt = 100u;
 const std::array<scalar, 5u> safe{5.0f, 5.0f, 5.0f, 5.0f, 5.0f};
-const std::array<scalar, 5u> con{1.2f, 1.2f, 1.2f, 1.2f, 1.2f};
+const std::array<scalar, 5u> con{1.1f, 1.1f, 1.1f, 1.1f, 1.1f};
 constexpr const scalar big = std::numeric_limits<scalar>::max();
 
 std::random_device rd;
@@ -180,8 +180,9 @@ struct ridders_derivative {
                             Arr[j][q][p];
                         /*
                         // Please leave this for debug
-                        if (j == e_bound_theta && i == e_bound_loc1) {
-                            std::cout << getter::element(
+                        if (j == e_bound_theta && i == e_bound_loc0) {
+                            std::cout << q << " " << p << " "
+                                      << getter::element(
                                              differentiated_jacobian, j, i)
                                       << "  " << math::abs(Arr[j][q][p])
                                       << std::endl;
@@ -195,7 +196,7 @@ struct ridders_derivative {
         for (unsigned int j = 0; j < 5u; j++) {
             /*
             // Please leave this for debug
-            if (j == e_bound_theta && i == e_bound_loc1) {
+            if (j == e_bound_loc0 && i == e_bound_theta) {
                 std::cout << getter::element(differentiated_jacobian, j, i)
                           << "  " << Arr[j][p][p] << "  "
                           << Arr[j][p - 1][p - 1] << "  "
@@ -286,8 +287,9 @@ bound_covariance_type get_random_initial_covariance(const scalar ini_qop) {
             if (i == j) {
                 getter::element(ini_cov, i, i) = stddevs[i] * stddevs[i];
             } else if (i > j) {
-                getter::element(ini_cov, i, j) =
-                    stddevs[i] * stddevs[j] * rand_corr(mt2);
+                getter::element(ini_cov, i, j) = std::abs(stddevs[i]) *
+                                                 std::abs(stddevs[j]) *
+                                                 rand_corr(mt2);
                 getter::element(ini_cov, j, i) = getter::element(ini_cov, i, j);
             }
         }
@@ -626,6 +628,7 @@ bound_track_parameters<algebra_type> get_initial_parameter(
     using mask_t =
         typename detector_t::mask_container::template get_type<mask_id>;
     helix_intersector<typename mask_t::shape, algebra_type> hlx_is{};
+    hlx_is.run_rtsafe = false;
     hlx_is.convergence_tolerance = helix_tolerance;
     auto sfi = hlx_is(hlx, departure_sf, departure_mask, departure_trf, 0.f);
     EXPECT_TRUE(sfi.status)
@@ -647,7 +650,8 @@ bound_track_parameters<algebra_type> get_initial_parameter(
     const free_track_parameters<algebra_type> free_par(pos, 0, dir, hlx._qop);
 
     const auto bound_vec =
-        surface{det, departure_sf}.free_to_bound_vector({}, free_par.vector());
+        tracking_surface{det, departure_sf}.free_to_bound_vector(
+            {}, free_par.vector());
 
     bound_track_parameters<algebra_type> ret;
     ret.set_surface_link(geometry::barcode{0u});
@@ -998,12 +1002,13 @@ get_displaced_bound_vector_helix(
     auto dvec = track.vector();
     getter::element(dvec, target_index, 0u) += displacement;
     const auto free_vec =
-        surface{det, departure_sf}.bound_to_free_vector({}, dvec);
+        tracking_surface{det, departure_sf}.bound_to_free_vector({}, dvec);
     detail::helix<algebra_type> hlx(free_vec, &field);
 
     using mask_t =
         typename detector_t::mask_container::template get_type<mask_id>;
     helix_intersector<typename mask_t::shape, algebra_type> hlx_is{};
+    hlx_is.run_rtsafe = false;
     hlx_is.convergence_tolerance = helix_tolerance;
     auto sfi =
         hlx_is(hlx, destination_sf, destination_mask, destination_trf, 0.f);
@@ -1013,8 +1018,9 @@ get_displaced_bound_vector_helix(
 
     const free_track_parameters<algebra_type> new_free_par(pos, 0, dir,
                                                            hlx._qop);
-    auto new_bound_vec = surface{det, destination_sf}.free_to_bound_vector(
-        {}, new_free_par.vector());
+    auto new_bound_vec =
+        tracking_surface{det, destination_sf}.free_to_bound_vector(
+            {}, new_free_par.vector());
 
     // phi needs to be wrapped w.r.t. phi of the reference vector
     wrap_angles(dvec, new_bound_vec);
@@ -1039,11 +1045,13 @@ void evaluate_jacobian_difference_helix(
     // Get bound to free Jacobi
     const auto& departure_sf = det.surface(0u);
     const auto bound_to_free_jacobi =
-        surface{det, departure_sf}.bound_to_free_jacobian({}, track.vector());
+        tracking_surface{det, departure_sf}.bound_to_free_jacobian(
+            {}, track.vector());
 
     // Get fre vector
     const auto free_vec =
-        surface{det, departure_sf}.bound_to_free_vector({}, track.vector());
+        tracking_surface{det, departure_sf}.bound_to_free_vector(
+            {}, track.vector());
     // Helix from the departure surface
     detail::helix<algebra_type> hlx(free_vec, &field);
 
@@ -1057,6 +1065,7 @@ void evaluate_jacobian_difference_helix(
     using mask_t =
         typename detector_t::mask_container::template get_type<mask_id>;
     helix_intersector<typename mask_t::shape, algebra_type> hlx_is{};
+    hlx_is.run_rtsafe = false;
     hlx_is.convergence_tolerance = helix_tolerance;
 
     auto sfi =
@@ -1080,23 +1089,24 @@ void evaluate_jacobian_difference_helix(
     // Get correction term
     const auto correction_term =
         matrix_operator().template identity<e_free_size, e_free_size>() +
-        surface{det, destination_sf}.path_correction(
+        tracking_surface{det, destination_sf}.path_correction(
             {}, pos, dir, qop * vector::cross(dir, field), 0.f);
 
     const free_track_parameters<algebra_type> free_par(pos, 0.f, dir, qop);
 
     // Get free to bound Jacobi
     const auto free_to_bound_jacobi =
-        surface{det, destination_sf}.free_to_bound_jacobian({},
-                                                            free_par.vector());
+        tracking_surface{det, destination_sf}.free_to_bound_jacobian(
+            {}, free_par.vector());
 
     // Get full Jacobi
     const auto reference_jacobian = free_to_bound_jacobi * correction_term *
                                     transport_jacobi * bound_to_free_jacobi;
 
     // Get bound vector
-    const auto bound_vec = surface{det, destination_sf}.free_to_bound_vector(
-        {}, free_par.vector());
+    const auto bound_vec =
+        tracking_surface{det, destination_sf}.free_to_bound_vector(
+            {}, free_par.vector());
 
     /******************************
      *  Numerical differentiation

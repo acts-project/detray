@@ -72,7 +72,7 @@ GTEST_TEST(detray_geometry, volume_descriptor) {
 }
 
 /// This tests the functionality of a detector volume interface
-GTEST_TEST(detray_geometry, detector_volume) {
+GTEST_TEST(detray_geometry, tracking_volume) {
 
     using namespace detray;
 
@@ -84,7 +84,7 @@ GTEST_TEST(detray_geometry, detector_volume) {
     //
     // Volume 7 is a barrrel layer with sensitive surfaces
     //
-    const auto vol7 = detector_volume{toy_det, 7u};
+    const auto vol7 = tracking_volume{toy_det, 7u};
 
     ASSERT_EQ(vol7.id(), volume_id::e_cylinder) << vol7 << std::endl;
     ASSERT_EQ(vol7.index(), 7u) << vol7 << std::endl;
@@ -122,7 +122,7 @@ GTEST_TEST(detray_geometry, detector_volume) {
     //
     // Volume 5 is negative endcap layer with sensitive surfaces
     //
-    const auto vol5 = detector_volume{toy_det, 5u};
+    const auto vol5 = tracking_volume{toy_det, 5u};
 
     ASSERT_EQ(vol5.id(), volume_id::e_cylinder) << vol5 << std::endl;
     ASSERT_EQ(vol5.index(), 5u) << vol5 << std::endl;
@@ -160,7 +160,7 @@ GTEST_TEST(detray_geometry, detector_volume) {
     //
     // Volume 17 is the positive connector gap
     //
-    const auto vol17 = detector_volume{toy_det, 17u};
+    const auto vol17 = tracking_volume{toy_det, 17u};
 
     ASSERT_EQ(vol17.id(), volume_id::e_cylinder) << vol17 << std::endl;
     ASSERT_EQ(vol17.index(), 17u) << vol17 << std::endl;

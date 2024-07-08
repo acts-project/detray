@@ -11,7 +11,7 @@
 #include "detray/definitions/units.hpp"
 #include "detray/detectors/bfield.hpp"
 #include "detray/detectors/build_toy_detector.hpp"
-#include "detray/geometry/surface.hpp"
+#include "detray/geometry/tracking_surface.hpp"
 #include "detray/navigation/detail/trajectories.hpp"
 #include "detray/navigation/navigator.hpp"
 #include "detray/propagator/actor_chain.hpp"
@@ -80,8 +80,8 @@ struct helix_inspector : actor {
         }
 
         // Surface
-        const auto sf = surface{*navigation.detector(),
-                                stepping._bound_params.surface_link()};
+        const auto sf = tracking_surface{*navigation.detector(),
+                                         stepping._bound_params.surface_link()};
 
         const auto free_vec =
             sf.bound_to_free_vector(ctx, stepping._bound_params.vector());

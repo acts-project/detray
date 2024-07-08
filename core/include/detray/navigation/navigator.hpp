@@ -137,7 +137,7 @@ class navigator {
             const scalar_type mask_tol_scalor,
             const scalar_type overstep_tol) const {
 
-            const auto sf = surface{det, sf_descr};
+            const auto sf = tracking_surface{det, sf_descr};
 
             sf.template visit_mask<intersection_initialize<ray_intersector>>(
                 candidates, detail::ray(track), sf_descr, det.transform_store(),
@@ -282,8 +282,8 @@ class navigator {
         /// @returns the next surface the navigator intends to reach
         DETRAY_HOST_DEVICE
         inline auto next_surface() const {
-            return surface<detector_type>{*m_detector,
-                                          m_next->sf_desc.barcode()};
+            return tracking_surface<detector_type>{*m_detector,
+                                                   m_next->sf_desc.barcode()};
         }
 
         /// @returns current detector surface the navigator is on
@@ -291,7 +291,7 @@ class navigator {
         DETRAY_HOST_DEVICE
         inline auto get_surface() const {
             assert(is_on_module() or is_on_portal());
-            return surface<detector_type>{*m_detector, barcode()};
+            return tracking_surface<detector_type>{*m_detector, barcode()};
         }
 
         /// @returns current navigation status - const
@@ -516,7 +516,7 @@ class navigator {
         state &navigation = propagation._navigation;
         const auto det = navigation.detector();
         const auto &track = propagation._stepping();
-        const auto volume = detector_volume{*det, navigation.volume()};
+        const auto volume = tracking_volume{*det, navigation.volume()};
 
         // Clean up state
         navigation.clear();
@@ -784,7 +784,7 @@ class navigator {
             return false;
         }
 
-        const auto sf = surface{*det, candidate.sf_desc};
+        const auto sf = tracking_surface{*det, candidate.sf_desc};
 
         // Check whether this candidate is reachable by the track
         return sf.template visit_mask<intersection_update<ray_intersector>>(

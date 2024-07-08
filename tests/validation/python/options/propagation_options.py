@@ -22,6 +22,9 @@ def propagation_options():
     parser.add_argument("--max_mask_tol", "-max_mtol",
                         help=("Max. mask tolerance [mm]"),
                         default = 1, type=float)
+    parser.add_argument("--mask_tol_scalor", "-mtol_scalor",
+                        help=("Scale factor for mask tol."),
+                        default = 0.05, type=float)
     parser.add_argument("--path_tol", "-ptol",
                         help=("Path tolerance [um]"),
                         default = 1, type=float)

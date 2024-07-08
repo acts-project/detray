@@ -60,20 +60,6 @@ int main(int argc, char **argv) {
 
     detail::register_checks<test::ray_scan>(det, names, cfg_ray_scan);
 
-    // Navigation link consistency, discovered by helix intersection
-    test::helix_scan<wire_chamber_t>::config cfg_hel_scan{};
-    cfg_hel_scan.name("wire_chamber_helix_scan");
-    cfg_hel_scan.whiteboard(white_board);
-    // Let the Newton algorithm dynamically choose tol. based on approx. error
-    cfg_hel_scan.mask_tolerance({detray::detail::invalid_value<scalar_t>(),
-                                 detray::detail::invalid_value<scalar_t>()});
-    cfg_hel_scan.track_generator().n_tracks(10000u);
-    cfg_hel_scan.track_generator().eta_range(-1.f, 1.f);
-    // TODO: Fails for smaller momenta
-    cfg_hel_scan.track_generator().p_T(5.f * unit<scalar_t>::GeV);
-
-    detail::register_checks<test::helix_scan>(det, names, cfg_hel_scan);
-
     // Comparison of straight line navigation with ray scan
     test::straight_line_navigation<wire_chamber_t>::config cfg_str_nav{};
     cfg_str_nav.name("wire_chamber_straight_line_navigation");
@@ -88,11 +74,26 @@ int main(int argc, char **argv) {
     detail::register_checks<test::straight_line_navigation>(det, names,
                                                             cfg_str_nav);
 
+    // Navigation link consistency, discovered by helix intersection
+    test::helix_scan<wire_chamber_t>::config cfg_hel_scan{};
+    cfg_hel_scan.name("wire_chamber_helix_scan");
+    cfg_hel_scan.whiteboard(white_board);
+    // Let the Newton algorithm dynamically choose tol. based on approx. error
+    cfg_hel_scan.mask_tolerance({detray::detail::invalid_value<scalar_t>(),
+                                 detray::detail::invalid_value<scalar_t>()});
+    cfg_hel_scan.track_generator().n_tracks(10000u);
+    cfg_hel_scan.track_generator().randomize_charge(true);
+    cfg_hel_scan.track_generator().eta_range(-1.f, 1.f);
+    // TODO: Fails for smaller momenta
+    cfg_hel_scan.track_generator().p_T(4.f * unit<scalar_t>::GeV);
+
+    detail::register_checks<test::helix_scan>(det, names, cfg_hel_scan);
+
     // Comparison of navigation in a constant B-field with helix
     test::helix_navigation<wire_chamber_t>::config cfg_hel_nav{};
     cfg_hel_nav.name("wire_chamber_helix_navigation");
     cfg_hel_nav.whiteboard(white_board);
-    cfg_hel_nav.propagation().navigation.min_mask_tolerance *= 0.9f;
+    cfg_hel_nav.propagation().navigation.min_mask_tolerance *= 12.f;
     cfg_hel_nav.propagation().navigation.search_window = {3u, 3u};
 
     detail::register_checks<test::helix_navigation>(det, names, cfg_hel_nav);
@@ -111,7 +112,10 @@ int main(int argc, char **argv) {
     test::material_validation<wire_chamber_t>::config mat_val_cfg{};
     mat_val_cfg.name("wire_chamber_material_validaiton");
     mat_val_cfg.whiteboard(white_board);
-    mat_val_cfg.tol(5e-3f);  // < Reduce tolerance for single precision tests
+    // Reduce tolerance for single precision tests
+    if constexpr (std::is_same_v<scalar_t, float>) {
+        mat_val_cfg.relative_error(130.f);
+    }
     mat_val_cfg.propagation() = cfg_str_nav.propagation();
 
     detail::register_checks<test::material_validation>(det, names, mat_val_cfg);

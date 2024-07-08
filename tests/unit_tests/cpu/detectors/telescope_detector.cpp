@@ -108,7 +108,7 @@ GTEST_TEST(detray_detectors, telescope_detector) {
         build_telescope_detector(host_mr, tel_cfg.positions(positions));
 
     // Some general checks
-    const auto vol0 = detector_volume{z_tel_det1, 0u};
+    const auto vol0 = tracking_volume{z_tel_det1, 0u};
     ASSERT_EQ(vol0.portals().size(), 6u);
     ASSERT_EQ(vol0.surfaces().size(), positions.size() + 6u);
     ASSERT_EQ(vol0.template surfaces<surface_id::e_sensitive>().size(),

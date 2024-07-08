@@ -41,7 +41,7 @@ int legend_font = 132;
 double legend_font_size = 0.045;
 double y_min = -15;
 double y_max = 10;
-double y_margin = 0;
+double y_margin = 1;
 double header_size = 0.05;
 std::array<float, 4> ldim{0.59015, 0.62395, 0.942404, 0.880252};
 double pad_x0 = 0.00;
@@ -132,8 +132,12 @@ void fill_histo(TH1D* hist, const std::array<double, 25u>& means,
     hist->SetFillColor(38);
     hist->SetCanExtend(TH1::kAllAxes);
 
-    for (int i = 0; i < n_labels; i++) {
-        hist->Fill(labels[i].c_str(), TMath::Log10(means[i]));
+    for (int i = 0; i < 25; i++) {
+        if (i < n_labels || i % 6 == 0) {
+            hist->Fill(labels[i].c_str(), TMath::Log10(means[i]));
+        } else {
+            hist->Fill(labels[i].c_str(), 1e20);
+        }
     }
 
     hist->LabelsDeflate();
@@ -233,7 +237,7 @@ void draw_pad(const std::string& pad_name) {
 void draw_text(const std::string& text) {
 
     const float x1 = 1.23427;
-    const float y1 = 6.44408;
+    const float y1 = 7.37948;
 
     TLatex* ttext = new TLatex(0.f, 0.f, text.c_str());
     ttext->SetTextFont(132);
@@ -247,7 +251,7 @@ void draw_text(const std::string& text) {
         new TPaveLabel(x1, y1, x1 + float(w) / gPad->GetWw() * 0.62,
                        y1 + float(h) / gPad->GetWh() * 1.15, text.c_str());
 
-    plabel->SetTextFont(132);
+    plabel->SetTextFont(22);
     plabel->SetFillColor(kWhite);
     plabel->Draw();
 }

@@ -34,8 +34,8 @@ struct config {
     /// Maximal tolerance: loose tolerance when still far away from surface
     float max_mask_tolerance{1.f * unit<float>::mm};
     /// Scale factor on the path used for the mask tolerance calculation
-    float mask_tolerance_scalor{1e-2f};
-    ///@}
+    float mask_tolerance_scalor{5e-2f};
+    /// @}
     /// Maximal absolute path distance for a track to be considered 'on surface'
     float path_tolerance{1.f * unit<float>::um};
     /// How far behind the track position to look for candidates

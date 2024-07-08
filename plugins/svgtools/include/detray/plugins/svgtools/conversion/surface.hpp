@@ -10,7 +10,7 @@
 // Project include(s)
 #include "detray/geometry/mask.hpp"
 #include "detray/geometry/shapes.hpp"
-#include "detray/geometry/surface.hpp"
+#include "detray/geometry/tracking_surface.hpp"
 #include "detray/plugins/svgtools/conversion/surface_material.hpp"
 #include "detray/plugins/svgtools/styling/styling.hpp"
 
@@ -208,7 +208,8 @@ struct surface_converter {
 template <typename detector_t, typename view_t>
 auto surface(const typename detector_t::geometry_context& context,
              const detector_t& detector,
-             const detray::surface<detector_t>& d_surface, const view_t& view,
+             const detray::tracking_surface<detector_t>& d_surface,
+             const view_t& view,
              const styling::surface_style& style =
                  styling::tableau_colorblind::surface_style_sensitive,
              bool hide_material = false) {

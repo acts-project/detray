@@ -9,10 +9,10 @@
 
 // Project include(s)
 #include "detray/definitions/units.hpp"
-#include "detray/geometry/detector_volume.hpp"
 #include "detray/geometry/mask.hpp"
 #include "detray/geometry/shapes.hpp"
-#include "detray/geometry/surface.hpp"
+#include "detray/geometry/tracking_surface.hpp"
+#include "detray/geometry/tracking_volume.hpp"
 
 // System include(s)
 #include <cassert>
@@ -132,21 +132,33 @@ struct link_start_getter {
         return mask.to_global_frame(transform, point3_t{r, phi, 0.f});
     }
 
-    // Calculates the (optimal) link starting point for cylinders (2D).
-    template <
-        typename transform_t, typename shape_t,
-        std::enable_if_t<std::is_same_v<shape_t, cylinder2D> ||
-                             std::is_same_v<shape_t, concentric_cylinder2D>,
-                         bool> = true>
-    auto inline link_start(const detray::mask<shape_t>& mask,
+    // Calculates the (optimal) link starting point for concentric cylinders
+    template <typename transform_t>
+    auto inline link_start(const detray::mask<concentric_cylinder2D>& mask,
                            const transform_t& transform) const {
-        using mask_t = detray::mask<shape_t>;
+        using mask_t = detray::mask<concentric_cylinder2D>;
         using point3_t = typename mask_t::point3_type;
         using scalar_t = typename mask_t::scalar_type;
 
-        const scalar_t r{mask[shape_t::e_r]};
+        const scalar_t r{mask[concentric_cylinder2D::e_r]};
         const scalar_t phi{detray::constant<scalar_t>::pi_2};
-        // Shift the center to the actual cylider bounds
+        // Shift the center to the actual cylinder bounds
+        const scalar_t z{mask.centroid()[2]};
+
+        return mask.to_global_frame(transform, point3_t{phi, z, r});
+    }
+
+    // Calculates the (optimal) link starting point for cylinders (2D).
+    template <typename transform_t>
+    auto inline link_start(const detray::mask<cylinder2D>& mask,
+                           const transform_t& transform) const {
+        using mask_t = detray::mask<cylinder2D>;
+        using point3_t = typename mask_t::point3_type;
+        using scalar_t = typename mask_t::scalar_type;
+
+        const scalar_t r{mask[cylinder2D::e_r]};
+        const scalar_t phi{detray::constant<scalar_t>::pi_2};
+        // Shift the center to the actual cylinder bounds
         const scalar_t z{mask.centroid()[2]};
 
         return mask.to_global_frame(transform, point3_t{r * phi, z, r});
@@ -162,8 +174,7 @@ struct link_start_getter {
         using point3_t = typename mask_t::point3_type;
         using scalar_t = typename mask_t::scalar_type;
 
-        const scalar_t r{0.5f *
-                         (mask[shape_t::e_min_r] + mask[shape_t::e_max_r])};
+        const scalar_t r{mask[shape_t::e_max_r]};
         const scalar_t phi{
             0.5f * (mask[shape_t::e_max_phi] + mask[shape_t::e_max_phi])};
         const scalar_t z{mask.centroid()[2]};
@@ -182,7 +193,7 @@ struct link_end_getter {
     DETRAY_HOST inline auto operator()(
         const mask_group_t& mask_group, const index_t& index,
         const detector_t& detector,
-        const detray::detector_volume<detector_t>& volume,
+        const detray::tracking_volume<detector_t>& volume,
         const point3_t& surface_point, const vector3_t& surface_normal,
         const scalar_t& link_length) const {
 
@@ -197,7 +208,7 @@ struct link_end_getter {
     template <typename detector_t, typename mask_t, typename point3_t,
               typename vector3_t>
     inline auto link_dir(const mask_t& /*mask*/, const detector_t& /*detector*/,
-                         const detray::detector_volume<detector_t>& volume,
+                         const detray::tracking_volume<detector_t>& volume,
                          const point3_t& surface_point,
                          const vector3_t& surface_normal) const {
         const auto dir = volume.center() - surface_point;
@@ -218,12 +229,12 @@ struct link_end_getter {
                          bool> = true>
     inline auto link_dir(const detray::mask<shape_t>& mask,
                          const detector_t& detector,
-                         const detray::detector_volume<detector_t>& volume,
+                         const detray::tracking_volume<detector_t>& volume,
                          const point3_t& /*surface_point*/,
                          const vector3_t& surface_normal) const {
         for (const auto& desc : volume.portals()) {
 
-            const detray::surface surface{detector, desc};
+            const detray::tracking_surface surface{detector, desc};
 
             if (auto r = surface.template visit_mask<outer_radius_getter>()) {
                 if (*r > mask[shape_t::e_r]) {

@@ -8,7 +8,7 @@
 #pragma once
 
 // Project include(s)
-#include "detray/geometry/surface.hpp"
+#include "detray/geometry/tracking_surface.hpp"
 #include "detray/plugins/svgtools/utils/link_utils.hpp"
 #include "detray/plugins/svgtools/utils/surface_kernels.hpp"
 
@@ -21,7 +21,7 @@ namespace detray::svgtools::conversion {
 template <typename detector_t>
 inline auto link(const typename detector_t::geometry_context& context,
                  const detector_t& detector,
-                 const detray::surface<detector_t>& d_portal) {
+                 const detray::tracking_surface<detector_t>& d_portal) {
 
     using point3_container_t = std::vector<typename detector_t::point3_type>;
     using p_link_t = typename actsvg::proto::portal<point3_container_t>::link;

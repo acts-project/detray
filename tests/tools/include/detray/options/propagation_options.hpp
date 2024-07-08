@@ -166,7 +166,7 @@ void configure_options<detray::stepping::config>(
     }
     if (!vm["path_limit"].defaulted()) {
         const float path_limit{vm["path_limit"].as<float>()};
-        assert(path_limit <= 0.f);
+        assert(path_limit > 0.f);
 
         cfg.path_limit = path_limit * unit<float>::m;
     }

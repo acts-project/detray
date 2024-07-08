@@ -66,15 +66,12 @@ while getopts "hd:n:t:m:c:p:q:i:s:f:r:v:" arg; do
         ;;
         d)
             dir=$OPTARG
-            echo "Directory of detray_integration_test_jacobian_validation: ${dir}"
         ;;
         n)
             n_threads=$OPTARG
-            echo "Number of threads: ${n_threads}"
         ;;
         t)
             n_tracks_per_thread=$OPTARG
-            echo "Number of tracks per thread: ${n_tracks_per_thread}"
         ;;
         m)
             log10_rk_tol_dis=$OPTARG
@@ -82,40 +79,44 @@ while getopts "hd:n:t:m:c:p:q:i:s:f:r:v:" arg; do
         ;;
         c)
             log10_rk_tol_cov=$OPTARG
-            echo "log10(rk_error_tolerance_in_mm_for_covariance_transport): ${log10_rk_tol_cov}"
         ;;
         p)
             log10_min_rk_tol=$OPTARG
             log10_rk_tol_jac=${log10_min_rk_tol}
-            echo "log10(min_rk_error_tolerance_in_mm): ${log10_min_rk_tol}"
         ;;
         q)
             log10_max_rk_tol=$OPTARG
-            echo "log10(max_rk_error_tolerance_in_mm): ${log10_max_rk_tol}"
         ;;
         i)
             log10_helix_tol=$OPTARG
             log10_on_surface_tol=$OPTARG
-            echo "log10(intersection_tolerance_in_mm): ${log10_helix_tol}"
         ;;
         s)
             mc_seed=$OPTARG
-            echo "Monte-Carlo seed: ${mc_seed}"
         ;;
         f)
             skip_first_phase=$OPTARG
-            echo "Skip the first phase: ${skip_first_phase}"
         ;;
         r)
             skip_second_phase=$OPTARG
-            echo "Skip the second phase: ${skip_second_phase}"
         ;;
         v)
             verbose_level=$OPTARG
-            echo "Set the verbose level: ${verbose_level}"
         ;;
     esac
 done
+
+echo "Directory of detray_integration_test_jacobian_validation: ${dir}"
+echo "Number of threads: ${n_threads}"
+echo "Number of tracks per thread: ${n_tracks_per_thread}"
+echo "log10(rk_error_tolerance_in_mm_for_covariance_transport): ${log10_rk_tol_cov}"
+echo "log10(min_rk_error_tolerance_in_mm): ${log10_min_rk_tol}"
+echo "log10(max_rk_error_tolerance_in_mm): ${log10_max_rk_tol}"
+echo "log10(intersection_tolerance_in_mm): ${log10_helix_tol}"
+echo "Monte-Carlo seed: ${mc_seed}"
+echo "Skip the first phase: ${skip_first_phase}"
+echo "Skip the second phase: ${skip_second_phase}"
+echo "Set the verbose level: ${verbose_level}"
 
 echo ""
 
@@ -241,6 +242,9 @@ if [ "$skip_first_phase" = false ] && [ "$skip_second_phase" = false ]; then
     # Run rk_tolerance_comparision.C
     root -q '../../../tests/validation/root/rk_tolerance_comparison.C+O('${log10_min_rk_tol}','${log10_max_rk_tol}')'
     
+    # Run jacobian_histogram.C
+    root -q -l '../../../tests/validation/root/jacobian_histogram.C+O('${log10_min_rk_tol}')'
+        
     # Run jacobian_comparison.C
     root -q -l ../../../tests/validation/root/jacobian_comparison.C+O
     
@@ -256,4 +260,8 @@ if [ "$skip_first_phase" = false ] && [ "$skip_second_phase" = false ]; then
     
     # Run rk_tolerance_comparision.C
     root '../../../tests/validation/root/rk_tolerance_comparison.C+O('${log10_min_rk_tol}','${log10_max_rk_tol}')'
+    
+    # Run jacobian_histogram.C
+    root '../../../tests/validation/root/jacobian_histogram.C+O('${log10_min_rk_tol}')'
+    
 fi

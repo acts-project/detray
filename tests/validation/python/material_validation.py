@@ -43,8 +43,8 @@ def __main__():
                         help=("Directoy containing the data files"),
                         default = "./validation_data/material", type=str)
     parser.add_argument("--tolerance", "-t",
-                        help=("Tolerance for material comparisons"),
-                        default = 0.0001, type=float)
+                        help=("Tolerance for material comparisons [%]"),
+                        default = 1, type=float)
     parser.add_argument("--cuda",
                         help=("Run the CUDA material validation."),
                         action="store_true", default=False)
@@ -143,6 +143,10 @@ def __main__():
     mat_plotter.L0_vs_eta(df_cpu, "cpu_material_trace", det_name,
                           plot_factory, out_format)
 
+    # Comparison between scan and navigator trace in sX0
+    mat_plotter.compare_mat(df_scan, df_cpu, "cpu_material", det_name,
+                            plot_factory, out_format)
+
     # CUDA
     if args.cuda:
         mat_plotter.X0_vs_eta_phi(df_cuda, "cuda_material_trace", det_name,
@@ -153,6 +157,8 @@ def __main__():
                               plot_factory, out_format)
         mat_plotter.L0_vs_eta(df_cuda, "cuda_material_trace", det_name,
                               plot_factory, out_format)
+        mat_plotter.compare_mat(df_scan, df_cuda, "cuda_material", det_name,
+                                plot_factory, out_format)
 
 #-------------------------------------------------------------------------------
 

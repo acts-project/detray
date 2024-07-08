@@ -36,7 +36,7 @@ namespace detray {
 /// accelerator (a simple vector), while sensitive surfaces are usually sorted
 /// into a spacial grid.
 template <typename detector_t>  // @TODO: This needs a concept
-class detector_volume {
+class tracking_volume {
 
     /// Scalar type
     using scalar_type = typename detector_t::scalar_type;
@@ -50,17 +50,17 @@ class detector_volume {
     using name_map = dmap<dindex, std::string>;
 
     /// Not allowed: always needs a detector and a descriptor.
-    detector_volume() = delete;
+    tracking_volume() = delete;
 
     /// Constructor from detector @param det and volume descriptor
     /// @param vol_idx from that detector.
-    constexpr detector_volume(const detector_t &det, const descr_t &desc)
+    constexpr tracking_volume(const detector_t &det, const descr_t &desc)
         : m_detector{det}, m_desc{desc} {}
 
     /// Constructor from detector @param det and volume index @param vol_idx in
     /// that detector.
-    constexpr detector_volume(const detector_t &det, const dindex vol_idx)
-        : detector_volume(det, det.volume(vol_idx)) {}
+    constexpr tracking_volume(const detector_t &det, const dindex vol_idx)
+        : tracking_volume(det, det.volume(vol_idx)) {}
 
     /// @returns access to the underlying detector
     DETRAY_HOST_DEVICE
@@ -70,7 +70,7 @@ class detector_volume {
     ///
     /// @param rhs is the right hand side to be compared to
     DETRAY_HOST_DEVICE
-    constexpr auto operator==(const detector_volume &rhs) const -> bool {
+    constexpr auto operator==(const tracking_volume &rhs) const -> bool {
         return (&m_detector == &(rhs.m_detector) and m_desc == rhs.m_desc);
     }
 
@@ -311,7 +311,7 @@ class detector_volume {
     /// @returns a string stream that prints the volume details
     DETRAY_HOST
     friend std::ostream &operator<<(std::ostream &os,
-                                    const detector_volume &v) {
+                                    const tracking_volume &v) {
         os << "id: " << static_cast<int>(v.m_desc.id());
         os << " | index: " << v.m_desc.index();
         os << " | trf.: " << v.m_desc.transform();

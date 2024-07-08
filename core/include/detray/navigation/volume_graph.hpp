@@ -10,7 +10,7 @@
 // Project include(s)
 #include "detray/definitions/detail/indexing.hpp"
 #include "detray/definitions/detail/math.hpp"
-#include "detray/geometry/detector_volume.hpp"
+#include "detray/geometry/tracking_volume.hpp"
 #include "detray/utils/ranges.hpp"
 #include "detray/utils/type_traits.hpp"
 
@@ -83,7 +83,7 @@ class volume_graph {
         struct node {
 
             /// Constructor from a detectors volume and surface collections
-            node(const detector_volume<detector_t> &volume)
+            node(const tracking_volume<detector_t> &volume)
                 : m_idx(volume.index()) {
                 // @TODO: Remove duplicates from multiple placements of surfaces
                 volume.template visit_surfaces<node_builder>(m_half_edges);

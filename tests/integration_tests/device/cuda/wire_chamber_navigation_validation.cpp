@@ -89,7 +89,7 @@ int main(int argc, char **argv) {
     cfg_hel_scan.track_generator().n_tracks(1000u);
     cfg_hel_scan.track_generator().eta_range(-1.f, 1.f);
     // TODO: Fails for smaller momenta
-    cfg_hel_scan.track_generator().p_T(5.f * unit<scalar_t>::GeV);
+    cfg_hel_scan.track_generator().p_T(4.f * unit<scalar_t>::GeV);
 
     detail::register_checks<test::helix_scan>(det, names, cfg_hel_scan);
 
@@ -97,7 +97,7 @@ int main(int argc, char **argv) {
     detray::cuda::helix_navigation<wire_chamber_t>::config cfg_hel_nav{};
     cfg_hel_nav.name("wire_chamber_helix_navigation_cuda");
     cfg_hel_nav.whiteboard(white_board);
-    cfg_hel_nav.propagation().navigation.min_mask_tolerance *= 0.9f;
+    cfg_hel_nav.propagation().navigation.min_mask_tolerance *= 12.f;
     cfg_hel_nav.propagation().navigation.search_window = {3u, 3u};
 
     detail::register_checks<detray::cuda::helix_navigation>(det, names,
@@ -108,7 +108,7 @@ int main(int argc, char **argv) {
     mat_scan_cfg.name("wire_chamber_material_scan_for_cuda");
     mat_scan_cfg.whiteboard(white_board);
     mat_scan_cfg.track_generator().uniform_eta(true).eta_range(-1.f, 1.f);
-    mat_scan_cfg.track_generator().phi_steps(10).eta_steps(100);
+    mat_scan_cfg.track_generator().phi_steps(100).eta_steps(100);
 
     // Record the material using a ray scan
     detail::register_checks<test::material_scan>(det, names, mat_scan_cfg);
@@ -118,7 +118,10 @@ int main(int argc, char **argv) {
     mat_val_cfg.name("wire_chamber_material_validaiton_cuda");
     mat_val_cfg.whiteboard(white_board);
     mat_val_cfg.device_mr(&dev_mr);
-    mat_val_cfg.tol(5e-3f);  // < Reduce tolerance for single precision tests
+    // Reduce tolerance for single precision tests
+    if constexpr (std::is_same_v<scalar_t, float>) {
+        mat_val_cfg.relative_error(130.f);
+    }
     mat_val_cfg.propagation() = cfg_str_nav.propagation();
 
     detail::register_checks<detray::cuda::material_validation>(det, names,

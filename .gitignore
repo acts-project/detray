@@ -18,3 +18,5 @@
 **/*C_ACLiC*
 **/thread_*
 **/merged/
+**/*.err
+**/*.log
