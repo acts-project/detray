@@ -52,7 +52,7 @@ endif()
 option( DETRAY_EIGEN_PLUGIN "Build Eigen math plugin" ON )
 option( DETRAY_SMATRIX_PLUGIN "Build ROOT/SMatrix math plugin" OFF )
 option( DETRAY_VC_PLUGIN "Build Vc based math plugin" ON )
-option( DETRAY_SVG_DISPLAY "Build ActSVG display module" OFF)
+option( DETRAY_SVG_DISPLAY "Build ActSVG display module" ON)
 option( DETRAY_BUILD_SYCL "Build the SYCL sources included in detray" OFF )
 option( DETRAY_BUILD_CUDA "Build the CUDA sources included in detray"
    ${DETRAY_BUILD_CUDA_DEFAULT} )
