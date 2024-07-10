@@ -8,10 +8,7 @@
 add_subdirectory( covfie )
 add_subdirectory( cpu )
 add_subdirectory( io )
-
-if ( DETRAY_SVG_DISPLAY )
-   add_subdirectory( svgtools )
-endif()
+add_subdirectory( svgtools )
 
 # Set up all of the "device" tests.
 if( DETRAY_BUILD_CUDA OR DETRAY_BUILD_SYCL )
