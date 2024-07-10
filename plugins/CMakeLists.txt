@@ -6,4 +6,7 @@
 
 # Add all subdirectories.
 add_subdirectory( algebra )
-add_subdirectory( svgtools )
+
+if ( DETRAY_SVG_DISPLAY )
+  add_subdirectory( svgtools )
+endif()

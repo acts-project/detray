@@ -65,6 +65,10 @@ option( DETRAY_BUILD_TUTORIALS "Build the tutorial executables of Detray"
 option( DETRAY_FAIL_ON_WARNINGS
    "Make the build fail on compiler/linker warnings" FALSE )
 
+if ( ( BUILD_TESTING AND DETRAY_BUILD_TESTING ) OR DETRAY_BUILD_TUTORIALS )
+   set( DETRAY_SVG_DISPLAY ON )
+endif()
+
 # Clean up.
 unset( DETRAY_BUILD_CUDA_DEFAULT )
 
