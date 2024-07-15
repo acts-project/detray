@@ -5,16 +5,16 @@
  * Mozilla Public License Version 2.0
  */
 
+#pragma once
+
 // Project include(s)
+#include "detray/definitions/detail/algebra.hpp"
+#include "detray/tracks/tracks.hpp"
+
+// Detray benchmark include(s)
 #include "detray/benchmarks/benchmark_base.hpp"
 #include "detray/benchmarks/propagation_benchmark_config.hpp"
 #include "detray/benchmarks/propagation_benchmark_utils.hpp"
-#include "detray/core/detail/container_views.hpp"
-#include "detray/definitions/detail/algebra.hpp"
-#include "detray/definitions/detail/containers.hpp"
-#include "detray/definitions/units.hpp"
-#include "detray/detectors/bfield.hpp"
-#include "detray/tracks/tracks.hpp"
 
 // Benchmark include
 #include <benchmark/benchmark.h>
@@ -45,48 +45,37 @@ struct propagation_bm : public benchmark_base {
     propagation_bm() = default;
 
     /// Construct from an externally provided configuration @param cfg
-    propagation_bm(configuration cfg) : m_cfg{cfg} {}
+    explicit propagation_bm(const configuration &cfg) : m_cfg{cfg} {}
 
     /// @return the benchmark configuration
     configuration &config() { return m_cfg; }
 
     /// Prepare data and run benchmark loop
-    inline void operator()(
-        ::benchmark::State &state,
-        dvector<free_track_parameters<algebra_t>> *tracks_ptr,
-        const typename propagator_t::detector_type *det_ptr,
-        const bfield_t *bfield_ptr,
-        typename propagator_t::actor_chain_type::state_tuple *actor_states_ptr)
-        const {
+    inline void operator()(::benchmark::State &state,
+                           dvector<free_track_parameters<algebra_t>> *tracks,
+                           const typename propagator_t::detector_type *det,
+                           const bfield_t *bfield,
+                           typename propagator_t::actor_chain_type::state_tuple
+                               *input_actor_states) const {
 
         using actor_states_t =
             typename propagator_t::actor_chain_type::state_tuple;
 
-        auto &tracks{*tracks_ptr};
-        const auto &det{*det_ptr};
-        const auto &bfield{*bfield_ptr};
-        auto &input_actor_states{*actor_states_ptr};
-
         const int n_samples{m_cfg.benchmark().n_samples()};
         const int n_warmup{m_cfg.benchmark().n_warmup()};
 
-        assert(static_cast<std::size_t>(n_samples + n_warmup) <= tracks.size());
-
-        // Shuffle the sample
-        std::random_device rd;
-        std::mt19937 gen(rd());
-
-        std::shuffle(std::begin(tracks), std::end(tracks), gen);
+        assert(static_cast<std::size_t>(n_samples + n_warmup) <=
+               tracks->size());
 
         // Create propagator
         propagator_t p{m_cfg.propagation()};
 
         // Warm-up
-        if (m_cfg.benchmark().do_warmup()) {
+        /*if (m_cfg.benchmark().do_warmup()) {
 #pragma omp parallel for
             for (int i = 0; i < n_warmup; ++i) {
                 // Fresh copy of actor states
-                actor_states_t actor_state_tuple(input_actor_states);
+                actor_states_t actor_state_tuple(*input_actor_states);
                 // Tuple of references to pass to the propagator
                 typename propagator_t::actor_chain_type::state actor_states =
                     setup_actor_states<propagator_t>(
@@ -95,7 +84,12 @@ struct propagation_bm : public benchmark_base {
                             std::size_t,
                             detail::tuple_size_v<actor_states_t>>{});
 
-                typename propagator_t::state p_state(tracks[i], bfield, det);
+                typename propagator_t::state p_state((*tracks)[i], *bfield,
+                                                     *det);
+                // Particle hypothesis
+                auto &ptc = p_state._stepping.particle_hypothesis();
+                p_state.set_particle(
+                    update_particle_hypothesis(ptc, (*tracks)[i]));
 
                 // Run propagation
                 if constexpr (opt == propagate_option::e_unsync) {
@@ -106,14 +100,15 @@ struct propagation_bm : public benchmark_base {
                         p.propagate_sync(p_state, actor_states));
                 }
             }
-        }
+        }*/
 
         // Run the benchmark
+        std::size_t total_tracks = 0;
         for (auto _ : state) {
 #pragma omp parallel for
             for (int i = n_warmup; i < n_samples + n_warmup; ++i) {
                 // Fresh copy of actor states
-                actor_states_t actor_state_tuple(input_actor_states);
+                actor_states_t actor_state_tuple(*input_actor_states);
                 // Tuple of references to pass to the propagator
                 typename propagator_t::actor_chain_type::state actor_states =
                     setup_actor_states<propagator_t>(
@@ -122,7 +117,12 @@ struct propagation_bm : public benchmark_base {
                             std::size_t,
                             detail::tuple_size_v<actor_states_t>>{});
 
-                typename propagator_t::state p_state(tracks[i], bfield, det);
+                typename propagator_t::state p_state((*tracks)[i], *bfield,
+                                                     *det);
+                // Particle hypothesis
+                auto &ptc = p_state._stepping.particle_hypothesis();
+                p_state.set_particle(
+                    update_particle_hypothesis(ptc, (*tracks)[i]));
 
                 // Run propagation
                 if constexpr (opt == propagate_option::e_unsync) {
@@ -133,10 +133,11 @@ struct propagation_bm : public benchmark_base {
                         p.propagate_sync(p_state, actor_states));
                 }
             }
+            total_tracks += n_samples;
         }
         // Report throughput
         state.counters["TracksPropagated"] = benchmark::Counter(
-            static_cast<double>(n_samples), benchmark::Counter::kIsRate);
+            static_cast<double>(total_tracks), benchmark::Counter::kIsRate);
     }
 };
 

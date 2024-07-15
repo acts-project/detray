@@ -5,12 +5,15 @@
  * Mozilla Public License Version 2.0
  */
 
+#pragma once
+
 // Project include(s)
 #include "detray/benchmarks/benchmark_base.hpp"
 #include "detray/propagator/propagation_config.hpp"
 
 // System include(s)
 #include <string>
+#include <string_view>
 
 namespace detray {
 
@@ -27,7 +30,7 @@ struct propagation_benchmark_config {
     propagation_benchmark_config() = default;
 
     /// Construct from a base configuration
-    propagation_benchmark_config(
+    explicit propagation_benchmark_config(
         const detray::benchmark_base::configuration& bench_cfg)
         : m_benchmark(bench_cfg) {}
 
@@ -44,7 +47,7 @@ struct propagation_benchmark_config {
 
     /// Setters
     /// @{
-    propagation_benchmark_config& name(std::string& n) {
+    propagation_benchmark_config& name(const std::string_view n) {
         m_name = n;
         return *this;
     }

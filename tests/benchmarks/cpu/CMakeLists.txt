@@ -46,6 +46,25 @@ macro(detray_add_cpu_benchmark algebra)
             PRIVATE DETRAY_BENCHMARK_PRINTOUTS
         )
     endif()
+
+    # Build the benchmark executable for the propagation
+    detray_add_executable( benchmark_cpu_propagation_${algebra}
+       "propagation.cpp"
+       LINK_LIBRARIES detray::benchmark_cpu benchmark::benchmark_main
+                     vecmem::core detray::core_${algebra} detray::test_utils
+    )
+
+    target_compile_options(
+        detray_benchmark_cpu_propagation_${algebra}
+        PRIVATE "-march=native" "-ftree-vectorize"
+    )
+
+    if(OpenMP_CXX_FOUND)
+        target_link_libraries(
+            detray_benchmark_cpu_propagation_${algebra}
+            PRIVATE OpenMP::OpenMP_CXX
+        )
+    endif()
 endmacro()
 
 # Build the array benchmark.

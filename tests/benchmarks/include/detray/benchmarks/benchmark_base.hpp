@@ -1,6 +1,6 @@
 /** Detray library, part of the ACTS project (R&D line)
  *
- * (c) 2023 CERN for the benefit of the ACTS project
+ * (c) 2023-2024 CERN for the benefit of the ACTS project
  *
  * Mozilla Public License Version 2.0
  */
@@ -21,7 +21,7 @@ struct benchmark_base {
     /// Local configuration type
     struct configuration {
         /// Size of data sample to be used in benchmark
-        int m_samples{100u};
+        int m_samples{100};
         /// Run a number of operations before the benchmark
         bool m_warmup = true;
         // Size of data in warm-up round
@@ -46,14 +46,24 @@ struct benchmark_base {
 
         /// Getters
         /// @{
-        int n_samples() const { return m_samples; }
+        constexpr int n_samples() const { return m_samples; }
         constexpr bool do_warmup() const { return m_warmup; }
         constexpr int n_warmup() const { return m_n_warmup; }
         /// @}
 
-        /// Print configuration
+        private:
+        /// Print the benchmark setup
         friend std::ostream& operator<<(std::ostream& os,
-                                        const configuration& c);
+                                        const configuration& cfg) {
+            os << " -> running:\t " << cfg.n_samples() << " samples"
+               << std::endl;
+            if (cfg.do_warmup()) {
+                os << " -> warmup: \t " << cfg.n_warmup() << " samples"
+                   << std::endl;
+            }
+            os << std::endl;
+            return os;
+        }
     };
 
     /// Default construction
@@ -62,15 +72,5 @@ struct benchmark_base {
     /// Default destructor
     virtual ~benchmark_base() = default;
 };
-
-std::ostream& operator<<(std::ostream& os,
-                         const benchmark_base::configuration& cfg) {
-    os << " -> running:\t " << cfg.n_samples() << " samples" << std::endl;
-    if (cfg.do_warmup()) {
-        os << " -> warmup: \t " << cfg.n_warmup() << " samples" << std::endl;
-    }
-    os << std::endl;
-    return os;
-}
 
 }  // namespace detray

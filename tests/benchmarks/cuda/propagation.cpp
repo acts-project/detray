@@ -17,7 +17,7 @@
 #include "detray/tracks/tracks.hpp"
 
 // Detray benchmark include(s)
-#include "detray/benchmarks/cpu/propagation_benchmark.hpp"
+#include "detray/benchmarks/device/cuda/propagation_benchmark.hpp"
 
 // Detray test include(s).
 #include "detray/test/utils/detectors/build_toy_detector.hpp"
@@ -26,6 +26,7 @@
 #include "detray/test/utils/types.hpp"
 
 // Vecmem include(s)
+#include <vecmem/memory/cuda/device_memory_resource.hpp>
 #include <vecmem/memory/host_memory_resource.hpp>
 
 // System include(s)
@@ -46,15 +47,10 @@ int main(int argc, char** argv) {
                                std::uniform_real_distribution<scalar_t>>;
     using track_generator_t =
         random_track_generator<free_track_parameters_t, uniform_gen_t>;
-
-    using field_t = bfield::const_field_t;
-    using stepper_t = rk_stepper<typename field_t::view_t, algebra_t>;
-    using empty_chain_t = actor_chain<>;
-    using default_chain = actor_chain<dtuple, parameter_transporter<algebra_t>,
-                                      pointwise_material_interactor<algebra_t>,
-                                      parameter_resetter<algebra_t>>;
+    using field_bknd_t = bfield::const_bknd_t;
 
     vecmem::host_memory_resource host_mr;
+    vecmem::cuda::device_memory_resource dev_mr;
 
     //
     // Configuration
@@ -105,22 +101,13 @@ int main(int argc, char** argv) {
     //
     // Prepare data
     //
-    auto tracks = generate_tracks<track_generator_t>(&host_mr, trk_cfg);
+    auto tracks = generate_tracks<track_generator_t>(&host_mr, trk_cfg, true);
 
     const auto [toy_det, names] = build_toy_detector(host_mr, toy_cfg);
     const auto [wire_chamber, _] =
         build_wire_chamber(host_mr, wire_chamber_cfg);
 
     auto bfield = bfield::create_const_field(B);
-
-    dtuple<> empty_state{};
-
-    parameter_transporter<algebra_t>::state transporter_state{};
-    pointwise_material_interactor<algebra_t>::state interactor_state{};
-    parameter_resetter<algebra_t>::state resetter_state{};
-
-    auto actor_states = detail::make_tuple<dtuple>(
-        transporter_state, interactor_state, resetter_state);
 
     //
     // Register benchmarks
@@ -129,24 +116,16 @@ int main(int argc, char** argv) {
               << "----------------------\n\n";
 
     prop_cfg.stepping.do_covariance_transport = true;
-    register_benchmark<propagation_bm, stepper_t, default_chain>(
+    register_benchmark<cuda_propagation_bm,
+                       cuda_propagator_type<toy_metadata, field_bknd_t>>(
         "TOY_DETECTOR_W_COV_TRANSPORT", bench_cfg, prop_cfg, toy_det, bfield,
-        tracks, n_tracks, &actor_states);
-
-    prop_cfg.stepping.do_covariance_transport = false;
-    register_benchmark<propagation_bm, stepper_t, empty_chain_t>(
-        "TOY_DETECTOR", bench_cfg, prop_cfg, toy_det, bfield, tracks, n_tracks,
-        &empty_state);
+        tracks, n_tracks, &dev_mr);
 
     prop_cfg.stepping.do_covariance_transport = true;
-    register_benchmark<propagation_bm, stepper_t, default_chain>(
+    register_benchmark<cuda_propagation_bm,
+                       cuda_propagator_type<default_metadata, field_bknd_t>>(
         "WIRE_CHAMBER_W_COV_TRANSPORT", bench_cfg, prop_cfg, wire_chamber,
-        bfield, tracks, n_tracks, &actor_states);
-
-    prop_cfg.stepping.do_covariance_transport = false;
-    register_benchmark<propagation_bm, stepper_t, empty_chain_t>(
-        "WIRE_CHAMBER", bench_cfg, prop_cfg, wire_chamber, bfield, tracks,
-        n_tracks, &empty_state);
+        bfield, tracks, n_tracks, &dev_mr);
 
     // Run benchmarks
     ::benchmark::Initialize(&argc, argv);
