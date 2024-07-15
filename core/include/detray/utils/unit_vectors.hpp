@@ -1,6 +1,6 @@
 /** Detray library, part of the ACTS project (R&D line)
  *
- * (c) 2023 CERN for the benefit of the ACTS project
+ * (c) 2023-2024 CERN for the benefit of the ACTS project
  *
  * Mozilla Public License Version 2.0
  */
@@ -11,8 +11,8 @@
 #include "detray/definitions/detail/algebra.hpp"
 #include "detray/definitions/detail/qualifiers.hpp"
 
-// Thrust include(s)
-#include <thrust/pair.h>
+// System include(s)
+#include <array>
 
 namespace detray {
 
@@ -67,12 +67,12 @@ struct unit_vectors {
     ///
     /// with the additional condition that `U` is located in the global x-y
     /// plane.
-    DETRAY_HOST_DEVICE inline thrust::pair<vector3_t, vector3_t>
+    DETRAY_HOST_DEVICE inline std::array<vector3_t, 2>
     make_curvilinear_unit_vectors(const vector3_t& dir) {
 
-        thrust::pair<vector3_t, vector3_t> uv;
-        uv.first = make_curvilinear_unit_u(dir);
-        uv.second = vector::normalize(vector::cross(dir, uv.first));
+        std::array<vector3_t, 2> uv;
+        uv[0] = make_curvilinear_unit_u(dir);
+        uv[1] = vector::normalize(vector::cross(dir, uv[0]));
 
         return uv;
     }

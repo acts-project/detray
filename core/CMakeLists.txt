@@ -32,8 +32,7 @@ file( GLOB _detray_core_private_headers
    "include/detray/*/*/detail/*.hpp" )
 detray_add_library( detray_core core
    ${_detray_core_public_headers} ${_detray_core_private_headers} )
-target_link_libraries( detray_core
-   INTERFACE vecmem::core detray::Thrust )
+target_link_libraries( detray_core INTERFACE vecmem::core )
 
 # Generate a version header for the project.
 configure_file( "cmake/version.hpp.in"

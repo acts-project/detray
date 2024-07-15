@@ -24,17 +24,12 @@ set_and_check( detray_CMAKE_DIR "@PACKAGE_CMAKE_INSTALL_CMAKEDIR@" )
 # Find all packages that Detray needs to function.
 include( CMakeFindDependencyMacro )
 find_dependency( algebra-plugins )
-find_dependency( Thrust )
 find_dependency( vecmem )
 find_dependency( dfelibs )
 find_dependency( nlohmann_json )
 if( DETRAY_DISPLAY )
    find_dependency( actsvg )
 endif()
-
-# Set up the detray::Thrust target.
-set( DETRAY_THRUST_OPTIONS @DETRAY_THRUST_OPTIONS@ )
-thrust_create_target( detray::Thrust ${DETRAY_THRUST_OPTIONS} )
 
 # Print a standard information message about the package being found.
 include( FindPackageHandleStandardArgs )

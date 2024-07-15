@@ -11,6 +11,7 @@ detray_add_unit_test( cpu
    "geometry/barcode.cpp"
    "grid2/populator.cpp"
    "propagator/actor_chain.cpp"
+   "utils/find_bounds.cpp"
    "utils/hash_tree.cpp"
    "utils/invalid_values.cpp"
    "utils/ranges.cpp"

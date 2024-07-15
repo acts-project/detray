@@ -7,11 +7,6 @@
 
 #pragma once
 
-// Thrust include(s)
-#if defined(__CUDACC__)
-#include <thrust/iterator/iterator_categories.h>
-#endif
-
 // Project include(s)
 #include "detray/definitions/detail/qualifiers.hpp"
 
@@ -27,21 +22,12 @@
 /// https://github.com/gcc-mirror/gcc/blob/16e2427f50c208dfe07d07f18009969502c25dc8/libstdc%2B%2B-v3/include/bits/stl_iterator_base_funcs.h
 namespace detray::ranges {
 
-// Define iterator tags for host and device
-/*#if defined(__CUDACC__)
-using input_iterator_tag = thrust::input_device_iterator_tag;
-using output_iterator_tag = thrust::output_device_iterator_tag;
-using forward_iterator_tag = thrust::forward_device_iterator_tag;
-using bidirectional_iterator_tag = thrust::bidirectional_device_iterator_tag;
-using random_access_iterator_tag = thrust::random_access_device_iterator_tag;
-#elif !defined(__CUDACC__)*/
-// reuse iterator tags for the host
+// Reuse iterator tags for the host
 using input_iterator_tag = std::input_iterator_tag;
 using output_iterator_tag = std::output_iterator_tag;
 using forward_iterator_tag = std::forward_iterator_tag;
 using bidirectional_iterator_tag = std::bidirectional_iterator_tag;
 using random_access_iterator_tag = std::random_access_iterator_tag;
-// #endif
 
 namespace detail {
 /// Simply import the std versions of basic iterator functionality where
