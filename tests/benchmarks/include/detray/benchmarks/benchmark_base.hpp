@@ -63,8 +63,8 @@ struct benchmark_base {
     virtual ~benchmark_base() = default;
 };
 
-std::ostream& operator<<(std::ostream& os,
-                         const benchmark_base::configuration& cfg) {
+inline std::ostream& operator<<(std::ostream& os,
+                                const benchmark_base::configuration& cfg) {
     os << " -> running:\t " << cfg.n_samples() << " samples" << std::endl;
     if (cfg.do_warmup()) {
         os << " -> warmup: \t " << cfg.n_warmup() << " samples" << std::endl;

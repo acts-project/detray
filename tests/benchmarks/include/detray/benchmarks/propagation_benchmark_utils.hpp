@@ -22,6 +22,7 @@
 #include <benchmark/benchmark.h>
 
 // System include(s)
+#include <type_traits>
 #include <utility>
 #include <vector>
 
@@ -32,12 +33,6 @@ enum class propagate_option {
     e_unsync = 0,
     e_sync = 1,
 };
-
-/// Define propagator type
-template <typename stepper_t, typename detector_t,
-          typename actor_chain_t = actor_chain<>>
-using propagator_t =
-    propagator<stepper_t, navigator<detector_t>, actor_chain_t>;
 
 /// Precompute the tracks
 template <typename track_generator_t>
@@ -74,8 +69,7 @@ inline constexpr auto setup_actor_states(
 /// Register a propagation benchmark of type @tparam benchmark_t
 ///
 /// @tparam benchmark_t the propagation benchmark functor
-/// @tparam stepper_t the stepper to use fro track parameter transport
-/// @tparam actor_chain_t types of actors
+/// @tparam propagator_t full propagator type
 /// @tparam detector_t detector type
 /// @tparam bfield_t covfie magnetic field type
 ///
@@ -88,23 +82,26 @@ inline constexpr auto setup_actor_states(
 ///                     actor_chain_t)
 /// @param tracks the pre-computed test tracks
 /// @param n_samples the number of track to run
-template <template <typename, typename> class benchmark_t, typename stepper_t,
-          typename actor_chain_t, typename detector_t, typename bfield_t>
+template <template <typename, typename> class benchmark_t,
+          typename propagator_t, typename detector_t, typename bfield_bknd_t>
 inline void register_benchmark(
     const std::string &name, benchmark_base::configuration &bench_cfg,
-    propagation::config &prop_cfg, const detector_t &det,
-    const bfield_t &bfield, typename actor_chain_t::state_tuple &actor_states,
+    propagation::config &prop_cfg, const detector_t &det, bfield_bknd_t &bfield,
     dvector<free_track_parameters<typename detector_t::algebra_type>> &tracks,
-    const std::vector<int> &n_samples = {10000}) {
+    const std::vector<int> &n_samples = {10000},
+    vecmem::memory_resource *host_mr = nullptr,
+    vecmem::memory_resource *dev_mr = nullptr,
+    typename propagator_t::actor_chain_type::state_tuple *actor_states =
+        nullptr) {
+
+    using algebra_t = typename detector_t::algebra_type;
 
     for (int n : n_samples) {
 
         bench_cfg.n_samples(n);
 
         // Without covariance transport
-        benchmark_t<propagator_t<stepper_t, detector_t, actor_chain_t>,
-                    bfield_t>
-            prop_benchmark{bench_cfg};
+        benchmark_t<propagator_t, bfield_bknd_t> prop_benchmark{bench_cfg};
         prop_benchmark.config().propagation() = prop_cfg;
 
         std::string bench_name = prop_benchmark.config().name() + "_" + name +
@@ -112,10 +109,46 @@ inline void register_benchmark(
 
         std::cout << bench_name << "\n" << bench_cfg;
 
-        ::benchmark::RegisterBenchmark(bench_name.c_str(), prop_benchmark,
-                                       &tracks, &det, &bfield, &actor_states);
-        //->MeasureProcessCPUTime();
+        // Cpu benchmark
+        if constexpr (std::is_invocable_v<
+                          decltype(prop_benchmark), ::benchmark::State &,
+                          dvector<free_track_parameters<algebra_t>> *,
+                          const detector_t *, const bfield_bknd_t *,
+                          typename propagator_t::actor_chain_type::state_tuple
+                              *>) {
+            ::benchmark::RegisterBenchmark(bench_name.c_str(), prop_benchmark,
+                                           &tracks, &det, &bfield,
+                                           actor_states);
+            //->MeasureProcessCPUTime();
+        } else {
+
+            ::benchmark::RegisterBenchmark(bench_name.c_str(), prop_benchmark,
+                                           host_mr, dev_mr, &tracks, &det,
+                                           &bfield);
+            //->MeasureProcessCPUTime();
+        }
     }
+}
+
+/// Register a propagation benchmark of type @tparam benchmark_t
+///
+/// @tparam benchmark_t the propagation benchmark functor
+/// @tparam stepper_t the stepper to use fro track parameter transport
+/// @tparam actor_chain_t types of actors
+template <template <typename, typename> class benchmark_t, typename stepper_t,
+          typename actor_chain_t, typename detector_t, typename bfield_bknd_t>
+inline void register_benchmark(
+    const std::string &name, benchmark_base::configuration &bench_cfg,
+    propagation::config &prop_cfg, const detector_t &det, bfield_bknd_t &bfield,
+    dvector<free_track_parameters<typename detector_t::algebra_type>> &tracks,
+    const std::vector<int> &n_samples = {10000},
+    typename actor_chain_t::state_tuple *actor_states = nullptr) {
+
+    using propagator_t =
+        propagator<stepper_t, navigator<detector_t>, actor_chain_t>;
+    register_benchmark<benchmark_t, propagator_t>(
+        name, bench_cfg, prop_cfg, det, bfield, tracks, n_samples, nullptr,
+        nullptr, actor_states);
 }
 
 }  // namespace detray

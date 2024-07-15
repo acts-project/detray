@@ -33,7 +33,7 @@ auto toy_cfg = toy_det_config{}
                    .n_brl_layers(4u)
                    .n_edc_layers(7u)
                    .do_check(false)
-                   .use_material_maps(true);
+                   .use_material_maps(false);
 
 void fill_tracks(vecmem::vector<free_track_parameters<algebra_t>> &tracks,
                  const std::size_t theta_steps, const std::size_t phi_steps) {
@@ -115,11 +115,12 @@ static void BM_PROPAGATOR_CUDA(benchmark::State &state) {
     test::vector3 B{0.f, 0.f, 2.f * unit<scalar>::T};
     auto bfield = bfield::create_const_field(B);
 
-    // Get detector data
-    auto det_data = detray::get_data(det);
-
     // vecmem copy helper object
     vecmem::cuda::copy copy;
+
+    // Copy the detector to device and get its view
+    auto det_buffer = detray::get_buffer(det, dev_mr, copy);
+    auto det_view = detray::get_data(det_buffer);
 
     std::size_t total_tracks = 0;
 
@@ -130,18 +131,18 @@ static void BM_PROPAGATOR_CUDA(benchmark::State &state) {
 
     total_tracks += tracks.size();
 
+    // Get tracks data
+    auto track_buffer =
+        detray::get_buffer(vecmem::get_data(tracks), dev_mr, copy);
+
+    // Create navigator candidates buffer
+    auto candidates_buffer =
+        create_candidates_buffer(det, tracks.size(), dev_mr, &mng_mr);
+    copy.setup(candidates_buffer);
+
     for (auto _ : state) {
-
-        // Get tracks data
-        auto tracks_data = vecmem::get_data(tracks);
-
-        // Create navigator candidates buffer
-        auto candidates_buffer =
-            create_candidates_buffer(det, tracks.size(), dev_mr, &mng_mr);
-        copy.setup(candidates_buffer);
-
         // Run the propagator test for GPU device
-        propagator_benchmark(det_data, bfield, tracks_data, candidates_buffer,
+        propagator_benchmark(det_view, bfield, track_buffer, candidates_buffer,
                              opt);
     }
 

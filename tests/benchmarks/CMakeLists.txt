@@ -31,5 +31,5 @@ add_subdirectory( include/detray/benchmarks/cpu )
 # Set up all of the "device" benchmarks.
 if( DETRAY_BUILD_CUDA )
    add_subdirectory( cuda )
-   #add_subdirectory( include/detray/benchmarks/device )
+   add_subdirectory( include/detray/benchmarks/device )
 endif()
