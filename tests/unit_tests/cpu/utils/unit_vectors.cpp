@@ -24,9 +24,9 @@ GTEST_TEST(detray_utils, curvilinear_unit_vectors) {
     // General case
     vector3 w{2.f, 3.f, 4.f};
 
-    auto uv_pair = unit_vectors<vector3>().make_curvilinear_unit_vectors(w);
-    auto u = uv_pair.first;
-    auto v = uv_pair.second;
+    auto uv = unit_vectors<vector3>().make_curvilinear_unit_vectors(w);
+    auto u = uv[0];
+    auto v = uv[1];
 
     EXPECT_NEAR(u[0], -3.f / getter::perp(w), tolerance);
     EXPECT_NEAR(u[1], 2.f / getter::perp(w), tolerance);
@@ -40,9 +40,9 @@ GTEST_TEST(detray_utils, curvilinear_unit_vectors) {
     // Special case where w is aligned with z axis
     w = {0.f, 0.f, 23.f};
 
-    uv_pair = unit_vectors<vector3>().make_curvilinear_unit_vectors(w);
-    u = uv_pair.first;
-    v = uv_pair.second;
+    uv = unit_vectors<vector3>().make_curvilinear_unit_vectors(w);
+    u = uv[0];
+    v = uv[1];
 
     EXPECT_NEAR(u[0], 1.f, tolerance);
     EXPECT_NEAR(u[1], 0.f, tolerance);

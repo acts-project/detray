@@ -1,6 +1,6 @@
 /** Detray library, part of the ACTS project (R&D line)
  *
- * (c) 2021-2023 CERN for the benefit of the ACTS project
+ * (c) 2021-2024 CERN for the benefit of the ACTS project
  *
  * Mozilla Public License Version 2.0
  */
@@ -9,43 +9,22 @@
 
 // Project include(s)
 #include "detray/definitions/detail/qualifiers.hpp"
+#include "detray/utils/find_bound.hpp"
 #include "detray/utils/sort.hpp"
-
-// Thrust include(s)
-#if defined(__CUDACC__)
-#include <thrust/binary_search.h>
-#include <thrust/execution_policy.h>
-#include <thrust/find.h>
-#include <thrust/sort.h>
-#endif
 
 // System include(s)
 #include <algorithm>
-#include <cmath>
-#include <type_traits>
-#include <utility>
 
 namespace detray::detail {
 
 /// @brief sequential (single thread) sort function
 template <class RandomIt>
 DETRAY_HOST_DEVICE inline void sequential_sort(RandomIt first, RandomIt last) {
-#if defined(__CUDACC__) || defined(CL_SYCL_LANGUAGE_VERSION) || \
-    defined(SYCL_LANGUAGE_VERSION)
-    selection_sort(first, last);
+#if (defined(__CUDACC__) && __cplusplus <= 201703L) || \
+    defined(CL_SYCL_LANGUAGE_VERSION) || defined(SYCL_LANGUAGE_VERSION)
+    detray::selection_sort(first, last);
 #else
     std::sort(first, last);
-#endif
-}
-
-/// @brief sequential sort for host/devcie (single thread) - custom comparison
-template <class RandomIt, class Predicate>
-DETRAY_HOST_DEVICE inline void sequential_sort(RandomIt first, RandomIt last,
-                                               Predicate&& comp) {
-#if defined(__CUDACC__)
-    thrust::sort(thrust::seq, first, last, std::forward<Predicate>(comp));
-#elif !defined(__CUDACC__)
-    std::sort(first, last, std::forward<Predicate>(comp));
 #endif
 }
 
@@ -62,24 +41,26 @@ DETRAY_HOST_DEVICE inline auto find_if(RandomIt first, RandomIt last,
     return last;
 }
 
-/// @brief lower_bound implementation for device
+/// @brief lower_bound implementation for host/device
 template <class ForwardIt, typename Value>
 DETRAY_HOST_DEVICE inline auto lower_bound(ForwardIt first, ForwardIt last,
                                            Value value) {
-#if defined(__CUDACC__)
-    return thrust::lower_bound(thrust::seq, first, last, value);
-#elif !defined(__CUDACC__)
+#if (defined(__CUDACC__) && __cplusplus <= 201703L) || \
+    defined(CL_SYCL_LANGUAGE_VERSION) || defined(SYCL_LANGUAGE_VERSION)
+    return detray::lower_bound(first, last, value);
+#else
     return std::lower_bound(first, last, value);
 #endif
 }
 
-/// @brief upper_bound implementation for device
+/// @brief upper_bound implementation for host/device
 template <class ForwardIt, typename Value>
 DETRAY_HOST_DEVICE inline auto upper_bound(ForwardIt first, ForwardIt last,
                                            Value value) {
-#if defined(__CUDACC__)
-    return thrust::upper_bound(thrust::seq, first, last, value);
-#elif !defined(__CUDACC__)
+#if (defined(__CUDACC__) && __cplusplus <= 201703L) || \
+    defined(CL_SYCL_LANGUAGE_VERSION) || defined(SYCL_LANGUAGE_VERSION)
+    return detray::upper_bound(first, last, value);
+#else
     return std::upper_bound(first, last, value);
 #endif
 }

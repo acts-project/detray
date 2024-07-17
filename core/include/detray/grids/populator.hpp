@@ -8,6 +8,7 @@
 #pragma once
 
 // Project include(s).
+#include "detray/definitions/detail/algorithms.hpp"
 #include "detray/definitions/detail/indexing.hpp"
 #include "detray/definitions/detail/qualifiers.hpp"
 #include "detray/utils/invalid_values.hpp"
@@ -142,13 +143,9 @@ struct complete_populator {
                 break;
             }
         }
-        // no sort function in the cuda device
-        // maybe can use thrust sort function
-#if !defined(__CUDACC__)
-        if (kSORT) {
-            std::sort(stored.begin(), stored.end());
+        if constexpr (kSORT) {
+            detray::detail::sequential_sort(stored.begin(), stored.end());
         }
-#endif
     }
 
     /** Create a sequence of bare values, independent of the store_value.
