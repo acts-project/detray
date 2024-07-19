@@ -224,6 +224,10 @@ namespace detail {
 template <typename scalar_t>
 struct is_hom_material<material<scalar_t>, void> : public std::true_type {};
 
+// Pick the raw material type up for homogeneous volume material
+template <typename scalar_t>
+struct is_volume_material<material<scalar_t>, void> : public std::true_type {};
+
 }  // namespace detail
 
 // Macro for declaring the predefined materials (w/o Density effect data)

@@ -69,8 +69,7 @@ constexpr io::material_id get_id() {
 
 /// Infer the IO material id from the material type - material maps
 template <typename material_t,
-          std::enable_if_t<detray::detail::is_material_map_v<material_t> ||
-                               detray::detail::is_volume_material_v<material_t>,
+          std::enable_if_t<detray::detail::is_material_map_v<material_t>,
                            bool> = true>
 constexpr io::material_id get_id() {
 

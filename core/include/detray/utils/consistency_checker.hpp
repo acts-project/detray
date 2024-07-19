@@ -153,9 +153,7 @@ struct material_checker {
     /// @param id type id of the material grid collection
     template <typename material_coll_t, typename index_t, typename id_t,
               std::enable_if_t<detail::is_material_map_v<
-                                   typename material_coll_t::value_type> ||
-                                   detail::is_volume_material_v<
-                                       typename material_coll_t::value_type>,
+                                   typename material_coll_t::value_type>,
                                bool> = true>
     DETRAY_HOST_DEVICE void operator()(const material_coll_t &material_coll,
                                        const index_t idx, const id_t id) const {

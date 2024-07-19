@@ -96,7 +96,8 @@ class tracking_volume {
         return transform().translation();
     }
 
-    /// @returns the material parameters at the local position @param loc_p
+    /// @returns a pointer to the material parameters at the local position
+    /// @param loc_p
     DETRAY_HOST_DEVICE constexpr auto material_parameters(
         const point3_type &loc_p) const
         -> const detray::material<scalar_type> * {

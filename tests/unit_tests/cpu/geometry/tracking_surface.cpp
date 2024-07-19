@@ -91,7 +91,9 @@ GTEST_TEST(detray_geometry, surface) {
     using vector3_t = tracking_surface<detector_t>::vector3_type;
 
     vecmem::host_memory_resource host_mr;
-    const auto [toy_det, names] = build_toy_detector(host_mr);
+    toy_det_config toy_cfg{};
+    toy_cfg.use_material_maps(true).do_check(true);
+    const auto [toy_det, names] = build_toy_detector(host_mr, toy_cfg);
 
     auto ctx = typename detector_t::geometry_context{};
 
@@ -152,4 +154,10 @@ GTEST_TEST(detray_geometry, surface) {
     ASSERT_NEAR(global2[1], glob_pos[1], tol);
     // The bound transform assumes the point is on surface
     ASSERT_NEAR(global2[2], disc_translation[2], tol);
+
+    // Test the material
+    ASSERT_TRUE(disc.has_material());
+    const auto* mat_param = disc.material_parameters({0.f, 0.f});
+    ASSERT_TRUE(mat_param);
+    ASSERT_EQ(*mat_param, toy_cfg.mapped_material());
 }

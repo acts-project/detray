@@ -44,20 +44,22 @@ struct is_material_map<
         is_grid_v<material_t> &&
             std::is_same_v<
                 typename material_t::value_type,
-                material_slab<typename material_t::value_type::scalar_type>> &&
-            (material_t::dim == 2),
+                material_slab<typename material_t::value_type::scalar_type>>,
         void>> : public std::true_type {};
 
-template <class material_t>
+// Pick the 2D material map types up for surface material maps
+template <typename material_t>
+struct is_surface_material<
+    material_t,
+    std::enable_if_t<is_material_map_v<material_t> && (material_t::dim == 2),
+                     void>> : public std::true_type {};
+
+// Pick the 3D material map types up for volume material maps
+template <typename material_t>
 struct is_volume_material<
     material_t,
-    std::enable_if_t<
-        is_grid_v<material_t> &&
-            std::is_same_v<
-                typename material_t::value_type,
-                material_slab<typename material_t::value_type::scalar_type>> &&
-            (material_t::dim == 3),
-        void>> : public std::true_type {};
+    std::enable_if_t<is_material_map_v<material_t> && (material_t::dim == 3),
+                     void>> : public std::true_type {};
 
 }  // namespace detail
 

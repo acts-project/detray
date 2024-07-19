@@ -76,10 +76,7 @@ struct pointwise_material_interactor : actor {
             using material_t = typename mat_group_t::value_type;
 
             // Filter material types for which to do "pointwise" interactions
-            if constexpr ((detail::is_hom_material_v<material_t> &&
-                           !std::is_same_v<material_t,
-                                           material<scalar_type>>) ||
-                          detail::is_material_map_v<material_t>) {
+            if constexpr (detail::is_surface_material_v<material_t>) {
 
                 const auto mat = detail::material_accessor::get(
                     material_group, mat_index, bound_params.bound_local());
