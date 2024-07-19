@@ -70,7 +70,6 @@ GTEST_TEST(detray_intersection, line_intersector_case1) {
     EXPECT_EQ(global0, point3({1.f, 0.f, 0.f}));
     EXPECT_EQ(is[0].local[0], -1.f);  // right
     EXPECT_EQ(is[0].local[1], 0.f);
-    EXPECT_NEAR(is[0].cos_incidence_angle, 0.f, tol);
 
     EXPECT_TRUE(is[1].status);
     EXPECT_EQ(is[1].path, 1.f);
@@ -80,7 +79,6 @@ GTEST_TEST(detray_intersection, line_intersector_case1) {
     EXPECT_NEAR(global1[2], 0.f, tol);
     EXPECT_EQ(is[1].local[0], 1.f);  // left
     EXPECT_EQ(is[1].local[1], 0.f);
-    EXPECT_NEAR(is[1].cos_incidence_angle, 0.f, tol);
 
     EXPECT_TRUE(is[2].status);
     EXPECT_NEAR(is[2].path, constant<scalar>::sqrt2, tol);
@@ -90,7 +88,6 @@ GTEST_TEST(detray_intersection, line_intersector_case1) {
     EXPECT_NEAR(global2[2], 1.f, tol);
     EXPECT_NEAR(is[2].local[0], -1.f, tol);  // right
     EXPECT_NEAR(is[2].local[1], 1.f, tol);
-    EXPECT_NEAR(is[2].cos_incidence_angle, constant<scalar>::inv_sqrt2, tol);
 }
 
 // Test inclined wire

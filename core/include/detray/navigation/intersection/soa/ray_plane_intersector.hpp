@@ -99,9 +99,6 @@ struct ray_intersector_impl<cartesian2D<algebra_t>, algebra_t, true> {
             is.direction = !math::signbit(is.path);
             is.volume_link = mask.volume_link();
 
-            // Get incidene angle
-            is.cos_incidence_angle = math::abs(denom);
-
             // Mask the values where the overstepping tolerance was not met
             is.status &= (is.path >= overstep_tol);
         } else {

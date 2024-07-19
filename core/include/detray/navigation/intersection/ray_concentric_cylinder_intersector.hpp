@@ -119,19 +119,9 @@ struct ray_concentric_cylinder_intersector {
                     math::max(mask_tolerance[0],
                               math::min(mask_tolerance[1],
                                         mask_tol_scalor * math::abs(is.path))));
-
-                // prepare some additional information in case the intersection
-                // is valid
-                if (is.status) {
-                    is.sf_desc = sf;
-                    is.direction = !detail::signbit(is.path);
-                    is.volume_link = mask.volume_link();
-
-                    // Get incidence angle
-                    const vector3_type normal = {math::cos(phi), math::sin(phi),
-                                                 0.f};
-                    is.cos_incidence_angle = vector::dot(rd, normal);
-                }
+                is.sf_desc = sf;
+                is.direction = !detail::signbit(is.path);
+                is.volume_link = mask.volume_link();
             }
         }
         return is;

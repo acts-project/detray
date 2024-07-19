@@ -275,25 +275,21 @@ DETRAY_HOST_DEVICE inline void build_intersection(
     if (!detail::is_invalid_value(s)) {
         sfi.path = s;
         sfi.local = mask.to_local_frame(trf, traj.pos(s), traj.dir(s));
-        sfi.cos_incidence_angle =
+        const scalar_t cos_incidence_angle =
             vector::dot(mask.local_frame().normal(trf, sfi.local), traj.dir(s));
 
         scalar_t tol{mask_tolerance[1]};
         if (detail::is_invalid_value(tol)) {
             // Due to floating point errors this can be negative if cos ~ 1
-            const scalar_t sin_inc2{math::fabs(
-                1.f - sfi.cos_incidence_angle * sfi.cos_incidence_angle)};
+            const scalar_t sin_inc2{
+                math::fabs(1.f - cos_incidence_angle * cos_incidence_angle)};
 
             tol = math::fabs(ds * math::sqrt(sin_inc2));
         }
         sfi.status = mask.is_inside(sfi.local, tol);
-
-        // Compute some additional information if the intersection is valid
-        if (sfi.status) {
-            sfi.sf_desc = sf_desc;
-            sfi.direction = !math::signbit(s);
-            sfi.volume_link = mask.volume_link();
-        }
+        sfi.sf_desc = sf_desc;
+        sfi.direction = !math::signbit(s);
+        sfi.volume_link = mask.volume_link();
     } else {
         // Not a valid intersection
         sfi.status = false;

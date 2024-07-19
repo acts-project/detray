@@ -48,9 +48,6 @@ struct intersection2D {
     /// Distance between track and candidate
     scalar_type path = detail::invalid_value<T>();
 
-    /// Cosine of incidence angle
-    scalar_type cos_incidence_angle = detail::invalid_value<T>();
-
     /// Navigation information (next volume to go to)
     nav_link_t volume_link{detail::invalid_value<nav_link_t>()};
 

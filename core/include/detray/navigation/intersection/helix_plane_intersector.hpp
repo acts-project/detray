@@ -113,25 +113,21 @@ struct helix_intersector_impl<cartesian2D<algebra_t>, algebra_t> {
             // Build intersection struct from helix parameters
             sfi.path = s;
             sfi.local = mask.to_local_frame(trf, h.pos(s), h.dir(s));
-            sfi.cos_incidence_angle = vector::dot(
+            const scalar_type cos_incidence_angle = vector::dot(
                 mask.local_frame().normal(trf, sfi.local), h.dir(s));
 
             scalar_type tol{mask_tolerance[1]};
             if (detail::is_invalid_value(tol)) {
                 // Due to floating point errors this can be negative if cos ~ 1
-                const scalar_type sin_inc2{math::abs(
-                    1.f - sfi.cos_incidence_angle * sfi.cos_incidence_angle)};
+                const scalar_type sin_inc2{math::fabs(
+                    1.f - cos_incidence_angle * cos_incidence_angle)};
 
-                tol = math::abs((s - s_prev) * math::sqrt(sin_inc2));
+                tol = math::fabs((s - s_prev) * math::sqrt(sin_inc2));
             }
             sfi.status = mask.is_inside(sfi.local, tol);
-
-            // Compute some additional information if the intersection is valid
-            if (sfi.status) {
-                sfi.sf_desc = sf_desc;
-                sfi.direction = !math::signbit(s);
-                sfi.volume_link = mask.volume_link();
-            }
+            sfi.sf_desc = sf_desc;
+            sfi.direction = !math::signbit(s);
+            sfi.volume_link = mask.volume_link();
 
             return sfi;
         } else {
