@@ -20,8 +20,8 @@ namespace detray::detail {
 /// @brief sequential (single thread) sort function
 template <class RandomIt>
 DETRAY_HOST_DEVICE inline void sequential_sort(RandomIt first, RandomIt last) {
-#if (defined(__CUDACC__) && __cplusplus <= 201703L) || \
-    defined(CL_SYCL_LANGUAGE_VERSION) || defined(SYCL_LANGUAGE_VERSION)
+#if defined(__CUDACC__) || defined(CL_SYCL_LANGUAGE_VERSION) || \
+    defined(SYCL_LANGUAGE_VERSION)
     detray::selection_sort(first, last);
 #else
     std::sort(first, last);
@@ -45,8 +45,8 @@ DETRAY_HOST_DEVICE inline auto find_if(RandomIt first, RandomIt last,
 template <class ForwardIt, typename Value>
 DETRAY_HOST_DEVICE inline auto lower_bound(ForwardIt first, ForwardIt last,
                                            Value value) {
-#if (defined(__CUDACC__) && __cplusplus <= 201703L) || \
-    defined(CL_SYCL_LANGUAGE_VERSION) || defined(SYCL_LANGUAGE_VERSION)
+#if defined(__CUDACC__) || defined(CL_SYCL_LANGUAGE_VERSION) || \
+    defined(SYCL_LANGUAGE_VERSION)
     return detray::lower_bound(first, last, value);
 #else
     return std::lower_bound(first, last, value);
@@ -57,8 +57,8 @@ DETRAY_HOST_DEVICE inline auto lower_bound(ForwardIt first, ForwardIt last,
 template <class ForwardIt, typename Value>
 DETRAY_HOST_DEVICE inline auto upper_bound(ForwardIt first, ForwardIt last,
                                            Value value) {
-#if (defined(__CUDACC__) && __cplusplus <= 201703L) || \
-    defined(CL_SYCL_LANGUAGE_VERSION) || defined(SYCL_LANGUAGE_VERSION)
+#if defined(__CUDACC__) || defined(CL_SYCL_LANGUAGE_VERSION) || \
+    defined(SYCL_LANGUAGE_VERSION)
     return detray::upper_bound(first, last, value);
 #else
     return std::upper_bound(first, last, value);
