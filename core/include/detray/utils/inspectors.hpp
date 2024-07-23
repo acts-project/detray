@@ -256,7 +256,7 @@ struct print_inspector {
         }
 
         debug_stream << "distance to next\t\t";
-        if (math::abs(state()) < static_cast<scalar>(cfg.path_tolerance)) {
+        if (math::fabs(state()) < static_cast<scalar>(cfg.path_tolerance)) {
             debug_stream << "on obj (within tol)" << std::endl;
         } else {
             debug_stream << state() << std::endl;

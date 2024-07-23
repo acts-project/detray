@@ -204,9 +204,9 @@ class cylinder_portal_generator final
 
         // Get the half lengths for the cylinder height and disc translation
         const point3_t h_lengths = 0.5f * (box_max - box_min);
-        const scalar h_x{math::abs(h_lengths[0])};
-        const scalar h_y{math::abs(h_lengths[1])};
-        const scalar h_z{math::abs(h_lengths[2])};
+        const scalar h_x{math::fabs(h_lengths[0])};
+        const scalar h_y{math::fabs(h_lengths[1])};
+        const scalar h_z{math::fabs(h_lengths[2])};
 
         const scalar_t outer_r_min{math::max(h_x, h_y)};
         const scalar_t mean_radius{get_mean_radius(surfaces, transforms)};

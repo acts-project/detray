@@ -106,7 +106,7 @@ class quadratic_equation<
                                  const scalar_t &c,
                                  const scalar_t &tolerance = 1e-6f) {
         // Linear case
-        auto one_sol = (math::abs(a) <= tolerance);
+        auto one_sol = (math::fabs(a) <= tolerance);
         m_solutions(one_sol) = 1.f;
         m_values[0] = -c / b;
 

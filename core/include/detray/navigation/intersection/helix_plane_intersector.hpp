@@ -85,14 +85,14 @@ struct helix_intersector_impl<cartesian2D<algebra_t>, algebra_t> {
             if (denom == 0.f) {
                 s = getter::norm(dist);
             }
-            s = math::abs(vector::dot(sn, dist) / denom);
+            s = math::fabs(vector::dot(sn, dist) / denom);
 
             scalar_type s_prev{0.f};
 
             // f(s) = sn * (h.pos(s) - st) == 0
             // Run the iteration on s
             std::size_t n_tries{0u};
-            while (math::abs(s - s_prev) > convergence_tolerance and
+            while (math::fabs(s - s_prev) > convergence_tolerance and
                    n_tries < max_n_tries) {
                 // f'(s) = sn * h.dir(s)
                 denom = vector::dot(sn, h.dir(s));
