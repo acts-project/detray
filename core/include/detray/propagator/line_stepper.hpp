@@ -118,8 +118,8 @@ class line_stepper final
         stepping.set_direction(step_dir);
 
         // Check constraints
-        if (math::abs(stepping.step_size()) >
-            math::abs(
+        if (math::fabs(stepping.step_size()) >
+            math::fabs(
                 stepping.constraints().template size<>(stepping.direction()))) {
             // Run inspection before step size is cut
             stepping.run_inspector(cfg, "Before constraint: ");

@@ -169,8 +169,8 @@ struct ridders_derivative {
                 fac[i] = con2 * fac[i];
 
                 errt[j] =
-                    math::max(math::abs(Arr[j][q][p] - Arr[j][q - 1][p]),
-                              math::abs(Arr[j][q][p] - Arr[j][q - 1][p - 1]));
+                    math::max(math::fabs(Arr[j][q][p] - Arr[j][q - 1][p]),
+                              math::fabs(Arr[j][q][p] - Arr[j][q - 1][p - 1]));
 
                 if (errt[j] <= err[j]) {
 
@@ -184,7 +184,7 @@ struct ridders_derivative {
                             std::cout << q << " " << p << " "
                                       << getter::element(
                                              differentiated_jacobian, j, i)
-                                      << "  " << math::abs(Arr[j][q][p])
+                                      << "  " << math::fabs(Arr[j][q][p])
                                       << std::endl;
                         }
                         */
@@ -200,11 +200,11 @@ struct ridders_derivative {
                 std::cout << getter::element(differentiated_jacobian, j, i)
                           << "  " << Arr[j][p][p] << "  "
                           << Arr[j][p - 1][p - 1] << "  "
-                          << math::abs(Arr[j][p][p] - Arr[j][p - 1][p - 1])
+                          << math::fabs(Arr[j][p][p] - Arr[j][p - 1][p - 1])
                           << "  " << safe[i] * err[j] << std::endl;
             }
             */
-            if (math::abs(Arr[j][p][p] - Arr[j][p - 1][p - 1]) >=
+            if (math::fabs(Arr[j][p][p] - Arr[j][p - 1][p - 1]) >=
                 safe[i] * err[j]) {
                 complete[j] = true;
             }
@@ -1654,7 +1654,7 @@ int main(int argc, char** argv) {
         scalar overstep_tol =
             vm["overstep-tolerance-mm"].as<scalar>() * unit<scalar>::mm;
         overstep_tol =
-            -math::min(math::abs(overstep_tol), detector_length * 0.5f);
+            -math::min(math::fabs(overstep_tol), detector_length * 0.5f);
 
         tel_det_config<rect_type, detail::helix<algebra_type>> rectangle_cfg{
             rect, helix_bz};

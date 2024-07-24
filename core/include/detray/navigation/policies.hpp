@@ -73,8 +73,8 @@ struct stepper_default_policy : actor {
         auto &navigation = propagation._navigation;
 
         // Not a severe change to track state expected
-        if (math::abs(stepping.step_size()) <
-            math::abs(
+        if (math::fabs(stepping.step_size()) <
+            math::fabs(
                 stepping.constraints().template size<>(stepping.direction())) -
                 pol_state.tol) {
             // Re-evaluate only next candidate

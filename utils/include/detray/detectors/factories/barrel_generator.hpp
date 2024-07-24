@@ -183,7 +183,7 @@ class barrel_generator final : public surface_factory_interface<detector_t> {
         const scalar_t z_start{
             -0.5f * static_cast<scalar_t>(n_z_bins - 1u) *
             (2.f * m_cfg.module_bounds().at(1) - m_cfg.z_overlap())};
-        const scalar_t z_step{(math::abs(z_start) - z_start) /
+        const scalar_t z_step{(math::fabs(z_start) - z_start) /
                               static_cast<scalar_t>(n_z_bins - 1)};
 
         // loop over the z bins

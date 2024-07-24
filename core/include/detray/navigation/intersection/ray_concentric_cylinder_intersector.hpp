@@ -71,7 +71,7 @@ struct ray_concentric_cylinder_intersector {
         const point3_type l1 = ro + rd;
 
         // swap coorinates x/y for numerical stability
-        const bool swap_x_y = math::abs(rd[0]) < 1e-3f;
+        const bool swap_x_y = math::fabs(rd[0]) < 1e-3f;
 
         unsigned int _x = swap_x_y ? 1u : 0u;
         unsigned int _y = swap_x_y ? 0u : 1u;
@@ -115,10 +115,10 @@ struct ray_concentric_cylinder_intersector {
                 // for the r-check
                 // Tolerance: per mille of the distance
                 is.status = mask.is_inside(
-                    is.local,
-                    math::max(mask_tolerance[0],
-                              math::min(mask_tolerance[1],
-                                        mask_tol_scalor * math::abs(is.path))));
+                    is.local, math::max(mask_tolerance[0],
+                                        math::min(mask_tolerance[1],
+                                                  mask_tol_scalor *
+                                                      math::fabs(is.path))));
                 is.sf_desc = sf;
                 is.direction = !detail::signbit(is.path);
                 is.volume_link = mask.volume_link();

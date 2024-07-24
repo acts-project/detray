@@ -61,7 +61,7 @@ struct bound_track_parameters {
             const auto lhs_val = matrix_operator().element(m_vector, i, 0u);
             const auto rhs_val = matrix_operator().element(rhs.vector(), i, 0u);
 
-            if (math::abs(lhs_val - rhs_val) >
+            if (math::fabs(lhs_val - rhs_val) >
                 std::numeric_limits<scalar_type>::epsilon()) {
                 return false;
             }
@@ -73,7 +73,7 @@ struct bound_track_parameters {
                 const auto rhs_val =
                     matrix_operator().element(rhs.covariance(), i, j);
 
-                if (math::abs(lhs_val - rhs_val) >
+                if (math::fabs(lhs_val - rhs_val) >
                     std::numeric_limits<scalar_type>::epsilon()) {
                     return false;
                 }
@@ -153,13 +153,13 @@ struct bound_track_parameters {
     DETRAY_HOST_DEVICE
     scalar_type pT() const {
         assert(this->qop() != 0.f);
-        return math::abs(1.f / this->qop() * getter::perp(this->dir()));
+        return math::fabs(1.f / this->qop() * getter::perp(this->dir()));
     }
 
     DETRAY_HOST_DEVICE
     scalar_type pz() const {
         assert(this->qop() != 0.f);
-        return math::abs(1.f / this->qop() * this->dir()[2]);
+        return math::fabs(1.f / this->qop() * this->dir()[2]);
     }
 
     private:

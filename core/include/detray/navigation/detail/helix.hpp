@@ -69,12 +69,12 @@ class helix {
         // Normalized tangent vector
         _t0 = dir;
 
-        assert((math::abs(getter::norm(_t0) - 1.f) < 1e-5f) &&
+        assert((math::fabs(getter::norm(_t0) - 1.f) < 1e-5f) &&
                "The helix direction must be normalized");
 
         // Momentum
         const vector3_type mom =
-            1.f / static_cast<scalar_type>(math::abs(qop)) * _t0;
+            1.f / static_cast<scalar_type>(math::fabs(qop)) * _t0;
 
         // Normalized _h0 X _t0
         _n0 = vector::normalize(vector::cross(_h0, _t0));

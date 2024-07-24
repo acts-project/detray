@@ -71,7 +71,7 @@ struct line2D {
     /// the global cartesian 3D frame
     DETRAY_HOST_DEVICE static inline point3_type local_to_global(
         const transform3_type &trf, const point3_type &p) {
-        const scalar_type R = math::abs(p[0]);
+        const scalar_type R = math::fabs(p[0]);
         const point3_type local = {R * math::cos(p[2]), R * math::sin(p[2]),
                                    p[1]};
 

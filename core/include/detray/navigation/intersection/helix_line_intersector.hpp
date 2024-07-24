@@ -109,7 +109,7 @@ struct helix_intersector_impl<line2D<algebra_t>, algebra_t> {
 
             // Run the iteration on s
             std::size_t n_tries{0u};
-            while (math::abs(s - s_prev) > convergence_tolerance and
+            while (math::fabs(s - s_prev) > convergence_tolerance and
                    n_tries < max_n_tries) {
 
                 // track direction
