@@ -21,7 +21,16 @@ set( DETRAY_DFELIBS_SOURCE
    "URL;https://github.com/acts-project/dfelibs/archive/refs/tags/v20211029.tar.gz;URL_MD5;87fb09c5a11b98250f5e266e9cd501ea"
    CACHE STRING "Source for dfelibs, when built as part of this project" )
 mark_as_advanced( DETRAY_DFELIBS_SOURCE )
-FetchContent_Declare( dfelibs ${DETRAY_DFELIBS_SOURCE} )
+
+# Mark the import as a system library on modern CMake versions
+if (CMAKE_VERSION VERSION_GREATER_EQUAL 3.25.0)
+   set(DETRAY_DFELIBS_SOURCE_FULL "${DETRAY_DFELIBS_SOURCE};SYSTEM")
+else()
+   set(DETRAY_DFELIBS_SOURCE_FULL "${DETRAY_DFELIBS_SOURCE}")
+endif()
+mark_as_advanced( DETRAY_DFELIBS_SOURCE_FULL )
+
+FetchContent_Declare( dfelibs ${DETRAY_DFELIBS_SOURCE_FULL} )
 
 # Options used in the build of dfelibs.
 set( dfelibs_BUILD_EXAMPLES FALSE CACHE BOOL

@@ -21,7 +21,16 @@ set(DETRAY_BENCHMARK_SOURCE
    "URL;https://github.com/google/benchmark/archive/refs/tags/v1.8.3.tar.gz;URL_MD5;7b93dd03670665684f1b2e9b70ad17fe"
    CACHE STRING "Source for Google Benchmark, when built as part of this project")
 mark_as_advanced(DETRAY_BENCHMARK_SOURCE)
-FetchContent_Declare(Benchmark ${DETRAY_BENCHMARK_SOURCE})
+
+# Mark the import as a system library on modern CMake versions
+if (CMAKE_VERSION VERSION_GREATER_EQUAL 3.25.0)
+   set(DETRAY_BENCHMARK_SOURCE_FULL "${DETRAY_BENCHMARK_SOURCE};SYSTEM")
+else()
+   set(DETRAY_BENCHMARK_SOURCE_FULL "${DETRAY_BENCHMARK_SOURCE}")
+endif()
+mark_as_advanced( DETRAY_BENCHMARK_SOURCE_FULL )
+
+FetchContent_Declare(Benchmark ${DETRAY_BENCHMARK_SOURCE_FULL})
 
 # Options used in the build of Google Benchmark.
 set(BENCHMARK_ENABLE_TESTING OFF CACHE BOOL "Turn off the tests in Google Benchmark")

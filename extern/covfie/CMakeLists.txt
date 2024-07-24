@@ -21,7 +21,16 @@ set( DETRAY_COVFIE_SOURCE
    "URL;https://github.com/acts-project/covfie/archive/refs/tags/v0.9.0.tar.gz;URL_MD5;b310712c6dd1acc8104c734086f40fc0"
    CACHE STRING "Source for covfie, when built as part of this project" )
 mark_as_advanced( DETRAY_COVFIE_SOURCE )
-FetchContent_Declare( covfie ${DETRAY_COVFIE_SOURCE} )
+
+# Mark the import as a system library on modern CMake versions
+if (CMAKE_VERSION VERSION_GREATER_EQUAL 3.25.0)
+   set(DETRAY_COVFIE_SOURCE_FULL "${DETRAY_COVFIE_SOURCE};SYSTEM")
+else()
+   set(DETRAY_COVFIE_SOURCE_FULL "${DETRAY_COVFIE_SOURCE}")
+endif()
+mark_as_advanced( DETRAY_COVFIE_SOURCE_FULL )
+
+FetchContent_Declare( covfie ${DETRAY_COVFIE_SOURCE_FULL} )
 
 # Options used for covfie.
 set( COVFIE_BUILD_EXAMPLES OFF CACHE BOOL "Build covfie examples")
