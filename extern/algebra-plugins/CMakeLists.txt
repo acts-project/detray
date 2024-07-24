@@ -21,7 +21,16 @@ set( DETRAY_ALGEBRA_PLUGINS_SOURCE
    "URL;https://github.com/acts-project/algebra-plugins/archive/refs/tags/v0.25.0.tar.gz;URL_MD5;8201744f8b2a8ff7fbcf21bd1b4549b9"
    CACHE STRING "Source for Algebra Plugins, when built as part of this project" )
 mark_as_advanced(DETRAY_ALGEBRA_PLUGINS_SOURCE)
-FetchContent_Declare(AlgebraPlugins ${DETRAY_ALGEBRA_PLUGINS_SOURCE})
+
+# Mark the import as a system library on modern CMake versions
+if (CMAKE_VERSION VERSION_GREATER_EQUAL 3.25.0)
+   set(DETRAY_ALGEBRA_PLUGINS_SOURCE_FULL "${DETRAY_ALGEBRA_PLUGINS_SOURCE};SYSTEM")
+else()
+   set(DETRAY_ALGEBRA_PLUGINS_SOURCE_FULL "${DETRAY_ALGEBRA_PLUGINS_SOURCE}")
+endif()
+mark_as_advanced( DETRAY_ALGEBRA_PLUGINS_SOURCE_FULL )
+
+FetchContent_Declare(AlgebraPlugins ${DETRAY_ALGEBRA_PLUGINS_SOURCE_FULL})
 
 # Options used in the build of Algebra Plugins.
 set(ALGEBRA_PLUGINS_BUILD_TESTING FALSE CACHE BOOL
