@@ -42,7 +42,7 @@ GTEST_TEST(detray_propagator, jacobian_polar2D) {
     const point3 global1 = {4.f, 7.f, 4.f};
     const vector3 mom = {1.f, 2.f, 3.f};
     const scalar time{0.1f};
-    const scalar charge{-1.};
+    const scalar charge{static_cast<scalar>(-1.)};
 
     const scalar r{2.f};
     mask<ring2D> rng{0u, 0.f, r};

@@ -69,8 +69,9 @@ GTEST_TEST(detray_grid, grid_collection) {
                                          {12u, 5u}, {14u, 5u}, {16u, 5u}};
 
     // Bin edges for all axes
-    dvector<scalar> bin_edges = {-10, 10., -20., 20., 0.,  120., -5., 5., -15.,
-                                 15., 0.,  50.,  -15, 15., -35., 35., 0., 550.};
+    dvector<scalar> bin_edges = {-10.f, 10.f, -20.f, 20.f, 0.f, 120.f,
+                                 -5.f,  5.f,  -15.f, 15.f, 0.f, 50.f,
+                                 -15.f, 15.f, -35.f, 35.f, 0.f, 550.f};
 
     // Data-owning grid collection
     auto grid_coll =
@@ -189,8 +190,9 @@ GTEST_TEST(detray_grid, grid_collection_dynamic_bin) {
                                          {12u, 5u}, {14u, 5u}, {16u, 5u}};
 
     // Bin edges for all axes
-    dvector<scalar> bin_edges = {-10, 10., -20., 20., 0.,  120., -5., 5., -15.,
-                                 15., 0.,  50.,  -15, 15., -35., 35., 0., 550.};
+    dvector<scalar> bin_edges = {-10.f, 10.f, -20.f, 20.f, 0.f, 120.f,
+                                 -5.f,  5.f,  -15.f, 15.f, 0.f, 50.f,
+                                 -15.f, 15.f, -35.f, 35.f, 0.f, 550.f};
 
     // Data-owning grid collection
     auto grid_coll =

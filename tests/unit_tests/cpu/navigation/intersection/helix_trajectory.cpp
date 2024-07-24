@@ -31,7 +31,7 @@ GTEST_TEST(detray_intersection, helix_trajectory) {
     const point3 pos{0.f, 0.f, 0.f};
     const scalar time{0.f};
     const vector3 mom{1.f, 0.f, 1.f * unit<scalar>::GeV};
-    const scalar q{-1.f * unit<scalar>::e};
+    const scalar q{static_cast<scalar>(-1.) * unit<scalar>::e};
 
     // vertex
     free_track_parameters<algebra_t> vertex(pos, time, mom, q);
@@ -176,7 +176,7 @@ GTEST_TEST(detray_intersection, helix_trajectory_small_pT) {
     const point3 pos{0.f, 0.f, 0.f};
     const scalar time{0.f};
     const vector3 mom{0.f, tol, 1.f * unit<scalar>::GeV};
-    const scalar q{-1. * unit<scalar>::e};
+    const scalar q{static_cast<scalar>(-1.) * unit<scalar>::e};
 
     // vertex
     free_track_parameters<algebra_t> vertex(pos, time, mom, q);
@@ -212,7 +212,7 @@ GTEST_TEST(detray_intersection, helix_direction_stability) {
     const scalar time{0.f};
     const vector3 mom{1.f * unit<scalar>::GeV, 1.f * unit<scalar>::GeV,
                       1.f * unit<scalar>::GeV};
-    const scalar q{-1.f * unit<scalar>::e};
+    const scalar q{static_cast<scalar>(-1.) * unit<scalar>::e};
 
     // vertex
     free_track_parameters<algebra_t> vertex(pos, time, mom, q);
