@@ -61,7 +61,7 @@ GTEST_TEST(detray_tools, bounding_cuboid3D) {
     ASSERT_TRUE(aabb.is_inside(p2_edge));
     ASSERT_FALSE(aabb.is_inside(p2_out));
     // Move outside point inside using a tolerance
-    ASSERT_TRUE(aabb.is_inside(p2_out, 1.));
+    ASSERT_TRUE(aabb.is_inside(p2_out, 1.f));
 }
 
 /// This tests the basic functionality cylindrical axis aligned bounding box

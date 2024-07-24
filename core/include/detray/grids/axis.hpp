@@ -45,14 +45,14 @@ struct regular {
     DETRAY_HOST_DEVICE
     regular()
         : n_bins(detail::invalid_value<dindex>()),
-          min(0.),
+          min(static_cast<scalar>(0.)),
           max(static_cast<scalar>(n_bins)) {}
 
     /** Constructor with vecmem memory resource **/
     DETRAY_HOST
     regular(vecmem::memory_resource & /*resource*/)
         : n_bins(detail::invalid_value<dindex>()),
-          min(0.),
+          min(static_cast<scalar>(0.)),
           max(static_cast<scalar>(n_bins)) {}
 
     /** Constructor with vecmem memory resource **/
@@ -230,14 +230,14 @@ struct circular {
     DETRAY_HOST_DEVICE
     circular()
         : n_bins(detail::invalid_value<dindex>()),
-          min(0.),
+          min(static_cast<scalar>(0.)),
           max(static_cast<scalar>(n_bins)) {}
 
     /** Constructor with vecmem memory resource **/
     DETRAY_HOST
     circular(vecmem::memory_resource & /*resource*/)
         : n_bins(detail::invalid_value<dindex>()),
-          min(0.),
+          min(static_cast<scalar>(0.)),
           max(static_cast<scalar>(n_bins)) {}
 
     /** Constructor with vecmem memory resource **/
