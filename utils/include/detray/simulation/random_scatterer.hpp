@@ -83,10 +83,7 @@ struct random_scatterer : actor {
 
             using material_t = typename mat_group_t::value_type;
 
-            if constexpr ((detail::is_hom_material_v<material_t> &&
-                           !std::is_same_v<material_t,
-                                           material<scalar_type>>) ||
-                          detail::is_material_map_v<material_t>) {
+            if constexpr (detail::is_surface_material_v<material_t>) {
 
                 const scalar qop = bound_params.qop();
                 const scalar charge = bound_params.charge();
