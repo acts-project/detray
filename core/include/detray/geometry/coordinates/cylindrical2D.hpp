@@ -34,7 +34,7 @@ struct cylindrical2D {
     static inline point3_type global_to_local_3D(const transform3_type &trf,
                                                  const point3_type &p,
                                                  const vector3_type & /*dir*/) {
-        const auto local3 = trf.point_to_local(p);
+        const point3_type local3{trf.point_to_local(p)};
         const scalar_type r{getter::perp(local3)};
 
         return {r * getter::phi(local3), local3[2], r};
@@ -46,7 +46,7 @@ struct cylindrical2D {
     static inline loc_point global_to_local(const transform3_type &trf,
                                             const point3_type &p,
                                             const vector3_type & /*dir*/) {
-        const auto local3 = trf.point_to_local(p);
+        const point3_type local3{trf.point_to_local(p)};
 
         return {getter::perp(local3) * getter::phi(local3), local3[2]};
     }

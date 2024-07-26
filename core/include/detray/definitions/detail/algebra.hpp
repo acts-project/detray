@@ -13,8 +13,8 @@
 #include "detray/plugins/algebra/eigen_definitions.hpp"
 #elif DETRAY_ALGEBRA_SMATRIX
 #include "detray/plugins/algebra/smatrix_definitions.hpp"
-#elif DETRAY_ALGEBRA_VC
-#include "detray/plugins/algebra/vc_array_definitions.hpp"
+#elif DETRAY_ALGEBRA_VC_AOS
+#include "detray/plugins/algebra/vc_aos_definitions.hpp"
 #elif DETRAY_ALGEBRA_VC_SOA
 #include "detray/plugins/algebra/vc_soa_definitions.hpp"
 #else

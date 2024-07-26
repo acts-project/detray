@@ -112,7 +112,7 @@ if( DETRAY_SMATRIX_PLUGIN )
    detray_add_cpu_test( smatrix )
 endif()
 
-# Build the Vc tests.
-if( DETRAY_VC_PLUGIN )
-   detray_add_cpu_test( vc )
-endif()
+# Build the Vc tests (defunct at the moment)
+#if( DETRAY_VC_AOS_PLUGIN )
+#   detray_add_cpu_test( vc_aos )
+#endif()

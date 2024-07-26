@@ -19,7 +19,7 @@ vc_set_preferred_compiler_flags()
 detray_add_library( detray_algebra_vc_soa algebra_vc_soa
    "include/detray/plugins/algebra/vc_soa_definitions.hpp" )
 target_link_libraries( detray_algebra_vc_soa
-   INTERFACE algebra::vc_soa algebra::vc_soa_storage vecmem::core )
+   INTERFACE algebra::vc_soa vecmem::core )
 target_compile_definitions( detray_algebra_vc_soa
    INTERFACE DETRAY_CUSTOM_SCALARTYPE=${DETRAY_CUSTOM_SCALARTYPE}
              DETRAY_ALGEBRA_VC_SOA ${Vc_DEFINITIONS} )

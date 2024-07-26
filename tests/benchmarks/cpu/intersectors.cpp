@@ -6,6 +6,7 @@
  */
 
 // Algebra include(s).
+#include "detray/plugins/algebra/vc_aos_definitions.hpp"
 #include "detray/plugins/algebra/vc_soa_definitions.hpp"
 
 // Detray core include(s).
@@ -35,10 +36,13 @@ static constexpr unsigned int n_surfaces{16u};
 using algebra_v = detray::vc_soa<test::scalar>;
 
 /// Linear algebra implementation using AoS memory layout
-using algebra_s = detray::cmath<test::scalar>;
+using algebra_s = detray::vc_aos<test::scalar>;
+// using algebra_s = detray::cmath<test::scalar>;
 
-// Size of an SOA batch
+// Size of an SoA batch
 constexpr std::size_t simd_size{dscalar<algebra_v>::size()};
+
+using ray_t = detail::ray<algebra_s>;
 
 namespace {
 
@@ -61,15 +65,15 @@ using surface_desc_t =
     surface_descriptor<mask_link_t, material_link_t, transform3_t>;
 
 /// Generate a number of test rays
-std::vector<detail::ray<algebra_s>> generate_rays() {
+std::vector<ray_t> generate_rays() {
 
-    using ray_generator_t = uniform_track_generator<detail::ray<algebra_s>>;
+    using ray_generator_t = uniform_track_generator<ray_t>;
 
     // Iterate through uniformly distributed momentum directions
     auto ray_generator = ray_generator_t{};
     ray_generator.config().theta_steps(theta_steps).phi_steps(phi_steps);
 
-    std::vector<detail::ray<algebra_s>> rays;
+    std::vector<ray_t> rays;
     std::copy(ray_generator.begin(), ray_generator.end(),
               std::back_inserter(rays));
 
@@ -116,12 +120,11 @@ void BM_INTERSECT_PLANES_AOS(benchmark::State& state) {
 
     using mask_t = mask<rectangle2D, std::uint_least16_t, algebra_s>;
 
-    auto dists = get_dists<algebra_s>(n_surfaces);
     auto planes = test::planes_along_direction<algebra_s>(
-        dists, test::vector3{1.f, 1.f, 1.f});
+        get_dists<algebra_s>(n_surfaces), dvector3D<algebra_s>{1.f, 1.f, 1.f});
 
     constexpr mask_t rect{0u, 100.f, 200.f};
-    std::vector<mask_t> masks(dists.size(), rect);
+    std::vector<mask_t> masks(planes.size(), rect);
 
     const auto rays = generate_rays();
     const auto pi = ray_intersector<rectangle2D, algebra_s>{};
@@ -175,12 +178,11 @@ void BM_INTERSECT_PLANES_SOA(benchmark::State& state) {
     using mask_t = mask<rectangle2D, std::uint_least16_t, algebra_v>;
     using vector3_t = dvector3D<algebra_v>;
 
-    auto dists = get_dists<algebra_v>(n_surfaces);
     auto planes = test::planes_along_direction<algebra_v>(
-        dists, vector3_t{1.f, 1.f, 1.f});
+        get_dists<algebra_v>(n_surfaces), vector3_t{1.f, 1.f, 1.f});
 
     std::vector<mask_t> masks{};
-    for (std::size_t i = 0u; i < dists.size(); ++i) {
+    for (std::size_t i = 0u; i < planes.size(); ++i) {
         masks.emplace_back(0u, 100.f, 200.f);
     }
 
