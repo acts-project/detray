@@ -168,7 +168,7 @@ struct pointwise_material_interactor : actor {
         const auto approach{
             matrix_operator().element(bound_params.vector(), e_bound_loc0, 0)};
         const scalar_type cos_inc_angle{
-            sf.cos_angle(gctx, bound_params.dir(), bound_params.bound_local())};
+            math::fabs(sf.cos_angle(gctx, bound_params.dir(), bound_params.bound_local())});
 
         const bool succeed = sf.template visit_material<kernel>(
             interactor_state, bound_params, cos_inc_angle, approach);
