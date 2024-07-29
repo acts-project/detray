@@ -148,6 +148,11 @@ jobs:
       run:
         shell: bash
 
+    # Set the path to the test data files
+    env:
+      DETRAY_DATA_DIRECTORY: ${{ github.workspace }}/data/
+      DETRAY_BFIELD_FILE: ${{ github.workspace }}/data/odd-bfield_v0_9_0.cvf
+
     # The build/test steps to execute.
     steps:
     # Use a standard checkout of the code.
@@ -171,3 +176,10 @@ jobs:
       run: |
         source ${GITHUB_WORKSPACE}/.github/ci_setup.sh ${{ matrix.PLATFORM.NAME }}
         cmake --build build
+    - name: Test
+      if: "matrix.PLATFORM.NAME == 'SYCL'"
+      run: |
+        ${GITHUB_WORKSPACE}/data/detray_data_get_files.sh
+        cd build
+        source ${GITHUB_WORKSPACE}/.github/ci_setup.sh ${{ matrix.PLATFORM.NAME }}
+        ctest
