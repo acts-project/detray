@@ -9,11 +9,15 @@ cmake_minimum_required( VERSION 3.11 )
 project( detray VERSION 0.44.0 LANGUAGES CXX )
 
 # Set up the used C++ standard(s).
-set( CMAKE_CXX_STANDARD 17 CACHE STRING "The (host) C++ standard to use" )
+set( CMAKE_CXX_STANDARD 20 CACHE STRING "The (host) C++ standard to use" )
 set( CMAKE_CXX_EXTENSIONS FALSE CACHE BOOL "Disable (host) C++ extensions" )
-set( CMAKE_CUDA_STANDARD 17 CACHE STRING "The (CUDA) C++ standard to use" )
+set( CMAKE_CUDA_STANDARD 20 CACHE STRING "The (CUDA) C++ standard to use" )
 set( CMAKE_CUDA_EXTENSIONS FALSE CACHE BOOL "Disable (CUDA) C++ extensions" )
-set( CMAKE_SYCL_STANDARD 17 CACHE STRING "The (SYCL) C++ standard to use" )
+set( CMAKE_SYCL_STANDARD 20 CACHE STRING "The (SYCL) C++ standard to use" )
+
+if(${CMAKE_CXX_STANDARD} LESS 20)
+   message(SEND_ERROR "CMAKE_CXX_STANDARD=${CMAKE_CXX_STANDARD}, but detray requires C++>=20")
+endif()
 
 # CMake include(s).
 include( CMakeDependentOption )
@@ -71,6 +75,15 @@ endif()
 
 # Clean up.
 unset( DETRAY_BUILD_CUDA_DEFAULT )
+
+# Check CUDA and SYCL C++ standards
+if(${DETRAY_BUILD_CUDA} AND ${CMAKE_CUDA_STANDARD} LESS 20)
+   message(SEND_ERROR "CMAKE_CUDA_STANDARD=${CMAKE_CUDA_STANDARD}, but detray requires C++>=20")
+endif()
+
+if(${DETRAY_BUILD_SYCL} AND ${CMAKE_SYCL_STANDARD} LESS 20)
+   message(SEND_ERROR "CMAKE_SYCL_STANDARD=${CMAKE_SYCL_STANDARD}, but detray requires C++>=20")
+endif()
 
 # Set up VecMem.
 option( DETRAY_SETUP_VECMEM
