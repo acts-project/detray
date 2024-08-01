@@ -9,6 +9,7 @@
 
 // Project include(s).
 #include "detray/definitions/detail/qualifiers.hpp"
+#include "detray/definitions/pdg_particle.hpp"
 #include "detray/definitions/track_parametrization.hpp"
 #include "detray/definitions/units.hpp"
 #include "detray/geometry/tracking_surface.hpp"
@@ -38,12 +39,6 @@ struct random_scatterer : actor {
     struct state {
         std::random_device rd{};
         std::mt19937_64 generator{rd()};
-
-        /// The particle mass
-        scalar_type mass{105.7f * unit<scalar_type>::MeV};
-
-        /// The particle pdg
-        int pdg = 13;  // default muon
 
         /// most probable energy loss
         scalar_type e_loss_mpv = 0.f;
@@ -76,6 +71,7 @@ struct random_scatterer : actor {
             [[maybe_unused]] const mat_group_t& material_group,
             [[maybe_unused]] const index_t& mat_index,
             [[maybe_unused]] state& s,
+            [[maybe_unused]] const pdg_particle<scalar_type>& ptc,
             [[maybe_unused]] const bound_track_parameters<algebra_t>&
                 bound_params,
             [[maybe_unused]] const scalar_type cos_inc_angle,
@@ -86,7 +82,6 @@ struct random_scatterer : actor {
             if constexpr (detail::is_surface_material_v<material_t>) {
 
                 const scalar qop = bound_params.qop();
-                const scalar charge = bound_params.charge();
 
                 const auto mat = detail::material_accessor::get(
                     material_group, mat_index, bound_params.bound_local());
@@ -100,17 +95,17 @@ struct random_scatterer : actor {
                 const scalar_type path_segment{
                     mat.path_segment(cos_inc_angle, approach)};
 
+                const detail::relativistic_quantities rq(ptc, qop);
+
                 // Energy Loss
                 if (s.do_energy_loss) {
                     s.e_loss_mpv =
                         interaction_type().compute_energy_loss_landau(
-                            path_segment, mat.get_material(), s.pdg, s.mass,
-                            qop, charge);
+                            path_segment, mat.get_material(), ptc, rq);
 
                     s.e_loss_sigma =
                         interaction_type().compute_energy_loss_landau_sigma(
-                            path_segment, mat.get_material(), s.pdg, s.mass,
-                            qop, charge);
+                            path_segment, mat.get_material(), ptc, rq);
                 }
 
                 // Scattering angle
@@ -120,7 +115,7 @@ struct random_scatterer : actor {
                     s.projected_scattering_angle =
                         interaction_type().compute_multiple_scattering_theta0(
                             mat.path_segment_in_X0(cos_inc_angle, approach),
-                            s.pdg, s.mass, qop, charge);
+                            ptc, rq);
                 }
 
                 return true;
@@ -146,6 +141,7 @@ struct random_scatterer : actor {
         }
 
         auto& stepping = prop_state._stepping;
+        const auto& ptc = stepping._ptc;
         auto& bound_params = stepping._bound_params;
         const auto& is = *navigation.current();
         const auto sf = navigation.get_surface();
@@ -153,16 +149,17 @@ struct random_scatterer : actor {
             sf.cos_angle(geo_context_type{}, bound_params.dir(),
                          bound_params.bound_local())};
 
-        sf.template visit_material<kernel>(simulator_state, bound_params,
+        sf.template visit_material<kernel>(simulator_state, ptc, bound_params,
                                            cos_inc_angle, is.local[0]);
 
         // Get the new momentum
-        const auto new_mom = attenuate(
-            simulator_state.e_loss_mpv, simulator_state.e_loss_sigma,
-            simulator_state.mass, bound_params.p(), simulator_state.generator);
+        const auto new_mom =
+            attenuate(simulator_state.e_loss_mpv, simulator_state.e_loss_sigma,
+                      ptc.mass(), bound_params.p(ptc.charge()),
+                      simulator_state.generator);
 
         // Update Qop
-        bound_params.set_qop(bound_params.charge() / new_mom);
+        bound_params.set_qop(ptc.charge() / new_mom);
 
         // Get the new direction from random scattering
         const auto new_dir = scatter(bound_params.dir(),

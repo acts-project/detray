@@ -35,10 +35,6 @@ struct pointwise_material_interactor : actor {
     struct state {
 
         /// @TODO: Consider using the particle information in stepping::config
-        /// The particle mass
-        scalar_type mass{105.7f * unit<scalar_type>::MeV};
-        /// The particle pdg
-        int pdg = 13;  // default muon
         /// Evaluated energy loss
         scalar_type e_loss{0.f};
         /// Evaluated projected scattering angle
@@ -68,6 +64,7 @@ struct pointwise_material_interactor : actor {
             [[maybe_unused]] const mat_group_t &material_group,
             [[maybe_unused]] const index_t &mat_index,
             [[maybe_unused]] state &s,
+            [[maybe_unused]] const pdg_particle<scalar_type> &ptc,
             [[maybe_unused]] const bound_track_parameters<algebra_t>
                 &bound_params,
             [[maybe_unused]] const scalar_type cos_inc_angle,
@@ -88,25 +85,25 @@ struct pointwise_material_interactor : actor {
                 }
 
                 const scalar_type qop = bound_params.qop();
-                const scalar_type charge = bound_params.charge();
 
                 const scalar_type path_segment{
                     mat.path_segment(cos_inc_angle, approach)};
+
+                detail::relativistic_quantities rq(ptc, qop);
 
                 // Energy Loss
                 if (s.do_energy_loss) {
                     s.e_loss =
                         interaction_type().compute_energy_loss_bethe_bloch(
-                            path_segment, mat.get_material(), s.pdg, s.mass,
-                            qop, charge);
+                            path_segment, mat.get_material(), ptc, rq);
                 }
 
                 // @todo: include the radiative loss (Bremsstrahlung)
                 if (s.do_energy_loss && s.do_covariance_transport) {
-                    s.sigma_qop = interaction_type()
-                                      .compute_energy_loss_landau_sigma_QOverP(
-                                          path_segment, mat.get_material(),
-                                          s.pdg, s.mass, qop, charge);
+                    s.sigma_qop =
+                        interaction_type()
+                            .compute_energy_loss_landau_sigma_QOverP(
+                                path_segment, mat.get_material(), ptc, rq);
                 }
 
                 // Covariance update
@@ -116,7 +113,7 @@ struct pointwise_material_interactor : actor {
                     s.projected_scattering_angle =
                         interaction_type().compute_multiple_scattering_theta0(
                             mat.path_segment_in_X0(cos_inc_angle, approach),
-                            s.pdg, s.mass, qop, charge);
+                            ptc, rq);
                 }
 
                 return true;
@@ -145,8 +142,8 @@ struct pointwise_material_interactor : actor {
 
             auto &stepping = prop_state._stepping;
 
-            this->update(geo_context_type{}, stepping._bound_params,
-                         interactor_state,
+            this->update(geo_context_type{}, stepping._ptc,
+                         stepping._bound_params, interactor_state,
                          static_cast<int>(navigation.direction()),
                          navigation.get_surface());
         }
@@ -160,7 +157,8 @@ struct pointwise_material_interactor : actor {
     /// @param[in]  sf the surface
     template <typename context_t, typename surface_t>
     DETRAY_HOST_DEVICE inline void update(
-        const context_t gctx, bound_track_parameters<algebra_t> &bound_params,
+        const context_t gctx, const pdg_particle<scalar_type> &ptc,
+        bound_track_parameters<algebra_t> &bound_params,
         state &interactor_state, const int nav_dir, const surface_t &sf) const {
 
         // Closest approach of the track to a line surface. Otherwise this is
@@ -171,7 +169,7 @@ struct pointwise_material_interactor : actor {
             gctx, bound_params.dir(), bound_params.bound_local()))};
 
         const bool succeed = sf.template visit_material<kernel>(
-            interactor_state, bound_params, cos_inc_angle, approach);
+            interactor_state, ptc, bound_params, cos_inc_angle, approach);
 
         if (succeed) {
 
@@ -180,9 +178,7 @@ struct pointwise_material_interactor : actor {
 
             if (interactor_state.do_energy_loss) {
 
-                update_qop(vector, bound_params.p(), bound_params.charge(),
-                           interactor_state.mass, interactor_state.e_loss,
-                           nav_dir);
+                update_qop(vector, ptc, interactor_state.e_loss, nav_dir);
 
                 if (interactor_state.do_covariance_transport) {
 
@@ -209,9 +205,14 @@ struct pointwise_material_interactor : actor {
     /// @param[in]  e_loss energy loss
     /// @param[in]  sign navigation direction
     DETRAY_HOST_DEVICE
-    inline void update_qop(bound_vector_type &vector, const scalar_type p,
-                           const scalar_type q, const scalar_type m,
+    inline void update_qop(bound_vector_type &vector,
+                           const pdg_particle<scalar_type> &ptc,
                            const scalar_type e_loss, const int sign) const {
+        const scalar_type m = ptc.mass();
+        const scalar_type q = ptc.charge();
+        const scalar_type p =
+            detail::track_helper<matrix_operator>().p(vector, q);
+
         // Get new Energy
         const scalar_type nextE{
             math::sqrt(m * m + p * p) -

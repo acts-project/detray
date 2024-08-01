@@ -132,6 +132,12 @@ struct propagator {
         DETRAY_HOST_DEVICE
         void set_param_type(const parameter_type t) { m_param_type = t; }
 
+        /// Set the particle hypothesis
+        DETRAY_HOST_DEVICE
+        void set_particle(const pdg_particle<scalar_type> &ptc) {
+            _stepping._ptc = ptc;
+        }
+
         // Is the propagation still alive?
         bool _heartbeat = false;
         // Starting type of track parametrization

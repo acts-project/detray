@@ -137,8 +137,10 @@ class navigation_validation : public test::fixture_base<> {
             const auto &start = truth_trace.front();
             const auto &track = start.track_param;
             trajectory_type test_traj = get_parametrized_trajectory(track);
-            min_pT = std::min(min_pT, track.pT());
-            max_pT = std::max(max_pT, track.pT());
+
+            const scalar q = track.qop() > 0 ? 1.f : -1.f;
+            min_pT = std::min(min_pT, track.pT(q));
+            max_pT = std::max(max_pT, track.pT(q));
 
             // Run the propagation
             auto [success, obj_tracer, mat_trace, nav_printer, step_printer] =

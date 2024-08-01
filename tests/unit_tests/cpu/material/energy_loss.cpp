@@ -6,6 +6,7 @@
  */
 
 // Project include(s).
+#include "detray/definitions/pdg_particle.hpp"
 #include "detray/materials/interaction.hpp"
 #include "detray/materials/material.hpp"
 #include "detray/materials/material_slab.hpp"
@@ -23,6 +24,11 @@
 
 using namespace detray;
 using algebra_t = test::algebra;
+
+// Test is done for muon
+namespace {
+pdg_particle ptc = muon<scalar>();
+}
 
 // Test class for MUON energy loss with Bethe function
 // Input tuple: < material / energy / expected output from
@@ -46,19 +52,13 @@ TEST_P(EnergyLossBetheValidation, bethe_energy_loss) {
     // Path segment in the material
     const scalar path_segment{slab.path_segment(cos_inc_ang)};
 
-    // muon
-    constexpr int pdg = pdg_particle::eMuon;
-
-    // mass
-    constexpr scalar m{105.7f * unit<scalar>::MeV};
-
     // qOverP
-    const scalar qOverP{-1.f / std::get<1>(GetParam())};
+    const scalar qop{ptc.charge() / std::get<1>(GetParam())};
 
     // Bethe Stopping power in MeV * cm^2 / g
     const scalar dEdx{
         I.compute_energy_loss_bethe_bloch(path_segment, slab.get_material(),
-                                          pdg, m, qOverP, -1.f) /
+                                          ptc, {ptc, qop}) /
         path_segment / slab.get_material().mass_density() /
         (unit<scalar>::MeV * unit<scalar>::cm2 / unit<scalar>::g)};
 
@@ -309,28 +309,22 @@ TEST_P(EnergyLossLandauValidation, landau_energy_loss) {
     // Path segment in the material
     const scalar path_segment{slab.path_segment(cos_inc_ang)};
 
-    // muon
-    constexpr int pdg{pdg_particle::eMuon};
-
-    // mass
-    constexpr scalar m{105.7f * unit<scalar>::MeV};
-
     // Energy
     const scalar E = std::get<1>(GetParam());
 
     // p
-    const scalar p = std::sqrt(E * E - m * m);
+    const scalar p = std::sqrt(E * E - ptc.mass() * ptc.mass());
 
     // q
-    const scalar q = -1.f;
+    const scalar q = ptc.charge();
 
     // qOverP
-    const scalar qOverP{q / p};
+    const scalar qop{q / p};
 
     // Landau Energy loss in MeV
     const scalar Landau_MeV{I.compute_energy_loss_landau(path_segment,
                                                          slab.get_material(),
-                                                         pdg, m, qOverP, q) /
+                                                         ptc, {ptc, qop}) /
                             unit<scalar>::MeV};
 
     // Check if difference is within 5% error
@@ -340,7 +334,7 @@ TEST_P(EnergyLossLandauValidation, landau_energy_loss) {
     // Landau Energy loss Fluctuation
     const scalar fwhm_MeV{I.compute_energy_loss_landau_fwhm(path_segment,
                                                             slab.get_material(),
-                                                            pdg, m, qOverP, q) /
+                                                            ptc, {ptc, qop}) /
                           unit<scalar>::MeV};
 
     // Check if difference is within 10% error
@@ -383,35 +377,29 @@ TEST_P(LandauDistributionValidation, landau_distribution) {
     // Path segment in the material
     const scalar path_segment{slab.path_segment(cos_inc_ang)};
 
-    // muon
-    constexpr int pdg{pdg_particle::eMuon};
-
-    // mass
-    constexpr scalar m{105.7f * unit<scalar>::MeV};
-
     // Energy
     const scalar E = std::get<0>(GetParam());
 
     // p
-    const scalar p = std::sqrt(E * E - m * m);
+    const scalar p = std::sqrt(E * E - ptc.mass() * ptc.mass());
 
     // q
-    const scalar q = -1.f;
+    const scalar q = ptc.charge();
 
     // qOverP
-    const scalar qOverP{q / p};
+    const scalar qop{q / p};
 
     // Bethe energy loss
     const scalar dE{I.compute_energy_loss_bethe_bloch(
-        path_segment, slab.get_material(), pdg, m, qOverP, q)};
+        path_segment, slab.get_material(), ptc, {ptc, qop})};
 
     // Landau Energy loss
     const scalar mpv{I.compute_energy_loss_landau(
-        path_segment, slab.get_material(), pdg, m, qOverP, q)};
+        path_segment, slab.get_material(), ptc, {ptc, qop})};
 
     // Landau Energy loss Sigma
     const scalar sigma{I.compute_energy_loss_landau_sigma(
-        path_segment, slab.get_material(), pdg, m, qOverP, q)};
+        path_segment, slab.get_material(), ptc, {ptc, qop})};
 
     // Landau Sampling
     landau_distribution<scalar> landau;
@@ -437,12 +425,14 @@ TEST_P(LandauDistributionValidation, landau_distribution) {
     // Test attenuate function
     std::vector<scalar> energies;
 
+    const scalar mass = ptc.mass();
+
     for (std::size_t i = 0u; i < n_samples; i++) {
         const scalar new_p = random_scatterer<algebra_t>().attenuate(
-            mpv, sigma, m, p, generator);
+            mpv, sigma, mass, p, generator);
         ASSERT_TRUE(new_p < p);
 
-        const scalar new_E = std::sqrt(new_p * new_p + m * m);
+        const scalar new_E = std::sqrt(new_p * new_p + mass * mass);
         energies.push_back(new_E);
     }
 

@@ -24,21 +24,22 @@ struct interaction {
         detail::relativistic_quantities<scalar_type>;
 
     // @returns the total stopping power
-    DETRAY_HOST_DEVICE scalar_type compute_stopping_power(
-        const detray::material<scalar_type>& mat, const int pdg,
-        const relativistic_quantities& rq) const {
+    DETRAY_HOST_DEVICE scalar_type
+    compute_stopping_power(const detray::material<scalar_type>& mat,
+                           const pdg_particle<scalar_type>& ptc,
+                           const relativistic_quantities& rq) const {
 
         scalar_type stopping_power{0.f};
-        stopping_power += compute_bethe_bloch(mat, pdg, rq);
-        // In the future, consider sth like this:
-        // stopping_power += compute_brems(mat, pdg, rq);
+        stopping_power += compute_bethe_bloch(mat, ptc, rq);
+        // stopping_power += compute_bremsstralung(mat, ptc, rq);
 
         return stopping_power;
     }
 
-    DETRAY_HOST_DEVICE scalar_type compute_bethe_bloch(
-        const detray::material<scalar_type>& mat, const int /*pdg*/,
-        const relativistic_quantities& rq) const {
+    DETRAY_HOST_DEVICE scalar_type
+    compute_bethe_bloch(const detray::material<scalar_type>& mat,
+                        const pdg_particle<scalar_type>& /*ptc*/,
+                        const relativistic_quantities& rq) const {
 
         const scalar_type eps_per_length{rq.compute_epsilon_per_length(mat)};
         if (eps_per_length <= 0.f) {
@@ -52,7 +53,8 @@ struct interaction {
     }
 
     DETRAY_HOST_DEVICE scalar_type derive_bethe_bloch(
-        const detray::material<scalar_type>& mat, const int /*pdg*/,
+        const detray::material<scalar_type>& mat,
+        const pdg_particle<scalar_type>& /*ptc*/,
         const relativistic_quantities& rq, const scalar_type bethe) const {
 
         // (K/2) * (Z/A) * z^2 / beta^2 * density
@@ -93,23 +95,21 @@ struct interaction {
         return first_term + second_term;
     }
 
-    DETRAY_HOST_DEVICE scalar_type compute_energy_loss_bethe_bloch(
-        const scalar_type path_segment,
-        const detray::material<scalar_type>& mat, const int pdg,
-        const scalar_type mass, const scalar_type qop,
-        const scalar_type q) const {
+    DETRAY_HOST_DEVICE scalar_type
+    compute_energy_loss_bethe_bloch(const scalar_type path_segment,
+                                    const detray::material<scalar_type>& mat,
+                                    const pdg_particle<scalar_type>& ptc,
+                                    const relativistic_quantities& rq) const {
 
-        relativistic_quantities rq(mass, qop, q);
-        return path_segment * compute_bethe_bloch(mat, pdg, rq);
+        return path_segment * compute_bethe_bloch(mat, ptc, rq);
     }
 
     DETRAY_HOST_DEVICE scalar_type compute_energy_loss_landau(
         const scalar_type path_segment, const material<scalar_type>& mat,
-        const int /*pdg*/, const scalar_type m, const scalar_type qOverP,
-        const scalar_type q) const {
+        const pdg_particle<scalar_type>& /*ptc*/,
+        const relativistic_quantities& rq) const {
 
         const scalar_type I{mat.mean_excitation_energy()};
-        const relativistic_quantities rq(m, qOverP, q);
         const scalar_type eps{rq.compute_epsilon(mat, path_segment)};
 
         if (eps <= 0.f) {
@@ -126,9 +126,8 @@ struct interaction {
 
     DETRAY_HOST_DEVICE scalar_type compute_energy_loss_landau_fwhm(
         const scalar_type path_segment, const material<scalar_type>& mat,
-        const int /*pdg*/, const scalar_type m, const scalar_type qOverP,
-        const scalar_type q) const {
-        const relativistic_quantities rq(m, qOverP, q);
+        const pdg_particle<scalar_type>& /*ptc*/,
+        const relativistic_quantities& rq) const {
 
         // the Landau-Vavilov fwhm is 4*eps (see RPP2018 fig. 33.7)
         return 4.f * rq.compute_epsilon(mat, path_segment);
@@ -136,23 +135,23 @@ struct interaction {
 
     DETRAY_HOST_DEVICE scalar_type compute_energy_loss_landau_sigma(
         const scalar_type path_segment, const material<scalar_type>& mat,
-        const int pdg, const scalar_type m, const scalar_type qOverP,
-        const scalar_type q) const {
+        const pdg_particle<scalar_type>& ptc,
+        const relativistic_quantities& rq) const {
 
-        const scalar_type fwhm{compute_energy_loss_landau_fwhm(
-            path_segment, mat, pdg, m, qOverP, q)};
+        const scalar_type fwhm{
+            compute_energy_loss_landau_fwhm(path_segment, mat, ptc, rq)};
 
         return convert_landau_fwhm_to_gaussian_sigma(fwhm);
     }
 
     template <typename material_t>
     DETRAY_HOST_DEVICE scalar_type compute_energy_loss_landau_sigma_QOverP(
-        const scalar_type path_segment, const material_t& mat, const int pdg,
-        const scalar_type m, const scalar_type qOverP,
-        const scalar_type q) const {
+        const scalar_type path_segment, const material_t& mat,
+        const pdg_particle<scalar_type>& ptc,
+        const relativistic_quantities& rq) const {
 
-        const scalar_type sigmaE{compute_energy_loss_landau_sigma(
-            path_segment, mat, pdg, m, qOverP, q)};
+        const scalar_type sigmaE{
+            compute_energy_loss_landau_sigma(path_segment, mat, ptc, rq)};
 
         //  var(q/p) = (d(q/p)/dE)² * var(E)
         // d(q/p)/dE = d/dE (q/sqrt(E²-m²))
@@ -161,32 +160,26 @@ struct interaction {
         //           = -q/p² E/p = -(q/p)² * 1/(q*beta) = -(q/p)² * (q/beta)
         //           / q² = (1/p)^4 * (q/beta)² * var(E)
         // do not need to care about the sign since it is only used squared
-        const scalar_type pInv{qOverP / q};
-
-        const relativistic_quantities rq(m, qOverP, q);
-
+        const scalar_type pInv{rq.m_qOverP / ptc.charge()};
         return math::sqrt(rq.m_q2OverBeta2) * pInv * pInv * sigmaE;
     }
 
     DETRAY_HOST_DEVICE scalar_type compute_multiple_scattering_theta0(
-        const scalar_type xOverX0, const int pdg, const scalar_type m,
-        const scalar_type qOverP, const scalar_type q) const {
+        const scalar_type xOverX0, const pdg_particle<scalar_type>& ptc,
+        const relativistic_quantities& rq) const {
 
         // 1/p = q/(pq) = (q/p)/q
-        const scalar_type momentumInv{math::fabs(qOverP / q)};
+        const scalar_type momentumInv{math::fabs(rq.m_qOverP / ptc.charge())};
         // q²/beta²; a smart compiler should be able to remove the unused
         // computations
-        const relativistic_quantities rq(m, qOverP, q);
-        const scalar_type q2OverBeta2{rq.m_q2OverBeta2};
 
         // if electron or positron
-        if ((pdg == pdg_particle::eElectron) or
-            (pdg == pdg_particle::ePositron)) {
+        if ((ptc.pdg_num() == 11) or (ptc.pdg_num() == -11)) {
             //@todo (Beomki): Not sure if we need this function. At least we
             // need to find the reference for this equation
-            return theta0RossiGreisen(xOverX0, momentumInv, q2OverBeta2);
+            return theta0RossiGreisen(xOverX0, momentumInv, rq.m_q2OverBeta2);
         } else {
-            return theta0Highland(xOverX0, momentumInv, q2OverBeta2);
+            return theta0Highland(xOverX0, momentumInv, rq.m_q2OverBeta2);
         }
     }
 

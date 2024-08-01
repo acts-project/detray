@@ -9,6 +9,7 @@
 
 // Project include(s).
 #include "detray/definitions/detail/qualifiers.hpp"
+#include "detray/definitions/pdg_particle.hpp"
 #include "detray/definitions/units.hpp"
 #include "detray/geometry/tracking_surface.hpp"
 #include "detray/propagator/actors/parameter_resetter.hpp"
@@ -130,11 +131,8 @@ class base_stepper {
         /// Previous step size (DEBUG purpose only)
         scalar_type _prev_step_size{0.f};
 
-        /// The particle mass
-        scalar_type _mass{105.7f * unit<scalar_type>::MeV};
-
-        /// The particle pdg
-        int _pdg = 13;  // default muon
+        /// The default particle hypothesis is muon
+        pdg_particle<scalar_type> _ptc = muon<scalar_type>();
 
         /// is step size just initialized
         bool _initialized = true;

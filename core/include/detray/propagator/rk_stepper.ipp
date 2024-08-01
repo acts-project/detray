@@ -553,15 +553,14 @@ DETRAY_HOST_DEVICE auto detray::rk_stepper<
 
     const auto& mat = this->volume_material();
 
-    const auto pdg = this->_pdg;
-    const scalar_type q = this->_track.charge();
+    const scalar_type q = this->_ptc.charge();
     const scalar_type p = q / qop;
-    const scalar_type mass = this->_mass;
+    const scalar_type mass = this->_ptc.mass();
     const scalar_type E = math::sqrt(p * p + mass * mass);
 
     // Compute stopping power
     const scalar_type stopping_power =
-        interaction<scalar_type>().compute_stopping_power(mat, pdg,
+        interaction<scalar_type>().compute_stopping_power(mat, this->_ptc,
                                                           {mass, qop, q});
 
     // Assert that a momentum is a positive value
@@ -584,12 +583,11 @@ DETRAY_HOST_DEVICE auto detray::rk_stepper<
     }
 
     const auto& mat = this->volume_material();
-    auto& track = this->_track;
-    const scalar_type q = track.charge();
+    const scalar_type q = this->_ptc.charge();
     const scalar_type p = q / qop;
     const scalar_type p2 = p * p;
 
-    const auto& mass = this->_mass;
+    const auto& mass = this->_ptc.mass();
     const scalar_type E2 = p2 + mass * mass;
 
     // Interaction object
@@ -598,12 +596,12 @@ DETRAY_HOST_DEVICE auto detray::rk_stepper<
     // g = dE/ds = -1 * (-dE/ds) = -1 * stopping power
     const detail::relativistic_quantities<scalar_type> rq(mass, qop, q);
     // We assume that stopping power ~ mean ionization eloss per pathlength
-    const scalar_type bethe = I.compute_bethe_bloch(mat, this->_pdg, rq);
+    const scalar_type bethe = I.compute_bethe_bloch(mat, this->_ptc, rq);
     const scalar_type g = -1.f * bethe;
 
     // dg/d(qop) = -1 * derivation of stopping power
     const scalar_type dgdqop =
-        -1.f * interaction<scalar_type>().derive_bethe_bloch(mat, this->_pdg,
+        -1.f * interaction<scalar_type>().derive_bethe_bloch(mat, this->_ptc,
                                                              rq, bethe);
 
     // d(qop)/ds = - qop^3 * E * g / q^2

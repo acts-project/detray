@@ -24,6 +24,8 @@ constexpr scalar tol{1e-5f};
 
 GTEST_TEST(detray_tracks, bound_track_parameters) {
 
+    constexpr scalar charge = -1.f;
+
     /// Declare track parameters
 
     // first track
@@ -42,18 +44,18 @@ GTEST_TEST(detray_tracks, bound_track_parameters) {
 
     bound_track_parameters<algebra_t> bound_param1(
         geometry::barcode{}.set_index(sf_idx1), bound_vec1, bound_cov1);
-    EXPECT_NEAR(bound_param1.pT(),
+    EXPECT_NEAR(bound_param1.pT(charge),
                 1.f /
                     std::abs(getter::element(bound_vec1, e_bound_qoverp, 0u)) *
                     std::sin(getter::element(bound_vec1, e_bound_theta, 0u)),
                 tol);
-    EXPECT_NEAR(bound_param1.qopT(), -1.f / bound_param1.pT(), tol);
-    EXPECT_NEAR(bound_param1.pz(),
+    EXPECT_NEAR(bound_param1.qopT(), -1.f / bound_param1.pT(charge), tol);
+    EXPECT_NEAR(bound_param1.pz(charge),
                 1.f /
                     std::abs(getter::element(bound_vec1, e_bound_qoverp, 0u)) *
                     std::cos(getter::element(bound_vec1, e_bound_theta, 0u)),
                 tol);
-    EXPECT_NEAR(bound_param1.qopz(), -1.f / bound_param1.pz(), tol);
+    EXPECT_NEAR(bound_param1.qopz(), -1.f / bound_param1.pz(charge), tol);
 
     // second track
     dindex sf_idx2 = 1u;
@@ -87,19 +89,18 @@ GTEST_TEST(detray_tracks, bound_track_parameters) {
                 getter::element(bound_vec1, e_bound_theta, 0u), tol);
     EXPECT_NEAR(bound_param1.qop(),
                 getter::element(bound_vec1, e_bound_qoverp, 0u), tol);
-    EXPECT_NEAR(bound_param1.charge(), -1.f, tol);
     EXPECT_NEAR(bound_param1.time(),
                 getter::element(bound_vec1, e_bound_time, 0u), tol);
-    EXPECT_NEAR(bound_param1.mom()[0],
-                bound_param1.p() * std::sin(bound_param1.theta()) *
+    EXPECT_NEAR(bound_param1.mom(charge)[0],
+                bound_param1.p(charge) * std::sin(bound_param1.theta()) *
                     std::cos(bound_param1.phi()),
                 tol);
-    EXPECT_NEAR(bound_param1.mom()[1],
-                bound_param1.p() * std::sin(bound_param1.theta()) *
+    EXPECT_NEAR(bound_param1.mom(charge)[1],
+                bound_param1.p(charge) * std::sin(bound_param1.theta()) *
                     std::sin(bound_param1.phi()),
                 tol);
-    EXPECT_NEAR(bound_param1.mom()[2],
-                bound_param1.p() * std::cos(bound_param1.theta()), tol);
+    EXPECT_NEAR(bound_param1.mom(charge)[2],
+                bound_param1.p(charge) * std::cos(bound_param1.theta()), tol);
 
     // second track
     EXPECT_NEAR(bound_param2.bound_local()[0],
@@ -112,19 +113,18 @@ GTEST_TEST(detray_tracks, bound_track_parameters) {
                 getter::element(bound_vec2, e_bound_theta, 0u), tol);
     EXPECT_NEAR(bound_param2.qop(),
                 getter::element(bound_vec2, e_bound_qoverp, 0u), tol);
-    EXPECT_NEAR(bound_param2.charge(), 1.f, tol);
     EXPECT_NEAR(bound_param2.time(),
                 getter::element(bound_vec2, e_bound_time, 0u), tol);
-    EXPECT_NEAR(bound_param2.mom()[0],
-                bound_param2.p() * std::sin(bound_param2.theta()) *
+    EXPECT_NEAR(bound_param2.mom(charge)[0],
+                bound_param2.p(charge) * std::sin(bound_param2.theta()) *
                     std::cos(bound_param2.phi()),
                 tol);
-    EXPECT_NEAR(bound_param2.mom()[1],
-                bound_param2.p() * std::sin(bound_param2.theta()) *
+    EXPECT_NEAR(bound_param2.mom(charge)[1],
+                bound_param2.p(charge) * std::sin(bound_param2.theta()) *
                     std::sin(bound_param2.phi()),
                 tol);
-    EXPECT_NEAR(bound_param2.mom()[2],
-                bound_param2.p() * std::cos(bound_param2.theta()), tol);
+    EXPECT_NEAR(bound_param2.mom(charge)[2],
+                bound_param2.p(charge) * std::cos(bound_param2.theta()), tol);
 
     EXPECT_TRUE(!(bound_param2 == bound_param1));
     EXPECT_TRUE(bound_param2 == bound_param3);

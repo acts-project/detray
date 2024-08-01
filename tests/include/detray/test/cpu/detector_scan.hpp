@@ -197,8 +197,14 @@ class detector_scan : public test::fixture_base<> {
 
                 // Shoot trajectory through the detector and record all
                 // surfaces it encounters
+                assert(
+                    math::fabs(m_cfg.track_generator().charge()) ==
+                        1.f * unit<scalar_t>::e &&
+                    "Detector scan can only be run with particle charge +-1e");
+                const scalar qabs = math::fabs(m_cfg.m_trk_gen_cfg.charge());
+                const scalar q = trk.qop() > 0 ? qabs : -qabs;
                 auto trace = detector_scanner::run<scan_type>(
-                    m_gctx, m_det, test_traj, m_cfg.mask_tolerance(), trk.p());
+                    m_gctx, m_det, test_traj, m_cfg.mask_tolerance(), trk.p(q));
 
                 intersection_traces.push_back(std::move(trace));
             }

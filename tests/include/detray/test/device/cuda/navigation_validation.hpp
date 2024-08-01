@@ -284,8 +284,10 @@ class navigation_validation : public test::fixture_base<> {
             // Get the original test trajectory (ray or helix)
             const auto &trck_param = truth_trace.front().track_param;
             trajectory_type test_traj = get_parametrized_trajectory(trck_param);
-            min_pT = std::min(min_pT, trck_param.pT());
-            max_pT = std::max(max_pT, trck_param.pT());
+
+            const scalar q = trck_param.qop() > 0 ? 1.f : -1.f;
+            min_pT = std::min(min_pT, trck_param.pT(q));
+            max_pT = std::max(max_pT, trck_param.pT(q));
 
             // Recorded only the start position, which added by default
             bool success{true};

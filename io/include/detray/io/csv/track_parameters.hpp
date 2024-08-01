@@ -131,7 +131,8 @@ inline void write_free_track_params(
         for (const auto &track_param : track_params) {
 
             const auto &glob_pos = track_param.pos();
-            const auto &p = track_param.mom();
+            const scalar charge = track_param.qop() < 0.f ? -1.f : 1.f;
+            const auto &p = track_param.mom(charge);
 
             io::csv::free_track_parameters track_param_data{};
             track_param_data.track_id = track_idx;
@@ -142,7 +143,7 @@ inline void write_free_track_params(
             track_param_data.px = p[0];
             track_param_data.py = p[1];
             track_param_data.pz = p[2];
-            track_param_data.q = track_param.charge();
+            track_param_data.q = charge;
 
             track_param_writer.append(track_param_data);
         }

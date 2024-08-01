@@ -16,6 +16,11 @@
 
 using namespace detray;
 
+// Test is done for muon
+namespace {
+pdg_particle ptc = muon<scalar>();
+}
+
 GTEST_TEST(detray_material, derivative_test_beta2) {
 
     // mass
@@ -56,14 +61,11 @@ TEST_P(DerivativeOfBetheEquationValidation, derivative_of_stopping_power) {
     // Material
     const auto mat = std::get<0>(GetParam());
 
-    // muon
-    constexpr int pdg = pdg_particle::eMuon;
-
     // mass
-    constexpr scalar m{105.7f * unit<scalar>::MeV};
+    const scalar m = ptc.mass();
 
     // charge
-    const scalar q = -1.f;
+    const scalar q = ptc.charge();
 
     // Displacement for numerical differentiaion
     const scalar h = 1e-3f;
@@ -97,14 +99,14 @@ TEST_P(DerivativeOfBetheEquationValidation, derivative_of_stopping_power) {
         EXPECT_NEAR(numerical_dhalf, evaluated_dhalf, numerical_dhalf * 0.01f);
 
         // Bethe equation
-        const scalar bethe = Interactor.compute_bethe_bloch(mat, pdg, rq);
-        const scalar bethe1 = Interactor.compute_bethe_bloch(mat, pdg, rq1);
-        const scalar bethe2 = Interactor.compute_bethe_bloch(mat, pdg, rq2);
+        const scalar bethe = Interactor.compute_bethe_bloch(mat, ptc, rq);
+        const scalar bethe1 = Interactor.compute_bethe_bloch(mat, ptc, rq1);
+        const scalar bethe2 = Interactor.compute_bethe_bloch(mat, ptc, rq2);
 
         const scalar numerical_bethe = (bethe1 - bethe2) / (2.f * h);
 
         const scalar evaluated_bethe =
-            Interactor.derive_bethe_bloch(mat, pdg, rq, bethe);
+            Interactor.derive_bethe_bloch(mat, ptc, rq, bethe);
 
         EXPECT_NEAR(numerical_bethe, evaluated_bethe, numerical_bethe * 0.01f);
     }

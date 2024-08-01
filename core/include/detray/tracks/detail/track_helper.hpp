@@ -89,25 +89,30 @@ struct track_helper {
     }
 
     DETRAY_HOST_DEVICE
-    inline scalar_type p(const free_vector& free_vec) const {
+    inline scalar_type p(const free_vector& free_vec,
+                         const scalar_type q) const {
         assert(qop(free_vec) != 0.f);
-        return charge(free_vec) / qop(free_vec);
+        assert(q * qop(free_vec) > 0.f);
+        return q / qop(free_vec);
     }
 
     DETRAY_HOST_DEVICE
-    inline scalar_type p(const bound_vector& bound_vec) const {
+    inline scalar_type p(const bound_vector& bound_vec,
+                         const scalar_type q) const {
         assert(qop(bound_vec) != 0.f);
-        return charge(bound_vec) / qop(bound_vec);
+        assert(q * qop(bound_vec) > 0.f);
+        return q / qop(bound_vec);
     }
 
     DETRAY_HOST_DEVICE
-    inline vector3 mom(const free_vector& free_vec) const {
-        return p(free_vec) * dir(free_vec);
+    inline vector3 mom(const free_vector& free_vec, const scalar_type q) const {
+        return p(free_vec, q) * dir(free_vec);
     }
 
     DETRAY_HOST_DEVICE
-    inline vector3 mom(const bound_vector& bound_vec) const {
-        return p(bound_vec) * dir(bound_vec);
+    inline vector3 mom(const bound_vector& bound_vec,
+                       const scalar_type q) const {
+        return p(bound_vec, q) * dir(bound_vec);
     }
 
     DETRAY_HOST_DEVICE
@@ -162,22 +167,6 @@ struct track_helper {
     DETRAY_HOST_DEVICE
     inline scalar_type time(const bound_vector& bound_vec) const {
         return matrix_operator().element(bound_vec, e_bound_time, 0u);
-    }
-
-    DETRAY_HOST_DEVICE
-    inline scalar_type charge(const free_vector& free_vec) const {
-        return math::signbit(
-                   matrix_operator().element(free_vec, e_free_qoverp, 0u))
-                   ? -1.f
-                   : 1.f;
-    }
-
-    DETRAY_HOST_DEVICE
-    inline scalar_type charge(const bound_vector& bound_vec) const {
-        return math::signbit(
-                   matrix_operator().element(bound_vec, e_bound_qoverp, 0u))
-                   ? -1.f
-                   : 1.f;
     }
 };
 
