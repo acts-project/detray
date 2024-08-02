@@ -12,7 +12,7 @@ build_cuda:
   stage: build
   image: ghcr.io/acts-project/ubuntu2204_cuda:56
   script:
-      - git clone https://gitlab.cern.ch/beyeo/continuous_benchmark
+      - git clone ssh://git@gitlab.cern.ch:7999/beyeo/continuous_benchmark.git
       - cd ./continuous_benchmark
       - echo "Hello World!" >> hello.txt
       - git config --global user.email "beomki.yeo@gmail.com"
