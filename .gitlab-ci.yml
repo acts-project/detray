@@ -15,6 +15,8 @@ build_cuda:
       - git clone https://gitlab.cern.ch/beyeo/continuous_benchmark
       - cd ./continuous_benchmark
       - echo "Hello World!" >> hello.txt
+      - git config --global user.email "beomki.yeo@gmail.com"
+      - git config --global user.name "Beomki Yeo"
       - git add hello.txt
       - git commit -m "Test"
       - git push -u origin master
