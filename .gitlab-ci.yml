@@ -11,15 +11,12 @@ build_cuda:
   tags: [docker]
   stage: build
   image: ghcr.io/acts-project/ubuntu2204_cuda:56
-  artifacts:
-    paths:
-      - build
   script:
       - echo "Hello, World!" > hello.txt
   cache:
     - key: cache-$CI_COMMIT_REF_SLUG
-      fallback_keys:
-        - cache-$CI_DEFAULT_BRANCH
-        - cache-default
       paths:
         - hello.txt
+  artifacts:
+    paths:
+      - hello.txt
