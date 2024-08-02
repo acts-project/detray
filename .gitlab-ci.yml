@@ -12,11 +12,9 @@ build_cuda:
   stage: build
   image: ghcr.io/acts-project/ubuntu2204_cuda:56
   script:
-      - echo "Hello, World!" > hello.txt
-  cache:
-    - key: cache-$CI_COMMIT_REF_SLUG
-      paths:
-        - hello.txt
-  artifacts:
-    paths:
-      - hello.txt
+      - git clone https://gitlab.cern.ch/beyeo/continuous_benchmark
+      - cd ./continuous_benchmark
+      - echo "Hello World!" >> hello.txt
+      - git add hello.txt
+      - git commit -m "Test"
+      - git push -u origin master
