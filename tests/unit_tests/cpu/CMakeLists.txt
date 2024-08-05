@@ -5,9 +5,10 @@
 # Mozilla Public License Version 2.0
 
 # Set up the test(s) that are algebra agnostic.
-detray_add_unit_test( cpu
+detray_add_unit_test(cpu
    "core/containers.cpp"
    "core/typed_index.cpp"
+   "core/pdg_particle.cpp"
    "geometry/barcode.cpp"
    "grid2/populator.cpp"
    "propagator/actor_chain.cpp"
@@ -18,12 +19,12 @@ detray_add_unit_test( cpu
    "utils/tuple_helpers.cpp"
    "utils/type_list.cpp"
    "utils/sort.cpp"
-   LINK_LIBRARIES GTest::gtest GTest::gtest_main detray::test_common detray::core )
+   LINK_LIBRARIES GTest::gtest GTest::gtest_main detray::test_common detray::core)
 
 # Macro setting up the CPU tests for a specific algebra plugin.
-macro( detray_add_cpu_test algebra )
+macro(detray_add_cpu_test algebra)
    # Build the test executable.
-   detray_add_unit_test( cpu_${algebra}
+   detray_add_unit_test(cpu_${algebra}
       "builders/detector_builder.cpp"
       "builders/grid_builder.cpp"
       "builders/homogeneous_volume_material_builder.cpp"
@@ -95,24 +96,24 @@ macro( detray_add_cpu_test algebra )
       "utils/quadratic_equation.cpp"
       "utils/unit_vectors.cpp"
       LINK_LIBRARIES GTest::gtest GTest::gtest_main detray::core_${algebra}
-                     detray::test_common covfie::core vecmem::core detray::io
-                     detray::utils)
+      detray::test_common covfie::core vecmem::core detray::io
+      detray::utils)
 endmacro()
 
 # Build the array tests.
-detray_add_cpu_test( array )
+detray_add_cpu_test(array)
 
 # Build the Eigen tests.
-if( DETRAY_EIGEN_PLUGIN )
-   detray_add_cpu_test( eigen )
+if(DETRAY_EIGEN_PLUGIN)
+   detray_add_cpu_test(eigen)
 endif()
 
 # Build the SMatrix tests.
-if( DETRAY_SMATRIX_PLUGIN )
-   detray_add_cpu_test( smatrix )
+if(DETRAY_SMATRIX_PLUGIN)
+   detray_add_cpu_test(smatrix)
 endif()
 
 # Build the Vc tests.
-if( DETRAY_VC_PLUGIN )
-   detray_add_cpu_test( vc )
+if(DETRAY_VC_PLUGIN)
+   detray_add_cpu_test(vc)
 endif()

@@ -41,6 +41,11 @@ using namespace detray;
 using algebra_t = test::algebra;
 using matrix_operator = test::matrix_operator;
 
+// Test is done for muon
+namespace {
+pdg_particle ptc = muon<scalar>();
+}
+
 // Material interaction test with telescope Geometry
 GTEST_TEST(detray_material, telescope_geometry_energy_loss) {
 
@@ -107,15 +112,11 @@ GTEST_TEST(detray_material, telescope_geometry_energy_loss) {
     ASSERT_TRUE(p.propagate(state, actor_states))
         << state.debug_stream.str() << std::endl;
 
-    // muon
-    const int pdg{interactor_state.pdg};
+    // new momentum
+    const scalar newP{state._stepping._bound_params.p(ptc.charge())};
 
     // mass
-    const scalar mass{interactor_state.mass};
-
-    // new momentum
-    const scalar newP{state._stepping._bound_params.charge() /
-                      state._stepping._bound_params.qop()};
+    const auto mass = ptc.mass();
 
     // new energy
     const scalar newE{std::hypot(newP, mass)};
@@ -145,17 +146,17 @@ GTEST_TEST(detray_material, telescope_geometry_energy_loss) {
     // It is not perfectly precise as the track loses its energy during
     // propagation. However, since the energy loss << the track momentum,
     // the assumption is not very bad
-    const scalar dE{I.compute_energy_loss_bethe_bloch(path_segment,
-                                                      slab.get_material(), pdg,
-                                                      mass, q / iniP, q) *
-                    static_cast<scalar>(positions.size())};
+    const scalar dE{
+        I.compute_energy_loss_bethe_bloch(path_segment, slab.get_material(),
+                                          ptc, {ptc, ptc.charge() / iniP}) *
+        static_cast<scalar>(positions.size())};
 
     // Check if the new energy after propagation is enough close to the
     // expected value
     EXPECT_NEAR(newE, iniE - dE, 1e-5f);
 
     const scalar sigma_qop{I.compute_energy_loss_landau_sigma_QOverP(
-        path_segment, slab.get_material(), pdg, mass, q / iniP, q)};
+        path_segment, slab.get_material(), ptc, {ptc, ptc.charge() / iniP})};
 
     const scalar dvar_qop{sigma_qop * sigma_qop *
                           static_cast<scalar>(positions.size() - 1u)};
@@ -203,8 +204,8 @@ GTEST_TEST(detray_material, telescope_geometry_energy_loss) {
         // Terminate the propagation if the next sensitive surface was not found
         if (!next_surface_aborter_state.success) {
             // if (alt_state._navigation.is_complete()){
-            const scalar altP = alt_state._stepping._bound_params.charge() /
-                                alt_state._stepping._bound_params.qop();
+            const scalar altP =
+                alt_state._stepping._bound_params.p(ptc.charge());
             altE = std::hypot(altP, mass);
             break;
         }
@@ -304,7 +305,6 @@ GTEST_TEST(detray_material, telescope_geometry_scattering_angle) {
         phis.push_back(final_param.phi());
         thetas.push_back(final_param.theta());
     }
-
     scalar phi_variance{statistics::rms(phis, bound_param.phi())};
     scalar theta_variance{statistics::rms(thetas, bound_param.theta())};
 
@@ -392,13 +392,13 @@ GTEST_TEST(detray_material, telescope_geometry_volume_material) {
 
         p.propagate(state, actor_states);
 
-        const auto newP = state._stepping().p();
-        const auto mass = state._stepping._mass;
+        const auto newP = state._stepping().p(ptc.charge());
+        const auto mass = ptc.mass();
 
         const auto eloss_approx =
             interaction<scalar>().compute_energy_loss_bethe_bloch(
-                state._stepping._path_length, mat, pdg_particle::eMuon, mass,
-                bound_param.qop(), bound_param.charge());
+                state._stepping._path_length, mat, ptc,
+                {ptc, bound_param.qop()});
 
         const auto iniE = std::sqrt(iniP * iniP + mass * mass);
         const auto newE = std::sqrt(newP * newP + mass * mass);

@@ -33,6 +33,7 @@ GTEST_TEST(detray_simulation, uniform_track_generator) {
 
     constexpr std::size_t phi_steps{50u};
     constexpr std::size_t theta_steps{50u};
+    constexpr const scalar_t charge{-1.f};
 
     std::array<vector3, phi_steps * theta_steps> momenta{};
 
@@ -56,18 +57,19 @@ GTEST_TEST(detray_simulation, uniform_track_generator) {
             free_track_parameters<algebra_t> traj({0.f, 0.f, 0.f}, 0.f, mom,
                                                   -1.f);
 
-            momenta[itheta * phi_steps + iphi] = traj.mom();
+            momenta[itheta * phi_steps + iphi] = traj.mom(-1.f);
         }
     }
 
     // Now run the track generator and compare
     std::size_t n_tracks{0u};
     generator_t::configuration trk_gen_cfg{};
+    trk_gen_cfg.charge(charge);
     trk_gen_cfg.phi_steps(phi_steps).theta_steps(theta_steps);
 
     for (const auto track : generator_t(trk_gen_cfg)) {
         vector3& expected = momenta[n_tracks];
-        vector3 result = track.mom();
+        vector3 result = track.mom(trk_gen_cfg.charge());
 
         // Compare with for loop
         EXPECT_NEAR(getter::norm(expected - result), 0.f, tol)
@@ -124,6 +126,7 @@ GTEST_TEST(detray_simulation, uniform_track_generator_eta) {
 
     constexpr const scalar_t tol{1e-5f};
     constexpr const scalar_t max_pi{generator_t::configuration::k_max_pi};
+    constexpr const scalar_t charge{-1.f};
 
     constexpr std::size_t phi_steps{50u};
     constexpr std::size_t eta_steps{50u};
@@ -151,7 +154,7 @@ GTEST_TEST(detray_simulation, uniform_track_generator_eta) {
             free_track_parameters<algebra_t> traj({0.f, 0.f, 0.f}, 0.f, mom,
                                                   -1.f);
 
-            momenta[ieta * phi_steps + iphi] = traj.mom();
+            momenta[ieta * phi_steps + iphi] = traj.mom(charge);
         }
     }
 
@@ -160,10 +163,11 @@ GTEST_TEST(detray_simulation, uniform_track_generator_eta) {
 
     auto trk_generator = generator_t{};
     trk_generator.config().phi_steps(phi_steps).eta_steps(eta_steps);
+    trk_generator.config().charge(charge);
 
     for (const auto track : trk_generator) {
         vector3& expected = momenta[n_tracks];
-        vector3 result = track.mom();
+        vector3 result = track.mom(trk_generator.config().charge());
 
         // Compare with for loop
         EXPECT_NEAR(getter::norm(expected - result), 0.f, tol)
@@ -255,7 +259,7 @@ GTEST_TEST(detray_simulation, random_track_generator_uniform) {
         x[n_tracks] = pos[0];
         y[n_tracks] = pos[1];
         z[n_tracks] = pos[2];
-        mom[n_tracks] = track.p();
+        mom[n_tracks] = track.p(trk_gen_cfg.charge());
         phi[n_tracks] = getter::phi(track.dir());
         theta[n_tracks] = getter::theta(track.dir());
 
@@ -339,7 +343,7 @@ GTEST_TEST(detray_simulation, random_track_generator_normal) {
         x[n_tracks] = pos[0];
         y[n_tracks] = pos[1];
         z[n_tracks] = pos[2];
-        mom[n_tracks] = track.p();
+        mom[n_tracks] = track.p(trk_gen_cfg.charge());
         phi[n_tracks] = getter::phi(track.dir());
         theta[n_tracks] = getter::theta(track.dir());
 

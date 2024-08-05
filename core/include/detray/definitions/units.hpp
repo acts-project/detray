@@ -136,10 +136,11 @@ struct constant {
     static constexpr scalar_t hbar{static_cast<scalar_t>(
         6.582119569509066e-25 * unit<scalar_t>::GeV * unit<scalar_t>::s)};
 
-    // values from RPP2018 table 33.1
     // electron mass
+    // https://physics.nist.gov/cgi-bin/cuu/Value?eqmec2mev (Visited Aug 1st,
+    // 2024)
     static constexpr scalar_t m_e{
-        static_cast<scalar_t>(0.5109989461 * unit<scalar_t>::MeV)};
+        static_cast<scalar_t>(0.51099895069 * unit<scalar_t>::MeV)};
 };
 
 }  // namespace detray

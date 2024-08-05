@@ -94,6 +94,9 @@ std::uniform_int_distribution<int> rand_bool(0, 1);
 std::uniform_real_distribution<scalar> rand_gamma(0.f,
                                                   2.f * constant<scalar>::pi);
 
+// Particle setup = muon
+pdg_particle ptc = muon<scalar>();
+
 // Correlation factor in the range of [-10%, 10%]
 constexpr scalar min_corr = -0.1f;
 constexpr scalar max_corr = 0.1f;
@@ -483,6 +486,7 @@ bound_getter<algebra_type>::state evaluate_bound_param(
     typename propagator_t::state state(initial_param, field, det);
 
     // Run the propagation for the reference track
+    state.set_particle(ptc);
     state.do_debug = do_inspect;
     state._stepping
         .template set_constraint<detray::step::constraint::e_accuracy>(
@@ -532,6 +536,7 @@ bound_vector_type get_displaced_bound_vector(
 
     auto actor_states =
         std::tie(transporter_state, bound_getter_state, resetter_state);
+    dstate.set_particle(ptc);
     dstate._stepping
         .template set_constraint<detray::step::constraint::e_accuracy>(
             constraint_step);
@@ -636,7 +641,7 @@ bound_track_parameters<algebra_type> get_initial_parameter(
         << " log10(Helix tolerance): " << math::log10(helix_tolerance)
         << " Phi: " << getter::phi(vertex.dir())
         << " Theta: " << getter::theta(vertex.dir())
-        << " Mom [GeV/c]: " << vertex.p() << std::endl
+        << " Mom [GeV/c]: " << vertex.p(ptc.charge()) << std::endl
         << sfi;
 
     const auto path_length = sfi.path;
@@ -697,7 +702,7 @@ void evaluate_jacobian_difference(
         << " Average step size [mm]: " << bound_getter.m_avg_step_size
         << " Phi: " << reference_param.phi()
         << " Theta: " << reference_param.theta()
-        << " Mom [GeV/c]: " << reference_param.p();
+        << " Mom [GeV/c]: " << reference_param.p(ptc.charge());
     ASSERT_EQ(final_param.surface_link().index(), 1u)
         << " Final surface not found " << std::endl
         << " log10(RK tolerance): " << math::log10(rk_tolerance)
@@ -705,7 +710,7 @@ void evaluate_jacobian_difference(
         << " Average step size [mm]: " << bound_getter.m_avg_step_size
         << " Phi: " << reference_param.phi()
         << " Theta: " << reference_param.theta()
-        << " Mom [GeV/c]: " << reference_param.p();
+        << " Mom [GeV/c]: " << reference_param.p(ptc.charge());
     ASSERT_TRUE(detector_length > 0.f);
     ASSERT_GE(bound_getter.m_path_length, 0.5f * detector_length);
     ASSERT_LE(bound_getter.m_path_length, 1.5f * detector_length);
@@ -858,7 +863,7 @@ void evaluate_covariance_transport(
         << " Average step size [mm]: " << bound_getter.m_avg_step_size
         << " Phi: " << reference_param.phi()
         << " Theta: " << reference_param.theta()
-        << " Mom [GeV/c]: " << reference_param.p();
+        << " Mom [GeV/c]: " << reference_param.p(ptc.charge());
     ASSERT_EQ(final_param.surface_link().index(), 1u)
         << " Final surface not found " << std::endl
         << " log10(RK tolerance): " << math::log10(rk_tolerance)
@@ -866,7 +871,7 @@ void evaluate_covariance_transport(
         << " Average step size [mm]: " << bound_getter.m_avg_step_size
         << " Phi: " << reference_param.phi()
         << " Theta: " << reference_param.theta()
-        << " Mom [GeV/c]: " << reference_param.p();
+        << " Mom [GeV/c]: " << reference_param.p(ptc.charge());
     ASSERT_TRUE(detector_length > 0.f);
     ASSERT_GE(bound_getter.m_path_length, 0.5f * detector_length);
     ASSERT_LE(bound_getter.m_path_length, 1.5f * detector_length);
@@ -1075,7 +1080,7 @@ void evaluate_jacobian_difference_helix(
         << " Final surface not found" << std::endl
         << " log10(Helix tolerance): " << math::log10(helix_tolerance)
         << " Phi: " << track.phi() << " Theta: " << track.theta()
-        << " Mom [GeV/c]: " << track.p();
+        << " Mom [GeV/c]: " << track.p(ptc.charge());
 
     const auto path_length = sfi.path;
 
@@ -1792,7 +1797,7 @@ int main(int argc, char** argv) {
             std::cout << "[Track Property]" << std::endl;
             std::cout << "Phi: " << getter::phi(track.dir()) << std::endl;
             std::cout << "Theta: " << getter::theta(track.dir()) << std::endl;
-            std::cout << "Mom: " << track.p() << std::endl;
+            std::cout << "Mom: " << track.p(ptc.charge()) << std::endl;
         }
 
         /**********************************

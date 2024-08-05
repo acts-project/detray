@@ -10,6 +10,7 @@
 // Detray include(s)
 #include "detray/definitions/detail/math.hpp"
 #include "detray/definitions/detail/qualifiers.hpp"
+#include "detray/definitions/pdg_particle.hpp"
 #include "detray/definitions/units.hpp"
 #include "detray/materials/material.hpp"
 
@@ -38,12 +39,17 @@ struct relativistic_quantities {
     scalar_type m_betaGamma{0.f};
     scalar_type m_gamma{0.f};
     scalar_type m_gamma2{0.f};
-    scalar_type m_mass{0.f};
+    scalar_type m_E{0.f};
     scalar_type m_Wmax{0.f};
 
     DETRAY_HOST_DEVICE
-    relativistic_quantities(const scalar_type mass, const scalar_type qOverP,
-                            const scalar_type q) {
+    relativistic_quantities(const pdg_particle<scalar_type>& ptc,
+                            const scalar_type qop)
+        : relativistic_quantities(ptc.mass(), qop, ptc.charge()){};
+
+    DETRAY_HOST_DEVICE relativistic_quantities(const scalar_type mass,
+                                               const scalar_type qOverP,
+                                               const scalar_type q) {
         assert(qOverP != 0.f);
         assert(mass != 0.f);
 
@@ -63,9 +69,10 @@ struct relativistic_quantities {
         // gamma = sqrt(m² + p²)/m = sqrt(1 + (p/m)²)
         m_gamma = math::sqrt(1.f + pOverM * pOverM);
         m_gamma2 = m_gamma * m_gamma;
-        m_mass = mass;
+        // E = gamma * mass;
+        m_E = m_gamma * mass;
 
-        const scalar_type mfrac{constant<scalar_type>::m_e / m_mass};
+        const scalar_type mfrac{constant<scalar_type>::m_e / mass};
 
         // Wmax = 2m_e c^2 beta^2 gamma^2 / (1+2gamma*m_e/M + (m_e/M)^2)
         m_Wmax =
@@ -111,9 +118,8 @@ struct relativistic_quantities {
     /// @brief  dA/dqop = - 1 / (2 * qop) * [4 - W_max/ (gamma M c^2) ]
     DETRAY_HOST_DEVICE scalar_type derive_bethe_bloch_log_term() const {
         assert(m_gamma != 0.f);
-        assert(m_mass != 0.f);
-        const scalar_type dAdqop =
-            -1 / (2 * m_qOverP) * (4 - m_Wmax / (m_gamma * m_mass));
+        assert(m_E != 0.f);
+        const scalar_type dAdqop = -1 / (2 * m_qOverP) * (4 - m_Wmax / (m_E));
         return dAdqop;
     }
 

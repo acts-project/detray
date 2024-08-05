@@ -128,9 +128,6 @@ struct bound_track_parameters {
     scalar_type time() const { return track_helper().time(m_vector); }
 
     DETRAY_HOST_DEVICE
-    scalar_type charge() const { return track_helper().charge(m_vector); }
-
-    DETRAY_HOST_DEVICE
     scalar_type qop() const { return track_helper().qop(m_vector); }
 
     DETRAY_HOST_DEVICE
@@ -145,21 +142,25 @@ struct bound_track_parameters {
     scalar_type qopz() const { return track_helper().qopz(m_vector); }
 
     DETRAY_HOST_DEVICE
-    scalar_type p() const { return track_helper().p(m_vector); }
-
-    DETRAY_HOST_DEVICE
-    vector3_type mom() const { return track_helper().mom(m_vector); }
-
-    DETRAY_HOST_DEVICE
-    scalar_type pT() const {
-        assert(this->qop() != 0.f);
-        return math::fabs(1.f / this->qop() * getter::perp(this->dir()));
+    scalar_type p(const scalar_type q) const {
+        return track_helper().p(m_vector, q);
     }
 
     DETRAY_HOST_DEVICE
-    scalar_type pz() const {
+    vector3_type mom(const scalar_type q) const {
+        return track_helper().mom(m_vector, q);
+    }
+
+    DETRAY_HOST_DEVICE
+    scalar_type pT(const scalar_type q) const {
         assert(this->qop() != 0.f);
-        return math::fabs(1.f / this->qop() * this->dir()[2]);
+        return math::fabs(q / this->qop() * getter::perp(this->dir()));
+    }
+
+    DETRAY_HOST_DEVICE
+    scalar_type pz(const scalar_type q) const {
+        assert(this->qop() != 0.f);
+        return math::fabs(q / this->qop() * this->dir()[2]);
     }
 
     private:
