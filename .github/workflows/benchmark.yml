@@ -1,0 +1,16 @@
+name: Detray benchmark build
+
+on:
+  push:
+    branches:
+      - main
+jobs:
+  detray_benchmark_job:
+    runs-on: ubuntu-latest
+    steps:
+      - run: >
+          curl -X POST --fail
+          -F token=${{ secrets.GITLAB_DETRAY_BUILD_TRIGGER_TOKEN }}
+          -F ref=main
+          --form variables[SOURCE_SHA]="${{ github.sha }}"
+          https://gitlab.cern.ch/api/v4/projects/190570/trigger/pipeline
