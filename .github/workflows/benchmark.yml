@@ -11,7 +11,7 @@ jobs:
     steps:
       - run: >
           curl -X POST --fail
-          -F token=${{ secrets.DETRAY_BENCHMARK_ACCESS_TOKEN }}
+          -F token=${{ secrets.DETRAY_BENCHMARK_TRIGGER_TOKEN }}
           -F ref=main
           --form variables[SOURCE_SHA]="${{ github.sha }}"
           https://gitlab.cern.ch/api/v4/projects/190570/trigger/pipeline
