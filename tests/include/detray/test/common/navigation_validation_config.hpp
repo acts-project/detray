@@ -24,8 +24,8 @@ namespace detray::test {
 struct navigation_validation_config
     : public test::fixture_base<>::configuration {
     using base_type = test::fixture_base<>;
-    using scalar_type = typename base_type::scalar;
-    using vector3_type = typename base_type::vector3;
+    using scalar_type = typename base_type::scalar_type;
+    using vector3_type = typename base_type::vector3_type;
 
     /// Name of the test
     std::string m_name{"navigation_validation"};
