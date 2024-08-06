@@ -2,6 +2,7 @@ name: Detray benchmark build
 
 on:
   push:
+  pull_request: # Delete this line later
     branches:
       - main
 jobs:
