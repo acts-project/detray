@@ -1,4 +1,4 @@
-name: Detray benchmark build
+name: Benchmark
 
 on:
   push:
