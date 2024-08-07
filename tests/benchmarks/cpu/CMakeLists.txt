@@ -8,11 +8,15 @@
 option( DETRAY_BENCHMARK_MULTITHREAD "Enable multithreaded benchmarks" OFF )
 option( DETRAY_BENCHMARK_PRINTOUTS "Enable printouts in the benchmarks" OFF )
 
+# Look for openMP, which is used for the CPU benchmark
+find_package(OpenMP)
+
 # Macro setting up the CPU benchmarks for a specific algebra plugin.
 macro( detray_add_cpu_benchmark algebra )
 
    # Build the benchmark executable.
    detray_add_executable( benchmark_cpu_${algebra}
+      "benchmark_propagator.cpp"
       "find_volume.cpp"
       "grid.cpp"
       "grid2.cpp"
@@ -33,6 +37,13 @@ macro( detray_add_cpu_benchmark algebra )
          DETRAY_BENCHMARK_PRINTOUTS )
    endif()
 
+   target_compile_options( detray_benchmark_cpu_${algebra} PRIVATE
+   "-march=native" "-ftree-vectorize")
+
+   if( OpenMP_CXX_FOUND )
+      target_link_libraries( detray_benchmark_cpu_${algebra} PRIVATE OpenMP::OpenMP_CXX )
+    endif()
+    
 endmacro()
 
 # Build the array benchmark.

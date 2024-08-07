@@ -31,7 +31,7 @@ echo "===> Benchmark pipeline for commit ${LASTCOMMIT}"
 # Run the benchmarks
 for group in eigen array ; do
     echo "===> Running ${group}.benchmarks ..."
-    ${WORKSPACE}/build/bin/detray_benchmark_cpu_${group} --benchmark_format=csv > ${group}_benchmarks.csv
+    ${WORKSPACE}/build/bin/detray_benchmark_cpu_${group} --benchmark_format=csv --benchmark_filter=-propagation > ${group}_benchmarks.csv
 
     echo "===> Formatting benchmark results ..."
     sed -i -e "1d" ${group}_benchmarks.csv

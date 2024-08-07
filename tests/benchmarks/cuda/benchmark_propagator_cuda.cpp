@@ -45,61 +45,6 @@ void fill_tracks(vecmem::vector<free_track_parameters<algebra_t>> &tracks,
 }
 
 template <propagate_option opt>
-static void BM_PROPAGATOR_CPU(benchmark::State &state) {
-
-    // Create the toy geometry and bfield
-    auto [det, names] = build_toy_detector(host_mr, toy_cfg);
-    test::vector3 B{0.f, 0.f, 2.f * unit<scalar>::T};
-    auto bfield = bfield::create_const_field(B);
-
-    // Create propagator
-    propagation::config cfg{};
-    cfg.navigation.search_window = {3u, 3u};
-    propagator_host_type p{cfg};
-
-    std::size_t total_tracks = 0;
-
-    for (auto _ : state) {
-
-        // TODO: use fixture to build tracks
-        state.PauseTiming();
-
-        // Get tracks
-        vecmem::vector<free_track_parameters<algebra_t>> tracks(&host_mr);
-        fill_tracks(tracks, static_cast<std::size_t>(state.range(0)),
-                    static_cast<std::size_t>(state.range(0)));
-
-        total_tracks += tracks.size();
-
-        state.ResumeTiming();
-
-#pragma omp parallel for
-        for (auto &track : tracks) {
-
-            parameter_transporter<algebra_t>::state transporter_state{};
-            pointwise_material_interactor<algebra_t>::state interactor_state{};
-            parameter_resetter<algebra_t>::state resetter_state{};
-
-            auto actor_states =
-                tie(transporter_state, interactor_state, resetter_state);
-
-            // Create the propagator state
-            propagator_host_type::state p_state(track, bfield, det);
-
-            // Run propagation
-            if constexpr (opt == propagate_option::e_unsync) {
-                p.propagate(p_state, actor_states);
-            } else if constexpr (opt == propagate_option::e_sync) {
-                p.propagate_sync(p_state, actor_states);
-            }
-        }
-    }
-
-    state.counters["TracksPropagated"] = benchmark::Counter(
-        static_cast<double>(total_tracks), benchmark::Counter::kIsRate);
-}
-
-template <propagate_option opt>
 static void BM_PROPAGATOR_CUDA(benchmark::State &state) {
 
     // Create the toy geometry
@@ -145,14 +90,6 @@ static void BM_PROPAGATOR_CUDA(benchmark::State &state) {
         static_cast<double>(total_tracks), benchmark::Counter::kIsRate);
 }
 
-BENCHMARK_TEMPLATE(BM_PROPAGATOR_CPU, propagate_option::e_unsync)
-    ->Name("CPU unsync propagation")
-    ->RangeMultiplier(2)
-    ->Range(8, 256);
-BENCHMARK_TEMPLATE(BM_PROPAGATOR_CPU, propagate_option::e_sync)
-    ->Name("CPU sync propagation")
-    ->RangeMultiplier(2)
-    ->Range(8, 256);
 BENCHMARK_TEMPLATE(BM_PROPAGATOR_CUDA, propagate_option::e_unsync)
     ->Name("CUDA unsync propagation")
     ->RangeMultiplier(2)
