@@ -1,0 +1,18 @@
+name: Benchmark
+
+on:
+  push:
+    branches:
+      - main
+jobs:
+  detray_benchmark_job:
+    runs-on: ubuntu-latest
+    steps:
+      - run: >
+          curl -X POST --fail
+          -F token=${{ secrets.DETRAY_BENCHMARK_TRIGGER_TOKEN }}
+          -F ref=master
+          --form variables[MERGE_TIME]="$(date '+%Y-%m-%d_%H:%M:%S')"
+          --form variables[SOURCE_SHA]="${{ github.sha }}"
+          --form variables[WRITE_TOKEN]="${{ secrets.DETRAY_BENCHMARK_WRITE_TOKEN }}"
+          https://gitlab.cern.ch/api/v4/projects/190570/trigger/pipeline
