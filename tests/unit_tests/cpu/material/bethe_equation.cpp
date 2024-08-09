@@ -25,17 +25,13 @@
 using namespace detray;
 using algebra_t = test::algebra;
 
-// Test is done for muon
-namespace {
-pdg_particle ptc = muon<scalar>();
-}
-
-// Test class for MUON energy loss with Bethe function
-// Input tuple: < material / energy / expected output from
-// https://pdg.lbl.gov/2022/AtomicNuclearProperties for Muon dEdX and range >
+// Test class for energy loss with Bethe function
+// Input tuple: < material, particle type, momentum, expected output >
+// https://pdg.lbl.gov/2022/AtomicNuclearProperties for muon dEdX and range
 class EnergyLossBetheValidation
     : public ::testing::TestWithParam<
-          std::tuple<material<scalar>, scalar, scalar>> {};
+          std::tuple<material<scalar>, pdg_particle<scalar>, scalar, scalar>> {
+};
 
 // This tests the material functionalities
 TEST_P(EnergyLossBetheValidation, bethe_energy_loss) {
@@ -46,14 +42,17 @@ TEST_P(EnergyLossBetheValidation, bethe_energy_loss) {
     // Zero incidence angle
     const scalar cos_inc_ang{1.f};
 
-    // H2 liquid with a unit thickness
+    // Material slab with the 1 cm thickness
     material_slab<scalar> slab(std::get<0>(GetParam()), 1.f * unit<scalar>::cm);
+
+    // Particle
+    pdg_particle<scalar> ptc = std::get<1>(GetParam());
 
     // Path segment in the material
     const scalar path_segment{slab.path_segment(cos_inc_ang)};
 
     // qOverP
-    const scalar qop{ptc.charge() / std::get<1>(GetParam())};
+    const scalar qop{ptc.charge() / std::get<2>(GetParam())};
 
     // Bethe Stopping power in MeV * cm^2 / g
     const scalar dEdx{
@@ -62,7 +61,7 @@ TEST_P(EnergyLossBetheValidation, bethe_energy_loss) {
         path_segment / slab.get_material().mass_density() /
         (unit<scalar>::MeV * unit<scalar>::cm2 / unit<scalar>::g)};
 
-    const scalar expected_dEdx = std::get<2>(GetParam());
+    const scalar expected_dEdx = std::get<3>(GetParam());
 
     // Check if difference is within 5% error
     EXPECT_NEAR((expected_dEdx - dEdx) / dEdx, 0.f, 0.05f);
@@ -70,178 +69,224 @@ TEST_P(EnergyLossBetheValidation, bethe_energy_loss) {
 
 INSTANTIATE_TEST_SUITE_P(
     detray_material_Bethe_0p1GeV_H2Liquid, EnergyLossBetheValidation,
-    ::testing::Values(std::make_tuple(hydrogen_liquid<scalar>(),
+    ::testing::Values(std::make_tuple(hydrogen_liquid<scalar>(), muon<scalar>(),
                                       0.1003f * unit<scalar>::GeV, 6.539f)));
 
 INSTANTIATE_TEST_SUITE_P(
     detray_material_Bethe_1GeV_H2Liquid, EnergyLossBetheValidation,
-    ::testing::Values(std::make_tuple(hydrogen_liquid<scalar>(),
+    ::testing::Values(std::make_tuple(hydrogen_liquid<scalar>(), muon<scalar>(),
                                       1.101f * unit<scalar>::GeV, 4.182f)));
 
 INSTANTIATE_TEST_SUITE_P(
     detray_material_Bethe_10GeV_H2Liquid, EnergyLossBetheValidation,
-    ::testing::Values(std::make_tuple(hydrogen_liquid<scalar>(),
+    ::testing::Values(std::make_tuple(hydrogen_liquid<scalar>(), muon<scalar>(),
                                       10.11f * unit<scalar>::GeV, 4.777f)));
 
 INSTANTIATE_TEST_SUITE_P(
     detray_material_Bethe_100GeV_H2Liquid, EnergyLossBetheValidation,
-    ::testing::Values(std::make_tuple(hydrogen_liquid<scalar>(),
+    ::testing::Values(std::make_tuple(hydrogen_liquid<scalar>(), muon<scalar>(),
                                       100.1f * unit<scalar>::GeV, 5.305f)));
 
 INSTANTIATE_TEST_SUITE_P(
     detray_material_Bethe_0p1GeV_HeGas, EnergyLossBetheValidation,
-    ::testing::Values(std::make_tuple(helium_gas<scalar>(),
+    ::testing::Values(std::make_tuple(helium_gas<scalar>(), muon<scalar>(),
                                       0.1003f * unit<scalar>::GeV, 3.082f)));
 
 /*
 //@ NOTE: Test fails with He Gas and 10 GeV muons (18 % difference)
 INSTANTIATE_TEST_SUITE_P(
     detray_material_Bethe_1GeV_HeGas, EnergyLossBetheValidation,
-    ::testing::Values(std::make_tuple(helium_gas<scalar>(),
+    ::testing::Values(std::make_tuple(helium_gas<scalar>(), muon<scalar>(),
                                       1.101f * unit<scalar>::GeV, 2.133f)));
 */
 
 INSTANTIATE_TEST_SUITE_P(
     detray_material_Bethe_10GeV_HeGas, EnergyLossBetheValidation,
-    ::testing::Values(std::make_tuple(helium_gas<scalar>(),
+    ::testing::Values(std::make_tuple(helium_gas<scalar>(), muon<scalar>(),
                                       10.11f * unit<scalar>::GeV, 2.768f)));
 
 INSTANTIATE_TEST_SUITE_P(
     detray_material_Bethe_100GeV_HeGas, EnergyLossBetheValidation,
-    ::testing::Values(std::make_tuple(helium_gas<scalar>(),
+    ::testing::Values(std::make_tuple(helium_gas<scalar>(), muon<scalar>(),
                                       100.1f * unit<scalar>::GeV, 3.188f)));
 
 INSTANTIATE_TEST_SUITE_P(
     detray_material_Bethe_0p1GeV_Al, EnergyLossBetheValidation,
-    ::testing::Values(std::make_tuple(aluminium<scalar>(),
+    ::testing::Values(std::make_tuple(aluminium<scalar>(), muon<scalar>(),
                                       0.1003f * unit<scalar>::GeV, 2.533f)));
 
 INSTANTIATE_TEST_SUITE_P(
     detray_material_Bethe_1GeV_Al, EnergyLossBetheValidation,
-    ::testing::Values(std::make_tuple(aluminium<scalar>(),
+    ::testing::Values(std::make_tuple(aluminium<scalar>(), muon<scalar>(),
                                       1.101f * unit<scalar>::GeV, 1.744f)));
 
 INSTANTIATE_TEST_SUITE_P(
     detray_material_Bethe_10GeV_Al, EnergyLossBetheValidation,
-    ::testing::Values(std::make_tuple(aluminium<scalar>(),
+    ::testing::Values(std::make_tuple(aluminium<scalar>(), muon<scalar>(),
                                       10.11f * unit<scalar>::GeV, 2.097f)));
 
 INSTANTIATE_TEST_SUITE_P(
     detray_material_Bethe_100GeV_Al, EnergyLossBetheValidation,
-    ::testing::Values(std::make_tuple(aluminium<scalar>(),
+    ::testing::Values(std::make_tuple(aluminium<scalar>(), muon<scalar>(),
                                       100.1f * unit<scalar>::GeV, 2.360f)));
 
 INSTANTIATE_TEST_SUITE_P(
     detray_material_Bethe_0p1GeV_Si, EnergyLossBetheValidation,
-    ::testing::Values(std::make_tuple(silicon<scalar>(),
+    ::testing::Values(std::make_tuple(silicon<scalar>(), muon<scalar>(),
                                       0.1003f * unit<scalar>::GeV, 2.608f)));
 
 INSTANTIATE_TEST_SUITE_P(
     detray_material_Bethe_1GeV_Si, EnergyLossBetheValidation,
-    ::testing::Values(std::make_tuple(silicon<scalar>(),
+    ::testing::Values(std::make_tuple(silicon<scalar>(), muon<scalar>(),
                                       1.101f * unit<scalar>::GeV, 1.803f)));
 
 INSTANTIATE_TEST_SUITE_P(
     detray_material_Bethe_10GeV_Si, EnergyLossBetheValidation,
-    ::testing::Values(std::make_tuple(silicon<scalar>(),
+    ::testing::Values(std::make_tuple(silicon<scalar>(), muon<scalar>(),
                                       10.11f * unit<scalar>::GeV, 2.177f)));
 
 INSTANTIATE_TEST_SUITE_P(
     detray_material_Bethe_100GeV_Si, EnergyLossBetheValidation,
-    ::testing::Values(std::make_tuple(silicon<scalar>(),
+    ::testing::Values(std::make_tuple(silicon<scalar>(), muon<scalar>(),
                                       100.1f * unit<scalar>::GeV, 2.451f)));
 
-INSTANTIATE_TEST_SUITE_P(
-    detray_material_Bethe_0p1GeV_Si_with_DED, EnergyLossBetheValidation,
-    ::testing::Values(std::make_tuple(silicon_with_ded<scalar>(),
-                                      0.1003f * unit<scalar>::GeV, 2.608f)));
+INSTANTIATE_TEST_SUITE_P(detray_material_Bethe_0p1GeV_Si_with_DED,
+                         EnergyLossBetheValidation,
+                         ::testing::Values(std::make_tuple(
+                             silicon_with_ded<scalar>(), muon<scalar>(),
+                             0.1003f * unit<scalar>::GeV, 2.608f)));
 
-INSTANTIATE_TEST_SUITE_P(
-    detray_material_Bethe_1GeV_Si_with_DED, EnergyLossBetheValidation,
-    ::testing::Values(std::make_tuple(silicon_with_ded<scalar>(),
-                                      1.101f * unit<scalar>::GeV, 1.803f)));
+INSTANTIATE_TEST_SUITE_P(detray_material_Bethe_1GeV_Si_with_DED,
+                         EnergyLossBetheValidation,
+                         ::testing::Values(std::make_tuple(
+                             silicon_with_ded<scalar>(), muon<scalar>(),
+                             1.101f * unit<scalar>::GeV, 1.803f)));
 
-INSTANTIATE_TEST_SUITE_P(
-    detray_material_Bethe_10GeV_Si_with_DED, EnergyLossBetheValidation,
-    ::testing::Values(std::make_tuple(silicon_with_ded<scalar>(),
-                                      10.11f * unit<scalar>::GeV, 2.177f)));
+INSTANTIATE_TEST_SUITE_P(detray_material_Bethe_10GeV_Si_with_DED,
+                         EnergyLossBetheValidation,
+                         ::testing::Values(std::make_tuple(
+                             silicon_with_ded<scalar>(), muon<scalar>(),
+                             10.11f * unit<scalar>::GeV, 2.177f)));
 
-INSTANTIATE_TEST_SUITE_P(
-    detray_material_Bethe_100GeV_Si_with_DED, EnergyLossBetheValidation,
-    ::testing::Values(std::make_tuple(silicon_with_ded<scalar>(),
-                                      100.1f * unit<scalar>::GeV, 2.451f)));
+INSTANTIATE_TEST_SUITE_P(detray_material_Bethe_100GeV_Si_with_DED,
+                         EnergyLossBetheValidation,
+                         ::testing::Values(std::make_tuple(
+                             silicon_with_ded<scalar>(), muon<scalar>(),
+                             100.1f * unit<scalar>::GeV, 2.451f)));
 
 INSTANTIATE_TEST_SUITE_P(
     detray_material_Bethe_0p1GeV_ArLiquid, EnergyLossBetheValidation,
-    ::testing::Values(std::make_tuple(argon_liquid<scalar>(),
+    ::testing::Values(std::make_tuple(argon_liquid<scalar>(), muon<scalar>(),
                                       0.1003f * unit<scalar>::GeV, 2.34f)));
 
 /*
 ~6% discrepancy
 INSTANTIATE_TEST_SUITE_P(
     detray_material_Bethe_1GeV_ArLiquid, EnergyLossBetheValidation,
-    ::testing::Values(std::make_tuple(argon_liquid<scalar>(),
+    ::testing::Values(std::make_tuple(argon_liquid<scalar>(), muon<scalar>(),
                                       1.101f * unit<scalar>::GeV, 1.644f)));
 */
 
 INSTANTIATE_TEST_SUITE_P(
     detray_material_Bethe_10GeV_ArLiquid, EnergyLossBetheValidation,
-    ::testing::Values(std::make_tuple(argon_liquid<scalar>(),
+    ::testing::Values(std::make_tuple(argon_liquid<scalar>(), muon<scalar>(),
                                       10.11f * unit<scalar>::GeV, 2.003f)));
 
 INSTANTIATE_TEST_SUITE_P(
     detray_material_Bethe_100GeV_ArLiquid, EnergyLossBetheValidation,
-    ::testing::Values(std::make_tuple(argon_liquid<scalar>(),
+    ::testing::Values(std::make_tuple(argon_liquid<scalar>(), muon<scalar>(),
                                       100.1f * unit<scalar>::GeV, 2.258f)));
 
 INSTANTIATE_TEST_SUITE_P(
     detray_material_Bethe_0p1GeV_Fe, EnergyLossBetheValidation,
-    ::testing::Values(std::make_tuple(iron<scalar>(),
+    ::testing::Values(std::make_tuple(iron<scalar>(), muon<scalar>(),
                                       0.1003f * unit<scalar>::GeV, 2.274f)));
 
 /*
 // ~6% discrepancy
 INSTANTIATE_TEST_SUITE_P(
     detray_material_Bethe_1GeV_Fe, EnergyLossBetheValidation,
-    ::testing::Values(std::make_tuple(iron<scalar>(),
+    ::testing::Values(std::make_tuple(iron<scalar>(), muon<scalar>(),
                                       1.101f * unit<scalar>::GeV, 1.581f)));
 */
 
 INSTANTIATE_TEST_SUITE_P(
     detray_material_Bethe_10GeV_Fe, EnergyLossBetheValidation,
-    ::testing::Values(std::make_tuple(iron<scalar>(),
+    ::testing::Values(std::make_tuple(iron<scalar>(), muon<scalar>(),
                                       10.11f * unit<scalar>::GeV, 1.942f)));
 
 INSTANTIATE_TEST_SUITE_P(
     detray_material_Bethe_100GeV_Fe, EnergyLossBetheValidation,
-    ::testing::Values(std::make_tuple(iron<scalar>(),
+    ::testing::Values(std::make_tuple(iron<scalar>(), muon<scalar>(),
                                       100.1f * unit<scalar>::GeV, 2.207f)));
 
 INSTANTIATE_TEST_SUITE_P(
     detray_material_Bethe_0p1GeV_Fe_with_DED, EnergyLossBetheValidation,
-    ::testing::Values(std::make_tuple(iron_with_ded<scalar>(),
+    ::testing::Values(std::make_tuple(iron_with_ded<scalar>(), muon<scalar>(),
                                       0.1003f * unit<scalar>::GeV, 2.274f)));
 
 INSTANTIATE_TEST_SUITE_P(
     detray_material_Bethe_1GeV_Fe_with_DED, EnergyLossBetheValidation,
-    ::testing::Values(std::make_tuple(iron_with_ded<scalar>(),
+    ::testing::Values(std::make_tuple(iron_with_ded<scalar>(), muon<scalar>(),
                                       1.101f * unit<scalar>::GeV, 1.581f)));
 
 INSTANTIATE_TEST_SUITE_P(
     detray_material_Bethe_10GeV_Fe_with_DED, EnergyLossBetheValidation,
-    ::testing::Values(std::make_tuple(iron_with_ded<scalar>(),
+    ::testing::Values(std::make_tuple(iron_with_ded<scalar>(), muon<scalar>(),
                                       10.11f * unit<scalar>::GeV, 1.942f)));
 
 INSTANTIATE_TEST_SUITE_P(
     detray_material_Bethe_100GeV_Fe_with_DED, EnergyLossBetheValidation,
-    ::testing::Values(std::make_tuple(iron_with_ded<scalar>(),
+    ::testing::Values(std::make_tuple(iron_with_ded<scalar>(), muon<scalar>(),
                                       100.1f * unit<scalar>::GeV, 2.207f)));
+
+INSTANTIATE_TEST_SUITE_P(
+    detray_material_Bethe_0p1GeV_Cu, EnergyLossBetheValidation,
+    ::testing::Values(std::make_tuple(copper<scalar>(), muon<scalar>(),
+                                      0.1003f * unit<scalar>::GeV, 2.198f)));
+
+/*
+INSTANTIATE_TEST_SUITE_P(
+    detray_material_Bethe_1GeV_Cu, EnergyLossBetheValidation,
+    ::testing::Values(std::make_tuple(copper<scalar>(), muon<scalar>(),
+                                      1.101f * unit<scalar>::GeV, 1.532f)));
+*/
+
+INSTANTIATE_TEST_SUITE_P(
+    detray_material_Bethe_10GeV_Cu, EnergyLossBetheValidation,
+    ::testing::Values(std::make_tuple(copper<scalar>(), muon<scalar>(),
+                                      10.11f * unit<scalar>::GeV, 1.891f)));
+
+INSTANTIATE_TEST_SUITE_P(
+    detray_material_Bethe_100GeV_Cu, EnergyLossBetheValidation,
+    ::testing::Values(std::make_tuple(copper<scalar>(), muon<scalar>(),
+                                      100.1f * unit<scalar>::GeV, 2.155f)));
+
+INSTANTIATE_TEST_SUITE_P(
+    detray_material_Bethe_0p1GeV_Cu_with_DED, EnergyLossBetheValidation,
+    ::testing::Values(std::make_tuple(copper_with_ded<scalar>(), muon<scalar>(),
+                                      0.1003f * unit<scalar>::GeV, 2.198f)));
+
+INSTANTIATE_TEST_SUITE_P(
+    detray_material_Bethe_1GeV_Cu_with_DED, EnergyLossBetheValidation,
+    ::testing::Values(std::make_tuple(copper_with_ded<scalar>(), muon<scalar>(),
+                                      1.101f * unit<scalar>::GeV, 1.532f)));
+
+INSTANTIATE_TEST_SUITE_P(
+    detray_material_Bethe_10GeV_Cu_with_DED, EnergyLossBetheValidation,
+    ::testing::Values(std::make_tuple(copper_with_ded<scalar>(), muon<scalar>(),
+                                      10.11f * unit<scalar>::GeV, 1.891f)));
+
+INSTANTIATE_TEST_SUITE_P(
+    detray_material_Bethe_100GeV_Cu_with_DED, EnergyLossBetheValidation,
+    ::testing::Values(std::make_tuple(copper_with_ded<scalar>(), muon<scalar>(),
+                                      100.1f * unit<scalar>::GeV, 2.155f)));
 
 /*
 // ~10% discrepancy
 INSTANTIATE_TEST_SUITE_P(
     detray_material_Bethe_0p1GeV_CsI, EnergyLossBetheValidation,
-    ::testing::Values(std::make_tuple(cesium_iodide<scalar>(),
+    ::testing::Values(std::make_tuple(cesium_iodide<scalar>(), muon<scalar>(),
                                       0.1003f * unit<scalar>::GeV, 1.869f)));
 */
 
@@ -249,45 +294,50 @@ INSTANTIATE_TEST_SUITE_P(
 // ~10% discrepancy
 INSTANTIATE_TEST_SUITE_P(
     detray_material_Bethe_1GeV_CsI, EnergyLossBetheValidation,
-    ::testing::Values(std::make_tuple(cesium_iodide<scalar>(),
+    ::testing::Values(std::make_tuple(cesium_iodide<scalar>(), muon<scalar>(),
                                       1.101f * unit<scalar>::GeV, 1.391f)));
 */
 
 INSTANTIATE_TEST_SUITE_P(
     detray_material_Bethe_10GeV_CsI, EnergyLossBetheValidation,
-    ::testing::Values(std::make_tuple(cesium_iodide<scalar>(),
+    ::testing::Values(std::make_tuple(cesium_iodide<scalar>(), muon<scalar>(),
                                       10.11f * unit<scalar>::GeV, 1.755f)));
 
 INSTANTIATE_TEST_SUITE_P(
     detray_material_Bethe_100GeV_CsI, EnergyLossBetheValidation,
-    ::testing::Values(std::make_tuple(cesium_iodide<scalar>(),
+    ::testing::Values(std::make_tuple(cesium_iodide<scalar>(), muon<scalar>(),
                                       100.1f * unit<scalar>::GeV, 2.012f)));
 
-INSTANTIATE_TEST_SUITE_P(
-    detray_material_Bethe_0p1GeV_CsI_with_DED, EnergyLossBetheValidation,
-    ::testing::Values(std::make_tuple(cesium_iodide_with_ded<scalar>(),
-                                      0.1003f * unit<scalar>::GeV, 1.869f)));
+INSTANTIATE_TEST_SUITE_P(detray_material_Bethe_0p1GeV_CsI_with_DED,
+                         EnergyLossBetheValidation,
+                         ::testing::Values(std::make_tuple(
+                             cesium_iodide_with_ded<scalar>(), muon<scalar>(),
+                             0.1003f * unit<scalar>::GeV, 1.869f)));
 
-INSTANTIATE_TEST_SUITE_P(
-    detray_material_Bethe_1GeV_CsI_with_DED, EnergyLossBetheValidation,
-    ::testing::Values(std::make_tuple(cesium_iodide_with_ded<scalar>(),
-                                      1.101f * unit<scalar>::GeV, 1.391f)));
+INSTANTIATE_TEST_SUITE_P(detray_material_Bethe_1GeV_CsI_with_DED,
+                         EnergyLossBetheValidation,
+                         ::testing::Values(std::make_tuple(
+                             cesium_iodide_with_ded<scalar>(), muon<scalar>(),
+                             1.101f * unit<scalar>::GeV, 1.391f)));
 
-INSTANTIATE_TEST_SUITE_P(
-    detray_material_Bethe_10GeV_CsI_with_DED, EnergyLossBetheValidation,
-    ::testing::Values(std::make_tuple(cesium_iodide_with_ded<scalar>(),
-                                      10.11f * unit<scalar>::GeV, 1.755f)));
+INSTANTIATE_TEST_SUITE_P(detray_material_Bethe_10GeV_CsI_with_DED,
+                         EnergyLossBetheValidation,
+                         ::testing::Values(std::make_tuple(
+                             cesium_iodide_with_ded<scalar>(), muon<scalar>(),
+                             10.11f * unit<scalar>::GeV, 1.755f)));
 
-INSTANTIATE_TEST_SUITE_P(
-    detray_material_Bethe_100GeV_CsI_with_DED, EnergyLossBetheValidation,
-    ::testing::Values(std::make_tuple(cesium_iodide_with_ded<scalar>(),
-                                      100.1f * unit<scalar>::GeV, 2.012f)));
+INSTANTIATE_TEST_SUITE_P(detray_material_Bethe_100GeV_CsI_with_DED,
+                         EnergyLossBetheValidation,
+                         ::testing::Values(std::make_tuple(
+                             cesium_iodide_with_ded<scalar>(), muon<scalar>(),
+                             100.1f * unit<scalar>::GeV, 2.012f)));
 
 // Test class for MUON energy loss with Landau function
-// Input tuple: < material / energy / expected energy loss  / expected fwhm  >
+// Input tuple: < material / particle type / energy / expected energy loss  /
+// expected fwhm  >
 class EnergyLossLandauValidation
-    : public ::testing::TestWithParam<
-          std::tuple<material<scalar>, scalar, scalar, scalar>> {};
+    : public ::testing::TestWithParam<std::tuple<
+          material<scalar>, pdg_particle<scalar>, scalar, scalar, scalar>> {};
 
 TEST_P(EnergyLossLandauValidation, landau_energy_loss) {
 
@@ -306,11 +356,14 @@ TEST_P(EnergyLossLandauValidation, landau_energy_loss) {
     // Material slab with a unit thickness
     material_slab<scalar> slab(mat, thickness);
 
+    // Particle
+    pdg_particle<scalar> ptc = std::get<1>(GetParam());
+
     // Path segment in the material
     const scalar path_segment{slab.path_segment(cos_inc_ang)};
 
     // Energy
-    const scalar E = std::get<1>(GetParam());
+    const scalar E = std::get<2>(GetParam());
 
     // p
     const scalar p = std::sqrt(E * E - ptc.mass() * ptc.mass());
@@ -328,7 +381,7 @@ TEST_P(EnergyLossLandauValidation, landau_energy_loss) {
                             unit<scalar>::MeV};
 
     // Check if difference is within 5% error
-    EXPECT_TRUE(std::abs(std::get<2>(GetParam()) - Landau_MeV) / Landau_MeV <
+    EXPECT_TRUE(std::abs(std::get<3>(GetParam()) - Landau_MeV) / Landau_MeV <
                 0.05f);
 
     // Landau Energy loss Fluctuation
@@ -338,19 +391,20 @@ TEST_P(EnergyLossLandauValidation, landau_energy_loss) {
                           unit<scalar>::MeV};
 
     // Check if difference is within 10% error
-    EXPECT_TRUE(std::abs(std::get<3>(GetParam()) - fwhm_MeV) / fwhm_MeV < 0.1f);
+    EXPECT_TRUE(std::abs(std::get<4>(GetParam()) - fwhm_MeV) / fwhm_MeV < 0.1f);
 }
 
 // Expected output from Fig 33.7 in RPP2018
 INSTANTIATE_TEST_SUITE_P(
     detray_material_Landau_10GeV_Silicon, EnergyLossLandauValidation,
-    ::testing::Values(std::make_tuple(silicon<scalar>(),
+    ::testing::Values(std::make_tuple(silicon<scalar>(), muon<scalar>(),
                                       10.f * unit<scalar>::GeV, 0.525f,
                                       0.13f)));
 
 // Input tuple: < energy >
 class LandauDistributionValidation
-    : public ::testing::TestWithParam<std::tuple<scalar>> {};
+    : public ::testing::TestWithParam<
+          std::tuple<pdg_particle<scalar>, scalar>> {};
 
 TEST_P(LandauDistributionValidation, landau_distribution) {
 
@@ -374,11 +428,14 @@ TEST_P(LandauDistributionValidation, landau_distribution) {
     // Material slab with a unit thickness
     material_slab<scalar> slab(mat, thickness);
 
+    // Particle
+    pdg_particle<scalar> ptc = std::get<0>(GetParam());
+
     // Path segment in the material
     const scalar path_segment{slab.path_segment(cos_inc_ang)};
 
     // Energy
-    const scalar E = std::get<0>(GetParam());
+    const scalar E = std::get<1>(GetParam());
 
     // p
     const scalar p = std::sqrt(E * E - ptc.mass() * ptc.mass());
@@ -446,6 +503,7 @@ TEST_P(LandauDistributionValidation, landau_distribution) {
 
 INSTANTIATE_TEST_SUITE_P(
     detray_material_Landau, LandauDistributionValidation,
-    ::testing::Values(std::make_tuple(1.f * unit<scalar>::GeV),
-                      std::make_tuple(10.f * unit<scalar>::GeV),
-                      std::make_tuple(100.f * unit<scalar>::GeV)));
+    ::testing::Values(std::make_tuple(muon<scalar>(), 1.f * unit<scalar>::GeV),
+                      std::make_tuple(muon<scalar>(), 10.f * unit<scalar>::GeV),
+                      std::make_tuple(muon<scalar>(),
+                                      100.f * unit<scalar>::GeV)));

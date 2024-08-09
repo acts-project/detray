@@ -16,18 +16,15 @@
 
 using namespace detray;
 
-// Test is done for muon
-namespace {
-pdg_particle ptc = muon<scalar>();
-}
-
 GTEST_TEST(detray_material, derivative_test_beta2) {
 
+    const pdg_particle<scalar> ptc = muon<scalar>();
+
     // mass
-    constexpr scalar m{105.7f * unit<scalar>::MeV};
+    const scalar m = ptc.mass();
 
     // charge
-    const scalar q = -1.f;
+    const scalar q = ptc.charge();
 
     // Displacement for numerical differentiaion
     const scalar h = 0.001f;
@@ -45,21 +42,25 @@ GTEST_TEST(detray_material, derivative_test_beta2) {
 
         const scalar evaluated = rq.derive_beta2();
 
-        EXPECT_NEAR(numerical, evaluated, numerical * 0.01);
+        EXPECT_NEAR((numerical - evaluated) / numerical, 0, 0.012);
     }
 }
 
 // Test class for the derivative of bethe stopping power
 class DerivativeOfBetheEquationValidation
-    : public ::testing::TestWithParam<std::tuple<material<scalar>>> {};
+    : public ::testing::TestWithParam<
+          std::tuple<pdg_particle<scalar>, material<scalar>>> {};
 
-TEST_P(DerivativeOfBetheEquationValidation, derivative_of_stopping_power) {
+TEST_P(DerivativeOfBetheEquationValidation,
+       derivative_of_bethe_stopping_power) {
 
     // Interaction object
     interaction<scalar> Interactor;
 
+    const pdg_particle<scalar> ptc = std::get<0>(GetParam());
+
     // Material
-    const auto mat = std::get<0>(GetParam());
+    const auto mat = std::get<1>(GetParam());
 
     // mass
     const scalar m = ptc.mass();
@@ -99,14 +100,13 @@ TEST_P(DerivativeOfBetheEquationValidation, derivative_of_stopping_power) {
         EXPECT_NEAR(numerical_dhalf, evaluated_dhalf, numerical_dhalf * 0.01f);
 
         // Bethe equation
-        const scalar bethe = Interactor.compute_bethe_bloch(mat, ptc, rq);
         const scalar bethe1 = Interactor.compute_bethe_bloch(mat, ptc, rq1);
         const scalar bethe2 = Interactor.compute_bethe_bloch(mat, ptc, rq2);
 
         const scalar numerical_bethe = (bethe1 - bethe2) / (2.f * h);
 
         const scalar evaluated_bethe =
-            Interactor.derive_bethe_bloch(mat, ptc, rq, bethe);
+            Interactor.derive_bethe_bloch(mat, ptc, rq);
 
         EXPECT_NEAR(numerical_bethe, evaluated_bethe, numerical_bethe * 0.01f);
     }
@@ -115,8 +115,76 @@ TEST_P(DerivativeOfBetheEquationValidation, derivative_of_stopping_power) {
 INSTANTIATE_TEST_SUITE_P(
     detray_material_BetheEquationDerivative,
     DerivativeOfBetheEquationValidation,
-    ::testing::Values(hydrogen_gas<scalar>(), helium_gas<scalar>(),
-                      isobutane<scalar>(), aluminium<scalar>(),
-                      silicon<scalar>(), tungsten<scalar>(), gold<scalar>(),
-                      cesium_iodide<scalar>(), silicon_with_ded<scalar>(),
-                      cesium_iodide_with_ded<scalar>()));
+    ::testing::Values(
+        std::make_tuple(muon<scalar>(), hydrogen_gas<scalar>()),
+        std::make_tuple(muon<scalar>(), helium_gas<scalar>()),
+        std::make_tuple(muon<scalar>(), isobutane<scalar>()),
+        std::make_tuple(muon<scalar>(), aluminium<scalar>()),
+        std::make_tuple(muon<scalar>(), silicon<scalar>()),
+        std::make_tuple(muon<scalar>(), tungsten<scalar>()),
+        std::make_tuple(muon<scalar>(), gold<scalar>()),
+        std::make_tuple(muon<scalar>(), cesium_iodide<scalar>()),
+        std::make_tuple(muon<scalar>(), silicon_with_ded<scalar>()),
+        std::make_tuple(muon<scalar>(), cesium_iodide_with_ded<scalar>())));
+
+// Test class for the derivative of bremsstrahlung stopping power
+class DerivativeOfBremsstrahlungValidation
+    : public ::testing::TestWithParam<
+          std::tuple<pdg_particle<scalar>, material<scalar>>> {};
+
+TEST_P(DerivativeOfBremsstrahlungValidation,
+       derivative_of_brems_stopping_power) {
+
+    // Interaction object
+    interaction<scalar> Interactor;
+
+    const pdg_particle<scalar> ptc = std::get<0>(GetParam());
+
+    // Material
+    const auto mat = std::get<1>(GetParam());
+
+    // mass
+    const scalar m = ptc.mass();
+
+    // charge
+    const scalar q = ptc.charge();
+
+    // Displacement for numerical differentiaion
+    const scalar h = 1e-3f;
+
+    // Iterate from 1 GeV to 100 GeV
+    for (unsigned int i = 1u; i < 100; i++) {
+        const scalar p = static_cast<scalar>(i) * detray::unit<scalar>::GeV;
+        const scalar qop = q / p;
+
+        const detail::relativistic_quantities<scalar> rq(m, qop, q);
+        const detail::relativistic_quantities<scalar> rq1(m, qop + h, q);
+        const detail::relativistic_quantities<scalar> rq2(m, qop - h, q);
+
+        // Brems equation
+        const scalar brems1 = Interactor.compute_bremsstrahlung(mat, ptc, rq1);
+        const scalar brems2 = Interactor.compute_bremsstrahlung(mat, ptc, rq2);
+
+        const scalar numerical_brems = (brems1 - brems2) / (2.f * h);
+
+        const scalar evaluated_brems =
+            Interactor.derive_bremsstrahlung(mat, ptc, rq);
+
+        EXPECT_NEAR(numerical_brems, evaluated_brems, numerical_brems * 0.01f);
+    }
+}
+
+INSTANTIATE_TEST_SUITE_P(
+    detray_material_BremsstrahlungDerivative,
+    DerivativeOfBremsstrahlungValidation,
+    ::testing::Values(
+        std::make_tuple(electron<scalar>(), hydrogen_gas<scalar>()),
+        std::make_tuple(electron<scalar>(), helium_gas<scalar>()),
+        std::make_tuple(electron<scalar>(), isobutane<scalar>()),
+        std::make_tuple(electron<scalar>(), aluminium<scalar>()),
+        std::make_tuple(electron<scalar>(), silicon<scalar>()),
+        std::make_tuple(electron<scalar>(), tungsten<scalar>()),
+        std::make_tuple(electron<scalar>(), gold<scalar>()),
+        std::make_tuple(electron<scalar>(), cesium_iodide<scalar>()),
+        std::make_tuple(electron<scalar>(), silicon_with_ded<scalar>()),
+        std::make_tuple(electron<scalar>(), cesium_iodide_with_ded<scalar>())));
