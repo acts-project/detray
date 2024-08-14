@@ -138,6 +138,21 @@ DETRAY_DECLARE_MATERIAL_WITH_DED(iron_with_ded, 1.757f * unit<scalar>::cm,
                                  material_state::e_solid, 0.14680f, 2.9632f,
                                  -0.0012f, 3.1531f, 286.0f, 4.2911f, 0.12f);
 
+// Copper (29)
+DETRAY_DECLARE_MATERIAL(copper, 1.436f * unit<scalar>::cm,
+                        15.32f * unit<scalar>::cm, 63.546f, 29.f,
+                        static_cast<scalar>(8.960 * unit<double>::g /
+                                            unit<double>::cm3),
+                        material_state::e_solid);
+
+// Copper (29) with density effect data
+DETRAY_DECLARE_MATERIAL_WITH_DED(copper_with_ded, 1.436f * unit<scalar>::cm,
+                                 15.32f * unit<scalar>::cm, 63.546f, 29.f,
+                                 static_cast<scalar>(8.960 * unit<double>::g /
+                                                     unit<double>::cm3),
+                                 material_state::e_solid, 0.14339f, 2.9044f,
+                                 -0.0254f, 3.2792f, 322.0f, 4.4190f, 0.08f);
+
 // W (74)
 DETRAY_DECLARE_MATERIAL(tungsten, 3.504f * unit<scalar>::mm,
                         99.46f * unit<scalar>::mm, 183.84f, 74.f,

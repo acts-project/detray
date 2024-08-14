@@ -595,14 +595,11 @@ DETRAY_HOST_DEVICE auto detray::rk_stepper<
 
     // g = dE/ds = -1 * (-dE/ds) = -1 * stopping power
     const detail::relativistic_quantities<scalar_type> rq(mass, qop, q);
-    // We assume that stopping power ~ mean ionization eloss per pathlength
-    const scalar_type bethe = I.compute_bethe_bloch(mat, this->_ptc, rq);
-    const scalar_type g = -1.f * bethe;
+    const scalar_type g = -1.f * I.compute_stopping_power(mat, this->_ptc, rq);
 
     // dg/d(qop) = -1 * derivation of stopping power
     const scalar_type dgdqop =
-        -1.f * interaction<scalar_type>().derive_bethe_bloch(mat, this->_ptc,
-                                                             rq, bethe);
+        -1.f * I.derive_stopping_power(mat, this->_ptc, rq);
 
     // d(qop)/ds = - qop^3 * E * g / q^2
     const scalar_type dqopds = this->dqopds(qop);

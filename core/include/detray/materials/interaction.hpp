@@ -30,8 +30,12 @@ struct interaction {
                            const relativistic_quantities& rq) const {
 
         scalar_type stopping_power{0.f};
+
+        // Inelastic collisions with atomic electrons
         stopping_power += compute_bethe_bloch(mat, ptc, rq);
-        // stopping_power += compute_bremsstralung(mat, ptc, rq);
+
+        // Radiative loss
+        stopping_power += compute_bremsstrahlung(mat, ptc, rq);
 
         return stopping_power;
     }
@@ -52,10 +56,52 @@ struct interaction {
         return 2.f * eps_per_length * running;
     }
 
-    DETRAY_HOST_DEVICE scalar_type derive_bethe_bloch(
-        const detray::material<scalar_type>& mat,
-        const pdg_particle<scalar_type>& /*ptc*/,
-        const relativistic_quantities& rq, const scalar_type bethe) const {
+    // Function to calculate the Bremsstrahlung energy loss of electron based on
+    // Rossi's approximation.
+    // For more rigorous calculation, check "G4eBremsstrahlungRelModel.cc" of
+    // Geant4 library. The Fig 34.13 of PDG 2024 shows the difference between
+    // the approximated and precise calculation.
+    DETRAY_HOST_DEVICE scalar_type
+    compute_bremsstrahlung(const detray::material<scalar_type>& mat,
+                           const pdg_particle<scalar_type>& ptc,
+                           const relativistic_quantities& rq) const {
+
+        scalar_type stopping_power{0.f};
+
+        // Only consider electrons at the moment
+        // For middle-heavy particles muons, the bremss is negligibe
+        if (ptc.pdg_num() == electron<scalar_type>().pdg_num()) {
+            // Stopping power ~ E/X (B. B. Rossi, High-energy particles,1952)
+            // This approximation gets poor in low energy below 10 MeV
+            stopping_power = rq.m_gamma * ptc.mass() / mat.X0();
+        }
+
+        return stopping_power;
+    }
+
+    DETRAY_HOST_DEVICE scalar_type
+    derive_stopping_power(const detray::material<scalar_type>& mat,
+                          const pdg_particle<scalar_type>& ptc,
+                          const relativistic_quantities& rq) const {
+
+        scalar_type derivative{0.f};
+
+        // Inelastic collisions with atomic electrons
+        derivative += derive_bethe_bloch(mat, ptc, rq);
+
+        // Radiative loss
+        derivative += derive_bremsstrahlung(mat, ptc, rq);
+
+        return derivative;
+    }
+
+    DETRAY_HOST_DEVICE scalar_type
+    derive_bethe_bloch(const detray::material<scalar_type>& mat,
+                       const pdg_particle<scalar_type>& ptc,
+                       const relativistic_quantities& rq) const {
+
+        const scalar_type bethe_stopping_power =
+            compute_bethe_bloch(mat, ptc, rq);
 
         // (K/2) * (Z/A) * z^2 / beta^2 * density
         const scalar_type eps_per_length{rq.compute_epsilon_per_length(mat)};
@@ -83,7 +129,7 @@ struct interaction {
         ------------------------------------------------------------------------*/
 
         const scalar_type first_term =
-            2.f / (rq.m_qOverP * rq.m_gamma2) * bethe;
+            2.f / (rq.m_qOverP * rq.m_gamma2) * bethe_stopping_power;
 
         const scalar_type dAdqop = rq.derive_bethe_bloch_log_term();
         const scalar_type dBdqop = rq.derive_beta2();
@@ -93,6 +139,24 @@ struct interaction {
             2.f * eps_per_length * (dAdqop - dBdqop - dCdqop);
 
         return first_term + second_term;
+    }
+
+    DETRAY_HOST_DEVICE scalar_type
+    derive_bremsstrahlung(const detray::material<scalar_type>& mat,
+                          const pdg_particle<scalar_type>& ptc,
+                          const relativistic_quantities& rq) const {
+
+        scalar_type derivative{0.f};
+
+        if (ptc.pdg_num() == electron<scalar_type>().pdg_num()) {
+            // Stopping power ~ E/X = gamma * m/X
+            // Derivative = dgamma/dqop * m/X = -beta^2 gamma/qop * m/X
+            // (Eq (D.5) of arXiv:2403.16720)
+            derivative =
+                -rq.m_beta2 * rq.m_gamma / rq.m_qOverP * ptc.mass() / mat.X0();
+        }
+
+        return derivative;
     }
 
     DETRAY_HOST_DEVICE scalar_type
