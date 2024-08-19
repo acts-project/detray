@@ -71,6 +71,16 @@ struct track_helper {
     }
 
     DETRAY_HOST_DEVICE
+    inline void set_qop(free_vector& free_vec, const scalar_type& qop) {
+        matrix_operator().element(free_vec, e_free_qoverp, 0u) = qop;
+    }
+
+    DETRAY_HOST_DEVICE
+    inline void set_qop(bound_vector& bound_vec, const scalar_type& qop) {
+        matrix_operator().element(bound_vec, e_bound_qoverp, 0u) = qop;
+    }
+
+    DETRAY_HOST_DEVICE
     inline point2 bound_local(const bound_vector& bound_vec) const {
         return {matrix_operator().element(bound_vec, e_bound_loc0, 0u),
                 matrix_operator().element(bound_vec, e_bound_loc1, 0u)};

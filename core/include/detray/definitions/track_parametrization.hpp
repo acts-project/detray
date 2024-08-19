@@ -62,9 +62,6 @@ enum free_indices : unsigned int {
     e_free_size,
 };
 
-// Track parameter type
-enum class parameter_type : int { e_free = 0, e_bound = 1 };
-
 /// Vector type for free track parametrization
 template <typename algebra_t>
 using free_vector =

@@ -41,11 +41,8 @@ GTEST_TEST(detray_tracks, free_track_parameters) {
     getter::element(free_vec, e_free_dir2, 0u) = mom[2] / getter::norm(mom);
     getter::element(free_vec, e_free_qoverp, 0u) = charge / getter::norm(mom);
 
-    typename free_track_parameters<algebra_t>::covariance_type free_cov =
-        matrix_operator().template zero<e_free_size, e_free_size>();
-
     // first constructor
-    free_track_parameters<algebra_t> free_param1(free_vec, free_cov);
+    free_track_parameters<algebra_t> free_param1(free_vec);
     EXPECT_NEAR(free_param1.pos()[0],
                 getter::element(free_vec, e_free_pos0, 0u), tol);
     EXPECT_NEAR(free_param1.pos()[1],
@@ -96,4 +93,7 @@ GTEST_TEST(detray_tracks, free_track_parameters) {
                 free_param2.p(charge) * free_param2.dir()[2], tol);
 
     EXPECT_TRUE(free_param2 == free_param1);
+
+    free_param2.set_qop(0.634f);
+    EXPECT_FLOAT_EQ(static_cast<float>(free_param2.qop()), 0.634f);
 }

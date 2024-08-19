@@ -70,12 +70,12 @@ struct helix_inspector : actor {
 
         inspector_state._nav_status.push_back(navigation.status());
 
-        if (prop_state.param_type() == parameter_type::e_free) {
+        // Nothing has happened yet (first call of actor chain)
+        if (stepping.path_length() < tol || stepping._s < tol) {
             return;
         }
 
-        // Nothing has happened yet (first call of actor chain)
-        if (stepping.path_length() < tol || stepping._s < tol) {
+        if (stepping._bound_params.surface_link().is_invalid()) {
             return;
         }
 
