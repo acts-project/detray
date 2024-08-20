@@ -92,6 +92,7 @@ macro(detray_add_cpu_test algebra)
       "utils/grids/populators.cpp"
       "utils/grids/serializers.cpp"
       "utils/bounding_volume.cpp"
+      "utils/curvilinear_frame.cpp"
       "utils/axis_rotation.cpp"
       "utils/matrix_helper.cpp"
       "utils/quadratic_equation.cpp"

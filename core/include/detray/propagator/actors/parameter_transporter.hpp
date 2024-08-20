@@ -85,33 +85,17 @@ struct parameter_transporter : actor {
                     .template identity<e_free_size, e_free_size>() +
                 path_correction;
 
+            // Bound to free jacobian at the departure surface
+            const bound_to_free_matrix_t& bound_to_free_jacobian =
+                stepping._jac_to_global;
+
+            stepping._full_jacobian = free_to_bound_jacobian * correction_term *
+                                      free_transport_jacobian *
+                                      bound_to_free_jacobian;
+
             bound_matrix_t new_cov =
-                matrix_operator().template zero<e_bound_size, e_bound_size>();
-
-            if (propagation.param_type() == parameter_type::e_free) {
-
-                const matrix_type<e_bound_size, e_free_size> full_jacobian =
-                    free_to_bound_jacobian * correction_term *
-                    free_transport_jacobian;
-
-                new_cov = full_jacobian * stepping().covariance() *
-                          matrix_operator().transpose(full_jacobian);
-
-                propagation.set_param_type(parameter_type::e_bound);
-
-            } else if (propagation.param_type() == parameter_type::e_bound) {
-                // Bound to free jacobian at the departure surface
-                const bound_to_free_matrix_t& bound_to_free_jacobian =
-                    stepping._jac_to_global;
-
-                stepping._full_jacobian =
-                    free_to_bound_jacobian * correction_term *
-                    free_transport_jacobian * bound_to_free_jacobian;
-
-                new_cov = stepping._full_jacobian *
-                          stepping._bound_params.covariance() *
-                          matrix_operator().transpose(stepping._full_jacobian);
-            }
+                stepping._full_jacobian * stepping._bound_params.covariance() *
+                matrix_operator().transpose(stepping._full_jacobian);
 
             // Calculate surface-to-surface covariance transport
             stepping._bound_params.set_covariance(new_cov);

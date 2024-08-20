@@ -128,4 +128,7 @@ GTEST_TEST(detray_tracks, bound_track_parameters) {
 
     EXPECT_TRUE(!(bound_param2 == bound_param1));
     EXPECT_TRUE(bound_param2 == bound_param3);
+
+    bound_param2.set_qop(0.127f);
+    EXPECT_FLOAT_EQ(static_cast<float>(bound_param2.qop()), 0.127f);
 }

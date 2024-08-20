@@ -30,7 +30,6 @@ struct free_track_parameters {
 
     // Shorthand vector/matrix types related to free track parameters.
     using vector_type = free_vector<algebra_t>;
-    using covariance_type = free_matrix<algebra_t>;
 
     // Track helper
     using track_helper = detail::track_helper<matrix_operator>;
@@ -39,13 +38,10 @@ struct free_track_parameters {
 
     DETRAY_HOST_DEVICE
     free_track_parameters()
-        : m_vector(matrix_operator().template zero<e_free_size, 1>()),
-          m_covariance(
-              matrix_operator().template zero<e_free_size, e_free_size>()){};
+        : m_vector(matrix_operator().template zero<e_free_size, 1>()){};
 
     DETRAY_HOST_DEVICE
-    free_track_parameters(const vector_type& vec, const covariance_type& cov)
-        : m_vector(vec), m_covariance(cov) {}
+    free_track_parameters(const vector_type& vec) : m_vector(vec) {}
 
     DETRAY_HOST_DEVICE
     free_track_parameters(const point3_type& pos, const scalar_type time,
@@ -77,19 +73,7 @@ struct free_track_parameters {
                 return false;
             }
         }
-        for (unsigned int i = 0u; i < e_free_size; i++) {
-            for (unsigned int j = 0u; j < e_free_size; j++) {
-                const auto lhs_val =
-                    matrix_operator().element(m_covariance, i, j);
-                const auto rhs_val =
-                    matrix_operator().element(rhs.covariance(), i, j);
 
-                if (math::fabs(lhs_val - rhs_val) >
-                    std::numeric_limits<scalar_type>::epsilon()) {
-                    return false;
-                }
-            }
-        }
         return true;
     }
 
@@ -98,12 +82,6 @@ struct free_track_parameters {
 
     DETRAY_HOST_DEVICE
     void set_vector(const vector_type& v) { m_vector = v; }
-
-    DETRAY_HOST_DEVICE
-    const covariance_type& covariance() const { return m_covariance; }
-
-    DETRAY_HOST_DEVICE
-    void set_covariance(const covariance_type& c) { m_covariance = c; }
 
     DETRAY_HOST_DEVICE
     point3_type pos() const { return track_helper().pos(m_vector); }
@@ -129,7 +107,7 @@ struct free_track_parameters {
 
     DETRAY_HOST_DEVICE
     void set_qop(const scalar_type qop) {
-        matrix_operator().element(m_vector, e_free_qoverp, 0u) = qop;
+        track_helper().set_qop(m_vector, qop);
     }
 
     DETRAY_HOST_DEVICE
@@ -162,8 +140,6 @@ struct free_track_parameters {
 
     private:
     vector_type m_vector = matrix_operator().template zero<e_free_size, 1>();
-    covariance_type m_covariance =
-        matrix_operator().template zero<e_free_size, e_free_size>();
 };
 
 }  // namespace detray
