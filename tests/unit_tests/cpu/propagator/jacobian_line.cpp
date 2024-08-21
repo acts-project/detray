@@ -52,11 +52,10 @@ GTEST_TEST(detray_propagator, jacobian_line2D_case1) {
     // Free track parameter
     const free_track_parameters<algebra_t> free_params(global1, time, mom,
                                                        charge);
-    const auto free_vec1 = free_params.vector();
 
     const auto bound_vec =
-        detail::free_to_bound_vector<line2D<algebra_t>>(trf, free_vec1);
-    const auto free_vec2 = detail::bound_to_free_vector(trf, ln, bound_vec);
+        detail::free_to_bound_vector<line2D<algebra_t>>(trf, free_params);
+    const auto free_params2 = detail::bound_to_free_vector(trf, ln, bound_vec);
 
     const matrix_operator m;
 
@@ -72,13 +71,12 @@ GTEST_TEST(detray_propagator, jacobian_line2D_case1) {
 
     // Check if the same free vector is obtained
     for (unsigned int i = 0u; i < 8u; i++) {
-        ASSERT_NEAR(m.element(free_vec1, i, 0u), m.element(free_vec2, i, 0u),
-                    isclose);
+        ASSERT_NEAR(free_params[i], free_params2[i], isclose);
     }
 
     // Test Jacobian transformation
     const bound_matrix<algebra_t> J =
-        jac_engine::free_to_bound_jacobian(trf, free_vec1) *
+        jac_engine::free_to_bound_jacobian(trf, free_params) *
         jac_engine::bound_to_free_jacobian(trf, ln, bound_vec);
 
     for (unsigned int i = 0u; i < 6u; i++) {
@@ -110,18 +108,18 @@ GTEST_TEST(detray_coordinates, jacobian_line2D_case2) {
 
     const point2 bound1 = {1.f, 2.f};
 
-    const point3 global = detail::bound_to_free_position(trf, ln, bound1, d);
+    const point3 global =
+        line2D<algebra_t>::local_to_global(trf, ln, bound1, d);
 
     // Free track parameter
     const free_track_parameters<algebra_t> free_params(global, time, mom,
                                                        charge);
-    const auto free_vec = free_params.vector();
     const auto bound_vec =
-        detail::free_to_bound_vector<line2D<algebra_t>>(trf, free_vec);
+        detail::free_to_bound_vector<line2D<algebra_t>>(trf, free_params);
 
     // Test Jacobian transformation
     const bound_matrix<algebra_t> J =
-        jac_engine::free_to_bound_jacobian(trf, free_vec) *
+        jac_engine::free_to_bound_jacobian(trf, free_params) *
         jac_engine::bound_to_free_jacobian(trf, ln, bound_vec);
 
     const matrix_operator m;

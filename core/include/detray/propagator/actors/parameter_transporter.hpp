@@ -62,15 +62,15 @@ struct parameter_transporter : actor {
             auto& stepping = propagation._stepping;
 
             // Free vector
-            const auto& free_vec = stepping().vector();
+            const auto& free_params = stepping();
 
             // Convert free to bound vector
             stepping._bound_params.set_vector(
-                detail::free_to_bound_vector<frame_t>(trf3, free_vec));
+                detail::free_to_bound_vector<frame_t>(trf3, free_params));
 
             // Free to bound jacobian at the destination surface
             const free_to_bound_matrix_t free_to_bound_jacobian =
-                jacobian_engine_t::free_to_bound_jacobian(trf3, free_vec);
+                jacobian_engine_t::free_to_bound_jacobian(trf3, free_params);
 
             // Transport jacobian in free coordinate
             free_matrix_t& free_transport_jacobian = stepping._jac_transport;

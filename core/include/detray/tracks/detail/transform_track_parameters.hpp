@@ -10,57 +10,31 @@
 // Project include(s).
 #include "detray/definitions/detail/qualifiers.hpp"
 #include "detray/definitions/track_parametrization.hpp"
-#include "detray/tracks/bound_track_parameters.hpp"
 #include "detray/tracks/detail/track_helper.hpp"
 #include "detray/tracks/free_track_parameters.hpp"
 
 namespace detray::detail {
 
-/// This method transforms from a bound position to a point in the global
-/// 3D cartesian frame
-template <typename transform3_t, typename mask_t>
-DETRAY_HOST_DEVICE inline auto bound_to_free_position(
-    const transform3_t& trf, const mask_t& mask,
-    const typename mask_t::point2_type& p,
-    const typename mask_t::vector3_type& dir) {
-
-    using local_frame_t = typename mask_t::local_frame_type;
-
-    return local_frame_t::local_to_global(trf, mask, p, dir);
-}
-
-/// This method transforms from a global 3D cartesian position to a 2D bound
-/// position in the given local coordinate frame
-template <typename local_frame_t>
-DETRAY_HOST_DEVICE inline auto free_to_bound_position(
-    const dtransform3D<typename local_frame_t::algebra_type>& trf,
-    const dpoint3D<typename local_frame_t::algebra_type>& p,
-    const dvector3D<typename local_frame_t::algebra_type>& dir) {
-
-    static_assert(
-        std::is_same_v<typename local_frame_t::loc_point,
-                       dpoint2D<typename local_frame_t::algebra_type>>,
-        "Cannot define a bound position on this shape");
-
-    return local_frame_t::global_to_local(trf, p, dir);
-}
-
+/// Transform a free track parameter vector to a bound track parameter vector
+///
+/// @param trf3 transform of the surface the bound vector should be defined on
+/// @param free_param the free track parameters to be transformed
+///
+/// @returns the bound track parameter vector
 template <typename local_frame_t>
 DETRAY_HOST_DEVICE inline auto free_to_bound_vector(
     const dtransform3D<typename local_frame_t::algebra_type>& trf3,
-    const free_vector<typename local_frame_t::algebra_type>& free_vec) {
+    const free_parameters_vector<typename local_frame_t::algebra_type>&
+        free_vec) {
 
     // Matrix operator
     using algebra_t = typename local_frame_t::algebra_type;
     using matrix_operator = dmatrix_operator<algebra_t>;
-    // Track helper
-    using track_helper = detail::track_helper<matrix_operator>;
 
-    const auto pos = track_helper().pos(free_vec);
-    const auto dir = track_helper().dir(free_vec);
+    const auto pos = free_vec.pos();
+    const auto dir = free_vec.dir();
 
-    const auto bound_local =
-        free_to_bound_position<local_frame_t>(trf3, pos, dir);
+    const auto bound_local = local_frame_t::global_to_local(trf3, pos, dir);
 
     bound_vector<algebra_t> bound_vec;
     matrix_operator().element(bound_vec, e_bound_loc0, 0u) = bound_local[0];
@@ -69,14 +43,19 @@ DETRAY_HOST_DEVICE inline auto free_to_bound_vector(
     matrix_operator().element(bound_vec, e_bound_phi, 0u) = getter::phi(dir);
     matrix_operator().element(bound_vec, e_bound_theta, 0u) =
         getter::theta(dir);
-    matrix_operator().element(bound_vec, e_bound_time, 0u) =
-        matrix_operator().element(free_vec, e_free_time, 0u);
-    matrix_operator().element(bound_vec, e_bound_qoverp, 0u) =
-        matrix_operator().element(free_vec, e_free_qoverp, 0u);
+    matrix_operator().element(bound_vec, e_bound_time, 0u) = free_vec.time();
+    matrix_operator().element(bound_vec, e_bound_qoverp, 0u) = free_vec.qop();
 
     return bound_vec;
 }
 
+/// Transform a bound track parameter vector to a free track parameter vector
+///
+/// @param trf3 transform of the surface the bound parameters are defined on
+/// @param mask the mask of the surface the bound parameters are defined on
+/// @param bound_vec the bound track vector to be transformed
+///
+/// @returns the free track parameter vector
 template <typename mask_t>
 DETRAY_HOST_DEVICE inline auto bound_to_free_vector(
     const dtransform3D<typename mask_t::algebra_type>& trf3, const mask_t& mask,
@@ -84,6 +63,7 @@ DETRAY_HOST_DEVICE inline auto bound_to_free_vector(
 
     // Matrix operator
     using algebra_t = typename mask_t::algebra_type;
+    using local_frame_t = typename mask_t::local_frame_type;
     using matrix_operator = dmatrix_operator<algebra_t>;
     // Track helper
     using track_helper = detail::track_helper<matrix_operator>;
@@ -92,19 +72,17 @@ DETRAY_HOST_DEVICE inline auto bound_to_free_vector(
 
     const auto dir = track_helper().dir(bound_vec);
 
-    const auto pos = bound_to_free_position(trf3, mask, bound_local, dir);
+    const auto pos =
+        local_frame_t::local_to_global(trf3, mask, bound_local, dir);
 
-    free_vector<algebra_t> free_vec;
-    matrix_operator().element(free_vec, e_free_pos0, 0u) = pos[0];
-    matrix_operator().element(free_vec, e_free_pos1, 0u) = pos[1];
-    matrix_operator().element(free_vec, e_free_pos2, 0u) = pos[2];
-    matrix_operator().element(free_vec, e_free_time, 0u) =
-        matrix_operator().element(bound_vec, e_bound_time, 0u);
-    matrix_operator().element(free_vec, e_free_dir0, 0u) = dir[0];
-    matrix_operator().element(free_vec, e_free_dir1, 0u) = dir[1];
-    matrix_operator().element(free_vec, e_free_dir2, 0u) = dir[2];
-    matrix_operator().element(free_vec, e_free_qoverp, 0u) =
-        matrix_operator().element(bound_vec, e_bound_qoverp, 0u);
+    // The free vector constructor expects momentum and charge, so set the
+    // values explicitly instead
+    free_parameters_vector<algebra_t> free_vec{};
+
+    free_vec.set_pos(pos);
+    free_vec.set_time(track_helper().time(bound_vec));
+    free_vec.set_dir(dir);
+    free_vec.set_qop(track_helper().qop(bound_vec));
 
     return free_vec;
 }

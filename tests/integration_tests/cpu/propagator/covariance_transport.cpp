@@ -170,12 +170,8 @@ class detray_propagation_HelixCovarianceTransportValidation
         const bound_matrix_t& bound_cov_0 = bound_params.covariance();
 
         // Free vector at the departure surface
-        const auto free_vec_0 =
+        const auto free_trk_0 =
             detail::bound_to_free_vector(trf_0, mask_0, bound_vec_0);
-
-        // Free track at the departure surface
-        free_track_parameters<algebra_type> free_trk_0;
-        free_trk_0.set_vector(free_vec_0);
 
         // Helix from the departure surface
         detail::helix<algebra_type> hlx(free_trk_0, &B);
@@ -235,13 +231,12 @@ class detray_propagation_HelixCovarianceTransportValidation
 
         // Free-to-bound jacobian at the destination surface
         const free_to_bound_matrix_t free_to_bound_jacobi =
-            destination_jacobian_engine::free_to_bound_jacobian(
-                trf_1, free_trk_1.vector());
+            destination_jacobian_engine::free_to_bound_jacobian(trf_1,
+                                                                free_trk_1);
 
         // Bound vector at the destination surface
         const bound_vector_t bound_vec_1 =
-            detail::free_to_bound_vector<destination_frame>(
-                trf_1, free_trk_1.vector());
+            detail::free_to_bound_vector<destination_frame>(trf_1, free_trk_1);
 
         // Full jacobian
         const bound_matrix_t full_jacobi = free_to_bound_jacobi *
@@ -295,8 +290,7 @@ TYPED_TEST(detray_propagation_HelixCovarianceTransportValidation,
 
     // Set the initial bound vector
     bound_vector<algebra_t> bound_vec_0 = detail::free_to_bound_vector<
-        typename TestFixture::first_local_frame_type>(trfs[0],
-                                                      free_trk.vector());
+        typename TestFixture::first_local_frame_type>(trfs[0], free_trk);
 
     // Set the initial bound covariance
     typename bound_track_parameters<algebra_t>::covariance_type bound_cov_0 =

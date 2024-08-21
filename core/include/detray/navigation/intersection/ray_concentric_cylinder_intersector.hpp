@@ -10,6 +10,7 @@
 // Project include(s)
 #include "detray/definitions/detail/math.hpp"
 #include "detray/definitions/detail/qualifiers.hpp"
+#include "detray/definitions/units.hpp"
 #include "detray/geometry/coordinates/cylindrical2D.hpp"
 #include "detray/navigation/detail/ray.hpp"
 #include "detray/navigation/intersection/intersection.hpp"

@@ -33,47 +33,11 @@ struct track_helper {
     using array_type = typename matrix_operator::template array_type<N>;
     /// 3-element "vector" type
     using vector3 = array_type<3>;
-    /// Point in 3D space
-    using point3_type = vector3;
     /// Point in 2D space
     using point2 = array_type<2>;
 
     /// Track vector types
     using bound_vector = matrix_type<e_bound_size, 1>;
-    using free_vector = matrix_type<e_free_size, 1>;
-
-    DETRAY_HOST_DEVICE
-    inline point3_type pos(const free_vector& free_vec) const {
-        return {matrix_operator().element(free_vec, e_free_pos0, 0u),
-                matrix_operator().element(free_vec, e_free_pos1, 0u),
-                matrix_operator().element(free_vec, e_free_pos2, 0u)};
-    }
-
-    DETRAY_HOST_DEVICE
-    inline void set_pos(free_vector& free_vec, const point3_type& pos) {
-        matrix_operator().element(free_vec, e_free_pos0, 0u) = pos[0];
-        matrix_operator().element(free_vec, e_free_pos1, 0u) = pos[1];
-        matrix_operator().element(free_vec, e_free_pos2, 0u) = pos[2];
-    }
-
-    DETRAY_HOST_DEVICE
-    inline vector3 dir(const free_vector& free_vec) const {
-        return {matrix_operator().element(free_vec, e_free_dir0, 0u),
-                matrix_operator().element(free_vec, e_free_dir1, 0u),
-                matrix_operator().element(free_vec, e_free_dir2, 0u)};
-    }
-
-    DETRAY_HOST_DEVICE
-    inline void set_dir(free_vector& free_vec, const vector3& dir) {
-        matrix_operator().element(free_vec, e_free_dir0, 0u) = dir[0];
-        matrix_operator().element(free_vec, e_free_dir1, 0u) = dir[1];
-        matrix_operator().element(free_vec, e_free_dir2, 0u) = dir[2];
-    }
-
-    DETRAY_HOST_DEVICE
-    inline void set_qop(free_vector& free_vec, const scalar_type& qop) {
-        matrix_operator().element(free_vec, e_free_qoverp, 0u) = qop;
-    }
 
     DETRAY_HOST_DEVICE
     inline void set_qop(bound_vector& bound_vec, const scalar_type& qop) {
@@ -99,24 +63,11 @@ struct track_helper {
     }
 
     DETRAY_HOST_DEVICE
-    inline scalar_type p(const free_vector& free_vec,
-                         const scalar_type q) const {
-        assert(qop(free_vec) != 0.f);
-        assert(q * qop(free_vec) > 0.f);
-        return q / qop(free_vec);
-    }
-
-    DETRAY_HOST_DEVICE
     inline scalar_type p(const bound_vector& bound_vec,
                          const scalar_type q) const {
         assert(qop(bound_vec) != 0.f);
         assert(q * qop(bound_vec) > 0.f);
         return q / qop(bound_vec);
-    }
-
-    DETRAY_HOST_DEVICE
-    inline vector3 mom(const free_vector& free_vec, const scalar_type q) const {
-        return p(free_vec, q) * dir(free_vec);
     }
 
     DETRAY_HOST_DEVICE
@@ -126,21 +77,8 @@ struct track_helper {
     }
 
     DETRAY_HOST_DEVICE
-    inline scalar_type qop(const free_vector& free_vec) const {
-        return matrix_operator().element(free_vec, e_free_qoverp, 0u);
-    }
-
-    DETRAY_HOST_DEVICE
     inline scalar_type qop(const bound_vector& bound_vec) const {
         return matrix_operator().element(bound_vec, e_bound_qoverp, 0u);
-    }
-
-    DETRAY_HOST_DEVICE
-    inline scalar_type qopT(const free_vector& free_vec) const {
-        const auto dir = this->dir(free_vec);
-        assert(getter::perp(dir) != 0.f);
-        return matrix_operator().element(free_vec, e_free_qoverp, 0u) /
-               getter::perp(dir);
     }
 
     DETRAY_HOST_DEVICE
@@ -154,12 +92,6 @@ struct track_helper {
     }
 
     DETRAY_HOST_DEVICE
-    inline scalar_type qopz(const free_vector& free_vec) const {
-        const auto dir = this->dir(free_vec);
-        return matrix_operator().element(free_vec, e_free_qoverp, 0u) / dir[2];
-    }
-
-    DETRAY_HOST_DEVICE
     inline scalar_type qopz(const bound_vector& bound_vec) const {
         const scalar_type theta{
             matrix_operator().element(bound_vec, e_bound_theta, 0u)};
@@ -167,11 +99,6 @@ struct track_helper {
         assert(cosTheta != 0.f);
         return matrix_operator().element(bound_vec, e_bound_qoverp, 0u) /
                cosTheta;
-    }
-
-    DETRAY_HOST_DEVICE
-    inline scalar_type time(const free_vector& free_vec) const {
-        return matrix_operator().element(free_vec, e_free_time, 0u);
     }
 
     DETRAY_HOST_DEVICE

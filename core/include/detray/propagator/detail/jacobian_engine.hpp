@@ -71,11 +71,11 @@ struct jacobian_engine {
         const scalar_type sin_phi{math::sin(phi)};
 
         // Global position and direction
-        const free_vector<algebra_type> free_vec =
+        const free_track_parameters<algebra_type> free_params =
             bound_to_free_vector(trf3, mask, bound_vec);
 
-        const vector3_type pos = track_helper().pos(free_vec);
-        const vector3_type dir = track_helper().dir(free_vec);
+        const vector3_type pos = free_params.pos();
+        const vector3_type dir = free_params.dir();
 
         // Set d(x,y,z)/d(loc0, loc1)
         jacobian_t::set_bound_pos_to_free_pos_derivative(jac_to_global, trf3,
@@ -109,15 +109,15 @@ struct jacobian_engine {
     DETRAY_HOST_DEVICE
     static inline free_to_bound_matrix_type free_to_bound_jacobian(
         const transform3_type& trf3,
-        const free_vector<algebra_type>& free_vec) {
+        const free_track_parameters<algebra_type>& free_params) {
 
         // Declare jacobian for bound to free coordinate transform
         free_to_bound_matrix_type jac_to_local =
             matrix_operator().template zero<e_bound_size, e_free_size>();
 
         // Global position and direction
-        const vector3_type pos = track_helper().pos(free_vec);
-        const vector3_type dir = track_helper().dir(free_vec);
+        const vector3_type pos = free_params.pos();
+        const vector3_type dir = free_params.dir();
 
         const scalar_type theta{getter::theta(dir)};
         const scalar_type phi{getter::phi(dir)};

@@ -120,7 +120,7 @@ GTEST_TEST(detray_propagator, rk_stepper) {
     for (auto track : uniform_track_generator<free_track_parameters<algebra_t>>(
              phi_steps, theta_steps, p_mag)) {
         // Generate track state used for propagation with constrained step size
-        free_track_parameters c_track(track);
+        free_track_parameters<algebra_t> c_track(track);
 
         // helix trajectory
         detail::helix helix(track, &B);
@@ -225,7 +225,7 @@ TEST(detray_propagator, rk_stepper_inhomogeneous_bfield) {
     for (auto track : uniform_track_generator<free_track_parameters<algebra_t>>(
              phi_steps, theta_steps, p_mag)) {
         // Generate track state used for propagation with constrained step size
-        free_track_parameters c_track(track);
+        free_track_parameters<algebra_t> c_track(track);
 
         // RK Stepping into forward direction
         prop_state<rk_stepper_t<bfield_t>::state, nav_state> propagation{

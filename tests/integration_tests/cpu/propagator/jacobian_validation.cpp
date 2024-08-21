@@ -655,8 +655,7 @@ bound_track_parameters<algebra_type> get_initial_parameter(
     const free_track_parameters<algebra_type> free_par(pos, 0, dir, hlx._qop);
 
     const auto bound_vec =
-        tracking_surface{det, departure_sf}.free_to_bound_vector(
-            {}, free_par.vector());
+        tracking_surface{det, departure_sf}.free_to_bound_vector({}, free_par);
 
     bound_track_parameters<algebra_type> ret;
     ret.set_surface_link(geometry::barcode{0u});
@@ -1025,7 +1024,7 @@ get_displaced_bound_vector_helix(
                                                            hlx._qop);
     auto new_bound_vec =
         tracking_surface{det, destination_sf}.free_to_bound_vector(
-            {}, new_free_par.vector());
+            {}, new_free_par);
 
     // phi needs to be wrapped w.r.t. phi of the reference vector
     wrap_angles(dvec, new_bound_vec);
@@ -1101,8 +1100,8 @@ void evaluate_jacobian_difference_helix(
 
     // Get free to bound Jacobi
     const auto free_to_bound_jacobi =
-        tracking_surface{det, destination_sf}.free_to_bound_jacobian(
-            {}, free_par.vector());
+        tracking_surface{det, destination_sf}.free_to_bound_jacobian({},
+                                                                     free_par);
 
     // Get full Jacobi
     const auto reference_jacobian = free_to_bound_jacobi * correction_term *
@@ -1110,8 +1109,8 @@ void evaluate_jacobian_difference_helix(
 
     // Get bound vector
     const auto bound_vec =
-        tracking_surface{det, destination_sf}.free_to_bound_vector(
-            {}, free_par.vector());
+        tracking_surface{det, destination_sf}.free_to_bound_vector({},
+                                                                   free_par);
 
     /******************************
      *  Numerical differentiation
