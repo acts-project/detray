@@ -42,7 +42,7 @@ using algebra_type = ALGEBRA_PLUGIN<detray::scalar>;
 using transform3_type = dtransform3D<algebra_type>;
 using vector3 = dvector3D<algebra_type>;
 using bound_param_vector_type =
-    bound_track_parameters<algebra_type>::param_vector_type;
+    bound_track_parameters<algebra_type>::parameter_vector_type;
 using bound_covariance_type =
     bound_track_parameters<algebra_type>::covariance_type;
 using matrix_operator = dmatrix_operator<algebra_type>;
@@ -536,10 +536,10 @@ bound_param_vector_type get_displaced_bound_vector(
 
     p.propagate(dstate, actor_states);
 
-    auto new_vec = bound_getter_state.m_param_destination.vector();
+    bound_param_vector_type new_vec = bound_getter_state.m_param_destination;
 
     // phi needs to be wrapped w.r.t. phi of the reference vector
-    wrap_angles(ref_param.vector(), new_vec);
+    wrap_angles(ref_param, new_vec);
 
     return new_vec;
 }
@@ -652,7 +652,7 @@ bound_track_parameters<algebra_type> get_initial_parameter(
 
     bound_track_parameters<algebra_type> ret;
     ret.set_surface_link(geometry::barcode{0u});
-    ret.set_vector(bound_vec);
+    ret.set_parameter_vector(bound_vec);
 
     return ret;
 }
@@ -843,7 +843,6 @@ void evaluate_covariance_transport(
 
     const auto reference_param = bound_getter.m_param_departure;
     const auto final_param = bound_getter.m_param_destination;
-    const auto fin_vec = final_param.vector();
     const auto fin_cov = final_param.covariance();
 
     // Sanity check
@@ -871,11 +870,11 @@ void evaluate_covariance_transport(
 
     // Get smeared initial bound vector
     const bound_param_vector_type smeared_ini_vec =
-        get_smeared_bound_vector(ini_cov, reference_param.vector());
+        get_smeared_bound_vector(ini_cov, reference_param);
 
     // Make smeared bound track parameter
     auto smeared_track = track_copy;
-    smeared_track.set_vector(smeared_ini_vec);
+    smeared_track.set_parameter_vector(smeared_ini_vec);
 
     auto smeared_bound_getter = evaluate_bound_param<propagator_t, field_t>(
         trk_count, detector_length, smeared_track, det, field,
@@ -884,17 +883,17 @@ void evaluate_covariance_transport(
 
     // Get smeared final bound vector
     bound_param_vector_type smeared_fin_vec =
-        smeared_bound_getter.m_param_destination.vector();
+        smeared_bound_getter.m_param_destination;
 
     // phi needs to be wrapped w.r.t. phi of the reference vector
-    wrap_angles(fin_vec, smeared_fin_vec);
+    wrap_angles(final_param, smeared_fin_vec);
 
     // Get pull values
     std::array<scalar, 5u> pulls;
 
     bound_vector<algebra_type> diff{};
     for (unsigned int i = 0u; i < 5u; i++) {
-        getter::element(diff, i, 0u) = smeared_fin_vec[i] - fin_vec[i];
+        getter::element(diff, i, 0u) = smeared_fin_vec[i] - final_param[i];
         pulls[i] = getter::element(diff, i, 0u) /
                    math::sqrt(getter::element(fin_cov, i, i));
     }
@@ -923,9 +922,9 @@ void evaluate_covariance_transport(
         }
     }
 
-    file << fin_vec[e_bound_loc0] << "," << fin_vec[e_bound_loc1] << ","
-         << fin_vec[e_bound_phi] << "," << fin_vec[e_bound_theta] << ","
-         << fin_vec[e_bound_qoverp] << ",";
+    file << final_param[e_bound_loc0] << "," << final_param[e_bound_loc1] << ","
+         << final_param[e_bound_phi] << "," << final_param[e_bound_theta] << ","
+         << final_param[e_bound_qoverp] << ",";
 
     for (unsigned int i = 0; i < 5u; i++) {
         for (unsigned int j = 0; j < 5u; j++) {
@@ -990,7 +989,7 @@ bound_param_vector_type get_displaced_bound_vector_helix(
     const auto& destination_mask =
         det.mask_store().template get<mask_id>().at(mask_link.index());
 
-    auto dvec = track.vector();
+    bound_param_vector_type dvec = track;
     dvec[target_index] += displacement;
     const auto free_vec =
         tracking_surface{det, departure_sf}.bound_to_free_vector({}, dvec);
@@ -1036,13 +1035,12 @@ void evaluate_jacobian_difference_helix(
     // Get bound to free Jacobi
     const auto& departure_sf = det.surface(0u);
     const auto bound_to_free_jacobi =
-        tracking_surface{det, departure_sf}.bound_to_free_jacobian(
-            {}, track.vector());
+        tracking_surface{det, departure_sf}.bound_to_free_jacobian({}, track);
 
     // Get fre vector
     const auto free_vec =
-        tracking_surface{det, departure_sf}.bound_to_free_vector(
-            {}, track.vector());
+        tracking_surface{det, departure_sf}.bound_to_free_vector({}, track);
+
     // Helix from the departure surface
     detail::helix<algebra_type> hlx(free_vec, &field);
 

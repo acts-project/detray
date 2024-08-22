@@ -49,8 +49,9 @@ struct jacobian_engine {
 
     template <typename mask_t>
     DETRAY_HOST_DEVICE static inline bound_to_free_matrix_type
-    bound_to_free_jacobian(const transform3_type& trf3, const mask_t& mask,
-                           const bound_param_vector<algebra_type>& bound_vec) {
+    bound_to_free_jacobian(
+        const transform3_type& trf3, const mask_t& mask,
+        const bound_parameters_vector<algebra_type>& bound_vec) {
 
         // Declare jacobian for bound to free coordinate transform
         bound_to_free_matrix_type jac_to_global =

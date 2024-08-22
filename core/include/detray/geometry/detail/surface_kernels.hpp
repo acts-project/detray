@@ -32,7 +32,7 @@ struct surface_kernels {
     using point3_type = dpoint3D<algebra_t>;
     using vector3_type = dvector3D<algebra_t>;
     using transform3_type = dtransform3D<algebra_t>;
-    using bound_param_vector_type = bound_param_vector<algebra_t>;
+    using bound_param_vector_type = bound_parameters_vector<algebra_t>;
     using free_param_vector_type = free_parameters_vector<algebra_t>;
     using free_matrix_type = free_matrix<algebra_t>;
 

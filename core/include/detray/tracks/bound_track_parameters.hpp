@@ -12,12 +12,13 @@
 #include "detray/definitions/detail/indexing.hpp"
 #include "detray/definitions/detail/qualifiers.hpp"
 #include "detray/definitions/track_parametrization.hpp"
+#include "detray/definitions/units.hpp"
 #include "detray/geometry/barcode.hpp"
 
 namespace detray {
 
 template <typename algebra_t>
-struct bound_param_vector {
+struct bound_parameters_vector {
 
     /// @name Type definitions for the struct
     /// @{
@@ -33,11 +34,11 @@ struct bound_param_vector {
     /// @}
 
     /// Default constructor
-    bound_param_vector() = default;
+    bound_parameters_vector() = default;
 
     /// Construct from a 6-dim vector of parameters
     DETRAY_HOST_DEVICE
-    explicit bound_param_vector(const vector_type& vec) : m_vector(vec) {}
+    explicit bound_parameters_vector(const vector_type& vec) : m_vector(vec) {}
 
     /// Construct from single parameters
     ///
@@ -47,9 +48,9 @@ struct bound_param_vector {
     /// @param qop the q/p value
     /// @param t the time
     DETRAY_HOST_DEVICE
-    bound_param_vector(const point2_type& loc_p, const scalar_type phi,
-                       const scalar_type theta, const scalar_type qop,
-                       const scalar_type t) {
+    bound_parameters_vector(const point2_type& loc_p, const scalar_type phi,
+                            const scalar_type theta, const scalar_type qop,
+                            const scalar_type t) {
 
         matrix_operator().set_block(m_vector, loc_p, e_bound_loc0, 0u);
         matrix_operator().element(m_vector, e_bound_phi, 0u) = phi;
@@ -60,7 +61,7 @@ struct bound_param_vector {
 
     /// @param rhs is the left hand side params for comparison
     DETRAY_HOST_DEVICE
-    bool operator==(const bound_param_vector& rhs) const {
+    bool operator==(const bound_parameters_vector& rhs) const {
 
         for (unsigned int i = 0u; i < e_bound_size; i++) {
             const auto lhs_val = matrix_operator().element(m_vector, i, 0u);
@@ -78,13 +79,15 @@ struct bound_param_vector {
     /// Convenience access to the track parameters - const
     DETRAY_HOST_DEVICE
     scalar_type operator[](const std::size_t i) const {
-        return matrix_operator().element(m_vector, i, 0u);
+        return matrix_operator().element(m_vector, static_cast<unsigned int>(i),
+                                         0u);
     }
 
     /// Convenience access to the track parameters - non-const
     DETRAY_HOST_DEVICE
     scalar_type& operator[](const std::size_t i) {
-        return matrix_operator().element(m_vector, i, 0u);
+        return matrix_operator().element(m_vector, static_cast<unsigned int>(i),
+                                         0u);
     }
 
     /// Access the track parameters as a 6-dim vector - const
@@ -93,7 +96,11 @@ struct bound_param_vector {
 
     /// Access the track parameters as a 6-dim vector - non-const
     DETRAY_HOST_DEVICE
-    vector_type& vector() { return this->m_vector; }
+    vector_type& vector() { return m_vector; }
+
+    /// Set the underlying vector
+    DETRAY_HOST_DEVICE
+    void set_vector(const vector_type& v) { m_vector = v; }
 
     /// @returns the bound local position
     DETRAY_HOST_DEVICE
@@ -228,7 +235,9 @@ struct bound_param_vector {
 /// Combine the bound track parameter vector with the covariance and associated
 /// surface
 template <typename algebra_t>
-struct bound_track_parameters {
+struct bound_track_parameters : public bound_parameters_vector<algebra_t> {
+
+    using base_type = bound_parameters_vector<algebra_t>;
 
     /// @name Type definitions for the struct
     /// @{
@@ -239,7 +248,7 @@ struct bound_track_parameters {
     using matrix_operator = dmatrix_operator<algebra_t>;
 
     // Shorthand vector/matrix types related to bound track parameters.
-    using param_vector_type = bound_param_vector<algebra_t>;
+    using parameter_vector_type = bound_parameters_vector<algebra_t>;
     using covariance_type = bound_matrix<algebra_t>;
 
     /// @}
@@ -249,9 +258,9 @@ struct bound_track_parameters {
 
     DETRAY_HOST_DEVICE
     bound_track_parameters(const geometry::barcode sf_idx,
-                           const param_vector_type& vec,
+                           const parameter_vector_type& vec,
                            const covariance_type& cov)
-        : m_track_param_vector(vec), m_covariance(cov), m_barcode(sf_idx) {}
+        : base_type(vec), m_covariance(cov), m_barcode(sf_idx) {}
 
     /// @param rhs is the left hand side params for comparison
     DETRAY_HOST_DEVICE
@@ -260,7 +269,7 @@ struct bound_track_parameters {
             return false;
         }
 
-        if (!(m_track_param_vector == rhs.vector())) {
+        if (!base_type::operator==(rhs)) {
             return false;
         }
 
@@ -281,18 +290,6 @@ struct bound_track_parameters {
         return true;
     }
 
-    /// Convenience access to the track parameter vector - const
-    DETRAY_HOST_DEVICE
-    scalar_type operator[](const std::size_t i) const {
-        return m_track_param_vector[i];
-    }
-
-    /// Convenience access to the track parameters vector - non-const
-    DETRAY_HOST_DEVICE
-    scalar_type& operator[](const std::size_t i) {
-        return m_track_param_vector[i];
-    }
-
     /// @returns the barcode of the associated surface
     DETRAY_HOST_DEVICE
     const geometry::barcode& surface_link() const { return m_barcode; }
@@ -301,17 +298,11 @@ struct bound_track_parameters {
     DETRAY_HOST_DEVICE
     void set_surface_link(geometry::barcode link) { m_barcode = link; }
 
-    /// @returns the track parameter vector - non-const
-    DETRAY_HOST_DEVICE
-    param_vector_type& vector() { return m_track_param_vector; }
-
-    /// @returns the track parameter vector - const
-    DETRAY_HOST_DEVICE
-    const param_vector_type& vector() const { return m_track_param_vector; }
-
     /// Set the track parameter vector
     DETRAY_HOST_DEVICE
-    void set_vector(const param_vector_type& v) { m_track_param_vector = v; }
+    void set_parameter_vector(const parameter_vector_type& v) {
+        this->set_vector(v.vector());
+    }
 
     /// @returns the track parameter covariance - non-const
     DETRAY_HOST_DEVICE
@@ -325,72 +316,7 @@ struct bound_track_parameters {
     DETRAY_HOST_DEVICE
     void set_covariance(const covariance_type& c) { m_covariance = c; }
 
-    /// @returns the bound local position
-    DETRAY_HOST_DEVICE
-    point2_type bound_local() const {
-        return m_track_param_vector.bound_local();
-    }
-
-    /// @returns the global phi angle
-    DETRAY_HOST_DEVICE
-    scalar_type phi() const { return m_track_param_vector.phi(); }
-
-    /// @returns the global theta angle
-    DETRAY_HOST_DEVICE
-    scalar_type theta() const { return m_track_param_vector.theta(); }
-
-    /// @returns the global track direction
-    DETRAY_HOST_DEVICE
-    vector3_type dir() const { return m_track_param_vector.dir(); }
-
-    /// @returns the time
-    DETRAY_HOST_DEVICE
-    scalar_type time() const { return m_track_param_vector.time(); }
-
-    /// @returns the q/p value
-    DETRAY_HOST_DEVICE
-    scalar_type qop() const { return m_track_param_vector.qop(); }
-
-    /// Set the q/p value
-    DETRAY_HOST_DEVICE
-    void set_qop(const scalar_type qop) { m_track_param_vector.set_qop(qop); }
-
-    /// @returns the q/p_T value
-    DETRAY_HOST_DEVICE
-    scalar_type qopT() const { return m_track_param_vector.qopT(); }
-
-    /// @returns the q/p_z value
-    DETRAY_HOST_DEVICE
-    scalar_type qopz() const { return m_track_param_vector.qopz(); }
-
-    /// @returns the absolute momentum
-    DETRAY_HOST_DEVICE
-    scalar_type p(const scalar_type q) const {
-        return m_track_param_vector.p(q);
-    }
-
-    /// @returns the global momentum 3-vector
-    DETRAY_HOST_DEVICE
-    vector3_type mom(const scalar_type q) const {
-        return m_track_param_vector.mom(q);
-    }
-
-    /// @returns the transverse momentu
-    DETRAY_HOST_DEVICE
-    scalar_type pT(const scalar_type q) const {
-        assert(this->qop() != 0.f);
-        return math::fabs(q / this->qop() * getter::perp(this->dir()));
-    }
-
-    /// @returns the absolute momentum z-component
-    DETRAY_HOST_DEVICE
-    scalar_type pz(const scalar_type q) const {
-        assert(this->qop() != 0.f);
-        return math::fabs(q / this->qop() * this->dir()[2]);
-    }
-
     private:
-    param_vector_type m_track_param_vector{};
     covariance_type m_covariance =
         matrix_operator().template zero<e_bound_size, e_bound_size>();
     geometry::barcode m_barcode{};

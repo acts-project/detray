@@ -73,7 +73,7 @@ GTEST_TEST(detray_propagator, covariance_transport) {
         propagator<cline_stepper_t, navigator_t, actor_chain_t>;
 
     // Bound vector
-    bound_param_vector<algebra_t> bound_vector{};
+    bound_parameters_vector<algebra_t> bound_vector{};
     bound_vector.set_theta(constant<scalar>::pi_4);
     bound_vector.set_qop(-0.1f);
 
@@ -102,8 +102,8 @@ GTEST_TEST(detray_propagator, covariance_transport) {
     // Bound state after one turn propagation
     const auto& bound_param1 = propagation._stepping._bound_params;
 
-    // const auto bound_vec0 = bound_param0.vector();
-    // const auto bound_vec1 = bound_param1.vector();
+    // const auto bound_vec0 = bound_param0;
+    // const auto bound_vec1 = bound_param1;
 
     // Check if the track reaches the final surface
     EXPECT_EQ(bound_param0.surface_link().volume(), 4095u);

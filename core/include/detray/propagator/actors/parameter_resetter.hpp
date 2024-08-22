@@ -43,15 +43,15 @@ struct parameter_resetter : actor {
             using jacobian_engine = detail::jacobian_engine<frame_t>;
 
             // Reset the free vector
-            stepping() = detail::bound_to_free_vector(
-                trf3, mask, stepping._bound_params.vector());
+            stepping() = detail::bound_to_free_vector(trf3, mask,
+                                                      stepping._bound_params);
 
             // Reset the path length
             stepping._s = 0;
 
             // Reset jacobian coordinate transformation at the current surface
             stepping._jac_to_global = jacobian_engine::bound_to_free_jacobian(
-                trf3, mask, stepping._bound_params.vector());
+                trf3, mask, stepping._bound_params);
 
             // Reset jacobian transport to identity matrix
             matrix_operator().set_identity(stepping._jac_transport);

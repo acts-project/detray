@@ -34,9 +34,9 @@ DETRAY_HOST_DEVICE inline auto free_to_bound_vector(
 
     const auto bound_local = local_frame_t::global_to_local(trf3, pos, dir);
 
-    return bound_param_vector<algebra_t>{bound_local, getter::phi(dir),
-                                         getter::theta(dir), free_vec.qop(),
-                                         free_vec.time()};
+    return bound_parameters_vector<algebra_t>{bound_local, getter::phi(dir),
+                                              getter::theta(dir),
+                                              free_vec.qop(), free_vec.time()};
 }
 
 /// Transform a bound track parameter vector to a free track parameter vector
@@ -49,7 +49,7 @@ DETRAY_HOST_DEVICE inline auto free_to_bound_vector(
 template <typename mask_t>
 DETRAY_HOST_DEVICE inline auto bound_to_free_vector(
     const dtransform3D<typename mask_t::algebra_type>& trf3, const mask_t& mask,
-    const bound_param_vector<typename mask_t::algebra_type>& bound_vec) {
+    const bound_parameters_vector<typename mask_t::algebra_type>& bound_vec) {
 
     // Matrix operator
     using algebra_t = typename mask_t::algebra_type;

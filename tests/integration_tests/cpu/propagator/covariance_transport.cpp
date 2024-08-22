@@ -67,7 +67,7 @@ class detray_propagation_HelixCovarianceTransportValidation
 
     // Vector and matrix types
     using bound_param_vector_t =
-        typename bound_track_parameters<algebra_type>::param_vector_type;
+        typename bound_track_parameters<algebra_type>::parameter_vector_type;
     using bound_matrix_t = bound_matrix<algebra_type>;
     using bound_to_free_matrix_t = bound_to_free_matrix<algebra_type>;
 
@@ -167,7 +167,7 @@ class detray_propagation_HelixCovarianceTransportValidation
         using destination_jacobian_engine =
             detail::jacobian_engine<destination_frame>;
 
-        const bound_param_vector_t& bound_vec_0 = bound_params.vector();
+        const bound_param_vector_t& bound_vec_0 = bound_params;
         const bound_matrix_t& bound_cov_0 = bound_params.covariance();
 
         // Free vector at the departure surface
@@ -250,7 +250,7 @@ class detray_propagation_HelixCovarianceTransportValidation
             matrix_operator().transpose(full_jacobi);
 
         bound_track_parameters<algebra_type> ret;
-        ret.set_vector(bound_vec_1);
+        ret.set_parameter_vector(bound_vec_1);
         ret.set_covariance(bound_cov_1);
 
         return ret;
@@ -290,8 +290,9 @@ TYPED_TEST(detray_propagation_HelixCovarianceTransportValidation,
     ASSERT_EQ(trfs.size(), 10u);
 
     // Set the initial bound vector
-    bound_param_vector<algebra_t> bound_vec_0 = detail::free_to_bound_vector<
-        typename TestFixture::first_local_frame_type>(trfs[0], free_trk);
+    bound_parameters_vector<algebra_t> bound_vec_0 =
+        detail::free_to_bound_vector<
+            typename TestFixture::first_local_frame_type>(trfs[0], free_trk);
 
     // Set the initial bound covariance
     typename bound_track_parameters<algebra_t>::covariance_type bound_cov_0 =
@@ -306,7 +307,7 @@ TYPED_TEST(detray_propagation_HelixCovarianceTransportValidation,
 
     // Set bound track parameters
     bound_track_parameters<algebra_t> bound_params;
-    bound_params.set_vector(bound_vec_0);
+    bound_params.set_parameter_vector(bound_vec_0);
     bound_params.set_covariance(bound_cov_0);
 
     // Create masks

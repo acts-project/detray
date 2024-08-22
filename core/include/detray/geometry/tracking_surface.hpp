@@ -355,7 +355,7 @@ class tracking_surface {
     /// @tparam functor_t the prescription to be applied to the mask
     /// @tparam Args      types of additional arguments to the functor
     template <typename functor_t, typename... Args>
-    DETRAY_HOST_DEVICE constexpr auto visit_mask(Args &&...args) const {
+    DETRAY_HOST_DEVICE constexpr auto visit_mask(Args &&... args) const {
         const auto &masks = m_detector.mask_store();
 
         return masks.template visit<functor_t>(m_desc.mask(),
@@ -367,7 +367,7 @@ class tracking_surface {
     /// @tparam functor_t the prescription to be applied to the material
     /// @tparam Args      types of additional arguments to the functor
     template <typename functor_t, typename... Args>
-    DETRAY_HOST_DEVICE constexpr auto visit_material(Args &&...args) const {
+    DETRAY_HOST_DEVICE constexpr auto visit_material(Args &&... args) const {
         const auto &materials = m_detector.material_store();
 
         return materials.template visit<functor_t>(m_desc.material(),

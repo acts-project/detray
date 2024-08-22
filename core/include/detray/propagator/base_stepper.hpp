@@ -67,7 +67,7 @@ class base_stepper {
             curvilinear_frame<algebra_t> cf(free_params);
 
             // Set bound track parameters
-            _bound_params.set_vector(cf.m_bound_vec);
+            _bound_params.set_parameter_vector(cf.m_bound_vec);
 
             // A dummy covariance - should not be used
             _bound_params.set_covariance(

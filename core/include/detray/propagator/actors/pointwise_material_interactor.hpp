@@ -29,7 +29,7 @@ struct pointwise_material_interactor : actor {
     using transform3_type = dtransform3D<algebra_t>;
     using matrix_operator = dmatrix_operator<algebra_t>;
     using interaction_type = interaction<scalar_type>;
-    using bound_param_vector_type = bound_param_vector<algebra_t>;
+    using bound_param_vector_type = bound_parameters_vector<algebra_t>;
     using bound_matrix_type = bound_matrix<algebra_t>;
 
     struct state {
@@ -173,11 +173,10 @@ struct pointwise_material_interactor : actor {
         if (succeed) {
 
             auto &covariance = bound_params.covariance();
-            auto &vector = bound_params.vector();
 
             if (interactor_state.do_energy_loss) {
 
-                update_qop(vector, ptc, interactor_state.e_loss, nav_dir);
+                update_qop(bound_params, ptc, interactor_state.e_loss, nav_dir);
 
                 if (interactor_state.do_covariance_transport) {
 
@@ -223,8 +222,7 @@ struct pointwise_material_interactor : actor {
         // For neutral particles, qoverp = 1/p
         constexpr auto inv{detail::invalid_value<scalar_type>()};
         vector.set_qop((nextP == 0.f) ? inv
-                       : (q != 0.f)   ? q / nextP
-                                      : 1.f / nextP);
+                                      : (q != 0.f) ? q / nextP : 1.f / nextP);
     }
 
     /// @brief Update the variance of q over p of bound track parameter

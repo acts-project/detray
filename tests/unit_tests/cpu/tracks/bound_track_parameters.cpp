@@ -36,7 +36,8 @@ GTEST_TEST(detray_tracks, bound_track_parameters) {
     scalar t{0.1f};
 
     // first track
-    bound_param_vector<algebra_t> bound_vec1{bound_local, phi, theta, qop, t};
+    bound_parameters_vector<algebra_t> bound_vec1{bound_local, phi, theta, qop,
+                                                  t};
 
     typename bound_track_parameters<algebra_t>::covariance_type bound_cov1 =
         matrix_operator().template zero<e_bound_size, e_bound_size>();
@@ -60,7 +61,8 @@ GTEST_TEST(detray_tracks, bound_track_parameters) {
     qop = -1.f;
     t = 0.f;
 
-    bound_param_vector<algebra_t> bound_vec2{bound_local, phi, theta, qop, t};
+    bound_parameters_vector<algebra_t> bound_vec2{bound_local, phi, theta, qop,
+                                                  t};
 
     typename bound_track_parameters<algebra_t>::covariance_type bound_cov2 =
         matrix_operator().template zero<e_bound_size, e_bound_size>();

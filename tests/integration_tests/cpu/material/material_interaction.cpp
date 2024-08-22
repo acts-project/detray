@@ -83,7 +83,7 @@ GTEST_TEST(detray_material, telescope_geometry_energy_loss) {
     constexpr scalar iniP{10.f * unit<scalar>::GeV};
 
     // Bound vector
-    bound_param_vector<algebra_t> bound_vector{};
+    bound_parameters_vector<algebra_t> bound_vector{};
     bound_vector.set_theta(constant<scalar>::pi_2);
     bound_vector.set_qop(q / iniP);
 
@@ -255,7 +255,7 @@ GTEST_TEST(detray_material, telescope_geometry_scattering_angle) {
     constexpr scalar iniP{10.f * unit<scalar>::GeV};
 
     // Initial track parameters directing x-axis
-    bound_param_vector<algebra_t> bound_vector{};
+    bound_parameters_vector<algebra_t> bound_vector{};
     bound_vector.set_theta(constant<scalar>::pi_2);
     bound_vector.set_qop(q / iniP);
 
@@ -340,7 +340,7 @@ GTEST_TEST(detray_material, telescope_geometry_volume_material) {
     constexpr scalar q{-1.f};
     constexpr scalar iniP{10.f * unit<scalar>::GeV};
 
-    bound_param_vector<algebra_t> bound_vector{};
+    bound_parameters_vector<algebra_t> bound_vector{};
     bound_vector.set_theta(constant<scalar>::pi_2);
     bound_vector.set_qop(q / iniP);
 

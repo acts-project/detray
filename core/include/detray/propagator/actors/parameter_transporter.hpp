@@ -65,7 +65,7 @@ struct parameter_transporter : actor {
             const auto& free_params = stepping();
 
             // Convert free to bound vector
-            stepping._bound_params.set_vector(
+            stepping._bound_params.set_parameter_vector(
                 detail::free_to_bound_vector<frame_t>(trf3, free_params));
 
             // Free to bound jacobian at the destination surface
