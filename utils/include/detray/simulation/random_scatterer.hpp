@@ -168,10 +168,8 @@ struct random_scatterer : actor {
 
         // Update Phi and Theta
         auto& vector = stepping._bound_params.vector();
-        matrix_operator().element(vector, e_bound_phi, 0u) =
-            getter::phi(new_dir);
-        matrix_operator().element(vector, e_bound_theta, 0u) =
-            getter::theta(new_dir);
+        vector.set_phi(getter::phi(new_dir));
+        vector.set_theta(getter::theta(new_dir));
 
         // Flag renavigation of the current candidate
         prop_state._navigation.set_high_trust();

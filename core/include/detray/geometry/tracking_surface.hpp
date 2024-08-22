@@ -38,9 +38,9 @@ class tracking_surface {
 
     using kernels = detail::surface_kernels<typename detector_t::algebra_type>;
     /// Vector type for track parameters in global coordinates
-    using free_param_type = typename kernels::free_param_type;
+    using free_param_vector_type = typename kernels::free_param_vector_type;
     /// Vector type for track parameters in local (bound) coordinates
-    using bound_vector_type = typename kernels::bound_vector_type;
+    using bound_param_vector_type = typename kernels::bound_param_vector_type;
 
     public:
     using algebra_type = typename detector_t::algebra_type;
@@ -271,15 +271,15 @@ class tracking_surface {
     /// @returns the track parametrization projected onto the surface (bound)
     DETRAY_HOST_DEVICE
     constexpr auto free_to_bound_vector(
-        const context &ctx, const free_param_type &free_params) const {
+        const context &ctx, const free_param_vector_type &free_vec) const {
         return visit_mask<typename kernels::free_to_bound_vector>(
-            transform(ctx), free_params);
+            transform(ctx), free_vec);
     }
 
     /// @returns the global track parametrization from a bound representation
     DETRAY_HOST_DEVICE
     constexpr auto bound_to_free_vector(
-        const context &ctx, const bound_vector_type &bound_vec) const {
+        const context &ctx, const bound_param_vector_type &bound_vec) const {
         return visit_mask<typename kernels::bound_to_free_vector>(
             transform(ctx), bound_vec);
     }
@@ -287,16 +287,16 @@ class tracking_surface {
     /// @returns the jacobian to go from a free to a bound track parametrization
     DETRAY_HOST_DEVICE
     constexpr auto free_to_bound_jacobian(
-        const context &ctx, const free_param_type &free_params) const {
+        const context &ctx, const free_param_vector_type &free_vec) const {
         return this
             ->template visit_mask<typename kernels::free_to_bound_jacobian>(
-                transform(ctx), free_params);
+                transform(ctx), free_vec);
     }
 
     /// @returns the jacobian to go from a bound to a free track parametrization
     DETRAY_HOST_DEVICE
     constexpr auto bound_to_free_jacobian(
-        const context &ctx, const bound_vector_type &bound_vec) const {
+        const context &ctx, const bound_param_vector_type &bound_vec) const {
         return this
             ->template visit_mask<typename kernels::bound_to_free_jacobian>(
                 transform(ctx), bound_vec);
@@ -355,7 +355,7 @@ class tracking_surface {
     /// @tparam functor_t the prescription to be applied to the mask
     /// @tparam Args      types of additional arguments to the functor
     template <typename functor_t, typename... Args>
-    DETRAY_HOST_DEVICE constexpr auto visit_mask(Args &&... args) const {
+    DETRAY_HOST_DEVICE constexpr auto visit_mask(Args &&...args) const {
         const auto &masks = m_detector.mask_store();
 
         return masks.template visit<functor_t>(m_desc.mask(),
@@ -367,7 +367,7 @@ class tracking_surface {
     /// @tparam functor_t the prescription to be applied to the material
     /// @tparam Args      types of additional arguments to the functor
     template <typename functor_t, typename... Args>
-    DETRAY_HOST_DEVICE constexpr auto visit_material(Args &&... args) const {
+    DETRAY_HOST_DEVICE constexpr auto visit_material(Args &&...args) const {
         const auto &materials = m_detector.material_store();
 
         return materials.template visit<functor_t>(m_desc.material(),

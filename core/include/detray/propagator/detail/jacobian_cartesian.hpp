@@ -13,7 +13,6 @@
 #include "detray/definitions/track_parametrization.hpp"
 #include "detray/geometry/coordinates/cartesian2D.hpp"
 #include "detray/propagator/detail/jacobian.hpp"
-#include "detray/tracks/detail/track_helper.hpp"
 
 namespace detray::detail {
 

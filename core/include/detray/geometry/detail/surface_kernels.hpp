@@ -32,8 +32,8 @@ struct surface_kernels {
     using point3_type = dpoint3D<algebra_t>;
     using vector3_type = dvector3D<algebra_t>;
     using transform3_type = dtransform3D<algebra_t>;
-    using free_param_type = free_track_parameters<algebra_t>;
-    using bound_vector_type = bound_vector<algebra_t>;
+    using bound_param_vector_type = bound_param_vector<algebra_t>;
+    using free_param_vector_type = free_parameters_vector<algebra_t>;
     using free_matrix_type = free_matrix<algebra_t>;
 
     /// A functor to retrieve the masks shape name
@@ -214,14 +214,14 @@ struct surface_kernels {
         // Visitor to the detector mask store that is called on the mask
         // collection that contains the mask (shape) type of the surface
         template <typename mask_group_t, typename index_t>
-        DETRAY_HOST_DEVICE inline bound_vector_type operator()(
+        DETRAY_HOST_DEVICE inline bound_param_vector_type operator()(
             const mask_group_t& /*mask_group*/, const index_t& /*index*/,
             const transform3_type& trf3,
-            const free_param_type& free_params) const {
+            const free_param_vector_type& free_vec) const {
 
             using frame_t = typename mask_group_t::value_type::local_frame_type;
 
-            return detail::free_to_bound_vector<frame_t>(trf3, free_params);
+            return detail::free_to_bound_vector<frame_t>(trf3, free_vec);
         }
     };
 
@@ -229,10 +229,10 @@ struct surface_kernels {
     struct bound_to_free_vector {
 
         template <typename mask_group_t, typename index_t>
-        DETRAY_HOST_DEVICE inline free_param_type operator()(
+        DETRAY_HOST_DEVICE inline free_param_vector_type operator()(
             const mask_group_t& mask_group, const index_t& index,
             const transform3_type& trf3,
-            const bound_vector_type& bound_vec) const {
+            const bound_param_vector_type& bound_vec) const {
 
             return detail::bound_to_free_vector(trf3, mask_group[index],
                                                 bound_vec);
@@ -246,12 +246,12 @@ struct surface_kernels {
         DETRAY_HOST_DEVICE inline auto operator()(
             const mask_group_t& /*mask_group*/, const index_t& /*index*/,
             const transform3_type& trf3,
-            const free_param_type& free_params) const {
+            const free_param_vector_type& free_vec) const {
 
             using frame_t = typename mask_group_t::value_type::local_frame_type;
 
             return detail::jacobian_engine<frame_t>::free_to_bound_jacobian(
-                trf3, free_params);
+                trf3, free_vec);
         }
     };
 
@@ -262,7 +262,7 @@ struct surface_kernels {
         DETRAY_HOST_DEVICE inline auto operator()(
             const mask_group_t& mask_group, const index_t& index,
             const transform3_type& trf3,
-            const bound_vector_type& bound_vec) const {
+            const bound_param_vector_type& bound_vec) const {
 
             using frame_t = typename mask_group_t::value_type::local_frame_type;
 

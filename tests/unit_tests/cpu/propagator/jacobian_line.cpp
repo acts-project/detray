@@ -57,17 +57,15 @@ GTEST_TEST(detray_propagator, jacobian_line2D_case1) {
         detail::free_to_bound_vector<line2D<algebra_t>>(trf, free_params);
     const auto free_params2 = detail::bound_to_free_vector(trf, ln, bound_vec);
 
-    const matrix_operator m;
-
     // Check if the bound vector is correct
-    ASSERT_NEAR(m.element(bound_vec, 0u, 0u), -constant<scalar>::inv_sqrt2,
-                isclose);
-    ASSERT_NEAR(m.element(bound_vec, 1u, 0u), std::sqrt(3.f), isclose);
-    ASSERT_NEAR(m.element(bound_vec, 2u, 0u), constant<scalar>::pi_2, isclose);
-    ASSERT_NEAR(m.element(bound_vec, 3u, 0u), constant<scalar>::pi_4, isclose);
-    ASSERT_NEAR(m.element(bound_vec, 4u, 0u), -constant<scalar>::inv_sqrt2,
-                isclose);
-    ASSERT_NEAR(m.element(bound_vec, 5u, 0u), 0.1f, isclose);
+    ASSERT_NEAR(bound_vec.bound_local()[e_bound_loc0],
+                -constant<scalar>::inv_sqrt2, isclose);
+    ASSERT_NEAR(bound_vec.bound_local()[e_bound_loc1], std::sqrt(3.f), isclose);
+    ASSERT_NEAR(bound_vec.phi(), constant<scalar>::pi_2, isclose);  // atan(2)
+    ASSERT_NEAR(bound_vec.theta(), constant<scalar>::pi_4,
+                isclose);  // atan(sqrt(5)/3)
+    ASSERT_NEAR(bound_vec.qop(), -constant<scalar>::inv_sqrt2, isclose);
+    ASSERT_NEAR(bound_vec.time(), 0.1f, isclose);
 
     // Check if the same free vector is obtained
     for (unsigned int i = 0u; i < 8u; i++) {
@@ -78,6 +76,8 @@ GTEST_TEST(detray_propagator, jacobian_line2D_case1) {
     const bound_matrix<algebra_t> J =
         jac_engine::free_to_bound_jacobian(trf, free_params) *
         jac_engine::bound_to_free_jacobian(trf, ln, bound_vec);
+
+    const matrix_operator m;
 
     for (unsigned int i = 0u; i < 6u; i++) {
         for (unsigned int j = 0u; j < 6u; j++) {

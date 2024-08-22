@@ -82,13 +82,11 @@ GTEST_TEST(detray_material, telescope_geometry_energy_loss) {
     constexpr scalar q{-1.f};
     constexpr scalar iniP{10.f * unit<scalar>::GeV};
 
-    typename bound_track_parameters<algebra_t>::vector_type bound_vector;
-    getter::element(bound_vector, e_bound_loc0, 0) = 0.f;
-    getter::element(bound_vector, e_bound_loc1, 0) = 0.f;
-    getter::element(bound_vector, e_bound_phi, 0) = 0.f;
-    getter::element(bound_vector, e_bound_theta, 0) = constant<scalar>::pi_2;
-    getter::element(bound_vector, e_bound_qoverp, 0) = q / iniP;
-    getter::element(bound_vector, e_bound_time, 0) = 0.f;
+    // Bound vector
+    bound_param_vector<algebra_t> bound_vector{};
+    bound_vector.set_theta(constant<scalar>::pi_2);
+    bound_vector.set_qop(q / iniP);
+
     typename bound_track_parameters<algebra_t>::covariance_type bound_cov =
         matrix_operator().template zero<e_bound_size, e_bound_size>();
 
@@ -257,10 +255,9 @@ GTEST_TEST(detray_material, telescope_geometry_scattering_angle) {
     constexpr scalar iniP{10.f * unit<scalar>::GeV};
 
     // Initial track parameters directing x-axis
-    typename bound_track_parameters<algebra_t>::vector_type bound_vector =
-        matrix_operator().template zero<e_bound_size, 1>();
-    getter::element(bound_vector, e_bound_theta, 0) = constant<scalar>::pi_2;
-    getter::element(bound_vector, e_bound_qoverp, 0) = q / iniP;
+    bound_param_vector<algebra_t> bound_vector{};
+    bound_vector.set_theta(constant<scalar>::pi_2);
+    bound_vector.set_qop(q / iniP);
 
     typename bound_track_parameters<algebra_t>::covariance_type bound_cov =
         matrix_operator().template zero<e_bound_size, e_bound_size>();
@@ -342,13 +339,11 @@ GTEST_TEST(detray_material, telescope_geometry_volume_material) {
     // Track setup
     constexpr scalar q{-1.f};
     constexpr scalar iniP{10.f * unit<scalar>::GeV};
-    typename bound_track_parameters<algebra_t>::vector_type bound_vector;
-    getter::element(bound_vector, e_bound_loc0, 0) = 0.f;
-    getter::element(bound_vector, e_bound_loc1, 0) = 0.f;
-    getter::element(bound_vector, e_bound_phi, 0) = 0.f;
-    getter::element(bound_vector, e_bound_theta, 0) = constant<scalar>::pi_2;
-    getter::element(bound_vector, e_bound_qoverp, 0) = q / iniP;
-    getter::element(bound_vector, e_bound_time, 0) = 0.f;
+
+    bound_param_vector<algebra_t> bound_vector{};
+    bound_vector.set_theta(constant<scalar>::pi_2);
+    bound_vector.set_qop(q / iniP);
+
     typename bound_track_parameters<algebra_t>::covariance_type bound_cov =
         matrix_operator().template zero<e_bound_size, e_bound_size>();
 

@@ -17,7 +17,6 @@
 #include "detray/propagator/detail/jacobian_cylindrical.hpp"
 #include "detray/propagator/detail/jacobian_line.hpp"
 #include "detray/propagator/detail/jacobian_polar.hpp"
-#include "detray/tracks/detail/track_helper.hpp"
 #include "detray/tracks/detail/transform_track_parameters.hpp"
 
 namespace detray::detail {
@@ -41,8 +40,6 @@ struct jacobian_engine {
 
     // Matrix operator
     using matrix_operator = dmatrix_operator<algebra_type>;
-    // Track helper
-    using track_helper = detail::track_helper<matrix_operator>;
 
     using bound_to_free_matrix_type = bound_to_free_matrix<algebra_type>;
     using free_to_bound_matrix_type = free_to_bound_matrix<algebra_type>;
@@ -53,17 +50,15 @@ struct jacobian_engine {
     template <typename mask_t>
     DETRAY_HOST_DEVICE static inline bound_to_free_matrix_type
     bound_to_free_jacobian(const transform3_type& trf3, const mask_t& mask,
-                           const bound_vector<algebra_type>& bound_vec) {
+                           const bound_param_vector<algebra_type>& bound_vec) {
 
         // Declare jacobian for bound to free coordinate transform
         bound_to_free_matrix_type jac_to_global =
             matrix_operator().template zero<e_free_size, e_bound_size>();
 
         // Get trigonometric values
-        const scalar_type theta{
-            matrix_operator().element(bound_vec, e_bound_theta, 0u)};
-        const scalar_type phi{
-            matrix_operator().element(bound_vec, e_bound_phi, 0u)};
+        const scalar_type theta{bound_vec.theta()};
+        const scalar_type phi{bound_vec.phi()};
 
         const scalar_type cos_theta{math::cos(theta)};
         const scalar_type sin_theta{math::sin(theta)};
