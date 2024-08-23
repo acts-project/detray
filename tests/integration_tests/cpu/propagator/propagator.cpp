@@ -83,14 +83,10 @@ struct helix_inspector : actor {
         const auto sf = tracking_surface{*navigation.detector(),
                                          stepping._bound_params.surface_link()};
 
-        const auto free_vec =
+        const free_track_parameters<algebra_t> free_params =
             sf.bound_to_free_vector(ctx, stepping._bound_params.vector());
 
-        const auto last_pos =
-            detail::track_helper<matrix_operator>().pos(free_vec);
-
-        free_track_parameters<algebra_t> free_params;
-        free_params.set_vector(free_vec);
+        const auto last_pos = free_params.pos();
 
         const auto bvec =
             stepping._magnetic_field.at(last_pos[0], last_pos[1], last_pos[2]);

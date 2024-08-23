@@ -8,10 +8,7 @@
 #pragma once
 
 // Project include(s).
-#include "detray/definitions/detail/math.hpp"
-#include "detray/definitions/units.hpp"
-#include "detray/tracks/detail/track_helper.hpp"
-#include "detray/tracks/tracks.hpp"
+#include "detray/tracks/free_track_parameters.hpp"
 
 // System include(s).
 #include <ostream>
@@ -31,10 +28,6 @@ class ray {
     using free_track_parameters_type = free_track_parameters<algebra_t>;
     using free_vector_type = typename free_track_parameters_type::vector_type;
 
-    // Track helper
-    using matrix_operator = dmatrix_operator<algebra_t>;
-    using track_helper = detail::track_helper<matrix_operator>;
-
     ray() = default;
 
     /// Parametrized constructor that complies with track interface
@@ -48,15 +41,8 @@ class ray {
     /// Parametrized constructor that complies with track interface
     ///
     /// @param track the track state that should be approximated
-    DETRAY_HOST_DEVICE ray(const free_vector_type &free_vec)
-        : ray(track_helper().pos(free_vec), track_helper().time(free_vec),
-              track_helper().dir(free_vec), track_helper().qop(free_vec)) {}
-
-    /// Parametrized constructor that complies with track interface
-    ///
-    /// @param track the track state that should be approximated
     DETRAY_HOST_DEVICE ray(const free_track_parameters_type &track)
-        : ray(track.vector()) {}
+        : ray(track.pos(), 0.f, track.dir(), 0.f) {}
 
     /// @returns position on the ray (compatible with tracks/intersectors)
     DETRAY_HOST_DEVICE point3_type pos() const { return _pos; }

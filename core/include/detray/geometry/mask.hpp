@@ -272,8 +272,8 @@ class mask {
     }
 
     private:
-    shape _shape;
-    mask_values _values;
+    shape _shape{};
+    mask_values _values{};
     links_type _volume_link{std::numeric_limits<links_type>::max()};
 };
 

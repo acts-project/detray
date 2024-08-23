@@ -50,11 +50,9 @@ GTEST_TEST(detray_propagator, jacobian_polar2D) {
     // Free track parameter
     const free_track_parameters<algebra_t> free_params(global1, time, mom,
                                                        charge);
-    const auto free_vec1 = free_params.vector();
-
     const auto bound_vec =
-        detail::free_to_bound_vector<polar2D<algebra_t>>(trf, free_vec1);
-    const auto free_vec2 = detail::bound_to_free_vector(trf, rng, bound_vec);
+        detail::free_to_bound_vector<polar2D<algebra_t>>(trf, free_params);
+    const auto free_params2 = detail::bound_to_free_vector(trf, rng, bound_vec);
 
     const matrix_operator m;
 
@@ -70,13 +68,12 @@ GTEST_TEST(detray_propagator, jacobian_polar2D) {
 
     // Check if the same free vector is obtained
     for (unsigned int i = 0u; i < 8u; i++) {
-        ASSERT_NEAR(m.element(free_vec1, i, 0u), m.element(free_vec2, i, 0u),
-                    isclose);
+        ASSERT_NEAR(free_params[i], free_params2[i], isclose);
     }
 
     // Test Jacobian transformation
     const bound_matrix<algebra_t> J =
-        jac_engine::free_to_bound_jacobian(trf, free_vec1) *
+        jac_engine::free_to_bound_jacobian(trf, free_params) *
         jac_engine::bound_to_free_jacobian(trf, rng, bound_vec);
 
     for (unsigned int i = 0u; i < 6u; i++) {

@@ -14,9 +14,8 @@
 
 // Project include(s).
 #include "detray/definitions/detail/math.hpp"
-#include "detray/definitions/units.hpp"
-#include "detray/tracks/detail/track_helper.hpp"
-#include "detray/tracks/tracks.hpp"
+#include "detray/tracks/free_track_parameters.hpp"
+#include "detray/utils/invalid_values.hpp"
 #include "detray/utils/matrix_helper.hpp"
 
 // System include(s).
@@ -41,16 +40,12 @@ class helix {
 
     /// Free track parameters
     using free_track_parameters_type = free_track_parameters<algebra_t>;
-    using free_vector_type = typename free_track_parameters_type::vector_type;
 
     /// 2D Matrix type
     template <std::size_t ROWS, std::size_t COLS>
     using matrix_type = dmatrix<algebra_t, ROWS, COLS>;
     using free_matrix_t = free_matrix<algebra_t>;
     using mat_helper = matrix_helper<matrix_operator>;
-
-    // Track helper
-    using track_helper = detail::track_helper<matrix_operator>;
 
     DETRAY_HOST_DEVICE
     helix() = delete;
@@ -115,15 +110,10 @@ class helix {
     }
 
     DETRAY_HOST_DEVICE
-    helix(const free_vector_type &free_vec, vector3_type const *const mag_field)
-        : helix(track_helper().pos(free_vec), track_helper().time(free_vec),
-                track_helper().dir(free_vec), track_helper().qop(free_vec),
-                mag_field) {}
-
-    DETRAY_HOST_DEVICE
     helix(const free_track_parameters_type &track,
           vector3_type const *const mag_field)
-        : helix(track.vector(), mag_field) {}
+        : helix(track.pos(), track.time(), track.dir(), track.qop(),
+                mag_field) {}
 
     /// @returns the radius of helix
     DETRAY_HOST_DEVICE

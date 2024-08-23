@@ -38,7 +38,7 @@ struct curvilinear_frame {
 
         m_trf = transform3_type(t, z, x);
         m_bound_vec = detail::free_to_bound_vector<cartesian2D<algebra_t>>(
-            m_trf, free_params.vector());
+            m_trf, free_params);
     }
 
     DETRAY_HOST_DEVICE
