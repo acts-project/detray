@@ -101,6 +101,8 @@ GTEST_TEST(detray_navigation, guided_navigator) {
         const auto &candidate = obj_tracer[i].intersection;
         auto bcd = geometry::barcode{};
         bcd.set_volume(0u).set_index(sf_sequence[i]);
+        // The first transform in the detector belongs to the volume
+        bcd.set_transform(sf_sequence[i] + 1);
         bcd.set_id((i == 11u) ? surface_id::e_portal : surface_id::e_sensitive);
         EXPECT_TRUE(candidate.sf_desc.barcode() == bcd)
             << "error at intersection on surface:\n"

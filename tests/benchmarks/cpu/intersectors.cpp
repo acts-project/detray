@@ -56,9 +56,7 @@ enum material_ids : unsigned int {
 using mask_link_t = dtyped_index<mask_ids, dindex>;
 using material_link_t = dtyped_index<material_ids, dindex>;
 
-template <typename transform3_t>
-using surface_desc_t =
-    surface_descriptor<mask_link_t, material_link_t, transform3_t>;
+using surface_desc_t = surface_descriptor<mask_link_t, material_link_t>;
 
 /// Generate a number of test rays
 std::vector<detail::ray<algebra_s>> generate_rays() {
@@ -117,7 +115,7 @@ void BM_INTERSECT_PLANES_AOS(benchmark::State& state) {
     using mask_t = mask<rectangle2D, std::uint_least16_t, algebra_s>;
 
     auto dists = get_dists<algebra_s>(n_surfaces);
-    auto planes = test::planes_along_direction<algebra_s>(
+    auto [plane_descs, tranforms] = test::planes_along_direction<algebra_s>(
         dists, test::vector3{1.f, 1.f, 1.f});
 
     constexpr mask_t rect{0u, 100.f, 200.f};
@@ -140,9 +138,8 @@ void BM_INTERSECT_PLANES_AOS(benchmark::State& state) {
         // Iterate through uniformly distributed momentum directions
         for (const auto& ray : rays) {
 
-            for (std::size_t i = 0u; i < planes.size(); ++i) {
-                const auto& plane = planes[i];
-                auto is = pi(ray, plane, masks[i], plane.transform());
+            for (std::size_t i = 0u; i < plane_descs.size(); ++i) {
+                auto is = pi(ray, plane_descs[i], masks[i], tranforms[i]);
 
 #ifdef DETRAY_BENCHMARK_PRINTOUTS
                 if (is.status) {
@@ -176,7 +173,7 @@ void BM_INTERSECT_PLANES_SOA(benchmark::State& state) {
     using vector3_t = dvector3D<algebra_v>;
 
     auto dists = get_dists<algebra_v>(n_surfaces);
-    auto planes = test::planes_along_direction<algebra_v>(
+    auto [plane_descs, tranforms] = test::planes_along_direction<algebra_v>(
         dists, vector3_t{1.f, 1.f, 1.f});
 
     std::vector<mask_t> masks{};
@@ -202,9 +199,8 @@ void BM_INTERSECT_PLANES_SOA(benchmark::State& state) {
         // Iterate through uniformly distributed momentum directions
         for (const auto& ray : rays) {
 
-            for (std::size_t i = 0u; i < planes.size(); ++i) {
-                const auto& plane = planes[i];
-                auto is = pi(ray, plane, masks[i], plane.transform());
+            for (std::size_t i = 0u; i < plane_descs.size(); ++i) {
+                auto is = pi(ray, plane_descs[i], masks[i], tranforms[i]);
 
                 benchmark::DoNotOptimize(is);
 
@@ -242,10 +238,12 @@ void BM_INTERSECT_CYLINDERS_AOS(benchmark::State& state) {
         masks.emplace_back(0u, r, -100.f, 100.f);
     }
 
+    transform3_t trf{};
+
     mask_link_t mask_link{mask_ids::e_conc_cylinder3, 0u};
     material_link_t material_link{material_ids::e_slab, 0u};
-    surface_desc_t<transform3_t> cyl_desc(
-        transform3_t{}, mask_link, material_link, 0u, surface_id::e_sensitive);
+    surface_desc_t cyl_desc(0u, mask_link, material_link, 0u,
+                            surface_id::e_sensitive);
 
     // Iterate through uniformly distributed momentum directions
     const auto rays = generate_rays();
@@ -264,7 +262,7 @@ void BM_INTERSECT_CYLINDERS_AOS(benchmark::State& state) {
         for (const auto& ray : rays) {
 
             for (const auto& cylinder : masks) {
-                auto is = cci(ray, cyl_desc, cylinder, cyl_desc.transform());
+                auto is = cci(ray, cyl_desc, cylinder, trf);
 
                 static_assert(is.size() == 2u, "Wrong number of solutions");
 #ifdef DETRAY_BENCHMARK_PRINTOUTS
@@ -306,10 +304,12 @@ void BM_INTERSECT_CYLINDERS_SOA(benchmark::State& state) {
         masks.emplace_back(0u, r, -100.f, 100.f);
     }
 
+    transform3_t trf{};
+
     mask_link_t mask_link{mask_ids::e_conc_cylinder3, 0u};
     material_link_t material_link{material_ids::e_slab, 0u};
-    surface_desc_t<transform3_t> cyl_desc(
-        transform3_t{}, mask_link, material_link, 0u, surface_id::e_sensitive);
+    surface_desc_t cyl_desc(0u, mask_link, material_link, 0u,
+                            surface_id::e_sensitive);
 
     // Iterate through uniformly distributed momentum directions
     const auto rays = generate_rays();
@@ -328,7 +328,7 @@ void BM_INTERSECT_CYLINDERS_SOA(benchmark::State& state) {
         for (const auto& ray : rays) {
 
             for (const auto& cylinder : masks) {
-                auto is = cci(ray, cyl_desc, cylinder, cyl_desc.transform());
+                auto is = cci(ray, cyl_desc, cylinder, trf);
 
                 static_assert(is.size() == 2u, "Wrong number of solutions");
 #ifdef DETRAY_BENCHMARK_PRINTOUTS
@@ -367,10 +367,12 @@ void BM_INTERSECT_CONCETRIC_CYLINDERS_AOS(benchmark::State& state) {
         masks.emplace_back(0u, r, -100.f, 100.f);
     }
 
+    transform3_t trf{};
+
     mask_link_t mask_link{mask_ids::e_conc_cylinder3, 0u};
     material_link_t material_link{material_ids::e_slab, 0u};
-    surface_desc_t<transform3_t> cyl_desc(
-        transform3_t{}, mask_link, material_link, 0u, surface_id::e_sensitive);
+    surface_desc_t cyl_desc(0u, mask_link, material_link, 0u,
+                            surface_id::e_sensitive);
 
     // Iterate through uniformly distributed momentum directions
     const auto rays = generate_rays();
@@ -389,7 +391,7 @@ void BM_INTERSECT_CONCETRIC_CYLINDERS_AOS(benchmark::State& state) {
         for (const auto& ray : rays) {
 
             for (const auto& cylinder : masks) {
-                auto is = cci(ray, cyl_desc, cylinder, cyl_desc.transform());
+                auto is = cci(ray, cyl_desc, cylinder, trf);
 #ifdef DETRAY_BENCHMARK_PRINTOUTS
                 if (is.status) {
                     ++hit;
@@ -427,10 +429,12 @@ void BM_INTERSECT_CONCETRIC_CYLINDERS_SOA(benchmark::State& state) {
         masks.emplace_back(0u, r, -100.f, 100.f);
     }
 
+    transform3_t trf{};
+
     mask_link_t mask_link{mask_ids::e_conc_cylinder3, 0u};
     material_link_t material_link{material_ids::e_slab, 0u};
-    surface_desc_t<transform3_t> cyl_desc(
-        transform3_t{}, mask_link, material_link, 0u, surface_id::e_sensitive);
+    surface_desc_t cyl_desc(0u, mask_link, material_link, 0u,
+                            surface_id::e_sensitive);
 
     // Iterate through uniformly distributed momentum directions
     const auto rays = generate_rays();
@@ -448,7 +452,7 @@ void BM_INTERSECT_CONCETRIC_CYLINDERS_SOA(benchmark::State& state) {
         for (const auto& ray : rays) {
 
             for (const auto& cylinder : masks) {
-                auto is = cci(ray, cyl_desc, cylinder, cyl_desc.transform());
+                auto is = cci(ray, cyl_desc, cylinder, trf);
 #ifdef DETRAY_BENCHMARK_PRINTOUTS
                 hit += is.status.count();
                 miss += simd_size - is.status.count();

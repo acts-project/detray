@@ -52,9 +52,12 @@ GTEST_TEST(detray_navigation, brute_force_collection) {
     // surface direction
     vector3 direction{0.f, 0.f, 1.f};
 
-    auto surfaces1 = test::planes_along_direction(distances1, direction);
-    auto surfaces2 = test::planes_along_direction(distances2, direction);
-    auto surfaces3 = test::planes_along_direction(distances3, direction);
+    auto [surfaces1, transforms1] =
+        test::planes_along_direction(distances1, direction);
+    auto [surfaces2, transforms2] =
+        test::planes_along_direction(distances2, direction);
+    auto [surfaces3, transforms3] =
+        test::planes_along_direction(distances3, direction);
 
     brute_force_collection<typename decltype(surfaces1)::value_type>
         sf_collection(&host_mr);

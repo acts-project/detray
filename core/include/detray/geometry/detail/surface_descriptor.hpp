@@ -56,11 +56,11 @@ class surface_descriptor {
     constexpr surface_descriptor(transform_link &&trf, mask_link &&mask,
                                  material_link &&material, dindex volume,
                                  surface_id sf_id)
-        : _mask(std::move(mask)),
-          _material(std::move(material)),
-          _trf(std::move(trf)) {
+        : m_mask(std::move(mask)), m_material(std::move(material)) {
 
-        m_barcode = geometry::barcode{}.set_volume(volume).set_id(sf_id);
+        m_barcode =
+            geometry::barcode{}.set_volume(volume).set_id(sf_id).set_transform(
+                trf);
     }
 
     /// Constructor with full arguments - copy semantics
@@ -76,8 +76,10 @@ class surface_descriptor {
                                  const mask_link &mask,
                                  const material_link &material,
                                  const dindex volume, const surface_id sf_id)
-        : _mask(mask), _material(material), _trf(trf) {
-        m_barcode = geometry::barcode{}.set_volume(volume).set_id(sf_id);
+        : m_mask(mask), m_material(material) {
+        m_barcode =
+            geometry::barcode{}.set_volume(volume).set_id(sf_id).set_transform(
+                trf);
     }
 
     constexpr surface_descriptor() = default;
@@ -89,8 +91,8 @@ class surface_descriptor {
     /// @param rhs is the right hand side to be compared to
     DETRAY_HOST_DEVICE
     constexpr auto operator==(const surface_descriptor &rhs) const -> bool {
-        return (_mask == rhs._mask and _material == rhs._material and
-                _trf == rhs._trf and m_barcode == rhs.m_barcode);
+        return (m_mask == rhs.m_mask && m_material == rhs.m_material &&
+                m_barcode == rhs.m_barcode);
     }
 
     /// Sets a new surface barcode
@@ -133,36 +135,38 @@ class surface_descriptor {
     ///
     /// @param offset update the position when move into new collection
     DETRAY_HOST
-    auto update_transform(dindex offset) -> void { _trf += offset; }
+    auto update_transform(dindex offset) -> void {
+        m_barcode.set_transform(transform() + offset);
+    }
 
     /// @return the transform index
     DETRAY_HOST_DEVICE
-    constexpr auto transform() const -> const transform_link & { return _trf; }
+    constexpr auto transform() const -> dindex { return m_barcode.transform(); }
 
     /// Update the mask link
     ///
     /// @param offset update the position when move into new collection
     DETRAY_HOST
-    auto update_mask(dindex offset) -> void { _mask += offset; }
+    auto update_mask(dindex offset) -> void { m_mask += offset; }
 
     /// @return the mask link
     DETRAY_HOST_DEVICE
-    constexpr auto mask() const -> const mask_link & { return _mask; }
+    constexpr auto mask() const -> const mask_link & { return m_mask; }
 
     /// Update the material link
     ///
     /// @param offset update the position when move into new collection
     DETRAY_HOST
-    auto update_material(dindex offset) -> void { _material += offset; }
+    auto update_material(dindex offset) -> void { m_material += offset; }
 
     /// Access to the material
     DETRAY_HOST_DEVICE
-    constexpr auto material() -> material_link & { return _material; }
+    constexpr auto material() -> material_link & { return m_material; }
 
     /// @return the material link
     DETRAY_HOST_DEVICE
     constexpr auto material() const -> const material_link & {
-        return _material;
+        return m_material;
     }
 
     /// @returns true if the surface is a senstive detector module.
@@ -188,17 +192,15 @@ class surface_descriptor {
     friend std::ostream &operator<<(std::ostream &os,
                                     const surface_descriptor &sf) {
         os << sf.m_barcode;
-        os << " | trf.: " << sf._trf;
-        os << " | mask: " << sf._mask;
-        os << " | mat.: " << sf._material;
+        os << " | mask: " << sf.m_mask;
+        os << " | mat.: " << sf.m_material;
         return os;
     }
 
     private:
     geometry::barcode m_barcode{};
-    mask_link _mask{};
-    material_link _material{};
-    transform_link_t _trf{};
+    mask_link m_mask{};
+    material_link m_material{};
 };
 
 }  // namespace detray
