@@ -61,22 +61,6 @@ struct join_view : public detray::ranges::view_interface<join_view<range_t>> {
         : m_begin{detray::ranges::begin(std::forward<R>(ranges))},
           m_end{detray::ranges::end(std::forward<R>(ranges))} {}
 
-    /// Copy constructor
-    DETRAY_HOST_DEVICE
-    constexpr join_view(const join_view &other)
-        : m_begin{other.m_begin}, m_end{other.m_end} {}
-
-    /// Default destructor
-    ~join_view() = default;
-
-    /// Copy assignment operator
-    DETRAY_HOST_DEVICE
-    join_view &operator=(const join_view &other) {
-        m_begin = other.m_begin;
-        m_end = other.m_end;
-        return *this;
-    }
-
     /// @return start position of range - const
     DETRAY_HOST_DEVICE
     constexpr auto begin() const -> iterator_t { return {m_begin, m_end}; }

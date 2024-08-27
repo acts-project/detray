@@ -103,7 +103,9 @@ DETRAY_HOST_DEVICE void call_reserve(T& obj, std::size_t newsize) {
 }
 
 template <typename T, std::enable_if_t<!(has_reserve<T>::value), bool> = true>
-DETRAY_HOST_DEVICE void call_reserve(T& /*obj*/, std::size_t /*newsize*/) {}
+DETRAY_HOST_DEVICE void call_reserve(T& /*obj*/, std::size_t /*newsize*/) {
+    /*Not defined*/
+}
 /// @}
 
 }  // namespace detail

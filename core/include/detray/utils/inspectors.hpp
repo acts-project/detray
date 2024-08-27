@@ -132,7 +132,7 @@ struct object_tracer {
         dvector_view<candidate_record_t> &view)
         : object_trace(view) {}
 
-    // record all object id the navigator encounters
+    // Record all objects the navigator encounters
     vector_t<candidate_record_t> object_trace;
     dindex current_vol{dindex_invalid};
     const scalar_t inv_pos{detray::detail::invalid_value<scalar_t>()};

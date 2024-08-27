@@ -1,6 +1,6 @@
 /** Detray library, part of the ACTS project (R&D line)
  *
- * (c) 2022-2023 CERN for the benefit of the ACTS project
+ * (c) 2022-2024 CERN for the benefit of the ACTS project
  *
  * Mozilla Public License Version 2.0
  */
@@ -40,12 +40,6 @@ class iota_view : public detray::ranges::view_interface<iota_view<incr_t>> {
         using pointer = incr_t *;
         using reference = incr_t &;
         using iterator_category = detray::ranges::bidirectional_iterator_tag;
-
-        /// Default construction only works if incr_t is default constructible
-        constexpr iterator() = default;
-        constexpr iterator(const iterator &other) = default;
-        constexpr iterator(iterator &&other) = default;
-        constexpr iterator &operator=(const iterator &rhs) = default;
 
         /// Parametrized Constructor
         DETRAY_HOST_DEVICE constexpr explicit iterator(incr_t i) : m_i{i} {}
@@ -105,43 +99,24 @@ class iota_view : public detray::ranges::view_interface<iota_view<incr_t>> {
               std::enable_if_t<!detray::detail::is_interval_v<deduced_incr_t>,
                                bool> = true>
     DETRAY_HOST_DEVICE constexpr explicit iota_view(deduced_incr_t &&start)
-        : m_start{start},
-          m_end{static_cast<std::decay_t<deduced_incr_t>>(start + 1)} {}
+        : m_start{std::forward<deduced_incr_t>(start)},
+          m_end{static_cast<std::decay_t<deduced_incr_t>>(
+              std::forward<deduced_incr_t>(start) + 1)} {}
 
     /// Construct from an @param interval that defines start and end values.
     template <typename interval_t,
               std::enable_if_t<detray::detail::is_interval_v<interval_t>,
                                bool> = true>
     DETRAY_HOST_DEVICE constexpr explicit iota_view(interval_t &&interval)
-        : m_start{detray::detail::get<0>(interval)},
-          m_end{detray::detail::get<1>(interval)} {}
+        : m_start{detray::detail::get<0>(std::forward<interval_t>(interval))},
+          m_end{detray::detail::get<1>(std::forward<interval_t>(interval))} {}
 
     /// Construct from a @param start start and @param end value.
     template <typename deduced_incr_t>
     DETRAY_HOST_DEVICE constexpr iota_view(deduced_incr_t &&start,
                                            deduced_incr_t &&end)
-        : m_start{start}, m_end{end} {}
-
-    /// Copy constructor
-    DETRAY_HOST_DEVICE
-    constexpr iota_view(const iota_view &other)
-        : m_start{other.m_start}, m_end{other.m_end} {}
-
-    /// MOve constructor
-    DETRAY_HOST_DEVICE
-    constexpr iota_view(iota_view &&other)
-        : m_start{std::move(other.m_start)}, m_end{std::move(other.m_end)} {}
-
-    /// Default destructor
-    DETRAY_HOST_DEVICE ~iota_view() {}
-
-    /// Copy assignment operator
-    DETRAY_HOST_DEVICE
-    iota_view &operator=(const iota_view &other) {
-        m_start = other.m_start;
-        m_end = other.m_end;
-        return *this;
-    }
+        : m_start{std::forward<deduced_incr_t>(start)},
+          m_end{std::forward<deduced_incr_t>(end)} {}
 
     /// @return start position of range on container.
     DETRAY_HOST_DEVICE

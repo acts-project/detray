@@ -61,7 +61,7 @@ class json_writer final : public writer_interface<detector_t> {
 
         // Create a new file
         std::string file_stem{det_name + "_" + std::string(io_backend::tag)};
-        io::file_handle file{file_path / file_stem, this->m_file_extension,
+        io::file_handle file{file_path / file_stem, this->file_extension(),
                              mode};
 
         // Write some general information
@@ -75,7 +75,7 @@ class json_writer final : public writer_interface<detector_t> {
         // Write to file
         *file << std::setw(4) << out_json << std::endl;
 
-        return file_stem + this->m_file_extension;
+        return file_stem + this->file_extension();
     }
 };
 

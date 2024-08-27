@@ -110,7 +110,7 @@ class volume_decorator : public volume_builder_interface<detector_t> {
     using array_type = typename detector_t::template array_type<T, N>;
 
     DETRAY_HOST
-    volume_decorator(
+    explicit volume_decorator(
         std::unique_ptr<volume_builder_interface<detector_t>> vol_builder)
         : m_builder(std::move(vol_builder)) {}
 
@@ -170,6 +170,11 @@ class volume_decorator : public volume_builder_interface<detector_t> {
     /// @}
 
     protected:
+    /// Access to underlying builder
+    /// @{
+    volume_builder_interface<detector_t> *get_builder() {
+        return m_builder.get();
+    }
     typename detector_t::surface_lookup_container &surfaces() override {
         return m_builder->surfaces();
     }
@@ -179,7 +184,9 @@ class volume_decorator : public volume_builder_interface<detector_t> {
     typename detector_t::mask_container &masks() override {
         return m_builder->masks();
     }
+    /// @}
 
+    private:
     std::unique_ptr<volume_builder_interface<detector_t>> m_builder;
 };
 

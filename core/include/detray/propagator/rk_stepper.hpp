@@ -52,8 +52,7 @@ class rk_stepper final
     template <std::size_t ROWS, std::size_t COLS>
     using matrix_type = dmatrix<algebra_t, ROWS, COLS>;
 
-    DETRAY_HOST_DEVICE
-    rk_stepper() {}
+    rk_stepper() = default;
 
     struct state : public base_type::state {
 

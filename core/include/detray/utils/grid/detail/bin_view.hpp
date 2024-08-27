@@ -59,7 +59,7 @@ struct bin_view : public detray::ranges::view_interface<bin_view<grid_t>> {
 
     /// Copy constructor
     DETRAY_HOST_DEVICE
-    constexpr bin_view(const bin_view &other)
+    constexpr explicit bin_view(const bin_view &other)
         : m_grid{other.m_grid}, m_bin_indexer{other.m_bin_indexer} {}
 
     /// Default destructor

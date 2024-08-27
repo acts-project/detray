@@ -74,7 +74,7 @@ class grid_collection<
 
         constexpr iterator(const iterator &other) = default;
         constexpr iterator(iterator &&other) = default;
-        constexpr iterator &operator=(const iterator &rhs) = default;
+        constexpr iterator &operator=(const iterator &rhs) noexcept = default;
 
         /// @returns true if grid indices are the same
         DETRAY_HOST_DEVICE
@@ -163,7 +163,7 @@ class grid_collection<
     template <typename coll_view_t,
               typename std::enable_if_t<detail::is_device_view_v<coll_view_t>,
                                         bool> = true>
-    DETRAY_HOST_DEVICE grid_collection(coll_view_t &view)
+    DETRAY_HOST_DEVICE explicit grid_collection(coll_view_t &view)
         : m_bin_offsets(detail::get<0>(view.m_view)),
           m_bins(detail::get<1>(view.m_view)),
           m_bin_edge_offsets(detail::get<2>(view.m_view)),

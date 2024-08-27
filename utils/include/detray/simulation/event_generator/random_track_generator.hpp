@@ -145,7 +145,7 @@ class random_track_generator
 
     /// Construct from external configuration
     DETRAY_HOST_DEVICE
-    constexpr random_track_generator(const configuration& cfg)
+    explicit constexpr random_track_generator(const configuration& cfg)
         : m_gen{generator_t(cfg.seed())}, m_cfg(cfg) {}
 
     /// Paramtetrized constructor for quick construction of simple tasks
@@ -169,7 +169,7 @@ class random_track_generator
 
     /// Move constructor
     DETRAY_HOST_DEVICE
-    random_track_generator(random_track_generator&& other)
+    random_track_generator(random_track_generator&& other) noexcept
         : m_gen(std::move(other.m_gen)), m_cfg(std::move(other.m_cfg)) {}
 
     /// Access the configuration

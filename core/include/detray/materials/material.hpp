@@ -36,6 +36,7 @@ struct material {
 
     constexpr material() = default;
 
+    /// Construct from material parameters
     DETRAY_HOST_DEVICE
     constexpr material(const scalar_type x0, const scalar_type l0,
                        const scalar_type ar, const scalar_type z,
@@ -50,6 +51,7 @@ struct material {
         m_molar_rho = mass_to_molar_density(ar, mass_rho);
     }
 
+    /// Construct from material parameters with density effect data
     DETRAY_HOST_DEVICE
     constexpr material(const scalar_type x0, const scalar_type l0,
                        const scalar_type ar, const scalar_type z,
@@ -190,10 +192,33 @@ struct material {
         return os;
     }
 
+    /// @returns true if density effect data is present
     DETRAY_HOST_DEVICE
     bool has_density_effect_data() const { return m_has_density_effect_data; }
 
     protected:
+    /// Set the radition length.
+    DETRAY_HOST_DEVICE
+    constexpr void set_X0(scalar_type x0) { m_x0 = x0; }
+    /// Set the nuclear interaction length.
+    DETRAY_HOST_DEVICE
+    constexpr void set_L0(scalar_type l0) { m_l0 = l0; }
+    /// Set the relative atomic mass.
+    DETRAY_HOST_DEVICE
+    constexpr void set_Ar(scalar_type ar) { m_ar = ar; }
+    /// Set the nuclear charge number.
+    DETRAY_HOST_DEVICE
+    constexpr void set_Z(scalar_type z) { m_z = z; }
+    /// Set the mass density.
+    DETRAY_HOST_DEVICE
+    constexpr void set_mass_density(scalar_type mass_rho) {
+        m_mass_rho = mass_rho;
+    }
+    /// Set the molar density.
+    DETRAY_HOST_DEVICE
+    constexpr void set_molar_density(scalar_type molar_rho) {
+        m_molar_rho = molar_rho;
+    }
     DETRAY_HOST_DEVICE
     /// @return [mass_density / A]
     constexpr scalar_type mass_to_molar_density(double ar, double mass_rho) {
@@ -206,6 +231,7 @@ struct material {
         return static_cast<scalar_type>(mass_rho / molar_mass);
     }
 
+    private:
     // Material properties
     scalar_type m_x0 = detail::invalid_value<scalar_type>();
     scalar_type m_l0 = detail::invalid_value<scalar_type>();

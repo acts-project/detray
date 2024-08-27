@@ -68,7 +68,9 @@ struct void_inspector {
 
     template <typename state_t>
     DETRAY_HOST_DEVICE void operator()(const state_t & /*ignored*/,
-                                       const char * /*ignored*/) {}
+                                       const char * /*ignored*/) {
+        /*Do nothing*/
+    }
 };
 
 }  // namespace navigation
@@ -179,7 +181,7 @@ class navigator {
         /// Default constructor
         state() = default;
 
-        state(const detector_type &det) : m_detector(&det) {}
+        explicit state(const detector_type &det) : m_detector(&det) {}
 
         /// Constructor with memory resource
         DETRAY_HOST

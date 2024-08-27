@@ -44,9 +44,9 @@ class tuple_container {
     /// Empty container - default alloc
     constexpr tuple_container() = default;
     /// Move constructor
-    constexpr tuple_container(tuple_container &&) = default;
+    constexpr tuple_container(tuple_container &&) noexcept = default;
     /// Move assignment operator
-    constexpr tuple_container &operator=(tuple_container &&) = default;
+    constexpr tuple_container &operator=(tuple_container &&) noexcept = default;
 
     /// Copy construct from element types
     constexpr explicit tuple_container(const Ts &... args) : _tuple(args...) {}
@@ -64,14 +64,13 @@ class tuple_container {
         typename allocator_t = vecmem::memory_resource,
         typename T = tuple_t<Ts...>,
         std::enable_if_t<std::is_same_v<T, std::tuple<Ts...>>, bool> = true>
-    DETRAY_HOST explicit tuple_container(allocator_t &resource,
-                                         const Ts &... args)
+    DETRAY_HOST tuple_container(allocator_t &resource, const Ts &... args)
         : _tuple(std::allocator_arg, resource, args...) {}
 
     /// Construct from the container @param view type. Mainly used device-side.
     template <typename tuple_view_t,
               std::enable_if_t<is_device_view_v<tuple_view_t>, bool> = true>
-    DETRAY_HOST_DEVICE tuple_container(tuple_view_t &view)
+    DETRAY_HOST_DEVICE explicit tuple_container(tuple_view_t &view)
         : _tuple(
               unroll_views(view, std::make_index_sequence<sizeof...(Ts)>{})) {}
 

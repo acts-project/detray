@@ -50,7 +50,7 @@ struct regular {
 
     /** Constructor with vecmem memory resource **/
     DETRAY_HOST
-    regular(vecmem::memory_resource & /*resource*/)
+    explicit regular(vecmem::memory_resource & /*resource*/)
         : n_bins(detail::invalid_value<dindex>()),
           min(static_cast<scalar>(0.)),
           max(static_cast<scalar>(n_bins)) {}
@@ -70,7 +70,7 @@ struct regular {
     template <
         typename axis_data_t,
         std::enable_if_t<!std::is_same_v<regular, axis_data_t>, bool> = true>
-    DETRAY_HOST_DEVICE regular(const axis_data_t &axis_data)
+    DETRAY_HOST_DEVICE explicit regular(const axis_data_t &axis_data)
         : n_bins(axis_data.n_bins), min(axis_data.min), max(axis_data.max) {}
 
     /** Return the number of bins */
@@ -235,7 +235,7 @@ struct circular {
 
     /** Constructor with vecmem memory resource **/
     DETRAY_HOST
-    circular(vecmem::memory_resource & /*resource*/)
+    explicit circular(vecmem::memory_resource & /*resource*/)
         : n_bins(detail::invalid_value<dindex>()),
           min(static_cast<scalar>(0.)),
           max(static_cast<scalar>(n_bins)) {}
@@ -255,7 +255,7 @@ struct circular {
     template <
         typename axis_data_t,
         std::enable_if_t<!std::is_same_v<circular, axis_data_t>, bool> = true>
-    DETRAY_HOST_DEVICE circular(const axis_data_t &axis_data)
+    DETRAY_HOST_DEVICE explicit circular(const axis_data_t &axis_data)
         : n_bins(axis_data.n_bins), min(axis_data.min), max(axis_data.max) {}
 
     /** Return the number of bins */
@@ -446,7 +446,7 @@ struct irregular {
 
     /** Constructor with vecmem memory resource **/
     DETRAY_HOST
-    irregular(vecmem::memory_resource &resource)
+    explicit irregular(vecmem::memory_resource &resource)
         : n_bins(detail::invalid_value<dindex>()),
           min(0.f),
           max(static_cast<scalar>(n_bins)),
@@ -480,7 +480,7 @@ struct irregular {
     template <
         typename axis_data_t,
         std::enable_if_t<!std::is_same_v<irregular, axis_data_t>, bool> = true>
-    DETRAY_HOST_DEVICE irregular(const axis_data_t &axis_data)
+    DETRAY_HOST_DEVICE explicit irregular(const axis_data_t &axis_data)
         : n_bins(axis_data.n_bins),
           min(axis_data.min),
           max(axis_data.max),
@@ -636,7 +636,7 @@ struct axis_data<axis_t, scalar_t,
         typename other_scalar_t,
         std::enable_if_t<detail::is_same_nc<scalar_t, other_scalar_t>::value,
                          bool> = true>
-    DETRAY_HOST_DEVICE axis_data(
+    DETRAY_HOST_DEVICE explicit axis_data(
         const axis_data<axis_t, other_scalar_t, void> &parent)
         : n_bins(parent.n_bins), min(parent.min), max(parent.max) {}
 
@@ -662,7 +662,7 @@ struct axis_data<axis_t, scalar_t,
         typename other_scalar_t,
         std::enable_if_t<detail::is_same_nc<scalar_t, other_scalar_t>::value,
                          bool> = true>
-    DETRAY_HOST_DEVICE axis_data(
+    DETRAY_HOST_DEVICE explicit axis_data(
         const axis_data<axis_t, other_scalar_t, void> &parent)
         : n_bins(parent.n_bins),
           min(parent.min),

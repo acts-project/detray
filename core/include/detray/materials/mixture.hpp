@@ -36,7 +36,7 @@ struct mixture
             return ((M.Ar() * M.fraction()) + ...);
         };
 
-        this->m_ar = std::apply(sum_Ar, std::tuple<material_types...>());
+        this->set_Ar(std::apply(sum_Ar, std::tuple<material_types...>()));
 
         // Compute effective atomic number
         // Zeff = Z0 * ratio0 + Z1 * ratio1 + ...
@@ -44,14 +44,15 @@ struct mixture
             return ((M.Z() * M.fraction()) + ...);
         };
 
-        this->m_z = std::apply(sum_Z, std::tuple<material_types...>());
+        this->set_Z(std::apply(sum_Z, std::tuple<material_types...>()));
 
         // Get averaged mass density
         auto sum_rho = [](material_types... M) constexpr->decltype(auto) {
             return ((M.mass_density() * M.fraction()) + ...);
         };
 
-        this->m_mass_rho = std::apply(sum_rho, std::tuple<material_types...>());
+        this->set_mass_density(
+            std::apply(sum_rho, std::tuple<material_types...>()));
 
         // Compute effective radiation length (X0)
         // reference:
@@ -64,8 +65,8 @@ struct mixture
             [](material_types... M) constexpr->decltype(auto) {
             return ((M.fraction() / M.X0()) + ...);
         };
-        this->m_x0 =
-            1.f / std::apply(sum_rho_over_X0, std::tuple<material_types...>());
+        this->set_X0(
+            1.f / std::apply(sum_rho_over_X0, std::tuple<material_types...>()));
 
         // Compute effective nuclear radiation length
         // Follow the same equation of effective X0
@@ -74,12 +75,12 @@ struct mixture
             return ((M.fraction() / M.L0()) + ...);
         };
 
-        this->m_l0 =
-            1.f / std::apply(sum_rho_over_L0, std::tuple<material_types...>());
+        this->set_L0(
+            1.f / std::apply(sum_rho_over_L0, std::tuple<material_types...>()));
 
         // Compute molar density
-        this->m_molar_rho =
-            this->mass_to_molar_density(this->m_ar, this->m_mass_rho);
+        this->set_molar_density(
+            this->mass_to_molar_density(this->Ar(), this->mass_density()));
 
         // @TODO: Calculate density effect data as well if exist?
     }

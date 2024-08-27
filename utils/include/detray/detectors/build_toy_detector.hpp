@@ -566,7 +566,7 @@ inline void get_volume_extent(
     if (cfg.use_material_maps()) {
         // Retrieve the underlying portal factory
         auto decorator =
-            std::dynamic_pointer_cast<factory_decorator<detector_t>>(
+            std::dynamic_pointer_cast<const factory_decorator<detector_t>>(
                 sf_factory);
         cyl_factory =
             dynamic_cast<const cylinder_portal_generator<detector_t> *>(

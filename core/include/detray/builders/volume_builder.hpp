@@ -266,6 +266,7 @@ class volume_builder : public volume_builder_interface<detector_t> {
         det._volumes.push_back(m_volume);
     }
 
+    private:
     /// Whether the volume will get an acceleration structure
     bool m_has_accel{false};
 

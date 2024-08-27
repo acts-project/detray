@@ -1,28 +1,34 @@
 /** Detray library, part of the ACTS project (R&D line)
  *
- * (c) 2022-2023 CERN for the benefit of the ACTS project
+ * (c) 2022-2024 CERN for the benefit of the ACTS project
  *
  * Mozilla Public License Version 2.0
  */
 
 #pragma once
 
+// Project include(s)
+#include "detray/definitions/detail/qualifiers.hpp"
+
+// System include(s)
 #include <type_traits>
 #include <utility>
 
-#include "detray/definitions/detail/qualifiers.hpp"
-
 namespace detray {
+
 template <typename... Ts>
-struct tuple {
-    DETRAY_HOST_DEVICE constexpr tuple() {}
-};
+struct tuple {};
 
 template <typename T, typename... Ts>
 struct tuple<T, Ts...> {
-    DETRAY_HOST_DEVICE constexpr tuple() {}
 
-    template <typename U, typename... Us>
+    DETRAY_HOST_DEVICE constexpr tuple(){};
+
+    template <
+        typename U, typename... Us,
+        std::enable_if_t<std::is_constructible_v<T, U &&> &&
+                             std::is_constructible_v<tuple<Ts...>, Us &&...>,
+                         bool> = true>
     DETRAY_HOST_DEVICE constexpr tuple(const tuple<U, Us...> &o)
         : v(o.v), r(o.r) {}
 
@@ -59,6 +65,30 @@ DETRAY_HOST_DEVICE auto &get(detray::tuple<Ts...> &t) noexcept {
         return t.v;
     } else {
         return ::detray::get<I - 1>(t.r);
+    }
+}
+
+template <typename U, typename T, typename... Ts>
+DETRAY_HOST_DEVICE const auto &get(const detray::tuple<T, Ts...> &t) noexcept {
+
+    if constexpr (std::is_same_v<U, T>) {
+        return t.v;
+    } else if constexpr (sizeof...(Ts) > 0) {
+        static_assert((std::is_same_v<U, Ts> || ...),
+                      "Type not found in tuple.");
+        return ::detray::get<U, Ts...>(t.r);
+    }
+}
+
+template <typename U, typename T, typename... Ts>
+DETRAY_HOST_DEVICE auto &get(detray::tuple<T, Ts...> &t) noexcept {
+
+    if constexpr (std::is_same_v<U, T>) {
+        return t.v;
+    } else if constexpr (sizeof...(Ts) > 0) {
+        static_assert((std::is_same_v<U, Ts> || ...),
+                      "Type not found in tuple.");
+        return ::detray::get<U, Ts...>(t.r);
     }
 }
 

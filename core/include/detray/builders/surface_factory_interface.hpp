@@ -157,11 +157,11 @@ class factory_decorator : public surface_factory_interface<detector_t> {
 
     public:
     DETRAY_HOST
-    factory_decorator(
+    explicit factory_decorator(
         std::unique_ptr<surface_factory_interface<detector_t>> factory)
         : m_factory(std::move(factory)) {}
 
-    /// @returns access to the underlying factory
+    /// @returns access to the underlying factory - const
     DETRAY_HOST
     const surface_factory_interface<detector_t> *get_factory() const {
         return m_factory.get();
@@ -197,6 +197,14 @@ class factory_decorator : public surface_factory_interface<detector_t> {
     /// @}
 
     protected:
+    /// @returns access to the underlying factory - non-const
+    DETRAY_HOST
+    surface_factory_interface<detector_t> *get_factory() {
+        return m_factory.get();
+    }
+
+    private:
+    /// Wrapped surface factory that new functionalit is added to by decoration
     std::unique_ptr<surface_factory_interface<detector_t>> m_factory;
 };
 

@@ -72,7 +72,7 @@ class static_array
     DETRAY_HOST_DEVICE constexpr static_array() { init(); };
     constexpr static_array(const static_array& other) = default;
     constexpr static_array(static_array&& other) = default;
-    static_array& operator=(const static_array& other) = default;
+    static_array& operator=(const static_array& other) noexcept = default;
 
     /// @returns view iterator over bin content in start or end position
     /// @{

@@ -73,11 +73,11 @@ __global__ void material_validation_kernel(
 
     // Run propagation
     navigation::void_inspector::view_type void_view{};
-    p.propagate(
-        typename propagator_t::state(tracks[trk_id], det, trk_id,
-                                     typename navigator_t::state::view_type{
-                                         navigation_cache_view, void_view}),
-        actor_states);
+    typename propagator_t::state propagation(
+        tracks[trk_id], det, trk_id,
+        typename navigator_t::state::view_type{navigation_cache_view,
+                                               void_view});
+    p.propagate(propagation, actor_states);
 
     // Record the accumulated material
     assert(mat_records.size() == tracks.size());

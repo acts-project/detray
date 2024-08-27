@@ -110,7 +110,7 @@ class surface_lookup {
     template <typename container_view_t,
               std::enable_if_t<detail::is_device_view_v<container_view_t>,
                                bool> = true>
-    DETRAY_HOST_DEVICE surface_lookup(container_view_t &view)
+    DETRAY_HOST_DEVICE explicit surface_lookup(container_view_t &view)
         : m_container(view) {}
 
     /// @returns the size of the underlying container

@@ -72,7 +72,8 @@ class composite_actor final : public actor_impl_t {
         if constexpr (std::is_same_v<subj_state_t, typename actor::state>) {
             actor_type::operator()(actor_state, p_state);
         } else {
-            actor_type::operator()(actor_state, p_state, subject_state);
+            actor_type::operator()(actor_state, p_state,
+                                   std::forward<subj_state_t>(subject_state));
         }
 
         // ... then run the observers on the updated state

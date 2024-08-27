@@ -1,6 +1,6 @@
 /** Detray library, part of the ACTS project (R&D line)
  *
- * (c) 2022-2023 CERN for the benefit of the ACTS project
+ * (c) 2022-2024 CERN for the benefit of the ACTS project
  *
  * Mozilla Public License Version 2.0
  */
@@ -50,7 +50,7 @@ class enumerate_view : public detray::ranges::view_interface<
         using iterator_category =
             typename std::iterator_traits<range_itr_t>::iterator_category;
 
-        iterator() = default;
+        constexpr iterator() = default;
 
         DETRAY_HOST_DEVICE
         iterator(range_itr_t iter, incr_t offset = 0)
@@ -190,22 +190,6 @@ class enumerate_view : public detray::ranges::view_interface<
         : m_begin{detray::ranges::begin(std::forward<range_t>(rng)), start},
           m_end{detray::ranges::end(std::forward<range_t>(rng)),
                 start + static_cast<dindex>(rng.size())} {}
-
-    /// Copy constructor
-    DETRAY_HOST_DEVICE
-    constexpr enumerate_view(const enumerate_view &other)
-        : m_begin{other.m_begin}, m_end{other.m_end} {}
-
-    /// Default destructor
-    DETRAY_HOST_DEVICE ~enumerate_view() {}
-
-    /// Copy assignment operator
-    DETRAY_HOST_DEVICE
-    enumerate_view &operator=(const enumerate_view &other) {
-        m_begin = other.m_begin;
-        m_end = other.m_end;
-        return *this;
-    }
 
     /// @return start position of range on container.
     DETRAY_HOST_DEVICE

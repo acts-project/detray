@@ -1,6 +1,6 @@
 /** Detray library, part of the ACTS project (R&D line)
  *
- * (c) 2022-2023 CERN for the benefit of the ACTS project
+ * (c) 2022-2024 CERN for the benefit of the ACTS project
  *
  * Mozilla Public License Version 2.0
  */
@@ -64,22 +64,6 @@ struct static_join_view
         const ranges_t &... ranges)
         : m_begins{detray::ranges::cbegin(ranges)...},
           m_ends{detray::ranges::cend(ranges)...} {}
-
-    /// Copy constructor
-    DETRAY_HOST_DEVICE
-    constexpr static_join_view(const static_join_view &other)
-        : m_begins{other.m_begins}, m_ends{other.m_ends} {}
-
-    /// Default destructor
-    DETRAY_HOST_DEVICE ~static_join_view() {}
-
-    /// Copy assignment operator
-    DETRAY_HOST_DEVICE
-    static_join_view &operator=(const static_join_view &other) {
-        m_begins = other.m_begins;
-        m_ends = other.m_ends;
-        return *this;
-    }
 
     /// @return start position of range - const
     DETRAY_HOST_DEVICE

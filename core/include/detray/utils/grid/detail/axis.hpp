@@ -247,7 +247,7 @@ class multi_axis {
 
     /// Construct containers using a specific memory resources
     template <bool owner = is_owning, std::enable_if_t<owner, bool> = true>
-    DETRAY_HOST multi_axis(vecmem::memory_resource &resource)
+    DETRAY_HOST explicit multi_axis(vecmem::memory_resource &resource)
         : m_edge_offsets(&resource), m_edges(&resource) {}
 
     /// Construct from containers - move
@@ -274,7 +274,7 @@ class multi_axis {
     template <typename view_t,
               typename std::enable_if_t<
                   detray::detail::is_device_view_v<view_t>, bool> = true>
-    DETRAY_HOST_DEVICE multi_axis(const view_t &view)
+    DETRAY_HOST_DEVICE explicit multi_axis(const view_t &view)
         : m_edge_offsets(detray::detail::get<0>(view.m_view)),
           m_edges(detray::detail::get<1>(view.m_view)) {}
 

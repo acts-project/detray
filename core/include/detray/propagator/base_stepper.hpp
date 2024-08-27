@@ -28,7 +28,9 @@ namespace stepping {
 struct void_inspector {
     template <typename state_t>
     DETRAY_HOST_DEVICE constexpr void operator()(const state_t & /*ignored*/,
-                                                 const char * /*ignored*/) {}
+                                                 const char * /*ignored*/) {
+        /*Do nothing*/
+    }
 };
 
 }  // namespace stepping
@@ -61,7 +63,7 @@ class base_stepper {
 
         /// Sets track parameters.
         DETRAY_HOST_DEVICE
-        state(const free_track_parameters_type &free_params)
+        explicit state(const free_track_parameters_type &free_params)
             : _track(free_params) {
 
             curvilinear_frame<algebra_t> cf(free_params);

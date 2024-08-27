@@ -215,12 +215,13 @@ inline auto record_material(
     typename material_tracer_t::state mat_tracer_state{};
 
     auto actor_states =
-        std::tie(pathlimit_aborter_state, transporter_state, resetter_state,
-                 interactor_state, mat_tracer_state);
+        detray::tie(pathlimit_aborter_state, transporter_state, resetter_state,
+                    interactor_state, mat_tracer_state);
+
+    typename propagator_t::state propagation{track, det};
 
     // Run the propagation
-    bool success =
-        prop.propagate(typename propagator_t::state{track, det}, actor_states);
+    bool success = prop.propagate(propagation, actor_states);
 
     return std::make_tuple(success, std::move(mat_tracer_state.mat_record));
 }

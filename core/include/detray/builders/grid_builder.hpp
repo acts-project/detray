@@ -46,13 +46,13 @@ class grid_builder : public volume_decorator<detector_t> {
 
     /// Decorate a volume with a grid
     DETRAY_HOST
-    grid_builder(
+    explicit grid_builder(
         std::unique_ptr<volume_builder_interface<detector_t>> vol_builder)
         : volume_decorator<detector_t>(std::move(vol_builder)) {
         // The grid builder provides an acceleration structure to the
         // volume, so don't add sensitive surfaces to the brute force method
-        if (this->m_builder) {
-            this->m_builder->has_accel(true);
+        if (this->get_builder()) {
+            this->has_accel(true);
         }
     }
 
@@ -197,7 +197,7 @@ class grid_builder : public volume_decorator<detector_t> {
     DETRAY_HOST
     auto &get() { return m_grid; }
 
-    protected:
+    private:
     link_id_t m_id{link_id_t::e_sensitive};
     grid_factory_t m_factory{};
     typename grid_t::template type<true> m_grid{};

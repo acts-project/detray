@@ -41,14 +41,10 @@ class line_stepper final
     struct state : public base_type::state {
         static constexpr const stepping::id id = stepping::id::e_linear;
 
-        DETRAY_HOST_DEVICE
-        state(const free_track_parameters_type& t) : base_type::state(t) {}
+        using base_state = typename base_type::state;
 
-        template <typename detector_t>
-        DETRAY_HOST_DEVICE state(
-            const bound_track_parameters_type& bound_params,
-            const detector_t& det)
-            : base_type::state(bound_params, det) {}
+        /// Import base class constructors
+        using base_state::base_state;
 
         /// Update the track state in a straight line.
         DETRAY_HOST_DEVICE

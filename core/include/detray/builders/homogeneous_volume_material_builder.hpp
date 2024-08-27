@@ -34,7 +34,7 @@ class homogeneous_volume_material_builder final
     /// @param vol_builder volume builder that should be decorated with volume
     /// material
     DETRAY_HOST
-    homogeneous_volume_material_builder(
+    explicit homogeneous_volume_material_builder(
         std::unique_ptr<volume_builder_interface<detector_t>> vol_builder)
         : volume_decorator<detector_t>(std::move(vol_builder)) {}
 
@@ -74,7 +74,7 @@ class homogeneous_volume_material_builder final
         return vol;
     }
 
-    protected:
+    private:
     // Material for this volume
     material<scalar_type> m_volume_material{};
 };

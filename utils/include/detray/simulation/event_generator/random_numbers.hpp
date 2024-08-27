@@ -38,16 +38,16 @@ struct random_numbers {
 
     /// Different seed @param s for every instance
     DETRAY_HOST
-    random_numbers(seed_type s) : m_seeds{s}, m_engine{m_seeds} {}
+    explicit random_numbers(seed_type s) : m_seeds{s}, m_engine{m_seeds} {}
 
     /// More entropy in seeds from collection @param s
     DETRAY_HOST
-    random_numbers(const std::vector<seed_type>& s)
+    explicit random_numbers(const std::vector<seed_type>& s)
         : m_seeds{s.begin(), s.end()}, m_engine{m_seeds} {}
 
     /// Copy constructor
     DETRAY_HOST
-    random_numbers(random_numbers&& other)
+    random_numbers(random_numbers&& other) noexcept
         : m_engine(std::move(other.m_engine)) {}
 
     /// Generate random numbers in a given range

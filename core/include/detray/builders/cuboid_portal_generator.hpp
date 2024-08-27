@@ -105,7 +105,7 @@ class cuboid_portal_generator final
         assert(n_surfaces != 0u);
 
         // The surfaces container is prefilled with other surfaces
-        dindex surfaces_offset = static_cast<dindex>(n_surfaces);
+        auto surfaces_offset{static_cast<dindex>(n_surfaces)};
 
         // Fetch the position in the mask tuple for the rectangle portals
         constexpr auto rectangle_id{detector_t::masks::id::e_portal_rectangle2};

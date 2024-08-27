@@ -1,6 +1,6 @@
 /** Detray library, part of the ACTS project (R&D line)
  *
- * (c) 2023 CERN for the benefit of the ACTS project
+ * (c) 2023-2024 CERN for the benefit of the ACTS project
  *
  * Mozilla Public License Version 2.0
  */
@@ -49,22 +49,6 @@ struct cartesian_product_view : public detray::ranges::view_interface<
         range_ts... ranges)
         : m_begins(detray::ranges::begin(ranges)...),
           m_ends(detray::ranges::end(ranges)...) {}
-
-    /// Copy constructor
-    DETRAY_HOST_DEVICE
-    constexpr cartesian_product_view(const cartesian_product_view &other)
-        : m_begins{other.m_begins}, m_ends{other.m_ends} {}
-
-    /// Default destructor
-    ~cartesian_product_view() = default;
-
-    /// Copy assignment operator
-    DETRAY_HOST_DEVICE
-    cartesian_product_view &operator=(const cartesian_product_view &other) {
-        m_begins = other.m_begins;
-        m_ends = other.m_ends;
-        return *this;
-    }
 
     /// @returns start position of range - const
     DETRAY_HOST_DEVICE
@@ -149,22 +133,6 @@ struct cartesian_product_iterator {
     constexpr cartesian_product_iterator(detray::tuple<iterator_ts...> begins,
                                          detray::tuple<iterator_ts...> ends)
         : m_begins(begins), m_ends(ends), m_itrs(begins) {}
-
-    /// Copy constructor
-    DETRAY_HOST_DEVICE
-    cartesian_product_iterator(const cartesian_product_iterator &other)
-        : m_begins{other.m_begins},
-          m_ends{other.m_ends},
-          m_itrs{other.m_itrs} {}
-
-    /// Copy assignment operator
-    DETRAY_HOST_DEVICE
-    cartesian_product_iterator &operator=(
-        const cartesian_product_iterator &other) {
-        m_begins = other.m_begins;
-        m_ends = other.m_ends;
-        return *this;
-    }
 
     /// @returns true if the last range iterators are equal.
     DETRAY_HOST_DEVICE constexpr bool operator==(

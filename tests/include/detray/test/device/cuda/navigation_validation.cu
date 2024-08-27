@@ -108,19 +108,19 @@ __global__ void navigation_validation_kernel(
 
     // Run propagation
     if constexpr (is_no_bfield) {
-        p.propagate(typename propagator_t::state(
-                        track, det, trk_id,
-                        typename navigator_t::state::view_type{
-                            navigation_cache_view,
-                            recorded_intersections_view.ptr()[trk_id]}),
-                    actor_states);
+        typename propagator_t::state propagation(
+            track, det, trk_id,
+            typename navigator_t::state::view_type{
+                navigation_cache_view,
+                recorded_intersections_view.ptr()[trk_id]});
+        p.propagate(propagation, actor_states);
     } else {
-        p.propagate(typename propagator_t::state(
-                        track, field_data, det, trk_id,
-                        typename navigator_t::state::view_type{
-                            navigation_cache_view,
-                            recorded_intersections_view.ptr()[trk_id]}),
-                    actor_states);
+        typename propagator_t::state propagation(
+            track, field_data, det, trk_id,
+            typename navigator_t::state::view_type{
+                navigation_cache_view,
+                recorded_intersections_view.ptr()[trk_id]});
+        p.propagate(propagation, actor_states);
     }
 
     // Record the accumulated material

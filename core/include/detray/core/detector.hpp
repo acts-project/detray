@@ -166,10 +166,10 @@ class detector {
     /// @{
 
     /// Move constructor
-    detector(detector &&) = default;
+    detector(detector &&) noexcept = default;
 
     /// Move assignment
-    detector &operator=(detector &&) = default;
+    detector &operator=(detector &&) noexcept = default;
 
     /// Default construction
     /// @param resource memory resource for the allocation of members

@@ -31,11 +31,12 @@ struct replace {
     /// @param content new content to be added
     template <typename bin_t, typename content_t>
     DETRAY_HOST_DEVICE void operator()(bin_t &&bin, content_t &&entry) const {
-        bin.init(std::forward<content_t>(entry));
+        std::forward<bin_t>(bin).init(std::forward<content_t>(entry));
 
         // Optionally sort the bin content
         if constexpr (kSORT) {
-            detray::detail::sequential_sort(bin.begin(), bin.end());
+            detray::detail::sequential_sort(std::forward<bin_t>(bin).begin(),
+                                            std::forward<bin_t>(bin).end());
         }
     }
 };
@@ -52,11 +53,12 @@ struct attach {
     /// @param content new content to be added
     template <typename bin_t, typename entry_t>
     DETRAY_HOST_DEVICE void operator()(bin_t &&bin, entry_t &&entry) const {
-        bin.push_back(std::forward<entry_t>(entry));
+        std::forward<bin_t>(bin).push_back(std::forward<entry_t>(entry));
 
         // Optionally sort the bin content
         if constexpr (kSORT) {
-            detray::detail::sequential_sort(bin.begin(), bin.end());
+            detray::detail::sequential_sort(std::forward<bin_t>(bin).begin(),
+                                            std::forward<bin_t>(bin).end());
         }
     }
 };
@@ -74,13 +76,15 @@ struct complete {
     /// @param content new content to be added
     template <typename bin_t, typename entry_t>
     DETRAY_HOST_DEVICE void operator()(bin_t &&bin, entry_t &&entry) const {
-        for (dindex i{bin.size()}; i < bin.capacity(); ++i) {
-            bin.push_back(std::forward<entry_t>(entry));
+        for (dindex i{std::forward<bin_t>(bin).size()};
+             i < std::forward<bin_t>(bin).capacity(); ++i) {
+            std::forward<bin_t>(bin).push_back(std::forward<entry_t>(entry));
         }
 
         // Optionally sort the bin content
         if constexpr (kSORT) {
-            detray::detail::sequential_sort(bin.begin(), bin.end());
+            detray::detail::sequential_sort(std::forward<bin_t>(bin).begin(),
+                                            std::forward<bin_t>(bin).end());
         }
     }
 };
