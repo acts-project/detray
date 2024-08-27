@@ -172,7 +172,7 @@ class homogeneous_material_factory final
         const dindex n_surfaces{static_cast<dindex>(m_links.size())};
 
         // Need exactly one material per surface
-        assert(m_indices.empty() or (m_indices.size() == n_surfaces));
+        assert(m_indices.empty() || (m_indices.size() == n_surfaces));
         assert(m_links.size() == n_surfaces);
         assert(m_materials.size() == n_surfaces);
         assert(m_thickness.size() == n_surfaces);
@@ -266,7 +266,7 @@ class homogeneous_material_factory final
 
         // If no concrete surface ordering was passed, use index sequence
         // and add the materials to the trailing elements in the surfaces cont.
-        if (m_indices.empty() or
+        if (m_indices.empty() ||
             std::find(m_indices.begin(), m_indices.end(),
                       detail::invalid_value<std::size_t>()) !=
                 m_indices.end()) {

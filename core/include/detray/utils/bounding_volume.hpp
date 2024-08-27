@@ -244,12 +244,12 @@ class axis_aligned_bounding_volume {
             (m_mask[cuboid3D::e_max_z] - m_mask[cuboid3D::e_min_z])};
 
         // Cannot handle 'inv' propagation through the calculation for now
-        if (detail::is_invalid_value(scalor_x) or
-            detail::is_invalid_value(scalor_y) or
+        if (detail::is_invalid_value(scalor_x) ||
+            detail::is_invalid_value(scalor_y) ||
             detail::is_invalid_value(scalor_z)) {
             // If the box was infinite to begin with, it stays that way
-            assert(detail::is_invalid_value(scalor_x) and
-                   detail::is_invalid_value(scalor_y) and
+            assert(detail::is_invalid_value(scalor_x) &&
+                   detail::is_invalid_value(scalor_y) &&
                    detail::is_invalid_value(scalor_z));
 
             return *this;

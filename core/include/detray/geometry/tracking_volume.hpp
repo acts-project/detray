@@ -71,7 +71,7 @@ class tracking_volume {
     /// @param rhs is the right hand side to be compared to
     DETRAY_HOST_DEVICE
     constexpr auto operator==(const tracking_volume &rhs) const -> bool {
-        return (&m_detector == &(rhs.m_detector) and m_desc == rhs.m_desc);
+        return (&m_detector == &(rhs.m_detector) && m_desc == rhs.m_desc);
     }
 
     /// @returns the volume shape id, e.g. 'cylinder'.
@@ -184,7 +184,7 @@ class tracking_volume {
 
         // Check if this volume holds such a collection and, if so, add max
         // number of candidates that we can expect from it
-        if (not link.is_invalid()) {
+        if (!link.is_invalid()) {
             const unsigned int n_max{
                 m_detector.accelerator_store()
                     .template visit<detail::n_candidates_getter>(link)};
@@ -287,7 +287,7 @@ class tracking_volume {
         std::stringstream warnigns{};
         for (std::size_t i = 1u; i < acc_link.size(); ++i) {
             // An acceleration data structure link was set, but is invalid
-            if (!acc_link[i].is_invalid_id() and
+            if (!acc_link[i].is_invalid_id() &&
                 acc_link[i].is_invalid_index()) {
                 suspicious_links = true;
                 warnigns << "Link to acceleration data structure "
@@ -338,7 +338,7 @@ class tracking_volume {
             static_cast<typename descr_t::object_id>(I)>()};
 
         // Only visit, if object type is contained in volume
-        if (not link.is_invalid()) {
+        if (!link.is_invalid()) {
             // Run over the surfaces in a single acceleration data structure
             // and apply the functor to the resulting neighborhood
             m_detector.accelerator_store().template visit<functor_t>(

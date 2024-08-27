@@ -246,7 +246,7 @@ class mask {
 
         const bool result = _shape.check_consistency(_values, os);
 
-        if (not result) {
+        if (!result) {
             os << to_string();
         }
 

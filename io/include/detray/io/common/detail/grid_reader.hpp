@@ -201,7 +201,7 @@ class grid_reader {
     /// @param det_builder gather the grid data and build the final volume
     template <typename detector_t, typename bounds_ts, typename binning_ts,
               typename content_t,
-              std::enable_if_t<types::size<bounds_ts> == dim and
+              std::enable_if_t<types::size<bounds_ts> == dim &&
                                    types::size<binning_ts> == dim,
                                bool> = true>
     static void convert(
@@ -283,7 +283,7 @@ class grid_reader {
     /// @brief End of recursion: build the grid from the @param grid_data
     template <typename detector_t, typename local_frame_t, typename content_t,
               typename... bounds_ts, typename... binning_ts,
-              std::enable_if_t<sizeof...(bounds_ts) == dim and
+              std::enable_if_t<sizeof...(bounds_ts) == dim &&
                                    sizeof...(binning_ts) == dim,
                                bool> = true>
     static void convert(

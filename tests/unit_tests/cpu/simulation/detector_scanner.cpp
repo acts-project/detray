@@ -88,7 +88,7 @@ GTEST_TEST(detray_simulation, detector_scanner) {
                 // Intersection record at portal bound might be flipped
                 // (the portals overlap completely)
                 if (expected[n_tracks][i].vol_idx ==
-                        intersection_trace[i + 1u].vol_idx and
+                        intersection_trace[i + 1u].vol_idx &&
                     expected[n_tracks][i + 1u].vol_idx ==
                         intersection_trace[i].vol_idx) {
                     // Have already checked the next record

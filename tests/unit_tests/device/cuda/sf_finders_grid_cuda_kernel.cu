@@ -264,7 +264,7 @@ __global__ void grid_collection_test_kernel(
     vecmem::device_vector<std::array<dindex, 3>> result_bins(result_bins_view);
 
     // test the grid axes of the second grid in the collection
-    if (threadIdx.x == 0 and threadIdx.y == 0 and threadIdx.z == 0) {
+    if (threadIdx.x == 0 && threadIdx.y == 0 && threadIdx.z == 0) {
         const auto& axis_r =
             device_coll[blockIdx.x].template get_axis<axis::label::e_r>();
         const auto& axis_phi =

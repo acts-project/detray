@@ -50,7 +50,7 @@ struct center_of_gravity_rectangle {
             max_l1 = math::max(b[1], max_l1);
         }
 
-        if (cgs[0] >= min_l0 and cgs[0] < max_l0 and cgs[1] >= min_l1 and
+        if (cgs[0] >= min_l0 && cgs[0] < max_l0 && cgs[1] >= min_l1 &&
             cgs[1] < max_l1) {
             return true;
         }
@@ -86,8 +86,8 @@ struct center_of_gravity_generic {
         for (i = 0u, j = num_points - 1u; i < num_points; j = i++) {
             const auto &pi = bin_contour[i];
             const auto &pj = bin_contour[j];
-            if ((((pi[1] <= cgs[1]) and (cgs[1] < pj[1])) or
-                 ((pj[1] <= cgs[1]) and (cgs[1] < pi[1]))) and
+            if ((((pi[1] <= cgs[1]) && (cgs[1] < pj[1])) ||
+                 ((pj[1] <= cgs[1]) && (cgs[1] < pi[1]))) &&
                 (cgs[0] <
                  (pj[0] - pi[0]) * (cgs[1] - pi[1]) / (pj[1] - pi[1]) + pi[0]))
                 inside = !inside;
@@ -123,7 +123,7 @@ struct edges_intersect_generic {
                 double s = ((pi[1] - pk[1]) * (pj[0] - pi[0]) -
                             (pi[0] - pk[0]) * (pj[1] - pi[1])) /
                            d;
-                if (r >= 0.f and r <= 1.f and s >= 0.f and s <= 1.f) {
+                if (r >= 0.f && r <= 1.f && s >= 0.f && s <= 1.f) {
                     return true;
                 }
             }

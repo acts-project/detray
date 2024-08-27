@@ -99,13 +99,13 @@ struct ray_concentric_cylinder_intersector {
 
             // Chose the index, take the smaller positive one
             const unsigned int cindex =
-                (t01[0] < t01[1] and t01[0] > overstep_tolerance)
+                (t01[0] < t01[1] && t01[0] > overstep_tolerance)
                     ? 0u
-                    : (t01[0] < overstep_tolerance and
+                    : (t01[0] < overstep_tolerance &&
                                t01[1] > overstep_tolerance
                            ? 1u
                            : 0u);
-            if (t01[0] > overstep_tolerance or t01[1] > overstep_tolerance) {
+            if (t01[0] > overstep_tolerance || t01[1] > overstep_tolerance) {
 
                 const point3_type p3 = candidates[cindex];
                 const scalar_type phi{getter::phi(p3)};

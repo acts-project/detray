@@ -152,7 +152,7 @@ class geometry_writer {
         // and is handled automatically during detector building
         for (unsigned int i = 1u; i < link.size(); ++i) {
             const auto& l = link[i];
-            if (not l.is_invalid()) {
+            if (!l.is_invalid()) {
                 const auto aclp = det.accelerator_store()
                                       .template visit<get_acc_link_payload>(l);
                 vol_data.acc_links->push_back(aclp);

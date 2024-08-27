@@ -62,9 +62,9 @@ class single_store {
 
     /// Construct with a specific memory resource @param resource
     /// (host-side only)
-    template <typename allocator_t = vecmem::memory_resource,
-              std::enable_if_t<not detail::is_device_view_v<allocator_t>,
-                               bool> = true>
+    template <
+        typename allocator_t = vecmem::memory_resource,
+        std::enable_if_t<!detail::is_device_view_v<allocator_t>, bool> = true>
     DETRAY_HOST explicit single_store(allocator_t &resource)
         : m_container(&resource) {}
 

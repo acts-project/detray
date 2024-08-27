@@ -163,7 +163,7 @@ class hash_tree {
         }
         dindex n_level = n_prev_level / 2u;
         // Need dummy leaf node for next level?
-        if (n_level % 2u != 0u and n_level > 1u) {
+        if (n_level % 2u != 0u && n_level > 1u) {
             _tree.emplace_back(0);
             n_level++;
         }

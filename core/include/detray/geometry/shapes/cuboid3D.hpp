@@ -186,17 +186,17 @@ class cuboid3D {
 
         constexpr auto tol{10.f * std::numeric_limits<scalar_t>::epsilon()};
 
-        if (bounds[e_min_x] >= bounds[e_max_x] or
+        if (bounds[e_min_x] >= bounds[e_max_x] ||
             math::fabs(bounds[e_min_x] - bounds[e_max_x]) < tol) {
             os << "ERROR: Min x must be smaller than max x.";
             return false;
         }
-        if (bounds[e_min_y] >= bounds[e_max_y] or
+        if (bounds[e_min_y] >= bounds[e_max_y] ||
             math::fabs(bounds[e_min_y] - bounds[e_max_y]) < tol) {
             os << "ERROR: Min y must be smaller than max y.";
             return false;
         }
-        if (bounds[e_min_z] >= bounds[e_max_z] or
+        if (bounds[e_min_z] >= bounds[e_max_z] ||
             math::fabs(bounds[e_min_z] - bounds[e_max_z]) < tol) {
             os << "ERROR: Min z must be smaller than max z.";
             return false;

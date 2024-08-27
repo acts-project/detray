@@ -172,7 +172,7 @@ class cylinder2D {
                << std::endl;
             return false;
         }
-        if (bounds[e_lower_z] >= bounds[e_upper_z] or
+        if (bounds[e_lower_z] >= bounds[e_upper_z] ||
             math::fabs(bounds[e_lower_z] - bounds[e_upper_z]) < tol) {
             os << "ERROR: Neg. half length must be smaller than pos. half "
                   "length.";

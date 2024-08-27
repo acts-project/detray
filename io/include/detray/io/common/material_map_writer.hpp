@@ -67,7 +67,7 @@ class material_map_writer : public detail::grid_writer {
 
                 const auto& mat_link = sf_desc.material();
                 // Don't look at empty links
-                if (mat_link.is_invalid() or
+                if (mat_link.is_invalid() ||
                     mat_link.id() == detector_t::materials::id::e_none) {
                     continue;
                 }

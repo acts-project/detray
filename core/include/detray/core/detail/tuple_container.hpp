@@ -54,7 +54,7 @@ class tuple_container {
     /// Construct with a specific vecmem memory resource @param resource
     /// (host-side only)
     template <typename allocator_t = vecmem::memory_resource,
-              std::enable_if_t<not is_device_view_v<allocator_t>, bool> = true>
+              std::enable_if_t<!is_device_view_v<allocator_t>, bool> = true>
     DETRAY_HOST explicit tuple_container(allocator_t &resource)
         : _tuple(Ts(&resource)...) {}
 
@@ -204,7 +204,7 @@ class tuple_container {
                                     std::forward<Args>(As)...);
         }
         // If there is no matching ID, return default output
-        if constexpr (not std::is_same_v<
+        if constexpr (!std::is_same_v<
                           std::invoke_result_t<
                               functor_t,
                               const detail::tuple_element_t<0, tuple_type> &,

@@ -36,7 +36,7 @@ inline std::string alt_file_name(const std::string& name) {
         // File stem already comes with a number, simply update it
         if (n > 2u) {
             std::size_t pos{file_stem.rfind(delim)};
-            if (pos == std::string::npos or (pos + 1 == file_stem.size())) {
+            if (pos == std::string::npos || (pos + 1 == file_stem.size())) {
                 throw std::runtime_error("Malformed file name");
             }
 

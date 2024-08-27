@@ -80,7 +80,7 @@ struct ray_intersector_impl<cartesian2D<algebra_t>, algebra_t, true> {
 
         // Check if we divided by zero
         const auto check_sum = is.path.sum();
-        if (!std::isnan(check_sum) and !std::isinf(check_sum)) {
+        if (!std::isnan(check_sum) && !std::isinf(check_sum)) {
 
             const point3_type p3 = ro + is.path * rd;
             is.local = mask.to_local_frame(trf, p3, rd);

@@ -110,10 +110,10 @@ struct range : public std::false_type {
 template <class R>
 struct range<R,
              std::enable_if_t<
-                 (std::is_class_v<detray::ranges::iterator_t<R>> or
+                 (std::is_class_v<detray::ranges::iterator_t<R>> ||
                   std::is_pointer_v<detray::ranges::iterator_t<
-                      R>>)and(std::is_class_v<detray::ranges::sentinel_t<R>> or
-                              std::is_pointer_v<detray::ranges::sentinel_t<R>>),
+                      R>>)&&(std::is_class_v<detray::ranges::sentinel_t<R>> ||
+                             std::is_pointer_v<detray::ranges::sentinel_t<R>>),
                  void>> : public std::true_type {};
 
 // Range
@@ -148,23 +148,23 @@ inline constexpr bool random_access_iterator_v =
 
 // Range categories
 template <class R>
-inline constexpr bool input_range_v = detray::ranges::range_v<R>and
+inline constexpr bool input_range_v = detray::ranges::range_v<R>&&
     input_iterator_v<detray::ranges::iterator_t<R>>;
 
 template <class R>
-inline constexpr bool output_range_v = detray::ranges::range_v<R>and
+inline constexpr bool output_range_v = detray::ranges::range_v<R>&&
     output_iterator_v<detray::ranges::iterator_t<R>>;
 
 template <class R>
-inline constexpr bool forward_range_v = detray::ranges::range_v<R>and
+inline constexpr bool forward_range_v = detray::ranges::range_v<R>&&
     forward_iterator_v<detray::ranges::iterator_t<R>>;
 
 template <class R>
-inline constexpr bool bidirectional_range_v = detray::ranges::range_v<R>and
+inline constexpr bool bidirectional_range_v = detray::ranges::range_v<R>&&
     bidirectional_iterator_v<detray::ranges::iterator_t<R>>;
 
 template <class R>
-inline constexpr bool random_access_range_v = detray::ranges::range_v<R>and
+inline constexpr bool random_access_range_v = detray::ranges::range_v<R>&&
     random_access_iterator_v<detray::ranges::iterator_t<R>>;
 
 // Contiguous iterator trait is only available in c++20
@@ -180,8 +180,8 @@ inline constexpr bool disable_sized_range = false;
 /// @brief A function 'size' is implemented for the range @tparam R
 template <class R>
 inline constexpr bool sized_range =
-    not ranges::disable_sized_range<detray::detail::remove_cvref_t<R>> and
-    (detray::ranges::range_v<R> and
+    !ranges::disable_sized_range<detray::detail::remove_cvref_t<R>> &&
+    (detray::ranges::range_v<R> &&
      std::is_integral_v<detray::ranges::range_size_t<R>>);
 
 /// @see https://en.cppreference.com/w/cpp/ranges/borrowed_range
@@ -249,7 +249,7 @@ class view_interface : public base_view {
 
     DETRAY_HOST_DEVICE
     constexpr explicit operator bool() const {
-        return not detray::ranges::empty(cast_impl());
+        return !detray::ranges::empty(cast_impl());
     }
 
     /// @note requires contiguous range (not yet modelled)
@@ -279,7 +279,7 @@ class view_interface : public base_view {
               std::enable_if_t<detray::ranges::forward_range_v<R>, bool> = true>
     DETRAY_HOST_DEVICE constexpr decltype(auto) front() const {
         const auto bg = detray::ranges::begin(cast_impl());
-        assert(not empty());
+        assert(!empty());
         return *bg;
     }
 
@@ -288,7 +288,7 @@ class view_interface : public base_view {
               std::enable_if_t<detray::ranges::forward_range_v<R>, bool> = true>
     DETRAY_HOST_DEVICE constexpr decltype(auto) front() {
         const auto bg = detray::ranges::begin(cast_impl());
-        assert(not empty());
+        assert(!empty());
         return *bg;
     }
 
@@ -298,7 +298,7 @@ class view_interface : public base_view {
         std::enable_if_t<detray::ranges::bidirectional_range_v<R>, bool> = true>
     DETRAY_HOST_DEVICE constexpr decltype(auto) back() const {
         auto sentinel = detray::ranges::end(cast_impl());
-        assert(not empty());
+        assert(!empty());
         return *(--sentinel);
     }
 
@@ -308,7 +308,7 @@ class view_interface : public base_view {
         std::enable_if_t<detray::ranges::bidirectional_range_v<R>, bool> = true>
     DETRAY_HOST_DEVICE constexpr decltype(auto) back() {
         auto sentinel = detray::ranges::end(cast_impl());
-        assert(not empty());
+        assert(!empty());
         return *(--sentinel);
     }
 
@@ -341,11 +341,11 @@ class view_interface : public base_view {
 /// @{
 template <typename R>
 inline constexpr bool enable_view =
-    std::is_base_of_v<base_view, R> or std::is_base_of_v<view_interface<R>, R>;
+    std::is_base_of_v<base_view, R> || std::is_base_of_v<view_interface<R>, R>;
 
 template <class R>
-inline constexpr bool view = detray::ranges::range_v<R>and std::is_object_v<R>&&
-    std::is_move_constructible_v<R>and enable_view<R>;
+inline constexpr bool view = detray::ranges::range_v<R>&& std::is_object_v<R>&&
+    std::is_move_constructible_v<R>&& enable_view<R>;
 
 template <class R>
 inline constexpr bool viewable_range =

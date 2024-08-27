@@ -39,7 +39,7 @@ inline bool check_covfie_file(const std::string& file_name) {
 template <typename bfield_t>
 inline bfield_t read_bfield(const std::string& file_name) {
 
-    if (not check_covfie_file(file_name)) {
+    if (!check_covfie_file(file_name)) {
         throw std::runtime_error("Not a valid covfie file: " + file_name);
     }
 

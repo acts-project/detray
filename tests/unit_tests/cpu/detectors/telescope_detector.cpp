@@ -193,7 +193,7 @@ GTEST_TEST(detray_detectors, telescope_detector) {
     bool heartbeat_z2 = navigator_z2.init(propgation_z2);
     bool heartbeat_x = navigator_x.init(propgation_x);
 
-    while (heartbeat_z1 and heartbeat_z2 and heartbeat_x) {
+    while (heartbeat_z1 && heartbeat_z2 && heartbeat_x) {
 
         // check that all propagation flows are still running
         EXPECT_TRUE(heartbeat_z1);

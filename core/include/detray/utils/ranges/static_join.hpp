@@ -219,7 +219,7 @@ struct static_join_iterator {
         // Switch to next range in the collection
         constexpr std::size_t max_idx{
             sizeof(iterator_coll_t) / sizeof(iterator_t) - 1u};
-        if ((m_iter == (*m_ends)[m_idx]) and (m_idx < max_idx)) {
+        if ((m_iter == (*m_ends)[m_idx]) && (m_idx < max_idx)) {
             ++m_idx;
             m_iter = (*m_begins)[m_idx];
         }

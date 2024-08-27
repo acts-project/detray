@@ -37,7 +37,7 @@ inline void to_json(nlohmann::ordered_json& j, const geo_header_payload& h) {
 inline void from_json(const nlohmann::ordered_json& j, geo_header_payload& h) {
     h.common = j["common"];
 
-    if (j.find("volume_count") != j.end() and
+    if (j.find("volume_count") != j.end() &&
         j.find("surface_count") != j.end()) {
         h.sub_header.emplace();
         auto& geo_sub_header = h.sub_header.value();
@@ -100,7 +100,7 @@ inline void to_json(nlohmann::ordered_json& j, const volume_payload& v) {
         sjson.push_back(s);
     }
     j["surfaces"] = sjson;
-    if (v.acc_links.has_value() and !v.acc_links.value().empty()) {
+    if (v.acc_links.has_value() && !v.acc_links.value().empty()) {
         nlohmann::ordered_json ljson;
         for (const auto& al : v.acc_links.value()) {
             ljson.push_back(al);
@@ -128,7 +128,7 @@ inline void from_json(const nlohmann::ordered_json& j, volume_payload& v) {
 }
 
 inline void to_json(nlohmann::ordered_json& j, const detector_payload& d) {
-    if (not d.volumes.empty()) {
+    if (!d.volumes.empty()) {
         nlohmann::ordered_json jvolumes;
         for (const auto& v : d.volumes) {
             jvolumes.push_back(v);

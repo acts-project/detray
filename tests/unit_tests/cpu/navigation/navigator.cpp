@@ -50,7 +50,7 @@ inline void check_towards_surface(state_t &state, dindex vol_id,
     ASSERT_EQ(state.n_candidates(), n_candidates);
     // the portal is still the next object, since we did not step
     ASSERT_EQ(state.next_surface().index(), next_id);
-    ASSERT_TRUE((state.trust_level() == navigation::trust_level::e_full) or
+    ASSERT_TRUE((state.trust_level() == navigation::trust_level::e_full) ||
                 (state.trust_level() == navigation::trust_level::e_high));
 }
 
@@ -61,7 +61,7 @@ inline void check_on_surface(state_t &state, dindex vol_id,
                              dindex next_id) {
     // The status is: on surface/towards surface if the next candidate is
     // immediately updated and set in the same update call
-    ASSERT_TRUE(state.status() == navigation::status::e_on_module or
+    ASSERT_TRUE(state.status() == navigation::status::e_on_module ||
                 state.status() == navigation::status::e_on_portal);
     // Points towards next candidate
     ASSERT_TRUE(std::abs(state()) >= 1.f * unit<scalar>::um);

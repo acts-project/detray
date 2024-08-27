@@ -99,7 +99,7 @@ static inline void bin_association(const context_t & /*context*/,
                     // Usually one mask per surface, but design allows - a
                     // single association  is sufficient though
                     for (auto &vertices : vertices_per_masks) {
-                        if (not vertices.empty()) {
+                        if (!vertices.empty()) {
                             // Create a surface contour
                             std::vector<point2_t> surface_contour;
                             surface_contour.reserve(vertices.size());
@@ -108,7 +108,7 @@ static inline void bin_association(const context_t & /*context*/,
                                 surface_contour.push_back({vg[0], vg[1]});
                             }
                             // The association has worked
-                            if (cgs_assoc(bin_contour, surface_contour) or
+                            if (cgs_assoc(bin_contour, surface_contour) ||
                                 edges_assoc(bin_contour, surface_contour)) {
                                 grid.template populate<attach<>>({bin_0, bin_1},
                                                                  sf);
@@ -172,7 +172,7 @@ static inline void bin_association(const context_t & /*context*/,
 
                     for (auto &vertices : vertices_per_masks) {
 
-                        if (not vertices.empty()) {
+                        if (!vertices.empty()) {
                             // Create a surface contour
                             std::vector<point2_t> surface_contour;
                             surface_contour.reserve(vertices.size());
@@ -210,7 +210,7 @@ static inline void bin_association(const context_t & /*context*/,
                             }
                             // Check for phi wrapping
                             std::vector<std::vector<point2_t>> surface_contours;
-                            if (phi_max - phi_min > constant<scalar>::pi and
+                            if (phi_max - phi_min > constant<scalar>::pi &&
                                 phi_max * phi_min < 0.) {
                                 s_c_neg.push_back(
                                     {z_max_neg, -constant<scalar>::pi});
@@ -228,7 +228,7 @@ static inline void bin_association(const context_t & /*context*/,
                             // Check the association (with potential splits)
                             bool associated = false;
                             for (const auto &s_c : surface_contours) {
-                                if (cgs_assoc(bin_contour, s_c) or
+                                if (cgs_assoc(bin_contour, s_c) ||
                                     edges_assoc(bin_contour, s_c)) {
                                     associated = true;
                                     break;

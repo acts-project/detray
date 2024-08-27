@@ -78,7 +78,7 @@ class file_handle final {
             }
 
             std::filesystem::path file_path{file_name + extension};
-            if (not std::filesystem::exists(file_path)) {
+            if (!std::filesystem::exists(file_path)) {
                 throw std::invalid_argument(
                     "Could not open file: File does not exist: " + file_name +
                     extension);
