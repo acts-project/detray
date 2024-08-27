@@ -243,7 +243,7 @@ GTEST_TEST(detray_builders, decorator_material_map_builder) {
         EXPECT_EQ(z_axis.nbins(), 10u);
 
         for (const auto& mat_slab : cyl_mat_grid.all()) {
-            EXPECT_TRUE(mat_slab.get_material() == silicon<scalar>() or
+            EXPECT_TRUE(mat_slab.get_material() == silicon<scalar>() ||
                         mat_slab.get_material() == gold<scalar>());
         }
     }

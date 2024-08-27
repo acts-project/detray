@@ -87,7 +87,7 @@ struct regular {
     dindex bin(scalar v) const {
         int ibin = static_cast<int>((v - min) / (max - min) *
                                     static_cast<scalar>(n_bins));
-        if (ibin >= 0 and ibin < static_cast<int>(n_bins)) {
+        if (ibin >= 0 && ibin < static_cast<int>(n_bins)) {
             return static_cast<dindex>(ibin);
         } else {
             if (ibin < 0) {
@@ -272,7 +272,7 @@ struct circular {
     dindex bin(scalar v) const {
         int ibin = static_cast<int>((v - min) / (max - min) *
                                     static_cast<scalar>(n_bins));
-        if (ibin >= 0 and ibin < static_cast<int>(n_bins)) {
+        if (ibin >= 0 && ibin < static_cast<int>(n_bins)) {
             return static_cast<dindex>(ibin);
         } else {
             if (ibin < 0) {
@@ -384,7 +384,7 @@ struct circular {
     DETRAY_HOST_DEVICE
     dindex remap(dindex ibin, int shood) const {
         int opt_bin = static_cast<int>(ibin) + shood;
-        if (opt_bin >= 0 and opt_bin < static_cast<int>(n_bins)) {
+        if (opt_bin >= 0 && opt_bin < static_cast<int>(n_bins)) {
             return static_cast<dindex>(opt_bin);
         }
         if (opt_bin < 0) {
@@ -501,7 +501,7 @@ struct irregular {
         int ibin = static_cast<int>(
             std::lower_bound(boundaries.begin(), boundaries.end(), v) -
             boundaries.begin());
-        if (ibin > 0 and ibin < static_cast<int>(boundaries.size())) {
+        if (ibin > 0 && ibin < static_cast<int>(boundaries.size())) {
             return static_cast<dindex>(--ibin);
         } else {
             if (ibin == 0) {

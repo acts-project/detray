@@ -178,7 +178,7 @@ class navigation_validation : public test::fixture_base<> {
                     std::make_pair(test_traj, missed_inters));
             }
 
-            if (not success) {
+            if (!success) {
                 // Write debug info to file
                 *debug_file << "TEST TRACK " << n_tracks << ":\n\n"
                             << nav_printer.to_string()

@@ -70,7 +70,7 @@ struct ray_intersector_impl<concentric_cylindrical2D<algebra_t>, algebra_t,
         const auto qe = this->solve_intersection(ray, mask, trf);
 
         // None of the cylinders has a valid intersection
-        if (detray::detail::all_of(qe.solutions() <= 0) or
+        if (detray::detail::all_of(qe.solutions() <= 0) ||
             detray::detail::all_of(qe.larger() <= overstep_tol)) {
             is.status = decltype(is.status)(false);
             return is;

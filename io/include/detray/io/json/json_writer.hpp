@@ -46,16 +46,16 @@ class json_writer final : public writer_interface<detector_t> {
         const std::ios_base::openmode mode = std::ios::out | std::ios::binary,
         const std::filesystem::path &file_path = {"./"}) override {
         // Assert output stream
-        assert(((mode == std::ios_base::out) or
-                (mode == (std::ios_base::out | std::ios_base::binary)) or
-                (mode == (std::ios_base::out | std::ios_base::trunc)) or
+        assert(((mode == std::ios_base::out) ||
+                (mode == (std::ios_base::out | std::ios_base::binary)) ||
+                (mode == (std::ios_base::out | std::ios_base::trunc)) ||
                 (mode == (std::ios_base::out | std::ios_base::trunc |
                           std::ios_base::binary))) &&
                "Illegal file mode for json writer");
 
         // By convention the name of the detector is the first element
         std::string det_name = "";
-        if (not names.empty()) {
+        if (!names.empty()) {
             det_name = names.at(0);
         }
 

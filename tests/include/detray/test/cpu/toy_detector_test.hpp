@@ -359,7 +359,7 @@ inline bool toy_detector_test(
                     .template get<accel_ids::e_brute_force>()[link[0].index()];
 
             // This means no grids, all surfaces are in the brute force method
-            if (not has_grids) {
+            if (!has_grids) {
                 const auto full_range = darray<dindex, 2>{
                     sf_range[0], math::max(pt_range[1], sf_range[1])};
                 test_finder(bf_finder, vol_itr->index(), full_range);
@@ -367,7 +367,7 @@ inline bool toy_detector_test(
                 test_finder(bf_finder, vol_itr->index(), pt_range);
 
                 // Test the module search if grids were filled
-                if (not link[1].is_invalid()) {
+                if (!link[1].is_invalid()) {
                     if (link[1].id() == accel_ids::e_cylinder2_grid) {
                         const auto& cyl_grid = accel_store.template get<
                             accel_ids::e_cylinder2_grid>()[link[1].index()];

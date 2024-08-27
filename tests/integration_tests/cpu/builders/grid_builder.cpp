@@ -170,7 +170,7 @@ GTEST_TEST(detray_builders, decorator_grid_builder) {
         d.accelerator_store()
             .template get<detector_t::accel::id::e_brute_force>()[0];
     for (const auto& sf : bf_finder.all()) {
-        EXPECT_TRUE((sf.id() == surface_id::e_portal) or
+        EXPECT_TRUE((sf.id() == surface_id::e_portal) ||
                     (sf.id() == surface_id::e_passive));
         EXPECT_EQ(sf.volume(), 0u);
     }

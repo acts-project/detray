@@ -238,7 +238,7 @@ struct interaction {
         // computations
 
         // if electron or positron
-        if ((ptc.pdg_num() == 11) or (ptc.pdg_num() == -11)) {
+        if ((ptc.pdg_num() == 11) || (ptc.pdg_num() == -11)) {
             //@todo (Beomki): Not sure if we need this function. At least we
             // need to find the reference for this equation
             return theta0RossiGreisen(xOverX0, momentumInv, rq.m_q2OverBeta2);

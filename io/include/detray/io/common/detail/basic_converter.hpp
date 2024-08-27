@@ -32,8 +32,8 @@ inline single_link_payload convert(const std::size_t idx) {
     return link_data;
 }
 
-/// Convert a typed link with a type id @param id and and index
-/// @param idx into its io payload
+/// Convert a typed link with a type id @param id and index @param idx into its
+/// io payload
 template <typename type_id>
 inline typed_link_payload<type_id> convert(const type_id id,
                                            const std::size_t idx) {

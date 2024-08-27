@@ -57,7 +57,7 @@ class actor_chain {
     DETRAY_HOST_DEVICE inline void run(const actor_t &actr,
                                        actor_states_t &states,
                                        propagator_state_t &p_state) const {
-        if constexpr (not typename actor_t::is_comp_actor()) {
+        if constexpr (!typename actor_t::is_comp_actor()) {
             actr(detail::get<typename actor_t::state &>(states), p_state);
         } else {
             actr(states, p_state);

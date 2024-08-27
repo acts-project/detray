@@ -295,7 +295,7 @@ struct propagator {
         }
 
         propagation.debug_stream << "surface: " << std::setw(14);
-        if (navigation.is_on_portal() or navigation.is_on_module()) {
+        if (navigation.is_on_portal() || navigation.is_on_module()) {
             propagation.debug_stream << navigation.barcode();
         } else {
             propagation.debug_stream << "undefined";

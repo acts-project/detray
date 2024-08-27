@@ -35,7 +35,7 @@ inline void from_json(const nlohmann::ordered_json& j,
                       homogeneous_material_header_payload& h) {
     h.common = j["common"];
 
-    if (j.find("slab_count") != j.end() and j.find("rod_count") != j.end()) {
+    if (j.find("slab_count") != j.end() && j.find("rod_count") != j.end()) {
         h.sub_header.emplace();
         auto& mat_sub_header = h.sub_header.value();
         mat_sub_header.n_slabs = j["slab_count"];
@@ -76,14 +76,14 @@ inline void to_json(nlohmann::ordered_json& j,
                     const material_volume_payload& mv) {
     j["volume_link"] = mv.volume_link;
 
-    if (not mv.mat_slabs.empty()) {
+    if (!mv.mat_slabs.empty()) {
         nlohmann::ordered_json jmats;
         for (const auto& m : mv.mat_slabs) {
             jmats.push_back(m);
         }
         j["material_slabs"] = jmats;
     }
-    if (mv.mat_rods.has_value() and not mv.mat_rods->empty()) {
+    if (mv.mat_rods.has_value() && !mv.mat_rods->empty()) {
         nlohmann::ordered_json jmats;
         for (const auto& m : mv.mat_rods.value()) {
             jmats.push_back(m);
@@ -113,7 +113,7 @@ inline void from_json(const nlohmann::ordered_json& j,
 
 inline void to_json(nlohmann::ordered_json& j,
                     const detector_homogeneous_material_payload& d) {
-    if (not d.volumes.empty()) {
+    if (!d.volumes.empty()) {
         nlohmann::ordered_json jmats;
         for (const auto& m : d.volumes) {
             jmats.push_back(m);

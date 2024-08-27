@@ -78,13 +78,13 @@ class uniform_track_generator
         /// @returns whether we reached end of angle space
         DETRAY_HOST_DEVICE
         constexpr bool operator==(const iterator& rhs) const {
-            return rhs.i_phi == i_phi and rhs.i_theta == i_theta;
+            return rhs.i_phi == i_phi && rhs.i_theta == i_theta;
         }
 
         /// @returns whether we reached end of angle space
         DETRAY_HOST_DEVICE
         constexpr bool operator!=(const iterator& rhs) const {
-            return not(*this == rhs);
+            return !(*this == rhs);
         }
 
         /// Iterate through angle space according to given step sizes.

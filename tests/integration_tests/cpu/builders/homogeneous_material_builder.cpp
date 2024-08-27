@@ -168,7 +168,7 @@ GTEST_TEST(detray_builders, decorator_homogeneous_material_builder) {
 
     for (const auto &mat_slab :
          d.material_store().template get<material_id::e_slab>()) {
-        EXPECT_TRUE(mat_slab.get_material() == silicon<scalar>() or
+        EXPECT_TRUE(mat_slab.get_material() == silicon<scalar>() ||
                     mat_slab.get_material() == tungsten<scalar>());
     }
 }

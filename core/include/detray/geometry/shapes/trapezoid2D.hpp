@@ -207,7 +207,7 @@ class trapezoid2D {
 
         constexpr auto tol{10.f * std::numeric_limits<scalar_t>::epsilon()};
 
-        if (bounds[e_half_length_0] < tol or bounds[e_half_length_1] < tol) {
+        if (bounds[e_half_length_0] < tol || bounds[e_half_length_1] < tol) {
             os << "ERROR: Half length in x must be in the range (0, "
                   "numeric_max)"
                << std::endl;

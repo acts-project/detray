@@ -116,7 +116,7 @@ TEST(grids_cuda, grid2_replace_populator_ci) {
 }
 
 // Equality operator in complete populator does not work correctly in CUDA
-// (not constexpr)
+// (!constexpr)
 /*TEST(grids_cuda, grid2_complete_populator) {
     // memory resource
     vecmem::cuda::managed_memory_resource mng_mr;

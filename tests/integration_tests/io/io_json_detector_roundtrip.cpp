@@ -48,7 +48,7 @@ bool compare_files(const std::string& file_name1, const std::string& file_name2,
     std::size_t i{1u};
     while (std::getline(*file1, line1)) {
         if (std::getline(*file2, line2)) {
-            if (skip < i and line1 != line2) {
+            if (skip < i && line1 != line2) {
                 std::cout << "In line " << i << ":" << std::endl
                           << line1 << std::endl
                           << line2 << std::endl;

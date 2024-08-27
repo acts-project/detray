@@ -109,7 +109,7 @@ inline bool check_connectivity(
             return find_if(
                 trace.begin(), trace.end(),
                 [&](const std::pair<entry_type, entry_type> &rec) -> bool {
-                    return (std::get<1>(rec.first) == current_volume) or
+                    return (std::get<1>(rec.first) == current_volume) ||
                            (std::get<1>(rec.second) == current_volume);
                 });
         };
@@ -144,7 +144,7 @@ inline bool check_connectivity(
 
         // Don't search this key again -> only one potential key with current
         // index left
-        if constexpr (not check_sorted_trace) {
+        if constexpr (!check_sorted_trace) {
             trace.erase(record);
         }
 
@@ -266,7 +266,7 @@ inline auto trace_intersections(const record_container &intersection_records,
         const record rec{intersection_records.at(0u)};
 
         // No exit potal
-        if (not rec.is_portal()) {
+        if (!rec.is_portal()) {
             const std::string sf_type{rec.is_sensitive() ? "sensitive"
                                                          : "passive"};
 
@@ -294,12 +294,12 @@ inline auto trace_intersections(const record_container &intersection_records,
         // If the current record is not a portal, add an entry to the module
         // trace and continue in more fine-grained steps (sensitive/passive
         // surfaces do not come in pairs)
-        if (not current_rec.is_portal()) {
+        if (!current_rec.is_portal()) {
             // Check that the surface was found in the volume it claims to
             // belong to
             const bool is_in_volume =
                 (current_rec.volume_idx() ==
-                 current_rec.surface_volume_idx()) and
+                 current_rec.surface_volume_idx()) &&
                 (current_rec.surface_volume_idx() == current_vol);
             if (is_in_volume) {
                 module_trace.emplace_back(current_rec.surface_idx(),
@@ -336,24 +336,24 @@ inline auto trace_intersections(const record_container &intersection_records,
             next_rec.volume_idx() == next_rec.surface_volume_idx();
         // Is this doublet connected via a valid portal intersection?
         const bool is_valid =
-            (current_rec.inters() == next_rec.inters()) and
-            (current_rec.volume_idx() == next_rec.volume_link()) and
+            (current_rec.inters() == next_rec.inters()) &&
+            (current_rec.volume_idx() == next_rec.volume_link()) &&
             (next_rec.volume_idx() == current_rec.volume_link());
         // Is this indeed a portal crossing, i.e. changing volumes?
         const bool is_self_link =
             current_rec.volume_idx() == next_rec.volume_idx();
         // Is the record doublet we picked made up of a portal and a module?
         const bool is_mixed =
-            (current_rec.is_portal() and not next_rec.is_portal()) or
-            (next_rec.is_portal() and not current_rec.is_portal());
+            (current_rec.is_portal() && !next_rec.is_portal()) ||
+            (next_rec.is_portal() && !current_rec.is_portal());
 
-        if (not is_in_volume) {
+        if (!is_in_volume) {
             record_stream << "\n(!!) Surface outside of its volume (Found: "
                           << next_rec.volume_idx()
                           << ", belongs in: " << next_rec.surface_volume_idx()
                           << ")" << std::endl;
         }
-        if (not is_valid) {
+        if (!is_valid) {
             record_stream << "\n(!!) Not a valid portal crossing ("
                           << current_rec.volume_idx() << " <-> "
                           << next_rec.volume_idx() << "):\nPortals are not "
@@ -371,7 +371,7 @@ inline auto trace_intersections(const record_container &intersection_records,
                           << " this portal crossing is not a portal!"
                           << std::endl;
         }
-        if (is_in_volume and is_valid and not is_self_link and not is_mixed) {
+        if (is_in_volume && is_valid && !is_self_link && !is_mixed) {
 
             // Insert into portal trace
             trace_entry lower{current_rec.surface_idx(),
@@ -413,7 +413,7 @@ inline auto trace_intersections(const record_container &intersection_records,
 
     // Look at the last entry, which is a single portal
     const record rec_back{intersection_records.back()};
-    if (not rec_back.is_portal()) {
+    if (!rec_back.is_portal()) {
         err_stream << "We don't leave the detector by portal!";
         print_err(err_stream);
     } else {
@@ -681,7 +681,7 @@ inline std::string print_adj(const dvector<dindex> &adjacency_matrix) {
                 degr > 1 ? "\t\t\t\t(" + std::to_string(degr) + "x)" : "";
 
             // Edge that leads out of the detector world
-            if (j == dim - 1 and degr != 0) {
+            if (j == dim - 1 && degr != 0) {
                 out_stream << "    -> leaving world " + n_occur << std::endl;
             } else {
                 out_stream << "    -> " << std::to_string(j) + "\t" + n_occur

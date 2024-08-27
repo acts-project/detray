@@ -190,7 +190,7 @@ std::vector<std::vector<std::size_t>> get_bin_association(
     const auto& link =
         vol_desc.template accel_link<geo_object_ids::e_sensitive>();
 
-    if (not link.is_invalid()) {
+    if (!link.is_invalid()) {
         return det.accelerator_store()
             .template visit<detail::bin_association_getter>(link, vol_desc,
                                                             search_window);

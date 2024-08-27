@@ -215,7 +215,7 @@ struct print_inspector {
             debug_stream << ", glob: [r:" << getter::perp(pos)
                          << ", z:" << pos[2] << "]" << std::endl;
         }
-        if (not state.candidates().empty()) {
+        if (!state.candidates().empty()) {
             debug_stream << "=> next: ";
             if (state.is_exhausted()) {
                 debug_stream << "exhausted" << std::endl;
@@ -248,7 +248,7 @@ struct print_inspector {
         };
 
         debug_stream << "current object\t\t\t";
-        if (state.is_on_portal() or state.is_on_module() or
+        if (state.is_on_portal() || state.is_on_module() ||
             state.status() == status::e_on_target) {
             debug_stream << state.barcode() << std::endl;
         } else {

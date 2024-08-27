@@ -93,7 +93,7 @@ auto draw_intersection_and_traj_svg(
                                           traj.dir(0.f), view, gctx);
 
     // Draw an approximation of the trajectory with the recorded intersections
-    if (not recorded_intersections.empty()) {
+    if (!recorded_intersections.empty()) {
         svg_traj.add_object(il.draw_intersections_and_trajectory(
             traj_name, recorded_intersections, traj, view,
             truth_intersections.back().path, gctx));
@@ -118,7 +118,7 @@ inline void svg_display(const typename detector_t::geometry_context gctx,
 
     // Gather all volumes that need to be displayed
     auto volumes = get_volume_indices(truth_trace);
-    if (not recorded_trace.empty()) {
+    if (!recorded_trace.empty()) {
         const auto more_volumes = get_volume_indices(truth_trace);
         volumes.insert(more_volumes.begin(), more_volumes.end());
     }

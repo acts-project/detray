@@ -137,8 +137,8 @@ class type_registry {
     template <typename object_t, typename first_t = empty_type,
               typename... remaining_types>
     DETRAY_HOST_DEVICE static constexpr ID unroll_ids() {
-        if constexpr (not std::is_same_v<first_t, empty_type> and
-                      not std::is_same_v<object_t, first_t>) {
+        if constexpr (!std::is_same_v<first_t, empty_type> &&
+                      !std::is_same_v<object_t, first_t>) {
             return unroll_ids<object_t, remaining_types...>();
         }
         if constexpr (std::is_same_v<object_t, first_t>) {

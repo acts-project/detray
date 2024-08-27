@@ -112,7 +112,7 @@ class homogeneous_material_writer {
                 mslp.index_in_coll = slab_idx++;
                 mv_data.mat_slabs.push_back(mslp);
             } else if (mslp.type == material_type::rod) {
-                if (not mv_data.mat_rods.has_value()) {
+                if (!mv_data.mat_rods.has_value()) {
                     mv_data.mat_rods.emplace();
                 }
                 mslp.index_in_coll = rod_idx++;
@@ -169,7 +169,7 @@ class homogeneous_material_writer {
             constexpr bool is_rod =
                 std::is_same_v<material_t, material_rod<scalar_t>>;
 
-            if constexpr (is_slab or is_rod) {
+            if constexpr (is_slab || is_rod) {
                 return homogeneous_material_writer::convert(
                     material_group[index], sf_index);
             } else {

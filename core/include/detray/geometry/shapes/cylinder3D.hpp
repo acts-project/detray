@@ -196,12 +196,12 @@ class cylinder3D {
                << std::endl;
             return false;
         }
-        if (bounds[e_min_r] >= bounds[e_max_r] or
+        if (bounds[e_min_r] >= bounds[e_max_r] ||
             math::fabs(bounds[e_min_r] - bounds[e_max_r]) < tol) {
             os << "ERROR: Min Radius must be smaller than max Radius.";
             return false;
         }
-        if (bounds[e_min_z] >= bounds[e_max_z] or
+        if (bounds[e_min_z] >= bounds[e_max_z] ||
             math::fabs(bounds[e_min_z] - bounds[e_max_z]) < tol) {
             os << "ERROR: Min z must be smaller than max z.";
             return false;

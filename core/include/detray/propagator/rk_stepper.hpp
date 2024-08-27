@@ -146,8 +146,8 @@ class rk_stepper final
             [[maybe_unused]] const stepping::config& cfg,
             [[maybe_unused]] const char* message,
             [[maybe_unused]] Args&&... args) {
-            if constexpr (not std::is_same_v<inspector_t,
-                                             stepping::void_inspector>) {
+            if constexpr (!std::is_same_v<inspector_t,
+                                          stepping::void_inspector>) {
                 this->_inspector(*this, cfg, message,
                                  std::forward<Args>(args)...);
             }

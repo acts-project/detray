@@ -113,7 +113,7 @@ class detector_scan : public test::fixture_base<> {
                 intersection_trace, start_index, adj_mat_scan, obj_hashes);
 
             // Display the detector, track and intersections for debugging
-            if (not success) {
+            if (!success) {
                 detector_scanner::display_error(
                     m_gctx, m_det, m_names, m_cfg.name(), test_traj,
                     intersection_trace, m_cfg.svg_style(), n_tracks, n_helices,

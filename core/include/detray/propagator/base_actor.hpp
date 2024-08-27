@@ -95,7 +95,7 @@ class composite_actor final : public actor_impl_t {
                                           actor_impl_state_t &actor_state,
                                           propagator_state_t &p_state) const {
         // Two cases: observer is a simple actor or a composite actor
-        if constexpr (not typename observer_t::is_comp_actor()) {
+        if constexpr (!typename observer_t::is_comp_actor()) {
             observer(detail::get<typename observer_t::state &>(states),
                      actor_state, p_state);
         } else {

@@ -510,7 +510,7 @@ class illustrator {
         ret._tag = "g";
         ret._id = prefix;
 
-        if (not intersections.empty()) {
+        if (!intersections.empty()) {
 
             // Draw intersections with landmark style
             auto p_ir = svgtools::conversion::intersection(

@@ -63,7 +63,7 @@ void connect_cylindrical_volumes(
         }
         seed_map[volume_index] = 1;
 
-        if (seed[0] < axis_r.bins() and seed[1] < axis_z.bins()) {
+        if (seed[0] < axis_r.bins() && seed[1] < axis_z.bins()) {
             seeds.push_back(seed);
         }
     };
@@ -110,17 +110,17 @@ void connect_cylindrical_volumes(
             //  1 - Left walk up
             // First peek to the to the left for portal desitnations
             dindex last_portal_dest =
-                (running_bin[1] > 0 and running_bin[1] < axis_r.bins())
+                (running_bin[1] > 0 && running_bin[1] < axis_r.bins())
                     ? volume_grid.bin(running_bin[0], running_bin[1] + peek)
                     : dindex_invalid;
-            while ((ref == test) and ++running_bin[0] < axis_r.bins()) {
+            while ((ref == test) && ++running_bin[0] < axis_r.bins()) {
                 high = axis_r.borders(running_bin[0]);
                 test = (seed[0] + 1 < axis_r.bins())
                            ? volume_grid.bin(running_bin[0], running_bin[1])
                            : dindex_invalid;
                 // Peek outside and see if the portal destination has changed
                 dindex portal_dest =
-                    (running_bin[1] > 0 and running_bin[1] < axis_r.bins())
+                    (running_bin[1] > 0 && running_bin[1] < axis_r.bins())
                         ? volume_grid.bin(running_bin[0], running_bin[1] + peek)
                         : dindex_invalid;
                 if (portal_dest != last_portal_dest) {
@@ -181,7 +181,7 @@ void connect_cylindrical_volumes(
                     : dindex_invalid;
 
             // Seed setting loop as well
-            while (ref == test and (++running_bin[1]) < axis_z.bins()) {
+            while (ref == test && (++running_bin[1]) < axis_z.bins()) {
                 high = axis_z.borders(running_bin[1]);
                 test = volume_grid.bin(running_bin[0], running_bin[1]);
                 // Peek outside and see if the portal destination has changed
@@ -191,7 +191,7 @@ void connect_cylindrical_volumes(
                         : dindex_invalid;
                 if (portal_dest != last_portal_dest) {
                     // Record the boundary
-                    if (not walk_only) {
+                    if (!walk_only) {
                         portals_info.push_back(
                             {{low[0], high[0]}, last_portal_dest});
                         last_added = {running_bin[0], running_bin[1] - 1};
@@ -200,7 +200,7 @@ void connect_cylindrical_volumes(
                     low = high;
                     last_portal_dest = portal_dest;
                     // That's a new seed right here, except for last one
-                    if (running_bin[1] < axis_z.bins() and add_seed) {
+                    if (running_bin[1] < axis_z.bins() && add_seed) {
                         add_new_seed({running_bin[0] + peek, running_bin[1]},
                                      portal_dest);
                     }
@@ -209,7 +209,7 @@ void connect_cylindrical_volumes(
             }
             // By this we undo the overstepping (see above)
             high = axis_z.borders(--running_bin[1]);
-            if (not walk_only and last_added != running_bin) {
+            if (!walk_only && last_added != running_bin) {
                 portals_info.push_back({{low[0], high[1]}, last_portal_dest});
             }
             // The new bin position after walk
@@ -251,7 +251,7 @@ void connect_cylindrical_volumes(
             using portal_t = typename detector_t::surface_type;
             using volume_link_t = typename portal_t::volume_link_type;
             // Fill in the left side portals
-            if (not portals_info.empty()) {
+            if (!portals_info.empty()) {
                 // The portal transfrom is given from the left
                 typename detector_t::vector3_type _translation{
                     0., 0., volume_bounds[bound_index]};
@@ -302,7 +302,7 @@ void connect_cylindrical_volumes(
             using portal_t = typename detector_t::surface_type;
             using volume_link_t = typename portal_t::volume_link_type;
             // Fill in the upper side portals
-            if (not portals_info.empty()) {
+            if (!portals_info.empty()) {
                 // Get the mask context group and fill it
                 constexpr auto cylinder_id =
                     detector_t::masks::id::e_portal_cylinder3;

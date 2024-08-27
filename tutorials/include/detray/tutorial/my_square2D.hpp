@@ -57,7 +57,7 @@ class square2D {
     DETRAY_HOST_DEVICE inline auto check_boundaries(
         const bounds_type<scalar_t> &bounds, const point_t &loc_p,
         const scalar_t tol = std::numeric_limits<scalar_t>::epsilon()) const {
-        return (math::fabs(loc_p[0]) <= bounds[e_half_length] + tol and
+        return (math::fabs(loc_p[0]) <= bounds[e_half_length] + tol &&
                 math::fabs(loc_p[1]) <= bounds[e_half_length] + tol);
     }
 

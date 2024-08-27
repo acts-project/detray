@@ -127,7 +127,7 @@ int main(int argc, char** argv) {
     const actsvg::views::z_phi zphi;
 
     // Display the volumes
-    if (not volumes.empty()) {
+    if (!volumes.empty()) {
         const auto [vol_xy_svg, xy_sheets] = il.draw_volumes(volumes, xy, gctx);
         detray::svgtools::write_svg(path / vol_xy_svg._id,
                                     {xy_axis, vol_xy_svg});
@@ -146,7 +146,7 @@ int main(int argc, char** argv) {
     }
 
     // Display the surfaces
-    if (not surfaces.empty()) {
+    if (!surfaces.empty()) {
         const auto [sf_xy_svg, mat_xy_svg] =
             il.draw_surfaces(surfaces, xy, gctx);
         detray::svgtools::write_svg(path / sf_xy_svg._id, {xy_axis, sf_xy_svg});
@@ -168,7 +168,7 @@ int main(int argc, char** argv) {
     }
 
     // If nothing was specified, display the whole detector
-    if (volumes.empty() and surfaces.empty()) {
+    if (volumes.empty() && surfaces.empty()) {
         const auto det_xy_svg = il.draw_detector(xy, gctx);
         detray::svgtools::write_svg(path / det_xy_svg._id,
                                     {xy_axis, det_xy_svg});

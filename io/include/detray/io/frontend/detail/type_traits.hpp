@@ -79,7 +79,7 @@ struct has_homogeneous_material : public std::false_type {};
 
 template <class detector_t>
 struct has_homogeneous_material<
-    detector_t, std::enable_if_t<has_material_slabs_v<detector_t> or
+    detector_t, std::enable_if_t<has_material_slabs_v<detector_t> ||
                                      has_material_rods_v<detector_t>,
                                  void>> : public std::true_type {};
 

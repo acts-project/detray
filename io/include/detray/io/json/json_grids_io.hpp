@@ -120,7 +120,7 @@ inline void from_json(const nlohmann::ordered_json& j,
 template <typename content_t, typename grid_id_t>
 inline void to_json(nlohmann::ordered_json& j,
                     const detector_grids_payload<content_t, grid_id_t>& d) {
-    if (not d.grids.empty()) {
+    if (!d.grids.empty()) {
 
         // Collection of volumes with their grid content
         nlohmann::ordered_json jgrids;

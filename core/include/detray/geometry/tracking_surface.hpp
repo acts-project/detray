@@ -86,7 +86,7 @@ class tracking_surface {
     /// @param rhs is the right hand side to be compared to
     DETRAY_HOST_DEVICE
     constexpr auto operator==(const tracking_surface &rhs) const -> bool {
-        return (&m_detector == &(rhs.m_detector) and m_desc == rhs.m_desc);
+        return (&m_detector == &(rhs.m_detector) && m_desc == rhs.m_desc);
     }
 
     /// @returns the surface barcode
@@ -169,7 +169,7 @@ class tracking_surface {
 
     /// @returns the mask volume link
     template <typename point_t = point2_type,
-              std::enable_if_t<std::is_same_v<point_t, point3_type> or
+              std::enable_if_t<std::is_same_v<point_t, point3_type> ||
                                    std::is_same_v<point_t, point2_type>,
                                bool> = true>
     DETRAY_HOST_DEVICE constexpr bool is_inside(const point_t &loc_p,
@@ -200,7 +200,7 @@ class tracking_surface {
     /// @returns the surface normal in global coordinates at a given bound/local
     /// position @param p
     template <typename point_t = point2_type,
-              std::enable_if_t<std::is_same_v<point_t, point3_type> or
+              std::enable_if_t<std::is_same_v<point_t, point3_type> ||
                                    std::is_same_v<point_t, point2_type>,
                                bool> = true>
     DETRAY_HOST_DEVICE constexpr auto normal(const context &ctx,
@@ -213,7 +213,7 @@ class tracking_surface {
     /// @param p and a global direction @param dir
     /// @note The direction has to be normalized
     template <typename point_t = point2_type,
-              std::enable_if_t<std::is_same_v<point_t, point3_type> or
+              std::enable_if_t<std::is_same_v<point_t, point3_type> ||
                                    std::is_same_v<point_t, point2_type>,
                                bool> = true>
     DETRAY_HOST_DEVICE constexpr auto cos_angle(const context &ctx,
@@ -410,7 +410,7 @@ class tracking_surface {
             return false;
         }
         // Only check, if there is material in the detector
-        if (not m_detector.material_store().all_empty()) {
+        if (!m_detector.material_store().all_empty()) {
             if (has_material() && m_desc.material().is_invalid_index()) {
                 os << "ERROR: Surface does not have valid material link:\n"
                    << *this << std::endl;
@@ -418,7 +418,7 @@ class tracking_surface {
             }
         }
         // Check the mask boundaries
-        if (not visit_mask<typename kernels::mask_self_check>(os)) {
+        if (!visit_mask<typename kernels::mask_self_check>(os)) {
             os << "\nSurface: " << *this << std::endl;
             return false;
         }

@@ -85,7 +85,7 @@ class concentric_cylinder2D {
         const bounds_type<scalar_t> &bounds, const point_t &loc_p,
         const scalar_t tol = std::numeric_limits<scalar_t>::epsilon()) const {
 
-        return (bounds[e_lower_z] - tol <= loc_p[1] and
+        return (bounds[e_lower_z] - tol <= loc_p[1] &&
                 loc_p[1] <= bounds[e_upper_z] + tol);
     }
 
@@ -172,7 +172,7 @@ class concentric_cylinder2D {
                << std::endl;
             return false;
         }
-        if (bounds[e_lower_z] >= bounds[e_upper_z] or
+        if (bounds[e_lower_z] >= bounds[e_upper_z] ||
             math::fabs(bounds[e_lower_z] - bounds[e_upper_z]) < tol) {
             os << "ERROR: Neg. half length must be smaller than pos. half "
                   "length.";

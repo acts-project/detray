@@ -155,8 +155,8 @@ class grid_builder : public volume_decorator<detector_t> {
             std::vector<surface_desc_t> surfaces{};
             for (auto &sf_desc : vol.surfaces()) {
 
-                if (sf_desc.is_sensitive() or
-                    (m_add_passives and sf_desc.is_passive())) {
+                if (sf_desc.is_sensitive() ||
+                    (m_add_passives && sf_desc.is_passive())) {
                     surfaces.push_back(sf_desc);
                 }
             }

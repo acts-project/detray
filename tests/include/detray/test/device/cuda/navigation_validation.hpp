@@ -317,7 +317,7 @@ class navigation_validation : public test::fixture_base<> {
                 n_matching_error += n_error;
             }
 
-            if (not success) {
+            if (!success) {
                 detector_scanner::display_error(
                     m_gctx, m_det, m_names, m_cfg.name(), test_traj,
                     truth_trace, m_cfg.svg_style(), n_tracks, n_test_tracks,

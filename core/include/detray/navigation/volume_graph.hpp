@@ -354,7 +354,7 @@ class volume_graph {
         node_queue.push(&(first_node));
 
         // Visit adjacent nodes and check current one
-        while (not node_queue.empty()) {
+        while (!node_queue.empty()) {
             // Inspect
             current = node_queue.front();
             if (visited[current->index()]) {
@@ -373,7 +373,7 @@ class volume_graph {
     edge_generator::iterator(current->index(), edg_link, _edges)) { dindex nbr
     = edg.to();
                     // If not leaving world and if not visited, enqueue the node
-                    if ((nbr != dindex_invalid and nbr > 0) and not
+                    if ((nbr != dindex_invalid && nbr > 0) && not
     visited[nbr]) { node_queue.push(&(_nodes[nbr]));
                     }
                 }
@@ -401,7 +401,7 @@ class volume_graph {
                     degr > 1 ? "\t\t\t\t(" + std::to_string(degr) + "x)" : "";
 
                 // Edge that leads out of the detector world
-                if (i == dim - 1u and degr != 0u) {
+                if (i == dim - 1u && degr != 0u) {
                     stream << "    -> leaving world " + n_occur << std::endl;
                 } else {
                     stream << "    -> " << std::to_string(i) + "\t" + n_occur

@@ -136,7 +136,7 @@ struct random_scatterer : actor {
 
         auto& navigation = prop_state._navigation;
 
-        if (not navigation.is_on_module()) {
+        if (!navigation.is_on_module()) {
             return;
         }
 

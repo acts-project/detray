@@ -136,7 +136,7 @@ struct helix_intersector_impl<cylindrical2D<algebra_t>, algebra_t>
                 // f(s) = ((h.pos(s) - sc) x sz)^2 - r^2 == 0
                 // Run the iteration on s
                 std::size_t n_tries{0u};
-                while (math::fabs(s - s_prev) > convergence_tolerance and
+                while (math::fabs(s - s_prev) > convergence_tolerance &&
                        n_tries < max_n_tries) {
 
                     // f'(s) = 2 * ( (h.pos(s) - sc) x sz) * (h.dir(s) x sz) )
