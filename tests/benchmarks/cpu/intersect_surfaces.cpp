@@ -41,7 +41,7 @@ void BM_INTERSECT_PLANES(benchmark::State &state) {
     unsigned int sfhit = 0u;
     unsigned int sfmiss = 0u;
 
-    auto planes = test::planes_along_direction(
+    auto [plane_descs, transforms] = test::planes_along_direction(
         dists, vector::normalize(test::vector3{1.f, 1.f, 1.f}));
     constexpr mask<rectangle2D> rect{0u, 10.f, 20.f};
 
@@ -56,9 +56,9 @@ void BM_INTERSECT_PLANES(benchmark::State &state) {
         // Iterate through uniformly distributed momentum directions
         for (const auto ray : ray_generator) {
 
-            for (const auto &plane : planes) {
+            for (const auto &desc : plane_descs) {
                 auto pi = ray_intersector<rectangle2D, test::algebra>{};
-                auto is = pi(ray, plane, rect, plane.transform());
+                auto is = pi(ray, desc, rect, transforms[desc.transform()]);
 
                 benchmark::DoNotOptimize(sfhit);
                 benchmark::DoNotOptimize(sfmiss);
@@ -96,9 +96,8 @@ enum material_ids : unsigned int {
 using mask_link_t = dtyped_index<mask_ids, dindex>;
 using material_link_t = dtyped_index<material_ids, dindex>;
 
-using plane_surface =
-    surface_descriptor<mask_link_t, material_link_t, test::transform3>;
-using intersection_t = intersection2D<plane_surface, test::algebra>;
+using surface_desc_t = surface_descriptor<mask_link_t, material_link_t>;
+using intersection_t = intersection2D<surface_desc_t, test::algebra>;
 
 /// This benchmark runs intersection with the cylinder intersector
 void BM_INTERSECT_CYLINDERS(benchmark::State &state) {
@@ -113,10 +112,12 @@ void BM_INTERSECT_CYLINDERS(benchmark::State &state) {
         cylinders.push_back(cylinder_mask{0u, r, -10.f, 10.f});
     }
 
+    test::transform3 trf{};
+
     mask_link_t mask_link{mask_ids::e_cylinder2, 0};
     material_link_t material_link{material_ids::e_slab, 0};
-    plane_surface plane(test::transform3(), mask_link, material_link, 0u,
-                        surface_id::e_sensitive);
+    surface_desc_t sf_desc(0u, mask_link, material_link, 0u,
+                           surface_id::e_sensitive);
 
     // Iterate through uniformly distributed momentum directions
     auto ray_generator = ray_generator_t{};
@@ -131,7 +132,7 @@ void BM_INTERSECT_CYLINDERS(benchmark::State &state) {
 
             for (const auto &cylinder : cylinders) {
                 auto ci = ray_intersector<cylinder2D, test::algebra>{};
-                auto inters = ci(ray, plane, cylinder, plane.transform());
+                auto inters = ci(ray, sf_desc, cylinder, trf);
 
                 benchmark::DoNotOptimize(sfhit);
                 benchmark::DoNotOptimize(sfmiss);
@@ -168,10 +169,12 @@ void BM_INTERSECT_PORTAL_CYLINDERS(benchmark::State &state) {
         cylinders.push_back(cylinder_mask{0u, r, -10.f, 10.f});
     }
 
+    test::transform3 trf{};
+
     mask_link_t mask_link{mask_ids::e_cylinder2, 0u};
     material_link_t material_link{material_ids::e_slab, 0u};
-    plane_surface plane(test::transform3(), mask_link, material_link, 0u,
-                        surface_id::e_sensitive);
+    surface_desc_t sf_desc(0u, mask_link, material_link, 0u,
+                           surface_id::e_sensitive);
 
     // Iterate through uniformly distributed momentum directions
     auto ray_generator = ray_generator_t{};
@@ -187,7 +190,7 @@ void BM_INTERSECT_PORTAL_CYLINDERS(benchmark::State &state) {
             for (const auto &cylinder : cylinders) {
                 auto cpi =
                     ray_intersector<concentric_cylinder2D, test::algebra>{};
-                auto is = cpi(ray, plane, cylinder, plane.transform());
+                auto is = cpi(ray, sf_desc, cylinder, trf);
 
                 benchmark::DoNotOptimize(sfhit);
                 benchmark::DoNotOptimize(sfmiss);
@@ -220,10 +223,12 @@ void BM_INTERSECT_CONCETRIC_CYLINDERS(benchmark::State &state) {
         cylinders.push_back(cylinder_mask(0u, r, -10.f, 10.f));
     }
 
+    test::transform3 trf{};
+
     mask_link_t mask_link{mask_ids::e_conc_cylinder3, 0u};
     material_link_t material_link{material_ids::e_slab, 0u};
-    plane_surface plane(test::transform3(), mask_link, material_link, 0u,
-                        surface_id::e_sensitive);
+    surface_desc_t sf_desc(0u, mask_link, material_link, 0u,
+                           surface_id::e_sensitive);
 
     // Iterate through uniformly distributed momentum directions
     auto ray_generator = ray_generator_t{};
@@ -236,7 +241,7 @@ void BM_INTERSECT_CONCETRIC_CYLINDERS(benchmark::State &state) {
 
             for (const auto &cylinder : cylinders) {
                 auto cci = ray_concentric_cylinder_intersector<test::algebra>{};
-                auto is = cci(ray, plane, cylinder, plane.transform());
+                auto is = cci(ray, sf_desc, cylinder, trf);
 
                 benchmark::DoNotOptimize(sfhit);
                 benchmark::DoNotOptimize(sfmiss);
