@@ -33,6 +33,7 @@ using namespace detray;
 
 // Algebra types
 using algebra_t = test::algebra;
+using point2 = test::point2;
 using vector3 = test::vector3;
 using matrix_operator = test::matrix_operator;
 using intersection_t = intersection2D<surface_descriptor<>, algebra_t>;
@@ -72,13 +73,9 @@ GTEST_TEST(detray_propagator, covariance_transport) {
         propagator<cline_stepper_t, navigator_t, actor_chain_t>;
 
     // Bound vector
-    typename bound_track_parameters<algebra_t>::vector_type bound_vector;
-    getter::element(bound_vector, e_bound_loc0, 0u) = 0.f;
-    getter::element(bound_vector, e_bound_loc1, 0u) = 0.f;
-    getter::element(bound_vector, e_bound_phi, 0u) = 0.f;
-    getter::element(bound_vector, e_bound_theta, 0u) = constant<scalar>::pi_4;
-    getter::element(bound_vector, e_bound_qoverp, 0u) = -0.1f;
-    getter::element(bound_vector, e_bound_time, 0u) = 0.f;
+    bound_parameters_vector<algebra_t> bound_vector{};
+    bound_vector.set_theta(constant<scalar>::pi_4);
+    bound_vector.set_qop(-0.1f);
 
     // Bound covariance
     typename bound_track_parameters<algebra_t>::covariance_type bound_cov =
@@ -105,8 +102,8 @@ GTEST_TEST(detray_propagator, covariance_transport) {
     // Bound state after one turn propagation
     const auto& bound_param1 = propagation._stepping._bound_params;
 
-    // const auto bound_vec0 = bound_param0.vector();
-    // const auto bound_vec1 = bound_param1.vector();
+    // const auto bound_vec0 = bound_param0;
+    // const auto bound_vec1 = bound_param1;
 
     // Check if the track reaches the final surface
     EXPECT_EQ(bound_param0.surface_link().volume(), 4095u);

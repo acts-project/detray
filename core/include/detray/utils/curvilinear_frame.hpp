@@ -12,7 +12,7 @@
 #include "detray/geometry/mask.hpp"
 #include "detray/geometry/shapes/rectangle2D.hpp"
 #include "detray/propagator/detail/jacobian_engine.hpp"
-#include "detray/tracks/detail/track_helper.hpp"
+#include "detray/tracks/bound_track_parameters.hpp"
 #include "detray/utils/unit_vectors.hpp"
 
 namespace detray {
@@ -24,7 +24,7 @@ struct curvilinear_frame {
     using vector3 = typename transform3_type::vector3;
     using unit_vectors_type = unit_vectors<vector3>;
     using bound_to_free_matrix_type = bound_to_free_matrix<algebra_t>;
-    using bound_vector_type = bound_vector<algebra_t>;
+    using bound_vector_type = bound_parameters_vector<algebra_t>;
     using jacobian_engine_type =
         detail::jacobian_engine<cartesian2D<algebra_t>>;
     using free_track_parameters_type = free_track_parameters<algebra_t>;

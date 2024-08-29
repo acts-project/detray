@@ -29,7 +29,7 @@ struct pointwise_material_interactor : actor {
     using transform3_type = dtransform3D<algebra_t>;
     using matrix_operator = dmatrix_operator<algebra_t>;
     using interaction_type = interaction<scalar_type>;
-    using bound_vector_type = bound_vector<algebra_t>;
+    using bound_param_vector_type = bound_parameters_vector<algebra_t>;
     using bound_matrix_type = bound_matrix<algebra_t>;
 
     struct state {
@@ -163,8 +163,7 @@ struct pointwise_material_interactor : actor {
 
         // Closest approach of the track to a line surface. Otherwise this is
         // ignored.
-        const auto approach{
-            matrix_operator().element(bound_params.vector(), e_bound_loc0, 0)};
+        const auto approach{bound_params[e_bound_loc0]};
         const scalar_type cos_inc_angle{math::fabs(sf.cos_angle(
             gctx, bound_params.dir(), bound_params.bound_local()))};
 
@@ -174,11 +173,10 @@ struct pointwise_material_interactor : actor {
         if (succeed) {
 
             auto &covariance = bound_params.covariance();
-            auto &vector = bound_params.vector();
 
             if (interactor_state.do_energy_loss) {
 
-                update_qop(vector, ptc, interactor_state.e_loss, nav_dir);
+                update_qop(bound_params, ptc, interactor_state.e_loss, nav_dir);
 
                 if (interactor_state.do_covariance_transport) {
 
@@ -205,13 +203,12 @@ struct pointwise_material_interactor : actor {
     /// @param[in]  e_loss energy loss
     /// @param[in]  sign navigation direction
     DETRAY_HOST_DEVICE
-    inline void update_qop(bound_vector_type &vector,
+    inline void update_qop(bound_param_vector_type &vector,
                            const pdg_particle<scalar_type> &ptc,
                            const scalar_type e_loss, const int sign) const {
         const scalar_type m = ptc.mass();
         const scalar_type q = ptc.charge();
-        const scalar_type p =
-            detail::track_helper<matrix_operator>().p(vector, q);
+        const scalar_type p = vector.p(q);
 
         // Get new Energy
         const scalar_type nextE{
@@ -224,8 +221,8 @@ struct pointwise_material_interactor : actor {
 
         // For neutral particles, qoverp = 1/p
         constexpr auto inv{detail::invalid_value<scalar_type>()};
-        getter::element(vector, e_bound_qoverp, 0) =
-            (nextP == 0.f) ? inv : (q != 0.f) ? q / nextP : 1.f / nextP;
+        vector.set_qop((nextP == 0.f) ? inv
+                                      : (q != 0.f) ? q / nextP : 1.f / nextP);
     }
 
     /// @brief Update the variance of q over p of bound track parameter

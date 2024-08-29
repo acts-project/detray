@@ -84,7 +84,7 @@ struct helix_inspector : actor {
                                          stepping._bound_params.surface_link()};
 
         const free_track_parameters<algebra_t> free_params =
-            sf.bound_to_free_vector(ctx, stepping._bound_params.vector());
+            sf.bound_to_free_vector(ctx, stepping._bound_params);
 
         const auto last_pos = free_params.pos();
 

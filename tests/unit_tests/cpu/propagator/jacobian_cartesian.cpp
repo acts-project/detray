@@ -56,17 +56,13 @@ GTEST_TEST(detray_propagator, jacobian_cartesian2D) {
     const auto free_params2 =
         detail::bound_to_free_vector(trf, rect, bound_vec);
 
-    const matrix_operator m;
-
     // Check if the bound vector is correct
-    ASSERT_NEAR(m.element(bound_vec, 0u, 0u), 2.f, isclose);
-    ASSERT_NEAR(m.element(bound_vec, 1u, 0u), 4.f, isclose);
-    ASSERT_NEAR(m.element(bound_vec, 2u, 0u), 1.1071487f,
-                isclose);  // atan(2)
-    ASSERT_NEAR(m.element(bound_vec, 3u, 0u), 0.64052231f,
-                isclose);  // atan(sqrt(5)/3)
-    ASSERT_NEAR(m.element(bound_vec, 4u, 0u), -1. / 3.7416574f, isclose);
-    ASSERT_NEAR(m.element(bound_vec, 5u, 0u), 0.1f, isclose);
+    ASSERT_NEAR(bound_vec.bound_local()[e_bound_loc0], 2.f, isclose);
+    ASSERT_NEAR(bound_vec.bound_local()[e_bound_loc1], 4.f, isclose);
+    ASSERT_NEAR(bound_vec.phi(), 1.1071487f, isclose);     // atan(2)
+    ASSERT_NEAR(bound_vec.theta(), 0.64052231f, isclose);  // atan(sqrt(5)/3)
+    ASSERT_NEAR(bound_vec.qop(), -1.f / 3.7416574f, isclose);
+    ASSERT_NEAR(bound_vec.time(), 0.1f, isclose);
 
     // Check if the same free vector is obtained
     for (unsigned int i = 0u; i < 8u; i++) {
@@ -77,6 +73,8 @@ GTEST_TEST(detray_propagator, jacobian_cartesian2D) {
     const bound_matrix<algebra_t> J =
         jac_engine::free_to_bound_jacobian(trf, free_params) *
         jac_engine::bound_to_free_jacobian(trf, rect, bound_vec);
+
+    const matrix_operator m;
 
     for (unsigned int i = 0u; i < 6u; i++) {
         for (unsigned int j = 0u; j < 6u; j++) {

@@ -66,7 +66,8 @@ class detray_propagation_HelixCovarianceTransportValidation
     using algebra_type = typename local_frame_type::algebra_type;
 
     // Vector and matrix types
-    using bound_vector_t = bound_vector<algebra_type>;
+    using bound_param_vector_t =
+        typename bound_track_parameters<algebra_type>::parameter_vector_type;
     using bound_matrix_t = bound_matrix<algebra_type>;
     using bound_to_free_matrix_t = bound_to_free_matrix<algebra_type>;
 
@@ -166,7 +167,7 @@ class detray_propagation_HelixCovarianceTransportValidation
         using destination_jacobian_engine =
             detail::jacobian_engine<destination_frame>;
 
-        const bound_vector_t& bound_vec_0 = bound_params.vector();
+        const bound_param_vector_t& bound_vec_0 = bound_params;
         const bound_matrix_t& bound_cov_0 = bound_params.covariance();
 
         // Free vector at the departure surface
@@ -235,7 +236,7 @@ class detray_propagation_HelixCovarianceTransportValidation
                                                                 free_trk_1);
 
         // Bound vector at the destination surface
-        const bound_vector_t bound_vec_1 =
+        const bound_param_vector_t bound_vec_1 =
             detail::free_to_bound_vector<destination_frame>(trf_1, free_trk_1);
 
         // Full jacobian
@@ -249,7 +250,7 @@ class detray_propagation_HelixCovarianceTransportValidation
             matrix_operator().transpose(full_jacobi);
 
         bound_track_parameters<algebra_type> ret;
-        ret.set_vector(bound_vec_1);
+        ret.set_parameter_vector(bound_vec_1);
         ret.set_covariance(bound_cov_1);
 
         return ret;
@@ -289,8 +290,9 @@ TYPED_TEST(detray_propagation_HelixCovarianceTransportValidation,
     ASSERT_EQ(trfs.size(), 10u);
 
     // Set the initial bound vector
-    bound_vector<algebra_t> bound_vec_0 = detail::free_to_bound_vector<
-        typename TestFixture::first_local_frame_type>(trfs[0], free_trk);
+    bound_parameters_vector<algebra_t> bound_vec_0 =
+        detail::free_to_bound_vector<
+            typename TestFixture::first_local_frame_type>(trfs[0], free_trk);
 
     // Set the initial bound covariance
     typename bound_track_parameters<algebra_t>::covariance_type bound_cov_0 =
@@ -305,7 +307,7 @@ TYPED_TEST(detray_propagation_HelixCovarianceTransportValidation,
 
     // Set bound track parameters
     bound_track_parameters<algebra_t> bound_params;
-    bound_params.set_vector(bound_vec_0);
+    bound_params.set_parameter_vector(bound_vec_0);
     bound_params.set_covariance(bound_cov_0);
 
     // Create masks
@@ -354,10 +356,9 @@ TYPED_TEST(detray_propagation_HelixCovarianceTransportValidation,
 
     // Check if the same vector is obtained after one loop
     for (unsigned int i = 0u; i < e_bound_size; i++) {
-        EXPECT_NEAR(matrix_operator().element(bound_vec_0, i, 0u),
-                    matrix_operator().element(bound_params.vector(), i, 0u),
-                    this->tolerance);
+        EXPECT_NEAR(bound_vec_0[i], bound_params[i], this->tolerance);
     }
+
     // Check if the same covariance is obtained after one loop
     for (unsigned int i = 0u; i < e_bound_size; i++) {
         for (unsigned int j = 0u; j < e_bound_size; j++) {
