@@ -153,13 +153,14 @@ class navigator {
         using const_view_type =
             dmulti_view<detail::get_view_t<const inspector_t>>;
 
-        /// Default constructor
-        state() = default;
+        /// Default constructor (needs a detector)
+        state() = delete;
 
+        /// Construct using a given detector @param det
         DETRAY_HOST_DEVICE
         explicit state(const detector_type &det) : m_detector(&det) {}
 
-        /// Constructor from candidates vector_view
+        /// Constructor from detector @param det and inspector view @param view
         template <
             typename view_t,
             std::enable_if_t<detail::is_device_view_v<view_t>, bool> = true>
@@ -501,7 +502,7 @@ class navigator {
         bool m_heartbeat = false;
 
         /// Detector pointer
-        const detector_type *const m_detector{nullptr};
+        const detector_type *m_detector{nullptr};
 
         /// Our cache of candidates (intersections with any kind of surface)
         candidate_cache_t m_candidates{};

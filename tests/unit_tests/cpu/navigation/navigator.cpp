@@ -89,10 +89,10 @@ inline void check_volume_switch(state_t &state, dindex vol_id) {
 
 /// Checks an entire step onto the next surface
 template <typename navigator_t, typename stepper_t, typename prop_state_t>
-inline void check_step(navigator_t &nav, stepper_t &stepper,
-                       prop_state_t &propagation, dindex vol_id,
-                       std::size_t n_candidates, dindex current_id,
-                       dindex next_id) {
+inline void step_and_check(navigator_t &nav, stepper_t &stepper,
+                           prop_state_t &propagation, dindex vol_id,
+                           std::size_t n_candidates, dindex current_id,
+                           dindex next_id) {
     auto &navigation = propagation._navigation;
 
     // Step onto the surface in volume
@@ -198,7 +198,7 @@ GTEST_TEST(detray_navigation, navigator_toy_geometry) {
     ASSERT_NEAR(navigation(), 9.5f, tol);
 
     // Now step onto the beampipe (idx 0)
-    check_step(nav, stepper, propagation, 0u, 1u, 0u, 8u);
+    step_and_check(nav, stepper, propagation, 0u, 1u, 0u, 8u);
     // New target: Distance to the beampipe volume cylinder portal
     ASSERT_NEAR(navigation(), 6.f, tol);
 
@@ -249,40 +249,47 @@ GTEST_TEST(detray_navigation, navigator_toy_geometry) {
         // Exclude the portal we are already on
         std::size_t n_candidates = sf_seq.size() - 1u;
 
+        // Test the copy constructor of the propagation state
+        auto propagation2{propagation};
+        navigator_t::state &navigation2 = propagation2._navigation;
+
         // We switched to next barrel volume
-        check_volume_switch<navigator_t>(navigation, vol_id);
+        check_volume_switch<navigator_t>(navigation2, vol_id);
 
         // The status is: on adjacent portal in volume, towards next candidate
-        check_on_surface<navigator_t>(navigation, vol_id, n_candidates,
+        check_on_surface<navigator_t>(navigation2, vol_id, n_candidates,
                                       sf_seq[0], sf_seq[1]);
 
         // Step through the module surfaces
         for (std::size_t sf = 1u; sf < sf_seq.size() - 1u; ++sf) {
             // Count only the currently reachable candidates
-            check_step(nav, stepper, propagation, vol_id, n_candidates - sf,
-                       sf_seq[sf], sf_seq[sf + 1u]);
+            step_and_check(nav, stepper, propagation2, vol_id,
+                           n_candidates - sf, sf_seq[sf], sf_seq[sf + 1u]);
         }
 
         // Step onto the portal in volume
-        stepper.step(propagation);
-        navigation.set_high_trust();
+        stepper.step(propagation2);
+        navigation2.set_high_trust();
 
         // Check agianst last volume
         if (vol_id == last_vol_id) {
-            ASSERT_FALSE(nav.update(propagation, cfg));
+            ASSERT_FALSE(nav.update(propagation2, cfg));
             // The status is: exited
-            ASSERT_EQ(navigation.status(), status::e_on_target);
+            ASSERT_EQ(navigation2.status(), status::e_on_target);
             // Switch to next volume leads out of the detector world -> exit
-            ASSERT_TRUE(detray::detail::is_invalid_value(navigation.volume()));
+            ASSERT_TRUE(detray::detail::is_invalid_value(navigation2.volume()));
             // We know we went out of the detector
-            ASSERT_EQ(navigation.trust_level(), trust_level::e_full);
+            ASSERT_EQ(navigation2.trust_level(), trust_level::e_full);
         } else {
-            ASSERT_TRUE(nav.update(propagation, cfg));
+            ASSERT_TRUE(nav.update(propagation2, cfg));
         }
+
+        // Update the propagation state with current step (test assignment op)
+        propagation = propagation2;
     }
 
     // Leave for debugging
-    std::cout << navigation.inspector().to_string() << std::endl;
+    // std::cout << navigation.inspector().to_string() << std::endl;
     ASSERT_TRUE(navigation.is_complete()) << navigation.inspector().to_string();
 }
 
@@ -408,38 +415,44 @@ GTEST_TEST(detray_navigation, navigator_wire_chamber) {
         // Exclude the portal we are already on
         std::size_t n_candidates = sf_seq.size() - 1u;
 
+        // Test the copy constructor of the propagation state
+        auto propagation2{propagation};
+        navigator_t::state &navigation2 = propagation2._navigation;
+
         // We switched to next barrel volume
-        check_volume_switch<navigator_t>(navigation, vol_id);
+        check_volume_switch<navigator_t>(navigation2, vol_id);
 
         // The status is: on adjacent portal in volume, towards next candidate
-        check_on_surface<navigator_t>(navigation, vol_id, n_candidates,
+        check_on_surface<navigator_t>(navigation2, vol_id, n_candidates,
                                       sf_seq[0], sf_seq[1]);
 
         // Step through the module surfaces
         for (std::size_t sf = 1u; sf < sf_seq.size() - 1u; ++sf) {
             // Count only the currently reachable candidates
-            check_step(nav, stepper, propagation, vol_id, n_candidates - sf,
-                       sf_seq[sf], sf_seq[sf + 1u]);
+            step_and_check(nav, stepper, propagation2, vol_id,
+                           n_candidates - sf, sf_seq[sf], sf_seq[sf + 1u]);
         }
 
         // Step onto the portal in volume
-        stepper.step(propagation);
-        navigation.set_high_trust();
+        stepper.step(propagation2);
+        navigation2.set_high_trust();
 
         // Check agianst last volume
         if (vol_id == last_vol_id) {
-            ASSERT_FALSE(nav.update(propagation, cfg));
+            ASSERT_FALSE(nav.update(propagation2, cfg));
             // The status is: exited
-            ASSERT_EQ(navigation.status(), status::e_on_target);
+            ASSERT_EQ(navigation2.status(), status::e_on_target);
             // Switch to next volume leads out of the detector world -> exit
-            ASSERT_TRUE(detray::detail::is_invalid_value(navigation.volume()));
+            ASSERT_TRUE(detray::detail::is_invalid_value(navigation2.volume()));
             // We know we went out of the detector
-            ASSERT_EQ(navigation.trust_level(), trust_level::e_full);
+            ASSERT_EQ(navigation2.trust_level(), trust_level::e_full);
         } else {
-            // ASSERT_TRUE(nav.update(propagation));
-            ASSERT_TRUE(nav.update(propagation, cfg))
-                << navigation.inspector().to_string();
+            ASSERT_TRUE(nav.update(propagation2, cfg))
+                << navigation2.inspector().to_string();
         }
+
+        // Update the propagation state with current step (test assignment op)
+        propagation = propagation2;
     }
 
     // Leave for debugging

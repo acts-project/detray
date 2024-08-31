@@ -181,6 +181,29 @@ struct object_tracer {
 /// state. Meant for debugging.
 struct print_inspector {
 
+    /// Default constructor
+    print_inspector() = default;
+
+    /// Copy constructor ensures that the string stream is set up identically
+    print_inspector(const print_inspector &other)
+        : debug_stream(other.debug_stream.str()) {}
+
+    /// Move constructor
+    print_inspector(print_inspector &&other) = default;
+
+    /// Default destructor
+    ~print_inspector() = default;
+
+    /// Copy assignemten operator ensures that the string stream is set up
+    /// identically
+    print_inspector &operator=(const print_inspector &other) {
+        debug_stream << other.debug_stream.str();
+        return *this;
+    }
+
+    /// Move assignemten operator
+    print_inspector &operator=(print_inspector &&other) = default;
+
     /// Gathers navigation information accross navigator update calls
     std::stringstream debug_stream{};
 
@@ -290,6 +313,29 @@ namespace stepping {
 /// A stepper inspector that prints information about the current stepper
 /// state. Meant for debugging.
 struct print_inspector {
+
+    /// Default constructor
+    print_inspector() = default;
+
+    /// Copy constructor ensures that the string stream is set up identically
+    print_inspector(const print_inspector &other)
+        : debug_stream(other.debug_stream.str()) {}
+
+    /// Move constructor
+    print_inspector(print_inspector &&other) = default;
+
+    /// Default destructor
+    ~print_inspector() = default;
+
+    /// Copy assignemten operator ensures that the string stream is set up
+    /// identically
+    print_inspector &operator=(const print_inspector &other) {
+        debug_stream << other.debug_stream.str();
+        return *this;
+    }
+
+    /// Move assignemten operator
+    print_inspector &operator=(print_inspector &&other) = default;
 
     /// Gathers stepping information from inside the stepper methods
     std::stringstream debug_stream{};

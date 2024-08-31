@@ -113,9 +113,8 @@ inline auto run_navigation_validation(
 
     // Run the navigation validation test on device
     navigation_validation_device<bfield_t, detector_t, intersection_record_t>(
-        det_view, cfg, field_data,
-        truth_intersection_traces_view, recorded_intersections_view,
-        mat_records_view);
+        det_view, cfg, field_data, truth_intersection_traces_view,
+        recorded_intersections_view, mat_records_view);
 
     // Get the results back to the host and pass them on to the checking
     vecmem::jagged_vector<navigation::detail::candidate_record<intersection_t>>

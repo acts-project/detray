@@ -59,8 +59,8 @@ void propagator_benchmark(
         static_cast<int>(tracks_data.size() + thread_dim - 1) / thread_dim;
 
     // run the test kernel
-    propagator_benchmark_kernel<<<block_dim, thread_dim>>>(
-        det_data, field_data, tracks_data, opt);
+    propagator_benchmark_kernel<<<block_dim, thread_dim>>>(det_data, field_data,
+                                                           tracks_data, opt);
 
     // cuda error check
     DETRAY_CUDA_ERROR_CHECK(cudaGetLastError());
