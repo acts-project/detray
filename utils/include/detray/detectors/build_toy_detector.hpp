@@ -112,7 +112,7 @@ struct toy_det_config {
     // Radius of the innermost volume that contains the beampipe
     scalar m_beampipe_volume_radius{25.f * unit<scalar>::mm};
     // Envelope around the modules used by the cylinder portal generator
-    scalar m_portal_envelope{0.1f * unit<scalar>::mm};
+    scalar m_portal_envelope{0.5f * unit<scalar>::mm};
     /// Configuration for the homogeneous material generator
     hom_material_config<scalar> m_material_config{};
     /// Put material maps on portals or use homogenous material on modules

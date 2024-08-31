@@ -74,10 +74,9 @@ struct intersection_initialize {
     template <typename is_container_t>
     DETRAY_HOST_DEVICE bool place_in_collection(
         const typename is_container_t::value_type &sfi,
-        is_container_t &inters) const {
-
+        is_container_t &intersections) const {
         if (sfi.status) {
-            inters.push_back(sfi);
+            insert_sorted(sfi, intersections);
         }
         return sfi.status;
     }
@@ -85,15 +84,24 @@ struct intersection_initialize {
     template <typename is_container_t>
     DETRAY_HOST_DEVICE bool place_in_collection(
         std::array<typename is_container_t::value_type, 2> &&solutions,
-        is_container_t &inters) const {
+        is_container_t &intersections) const {
         bool is_valid = false;
         for (auto &sfi : solutions) {
             if (sfi.status) {
-                inters.push_back(sfi);
+                insert_sorted(sfi, intersections);
             }
             is_valid |= sfi.status;
         }
         return is_valid;
+    }
+
+    template <typename is_container_t>
+    DETRAY_HOST_DEVICE void insert_sorted(
+        const typename is_container_t::value_type &sfi,
+        is_container_t &intersections) const {
+        auto itr_pos = detray::detail::upper_bound(intersections.begin(),
+                                                   intersections.end(), sfi);
+        intersections.insert(itr_pos, sfi);
     }
 };
 

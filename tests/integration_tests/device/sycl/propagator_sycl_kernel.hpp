@@ -20,13 +20,14 @@ namespace detray {
 
 /// Launch the propagation test kernel
 template <typename bfield_bknd_t, typename detector_t>
-void propagator_test(
-    typename detector_t::view_type, const propagation::config &,
-    covfie::field_view<bfield_bknd_t>, vecmem::data::vector_view<track_t> &,
-    vecmem::data::jagged_vector_view<intersection_t<detector_t>> &,
-    vecmem::data::jagged_vector_view<scalar_t> &,
-    vecmem::data::jagged_vector_view<point3_t> &,
-    vecmem::data::jagged_vector_view<free_matrix_t> &, sycl::queue_wrapper);
+void propagator_test(typename detector_t::view_type,
+                     const propagation::config &,
+                     covfie::field_view<bfield_bknd_t>,
+                     vecmem::data::vector_view<track_t> &,
+                     vecmem::data::jagged_vector_view<scalar_t> &,
+                     vecmem::data::jagged_vector_view<point3_t> &,
+                     vecmem::data::jagged_vector_view<free_matrix_t> &,
+                     sycl::queue_wrapper);
 
 /// test function for propagator on the device
 template <typename bfield_bknd_t, typename detector_t>

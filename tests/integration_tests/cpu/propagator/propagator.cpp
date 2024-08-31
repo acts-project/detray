@@ -44,6 +44,7 @@ namespace {
 
 constexpr scalar_t tol{1e-3f};
 constexpr scalar_t path_limit{5.f * unit<scalar_t>::cm};
+constexpr std::size_t cache_size{navigation::default_cache_size};
 
 /// Compare helical track positions for stepper
 struct helix_inspector : actor {
@@ -124,7 +125,8 @@ GTEST_TEST(detray_propagator, propagator_line_stepper) {
     toy_cfg.use_material_maps(false);
     const auto [d, names] = build_toy_detector(host_mr, toy_cfg);
 
-    using navigator_t = navigator<decltype(d), navigation::print_inspector>;
+    using navigator_t =
+        navigator<decltype(d), cache_size, navigation::print_inspector>;
     using stepper_t = line_stepper<algebra_t>;
     using propagator_t = propagator<stepper_t, navigator_t, actor_chain<>>;
 
@@ -166,7 +168,7 @@ class PropagatorWithRkStepper
     vecmem::host_memory_resource host_mr;
 
     /// Toy detector configuration
-    toy_det_config toy_cfg = toy_det_config{}.n_brl_layers(4u).n_edc_layers(7u);
+    toy_det_config toy_cfg = toy_det_config{}.n_brl_layers(4u).n_edc_layers(3u);
 
     /// Track generator configuration
     generator_t::configuration trk_gen_cfg{};
@@ -185,7 +187,8 @@ TEST_P(PropagatorWithRkStepper, rk4_propagator_const_bfield) {
     using detector_t = detector<toy_metadata>;
 
     // Runge-Kutta propagation
-    using navigator_t = navigator<detector_t /*, navigation::print_inspector*/>;
+    using navigator_t =
+        navigator<detector_t, cache_size, navigation::print_inspector>;
     using track_t = free_track_parameters<algebra_t>;
     using constraints_t = constrained_step<>;
     using policy_t = stepper_rk_policy;
@@ -209,6 +212,7 @@ TEST_P(PropagatorWithRkStepper, rk4_propagator_const_bfield) {
     // Propagator is built from the stepper and navigator
     propagation::config cfg{};
     cfg.navigation.overstep_tolerance = static_cast<float>(overstep_tol);
+    cfg.navigation.search_window = {3u, 3u};
     propagator_t p{cfg};
 
     // Iterate through uniformly distributed momentum directions
@@ -251,15 +255,15 @@ TEST_P(PropagatorWithRkStepper, rk4_propagator_const_bfield) {
         // Propagate the entire detector
         state.do_debug = true;
         ASSERT_TRUE(p.propagate(state, actor_states))
-            << state.debug_stream.str() << std::endl;
-        //  << state._navigation.inspector().to_string() << std::endl;
+            //<< state.debug_stream.str() << std::endl;
+            << state._navigation.inspector().to_string() << std::endl;
 
         // Propagate with path limit
         ASSERT_NEAR(pathlimit_aborter_state.path_limit(), path_limit, tol);
         lim_state.do_debug = true;
         ASSERT_FALSE(p.propagate(lim_state, lim_actor_states))
-            << lim_state.debug_stream.str() << std::endl;
-        //<< lim_state._navigation.inspector().to_string() << std::endl;
+            //<< lim_state.debug_stream.str() << std::endl;
+            << lim_state._navigation.inspector().to_string() << std::endl;
 
         ASSERT_GE(std::abs(path_limit), lim_state._stepping._abs_path_length)
             << "Absolute path length: " << lim_state._stepping._abs_path_length
@@ -288,7 +292,8 @@ TEST_P(PropagatorWithRkStepper, rk4_propagator_inhom_bfield) {
     using detector_t = detector<toy_metadata>;
 
     // Runge-Kutta propagation
-    using navigator_t = navigator<detector_t /*, navigation::print_inspector*/>;
+    using navigator_t =
+        navigator<detector_t, cache_size, navigation::print_inspector>;
     using track_t = free_track_parameters<algebra_t>;
     using constraints_t = constrained_step<>;
     using policy_t = stepper_rk_policy;
@@ -309,6 +314,7 @@ TEST_P(PropagatorWithRkStepper, rk4_propagator_inhom_bfield) {
     // Propagator is built from the stepper and navigator
     propagation::config cfg{};
     cfg.navigation.overstep_tolerance = static_cast<float>(overstep_tol);
+    cfg.navigation.search_window = {3u, 3u};
     propagator_t p{cfg};
 
     // Iterate through uniformly distributed momentum directions
@@ -344,15 +350,15 @@ TEST_P(PropagatorWithRkStepper, rk4_propagator_inhom_bfield) {
         // Propagate the entire detector
         state.do_debug = true;
         ASSERT_TRUE(p.propagate(state, actor_states))
-            << state.debug_stream.str() << std::endl;
-        //<< state._navigation.inspector().to_string() << std::endl;
+            //<< state.debug_stream.str() << std::endl;
+            << state._navigation.inspector().to_string() << std::endl;
 
         // Propagate with path limit
         ASSERT_NEAR(pathlimit_aborter_state.path_limit(), path_limit, tol);
         lim_state.do_debug = true;
         ASSERT_FALSE(p.propagate(lim_state, lim_actor_states))
-            << lim_state.debug_stream.str() << std::endl;
-        //<< lim_state._navigation.inspector().to_string() << std::endl;
+            //<< lim_state.debug_stream.str() << std::endl;
+            << lim_state._navigation.inspector().to_string() << std::endl;
 
         ASSERT_TRUE(lim_state._stepping.path_length() <
                     std::abs(path_limit) + tol)
@@ -375,7 +381,7 @@ INSTANTIATE_TEST_SUITE_P(
 // non-z-aligned B-fields
 INSTANTIATE_TEST_SUITE_P(
     detray_propagator_validation2, PropagatorWithRkStepper,
-    ::testing::Values(std::make_tuple(-800.f * unit<scalar_t>::um,
+    ::testing::Values(std::make_tuple(-400.f * unit<scalar_t>::um,
                                       40.f * unit<scalar_t>::mm,
                                       vector3{0.f * unit<scalar_t>::T,
                                               1.f * unit<scalar_t>::T,
@@ -383,7 +389,7 @@ INSTANTIATE_TEST_SUITE_P(
 
 INSTANTIATE_TEST_SUITE_P(
     detray_propagator_validation3, PropagatorWithRkStepper,
-    ::testing::Values(std::make_tuple(-800.f * unit<scalar_t>::um,
+    ::testing::Values(std::make_tuple(-400.f * unit<scalar_t>::um,
                                       40.f * unit<scalar_t>::mm,
                                       vector3{1.f * unit<scalar_t>::T,
                                               0.f * unit<scalar_t>::T,
@@ -391,7 +397,7 @@ INSTANTIATE_TEST_SUITE_P(
 
 INSTANTIATE_TEST_SUITE_P(
     detray_propagator_validation4, PropagatorWithRkStepper,
-    ::testing::Values(std::make_tuple(-800.f * unit<scalar_t>::um,
+    ::testing::Values(std::make_tuple(-400.f * unit<scalar_t>::um,
                                       35.f * unit<scalar_t>::mm,
                                       vector3{1.f * unit<scalar_t>::T,
                                               1.f * unit<scalar_t>::T,

@@ -64,7 +64,7 @@ struct helix_intersector_impl<line2D<algebra_t>, algebra_t> {
         assert((mask_tolerance[0] == mask_tolerance[1]) &&
                "Helix intersectors use only one mask tolerance value");
 
-        intersection_type<surface_descr_t> sfi;
+        intersection_type<surface_descr_t> sfi{};
 
         if (!run_rtsafe) {
             // line axis direction

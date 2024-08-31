@@ -51,7 +51,9 @@ __global__ void navigation_validation_kernel(
                                   navigation::status::e_on_module,
                                   navigation::status::e_on_portal>;
     // Navigation with inspection
-    using navigator_t = navigator<detector_device_t, object_tracer_t>;
+    using navigator_t =
+        navigator<detector_device_t, navigation::default_cache_size,
+                  object_tracer_t>;
 
     // Propagator with pathlimit aborter
     using material_tracer_t = material_validator::material_tracer<scalar_t>;

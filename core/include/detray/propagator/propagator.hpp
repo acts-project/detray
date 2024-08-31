@@ -50,9 +50,6 @@ struct propagator {
     /// Register the actor types
     const actor_chain_t run_actors{};
 
-    template <typename T>
-    using vector_type = typename navigator_t::template vector_type<T>;
-
     /// Construct from a propagator configuration
     DETRAY_HOST_DEVICE
     explicit propagator(propagation::config cfg = {})

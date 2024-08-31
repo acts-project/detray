@@ -21,6 +21,7 @@
 #include "detray/propagator/rk_stepper.hpp"
 #include "detray/simulation/event_generator/track_generators.hpp"
 #include "detray/tracks/tracks.hpp"
+#include "detray/utils/inspectors.hpp"
 
 // Vecmem include(s)
 #include <vecmem/memory/memory_resource.hpp>
@@ -46,9 +47,13 @@ using matrix_operator = dmatrix_operator<algebra_t>;
 using track_t = free_track_parameters<algebra_t>;
 using free_matrix_t = free_matrix<algebra_t>;
 
+constexpr std::size_t cache_size{navigation::default_cache_size};
+
 // Navigator
+template <typename detector_t, typename inspector_t>
+using navigator_w_insp_t = navigator<detector_t, cache_size, inspector_t>;
 template <typename detector_t>
-using navigator_t = navigator<detector_t>;
+using navigator_t = navigator_w_insp_t<detector_t, navigation::void_inspector>;
 template <typename detector_t>
 using intersection_t = typename navigator_t<detector_t>::intersection_type;
 
@@ -154,7 +159,8 @@ inline auto run_propagation_host(vecmem::memory_resource *mr,
 
     // Construct propagator from stepper and navigator
     auto stepr = rk_stepper_t<typename covfie::field<bfield_bknd_t>::view_t>{};
-    auto nav = navigator_t<host_detector_t>{};
+    auto nav =
+        navigator_w_insp_t<host_detector_t, navigation::print_inspector>{};
 
     using propagator_host_t =
         propagator<decltype(stepr), decltype(nav), actor_chain_host_t>;
@@ -184,6 +190,7 @@ inline auto run_propagation_host(vecmem::memory_resource *mr,
 
         // Run propagation
         if (!p.propagate(state, actor_states)) {
+            std::cout << state._navigation.inspector().to_string() << std::endl;
             throw std::runtime_error("Host propagation failed");
         }
 

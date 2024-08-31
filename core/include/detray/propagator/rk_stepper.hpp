@@ -158,7 +158,7 @@ class rk_stepper final
     /// @return returning the heartbeat, indicating if the stepping is alive
     template <typename propagation_state_t>
     DETRAY_HOST_DEVICE bool step(propagation_state_t& propagation,
-                                 const stepping::config& cfg = {}) const;
+                                 const stepping::config& cfg) const;
 };
 
 }  // namespace detray

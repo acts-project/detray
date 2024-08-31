@@ -51,9 +51,12 @@ int main() {
     /// Aggregation of multiple inspectors
     using inspector_t =
         detray::aggregate_inspector<object_tracer_t, nav_print_inspector_t>;
+    /// How many intersections to cache during navigation
+    constexpr std::size_t cache_size{detray::navigation::default_cache_size};
 
     // Navigation with inspection
-    using navigator_t = detray::navigator<toy_detector_t, inspector_t>;
+    using navigator_t =
+        detray::navigator<toy_detector_t, cache_size, inspector_t>;
     // Line stepper
     using stepper_t = detray::line_stepper<detray::tutorial::algebra_t>;
     // Propagator with empty actor chain

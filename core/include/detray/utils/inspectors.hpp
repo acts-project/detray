@@ -170,6 +170,10 @@ struct object_tracer {
         return object_trace[i];
     }
 
+    /// @returns the full object trace
+    DETRAY_HOST_DEVICE
+    constexpr const auto &trace() const { return object_trace; }
+
     /// Compares a navigation status with the tracers references
     DETRAY_HOST_DEVICE
     constexpr bool is_status(const status &nav_stat, const status &ref_stat) {
@@ -180,6 +184,9 @@ struct object_tracer {
 /// A navigation inspector that prints information about the current navigation
 /// state. Meant for debugging.
 struct print_inspector {
+
+    using view_type = dvector_view<char>;
+    using const_view_type = dvector_view<const char>;
 
     /// Default constructor
     print_inspector() = default;
@@ -197,6 +204,10 @@ struct print_inspector {
     /// Copy assignemten operator ensures that the string stream is set up
     /// identically
     print_inspector &operator=(const print_inspector &other) {
+        // Reset
+        debug_stream.str(std::string());
+        debug_stream.clear();
+        // Move new debug string in
         debug_stream << other.debug_stream.str();
         return *this;
     }
@@ -330,6 +341,10 @@ struct print_inspector {
     /// Copy assignemten operator ensures that the string stream is set up
     /// identically
     print_inspector &operator=(const print_inspector &other) {
+        // Reset
+        debug_stream.str(std::string());
+        debug_stream.clear();
+        // Move new debug string in
         debug_stream << other.debug_stream.str();
         return *this;
     }
