@@ -119,7 +119,7 @@ class brute_force_collection {
     template <typename coll_view_t,
               typename std::enable_if_t<detail::is_device_view_v<coll_view_t>,
                                         bool> = true>
-    DETRAY_HOST_DEVICE brute_force_collection(coll_view_t& view)
+    DETRAY_HOST_DEVICE explicit brute_force_collection(coll_view_t& view)
         : m_offsets(detail::get<0>(view.m_view)),
           m_surfaces(detail::get<1>(view.m_view)) {}
 

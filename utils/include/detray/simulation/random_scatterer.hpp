@@ -56,7 +56,7 @@ struct random_scatterer : actor {
         /// Constructor with seed
         ///
         /// @param sd the seed number
-        state(const uint_fast64_t sd = 0u) { generator.seed(sd); }
+        explicit state(const uint_fast64_t sd = 0u) { generator.seed(sd); }
 
         void set_seed(const uint_fast64_t sd) { generator.seed(sd); }
     };

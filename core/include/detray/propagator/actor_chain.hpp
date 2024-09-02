@@ -95,6 +95,7 @@ class actor_chain<> {
     template <typename actor_states_t, typename propagator_state_t>
     DETRAY_HOST_DEVICE void operator()(actor_states_t & /*states*/,
                                        propagator_state_t & /*p_state*/) const {
+        /*Do nothing*/
     }
 };
 

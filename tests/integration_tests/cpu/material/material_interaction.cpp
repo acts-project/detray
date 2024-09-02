@@ -100,8 +100,8 @@ GTEST_TEST(detray_material, telescope_geometry_energy_loss) {
     parameter_resetter<algebra_t>::state parameter_resetter_state{};
 
     // Create actor states tuples
-    auto actor_states = std::tie(aborter_state, bound_updater, interactor_state,
-                                 parameter_resetter_state);
+    auto actor_states = detray::tie(aborter_state, bound_updater,
+                                    interactor_state, parameter_resetter_state);
 
     propagator_t::state state(bound_param, det);
     state.do_debug = true;
@@ -186,7 +186,7 @@ GTEST_TEST(detray_material, telescope_geometry_energy_loss) {
         next_surface_aborter::state next_surface_aborter_state{
             0.1f * unit<scalar>::mm};
 
-        auto alt_actor_states = std::tie(
+        auto alt_actor_states = detray::tie(
             alt_aborter_state, bound_updater, next_surface_aborter_state,
             interactor_state, parameter_resetter_state);
 
@@ -280,8 +280,9 @@ GTEST_TEST(detray_material, telescope_geometry_scattering_angle) {
         parameter_resetter<algebra_t>::state parameter_resetter_state{};
 
         // Create actor states tuples
-        auto actor_states = std::tie(aborter_state, bound_updater,
-                                     simulator_state, parameter_resetter_state);
+        auto actor_states =
+            detray::tie(aborter_state, bound_updater, simulator_state,
+                        parameter_resetter_state);
 
         propagator_t::state state(bound_param, det);
         state.do_debug = true;
@@ -383,7 +384,7 @@ GTEST_TEST(detray_material, telescope_geometry_volume_material) {
         propagator_t::state state(bound_param, const_bfield, det);
 
         pathlimit_aborter::state abrt_state{path_limit};
-        auto actor_states = std::tie(abrt_state);
+        auto actor_states = detray::tie(abrt_state);
 
         p.propagate(state, actor_states);
 

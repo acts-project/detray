@@ -41,7 +41,7 @@ class ray {
     /// Parametrized constructor that complies with track interface
     ///
     /// @param track the track state that should be approximated
-    DETRAY_HOST_DEVICE ray(const free_track_parameters_type &track)
+    DETRAY_HOST_DEVICE explicit ray(const free_track_parameters_type &track)
         : ray(track.pos(), 0.f, track.dir(), 0.f) {}
 
     /// @returns position on the ray (compatible with tracks/intersectors)

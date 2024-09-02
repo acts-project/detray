@@ -36,6 +36,7 @@ struct void_node_inspector {
 template <typename node_t>
 struct void_actor {
     void operator()(const node_t & /*n*/, const dindex_range & /*edge_range*/) {
+        /*Do nothing*/
     }
 };
 
@@ -83,7 +84,7 @@ class volume_graph {
         struct node {
 
             /// Constructor from a detectors volume and surface collections
-            node(const tracking_volume<detector_t> &volume)
+            explicit node(const tracking_volume<detector_t> &volume)
                 : m_idx(volume.index()) {
                 // @TODO: Remove duplicates from multiple placements of surfaces
                 volume.template visit_surfaces<node_builder>(m_half_edges);
@@ -312,7 +313,7 @@ class volume_graph {
     /// @param det provides: geometry volumes that become the graph nodes,
     /// surfaces which are needed to index the correct masks and the
     /// masks that link to volumes and become graph edges.
-    volume_graph(const detector_t &det)
+    explicit volume_graph(const detector_t &det)
         : _nodes(det.volumes(), det), _edges(det.mask_store()), _adj_matrix{0} {
         build();
     }

@@ -171,7 +171,7 @@ class material_map_generator final : public factory_decorator<detector_t> {
         -> dindex_range override {
 
         auto [lower, upper] =
-            (*this->m_factory)(volume, surfaces, transforms, masks, ctx);
+            (*this->get_factory())(volume, surfaces, transforms, masks, ctx);
 
         m_surface_range = {lower, upper};
 

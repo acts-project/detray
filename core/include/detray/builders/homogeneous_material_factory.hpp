@@ -34,7 +34,7 @@ class material_data {
     /// @param sf_idx the index of the surface this material belongs to, needs
     ///               to be passed only if a special oredering must be observed
     DETRAY_HOST
-    constexpr material_data(
+    explicit constexpr material_data(
         const std::size_t sf_idx = detail::invalid_value<std::size_t>())
         : m_sf_index{sf_idx}, m_mat{}, m_thickness{} {}
 
@@ -159,7 +159,7 @@ class homogeneous_material_factory final
     /// Factory with surfaces potentially already filled or empty placeholder
     /// that will not be used.
     DETRAY_HOST
-    homogeneous_material_factory(
+    explicit homogeneous_material_factory(
         std::unique_ptr<surface_factory_interface<detector_t>> sf_factory =
             std::make_unique<placeholder_factory_t>())
         : base_factory(std::move(sf_factory)) {}
@@ -312,7 +312,7 @@ class homogeneous_material_factory final
         }
     }
 
-    protected:
+    private:
     /// Material links of surfaces
     std::vector<std::pair<material_id, dindex>> m_links{};
     /// Position of the material in the detector material collection

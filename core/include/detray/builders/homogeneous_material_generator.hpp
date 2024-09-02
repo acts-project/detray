@@ -104,7 +104,7 @@ class homogeneous_material_generator final
         -> dindex_range override {
 
         auto [lower, upper] =
-            (*this->m_factory)(volume, surfaces, transforms, masks, ctx);
+            (*this->get_factory())(volume, surfaces, transforms, masks, ctx);
 
         m_surface_range = {lower, upper};
 

@@ -58,7 +58,7 @@ struct tel_det_config {
     template <
         typename... Args,
         std::enable_if_t<(std::is_same_v<Args, scalar> || ...), bool> = true>
-    tel_det_config(Args &&... args)
+    explicit tel_det_config(Args &&... args)
         : tel_det_config(mask<mask_shape_t>{0u, std::forward<Args>(args)...}) {}
 
     /// Mask of the test surfaces
@@ -172,8 +172,9 @@ template <typename mask_shape_t = rectangle2D,
           typename trajectory_t = detail::ray<ALGEBRA_PLUGIN<detray::scalar>>>
 inline auto build_telescope_detector(
     vecmem::memory_resource &resource,
-    const tel_det_config<mask_shape_t, trajectory_t> &cfg = {
-        20.f * unit<scalar>::mm, 20.f * unit<scalar>::mm}) {
+    const tel_det_config<mask_shape_t, trajectory_t> &cfg =
+        tel_det_config<mask_shape_t, trajectory_t>{20.f * unit<scalar>::mm,
+                                                   20.f * unit<scalar>::mm}) {
 
     using builder_t =
         detector_builder<telescope_metadata<mask_shape_t>, volume_builder>;

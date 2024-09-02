@@ -72,7 +72,7 @@ inline auto record_propagation(
     // Build actor and propagator states
     pathlimit_aborter::state pathlimit_aborter_state{cfg.stepping.path_limit};
     typename material_tracer_t::state mat_tracer_state{};
-    auto actor_states = std::tie(pathlimit_aborter_state, mat_tracer_state);
+    auto actor_states = detray::tie(pathlimit_aborter_state, mat_tracer_state);
 
     std::unique_ptr<typename propagator_t::state> propagation{nullptr};
     if constexpr (std::is_same_v<bfield_t, empty_bfield>) {

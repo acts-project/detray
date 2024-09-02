@@ -122,7 +122,7 @@ class barrel_generator final : public surface_factory_interface<detector_t> {
     /// This is a surface generator, no external surface data needed
     /// @{
     DETRAY_HOST
-    void clear() override{};
+    void clear() override{/*Do nothing*/};
     DETRAY_HOST
     void push_back(surface_data<detector_t> &&) override { /*Do nothing*/
     }

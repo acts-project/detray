@@ -147,7 +147,7 @@ class detector_builder {
         return m_vol_finder;
     }
 
-    protected:
+    private:
     /// Data structure that holds a volume builder for every detector volume
     volume_data_t<std::unique_ptr<volume_builder_interface<detector_type>>>
         m_volumes{};

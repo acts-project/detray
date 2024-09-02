@@ -55,7 +55,7 @@ struct propagator {
 
     /// Construct from a propagator configuration
     DETRAY_HOST_DEVICE
-    propagator(propagation::config cfg = {})
+    explicit propagator(propagation::config cfg = {})
         : m_cfg{cfg}, m_stepper{}, m_navigator{} {}
 
     /// Propagation that state aggregates a stepping and a navigation state. It
@@ -136,23 +136,19 @@ struct propagator {
     /// Propagate method: Coordinates the calls of the stepper, navigator and
     /// all registered actors.
     ///
-    /// @tparam state_t is the propagation state type
-    /// @tparam actor_state_t is the actor state type
-    ///
     /// @param propagation the state of a propagation flow
-    /// @param actor_states the actor state
+    /// @param actor_state_refs tuple containing refences to the actor states
     ///
     /// @return propagation success.
-    template <typename state_t, typename actor_states_t = actor_chain<>::state>
-    DETRAY_HOST_DEVICE bool propagate(state_t &&propagation,
-                                      actor_states_t &&actor_states = {}) {
+    DETRAY_HOST_DEVICE bool propagate(
+        state &propagation, typename actor_chain_t::state actor_state_refs) {
 
         // Initialize the navigation
         propagation._heartbeat =
             m_navigator.init(propagation, m_cfg.navigation);
 
         // Run all registered actors/aborters after init
-        run_actors(actor_states, propagation);
+        run_actors(actor_state_refs, propagation);
 
         // Find next candidate
         propagation._heartbeat &=
@@ -170,7 +166,7 @@ struct propagator {
                 m_navigator.update(propagation, m_cfg.navigation);
 
             // Run all registered actors/aborters after update
-            run_actors(actor_states, propagation);
+            run_actors(actor_state_refs, propagation);
 
             // And check the status
             propagation._heartbeat &=
@@ -185,6 +181,14 @@ struct propagator {
 
         // Pass on the whether the propagation was successful
         return propagation._navigation.is_complete();
+    }
+
+    /// Overload for emtpy actor chain
+    DETRAY_HOST_DEVICE bool propagate(state &propagation) {
+        // Will not be used
+        actor_chain<>::state emty_state{};
+        // Run propagation
+        return propagate(propagation, emty_state);
     }
 
     /// Propagate method with two while loops. In the CPU, propagate and

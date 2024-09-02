@@ -193,7 +193,7 @@ class uniform_track_generator
 
     /// Construct from external configuration @param cfg
     DETRAY_HOST_DEVICE
-    constexpr uniform_track_generator(configuration cfg)
+    explicit constexpr uniform_track_generator(configuration cfg)
         : m_gen{generator_t(cfg.seed())}, m_cfg{cfg} {}
 
     /// Paramtetrized constructor for quick construction of simple tasks
@@ -219,7 +219,7 @@ class uniform_track_generator
 
     /// Move constructor
     DETRAY_HOST_DEVICE
-    uniform_track_generator(uniform_track_generator&& other)
+    uniform_track_generator(uniform_track_generator&& other) noexcept
         : m_gen(std::move(other.m_gen)), m_cfg(std::move(other.m_cfg)) {}
 
     /// Copy assignment operator
@@ -227,6 +227,7 @@ class uniform_track_generator
     constexpr uniform_track_generator& operator=(
         const uniform_track_generator& other) {
         m_cfg = other.m_cfg;
+        m_gen = std::move(other.m_gen);
         return *this;
     }
 

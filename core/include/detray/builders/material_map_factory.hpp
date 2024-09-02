@@ -52,7 +52,7 @@ class material_map_factory final : public factory_decorator<detector_t> {
     /// Factory with surfaces potentially already filled or empty placeholder
     /// that will not be used.
     DETRAY_HOST
-    material_map_factory(
+    explicit material_map_factory(
         std::unique_ptr<surface_factory_interface<detector_t>> sf_factory =
             std::make_unique<placeholder_factory_t>())
         : base_factory(std::move(sf_factory)) {}
@@ -198,7 +198,7 @@ class material_map_factory final : public factory_decorator<detector_t> {
         }
     }
 
-    protected:
+    private:
     /// Type and position(s) of the material in the detector material collection
     std::map<std::size_t, std::pair<material_id, std::vector<index_type>>>
         m_links{};

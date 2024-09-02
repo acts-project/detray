@@ -1,6 +1,6 @@
 /** Detray library, part of the ACTS project (R&D line)
  *
- * (c) 2022-2023 CERN for the benefit of the ACTS project
+ * (c) 2022-2024 CERN for the benefit of the ACTS project
  *
  * Mozilla Public License Version 2.0
  */
@@ -34,24 +34,6 @@ class pointer_view
     /// Construct iterator from the single @param value - copy
     DETRAY_HOST_DEVICE constexpr explicit pointer_view(value_t& value)
         : m_value{&value} {}
-
-    /// Copy constructor
-    DETRAY_HOST_DEVICE
-    constexpr pointer_view(const pointer_view& other)
-        : m_value{other.m_value} {}
-
-    /// Move constructor for the pointer view
-    constexpr pointer_view(pointer_view&& other) = default;
-
-    /// Default destructor
-    ~pointer_view() = default;
-
-    /// Copy assignment operator
-    DETRAY_HOST_DEVICE
-    pointer_view& operator=(const pointer_view& other) {
-        m_value = other.m_value;
-        return *this;
-    }
 
     /// @return the pointer value
     DETRAY_HOST_DEVICE

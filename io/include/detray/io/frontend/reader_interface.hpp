@@ -9,7 +9,6 @@
 
 // Project include(s)
 #include "detray/builders/detector_builder.hpp"
-#include "detray/io/frontend/payloads.hpp"
 
 // System include(s)
 #include <filesystem>
@@ -28,10 +27,13 @@ class reader_interface {
     reader_interface() = delete;
 
     /// Only accept files with a fixed @param extension
-    reader_interface(const std::string& ext) : m_file_extension{ext} {}
+    explicit reader_interface(const std::string& ext) : m_file_extension{ext} {}
 
     /// Default destructor
     virtual ~reader_interface() = default;
+
+    /// @returns the file extension
+    const std::string& file_extension() const { return m_file_extension; }
 
     /// Reads the respective detector component from file. Since the detector
     /// does not keep the volume names, the name map is also passed and
@@ -40,7 +42,7 @@ class reader_interface {
         detector_builder<typename detector_t::metadata, volume_builder>&,
         typename detector_t::name_map&, const std::string&) = 0;
 
-    protected:
+    private:
     /// Extension that matches the file format of the respective reader
     std::string m_file_extension;
 };

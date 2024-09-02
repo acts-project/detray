@@ -229,14 +229,14 @@ TEST_P(PropagatorWithRkStepper, rk4_propagator_const_bfield) {
 
         // Create actor states tuples
         auto actor_states =
-            std::tie(helix_insp_state, unlimted_aborter_state,
-                     transporter_state, interactor_state, resetter_state);
+            detray::tie(helix_insp_state, unlimted_aborter_state,
+                        transporter_state, interactor_state, resetter_state);
         auto sync_actor_states =
-            std::tie(helix_insp_state, unlimted_aborter_state,
-                     transporter_state, interactor_state, resetter_state);
+            detray::tie(helix_insp_state, unlimted_aborter_state,
+                        transporter_state, interactor_state, resetter_state);
         auto lim_actor_states =
-            std::tie(helix_insp_state, pathlimit_aborter_state,
-                     transporter_state, interactor_state, resetter_state);
+            detray::tie(helix_insp_state, pathlimit_aborter_state,
+                        transporter_state, interactor_state, resetter_state);
 
         // Init propagator states
         propagator_t::state state(track, bfield, det);
@@ -269,9 +269,9 @@ TEST_P(PropagatorWithRkStepper, rk4_propagator_const_bfield) {
         // Compare the navigation status vector between propagate and
         // propagate_sync function
         const auto nav_status =
-            std::get<helix_inspector::state&>(actor_states)._nav_status;
+            detray::get<helix_inspector::state&>(actor_states)._nav_status;
         const auto sync_nav_status =
-            std::get<helix_inspector::state&>(sync_actor_states)._nav_status;
+            detray::get<helix_inspector::state&>(sync_actor_states)._nav_status;
         ASSERT_TRUE(nav_status.size() > 0);
         ASSERT_TRUE(nav_status == sync_nav_status);
     }
@@ -324,11 +324,12 @@ TEST_P(PropagatorWithRkStepper, rk4_propagator_inhom_bfield) {
         parameter_resetter<algebra_t>::state resetter_state{};
 
         // Create actor states tuples
-        auto actor_states = std::tie(unlimted_aborter_state, transporter_state,
-                                     interactor_state, resetter_state);
+        auto actor_states =
+            detray::tie(unlimted_aborter_state, transporter_state,
+                        interactor_state, resetter_state);
         auto lim_actor_states =
-            std::tie(pathlimit_aborter_state, transporter_state,
-                     interactor_state, resetter_state);
+            detray::tie(pathlimit_aborter_state, transporter_state,
+                        interactor_state, resetter_state);
 
         // Init propagator states
         propagator_t::state state(track, bfield, det);

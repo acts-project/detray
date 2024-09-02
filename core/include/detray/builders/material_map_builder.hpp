@@ -43,7 +43,7 @@ struct add_sf_material_map;
 template <typename detector_t, std::size_t DIM = 2u,
           typename mat_map_factory_t =
               material_grid_factory<typename detector_t::scalar_type>>
-class material_map_builder : public volume_decorator<detector_t> {
+class material_map_builder final : public volume_decorator<detector_t> {
     using materials_t = typename detector_t::materials;
 
     public:
@@ -56,7 +56,7 @@ class material_map_builder : public volume_decorator<detector_t> {
     /// @param vol_builder volume builder that should be decorated with material
     /// maps
     DETRAY_HOST
-    material_map_builder(
+    explicit material_map_builder(
         std::unique_ptr<volume_builder_interface<detector_t>> vol_builder)
         : volume_decorator<detector_t>(std::move(vol_builder)) {}
 
@@ -66,12 +66,6 @@ class material_map_builder : public volume_decorator<detector_t> {
     auto data() const -> const std::map<dindex, std::vector<bin_data_type>>& {
         return m_bin_data;
     }
-
-    /// Not needed for material maps builder
-    DETRAY_HOST void init_grid(const std::vector<scalar_type>&,
-                               const std::vector<std::size_t>&,
-                               const std::vector<std::vector<scalar_type>>& = {
-                                   {}}) {}
 
     /// Overwrite, to add material maps in addition to surfaces
     /// @{

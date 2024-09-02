@@ -121,7 +121,7 @@ GTEST_TEST(detray_propagator, actor_chain) {
     print_actor::state printer_state{};
 
     // Aggregate actor states to be able to pass them through the chain
-    auto actor_states = std::tie(example_state, printer_state);
+    auto actor_states = detray::tie(example_state, printer_state);
 
     // Propagator state
     struct empty_prop_state {};

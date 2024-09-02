@@ -82,7 +82,7 @@ GTEST_TEST(detray_navigation, guided_navigator) {
     propagator_t::state guided_state(track, b_field, telescope_det);
 
     // Propagate
-    p.propagate(guided_state, std::tie(pathlimit));
+    p.propagate(guided_state, detray::tie(pathlimit));
 
     auto &nav_state = guided_state._navigation;
     auto &debug_printer = nav_state.inspector().template get<print_inspector>();

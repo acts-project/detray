@@ -47,23 +47,23 @@ class bin_storage : public detray::ranges::view_interface<
     /// Default constructor
     bin_storage() = default;
     /// Copy constructor
-    bin_storage(const bin_storage&) = default;
+    bin_storage(const bin_storage&) noexcept = default;
     /// Move constructor
-    bin_storage(bin_storage&&) = default;
+    bin_storage(bin_storage&&) noexcept = default;
 
     /// Copy assignment
-    bin_storage& operator=(const bin_storage&) = default;
+    bin_storage& operator=(const bin_storage&) noexcept = default;
     /// Move assignment
-    bin_storage& operator=(bin_storage&&) = default;
+    bin_storage& operator=(bin_storage&&) noexcept = default;
 
     /// Construct containers using a memory resources
     template <bool owner = is_owning, std::enable_if_t<owner, bool> = true>
-    DETRAY_HOST bin_storage(vecmem::memory_resource& resource)
+    DETRAY_HOST explicit bin_storage(vecmem::memory_resource& resource)
         : m_bin_data(&resource) {}
 
     /// Construct grid data from containers - move
     template <bool owner = is_owning, std::enable_if_t<owner, bool> = true>
-    DETRAY_HOST_DEVICE bin_storage(bin_container_type&& bin_data)
+    DETRAY_HOST_DEVICE explicit bin_storage(bin_container_type&& bin_data)
         : m_bin_data(std::move(bin_data)) {}
 
     /// Construct the non-owning type from the @param offset into the global
@@ -84,7 +84,8 @@ class bin_storage : public detray::ranges::view_interface<
     template <typename view_t,
               typename std::enable_if_t<detail::is_device_view_v<view_t>,
                                         bool> = true>
-    DETRAY_HOST_DEVICE bin_storage(const view_t& view) : m_bin_data(view) {}
+    DETRAY_HOST_DEVICE explicit bin_storage(const view_t& view)
+        : m_bin_data(view) {}
 
     /// begin and end of the bin range
     /// @{
@@ -142,19 +143,21 @@ struct dynamic_bin_container {
 
     constexpr dynamic_bin_container() = default;
     DETRAY_HOST
-    dynamic_bin_container(vecmem::memory_resource* resource)
+    explicit dynamic_bin_container(vecmem::memory_resource* resource)
         : bins{resource}, entries{resource} {}
     dynamic_bin_container(const dynamic_bin_container& other) = default;
     dynamic_bin_container(dynamic_bin_container&& other) = default;
 
-    dynamic_bin_container& operator=(const dynamic_bin_container&) = default;
-    dynamic_bin_container& operator=(dynamic_bin_container&&) = default;
+    dynamic_bin_container& operator=(const dynamic_bin_container&) noexcept =
+        default;
+    dynamic_bin_container& operator=(dynamic_bin_container&&) noexcept =
+        default;
 
     /// Device-side construction from a vecmem based view type
     template <typename view_t,
               typename std::enable_if_t<detail::is_device_view_v<view_t>,
                                         bool> = true>
-    DETRAY_HOST_DEVICE dynamic_bin_container(view_t& view)
+    DETRAY_HOST_DEVICE explicit dynamic_bin_container(view_t& view)
         : bins(detail::get<0>(view.m_view)),
           entries(detail::get<1>(view.m_view)) {}
 
@@ -324,18 +327,18 @@ class bin_storage<is_owning, detray::bins::dynamic_array<entry_t>, containers>
     /// Default constructor
     bin_storage() = default;
     /// Copy constructor
-    bin_storage(const bin_storage&) = default;
+    bin_storage(const bin_storage&) noexcept = default;
     /// Move constructor
-    bin_storage(bin_storage&&) = default;
+    bin_storage(bin_storage&&) noexcept = default;
 
     /// Construct containers using a memory resources
     template <bool owner = is_owning, std::enable_if_t<owner, bool> = true>
-    DETRAY_HOST bin_storage(vecmem::memory_resource& resource)
+    DETRAY_HOST explicit bin_storage(vecmem::memory_resource& resource)
         : m_bin_data(&resource), m_entry_data(&resource) {}
 
     /// Construct grid data from containers - move
     template <bool owner = is_owning, std::enable_if_t<owner, bool> = true>
-    DETRAY_HOST_DEVICE bin_storage(bin_container_type&& bin_data)
+    DETRAY_HOST_DEVICE explicit bin_storage(bin_container_type&& bin_data)
         : m_bin_data(std::move(bin_data.bins)),
           m_entry_data(std::move(bin_data.entries)) {}
 
@@ -353,14 +356,14 @@ class bin_storage<is_owning, detray::bins::dynamic_array<entry_t>, containers>
     template <typename view_t,
               typename std::enable_if_t<detail::is_device_view_v<view_t>,
                                         bool> = true>
-    DETRAY_HOST_DEVICE bin_storage(const view_t& view)
+    DETRAY_HOST_DEVICE explicit bin_storage(const view_t& view)
         : m_bin_data(detray::detail::get<0>(view.m_view)),
           m_entry_data(detray::detail::get<1>(view.m_view)) {}
 
     /// Copy assignment
-    bin_storage& operator=(const bin_storage&) = default;
+    bin_storage& operator=(const bin_storage&) noexcept = default;
     /// Move assignment
-    bin_storage& operator=(bin_storage&&) = default;
+    bin_storage& operator=(bin_storage&&) noexcept = default;
 
     const bin_range_t& bin_data() const { return m_bin_data; }
     const entry_range_t& entry_data() const { return m_entry_data; }

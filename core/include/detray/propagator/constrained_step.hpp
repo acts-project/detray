@@ -49,7 +49,9 @@ struct unconstrained_step {
 
     /// Register a new @param step_size constraint
     template <step::constraint type>
-    DETRAY_HOST_DEVICE constexpr void set(const scalar /*step_size*/) const {}
+    DETRAY_HOST_DEVICE constexpr void set(const scalar /*step_size*/) const {
+        /*Do nothing*/
+    }
 
     /// @returns the current step size constraint
     template <step::constraint type = step::constraint::e_all>
@@ -60,7 +62,9 @@ struct unconstrained_step {
 
     /// Remove constraints
     template <step::constraint type = step::constraint::e_actor>
-    DETRAY_HOST_DEVICE constexpr void release() const {}
+    DETRAY_HOST_DEVICE constexpr void release() const {
+        /*Do nothing*/
+    }
 };
 
 /// Struct that can be configured with a number of different step sizes by other

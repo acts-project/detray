@@ -16,6 +16,7 @@
 #include "detray/definitions/detail/qualifiers.hpp"
 #include "detray/utils/type_list.hpp"
 #include "detray/utils/type_registry.hpp"
+#include "detray/utils/type_traits.hpp"
 
 // Vecmem include(s)
 #include <vecmem/memory/memory_resource.hpp>
@@ -71,7 +72,7 @@ class multi_store {
     /// Empty container
     constexpr multi_store() = default;
     /// Move constructor
-    constexpr multi_store(multi_store &&) = default;
+    constexpr multi_store(multi_store &&) noexcept = default;
 
     // Delegate constructors to tuple container, which handles the memory
 
@@ -100,11 +101,11 @@ class multi_store {
     template <
         typename tuple_view_t,
         std::enable_if_t<detail::is_device_view_v<tuple_view_t>, bool> = true>
-    DETRAY_HOST_DEVICE multi_store(tuple_view_t &view)
+    DETRAY_HOST_DEVICE explicit multi_store(tuple_view_t &view)
         : m_tuple_container(view) {}
 
     /// Move assignment operator
-    multi_store &operator=(multi_store &&) = default;
+    multi_store &operator=(multi_store &&) noexcept = default;
 
     /// @returns a pointer to the underlying tuple container - const
     DETRAY_HOST_DEVICE
@@ -251,48 +252,30 @@ class multi_store {
         return coll.emplace_back(std::forward<Args>(args)...);
     }
 
-    /// Add a collection - copy
+    /// Add a new collection - move/copy
     ///
-    /// @tparam T is the value type of the collection
-    ///
-    /// @param new_data is the new collection to be added
-    ///
-    /// @note in general can throw an exception
-    template <typename collection_t>
-    DETRAY_HOST auto insert(collection_t &new_data,
-                            const context_type & /*ctx*/ = {}) noexcept(false)
-        -> void {
-
-        static_assert((std::is_same_v<collection_t, Ts> || ...) == true,
-                      "The type is not included in the parameter pack.");
-
-        auto &coll = const_cast<collection_t &>(
-            detail::get<collection_t>(m_tuple_container));
-
-        coll.reserve(coll.size() + new_data.size());
-        coll.insert(coll.end(), new_data.begin(), new_data.end());
-    }
-
-    /// Add a new collection - move
-    ///
-    /// @tparam T is the value type of the collection
+    /// @tparam derived_collection_t is the type of the collection
     ///
     /// @param new_data is the new collection to be added
     ///
     /// @note in general can throw an exception
-    template <typename collection_t>
-    DETRAY_HOST auto insert(collection_t &&new_data,
+    template <typename derived_collection_t>
+    DETRAY_HOST auto insert(derived_collection_t &&new_data,
                             const context_type & /*ctx*/ = {}) noexcept(false)
         -> void {
+
+        using collection_t = detail::remove_cvref_t<derived_collection_t>;
 
         static_assert((std::is_same_v<collection_t, Ts> || ...) == true,
                       "The type is not included in the parameter pack.");
 
         auto &coll = detail::get<collection_t>(m_tuple_container);
 
-        coll.reserve(coll.size() + new_data.size());
-        coll.insert(coll.end(), std::make_move_iterator(new_data.begin()),
-                    std::make_move_iterator(new_data.end()));
+        coll.reserve(coll.size() +
+                     std::forward<derived_collection_t>(new_data).size());
+        coll.insert(coll.end(),
+                    std::forward<derived_collection_t>(new_data).begin(),
+                    std::forward<derived_collection_t>(new_data).end());
     }
 
     /// Append another store to the current one
@@ -303,13 +286,13 @@ class multi_store {
     ///
     /// @note in general can throw an exception
     template <std::size_t current_idx = 0>
-    DETRAY_HOST void append(multi_store &other,
+    DETRAY_HOST void append(const multi_store &other,
                             const context_type &ctx = {}) noexcept(false) {
         auto &coll = other.template get<value_types::to_id(current_idx)>();
         insert(coll, ctx);
 
         if constexpr (current_idx < sizeof...(Ts) - 1) {
-            append<current_idx + 1>(std::move(other));
+            append<current_idx + 1>(other);
         }
     }
 
@@ -324,7 +307,7 @@ class multi_store {
     DETRAY_HOST void append(multi_store &&other,
                             const context_type &ctx = {}) noexcept(false) {
         auto &coll = other.template get<value_types::to_id(current_idx)>();
-        insert(coll, ctx);
+        insert(std::move(coll), ctx);
 
         if constexpr (current_idx < sizeof...(Ts) - 1) {
             append<current_idx + 1>(std::move(other));

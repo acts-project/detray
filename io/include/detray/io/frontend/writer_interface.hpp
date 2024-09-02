@@ -9,7 +9,6 @@
 
 // Project include(s)
 #include "detray/builders/detector_builder.hpp"
-#include "detray/io/frontend/payloads.hpp"
 
 // System include(s)
 #include <filesystem>
@@ -28,10 +27,13 @@ class writer_interface {
     writer_interface() = delete;
 
     /// File gets created with a fixed @param extension
-    writer_interface(const std::string& ext) : m_file_extension{ext} {}
+    explicit writer_interface(const std::string& ext) : m_file_extension{ext} {}
 
     /// Default destructor
     virtual ~writer_interface() = default;
+
+    /// @returns the file extension
+    const std::string& file_extension() const { return m_file_extension; }
 
     /// Writes the respective detector component to file. Since the detector
     /// does not provide the volume names, the name map is also passed.
@@ -41,7 +43,7 @@ class writer_interface {
                               const std::ios_base::openmode,
                               const std::filesystem::path&) = 0;
 
-    protected:
+    private:
     /// Extension that matches the file format of the respective writer
     std::string m_file_extension;
 };
