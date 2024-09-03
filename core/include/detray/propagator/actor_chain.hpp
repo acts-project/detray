@@ -29,6 +29,8 @@ class actor_chain {
     public:
     /// Types of the actors that are registered in the chain
     using actor_list_type = tuple_t<actors_t...>;
+    // Tuple of actor states
+    using state_tuple = tuple_t<typename actors_t::state...>;
     // Type of states tuple that is used in the propagator
     using state = tuple_t<typename actors_t::state &...>;
 
@@ -85,6 +87,7 @@ template <>
 class actor_chain<> {
 
     public:
+    using state_tuple = dtuple<>;
     /// Empty states replaces a real actor states container
     struct state {};
 

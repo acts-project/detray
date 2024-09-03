@@ -8,13 +8,13 @@
 option( DETRAY_BENCHMARK_MULTITHREAD "Enable multithreaded benchmarks" OFF )
 option( DETRAY_BENCHMARK_PRINTOUTS "Enable printouts in the benchmarks" OFF )
 
-# Look for openMP, which is used for the CPU benchmark
+# Look for openMP, which is used for the CPU propagation benchmark
 find_package(OpenMP)
 
 # Macro setting up the CPU benchmarks for a specific algebra plugin.
 macro( detray_add_cpu_benchmark algebra )
 
-   # Build the benchmark executable.
+   # Build the benchmark executable for the core components.
    detray_add_executable( benchmark_cpu_${algebra}
       "benchmark_propagator.cpp"
       "find_volume.cpp"
@@ -23,9 +23,21 @@ macro( detray_add_cpu_benchmark algebra )
       "intersect_all.cpp"
       "intersect_surfaces.cpp"
       "masks.cpp"
-      LINK_LIBRARIES benchmark::benchmark benchmark::benchmark_main vecmem::core
-                     detray::core_${algebra} detray::test_common
-                     detray::utils_${algebra} )
+      LINK_LIBRARIES detray::benchmarks benchmark::benchmark_main vecmem::core
+                     detray::core_${algebra} detray::utils_${algebra} )
+
+   # Build the benchmark executable for the propagation
+   detray_add_executable( benchmark_cpu_propagation_${algebra}
+      "propagation.cpp"
+      LINK_LIBRARIES detray::benchmark_cpu benchmark::benchmark_main 
+                     vecmem::core detray::core_${algebra} detray::utils_${algebra} )
+
+   # Switch on optimizations
+   target_compile_options( detray_benchmark_cpu_${algebra} PRIVATE
+   "-march=native" "-ftree-vectorize")
+
+   target_compile_options( detray_benchmark_cpu_propagation_${algebra} PRIVATE
+   "-march=native" "-ftree-vectorize")
 
    # Set the benchmark specific compilation options.
    if( DETRAY_BENCHMARKS_MULTITHREAD )
@@ -37,13 +49,10 @@ macro( detray_add_cpu_benchmark algebra )
          DETRAY_BENCHMARK_PRINTOUTS )
    endif()
 
-   target_compile_options( detray_benchmark_cpu_${algebra} PRIVATE
-   "-march=native" "-ftree-vectorize")
-
    if( OpenMP_CXX_FOUND )
-      target_link_libraries( detray_benchmark_cpu_${algebra} PRIVATE OpenMP::OpenMP_CXX )
-    endif()
-    
+      target_link_libraries( detray_benchmark_cpu_propagation_${algebra} PRIVATE OpenMP::OpenMP_CXX )
+   endif()
+
 endmacro()
 
 # Build the array benchmark.
@@ -75,15 +84,16 @@ if( DETRAY_VC_SOA_PLUGIN )
 
       # Set the benchmark specific compilation options.
       if( DETRAY_BENCHMARKS_MULTITHREAD )
-         target_compile_definitions( detray_benchmark_soa_${algebra} PRIVATE
+         target_compile_definitions( detray_benchmark_vc_soa_${algebra} PRIVATE
             DETRAY_BENCHMARKS_MULTITHREAD )
       endif()
       if( DETRAY_BENCHMARK_PRINTOUTS )
-         target_compile_definitions( detray_benchmark_soa_${algebra} PRIVATE
+         target_compile_definitions( detray_benchmark_vc_soa_${algebra} PRIVATE
             DETRAY_BENCHMARK_PRINTOUTS )
       endif()
 
    endmacro()
 
    detray_add_soa_benchmark( array )
+
 endif()
