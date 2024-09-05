@@ -142,9 +142,6 @@ GTEST_TEST(detray_navigation, navigator_toy_geometry) {
     stepper_t stepper;
     navigator_t nav;
     navigation::config cfg{};
-    cfg.path_tolerance = 1.f * unit<float>::um;
-    cfg.mask_tolerance_scalor = 0.1f;
-    cfg.max_mask_tolerance = 3.f * unit<float>::mm;
     cfg.search_window = {3u, 3u};
 
     prop_state<stepper_t::state, navigator_t::state> propagation{

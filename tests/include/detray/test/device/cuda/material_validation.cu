@@ -69,9 +69,8 @@ __global__ void material_validation_kernel(
                       interactor_state, mat_tracer_state);
 
     // Run propagation
-    navigation::void_inspector::view_type void_view{};
-    typename propagator_t::state propagation(
-        tracks[trk_id], det, typename navigator_t::state::view_type{void_view});
+    typename navigator_t::state::view_type nav_view{};
+    typename propagator_t::state propagation(tracks[trk_id], det, nav_view);
 
     p.propagate(propagation, actor_states);
 

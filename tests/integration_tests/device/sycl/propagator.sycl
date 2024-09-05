@@ -194,6 +194,7 @@ TEST(SyclPropagatorValidation10, inhomogeneous_bfield_cpy) {
     propagator_test_config cfg{};
     cfg.track_generator.phi_steps(10u).theta_steps(10u);
     cfg.track_generator.p_tot(10.f * unit<scalar_t>::GeV);
+    cfg.track_generator.eta_range(-3.f, 3.f);
     cfg.propagation.navigation.search_window = {3u, 3u};
 
     // Create the toy geometry with inhomogeneous bfield from file

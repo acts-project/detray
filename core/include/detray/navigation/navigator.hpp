@@ -171,33 +171,14 @@ class navigator {
         DETRAY_HOST_DEVICE state(const detector_type &det, view_t view)
             : m_detector(&det), m_inspector(view) {}
 
-        /// @return start position of valid candidate range.
-        DETRAY_HOST_DEVICE
-        constexpr auto begin() -> candidate_itr_t {
-            candidate_itr_t itr = m_candidates.begin();
-            detray::ranges::advance(
-                itr, ((is_on_module() || is_on_portal()) && (m_next > 1))
-                         ? m_next - 1
-                         : m_next);
-            return itr;
-        }
-
         /// @return start position of the valid candidate range - const
         DETRAY_HOST_DEVICE
         constexpr auto begin() const -> candidate_const_itr_t {
             candidate_const_itr_t itr = m_candidates.begin();
             detray::ranges::advance(
-                itr, ((is_on_module() || is_on_portal()) && (m_next > 1))
+                itr, ((is_on_module() || is_on_portal()) && (m_next >= 1))
                          ? m_next - 1
                          : m_next);
-            return itr;
-        }
-
-        /// @return sentinel of the valid candidate range.
-        DETRAY_HOST_DEVICE
-        constexpr auto end() -> candidate_itr_t {
-            candidate_itr_t itr = m_candidates.begin();
-            detray::ranges::advance(itr, m_last + 1);
             return itr;
         }
 
@@ -245,54 +226,10 @@ class navigator {
             return m_candidates[static_cast<std::size_t>(m_last)];
         }
 
-        /// Insert a new element @param new_cadidate before position @param pos
-        DETRAY_HOST_DEVICE
-        inline constexpr void insert(candidate_itr_t pos,
-                                     const intersection_type &new_cadidate) {
-
-            // Candidate is too far away to be placed in cache
-            if (pos == m_candidates.end()) {
-                return;
-            }
-
-            // Insert the first candidate
-            if (n_candidates() == 0) {
-                m_candidates[0] = new_cadidate;
-                ++m_last;
-                assert(static_cast<std::size_t>(m_last) < k_cache_capacity);
-                return;
-            }
-
-            // Position where to insert the new candidate
-            dist_t idx{detray::ranges::distance(m_candidates.begin(), pos)};
-            assert(idx >= 0);
-
-            // Shift all following candidates and evict the last element,
-            // if the cache is already full
-            constexpr auto shift_max{static_cast<dist_t>(k_cache_capacity - 2)};
-            const dist_t shift_begin{math::min(m_last, shift_max)};
-
-            for (dist_t i = shift_begin; i >= idx; --i) {
-                const auto j{static_cast<std::size_t>(i)};
-                m_candidates[j + 1u] = m_candidates[j];
-            }
-
-            // Now insert the new candidate and update candidate range
-            m_candidates[static_cast<std::size_t>(idx)] = new_cadidate;
-            m_last = math::min(m_last + 1,
-                               static_cast<dist_t>(k_cache_capacity - 1));
-
-            assert(static_cast<std::size_t>(m_last) < k_cache_capacity);
-        }
-
         /// Scalar representation of the navigation state,
         /// @returns distance to next
         DETRAY_HOST_DEVICE
         scalar_type operator()() const { return target().path; }
-
-        /// @returns the navigation inspector
-        DETRAY_HOST
-        inline auto &inspector() { return m_inspector; }
 
         /// @returns current volume (index) - const
         DETRAY_HOST_DEVICE
@@ -301,6 +238,10 @@ class navigator {
         /// Set start/new volume
         DETRAY_HOST_DEVICE
         inline void set_volume(dindex v) {
+            if (v != m_volume_index) {
+                // Make sure the new volume is properly initialized
+                set_no_trust();
+            }
             m_volume_index = static_cast<nav_link_type>(v);
         }
 
@@ -425,6 +366,14 @@ class navigator {
             return m_status == navigation::status::e_on_target && !m_heartbeat;
         }
 
+        /// @returns the navigation inspector - const
+        DETRAY_HOST_DEVICE
+        inline const auto &inspector() const { return m_inspector; }
+
+        /// @returns the navigation inspector
+        DETRAY_HOST_DEVICE
+        inline auto &inspector() { return m_inspector; }
+
         /// Navigation state that cannot be recovered from. Leave the other
         /// data for inspection.
         ///
@@ -456,6 +405,25 @@ class navigator {
         }
 
         private:
+        /// @return start position of valid candidate range.
+        DETRAY_HOST_DEVICE
+        constexpr auto begin() -> candidate_itr_t {
+            candidate_itr_t itr = m_candidates.begin();
+            detray::ranges::advance(
+                itr, ((is_on_module() || is_on_portal()) && (m_next >= 1))
+                         ? m_next - 1
+                         : m_next);
+            return itr;
+        }
+
+        /// @return sentinel of the valid candidate range.
+        DETRAY_HOST_DEVICE
+        constexpr auto end() -> candidate_itr_t {
+            candidate_itr_t itr = m_candidates.begin();
+            detray::ranges::advance(itr, m_last + 1);
+            return itr;
+        }
+
         /// Helper method to check if a candidate lies on a surface - const
         DETRAY_HOST_DEVICE inline auto is_on_object(
             const intersection_type &candidate,
@@ -466,6 +434,46 @@ class navigator {
         /// @returns currently cached candidates
         DETRAY_HOST_DEVICE
         inline auto candidates() -> candidate_cache_t & { return m_candidates; }
+
+        /// Insert a new element @param new_cadidate before position @param pos
+        DETRAY_HOST_DEVICE
+        inline constexpr void insert(candidate_itr_t pos,
+                                     const intersection_type &new_cadidate) {
+
+            // Candidate is too far away to be placed in cache
+            if (pos == m_candidates.end()) {
+                return;
+            }
+
+            // Insert the first candidate
+            if (n_candidates() == 0) {
+                m_candidates[0] = new_cadidate;
+                ++m_last;
+                assert(static_cast<std::size_t>(m_last) < k_cache_capacity);
+                return;
+            }
+
+            // Position where to insert the new candidate
+            dist_t idx{detray::ranges::distance(m_candidates.begin(), pos)};
+            assert(idx >= 0);
+
+            // Shift all following candidates and evict the last element,
+            // if the cache is already full
+            constexpr auto shift_max{static_cast<dist_t>(k_cache_capacity - 2)};
+            const dist_t shift_begin{math::min(m_last, shift_max)};
+
+            for (dist_t i = shift_begin; i >= idx; --i) {
+                const auto j{static_cast<std::size_t>(i)};
+                m_candidates[j + 1u] = m_candidates[j];
+            }
+
+            // Now insert the new candidate and update candidate range
+            m_candidates[static_cast<std::size_t>(idx)] = new_cadidate;
+            m_last = math::min(m_last + 1,
+                               static_cast<dist_t>(k_cache_capacity - 1));
+
+            assert(static_cast<std::size_t>(m_last) < k_cache_capacity);
+        }
 
         /// @returns next object that we want to reach (current target)
         DETRAY_HOST_DEVICE

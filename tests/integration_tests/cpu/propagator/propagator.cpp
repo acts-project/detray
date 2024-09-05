@@ -168,7 +168,7 @@ class PropagatorWithRkStepper
     vecmem::host_memory_resource host_mr;
 
     /// Toy detector configuration
-    toy_det_config toy_cfg = toy_det_config{}.n_brl_layers(4u).n_edc_layers(3u);
+    toy_det_config toy_cfg = toy_det_config{}.n_brl_layers(4u).n_edc_layers(7u);
 
     /// Track generator configuration
     generator_t::configuration trk_gen_cfg{};
@@ -371,7 +371,7 @@ TEST_P(PropagatorWithRkStepper, rk4_propagator_inhom_bfield) {
 // No step size constraint
 INSTANTIATE_TEST_SUITE_P(
     detray_propagator_validation1, PropagatorWithRkStepper,
-    ::testing::Values(std::make_tuple(-0.05f * unit<scalar_t>::mm,
+    ::testing::Values(std::make_tuple(-100.f * unit<scalar_t>::mm,
                                       std::numeric_limits<scalar_t>::max(),
                                       vector3{0.f * unit<scalar_t>::T,
                                               0.f * unit<scalar_t>::T,
@@ -397,7 +397,7 @@ INSTANTIATE_TEST_SUITE_P(
 
 INSTANTIATE_TEST_SUITE_P(
     detray_propagator_validation4, PropagatorWithRkStepper,
-    ::testing::Values(std::make_tuple(-400.f * unit<scalar_t>::um,
+    ::testing::Values(std::make_tuple(-600.f * unit<scalar_t>::um,
                                       35.f * unit<scalar_t>::mm,
                                       vector3{1.f * unit<scalar_t>::T,
                                               1.f * unit<scalar_t>::T,

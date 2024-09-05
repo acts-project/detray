@@ -72,10 +72,28 @@ struct aggregate_inspector {
         }
     }
 
-    /// @returns a specific inspector
+    /// @returns a specific inspector by type
     template <typename inspector_t>
     DETRAY_HOST_DEVICE constexpr decltype(auto) get() {
         return std::get<inspector_t>(_inspectors);
+    }
+
+    /// @returns a specific inspector by type - const
+    template <typename inspector_t>
+    DETRAY_HOST_DEVICE constexpr decltype(auto) get() const {
+        return std::get<inspector_t>(_inspectors);
+    }
+
+    /// @returns a specific inspector by index
+    template <std::size_t I>
+    DETRAY_HOST_DEVICE constexpr decltype(auto) get() {
+        return std::get<I>(_inspectors);
+    }
+
+    /// @returns a specific inspector by index - const
+    template <std::size_t I>
+    DETRAY_HOST_DEVICE constexpr decltype(auto) get() const {
+        return std::get<I>(_inspectors);
     }
 
     /// @returns a tuple constructed from the inspector @param view s.

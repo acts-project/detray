@@ -62,7 +62,9 @@ inline auto run_propagation_device(
     std::vector<std::size_t> sizes(tracks.size(), 0);
     std::vector<std::size_t> capacities;
     for (auto &r : host_positions) {
-        capacities.push_back(r.size());
+        // Add a few more elements for security (in case the device finds more
+        // surfaces)
+        capacities.push_back(r.size() + 10u);
     }
 
     vecmem::data::jagged_vector_buffer<scalar> path_lengths_buffer(
