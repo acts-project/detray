@@ -9,7 +9,7 @@ a geometry without polymorphic inheritance structure.
 ## Requirements and dependencies
 #### OS & compilers:
 
-- The C++ compiler must support C++17
+- The C++ compiler must support C++20
 - The CUDA Toolkit version must be greater than major version 11
 
 #### Dependency
