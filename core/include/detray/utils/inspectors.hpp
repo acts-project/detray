@@ -72,10 +72,28 @@ struct aggregate_inspector {
         }
     }
 
-    /// @returns a specific inspector
+    /// @returns a specific inspector by type
     template <typename inspector_t>
     DETRAY_HOST_DEVICE constexpr decltype(auto) get() {
         return std::get<inspector_t>(_inspectors);
+    }
+
+    /// @returns a specific inspector by type - const
+    template <typename inspector_t>
+    DETRAY_HOST_DEVICE constexpr decltype(auto) get() const {
+        return std::get<inspector_t>(_inspectors);
+    }
+
+    /// @returns a specific inspector by index
+    template <std::size_t I>
+    DETRAY_HOST_DEVICE constexpr decltype(auto) get() {
+        return std::get<I>(_inspectors);
+    }
+
+    /// @returns a specific inspector by index - const
+    template <std::size_t I>
+    DETRAY_HOST_DEVICE constexpr decltype(auto) get() const {
+        return std::get<I>(_inspectors);
     }
 
     /// @returns a tuple constructed from the inspector @param view s.
@@ -156,7 +174,7 @@ struct object_tracer {
                  10.f * std::numeric_limits<scalar_t>::epsilon()) ||
                 (state.is_on_portal() && current_vol != state.volume())) {
 
-                object_trace.push_back({pos, dir, *(state.current())});
+                object_trace.push_back({pos, dir, state.current()});
                 last_pos = pos;
                 last_dir = dir;
                 current_vol = state.volume();
@@ -170,6 +188,10 @@ struct object_tracer {
         return object_trace[i];
     }
 
+    /// @returns the full object trace
+    DETRAY_HOST_DEVICE
+    constexpr const auto &trace() const { return object_trace; }
+
     /// Compares a navigation status with the tracers references
     DETRAY_HOST_DEVICE
     constexpr bool is_status(const status &nav_stat, const status &ref_stat) {
@@ -180,6 +202,36 @@ struct object_tracer {
 /// A navigation inspector that prints information about the current navigation
 /// state. Meant for debugging.
 struct print_inspector {
+
+    using view_type = dvector_view<char>;
+    using const_view_type = dvector_view<const char>;
+
+    /// Default constructor
+    print_inspector() = default;
+
+    /// Copy constructor ensures that the string stream is set up identically
+    print_inspector(const print_inspector &other)
+        : debug_stream(other.debug_stream.str()) {}
+
+    /// Move constructor
+    print_inspector(print_inspector &&other) = default;
+
+    /// Default destructor
+    ~print_inspector() = default;
+
+    /// Copy assignemten operator ensures that the string stream is set up
+    /// identically
+    print_inspector &operator=(const print_inspector &other) {
+        // Reset
+        debug_stream.str(std::string());
+        debug_stream.clear();
+        // Move new debug string in
+        debug_stream << other.debug_stream.str();
+        return *this;
+    }
+
+    /// Move assignemten operator
+    print_inspector &operator=(print_inspector &&other) = default;
 
     /// Gathers navigation information accross navigator update calls
     std::stringstream debug_stream{};
@@ -205,10 +257,10 @@ struct print_inspector {
         debug_stream << "Surface candidates: " << std::endl;
 
         using geo_ctx_t = typename state_type::detector_type::geometry_context;
-        for (const auto &sf_cand : state.candidates()) {
+        for (const auto &sf_cand : state) {
             const auto &local = sf_cand.local;
             const auto pos =
-                tracking_surface{*state.detector(), sf_cand.sf_desc}
+                tracking_surface{state.detector(), sf_cand.sf_desc}
                     .local_to_global(geo_ctx_t{}, local, track_dir);
 
             debug_stream << sf_cand;
@@ -290,6 +342,33 @@ namespace stepping {
 /// A stepper inspector that prints information about the current stepper
 /// state. Meant for debugging.
 struct print_inspector {
+
+    /// Default constructor
+    print_inspector() = default;
+
+    /// Copy constructor ensures that the string stream is set up identically
+    print_inspector(const print_inspector &other)
+        : debug_stream(other.debug_stream.str()) {}
+
+    /// Move constructor
+    print_inspector(print_inspector &&other) = default;
+
+    /// Default destructor
+    ~print_inspector() = default;
+
+    /// Copy assignemten operator ensures that the string stream is set up
+    /// identically
+    print_inspector &operator=(const print_inspector &other) {
+        // Reset
+        debug_stream.str(std::string());
+        debug_stream.clear();
+        // Move new debug string in
+        debug_stream << other.debug_stream.str();
+        return *this;
+    }
+
+    /// Move assignemten operator
+    print_inspector &operator=(print_inspector &&other) = default;
 
     /// Gathers stepping information from inside the stepper methods
     std::stringstream debug_stream{};

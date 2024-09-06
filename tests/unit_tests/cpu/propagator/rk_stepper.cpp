@@ -16,6 +16,7 @@
 #include "detray/io/utils/file_handle.hpp"
 #include "detray/navigation/detail/trajectories.hpp"
 #include "detray/propagator/line_stepper.hpp"
+#include "detray/propagator/stepping_config.hpp"
 #include "detray/simulation/event_generator/track_generators.hpp"
 #include "detray/test/common/types.hpp"
 #include "detray/tracks/tracks.hpp"
@@ -43,6 +44,7 @@ using crk_stepper_t =
 namespace {
 
 constexpr scalar tol{1e-3f};
+stepping::config step_cfg{};
 constexpr material<scalar> vol_mat{detray::cesium_iodide_with_ded<scalar>()};
 
 vecmem::host_memory_resource host_mr;
@@ -69,10 +71,11 @@ struct nav_state {
     scalar operator()() const { return m_step_size; }
     inline auto current_object() const -> dindex { return dindex_invalid; }
     inline auto tolerance() const -> scalar { return tol; }
-    inline auto detector() const -> const detray::detector<> * {
-        return m_det.get();
+    inline auto detector() const -> const detray::detector<> & {
+        return *(m_det.get());
     }
     inline auto volume() -> unsigned int { return 0u; }
+    inline auto get_volume() { return tracking_volume{this->detector(), 0u}; }
     inline void set_full_trust() {}
     inline void set_high_trust() {}
     inline void set_fair_trust() {}
@@ -151,9 +154,9 @@ GTEST_TEST(detray_propagator, rk_stepper) {
         c_propagation._stepping.set_step_size(1.f * unit<scalar>::mm);
 
         for (unsigned int i_s = 0u; i_s < rk_steps; i_s++) {
-            rk_stepper.step(propagation);
-            crk_stepper.step(c_propagation);
-            crk_stepper.step(c_propagation);
+            rk_stepper.step(propagation, step_cfg);
+            crk_stepper.step(c_propagation, step_cfg);
+            crk_stepper.step(c_propagation, step_cfg);
         }
 
         // Check that both steppers arrive at the same point
@@ -178,9 +181,9 @@ GTEST_TEST(detray_propagator, rk_stepper) {
         n_state.m_step_size *= -unit<scalar>::mm;
         cn_state.m_step_size *= -unit<scalar>::mm;
         for (unsigned int i_s = 0u; i_s < rk_steps; i_s++) {
-            rk_stepper.step(propagation);
-            crk_stepper.step(c_propagation);
-            crk_stepper.step(c_propagation);
+            rk_stepper.step(propagation, step_cfg);
+            crk_stepper.step(c_propagation, step_cfg);
+            crk_stepper.step(c_propagation, step_cfg);
         }
 
         // Should arrive back at track origin, where path length is zero
@@ -249,9 +252,9 @@ TEST(detray_propagator, rk_stepper_inhomogeneous_bfield) {
         propagation._stepping.set_step_size(1.f * unit<scalar>::mm);
         c_propagation._stepping.set_step_size(1.f * unit<scalar>::mm);
         for (unsigned int i_s = 0u; i_s < rk_steps; i_s++) {
-            rk_stepper.step(propagation);
-            crk_stepper.step(c_propagation);
-            crk_stepper.step(c_propagation);
+            rk_stepper.step(propagation, step_cfg);
+            crk_stepper.step(c_propagation, step_cfg);
+            crk_stepper.step(c_propagation, step_cfg);
         }
 
         // Make sure the steppers moved
@@ -264,9 +267,9 @@ TEST(detray_propagator, rk_stepper_inhomogeneous_bfield) {
         n_state.m_step_size *= -unit<scalar>::mm;
         cn_state.m_step_size *= -unit<scalar>::mm;
         for (unsigned int i_s = 0u; i_s < rk_steps; i_s++) {
-            rk_stepper.step(propagation);
-            crk_stepper.step(c_propagation);
-            crk_stepper.step(c_propagation);
+            rk_stepper.step(propagation, step_cfg);
+            crk_stepper.step(c_propagation, step_cfg);
+            crk_stepper.step(c_propagation, step_cfg);
         }
 
         // Should arrive back at track origin, where path length is zero
@@ -330,7 +333,7 @@ TEST(detray_propagator, qop_derivative) {
 
             rk_state.set_step_size(ds);
             rk_state._initialized = false;
-            rk_stepper.step(propagation);
+            rk_stepper.step(propagation, step_cfg);
 
             const scalar qop2 = rk_state().qop();
             const scalar dqopds2 = rk_state.dqopds(qop2);

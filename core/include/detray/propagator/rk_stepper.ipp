@@ -616,7 +616,7 @@ template <typename propagation_state_t>
 DETRAY_HOST_DEVICE bool detray::rk_stepper<
     magnetic_field_t, algebra_t, constraint_t, policy_t, inspector_t,
     array_t>::step(propagation_state_t& propagation,
-                   const detray::stepping::config& cfg) {
+                   const detray::stepping::config& cfg) const {
 
     // Get stepper and navigator states
     state& stepping = propagation._stepping;
@@ -633,7 +633,7 @@ DETRAY_HOST_DEVICE bool detray::rk_stepper<
 
     const point3_type pos = stepping().pos();
 
-    auto vol = tracking_volume{*navigation.detector(), navigation.volume()};
+    auto vol = navigation.get_volume();
     if (vol.has_material()) {
         stepping._mat = vol.material_parameters(pos);
     } else {

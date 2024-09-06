@@ -57,7 +57,6 @@ void propagator_benchmark(
     typename detector_host_type::view_type det_data,
     typename field_type::view_t field_data,
     vecmem::data::vector_view<free_track_parameters<algebra_t>>& tracks_data,
-    vecmem::data::jagged_vector_view<intersection_t>& candidates_data,
     const propagate_option opt);
 
 }  // namespace detray

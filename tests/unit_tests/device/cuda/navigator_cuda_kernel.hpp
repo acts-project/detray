@@ -55,7 +55,6 @@ namespace detray {
 void navigator_test(
     typename detector_host_t::view_type det_data, navigation::config& cfg,
     vecmem::data::vector_view<free_track_parameters<algebra_t>>& tracks_data,
-    vecmem::data::jagged_vector_view<intersection_t>& candidates_data,
     vecmem::data::jagged_vector_view<dindex>& volume_records_data,
     vecmem::data::jagged_vector_view<point3>& position_records_data);
 

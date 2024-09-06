@@ -17,9 +17,6 @@ template <typename bfield_t, typename detector_t,
 __global__ void navigation_validation_kernel(
     typename detector_t::view_type det_data, const propagation::config cfg,
     bfield_t field_data,
-    vecmem::data::jagged_vector_view<
-        typename intersection_record_t::intersection_type>
-        navigation_cache_view,
     vecmem::data::jagged_vector_view<const intersection_record_t>
         truth_intersection_traces_view,
     vecmem::data::jagged_vector_view<navigation::detail::candidate_record<
@@ -54,7 +51,9 @@ __global__ void navigation_validation_kernel(
                                   navigation::status::e_on_module,
                                   navigation::status::e_on_portal>;
     // Navigation with inspection
-    using navigator_t = navigator<detector_device_t, object_tracer_t>;
+    using navigator_t =
+        navigator<detector_device_t, navigation::default_cache_size,
+                  object_tracer_t>;
 
     // Propagator with pathlimit aborter
     using material_tracer_t = material_validator::material_tracer<scalar_t>;
@@ -64,8 +63,6 @@ __global__ void navigation_validation_kernel(
 
     detector_device_t det(det_data);
 
-    vecmem::jagged_device_vector<intersection_t> navigation_cache(
-        navigation_cache_view);
     vecmem::jagged_device_vector<const intersection_record_t>
         truth_intersection_traces(truth_intersection_traces_view);
     vecmem::jagged_device_vector<
@@ -77,10 +74,6 @@ __global__ void navigation_validation_kernel(
     // Check the memory setup
     assert(truth_intersection_traces.size() ==
            recorded_intersections_view.size());
-    assert(truth_intersection_traces.size() == navigation_cache.size());
-    for (unsigned int i = 0u; i < navigation_cache.size(); ++i) {
-        assert(navigation_cache.at(i).capacity() > 0);
-    }
 
     int trk_id = threadIdx.x + blockIdx.x * blockDim.x;
     if (trk_id >= truth_intersection_traces.size()) {
@@ -109,16 +102,14 @@ __global__ void navigation_validation_kernel(
     // Run propagation
     if constexpr (is_no_bfield) {
         typename propagator_t::state propagation(
-            track, det, trk_id,
+            track, det,
             typename navigator_t::state::view_type{
-                navigation_cache_view,
                 recorded_intersections_view.ptr()[trk_id]});
         p.propagate(propagation, actor_states);
     } else {
         typename propagator_t::state propagation(
-            track, field_data, det, trk_id,
+            track, field_data, det,
             typename navigator_t::state::view_type{
-                navigation_cache_view,
                 recorded_intersections_view.ptr()[trk_id]});
         p.propagate(propagation, actor_states);
     }
@@ -134,9 +125,6 @@ template <typename bfield_t, typename detector_t,
 void navigation_validation_device(
     typename detector_t::view_type det_view, const propagation::config &cfg,
     bfield_t field_data,
-    vecmem::data::jagged_vector_view<
-        typename intersection_record_t::intersection_type>
-        &navigation_cache_view,
     vecmem::data::jagged_vector_view<const intersection_record_t>
         &truth_intersection_traces_view,
     vecmem::data::jagged_vector_view<navigation::detail::candidate_record<
@@ -152,9 +140,8 @@ void navigation_validation_device(
     // run the test kernel
     navigation_validation_kernel<bfield_t, detector_t, intersection_record_t>
         <<<block_dim, thread_dim>>>(
-            det_view, cfg, field_data, navigation_cache_view,
-            truth_intersection_traces_view, recorded_intersections_view,
-            mat_records_view);
+            det_view, cfg, field_data, truth_intersection_traces_view,
+            recorded_intersections_view, mat_records_view);
 
     // cuda error check
     DETRAY_CUDA_ERROR_CHECK(cudaGetLastError());
@@ -169,8 +156,6 @@ void navigation_validation_device(
         detray::intersection_record<detector<METADATA>>>(                      \
         typename detector<METADATA>::view_type, const propagation::config &,   \
         covfie::field_view<bfield::const_bknd_t>,                              \
-        vecmem::data::jagged_vector_view<typename detray::intersection_record< \
-            detector<METADATA>>::intersection_type> &,                         \
         vecmem::data::jagged_vector_view<                                      \
             const detray::intersection_record<detector<METADATA>>> &,          \
         vecmem::data::jagged_vector_view<navigation::detail::candidate_record< \
@@ -184,8 +169,6 @@ void navigation_validation_device(
         detray::intersection_record<detector<METADATA>>>(                      \
         typename detector<METADATA>::view_type, const propagation::config &,   \
         detray::navigation_validator::empty_bfield,                            \
-        vecmem::data::jagged_vector_view<typename detray::intersection_record< \
-            detector<METADATA>>::intersection_type> &,                         \
         vecmem::data::jagged_vector_view<                                      \
             const detray::intersection_record<detector<METADATA>>> &,          \
         vecmem::data::jagged_vector_view<navigation::detail::candidate_record< \

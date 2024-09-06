@@ -13,6 +13,7 @@
 #include "detray/geometry/shapes/unbounded.hpp"
 #include "detray/navigation/navigator.hpp"
 #include "detray/propagator/line_stepper.hpp"
+#include "detray/propagator/propagation_config.hpp"
 #include "detray/propagator/rk_stepper.hpp"
 #include "detray/test/common/types.hpp"
 #include "detray/tracks/tracks.hpp"
@@ -51,11 +52,11 @@ struct prop_state {
     prop_state(const track_t &t_in, const field_type &field,
                const typename navigation_t::detector_type &det)
         : _stepping(t_in, field), _navigation(det) {}
-
-    scalar mask_tolerance() const { return 15.f * unit<scalar>::um; }
 };
 
 static constexpr bool verbose_check = true;
+
+propagation::config prop_cfg{};
 
 }  // anonymous namespace
 
@@ -78,6 +79,7 @@ GTEST_TEST(detray_detectors, telescope_detector) {
 
     using rk_stepper_t = rk_stepper<b_field_t::view_t, algebra_t>;
     using inspector_t = navigation::print_inspector;
+    constexpr std::size_t cache_size{navigation::default_cache_size};
 
     // Test tolerance
     constexpr scalar tol{1e-4f};
@@ -166,9 +168,9 @@ GTEST_TEST(detray_detectors, telescope_detector) {
     free_track_parameters<algebra_t> test_track_x(pos, 0.f, mom, -1.f);
 
     // navigators
-    navigator<decltype(z_tel_det1), inspector_t> navigator_z1;
-    navigator<decltype(z_tel_det2), inspector_t> navigator_z2;
-    navigator<decltype(x_tel_det), inspector_t> navigator_x;
+    navigator<decltype(z_tel_det1), cache_size, inspector_t> navigator_z1;
+    navigator<decltype(z_tel_det2), cache_size, inspector_t> navigator_z2;
+    navigator<decltype(x_tel_det), cache_size, inspector_t> navigator_x;
     using navigation_state_t = decltype(navigator_z1)::state;
     using stepping_state_t = rk_stepper_t::state;
 
@@ -189,9 +191,9 @@ GTEST_TEST(detray_detectors, telescope_detector) {
     navigation_state_t &navigation_x = propgation_x._navigation;
 
     // propagate all telescopes
-    bool heartbeat_z1 = navigator_z1.init(propgation_z1);
-    bool heartbeat_z2 = navigator_z2.init(propgation_z2);
-    bool heartbeat_x = navigator_x.init(propgation_x);
+    bool heartbeat_z1 = navigator_z1.init(propgation_z1, prop_cfg.navigation);
+    bool heartbeat_z2 = navigator_z2.init(propgation_z2, prop_cfg.navigation);
+    bool heartbeat_x = navigator_x.init(propgation_x, prop_cfg.navigation);
 
     while (heartbeat_z1 && heartbeat_z2 && heartbeat_x) {
 
@@ -200,17 +202,17 @@ GTEST_TEST(detray_detectors, telescope_detector) {
         EXPECT_TRUE(heartbeat_z2);
         EXPECT_TRUE(heartbeat_x);
 
-        heartbeat_z1 &= rk_stepper_z.step(propgation_z1);
-        heartbeat_z2 &= rk_stepper_z.step(propgation_z2);
-        heartbeat_x &= rk_stepper_x.step(propgation_x);
+        heartbeat_z1 &= rk_stepper_z.step(propgation_z1, prop_cfg.stepping);
+        heartbeat_z2 &= rk_stepper_z.step(propgation_z2, prop_cfg.stepping);
+        heartbeat_x &= rk_stepper_x.step(propgation_x, prop_cfg.stepping);
 
         navigation_z1.set_high_trust();
         navigation_z2.set_high_trust();
         navigation_x.set_high_trust();
 
-        heartbeat_z1 &= navigator_z1.update(propgation_z1);
-        heartbeat_z2 &= navigator_z2.update(propgation_z2);
-        heartbeat_x &= navigator_x.update(propgation_x);
+        heartbeat_z1 &= navigator_z1.update(propgation_z1, prop_cfg.navigation);
+        heartbeat_z2 &= navigator_z2.update(propgation_z2, prop_cfg.navigation);
+        heartbeat_x &= navigator_x.update(propgation_x, prop_cfg.navigation);
         // The track path lengths should match between all propagations
         EXPECT_NEAR(
             std::abs(stepping_z1._path_length - stepping_z2._path_length) /
@@ -256,19 +258,21 @@ GTEST_TEST(detray_detectors, telescope_detector) {
     detail::check_consistency(tel_detector, verbose_check, tel_names);
 
     // make at least sure it is navigatable
-    navigator<decltype(tel_detector), inspector_t> tel_navigator;
+    navigator<decltype(tel_detector), cache_size, inspector_t> tel_navigator;
 
     prop_state<stepping_state_t, navigation_state_t> tel_propagation(
         pilot_track, b_field_z, tel_detector);
     navigation_state_t &tel_navigation = tel_propagation._navigation;
 
     // run propagation
-    bool heartbeat_tel = tel_navigator.init(tel_propagation);
+    bool heartbeat_tel =
+        tel_navigator.init(tel_propagation, prop_cfg.navigation);
 
     while (heartbeat_tel) {
-        heartbeat_tel &= rk_stepper_z.step(tel_propagation);
+        heartbeat_tel &= rk_stepper_z.step(tel_propagation, prop_cfg.stepping);
         tel_navigation.set_high_trust();
-        heartbeat_tel &= tel_navigator.update(tel_propagation);
+        heartbeat_tel &=
+            tel_navigator.update(tel_propagation, prop_cfg.navigation);
     }
     // check that propagation was successful
     ASSERT_TRUE(tel_navigation.is_complete())

@@ -62,7 +62,8 @@ GTEST_TEST(detray_navigation, guided_navigator) {
     using runge_kutta_stepper =
         rk_stepper<b_field_t::view_t, algebra_t, unconstrained_step,
                    guided_navigation>;
-    using guided_navigator = navigator<detector_t, inspector_t>;
+    using guided_navigator =
+        navigator<detector_t, navigation::default_cache_size, inspector_t>;
     using actor_chain_t = actor_chain<dtuple, pathlimit_aborter>;
     using propagator_t =
         propagator<runge_kutta_stepper, guided_navigator, actor_chain_t>;

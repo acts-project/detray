@@ -94,8 +94,8 @@ struct intersection2D {
         if constexpr (std::is_scalar_v<bool_t>) {
             out_stream << (is.status ? ", status: inside"
                                      : ", status: outside");
-            out_stream << (is.direction ? ", status: along"
-                                        : ", status: opposite");
+            out_stream << (is.direction ? ", direction: along"
+                                        : ", direction: opposite");
         } else {
             out_stream << ", status: " << is.status;
             out_stream << ", direction: " << is.direction;

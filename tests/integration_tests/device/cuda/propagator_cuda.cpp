@@ -97,21 +97,21 @@ INSTANTIATE_TEST_SUITE_P(
 
 INSTANTIATE_TEST_SUITE_P(CudaPropagatorValidation2, CudaPropConstBFieldMng,
                          ::testing::Values(std::make_tuple(
-                             -800.f * unit<float>::um, 5.f * unit<float>::mm,
+                             -400.f * unit<float>::um, 40.f * unit<float>::mm,
                              vector3_t{0.f * unit<scalar_t>::T,
                                        1.f * unit<scalar_t>::T,
                                        1.f * unit<scalar_t>::T})));
 
 INSTANTIATE_TEST_SUITE_P(CudaPropagatorValidation3, CudaPropConstBFieldMng,
                          ::testing::Values(std::make_tuple(
-                             -800.f * unit<float>::um, 5.f * unit<float>::mm,
+                             -400.f * unit<float>::um, 40.f * unit<float>::mm,
                              vector3_t{1.f * unit<scalar_t>::T,
                                        0.f * unit<scalar_t>::T,
                                        1.f * unit<scalar_t>::T})));
 
 INSTANTIATE_TEST_SUITE_P(CudaPropagatorValidation4, CudaPropConstBFieldMng,
                          ::testing::Values(std::make_tuple(
-                             -800.f * unit<float>::um, 1.f * unit<float>::mm,
+                             -600.f * unit<float>::um, 35.f * unit<float>::mm,
                              vector3_t{1.f * unit<scalar_t>::T,
                                        1.f * unit<scalar_t>::T,
                                        1.f * unit<scalar_t>::T})));
@@ -126,21 +126,21 @@ INSTANTIATE_TEST_SUITE_P(
 
 INSTANTIATE_TEST_SUITE_P(CudaPropagatorValidation6, CudaPropConstBFieldCpy,
                          ::testing::Values(std::make_tuple(
-                             -800.f * unit<float>::um, 5.f * unit<float>::mm,
+                             -400.f * unit<float>::um, 40.f * unit<float>::mm,
                              vector3_t{0.f * unit<scalar_t>::T,
                                        1.f * unit<scalar_t>::T,
                                        1.f * unit<scalar_t>::T})));
 
 INSTANTIATE_TEST_SUITE_P(CudaPropagatorValidation7, CudaPropConstBFieldCpy,
                          ::testing::Values(std::make_tuple(
-                             -800.f * unit<float>::um, 5.f * unit<float>::mm,
+                             -400.f * unit<float>::um, 40.f * unit<float>::mm,
                              vector3_t{1.f * unit<scalar_t>::T,
                                        0.f * unit<scalar_t>::T,
                                        1.f * unit<scalar_t>::T})));
 
 INSTANTIATE_TEST_SUITE_P(CudaPropagatorValidation8, CudaPropConstBFieldCpy,
                          ::testing::Values(std::make_tuple(
-                             -800.f * unit<float>::um, 1.f * unit<float>::mm,
+                             -600.f * unit<float>::um, 35.f * unit<float>::mm,
                              vector3_t{1.f * unit<scalar_t>::T,
                                        1.f * unit<scalar_t>::T,
                                        1.f * unit<scalar_t>::T})));
@@ -159,6 +159,7 @@ TEST(CudaPropagatorValidation9, inhomogeneous_bfield_cpy) {
     propagator_test_config cfg{};
     cfg.track_generator.phi_steps(10u).theta_steps(10u);
     cfg.track_generator.p_tot(10.f * unit<scalar_t>::GeV);
+    cfg.track_generator.eta_range(-3.f, 3.f);
     cfg.propagation.navigation.search_window = {3u, 3u};
 
     // Get the magnetic field

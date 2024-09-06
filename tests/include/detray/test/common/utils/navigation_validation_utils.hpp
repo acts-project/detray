@@ -58,7 +58,8 @@ inline auto record_propagation(
         aggregate_inspector<object_tracer_t, nav_print_inspector_t>;
 
     // Navigation with inspection
-    using navigator_t = navigator<detector_t, inspector_t, intersection_t>;
+    using navigator_t =
+        navigator<detector_t, navigation::default_cache_size, inspector_t>;
 
     // Propagator with pathlimit aborter
     using material_tracer_t = material_validator::material_tracer<scalar_t>;

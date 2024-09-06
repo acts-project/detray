@@ -93,7 +93,9 @@ struct typed_index {
     using index_type = index_t;
     using encoder = detail::bit_encoder<value_t>;
 
-    typed_index() = default;
+    constexpr typed_index() = default;
+
+    DETRAY_HOST_DEVICE
     typed_index(const id_t id, const index_t idx) {
         encoder::template set_bits<id_mask>(m_value, static_cast<value_t>(id));
         encoder::template set_bits<index_mask>(m_value,

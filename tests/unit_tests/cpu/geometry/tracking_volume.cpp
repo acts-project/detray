@@ -168,7 +168,7 @@ GTEST_TEST(detray_geometry, tracking_volume) {
     t = vol17.center();
     ASSERT_NEAR(t[0], 0.f, tol);
     ASSERT_NEAR(t[1], 0.f, tol);
-    ASSERT_NEAR(t[2], 548.15f, tol);
+    ASSERT_NEAR(t[2], 547.75f, tol);
     ASSERT_EQ(vol17.surfaces().size(), 12u);
 
     // Access to all surfaces

@@ -44,6 +44,9 @@ class surface_descriptor {
     using material_link = material_link_t;
     using material_id = typename material_link::id_type;
 
+    /// Default constructor
+    constexpr surface_descriptor() = default;
+
     /// Constructor with full arguments - move semantics
     ///
     /// @param trf the transform for positioning and 3D local frame
@@ -81,10 +84,6 @@ class surface_descriptor {
             geometry::barcode{}.set_volume(volume).set_id(sf_id).set_transform(
                 trf);
     }
-
-    constexpr surface_descriptor() = default;
-    surface_descriptor(const surface_descriptor &lhs) = default;
-    ~surface_descriptor() = default;
 
     /// Equality operator
     ///

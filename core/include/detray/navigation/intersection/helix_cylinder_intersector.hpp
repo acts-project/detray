@@ -69,7 +69,7 @@ struct helix_intersector_impl<cylindrical2D<algebra_t>, algebra_t>
         assert((mask_tolerance[0] == mask_tolerance[1]) &&
                "Helix intersectors use only one mask tolerance value");
 
-        std::array<intersection_type<surface_descr_t>, 2> ret;
+        std::array<intersection_type<surface_descr_t>, 2> ret{};
 
         if (!run_rtsafe) {
             // Get the surface placement
