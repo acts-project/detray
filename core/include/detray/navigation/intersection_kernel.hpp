@@ -8,6 +8,7 @@
 #pragma once
 
 // Project include(s)
+#include "detray/definitions/detail/algorithms.hpp"
 #include "detray/definitions/detail/qualifiers.hpp"
 #include "detray/definitions/units.hpp"
 #include "detray/navigation/intersection/intersection.hpp"
@@ -74,11 +75,8 @@ struct intersection_initialize {
     DETRAY_HOST_DEVICE bool place_in_collection(
         const typename is_container_t::value_type &sfi,
         is_container_t &intersections) const {
-
         if (sfi.status) {
-            assert(intersections.size() < intersections.capacity() &&
-                   "Navigation cache size too small");
-            intersections.push_back(sfi);
+            insert_sorted(sfi, intersections);
         }
         return sfi.status;
     }
@@ -90,13 +88,20 @@ struct intersection_initialize {
         bool is_valid = false;
         for (auto &sfi : solutions) {
             if (sfi.status) {
-                assert(intersections.size() < intersections.capacity() &&
-                       "Navigation cache size too small");
-                intersections.push_back(sfi);
+                insert_sorted(sfi, intersections);
             }
             is_valid |= sfi.status;
         }
         return is_valid;
+    }
+
+    template <typename is_container_t>
+    DETRAY_HOST_DEVICE void insert_sorted(
+        const typename is_container_t::value_type &sfi,
+        is_container_t &intersections) const {
+        auto itr_pos = detray::detail::upper_bound(intersections.begin(),
+                                                   intersections.end(), sfi);
+        intersections.insert(itr_pos, sfi);
     }
 };
 

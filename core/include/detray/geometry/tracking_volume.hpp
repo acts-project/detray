@@ -171,34 +171,6 @@ class tracking_volume {
                                                    std::forward<Args>(args)...);
     }
 
-    /// @returns the maximum number of surface candidates during a neighborhood
-    /// lookup
-    // TODO: Remove
-    template <int I = static_cast<int>(descr_t::object_id::e_size) - 1>
-    DETRAY_HOST_DEVICE constexpr auto n_max_candidates(
-        unsigned int n = 0u) const -> unsigned int {
-
-        // Get the index of the surface collection with type index 'I'
-        const auto &link{m_desc.template accel_link<
-            static_cast<typename descr_t::object_id>(I)>()};
-
-        // Check if this volume holds such a collection and, if so, add max
-        // number of candidates that we can expect from it
-        if (!link.is_invalid()) {
-            const unsigned int n_max{
-                m_detector.accelerator_store()
-                    .template visit<detail::n_candidates_getter>(link)};
-            // @todo: Remove when local navigation becomes available !!!!
-            n += n_max > 20u ? 20u : n_max;
-        }
-        // Check the next surface collection type
-        if constexpr (I > 0) {
-            return n_max_candidates<I - 1>(n);
-        } else {
-            return n;
-        }
-    }
-
     /// Do a consistency check on the volume after building the detector.
     ///
     /// @param os output stream for error messages.

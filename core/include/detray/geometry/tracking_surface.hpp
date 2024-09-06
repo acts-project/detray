@@ -453,7 +453,7 @@ class tracking_surface {
     /// Access to the detector stores
     const detector_t &m_detector;
     /// Access to the descriptor
-    const descr_t &m_desc;
+    const descr_t m_desc;
 };
 
 template <typename detector_t, typename descr_t>

@@ -30,13 +30,11 @@ namespace detray::cuda {
 ///
 /// @param[in] det_view the detector vecmem view
 /// @param[in] cfg the propagation configuration
-/// @param[in] navigation_cache_view the navigation cache vecemem view
 /// @param[in] tracks_view the initial track parameter of every test track
 /// @param[out] mat_records_view the accumulated material per track
-template <typename detector_t, typename intersection_t>
+template <typename detector_t>
 void material_validation_device(
     typename detector_t::view_type det_view, const propagation::config &cfg,
-    vecmem::data::jagged_vector_view<intersection_t> &navigation_cache_view,
     vecmem::data::vector_view<
         free_track_parameters<typename detector_t::algebra_type>> &tracks_view,
     vecmem::data::vector_view<
@@ -69,11 +67,6 @@ struct run_material_validation {
         auto det_buffer = detray::get_buffer(det, *dev_mr, cuda_cpy);
         auto det_view = detray::get_data(det_buffer);
 
-        // Allocate memory for the navigation cache on the device
-        auto navigation_cache_buffer = detray::create_candidates_buffer(
-            det, tracks.size(), *dev_mr, host_mr);
-        cuda_cpy.setup(navigation_cache_buffer);
-
         // Move the track parameters to device
         auto tracks_buffer = cuda_cpy.to(vecmem::get_data(tracks), *dev_mr,
                                          vecmem::copy::type::host_to_device);
@@ -87,9 +80,8 @@ struct run_material_validation {
         auto mat_records_view = vecmem::get_data(mat_records_buffer);
 
         // Run the material tracing on device
-        material_validation_device<detector_t>(det_view, cfg,
-                                               navigation_cache_buffer,
-                                               tracks_view, mat_records_view);
+        material_validation_device<detector_t>(det_view, cfg, tracks_view,
+                                               mat_records_view);
 
         // Get the results back to the host and pass them on to be checked
         vecmem::vector<material_record_t> mat_records(host_mr);

@@ -154,6 +154,9 @@ GTEST_TEST(detray_intersection, intersection_kernel_ray) {
             surface.mask(), sfi_init, detail::ray(track), surface,
             transform_store, std::array<scalar_t, 2>{tol, tol});
     }
+
+    ASSERT_TRUE(expected_points.size() == sfi_init.size());
+
     // Also check intersections
     for (std::size_t i = 0u; i < expected_points.size(); ++i) {
 

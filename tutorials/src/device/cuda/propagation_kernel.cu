@@ -20,9 +20,7 @@ __global__ void propagation_kernel(
     typename detray::tutorial::device_field_t::view_t field_data,
     const vecmem::data::vector_view<
         detray::free_track_parameters<detray::tutorial::algebra_t>>
-        tracks_data,
-    vecmem::data::jagged_vector_view<detray::tutorial::intersection_t>
-        candidates_data) {
+        tracks_data) {
 
     int gid = threadIdx.x + blockIdx.x * blockDim.x;
 
@@ -37,9 +35,6 @@ __global__ void propagation_kernel(
 
     // Setup of the device-side detector
     detray::tutorial::detector_device_t det(det_data);
-    // Setup of the avigator cache
-    vecmem::jagged_device_vector<detray::tutorial::intersection_t> candidates(
-        candidates_data);
 
     // Create propagator from a stepper and a navigator
     propagation::config cfg{};
@@ -59,8 +54,7 @@ __global__ void propagation_kernel(
                                     interactor_state, resetter_state);
 
     // Create the propagator state for the track
-    detray::tutorial::propagator_t::state state(tracks[gid], field_data, det,
-                                                candidates.at(gid));
+    detray::tutorial::propagator_t::state state(tracks[gid], field_data, det);
 
     // Run propagation
     p.propagate(state, actor_states);
@@ -71,16 +65,14 @@ void propagation(
     typename detray::tutorial::device_field_t::view_t field_data,
     const vecmem::data::vector_view<
         detray::free_track_parameters<detray::tutorial::algebra_t>>
-        tracks_data,
-    vecmem::data::jagged_vector_view<detray::tutorial::intersection_t>
-        candidates_data) {
+        tracks_data) {
 
     int thread_dim = 2 * WARP_SIZE;
     int block_dim = tracks_data.size() / thread_dim + 1;
 
     // run the tutorial kernel
     propagation_kernel<<<block_dim, thread_dim>>>(det_data, field_data,
-                                                  tracks_data, candidates_data);
+                                                  tracks_data);
 
     // cuda error check
     DETRAY_CUDA_ERROR_CHECK(cudaGetLastError());

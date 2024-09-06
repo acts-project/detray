@@ -58,7 +58,7 @@ struct guided_navigation : actor {
 struct stepper_default_policy : actor {
 
     struct state {
-        const scalar tol{std::numeric_limits<scalar>::epsilon()};
+        scalar tol{std::numeric_limits<scalar>::epsilon()};
     };
 
     /// Sets the navigation trust level depending on the step size limit
@@ -95,8 +95,8 @@ struct stepper_default_policy : actor {
 struct stepper_rk_policy : actor {
 
     struct state {
-        const scalar m_threshold_fair_trust{0.05f};
-        const scalar m_threshold_no_trust{0.1f};
+        scalar m_threshold_fair_trust{0.05f};
+        scalar m_threshold_no_trust{0.1f};
     };
 
     /// Sets the navigation trust level depending on the step size correction

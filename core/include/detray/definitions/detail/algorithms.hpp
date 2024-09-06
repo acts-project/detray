@@ -44,7 +44,7 @@ DETRAY_HOST_DEVICE inline auto find_if(RandomIt first, RandomIt last,
 /// @brief lower_bound implementation for host/device
 template <class ForwardIt, typename Value>
 DETRAY_HOST_DEVICE inline auto lower_bound(ForwardIt first, ForwardIt last,
-                                           Value value) {
+                                           const Value& value) {
 #if defined(__CUDACC__) || defined(CL_SYCL_LANGUAGE_VERSION) || \
     defined(SYCL_LANGUAGE_VERSION)
     return detray::lower_bound(first, last, value);
@@ -56,7 +56,7 @@ DETRAY_HOST_DEVICE inline auto lower_bound(ForwardIt first, ForwardIt last,
 /// @brief upper_bound implementation for host/device
 template <class ForwardIt, typename Value>
 DETRAY_HOST_DEVICE inline auto upper_bound(ForwardIt first, ForwardIt last,
-                                           Value value) {
+                                           const Value& value) {
 #if defined(__CUDACC__) || defined(CL_SYCL_LANGUAGE_VERSION) || \
     defined(SYCL_LANGUAGE_VERSION)
     return detray::upper_bound(first, last, value);

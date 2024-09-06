@@ -15,8 +15,6 @@ __global__ void propagator_test_kernel(
     typename detector_t::view_type det_data, const propagation::config cfg,
     covfie::field_view<bfield_bknd_t> field_data,
     vecmem::data::vector_view<track_t> tracks_data,
-    vecmem::data::jagged_vector_view<intersection_t<detector_t>>
-        candidates_data,
     vecmem::data::jagged_vector_view<scalar_t> path_lengths_data,
     vecmem::data::jagged_vector_view<point3_t> positions_data,
     vecmem::data::jagged_vector_view<free_matrix_t> jac_transports_data) {
@@ -31,8 +29,6 @@ __global__ void propagator_test_kernel(
 
     detector_device_t det(det_data);
     vecmem::device_vector<track_t> tracks(tracks_data);
-    vecmem::jagged_device_vector<intersection_t<detector_t>> candidates(
-        candidates_data);
     vecmem::jagged_device_vector<scalar> path_lengths(path_lengths_data);
     vecmem::jagged_device_vector<point3_t> positions(positions_data);
     vecmem::jagged_device_vector<free_matrix_t> jac_transports(
@@ -64,8 +60,7 @@ __global__ void propagator_test_kernel(
         ::detray::tie(insp_state, aborter_state, transporter_state,
                       interactor_state, resetter_state);
     // Create the propagator state
-    typename propagator_device_t::state state(tracks[gid], field_data, det,
-                                              candidates.at(gid));
+    typename propagator_device_t::state state(tracks[gid], field_data, det);
 
     state._stepping.template set_constraint<step::constraint::e_accuracy>(
         cfg.stepping.step_constraint);
@@ -80,8 +75,6 @@ void propagator_test(
     typename detector_t::view_type det_view, const propagation::config& cfg,
     covfie::field_view<bfield_bknd_t> field_data,
     vecmem::data::vector_view<track_t>& tracks_data,
-    vecmem::data::jagged_vector_view<intersection_t<detector_t>>&
-        candidates_data,
     vecmem::data::jagged_vector_view<scalar_t>& path_lengths_data,
     vecmem::data::jagged_vector_view<point3_t>& positions_data,
     vecmem::data::jagged_vector_view<free_matrix_t>& jac_transports_data) {
@@ -92,8 +85,8 @@ void propagator_test(
     // run the test kernel
     propagator_test_kernel<bfield_bknd_t, detector_t>
         <<<block_dim, thread_dim>>>(det_view, cfg, field_data, tracks_data,
-                                    candidates_data, path_lengths_data,
-                                    positions_data, jac_transports_data);
+                                    path_lengths_data, positions_data,
+                                    jac_transports_data);
 
     // cuda error check
     DETRAY_CUDA_ERROR_CHECK(cudaGetLastError());
@@ -106,8 +99,6 @@ template void propagator_test<bfield::const_bknd_t,
     detector<toy_metadata, host_container_types>::view_type,
     const propagation::config&, covfie::field_view<bfield::const_bknd_t>,
     vecmem::data::vector_view<track_t>&,
-    vecmem::data::jagged_vector_view<
-        intersection_t<detector<toy_metadata, host_container_types>>>&,
     vecmem::data::jagged_vector_view<scalar_t>&,
     vecmem::data::jagged_vector_view<point3_t>&,
     vecmem::data::jagged_vector_view<free_matrix_t>&);
@@ -118,8 +109,6 @@ template void propagator_test<bfield::cuda::inhom_bknd_t,
     detector<toy_metadata, host_container_types>::view_type,
     const propagation::config&, covfie::field_view<bfield::cuda::inhom_bknd_t>,
     vecmem::data::vector_view<track_t>&,
-    vecmem::data::jagged_vector_view<
-        intersection_t<detector<toy_metadata, host_container_types>>>&,
     vecmem::data::jagged_vector_view<scalar_t>&,
     vecmem::data::jagged_vector_view<point3_t>&,
     vecmem::data::jagged_vector_view<free_matrix_t>&);
