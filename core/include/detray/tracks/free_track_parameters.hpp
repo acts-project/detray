@@ -122,7 +122,6 @@ struct free_parameters_vector {
     /// Set the time
     DETRAY_HOST_DEVICE
     void set_time(const scalar_type t) {
-        assert(0.f <= t);
         matrix_operator().element(m_vector, e_free_time, 0u) = t;
     }
 
