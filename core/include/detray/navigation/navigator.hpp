@@ -449,6 +449,7 @@ class navigator {
             if (n_candidates() == 0) {
                 m_candidates[0] = new_cadidate;
                 ++m_last;
+                assert(m_next <= m_last + 1);
                 assert(static_cast<std::size_t>(m_last) < k_cache_capacity);
                 return;
             }
@@ -472,6 +473,7 @@ class navigator {
             m_last = math::min(m_last + 1,
                                static_cast<dist_t>(k_cache_capacity - 1));
 
+            assert(m_next <= m_last + 1);
             assert(static_cast<std::size_t>(m_last) < k_cache_capacity);
         }
 
@@ -491,14 +493,16 @@ class navigator {
         DETRAY_HOST_DEVICE
         inline auto next() -> void {
             ++m_next;
-            assert(m_next < static_cast<dist_t>(k_cache_capacity));
+            assert(m_next <= m_last + 1);
+            assert(m_next < static_cast<dist_t>(k_cache_capacity) + 1);
         }
 
         /// Set the next surface that we want to reach (update target)
         DETRAY_HOST_DEVICE
         inline void set_next(dindex pos) {
             m_next = pos;
-            assert(m_next < static_cast<dist_t>(k_cache_capacity));
+            assert(m_next <= m_last + 1);
+            assert(m_next < static_cast<dist_t>(k_cache_capacity) + 1);
         }
 
         /// Set the next surface that we want to reach (update target)
@@ -513,6 +517,7 @@ class navigator {
         inline void set_last(candidate_itr_t new_last) {
             m_last =
                 detray::ranges::distance(m_candidates.begin(), new_last) - 1;
+            assert(m_next <= m_last + 1);
             assert(m_last < static_cast<dist_t>(k_cache_capacity));
         }
 
@@ -549,10 +554,12 @@ class navigator {
         /// Our cache of candidates (intersections with any kind of surface)
         candidate_cache_t m_candidates;
 
-        /// The next best candidate (target)
+        /// The next best candidate (target): m_next <= m_last + 1.
+        /// m_next can be larger than m_last when the cache is exhausted
         dist_t m_next{0};
 
-        /// The last reachable candidate
+        /// The last reachable candidate: m_last < k_cache_capacity
+        /// Can never be advanced beyond the last element
         dist_t m_last{-1};
 
         /// The inspector type of this navigation engine
