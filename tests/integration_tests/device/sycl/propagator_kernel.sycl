@@ -16,9 +16,7 @@ void propagator_test(
     typename detector_t::view_type det_data, const propagation::config& cfg,
     covfie::field_view<bfield_bknd_t> field_data,
     vecmem::data::vector_view<track_t>& tracks_data,
-    vecmem::data::jagged_vector_view<scalar_t>& path_lengths_data,
-    vecmem::data::jagged_vector_view<point3_t>& positions_data,
-    vecmem::data::jagged_vector_view<free_matrix_t>& jac_transports_data,
+    vecmem::data::jagged_vector_view<detail::step_data<algebra_t>>& steps_data,
     detray::sycl::queue_wrapper queue) {
 
     unsigned int localSize = 64;
@@ -31,9 +29,7 @@ void propagator_test(
     reinterpret_cast<::sycl::queue*>(queue.queue())
         ->submit([&](::sycl::handler& h) {
             h.parallel_for(ndrange, [det_data, cfg, field_data, tracks_data,
-                                     path_lengths_data, positions_data,
-                                     jac_transports_data](
-                                        ::sycl::nd_item<1> item) {
+                                     steps_data](::sycl::nd_item<1> item) {
                 using detector_device_t =
                     detector<typename detector_t::metadata,
                              device_container_types>;
@@ -46,12 +42,8 @@ void propagator_test(
                 detector_device_t dev_det(det_data);
 
                 vecmem::device_vector<track_t> tracks(tracks_data);
-                vecmem::jagged_device_vector<scalar_t> path_lengths(
-                    path_lengths_data);
-                vecmem::jagged_device_vector<point3_t> positions(
-                    positions_data);
-                vecmem::jagged_device_vector<free_matrix_t> jac_transports(
-                    jac_transports_data);
+                vecmem::jagged_device_vector<detail::step_data<algebra_t>>
+                    steps(steps_data);
 
                 unsigned int gid = item.get_global_linear_id();
 
@@ -69,9 +61,8 @@ void propagator_test(
                 propagator_device_t p{cfg};
 
                 // Create actor states
-                inspector_device_t::state insp_state(path_lengths.at(gid),
-                                                     positions.at(gid),
-                                                     jac_transports.at(gid));
+                step_tracer_device_t::state tracer_state(steps.at(gid));
+                tracer_state.collect_only_on_surface(true);
                 pathlimit_aborter::state aborter_state{cfg.stepping.path_limit};
                 parameter_transporter<algebra_t>::state transporter_state{};
                 pointwise_material_interactor<algebra_t>::state
@@ -79,9 +70,9 @@ void propagator_test(
                 parameter_resetter<algebra_t>::state resetter_state{};
 
                 // Create the actor states
-                auto actor_states =
-                    ::detray::tie(insp_state, aborter_state, transporter_state,
-                                  interactor_state, resetter_state);
+                auto actor_states = ::detray::tie(
+                    tracer_state, aborter_state, transporter_state,
+                    interactor_state, resetter_state);
                 // Create the propagator state
                 typename propagator_device_t::state state(tracks[gid],
                                                           field_data, dev_det);
@@ -102,9 +93,7 @@ template void propagator_test<bfield::const_bknd_t,
     detector<toy_metadata, host_container_types>::view_type,
     const propagation::config&, covfie::field_view<bfield::const_bknd_t>,
     vecmem::data::vector_view<track_t>&,
-    vecmem::data::jagged_vector_view<scalar_t>&,
-    vecmem::data::jagged_vector_view<point3_t>&,
-    vecmem::data::jagged_vector_view<free_matrix_t>&,
+    vecmem::data::jagged_vector_view<detail::step_data<algebra_t>>&,
     detray::sycl::queue_wrapper);
 
 /// Explicit instantiation for an inhomogeneous magnetic field
@@ -114,8 +103,7 @@ template void propagator_test<bfield::const_bknd_t,
     const propagation::config&,
     covfie::field_view<bfield::sycl::inhom_bknd_t>,
     vecmem::data::vector_view<track_t>&,
-    vecmem::data::jagged_vector_view<point3_t>&,
-    vecmem::data::jagged_vector_view<free_matrix_t>&,
+    vecmem::data::jagged_vector_view<detail::step_data<algebra_t>>&,
     detray::sycl::queue_wrapper);*/
 
 }  // namespace detray
