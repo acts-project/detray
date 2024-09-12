@@ -130,6 +130,9 @@ class line_stepper final
         // Advance jacobian transport
         stepping.advance_jacobian();
 
+        // Count the number of steps
+        stepping.count_trials();
+
         // Call navigation update policy
         typename line_stepper::policy_type{}(stepping.policy_state(),
                                              propagation);

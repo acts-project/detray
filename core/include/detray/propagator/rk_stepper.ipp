@@ -716,6 +716,8 @@ DETRAY_HOST_DEVICE bool detray::rk_stepper<
     // enough
     if (stepping._initialized) {
         for (unsigned int i_t = 0u; i_t < cfg.max_rk_updates; i_t++) {
+            // Count the number of steps
+            stepping.count_trials();
 
             error = math::max(estimate_error(stepping._step_size),
                               static_cast<scalar_type>(1e-20));
@@ -741,6 +743,8 @@ DETRAY_HOST_DEVICE bool detray::rk_stepper<
             }
         }
     } else {
+        // Count the number of steps
+        stepping.count_trials();
         stepping._initialized = false;
         error = math::max(estimate_error(stepping._step_size),
                           static_cast<scalar_type>(1e-20));

@@ -142,6 +142,9 @@ class base_stepper {
         /// The inspector type of the stepping
         inspector_type _inspector;
 
+        /// Total number of step trials
+        std::size_t _n_total_trials{0u};
+
         /// Track path length
         scalar_type _path_length{0.f};
 
@@ -185,6 +188,15 @@ class base_stepper {
             return _policy_state;
         }
 
+        /// @returns the total number of step trials. For steppers that don't
+        /// use adaptive step size scaling, this is the number of steps
+        DETRAY_HOST_DEVICE inline std::size_t n_total_trials() const {
+            return _n_total_trials;
+        }
+
+        /// Updates the total number of step trials
+        DETRAY_HOST_DEVICE inline void count_trials() { ++_n_total_trials; }
+
         /// @returns the navigation direction
         DETRAY_HOST_DEVICE
         inline step::direction direction() const { return _direction; }
@@ -206,6 +218,12 @@ class base_stepper {
         /// @returns this states remaining path length.
         DETRAY_HOST_DEVICE
         inline scalar_type path_length() const { return _path_length; }
+
+        /// @returns the current transport Jacbian.
+        DETRAY_HOST_DEVICE
+        inline const free_matrix_type &transport_jacobian() const {
+            return _jac_transport;
+        }
 
         /// @returns the stepping inspector
         DETRAY_HOST
