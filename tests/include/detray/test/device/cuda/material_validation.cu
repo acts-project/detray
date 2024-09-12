@@ -25,7 +25,10 @@ __global__ void material_validation_kernel(
         tracks_view,
     vecmem::data::vector_view<
         material_validator::material_record<typename detector_t::scalar_type>>
-        mat_records_view) {
+        mat_records_view,
+    vecmem::data::jagged_vector_view<
+        material_validator::material_params<typename detector_t::scalar_type>>
+        mat_steps_view) {
 
     using detector_device_t =
         detector<typename detector_t::metadata, device_container_types>;
@@ -36,7 +39,8 @@ __global__ void material_validation_kernel(
     using navigator_t = navigator<detector_device_t>;
     // Propagator with full covariance transport, pathlimit aborter and
     // material tracer
-    using material_tracer_t = material_validator::material_tracer<scalar_t>;
+    using material_tracer_t =
+        material_validator::material_tracer<scalar_t, vecmem::device_vector>;
     using actor_chain_t =
         actor_chain<tuple, pathlimit_aborter, parameter_transporter<algebra_t>,
                     parameter_resetter<algebra_t>,
@@ -49,6 +53,9 @@ __global__ void material_validation_kernel(
     vecmem::device_vector<free_track_parameters<algebra_t>> tracks(tracks_view);
     vecmem::device_vector<typename material_tracer_t::material_record_type>
         mat_records(mat_records_view);
+    vecmem::jagged_device_vector<
+        typename material_tracer_t::material_params_type>
+        mat_steps(mat_steps_view);
 
     int trk_id = threadIdx.x + blockIdx.x * blockDim.x;
     if (trk_id >= tracks.size()) {
@@ -62,7 +69,7 @@ __global__ void material_validation_kernel(
     typename parameter_transporter<algebra_t>::state transporter_state{};
     typename parameter_resetter<algebra_t>::state resetter_state{};
     typename pointwise_material_interactor<algebra_t>::state interactor_state{};
-    typename material_tracer_t::state mat_tracer_state{};
+    typename material_tracer_t::state mat_tracer_state{mat_steps.at(trk_id)};
 
     auto actor_states =
         ::detray::tie(aborter_state, transporter_state, resetter_state,
@@ -87,14 +94,17 @@ void material_validation_device(
         free_track_parameters<typename detector_t::algebra_type>> &tracks_view,
     vecmem::data::vector_view<
         material_validator::material_record<typename detector_t::scalar_type>>
-        &mat_records_view) {
+        &mat_records_view,
+    vecmem::data::jagged_vector_view<
+        material_validator::material_params<typename detector_t::scalar_type>>
+        &mat_steps_view) {
 
     constexpr int thread_dim = 2 * WARP_SIZE;
     int block_dim = tracks_view.size() / thread_dim + 1;
 
     // run the test kernel
     material_validation_kernel<detector_t><<<block_dim, thread_dim>>>(
-        det_view, cfg, tracks_view, mat_records_view);
+        det_view, cfg, tracks_view, mat_records_view, mat_steps_view);
 
     // cuda error check
     DETRAY_CUDA_ERROR_CHECK(cudaGetLastError());
@@ -110,6 +120,8 @@ void material_validation_device(
             free_track_parameters<typename detector<METADATA>::algebra_type>> \
             &,                                                                \
         vecmem::data::vector_view<material_validator::material_record<        \
+            typename detector<METADATA>::scalar_type>> &,                     \
+        vecmem::data::jagged_vector_view<material_validator::material_params< \
             typename detector<METADATA>::scalar_type>> &);
 
 DECLARE_MATERIAL_VALIDATION(default_metadata)

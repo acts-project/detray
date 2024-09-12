@@ -33,7 +33,8 @@ struct empty_bfield {};
 template <typename stepper_t, typename detector_t,
           typename bfield_t = empty_bfield>
 inline auto record_propagation(
-    const typename detector_t::geometry_context, const detector_t &det,
+    const typename detector_t::geometry_context,
+    vecmem::memory_resource *host_mr, const detector_t &det,
     const propagation::config &cfg,
     const free_track_parameters<typename detector_t::algebra_type> &track,
     const bfield_t &bfield = {}) {
@@ -62,7 +63,8 @@ inline auto record_propagation(
         navigator<detector_t, navigation::default_cache_size, inspector_t>;
 
     // Propagator with pathlimit aborter
-    using material_tracer_t = material_validator::material_tracer<scalar_t>;
+    using material_tracer_t =
+        material_validator::material_tracer<scalar_t, dvector>;
     using actor_chain_t =
         actor_chain<dtuple, pathlimit_aborter, material_tracer_t>;
     using propagator_t = propagator<stepper_t, navigator_t, actor_chain_t>;
@@ -72,7 +74,7 @@ inline auto record_propagation(
 
     // Build actor and propagator states
     pathlimit_aborter::state pathlimit_aborter_state{cfg.stepping.path_limit};
-    typename material_tracer_t::state mat_tracer_state{};
+    typename material_tracer_t::state mat_tracer_state{host_mr};
     auto actor_states = detray::tie(pathlimit_aborter_state, mat_tracer_state);
 
     std::unique_ptr<typename propagator_t::state> propagation{nullptr};
@@ -98,6 +100,7 @@ inline auto record_propagation(
 
     return std::make_tuple(success, std::move(obj_tracer),
                            std::move(mat_tracer_state.mat_record),
+                           std::move(mat_tracer_state.mat_steps),
                            std::move(nav_printer), std::move(step_printer));
 }
 
