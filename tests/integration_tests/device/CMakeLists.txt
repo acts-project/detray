@@ -8,6 +8,7 @@ if( DETRAY_BUILD_CUDA )
     add_subdirectory( cuda )
  endif()
 
-if( DETRAY_BUILD_SYCL )
-    add_subdirectory( sycl )
- endif()
+# TODO: Revive the sycl test once the oneAPI bug is fixed
+#if( DETRAY_BUILD_SYCL )
+#    add_subdirectory( sycl )
+# endif()

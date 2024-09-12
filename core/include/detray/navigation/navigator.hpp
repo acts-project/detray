@@ -645,7 +645,6 @@ class navigator {
 
         auto &stepping = propagation._stepping;
         stepping._step_size = navigation();
-        stepping._initialized = true;
 
         navigation.run_inspector(cfg, track.pos(), track.dir(),
                                  "Init complete: ");
@@ -844,7 +843,6 @@ class navigator {
                                       : navigation::status::e_on_module;
 
             stepping._step_size = navigation();
-            stepping._initialized = true;
         } else {
             // Otherwise the track is moving towards a surface
             navigation.m_status = navigation::status::e_towards_object;
