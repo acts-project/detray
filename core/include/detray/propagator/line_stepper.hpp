@@ -104,9 +104,6 @@ class line_stepper final
             stepping._step_size = math::max(stepping._step_size, navigation());
         }
 
-        // Escape the initialized state
-        stepping._initialized = false;
-
         // Update navigation direction
         const step::direction step_dir = stepping._step_size >= 0.f
                                              ? step::direction::e_forward

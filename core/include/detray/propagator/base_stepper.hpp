@@ -164,9 +164,6 @@ class base_stepper {
         /// The default particle hypothesis is muon
         pdg_particle<scalar_type> _ptc = muon<scalar_type>();
 
-        /// is step size just initialized
-        bool _initialized = true;
-
         /// Set new step constraint
         template <step::constraint type = step::constraint::e_actor>
         DETRAY_HOST_DEVICE inline void set_constraint(scalar_type step_size) {
