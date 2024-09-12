@@ -123,7 +123,7 @@ __global__ void navigation_validation_kernel(
 
     // Record the accumulated material
     assert(truth_intersection_traces.size() == mat_records.size());
-    mat_records.at(trk_id) = mat_tracer_state.mat_record;
+    mat_records.at(trk_id) = mat_tracer_state.get_material_record();
 }
 
 /// Launch the device kernel

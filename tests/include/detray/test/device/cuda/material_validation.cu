@@ -83,7 +83,7 @@ __global__ void material_validation_kernel(
 
     // Record the accumulated material
     assert(mat_records.size() == tracks.size());
-    mat_records.at(trk_id) = mat_tracer_state.mat_record;
+    mat_records.at(trk_id) = mat_tracer_state.get_material_record();
 }
 
 /// Launch the device kernel

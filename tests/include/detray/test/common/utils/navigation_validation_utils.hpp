@@ -14,6 +14,7 @@
 #include "detray/propagator/actors/aborters.hpp"
 #include "detray/propagator/propagator.hpp"
 #include "detray/test/common/utils/material_validation_utils.hpp"
+#include "detray/test/common/utils/step_tracer.hpp"
 #include "detray/tracks/free_track_parameters.hpp"
 #include "detray/utils/inspectors.hpp"
 
@@ -62,11 +63,12 @@ inline auto record_propagation(
     using navigator_t =
         navigator<detector_t, navigation::default_cache_size, inspector_t>;
 
-    // Propagator with pathlimit aborter
+    // Propagator with pathlimit aborter and validation actors
+    using step_tracer_t = step_tracer<algebra_t, dvector>;
     using material_tracer_t =
         material_validator::material_tracer<scalar_t, dvector>;
-    using actor_chain_t =
-        actor_chain<dtuple, pathlimit_aborter, material_tracer_t>;
+    using actor_chain_t = actor_chain<dtuple, pathlimit_aborter, step_tracer_t,
+                                      material_tracer_t>;
     using propagator_t = propagator<stepper_t, navigator_t, actor_chain_t>;
 
     // Propagator
@@ -74,8 +76,10 @@ inline auto record_propagation(
 
     // Build actor and propagator states
     pathlimit_aborter::state pathlimit_aborter_state{cfg.stepping.path_limit};
-    typename material_tracer_t::state mat_tracer_state{host_mr};
-    auto actor_states = detray::tie(pathlimit_aborter_state, mat_tracer_state);
+    typename step_tracer_t::state step_tracer_state{*host_mr};
+    typename material_tracer_t::state mat_tracer_state{*host_mr};
+    auto actor_states = detray::tie(pathlimit_aborter_state, step_tracer_state,
+                                    mat_tracer_state);
 
     std::unique_ptr<typename propagator_t::state> propagation{nullptr};
     if constexpr (std::is_same_v<bfield_t, empty_bfield>) {
@@ -98,10 +102,12 @@ inline auto record_propagation(
     // Run the propagation
     bool success = prop.propagate(*propagation, actor_states);
 
-    return std::make_tuple(success, std::move(obj_tracer),
-                           std::move(mat_tracer_state.mat_record),
-                           std::move(mat_tracer_state.mat_steps),
-                           std::move(nav_printer), std::move(step_printer));
+    return std::make_tuple(
+        success, std::move(obj_tracer),
+        std::move(step_tracer_state).release_step_data(),
+        std::move(mat_tracer_state).release_material_record(),
+        std::move(mat_tracer_state).release_material_steps(),
+        std::move(nav_printer), std::move(step_printer));
 }
 
 /// Compare the recorded intersection trace to the truth trace
@@ -124,19 +130,19 @@ auto compare_traces(truth_trace_t &truth_trace,
     for (std::size_t intr_idx = 0u; intr_idx < max_entries; ++intr_idx) {
         debug_stream << "-------Intersection ( " << intr_idx << " )\n";
         if (intr_idx < truth_trace.size()) {
-            debug_stream << "\nparticle gun: "
+            debug_stream << "\nReference: "
                          << truth_trace[intr_idx].intersection << ", vol id: "
                          << truth_trace[intr_idx].intersection.sf_desc.volume()
                          << std::endl;
         } else {
-            debug_stream << "\nparticle gun: -" << std::endl;
+            debug_stream << "\nnReference: -" << std::endl;
         }
         if (intr_idx < recorded_trace.size()) {
-            debug_stream << "\nnavigator:    "
+            debug_stream << "\nDetray navigator:    "
                          << recorded_trace[intr_idx].intersection << std::endl
                          << std::endl;
         } else {
-            debug_stream << "\nnavigator: -\n" << std::endl;
+            debug_stream << "\nDetray navigator: -\n" << std::endl;
         }
     }
 
@@ -218,7 +224,7 @@ auto compare_traces(truth_trace_t &truth_trace,
                 }
                 n_missed_nav += n;
 
-                matching_stream << "\nERROR: Navigator missed " << n
+                matching_stream << "\nERROR: Detray navigator missed " << n
                                 << " surface(s) at: " << i << "/" << max_entries
                                 << " (Inserted dummy record(s))";
 
@@ -256,7 +262,7 @@ auto compare_traces(truth_trace_t &truth_trace,
                 }
                 n_missed_truth += n;
 
-                matching_stream << "\nERROR: Navigator found " << n
+                matching_stream << "\nERROR: Detray navigator found " << n
                                 << " additional surface(s) at: " << i << "/"
                                 << max_entries << " (Inserted dummy record(s))";
 
@@ -294,12 +300,12 @@ auto compare_traces(truth_trace_t &truth_trace,
     // Multiple missed surfaces are a hint that something might be off with this
     // track
     if (n_missed_nav > 1u) {
-        std::cout << "WARNING: Navigator skipped multiple surfaces: "
+        std::cout << "WARNING: Detray navigator skipped multiple surfaces: "
                   << n_missed_nav << "\n"
                   << std::endl;
     }
     if (n_missed_truth > 1u) {
-        std::cout << "WARNING: Navigator found multiple extra surfaces: "
+        std::cout << "WARNING: Detray navigator found multiple extra surfaces: "
                   << n_missed_truth << "\n"
                   << std::endl;
     }

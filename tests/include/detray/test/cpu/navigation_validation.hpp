@@ -143,8 +143,8 @@ class navigation_validation : public test::fixture_base<> {
             max_pT = std::max(max_pT, track.pT(q));
 
             // Run the propagation
-            auto [success, obj_tracer, mat_trace, mat_steps, nav_printer,
-                  step_printer] =
+            auto [success, obj_tracer, step_trace, mat_record, mat_trace,
+                  nav_printer, step_printer] =
                 navigation_validator::record_propagation<stepper_t>(
                     m_gctx, &m_host_mr, m_det, m_cfg.propagation(), track,
                     b_field);
@@ -193,7 +193,7 @@ class navigation_validation : public test::fixture_base<> {
             }
 
             recorded_traces.push_back(std::move(obj_tracer.object_trace));
-            mat_records.push_back(mat_trace);
+            mat_records.push_back(mat_record);
 
             EXPECT_TRUE(success) << "INFO: Wrote navigation debugging data in: "
                                  << debug_file_name;
