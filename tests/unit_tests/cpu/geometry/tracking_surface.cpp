@@ -112,6 +112,7 @@ GTEST_TEST(detray_geometry, surface_toy_detector) {
     ASSERT_EQ(disc.index(), 1u);
     ASSERT_EQ(disc.id(), surface_id::e_portal);
     ASSERT_EQ(disc.shape_id(), detector_t::masks::id::e_portal_ring2);
+    ASSERT_EQ(disc.shape_name(), "ring2D");
     ASSERT_FALSE(disc.is_sensitive());
     ASSERT_FALSE(disc.is_passive());
     ASSERT_TRUE(disc.is_portal());
