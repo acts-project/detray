@@ -51,4 +51,4 @@ export DETRAY_BFIELD_FILE="${PWD}/odd-bfield_v0_9_0.cvf"
 
 Monitoring the propagation speed with the toy geometry
 
-<img src="https://gitlab.cern.ch/acts/detray-benchmark/-/raw/master/plots/array_data.png?ref_type=heads" width="500" height="500" /> 
+<img src="https://gitlab.cern.ch/acts/detray-benchmark/-/raw/master/plots/array_data.png?ref_type=heads" /> 
