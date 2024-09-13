@@ -20,8 +20,6 @@
 #include "detray/core/detector.hpp"
 #include "detray/definitions/detail/indexing.hpp"
 #include "detray/definitions/units.hpp"
-#include "detray/detectors/factories/barrel_generator.hpp"
-#include "detray/detectors/factories/endcap_generator.hpp"
 #include "detray/detectors/toy_metadata.hpp"
 #include "detray/geometry/tracking_surface.hpp"
 #include "detray/geometry/tracking_volume.hpp"
@@ -29,6 +27,10 @@
 #include "detray/materials/predefined_materials.hpp"
 #include "detray/utils/consistency_checker.hpp"
 #include "detray/utils/ranges.hpp"
+
+// Detray test include(s)
+#include "detray/test/utils/detectors/factories/barrel_generator.hpp"
+#include "detray/test/utils/detectors/factories/endcap_generator.hpp"
 
 // Vecmem include(s)
 #include <vecmem/memory/memory_resource.hpp>

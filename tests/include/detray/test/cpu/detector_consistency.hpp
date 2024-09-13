@@ -9,9 +9,11 @@
 
 // Project include(s)
 #include "detray/navigation/volume_graph.hpp"
-#include "detray/test/common/fixture_base.hpp"
-#include "detray/test/common/utils/hash_tree.hpp"
 #include "detray/utils/consistency_checker.hpp"
+
+// Detray test include(s).
+#include "detray/test/common/fixture_base.hpp"
+#include "detray/test/utils/hash_tree.hpp"
 
 // System include(s)
 #include <iostream>

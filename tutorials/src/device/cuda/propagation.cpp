@@ -8,8 +8,8 @@
 // Project include(s)
 #include "propagation.hpp"
 
-#include "detray/detectors/build_toy_detector.hpp"
-#include "detray/simulation/event_generator/track_generators.hpp"
+#include "detray/test/utils/detectors/build_toy_detector.hpp"
+#include "detray/test/utils/simulation/event_generator/track_generators.hpp"
 
 // Vecmem include(s)
 #include <vecmem/memory/cuda/device_memory_resource.hpp>

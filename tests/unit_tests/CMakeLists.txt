@@ -4,6 +4,8 @@
 #
 # Mozilla Public License Version 2.0
 
+message(STATUS "Building detray host unit tests")
+
 # Set up all of the "host" tests.
 add_subdirectory( covfie )
 add_subdirectory( cpu )

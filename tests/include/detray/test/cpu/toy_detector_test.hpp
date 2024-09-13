@@ -8,8 +8,12 @@
 #pragma once
 
 // Project include(s)
-#include "detray/test/common/types.hpp"
+#include "detray/materials/material_slab.hpp"
 #include "detray/utils/consistency_checker.hpp"
+
+// Detray test include(s)
+#include "detray/test/utils/detectors/build_toy_detector.hpp"
+#include "detray/test/utils/types.hpp"
 
 // GTest include(s)
 #include <gtest/gtest.h>

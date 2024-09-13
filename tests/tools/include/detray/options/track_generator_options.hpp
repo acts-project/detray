@@ -7,10 +7,10 @@
 
 #pragma once
 
-// Project include(s)
+// Detray test include(s)
 #include "detray/options/options_handling.hpp"
-#include "detray/simulation/event_generator/random_track_generator_config.hpp"
-#include "detray/simulation/event_generator/uniform_track_generator_config.hpp"
+#include "detray/test/utils/simulation/event_generator/random_track_generator_config.hpp"
+#include "detray/test/utils/simulation/event_generator/uniform_track_generator_config.hpp"
 
 // Boost
 #include "detray/options/boost_program_options.hpp"

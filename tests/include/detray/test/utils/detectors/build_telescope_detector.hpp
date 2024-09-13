@@ -15,12 +15,14 @@
 #include "detray/builders/homogeneous_volume_material_builder.hpp"
 #include "detray/core/detector.hpp"
 #include "detray/definitions/units.hpp"
-#include "detray/detectors/factories/telescope_generator.hpp"
 #include "detray/detectors/telescope_metadata.hpp"
 #include "detray/geometry/mask.hpp"
 #include "detray/materials/predefined_materials.hpp"
 #include "detray/navigation/detail/trajectories.hpp"
 #include "detray/utils/consistency_checker.hpp"
+
+// Detray test include(s)
+#include "detray/test/utils/detectors/factories/telescope_generator.hpp"
 
 // Vecmem include(s)
 #include <vecmem/memory/memory_resource.hpp>
@@ -57,7 +59,7 @@ struct tel_det_config {
     /// Construct from mask parameters (except volume link, which is not needed)
     template <
         typename... Args,
-        std::enable_if_t<(std::is_same_v<Args, scalar> || ...), bool> = true>
+        std::enable_if_t<(std::is_same_v<Args, scalar> && ...), bool> = true>
     explicit tel_det_config(Args &&... args)
         : tel_det_config(mask<mask_shape_t>{0u, std::forward<Args>(args)...}) {}
 

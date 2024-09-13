@@ -8,9 +8,13 @@
 #pragma once
 
 // Project include(s)
-#include "detray/plugins/svgtools/illustrator.hpp"
-#include "detray/test/common/utils/svg_display.hpp"
 #include "detray/utils/ranges.hpp"
+
+// Detray plugin include(s)
+#include "detray/plugins/svgtools/illustrator.hpp"
+
+// Detray test include(s)
+#include "detray/test/utils/svg_display.hpp"
 
 // System include(s)
 #include <algorithm>

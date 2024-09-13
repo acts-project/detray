@@ -10,10 +10,12 @@
 
 #include "detray/definitions/detail/indexing.hpp"
 #include "detray/geometry/shapes/cylinder3D.hpp"
-#include "detray/test/common/types.hpp"
 #include "detray/utils/grid/grid.hpp"
 #include "detray/utils/grid/populators.hpp"
 #include "detray/utils/grid/serializers.hpp"
+
+// Detray test include(s)
+#include "detray/test/utils/types.hpp"
 
 // System include(s)
 #include <algorithm>

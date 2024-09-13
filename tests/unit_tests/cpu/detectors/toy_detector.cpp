@@ -5,10 +5,10 @@
  * Mozilla Public License Version 2.0
  */
 
-// Project include(s)
-#include "detray/detectors/build_toy_detector.hpp"
-#include "detray/test/common/types.hpp"
+// Detray test include(s)
 #include "detray/test/cpu/toy_detector_test.hpp"
+#include "detray/test/utils/detectors/build_toy_detector.hpp"
+#include "detray/test/utils/types.hpp"
 
 // VecMem include(s).
 #include <vecmem/memory/host_memory_resource.hpp>

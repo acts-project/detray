@@ -10,8 +10,10 @@
 
 #include "detray/definitions/units.hpp"
 #include "detray/geometry/mask.hpp"
-#include "detray/test/common/types.hpp"
-#include "detray/test/common/utils/ratio_test.hpp"
+
+// Detray test include(s)
+#include "detray/test/utils/ratio_test.hpp"
+#include "detray/test/utils/types.hpp"
 
 // GTest include
 #include <gtest/gtest.h>

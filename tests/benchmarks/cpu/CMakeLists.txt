@@ -4,6 +4,8 @@
 #
 # Mozilla Public License Version 2.0
 
+message(STATUS "Building detray host benchmarks")
+
 # Set up the benchmarking options.
 option( DETRAY_BENCHMARK_MULTITHREAD "Enable multithreaded benchmarks" OFF )
 option( DETRAY_BENCHMARK_PRINTOUTS "Enable printouts in the benchmarks" OFF )
@@ -24,8 +26,7 @@ macro( detray_add_cpu_benchmark algebra )
       "intersect_surfaces.cpp"
       "masks.cpp"
       LINK_LIBRARIES benchmark::benchmark benchmark::benchmark_main vecmem::core
-                     detray::core_${algebra} detray::test_common
-                     detray::utils_${algebra} )
+                     detray::core_${algebra} detray::test_utils )
 
    # Set the benchmark specific compilation options.
    if( DETRAY_BENCHMARKS_MULTITHREAD )
@@ -43,7 +44,7 @@ macro( detray_add_cpu_benchmark algebra )
    if( OpenMP_CXX_FOUND )
       target_link_libraries( detray_benchmark_cpu_${algebra} PRIVATE OpenMP::OpenMP_CXX )
     endif()
-    
+
 endmacro()
 
 # Build the array benchmark.
@@ -71,7 +72,7 @@ if( DETRAY_VC_SOA_PLUGIN )
       detray_add_executable( benchmark_soa_${algebra}
          "intersectors.cpp"
          LINK_LIBRARIES benchmark::benchmark benchmark::benchmark_main vecmem::core detray::core_vc_soa detray::core_${algebra} 
-         detray::test_common detray::utils_${algebra} )
+         detray::test_utils )
 
       # Set the benchmark specific compilation options.
       if( DETRAY_BENCHMARKS_MULTITHREAD )

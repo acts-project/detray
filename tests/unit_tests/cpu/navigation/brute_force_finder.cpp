@@ -8,10 +8,12 @@
 // Detray include(s)
 #include "detray/navigation/accelerators/brute_force_finder.hpp"
 
-#include "detray/detectors/build_toy_detector.hpp"
 #include "detray/navigation/detail/ray.hpp"
-#include "detray/test/common/types.hpp"
-#include "detray/test/common/utils/planes_along_direction.hpp"
+
+// Detray test include(s)
+#include "detray/test/utils/detectors/build_toy_detector.hpp"
+#include "detray/test/utils/planes_along_direction.hpp"
+#include "detray/test/utils/types.hpp"
 
 // Vecmem include(s)
 #include <vecmem/memory/host_memory_resource.hpp>

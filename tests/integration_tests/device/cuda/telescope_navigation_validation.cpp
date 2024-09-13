@@ -7,13 +7,15 @@
 
 // Project include(s)
 #include "detray/detectors/bfield.hpp"
-#include "detray/detectors/build_telescope_detector.hpp"
+
+// Detray test include(s)
 #include "detray/test/common/detail/register_checks.hpp"
 #include "detray/test/common/detail/whiteboard.hpp"
 #include "detray/test/cpu/detector_scan.hpp"
 #include "detray/test/cpu/material_scan.hpp"
 #include "detray/test/device/cuda/material_validation.hpp"
 #include "detray/test/device/cuda/navigation_validation.hpp"
+#include "detray/test/utils/detectors/build_telescope_detector.hpp"
 
 // Vecmem include(s)
 #include <vecmem/memory/cuda/device_memory_resource.hpp>

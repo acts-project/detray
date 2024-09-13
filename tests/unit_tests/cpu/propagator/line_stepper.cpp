@@ -12,8 +12,10 @@
 #include "detray/core/detector.hpp"
 #include "detray/definitions/units.hpp"
 #include "detray/detectors/bfield.hpp"
-#include "detray/test/common/types.hpp"
 #include "detray/tracks/tracks.hpp"
+
+// Detray test include(s)
+#include "detray/test/utils/types.hpp"
 
 // System include(s)
 #include <memory>

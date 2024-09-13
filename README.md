@@ -39,8 +39,11 @@ export DETRAY_BFIELD_FILE="${PWD}/odd-bfield_v0_9_0.cvf"
 | --- | --- | --- |
 | DETRAY_BUILD_CUDA  | Build the CUDA sources included in detray | ON (if available) |
 | DETRAY_BUILD_SYCL  | Build the SYCL sources included in detray | OFF |
-| DETRAY_BUILD_TESTING  | Build the (unit) tests of detray | ON |
-| DETRAY_BUILD_TUTORIALS  | Build the examples of detray | ON |
+| DETRAY_BUILD_TEST_UTILS  | Build the detray test utilities library | OFF |
+| DETRAY_BUILD_UNITTESTS  | Build the detray unit tests | OFF |
+| DETRAY_BUILD_INTEGRATIONTESTS  | Build the detray integration tests and associated command line tools | OFF |
+| DETRAY_BUILD_BENCHMARKS  | Build the detray benchmarks | OFF |
+| DETRAY_BUILD_TUTORIALS  | Build the examples of detray | OFF |
 | DETRAY_CUSTOM_SCALARTYPE | Floating point precision | double |
 | DETRAY_EIGEN_PLUGIN | Build Eigen math plugin | ON |
 | DETRAY_SMATRIX_PLUGIN | Build ROOT/SMatrix math plugin | OFF |

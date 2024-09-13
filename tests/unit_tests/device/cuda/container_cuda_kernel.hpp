@@ -13,7 +13,7 @@
 #include "detray/core/detail/tuple_container.hpp"
 
 // Vecmem include(s)
-#include "vecmem/containers/device_vector.hpp"
+#include <vecmem/containers/device_vector.hpp>
 
 namespace detray {
 

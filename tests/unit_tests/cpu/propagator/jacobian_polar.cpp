@@ -11,8 +11,10 @@
 #include "detray/geometry/mask.hpp"
 #include "detray/geometry/shapes/ring2D.hpp"
 #include "detray/propagator/detail/jacobian_engine.hpp"
-#include "detray/test/common/types.hpp"
 #include "detray/tracks/tracks.hpp"
+
+// Detray test include(s)
+#include "detray/test/utils/types.hpp"
 
 // GTest include(s).
 #include <gtest/gtest.h>

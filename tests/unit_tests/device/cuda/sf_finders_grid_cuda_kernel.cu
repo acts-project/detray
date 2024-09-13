@@ -5,11 +5,14 @@
  * Mozilla Public License Version 2.0
  */
 
-#include <vecmem/containers/device_vector.hpp>
-
 #include "detray/definitions/detail/cuda_definitions.hpp"
 #include "detray/utils/ranges.hpp"
+
+// Detray test include(s)
 #include "sf_finders_grid_cuda_kernel.hpp"
+
+// Vecmem include(s)
+#include <vecmem/containers/device_vector.hpp>
 
 namespace detray {
 

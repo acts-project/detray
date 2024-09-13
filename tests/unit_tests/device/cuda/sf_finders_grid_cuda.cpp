@@ -5,7 +5,7 @@
  * Mozilla Public License Version 2.0
  */
 
-// Detray include(s).
+// Detray test include(s)
 #include "sf_finders_grid_cuda_kernel.hpp"
 
 // VecMem include(s).

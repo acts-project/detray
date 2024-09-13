@@ -7,7 +7,6 @@
 
 // Project include(s).
 #include "detray/definitions/units.hpp"
-#include "detray/detectors/build_telescope_detector.hpp"
 #include "detray/geometry/detail/surface_descriptor.hpp"
 #include "detray/geometry/mask.hpp"
 #include "detray/geometry/shapes.hpp"
@@ -19,9 +18,12 @@
 #include "detray/propagator/actors/parameter_transporter.hpp"
 #include "detray/propagator/line_stepper.hpp"
 #include "detray/propagator/propagator.hpp"
-#include "detray/test/common/types.hpp"
 #include "detray/tracks/tracks.hpp"
 #include "detray/utils/axis_rotation.hpp"
+
+// Detray test include(s)
+#include "detray/test/utils/detectors/build_telescope_detector.hpp"
+#include "detray/test/utils/types.hpp"
 
 // Vecmem include(s)
 #include <vecmem/memory/host_memory_resource.hpp>

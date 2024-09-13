@@ -23,7 +23,10 @@ build_cuda:
         cmake --preset cuda -S src -B build
         -DCMAKE_BUILD_TYPE=Release
         -DBUILD_TESTING=ON
-        -DDETRAY_BUILD_TESTING=ON
+        -DDETRAY_BUILD_UNITTESTS=ON
+        -DDETRAY_BUILD_INTEGRATIONTESTS=ON
+        -DDETRAY_BUILD_BENCHMARKS=ON
+        -DDETRAY_BUILD_TUTORIALS=ON
         -DDETRAY_FAIL_ON_WARNINGS=ON
       - cmake --build build
 
@@ -62,7 +65,10 @@ build_sycl:
         cmake --preset sycl -S src -B build
         -DCMAKE_BUILD_TYPE=Release
         -DBUILD_TESTING=ON
-        -DDETRAY_BUILD_TESTING=ON
+        -DDETRAY_BUILD_UNITTESTS=OFF
+        -DDETRAY_BUILD_INTEGRATIONTESTS=ON
+        -DDETRAY_BUILD_BENCHMARKS=OFF
+        -DDETRAY_BUILD_TUTORIALS=OFF
         -DDETRAY_FAIL_ON_WARNINGS=ON
       - cmake --build build
 

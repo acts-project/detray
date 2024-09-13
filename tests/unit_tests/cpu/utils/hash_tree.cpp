@@ -5,8 +5,8 @@
  * Mozilla Public License Version 2.0
  */
 
-// detray test
-#include "detray/test/common/utils/hash_tree.hpp"
+// Detray test include(s)
+#include "detray/test/utils/hash_tree.hpp"
 
 // GTest include(s)
 #include <gtest/gtest.h>

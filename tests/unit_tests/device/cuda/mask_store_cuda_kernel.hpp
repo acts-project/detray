@@ -12,13 +12,12 @@
 #include "detray/definitions/detail/algebra.hpp"
 #include "detray/geometry/mask.hpp"
 #include "detray/geometry/shapes.hpp"
-#include "vecmem/utils/cuda/copy.hpp"
 
 // Vecmem include(s)
 #include <vecmem/containers/data/jagged_vector_buffer.hpp>
+#include <vecmem/containers/device_vector.hpp>
 #include <vecmem/containers/jagged_device_vector.hpp>
-
-#include "vecmem/containers/device_vector.hpp"
+#include <vecmem/utils/cuda/copy.hpp>
 
 using namespace detray;
 

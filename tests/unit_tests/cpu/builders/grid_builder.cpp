@@ -15,8 +15,10 @@
 #include "detray/detectors/toy_metadata.hpp"
 #include "detray/geometry/mask.hpp"
 #include "detray/geometry/shapes/annulus2D.hpp"
-#include "detray/test/common/types.hpp"
 #include "detray/utils/type_list.hpp"
+
+// Detray test include(s)
+#include "detray/test/utils/types.hpp"
 
 // Vecmem include(s)
 #include <vecmem/memory/host_memory_resource.hpp>

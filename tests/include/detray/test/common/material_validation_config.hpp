@@ -7,10 +7,10 @@
 
 #pragma once
 
-// Project include(s)
+// Detray test include(s).
 #include "detray/test/common/detail/whiteboard.hpp"
 #include "detray/test/common/fixture_base.hpp"
-#include "detray/test/common/types.hpp"
+#include "detray/test/utils/types.hpp"
 
 // Vecmem include(s)
 #include <vecmem/memory/memory_resource.hpp>

@@ -1,12 +1,14 @@
 /** Detray library, part of the ACTS project (R&D line)
  *
- * (c) 2020-2023 CERN for the benefit of the ACTS project
+ * (c) 2020-2024 CERN for the benefit of the ACTS project
  *
  * Mozilla Public License Version 2.0
  */
 
 // Detray include(s).
 #include "detray/definitions/units.hpp"
+
+// Detray test include(s)
 #include "grids_grid2_cuda_kernel.hpp"
 
 // VecMem include(s).

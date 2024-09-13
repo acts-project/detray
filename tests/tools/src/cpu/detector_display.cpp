@@ -7,19 +7,25 @@
 
 // Project include(s)
 #include "detray/core/detector.hpp"
+#include "detray/navigation/volume_graph.hpp"
+
+// Detray IO include(s)
 #include "detray/io/frontend/detector_reader.hpp"
 #include "detray/io/utils/create_path.hpp"
-#include "detray/navigation/volume_graph.hpp"
-#include "detray/options/detector_io_options.hpp"
-#include "detray/options/parse_options.hpp"
+
+// Detray plugin include(s)
 #include "detray/plugins/svgtools/illustrator.hpp"
 #include "detray/plugins/svgtools/writer.hpp"
+
+// Detray test include(s)
+#include "detray/options/detector_io_options.hpp"
+#include "detray/options/parse_options.hpp"
 
 // Vecmem include(s)
 #include <vecmem/memory/host_memory_resource.hpp>
 
 // Actsvg include(s)
-#include "actsvg/core.hpp"
+#include <actsvg/core.hpp>
 
 // Boost
 #include "detray/options/boost_program_options.hpp"

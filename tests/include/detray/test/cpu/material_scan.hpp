@@ -8,14 +8,18 @@
 #pragma once
 
 // Project include(s)
-#include "detray/io/utils/file_handle.hpp"
 #include "detray/navigation/detail/ray.hpp"
-#include "detray/simulation/event_generator/track_generators.hpp"
+
+// Detray IO include(s)
+#include "detray/io/utils/file_handle.hpp"
+
+// Detray test include(s)
 #include "detray/test/common/detail/whiteboard.hpp"
 #include "detray/test/common/fixture_base.hpp"
-#include "detray/test/common/types.hpp"
-#include "detray/test/common/utils/detector_scanner.hpp"
-#include "detray/test/common/utils/material_validation_utils.hpp"
+#include "detray/test/utils/detector_scanner.hpp"
+#include "detray/test/utils/material_validation_utils.hpp"
+#include "detray/test/utils/simulation/event_generator/track_generators.hpp"
+#include "detray/test/utils/types.hpp"
 
 // System include(s)
 #include <ios>

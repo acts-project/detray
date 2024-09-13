@@ -7,9 +7,11 @@
 
 // Project include(s)
 #include "detray/definitions/units.hpp"
-#include "detray/detectors/build_toy_detector.hpp"
 #include "detray/geometry/detail/volume_descriptor.hpp"
-#include "detray/test/common/types.hpp"
+
+// Detray test include(s)
+#include "detray/test/utils/detectors/build_toy_detector.hpp"
+#include "detray/test/utils/types.hpp"
 
 // GTest include(s)
 #include <gtest/gtest.h>

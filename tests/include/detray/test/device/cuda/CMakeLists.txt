@@ -21,4 +21,4 @@ add_library( detray_test_cuda STATIC "material_validation.hpp"
 
 add_library( detray::test_cuda ALIAS detray_test_cuda )
 
-target_link_libraries( detray_test_cuda PUBLIC vecmem::cuda detray::core_array detray::test_device detray::test_cpu detray::utils )
+target_link_libraries( detray_test_cuda PUBLIC vecmem::cuda covfie::cuda detray::core_array detray::test_device detray::test_cpu detray::test_utils )

@@ -8,8 +8,10 @@
 #pragma once
 
 // Project include(s)
-#include "detray/options/options_handling.hpp"
 #include "detray/propagator/propagation_config.hpp"
+
+// Detray test include(s)
+#include "detray/options/options_handling.hpp"
 
 // Boost
 #include "detray/options/boost_program_options.hpp"

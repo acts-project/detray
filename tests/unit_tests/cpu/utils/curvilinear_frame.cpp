@@ -8,7 +8,8 @@
 // Project include(s)
 #include "detray/utils/curvilinear_frame.hpp"
 
-#include "detray/test/common/types.hpp"
+// Detray test include(s)
+#include "detray/test/utils/types.hpp"
 
 // Google Test include(s)
 #include <gtest/gtest.h>

@@ -15,11 +15,9 @@
 #include "detray/navigation/intersection/ray_concentric_cylinder_intersector.hpp"
 #include "detray/navigation/intersection/ray_intersector.hpp"
 
-// Detray utility include(s).
-#include "detray/simulation/event_generator/track_generators.hpp"
-
 // Detray test include(s).
-#include "detray/test/common/utils/planes_along_direction.hpp"
+#include "detray/test/utils/planes_along_direction.hpp"
+#include "detray/test/utils/simulation/event_generator/track_generators.hpp"
 
 // Google Benchmark include(s)
 #include <benchmark/benchmark.h>

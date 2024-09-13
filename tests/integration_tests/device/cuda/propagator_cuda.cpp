@@ -7,7 +7,9 @@
 
 // Project include(s)
 #include "detray/detectors/bfield.hpp"
-#include "detray/detectors/build_toy_detector.hpp"
+
+// Detray test include(s)
+#include "detray/test/utils/detectors/build_toy_detector.hpp"
 #include "propagator_cuda_kernel.hpp"
 
 // Vecmem include(s)

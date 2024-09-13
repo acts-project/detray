@@ -5,8 +5,8 @@
  * Mozilla Public License Version 2.0
  */
 
-// Project include(s)
-#include "detray/detectors/build_toy_detector.hpp"
+// Detray test include(s)
+#include "detray/test/utils/detectors/build_toy_detector.hpp"
 #include "propagator_sycl_kernel.hpp"
 
 // Vecmem include(s)

@@ -13,7 +13,9 @@
 #include "detray/navigation/detail/ray.hpp"
 #include "detray/navigation/intersection/ray_concentric_cylinder_intersector.hpp"
 #include "detray/navigation/intersection/ray_intersector.hpp"
-#include "detray/test/common/types.hpp"
+
+// Detray test include(s)
+#include "detray/test/utils/types.hpp"
 
 // GTest include(s)
 #include <gtest/gtest.h>

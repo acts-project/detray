@@ -12,8 +12,8 @@
 #include "detray/definitions/units.hpp"
 #include "detray/propagator/propagator.hpp"
 
-// Test include(s)
-#include "detray/test/common/types.hpp"
+// Detray test include(s).
+#include "detray/test/utils/types.hpp"
 
 // GTest include(s)
 #include <gtest/gtest.h>

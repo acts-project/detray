@@ -7,9 +7,11 @@
 
 #pragma once
 
-// Project include(s)
+// detray IO include(s)
 #include "detray/io/frontend/detector_reader_config.hpp"
 #include "detray/io/frontend/detector_writer_config.hpp"
+
+// Detray test include(s)
 #include "detray/options/options_handling.hpp"
 
 // Boost

@@ -10,8 +10,10 @@
 
 #include "detray/navigation/detail/ray.hpp"
 #include "detray/navigation/intersection/intersection.hpp"
-#include "detray/test/common/types.hpp"
 #include "detray/utils/bounding_volume.hpp"
+
+// Detray test include(s)
+#include "detray/test/utils/types.hpp"
 
 // GTest include
 #include <gtest/gtest.h>

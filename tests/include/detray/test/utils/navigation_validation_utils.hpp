@@ -8,15 +8,19 @@
 #pragma once
 
 // Project include(s)
-#include "detray/io/utils/file_handle.hpp"
 #include "detray/navigation/navigator.hpp"
 #include "detray/propagator/actor_chain.hpp"
 #include "detray/propagator/actors/aborters.hpp"
 #include "detray/propagator/propagator.hpp"
-#include "detray/test/common/utils/material_validation_utils.hpp"
-#include "detray/test/common/utils/step_tracer.hpp"
 #include "detray/tracks/free_track_parameters.hpp"
-#include "detray/utils/inspectors.hpp"
+
+// Detray IO include(s)
+#include "detray/io/utils/file_handle.hpp"
+
+// Detray test include(s)
+#include "detray/test/utils/inspectors.hpp"
+#include "detray/test/utils/material_validation_utils.hpp"
+#include "detray/test/utils/step_tracer.hpp"
 
 // System include(s)
 #include <algorithm>

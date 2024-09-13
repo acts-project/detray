@@ -19,10 +19,12 @@
 #include "detray/propagator/base_actor.hpp"
 #include "detray/propagator/propagator.hpp"
 #include "detray/propagator/rk_stepper.hpp"
-#include "detray/simulation/event_generator/track_generators.hpp"
-#include "detray/test/common/utils/step_tracer.hpp"
 #include "detray/tracks/tracks.hpp"
-#include "detray/utils/inspectors.hpp"
+
+// Detray test include(s)
+#include "detray/test/utils/inspectors.hpp"
+#include "detray/test/utils/simulation/event_generator/track_generators.hpp"
+#include "detray/test/utils/step_tracer.hpp"
 
 // Vecmem include(s)
 #include <vecmem/memory/memory_resource.hpp>

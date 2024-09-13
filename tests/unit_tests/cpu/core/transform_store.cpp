@@ -1,14 +1,18 @@
 /** Detray library, part of the ACTS project (R&D line)
  *
- * (c) 2021-2022 CERN for the benefit of the ACTS project
+ * (c) 2021-2024 CERN for the benefit of the ACTS project
  *
  * Mozilla Public License Version 2.0
  */
 
-#include <gtest/gtest.h>
-
+// Project include(s)
 #include "detray/core/detail/single_store.hpp"
-#include "detray/test/common/types.hpp"
+
+// Detray test include(s)
+#include "detray/test/utils/types.hpp"
+
+// GTest include(s)
+#include <gtest/gtest.h>
 
 // This tests the construction of a static transform store
 GTEST_TEST(detray_core, static_transform_store) {

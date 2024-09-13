@@ -7,11 +7,13 @@
 
 #pragma once
 
-// Project include(s)
-#include "detray/io/utils/create_path.hpp"
+// Detray plugin include(s)
 #include "detray/plugins/svgtools/illustrator.hpp"
 #include "detray/plugins/svgtools/styling/styling.hpp"
 #include "detray/plugins/svgtools/writer.hpp"
+
+// Detray IO include(s)
+#include "detray/io/utils/create_path.hpp"
 
 // System include(s)
 #include <algorithm>

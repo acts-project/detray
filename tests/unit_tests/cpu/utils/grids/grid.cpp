@@ -11,7 +11,9 @@
 #include "detray/builders/grid_builder.hpp"
 #include "detray/definitions/detail/indexing.hpp"
 #include "detray/geometry/shapes/cuboid3D.hpp"
-#include "detray/test/common/types.hpp"
+
+// Detray test include(s)
+#include "detray/test/utils/types.hpp"
 
 // Vecmem include(s)
 #include <vecmem/containers/device_vector.hpp>
