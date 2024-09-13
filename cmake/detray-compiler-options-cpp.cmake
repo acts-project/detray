@@ -30,6 +30,9 @@ if(("${CMAKE_CXX_COMPILER_ID}" MATCHES "GNU") OR
    detray_add_flag(CMAKE_CXX_FLAGS "-Wextra")
    detray_add_flag(CMAKE_CXX_FLAGS "-Wshadow")
    detray_add_flag(CMAKE_CXX_FLAGS "-Wunused-local-typedefs")
+   detray_add_flag(CMAKE_CXX_FLAGS "-Wzero-as-null-pointer-constant")
+   detray_add_flag(CMAKE_CXX_FLAGS "-Wnull-dereference")
+   detray_add_flag(CMAKE_CXX_FLAGS "-Wold-style-cast")
    detray_add_flag(CMAKE_CXX_FLAGS "-pedantic")
    # No implicit single to double conversions from floating point literals
    detray_add_flag(CMAKE_CXX_FLAGS "-Wconversion")

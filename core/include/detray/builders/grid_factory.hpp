@@ -316,6 +316,7 @@ class grid_factory {
         constexpr auto e_z_axis = static_cast<dindex>(axes_t::label2);
 
         auto b_values = grid_bounds.values();
+
         // Overwrite the mask values if axis spans are provided
         if (!axis_spans[0UL].empty()) {
             assert(axis_spans[0UL].size() == 2UL);

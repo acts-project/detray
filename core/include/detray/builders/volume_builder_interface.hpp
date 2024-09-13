@@ -112,7 +112,9 @@ class volume_decorator : public volume_builder_interface<detector_t> {
     DETRAY_HOST
     explicit volume_decorator(
         std::unique_ptr<volume_builder_interface<detector_t>> vol_builder)
-        : m_builder(std::move(vol_builder)) {}
+        : m_builder(std::move(vol_builder)) {
+        assert(m_builder != nullptr);
+    }
 
     DETRAY_HOST
     auto operator()() -> typename detector_t::volume_type & override {

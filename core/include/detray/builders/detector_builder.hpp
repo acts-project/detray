@@ -80,6 +80,7 @@ class detector_builder {
     DETRAY_HOST auto decorate(
         const volume_builder_interface<detector_type>* v_builder)
         -> builder_t* {
+        assert(v_builder != nullptr);
 
         return decorate<builder_t>(v_builder->vol_index());
     }

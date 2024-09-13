@@ -39,6 +39,55 @@ test::transform3 Identity{};
 
 using detector_t = detector<toy_metadata>;
 
+/// Mock volume builder for unit testing
+struct mock_volume_builder : public volume_builder_interface<detector_t> {
+    auto vol_index() const -> dindex override { return 0; }
+    void has_accel(bool) override { /*Do nothing*/
+    }
+    bool has_accel() const override { return false; }
+    auto operator()() const -> const
+        typename detector_t::volume_type& override {
+        return m_vol;
+    }
+    auto operator()() -> typename detector_t::volume_type& override {
+        return m_vol;
+    }
+    auto build(detector_t&, typename detector_t::geometry_context = {}) ->
+        typename detector_t::volume_type* override {
+        return &m_vol;
+    }
+    void add_volume_placement(const typename detector_t::transform3_type& = {})
+        override { /*Do nothing*/
+    }
+    void add_volume_placement(
+        const typename detector_t::point3_type&) override { /*Do nothing*/
+    }
+    void add_volume_placement(
+        const typename detector_t::point3_type&,
+        const typename detector_t::vector3_type&,
+        const typename detector_t::vector3_type&) override { /*Do nothing*/
+    }
+    void add_surfaces(
+        std::shared_ptr<surface_factory_interface<detector_t>>,
+        typename detector_t::geometry_context = {}) override { /*Do nothing*/
+    }
+
+    protected:
+    typename detector_t::surface_lookup_container& surfaces() override {
+        return m_sf_lookup;
+    }
+    typename detector_t::transform_container& transforms() override {
+        return m_transforms;
+    }
+    typename detector_t::mask_container& masks() override { return m_masks; }
+
+    private:
+    detector_t::volume_type m_vol{};
+    detector_t::surface_lookup_container m_sf_lookup{};
+    detector_t::transform_container m_transforms{};
+    detector_t::mask_container m_masks{};
+};
+
 }  // anonymous namespace
 
 /// Unittest: Test the construction of a collection of grids
@@ -311,7 +360,8 @@ GTEST_TEST(detray_builders, grid_builder) {
                             simple_serializer, host_container_types, false>;
 
     auto gbuilder =
-        grid_builder<detector_t, cyl_grid_t, detray::bin_associator>{nullptr};
+        grid_builder<detector_t, cyl_grid_t, detray::bin_associator>{
+            std::make_unique<mock_volume_builder>()};
 
     // The cylinder portals are at the end of the surface range by construction
     const auto cyl_mask = mask<concentric_cylinder2D>{0u, 10.f, -500.f, 500.f};

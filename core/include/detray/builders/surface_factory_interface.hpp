@@ -1,6 +1,6 @@
 /** Detray library, part of the ACTS project (R&D line)
  *
- * (c) 2022-2023 CERN for the benefit of the ACTS project
+ * (c) 2022-2024 CERN for the benefit of the ACTS project
  *
  * Mozilla Public License Version 2.0
  */
@@ -159,7 +159,9 @@ class factory_decorator : public surface_factory_interface<detector_t> {
     DETRAY_HOST
     explicit factory_decorator(
         std::unique_ptr<surface_factory_interface<detector_t>> factory)
-        : m_factory(std::move(factory)) {}
+        : m_factory(std::move(factory)) {
+        assert(m_factory != nullptr);
+    }
 
     /// @returns access to the underlying factory - const
     DETRAY_HOST

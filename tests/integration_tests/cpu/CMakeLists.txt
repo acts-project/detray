@@ -78,7 +78,7 @@ detray_add_integration_test(jacobian_validation
                             "propagator/jacobian_validation.cpp"
                             LINK_LIBRARIES GTest::gtest GTest::gtest_main 
                             Boost::program_options detray::test_common
-                            detray::core_array detray::utils)
+                            detray::core_array detray::utils detray::tools)
 
 set_tests_properties(detray_integration_test_jacobian_validation PROPERTIES DEPENDS
    "detray_unit_test_cpu;detray_unit_test_cpu_arraydetray_integration_test_telescope_detector")

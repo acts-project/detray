@@ -13,7 +13,7 @@
 #include "detray/simulation/event_generator/uniform_track_generator_config.hpp"
 
 // Boost
-#include <boost/program_options.hpp>
+#include "detray/options/boost_program_options.hpp"
 
 // System include(s)
 #include <stdexcept>

@@ -40,10 +40,6 @@ class grid_builder : public volume_decorator<detector_t> {
     using detector_type = detector_t;
     using value_type = typename detector_type::surface_type;
 
-    /// Use the grid builder stand-alone
-    DETRAY_HOST
-    grid_builder() : volume_decorator<detector_t>(nullptr) {}
-
     /// Decorate a volume with a grid
     DETRAY_HOST
     explicit grid_builder(

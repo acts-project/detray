@@ -224,6 +224,10 @@ inline auto build_telescope_detector(
                 .template decorate<homogeneous_material_builder<detector_t>>(
                     v_builder);
 
+        if (!vm_builder) {
+            throw std::runtime_error("Surface material decoration failed");
+        }
+
         auto tel_mat_generator =
             std::make_shared<homogeneous_material_generator<detector_t>>(
                 std::move(tel_generator), cfg.material_config());
@@ -251,7 +255,11 @@ inline auto build_telescope_detector(
         auto full_v_builder = det_builder.template decorate<
             homogeneous_volume_material_builder<detector_t>>(vm_builder);
 
-        full_v_builder->set_material(cfg.volume_material());
+        if (full_v_builder) {
+            full_v_builder->set_material(cfg.volume_material());
+        } else {
+            throw std::runtime_error("Volume material decoration failed");
+        }
     }
 
     // Build and return the detector

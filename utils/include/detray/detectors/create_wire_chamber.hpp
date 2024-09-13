@@ -420,7 +420,11 @@ inline auto create_wire_chamber(vecmem::memory_resource &resource,
         using cyl_grid_t =
             typename detector_t::accelerator_container::template get_type<
                 grid_id>;
-        auto gbuilder = grid_builder<detector_t, cyl_grid_t>{};
+        // Empty volume builder as placeholder
+        auto vbuilder =
+            std::make_unique<volume_builder<detector_t>>(volume_id::e_cylinder);
+        auto gbuilder =
+            grid_builder<detector_t, cyl_grid_t>{std::move(vbuilder)};
 
         // The portal portals are at the end of the portal range by construction
         auto vol = tracking_volume{det, vol_desc};

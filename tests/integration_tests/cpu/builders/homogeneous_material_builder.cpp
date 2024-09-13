@@ -199,6 +199,8 @@ GTEST_TEST(detray_builders, detector_builder_with_material) {
         det_builder.template decorate<homogeneous_material_builder<detector_t>>(
             vbuilder->vol_index());
 
+    assert(mv_builder != nullptr);
+
     typename detector_t::point3_type t{0.f, 0.f, 20.f};
     mv_builder->add_volume_placement(t);
 
