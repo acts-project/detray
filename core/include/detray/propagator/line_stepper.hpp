@@ -96,13 +96,8 @@ class line_stepper final
         state& stepping = propagation._stepping;
         auto& navigation = propagation._navigation;
 
-        if (stepping._step_size == 0.f) {
-            stepping._step_size = navigation();
-        } else if (stepping._step_size > 0) {
-            stepping._step_size = math::min(stepping._step_size, navigation());
-        } else {
-            stepping._step_size = math::max(stepping._step_size, navigation());
-        }
+        // Straight line stepping: The distance given by the navigator is exact
+        stepping._step_size = navigation();
 
         // Update navigation direction
         const step::direction step_dir = stepping._step_size >= 0.f

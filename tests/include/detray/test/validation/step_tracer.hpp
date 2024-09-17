@@ -93,8 +93,7 @@ struct step_tracer : actor {
         const auto& stepping = prop_state._stepping;
 
         // Collect the data whenever requested
-        if (navigation.is_on_module() || navigation.is_on_portal() ||
-            tracer_state.m_collect_every_step) {
+        if (navigation.is_on_surface() || tracer_state.m_collect_every_step) {
 
             step_data_t sd{stepping.step_size(),         stepping.path_length(),
                            stepping.n_total_trials(),    navigation.direction(),

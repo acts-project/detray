@@ -133,16 +133,19 @@ struct propagator {
         state &propagation,
         typename actor_chain_t::state actor_state_refs) const {
 
+        auto &navigation = propagation._navigation;
+        const auto &track = propagation._stepping();
+
         // Initialize the navigation
         propagation._heartbeat =
-            m_navigator.init(propagation, m_cfg.navigation);
+            m_navigator.init(track, navigation, m_cfg.navigation);
 
         // Run all registered actors/aborters after init
         run_actors(actor_state_refs, propagation);
 
         // Find next candidate
         propagation._heartbeat &=
-            m_navigator.update(propagation, m_cfg.navigation);
+            m_navigator.update(track, navigation, m_cfg.navigation);
 
         // Run while there is a heartbeat
         while (propagation._heartbeat) {
@@ -153,14 +156,14 @@ struct propagator {
 
             // Find next candidate
             propagation._heartbeat &=
-                m_navigator.update(propagation, m_cfg.navigation);
+                m_navigator.update(track, navigation, m_cfg.navigation);
 
             // Run all registered actors/aborters after update
             run_actors(actor_state_refs, propagation);
 
             // And check the status
             propagation._heartbeat &=
-                m_navigator.update(propagation, m_cfg.navigation);
+                m_navigator.update(track, navigation, m_cfg.navigation);
 
 #if defined(__NO_DEVICE__)
             if (propagation.do_debug) {
@@ -197,16 +200,19 @@ struct propagator {
         state &propagation,
         typename actor_chain_t::state actor_state_refs) const {
 
+        auto &navigation = propagation._navigation;
+        const auto &track = propagation._stepping();
+
         // Initialize the navigation
         propagation._heartbeat =
-            m_navigator.init(propagation, m_cfg.navigation);
+            m_navigator.init(track, navigation, m_cfg.navigation);
 
         // Run all registered actors/aborters after init
         run_actors(actor_state_refs, propagation);
 
         // Find next candidate
         propagation._heartbeat &=
-            m_navigator.update(propagation, m_cfg.navigation);
+            m_navigator.update(track, navigation, m_cfg.navigation);
 
         while (propagation._heartbeat) {
 
@@ -220,7 +226,7 @@ struct propagator {
 
                 // Find next candidate
                 propagation._heartbeat &=
-                    m_navigator.update(propagation, m_cfg.navigation);
+                    m_navigator.update(track, navigation, m_cfg.navigation);
 
                 // If the track is on a sensitive surface, break the loop to
                 // synchornize the threads
@@ -232,7 +238,7 @@ struct propagator {
 
                     // And check the status
                     propagation._heartbeat &=
-                        m_navigator.update(propagation, m_cfg.navigation);
+                        m_navigator.update(track, navigation, m_cfg.navigation);
                 }
             }
 
@@ -243,7 +249,7 @@ struct propagator {
 
                 // And check the status
                 propagation._heartbeat &=
-                    m_navigator.update(propagation, m_cfg.navigation);
+                    m_navigator.update(track, navigation, m_cfg.navigation);
             }
 
 #if defined(__NO_DEVICE__)
@@ -296,7 +302,7 @@ struct propagator {
         }
 
         propagation.debug_stream << "surface: " << std::setw(14);
-        if (navigation.is_on_portal() || navigation.is_on_module()) {
+        if (navigation.is_on_surface()) {
             propagation.debug_stream << navigation.barcode();
         } else {
             propagation.debug_stream << "undefined";

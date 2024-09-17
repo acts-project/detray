@@ -73,7 +73,8 @@ struct nav_state {
 
     scalar operator()() const { return m_step_size; }
     inline auto current_object() const -> dindex { return dindex_invalid; }
-    inline auto tolerance() const -> scalar { return tol; }
+    inline auto is_on_surface() const -> bool { return true; }
+    inline auto is_init() const -> bool { return true; }
     inline auto detector() const -> const detray::detector<> & {
         return *(m_det.get());
     }
