@@ -107,7 +107,7 @@ struct propagator {
         /// Set the particle hypothesis
         DETRAY_HOST_DEVICE
         void set_particle(const pdg_particle<scalar_type> &ptc) {
-            _stepping._ptc = ptc;
+            _stepping.set_particle(ptc);
         }
 
         // Is the propagation still alive?
@@ -170,8 +170,9 @@ struct propagator {
 
         // Set access to the volume material for the stepper
         auto vol = navigation.get_volume();
-        stepping._mat =
-            vol.has_material() ? vol.material_parameters(track.pos()) : nullptr;
+        stepping.set_volume_material(vol.has_material()
+                                         ? vol.material_parameters(track.pos())
+                                         : nullptr);
 
         // Break automatic step size scaling by the stepper when a surface
         // was reached and whenever the navigation is (re-)initialized
@@ -274,9 +275,9 @@ struct propagator {
 
                 // Set access to the volume material for the stepper
                 auto vol = navigation.get_volume();
-                stepping._mat = vol.has_material()
-                                    ? vol.material_parameters(track.pos())
-                                    : nullptr;
+                stepping.set_volume_material(
+                    vol.has_material() ? vol.material_parameters(track.pos())
+                                       : nullptr);
 
                 // Break automatic step size scaling by the stepper
                 const bool reset_stepsize{navigation.is_on_surface() ||
@@ -374,7 +375,7 @@ struct propagator {
         }
 
         propagation.debug_stream << "step_size: " << std::setw(10)
-                                 << stepping._prev_step_size << std::endl;
+                                 << stepping.prev_step_size() << std::endl;
 
         propagation.debug_stream << std::setw(10)
                                  << detail::ray<algebra_type>(stepping())

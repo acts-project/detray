@@ -1,6 +1,6 @@
 /** Detray library, part of the ACTS project (R&D line)
  *
- * (c) 2021-2022 CERN for the benefit of the ACTS project
+ * (c) 2021-2024 CERN for the benefit of the ACTS project
  *
  * Mozilla Public License Version 2.0
  */
@@ -22,10 +22,10 @@ template <typename algebra_t, typename constraint_t = unconstrained_step,
 class line_stepper final
     : public base_stepper<algebra_t, constraint_t, policy_t, inspector_t> {
 
-    public:
     using base_type =
         base_stepper<algebra_t, constraint_t, policy_t, inspector_t>;
 
+    public:
     using algebra_type = algebra_t;
     using scalar_type = dscalar<algebra_t>;
     using vector3_type = dvector3D<algebra_t>;
@@ -49,11 +49,10 @@ class line_stepper final
         /// Update the track state in a straight line.
         DETRAY_HOST_DEVICE
         inline void advance_track() {
-            auto& track = this->_track;
-            track.set_pos(track.pos() + track.dir() * this->_step_size);
+            auto& track = (*this)();
+            track.set_pos(track.pos() + track.dir() * this->step_size());
 
-            this->_path_length += this->_step_size;
-            this->_s += this->_step_size;
+            this->update_path_lengths(this->step_size());
         }
 
         DETRAY_HOST_DEVICE
@@ -65,14 +64,14 @@ class line_stepper final
 
             // d(x,y,z)/d(n_x,n_y,n_z)
             matrix_type<3, 3> dxdn =
-                this->_step_size * matrix_operator().template identity<3, 3>();
+                this->step_size() * matrix_operator().template identity<3, 3>();
             matrix_operator().template set_block<3, 3>(D, dxdn, e_free_pos0,
                                                        e_free_dir0);
 
             /// NOTE: Let's skip the element for d(time)/d(qoverp) for the
             /// moment..
 
-            this->_jac_transport = D * this->_jac_transport;
+            this->set_transport_jacobian(D * this->transport_jacobian());
         }
 
         DETRAY_HOST_DEVICE
@@ -94,10 +93,10 @@ class line_stepper final
                                  const bool = true) const {
 
         // Straight line stepping: The distance given by the navigator is exact
-        stepping._step_size = dist_to_next;
+        stepping.set_step_size(dist_to_next);
 
         // Update navigation direction
-        const step::direction step_dir = stepping._step_size >= 0.f
+        const step::direction step_dir = stepping.step_size() >= 0.f
                                              ? step::direction::e_forward
                                              : step::direction::e_backward;
         stepping.set_direction(step_dir);
@@ -105,7 +104,7 @@ class line_stepper final
         // Check constraints
         if (const scalar_type max_step =
                 stepping.constraints().template size<>(stepping.direction());
-            math::fabs(stepping._step_size) > math::fabs(max_step)) {
+            math::fabs(stepping.step_size()) > math::fabs(max_step)) {
 
             // Run inspection before step size is cut
             stepping.run_inspector(cfg, "Before constraint: ");

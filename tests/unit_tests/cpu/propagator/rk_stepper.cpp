@@ -248,7 +248,7 @@ TEST(detray_propagator, qop_derivative) {
         // RK Stepping into forward direction
         rk_stepper_t<bfield_t>::state rk_state{track, hom_bfield};
 
-        rk_state._mat = &vol_mat;
+        rk_state.set_volume_material(&vol_mat);
 
         for (unsigned int i_s = 0u; i_s < rk_steps; i_s++) {
 

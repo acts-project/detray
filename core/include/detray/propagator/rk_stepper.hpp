@@ -27,22 +27,20 @@ namespace detray {
 template <typename magnetic_field_t, typename algebra_t,
           typename constraint_t = unconstrained_step,
           typename policy_t = stepper_rk_policy,
-          typename inspector_t = stepping::void_inspector,
-          template <typename, std::size_t> class array_t = darray>
+          typename inspector_t = stepping::void_inspector>
 class rk_stepper final
     : public base_stepper<algebra_t, constraint_t, policy_t, inspector_t> {
 
-    public:
     using base_type =
         base_stepper<algebra_t, constraint_t, policy_t, inspector_t>;
 
+    public:
     using algebra_type = algebra_t;
     using scalar_type = dscalar<algebra_t>;
     using point3_type = dpoint3D<algebra_t>;
     using vector3_type = dvector3D<algebra_t>;
     using transform3_type = dtransform3D<algebra_t>;
     using matrix_operator = dmatrix_operator<algebra_t>;
-    using mat_helper = matrix_helper<matrix_operator>;
     using free_track_parameters_type =
         typename base_type::free_track_parameters_type;
     using bound_track_parameters_type =
@@ -55,36 +53,27 @@ class rk_stepper final
 
     struct state : public base_type::state {
 
+        friend rk_stepper;
+
         static constexpr const stepping::id id = stepping::id::e_rk;
 
         DETRAY_HOST_DEVICE
         state(const free_track_parameters_type& t,
               const magnetic_field_t& mag_field)
-            : base_type::state(t), _magnetic_field(mag_field) {}
+            : base_type::state(t), m_magnetic_field(mag_field) {}
 
         template <typename detector_t>
         DETRAY_HOST_DEVICE state(
             const bound_track_parameters_type& bound_params,
             const magnetic_field_t& mag_field, const detector_t& det)
-            : base_type::state(bound_params, det), _magnetic_field(mag_field) {}
+            : base_type::state(bound_params, det),
+              m_magnetic_field(mag_field) {}
 
-        /// stepping data required for RKN4
-        struct {
-            vector3_type b_first{0.f, 0.f, 0.f};
-            vector3_type b_middle{0.f, 0.f, 0.f};
-            vector3_type b_last{0.f, 0.f, 0.f};
-            // t = tangential direction = dr/ds
-            std::array<vector3_type, 4u> t;
-            // q/p
-            std::array<scalar_type, 4u> qop;
-            // dt/ds = d^2r/ds^2 = q/p ( t X B )
-            std::array<vector3_type, 4u> dtds;
-            // d(q/p)/ds
-            std::array<scalar_type, 4u> dqopds;
-        } _step_data;
+        /// @returns the B-field view
+        magnetic_field_type field() const { return m_magnetic_field; }
 
-        /// Magnetic field view
-        const magnetic_field_t _magnetic_field;
+        /// @returns access to the step data
+        const auto& step_data() const { return m_step_data; }
 
         /// Update the track state by Runge-Kutta-Nystrom integration.
         DETRAY_HOST_DEVICE
@@ -133,10 +122,29 @@ class rk_stepper final
             [[maybe_unused]] Args&&... args) {
             if constexpr (!std::is_same_v<inspector_t,
                                           stepping::void_inspector>) {
-                this->_inspector(*this, cfg, message,
-                                 std::forward<Args>(args)...);
+                this->inspector()(*this, cfg, message,
+                                  std::forward<Args>(args)...);
             }
         }
+
+        private:
+        /// stepping data required for RKN4
+        struct {
+            vector3_type b_first{0.f, 0.f, 0.f};
+            vector3_type b_middle{0.f, 0.f, 0.f};
+            vector3_type b_last{0.f, 0.f, 0.f};
+            // t = tangential direction = dr/ds
+            std::array<vector3_type, 4u> t;
+            // q/p
+            std::array<scalar_type, 4u> qop;
+            // dt/ds = d^2r/ds^2 = q/p ( t X B )
+            std::array<vector3_type, 4u> dtds;
+            // d(q/p)/ds
+            std::array<scalar_type, 4u> dqopds;
+        } m_step_data;
+
+        /// Magnetic field view
+        const magnetic_field_t m_magnetic_field;
     };
 
     /// Take a step, using an adaptive Runge-Kutta algorithm.

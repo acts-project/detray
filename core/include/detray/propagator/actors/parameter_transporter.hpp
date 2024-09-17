@@ -68,7 +68,7 @@ struct parameter_transporter : actor {
 
             // Transport jacobian in free coordinate
             const free_matrix_t& free_transport_jacobian =
-                stepping._jac_transport;
+                stepping.transport_jacobian();
 
             // Path correction factor
             free_matrix_t path_correction = jacobian_engine_t::path_correction(
@@ -107,32 +107,33 @@ struct parameter_transporter : actor {
         // Covariance is transported only when the previous surface is an
         // actual tracking surface. (i.e. This disables the covariance transport
         // from curvilinear frame)
-        if (stepping._prev_sf_id != detail::invalid_value<dindex>()) {
+        if (!detail::is_invalid_value(stepping.prev_sf_index())) {
 
             // Previous surface
             tracking_surface<detector_type> prev_sf{navigation.detector(),
-                                                    stepping._prev_sf_id};
+                                                    stepping.prev_sf_index()};
 
             const bound_to_free_matrix<algebra_t> bound_to_free_jacobian =
-                prev_sf.bound_to_free_jacobian(ctx, stepping._bound_params);
+                prev_sf.bound_to_free_jacobian(ctx, stepping.bound_params());
 
-            stepping._full_jacobian =
+            stepping.set_full_jacobian(
                 sf.template visit_mask<get_full_jacobian_kernel>(
-                    sf.transform(ctx), bound_to_free_jacobian, propagation);
+                    sf.transform(ctx), bound_to_free_jacobian, propagation));
 
             // Calculate surface-to-surface covariance transport
             const bound_matrix_t new_cov =
-                stepping._full_jacobian * stepping._bound_params.covariance() *
-                matrix_operator().transpose(stepping._full_jacobian);
-            stepping._bound_params.set_covariance(new_cov);
+                stepping.full_jacobian() *
+                stepping.bound_params().covariance() *
+                matrix_operator().transpose(stepping.full_jacobian());
+            stepping.bound_params().set_covariance(new_cov);
         }
 
         // Convert free to bound vector
-        stepping._bound_params.set_parameter_vector(
+        stepping.bound_params().set_parameter_vector(
             sf.free_to_bound_vector(ctx, stepping()));
 
         // Set surface link
-        stepping._bound_params.set_surface_link(sf.barcode());
+        stepping.bound_params().set_surface_link(sf.barcode());
 
         return;
     }

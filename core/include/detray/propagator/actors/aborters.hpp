@@ -51,7 +51,7 @@ struct pathlimit_aborter : actor {
 
         const scalar step_limit =
             abrt_state.path_limit() -
-            math::fabs(prop_state._stepping._abs_path_length);
+            math::fabs(prop_state._stepping.abs_path_length());
 
         // Check the path limit
         if (step_limit <= 0.f) {
@@ -112,7 +112,7 @@ struct next_surface_aborter : actor {
 
         // Abort at the next sensitive surface
         if (navigation.is_on_sensitive() &&
-            stepping._s > abrt_state.min_step_length) {
+            stepping.path_from_surface() > abrt_state.min_step_length) {
             prop_state._heartbeat &= navigation.abort();
             abrt_state.success = true;
         }
