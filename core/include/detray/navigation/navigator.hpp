@@ -175,9 +175,7 @@ class navigator {
         constexpr auto begin() const -> candidate_const_itr_t {
             candidate_const_itr_t itr = m_candidates.begin();
             detray::ranges::advance(
-                itr, ((is_on_module() || is_on_portal()) && (m_next >= 1))
-                         ? m_next - 1
-                         : m_next);
+                itr, (is_on_surface() && (m_next >= 1)) ? m_next - 1 : m_next);
             return itr;
         }
 
@@ -264,7 +262,7 @@ class navigator {
         /// (cannot be used when not on surface) - const
         DETRAY_HOST_DEVICE
         inline auto get_surface() const {
-            assert(is_on_module() || is_on_portal());
+            assert(is_on_surface());
             return tracking_surface<detector_type>{*m_detector,
                                                    current().sf_desc};
         }
@@ -329,8 +327,9 @@ class navigator {
 
         /// Helper method to check the track has reached a module surface
         DETRAY_HOST_DEVICE
-        inline auto is_on_module() const -> bool {
-            return m_status == navigation::status::e_on_module;
+        inline auto is_on_surface() const -> bool {
+            return (m_status == navigation::status::e_on_module ||
+                    m_status == navigation::status::e_on_portal);
         }
 
         /// Helper method to check the track has reached a sensitive surface
@@ -338,6 +337,13 @@ class navigator {
         inline auto is_on_sensitive() const -> bool {
             return (m_status == navigation::status::e_on_module) &&
                    (barcode().id() == surface_id::e_sensitive);
+        }
+
+        /// Helper method to check the track has reached a passive surface
+        DETRAY_HOST_DEVICE
+        inline auto is_on_passive() const -> bool {
+            return (m_status == navigation::status::e_on_module) &&
+                   (barcode().id() == surface_id::e_passive);
         }
 
         /// Helper method to check the track has reached a portal surface
@@ -349,9 +355,8 @@ class navigator {
         /// Helper method to check the track has encountered material
         DETRAY_HOST_DEVICE
         inline auto encountered_sf_material() const -> bool {
-            return (is_on_module() || is_on_portal()) &&
-                   (current().sf_desc.material().id() !=
-                    detector_t::materials::id::e_none);
+            return (is_on_surface()) && (current().sf_desc.material().id() !=
+                                         detector_t::materials::id::e_none);
         }
 
         /// Helper method to check if a kernel is exhausted - const
@@ -359,6 +364,10 @@ class navigator {
         inline auto is_exhausted() const -> bool {
             return n_candidates() == 0u;
         }
+
+        /// Helper method to check if the navigation state was (re-)initialized
+        DETRAY_HOST_DEVICE
+        inline auto is_init() const -> bool { return m_is_init; }
 
         /// @returns flag that indicates whether navigation was successful
         DETRAY_HOST_DEVICE
@@ -405,15 +414,19 @@ class navigator {
             return m_heartbeat;
         }
 
+        /// Set the next surface that we want to reach (update target)
+        DETRAY_HOST_DEVICE
+        inline auto print_next() const { return m_next; }
+        DETRAY_HOST_DEVICE
+        inline auto print_last() const { return m_last; }
+
         private:
         /// @return start position of valid candidate range.
         DETRAY_HOST_DEVICE
         constexpr auto begin() -> candidate_itr_t {
             candidate_itr_t itr = m_candidates.begin();
             detray::ranges::advance(
-                itr, ((is_on_module() || is_on_portal()) && (m_next >= 1))
-                         ? m_next - 1
-                         : m_next);
+                itr, (is_on_surface() && (m_next >= 1)) ? m_next - 1 : m_next);
             return itr;
         }
 
@@ -426,7 +439,7 @@ class navigator {
         }
 
         /// Helper method to check if a candidate lies on a surface - const
-        DETRAY_HOST_DEVICE inline auto is_on_object(
+        DETRAY_HOST_DEVICE inline auto is_on_surface(
             const intersection_type &candidate,
             const navigation::config &cfg) const -> bool {
             return (math::fabs(candidate.path) < cfg.path_tolerance);
@@ -580,6 +593,9 @@ class navigator {
         navigation::trust_level m_trust_level =
             navigation::trust_level::e_no_trust;
 
+        /// Did the last update contain a full (re-)initialization?
+        bool m_is_init{false};
+
         /// Index in the detector volume container of current navigation volume
         nav_link_type m_volume_index{0u};
     };
@@ -590,18 +606,17 @@ class navigator {
     struct candidate_search {
 
         /// Test the volume links
-        template <typename track_t>
         DETRAY_HOST_DEVICE void operator()(
             const typename detector_type::surface_type &sf_descr,
-            const detector_type &det, const track_t &track, state &nav_state,
-            const std::array<scalar_type, 2> mask_tol,
+            const detector_type &det, const detail::ray<algebra_type> &ray,
+            state &nav_state, const std::array<scalar_type, 2> mask_tol,
             const scalar_type mask_tol_scalor,
             const scalar_type overstep_tol) const {
 
             const auto sf = tracking_surface{det, sf_descr};
 
             sf.template visit_mask<intersection_initialize<ray_intersector>>(
-                nav_state, detail::ray(track), sf_descr, det.transform_store(),
+                nav_state, ray, sf_descr, det.transform_store(),
                 sf.is_portal() ? std::array<scalar_type, 2>{0.f, 0.f}
                                : mask_tol,
                 mask_tol_scalor, overstep_tol);
@@ -615,16 +630,16 @@ class navigator {
     /// the surfaces for intersection and sorts the reachable candidates to find
     /// the clostest one (next candidate).
     ///
-    /// @tparam propagator_state_t state type of the propagator
+    /// @tparam track_t type of track, needs to provide pos() and dir() methods
     ///
-    /// @param propagation contains the stepper and navigator states
-    template <typename propagator_state_t>
-    DETRAY_HOST_DEVICE inline bool init(propagator_state_t &propagation,
+    /// @param track access to the track parameters
+    /// @param state the current navigation state
+    /// @param cfg the navigation configuration
+    template <typename track_t>
+    DETRAY_HOST_DEVICE inline bool init(const track_t &track, state &navigation,
                                         const navigation::config &cfg) const {
 
-        state &navigation = propagation._navigation;
         const auto &det = navigation.detector();
-        const auto &track = propagation._stepping();
         const auto volume = tracking_volume{det, navigation.volume()};
 
         // Clean up state
@@ -633,22 +648,22 @@ class navigator {
 
         // Search for neighboring surfaces and fill candidates into cache
         volume.template visit_neighborhood<candidate_search>(
-            track, cfg, det, track, navigation,
+            track, cfg, det, detail::ray<algebra_type>{track}, navigation,
             std::array<scalar_type, 2u>{cfg.min_mask_tolerance,
                                         cfg.max_mask_tolerance},
             static_cast<scalar_type>(cfg.mask_tolerance_scalor),
             static_cast<scalar_type>(cfg.overstep_tolerance));
 
         // Determine overall state of the navigation after updating the cache
-        update_navigation_state(cfg, propagation);
+        update_navigation_state(navigation, cfg);
 
         // If init was not successful, the propagation setup is broken
         if (navigation.trust_level() != navigation::trust_level::e_full) {
             navigation.m_heartbeat = false;
         }
 
-        auto &stepping = propagation._stepping;
-        stepping._step_size = navigation();
+        // State was newly initialized
+        navigation.m_is_init = true;
 
         navigation.run_inspector(cfg, track.pos(), track.dir(),
                                  "Init complete: ");
@@ -656,7 +671,7 @@ class navigator {
         return navigation.m_heartbeat;
     }
 
-    /// @brief Complete update of the nvaigation flow.
+    /// @brief Complete update of the navigation flow.
     ///
     /// Restores 'full trust' state to the cadidates cache and checks whether
     /// the track stepped onto a portal and a volume switch is due. If so, or
@@ -664,20 +679,21 @@ class navigator {
     /// failed to restore trust, it performs a complete reinitialization of the
     /// navigation.
     ///
-    /// @tparam propagator_state_t state type of the propagator
+    /// @tparam track_t type of track, needs to provide pos() and dir() methods
     ///
-    /// @param propagation contains the stepper and navigator states
+    /// @param track access to the track parameters
+    /// @param state the current navigation state
+    /// @param cfg the navigation configuration
     ///
-    /// @return a heartbeat to indicate if the navigation is still alive
-    template <typename propagator_state_t>
-    DETRAY_HOST_DEVICE inline bool update(propagator_state_t &propagation,
+    /// @returns a heartbeat to indicate if the navigation is still alive
+    template <typename track_t>
+    DETRAY_HOST_DEVICE inline bool update(const track_t &track,
+                                          state &navigation,
                                           const navigation::config &cfg) const {
-
-        state &navigation = propagation._navigation;
 
         // Candidates are re-evaluated based on the current trust level.
         // Should result in 'full trust'
-        update_kernel(propagation, cfg);
+        update_kernel(track, navigation, cfg);
 
         // Update was completely successful (most likely case)
         if (navigation.trust_level() == navigation::trust_level::e_full) {
@@ -700,26 +716,24 @@ class navigator {
                        navigation.detector().volumes().size());
 
             // Run inspection when needed (keep for debugging)
-            // const auto &track = propagation._stepping();
             // navigation.run_inspector(cfg, track.pos(), track.dir(), "Volume
             // switch: ");
 
-            init(propagation, cfg);
+            init(track, navigation, cfg);
 
-            // Fresh initialization, reset trust and hearbeat
+            // Fresh init after volume switch: reset trust and hearbeat
             navigation.m_trust_level = navigation::trust_level::e_full;
-            navigation.m_heartbeat = true;
-
-            return navigation.m_heartbeat;
+            navigation.m_heartbeat = !navigation.is_exhausted();
         }
         // If no trust could be restored for the current state, (local)
         // navigation might be exhausted: re-initialize volume
-        navigation.m_heartbeat &= init(propagation, cfg);
+        else {
+            navigation.m_heartbeat &= init(track, navigation, cfg);
 
-        // Sanity check: Should never be the case after complete update call
-        if (navigation.trust_level() != navigation::trust_level::e_full ||
-            navigation.is_exhausted()) {
-            navigation.abort();
+            // Sanity check: Should never be the case after complete update call
+            if (!navigation.m_heartbeat || navigation.is_exhausted()) {
+                navigation.abort();
+            }
         }
 
         return navigation.m_heartbeat;
@@ -730,21 +744,25 @@ class navigator {
     /// based on an externally provided trust level. Will (re-)initialize the
     /// navigation if there is no trust.
     ///
-    /// @tparam propagator_state_t state type of the propagator
+    /// @tparam track_t type of track, needs to provide pos() and dir() methods
     ///
-    /// @param propagation contains the stepper and navigator states
-    template <typename propagator_state_t>
+    /// @param track access to the track parameters
+    /// @param state the current navigation state
+    /// @param cfg the navigation configuration
+    template <typename track_t>
     DETRAY_HOST_DEVICE inline void update_kernel(
-        propagator_state_t &propagation, const navigation::config &cfg) const {
+        const track_t &track, state &navigation,
+        const navigation::config &cfg) const {
 
-        state &navigation = propagation._navigation;
         const auto &det = navigation.detector();
-        const auto &track = propagation._stepping();
 
         // Current candidates are up to date, nothing left to do
         if (navigation.trust_level() == navigation::trust_level::e_full) {
             return;
         }
+
+        // Reset init flag
+        navigation.m_is_init = false;
 
         // Update only the current candidate and the corresponding next target
         // - do this only when the navigation state is still coherent
@@ -756,7 +774,7 @@ class navigator {
             } else {
 
                 // Update navigation flow on the new candidate information
-                update_navigation_state(cfg, propagation);
+                update_navigation_state(navigation, cfg);
 
                 navigation.run_inspector(cfg, track.pos(), track.dir(),
                                          "Update complete: high trust: ");
@@ -800,7 +818,7 @@ class navigator {
             // Ignore unreachable elements (needed to determine exhaustion)
             navigation.set_last(find_invalid(navigation.candidates()));
             // Update navigation flow on the new candidate information
-            update_navigation_state(cfg, propagation);
+            update_navigation_state(navigation, cfg);
 
             navigation.run_inspector(cfg, track.pos(), track.dir(),
                                      "Update complete: fair trust: ");
@@ -813,7 +831,7 @@ class navigator {
         // Actor flagged cache as broken (other cases of 'no trust' are
         // handeled after volume switch was checked in 'update()')
         if (navigation.trust_level() == navigation::trust_level::e_no_trust) {
-            navigation.m_heartbeat &= init(propagation, cfg);
+            navigation.m_heartbeat &= init(track, navigation, cfg);
             return;
         }
     }
@@ -825,22 +843,15 @@ class navigator {
     /// towards the next surface candidate. If no new next candidate can be
     //  found, it flags 'no trust' in order to trigger a volume initialization.
     ///
-    /// @tparam track_t the type of the track parametrisation
-    /// @tparam propagator_state_t state type of the propagator
-    ///
-    /// @param track the track that belongs to the current propagation state
-    /// @param propagation contains the stepper and navigator states
-    template <typename propagator_state_t>
+    /// @param state the current navigation state
+    /// @param cfg the navigation configuration
     DETRAY_HOST_DEVICE inline void update_navigation_state(
-        const navigation::config &cfg, propagator_state_t &propagation) const {
-
-        auto &navigation = propagation._navigation;
-        auto &stepping = propagation._stepping;
+        state &navigation, const navigation::config &cfg) const {
 
         // Check whether the track reached the current candidate. Might be a
         // portal, in which case the navigation needs to be re-initialized
         if (!navigation.is_exhausted() &&
-            navigation.is_on_object(navigation.target(), cfg)) {
+            navigation.is_on_surface(navigation.target(), cfg)) {
             // Set the next object that we want to reach (this function is only
             // called once the cache has been updated to a full trust state).
             // Might lead to exhausted cache.
@@ -848,8 +859,6 @@ class navigator {
             navigation.m_status = (navigation.current().sf_desc.is_portal())
                                       ? navigation::status::e_on_portal
                                       : navigation::status::e_on_module;
-
-            stepping._step_size = navigation();
         } else {
             // Otherwise the track is moving towards a surface
             navigation.m_status = navigation::status::e_towards_object;
@@ -868,10 +877,12 @@ class navigator {
     /// @brief Helper method that updates the intersection of a single candidate
     /// and checks reachability
     ///
-    /// @tparam track_t type of the track parametrization
+    /// @tparam track_t type of track, needs to provide pos() and dir() methods
     ///
-    /// @param candidate the intersection to be updated
-    /// @param track the track information
+    /// @param candidate the candidate intersection to be updated
+    /// @param track access to the track parameters
+    /// @param det access to the detector (geometry)
+    /// @param cfg the navigation configuration
     ///
     /// @returns whether the track can reach this candidate.
     template <typename track_t>
@@ -887,7 +898,7 @@ class navigator {
 
         // Check whether this candidate is reachable by the track
         return sf.template visit_mask<intersection_update<ray_intersector>>(
-            detail::ray(track), candidate, det.transform_store(),
+            detail::ray<algebra_type>(track), candidate, det.transform_store(),
             sf.is_portal() ? std::array<scalar_type, 2>{0.f, 0.f}
                            : std::array<scalar_type, 2>{cfg.min_mask_tolerance,
                                                         cfg.max_mask_tolerance},

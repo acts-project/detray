@@ -425,13 +425,13 @@ struct bound_getter : actor {
             propagation._heartbeat &= navigation.exit();
         }
 
-        if (navigation.is_on_module() && navigation.barcode().index() == 0u) {
+        if (navigation.is_on_surface() && navigation.barcode().index() == 0u) {
 
             actor_state.m_param_departure = stepping._bound_params;
         }
         // Get the bound track parameters and jacobian at the destination
         // surface
-        else if (navigation.is_on_module() &&
+        else if (navigation.is_on_surface() &&
                  navigation.barcode().index() == 1u) {
 
             actor_state.m_path_length = stepping._path_length;

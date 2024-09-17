@@ -71,14 +71,14 @@ TEST(navigator_cuda, navigator) {
         const stepper_t::state& stepping = propagation._stepping;
 
         // Start propagation and record volume IDs
-        bool heartbeat = nav.init(propagation, cfg);
+        bool heartbeat = nav.init(stepping(), navigation, cfg);
         while (heartbeat) {
 
             heartbeat &= stepper.step(propagation);
 
             navigation.set_high_trust();
 
-            heartbeat &= nav.update(propagation, cfg);
+            heartbeat &= nav.update(stepping(), navigation, cfg);
 
             // Record volume
             volume_records_host[i].push_back(navigation.volume());
