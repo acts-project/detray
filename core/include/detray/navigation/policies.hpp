@@ -73,7 +73,8 @@ struct stepper_default_policy : actor {
         auto &navigation = propagation._navigation;
 
         // Not a severe change to track state expected
-        if (math::fabs(stepping.step_size()) <
+        // Policy is called after stepsize update -> use prev. step size
+        if (math::fabs(stepping._prev_step_size) <
             math::fabs(
                 stepping.constraints().template size<>(stepping.direction())) -
                 pol_state.tol) {
@@ -110,7 +111,8 @@ struct stepper_rk_policy : actor {
         const auto &stepping = propagation._stepping;
         auto &navigation = propagation._navigation;
 
-        const scalar rel_correction{(stepping.step_size() - navigation()) /
+        // Policy is called after stepsize update -> use prev. step size
+        const scalar rel_correction{(stepping._prev_step_size - navigation()) /
                                     navigation()};
 
         // Large correction to the stepsize - re-initialize the volume

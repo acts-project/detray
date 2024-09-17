@@ -134,7 +134,8 @@ struct propagator {
         typename actor_chain_t::state actor_state_refs) const {
 
         auto &navigation = propagation._navigation;
-        const auto &track = propagation._stepping();
+        auto &stepping = propagation._stepping;
+        const auto &track = stepping();
 
         // Initialize the navigation
         propagation._heartbeat =
@@ -150,9 +151,23 @@ struct propagator {
         // Run while there is a heartbeat
         while (propagation._heartbeat) {
 
+            // Set access to the volume material for the stepper
+            auto vol = navigation.get_volume();
+            stepping._mat = vol.has_material()
+                                ? vol.material_parameters(track.pos())
+                                : nullptr;
+
+            // Break automatic step size scaling by the stepper when a surface
+            // was reached and whenever the navigation is (re-)initialized
+            const bool reset_stepsize{navigation.is_on_surface() ||
+                                      navigation.is_init()};
             // Take the step
-            propagation._heartbeat &=
-                m_stepper.step(propagation, m_cfg.stepping);
+            propagation._heartbeat &= m_stepper.step(
+                navigation(), stepping, m_cfg.stepping, reset_stepsize);
+
+            // Reduce navigation trust level according to stepper update
+            typename stepper_t::policy_type{}(stepping.policy_state(),
+                                              propagation);
 
             // Find next candidate
             propagation._heartbeat &=
@@ -201,7 +216,8 @@ struct propagator {
         typename actor_chain_t::state actor_state_refs) const {
 
         auto &navigation = propagation._navigation;
-        const auto &track = propagation._stepping();
+        auto &stepping = propagation._stepping;
+        const auto &track = stepping();
 
         // Initialize the navigation
         propagation._heartbeat =
@@ -220,9 +236,22 @@ struct propagator {
 
             while (propagation._heartbeat) {
 
+                // Set access to the volume material for the stepper
+                auto vol = navigation.get_volume();
+                stepping._mat = vol.has_material()
+                                    ? vol.material_parameters(track.pos())
+                                    : nullptr;
+
+                // Break automatic step size scaling by the stepper
+                const bool reset_stepsize{navigation.is_on_surface() ||
+                                          navigation.is_init()};
                 // Take the step
-                propagation._heartbeat &=
-                    m_stepper.step(propagation, m_cfg.stepping);
+                propagation._heartbeat &= m_stepper.step(
+                    navigation(), stepping, m_cfg.stepping, reset_stepsize);
+
+                // Reduce navigation trust level according to stepper update
+                typename stepper_t::policy_type{}(stepping.policy_state(),
+                                                  propagation);
 
                 // Find next candidate
                 propagation._heartbeat &=

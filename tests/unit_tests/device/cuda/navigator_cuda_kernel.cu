@@ -13,7 +13,7 @@
 namespace detray {
 
 __global__ void navigator_test_kernel(
-    typename detector_host_t::view_type det_data, navigation::config cfg,
+    typename detector_host_t::view_type det_data, propagation::config cfg,
     vecmem::data::vector_view<free_track_parameters<algebra_t>> tracks_data,
     vecmem::data::jagged_vector_view<dindex> volume_records_data,
     vecmem::data::jagged_vector_view<point3> position_records_data) {
@@ -45,14 +45,16 @@ __global__ void navigator_test_kernel(
     navigation.set_volume(0u);
 
     // Start propagation and record volume IDs
-    bool heartbeat = nav.init(stepping(), navigation, cfg);
+    bool heartbeat = nav.init(stepping(), navigation, cfg.navigation);
     while (heartbeat) {
 
-        heartbeat &= stepper.step(propagation);
+        const bool do_reset{navigation.is_on_surface() || navigation.is_init()};
+        heartbeat &=
+            stepper.step(navigation(), stepping, cfg.stepping, do_reset);
 
         navigation.set_high_trust();
 
-        heartbeat = nav.update(stepping(), navigation, cfg);
+        heartbeat = nav.update(stepping(), navigation, cfg.navigation);
 
         // Record volume
         volume_records[gid].push_back(navigation.volume());
@@ -61,7 +63,7 @@ __global__ void navigator_test_kernel(
 }
 
 void navigator_test(
-    typename detector_host_t::view_type det_data, navigation::config& cfg,
+    typename detector_host_t::view_type det_data, propagation::config& cfg,
     vecmem::data::vector_view<free_track_parameters<algebra_t>>& tracks_data,
     vecmem::data::jagged_vector_view<dindex>& volume_records_data,
     vecmem::data::jagged_vector_view<point3>& position_records_data) {

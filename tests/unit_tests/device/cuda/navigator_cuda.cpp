@@ -33,8 +33,8 @@ TEST(navigator_cuda, navigator) {
 
     // Create navigator
     navigator_host_t nav;
-    navigation::config cfg{};
-    cfg.search_window = {1u, 1u};
+    propagation::config cfg{};
+    cfg.navigation.search_window = {1u, 1u};
 
     // Create the vector of initial track parameters
     vecmem::vector<free_track_parameters<algebra_t>> tracks_host(&mng_mr);
@@ -50,9 +50,7 @@ TEST(navigator_cuda, navigator) {
         tracks_device.push_back(track);
     }
 
-    /**
-     * Host Volume Record
-     */
+    // Host volume index and track position records
     vecmem::jagged_vector<dindex> volume_records_host(theta_steps * phi_steps,
                                                       &mng_mr);
     vecmem::jagged_vector<point3> position_records_host(theta_steps * phi_steps,
@@ -68,17 +66,20 @@ TEST(navigator_cuda, navigator) {
             stepper_t::state{track}, navigator_host_t::state(det)};
 
         navigator_host_t::state& navigation = propagation._navigation;
-        const stepper_t::state& stepping = propagation._stepping;
+        stepper_t::state& stepping = propagation._stepping;
 
         // Start propagation and record volume IDs
-        bool heartbeat = nav.init(stepping(), navigation, cfg);
+        bool heartbeat = nav.init(stepping(), navigation, cfg.navigation);
         while (heartbeat) {
 
-            heartbeat &= stepper.step(propagation);
+            const bool do_reset{navigation.is_on_surface() ||
+                                navigation.is_init()};
+            heartbeat &=
+                stepper.step(navigation(), stepping, cfg.stepping, do_reset);
 
             navigation.set_high_trust();
 
-            heartbeat &= nav.update(stepping(), navigation, cfg);
+            heartbeat &= nav.update(stepping(), navigation, cfg.navigation);
 
             // Record volume
             volume_records_host[i].push_back(navigation.volume());
@@ -86,10 +87,7 @@ TEST(navigator_cuda, navigator) {
         }
     }
 
-    /**
-     * Device Volume Record
-     */
-
+    // Device volume index and track position records
     vecmem::jagged_vector<dindex> volume_records_device(&mng_mr);
     vecmem::jagged_vector<point3> position_records_device(&mng_mr);
 

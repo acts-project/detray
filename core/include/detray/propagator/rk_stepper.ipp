@@ -543,29 +543,25 @@ DETRAY_HOST_DEVICE auto detray::rk_stepper<
 template <typename magnetic_field_t, typename algebra_t, typename constraint_t,
           typename policy_t, typename inspector_t,
           template <typename, std::size_t> class array_t>
-template <typename propagation_state_t>
 DETRAY_HOST_DEVICE inline bool detray::rk_stepper<
-    magnetic_field_t, algebra_t, constraint_t, policy_t, inspector_t,
-    array_t>::step(propagation_state_t& propagation,
-                   const detray::stepping::config& cfg) const {
+    magnetic_field_t, algebra_t, constraint_t, policy_t, inspector_t, array_t>::
+    step(const scalar_type dist_to_next,
+         detray::rk_stepper<magnetic_field_t, algebra_t, constraint_t, policy_t,
+                            inspector_t, array_t>::state& stepping,
+         const detray::stepping::config& cfg, const bool do_reset) const {
 
     // Get stepper and navigator states
-    state& stepping = propagation._stepping;
     auto& magnetic_field = stepping._magnetic_field;
-    auto& navigation = propagation._navigation;
 
-    if (navigation.is_on_surface() || navigation.is_init()) {
-        stepping._step_size = navigation();
+    if (do_reset) {
+        stepping._step_size = dist_to_next;
     } else if (stepping._step_size > 0) {
-        stepping._step_size = math::min(stepping._step_size, navigation());
+        stepping._step_size = math::min(stepping._step_size, dist_to_next);
     } else {
-        stepping._step_size = math::max(stepping._step_size, navigation());
+        stepping._step_size = math::max(stepping._step_size, dist_to_next);
     }
 
     const point3_type pos = stepping().pos();
-
-    auto vol = navigation.get_volume();
-    stepping._mat = vol.has_material() ? vol.material_parameters(pos) : nullptr;
 
     auto& sd = stepping._step_data;
 
@@ -583,7 +579,8 @@ DETRAY_HOST_DEVICE inline bool detray::rk_stepper<
     sd.dtds[0u] = stepping.evaluate_dtds(
         sd.b_first, 0u, 0.f, vector3_type{0.f, 0.f, 0.f}, sd.qop[0u]);
 
-    const auto estimate_error = [&](const scalar_type& h) -> scalar_type {
+    /// RKN step trial and error estimation
+    const auto estimate_error = [&](const scalar_type& h) {
         // State the square and half of the step size
         const scalar_type h2{h * h};
         const scalar_type half_h{h * 0.5f};
@@ -636,11 +633,20 @@ DETRAY_HOST_DEVICE inline bool detray::rk_stepper<
         return error_estimate;
     };
 
+    /// Calculate the scale factor for the stepsize adjustment using the error
+    /// estimate @param err
+    const auto step_size_scaling =
+        [&cfg](const scalar_type& err) -> scalar_type {
+        return static_cast<scalar_type>(
+            math::min(math::max(math::sqrt(math::sqrt(cfg.rk_error_tol / err)),
+                                static_cast<scalar_type>(0.25)),
+                      static_cast<scalar_type>(4.)));
+    };
+
     scalar_type error{1e20f};
 
-    // Whenever navigator::init() is called the step size is set to navigation
-    // path length (navigation()). We need to reduce it down to make error small
-    // enough
+    // If the estimated error is larger than the tolerance with an additional
+    // margin, reduce the step size and try again
     for (unsigned int i = 0u; i < cfg.max_rk_updates; i++) {
         stepping.count_trials();
 
@@ -653,20 +659,13 @@ DETRAY_HOST_DEVICE inline bool detray::rk_stepper<
             break;
         }
         // Error estimate is too big
-        // ---> Make step size smaller and esimate error again
+        // ---> Make step size smaller and estimate error again
         else {
-
-            const scalar_type step_size_scaling =
-                static_cast<scalar_type>(math::min(
-                    math::max(math::sqrt(math::sqrt(cfg.rk_error_tol / error)),
-                              static_cast<scalar_type>(0.25)),
-                    static_cast<scalar_type>(4.)));
-
-            stepping._step_size *= step_size_scaling;
+            stepping._step_size *= step_size_scaling(error);
 
             // Run inspection while the stepsize is getting adjusted
-            stepping.run_inspector(cfg, "Adjust stepsize: ", i + 1,
-                                   step_size_scaling);
+            stepping.run_inspector(cfg, "Adjust stepsize: ", i,
+                                   step_size_scaling(error));
         }
     }
 
@@ -677,15 +676,14 @@ DETRAY_HOST_DEVICE inline bool detray::rk_stepper<
     stepping.set_direction(step_dir);
 
     // Check constraints
-    if (math::fabs(stepping._step_size) >
-        math::fabs(
-            stepping.constraints().template size<>(stepping.direction()))) {
+    if (const scalar_type max_step =
+            stepping.constraints().template size<>(stepping.direction());
+        math::fabs(stepping._step_size) > math::fabs(max_step)) {
 
         // Run inspection before step size is cut
         stepping.run_inspector(cfg, "Before constraint: ");
 
-        stepping.set_step_size(
-            stepping.constraints().template size<>(stepping.direction()));
+        stepping.set_step_size(max_step);
     }
 
     // Advance track state
@@ -696,19 +694,11 @@ DETRAY_HOST_DEVICE inline bool detray::rk_stepper<
         stepping.advance_jacobian(cfg);
     }
 
-    // Call navigation update policy
-    typename rk_stepper::policy_type{}(stepping.policy_state(), propagation);
-
-    const scalar_type step_size_scaling =
-        math::min(math::max(math::sqrt(math::sqrt(cfg.rk_error_tol / error)),
-                            static_cast<scalar_type>(0.25)),
-                  static_cast<scalar_type>(4.));
-
     // Save the current step size
     stepping._prev_step_size = stepping._step_size;
 
-    // Update the step size
-    stepping._step_size *= step_size_scaling;
+    // Update the step size for the next step
+    stepping._step_size *= step_size_scaling(error);
 
     // Don't allow a too small step size (unless requested by the navigator)
     if (stepping._step_size < cfg.min_stepsize) {

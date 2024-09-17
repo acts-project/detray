@@ -32,6 +32,7 @@
 using namespace detray;
 
 using algebra_t = test::algebra;
+using scalar_t = test::scalar;
 using vector3 = test::vector3;
 using point3 = test::point3;
 using matrix_operator = test::matrix_operator;
@@ -45,57 +46,12 @@ using crk_stepper_t =
 
 namespace {
 
-constexpr scalar tol{1e-3f};
+constexpr scalar_t tol{1e-3f};
+
 stepping::config step_cfg{};
-constexpr material<scalar> vol_mat{detray::cesium_iodide_with_ded<scalar>()};
-
-vecmem::host_memory_resource host_mr;
-
-// dummy navigation struct
-struct nav_state {
-    /// New detector
-    nav_state(vecmem::host_memory_resource &mr)
-        : m_step_size{1.f * unit<scalar>::mm},
-          m_det{std::make_unique<detray::detector<>>(mr)} {
-
-        // Empty dummy volume
-        auto vbuilder = std::make_unique<volume_builder<detray::detector<>>>(
-            volume_id::e_cylinder);
-
-        // with homogeneous volume material
-        auto vm_builder = std::make_unique<
-            homogeneous_volume_material_builder<detray::detector<>>>(
-            std::move(vbuilder));
-        vm_builder->set_material(vol_mat);
-
-        vm_builder->build(*m_det);
-    }
-
-    scalar operator()() const { return m_step_size; }
-    inline auto current_object() const -> dindex { return dindex_invalid; }
-    inline auto is_on_surface() const -> bool { return true; }
-    inline auto is_init() const -> bool { return true; }
-    inline auto detector() const -> const detray::detector<> & {
-        return *(m_det.get());
-    }
-    inline auto volume() -> unsigned int { return 0u; }
-    inline auto get_volume() { return tracking_volume{this->detector(), 0u}; }
-    inline void set_full_trust() {}
-    inline void set_high_trust() {}
-    inline void set_fair_trust() {}
-    inline void set_no_trust() {}
-    inline bool abort() { return false; }
-
-    scalar m_step_size;
-    std::unique_ptr<detray::detector<>> m_det;
-};
-
-// dummy propagator state
-template <typename stepping_t, typename navigation_t>
-struct prop_state {
-    stepping_t _stepping;
-    navigation_t _navigation;
-};
+constexpr scalar_t step_size{1.f * unit<scalar_t>::mm};
+constexpr material<scalar_t> vol_mat{
+    detray::cesium_iodide_with_ded<scalar_t>()};
 
 }  // namespace
 
@@ -106,8 +62,8 @@ GTEST_TEST(detray_propagator, rk_stepper) {
     // Constant magnetic field
     using bfield_t = bfield::const_field_t;
 
-    vector3 B{1.f * unit<scalar>::T, 1.f * unit<scalar>::T,
-              1.f * unit<scalar>::T};
+    vector3 B{1.f * unit<scalar_t>::T, 1.f * unit<scalar_t>::T,
+              1.f * unit<scalar_t>::T};
     const bfield_t hom_bfield = bfield::create_const_field(B);
 
     // RK stepper
@@ -116,10 +72,10 @@ GTEST_TEST(detray_propagator, rk_stepper) {
 
     // RK stepper configurations
     constexpr unsigned int rk_steps = 100u;
-    constexpr scalar stepsize_constr{0.5f * unit<scalar>::mm};
+    constexpr scalar_t stepsize_constr{0.5f * unit<scalar_t>::mm};
 
     // Track generator configuration
-    const scalar p_mag{10.f * unit<scalar>::GeV};
+    const scalar_t p_mag{10.f * unit<scalar_t>::GeV};
     constexpr unsigned int theta_steps = 100u;
     constexpr unsigned int phi_steps = 100u;
 
@@ -133,38 +89,25 @@ GTEST_TEST(detray_propagator, rk_stepper) {
         detail::helix helix(track, &B);
 
         // RK Stepping into forward direction
-        prop_state<rk_stepper_t<bfield_t>::state, nav_state> propagation{
-            rk_stepper_t<bfield_t>::state{track, hom_bfield},
-            nav_state{host_mr}};
-        prop_state<crk_stepper_t<bfield_t>::state, nav_state> c_propagation{
-            crk_stepper_t<bfield_t>::state{c_track, hom_bfield},
-            nav_state{host_mr}};
-
-        rk_stepper_t<bfield_t>::state &rk_state = propagation._stepping;
-        crk_stepper_t<bfield_t>::state &crk_state = c_propagation._stepping;
-
-        // Retrieve the navigation states
-        nav_state &n_state = propagation._navigation;
-        nav_state &cn_state = c_propagation._navigation;
+        rk_stepper_t<bfield_t>::state rk_state{track, hom_bfield};
+        crk_stepper_t<bfield_t>::state crk_state{c_track, hom_bfield};
 
         // Set step size constraint to half the nominal step size =>
         // crk_stepper will need twice as many steps
         crk_state.template set_constraint<constraint::e_user>(stepsize_constr);
         ASSERT_NEAR(crk_state.constraints().template size<>(),
-                    0.5f * unit<scalar>::mm, tol);
+                    0.5f * unit<scalar_t>::mm, tol);
 
-        // Reset step size in the navigation state to a positive value
-        propagation._stepping.set_step_size(1.f * unit<scalar>::mm);
-        c_propagation._stepping.set_step_size(1.f * unit<scalar>::mm);
-
+        // Forward stepping
         for (unsigned int i_s = 0u; i_s < rk_steps; i_s++) {
-            rk_stepper.step(propagation, step_cfg);
-            crk_stepper.step(c_propagation, step_cfg);
-            crk_stepper.step(c_propagation, step_cfg);
+            rk_stepper.step(step_size, rk_state, step_cfg, true);
+            crk_stepper.step(step_size, crk_state, step_cfg, true);
+            crk_stepper.step(step_size, crk_state, step_cfg, true);
         }
 
         // Check that both steppers arrive at the same point
         // Get relative error by dividing error with path length
+        ASSERT_TRUE(rk_state.path_length() > 0.f);
         ASSERT_NEAR(rk_state.path_length(), crk_state.path_length(), tol);
         ASSERT_NEAR(getter::norm(rk_state().pos() - crk_state().pos()) /
                         rk_state.path_length(),
@@ -181,13 +124,11 @@ GTEST_TEST(detray_propagator, rk_stepper) {
 
         // Roll the same track back to the origin
         // Use the same path length, since there is no overstepping
-        const scalar path_length = rk_state.path_length();
-        n_state.m_step_size *= -unit<scalar>::mm;
-        cn_state.m_step_size *= -unit<scalar>::mm;
+        const scalar_t path_length = rk_state.path_length();
         for (unsigned int i_s = 0u; i_s < rk_steps; i_s++) {
-            rk_stepper.step(propagation, step_cfg);
-            crk_stepper.step(c_propagation, step_cfg);
-            crk_stepper.step(c_propagation, step_cfg);
+            rk_stepper.step(-step_size, rk_state, step_cfg, true);
+            crk_stepper.step(-step_size, crk_state, step_cfg, true);
+            crk_stepper.step(-step_size, crk_state, step_cfg, true);
         }
 
         // Should arrive back at track origin, where path length is zero
@@ -221,10 +162,10 @@ TEST(detray_propagator, rk_stepper_inhomogeneous_bfield) {
 
     // RK stepper configurations
     constexpr unsigned int rk_steps = 100u;
-    constexpr scalar stepsize_constr{0.5f * unit<scalar>::mm};
+    constexpr scalar_t stepsize_constr{0.5f * unit<scalar_t>::mm};
 
     // Track generator configuration
-    const scalar p_mag{10.f * unit<scalar>::GeV};
+    const scalar_t p_mag{10.f * unit<scalar_t>::GeV};
     constexpr unsigned int theta_steps = 100u;
     constexpr unsigned int phi_steps = 100u;
 
@@ -235,45 +176,31 @@ TEST(detray_propagator, rk_stepper_inhomogeneous_bfield) {
         free_track_parameters<algebra_t> c_track(track);
 
         // RK Stepping into forward direction
-        prop_state<rk_stepper_t<bfield_t>::state, nav_state> propagation{
-            rk_stepper_t<bfield_t>::state{track, inhom_bfield},
-            nav_state{host_mr}};
-        prop_state<crk_stepper_t<bfield_t>::state, nav_state> c_propagation{
-            crk_stepper_t<bfield_t>::state{c_track, inhom_bfield},
-            nav_state{host_mr}};
-
-        rk_stepper_t<bfield_t>::state &rk_state = propagation._stepping;
-        crk_stepper_t<bfield_t>::state &crk_state = c_propagation._stepping;
-
-        // Retrieve the navigation states
-        nav_state &n_state = propagation._navigation;
-        nav_state &cn_state = c_propagation._navigation;
+        rk_stepper_t<bfield_t>::state rk_state{track, inhom_bfield};
+        crk_stepper_t<bfield_t>::state crk_state{c_track, inhom_bfield};
 
         crk_state.template set_constraint<constraint::e_user>(stepsize_constr);
         ASSERT_NEAR(crk_state.constraints().template size<>(),
-                    0.5f * unit<scalar>::mm, tol);
+                    0.5f * unit<scalar_t>::mm, tol);
 
-        propagation._stepping.set_step_size(1.f * unit<scalar>::mm);
-        c_propagation._stepping.set_step_size(1.f * unit<scalar>::mm);
+        // Forward stepping
         for (unsigned int i_s = 0u; i_s < rk_steps; i_s++) {
-            rk_stepper.step(propagation, step_cfg);
-            crk_stepper.step(c_propagation, step_cfg);
-            crk_stepper.step(c_propagation, step_cfg);
+            rk_stepper.step(step_size, rk_state, step_cfg, true);
+            crk_stepper.step(step_size, crk_state, step_cfg, true);
+            crk_stepper.step(step_size, crk_state, step_cfg, true);
         }
 
         // Make sure the steppers moved
-        const scalar path_length{rk_state.path_length()};
+        const scalar_t path_length{rk_state.path_length()};
         ASSERT_TRUE(path_length > 0.f);
         ASSERT_TRUE(crk_state.path_length() > 0.f);
 
         // Roll the same track back to the origin
         // Use the same path length, since there is no overstepping
-        n_state.m_step_size *= -unit<scalar>::mm;
-        cn_state.m_step_size *= -unit<scalar>::mm;
         for (unsigned int i_s = 0u; i_s < rk_steps; i_s++) {
-            rk_stepper.step(propagation, step_cfg);
-            crk_stepper.step(c_propagation, step_cfg);
-            crk_stepper.step(c_propagation, step_cfg);
+            rk_stepper.step(-step_size, rk_state, step_cfg, true);
+            crk_stepper.step(-step_size, crk_state, step_cfg, true);
+            crk_stepper.step(-step_size, crk_state, step_cfg, true);
         }
 
         // Should arrive back at track origin, where path length is zero
@@ -299,8 +226,8 @@ TEST(detray_propagator, qop_derivative) {
     // Constant magnetic field
     using bfield_t = bfield::const_field_t;
 
-    vector3 B{0.f * unit<scalar>::T, 0.f * unit<scalar>::T,
-              2.f * unit<scalar>::T};
+    vector3 B{0.f * unit<scalar_t>::T, 0.f * unit<scalar_t>::T,
+              2.f * unit<scalar_t>::T};
     const bfield_t hom_bfield = bfield::create_const_field(B);
 
     // RK stepper
@@ -308,38 +235,32 @@ TEST(detray_propagator, qop_derivative) {
     constexpr unsigned int rk_steps = 1000u;
 
     // Theta phi for track generator
-    const scalar p_mag{10.f * unit<scalar>::GeV};
+    const scalar_t p_mag{10.f * unit<scalar_t>::GeV};
     constexpr unsigned int theta_steps = 10u;
     constexpr unsigned int phi_steps = 10u;
 
-    const scalar ds = 1e-2f * unit<scalar>::mm;
+    const scalar_t ds = 1e-2f * unit<scalar_t>::mm;
 
     // Iterate through uniformly distributed momentum directions
     for (auto track : uniform_track_generator<free_track_parameters<algebra_t>>(
              phi_steps, theta_steps, p_mag)) {
 
         // RK Stepping into forward direction
-        prop_state<rk_stepper_t<bfield_t>::state, nav_state> propagation{
-            rk_stepper_t<bfield_t>::state{track, hom_bfield},
-            nav_state{host_mr}};
-
-        // Retrieve the stepper and navigation state
-        rk_stepper_t<bfield_t>::state &rk_state = propagation._stepping;
+        rk_stepper_t<bfield_t>::state rk_state{track, hom_bfield};
 
         rk_state._mat = &vol_mat;
 
         for (unsigned int i_s = 0u; i_s < rk_steps; i_s++) {
 
-            const scalar qop1 = rk_state().qop();
-            const scalar d2qopdsdqop = rk_state.d2qopdsdqop(qop1);
+            const scalar_t qop1 = rk_state().qop();
+            const scalar_t d2qopdsdqop = rk_state.d2qopdsdqop(qop1);
 
-            const scalar dqopds1 = rk_state.dqopds(qop1);
+            const scalar_t dqopds1 = rk_state.dqopds(qop1);
 
-            rk_state.set_step_size(ds);
-            rk_stepper.step(propagation, step_cfg);
+            rk_stepper.step(ds, rk_state, step_cfg, true);
 
-            const scalar qop2 = rk_state().qop();
-            const scalar dqopds2 = rk_state.dqopds(qop2);
+            const scalar_t qop2 = rk_state().qop();
+            const scalar_t dqopds2 = rk_state.dqopds(qop2);
 
             ASSERT_TRUE(qop1 > qop2);
             ASSERT_NEAR((qop2 - qop1) / ds, dqopds1, 1e-4);

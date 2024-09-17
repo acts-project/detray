@@ -87,7 +87,7 @@ struct target_aborter : actor {
 
         // In case the propagation starts on a module, make sure to not abort
         // directly
-        if (navigation.is_on_surface() && !navigation.is_on_portal() &&
+        if (navigation.is_on_surface() &&
             (navigation.barcode() == abrt_state._target_surface) &&
             (stepping.path_length() > 0.f)) {
             prop_state._heartbeat &= navigation.abort();

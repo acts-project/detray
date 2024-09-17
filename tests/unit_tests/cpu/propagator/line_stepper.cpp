@@ -8,17 +8,12 @@
 // detray include(s)
 #include "detray/propagator/line_stepper.hpp"
 
-#include "detray/builders/volume_builder.hpp"
-#include "detray/core/detector.hpp"
 #include "detray/definitions/units.hpp"
 #include "detray/detectors/bfield.hpp"
 #include "detray/tracks/tracks.hpp"
 
 // Detray test include(s)
 #include "detray/test/utils/types.hpp"
-
-// System include(s)
-#include <memory>
 
 // google-test include(s)
 #include <gtest/gtest.h>
@@ -33,43 +28,8 @@ using transform3 = test::transform3;
 namespace {
 
 constexpr scalar tol{1e-3f};
-
-vecmem::host_memory_resource host_mr;
-
-// dummy navigation struct
-struct nav_state {
-    /// New detector
-    nav_state(vecmem::host_memory_resource &mr)
-        : m_step_size{1.f * unit<scalar>::mm},
-          m_det{std::make_unique<detray::detector<>>(mr)} {
-        // Empty dummy volume
-        volume_builder<detray::detector<>> vbuilder{volume_id::e_cylinder};
-        vbuilder.build(*m_det);
-    }
-
-    scalar operator()() const { return m_step_size; }
-    inline auto current_object() const -> dindex { return dindex_invalid; }
-    inline auto tolerance() const -> scalar { return tol; }
-    inline auto detector() const -> const detray::detector<> * {
-        return m_det.get();
-    }
-    inline auto volume() -> unsigned int { return 0u; }
-    inline void set_full_trust() {}
-    inline void set_high_trust() {}
-    inline void set_fair_trust() {}
-    inline void set_no_trust() {}
-    inline bool abort() { return false; }
-
-    scalar m_step_size;
-    std::unique_ptr<detray::detector<>> m_det;
-};
-
-// dummy propagator state
-template <typename stepping_t, typename navigation_t>
-struct prop_state {
-    stepping_t _stepping;
-    navigation_t _navigation;
-};
+constexpr scalar step_size{1.f * unit<scalar>::mm};
+constexpr stepping::config stp_cfg{};
 
 }  // namespace
 
@@ -89,12 +49,8 @@ GTEST_TEST(detray_propagator, line_stepper) {
     line_stepper_t l_stepper;
     cline_stepper_t cl_stepper;
 
-    prop_state<line_stepper_t::state, nav_state> propagation{
-        line_stepper_t::state{track}, nav_state{host_mr}};
-    prop_state<cline_stepper_t::state, nav_state> c_propagation{
-        cline_stepper_t::state{c_track}, nav_state{host_mr}};
-
-    cline_stepper_t::state &cl_state = c_propagation._stepping;
+    line_stepper_t::state l_state{track};
+    cline_stepper_t::state cl_state{c_track};
 
     // Test the setting of step constraints
     cl_state.template set_constraint<constraint::e_accuracy>(10.f *
@@ -121,24 +77,24 @@ GTEST_TEST(detray_propagator, line_stepper) {
                 0.5f * unit<scalar>::mm, tol);
 
     // Run a few steps
-    ASSERT_TRUE(l_stepper.step(propagation));
+    ASSERT_TRUE(l_stepper.step(step_size, l_state, stp_cfg));
     // Step constraint to half step size
-    ASSERT_TRUE(cl_stepper.step(c_propagation));
-    ASSERT_TRUE(cl_stepper.step(c_propagation));
+    ASSERT_TRUE(cl_stepper.step(step_size, cl_state, stp_cfg));
+    ASSERT_TRUE(cl_stepper.step(step_size, cl_state, stp_cfg));
 
-    track = propagation._stepping();
+    track = l_state();
     ASSERT_NEAR(track.pos()[0], constant<scalar>::inv_sqrt2, tol);
     ASSERT_NEAR(track.pos()[1], constant<scalar>::inv_sqrt2, tol);
     ASSERT_NEAR(track.pos()[2], 0.f, tol);
 
-    c_track = c_propagation._stepping();
+    c_track = cl_state();
     ASSERT_NEAR(c_track.pos()[0], constant<scalar>::inv_sqrt2, tol);
     ASSERT_NEAR(c_track.pos()[1], constant<scalar>::inv_sqrt2, tol);
     ASSERT_NEAR(c_track.pos()[2], 0.f, tol);
 
-    ASSERT_TRUE(l_stepper.step(propagation));
+    ASSERT_TRUE(l_stepper.step(step_size, l_state, stp_cfg));
 
-    track = propagation._stepping();
+    track = l_state();
     ASSERT_NEAR(track.pos()[0], constant<scalar>::sqrt2, tol);
     ASSERT_NEAR(track.pos()[1], constant<scalar>::sqrt2, tol);
     ASSERT_NEAR(track.pos()[2], 0.f, tol);
