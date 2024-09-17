@@ -414,12 +414,6 @@ class navigator {
             return m_heartbeat;
         }
 
-        /// Set the next surface that we want to reach (update target)
-        DETRAY_HOST_DEVICE
-        inline auto print_next() const { return m_next; }
-        DETRAY_HOST_DEVICE
-        inline auto print_last() const { return m_last; }
-
         private:
         /// @return start position of valid candidate range.
         DETRAY_HOST_DEVICE
@@ -606,17 +600,19 @@ class navigator {
     struct candidate_search {
 
         /// Test the volume links
+        template <typename track_t>
         DETRAY_HOST_DEVICE void operator()(
             const typename detector_type::surface_type &sf_descr,
-            const detector_type &det, const detail::ray<algebra_type> &ray,
-            state &nav_state, const std::array<scalar_type, 2> mask_tol,
+            const detector_type &det, const track_t &track, state &nav_state,
+            const std::array<scalar_type, 2> mask_tol,
             const scalar_type mask_tol_scalor,
             const scalar_type overstep_tol) const {
 
             const auto sf = tracking_surface{det, sf_descr};
 
             sf.template visit_mask<intersection_initialize<ray_intersector>>(
-                nav_state, ray, sf_descr, det.transform_store(),
+                nav_state, detail::ray<algebra_type>{track}, sf_descr,
+                det.transform_store(),
                 sf.is_portal() ? std::array<scalar_type, 2>{0.f, 0.f}
                                : mask_tol,
                 mask_tol_scalor, overstep_tol);
@@ -648,7 +644,7 @@ class navigator {
 
         // Search for neighboring surfaces and fill candidates into cache
         volume.template visit_neighborhood<candidate_search>(
-            track, cfg, det, detail::ray<algebra_type>{track}, navigation,
+            track, cfg, det, track, navigation,
             std::array<scalar_type, 2u>{cfg.min_mask_tolerance,
                                         cfg.max_mask_tolerance},
             static_cast<scalar_type>(cfg.mask_tolerance_scalor),

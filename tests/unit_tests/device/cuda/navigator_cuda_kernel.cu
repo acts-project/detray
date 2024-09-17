@@ -48,7 +48,8 @@ __global__ void navigator_test_kernel(
     bool heartbeat = nav.init(stepping(), navigation, cfg);
     while (heartbeat) {
 
-        heartbeat &= stepper.step(propagation);
+        const bool do_reset{navigation.is_on_surface() || navigation.is_init()};
+        heartbeat &= stepper.step(navigation(), do_reset, stepping);
 
         navigation.set_high_trust();
 

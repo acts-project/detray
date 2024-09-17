@@ -99,7 +99,7 @@ inline void step_and_check(navigator_t &nav, stepper_t &stepper,
     auto &stepping = propagation._stepping;
 
     // Step onto the surface in volume
-    stepper.step(propagation);
+    stepper.step(navigation(), true, stepping);
     navigation.set_high_trust();
     // Stepper reduced trust level
     ASSERT_TRUE(navigation.trust_level() == navigation::trust_level::e_high);
@@ -179,7 +179,7 @@ GTEST_TEST(detray_navigation, navigator_toy_geometry) {
     // Let's make half the step towards the beampipe
     stepping.template set_constraint<step::constraint::e_user>(navigation() *
                                                                0.5f);
-    stepper.step(propagation);
+    stepper.step(navigation(), true, stepping);
     // Navigation policy might reduce trust level to fair trust
     navigation.set_fair_trust();
     // Release user constraint again
@@ -205,7 +205,7 @@ GTEST_TEST(detray_navigation, navigator_toy_geometry) {
     ASSERT_NEAR(navigation(), 6.f, tol);
 
     // Step onto portal 7 in volume 0
-    stepper.step(propagation);
+    stepper.step(navigation(), true, stepping);
     navigation.set_high_trust();
     ASSERT_TRUE(navigation.trust_level() == trust_level::e_high);
     ASSERT_TRUE(nav.update(stepping(), navigation, cfg))
@@ -271,7 +271,7 @@ GTEST_TEST(detray_navigation, navigator_toy_geometry) {
         }
 
         // Step onto the portal in volume
-        stepper.step(propagation_cpy);
+        stepper.step(navigation_cpy(), true, stepping_cpy);
         navigation_cpy.set_high_trust();
 
         // Check agianst last volume
@@ -364,7 +364,7 @@ GTEST_TEST(detray_navigation, navigator_wire_chamber) {
     // Let's make half the step towards the portal
     stepping.template set_constraint<step::constraint::e_user>(navigation() *
                                                                0.5f);
-    stepper.step(propagation);
+    stepper.step(navigation(), true, stepping);
     // Navigation policy might reduce trust level to fair trust
     navigation.set_fair_trust();
     // Release user constraint again
@@ -385,7 +385,7 @@ GTEST_TEST(detray_navigation, navigator_wire_chamber) {
     ASSERT_NEAR(navigation(), 250.f * unit<scalar>::mm, tol);
 
     // Step onto portal in volume 0
-    stepper.step(propagation);
+    stepper.step(navigation(), true, stepping);
     navigation.set_high_trust();
     ASSERT_TRUE(navigation.trust_level() == trust_level::e_high);
     ASSERT_TRUE(nav.update(stepping(), navigation, cfg))
@@ -440,7 +440,7 @@ GTEST_TEST(detray_navigation, navigator_wire_chamber) {
         }
 
         // Step onto the portal in volume
-        stepper.step(propagation_cpy);
+        stepper.step(navigation_cpy(), true, stepping_cpy);
         navigation_cpy.set_high_trust();
 
         // Check agianst last volume
