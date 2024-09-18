@@ -329,9 +329,11 @@ class grid_reader {
             using builder_t = grid_builder_t<detector_t, grid_t, bin_filler_t,
                                              grid_factory_type<grid_t>>;
 
-            auto v_builder =
+            auto vgr_builder =
                 det_builder.template decorate<builder_t>(volume_idx);
-            auto vgr_builder = dynamic_cast<builder_t *>(v_builder);
+            if (!vgr_builder) {
+                throw std::runtime_error("Grid decoration failed");
+            }
 
             // Initialize the grid axes
             std::vector<std::size_t> n_bins_per_axis{};

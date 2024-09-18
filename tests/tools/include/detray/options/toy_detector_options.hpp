@@ -12,7 +12,7 @@
 #include "detray/options/options_handling.hpp"
 
 // Boost
-#include <boost/program_options.hpp>
+#include "detray/options/boost_program_options.hpp"
 
 // System include(s)
 #include <stdexcept>

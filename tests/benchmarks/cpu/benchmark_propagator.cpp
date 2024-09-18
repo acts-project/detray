@@ -6,7 +6,6 @@
  */
 
 // Project include(s).
-#include "detray/builders/grid_factory.hpp"
 #include "detray/definitions/detail/algebra.hpp"
 #include "detray/definitions/detail/containers.hpp"
 #include "detray/definitions/detail/indexing.hpp"

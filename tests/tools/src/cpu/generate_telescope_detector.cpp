@@ -18,9 +18,10 @@
 #include <vecmem/memory/host_memory_resource.hpp>
 
 // Boost
-#include <boost/program_options.hpp>
+#include "detray/options/boost_program_options.hpp"
 
 namespace po = boost::program_options;
+
 using namespace detray;
 
 namespace {

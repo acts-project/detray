@@ -339,6 +339,10 @@ volume_builder_interface<detector_t> *decorate_material(
                     v_builder);
     }
 
+    if (!vm_builder) {
+        throw std::runtime_error("Material decoration failed");
+    }
+
     return vm_builder;
 }
 
@@ -508,8 +512,11 @@ inline void add_cylinder_grid(detector_builder_t &det_builder,
     const auto &barrel_cfg{cfg.barrel_config()};
     const scalar_t h_z{barrel_cfg.half_length()};
 
-    auto v_builder = det_builder.template decorate<grid_builder_t>(vol_index);
-    auto vgr_builder = dynamic_cast<grid_builder_t *>(v_builder);
+    auto vgr_builder = det_builder.template decorate<grid_builder_t>(vol_index);
+
+    if (!vgr_builder) {
+        throw std::runtime_error("Grid decoration failed");
+    }
 
     vgr_builder->set_type(detector_t::geo_obj_ids::e_sensitive);
     vgr_builder->init_grid(
@@ -540,8 +547,11 @@ inline void add_disc_grid(detector_builder_t &det_builder, toy_det_config &cfg,
     const scalar_t inner_r{cfg.beampipe_vol_radius()};
     const scalar_t outer_r{cfg.outer_radius()};
 
-    auto v_builder = det_builder.template decorate<grid_builder_t>(vol_index);
-    auto vgr_builder = dynamic_cast<grid_builder_t *>(v_builder);
+    auto vgr_builder = det_builder.template decorate<grid_builder_t>(vol_index);
+
+    if (!vgr_builder) {
+        throw std::runtime_error("Grid decoration failed");
+    }
 
     vgr_builder->set_type(detector_t::geo_obj_ids::e_sensitive);
     vgr_builder->init_grid(

@@ -17,12 +17,13 @@
 #include <vecmem/memory/host_memory_resource.hpp>
 
 // Boost
-#include <boost/program_options.hpp>
+#include "detray/options/boost_program_options.hpp"
+
+namespace po = boost::program_options;
+
+using namespace detray;
 
 int main(int argc, char **argv) {
-
-    namespace po = boost::program_options;
-    using namespace detray;
 
     // Options parsing
     po::options_description desc("\nWire chamber generation options");

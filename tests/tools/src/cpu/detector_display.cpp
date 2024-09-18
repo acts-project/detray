@@ -22,7 +22,7 @@
 #include "actsvg/core.hpp"
 
 // Boost
-#include <boost/program_options.hpp>
+#include "detray/options/boost_program_options.hpp"
 
 // System include(s)
 #include <filesystem>
@@ -31,6 +31,7 @@
 #include <string>
 
 namespace po = boost::program_options;
+
 using namespace detray;
 
 int main(int argc, char** argv) {

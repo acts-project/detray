@@ -12,11 +12,10 @@
 #include "detray/propagator/propagation_config.hpp"
 
 // Boost
-#include <boost/program_options.hpp>
+#include "detray/options/boost_program_options.hpp"
 
 // System include(s)
 #include <stdexcept>
-#include <string>
 
 namespace detray::options {
 

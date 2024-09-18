@@ -17,13 +17,13 @@
 #include <vecmem/memory/host_memory_resource.hpp>
 
 // Boost
-#include <boost/program_options.hpp>
+#include "detray/options/boost_program_options.hpp"
 
 namespace po = boost::program_options;
 
-int main(int argc, char **argv) {
+using namespace detray;
 
-    using namespace detray;
+int main(int argc, char **argv) {
 
     // Configuration
     detray::toy_det_config toy_cfg{};

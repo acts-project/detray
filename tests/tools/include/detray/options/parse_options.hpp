@@ -8,7 +8,7 @@
 #pragma once
 
 // Boost
-#include <boost/program_options.hpp>
+#include "detray/options/boost_program_options.hpp"
 
 // System include(s).
 #include <cstdlib>
@@ -31,6 +31,10 @@ auto parse_options(boost::program_options::options_description& desc, int argc,
                    char* argv[], CONFIGS&... cfgs) {
 
     static_assert(sizeof...(CONFIGS) > 0, "No commandline options configured");
+
+    if (!argv) {
+        throw std::invalid_argument("Invalid command line arguments passed");
+    }
 
     desc.add_options()("help", "Produce help message");
 
