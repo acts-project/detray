@@ -42,7 +42,7 @@ struct surface_kernels {
         DETRAY_HOST inline std::string operator()(const mask_group_t&,
                                                   const index_t&) const {
 
-            return mask_group_t::value_type::shape::name;
+            return std::string(mask_group_t::value_type::shape::name);
         }
     };
 
